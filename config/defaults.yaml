@@ -1,0 +1,59 @@
+# MetaQA Configuration
+metaqa:
+  num_perturbations: 12
+  temperature_range: [0.3, 0.9]
+  paraphrase_templates:
+    - "Rephrase this question: {question}"
+    - "Ask differently: {question}"
+    - "Alternative phrasing: {question}"
+  role_prompts:
+    - "As an expert, answer: {question}"
+    - "From a factual perspective: {question}"
+    - "Objectively consider: {question}"
+
+# Answer Collection
+answer_collector:
+  cache_path: ".cache/answers"
+  enable_async: true
+  batch_size: 5
+  max_retries: 3
+
+# Embedding Analysis
+embedding:
+  model_name: "sentence-transformers/all-mpnet-base-v2"
+  clustering_methods:
+    - "kmeans"
+    - "agglomerative"
+  num_clusters_range: [2, 5]
+  features:
+    - "intra_cluster_similarity"
+    - "largest_cluster_share"
+    - "num_clusters"
+    - "silhouette_score"
+    - "mean_pairwise_distance"
+    - "centroid_max_dev"
+
+# Weak Classifier Builder
+weak_classifiers:
+  method: "gaussian_mixture"  # Options: otsu, gaussian_mixture, percentile
+  num_thresholds_per_feature: 2
+  percentile_thresholds: [25, 75]
+
+# Ensemble Matrix
+ensemble:
+  num_classifiers: 10
+  prune_to: null  # Set to integer < num_classifiers to prune
+
+# L-SML Configuration
+lsml:
+  k_max: 10  # Maximum number of latent groups
+  enable_sampling: true  # Use sampling for score matrix (reduces O(m^4))
+  sample_size: 1000  # Number of determinant pairs to sample
+  spectral_method: "normalized"  # normalized or unnormalized spectral clustering
+  convergence_tol: 1e-6
+  max_iterations: 100
+
+# Pipeline
+pipeline:
+  calibration_size: 50  # Number of questions for calibration
+  verbose: true
