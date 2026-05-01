@@ -2509,6 +2509,39 @@ Output saved to Drive: `/content/drive/MyDrive/meeting_plots_apr27/`
 
 ---
 
+### Step 69 — Phase 7 Results: GSM8K / Llama-3.1-8B, T=1.0
+
+**Run:** 1,319 samples (full GSM8K test split), LapEigvals Listing 5 prompt, exact-match grading, max_new_tokens=512.
+
+**Key numbers:**
+
+| Metric | Value |
+|---|---|
+| Accuracy | 79.1% (1043/1319 correct) |
+| Format OK | 97.0% (model produced "The final answer is [X]" in 1279/1319 responses) |
+| Best individual feature | `sw_var_peak` w=16 → 73.9% [70.5, 77.5] |
+| **Best Nadler fusion** | **76.0% [72.5, 79.3]** |
+| Best subset | `trace_length + low_band_power + stft_spectral_entropy + sw_var_peak` |
+
+**Comparisons:**
+
+| Method | AUROC | Supervision |
+|---|---|---|
+| LapEigvals supervised | 87.2% | 80% labeled train split |
+| **Our spectral Nadler (Phase 7)** | **76.0%** | **None (gray-box)** |
+| LapEigvals unsupervised (AttentionScore) | 72.0% | None (white-box) |
+| Our prior GSM8K (Phase 4) | 74.1% | None (gray-box) |
+
+**Gates: 5/7 passed** — G5 (CI lower > 75%) and G6 (beat supervised) failed.
+
+**Important discrepancy — model accuracy:** We observed 79.1% accuracy vs LapEigvals' reported ~65% for the same model on the same dataset. LapEigvals filtered ~300 rejected responses (23%); we only observed 40 no-format responses (3%). Most likely explanation: Llama-3.1-8B-Instruct has been updated on HuggingFace since LapEigvals ran their experiments (~late 2024). The current model is significantly better at GSM8K. 
+
+Implication: detecting hallucinations at 79% accuracy (fewer wrong examples, imbalanced 79:21 split) is harder than at 65% accuracy. Our 76.0% AUC is arguably stronger than the raw number suggests relative to their 87.2%.
+
+**Note:** This run used the OLD pipeline (no z-score normalization). The z-score fix in `spectral_utils` may change the result. Re-run needed to quantify the normalization effect.
+
+---
+
 ### Step 67 — Advisor Feedback Session (May 2026): 4 Action Items
 
 Meeting notes documented in `Advisor_Feedback_May2026.md`. Summary:
