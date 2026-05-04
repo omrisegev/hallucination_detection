@@ -133,6 +133,28 @@ def sw_var_peak_with_window(ents, sw_window: int, sw_step: int = 1) -> float:
     return float(np.var(e))
 
 
+def sw_var_peak_adaptive(ents, fraction: float = 0.10,
+                         min_w: int = 3, max_w: int = 32,
+                         sw_step: int = 1) -> float:
+    """
+    sw_var_peak with window proportional to trace length.
+
+    Window = clip(int(len * fraction), min_w, max_w).
+    For math traces (~1000 tokens) at fraction=0.10 → w≈32 (capped).
+    For QA traces (~100 tokens) → w≈10, capturing local bursts without
+    over-smoothing the way a fixed w=16 would.
+
+    Args:
+        fraction: target fraction of trace length to use as window.
+        min_w:    minimum window (prevents w=1 on very short traces).
+        max_w:    maximum window (prevents over-smoothing on long traces).
+        sw_step:  sliding stride (1 = token-by-token).
+    """
+    e = np.array(ents, dtype=float)
+    w = max(min_w, min(max_w, int(len(e) * fraction)))
+    return sw_var_peak_with_window(ents, w, sw_step)
+
+
 def extract_all_features(ents) -> dict | None:
     """
     Extract all 12 spectral features from a single entropy trace.

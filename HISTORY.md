@@ -2596,3 +2596,35 @@ git push -u origin master
 ```
 
 ---
+
+### Step 16 — Phase 9 notebook created: Fixed Subset Validation + Window Ablation + QA Transfer
+
+**What**: Created `Spectral_Analysis_Phase9_QA_Validation.ipynb` — validates the pre-selected 4-feature fixed subset on TriviaQA and WebQ without re-running exhaustive subset search.
+
+**Model**: `tiiuae/Falcon3-10B-Instruct` — same model used in EPR paper baselines for TriviaQA/WebQ. Loads at bfloat16 (no quantization, ~20GB).
+
+**Grading**: Normalized exact-match against gold aliases (TriviaQA/WebQ standard; same as EPR paper setup).
+
+**Repo changes (committed with this step)**:
+- `spectral_utils/model_utils.py` — two new fixes:
+  1. AWQ/GPTQ pre-quantized model detection (`awq`/`gptq` in model_id): skips BitsAndBytesConfig, loads as-is
+  2. No dtype kwarg when quantize_4bit=True: prevents bitsandbytes bypass → OOM fix for 72B on A100
+  3. `dtype=` (not deprecated `torch_dtype=`) for non-quantized path
+- `spectral_utils/feature_utils.py` — added `sw_var_peak_adaptive(ents, fraction=0.10, min_w=3, max_w=32)`: window ∝ trace length; for 100-token QA traces → w≈10, for 1000-token math traces → w=32 (capped)
+- `spectral_utils/data_loaders.py` — added TriviaQA (`load_trivia_qa`, `trivia_qa_prompt`, `is_correct_trivia_qa`) and WebQ (`load_webq`, `webq_prompt`, `is_correct_webq`) loaders; both use normalized alias exact-match grading
+- `spectral_utils/__init__.py` — exports `sw_var_peak_adaptive` and documents new loaders
+
+**Notebook sections**:
+1. Setup + Config
+2. TriviaQA inference (Falcon-3-10B, T=1.0, max_tokens=64, 300 samples, checkpointed)
+3. WebQ inference (same setup)
+4. Feature extraction (all 12 + sw_var_peak_adaptive)
+5. Feature behavior plots (distributions by correctness, 4 fixed features)
+6. Spearman correlation heatmap (fixed subset, with |ρ|≥0.75 borders)
+7. Window ablation: sw_var_peak AUC vs w ∈ {3,5,7,9,12,16,24,32} + adaptive
+8. Fixed subset Nadler fusion (no re-search; sw_var_peak + trace_length + spectral_centroid + stft_max_high_power)
+9. Baseline comparison table + bar chart vs EPR (mean entropy)
+
+**Reference baselines (from Unified_EPR_Ensemble_res.ipynb)**:
+- TriviaQA EPR direct_fresh: 72.0%
+- WebQ EPR direct_fresh:     66.4%

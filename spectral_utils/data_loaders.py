@@ -6,6 +6,8 @@ Supported datasets:
   - MATH-500    (competition math; boxed answer extraction)
   - GPQA Diamond (graduate-level MCQ; letter extraction)
   - HotpotQA    (multi-hop QA; substring match)
+  - TriviaQA    (rc.nocontext; normalized alias exact-match grading)
+  - WebQ        (WebQuestions; normalized alias exact-match grading)
 """
 import re
 import string
@@ -228,3 +230,95 @@ def _normalize_hotpotqa(s: str) -> str:
 
 def is_correct_hotpotqa(gen: str, gold: str) -> bool:
     return _normalize_hotpotqa(gold) in _normalize_hotpotqa(gen)
+
+
+# ── TriviaQA ──────────────────────────────────────────────────────────────────
+
+def load_trivia_qa(n_samples: int = 300, split: str = "validation") -> list[dict]:
+    """
+    Load TriviaQA rc.nocontext from HuggingFace.
+
+    Returns list of {question, answer_value, aliases} dicts.
+    aliases is the full list of valid answer strings (from the dataset).
+    """
+    from datasets import load_dataset
+    ds = load_dataset("trivia_qa", "rc.nocontext", split=split)
+    items = []
+    for i in range(min(n_samples, len(ds))):
+        row = ds[i]
+        items.append({
+            "question":     row["question"],
+            "answer_value": row["answer"]["value"],
+            "aliases":      row["answer"]["aliases"],
+        })
+    print(f"Loaded {len(items)} TriviaQA {split} samples.")
+    return items
+
+
+def trivia_qa_prompt(question: str) -> str:
+    """Direct-answer prompt matching the EPR paper setup (no CoT, short answer)."""
+    return (
+        f"Answer the following question with a short, direct answer.\n\n"
+        f"Question: {question}\n\n"
+        f"Answer:"
+    )
+
+
+def _normalize_qa(s: str) -> str:
+    """Normalize for QA exact-match: lowercase, strip articles, strip punctuation."""
+    s = s.lower().strip()
+    s = re.sub(r"\b(a|an|the)\b", " ", s)
+    s = "".join(c for c in s if c not in string.punctuation)
+    return " ".join(s.split())
+
+
+def is_correct_trivia_qa(gen: str, item: dict) -> bool:
+    """
+    Normalized exact-match against all aliases (TriviaQA standard evaluation).
+
+    Extracts the first line / text before a newline as the model's answer,
+    then checks if the normalized form matches any normalized alias.
+    """
+    pred = gen.strip().split("\n")[0].strip()
+    pred_norm = _normalize_qa(pred)
+    return any(_normalize_qa(a) == pred_norm for a in item["aliases"])
+
+
+# ── WebQuestions ──────────────────────────────────────────────────────────────
+
+def load_webq(n_samples: int = 300, split: str = "test") -> list[dict]:
+    """
+    Load WebQuestions from HuggingFace.
+
+    Returns list of {question, answers} dicts where answers is the list of
+    gold answer strings.
+    """
+    from datasets import load_dataset
+    ds = load_dataset("web_questions", split=split)
+    items = []
+    for i in range(min(n_samples, len(ds))):
+        row = ds[i]
+        items.append({
+            "question": row["question"],
+            "answers":  row["answers"],
+        })
+    print(f"Loaded {len(items)} WebQuestions {split} samples.")
+    return items
+
+
+def webq_prompt(question: str) -> str:
+    """Direct-answer prompt for WebQuestions."""
+    return (
+        f"Answer the following question with a short, direct answer.\n\n"
+        f"Question: {question}\n\n"
+        f"Answer:"
+    )
+
+
+def is_correct_webq(gen: str, item: dict) -> bool:
+    """
+    Normalized exact-match against all gold answers (WebQ standard evaluation).
+    """
+    pred = gen.strip().split("\n")[0].strip()
+    pred_norm = _normalize_qa(pred)
+    return any(_normalize_qa(a) == pred_norm for a in item["answers"])

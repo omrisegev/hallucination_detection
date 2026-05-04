@@ -25,34 +25,39 @@ def load_model(model_id: str, quantize_4bit: bool = False):
         quantize_4bit:  Use bitsandbytes 4-bit quantization. Required for 70B models on
                         a single 40 GB GPU. Slightly affects logit values but preserves
                         relative entropy ordering.
+                        Ignored for pre-quantized AWQ/GPTQ model IDs — those are loaded
+                        as-is since bitsandbytes and AWQ/GPTQ configs conflict.
 
     Returns:
         (model, tokenizer)
     """
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-    tok = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
+    tok = AutoTokenizer.from_pretrained(model_id, trust_remote_code=False)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
 
-    bnb_cfg = None
-    if quantize_4bit:
-        bnb_cfg = BitsAndBytesConfig(
+    is_prequantized = any(tag in model_id.lower() for tag in ("awq", "gptq"))
+
+    kwargs = dict(device_map="auto", attn_implementation="eager", trust_remote_code=False)
+
+    if quantize_4bit and not is_prequantized:
+        # Do NOT pass dtype alongside quantization_config — bitsandbytes owns dtype
+        # internally. Passing torch_dtype here causes newer transformers to bypass
+        # bitsandbytes and load FP16 weights → OOM on 72B models.
+        kwargs["quantization_config"] = BitsAndBytesConfig(
             load_in_4bit=True,
-            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_compute_dtype=torch.bfloat16,
             bnb_4bit_use_double_quant=True,
             bnb_4bit_quant_type="nf4",
         )
+    else:
+        # "dtype" is the current kwarg name (transformers ≥4.50 deprecated "torch_dtype")
+        kwargs["dtype"] = torch.bfloat16
 
-    mdl = AutoModelForCausalLM.from_pretrained(
-        model_id,
-        device_map="auto",
-        torch_dtype=torch.float16,
-        quantization_config=bnb_cfg,
-        trust_remote_code=True,
-    )
+    mdl = AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
     mdl.eval()
-    quant_tag = " [4-bit]" if quantize_4bit else ""
+    quant_tag = " [AWQ]" if is_prequantized else (" [4-bit NF4]" if quantize_4bit else "")
     print(f"Loaded {model_id}{quant_tag}")
     return mdl, tok
 
