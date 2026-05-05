@@ -559,7 +559,33 @@ Design: T=1.0, same 12 signals, 4 configs (A1/A2 MATH-500, B1/B2 GPQA), cross-te
 - EPR remains important for MATH-500 but is temperature/domain-sensitive
 - These 4 features are the backbone for cross-domain claims
 
-**Phase 5B — HotpotQA generalization** ← NEXT (see Direction 7)
+**Phase 8 — GPQA Diamond with Qwen2.5-72B-AWQ** ← PENDING (highest priority unfinished)
+
+*Status*: Planned but not yet run. Phase 4 GPQA results (all 7B models, 51–65% AUC) are near-random.
+
+*Root cause of poor GPQA performance*: 7B models achieve ~30% accuracy on GPQA Diamond (random = 25% on 4-choice MCQ). This gives a 70:30 wrong:correct class split — too imbalanced for spectral features to find signal. The model is wrong on most questions not because it hallucinated on something it knew, but because the questions exceed its knowledge capacity entirely.
+
+*Fix*: Use `Qwen2.5-72B-Instruct-AWQ` (~65% GPQA accuracy per advisor recommendation, Step 67). Gives ~65:35 split on 198 samples → ~70 correct / 128 wrong. Model loads with fixed `load_model(model_id, quantize_4bit=False)` which auto-detects AWQ and skips BitsAndBytesConfig.
+
+*Fallback*: `Qwen2.5-32B-Instruct` with `quantize_4bit=True` (~55–60% GPQA) if 72B is OOM.
+
+*Expected change*: If spectral features are informative at all on GPQA, moving from 30% → 65% model accuracy should push `sw_var_peak` AUC from ~58% toward 65%+. If AUC stays near 50% even with a strong model, GPQA MCQ is structurally incompatible with entropy trajectory signals.
+
+**Phase 9 — TriviaQA + WebQ domain transfer** ← CREATED, NOT YET RUN
+
+*Status*: `Spectral_Analysis_Phase9_QA_Validation.ipynb` created (Step 71). Pending execution on Colab.
+
+*Model*: `tiiuae/Falcon3-10B-Instruct` (same as EPR paper baselines for TriviaQA/WebQ).
+
+*New feature*: `sw_var_peak_adaptive` — window ∝ trace length (`clip(len * 0.10, 3, 32)`). QA traces are 50–100 tokens; fixed w=16 covers 16–32% of trace (too coarse). Adaptive window gives ~10% of trace, capped at 32 for long traces.
+
+*What the notebook tests*:
+1. Feature behavior (distributions by correctness) — do the 4 fixed features separate classes on QA?
+2. Correlation heatmap — do the features stay decorrelated on new domains?
+3. Window ablation — which window size is best for short QA traces? Does adaptive win?
+4. Fixed 4-feat Nadler fusion (no re-search) vs EPR baseline (72.0% TriviaQA, 66.4% WebQ)
+
+**Phase 5B — HotpotQA generalization** ← NEXT after Phase 9 (see Direction 7)
 
 ### Key Technical Challenge
 Variable trace lengths mean FFT bins correspond to different physical frequencies across samples. Solutions:
@@ -672,23 +698,26 @@ The comparison table needs no new inference. HotpotQA is the only new run — sa
 
 ---
 
-## Recommended Priority Order (updated April 2026)
+## Recommended Priority Order (updated May 2026)
 
 **Completed**:
-- Spectral Analysis Phases 1–5 ✅
+- Spectral Analysis Phases 1–7 ✅
 - Unified EPR / CoT ensemble ✅
 - Temperature-varied EPR + behavioral views ✅
+- `spectral_utils` package refactor + git repo ✅ (Step 68)
+- `spectral_utils` model loading fixes (AWQ, bitsandbytes dtype, deprecated kwarg) ✅ (Step 70)
+- `sw_var_peak_adaptive` feature added ✅ (Step 70)
+- TriviaQA + WebQ data loaders added ✅ (Step 70)
 
-**Next — Direction 7 (Comparison + HotpotQA)**:
-1. ✅ `Spectral_Analysis_Phase6.ipynb` built (Step 63) — ready to run on Colab
-2. Run Phase 6: Part 1 (static comparison table loads automatically) + Part 2 (HotpotQA/Mistral-7B inference)
-3. Window ablation cell runs post-inference: sw_var_peak with w ∈ {3, 5, 7, 9, 16}
-4. Read decision gates (G0–G6) to determine thesis scope claim
+**Immediately pending — spectral analysis**:
+1. **Phase 8 (GPQA / Qwen2.5-72B-AWQ)** — highest priority. 7B GPQA results are near-random due to class imbalance (30% accuracy). `load_model` is now fixed for AWQ. Run with `quantize_4bit=False`; AWQ detected automatically. Expected to push AUC from ~58% toward 65%+.
+2. **Phase 9 (TriviaQA/WebQ / Falcon-3-10B)** — notebook exists (`Spectral_Analysis_Phase9_QA_Validation.ipynb`), not yet run. Tests fixed 4-feature subset + adaptive window on factual QA. Colab import issue resolved (use `git clone -b master`).
 
-**After comparison**:
-4. Direction 5 (Conformal) — thesis endpoint, formal guarantee chapter, ~50 lines
-5. Direction 4 (Agentic, HotpotQA already partially explored) — if committee wants it
-6. Direction 1E (Add trace-EPR to 6-view ensemble) — if TriviaQA/WebQ scope still in thesis
+**After Phase 8 + 9 results**:
+3. **Direction 7 (Comparison + HotpotQA)** — `Spectral_Analysis_Phase6.ipynb` built (Step 63), ready to run. Part 1 (static comparison table) + Part 2 (HotpotQA/Mistral-7B, target: beat LOS-Net 72.92%).
+4. **Direction 5 (Conformal)** — thesis endpoint. LTT calibration of best ensemble score into formal guarantee. ~50 lines, requires stable best-ensemble AUC first.
+5. **Direction 1E** (Add trace-EPR to 6-view ensemble) — if TriviaQA/WebQ remains in thesis scope.
+6. **Direction 4 Agentic** — lower priority, separate infrastructure.
 
 ---
 

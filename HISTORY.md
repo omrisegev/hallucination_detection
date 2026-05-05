@@ -2597,34 +2597,92 @@ git push -u origin master
 
 ---
 
-### Step 16 — Phase 9 notebook created: Fixed Subset Validation + Window Ablation + QA Transfer
+### Step 70 — spectral_utils package: model loading fixes + adaptive window + QA data loaders
 
-**What**: Created `Spectral_Analysis_Phase9_QA_Validation.ipynb` — validates the pre-selected 4-feature fixed subset on TriviaQA and WebQ without re-running exhaustive subset search.
+**Context**: Following the refactor (Step 68), three bugs remained in `spectral_utils/model_utils.py` that caused GPQA Phase 8 (Qwen2.5-72B-AWQ) to fail with OOM or ValueError. These were fixed before planning the next notebook.
 
-**Model**: `tiiuae/Falcon3-10B-Instruct` — same model used in EPR paper baselines for TriviaQA/WebQ. Loads at bfloat16 (no quantization, ~20GB).
+**Fixes to `spectral_utils/model_utils.py`**:
+1. **bitsandbytes bypass bug (OOM root cause)**: In newer transformers (≥4.50), passing `torch_dtype=` alongside `quantization_config` causes bitsandbytes to be bypassed — weights load in FP16 instead of NF4, using 78 GB on an 80 GB A100. Fix: do NOT pass any dtype kwarg when `quantize_4bit=True`; bitsandbytes controls dtype internally.
+2. **AWQ conflict**: Passing `BitsAndBytesConfig` to a pre-quantized AWQ model (`Qwen2.5-72B-Instruct-AWQ`) raises `ValueError`. Fix: detect `awq`/`gptq` in model_id and skip BitsAndBytesConfig entirely; load AWQ models at `dtype=bfloat16`.
+3. **Deprecated `torch_dtype=` kwarg**: Renamed to `dtype=` in transformers ≥4.50. Fix: use `dtype=` for non-quantized path.
 
-**Grading**: Normalized exact-match against gold aliases (TriviaQA/WebQ standard; same as EPR paper setup).
+**Addition to `spectral_utils/feature_utils.py`**:
+- `sw_var_peak_adaptive(ents, fraction=0.10, min_w=3, max_w=32)`: window size ∝ trace length. Motivation: w=16 was optimal for GSM8K (~1000-token traces, 1.6% of trace), but QA traces are ~50–100 tokens, making w=16 coarse (16–32% of trace). Adaptive window scales to ~10% of trace length, capped at 32 to prevent over-smoothing on long traces.
 
-**Repo changes (committed with this step)**:
-- `spectral_utils/model_utils.py` — two new fixes:
-  1. AWQ/GPTQ pre-quantized model detection (`awq`/`gptq` in model_id): skips BitsAndBytesConfig, loads as-is
-  2. No dtype kwarg when quantize_4bit=True: prevents bitsandbytes bypass → OOM fix for 72B on A100
-  3. `dtype=` (not deprecated `torch_dtype=`) for non-quantized path
-- `spectral_utils/feature_utils.py` — added `sw_var_peak_adaptive(ents, fraction=0.10, min_w=3, max_w=32)`: window ∝ trace length; for 100-token QA traces → w≈10, for 1000-token math traces → w=32 (capped)
-- `spectral_utils/data_loaders.py` — added TriviaQA (`load_trivia_qa`, `trivia_qa_prompt`, `is_correct_trivia_qa`) and WebQ (`load_webq`, `webq_prompt`, `is_correct_webq`) loaders; both use normalized alias exact-match grading
-- `spectral_utils/__init__.py` — exports `sw_var_peak_adaptive` and documents new loaders
+**Additions to `spectral_utils/data_loaders.py`**:
+- TriviaQA: `load_trivia_qa`, `trivia_qa_prompt`, `is_correct_trivia_qa` — normalized alias exact-match grading (EPR paper standard; no LLM judge needed, gold alias lists built into the dataset)
+- WebQ: `load_webq`, `webq_prompt`, `is_correct_webq` — same grading approach
+
+All changes committed and pushed to `master` branch.
+
+---
+
+### Step 71 — Phase 9 notebook created: Fixed Subset Validation + Window Ablation + QA Transfer
+
+**What**: Created `Spectral_Analysis_Phase9_QA_Validation.ipynb` — validates the pre-selected 4-feature subset on TriviaQA and WebQ (new domains) without re-running exhaustive subset search.
+
+**Model**: `tiiuae/Falcon3-10B-Instruct` — same model used in EPR paper baselines for TriviaQA/WebQ. Loads at bfloat16, no quantization (~20 GB).
+
+**Grading**: Normalized exact-match against gold aliases (EPR paper standard).
 
 **Notebook sections**:
-1. Setup + Config
-2. TriviaQA inference (Falcon-3-10B, T=1.0, max_tokens=64, 300 samples, checkpointed)
+1. Setup (git clone + sys.path — see Step 72 for why pip install failed)
+2. TriviaQA inference (T=1.0, max_tokens=64, 300 samples, checkpointed every 25)
 3. WebQ inference (same setup)
-4. Feature extraction (all 12 + sw_var_peak_adaptive)
-5. Feature behavior plots (distributions by correctness, 4 fixed features)
-6. Spearman correlation heatmap (fixed subset, with |ρ|≥0.75 borders)
-7. Window ablation: sw_var_peak AUC vs w ∈ {3,5,7,9,12,16,24,32} + adaptive
-8. Fixed subset Nadler fusion (no re-search; sw_var_peak + trace_length + spectral_centroid + stft_max_high_power)
-9. Baseline comparison table + bar chart vs EPR (mean entropy)
+4. Feature extraction (all 12 + `sw_var_peak_adaptive`)
+5. Feature behavior plots (distributions by correctness, fixed subset)
+6. Spearman correlation heatmap (|ρ|≥0.75 pairs highlighted)
+7. Window ablation: `sw_var_peak` AUC vs w ∈ {3,5,7,9,12,16,24,32} + adaptive
+8. Fixed 4-feature Nadler fusion (no re-search: `sw_var_peak + trace_length + spectral_centroid + stft_max_high_power`)
+9. Baseline comparison table + bar chart vs EPR
 
-**Reference baselines (from Unified_EPR_Ensemble_res.ipynb)**:
+**Reference baselines (from `Unified_EPR_Ensemble_res.ipynb`)**:
 - TriviaQA EPR direct_fresh: 72.0%
-- WebQ EPR direct_fresh:     66.4%
+- WebQ EPR direct_fresh: 66.4%
+
+**Status**: Notebook created and pushed. **Not yet run** — results pending.
+
+---
+
+### Step 72 — Colab import debugging: git clone -b master required
+
+**Problem**: `%pip install git+https://github.com/omrisegev/hallucination_detection.git` and `!pip install git+...` both failed with `ModuleNotFoundError: No module named 'spectral_utils'` even though pip reported success.
+
+**Root causes identified via diagnostic cell**:
+1. `!pip install` runs in a subshell; installed packages do not land in the running kernel's `sys.path`. `%pip install` is supposed to fix this but failed silently — `setup.py`-based builds in sandboxed Colab runtimes sometimes don't register correctly.
+2. The GitHub repo `omrisegev/hallucination_detection` has a **different default branch** (from a pre-existing project) than `master`. Without `-b master`, `git clone` pulled the wrong branch — a different project with no `spectral_utils/`.
+3. A stale wrong-branch clone at `/content/hallucination_detection` persisted across cells, and subsequent clone attempts failed silently (directory already exists).
+
+**Fix applied to Cell 1 of Phase 9 notebook**:
+```python
+# Remove stale clone if spectral_utils is missing
+if os.path.exists(REPO_DIR) and not os.path.exists(os.path.join(REPO_DIR, 'spectral_utils')):
+    shutil.rmtree(REPO_DIR)
+# Clone our branch explicitly
+os.system(f'git clone -b master https://github.com/omrisegev/hallucination_detection.git {REPO_DIR}')
+sys.path.insert(0, REPO_DIR)
+```
+
+**Pattern for all future notebooks**: use `git clone -b master` + `sys.path.insert(0, REPO_DIR)`. Do NOT use `pip install git+...` with this repo — the setup.py install path is unreliable in Colab's sandboxed runtime.
+
+---
+
+### Step 73 — GPQA Phase 8: status and plan (not yet run)
+
+**What was NOT done**: GPQA Phase 8 inference was planned (Step 67 Point 3, Step 68) but never executed. The Phase 8 notebook (`Spectral_Analysis_Phase8_Normalization_Ablation_GPQA.ipynb`) exists but has not been run with the fixed `spectral_utils` package.
+
+**Why GPQA results are poor** (Phase 4, Steps 54):
+- All 7B models achieve ~30% accuracy on GPQA Diamond (near-random on a 4-choice MCQ where random = 25%)
+- This creates a severe class imbalance: ~70% wrong / ~30% correct
+- With so few correct answers, the detector is trying to find a needle in a haystack — most samples are "wrong" by default, not because the model hallucinated on something it knew
+- Spectral features are uniformly weak: all signals 51–65% AUC, CIs touching 50%
+
+**Plan to fix**:
+- Use `Qwen2.5-72B-Instruct-AWQ` (~65% GPQA accuracy per advisor Step 67) — this gives a ~65:35 wrong:correct split, closer to balanced
+- Load with the now-fixed `load_model(model_id, quantize_4bit=False)` which detects AWQ automatically and loads without BitsAndBytesConfig
+- At 65% accuracy on 198 samples: ~70 correct / ~128 wrong — still imbalanced but far more signal than ~60 correct at 30%
+- Re-run spectral feature extraction; check if `sw_var_peak` AUC rises from ~58% toward 65%+
+
+**Alternative if 72B is still OOM**: `Qwen2.5-32B-Instruct` with `quantize_4bit=True` (~16 GB NF4, ~55–60% GPQA accuracy) — worse than 72B but still a significant improvement over 7B models.
+
+**Status**: Pending. This is the highest-priority unfinished spectral analysis task.
