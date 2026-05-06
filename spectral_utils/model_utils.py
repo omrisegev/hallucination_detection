@@ -39,12 +39,16 @@ def load_model(model_id: str, quantize_4bit: bool = False):
 
     is_prequantized = any(tag in model_id.lower() for tag in ("awq", "gptq"))
 
-    kwargs = dict(device_map="auto", attn_implementation="eager", trust_remote_code=False)
+    kwargs = dict(attn_implementation="eager", trust_remote_code=False)
 
     if quantize_4bit and not is_prequantized:
+        # device_map="auto" reads the pre-quantization FP16 size and may dispatch layers
+        # to CPU before BNB quantizes them, causing a ValueError on 72B models.
+        # device_map={"": 0} forces all layers onto GPU 0 so BNB can quantize them in-place.
+        kwargs["device_map"] = {"": 0}
         # Do NOT pass dtype alongside quantization_config — bitsandbytes owns dtype
-        # internally. Passing torch_dtype here causes newer transformers to bypass
-        # bitsandbytes and load FP16 weights → OOM on 72B models.
+        # internally. Passing torch_dtype causes newer transformers to bypass BNB and
+        # load full FP16 weights → OOM on 72B models.
         kwargs["quantization_config"] = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_compute_dtype=torch.bfloat16,
@@ -52,6 +56,8 @@ def load_model(model_id: str, quantize_4bit: bool = False):
             bnb_4bit_quant_type="nf4",
         )
     else:
+        # AWQ/GPTQ weights are already quantized on disk; auto sees the true (small) size.
+        kwargs["device_map"] = "auto"
         # "dtype" is the current kwarg name (transformers ≥4.50 deprecated "torch_dtype")
         kwargs["dtype"] = torch.bfloat16
 

@@ -1,8 +1,18 @@
 """
 spectral_utils — shared utilities for the hallucination detection spectral pipeline.
 
-Usage in Colab:
-    !pip install git+https://github.com/omrisegev/hallucination_detection.git -q
+Usage in Colab (always use git clone, never pip install git+):
+    import os, sys, shutil
+    REPO_DIR = '/content/hallucination_detection'
+    if os.path.exists(REPO_DIR) and not os.path.exists(os.path.join(REPO_DIR, 'spectral_utils')):
+        shutil.rmtree(REPO_DIR)
+    if not os.path.exists(REPO_DIR):
+        os.system(f'git clone -b master https://github.com/omrisegev/hallucination_detection.git {REPO_DIR}')
+    else:
+        os.system(f'git -C {REPO_DIR} pull -q')
+    if REPO_DIR not in sys.path:
+        sys.path.insert(0, REPO_DIR)
+
     from spectral_utils import load_model, extract_all_features, best_nadler_on, FEAT_NAMES
     from spectral_utils.data_loaders import load_gsm8k, gsm8k_prompt, is_correct_gsm8k
     from spectral_utils.data_loaders import load_trivia_qa, trivia_qa_prompt, is_correct_trivia_qa
