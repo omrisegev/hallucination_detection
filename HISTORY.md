@@ -2756,6 +2756,39 @@ Alternative fallback: `Qwen/Qwen2.5-32B-Instruct` with bitsandbytes 4-bit (~16 G
 
 ---
 
+### Step 77 — Phase 8 Fixed notebook: same OOM, different root cause
+
+A standalone notebook `GPQA_Phase8_Fixed.ipynb` was created to fix the Part B OOM. The markdown header listed four fixes: `torch_dtype=torch.bfloat16` (was `dtype=torch.float16`), `bnb_4bit_compute_dtype=torch.bfloat16`, `attn_implementation='eager'`, `trust_remote_code=False`.
+
+**The notebook still OOMed with the identical error** (78.43 GB allocated, 462 MB allocation fails).
+
+**Root cause of the "fixed" notebook's OOM is different from the original:**
+- Original Phase 8: `dtype=torch.float16` was an **unrecognized kwarg, silently ignored** → bitsandbytes DID apply quantization correctly → OOM was due to transformers' async parallel shard loading peak memory
+- Fixed notebook: changed to `torch_dtype=torch.bfloat16` — a **recognized kwarg** — which is passed alongside `quantization_config`. When bitsandbytes sees both, it **bypasses quantization entirely** and loads the model in full bfloat16. 72B × 2 bytes = 144 GB → OOM at 79 GB (~54% through loading)
+
+The warning printed during loading confirms it: `` `torch_dtype` is deprecated! Use `dtype` instead! `` — transformers received and acted on `torch_dtype`, triggering the bypass.
+
+**The "fix" introduced the exact bitsandbytes bypass bug** we had already identified and corrected in `spectral_utils/model_utils.py` (Step 70). All three changes to attn_implementation, trust_remote_code, and compute_dtype were irrelevant to the OOM.
+
+**Correct fix (one line)**: Remove `torch_dtype=torch.bfloat16` from `common_kwargs` entirely when `quantize_4bit=True`. bitsandbytes controls compute dtype via `bnb_4bit_compute_dtype=torch.bfloat16` in its own config. The two kwargs must never coexist.
+
+```python
+# WRONG (bypasses bitsandbytes):
+common_kwargs = dict(device_map='auto', torch_dtype=torch.bfloat16, ...)
+common_kwargs['quantization_config'] = bnb_cfg
+
+# CORRECT (bitsandbytes active):
+common_kwargs = dict(device_map='auto', attn_implementation='eager', ...)
+if quantize_4bit:
+    common_kwargs['quantization_config'] = bnb_cfg   # NO torch_dtype
+else:
+    common_kwargs['dtype'] = torch.bfloat16           # only when not quantizing
+```
+
+**Status**: User will apply the one-line fix manually in Colab and re-run.
+
+---
+
 ### Step 75 — Phase 9 Part 1 run: direct-answer QA fails spectral analysis
 
 **What was discovered**: Phase 9 notebook was run on Colab with Falcon-3-10B on TriviaQA and WebQ (300 samples each, direct-answer prompting). The results revealed a fundamental incompatibility between short-answer QA and spectral analysis.
