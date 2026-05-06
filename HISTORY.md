@@ -2689,7 +2689,74 @@ sys.path.insert(0, REPO_DIR)
 
 ---
 
-### Step 74 — Phase 9 Part 1 run: direct-answer QA fails spectral analysis
+### Step 74 — Phase 8 run: Part A succeeds, Part B OOM on 72B model load
+
+**Context**: Phase 8 notebook (`Spectral_Analysis_Phase8_Normalization_Ablation_GPQA.ipynb`) was run on Colab A100 (80 GB). Part A re-ran the GSM8K spectral pipeline with z-score normalization enabled. Part B attempted GPQA Diamond inference with Qwen2.5-72B-Instruct in 4-bit.
+
+---
+
+**Part A — GSM8K Normalization Ablation (ran successfully)**
+
+Goal: determine whether z-score normalization (added to `fusion_utils.py` in Step 70) improves Nadler fusion on GSM8K.
+
+Individual feature AUCs (top 5):
+- `sw_var_peak`: 73.9% [70.5, 77.5]
+- `trace_length`: 71.5% [67.8, 75.0]
+- `epr`: 70.7% [66.9, 74.6]
+- `low_band_power`: 69.3% [65.6, 73.1]
+- `spectral_centroid`: 68.0% [64.3, 71.8]
+
+Fusion results:
+
+| Method | AUROC | CI | Notes |
+|--------|-------|----|-------|
+| LapEigvals supervised (lit.) | 87.2% | — | White-box, labeled |
+| Normalized Nadler (**this run**) | **75.9%** | [72.5, 79.4] | No labels, gray-box |
+| Unnormalized Nadler (Phase 7) | 76.0% | [72.5, 79.3] | Reproduced ✓ |
+| Simple average (best norm. subset) | 74.2% | — | Nadler +1.7 pp over this |
+| LapEigvals unsupervised (lit.) | 72.0% | — | White-box |
+| EPR mean entropy | 70.7% | — | Single feature |
+| Semantic Entropy (lit.) | 70.0% | — | Black-box |
+
+Best normalized subset: `trace_length + low_band_power + high_band_power + sw_var_peak`
+
+Decision gates (5/7 passed):
+- G0 Sufficient samples: PASS (1319 ≥ 800)
+- G1 Phase 7 baseline reproduced: PASS (Δ=0.03 pp ≤ 0.5 pp)
+- **G2 Normalization helps: FAIL (−0.1 pp — normalization did not improve)**
+- G3 Beat LapEigvals unsupervised: PASS (75.9% > 72.0%)
+- G4 Nadler beats simple average: PASS (+1.7 pp lift)
+- G5 Statistically reliable CI: PASS (CI lower = 72.5% > 72%)
+- G6 Beat LapEigvals supervised: FAIL (75.9% vs 87.2%, Δ = −11.3 pp)
+
+**Key negative finding**: z-score normalization gives essentially zero benefit on GSM8K (−0.1 pp). GSM8K traces are long (~1000 tokens), meaning feature scales are already well-behaved and normalization introduces no meaningful rebalancing. The normalization fix is still correct and important for short-trace domains (QA), but does not improve the already-good GSM8K results.
+
+**Nadler is still justified**: +1.7 pp lift over simple average on the normalized best subset confirms the covariance-weighted fusion adds value.
+
+---
+
+**Part B — GPQA 72B inference: OOM crash during model load**
+
+Model: `Qwen/Qwen2.5-72B-Instruct` with bitsandbytes 4-bit NF4 (`quantize_4bit=True`)
+GPU: A100 80 GB (79.25 GiB usable)
+
+**Error**: `OutOfMemoryError: CUDA out of memory. Tried to allocate 462 MiB. 78.50 GiB already allocated by PyTorch.`
+
+**Root cause**: The newer transformers loading path (`core_model_loading.py`) uses async parallel shard loading. It loads each weight shard in FP16 first, then applies bitsandbytes 4-bit quantization. During this process, it temporarily holds both the growing 4-bit model (~36 GB) AND the current FP16 shard on GPU simultaneously. Peak loading memory far exceeds the final 36 GB footprint and hit the 79 GB ceiling before the model finished loading.
+
+This is distinct from the previously fixed bug (passing `torch_dtype` alongside `quantization_config`, which bypassed bitsandbytes entirely). The bitsandbytes config was being passed correctly; the OOM is a genuine memory capacity issue with the new transformers loading pipeline.
+
+All cells after the model load (inference, feature extraction, window ablation, Nadler fusion) produced zero output. GPQA Part B was not run.
+
+**Fix**: Switch to `Qwen/Qwen2.5-72B-Instruct-AWQ` (pre-quantized). AWQ weights come already quantized to 4-bit from disk — no FP16→4-bit GPU conversion step during loading. Peak loading memory ≈ final model size ≈ 36 GB, comfortably within the 80 GB limit. The updated `spectral_utils/model_utils.py` already detects AWQ models automatically and loads them without BitsAndBytesConfig.
+
+Alternative fallback: `Qwen/Qwen2.5-32B-Instruct` with bitsandbytes 4-bit (~16 GB final, ~25 GB peak), ~60% GPQA accuracy instead of ~65%.
+
+**Status**: Phase 8 Part B pending re-run with AWQ model.
+
+---
+
+### Step 75 — Phase 9 Part 1 run: direct-answer QA fails spectral analysis
 
 **What was discovered**: Phase 9 notebook was run on Colab with Falcon-3-10B on TriviaQA and WebQ (300 samples each, direct-answer prompting). The results revealed a fundamental incompatibility between short-answer QA and spectral analysis.
 
