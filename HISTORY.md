@@ -2686,3 +2686,66 @@ sys.path.insert(0, REPO_DIR)
 **Alternative if 72B is still OOM**: `Qwen2.5-32B-Instruct` with `quantize_4bit=True` (~16 GB NF4, ~55–60% GPQA accuracy) — worse than 72B but still a significant improvement over 7B models.
 
 **Status**: Pending. This is the highest-priority unfinished spectral analysis task.
+
+---
+
+### Step 74 — Phase 9 Part 1 run: direct-answer QA fails spectral analysis
+
+**What was discovered**: Phase 9 notebook was run on Colab with Falcon-3-10B on TriviaQA and WebQ (300 samples each, direct-answer prompting). The results revealed a fundamental incompatibility between short-answer QA and spectral analysis.
+
+**Inference accuracy**:
+- TriviaQA: 30.0% correct (90/300)
+- WebQ: 15.0% correct (45/300)
+
+**Critical failure — trace skipping**:
+- TriviaQA: **248/300 traces discarded** (83%) — too short for FFT-based feature extraction
+- WebQ: **164/300 traces discarded** (55%)
+- After filtering: TriviaQA has 52 samples with only 2 correct (3.8%); WebQ has 136 samples with 0 correct (0.0%)
+- Class imbalance after filtering makes AUC computation meaningless or undefined
+
+**Root cause**: The spectral pipeline (`extract_all_features`) requires a minimum trace length for FFT to yield meaningful frequency features. Direct-answer prompting instructs the model to give short, factual responses ("Paris", "Albert Einstein"), producing 1–10 token generation traces — far below the threshold. The features were designed for long reasoning traces (~1000 tokens for math, ~200–500 for GPQA).
+
+**Bug found**: The `window_ablation` function was passed `trivia_results` (300 items) while `trivia_labels` was the filtered 52-item array, causing `ValueError: Found input variables with inconsistent numbers of samples: [52, 300]`. All subsequent cells (window ablation plot, fusion, comparison) did not run.
+
+**Bugs fixed**:
+1. `extract_dataset_features` now returns a third value `valid_results` — the filtered list aligned row-for-row with df and labels
+2. `window_ablation` calls now pass `trivia_valid`/`webq_valid` instead of the full result lists
+
+**Conclusion**: Direct-answer QA is structurally incompatible with spectral analysis as implemented. The same limitation would apply to any short-answer benchmark (NaturalQA, SQuAD, etc.).
+
+---
+
+### Step 75 — Phase 9 Part 2 added: CoT prompting for longer traces
+
+**What**: Appended a second part to the Phase 9 notebook that re-runs TriviaQA and WebQ inference with Chain-of-Thought prompting, then compares spectral detection performance against Part 1.
+
+**Why CoT**: CoT forces the model to reason step-by-step before answering, generating 50–256 token traces — the same regime in which spectral features were discovered (GSM8K ~1000 tokens, GPQA ~200–500 tokens). Longer traces → FFT extracts meaningful frequency content → features are predictive.
+
+**CoT prompt format**:
+```
+Answer the following question. Think through your reasoning step by step,
+then state your final answer on its own line starting with 'Answer:'.
+
+Question: {question}
+
+Let me think step by step:
+```
+
+**Answer extraction**: `extract_cot_answer(text)` scans the response in reverse for the last line starting with `"Answer:"` and strips the prefix. Fallback: last non-empty line.
+
+**Grading**: Same normalized exact-match against gold aliases (unchanged from Part 1).
+
+**MAX_TOKENS_COT = 256** (vs 64 for direct-answer) — provides room for reasoning chain + answer line.
+
+**New cells added to notebook** (Part 2):
+- Reload model cell
+- CoT prompts + `extract_cot_answer` helper
+- TriviaQA CoT inference with checkpointing (cache: `trivia_qa_cot_traces.pkl`)
+- WebQ CoT inference with checkpointing (cache: `webq_cot_traces.pkl`)
+- Feature extraction + trace length comparison table (direct vs CoT, all 4 combinations)
+- Window ablation for CoT traces + plot
+- Fixed 4-feature Nadler fusion for CoT
+- Head-to-head comparison table (accuracy, survival rate, class balance, EPR AUC, Nadler AUC)
+- Comparison bar chart (direct vs CoT, Nadler AUC with CI error bars)
+
+**Status**: Notebook updated and committed. CoT inference not yet run — pending Colab execution. Expected outcomes: ~90–100% trace survival rate, improved class balance (CoT typically improves accuracy ~10–20pp), meaningful Nadler AUC signal.
