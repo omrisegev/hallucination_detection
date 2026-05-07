@@ -52,7 +52,7 @@ else:
 if REPO_DIR not in sys.path:
     sys.path.insert(0, REPO_DIR)
 
-os.system('pip install -q "transformers>=4.40" accelerate datasets bitsandbytes autoawq scipy')
+os.system('pip install -q "transformers>=4.40" accelerate datasets bitsandbytes autoawq gptqmodel scipy')
 
 from spectral_utils import (
     load_model, generate_full, free_memory,
@@ -69,7 +69,7 @@ print('spectral_utils imported OK')
 
 ## Model loading rules
 
-- **AWQ / GPTQ models** (ID contains `awq` or `gptq`): `load_model(model_id, quantize_4bit=False)` — package auto-detects, uses `dtype=torch.bfloat16`. `device_map="auto"` is safe because AWQ weights are already quantized on disk (~36 GB for 72B).
+- **AWQ / GPTQ models** (ID contains `awq` or `gptq`): `load_model(model_id, quantize_4bit=False)` — package auto-detects, uses `dtype=torch.bfloat16`. `device_map="auto"` is safe because AWQ weights are already quantized on disk (~36 GB for 72B). **Requires both `autoawq` AND `gptqmodel`** — gptqmodel provides the `AwqMarlinLinear` (Marlin fp16) kernel; without it, AWQ will fail or use a slow fallback. Install both in the same cell.
 - **BNB 4-bit (70B+)**: `load_model(model_id, quantize_4bit=True)`. Never pass `torch_dtype` alongside `quantization_config` — bitsandbytes owns dtype internally; passing it bypasses BNB and loads full FP16 → OOM.
 - **BNB + 72B on A100**: `device_map="auto"` reads the *pre-quantization* FP16 size (~145 GB for Qwen-72B) and dispatches layers to CPU → BNB raises `ValueError: modules dispatched on CPU`. Fix: use `device_map={"": 0}` to force all layers to GPU before BNB quantizes them.
 

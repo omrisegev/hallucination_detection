@@ -3030,3 +3030,23 @@ With `device_map={"": 0}`:
 **Thesis impact**: Updates the GPQA row in the results table from 65.4% → 69.0%. The scope claim holds: spectral features work on reasoning tasks, GPQA is at the boundary. The `trace_length` dominance is a finding in itself — longer CoT traces on hard science questions are more reliable, and spectral variance of those traces adds marginal signal.
 
 ---
+
+### Step 81 — Phase 8 notebook diff: gptqmodel is required for AWQ inference
+
+**What**: Reviewed diff between `GPQA_Phase8_Fixed_OLD.ipynb` (Claude-generated) and `GPQA_Phase8_Fixed.ipynb` (user's Colab-fixed version that actually ran). Only one code change: user inserted a new cell `!pip install gptqmodel` between the nvidia-smi check and the model load cell.
+
+**Why it matters**: `autoawq` alone is not sufficient to run Qwen2.5-72B-Instruct-AWQ on Colab. `gptqmodel` provides the `AwqMarlinLinear` (Marlin fp16) kernel. The model loading log confirms this: *"Kernel: selected → AwqMarlinLinear"*, JIT-compiled Marlin fp16 extension in 193s. Without `gptqmodel`, autoawq would either raise an error or fall back to an unoptimized kernel — the inference never completed on the OLD notebook because this was missing.
+
+**Rule update**: All future AWQ notebooks must install both `autoawq` and `gptqmodel`. Updated CLAUDE.md Colab setup cell and model loading rules section accordingly.
+
+**Diff summary**:
+| Aspect | OLD (Claude-generated) | NEW (user-fixed, ran) |
+|--------|----------------------|----------------------|
+| Install cell | `autoawq` only | `autoawq` only (unchanged — gptqmodel added as separate cell) |
+| New cell before model load | absent | `!pip install gptqmodel` |
+| Model load cell | identical | identical |
+| All other cells | identical | identical |
+
+**Lesson**: `gptqmodel` is a hidden dependency of `autoawq` for Marlin-path AWQ inference. It is not listed in autoawq's package requirements and will not be pulled in transitively. Must be installed explicitly.
+
+---
