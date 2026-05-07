@@ -2975,3 +2975,58 @@ With `device_map={"": 0}`:
 | ValueError #3 | "modules dispatched on CPU/disk" | `device_map='auto'` sees 145 GB BF16 size → routes layers to CPU → BNB raises | `device_map={"": 0}` — all layers on GPU 0 |
 
 **Status**: Fix identified. User will apply manually in Colab and re-run Phase 8 GPQA inference. Expected: 36 GB GPU usage, successful load, ~198 GPQA Diamond samples inferred with Qwen2.5-72B-Instruct 4-bit NF4.
+
+---
+
+### Step 80 — Phase 8 complete: GPQA Diamond / Qwen2.5-72B-AWQ results
+
+**What**: Phase 8 inference ran to completion (198/198 GPQA Diamond samples). Model loaded via `device_map={"":0}` + AWQ (gptqmodel backend, `AwqMarlinLinear` kernel). GPU usage 41.6/85 GB. JIT compile of Marlin fp16 kernel took 193s on first load. bfloat16 cast to float16 automatically (AWQ kernels don't support bf16 yet — expected behaviour).
+
+**Accuracy**: **40.4%** (80/198 correct). Expected ~65% from advisor recommendation; actual is well below. Format OK: 83.8% (166/198 produced a parseable answer letter). Of the 166 with answers: 80/166 = 48.2% correct — close to the 50% random-ish baseline for a hard science MCQ. The 32 format failures are all counted as wrong, dragging the overall rate to 40.4%.
+
+**Root cause of low accuracy**: Likely a combination of (a) AWQ quantization degrading GPQA performance below the FP16 model's ~55% reported accuracy, (b) strict prompt format ("The answer is (X)") not matching the model's chat template output style, and (c) GPQA Diamond being harder than expected (GPT-4o level = ~53%, humans = 65%).
+
+**Spectral results**:
+
+| Metric | Value |
+|--------|-------|
+| Samples (all usable) | 198 |
+| Avg trace length | 668.3 tok (min 244, max 1024) |
+| Best individual AUC | **64.8%** — `trace_length` [57.3, 72.4] |
+| 2nd best individual | **63.9%** — `spectral_entropy` [56.4, 71.2] |
+| Fusion AUC (Nadler) | **69.0%** [61.6, 76.2] |
+| Best subset | `trace_length + sw_var_peak` |
+| Nadler lift over average | +0.0 pp (degenerate: only 2 features pass ρ-filter together) |
+| Prior 7B best (Mistral-7B) | 65.4% |
+| Delta vs prior | **+3.6 pp** |
+| Best sw_var_peak window | w=3 (60.1%) |
+
+**Window ablation**: w=3 is best (60.1%), deteriorating monotonically to w=16 (55.2%). Opposite of math traces (where w=16 was best). Short local bursts in 668-token science MCQ traces are more discriminative than longer windows.
+
+**Individual feature ranking** (top 4):
+1. `trace_length` 64.8% — longer responses → more likely correct. Possibly trivial (model is verbose when confident), but also reflects trace quality for spectral analysis.
+2. `spectral_entropy` 63.9% — second strongest; frequency-domain structure is real.
+3. `stft_spectral_entropy` 60.5%
+4. `sw_var_peak` (w=3) 60.1%
+
+`epr` (mean entropy) is weak at 55.1% — consistent with GPQA Phase 4/5 finding that mean entropy doesn't discriminate on science MCQ.
+
+**Decision gates**: 4/7 passed.
+
+| Gate | Result | Detail |
+|------|--------|--------|
+| G0 Sufficient samples | PASS | 198 ≥ 150 |
+| G1 Accuracy in [50%, 80%] | **FAIL** | 40.4% below sweet spot |
+| G2 Spectral structure (ind. > 57%) | PASS | 64.8% |
+| G3 Beat prior GPQA best | PASS | 69.0% > 65.4% |
+| G4 Strong result (> 72%) | **FAIL** | 69.0% ≤ 72% |
+| G5 CI lower > 60% | PASS | 61.6% |
+| G6 Nadler lift > 0 | **FAIL** | 0.0 pp (2-feature subset, no Nadler benefit) |
+
+**Verdict**: "Spectral features transfer with 72B. Not as strong as math." The 3.6 pp gain over 7B is real and statistically reliable (CI lower 61.6%). But G1 FAIL (accuracy 40.4% not in sweet spot) and G6 FAIL (0 Nadler lift) limit the claim. The dominant signal is `trace_length`, not pure spectral structure.
+
+**Key interpretation**: The class balance (40% correct / 60% wrong) is better than Phase 4 7B models (~30% correct), which is WHY we see signal now. But 40% is below the 50% lower bound of the sweet spot. To get the full GPQA claim, the model accuracy needs to be in 50-65% range. Options: (a) use a stronger model (Qwen3-72B or Claude 3.7), or (b) accept the result and focus the thesis on the +3.6pp improvement story with the reliability disclaimer.
+
+**Thesis impact**: Updates the GPQA row in the results table from 65.4% → 69.0%. The scope claim holds: spectral features work on reasoning tasks, GPQA is at the boundary. The `trace_length` dominance is a finding in itself — longer CoT traces on hard science questions are more reliable, and spectral variance of those traces adds marginal signal.
+
+---

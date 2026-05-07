@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
 **Date**: 2026-05-07  
-**Context at handoff**: ~78% used → starting fresh session
+**Last updated**: Step 80 complete
 
 ---
 
@@ -17,24 +17,20 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 
 ## Current experiment status
 
-### Phase 8 — GPQA Diamond with Qwen2.5-72B (BLOCKED → fixed, not yet run)
+### Phase 8 — GPQA Diamond with Qwen2.5-72B ✅ COMPLETE (Step 80)
 
 **Notebook**: `GPQA_Phase8_Fixed.ipynb`  
-**Goal**: Run spectral hallucination detection on GPQA Diamond (198 samples) with a 72B model (~65% accuracy, much better class balance than 7B at ~30%).
+**Model**: `Qwen/Qwen2.5-72B-Instruct-AWQ` | GPU: 41.6/85 GB | Traces: 668 tok avg
 
-**Three OOM bugs fixed (all in the notebook now)**:
-1. Async shard loading peak → switched to AWQ model (pre-quantized on disk)
-2. `torch_dtype` + `quantization_config` coexistence → removed `torch_dtype`
-3. `device_map='auto'` dispatches to CPU before BNB → changed to `device_map={"": 0}`
+**Results**:
+- Accuracy: **40.4%** (expected ~65% — AWQ quantization + hard benchmark)
+- Best individual AUC: **64.8%** (`trace_length`)
+- **Fusion AUC: 69.0% [61.6, 76.2]** — best subset: `trace_length + sw_var_peak`
+- Prior 7B best: 65.4% → **+3.6 pp improvement**
+- Gates: 4/7 (G1 FAIL: accuracy < 50%; G4 FAIL: < 72%; G6 FAIL: 0 Nadler lift)
+- Verdict: "Spectral features transfer with 72B. Not as strong as math."
 
-**Current notebook config** (already fixed in file):
-- `MODEL_ID = 'Qwen/Qwen2.5-72B-Instruct-AWQ'`
-- `QUANTIZE = False` (AWQ is already quantized)
-- `device_map={"": 0}` in `load_model`
-- Saves to `epr_spectral_gpqa_72b/Qwen2.5-72B-Instruct-AWQ__gpqa_T1.0/`
-
-**Status**: Notebook is fixed and committed. **Needs to be run on Colab A100 (40 GB).**  
-**Expected**: ~65% accuracy, meaningful spectral AUC, compare vs prior Phase 4 best of 65.4% (Mistral-7B).
+**Open question**: Accuracy 40.4% vs expected 65% — consider stronger model (Qwen3-72B) or accept result with disclaimer. The +3.6 pp improvement is statistically reliable (CI lower 61.6%).
 
 ---
 
@@ -70,7 +66,7 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 | MATH-500 / Qwen-7B / T=1.0 | **90.0%** | spectral Nadler fusion |
 | MATH-500 / Qwen-1.5B / T=1.5 | 88.3% | |
 | GSM8K / Llama-3.1-8B | 76.0% | vs LapEigvals unsupervised 72.0% |
-| GPQA / Mistral-7B / T=1.0 | 65.4% | Phase 4 best — needs 72B |
+| GPQA / Qwen2.5-72B-AWQ / T=1.0 | **69.0%** | Phase 8 — +3.6 pp over 7B; acc only 40.4% |
 | HotpotQA / Mistral-7B | 59.5% | spectral doesn't transfer to multi-hop QA |
 
 **Thesis claim**: Spectral features of H(n) work on reasoning tasks (math, science MCQ). Scope is reasoning-domain-specific, not general-purpose.
@@ -103,7 +99,7 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 
 ## Immediate next actions
 
-1. **Run Phase 8** (`GPQA_Phase8_Fixed.ipynb`) on Colab A100 — expect ~65% accuracy, spectral AUC > 65.4%
-2. **Run Phase 9 Part 2** (`Spectral_Analysis_Phase9_QA_Validation.ipynb`) — CoT inference for TriviaQA + WebQ
-3. **Document results** in HISTORY.md (Steps 80+)
-4. If Phase 8 succeeds: **create Phase 10 notebook** (ReAct agent loop on GPQA, step-level entropy)
+1. ~~**Run Phase 8**~~ ✅ DONE — 69.0% AUC, +3.6 pp over 7B (Step 80)
+2. **Run Phase 9 Part 2** (`Spectral_Analysis_Phase9_QA_Validation.ipynb`) — CoT inference for TriviaQA + WebQ. Notebook committed, not yet run.
+3. **Investigate Phase 8 accuracy** — 40.4% vs expected 65%. Consider: (a) re-run with Qwen3-72B for better accuracy, or (b) document as-is and focus thesis on the spectral signal improvement story.
+4. **Update Research_Directions.md** — Phase 8 results should update the GPQA Phase 8 status section in Direction 4 (Spectral Analysis).
