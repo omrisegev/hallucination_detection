@@ -34,16 +34,20 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 
 ---
 
-### Phase 9 — QA Transfer (Falcon-3-10B on TriviaQA + WebQ) (PENDING RUN)
+### Phase 9 — QA Transfer (Falcon-3-10B on TriviaQA + WebQ) ⚠️ PARTIAL (Step 82)
 
 **Notebook**: `Spectral_Analysis_Phase9_QA_Validation.ipynb`  
-**Goal**: Validate fixed 4-feature subset (`sw_var_peak + trace_length + spectral_centroid + stft_max_high_power`) on factual QA domains.
+**Goal**: Validate fixed 4-feature subset on factual QA domains.
 
-**Two parts**:
-- **Part 1** (direct-answer): Already ran — 83% of TriviaQA traces too short for FFT, discarded. Near-zero signal. Bug fixed (size mismatch in `extract_dataset_features`).
-- **Part 2** (CoT): Added to notebook. CoT prompts generate 50–256 token traces. **Not yet run.** Expected: ~100% trace survival, meaningful spectral AUC.
+**Part 1 — Direct-Answer** ✅ COMPLETE:
+- TriviaQA: 30% acc, 52/300 traces survive FFT, ~2 correct in valid set → all AUCs meaningless
+- WebQ: 15% acc, 0 correct in valid set → AUC undefined (NaN)
+- **Verdict**: Direct-answer QA structurally incompatible with spectral features. Thesis scope confirmed.
 
-**Status**: Notebook committed. **Needs to be run on Colab (Part 2 CoT inference).**
+**Part 2 — CoT** ⚠️ INFERENCE DONE, OUTPUTS NOT CAPTURED:
+- CoT inference ran and checkpointed to Google Drive (`trivia_qa_cot_traces.pkl`, `webq_cot_traces.pkl`)
+- Colab did not save cell outputs before download — analysis cells P2-7 through P2-13 have no stored outputs
+- **Next step**: Open notebook on Colab, skip inference (cache auto-loads), re-run cells P2-7 onward to recover CoT AUC numbers.
 
 ---
 
@@ -100,6 +104,6 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 ## Immediate next actions
 
 1. ~~**Run Phase 8**~~ ✅ DONE — 69.0% AUC, +3.6 pp over 7B (Step 80)
-2. **Run Phase 9 Part 2** (`Spectral_Analysis_Phase9_QA_Validation.ipynb`) — CoT inference for TriviaQA + WebQ. Notebook committed, not yet run.
+2. **Recover Phase 9 Part 2 CoT outputs** — Open `Spectral_Analysis_Phase9_QA_Validation.ipynb` on Colab, skip inference cells (cache auto-loads from Drive), re-run cells P2-7 through P2-13 to get CoT AUC numbers.
 3. **Investigate Phase 8 accuracy** — 40.4% vs expected 65%. Consider: (a) re-run with Qwen3-72B for better accuracy, or (b) document as-is and focus thesis on the spectral signal improvement story.
 4. **Update Research_Directions.md** — Phase 8 results should update the GPQA Phase 8 status section in Direction 4 (Spectral Analysis).

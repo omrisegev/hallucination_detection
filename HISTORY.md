@@ -3050,3 +3050,36 @@ With `device_map={"": 0}`:
 **Lesson**: `gptqmodel` is a hidden dependency of `autoawq` for Marlin-path AWQ inference. It is not listed in autoawq's package requirements and will not be pulled in transitively. Must be installed explicitly.
 
 ---
+
+### Step 82 — Phase 9 Part 1 results + Part 2 CoT inference ran (outputs not captured)
+
+**What**: Phase 9 notebook (`Spectral_Analysis_Phase9_QA_Validation.ipynb`) ran in full. Part 1 (direct-answer) completed and outputs are in the downloaded notebook. Part 2 (CoT) inference also ran and checkpointed to Google Drive, but Colab did not save cell outputs to the notebook before download — all Part 2 cells are present with no stored outputs.
+
+**Part 1 — Direct-Answer Results (Falcon-3-10B, 300 samples each)**:
+
+| Dataset | Accuracy | Traces surviving FFT | Correct in valid set | Nadler AUC |
+|---------|----------|---------------------|----------------------|------------|
+| TriviaQA | 30.0% (90/300) | 52/300 (17%) | 3.8% (~2 samples) | 93.0% [84,99] — **artifact** |
+| WebQ | 15.0% (45/300) | 136/300 (45%) | 0.0% (0 samples) | NaN — undefined |
+
+**Why the 93.0% is not a real result**: TriviaQA valid set has 52 samples, of which only 3.8% = ~2 are correct. With 2 positive examples and 50 negatives, any feature combination that happens to rank those 2 correctly gets near-100% AUC by chance. The bootstrap CI [84.3, 99.0] is extremely wide, confirming this is noise. The result is technically correct but scientifically meaningless.
+
+**Why WebQ is NaN**: 0 correct samples in the valid set → single-class problem → sklearn raises NaN for AUC. This is a structural failure: even if traces survive the FFT minimum-length filter, a 0% correct rate means there is no positive class to discriminate.
+
+**Root cause of both failures**: Direct-answer QA with `MAX_TOKENS=64` produces 1–10 token outputs. Most traces are discarded (too short for FFT). The few that survive are concentrated among *wrong* answers (short confident wrong answers pass the length threshold). The positive class is functionally absent.
+
+**Window ablation (direct-answer)**: TriviaQA `sw_var_peak` AUC ≈ 15-16% across all windows — well below chance. WebQ all NaN. No window size rescues the direct-answer regime.
+
+**Individual feature AUCs (TriviaQA valid set, n=52)**:
+- `stft_max_high_power`: 49.0% (near random)
+- `spectral_centroid`: 48.0% (near random)
+- `sw_var_peak`: 16.0% (below chance — reverse-discriminative with 2 positives)
+- `trace_length`: 6.0% (below chance)
+
+**Conclusion from Part 1**: Direct-answer QA is structurally incompatible with spectral features. Consistent with HotpotQA finding (Step 37). The thesis scope exclusion of short factual QA is confirmed.
+
+**Part 2 — CoT Inference**: Ran and checkpointed to Google Drive (`trivia_qa_cot_traces.pkl`, `webq_cot_traces.pkl`). Cell outputs were not saved to the notebook before download. Numerical results (CoT accuracy, trace survival, window ablation, Nadler AUC for CoT) are in Drive but not in the notebook file. Need to either re-run the analysis cells on Colab or retrieve the cache to get the numbers.
+
+**Status**: Part 2 results pending — need to recover outputs from Drive cache or re-run analysis cells. The inference itself is done (no need to repeat the slow model step).
+
+---
