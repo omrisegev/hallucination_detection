@@ -34,20 +34,18 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 
 ---
 
-### Phase 9 — QA Transfer (Falcon-3-10B on TriviaQA + WebQ) ⚠️ PARTIAL (Step 82)
+### Phase 9 — QA Transfer (Falcon-3-10B on TriviaQA + WebQ) ✅ COMPLETE (Step 82)
 
-**Notebook**: `Spectral_Analysis_Phase9_QA_Validation.ipynb`  
-**Goal**: Validate fixed 4-feature subset on factual QA domains.
+**Notebooks**: `Spectral_Analysis_Phase9_QA_Validation.ipynb` + `_RES.ipynb`
 
-**Part 1 — Direct-Answer** ✅ COMPLETE:
-- TriviaQA: 30% acc, 52/300 traces survive FFT, ~2 correct in valid set → all AUCs meaningless
-- WebQ: 15% acc, 0 correct in valid set → AUC undefined (NaN)
-- **Verdict**: Direct-answer QA structurally incompatible with spectral features. Thesis scope confirmed.
+**Part 1 — Direct-Answer**: Structurally broken — 83% traces discarded, 0–4% correct in valid set. AUCs meaningless.
 
-**Part 2 — CoT** ⚠️ INFERENCE DONE, OUTPUTS NOT CAPTURED:
-- CoT inference ran and checkpointed to Google Drive (`trivia_qa_cot_traces.pkl`, `webq_cot_traces.pkl`)
-- Colab did not save cell outputs before download — analysis cells P2-7 through P2-13 have no stored outputs
-- **Next step**: Open notebook on Colab, skip inference (cache auto-loads), re-run cells P2-7 onward to recover CoT AUC numbers.
+**Part 2 — CoT** (full results):
+- Trace survival: 95–97% (fixed by CoT) — but signal still absent
+- TriviaQA CoT: Nadler **53.6% [46.5, 61.6]** vs EPR baseline 72.0% — catastrophic gap
+- WebQ CoT: Nadler **61.9% [51.7, 72.1]** vs EPR baseline 66.4% — below baseline
+- All individual features below chance (34–49%). Negative Nadler lift on both datasets.
+- **Verdict**: Spectral features require reasoning-type traces. Factual QA (even with CoT) lacks the systematic entropy structure. Clean negative result — strengthens thesis scope claim.
 
 ---
 
@@ -104,6 +102,7 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 ## Immediate next actions
 
 1. ~~**Run Phase 8**~~ ✅ DONE — 69.0% AUC, +3.6 pp over 7B (Step 80)
-2. **Recover Phase 9 Part 2 CoT outputs** — Open `Spectral_Analysis_Phase9_QA_Validation.ipynb` on Colab, skip inference cells (cache auto-loads from Drive), re-run cells P2-7 through P2-13 to get CoT AUC numbers.
-3. **Investigate Phase 8 accuracy** — 40.4% vs expected 65%. Consider: (a) re-run with Qwen3-72B for better accuracy, or (b) document as-is and focus thesis on the spectral signal improvement story.
-4. **Update Research_Directions.md** — Phase 8 results should update the GPQA Phase 8 status section in Direction 4 (Spectral Analysis).
+2. ~~**Run Phase 9 Part 2 CoT**~~ ✅ DONE — spectral features don't transfer to factual QA even with CoT (Step 82)
+3. **Investigate Phase 8 accuracy** — 40.4% vs expected 65%. Consider: (a) re-run with Qwen3-72B, or (b) document as-is with disclaimer.
+4. **Update Research_Directions.md** — Phases 8 and 9 results should update Direction 4 status sections.
+5. **Consider Phase 10** — Agentic hallucination with Qwen2.5-72B-AWQ on GPQA ReAct loop (planned in Step 78, not started).

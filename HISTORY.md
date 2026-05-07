@@ -3078,8 +3078,50 @@ With `device_map={"": 0}`:
 
 **Conclusion from Part 1**: Direct-answer QA is structurally incompatible with spectral features. Consistent with HotpotQA finding (Step 37). The thesis scope exclusion of short factual QA is confirmed.
 
-**Part 2 — CoT Inference**: Ran and checkpointed to Google Drive (`trivia_qa_cot_traces.pkl`, `webq_cot_traces.pkl`). Cell outputs were not saved to the notebook before download. Numerical results (CoT accuracy, trace survival, window ablation, Nadler AUC for CoT) are in Drive but not in the notebook file. Need to either re-run the analysis cells on Colab or retrieve the cache to get the numbers.
+**Part 2 — CoT Results** (recovered from `Spectral_Analysis_Phase9_QA_Validation_RES.ipynb`):
 
-**Status**: Part 2 results pending — need to recover outputs from Drive cache or re-run analysis cells. The inference itself is done (no need to repeat the slow model step).
+CoT prompting successfully fixed the trace-length problem. Median trace length jumped from 4→49 tokens (TriviaQA) and 6→51 tokens (WebQ). 95–97% of traces now survive FFT, up from 17% and 45%.
+
+| Metric | TriviaQA CoT | WebQ CoT |
+|--------|-------------|---------|
+| Accuracy | 28.3% (85/300) | 12.7% (38/300) |
+| Traces surviving FFT | 285/300 (95%) | 290/300 (97%) |
+| % correct in valid set | 27.7% | 11.4% |
+| EPR AUC | 34.0% (below chance) | 38.7% (below chance) |
+| Best `sw_var_peak` window | w=9 → 35.1% | adaptive → 39.6% |
+| Best individual AUC | 48.6% `stft_max_high_power` | 49.0% `spectral_centroid` |
+| Nadler 4-feat fusion | **53.6% [46.5, 61.6]** | **61.9% [51.7, 72.1]** |
+| Mean 4-feat fusion | 59.5% [52.3, 67.2] | 63.7% [53.9, 73.5] |
+| Nadler lift over mean | **-5.9 pp** (negative) | **-1.8 pp** (negative) |
+| EPR reference (prior work) | 72.0% | 66.4% |
+
+**Trace length comparison (direct vs CoT)**:
+| Condition | Median all | Valid/300 | Median valid |
+|-----------|-----------|-----------|-------------|
+| TriviaQA direct | 4 | 52 (17%) | 14 |
+| TriviaQA CoT | 49 | 285 (95%) | 50 |
+| WebQ direct | 6 | 136 (45%) | 15 |
+| WebQ CoT | 51 | 290 (97%) | 52 |
+
+**Interpretation**:
+
+1. **CoT fixed trace length but not signal**: 95-97% trace survival is essentially complete. The structural precondition for spectral analysis is met. But all individual feature AUCs are *below chance* (34–49%), meaning the features are anti-predictive in the raw direction. The fusion AUC above chance is solely from sign-flipping — the same 34% becomes 66% reversed, which Nadler can't sharpen beyond simple mean.
+
+2. **Nadler WORSE than mean on QA**: Both phases show negative Nadler lift (-5.9 and -1.8 pp). On reasoning tasks Nadler consistently adds +3–6 pp. The reversal here reflects that on QA, the feature views contain no correlated signal for Nadler to amplify — they're near-random noise, and the eigenvector weighting degrades to approximately uniform.
+
+3. **We underperform EPR on WebQ**: Our best (63.7%) is below EPR (66.4%). On TriviaQA the gap is catastrophic (53.6% vs 72.0%). Spectral features not only fail to add signal — they dilute it.
+
+4. **Root cause**: Factual recall traces don't have the systematic entropy structure that the features detect. In math/GPQA, correct reasoning produces characteristic low-frequency entropy modulation (methodical steps → stable entropy islands punctuated by uncertainty peaks at key steps). Factual QA CoT produces generic "let me think" padding with no systematic frequency structure.
+
+**Decision gates**:
+| Gate | Result | Detail |
+|------|--------|--------|
+| G0 Sufficient samples | PASS | 285/290 |
+| G1 Accuracy in range | PASS | 28% / 12% |
+| G2 Individual AUC > 57% | **FAIL** | Best 49% |
+| G3 Beat EPR baseline | **FAIL** | 53.6% vs 72% (TriviaQA); 61.9% vs 66.4% (WebQ) |
+| G4 Fusion AUC > 70% | **FAIL** | Max 61.9% |
+
+**Verdict**: Phase 9 confirms and strengthens the domain-specificity claim. Spectral features of H(n) require *reasoning-type* entropy traces to be informative. Even with CoT prompting that generates adequate trace length, factual QA lacks the systematic frequency structure the features detect. This is a clean negative result that tightens the thesis scope: the method works on tasks where the model must reason (math, science MCQ), not on tasks where it must recall (factual QA).
 
 ---
