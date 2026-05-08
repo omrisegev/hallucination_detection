@@ -110,24 +110,28 @@ def token_entropies_from_scores(scores, K: int = 15) -> list:
 
 
 def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
-                  K: int = 15, max_new_tokens: int = 512):
+                  K: int = 15, max_new_tokens: int = 512, **kwargs):
     """
-    Generate a response and return both the decoded text and the per-token entropy trace.
-
-    The full response (no trace/answer split) is returned. Entropy of every generated
-    token is extracted from the model's internal scores.
+    Generate a response and return a dictionary with text, entropies, and offsets.
 
     Args:
         mdl:            Loaded causal LM.
         tok:            Corresponding tokenizer.
         prompt_msg:     The user message (plain text, not yet chat-templated).
-        temperature:    Sampling temperature.
+        temperature:    Sampling temperature. (Also accepts 'T' as kwarg)
         K:              Top-K for entropy estimation.
-        max_new_tokens: Maximum response length in tokens.
+        max_new_tokens: Maximum response length. (Also accepts 'max_new' as kwarg)
 
     Returns:
-        (full_text: str, all_entropies: list[float])
+        {
+            'full_text': str,
+            'token_entropies': list[float],
+            'token_offsets': list[(char_start, char_end)]
+        }
     """
+    temp = kwargs.get("T", temperature)
+    max_tokens = kwargs.get("max_new", max_new_tokens)
+
     prompt = fmt_prompt(tok, prompt_msg)
     inputs = tok(prompt, return_tensors="pt").to(mdl.device)
     if "token_type_ids" in inputs:
@@ -136,10 +140,10 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
     with torch.no_grad():
         out = mdl.generate(
             **inputs,
-            max_new_tokens=max_new_tokens,
-            do_sample=True,
-            temperature=temperature,
-            top_k=50,
+            max_new_tokens=max_tokens,
+            do_sample=True if temp > 1e-4 else False,
+            temperature=temp if temp > 1e-4 else None,
+            top_k=50 if temp > 1e-4 else None,
             output_scores=True,
             return_dict_in_generate=True,
             pad_token_id=tok.eos_token_id,
@@ -148,4 +152,16 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
     gen_ids   = out.sequences[0][inputs.input_ids.shape[1]:]
     full_text = tok.decode(gen_ids, skip_special_tokens=True).strip()
     all_ents  = token_entropies_from_scores(out.scores, K)
-    return full_text, all_ents
+
+    # Compute char-level offsets for the generated tokens
+    # We re-encode the full text to get offsets relative to the start of gen
+    encoding = tok(full_text, return_offsets_mapping=True, add_special_tokens=False)
+    offsets  = encoding.offset_mapping
+
+    # Ensure all_ents and offsets match length if possible
+    # (Sometimes decoding/re-encoding shifts tokenization slightly)
+    return {
+        "full_text":       full_text,
+        "token_entropies": all_ents,
+        "token_offsets":   offsets,
+    }
