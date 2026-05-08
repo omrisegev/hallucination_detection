@@ -330,14 +330,24 @@ def is_correct_webq(gen: str, item: dict) -> bool:
 def load_lciteeval(task: str = "hotpotqa", n_samples: int = 100) -> list[dict]:
     """
     Load L-CiteEval tasks from HuggingFace.
-    Supported tasks: 'hotpotqa', 'triviaqa', 'eli5'.
+    Supported tasks: 'hotpotqa', 'triviaqa', 'eli5', etc.
     Returns list of {question, context, gold_answer, citations} dicts.
     """
     from datasets import load_dataset
-    # Mapping task names to HF config names if necessary
-    ds = load_dataset("Jonaszky123/L-CiteEval", task, split="test")
+    
+    # Map simple names to L-CiteEval specific config names
+    config_map = {
+        "hotpotqa": "L-CiteEval-Data_hotpotqa",
+        "triviaqa": "L-CiteEval-Data_natural_questions", # L-CiteEval uses NQ for Trivia-style
+        "natural_questions": "L-CiteEval-Data_natural_questions",
+        "narrativeqa": "L-CiteEval-Data_narrativeqa",
+        "2wikimultihopqa": "L-CiteEval-Data_2wikimultihopqa",
+    }
+    config_name = config_map.get(task, task)
+    
+    ds = load_dataset("Jonaszky123/L-CiteEval", config_name, split="test")
     samples = [ds[i] for i in range(min(n_samples, len(ds)))]
-    print(f"Loaded {len(samples)} L-CiteEval samples (task={task}).")
+    print(f"Loaded {len(samples)} L-CiteEval samples (config={config_name}).")
     return samples
 
 
