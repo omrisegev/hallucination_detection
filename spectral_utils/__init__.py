@@ -28,7 +28,17 @@ from .feature_utils import (
     extract_all_features,
     sw_var_peak_with_window,
     sw_var_peak_adaptive,
+    segment_by_citations,
     FEAT_NAMES,
+)
+from .data_loaders import (
+    load_gsm8k, gsm8k_prompt, is_correct_gsm8k,
+    load_math500, math_prompt, is_correct_math,
+    load_gpqa, gpqa_prompt_and_answer, is_correct_gpqa,
+    load_hotpotqa, hotpotqa_prompt, is_correct_hotpotqa,
+    load_trivia_qa, trivia_qa_prompt, is_correct_trivia_qa,
+    load_webq, webq_prompt, is_correct_webq,
+    load_lciteeval, lciteeval_prompt,
 )
 from .fusion_utils import zscore, boot_auc, nadler_fuse, simple_average_fusion, best_nadler_on
 
@@ -37,6 +47,14 @@ __all__ = [
     "load_cache", "save_cache",
     "load_model", "fmt_prompt", "generate_full", "token_entropies_from_scores", "free_memory",
     "compute_spectral_features", "compute_stft_features", "compute_time_domain",
-    "extract_all_features", "sw_var_peak_with_window", "sw_var_peak_adaptive", "FEAT_NAMES",
+    "extract_all_features", "sw_var_peak_with_window", "sw_var_peak_adaptive",
+    "segment_by_citations", "FEAT_NAMES",
+    "load_gsm8k", "gsm8k_prompt", "is_correct_gsm8k",
+    "load_math500", "math_prompt", "is_correct_math",
+    "load_gpqa", "gpqa_prompt_and_answer", "is_correct_gpqa",
+    "load_hotpotqa", "hotpotqa_prompt", "is_correct_hotpotqa",
+    "load_trivia_qa", "trivia_qa_prompt", "is_correct_trivia_qa",
+    "load_webq", "webq_prompt", "is_correct_webq",
+    "load_lciteeval", "lciteeval_prompt",
     "zscore", "boot_auc", "nadler_fuse", "simple_average_fusion", "best_nadler_on",
 ]
