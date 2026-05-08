@@ -3125,3 +3125,11 @@ CoT prompting successfully fixed the trace-length problem. Median trace length j
 **Verdict**: Phase 9 confirms and strengthens the domain-specificity claim. Spectral features of H(n) require *reasoning-type* entropy traces to be informative. Even with CoT prompting that generates adequate trace length, factual QA lacks the systematic frequency structure the features detect. This is a clean negative result that tightens the thesis scope: the method works on tasks where the model must reason (math, science MCQ), not on tasks where it must recall (factual QA).
 
 ---
+
+### Step 83 — Phase 6 Retroactive: HotpotQA — Mistral-7B-Instruct-v0.2 (T=1.0)
+
+**What**: Retroactive log of HotpotQA multi-hop results.
+**Why**: Was completed but never documented in HISTORY.md.
+**Result**: Fusion AUC **59.5%**. This confirmed that multi-hop QA is harder for spectral features than math reasoning (90%+), but slightly better than single-hop TriviaQA (53%). Result is below LOS-Net (72.9%), positioning spectral features as primarily reasoning-effective.
+
+---

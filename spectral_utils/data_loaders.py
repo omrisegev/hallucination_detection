@@ -8,6 +8,7 @@ Supported datasets:
   - HotpotQA    (multi-hop QA; substring match)
   - TriviaQA    (rc.nocontext; normalized alias exact-match grading)
   - WebQ        (WebQuestions; normalized alias exact-match grading)
+  - L-CiteEval  (long-context grounded QA with citation supervision)
 """
 import re
 import string
@@ -322,3 +323,36 @@ def is_correct_webq(gen: str, item: dict) -> bool:
     pred = gen.strip().split("\n")[0].strip()
     pred_norm = _normalize_qa(pred)
     return any(_normalize_qa(a) == pred_norm for a in item["answers"])
+
+
+# ── L-CiteEval ────────────────────────────────────────────────────────────────
+
+def load_lciteeval(task: str = "hotpotqa", n_samples: int = 100) -> list[dict]:
+    """
+    Load L-CiteEval tasks from HuggingFace.
+    Supported tasks: 'hotpotqa', 'triviaqa', 'eli5'.
+    Returns list of {question, context, gold_answer, citations} dicts.
+    """
+    from datasets import load_dataset
+    # Mapping task names to HF config names if necessary
+    ds = load_dataset("Jonaszky123/L-CiteEval", task, split="test")
+    samples = [ds[i] for i in range(min(n_samples, len(ds)))]
+    print(f"Loaded {len(samples)} L-CiteEval samples (task={task}).")
+    return samples
+
+
+def lciteeval_prompt(row: dict) -> str:
+    """
+    Format an L-CiteEval row for grounded generation with citations.
+    The prompt explicitly asks for [1], [2] style markers.
+    """
+    context = row.get("context", row.get("claim", ""))
+    question = row.get("question", "")
+    return (
+        "Based on the provided context, answer the following question. "
+        "For every statement you make, you MUST cite the source using numeric "
+        "markers like [1] or [2, 3] that correspond to the sentences in the context.\n\n"
+        f"Context:\n{context}\n\n"
+        f"Question: {question}\n\n"
+        "Answer with citations:"
+    )

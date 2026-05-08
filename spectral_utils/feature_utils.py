@@ -6,8 +6,10 @@ All 12 features used across Phase 4 / 5 / 6 / 7:
     spectral_entropy, low_band_power, high_band_power, hl_ratio,
     dominant_freq, spectral_centroid,
     stft_max_high_power, stft_spectral_entropy,
-    rpdi, sw_var_peak
+    rpdi, sw_var_peak,
+    segment_by_citations
 """
+import re
 import numpy as np
 from scipy.signal import stft as scipy_stft
 
@@ -173,3 +175,49 @@ def extract_all_features(ents) -> dict | None:
     result.update(compute_stft_features(ents))
     result.update(compute_time_domain(ents))
     return result
+
+
+def segment_by_citations(text: str, token_offsets: list[tuple[int, int]]) -> list[dict]:
+    """
+    Segment the generated text into statement spans ending in citation markers.
+
+    Matches patterns like [1], [2, 3], or [4-6].
+    Each segment is mapped to its corresponding token index range.
+
+    Returns:
+        List of {text, token_start, token_end, citation_ids}
+    """
+    # Regex for citation markers: [1], [1, 2], [1-3]
+    cite_pattern = re.compile(r"\[\d+(?:[\s,\-]*\d+)*\]")
+    
+    segments = []
+    last_end = 0
+    
+    for match in cite_pattern.finditer(text):
+        start_char, end_char = match.span()
+        # The segment text is from the end of the last citation to the end of this one
+        seg_text = text[last_end:end_char].strip()
+        
+        # Map char offsets to token indices
+        t_start = -1
+        t_end = -1
+        for i, (ts, te) in enumerate(token_offsets):
+            if t_start == -1 and te > last_end:
+                t_start = i
+            if te <= end_char:
+                t_end = i
+        
+        # Extract numeric IDs from the marker
+        ids = [int(x) for x in re.findall(r"\d+", match.group())]
+        
+        if t_start != -1 and t_end != -1:
+            segments.append({
+                "text": seg_text,
+                "token_start": t_start,
+                "token_end": t_end + 1,  # Inclusive
+                "citation_ids": ids
+            })
+        
+        last_end = end_char
+        
+    return segments
