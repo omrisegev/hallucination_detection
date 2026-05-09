@@ -38,6 +38,10 @@
 ```python
 import os, sys, shutil
 
+# Persist HuggingFace cache to Drive — saves a 36 GB AWQ re-download (~15 min)
+# on every runtime restart. Set BEFORE any HF import.
+os.environ['HF_HOME'] = '/content/drive/MyDrive/hf_cache'
+
 REPO_DIR = '/content/hallucination_detection'
 
 # Remove stale clone if spectral_utils is missing
@@ -52,7 +56,10 @@ else:
 if REPO_DIR not in sys.path:
     sys.path.insert(0, REPO_DIR)
 
-os.system('pip install -q "transformers>=4.40" accelerate datasets bitsandbytes autoawq gptqmodel scipy')
+# autoawq is safe here. gptqmodel is NOT — it rewrites numpy/pyarrow .so files
+# during install and corrupts them mid-session. Defer gptqmodel to the cell that
+# loads the model (see "Model loading rules" below).
+os.system('pip install -q "transformers>=4.40" accelerate datasets bitsandbytes autoawq scipy')
 
 from spectral_utils import (
     load_model, generate_full, free_memory,
@@ -60,6 +67,14 @@ from spectral_utils import (
     FEAT_NAMES, load_cache, save_cache,
     zscore, boot_auc, nadler_fuse, simple_average_fusion, best_nadler_on,
 )
+
+# Force-load datasets (and through it pyarrow + pyarrow.parquet) into memory
+# BEFORE the later gptqmodel install. C extensions can't be unloaded from a
+# running Python process, so freezing them in memory now makes on-disk rewrites
+# inert. Without this, the first lazy pyarrow import after gptqmodel install
+# fails with `IpcReadOptions size changed`.
+import datasets  # noqa: F401 — imported for side-effect
+
 print('spectral_utils imported OK')
 ```
 
@@ -69,11 +84,18 @@ print('spectral_utils imported OK')
 
 ## Model loading rules
 
-- **AWQ / GPTQ models** (ID contains `awq` or `gptq`): `load_model(model_id, quantize_4bit=False)` — package auto-detects, uses `dtype=torch.bfloat16`. `device_map="auto"` is safe because AWQ weights are already quantized on disk (~36 GB for 72B). **Requires both `autoawq` AND `gptqmodel`** — gptqmodel provides the `AwqMarlinLinear` (Marlin fp16) kernel; without it, AWQ will fail or use a slow fallback. Install both in the same cell.
+- **AWQ / GPTQ models** (ID contains `awq` or `gptq`): `load_model(model_id, quantize_4bit=False)` — package auto-detects, uses `dtype=torch.bfloat16`. `device_map="auto"` is safe because AWQ weights are already quantized on disk (~36 GB for 72B). **Requires both `autoawq` AND `gptqmodel`** — gptqmodel provides the `AwqMarlinLinear` (Marlin fp16) kernel; without it, AWQ will fail or use a slow fallback.
+  - **CRITICAL — install order**: `autoawq` goes in Cell 1 (safe alone). `gptqmodel` MUST be installed in the model-load cell, AFTER `import datasets` has frozen pyarrow in memory. Installing both together in Cell 1 corrupts numpy and pyarrow on disk (`cannot import name '_center'`, `IpcReadOptions size changed`) and is unrecoverable in-session — only a runtime restart fixes it. The model-load cell should look like:
+    ```python
+    os.system('pip install -q gptqmodel')
+    mdl, tok = load_model(MODEL_ID, quantize_4bit=False)
+    ```
 - **BNB 4-bit (70B+)**: `load_model(model_id, quantize_4bit=True)`. Never pass `torch_dtype` alongside `quantization_config` — bitsandbytes owns dtype internally; passing it bypasses BNB and loads full FP16 → OOM.
 - **BNB + 72B on A100**: `device_map="auto"` reads the *pre-quantization* FP16 size (~145 GB for Qwen-72B) and dispatches layers to CPU → BNB raises `ValueError: modules dispatched on CPU`. Fix: use `device_map={"": 0}` to force all layers to GPU before BNB quantizes them.
 
 **Known package gap**: `model_utils.py` still uses `device_map="auto"`. Safe for AWQ and small models. For 72B BNB, override in the notebook or patch the package before the run.
+
+**Colab C-extension corruption — recovery**: If you see `cannot import name '_center'` (numpy) or `IpcReadOptions size changed` (pyarrow) mid-session, do NOT try `pip install --force-reinstall` to recover — C extensions can't be unloaded from a running Python process and the `.so` you're trying to replace is held open. The only fix is `Runtime → Restart runtime`. Prevention is the Cell 1 pre-import + deferred gptqmodel install above.
 
 ---
 
