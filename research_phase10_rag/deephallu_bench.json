@@ -1,0 +1,52 @@
+{
+  "name": "Why Your Deep Research Agent Fails? On Hallucination Evaluation in Full Research Trajectory (DeepHalluBench)",
+  "type": "benchmark",
+  "year": "2026 (arXiv submission Jan 30, 2026)",
+  "venue": "arXiv preprint (no peer-reviewed venue listed yet at time of search)",
+  "venue_tier": "preprint",
+  "authors": "Yuhao Zhan, Tianyu Fan, Linxuan Huang, Zirui Guo, Chao Huang [uncertain on first-author institution; corresponding author appears to be Chao Huang]",
+  "arxiv_id": "2601.22984",
+
+  "dataset_size": "100 distinctively hallucination-prone tasks (queries) including adversarial scenarios, spanning 11 distinct domains. Each task generates a multi-step research trajectory when run by a Deep Research Agent (DRA), so the effective number of evaluable units (atomic actions + atomic claims + sub-queries) per task is much larger than 100.",
+  "annotation_unit": "Multi-granular trajectory decomposition: (1) atomic actions (decomposed plans), (2) atomic claims (decomposed summaries), and (3) sub-queries (search/retrieval steps). Each unit is verified independently against the PIES taxonomy. The headline unit is 'task' (100 of them); the scoring unit is per-trajectory PIES quadrant counts.",
+  "ground_truth_source": "Hybrid: human-curated hallucination-prone task seeds + LLM-judge evaluation of atomic actions / claims / sub-queries against the taxonomy. The PIES verifier itself appears to be LLM-based but applied to fine-grained atomic units rather than whole responses [uncertain on exact judge model].",
+  "judge_model": "LLM-based PIES verifier — the paper decomposes plans into atomic actions and summaries into atomic claims and verifies each via an LLM-judge. Exact judge model identity not surfaced in available abstracts [uncertain — likely GPT-4 / Claude / Gemini class].",
+  "domain": "11 distinct domains spanning humanities (Art, Music & Literature, History) through technical fields. Designed specifically for Deep Research Agent (DRA) evaluation — i.e., LLM-based systems that iteratively plan, search, and reason to retrieve and synthesize information into a final report.",
+  "context_length_range": "Variable — emerges from the DRA's iterative search/retrieval rather than a fixed prompt length. Final reports are long-form; total trajectory token budget is large but not bounded by a single context window. Not directly comparable to a fixed 8K/32K cap [uncertain on reported max-trajectory length].",
+  "error_taxonomy": "PIES Taxonomy — two-dimensional, four-quadrant: dim1 = functional component (Planning vs. Summarization); dim2 = error property (Explicit vs. Implicit). Quadrants: (1) Explicit Planning — deviated/redundant plans; (2) Implicit Planning — neglecting user restrictions; (3) Explicit Summarization — fabricated content / mis-quoted citations; (4) Implicit Summarization — neglecting essential retrieved information. Explicit = wrong content present; Implicit = required content absent.",
+  "dynamic_test_generation": "false — fixed set of 100 curated tasks. However, the agent's trajectory itself is dynamically generated at evaluation time, so the surface form of any given evaluation run is non-static even though the seed task is fixed.",
+  "contamination_risk": "low — brand new (Jan 2026), only 100 tasks, designed adversarially to be hallucination-prone. Tasks themselves are unlikely to be in pre-training data of models trained before 2026; the dynamic-trajectory nature further reduces leakage exposure.",
+  "license": "[uncertain] — not surfaced in available search snippets. GitHub repo at https://github.com/yuhao-zhan/DeepHalluBench would carry the canonical license.",
+  "public_data_url": "https://github.com/yuhao-zhan/DeepHalluBench (code + data per the paper). Direct HuggingFace mirror not confirmed [uncertain].",
+  "annotation_cost_per_sample": "Atomic decomposition + per-unit LLM-judge verification across multi-step trajectories — significantly more expensive per task than a single-shot QA benchmark. Expected $5–$20 per task end-to-end at 2026 API rates given trajectory length [uncertain].",
+
+  "reported_metric": "Hallucination score H per PIES quadrant + overall H. Lower H = fewer hallucinations. Aggregate H is reported per agent system (OpenAI Deep Research, Gemini Deep Research, Salesforce, Qwen, etc.).",
+  "reported_value": "Qwen has lowest overall H ≈ 0.149; OpenAI ≈ 0.155; mid-tier Gemini ≈ 0.175 and Salesforce ≈ 0.185. Lower-is-better. (Reported in the paper's main results table.)",
+  "overlapping_benchmark": "None of our existing benchmarks (MATH-500, GSM8K, GPQA, HotpotQA, TriviaQA, WebQ) overlap. DeepHalluBench is in a fundamentally different regime (multi-step agentic trajectories) from any of our prior phases.",
+  "model_used_in_paper": "Five proprietary DRAs + one open-source DRA: OpenAI Deep Research, Gemini Deep Research, Salesforce DRA, Qwen DRA, plus others [uncertain on exact lineup of all six].",
+
+  "applicability": "medium-to-high for thesis scope, but LOW for a near-term spectral-fusion pilot. DeepHalluBench is the first trajectory-level hallucination benchmark for agentic systems and aligns with Direction 6/7 (agentic trajectory) of our roadmap. However, it requires running a full Deep Research Agent stack (iterative planning + tool use + retrieval), which is far outside our current single-model H(n)-extraction pipeline. Replication would require building a DRA harness first.",
+  "preemption_risk": "medium — DeepHalluBench partially OVERLAPS with our agentic trajectory direction by introducing PIES (a categorical taxonomy of trajectory hallucinations). However: (a) they use LLM-judge categorical labels, NOT entropy / spectral / frequency-domain features; (b) they do not access white-box model internals (most DRAs are proprietary); (c) their detection unit is the atomic action/claim verified against external sources, not the entropy trajectory of a single rollout. Our spectral H(n) framing is structurally orthogonal: we model the model's own uncertainty trajectory, not external claim-level verifiability. The PIES taxonomy is a useful complementary framework we should CITE when positioning our work in agentic settings, but it does not pre-empt the spectral contribution.",
+  "bracha_alignment": "high — PIES quadrant counts and H scores are exactly the kind of categorical / continuous noisy estimates that LTT, COIN, conformal calibration, and PPI are designed to risk-control. Bracha's PPI is especially natural given that the PIES verdicts themselves come from LLM-judges (noisy labels).",
+  "ofir_alignment": "moderate — full research trajectories are richer time series than single-rollout entropy traces; multi-view kernel / VSDE methods could in principle map a (plan, retrieve, summarize, plan, ...) trajectory into a state-space embedding. However, getting the full trajectory's intermediate states from proprietary DRAs is a hard access problem.",
+  "notes": "STRATEGIC: cite PIES as the first taxonomy of agentic hallucinations and position our spectral H(n) work as the FIRST WHITE-BOX trajectory-aware detector — distinct from PIES which is black-box and judge-based. Practical caveat: replicating DeepHalluBench end-to-end requires either (a) using only the open-source Qwen DRA where we can extract token logits, or (b) waiting for the field to release open-weight DRA stacks. For a 1-day pilot this is NOT a starting benchmark — start with FACTS Grounding or L-CiteEval and only graduate to DeepHalluBench once a DRA harness is built. arXiv ID 2601.22984 is consistent with a Jan 2026 submission and the paper is fresh enough that contamination risk is genuinely low.",
+
+  "public_code_url": "https://github.com/yuhao-zhan/DeepHalluBench",
+  "model_size_range": "Proprietary closed DRAs (OpenAI, Gemini, Salesforce) + Qwen DRA (open source). Qwen DRA exposes weights and would be in-distribution for our white-box pipeline; the others are black-box only.",
+  "gpu_requirements": "Running a DRA requires concurrent inference + tool calling + retrieval orchestration. For Qwen DRA at 7B–72B class on A100 80GB, single-GPU is feasible for the LLM call but the full agent harness (search, browsing, retrieval) is the dominant engineering cost, not GPU.",
+  "sample_size_for_replication": "100 tasks in the full benchmark. Subsetting is possible but the H-score variance with fewer tasks is unclear [uncertain].",
+  "min_samples_for_replication": "~30–50 tasks for stable per-quadrant PIES estimates [uncertain — paper reports on full 100].",
+  "runtime_estimate": "Per task: a full DRA trajectory (planning + multiple search/retrieval rounds + summarization) — minutes to hours per task in wall-clock time, dominated by retrieval round-trips and final-report synthesis [uncertain on exact per-task runtime].",
+
+  "uncertain": [
+    "authors",
+    "judge_model",
+    "context_length_range",
+    "license",
+    "public_data_url",
+    "annotation_cost_per_sample",
+    "model_used_in_paper",
+    "min_samples_for_replication",
+    "runtime_estimate"
+  ]
+}

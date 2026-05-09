@@ -1,0 +1,307 @@
+topic: "Spectral / entropy-trajectory features for hallucination detection in long-document RAG and agentic settings"
+created: 2026-05-07
+context: |
+  We have a working pipeline (sw_var_peak, spectral_centroid, EPR fused via Nadler) that
+  reaches 76-96.6% AUC on math reasoning (GSM8K, MATH-500, GPQA-72B) but fails on factual
+  QA (TriviaQA 53.6%, WebQ 61.9%, HotpotQA 59.5%). Hypothesis: long-document multi-iteration
+  RAG / agentic settings restore the long-trace + step-structure conditions that make spectral
+  features informative, by exposing grounded<->parametric transitions as local entropy bursts.
+  Goal of this research: (a) identify viable pilot benchmarks, (b) check pre-emption risk
+  against recent work, (c) compile baseline list, (d) surface open empirical questions.
+
+# ─── Items ──────────────────────────────────────────────────────────────────────
+# Curated to ~35 items most relevant to pilot decision. Tangential items (knowledge
+# editing, training methods, gene co-expression) excluded. Priority drives /research-deep
+# ordering: tier1 = read first.
+
+items:
+
+  # ── Tier 1: PRE-EMPTION RISK (closest to our spectral-trajectory framing) ────
+  - name: "Energy Mountain / GSP framework"
+    category: B_method
+    arxiv: "2510.19117"
+    priority: tier1
+    year: 2025
+    brief: "Dirichlet energy + spectral entropy + high-frequency energy ratio per layer — closest published method to MV_EPR. Pre-emption-critical."
+
+  - name: "Streaming Prefix-Level Hallucination Detection"
+    category: B_method
+    arxiv: "2601.02170"
+    priority: tier1
+    year: 2026
+    brief: "Step-level + cumulative prefix-level signals on long CoT. Same trajectory framing we proposed. Public code expected."
+
+  - name: "LapEigvals (Spectral Features of Attention Maps)"
+    category: B_method
+    arxiv: "2502.17598"
+    venue: "EMNLP 2025"
+    priority: tier1
+    brief: "Top-k Laplacian eigenvalues of attention adjacency. Direct competitor / sibling. Code: graphml-lab-pwr/lapeigvals."
+
+  - name: "TOHA — Topological Divergence on Attention Graphs"
+    category: B_method
+    arxiv: "2504.10063"
+    priority: tier1
+    year: 2025
+    brief: "Persistent-homology divergence between prompt and response sub-graphs in RAG. Only 50 labeled samples needed. Spectral-attention extended to RAG."
+
+  - name: "RES — Reasoning-Explanation Symmetry"
+    category: B_method
+    venue: "ICLR 2026"
+    priority: tier1
+    brief: "NLI-based forward-backward consistency. AUROC 0.996 on multistep arithmetic, 70% fewer tokens than Semantic Entropy. Strong baseline."
+
+  - name: "SIA — Stepwise Informativeness Assumption"
+    category: F_cot
+    arxiv: "2604.06192"
+    priority: tier1
+    year: 2026
+    brief: "Conditional answer entropy as progress variable; failures marked by entropy spikes. Names our hypothesis explicitly."
+
+  - name: "Reasoning Score (RHD) — Mechanistic Detection in Reasoning Models"
+    category: B_method
+    venue: "ICLR 2026"
+    priority: tier1
+    brief: "Late-layer logit divergence in reasoning models. Unsupervised. Particularly relevant for AWQ/GPTQ quantized 70B+."
+
+  - name: "Real-Time Hallucinated Entity Probes"
+    category: B_method
+    arxiv: "2509.03531"
+    priority: tier1
+    year: 2025
+    brief: "Token-level streaming probes. AUC 0.90 vs 0.71 (semantic entropy) on Llama-3.3-70B long-form. Public code."
+
+  # ── Tier 1: RAG span-labeled benchmarks (pilot candidates) ───────────────────
+  - name: "RAGTruth"
+    category: A_benchmark
+    arxiv: "2401.00396"
+    venue: "ACL 2024"
+    priority: tier1
+    brief: "18k responses with span-level human annotations across QA / summarization / data-to-text. De-facto standard for span-level RAG hallucination."
+
+  - name: "RAGTruth++"
+    category: A_benchmark
+    priority: tier1
+    year: 2025
+    brief: "Re-annotated 408-example QA/summarization subset of RAGTruth. Increased annotated spans from 86 to 865 (fixes false-negative issue in original)."
+
+  - name: "FACTS Grounding (DeepMind)"
+    category: A_benchmark
+    arxiv: "2501.03200"
+    arxiv_extension: "2512.10791"
+    priority: tier1
+    year: 2025
+    brief: "1,719 long-form examples up to 32K tokens. Tri-judge eval. Suite extension adds Parametric, Search, Multimodal sub-benchmarks."
+
+  - name: "L-CiteEval"
+    category: A_benchmark
+    arxiv: "2410.02115"
+    venue: "ACL 2025"
+    priority: tier1
+    brief: "11 tasks, 8K-48K context, citation precision/recall/F1. Bridges long-context QA and citation faithfulness."
+
+  - name: "DeepHalluBench"
+    category: A_benchmark
+    arxiv: "2601.22984"
+    priority: tier1
+    year: 2026
+    brief: "100 hallucination-prone tasks for Deep Research Agents. PIES taxonomy (Planning/Implicit/Explicit/Summarization). First DRA trajectory benchmark."
+
+  - name: "FActScore"
+    category: A_benchmark
+    venue: "EMNLP 2023"
+    priority: tier1
+    brief: "Atomic-fact decomposition over biographies. Claim-level grounding labels. Foundational for span-level faithfulness eval."
+
+  # ── Tier 2: span-level RAG faithfulness METHODS (baselines) ──────────────────
+  - name: "ReDeEP"
+    category: E_ragagent
+    arxiv: "2410.11414"
+    venue: "ICLR 2025"
+    priority: tier2
+    brief: "Mechanistic decoupling of parametric vs context knowledge in RAG via Knowledge FFNs and Copying Heads. Direct grounded/parametric signal."
+
+  - name: "SEReDeEP"
+    category: E_ragagent
+    arxiv: "2505.07528"
+    priority: tier2
+    year: 2025
+    brief: "Combines semantic entropy with ReDeEP context-parameter fusion. +3-10% AUC gains on RAG hallucination."
+
+  - name: "FACTUM — Mechanistic Citation Detection"
+    category: E_ragagent
+    arxiv: "2601.05866"
+    priority: tier2
+    year: 2026
+    brief: "Citation hallucination as Attention-FFN coordination failure. 4 mechanistic scores: Contextual Alignment, Attention Sink Usage, Parametric Force, Pathway Alignment."
+
+  - name: "MetaRAG — Metamorphic Testing for RAG"
+    category: E_ragagent
+    arxiv: "2509.09360"
+    priority: tier2
+    year: 2025
+    brief: "Black-box, no ground-truth needed. Localizes spans. Useful baseline for unsupervised setting."
+
+  - name: "Lookback Lens"
+    category: B_method
+    arxiv: "2407.07071"
+    venue: "EMNLP 2024"
+    priority: tier2
+    brief: "Attention-on-context ratios for hallucination detection. Span-level grounding signal."
+
+  - name: "ICR Probe — Information Contribution to Residual stream"
+    category: B_method
+    arxiv: "2507.16488"
+    venue: "ACL 2025"
+    priority: tier2
+    brief: "Cross-layer hidden-state dynamics. Outperforms static probes with fewer parameters."
+
+  - name: "Semantic Entropy Probes"
+    category: B_method
+    arxiv: "2406.15927"
+    venue: "NeurIPS 2024"
+    priority: tier2
+    brief: "Cheap hidden-state approximation of semantic entropy. Standard baseline."
+
+  - name: "INSIDE / EigenScore"
+    category: B_method
+    priority: tier2
+    year: 2024
+    brief: "EigenScore on hidden-state covariance for hallucination. Spectral feature on internal states (not entropy trajectory). Standard baseline."
+
+  - name: "VeriScore"
+    category: B_method
+    arxiv: "2406.19276"
+    venue: "EMNLP 2024"
+    priority: tier2
+    brief: "Verifiable-claim-only decomposition with inter-sentence context. Improvement over FActScore/SAFE."
+
+  # ── Tier 2: agentic SOTA detection (beyond AUQ + AgentHallu) ─────────────────
+  - name: "AUQ — Agentic Uncertainty Quantification"
+    category: C_agentic
+    arxiv: "2601.15703"
+    priority: tier2
+    year: 2026
+    brief: "Salesforce. UAM (verbalized confidence per step) + UAR (best-of-N reflection). Φmin AUROC 0.791 on ALFWorld, 0.755 WebShop. Already in our literature."
+
+  - name: "AgentHallu"
+    category: C_agentic
+    arxiv: "2601.06818"
+    priority: tier2
+    year: 2026
+    brief: "Step-level annotation schema (Planning/Retrieval/Reasoning/Tool-Use/Human-Interaction). SOTA Gemini 2.5 Pro = 41.1% step localization. Text-only data — schema useful, dataset unusable for us."
+
+  - name: "UProp — Uncertainty Propagation in LLM Agents"
+    category: C_agentic
+    arxiv: "2506.17419"
+    priority: tier2
+    year: 2025
+    brief: "Trajectory-level uncertainty propagation. Ofir-aligned (multi-step state stability)."
+
+  - name: "SAUP — Situation Awareness Uncertainty Propagation"
+    category: C_agentic
+    arxiv: "2412.01033"
+    priority: tier2
+    year: 2024
+    brief: "+20% AUROC over baselines on multi-step agent decisions. Predecessor to UProp."
+
+  - name: "Internal Representations for Agent Tool Selection"
+    category: C_agentic
+    arxiv: "2601.05214"
+    priority: tier2
+    year: 2026
+    brief: "Probes hidden-state signals specifically for tool-selection hallucinations."
+
+  - name: "MARCH — Multi-Agent Reinforced Self-Check"
+    category: C_agentic
+    arxiv: "2603.24579"
+    priority: tier2
+    year: 2026
+    brief: "Three-agent pipeline (Solver, Proposer, Checker). Breaks self-confirmation bias."
+
+  - name: "The Reasoning Trap"
+    category: F_cot
+    venue: "ICLR 2026"
+    priority: tier2
+    brief: "Long-CoT amplifies tool hallucination — RL-trained reasoning increases hallucination rate. Already in HISTORY Step 78."
+
+  - name: "Long-Horizon Task Mirage"
+    category: C_agentic
+    arxiv: "2604.11978"
+    priority: tier2
+    year: 2026
+    brief: "Diagnostic study of where/why agentic systems break in long-horizon settings."
+
+  - name: "Agent Hallucination Survey"
+    category: C_agentic
+    arxiv: "2509.18970"
+    priority: tier2
+    year: 2025
+    brief: "Comprehensive taxonomy and methods survey. Single best entry-point reference."
+
+  # ── Tier 3: production RAG faithfulness baselines ────────────────────────────
+  - name: "HHEM-2.1 (Vectara)"
+    category: E_ragagent
+    priority: tier3
+    year: 2024
+    brief: "Open RAG-faithfulness model trained on RAGTruth + others. Popular production baseline."
+
+  - name: "TLM — Cleanlab Trustworthy Language Model"
+    category: E_ragagent
+    priority: tier3
+    year: 2024
+    brief: "RAG hallucination detection. Strong real-time production baseline."
+
+  - name: "LettuceDetect"
+    category: E_ragagent
+    arxiv: "2502.17125"
+    priority: tier3
+    year: 2025
+    brief: "Lightweight hallucination detection framework for RAG production deployment."
+
+  - name: "Vectara Hallucination Leaderboard v2"
+    category: A_benchmark
+    priority: tier3
+    year: 2025
+    brief: "7,700+ articles up to 32K tokens. Law/medicine/finance/tech/education. Public production-grade leaderboard."
+
+  # ── Tier 3: long-context entropy / decoding behavior ─────────────────────────
+  - name: "DAGCD — Dynamic Attention-Guided Context Decoding"
+    category: D_longcontext
+    arxiv: "2501.01059"
+    priority: tier3
+    year: 2025
+    brief: "Direct entropy<->context-faithfulness correlation. Amplifies contextually relevant tokens during generation."
+
+  - name: "Confidence Masking on CoT (Cheng et al. 2025)"
+    category: F_cot
+    venue: "EMNLP 2025 Findings"
+    priority: tier3
+    brief: "CoT prompting hides hallucination cues from detectors. Erroneous tokens still high probability. Validates our Phase 9 finding that CoT alone doesn't unlock spectral signal on factual QA."
+
+  - name: "Lost in the Middle"
+    category: D_longcontext
+    venue: "TACL 2024"
+    priority: tier3
+    brief: "Accuracy drop in middle of long context. Foundational for long-doc evaluation design."
+
+  - name: "Hallucination Basins / Trajectory Commitment"
+    category: D_longcontext
+    arxiv: "2604.04743"
+    priority: tier3
+    year: 2026
+    brief: "Asymmetric attractor dynamics in transformer generation. Frames hallucination as trajectory phenomenon — complements our spectral-trajectory framing."
+
+# ─── Execution config ───────────────────────────────────────────────────────────
+execution:
+  batch_size: 6                  # 6 parallel agents, 5-6 items each (~7 batches)
+  items_per_agent: 5             # confirmed by user
+  output_dir: "./research_phase10_rag/"
+  total_items: 41
+  estimated_runtime_minutes: 25  # ~6-8 minutes per agent in parallel
+
+# ─── Tier rationale ─────────────────────────────────────────────────────────────
+tier_priority:
+  tier1: "Pre-emption check + pilot benchmark candidates. Read these first — they directly determine whether Phase 10 RAG-agentic is novel."
+  tier2: "Span-level RAG methods (baselines we'd need to compare against) + agentic SOTA. Important but not blocking."
+  tier3: "Production baselines + long-context entropy context. Useful for thesis narrative; can be skimmed."

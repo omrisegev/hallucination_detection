@@ -6,8 +6,10 @@ All 12 features used across Phase 4 / 5 / 6 / 7:
     spectral_entropy, low_band_power, high_band_power, hl_ratio,
     dominant_freq, spectral_centroid,
     stft_max_high_power, stft_spectral_entropy,
-    rpdi, sw_var_peak
+    rpdi, sw_var_peak,
+    segment_by_citations
 """
+import re
 import numpy as np
 from scipy.signal import stft as scipy_stft
 
@@ -173,3 +175,45 @@ def extract_all_features(ents) -> dict | None:
     result.update(compute_stft_features(ents))
     result.update(compute_time_domain(ents))
     return result
+
+
+def segment_by_citations(text: str, token_offsets: list) -> list:
+    """
+    Segment generated text into statement spans ending in citation markers [N] or [N, M].
+
+    Each segment is mapped to its token index range using the provided char-level offsets.
+    Returns list of {text, token_start, token_end, citation_ids}.
+
+    Notes:
+        token_offsets comes from generate_full's re-tokenization of full_text.
+        Its length may differ from token_entropies by 1-2 tokens; callers should
+        align lengths before slicing entropies with token_start/token_end.
+    """
+    cite_pattern = re.compile(r"\[\d+(?:[\s,\-]*\d+)*\]")
+    segments  = []
+    last_end  = 0
+
+    for match in cite_pattern.finditer(text):
+        start_char, end_char = match.span()
+        seg_text = text[last_end:end_char].strip()
+
+        t_start, t_end = -1, -1
+        for i, (ts, te) in enumerate(token_offsets):
+            if t_start == -1 and te > last_end:
+                t_start = i
+            if te <= end_char:
+                t_end = i
+
+        ids = [int(x) for x in re.findall(r"\d+", match.group())]
+
+        if t_start != -1 and t_end != -1:
+            segments.append({
+                "text":        seg_text,
+                "token_start": t_start,
+                "token_end":   t_end + 1,
+                "citation_ids": ids,
+            })
+
+        last_end = end_char
+
+    return segments

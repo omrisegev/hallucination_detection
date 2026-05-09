@@ -1,0 +1,47 @@
+{
+  "name": "Streaming Prefix-Level Hallucination Detection",
+  "type": "method",
+  "year": "2026 (January)",
+  "venue": "arXiv preprint (cs.AI)",
+  "venue_tier": "preprint",
+  "authors": "Haolang Lu (Beijing University of Posts and Telecommunications), Minghui Pan, Ripeng Li, Guoshun Nan, Jialin Zhuang, Zijie Zhao, Zhongxiang Sun (Renmin University of China), Kun Wang, Yang Liu (Nanyang Technological University / Southwest Jiaotong University)",
+  "arxiv_id": "2601.02170",
+
+  "signal_type": "hidden-state + token-entropy + multi-signal-fusion",
+  "white_box_requirements": "Requires access to hidden states from all layers at each reasoning step. The LLM-Check component computes the Mean Log-Determinant of internal representations (a matrix-log-determinant measure of representational order). Step representations are formed by exponential time-weighted pooling of hidden states within each step: z_t = sum_j exp(w_j) * h_{t,j}^{(l)} / Z, where w_n = (n-1)/(L_t - 1). Also requires per-token probability distributions (entropy at each step). Does NOT require multiple samples.",
+  "access_level": "white-box",
+  "supervision": "supervised",
+  "granularity": "step-level + trajectory-level (prefix-level)",
+  "temporal_resolution": "streaming (during generation, step by step)",
+  "trajectory_aware": true,
+  "streaming_capable": true,
+  "integration_mode": "post-hoc detector (streaming); the prefix-level predictor g_theta(h_t, c_t^step) is learned offline and applied at inference time",
+  "spectral_signature_overlap": "low. The method does NOT use FFT, Fourier transforms, DFT, wavelets, or eigenvalue decomposition of any signal. The LLM-Check component computes a Mean Log-Determinant (MLD) of a covariance/Gram matrix of hidden states — this is a scalar measure of representational volume related to matrix determinant, not an eigenspectrum feature. There is no spectral decomposition of the entropy trajectory H(n). The method operates entirely in the time/sequence domain on step-aggregated entropy and hidden-state summaries. The prefix-level cumulative signal is learned via a quadratic alarm synchronization loss (one-way discrepancy delta_t = max(0, c_t^step - c_t^prefix)), not a spectral transform. Conclusion: This paper does NOT pre-empt our spectral frequency-domain analysis of H(n). Their trajectory framing is similar, but the feature space is orthogonal.",
+  "tested_models": "LLaMA-3.1-8B-Instruct, Qwen2.5-7B-Instruct, DeepSeek-R1-Distill-8B",
+  "handles_long_context": true,
+  "tested_at_what_length": "Long chain-of-thought reasoning traces (multiple explicit reasoning steps); exact token counts not reported in available content",
+
+  "reported_metric": "AUROC",
+  "reported_value": "Step-level: 87.83% (LLaMA-3.1), 86.70% (Qwen2.5), 93.27% (DeepSeek-R1). Prefix-level Final: 72.69% (LLaMA-3.1), 81.05% (Qwen2.5), 92.18% (DeepSeek-R1).",
+  "overlapping_benchmark": "GSM8K (math reasoning) — also tests on MuSiQue (multi-hop QA) and MATH",
+  "model_used_in_paper": "LLaMA-3.1-8B-Instruct, Qwen2.5-7B-Instruct, DeepSeek-R1-Distill-8B",
+
+  "applicability": "high — directly addresses long-CoT streaming detection using trajectory-based signals; most similar framing to our work",
+  "preemption_risk": "MEDIUM-LOW. This paper poses a meaningful parallel in framing (cumulative prefix state across reasoning steps, trajectory-aware detection) but does NOT pre-empt our spectral contribution. Key distinctions: (1) Feature space is entirely different — they use hidden-state pooling + Mean Log-Determinant + step-entropy, while we apply FFT/spectral decomposition to H(n) as a time-series signal. (2) They require supervised training of a learned prefix predictor g_theta; our Nadler spectral fusion is unsupervised. (3) They require multi-layer hidden states (not just logits); our method only needs token entropy from a single gray-box forward pass. (4) They do not apply spectral/frequency-domain features to entropy trajectories — confirmed by full PDF review. (5) They do not address RAG or agentic settings. Remaining risk: the trajectory framing ('evolving latent state across steps') is the same motivation as our Phase 10 agentic extension. A reviewer could ask us to compare against this baseline on our datasets.",
+  "bracha_alignment": "Moderate. The prefix-level predictor is trained with a quadratic alarm synchronization loss — this has a statistical calibration flavor. Bracha's LTT/conformal calibration machinery could be used to provide distribution-free guarantees on the prefix hallucination threshold, which the current paper does not provide.",
+  "ofir_alignment": "High. The Mean Log-Determinant of hidden-state representations is structurally close to Ofir's multi-view kernel and spectral covariance methods. The step representation z_t as a covariance-weighted pooling of hidden states connects directly to VSDE/PRAE spectral decomposition framing. Our Nadler fusion (leading eigenvector of cross-view covariance) is a natural spectral generalization of their scalar MLD measure.",
+  "notes": "Anonymous code repository at https://anonymous.4open.science/r/Streaming-Hallucination-Detection-D186/ (access-restricted during review). The paper is from January 2026, making it directly concurrent with our Phase 10 planning. The fact that they test on GSM8K and MATH means we have a direct benchmark overlap — our Qwen2.5-7B result (Phase 2 MATH-500: 90.0% AUROC) already exceeds their Qwen2.5 prefix-level result (81.05%), suggesting our spectral features add complementary information. CRITICAL NOTE: Their LLM-Check baseline (which they adopt) uses Mean Log-Determinant — this is related to the matrix log-spectral-sum (sum of log eigenvalues = log det). While they use it as a scalar baseline, not as a trajectory decomposition, a reviewer who knows this connection might conflate it with our approach. We should be clear that we apply spectral analysis to the ENTROPY TRAJECTORY H(n) as a 1D time series (FFT of the sequence), not to a covariance matrix of hidden states.",
+
+  "public_code_url": "https://anonymous.4open.science/r/Streaming-Hallucination-Detection-D186/ (anonymous, access-restricted)",
+  "model_size_range": "7B-8B",
+  "gpu_requirements": "Single GPU sufficient for 7-8B models; not specified beyond inference requirements",
+  "sample_size_for_replication": "[uncertain]",
+  "min_samples_for_replication": "[uncertain]",
+  "runtime_estimate": "Streaming (real-time during generation); probe inference overhead negligible per token",
+
+  "handles_step_localization": true,
+  "cumulative_state_modeling": "Learned prefix-level predictor c_t^prefix = g_theta(h_t, c_t^step) with quadratic alarm synchronization loss penalizing one-way discrepancy delta_t = max(0, c_t^step - c_t^prefix). Not a simple running mean or CUSUM — bidirectional state transitions allowed.",
+  "confidence_masking_addressed": false,
+
+  "uncertain": ["sample_size_for_replication", "min_samples_for_replication", "gpu_requirements"]
+}

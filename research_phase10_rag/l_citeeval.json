@@ -1,0 +1,48 @@
+{
+  "name": "L-CiteEval: A Suite for Evaluating Fidelity of Long-context Models (a.k.a. L-CiteEval: Do Long-Context Models Truly Leverage Context for Responding?)",
+  "type": "benchmark",
+  "year": "2024 (arXiv Oct 2024); ACL 2025 main conference",
+  "venue": "ACL 2025 (Main / Long Papers)",
+  "venue_tier": "Top-tier (ACL main)",
+  "authors": "Zecheng Tang, Keyan Zhou, Juntao Li, Baibei Ji, Jianye Hou, Min Zhang — Soochow University / LCM-Lab",
+  "arxiv_id": "2410.02115",
+
+  "dataset_size": "11 tasks across 5 task categories. Total per-task sample count is on the order of 100–200 examples per task in the main set, plus L-CiteEval-Length and L-CiteEval-Hardness variants for controlled ablation. Total main-set size is in the low thousands [uncertain on exact total — paper reports per-task sizes rather than a single headline number].",
+  "annotation_unit": "Statement-with-citation pair: each model response is required to be emitted as a sequence of statements (S) each followed by a citation (C) pointing to a chunk of the long context. Evaluation is at the statement-citation level, scored via Citation Recall, Citation Precision, and Citation F1. Generation quality is scored separately at the response/answer level using task-specific metrics inherited from the source datasets.",
+  "ground_truth_source": "Hybrid: gold answers come from the underlying source datasets (NarrativeQA, HotpotQA, 2WikiMultihopQA, NaturalQuestions, GovReport, MultiNews, QMSum, LoCoMo, DialSim, CountingStars, NIAH). Citation correctness is evaluated automatically against the chunked context using a fully automated evaluation suite (no per-example human re-annotation of citations).",
+  "judge_model": "Automated rule/metric-based evaluation suite for citation precision/recall/F1 (no LLM-judge for citation scoring). For generation quality, task-specific metrics are used (F1, ROUGE, EM as appropriate). The benchmark explicitly aims to be a fully automated evaluation suite without LLM-judge dependence.",
+  "domain": "Five task categories spanning long-context understanding: (1) single-document QA — NarrativeQA, NaturalQuestions; (2) multi-document QA — HotpotQA, 2WikiMultihopQA; (3) summarization — GovReport, MultiNews, QMSum; (4) dialogue understanding — LoCoMo, DialSim; (5) synthetic / needle-in-haystack — CountingStars, NIAH.",
+  "context_length_range": "8K to 48K tokens. The L-CiteEval-Length variant explicitly varies context length to study length-dependent fidelity.",
+  "error_taxonomy": "No categorical error taxonomy — the framework treats faithfulness as a continuous citation-quality metric (CR / CP / F1). Indirectly, lack of citation = unattributed claim; wrong-chunk citation = mis-attributed claim. L-CiteEval-Hardness adds a difficulty stratification (easy / medium / hard) but this is sample-level difficulty, not an error type.",
+  "dynamic_test_generation": "false — static curated benchmark built by sampling and adapting from existing long-context source datasets. No dynamic generation mechanism.",
+  "contamination_risk": "medium-high — built on top of widely-used public source datasets (NarrativeQA, HotpotQA, 2WikiMHQA, NaturalQuestions, GovReport, MultiNews, QMSum, NIAH) that almost certainly appear in pre-training corpora of frontier LLMs. The citation requirement and chunk-level alignment partially mitigate raw-answer leakage, but answer leakage from base datasets remains a real risk for any LLM trained through 2024.",
+  "license": "Likely permissive (Apache-2.0 or MIT) following the LCM-Lab GitHub conventions, but the LICENSE file content is not explicitly surfaced in search snippets [uncertain]. Underlying source datasets retain their original licenses (NaturalQuestions CC-BY-SA, HotpotQA CC-BY-SA, GovReport custom, etc.).",
+  "public_data_url": "https://huggingface.co/datasets/Jonaszky123/L-CiteEval (data) ; https://github.com/LCM-Lab/L-CITEEVAL (code, mirrored at https://github.com/ZetangForward/L-CITEEVAL)",
+  "annotation_cost_per_sample": "Near-zero — citations and answers are inherited from existing labeled datasets and the evaluation is fully automated (CR/CP/F1 + task metrics). Only model-inference cost matters.",
+
+  "reported_metric": "Citation Recall (CR), Citation Precision (CP), Citation F1; plus task-specific generation-quality metrics (F1 / EM / ROUGE).",
+  "reported_value": "Closed-source frontier models substantially outperform open-source LCMs on citation precision/recall. RAG significantly improves faithfulness with a small generation-quality cost. Exact headline numbers vary by task and model [uncertain on single headline number — paper reports a per-task table rather than a single aggregate].",
+  "overlapping_benchmark": "HotpotQA (we already use it in Phase 7) is a direct sub-task of L-CiteEval. NarrativeQA, NaturalQuestions, and 2WikiMHQA are adjacent multi-doc QA settings. This makes L-CiteEval the most direct extension of our Phase 7 multi-hop QA work into the long-context citation regime.",
+  "model_used_in_paper": "11 long-context LLMs (≥64K reported context window), mix of closed and open source — including Llama-3.1 family (e.g., Meta-Llama-3.1-8B-Instruct), GLM, Qwen-2.5, Mistral long-context variants, and frontier closed models (Claude/GPT). Exact full list is in the paper [uncertain].",
+
+  "applicability": "high — perfect fit for Phase 10. Citation-level faithfulness labels at 8K–48K context provide dense supervisory signal at exactly the granularity our spectral H(n) features can address (per-statement entropy windows). HotpotQA overlap means we can directly extend our existing Phase 7 pipeline.",
+  "preemption_risk": "low — L-CiteEval is purely an evaluation benchmark; it does NOT propose any detection method, does not use entropy / hidden-state / spectral features, and treats the LCM as a black box. Our spectral fusion is fully orthogonal. The benchmark provides labels (citation correctness) that we can use as ground truth for our detector.",
+  "bracha_alignment": "high — Citation precision/recall/F1 are textbook targets for conformal-style risk control; LTT can give distribution-free bounds on miscitation rate. PPI is natural because automated CR/CP/F1 is itself a noisy metric (chunk-level alignment can mis-credit), and Bracha's machinery handles exactly this noisy-label setting.",
+  "ofir_alignment": "moderate-to-high — long context (8K–48K) generates long entropy / hidden-state trajectories suitable for multi-view kernel / spectral methods. The statement-with-citation structure naturally segments the trajectory into per-statement windows, which is the right unit for sw_var_peak / STFT analysis.",
+  "notes": "Strong candidate as the FIRST benchmark to extend our spectral pipeline into long-doc territory because: (1) HotpotQA overlap provides continuity with Phase 7; (2) automated CR/CP/F1 evaluation means no judge-API cost; (3) Llama-3.1-8B is in our white-box-friendly model class; (4) data is on HuggingFace and code on GitHub. Caveat: contamination risk is non-trivial for HotpotQA / NaturalQuestions on any 2024+ model. Recommend pairing with a more recently-curated benchmark (FACTS Grounding v2 or DeepHalluBench) to triangulate.",
+
+  "public_code_url": "https://github.com/LCM-Lab/L-CITEEVAL (also https://github.com/ZetangForward/L-CITEEVAL)",
+  "model_size_range": "Open-source models tested span ~7B–70B (Llama-3.1-8B-Instruct explicitly mentioned); closed-source frontier judges/evaluees as well. Our Falcon-3-10B and Qwen-7B/72B are in-distribution.",
+  "gpu_requirements": "Long-context inference at 32K–48K tokens. On Colab A100 80GB: 7B/8B models fit comfortably at 48K; 70B requires AWQ/GPTQ quantization (already in our setup); KV cache at 48K is the dominant memory bottleneck.",
+  "sample_size_for_replication": "Per-task subsets of ~100 examples are sufficient for stable CR/CP/F1 estimates; the paper's reported per-task sizes are in this range.",
+  "min_samples_for_replication": "~50 examples per task gives a noisy but interpretable result; full main set across the 11 tasks is on the order of 1K–2K examples [uncertain].",
+  "runtime_estimate": "Long-context generation at 8K–48K context: tens of seconds to a few minutes per example on A100 for 7B–13B models; 70B AWQ slower. Citation scoring is millisecond-cheap (string-match + chunk index).",
+
+  "uncertain": [
+    "dataset_size",
+    "license",
+    "reported_value",
+    "model_used_in_paper",
+    "min_samples_for_replication"
+  ]
+}

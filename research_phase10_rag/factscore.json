@@ -1,0 +1,45 @@
+{
+  "name": "FActScore: Fine-grained Atomic Evaluation of Factual Precision in Long Form Text Generation",
+  "type": "benchmark",
+  "year": "2023 (May arXiv; EMNLP main Dec 2023)",
+  "venue": "EMNLP 2023 (Main Conference)",
+  "venue_tier": "Top-tier (EMNLP main)",
+  "authors": "Sewon Min (UW), Kalpesh Krishna (UMass), Xinxi Lyu, Mike Lewis, Wen-tau Yih, Pang Wei Koh, Mohit Iyyer, Luke Zettlemoyer, Hannaneh Hajishirzi (UW + UMass + Meta AI)",
+  "arxiv_id": "2305.14251",
+
+  "dataset_size": "Two prompt sets: data/labeled/prompt_entities.txt — 183 human entities used for the human-annotated FActScore study (with full atomic-fact annotations); data/unlabeled/prompt_entities.txt — 500 human entities used for the larger automated-evaluation study. The unit of generation is a biography per entity. Aggregated across 13 LMs evaluated, the paper reports FActScores over 6,500 generations.",
+  "annotation_unit": "Atomic fact (claim) — each LM-generated biography is decomposed into a sequence of short, single-information atomic facts; each atomic fact is then assigned a binary supported/unsupported label against a knowledge source. This is the foundational claim-level granularity used by virtually all subsequent atomic-fact factuality metrics.",
+  "ground_truth_source": "Hybrid. Human evaluation phase: 183 entities × 3 commercial LMs (InstructGPT, ChatGPT, PerplexityAI) — each generation decomposed into atomic facts and EACH atomic fact human-annotated as Supported / Not-Supported / Irrelevant against Wikipedia. Automated evaluation phase: an LLM (GPT-3.5/InstructGPT class) + retrieval is used to (a) decompose into atomic facts and (b) verify each against Wikipedia, calibrated to <2% error vs. human labels.",
+  "judge_model": "Automated estimator: LLM (InstructGPT / GPT-3.5 era) + retrieval over a fixed Wikipedia snapshot. The paper reports the automated estimator achieves <2% error rate vs. the human-labeled set on its bias-corrected variant.",
+  "domain": "Biographies of human entities — chosen specifically because biographies consist of verifiable rather than subjective statements, span diverse nationalities/professions/rarity tiers, and have a canonical knowledge source (Wikipedia). Single domain by design.",
+  "context_length_range": "Short — there is no long context document; the model is asked to generate a biography given just a person's name (closed-book / parametric setting). Generations are typically a few hundred tokens. FActScore is NOT a long-context benchmark; it tests parametric factual knowledge.",
+  "error_taxonomy": "Per-atomic-fact ternary label: Supported / Not-Supported / Irrelevant. No higher-level intrinsic/extrinsic or PIES taxonomy. Aggregate score = fraction of atomic facts labelled Supported (i.e., factual precision).",
+  "dynamic_test_generation": "false — fixed entity lists (183 + 500), fixed Wikipedia snapshot.",
+  "contamination_risk": "high — entity list is public, Wikipedia is in every pre-training corpus, and the prompt format ('Tell me a bio of <name>') is the canonical training setup. Any model trained after 2023 has likely been exposed to FActScore-adjacent supervision. The Wikipedia 2023/04/01 snapshot timestamp also dates the ground truth.",
+  "license": "MIT (FActScore GitHub repo at shmsw25/FActScore is MIT-licensed). Released as a pip-installable package.",
+  "public_data_url": "https://github.com/shmsw25/FActScore (code + data) ; pip install factscore. Entity lists in data/labeled/prompt_entities.txt (183) and data/unlabeled/prompt_entities.txt (500). Knowledge source: Wikipedia 2023/04/01 snapshot.",
+  "annotation_cost_per_sample": "Human annotation: substantial — paper reports the full 6,500-generation sweep would have cost ~$26K if done entirely by humans, motivating the automated estimator. Per-biography human annotation involves decomposing into ~10–30 atomic facts and labelling each, on the order of ~$4 per biography [uncertain on exact rate].",
+
+  "reported_metric": "FActScore = mean fraction of atomic facts labelled Supported across a generation set. Reported per-model, optionally with retrieval / no-retrieval splits.",
+  "reported_value": "Headline human-eval results (183 entities): InstructGPT 42%, ChatGPT 58%, retrieval-augmented PerplexityAI 71%. Across the 13-model automated sweep: GPT-4 and ChatGPT are the most factual; Vicuna and Alpaca are the strongest open-source models.",
+  "overlapping_benchmark": "None of our existing benchmarks (MATH-500, GSM8K, GPQA, HotpotQA, TriviaQA, WebQ) overlap directly. FActScore is closest in spirit to TriviaQA / WebQ in being short-context factual QA, but the unit of evaluation (atomic-fact precision over a long-form biography) is a distinct methodology.",
+  "model_used_in_paper": "Human-eval phase: InstructGPT, ChatGPT, PerplexityAI. Automated-eval phase: 13 LMs including GPT-4, ChatGPT, Vicuna, Alpaca, MPT, Falcon, Llama-1/2 family etc. [uncertain on full 13].",
+
+  "applicability": "medium for Phase 10 long-doc RAG — FActScore is the FOUNDATIONAL atomic-fact factuality metric and is genealogically upstream of nearly every claim-level long-doc faithfulness benchmark (FACTS Grounding, L-CiteEval, DeepHalluBench all build on the atomic-decomposition idea). HOWEVER, FActScore itself is short-context closed-book biography generation — NOT long-doc RAG. Its direct applicability to our pilot is limited; its conceptual contribution (atomic-fact decomposition) is what later benchmarks inherit and amplify.",
+  "preemption_risk": "low — FActScore is purely an evaluation metric and benchmark; it does NOT propose any detection/uncertainty method, does not use logits, hidden states, attention, or spectral/frequency-domain features. It is a black-box claim-checking pipeline. Our spectral H(n) work is structurally orthogonal. Citing FActScore is mandatory for thesis context as the foundational atomic-fact metric, but it does not compete with our contribution.",
+  "bracha_alignment": "high — atomic-fact precision is a natural target for risk-controlled prediction (LTT can give distribution-free bounds on the precision metric, COIN/PPI can correct for the noisy automated estimator). The <2% error rate of the automated estimator is exactly the kind of biased-but-cheap label that PPI is designed for.",
+  "ofir_alignment": "low — short generations and a parametric-knowledge setup yield only short entropy trajectories; multi-view kernel / spectral methods need longer time series to be informative. FActScore's short-form generations are at the boundary of where our spectral pipeline previously failed (short factual QA traces), so this would likely reproduce the Phase 9 negative result.",
+  "notes": "TREAT AS A FOUNDATIONAL CITATION rather than a target benchmark for the spectral pilot. FActScore's contribution to the field is the atomic-fact decomposition methodology, which underlies FACTS Grounding's response-level grounding judge, L-CiteEval's per-statement citations, and DeepHalluBench's atomic claims/actions. Cite as: '...all subsequent claim-level faithfulness benchmarks descend from FActScore's atomic-fact decomposition (Min et al. EMNLP 2023)'. Do NOT spend pilot budget on FActScore itself — short biographies will reproduce the Phase 9 confidence-masking negative result. The OpenFActScore (2025, arXiv 2507.05965) reimplements with open-source judges and is the more practical option if we need to run atomic-fact evaluation in our infra.",
+
+  "public_code_url": "https://github.com/shmsw25/FActScore (MIT). PyPI: https://pypi.org/project/factscore/",
+  "model_size_range": "Validated on a wide range — closed (GPT-4, ChatGPT, InstructGPT, PerplexityAI) and open-source (Vicuna, Alpaca, Llama-1/2, MPT, Falcon, etc.) spanning ~7B–GPT-4 scale. Our Falcon-3-10B and Qwen-7B/72B are well within scope.",
+  "gpu_requirements": "Minimal for evaluation — atomic-fact decomposition and verification are LLM API calls or small-model inference. Generation phase needs whatever GPU the candidate model requires; for the automated estimator's underlying retrieval + LLM verifier, single A100 is more than sufficient.",
+  "sample_size_for_replication": "183 entities for the labeled human-eval set; 500 entities for the unlabeled automated set. Either is feasible for a pilot.",
+  "min_samples_for_replication": "~50 entities yields a usable FActScore estimate (±5% SE at p≈0.6) for a single model.",
+  "runtime_estimate": "Per biography: ~5–30 seconds to generate the biography + ~10–30 atomic-fact verification calls (each a short retrieval + LLM call), totalling ~30s–2min per biography end-to-end with the automated estimator. Pure inference on the candidate LM is the cheap part; verification is the dominant cost.",
+
+  "uncertain": [
+    "annotation_cost_per_sample",
+    "model_used_in_paper"
+  ]
+}

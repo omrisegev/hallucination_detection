@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
-**Date**: 2026-05-07  
-**Last updated**: Step 80 complete
+**Date**: 2026-05-09  
+**Last updated**: Step 83 complete
 
 ---
 
@@ -49,15 +49,36 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 
 ---
 
-### Phase 10 — Agentic hallucination (PLANNED, not started)
+### Phase 9 Part 2 (CoT) — COMPLETE (Step 82)
 
-**Concept**: GPQA Diamond questions in a ReAct agent loop (Thought → Action → Observation). Capture per-Thought-step entropy traces. Apply spectral/Nadler fusion to predict step-level hallucinations.
+**Notebooks**: `Spectral_Analysis_Phase9_QA_Validation.ipynb` + `_RES.ipynb`
+- TriviaQA CoT: Nadler **53.6% [46.5, 61.6]** vs EPR baseline 72.0% — catastrophic gap
+- WebQ CoT: Nadler **61.9% [51.7, 72.1]** vs EPR baseline 66.4% — below baseline
+- All individual AUCs below chance (34–49%). Negative Nadler lift on both datasets.
+- **Verdict**: Factual QA even with CoT lacks systematic entropy structure. Clean negative.
 
-**Model**: Qwen2.5-72B-Instruct-AWQ (same as Phase 8).  
-**Benchmark inspiration**: AgentHallu (GPT-4.1 generated, text-only — can't use directly). Will re-run our own trajectories.  
-**Key paper**: "The Reasoning Trap" (ICLR 2026) — deeper reasoning amplifies tool hallucination.
+---
 
-**Status**: Research planned in HISTORY.md Step 78. No notebook yet.
+### Phase 10 — L-CiteEval Pilot (READY TO RUN)
+
+**Concept**: Do spectral features of H(n) predict statement-level grounding faithfulness
+on long-context document QA? Tests the RAG branch of Phase 10.
+
+**Setup** (locked in Phase10_Pilot_Plan.md):
+- Notebook: `Spectral_Analysis_Phase10_LCiteEval_Pilot.ipynb`
+- Dataset: L-CiteEval HotpotQA sub-task (multi-doc QA, 8K–48K context)
+- Model: Falcon-3-10B-Instruct (T=1.0), 100 samples
+- GPU: Colab A100 80GB
+
+**Grounding label**: HotpotQA `supporting_facts` title matching.
+Statement grounded (1) if any cited passage title is in gold supporting_facts.
+
+**Decision gate**:
+- PASS (>60%): extend to FACTS Grounding + DeepHalluBench
+- MARGINAL (55–60%): run FACTS Grounding before deciding
+- FAIL (≤55%): pivot to Plan A (RAG + Agentic as separate chapters)
+
+**Status**: spectral_utils additions committed (Step 83). Notebook ready. Run on Colab next.
 
 ---
 
@@ -102,7 +123,8 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 ## Immediate next actions
 
 1. ~~**Run Phase 8**~~ ✅ DONE — 69.0% AUC, +3.6 pp over 7B (Step 80)
-2. ~~**Run Phase 9 Part 2 CoT**~~ ✅ DONE — spectral features don't transfer to factual QA even with CoT (Step 82)
-3. **Investigate Phase 8 accuracy** — 40.4% vs expected 65%. Consider: (a) re-run with Qwen3-72B, or (b) document as-is with disclaimer.
-4. **Update Research_Directions.md** — Phases 8 and 9 results should update Direction 4 status sections.
-5. **Consider Phase 10** — Agentic hallucination with Qwen2.5-72B-AWQ on GPQA ReAct loop (planned in Step 78, not started).
+2. ~~**Run Phase 9 Part 2 CoT**~~ ✅ DONE — spectral features don't transfer to factual QA (Step 82)
+3. **Run Phase 10 pilot** — `Spectral_Analysis_Phase10_LCiteEval_Pilot.ipynb` on Colab A100.
+   All pre-pilot work done (Step 83). Just open and run.
+4. **After pilot**: add HISTORY.md Step 84 (pilot result) + update Research_Directions.md Direction 2 status.
+5. **Deferred**: Phase 8 accuracy (40.4% vs expected 65%) — document as-is with disclaimer; not blocking Phase 10.

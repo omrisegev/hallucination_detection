@@ -322,3 +322,124 @@ def is_correct_webq(gen: str, item: dict) -> bool:
     pred = gen.strip().split("\n")[0].strip()
     pred_norm = _normalize_qa(pred)
     return any(_normalize_qa(a) == pred_norm for a in item["answers"])
+
+
+# ── L-CiteEval ────────────────────────────────────────────────────────────────
+
+_LCITEEVAL_CONFIG_MAP = {
+    "hotpotqa":          "L-CiteEval-Data_hotpotqa",
+    "natural_questions": "L-CiteEval-Data_natural_questions",
+    "narrativeqa":       "L-CiteEval-Data_narrativeqa",
+    "2wikimultihopqa":   "L-CiteEval-Data_2wikimultihopqa",
+}
+
+
+def _normalize_lciteeval_docs(row: dict) -> list:
+    """Extract passage list from any L-CiteEval row format, returning [{title, text}]."""
+    if "docs" in row and isinstance(row["docs"], list) and row["docs"]:
+        return [
+            {"title": str(d.get("title", f"Passage {i+1}")), "text": str(d.get("text", ""))}
+            for i, d in enumerate(row["docs"])
+        ]
+    if "context" in row:
+        ctx = row["context"]
+        if isinstance(ctx, str) and ctx:
+            parts = [p.strip() for p in ctx.split("\n\n") if p.strip()]
+            return [{"title": f"Passage {i+1}", "text": p} for i, p in enumerate(parts)]
+    return []
+
+
+def load_lciteeval(task: str = "hotpotqa", n_samples: int = 100) -> list:
+    """
+    Load L-CiteEval from HuggingFace, normalized to {question, docs, answers, raw_row}.
+
+    docs: list of {title, text} dicts (1-indexed in the prompt).
+    answers: list of acceptable gold answer strings.
+    raw_row: original HF row (used by lciteeval_grounding_label for supporting_facts).
+    """
+    from datasets import load_dataset
+    config_name = _LCITEEVAL_CONFIG_MAP.get(task, task)
+    ds      = load_dataset("Jonaszky123/L-CiteEval", config_name, split="test")
+    samples = [ds[i] for i in range(min(n_samples, len(ds)))]
+
+    out = []
+    for row in samples:
+        docs    = _normalize_lciteeval_docs(row)
+        q       = row.get("question", row.get("input", ""))
+        answers = row.get("answers", [row.get("answer", "")])
+        if isinstance(answers, str):
+            answers = [answers]
+        out.append({"question": q, "docs": docs, "answers": answers, "raw_row": dict(row)})
+
+    print(f"Loaded {len(out)} L-CiteEval samples ({task}, config={config_name}).")
+    return out
+
+
+def lciteeval_prompt(row: dict, max_chars_per_doc: int = 600,
+                     max_docs: int = 15) -> str:
+    """
+    Format a normalized L-CiteEval row for citation-grounded generation.
+
+    Passages are numbered [1] … [N]; model must cite each statement.
+    Truncates each passage to max_chars_per_doc to keep prompts manageable.
+    """
+    docs = row["docs"][:max_docs]
+    passages = ""
+    for i, d in enumerate(docs, 1):
+        text = d["text"][:max_chars_per_doc].rstrip()
+        passages += f"[{i}] {d['title']}\n{text}\n\n"
+
+    return (
+        "Read the following passages carefully. "
+        "Answer the question with clear statements. "
+        "After EACH statement, cite the passage(s) that support it using [number] format "
+        "(e.g. 'Paris is the capital of France [1]. It has 2.1 million residents [2, 3].').\n\n"
+        f"Passages:\n{passages}"
+        f"Question: {row['question']}\n\n"
+        "Your answer (include a citation after every statement):"
+    )
+
+
+def lciteeval_grounding_label(citation_ids: list, row: dict) -> int:
+    """
+    Label a parsed statement as grounded (1) or ungrounded (0).
+
+    Primary: for HotpotQA sub-task, a statement is grounded if any cited passage
+    title appears in the gold supporting_facts.
+    Fallback: check if gold answer is a substring of any cited passage text.
+
+    Args:
+        citation_ids: 1-based passage indices from the model's citation markers.
+        row: normalized row from load_lciteeval.
+    """
+    docs = row["docs"]
+    raw  = row["raw_row"]
+
+    # HotpotQA supporting_facts: [[title, sent_idx], ...] or HF dict format
+    sf = raw.get("supporting_facts", [])
+    sf_titles: set = set()
+    if isinstance(sf, dict):
+        sf_titles = set(sf.get("title", []))
+    elif isinstance(sf, list) and sf:
+        sf_titles = set(
+            (x[0] if isinstance(x, (list, tuple)) else str(x))
+            for x in sf
+        )
+
+    if sf_titles:
+        for cid in citation_ids:
+            idx = cid - 1
+            if 0 <= idx < len(docs) and docs[idx].get("title", "") in sf_titles:
+                return 1
+        return 0
+
+    # Fallback: gold answer substring in cited passages
+    answers = row.get("answers", [])
+    for cid in citation_ids:
+        idx = cid - 1
+        if 0 <= idx < len(docs):
+            chunk_lower = docs[idx].get("text", "").lower()
+            for ans in answers:
+                if ans and ans.lower().strip() in chunk_lower:
+                    return 1
+    return 0

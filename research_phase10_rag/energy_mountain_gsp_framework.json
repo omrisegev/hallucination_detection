@@ -1,0 +1,55 @@
+{
+  "name": "A Graph Signal Processing Framework for Hallucination Detection in Large Language Models (a.k.a. Energy Mountain / GSP framework)",
+  "type": "method",
+  "year": "2025 (October)",
+  "venue": "arXiv preprint",
+  "venue_tier": "preprint",
+  "authors": "Valentin Noel (Devoteam, Paris) [uncertain]",
+  "arxiv_id": "2510.19117",
+
+  "signal_type": "hidden-state (token embeddings) + attention (used to construct the per-layer graph). Spectral / multi-signal-fusion of layer-wise diagnostics.",
+  "white_box_requirements": "Full white-box. Requires per-layer hidden states (token embeddings as graph signals) AND per-layer attention matrices (used to build the dynamic graph adjacency at each layer). Operates on a single forward pass — no sampling needed. No probing classifier required for the headline detector (the spectral signature itself is used as the score).",
+  "access_level": "white-box",
+  "supervision": "unsupervised (the headline detector uses spectral signatures directly; thresholding on spectral diagnostics) [uncertain — paper may also report a small supervised classifier on top]",
+  "granularity": "answer / response (one spectral profile per generated response). The 'energy mountain' is computed across layers, not across generation steps.",
+  "temporal_resolution": "one-shot (post-hoc on the full trace). Layer index plays the role of 'time' in the energy mountain — not generation time.",
+  "trajectory_aware": "false — the cumulative state is across LAYERS (depth), not across generation steps. This is a key distinction from MV_EPR which models trajectories along the token-generation axis.",
+  "streaming_capable": "false",
+  "integration_mode": "post-hoc detector",
+  "spectral_signature_overlap": "HIGH — this is the most direct pre-emption candidate. The paper explicitly computes (1) Dirichlet energy per layer, (2) spectral entropy of the graph Laplacian per layer, and (3) high-frequency energy ratio per layer. These are graph-spectral features computed on attention-induced graphs with token embeddings as signals. Crucial difference from MV_EPR: the spectrum is taken over the attention-graph Laplacian at each LAYER (depth axis), with token embeddings as graph signals — NOT over the time-series of token-level entropy H(n) along the generation axis. MV_EPR's contribution is spectral analysis of the entropy TRAJECTORY across generated tokens; Energy-Mountain's contribution is spectral analysis of token embeddings on the attention graph at each LAYER. Same family (graph signal processing applied to transformers for hallucination detection), but orthogonal axes (depth vs generation time).",
+  "tested_models": "GPT-2 (12 layers), DistilGPT-2 (6 layers), GPT-2 Medium (24 layers); plus Phi-3 Mini, LLaMA-3.2 1B, Qwen2.5-7B [uncertain on exact configurations]",
+  "handles_long_context": "false — tested only on factual statement classification, not on long-document RAG or agentic traces. Context lengths are typical short factual prompts.",
+  "tested_at_what_length": "short (factual statements) [uncertain — paper does not appear to test on >2K-token contexts]",
+
+  "reported_metric": "accuracy (binary hallucination classification)",
+  "reported_value": "88.75% accuracy with the simple spectral detector vs. 75% for perplexity baseline. Effect sizes (Hedges' g): logical contradictions g>1.0; semantic errors lower; substitution intermediate.",
+  "overlapping_benchmark": "none direct (we have not run the small factual-statement / contradiction-style benchmark this paper uses) [uncertain]",
+  "model_used_in_paper": "GPT-2 family for the headline; Phi-3 Mini, LLaMA-3.2 1B, Qwen2.5-7B for cross-architecture validation",
+
+  "applicability": "high — direct conceptual sibling to MV_EPR within the spectral / GSP family. Concepts (Dirichlet energy, spectral entropy, high-frequency ratio) are immediately portable to our pipeline as a 4th view alongside our spectral_max, broad_band, sw_var_peak features. We could add a 'depth-axis spectral profile' as an additional orthogonal view.",
+  "preemption_risk": "MEDIUM-HIGH for the spectral framing in general — but LOW-to-MEDIUM for our specific contribution. Why MEDIUM-HIGH: the paper publishes (a) Dirichlet energy, (b) spectral entropy, (c) high-frequency energy ratio — three features whose names overlap conceptually with what someone would expect from a 'spectral hallucination paper'. This will absolutely be cited as concurrent work and any reviewer will compare us to it. Why LOW-to-MEDIUM for our novelty: their spectrum is computed on the per-layer attention-graph Laplacian with token embeddings as graph signals. They operate along the DEPTH (layer) axis. We operate along the GENERATION TIME axis: our spectrum is FFT/STFT of the token-entropy trajectory H(n) sampled across generation steps. Different signal (entropy vs hidden-state), different graph (none in our case — direct 1D temporal signal), different axis (time vs depth). What distinguishes our contribution: (1) trajectory-axis spectral analysis vs depth-axis; (2) operates on entropy (a scalar derived signal), not on hidden states (high-dim graph signal); (3) gray-box — we only need logits, they need hidden states + attention; (4) we have validated on long reasoning traces (MATH-500: 90% AUC), they have not. Our pre-emption defense: explicitly contrast 'spectral analysis of generation-time entropy trajectories (MV_EPR)' vs 'spectral analysis of layer-depth graph signals (Energy Mountain)'. They are complementary axes — could even be fused. The Phase 10 RAG/agentic angle remains untouched by this paper.",
+  "bracha_alignment": "low — paper does not use LTT / COIN / PPI / conformal calibration. Could be extended with conformal thresholds on spectral signatures for FDR-controlled detection (Bracha extension opportunity), but the paper itself does not.",
+  "ofir_alignment": "high — directly in Ofir's spectral / multi-view kernel family. Token embeddings as graph signals + Laplacian spectrum is exactly the multi-view-on-graphs formalism. Dirichlet energy and spectral entropy are standard GSP diagnostics that Ofir would recognize immediately. Strong alignment for our spectral framing.",
+  "notes": "CRITICAL CITATION — must be cited prominently in any MV_EPR write-up as the closest published work in the spectral-GSP-for-LLM-hallucination family. The paper has NOT been validated on long-doc RAG or agentic settings; that gap is preserved for our Phase 10 contribution. Also note: paper appears to use synthetic / curated factual-vs-hallucinated statement pairs (not free-form generation); their 88.75% number is on a constrained binary classification, which is a much easier setting than free-form long CoT.",
+
+  "public_code_url": "no public code repository found via search [uncertain — may be released later; paper is a preprint from Oct 2025]",
+  "model_size_range": "1B-7B (Phi-3 Mini, LLaMA-3.2 1B, Qwen2.5-7B); also small GPT-2 family (124M-355M)",
+  "gpu_requirements": "modest — GPT-2 family runs on consumer GPU; Qwen2.5-7B on single A100. Feature extraction (Dirichlet energy, eigendecomposition of attention Laplacian per layer) is O(L * N^3) where N=context length, L=layers — O(N^3) eigendecomposition is the bottleneck for long contexts. [uncertain on exact runtime]",
+  "sample_size_for_replication": "[uncertain] — paper appears to use small curated sets (hundreds of statements per category); much smaller than typical hallucination benchmarks",
+  "min_samples_for_replication": "few hundred [uncertain]",
+  "runtime_estimate": "feature extraction dominated by per-layer Laplacian eigendecomposition — O(N^3 * L) per response, where N=tokens, L=layers. For N=512, L=24, this is ~10^9 ops per response, feasible in seconds. Full attention extraction also requires output_attentions=True which roughly doubles forward-pass memory.",
+
+  "handles_step_localization": "false — produces a per-layer profile, not a per-step localization",
+  "cumulative_state_modeling": "depth-axis aggregation: the 'energy mountain' is itself a cumulative-state-across-layers description (initial low energy ~10K → peak 2-9M mid-layers → dissipation to ~0.1M at output). Aggregation across layers, NOT across generation steps. Different cumulative axis from Streaming Prefix / UProp / SAUP.",
+  "confidence_masking_addressed": "no — paper does not discuss CoT confidence-masking. Its evaluation is on factual statements not on CoT traces, so the issue does not arise.",
+
+  "uncertain": [
+    "authors",
+    "supervision",
+    "overlapping_benchmark",
+    "tested_at_what_length",
+    "public_code_url",
+    "sample_size_for_replication",
+    "min_samples_for_replication"
+  ]
+}

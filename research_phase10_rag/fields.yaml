@@ -1,0 +1,185 @@
+# Field definitions for /research-deep on each item.
+# detail_level: brief = 1-2 lines | moderate = 1 paragraph | detailed = full subsection.
+
+field_categories:
+
+  # ── Basic info (always populate) ──────────────────────────────────────────
+  basic_info:
+    - name: name
+      detail_level: brief
+      description: "Canonical paper / system name"
+    - name: type
+      detail_level: brief
+      description: "benchmark | method | framework | survey"
+    - name: year
+      detail_level: brief
+      description: "Year of release; for fast-moving area also include month if known"
+    - name: venue
+      detail_level: brief
+      description: "Publication venue (NeurIPS / ICLR / ACL / EMNLP / arXiv-only / etc.)"
+    - name: venue_tier
+      detail_level: brief
+      description: "Top-tier (NeurIPS/ICLR/ACL/EMNLP main) | findings | workshop | preprint"
+    - name: authors
+      detail_level: brief
+      description: "First author + institution"
+    - name: arxiv_id
+      detail_level: brief
+      description: "arXiv identifier or DOI"
+
+  # ── Benchmark-specific (when type==benchmark) ─────────────────────────────
+  benchmark_specific:
+    - name: dataset_size
+      detail_level: brief
+      description: "Number of examples"
+    - name: annotation_unit
+      detail_level: moderate
+      description: "token / span / claim / sentence / step / trajectory / response. More precise than 'labeling_granularity'."
+    - name: ground_truth_source
+      detail_level: moderate
+      description: "Human / LLM-judge (which model) / retrieval-match / hybrid"
+    - name: judge_model
+      detail_level: brief
+      description: "If LLM-judge: which model(s). FACTS uses Gemini-1.5-Pro + GPT-4o + Claude-3.5-Sonnet ensemble."
+    - name: domain
+      detail_level: moderate
+      description: "Biographies / multi-doc QA / summarization / financial / legal / scientific / synthetic"
+    - name: context_length_range
+      detail_level: brief
+      description: "Token range (e.g., 8K-48K for L-CiteEval, up to 2M for LongBench v2)"
+    - name: error_taxonomy
+      detail_level: moderate
+      description: "Categorical classification used (PIES; Planning/Retrieval/Reasoning/Tool-Use; Intrinsic/Extrinsic; etc.)"
+    - name: dynamic_test_generation
+      detail_level: brief
+      description: "Boolean — addresses contamination via dynamic generation? (HalluLens does)"
+    - name: contamination_risk
+      detail_level: brief
+      description: "low / medium / high based on test-set leakage exposure"
+    - name: license
+      detail_level: brief
+      description: "MIT / CC-BY / Apache / restricted"
+    - name: public_data_url
+      detail_level: brief
+      description: "Direct dataset URL"
+    - name: annotation_cost_per_sample
+      detail_level: brief
+      description: "Approx cost / time per example annotation; affects feasibility of extending"
+
+  # ── Method-specific (when type==method) ───────────────────────────────────
+  method_specific:
+    - name: signal_type
+      detail_level: moderate
+      description: "logit / token-entropy / attention / hidden-state / sampling / verbalized / multi-signal-fusion"
+    - name: white_box_requirements
+      detail_level: moderate
+      description: "Exactly what the method needs: logits / hidden states (which layers) / attention maps / multiple samples / token entropy trajectory. More precise than 'access_level'."
+    - name: access_level
+      detail_level: brief
+      description: "black-box / gray-box / white-box"
+    - name: supervision
+      detail_level: brief
+      description: "supervised / unsupervised / weakly-supervised"
+    - name: granularity
+      detail_level: moderate
+      description: "token / span / claim / answer / step / trajectory output unit"
+    - name: temporal_resolution
+      detail_level: moderate
+      description: "one-shot (post-hoc on full trace) / streaming (during generation) / per-step (between agent steps)"
+    - name: trajectory_aware
+      detail_level: brief
+      description: "Boolean — does the method model cumulative state across steps? Streaming Prefix, UProp, SAUP = yes; Semantic Entropy = no"
+    - name: streaming_capable
+      detail_level: brief
+      description: "Boolean — can it run during generation without full sample N=k requirement?"
+    - name: integration_mode
+      detail_level: moderate
+      description: "post-hoc detector / decoding-time intervention (DAGCD, Lookback) / training-time calibration / hybrid"
+    - name: spectral_signature_overlap
+      detail_level: detailed
+      description: "DIRECT PRE-EMPTION FIELD. Does the method use eigenvalues, Dirichlet energy, spectral entropy, attention-graph spectra, or frequency-domain features of any signal? high / medium / low / none. Flag Energy Mountain, LapEigvals, TOHA, Soft-Community Rényi as high. THIS IS THE CRITICAL FIELD FOR DECIDING IF OUR APPROACH IS NOVEL."
+    - name: tested_models
+      detail_level: moderate
+      description: "Which model families validated on (Llama-3, Qwen-2.5, Mistral, GPT-4, etc.)"
+    - name: handles_long_context
+      detail_level: brief
+      description: "Boolean — has the method been validated on long-doc (>2K tokens)?"
+    - name: tested_at_what_length
+      detail_level: brief
+      description: "Specific context lengths the paper reports results on"
+
+  # ── Evaluation overlap with us ────────────────────────────────────────────
+  evaluation_overlap:
+    - name: reported_metric
+      detail_level: brief
+      description: "AUC / AUROC / F1 / Φmin / accuracy / etc."
+    - name: reported_value
+      detail_level: brief
+      description: "Headline number on primary benchmark"
+    - name: overlapping_benchmark
+      detail_level: brief
+      description: "Any benchmark we have already run (MATH-500, GSM8K, GPQA, HotpotQA, TriviaQA, WebQ)"
+    - name: model_used_in_paper
+      detail_level: brief
+      description: "Specifically which model(s) the headline result was computed with"
+
+  # ── Relevance to our work ─────────────────────────────────────────────────
+  relevance:
+    - name: applicability
+      detail_level: moderate
+      description: "high / medium / low for long-doc RAG-agentic pilot"
+    - name: preemption_risk
+      detail_level: detailed
+      description: "Does this paper already do what we plan? Specifically, do they apply spectral / frequency-domain features to entropy trajectories in long-doc or agentic settings? If yes, what would distinguish our contribution? CRITICAL FIELD."
+    - name: bracha_alignment
+      detail_level: moderate
+      description: "Does this connect to LTT / COIN / PPI / conformal calibration? (Bracha's core methods.) If yes, how could her methods extend or calibrate this work?"
+    - name: ofir_alignment
+      detail_level: moderate
+      description: "Does this connect to VSDE / PRAE / STG / multi-view kernel / spectral methods? (Ofir's core methods.) If yes, how does it relate to his framing?"
+    - name: notes
+      detail_level: moderate
+      description: "Any free-form notes — caveats, conflicting results, parallel concurrent work, etc."
+
+  # ── Reproducibility / cost ────────────────────────────────────────────────
+  reproducibility_cost:
+    - name: public_code_url
+      detail_level: brief
+      description: "GitHub or HuggingFace URL — separate from data URL since often only one is released"
+    - name: model_size_range
+      detail_level: brief
+      description: "Which model sizes the paper validates on (e.g., 7B-70B); affects whether our Falcon-3-10B is in-distribution"
+    - name: gpu_requirements
+      detail_level: moderate
+      description: "Single A100 / 80GB / multi-GPU / TPU. Be specific — affects whether we can replicate on Colab."
+    - name: sample_size_for_replication
+      detail_level: brief
+      description: "Minimum samples in paper for meaningful results. TOHA needs 50; some methods need 10K+."
+    - name: min_samples_for_replication
+      detail_level: brief
+      description: "Smallest experiment reported (for a 1-day pilot, can we get a result?)"
+    - name: runtime_estimate
+      detail_level: moderate
+      description: "Inference time per sample if reported, plus any feature-extraction overhead"
+
+  # ── Trajectory / long-context specific (when relevant) ────────────────────
+  trajectory_specific:
+    - name: handles_step_localization
+      detail_level: brief
+      description: "Does the method localize WHERE in the trajectory the failure occurred? (AgentHallu metric)"
+    - name: cumulative_state_modeling
+      detail_level: moderate
+      description: "How does the method aggregate signal across steps? Φmin / Φavg / Φlast / cumulative prefix / running mean / monotonicity violation count"
+    - name: confidence_masking_addressed
+      detail_level: moderate
+      description: "Does the paper acknowledge / address the CoT confidence-masking effect (Cheng et al. 2025)? Methods ignoring this fail on factual QA."
+
+# ─── Reserved (auto-filled in deep phase) ──────────────────────────────────────
+uncertain: []
+
+# ─── Per-tier field selection ──────────────────────────────────────────────────
+# To save deep-research budget, lower-tier items can skip detailed fields.
+tier_field_policy:
+  tier1: "All fields. Pre-emption check requires complete coverage."
+  tier2: "All except annotation_cost_per_sample, gpu_requirements (rough estimate OK)."
+  tier3: "Basic info + relevance + reproducibility only. Skip method-specific deep dive unless directly applicable."

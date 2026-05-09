@@ -3125,3 +3125,24 @@ CoT prompting successfully fixed the trace-length problem. Median trace length j
 **Verdict**: Phase 9 confirms and strengthens the domain-specificity claim. Spectral features of H(n) require *reasoning-type* entropy traces to be informative. Even with CoT prompting that generates adequate trace length, factual QA lacks the systematic frequency structure the features detect. This is a clean negative result that tightens the thesis scope: the method works on tasks where the model must reason (math, science MCQ), not on tasks where it must recall (factual QA).
 
 ---
+
+
+### Step 83 — Phase 10 pre-pilot: spectral_utils additions + pilot notebook built
+
+**What**: Implemented the pre-pilot work for Phase 10 (L-CiteEval pilot).
+- Added `load_lciteeval`, `lciteeval_prompt`, `lciteeval_grounding_label` to `spectral_utils/data_loaders.py`.
+- Added `segment_by_citations` to `spectral_utils/feature_utils.py`.
+- Updated `spectral_utils/__init__.py` to export all new symbols.
+- Built `Spectral_Analysis_Phase10_LCiteEval_Pilot.ipynb` from scratch (18 cells, following pilot plan exactly).
+
+**Why**: Phase 10 pilot plan (Phase10_Pilot_Plan.md) was locked; pre-pilot local work needed to land on master before Colab run. Gemini CLI made a buggy attempt on a side branch (gemini/phase10-pilot) — key bugs: wrong branch in Cell 1 clone, wrong grounding label (HotpotQA sentence-index vs citation-index mismatch), `boot_auc` unpacked as 2-tuple instead of 3-tuple (ValueError at runtime), no entropy-offset alignment guard.
+
+**Key design decisions**:
+- Grounding label: HotpotQA `supporting_facts` title matching. Statement grounded (1) if any cited passage title appears in gold supporting_facts titles. Fallback: gold-answer substring check.
+- Entropy-offset alignment: `generate_full` re-tokenizes `full_text` for offsets; may differ by 1–2 tokens from entropy array. Notebook trims both to `min(len)` before segmentation.
+- Semantic Entropy baseline: deferred (too expensive: 100×5 statements×10 MC samples = 5000 passes). Pilot gate uses 55%/60% AUC thresholds instead.
+- Context truncation: `lciteeval_prompt` caps at 15 docs × 600 chars/doc to keep prompts tractable on Falcon-3-10B within A100 memory.
+
+**Result**: All three files committed to master. Notebook ready to run on Colab A100.
+
+---

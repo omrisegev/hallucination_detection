@@ -1,0 +1,51 @@
+{
+  "name": "The FACTS Grounding Leaderboard: Benchmarking LLMs' Ability to Ground Responses to Long-Form Input (FACTS Grounding) + FACTS Benchmark Suite extension (FACTS Multimodal / Parametric / Search / Grounding v2)",
+  "type": "benchmark",
+  "year": "2025 (Jan), extended Dec 2025 with FACTS Benchmark Suite",
+  "venue": "arXiv (DeepMind tech report); FACTS Leaderboard hosted on Kaggle",
+  "venue_tier": "preprint (industry tech report from Google DeepMind)",
+  "authors": "Alon Jacovi (Google DeepMind) et al. — large multi-author DeepMind/Google Research team [uncertain on full author list]",
+  "arxiv_id": "2501.03200 (FACTS Grounding); 2512.10791 (FACTS Leaderboard / Benchmark Suite extension)",
+
+  "dataset_size": "1,719 examples (FACTS Grounding v1: 860 public + 859 private). FACTS Benchmark Suite v2 totals 3,513 curated examples across the four sub-benchmarks (Multimodal, Parametric, Search, Grounding v2), public/private split.",
+  "annotation_unit": "response-level (whole long-form response judged) with two-phase per-example judgement: (1) eligibility — does the response fulfill the user request; (2) grounding — is the entire response fully grounded in the provided document with no hallucinations. Final score is a binary grounded/not-grounded verdict per example, aggregated across an ensemble of three judge models.",
+  "ground_truth_source": "LLM-judge ensemble (no per-claim human labels at scale). Documents and prompts are human-crafted; the factuality verdict on model responses comes entirely from the three frontier-LLM judge ensemble, validated against a held-out human-labeled set during prompt-template selection.",
+  "judge_model": "Ensemble of three frontier judges with score averaging: Gemini 1.5 Pro, GPT-4o, and Claude 3.5 Sonnet (FACTS Grounding v1). Suite v2 reports significantly improved judge models for Grounding v2 [uncertain on exact v2 judge identities].",
+  "domain": "Long-form grounded generation across diverse verticals: finance, technology, retail, medicine/healthcare, and law. Each example is a (long context document, user request) pair requiring a long-form response that must be entirely supported by the document. Suite v2 extends to multimodal (image-grounded), parametric (closed-book factoid), and search-grounded (open-web) factuality.",
+  "context_length_range": "Up to 32K tokens (~20K words) per context document for FACTS Grounding; documents have variable length up to that cap. Suite v2 sub-benchmarks have their own ranges [uncertain on exact ranges per sub-benchmark].",
+  "error_taxonomy": "Binary grounded vs. not-grounded at the response level, gated by an eligibility check (instruction-following). No fine-grained intrinsic/extrinsic or PIES-style taxonomy is exposed in the public scoring; the suite extension organises factuality by source-of-truth (parametric / grounded / search / multimodal) rather than by error type.",
+  "dynamic_test_generation": "false — fixed curated dataset (v1: 1,719 examples; v2: 3,513). Public/private split mitigates leakage but the test set itself is static.",
+  "contamination_risk": "medium — public split (860 examples) is downloadable from Kaggle/HuggingFace and therefore exposed to crawlers and model training data; private split (859) is held out behind a leaderboard submission gate to mitigate this. Suite v2 retains the public/private split structure.",
+  "license": "CC-BY-4.0 (Hugging Face dataset card google/FACTS-grounding-public). Kaggle leaderboard infrastructure is governed separately.",
+  "public_data_url": "https://huggingface.co/datasets/google/FACTS-grounding-public ; https://www.kaggle.com/datasets/deepmind/FACTS-grounding-examples ; leaderboard at https://www.kaggle.com/benchmarks/google/facts-grounding",
+  "annotation_cost_per_sample": "Per-example LLM-judge cost dominated by three long-context API calls (Gemini 1.5 Pro + GPT-4o + Claude 3.5 Sonnet), each on up to 32K-token document plus model response. Order ~$0.5–$2 per example in API fees at 2025 rates [uncertain]; original human annotation cost for the held-out judge-validation set is not separately reported.",
+
+  "reported_metric": "Factuality score = fraction of examples for which the response is both eligible (addresses the user request) AND fully grounded in the provided document, averaged across the three-judge ensemble.",
+  "reported_value": "Top public-set scores at v1 release (Dec 2024 / Jan 2025): Gemini 2.0 Flash Experimental 83.6%, Gemini 1.5 Flash 82.9%, Gemini 1.5 Pro 80.0%, Claude 3.5 Sonnet 79.4%, GPT-4o 78.8%. Suite v2 (Dec 2025): leaders attain sub-70% aggregate FACTS Score (Gemini 3 Pro 68.8% reported as top).",
+  "overlapping_benchmark": "None of our existing benchmarks (MATH-500, GSM8K, GPQA, HotpotQA, TriviaQA, WebQ) overlap directly. Domain overlap is closest to long-form RAG / document-grounded QA, which is a new modality for our pipeline.",
+  "model_used_in_paper": "Gemini 1.5/2.0 family, Claude 3.5 Sonnet, GPT-4o (judges and evaluees overlap). Suite v2 adds Gemini 3 Pro, more recent OpenAI / Anthropic frontier models [uncertain on full v2 list].",
+
+  "applicability": "high — this is THE flagship long-form document-grounded factuality benchmark and is directly aligned with our Phase 10 long-doc RAG pilot. Up-to-32K context with per-response grounding labels is precisely the regime where our spectral H(n) features have not yet been validated. The public 860-example split is small enough for a feasible Colab pilot.",
+  "preemption_risk": "low — FACTS Grounding is purely an EVALUATION benchmark. It defines the task and provides judge-derived labels; it does NOT propose a detection method, does not use entropy / spectral / frequency-domain features, and does not access white-box model internals. Our spectral fusion of H(n) is fully orthogonal — we would use FACTS Grounding labels as ground truth and ask whether spectral features of the response's token-entropy trajectory predict the judge ensemble's grounded/not-grounded verdict. No pre-emption.",
+  "bracha_alignment": "high — FACTS Grounding's binary response-level labels are an ideal target for LTT / conformal calibration of any detector built on top: distribution-free risk control over the false-grounded-positive rate is directly meaningful here. PPI is also a natural fit because the LLM-judge ensemble itself is a noisy / biased label that Bracha's prediction-powered inference machinery is designed for.",
+  "ofir_alignment": "moderate — long-form responses with up-to-32K context produce long entropy / hidden-state trajectories that are exactly the input domain for VSDE / multi-view kernel / spectral methods. Ofir's framing of trajectory geometry maps cleanly onto entropy time series of grounded vs. ungrounded responses.",
+  "notes": "This is the most credible long-doc faithfulness benchmark to anchor Phase 10. The judge ensemble (Gemini 1.5 Pro + GPT-4o + Claude 3.5 Sonnet) is now an industry-standard reference; even if we don't reproduce the leaderboard headline numbers, using its labels as ground truth would be defensible. The fact that no model exceeds 70% on the v2 suite indicates significant headroom for new detection methods. WARNING: judge cost is non-trivial — for a 1-day pilot we should subset to ~100–200 public examples and either (a) use only one judge to keep API cost bounded, or (b) treat the published scores as ground truth and skip re-judgement entirely. The Suite v2 paper (2512.10791) is brand-new (Dec 2025) and its private-set scoring is fresh enough to reduce contamination risk for any model trained before 2026.",
+
+  "public_code_url": "https://www.kaggle.com/code/kerneler/facts-grounding-benchmark-starter-code (Kaggle starter notebook). No standalone official GitHub repository surfaced; evaluation harness is integrated into the Kaggle leaderboard submission flow [uncertain whether a standalone judge-prompt repo is released].",
+  "model_size_range": "Tested on frontier closed-source and large open-source LLMs (Gemini 1.5/2.0 Flash & Pro, Claude 3.5 Sonnet, GPT-4o, Llama-3.1 family). Open-source 7B–70B class models are within the evaluation scope; our Falcon-3-10B and Qwen-7B/72B are in-distribution.",
+  "gpu_requirements": "For evaluation: minimal local GPU needed (judges are API calls). For running a candidate model on the benchmark: depends on model size — 32K-token long-context inference on a 70B model needs 80GB or multi-GPU. On Colab A100 80GB we can run up to 13B at 32K ctx comfortably; 70B requires AWQ/GPTQ quantization (consistent with our Qwen-72B-AWQ setup).",
+  "sample_size_for_replication": "1,719 total / 860 public is the canonical evaluation set. Subsampling to ~200 examples yields meaningful per-domain estimates [uncertain on stability threshold].",
+  "min_samples_for_replication": "~100 public examples for a 1-day pilot would give a usable factuality-rate estimate (±5% SE at p≈0.8); ~50 if pre-grouped by domain.",
+  "runtime_estimate": "Per-example evaluation: 1 long-context generation pass on the candidate model (seconds–minutes at 32K ctx for 7B–70B) + 3 long-context judge API calls. Total wall-clock ~30s–3min per example end-to-end at 32K context [uncertain].",
+
+  "uncertain": [
+    "authors",
+    "judge_model",
+    "context_length_range",
+    "annotation_cost_per_sample",
+    "model_used_in_paper",
+    "public_code_url",
+    "sample_size_for_replication",
+    "runtime_estimate"
+  ]
+}
