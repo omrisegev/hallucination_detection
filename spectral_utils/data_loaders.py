@@ -335,17 +335,42 @@ _LCITEEVAL_CONFIG_MAP = {
 
 
 def _normalize_lciteeval_docs(row: dict) -> list:
-    """Extract passage list from any L-CiteEval row format, returning [{title, text}]."""
-    if "docs" in row and isinstance(row["docs"], list) and row["docs"]:
-        return [
-            {"title": str(d.get("title", f"Passage {i+1}")), "text": str(d.get("text", ""))}
-            for i, d in enumerate(row["docs"])
-        ]
+    """
+    Extract passage list from any L-CiteEval row format, returning [{title, text}].
+
+    Handles three input shapes:
+      1. row["docs"] is a list of dicts with title/text fields
+      2. row["docs"] is a list of strings (ALCE format: "Title\\nText" or just text)
+      3. row["context"] is a single string with passages separated by \\n\\n
+    """
+    docs_raw = row.get("docs", [])
+
+    if isinstance(docs_raw, list) and docs_raw:
+        out = []
+        for i, d in enumerate(docs_raw):
+            if isinstance(d, dict):
+                out.append({
+                    "title": str(d.get("title", f"Passage {i+1}")),
+                    "text":  str(d.get("text", "")),
+                })
+            elif isinstance(d, str):
+                # ALCE-style: first line is title, rest is body
+                s = d.strip()
+                if "\n" in s:
+                    title, _, text = s.partition("\n")
+                    out.append({"title": title.strip(), "text": text.strip()})
+                else:
+                    out.append({"title": f"Passage {i+1}", "text": s})
+            else:
+                out.append({"title": f"Passage {i+1}", "text": str(d)})
+        return out
+
     if "context" in row:
         ctx = row["context"]
         if isinstance(ctx, str) and ctx:
             parts = [p.strip() for p in ctx.split("\n\n") if p.strip()]
             return [{"title": f"Passage {i+1}", "text": p} for i, p in enumerate(parts)]
+
     return []
 
 
