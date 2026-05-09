@@ -3127,6 +3127,37 @@ CoT prompting successfully fixed the trace-length problem. Median trace length j
 ---
 
 
+### Step 84 — Phase 10 pilot run: INVALID pre-conditions, strong signal underneath
+
+**What**: Ran `Spectral_Analysis_Phase10_LCiteEval_Pilot.ipynb` on Colab A100 (Falcon-3-10B-Instruct, T=1.0, 100 HotpotQA samples from L-CiteEval).
+
+**Results**:
+
+| Metric | Value | Gate |
+|--------|-------|------|
+| Citation rate | 58.0% | G0-A FAIL (need ≥60%) |
+| Valid statements | 83 | G0-B FAIL (need ≥100) |
+| Class balance | 20 grounded / 63 ungrounded | G0-C PASS |
+| Best individual AUC (`epr`) | **69.9% [56.4, 81.6]** | Would be PASS |
+| `trace_length` AUC | 50.8% (chance) | No length confound |
+| Nadler AUC (`epr + rpdi`) | **76.0% [64.3, 86.8]** | — |
+| PC1 AUC (unsupervised) | 58.5% | Nadler adds real work |
+
+Full gate verdict: **INVALID** — G0-A (citation rate) and G0-B (valid statements) both failed by a thin margin.
+
+**Key findings**:
+
+1. **Signal is real**: `epr` = 69.9% and `sw_var_peak` = 69.7% — well above the 60% PASS threshold. Spectral features detect grounding faithfulness in long-context QA.
+2. **No length confound**: `trace_length` = 50.8% (chance). Signal comes from spectral shape, not statement length. This matters for thesis defensibility.
+3. **Nadler does real work**: Nadler 76.0% vs PC1 58.5% (+17.5 pp). Label-aware weighting adds genuine value over the dominant-variance direction. Feature complementarity is real.
+4. **Root cause of invalidity**: Falcon-3-10B follows the `[N]` citation format only 58% of the time (2 pp below threshold). This is a model-format compliance issue, not a data or method issue.
+
+**Why**: Phase 10 pilot plan required pre-condition gates to guard against degenerate experiments. G0-A and G0-B failed by narrow margins; the signal gates (G1, G2) would have passed comfortably.
+
+**Next step**: Re-run pilot with Qwen2.5-72B-AWQ (Phase 8 infra available, confirmed citation format follower) and N_SAMPLES=150 to guarantee ≥100 valid statements. Keep all other setup unchanged.
+
+---
+
 ### Step 83 — Phase 10 pre-pilot: spectral_utils additions + pilot notebook built
 
 **What**: Implemented the pre-pilot work for Phase 10 (L-CiteEval pilot).

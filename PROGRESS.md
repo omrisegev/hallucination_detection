@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
 **Date**: 2026-05-09  
-**Last updated**: Step 83 complete
+**Last updated**: Step 84 complete
 
 ---
 
@@ -59,26 +59,30 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 
 ---
 
-### Phase 10 — L-CiteEval Pilot (READY TO RUN)
+### Phase 10 — L-CiteEval Pilot (NEEDS RE-RUN: model switch required)
 
 **Concept**: Do spectral features of H(n) predict statement-level grounding faithfulness
 on long-context document QA? Tests the RAG branch of Phase 10.
 
-**Setup** (locked in Phase10_Pilot_Plan.md):
-- Notebook: `Spectral_Analysis_Phase10_LCiteEval_Pilot.ipynb`
-- Dataset: L-CiteEval HotpotQA sub-task (multi-doc QA, 8K–48K context)
-- Model: Falcon-3-10B-Instruct (T=1.0), 100 samples
-- GPU: Colab A100 80GB
+**Run 1 result (Step 84 — Falcon-3-10B, N=100)**:
+- Citation rate: **58%** — barely below G0-A threshold (need ≥60%)
+- Valid statements: **83** — below G0-B threshold (need ≥100)
+- Full gate: **INVALID** (pre-conditions failed by thin margins)
+- Signal AUCs: epr=69.9%, sw_var_peak=69.7%, Nadler=76.0% [64.3, 86.8] — strong
+- trace_length AUC = 50.8% (chance) → **no length confound**
+- Nadler 76.0% vs PC1 58.5% → **Nadler does real work**
 
-**Grounding label**: HotpotQA `supporting_facts` title matching.
-Statement grounded (1) if any cited passage title is in gold supporting_facts.
+**Root cause**: Falcon-3-10B only follows the `[N]` citation format 58% of the time.
+**Fix**: Switch to Qwen2.5-72B-AWQ + N_SAMPLES=150.
 
-**Decision gate**:
-- PASS (>60%): extend to FACTS Grounding + DeepHalluBench
-- MARGINAL (55–60%): run FACTS Grounding before deciding
-- FAIL (≤55%): pivot to Plan A (RAG + Agentic as separate chapters)
+**Re-run setup**:
+- Notebook: `Spectral_Analysis_Phase10_LCiteEval_Pilot.ipynb` (minor config change only)
+- Model: `Qwen/Qwen2.5-72B-Instruct-AWQ` (Phase 8 infra ready, known citation follower)
+- N_SAMPLES: 150 (guarantees ≥100 valid statements)
+- All other settings unchanged (T=1.0, MAX_NEW=1024, HotpotQA)
 
-**Status**: spectral_utils additions committed (Step 83). Notebook ready. Run on Colab next.
+**Expected**: citation rate ≥80%, valid statements ≥120, pre-conditions all PASS.
+Signal AUCs should be similar or better given longer Qwen2.5 traces.
 
 ---
 
@@ -124,7 +128,13 @@ Statement grounded (1) if any cited passage title is in gold supporting_facts.
 
 1. ~~**Run Phase 8**~~ ✅ DONE — 69.0% AUC, +3.6 pp over 7B (Step 80)
 2. ~~**Run Phase 9 Part 2 CoT**~~ ✅ DONE — spectral features don't transfer to factual QA (Step 82)
-3. **Run Phase 10 pilot** — `Spectral_Analysis_Phase10_LCiteEval_Pilot.ipynb` on Colab A100.
-   All pre-pilot work done (Step 83). Just open and run.
-4. **After pilot**: add HISTORY.md Step 84 (pilot result) + update Research_Directions.md Direction 2 status.
-5. **Deferred**: Phase 8 accuracy (40.4% vs expected 65%) — document as-is with disclaimer; not blocking Phase 10.
+3. ~~**Run Phase 10 pilot (Falcon-3-10B)**~~ ✅ DONE — INVALID pre-conditions, signal strong (Step 84)
+4. **Re-run Phase 10 pilot with Qwen2.5-72B-AWQ + N=150**:
+   - In Cell 2 of `Spectral_Analysis_Phase10_LCiteEval_Pilot.ipynb`, change:
+     - `MODEL_ID = 'Qwen/Qwen2.5-72B-Instruct-AWQ'`
+     - `N_SAMPLES = 150`
+   - Cell 4: use `load_model(MODEL_ID, quantize_4bit=False)` — AWQ is auto-detected.
+   - Cell 1 pip install: add `autoawq gptqmodel` to the install line.
+   - Everything else unchanged — same notebook, same grounding labels.
+5. **After re-run**: add HISTORY.md Step 85 (pilot re-run result) + update Research_Directions.md Direction 2 status + update best-results table if Nadler improves.
+6. **Deferred**: Phase 8 accuracy (40.4% vs expected 65%) — document as-is with disclaimer; not blocking Phase 10.

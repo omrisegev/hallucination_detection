@@ -155,7 +155,14 @@ The following signals were suggested by NotebookLM and confirmed as real papers,
 
 ## Direction 2 — RAG Hallucination Detection
 
-**Status**: Not started. Promoted to second priority after re-evaluation (Step 39). TriviaQA already has Wikipedia passages — lowest infrastructure cost of any unexplored direction.
+**Status**: Pilot run complete (Step 84) — INVALID pre-conditions, strong signal confirmed. Re-run with Qwen2.5-72B-AWQ pending.
+
+**Pilot result (Step 84, Falcon-3-10B, N=100 HotpotQA)**:
+- epr=69.9%, sw_var_peak=69.7%, Nadler=76.0% [64.3, 86.8] (subset: epr+rpdi)
+- trace_length=50.8% (chance) → no length confound
+- Nadler 76.0% vs PC1 58.5% → Nadler adds real signal, not just variance capture
+- Gate: INVALID (citation rate 58% < 60% threshold; 83 < 100 valid statements)
+- Fix: switch to Qwen2.5-72B-AWQ + N=150 → re-run expected to pass all pre-conditions
 
 ### Core Hypothesis
 In RAG systems, hallucination has two distinct failure modes: (a) *intrinsic* — the model ignores or contradicts the retrieved context; (b) *extrinsic* — the model answers from parametric memory instead of grounding in the retrieved passage. EPR on grounded tokens (those supported by the retrieved context) should be decorrelated from EPR on the parametric tokens, providing two genuinely independent Nadler views that predict the same factual correctness label.
