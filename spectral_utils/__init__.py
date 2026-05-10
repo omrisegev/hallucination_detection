@@ -41,6 +41,7 @@ from .data_loaders import (
     load_lciteeval, lciteeval_prompt, lciteeval_grounding_label,
 )
 from .fusion_utils import zscore, boot_auc, nadler_fuse, simple_average_fusion, best_nadler_on
+from .baselines import lite_semantic_entropy_for_statement, mean_neg_logprob_baseline
 
 __version__ = "0.1.0"
 __all__ = [
@@ -57,4 +58,5 @@ __all__ = [
     "load_webq", "webq_prompt", "is_correct_webq",
     "load_lciteeval", "lciteeval_prompt", "lciteeval_grounding_label",
     "zscore", "boot_auc", "nadler_fuse", "simple_average_fusion", "best_nadler_on",
+    "lite_semantic_entropy_for_statement", "mean_neg_logprob_baseline",
 ]
