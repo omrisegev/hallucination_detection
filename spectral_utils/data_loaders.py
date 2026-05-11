@@ -458,13 +458,21 @@ def lciteeval_grounding_label(citation_ids: list, row: dict) -> int:
                 return 1
         return 0
 
-    # Fallback: gold answer substring in cited passages
-    answers = row.get("answers", [])
+    # Fallback: gold answer substring in cited passages.
+    # answers can be list[str] (HotpotQA) or list[list[str]] (NaturalQuestions,
+    # NarrativeQA) — flatten to a single list of strings before matching.
+    raw_answers = row.get("answers", [])
+    answers: list = []
+    for a in raw_answers:
+        if isinstance(a, list):
+            answers.extend(a)
+        elif isinstance(a, str):
+            answers.append(a)
     for cid in citation_ids:
         idx = cid - 1
         if 0 <= idx < len(docs):
             chunk_lower = docs[idx].get("text", "").lower()
             for ans in answers:
-                if ans and ans.lower().strip() in chunk_lower:
+                if ans and isinstance(ans, str) and ans.lower().strip() in chunk_lower:
                     return 1
     return 0
