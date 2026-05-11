@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
 **Date**: 2026-05-11  
-**Last updated**: Session ending mid-Phase 10 Main RAG (Step 84+)
+**Last updated**: Cell 9 (Qwen-72B-AWQ) and Cell 10 (Llama-70B) blockers fixed; ready to run
 
 ---
 
@@ -47,8 +47,8 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 |-------|----------|------------------|-----------------|-------------|--------|
 | qwen7b | 240/240 ✅ | 160/160 ✅ | 240/240 ✅ | 240/240 ✅ | Complete |
 | mistral24b | 240/240 ✅ | 160/160 ✅ | 240/240 ✅ | 240/240 ✅ | Complete |
-| qwen72b | 0 | 0 | 0 | 0 | BLOCKED — pcre issue |
-| llama70b | 0 | 0 | 0 | 0 | BLOCKED — OOM |
+| qwen72b | 0 | 0 | 0 | 0 | Ready to run (Cell 9 fix landed) |
+| llama70b | 0 | 0 | 0 | 0 | Ready on fresh runtime (Cell 10 fix landed) |
 
 Checkpoints saved to Drive: `/content/drive/MyDrive/hallucination_detection/cache/phase10_main/raw/`
 
@@ -62,46 +62,45 @@ Cell 11 (feature extraction) fails with `AttributeError: 'list' object has no at
 
 ---
 
-## Blocked issues
+## Resolved blockers
 
-### 1. Qwen-72B-AWQ — pcre / gptqmodel (Python 3.12)
+### 1. Qwen-72B-AWQ — pcre / gptqmodel (Python 3.12) ✅
 
-`gptqmodel` imports `pcre` at startup (`gptqmodel/utils/logger.py`). The `pcre` PyPI package is a C extension too old to build on Python 3.12. Multiple approaches tried:
-- `pip install pcre` — silently fails (no Python 3.12 wheel)
-- `apt-get install libpcre3-dev && pip install pcre` — still fails
-- `sys.modules['pcre'] = types.ModuleType('pcre')` stub injection — still crashes (likely `logbar` also fails)
+**Root cause**: gptqmodel's logger does `import pcre`. The PyPI package is `pypcre` (C extension over **libpcre2**, not libpcre3 — the prior `apt-get install libpcre3-dev` was the wrong system lib), with no Python 3.12 wheel.
 
-**Current Cell 9 state**: skipped with a print message.
+**Fix**: Stub `pcre` against stdlib `re` before gptqmodel install. gptqmodel only uses `pcre.compile(r"\x1b\[[0-9;]*m")` + `.sub()` for ANSI escape stripping (verified in `gptqmodel/utils/logger.py`) — stdlib `re` handles it identically. The stub is bulletproof: no C extension, no system libs, no build.
 
-**Approaches to try next**:
-1. Pin older gptqmodel: `pip install --no-deps gptqmodel==0.9.x` (find a version before pcre was added)
-2. Use a gptqmodel-free AWQ backend: check if `autoawq` alone can load AWQ without gptqmodel
-3. Run Qwen-72B in a separate notebook as the first model on a fresh runtime
+**Cell 9 now does**:
+1. Stub `pcre` with stdlib `re` (handlers for `compile/match/search/findall/sub/split/fullmatch` + flags)
+2. `pip install -q --no-deps gptqmodel` (no transformers .py rewrite)
+3. `pip install -q logbar` (pure-Python, safe mid-session)
+4. `load_model(MODEL_ID, **KW)` — runs inference across 4 datasets
 
-### 2. Llama-3.3-70B — OOM after Mistral-24B
+### 2. Llama-3.3-70B — OOM after Mistral-24B ✅
 
-Loading a 70B BNB 4-bit model as the 4th model in sequence OOMs at 79.11/79.25 GiB — GPU fragmented from previous model. This is a known issue (documented in CLAUDE.md).
+**Root cause**: 70B BNB 4-bit quantization peaks ~80 GB on A100. After any smaller model has been loaded and freed, the allocator carries historical fragmentation and the peak doesn't fit.
 
-**Fix**: Run Llama as the **first and only model** on a fresh runtime. Reorder `MODELS` so Llama is `MODELS[0]`, run Cell 7 only, then stop. Checkpoints merge with the existing ones automatically.
-
-**Current Cell 10 state**: skipped with a print message.
+**Fix** (two-pronged):
+1. Cell 1 now sets `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` before any torch import. The allocator can now reclaim physical pages across model boundaries.
+2. Cell 10 still guards against the case where the runtime isn't fresh — checks `torch.cuda.max_memory_allocated()`. If > 5 GB, it refuses the load and prints the recovery procedure (restart runtime → run Cells 1–6 → skip 7/8/9 → run Cell 10). Drive checkpoints from already-completed cells reload automatically.
 
 ---
 
 ## Bugs fixed this session
 
-| Bug | File | Commit | Status |
-|-----|------|--------|--------|
-| `answers` list-of-list AttributeError in `lciteeval_grounding_label` | `spectral_utils/data_loaders.py` | `8aa3587` | ✅ Pushed |
-| `run_inference_for_cell` ran 500 iterations on 240-item dataset | `Spectral_Analysis_Phase10_Main_RAG.ipynb` Cell 6 | notebook only | ✅ Fixed in notebook |
-| `pcre` missing from gptqmodel install | Cell 9 | notebook only | ⚠️ Stub approach still failing |
+| Bug | File | Status |
+|-----|------|--------|
+| `answers` list-of-list AttributeError in `lciteeval_grounding_label` | `spectral_utils/data_loaders.py` | ✅ Pushed (`8aa3587`) |
+| `run_inference_for_cell` ran 500 iterations on 240-item dataset | Cell 6 hard-cap | ✅ Fixed in notebook |
+| `pcre` missing from gptqmodel install | Cell 9 stdlib-re stub | ✅ Fixed in notebook |
+| Llama-70B BNB OOM after Mistral-24B | Cell 1 `expandable_segments` + Cell 10 freshness guard | ✅ Fixed in notebook |
 
 ---
 
 ## Key rules / gotchas (updated)
 
-- **gptqmodel on Python 3.12**: `pcre` cannot be installed via pip. Stub injection (`sys.modules['pcre'] = types.ModuleType('pcre')`) attempted but unreliable. Try pinning an older gptqmodel version.
-- **70B BNB models**: must be loaded on a fresh runtime as the FIRST model. Cannot be loaded after a smaller model has been unloaded — GPU fragmentation prevents it.
+- **gptqmodel on Python 3.12**: `import pcre` resolves to the PyPI `pypcre` package (C ext over libpcre2). Stub with stdlib `re` instead — gptqmodel only uses `pcre.compile()` + `.sub()` on an ANSI-escape pattern, and stdlib `re` handles it identically. The "use `types.ModuleType('pcre')` empty stub" path doesn't work because gptqmodel does `pcre.compile(...)` and gets `AttributeError` on empty modules.
+- **70B BNB models**: with `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` set in Cell 1, they can sometimes load after another model. To be safe, Cell 10 guards on `torch.cuda.max_memory_allocated()` and refuses the load if any prior model has used the GPU in this runtime. The user gets a clear recovery procedure printed.
 - **AWQ models**: `load_model(model_id, quantize_4bit=False)` — auto-detects AWQ. Requires both `autoawq` AND `gptqmodel`.
 - **L-CiteEval dataset sizes**: hotpotqa=240, NQ=160, 2wiki=240, narrativeqa=240. `N_SAMPLES=500` exceeds all of them — inference caps automatically at real size.
 - **Never use `pip install git+...`** — use `git clone -b master` + `sys.path.insert`.
@@ -111,19 +110,17 @@ Loading a 70B BNB 4-bit model as the 4th model in sequence OOMs at 79.11/79.25 G
 
 ## Immediate next actions
 
-1. **Resume Phase 10 Main RAG (partial, 2 models)**:
-   - Restart runtime → run all cells 1–25
-   - Cell 1 git pull brings the `data_loaders.py` fix
-   - Cells 9, 10 skip automatically
-   - Cells 11–25 produce results for qwen7b + mistral24b (8/16 cells)
+1. **Run Phase 10 Main RAG end-to-end** — single fresh Colab session, in this order:
+   - Restart runtime, then run Cells 1–8 (already-complete checkpoints reload from Drive; Cells 7/8 short-circuit fast since qwen7b + mistral24b are done)
+   - Run Cell 9 → Qwen-72B-AWQ (pcre stub + gptqmodel install + load + inference on 4 datasets)
+   - Then Cells 11–25 to produce results for 12/16 cells (qwen7b + mistral24b + qwen72b)
 
-2. **Fix Qwen-72B-AWQ (pcre)**:
-   - Try `pip install --no-deps "gptqmodel<0.9"` to find a pre-pcre version
-   - OR try loading AWQ with `autoawq` alone (without gptqmodel): set `TRANSFORMERS_NO_ADVISORY_WARNINGS=1` and remove gptqmodel install
+2. **Run Llama-70B in a second Colab session**:
+   - Fresh runtime → Cells 1–6 (no model loads) → SKIP Cells 7/8/9 → Cell 10
+   - Cell 10's guard ensures the load only attempts on a fresh runtime
+   - Checkpoints persist to Drive; after this completes you have 16/16 cells
 
-3. **Fix Llama-70B (OOM)**:
-   - Fresh runtime, reorder MODELS so Llama is first, run only Cell 7
-   - Checkpoints save to same Drive paths — merge automatically with existing results
+3. **Run Cells 11–25 once more** (either session, after both 70B models done) to produce the full 16-cell analysis: AUC heatmap, Nadler weight fingerprint matrix, fusion distributions, length-controlled bars, gates.
 
 4. **After 16/16 cells complete**: update HISTORY.md Step 85 with headline numbers, update Research_Directions.md Direction 2 (RAG) status.
 

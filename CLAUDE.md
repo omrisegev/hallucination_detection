@@ -38,6 +38,11 @@
 ```python
 import os, sys, shutil
 
+# Set BEFORE any torch import. Expandable segments let the allocator reclaim
+# physical pages from a freed model, which is what makes a 70B BNB load after
+# unloading a smaller model possible at all. Without this, fragmentation OOMs.
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
+
 # Persist HuggingFace cache to Drive — saves a 36 GB AWQ re-download (~15 min)
 # on every runtime restart. Set BEFORE any HF import.
 os.environ['HF_HOME'] = '/content/drive/MyDrive/hf_cache'
@@ -87,12 +92,27 @@ print('spectral_utils imported OK')
 - **AWQ / GPTQ models** (ID contains `awq` or `gptq`): `load_model(model_id, quantize_4bit=False)` — package auto-detects, uses `dtype=torch.bfloat16`. `device_map="auto"` is safe because AWQ weights are already quantized on disk (~36 GB for 72B). **Requires both `autoawq` AND `gptqmodel`** — gptqmodel provides the `AwqMarlinLinear` (Marlin fp16) kernel; without it, AWQ will fail or use a slow fallback.
   - **CRITICAL — install order + flags**: `autoawq` goes in Cell 1 (safe alone). `gptqmodel` MUST be installed in the model-load cell with `--no-deps`, AFTER `import datasets` has frozen pyarrow in memory. Installing both together in Cell 1 corrupts numpy and pyarrow on disk (`cannot import name '_center'`, `IpcReadOptions size changed`); installing gptqmodel without `--no-deps` ALSO corrupts transformers (`cannot import name 'divide_to_patches' from 'transformers.image_transforms'` — partial upgrade where new `image_processing_backends.py` references symbols missing in the still-old `image_transforms.py`). All three are unrecoverable in-session — only a runtime restart fixes them. The model-load cell should look like:
     ```python
+    # gptqmodel's logger does `import pcre`. The PyPI package is pypcre (C extension
+    # over libpcre2, no Py3.12 wheel — needs apt libpcre2-dev to build from source).
+    # gptqmodel only uses pcre.compile()+.sub() on a trivial ANSI-escape pattern,
+    # so stub pcre with stdlib re — bulletproof, no system libs, no C build.
+    import re as _re, types as _types
+    _pcre = _types.ModuleType('pcre')
+    for _fn in ('compile','match','search','findall','sub','split','fullmatch'):
+        setattr(_pcre, _fn, getattr(_re, _fn))
+    _pcre.error = _re.error
+    for _flag in ('IGNORECASE','MULTILINE','DOTALL','VERBOSE','UNICODE','ASCII'):
+        setattr(_pcre, _flag, getattr(_re, _flag))
+    sys.modules['pcre'] = _pcre
+
     os.system('pip install -q --no-deps gptqmodel')
+    os.system('pip install -q logbar')                  # pure-Python, safe mid-session
     mdl, tok = load_model(MODEL_ID, quantize_4bit=False)
     ```
-    `--no-deps` is safe because gptqmodel's runtime deps (torch, numpy, transformers) are already in Colab.
+    `--no-deps` is safe because gptqmodel's runtime deps (torch, numpy, transformers) are already in Colab. `logbar` is pure Python. **Do not** try `pip install pcre` (different obsolete package) or `pip install pypcre` (needs libpcre2-dev, slow source build) — the stdlib `re` stub is the reliable path.
 - **BNB 4-bit (70B+)**: `load_model(model_id, quantize_4bit=True)`. Never pass `torch_dtype` alongside `quantization_config` — bitsandbytes owns dtype internally; passing it bypasses BNB and loads full FP16 → OOM.
 - **BNB + 72B on A100**: `device_map="auto"` reads the *pre-quantization* FP16 size (~145 GB for Qwen-72B) and dispatches layers to CPU → BNB raises `ValueError: modules dispatched on CPU`. Fix: use `device_map={"": 0}` to force all layers to GPU before BNB quantizes them.
+- **70B BNB on A100 (Llama-3.3-70B etc.)**: 4-bit quantization peaks around 80 GB. With `expandable_segments:True` set in Cell 1 it usually fits on a fresh runtime, but after any other model has been loaded and freed the load still OOMs. Gate the load behind a freshness check (`torch.cuda.max_memory_allocated() < 5 GB`); if not fresh, refuse the load and tell the user to restart and run Cells 1–6 + the 70B driver cell only. Checkpoints from completed (model, dataset) pairs persist to Drive and reload automatically, so the user loses no work.
 
 **Known package gap**: `model_utils.py` still uses `device_map="auto"`. Safe for AWQ and small models. For 72B BNB, override in the notebook or patch the package before the run.
 
