@@ -105,11 +105,18 @@ print('spectral_utils imported OK')
         setattr(_pcre, _flag, getattr(_re, _flag))
     sys.modules['pcre'] = _pcre
 
+    # gptqmodel runtime deps that --no-deps skips. All pure-Python:
+    # - device-smi (zero deps, eagerly imported by gptqmodel/utils/device.py)
+    # - tokenicer (would otherwise pull transformers>=5.x and break Colab's 4.x)
+    # - defuser (depends on pypcre — our stub covers it at runtime; --no-deps
+    #   avoids pip trying to build pypcre from source against libpcre2-dev)
+    # - logbar (zero deps; safe with full pip)
+    os.system('pip install -q --no-deps device-smi tokenicer defuser')
+    os.system('pip install -q logbar')
     os.system('pip install -q --no-deps gptqmodel')
-    os.system('pip install -q logbar')                  # pure-Python, safe mid-session
     mdl, tok = load_model(MODEL_ID, quantize_4bit=False)
     ```
-    `--no-deps` is safe because gptqmodel's runtime deps (torch, numpy, transformers) are already in Colab. `logbar` is pure Python. **Do not** try `pip install pcre` (different obsolete package) or `pip install pypcre` (needs libpcre2-dev, slow source build) — the stdlib `re` stub is the reliable path.
+    `--no-deps` is safe because gptqmodel's heavy runtime deps (torch, numpy, transformers, accelerate, safetensors, pyarrow, datasets) are already in Colab. The four packages above are the only gptqmodel-specific runtime deps not in stock Colab Py3.12. **Do not** try `pip install pcre` (different obsolete package) or `pip install pypcre` (needs libpcre2-dev, slow source build) — the stdlib `re` stub is the reliable path.
 - **BNB 4-bit (70B+)**: `load_model(model_id, quantize_4bit=True)`. Never pass `torch_dtype` alongside `quantization_config` — bitsandbytes owns dtype internally; passing it bypasses BNB and loads full FP16 → OOM.
 - **BNB + 72B on A100**: `device_map="auto"` reads the *pre-quantization* FP16 size (~145 GB for Qwen-72B) and dispatches layers to CPU → BNB raises `ValueError: modules dispatched on CPU`. Fix: use `device_map={"": 0}` to force all layers to GPU before BNB quantizes them.
 - **70B BNB on A100 (Llama-3.3-70B etc.)**: 4-bit quantization peaks around 80 GB. With `expandable_segments:True` set in Cell 1 it usually fits on a fresh runtime, but after any other model has been loaded and freed the load still OOMs. Gate the load behind a freshness check (`torch.cuda.max_memory_allocated() < 5 GB`); if not fresh, refuse the load and tell the user to restart and run Cells 1–6 + the 70B driver cell only. Checkpoints from completed (model, dataset) pairs persist to Drive and reload automatically, so the user loses no work.
