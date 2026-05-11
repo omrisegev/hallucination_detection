@@ -135,8 +135,11 @@ def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
                       Nadler subset and print the Nadler Lift.
 
     Returns:
-        (best_auc, best_lo, best_hi, best_subset)
-        where best_subset is a tuple of feature name strings.
+        (best_auc, best_lo, best_hi, best_subset, best_weights)
+        - best_subset:  tuple of feature name strings, in fusion order
+        - best_weights: np.ndarray aligned with best_subset (L1-normalized
+                        leading-eigenvector weights from nadler_fuse). None
+                        if no valid subset was found.
     """
     labels_ = np.array(labels_)
 
@@ -171,7 +174,7 @@ def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
     print(f"  [{label}] {len(feat_names)} features, {len(info)} informative, "
           f"max_size={max_size} → {total_combos} raw combos")
 
-    best_a, best_lo, best_hi, best_s = 0.0, 0.0, 0.0, None
+    best_a, best_lo, best_hi, best_s, best_w = 0.0, 0.0, 0.0, None, None
     checked, skipped = 0, 0
 
     for size in range(2, min(len(info) + 1, max_size + 1)):
@@ -182,10 +185,10 @@ def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
                    for a, b in itertools.combinations(s, 2)):
                 skipped += 1
                 continue
-            fused, _ = nadler_fuse(*[oriented[n_] for n_ in s])
+            fused, w = nadler_fuse(*[oriented[n_] for n_ in s])
             a, lo, hi = boot_auc(labels_, fused)
             if a > best_a:
-                best_a, best_lo, best_hi, best_s = a, lo, hi, s
+                best_a, best_lo, best_hi, best_s, best_w = a, lo, hi, s, w
             checked += 1
             valid_in_size += 1
         print(f"    size={size}: {len(size_combos)} combos, "
@@ -204,4 +207,4 @@ def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
         print(f"    Mean   : {100*mean_auc:.1f}%  [{100*mean_lo:.1f}, {100*mean_hi:.1f}]")
         print(f"    Lift   : {lift:+.1f} pp")
 
-    return best_a, best_lo, best_hi, best_s
+    return best_a, best_lo, best_hi, best_s, best_w
