@@ -121,6 +121,61 @@ print('spectral_utils imported OK')
 - **BNB + 72B on A100**: `device_map="auto"` reads the *pre-quantization* FP16 size (~145 GB for Qwen-72B) and dispatches layers to CPU → BNB raises `ValueError: modules dispatched on CPU`. Fix: use `device_map={"": 0}` to force all layers to GPU before BNB quantizes them.
 - **70B BNB on A100 (Llama-3.3-70B etc.)**: 4-bit quantization peaks around 80 GB. With `expandable_segments:True` set in Cell 1 it usually fits on a fresh runtime, but after any other model has been loaded and freed the load still OOMs. Gate the load behind a freshness check (`torch.cuda.max_memory_allocated() < 5 GB`); if not fresh, refuse the load and tell the user to restart and run Cells 1–6 + the 70B driver cell only. Checkpoints from completed (model, dataset) pairs persist to Drive and reload automatically, so the user loses no work.
 
+---
+
+## Google Drive cache — don't trust the HF default
+
+Drive's FUSE doesn't support real symlinks. HF's hub cache (`HF_HOME=/content/drive/...`) stores blobs as real files but tries to symlink them into `snapshots/<rev>/<file>` — those symlinks become 0-byte broken stubs on Drive, and HF re-downloads the full model every session despite the blobs sitting there.
+
+**Fix**: bypass the cache. Use `snapshot_download(local_dir=...)` to a flat directory on Drive (real files, no symlinks), then pass the local path to `from_pretrained` instead of the Hub repo ID. Standard helper to put in a notebook setup cell:
+
+```python
+from huggingface_hub import snapshot_download
+FLAT_CACHE = '/content/drive/MyDrive/hf_cache_flat'
+os.makedirs(FLAT_CACHE, exist_ok=True)
+
+def ensure_flat_dir(repo_id, token=None):
+    """Download repo to flat dir on Drive (real files, no symlinks). Idempotent."""
+    local_dir = os.path.join(FLAT_CACHE, repo_id.replace('/', '__'))
+    sentinel = os.path.join(local_dir, 'config.json')
+    if os.path.exists(sentinel):
+        return local_dir
+    kwargs = dict(repo_id=repo_id, local_dir=local_dir, token=token)
+    try:
+        snapshot_download(**kwargs, local_dir_use_symlinks=False)
+    except TypeError:
+        snapshot_download(**kwargs)  # newer hf_hub removed the kwarg; default is copies
+    return local_dir
+```
+
+`load_model()` still auto-detects AWQ from the path string (looks for "awq"/"gptq"), so passing `/content/drive/MyDrive/hf_cache_flat/Qwen__Qwen2.5-72B-Instruct-AWQ` works the same as the Hub ID.
+
+---
+
+## Analysis-result persistence (Colab `background_save` survival)
+
+Long-running analysis cells (Nadler subset search, length-controlled, PCA, SE baseline) MUST persist their output dict to disk. Colab's `background_save: true` lets the cell finish printing after a kernel disconnect, but in-memory variables (`NADLER_RES`, `LEN_RES`, `PCA_RES`) are gone. Downstream cells then `NameError`.
+
+Standard pattern at the top of each analysis cell:
+
+```python
+RES_PATH = os.path.join(RES_DIR, 'foo_res.pkl')
+FORCE_RECOMPUTE = False
+
+if not FORCE_RECOMPUTE and 'FOO_RES' in globals() and FOO_RES:
+    print('already in memory; skipping')
+elif not FORCE_RECOMPUTE and os.path.exists(RES_PATH):
+    with open(RES_PATH, 'rb') as f: FOO_RES = pickle.load(f)
+    print(f'loaded from {RES_PATH}')
+else:
+    FOO_RES = {}
+    # ... compute ...
+    with open(RES_PATH, 'wb') as f: pickle.dump(FOO_RES, f)
+    print(f'saved to {RES_PATH}')
+```
+
+Same pattern as Cell 6's `run_inference_for_cell` checkpoint logic. Apply it to every cell that takes more than ~30 seconds.
+
 **Known package gap**: `model_utils.py` still uses `device_map="auto"`. Safe for AWQ and small models. For 72B BNB, override in the notebook or patch the package before the run.
 
 **Colab C-extension corruption — recovery**: If you see `cannot import name '_center'` (numpy) or `IpcReadOptions size changed` (pyarrow) mid-session, do NOT try `pip install --force-reinstall` to recover — C extensions can't be unloaded from a running Python process and the `.so` you're trying to replace is held open. The only fix is `Runtime → Restart runtime`. Prevention is the Cell 1 pre-import + deferred gptqmodel install above.

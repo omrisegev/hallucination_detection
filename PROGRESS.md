@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
-**Date**: 2026-05-11  
-**Last updated**: Cell 9 (Qwen-72B-AWQ) and Cell 10 (Llama-70B) blockers fixed; ready to run
+**Date**: 2026-05-12
+**Last updated**: Qwen-72B-AWQ inference complete (3/4 models done), NADLER_RES persistence pattern pending application
 
 ---
 
@@ -21,8 +21,9 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 | MATH-500 / Qwen-1.5B / T=1.5 | 88.3% | |
 | GSM8K / Llama-3.1-8B | 76.0% | vs LapEigvals unsupervised 72.0% |
 | GPQA / Qwen2.5-72B-AWQ / T=1.0 | **69.0%** | Phase 8 — +3.6 pp over 7B; acc only 40.4% |
-| HotpotQA pilot / Falcon-3-10B | 76.0% (INVALID) | Pre-conditions failed by thin margin |
-| TriviaQA / Falcon-3-10B CoT | 53.6% | Spectral features don't transfer to factual QA |
+| Phase 10 RAG / qwen7b / 2wikimultihopqa | **80.5%** | Cell 14 output, this session |
+| Phase 10 RAG / qwen7b / hotpotqa | 79.5% | Cell 14 output, this session |
+| Phase 10 RAG / qwen72b / hotpotqa | 79.4% | Cell 14 output, this session |
 
 ---
 
@@ -31,109 +32,142 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 - **Phase 8** ✅: GPQA Diamond / Qwen2.5-72B-AWQ — 69.0% AUC (Step 80)
 - **Phase 9** ✅: Factual QA (TriviaQA + WebQ) CoT — spectral features don't transfer, clean negative result (Step 82)
 - **Phase 10 pilot** ✅: L-CiteEval HotpotQA / Falcon-3-10B — INVALID pre-conditions, but strong signal: Nadler 76.0%, EPR 69.9% (Step 84)
+- **Phase 10 Main RAG — 3/4 models** ✅: qwen7b + mistral24b + qwen72b inference all complete; analysis cells partially done (NADLER_RES needs persistence patch)
 
 ---
 
 ## Current experiment: Phase 10 Main RAG
 
-**Notebook**: `Spectral_Analysis_Phase10_Main_RAG.ipynb`  
-**Goal**: 4 models × 4 L-CiteEval datasets = 16 (model, dataset) cells. Headline: 4×4 AUC heatmap showing spectral features generalise across tasks.  
-**Datasets**: hotpotqa, natural_questions, 2wikimultihopqa, narrativeqa  
+**Notebook**: `Spectral_Analysis_Phase10_Main_RAG.ipynb`
+**Goal**: 4 models × 4 L-CiteEval datasets = 16 (model, dataset) cells. Headline: 4×4 AUC heatmap showing spectral features generalise across tasks.
+**Datasets**: hotpotqa, natural_questions, 2wikimultihopqa, narrativeqa
 **Models**: Qwen2.5-7B, Mistral-Small-24B, Qwen2.5-72B-AWQ, Llama-3.3-70B
 
-### Inference status (as of session end)
+### Inference status
 
 | Model | hotpotqa | natural_questions | 2wikimultihopqa | narrativeqa | Status |
-|-------|----------|------------------|-----------------|-------------|--------|
-| qwen7b | 240/240 ✅ | 160/160 ✅ | 240/240 ✅ | 240/240 ✅ | Complete |
+|-------|----------|-------------------|-----------------|-------------|--------|
+| qwen7b     | 240/240 ✅ | 160/160 ✅ | 240/240 ✅ | 240/240 ✅ | Complete |
 | mistral24b | 240/240 ✅ | 160/160 ✅ | 240/240 ✅ | 240/240 ✅ | Complete |
-| qwen72b | 0 | 0 | 0 | 0 | Ready to run (Cell 9 fix landed) |
-| llama70b | 0 | 0 | 0 | 0 | Ready on fresh runtime (Cell 10 fix landed) |
+| qwen72b    | 240/240 ✅ | 160/160 ✅ | 240/240 ✅ | 240/240 ✅ | Complete (this session) |
+| llama70b   | 0          | 0          | 0          | 0          | Pending — needs fresh runtime |
 
-Checkpoints saved to Drive: `/content/drive/MyDrive/hallucination_detection/cache/phase10_main/raw/`
+Checkpoints on Drive: `/content/drive/MyDrive/hallucination_detection/cache/phase10_main/raw/`
+HF cache on Drive (flat-dir, no symlinks): `/content/drive/MyDrive/hf_cache_flat/`
 
-### Where it stopped
+### Cell 14 best Nadler results (12 of 16 cells)
 
-Cell 11 (feature extraction) fails with `AttributeError: 'list' object has no attribute 'lower'`.
+```
+[qwen7b    /hotpotqa            ] AUC=79.5%  spectral_entropy + stft_max_high_power + rpdi
+[qwen7b    /natural_questions   ] AUC=75.3%  trace_length + hl_ratio + dominant_freq
+[qwen7b    /2wikimultihopqa     ] AUC=80.5%  spectral_entropy + low_band_power + dominant_freq + sw_var_peak_adaptive
+[qwen7b    /narrativeqa         ] AUC=70.0%  spectral_centroid + sw_var_peak_adaptive
+[mistral24b/hotpotqa            ] AUC=67.3%  spectral_centroid + rpdi
+[mistral24b/natural_questions   ] AUC=74.0%  high_band_power + rpdi + sw_var_peak_adaptive
+[mistral24b/2wikimultihopqa     ] AUC=74.2%  epr + spectral_centroid + stft_spectral_entropy + rpdi
+[mistral24b/narrativeqa         ] AUC=66.1%  epr + spectral_entropy
+[qwen72b   /hotpotqa            ] AUC=79.4%  low_band_power + stft_max_high_power + rpdi
+[qwen72b   /natural_questions   ] AUC=71.8%  high_band_power + dominant_freq + stft_spectral_entropy + sw_var_peak
+[qwen72b   /2wikimultihopqa     ] AUC=73.4%  epr + high_band_power + stft_spectral_entropy + rpdi
+[qwen72b   /narrativeqa         ] AUC=72.2%  hl_ratio + stft_max_high_power + rpdi + sw_var_peak
+```
 
-**This bug is FIXED and PUSHED** (commit `8aa3587`). The fix flattens list-of-list answers in `lciteeval_grounding_label` — NaturalQuestions and NarrativeQA return `answers` as `list[list[str]]`, not `list[str]`.
+Median ≈ 74%; 7/12 cells ≥ 70% (G1 threshold). Spectral features generalise across models AND tasks.
 
-**To resume**: restart runtime, run all cells 1–11 (fresh runtime, Cell 1 pulls the fix), proceed to 12–25. Cell 9 and Cell 10 are marked as skipped (print message + return). Analysis cells (11–25) handle missing cells automatically.
+### Where it stopped (and the fix)
+
+Cell 14 ran successfully and printed all 12 results, but had `"background_save": true` in its metadata. The kernel disconnected before formally finalising the cell, so `NADLER_RES` was wiped from memory. Cells 16/17/18 then errored with `NameError: NADLER_RES not defined`.
+
+**Fix (not yet applied)**: see `FIX_NADLER_RES.md` in the repo root. Replaces source of Cells 14, 15, 16 to persist `NADLER_RES`/`LEN_RES`/`PCA_RES` to disk as `.pkl` files in `RES_DIR`. Same pattern as Cell 6's inference checkpoints. After applying once, every kernel restart reloads in milliseconds.
 
 ---
 
-## Resolved blockers
+## Resolved blockers (this session and prior)
 
 ### 1. Qwen-72B-AWQ — pcre / gptqmodel (Python 3.12) ✅
 
-**Root cause**: gptqmodel's logger does `import pcre`. The PyPI package is `pypcre` (C extension over **libpcre2**, not libpcre3 — the prior `apt-get install libpcre3-dev` was the wrong system lib), with no Python 3.12 wheel.
+**Root cause**: gptqmodel's logger AND its `cpp.py` AND its `defuser` dep all import `pcre`. The PyPI package is `pypcre` (C ext over libpcre2, no Py3.12 wheel — and the previously-tried `libpcre3-dev` is the wrong libpcre version).
 
-**Fix**: Stub `pcre` against stdlib `re` before gptqmodel install. gptqmodel only uses `pcre.compile(r"\x1b\[[0-9;]*m")` + `.sub()` for ANSI escape stripping (verified in `gptqmodel/utils/logger.py`) — stdlib `re` handles it identically. The stub is bulletproof: no C extension, no system libs, no build.
+**Fix**: Stub `pcre` against stdlib `re` before gptqmodel import. The stub exposes:
+- functions: `compile/match/search/findall/sub/split/fullmatch`
+- classes: `Pattern`, `Match` (for type annotations in `defuser/utils/common.py`)
+- flags: both re-style (`IGNORECASE`, `VERBOSE`) AND PCRE-style (`CASELESS`, `EXTENDED`, `UTF8`, `UCP`, etc.) — gptqmodel mixes both
+- `Flag` namespace (used as `pcre.Flag.CASELESS` in `gptqmodel/models/writer.py`)
 
-**Cell 9 now does**:
-1. Stub `pcre` with stdlib `re` (handlers for `compile/match/search/findall/sub/split/fullmatch` + flags)
-2. `pip install -q --no-deps gptqmodel` (no transformers .py rewrite)
-3. `pip install -q logbar` (pure-Python, safe mid-session)
-4. `load_model(MODEL_ID, **KW)` — runs inference across 4 datasets
+PCRE-specific flags with no `re` equivalent (`ANCHORED`, `UNGREEDY`, ...) map to `0` (no-op).
 
 ### 2. Llama-3.3-70B — OOM after Mistral-24B ✅
 
-**Root cause**: 70B BNB 4-bit quantization peaks ~80 GB on A100. After any smaller model has been loaded and freed, the allocator carries historical fragmentation and the peak doesn't fit.
+**Root cause**: 70B BNB 4-bit peaks ~80 GB during quantization. After any smaller model has been loaded/freed, the allocator carries fragmentation and the peak doesn't fit.
 
 **Fix** (two-pronged):
-1. Cell 1 now sets `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` before any torch import. The allocator can now reclaim physical pages across model boundaries.
-2. Cell 10 still guards against the case where the runtime isn't fresh — checks `torch.cuda.max_memory_allocated()`. If > 5 GB, it refuses the load and prints the recovery procedure (restart runtime → run Cells 1–6 → skip 7/8/9 → run Cell 10). Drive checkpoints from already-completed cells reload automatically.
+1. `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` set in Cell 1 before any torch import.
+2. Cell 10 guards on `torch.cuda.max_memory_allocated()` > 5 GB. If the runtime isn't fresh, it refuses the load and prints the recovery procedure.
+
+### 3. gptqmodel `--no-deps` skips real runtime deps ✅
+
+**Discovered**: After the pcre stub worked, gptqmodel failed at import on `device_smi`, then `tokenicer`, then `defuser`. `--no-deps` is needed to avoid transformers .py rewrites, but it also skips genuine pure-Python runtime deps. Install them explicitly:
+```
+pip install --no-deps device-smi tokenicer defuser
+pip install logbar ninja
+pip install --no-deps gptqmodel
+```
+`ninja` is required at model-load time to JIT-build the Marlin fp16 CUDA kernel.
+
+### 4. Google Drive symlink bug → HF re-downloads every session ✅
+
+**Discovered**: HF hub cache stores blobs as real files + `snapshots/<rev>/` as symlinks. Google Drive's FUSE doesn't support real symlinks, so snapshot symlinks come out as 0-byte broken stubs. The 17.8 GB AWQ download succeeded EVERY session (blobs saved), but HF couldn't resolve the snapshot dir and re-downloaded.
+
+Confirmed by Cell 3b diagnostic: 431 GB of blobs sitting on Drive, all snapshot symlinks `islink=True size=0`.
+
+**Fix**: Cell 3c `ensure_flat_dir(repo_id)` uses `snapshot_download(local_dir=...)` to flat-dir on Drive (no symlinks). Cells 9 and 10 call `ensure_flat_dir(MODEL_ID)` before `load_model`. After the one-time re-download, the model loads from Drive in seconds. Pattern documented in CLAUDE.md.
+
+### 5. `lciteeval_grounding_label` list-of-list answers ✅
+
+NQ/NarrativeQA return `answers` as `list[list[str]]`, not `list[str]`. Flatten before substring matching. Fixed in `spectral_utils/data_loaders.py` (commit `8aa3587`).
+
+### 6. `best_nadler_on` 4-tuple vs 5-tuple ✅
+
+Notebook expected `auc, lo, hi, subset, weights` but package returned 4 values. Updated `fusion_utils.py` to also return the leading-eigenvector weights for the best subset (commit `b3c45a4`). Needed for Cell 18's spectral fingerprint heatmap.
+
+### 7. NADLER_RES disappears on Colab disconnect ⚠️ (fix pending)
+
+Cell 14's `background_save: true` lets the cell keep printing after kernel disconnect, but the variable is gone. Persist to disk like the inference checkpoints. **See `FIX_NADLER_RES.md`** for the cell sources to paste in.
 
 ---
 
-## Bugs fixed this session
+## Key rules / gotchas
 
-| Bug | File | Status |
-|-----|------|--------|
-| `answers` list-of-list AttributeError in `lciteeval_grounding_label` | `spectral_utils/data_loaders.py` | ✅ Pushed (`8aa3587`) |
-| `run_inference_for_cell` ran 500 iterations on 240-item dataset | Cell 6 hard-cap | ✅ Fixed in notebook |
-| `pcre` missing from gptqmodel install | Cell 9 stdlib-re stub | ✅ Fixed in notebook |
-| Llama-70B BNB OOM after Mistral-24B | Cell 1 `expandable_segments` + Cell 10 freshness guard | ✅ Fixed in notebook |
-
----
-
-## Key rules / gotchas (updated)
-
-- **gptqmodel on Python 3.12**: `import pcre` resolves to the PyPI `pypcre` package (C ext over libpcre2). Stub with stdlib `re` instead — gptqmodel only uses `pcre.compile()` + `.sub()` on an ANSI-escape pattern, and stdlib `re` handles it identically. The "use `types.ModuleType('pcre')` empty stub" path doesn't work because gptqmodel does `pcre.compile(...)` and gets `AttributeError` on empty modules.
-- **70B BNB models**: with `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` set in Cell 1, they can sometimes load after another model. To be safe, Cell 10 guards on `torch.cuda.max_memory_allocated()` and refuses the load if any prior model has used the GPU in this runtime. The user gets a clear recovery procedure printed.
+- **gptqmodel on Python 3.12**: stub `pcre` with stdlib `re` (including `Pattern`/`Match` classes and the full `Flag` namespace including PCRE-style names like `CASELESS`/`EXTENDED`). Plus install `device-smi tokenicer defuser` with `--no-deps`, and `logbar ninja` plainly, before `pip install --no-deps gptqmodel`.
+- **70B BNB models**: with `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` set in Cell 1, loading after a freed smaller model is possible but unreliable. Cell 10 guards via `max_memory_allocated()`; for safety, run Llama as the only model in a fresh runtime.
+- **HF cache on Drive**: NEVER rely on the standard `HF_HOME=/content/drive/...` cache — snapshot symlinks break. Use `snapshot_download(local_dir=...)` to a flat dir, then pass that path to `from_pretrained`. Helper `ensure_flat_dir()` in Cell 3c.
+- **Analysis result persistence**: Long-running analysis cells (Nadler search, length-controlled, PCA) MUST persist results to disk (`pickle.dump` to `RES_DIR`). Colab's `background_save: true` lets cells finish printing after kernel disconnect, but in-memory variables are lost. Same checkpoint pattern as `Cell 6`'s inference loop.
 - **AWQ models**: `load_model(model_id, quantize_4bit=False)` — auto-detects AWQ. Requires both `autoawq` AND `gptqmodel`.
-- **L-CiteEval dataset sizes**: hotpotqa=240, NQ=160, 2wiki=240, narrativeqa=240. `N_SAMPLES=500` exceeds all of them — inference caps automatically at real size.
+- **L-CiteEval dataset sizes**: hotpotqa=240, NQ=160, 2wiki=240, narrativeqa=240. `N_SAMPLES=500` is capped automatically.
 - **Never use `pip install git+...`** — use `git clone -b master` + `sys.path.insert`.
-- **gptqmodel install order**: always `--no-deps`, always after `import datasets` has frozen pyarrow, never in Cell 1.
 
 ---
 
 ## Immediate next actions
 
-1. **Run Phase 10 Main RAG end-to-end** — single fresh Colab session, in this order:
-   - Restart runtime, then run Cells 1–8 (already-complete checkpoints reload from Drive; Cells 7/8 short-circuit fast since qwen7b + mistral24b are done)
-   - Run Cell 9 → Qwen-72B-AWQ (pcre stub + gptqmodel install + load + inference on 4 datasets)
-   - Then Cells 11–25 to produce results for 12/16 cells (qwen7b + mistral24b + qwen72b)
+1. **Apply `FIX_NADLER_RES.md`** to the Phase 10 Main RAG notebook on Colab. Paste the three cell replacements (14, 15, 16), then run Cells 11 → 25 in order. After this, you have 12-cell results saved to Drive.
 
-2. **Run Llama-70B in a second Colab session**:
-   - Fresh runtime → Cells 1–6 (no model loads) → SKIP Cells 7/8/9 → Cell 10
-   - Cell 10's guard ensures the load only attempts on a fresh runtime
-   - Checkpoints persist to Drive; after this completes you have 16/16 cells
+2. **Run Llama-70B in a separate Colab session** (fresh runtime):
+   - Cells 1–6 → SKIP 7, 8, 9 → Cell 10
+   - Cell 10's guard ensures fresh-runtime requirement
+   - Cell 10 will use `ensure_flat_dir(MODEL_ID, token=hf_token)` for the one-time flat-dir download
 
-3. **Run Cells 11–25 once more** (either session, after both 70B models done) to produce the full 16-cell analysis: AUC heatmap, Nadler weight fingerprint matrix, fusion distributions, length-controlled bars, gates.
+3. **Re-run Cells 11–25** after Llama-70B is done. Cells 11/14/15/16 will detect new raw files and re-extract / update the persisted dicts. Final outputs: 4×4 AUC heatmap, 16-row Nadler weight fingerprint heatmap, fusion distributions, length-controlled bars, gates.
 
-4. **After 16/16 cells complete**: update HISTORY.md Step 85 with headline numbers, update Research_Directions.md Direction 2 (RAG) status.
+4. **After 16/16 cells**:
+   - Append a follow-up step to HISTORY.md (Step 86?) with headline numbers for the full 16-cell run
+   - Update `Research_Directions.md` Direction 2 (RAG) status
+   - Update advisor draft
 
-5. **Agent experiment** (Direction 4): separate notebook `Spectral_Analysis_Phase10_Agentic.ipynb` — ReAct loop on GPQA Diamond questions, spectral features per Thought step. Benchmark: AgentHallu (motivating benchmark); GPQA Diamond (actual dataset). Model: Qwen2.5-72B-AWQ (same as Phase 8). Not started yet.
+5. **Agent experiment** (Direction 4, separate notebook `Spectral_Analysis_Phase10_Agentic.ipynb`): not started.
 
 ---
 
 ## Email to advisors
 
-Draft completed this session — ready to send. Key points:
-1. Normalization added (−0.1 pp on GSM8K, negligible on long traces)
-2. Nadler beats simple average by +1.7 pp; averaging beats best single feature by +0.3 pp
-3. GPQA Diamond with Qwen-72B: accuracy 40% (expected 70%), AUC improved 65.4% → 69.0%
-4. Factual QA negative result validates prior suspicion
-5. Two experiments running: RAG (L-CiteEval) + Agent (GPQA Diamond ReAct loop)
-6. Repo: https://github.com/omrisegev/hallucination_detection
+Draft completed in prior session. Ready to send once Llama-70B finishes and we have the full 4×4 heatmap.

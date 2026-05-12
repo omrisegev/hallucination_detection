@@ -3177,3 +3177,60 @@ Full gate verdict: **INVALID** — G0-A (citation rate) and G0-B (valid statemen
 **Result**: All three files committed to master. Notebook ready to run on Colab A100.
 
 ---
+
+
+### Step 85 — Phase 10 Main RAG: Qwen-72B-AWQ inference complete; analysis pipeline patched
+
+**What**: Ran Cells 1–14 of `Spectral_Analysis_Phase10_Main_RAG.ipynb` on Colab A100. Resolved seven distinct engineering blockers to get Qwen-72B-AWQ inference through; Cell 14 produced best-Nadler results for 12 of 16 (model, dataset) cells. Llama-70B intentionally deferred to a fresh-runtime session.
+
+**Why**: Phase 10 Main RAG is the 4×4 generalisation experiment. Previous session finished inference for qwen7b + mistral24b but hit a wall on Qwen-72B-AWQ (`gptqmodel` import chain on Python 3.12) and Llama-70B (GPU fragmentation OOM). This session debugged Qwen-72B end-to-end and produced the first Phase 10 cross-task AUC numbers.
+
+**Engineering blockers resolved**:
+
+1. **`pcre` C extension on Python 3.12** — gptqmodel's logger/cpp.py/defuser all do `import pcre`, which is pypcre (C ext over libpcre2, no Py3.12 wheel; the earlier `libpcre3-dev` apt install was the wrong libpcre). Replaced with a stdlib `re` stub. Required incremental expansion as gptqmodel surfaced more attributes: `compile`, `Pattern`/`Match` classes (used in type annotations), `Flag` namespace, AND both re-style flag names (`IGNORECASE`, `VERBOSE`) and PCRE-style ones (`CASELESS`, `EXTENDED`, `UTF8`, `UCP`, `ANCHORED`, `UNGREEDY`, ...). PCRE-only flags map to 0.
+
+2. **`--no-deps gptqmodel` skips real runtime deps** — `--no-deps` is necessary to avoid transformers .py rewrites, but it also skips genuine pure-Python deps gptqmodel uses at import time. Install explicitly: `device-smi`, `tokenicer`, `defuser` (all `--no-deps`), plus `logbar` and `ninja` (plain). `ninja` is needed at model-load time to JIT-build the Marlin fp16 CUDA kernel.
+
+3. **`best_nadler_on` 4-tuple vs 5-tuple** — `fusion_utils.best_nadler_on` returned 4 values but Cell 14 expected 5 (`auc, lo, hi, subset, weights`). The function was already computing per-subset weights via `nadler_fuse(...)` but discarding them. Updated to capture and return the leading-eigenvector weights of the best subset. Needed downstream for Cell 18's spectral-fingerprint heatmap. Committed `b3c45a4`.
+
+4. **Google Drive symlink bug → HF re-downloads every session** — HF's hub cache uses `blobs/<sha>` (real files) + `snapshots/<rev>/<file>` (symlinks). Drive's FUSE doesn't support real symlinks, so symlinks come out as 0-byte broken stubs. The 17.8 GB AWQ kept re-downloading despite 431 GB sitting on Drive. Added Cell 3b diagnostic to verify (confirmed: `islink=True size=0` on every snapshot file). Fix: Cell 3c `ensure_flat_dir(repo_id)` uses `snapshot_download(local_dir=...)` to flat-dir on Drive; Cells 9/10 load from that local path.
+
+5. **70B BNB allocator fragmentation** — Cell 1 now sets `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` before any torch import. Cell 10 also guards on `torch.cuda.max_memory_allocated() > 5 GB` to refuse the 70B load if any prior model has touched the GPU in this runtime.
+
+6. **`lciteeval_grounding_label` list-of-list `answers`** — NQ/NarrativeQA return `answers` as `list[list[str]]`, not `list[str]`. Flatten before substring matching. Pushed in prior session (`8aa3587`); confirmed working this session.
+
+7. **NADLER_RES vanishes on Colab `background_save` disconnect** — Cell 14 finished printing all 12 results but the kernel disconnected before formally completing; `NADLER_RES` was wiped from memory, breaking Cells 16/17/18 with `NameError`. Fix: persist `NADLER_RES`/`LEN_RES`/`PCA_RES` to disk in their producing cells, load from disk on subsequent runs (same pattern as Cell 6's inference checkpoints). Full cell replacements documented in `FIX_NADLER_RES.md`; not yet applied at session end.
+
+**Inference status at session end**:
+
+| Model | hotpotqa | NQ | 2wiki | narrative | Status |
+|-------|---|---|---|---|--------|
+| qwen7b     | 240 | 160 | 240 | 240 | ✅ Complete |
+| mistral24b | 240 | 160 | 240 | 240 | ✅ Complete |
+| qwen72b    | 240 | 160 | 240 | 240 | ✅ Complete (this session) |
+| llama70b   | 0   | 0   | 0   | 0   | Pending fresh runtime |
+
+**Phase 10 Main RAG — best Nadler per (model, dataset), 12 of 16 cells**:
+
+```
+[qwen7b    /hotpotqa            ] AUC=79.5%  spectral_entropy + stft_max_high_power + rpdi
+[qwen7b    /natural_questions   ] AUC=75.3%  trace_length + hl_ratio + dominant_freq
+[qwen7b    /2wikimultihopqa     ] AUC=80.5%  spectral_entropy + low_band_power + dominant_freq + sw_var_peak_adaptive
+[qwen7b    /narrativeqa         ] AUC=70.0%  spectral_centroid + sw_var_peak_adaptive
+[mistral24b/hotpotqa            ] AUC=67.3%  spectral_centroid + rpdi
+[mistral24b/natural_questions   ] AUC=74.0%  high_band_power + rpdi + sw_var_peak_adaptive
+[mistral24b/2wikimultihopqa     ] AUC=74.2%  epr + spectral_centroid + stft_spectral_entropy + rpdi
+[mistral24b/narrativeqa         ] AUC=66.1%  epr + spectral_entropy
+[qwen72b   /hotpotqa            ] AUC=79.4%  low_band_power + stft_max_high_power + rpdi
+[qwen72b   /natural_questions   ] AUC=71.8%  high_band_power + dominant_freq + stft_spectral_entropy + sw_var_peak
+[qwen72b   /2wikimultihopqa     ] AUC=73.4%  epr + high_band_power + stft_spectral_entropy + rpdi
+[qwen72b   /narrativeqa         ] AUC=72.2%  hl_ratio + stft_max_high_power + rpdi + sw_var_peak
+```
+
+Median ≈ 74%; 7/12 cells ≥ G1 70% threshold. Best overall: qwen7b/2wikimultihopqa at 80.5%. Spectral features generalise across both model scale (7B → 72B) and task style (multi-hop QA, single-hop QA, narrative QA).
+
+**Result**: Phase 10 Main RAG has working numbers for 12/16 cells. Llama-70B is gated by a fresh-runtime session, not by code. After applying `FIX_NADLER_RES.md` and running Llama-70B, the full 16-cell analysis (4×4 AUC heatmap, 16-row Nadler weight fingerprint matrix, length-controlled comparison, fusion distributions, decision gates) will produce.
+
+**Commits this session**: `8f39f24`, `2b3d377`, `6a96a87`, `dfc7459`, `e6bb5b3`, `05a1c14`, `84fe0c6`, `b3c45a4` (chain of incremental fixes to Cell 9 + `fusion_utils.py`).
+
+---
