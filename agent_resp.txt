@@ -1,0 +1,88 @@
+/research I want you to review the notbook we've made, and given the research information in research_phase10_rag folder, research to see if there's more
+ benchmars, datasets, tasks, that we can test in the expiriemtn notbook, and compare to other. we are looking for some publishable results
+
+● Before generating the framework I need to look at what's already in research_phase10_rag/, so I can ground the candidate list in what's been documented
+  rather than re-inventing it.
+
+  Searched for 3 patterns, read 2 files (ctrl+o to expand)
+  ⎿  Interrupted · What should Claude do instead?
+
+> I  am talking about the agent notbook (phase 11) that I want you to review, and research based on that
+
+● Got it — Phase 11 (agentic), using the Phase 10 RAG research file as context for what we already know. Generating the initial framework now.
+
+  Step 1 — Initial framework (Phase 11 agentic, scoped from model knowledge + research_phase10_rag context)
+
+  The Phase 11 notebook currently has: 2 models × 1 dataset (HotpotQA) × 3-step ReAct × AUQ + spectral + 14-feature Nadler + Φ_LSA + spiral injection. To
+  reach publishability we likely need: more benchmarks (1 isn't enough), more detectors compared against (we have AUQ + SE; need more agentic-specific
+  ones), and more failure modes (we only cover planning/tool/synthesis; the literature has 14 sub-categories).
+
+  Items (candidates to evaluate for inclusion in Phase 11)
+
+  A. Additional agentic benchmarks / datasets (besides HotpotQA)
+  1. GAIA / GAIA2 — assistants benchmark; Pass@1 SOTA 42% (GPT-5) / 74.55% (Claude Sonnet 4.5+HAL). Async dynamic environment.
+  2. AgentBench — 8 distinct agentic environments (DB, OS, web shopping, etc.). Standard general benchmark.
+  3. WebShop — e-commerce, AUQ baseline reports Φ_min 0.755. Direct AUQ replication target.
+  4. ALFWorld — household tasks. AUQ's flagship benchmark (Φ_min 0.791). Direct AUQ replication target.
+  5. DeepHalluBench — already in research_phase10_rag tier-1. 100 hallucination-prone Deep Research Agent tasks with PIES taxonomy. First DRA trajectory
+  benchmark.
+  6. AgentHallu (dataset) — 693 trajectories across 7 frameworks. Step-localization gold labels. Text-only data — schema directly aligned with our Cell 17b.
+  7. MuSiQue — up to 4-hop multi-hop QA. Direct extension of HotpotQA. Mentioned in Direction 4.
+  8. 2WikiMultihopQA — already in Phase 10 RAG. Multi-hop variant with different structure.
+  9. HotpotQA-distractor — alternative split that's harder than fullwiki; reduces gold-context leakage.
+  10. ToolBench / ToolEval — large-scale tool-use benchmark (16k+ APIs). Tool-call fabrication signal.
+  11. WildToolBench (ICLR 2026) — 256 human-verified "wild" tool-use scenarios; no model >15% session accuracy. Hard.
+  12. τ-bench (Tau-bench) — agent vs simulated user in retail / airline; tests multi-turn instruction adherence.
+  13. AppWorld — 9 simulated apps (Phone, Cloud, Spotify, etc.) with 750 tasks. Tool grounding.
+  14. TheAgentCompany — virtual software-company workspace tasks (HR, dev, finance).
+  15. BrowseComp — browsing comprehension across long web sessions.
+  16. HaluEval-Wild / HaluEval2.0 — extension of HaluEval with agentic scenarios.
+  17. Mind2Web / Mind2Web 2 — real-world web navigation; 137 sites; trajectory annotations.
+  18. AgentBoard — fine-grained progress-rate metric across 9 tasks; bridges short-tools and long-horizon agents.
+
+  B. Additional detector methods to benchmark against (besides AUQ + SE we have)
+  19. UProp (arXiv:2506.17419) — already in research_phase10_rag tier-2. Trajectory-level uncertainty propagation. Directly Ofir-aligned.
+  20. SAUP (arXiv:2412.01033) — predecessor of UProp. +20% AUROC over baselines on multi-step decisions.
+  21. AgentHallu's step-localization detector (Gemini 2.5 Pro) — the 41.1% Φ_LSA SOTA, can we beat?
+  22. SIA — Stepwise Informativeness Assumption (arXiv:2604.06192) — already in research_phase10_rag tier-1. Conditional answer entropy as progress
+  variable. Could be a per-step view alongside our spectral.
+  23. Streaming Prefix-Level Hallucination Detection (arXiv:2601.02170) — tier-1 in research_phase10_rag. Cumulative prefix-level signal; direct trajectory
+  framing.
+  24. MARCH (arXiv:2603.24579) — three-agent Solver/Proposer/Checker. Multi-model divergence baseline.
+  25. Internal Representations for Agent Tool Selection (arXiv:2601.05214) — probes hidden states for tool-selection errors.
+  26. Multi-Model Divergence Index — answer disagreement across models. Used as +50% hallucination reduction in 2026 surveys.
+  27. TLM (Cleanlab) — production black-box trust score. Strong real-time baseline.
+  28. RES — Reasoning-Explanation Symmetry (ICLR 2026) — NLI-based forward-backward consistency. AUROC 0.996 on multistep arithmetic.
+
+  C. Additional tasks / failure modes (beyond what Cell 19 covers)
+  29. Tool-argument fabrication — detect when the agent invents API arguments not in retrieved context (AgentHallu sub-category).
+  30. Goal drift detection — gradual loss of original objective across many turns.
+  31. Multi-Agent Handoff Hallucination (MAHH) — bad summary passed from Agent A to Agent B.
+  32. Cascading failure attribution — beyond first-failing-step, the full propagation path.
+  33. Refusal calibration — knowledge vs belief gap (Stanford AI Index 2026): does the agent over-confidently answer false-premise questions?
+
+  D. Additional metrics (besides AUC, Φ_min, Φ_LSA)
+  34. ECE / Brier on verbalized confidence — calibration quality, not just discrimination.
+  35. Coverage@RiskAlpha — conformal threshold guaranteeing P(undetected hallucination ≤ α). Bracha LTT chapter.
+  36. Error attribution F1 — granular than Φ_LSA, weighted by error severity.
+  37. Cost-aware AUC — incorporates the cost of false positives (rejected correct answers).
+  38. Trajectory monotonicity score (Zhao et al. 2026) — is the per-step uncertainty descent monotonic?
+
+  Suggested field framework (how to assess each item before including)
+
+  - Basic: name, type (benchmark / detector / metric / failure-mode), year, venue
+  - Agent setting: tool-use / browsing / multi-hop / code / household / mixed
+  - Trajectory length: typical # of steps (HotpotQA-as-agent = 3; AgentHallu = up to 11+)
+  - Annotation unit: step / trajectory / action / claim
+  - Gold-label availability: human / LLM-judge / retrieval-match / synthetic
+  - Public code + data URLs
+  - Compute cost on Colab A100: hours per model, fits or doesn't
+  - Pre-emption risk: does the paper already test spectral fusion on agent trajectories? (Should be low for everything we'd add)
+  - Marginal publishability value: scale of 1-3 — does adding this open a new SOTA comparison or close a gap reviewers would call out?
+  - Direct overlap with Phase 11 v1.1: would it require new inference (extra Colab time) or just re-analysis?
+  - AUQ baseline reported on it: yes (with score) / no — tells us if there's a fair head-to-head.
+  - AgentHallu Φ_LSA reported on it: yes / no
+
+  ---
+  Two questions before I launch the web-search supplement (which will look for very recent additions to this list — late 2025 / 2026 papers that might have
+  superseded what's here):
