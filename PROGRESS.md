@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
-**Date**: 2026-05-12
-**Last updated**: Qwen-72B-AWQ inference complete (3/4 models done), NADLER_RES persistence pattern pending application
+**Date**: 2026-05-13
+**Last updated**: NADLER_RES / LEN_RES / PCA_RES persistence pattern applied to Phase 10 Main RAG notebook (Cells 14–16); ready to re-run on Colab
 
 ---
 
@@ -78,7 +78,7 @@ Median ≈ 74%; 7/12 cells ≥ 70% (G1 threshold). Spectral features generalise 
 
 Cell 14 ran successfully and printed all 12 results, but had `"background_save": true` in its metadata. The kernel disconnected before formally finalising the cell, so `NADLER_RES` was wiped from memory. Cells 16/17/18 then errored with `NameError: NADLER_RES not defined`.
 
-**Fix (not yet applied)**: see `FIX_NADLER_RES.md` in the repo root. Replaces source of Cells 14, 15, 16 to persist `NADLER_RES`/`LEN_RES`/`PCA_RES` to disk as `.pkl` files in `RES_DIR`. Same pattern as Cell 6's inference checkpoints. After applying once, every kernel restart reloads in milliseconds.
+**Fix applied** (this session): Cells 14, 15, 16 in `Spectral_Analysis_Phase10_Main_RAG.ipynb` now persist `NADLER_RES`/`LEN_RES`/`PCA_RES` to disk as `.pkl` files in `RES_DIR`, with the standard in-memory → on-disk → recompute pattern and a `FORCE_RECOMPUTE_*` flag for explicit refresh. Same pattern as Cell 6's inference checkpoints. Future kernel restarts reload in milliseconds. Spec preserved in `FIX_NADLER_RES.md` for reference.
 
 ---
 
@@ -130,9 +130,9 @@ NQ/NarrativeQA return `answers` as `list[list[str]]`, not `list[str]`. Flatten b
 
 Notebook expected `auc, lo, hi, subset, weights` but package returned 4 values. Updated `fusion_utils.py` to also return the leading-eigenvector weights for the best subset (commit `b3c45a4`). Needed for Cell 18's spectral fingerprint heatmap.
 
-### 7. NADLER_RES disappears on Colab disconnect ⚠️ (fix pending)
+### 7. NADLER_RES disappears on Colab disconnect ✅
 
-Cell 14's `background_save: true` lets the cell keep printing after kernel disconnect, but the variable is gone. Persist to disk like the inference checkpoints. **See `FIX_NADLER_RES.md`** for the cell sources to paste in.
+Cell 14's `background_save: true` lets the cell keep printing after kernel disconnect, but the variable is gone. Cells 14/15/16 of `Spectral_Analysis_Phase10_Main_RAG.ipynb` now persist `NADLER_RES`/`LEN_RES`/`PCA_RES` to `RES_DIR/{nadler,len,pca}_res.pkl` and reload from disk on subsequent runs (`FORCE_RECOMPUTE_*` to override). Spec retained in `FIX_NADLER_RES.md` for reference.
 
 ---
 
@@ -150,17 +150,17 @@ Cell 14's `background_save: true` lets the cell keep printing after kernel disco
 
 ## Immediate next actions
 
-1. **Apply `FIX_NADLER_RES.md`** to the Phase 10 Main RAG notebook on Colab. Paste the three cell replacements (14, 15, 16), then run Cells 11 → 25 in order. After this, you have 12-cell results saved to Drive.
+1. **Re-run Cells 11 → 25 on Colab** with the patched notebook. Cells 14/15/16 will now save `NADLER_RES`/`LEN_RES`/`PCA_RES` to `RES_DIR` as `.pkl`, so downstream cells (16/17/18/20/21/24) won't `NameError` even if the kernel disconnects. After this you have 12-cell results saved to Drive.
 
 2. **Run Llama-70B in a separate Colab session** (fresh runtime):
    - Cells 1–6 → SKIP 7, 8, 9 → Cell 10
    - Cell 10's guard ensures fresh-runtime requirement
    - Cell 10 will use `ensure_flat_dir(MODEL_ID, token=hf_token)` for the one-time flat-dir download
 
-3. **Re-run Cells 11–25** after Llama-70B is done. Cells 11/14/15/16 will detect new raw files and re-extract / update the persisted dicts. Final outputs: 4×4 AUC heatmap, 16-row Nadler weight fingerprint heatmap, fusion distributions, length-controlled bars, gates.
+3. **Re-run Cells 11–25** after Llama-70B is done. Cells 11/14/15/16 will detect new raw files; set `FORCE_RECOMPUTE_*` to refresh the persisted dicts instead of loading the 12-cell snapshots. Final outputs: 4×4 AUC heatmap, 16-row Nadler weight fingerprint heatmap, fusion distributions, length-controlled bars, gates.
 
 4. **After 16/16 cells**:
-   - Append a follow-up step to HISTORY.md (Step 86?) with headline numbers for the full 16-cell run
+   - Append a follow-up step to HISTORY.md with headline numbers for the full 16-cell run
    - Update `Research_Directions.md` Direction 2 (RAG) status
    - Update advisor draft
 

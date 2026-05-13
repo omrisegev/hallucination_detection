@@ -3234,3 +3234,21 @@ Median ≈ 74%; 7/12 cells ≥ G1 70% threshold. Best overall: qwen7b/2wikimulti
 **Commits this session**: `8f39f24`, `2b3d377`, `6a96a87`, `dfc7459`, `e6bb5b3`, `05a1c14`, `84fe0c6`, `b3c45a4` (chain of incremental fixes to Cell 9 + `fusion_utils.py`).
 
 ---
+
+### Step 86 — Phase 10 Main RAG: NADLER_RES / LEN_RES / PCA_RES persistence fix applied
+
+**What**: Applied the patch documented in `FIX_NADLER_RES.md` to `Spectral_Analysis_Phase10_Main_RAG.ipynb`. The source of Cells 14 (best-Nadler subset), 15 (length-controlled), and 16 (PCA diagnostic) now follows the standard three-branch pattern: (1) if the result dict is already in `globals()`, no-op; (2) else if the `.pkl` exists in `RES_DIR`, `pickle.load` it; (3) else compute and `pickle.dump` to disk. Each cell has a `FORCE_RECOMPUTE_*` flag at the top for explicit refresh.
+
+Because the notebook is ~44k tokens (too large for `NotebookEdit`), the rewrite was done by a one-shot script (`_apply_nadler_fix.py`, kept untracked) that loads the notebook as `nbformat` JSON, locates the three cells by `cell.id`, and replaces their `source` arrays in place. Verified by grepping the resulting JSON for `NADLER_PATH` / `LEN_PATH` / `PCA_PATH` / `FORCE_RECOMPUTE_*` (all present).
+
+**Why**: Step 85's Cell 14 run printed all 12 best-Nadler results but the kernel disconnected before formally completing the cell (Colab `background_save: true`), so `NADLER_RES` was wiped from in-process memory and Cells 16/17/18 errored with `NameError`. Same risk for `LEN_RES` and `PCA_RES`. Persisting to Drive is the same pattern Cell 6 (raw inference) and Cell 11 (features) already use, so this just extends the existing convention to the analysis layer.
+
+**Files changed**:
+- `Spectral_Analysis_Phase10_Main_RAG.ipynb` — Cells 14/15/16 rewritten.
+- `PROGRESS.md` — flipped blocker #7 to ✅; "where it stopped" notes the fix is applied; "Immediate next actions" no longer includes the patch step.
+
+**Result**: The notebook is ready to re-run from Cell 11 → Cell 25 on Colab. On the next run, Cells 14/15/16 will compute the result dicts (using the 12 cells of inference already on Drive) and persist them as `nadler_res.pkl` / `len_res.pkl` / `pca_res.pkl` in `RES_DIR`. Subsequent kernel restarts reload these in milliseconds; the only thing that needs recomputing after Llama-70B inference completes is the analysis itself (via `FORCE_RECOMPUTE_*=True`).
+
+**No package change** — `best_nadler_on` already returns `(auc, lo, hi, subset, weights)` since commit `b3c45a4`; this step is purely a notebook-side persistence patch.
+
+---
