@@ -42,6 +42,13 @@ from .data_loaders import (
 )
 from .fusion_utils import zscore, boot_auc, nadler_fuse, simple_average_fusion, best_nadler_on
 from .baselines import lite_semantic_entropy_for_statement, mean_neg_logprob_baseline
+from .agent_utils import (
+    react_system_prompt, react_user_prompt,
+    parse_thought, parse_action, parse_confidence, parse_concern,
+    simulate_retrieve_tool, step_retrieved_supporting_fact,
+    run_react_episode, aggregate_trajectory, categorize_failure_mode,
+    branching_entropy, run_spiral_injection_replay,
+)
 
 __version__ = "0.1.0"
 __all__ = [
@@ -59,4 +66,9 @@ __all__ = [
     "load_lciteeval", "lciteeval_prompt", "lciteeval_grounding_label",
     "zscore", "boot_auc", "nadler_fuse", "simple_average_fusion", "best_nadler_on",
     "lite_semantic_entropy_for_statement", "mean_neg_logprob_baseline",
+    "react_system_prompt", "react_user_prompt",
+    "parse_thought", "parse_action", "parse_confidence", "parse_concern",
+    "simulate_retrieve_tool", "step_retrieved_supporting_fact",
+    "run_react_episode", "aggregate_trajectory", "categorize_failure_mode",
+    "branching_entropy", "run_spiral_injection_replay",
 ]
