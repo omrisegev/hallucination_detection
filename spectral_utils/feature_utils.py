@@ -1,15 +1,18 @@
 """
 Spectral feature extraction from token-level entropy traces H(n).
 
-All 12 features used across Phase 4 / 5 / 6 / 7:
+All 17 features used across Phase 4 / 5 / 6 / 7 / C:
     epr, trace_length,
     spectral_entropy, low_band_power, high_band_power, hl_ratio,
     dominant_freq, spectral_centroid,
     stft_max_high_power, stft_spectral_entropy,
     rpdi, sw_var_peak,
+    pe_min, pe_mean, hurst_exponent,
+    cusum_max, cusum_shift_idx,
     segment_by_citations
 """
 import re
+import math
 import numpy as np
 from scipy.signal import stft as scipy_stft
 
@@ -20,6 +23,8 @@ FEAT_NAMES = [
     "hl_ratio", "dominant_freq", "spectral_centroid",
     "stft_max_high_power", "stft_spectral_entropy",
     "rpdi", "sw_var_peak",
+    "pe_min", "pe_mean", "hurst_exponent",
+    "cusum_max", "cusum_shift_idx",
 ]
 
 
@@ -157,9 +162,119 @@ def sw_var_peak_adaptive(ents, fraction: float = 0.10,
     return sw_var_peak_with_window(ents, w, sw_step)
 
 
+def permutation_entropy(ents, order=3, delay=1):
+    """
+    Calculate the Permutation Entropy of a 1D array.
+    """
+    x = np.array(ents)
+    n = len(x)
+    if n < order + (order - 1) * delay:
+        return 0.0
+
+    # Extract overlapping windows
+    indices = np.arange(n - (order - 1) * delay)
+    windows = np.array([x[indices + i * delay] for i in range(order)]).T
+
+    # Find permutations
+    perms = np.argsort(windows, axis=1)
+
+    # Convert permutations to unique rows to count
+    _, counts = np.unique(perms, axis=0, return_counts=True)
+    probs = counts / counts.sum()
+    pe = -np.sum(probs * np.log2(probs))
+    # Normalize by log2(factorial(order))
+    return max(0.0, float(pe / np.log2(math.factorial(order))))
+
+
+def compute_permutation_entropy(ents, order=3, delay=1, window_size=10) -> dict:
+    """
+    Compute Sliding-Window Permutation Entropy.
+    Returns min and mean PE.
+    """
+    e = np.array(ents)
+    if len(e) < window_size:
+        # Fallback to single PE of the whole trace
+        pe = permutation_entropy(e, order, delay)
+        return {"pe_min": float(pe), "pe_mean": float(pe)}
+
+    pes = []
+    for i in range(len(e) - window_size + 1):
+        pes.append(permutation_entropy(e[i : i + window_size], order, delay))
+
+    return {"pe_min": float(np.min(pes)), "pe_mean": float(np.mean(pes))}
+
+
+def compute_hurst_exponent(ents) -> float:
+    """
+    Estimate Hurst Exponent using Rescaled Range (R/S) analysis.
+    """
+    x = np.array(ents)
+    n = len(x)
+    if n < 8:
+        return 0.5  # Default to random walk for very short traces
+
+    # We'll use a few scales: n, n/2, n/4... down to 8
+    max_k = int(np.log2(n / 8))
+    scales = [n // (2**i) for i in range(max_k + 1)]
+    scales = sorted(list(set(scales)))  # Ensure unique and sorted
+
+    rs_values = []
+    for s in scales:
+        num_chunks = n // s
+        rs_chunks = []
+        for i in range(num_chunks):
+            chunk = x[i*s : (i+1)*s]
+            if len(chunk) < 2:
+                continue
+            mean_adj = chunk - np.mean(chunk)
+            cum_sum = np.cumsum(mean_adj)
+            r = np.max(cum_sum) - np.min(cum_sum)
+            s_dev = np.std(chunk) + 1e-12
+            rs_chunks.append(r / s_dev)
+        if rs_chunks:
+            # Avoid log(0) if the signal is constant
+            mean_rs = np.mean(rs_chunks)
+            if mean_rs > 0:
+                rs_values.append(mean_rs)
+            else:
+                # Remove this scale if it has no variation
+                scales.remove(s)
+
+    if len(rs_values) < 2:
+        if not rs_values:
+            return 0.0  # Constant signal
+        # Single point estimation: R/S is roughly n^H
+        return float(np.log(rs_values[0] + 1e-12) / np.log(n))
+
+    # Linear fit of log(R/S) vs log(scales)
+    coeffs = np.polyfit(np.log(scales), np.log(rs_values), 1)
+    return float(coeffs[0])
+
+
+def compute_cusum_residuals(ents) -> dict:
+    """
+    Compute CUSUM residuals to detect regime shifts.
+    Returns max CUSUM and shift index.
+    """
+    e = np.array(ents)
+    if len(e) == 0:
+        return {"cusum_max": 0.0, "cusum_shift_idx": 0.0}
+
+    # Mean-centered residuals
+    residuals = e - np.mean(e)
+    cusum = np.cumsum(residuals)
+
+    abs_cusum = np.abs(cusum)
+    max_idx = np.argmax(abs_cusum)
+    cusum_max = abs_cusum[max_idx]
+    shift_idx = max_idx / len(e)
+
+    return {"cusum_max": float(cusum_max), "cusum_shift_idx": float(shift_idx)}
+
+
 def extract_all_features(ents) -> dict | None:
     """
-    Extract all 12 spectral features from a single entropy trace.
+    Extract all 17 spectral features from a single entropy trace.
 
     Returns None if the trace is too short for reliable spectral analysis.
     Uses the default sw_window=16, sw_step=1. For window ablation, call
@@ -174,6 +289,12 @@ def extract_all_features(ents) -> dict | None:
     result.update(gf)
     result.update(compute_stft_features(ents))
     result.update(compute_time_domain(ents))
+
+    # Advanced features (Phase C)
+    result.update(compute_permutation_entropy(ents))
+    result.update({"hurst_exponent": compute_hurst_exponent(ents)})
+    result.update(compute_cusum_residuals(ents))
+
     return result
 
 
