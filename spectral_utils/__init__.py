@@ -36,6 +36,8 @@ from .data_loaders import (
     load_math500, math_prompt, is_correct_math,
     load_gpqa, gpqa_prompt_and_answer, is_correct_gpqa,
     load_hotpotqa, hotpotqa_prompt, is_correct_hotpotqa,
+    load_hotpotqa_agentic, load_2wikimultihopqa, load_agentic_multihop_dataset,
+    normalize_agentic_multihop_row,
     load_trivia_qa, trivia_qa_prompt, is_correct_trivia_qa,
     load_webq, webq_prompt, is_correct_webq,
     load_lciteeval, lciteeval_prompt, lciteeval_grounding_label,
@@ -47,6 +49,7 @@ from .agent_utils import (
     parse_thought, parse_action, parse_confidence, parse_concern,
     simulate_retrieve_tool, step_retrieved_supporting_fact,
     run_react_episode, aggregate_trajectory, categorize_failure_mode,
+    query_support_overlap, first_incorrect_step_index, categorize_failure_mode_v2,
     branching_entropy, run_spiral_injection_replay,
 )
 
@@ -61,6 +64,8 @@ __all__ = [
     "load_math500", "math_prompt", "is_correct_math",
     "load_gpqa", "gpqa_prompt_and_answer", "is_correct_gpqa",
     "load_hotpotqa", "hotpotqa_prompt", "is_correct_hotpotqa",
+    "load_hotpotqa_agentic", "load_2wikimultihopqa", "load_agentic_multihop_dataset",
+    "normalize_agentic_multihop_row",
     "load_trivia_qa", "trivia_qa_prompt", "is_correct_trivia_qa",
     "load_webq", "webq_prompt", "is_correct_webq",
     "load_lciteeval", "lciteeval_prompt", "lciteeval_grounding_label",
@@ -70,5 +75,6 @@ __all__ = [
     "parse_thought", "parse_action", "parse_confidence", "parse_concern",
     "simulate_retrieve_tool", "step_retrieved_supporting_fact",
     "run_react_episode", "aggregate_trajectory", "categorize_failure_mode",
+    "query_support_overlap", "first_incorrect_step_index", "categorize_failure_mode_v2",
     "branching_entropy", "run_spiral_injection_replay",
 ]

@@ -6,11 +6,13 @@ Supported datasets:
   - MATH-500    (competition math; boxed answer extraction)
   - GPQA Diamond (graduate-level MCQ; letter extraction)
   - HotpotQA    (multi-hop QA; substring match)
+  - 2WikiMultiHopQA (multi-hop QA; normalized to Hotpot-style context)
   - TriviaQA    (rc.nocontext; normalized alias exact-match grading)
   - WebQ        (WebQuestions; normalized alias exact-match grading)
 """
 import re
 import string
+from typing import Any
 
 import numpy as np
 
@@ -230,6 +232,168 @@ def _normalize_hotpotqa(s: str) -> str:
 
 def is_correct_hotpotqa(gen: str, gold: str) -> bool:
     return _normalize_hotpotqa(gold) in _normalize_hotpotqa(gen)
+
+
+def _normalize_supporting_facts(sf: Any) -> dict:
+    titles: list[str] = []
+    sent_ids: list[int] = []
+
+    if isinstance(sf, dict):
+        titles = [str(t) for t in sf.get("title", [])]
+        raw_sent_ids = sf.get("sent_id", sf.get("sent_idx", sf.get("sentence_id", [])))
+        sent_ids = []
+        for sid in raw_sent_ids:
+            try:
+                sent_ids.append(int(sid))
+            except (TypeError, ValueError):
+                sent_ids.append(-1)
+    elif isinstance(sf, list):
+        for item in sf:
+            if isinstance(item, dict):
+                title = item.get("title", item.get("paragraph_title", ""))
+                sent_id = item.get("sent_id", item.get("sent_idx", item.get("sentence_id", -1)))
+            elif isinstance(item, (list, tuple)) and item:
+                title = item[0]
+                sent_id = item[1] if len(item) > 1 else -1
+            else:
+                title = str(item)
+                sent_id = -1
+            titles.append(str(title))
+            try:
+                sent_ids.append(int(sent_id))
+            except (TypeError, ValueError):
+                sent_ids.append(-1)
+
+    if len(sent_ids) < len(titles):
+        sent_ids.extend([-1] * (len(titles) - len(sent_ids)))
+
+    return {
+        "title": titles,
+        "sent_id": sent_ids[:len(titles)],
+        "pairs": [(titles[i], sent_ids[i]) for i in range(min(len(titles), len(sent_ids)))],
+    }
+
+
+def _normalize_hotpot_style_context(context: Any) -> dict:
+    if isinstance(context, dict) and "title" in context and "sentences" in context:
+        titles = [str(t) for t in context.get("title", [])]
+        raw_sentences = context.get("sentences", [])
+        sentences = []
+        for sent_block in raw_sentences:
+            if isinstance(sent_block, str):
+                sentences.append([sent_block.strip()])
+            elif isinstance(sent_block, (list, tuple)):
+                sentences.append([str(s).strip() for s in sent_block])
+            else:
+                sentences.append([str(sent_block).strip()])
+        return {"title": titles, "sentences": sentences}
+
+    if isinstance(context, dict):
+        for key in ("paragraphs", "contexts", "documents", "docs"):
+            if key in context:
+                return _normalize_hotpot_style_context(context[key])
+
+    titles: list[str] = []
+    sentences: list[list[str]] = []
+    if isinstance(context, (list, tuple)):
+        for idx, item in enumerate(context):
+            title = f"Passage {idx+1}"
+            sent_block: Any = ""
+            if isinstance(item, dict):
+                title = str(item.get("title", item.get("name", item.get("paragraph_title", title))))
+                sent_block = item.get("sentences", item.get("text", item.get("paragraph", "")))
+            elif isinstance(item, (list, tuple)) and item:
+                title = str(item[0])
+                sent_block = item[1] if len(item) > 1 else ""
+            else:
+                sent_block = item
+
+            if isinstance(sent_block, str):
+                sentence_list = [sent_block.strip()] if sent_block.strip() else []
+            elif isinstance(sent_block, (list, tuple)):
+                sentence_list = [str(s).strip() for s in sent_block if str(s).strip()]
+            else:
+                sentence_list = [str(sent_block).strip()] if str(sent_block).strip() else []
+
+            titles.append(title)
+            sentences.append(sentence_list)
+
+    return {"title": titles, "sentences": sentences}
+
+
+def normalize_agentic_multihop_row(row: dict, dataset: str) -> dict:
+    dataset_key = dataset.lower()
+    if dataset_key in ("2wiki", "2wikimultihopqa"):
+        context = _normalize_hotpot_style_context(
+            row.get("context", row.get("paragraphs", row.get("contexts", row.get("documents", []))))
+        )
+        supporting_facts = _normalize_supporting_facts(
+            row.get("supporting_facts", row.get("supporting_sentences", row.get("evidences", [])))
+        )
+        return {
+            "id": row.get("_id", row.get("id", row.get("qid", ""))),
+            "dataset": "2wikimultihopqa",
+            "question": row.get("question", row.get("query", "")),
+            "answer": row.get("answer", row.get("gold_answer", "")),
+            "context": context,
+            "supporting_facts": supporting_facts,
+            "type": row.get("type", row.get("question_type", "")),
+            "raw_row": dict(row),
+        }
+
+    if dataset_key == "hotpotqa":
+        return {
+            "id": row.get("id", row.get("_id", "")),
+            "dataset": "hotpotqa",
+            "question": row.get("question", ""),
+            "answer": row.get("answer", ""),
+            "context": _normalize_hotpot_style_context(row.get("context", {})),
+            "supporting_facts": _normalize_supporting_facts(row.get("supporting_facts", {})),
+            "type": row.get("type", ""),
+            "raw_row": dict(row),
+        }
+
+    raise ValueError(f"Unsupported agentic multi-hop dataset: {dataset!r}")
+
+
+def load_hotpotqa_agentic(n_samples: int = 200) -> list[dict]:
+    rows = load_hotpotqa(n_samples=n_samples)
+    return [normalize_agentic_multihop_row(row, "hotpotqa") for row in rows]
+
+
+def load_2wikimultihopqa(n_samples: int = 200) -> list[dict]:
+    from datasets import load_dataset
+
+    attempts = [
+        ("framolfese/2WikiMultihopQA", {}, "validation"),
+        ("framolfese/2WikiMultihopQA", {}, "dev"),
+        ("framolfese/2WikiMultihopQA", {"trust_remote_code": True}, "validation"),
+        ("framolfese/2WikiMultihopQA", {"trust_remote_code": True}, "dev"),
+        ("xanhho/2WikiMultihopQA", {}, "validation"),
+        ("xanhho/2WikiMultihopQA", {"trust_remote_code": True}, "validation"),
+    ]
+    last_error = None
+    for path, kwargs, split in attempts:
+        try:
+            ds = load_dataset(path, split=split, **kwargs)
+            samples = [normalize_agentic_multihop_row(ds[i], "2wikimultihopqa")
+                       for i in range(min(n_samples, len(ds)))]
+            print(f"Loaded {len(samples)} 2WikiMultihopQA samples from {path} ({split}).")
+            return samples
+        except Exception as ex:
+            last_error = ex
+            print(f"  {path} ({split}) failed: {ex}")
+
+    raise RuntimeError(f"Could not load 2WikiMultihopQA from any source. Last error: {last_error}")
+
+
+def load_agentic_multihop_dataset(dataset: str, n_samples: int = 200) -> list[dict]:
+    dataset_key = dataset.lower()
+    if dataset_key == "hotpotqa":
+        return load_hotpotqa_agentic(n_samples=n_samples)
+    if dataset_key in ("2wiki", "2wikimultihopqa"):
+        return load_2wikimultihopqa(n_samples=n_samples)
+    raise ValueError(f"Unsupported agentic dataset: {dataset!r}")
 
 
 # ── TriviaQA ──────────────────────────────────────────────────────────────────

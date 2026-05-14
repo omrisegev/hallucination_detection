@@ -160,13 +160,42 @@ def simulate_retrieve_tool(query: str, context: dict) -> tuple[str, str]:
     return title, passage
 
 
+def _support_title_list(supporting_titles) -> list[str]:
+    if isinstance(supporting_titles, dict):
+        vals = supporting_titles.get('title', [])
+        return [str(v) for v in vals]
+    if isinstance(supporting_titles, (list, tuple, set)):
+        out = []
+        for item in supporting_titles:
+            if isinstance(item, (list, tuple)) and item:
+                out.append(str(item[0]))
+            else:
+                out.append(str(item))
+        return out
+    return []
+
+
+def query_support_overlap(query: str, supporting_titles) -> float:
+    q_tokens = _normalize_tokens(query)
+    if not q_tokens:
+        return 0.0
+    best = 0.0
+    for title in _support_title_list(supporting_titles):
+        t_tokens = _normalize_tokens(title)
+        if not t_tokens:
+            continue
+        best = max(best, len(q_tokens & t_tokens) / max(1, len(q_tokens)))
+    return float(best)
+
+
 # ── Step correctness ──────────────────────────────────────────────────────────
 
 def step_retrieved_supporting_fact(retrieved_title: str, supporting_titles: list) -> bool:
     """True if the retrieved paragraph title is one of the supporting-fact titles."""
-    if not retrieved_title or not supporting_titles:
+    titles = _support_title_list(supporting_titles)
+    if not retrieved_title or not titles:
         return False
-    return retrieved_title in supporting_titles
+    return retrieved_title in titles
 
 
 # ── Episode driver ────────────────────────────────────────────────────────────
@@ -452,6 +481,40 @@ def aggregate_trajectory(per_step_scores: list, agg: str = 'min') -> float:
     if agg == 'last':
         return float(arr[-1])
     raise ValueError(f"unknown agg: {agg!r}")
+
+
+def first_incorrect_step_index(traj: dict) -> Optional[int]:
+    steps = traj.get('steps', [])
+    for idx, step in enumerate(steps):
+        if not bool(step.get('step_correct', False)):
+            return idx
+    if steps and not traj.get('trajectory_correct', False):
+        return len(steps) - 1
+    return None
+
+
+def categorize_failure_mode_v2(traj: dict) -> str:
+    if traj.get('trajectory_correct'):
+        return 'correct'
+    steps = traj.get('steps', [])
+    if any(s.get('action_type') == 'invalid' for s in steps):
+        return 'tool_or_format'
+    if not any(s.get('action_type') == 'finish' for s in steps):
+        return 'no_finish'
+
+    search_steps = [s for s in steps if s.get('action_type') == 'search']
+    if not search_steps:
+        return 'planning'
+
+    if not any(bool(s.get('step_correct', False)) for s in search_steps):
+        overlaps = [query_support_overlap(s.get('action_arg', ''), traj.get('supporting_titles', []))
+                    for s in search_steps]
+        return 'retrieval_query' if max(overlaps or [0.0]) < 0.34 else 'retrieval_context'
+
+    if any(s.get('action_type') == 'finish' and not bool(s.get('step_correct', False)) for s in steps):
+        return 'reasoning_or_synthesis'
+
+    return 'planning'
 
 
 def categorize_failure_mode(traj: dict) -> str:
