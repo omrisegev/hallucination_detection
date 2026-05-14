@@ -701,30 +701,52 @@ The comparison table needs no new inference. HotpotQA is the only new run — sa
 | 4. Agentic | Per-step EPR, cascade | Tool-use agent | High | Very High | Pareto testing | UProp, RADAR |
 | 5. Conformal guarantees | Nadler score calibration | Current setup | Low-Med | Medium | Core Bracha work | Density stability |
 | 6. Hidden states (VSDE) | Hidden state variance | Semi-white-box | Medium | High | eMOSAIC | Core Ofir work |
-| **7. Baseline comparison** | **Spectral features** | **MATH/GSM8K/HotpotQA** | **Low-Med** | **Low** | **Scope validation** | **LapEigvals positioning** |
+| **8. Meta-Analysis & Expansion** | **Spectral feature optimization + Wavelets/Hurst** | **All (Math/RAG/QA)** | **Medium** | **High** | **LTT on new features** | **LOCA/IMM Manifold path** |
+
+---
+
+## Direction 8 — Meta-Analysis & Advanced Feature Expansion
+
+**Status**: Planning Phase (Step 88). `Spectral_Analysis_Meta_Analysis.ipynb` and `Research_Feature_Expansion.md` created.
+
+### Core Hypothesis
+After 10 phases of empirical experimentation, we have a large cross-domain dataset (Math, Science MCQ, Factual QA, Grounded RAG). This allows for a **Meta-Analysis** to move from heuristic feature selection to principled optimization. The core hypothesis is that current features (STFT, Windowed Var) capture only the "DC" and "first harmonic" of the hallucination signal. Advanced signal processing (Wavelets, Hurst Exponents, Permutation Entropy) can capture the **regime shift** from grounded reasoning to parametric drift more robustly across different model scales (7B to 72B).
+
+### Connection to Supervisors
+- **Ofir & Bracha**: The **Manifold Learning** path (LOCA) treats the entropy trajectory as a point-sequence on a manifold. Hallucination is an "escape" from the grounded manifold. This connects to Ofir's diffusion maps and Bracha's OOD detection work.
+- **Amir Averbuch & Nir Shlezinger**: The **State Estimation** path (Interacting Multiple Model - IMM) treats the LLM as a switching system between "Correct" and "Hallucinated" regimes. This is a direct application of their hybrid signal processing expertise.
+
+### Proposed Experiments
+
+**Experiment 8A — Global vs. Local Parameter Optimization**
+- Sweep spectral bands, STFT windows, and RPDI parameters across 14,000+ samples.
+- Measure the "Generalization Gap": how much performance is lost using universal vs. domain-tuned parameters.
+
+**Experiment 8B — Advanced Complexity Features (Hurst & Permutation Entropy)**
+- Implement Hurst Exponents to measure "drift" in RAG systems.
+- Implement Permutation Entropy to detect the drop in complexity when a model enters a "deterministic hallucination" loop.
+
+**Experiment 8C — Manifold Intrinsic Dimensionality**
+- Extract the intrinsic dimensionality of entropy traces using advisor-suggested geometric methods.
+- Test if dimensionality spikes during hallucinations.
+
+### Feasibility: Medium effort | Novelty: High | Risk: Low (Retrospective evaluation on existing data)
 
 ---
 
 ## Recommended Priority Order (updated May 2026)
 
-**Completed**:
-- Spectral Analysis Phases 1–7 ✅
-- Unified EPR / CoT ensemble ✅
-- Temperature-varied EPR + behavioral views ✅
-- `spectral_utils` package refactor + git repo ✅ (Step 68)
-- `spectral_utils` model loading fixes (AWQ, bitsandbytes dtype, deprecated kwarg) ✅ (Step 70)
-- `sw_var_peak_adaptive` feature added ✅ (Step 70)
-- TriviaQA + WebQ data loaders added ✅ (Step 70)
+**Phase 1: Finish Current Experiments**
+1. **Phase 10 (RAG/Llama-8B)** — Complete the 4x4 RAG matrix using the stabilized Llama-8B config.
+2. **Phase 8 (GPQA/Qwen-72B)** — Complete the science MCQ benchmark with the flagship model.
 
-**Immediately pending — spectral analysis**:
-1. **Phase 8 (GPQA / Qwen2.5-72B-AWQ)** — highest priority. 7B GPQA results are near-random due to class imbalance (30% accuracy). `load_model` is now fixed for AWQ. Run with `quantize_4bit=False`; AWQ detected automatically. Expected to push AUC from ~58% toward 65%+.
-2. **Phase 9 (TriviaQA/WebQ / Falcon-3-10B)** — notebook exists (`Spectral_Analysis_Phase9_QA_Validation.ipynb`), not yet run. Tests fixed 4-feature subset + adaptive window on factual QA. Colab import issue resolved (use `git clone -b master`).
+**Phase 2: Meta-Analysis & Expansion (The Scientific Core)**
+3. **Execution: Meta-Analysis Notebook** — Run the parameter sweeps to ground all heuristic choices in data.
+4. **Execution: Feature Expansion** — Implement Hurst, Wavelet, and Permutation Entropy features in `spectral_utils`.
+5. **Retrospective Eval** — Rerun the entire project history (Phases 4-10) with the new expanded feature set to see the "Final Thesis AUC."
 
-**After Phase 8 + 9 results**:
-3. **Direction 7 (Comparison + HotpotQA)** — `Spectral_Analysis_Phase6.ipynb` built (Step 63), ready to run. Part 1 (static comparison table) + Part 2 (HotpotQA/Mistral-7B, target: beat LOS-Net 72.92%).
-4. **Direction 5 (Conformal)** — thesis endpoint. LTT calibration of best ensemble score into formal guarantee. ~50 lines, requires stable best-ensemble AUC first.
-5. **Direction 1E** (Add trace-EPR to 6-view ensemble) — if TriviaQA/WebQ remains in thesis scope.
-6. **Direction 4 Agentic** — lower priority, separate infrastructure.
+**Phase 3: Formal Calibration**
+6. **Direction 5 (Conformal)** — Apply Bracha's LTT to the final, optimized ensemble to produce the formal safety guarantees.
 
 ---
 

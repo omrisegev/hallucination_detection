@@ -49,8 +49,8 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 |-------|----------|-------------------|-----------------|-------------|--------|
 | qwen7b     | 240/240 ✅ | 160/160 ✅ | 240/240 ✅ | 240/240 ✅ | Complete |
 | mistral24b | 240/240 ✅ | 160/160 ✅ | 240/240 ✅ | 240/240 ✅ | Complete |
-| qwen72b    | 240/240 ✅ | 160/160 ✅ | 240/240 ✅ | 240/240 ✅ | Complete (this session) |
-| llama70b   | 0          | 0          | 0          | 0          | Pending — needs fresh runtime |
+| qwen72b    | 240/240 ✅ | 160/160 ✅ | 240/240 ✅ | 240/240 ✅ | Complete |
+| llama8b    | 0          | 0          | 0          | 0          | Pending — switched from 70B for stability |
 
 Checkpoints on Drive: `/content/drive/MyDrive/hallucination_detection/cache/phase10_main/raw/`
 HF cache on Drive (flat-dir, no symlinks): `/content/drive/MyDrive/hf_cache_flat/`
@@ -150,14 +150,15 @@ Cell 14's `background_save: true` lets the cell keep printing after kernel disco
 
 ## Immediate next actions
 
-1. **Re-run Cells 11 → 25 on Colab** with the patched notebook. Cells 14/15/16 will now save `NADLER_RES`/`LEN_RES`/`PCA_RES` to `RES_DIR` as `.pkl`, so downstream cells (16/17/18/20/21/24) won't `NameError` even if the kernel disconnects. After this you have 12-cell results saved to Drive.
+1. **Re-run Cells 11 → 25 on Colab** with the patched notebook. Cells 14/15/16 will now save `NADLER_RES`/`LEN_RES`/`PCA_RES` to `RES_DIR` as `.pkl`.
 
-2. **Run Llama-70B in a separate Colab session** (fresh runtime):
-   - Cells 1–6 → SKIP 7, 8, 9 → Cell 10
-   - Cell 10's guard ensures fresh-runtime requirement
-   - Cell 10 will use `ensure_flat_dir(MODEL_ID, token=hf_token)` for the one-time flat-dir download
+2. **Run Llama-8B inference**:
+   - Switched from Llama-70B to Llama-3.1-8B-Instruct for stability and speed.
+   - Run inference for the 4 datasets (4x15s * ~800 samples total ≈ 3-4 hours).
 
-3. **Re-run Cells 11–25** after Llama-70B is done. Cells 11/14/15/16 will detect new raw files; set `FORCE_RECOMPUTE_*` to refresh the persisted dicts instead of loading the 12-cell snapshots. Final outputs: 4×4 AUC heatmap, 16-row Nadler weight fingerprint heatmap, fusion distributions, length-controlled bars, gates.
+3. **Finalize 16-cell analysis**:
+   - Once Llama-8B is done, re-run analysis cells with `FORCE_RECOMPUTE_*` to generate the full 4x4 heatmap.
+   - Update `Research_Directions.md` and advisor draft.
 
 4. **After 16/16 cells**:
    - Append a follow-up step to HISTORY.md with headline numbers for the full 16-cell run
@@ -170,4 +171,4 @@ Cell 14's `background_save: true` lets the cell keep printing after kernel disco
 
 ## Email to advisors
 
-Draft completed in prior session. Ready to send once Llama-70B finishes and we have the full 4×4 heatmap.
+Draft completed in prior session. Ready to send once Llama-8B finishes and we have the full 4×4 heatmap.

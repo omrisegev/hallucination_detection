@@ -3252,3 +3252,33 @@ Because the notebook is ~44k tokens (too large for `NotebookEdit`), the rewrite 
 **No package change** — `best_nadler_on` already returns `(auc, lo, hi, subset, weights)` since commit `b3c45a4`; this step is purely a notebook-side persistence patch.
 
 ---
+
+### Step 87 — Phase 10 Pivot: Llama-70B to Llama-8B for Stability
+
+**Issue**: Llama-3.3-70B-BNB consistently OOMs on A100 80GB when loaded after other models due to memory fragmentation, despite `expandable_segments:True`.
+
+**Decision**: Pivoted the 4th model in the RAG matrix to **Llama-3.1-8B-Instruct**.
+- **Rationale**: Maintain cross-family generalization (Qwen, Mistral, Llama) while ensuring 100% session stability. Scale ablation is already covered by Qwen-7B vs Qwen-72B.
+- **Impact**: Compute estimate for 16-cell RAG matrix reduced from 200h to 150h.
+
+**Files updated**: `Spectral_Analysis_Phase10_Main_RAG.ipynb` (MODELS list + header), `PROGRESS.md`.
+
+---
+
+### Step 88 — Meta-Analysis & Feature Expansion Phase Initiated
+
+**Goal**: Move from heuristic feature selection to principled, data-driven optimization and expansion.
+
+**Action**:
+1. **Created `Spectral_Analysis_Meta_Analysis.ipynb`**:
+   - Unifies raw data from all 10 phases (Math, GPQA, GSM8K, QA, RAG).
+   - Performs cross-domain feature importance ranking.
+   - **Global vs. Local Optimization**: Compares universal parameter sets against domain-tuned ones (spectral bands, STFT windows, RPDI params).
+2. **Created `Research_Feature_Expansion.md`**:
+   - Synthesizes advisor expertise (LOCA, IMM, KalmanNet) into new feature candidates.
+   - Proposals: **Hurst Exponents**, **Permutation Entropy**, **Wavelet Energy**, and **CUSUM** change-point detection.
+3. **Strategic Shift**: Focus on "Why features work" (Frequency-domain regime shifts) to strengthen the thesis scientific contribution.
+
+**Result**: Documentation and planning ready for the final research sprint.
+
+---
