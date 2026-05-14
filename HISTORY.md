@@ -3282,3 +3282,32 @@ Because the notebook is ~44k tokens (too large for `NotebookEdit`), the rewrite 
 **Result**: Documentation and planning ready for the final research sprint.
 
 ---
+
+### Step 89 — Meta-Analysis results: pe_min dropped, cusum_max #1, Phase 11a ready
+
+**What**: Ran `Spectral_Analysis_Meta_Analysis.ipynb` on 7,001 samples from 5 domains (Math-500, GSM8K, GPQA Diamond, Factual QA, Phase 10 RAG). Random Forest feature importance computed per domain, then cross-domain average ranking produced.
+
+**Cross-domain feature ranking (top 5 and bottom 3):**
+
+| Rank | Feature | Math | GSM8K | GPQA | QA | RAG | Avg |
+|------|---------|------|-------|------|----|-----|-----|
+| 1 | cusum_max | 2 | 3 | 4 | 3 | 3 | 3.0 |
+| 1 | sw_var_peak | 4 | 1 | 3 | 2 | 5 | 3.0 |
+| 3 | epr | 1 | 2 | 11 | 5 | 8 | 5.4 |
+| 4 | spectral_entropy | — | — | — | — | — | 5.6 |
+| 5 | rpdi | — | — | — | — | — | 6.2 |
+| 8 | pe_mean | — | — | — | — | — | 8.6 |
+| 15 | hurst_exponent | — | — | — | — | — | 10.0 |
+| 17 | pe_min | 17 | 17 | 17 | 17 | 17 | 17.0 |
+
+**Decisions made:**
+1. `pe_min` removed from `FEAT_NAMES` (rank 17/17, dead last across all domains). `compute_permutation_entropy()` still returns it for compatibility, but it no longer enters the Nadler search.
+2. `pe_mean` retained (rank 8.6 — marginal but acceptable, may contribute in specific agentic contexts).
+3. `cusum_max` confirmed as the strongest Phase C feature — detects entropy regime shifts, generalizes across all 5 domains.
+4. `hurst_exponent` stays in FEAT_NAMES (rank 10 avg) but will be naturally de-selected by Nadler on short agent-step traces where R/S analysis has too few scales.
+
+**sw_var_peak_adaptive fix for Phase 11a:** Per-step traces in ReAct loops are 50–150 tokens. Fixed window w=16 covers up to 32% of a 50-token trace — too coarse, over-smoothing local variance bursts. `sw_var_peak_adaptive(ents)` uses `clip(int(len * 0.10), 3, 32)` for a proportional window. Applied as a post-extraction override in Phase 11a Cell 11.
+
+**Phase 11a status:** All code verified. Notebook `Spectral_Analysis_Phase11_Agentic_11a.ipynb` ready to run on Colab A100. 2 models (Qwen2.5-7B + DeepSeek-R1-Distill-Qwen-7B) × 2 datasets (hotpotqa + 2wikimultihopqa), N=200 per cell. Spectral Nadler vs AUQ verbalized confidence baseline (Zhang et al. 2026 SOTA: Φ_min=0.791 on ALFWorld).
+
+---

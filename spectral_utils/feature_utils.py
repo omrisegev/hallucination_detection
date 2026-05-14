@@ -1,13 +1,13 @@
 """
 Spectral feature extraction from token-level entropy traces H(n).
 
-All 17 features used across Phase 4 / 5 / 6 / 7 / C:
+All 16 features used across Phase 4 / 5 / 6 / 7 / C:
     epr, trace_length,
     spectral_entropy, low_band_power, high_band_power, hl_ratio,
     dominant_freq, spectral_centroid,
     stft_max_high_power, stft_spectral_entropy,
     rpdi, sw_var_peak,
-    pe_min, pe_mean, hurst_exponent,
+    pe_mean, hurst_exponent,
     cusum_max, cusum_shift_idx,
     segment_by_citations
 """
@@ -23,7 +23,7 @@ FEAT_NAMES = [
     "hl_ratio", "dominant_freq", "spectral_centroid",
     "stft_max_high_power", "stft_spectral_entropy",
     "rpdi", "sw_var_peak",
-    "pe_min", "pe_mean", "hurst_exponent",
+    "pe_mean", "hurst_exponent",
     "cusum_max", "cusum_shift_idx",
 ]
 
