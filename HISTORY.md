@@ -3311,3 +3311,38 @@ Because the notebook is ~44k tokens (too large for `NotebookEdit`), the rewrite 
 **Phase 11a status:** All code verified. Notebook `Spectral_Analysis_Phase11_Agentic_11a.ipynb` ready to run on Colab A100. 2 models (Qwen2.5-7B + DeepSeek-R1-Distill-Qwen-7B) × 2 datasets (hotpotqa + 2wikimultihopqa), N=200 per cell. Spectral Nadler vs AUQ verbalized confidence baseline (Zhang et al. 2026 SOTA: Φ_min=0.791 on ALFWorld).
 
 ---
+
+### Step 90 — Phase 11a extended + Phase 11b pilot notebooks built
+
+**What**:
+
+**A. Phase 11a model extension** (`Spectral_Analysis_Phase11_Agentic_11a.ipynb`):
+- Added `mistral24b` (Mistral-Small-24B-Instruct-2501) and `qwen72b` (Qwen2.5-72B-Instruct-AWQ) to the MODELS list in Cell 4.
+- Inserted a conditional gptqmodel stub cell (pcre mock + flat-dir cache via `ensure_flat_dir`) that activates only for qwen72b and is a no-op for all other models.
+- Updated the inference driver cell (Cell 10) with `ONLY_MODEL_KEYS` usage instructions — allows partial runs per runtime.
+- **Why**: DeepSeek-R1-7B achieves only 5–9% accuracy on multi-hop QA (too few correct samples for reliable AUROC). Mistral-24B and Qwen-72B have more parametric knowledge → better class balance → credible CIs. Also provides apples-to-apples comparison with Phase 10.
+
+**B. spectral_utils additions** (shared infrastructure for Phase 11b pilots):
+- `data_loaders.py`: `load_humaneval(n_samples)`, `humaneval_prompt(row, error_context)`, `is_correct_humaneval(row, full_code)`.
+- `agent_utils.py`: `execute_python_solution(full_code, test_code, entry_point, timeout)` — subprocess runner with timeout; `run_humaneval_episode(mdl, tok, row, T, max_attempts, max_new)` — 3-attempt retry loop, records token entropy trace per attempt.
+- `alfworld_utils.py` (new file, NOT imported by `__init__.py`): `setup_alfworld_env`, `alfworld_action_prompt`, `parse_alfworld_action`, `run_alfworld_episode`.
+- `__init__.py`: new HumanEval exports added.
+
+**C. Phase 11b pilot notebooks**:
+- `Pilot_Phase11b_HumanEval.ipynb` (10 cells): N=20, qwen25_7b, 3 attempts per problem. Label = any_passed (unit test pass/fail). G0–G3 GO/NO-GO gate cell. Tests whether spectral features generalize to code generation — qualitatively different modality from retrieval.
+- `Pilot_Phase11b_ALFWorld.ipynb` (11 cells): N=5 tasks, pick_and_place task type, MAX_STEPS=20. Label = task_success. G0–G4 gate cell (G0+G1 required; G2–G4 informative). Tests whether spectral features work for embodied text-navigation — directly comparable to AUQ SOTA (Φ_min=0.791 on ALFWorld).
+
+**Mid-run Phase 11a signal** (seen during prior session before analysis was complete):
+- deepseek_r1_7b / 2wikimultihopqa / Φ_min: Nadler = **85.0%** (beats AUQ SOTA 0.791)
+- epr_last = 83.2% (deepseek/hotpotqa), hurst_exponent_last = 82.8%, pe_mean_last = 80.3%
+
+**Result**: All 3 commits pushed to `feature/meta-agentic-integration`. Ready to run on Colab.
+
+**Run order**:
+1. `Spectral_Analysis_Phase11_Agentic_11a.ipynb` — normal runtime, `ONLY_MODEL_KEYS = ['qwen25_7b', 'deepseek_r1_7b', 'mistral24b']`
+2. `Spectral_Analysis_Phase11_Agentic_11a.ipynb` — fresh runtime, `ONLY_MODEL_KEYS = ['qwen72b']`, run gptqmodel stub cell first
+3. `Spectral_Analysis_Phase11_Agentic_11a.ipynb` — analysis cells 12–22 (any runtime with Drive access)
+4. `Pilot_Phase11b_HumanEval.ipynb` — any runtime, GO/NO-GO
+5. `Pilot_Phase11b_ALFWorld.ipynb` — any runtime, GO/NO-GO (steps 4+5 can run in parallel)
+
+---

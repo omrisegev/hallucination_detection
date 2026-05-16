@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
-**Date**: 2026-05-14
-**Last updated**: Step 89 complete — pe_min dropped, Phase 11a pre-run fixes applied, ready to push and run
+**Date**: 2026-05-16
+**Last updated**: Step 90 complete — Phase 11a extended (4 models), Phase 11b pilot notebooks built, all pushed
 
 ---
 
@@ -19,11 +19,12 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 |-------|-------|-------|
 | MATH-500 / Qwen-7B / T=1.0 | **90.0%** | spectral Nadler fusion |
 | MATH-500 / Qwen-1.5B / T=1.5 | 88.3% | |
-| GSM8K / Llama-3.1-8B | 76.0% | vs LapEigvals unsupervised 72.0% |
+| GSM8K / Llama-3.1-8B | 76.0% | vs LapEigvals 72.0% |
 | GPQA / Qwen2.5-72B-AWQ / T=1.0 | **69.0%** | Phase 8 — +3.6 pp over 7B |
 | Phase 10 RAG / qwen7b / 2wikimultihopqa | **80.5%** | best RAG cell |
 | Phase 10 RAG / qwen7b / hotpotqa | 79.5% | |
 | Phase 10 RAG / qwen72b / hotpotqa | 79.4% | |
+| Phase 11a (mid-run) / deepseek / 2wiki / Φ_min | **85.0%** | beats AUQ SOTA 0.791 — not yet official |
 
 ---
 
@@ -31,9 +32,8 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 
 - **Phase 8** ✅: GPQA Diamond / Qwen2.5-72B-AWQ — 69.0% AUC (Step 80)
 - **Phase 9** ✅: Factual QA (TriviaQA + WebQ) CoT — spectral features don't transfer, clean negative result (Step 82)
-- **Phase 10 pilot** ✅: L-CiteEval HotpotQA / Falcon-3-10B — INVALID pre-conditions, but strong signal: Nadler 76.0%, EPR 69.9% (Step 84)
-- **Phase 10 Main RAG** ✅: All 16 cells complete — qwen7b + mistral24b + qwen72b + **llama8b** (switched from 70B at Step 87); full 4×4 AUC heatmap available
-- **Meta-Analysis** ✅: 7,001 samples across 5 domains; cross-domain feature ranking complete (Step 89); pe_min dropped, cusum_max confirmed as best Phase C feature
+- **Phase 10 Main RAG** ✅: All 16 cells complete — qwen7b + mistral24b + qwen72b + llama8b; full 4×4 AUC heatmap
+- **Meta-Analysis** ✅: 7,001 samples across 5 domains; cross-domain feature ranking complete (Step 89); pe_min dropped, cusum_max #1
 
 ---
 
@@ -90,32 +90,43 @@ Median (12 analyzed cells) ≈ 74%; 7/12 cells ≥ 70%.
 
 ---
 
-## Current experiment: Phase 11a — Agentic
+## Current experiments: Phase 11
+
+### Phase 11a — Agentic ReAct on multi-hop QA
 
 **Notebook**: `Spectral_Analysis_Phase11_Agentic_11a.ipynb`
-**Status**: Ready to run on Colab A100 — code verified, pre-run fixes applied
+**Status**: Inference partially done (qwen25_7b + deepseek_r1_7b ran in prior session); mistral24b + qwen72b not yet run
 **Goal**: Spectral Nadler vs AUQ verbalized confidence on 3-step ReAct multi-hop QA
 
-### Design
+#### Design
 
-| | Qwen2.5-7B | DeepSeek-R1-Distill-Qwen-7B |
-|-|------------|----------------------------|
-| hotpotqa | N=200 | N=200 |
-| 2wikimultihopqa | N=200 | N=200 |
+| | Qwen2.5-7B | DeepSeek-R1-Distill-Qwen-7B | Mistral-Small-24B | Qwen2.5-72B-AWQ |
+|-|------------|------------------------------|-------------------|-----------------|
+| hotpotqa | N=200 | N=200 | N=200 | N=200 |
+| 2wikimultihopqa | N=200 | N=200 | N=200 | N=200 |
 
 - MAX_STEPS=3, T=1.0, MAX_NEW_PER_STEP=256
 - Aggregations: Φ_min, Φ_avg, Φ_last
 - Baseline: AUQ verbalized confidence (Zhang et al. 2026, SOTA Φ_min=0.791 on ALFWorld)
 - Spectral features: 16 features (pe_min excluded) + sw_var_peak_adaptive override + branching_entropy
 
-### Pre-run fixes applied (Step 89)
+#### Mid-run signal (not yet official)
 
-1. `spectral_utils/feature_utils.py`: `pe_min` removed from `FEAT_NAMES` (16 features)
-2. Phase 11a Cell 2: `sw_var_peak_adaptive` added to imports
-3. Phase 11a Cell 11: `f['sw_var_peak'] = sw_var_peak_adaptive(ents)` override (adaptive window for 50-150 token steps)
-4. Phase 11a Cell 15: Nadler key filter excludes both `'trace_length'` and `'pe_min'`
+| Cell | Nadler Φ_min | Notes |
+|------|-------------|-------|
+| deepseek / 2wiki | **85.0%** | beats AUQ SOTA 0.791 |
+| epr_last (deepseek/hotpotqa) | 83.2% | strong individual feature |
+| hurst_last (deepseek/hotpotqa) | 82.8% | |
+| pe_mean_last | 80.3% | |
 
-### Checkpoints
+#### Run order
+
+1. **Normal runtime** — `ONLY_MODEL_KEYS = ['qwen25_7b', 'deepseek_r1_7b', 'mistral24b']`
+   - qwen25_7b and deepseek_r1_7b will reload from checkpoint; only mistral24b runs fresh
+2. **Fresh runtime** — `ONLY_MODEL_KEYS = ['qwen72b']` + run gptqmodel stub cell first
+3. **Analysis** (any runtime with Drive access) — Cells 12–22: feature extraction, AUC table, Nadler, AUQ baseline, headline table, plots
+
+#### Checkpoints
 
 Raw trajectories: `/content/drive/MyDrive/hallucination_detection/cache/phase11_agentic_v2/raw/`
 Features: `.../features/`
@@ -123,31 +134,62 @@ Results: `.../results_a/`
 
 ---
 
-## Immediate next actions
+### Phase 11b — Extension to new agent modalities (PILOTS)
 
-1. **Commit and push** (3 commits):
-   - Commit 1: `spectral_utils/feature_utils.py` + `HISTORY.md` + `PROGRESS.md` — "Step 89: Meta-Analysis results + drop pe_min from FEAT_NAMES"
-   - Commit 2: `Spectral_Analysis_Phase11_Agentic_11a.ipynb` — "Phase 11a: sw_var_peak_adaptive override + pe_min filter"
-   - Commit 3: `Spectral_Analysis_Phase10_Main_RAG.ipynb` + `Spectral_Analysis_Meta_Analysis.ipynb` — "Commit Phase 10 RAG (Llama-8B complete) and Meta-Analysis with outputs"
+**Goal**: Test whether spectral entropy features generalize beyond retrieval-based agents. Two pilots before committing to full runs.
 
-2. **Run Phase 11a on Colab A100**:
-   - Cell 1–6: setup + data + spot check
-   - Cell 9: inference driver (~4–6 hours for 4 cells × 200 trajectories × 3 steps)
-   - Cells 11–21: feature extraction, analysis, Nadler search, AUQ baseline, fusion, headline table
+#### Pilot A: HumanEval (code execution)
 
-3. **After Phase 11a results**:
-   - Update `Research_Directions.md` Direction 4 (Agentic) with headline numbers
-   - Prepare advisor meeting materials: Phase 10 RAG heatmap + Phase 11a headline table
+**Notebook**: `Pilot_Phase11b_HumanEval.ipynb`
+**Status**: Not yet run
+**Design**: N=20, qwen25_7b, 3 attempts per problem, label = any_passed (unit test pass/fail)
+**SOTA target**: AUROC 0.82–0.84 (DSDE execution-based disagreement, 2026)
+
+GO/NO-GO gates:
+- G0: ≥5 problems solved (both classes present)
+- G1: entropy traces non-degenerate (std > 0 on ≥90%)
+- G2: feature extraction coverage ≥15/20
+- G3: subprocess execution stable (no Colab crash)
+
+#### Pilot B: ALFWorld (embodied navigation)
+
+**Notebook**: `Pilot_Phase11b_ALFWorld.ipynb`
+**Status**: Not yet run
+**Design**: N=5 tasks, pick_and_place type, MAX_STEPS=20, qwen25_7b, label = task_success
+**SOTA target**: AUROC 0.791 (AUQ Φ_min, Zhang et al. 2026) — same paper we compare against in Phase 11a
+
+GO/NO-GO gates (G0+G1 required; G2–G4 informative):
+- G0: alfworld imports without corrupting numpy/pyarrow
+- G1: env.step returns valid observation
+- G2: ≥1 task solved
+- G3: entropy traces non-degenerate (≥80% of steps)
+- G4: feature extraction coverage (≥70% of steps)
+
+**Note**: Pilots 4+5 are independent and can run in parallel in separate Colab tabs.
 
 ---
 
 ## Key rules / gotchas
 
-- **gptqmodel on Python 3.12**: stub `pcre` with stdlib `re` + install `device-smi tokenicer defuser` with `--no-deps`, `logbar ninja` plainly, then `pip install --no-deps gptqmodel`.
+- **gptqmodel on Python 3.12**: stub `pcre` with stdlib `re` + install `device-smi tokenicer defuser` with `--no-deps`, `logbar` plainly, then `pip install --no-deps gptqmodel`. Stub cell is already in Phase 11a notebook.
 - **70B BNB models**: OOM after any freed smaller model; use a fresh runtime with `expandable_segments:True`.
 - **HF cache on Drive**: NEVER rely on standard `HF_HOME` cache — snapshot symlinks break. Use `ensure_flat_dir()` flat-dir approach.
 - **Analysis result persistence**: Every analysis cell > 30s MUST persist to `.pkl` with the three-branch reload pattern.
 - **AWQ models**: `load_model(model_id, quantize_4bit=False)` — auto-detects AWQ. Requires `autoawq` AND `gptqmodel`.
 - **L-CiteEval dataset sizes**: hotpotqa=240, NQ=160, 2wiki=240, narrativeqa=240.
 - **FEAT_NAMES**: 16 features (pe_min removed). `compute_permutation_entropy()` still returns pe_min+pe_mean for compatibility.
-- **sw_var_peak_adaptive**: NOT called by `extract_all_features()`. Must be applied as post-extraction override in Phase 11a Cell 11 (and any future short-trace experiment).
+- **sw_var_peak_adaptive**: NOT called by `extract_all_features()`. Must be applied as post-extraction override in short-trace experiments (Phase 11a Cell 12, pilot notebooks Cell 8/9).
+- **Drive mount**: MUST be in Cell 1 or Cell 3 (before any path that uses `/content/drive/`). Missing mount = ephemeral local path, all data lost on disconnect. This bug bit us in Phase 11a — now fixed.
+- **alfworld_utils.py**: Not imported by `__init__.py`. Import directly: `from spectral_utils.alfworld_utils import ...`
+
+---
+
+## Immediate next actions
+
+1. **Run Phase 11a inference** — mistral24b (normal runtime) + qwen72b (fresh runtime with stub cell)
+2. **Run Phase 11a analysis** — Cells 12–22 after all 8 raw pkl files exist
+3. **Run pilots in parallel**:
+   - `Pilot_Phase11b_HumanEval.ipynb` — any runtime
+   - `Pilot_Phase11b_ALFWorld.ipynb` — any runtime
+4. **After pilots**: if GO → build full Phase 11b notebooks (same structure, N=164 HumanEval / ~100 ALFWorld tasks, multi-model)
+5. **Update Research_Directions.md** Direction 4 (Agentic) with Phase 11a headline numbers once analysis is complete
