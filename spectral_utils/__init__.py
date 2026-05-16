@@ -40,6 +40,7 @@ from .data_loaders import (
     normalize_agentic_multihop_row,
     load_trivia_qa, trivia_qa_prompt, is_correct_trivia_qa,
     load_webq, webq_prompt, is_correct_webq,
+    load_humaneval, humaneval_prompt, is_correct_humaneval,
     load_lciteeval, lciteeval_prompt, lciteeval_grounding_label,
 )
 from .fusion_utils import zscore, boot_auc, nadler_fuse, simple_average_fusion, best_nadler_on
@@ -51,6 +52,7 @@ from .agent_utils import (
     run_react_episode, aggregate_trajectory, categorize_failure_mode,
     query_support_overlap, first_incorrect_step_index, categorize_failure_mode_v2,
     branching_entropy, run_spiral_injection_replay,
+    execute_python_solution, run_humaneval_episode,
 )
 
 __version__ = "0.1.0"
@@ -68,6 +70,7 @@ __all__ = [
     "normalize_agentic_multihop_row",
     "load_trivia_qa", "trivia_qa_prompt", "is_correct_trivia_qa",
     "load_webq", "webq_prompt", "is_correct_webq",
+    "load_humaneval", "humaneval_prompt", "is_correct_humaneval",
     "load_lciteeval", "lciteeval_prompt", "lciteeval_grounding_label",
     "zscore", "boot_auc", "nadler_fuse", "simple_average_fusion", "best_nadler_on",
     "lite_semantic_entropy_for_statement", "mean_neg_logprob_baseline",
@@ -77,4 +80,5 @@ __all__ = [
     "run_react_episode", "aggregate_trajectory", "categorize_failure_mode",
     "query_support_overlap", "first_incorrect_step_index", "categorize_failure_mode_v2",
     "branching_entropy", "run_spiral_injection_replay",
+    "execute_python_solution", "run_humaneval_episode",
 ]

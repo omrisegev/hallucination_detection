@@ -488,6 +488,44 @@ def is_correct_webq(gen: str, item: dict) -> bool:
     return any(_normalize_qa(a) == pred_norm for a in item["answers"])
 
 
+# ── HumanEval ─────────────────────────────────────────────────────────────────
+
+def load_humaneval(n_samples: int = 164) -> list[dict]:
+    """Load HumanEval from HuggingFace. Returns list of {task_id, prompt, test, entry_point}."""
+    from datasets import load_dataset
+    ds = load_dataset("openai/openai_humaneval", split="test")
+    items = []
+    for i in range(min(n_samples, len(ds))):
+        row = ds[i]
+        items.append({
+            "task_id":     row["task_id"],
+            "prompt":      row["prompt"],
+            "test":        row["test"],
+            "entry_point": row["entry_point"],
+        })
+    print(f"Loaded {len(items)} HumanEval problems.")
+    return items
+
+
+def humaneval_prompt(row: dict, error_context: str = "") -> str:
+    """Instruction prompt for HumanEval. Optionally includes prior error for retry attempts."""
+    base = (
+        "Complete the following Python function. "
+        "Return ONLY the function body (indented), no explanation, no markdown fences.\n\n"
+        f"{row['prompt']}"
+    )
+    if error_context:
+        base += f"\n\n# Previous attempt failed with:\n# {error_context}\n# Fix the implementation:"
+    return base
+
+
+def is_correct_humaneval(row: dict, full_code: str) -> bool:
+    """Test whether full_code passes the HumanEval unit tests for this row."""
+    from spectral_utils.agent_utils import execute_python_solution
+    passed, _ = execute_python_solution(full_code, row["test"], row["entry_point"])
+    return passed
+
+
 # ── L-CiteEval ────────────────────────────────────────────────────────────────
 
 _LCITEEVAL_CONFIG_MAP = {
