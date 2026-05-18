@@ -168,39 +168,50 @@ def make_math_example():
                 fontstyle='italic' if wt == 'italic' else 'normal',
                 transform=ax.transAxes)
 
-    # RIGHT: simulated H(n) trajectory
+    # RIGHT: simulated H(n) -- BOTH correct and hallucinating
     ax = axes[1]
     np.random.seed(42)
     n = 680
     cot_end = 580
     t = np.arange(n)
-    base = 2.9 + 0.55 * np.sin(t * 0.019) + 0.45 * np.cos(t * 0.043)
-    trace = base + np.random.randn(n) * 0.22
-    trace[88:96]   += 2.4
-    trace[230:238] += 1.8
-    trace[410:418] += 2.0
-    trace[cot_end:] = 0.95 + np.random.randn(n - cot_end) * 0.13
 
-    ax.plot(t, trace, color='#4472C4', lw=0.75, alpha=0.82)
-    ax.axvspan(0, cot_end, alpha=0.06, color='orange')
-    ax.axvspan(cot_end, n, alpha=0.06, color='green')
+    # Correct trace: smooth reasoning, low stable answer
+    base_c = 2.8 + 0.4 * np.sin(t * 0.019) + 0.3 * np.cos(t * 0.043)
+    trace_c = base_c + np.random.randn(n) * 0.18
+    trace_c[cot_end:] = 0.85 + np.random.randn(n - cot_end) * 0.12
+
+    # Hallucinating trace: higher entropy, spikes, rising end (rpdi)
+    np.random.seed(7)
+    base_h = 3.5 + 0.6 * np.sin(t * 0.023) + 0.5 * np.cos(t * 0.037)
+    trace_h = base_h + np.random.randn(n) * 0.35
+    trace_h[88:96]   += 2.5
+    trace_h[230:238] += 1.9
+    trace_h[410:418] += 2.1
+    trace_h[cot_end:] = 2.5 + np.random.randn(n - cot_end) * 0.28
+
+    ax.plot(t, trace_c, color='#2E7D32', lw=1.0, alpha=0.88, label='Correct answer')
+    ax.plot(t, trace_h, color='#C00000', lw=0.9, alpha=0.75, label='Hallucinated answer')
+    ax.axvspan(0, cot_end, alpha=0.05, color='orange')
+    ax.axvspan(cot_end, n, alpha=0.05, color='limegreen')
     ax.axvline(cot_end, color='grey', lw=1.5, ls='--', alpha=0.7)
-    ax.text(cot_end * 0.5, 5.85, 'Chain-of-Thought', ha='center',
+    ax.text(cot_end * 0.5, 7.3, 'Chain-of-Thought', ha='center',
             fontsize=9, color='#E65C00', fontstyle='italic')
-    ax.text(cot_end + (n - cot_end) * 0.5, 5.85, 'Answer', ha='center',
+    ax.text(cot_end + (n - cot_end) * 0.5, 7.3, 'Answer', ha='center',
             fontsize=9, color='#2E7D32', fontstyle='italic')
-    ax.annotate('cusum_max\ndetects shift', xy=(90, trace[90]),
-                xytext=(170, 5.1), fontsize=8.5, color='#C00000',
+    ax.annotate('cusum_max\n(regime shift)', xy=(91, trace_h[91]),
+                xytext=(180, 6.3), fontsize=8.5, color='#C00000',
                 arrowprops=dict(arrowstyle='->', color='#C00000', lw=1.3))
-    ax.annotate('sw_var_peak\n(local var spike)', xy=(232, trace[232]),
-                xytext=(310, 5.2), fontsize=8.5, color='#7030A0',
+    ax.annotate('rpdi: end-entropy\nrises in halluc.',
+                xy=(cot_end + 40, trace_h[cot_end + 40]),
+                xytext=(cot_end - 110, 6.4), fontsize=8.5, color='#7030A0',
                 arrowprops=dict(arrowstyle='->', color='#7030A0', lw=1.3))
     ax.set_xlabel('Token position n', fontsize=11)
     ax.set_ylabel('H(n) = -sum p log p', fontsize=11)
-    ax.set_title('H(n) for a correct math answer\n(low, stable at answer; regime shifts during reasoning)',
+    ax.set_title('H(n): correct (green) vs hallucinated (red)\n(simulated; representative of MATH-500/Qwen-7B T=1.0 pattern)',
                  fontsize=10.5, fontweight='bold')
     ax.set_facecolor('#FAFAFA')
     ax.yaxis.grid(True, alpha=0.25)
+    ax.legend(fontsize=10, loc='upper right')
 
     plt.tight_layout(pad=0.8)
     path = os.path.join(TMP, 'math_example.png')
@@ -526,6 +537,50 @@ def make_results_overview():
     return path
 
 
+def make_formula_panel():
+    """4-box panel with key feature formulas."""
+    fig, axes = plt.subplots(2, 2, figsize=(5.2, 3.6))
+    fig.patch.set_facecolor('white')
+    formulas = [
+        ('cusum_max',
+         r'max|cumsum($H(n) - \bar{H}$)|',
+         'Cumulative sum of mean-centred\nentropy — detects regime shifts',
+         '#1F497D'),
+        ('sw_var_peak',
+         r'$\max_i\,\mathrm{var}(H[i:i{+}w])$, $w{=}16$',
+         'Peak local variance across\na sliding window',
+         '#7030A0'),
+        ('rpdi',
+         r'$\frac{\mathrm{mean}(H[\text{last }20\%])}{\mathrm{mean}(H[\text{full}])}$',
+         'End-of-trace entropy rise:\nhallucinations spike at end',
+         '#FF6600'),
+        ('spectral_entropy',
+         r'$-\sum \tilde{p}(f)\log\tilde{p}(f)$',
+         r'$\tilde{p}(f)$ = normalised PSD;' + '\nenergy spread across freq.',
+         '#2E7D32'),
+    ]
+    for idx, (name, formula, desc, color) in enumerate(formulas):
+        r, c = divmod(idx, 2)
+        ax = axes[r, c]
+        ax.axis('off')
+        ax.add_patch(mpatches.FancyBboxPatch(
+            (0.03, 0.03), 0.94, 0.94,
+            boxstyle='round,pad=0.03', facecolor='#F4F7FB',
+            edgecolor=color, lw=1.8, transform=ax.transAxes))
+        ax.text(0.5, 0.87, name, ha='center', va='top', fontsize=9.5,
+                fontweight='bold', color=color, transform=ax.transAxes)
+        ax.text(0.5, 0.57, formula, ha='center', va='center', fontsize=8.5,
+                color='#222', transform=ax.transAxes)
+        ax.text(0.5, 0.20, desc, ha='center', va='bottom', fontsize=7.5,
+                color='#555', transform=ax.transAxes, style='italic',
+                multialignment='center')
+    plt.tight_layout(pad=0.4)
+    path = os.path.join(TMP, 'formula_panel.png')
+    fig.savefig(path, dpi=150, bbox_inches='tight', facecolor='white')
+    plt.close()
+    return path
+
+
 # =======================================================================
 # PRE-GENERATE CHARTS
 # =======================================================================
@@ -537,6 +592,7 @@ AGENTIC_BAR   = make_agentic_bar()
 RAG_EXAMPLE   = make_rag_citation_example()
 RESULTS_OVW   = make_results_overview()
 FEAT_GRID     = make_feature_importance_grid()
+FORMULA_PANEL = make_formula_panel()
 print("Charts done.")
 
 # =======================================================================
@@ -569,11 +625,11 @@ for lbl, yp in [
 # -----------------------------------------------------------------------
 sl = add_slide()
 title_bar(sl, "What Are We Detecting?",
-          "Token-level entropy H(n) = -sum_v p_v log p_v  |  single forward pass  |  no labels at test time")
+          "MATH-500 / Qwen-7B T=1.0  |  3 correct (blue) vs 3 hallucinated (orange)  |  EPR = DC (mean) only -- discards all shape")
 img(sl, os.path.join(PLOTS, "fig1_individual_traces.png"), 0.3, 1.2, 12.7, 5.9)
 accent_box(sl,
-    "We analyze the model's INTERNAL uncertainty signal -- not the text output. "
-    "Gray-box: we need token probabilities from a single forward pass only.",
+    "Incorrect answers show HIGHER, MORE VARIABLE entropy throughout the reasoning trace. "
+    "Gray-box method: only token log-probabilities from one forward pass -- no attention maps, no extra sampling.",
     0.3, 6.85, 12.7, 0.5, bg=NAVY, fg=WHITE, size=13, bold=True)
 
 # -----------------------------------------------------------------------
@@ -581,37 +637,44 @@ accent_box(sl,
 # -----------------------------------------------------------------------
 sl = add_slide()
 title_bar(sl, "Hallucination Changes the Spectral Signature",
-          "Average Power Spectral Density (DC removed)  |  MATH-500 / Qwen-7B T=1.0")
-img(sl, os.path.join(PLOTS, "fig2_avg_psd.png"), 1.5, 1.3, 10.3, 4.8)
-bullet_box(sl, [
-    ("->", "Incorrect outputs concentrate MORE energy at high frequencies (bursts, instability)", DGREY),
-    ("->", "Correct outputs concentrate energy at low frequencies (smooth, structured reasoning)", DGREY),
-    ("->", "EPR = mean of H(n) = DC component only.  Spectral features use the FULL PSD.", BLUE),
-], 0.4, 6.3, 12.5, 1.1, size=13)
+          "Average PSD (DC/EPR removed)  |  4 panels: MATH-500 (1.5B, 7B) and GPQA (Mistral-7B, Qwen-7B)  |  T=1.0 solid, T=1.5 dashed")
+img(sl, os.path.join(PLOTS, "psd_comparison.png"), 0.3, 1.2, 12.7, 5.4)
+txb(sl,
+    "x-axis: normalised frequency in cycles per token  (0 = DC removed by construction; 0.5 = alternates every 2 tokens)\n"
+    "Low band (0-0.1): one full oscillation per 10+ tokens -- slow structural patterns, reasoning stages\n"
+    "High band (0.4-0.5): rapid 2-3 token bursts -- local uncertainty spikes, hallucination signature",
+    0.3, 6.7, 9.5, 0.78, size=10.5, color=DGREY)
+accent_box(sl, "Pattern is CONSISTENT across 4 model/dataset combos: incorrect = more high-freq energy",
+           9.9, 6.7, 3.2, 0.78, bg=NAVY, fg=WHITE, size=11, bold=True)
 
 # -----------------------------------------------------------------------
 # SLIDE 4: FEATURE LIBRARY
 # -----------------------------------------------------------------------
 sl = add_slide()
 title_bar(sl, "16 Spectral Features -- Individual Performance on MATH-500",
-          "sw_var_peak and cusum_max emerge as the two most universal features across all 5 domains")
-img(sl, os.path.join(PLOTS, "fig3_feature_aucs.png"), 0.3, 1.2, 8.0, 5.7)
-txb(sl, "Feature families:", 8.6, 1.3, 4.5, 0.4, size=13, bold=True, color=NAVY)
-bullet_box(sl, [
-    ("o", "EPR (mean entropy) -- the paper baseline", DGREY),
-    ("o", "FFT: spectral_entropy, low/high_band_power,\n   dominant_freq, spectral_centroid", BLUE),
-    ("o", "STFT: stft_spectral_entropy, stft_max_high_power\n   (non-stationary, short-time)", PURPLE),
-    ("o", "Time-domain: sw_var_peak, cusum_max, hurst,\n   trace_length, rpdi, pe_mean, hl_ratio", ORANGE),
-], 8.6, 1.85, 4.5, 3.1, size=11.5)
-accent_box(sl, "Best Nadler fusion: 90.0% AUROC\n(MATH-500, Qwen-7B, T=1.0)",
-           8.6, 5.3, 4.5, 1.1, bg=NAVY, fg=WHITE, size=14, bold=True)
+          "Phase 5 bar shows 12 features; 4 more added in Phase 8: cusum_max, pe_mean, hurst, cusum_shift_idx  |  16 total")
+img(sl, os.path.join(PLOTS, "fig3_feature_aucs.png"), 0.3, 1.2, 7.8, 5.6)
+# Right column: metadata + Nadler subset + key formulas
+txb(sl, "Dataset:", 8.35, 1.25, 4.85, 0.35, size=11, bold=True, color=NAVY)
+txb(sl,
+    "MATH-500 (500 problems) / Qwen2.5-Math-7B-Instruct / T=1.0\n"
+    "Model accuracy 68.7%  =>  ~310 correct, ~190 wrong  (balanced)\n"
+    "Why 7B? 1.5B at T=1.0 had too few errors for stable detection\n"
+    "(advisor feedback from previous meeting on class imbalance)",
+    8.35, 1.60, 4.85, 0.95, size=9.5, color=DGREY)
+accent_box(sl,
+    "Best Nadler subset (4 of 16):\ntrace_length + spectral_centroid + rpdi + sw_var_peak\n"
+    "Selected by rho-filtered exhaustive search (|rho|<0.75)\n=> 90.0% AUROC",
+    8.35, 2.65, 4.85, 1.1, bg=NAVY, fg=WHITE, size=11, bold=False)
+txb(sl, "Key feature formulas:", 8.35, 3.88, 4.85, 0.35, size=11, bold=True, color=NAVY)
+img(sl, FORMULA_PANEL, 8.35, 4.25, 4.85, 2.55)
 
 # -----------------------------------------------------------------------
 # SLIDE 5: FEATURE CORRELATION TOPOLOGY (META-ANALYSIS)
 # -----------------------------------------------------------------------
 sl = add_slide()
 title_bar(sl, "Feature Correlation Topology -- 7,001 Samples Across 5 Domains",
-          "Spearman correlation  |  why Nadler fusion works: sw_var_peak and cusum_max are ORTHOGONAL to EPR")
+          "All 16 features (incl. Phase 8 additions)  |  meta-analysis  |  Spearman rho  |  why Nadler works: orthogonality to EPR cluster")
 img(sl, os.path.join(PLOTS, "meta_analysis_cell06_out0.png"), 0.8, 1.25, 8.7, 6.0)
 txb(sl, "What this shows:", 9.8, 1.5, 3.4, 0.4, size=13, bold=True, color=NAVY)
 bullet_box(sl, [
@@ -654,15 +717,17 @@ simple_table(sl,
     rows=[
         ["Spectral Nadler (Ours)", "MATH-500 / Qwen-7B T=1.0", "90.0%", "None", "Gray-box", "1"],
         ["Spectral Nadler (Ours)", "GSM8K / Llama-3.1-8B",     "76.0%", "None", "Gray-box", "1"],
-        ["LapEigvals (2502.17598)", "GSM8K / Llama-3.1-8B",    "72.0%", "None", "Gray-box", "1"],
+        ["LapEigvals (2502.17598)", "GSM8K / Llama-3.1-8B",    "72.0%", "None", "White-box\n(attn.maps)", "1"],
     ],
     l=7.2, t=1.8, w=6.0, h=3.1,
     col_widths=[1.7, 1.7, 0.7, 0.65, 0.7, 0.65],
     hdr_size=10, row_size=9)
 accent_box(sl,
     "+4.0 pp over closest unsupervised competitor on same task+model\n"
-    "Note: T=1.5 gives 96.6% -- ceiling artifact (more mistakes => inflated AUC); honest number is T=1.0 = 90.0%",
-    7.2, 5.15, 6.0, 1.1,
+    "LapEigvals is WHITE-BOX: needs full attention maps (all layers+heads) + supervised logistic probe. "
+    "Our method: token log-probs only (gray-box) -- strictly less model access.\n"
+    "T=1.5 gives 96.6% -- ceiling artifact (more mistakes => easier task); honest comparison is T=1.0.",
+    7.2, 5.15, 6.0, 1.25,
     bg=RGBColor(0xFF, 0xF0, 0xCC), fg=RGBColor(0x80, 0x40, 0x00), size=10.5)
 
 # -----------------------------------------------------------------------
@@ -670,9 +735,10 @@ accent_box(sl,
 # -----------------------------------------------------------------------
 sl = add_slide()
 title_bar(sl, "GPQA Diamond: Scale Matters -- PhD-Level Science MCQ",
-          "198 questions, 4-option MCQ  |  detection ceiling = model's own task accuracy")
-img(sl, GPQA_BAR, 0.8, 1.3, 5.5, 4.3)
-txb(sl, "Performance comparison:", 6.6, 1.3, 6.5, 0.4, size=13, bold=True, color=NAVY)
+          "198 questions, 4-option MCQ  |  traces shorter (~100-400 tokens)  |  detection ceiling = model's own task accuracy")
+img(sl, os.path.join(PLOTS, "B3_gpqa_trajectories.png"), 0.3, 1.25, 7.5, 3.5)
+img(sl, GPQA_BAR, 0.3, 4.8, 4.7, 2.55)
+txb(sl, "Performance comparison:", 8.1, 1.3, 5.1, 0.4, size=13, bold=True, color=NAVY)
 simple_table(sl,
     headers=["Method", "Model", "AUROC", "Labels", "Access", "Passes"],
     rows=[
@@ -680,26 +746,26 @@ simple_table(sl,
         ["Spectral Nadler (Ours)", "7B models",    "65.4%", "None", "Gray-box", "1"],
         ["No published spectral\ncompetitor on GPQA", "--", "--", "--", "--", "--"],
     ],
-    l=6.6, t=1.8, w=6.5, h=2.7,
-    col_widths=[2.1, 1.2, 0.7, 0.65, 0.7, 0.65],
+    l=8.1, t=1.8, w=5.1, h=2.4,
+    col_widths=[2.0, 0.9, 0.65, 0.6, 0.65, 0.6],
     hdr_size=10, row_size=9)
 bullet_box(sl, [
     ("->", "7B models: ~30-40% task accuracy => too few correct examples for detector", DGREY),
     ("->", "72B AWQ raises accuracy to 40.4% => +3.6 pp AUROC", DGREY),
-    ("->", "Method is bottlenecked by model performance, not our detector", DGREY),
-    ("->", "Gate not yet passed: need >=70%; direction: even stronger model", RED),
-], 6.6, 4.7, 6.5, 1.9, size=11)
+    ("->", "Bottleneck: model performance, not the detector", DGREY),
+    ("->", "Gate not yet passed: need >=70%; direction: even stronger model or ensembling", RED),
+], 8.1, 4.35, 5.1, 3.0, size=11)
 
 # -----------------------------------------------------------------------
 # SLIDE 10: NEGATIVE RESULT -- FACTUAL QA
 # -----------------------------------------------------------------------
 sl = add_slide()
 title_bar(sl, "Negative Result: Spectral Features Don't Transfer to Factual QA",
-          "Falcon-3-10B  |  300 samples each  |  CoT prompting extends traces to 200-500 tokens -- still fails")
+          "Falcon-3-10B  |  300 samples each  |  CoT extends traces to 200-500 tokens -- still fails  |  TriviaQA plot only")
 img(sl, os.path.join(PLOTS, "direct_vs_cot_comparison.png"), 0.5, 1.25, 6.3, 4.9)
 txb(sl, "Comparison:", 7.1, 1.3, 6.0, 0.4, size=13, bold=True, color=NAVY)
 simple_table(sl,
-    headers=["Method", "TriviaQA", "WebQ", "Labels", "Access", "Passes"],
+    headers=["Method", "TriviaQA", "WebQ CoT", "Labels", "Access", "Passes"],
     rows=[
         ["Spectral Nadler (Ours, CoT)", "53.6%", "61.9%", "None", "Gray-box", "1"],
         ["EPR direct answer (no CoT)",  "79.1%", "71.8%", "None", "Gray-box", "1"],
@@ -707,12 +773,17 @@ simple_table(sl,
     l=7.1, t=1.8, w=6.0, h=2.0,
     col_widths=[1.9, 0.8, 0.7, 0.65, 0.7, 0.65],
     hdr_size=10, row_size=9)
+accent_box(sl,
+    "WebQ direct answer: 0 correct samples in run => AUC undefined for direct-answer mode.\n"
+    "Plot above shows TriviaQA only. WebQ CoT = 61.9% (CoT added enough tokens to compute spectral features).",
+    7.1, 3.97, 6.0, 0.85,
+    bg=RGBColor(0xFF, 0xF0, 0xCC), fg=RGBColor(0x80, 0x40, 0x00), size=10.5)
 bullet_box(sl, [
     ("->", "Direct traces: 20-50 tokens => FFT has no frequency resolution", RED),
     ("->", "CoT traces: 200-500 tokens => no systematic spectral structure", DGREY),
     ("->", "CoT SMOOTHS entropy (confidence masking) => worse than direct EPR", DGREY),
     ("->", "Factual recall != reasoning: model retrieves, not generates structure", DGREY),
-], 7.1, 4.0, 6.0, 1.9, size=11)
+], 7.1, 4.95, 6.0, 1.7, size=11)
 accent_box(sl,
     "This is a BOUNDARY CONDITION, not a failure.\n"
     "Spectral features detect generative uncertainty during REASONING -- not factual recall.",
@@ -739,16 +810,16 @@ simple_table(sl,
     rows=[
         ["Spectral Nadler\n(Ours, Llama-8B)", "HotpotQA",      "87.7%",  "None",     "Gray-box", "1"],
         ["Spectral Nadler\n(Ours, Qwen-7B)",  "2Wiki",          "80.5%",  "None",     "Gray-box", "1"],
-        ["LOS-Net\n(2503.14043)",             "HotpotQA\nMistral-7B", "72.92%", "Required", "Gray-box", "1"],
+        ["LOS-Net (2503.14043)\nDIFFERENT TASK", "Std HotpotQA\n(no citations)", "72.92%", "Required", "Gray-box", "1"],
     ],
     l=7.95, t=1.8, w=5.2, h=2.9,
-    col_widths=[1.5, 1.0, 0.75, 0.75, 0.7, 0.65],
+    col_widths=[1.5, 1.1, 0.7, 0.7, 0.65, 0.65],
     hdr_size=9, row_size=9)
 bullet_box(sl, [
-    ("*", "Beat supervised LOS-Net by +14.8 pp WITHOUT labels!", GREEN),
+    ("*", "Novel task: unsupervised citation grounding on L-CiteEval -- no direct published competitor", GREEN),
+    ("->", "LOS-Net uses standard HotpotQA (raw QA, no citation markers) -- different task", ORANGE),
+    ("->", "Closest available benchmark: LOS-Net = 72.92%; we beat it by +14.8 pp (unsupervised!)", GREEN),
     ("->", "Median 16 cells: ~72.8% | 12/16 >= 70%", DGREY),
-    ("->", "Top features: rpdi + spectral_entropy + sw_var_peak_adaptive", DGREY),
-    ("->", "Sanity check: trace_length alone = 50.8% (chance)", DGREY),
 ], 7.95, 4.9, 5.2, 1.7, size=11)
 
 # -----------------------------------------------------------------------
@@ -772,13 +843,25 @@ img(sl, os.path.join(PLOTS, "D_fusion_distributions_grid.png"), 0.4, 1.25, 12.5,
 # -----------------------------------------------------------------------
 sl = add_slide()
 title_bar(sl, "How It Works: Agentic ReAct Loops",
-          "Phase 11a  |  MAX_STEPS=3  |  H(n) from Thought tokens only  |  Phi_min = weakest-link aggregation")
-img(sl, AGENTIC_EX, 0.3, 1.2, 12.8, 5.85)
+          "Phase 11a  |  Task: multi-hop QA via ReAct  |  H(n) from Thought tokens only  |  Phi_min = weakest-link aggregation")
+# Task summary box (left column, compact)
+txb(sl, "Task (Phase 11a):", 0.3, 1.25, 6.0, 0.35, size=11, bold=True, color=NAVY)
+txb(sl,
+    "Input: question + Wikipedia passage dictionary\n"
+    "Model: ReAct loop, up to 3 steps (Thought => Action: search/finish => Observation)\n"
+    "Label: trajectory_correct = final answer matches gold answer string",
+    0.3, 1.62, 6.2, 0.75, size=10, color=DGREY)
+# RAG vs Agentic comparison
 accent_box(sl,
-    "Key insight: even with only 50-150 tokens per step, "
-    "unreliable reasoning leaves a spectral fingerprint. "
-    "Phi_min = the weakest step drives the final score (a chain is only as strong as its weakest link).",
-    0.3, 7.1, 12.8, 0.33, bg=NAVY, fg=WHITE, size=11.5)
+    "vs RAG (Phase 10):  RAG = 1 forward pass, model generates full cited response, H(n) sliced by citation markers.\n"
+    "Agentic = 3 separate passes; H(n) extracted from each Thought step (50-150 tokens); then aggregated via Phi.",
+    0.3, 2.47, 6.2, 0.85, bg=RGBColor(0xE8, 0xF0, 0xFE), fg=DGREY, size=10)
+img(sl, AGENTIC_EX, 0.3, 3.42, 12.8, 3.72)
+accent_box(sl,
+    "Phi_min = min(score_step1, score_step2, score_step3) -- weakest link.  "
+    "Phi_avg = mean across steps.  Phi_last = final Thought only.\n"
+    "Phi_min outperforms: a reasoning chain is only as reliable as its most uncertain step.",
+    0.3, 7.2, 12.8, 0.25, bg=NAVY, fg=WHITE, size=11)
 
 # -----------------------------------------------------------------------
 # SLIDE 16: AGENTIC RESULTS + COMPARISON TABLE
@@ -786,7 +869,14 @@ accent_box(sl,
 sl = add_slide()
 title_bar(sl, "Agentic: Early Signal vs AUQ Baseline (Zhang et al. 2026)",
           "4 models x 2 datasets x 3 aggregations  |  run not yet complete (Mistral-24B + Qwen-72B pending)")
-img(sl, AGENTIC_BAR, 0.3, 1.3, 6.0, 4.6)
+# Phi definitions box (top left, compact)
+accent_box(sl,
+    "Phi_min = min(score_step1, …, score_stepK)   [weakest link]\n"
+    "Phi_avg = mean(score_step1, …, score_stepK)   [average reliability]\n"
+    "Phi_last = score_stepK only   [final Thought quality]",
+    0.3, 1.25, 6.1, 1.0,
+    bg=RGBColor(0xE8, 0xF0, 0xFE), fg=DGREY, size=11)
+img(sl, AGENTIC_BAR, 0.3, 2.35, 5.8, 5.0)
 txb(sl, "Comparison:", 6.6, 1.3, 6.5, 0.4, size=13, bold=True, color=NAVY)
 simple_table(sl,
     headers=["Method", "Setting", "AUROC", "Labels", "Access", "Passes"],
@@ -799,10 +889,10 @@ simple_table(sl,
     hdr_size=10, row_size=9)
 bullet_box(sl, [
     ("->", "4 models: Qwen-7B, DeepSeek-R1-7B, Mistral-24B, Qwen-72B", DGREY),
-    ("->", "Datasets: HotpotQA + 2WikiMultiHopQA (200 each)", DGREY),
-    ("->", "Aggregations: Phi_min / Phi_avg / Phi_last", DGREY),
-    ("->", "Key advantage over AUQ: gray-box (no verbalization needed), single pass per step", GREEN),
-    ("->", "AUQ requires asking model its confidence in text -- RLHF-aligned models often lie", ORANGE),
+    ("->", "Datasets: HotpotQA + 2WikiMultiHopQA (N=200 each)", DGREY),
+    ("->", "AUQ = asks model 'how confident are you?' in natural language", ORANGE),
+    ("->", "RLHF-aligned models often claim high confidence even when wrong", ORANGE),
+    ("->", "Our method: no verbalization; reads spectral shape only => gray-box", GREEN),
 ], 6.6, 4.3, 6.5, 2.1, size=11)
 accent_box(sl,
     "Run not yet complete: Mistral-24B + Qwen-72B cells pending.\n"
