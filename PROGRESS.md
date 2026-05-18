@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
-**Date**: 2026-05-16
-**Last updated**: Step 90 complete — Phase 11a extended (4 models), Phase 11b pilot notebooks built, all pushed
+**Date**: 2026-05-18
+**Last updated**: Step 92 complete — 16-point advisor feedback addressed; PPTX revised with real Drive plots, formula panel, corrected LapEigvals (white-box), LOS-Net framing, Phi definitions
 
 ---
 
@@ -21,7 +21,8 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 | MATH-500 / Qwen-1.5B / T=1.5 | 88.3% | |
 | GSM8K / Llama-3.1-8B | 76.0% | vs LapEigvals 72.0% |
 | GPQA / Qwen2.5-72B-AWQ / T=1.0 | **69.0%** | Phase 8 — +3.6 pp over 7B |
-| Phase 10 RAG / qwen7b / 2wikimultihopqa | **80.5%** | best RAG cell |
+| Phase 10 RAG / llama8b / hotpotqa | **87.7%** | new overall best RAG cell — beats LOS-Net (72.92%) by +14.8 pp |
+| Phase 10 RAG / qwen7b / 2wikimultihopqa | 80.5% | |
 | Phase 10 RAG / qwen7b / hotpotqa | 79.5% | |
 | Phase 10 RAG / qwen72b / hotpotqa | 79.4% | |
 | Phase 11a (mid-run) / deepseek / 2wiki / Φ_min | **85.0%** | beats AUQ SOTA 0.791 — not yet official |
@@ -58,13 +59,15 @@ All 16 inference cells (4 models × 4 datasets) complete. Llama-3.1-8B replaced 
 [qwen72b   /natural_questions   ] AUC=71.8%  high_band_power + dominant_freq + stft_spectral_entropy + sw_var_peak
 [qwen72b   /2wikimultihopqa     ] AUC=73.4%  epr + high_band_power + stft_spectral_entropy + rpdi
 [qwen72b   /narrativeqa         ] AUC=72.2%  hl_ratio + stft_max_high_power + rpdi + sw_var_peak
-[llama8b   /hotpotqa            ] — inference complete, analysis pending
-[llama8b   /natural_questions   ] — inference complete, analysis pending
-[llama8b   /2wikimultihopqa     ] — inference complete, analysis pending
-[llama8b   /narrativeqa         ] — inference complete, analysis pending
+[llama8b   /hotpotqa            ] AUC=87.7%  ← NEW BEST overall RAG cell
+[llama8b   /natural_questions   ] AUC=70.3%
+[llama8b   /2wikimultihopqa     ] AUC=64.5%
+[llama8b   /narrativeqa         ] AUC=63.2%
 ```
 
-Median (12 analyzed cells) ≈ 74%; 7/12 cells ≥ 70%.
+All 16 cells complete. Median across 16 cells ≈ 72.8%; 12/16 cells ≥ 70%.
+
+**llama8b pattern**: very strong on HotpotQA (87.7%) but weak on 2wiki/NarrativeQA (64–63%). This is the inverse of qwen7b (strong on 2wiki). Dataset–model interaction: HotpotQA factoid retrieval suits Llama-8B's generation style; 2Wiki multi-hop chains favour Qwen-7B's reasoning structure.
 
 ---
 
@@ -187,9 +190,32 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 ## Immediate next actions
 
 1. **Run Phase 11a inference** — mistral24b (normal runtime) + qwen72b (fresh runtime with stub cell)
-2. **Run Phase 11a analysis** — Cells 12–22 after all 8 raw pkl files exist
+2. **Run Phase 11a analysis** — Cells 12–22 after all 8 raw pkl files exist; saves `phase11a_detector_heatmap.png` + `phase11a_rho.png` to Drive
 3. **Run pilots in parallel**:
    - `Pilot_Phase11b_HumanEval.ipynb` — any runtime
    - `Pilot_Phase11b_ALFWorld.ipynb` — any runtime
 4. **After pilots**: if GO → build full Phase 11b notebooks (same structure, N=164 HumanEval / ~100 ALFWorld tasks, multi-model)
 5. **Update Research_Directions.md** Direction 4 (Agentic) with Phase 11a headline numbers once analysis is complete
+6. **Add savefig calls to Meta Analysis notebook** — plots exist as Colab outputs but are not persistently saved; add `fig.savefig(os.path.join(PLOT_DIR, '...'))` before each `plt.show()` and rerun
+
+---
+
+## Advisor meeting — May 18, 2026
+
+Presentation ready: `Hallucination_Detection_May18.pptx` (17 slides), `Meeting_May18_Speaker_Notes.md`.
+Build script: `build_presentation.py` (reproducible; pulls plots from `presentation_plots/`).
+
+**Step 92 changes (16-point feedback addressed):**
+- Slide 2: subtitle clarified; real MATH-500 correct+hallucinated traces visible
+- Slide 3: replaced with `psd_comparison.png` (4-panel: MATH + GPQA); x-axis explanation added
+- Slide 4: Nadler best-subset box (`trace_length + spectral_centroid + rpdi + sw_var_peak`); dataset metadata (68.7% accuracy, why 7B); `make_formula_panel()` with 4 key formulas
+- Slide 5: subtitle updated to "all 16 features from 7,001-sample meta-analysis"
+- Slide 7: `make_math_example()` now shows BOTH correct and hallucinating traces side by side with cusum_max + rpdi annotations
+- Slide 8: LapEigvals corrected to `White-box (attn.maps)` + note about access advantage
+- Slide 9: `B3_gpqa_trajectories.png` (real GPQA Phase 8 traces) added alongside bar chart
+- Slide 10: WebQ direct-answer note added (0 correct samples → AUC undefined)
+- Slide 12: LOS-Net framed as "different task (std HotpotQA, no citations)"; "novel setting" bullet added
+- Slide 15: task summary box (input/action/label); explicit RAG vs Agentic structural comparison; Phi definitions
+- Slide 16: Phi_min/avg/last definition box; AUQ white-box framing strengthened
+
+New Drive plots downloaded: `B3_gpqa_trajectories.png`, `psd_comparison.png`, `fig1_individual_traces.png`, `fig5_avg_trajectories.png`
