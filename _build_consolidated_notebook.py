@@ -106,9 +106,19 @@ RAG_FEAT_DIR = f'{OUT_DIR}/rag_feats'
 os.makedirs(PLOT_DIR,    exist_ok=True)
 os.makedirs(RAG_FEAT_DIR, exist_ok=True)
 
-# Exact paths confirmed from meta-analysis notebook (ran successfully, produced 7001 samples)
+# Auto-detect phase4 vs phase5 — Drive folder may be named either way
+_math_gpqa_candidates = [
+    f'{BASE}/epr_spectral_phase4',
+    f'{BASE}/epr_spectral_phase5',
+    f'{HALL_DIR}/epr_spectral_phase4',
+    f'{HALL_DIR}/epr_spectral_phase5',
+]
+_math_gpqa = next((p for p in _math_gpqa_candidates if os.path.exists(p)),
+                  _math_gpqa_candidates[0])
+print(f'math_gpqa path: {_math_gpqa} (exists={os.path.exists(_math_gpqa)})')
+
 DATA_ROOTS = {
-    'math_gpqa':  f'{BASE}/epr_spectral_phase4',        # Phase 4+5: MATH-500 + GPQA (12 model×temp×dataset combinations)
+    'math_gpqa':  _math_gpqa,                            # Phase 4+5: MATH-500 + GPQA
     'gsm8k':      f'{BASE}/epr_spectral_gsm8k_vs_lapei', # Phase 7: Llama-3.1-8B on GSM8K
     'gpqa_72b':   f'{BASE}/epr_spectral_gpqa_72b',       # Phase 8: Qwen-72B-AWQ on GPQA
     'qa_cot':     f'{BASE}/spectral_phase9_cache',        # Phase 9: TriviaQA + WebQ CoT
@@ -480,7 +490,7 @@ MATH500_RES   = {}  # {key: result_dict}
 RES_PATH = os.path.join(OUT_DIR, 'math500_res.pkl')
 FORCE = False
 
-if not FORCE and 'MATH500_RES' in globals() and len(MATH500_RES) == len(MATH500_DATA):
+if not FORCE and 'MATH500_RES' in globals() and MATH500_RES and len(MATH500_RES) == len(MATH500_DATA):
     print('already in memory')
 elif not FORCE and os.path.exists(RES_PATH):
     with open(RES_PATH, 'rb') as _f:
@@ -509,24 +519,27 @@ plot_feature_auc_bar(valid_math, 'MATH-500 — Individual Feature AUCs (all mode
 plot_nadler_summary(MATH500_RES, 'MATH-500 — Nadler AUROC per Model & Temperature',
                     'math500_nadler_summary.png')
 
-# Trajectories for best model
-best_math_key = max(valid_math, key=lambda k: valid_math[k]['nadler_auc'])
-plot_trajectories(MATH500_DATA[best_math_key],
-                  f'MATH-500 H(n) Trajectories — {best_math_key}',
-                  f'math500_{best_math_key.replace("/","_")}_trajectories.png')
+if not valid_math:
+    print('WARNING: no valid MATH-500 results.')
+    print(f'  Path tried: {DATA_ROOTS["math_gpqa"]}')
+    print(f'  MATH500_DATA keys: {list(MATH500_DATA.keys())}')
+else:
+    # Trajectories for best model
+    best_math_key = max(valid_math, key=lambda k: valid_math[k]['nadler_auc'])
+    plot_trajectories(MATH500_DATA[best_math_key],
+                      f'MATH-500 H(n) Trajectories — {best_math_key}',
+                      f'math500_{best_math_key.replace("/","_")}_trajectories.png')
 
-# Average PSD (T=1.0 models only if available)
-t10_keys = {k: MATH500_DATA[k] for k in MATH500_DATA if 'T1.0' in k}
-if not t10_keys: t10_keys = MATH500_DATA  # fallback
-plot_avg_psd(t10_keys, 'MATH-500 — Average PSD (correct vs hallucinated)',
-             'math500_avg_psd.png')
+    # Average PSD (T=1.0 models only if available)
+    t10_keys = {k: MATH500_DATA[k] for k in MATH500_DATA if 'T1.0' in k}
+    if not t10_keys: t10_keys = MATH500_DATA  # fallback
+    plot_avg_psd(t10_keys, 'MATH-500 — Average PSD (correct vs hallucinated)',
+                 'math500_avg_psd.png')
 
-# Feature distributions for best model
-best_fd, best_lbl = MATH500_FEATS[best_math_key]
-# need samples for violin (re-extract lazily from MATH500_DATA)
-plot_feature_distributions(MATH500_DATA[best_math_key], MATH500_RES[best_math_key],
-                           f'MATH-500 Feature Distributions — {best_math_key}',
-                           f'math500_{best_math_key.replace("/","_")}_distributions.png')\
+    # Feature distributions for best model
+    plot_feature_distributions(MATH500_DATA[best_math_key], MATH500_RES[best_math_key],
+                               f'MATH-500 Feature Distributions — {best_math_key}',
+                               f'math500_{best_math_key.replace("/","_")}_distributions.png')\
 """))
 
 # ── 7. GSM8K ──────────────────────────────────────────────────────────────────
