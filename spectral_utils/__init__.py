@@ -32,7 +32,8 @@ from .feature_utils import (
     FEAT_NAMES,
 )
 from .data_loaders import (
-    load_gsm8k, gsm8k_prompt, is_correct_gsm8k,
+    load_gsm8k, gsm8k_prompt, is_correct_gsm8k, normalize_gsm8k,
+    extract_gold_gsm8k, extract_model_answer_gsm8k,
     load_math500, math_prompt, is_correct_math,
     load_gpqa, gpqa_prompt_and_answer, is_correct_gpqa,
     load_hotpotqa, hotpotqa_prompt, is_correct_hotpotqa,
@@ -44,7 +45,14 @@ from .data_loaders import (
     load_lciteeval, lciteeval_prompt, lciteeval_grounding_label,
 )
 from .fusion_utils import zscore, boot_auc, nadler_fuse, simple_average_fusion, best_nadler_on
-from .baselines import lite_semantic_entropy_for_statement, mean_neg_logprob_baseline
+from .baselines import (
+    lite_semantic_entropy_for_statement, mean_neg_logprob_baseline,
+    nli_load_model, nli_classify,
+    official_semantic_entropy,
+    self_consistency_score,
+    selfcheck_nli_score,
+    parse_verbalized_confidence, VERBALIZED_CONF_SUFFIX,
+)
 from .agent_utils import (
     react_system_prompt, react_user_prompt,
     parse_thought, parse_action, parse_confidence, parse_concern,
@@ -62,7 +70,8 @@ __all__ = [
     "compute_spectral_features", "compute_stft_features", "compute_time_domain",
     "extract_all_features", "sw_var_peak_with_window", "sw_var_peak_adaptive",
     "segment_by_citations", "FEAT_NAMES",
-    "load_gsm8k", "gsm8k_prompt", "is_correct_gsm8k",
+    "load_gsm8k", "gsm8k_prompt", "is_correct_gsm8k", "normalize_gsm8k",
+    "extract_gold_gsm8k", "extract_model_answer_gsm8k",
     "load_math500", "math_prompt", "is_correct_math",
     "load_gpqa", "gpqa_prompt_and_answer", "is_correct_gpqa",
     "load_hotpotqa", "hotpotqa_prompt", "is_correct_hotpotqa",
@@ -74,6 +83,11 @@ __all__ = [
     "load_lciteeval", "lciteeval_prompt", "lciteeval_grounding_label",
     "zscore", "boot_auc", "nadler_fuse", "simple_average_fusion", "best_nadler_on",
     "lite_semantic_entropy_for_statement", "mean_neg_logprob_baseline",
+    "nli_load_model", "nli_classify",
+    "official_semantic_entropy",
+    "self_consistency_score",
+    "selfcheck_nli_score",
+    "parse_verbalized_confidence", "VERBALIZED_CONF_SUFFIX",
     "react_system_prompt", "react_user_prompt",
     "parse_thought", "parse_action", "parse_confidence", "parse_concern",
     "simulate_retrieve_tool", "step_retrieved_supporting_fact",

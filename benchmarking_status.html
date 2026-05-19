@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hallucination Detection — Benchmarking Status</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    padding: 24px;
+    line-height: 1.5;
+  }
+
+  /* ── Page header ── */
+  .page-header {
+    background: #0d1b2a;
+    color: white;
+    padding: 24px 32px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+  }
+  .page-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .page-header p  { font-size: 13px; color: #a0aec0; }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    background: white; border-radius: 8px;
+    padding: 14px 18px; margin-bottom: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+  }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12.5px; }
+  .dot {
+    width: 13px; height: 13px; border-radius: 3px; flex-shrink: 0;
+  }
+  .dot-ours    { background: #1b5e20; }
+  .dot-exact   { background: #1565c0; }
+  .dot-approx  { background: #e65100; }
+  .dot-compute { background: #e0e0e0; border: 2px dashed #9e9e9e; }
+  .dot-diff    { background: #b71c1c; }
+
+  /* ── Domain section ── */
+  .domain {
+    background: white;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    overflow: hidden;
+  }
+  .domain-header {
+    padding: 14px 22px;
+    color: white;
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .domain-math    { background: #1565c0; }
+  .domain-science { background: #4a148c; }
+  .domain-rag     { background: #004d40; }
+  .domain-body    { padding: 20px 22px; }
+
+  /* ── Sub-section ── */
+  .subsection { margin-bottom: 22px; }
+  .subsection-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #546e7a;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eceff1;
+  }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    background: #f5f7fa;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #37474f;
+    border-bottom: 2px solid #e0e0e0;
+    white-space: nowrap;
+  }
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── Row types ── */
+  .row-ours td    { background: #f1f8e9; }
+  .row-ours td:first-child { border-left: 4px solid #2e7d32; }
+  .row-ours .auc  { color: #1b5e20; font-weight: 700; font-size: 14px; }
+
+  .row-exact td   { background: #e3f2fd; }
+  .row-exact td:first-child { border-left: 4px solid #1565c0; }
+  .row-exact .auc { color: #0d47a1; font-weight: 600; }
+
+  .row-approx td  { background: #fff8f0; }
+  .row-approx td:first-child { border-left: 4px solid #e65100; }
+  .row-approx .auc{ color: #bf360c; font-weight: 600; }
+
+  .row-diff td    { background: #fce4ec; }
+  .row-diff td:first-child { border-left: 4px solid #b71c1c; }
+  .row-diff .auc  { color: #b71c1c; font-weight: 600; }
+
+  .row-compute td { background: #fafafa; }
+  .row-compute td:first-child { border-left: 4px dashed #9e9e9e; }
+  .compute-badge {
+    display: inline-block;
+    background: #e0e0e0;
+    color: #424242;
+    border: 1.5px dashed #9e9e9e;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+  }
+
+  /* ── Tags ── */
+  .tag {
+    display: inline-block;
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .03em;
+    white-space: nowrap;
+  }
+  .tag-gb  { background: #e8f5e9; color: #2e7d32; }
+  .tag-bb  { background: #e3f2fd; color: #1565c0; }
+  .tag-wb  { background: #f3e5f5; color: #6a1b9a; }
+  .tag-sup { background: #fff3e0; color: #e65100; }
+
+  .warn  { font-size: 11px; color: #e65100; margin-top: 2px; font-style: italic; }
+  .note  { font-size: 11.5px; color: #546e7a; background: #f5f7fa;
+           padding: 8px 12px; border-radius: 5px; margin-top: 10px; border-left: 3px solid #90a4ae; }
+
+  /* ── RAG heatmap ── */
+  .rag-grid {
+    overflow-x: auto;
+    margin-bottom: 14px;
+  }
+  .rag-table { min-width: 620px; }
+  .rag-table th { text-align: center; font-size: 12px; }
+  .rag-table td { text-align: center; }
+  .cell-ours {
+    font-weight: 700; font-size: 13px;
+    color: #1b5e20;
+    background: #f1f8e9;
+  }
+  .cell-best {
+    font-weight: 800; font-size: 14px;
+    color: white; background: #2e7d32;
+    border-radius: 4px;
+  }
+  .cell-weak { color: #795548; background: #fafafa; }
+
+  /* ── Priority boxes ── */
+  .priorities { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+  .priority-card {
+    flex: 1 1 200px;
+    background: white;
+    border-radius: 8px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    border-top: 4px solid #ccc;
+  }
+  .p1 { border-top-color: #e53935; }
+  .p2 { border-top-color: #f4511e; }
+  .p3 { border-top-color: #fb8c00; }
+  .p4 { border-top-color: #fdd835; }
+  .priority-card h4 { font-size: 12px; font-weight: 700; text-transform: uppercase;
+                      letter-spacing: .06em; color: #37474f; margin-bottom: 8px; }
+  .priority-card .what { font-size: 13px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
+  .priority-card .why  { font-size: 12px; color: #546e7a; }
+  .priority-card .effort {
+    display: inline-block; margin-top: 8px;
+    font-size: 11px; font-weight: 700;
+    background: #f5f7fa; border-radius: 3px; padding: 2px 7px; color: #546e7a;
+  }
+
+  /* ── Section divider ── */
+  .section-sep { margin: 18px 0; border: none; border-top: 1px solid #eceff1; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════ HEADER -->
+<div class="page-header">
+  <h1>Hallucination Detection — Benchmarking Status</h1>
+  <p>Nadler Spectral Fusion vs. SOTA&nbsp;&nbsp;·&nbsp;&nbsp;Per domain, per model&nbsp;&nbsp;·&nbsp;&nbsp;Sources verified</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ LEGEND -->
+<div class="legend">
+  <strong style="color:#37474f;margin-right:4px">Legend:</strong>
+  <div class="legend-item"><div class="dot dot-ours"></div> Our result (Nadler Spectral Fusion)</div>
+  <div class="legend-item"><div class="dot dot-exact"></div> Published competitor — <strong>exact same model</strong></div>
+  <div class="legend-item"><div class="dot dot-approx"></div> Published competitor — similar model / aggregated ⚠️</div>
+  <div class="legend-item"><div class="dot dot-diff"></div> Published — <strong>different task</strong> (informative only)</div>
+  <div class="legend-item"><div class="dot dot-compute"></div> Not yet computed — scheduled in notebook</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     DOMAIN 1: MATH
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="domain">
+  <div class="domain-header domain-math">
+    <span>📐</span> Domain 1 — Math Reasoning
+  </div>
+  <div class="domain-body">
+
+    <!-- GSM8K -->
+    <div class="subsection">
+      <div class="subsection-title">GSM8K &nbsp;·&nbsp; Llama-3.1-8B-Instruct &nbsp;·&nbsp; T=1.0 &nbsp;·&nbsp; N=1,319</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th>Model</th>
+            <th>AUROC</th>
+            <th>Access</th>
+            <th>Passes</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-ours">
+            <td><strong>Nadler Spectral Fusion (ours)</strong></td>
+            <td>Llama-3.1-8B</td>
+            <td class="auc">76.0%</td>
+            <td><span class="tag tag-gb">Gray-box</span></td>
+            <td>1-pass</td>
+            <td>Phase 7</td>
+          </tr>
+          <tr class="row-exact">
+            <td>LapEigvals — unsupervised (AttentionScore)</td>
+            <td>Llama-3.1-8B ✓</td>
+            <td class="auc">72.0%</td>
+            <td><span class="tag tag-wb">White-box</span></td>
+            <td>1-pass</td>
+            <td>Phase 7 re-run · arXiv 2502.17598</td>
+          </tr>
+          <tr class="row-exact">
+            <td>LapEigvals — supervised (logistic probe)</td>
+            <td>Llama-3.1-8B ✓</td>
+            <td class="auc">87.2%</td>
+            <td><span class="tag tag-wb">White-box</span></td>
+            <td><span class="tag tag-sup">80% labeled</span></td>
+            <td>Phase 7 re-run · arXiv 2502.17598</td>
+          </tr>
+          <tr class="row-approx">
+            <td>Semantic Entropy (NLI, K=10)</td>
+            <td>Mistral-7B-Instruct-v0.3 ⚠️</td>
+            <td class="auc">75.9%</td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>K=10</td>
+            <td>arXiv 2502.03799 · Table 3</td>
+          </tr>
+          <tr class="row-approx">
+            <td>Semantic Entropy (NLI, K=10)</td>
+            <td>Llama-3.2-3B-Instruct ⚠️</td>
+            <td class="auc">76.5%</td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>K=10</td>
+            <td>arXiv 2502.03799 · Table 3</td>
+          </tr>
+          <tr class="row-approx">
+            <td>Self-Consistency (K=8)</td>
+            <td>Reasoning models avg. ⚠️⚠️</td>
+            <td class="auc">70.7%</td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>K=8</td>
+            <td>arXiv 2603.19118</td>
+          </tr>
+          <tr class="row-approx">
+            <td>EDIS (entropy dynamics, 1-pass)</td>
+            <td>Qwen2.5-Math-1.5B ⚠️⚠️</td>
+            <td class="auc">80.4%</td>
+            <td><span class="tag tag-gb">Gray-box</span></td>
+            <td>1-pass</td>
+            <td>arXiv 2602.01288 (agg. 4 datasets)</td>
+          </tr>
+          <tr class="row-compute">
+            <td>Semantic Entropy (NLI, K=10)</td>
+            <td>Llama-3.1-8B</td>
+            <td><span class="compute-badge">COMPUTE P1</span></td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>K=10</td>
+            <td>Notebook · Phase 7 cache reused</td>
+          </tr>
+          <tr class="row-compute">
+            <td>Self-Consistency (K=10)</td>
+            <td>Llama-3.1-8B</td>
+            <td><span class="compute-badge">COMPUTE P1</span></td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>K=10</td>
+            <td>Notebook · Phase 7 cache reused</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        ⚠️ Different model (same size class, not same checkpoint).&nbsp;
+        ⚠️⚠️ Aggregate AUROC over {GSM8K + MATH + AMC23 + AIME24} — not GSM8K alone, and different model.<br>
+        <strong>LapEigvals</strong> numbers are the only published competitor on the <em>exact</em> same model+dataset. Our 76.0% beats LapEigvals unsupervised (72.0%) using <em>less</em> model access (gray-box vs white-box).
+      </div>
+    </div>
+
+    <hr class="section-sep">
+
+    <!-- MATH-500 -->
+    <div class="subsection">
+      <div class="subsection-title">MATH-500 &nbsp;·&nbsp; Qwen2.5-Math-7B-Instruct &nbsp;·&nbsp; T=1.0 &nbsp;·&nbsp; N=500</div>
+      <table>
+        <thead>
+          <tr><th>Method</th><th>Model</th><th>AUROC</th><th>Access</th><th>Passes</th><th>Source</th></tr>
+        </thead>
+        <tbody>
+          <tr class="row-ours">
+            <td><strong>Nadler Spectral Fusion (ours)</strong></td>
+            <td>Qwen2.5-Math-7B ★</td>
+            <td class="auc">90.0%</td>
+            <td><span class="tag tag-gb">Gray-box</span></td>
+            <td>1-pass</td>
+            <td>Phase 5</td>
+          </tr>
+          <tr class="row-ours">
+            <td><strong>Nadler Spectral Fusion (ours)</strong></td>
+            <td>Qwen-1.5B</td>
+            <td class="auc">88.3%</td>
+            <td><span class="tag tag-gb">Gray-box</span></td>
+            <td>1-pass</td>
+            <td>Phase 4</td>
+          </tr>
+          <tr class="row-approx">
+            <td>EDIS (entropy dynamics, 1-pass)</td>
+            <td>Qwen2.5-Math-1.5B ⚠️⚠️</td>
+            <td class="auc">80.4%</td>
+            <td><span class="tag tag-gb">Gray-box</span></td>
+            <td>1-pass</td>
+            <td>arXiv 2602.01288 (agg. 4 datasets)</td>
+          </tr>
+          <tr class="row-compute">
+            <td>Semantic Entropy (NLI, K=10)</td>
+            <td>Qwen2.5-Math-7B</td>
+            <td><span class="compute-badge">COMPUTE P4</span></td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>K=10</td>
+            <td>Notebook · Phase 5 cache reused</td>
+          </tr>
+          <tr class="row-compute">
+            <td>Self-Consistency (K=10)</td>
+            <td>Qwen2.5-Math-7B</td>
+            <td><span class="compute-badge">COMPUTE P4</span></td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>K=10</td>
+            <td>Notebook · Phase 5 cache reused</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        <strong>No published per-dataset MATH-500 AUROC exists for any comparable model.</strong><br>
+        Our 90.0% on Qwen2.5-Math-7B is likely the first published AUROC for this exact setup. EDIS reports an aggregate across 4 math datasets on a smaller (1.5B) model only.
+      </div>
+    </div>
+
+  </div><!-- /domain-body -->
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     DOMAIN 2: SCIENCE
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="domain">
+  <div class="domain-header domain-science">
+    <span>🔬</span> Domain 2 — Science (GPQA Diamond)
+  </div>
+  <div class="domain-body">
+    <div class="subsection">
+      <div class="subsection-title">GPQA Diamond &nbsp;·&nbsp; Multiple models &nbsp;·&nbsp; T=1.0</div>
+      <table>
+        <thead>
+          <tr><th>Method</th><th>Model</th><th>AUROC</th><th>Access</th><th>Passes</th><th>Source</th></tr>
+        </thead>
+        <tbody>
+          <tr class="row-ours">
+            <td><strong>Nadler Spectral Fusion (ours)</strong></td>
+            <td>Qwen2.5-72B-AWQ</td>
+            <td class="auc">69.0%</td>
+            <td><span class="tag tag-gb">Gray-box</span></td>
+            <td>1-pass</td>
+            <td>Phase 8</td>
+          </tr>
+          <tr class="row-ours">
+            <td><strong>Nadler Spectral Fusion (ours)</strong></td>
+            <td>Mistral-7B-Instruct</td>
+            <td class="auc">65.4%</td>
+            <td><span class="tag tag-gb">Gray-box</span></td>
+            <td>1-pass</td>
+            <td>Phase 4</td>
+          </tr>
+          <tr class="row-approx">
+            <td>Verbalized Confidence (K=1)</td>
+            <td>Reasoning models avg. ⚠️⚠️</td>
+            <td class="auc">74.6%</td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>1-pass</td>
+            <td>arXiv 2603.19118</td>
+          </tr>
+          <tr class="row-approx">
+            <td>Self-Consistency (K=8)</td>
+            <td>Reasoning models avg. ⚠️⚠️</td>
+            <td class="auc">75.4%</td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>K=8</td>
+            <td>arXiv 2603.19118</td>
+          </tr>
+          <tr class="row-approx">
+            <td>Self-Consistency + VC (K=8)</td>
+            <td>Reasoning models avg. ⚠️⚠️</td>
+            <td class="auc">82.1%</td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>K=8</td>
+            <td>arXiv 2603.19118</td>
+          </tr>
+          <tr class="row-compute">
+            <td>Verbalized Confidence (K=1)</td>
+            <td>Qwen2.5-7B-Instruct</td>
+            <td><span class="compute-badge">COMPUTE P2</span></td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>1-pass</td>
+            <td>Notebook · fresh inference</td>
+          </tr>
+          <tr class="row-compute">
+            <td>Self-Consistency (K=10)</td>
+            <td>Qwen2.5-7B-Instruct</td>
+            <td><span class="compute-badge">COMPUTE P2</span></td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>K=10</td>
+            <td>Notebook · fresh inference</td>
+          </tr>
+          <tr class="row-compute">
+            <td>Semantic Entropy (NLI, K=10)</td>
+            <td>Qwen2.5-7B-Instruct</td>
+            <td><span class="compute-badge">COMPUTE P2</span></td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>K=10</td>
+            <td>Notebook · fresh inference</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        ⚠️⚠️ Published numbers averaged over gpt-oss-20b, Qwen3-30B-A3B, DeepSeek-R1-8B — all reasoning-optimised models <strong>4–10× larger / stronger</strong> than our Qwen-7B and Mistral-7B.<br>
+        There are <strong>no published AUROC numbers for non-reasoning models</strong> on GPQA Diamond. Our compute cells will fill this gap on our exact models.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     DOMAIN 3: RAG
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="domain">
+  <div class="domain-header domain-rag">
+    <span>📄</span> Domain 3 — RAG Citation Grounding (L-CiteEval)
+  </div>
+  <div class="domain-body">
+
+    <div class="subsection">
+      <div class="subsection-title">Our results — Nadler Spectral Fusion · all 16 cells (4 models × 4 datasets)</div>
+      <div class="rag-grid">
+        <table class="rag-table">
+          <thead>
+            <tr>
+              <th style="text-align:left">Model</th>
+              <th>HotpotQA<br><span style="font-weight:400;color:#90a4ae">(N=240)</span></th>
+              <th>2WikiMultiHopQA<br><span style="font-weight:400;color:#90a4ae">(N=240)</span></th>
+              <th>NaturalQuestions<br><span style="font-weight:400;color:#90a4ae">(N=160)</span></th>
+              <th>NarrativeQA<br><span style="font-weight:400;color:#90a4ae">(N=240)</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;text-align:left;padding-left:10px">Llama-3.1-8B</td>
+              <td class="cell-best">87.7%</td>
+              <td class="cell-weak">64.5%</td>
+              <td class="cell-ours">70.3%</td>
+              <td class="cell-weak">63.2%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;text-align:left;padding-left:10px">Qwen2.5-7B</td>
+              <td class="cell-ours">79.5%</td>
+              <td class="cell-ours">80.5%</td>
+              <td class="cell-ours">75.3%</td>
+              <td class="cell-ours">70.0%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;text-align:left;padding-left:10px">Qwen2.5-72B-AWQ</td>
+              <td class="cell-ours">79.4%</td>
+              <td class="cell-ours">73.4%</td>
+              <td class="cell-ours">71.8%</td>
+              <td class="cell-ours">72.2%</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;text-align:left;padding-left:10px">Mistral-Small-24B</td>
+              <td class="cell-weak">67.3%</td>
+              <td class="cell-ours">74.2%</td>
+              <td class="cell-ours">74.0%</td>
+              <td class="cell-weak">66.1%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note" style="margin-bottom:14px">
+        Dark green = overall best (87.7%). Light green ≥ 70%. Gray &lt; 70%.<br>
+        <strong>Qwen2.5-7B is the most consistent</strong> model (all 4 cells ≥ 70%). Median across all 16 cells ≈ 72.8%.
+      </div>
+    </div>
+
+    <hr class="section-sep">
+
+    <!-- Per-dataset competitor tables -->
+    <div class="subsection">
+      <div class="subsection-title">HotpotQA — Competitors</div>
+      <table>
+        <thead>
+          <tr><th>Method</th><th>Model</th><th>AUROC</th><th>Access</th><th>Passes</th><th>Task</th><th>Source</th></tr>
+        </thead>
+        <tbody>
+          <tr class="row-ours">
+            <td><strong>Nadler (ours)</strong></td>
+            <td>Llama-3.1-8B</td>
+            <td class="auc">87.7%</td>
+            <td><span class="tag tag-gb">Gray-box</span></td>
+            <td>1-pass</td>
+            <td>L-CiteEval</td>
+            <td>Phase 10</td>
+          </tr>
+          <tr class="row-ours">
+            <td><strong>Nadler (ours)</strong></td>
+            <td>Qwen2.5-7B</td>
+            <td class="auc">79.5%</td>
+            <td><span class="tag tag-gb">Gray-box</span></td>
+            <td>1-pass</td>
+            <td>L-CiteEval</td>
+            <td>Phase 10</td>
+          </tr>
+          <tr class="row-diff">
+            <td>LOS-Net — supervised</td>
+            <td>Mistral-7B</td>
+            <td class="auc">72.9%</td>
+            <td><span class="tag tag-gb">Gray-box</span></td>
+            <td><span class="tag tag-sup">supervised</span></td>
+            <td style="color:#b71c1c"><strong>Std HotpotQA ⚠️</strong></td>
+            <td>arXiv 2503.14043</td>
+          </tr>
+          <tr class="row-compute">
+            <td>SelfCheckGPT NLI (K=5)</td>
+            <td>Qwen2.5-7B</td>
+            <td><span class="compute-badge">COMPUTE P3</span></td>
+            <td><span class="tag tag-bb">Black-box</span></td>
+            <td>K=5</td>
+            <td>L-CiteEval</td>
+            <td>Notebook · Phase 10 cache reused</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        ⚠️ LOS-Net was trained and evaluated on <em>standard</em> HotpotQA (plain QA, no citation markers). L-CiteEval grades whether citation-marked claims are grounded — a harder and different task. LOS-Net's 72.9% is included as the closest available reference, <strong>not a direct comparison.</strong>
+      </div>
+    </div>
+
+    <hr class="section-sep">
+
+    <div class="subsection">
+      <div class="subsection-title">2WikiMultiHopQA, NaturalQuestions, NarrativeQA — Competitors</div>
+      <table>
+        <thead>
+          <tr><th>Dataset</th><th>Method</th><th>Model</th><th>AUROC</th><th>Source</th></tr>
+        </thead>
+        <tbody>
+          <tr class="row-ours">
+            <td>2Wiki</td>
+            <td><strong>Nadler (ours)</strong></td>
+            <td>Qwen2.5-7B</td>
+            <td class="auc">80.5%</td>
+            <td>Phase 10</td>
+          </tr>
+          <tr>
+            <td>2Wiki</td>
+            <td colspan="2" style="color:#9e9e9e;font-style:italic">No published competitor on L-CiteEval framing</td>
+            <td><span class="compute-badge">COMPUTE P3</span></td>
+            <td>SelfCheckGPT in notebook</td>
+          </tr>
+          <tr class="row-ours">
+            <td>NQ</td>
+            <td><strong>Nadler (ours)</strong></td>
+            <td>Qwen2.5-7B</td>
+            <td class="auc">75.3%</td>
+            <td>Phase 10</td>
+          </tr>
+          <tr>
+            <td>NQ</td>
+            <td colspan="2" style="color:#9e9e9e;font-style:italic">No published competitor on L-CiteEval framing</td>
+            <td><span class="compute-badge">COMPUTE P3</span></td>
+            <td>SelfCheckGPT in notebook</td>
+          </tr>
+          <tr class="row-ours">
+            <td>NarrativeQA</td>
+            <td><strong>Nadler (ours)</strong></td>
+            <td>Qwen2.5-7B</td>
+            <td class="auc">70.0%</td>
+            <td>Phase 10</td>
+          </tr>
+          <tr>
+            <td>NarrativeQA</td>
+            <td colspan="2" style="color:#9e9e9e;font-style:italic">No published competitor on L-CiteEval framing</td>
+            <td><span class="compute-badge">COMPUTE P3</span></td>
+            <td>SelfCheckGPT in notebook</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        L-CiteEval citation grounding is a <strong>novel evaluation framing</strong> — no other published paper has reported AUROC on these datasets under citation-grounding labels. All three datasets need SelfCheckGPT computed from scratch.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     COMPUTE QUEUE
+════════════════════════════════════════════════════════════════════════════ -->
+<div class="domain" style="border-radius:10px;overflow:hidden">
+  <div class="domain-header" style="background:#37474f">
+    <span>⚙️</span> Notebook Compute Queue — <code>Spectral_Analysis_Phase12_Benchmarking.ipynb</code>
+  </div>
+  <div class="domain-body">
+    <p style="font-size:13px;color:#546e7a;margin-bottom:14px">
+      Ordered by priority. P1 is cheapest (reuses Phase 7 cache — no model reload). P4 is optional.
+    </p>
+    <div class="priorities">
+
+      <div class="priority-card p1">
+        <h4>Priority 1 — Cheapest</h4>
+        <div class="what">GSM8K / Llama-3.1-8B</div>
+        <div class="why">Phase 7 cache exists (1,319 samples). Only need K=10 extra generations on N=200 subset.</div>
+        <div><span class="compute-badge">SE NLI K=10</span> &nbsp;<span class="compute-badge">SC K=10</span></div>
+        <div class="effort">Effort: Medium · ~1h on A100</div>
+      </div>
+
+      <div class="priority-card p2">
+        <h4>Priority 2 — Fresh inference</h4>
+        <div class="what">GPQA Diamond / Qwen2.5-7B</div>
+        <div class="why">No published competitor for non-reasoning 7B models on GPQA. Run fresh inference + K=10 sampling.</div>
+        <div><span class="compute-badge">VC K=1</span> &nbsp;<span class="compute-badge">SC K=10</span> &nbsp;<span class="compute-badge">SE NLI K=10</span></div>
+        <div class="effort">Effort: High · ~2h on A100</div>
+      </div>
+
+      <div class="priority-card p3">
+        <h4>Priority 3 — RAG gap</h4>
+        <div class="what">L-CiteEval HotpotQA / Qwen2.5-7B</div>
+        <div class="why">No published AUROC competitor exists on this task. Phase 10 cache exists — only need K=5 extra samples per question.</div>
+        <div><span class="compute-badge">SelfCheckGPT K=5</span></div>
+        <div class="effort">Effort: Medium · ~1.5h on A100</div>
+      </div>
+
+      <div class="priority-card p4">
+        <h4>Priority 4 — Optional</h4>
+        <div class="what">MATH-500 / Qwen2.5-Math-7B</div>
+        <div class="why">Likely first-ever per-dataset MATH-500 AUROC for any published method. Phase 5 cache exists.</div>
+        <div><span class="compute-badge">SE NLI K=10</span> &nbsp;<span class="compute-badge">SC K=10</span></div>
+        <div class="effort">Effort: High · ~2h on A100</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

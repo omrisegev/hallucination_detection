@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
 **Date**: 2026-05-18
-**Last updated**: Step 92 complete — 16-point advisor feedback addressed; PPTX revised with real Drive plots, formula panel, corrected LapEigvals (white-box), LOS-Net framing, Phi definitions
+**Last updated**: Step 93 complete — Phase 12 benchmarking environment set up; `baselines.py` extended with official SE/SC/SelfCheck/VC; `Spectral_Analysis_Phase12_Benchmarking.ipynb` ready to run on Colab
 
 ---
 
@@ -187,16 +187,51 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 
 ---
 
+## Current experiments: Phase 12 — Benchmarking
+
+### Phase 12 — Systematic SOTA Comparison (NEW, Step 93)
+
+**Notebook**: `Spectral_Analysis_Phase12_Benchmarking.ipynb`
+**Status**: Ready to run — all code implemented and smoke-tested locally
+
+**Competitors implemented in `spectral_utils/baselines.py`**:
+
+| Method | Access | Compute | Function |
+|--------|--------|---------|---------|
+| Official Semantic Entropy | Gray-box + sampling | K=10 + NLI | `official_semantic_entropy()` |
+| Self-Consistency | Black-box | K=10 | `self_consistency_score()` |
+| SelfCheckGPT (NLI) | Black-box | K=5 + NLI | `selfcheck_nli_score()` |
+| Verbalized Confidence | Black-box | 1-pass | `parse_verbalized_confidence()` |
+
+**Reference numbers** (paper, not re-run):
+
+| Method | Paper result | Task |
+|--------|-------------|------|
+| LapEigvals unsup (Phase 7) | 72.0% GSM8K | already re-run in our Phase 7 |
+| LapEigvals supervised | 87.2% GSM8K | different supervision level |
+| LOS-Net (AAAI 2026) | 72.92% | std HotpotQA (different task) |
+
+**Run order**:
+1. **Normal runtime**: Load NLI model, run Math + GPQA sections
+2. **Second session or fresh runtime**: Run RAG section (Llama-8B)
+3. **Analysis**: Section 5 — master table + save `Research_Phase12_Comparison_Results.md`
+
+---
+
 ## Immediate next actions
 
-1. **Run Phase 11a inference** — mistral24b (normal runtime) + qwen72b (fresh runtime with stub cell)
-2. **Run Phase 11a analysis** — Cells 12–22 after all 8 raw pkl files exist; saves `phase11a_detector_heatmap.png` + `phase11a_rho.png` to Drive
-3. **Run pilots in parallel**:
+1. **Run Phase 12 benchmarking notebook** — `Spectral_Analysis_Phase12_Benchmarking.ipynb`
+   - Section 2 (Math): loads Phase 7 cache, K=10 sampling on N=200 GSM8K
+   - Section 3 (GPQA): fresh Qwen-7B inference + K=10 sampling
+   - Section 4 (RAG): loads Phase 10 cache, K=5 SelfCheckGPT
+2. **Run Phase 11a inference** — mistral24b (normal runtime) + qwen72b (fresh runtime with stub cell)
+3. **Run Phase 11a analysis** — Cells 12–22 after all 8 raw pkl files exist; saves `phase11a_detector_heatmap.png` + `phase11a_rho.png` to Drive
+4. **Run pilots in parallel**:
    - `Pilot_Phase11b_HumanEval.ipynb` — any runtime
    - `Pilot_Phase11b_ALFWorld.ipynb` — any runtime
-4. **After pilots**: if GO → build full Phase 11b notebooks (same structure, N=164 HumanEval / ~100 ALFWorld tasks, multi-model)
-5. **Update Research_Directions.md** Direction 4 (Agentic) with Phase 11a headline numbers once analysis is complete
-6. **Add savefig calls to Meta Analysis notebook** — plots exist as Colab outputs but are not persistently saved; add `fig.savefig(os.path.join(PLOT_DIR, '...'))` before each `plt.show()` and rerun
+5. **After pilots**: if GO → build full Phase 11b notebooks (same structure, N=164 HumanEval / ~100 ALFWorld tasks, multi-model)
+6. **Update Research_Directions.md** Direction 4 (Agentic) with Phase 11a headline numbers once analysis is complete
+7. **Add savefig calls to Meta Analysis notebook** — plots exist as Colab outputs but are not persistently saved; add `fig.savefig(os.path.join(PLOT_DIR, '...'))` before each `plt.show()` and rerun
 
 ---
 

@@ -66,7 +66,7 @@ def extract_model_answer_gsm8k(text: str):
     return m.group(1).strip() if m else None
 
 
-def _normalize_gsm8k(s) -> float | str | None:
+def normalize_gsm8k(s) -> float | str | None:
     if s is None:
         return None
     s = str(s).strip()
@@ -79,8 +79,8 @@ def _normalize_gsm8k(s) -> float | str | None:
 
 def is_correct_gsm8k(gen: str, gold_answer: str) -> bool:
     """Exact-match grading for GSM8K (numeric comparison with 1e-6 tolerance)."""
-    gold_norm  = _normalize_gsm8k(extract_gold_gsm8k(gold_answer))
-    model_norm = _normalize_gsm8k(extract_model_answer_gsm8k(gen))
+    gold_norm  = normalize_gsm8k(extract_gold_gsm8k(gold_answer))
+    model_norm = normalize_gsm8k(extract_model_answer_gsm8k(gen))
     if model_norm is None:
         return False
     if isinstance(gold_norm, float) and isinstance(model_norm, float):

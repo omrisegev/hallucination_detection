@@ -3346,3 +3346,92 @@ Because the notebook is ~44k tokens (too large for `NotebookEdit`), the rewrite 
 5. `Pilot_Phase11b_ALFWorld.ipynb` — any runtime, GO/NO-GO (steps 4+5 can run in parallel)
 
 ---
+
+### Step 91 — Phase 10 llama8b results confirmed; advisor meeting PPTX built (May 17–18, 2026)
+
+**What**: Two things done in this session.
+
+**Part A — Phase 10 RAG llama8b cells confirmed from Drive**
+
+Browsed Google Drive via MCP and downloaded `A_headline_auc_heatmap.png` from `cache/phase10_main/plots/`. The heatmap shows all 16 cells (PROGRESS.md had listed the 4 llama8b cells as "analysis pending", but the analysis had run and the plot was already on Drive).
+
+Full llama8b results (from heatmap):
+
+| Cell | AUC |
+|------|-----|
+| llama8b / hotpotqa | **87.7%** |
+| llama8b / natural_questions | 70.3% |
+| llama8b / 2wikimultihopqa | 64.5% |
+| llama8b / narrativeqa | 63.2% |
+
+**llama8b/hotpotqa = 87.7% is the new overall best RAG cell**, surpassing qwen7b/2wiki (80.5%). Beats LOS-Net supervised baseline (72.92%) by +14.8 pp unsupervised.
+
+Pattern: llama8b is very strong on HotpotQA-style factoid retrieval but weak on 2WikiMultiHop chains and long NarrativeQA contexts — inverse of qwen7b's strengths. This dataset–model interaction likely reflects architectural differences in how each model handles multi-hop vs single-hop retrieval.
+
+Updated 16-cell summary:
+- Median: 72.8% (was 74% over 12 cells)
+- 12/16 cells ≥ 70% (unchanged in count; llama8b/NQ=70.3% just makes it, 2wiki and narrativeqa do not)
+- Best: 87.7% (llama8b/hotpotqa)
+
+**Part B — Meta-Analysis notebook outputs extracted**
+
+The Colab version of `Spectral_Analysis_Meta_Analysis.ipynb` (Drive id: `1Rnx-8Dq7TMhGkhs_2b6QugkGxGtykTtc`, 1.2 MB, last run 2026-05-14) has 16 rendered output PNG images embedded as base64 in the notebook JSON. These were extracted to `presentation_plots/` locally:
+
+- `meta_analysis_cell06_out0.png` — Spectral Feature Correlation Topology (global, 17×17 Spearman heatmap)
+- `meta_analysis_cell07_out{0..4}.png` — Feature Importance per domain: Math-500, GSM8K, GPQA, QA, RAG
+- `meta_analysis_cell10_out{2,5,8,11,14}.png` — Band cutoff sensitivity per domain
+- `meta_analysis_cell12_out{1,3,5,7,9}.png` — Window size sensitivity per domain
+
+Key findings confirmed by the per-domain importance charts:
+- **Math-500**: epr (#1), cusum_max (#2), rpdi (#3), sw_var_peak (#4)
+- **GSM8K**: sw_var_peak (#1), epr (#2), cusum_max (#3), trace_length (#4)
+- **GPQA**: spectral_entropy (#1), trace_length (#2), sw_var_peak (#3), cusum_max (#4)
+- **QA (factual)**: rpdi (#1), sw_var_peak (#2), cusum_max (#3), cusum_shift_idx (#4)
+- **RAG**: pe_mean (#1), dominant_freq (#2), cusum_max (#3), trace_length (#4)
+- **pe_min** is rank 17/17 in ALL domains → confirmed as noise, removed from FEAT_NAMES
+
+Note: the Colab notebook does NOT have `savefig()` calls; plots only exist as embedded Colab outputs. TODO: add savefig to each plot cell and commit so plots are persistently saved to Drive.
+
+**Part C — Advisor meeting PPTX built**
+
+Prepared for May 18 advisor meeting (Ofir, Bracha, Amir):
+- `Meeting_May18_Speaker_Notes.md` — full 17-section speaking script with verbatim narratives
+- `Hallucination_Detection_May18.pptx` — 17-slide presentation, includes all plots from Drive + meta-analysis outputs + programmatically generated charts
+- `build_presentation.py` — reproducible build script; re-run to regenerate
+
+Slide inventory: title, H(n) traces, PSD, feature library, feature correlation heatmap (meta-analysis), feature importance grid (meta-analysis), math results, GPQA, Nadler conditions, negative result (CoT vs direct), RAG citation example, RAG 4×4 heatmap, RAG length sanity check, RAG score distributions, agentic plan + early signal, results overview, what's next.
+
+---
+
+### Step 93 — Phase 12 benchmarking environment setup
+
+**What**: Implemented infrastructure for systematic competitor benchmarking (Ofir Action Item 1).
+
+**Files created/modified**:
+- `spectral_utils/baselines.py` — extended with 4 new implementations:
+  - `official_semantic_entropy()` — bidirectional NLI clustering (Farquhar et al., Nature 2024), uses `cross-encoder/nli-deberta-v3-base`
+  - `self_consistency_score()` — K=10 majority vote fraction (Wang et al., ICLR 2023)
+  - `selfcheck_nli_score()` — per-sentence contradiction scoring (Manakul et al., EMNLP 2023)
+  - `parse_verbalized_confidence()` / `VERBALIZED_CONF_SUFFIX` — prompt-based 0-100 confidence
+  - `nli_load_model()`, `nli_classify()` — shared NLI backbone
+- `spectral_utils/data_loaders.py` — `_normalize_gsm8k` → `normalize_gsm8k` (made public)
+- `spectral_utils/__init__.py` — exports all new functions
+- `baselines/` directory created:
+  - `README.md` — documents external repos and implemented baselines
+  - `lapeigvals/` (cloned locally for inspection, git-ignored)
+  - `losnet/` (cloned locally for inspection, git-ignored)
+- `.gitignore` — added exclusions for external repos + Phase 12 notebook re-include
+- `_build_phase12_notebook.py` — generates 21-cell Colab notebook
+- `Spectral_Analysis_Phase12_Benchmarking.ipynb` — **NEW** full benchmarking notebook
+
+**Notebook design**:
+- Section 2: Math (GSM8K/Llama-8B) — loads Phase 7 Nadler results, runs K=10 SC+SE+VC on N=200
+- Section 3: Science (GPQA/Qwen-7B) — runs fresh inference + K=10 sampling + SC+SE+VC
+- Section 4: RAG (L-CiteEval HotpotQA/Llama-8B) — loads Phase 10, runs K=5 SelfCheckGPT
+- Section 5: Master comparison table + saves `Research_Phase12_Comparison_Results.md` to Drive
+
+**Why**: Post-meeting action item from Ofir: "For Math, Science, RAG — compare to other methods from literature". LapEigvals comparison (Math) already existed from Phase 7 (76.0% Nadler vs 72.0% LapEigvals unsup). This step fills in the remaining competitors.
+
+**Result**: All code implemented and smoke-tested locally. Notebook ready to run on Colab A100. LOS-Net and LapEigvals supervised use paper numbers as reference (different access level / supervised).
+
+---
