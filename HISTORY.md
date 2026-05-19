@@ -3435,3 +3435,39 @@ Slide inventory: title, H(n) traces, PSD, feature library, feature correlation h
 **Result**: All code implemented and smoke-tested locally. Notebook ready to run on Colab A100. LOS-Net and LapEigvals supervised use paper numbers as reference (different access level / supervised).
 
 ---
+
+### Step 94 — Consolidated Results Notebook: full 16-feature re-analysis on all cached data
+
+**What**: Built `Spectral_Analysis_Consolidated_Results.ipynb` (37 cells) — a GPU-free notebook
+that loads all Drive PKLs from every phase, re-extracts the full 16-feature set (with z-score
+normalization), runs Nadler fusion per domain/model, and generates a comprehensive set of
+publication-quality plots.
+
+**Why**: All phases 4/5/7/8/10 were run with a 12-feature set (before cusum_max, pe_mean,
+hurst_exponent were added). Z-score normalization was not applied in phases 4/5/7. This notebook
+re-runs all analysis consistently so the reported numbers reflect the full mature methodology.
+No GPU is needed — all raw entropy trajectories are already on Drive.
+
+**Scope**:
+- MATH-500: 4 models (Qwen-Math-7B, Qwen-Math-1.5B, DeepSeek-Math-7B, R1-Llama-8B) × T=1.0/1.5
+- GSM8K: Llama-3.1-8B T=1.0
+- GPQA Diamond: 5 models (Mistral-7B, Qwen-7B × T=1.0/1.5, R1-Llama-8B, Llama-3.1-8B, Qwen-72B-AWQ)
+- RAG L-CiteEval: 4 models × 4 datasets = 16 cells (with adaptive window)
+- Factual QA: Phase 9 CoT (negative result)
+- Global: Spearman correlation heatmap, RF importance per domain, Nadler weights, AUC comparison
+
+**Plots saved to Drive** (~30–40 PNGs, `consolidated_results/plots/`):
+per-domain feature AUC bars, Nadler summary bars, H(n) trajectory examples,
+average PSD (correct vs incorrect), feature distribution violins, RAG 4×4 heatmap,
+global correlation heatmap, global RF importance heatmap, global AUC comparison.
+
+**Output files**: `consolidated_results/results_summary.csv` (one row per cell) +
+`consolidated_results/results_all.pkl` (full nested dict).
+
+**Files**:
+- `Spectral_Analysis_Consolidated_Results.ipynb` — NEW, 37 cells
+- `_build_consolidated_notebook.py` — build script
+
+**Result**: Notebook generated (44,889 bytes, JSON valid). Ready to run on CPU-only Colab runtime.
+
+---

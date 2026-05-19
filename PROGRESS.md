@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
 **Date**: 2026-05-18
-**Last updated**: Step 93 complete — Phase 12 benchmarking environment set up; `baselines.py` extended with official SE/SC/SelfCheck/VC; `Spectral_Analysis_Phase12_Benchmarking.ipynb` ready to run on Colab
+**Last updated**: Step 94 complete — Consolidated Results notebook built; GPU-free re-analysis of all phases with full 16-feature set; `Spectral_Analysis_Consolidated_Results.ipynb` ready to run on CPU-only Colab
 
 ---
 
@@ -218,20 +218,43 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 
 ---
 
+## Consolidated Results Notebook (Step 94 — NEW PRIORITY)
+
+**Notebook**: `Spectral_Analysis_Consolidated_Results.ipynb` (37 cells)
+**Status**: Ready to run — CPU-only, no GPU required
+**Purpose**: Re-analyze all phases with full 16-feature set + z-score normalization; generate
+all plots; produce `consolidated_results/results_summary.csv` with updated official numbers.
+
+**Run order** (all on CPU-only Colab runtime):
+1. Cells 1–5: Setup + Drive mount + loader + helpers (fast)
+2. Cells 6–8: MATH-500 (4 models, ~5 min)
+3. Cells 9–11: GSM8K (1 model, ~2 min)
+4. Cells 12–14: GPQA Diamond (5 models, ~5 min)
+5. Cells 15–18: RAG (16 cells feature extraction — slow ~10–15 min CPU; three-branch reload)
+6. Cells 19–20: Factual QA negative result (~1 min)
+7. Cells 21–24: Global analysis (RF importance, correlation, weights) (~5 min)
+8. Cells 25–26: Summary + save CSV
+
+**Expected outputs**: ~30–40 PNGs in `consolidated_results/plots/` + `results_summary.csv`
+
+---
+
 ## Immediate next actions
 
-1. **Run Phase 12 benchmarking notebook** — `Spectral_Analysis_Phase12_Benchmarking.ipynb`
+1. **Run consolidated notebook** — `Spectral_Analysis_Consolidated_Results.ipynb`
+   - CPU-only runtime (no GPU needed)
+   - Produces updated official numbers with 16 features
+2. **Run Phase 12 benchmarking notebook** — `Spectral_Analysis_Phase12_Benchmarking.ipynb`
    - Section 2 (Math): loads Phase 7 cache, K=10 sampling on N=200 GSM8K
    - Section 3 (GPQA): fresh Qwen-7B inference + K=10 sampling
    - Section 4 (RAG): loads Phase 10 cache, K=5 SelfCheckGPT
-2. **Run Phase 11a inference** — mistral24b (normal runtime) + qwen72b (fresh runtime with stub cell)
-3. **Run Phase 11a analysis** — Cells 12–22 after all 8 raw pkl files exist; saves `phase11a_detector_heatmap.png` + `phase11a_rho.png` to Drive
-4. **Run pilots in parallel**:
+3. **Run Phase 11a inference** — mistral24b (normal runtime) + qwen72b (fresh runtime with stub cell)
+4. **Run Phase 11a analysis** — Cells 12–22 after all 8 raw pkl files exist
+5. **Run pilots in parallel**:
    - `Pilot_Phase11b_HumanEval.ipynb` — any runtime
    - `Pilot_Phase11b_ALFWorld.ipynb` — any runtime
-5. **After pilots**: if GO → build full Phase 11b notebooks (same structure, N=164 HumanEval / ~100 ALFWorld tasks, multi-model)
-6. **Update Research_Directions.md** Direction 4 (Agentic) with Phase 11a headline numbers once analysis is complete
-7. **Add savefig calls to Meta Analysis notebook** — plots exist as Colab outputs but are not persistently saved; add `fig.savefig(os.path.join(PLOT_DIR, '...'))` before each `plt.show()` and rerun
+6. **After pilots**: if GO → build full Phase 11b notebooks
+7. **Update Research_Directions.md** Direction 4 with Phase 11a headline numbers once analysis is complete
 
 ---
 
