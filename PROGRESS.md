@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
-**Date**: 2026-05-18
-**Last updated**: Step 94 complete — Consolidated Results notebook built; GPU-free re-analysis of all phases with full 16-feature set; `Spectral_Analysis_Consolidated_Results.ipynb` ready to run on CPU-only Colab
+**Date**: 2026-05-20
+**Last updated**: Step 95 complete — Consolidated Results notebook fixed (4 root causes); ready to run on Colab
 
 ---
 
@@ -218,14 +218,23 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 
 ---
 
-## Consolidated Results Notebook (Step 94 — NEW PRIORITY)
+## Consolidated Results Notebook (Step 95 — READY TO RUN)
 
-**Notebook**: `Spectral_Analysis_Consolidated_Results.ipynb` (37 cells)
-**Status**: Ready to run — CPU-only, no GPU required
+**Notebook**: `Spectral_Analysis_Consolidated_Results.ipynb` (37 cells, 46,354 bytes)
+**Status**: Fixed and pushed — open fresh from GitHub in Colab (branch: `feature/meta-agentic-integration`)
 **Purpose**: Re-analyze all phases with full 16-feature set + z-score normalization; generate
 all plots; produce `consolidated_results/results_summary.csv` with updated official numbers.
 
-**Run order** (all on CPU-only Colab runtime):
+**4 bugs fixed (Step 95)**:
+1. `normalize=True` removed from `best_nadler_on` call (was causing all Nadler results to be None)
+2. `if f is None: continue` guard added in `extract_feats` (short-trace crash fix)
+3. Stale all-None pkls now detected and force-recomputed (`_valid_res` + `_skip` pattern)
+4. Same None guard added in Global analysis pooling loop
+
+**IMPORTANT**: Stale pkls with all-None results exist on Drive from previous bad runs. The notebook
+will auto-detect them and recompute — do NOT set FORCE=True manually.
+
+**Run order** (CPU-only Colab runtime):
 1. Cells 1–5: Setup + Drive mount + loader + helpers (fast)
 2. Cells 6–8: MATH-500 (4 models, ~5 min)
 3. Cells 9–11: GSM8K (1 model, ~2 min)
@@ -243,6 +252,7 @@ all plots; produce `consolidated_results/results_summary.csv` with updated offic
 
 1. **Run consolidated notebook** — `Spectral_Analysis_Consolidated_Results.ipynb`
    - CPU-only runtime (no GPU needed)
+   - Open from GitHub: File → Open notebook → GitHub → `feature/meta-agentic-integration`
    - Produces updated official numbers with 16 features
 2. **Run Phase 12 benchmarking notebook** — `Spectral_Analysis_Phase12_Benchmarking.ipynb`
    - Section 2 (Math): loads Phase 7 cache, K=10 sampling on N=200 GSM8K

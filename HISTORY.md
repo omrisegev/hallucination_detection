@@ -3468,6 +3468,30 @@ global correlation heatmap, global RF importance heatmap, global AUC comparison.
 - `Spectral_Analysis_Consolidated_Results.ipynb` — NEW, 37 cells
 - `_build_consolidated_notebook.py` — build script
 
-**Result**: Notebook generated (44,889 bytes, JSON valid). Ready to run on CPU-only Colab runtime.
+**Result**: Notebook generated (44,889 bytes, JSON valid). First run on Colab failed at cell 8 (MATH-500 Nadler analysis). Fix pending — see Step 95.
+
+---
+
+### Step 95 — Consolidated Results Notebook: 4 root-cause fixes
+
+**What**: Diagnosed and fixed 4 bugs in `Spectral_Analysis_Consolidated_Results.ipynb` that caused all Nadler results to be None and all adaptive-window cells to crash.
+
+**Root causes**:
+
+1. **`normalize=True` kwarg passed to `best_nadler_on`** — function has no such parameter; caused `TypeError` silently caught by the try/except in `run_nadler`, which returned None for every model across all domains. This was the main bug — all MATH-500, GSM8K, GPQA, RAG, and QA Nadler results were None. Fixed by removing the spurious kwarg (`best_nadler_on` already does z-score normalization internally).
+
+2. **No None guard in `extract_feats`** — `extract_all_features()` returns None for traces too short for reliable spectral analysis. The caller `extract_feats` appended None to `rows` and then crashed with `TypeError: 'NoneType' object does not support item assignment` (adaptive window) or `TypeError: 'NoneType' object is not subscriptable` (feats_dict construction). Fixed by adding `if f is None: continue`.
+
+3. **Stale pkls with all-None results** — previous runs (with bug #1) saved `{key: None}` pkls to Drive. The three-branch reload loaded these as "X results" without checking validity, then printed "loaded X results" and skipped recomputation even after the fix. Fixed by adding `_valid_res()` helper + `_skip` flag pattern that detects all-None pkls and forces recompute.
+
+4. **Same None crash in Global analysis cell** — direct `extract_all_features()` call in the domain pooling loop had the same missing None guard. Fixed with `if f is None: continue`.
+
+**Additional fix (Step 94 continuation)**: `DATA_ROOTS['math_gpqa']` hardcoded to `epr_spectral_phase4`; auto-detection now tries `phase4`, `phase5`, and variants under `hallucination_detection/` subdirectory.
+
+**Files changed**:
+- `_build_consolidated_notebook.py` — all 4 fixes + path auto-detection
+- `Spectral_Analysis_Consolidated_Results.ipynb` — regenerated (46,354 bytes, 37 cells)
+
+**Result**: Notebook ready to run. All fixes committed and pushed (`feature/meta-agentic-integration`, commit `586f7e3`). Stale pkls on Drive will be detected and recomputed automatically on next run.
 
 ---
