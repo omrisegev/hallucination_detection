@@ -261,6 +261,8 @@ def extract_feats(samples, use_adaptive_window=False):
     rows, labels = [], []
     for s in samples:
         f = extract_all_features(s['ents'])
+        if f is None:  # trace too short for spectral analysis
+            continue
         if use_adaptive_window:
             f['sw_var_peak'] = sw_var_peak_adaptive(s['ents'])
         rows.append(f)
@@ -286,7 +288,7 @@ def run_nadler(feats_dict, labels, key_str):
     # Nadler fusion
     try:
         na, ci_lo, ci_hi, subset, weights = best_nadler_on(
-            feats_dict, FEAT_NAMES, labels, normalize=True, max_size=4)
+            feats_dict, FEAT_NAMES, labels, max_size=4)
     except Exception as e:
         print(f'  [{key_str}] Nadler error: {e}')
         return None
@@ -484,21 +486,25 @@ print(f'GPQA groups (from phase4/5): {[(k, len(v)) for k, v in GPQA_DATA.items()
 
 C.append(code_cell("""\
 # ── Nadler analysis per model/temp ──────────────────────────────────────────
-MATH500_FEATS = {}  # {key: (feats_dict, labels)}
-MATH500_RES   = {}  # {key: result_dict}
-
 RES_PATH = os.path.join(OUT_DIR, 'math500_res.pkl')
 FORCE = False
 
-if not FORCE and 'MATH500_RES' in globals() and MATH500_RES and len(MATH500_RES) == len(MATH500_DATA):
-    print('already in memory')
+def _valid_res(res): return bool(res) and any(v for v in res.values() if v)
+
+_skip = False
+if not FORCE and 'MATH500_RES' in globals() and _valid_res(MATH500_RES) and len(MATH500_RES) == len(MATH500_DATA):
+    print('already in memory'); _skip = True
 elif not FORCE and os.path.exists(RES_PATH):
-    with open(RES_PATH, 'rb') as _f:
-        saved = pickle.load(_f)
-        MATH500_RES   = saved.get('results', {})
-        MATH500_FEATS = saved.get('feats',   {})
-    print(f'loaded {len(MATH500_RES)} results')
-else:
+    with open(RES_PATH, 'rb') as _f: saved = pickle.load(_f)
+    _r, _ft = saved.get('results', {}), saved.get('feats', {})
+    if _valid_res(_r):
+        MATH500_RES, MATH500_FEATS = _r, _ft
+        print(f'loaded {len(MATH500_RES)} results'); _skip = True
+    else:
+        print('stale pkl (all-None results) — recomputing')
+
+if not _skip:
+    MATH500_FEATS, MATH500_RES = {}, {}
     for key, samps in MATH500_DATA.items():
         print(f'\\n[MATH-500 / {key}]')
         fd, lbl = extract_feats(samps, use_adaptive_window=False)
@@ -553,18 +559,23 @@ print(f'GSM8K: {len(GSM8K_DATA["Llama-8B_T1.0"])} samples')\
 """))
 
 C.append(code_cell("""\
-GSM8K_FEATS, GSM8K_RES = {}, {}
 RES_PATH = os.path.join(OUT_DIR, 'gsm8k_res.pkl')
 FORCE = False
 
-if not FORCE and 'GSM8K_RES' in globals() and GSM8K_RES:
-    print('in memory')
+_skip = False
+if not FORCE and 'GSM8K_RES' in globals() and _valid_res(GSM8K_RES):
+    print('already in memory'); _skip = True
 elif not FORCE and os.path.exists(RES_PATH):
-    with open(RES_PATH, 'rb') as _f:
-        saved = pickle.load(_f)
-        GSM8K_RES = saved.get('results', {}); GSM8K_FEATS = saved.get('feats', {})
-    print(f'loaded {len(GSM8K_RES)} results')
-else:
+    with open(RES_PATH, 'rb') as _f: saved = pickle.load(_f)
+    _r, _ft = saved.get('results', {}), saved.get('feats', {})
+    if _valid_res(_r):
+        GSM8K_RES, GSM8K_FEATS = _r, _ft
+        print(f'loaded {len(GSM8K_RES)} results'); _skip = True
+    else:
+        print('stale pkl — recomputing')
+
+if not _skip:
+    GSM8K_FEATS, GSM8K_RES = {}, {}
     for key, samps in GSM8K_DATA.items():
         print(f'\\n[GSM8K / {key}]')
         fd, lbl = extract_feats(samps, use_adaptive_window=False)
@@ -602,18 +613,23 @@ print(f'\\nAll GPQA groups: {[(k, len(v)) for k, v in GPQA_DATA.items()]}')\
 """))
 
 C.append(code_cell("""\
-GPQA_FEATS, GPQA_RES = {}, {}
 RES_PATH = os.path.join(OUT_DIR, 'gpqa_res.pkl')
 FORCE = False
 
-if not FORCE and 'GPQA_RES' in globals() and GPQA_RES:
-    print('in memory')
+_skip = False
+if not FORCE and 'GPQA_RES' in globals() and _valid_res(GPQA_RES):
+    print('already in memory'); _skip = True
 elif not FORCE and os.path.exists(RES_PATH):
-    with open(RES_PATH, 'rb') as _f:
-        saved = pickle.load(_f)
-        GPQA_RES = saved.get('results', {}); GPQA_FEATS = saved.get('feats', {})
-    print(f'loaded {len(GPQA_RES)} results')
-else:
+    with open(RES_PATH, 'rb') as _f: saved = pickle.load(_f)
+    _r, _ft = saved.get('results', {}), saved.get('feats', {})
+    if _valid_res(_r):
+        GPQA_RES, GPQA_FEATS = _r, _ft
+        print(f'loaded {len(GPQA_RES)} results'); _skip = True
+    else:
+        print('stale pkl — recomputing')
+
+if not _skip:
+    GPQA_FEATS, GPQA_RES = {}, {}
     for key, samps in GPQA_DATA.items():
         print(f'\\n[GPQA / {key}]')
         fd, lbl = extract_feats(samps, use_adaptive_window=False)
@@ -667,34 +683,44 @@ for k, v in sorted(RAG_DATA.items()): print(f'  {k}: {len(v)} citation-span samp
 
 C.append(code_cell("""\
 # Feature extraction — SLOW on CPU (~10 min), three-branch reload
-RAG_FEATS = {}
 FEAT_RES_PATH = os.path.join(OUT_DIR, 'rag_feats_all.pkl')
 FORCE_FEATS = False
 
-if not FORCE_FEATS and 'RAG_FEATS' in globals() and len(RAG_FEATS) == len(RAG_DATA):
-    print('RAG_FEATS already in memory')
+_skip = False
+if not FORCE_FEATS and 'RAG_FEATS' in globals() and len(RAG_FEATS) == len(RAG_DATA) and RAG_FEATS:
+    print('RAG_FEATS already in memory'); _skip = True
 elif not FORCE_FEATS and os.path.exists(FEAT_RES_PATH):
-    with open(FEAT_RES_PATH, 'rb') as _f: RAG_FEATS = pickle.load(_f)
-    print(f'Loaded RAG_FEATS ({len(RAG_FEATS)} cells) from disk')
-else:
+    with open(FEAT_RES_PATH, 'rb') as _f: _rf = pickle.load(_f)
+    if len(_rf) == len(RAG_DATA) and _rf:
+        RAG_FEATS = _rf; print(f'Loaded RAG_FEATS ({len(RAG_FEATS)} cells) from disk'); _skip = True
+    else:
+        print('stale/partial RAG_FEATS pkl — recomputing')
+
+if not _skip:
+    RAG_FEATS = {}
     for key, samps in tqdm(RAG_DATA.items(), desc='Extracting RAG features'):
-        fd, lbl = extract_feats(samps, use_adaptive_window=True)  # adaptive window for short traces
+        fd, lbl = extract_feats(samps, use_adaptive_window=True)
         RAG_FEATS[key] = (fd, lbl)
     with open(FEAT_RES_PATH, 'wb') as _f: pickle.dump(RAG_FEATS, _f)
     print(f'Saved RAG_FEATS ({len(RAG_FEATS)} cells) to {FEAT_RES_PATH}')\
 """))
 
 C.append(code_cell("""\
-RAG_RES = {}
 RES_PATH = os.path.join(OUT_DIR, 'rag_nadler_res.pkl')
 FORCE = False
 
-if not FORCE and 'RAG_RES' in globals() and len(RAG_RES) == len(RAG_FEATS):
-    print('in memory')
+_skip = False
+if not FORCE and 'RAG_RES' in globals() and _valid_res(RAG_RES) and len(RAG_RES) == len(RAG_FEATS):
+    print('in memory'); _skip = True
 elif not FORCE and os.path.exists(RES_PATH):
-    with open(RES_PATH, 'rb') as _f: RAG_RES = pickle.load(_f)
-    print(f'loaded {len(RAG_RES)} results')
-else:
+    with open(RES_PATH, 'rb') as _f: _rr = pickle.load(_f)
+    if _valid_res(_rr):
+        RAG_RES = _rr; print(f'loaded {len(RAG_RES)} results'); _skip = True
+    else:
+        print('stale pkl — recomputing')
+
+if not _skip:
+    RAG_RES = {}
     for key, (fd, lbl) in RAG_FEATS.items():
         RAG_RES[key] = run_nadler(fd, lbl, key)
     with open(RES_PATH, 'wb') as _f: pickle.dump(RAG_RES, _f)
@@ -818,6 +844,7 @@ for domain, data_dict, adaptive in domain_map:
     for key, samps in data_dict.items():
         for s in samps:
             f = extract_all_features(s['ents'])
+            if f is None: continue
             if adaptive: f['sw_var_peak'] = sw_var_peak_adaptive(s['ents'])
             row = {'domain': domain, 'label': s['label'], **f}
             all_rows.append(row)
