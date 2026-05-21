@@ -189,10 +189,10 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 
 ## Current experiments: Phase 12 — Benchmarking
 
-### Phase 12 — Systematic SOTA Comparison (NEW, Step 93)
+### Phase 12 — Systematic SOTA Comparison (Step 96 — FULLY FIXED)
 
 **Notebook**: `Spectral_Analysis_Phase12_Benchmarking.ipynb`
-**Status**: Ready to run — all code implemented and smoke-tested locally
+**Status**: Fully fixed and pushed (Step 96). Open from `feature/meta-agentic-integration` in Colab.
 
 **Competitors implemented in `spectral_utils/baselines.py`**:
 
@@ -211,10 +211,18 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 | LapEigvals supervised | 87.2% GSM8K | different supervision level |
 | LOS-Net (AAAI 2026) | 72.92% | std HotpotQA (different task) |
 
+**6 bugs fixed (Step 96)**:
+1. `git clone -b master` → `git clone -b feature/meta-agentic-integration` (baselines.py not on master)
+2. `load_lciteeval('hotpotqa', split='test', n=N)` → `load_lciteeval(task=lc_task, n_samples=n_ds)`
+3. `lciteeval_grounding_label(row)` → `_lciteeval_doc_label(main_text, row)` (parses `[N]` markers → calls with citation_ids)
+4. Stale pkl guard `_p12_valid()` added to all sampling cells (mirrors `_valid_res()` from consolidated)
+5. P4 vars now initialized to `_nan` at top of Cell 12 (prevents NameError when P4 is skipped)
+6. NEW Section 5 (Cells 14–15): loads `results_all.pkl`, prints 4-domain comparison tables, writes `Research_Phase12_Comparison_Results.md`
+
 **Run order**:
 1. **Normal runtime**: Load NLI model, run Math + GPQA sections
-2. **Second session or fresh runtime**: Run RAG section (Llama-8B)
-3. **Analysis**: Section 5 — master table + save `Research_Phase12_Comparison_Results.md`
+2. **Second session or fresh runtime**: Run RAG section (Qwen-7B on 4 datasets)
+3. **Section 5** (any runtime with Drive access): loads consolidated pkl + prints master tables + writes MD
 
 ---
 
@@ -253,11 +261,13 @@ will auto-detect them and recompute — do NOT set FORCE=True manually.
 1. **Run consolidated notebook** — `Spectral_Analysis_Consolidated_Results.ipynb`
    - CPU-only runtime (no GPU needed)
    - Open from GitHub: File → Open notebook → GitHub → `feature/meta-agentic-integration`
-   - Produces updated official numbers with 16 features
+   - Produces updated official numbers with 16 features → `consolidated_results/results_all.pkl`
 2. **Run Phase 12 benchmarking notebook** — `Spectral_Analysis_Phase12_Benchmarking.ipynb`
    - Section 2 (Math): loads Phase 7 cache, K=10 sampling on N=200 GSM8K
    - Section 3 (GPQA): fresh Qwen-7B inference + K=10 sampling
-   - Section 4 (RAG): loads Phase 10 cache, K=5 SelfCheckGPT
+   - Section 4 (RAG): loads Phase 10 cache, K=5 SelfCheckGPT on 4 datasets
+   - Section 5: loads `results_all.pkl` → prints domain tables → writes `Research_Phase12_Comparison_Results.md`
+   - **Both notebooks should be run; Section 5 of P12 reads consolidated pkl for the full picture**
 3. **Run Phase 11a inference** — mistral24b (normal runtime) + qwen72b (fresh runtime with stub cell)
 4. **Run Phase 11a analysis** — Cells 12–22 after all 8 raw pkl files exist
 5. **Run pilots in parallel**:

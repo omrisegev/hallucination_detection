@@ -3495,3 +3495,52 @@ global correlation heatmap, global RF importance heatmap, global AUC comparison.
 **Result**: Notebook ready to run. All fixes committed and pushed (`feature/meta-agentic-integration`, commit `586f7e3`). Stale pkls on Drive will be detected and recomputed automatically on next run.
 
 ---
+### Step 96 — Phase 12 Benchmarking Notebook: complete overhaul + Section 5
+
+**What**: Full audit and rewrite of `Spectral_Analysis_Phase12_Benchmarking.ipynb` (23 cells) to match fixes from the Consolidated Results notebook and to add a new Section 5 that produces a master comparison table.
+
+**Changes made**:
+
+1. **Cell 1 — branch fix**: Changed `git clone -b master` to `git clone -b feature/meta-agentic-integration` — `baselines.py` only exists on this branch.
+
+2. **Cell 2 — config hardening**:
+   - Added `N_RAG_SIZES` dict (`hotpotqa=240, NQ=160, 2wiki=240, narrativeqa=240`)
+   - Added `PHASE5_ROOT` auto-detection (tries 4 candidate paths)
+   - Added `PHASE10_CACHES` dict (4 datasets × 4 candidate paths each)
+   - Added `CONSOLIDATED_PKL` path pointing to `consolidated_results/results_all.pkl`
+   - Added `_p12_valid()` stale pkl helper (mirrors `_valid_res()` from consolidated notebook)
+
+3. **Cell 4 (P1 setup) — robustness**:
+   - Added `_get_ents()` helper that tries 4 entropy key names (`all_entropies`, `all_ents`, `entropies`, `token_entropies`) to handle Phase 7 cache key variation
+   - Added `_lciteeval_doc_label(main_text, row)` that parses `[N]` citation markers, builds `citation_ids` list, then calls `lciteeval_grounding_label(cid_set, row)` — fixing the wrong-signature bug
+
+4. **Cells 5–6 (P1 sampling/AUC) — stale pkl pattern**: Added `_p12_valid()` guard + length-aware SE cache reload
+
+5. **Cells 7–8 (P2 sampling/AUC) — stale pkl pattern**: Same pattern applied
+
+6. **Cell 9 (P3 sampling) — complete rewrite**:
+   - Loops all 4 L-CiteEval datasets (`hotpotqa`, `natural_questions`, `2wikimultihopqa`, `narrativeqa`)
+   - Fixed `load_lciteeval` call: removed invalid `split=` and `n=` kwargs, using `load_lciteeval(task=lc_task, n_samples=n_ds)`
+   - Fixed label call: uses `_lciteeval_doc_label(main_t, row)` instead of broken `lciteeval_grounding_label(row)`
+   - Lazy model load: loads Qwen-7B only once across all 4 datasets
+
+7. **Cell 10 (P3 AUCs) — complete rewrite**: Per-dataset SelfCheckGPT AUC loop with length-aware cache reload
+
+8. **Cell 11 (P4 sampling)**: `_find_phase5_cache()` auto-detection replaces fragile hardcoded path
+
+9. **Cell 12 (P4 AUCs)**: Initialises all P4 vars to `_nan` at the top so Cell 13 never NameErrors when P4 is skipped
+
+10. **Cell 13 (fill-ins)**: Updated to loop all 4 P3 datasets instead of just HotpotQA
+
+11. **NEW: Section 5 (Cells 14–15)**:
+    - Cell 14: Loads `results_all.pkl` from the Consolidated notebook. Uses `_lookup()` with substring matching to find Nadler AUROCs by model name and dataset. Falls back to PROGRESS.md hardcoded numbers if pkl not available. Prints 4 domain tables (GSM8K, MATH-500, GPQA, RAG × 4 sub-tables).
+    - Cell 15: Writes `Research_Phase12_Comparison_Results.md` to Drive with full markdown comparison tables and a "Key Takeaways" narrative section.
+
+**Why**: Notebook had 6 bugs that would have caused runtime failures (wrong branch, wrong `load_lciteeval` kwargs, wrong `lciteeval_grounding_label` signature, missing stale-pkl guards, missing P4 init, no Section 5). Combined with the Consolidated notebook, both notebooks can now run end-to-end and together produce the complete competitor comparison picture.
+
+**Files changed**:
+- `Spectral_Analysis_Phase12_Benchmarking.ipynb` — 23 cells, complete overhaul
+
+**Result**: Notebook committed and pushed to `feature/meta-agentic-integration`. Ready to open in Colab.
+
+---
