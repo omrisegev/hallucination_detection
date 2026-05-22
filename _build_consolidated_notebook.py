@@ -709,22 +709,41 @@ C.append(code_cell("""\
 RES_PATH = os.path.join(OUT_DIR, 'rag_nadler_res.pkl')
 FORCE = False
 
+# Three-branch with partial-resume support:
+# 1. All done in memory → skip
+# 2. All done on disk → load + skip
+# 3. Partial on disk → load + resume (skips already-computed keys)
+# 4. Nothing / stale → start fresh
 _skip = False
 if not FORCE and 'RAG_RES' in globals() and _valid_res(RAG_RES) and len(RAG_RES) == len(RAG_FEATS):
-    print('in memory'); _skip = True
+    print(f'in memory — all {len(RAG_RES)} cells done'); _skip = True
 elif not FORCE and os.path.exists(RES_PATH):
     with open(RES_PATH, 'rb') as _f: _rr = pickle.load(_f)
     if _valid_res(_rr):
-        RAG_RES = _rr; print(f'loaded {len(RAG_RES)} results'); _skip = True
+        RAG_RES = _rr
+        if len(RAG_RES) == len(RAG_FEATS):
+            print(f'loaded all {len(RAG_RES)} results from disk'); _skip = True
+        else:
+            print(f'partial results on disk ({len(RAG_RES)}/{len(RAG_FEATS)}) — resuming')
     else:
-        print('stale pkl — recomputing')
+        print('stale pkl — recomputing'); RAG_RES = {}
+else:
+    RAG_RES = {}
 
 if not _skip:
-    RAG_RES = {}
+    if 'RAG_RES' not in globals(): RAG_RES = {}
+    remaining = [k for k in RAG_FEATS if k not in RAG_RES or RAG_RES[k] is None]
+    done      = [k for k in RAG_FEATS if k in RAG_RES and RAG_RES[k] is not None]
+    if done: print(f'  Skipping {len(done)} already-computed: {done}')
+    print(f'  Computing {len(remaining)} remaining cells...')
     for key, (fd, lbl) in RAG_FEATS.items():
+        if key in RAG_RES and RAG_RES[key] is not None:
+            continue
         RAG_RES[key] = run_nadler(fd, lbl, key)
-    with open(RES_PATH, 'wb') as _f: pickle.dump(RAG_RES, _f)
-    print(f'saved {len(RAG_RES)} results')\
+        # Save after every cell — survives mid-run disconnects
+        with open(RES_PATH, 'wb') as _f: pickle.dump(RAG_RES, _f)
+        print(f'  -> saved checkpoint ({len(RAG_RES)}/{len(RAG_FEATS)})')
+    print(f'All {len(RAG_RES)} cells done — saved to {RES_PATH}')\
 """))
 
 C.append(code_cell("""\
@@ -789,19 +808,35 @@ C.append(md_cell("## Section 6 — Factual QA (Phase 9 — Negative Result)"))
 C.append(code_cell("""\
 print('Loading Phase 9 Factual QA caches...')
 _qa_raw = load_domain_data(DATA_ROOTS['qa_cot'], ltype='binary')
-
 QA_DATA = {}
 for (model, dataset, temp), samps in _qa_raw.items():
     key = f'{MODEL_DISPLAY.get(model, model)}_{dataset}_T{temp}'
     QA_DATA[key] = samps
 print(f'QA groups: {[(k, len(v)) for k, v in QA_DATA.items()]}')
 
-QA_FEATS, QA_RES = {}, {}
-for key, samps in QA_DATA.items():
-    print(f'\\n[QA / {key}]')
-    fd, lbl = extract_feats(samps, use_adaptive_window=True)
-    QA_FEATS[key] = (fd, lbl)
-    QA_RES[key]   = run_nadler(fd, lbl, key)\
+QA_RES_PATH = os.path.join(OUT_DIR, 'qa_res.pkl')
+FORCE_QA = False
+_skip = False
+if not FORCE_QA and 'QA_RES' in globals() and _valid_res(QA_RES):
+    print('QA results in memory'); _skip = True
+elif not FORCE_QA and os.path.exists(QA_RES_PATH):
+    with open(QA_RES_PATH, 'rb') as _f: _qr = pickle.load(_f)
+    if _valid_res(_qr.get('results', {})):
+        QA_FEATS, QA_RES = _qr['feats'], _qr['results']
+        print(f'loaded QA results ({len(QA_RES)})'); _skip = True
+    else:
+        print('stale QA pkl — recomputing')
+
+if not _skip:
+    QA_FEATS, QA_RES = {}, {}
+    for key, samps in QA_DATA.items():
+        print(f'\\n[QA / {key}]')
+        fd, lbl = extract_feats(samps, use_adaptive_window=True)
+        QA_FEATS[key] = (fd, lbl)
+        QA_RES[key]   = run_nadler(fd, lbl, key)
+    with open(QA_RES_PATH, 'wb') as _f:
+        pickle.dump({'results': QA_RES, 'feats': QA_FEATS}, _f)
+    print(f'saved QA results ({len(QA_RES)}) to {QA_RES_PATH}')\
 """))
 
 C.append(code_cell("""\
@@ -831,25 +866,48 @@ if valid_qa:
 C.append(md_cell("## Section 7 — Global Cross-Domain Analysis"))
 
 C.append(code_cell("""\
-# Pool all samples with domain labels for correlation + RF importance
-all_rows = []
+# Pool all samples with domain labels for correlation + RF importance.
+# Saved to global_df.pkl — re-running extract_all_features on 7000+ samples takes ~5 min.
+GLOBAL_DF_PATH = os.path.join(OUT_DIR, 'global_df.pkl')
+FORCE_GLOBAL = False
+
+_skip = False
+if not FORCE_GLOBAL and 'GLOBAL_DF' in globals() and len(GLOBAL_DF) > 0:
+    print(f'GLOBAL_DF in memory ({len(GLOBAL_DF)} samples)'); _skip = True
+elif not FORCE_GLOBAL and os.path.exists(GLOBAL_DF_PATH):
+    GLOBAL_DF = pd.read_pickle(GLOBAL_DF_PATH)
+    print(f'Loaded GLOBAL_DF from disk ({len(GLOBAL_DF)} samples)'); _skip = True
+
+if not _skip:
+    domain_map = [
+        ('MATH-500', MATH500_DATA, False),
+        ('GSM8K',    GSM8K_DATA,   False),
+        ('GPQA',     GPQA_DATA,    False),
+        ('RAG',      RAG_DATA,     True),
+        ('FactualQA',QA_DATA,      True),
+    ]
+    all_rows = []
+    for domain, data_dict, adaptive in domain_map:
+        for key, samps in data_dict.items():
+            for s in samps:
+                f = extract_all_features(s['ents'])
+                if f is None: continue
+                if adaptive: f['sw_var_peak'] = sw_var_peak_adaptive(s['ents'])
+                row = {'domain': domain, 'label': s['label'], **f}
+                all_rows.append(row)
+    GLOBAL_DF = pd.DataFrame(all_rows)
+    GLOBAL_DF.to_pickle(GLOBAL_DF_PATH)
+    print(f'Saved GLOBAL_DF to {GLOBAL_DF_PATH}')
+
+# domain_map must exist for the weight-profile cell below
 domain_map = [
     ('MATH-500', MATH500_DATA, False),
     ('GSM8K',    GSM8K_DATA,   False),
     ('GPQA',     GPQA_DATA,    False),
-    ('RAG',      RAG_DATA,     True),   # use_adaptive for RAG
+    ('RAG',      RAG_DATA,     True),
     ('FactualQA',QA_DATA,      True),
 ]
-for domain, data_dict, adaptive in domain_map:
-    for key, samps in data_dict.items():
-        for s in samps:
-            f = extract_all_features(s['ents'])
-            if f is None: continue
-            if adaptive: f['sw_var_peak'] = sw_var_peak_adaptive(s['ents'])
-            row = {'domain': domain, 'label': s['label'], **f}
-            all_rows.append(row)
 
-GLOBAL_DF = pd.DataFrame(all_rows)
 print(f'Global DataFrame: {len(GLOBAL_DF)} samples')
 print(GLOBAL_DF.groupby('domain')['label'].value_counts().unstack())\
 """))
@@ -868,15 +926,28 @@ fig.savefig(p); print(f'saved {p}'); plt.show()\
 """))
 
 C.append(code_cell("""\
-# ── Random Forest importance per domain ──────────────────────────────────────
-domain_importances = {}
-for domain in GLOBAL_DF['domain'].unique():
-    sub = GLOBAL_DF[GLOBAL_DF['domain'] == domain]
-    if len(sub['label'].unique()) < 2: continue
-    X, y = sub[FEAT_NAMES], sub['label']
-    rf = RandomForestClassifier(n_estimators=200, random_state=42, n_jobs=-1)
-    rf.fit(X, y)
-    domain_importances[domain] = pd.Series(rf.feature_importances_, index=FEAT_NAMES)
+GLOBAL_RF_PATH = os.path.join(OUT_DIR, 'global_rf_res.pkl')
+FORCE_RF = False
+
+_skip = False
+if not FORCE_RF and 'domain_importances' in globals() and domain_importances:
+    print(f'RF importances in memory ({len(domain_importances)} domains)'); _skip = True
+elif not FORCE_RF and os.path.exists(GLOBAL_RF_PATH):
+    with open(GLOBAL_RF_PATH, 'rb') as _f: domain_importances = pickle.load(_f)
+    print(f'Loaded RF importances from disk ({len(domain_importances)} domains)'); _skip = True
+
+if not _skip:
+    domain_importances = {}
+    for domain in GLOBAL_DF['domain'].unique():
+        sub = GLOBAL_DF[GLOBAL_DF['domain'] == domain]
+        if len(sub['label'].unique()) < 2: continue
+        X, y = sub[FEAT_NAMES], sub['label']
+        rf = RandomForestClassifier(n_estimators=200, random_state=42, n_jobs=-1)
+        rf.fit(X, y)
+        domain_importances[domain] = pd.Series(rf.feature_importances_, index=FEAT_NAMES)
+        print(f'  RF done: {domain}')
+    with open(GLOBAL_RF_PATH, 'wb') as _f: pickle.dump(domain_importances, _f)
+    print(f'Saved RF importances to {GLOBAL_RF_PATH}')
 
 if domain_importances:
     imp_df = pd.DataFrame(domain_importances).T  # domains × features
