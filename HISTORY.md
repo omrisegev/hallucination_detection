@@ -3544,3 +3544,50 @@ global correlation heatmap, global RF importance heatmap, global AUC comparison.
 **Result**: Notebook committed and pushed to `feature/meta-agentic-integration`. Ready to open in Colab.
 
 ---
+### Step 100 — Consolidated Results notebook completed: official 16-feature numbers
+
+**What**: `Spectral_Analysis_Consolidated_Results.ipynb` ran to completion on Colab (CPU runtime). Re-analyzed all cached entropy trajectories from Phases 4/5/7/8/9/10 using the full 16-feature set with z-score normalization. Produced `consolidated_results/results_all.pkl` (read by Phase 12 Section 5), `results_summary.csv`, and ~30 publication-quality plots.
+
+**Results — official updated numbers**:
+
+| Domain | Setup | Nadler AUROC | CI | Subset |
+|--------|-------|-------------|-----|--------|
+| MATH-500 | Qwen-Math-7B / T=1.0 | **96.69%** | [93.90, 98.69] | epr+rpdi+pe_mean |
+| MATH-500 | Qwen-Math-1.5B / T=1.0 | 87.97% | [83.94, 91.49] | epr+dominant_freq+rpdi+pe_mean |
+| MATH-500 | DeepSeek-R1-Llama-8B / T=1.0 | 86.28% | [81.85, 90.11] | trace_length+stft_spectral_entropy+rpdi+pe_mean |
+| MATH-500 | DeepSeek-Math-7B / T=1.0 | 75.05% | [66.84, 81.90] | epr+trace_length+pe_mean+hurst_exponent |
+| GSM8K | Llama-3.1-8B / T=1.0 | **75.92%** | [72.48, 79.39] | trace_length+low_band_power+high_band_power+sw_var_peak |
+| GPQA | Qwen-72B-AWQ / T=1.0 | **67.47%** | [59.71, 74.74] | epr+trace_length+sw_var_peak+cusum_shift_idx |
+| GPQA | Mistral-7B / T=1.0 | 65.28% | [56.72, 73.96] | spectral_entropy+stft_max_high_power+rpdi+cusum_shift_idx |
+| RAG | **Llama-8B / hotpotqa** | **88.15%** | [80.64, 94.37] | epr+low_band_power+rpdi+cusum_shift_idx |
+| RAG | Qwen-7B / natural-questions | 82.81% | [70.85, 92.64] | spectral_entropy+low_band_power+hl_ratio+hurst_exponent |
+| RAG | Qwen-7B / 2wikimultihopqa | 81.34% | [71.42, 89.68] | spectral_entropy+low_band_power+dominant_freq+hurst_exponent |
+| RAG | Qwen-7B / hotpotqa | 80.15% | [66.52, 91.40] | spectral_entropy+stft_max_high_power+hurst_exponent |
+| RAG | Qwen-72B / hotpotqa | 79.40% | [70.45, 86.84] | low_band_power+stft_max_high_power+rpdi |
+| RAG | Mistral-24B / natural-questions | 77.78% | [61.27, 91.48] | rpdi+sw_var_peak+pe_mean+cusum_shift_idx |
+| RAG | Mistral-24B / hotpotqa | 77.18% | [62.15, 90.34] | hl_ratio+cusum_shift_idx |
+| RAG | Qwen-72B / 2wikimultihopqa | 76.19% | [65.16, 85.87] | dominant_freq+rpdi+cusum_max |
+| RAG | Mistral-24B / 2wikimultihopqa | 73.96% | [56.89, 87.86] | epr+spectral_entropy+hl_ratio+rpdi |
+| RAG | Qwen-72B / narrativeqa | 73.07% | [63.77, 81.21] | stft_max_high_power+rpdi+pe_mean |
+| RAG | Qwen-72B / natural-questions | 72.54% | [61.68, 82.55] | dominant_freq+spectral_centroid+stft_spectral_entropy+cusum_max |
+| RAG | Llama-8B / 2wikimultihopqa | 70.97% | [58.74, 81.62] | low_band_power+sw_var_peak+hurst_exponent+cusum_shift_idx |
+| RAG | Qwen-7B / narrativeqa | 70.12% | [58.31, 80.82] | high_band_power+sw_var_peak+hurst_exponent+cusum_max |
+| RAG | Llama-8B / natural-questions | 68.69% | [45.61, 86.17] | stft_spectral_entropy+cusum_max+cusum_shift_idx |
+| RAG | Mistral-24B / narrativeqa | 67.01% | [56.21, 77.32] | epr+spectral_entropy |
+| RAG | Llama-8B / narrativeqa | 63.69% | [56.20, 70.72] | epr+spectral_entropy+rpdi |
+| FactualQA | trivia_qa_cot / T=1.0 | 71.06% | [64.30, 78.54] | rpdi+sw_var_peak (negative result) |
+| FactualQA | webq_cot / T=1.0 | 68.36% | [58.56, 77.21] | rpdi+sw_var_peak+hurst_exponent+cusum_max |
+
+**RAG summary**: 13/16 cells ≥70%; median 72.8%; best Llama-8B/hotpotqa 88.15% (beats LOS-Net 72.9% by +15.25 pp).
+
+**Notable updates vs prior numbers**:
+- MATH-500/Qwen-Math-7B: 90.0% → **96.69%** (full 16-feature set + z-score gains +6.7 pp)
+- RAG/Llama-8B/hotpotqa: 87.7% → **88.15%**
+- RAG/Mistral-24B/hotpotqa: 67.3% → **77.18%** (+9.9 pp with 16 features)
+- GSM8K/Llama-8B: 76.0% → **75.92%** (effectively unchanged)
+
+**Why**: These are the official publication-ready numbers using the finalized 16-feature pipeline. Prior numbers used fewer features or older normalization. The consolidated notebook is the single source of truth.
+
+**Result**: `results_all.pkl` and `results_summary.csv` saved to Drive. Phase 12 Section 5 can now read these to build the master competitor comparison table.
+
+---

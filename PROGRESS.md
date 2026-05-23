@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
-**Date**: 2026-05-20
-**Last updated**: Step 95 complete — Consolidated Results notebook fixed (4 root causes); ready to run on Colab
+**Date**: 2026-05-23
+**Last updated**: Step 100 complete — Consolidated Results notebook finished on Colab; official 16-feature numbers in results_all.pkl
 
 ---
 
@@ -13,19 +13,24 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 
 ---
 
-## Best results so far
+## Best results so far (official — 16 features, z-score, Step 100)
 
-| Setup | AUROC | Notes |
-|-------|-------|-------|
-| MATH-500 / Qwen-7B / T=1.0 | **90.0%** | spectral Nadler fusion |
-| MATH-500 / Qwen-1.5B / T=1.5 | 88.3% | |
-| GSM8K / Llama-3.1-8B | 76.0% | vs LapEigvals 72.0% |
-| GPQA / Qwen2.5-72B-AWQ / T=1.0 | **69.0%** | Phase 8 — +3.6 pp over 7B |
-| Phase 10 RAG / llama8b / hotpotqa | **87.7%** | new overall best RAG cell — beats LOS-Net (72.92%) by +14.8 pp |
-| Phase 10 RAG / qwen7b / 2wikimultihopqa | 80.5% | |
-| Phase 10 RAG / qwen7b / hotpotqa | 79.5% | |
-| Phase 10 RAG / qwen72b / hotpotqa | 79.4% | |
-| Phase 11a (mid-run) / deepseek / 2wiki / Φ_min | **85.0%** | beats AUQ SOTA 0.791 — not yet official |
+| Setup | AUROC | CI | Notes |
+|-------|-------|----|-------|
+| MATH-500 / Qwen-Math-7B / T=1.0 | **96.69%** | [93.90, 98.69] | ← updated from 90.0% (full 16-feat) |
+| MATH-500 / Qwen-Math-1.5B / T=1.0 | 87.97% | [83.94, 91.49] | |
+| MATH-500 / DeepSeek-R1-Llama-8B / T=1.0 | 86.28% | [81.85, 90.11] | |
+| GSM8K / Llama-3.1-8B | **75.92%** | [72.48, 79.39] | vs LapEigvals 72.0% |
+| GPQA / Qwen-72B-AWQ / T=1.0 | **67.47%** | [59.71, 74.74] | ← updated from 69.0% |
+| GPQA / Mistral-7B / T=1.0 | 65.28% | [56.72, 73.96] | |
+| RAG / Llama-8B / hotpotqa | **88.15%** | [80.64, 94.37] | overall best — beats LOS-Net 72.9% by +15.3 pp |
+| RAG / Qwen-7B / natural-questions | 82.81% | [70.85, 92.64] | |
+| RAG / Qwen-7B / 2wikimultihopqa | 81.34% | [71.42, 89.68] | ← updated from 80.5% |
+| RAG / Qwen-7B / hotpotqa | 80.15% | [66.52, 91.40] | ← updated from 79.5% |
+| RAG / Qwen-72B / hotpotqa | 79.40% | [70.45, 86.84] | ← updated from 79.4% |
+| Phase 11a (mid-run) / deepseek / 2wiki / Φ_min | **85.0%** | — | beats AUQ SOTA 0.791 — not yet official |
+
+RAG summary (16 cells): 13/16 ≥ 70%, median 72.8%.
 
 ---
 
@@ -226,43 +231,27 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 
 ---
 
-## Consolidated Results Notebook (Step 95 — READY TO RUN)
+## Consolidated Results Notebook (Step 100 — COMPLETE ✅)
 
-**Notebook**: `Spectral_Analysis_Consolidated_Results.ipynb` (37 cells, 46,354 bytes)
-**Status**: Fixed and pushed — open fresh from GitHub in Colab (branch: `feature/meta-agentic-integration`)
-**Purpose**: Re-analyze all phases with full 16-feature set + z-score normalization; generate
-all plots; produce `consolidated_results/results_summary.csv` with updated official numbers.
+**Notebook**: `Spectral_Analysis_Consolidated_Results.ipynb`
+**Status**: Finished on Colab (CPU runtime). All outputs saved to Drive.
 
-**4 bugs fixed (Step 95)**:
-1. `normalize=True` removed from `best_nadler_on` call (was causing all Nadler results to be None)
-2. `if f is None: continue` guard added in `extract_feats` (short-trace crash fix)
-3. Stale all-None pkls now detected and force-recomputed (`_valid_res` + `_skip` pattern)
-4. Same None guard added in Global analysis pooling loop
+**Outputs on Drive**:
+- `consolidated_results/results_all.pkl` — full dict {math500, gsm8k, gpqa, rag, qa} — read by Phase 12 Section 5
+- `consolidated_results/results_summary.csv` — 29-row flat table sorted by AUROC
+- `consolidated_results/all_results_dict.pkl` — same as above, flat key format
+- `consolidated_results/plots/` — ~30 PNGs (heatmaps, AUC bars, trajectories, PSDs)
 
-**IMPORTANT**: Stale pkls with all-None results exist on Drive from previous bad runs. The notebook
-will auto-detect them and recompute — do NOT set FORCE=True manually.
-
-**Run order** (CPU-only Colab runtime):
-1. Cells 1–5: Setup + Drive mount + loader + helpers (fast)
-2. Cells 6–8: MATH-500 (4 models, ~5 min)
-3. Cells 9–11: GSM8K (1 model, ~2 min)
-4. Cells 12–14: GPQA Diamond (5 models, ~5 min)
-5. Cells 15–18: RAG (16 cells feature extraction — slow ~10–15 min CPU; three-branch reload)
-6. Cells 19–20: Factual QA negative result (~1 min)
-7. Cells 21–24: Global analysis (RF importance, correlation, weights) (~5 min)
-8. Cells 25–26: Summary + save CSV
-
-**Expected outputs**: ~30–40 PNGs in `consolidated_results/plots/` + `results_summary.csv`
+**Key findings**: See Step 100 in HISTORY.md for full table. Headlines:
+- MATH-500/Qwen-Math-7B: **96.69%** (was 90.0% — full 16-feat gains +6.7 pp)
+- RAG best: Llama-8B/hotpotqa **88.15%** (beats LOS-Net 72.9% by +15.3 pp)
+- 13/16 RAG cells ≥70%
 
 ---
 
 ## Immediate next actions
 
-1. **Run consolidated notebook** — `Spectral_Analysis_Consolidated_Results.ipynb`
-   - CPU-only runtime (no GPU needed)
-   - Open from GitHub: File → Open notebook → GitHub → `feature/meta-agentic-integration`
-   - Produces updated official numbers with 16 features → `consolidated_results/results_all.pkl`
-2. **Run Phase 12 benchmarking notebook** — `Spectral_Analysis_Phase12_Benchmarking.ipynb`
+1. **Run Phase 12 benchmarking notebook** — `Spectral_Analysis_Phase12_Benchmarking.ipynb` ← **PRIORITY**
    - Section 2 (Math): loads Phase 7 cache, K=10 sampling on N=200 GSM8K
    - Section 3 (GPQA): fresh Qwen-7B inference + K=10 sampling
    - Section 4 (RAG): loads Phase 10 cache, K=5 SelfCheckGPT on 4 datasets
