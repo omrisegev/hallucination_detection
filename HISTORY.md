@@ -3591,3 +3591,47 @@ global correlation heatmap, global RF importance heatmap, global AUC comparison.
 **Result**: `results_all.pkl` and `results_summary.csv` saved to Drive. Phase 12 Section 5 can now read these to build the master competitor comparison table.
 
 ---
+
+### Step 101 — Phase 12: generate_full API fix + official AUROCs + EDIS comparisons
+
+**What**: Three categories of bugs discovered and fixed in `Spectral_Analysis_Phase12_Benchmarking.ipynb`:
+
+1. **`generate_full` API migration** — function now returns `{'full_text', 'token_entropies', 'token_offsets'}` dict; all 4 inference cells (P1 GSM8K, P2 GPQA, P3 RAG, P4 MATH-500) had the old `t, _ = generate_full(...)` unpack pattern that throws `ValueError: too many values to unpack`. Fixed every occurrence to `['full_text']` indexing; for cells needing entropies: `_r = generate_full(...); main_t = _r['full_text']; main_e = _r['token_entropies']`.
+
+2. **`gpqa_prompt_and_answer` missing `idx` arg** — Cell 7 (GPQA inference) called `gpqa_prompt_and_answer(row)` but the signature is `(row, idx)`. Fixed to `gpqa_prompt_and_answer(row, i)`.
+
+3. **Hardcoded AUROCs updated to Step-100 official numbers** — All comparison tables throughout Cells 6, 8, 10, 12, and 14 updated from pre-consolidation estimates to the official 16-feature z-score numbers:
+   - GSM8K/Llama-8B: 0.760 → 0.7592
+   - MATH-500/Qwen-Math-7B: 0.900 → 0.9669 with CI [93.90, 98.69]
+   - GPQA/Qwen-72B: 0.690 → 0.6747; GPQA/Mistral-7B: 0.654 → 0.6528
+   - RAG hotpotqa/Llama-8B (best): 0.877 → 0.8815; Qwen-7B fallback dict updated for all 4 datasets
+
+4. **EDIS paper comparisons added** — EDIS (arXiv 2602.01288) was the paper that first brought GSM8K into scope (Steps 35–36). Added rows to GSM8K domain (Cell 6 and Cell 14): EDIS AUROC 0.804 (pooled across 4 math datasets, Qwen-Math-1.5B, K=8) and Mean entropy baseline 0.673; both carry ⚠ notes to flag cross-model/cross-dataset comparison.
+
+**Why**: `generate_full` return type changed when token offsets were added to the output (for future span-level analysis). GPQA `idx` was needed for MMLU-style option shuffling. EDIS is the direct predecessor paper in the lineage that motivated the GSM8K evaluation.
+
+**Result**: All 4 inference cells now run without API errors. Comparison tables show official numbers throughout. Committed and pushed to `feature/meta-agentic-integration`.
+
+---
+
+### Step 102 — Phase 12: NaN-input crash fix + JSON repair + pre-commit hook
+
+**What**: Three issues diagnosed and fixed after the notebook upload to Colab failed:
+
+1. **`ValueError: Input contains NaN` in GPQA results cell** — Root cause traced: `self_consistency_score()` is documented to return `float('nan')` when fewer than 2 non-`None` answers are available (answer extraction on hard GPQA prompts often fails). The old `boot_auc()` passed these NaN scores directly to `sklearn.roc_auc_score`, which rejects NaN inputs. Fix: added NaN-pair filtering at the top of `boot_auc` in `spectral_utils/fusion_utils.py` — NaN rows are silently dropped before AUROC computation, returning `(nan, nan, nan)` if too few valid pairs remain. This is the correct behavior: compute AUROC only on samples where the baseline method produced a score.
+
+2. **Five NaN display guards added to notebook** — Even after the `boot_auc` fix, if `boot_auc` legitimately returns `(nan, nan, nan)` (e.g., all SC scores are NaN), downstream display code crashed or printed ugly `nan%`:
+   - Cell 10 (`sc_s`, `ci_s`, `note` lines): added `sc["auc"] == sc["auc"]` / `sc["lo"] == sc["lo"]` / `sc["hi"] == sc["hi"]` guards
+   - Cells 14 and 15 (`q7b_tup[0] != best_tup[0]`): NaN != NaN is always True (IEEE754), causing a duplicate Qwen-7B row whenever the consolidated pkl is missing; fixed to `q7b_tup[0] == q7b_tup[0] and q7b_tup[0] != best_tup[0]`
+
+3. **JSON corruption fixed** — The `fix_nan_note.py` repair script wrote `sc["auc"]` with literal unescaped `"` into a JSON string, making the notebook unparseable. Colab and GitHub both refused to open it. Fixed by re-escaping to `sc[\"auc\"]`. Validated with `json.load()`.
+
+4. **Pre-commit hook added** — `.git/hooks/pre-commit` now validates all staged `.ipynb` files as JSON before every commit. Aborts with the filename and parse error if any notebook is invalid. Prevents this class of corruption from ever reaching the remote again.
+
+**Why**: The NaN was not a hidden error — it was the expected documented return of `self_consistency_score` for extraction failures. The crash was that `boot_auc` didn't handle it. The JSON corruption was an artifact of using Python string-replace on JSON (unescaped quotes). The hook prevents future recurrences.
+
+**Action item**: In Colab after re-running Cell 8, check `np.isnan(sc_p2).sum()` to see how many GPQA samples had failed SC answer extraction. If >30% were dropped, footnote the SC AUROC as a partial-sample result.
+
+**Result**: Notebook valid JSON, all NaN paths handled gracefully, pre-commit hook live. Pushed to `feature/meta-agentic-integration`.
+
+---

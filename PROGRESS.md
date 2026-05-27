@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
-**Date**: 2026-05-23
-**Last updated**: Step 100 complete — Consolidated Results notebook finished on Colab; official 16-feature numbers in results_all.pkl
+**Date**: 2026-05-27
+**Last updated**: Steps 101–102 complete — Phase 12 API fixes, NaN crash fix, JSON repair, pre-commit hook added
 
 ---
 
@@ -9,7 +9,7 @@
 
 Thesis on hallucination detection in LLMs. The core method: compute spectral features of the per-token entropy trajectory H(n) from a single gray-box forward pass, then fuse them with Nadler spectral fusion (covariance-weighted leading eigenvector). No labels needed at test time.
 
-**Key package**: `spectral_utils` — all feature extraction, model loading, fusion, and data loaders live here. Always clone from `https://github.com/omrisegev/hallucination_detection.git` (branch: `master`).
+**Key package**: `spectral_utils` — all feature extraction, model loading, fusion, and data loaders live here. Always clone from `https://github.com/omrisegev/hallucination_detection.git` (branch: `feature/meta-agentic-integration`). Note: `baselines.py` (needed for Phase 12 SC/SE/SelfCheckGPT) only exists on this branch, not on `master`.
 
 ---
 
@@ -179,6 +179,7 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 
 ## Key rules / gotchas
 
+- **Pre-commit hook**: `.git/hooks/pre-commit` validates all staged `.ipynb` files as JSON before every commit. If a notebook is corrupt (e.g. unescaped quotes from a string-replace script), the commit is aborted.
 - **gptqmodel on Python 3.12**: stub `pcre` with stdlib `re` + install `device-smi tokenicer defuser` with `--no-deps`, `logbar` plainly, then `pip install --no-deps gptqmodel`. Stub cell is already in Phase 11a notebook.
 - **70B BNB models**: OOM after any freed smaller model; use a fresh runtime with `expandable_segments:True`.
 - **HF cache on Drive**: NEVER rely on standard `HF_HOME` cache — snapshot symlinks break. Use `ensure_flat_dir()` flat-dir approach.
@@ -194,10 +195,10 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 
 ## Current experiments: Phase 12 — Benchmarking
 
-### Phase 12 — Systematic SOTA Comparison (Step 96 — FULLY FIXED)
+### Phase 12 — Systematic SOTA Comparison (Steps 96–102 — READY TO RUN ✅)
 
 **Notebook**: `Spectral_Analysis_Phase12_Benchmarking.ipynb`
-**Status**: Fully fixed and pushed (Step 96). Open from `feature/meta-agentic-integration` in Colab.
+**Status**: All bugs fixed and pushed. Valid JSON confirmed. Open from `feature/meta-agentic-integration` in Colab.
 
 **Competitors implemented in `spectral_utils/baselines.py`**:
 
@@ -212,22 +213,25 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 
 | Method | Paper result | Task |
 |--------|-------------|------|
+| EDIS (arXiv 2602.01288) | 0.804 pooled 4 math datasets | Qwen-Math-1.5B, K=8 ⚠ cross-model |
+| Mean entropy (EDIS paper) | 0.673 | same model/paper ⚠ |
 | LapEigvals unsup (Phase 7) | 72.0% GSM8K | already re-run in our Phase 7 |
 | LapEigvals supervised | 87.2% GSM8K | different supervision level |
 | LOS-Net (AAAI 2026) | 72.92% | std HotpotQA (different task) |
 
-**6 bugs fixed (Step 96)**:
-1. `git clone -b master` → `git clone -b feature/meta-agentic-integration` (baselines.py not on master)
-2. `load_lciteeval('hotpotqa', split='test', n=N)` → `load_lciteeval(task=lc_task, n_samples=n_ds)`
-3. `lciteeval_grounding_label(row)` → `_lciteeval_doc_label(main_text, row)` (parses `[N]` markers → calls with citation_ids)
-4. Stale pkl guard `_p12_valid()` added to all sampling cells (mirrors `_valid_res()` from consolidated)
-5. P4 vars now initialized to `_nan` at top of Cell 12 (prevents NameError when P4 is skipped)
-6. NEW Section 5 (Cells 14–15): loads `results_all.pkl`, prints 4-domain comparison tables, writes `Research_Phase12_Comparison_Results.md`
+**All fixes applied (Steps 96–102)**:
+- Step 96: 6 structural bugs (wrong branch, lciteeval kwargs, grounding label, stale-pkl guards, P4 init, Section 5)
+- Step 99: dict-keyed incremental saves to all 4 SE/SelfCheckGPT scoring cells
+- Step 101: `generate_full` API migration (dict return), `gpqa_prompt_and_answer` missing idx, AUROCs updated to Step-100 official numbers, EDIS comparisons added
+- Step 102: `boot_auc` NaN filtering, 5 NaN display guards, JSON corruption repaired, pre-commit hook
+
+**Known behavior**: `self_consistency_score()` returns `NaN` for samples where answer extraction fails (documented). `boot_auc` now silently drops NaN pairs. After running Cell 8 (GPQA), check `np.isnan(sc_p2).sum()` to verify SC coverage.
 
 **Run order**:
-1. **Normal runtime**: Load NLI model, run Math + GPQA sections
-2. **Second session or fresh runtime**: Run RAG section (Qwen-7B on 4 datasets)
-3. **Section 5** (any runtime with Drive access): loads consolidated pkl + prints master tables + writes MD
+1. `git -C /content/hallucination_detection pull -q` in Colab, then reload
+2. **Normal runtime**: Load NLI model, run Math + GPQA sections (Cells 5–8)
+3. **Second session or fresh runtime**: Run RAG section (Cell 9, Qwen-7B on 4 datasets)
+4. **Section 5** (any runtime with Drive access): loads consolidated pkl + prints master tables + writes MD
 
 ---
 
@@ -252,18 +256,19 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 ## Immediate next actions
 
 1. **Run Phase 12 benchmarking notebook** — `Spectral_Analysis_Phase12_Benchmarking.ipynb` ← **PRIORITY**
-   - Section 2 (Math): loads Phase 7 cache, K=10 sampling on N=200 GSM8K
-   - Section 3 (GPQA): fresh Qwen-7B inference + K=10 sampling
+   - Pull in Colab: `git -C /content/hallucination_detection pull -q` → reload page
+   - Section 2 (Math/GSM8K): loads Phase 7 cache, K=10 SC + SE sampling on N=200
+   - Section 3 (GPQA): fresh Qwen-7B inference + K=10 SC + SE + VC
    - Section 4 (RAG): loads Phase 10 cache, K=5 SelfCheckGPT on 4 datasets
    - Section 5: loads `results_all.pkl` → prints domain tables → writes `Research_Phase12_Comparison_Results.md`
-   - **Both notebooks should be run; Section 5 of P12 reads consolidated pkl for the full picture**
-3. **Run Phase 11a inference** — mistral24b (normal runtime) + qwen72b (fresh runtime with stub cell)
-4. **Run Phase 11a analysis** — Cells 12–22 after all 8 raw pkl files exist
-5. **Run pilots in parallel**:
+   - After Cell 8 runs: check `np.isnan(sc_p2).sum()` to verify SC coverage on GPQA
+2. **Run Phase 11a inference** — mistral24b (normal runtime) + qwen72b (fresh runtime with stub cell)
+3. **Run Phase 11a analysis** — Cells 12–22 after all 8 raw pkl files exist
+4. **Run pilots in parallel**:
    - `Pilot_Phase11b_HumanEval.ipynb` — any runtime
    - `Pilot_Phase11b_ALFWorld.ipynb` — any runtime
-6. **After pilots**: if GO → build full Phase 11b notebooks
-7. **Update Research_Directions.md** Direction 4 with Phase 11a headline numbers once analysis is complete
+5. **After pilots**: if GO → build full Phase 11b notebooks
+6. **Update Research_Directions.md** Direction 4 with Phase 11a headline numbers once analysis is complete
 
 ---
 
