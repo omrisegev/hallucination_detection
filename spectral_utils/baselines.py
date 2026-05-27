@@ -175,16 +175,26 @@ def mean_neg_logprob_baseline(token_entropies: List[float]) -> float:
 _NLI_LABEL_ORDERS: dict = {}  # cached per model_name
 
 
-def nli_load_model(model_name: str = "cross-encoder/nli-deberta-v3-base", device: str = "cuda"):
+def nli_load_model(model_name: str = "cross-encoder/nli-deberta-v3-base",
+                   device: str = "cuda",
+                   cache_dir: str = None):
     """
     Load an NLI model and tokenizer for semantic entropy and SelfCheckGPT.
 
     Returns (model, tokenizer, device) tuple.
     Caches label-order metadata in module-level dict.
+
+    Args:
+        cache_dir: Optional local directory for model weights.  Pass a path on
+                   fast local storage (e.g. '/content/nli_cache') when HF_HOME
+                   points to a Drive FUSE mount — Drive does not support
+                   os.sendfile(), which HuggingFace uses during the initial copy,
+                   causing OSError [Errno 5] Input/output error.
     """
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
-    tok = AutoTokenizer.from_pretrained(model_name)
-    mdl = AutoModelForSequenceClassification.from_pretrained(model_name)
+    kw = {"cache_dir": cache_dir} if cache_dir is not None else {}
+    tok = AutoTokenizer.from_pretrained(model_name, **kw)
+    mdl = AutoModelForSequenceClassification.from_pretrained(model_name, **kw)
     mdl.to(device).eval()
 
     # Build label→index mapping so nli_classify works for any HF NLI model.

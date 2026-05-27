@@ -211,3 +211,122 @@ def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
         print(f"    Lift   : {lift:+.1f} pp")
 
     return best_a, best_lo, best_hi, best_s, best_w
+
+
+def best_nadler_pseudo_label(
+    feats_dict: dict,
+    feat_names: list,
+    seed_features: list,
+    seed_signs: dict,
+    real_labels=None,
+    max_size: int = 4,
+    label: str = "",
+    compare_mean: bool = False,
+):
+    """
+    Fully unsupervised Nadler fusion via feature majority-vote pseudo-labels.
+
+    Enables running the complete pipeline with zero ground-truth labels.
+    Feature subset selection uses pseudo-labels derived from the seed features;
+    real labels (if provided) are used only for final AUROC reporting.
+
+    Design:
+        1. Orient each seed feature by its known direction (seed_signs).
+        2. Build pseudo-labels: sample i is "correct" if the majority of oriented
+           seed features are above their median (higher oriented value → more
+           confident → less likely hallucinated).
+        3. Run the exhaustive Nadler subset search against the pseudo-labels
+           (same as best_nadler_on — sign orientation for non-seed features is
+           also determined by the pseudo-labels).
+        4. If real_labels provided, re-evaluate the best-subset fused score
+           against ground truth and return the real AUROC.
+
+    Args:
+        feats_dict:    {feature_name: np.ndarray} of raw feature arrays.
+        feat_names:    Feature names to include in the search.
+        seed_features: Known-good features whose uncertainty direction is trusted.
+        seed_signs:    {feature_name: +1|-1}.  +1 = higher value → more correct;
+                       -1 = higher value → more uncertain / wrong.
+        real_labels:   Optional 1-D ground-truth array.  If provided, the returned
+                       auc/lo/hi are against real labels; pseudo-label AUC is also
+                       printed for comparison.  If None, reported AUC is against
+                       pseudo-labels.
+        max_size, label, compare_mean: forwarded to best_nadler_on.
+
+    Returns:
+        (auc, lo, hi, best_subset, best_weights) — same 5-tuple as best_nadler_on.
+        auc/lo/hi are against real_labels if provided, else pseudo-labels.
+
+    Note:
+        The default seed_signs assume *reasoning tasks* (math, science MCQ) where
+        higher entropy → more uncertain → wrong.  They are empirically validated
+        for those domains but must NOT be used for factual recall QA (Phase 9
+        showed entropy signals are anti-predictive on recall tasks).
+    """
+    n = len(next(iter(feats_dict.values())))
+
+    # ── 1. Orient seed features, build pseudo-labels by majority vote ─────────
+    votes = np.zeros(n, dtype=float)
+    for f in seed_features:
+        s = seed_signs.get(f, +1)
+        arr = np.array(feats_dict[f], dtype=float) * s
+        med = np.median(arr)
+        votes += (arr > med).astype(float)
+
+    threshold = len(seed_features) / 2.0
+    pseudo = (votes > threshold).astype(int)
+    n_pos = int(pseudo.sum())
+    print(f"  [{label or 'pseudo'}] pseudo-labels: {n_pos}/{n} positive "
+          f"({100 * n_pos / max(n, 1):.1f}%)")
+
+    # Fallback if majority vote produces near-degenerate split
+    if min(n_pos, n - n_pos) < 2:
+        med_v = np.median(votes)
+        pseudo = (votes >= med_v).astype(int)
+        print(f"  [{label or 'pseudo'}] fallback median split: {pseudo.sum()} pos")
+
+    # ── 2. Optional: report pseudo-label agreement with real labels ───────────
+    if real_labels is not None:
+        rl_int = np.array(real_labels, dtype=int)
+        agree = float(np.mean(pseudo == rl_int))
+        print(f"  [{label or 'pseudo'}] pseudo-label accuracy vs real: {100 * agree:.1f}%")
+
+    # ── 3. Exhaustive subset search against pseudo-labels ─────────────────────
+    # The pseudo-labels encode the correct sign for seed features by construction
+    # (pseudo=1 for low-entropy = high oriented-seed samples), so best_nadler_on
+    # will naturally orient seed features to match seed_signs.
+    pl_auc, pl_lo, pl_hi, best_s, best_w = best_nadler_on(
+        feats_dict, feat_names, pseudo,
+        max_size=max_size,
+        label=f"{label}(pseudo)" if label else "pseudo",
+        compare_mean=compare_mean,
+    )
+
+    if best_s is None:
+        return pl_auc, pl_lo, pl_hi, best_s, best_w
+
+    # ── 4. Re-evaluate best subset against real labels ────────────────────────
+    if real_labels is not None:
+        rl = np.array(real_labels, dtype=float)
+        # Reconstruct oriented, z-scored arrays using the same sign logic as
+        # best_nadler_on used internally (both use pseudo-labels for orientation).
+        oriented = []
+        for n_ in best_s:
+            ap, *_ = boot_auc(pseudo, feats_dict[n_])
+            an, *_ = boot_auc(pseudo, -np.array(feats_dict[n_]))
+            s = +1 if ap >= an else -1
+            oriented.append(zscore(np.array(feats_dict[n_], dtype=float) * s))
+        fused, _ = nadler_fuse(*oriented)
+        # AUROC is invariant to score sign — take the better orientation
+        auc_p, *_ = boot_auc(rl, fused)
+        auc_n, *_ = boot_auc(rl, -fused)
+        if auc_p >= auc_n:
+            real_auc, real_lo, real_hi = boot_auc(rl, fused)
+        else:
+            real_auc, real_lo, real_hi = boot_auc(rl, -fused)
+        print(f"  [{label or 'pseudo'}] pseudo AUROC: {100 * pl_auc:.1f}% | "
+              f"real AUROC: {100 * real_auc:.1f}% "
+              f"[{100 * real_lo:.1f}, {100 * real_hi:.1f}]")
+        return real_auc, real_lo, real_hi, best_s, best_w
+
+    return pl_auc, pl_lo, pl_hi, best_s, best_w
