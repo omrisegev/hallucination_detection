@@ -39,9 +39,12 @@ def boot_auc(y, scores, n: int = 1000):
 
     Returns (auc, ci_lo, ci_hi).  Returns (nan, nan, nan) if the label array
     has only one class or the scores are constant.
+    NaN rows in y or scores are silently dropped before computing AUROC.
     """
-    y, s = np.array(y), np.array(scores)
-    if len(np.unique(y)) < 2 or np.std(s) < 1e-8:
+    y, s = np.array(y, dtype=float), np.array(scores, dtype=float)
+    mask = ~(np.isnan(y) | np.isnan(s))
+    y, s = y[mask], s[mask]
+    if len(y) < 2 or len(np.unique(y)) < 2 or np.std(s) < 1e-8:
         return float("nan"), float("nan"), float("nan")
 
     base = roc_auc_score(y, s)
