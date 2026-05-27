@@ -195,10 +195,10 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 
 ## Current experiments: Phase 12 — Benchmarking
 
-### Phase 12 — Systematic SOTA Comparison (Steps 96–102 — READY TO RUN ✅)
+### Phase 12 — Systematic SOTA Comparison (Steps 96–104 — READY TO RUN ✅)
 
 **Notebook**: `Spectral_Analysis_Phase12_Benchmarking.ipynb`
-**Status**: All bugs fixed and pushed. Valid JSON confirmed. Open from `feature/meta-agentic-integration` in Colab.
+**Status**: Step 104 — All comparison issues fixed. Pull from `feature/meta-agentic-integration` and run.
 
 **Competitors implemented in `spectral_utils/baselines.py`**:
 
@@ -219,11 +219,18 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 | LapEigvals supervised | 87.2% GSM8K | different supervision level |
 | LOS-Net (AAAI 2026) | 72.92% | std HotpotQA (different task) |
 
-**All fixes applied (Steps 96–102)**:
+**All fixes applied (Steps 96–104)**:
 - Step 96: 6 structural bugs (wrong branch, lciteeval kwargs, grounding label, stale-pkl guards, P4 init, Section 5)
 - Step 99: dict-keyed incremental saves to all 4 SE/SelfCheckGPT scoring cells
 - Step 101: `generate_full` API migration (dict return), `gpqa_prompt_and_answer` missing idx, AUROCs updated to Step-100 official numbers, EDIS comparisons added
 - Step 102: `boot_auc` NaN filtering, 5 NaN display guards, JSON corruption repaired, pre-commit hook
+- Step 104: Supervision column added to all tables; apples-to-apples comparison cells added:
+  - **P1b**: Mistral-7B-Instruct-v0.3 GSM8K inference + pseudo-label Nadler (matches arXiv 2502.03799)
+  - **Cell 8b**: Nadler on existing Qwen-7B GPQA entropies from Cell 7 (no model reload)
+  - **Cell 8c**: DeepSeek-R1-Distill-Qwen-7B GPQA inference + pseudo-label Nadler (matches arXiv 2603.19118)
+  - **Cell 8d**: Qwen3-8B GPQA inference + pseudo-label Nadler (matches arXiv 2603.19118)
+  - `best_nadler_pseudo_label` added to `spectral_utils/fusion_utils.py` — fully unsupervised Nadler fusion via seed-feature majority-vote pseudo-labels
+  - `nli_load_model` now accepts `cache_dir` param — fixes Drive FUSE OSError [Errno 5] crash blocker
 
 **Known behavior**: `self_consistency_score()` returns `NaN` for samples where answer extraction fails (documented). `boot_auc` now silently drops NaN pairs. After running Cell 8 (GPQA), check `np.isnan(sc_p2).sum()` to verify SC coverage.
 

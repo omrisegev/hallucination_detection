@@ -3635,3 +3635,25 @@ global correlation heatmap, global RF importance heatmap, global AUC comparison.
 **Result**: Notebook valid JSON, all NaN paths handled gracefully, pre-commit hook live. Pushed to `feature/meta-agentic-integration`.
 
 ---
+
+### Step 103 — Phase 12 comparison audit: add supervision column, apples-to-apples runs, pseudo-label Nadler
+
+**What**: Identified and fixed three classes of problems in the Phase 12 benchmarking notebook before running it.
+
+1. **Supervision not disclosed**: All tables listed Nadler and SE/SC/VC without indicating which methods require ground-truth labels. Added a "Supervision" column to every table. Nadler via  = "Val labels" (feature subset selected using real labels). New pseudo-label runs = "None (pseudo)". SE/SC/VC/SelfCheckGPT = "None".
+
+2. **Invalid apples-to-apples comparisons**: Phase 12 planned to compare Nadler (Qwen-72B) against SC/SE/VC (Qwen-7B) — different models, meaningless comparison. Also, the main SE competitor for GSM8K (arXiv 2502.03799) used Mistral-7B, not Llama-8B. Fixed by adding matching runs:
+   - **P1b**: Fresh Mistral-7B-Instruct-v0.3 inference on GSM8K + pseudo-label Nadler. Allows direct comparison against SE 75.85% from that paper.
+   - **Cell 8b**: Extract Nadler from existing Qwen-7B GPQA entropies (already in Cell 7 cache, zero compute). Gives Qwen-7B Nadler vs Qwen-7B SC/SE/VC.
+   - **Cell 8c**: Fresh DeepSeek-R1-Distill-Qwen-7B GPQA inference + Nadler (matches DeepSeek-R1-8B from arXiv 2603.19118).
+   - **Cell 8d**: Fresh Qwen3-8B GPQA inference + Nadler (matches Qwen3-30B from same paper).
+
+3. **Crash blocker (Drive FUSE OSError)**:  called  which HuggingFace routes through  — not supported on Drive FUSE. Fixed by adding  parameter to ; Cell 3 now uses  (local Colab SSD).
+
+4. **New capability — **: Added to . Replaces ground-truth labels with majority-vote of oriented seed features (top 5 from meta-analysis Step 89: cusum_max, sw_var_peak, epr, spectral_entropy, rpdi; all sign=-1). Enables fully unsupervised Nadler fusion — real labels used only at AUROC eval time.
+
+**Why**: Before running Phase 12 in Colab (expensive GPU time), wanted to ensure all comparisons were scientifically valid and the notebook wouldn't crash on the first NLI cell.
+
+**Result**: Committed Step 104 with all fixes.  changes pushed. Notebook ready to run. Pull in Colab and execute cells in order.
+
+---
