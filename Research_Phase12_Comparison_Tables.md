@@ -6,11 +6,11 @@
 
 ## Domain 1: Math — GSM8K
 
-**Our best result**: Llama-3.1-8B / T=1.0 → **76.0% AUROC** (Nadler, Phase 7, N=1,319)
+**Our best result**: Llama-3.1-8B / T=1.0 → **75.92% AUROC** [72.48, 79.39] (Nadler, Step 100 official, N=1,319)
 
 | Method | Model | AUROC | Access | Compute | Source |
 |--------|-------|-------|--------|---------|--------|
-| **Nadler Spectral Fusion (ours)** | Llama-3.1-8B | **76.0%** | Gray-box | 1-pass | Phase 7 |
+| **Nadler Spectral Fusion (ours)** | Llama-3.1-8B | **75.92%** | Gray-box | 1-pass | Step 100 (official) |
 | LapEigvals unsupervised (AttentionScore) | Llama-3.1-8B | 72.0% | White-box | 1-pass | Phase 7 re-run (paper: arXiv 2502.17598) |
 | LapEigvals supervised | Llama-3.1-8B | 87.2% | White-box | 80% labeled | Phase 7 re-run (paper: arXiv 2502.17598) |
 | Semantic Entropy (NLI) | Mistral-7B-Instruct-v0.3 | 75.85% | Black-box | K=10 | arXiv 2502.03799 Table 3 ⚠️ |
@@ -29,12 +29,12 @@
 
 ## Domain 2: Math — MATH-500
 
-**Our best result**: Qwen2.5-Math-7B-Instruct / T=1.0 → **90.0% AUROC** (Nadler, Phase 5)
+**Our best result**: Qwen2.5-Math-7B-Instruct / T=1.0 → **96.69% AUROC** [93.90, 98.69] (Nadler, Step 100 official)
 
 | Method | Model | AUROC | Access | Compute | Source |
 |--------|-------|-------|--------|---------|--------|
-| **Nadler Spectral Fusion (ours)** | Qwen2.5-Math-7B | **90.0%** | Gray-box | 1-pass | Phase 5 |
-| **Nadler Spectral Fusion (ours)** | Qwen-1.5B | **88.3%** | Gray-box | 1-pass | Phase 4 |
+| **Nadler Spectral Fusion (ours)** | Qwen2.5-Math-7B | **96.69%** | Gray-box | 1-pass | Step 100 (official) |
+| **Nadler Spectral Fusion (ours)** | Qwen-1.5B | **87.97%** | Gray-box | 1-pass | Step 100 (official) |
 | EDIS (entropy dynamics) | Qwen2.5-Math-1.5B | 80.4% (agg.) | Gray-box | 1-pass | arXiv 2602.01288 ⚠️⚠️ |
 | Semantic Entropy (NLI) | Qwen2.5-Math-7B | **[COMPUTE]** | Black-box | K=10 | run in notebook |
 | Self-Consistency (K=10) | Qwen2.5-Math-7B | **[COMPUTE]** | Black-box | K=10 | run in notebook |
@@ -48,13 +48,13 @@
 ## Domain 3: Science — GPQA Diamond
 
 **Our best results**:
-- Qwen2.5-72B-AWQ / T=1.0 → **69.0% AUROC** (Nadler, Phase 8)
-- Mistral-7B / T=1.0 → **65.4% AUROC** (Nadler, Phase 4)
+- Qwen2.5-72B-AWQ / T=1.0 → **67.47% AUROC** [59.71, 74.74] (Nadler, Step 100 official)
+- Mistral-7B / T=1.0 → **65.28% AUROC** [56.72, 73.96] (Nadler, Step 100 official)
 
 | Method | Model | AUROC | Access | Compute | Source |
 |--------|-------|-------|--------|---------|--------|
-| **Nadler Spectral Fusion (ours)** | Qwen2.5-72B-AWQ | **69.0%** | Gray-box | 1-pass | Phase 8 |
-| **Nadler Spectral Fusion (ours)** | Mistral-7B | **65.4%** | Gray-box | 1-pass | Phase 4 |
+| **Nadler Spectral Fusion (ours)** | Qwen2.5-72B-AWQ | **67.47%** | Gray-box | 1-pass | Step 100 (official) |
+| **Nadler Spectral Fusion (ours)** | Mistral-7B | **65.28%** | Gray-box | 1-pass | Step 100 (official) |
 | Verbalized Confidence (K=1) | Reasoning models avg. | 74.6% | Black-box | 1-pass | arXiv 2603.19118 ⚠️ |
 | Self-Consistency + VC (K=8) | Reasoning models avg. | 82.1% | Black-box | K=8 | arXiv 2603.19118 ⚠️ |
 | Self-Consistency (K=8) | Reasoning models avg. | 75.4% | Black-box | K=8 | arXiv 2603.19118 ⚠️ |
