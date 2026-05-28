@@ -60,20 +60,110 @@ def boot_auc(y, scores, n: int = 1000):
     return base, lo, hi
 
 
+# ── Binarization ──────────────────────────────────────────────────────────────
+
+def binarize_classifiers(feats_dict: dict, signs: dict) -> dict:
+    """
+    Convert continuous uncertainty features into binary ±1 classifiers.
+
+    Each feature is sign-oriented then thresholded at its empirical median,
+    yielding a binary classifier fᵢ ∈ {−1, +1} over the n samples.
+    A prediction of +1 means "likely correct"; −1 means "likely wrong."
+
+    This binarization satisfies the input assumption of the Spectral
+    Meta-Learner (SML, Parisi-Nadler-Kluger [PNAS 2014]).  Under Lemma 1
+    of that paper, the off-diagonal entries of the covariance matrix of
+    binary ±1 classifiers form a rank-1 matrix vvᵀ where vᵢ ∝ (2αᵢ − 1),
+    with αᵢ the balanced accuracy of classifier i.  The median split
+    produces balanced classifiers (50 % +1 predictions), consistent with
+    the symmetric b ≈ 0 case for which Lemma 1 was proven.
+
+    Args:
+        feats_dict: {feature_name: np.ndarray} of continuous feature values.
+        signs:      {feature_name: +1 | −1}.
+                    +1 = higher raw value → more likely correct.
+                    −1 = higher raw value → more likely wrong (flip sign).
+
+    Returns:
+        {feature_name: np.ndarray of ±1.0 values, same length as input}
+    """
+    binary = {}
+    for name, arr in feats_dict.items():
+        s = signs.get(name, +1)
+        oriented = np.array(arr, dtype=float) * s
+        med = np.median(oriented)
+        binary[name] = np.where(oriented > med, 1.0, -1.0)
+    return binary
+
+
 # ── Fusion algorithms ──────────────────────────────────────────────────────────
+
+def sml_fuse(*classifiers: np.ndarray) -> tuple:
+    """
+    Spectral Meta-Learner (SML) — Parisi-Nadler-Kluger [PNAS 2014].
+
+    Estimates the balanced accuracy αᵢ of each binary ±1 classifier from
+    the rank-1 structure of the off-diagonal covariance matrix (Lemma 1):
+
+        R_off ≈ v vᵀ,   vᵢ = √(1 − b²) · (2αᵢ − 1)
+
+    The leading eigenvector of R_off is proportional to (2α − 1), so
+    weights are proportional to classifier balanced accuracies.  The fused
+    score is a weighted vote: score = Σᵢ wᵢ · fᵢ(x).
+
+    This is the theoretically pure SML variant.  For the M-matrix variant
+    from the same paper (Parisi et al. 2014), see nadler_fuse().
+
+    Assumes classifiers make conditionally independent errors (Eq. 1 of
+    Parisi et al. 2014).  Strongly correlated pairs should be filtered
+    before calling — see the Spearman ρ filter in best_nadler_on(), which
+    approximates the full dependent-classifier detection of Jaffé-Fetaya-
+    Nadler [2016] (Section 3).
+
+    Args:
+        *classifiers: Binary ±1 np.ndarrays, all of length n_samples.
+                      Must be sign-oriented so that +1 predicts correct.
+
+    Returns:
+        (fused_scores: np.ndarray, weights: np.ndarray)
+        fused_scores = X @ weights  (continuous weighted vote)
+        weights      = L1-normalized |leading eigenvector of R_off|
+    """
+    X = np.column_stack(classifiers)
+    _n, k = X.shape
+    R = np.cov(X.T)
+    if R.ndim == 0:
+        R = np.array([[float(R)]])
+    R_off = R - np.diag(np.diag(R))
+    try:
+        _, vecs = eigh(R_off)
+        w = np.abs(vecs[:, -1])
+        w /= w.sum() + 1e-12
+    except Exception:
+        w = np.ones(k) / k
+    return X @ w, w
+
 
 def nadler_fuse(*views) -> tuple:
     """
-    Nadler combinatorial spectral fusion.
+    Spectral Meta-Learner — M-matrix variant (Parisi-Nadler-Kluger, PNAS 2014).
 
-    Expects z-scored, sign-oriented feature arrays (call best_nadler_on, which
-    handles normalization, rather than calling this directly on raw features).
+    Implements the M-matrix weight construction from Parisi et al. [2014],
+    which reweights the rank-1 covariance signal by the precision matrix C⁻¹.
+    For the theoretically pure SML (direct leading eigenvector of off-diagonal
+    covariance R_off), see sml_fuse().
+
+    Input contract: expects sign-oriented arrays.  For full theoretical
+    alignment with Lemma 1, inputs should be binary ±1 classifiers produced
+    by binarize_classifiers().  Continuous z-scored arrays are accepted as an
+    empirical adaptation that preserves the rank-1 covariance intuition but
+    lacks the binary classifier guarantee.
 
     Algorithm:
-        1. Stack views into matrix X (n_samples × k_features).
+        1. Stack views into matrix X (n_samples × k).
         2. Compute sample covariance C.
-        3. Build M = diag(row_sums_off_diag) @ C^{-1} @ diag(col_sums_off_diag).
-        4. Weights = absolute value of the leading eigenvector of M, L1-normalized.
+        3. Build M = diag(row_sums_off_diag) @ C⁻¹ @ diag(col_sums_off_diag).
+        4. Weights = |leading eigenvector of M|, L1-normalized.
         5. Fused score = X @ weights.
 
     Returns:
@@ -116,17 +206,37 @@ def simple_average_fusion(*views) -> tuple:
 
 def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
                    max_size: int = 4, label: str = "",
-                   compare_mean: bool = True):
+                   compare_mean: bool = True,
+                   binarize: bool = False):
     """
-    Exhaustive search over feature subsets for the best Nadler fusion score.
+    Exhaustive subset search for best SML-SS (Spectral Meta-Learner with
+    Supervised Subset Search) fusion score.
 
-    Normalization: every feature is z-scored after sign orientation and before
-    the covariance matrix is computed.  This fixes the scale-bias issue where
-    high-variance features (e.g. trace_length ~300) would dominate low-variance
-    features (e.g. epr ~1.5) purely due to units.
+    Adapts the SML framework of Parisi-Nadler-Kluger [PNAS 2014] by:
+      1. Estimating each feature's discrimination direction from ground-truth
+         labels (sign orientation via boot_auc — the supervised step).
+      2. Z-scoring after orientation to fix scale bias across features with
+         different units (e.g. trace_length ~300 vs epr ~1.5).
+      3. Optionally binarizing to ±1 via median threshold (binarize=True),
+         which satisfies the binary input assumption of Lemma 1 in Parisi
+         et al. [2014] for theoretically grounded weight estimation.
+         When binarize=True, weights are estimated from the binary classifiers
+         but applied to the z-scored continuous arrays for the final fused
+         score, preserving AUROC discrimination power.
+      4. Exhaustive search over all subsets (size 2 to max_size) for the
+         combination with highest fused AUROC against ground-truth labels.
 
-    Subset filtering: subsets containing any pair with |Spearman ρ| ≥ 0.75 are
-    skipped (redundant views hurt Nadler's covariance structure).
+    Conditional independence filter: subsets containing any pair with
+    |Spearman ρ| ≥ 0.75 are skipped. This approximates the dependent-
+    classifier detection of Jaffé-Fetaya-Nadler [2016] (Section 3), which
+    uses 2×2 determinants of the covariance matrix to identify groups of
+    strongly correlated classifiers.
+
+    NOTE — in-sample selection bias: the winning subset is chosen by
+    maximizing AUROC on the same N samples used for reporting. Bootstrap CI
+    does not correct this. Proper evaluation requires a held-out test split.
+    This function implements the supervised variant (SML-SS); for the zero-
+    label variant see best_nadler_pseudo_label (SML-PL).
 
     Args:
         feats_dict:   {feature_name: np.ndarray} mapping of raw feature arrays.
@@ -135,14 +245,17 @@ def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
         max_size:     Maximum subset size to search.
         label:        String tag for progress print-outs.
         compare_mean: If True, also compute the simple-average AUC for the best
-                      Nadler subset and print the Nadler Lift.
+                      subset and print the SML Lift over equal-weight ensemble.
+        binarize:     If True, binarize each oriented feature to ±1 via median
+                      threshold before weight estimation (satisfies Lemma 1).
+                      Default False preserves backward compatibility with
+                      pre-Step-105 consolidated results.
 
     Returns:
         (best_auc, best_lo, best_hi, best_subset, best_weights)
         - best_subset:  tuple of feature name strings, in fusion order
         - best_weights: np.ndarray aligned with best_subset (L1-normalized
-                        leading-eigenvector weights from nadler_fuse). None
-                        if no valid subset was found.
+                        SML weights from nadler_fuse). None if no valid subset.
     """
     labels_ = np.array(labels_)
 
@@ -161,6 +274,18 @@ def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
         n_: zscore(feats_dict[n_] * sign_m[n_])
         for n_ in feat_names
     }
+
+    # ── 2b. (Optional) Binarize to ±1 for paper-aligned weight estimation ─────
+    # When binarize=True: weights estimated from binary {-1,+1} classifiers
+    # (satisfies Lemma 1, Parisi-Nadler-Kluger PNAS 2014); fused score uses
+    # the continuous oriented arrays to preserve AUROC discrimination.
+    if binarize:
+        binary_for_weights = {
+            n_: np.where(oriented[n_] > np.median(oriented[n_]), 1.0, -1.0)
+            for n_ in feat_names
+        }
+    else:
+        binary_for_weights = oriented  # continuous z-scored (empirical adaptation)
 
     # ── 3. Precompute Spearman ρ on z-scored, oriented arrays ─────────────────
     rho = {}
@@ -188,7 +313,10 @@ def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
                    for a, b in itertools.combinations(s, 2)):
                 skipped += 1
                 continue
-            fused, w = nadler_fuse(*[oriented[n_] for n_ in s])
+            # Weights from binary_for_weights (binary or continuous per binarize flag);
+            # fused score from continuous oriented arrays for best AUROC discrimination.
+            _, w = nadler_fuse(*[binary_for_weights[n_] for n_ in s])
+            fused = np.column_stack([oriented[n_] for n_ in s]) @ w
             a, lo, hi = boot_auc(labels_, fused)
             if a > best_a:
                 best_a, best_lo, best_hi, best_s, best_w = a, lo, hi, s, w
@@ -205,8 +333,8 @@ def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
         mean_fused, _ = simple_average_fusion(*[oriented[n_] for n_ in best_s])
         mean_auc, mean_lo, mean_hi = boot_auc(labels_, mean_fused)
         lift = (best_a - mean_auc) * 100
-        print(f"\n  Nadler Lift over simple average (subset: {'+'.join(best_s)}):")
-        print(f"    Nadler : {100*best_a:.1f}%  [{100*best_lo:.1f}, {100*best_hi:.1f}]")
+        print(f"\n  SML Lift over equal-weight ensemble (subset: {'+'.join(best_s)}):")
+        print(f"    SML-SS : {100*best_a:.1f}%  [{100*best_lo:.1f}, {100*best_hi:.1f}]")
         print(f"    Mean   : {100*mean_auc:.1f}%  [{100*mean_lo:.1f}, {100*mean_hi:.1f}]")
         print(f"    Lift   : {lift:+.1f} pp")
 
@@ -224,27 +352,40 @@ def best_nadler_pseudo_label(
     compare_mean: bool = False,
 ):
     """
-    Fully unsupervised Nadler fusion via feature majority-vote pseudo-labels.
+    Fully unsupervised SML-PL (Spectral Meta-Learner with Pseudo-Label subset
+    selection). Zero ground-truth labels are required during feature selection.
 
-    Enables running the complete pipeline with zero ground-truth labels.
-    Feature subset selection uses pseudo-labels derived from the seed features;
-    real labels (if provided) are used only for final AUROC reporting.
+    The SML framework (Parisi-Nadler-Kluger [PNAS 2014]) is label-free in its
+    weight estimation step: only unlabeled binary classifier outputs are needed
+    to estimate balanced accuracies from the rank-1 covariance structure.
+    This function extends label-free operation to the subset selection step by
+    replacing ground-truth labels with majority-vote pseudo-labels derived from
+    seed classifiers whose discrimination direction is known a priori.
 
     Design:
         1. Orient each seed feature by its known direction (seed_signs).
         2. Build pseudo-labels: sample i is "correct" if the majority of oriented
            seed features are above their median (higher oriented value → more
            confident → less likely hallucinated).
-        3. Run the exhaustive Nadler subset search against the pseudo-labels
+        3. Run the exhaustive SML-SS subset search against pseudo-labels
            (same as best_nadler_on — sign orientation for non-seed features is
            also determined by the pseudo-labels).
         4. If real_labels provided, re-evaluate the best-subset fused score
            against ground truth and return the real AUROC.
 
+    Seed classifiers are continuous features with empirically validated
+    discrimination directions for reasoning tasks (math, science MCQ):
+    higher entropy / uncertainty → more likely wrong (sign = −1).
+    These defaults must NOT be used for factual-recall QA (Phase 9 showed
+    entropy signals are anti-predictive on recall tasks).
+
+    Real labels, if provided, are used ONLY for final AUROC reporting, never
+    for subset selection or weight estimation.
+
     Args:
         feats_dict:    {feature_name: np.ndarray} of raw feature arrays.
         feat_names:    Feature names to include in the search.
-        seed_features: Known-good features whose uncertainty direction is trusted.
+        seed_features: Reference classifiers whose uncertainty direction is trusted.
         seed_signs:    {feature_name: +1|-1}.  +1 = higher value → more correct;
                        -1 = higher value → more uncertain / wrong.
         real_labels:   Optional 1-D ground-truth array.  If provided, the returned
@@ -256,12 +397,6 @@ def best_nadler_pseudo_label(
     Returns:
         (auc, lo, hi, best_subset, best_weights) — same 5-tuple as best_nadler_on.
         auc/lo/hi are against real_labels if provided, else pseudo-labels.
-
-    Note:
-        The default seed_signs assume *reasoning tasks* (math, science MCQ) where
-        higher entropy → more uncertain → wrong.  They are empirically validated
-        for those domains but must NOT be used for factual recall QA (Phase 9
-        showed entropy signals are anti-predictive on recall tasks).
     """
     n = len(next(iter(feats_dict.values())))
 
@@ -324,8 +459,8 @@ def best_nadler_pseudo_label(
             real_auc, real_lo, real_hi = boot_auc(rl, fused)
         else:
             real_auc, real_lo, real_hi = boot_auc(rl, -fused)
-        print(f"  [{label or 'pseudo'}] pseudo AUROC: {100 * pl_auc:.1f}% | "
-              f"real AUROC: {100 * real_auc:.1f}% "
+        print(f"  [{label or 'pseudo'}] SML-PL pseudo-label AUROC: {100 * pl_auc:.1f}% | "
+              f"SML-PL real AUROC: {100 * real_auc:.1f}% "
               f"[{100 * real_lo:.1f}, {100 * real_hi:.1f}]")
         return real_auc, real_lo, real_hi, best_s, best_w
 

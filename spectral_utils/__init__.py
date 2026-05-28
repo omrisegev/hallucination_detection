@@ -44,7 +44,7 @@ from .data_loaders import (
     load_humaneval, humaneval_prompt, is_correct_humaneval,
     load_lciteeval, lciteeval_prompt, lciteeval_grounding_label,
 )
-from .fusion_utils import zscore, boot_auc, nadler_fuse, simple_average_fusion, best_nadler_on, best_nadler_pseudo_label
+from .fusion_utils import zscore, boot_auc, binarize_classifiers, sml_fuse, nadler_fuse, simple_average_fusion, best_nadler_on, best_nadler_pseudo_label
 from .baselines import (
     lite_semantic_entropy_for_statement, mean_neg_logprob_baseline,
     nli_load_model, nli_classify,
@@ -81,7 +81,8 @@ __all__ = [
     "load_webq", "webq_prompt", "is_correct_webq",
     "load_humaneval", "humaneval_prompt", "is_correct_humaneval",
     "load_lciteeval", "lciteeval_prompt", "lciteeval_grounding_label",
-    "zscore", "boot_auc", "nadler_fuse", "simple_average_fusion", "best_nadler_on",
+    "zscore", "boot_auc", "binarize_classifiers", "sml_fuse",
+    "nadler_fuse", "simple_average_fusion", "best_nadler_on",
     "best_nadler_pseudo_label",
     "lite_semantic_entropy_for_statement", "mean_neg_logprob_baseline",
     "nli_load_model", "nli_classify",

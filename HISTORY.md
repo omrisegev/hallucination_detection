@@ -3657,3 +3657,21 @@ global correlation heatmap, global RF importance heatmap, global AUC comparison.
 **Result**: Committed Step 104 with all fixes.  changes pushed. Notebook ready to run. Pull in Colab and execute cells in order.
 
 ---
+
+### Step 105 — Nadler paper alignment: binarize_classifiers, sml_fuse, SML terminology
+
+**What**: Read both source papers in full (Parisi-Nadler-Kluger PNAS 2014; Jaffe-Fetaya-Nadler 2016) and identified three critical gaps between our implementation and the original framework. Fixed all three on branch `feature/nadler-paper-alignment`.
+
+1. **Binary type mismatch fixed** — Lemma 1 (Parisi et al. 2014) is proven only for binary +/-1 classifiers. Added `binarize_classifiers(feats_dict, signs)` in `fusion_utils.py`: orients each feature by its known sign, then thresholds at the empirical median to produce +/-1 binary predictions (balanced split, consistent with symmetric b=0 case). Also added `binarize=False` parameter to `best_nadler_on` (default False, backward-compatible); when `binarize=True`, weights are estimated from binary classifiers (Lemma 1 holds exactly) but applied to z-scored continuous arrays for the fused score (preserves AUROC discrimination power).
+
+2. **Theoretically pure SML added** — Added `sml_fuse(*classifiers)` implementing the direct Spectral Meta-Learner from Parisi et al. 2014: leading eigenvector of off-diagonal covariance R_off, with weights proportional to estimated balanced accuracies. The existing `nadler_fuse` (M-matrix variant) is documented as the Parisi 2014 M-matrix construction.
+
+3. **Terminology corrected** — All docstrings and print strings updated: "Nadler fusion" -> "Spectral Meta-Learner (SML)"; `best_nadler_on` described as "SML-SS (Supervised Subset Search)"; `best_nadler_pseudo_label` described as "SML-PL (Pseudo-Label)"; "Nadler Lift" -> "SML Lift over equal-weight ensemble"; "Nadler weights" -> "SML weights (estimated balanced accuracies)". Function names kept for backward compatibility.
+
+4. **Exports updated** — `binarize_classifiers` and `sml_fuse` added to `spectral_utils/__init__.py`.
+
+**Why**: (1) Continuous inputs violate the binary +/-1 assumption of Lemma 1 -- binarization makes the rank-1 covariance guarantee theoretically applicable. (2) "Nadler fusion" is incorrect terminology; the algorithm is the SML from Parisi-Nadler-Kluger. (3) The continuous->binary adaptation is an original contribution that must be explicitly documented rather than hidden.
+
+**Result**: spectral_utils package is paper-aligned and thesis-ready. All 5 verification checks pass. Step 100 consolidated results unchanged (binarize=False default). New binarize=True mode available for paper-aligned experiments in Phase 12 and beyond.
+
+---
