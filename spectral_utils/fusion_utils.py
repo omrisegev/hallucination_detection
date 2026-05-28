@@ -1,16 +1,32 @@
 """
-Statistical fusion utilities: bootstrap AUC, Nadler spectral fusion, simple average fusion.
+Statistical fusion utilities for the Spectral Meta-Learner (SML) framework
+of Parisi-Nadler-Kluger [PNAS 2014] and Jaffé-Fetaya-Nadler [2016].
+
+Two SML variants are provided:
+  * sml_fuse:    direct rank-1 estimator — leading eigenvector of off-diagonal
+                 covariance R_off (Paper 2 Lemma 1, theoretically pure).
+  * nadler_fuse: M-matrix variant attributed to Parisi et al. 2014 PNAS,
+                 which reweights the rank-1 signal by the precision matrix C⁻¹.
+                 Empirically gives more peaked weights than sml_fuse.
+
+Both assume binary ±1 classifier inputs for theoretical guarantees;
+continuous z-scored arrays are accepted as an empirical adaptation.
 
 Key design decisions
 --------------------
-* z-score normalization is applied INSIDE best_nadler_on, after sign orientation and
-  BEFORE the covariance matrix is computed.  This ensures Nadler weights reflect
-  statistical complementarity, not feature scale.  The Spearman ρ filter is
-  rank-invariant and therefore unaffected.
+* z-score normalization is applied INSIDE best_nadler_on, after sign orientation
+  and BEFORE the covariance matrix is computed.  This ensures SML weights
+  reflect statistical complementarity, not feature scale.  The Spearman ρ filter
+  is rank-invariant and therefore unaffected.
 
-* simple_average_fusion is provided alongside nadler_fuse so that every experiment
-  can report "Nadler Lift" = AUC_nadler − AUC_mean over the same feature subset.
-  This directly justifies the use of the more complex Nadler algorithm.
+* simple_average_fusion is provided alongside the SML variants so every
+  experiment can report "SML Lift" = AUC_SML − AUC_mean over the same subset.
+  This directly justifies the use of the more complex SML algorithm.
+
+* best_nadler_on switches between sml_fuse and nadler_fuse based on the
+  `binarize` flag: binarize=True selects sml_fuse (Lemma 1 exact, paper-
+  aligned); binarize=False keeps nadler_fuse (M-matrix, backward-compatible
+  with pre-Step-105 consolidated results).
 """
 import itertools
 
@@ -73,10 +89,15 @@ def binarize_classifiers(feats_dict: dict, signs: dict) -> dict:
     This binarization satisfies the input assumption of the Spectral
     Meta-Learner (SML, Parisi-Nadler-Kluger [PNAS 2014]).  Under Lemma 1
     of that paper, the off-diagonal entries of the covariance matrix of
-    binary ±1 classifiers form a rank-1 matrix vvᵀ where vᵢ ∝ (2αᵢ − 1),
-    with αᵢ the balanced accuracy of classifier i.  The median split
-    produces balanced classifiers (50 % +1 predictions), consistent with
-    the symmetric b ≈ 0 case for which Lemma 1 was proven.
+    binary ±1 classifiers form a rank-1 matrix vvᵀ where vᵢ ∝ (2αᵢ − 1)·√(1−b²),
+    with αᵢ the balanced accuracy of classifier i and b the true class
+    imbalance (a dataset property, not affected by the median split).
+
+    The median split produces a balanced prediction distribution
+    (50 % +1, 50 % −1), the standard convention for unsupervised
+    classifier construction.  An informative feature will yield αᵢ > 0.5
+    after this thresholding; a non-informative feature will yield αᵢ ≈ 0.5
+    and receive near-zero SML weight automatically.
 
     Args:
         feats_dict: {feature_name: np.ndarray} of continuous feature values.
@@ -191,7 +212,8 @@ def simple_average_fusion(*views) -> tuple:
     Unweighted mean fusion (equal weights baseline).
 
     Expects z-scored, sign-oriented feature arrays (same input contract as
-    nadler_fuse).  Used to compute Nadler Lift = AUC_nadler − AUC_mean.
+    sml_fuse / nadler_fuse).  Used to compute the SML Lift over equal-weight
+    ensemble: Lift = AUC_SML − AUC_mean.
 
     Returns:
         (fused_scores: np.ndarray, weights: np.ndarray)
@@ -220,9 +242,14 @@ def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
       3. Optionally binarizing to ±1 via median threshold (binarize=True),
          which satisfies the binary input assumption of Lemma 1 in Parisi
          et al. [2014] for theoretically grounded weight estimation.
-         When binarize=True, weights are estimated from the binary classifiers
-         but applied to the z-scored continuous arrays for the final fused
-         score, preserving AUROC discrimination power.
+         The weight estimation algorithm depends on the binarize flag:
+           - binarize=True  → sml_fuse (Lemma 1 exact: leading eigenvector
+             of off-diagonal R_off).  Paper-aligned.
+           - binarize=False → nadler_fuse (M-matrix variant from Parisi 2014
+             PNAS).  Backward-compatible with pre-Step-105 results.
+         Either way the fused score is computed by applying the estimated
+         weights to the z-scored continuous arrays, preserving AUROC
+         discrimination power.
       4. Exhaustive search over all subsets (size 2 to max_size) for the
          combination with highest fused AUROC against ground-truth labels.
 
@@ -247,15 +274,18 @@ def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
         compare_mean: If True, also compute the simple-average AUC for the best
                       subset and print the SML Lift over equal-weight ensemble.
         binarize:     If True, binarize each oriented feature to ±1 via median
-                      threshold before weight estimation (satisfies Lemma 1).
-                      Default False preserves backward compatibility with
-                      pre-Step-105 consolidated results.
+                      threshold and use sml_fuse (Lemma 1 exact) for weight
+                      estimation — fully paper-aligned.
+                      If False (default), use nadler_fuse (M-matrix variant)
+                      on continuous z-scored arrays — preserves backward
+                      compatibility with pre-Step-105 consolidated results.
 
     Returns:
         (best_auc, best_lo, best_hi, best_subset, best_weights)
         - best_subset:  tuple of feature name strings, in fusion order
-        - best_weights: np.ndarray aligned with best_subset (L1-normalized
-                        SML weights from nadler_fuse). None if no valid subset.
+        - best_weights: np.ndarray aligned with best_subset, L1-normalized
+                        SML weights (from sml_fuse if binarize=True,
+                        else from nadler_fuse). None if no valid subset.
     """
     labels_ = np.array(labels_)
 
@@ -313,9 +343,14 @@ def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
                    for a, b in itertools.combinations(s, 2)):
                 skipped += 1
                 continue
-            # Weights from binary_for_weights (binary or continuous per binarize flag);
-            # fused score from continuous oriented arrays for best AUROC discrimination.
-            _, w = nadler_fuse(*[binary_for_weights[n_] for n_ in s])
+            # Weight estimation algorithm depends on binarize flag:
+            #   binarize=True  → sml_fuse  (Lemma 1 exact, paper-aligned)
+            #   binarize=False → nadler_fuse (M-matrix variant, backward-compat)
+            # Fused score is always continuous oriented arrays for AUROC discrimination.
+            if binarize:
+                _, w = sml_fuse(*[binary_for_weights[n_] for n_ in s])
+            else:
+                _, w = nadler_fuse(*[binary_for_weights[n_] for n_ in s])
             fused = np.column_stack([oriented[n_] for n_ in s]) @ w
             a, lo, hi = boot_auc(labels_, fused)
             if a > best_a:

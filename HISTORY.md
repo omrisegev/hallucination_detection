@@ -3674,4 +3674,6 @@ global correlation heatmap, global RF importance heatmap, global AUC comparison.
 
 **Result**: spectral_utils package is paper-aligned and thesis-ready. All 5 verification checks pass. Step 100 consolidated results unchanged (binarize=False default). New binarize=True mode available for paper-aligned experiments in Phase 12 and beyond.
 
+**Post-implementation refinement**: An audit run on synthetic data with known balanced accuracies revealed that `nadler_fuse` (M-matrix variant) produces materially different weights than the Lemma 1 SML — over-concentrated on top features ([0.555, 0.363, 0.067, 0.014, 0.002] vs theoretical [0.381, 0.286, 0.190, 0.095, 0.048]). To make `binarize=True` fully paper-aligned, `best_nadler_on` was updated to call `sml_fuse` (Lemma 1 exact) when `binarize=True`, and to keep `nadler_fuse` (M-matrix) when `binarize=False`. `sml_fuse` weights recover theoretical (2α-1) with Pearson correlation 0.964 on synthetic conditional-independence data. Module docstring, `simple_average_fusion` docstring, and `binarize_classifiers` docstring also updated to remove stale "Nadler Lift" language and correct the misleading "symmetric b≈0" claim (Lemma 1 holds for any b).
+
 ---
