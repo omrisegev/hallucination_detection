@@ -3677,3 +3677,33 @@ global correlation heatmap, global RF importance heatmap, global AUC comparison.
 **Post-implementation refinement**: An audit run on synthetic data with known balanced accuracies revealed that `nadler_fuse` (M-matrix variant) produces materially different weights than the Lemma 1 SML — over-concentrated on top features ([0.555, 0.363, 0.067, 0.014, 0.002] vs theoretical [0.381, 0.286, 0.190, 0.095, 0.048]). To make `binarize=True` fully paper-aligned, `best_nadler_on` was updated to call `sml_fuse` (Lemma 1 exact) when `binarize=True`, and to keep `nadler_fuse` (M-matrix) when `binarize=False`. `sml_fuse` weights recover theoretical (2α-1) with Pearson correlation 0.964 on synthetic conditional-independence data. Module docstring, `simple_average_fusion` docstring, and `binarize_classifiers` docstring also updated to remove stale "Nadler Lift" language and correct the misleading "symmetric b≈0" claim (Lemma 1 holds for any b).
 
 ---
+
+### Step 106 — Pure unsupervised L-SML (Paper 1 + Paper 2 full alignment)
+
+**What**: Implemented the complete Paper-1 Latent SML (L-SML) algorithm and an unsupervised top-level pipeline `sml_unsupervised`. The existing `best_nadler_on` / `best_nadler_pseudo_label` are kept (backward compat) but the new functions are the paper-aligned method for all future experiments.
+
+New functions in `spectral_utils/fusion_utils.py`:
+1. `sml_fuse_signed(*classifiers)` — Lemma 1 SML with **signed** weights and ±1 sign resolution via Paper 2 assumption (iii). Used when classifiers are NOT pre-oriented; the eigenvector's component signs encode each classifier's natural orientation.
+2. `detect_dependent_groups(binary_classifiers, method, K_range)` — Paper 1 Algorithm 1. Builds score matrix `s_ij = Σ |r_ij r_kl − r_il r_kj|`, spectral-clusters, picks K either by:
+   - `method='residual'`: minimise Paper 1 Eq. (14) residual over `K_range` (paper-faithful)
+   - `method='eigengap'`: Laplacian eigengap heuristic (fast alternative)
+3. `lsml_fuse(*binary_classifiers, method)` — Paper 1 Algorithm 2. Within each detected group: SML → binary virtual classifier ξ_g. Across groups: SML on the K virtual classifiers (which are conditionally independent by construction).
+4. `sml_unsupervised(feats_dict, feat_names, method)` — top-level pipeline: median-binarize all features (NO orientation, NO subset selection, NO label use), run L-SML. Real labels used only externally for AUROC reporting.
+5. `sml_unsupervised_compare(feats_dict, feat_names, labels)` — runs both K-selection methods, reports K, group ARI, AUROCs.
+
+All new functions exported from `__init__.py`.
+
+**Why**: All prior thesis numbers used the supervised method (labels for sign orientation AND for subset selection) on continuous (not binarized) features, with M-matrix weights — violating three core assumptions of the source papers. The user explicitly requested correcting this to match the original papers: binary inputs, unsupervised, no subset selection, with L-SML handling for dependent classifiers.
+
+**Verification on synthetic Paper-1 model** (m=10 classifiers in K=3 known latent groups, n=4000, true assignment [0,0,0,0,1,1,1,2,2,2]):
+| Method | Detected K | AUC vs true labels |
+| --- | --- | --- |
+| Paper 1 Alg 1 (residual)  | **3** ✓ | **0.869** |
+| Eigengap heuristic        | 2        | 0.814 |
+| Naive SML (no grouping)   | 1        | 0.824 |
+
+Residual K-selection correctly recovers true K=3 and outperforms both alternatives. Group ARI between residual and eigengap methods = 0.483 — meaningfully different, so eigengap is NOT redundant; can underestimate K and degrade fusion.
+
+**Result**: spectral_utils package is now fully aligned with Parisi-Nadler-Kluger PNAS 2014 + Jaffé-Fetaya-Nadler 2016. All Consolidated Results / Phase notebooks should be re-run using `sml_unsupervised` instead of `best_nadler_on` / `best_nadler_pseudo_label` to produce paper-aligned, unsupervised, no-subset, dependent-classifier-aware fusion results. Cached entropy traces in Drive can be reused — no GPU inference needed.
+
+---

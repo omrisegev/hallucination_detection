@@ -44,7 +44,12 @@ from .data_loaders import (
     load_humaneval, humaneval_prompt, is_correct_humaneval,
     load_lciteeval, lciteeval_prompt, lciteeval_grounding_label,
 )
-from .fusion_utils import zscore, boot_auc, binarize_classifiers, sml_fuse, nadler_fuse, simple_average_fusion, best_nadler_on, best_nadler_pseudo_label
+from .fusion_utils import (
+    zscore, boot_auc, binarize_classifiers, sml_fuse, nadler_fuse,
+    simple_average_fusion, best_nadler_on, best_nadler_pseudo_label,
+    sml_fuse_signed, detect_dependent_groups, lsml_fuse,
+    sml_unsupervised, sml_unsupervised_compare,
+)
 from .baselines import (
     lite_semantic_entropy_for_statement, mean_neg_logprob_baseline,
     nli_load_model, nli_classify,
@@ -84,6 +89,8 @@ __all__ = [
     "zscore", "boot_auc", "binarize_classifiers", "sml_fuse",
     "nadler_fuse", "simple_average_fusion", "best_nadler_on",
     "best_nadler_pseudo_label",
+    "sml_fuse_signed", "detect_dependent_groups", "lsml_fuse",
+    "sml_unsupervised", "sml_unsupervised_compare",
     "lite_semantic_entropy_for_statement", "mean_neg_logprob_baseline",
     "nli_load_model", "nli_classify",
     "official_semantic_entropy",

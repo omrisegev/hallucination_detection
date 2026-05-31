@@ -224,6 +224,347 @@ def simple_average_fusion(*views) -> tuple:
     return X @ w, w
 
 
+# ── L-SML: Latent Spectral Meta-Learner (Jaffé-Fetaya-Nadler 2016) ─────────────
+
+def sml_fuse_signed(*classifiers: np.ndarray) -> tuple:
+    """
+    SML with signed weights and ±1 sign resolution via Paper 2 assumption (iii).
+
+    Like sml_fuse, but keeps the leading eigenvector's sign rather than taking
+    |·|.  Used in the fully unsupervised pipeline where classifiers are NOT
+    pre-oriented: the sign of each weight vᵢ encodes the classifier's natural
+    orientation (positive = informative as-is, negative = inversely informative).
+
+    Sign resolution (Paper 2 assumption (iii) — "most classifiers beat random"):
+    if fewer than half of v's components are positive, flip the global sign of v.
+
+    Args:
+        *classifiers: Binary ±1 arrays of length n_samples.
+
+    Returns:
+        (fused_scores, signed_weights)
+    """
+    X = np.column_stack(classifiers)
+    _n, k = X.shape
+    R = np.cov(X.T)
+    if R.ndim == 0:
+        R = np.array([[float(R)]])
+    R_off = R - np.diag(np.diag(R))
+    try:
+        _, vecs = eigh(R_off)
+        v = vecs[:, -1]
+        if np.sum(v > 0) < k / 2:
+            v = -v
+    except Exception:
+        v = np.ones(k) / k
+    return X @ v, v
+
+
+def _score_matrix_lsml(R: np.ndarray) -> np.ndarray:
+    """
+    Paper 1 Eq. (15): s_ij = Σ_{k,l ≠ i,j} |r_ij·r_kl − r_il·r_kj|.
+    Large values indicate dependent (same-group) classifier pairs.
+    """
+    m = R.shape[0]
+    s = np.zeros((m, m))
+    for i in range(m):
+        for j in range(i + 1, m):
+            total = 0.0
+            for k in range(m):
+                if k == i or k == j:
+                    continue
+                for l in range(m):
+                    if l == i or l == j or l == k:
+                        continue
+                    total += abs(R[i, j] * R[k, l] - R[i, l] * R[k, j])
+            s[i, j] = s[j, i] = total
+    return s
+
+
+def _spectral_cluster_precomputed(similarity: np.ndarray, K: int, seed: int = 42) -> np.ndarray:
+    """Spectral clustering on a precomputed similarity matrix."""
+    from sklearn.cluster import SpectralClustering
+    sc = SpectralClustering(
+        n_clusters=K, affinity='precomputed',
+        assign_labels='kmeans', random_state=seed,
+    )
+    return sc.fit_predict(similarity + 1e-12)
+
+
+def _estimate_von_voff(R: np.ndarray, c: np.ndarray) -> tuple:
+    """
+    Estimate v^on and v^off per Paper 1 Lemma 1.
+
+    v^on_i for i ∈ group g: leading eigenvector of the within-group submatrix
+    of R (diagonal zeroed).
+    v^off: leading eigenvector of R with within-group entries zeroed.
+    """
+    m = R.shape[0]
+    v_on = np.zeros(m)
+    for g in np.unique(c):
+        idx = np.where(c == g)[0]
+        if len(idx) == 1:
+            v_on[idx] = 1.0
+            continue
+        sub = R[np.ix_(idx, idx)].copy()
+        sub -= np.diag(np.diag(sub))
+        try:
+            _, vecs = eigh(sub)
+            v_on[idx] = vecs[:, -1]
+        except Exception:
+            v_on[idx] = 1.0 / np.sqrt(len(idx))
+
+    R_off_only = R.copy()
+    for i in range(m):
+        for j in range(m):
+            if c[i] == c[j]:
+                R_off_only[i, j] = 0.0
+    try:
+        _, vecs = eigh(R_off_only)
+        v_off = vecs[:, -1]
+    except Exception:
+        v_off = np.ones(m) / np.sqrt(m)
+
+    return v_on, v_off
+
+
+def _residual_lsml(R: np.ndarray, c: np.ndarray) -> float:
+    """Paper 1 Eq. (14) residual under assignment c."""
+    m = R.shape[0]
+    v_on, v_off = _estimate_von_voff(R, c)
+    resid = 0.0
+    for i in range(m):
+        for j in range(m):
+            if i == j:
+                continue
+            if c[i] == c[j]:
+                resid += (v_on[i] * v_on[j] - R[i, j]) ** 2
+            else:
+                resid += (v_off[i] * v_off[j] - R[i, j]) ** 2
+    return float(resid)
+
+
+def _eigengap_K(s: np.ndarray, max_K: int = 8) -> int:
+    """
+    Eigengap heuristic on the normalized Laplacian of similarity matrix s.
+    Returns K maximizing the gap between consecutive smallest Laplacian
+    eigenvalues (K = index of largest gap + 1, with K ≥ 2).
+    """
+    m = s.shape[0]
+    deg = s.sum(axis=1) + 1e-12
+    D_inv_sqrt = 1.0 / np.sqrt(deg)
+    S_norm = (D_inv_sqrt[:, None] * s) * D_inv_sqrt[None, :]
+    L_norm = np.eye(m) - S_norm
+    eigvals = np.sort(np.linalg.eigvalsh(L_norm))[:max_K + 1]
+    gaps = np.diff(eigvals)
+    return max(int(np.argmax(gaps)) + 1, 2)
+
+
+def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'residual'):
+    """
+    Paper 1 Algorithm 1: detect groups of dependent binary classifiers.
+
+    Algorithm:
+        1. Compute m×m covariance matrix R of binary ±1 classifier outputs.
+        2. Compute score matrix s_ij = Σ |r_ij·r_kl − r_il·r_kj| (Eq. 15).
+           Large s_ij ⇒ classifiers i and j are likely in the same group.
+        3. Spectral-cluster on s to obtain assignment c : {1,...,m} → {1,...,K}.
+        4. Choose K either by:
+             method='residual'  → minimise Eq. (14) residual over K_range
+                                 (most paper-faithful, ~K_range × spectral)
+             method='eigengap'  → Laplacian eigengap on score matrix
+                                 (standard heuristic, single spectral run)
+
+    Args:
+        binary_classifiers: iterable of ±1 arrays, length n each.
+        K_range:            iterable of K to try (default 2..min(m,8)).
+        method:             'residual' or 'eigengap'.
+
+    Returns:
+        (best_K, assignment_c, residual_at_best_K, score_matrix_s)
+    """
+    X = np.column_stack(binary_classifiers)
+    m = X.shape[1]
+    R = np.cov(X.T)
+    if R.ndim == 0:
+        R = np.array([[float(R)]])
+    s = _score_matrix_lsml(R)
+
+    if K_range is None:
+        K_range = list(range(2, min(m, 8) + 1))
+    K_range = list(K_range)
+
+    if method == 'eigengap':
+        K = _eigengap_K(s, max_K=max(K_range))
+        try:
+            c = _spectral_cluster_precomputed(s, K)
+        except Exception:
+            return 1, np.zeros(m, dtype=int), float('inf'), s
+        return K, c, _residual_lsml(R, c), s
+
+    if method != 'residual':
+        raise ValueError(f"Unknown method {method!r}; use 'residual' or 'eigengap'.")
+
+    best_K, best_c, best_resid = None, None, float('inf')
+    for K in K_range:
+        try:
+            c = _spectral_cluster_precomputed(s, K)
+        except Exception:
+            continue
+        r = _residual_lsml(R, c)
+        if r < best_resid:
+            best_resid, best_K, best_c = r, K, c
+    if best_K is None:
+        return 1, np.zeros(m, dtype=int), float('inf'), s
+    return best_K, best_c, best_resid, s
+
+
+def lsml_fuse(*binary_classifiers, K_range=None, method: str = 'residual'):
+    """
+    Latent SML (L-SML) — Paper 1 Algorithm 2 (Jaffé-Fetaya-Nadler 2016).
+
+    Pipeline:
+        1. Detect dependent classifier groups via detect_dependent_groups.
+        2. Within each group g: run sml_fuse_signed on the group's binary
+           classifiers, then binarize the weighted score to a ±1 virtual
+           latent classifier ξ_g (Paper 1 Algorithm 2 line 5).
+        3. Across groups: run sml_fuse_signed on the K virtual classifiers
+           ξ_1, ..., ξ_K (which are conditionally independent by construction
+           per the latent-variable model, Fig. 1 right of Paper 1).
+
+    All inputs must be binary ±1.  Real labels never enter this function.
+
+    Returns:
+        (fused_scores, meta_dict)
+        meta_dict:
+            K, c (group assignment), residual, method, score_matrix,
+            group_weights (list of (idx_array, signed_weights)),
+            cross_weights (signed weights across virtual classifiers),
+            virtual_classifiers (n_samples × K binary array)
+    """
+    X = np.column_stack(binary_classifiers)
+    n, m = X.shape
+
+    K, c, residual, s_mat = detect_dependent_groups(
+        binary_classifiers, K_range=K_range, method=method,
+    )
+
+    virtual = []
+    group_weights = []
+    for g in np.unique(c):
+        idx = np.where(c == g)[0]
+        if len(idx) == 1:
+            xi_g = X[:, idx[0]].astype(float)
+            w = np.array([1.0])
+        else:
+            score, w = sml_fuse_signed(*[X[:, i] for i in idx])
+            xi_g = np.sign(score)
+            xi_g[xi_g == 0] = 1.0
+        virtual.append(xi_g)
+        group_weights.append((idx, w))
+
+    virtual_arr = np.column_stack(virtual)
+
+    if len(virtual) == 1:
+        if len(group_weights[0][0]) > 1:
+            fused = X[:, group_weights[0][0]] @ group_weights[0][1]
+        else:
+            fused = virtual[0]
+        cross_w = np.array([1.0])
+    else:
+        fused, cross_w = sml_fuse_signed(*virtual)
+
+    return fused, {
+        'K': K, 'c': c, 'residual': residual, 'method': method,
+        'score_matrix': s_mat,
+        'group_weights': group_weights,
+        'cross_weights': cross_w,
+        'virtual_classifiers': virtual_arr,
+    }
+
+
+def sml_unsupervised(feats_dict: dict, feat_names: list,
+                     K_range=None, method: str = 'residual'):
+    """
+    Pure unsupervised binary L-SML pipeline.
+
+    Fully aligned with Parisi-Nadler-Kluger [PNAS 2014] (SML, Lemma 1) and
+    Jaffé-Fetaya-Nadler [2016] (L-SML for dependent classifiers):
+
+      Step 1.  Binarize each continuous feature at its empirical median
+               to obtain a binary ±1 classifier.  NO sign orientation
+               (orientation is resolved by sml_fuse_signed internally via
+               Paper 2 assumption (iii)).
+      Step 2.  L-SML: detect groups of dependent classifiers, run SML
+               within each group to obtain a binary virtual classifier per
+               group, then run SML across groups.
+      Step 3.  Return continuous fused scores for downstream AUROC
+               evaluation.  Real labels never used inside this function.
+
+    All m features are always used — no subset search, no Spearman ρ
+    filter, no label-based selection.
+
+    Args:
+        feats_dict: {feature_name: np.ndarray} of continuous features.
+        feat_names: list of feature names to include (uses all of them).
+        K_range:    iterable of K values to try (default 2..min(m,8)).
+        method:     'residual' (Paper 1 Algorithm 1 — paper-faithful) or
+                    'eigengap' (Laplacian eigengap heuristic — fast).
+
+    Returns:
+        (fused_scores, meta_dict) — see lsml_fuse for meta_dict contents.
+    """
+    binary = []
+    for f in feat_names:
+        arr = np.array(feats_dict[f], dtype=float)
+        med = np.median(arr)
+        binary.append(np.where(arr > med, 1.0, -1.0))
+    return lsml_fuse(*binary, K_range=K_range, method=method)
+
+
+def sml_unsupervised_compare(feats_dict: dict, feat_names: list,
+                             K_range=None, labels=None):
+    """
+    Run sml_unsupervised with both K-selection methods and report agreement.
+
+    Useful for assessing whether the eigengap heuristic is redundant with
+    the more expensive Paper 1 Algorithm 1 residual-minimisation approach.
+
+    If `labels` are provided (used for evaluation only, not for fusion),
+    also reports each method's AUROC.
+
+    Returns:
+        dict with keys:
+            'residual_fused', 'residual_meta'   (sml_unsupervised method='residual')
+            'eigengap_fused', 'eigengap_meta'   (sml_unsupervised method='eigengap')
+            'K_residual', 'K_eigengap',
+            'same_K', 'group_ARI' (adjusted Rand index between assignments),
+            'residual_auc', 'eigengap_auc' (only if labels given)
+    """
+    from sklearn.metrics import adjusted_rand_score
+
+    fused_r, meta_r = sml_unsupervised(feats_dict, feat_names,
+                                       K_range=K_range, method='residual')
+    fused_e, meta_e = sml_unsupervised(feats_dict, feat_names,
+                                       K_range=K_range, method='eigengap')
+
+    result = {
+        'residual_fused': fused_r, 'residual_meta': meta_r,
+        'eigengap_fused': fused_e, 'eigengap_meta': meta_e,
+        'K_residual': meta_r['K'], 'K_eigengap': meta_e['K'],
+        'same_K': meta_r['K'] == meta_e['K'],
+        'group_ARI': float(adjusted_rand_score(meta_r['c'], meta_e['c'])),
+    }
+    if labels is not None:
+        r_auc = boot_auc(labels, fused_r)
+        n_auc = boot_auc(labels, -fused_r)
+        result['residual_auc'] = max(r_auc[0], n_auc[0])
+        r_auc = boot_auc(labels, fused_e)
+        n_auc = boot_auc(labels, -fused_e)
+        result['eigengap_auc'] = max(r_auc[0], n_auc[0])
+    return result
+
+
 # ── Combined search ────────────────────────────────────────────────────────────
 
 def best_nadler_on(feats_dict: dict, feat_names: list, labels_,
