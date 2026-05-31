@@ -3707,3 +3707,59 @@ Residual K-selection correctly recovers true K=3 and outperforms both alternativ
 **Result**: spectral_utils package is now fully aligned with Parisi-Nadler-Kluger PNAS 2014 + Jaffé-Fetaya-Nadler 2016. All Consolidated Results / Phase notebooks should be re-run using `sml_unsupervised` instead of `best_nadler_on` / `best_nadler_pseudo_label` to produce paper-aligned, unsupervised, no-subset, dependent-classifier-aware fusion results. Cached entropy traces in Drive can be reused — no GPU inference needed.
 
 ---
+
+### Step 107 — L-SML evaluation on Consolidated cached features (Colab run completed)
+
+**What**: Ran `Spectral_Analysis_Consolidated_Results_LSML.ipynb` on Colab against cached features from Step 100. All 5 domains (MATH-500, GSM8K, GPQA, RAG L-CiteEval, Factual QA Phase 9) processed in CPU-only mode (~15 min). Per-domain pkls + combined `lsml_results_all.pkl` + comparison CSV + bar plot all written to Drive `consolidated_results/`.
+
+**Why**: First empirical comparison of the paper-aligned L-SML (binary inputs, unsupervised, no subset, Paper 1 group detection) against the prior supervised continuous M-matrix Nadler (Step 100 numbers used in the thesis).
+
+**Result — L-SML AUROC vs old Nadler AUROC, residual K-selection (paper Algorithm 1)**:
+
+| Domain | Best L-SML | Old Nadler | Δ |
+|---|---|---|---|
+| MATH-500 / Qwen-Math-7B    | **91.2%** [86.0, 95.2] (K=5) | 96.7% | −5.5pp |
+| MATH-500 / Qwen-Math-1.5B  | 82.1% [76.7, 86.8] (K=6) | 88.0% | −5.9pp |
+| MATH-500 / DeepSeek-R1-Llama-8B | 78.9% [73.5, 84.3] (K=6) | 86.3% | −7.4pp |
+| MATH-500 / DeepSeek-Math-7B | 64.9% [57.4, 72.2] (K=5) | 75.1% | −10.1pp |
+| GSM8K / Llama-8B            | **70.4%** [66.9, 74.0] (K=4) | 75.9% | −5.5pp |
+| GPQA / Qwen-72B-AWQ         | **62.4%** [54.6, 70.4] (K=4) | 67.5% | −5.0pp |
+| GPQA / Qwen-7B              | 58.5% [50.5, 66.6] (K=4) | 59.9% | −1.4pp |
+| GPQA / Mistral-7B           | 56.8% [47.1, 66.4] (K=6) | 65.3% | −8.5pp |
+| GPQA / DeepSeek-R1-Llama-8B | 55.8% [46.4, 64.9] (K=3) | 62.1% | −6.3pp |
+| GPQA / Llama-8B             | 52.1% [42.0, 62.0] (K=5) | 58.2% | −6.1pp |
+| RAG / Llama-8B / hotpotqa   | **71.1%** [59.9, 81.9] (K=4) | 88.2% | −17.1pp |
+| RAG / Qwen-72B / hotpotqa   | 70.1% [61.0, 78.7] (K=4) | 79.4% | −9.3pp |
+| RAG / Qwen-7B / hotpotqa    | 56.5% [43.2, 69.6] (K=4) | 80.2% | −23.7pp |
+| RAG / Qwen-7B / 2wikimultihopqa | 52.1% [32.7, 69.8] (K=3) | 81.3% | **−29.3pp** |
+| Factual QA / trivia_qa_cot  | 56.9% [49.5, 64.6] (K=4) | 71.1% | −14.2pp |
+| Factual QA / webq_cot       | 54.9% [45.2, 64.6] (K=4) | 68.4% | −13.4pp |
+
+Pattern: **every** (domain, model, dataset) cell dropped. Magnitude clusters as Math (~5–10pp) < GPQA (~5–8pp) < RAG (~15–29pp) < Factual QA (~13–14pp).
+
+**K-selection comparison**: eigengap heuristic systematically picks K=2 across all domains; residual (Paper 1 Alg 1) picks K=3–6. Group ARI between the two methods ranges 0.05–0.55 — they materially disagree. Residual K-selection consistently produced higher AUROC than eigengap on real data (matching the synthetic test in Step 106).
+
+**Diagnosis — why the drops are large and systematic**:
+1. **No supervised sign orientation** — old method ran `boot_auc(labels, ±feat)` to pick each feature's sign using labels; L-SML resolves sign via assumption (iii) on the unsupervised eigenvector.
+2. **No in-sample subset selection bias** — old method exhaustively searched ≤4-feature subsets on the same N samples used for AUROC reporting (selection bias not corrected by the bootstrap CI); L-SML uses all 16 features with no selection.
+3. **Continuous → binary** — median binarization loses magnitude resolution; required by Lemma 1.
+4. **M-matrix → Lemma 1 eigenvector** — M-matrix variant (`nadler_fuse`) over-concentrates weight on top features vs the true Lemma 1 eigenvector (`sml_fuse`). Verified on synthetic data in Step 106 (corr=0.964 of `sml_fuse` weights with theoretical 2α−1).
+
+**Implications**:
+- The Step 100 numbers were materially inflated by methodological choices that did not match the source papers. The 5–30pp drops are the **honest price of paper-alignment**.
+- Math/science remain in respectable range (Qwen-Math-7B at 91% MATH-500, Llama-8B at 70% GSM8K).
+- RAG was hit hardest — the supervised subset search had been picking the best 2–4 features per (model, dataset) on N=50–250 samples, which is essentially memorization.
+- Phase 9 Factual QA still negative result as expected.
+- The thesis empirical claims must be rewritten around the L-SML numbers, with a clear methodology section explaining the correction.
+
+**Next**: Phase 12 (running on Colab) — answers the critical question of whether L-SML still beats SE/SC/VC baselines on the same models. If yes, spectral features retain their unique value claim; if no, the empirical justification for spectral features weakens.
+
+**Files saved on Drive** (`consolidated_results/`):
+- `lsml_math500_res.pkl`, `lsml_gsm8k_res.pkl`, `lsml_gpqa_res.pkl`, `lsml_rag_res.pkl`, `lsml_qa_res.pkl`
+- `lsml_results_all.pkl` (combined)
+- `lsml_summary.csv` (29-row comparison table with delta_vs_old column)
+- `plots/lsml/lsml_vs_nadler_comparison.png`
+
+Step 100 files (`results_all.pkl`, `results_summary.csv`) untouched.
+
+---

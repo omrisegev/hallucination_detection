@@ -1,7 +1,51 @@
 # MV_EPR — Session Progress Handoff
 
-**Date**: 2026-05-27
-**Last updated**: Steps 101–102 complete — Phase 12 API fixes, NaN crash fix, JSON repair, pre-commit hook added
+**Date**: 2026-06-01
+**Last updated**: Steps 105–107 — Nadler paper alignment (binarize + sml_fuse + L-SML) + L-SML Consolidated re-run complete
+
+---
+
+## ⚠ Important: Step 107 result — L-SML AUROCs are 5–30 pp LOWER than Step 100
+
+Step 107 ran the new paper-aligned **L-SML** pipeline (binary inputs, fully unsupervised, no subset selection, Paper 1 dependent-classifier handling) on **the same cached features** that produced the Step 100 Nadler numbers. Every (domain, model) cell dropped:
+
+| Domain | Best L-SML | Old Nadler (Step 100) | Δ |
+|---|---|---|---|
+| MATH-500 / Qwen-Math-7B    | **91.2%** [86.0, 95.2] | 96.7% | −5.5pp |
+| GSM8K / Llama-8B            | **70.4%** [66.9, 74.0] | 75.9% | −5.5pp |
+| GPQA / Qwen-72B-AWQ         | **62.4%** [54.6, 70.4] | 67.5% | −5.0pp |
+| RAG / Llama-8B / hotpotqa   | **71.1%** [59.9, 81.9] | 88.2% | −17.1pp |
+| RAG / Qwen-7B / 2wikimultihopqa | 52.1% [32.7, 69.8] | 81.3% | **−29.3pp** |
+| Factual QA / trivia_qa_cot  | 56.9% [49.5, 64.6] | 71.1% | −14.2pp |
+
+(Full table in HISTORY.md Step 107.)
+
+**Why**: the Step 100 numbers used (a) supervised label-based sign orientation, (b) exhaustive subset search picking the winner on the same N used for AUROC reporting (in-sample selection bias), (c) continuous features (violating Lemma 1), (d) M-matrix weight formula. The L-SML drops are the **honest price** of correcting all four issues to match Parisi-Nadler-Kluger 2014 + Jaffé-Fetaya-Nadler 2016.
+
+**Both number sets remain valid measurements** — just under different methodological assumptions. Step 100 = "best supervised in-sample fit"; Step 107 = "fully unsupervised paper-aligned."
+
+The thesis story shifts from *"spectral features get 90%+ on math, 88% on RAG"* to *"spectral features in a fully unsupervised paper-aligned L-SML framework get 91% on math, 70% on RAG — honest numbers free of supervised selection bias."*
+
+**Pending**: Phase 12 (running on Colab) will determine whether L-SML still beats SE/SC/VC baselines on the same models. This is the empirical test of whether spectral features retain unique value.
+
+---
+
+## Step 105–106 — Package now exposes paper-aligned pipeline
+
+On branch **`feature/nadler-paper-alignment`** (commits 9cad474 → aed20c9):
+
+- `binarize_classifiers(feats_dict, signs)` — median-threshold features into ±1 binary classifiers (Lemma 1 input contract)
+- `sml_fuse(*classifiers)` — direct Lemma 1 SML: leading eigenvector of off-diagonal R; verified Pearson 0.964 vs theoretical (2α−1) on synthetic data
+- `nadler_fuse` retained for backward compatibility (M-matrix variant)
+- `best_nadler_on` gained `binarize=False` default; `binarize=True` switches the internal weight estimator to `sml_fuse` (Lemma 1 exact)
+- **NEW** L-SML stack — `sml_fuse_signed`, `detect_dependent_groups`, `lsml_fuse`, `sml_unsupervised`, `sml_unsupervised_compare`:
+  - Paper 1 Algorithm 1 group detection (score matrix `s_ij = Σ |r_ij·r_kl − r_il·r_kj|` + spectral clustering)
+  - Two K-selection methods: `residual` (paper-faithful) vs `eigengap` (fast heuristic)
+  - On synthetic Paper-1 model (K=3 true groups): residual K=3 ✓ AUC=0.869; eigengap K=2 AUC=0.814; naive SML K=1 AUC=0.824 → residual is best, eigengap NOT redundant
+
+Two paper-aligned Colab notebooks ready on branch:
+- `Spectral_Analysis_Consolidated_Results_LSML.ipynb` — CPU only, reuses cached features
+- `Spectral_Analysis_Phase12_Benchmarking.ipynb` — edited in place; uses `sml_unsupervised` for P1b/P2b/P2c/P2d; saves to `*_lsml.pkl`
 
 ---
 
@@ -13,7 +57,26 @@ Thesis on hallucination detection in LLMs. The core method: compute spectral fea
 
 ---
 
-## Best results so far (official — 16 features, z-score, Step 100)
+## Best results — two parallel tables (post Step 107)
+
+### Step 107 — paper-aligned L-SML (new official, fully unsupervised, no subset)
+
+| Setup | L-SML AUROC | CI | K (residual) |
+|-------|---|----|---|
+| MATH-500 / Qwen-Math-7B / T=1.0 | **91.2%** | [86.0, 95.2] | 5 |
+| MATH-500 / Qwen-Math-1.5B / T=1.0 | 82.1% | [76.7, 86.8] | 6 |
+| MATH-500 / DeepSeek-R1-Llama-8B / T=1.0 | 78.9% | [73.5, 84.3] | 6 |
+| GSM8K / Llama-3.1-8B | **70.4%** | [66.9, 74.0] | 4 |
+| GPQA / Qwen-72B-AWQ / T=1.0 | **62.4%** | [54.6, 70.4] | 4 |
+| GPQA / Qwen-7B / T=1.0 | 58.5% | [50.5, 66.6] | 4 |
+| GPQA / Mistral-7B / T=1.0 | 56.8% | [47.1, 66.4] | 6 |
+| RAG / Llama-8B / hotpotqa | **71.1%** | [59.9, 81.9] | 4 |
+| RAG / Qwen-72B / hotpotqa | 70.1% | [61.0, 78.7] | 4 |
+| Phase 9 Factual QA / trivia_qa_cot | 56.9% | [49.5, 64.6] | 4 |
+
+RAG median across 16 cells dropped from 72.8% (Step 100) to ~55–58% (Step 107).
+
+### Step 100 — old supervised continuous M-matrix Nadler (kept for comparison only)
 
 | Setup | AUROC | CI | Notes |
 |-------|-------|----|-------|
@@ -262,20 +325,20 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 
 ## Immediate next actions
 
-1. **Run Phase 12 benchmarking notebook** — `Spectral_Analysis_Phase12_Benchmarking.ipynb` ← **PRIORITY**
-   - Pull in Colab: `git -C /content/hallucination_detection pull -q` → reload page
-   - Section 2 (Math/GSM8K): loads Phase 7 cache, K=10 SC + SE sampling on N=200
-   - Section 3 (GPQA): fresh Qwen-7B inference + K=10 SC + SE + VC
-   - Section 4 (RAG): loads Phase 10 cache, K=5 SelfCheckGPT on 4 datasets
-   - Section 5: loads `results_all.pkl` → prints domain tables → writes `Research_Phase12_Comparison_Results.md`
-   - After Cell 8 runs: check `np.isnan(sc_p2).sum()` to verify SC coverage on GPQA
-2. **Run Phase 11a inference** — mistral24b (normal runtime) + qwen72b (fresh runtime with stub cell)
-3. **Run Phase 11a analysis** — Cells 12–22 after all 8 raw pkl files exist
-4. **Run pilots in parallel**:
-   - `Pilot_Phase11b_HumanEval.ipynb` — any runtime
-   - `Pilot_Phase11b_ALFWorld.ipynb` — any runtime
-5. **After pilots**: if GO → build full Phase 11b notebooks
-6. **Update Research_Directions.md** Direction 4 with Phase 11a headline numbers once analysis is complete
+1. **WAIT for Phase 12 (running on Colab)** ← **HIGHEST PRIORITY**
+   - Branch is `feature/nadler-paper-alignment`; notebook uses `sml_unsupervised` everywhere
+   - Total runtime ~4–5h on A100 (Mistral-7B GSM8K ~45min, DeepSeek-R1-7B GPQA ~1.5h, Qwen3-8B GPQA ~2h, plus NLI baselines)
+   - Outputs to `*_lsml.pkl` (separate from old `*_nadler.pkl`)
+   - **Critical question Phase 12 answers**: does L-SML still beat SE/SC/VC baselines on the same models?
+     - YES → spectral features retain unique value claim
+     - NO → empirical justification weakens; need to reframe thesis contribution
+2. **After Phase 12**: evaluate the SE/SC/VC comparison, write Step 108 in HISTORY.md
+3. **Decide thesis framing** based on Step 107 + 108 results:
+   - Option A: lead with L-SML numbers (paper-aligned, honest)
+   - Option B: report both side-by-side with methodology section explaining the supervised/unsupervised distinction
+4. **Phase 11a inference** (queued, lower priority now) — mistral24b + qwen72b
+5. **Phase 11b pilots** (queued) — HumanEval + ALFWorld
+6. **Optional**: update `Research_Directions.md` Direction 1–3 with Step 107 L-SML headline numbers
 
 ---
 
