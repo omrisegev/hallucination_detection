@@ -3815,3 +3815,36 @@ Scan of all other `load_*` and `*_prompt` call sites in Phase 12 confirmed no re
 **Result**: Cell 11 can now resume from its incremental checkpoint without re-running prior cells (model still loaded, p4_samples cache preserves prior progress).
 
 ---
+
+### Step 110 — Offline consensus sign orientation (replaces Paper 2 (iii) at fuse time)
+
+**What**: Added `derive_consensus_signs` helper and `feature_signs` parameter to `decompose_auroc`. Extended `LSML_Diagnostics.ipynb` with three new cells: derive consensus from the 29-cell `diagnostics_all.pkl`, re-run the decomposition with consensus orientation, side-by-side delta table + landscape plot.
+
+**Why** (the empirical finding that drove this): Step 108's diagnostics revealed a tight relationship across the 29 cells we ran:
+
+| sign-agree (Paper-2 vs supervised) | typical Stage-5 AUROC |
+|------------------------------------|-----------------------|
+| 12 – 16 / 16 | 60–91% (matches continuous) |
+| 6 – 11 / 16 | 43–53% (degraded) |
+| 0 – 5 / 16 | **18–35% (anti-predictive)** |
+
+When sign-agreement was low, Stage 4 = (1 − Stage 3) almost exactly — L-SML's Paper 2 (iii) majority-of-classifiers rule was *systematically picking the wrong global sign*. Diagnosis: our 16 features are entropy-dominated (12+ have direction "higher = more wrong"), violating Paper 2 assumption (iii) that "majority of binary classifiers beat random in the +1 direction." Once that assumption fails the unsupervised eigenvector ambiguity is irrecoverable from samples alone.
+
+**Fix mechanism**: Compute a fixed per-feature sign once from accumulated past results (`majority` vote weighted by per-cell stage-1 AUROC margin), then pre-orient every feature before binarization. This is still unsupervised at inference time — no per-cell label use for fusion — but encodes the empirical regularity that all 16 entropy-based features consistently point the same direction on training data. Follows the user's preference for offline-derived constants over runtime algorithmic mechanisms.
+
+**Adversarial unit test**: 5 synthetic cells where 95% of 16 features satisfy "higher value → wrong" (Paper 2 (iii) maximally violated). Held-out cell:
+- Paper 2 sign rule: Stage 5 = 1.6% AUROC (catastrophic flip)
+- Consensus orientation: Stage 5 = 98.4% AUROC
+- Delta: +96.8pp
+
+End-to-end notebook test on 10 fake cells passes with all new pkls and CSVs produced.
+
+**API additions**:
+- `spectral_utils.diagnostics.derive_consensus_signs(diag_results, agreement_threshold=0.6, use_auroc_weight=True)` — accepts either the `diagnostics_all.pkl` dict or a list of decompose_auroc outputs; returns `{'signs', 'confidence', 'votes', 'low_confidence'}`.
+- `decompose_auroc(..., feature_signs=None)` — when provided, stages 4 and 5 use these fixed signs to pre-orient features before binarization. Output dict now carries `'used_consensus'` and `signs['consensus']` keys.
+
+**Crash fix shipped alongside**: `plot_correlation_with_groups` used `scipy.stats.spearmanr` which returned a malformed correlation matrix on cells where some columns were degenerate (e.g. math500/Qwen-Math-7B post-binarization). Switched to `np.corrcoef` with NaN-guard and shape-mismatch fallback.
+
+**Pending**: User re-runs `LSML_Diagnostics.ipynb` on Colab against the existing `diagnostics_all.pkl`; the consensus-vs-Paper-2 delta table + landscape plot will quantify how much AUROC the offline orientation recovers per cell. Decide whether to update `sml_unsupervised` itself (production path) to take feature_signs in Step 111.
+
+---

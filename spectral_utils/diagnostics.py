@@ -83,21 +83,34 @@ def _resolve_global_sign(scores: np.ndarray,
 
 def decompose_auroc(feats_dict: dict, feat_names: list, labels,
                     K_range: Iterable[int] = range(2, 7),
-                    boot_n: int = 500) -> dict:
+                    boot_n: int = 500,
+                    feature_signs: dict | None = None) -> dict:
     """
     Compute AUROC of fused scores at five pipeline settings and per-feature
     AUROC at each. Reveals which transformation costs the most.
 
+    If `feature_signs` is provided ({f: ±1}), stages 4 and 5 PRE-orient every
+    feature by that fixed direction before median-binarizing — instead of
+    relying on Paper 2 assumption (iii) to pick the global sign at fuse time.
+    This is "consensus orientation": signs derived offline from majority vote
+    across past cells (see derive_consensus_signs). Eliminates the catastrophic
+    sign-flip seen on cells where Paper 2 (iii) is violated (e.g. all 16
+    features pointing the same direction so the eigenvector ambiguity cannot
+    be resolved by majority-of-classifiers).
+
     Returns dict with:
         rows:     [{'name', 'auc', 'lo', 'hi'}] × 5
         per_feat: (n_feats, 5) array of per-feature AUROC
-        signs:    {'supervised': {f: ±1}, 'lsml': {f: ±1}, 'agree': {f: bool}}
+        signs:    {'supervised': {f: ±1}, 'lsml': {f: ±1}, 'agree': {f: bool},
+                   'consensus': {f: ±1} or None}
         groups:   {'K': int, 'assignment': np.ndarray, 'ARI_vs_eigengap': float}
         binary:   {'supervised': {f: arr}, 'unsupervised': {f: arr}}
-        scores:   {'final': fused score array of stage 5 (label-oriented sign)}
+        scores:   {'final': fused score array of stage 5}
+        used_consensus: bool — True iff feature_signs was applied
     """
     labels = np.asarray(labels)
     n_feats = len(feat_names)
+    use_consensus = feature_signs is not None
 
     # ── Supervised signs (oracle) ────────────────────────────────────────
     sup_signs = _supervised_signs(feats_dict, feat_names, labels)
@@ -121,25 +134,48 @@ def decompose_auroc(feats_dict: dict, feat_names: list, labels,
     s3, _ = sml_fuse_signed(*[bin_sup[f] for f in feat_names])
     a3, l3, h3 = boot_auc(labels, s3, n=boot_n)
 
-    # Stage 4: binary + L-SML sign + SML (single group, no group detection)
-    bin_raw = _binarize(feats_dict, feat_names, signs=None, quantile=0.5)
-    bin_raw_list = [bin_raw[f] for f in feat_names]
-    s4_raw, _ = sml_fuse_signed(*bin_raw_list)
-    s4 = _resolve_global_sign(s4_raw, bin_raw_list)
+    # Stage 4/5 binary inputs: either pre-oriented by consensus, or unoriented.
+    # When unoriented, the Paper 2 (iii) global-sign rule fires later.
+    if use_consensus:
+        bin_for_unsup = _binarize(feats_dict, feat_names,
+                                  signs=feature_signs, quantile=0.5)
+        # The L-SML fusion is called with the consensus-oriented features
+        # passed through sml_unsupervised's binarizer below — but since those
+        # are already ±1 it must round-trip safely. To do that, pass the
+        # pre-oriented continuous values in so the inner median split
+        # reproduces bin_for_unsup. Simplest path: feed bin_for_unsup as
+        # "raw" features into sml_unsupervised_compare (median of ±1 = 0,
+        # so > 0 → +1, ≤ 0 → -1, preserving the orientation).
+        feats_for_unsup = {f: np.asarray(feature_signs.get(f, +1)) *
+                              np.asarray(feats_dict[f], dtype=float)
+                           for f in feat_names}
+    else:
+        bin_for_unsup = _binarize(feats_dict, feat_names,
+                                  signs=None, quantile=0.5)
+        feats_for_unsup = feats_dict
+    bin_unsup_list = [bin_for_unsup[f] for f in feat_names]
+
+    # Stage 4: binary + (consensus or Paper-2) sign + SML (single group)
+    s4_raw, _ = sml_fuse_signed(*bin_unsup_list)
+    s4 = _resolve_global_sign(s4_raw, bin_unsup_list)
     a4, l4, h4 = boot_auc(labels, s4, n=boot_n)
 
-    # Stage 5: binary + L-SML sign + L-SML (K groups, official)
-    cmp = sml_unsupervised_compare(feats_dict, feat_names,
+    # Stage 5: binary + (consensus or Paper-2) sign + L-SML
+    cmp = sml_unsupervised_compare(feats_for_unsup, feat_names,
                                    K_range=K_range, labels=labels)
-    s5 = _resolve_global_sign(np.asarray(cmp['residual_fused']), bin_raw_list)
+    s5 = _resolve_global_sign(np.asarray(cmp['residual_fused']), bin_unsup_list)
     a5, l5, h5 = boot_auc(labels, s5, n=boot_n)
 
+    stage4_name = ('4. binary     + consensus sign + SML (1 grp)' if use_consensus
+                   else '4. binary     + L-SML sign + SML (1 grp)')
+    stage5_name = ('5. binary     + consensus sign + L-SML' if use_consensus
+                   else '5. binary     + L-SML sign + L-SML')
     rows = [
         {'name': '1. continuous + sup. sign + simple avg', 'auc': a1, 'lo': l1, 'hi': h1},
         {'name': '2. continuous + sup. sign + SML',         'auc': a2, 'lo': l2, 'hi': h2},
         {'name': '3. binary     + sup. sign + SML',         'auc': a3, 'lo': l3, 'hi': h3},
-        {'name': '4. binary     + L-SML sign + SML (1 grp)','auc': a4, 'lo': l4, 'hi': h4},
-        {'name': '5. binary     + L-SML sign + L-SML',      'auc': a5, 'lo': l5, 'hi': h5},
+        {'name': stage4_name, 'auc': a4, 'lo': l4, 'hi': h4},
+        {'name': stage5_name, 'auc': a5, 'lo': l5, 'hi': h5},
     ]
 
     # ── Per-feature AUROC at each stage ──────────────────────────────────
@@ -154,34 +190,45 @@ def decompose_auroc(feats_dict: dict, feat_names: list, labels,
     for i, f in enumerate(feat_names):
         a, _, _ = boot_auc(labels, bin_sup[f], n=100)
         per_feat[i, 2] = a
-    # Stages 4 & 5: binary with L-SML-inferred sign per feature.
-    # Recover per-feature L-SML sign by correlating each raw binary feature with
-    # the final fused score; sign = sign of that correlation.
-    lsml_signs = {}
+    # Stages 4 & 5: per-feature sign that L-SML *effectively* picked.
+    # If consensus mode: that sign is feature_signs[f] (fixed offline).
+    # If Paper-2 mode: recover per-feature sign by correlating each binary
+    # input with the final fused score; sign = sign of that correlation.
+    effective_signs = {}
     for i, f in enumerate(feat_names):
-        b = bin_raw[f]
-        corr = float(np.corrcoef(b, s5)[0, 1]) if np.std(b) > 0 else 0.0
-        lsml_signs[f] = +1 if corr >= 0 else -1
-        b_oriented = b * lsml_signs[f]
+        b = bin_for_unsup[f]
+        if use_consensus:
+            effective_signs[f] = int(feature_signs.get(f, +1))
+        else:
+            corr = float(np.corrcoef(b, s5)[0, 1]) if np.std(b) > 0 else 0.0
+            effective_signs[f] = +1 if corr >= 0 else -1
+        # Per-feature AUROC after orientation; consensus already-oriented so no flip.
+        b_oriented = b if use_consensus else b * effective_signs[f]
         a, _, _ = boot_auc(labels, b_oriented, n=100)
         per_feat[i, 3] = a
         per_feat[i, 4] = a
 
-    agree = {f: sup_signs[f] == lsml_signs[f] for f in feat_names}
+    agree = {f: sup_signs[f] == effective_signs[f] for f in feat_names}
 
     return {
         'rows':     rows,
         'per_feat': per_feat,
-        'signs':    {'supervised': sup_signs, 'lsml': lsml_signs, 'agree': agree},
+        'signs':    {
+            'supervised': sup_signs,
+            'lsml':       effective_signs,
+            'agree':      agree,
+            'consensus':  feature_signs if use_consensus else None,
+        },
         'groups':   {
             'K':                cmp['K_residual'],
             'assignment':       np.asarray(cmp['residual_meta']['c']),
             'ARI_vs_eigengap':  cmp['group_ARI'],
             'K_eigengap':       cmp['K_eigengap'],
         },
-        'binary':   {'supervised': bin_sup, 'unsupervised': bin_raw},
+        'binary':   {'supervised': bin_sup, 'unsupervised': bin_for_unsup},
         'scores':   {'final': s5, 'continuous_avg': s1, 'sml_continuous': s2},
-        'n':        len(labels),
+        'n':              len(labels),
+        'used_consensus': use_consensus,
     }
 
 
@@ -304,12 +351,25 @@ def plot_threshold_sweep(sweep: dict, ax, title: str = ''):
 def plot_correlation_with_groups(feats_dict: dict, feat_names: list,
                                  group_assignment: np.ndarray, ax,
                                  title: str = ''):
-    """Spearman ρ heatmap of continuous features, reordered by L-SML group."""
-    from scipy.stats import spearmanr
+    """Correlation heatmap reordered by L-SML group.
+
+    Uses Pearson (= Spearman for binary ±1 inputs); avoids scipy.stats.spearmanr,
+    which can return a malformed correlation matrix when some columns are
+    constant/degenerate (observed on math500/Qwen-Math-7B during Step 109 run).
+    NaN entries (from zero-variance columns) are zeroed before plotting.
+    """
     X = np.column_stack([np.asarray(feats_dict[f], dtype=float) for f in feat_names])
-    rho, _ = spearmanr(X)
-    if np.isscalar(rho):
-        rho = np.array([[1.0, rho], [rho, 1.0]])
+    with np.errstate(invalid='ignore', divide='ignore'):
+        rho = np.corrcoef(X.T)
+    rho = np.asarray(rho)
+    if rho.ndim == 0:
+        rho = np.array([[1.0]])
+    rho = np.nan_to_num(rho, nan=0.0, posinf=0.0, neginf=0.0)
+    n = len(feat_names)
+    if rho.shape != (n, n):
+        # Defensive: pad/truncate to expected shape so the heatmap at least renders
+        padded = np.zeros((n, n)); k = min(rho.shape[0], n)
+        padded[:k, :k] = rho[:k, :k]; rho = padded
     order = np.argsort(group_assignment)
     rho_sorted   = rho[np.ix_(order, order)]
     names_sorted = [feat_names[i] for i in order]
@@ -329,9 +389,97 @@ def plot_correlation_with_groups(feats_dict: dict, feat_names: list,
     return im
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Consensus sign derivation (offline analysis of supervised signs across cells)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def derive_consensus_signs(diag_results, agreement_threshold: float = 0.6,
+                           use_auroc_weight: bool = True) -> dict:
+    """
+    Derive a fixed per-feature direction by majority vote across past cells.
+
+    For each feature, count how many cells assigned sign=+1 vs sign=-1 in the
+    supervised-orientation step (boot_auc-based, recorded in
+    decompose_auroc(...)['signs']['supervised']). The consensus is the more
+    common direction. When `use_auroc_weight=True`, each cell's vote is
+    weighted by max(per_feature_auroc - 0.5, 0), so a cell where the feature
+    is near-random contributes ~0 to the consensus.
+
+    Args:
+        diag_results: either
+            - dict {cell_key: {'decomp': ..., ...}} (the diagnostics_all.pkl)
+            - list of decompose_auroc return dicts
+        agreement_threshold: a feature is flagged "low_confidence" if
+            fewer than this fraction of weighted votes back the consensus.
+        use_auroc_weight: weight votes by stage-1 per-feature AUROC margin.
+
+    Returns:
+        {
+            'signs':       {feature: ±1},
+            'confidence':  {feature: weighted_agreement_fraction in [0.5, 1]},
+            'votes':       {feature: {'plus': float, 'minus': float, 'n_cells': int}},
+            'low_confidence': [features below threshold],
+        }
+    """
+    # Normalize to a list of (cell_key, decomp) tuples
+    if isinstance(diag_results, dict):
+        entries = []
+        for k, v in diag_results.items():
+            d = v.get('decomp') if isinstance(v, dict) and 'decomp' in v else v
+            entries.append((str(k), d))
+    elif isinstance(diag_results, list):
+        entries = [(f'cell{i}', d) for i, d in enumerate(diag_results)]
+    else:
+        raise TypeError('diag_results must be dict or list')
+
+    # Discover features from the first entry's signs dict
+    first_d = entries[0][1]
+    feat_names = list(first_d['signs']['supervised'].keys())
+
+    votes = {f: {'plus': 0.0, 'minus': 0.0, 'n_cells': 0} for f in feat_names}
+    for _, decomp in entries:
+        sup = decomp['signs']['supervised']
+        # Per-feature AUROC at stage 1 (continuous + sup. sign). Higher means
+        # the supervised sign is more trustworthy in this cell.
+        per_feat = decomp.get('per_feat')
+        for fi, f in enumerate(feat_names):
+            if f not in sup:
+                continue
+            weight = 1.0
+            if use_auroc_weight and per_feat is not None:
+                weight = max(float(per_feat[fi, 0]) - 0.5, 0.0) * 2  # in [0,1]
+            sign = int(sup[f])
+            if sign > 0:
+                votes[f]['plus']  += weight
+            else:
+                votes[f]['minus'] += weight
+            votes[f]['n_cells'] += 1
+
+    signs, confidence = {}, {}
+    low_conf = []
+    for f in feat_names:
+        p, m = votes[f]['plus'], votes[f]['minus']
+        total = p + m
+        if total == 0:
+            signs[f]      = +1
+            confidence[f] = 0.5
+        else:
+            signs[f]      = +1 if p >= m else -1
+            confidence[f] = max(p, m) / total
+        if confidence[f] < agreement_threshold:
+            low_conf.append(f)
+    return {
+        'signs':          signs,
+        'confidence':     confidence,
+        'votes':          votes,
+        'low_confidence': low_conf,
+    }
+
+
 __all__ = [
     'decompose_auroc',
     'threshold_sensitivity',
+    'derive_consensus_signs',
     'plot_decomposition',
     'plot_per_feature_heatmap',
     'plot_sign_agreement',

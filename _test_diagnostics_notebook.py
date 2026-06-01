@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 from spectral_utils import (
     FEAT_NAMES, load_cache, save_cache,
-    decompose_auroc, threshold_sensitivity,
+    decompose_auroc, threshold_sensitivity, derive_consensus_signs,
     plot_decomposition, plot_per_feature_heatmap,
     plot_sign_agreement, plot_threshold_sweep,
     plot_correlation_with_groups,
@@ -86,6 +86,7 @@ ns.update({
     'FEAT_NAMES': FEAT_NAMES,
     'load_cache': load_cache, 'save_cache': save_cache,
     'decompose_auroc': decompose_auroc, 'threshold_sensitivity': threshold_sensitivity,
+    'derive_consensus_signs': derive_consensus_signs,
     'plot_decomposition': plot_decomposition,
     'plot_per_feature_heatmap': plot_per_feature_heatmap,
     'plot_sign_agreement': plot_sign_agreement,
@@ -93,8 +94,10 @@ ns.update({
     'plot_correlation_with_groups': plot_correlation_with_groups,
 })
 
-# Run cells 3..7 (skipping the title md cell 0, setup cell 1 = Colab-only, config cell 2)
-for idx in [3, 4, 5, 6, 7]:
+# Code cells in the regenerated notebook:
+# 1=setup (Colab), 2=config, 3=loader, 4=decompose, 5=plots, 6=summary, 7=landscape,
+# 8=markdown ('consensus' header), 9=derive consensus, 10=re-run consensus, 11=delta summary
+for idx in [3, 4, 5, 6, 7, 9, 10, 11]:
     cell = nb['cells'][idx]
     src = ''.join(cell['source'])
     print(f'\n=== Cell {idx} ===')
@@ -105,6 +108,9 @@ for idx in [3, 4, 5, 6, 7]:
 expected_pkls = [
     os.path.join(OUT_DIR, 'diagnostics_all.pkl'),
     os.path.join(OUT_DIR, 'diagnostics_summary.pkl'),
+    os.path.join(OUT_DIR, 'consensus_signs.pkl'),
+    os.path.join(OUT_DIR, 'diagnostics_consensus_all.pkl'),
+    os.path.join(OUT_DIR, 'consensus_vs_paper2_summary.pkl'),
 ]
 print('\n=== Verification ===')
 for p in expected_pkls:
