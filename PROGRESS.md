@@ -1,11 +1,50 @@
 # MV_EPR — Session Progress Handoff
 
 **Date**: 2026-06-01
-**Last updated**: Steps 105–107 — Nadler paper alignment (binarize + sml_fuse + L-SML) + L-SML Consolidated re-run complete
+**Last updated**: Step 111 — paper-aligned L-SML with offline consensus orientation is the new official method
 
 ---
 
-## ⚠ Important: Step 107 result — L-SML AUROCs are 5–30 pp LOWER than Step 100
+## TL;DR — where we are today
+
+**Current official method**: paper-aligned L-SML (Parisi-Nadler-Kluger 2014 + Jaffé-Fetaya-Nadler 2016) with **offline consensus feature orientation**. Fully unsupervised at inference time; uses prior empirical knowledge of feature semantics to satisfy Paper 2 assumption (iii).
+
+**Headline numbers (Step 110, run on Consolidated cached features, 29 cells)**:
+
+| Domain | L-SML + consensus | Cells |
+|---|---|---|
+| Math reasoning (MATH-500, GSM8K) | 65 – 91% | 5 |
+| GPQA Diamond (science MCQ) | 41 – 62% | 5 |
+| RAG / HotpotQA | 64 – 82% | 4 |
+| RAG / 2WikiMultiHop | 41 – 52% | 4 |
+| RAG / NaturalQuestions, NarrativeQA | 39 – 62% | 8 |
+| Factual QA (TriviaQA, WebQ) | 43 – 78% | 3 |
+
+(Full 29-row table: `consolidated_results/consensus_vs_paper2_summary.csv`. See HISTORY Step 110/111.)
+
+**Active goal**: advisor competitor-comparison table for **today**. Build from existing data + cite published competitor numbers from Phase 12 cells.
+
+**In flight**: Phase 12 inference re-run on Colab (was blocked by Cell 11 bug; fix is on remote at `3dffa90`, user needs to refresh notebook in Colab session). Adds Mistral/GSM8K, R1-Distill+Qwen3/GPQA, SelfCheckGPT/RAG cells to the comparison table.
+
+**Deferred (do after advisor table)**:
+1. RAG prompt pilot — 4 subtle prompt variants on Qwen-7B/hotpotqa (~1h A100) to test if longer reasoning recovers FFT shape features (dominant_freq, hl_ratio, spectral_centroid drop to 50% on short RAG vs 94% on math).
+2. Feature-level orientation refactor — bake `FEATURE_CANONICAL_SIGNS` into `feature_utils.py` so Paper 2 (iii) holds naturally; eliminates the `feature_signs` argument plumbing. Numerically same as current consensus; cleaner code.
+3. `boot_auc` zero-variance NaN root fix — only affects `trace_length` on cells where the model hit the token cap on every sample (gpqa/DeepSeek-R1-Distill).
+
+---
+
+## Phase 12 unblock — what you need to do
+
+Your Colab is running an OLD copy of `Spectral_Analysis_Phase12_Benchmarking.ipynb`. The Cell 11 bug fix (`math_prompt(row)` instead of `math_prompt(row['problem'])`) IS on GitHub at `feature/nadler-paper-alignment` (commit `3dffa90`). To pick it up:
+
+1. In your Colab session, **File → Open notebook → GitHub** → choose `omrisegev/hallucination_detection`, branch `feature/nadler-paper-alignment`, file `Spectral_Analysis_Phase12_Benchmarking.ipynb`. This pulls the corrected notebook.
+2. Re-run Cell 1 (clone/imports), Cell 2 (config), Cell 3 (NLI), then jump straight to Cell 11. The `p4_math500_qwen7b_k10.pkl` checkpoint will preserve any prior progress.
+
+If you'd rather keep your current notebook: just edit Cell 11 in place to change `prompt = math_prompt(row['problem'])` → `prompt = math_prompt(row)`. Same fix.
+
+---
+
+## ⚠ Historical: Step 107 result — L-SML AUROCs were 5–30 pp LOWER than Step 100
 
 Step 107 ran the new paper-aligned **L-SML** pipeline (binary inputs, fully unsupervised, no subset selection, Paper 1 dependent-classifier handling) on **the same cached features** that produced the Step 100 Nadler numbers. Every (domain, model) cell dropped:
 
@@ -22,11 +61,11 @@ Step 107 ran the new paper-aligned **L-SML** pipeline (binary inputs, fully unsu
 
 **Why**: the Step 100 numbers used (a) supervised label-based sign orientation, (b) exhaustive subset search picking the winner on the same N used for AUROC reporting (in-sample selection bias), (c) continuous features (violating Lemma 1), (d) M-matrix weight formula. The L-SML drops are the **honest price** of correcting all four issues to match Parisi-Nadler-Kluger 2014 + Jaffé-Fetaya-Nadler 2016.
 
-**Both number sets remain valid measurements** — just under different methodological assumptions. Step 100 = "best supervised in-sample fit"; Step 107 = "fully unsupervised paper-aligned."
+**Both number sets remain valid measurements** — just under different methodological assumptions. Step 100 = "best supervised in-sample fit" (NOT used in thesis; supervised in-sample selection is methodologically unsound); Step 107 = "fully unsupervised paper-aligned" (intermediate; superseded by Step 110).
 
-The thesis story shifts from *"spectral features get 90%+ on math, 88% on RAG"* to *"spectral features in a fully unsupervised paper-aligned L-SML framework get 91% on math, 70% on RAG — honest numbers free of supervised selection bias."*
+**Step 108 (diagnostics) traced the Step 107 collapse**: sign-agreement ≤ 5/16 cells collapsed to AUROC ≈ 1 − AUROC. Diagnosis: Paper 2 assumption (iii) "majority of binary classifiers beat random" is systematically violated by our entropy-heavy feature set, so L-SML's eigenvector-sign rule picked the wrong global sign.
 
-**Pending**: Phase 12 (running on Colab) will determine whether L-SML still beats SE/SC/VC baselines on the same models. This is the empirical test of whether spectral features retain unique value.
+**Step 110 (offline consensus orientation, current official)** resolved the collapse: each feature gets a fixed direction derived once from per-cell supervised signs across past data, then features are pre-oriented before binarization. Result: 13/29 cells gained 5-63pp; the worst regressions were 6 RAG cells with already-marginal signal. Stage 5 now matches Stage 3 (binary + supervised + SML) across the board, meaning the only remaining cost is the binarization step itself.
 
 ---
 

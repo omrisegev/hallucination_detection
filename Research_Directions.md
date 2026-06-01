@@ -3,6 +3,33 @@
 
 ---
 
+## Current Focus (updated 2026-06-01, post Step 111)
+
+The thesis core method is **paper-aligned L-SML with offline consensus orientation** (Parisi-Nadler-Kluger PNAS 2014 + Jaffé-Fetaya-Nadler 2016 + our offline feature-direction calibration). This replaces the earlier "Nadler" framing because:
+
+1. **"Nadler fusion"** was incorrect terminology — the algorithm is the **Spectral Meta-Learner** (Step 105).
+2. The old supervised continuous M-matrix variant (Step 100) had four methodological mistakes vs the source papers: (a) supervised label-based sign orientation, (b) in-sample subset selection bias, (c) continuous features violating Lemma 1's binary contract, (d) M-matrix instead of direct rank-1 eigenvector. All four are now corrected.
+3. The pure paper-aligned method (Step 107) collapsed on cells where Paper 2 assumption (iii) is violated — specifically, our entropy-heavy 16-feature set. Step 110 fixes this by deriving each feature's direction *once offline* from accumulated empirical evidence (majority vote across 29 cells, weighted by per-cell AUROC margin), then pre-orienting features before binarization. This is **still unsupervised at inference time** (no per-cell labels used for fusion) while making Paper 2 (iii) naturally hold.
+
+**Step 110 official numbers (29 cells)** are documented in HISTORY.md Step 110/111 and `consolidated_results/diagnostics_consensus_all.pkl`. Headlines:
+- Math reasoning: **65 – 91%** (MATH-500 × 4 models, GSM8K × 1)
+- GPQA Diamond: **41 – 62%** (5 models; intrinsic ceiling near 60% on MCQ science)
+- RAG / HotpotQA: **64 – 82%** (4 models)
+- RAG / other 3 datasets: **39 – 62%** (short traces limit FFT shape features)
+- Factual QA: **43 – 78%**
+
+**Method scope claim for thesis**: spectral features of the per-token entropy trace work on *reasoning-heavy generation* (math, multi-step CoT) with full power; reduced power on short-trace tasks (RAG short answers, factual QA without CoT) because length-dependent FFT features lose discriminative spectrum density below ~100 tokens.
+
+**Active deliverable (today)**: competitor comparison table for advisors. Built from existing 29-cell Step 110 data + cited published values (SE NLI 75.85% on Mistral/GSM8K, VC 74.6% + SC 75.4% on GPQA reasoning models from arXiv 2603.19118, EDIS 80.4% pooled-math, LapEigvals 72.0% unsupervised on GSM8K, etc.). Phase 12 will add Mistral/GSM8K + R1-Distill+Qwen3/GPQA + SelfCheckGPT/RAG when complete.
+
+**Deferred items** (do not start before advisor deliverable lands):
+- RAG prompt pilot (4 subtle variants → does longer reasoning recover the FFT shape features that died on 30-token traces?)
+- Feature-level orientation refactor (move `FEATURE_CANONICAL_SIGNS` into `feature_utils.py` so Paper 2 (iii) holds at extraction time; numerically identical, simpler code)
+- `boot_auc` zero-variance fix (cosmetic; affects only trace_length on the one cell where every generation hit the token cap)
+- Phase 11a/11b agentic / pilots — *all directions below this line are post-advisor-table work*
+
+---
+
 ## How to Read This Document
 
 Each direction is assessed on four axes:
@@ -749,28 +776,37 @@ After 10 phases of empirical experimentation, we have a large cross-domain datas
 
 ---
 
-## Recommended Priority Order (updated 2026-05-17)
+## Recommended Priority Order (updated 2026-06-01, post Step 111)
 
 **Completed** ✅
-- Phase 10 RAG (all 16 cells, best 87.7%) — Step 91
-- Phase 8 GPQA/Qwen-72B (69.0%) — Step 80
-- Meta-Analysis (7,001 samples, pe_min dropped) — Step 89
+- Phase 10 RAG (16 cells; Step 91; old Nadler results retained as Step 100 reference, superseded by Step 110)
+- Phase 8 GPQA/Qwen-72B (Step 80)
+- Meta-Analysis (7,001 samples; pe_min dropped → 16 features; Step 89)
+- **Steps 105-106** — Paper-aligned package (`binarize_classifiers`, `sml_fuse`, `lsml_fuse`, `sml_unsupervised`, `sml_unsupervised_compare`)
+- **Step 107** — Pure paper-aligned L-SML benchmark on Consolidated cached features (29 cells; revealed collapse on 13/29 cells due to Paper 2 (iii) violation)
+- **Step 108-109** — L-SML diagnostics module + notebook; Phase 12 Cell 11 bug fix
+- **Step 110** — Offline consensus orientation; rescued the 13 collapsed cells (+5 to +63pp Stage-5 AUROC); current official method
+- **Step 111** — Trace-length / per-feature analysis; RAG signal limits characterized
 
-**Phase 1: Finish Phase 11a Agentic**
-1. **Phase 11a inference** — run mistral24b (normal runtime) + qwen72b (fresh runtime + gptqmodel stub)
-2. **Phase 11a analysis** — Cells 12–22 after all 8 pkl files exist; generates `phase11a_detector_heatmap.png`
-3. **Update Direction 4** — fill in official AUROC vs AUQ baseline once analysis complete
+**Phase A — Advisor competitor comparison table (TODAY)**
+1. **Refresh notebook in Colab** — switch from outdated copy to `feature/nadler-paper-alignment` Phase 12 notebook
+2. **Finish Phase 12 inference** — Cells 11-onward, adds Mistral/GSM8K + R1-Distill+Qwen3/GPQA + SelfCheckGPT/RAG
+3. **Assemble competitor table** — one markdown doc, our 29 + Phase 12 cells vs published SE/SC/VC/SelfCheckGPT/LapEigvals/EDIS numbers, with caveats
 
-**Phase 2: Extension Pilots**
-4. **Pilot A: HumanEval** (`Pilot_Phase11b_HumanEval.ipynb`) — any runtime, GO/NO-GO gates
-5. **Pilot B: ALFWorld** (`Pilot_Phase11b_ALFWorld.ipynb`) — any runtime, parallel with Pilot A
-6. If both GO → build full Phase 11b notebooks (N=164 HumanEval / ~100 ALFWorld, multi-model)
+**Phase B — Method ergonomics (post-advisor)**
+4. **RAG prompt pilot** — 4 subtle prompt variants on Qwen-7B/hotpotqa, ~1h A100; pilot decision before scaling to all 16 RAG cells
+5. **Feature-level orientation refactor** — colocate `FEATURE_CANONICAL_SIGNS` with feature definitions in `feature_utils.py`; eliminate `feature_signs` plumbing
 
-**Phase 3: Formal Calibration (thesis endpoint)**
-7. **Direction 5 (LTT Conformal)** — ~50 lines; data already exists (temp + behavioral ensemble on TriviaQA/WebQ). Converts AUROC → deployment guarantee. Non-optional for thesis.
+**Phase C — Phase 11 agentic + pilots (deferred from earlier roadmap)**
+6. **Phase 11a inference** — run mistral24b + qwen72b
+7. **Phase 11a analysis** — Cells 12–22 once all 8 pkl files exist
+8. **Pilots 11b A (HumanEval), B (ALFWorld)** — GO/NO-GO gates
 
-**Phase 4: Theoretical framing (Ofir's direction)**
-8. **Manifold / IMM** — entropy trajectories on a manifold; hallucination = regime escape. LOCA + IMM. Connects to Ofir's diffusion maps expertise.
+**Phase D — Formal calibration (thesis endpoint)**
+9. **Direction 5 (LTT Conformal)** — converts AUROC → deployment guarantee on the final L-SML scores
+
+**Phase E — Theoretical framing**
+10. **Manifold / IMM** (Ofir's direction)
 
 ---
 

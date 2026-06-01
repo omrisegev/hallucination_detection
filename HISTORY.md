@@ -3848,3 +3848,54 @@ End-to-end notebook test on 10 fake cells passes with all new pkls and CSVs prod
 **Pending**: User re-runs `LSML_Diagnostics.ipynb` on Colab against the existing `diagnostics_all.pkl`; the consensus-vs-Paper-2 delta table + landscape plot will quantify how much AUROC the offline orientation recovers per cell. Decide whether to update `sml_unsupervised` itself (production path) to take feature_signs in Step 111.
 
 ---
+### Step 111 — Step 110 evaluation + RAG/GPQA scope analysis + re-anchor
+
+**What**: User ran LSML_Diagnostics.ipynb (12 cells) on real cached features. Reviewed the consensus-vs-Paper-2 delta table across 29 cells. Diagnosed RAG signal limits via per-feature AUROC + trace-length distribution. Designed (but deferred) RAG prompt pilot. Updated PROGRESS.md and Research_Directions.md to reflect current state.
+
+**Step 110 result, on real data**:
+- 13 cells recovered substantially (Stage-5 delta ≥ +5pp; biggest: math500/R1-Distill +63pp; rag/Llama-8B/hotpotqa +53pp; qa/trivia +53pp; gsm8k/Llama-8B +41pp; rag/Qwen-72B/hotpotqa +37pp; math500/deepseek-math +30pp).
+- 6 cells regressed mildly (delta -2 to -18pp; all RAG cells with already-marginal stage-3 ≤ 60% signal where consensus disagrees with cell-specific supervised sign).
+- 10 cells flat (already had sign-agreement ≥ 12/16, so Paper 2 (iii) was holding even without consensus).
+- Stage 5 now closely tracks Stage 3 (binary + supervised + SML) on all rescued cells — the only remaining cost from the supervised continuous baseline is the binarization step (~3pp), which is unavoidable to satisfy Lemma 1.
+
+**Per-feature consensus signs (from the 29-cell majority vote, weighted by stage-1 AUROC margin)**:
+- High confidence (>90%): `epr` (-1), `sw_var_peak` (-1), `cusum_max` (-1), `trace_length` (-1, but NaN bug; sign correct anyway).
+- Medium-high (75-90%): `spectral_entropy` (-1), `low_band_power` (-1), `hl_ratio` (+1), `dominant_freq` (+1), `spectral_centroid` (+1), `stft_max_high_power` (-1), `rpdi` (-1), `pe_mean` (-1), `hurst_exponent` (-1).
+- Medium (60-75%): `cusum_shift_idx` (-1).
+- Low-confidence (<70%): `high_band_power` (+1, 59%), `stft_spectral_entropy` (-1, 52%). User decision: keep both in fusion at the majority-vote sign; they contribute as bounded noise but don't break Paper 2 (iii) since they remain a minority (2/16).
+
+**Per-feature AUROC analysis (math vs RAG, math500/Qwen-Math-7B vs rag/Qwen-72B/hotpotqa)**:
+- FFT *shape* features collapse on short RAG traces (mean ~36 tokens): `dominant_freq` 94→51%, `hl_ratio` 94→52%, `spectral_centroid` 94→51%. FFT resolution at N=36 is ~18 bins → "dominant" frequency is noise.
+- Length-robust features survive: `cusum_max` 93→73%, `trace_length` 93→72%, `spectral_entropy` 90→73%, `stft_max_high_power` 83→73%, `epr` 97→65%, `rpdi` 89→66%.
+- Surprise: `pe_mean` is *better* on RAG (63%) than math (55%) — permutation entropy of shorter sequences may carry more discriminative information than smoothed long sequences.
+
+**Trace-length distribution (per cell, from user's Colab dump)**:
+- Math reasoning: mean 478-1151 tokens. Some cells hit cap (Qwen-Math-7B p90 = 1024 = MAX_NEW, suggesting top 10% of math problems are truncated).
+- GSM8K / Llama-8B: mean 194 (shorter than math but adequate; AUROC 70%).
+- GPQA: mean 545-768 tokens. **GPQA/DeepSeek-R1-Distill has std=0 (every trace = 768 = cap)** — model hit MAX_NEW on every single sample; this is the root cause of the `trace_length` NaN in consensus derivation AND a partial explanation for its weak GPQA AUROC.
+- RAG: mean 28-58 tokens. **Many samples below 32-token STFT threshold** → STFT features return 0 for ~30-60% of RAG samples on the shortest cells.
+- Factual QA short: mean 15-22 (no CoT). Factual QA CoT: mean 58-62.
+
+**GPQA scope explanation**: GPQA traces ARE long (matched to math). The weakness is not length — it's structural to graduate-level science MCQ. Stage-1 (continuous + supervised + simple-avg) AUROC across 5 GPQA models is 54-62% — that's the ceiling for our features regardless of fusion method. Confident-wrong reasoning on knowledge-recall questions has similar entropy dynamics to confident-right reasoning; spectral features measure uncertainty patterns, not factual accuracy. **This is a clean scope statement for the thesis**: spectral features detect *open-ended reasoning instability*, not *knowledge-recall errors*. GPQA Diamond is on the boundary; n=198 amplifies bootstrap noise.
+
+**RAG prompt pilot — designed but NOT BUILT (deferred until after advisor deliverable)**:
+Four subtle prompt variants for L-CiteEval (`lciteeval_prompt`):
+- V0 baseline (current): "Read the following passages carefully. Answer the question with clear statements. After EACH statement, cite the passage(s) that support it using [number] format."
+- V1: V0 + "starting with your reasoning process and ending with the answer."
+- V2: V0 with "Think through the question and answer..." replacing the answer command.
+- V3: V0 + "briefly explaining why each cited passage supports your claim before stating it."
+- V4: V0 + "Consider whether the passages clearly answer the question, then answer..."
+
+Pilot plan: Qwen-7B / hotpotqa × 200 samples × 4 variants ≈ 1 GPU-hour. Decision metric: per-feature AUROC on `dominant_freq`, `hl_ratio`, `spectral_centroid` — currently ~50% on baseline; if any variant pushes them past 60%, longer reasoning recovers the length-dependent FFT features. Stage-5 AUROC target: +5pp over baseline.
+
+**Phase 12 unblock**: Cell 11 bug fix (`math_prompt(row['problem'])` → `math_prompt(row)`, plus `load_math500(n_samples=500)`) was shipped in commit `3dffa90` (Step 109). User's Colab session is running an outdated notebook copy. Fix path: File → Open notebook → GitHub → `omrisegev/hallucination_detection` → branch `feature/nadler-paper-alignment`. Cell 11 incremental checkpoint preserves prior progress.
+
+**Documentation updates this session**:
+- PROGRESS.md — new TL;DR header with Step 110 official numbers, deferred items, Phase 12 unblock instructions; old Step 100 vs Step 107 narrative demoted to historical section.
+- Research_Directions.md — added "Current Focus" section at top; Recommended Priority Order rewritten around Phase A (advisor table) → B (method ergonomics) → C (Phase 11) → D (LTT) → E (manifold).
+- This Step 111 entry.
+
+**Result**: project state and roadmap are now consistent across PROGRESS.md / Research_Directions.md / HISTORY.md / MEMORY. User is unblocked: refresh Colab notebook, finish Phase 12, build advisor table from existing data + Phase 12 additions.
+
+---
+
