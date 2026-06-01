@@ -50,6 +50,12 @@ from .fusion_utils import (
     sml_fuse_signed, detect_dependent_groups, lsml_fuse,
     sml_unsupervised, sml_unsupervised_compare,
 )
+from .diagnostics import (
+    decompose_auroc, threshold_sensitivity,
+    plot_decomposition, plot_per_feature_heatmap,
+    plot_sign_agreement, plot_threshold_sweep,
+    plot_correlation_with_groups,
+)
 from .baselines import (
     lite_semantic_entropy_for_statement, mean_neg_logprob_baseline,
     nli_load_model, nli_classify,
@@ -91,6 +97,10 @@ __all__ = [
     "best_nadler_pseudo_label",
     "sml_fuse_signed", "detect_dependent_groups", "lsml_fuse",
     "sml_unsupervised", "sml_unsupervised_compare",
+    "decompose_auroc", "threshold_sensitivity",
+    "plot_decomposition", "plot_per_feature_heatmap",
+    "plot_sign_agreement", "plot_threshold_sweep",
+    "plot_correlation_with_groups",
     "lite_semantic_entropy_for_statement", "mean_neg_logprob_baseline",
     "nli_load_model", "nli_classify",
     "official_semantic_entropy",

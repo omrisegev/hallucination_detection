@@ -3763,3 +3763,55 @@ Pattern: **every** (domain, model, dataset) cell dropped. Magnitude clusters as 
 Step 100 files (`results_all.pkl`, `results_summary.csv`) untouched.
 
 ---
+
+### Step 108 — L-SML diagnostics module + notebook
+
+**What**: Added `spectral_utils/diagnostics.py` and `LSML_Diagnostics.ipynb` to decompose the L-SML AUROC into the five transformations applied between continuous-supervised Nadler (Step 100) and binary-unsupervised L-SML (Step 107), so the AUROC drop documented in Step 107 can be attributed to a specific step.
+
+Five-stage decomposition, each stage swapping exactly one variable from the previous:
+
+| # | Inputs | Sign source | Fusion |
+|---|--------|-------------|--------|
+| 1 | continuous | supervised (labels) | simple average |
+| 2 | continuous | supervised | SML weights |
+| 3 | binary | supervised | SML weights |
+| 4 | binary | L-SML (unsupervised) | SML weights (1 group) |
+| 5 | binary | L-SML | L-SML (K groups) ← official Step 107 |
+
+Diagnostics produced per cached cell:
+- 5-row AUROC table with bootstrap 95% CI
+- 16 × 5 per-feature heatmap (which features die at which stage)
+- Sign-agreement bars (supervised vs L-SML, per feature)
+- Threshold sensitivity sweep (quantile 0.25 / 0.5 / 0.75)
+- Spearman correlation heatmap reordered by L-SML group assignment
+
+Implementation:
+- `spectral_utils/diagnostics.py` — `decompose_auroc`, `threshold_sensitivity`, and 5 plotting helpers.
+- `LSML_Diagnostics.ipynb` — 8 cells; loads cached features from `consolidated_results/*_res.pkl`, runs all diagnostics per cell, saves per-cell figure + aggregate landscape + `diagnostics_summary.csv`.
+- `_build_diagnostics_notebook.py` — generator (per CLAUDE.md notebook-JSON rule).
+- `_test_diagnostics_notebook.py` — end-to-end exec of every cell against synthetic cached pkls.
+
+**Global sign-resolution rule (important fix)**: Initial draft used `(scores>0).mean()<0.5` as the Paper 2 assumption (iii) check. Synthetic test revealed this fires incorrectly when the fused score is anti-correlated with the true ensemble direction (test case scored AUROC 16% before fix). Replaced with `_resolve_global_sign(scores, binary_classifiers)` that flips when `corr(scores, equal_weight_avg) < 0`. After fix, stage-5 AUROC matched expected ~84% on synthetic data with 8 signal + 8 noise features.
+
+**Why**: Step 107 documented every cell dropped 5-30pp under L-SML but didn't isolate which of the four corrections (no supervised sign, no subset selection bias, continuous→binary, M-matrix→Lemma 1) dominated. This module makes the cost of each correction visible cell-by-cell, so we can either (a) defend the new numbers with full attribution, or (b) identify a specific bottleneck worth attacking (e.g. if binarization costs 3pp but group detection costs 15pp, it's group detection that needs work, not the binarization choice).
+
+**Result**: CPU-only notebook ready to run on Colab against the Drive-cached `lsml_*_res.pkl` files. End-to-end test passes on 10 synthetic cells. Pending: run on real cached features and document Step 109 findings.
+
+---
+
+### Step 109 — Phase 12 Cell 11 bugfixes (MATH-500)
+
+**What**: Two consecutive bugs in `Spectral_Analysis_Phase12_Benchmarking.ipynb` Cell 11 (MATH-500 K-sampling for SE+SC):
+
+1. `load_math500(split='test')` → `TypeError: unexpected keyword argument 'split'`. The function signature is `load_math500(n_samples: int = 300)`; the `test` split is fixed internally. Fixed to `load_math500(n_samples=500)` to load the full set so any Phase 5 cache key (indices 0–499) resolves.
+2. `math_prompt(row['problem'])` → `AttributeError: 'str' object has no attribute 'get'`. `math_prompt(row: dict)` extracts the `problem` field internally; the cell was passing the already-extracted string. Fixed to `math_prompt(row)`.
+
+Inconsistent API in `data_loaders.py` is the root cause: `gsm8k_prompt(question: str)`, `trivia_qa_prompt(question: str)`, `webq_prompt(question: str)` take strings while `math_prompt(row: dict)`, `hotpotqa_prompt(row: dict)`, `humaneval_prompt(row: dict)`, `lciteeval_prompt(row: dict)` take the full row. Documented as a known gotcha; not refactored to avoid touching every notebook.
+
+Scan of all other `load_*` and `*_prompt` call sites in Phase 12 confirmed no remaining mismatches.
+
+**Why**: User reported errors mid-run on Colab.
+
+**Result**: Cell 11 can now resume from its incremental checkpoint without re-running prior cells (model still loaded, p4_samples cache preserves prior progress).
+
+---
