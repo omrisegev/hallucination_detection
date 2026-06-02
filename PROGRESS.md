@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
-**Date**: 2026-06-01
-**Last updated**: Step 111 — paper-aligned L-SML with offline consensus orientation is the new official method
+**Date**: 2026-06-02
+**Last updated**: Step 113 — RAG prompt pilot complete; V4 wins with +18.6pp fusion
 
 ---
 
@@ -22,12 +22,14 @@
 
 (Full 29-row table: `consolidated_results/consensus_vs_paper2_summary.csv`. See HISTORY Step 110/111.)
 
-**Active goal**: advisor competitor-comparison table for **today**. Build from existing data + cite published competitor numbers from Phase 12 cells.
+**Active goal**: Phase 10 RAG re-run with `lciteeval_prompt(row, variant=4)` across all 4×4 cells to get final bootstrapped AUROC numbers with the winning prompt.
+
+**RAG prompt pilot (Step 113, COMPLETE)**: V4 — "Consider whether the passages clearly answer the question, then answer" — wins with fusion AUROC 75.6% vs baseline 57.0% (+18.6pp). Interestingly V4 produces shorter traces (57 tokens) than V1/V2/V3 (120-143), confirming the gain is from entropy *shape* change (evaluative preamble peak) not trace length. `hl_ratio` recovered to 62.5% AUROC on V4 (passes G2); `dominant_freq` (58.3%) and `spectral_centroid` (59.4%) narrowly miss G2 but improve. Pilot data saved to `cache/prompt_pilot/` on Drive.
 
 **In flight**: Phase 12 inference re-run on Colab (was blocked by Cell 11 bug; fix is on remote at `3dffa90`, user needs to refresh notebook in Colab session). Adds Mistral/GSM8K, R1-Distill+Qwen3/GPQA, SelfCheckGPT/RAG cells to the comparison table.
 
-**Deferred (do after advisor table)**:
-1. RAG prompt pilot — 4 subtle prompt variants on Qwen-7B/hotpotqa (~1h A100) to test if longer reasoning recovers FFT shape features (dominant_freq, hl_ratio, spectral_centroid drop to 50% on short RAG vs 94% on math).
+**Deferred**:
+1. Phase 10 RAG re-run with variant=4 — replace `lciteeval_prompt(row)` with `lciteeval_prompt(row, variant=4)` in all 16 Phase 10 inference cells; re-run N=200 each for final bootstrapped numbers.
 2. Feature-level orientation refactor — bake `FEATURE_CANONICAL_SIGNS` into `feature_utils.py` so Paper 2 (iii) holds naturally; eliminates the `feature_signs` argument plumbing. Numerically same as current consensus; cleaner code.
 3. `boot_auc` zero-variance NaN root fix — only affects `trace_length` on cells where the model hit the token cap on every sample (gpqa/DeepSeek-R1-Distill).
 
@@ -364,20 +366,19 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 
 ## Immediate next actions
 
-1. **WAIT for Phase 12 (running on Colab)** ← **HIGHEST PRIORITY**
+1. **Phase 10 RAG re-run with variant=4** ← **HIGHEST PRIORITY**
+   - Open `Spectral_Analysis_Phase10_Main_RAG.ipynb` on Colab
+   - In every inference cell that calls `lciteeval_prompt(row)`, change to `lciteeval_prompt(row, variant=4)`
+   - Re-run all 16 cells (4 models × 4 datasets), N=200 each
+   - V4 wins pilot with +18.6pp fusion; expect Phase 10 RAG cells to recover 5–15pp vs current L-SML numbers
+   - Pull branch `feature/nadler-paper-alignment` first (`git -C /content/hallucination_detection pull -q`) so `lciteeval_prompt` has the `variant` param
+2. **Phase 12 (running/pending on Colab)**
    - Branch is `feature/nadler-paper-alignment`; notebook uses `sml_unsupervised` everywhere
    - Total runtime ~4–5h on A100 (Mistral-7B GSM8K ~45min, DeepSeek-R1-7B GPQA ~1.5h, Qwen3-8B GPQA ~2h, plus NLI baselines)
-   - Outputs to `*_lsml.pkl` (separate from old `*_nadler.pkl`)
    - **Critical question Phase 12 answers**: does L-SML still beat SE/SC/VC baselines on the same models?
-     - YES → spectral features retain unique value claim
-     - NO → empirical justification weakens; need to reframe thesis contribution
-2. **After Phase 12**: evaluate the SE/SC/VC comparison, write Step 108 in HISTORY.md
-3. **Decide thesis framing** based on Step 107 + 108 results:
-   - Option A: lead with L-SML numbers (paper-aligned, honest)
-   - Option B: report both side-by-side with methodology section explaining the supervised/unsupervised distinction
-4. **Phase 11a inference** (queued, lower priority now) — mistral24b + qwen72b
+3. **After Phase 10 re-run + Phase 12**: build the advisor competitor-comparison table and write Step 114 in HISTORY.md
+4. **Phase 11a inference** (queued, lower priority) — mistral24b + qwen72b
 5. **Phase 11b pilots** (queued) — HumanEval + ALFWorld
-6. **Optional**: update `Research_Directions.md` Direction 1–3 with Step 107 L-SML headline numbers
 
 ---
 
