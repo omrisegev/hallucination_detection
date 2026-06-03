@@ -366,7 +366,14 @@ GO/NO-GO gates (G0+G1 required; G2–G4 informative):
 
 ## Immediate next actions
 
-1. **Phase 10 RAG re-run with variant=4** ← **HIGHEST PRIORITY**
+1. **Phase 14: GPQA Diamond same-model comparison** ← **NEW (Step 116)**
+   - Notebook: `Spectral_Analysis_Phase14_GPQA_Comparison.ipynb` — created, ready to run on Colab
+   - Model: `deepseek-ai/DeepSeek-R1-0528-Qwen3-8B` (8B, bfloat16, no quantization needed on A100)
+   - Dataset: GPQA Diamond (198 examples), T=0.6, K=2
+   - Compare: L-SML@K=1 + EDIS@K=1 (gray-box) vs VC/SC/SCVC@K=2 (black-box) — exact same model as arXiv:2603.19118
+   - Reference numbers: VC@K=2=77.0%, SC@K=2=64.8%, SCVC@K=2=80.3% (DeepSeek-R1-8B, Table 5)
+   - Expected runtime: ~1.5h on A100 (198 × 2 responses + VC pass)
+2. **Phase 10 RAG re-run with variant=4** ← **HIGHEST PRIORITY**
    - Open `Spectral_Analysis_Phase10_Main_RAG.ipynb` on Colab
    - In every inference cell that calls `lciteeval_prompt(row)`, change to `lciteeval_prompt(row, variant=4)`
    - Re-run all 16 cells (4 models × 4 datasets), N=200 each

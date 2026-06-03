@@ -620,6 +620,31 @@ Design: T=1.0, same 12 signals, 4 configs (A1/A2 MATH-500, B1/B2 GPQA), cross-te
 
 *Expected change*: If spectral features are informative at all on GPQA, moving from 30% → 65% model accuracy should push `sw_var_peak` AUC from ~58% toward 65%+. If AUC stays near 50% even with a strong model, GPQA MCQ is structurally incompatible with entropy trajectory signals.
 
+**External GPQA Detection Baselines (confirmed by literature search, 2026-06-03)**
+
+Two papers evaluate correctness prediction / AUROC on GPQA Diamond. Assessed for use as direct comparison targets:
+
+**arXiv:2603.19118 — "How Uncertainty Estimation Scales with Sampling in Reasoning Models" (Del et al., 2026)** ✅ VALID COMPARISON TARGET
+- Task: AUROC for correct/incorrect response prediction on GPQA Diamond (198 examples, full test set)
+- Models: `deepseek-ai/DeepSeek-R1-0528-Qwen3-8B`, `Qwen/Qwen3-30B-A3B`, `openai/gpt-oss-20b` (proprietary). All are RLVR-trained reasoning models.
+- Methods: Verbalized Confidence (VC), Self-Consistency (SC), hybrid SCVC (λ=0.5) — all black-box, no token probabilities
+- Temperature: 0.6 (DeepSeek-R1-8B and Qwen3-30B); full extended chain-of-thought
+- GPQA Diamond AUROC (DeepSeek-R1-8B, from Table 5):
+
+| Method | K=2 | K=5 | K=8 |
+|--------|-----|-----|-----|
+| VC | 77.0±2.0 | 80.5±1.5 | 82.0±2.1 |
+| SC | 64.8±3.0 | 71.6±3.0 | 74.7±2.5 |
+| SCVC | 80.3±1.5 | 81.6±1.3 | 82.1±1.2 |
+
+- **Phase 14 plan**: Run our pipeline on `deepseek-ai/DeepSeek-R1-0528-Qwen3-8B` (same model), GPQA Diamond, T=0.6, K=2. Compare L-SML@K=1 + EDIS@K=1 vs their VC@K=2 / SC@K=2 / SCVC@K=2. Notebook: `Spectral_Analysis_Phase14_GPQA_Comparison.ipynb`.
+
+**arXiv:2508.20384 — "Uncertainty Under the Curve" (Zhu et al., 2025)** ❌ NOT A DETECTION PAPER
+- Explicit claim: *"Our goal is to measure how confident the model is in its own answer — not how correct the answer is"*
+- Metric: Pearson correlation with **answer diversity entropy** (not correctness labels). No AUROC reported.
+- The EAS (Entropy Area Score) is methodologically related (integrates token-level entropy trajectory, single forward pass) but is an uncertainty estimator, not a correctness detector.
+- **Do not include in hallucination-detection comparison tables.**
+
 **Phase 9 — TriviaQA + WebQ domain transfer** ← CREATED, NOT YET RUN
 
 *Status*: `Spectral_Analysis_Phase9_QA_Validation.ipynb` created (Step 71). Pending execution on Colab.
