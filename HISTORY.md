@@ -3937,3 +3937,29 @@ Pilot plan: Qwen-7B / hotpotqa × 200 samples × 4 variants ≈ 1 GPU-hour. Deci
 
 ---
 
+### Step 116 — Phase 13 notebook shipped: EDIS paper analysis, AMC23/AIME24 loaders, K=8 decision
+
+**What**: Shipped `Spectral_Analysis_MathComp_Phase13.ipynb` and supporting spectral_utils additions to master; analyzed EDIS paper (arXiv 2602.01288) Section 5.3 to determine the exact experimental protocol behind AUC=0.804 and 0.673; resolved the K=8 vs K=1 question for our evaluation protocol.
+
+**EDIS paper findings (Section 5.3, Figure 5c)**:
+- AUC=0.804 (EDIS) and 0.673 (mean entropy) are computed on **Qwen2.5-Math-1.5B only** — not averaged across models
+- All **4 datasets pooled**: GSM8K, MATH-500, AMC23 (full test set), AIME24 (full test set)
+- All **3 temperatures pooled**: T=0.2, 0.6, 1.0
+- Each of the **K=8 responses per problem is treated as an independent (score, label) data point** — 26,356 total valid responses (after filtering no-answer outputs)
+- AUC is standard AUROC: "correctly ranking a random correct–incorrect pair 80.4% of the time"
+- This is NOT a problem-level metric and NOT a Best-of-N accuracy metric; it is purely a correctness predictor evaluated at the individual response level
+
+**K decision**:
+- K=8 is **kept** in Cell 2 because EDIS Section 5.3 pools K responses as independent data points; our comparison must use the same protocol for a fair like-for-like
+- Cell 9 (Best-of-N selection accuracy, Section 5.2 equivalent) **removed**: our method is a 1-pass detection method, not a selection method; comparing against EDIS Table 1 (select best of m×K candidates via majority vote) would misframe our thesis contribution. Comment in Cell 2 documents this decision.
+
+**Code shipped** (commit 758a71f, merged to master):
+- `spectral_utils/data_loaders.py`: `load_amc23`, `amc23_prompt`, `is_correct_amc23`, `load_aime24`, `aime24_prompt`, `is_correct_aime24`
+- `spectral_utils/feature_utils.py`: `compute_edis(entropies, tau_b=1.36, tau_r=1.33)` — EDIS eq. 4 (burst + rebound instability score)
+- `spectral_utils/__init__.py`: all new symbols exported
+- `feature/nadler-paper-alignment` merged into master; `sml_unsupervised` and all Phase 13 additions now on master; Colab `git clone -b master` will work
+
+**Result**: Phase 13 notebook is unblocked. Colab can now clone from master and import `sml_unsupervised`. Notebook runs L-SML head-to-head with EDIS on Qwen2.5-Math-1.5B / GSM8K+MATH+AMC23+AIME24 / T=0.2/0.6/1.0, pooling all K=8 responses per (problem, temp) as individual data points to match Section 5.3.
+
+---
+
