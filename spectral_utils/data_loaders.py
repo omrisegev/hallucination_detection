@@ -4,6 +4,8 @@ Dataset loaders and grading functions for all benchmarks used in the project.
 Supported datasets:
   - GSM8K       (LapEigvals Listing 5 prompt; exact-match grading)
   - MATH-500    (competition math; boxed answer extraction)
+  - AMC23       (AMC 2023 competition; numeric/letter grading)
+  - AIME24      (AIME 2024 competition; integer exact-match grading)
   - GPQA Diamond (graduate-level MCQ; letter extraction)
   - HotpotQA    (multi-hop QA; substring match)
   - 2WikiMultiHopQA (multi-hop QA; normalized to Hotpot-style context)
@@ -143,6 +145,128 @@ def is_correct_math(gen: str, gold_row: dict) -> bool:
         return abs(float(p) - float(g)) < 1e-6
     except (ValueError, TypeError):
         return p.strip() == g.strip()
+
+
+# ── AMC 2023 ──────────────────────────────────────────────────────────────────
+
+def load_amc23(n_samples: int = 40) -> list[dict]:
+    """
+    Load AMC 2023 competition problems from HuggingFace.
+
+    Tries several sources in order; filters AI-MO combined dataset to 2023 AMC rows.
+    Returns list of {question, answer} dicts.
+    """
+    from datasets import load_dataset
+    attempts = [
+        ("AI-MO/amc_aime",  {},                          "train"),
+        ("open-r1/AMC23",   {},                          "test"),
+        ("math-ai/AMC2023", {},                          "test"),
+        ("AI-MO/amc_aime",  {"trust_remote_code": True}, "train"),
+    ]
+    for path, kwargs, split in attempts:
+        try:
+            ds   = load_dataset(path, split=split, **kwargs)
+            cols = set(ds.column_names)
+            items: list[dict] = []
+            for i in range(len(ds)):
+                row = ds[i]
+                if "AI-MO" in path:
+                    year = str(row.get("year", "")).strip()
+                    comp = str(row.get("competition", "")).strip().lower()
+                    if "2023" not in year or "amc" not in comp:
+                        continue
+                q = row.get("problem", row.get("question", row.get("Problem", row.get("query", ""))))
+                a = row.get("answer", row.get("Answer", row.get("solution", "")))
+                items.append({"question": str(q).strip(), "answer": str(a).strip()})
+                if len(items) >= n_samples:
+                    break
+            if items:
+                print(f"Loaded {len(items)} AMC23 problems from {path}.")
+                return items
+            print(f"  {path}: 0 matching rows (columns: {sorted(cols)[:8]})")
+        except Exception as e:
+            print(f"  {path} ({split}) failed: {e}")
+    raise RuntimeError("Could not load AMC23 from any HF source.")
+
+
+def amc23_prompt(row: dict) -> str:
+    """Format an AMC23 row as a chain-of-thought math prompt."""
+    q = row.get("question", row.get("problem", ""))
+    return (
+        "Solve the following AMC competition math problem. "
+        "Show all your work step by step, then give your final answer in \\boxed{}.\n\n"
+        + q
+    )
+
+
+def is_correct_amc23(gen: str, gold_row: dict) -> bool:
+    """Grade an AMC23 response. Tries numeric boxed-answer match, then letter match."""
+    if is_correct_math(gen, gold_row):
+        return True
+    ans = gold_row.get("answer", "").strip().upper()
+    if ans in "ABCDE" and len(ans) == 1:
+        last_line = gen.strip().split("\n")[-1].upper()
+        return ans in last_line
+    return False
+
+
+# ── AIME 2024 ─────────────────────────────────────────────────────────────────
+
+def load_aime24(n_samples: int = 30) -> list[dict]:
+    """
+    Load AIME 2024 competition problems from HuggingFace.
+
+    Tries several sources; AIME I + II combined gives ~30 problems.
+    Returns list of {question, answer} dicts.
+    """
+    from datasets import load_dataset
+    attempts = [
+        ("Maxwell-Jia/AIME_2024", {},                          "train"),
+        ("AI-MO/amc_aime",        {},                          "train"),
+        ("open-r1/AIME2024",      {},                          "test"),
+        ("math-ai/AIME2024",      {},                          "test"),
+        ("AI-MO/amc_aime",        {"trust_remote_code": True}, "train"),
+    ]
+    for path, kwargs, split in attempts:
+        try:
+            ds   = load_dataset(path, split=split, **kwargs)
+            cols = set(ds.column_names)
+            items: list[dict] = []
+            for i in range(len(ds)):
+                row = ds[i]
+                if "AI-MO" in path:
+                    year = str(row.get("year", "")).strip()
+                    comp = str(row.get("competition", "")).strip().lower()
+                    if "2024" not in year or "aime" not in comp:
+                        continue
+                q = row.get("problem", row.get("question", row.get("Problem", row.get("query", ""))))
+                a = row.get("answer", row.get("Answer", row.get("solution", "")))
+                items.append({"question": str(q).strip(), "answer": str(a).strip()})
+                if len(items) >= n_samples:
+                    break
+            if items:
+                print(f"Loaded {len(items)} AIME24 problems from {path}.")
+                return items
+            print(f"  {path}: 0 matching rows (columns: {sorted(cols)[:8]})")
+        except Exception as e:
+            print(f"  {path} ({split}) failed: {e}")
+    raise RuntimeError("Could not load AIME24 from any HF source.")
+
+
+def aime24_prompt(row: dict) -> str:
+    """Format an AIME24 row as a chain-of-thought math prompt."""
+    q = row.get("question", row.get("problem", ""))
+    return (
+        "Solve the following AIME competition math problem. "
+        "Your final answer must be an integer from 0 to 999. "
+        "Show all your work step by step, then give your final answer in \\boxed{}.\n\n"
+        + q
+    )
+
+
+def is_correct_aime24(gen: str, gold_row: dict) -> bool:
+    """Grade an AIME24 response. Answers are integers 0–999; uses boxed answer extraction."""
+    return is_correct_math(gen, gold_row)
 
 
 # ── GPQA Diamond ──────────────────────────────────────────────────────────────

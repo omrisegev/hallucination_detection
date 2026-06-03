@@ -298,6 +298,25 @@ def extract_all_features(ents) -> dict | None:
     return result
 
 
+def compute_edis(entropies, tau_b: float = 1.36, tau_r: float = 1.33) -> float:
+    """
+    EDIS score (arXiv 2602.01288, eq. 4). Higher = more entropy instability = less stable.
+
+    For correctness detection pass -compute_edis(trace) as the confidence feature
+    (higher confidence → more likely correct).
+
+    tau_b, tau_r: burst/rebound spike thresholds from paper Appendix E.
+    """
+    H = np.array(entropies, dtype=float)
+    if len(H) < 2:
+        return 0.0
+    dH = np.diff(H)
+    S_burst   = float((dH > tau_b).sum())
+    S_rebound = float((H - np.minimum.accumulate(H) > tau_r).sum())
+    S = 0.5 * (S_burst + S_rebound)
+    return float(S * np.sqrt(1.0 + np.var(H)))
+
+
 def segment_by_citations(text: str, token_offsets: list) -> list:
     """
     Segment generated text into statement spans ending in citation markers [N] or [N, M].
