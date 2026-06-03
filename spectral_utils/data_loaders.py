@@ -153,15 +153,17 @@ def load_amc23(n_samples: int = 40) -> list[dict]:
     """
     Load AMC 2023 competition problems from HuggingFace.
 
-    Tries several sources in order; filters AI-MO combined dataset to 2023 AMC rows.
+    Tries several parquet-backed sources (no trust_remote_code needed).
+    Each source contains exactly the 40-problem canonical AMC23 eval set.
     Returns list of {question, answer} dicts.
     """
     from datasets import load_dataset
+    # (path, kwargs, split) — all parquet-backed, verified 2026-06-03
     attempts = [
-        ("AI-MO/amc_aime",  {},                          "train"),
-        ("open-r1/AMC23",   {},                          "test"),
-        ("math-ai/AMC2023", {},                          "test"),
-        ("AI-MO/amc_aime",  {"trust_remote_code": True}, "train"),
+        ("math-ai/amc23",                  {}, "test"),   # 40 rows; question, answer, url
+        ("zwhe99/amc23",                   {}, "test"),   # 40 rows; answer is float-string e.g. "27.0"
+        ("knoveleng/AMC-23",               {}, "train"),  # 40 rows; problem/question + answer
+        ("meoconxinhxan/eval_math_amc23",  {}, "train"),  # 40 rows; problem, answer
     ]
     for path, kwargs, split in attempts:
         try:
@@ -170,12 +172,7 @@ def load_amc23(n_samples: int = 40) -> list[dict]:
             items: list[dict] = []
             for i in range(len(ds)):
                 row = ds[i]
-                if "AI-MO" in path:
-                    year = str(row.get("year", "")).strip()
-                    comp = str(row.get("competition", "")).strip().lower()
-                    if "2023" not in year or "amc" not in comp:
-                        continue
-                q = row.get("problem", row.get("question", row.get("Problem", row.get("query", ""))))
+                q = row.get("question", row.get("problem", row.get("Problem", row.get("query", ""))))
                 a = row.get("answer", row.get("Answer", row.get("solution", "")))
                 items.append({"question": str(q).strip(), "answer": str(a).strip()})
                 if len(items) >= n_samples:
@@ -221,11 +218,9 @@ def load_aime24(n_samples: int = 30) -> list[dict]:
     """
     from datasets import load_dataset
     attempts = [
-        ("Maxwell-Jia/AIME_2024", {},                          "train"),
-        ("AI-MO/amc_aime",        {},                          "train"),
-        ("open-r1/AIME2024",      {},                          "test"),
-        ("math-ai/AIME2024",      {},                          "test"),
-        ("AI-MO/amc_aime",        {"trust_remote_code": True}, "train"),
+        ("Maxwell-Jia/AIME_2024", {}, "train"),   # 30 rows; Problem, Answer, Solution — verified 2026-06-03
+        ("open-r1/AIME2024",      {}, "test"),
+        ("math-ai/AIME2024",      {}, "test"),
     ]
     for path, kwargs, split in attempts:
         try:
@@ -234,13 +229,8 @@ def load_aime24(n_samples: int = 30) -> list[dict]:
             items: list[dict] = []
             for i in range(len(ds)):
                 row = ds[i]
-                if "AI-MO" in path:
-                    year = str(row.get("year", "")).strip()
-                    comp = str(row.get("competition", "")).strip().lower()
-                    if "2024" not in year or "aime" not in comp:
-                        continue
-                q = row.get("problem", row.get("question", row.get("Problem", row.get("query", ""))))
-                a = row.get("answer", row.get("Answer", row.get("solution", "")))
+                q = row.get("Problem", row.get("problem", row.get("question", row.get("query", ""))))
+                a = row.get("Answer", row.get("answer", row.get("solution", "")))
                 items.append({"question": str(q).strip(), "answer": str(a).strip()})
                 if len(items) >= n_samples:
                     break
