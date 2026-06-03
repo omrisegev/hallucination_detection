@@ -4,6 +4,8 @@ Dataset loaders and grading functions for all benchmarks used in the project.
 Supported datasets:
   - GSM8K       (LapEigvals Listing 5 prompt; exact-match grading)
   - MATH-500    (competition math; boxed answer extraction)
+  - AMC23       (AMC 2023 competition; numeric/letter grading)
+  - AIME24      (AIME 2024 competition; integer exact-match grading)
   - GPQA Diamond (graduate-level MCQ; letter extraction)
   - HotpotQA    (multi-hop QA; substring match)
   - 2WikiMultiHopQA (multi-hop QA; normalized to Hotpot-style context)
@@ -66,7 +68,7 @@ def extract_model_answer_gsm8k(text: str):
     return m.group(1).strip() if m else None
 
 
-def _normalize_gsm8k(s) -> float | str | None:
+def normalize_gsm8k(s) -> float | str | None:
     if s is None:
         return None
     s = str(s).strip()
@@ -79,8 +81,8 @@ def _normalize_gsm8k(s) -> float | str | None:
 
 def is_correct_gsm8k(gen: str, gold_answer: str) -> bool:
     """Exact-match grading for GSM8K (numeric comparison with 1e-6 tolerance)."""
-    gold_norm  = _normalize_gsm8k(extract_gold_gsm8k(gold_answer))
-    model_norm = _normalize_gsm8k(extract_model_answer_gsm8k(gen))
+    gold_norm  = normalize_gsm8k(extract_gold_gsm8k(gold_answer))
+    model_norm = normalize_gsm8k(extract_model_answer_gsm8k(gen))
     if model_norm is None:
         return False
     if isinstance(gold_norm, float) and isinstance(model_norm, float):
@@ -143,6 +145,128 @@ def is_correct_math(gen: str, gold_row: dict) -> bool:
         return abs(float(p) - float(g)) < 1e-6
     except (ValueError, TypeError):
         return p.strip() == g.strip()
+
+
+# ── AMC 2023 ──────────────────────────────────────────────────────────────────
+
+def load_amc23(n_samples: int = 40) -> list[dict]:
+    """
+    Load AMC 2023 competition problems from HuggingFace.
+
+    Tries several sources in order; filters AI-MO combined dataset to 2023 AMC rows.
+    Returns list of {question, answer} dicts.
+    """
+    from datasets import load_dataset
+    attempts = [
+        ("AI-MO/amc_aime",  {},                          "train"),
+        ("open-r1/AMC23",   {},                          "test"),
+        ("math-ai/AMC2023", {},                          "test"),
+        ("AI-MO/amc_aime",  {"trust_remote_code": True}, "train"),
+    ]
+    for path, kwargs, split in attempts:
+        try:
+            ds   = load_dataset(path, split=split, **kwargs)
+            cols = set(ds.column_names)
+            items: list[dict] = []
+            for i in range(len(ds)):
+                row = ds[i]
+                if "AI-MO" in path:
+                    year = str(row.get("year", "")).strip()
+                    comp = str(row.get("competition", "")).strip().lower()
+                    if "2023" not in year or "amc" not in comp:
+                        continue
+                q = row.get("problem", row.get("question", row.get("Problem", row.get("query", ""))))
+                a = row.get("answer", row.get("Answer", row.get("solution", "")))
+                items.append({"question": str(q).strip(), "answer": str(a).strip()})
+                if len(items) >= n_samples:
+                    break
+            if items:
+                print(f"Loaded {len(items)} AMC23 problems from {path}.")
+                return items
+            print(f"  {path}: 0 matching rows (columns: {sorted(cols)[:8]})")
+        except Exception as e:
+            print(f"  {path} ({split}) failed: {e}")
+    raise RuntimeError("Could not load AMC23 from any HF source.")
+
+
+def amc23_prompt(row: dict) -> str:
+    """Format an AMC23 row as a chain-of-thought math prompt."""
+    q = row.get("question", row.get("problem", ""))
+    return (
+        "Solve the following AMC competition math problem. "
+        "Show all your work step by step, then give your final answer in \\boxed{}.\n\n"
+        + q
+    )
+
+
+def is_correct_amc23(gen: str, gold_row: dict) -> bool:
+    """Grade an AMC23 response. Tries numeric boxed-answer match, then letter match."""
+    if is_correct_math(gen, gold_row):
+        return True
+    ans = gold_row.get("answer", "").strip().upper()
+    if ans in "ABCDE" and len(ans) == 1:
+        last_line = gen.strip().split("\n")[-1].upper()
+        return ans in last_line
+    return False
+
+
+# ── AIME 2024 ─────────────────────────────────────────────────────────────────
+
+def load_aime24(n_samples: int = 30) -> list[dict]:
+    """
+    Load AIME 2024 competition problems from HuggingFace.
+
+    Tries several sources; AIME I + II combined gives ~30 problems.
+    Returns list of {question, answer} dicts.
+    """
+    from datasets import load_dataset
+    attempts = [
+        ("Maxwell-Jia/AIME_2024", {},                          "train"),
+        ("AI-MO/amc_aime",        {},                          "train"),
+        ("open-r1/AIME2024",      {},                          "test"),
+        ("math-ai/AIME2024",      {},                          "test"),
+        ("AI-MO/amc_aime",        {"trust_remote_code": True}, "train"),
+    ]
+    for path, kwargs, split in attempts:
+        try:
+            ds   = load_dataset(path, split=split, **kwargs)
+            cols = set(ds.column_names)
+            items: list[dict] = []
+            for i in range(len(ds)):
+                row = ds[i]
+                if "AI-MO" in path:
+                    year = str(row.get("year", "")).strip()
+                    comp = str(row.get("competition", "")).strip().lower()
+                    if "2024" not in year or "aime" not in comp:
+                        continue
+                q = row.get("problem", row.get("question", row.get("Problem", row.get("query", ""))))
+                a = row.get("answer", row.get("Answer", row.get("solution", "")))
+                items.append({"question": str(q).strip(), "answer": str(a).strip()})
+                if len(items) >= n_samples:
+                    break
+            if items:
+                print(f"Loaded {len(items)} AIME24 problems from {path}.")
+                return items
+            print(f"  {path}: 0 matching rows (columns: {sorted(cols)[:8]})")
+        except Exception as e:
+            print(f"  {path} ({split}) failed: {e}")
+    raise RuntimeError("Could not load AIME24 from any HF source.")
+
+
+def aime24_prompt(row: dict) -> str:
+    """Format an AIME24 row as a chain-of-thought math prompt."""
+    q = row.get("question", row.get("problem", ""))
+    return (
+        "Solve the following AIME competition math problem. "
+        "Your final answer must be an integer from 0 to 999. "
+        "Show all your work step by step, then give your final answer in \\boxed{}.\n\n"
+        + q
+    )
+
+
+def is_correct_aime24(gen: str, gold_row: dict) -> bool:
+    """Grade an AIME24 response. Answers are integers 0–999; uses boxed answer extraction."""
+    return is_correct_math(gen, gold_row)
 
 
 # ── GPQA Diamond ──────────────────────────────────────────────────────────────
@@ -488,6 +612,44 @@ def is_correct_webq(gen: str, item: dict) -> bool:
     return any(_normalize_qa(a) == pred_norm for a in item["answers"])
 
 
+# ── HumanEval ─────────────────────────────────────────────────────────────────
+
+def load_humaneval(n_samples: int = 164) -> list[dict]:
+    """Load HumanEval from HuggingFace. Returns list of {task_id, prompt, test, entry_point}."""
+    from datasets import load_dataset
+    ds = load_dataset("openai/openai_humaneval", split="test")
+    items = []
+    for i in range(min(n_samples, len(ds))):
+        row = ds[i]
+        items.append({
+            "task_id":     row["task_id"],
+            "prompt":      row["prompt"],
+            "test":        row["test"],
+            "entry_point": row["entry_point"],
+        })
+    print(f"Loaded {len(items)} HumanEval problems.")
+    return items
+
+
+def humaneval_prompt(row: dict, error_context: str = "") -> str:
+    """Instruction prompt for HumanEval. Optionally includes prior error for retry attempts."""
+    base = (
+        "Complete the following Python function. "
+        "Return ONLY the function body (indented), no explanation, no markdown fences.\n\n"
+        f"{row['prompt']}"
+    )
+    if error_context:
+        base += f"\n\n# Previous attempt failed with:\n# {error_context}\n# Fix the implementation:"
+    return base
+
+
+def is_correct_humaneval(row: dict, full_code: str) -> bool:
+    """Test whether full_code passes the HumanEval unit tests for this row."""
+    from spectral_utils.agent_utils import execute_python_solution
+    passed, _ = execute_python_solution(full_code, row["test"], row["entry_point"])
+    return passed
+
+
 # ── L-CiteEval ────────────────────────────────────────────────────────────────
 
 _LCITEEVAL_CONFIG_MAP = {
@@ -565,12 +727,18 @@ def load_lciteeval(task: str = "hotpotqa", n_samples: int = 100) -> list:
 
 
 def lciteeval_prompt(row: dict, max_chars_per_doc: int = 600,
-                     max_docs: int = 15) -> str:
+                     max_docs: int = 15, variant: int = 0) -> str:
     """
     Format a normalized L-CiteEval row for citation-grounded generation.
 
     Passages are numbered [1] … [N]; model must cite each statement.
     Truncates each passage to max_chars_per_doc to keep prompts manageable.
+
+    variant=0 (baseline): direct answer with citations.
+    variant=1: explicit reasoning preamble before answer.
+    variant=2: "Think through" framing to encourage CoT.
+    variant=3: explain why each citation supports the claim.
+    variant=4: evaluate passage relevance before answering.
     """
     docs = row["docs"][:max_docs]
     passages = ""
@@ -578,15 +746,55 @@ def lciteeval_prompt(row: dict, max_chars_per_doc: int = 600,
         text = d["text"][:max_chars_per_doc].rstrip()
         passages += f"[{i}] {d['title']}\n{text}\n\n"
 
-    return (
+    base = (
         "Read the following passages carefully. "
-        "Answer the question with clear statements. "
         "After EACH statement, cite the passage(s) that support it using [number] format "
         "(e.g. 'Paris is the capital of France [1]. It has 2.1 million residents [2, 3].').\n\n"
         f"Passages:\n{passages}"
         f"Question: {row['question']}\n\n"
-        "Your answer (include a citation after every statement):"
     )
+
+    if variant == 0:
+        instruction = (
+            "Answer the question with clear statements. "
+        )
+        closing = "Your answer (include a citation after every statement):"
+
+    elif variant == 1:
+        # Explicit reasoning preamble → longer traces
+        instruction = (
+            "Answer the question with clear statements, "
+            "starting with your reasoning process and ending with the answer. "
+        )
+        closing = "Your reasoning and answer (include a citation after every statement):"
+
+    elif variant == 2:
+        # "Think through" framing
+        instruction = (
+            "Think through the question step by step, then provide your answer with clear statements. "
+        )
+        closing = "Your step-by-step reasoning and answer (include a citation after every statement):"
+
+    elif variant == 3:
+        # Explain why each citation supports the claim
+        instruction = (
+            "Answer the question with clear statements, "
+            "briefly explaining why each cited passage supports your claim before stating it. "
+        )
+        closing = "Your answer (explain each citation, then state each supported claim):"
+
+    elif variant == 4:
+        # Evaluate passage relevance first
+        instruction = (
+            "Consider whether the passages clearly answer the question, then answer "
+            "with clear statements. "
+        )
+        closing = "Your answer (note which passages are most relevant, then answer with citations):"
+
+    else:
+        raise ValueError(f"Unknown lciteeval_prompt variant: {variant}. Choose 0–4.")
+
+    return base + instruction + "\n" + closing
 
 
 def lciteeval_grounding_label(citation_ids: list, row: dict) -> int:

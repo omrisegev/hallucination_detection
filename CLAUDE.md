@@ -3,6 +3,51 @@
 ## Session start
 **Always read `PROGRESS.md` before doing anything else.** It has the current experiment status, what's running, what's fixed, and what to do next. Do not rely on git log alone — PROGRESS.md is the handoff document.
 
+Shortcut: type `/session-start` to run the full initialization sequence automatically.
+
+---
+
+## Slash commands available
+
+| Command | When to use |
+|---------|-------------|
+| `/session-start` | **Start of every session** — reads PROGRESS.md, git status, last HISTORY steps, prints priority action |
+| `/update-docs` | After completing work — drafts HISTORY.md Step N entry + PROGRESS.md update, then commits |
+| `/new-cell` | Adding an analysis/inference cell — generates correct three-branch pkl reload template |
+| `/nadler-audit` | Before/after Nadler fusion — validates all 4 invariants (views, z-score, ρ, sign) |
+| `/colab-setup` | New notebook — generates Cell 1 + Cell 2 + gptqmodel stub for the requested model |
+| `/notebook-audit` | Before committing a notebook — spawns sub-agent to check for 8 common bugs |
+
+---
+
+## Sub-agent patterns
+
+Spawn sub-agents for these recurring tasks to avoid context pollution:
+
+**Cache Explorer** — Use when user asks "what's in the cache?" or "which phases are done?":
+```
+Spawn subagent_type=Explore:
+"List all .pkl files under /content/drive/MyDrive/hallucination_detection/[path].
+For each pkl, report: filename, size, top-level keys, and whether any values are None.
+Classify each as VALID / STALE (all-None) / PARTIAL (some None). Report in a table."
+```
+
+**Notebook Reviewer** — Use before committing any notebook with new cells (or just use `/notebook-audit`):
+```
+Spawn subagent_type=Explore with the notebook path + the 8-bug checklist from /notebook-audit.
+Returns findings without modifying files. Synthesize before deciding what to fix.
+```
+
+**Results Extractor** — Use when user asks "what are our current numbers?" without re-running:
+```
+Spawn subagent_type=Explore:
+"Read consolidated_results/results_all.pkl (or results_summary.csv).
+Print a table: domain | model | Nadler AUROC | CI | best_subset.
+Sort by Nadler AUROC descending. Flag any None results."
+```
+
+**Rule**: Brief the agent with exact file paths + what to return. Synthesize the result yourself before acting on it. Never delegate the decision — only the data gathering.
+
 ---
 
 ## Project layout

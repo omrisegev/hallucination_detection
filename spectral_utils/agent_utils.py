@@ -536,3 +536,122 @@ def categorize_failure_mode(traj: dict) -> str:
     if not any(s['step_correct'] for s in traj['steps'] if s['action_type'] == 'search'):
         return 'planning'
     return 'tool'
+
+
+# ── HumanEval code-execution episode ──────────────────────────────────────────
+
+def execute_python_solution(
+    full_code: str,
+    test_code: str,
+    entry_point: str,
+    timeout: int = 5,
+) -> tuple:
+    """Run full_code + test_code in a subprocess. Returns (passed: bool, error: str)."""
+    import subprocess, tempfile, os, textwrap
+
+    script = textwrap.dedent(f"""
+{full_code}
+
+{test_code}
+
+check({entry_point})
+""")
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as fh:
+        fh.write(script)
+        tmp_path = fh.name
+
+    try:
+        result = subprocess.run(
+            ['python', tmp_path],
+            capture_output=True, text=True, timeout=timeout,
+        )
+        passed = result.returncode == 0
+        error  = (result.stderr or result.stdout or '').strip()
+    except subprocess.TimeoutExpired:
+        passed = False
+        error  = f'TimeoutExpired after {timeout}s'
+    except Exception as exc:
+        passed = False
+        error  = str(exc)
+    finally:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+
+    return passed, error
+
+
+def run_humaneval_episode(
+    mdl,
+    tok,
+    row: dict,
+    T: float = 1.0,
+    max_attempts: int = 3,
+    max_new: int = 512,
+) -> dict:
+    """
+    Multi-attempt HumanEval episode.
+
+    Each attempt:
+      1. Format prompt (with prior error context if retrying).
+      2. generate_full → token_entropies.
+      3. Concatenate row['prompt'] + generated completion → execute_python_solution.
+      4. If pass → done. Else carry error into next attempt.
+
+    Returns:
+      {
+        'steps':       list of {token_entropies, code, passed, error},
+        'any_passed':  bool,
+        'n_attempts':  int,
+        'task_id':     str,
+      }
+    """
+    from .model_utils import generate_full, token_entropies_from_scores
+    from .data_loaders import humaneval_prompt
+
+    steps: list = []
+    any_passed   = False
+    last_error   = ""
+
+    for attempt_idx in range(max_attempts):
+        prompt_text = humaneval_prompt(row, error_context=last_error)
+
+        ids, scores = generate_full(
+            mdl, tok,
+            prompt=prompt_text,
+            temperature=T,
+            max_new_tokens=max_new,
+        )
+        ents = token_entropies_from_scores(scores)
+
+        # Decode the completion and prepend the original function header
+        completion = tok.decode(ids[0], skip_special_tokens=True)
+        # Strip any echoed prompt prefix the model may have reproduced
+        if completion.startswith(prompt_text):
+            completion = completion[len(prompt_text):]
+        full_code = row['prompt'] + completion
+
+        passed, error = execute_python_solution(
+            full_code, row['test'], row['entry_point']
+        )
+
+        steps.append({
+            'token_entropies': ents,
+            'code':            full_code,
+            'passed':          passed,
+            'error':           error,
+            'attempt':         attempt_idx,
+        })
+
+        if passed:
+            any_passed = True
+            break
+        last_error = error.splitlines()[-1] if error else ''
+
+    return {
+        'steps':      steps,
+        'any_passed': any_passed,
+        'n_attempts': len(steps),
+        'task_id':    row['task_id'],
+    }

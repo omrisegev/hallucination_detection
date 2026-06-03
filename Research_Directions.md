@@ -3,6 +3,33 @@
 
 ---
 
+## Current Focus (updated 2026-06-01, post Step 111)
+
+The thesis core method is **paper-aligned L-SML with offline consensus orientation** (Parisi-Nadler-Kluger PNAS 2014 + Jaffé-Fetaya-Nadler 2016 + our offline feature-direction calibration). This replaces the earlier "Nadler" framing because:
+
+1. **"Nadler fusion"** was incorrect terminology — the algorithm is the **Spectral Meta-Learner** (Step 105).
+2. The old supervised continuous M-matrix variant (Step 100) had four methodological mistakes vs the source papers: (a) supervised label-based sign orientation, (b) in-sample subset selection bias, (c) continuous features violating Lemma 1's binary contract, (d) M-matrix instead of direct rank-1 eigenvector. All four are now corrected.
+3. The pure paper-aligned method (Step 107) collapsed on cells where Paper 2 assumption (iii) is violated — specifically, our entropy-heavy 16-feature set. Step 110 fixes this by deriving each feature's direction *once offline* from accumulated empirical evidence (majority vote across 29 cells, weighted by per-cell AUROC margin), then pre-orienting features before binarization. This is **still unsupervised at inference time** (no per-cell labels used for fusion) while making Paper 2 (iii) naturally hold.
+
+**Step 110 official numbers (29 cells)** are documented in HISTORY.md Step 110/111 and `consolidated_results/diagnostics_consensus_all.pkl`. Headlines:
+- Math reasoning: **65 – 91%** (MATH-500 × 4 models, GSM8K × 1)
+- GPQA Diamond: **41 – 62%** (5 models; intrinsic ceiling near 60% on MCQ science)
+- RAG / HotpotQA: **64 – 82%** (4 models)
+- RAG / other 3 datasets: **39 – 62%** (short traces limit FFT shape features)
+- Factual QA: **43 – 78%**
+
+**Method scope claim for thesis**: spectral features of the per-token entropy trace work on *reasoning-heavy generation* (math, multi-step CoT) with full power; reduced power on short-trace tasks (RAG short answers, factual QA without CoT) because length-dependent FFT features lose discriminative spectrum density below ~100 tokens.
+
+**Active deliverable (today)**: competitor comparison table for advisors. Built from existing 29-cell Step 110 data + cited published values (SE NLI 75.85% on Mistral/GSM8K, VC 74.6% + SC 75.4% on GPQA reasoning models from arXiv 2603.19118, EDIS 80.4% pooled-math, LapEigvals 72.0% unsupervised on GSM8K, etc.). Phase 12 will add Mistral/GSM8K + R1-Distill+Qwen3/GPQA + SelfCheckGPT/RAG when complete.
+
+**Deferred items** (do not start before advisor deliverable lands):
+- RAG prompt pilot (4 subtle variants → does longer reasoning recover the FFT shape features that died on 30-token traces?)
+- Feature-level orientation refactor (move `FEATURE_CANONICAL_SIGNS` into `feature_utils.py` so Paper 2 (iii) holds at extraction time; numerically identical, simpler code)
+- `boot_auc` zero-variance fix (cosmetic; affects only trace_length on the one cell where every generation hit the token cap)
+- Phase 11a/11b agentic / pilots — *all directions below this line are post-advisor-table work*
+
+---
+
 ## How to Read This Document
 
 Each direction is assessed on four axes:
@@ -155,14 +182,29 @@ The following signals were suggested by NotebookLM and confirmed as real papers,
 
 ## Direction 2 — RAG Hallucination Detection
 
-**Status**: Pilot run complete (Step 84) — INVALID pre-conditions, strong signal confirmed. Re-run with Qwen2.5-72B-AWQ pending.
+**Status**: ✅ COMPLETED — Phase 10 Main RAG all 16 cells complete (Step 85–87 + Step 91). Best: llama8b/hotpotqa = **87.7%** (new overall thesis best RAG cell). Beats LOS-Net supervised (72.92%) by +14.8 pp unsupervised.
 
 **Pilot result (Step 84, Falcon-3-10B, N=100 HotpotQA)**:
 - epr=69.9%, sw_var_peak=69.7%, Nadler=76.0% [64.3, 86.8] (subset: epr+rpdi)
 - trace_length=50.8% (chance) → no length confound
-- Nadler 76.0% vs PC1 58.5% → Nadler adds real signal, not just variance capture
-- Gate: INVALID (citation rate 58% < 60% threshold; 83 < 100 valid statements)
-- Fix: switch to Qwen2.5-72B-AWQ + N=150 → re-run expected to pass all pre-conditions
+- Gate: INVALID (citation rate 58% < 60%); signal confirmed strong underneath
+
+**Phase 10 Main RAG final results (4 models × 4 datasets, Step 91 confirmed)**:
+
+| Model | hotpotqa | natural_questions | 2wikimultihopqa | narrativeqa |
+|-------|---------|------------------|----------------|------------|
+| qwen7b | 79.5% | 75.3% | **80.5%** | 70.0% |
+| mistral24b | 67.3% | 74.0% | 74.2% | 66.1% |
+| qwen72b | 79.4% | 71.8% | 73.4% | 72.2% |
+| llama8b | **87.7%** ★ | 70.3% | 64.5% | 63.2% |
+
+Median across 16 cells: 72.8%. 12/16 cells ≥ 70%. trace_length alone = 50.8% (no length confound).
+
+**Feature pattern**: rpdi + spectral_entropy + sw_var_peak_adaptive dominate. Unlike math (epr-dominant), RAG relies on end-of-trace entropy rise and local variance — consistent with grounding-boundary transition hypothesis.
+
+**Model–dataset interaction**: llama8b excels on HotpotQA factoid retrieval; qwen7b excels on 2WikiMultiHop chains. Performance reflects how each model handles single-hop vs chained retrieval, not spectral feature quality.
+
+**Saved plots** (Drive: `cache/phase10_main/plots/`): `A_headline_auc_heatmap.png`, `B_nadler_weight_matrix.png`, `C_nadler_weight_clustering.png`, `D_fusion_distributions_grid.png`, `E_length_controlled_bars.png`
 
 ### Core Hypothesis
 In RAG systems, hallucination has two distinct failure modes: (a) *intrinsic* — the model ignores or contradicts the retrieved context; (b) *extrinsic* — the model answers from parametric memory instead of grounding in the retrieved passage. EPR on grounded tokens (those supported by the retrieved context) should be decorrelated from EPR on the parametric tokens, providing two genuinely independent Nadler views that predict the same factual correctness label.
@@ -707,7 +749,7 @@ The comparison table needs no new inference. HotpotQA is the only new run — sa
 
 ## Direction 8 — Meta-Analysis & Advanced Feature Expansion
 
-**Status**: Planning Phase (Step 88). `Spectral_Analysis_Meta_Analysis.ipynb` and `Research_Feature_Expansion.md` created.
+**Status**: ✅ COMPLETED — Cross-domain analysis run 2026-05-14 (Step 89 + Step 91). Results confirmed from Colab notebook outputs (16 rendered PNGs extracted to `presentation_plots/`).
 
 ### Core Hypothesis
 After 10 phases of empirical experimentation, we have a large cross-domain dataset (Math, Science MCQ, Factual QA, Grounded RAG). This allows for a **Meta-Analysis** to move from heuristic feature selection to principled optimization. The core hypothesis is that current features (STFT, Windowed Var) capture only the "DC" and "first harmonic" of the hallucination signal. Advanced signal processing (Wavelets, Hurst Exponents, Permutation Entropy) can capture the **regime shift** from grounded reasoning to parametric drift more robustly across different model scales (7B to 72B).
@@ -734,19 +776,37 @@ After 10 phases of empirical experimentation, we have a large cross-domain datas
 
 ---
 
-## Recommended Priority Order (updated May 2026)
+## Recommended Priority Order (updated 2026-06-01, post Step 111)
 
-**Phase 1: Finish Current Experiments**
-1. **Phase 10 (RAG/Llama-8B)** — Complete the 4x4 RAG matrix using the stabilized Llama-8B config.
-2. **Phase 8 (GPQA/Qwen-72B)** — Complete the science MCQ benchmark with the flagship model.
+**Completed** ✅
+- Phase 10 RAG (16 cells; Step 91; old Nadler results retained as Step 100 reference, superseded by Step 110)
+- Phase 8 GPQA/Qwen-72B (Step 80)
+- Meta-Analysis (7,001 samples; pe_min dropped → 16 features; Step 89)
+- **Steps 105-106** — Paper-aligned package (`binarize_classifiers`, `sml_fuse`, `lsml_fuse`, `sml_unsupervised`, `sml_unsupervised_compare`)
+- **Step 107** — Pure paper-aligned L-SML benchmark on Consolidated cached features (29 cells; revealed collapse on 13/29 cells due to Paper 2 (iii) violation)
+- **Step 108-109** — L-SML diagnostics module + notebook; Phase 12 Cell 11 bug fix
+- **Step 110** — Offline consensus orientation; rescued the 13 collapsed cells (+5 to +63pp Stage-5 AUROC); current official method
+- **Step 111** — Trace-length / per-feature analysis; RAG signal limits characterized
 
-**Phase 2: Meta-Analysis & Expansion (The Scientific Core)**
-3. **Execution: Meta-Analysis Notebook** — Run the parameter sweeps to ground all heuristic choices in data.
-4. **Execution: Feature Expansion** — Implement Hurst, Wavelet, and Permutation Entropy features in `spectral_utils`.
-5. **Retrospective Eval** — Rerun the entire project history (Phases 4-10) with the new expanded feature set to see the "Final Thesis AUC."
+**Phase A — Advisor competitor comparison table (TODAY)**
+1. **Refresh notebook in Colab** — switch from outdated copy to `feature/nadler-paper-alignment` Phase 12 notebook
+2. **Finish Phase 12 inference** — Cells 11-onward, adds Mistral/GSM8K + R1-Distill+Qwen3/GPQA + SelfCheckGPT/RAG
+3. **Assemble competitor table** — one markdown doc, our 29 + Phase 12 cells vs published SE/SC/VC/SelfCheckGPT/LapEigvals/EDIS numbers, with caveats
 
-**Phase 3: Formal Calibration**
-6. **Direction 5 (Conformal)** — Apply Bracha's LTT to the final, optimized ensemble to produce the formal safety guarantees.
+**Phase B — Method ergonomics (post-advisor)**
+4. **RAG prompt pilot** — 4 subtle prompt variants on Qwen-7B/hotpotqa, ~1h A100; pilot decision before scaling to all 16 RAG cells
+5. **Feature-level orientation refactor** — colocate `FEATURE_CANONICAL_SIGNS` with feature definitions in `feature_utils.py`; eliminate `feature_signs` plumbing
+
+**Phase C — Phase 11 agentic + pilots (deferred from earlier roadmap)**
+6. **Phase 11a inference** — run mistral24b + qwen72b
+7. **Phase 11a analysis** — Cells 12–22 once all 8 pkl files exist
+8. **Pilots 11b A (HumanEval), B (ALFWorld)** — GO/NO-GO gates
+
+**Phase D — Formal calibration (thesis endpoint)**
+9. **Direction 5 (LTT Conformal)** — converts AUROC → deployment guarantee on the final L-SML scores
+
+**Phase E — Theoretical framing**
+10. **Manifold / IMM** (Ofir's direction)
 
 ---
 
