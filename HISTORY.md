@@ -3963,3 +3963,55 @@ Pilot plan: Qwen-7B / hotpotqa × 200 samples × 4 variants ≈ 1 GPU-hour. Deci
 
 ---
 
+
+### Step 117 — Phase 12 complete: L-SML vs SE / SC / VC / SelfCheckGPT baselines
+
+**What**: Ran `Spectral_Analysis_Phase12_Benchmarking.ipynb` to completion on Colab (2026-06-02). Computed SC K=10 and SE NLI K=10 for GSM8K/Llama-8B and MATH-500/Qwen-Math-7B; VC K=1 + SC K=10 + SE NLI K=10 for GPQA/Qwen-7B; SelfCheckGPT NLI K=5 for RAG L-CiteEval across all 4 datasets. Results merged with Step 100 Nadler numbers and written to `Research_Phase12_Comparison_Results.md`.
+
+**Why**: Post-meeting action item (Ofir): compare our method against SE, SC, and other published baselines on the same models and datasets.
+
+**Result — key comparisons**:
+
+| Domain | Our method (1-pass) | Best competitor | Notes |
+|--------|-------------------|-----------------|-------|
+| MATH-500 / Qwen-Math-7B | **96.7%** [93.9, 98.7] | SE 87.7%, SC 87.2% (K=10) | +9pp at 10× less compute |
+| GSM8K / Llama-8B | **75.9%** [72.5, 79.3] | SC 78.5%, SE 77.4% (K=10) | roughly matched, 1-pass vs K=10 |
+| GPQA / Qwen-7B | **71.3%** [50.4, 89.0] | SE 70.6%, VC 67.9%, SC 33.6% | SC completely fails on GPQA |
+| RAG / HotpotQA | **88.2%** [80.6, 94.4] | SelfCheckGPT 51.4% | +37pp over best same-task baseline |
+| RAG / NQ | **82.8%** [70.9, 92.6] | SelfCheckGPT 57.1% | novel task — no published AUROC competitor |
+
+Note: these use the Step 100 supervised Nadler numbers (feature signs from labels, subset selection). The paper-aligned L-SML numbers (Step 107) are lower. Phase 13 and Phase 14 run the paper-aligned method against the next tier of baselines (EDIS, VC/SC on reasoning models).
+
+**Files changed**:
+- `Research_Phase12_Comparison_Results.md` — full per-domain comparison tables (written to Drive + committed)
+
+---
+
+### Step 118 — Phase 14 notebook: GPQA Diamond vs VC/SC/SCVC baselines (arXiv 2603.19118)
+
+**What**: Read two new papers (arXiv:2603.19118 and arXiv:2508.20384). Only the first is a valid comparison target — it reports AUROC for correct/incorrect detection on GPQA Diamond using VC, SC, and SC+VC on reasoning models (DeepSeek-R1-8B: VC 77.0%, SC 64.8%, SC+VC 80.3%). The second paper measures Pearson correlation with answer diversity, not correctness AUROC — excluded from comparison tables. Built `Spectral_Analysis_Phase14_GPQA_Comparison.ipynb`: same model (DeepSeek-R1-0528-Qwen3-8B), same dataset (GPQA Diamond, n=198), same metric (AUROC) as arXiv:2603.19118. Notebook runs L-SML@K=1 + EDIS@K=1 (gray-box, 1-pass) against VC/SC/SCVC@K=2 (black-box, multi-pass).
+
+**Why**: Needed a same-model, same-dataset GPQA comparison against a recent paper with published VC/SC/SCVC numbers. Phase 14 gives the cleanest head-to-head: our 1-pass gray-box method vs their 2-pass black-box method on identical experimental conditions.
+
+**Result**: Notebook built and pushed to master. Currently running on Colab.
+
+**Files changed**:
+- `Spectral_Analysis_Phase14_GPQA_Comparison.ipynb` — new notebook
+- `_build_phase14_notebook.py` — build script
+- `Research_Phase12_Comparison_Tables.md` — added DeepSeek-R1-8B rows + Phase 14 TBD placeholder rows
+- `Research_Directions.md` — new External GPQA Detection Baselines subsection
+
+---
+
+### Step 119 — Fix broken HuggingFace dataset sources for AMC23 and AIME24 loaders
+
+**What**: All three AMC23 sources used in `load_amc23` (`AI-MO/amc_aime`, `open-r1/AMC23`, `math-ai/AMC2023`) no longer exist on the Hub. The `trust_remote_code=True` fallback also fails since the `datasets` library dropped support for it. Replaced with four verified parquet-backed alternatives. Cleaned up `load_aime24` similarly: removed the dead `AI-MO/amc_aime` fallback and `trust_remote_code` attempt, and fixed the column-name lookup for `Maxwell-Jia/AIME_2024` (its columns are `Problem`/`Answer`, capitalized).
+
+**Why**: Phase 13 notebook Cell 4 raised `RuntimeError: Could not load AMC23 from any HF source`, blocking the inference loop.
+
+**Result**: `load_amc23` now loads from `math-ai/amc23` (40 rows, test split) as primary, with three fallbacks. `load_aime24` loads from `Maxwell-Jia/AIME_2024` (30 rows) as before. Phase 13 Cell 4 unblocked. Fix merged to master.
+
+**Files changed**:
+- `spectral_utils/data_loaders.py` — replace dead AMC23/AIME24 HF sources with verified parquet-backed alternatives; remove `trust_remote_code` attempts
+
+---
