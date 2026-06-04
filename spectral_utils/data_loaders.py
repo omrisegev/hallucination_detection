@@ -40,8 +40,10 @@ def load_gsm8k(split: str = "test") -> list[dict]:
     return items
 
 
-def gsm8k_prompt(question: str) -> str:
+def gsm8k_prompt(question) -> str:
     """Format a GSM8K question using the LapEigvals Listing 5 prompt template."""
+    if isinstance(question, dict):
+        question = question.get("question", "")
     return _LAPEI_PROMPT.format(question=question)
 
 
@@ -79,8 +81,10 @@ def normalize_gsm8k(s) -> float | str | None:
         return s.lower().strip()
 
 
-def is_correct_gsm8k(gen: str, gold_answer: str) -> bool:
+def is_correct_gsm8k(gen: str, gold_answer) -> bool:
     """Exact-match grading for GSM8K (numeric comparison with 1e-6 tolerance)."""
+    if isinstance(gold_answer, dict):
+        gold_answer = gold_answer.get("answer", "")
     gold_norm  = normalize_gsm8k(extract_gold_gsm8k(gold_answer))
     model_norm = normalize_gsm8k(extract_model_answer_gsm8k(gen))
     if model_norm is None:
