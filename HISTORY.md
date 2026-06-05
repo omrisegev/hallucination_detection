@@ -4015,3 +4015,38 @@ Note: these use the Step 100 supervised Nadler numbers (feature signs from label
 - `spectral_utils/data_loaders.py` — replace dead AMC23/AIME24 HF sources with verified parquet-backed alternatives; remove `trust_remote_code` attempts
 
 ---
+
+### Step 120 — Decision: rerun L-SML with pre-oriented classifiers (FEATURE_SIGNS + binarize_classifiers)
+
+**What**: Resolved the correct pipeline for the final L-SML numbers after a detailed discussion of how sign orientation interacts with the algorithm.
+
+**Key clarification**: `sml_unsupervised` (Step 106/107) resolves feature sign via Paper 2 assumption (iii) — it binarizes at median without orientation and lets the eigenvector sign be determined by majority vote. Step 110 derived `FEATURE_SIGNS` (offline consensus, per-feature direction from majority vote across 29 cells). These two things can be cleanly combined:
+1. Pre-orient each feature: `oriented = feature * FEATURE_SIGNS[feature]` (so higher oriented value = more likely correct)
+2. Binarize at median: above median → +1, below → -1 (`binarize_classifiers` already does this)
+3. Run `lsml_fuse` on the binary classifiers — algorithm unchanged, assumption (iii) now trivially satisfied
+
+This is valid within the paper's framework. The paper requires binary ±1 inputs; how you construct them (including pre-orientation from external knowledge) is a preprocessing step. Using consensus signs derived from cross-dataset analysis is unsupervised at test time.
+
+**Implementation**: `binarize_classifiers(feats_dict, FEATURE_SIGNS)` → `lsml_fuse(*binary.values())`. `binarize_classifiers` already exists in `fusion_utils.py` (added Step 105). No new code needed.
+
+**FEATURE_SIGNS** (from Step 110 consensus, also in Phase 13 Cell 2):
+```python
+FEATURE_SIGNS = {
+    'epr': -1, 'trace_length': 1, 'spectral_entropy': -1,
+    'low_band_power': -1, 'high_band_power': -1, 'hl_ratio': -1,
+    'dominant_freq': -1, 'spectral_centroid': -1,
+    'stft_max_high_power': -1, 'stft_spectral_entropy': -1,
+    'rpdi': -1, 'sw_var_peak': -1,
+    'pe_mean': -1, 'hurst_exponent': 1,
+    'cusum_max': -1, 'cusum_shift_idx': 1,
+}
+```
+Convention: +1 = higher feature value → more likely correct; -1 = higher value → hallucination.
+
+**Next action**: Build `Spectral_Analysis_Consolidated_Results_LSML_v2.ipynb` — CPU-only, re-runs oriented L-SML on all cached features from phases 1–11. Cached features are at `consolidated_results/math500_res.pkl`, `gsm8k_res.pkl`, `gpqa_res.pkl`, `rag_feats_all.pkl`, `qa_res.pkl` on Drive. Expected runtime ~15–30 min. Then rebuild HTML comparison tables (same-model, same-dataset, same-task only; no old supervised numbers).
+
+**Why**: `sml_unsupervised` (Step 107 numbers) used assumption (iii) without orientation. The oriented pipeline should give better and more consistent AUROC across cells, matching Stage 5 results from the diagnostics. These will be the definitive numbers for the comparison table sent to advisors.
+
+**Files changed**: None — decision and planning only.
+
+---

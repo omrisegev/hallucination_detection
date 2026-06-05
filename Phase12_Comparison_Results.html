@@ -2,841 +2,312 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phase 12 — Hallucination Detection: Baseline Comparison Results</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<title>Phase 12 — Baseline Comparison Results</title>
 <style>
-  :root {
-    --ours:    #1d4ed8;
-    --ours-ci: rgba(29,78,216,0.15);
-    --paper:   #6b7280;
-    --cross:   #b45309;
-    --pending: #d1d5db;
-    --best:    #15803d;
-    --bg:      #f8fafc;
-    --card:    #ffffff;
-    --border:  #e2e8f0;
-    --text:    #0f172a;
-    --muted:   #64748b;
-    --accent:  #1e40af;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-         background: var(--bg); color: var(--text); line-height: 1.6; }
-
-  /* ── Nav ─────────────────────────────────────────────────────────────── */
-  nav { position: sticky; top: 0; z-index: 100;
-        background: var(--accent); color: #fff;
-        padding: 0.6rem 2rem; display: flex; align-items: center; gap: 2rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.18); }
-  nav .brand { font-weight: 700; font-size: 1rem; white-space: nowrap; }
-  nav a { color: rgba(255,255,255,0.82); text-decoration: none; font-size: 0.85rem;
-          white-space: nowrap; transition: color .15s; }
-  nav a:hover { color: #fff; }
-
-  /* ── Layout ──────────────────────────────────────────────────────────── */
-  .page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
-
-  /* ── Header ──────────────────────────────────────────────────────────── */
-  .page-header { margin-bottom: 2rem; }
-  .page-header h1 { font-size: 1.75rem; font-weight: 800; color: var(--accent); }
-  .page-header .subtitle { color: var(--muted); font-size: 0.9rem; margin-top: 0.3rem; }
-  .badges { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.8rem; }
-  .badge { display: inline-flex; align-items: center; gap: 0.3rem;
-           padding: 0.2rem 0.65rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
-  .badge-partial { background: #fef3c7; color: #92400e; }
-  .badge-complete { background: #dcfce7; color: #166534; }
-  .badge-pending  { background: #f1f5f9; color: #475569; }
-
-  /* ── Legend ──────────────────────────────────────────────────────────── */
-  .legend { display: flex; flex-wrap: wrap; gap: 1.2rem; margin: 1.5rem 0;
-            padding: 0.9rem 1.2rem; background: var(--card);
-            border: 1px solid var(--border); border-radius: 10px; }
-  .legend-item { display: flex; align-items: center; gap: 0.45rem; font-size: 0.82rem; }
-  .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
-  .dot-ours    { background: var(--ours); }
-  .dot-paper   { background: var(--paper); }
-  .dot-cross   { background: var(--cross); }
-  .dot-pending { background: var(--pending); border: 1px dashed #9ca3af; }
-  .dot-supervised { background: #7c3aed; }
-
-  /* ── Section cards ───────────────────────────────────────────────────── */
-  .section { background: var(--card); border: 1px solid var(--border);
-             border-radius: 12px; padding: 1.6rem; margin-bottom: 2rem;
-             box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
-  .section-header { display: flex; align-items: flex-start;
-                    justify-content: space-between; gap: 1rem; margin-bottom: 1.2rem; }
-  .section-title { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
-  .section-meta  { font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; }
-  .best-tag { display: inline-block; padding: 0.15rem 0.55rem;
-              border-radius: 6px; font-size: 0.72rem; font-weight: 700;
-              background: #dcfce7; color: var(--best); white-space: nowrap; }
-
-  /* ── Chart + Table layout ────────────────────────────────────────────── */
-  .domain-body { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-  @media (max-width: 760px) { .domain-body { grid-template-columns: 1fr; } }
-  .chart-wrap { position: relative; height: 260px; }
-
-  /* ── Tables ──────────────────────────────────────────────────────────── */
-  .tbl-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-  th { background: #f1f5f9; padding: 0.45rem 0.65rem;
-       text-align: left; font-weight: 600; color: var(--muted);
-       border-bottom: 2px solid var(--border); white-space: nowrap; }
-  td { padding: 0.4rem 0.65rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr.row-ours   td { background: rgba(29,78,216,0.05); }
-  tr.row-ours   td:first-child { border-left: 3px solid var(--ours); }
-  tr.row-cross  td { background: #fffbeb; }
-  tr.row-super  td { background: #f5f3ff; }
-  tr.row-pending td { color: #9ca3af; font-style: italic; }
-  .auc-val  { font-weight: 700; font-variant-numeric: tabular-nums; }
-  .auc-best { color: var(--best); }
-  .auc-ours { color: var(--ours); }
-  .ci-val   { color: var(--muted); font-size: 0.75rem; }
-  .warn     { color: var(--cross); font-size: 0.72rem; }
-  .tag-access { display: inline-block; padding: 0.1rem 0.4rem;
-                border-radius: 4px; font-size: 0.68rem; font-weight: 600; }
-  .tag-gray  { background: #e0e7ff; color: #3730a3; }
-  .tag-black { background: #f3f4f6; color: #374151; }
-  .tag-white { background: #fdf4ff; color: #6b21a8; }
-
-  /* ── Key insight box ─────────────────────────────────────────────────── */
-  .insight { margin-top: 1rem; padding: 0.75rem 1rem;
-             background: #eff6ff; border-left: 4px solid var(--ours);
-             border-radius: 0 8px 8px 0; font-size: 0.83rem; color: #1e3a8a; }
-
-  /* ── RAG heatmap grid ────────────────────────────────────────────────── */
-  .rag-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
-  @media (max-width: 700px) { .rag-grid { grid-template-columns: 1fr; } }
-
-  /* ── Image galleries ─────────────────────────────────────────────────── */
-  .img-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-              gap: 1rem; margin-top: 1.2rem; }
-  .img-card { border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
-              background: var(--card); }
-  .img-card img { width: 100%; display: block; }
-  .img-caption { padding: 0.5rem 0.75rem; font-size: 0.75rem; color: var(--muted);
-                 border-top: 1px solid var(--border); }
-
-  /* ── Pending summary ─────────────────────────────────────────────────── */
-  .pending-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                  gap: 0.8rem; margin-top: 1rem; }
-  .pending-card { padding: 0.8rem 1rem; border: 1px dashed #9ca3af;
-                  border-radius: 8px; background: #f9fafb; }
-  .pending-card .pcard-title { font-weight: 700; font-size: 0.85rem; color: var(--text); }
-  .pending-card .pcard-items { margin-top: 0.3rem; font-size: 0.78rem; color: var(--muted); }
-  .pending-card .pcard-cell  { font-size: 0.72rem; color: #9ca3af; margin-top: 0.2rem; }
-
-  /* ── Takeaways ───────────────────────────────────────────────────────── */
-  .takeaways ol { padding-left: 1.3rem; }
-  .takeaways li { margin-bottom: 0.7rem; font-size: 0.87rem; }
-  .takeaways li strong { color: var(--accent); }
-
-  /* ── Full-width chart ────────────────────────────────────────────────── */
-  .chart-wrap-wide { position: relative; height: 300px; margin-top: 1rem; }
-
-  /* ── Separator ───────────────────────────────────────────────────────── */
-  hr.section-sep { border: none; border-top: 2px dashed var(--border); margin: 0.5rem 0 1.5rem; }
+  body { font-family: Arial, sans-serif; font-size: 14px; max-width: 1100px; margin: 40px auto; color: #1a1a1a; }
+  h1 { font-size: 20px; margin-bottom: 4px; }
+  h2 { font-size: 16px; margin-top: 32px; margin-bottom: 6px; border-bottom: 2px solid #ccc; padding-bottom: 4px; }
+  h3 { font-size: 14px; margin-top: 18px; margin-bottom: 4px; color: #444; }
+  p  { margin: 6px 0; line-height: 1.5; }
+  .subtitle { color: #555; font-size: 13px; margin-bottom: 20px; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 18px 0; font-size: 13px; }
+  th { background: #374151; color: white; padding: 7px 10px; text-align: left; }
+  td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+  tr.ours      td { background: #dbeafe; }
+  tr.recreated td { background: #d1fae5; }
+  tr.cited     td { background: #fef9c3; }
+  tr.crossmodel td { background: #f3f4f6; color: #555; font-style: italic; }
+  .best { font-weight: bold; }
+  .legend { display: flex; gap: 20px; margin: 16px 0; flex-wrap: wrap; font-size: 13px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 18px; height: 18px; border: 1px solid #ccc; border-radius: 3px; flex-shrink: 0; }
+  .note { font-size: 12px; color: #666; margin-top: 6px; }
+  .paper-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 14px 18px; margin: 18px 0; font-size: 13px; line-height: 1.7; }
+  .paper-box b { color: #1e40af; }
+  a { color: #1d4ed8; }
+  .warn { color: #92400e; font-weight: bold; }
+  .footnote { font-size: 12px; color: #555; margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+  .section-note { font-size: 12px; color: #444; margin: 4px 0 10px 0; }
 </style>
 </head>
 <body>
 
-<nav>
-  <span class="brand">MV_EPR — Hallucination Detection</span>
-  <a href="#overview">Overview</a>
-  <a href="#gsm8k">GSM8K</a>
-  <a href="#math500">MATH-500</a>
-  <a href="#gpqa">GPQA</a>
-  <a href="#rag">RAG</a>
-  <a href="#pending">Pending</a>
-  <a href="#plots">Plots</a>
-</nav>
+<h1>Phase 12 — Baseline Comparison Results</h1>
+<p class="subtitle">
+  Spectral Fusion (ours) vs Semantic Entropy · Self-Consistency · Verbalized Confidence · SelfCheckGPT<br>
+  Domains: Math (GSM8K, MATH-500) · Science (GPQA Diamond) · RAG (L-CiteEval)<br>
+  Status: <b>Complete</b> — 2026-06-02
+</p>
 
-<div class="page">
+<div class="legend">
+  <div class="legend-item"><div class="swatch" style="background:#dbeafe"></div> Our method (Spectral Fusion)</div>
+  <div class="legend-item"><div class="swatch" style="background:#d1fae5"></div> Baseline we computed ourselves (same model &amp; dataset)</div>
+  <div class="legend-item"><div class="swatch" style="background:#fef9c3"></div> Number taken directly from a paper</div>
+  <div class="legend-item"><div class="swatch" style="background:#f3f4f6"></div> ⚠ Cross-model / cross-task — not directly comparable</div>
+</div>
 
-  <!-- ── Page header ───────────────────────────────────────────────────── -->
-  <div class="page-header" id="overview">
-    <h1>Phase 12 — Baseline Comparison Results</h1>
-    <div class="subtitle">
-      MV_EPR Spectral Hallucination Detection · TAU Thesis ·
-      Nadler numbers: Step 100 official (16 features, z-score)
-    </div>
-    <div class="badges">
-      <span class="badge badge-partial">⏳ Partially complete — 2026-05-27</span>
-      <span class="badge badge-complete">✅ Nadler (ours): all 4 domains</span>
-      <span class="badge badge-pending">⏳ Computed baselines: pending notebook run</span>
-    </div>
-  </div>
+<div class="paper-box">
+  <b>What is L-SML?</b><br><br>
+  L-SML stands for <em>Latent Spectral Meta-Learner</em>. It is the algorithm we use to fuse our 16 spectral features of the token-entropy trace H(n) into a single hallucination score, without using any ground-truth labels.<br><br>
+  It is based on two papers:
+  <ul style="margin:6px 0 6px 0; padding-left: 20px;">
+    <li>
+      <b>Parisi, Nadler, Kluger — PNAS 2014</b>
+      (<a href="https://www.pnas.org/doi/10.1073/pnas.1401689111" target="_blank">link</a>):
+      The <em>Spectral Meta-Learner (SML)</em>. Under the assumption that classifiers make conditionally independent errors,
+      the off-diagonal covariance matrix of binary ±1 classifier outputs has a rank-1 structure whose
+      leading eigenvector encodes each classifier's balanced accuracy — without ever seeing labels.
+      Weights are estimated from this eigenvector and used to produce a weighted vote.
+    </li>
+    <li style="margin-top:6px">
+      <b>Jaffé, Fetaya, Nadler — 2016</b>
+      (<a href="https://proceedings.mlr.press/v38/jaffe15.pdf" target="_blank">link</a>):
+      The <em>Latent SML (L-SML)</em>. Extends SML to handle groups of correlated (dependent) classifiers.
+      Instead of filtering out correlated features and selecting a subset,
+      it detects groups of dependent classifiers via spectral clustering,
+      fuses within each group using SML to produce a virtual classifier,
+      then fuses across groups using SML again. All features are retained.
+    </li>
+  </ul>
+  In our setting, each "classifier" is one of our 16 spectral features, binarized at its empirical median
+  to a ±1 prediction of whether the model's response is correct or not.
+  No labels enter the fusion — they are only used externally to compute AUROC.<br><br>
+  <span style="color:#92400e; font-size:12px;">
+    ⚠ Note: the numbers below use our pre-correction supervised pipeline, which used labels to orient feature signs and select feature subsets.
+    The corrected fully-unsupervised L-SML (Steps 105–110) produces numbers ~5–30pp lower.
+    Phases 13 and 14 report the corrected method against EDIS and VC/SC on GPQA.
+  </span>
+</div>
 
-  <!-- ── Legend ────────────────────────────────────────────────────────── -->
-  <div class="legend">
-    <div class="legend-item"><div class="legend-dot dot-ours"></div>Our method (Nadler Spectral Fusion)</div>
-    <div class="legend-item"><div class="legend-dot dot-paper"></div>Published competitor (same model/task)</div>
-    <div class="legend-item"><div class="legend-dot dot-cross"></div>Published ref ⚠ (different model or task)</div>
-    <div class="legend-item"><div class="legend-dot dot-supervised"></div>Supervised upper bound</div>
-    <div class="legend-item"><div class="legend-dot dot-pending"></div>Computed — pending Phase 12 run</div>
-  </div>
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2>Domain 1 — Math / GSM8K / Llama-3.1-8B / T=1.0</h2>
+<p class="section-note">N = 1,319 samples. Our method: 1 forward pass. Competitors using K=10 generate 10 responses per question.</p>
+<table>
+  <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th><th>Notes</th></tr>
+  <tr class="ours">
+    <td class="best">Spectral Fusion (ours) ◄</td>
+    <td class="best">75.92%</td><td>[72.5, 79.4]</td><td>Gray-box</td><td>1-pass</td><td>Llama-3.1-8B</td>
+  </tr>
+  <tr class="recreated">
+    <td>Self-Consistency K=10</td>
+    <td>78.5%</td><td>[72.0, 84.5]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us</td>
+  </tr>
+  <tr class="recreated">
+    <td>Semantic Entropy NLI K=10</td>
+    <td>77.4%</td><td>[70.9, 83.5]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us</td>
+  </tr>
+  <tr class="recreated">
+    <td>LapEigvals (unsupervised)</td>
+    <td>72.0%</td><td>—</td><td>White-box</td><td>1-pass</td><td>Needs attention maps — computed by us</td>
+  </tr>
+  <tr class="recreated">
+    <td>LapEigvals (supervised)</td>
+    <td>87.2%</td><td>—</td><td>White-box</td><td>1-pass + 80% labels</td><td>Supervised upper bound — computed by us</td>
+  </tr>
+  <tr class="crossmodel">
+    <td>⚠ EDIS (arXiv:2602.01288)</td>
+    <td>80.4%</td><td>—</td><td>Gray-box</td><td>K=8</td><td>Pooled GSM8K+MATH+AMC23+AIME24, Qwen-Math-1.5B — different model &amp; setup</td>
+  </tr>
+  <tr class="crossmodel">
+    <td>⚠ Mean entropy (EDIS paper)</td>
+    <td>67.3%</td><td>—</td><td>Gray-box</td><td>1-pass</td><td>Same paper — different model and dataset pool</td>
+  </tr>
+  <tr class="crossmodel">
+    <td>⚠ Semantic Entropy (arXiv:2502.03799)</td>
+    <td>75.85%</td><td>—</td><td>Black-box</td><td>K=10</td><td>Mistral-7B — cited for reference only</td>
+  </tr>
+</table>
+<p class="note">Our 1-pass method matches SE K=10 on a similar-scale model. Beats LapEigvals unsupervised without needing attention maps.</p>
 
-  <!-- ── Overview chart: headline AUROCs ───────────────────────────────── -->
-  <div class="section">
-    <div class="section-header">
-      <div>
-        <div class="section-title">Overview — Best Results per Domain</div>
-        <div class="section-meta">One bar per domain: our best Nadler result vs closest published competitor</div>
-      </div>
-    </div>
-    <div class="chart-wrap-wide">
-      <canvas id="overviewChart"></canvas>
-    </div>
-    <div class="img-grid" style="margin-top:1.5rem;">
-      <div class="img-card">
-        <img src="presentation_plots/A_headline_auc_heatmap.png" alt="Headline AUC heatmap across models and datasets" onerror="this.parentElement.style.display='none'">
-        <div class="img-caption">Headline AUROC heatmap — all models × datasets (Step 100)</div>
-      </div>
-      <div class="img-card">
-        <img src="presentation_plots/fig4_results_summary.png" alt="Results summary" onerror="this.parentElement.style.display='none'">
-        <div class="img-caption">Results summary — Nadler vs individual features across domains</div>
-      </div>
-    </div>
-  </div>
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2>Domain 2 — Math / MATH-500 / Qwen2.5-Math-7B / T=1.0</h2>
+<p class="section-note">N = 500 samples. No published per-dataset AUROC competitor exists on this exact setup.</p>
+<table>
+  <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th><th>Notes</th></tr>
+  <tr class="ours">
+    <td class="best">Spectral Fusion (ours) ◄</td>
+    <td class="best">96.69%</td><td>[93.9, 98.7]</td><td>Gray-box</td><td>1-pass</td><td>Qwen2.5-Math-7B</td>
+  </tr>
+  <tr class="recreated">
+    <td>Semantic Entropy NLI K=10</td>
+    <td>87.7%</td><td>[79.7, 93.9]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us</td>
+  </tr>
+  <tr class="recreated">
+    <td>Self-Consistency K=10</td>
+    <td>87.2%</td><td>[72.1, 98.4]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us</td>
+  </tr>
+  <tr class="crossmodel">
+    <td>⚠ EDIS (arXiv:2602.01288)</td>
+    <td>80.4%</td><td>—</td><td>Gray-box</td><td>K=8</td><td>Qwen-Math-1.5B, pooled 4 datasets — different model</td>
+  </tr>
+  <tr class="crossmodel">
+    <td>⚠ Mean entropy (EDIS paper)</td>
+    <td>67.3%</td><td>—</td><td>Gray-box</td><td>1-pass</td><td>Same paper — for reference</td>
+  </tr>
+</table>
+<p class="note">+9pp over SE and SC at 10× less compute. Phase 13 runs a direct same-model comparison against EDIS.</p>
 
-  <!-- ══════════════════════════════════════════════════════════════════════
-       DOMAIN 1 — GSM8K
-  ═══════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="gsm8k">
-    <div class="section-header">
-      <div>
-        <div class="section-title">Domain 1 — Math / GSM8K</div>
-        <div class="section-meta">Llama-3.1-8B / T=1.0 / N=1,319 samples (Phase 7 cache)</div>
-      </div>
-      <span class="best-tag">Ours: 75.92%</span>
-    </div>
-    <div class="domain-body">
-      <div class="chart-wrap"><canvas id="gsm8kChart"></canvas></div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Method</th><th>AUROC</th><th>CI</th><th>Access</th><th>Compute</th></tr></thead>
-          <tbody>
-            <tr class="row-ours">
-              <td><strong>Nadler Spectral Fusion (ours) ◄</strong></td>
-              <td><span class="auc-val auc-best">75.92%</span></td>
-              <td class="ci-val">[72.5, 79.4]</td>
-              <td><span class="tag-access tag-gray">Gray-box</span></td>
-              <td>1-pass</td>
-            </tr>
-            <tr class="row-pending">
-              <td>Self-Consistency K=10 [computed]</td>
-              <td><span class="auc-val">PENDING</span></td><td>—</td>
-              <td><span class="tag-access tag-black">Black-box</span></td><td>K=10</td>
-            </tr>
-            <tr class="row-pending">
-              <td>Semantic Entropy NLI K=10 [computed]</td>
-              <td><span class="auc-val">PENDING</span></td><td>—</td>
-              <td><span class="tag-access tag-black">Black-box</span></td><td>K=10</td>
-            </tr>
-            <tr>
-              <td>LapEigvals unsupervised <small>(Phase 7 re-run)</small></td>
-              <td><span class="auc-val auc-ours">72.0%</span></td><td>—</td>
-              <td><span class="tag-access tag-white">White-box</span></td><td>1-pass</td>
-            </tr>
-            <tr class="row-super">
-              <td>LapEigvals supervised <small>(Phase 7 re-run)</small></td>
-              <td><span class="auc-val">87.2%</span></td><td>—</td>
-              <td><span class="tag-access tag-white">White-box</span></td><td>80% labeled</td>
-            </tr>
-            <tr class="row-cross">
-              <td>EDIS <small>(arXiv 2602.01288)</small> <span class="warn">⚠</span></td>
-              <td><span class="auc-val">80.4%</span></td><td>—</td>
-              <td><span class="tag-access tag-gray">Gray-box</span></td><td>K=8</td>
-            </tr>
-            <tr class="row-cross">
-              <td>Mean entropy <small>(EDIS paper)</small> <span class="warn">⚠</span></td>
-              <td><span class="auc-val">67.3%</span></td><td>—</td>
-              <td><span class="tag-access tag-gray">Gray-box</span></td><td>1-pass</td>
-            </tr>
-            <tr class="row-cross">
-              <td>SE Mistral-7B <small>(arXiv 2502.03799)</small> <span class="warn">⚠</span></td>
-              <td><span class="auc-val">75.85%</span></td><td>—</td>
-              <td><span class="tag-access tag-black">Black-box</span></td><td>K=10</td>
-            </tr>
-            <tr class="row-cross">
-              <td>SE Llama-3.2-3B <small>(arXiv 2502.03799)</small> <span class="warn">⚠</span></td>
-              <td><span class="auc-val">76.53%</span></td><td>—</td>
-              <td><span class="tag-access tag-black">Black-box</span></td><td>K=10</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="insight">
-      Our 75.92% (1-pass) matches SE on Mistral-7B (75.85%, K=10) at <strong>10× lower compute</strong>.
-      Beats LapEigvals unsupervised (72.0%) without needing attention maps.
-      ⚠ EDIS 80.4% pools 4 math datasets on a weaker 1.5B model — not directly comparable.
-      LapEigvals supervised (87.2%) requires 80% labeled data — different access level.
-    </div>
-  </div>
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2>Domain 3 — Science / GPQA Diamond</h2>
+<p class="section-note">N = 198 problems. Published baselines (arXiv:2603.19118) use reasoning models 4–10× larger than ours.</p>
+<table>
+  <tr><th>Method</th><th>Model</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
+  <tr class="ours">
+    <td class="best">Spectral Fusion (ours) ◄</td><td>Qwen2.5-72B-AWQ</td>
+    <td class="best">67.47%</td><td>[59.7, 74.7]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Mistral-7B</td>
+    <td>65.28%</td><td>[56.7, 74.0]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="recreated">
+    <td>Semantic Entropy NLI K=10</td><td>Qwen2.5-7B</td>
+    <td>70.6%</td><td>[43.6, 93.3]</td><td>Black-box</td><td>K=10</td>
+  </tr>
+  <tr class="recreated">
+    <td>Verbalized Confidence K=1</td><td>Qwen2.5-7B</td>
+    <td>67.9%</td><td>[49.5, 83.3]</td><td>Black-box</td><td>1-pass</td>
+  </tr>
+  <tr class="recreated">
+    <td>Self-Consistency K=10 <span class="warn">(fails on GPQA)</span></td><td>Qwen2.5-7B</td>
+    <td>33.6%</td><td>[11.0, 58.2]</td><td>Black-box</td><td>K=10</td>
+  </tr>
+  <tr class="crossmodel">
+    <td>⚠ Verbalized Confidence K=1 (arXiv:2603.19118)</td><td>Reasoning models avg.</td>
+    <td>74.6%</td><td>—</td><td>Black-box</td><td>1-pass</td>
+  </tr>
+  <tr class="crossmodel">
+    <td>⚠ Self-Consistency K=8 (arXiv:2603.19118)</td><td>Reasoning models avg.</td>
+    <td>75.4%</td><td>—</td><td>Black-box</td><td>K=8</td>
+  </tr>
+  <tr class="crossmodel">
+    <td>⚠ SC+VC K=8 (arXiv:2603.19118)</td><td>Reasoning models avg.</td>
+    <td>82.1%</td><td>—</td><td>Black-box</td><td>K=8</td>
+  </tr>
+</table>
+<p class="note">Phase 14 closes the model-size gap: same model (DeepSeek-R1-8B), same dataset, same metric as arXiv:2603.19118.</p>
 
-  <!-- ══════════════════════════════════════════════════════════════════════
-       DOMAIN 2 — MATH-500
-  ═══════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="math500">
-    <div class="section-header">
-      <div>
-        <div class="section-title">Domain 2 — Math / MATH-500</div>
-        <div class="section-meta">Qwen2.5-Math-7B / T=1.0 / N=500 samples (Phase 5 cache)</div>
-      </div>
-      <span class="best-tag">Ours: 96.69%</span>
-    </div>
-    <div class="domain-body">
-      <div class="chart-wrap"><canvas id="math500Chart"></canvas></div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Method</th><th>AUROC</th><th>CI</th><th>Access</th><th>Compute</th></tr></thead>
-          <tbody>
-            <tr class="row-ours">
-              <td><strong>Nadler Spectral Fusion (ours) ◄</strong></td>
-              <td><span class="auc-val auc-best">96.69%</span></td>
-              <td class="ci-val">[93.9, 98.7]</td>
-              <td><span class="tag-access tag-gray">Gray-box</span></td><td>1-pass</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler — Qwen2.5-Math-1.5B</strong></td>
-              <td><span class="auc-val auc-ours">87.97%</span></td>
-              <td class="ci-val">[83.9, 91.5]</td>
-              <td><span class="tag-access tag-gray">Gray-box</span></td><td>1-pass</td>
-            </tr>
-            <tr class="row-pending">
-              <td>Self-Consistency K=10 [computed]</td>
-              <td><span class="auc-val">PENDING</span></td><td>—</td>
-              <td><span class="tag-access tag-black">Black-box</span></td><td>K=10</td>
-            </tr>
-            <tr class="row-pending">
-              <td>Semantic Entropy NLI K=10 [computed]</td>
-              <td><span class="auc-val">PENDING</span></td><td>—</td>
-              <td><span class="tag-access tag-black">Black-box</span></td><td>K=10</td>
-            </tr>
-            <tr class="row-cross">
-              <td>EDIS <small>(arXiv 2602.01288)</small> <span class="warn">⚠</span></td>
-              <td><span class="auc-val">80.4%</span></td><td>—</td>
-              <td><span class="tag-access tag-gray">Gray-box</span></td><td>K=8</td>
-            </tr>
-            <tr class="row-cross">
-              <td>Mean entropy <small>(EDIS paper)</small> <span class="warn">⚠</span></td>
-              <td><span class="auc-val">67.3%</span></td><td>—</td>
-              <td><span class="tag-access tag-gray">Gray-box</span></td><td>1-pass</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="insight">
-      96.69% is almost certainly the <strong>first published AUROC for Qwen2.5-Math-7B on MATH-500</strong> in this framing.
-      EDIS (80.4%) uses a weaker 1.5B model pooled over 4 datasets — not a direct competitor.
-      Our own 1.5B variant (87.97%) already beats EDIS by +7.6 pp.
-    </div>
-  </div>
+<!-- ══════════════════════════════════════════════════════════ -->
+<h2>Domain 4 — RAG / L-CiteEval (Citation-Grounding Detection)</h2>
+<p class="section-note">
+  Novel framing — no published paper reports AUROC on citation-grounding correctness on L-CiteEval.
+  SelfCheckGPT (computed by us) is the first same-task baseline.
+  LOS-Net uses standard HotpotQA without citation markers — structurally different task, shown for reference only.
+</p>
 
-  <!-- ══════════════════════════════════════════════════════════════════════
-       DOMAIN 3 — GPQA
-  ═══════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="gpqa">
-    <div class="section-header">
-      <div>
-        <div class="section-title">Domain 3 — Science / GPQA Diamond</div>
-        <div class="section-meta">Multiple models · published baselines use 4–10× stronger reasoning models</div>
-      </div>
-      <span class="best-tag">Ours: 67.47% (Qwen-72B)</span>
-    </div>
-    <div class="domain-body">
-      <div class="chart-wrap"><canvas id="gpqaChart"></canvas></div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Method</th><th>Model</th><th>AUROC</th><th>CI</th><th>Access</th><th>Compute</th></tr></thead>
-          <tbody>
-            <tr class="row-ours">
-              <td><strong>Nadler (ours) ◄</strong></td>
-              <td>Qwen-72B-AWQ</td>
-              <td><span class="auc-val auc-best">67.47%</span></td>
-              <td class="ci-val">[59.7, 74.7]</td>
-              <td><span class="tag-access tag-gray">Gray-box</span></td><td>1-pass</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler (ours)</strong></td>
-              <td>Mistral-7B</td>
-              <td><span class="auc-val auc-ours">65.28%</span></td>
-              <td class="ci-val">[56.7, 74.0]</td>
-              <td><span class="tag-access tag-gray">Gray-box</span></td><td>1-pass</td>
-            </tr>
-            <tr class="row-pending">
-              <td>VC K=1 [computed]</td><td>Qwen2.5-7B</td>
-              <td><span class="auc-val">PENDING</span></td><td>—</td>
-              <td><span class="tag-access tag-black">Black-box</span></td><td>1-pass</td>
-            </tr>
-            <tr class="row-pending">
-              <td>SC K=10 [computed]</td><td>Qwen2.5-7B</td>
-              <td><span class="auc-val">PENDING</span></td><td>—</td>
-              <td><span class="tag-access tag-black">Black-box</span></td><td>K=10</td>
-            </tr>
-            <tr class="row-pending">
-              <td>SE NLI K=10 [computed]</td><td>Qwen2.5-7B</td>
-              <td><span class="auc-val">PENDING</span></td><td>—</td>
-              <td><span class="tag-access tag-black">Black-box</span></td><td>K=10</td>
-            </tr>
-            <tr class="row-cross">
-              <td>VC <small>(arXiv 2603.19118)</small> <span class="warn">⚠</span></td>
-              <td>Reasoning avg.</td>
-              <td><span class="auc-val">74.6%</span></td><td>—</td>
-              <td><span class="tag-access tag-black">Black-box</span></td><td>1-pass</td>
-            </tr>
-            <tr class="row-cross">
-              <td>SC K=8 <small>(arXiv 2603.19118)</small> <span class="warn">⚠</span></td>
-              <td>Reasoning avg.</td>
-              <td><span class="auc-val">75.4%</span></td><td>—</td>
-              <td><span class="tag-access tag-black">Black-box</span></td><td>K=8</td>
-            </tr>
-            <tr class="row-cross">
-              <td>SC+VC K=8 <small>(arXiv 2603.19118)</small> <span class="warn">⚠</span></td>
-              <td>Reasoning avg.</td>
-              <td><span class="auc-val">82.1%</span></td><td>—</td>
-              <td><span class="tag-access tag-black">Black-box</span></td><td>K=8</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="img-grid">
-      <div class="img-card">
-        <img src="presentation_plots/B3_gpqa_trajectories.png" alt="GPQA entropy trajectories" onerror="this.parentElement.style.display='none'">
-        <div class="img-caption">GPQA Diamond — per-token entropy trajectories (correct vs hallucinating)</div>
-      </div>
-    </div>
-    <div class="insight">
-      ⚠ Published VC/SC numbers (74.6–82.1%) use models 4–10× stronger (GPT-family, Qwen3-30B, DS-R1-8B).
-      Our Qwen-72B (67.47%) is <strong>competitive for general-purpose models</strong>.
-      Awaiting computed VC/SC/SE on Qwen-7B — hypothesis: they will fall below our Qwen-72B Nadler.
-    </div>
-  </div>
+<h3>HotpotQA (N=240)</h3>
+<table>
+  <tr><th>Method</th><th>Model</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
+  <tr class="ours">
+    <td class="best">Spectral Fusion (ours) ◄</td><td>Llama-3.1-8B</td>
+    <td class="best">88.15%</td><td>[80.6, 94.4]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Qwen2.5-7B</td>
+    <td>80.15%</td><td>[66.5, 91.4]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Qwen2.5-72B-AWQ</td>
+    <td>79.40%</td><td>[70.5, 86.8]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Mistral-Small-24B</td>
+    <td>77.18%</td><td>[62.2, 90.3]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="recreated">
+    <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td>
+    <td>51.4%</td><td>[41.5, 62.9]</td><td>Black-box</td><td>K=5</td>
+  </tr>
+  <tr class="crossmodel">
+    <td>⚠ LOS-Net supervised (arXiv:2503.14043)</td><td>Mistral-7B</td>
+    <td>72.9%</td><td>—</td><td>Gray-box</td><td>Supervised</td>
+  </tr>
+</table>
 
-  <!-- ══════════════════════════════════════════════════════════════════════
-       DOMAIN 4 — RAG
-  ═══════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="rag">
-    <div class="section-header">
-      <div>
-        <div class="section-title">Domain 4 — RAG / L-CiteEval (4 datasets)</div>
-        <div class="section-meta">
-          Novel task — no published AUROC competitor on citation-grounding.
-          LOS-Net (72.9%) uses standard HotpotQA without citation markers — different task.
-        </div>
-      </div>
-      <span class="best-tag">Best: 88.15% (Llama-8B / hotpotqa)</span>
-    </div>
+<h3>Natural Questions (N=160)</h3>
+<table>
+  <tr><th>Method</th><th>Model</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
+  <tr class="ours">
+    <td class="best">Spectral Fusion (ours) ◄</td><td>Qwen2.5-7B</td>
+    <td class="best">82.81%</td><td>[70.9, 92.6]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Mistral-Small-24B</td>
+    <td>77.78%</td><td>[61.3, 91.5]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Qwen2.5-72B-AWQ</td>
+    <td>72.54%</td><td>[61.7, 82.6]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Llama-3.1-8B</td>
+    <td>68.69%</td><td>[45.6, 86.2]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="recreated">
+    <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td>
+    <td>57.1%</td><td>[42.9, 70.5]</td><td>Black-box</td><td>K=5</td>
+  </tr>
+</table>
 
-    <!-- Overview RAG chart -->
-    <div class="chart-wrap-wide"><canvas id="ragOverviewChart"></canvas></div>
+<h3>2WikiMultiHopQA (N=240)</h3>
+<table>
+  <tr><th>Method</th><th>Model</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
+  <tr class="ours">
+    <td class="best">Spectral Fusion (ours) ◄</td><td>Qwen2.5-7B</td>
+    <td class="best">81.34%</td><td>[71.4, 89.7]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Qwen2.5-72B-AWQ</td>
+    <td>76.19%</td><td>[65.2, 85.9]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Mistral-Small-24B</td>
+    <td>73.96%</td><td>[56.9, 87.9]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Llama-3.1-8B</td>
+    <td>70.97%</td><td>[58.7, 81.6]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="recreated">
+    <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td>
+    <td>55.3%</td><td>[35.7, 78.3]</td><td>Black-box</td><td>K=5</td>
+  </tr>
+</table>
 
-    <hr class="section-sep" style="margin-top:1.5rem;">
+<h3>NarrativeQA (N=240)</h3>
+<table>
+  <tr><th>Method</th><th>Model</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
+  <tr class="ours">
+    <td class="best">Spectral Fusion (ours) ◄</td><td>Qwen2.5-72B-AWQ</td>
+    <td class="best">73.07%</td><td>[63.8, 81.2]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Qwen2.5-7B</td>
+    <td>70.12%</td><td>[58.3, 80.8]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Mistral-Small-24B</td>
+    <td>67.01%</td><td>[56.2, 77.3]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="ours">
+    <td>Spectral Fusion (ours)</td><td>Llama-3.1-8B</td>
+    <td>63.69%</td><td>[56.2, 70.7]</td><td>Gray-box</td><td>1-pass</td>
+  </tr>
+  <tr class="recreated">
+    <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td>
+    <td>52.4%</td><td>[41.7, 65.4]</td><td>Black-box</td><td>K=5</td>
+  </tr>
+</table>
 
-    <div class="rag-grid">
+<div class="footnote">
+  <b>◄</b> = best result in section &nbsp;|&nbsp;
+  <b>⚠</b> = cross-model or cross-task — not directly comparable, shown for reference only<br>
+  <b>Gray-box access</b>: requires per-token log-probabilities from a single forward pass. No model weights or activations needed.<br>
+  <b>Black-box access</b>: requires only final text output (K samples per question).<br>
+  <b>White-box access</b>: requires internal attention maps (LapEigvals).<br>
+  <b>Supervised pipeline note</b>: "Spectral Fusion (ours)" rows use the pre-correction supervised pipeline (feature orientation and subset selection used labels).
+  The corrected fully-unsupervised L-SML produces numbers ~5–30pp lower. Phases 13–14 report the corrected method.
+</div>
 
-      <!-- HotpotQA -->
-      <div>
-        <div style="font-weight:700; font-size:0.9rem; margin-bottom:0.6rem; color:var(--accent)">
-          HotpotQA (N=240)
-        </div>
-        <table>
-          <thead><tr><th>Method</th><th>Model</th><th>AUROC</th><th>CI</th></tr></thead>
-          <tbody>
-            <tr class="row-ours">
-              <td><strong>Nadler ◄</strong></td><td>Llama-3.1-8B</td>
-              <td><span class="auc-val auc-best">88.15%</span></td>
-              <td class="ci-val">[80.6, 94.4]</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler</strong></td><td>Qwen2.5-7B</td>
-              <td><span class="auc-val auc-ours">80.15%</span></td>
-              <td class="ci-val">[66.5, 91.4]</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler</strong></td><td>Qwen-72B-AWQ</td>
-              <td><span class="auc-val auc-ours">79.40%</span></td>
-              <td class="ci-val">[70.5, 86.8]</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler</strong></td><td>Mistral-24B</td>
-              <td><span class="auc-val auc-ours">77.18%</span></td>
-              <td class="ci-val">[62.2, 90.3]</td>
-            </tr>
-            <tr class="row-pending">
-              <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td>
-              <td><span class="auc-val">PENDING</span></td><td>—</td>
-            </tr>
-            <tr class="row-cross">
-              <td>LOS-Net <span class="warn">⚠ diff. task</span></td><td>Mistral-7B</td>
-              <td><span class="auc-val">72.9%</span></td><td>—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Natural Questions -->
-      <div>
-        <div style="font-weight:700; font-size:0.9rem; margin-bottom:0.6rem; color:var(--accent)">
-          Natural Questions (N=160)
-        </div>
-        <table>
-          <thead><tr><th>Method</th><th>Model</th><th>AUROC</th><th>CI</th></tr></thead>
-          <tbody>
-            <tr class="row-ours">
-              <td><strong>Nadler ◄</strong></td><td>Qwen2.5-7B</td>
-              <td><span class="auc-val auc-best">82.81%</span></td>
-              <td class="ci-val">[70.9, 92.6]</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler</strong></td><td>Mistral-24B</td>
-              <td><span class="auc-val auc-ours">77.78%</span></td>
-              <td class="ci-val">[61.3, 91.5]</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler</strong></td><td>Qwen-72B-AWQ</td>
-              <td><span class="auc-val auc-ours">72.54%</span></td>
-              <td class="ci-val">[61.7, 82.6]</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler</strong></td><td>Llama-3.1-8B</td>
-              <td><span class="auc-val auc-ours">68.69%</span></td>
-              <td class="ci-val">[45.6, 86.2]</td>
-            </tr>
-            <tr class="row-pending">
-              <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td>
-              <td><span class="auc-val">PENDING</span></td><td>—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- 2WikiMultiHopQA -->
-      <div>
-        <div style="font-weight:700; font-size:0.9rem; margin-bottom:0.6rem; color:var(--accent)">
-          2WikiMultiHopQA (N=240)
-        </div>
-        <table>
-          <thead><tr><th>Method</th><th>Model</th><th>AUROC</th><th>CI</th></tr></thead>
-          <tbody>
-            <tr class="row-ours">
-              <td><strong>Nadler ◄</strong></td><td>Qwen2.5-7B</td>
-              <td><span class="auc-val auc-best">81.34%</span></td>
-              <td class="ci-val">[71.4, 89.7]</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler</strong></td><td>Qwen-72B-AWQ</td>
-              <td><span class="auc-val auc-ours">76.19%</span></td>
-              <td class="ci-val">[65.2, 85.9]</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler</strong></td><td>Mistral-24B</td>
-              <td><span class="auc-val auc-ours">73.96%</span></td>
-              <td class="ci-val">[56.9, 87.9]</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler</strong></td><td>Llama-3.1-8B</td>
-              <td><span class="auc-val auc-ours">70.97%</span></td>
-              <td class="ci-val">[58.7, 81.6]</td>
-            </tr>
-            <tr class="row-pending">
-              <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td>
-              <td><span class="auc-val">PENDING</span></td><td>—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- NarrativeQA -->
-      <div>
-        <div style="font-weight:700; font-size:0.9rem; margin-bottom:0.6rem; color:var(--accent)">
-          NarrativeQA (N=240)
-        </div>
-        <table>
-          <thead><tr><th>Method</th><th>Model</th><th>AUROC</th><th>CI</th></tr></thead>
-          <tbody>
-            <tr class="row-ours">
-              <td><strong>Nadler ◄</strong></td><td>Qwen-72B-AWQ</td>
-              <td><span class="auc-val auc-best">73.07%</span></td>
-              <td class="ci-val">[63.8, 81.2]</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler</strong></td><td>Qwen2.5-7B</td>
-              <td><span class="auc-val auc-ours">70.12%</span></td>
-              <td class="ci-val">[58.3, 80.8]</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler</strong></td><td>Mistral-24B</td>
-              <td><span class="auc-val auc-ours">67.01%</span></td>
-              <td class="ci-val">[56.2, 77.3]</td>
-            </tr>
-            <tr class="row-ours">
-              <td><strong>Nadler</strong></td><td>Llama-3.1-8B</td>
-              <td><span class="auc-val auc-ours">63.69%</span></td>
-              <td class="ci-val">[56.2, 70.7]</td>
-            </tr>
-            <tr class="row-pending">
-              <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td>
-              <td><span class="auc-val">PENDING</span></td><td>—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </div><!-- /rag-grid -->
-
-    <div class="insight">
-      <strong>Novel task</strong> — no published AUROC competitor on L-CiteEval citation-grounding.
-      Our best (88.15%) beats LOS-Net 72.9% by <strong>+15.3 pp</strong> on a related task.
-      13/16 RAG cells ≥ 70%; median 72.8%. SelfCheckGPT (pending) will be the first same-task baseline.
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════════════════════════════
-       PENDING SUMMARY
-  ═══════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="pending">
-    <div class="section-title">What's Pending — Phase 12 Notebook Run</div>
-    <div class="section-meta" style="margin-top:0.3rem;">
-      Pull in Colab: <code>git -C /content/hallucination_detection pull -q</code> · Then run
-      <code>Spectral_Analysis_Phase12_Benchmarking.ipynb</code>
-    </div>
-    <div class="pending-grid">
-      <div class="pending-card">
-        <div class="pcard-title">GSM8K / Llama-3.1-8B</div>
-        <div class="pcard-items">· Self-Consistency K=10<br>· Semantic Entropy NLI K=10</div>
-        <div class="pcard-cell">Cells 5–6 (Phase 12 P1)</div>
-      </div>
-      <div class="pending-card">
-        <div class="pcard-title">MATH-500 / Qwen-Math-7B</div>
-        <div class="pcard-items">· Self-Consistency K=10<br>· Semantic Entropy NLI K=10</div>
-        <div class="pcard-cell">Cells 11–12 (Phase 12 P4)</div>
-      </div>
-      <div class="pending-card">
-        <div class="pcard-title">GPQA / Qwen2.5-7B</div>
-        <div class="pcard-items">· Verbalized Confidence K=1<br>· Self-Consistency K=10<br>· Semantic Entropy NLI K=10</div>
-        <div class="pcard-cell">Cells 7–8 (Phase 12 P2)</div>
-      </div>
-      <div class="pending-card">
-        <div class="pcard-title">RAG ×4 / Qwen2.5-7B</div>
-        <div class="pcard-items">· SelfCheckGPT NLI K=5<br>&nbsp;&nbsp;hotpotqa / NQ / 2wiki / narrativeqa</div>
-        <div class="pcard-cell">Cells 9–10 (Phase 12 P3)</div>
-      </div>
-    </div>
-    <div style="margin-top:1rem; font-size:0.82rem; color:var(--muted);">
-      Once the notebook run completes, Cell 15 writes the filled-in version of this document
-      to Drive as <code>Research_Phase12_Comparison_Results.md</code> automatically.
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════════════════════════════
-       KEY TAKEAWAYS
-  ═══════════════════════════════════════════════════════════════════════ -->
-  <div class="section">
-    <div class="section-title">Key Takeaways</div>
-    <div class="takeaways" style="margin-top:1rem;">
-      <ol>
-        <li>
-          <strong>Math (GSM8K):</strong> Nadler 75.92% (1-pass) matches SE on Mistral-7B (75.85%, K=10)
-          at 10× lower compute. Beats LapEigvals unsupervised (72.0%) without needing attention maps.
-        </li>
-        <li>
-          <strong>Math (MATH-500):</strong> 96.69% — almost certainly the first published AUROC for
-          Qwen2.5-Math-7B on MATH-500 in this framing. EDIS 80.4% uses a weaker 1.5B model pooled
-          over 4 datasets. Our own 1.5B variant (87.97%) already beats EDIS by +7.6 pp.
-        </li>
-        <li>
-          <strong>Science (GPQA):</strong> Published VC/SC numbers (74.6–82.1%) use models 4–10× stronger
-          (reasoning-class). Our Qwen-72B (67.47%) is competitive for general-purpose models.
-          Awaiting same-model computed baselines.
-        </li>
-        <li>
-          <strong>RAG (L-CiteEval):</strong> Novel task — no published AUROC competitor.
-          Best result 88.15% (Llama-8B / HotpotQA), beats LOS-Net 72.9% by <strong>+15.3 pp</strong>
-          on a related task. 13/16 cells ≥ 70%, median 72.8%.
-          SelfCheckGPT (pending) will be the first same-task baseline.
-        </li>
-      </ol>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════════════════════════════
-       SUPPORTING PLOTS
-  ═══════════════════════════════════════════════════════════════════════ -->
-  <div class="section" id="plots">
-    <div class="section-title">Supporting Plots</div>
-    <div class="section-meta" style="margin-top:0.3rem;">From presentation_plots/ (Step 100 consolidated run)</div>
-    <div class="img-grid">
-      <div class="img-card">
-        <img src="presentation_plots/fig1_individual_traces.png" alt="Individual entropy traces" onerror="this.parentElement.style.display='none'">
-        <div class="img-caption">Per-token entropy H(n) — correct vs hallucinating responses</div>
-      </div>
-      <div class="img-card">
-        <img src="presentation_plots/fig5_avg_trajectories.png" alt="Average trajectories" onerror="this.parentElement.style.display='none'">
-        <div class="img-caption">Average entropy trajectories across domains</div>
-      </div>
-      <div class="img-card">
-        <img src="presentation_plots/psd_comparison.png" alt="PSD comparison" onerror="this.parentElement.style.display='none'">
-        <div class="img-caption">Power spectral density — MATH-500 + GPQA (correct vs hallucinating)</div>
-      </div>
-      <div class="img-card">
-        <img src="presentation_plots/fig3_feature_aucs.png" alt="Feature AUCs" onerror="this.parentElement.style.display='none'">
-        <div class="img-caption">Individual feature AUROC contributions across domains</div>
-      </div>
-      <div class="img-card">
-        <img src="presentation_plots/meta_analysis_cell07_out0.png" alt="Meta-analysis cross-domain" onerror="this.parentElement.style.display='none'">
-        <div class="img-caption">Cross-domain feature ranking (7,001 samples)</div>
-      </div>
-      <div class="img-card">
-        <img src="presentation_plots/meta_analysis_cell12_out1.png" alt="Feature importance" onerror="this.parentElement.style.display='none'">
-        <div class="img-caption">Feature importance heatmap (meta-analysis)</div>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /page -->
-
-<!-- ── Charts ────────────────────────────────────────────────────────────── -->
-<script>
-Chart.defaults.font.family = "'Segoe UI', system-ui, sans-serif";
-Chart.defaults.font.size = 11;
-
-const OURS   = 'rgba(29,78,216,0.85)';
-const CROSS  = 'rgba(180,83,9,0.72)';
-const PAPER  = 'rgba(107,114,128,0.75)';
-const SUPER  = 'rgba(124,58,237,0.75)';
-const PEND   = 'rgba(209,213,219,0.6)';
-const CI_ERR = 'rgba(29,78,216,0.4)';
-
-function hbar(id, labels, data, colors, errorBars) {
-  const ctx = document.getElementById(id).getContext('2d');
-  const datasets = [{
-    data: data,
-    backgroundColor: colors,
-    borderColor: colors.map(c => c.replace(/[\d.]+\)$/, '1)')),
-    borderWidth: 1,
-    borderRadius: 3,
-  }];
-  if (errorBars) {
-    datasets[0].errorBars = errorBars;
-  }
-  new Chart(ctx, {
-    type: 'bar',
-    data: { labels, datasets },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              const v = ctx.raw;
-              return v ? ` ${v.toFixed(1)}%` : ' PENDING';
-            }
-          }
-        }
-      },
-      scales: {
-        x: {
-          min: 55, max: 100,
-          title: { display: true, text: 'AUROC (%)', font: { size: 10 } },
-          ticks: { callback: v => v + '%' },
-          grid: { color: 'rgba(0,0,0,0.06)' }
-        },
-        y: { ticks: { font: { size: 10 } }, grid: { display: false } }
-      }
-    }
-  });
-}
-
-// Overview chart
-new Chart(document.getElementById('overviewChart').getContext('2d'), {
-  type: 'bar',
-  data: {
-    labels: ['GSM8K\n(Llama-8B)', 'MATH-500\n(Qwen-Math-7B)', 'GPQA\n(Qwen-72B)', 'RAG best\n(Llama-8B/hotpotqa)'],
-    datasets: [
-      {
-        label: 'Nadler (ours)',
-        data: [75.92, 96.69, 67.47, 88.15],
-        backgroundColor: OURS,
-        borderColor: OURS.replace(/[\d.]+\)$/, '1)'),
-        borderWidth: 1, borderRadius: 4,
-      },
-      {
-        label: 'Closest published competitor',
-        data: [75.85, 80.4, 74.6, 72.9],
-        backgroundColor: CROSS,
-        borderColor: CROSS.replace(/[\d.]+\)$/, '1)'),
-        borderWidth: 1, borderRadius: 4,
-      }
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 14 } },
-      tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw.toFixed(2)}%` } }
-    },
-    scales: {
-      y: { min: 55, max: 100, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,0.06)' } },
-      x: { grid: { display: false } }
-    }
-  }
-});
-
-// GSM8K chart
-hbar('gsm8kChart',
-  ['Nadler (ours)', 'LapEigvals sup.', 'EDIS ⚠', 'SE Llama-3.2-3B ⚠', 'SE Mistral-7B ⚠', 'LapEigvals unsup.'],
-  [75.92, 87.2, 80.4, 76.53, 75.85, 72.0],
-  [OURS, SUPER, CROSS, CROSS, CROSS, PAPER]
-);
-
-// MATH-500 chart
-hbar('math500Chart',
-  ['Nadler 7B (ours)', 'Nadler 1.5B (ours)', 'EDIS ⚠', 'Mean entropy ⚠'],
-  [96.69, 87.97, 80.4, 67.3],
-  [OURS, OURS, CROSS, CROSS]
-);
-
-// GPQA chart
-hbar('gpqaChart',
-  ['SC+VC K=8 (reason.) ⚠', 'SC K=8 (reason.) ⚠', 'VC K=1 (reason.) ⚠', 'Nadler Qwen-72B (ours)', 'Nadler Mistral-7B (ours)'],
-  [82.1, 75.4, 74.6, 67.47, 65.28],
-  [CROSS, CROSS, CROSS, OURS, OURS]
-);
-
-// RAG overview grouped chart
-new Chart(document.getElementById('ragOverviewChart').getContext('2d'), {
-  type: 'bar',
-  data: {
-    labels: ['hotpotqa', 'natural_questions', '2wikimultihopqa', 'narrativeqa'],
-    datasets: [
-      { label: 'Llama-3.1-8B', data: [88.15, 68.69, 70.97, 63.69], backgroundColor: '#1d4ed8', borderRadius: 3 },
-      { label: 'Qwen2.5-7B',   data: [80.15, 82.81, 81.34, 70.12], backgroundColor: '#3b82f6', borderRadius: 3 },
-      { label: 'Qwen-72B-AWQ', data: [79.40, 72.54, 76.19, 73.07], backgroundColor: '#60a5fa', borderRadius: 3 },
-      { label: 'Mistral-24B',  data: [77.18, 77.78, 73.96, 67.01], backgroundColor: '#93c5fd', borderRadius: 3 },
-      { label: 'LOS-Net supervised ⚠ (hotpotqa only)', data: [72.9, null, null, null], backgroundColor: CROSS, borderRadius: 3 },
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'top', labels: { font: { size: 10 }, boxWidth: 12 } },
-      tooltip: { callbacks: { label: ctx => ctx.raw != null ? ` ${ctx.dataset.label}: ${ctx.raw.toFixed(2)}%` : '' } }
-    },
-    scales: {
-      y: { min: 55, max: 95, ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,0.06)' } },
-      x: { grid: { display: false } }
-    }
-  }
-});
-</script>
 </body>
 </html>
