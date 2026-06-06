@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
 **Date**: 2026-06-06
-**Last updated**: Step 122 — LSML_Optimized rerun in progress (threshold 0.53 → 8 features)
+**Last updated**: Step 123 — 8-feature run complete; 4-feature median pipeline confirmed for Consolidated notebook
 
 ---
 
@@ -16,12 +16,11 @@ Fully unsupervised at test time. FEATURE_SIGNS from Step 110; GOOD_FEATURES from
 - Feature selection gives **+1.7pp mean** (4-feature run). Domain-dependent: QA/RAG benefit, GPQA regresses ~−3.8pp (explainable: 4 correlated features violate L-SML conditional independence more than 16 diverse ones).
 - Currently re-running with **threshold 0.53 → 8 features** to test whether more features reduce GPQA regression while preserving QA/RAG gains.
 
-**Expected GOOD_FEATURES at threshold 0.53** (pending confirmation from run):
+**GOOD_FEATURES confirmed (threshold 0.57, 4 features — FINAL)**:
 ```python
-GOOD_FEATURES = ['epr', 'sw_var_peak', 'cusum_max', 'low_band_power',
-                 'spectral_entropy', 'rpdi', 'pe_mean', 'stft_max_high_power']
+GOOD_FEATURES = ['epr', 'low_band_power', 'sw_var_peak', 'cusum_max']
 ```
-(8 features with mean individual AUROC ≥ 0.53 under median binarization)
+8-feature run (threshold 0.53) gave V2=0.626 (no improvement over 3-feature) and V4=0.650 (+3.4pp) but GSM8K regressed −4.7pp and GPQA mixed. 4-feature median pipeline is the right choice for advisors: +1.7pp mean, clean story, no large regressions on reliable datasets.
 
 **The old supervised numbers (Step 100) must not be used or referenced going forward.**
 
@@ -29,21 +28,7 @@ GOOD_FEATURES = ['epr', 'sw_var_peak', 'cusum_max', 'low_band_power',
 
 ## Immediate next actions
 
-### Action 1 — Get 8-feature ablation results ← IN PROGRESS ON COLAB
-
-`Spectral_Analysis_LSML_Optimized.ipynb` is running with `MIN_IND_AUC_THRESHOLD = 0.53` and `FORCE_VARIANTS = True`.
-
-**When results arrive, compare vs 4-feature run:**
-
-| Variant | 4-feat mean | 8-feat mean | Goal |
-|---|---|---|---|
-| V1 all-16 median | 0.616 | (same, reference) | — |
-| V2 filtered median | 0.633 | ? | higher AND less GPQA loss |
-| V3 all-16 optimized | 0.618 | (same) | — |
-| V4 filtered optimized | 0.635 | ? | should ≈ V2 (null result confirmed) |
-
-**Decision gate**: if 8-feature V2 mean ≥ 0.633 AND GPQA regression shrinks → adopt 8 features.
-If 8-feature V2 < 4-feature V2 (weak features dilute signal) → keep 4 features.
+### Action 1 — Update + run Consolidated Results notebook ← NEXT
 
 ### Action 2 — Update + run Consolidated Results notebook
 
@@ -103,7 +88,7 @@ FEATURE_SIGNS = {
 | Step 110 | LSML_Diagnostics | ✅ | Consensus FEATURE_SIGNS derived |
 | Step 113 | Pilot_RAG_Prompt_Variants | ✅ | V4 prompt wins (+18.6pp) but RAG direction dropped |
 | Phase 12 | Phase12_Benchmarking | ✅ | SE/SC/VC/SelfCheckGPT computed — use for competitor rows |
-| Step 121–122 | LSML_Optimized | ✅ ablation done | 4-feat V2: +1.7pp mean; 8-feat rerun in progress |
+| Step 121–123 | LSML_Optimized | ✅ complete | Final: 4-feat GOOD_FEATURES + median → +1.7pp mean |
 
 ---
 

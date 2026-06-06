@@ -4087,8 +4087,34 @@ Convention: +1 = higher feature value → more likely correct; -1 = higher value
 
 2. **Quantile calibration is a null result.** V2→V4 = +0.001 — noise. The optimised quantile (mostly q=0.65) pushes classifiers to 35%/65% balance, which is less discriminative than the 50/50 median split. Median binarization is the right choice, period. Dropping this from the paper.
 
-**Decision**: adopt **V2** (`GOOD_FEATURES = ['epr', 'low_band_power', 'sw_var_peak', 'cusum_max']`, median binarization) in the Consolidated notebook. Report per-domain breakdown honestly — GPQA regression is explainable and should not be hidden.
+**Decision**: adopt **V2** (`GOOD_FEATURES = ['epr', 'low_band_power', 'sw_var_peak', 'cusum_max']`, threshold 0.57, median binarization) in the Consolidated notebook. Report per-domain breakdown honestly — GPQA regression is explainable and should not be hidden.
 
 **Files changed**: `Spectral_Analysis_LSML_Optimized.ipynb` (outputs), `_build_lsml_optimized_notebook.py` (threshold + per-method subsets), committed as Step 121 v2.
+
+---
+
+### Step 123 — LSML_Optimized third run (threshold 0.53, 8 features); final pipeline decision
+
+**What**: Re-ran `Spectral_Analysis_LSML_Optimized.ipynb` a third time with `MIN_IND_AUC_THRESHOLD = 0.53`, yielding 8 features: `epr`, `spectral_entropy`, `low_band_power`, `stft_max_high_power`, `rpdi`, `sw_var_peak`, `pe_mean`, `cusum_max`. Cross-run comparison across all three thresholds:
+
+| Threshold | Features | V2 mean | V4 mean | V2−V1 | V4−V2 |
+|---|---|---|---|---|---|
+| 0.60 | 3 | 0.626 | 0.625 | +0.010 | −0.001 |
+| 0.57 | 4 | 0.633 | 0.635 | +0.017 | +0.001 |
+| 0.53 | 8 | 0.626 | 0.650 | +0.010 | **+0.024** |
+
+**Key finding**: quantile calibration is NOT universally null — it is null with 4 features (+0.001) but significant with 8 features (+0.024). Explanation: adding 4 weaker features with median binarization injects noise that cancels their benefit (V2 at 8 features = V2 at 3 features, both 0.626). With optimised quantiles, weaker features get calibrated thresholds that make them directionally useful. However, V4 with 8 features hurts GSM8K by −4.7pp (large clean dataset, 1319 samples) and GPQA on average (−1.1pp). The +3.4pp overall mean is dominated by RAG (+4.3pp) and QA (+9.3pp, N=52 — noisy).
+
+**Why**: testing whether more features reduce the GPQA regression seen at 4 features (L-SML conditional independence assumption holds better with more diverse views).
+
+**Result**: 8 features do NOT fix GPQA regression (mixed: some cells better, Qwen-7B worse by −8.1pp). GSM8K regression is a new problem. The 8-feature result is not the right choice for the Consolidated notebook.
+
+**Final pipeline decision for Consolidated notebook**: **V2 — 4 features, median binarization**:
+```python
+GOOD_FEATURES = ['epr', 'low_band_power', 'sw_var_peak', 'cusum_max']
+```
+Rationale: +1.7pp mean, no GSM8K regression, simple story for advisors (4 consistently discriminative features identified offline). GPQA regression (−3.8pp) is explainable and reported honestly.
+
+**Files changed**: `Spectral_Analysis_LSML_Optimized.ipynb` (outputs from third run).
 
 ---
