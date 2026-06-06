@@ -34,71 +34,15 @@ FEATURE_SIGNS = {
 
 ---
 
-## IMMEDIATE NEXT ACTION — for the next agent
+## IMMEDIATE NEXT ACTION
 
-### Implement 5-feature pipeline in `Spectral_Analysis_Consolidated_Results_LSML_v2.ipynb`
+**Step 124/125 COMPLETE.** `Spectral_Analysis_Consolidated_Results_LSML_v2.ipynb` ran on Colab with 5-feature GOOD_FEATURES filter. `Phase12_Comparison_Results.html` updated. All 29/29 cells beat chance.
 
-This is a **local NotebookEdit task** — no Colab needed for the edit itself. The notebook runs on Colab after editing.
+### Next priorities (in order):
 
-#### Change 1 — Cell 3 (config cell): add GOOD_FEATURES constant
-
-Find this block in Cell 3 (it already has FEATURE_SIGNS and CACHED_FEAT_PKLS):
-
-```python
-FEATURE_SIGNS = {
-    'epr': -1, 'trace_length': 1, ...
-}
-```
-
-Add immediately after the FEATURE_SIGNS dict:
-
-```python
-# Features selected via Step 121-123 ablation (5/16 with clean individual AUROC signal)
-GOOD_FEATURES = ['epr', 'low_band_power', 'sw_var_peak', 'cusum_max', 'spectral_entropy']
-```
-
-#### Change 2 — Cell 4 (run_lsml_v2 function): filter binary before lsml_fuse
-
-Find this block inside `run_lsml_v2`:
-
-```python
-    try:
-        binary = binarize_classifiers(fd, FEATURE_SIGNS)
-        fused, meta = lsml_fuse(*binary.values())
-    except Exception as e:
-        if verbose:
-            print(f'  [{key_str}] L-SML v2 error: {e}')
-        return None
-```
-
-Replace with:
-
-```python
-    try:
-        binary = binarize_classifiers(fd, FEATURE_SIGNS)
-        binary_filt = {fn: binary[fn] for fn in GOOD_FEATURES if fn in binary}
-        fused, meta = lsml_fuse(*binary_filt.values())
-    except Exception as e:
-        if verbose:
-            print(f'  [{key_str}] L-SML v2 error: {e}')
-        return None
-```
-
-That is the **only code change needed**. Everything else (boot_auc, individual feature AUROCs, result saving) stays identical.
-
-#### After editing: validate and commit
-
-1. Run `ast.parse` on the two changed cells to confirm no syntax errors.
-2. Commit: `spectral_utils` is unchanged; only `Spectral_Analysis_Consolidated_Results_LSML_v2.ipynb` changes.
-   - Message: `Step 124: Consolidated notebook — 5-feature GOOD_FEATURES filter in run_lsml_v2`
-3. Push to `origin master`.
-
-#### Then: run on Colab
-
-- CPU-only, ~15–30 min.
-- No model loading, no GPU needed — reads cached feature pkls from Drive.
-- Cached pkls: `math500_res.pkl`, `gsm8k_res.pkl`, `gpqa_res.pkl`, `rag_feats_all.pkl`, `qa_res.pkl` all exist on Drive.
-- After run: extract per-domain AUROCs and rebuild `Phase12_Comparison_Results.html`.
+1. **Phase 13** — EDIS vs L-SML on Qwen2.5-Math-1.5B, AMC23/AIME24 (GPU needed). Loads fixed AMC23/AIME24 loaders from Step 119.
+2. **Phase 14 Cell 9 re-run** — DeepSeek-R1-0528-Qwen3-8B / GPQA: L-SML v2 AUROC still TBD (fix applied in Step 118).
+3. **Phase 10 RAG re-run with V4 prompt** — expected +5–15pp on RAG cells (low priority, infrastructure exists).
 
 ---
 
@@ -145,7 +89,7 @@ That is the **only code change needed**. Everything else (boot_auc, individual f
 | Step 113 | Pilot_RAG_Prompt_Variants | ✅ | V4 prompt wins (+18.6pp), RAG direction dropped |
 | Phase 12 | Phase12_Benchmarking | ✅ | SE/SC/VC/SelfCheckGPT computed |
 | Step 121–123 | LSML_Optimized | ✅ | 5-feature GOOD_FEATURES finalized, median binarization |
-| Step 124 | Consolidated_Results_LSML_v2 | ⏳ edit done, needs Colab run | — |
+| Step 124–125 | Consolidated_Results_LSML_v2 | ✅ | 5-feat; 29/29 beat chance; HTML updated |
 
 ---
 

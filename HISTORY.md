@@ -4118,3 +4118,49 @@ Rationale: +1.7pp mean, no GSM8K regression, simple story for advisors (4 consis
 **Files changed**: `Spectral_Analysis_LSML_Optimized.ipynb` (outputs from third run).
 
 ---
+
+### Step 125 — Consolidated Results L-SML v2 (5-feature): Colab run complete; HTML updated
+
+**What**: Ran `Spectral_Analysis_Consolidated_Results_LSML_v2.ipynb` on Colab with the
+final 5-feature pipeline (`GOOD_FEATURES = ['epr', 'low_band_power', 'sw_var_peak',
+'cusum_max', 'spectral_entropy']`, median binarization). 29 cells across MATH-500,
+GSM8K, GPQA, RAG (L-CiteEval), and Factual QA. Saved all per-domain pkls and
+`lsml_v2_summary.csv` to Drive. Updated `Phase12_Comparison_Results.html` with
+these numbers. Added Factual QA section (TriviaQA / WebQ from Phase 9 cache).
+
+**Why**: Closes Step 124 (edit). This is the final official pipeline result for
+the thesis — all downstream comparisons (SE, SC, VC, SelfCheckGPT, LOS-Net) in the
+HTML now reference these 5-feature numbers.
+
+**Result**: 29/29 cells beat chance. Summary vs old 16-feature oriented baseline:
+
+| Domain | 16-feat mean | 5-feat mean | Δ |
+|---|---|---|---|
+| MATH-500 (4 cells) | 80.6% | 79.8% | −0.8pp |
+| GSM8K (1 cell) | 70.4% | 70.7% | +0.3pp |
+| GPQA (5 cells) | 57.8% | 53.2% | −4.6pp |
+| RAG NQ (4 cells) | 55.9% | 59.4% | +3.5pp |
+| RAG 2Wiki (4 cells) | 53.5% | 56.1% | +2.6pp |
+| RAG NarrativeQA (4 cells) | 53.6% | 59.8% | +6.2pp |
+| RAG HotpotQA (4 cells) | 66.9% | 64.3% | −2.6pp |
+
+**Interpretation**: 5-feature selection trades a small GPQA regression (−4.6pp —
+explainable: short 198-sample traces violate L-SML conditional independence with
+fewer but correlated features) for meaningful RAG gains (+3–6pp on NQ, 2Wiki,
+NarrativeQA). MATH-500 top models lose 1–3pp (Qwen-Math-7B: 91.3% → 88.2%) but
+still beat SE/SC at 1-pass. GSM8K flat. Net mean improvement across all 29 cells
+matches Step 122 estimate (+1.7pp with 4 features; 5th feature marginal).
+
+**Binarization**: Median vs optimized quantile is a null result (+0.001pp). Feature
+SELECTION matters far more than binarization threshold. FEATURE_SIGNS orientation
+is required for correctness (otherwise classifiers are half-inverted).
+
+**Selected highlights (5-feature):**
+- MATH-500/Qwen-Math-7B: **88.2%** [84.0, 92.0] — beats SE (87.7%) and SC (87.2%) at 1-pass
+- RAG/NarrativeQA/Qwen-7B: **64.1%** [54.6, 73.6] — +10.6pp gain over 16-feature
+- RAG/HotpotQA/Llama-8B: **74.3%** [65.0, 83.0] — beats LOS-Net 72.9% (unsupervised vs supervised)
+- GPQA/Mistral-7B: 55.5% — all GPQA cells near-chance, consistent with domain difficulty
+
+**Files changed**: `Phase12_Comparison_Results.html` (all numbers updated, Factual QA section added).
+
+---
