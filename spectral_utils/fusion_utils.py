@@ -78,12 +78,13 @@ def boot_auc(y, scores, n: int = 1000):
 
 # ── Binarization ──────────────────────────────────────────────────────────────
 
-def binarize_classifiers(feats_dict: dict, signs: dict) -> dict:
+def binarize_classifiers(feats_dict: dict, signs: dict,
+                         quantiles: dict = None) -> dict:
     """
     Convert continuous uncertainty features into binary ±1 classifiers.
 
-    Each feature is sign-oriented then thresholded at its empirical median,
-    yielding a binary classifier fᵢ ∈ {−1, +1} over the n samples.
+    Each feature is sign-oriented then thresholded at its empirical quantile
+    (default: median, q=0.50), yielding a binary classifier fᵢ ∈ {−1, +1}.
     A prediction of +1 means "likely correct"; −1 means "likely wrong."
 
     This binarization satisfies the input assumption of the Spectral
@@ -93,27 +94,38 @@ def binarize_classifiers(feats_dict: dict, signs: dict) -> dict:
     with αᵢ the balanced accuracy of classifier i and b the true class
     imbalance (a dataset property, not affected by the median split).
 
-    The median split produces a balanced prediction distribution
-    (50 % +1, 50 % −1), the standard convention for unsupervised
-    classifier construction.  An informative feature will yield αᵢ > 0.5
-    after this thresholding; a non-informative feature will yield αᵢ ≈ 0.5
-    and receive near-zero SML weight automatically.
+    The median split (q=0.50) produces a balanced prediction distribution
+    (50 % +1, 50 % −1), the standard convention for unsupervised classifier
+    construction.  An informative feature will yield αᵢ > 0.5 after this
+    thresholding; a non-informative feature will yield αᵢ ≈ 0.5 and receive
+    near-zero SML weight automatically.
+
+    Offline-calibrated thresholds (quantiles != None): if per-feature quantiles
+    are supplied (derived once from historical labeled data and then fixed),
+    the method remains unsupervised at test time.  The quantile is applied to
+    the oriented feature distribution of the current test set, so the threshold
+    adapts to local scale while the split point is externally calibrated.
 
     Args:
         feats_dict: {feature_name: np.ndarray} of continuous feature values.
         signs:      {feature_name: +1 | −1}.
                     +1 = higher raw value → more likely correct.
                     −1 = higher raw value → more likely wrong (flip sign).
+        quantiles:  Optional {feature_name: float in (0,1)}.
+                    Per-feature quantile for the binarization threshold.
+                    Missing keys and None fall back to 0.50 (median).
 
     Returns:
         {feature_name: np.ndarray of ±1.0 values, same length as input}
     """
+    _q = quantiles or {}
     binary = {}
     for name, arr in feats_dict.items():
         s = signs.get(name, +1)
         oriented = np.array(arr, dtype=float) * s
-        med = np.median(oriented)
-        binary[name] = np.where(oriented > med, 1.0, -1.0)
+        q = _q.get(name, 0.5)
+        thr = np.quantile(oriented, q)
+        binary[name] = np.where(oriented > thr, 1.0, -1.0)
     return binary
 
 
