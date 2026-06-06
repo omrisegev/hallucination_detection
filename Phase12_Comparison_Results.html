@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Phase 12 — Baseline Comparison Results</title>
+<title>L-SML v2 — Baseline Comparison Results</title>
 <style>
   body { font-family: Arial, sans-serif; font-size: 14px; max-width: 1100px; margin: 40px auto; color: #1a1a1a; }
   h1 { font-size: 20px; margin-bottom: 4px; }
@@ -28,285 +28,341 @@
   .warn { color: #92400e; font-weight: bold; }
   .footnote { font-size: 12px; color: #555; margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 10px; }
   .section-note { font-size: 12px; color: #444; margin: 4px 0 10px 0; }
+  .tbd { color: #92400e; font-style: italic; }
 </style>
 </head>
 <body>
 
-<h1>Phase 12 — Baseline Comparison Results</h1>
+<h1>L-SML v2 — Baseline Comparison Results</h1>
 <p class="subtitle">
-  Spectral Fusion (ours) vs Semantic Entropy · Self-Consistency · Verbalized Confidence · SelfCheckGPT<br>
+  Spectral Fusion (L-SML v2, fully unsupervised) vs Semantic Entropy · Self-Consistency · Verbalized Confidence · SelfCheckGPT<br>
   Domains: Math (GSM8K, MATH-500) · Science (GPQA Diamond) · RAG (L-CiteEval)<br>
-  Status: <b>Complete</b> — 2026-06-02
+  Method: <b>L-SML v2</b> — FEATURE_SIGNS pre-orientation (Step 110) + binarize_classifiers + lsml_fuse (Algorithm 2)<br>
+  Status: <b>Complete</b> — 2026-06-06 &nbsp;|&nbsp; Phase 14 (DeepSeek-R1-8B / GPQA) — Cell 9 fix applied, re-run needed
 </p>
 
 <div class="legend">
-  <div class="legend-item"><div class="swatch" style="background:#dbeafe"></div> Our method (Spectral Fusion)</div>
-  <div class="legend-item"><div class="swatch" style="background:#d1fae5"></div> Baseline we computed ourselves (same model &amp; dataset)</div>
-  <div class="legend-item"><div class="swatch" style="background:#fef9c3"></div> Number taken directly from a paper</div>
+  <div class="legend-item"><div class="swatch" style="background:#dbeafe"></div> Our method (L-SML v2)</div>
+  <div class="legend-item"><div class="swatch" style="background:#d1fae5"></div> Baseline we computed (same model &amp; dataset)</div>
+  <div class="legend-item"><div class="swatch" style="background:#fef9c3"></div> Number from a paper</div>
   <div class="legend-item"><div class="swatch" style="background:#f3f4f6"></div> ⚠ Cross-model / cross-task — not directly comparable</div>
 </div>
 
 <div class="paper-box">
-  <b>What is L-SML?</b><br><br>
-  L-SML stands for <em>Latent Spectral Meta-Learner</em>. It is the algorithm we use to fuse our 16 spectral features of the token-entropy trace H(n) into a single hallucination score, without using any ground-truth labels.<br><br>
-  It is based on two papers:
+  <b>What is L-SML v2?</b><br><br>
+  L-SML stands for <em>Latent Spectral Meta-Learner</em>. We fuse 16 spectral features of the token-entropy trace H(n) into a single hallucination score, fully unsupervised at test time.<br><br>
+  <b>v2 pipeline (Step 120):</b>
+  <ol style="margin:6px 0 6px 0; padding-left: 20px;">
+    <li>Pre-orient each feature with <code>FEATURE_SIGNS</code> — consensus signs derived once offline (Step 110) from cross-dataset majority vote. No test-time labels used.</li>
+    <li>Binarize at empirical median via <code>binarize_classifiers</code>: above median → +1 ("likely correct"), below → −1.</li>
+    <li>Fuse with <code>lsml_fuse</code> (Algorithm 2, Jaffé-Fetaya-Nadler 2016): detect dependent classifier groups via spectral clustering, fuse within each group using SML, fuse across groups using SML.</li>
+  </ol>
+  Based on:
   <ul style="margin:6px 0 6px 0; padding-left: 20px;">
-    <li>
-      <b>Parisi, Nadler, Kluger — PNAS 2014</b>
-      (<a href="https://www.pnas.org/doi/10.1073/pnas.1401689111" target="_blank">link</a>):
-      The <em>Spectral Meta-Learner (SML)</em>. Under the assumption that classifiers make conditionally independent errors,
-      the off-diagonal covariance matrix of binary ±1 classifier outputs has a rank-1 structure whose
-      leading eigenvector encodes each classifier's balanced accuracy — without ever seeing labels.
-      Weights are estimated from this eigenvector and used to produce a weighted vote.
-    </li>
-    <li style="margin-top:6px">
-      <b>Jaffé, Fetaya, Nadler — 2016</b>
-      (<a href="https://proceedings.mlr.press/v38/jaffe15.pdf" target="_blank">link</a>):
-      The <em>Latent SML (L-SML)</em>. Extends SML to handle groups of correlated (dependent) classifiers.
-      Instead of filtering out correlated features and selecting a subset,
-      it detects groups of dependent classifiers via spectral clustering,
-      fuses within each group using SML to produce a virtual classifier,
-      then fuses across groups using SML again. All features are retained.
-    </li>
+    <li><b>Parisi, Nadler, Kluger — PNAS 2014</b> (<a href="https://www.pnas.org/doi/10.1073/pnas.1401689111" target="_blank">link</a>): SML — leading eigenvector of off-diagonal covariance encodes classifier balanced accuracies without labels.</li>
+    <li style="margin-top:6px"><b>Jaffé, Fetaya, Nadler — 2016</b> (<a href="https://proceedings.mlr.press/v38/jaffe15.pdf" target="_blank">link</a>): L-SML — extends SML to handle groups of correlated classifiers; no subset selection needed.</li>
   </ul>
-  In our setting, each "classifier" is one of our 16 spectral features, binarized at its empirical median
-  to a ±1 prediction of whether the model's response is correct or not.
-  No labels enter the fusion — they are only used externally to compute AUROC.<br><br>
-  <span style="color:#92400e; font-size:12px;">
-    ⚠ Note: the numbers below use our pre-correction supervised pipeline, which used labels to orient feature signs and select feature subsets.
-    The corrected fully-unsupervised L-SML (Steps 105–110) produces numbers ~5–30pp lower.
-    Phases 13 and 14 report the corrected method against EDIS and VC/SC on GPQA.
-  </span>
+  Labels are used <b>only</b> to compute the final AUROC — they never enter the fusion pipeline.
 </div>
 
 <!-- ══════════════════════════════════════════════════════════ -->
 <h2>Domain 1 — Math / GSM8K / Llama-3.1-8B / T=1.0</h2>
-<p class="section-note">N = 1,319 samples. Our method: 1 forward pass. Competitors using K=10 generate 10 responses per question.</p>
+<p class="section-note">N = 1,319 samples. L-SML v2 uses 1 forward pass. SC and SE competitors generate K=10 responses per question.</p>
 <table>
   <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th><th>Notes</th></tr>
   <tr class="ours">
-    <td class="best">Spectral Fusion (ours) ◄</td>
-    <td class="best">75.92%</td><td>[72.5, 79.4]</td><td>Gray-box</td><td>1-pass</td><td>Llama-3.1-8B</td>
+    <td>L-SML v2 (ours) ◄</td>
+    <td>70.4%</td><td>[66.8, 73.9]</td><td>Gray-box</td><td>1-pass</td><td>Llama-3.1-8B — v2 unsupervised</td>
   </tr>
   <tr class="recreated">
-    <td>Self-Consistency K=10</td>
-    <td>78.5%</td><td>[72.0, 84.5]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us</td>
+    <td class="best">Self-Consistency K=10</td>
+    <td class="best">78.5%</td><td>[72.0, 84.5]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us (Phase 12)</td>
   </tr>
   <tr class="recreated">
     <td>Semantic Entropy NLI K=10</td>
-    <td>77.4%</td><td>[70.9, 83.5]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us</td>
+    <td>77.4%</td><td>[70.9, 83.5]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us (Phase 12)</td>
   </tr>
   <tr class="recreated">
     <td>LapEigvals (unsupervised)</td>
-    <td>72.0%</td><td>—</td><td>White-box</td><td>1-pass</td><td>Needs attention maps — computed by us</td>
-  </tr>
-  <tr class="recreated">
-    <td>LapEigvals (supervised)</td>
-    <td>87.2%</td><td>—</td><td>White-box</td><td>1-pass + 80% labels</td><td>Supervised upper bound — computed by us</td>
+    <td>72.0%</td><td>—</td><td>White-box</td><td>1-pass</td><td>Needs attention maps — computed by us (Phase 7)</td>
   </tr>
   <tr class="crossmodel">
     <td>⚠ EDIS (arXiv:2602.01288)</td>
     <td>80.4%</td><td>—</td><td>Gray-box</td><td>K=8</td><td>Pooled GSM8K+MATH+AMC23+AIME24, Qwen-Math-1.5B — different model &amp; setup</td>
   </tr>
   <tr class="crossmodel">
-    <td>⚠ Mean entropy (EDIS paper)</td>
-    <td>67.3%</td><td>—</td><td>Gray-box</td><td>1-pass</td><td>Same paper — different model and dataset pool</td>
-  </tr>
-  <tr class="crossmodel">
     <td>⚠ Semantic Entropy (arXiv:2502.03799)</td>
-    <td>75.85%</td><td>—</td><td>Black-box</td><td>K=10</td><td>Mistral-7B — cited for reference only</td>
+    <td>75.9%</td><td>—</td><td>Black-box</td><td>K=10</td><td>Mistral-7B — cited for reference only</td>
   </tr>
 </table>
-<p class="note">Our 1-pass method matches SE K=10 on a similar-scale model. Beats LapEigvals unsupervised without needing attention maps.</p>
+<p class="note">1-pass L-SML v2 trails SC/SE by ~7–8pp. The gap versus K=10 methods is the honest cost of 1-pass unsupervised operation. LapEigvals unsupervised (72.0%) requires attention maps; our method does not.</p>
 
 <!-- ══════════════════════════════════════════════════════════ -->
-<h2>Domain 2 — Math / MATH-500 / Qwen2.5-Math-7B / T=1.0</h2>
-<p class="section-note">N = 500 samples. No published per-dataset AUROC competitor exists on this exact setup.</p>
+<h2>Domain 2 — Math / MATH-500</h2>
+
+<h3>Qwen2.5-Math-7B / T=1.0 — same-model competitors available</h3>
+<p class="section-note">N = 300 samples (from 500-problem benchmark). Same model and dataset as Phase 12 baselines.</p>
 <table>
   <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th><th>Notes</th></tr>
   <tr class="ours">
-    <td class="best">Spectral Fusion (ours) ◄</td>
-    <td class="best">96.69%</td><td>[93.9, 98.7]</td><td>Gray-box</td><td>1-pass</td><td>Qwen2.5-Math-7B</td>
+    <td class="best">L-SML v2 (ours) ◄</td>
+    <td class="best">91.3%</td><td>[86.6, 94.9]</td><td>Gray-box</td><td>1-pass</td><td>Qwen2.5-Math-7B</td>
   </tr>
   <tr class="recreated">
     <td>Semantic Entropy NLI K=10</td>
-    <td>87.7%</td><td>[79.7, 93.9]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us</td>
+    <td>87.7%</td><td>[79.7, 93.9]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us (Phase 12)</td>
   </tr>
   <tr class="recreated">
     <td>Self-Consistency K=10</td>
-    <td>87.2%</td><td>[72.1, 98.4]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us</td>
+    <td>87.2%</td><td>[72.1, 98.4]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us (Phase 12)</td>
   </tr>
   <tr class="crossmodel">
     <td>⚠ EDIS (arXiv:2602.01288)</td>
     <td>80.4%</td><td>—</td><td>Gray-box</td><td>K=8</td><td>Qwen-Math-1.5B, pooled 4 datasets — different model</td>
   </tr>
-  <tr class="crossmodel">
-    <td>⚠ Mean entropy (EDIS paper)</td>
-    <td>67.3%</td><td>—</td><td>Gray-box</td><td>1-pass</td><td>Same paper — for reference</td>
+</table>
+<p class="note">+3.6pp over SE and +4.1pp over SC at 10× less compute. Phase 13 runs a direct same-model head-to-head vs EDIS on Qwen2.5-Math-1.5B across 4 math datasets.</p>
+
+<h3>Additional MATH-500 models — no same-model competitors available</h3>
+<p class="section-note">N = 300 samples each. No published AUROC or computed baselines for these exact model/dataset cells.</p>
+<table>
+  <tr><th>Model</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th><th>K groups</th></tr>
+  <tr class="ours">
+    <td>DeepSeek-R1-Distill-Llama-8B</td>
+    <td>83.2%</td><td>[78.6, 87.8]</td><td>Gray-box</td><td>1-pass</td><td>K=7</td>
+  </tr>
+  <tr class="ours">
+    <td>Qwen2.5-Math-1.5B-Instruct</td>
+    <td>82.9%</td><td>[77.9, 87.3]</td><td>Gray-box</td><td>1-pass</td><td>K=6</td>
+  </tr>
+  <tr class="ours">
+    <td>deepseek-math-7b-instruct</td>
+    <td>64.9%</td><td>[57.4, 72.2]</td><td>Gray-box</td><td>1-pass</td><td>K=5</td>
   </tr>
 </table>
-<p class="note">+9pp over SE and SC at 10× less compute. Phase 13 runs a direct same-model comparison against EDIS.</p>
+<p class="note">All L-SML v2. Phase 13 runs Qwen2.5-Math-1.5B vs EDIS head-to-head. deepseek-math-7b low AUROC expected: older generation model, T=1.0 only.</p>
 
 <!-- ══════════════════════════════════════════════════════════ -->
 <h2>Domain 3 — Science / GPQA Diamond</h2>
-<p class="section-note">N = 198 problems. Published baselines (arXiv:2603.19118) use reasoning models 4–10× larger than ours.</p>
+<p class="section-note">N = 198 problems. All our cells use L-SML v2, fully unsupervised.</p>
+
+<h3>Qwen2.5-7B / T=1.0 — same-model competitors available</h3>
 <table>
-  <tr><th>Method</th><th>Model</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
+  <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th><th>Notes</th></tr>
   <tr class="ours">
-    <td class="best">Spectral Fusion (ours) ◄</td><td>Qwen2.5-72B-AWQ</td>
-    <td class="best">67.47%</td><td>[59.7, 74.7]</td><td>Gray-box</td><td>1-pass</td>
-  </tr>
-  <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Mistral-7B</td>
-    <td>65.28%</td><td>[56.7, 74.0]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours) ◄</td>
+    <td>61.4%</td><td>[53.2, 69.4]</td><td>Gray-box</td><td>1-pass</td><td>Qwen2.5-7B</td>
   </tr>
   <tr class="recreated">
-    <td>Semantic Entropy NLI K=10</td><td>Qwen2.5-7B</td>
-    <td>70.6%</td><td>[43.6, 93.3]</td><td>Black-box</td><td>K=10</td>
+    <td class="best">Semantic Entropy NLI K=10</td>
+    <td class="best">70.6%</td><td>[43.6, 93.3]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us (Phase 12). Wide CI: small +class (n=60)</td>
   </tr>
   <tr class="recreated">
-    <td>Verbalized Confidence K=1</td><td>Qwen2.5-7B</td>
-    <td>67.9%</td><td>[49.5, 83.3]</td><td>Black-box</td><td>1-pass</td>
+    <td>Verbalized Confidence K=1</td>
+    <td>67.9%</td><td>[49.5, 83.3]</td><td>Black-box</td><td>1-pass</td><td>Same model — computed by us (Phase 12)</td>
   </tr>
   <tr class="recreated">
-    <td>Self-Consistency K=10 <span class="warn">(fails on GPQA)</span></td><td>Qwen2.5-7B</td>
-    <td>33.6%</td><td>[11.0, 58.2]</td><td>Black-box</td><td>K=10</td>
+    <td>Self-Consistency K=10 <span class="warn">(fails on GPQA)</span></td>
+    <td>33.6%</td><td>[11.0, 58.2]</td><td>Black-box</td><td>K=10</td><td>Same model — computed by us. SC catastrophically fails: consistent wrong answers</td>
   </tr>
   <tr class="crossmodel">
-    <td>⚠ Verbalized Confidence K=1 (arXiv:2603.19118)</td><td>Reasoning models avg.</td>
-    <td>74.6%</td><td>—</td><td>Black-box</td><td>1-pass</td>
+    <td>⚠ VC avg (arXiv:2603.19118)</td>
+    <td>74.6%</td><td>—</td><td>Black-box</td><td>1-pass</td><td>Reasoning models avg (4–10× larger)</td>
   </tr>
   <tr class="crossmodel">
-    <td>⚠ Self-Consistency K=8 (arXiv:2603.19118)</td><td>Reasoning models avg.</td>
-    <td>75.4%</td><td>—</td><td>Black-box</td><td>K=8</td>
+    <td>⚠ SC avg (arXiv:2603.19118)</td>
+    <td>75.4%</td><td>—</td><td>Black-box</td><td>K=8</td><td>Reasoning models avg (4–10× larger)</td>
   </tr>
   <tr class="crossmodel">
-    <td>⚠ SC+VC K=8 (arXiv:2603.19118)</td><td>Reasoning models avg.</td>
-    <td>82.1%</td><td>—</td><td>Black-box</td><td>K=8</td>
+    <td>⚠ SC+VC avg (arXiv:2603.19118)</td>
+    <td>82.1%</td><td>—</td><td>Black-box</td><td>K=8</td><td>Reasoning models avg (4–10× larger)</td>
   </tr>
 </table>
-<p class="note">Phase 14 closes the model-size gap: same model (DeepSeek-R1-8B), same dataset, same metric as arXiv:2603.19118.</p>
+<p class="note">SE NLI (70.6%) and VC (67.9%) beat L-SML v2 (61.4%) on this cell. Both have wide CIs (n+class=60). SC completely fails (33.6%). Published numbers (74–82%) use reasoning models 4–10× larger — not directly comparable.</p>
+
+<h3>DeepSeek-R1-0528-Qwen3-8B / T=0.6 — paper competitors available (Phase 14)</h3>
+<p class="section-note">N = 198 problems. Inference complete (198/198). L-SML v2 result pending Cell 9 re-run (fix applied 2026-06-06).</p>
+<table>
+  <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th><th>Notes</th></tr>
+  <tr class="ours">
+    <td>L-SML v2 (ours) ◄</td>
+    <td class="tbd">TBD — re-run Cell 9</td><td>—</td><td>Gray-box</td><td>K=1</td><td>DeepSeek-R1-0528-Qwen3-8B; acc=19.2%</td>
+  </tr>
+  <tr class="ours">
+    <td>EDIS (ours)</td>
+    <td>38.9%</td><td>—</td><td>Gray-box</td><td>K=1</td><td>Below chance on this model — EDIS tuned for math reasoning</td>
+  </tr>
+  <tr class="cited">
+    <td class="best">SC+VC K=2 (arXiv:2603.19118) ◆</td>
+    <td class="best">80.3%</td><td>±1.5%</td><td>Black-box</td><td>K=2</td><td>DeepSeek-R1-8B (earlier version) — Table 5</td>
+  </tr>
+  <tr class="cited">
+    <td>VC K=2 (arXiv:2603.19118) ◆</td>
+    <td>77.0%</td><td>±2.0%</td><td>Black-box</td><td>K=2</td><td>DeepSeek-R1-8B — Table 5</td>
+  </tr>
+  <tr class="cited">
+    <td>SC K=2 (arXiv:2603.19118) ◆</td>
+    <td>64.8%</td><td>±3.0%</td><td>Black-box</td><td>K=2</td><td>DeepSeek-R1-8B — Table 5</td>
+  </tr>
+  <tr class="recreated">
+    <td>VC K=1 (reproduced)</td>
+    <td>83.3%</td><td>—</td><td>Black-box</td><td>1-pass</td><td>Coverage: 13/198 (6.6%) — unreliable, small n</td>
+  </tr>
+  <tr class="recreated">
+    <td>SC K=2 (reproduced)</td>
+    <td>47.6%</td><td>—</td><td>Black-box</td><td>K=2</td><td>Below chance on our reproduction — model mismatch 0528 vs paper</td>
+  </tr>
+</table>
+<p class="note">◆ Paper uses DeepSeek-R1-8B (older variant); our inference uses DeepSeek-R1-0528-Qwen3-8B. SC reproduction fails (47.6% vs paper 64.8%) — likely answer-extraction differences with 0528's thinking format. VC has 6.6% coverage — unreliable. EDIS anti-predictive (38.9%): EDIS burst/rebound features tuned for math domains, not GPQA. L-SML v2 result pending.</p>
+
+<h3>Other GPQA models — no same-model competitors available</h3>
+<table>
+  <tr><th>Model</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>K groups</th></tr>
+  <tr class="ours">
+    <td>Qwen2.5-72B-Instruct-AWQ</td>
+    <td>61.7%</td><td>[53.7, 69.8]</td><td>Gray-box, 1-pass</td><td>K=4</td>
+  </tr>
+  <tr class="ours">
+    <td>Mistral-7B</td>
+    <td>57.6%</td><td>[47.4, 67.0]</td><td>Gray-box, 1-pass</td><td>K=6</td>
+  </tr>
+  <tr class="ours">
+    <td>DeepSeek-R1-Distill-Llama-8B</td>
+    <td>55.2%</td><td>[46.2, 64.1]</td><td>Gray-box, 1-pass</td><td>K=7</td>
+  </tr>
+  <tr class="ours">
+    <td>Llama-3.1-8B</td>
+    <td>53.3%</td><td>[44.0, 63.1]</td><td>Gray-box, 1-pass</td><td>K=7</td>
+  </tr>
+</table>
+<p class="note">All L-SML v2. No published same-model AUROC exists for these exact model/GPQA Diamond cells. Larger models (72B) do not consistently outperform 7B models on GPQA with L-SML v2 — consistent with the hypothesis that trace length matters more than model quality here.</p>
 
 <!-- ══════════════════════════════════════════════════════════ -->
 <h2>Domain 4 — RAG / L-CiteEval (Citation-Grounding Detection)</h2>
 <p class="section-note">
   Novel framing — no published paper reports AUROC on citation-grounding correctness on L-CiteEval.
-  SelfCheckGPT (computed by us) is the first same-task baseline.
-  LOS-Net uses standard HotpotQA without citation markers — structurally different task, shown for reference only.
+  SelfCheckGPT (computed by us, Phase 12) is the only same-task, same-dataset baseline; computed for Qwen2.5-7B only.
+  All L-SML v2 numbers below. Phase 10 RAG re-run with V4 prompt is pending (expected +5–15pp on RAG cells).
 </p>
 
-<h3>HotpotQA (N=240)</h3>
+<h3>HotpotQA (L-CiteEval)</h3>
 <table>
-  <tr><th>Method</th><th>Model</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
+  <tr><th>Method</th><th>Model</th><th>N</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
   <tr class="ours">
-    <td class="best">Spectral Fusion (ours) ◄</td><td>Llama-3.1-8B</td>
-    <td class="best">88.15%</td><td>[80.6, 94.4]</td><td>Gray-box</td><td>1-pass</td>
+    <td class="best">L-SML v2 (ours) ◄</td><td>Llama-3.1-8B</td><td>93</td>
+    <td class="best">75.3%</td><td>[64.8, 85.5]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Qwen2.5-7B</td>
-    <td>80.15%</td><td>[66.5, 91.4]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours)</td><td>Qwen2.5-72B-AWQ</td><td>169</td>
+    <td>69.2%</td><td>[59.9, 78.0]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Qwen2.5-72B-AWQ</td>
-    <td>79.40%</td><td>[70.5, 86.8]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours)</td><td>Qwen2.5-7B</td><td>169</td>
+    <td>63.3%</td><td>[48.5, 76.8]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Mistral-Small-24B</td>
-    <td>77.18%</td><td>[62.2, 90.3]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours)</td><td>Mistral-Small-24B</td><td>46</td>
+    <td>59.6%</td><td>[42.1, 76.3]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="recreated">
-    <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td>
+    <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td><td>169</td>
     <td>51.4%</td><td>[41.5, 62.9]</td><td>Black-box</td><td>K=5</td>
   </tr>
   <tr class="crossmodel">
-    <td>⚠ LOS-Net supervised (arXiv:2503.14043)</td><td>Mistral-7B</td>
+    <td>⚠ LOS-Net supervised (arXiv:2503.14043)</td><td>Mistral-7B</td><td>—</td>
     <td>72.9%</td><td>—</td><td>Gray-box</td><td>Supervised</td>
   </tr>
 </table>
 
-<h3>Natural Questions (N=160)</h3>
+<h3>Natural Questions (L-CiteEval)</h3>
 <table>
-  <tr><th>Method</th><th>Model</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
+  <tr><th>Method</th><th>Model</th><th>N</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
   <tr class="ours">
-    <td class="best">Spectral Fusion (ours) ◄</td><td>Qwen2.5-7B</td>
-    <td class="best">82.81%</td><td>[70.9, 92.6]</td><td>Gray-box</td><td>1-pass</td>
+    <td class="best">L-SML v2 (ours) ◄</td><td>Qwen2.5-72B-AWQ</td><td>171</td>
+    <td class="best">63.4%</td><td>[49.3, 77.1]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Mistral-Small-24B</td>
-    <td>77.78%</td><td>[61.3, 91.5]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours)</td><td>Llama-3.1-8B</td><td>121</td>
+    <td>56.3%</td><td>[34.5, 75.2]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Qwen2.5-72B-AWQ</td>
-    <td>72.54%</td><td>[61.7, 82.6]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours)</td><td>Qwen2.5-7B</td><td>103</td>
+    <td>53.2%</td><td>[38.2, 69.3]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Llama-3.1-8B</td>
-    <td>68.69%</td><td>[45.6, 86.2]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours)</td><td>Mistral-Small-24B</td><td>44</td>
+    <td>51.3%</td><td>[29.7, 73.0]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="recreated">
-    <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td>
+    <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td><td>103</td>
     <td>57.1%</td><td>[42.9, 70.5]</td><td>Black-box</td><td>K=5</td>
   </tr>
 </table>
+<p class="note">SelfCheckGPT (57.1%) slightly outperforms our Qwen-7B (53.2%) on NQ. Wide CIs across all methods — small positive-class counts.</p>
 
-<h3>2WikiMultiHopQA (N=240)</h3>
+<h3>2WikiMultiHopQA (L-CiteEval)</h3>
 <table>
-  <tr><th>Method</th><th>Model</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
+  <tr><th>Method</th><th>Model</th><th>N</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
   <tr class="ours">
-    <td class="best">Spectral Fusion (ours) ◄</td><td>Qwen2.5-7B</td>
-    <td class="best">81.34%</td><td>[71.4, 89.7]</td><td>Gray-box</td><td>1-pass</td>
+    <td class="best">L-SML v2 (ours) ◄</td><td>Mistral-Small-24B</td><td>47</td>
+    <td class="best">57.3%</td><td>[39.6, 73.5]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Qwen2.5-72B-AWQ</td>
-    <td>76.19%</td><td>[65.2, 85.9]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours)</td><td>Qwen2.5-7B</td><td>192</td>
+    <td>52.1%</td><td>[32.7, 69.8]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Mistral-Small-24B</td>
-    <td>73.96%</td><td>[56.9, 87.9]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours)</td><td>Llama-3.1-8B</td><td>99</td>
+    <td>52.5%</td><td>[39.0, 66.9]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Llama-3.1-8B</td>
-    <td>70.97%</td><td>[58.7, 81.6]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours)</td><td>Qwen2.5-72B-AWQ</td><td>198</td>
+    <td>51.9%</td><td>[39.2, 64.2]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="recreated">
-    <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td>
+    <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td><td>192</td>
     <td>55.3%</td><td>[35.7, 78.3]</td><td>Black-box</td><td>K=5</td>
   </tr>
 </table>
+<p class="note">Multi-hop 2Wiki is the hardest RAG cell — all methods near chance. SelfCheckGPT (55.3%) narrowly outperforms L-SML v2 Qwen-7B (52.1%). Very wide CIs due to small positive class.</p>
 
-<h3>NarrativeQA (N=240)</h3>
+<h3>NarrativeQA (L-CiteEval)</h3>
 <table>
-  <tr><th>Method</th><th>Model</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
+  <tr><th>Method</th><th>Model</th><th>N</th><th>AUROC</th><th>95% CI</th><th>Access</th><th>Compute</th></tr>
   <tr class="ours">
-    <td class="best">Spectral Fusion (ours) ◄</td><td>Qwen2.5-72B-AWQ</td>
-    <td class="best">73.07%</td><td>[63.8, 81.2]</td><td>Gray-box</td><td>1-pass</td>
+    <td class="best">L-SML v2 (ours) ◄</td><td>Qwen2.5-72B-AWQ</td><td>345</td>
+    <td class="best">56.0%</td><td>[45.7, 66.6]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Qwen2.5-7B</td>
-    <td>70.12%</td><td>[58.3, 80.8]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours)</td><td>Mistral-Small-24B</td><td>238</td>
+    <td>54.6%</td><td>[43.0, 66.0]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Mistral-Small-24B</td>
-    <td>67.01%</td><td>[56.2, 77.3]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours)</td><td>Qwen2.5-7B</td><td>235</td>
+    <td>53.5%</td><td>[43.3, 64.6]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="ours">
-    <td>Spectral Fusion (ours)</td><td>Llama-3.1-8B</td>
-    <td>63.69%</td><td>[56.2, 70.7]</td><td>Gray-box</td><td>1-pass</td>
+    <td>L-SML v2 (ours)</td><td>Llama-3.1-8B</td><td>459</td>
+    <td>50.2%</td><td>[42.6, 57.7]</td><td>Gray-box</td><td>1-pass</td>
   </tr>
   <tr class="recreated">
-    <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td>
+    <td>SelfCheckGPT NLI K=5</td><td>Qwen2.5-7B</td><td>235</td>
     <td>52.4%</td><td>[41.7, 65.4]</td><td>Black-box</td><td>K=5</td>
   </tr>
 </table>
+<p class="note">All methods near chance on NarrativeQA. L-SML v2 Qwen-7B (53.5%) slightly beats SelfCheckGPT (52.4%). Phase 10 re-run with V4 prompt expected to improve RAG cells significantly (+5–15pp).</p>
 
+<!-- ══════════════════════════════════════════════════════════ -->
 <div class="footnote">
-  <b>◄</b> = best result in section &nbsp;|&nbsp;
-  <b>⚠</b> = cross-model or cross-task — not directly comparable, shown for reference only<br>
+  <b>◄</b> = our method's row &nbsp;|&nbsp;
+  <b>⚠</b> = cross-model or cross-task — not directly comparable, shown for reference only &nbsp;|&nbsp;
+  <b>◆</b> = same model, same dataset — direct comparison<br>
   <b>Gray-box access</b>: requires per-token log-probabilities from a single forward pass. No model weights or activations needed.<br>
   <b>Black-box access</b>: requires only final text output (K samples per question).<br>
-  <b>White-box access</b>: requires internal attention maps (LapEigvals).<br>
-  <b>Supervised pipeline note</b>: "Spectral Fusion (ours)" rows use the pre-correction supervised pipeline (feature orientation and subset selection used labels).
-  The corrected fully-unsupervised L-SML produces numbers ~5–30pp lower. Phases 13–14 report the corrected method.
+  <b>White-box access</b>: requires internal attention maps (LapEigvals).<br><br>
+  <b>L-SML v2 vs Phase 10 RAG numbers</b>: The Phase 10 RAG results (70–88% on HotpotQA) used the supervised pipeline (val labels for sign orientation + subset selection).
+  These v2 numbers use the fully-unsupervised oriented pipeline. The Phase 10 RAG re-run with V4 prompt (pending) will close part of the gap.<br><br>
+  <b>Phase 14 status</b>: Inference complete (198/198, accuracy 19.2%). Baseline computation shows SC/SCVC reproduction below paper numbers — likely answer-extraction differences with DeepSeek-R1-0528's thinking format. L-SML v2 Cell 9 fix applied; needs re-run to produce AUROC.
 </div>
 
 </body>
