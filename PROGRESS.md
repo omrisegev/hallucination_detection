@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
-**Date**: 2026-06-05
-**Last updated**: Step 120 — oriented L-SML rerun planned; handoff to next session
+**Date**: 2026-06-06
+**Last updated**: Step 121 — LSML_Optimized notebook audited, verified, committed
 
 ---
 
@@ -15,20 +15,20 @@ Fully unsupervised at test time. FEATURE_SIGNS derived from Step 110 cross-datas
 
 ---
 
-## Immediate next action — BUILD THIS NOTEBOOK
+## Immediate next actions
 
-**Task**: `Spectral_Analysis_Consolidated_Results_LSML_v2.ipynb` — CPU-only Colab, ~15–30 min.
+### Action 1 — Run Step 121 notebook on Colab ← NEXT
+**Task**: `Spectral_Analysis_LSML_Optimized.ipynb` — CPU-only, ~45–60 min.
+- Cell 4 diagnostic shows which features to keep (`GOOD_FEATURES`)
+- Cell 5 derives `FEATURE_QUANTILES_ALL` (offline, one-time, saved to Drive)
+- Cell 9 prints constants to copy into Phase 13/14
 
-**What it does**:
-1. Load cached features from Drive `consolidated_results/`:
-   - `math500_res.pkl`, `gsm8k_res.pkl`, `gpqa_res.pkl`, `rag_feats_all.pkl`, `qa_res.pkl`
-2. For each (domain, model, dataset) cell:
-   - Apply `binarize_classifiers(feats_dict, FEATURE_SIGNS)` — orients then binarizes
-   - Run `lsml_fuse(*binary.values())` — Algorithm 2 from Jaffé et al. 2016
-   - Compute AUROC with bootstrap CI using `boot_auc(labels, scores)`
-3. Save results to Drive `consolidated_results/lsml_v2_results_all.pkl` + `lsml_v2_summary.csv`
+### Action 2 — Run Step 120 notebook on Colab (still pending)
+**Task**: `Spectral_Analysis_Consolidated_Results_LSML_v2.ipynb` — CPU-only, ~15–30 min.
+- Produces the official oriented L-SML v2 AUROC numbers for the comparison table
+- After it runs: rebuild `Phase12_Comparison_Results.html`
 
-**FEATURE_SIGNS** (Step 110 consensus — baked into Phase 13 Cell 2 config):
+**FEATURE_SIGNS** (Step 110 consensus):
 ```python
 FEATURE_SIGNS = {
     'epr': -1, 'trace_length': 1, 'spectral_entropy': -1,
@@ -40,13 +40,6 @@ FEATURE_SIGNS = {
     'cusum_max': -1, 'cusum_shift_idx': 1,
 }
 ```
-Convention: +1 = higher value → more likely correct; -1 = higher value → hallucination.
-
-**After the notebook runs**: rebuild `Phase12_Comparison_Results.html` with:
-- Our method rows: v2 L-SML numbers only (no Step 100 supervised numbers)
-- Competitor rows: same-model, same-dataset, same-task only
-  - If from paper: cite it. If we computed it in Phase 12: mark as "computed by us".
-- Structure: per domain → per model table
 
 ---
 
@@ -66,6 +59,7 @@ Convention: +1 = higher value → more likely correct; -1 = higher value → hal
 | Step 110 | LSML_Diagnostics | ✅ | Consensus FEATURE_SIGNS derived |
 | Step 113 | Pilot_RAG_Prompt_Variants | ✅ | V4 prompt wins (+18.6pp) but RAG direction dropped |
 | Phase 12 | Phase12_Benchmarking | ✅ | SE/SC/VC/SelfCheckGPT computed — use for competitor rows |
+| Step 121 | LSML_Optimized | ✅ committed | 2×2 ablation notebook ready to run on Colab |
 
 ---
 

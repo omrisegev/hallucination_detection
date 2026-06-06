@@ -4050,3 +4050,18 @@ Convention: +1 = higher feature value → more likely correct; -1 = higher value
 **Files changed**: None — decision and planning only.
 
 ---
+
+### Step 121 — Build LSML_Optimized notebook: feature filter + offline quantile calibration (2×2 ablation)
+
+**What**: Built `Spectral_Analysis_LSML_Optimized.ipynb` — a CPU-only ablation notebook that tests two preprocessing optimizations to the oriented L-SML pipeline: (1) dropping features with consistently low individual AUROC (`GOOD_FEATURES` subset, filtered by `MIN_IND_AUC_THRESHOLD`), and (2) replacing the fixed median binarization threshold with a per-feature quantile calibrated offline from historical labeled data (`FEATURE_QUANTILES_ALL`). The 2×2 design crosses both dimensions: V1 (all-16 features, median) = current v2 reference; V2 (filtered, median); V3 (all-16, optimized quantile); V4 (filtered + optimized quantile) = proposed best. Updated `binarize_classifiers` in `fusion_utils.py` to accept an optional `quantiles: dict = None` parameter (backward-compatible; `None` falls back to median=0.50 for every feature). Also wrote `_build_lsml_optimized_notebook.py`, a build script that generates the notebook programmatically.
+
+**Why**: Step 120 oriented L-SML numbers use all 16 features at the median split. Some features (e.g., `dominant_freq`, `stft_max_high_power`) may have near-random individual AUROC and pollute the L-SML covariance matrix. The median split is a sensible default but not necessarily optimal — a per-feature quantile calibrated once from historical data is still unsupervised at test time (same epistemic status as `FEATURE_SIGNS`) and may yield better-calibrated binary classifiers going into `lsml_fuse`.
+
+**Result**: Notebook generated (20 cells, 9 code), notebook-audit clean (one false-positive git branch flag — notebook uses `spectral_utils` on `master`, not `baselines` on `feature/meta-agentic-integration`). Logic verified: V1/V2/V3/V4 variant construction correct; `_fuse` helper correctly takes `max(lsml_fuse(fused), lsml_fuse(-fused))` to resolve sign ambiguity; Cell 5 save/load structure matches `{'quantiles': ..., 'curves': ...}`; Cell 3 `load_cached_feats` handles both pkl formats (with and without `'feats'` top-level key); incremental save after every cell in the ablation loop. Notebook ready to run on Colab (CPU-only, ~45–60 min).
+
+**Files changed**:
+- `Spectral_Analysis_LSML_Optimized.ipynb` — new 2×2 ablation notebook
+- `_build_lsml_optimized_notebook.py` — build script that generates the notebook
+- `spectral_utils/fusion_utils.py` — `binarize_classifiers` updated with `quantiles: dict = None` (backward-compatible)
+
+---
