@@ -1,7 +1,10 @@
 """
 Build Spectral_Analysis_LSML_Optimized.ipynb
-Step 121: Feature-filtered L-SML with offline-calibrated binarization thresholds.
+Step 121 v2: Feature-filtered L-SML with offline-calibrated binarization thresholds.
 2x2 ablation: {all-16 / filtered} x {median / optimized-quantile}.
+Each variant uses the subset derived from its own binarization method:
+  V2 filters by GOOD_FEATURES_MEDIAN (individual AUROC at median binarization >= threshold)
+  V4 filters by GOOD_FEATURES_OPT    (individual AUROC at opt-quantile binarization >= threshold)
 CPU-only; re-uses cached feature pkls from consolidated_results/.
 """
 import json, uuid
@@ -35,16 +38,17 @@ TITLE = """\
 | | Median binarization | Optimized-quantile binarization |
 |---|---|---|
 | **All 16 features** | V1 (current v2 reference) | V3 |
-| **Filtered GOOD_FEATURES** | V2 | **V4 (proposed best)** |
+| **Filtered subset** | V2 (GOOD_FEATURES_MEDIAN) | **V4 (GOOD_FEATURES_OPT, proposed best)** |
 
-**Two offline preprocessing steps added before handing classifiers to L-SML:**
-1. **Feature selection** (Cell 4): identify features with consistently low individual AUROC across all domains and remove them — they don't reveal hallucination and pollute the L-SML covariance matrix.
-2. **Per-feature threshold calibration** (Cell 5): for each feature find the quantile q* that maximises mean individual AUROC across all historical cells; freeze it for all future test cells.
+**Each variant uses its own feature subset**, derived from the AUROC of that binarization method:
+- `GOOD_FEATURES_MEDIAN`: features with mean individual AUROC ≥ threshold under **median** binarization (Cell 4)
+- `GOOD_FEATURES_OPT`: features with mean individual AUROC ≥ threshold under **optimised-quantile** binarization (Cell 6)
 
-**Why this is valid:** L-SML takes binary classifiers as given.  We build those classifiers from features.
-Optimising the binarisation threshold is our preprocessing decision, outside the paper's scope.
-Both choices (GOOD_FEATURES and FEATURE_QUANTILES) are derived *once* from historical labelled data —
-same epistemological status as FEATURE_SIGNS.  No labels are used at test time.
+**Two offline preprocessing steps:**
+1. **Feature selection** (Cells 4 & 6): remove features with consistently low individual AUROC — they pollute the L-SML covariance matrix.
+2. **Per-feature threshold calibration** (Cell 5): for each feature find the quantile q* that maximises mean individual AUROC across all historical cells; freeze it for test time.
+
+**Why this is valid:** Both `GOOD_FEATURES_*` and `FEATURE_QUANTILES_OPT` are derived *once* from historical labelled data — same epistemological status as `FEATURE_SIGNS`. No labels are used at test time.
 
 **CPU-only — re-uses cached feature pkls from `consolidated_results/` on Drive.**\
 """
@@ -101,8 +105,9 @@ FEATURE_SIGNS = {
     'cusum_max': -1, 'cusum_shift_idx': 1,
 }
 
-# Adjust MIN_IND_AUC_THRESHOLD after viewing Cell 4 plot
-MIN_IND_AUC_THRESHOLD = 0.60
+# Adjust MIN_IND_AUC_THRESHOLD after viewing Cell 4 plot.
+# Applied independently to median and optimised-quantile AUROCs in Cells 4 and 6.
+MIN_IND_AUC_THRESHOLD = 0.57
 QUANTILE_GRID = np.arange(0.35, 0.66, 0.05)   # [0.35, 0.40, ..., 0.65]
 
 CACHED_FEAT_PKLS = {
@@ -166,9 +171,8 @@ else:
 """
 
 FEAT_DIAGNOSTIC = """\
-# Cell 4: Feature AUROC diagnostic + class balance
-# ─── Part A: Individual AUROC across all cells ────────────────────────────────
-print(f'Computing individual AUROCs for {len(FEAT_NAMES)} features across {len(ALL_CELLS)} cells...')
+# Cell 4: Feature AUROC diagnostic — median binarization → GOOD_FEATURES_MEDIAN
+print(f'Computing individual AUROCs (median binarization) for {len(FEAT_NAMES)} features across {len(ALL_CELLS)} cells...')
 per_feat_aucs = {fn: [] for fn in FEAT_NAMES}
 
 for cell_key, (fd, lbl) in ALL_CELLS.items():
@@ -207,8 +211,8 @@ ax.axvline(MIN_IND_AUC_THRESHOLD, color='crimson', linestyle='--', lw=1.5)
 ax.set_yticks(y_pos)
 ax.set_yticklabels(sorted_feats, fontsize=9)
 ax.set_xlabel('Individual AUROC  (mean; error bars = [min, max] across all cells)')
-ax.set_title('Per-Feature Individual AUROC — Cross-Domain Analysis')
-keep_p = mpatches.Patch(color='steelblue', alpha=0.85, label='Keep (mean ≥ threshold)')
+ax.set_title('Per-Feature Individual AUROC — Median Binarization')
+keep_p = mpatches.Patch(color='steelblue', alpha=0.85, label='Keep (mean >= threshold)')
 drop_p = mpatches.Patch(color='tomato',    alpha=0.85, label='Drop  (mean < threshold)')
 thr_l  = plt.Line2D([0],[0], color='crimson', linestyle='--', lw=1.5,
                     label=f'Threshold = {MIN_IND_AUC_THRESHOLD:.0%}')
@@ -249,13 +253,14 @@ ax2.legend()
 plt.tight_layout()
 plt.show()
 
-# ─── Define GOOD_FEATURES based on threshold ──────────────────────────────────
-GOOD_FEATURES = [fn for fn in FEAT_NAMES if mean_aucs.get(fn, 0) >= MIN_IND_AUC_THRESHOLD]
-dropped        = [fn for fn in FEAT_NAMES if fn not in GOOD_FEATURES]
-print(f'\\nGOOD_FEATURES ({len(GOOD_FEATURES)}/16): {GOOD_FEATURES}')
-print(f'Dropped ({len(dropped)}):          {dropped}')
+# ─── Define GOOD_FEATURES_MEDIAN based on threshold ──────────────────────────
+GOOD_FEATURES_MEDIAN = [fn for fn in FEAT_NAMES if mean_aucs.get(fn, 0) >= MIN_IND_AUC_THRESHOLD]
+dropped_median       = [fn for fn in FEAT_NAMES if fn not in GOOD_FEATURES_MEDIAN]
+print(f'\\nGOOD_FEATURES_MEDIAN ({len(GOOD_FEATURES_MEDIAN)}/16): {GOOD_FEATURES_MEDIAN}')
+print(f'Dropped ({len(dropped_median)}):          {dropped_median}')
 print()
-print('Tip: adjust MIN_IND_AUC_THRESHOLD in Cell 2 and re-run if the split looks off.')\
+print('Tip: adjust MIN_IND_AUC_THRESHOLD in Cell 2 and re-run if the split looks off.')
+print('GOOD_FEATURES_OPT will be derived in Cell 6 after quantile optimisation.')\
 """
 
 QUANT_OPT = """\
@@ -320,7 +325,7 @@ if quant_auc_curves:
                        label=f'q*={FEATURE_QUANTILES_ALL[fn]:.2f}')
             ax.axvline(0.50, color='gray', linestyle=':', lw=1, label='median')
             ax.legend(fontsize=6, loc='lower center')
-        in_good = fn in GOOD_FEATURES
+        in_good = fn in GOOD_FEATURES_MEDIAN
         ax.set_title(f'{fn}{\" *\" if in_good else \"\"}', fontsize=8,
                      fontweight='bold' if in_good else 'normal')
         ax.set_xlabel('quantile', fontsize=7)
@@ -328,20 +333,19 @@ if quant_auc_curves:
         ax.tick_params(labelsize=7)
     for j in range(len(FEAT_NAMES), len(axes3_flat)):
         axes3_flat[j].set_visible(False)
-    fig3.suptitle('AUROC vs Binarisation Quantile per Feature  (* = in GOOD_FEATURES)',
+    fig3.suptitle('AUROC vs Binarisation Quantile per Feature  (* = in GOOD_FEATURES_MEDIAN)',
                   fontsize=10)
     plt.tight_layout()
     plt.show()
 
-FEATURE_QUANTILES = {fn: FEATURE_QUANTILES_ALL[fn] for fn in GOOD_FEATURES}
 print('\\nFEATURE_QUANTILES_ALL (all 16):')
-print(repr({k: round(v, 2) for k, v in FEATURE_QUANTILES_ALL.items()}))
-print('\\nFEATURE_QUANTILES (filtered subset):')
-print(repr({k: round(v, 2) for k, v in FEATURE_QUANTILES.items()}))\
+print(repr({k: round(v, 2) for k, v in FEATURE_QUANTILES_ALL.items()}))\
 """
 
 BALANCE_OPT = """\
-# Cell 6: Class balance sanity check after optimised binarisation
+# Cell 6: Class balance plots + derive GOOD_FEATURES_OPT from optimised-quantile AUROCs
+
+# ─── Part A: Balance plots (median vs optimised) ──────────────────────────────
 frac_pos_opt = {}
 sample_items = list(ALL_CELLS.items())[:min(10, len(ALL_CELLS))]
 for fn in FEAT_NAMES:
@@ -372,15 +376,57 @@ fig4.suptitle('Class Balance: Median vs Optimised Binarisation (informational on
 plt.tight_layout()
 plt.show()
 
-print(f'{"Feature":<25} {"Median frac+1":>14} {"Opt frac+1":>12}  {"Shift":>8}')
+print(f'{\"Feature\":<25} {\"Median frac+1\":>14} {\"Opt frac+1\":>12}  {\"Shift\":>8}')
 print('-' * 65)
 for fn in FEAT_NAMES:
     shift = frac_pos_opt[fn] - frac_pos_median[fn]
-    print(f'{fn:<25} {frac_pos_median[fn]:>14.3f} {frac_pos_opt[fn]:>12.3f}  {shift:>+8.3f}')\
+    print(f'{fn:<25} {frac_pos_median[fn]:>14.3f} {frac_pos_opt[fn]:>12.3f}  {shift:>+8.3f}')
+
+# ─── Part B: Individual AUROCs at optimised quantile → GOOD_FEATURES_OPT ─────
+print('\\nComputing individual AUROCs at optimised-quantile binarization ...')
+per_feat_aucs_opt = {fn: [] for fn in FEAT_NAMES}
+for cell_key, (fd, lbl) in ALL_CELLS.items():
+    if len(set(lbl.tolist())) < 2:
+        continue
+    for fn in FEAT_NAMES:
+        if fn not in fd:
+            continue
+        try:
+            sign     = FEATURE_SIGNS.get(fn, +1)
+            oriented = np.array(fd[fn], dtype=float) * sign
+            q        = FEATURE_QUANTILES_ALL.get(fn, 0.5)
+            thr      = np.quantile(oriented, q)
+            binary   = np.where(oriented > thr, 1.0, -1.0)
+            a, *_ = boot_auc(lbl, binary)
+            if not np.isnan(a):
+                per_feat_aucs_opt[fn].append(float(a))
+        except Exception:
+            pass
+
+mean_aucs_opt = {fn: float(np.mean(v)) if v else float('nan')
+                 for fn, v in per_feat_aucs_opt.items()}
+
+GOOD_FEATURES_OPT    = [fn for fn in FEAT_NAMES if mean_aucs_opt.get(fn, 0) >= MIN_IND_AUC_THRESHOLD]
+FEATURE_QUANTILES_OPT = {fn: FEATURE_QUANTILES_ALL[fn] for fn in GOOD_FEATURES_OPT}
+
+sorted_by_opt = sorted(FEAT_NAMES, key=lambda fn: mean_aucs_opt.get(fn, 0), reverse=True)
+print(f'\\n{\"Feature\":<25} {\"Med AUROC\":>10} {\"Opt AUROC\":>10}  {\"Med subset\":>11}  {\"Opt subset\":>10}')
+print('-' * 73)
+for fn in sorted_by_opt:
+    med_status = 'KEEP' if fn in GOOD_FEATURES_MEDIAN else 'drop'
+    opt_status = 'KEEP' if fn in GOOD_FEATURES_OPT    else 'drop'
+    print(f'{fn:<25} {mean_aucs[fn]:>10.3f} {mean_aucs_opt[fn]:>10.3f}  {med_status:>11}  {opt_status:>10}')
+
+print(f'\\nGOOD_FEATURES_MEDIAN ({len(GOOD_FEATURES_MEDIAN)}/16): {GOOD_FEATURES_MEDIAN}')
+print(f'GOOD_FEATURES_OPT    ({len(GOOD_FEATURES_OPT)}/16): {GOOD_FEATURES_OPT}')
+print(f'FEATURE_QUANTILES_OPT: {repr({k: round(v,2) for k, v in FEATURE_QUANTILES_OPT.items()})}')
+print('\\nTip: if both subsets are identical, either threshold is too coarse or features cluster tightly.')\
 """
 
 RUN_VARIANTS = """\
 # Cell 7: 2x2 ablation — run all four variants across every cell
+# NOTE: if you changed MIN_IND_AUC_THRESHOLD or FEATURE_QUANTILES_ALL, set FORCE_VARIANTS = True
+# to discard cached results and recompute with the new subsets.
 OPT_RES_PATH   = os.path.join(OUT_DIR, 'lsml_optimized_results_all.pkl')
 FORCE_VARIANTS = False
 
@@ -395,13 +441,16 @@ else:
 
 print(f'{len(remaining)} cells to compute ...')
 
+# Union of both subsets for best_ind_auc denominator
+_all_good = set(GOOD_FEATURES_MEDIAN) | set(GOOD_FEATURES_OPT)
+
 for cell_key, (fd, lbl) in remaining.items():
     if len(set(lbl.tolist())) < 2:
         continue
 
-    # Best individual AUROC among GOOD_FEATURES in this cell (denominator for lift)
+    # Best individual AUROC among the union of both subsets
     best_ind = 0.0
-    for fn in GOOD_FEATURES:
+    for fn in _all_good:
         if fn not in fd: continue
         try:
             sign = FEATURE_SIGNS.get(fn, +1)
@@ -429,16 +478,16 @@ for cell_key, (fd, lbl) in remaining.items():
     b_all_med  = binarize_classifiers(fd, FEATURE_SIGNS)
     rec['v1_all_median'] = _fuse(b_all_med, 'V1')
 
-    # V2: filtered GOOD_FEATURES, median
-    b_filt_med = {fn: b_all_med[fn] for fn in GOOD_FEATURES if fn in b_all_med}
+    # V2: GOOD_FEATURES_MEDIAN subset, median binarization
+    b_filt_med = {fn: b_all_med[fn] for fn in GOOD_FEATURES_MEDIAN if fn in b_all_med}
     rec['v2_filtered_median'] = _fuse(b_filt_med, 'V2')
 
     # V3: all-16, optimised quantile
     b_all_opt  = binarize_classifiers(fd, FEATURE_SIGNS, quantiles=FEATURE_QUANTILES_ALL)
     rec['v3_all_optimized'] = _fuse(b_all_opt, 'V3')
 
-    # V4: filtered GOOD_FEATURES, optimised quantile
-    b_filt_opt = {fn: b_all_opt[fn] for fn in GOOD_FEATURES if fn in b_all_opt}
+    # V4: GOOD_FEATURES_OPT subset, optimised quantile (each variant uses its own subset)
+    b_filt_opt = {fn: b_all_opt[fn] for fn in GOOD_FEATURES_OPT if fn in b_all_opt}
     rec['v4_filtered_optimized'] = _fuse(b_filt_opt, 'V4')
 
     variant_results[cell_key] = rec
@@ -472,7 +521,7 @@ pt_colors = [domain_colors.get(k.split('/')[0], 'gray') for k in cell_keys]
 
 fig5, axes5 = plt.subplots(1, 2, figsize=(14, 6))
 
-# Left: V4 vs best individual feature
+# Left: V4 vs best individual feature (union of both subsets)
 ax_l = axes5[0]
 lo = min(min(best_inds), min(v4_aucs)) - 0.02
 hi = max(max(best_inds), max(v4_aucs)) + 0.02
@@ -483,8 +532,8 @@ for dom, col in domain_colors.items():
 n_above_ind = sum(v4 > bi for v4, bi in zip(v4_aucs, best_inds))
 ax_l.text(0.05, 0.95, f'Fusion > best individual: {n_above_ind}/{len(v4_aucs)} cells',
           transform=ax_l.transAxes, va='top', fontsize=9, color='darkgreen')
-ax_l.set_xlabel('Best individual feature AUROC (in GOOD_FEATURES)')
-ax_l.set_ylabel('V4 filtered + optimised L-SML AUROC')
+ax_l.set_xlabel('Best individual feature AUROC (GOOD_FEATURES_MEDIAN union GOOD_FEATURES_OPT)')
+ax_l.set_ylabel('V4 — GOOD_FEATURES_OPT + optimised-quantile L-SML AUROC')
 ax_l.set_title('Fusion Lift: V4 vs Best Individual Feature')
 ax_l.legend(fontsize=7)
 
@@ -501,7 +550,7 @@ n_above_v1 = sum(v4 > v1 for v4, v1 in zip(v4_aucs[:len(v1_aucs)], v1_aucs))
 ax_r.text(0.05, 0.95, f'V4 > V1: {n_above_v1}/{len(v1_aucs)} cells',
           transform=ax_r.transAxes, va='top', fontsize=9, color='darkgreen')
 ax_r.set_xlabel('V1 — all-16 median AUROC (current v2 baseline)')
-ax_r.set_ylabel('V4 — filtered + optimised AUROC')
+ax_r.set_ylabel('V4 — GOOD_FEATURES_OPT + optimised AUROC')
 ax_r.set_title('Ablation: V4 vs V1 (combined effect)')
 ax_r.legend(fontsize=7)
 
@@ -592,8 +641,8 @@ print(f'  {OPT_RES_PATH}')
 print(f'  {csv_path}')
 print(f'  {QUANT_OPT_PATH}')
 print(f'\\nTo adopt V4 in Phase 13/14 — add to Cell 2 config:')
-print('GOOD_FEATURES =', repr(GOOD_FEATURES))
-print('FEATURE_QUANTILES =', repr({k: round(v, 2) for k, v in FEATURE_QUANTILES.items()}))\
+print('GOOD_FEATURES_OPT =', repr(GOOD_FEATURES_OPT))
+print('FEATURE_QUANTILES_OPT =', repr({k: round(v, 2) for k, v in FEATURE_QUANTILES_OPT.items()}))\
 """
 
 DONE_MD = """\
@@ -604,28 +653,28 @@ DONE_MD = """\
 - `lsml_optimized_results_all.pkl` — per-cell dict with v1/v2/v3/v4 AUROCs
 - `lsml_optimized_summary.csv` — wide-format table (all variants side by side)
 
-**2×2 ablation design:**
+**2×2 ablation design (each variant uses its own subset):**
 
 | | Median binarization | Optimized-quantile binarization |
 |---|---|---|
 | **All 16 features** | V1 (v2 reference) | V3 |
-| **Filtered GOOD_FEATURES** | V2 | **V4** |
+| **Filtered subset** | V2 (GOOD_FEATURES_MEDIAN) | **V4 (GOOD_FEATURES_OPT)** |
 
 Reading off:
 - **Subset effect** at fixed binarization: V1→V2 (median) and V3→V4 (optimized)
 - **Threshold effect** at fixed feature set: V1→V3 (all-16) and V2→V4 (filtered)
 - **Combined effect**: V1→V4
 
-**To adopt V4 in Phase 13/14 notebooks**, copy the printed `GOOD_FEATURES` and
-`FEATURE_QUANTILES` from Cell 9 into the Phase notebook's Cell 2 config, then change:
+**To adopt V4 in Phase 13/14 notebooks**, copy the printed `GOOD_FEATURES_OPT` and
+`FEATURE_QUANTILES_OPT` from Cell 9 into the Phase notebook's Cell 2 config, then change:
 ```python
 # Before
 binary = binarize_classifiers(fd, FEATURE_SIGNS)
 fused, meta = lsml_fuse(*binary.values())
 
 # After (V4)
-binary = binarize_classifiers(fd, FEATURE_SIGNS, quantiles=FEATURE_QUANTILES)
-binary_filtered = {fn: binary[fn] for fn in GOOD_FEATURES if fn in binary}
+binary = binarize_classifiers(fd, FEATURE_SIGNS, quantiles=FEATURE_QUANTILES_OPT)
+binary_filtered = {fn: binary[fn] for fn in GOOD_FEATURES_OPT if fn in binary}
 fused, meta = lsml_fuse(*binary_filtered.values())
 ```\
 """
@@ -642,11 +691,11 @@ cells = [
     code(DRIVE_CONFIG),
     md("## Section 3 — Load Cached Feature Pkls"),
     code(LOAD_PKLS),
-    md("## Section 4 — Feature Diagnostic: Individual AUROC + Class Balance"),
+    md("## Section 4 — Feature Diagnostic: Individual AUROC (Median) → GOOD_FEATURES_MEDIAN"),
     code(FEAT_DIAGNOSTIC),
     md("## Section 5 — Per-Feature Quantile Optimisation"),
     code(QUANT_OPT, background_save=True),
-    md("## Section 6 — Class Balance After Optimised Binarisation"),
+    md("## Section 6 — Class Balance + Individual AUROC (Optimised) → GOOD_FEATURES_OPT"),
     code(BALANCE_OPT),
     md("## Section 7 — Run 2×2 Ablation"),
     code(RUN_VARIANTS, background_save=True),
