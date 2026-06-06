@@ -1,15 +1,21 @@
 # MV_EPR — Session Progress Handoff
 
 **Date**: 2026-06-06
-**Last updated**: Step 121 — LSML_Optimized notebook audited, verified, committed
+**Last updated**: Step 122 — LSML_Optimized ablation complete; V2 adopted (4 features, median)
 
 ---
 
 ## TL;DR — where we are today
 
-**Current official method**: L-SML (Jaffé-Fetaya-Nadler 2016) with **pre-oriented classifiers**.
-Pipeline: `binarize_classifiers(feats_dict, FEATURE_SIGNS)` → `lsml_fuse(*binary.values())`.
-Fully unsupervised at test time. FEATURE_SIGNS derived from Step 110 cross-dataset consensus.
+**Current official method**: L-SML (Jaffé-Fetaya-Nadler 2016) with **pre-oriented classifiers + feature selection**.
+Pipeline: `binarize_classifiers(feats_dict, FEATURE_SIGNS)` → filter to `GOOD_FEATURES` → `lsml_fuse(*binary_filt.values())`.
+Fully unsupervised at test time. FEATURE_SIGNS from Step 110; GOOD_FEATURES from Step 122 ablation.
+
+```python
+GOOD_FEATURES = ['epr', 'low_band_power', 'sw_var_peak', 'cusum_max']
+```
+
+**Step 122 finding**: quantile calibration is a null result (+0.001). Median binarization is final. Feature selection gives +1.7pp mean across 29 cells (domain-dependent: QA/RAG benefit, GPQA regresses ~−3.8pp).
 
 **The old supervised numbers (Step 100) must not be used or referenced going forward.**
 
@@ -17,11 +23,24 @@ Fully unsupervised at test time. FEATURE_SIGNS derived from Step 110 cross-datas
 
 ## Immediate next actions
 
-### Action 1 — Run Step 121 notebook on Colab ← NEXT
-**Task**: `Spectral_Analysis_LSML_Optimized.ipynb` — CPU-only, ~45–60 min.
-- Cell 4 diagnostic shows which features to keep (`GOOD_FEATURES`)
-- Cell 5 derives `FEATURE_QUANTILES_ALL` (offline, one-time, saved to Drive)
-- Cell 9 prints constants to copy into Phase 13/14
+### Action 1 — Update + run Consolidated Results notebook ← NEXT
+
+**Task**: `Spectral_Analysis_Consolidated_Results_LSML_v2.ipynb` — CPU-only, ~15–30 min.
+
+Add to Cell 2 config:
+```python
+GOOD_FEATURES = ['epr', 'low_band_power', 'sw_var_peak', 'cusum_max']
+```
+In the fusion cell, filter before `lsml_fuse`:
+```python
+binary = binarize_classifiers(fd, FEATURE_SIGNS)
+binary_filt = {fn: binary[fn] for fn in GOOD_FEATURES if fn in binary}
+fused, meta = lsml_fuse(*binary_filt.values())
+```
+This gives the official V2 per-domain/per-model AUROCs for the comparison table.
+After running: rebuild `Phase12_Comparison_Results.html`.
+
+**Why V2 not V4**: quantile calibration adds +0.001 (noise). Median binarization is final.
 
 ### Action 2 — Run Step 120 notebook on Colab (still pending)
 **Task**: `Spectral_Analysis_Consolidated_Results_LSML_v2.ipynb` — CPU-only, ~15–30 min.
@@ -59,7 +78,7 @@ FEATURE_SIGNS = {
 | Step 110 | LSML_Diagnostics | ✅ | Consensus FEATURE_SIGNS derived |
 | Step 113 | Pilot_RAG_Prompt_Variants | ✅ | V4 prompt wins (+18.6pp) but RAG direction dropped |
 | Phase 12 | Phase12_Benchmarking | ✅ | SE/SC/VC/SelfCheckGPT computed — use for competitor rows |
-| Step 121 | LSML_Optimized | ✅ committed | 2×2 ablation notebook ready to run on Colab |
+| Step 121–122 | LSML_Optimized | ✅ complete | V2 wins: 4 features, median binarization, +1.7pp mean |
 
 ---
 

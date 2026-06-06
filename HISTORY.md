@@ -4065,3 +4065,30 @@ Convention: +1 = higher feature value → more likely correct; -1 = higher value
 - `spectral_utils/fusion_utils.py` — `binarize_classifiers` updated with `quantiles: dict = None` (backward-compatible)
 
 ---
+
+### Step 122 — Run LSML_Optimized ablation; conclude feature selection helps, quantile calibration doesn't
+
+**What**: Ran `Spectral_Analysis_LSML_Optimized.ipynb` twice on Colab (first pass stale due to cached pkl; second with `FORCE_VARIANTS = True` for correct 4-feature results). Iterated on threshold (0.60 → 0.57) and added per-method subsets (`GOOD_FEATURES_MEDIAN` / `GOOD_FEATURES_OPT`), which turned out identical at 0.57 — features cluster into two tiers with a natural gap between `low_band_power` (0.591) and `spectral_entropy` (0.568). Threshold 0.57 gives 4 features: `epr`, `low_band_power`, `sw_var_peak`, `cusum_max`.
+
+**Why**: To determine whether (a) filtering weak features and (b) replacing median binarization with a per-feature optimised quantile could improve over the all-16 median baseline (V1).
+
+**Result**: 4-variant ablation across 29 cells (30 domains × models from cached pkls):
+
+| Variant | Mean AUROC | vs V1 |
+|---|---|---|
+| V1 all-16, median | 0.616 | — |
+| V2 filtered (4 feats), median | 0.633 | +0.017 |
+| V3 all-16, optimized quantile | 0.618 | +0.002 |
+| V4 filtered (4 feats), optimized quantile | 0.635 | +0.019 |
+
+**Two conclusions:**
+
+1. **Feature selection works (+1.7pp), but is domain-dependent.** QA gains ~+11pp, RAG ~+1pp, GSM8K +1.3pp, but GPQA loses ~−3.8pp and math500 top models lose ~−1.8pp. The loss pattern is explained by L-SML's conditional independence assumption: 4 correlated features (all measuring entropy/complexity variants) violate it more than 16 diverse ones. The pooled +1.7pp is driven mostly by QA cells (small N, noisy) masking GPQA regressions.
+
+2. **Quantile calibration is a null result.** V2→V4 = +0.001 — noise. The optimised quantile (mostly q=0.65) pushes classifiers to 35%/65% balance, which is less discriminative than the 50/50 median split. Median binarization is the right choice, period. Dropping this from the paper.
+
+**Decision**: adopt **V2** (`GOOD_FEATURES = ['epr', 'low_band_power', 'sw_var_peak', 'cusum_max']`, median binarization) in the Consolidated notebook. Report per-domain breakdown honestly — GPQA regression is explainable and should not be hidden.
+
+**Files changed**: `Spectral_Analysis_LSML_Optimized.ipynb` (outputs), `_build_lsml_optimized_notebook.py` (threshold + per-method subsets), committed as Step 121 v2.
+
+---
