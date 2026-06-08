@@ -403,7 +403,9 @@ def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'res
     s = _score_matrix_lsml(R)
 
     if K_range is None:
-        K_range = list(range(2, min(m, 8) + 1))
+        # Cap at m-1 so K never equals m (all-singletons is degenerate: no
+        # within-group fusion happens, and cross-group SML reduces to naive SML).
+        K_range = list(range(2, min(m, 9)))
     K_range = list(K_range)
 
     if method == 'eigengap':
@@ -493,6 +495,94 @@ def lsml_fuse(*binary_classifiers, K_range=None, method: str = 'residual'):
         'cross_weights': cross_w,
         'virtual_classifiers': virtual_arr,
     }
+
+
+def lsml_continuous(*views, K_range=None, method: str = 'residual'):
+    """
+    Continuous L-SML — same group detection as lsml_fuse but skips binarization
+    of virtual classifiers.
+
+    Accepts z-scored continuous arrays instead of binary ±1.  The group
+    detection step (detect_dependent_groups) runs on the continuous covariance
+    matrix and is otherwise identical.  The within-group virtual classifier
+    is the continuous weighted sum from sml_fuse_signed rather than np.sign
+    of that sum.
+
+    No theoretical guarantee from Parisi-Nadler-Kluger Lemma 1 (which assumes
+    binary ±1 inputs), but preserves continuous signal that is lost by median
+    binarization (~4 pp on math500 per local experiments).
+
+    Args:
+        *views:   z-scored, sign-oriented continuous np.ndarrays (n_samples each).
+        K_range:  iterable of K values to try (default: range(2, min(m,9))).
+        method:   'residual' or 'eigengap' — K-selection method.
+
+    Returns:
+        (fused_scores, meta_dict) — same format as lsml_fuse.
+    """
+    X = np.column_stack(views)
+    n, m = X.shape
+
+    K, c, residual, s_mat = detect_dependent_groups(
+        views, K_range=K_range, method=method,
+    )
+
+    virtual = []
+    group_weights = []
+    for g in np.unique(c):
+        idx = np.where(c == g)[0]
+        if len(idx) == 1:
+            xi_g = X[:, idx[0]].astype(float)
+            w = np.array([1.0])
+        else:
+            score, w = sml_fuse_signed(*[X[:, i] for i in idx])
+            xi_g = score  # keep continuous — unlike lsml_fuse which applies np.sign
+        virtual.append(xi_g)
+        group_weights.append((idx, w))
+
+    virtual_arr = np.column_stack(virtual)
+
+    if len(virtual) == 1:
+        if len(group_weights[0][0]) > 1:
+            fused = X[:, group_weights[0][0]] @ group_weights[0][1]
+        else:
+            fused = virtual[0]
+        cross_w = np.array([1.0])
+    else:
+        fused, cross_w = sml_fuse_signed(*virtual)
+
+    return fused, {
+        'K': K, 'c': c, 'residual': residual, 'method': method,
+        'score_matrix': s_mat,
+        'group_weights': group_weights,
+        'cross_weights': cross_w,
+        'virtual_classifiers': virtual_arr,
+    }
+
+
+def lsml_continuous_pipeline(feats_dict: dict, feat_names: list, signs: dict,
+                              K_range=None, method: str = 'residual'):
+    """
+    Pipeline wrapper for lsml_continuous: orient, z-score, then fuse.
+
+    Applies sign orientation from ``signs`` and z-scores each feature before
+    calling lsml_continuous.  No binarization.
+
+    Args:
+        feats_dict: {feature_name: np.ndarray} of raw continuous features.
+        feat_names: feature names to include.
+        signs:      {feature_name: +1|-1} orientation dict.
+        K_range, method: forwarded to lsml_continuous.
+
+    Returns:
+        (fused_scores, meta_dict) — same format as lsml_fuse.
+    """
+    views = []
+    for f in feat_names:
+        arr = np.array(feats_dict[f], dtype=float)
+        s = signs.get(f, +1)
+        views.append(zscore(arr * s))
+    return lsml_continuous(*views, K_range=K_range, method=method)
 
 
 def sml_unsupervised(feats_dict: dict, feat_names: list,
