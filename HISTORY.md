@@ -4164,3 +4164,83 @@ is required for correctness (otherwise classifiers are half-inverted).
 **Files changed**: `Phase12_Comparison_Results.html` (all numbers updated, Factual QA section added).
 
 ---
+
+### Step 126 — Local diagnostic: L-SML lift analysis + per-feature direction stability
+
+**What**: Built a local CPU runner (`scripts/run_lsml_local.py`) that reproduces the L-SML v2 pipeline on downloaded feature pkls without Colab. Added a `--diagnose` flag that prints per-feature individual AUROC vs fusion AUROC per cell, and a pairwise Spearman |rho| matrix across features. Ran three feature-subset comparisons: GOOD_FEATURES (5-feat), phase7-no-epr (4-feat), union-7feat (7-feat). Then ran the diagnostic to measure whether L-SML actually adds lift over the best single feature.
+
+**Why**: The fusion AUROC was not improving over the best single feature in practice. This investigation confirmed the suspicion and diagnosed the root cause.
+
+**Artifacts**:
+- `scripts/run_lsml_local.py` — local runner with `--diagnose` flag
+- `scripts/render_html.py` — HTML comparison renderer
+- `results/archive.jsonl` — archive of all three runs
+- `results/report_compare.html` — side-by-side HTML table (3 runs × 29 cells)
+- Diagnostic output: per-cell individual AUROC table + pairwise rho matrix
+
+**Result**: L-SML fusion gives **mean lift of −5.7pp** over the best single feature. Positive lift in only **1/29 cells**. Fusion is consistently hurting, not helping.
+
+**Root causes identified**:
+
+1. **Feature selection criterion was wrong**: GOOD_FEATURES was selected by individual AUROC threshold (Step 121–123). L-SML needs conditionally independent views; selecting the most discriminative features produces the most correlated ones. Pairwise rho: epr↔sw_var_peak=0.63, low_band↔cusum_max=0.62 — moderate but real correlation.
+
+2. **FEATURE_SIGNS is task/model-specific, not universal**: Several features have systematically inverted sign for specific task types. When a feature is incorrectly oriented, median binarization produces a near-random binary classifier that injects noise into the fusion covariance matrix.
+
+**Per-domain direction stability findings** (based on `--diagnose` output):
+
+**MATH-500 + GSM8K (5 cells): 4 features are fully stable**
+| Feature | Direction flips | Mean AUROC |
+|---------|----------------|------------|
+| epr | 0/5 | 81.2% |
+| cusum_max | 0/5 | 80.6% |
+| sw_var_peak | 0/5 | 78.1% |
+| low_band_power | 0/5 | 77.7% |
+| spectral_entropy | 2/5 (catastrophic: 10%, 16% on Qwen-Math + Qwen2.5-Math-1.5B) | 47.1% |
+
+Conclusion: drop spectral_entropy for math tasks. It has the opposite sign for math-specialist models (Qwen-Math, DeepSeek-Math); these models appear to produce *higher* spectral entropy on correct outputs (complex derivations), inverting the relationship seen in general-purpose models.
+
+**RAG citation (16 cells): spectral_entropy is uniquely stable**
+| Feature | Direction flips | Worst case |
+|---------|----------------|------------|
+| spectral_entropy | 0/16 | — |
+| cusum_max | 2/16 | 2wikimultihopqa (48%) |
+| sw_var_peak | 2/16 | 2wikimultihopqa (45–48%) |
+| epr | 3/16 | Mistral-24B/NQ, Qwen-72B/2wiki, Llama-8B/NQ |
+| low_band_power | 3/16 | 2wikimultihopqa (29%, 34%) — catastrophic |
+
+The 2wikimultihopqa sub-task consistently flips low_band_power (29–34% AUROC), making it the most dangerous feature for RAG. spectral_entropy never flips on any RAG cell and shows moderate consistent signal (50–73%).
+
+**GPQA (5 cells): discard entirely**
+All features show near-chance or sub-chance AUROC on GPQA (39–64% range, multiple flips per cell). This is a structural incompatibility: GPQA is a hard multiple-choice science benchmark where models near their knowledge limits produce uncertain outputs *even when correct* (hedging, showing alternatives). The spectral uncertainty features' sign genuinely reverses relative to math/factual QA regimes. No orientation fix resolves this — the causal relationship between spectral features and correctness is different for MCQ science reasoning.
+
+**Practical conclusions**:
+- Report best single feature per domain, not L-SML fusion, as the primary result
+- For math: epr or cusum_max as single best (81%/80% mean); remove spectral_entropy from any math pipeline
+- For RAG: spectral_entropy or cusum_max as most reliable signals
+- GPQA: exclude from spectral analysis claims; near-chance results are honest
+- Temperature variation (Steps 27–29, T=0.3/1.0/1.5/2.0) achieved real lift (+1.6–4.2%) because all views had the same sign direction and moderate individual AUROCs (~71–79%). The spectral feature approach fails both conditions on several domain/model combinations.
+
+---
+
+### Step 127 — Add local feature cluster diagnostic; diagnose trace_length suppression
+
+**What**: Built `scripts/analyze_features.py`, a local CPU-only analysis script that runs two diagnostics on the downloaded feature pkls without Colab: (1) L-SML cluster visualization — co-clustering frequency heatmap, mean pairwise dependency score matrix, effective feature weights (cross-group × within-group), and per-group virtual-classifier AUROC across all 29 cells; (2) trace_length binarization investigation — distribution histograms, fraction-positive after median split, and AUROC-vs-quantile curve from the saved `lsml_opt_quantiles.pkl`. The script accepts `--features all`, `--features good`, or any named subset of >=3 features.
+
+**Why**: The cluster structure inside L-SML was opaque — we knew what features GOOD_FEATURES contained but not whether L-SML was treating them as independent views or grouping them. The trace_length exclusion from GOOD_FEATURES also needed a concrete explanation beyond "low mean AUROC".
+
+**Result**: Running with all 16 features reveals four natural groups:
+- **Group 0** (spectral band): `low_band_power`, `high_band_power`, `hl_ratio`, `spectral_centroid` — cross-weight 0.649, group-AUROC 0.814 on math500/Qwen-7B
+- **Group 2** (energy/STFT): `epr`, `stft_max_high_power`, `stft_spectral_entropy`, `pe_mean`, `cusum_shift_idx` — cross-weight 0.508, group-AUROC 0.798
+- **Group 3** (statistical complexity): `spectral_entropy`, `rpdi`, `sw_var_peak`, `hurst_exponent`, `cusum_max` — cross-weight 0.566, group-AUROC 0.801
+- **Group 1 (suppressed)**: `trace_length`, `dominant_freq` — **cross-weight 0.000**, group-AUROC nan
+
+Root cause of trace_length suppression: `trace_length` is a right-censored integer — when many samples hit `max_new_tokens`, the median equals the cap, so `oriented > median` is False for the entire capped majority. Fraction-positive drops to <30% (vs ideal 50%), producing a degenerate binary classifier. L-SML then assigns the group zero cross-weight entirely.
+
+`high_band_power` <-> `hl_ratio` co-cluster 97% of cells (by construction: `hl_ratio = high/low`). `trace_length` <-> `spectral_entropy` co-cluster 83% — both sensitive to response length/complexity.
+
+**Open direction**: trace_length saturation at `max_new_tokens` is a real signal — a truncated generation is likely an incomplete/wrong answer. Two fixes proposed: (a) binarize at q*<0.50 (lower quantile, avoiding the cap), or (b) treat saturation as a hard binary flag (`trace_length == max_new_tokens -> -1`). `dominant_freq` needs independent investigation; it may have genuine signal obscured by its forced pairing with trace_length.
+
+**Files changed**:
+- `scripts/analyze_features.py` — new: cluster + trace_length diagnostics, `--features` CLI
+
+---

@@ -1,7 +1,7 @@
 # MV_EPR — Session Progress Handoff
 
-**Date**: 2026-06-06
-**Last updated**: Step 123 — ablation complete; next agent implements Consolidated notebook changes
+**Date**: 2026-06-08
+**Last updated**: Step 127 — L-SML cluster diagnostic + trace_length suppression diagnosed
 
 ---
 
@@ -42,7 +42,8 @@ FEATURE_SIGNS = {
 
 1. **Phase 13** — EDIS vs L-SML on Qwen2.5-Math-1.5B, AMC23/AIME24 (GPU needed). Loads fixed AMC23/AIME24 loaders from Step 119.
 2. **Phase 14 Cell 9 re-run** — DeepSeek-R1-0528-Qwen3-8B / GPQA: L-SML v2 AUROC still TBD (fix applied in Step 118).
-3. **Phase 10 RAG re-run with V4 prompt** — expected +5–15pp on RAG cells (low priority, infrastructure exists).
+3. **Phase 10 RAG re-run with V4 prompt** — expected +5–15pp on RAG cells (low priority, infrastructure exists)
+4. **trace_length + dominant_freq fix** — L-SML suppresses this group (cross-weight=0.000, group-AUROC=nan) due to right-censoring at `max_new_tokens`: fraction-positive drops to <30% after median binarization. Two options: (a) binarize at q*<0.50 to stay below the cap; (b) hard saturation flag (`trace_length == max_new_tokens → −1`). Saturated traces are likely truncated/incomplete answers — a real signal being lost. Also investigate `dominant_freq` independently; may carry signal obscured by being paired with the broken trace_length classifier. CPU-only, run via `scripts/analyze_features.py`..
 
 ---
 
@@ -127,3 +128,4 @@ FEATURE_SIGNS = {
 
 - Phase 10 RAG re-run with variant=4 prompt — still pending, low priority
 - Feature direction constants baked into `feature_utils.py` — nice cleanup, not urgent
+- Local cluster diagnostic: `python scripts/analyze_features.py --features all` — CPU-only, reads `local_cache/`, outputs PNGs to same dir
