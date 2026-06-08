@@ -109,10 +109,38 @@ def token_entropies_from_scores(scores, K: int = 15) -> list:
     return ents
 
 
+def token_entropies_and_spilled(scores, gen_ids, K: int = 15):
+    """
+    Compute per-token Shannon entropy H(n) and Spilled Energy ΔE(n) simultaneously.
+
+    ΔE(n) = -log p(x_n | x_{<n}) — the neg log-prob of the ACTUALLY SAMPLED token.
+    Unlike H(n) which averages over all tokens, ΔE decouples from H when the model
+    is uncertain but samples a common token (high H, low ΔE) or confident but
+    generates a rare token (low H, high ΔE).
+
+    Args:
+        scores:  tuple of (1, vocab_size) tensors from model.generate output_scores=True.
+        gen_ids: 1D tensor of generated token IDs (out.sequences[0][prompt_len:]).
+        K:       Top-K for entropy estimation.
+
+    Returns:
+        (ents, spilled) — two lists of float, one per generated token.
+    """
+    ents, spilled = [], []
+    for s, token_id in zip(scores, gen_ids):
+        lp   = F.log_softmax(s[0], dim=-1)
+        topk = torch.topk(lp, min(K, lp.shape[-1])).values
+        p    = torch.exp(topk)
+        p    = p / (p.sum() + 1e-12)
+        ents.append(-(p * torch.log(p + 1e-12)).sum().item())
+        spilled.append(-lp[token_id.item()].item())
+    return ents, spilled
+
+
 def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
                   K: int = 15, max_new_tokens: int = 512, **kwargs):
     """
-    Generate a response and return text, per-token entropies, and char offsets.
+    Generate a response and return text, per-token entropies, spilled energies, and char offsets.
 
     Args:
         mdl:            Loaded causal LM.
@@ -124,11 +152,12 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
 
     Returns:
         dict with keys:
-            'full_text':       str
-            'token_entropies': list[float] — one per generated token
-            'token_offsets':   list[(start_char, end_char)] from re-tokenizing full_text
-                               (length may differ from token_entropies by 1–2 tokens; callers
-                                should trim both to min(len) before slicing).
+            'full_text':              str
+            'token_entropies':        list[float] — Shannon entropy H(n) per token
+            'token_spilled_energies': list[float] — Spilled Energy ΔE(n) per token
+            'token_offsets':          list[(start_char, end_char)] from re-tokenizing full_text
+                                      (length may differ from token_entropies by 1–2 tokens; callers
+                                       should trim both to min(len) before slicing).
     """
     temp = kwargs.get("T", temperature)
     max_tokens = kwargs.get("max_new", max_new_tokens)
@@ -152,13 +181,14 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
 
     gen_ids   = out.sequences[0][inputs.input_ids.shape[1]:]
     full_text = tok.decode(gen_ids, skip_special_tokens=True).strip()
-    all_ents  = token_entropies_from_scores(out.scores, K)
+    all_ents, all_spilled = token_entropies_and_spilled(out.scores, gen_ids, K)
 
     encoding = tok(full_text, return_offsets_mapping=True, add_special_tokens=False)
     offsets  = encoding.offset_mapping
 
     return {
-        "full_text":       full_text,
-        "token_entropies": all_ents,
-        "token_offsets":   offsets,
+        "full_text":              full_text,
+        "token_entropies":        all_ents,
+        "token_spilled_energies": all_spilled,
+        "token_offsets":          offsets,
     }

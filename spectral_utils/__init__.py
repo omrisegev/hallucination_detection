@@ -20,7 +20,7 @@ Usage in Colab (always use git clone, never pip install git+):
 """
 
 from .io_utils import load_cache, save_cache
-from .model_utils import load_model, fmt_prompt, generate_full, token_entropies_from_scores, free_memory
+from .model_utils import load_model, fmt_prompt, generate_full, token_entropies_from_scores, token_entropies_and_spilled, free_memory
 from .feature_utils import (
     compute_spectral_features,
     compute_stft_features,
@@ -29,6 +29,7 @@ from .feature_utils import (
     sw_var_peak_with_window,
     sw_var_peak_adaptive,
     compute_edis,
+    compute_spilled_energy_features,
     segment_by_citations,
     FEAT_NAMES,
 )
@@ -81,10 +82,11 @@ from .agent_utils import (
 __version__ = "0.1.0"
 __all__ = [
     "load_cache", "save_cache",
-    "load_model", "fmt_prompt", "generate_full", "token_entropies_from_scores", "free_memory",
+    "load_model", "fmt_prompt", "generate_full", "token_entropies_from_scores",
+    "token_entropies_and_spilled", "free_memory",
     "compute_spectral_features", "compute_stft_features", "compute_time_domain",
     "extract_all_features", "sw_var_peak_with_window", "sw_var_peak_adaptive",
-    "compute_edis", "segment_by_citations", "FEAT_NAMES",
+    "compute_edis", "compute_spilled_energy_features", "segment_by_citations", "FEAT_NAMES",
     "load_gsm8k", "gsm8k_prompt", "is_correct_gsm8k", "normalize_gsm8k",
     "extract_gold_gsm8k", "extract_model_answer_gsm8k",
     "load_math500", "math_prompt", "is_correct_math",

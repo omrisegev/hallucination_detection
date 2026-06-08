@@ -25,6 +25,8 @@ FEAT_NAMES = [
     "rpdi", "sw_var_peak",
     "pe_mean", "hurst_exponent",
     "cusum_max", "cusum_shift_idx",
+    # Spilled Energy features (from ΔE(n) = -log p(sampled token) time series)
+    "epr_spilled", "sw_var_peak_spilled", "cusum_max_spilled", "min_spilled",
 ]
 
 
@@ -272,13 +274,62 @@ def compute_cusum_residuals(ents) -> dict:
     return {"cusum_max": float(cusum_max), "cusum_shift_idx": float(shift_idx)}
 
 
-def extract_all_features(ents) -> dict | None:
+def compute_spilled_energy_features(spilled) -> dict:
     """
-    Extract all 17 spectral features from a single entropy trace.
+    Extract features from the Spilled Energy time series ΔE(n) = -log p(sampled token).
+
+    Applies the same extractors used on H(n) — mean, sliding-window variance peak,
+    CUSUM max, and minimum — to the second independent information source.
+
+    ΔE decouples from Shannon entropy H when the model is globally uncertain but
+    samples a safe token (high H, low ΔE) or confident but generates a rare token
+    (low H, high ΔE). This makes spilled features complementary to entropy features.
+
+    Args:
+        spilled: list of per-token ΔE values from token_entropies_and_spilled().
+
+    Returns:
+        dict with keys: epr_spilled, sw_var_peak_spilled, cusum_max_spilled, min_spilled.
+    """
+    e = np.array(spilled, dtype=float)
+    if len(e) == 0:
+        return {"epr_spilled": 0.0, "sw_var_peak_spilled": 0.0,
+                "cusum_max_spilled": 0.0, "min_spilled": 0.0}
+
+    epr_s = float(e.mean())
+    min_s = float(e.min())
+
+    sw_window = 16
+    if len(e) >= sw_window:
+        sw_vars = [np.var(e[i: i + sw_window]) for i in range(len(e) - sw_window + 1)]
+        sw_s = float(np.max(sw_vars))
+    else:
+        sw_s = float(np.var(e))
+
+    residuals = e - e.mean()
+    cusum = np.cumsum(residuals)
+    cusum_s = float(np.abs(cusum).max())
+
+    return {
+        "epr_spilled":        epr_s,
+        "sw_var_peak_spilled": sw_s,
+        "cusum_max_spilled":  cusum_s,
+        "min_spilled":        min_s,
+    }
+
+
+def extract_all_features(ents, spilled_energies=None) -> dict | None:
+    """
+    Extract all spectral features from an entropy trace (and optionally spilled energies).
 
     Returns None if the trace is too short for reliable spectral analysis.
     Uses the default sw_window=16, sw_step=1. For window ablation, call
     sw_var_peak_with_window() and override the 'sw_var_peak' key.
+
+    Args:
+        ents:             Per-token Shannon entropy trace H(n).
+        spilled_energies: Per-token Spilled Energy trace ΔE(n) from generate_full().
+                          If provided, adds 4 spilled energy features to the result.
     """
     e      = np.array(ents, dtype=float)
     result = {"epr": float(e.mean()), "trace_length": float(len(e))}
@@ -294,6 +345,9 @@ def extract_all_features(ents) -> dict | None:
     result.update(compute_permutation_entropy(ents))
     result.update({"hurst_exponent": compute_hurst_exponent(ents)})
     result.update(compute_cusum_residuals(ents))
+
+    if spilled_energies is not None:
+        result.update(compute_spilled_energy_features(spilled_energies))
 
     return result
 
