@@ -4244,3 +4244,109 @@ Root cause of trace_length suppression: `trace_length` is a right-censored integ
 - `scripts/analyze_features.py` — new: cluster + trace_length diagnostics, `--features` CLI
 
 ---
+
+### Step 128 — L-SML implementation verification + K_range bug confirmed
+
+**What**: Created `scripts/verify_lsml_paper.py`, a standalone CPU-only script with three synthetic/real experiments to verify that `lsml_fuse` matches the Jaffé-Fetaya-Nadler 2016 paper's latent variable model before debugging the production failure.
+
+- **Exp A** (M=9, K=3 groups, n=2000): ARI=1.000, L-SML AUROC=0.801 vs naive SML=0.641. PASS — the implementation is correct and L-SML correctly detects group structure and beats naive SML on paper-conditions data.
+- **Exp B** (M=5): Default `K_range = range(2, min(m,8)+1)` includes K=5=M. Spectral clustering with K=5=M gives every classifier its own singleton group (degenerate). ARI=0.000. With `K_range` capped at `range(2, m)`, K=2 is selected and AUROC recovers to 0.773.
+- **Exp C** (real math500/GOOD_FEATURES): Default K_range selects K=5=M degenerate on the 5-feature subset. K_range fix restores proper grouping.
+
+**Why**: The Step 126 diagnosis showed −5.7pp lift over best individual. Before debugging, needed to confirm the code was correct and the failure was in our usage, not the algorithm.
+
+**Result**: Implementation confirmed correct. Root cause of production failure: K_range bug caused degenerate K=M=5 selection for the 5-feature GOOD_FEATURES subset on every call, collapsing L-SML to approximately independent SML. K_range fix applied to `fusion_utils.py` (default changed from `range(2, min(m,8)+1)` to `range(2, min(m,9))` so K < M always).
+
+**Files changed**:
+- `scripts/verify_lsml_paper.py` — new verification script (CPU-only, ~30s runtime)
+- `spectral_utils/fusion_utils.py` — K_range fix in `detect_dependent_groups()`
+
+---
+
+### Step 129 — Two L-SML fusion variants tested on 29 local cells
+
+**What**: Created branch `experiment/lsml-variants`. Two experiments on all 29 cached cells (5 pkl files) using the 16 available features:
+
+**Exp1 — Paper-aligned (no FEATURE_SIGNS orientation)**:
+Binarize at median without sign orientation; sign resolved internally by `sml_fuse_signed` assumption (iii) (majority-positive flip). Matches the fully unsupervised paper setting.
+- Result: mean AUROC 0.609 vs current 0.616 — **−0.65pp, 11/29 wins, 14/29 losses**.
+- Conclusion: our domain knowledge in `FEATURE_SIGNS` is helping. Removing it is mildly harmful. Exp1 not recommended.
+
+**Exp2 — Continuous L-SML (`lsml_continuous_pipeline`)**:
+Z-score + orient with `FEATURE_SIGNS`, but skip binarization entirely. Virtual classifiers are continuous weighted sums instead of `np.sign()`.
+- Result: mean AUROC 0.651 vs current 0.616 — **+3.53pp, 25/29 wins**.
+- Math cells gain most: math500/Qwen-1.5B 0.829→0.867 (+3.8pp), math500/Qwen-7B 0.913→0.942 (+2.9pp).
+- Largest outlier: qa_res/trivia (n=52) 0.760→0.900 (+14pp).
+- Losses only on 4 cells: gpqa/Qwen-7B, gpqa/Qwen-72B, rag/Mistral-24B/2wiki, rag/Llama-8B/hotpotqa.
+- Gap to best individual shrinks from −8.96pp (current) to −5.43pp (Exp2).
+
+**Why**: Step 128 confirmed the K_range bug was the mechanism; Step 126 confirmed binarization cost was ~4.4pp on math cells (continuous avg 0.862 vs binarized avg 0.818). Exp2 tests whether removing binarization while keeping sign orientation recovers that cost without theoretical guarantees.
+
+**New functions added to `spectral_utils/fusion_utils.py`**:
+- `lsml_continuous(*views)` — same group detection as `lsml_fuse` but produces continuous virtual classifiers
+- `lsml_continuous_pipeline(feats_dict, feat_names, signs)` — pipeline wrapper: orient + z-score + `lsml_continuous` (no binarization)
+
+**Summary table (29 cells)**:
+
+| Method | Mean AUROC | vs best individual | Wins vs current |
+|--------|-----------|-------------------|-----------------|
+| Best individual | 0.705 | — | — |
+| Baseline (avg continuous) | 0.620 | −8.54pp | — |
+| Current (binarized+signs) | 0.616 | −8.96pp | baseline |
+| Exp1 (paper-aligned) | 0.609 | −9.61pp | 11/29 |
+| **Exp2 (continuous L-SML)** | **0.651** | **−5.43pp** | **25/29** |
+
+**Decision pending**: Whether to merge Exp2 into master. The one-line swap in production cells:
+```python
+# old: binarize_classifiers(FEATURE_SIGNS) + lsml_fuse
+lsml_scores, meta = lsml_continuous_pipeline(feats_dict, GOOD_FEATURES, FEATURE_SIGNS)
+```
+
+**Files changed** (on branch `experiment/lsml-variants`, commit `7cab4df`):
+- `spectral_utils/fusion_utils.py` — K_range fix + `lsml_continuous` + `lsml_continuous_pipeline`
+- `spectral_utils/__init__.py` — exports for new functions
+- `scripts/verify_lsml_paper.py` — new
+- `scripts/run_lsml_experiments.py` — new comparison runner (all 29 cells, 4 methods)
+
+---
+
+### Step 130 — Spilled Energy: implement ΔE(n) extraction + verification notebook
+
+**What**: Implemented Spilled Energy (Minut et al., ICLR 2026, arXiv:2602.18671) as a second independent information source alongside the existing Shannon entropy H(n) time series. Also created a comprehensive verification notebook for covariance structure analysis.
+
+**Why**: Step 129 covariance audit showed that all 5 GOOD_FEATURES are functions of the same H(n) time series — within-group R correlations are 0.35–0.88. For L-SML to benefit from spectral group detection, we need features from fundamentally different information circuits. ΔE(n) = −log p(sampled token) decouples from H(n) in two key scenarios: (1) high H, low ΔE — model is globally uncertain but generates a common safe token (hedging); (2) low H, high ΔE — model is confident but generates a rare specific token (hard-commit hallucination). Minut et al. report 73.16% AUROC from min_spilled alone.
+
+**Hedging count ruled out**: No formalized paper establishes it as a standalone hallucination detection feature. Domain-dependent (math models hedge very little) and weaker than spectral features.
+
+**Technical approach**: Spilled energy is a free extraction — `gen_ids` was already computed in `generate_full()`, just not used. No extra forward pass, no extra GPU memory. One new function `token_entropies_and_spilled(scores, gen_ids, K)` replaces the per-token loop and computes both H(n) and ΔE(n) simultaneously.
+
+**Four new features** from the ΔE(n) time series (parallel to existing entropy features):
+- `epr_spilled` — mean ΔE (analogous to `epr`)
+- `sw_var_peak_spilled` — max sliding-window variance of ΔE (analogous to `sw_var_peak`)
+- `cusum_max_spilled` — CUSUM maximum of ΔE (analogous to `cusum_max`)
+- `min_spilled` — minimum ΔE (the Minut et al. aggregation; lower = model committed with high confidence = more likely correct)
+
+Initial signs: `epr_spilled=-1`, `sw_var_peak_spilled=-1`, `cusum_max_spilled=-1`, `min_spilled=+1`. To be validated empirically in the verification notebook.
+
+**New notebook `Spectral_Analysis_SpilledEnergy_Verify.ipynb`** covers:
+- Inference with `max_new_tokens=2048` (increased from 512 to prevent `trace_length` saturation)
+- Cell 7: inference verification — sample outputs, parsing, grading, saturation check
+- Cell 9: individual AUROCs for all 20 features (bar chart, H(n) vs ΔE(n) color-coded)
+- Cells 10–11: covariance matrix R vs rank-1 theory; within/cross correlation ratios for H(n) and ΔE(n) groups
+- Cell 12: L-SML score matrix (Eq. 15) + group detection showing how stft/rpdi/spilled features cluster
+- Cell 13: per-group virtual classifier AUROCs
+- Cell 14: sign validation — catches FEATURE_SIGNS mismatches for new spilled features
+- Cell 15: pipeline comparison (GOOD_5 vs GOOD_5+spilled vs all-20)
+- Cell 16: H(n) vs ΔE(n) scatter with Pearson correlation — diagnostic for information source independence
+
+**FEAT_NAMES**: 16 → 20 features. Backward-compatible: `extract_all_features(ents)` still works; spilled features only appear when `spilled_energies=` is passed.
+
+**Result**: Code implemented and tested locally. Verification notebook requires new GPU inference run (Qwen2.5-Math-1.5B / MATH-500 / 100 samples) to produce numbers.
+
+**Files changed** (on branch `experiment/lsml-variants`, commit `6bad26a`):
+- `spectral_utils/model_utils.py` — `token_entropies_and_spilled()` added; `generate_full()` returns `token_spilled_energies`
+- `spectral_utils/feature_utils.py` — `compute_spilled_energy_features()` + `FEAT_NAMES` 16→20 + `extract_all_features(spilled_energies=None)`
+- `spectral_utils/__init__.py` — exports for both new symbols
+- `Spectral_Analysis_SpilledEnergy_Verify.ipynb` — new verification notebook (17 cells)
+
+---
