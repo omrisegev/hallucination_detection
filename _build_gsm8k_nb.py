@@ -110,7 +110,9 @@ mdl, tok = load_model(MODEL_ID, quantize_4bit=False)
 print(f'Loaded: {MODEL_ID}')"""))
 
 cells.append(code("""\
-# Cell 5 — Inference (GSM8K)
+# Cell 5 — Inference + Verbalized Confidence (single loop)
+# For each sample: (1) generate answer, (2) immediately ask for confidence score.
+# Both stored in inference_cache[i]; one checkpoint file, one pass over the data.
 from spectral_utils import load_gsm8k, gsm8k_prompt, is_correct_gsm8k
 
 INF_PATH   = os.path.join(CACHE_DIR, f'inference_{MODEL_SHORT}_{DATASET}_n{N_SAMPLES}.pkl')
@@ -126,45 +128,32 @@ else:
     for i, row in enumerate(dataset):
         if i in inference_cache: continue
         prompt = gsm8k_prompt(row)
+
+        # Pass 1: generate answer (stores token_entropies + token_spilled_energies)
         result = generate_full(mdl, tok, prompt, temperature=TEMP, max_new_tokens=MAX_NEW_TOKENS)
         result['correct'] = is_correct_gsm8k(result['full_text'], row)
         result['gold']    = row.get('answer', '')
         result['prompt']  = prompt
+
+        # Pass 2: verbalized confidence — append suffix, extract integer via regex
+        conf_prompt = prompt + result['full_text'] + VERBALIZED_CONF_SUFFIX
+        conf_res    = generate_full(mdl, tok, conf_prompt, temperature=0.0, max_new_tokens=12)
+        result['verb_conf'] = parse_verbalized_confidence(conf_res['full_text'])
+
         inference_cache[i] = result
         if (i + 1) % 25 == 0:
             with open(INF_PATH, 'wb') as f: pickle.dump(inference_cache, f)
-            n_ok = sum(v['correct'] for v in inference_cache.values())
-            print(f'[{i+1}/{N_SAMPLES}] saved | acc={n_ok}/{i+1}')
+            n_ok   = sum(v['correct'] for v in inference_cache.values())
+            n_vc   = sum(1 for v in inference_cache.values() if v['verb_conf'] == v['verb_conf'])
+            print(f'[{i+1}/{N_SAMPLES}] saved | acc={n_ok}/{i+1} | vc_valid={n_vc}/{i+1}')
+
     with open(INF_PATH, 'wb') as f: pickle.dump(inference_cache, f)
     n_ok = sum(v['correct'] for v in inference_cache.values())
-    print(f'Done: accuracy={n_ok}/{N_SAMPLES} = {n_ok/N_SAMPLES:.1%}')"""))
+    print(f'Done: accuracy={n_ok}/{N_SAMPLES} = {n_ok/N_SAMPLES:.1%}')
 
-cells.append(code("""\
-# Cell 5b — Verbalized Confidence inference (while model is loaded)
-# Appends VERBALIZED_CONF_SUFFIX and extracts integer 0-100 via regex.
-VERB_PATH  = os.path.join(CACHE_DIR, f'verbconf_{MODEL_SHORT}_{DATASET}_n{N_SAMPLES}.pkl')
-FORCE_VERB = False
-
-if not FORCE_VERB and os.path.exists(VERB_PATH):
-    with open(VERB_PATH, 'rb') as f: verb_cache = pickle.load(f)
-    print(f'Loaded {len(verb_cache)} verbalized confidence scores')
-else:
-    verb_cache = {}
-    for i, row in inference_cache.items():
-        if i in verb_cache: continue
-        conf_prompt = row['prompt'] + row['full_text'] + VERBALIZED_CONF_SUFFIX
-        conf_res    = generate_full(mdl, tok, conf_prompt, temperature=0.0, max_new_tokens=12)
-        verb_cache[i] = parse_verbalized_confidence(conf_res['full_text'])
-        if (i + 1) % 25 == 0:
-            with open(VERB_PATH, 'wb') as f: pickle.dump(verb_cache, f)
-            valid = [v for v in verb_cache.values() if v == v]
-            print(f'[{i+1}/{N_SAMPLES}] saved | valid={len(valid)}/{i+1}')
-    with open(VERB_PATH, 'wb') as f: pickle.dump(verb_cache, f)
-    print(f'Done: {N_SAMPLES} verbalized confidence scores')
-
-vc_vals_raw = np.array([verb_cache.get(i, float('nan')) for i in range(N_SAMPLES)])
+vc_vals_raw = np.array([inference_cache[i]['verb_conf'] for i in range(len(inference_cache))])
 valid_vc    = vc_vals_raw[~np.isnan(vc_vals_raw)]
-print(f'Valid: {len(valid_vc)}/{N_SAMPLES}  mean={valid_vc.mean():.2f}  std={valid_vc.std():.2f}')"""))
+print(f'Verbalized confidence valid: {len(valid_vc)}/{N_SAMPLES}  mean={valid_vc.mean():.2f}')"""))
 
 cells.append(code("""\
 # Cell 6 — Unload model
@@ -228,8 +217,8 @@ for fname in ENTROPY_FEATURES + SPILLED_FEATURES:
     if all(v is not None for v in vals):
         feats_dict[fname] = np.array(vals, dtype=float)
 
-# Add verbalized confidence aligned to valid_idx
-vc_aligned = np.array([verb_cache.get(i, float('nan')) for i in valid_idx])
+# Add verbalized confidence aligned to valid_idx (stored in inference_cache[i]['verb_conf'])
+vc_aligned = np.array([inference_cache[i].get('verb_conf', float('nan')) for i in valid_idx])
 vc_valid   = ~np.isnan(vc_aligned)
 if vc_valid.sum() >= 10:
     feats_dict['verb_conf'] = vc_aligned  # NaN-safe; boot_auc handles NaN rows
@@ -491,7 +480,7 @@ cells.append(code("""\
 # Cell 14 — Verbalized confidence calibration + correlation with spectral
 from scipy.stats import pearsonr
 
-vc_arr  = feats_dict.get('verb_conf', np.full(len(labels), float('nan')))
+vc_arr  = feats_dict.get('verb_conf', np.full(len(labels), float('nan')))  # already in feats_dict from Cell 8
 vc_mask = ~np.isnan(vc_arr)
 vc_vals = vc_arr[vc_mask]; lbl_vc = labels[vc_mask]
 
