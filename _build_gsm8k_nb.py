@@ -96,7 +96,7 @@ FEATURE_SIGNS = {
 }
 
 print(f'Config: {MODEL_SHORT} / {DATASET} / n={N_SAMPLES} / max_new={MAX_NEW_TOKENS}')
-print(f'Features: {len(ALL_21_FEATURES)} total = 16 entropy + 4 spilled + 1 semantic')"""))
+print(f'Features: {len(ALL_22_FEATURES)} total = 16 entropy + 4 spilled + 2 semantic (verb_conf 2-pass + 1-pass)')"""))
 
 cells.append(code("""\
 # Cell 3 — Mount Drive
