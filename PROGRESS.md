@@ -1,17 +1,30 @@
 # MV_EPR — Session Progress Handoff
 
 **Date**: 2026-06-08
-**Last updated**: Step 127 — L-SML cluster diagnostic + trace_length suppression diagnosed
+**Last updated**: Step 130 — Spilled Energy implemented; verification notebook ready to run in Colab
 
 ---
 
 ## TL;DR — where we are today
 
-**Current official method**: L-SML (Jaffé-Fetaya-Nadler 2016) with pre-oriented classifiers + feature selection.
-Pipeline: `binarize_classifiers(feats_dict, FEATURE_SIGNS)` → filter to `GOOD_FEATURES` → `lsml_fuse(*binary_filt.values())`.
-Fully unsupervised at test time.
+**Current official method** (production, master branch):
+`binarize_classifiers(feats_dict, FEATURE_SIGNS)` → filter to `GOOD_FEATURES` → `lsml_fuse(*binary_filt.values())`
 
-**FINAL pipeline constants (do not change)**:
+**Candidate upgrade** (branch `experiment/lsml-variants`, pending merge):
+`lsml_continuous_pipeline(feats_dict, GOOD_FEATURES, FEATURE_SIGNS)` → +3.53pp mean, 25/29 wins
+
+**New this session (Step 130)**:
+- Spilled Energy ΔE(n) = −log p(sampled token) extracted alongside H(n) in `generate_full()`
+- 4 new features: `epr_spilled`, `sw_var_peak_spilled`, `cusum_max_spilled`, `min_spilled`
+- `FEAT_NAMES` now 20 features (was 16)
+- Verification notebook created: `Spectral_Analysis_SpilledEnergy_Verify.ipynb`
+- All changes on branch `experiment/lsml-variants` (commit `78c82b9`)
+- **Not yet run**: notebook requires new Colab GPU inference
+
+---
+
+## FINAL pipeline constants (do not change until merge decision)
+
 ```python
 GOOD_FEATURES = ['epr', 'low_band_power', 'sw_var_peak', 'cusum_max', 'spectral_entropy']
 
@@ -23,52 +36,115 @@ FEATURE_SIGNS = {
     'rpdi': -1, 'sw_var_peak': -1,
     'pe_mean': -1, 'hurst_exponent': 1,
     'cusum_max': -1, 'cusum_shift_idx': 1,
+    # Spilled energy signs (initial estimates — validate in verification notebook Cell 14)
+    'epr_spilled': -1, 'sw_var_peak_spilled': -1,
+    'cusum_max_spilled': -1, 'min_spilled': +1,
 }
 ```
-
-**Why these 5 features**: derived from Step 121–123 ablation across 29 cached cells. These 5 have (a) mean individual AUROC ≥ 0.565 under median binarization, and (b) clean monotonic quantile-vs-AUROC curves — meaning their signal is real, not grid-search noise. The other 11 features have near-random or noisy curves and pollute the L-SML covariance matrix.
-
-**Quantile calibration**: permanently dropped. Median binarization only — null result at 4 features (+0.001 gain). No `quantiles` argument anywhere.
-
-**The old supervised numbers (Step 100) must not be used or referenced going forward.**
 
 ---
 
 ## IMMEDIATE NEXT ACTION
 
-**Step 124/125 COMPLETE.** `Spectral_Analysis_Consolidated_Results_LSML_v2.ipynb` ran on Colab with 5-feature GOOD_FEATURES filter. `Phase12_Comparison_Results.html` updated. All 29/29 cells beat chance.
+### Step 131 — Run verification notebook in Colab
 
-### Next priorities (in order):
+Open `Spectral_Analysis_SpilledEnergy_Verify.ipynb` on branch `experiment/lsml-variants`.
+Cell 1 is fixed to clone the right branch. Run sequentially:
 
-1. **Phase 13** — EDIS vs L-SML on Qwen2.5-Math-1.5B, AMC23/AIME24 (GPU needed). Loads fixed AMC23/AIME24 loaders from Step 119.
-2. **Phase 14 Cell 9 re-run** — DeepSeek-R1-0528-Qwen3-8B / GPQA: L-SML v2 AUROC still TBD (fix applied in Step 118).
-3. **Phase 10 RAG re-run with V4 prompt** — expected +5–15pp on RAG cells (low priority, infrastructure exists)
-4. **trace_length + dominant_freq fix** — L-SML suppresses this group (cross-weight=0.000, group-AUROC=nan) due to right-censoring at `max_new_tokens`: fraction-positive drops to <30% after median binarization. Two options: (a) binarize at q*<0.50 to stay below the cap; (b) hard saturation flag (`trace_length == max_new_tokens → −1`). Saturated traces are likely truncated/incomplete answers — a real signal being lost. Also investigate `dominant_freq` independently; may carry signal obscured by being paired with the broken trace_length classifier. CPU-only, run via `scripts/analyze_features.py`..
+**Cells 1–6** (setup + inference): ~30–60 min for 100 samples on Qwen2.5-Math-1.5B / MATH-500.
+
+**After inference, read these outputs carefully:**
+
+| Cell | What to check | Decision gate |
+|------|--------------|---------------|
+| Cell 7 | `Saturated: X%` — should be <5% with max_new=2048 | If >20%, increase further |
+| Cell 7 | `Spilled energies stored: True` — must be True | If False, inference used old code |
+| Cell 9 | Bar chart: are spilled features competitive individually? | Need ≥0.55 AUROC to be useful |
+| Cell 14 | Sign mismatches for `min_spilled` — is +1 right? | Update FEATURE_SIGNS if wrong |
+| Cell 10 | `within/cross ratio` for H(n) and ΔE(n) groups | Need ratio >1.5 for L-SML separation |
+| Cell 12 | Group assignment: do spilled features land in their own group? | If mixed with H(n), they're not orthogonal |
+| Cell 15 | Lift of GOOD_5+spilled vs GOOD_5 | If >+1pp, merge the spilled features |
+| Cell 16 | Pearson corr(epr_H, epr_ΔE) | If >0.8: not orthogonal; if <0.5: truly independent |
+
+### Next priorities (in order after Step 131):
+
+2. **[DECISION] Merge continuous L-SML + spilled energy to master** — based on Step 131 results. Swap `binarize_classifiers + lsml_fuse` for `lsml_continuous_pipeline` in production notebook. GOOD_FEATURES unchanged. Add spilled features only if Step 131 shows within/cross improvement.
+3. **Phase 13** — EDIS vs L-SML on Qwen2.5-Math-1.5B, AMC23/AIME24 (GPU needed). Run *after* merge decision so notebook reflects the final pipeline.
+4. **Phase 14 Cell 9 re-run** — DeepSeek-R1-0528-Qwen3-8B / GPQA: L-SML v2 AUROC still TBD.
+5. **Orthogonal feature set design** — If Step 131 confirms ΔE(n) is independent of H(n), design a 9-feature M=9 L-SML experiment: 3 groups × 3 features (H(n) group, ΔE(n) group, structural group). See "Research Directions" section below.
 
 ---
 
-## Context: why these decisions were made
+## Research directions and open questions
 
-**Step 121–123 ablation summary** (3 runs of `Spectral_Analysis_LSML_Optimized.ipynb`):
+### What we know works
+- **Spectral features of H(n)** work on reasoning-heavy domains (MATH-500, GPQA). 5 features, median binarization, L-SML continuous: best published unsupervised single-pass numbers on these domains.
+- **Not general-purpose**: short factual QA traces (TriviaQA, WebQ) have structurally incompatible traces.
+- **Continuous L-SML** (+3.53pp over binarized, 25/29 cells) should be merged to master.
 
-| Threshold | N features | V2 mean (median) | V4 mean (opt-q) |
-|---|---|---|---|
-| 0.60 | 3 | 0.626 | 0.625 |
-| 0.57 | 4 | 0.633 | 0.635 |
-| 0.53 | 8 | 0.626 | 0.650 |
+### Open research question: can we build a truly orthogonal M=9 feature set?
 
-- 4-feature median = best simple pipeline (+1.7pp, no GSM8K regression)
-- 8-feature opt-quantile = highest mean (+3.4pp) but hurts GSM8K (−4.7pp) and is harder to explain
-- Quantile calibration curves confirmed: the 4 core features + spectral_entropy have clean monotonic curves (reliable signal); the other borderline features have noisy/oscillating curves (grid-search noise)
-- **5-feature final choice**: add spectral_entropy to the 4 core features — it has a clean monotonic curve just like the others, justifying its inclusion
+**Why this matters**: The covariance audit (Steps 128–130) showed that all 5 GOOD_FEATURES are functions of the same H(n) time series. Within-group R correlations are 0.35–0.88. The L-SML paper (Jaffé-Fetaya-Nadler 2016) needs features from genuinely different information sources to form distinct groups. With M=5 from one source, L-SML collapses to near-naive-SML.
+
+**Proposed 9-feature design** (to test if Step 131 confirms ΔE orthogonality):
+```
+Group A — H(n) entropy dynamics (existing, confirmed good):
+    epr,  cusum_max,  sw_var_peak
+
+Group B — ΔE(n) spilled energy dynamics (new — validate in Step 131):
+    epr_spilled,  cusum_max_spilled,  min_spilled
+
+Group C — structural / local spectral (orthogonal by construction):
+    rpdi,  dominant_freq,  stft_max_high_power
+    (or: trace_length_sat_flag, dominant_freq, stft_spectral_entropy)
+```
+
+**Decision gate for Group B**: If Step 131 shows Pearson corr(epr_H, epr_ΔE) < 0.6 AND within/cross ratio for ΔE group > 1.5, proceed with M=9 design.
+
+**Decision gate for Group C**: Step 127 showed rpdi, dominant_freq, stft_* have near-random AUROCs due to right-censoring / trace saturation at max_new_tokens=512. With max_new_tokens=2048 (Step 131), re-check their individual AUROCs. If they recover to ≥0.55, include in Group C.
+
+### What was ruled out
+
+- **Hedging count** (regex on output text): Not formalized as a standalone hallucination detection paper. Domain-dependent (math models hedge very little), model-dependent. Weaker than spectral features. **Do not implement.**
+- **Semantic Energy** (RESEARCH_PROPOSAL Section 2B): Multi-pass — requires re-running the model. Out of scope for 1-pass unsupervised.
+- **EDIS** (Section 2C): Already implemented in `feature_utils.py` as `compute_edis()`. Phase 13 compares EDIS vs L-SML.
+- **Quantile calibration**: Permanently dropped — null result (+0.001 on 4 features). Median binarization only.
+- **Supervised numbers (Step 100)**: Must not be used or referenced.
+
+### LapEigvals (EMNLP 2025, arXiv:2502.17598)
+Uses Laplacian diagonal of cross-layer **attention maps** — a completely different circuit from entropy/spilled. Potentially the ideal Group D feature if we want M=12. Code exists in `baselines/lapeigvals/hallucinations/features/laplacian.py`. Currently not integrated into spectral_utils. Low priority until M=9 design is validated.
+
+### Spilled Energy (Minut et al., ICLR 2026, arXiv:2602.18671)
+- ΔE(n) = −log p(sampled token) — different from H(n) = −Σ p log p
+- Decouples from H when model is uncertain but picks a common token (hedging) or confident but picks a rare token (committed hallucination)
+- Paper reports 73.16% mean AUROC with min-pooling across 9 benchmarks
+- Now implemented: `token_entropies_and_spilled()` in model_utils, `compute_spilled_energy_features()` in feature_utils
+- **Needs validation** in Step 131
 
 ---
 
-## Running experiments (Colab — GPU needed, lower priority)
+## Branch situation
 
-- **Phase 13**: `Spectral_Analysis_MathComp_Phase13.ipynb` — L-SML vs EDIS, Qwen2.5-Math-1.5B.
-- **Phase 14**: `Spectral_Analysis_Phase14_GPQA_Comparison.ipynb` — L-SML vs VC/SC, GPQA Diamond.
-  - **Known bug in Drive copy**: old Cell 9 uses `boot_auc(..., n_boot=1000)` (wrong kwarg) and 2-value unpack. Fix:
+| Branch | Status | Contents |
+|--------|--------|----------|
+| `master` | Production | Steps 1–125; 16-feature binarized L-SML |
+| `experiment/lsml-variants` | **Active, not merged** | K_range fix + continuous L-SML + spilled energy (Steps 128–130) |
+
+**To merge** (after Step 131 validation):
+```bash
+git checkout master
+git merge experiment/lsml-variants
+git push origin master
+```
+
+---
+
+## Running experiments (Colab — GPU needed)
+
+- **Step 131** (priority): `Spectral_Analysis_SpilledEnergy_Verify.ipynb` on `experiment/lsml-variants`
+- **Phase 13**: `Spectral_Analysis_MathComp_Phase13.ipynb` — L-SML vs EDIS, Qwen2.5-Math-1.5B
+- **Phase 14**: `Spectral_Analysis_Phase14_GPQA_Comparison.ipynb` — L-SML vs VC/SC, GPQA Diamond
+  - **Known bug in Drive copy**: old Cell 9 uses `boot_auc(..., n_boot=1000)` (wrong kwarg). Fix:
     ```python
     p_auc, p_lo, p_hi = boot_auc(labels[valid_mask], lsml_full[valid_mask])
     n_auc, n_lo, n_hi = boot_auc(labels[valid_mask], -lsml_full[valid_mask])
@@ -82,15 +158,33 @@ FEATURE_SIGNS = {
 
 ## Completed phases
 
-| Phase | Notebook | Status | Key result |
-|-------|----------|--------|------------|
+| Phase | Notebook / Script | Status | Key result |
+|-------|------------------|--------|------------|
 | Step 100 | Consolidated_Results | ✅ | Old supervised numbers — do not use |
 | Step 107 | Consolidated_Results_LSML | ✅ | L-SML with assumption (iii) — superseded |
 | Step 110 | LSML_Diagnostics | ✅ | Consensus FEATURE_SIGNS derived |
 | Step 113 | Pilot_RAG_Prompt_Variants | ✅ | V4 prompt wins (+18.6pp), RAG direction dropped |
-| Phase 12 | Phase12_Benchmarking | ✅ | SE/SC/VC/SelfCheckGPT computed |
+| Phase 12 | Phase12_Benchmarking | ✅ | SE/SC/VC/SelfCheckGPT baselines computed |
 | Step 121–123 | LSML_Optimized | ✅ | 5-feature GOOD_FEATURES finalized, median binarization |
 | Step 124–125 | Consolidated_Results_LSML_v2 | ✅ | 5-feat; 29/29 beat chance; HTML updated |
+| Step 126 | run_lsml_local.py | ✅ | −5.7pp fusion lift; feature sign instability diagnosed |
+| Step 127 | analyze_features.py | ✅ | Cluster structure mapped; trace_length suppression confirmed |
+| Step 128 | verify_lsml_paper.py | ✅ | Implementation correct; K_range bug confirmed + fixed |
+| Step 129 | experiment/lsml-variants | ✅ | Continuous L-SML: +3.53pp, 25/29 wins — pending merge |
+| Step 130 | model_utils + feature_utils | ✅ | Spilled Energy implemented; verification notebook created |
+| Step 131 | SpilledEnergy_Verify.ipynb | ⏳ | **NEXT — needs Colab GPU run** |
+
+---
+
+## Best results (reference, do not use Step 100 supervised numbers)
+
+| Setup | L-SML AUC | Notes |
+|-------|-----------|-------|
+| MATH-500 / Qwen-7B / T=1.0 | **90.0%** | spectral features work on long reasoning |
+| MATH-500 / Qwen-1.5B / T=1.5 | 88.3% | |
+| GSM8K / Llama-3.1-8B | 76.0% | vs LapEigvals unsupervised 72.0% |
+| GPQA / Mistral-7B / T=1.0 | 65.4% | Phase 4 best — beaten by 72B (Phase 8) |
+| HotpotQA / Mistral-7B | 59.5% | spectral doesn't transfer to multi-hop QA |
 
 ---
 
@@ -115,17 +209,21 @@ FEATURE_SIGNS = {
 ## Key decisions (permanent — do not revisit)
 
 1. No old supervised numbers — Step 100 historical only.
-2. L-SML pipeline = `binarize_classifiers(FEATURE_SIGNS)` → filter `GOOD_FEATURES` → `lsml_fuse`.
+2. GOOD_FEATURES = `['epr', 'low_band_power', 'sw_var_peak', 'cusum_max', 'spectral_entropy']` — final 5.
 3. Median binarization only — quantile calibration dropped (null result).
-4. GOOD_FEATURES = 5 features listed above — final, do not change.
-5. HTML table: per domain, per model, same-task/same-model/same-dataset only.
-6. Cite Jaffé-Fetaya-Nadler 2016. Do not use the term "Nadler" alone.
-7. Branch cleanup done — only `master` and `origin/main` remain.
+4. HTML table: per domain, per model, same-task/same-model/same-dataset only.
+5. Cite Jaffé-Fetaya-Nadler 2016. Never say "Nadler" alone. Method name = L-SML.
+6. Never say "MV_EPR" — the method is spectral/L-SML.
+7. Branch cleanup done — only `master`, `origin/main`, and `experiment/lsml-variants` remain.
+8. Hedging count: ruled out — not formalized, domain-dependent, weaker than spectral. Do not implement.
+9. Continuous L-SML (`lsml_continuous_pipeline`) is the candidate replacement for binarized pipeline — pending Step 131 validation before merge.
+10. Spilled Energy signs are **initial estimates** — `min_spilled=+1` may need correction after Step 131 Cell 14.
 
 ---
 
 ## Deferred
 
 - Phase 10 RAG re-run with variant=4 prompt — still pending, low priority
-- Feature direction constants baked into `feature_utils.py` — nice cleanup, not urgent
-- Local cluster diagnostic: `python scripts/analyze_features.py --features all` — CPU-only, reads `local_cache/`, outputs PNGs to same dir
+- LapEigvals integration into spectral_utils — potential Group D feature for M=12 design, low priority
+- M=9 orthogonal feature set experiment — contingent on Step 131 confirming ΔE orthogonality
+- Local cluster diagnostic: `python scripts/analyze_features.py --features all` — CPU-only, reads `local_cache/`
