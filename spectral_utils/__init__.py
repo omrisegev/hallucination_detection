@@ -34,7 +34,7 @@ from .feature_utils import (
     FEAT_NAMES,
 )
 from .data_loaders import (
-    load_gsm8k, gsm8k_prompt, is_correct_gsm8k, normalize_gsm8k,
+    load_gsm8k, gsm8k_prompt, gsm8k_prompt_with_conf, is_correct_gsm8k, normalize_gsm8k,
     extract_gold_gsm8k, extract_model_answer_gsm8k,
     load_math500, math_prompt, is_correct_math,
     load_amc23, amc23_prompt, is_correct_amc23,
@@ -87,7 +87,7 @@ __all__ = [
     "compute_spectral_features", "compute_stft_features", "compute_time_domain",
     "extract_all_features", "sw_var_peak_with_window", "sw_var_peak_adaptive",
     "compute_edis", "compute_spilled_energy_features", "segment_by_citations", "FEAT_NAMES",
-    "load_gsm8k", "gsm8k_prompt", "is_correct_gsm8k", "normalize_gsm8k",
+    "load_gsm8k", "gsm8k_prompt", "gsm8k_prompt_with_conf", "is_correct_gsm8k", "normalize_gsm8k",
     "extract_gold_gsm8k", "extract_model_answer_gsm8k",
     "load_math500", "math_prompt", "is_correct_math",
     "load_amc23", "amc23_prompt", "is_correct_amc23",

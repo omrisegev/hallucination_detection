@@ -41,10 +41,27 @@ def load_gsm8k(split: str = "test") -> list[dict]:
 
 
 def gsm8k_prompt(question) -> str:
-    """Format a GSM8K question using the LapEigvals Listing 5 prompt template."""
+    """Format a GSM8K question asking for \\boxed{} answer (matches Qwen-Math output format)."""
     if isinstance(question, dict):
         question = question.get("question", "")
-    return _LAPEI_PROMPT.format(question=question)
+    return (
+        "Solve the following problem. "
+        "Show all your work step by step, then give your final answer in \\boxed{}.\n\n"
+        "Problem: " + question
+    )
+
+
+def gsm8k_prompt_with_conf(question) -> str:
+    """GSM8K prompt that asks for answer + confidence in one generation pass."""
+    if isinstance(question, dict):
+        question = question.get("question", "")
+    return (
+        "Solve the following problem. "
+        "Show all your work step by step, then give your final answer in \\boxed{}. "
+        "After the boxed answer, on a new line write exactly: "
+        "Confidence: X  (where X is an integer 0-100 reflecting how sure you are).\n\n"
+        "Problem: " + question
+    )
 
 
 def extract_gold_gsm8k(answer_field: str) -> str:
@@ -82,10 +99,24 @@ def normalize_gsm8k(s) -> float | str | None:
 
 
 def is_correct_gsm8k(gen: str, gold_answer) -> bool:
-    """Exact-match grading for GSM8K (numeric comparison with 1e-6 tolerance)."""
+    """Exact-match grading for GSM8K. Tries \\boxed{} first (Qwen-Math style),
+    then falls back to 'The final answer is [X]' (LapEigvals style)."""
     if isinstance(gold_answer, dict):
         gold_answer = gold_answer.get("answer", "")
-    gold_norm  = normalize_gsm8k(extract_gold_gsm8k(gold_answer))
+    gold_norm = normalize_gsm8k(extract_gold_gsm8k(gold_answer))
+
+    # Primary: boxed answer (Qwen-Math and most modern math models)
+    m = re.search(r"\\boxed\{([^}]*)\}", gen)
+    if m:
+        model_norm = normalize_gsm8k(re.sub(r"[^\d\.\-\/]", "", m.group(1).replace(",", "")))
+        if model_norm is not None:
+            if isinstance(gold_norm, float) and isinstance(model_norm, float):
+                if abs(gold_norm - model_norm) < 1e-6:
+                    return True
+            elif str(gold_norm) == str(model_norm):
+                return True
+
+    # Fallback: "The final answer is [X]" (LapEigvals / older prompt format)
     model_norm = normalize_gsm8k(extract_model_answer_gsm8k(gen))
     if model_norm is None:
         return False

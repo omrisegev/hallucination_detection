@@ -72,15 +72,15 @@ ENTROPY_FEATURES = [
     'cusum_max', 'cusum_shift_idx',
 ]
 SPILLED_FEATURES  = ['epr_spilled', 'sw_var_peak_spilled', 'cusum_max_spilled', 'min_spilled']
-SEMANTIC_FEATURES = ['verb_conf']   # verbalized confidence — the regex-extracted signal
-ALL_21_FEATURES   = ENTROPY_FEATURES + SPILLED_FEATURES + SEMANTIC_FEATURES
+SEMANTIC_FEATURES = ['verb_conf', 'verb_conf_1p']  # 2-pass and 1-pass verbalized confidence
+ALL_22_FEATURES   = ENTROPY_FEATURES + SPILLED_FEATURES + SEMANTIC_FEATURES
 
 # GOOD_FEATURES: updated from MATH-500 oracle (STFT freq-band features dominate)
 # + verb_conf as the orthogonal semantic anchor
 GOOD_FEATURES = ['high_band_power', 'hl_ratio', 'rpdi', 'cusum_max', 'epr', 'verb_conf']
 
 # Signs from MATH-500 oracle (same model). Re-validated in Cell 9.
-# verb_conf: higher = more confident = more likely correct -> +1
+# verb_conf / verb_conf_1p: higher = more confident = more likely correct -> +1
 FEATURE_SIGNS = {
     'epr': -1, 'trace_length': -1, 'spectral_entropy': +1,
     'low_band_power': -1, 'high_band_power': +1, 'hl_ratio': +1,
@@ -91,7 +91,8 @@ FEATURE_SIGNS = {
     'cusum_max': -1, 'cusum_shift_idx': -1,
     'epr_spilled': -1, 'sw_var_peak_spilled': -1,
     'cusum_max_spilled': -1, 'min_spilled': -1,
-    'verb_conf': +1,  # higher stated confidence -> more likely correct
+    'verb_conf':    +1,  # 2-pass: higher stated confidence -> more likely correct
+    'verb_conf_1p': +1,  # 1-pass: same semantics
 }
 
 print(f'Config: {MODEL_SHORT} / {DATASET} / n={N_SAMPLES} / max_new={MAX_NEW_TOKENS}')
@@ -156,6 +157,47 @@ valid_vc    = vc_vals_raw[~np.isnan(vc_vals_raw)]
 print(f'Verbalized confidence valid: {len(valid_vc)}/{N_SAMPLES}  mean={valid_vc.mean():.2f}')"""))
 
 cells.append(code("""\
+# Cell 5c — Single-prompt verbalized confidence (1-pass comparison)
+# Uses gsm8k_prompt_with_conf: confidence baked into the original prompt.
+# The model generates answer + "Confidence: X" in one shot.
+# We only extract verb_conf_1p here; spectral features still come from Cell 5.
+from spectral_utils import gsm8k_prompt_with_conf
+
+INF1P_PATH  = os.path.join(CACHE_DIR, f'inference_1p_{MODEL_SHORT}_{DATASET}_n{N_SAMPLES}.pkl')
+FORCE_1P    = False
+
+if not FORCE_1P and os.path.exists(INF1P_PATH):
+    with open(INF1P_PATH, 'rb') as f: cache_1p = pickle.load(f)
+    print(f'Loaded {len(cache_1p)} 1-pass results from {INF1P_PATH}')
+else:
+    full_ds  = load_gsm8k()
+    dataset  = full_ds[:N_SAMPLES]
+    cache_1p = {}
+    for i, row in enumerate(dataset):
+        if i in cache_1p: continue
+        prompt_1p = gsm8k_prompt_with_conf(row)
+        result_1p = generate_full(mdl, tok, prompt_1p, temperature=TEMP, max_new_tokens=MAX_NEW_TOKENS)
+        cache_1p[i] = {
+            'full_text':  result_1p['full_text'],
+            'verb_conf_1p': parse_verbalized_confidence(result_1p['full_text']),
+            'correct':    is_correct_gsm8k(result_1p['full_text'], row),
+        }
+        if (i + 1) % 25 == 0:
+            with open(INF1P_PATH, 'wb') as f: pickle.dump(cache_1p, f)
+            n_vc = sum(1 for v in cache_1p.values() if v['verb_conf_1p'] == v['verb_conf_1p'])
+            print(f'[{i+1}/{N_SAMPLES}] saved | vc_valid={n_vc}/{i+1}')
+    with open(INF1P_PATH, 'wb') as f: pickle.dump(cache_1p, f)
+    print(f'Done: {N_SAMPLES} 1-pass results')
+
+vc1p_raw  = np.array([cache_1p[i]['verb_conf_1p'] for i in range(len(cache_1p))])
+valid_1p  = vc1p_raw[~np.isnan(vc1p_raw)]
+print(f'verb_conf_1p valid: {len(valid_1p)}/{N_SAMPLES}  mean={valid_1p.mean():.2f}')
+print()
+print('Prompt comparison:')
+print('  2-pass (verb_conf):   answer generated first, then asked for confidence')
+print('  1-pass (verb_conf_1p): confidence requested in the same prompt as the answer')"""))
+
+cells.append(code("""\
 # Cell 6 — Unload model
 del mdl, tok
 free_memory()
@@ -217,16 +259,19 @@ for fname in ENTROPY_FEATURES + SPILLED_FEATURES:
     if all(v is not None for v in vals):
         feats_dict[fname] = np.array(vals, dtype=float)
 
-# Add verbalized confidence aligned to valid_idx (stored in inference_cache[i]['verb_conf'])
-vc_aligned = np.array([inference_cache[i].get('verb_conf', float('nan')) for i in valid_idx])
-vc_valid   = ~np.isnan(vc_aligned)
-if vc_valid.sum() >= 10:
-    feats_dict['verb_conf'] = vc_aligned  # NaN-safe; boot_auc handles NaN rows
-    print(f'verb_conf added: {vc_valid.sum()}/{len(vc_aligned)} valid scores')
-else:
-    print(f'WARNING: only {vc_valid.sum()} valid verb_conf scores — skipping semantic feature')
+# Add verbalized confidence (both variants) aligned to valid_idx
+vc_aligned   = np.array([inference_cache[i].get('verb_conf',    float('nan')) for i in valid_idx])
+vc1p_aligned = np.array([cache_1p[i].get('verb_conf_1p', float('nan'))        for i in valid_idx])
 
-avail_feats = [f for f in ALL_21_FEATURES if f in feats_dict]
+for fname, arr in [('verb_conf', vc_aligned), ('verb_conf_1p', vc1p_aligned)]:
+    n_valid = (~np.isnan(arr)).sum()
+    if n_valid >= 10:
+        feats_dict[fname] = arr
+        print(f'{fname} added: {n_valid}/{len(arr)} valid scores')
+    else:
+        print(f'WARNING: only {n_valid} valid {fname} scores — skipping')
+
+avail_feats = [f for f in ALL_22_FEATURES if f in feats_dict]
 print(f'n={len(labels)} | correct={labels.sum()} | acc={labels.mean():.1%}')
 print(f'Available features: {avail_feats}')"""))
 
@@ -425,95 +470,113 @@ best_ind_feat = next(r['feature'] for r in sorted(auc_rows, key=lambda x:-x['auc
 results_table = []
 results_table.append(('Best individual spectral', best_ind_auc, f'feat={best_ind_feat}'))
 
-# Verbalized confidence alone
+# Verbalized confidence — both variants, standalone
+for vc_name, vc_label in [('verb_conf', 'VC 2-pass (answer then ask)'),
+                           ('verb_conf_1p', 'VC 1-pass (baked into prompt)')]:
+    if vc_name in feats_dict:
+        a = safe_auc(FEATURE_SIGNS[vc_name] * feats_dict[vc_name], labels)
+        results_table.append((vc_label, a, 'semantic — standalone'))
+
+# L-SML GOOD_5 (no VC)
+spectral_good = [f for f in GOOD_FEATURES if f not in SEMANTIC_FEATURES and f in feats_dict]
+sc5, m5       = lsml_continuous_pipeline(feats_dict, spectral_good, FEATURE_SIGNS)
+a_lsml5       = safe_auc(sc5, labels)
+results_table.append(('L-SML GOOD_5 (no VC)', a_lsml5, f'K={m5["K"]}'))
+
+# L-SML GOOD_5 + verb_conf 2-pass
 if 'verb_conf' in feats_dict:
-    a_vc = safe_auc(FEATURE_SIGNS['verb_conf'] * feats_dict['verb_conf'], labels)
-    results_table.append(('Verbalized confidence (alone)', a_vc, 'semantic'))
+    sc_2p, m_2p = lsml_continuous_pipeline(feats_dict, spectral_good + ['verb_conf'], FEATURE_SIGNS)
+    a_2p        = safe_auc(sc_2p, labels)
+    results_table.append(('L-SML GOOD_5 + VC 2-pass', a_2p, f'K={m_2p["K"]}'))
+else:
+    a_2p = float('nan')
 
-# Avg GOOD_5 (no verb_conf)
-g5      = [f for f in GOOD_FEATURES if f in feats_dict and f not in SEMANTIC_FEATURES]
-g5_views = [FEATURE_SIGNS.get(f,-1)*zscore(feats_dict[f]) for f in g5]
-a_avg5  = safe_auc(np.mean(np.column_stack(g5_views), axis=1), labels)
-results_table.append(('Avg GOOD_5 (no verb_conf)', a_avg5, f'M={len(g5)}'))
+# L-SML GOOD_5 + verb_conf_1p 1-pass
+if 'verb_conf_1p' in feats_dict:
+    sc_1p, m_1p = lsml_continuous_pipeline(feats_dict, spectral_good + ['verb_conf_1p'], FEATURE_SIGNS)
+    a_1p        = safe_auc(sc_1p, labels)
+    results_table.append(('L-SML GOOD_5 + VC 1-pass', a_1p, f'K={m_1p["K"]}'))
+else:
+    a_1p = float('nan')
 
-# L-SML GOOD_5 (no verb_conf)
-sc5, m5 = lsml_continuous_pipeline(feats_dict, [f for f in GOOD_FEATURES if f not in SEMANTIC_FEATURES], FEATURE_SIGNS)
-a_lsml5 = safe_auc(sc5, labels)
-results_table.append((f'L-SML GOOD_5 (no VC)', a_lsml5, f'K={m5["K"]}'))
-
-# L-SML GOOD_5 + verb_conf (6 features)
-good_plus_vc = [f for f in GOOD_FEATURES if f in feats_dict]  # includes verb_conf
-sc_vc, m_vc  = lsml_continuous_pipeline(feats_dict, good_plus_vc, FEATURE_SIGNS)
-a_vc_fuse    = safe_auc(sc_vc, labels)
-results_table.append((f'L-SML GOOD_5 + verb_conf', a_vc_fuse, f'K={m_vc["K"]}'))
-
-# L-SML all-20 (no verb_conf)
-sc20, m20   = lsml_continuous_pipeline(feats_dict, ENTROPY_FEATURES+SPILLED_FEATURES, FEATURE_SIGNS)
-a_all20     = safe_auc(sc20, labels)
+# L-SML all-20 spectral only
+sc20, m20 = lsml_continuous_pipeline(feats_dict, ENTROPY_FEATURES + SPILLED_FEATURES, FEATURE_SIGNS)
+a_all20   = safe_auc(sc20, labels)
 results_table.append(('L-SML all-20 spectral', a_all20, f'K={m20["K"]}'))
 
-# L-SML all-21 (all-20 + verb_conf)
-sc21, m21   = lsml_continuous_pipeline(feats_dict, avail_feats, FEATURE_SIGNS)
-a_all21     = safe_auc(sc21, labels)
-results_table.append(('L-SML all-21 (spectral+VC)', a_all21, f'K={m21["K"]}'))
+# L-SML all-22 (all spectral + both VCs)
+sc22, m22 = lsml_continuous_pipeline(feats_dict, avail_feats, FEATURE_SIGNS)
+a_all22   = safe_auc(sc22, labels)
+results_table.append(('L-SML all-22 (spectral+both VC)', a_all22, f'K={m22["K"]}'))
 
 print('=== Pipeline Comparison ===')
-print(f'{"Pipeline":<40} {"AUROC":>8} {"vs best-ind":>12}  Notes')
-print('-' * 76)
+print(f'{"Pipeline":<42} {"AUROC":>8} {"vs best-ind":>12}  Notes')
+print('-' * 78)
 for name, auc, note in results_table:
-    if auc != auc: delta = '     NaN'
-    else: delta = f'{(auc - best_ind_auc)*100:+.2f}pp'
-    print(f'{name:<40} {auc:>8.3f} {delta:>12}  {note}')
+    delta = '     NaN' if auc != auc else f'{(auc - best_ind_auc)*100:+.2f}pp'
+    print(f'{name:<42} {auc:>8.3f} {delta:>12}  {note}')
 
 print()
-print(f'Key: does verb_conf help L-SML?  GOOD_5 vs GOOD_5+VC: {(a_vc_fuse - a_lsml5)*100:+.2f}pp')
-print(f'Key: does verb_conf help all-20? all-20 vs all-21:    {(a_all21 - a_all20)*100:+.2f}pp')"""))
+print(f'Key: 2-pass vs 1-pass VC lift over GOOD_5: {(a_2p-a_lsml5)*100:+.2f}pp  vs  {(a_1p-a_lsml5)*100:+.2f}pp')
+print(f'Key: does prompt style matter? 2-pass vs 1-pass standalone: see above')"""))
 
 cells.append(md("""---
-## Section 6: Verbalized Confidence Analysis
+## Section 6: Verbalized Confidence — 2-pass vs 1-pass Comparison
 
-- **VERBALIZED_CONF_SUFFIX**: "On a scale from 0 to 100, how confident are you that your previous answer is correct? Answer with a single integer only."
-- Extracted via `parse_verbalized_confidence()` using regex `\\b([0-9]{1,3})\\b`
-- Higher = model says more confident = less likely hallucinated"""))
+| Variant | How | Prompt |
+|---|---|---|
+| `verb_conf` (2-pass) | Generate answer → ask "how confident 0-100?" | 2 separate prompts |
+| `verb_conf_1p` (1-pass) | Bake confidence request into original prompt | 1 prompt, answer + confidence in one generation |
+
+Both extracted via `parse_verbalized_confidence()` using regex `\\b([0-9]{1,3})\\b`.
+**Question**: does knowing upfront that you'll be asked for confidence change the score?"""))
 
 cells.append(code("""\
 # Cell 14 — Verbalized confidence calibration + correlation with spectral
 from scipy.stats import pearsonr
 
-vc_arr  = feats_dict.get('verb_conf', np.full(len(labels), float('nan')))  # already in feats_dict from Cell 8
-vc_mask = ~np.isnan(vc_arr)
-vc_vals = vc_arr[vc_mask]; lbl_vc = labels[vc_mask]
+print('=== Verbalized Confidence: 2-pass vs 1-pass ===')
+for vc_name, label in [('verb_conf', '2-pass'), ('verb_conf_1p', '1-pass')]:
+    arr  = feats_dict.get(vc_name, np.full(len(labels), float('nan')))
+    mask = ~np.isnan(arr)
+    if mask.sum() < 10:
+        print(f'{label}: only {mask.sum()} valid — skip'); continue
+    vals   = arr[mask]; lbl_v = labels[mask]
+    a      = max(roc_auc_score(lbl_v, vals), roc_auc_score(lbl_v, -vals))
+    gap    = vals[lbl_v==1].mean() - vals[lbl_v==0].mean()
+    print(f'{label} ({vc_name}): AUROC={a:.3f}  mean_correct={vals[lbl_v==1].mean():.2f}  mean_wrong={vals[lbl_v==0].mean():.2f}  gap={gap:+.2f}')
 
-print(f'Valid VC scores: {vc_mask.sum()}/{len(vc_arr)}')
-if vc_mask.sum() >= 10:
-    from sklearn.metrics import roc_auc_score
-    a_vc_raw = roc_auc_score(lbl_vc, vc_vals)
-    print(f'AUROC (verb_conf): {max(a_vc_raw, 1-a_vc_raw):.3f}')
-    print(f'Mean conf | correct: {vc_vals[lbl_vc==1].mean():.2f}  wrong: {vc_vals[lbl_vc==0].mean():.2f}  gap: {vc_vals[lbl_vc==1].mean()-vc_vals[lbl_vc==0].mean():+.2f}')
+# Correlation between the two variants
+if 'verb_conf' in feats_dict and 'verb_conf_1p' in feats_dict:
+    both_mask = ~np.isnan(feats_dict['verb_conf']) & ~np.isnan(feats_dict['verb_conf_1p'])
+    r_12, p_12 = pearsonr(feats_dict['verb_conf'][both_mask], feats_dict['verb_conf_1p'][both_mask])
+    print(f'\\nPearson corr(verb_conf, verb_conf_1p) = {r_12:.3f}  p={p_12:.3f}')
+    print(f'  -> {"virtually identical" if abs(r_12)>0.9 else "different signal" if abs(r_12)<0.5 else "similar but distinct"}')
 
-    for fname in ['high_band_power', 'epr', 'cusum_max']:
-        if fname not in feats_dict: continue
-        spec = FEATURE_SIGNS[fname] * feats_dict[fname]
-        r, p = pearsonr(vc_vals, spec[vc_mask])
-        print(f'  corr(verb_conf, {fname}): r={r:.3f}  p={p:.3f}')
+# Plot: side-by-side histogram comparison
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+for ax, vc_name, title in zip(axes[:2],
+        ['verb_conf', 'verb_conf_1p'],
+        ['2-pass (answer → ask conf)', '1-pass (conf baked in prompt)']):
+    arr  = feats_dict.get(vc_name, np.full(len(labels), float('nan')))
+    mask = ~np.isnan(arr)
+    if mask.sum() < 10: ax.set_title(f'{title}\\n(no data)'); continue
+    vals = arr[mask]; lbl_v = labels[mask]
+    ax.hist(vals[lbl_v==1], bins=20, alpha=0.6, color='green', label='correct', density=True)
+    ax.hist(vals[lbl_v==0], bins=20, alpha=0.6, color='red',   label='wrong',   density=True)
+    ax.set_xlabel('Confidence (0-1)'); ax.set_title(title); ax.legend()
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-    ax = axes[0]
-    ax.hist(vc_vals[lbl_vc==1], bins=20, alpha=0.6, color='green', label='correct', density=True)
-    ax.hist(vc_vals[lbl_vc==0], bins=20, alpha=0.6, color='red',   label='wrong',   density=True)
-    ax.set_xlabel('Verbalized confidence (0-1)'); ax.set_ylabel('density')
-    ax.set_title(f'Verbalized Confidence\\n{MODEL_SHORT}/{DATASET}'); ax.legend()
-
-    ax2 = axes[1]
-    if 'high_band_power' in feats_dict:
-        spec = FEATURE_SIGNS['high_band_power']*zscore(feats_dict['high_band_power'])
-        ax2.scatter(spec[vc_mask][lbl_vc==1], vc_vals[lbl_vc==1], alpha=0.4, s=20, c='green', label='correct')
-        ax2.scatter(spec[vc_mask][lbl_vc==0], vc_vals[lbl_vc==0], alpha=0.4, s=20, c='red',   label='wrong')
-        ax2.set_xlabel('high_band_power (z-score)'); ax2.set_ylabel('Verbalized confidence')
-        ax2.set_title('Spectral vs Semantic signal'); ax2.legend()
-    plt.tight_layout()
-    plt.savefig(os.path.join(RES_DIR, f'verb_conf_{MODEL_SHORT}_{DATASET}.png'), dpi=120)
-    plt.show()"""))
+# Scatter: 2-pass vs 1-pass
+ax3 = axes[2]
+if 'verb_conf' in feats_dict and 'verb_conf_1p' in feats_dict:
+    bm = ~np.isnan(feats_dict['verb_conf']) & ~np.isnan(feats_dict['verb_conf_1p'])
+    ax3.scatter(feats_dict['verb_conf'][bm & (labels==1)],   feats_dict['verb_conf_1p'][bm & (labels==1)],   alpha=0.4, s=20, c='green', label='correct')
+    ax3.scatter(feats_dict['verb_conf'][bm & (labels==0)],   feats_dict['verb_conf_1p'][bm & (labels==0)],   alpha=0.4, s=20, c='red',   label='wrong')
+    ax3.set_xlabel('verb_conf (2-pass)'); ax3.set_ylabel('verb_conf_1p (1-pass)')
+    ax3.set_title(f'2-pass vs 1-pass\\nr={r_12:.3f}'); ax3.legend()
+plt.tight_layout()
+plt.savefig(os.path.join(RES_DIR, f'verb_conf_compare_{MODEL_SHORT}_{DATASET}.png'), dpi=120)
+plt.show()"""))
 
 cells.append(code("""\
 # Cell 15 — H vs ΔE scatter + cross-dataset summary
