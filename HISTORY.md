@@ -4350,3 +4350,37 @@ Initial signs: `epr_spilled=-1`, `sw_var_peak_spilled=-1`, `cusum_max_spilled=-1
 - `Spectral_Analysis_SpilledEnergy_Verify.ipynb` — new verification notebook (17 cells)
 
 ---
+
+### Step 131 — GSM8K cross-dataset verification + verbalized confidence null result
+
+**What**: Created and ran `Spectral_Analysis_GSM8K_SpilledEnergy_Verify.ipynb` — a cross-dataset verification of spilled energy features on GSM8K (shorter, easier math traces), with verbalized confidence (1-pass and 2-pass variants) tested as a zero-extra-compute semantic feature alongside H(n)/ΔE(n). Also fixed a parser bug in `parse_verbalized_confidence`.
+
+**Why**: MATH-500 verification (Step 131 in original plan) requires new GPU inference. GSM8K inference was already cached, allowing a fast cross-dataset check. Verbalized confidence was proposed as an orthogonal semantic signal extractable from existing cached `full_text` with no new model calls.
+
+**Spilled energy — confirmed cross-dataset**:
+- Best individual feature: `cusum_max_spilled` = 0.725 (vs `high_band_power` = 0.738 on MATH-500)
+- corr(epr_H, epr_ΔE) = 0.984 (MATH-500: 0.989) — consistent redundancy between H and ΔE on both datasets
+- Best pipeline: L-SML GOOD_5 (no VC) = 0.708 on GSM8K
+
+**Structural difference between datasets**:
+- within_H / cross ratio: MATH-500 = 0.04, GSM8K = **0.99**
+- On MATH-500 long traces, H features are nearly uncorrelated with each other relative to their H–ΔE cross-correlation — multiple near-independent views, ideal for L-SML
+- On GSM8K short traces, H features are as inter-correlated with each other as they are with ΔE — fewer truly independent views, L-SML gains less over best individual feature
+
+**Verbalized confidence — null result on 1.5B**:
+- 2-pass: 0/200 valid responses — Qwen2.5-Math-1.5B ignores the follow-up confidence question entirely
+- 1-pass (`gsm8k_prompt_with_conf`, "Confidence: X" baked into prompt): `label_match=NONE` for all 200 samples — model never outputs the label. Parser fallback captures last integer = final answer magnitude (not stated confidence). AUROC = 0.568, mean_correct=0.30, mean_wrong=0.23, gap=+0.06. Adding VC to L-SML HURTS (−1.77pp) because it groups with `min_spilled` and loses orthogonality.
+- Conclusion: verbalized confidence is model-size-gated. Qwen2.5-Math-1.5B lacks the instruction-following to produce structured output. Expected to work on 7B+; untested.
+
+**Parser fix** (`parse_verbalized_confidence`):
+- Old: first integer in [0, 100] → grabbed small math step numbers (~0.04 mean), wrong direction
+- New: (1) explicit `Confidence:\s*X` label match, (2) last integer in [0, 100] fallback — confidence is always at the end of the response, math numbers come first
+
+**Files changed** (branch `experiment/lsml-variants`, commit `f4bc5e8`):
+- `spectral_utils/baselines.py` — `parse_verbalized_confidence` label-first + last-int fallback
+- `spectral_utils/data_loaders.py` — `gsm8k_prompt_with_conf()` added
+- `spectral_utils/__init__.py` — exports `gsm8k_prompt_with_conf`
+- `_build_gsm8k_nb.py` — build script for the GSM8K notebook (includes `FORCE_REPARSE` for cache-only re-parse)
+- `Spectral_Analysis_GSM8K_SpilledEnergy_Verify.ipynb` — 24-cell notebook, fully run, results saved to Drive
+
+---
