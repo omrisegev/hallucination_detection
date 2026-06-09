@@ -413,20 +413,38 @@ VERBALIZED_CONF_SUFFIX = (
     "your previous answer is correct? Answer with a single integer only."
 )
 
-_CONF_RE = re.compile(r"\b([0-9]{1,3})\b")
+_CONF_LABEL_RE = re.compile(r"[Cc]onfidence\s*:?\s*(\d{1,3})\b")
+_CONF_ANY_RE   = re.compile(r"\b([0-9]{1,3})\b")
 
 
 def parse_verbalized_confidence(text: str) -> float:
     """
     Extract confidence score (0-100) from model text output.
 
-    Scans for the first standalone integer in [0, 100].
+    Strategy (in order):
+    1. Look for explicit label "Confidence: X" (handles 1-pass where the
+       response contains math numbers before the confidence line).
+    2. Fall back to the LAST standalone integer in [0, 100] — confidence
+       is always at the end of the response, math numbers come first.
+    3. Return NaN if nothing found.
+
     Returns value / 100.0 so the result is in [0, 1].
     Higher = more confident = less likely hallucinated.
-    Returns NaN if no integer found.
     """
-    for m in _CONF_RE.finditer(text):
+    # 1. Explicit label match
+    m = _CONF_LABEL_RE.search(text)
+    if m:
         v = int(m.group(1))
         if 0 <= v <= 100:
             return v / 100.0
+
+    # 2. Last integer in [0, 100]
+    last_val = None
+    for m in _CONF_ANY_RE.finditer(text):
+        v = int(m.group(1))
+        if 0 <= v <= 100:
+            last_val = v
+    if last_val is not None:
+        return last_val / 100.0
+
     return float("nan")

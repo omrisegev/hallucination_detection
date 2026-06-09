@@ -161,14 +161,34 @@ cells.append(code("""\
 # Uses gsm8k_prompt_with_conf: confidence baked into the original prompt.
 # The model generates answer + "Confidence: X" in one shot.
 # We only extract verb_conf_1p here; spectral features still come from Cell 5.
+#
+# FORCE_REPARSE=True: re-parse verb_conf_1p from stored full_text without
+# re-running inference. Use after any change to parse_verbalized_confidence.
 from spectral_utils import gsm8k_prompt_with_conf
 
-INF1P_PATH  = os.path.join(CACHE_DIR, f'inference_1p_{MODEL_SHORT}_{DATASET}_n{N_SAMPLES}.pkl')
-FORCE_1P    = False
+INF1P_PATH    = os.path.join(CACHE_DIR, f'inference_1p_{MODEL_SHORT}_{DATASET}_n{N_SAMPLES}.pkl')
+FORCE_1P      = False
+FORCE_REPARSE = True   # safe to leave True; only updates the parsed field, never re-infers
 
 if not FORCE_1P and os.path.exists(INF1P_PATH):
     with open(INF1P_PATH, 'rb') as f: cache_1p = pickle.load(f)
     print(f'Loaded {len(cache_1p)} 1-pass results from {INF1P_PATH}')
+    if FORCE_REPARSE:
+        n_updated = 0
+        for entry in cache_1p.values():
+            if 'full_text' in entry:
+                entry['verb_conf_1p'] = parse_verbalized_confidence(entry['full_text'])
+                n_updated += 1
+        with open(INF1P_PATH, 'wb') as f: pickle.dump(cache_1p, f)
+        print(f'Re-parsed {n_updated} entries from full_text (FORCE_REPARSE=True)')
+        # Show 3 sample parses so we can confirm "Confidence: X" is being found
+        import re as _re
+        _label_re = _re.compile(r'[Cc]onfidence\\s*:?\\s*(\\d{1,3})')
+        for idx in list(cache_1p)[:3]:
+            e = cache_1p[idx]
+            snippet = e['full_text'][-120:].replace('\\n', ' ')
+            lm = _label_re.search(e['full_text'])
+            print(f'  [{idx}] vc={e["verb_conf_1p"]:.2f}  label_match={lm.group(0) if lm else "NONE"}  tail: ...{snippet}')
 else:
     full_ds  = load_gsm8k()
     dataset  = full_ds[:N_SAMPLES]
