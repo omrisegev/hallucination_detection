@@ -197,6 +197,41 @@ def ensure_flat_dir(repo_id, token=None):
 
 ---
 
+## Raw inference data — save everything, derive later
+
+**Rule**: save the richest raw form of each inference result to Drive. Never discard information during the inference loop that could be useful for any future feature or baseline.
+
+Per-sample pkl entry must include:
+
+| Key | Type | What it is |
+|-----|------|------------|
+| `full_text` | `str` | Generated answer string |
+| `token_entropies` | `list[float]` | H(n) — Shannon entropy per token (top-K=15) |
+| `token_spilled_energies` | `list[float]` | ΔE(n) = −log p(sampled token) per token |
+| `top_k_logprobs` | `list[list[tuple]]` | Top-50 `(token_id, log_prob)` pairs per token |
+| `gen_token_ids` | `list[int]` | Sampled token IDs (needed for ΔE and attention features) |
+| `label` | `int/bool` | Correctness label (graded at inference time) |
+| `question` | `str` | Original question text |
+
+**Why `top_k_logprobs`**: H(n) and ΔE(n) are derived quantities that fix K=15 and the sampled token at generation time. Saving top-50 logprobs lets you recompute entropy at any K, compute probability mass features, implement token-level confidence, or compute any future feature — without re-running the model. Storage cost: ~100 KB/sample at 500 tokens × 50 top entries.
+
+**`generate_full()` must be updated** to return `top_k_logprobs` and `gen_token_ids`. Until that is done, add the extraction inline in the notebook's inference loop:
+
+```python
+def extract_top_k_logprobs(scores, gen_ids, K=50):
+    import torch.nn.functional as F
+    result = []
+    for s, tid in zip(scores, gen_ids):
+        lp = F.log_softmax(s[0], dim=-1)
+        topk = torch.topk(lp, min(K, lp.shape[-1]))
+        result.append(list(zip(topk.indices.tolist(), topk.values.tolist())))
+    return result
+```
+
+Old cached pkls that only have `token_entropies` are still valid for H(n)-based features. The spilled energy and logprob features simply won't be available for those runs.
+
+---
+
 ## Analysis-result persistence (Colab `background_save` survival)
 
 Long-running analysis cells (Nadler subset search, length-controlled, PCA, SE baseline) MUST persist their output dict to disk. Colab's `background_save: true` lets the cell finish printing after a kernel disconnect, but in-memory variables (`NADLER_RES`, `LEN_RES`, `PCA_RES`) are gone. Downstream cells then `NameError`.
