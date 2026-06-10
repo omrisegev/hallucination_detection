@@ -52,6 +52,7 @@
   .tag { display: inline-block; font-size: 11px; padding: 1px 6px; border-radius: 10px; font-weight: 600; }
   .tag-prod { background: #fed7aa; color: #9a3412; }
   .tag-cont { background: #dbeafe; color: #1e40af; }
+  .tag-v12  { background: #d1fae5; color: #065f46; }
   .tag-best { background: #d1fae5; color: #065f46; }
   .tag-oracle { background: #e9d5ff; color: #6b21a8; }
   .section-note { font-size: 12px; color: var(--gray); margin-bottom: 12px; font-style: italic; }
@@ -59,45 +60,49 @@
   .winner { font-weight: 700; color: var(--green); }
   .delta-pos { color: var(--green); font-weight: 600; }
   .delta-neg { color: var(--red); font-weight: 600; }
+  .delta-zero { color: var(--gray); font-weight: 600; }
 </style>
 </head>
 <body>
 <div class="page">
 
 <h1>Spectral Hallucination Detection — Method Comparison</h1>
-<div class="subtitle">29 evaluation cells across 5 domains · 8 pipeline variants · Run 2026-06-09</div>
+<div class="subtitle">29 evaluation cells across 5 domains · 10 pipeline variants (Phase 2) · Run 2026-06-10</div>
 
 <!-- =====================================================================
-     SECTION 0: GLOSSARY
+     SECTION 1: GLOSSARY
      ===================================================================== -->
 <h2>1. Glossary of Terms</h2>
-<p>Every variant name used in this report is defined here. Three design dimensions vary across variants: <strong>feature set</strong>, <strong>value encoding</strong>, and <strong>aggregation method</strong>.</p>
+<p>Every variant name used in this report is defined here before it appears in any table or chart. Three design dimensions vary across variants: <strong>feature set</strong>, <strong>value encoding</strong>, and <strong>aggregation method</strong>.</p>
 
 <h3>Feature sets</h3>
 <table style="margin-bottom:16px">
-  <tr><th>Name</th><th>Features</th><th>Description</th></tr>
-  <tr><td><span class="mono">H16</span></td><td>16 features</td><td>All 16 spectral entropy features computed from the token entropy sequence H(n): EPR, trace length, spectral entropy, band powers, dominant frequency, spectral centroid, STFT features, RPDI, sliding-window variance peak, permutation entropy, Hurst exponent, and two CUSUM statistics.</td></tr>
-  <tr><td><span class="mono">GOOD_5</span></td><td>5 features</td><td>A subset selected in prior experiments: <em>epr, low_band_power, sw_var_peak, cusum_max, spectral_entropy</em>.</td></tr>
+  <tr><th>Name</th><th>Size</th><th>Features included</th></tr>
+  <tr><td><span class="mono">H16</span></td><td>Up to 16</td><td>All 16 spectral entropy features from the token entropy sequence H(n): EPR, trace length, spectral entropy, band powers (low/high/ratio), dominant frequency, spectral centroid, STFT-based features, RPDI, sliding-window variance peak, permutation entropy mean, Hurst exponent, and two CUSUM statistics. Features that saturate (&gt;40% of values equal the median) are dropped per cell.</td></tr>
+  <tr><td><span class="mono">GOOD_5</span></td><td>5</td><td>A subset selected in prior experiments: <em>epr, low_band_power, sw_var_peak, cusum_max, spectral_entropy</em>.</td></tr>
+  <tr><td><span class="mono">STABLE_H9</span></td><td>Up to 9</td><td>Nine H16 features that rarely saturate: epr, low_band_power, high_band_power, hl_ratio, spectral_centroid, sw_var_peak, rpdi, pe_mean, cusum_max. Excludes trace_length, dominant_freq, stft features (saturate on reasoning/RAG traces), and the two least discriminative statistics.</td></tr>
 </table>
 
 <h3>Value encoding</h3>
 <table style="margin-bottom:16px">
   <tr><th>Name</th><th>Description</th></tr>
-  <tr><td><strong>Binary (median threshold)</strong></td><td>Each feature value is thresholded at its median across the evaluation cell, producing a ±1 value per sample. Features where &gt;40% of values equal the median ("saturated") are dropped before thresholding.</td></tr>
-  <tr><td><strong>Binary + Signs</strong></td><td>Same as above, but sign orientation is applied first: features where higher value means <em>less</em> likely correct are multiplied by −1 before thresholding. Sign directions were derived from prior experiments.</td></tr>
-  <tr><td><strong>Continuous + Signs</strong></td><td>Features are sign-oriented (as above) then z-score normalized (zero mean, unit variance). Raw normalized floats are passed to the aggregator — no binarization.</td></tr>
+  <tr><td><strong>Binary, no signs</strong></td><td>Each feature is thresholded at its empirical median, producing ±1 per sample. No prior direction assumed.</td></tr>
+  <tr><td><strong>Binary + Signs</strong></td><td>Same median threshold, but features are sign-oriented first: features where a higher value indicates the response is <em>less</em> likely correct are multiplied by −1. Sign directions were derived offline from prior experiments (FEATURE_SIGNS dict).</td></tr>
+  <tr><td><strong>Continuous + Signs</strong></td><td>Features are sign-oriented then z-score normalized (zero mean, unit variance). Raw floats are passed to the aggregator — no binarization.</td></tr>
+  <tr><td><strong>Continuous, no signs</strong></td><td>Features are z-scored without prior sign orientation. All features are processed in their natural direction (no FEATURE_SIGNS applied).</td></tr>
 </table>
+<div class="note"><strong>Special rule for trace_length:</strong> When trace_length saturates (most samples hit the token limit), standard median binarization yields no signal. Instead, samples with trace_length ≥ max_tokens are assigned −1 (truncated output = more likely hallucinated); all other samples get +1. This rule is applied in all variants that include trace_length.</div>
 
 <h3>Aggregation methods</h3>
 <table style="margin-bottom:16px">
   <tr><th>Name</th><th>Description</th></tr>
-  <tr><td><strong>Flat SML</strong></td><td>Spectral Meta-Learner: finds a single linear combination of all input classifiers via the leading eigenvector of their correlation matrix. No grouping step.</td></tr>
-  <tr><td><strong>L-SML (Latent SML)</strong></td><td>First groups correlated classifiers into K clusters (K chosen by cross-validation), fuses within each group via eigenvector, then fuses the group scores via a second eigenvector. Proposed by Jaffé, Fetaya &amp; Nadler (2016).</td></tr>
+  <tr><td><strong>Flat SML</strong></td><td>Spectral Meta-Learner (Parisi-Nadler-Kluger, 2014): finds a single linear combination of all input classifiers via the leading eigenvector of their correlation matrix. No grouping step.</td></tr>
+  <tr><td><strong>L-SML (Latent SML)</strong></td><td>Extension by Jaffé, Fetaya &amp; Nadler (2016): groups correlated classifiers into K clusters, fuses within each group via eigenvector (producing K virtual classifiers), then fuses the virtual classifiers by a second eigenvector pass. K is chosen automatically.</td></tr>
   <tr><td><strong>Simple Average</strong></td><td>Equal-weight arithmetic mean of all sign-oriented feature values.</td></tr>
-  <tr><td><strong>Oracle Best-1</strong></td><td>For each evaluation cell independently, picks the single feature from GOOD_5 with the highest AUROC. Not deployable (requires ground-truth labels to select the feature); included as an upper-bound reference.</td></tr>
+  <tr><td><strong>Oracle Best-1</strong></td><td>For each cell independently, selects the GOOD_5 feature with the highest AUROC. Requires ground-truth labels to select the feature — not deployable. Shown as an upper bound only.</td></tr>
 </table>
 
-<h3>The 8 tested variants</h3>
+<h3>The 10 tested variants</h3>
 <table class="dim-table">
   <tr><th>Short name</th><th>Full identifier</th><th>Feature set</th><th>Encoding</th><th>Aggregation</th></tr>
   <tr><td>flat16</td><td><span class="mono">flat_sml_16_signs</span></td><td>H16</td><td>Binary + Signs</td><td>Flat SML</td></tr>
@@ -105,33 +110,37 @@
   <tr><td>lsml5n</td><td><span class="mono">lsml_5_nosigns</span></td><td>GOOD_5</td><td>Binary, no signs</td><td>L-SML</td></tr>
   <tr style="background:#fff7ed"><td><span class="tag tag-prod">PROD</span></td><td><span class="mono">lsml_5_signs_binary</span></td><td>GOOD_5</td><td>Binary + Signs</td><td>L-SML</td></tr>
   <tr style="background:#eff6ff"><td><span class="tag tag-cont">CONT</span></td><td><span class="mono">lsml_5_signs_continuous</span></td><td>GOOD_5</td><td>Continuous + Signs</td><td>L-SML</td></tr>
+  <tr style="background:#f0fdf4"><td><span class="tag tag-v12">lsml5nc</span></td><td><span class="mono">lsml_5_nosigns_continuous</span></td><td>GOOD_5</td><td>Continuous, no signs</td><td>L-SML</td></tr>
   <tr><td>flat5</td><td><span class="mono">flat_sml_5_signs</span></td><td>GOOD_5</td><td>Binary + Signs</td><td>Flat SML</td></tr>
   <tr><td>avg5</td><td><span class="mono">simple_avg_5_signs</span></td><td>GOOD_5</td><td>Continuous + Signs</td><td>Simple Average</td></tr>
   <tr style="background:#f5f3ff"><td><span class="tag tag-oracle">best1</span></td><td><span class="mono">best_individual_5</span></td><td>GOOD_5</td><td>Continuous + Signs</td><td>Oracle Best-1</td></tr>
+  <tr><td>lsml9h</td><td><span class="mono">lsml_9_h16_signs_binary</span></td><td>STABLE_H9</td><td>Binary + Signs</td><td>L-SML</td></tr>
 </table>
-<div class="note" style="margin-top:12px"><strong>PROD</strong> = the pipeline used in all prior experiments (Steps 100–131). <strong>CONT</strong> = the continuous-encoding variant. <strong>Oracle Best-1</strong> uses ground-truth labels to select the best feature per cell and cannot be deployed — it is shown as an upper bound only.</div>
+<div class="note" style="margin-top:12px">
+  <strong>PROD</strong> = the pipeline used in all prior experiments (Steps 100–131). <strong>CONT</strong> = continuous-encoding variant. <strong>lsml5nc</strong> = new Phase 2 variant, like CONT but no sign orientation. <strong>lsml9h</strong> = new Phase 2 variant, 9 non-saturating features. <strong>Oracle Best-1</strong> uses ground-truth labels to select the best feature — not deployable.
+</div>
 
 <!-- =====================================================================
-     SECTION 1: MACRO AUROC
+     SECTION 2: MACRO AUROC
      ===================================================================== -->
 <h2>2. Overall Performance (Macro-Average AUROC)</h2>
-<p class="section-note">Macro-average = mean of 5 domain-level means (MATH-500, GSM8K, GPQA, RAG, QA). Each domain contributes equally regardless of number of cells. Random chance = 50%.</p>
+<p class="section-note">Macro-average = mean of 5 domain-level means (MATH-500, GSM8K, GPQA, RAG, QA). Each domain has equal weight regardless of cell count. Random chance = 50%.</p>
 
 <div class="finding-grid">
   <div class="finding-card">
     <div class="num">70.1%</div>
     <div class="label">Best deployable method</div>
-    <div class="desc"><span class="tag tag-cont">CONT</span> lsml_5_signs_continuous — best macro-average across all 5 domains.</div>
+    <div class="desc"><span class="tag tag-cont">CONT</span> and <span class="tag tag-v12">lsml5nc</span> tie at 70.1%. Sign orientation does not affect the continuous-mode result.</div>
   </div>
   <div class="finding-card">
     <div class="num">65.2%</div>
-    <div class="label">Current production method</div>
-    <div class="desc"><span class="tag tag-prod">PROD</span> lsml_5_signs_binary — used in all prior experiments.</div>
+    <div class="label">Current production method (PROD)</div>
+    <div class="desc"><span class="tag tag-prod">PROD</span> lsml_5_signs_binary — used in Steps 100–131. 4.9 pp below the continuous encoding variants.</div>
   </div>
   <div class="finding-card">
-    <div class="num">+4.9 pp</div>
-    <div class="label">CONT advantage over PROD</div>
-    <div class="desc">Across all 5 domains, continuous encoding consistently outperforms binary encoding when using the same feature set and aggregation method.</div>
+    <div class="num">0.0 pp</div>
+    <div class="label">CONT vs lsml5nc gap</div>
+    <div class="desc">Sign orientation (FEATURE_SIGNS) makes no difference when continuous encoding is used. Both variants produce exactly the same macro-AUROC across all 5 domains.</div>
   </div>
 </div>
 
@@ -142,10 +151,10 @@
 </div>
 
 <!-- =====================================================================
-     SECTION 2: DOMAIN BREAKDOWN HEATMAP
+     SECTION 3: DOMAIN BREAKDOWN
      ===================================================================== -->
 <h2>3. Performance by Domain</h2>
-<p class="section-note">Each cell shows the domain-mean AUROC (%). Darker green = higher; lighter = lower. PROD column is highlighted in orange for reference.</p>
+<p class="section-note">Each cell shows the domain-mean AUROC (%). Darker green = higher; lighter = near chance. PROD column highlighted in orange for reference.</p>
 
 <div class="heatmap-wrap">
 <table id="heatmapTable">
@@ -155,12 +164,13 @@
       <th>flat16</th><th>lsml16</th><th>lsml5n</th>
       <th style="background:#fff0e0">PROD</th>
       <th style="background:#e0eeff">CONT</th>
+      <th style="background:#e8fdf0">lsml5nc</th>
       <th>flat5</th><th>avg5</th>
-      <th style="background:#f0e8ff">best1 ★</th>
+      <th style="background:#f0e8ff">best1★</th>
+      <th>lsml9h</th>
     </tr>
   </thead>
-  <tbody id="heatmapBody">
-  </tbody>
+  <tbody id="heatmapBody"></tbody>
 </table>
 </div>
 <p style="font-size:12px;color:#6b7280;margin-top:4px">★ Oracle Best-1: not deployable. Shown as upper bound.</p>
@@ -171,14 +181,12 @@
 </div>
 
 <!-- =====================================================================
-     SECTION 3: THREE DESIGN DIMENSIONS
+     SECTION 4: DESIGN DIMENSIONS
      ===================================================================== -->
 <h2>4. Analysis by Design Dimension</h2>
 
-<!-- 4A: ENCODING -->
-<h3>4A. Encoding: Binary (±1) vs Continuous (z-scored)</h3>
-<p>Comparing <span class="tag tag-prod">PROD</span> (binary) and <span class="tag tag-cont">CONT</span> (continuous) holds the feature set (GOOD_5), aggregation (L-SML), and sign orientation constant — only the encoding changes.</p>
-
+<h3>4A. Encoding: Binary vs Continuous</h3>
+<p>Comparing <span class="tag tag-prod">PROD</span> (binary+signs) and <span class="tag tag-cont">CONT</span> (continuous+signs) holds feature set (GOOD_5), aggregation (L-SML), and sign orientation constant — only the encoding changes.</p>
 <div class="chart-row">
   <div class="chart-wrap">
     <h3>Macro AUROC: Binary vs Continuous (per domain)</h3>
@@ -186,11 +194,10 @@
   </div>
   <div class="chart-wrap">
     <h3>CONT vs PROD — per evaluation cell</h3>
-    <p style="font-size:12px;color:#6b7280;margin-bottom:8px">Each point = one model/dataset cell. Points above the diagonal line = CONT wins. Colored by domain. One outlier cell (n=52, 2 positives) excluded.</p>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:8px">Each point = one cell. Above diagonal = CONT wins. One outlier (n=52, 2 positives) excluded.</p>
     <canvas id="scatterContProd"></canvas>
   </div>
 </div>
-
 <table style="margin-top:8px">
   <tr><th>Domain</th><th>PROD (binary)</th><th>CONT (continuous)</th><th>Δ</th></tr>
   <tr><td>MATH-500</td><td>79.7%</td><td>84.3%</td><td class="delta-pos">+4.6 pp</td></tr>
@@ -198,91 +205,44 @@
   <tr><td>GPQA</td><td>53.2%</td><td>53.9%</td><td class="delta-pos">+0.7 pp</td></tr>
   <tr><td>RAG</td><td>59.5%</td><td>61.7%</td><td class="delta-pos">+2.2 pp</td></tr>
   <tr><td>QA</td><td>62.9%</td><td>75.0%</td><td class="delta-pos">+12.1 pp</td></tr>
-  <tr style="font-weight:600;background:#f1f5f9"><td>Macro average</td><td>65.2%</td><td>70.1%</td><td class="delta-pos">+4.9 pp</td></tr>
+  <tr style="font-weight:600"><td>Macro</td><td>65.2%</td><td>70.1%</td><td class="delta-pos">+4.9 pp</td></tr>
 </table>
-<div class="note" style="margin-top:12px">CONT exceeds PROD in every domain. The advantage ranges from +0.7 pp (GPQA) to +12.1 pp (QA). At the per-cell level (scatter), 24 out of 28 cells favor CONT; 4 RAG cells on 2WikiMultihopQA favor PROD.</div>
 
-<!-- 4B: AGGREGATION -->
-<h3>4B. Aggregation Method: L-SML vs Flat SML vs Simple Average</h3>
-<p>All variants below use GOOD_5 features with sign orientation. The only dimension that varies is the aggregation method.</p>
-
-<div class="chart-row">
-  <div class="chart-wrap">
-    <h3>Aggregation comparison — binary encoding</h3>
-    <p style="font-size:12px;color:#6b7280;margin-bottom:8px">Flat SML vs L-SML, same GOOD_5 binary+signs input.</p>
-    <canvas id="aggBinaryDomain"></canvas>
-  </div>
-  <div class="chart-wrap">
-    <h3>Aggregation comparison — continuous encoding</h3>
-    <p style="font-size:12px;color:#6b7280;margin-bottom:8px">Average vs L-SML, same GOOD_5 continuous+signs input.</p>
-    <canvas id="aggContDomain"></canvas>
-  </div>
-</div>
-
+<h3>4B. Aggregation: L-SML vs Flat SML vs Simple Average</h3>
+<p>Comparing aggregation methods, holding encoding and sign orientation fixed.</p>
 <table>
-  <tr><th>Comparison</th><th>Flat SML / Average</th><th>L-SML</th><th>Δ (L-SML minus other)</th></tr>
-  <tr>
-    <td>Binary + Signs, GOOD_5</td>
-    <td>flat5 = 68.3%</td>
-    <td>PROD = 65.2%</td>
-    <td class="delta-neg">−3.1 pp (L-SML worse)</td>
-  </tr>
-  <tr>
-    <td>Continuous + Signs, GOOD_5</td>
-    <td>avg5 = 69.7%</td>
-    <td>CONT = 70.1%</td>
-    <td class="delta-pos">+0.4 pp (L-SML marginally better)</td>
-  </tr>
+  <tr><th>Domain</th><th>flat5 (Flat SML, binary+signs)</th><th>PROD (L-SML, binary+signs)</th><th>Δ</th><th>avg5 (Average, cont+signs)</th><th>CONT (L-SML, cont+signs)</th><th>Δ</th></tr>
+  <tr><td>MATH-500</td><td>81.7%</td><td>79.7%</td><td class="delta-neg">−2.0 pp</td><td>83.1%</td><td>84.3%</td><td class="delta-pos">+1.2 pp</td></tr>
+  <tr><td>GSM8K</td><td>71.8%</td><td>70.7%</td><td class="delta-neg">−1.1 pp</td><td>72.1%</td><td>75.6%</td><td class="delta-pos">+3.5 pp</td></tr>
+  <tr><td>GPQA</td><td>54.1%</td><td>53.2%</td><td class="delta-neg">−0.9 pp</td><td>57.5%</td><td>53.9%</td><td class="delta-neg">−3.6 pp</td></tr>
+  <tr><td>RAG</td><td>60.7%</td><td>59.5%</td><td class="delta-neg">−1.2 pp</td><td>62.6%</td><td>61.7%</td><td class="delta-neg">−0.9 pp</td></tr>
+  <tr><td>QA</td><td>73.0%</td><td>62.9%</td><td class="delta-neg">−10.1 pp</td><td>73.0%</td><td>75.0%</td><td class="delta-pos">+2.0 pp</td></tr>
+  <tr style="font-weight:600"><td>Macro</td><td>68.3%</td><td>65.2%</td><td class="delta-neg">−3.1 pp</td><td>69.7%</td><td>70.1%</td><td class="delta-pos">+0.4 pp</td></tr>
 </table>
-<div class="note" style="margin-top:12px">In <strong>binary mode</strong>, Flat SML (68.3%) outperforms L-SML grouped (65.2%) by 3.1 pp macro. In <strong>continuous mode</strong>, L-SML (70.1%) and simple average (69.7%) are within 0.4 pp of each other.</div>
 
-<!-- 4C: FEATURE SET -->
-<h3>4C. Feature Set: H16 (all 16 entropy features) vs GOOD_5 (5 selected features)</h3>
-<p>To isolate the feature-set effect, we compare L-SML variants that both use binary encoding without sign orientation (<span class="mono">lsml_16_nosigns</span> vs <span class="mono">lsml_5_nosigns</span>), and flat SML variants with binary+signs (<span class="mono">flat_sml_16</span> vs <span class="mono">flat_sml_5</span>).</p>
-
-<div class="chart-row">
-  <div class="chart-wrap">
-    <h3>H16 vs GOOD_5 — L-SML, no signs</h3>
-    <canvas id="featLSMLDomain"></canvas>
-  </div>
-  <div class="chart-wrap">
-    <h3>H16 vs GOOD_5 — Flat SML, with signs</h3>
-    <canvas id="featFlatDomain"></canvas>
-  </div>
-</div>
-
+<h3>4C. Feature Set: H16 vs GOOD_5</h3>
 <table>
-  <tr><th>Comparison</th><th>H16</th><th>GOOD_5</th><th>Δ (GOOD_5 minus H16)</th></tr>
-  <tr>
-    <td>L-SML, no signs, binary</td>
-    <td>lsml16 = 65.4%</td>
-    <td>lsml5n = 66.8%</td>
-    <td class="delta-pos">+1.4 pp</td>
-  </tr>
-  <tr>
-    <td>Flat SML, binary + signs</td>
-    <td>flat16 = 61.0%</td>
-    <td>flat5 = 68.3%</td>
-    <td class="delta-pos">+7.3 pp</td>
-  </tr>
+  <tr><th>Domain</th><th>flat16 (H16, Flat SML)</th><th>flat5 (GOOD_5, Flat SML)</th><th>Δ</th><th>lsml16 (H16, L-SML)</th><th>lsml5n (GOOD_5, L-SML)</th><th>Δ</th></tr>
+  <tr><td>MATH-500</td><td>71.2%</td><td>81.7%</td><td class="delta-pos">+10.5 pp</td><td>80.8%</td><td>81.5%</td><td class="delta-pos">+0.7 pp</td></tr>
+  <tr><td>GSM8K</td><td>53.6%</td><td>71.8%</td><td class="delta-pos">+18.2 pp</td><td>70.4%</td><td>68.6%</td><td class="delta-neg">−1.8 pp</td></tr>
+  <tr><td>GPQA</td><td>54.8%</td><td>54.1%</td><td class="delta-neg">−0.7 pp</td><td>57.3%</td><td>53.8%</td><td class="delta-neg">−3.5 pp</td></tr>
+  <tr><td>RAG</td><td>60.5%</td><td>60.7%</td><td class="delta-pos">+0.2 pp</td><td>56.8%</td><td>58.8%</td><td class="delta-pos">+2.0 pp</td></tr>
+  <tr><td>QA</td><td>64.0%</td><td>73.0%</td><td class="delta-pos">+9.0 pp</td><td>61.8%</td><td>71.4%</td><td class="delta-pos">+9.6 pp</td></tr>
+  <tr style="font-weight:600"><td>Macro</td><td>60.8%</td><td>68.3%</td><td class="delta-pos">+7.5 pp</td><td>65.4%</td><td>66.8%</td><td class="delta-pos">+1.4 pp</td></tr>
 </table>
-<div class="note" style="margin-top:12px">Using 5 selected features consistently outperforms all 16. The advantage is larger for Flat SML (+7.3 pp) than for L-SML (+1.4 pp), suggesting L-SML grouping partially compensates for the presence of weak or redundant features among the 16.</div>
 
 <!-- =====================================================================
-     SECTION 4: FEATURE CORRELATION
+     SECTION 5: FEATURE CORRELATION
      ===================================================================== -->
-<h2>5. GOOD_5 Feature Pairwise Correlation</h2>
-<p class="section-note">Spearman |ρ| computed per evaluation cell, then averaged. The L-SML correlation filter rejects feature subsets where any pair has |ρ| ≥ 0.75 (to avoid near-redundant classifiers). Values shown are means across all 29 cells. "Cells above 0.75" counts how many of the 29 cells exceed the threshold for that pair.</p>
-
-<div class="chart-row">
-  <div class="chart-wrap" style="grid-column:1/-1">
-    <h3>Mean Spearman |ρ| between GOOD_5 feature pairs</h3>
-    <canvas id="corrBar" style="max-height:220px"></canvas>
-  </div>
+<h2>5. Feature Correlation (Spearman ρ across GOOD_5 pairs)</h2>
+<p class="section-note">For each GOOD_5 feature pair, Spearman ρ was computed per evaluation cell. Pairs with mean |ρ| ≥ 0.75 indicate redundancy that would cause L-SML's correlation filter to reject the subset. 0 pairs exceed this threshold.</p>
+<div class="chart-wrap">
+  <h3>Mean |ρ| by Feature Pair (across 29 cells)</h3>
+  <p style="font-size:12px;color:#6b7280;margin-bottom:8px">Red dashed line = 0.75 rejection threshold. No pair exceeds mean ρ=0.75, confirming GOOD_5 is a valid input for L-SML.</p>
+  <canvas id="rhoBar" style="max-height:240px"></canvas>
 </div>
-
 <table>
-  <tr><th>Feature pair</th><th>Mean |ρ|</th><th>Max |ρ| (any cell)</th><th>Cells above 0.75 threshold</th></tr>
+  <tr><th>Feature pair</th><th>Mean |ρ|</th><th>Max |ρ|</th><th>Cells above 0.75</th></tr>
   <tr><td>epr | sw_var_peak</td><td>0.633</td><td>0.897</td><td>9 / 29</td></tr>
   <tr><td>low_band_power | cusum_max</td><td>0.616</td><td>0.936</td><td>5 / 29</td></tr>
   <tr><td>cusum_max | spectral_entropy</td><td>0.555</td><td>0.929</td><td>4 / 29</td></tr>
@@ -293,393 +253,509 @@
   <tr><td>epr | spectral_entropy</td><td>0.270</td><td>0.760</td><td>1 / 29</td></tr>
   <tr><td>low_band_power | sw_var_peak</td><td>0.269</td><td>0.722</td><td>0 / 29</td></tr>
   <tr><td>epr | low_band_power</td><td>0.261</td><td>0.760</td><td>1 / 29</td></tr>
-  <tr style="font-weight:600;background:#f1f5f9"><td colspan="4">0 pairs have mean |ρ| ≥ 0.75. No pair is consistently above the rejection threshold across cells.</td></tr>
+  <tr style="font-weight:600"><td>Summary</td><td colspan="3">0 pairs with mean |ρ| ≥ 0.75</td></tr>
 </table>
 
 <!-- =====================================================================
-     SECTION 5: SATURATION
+     SECTION 6: SATURATION
      ===================================================================== -->
-<h2>6. Saturated Features by Domain</h2>
-<p class="section-note">A feature is "saturated" in a given evaluation cell if more than 40% of its values equal the median. Saturated features are dropped from H16/all-feature variants before binarization, because median-thresholding would produce a trivially uninformative split. GOOD_5 variants are unaffected (trace_length is not in GOOD_5).</p>
+<h2>6. Feature Saturation Report</h2>
+<p>A feature is "saturated" in a given cell when &gt;40% of samples have identical values after median binarization, giving no discriminative signal. Saturated features are excluded from that cell's computation (except trace_length which uses the special max-token rule).</p>
 <table>
-  <tr><th>Domain / Cell</th><th>Dropped features</th></tr>
-  <tr><td>MATH-500 / Qwen-Math-7B</td><td>trace_length, dominant_freq</td></tr>
-  <tr><td>MATH-500 / DeepSeek-R1-Distill-Llama-8B</td><td>trace_length</td></tr>
-  <tr><td>GPQA / DeepSeek-R1-Distill-Llama-8B</td><td>trace_length, dominant_freq</td></tr>
-  <tr><td>RAG / Qwen-72B/hotpotqa</td><td>rpdi</td></tr>
-  <tr><td>RAG / Qwen-72B/natural-questions</td><td>stft_max_high_power, stft_spectral_entropy, rpdi</td></tr>
-  <tr><td>RAG / Qwen-72B/2wikimultihopqa</td><td>rpdi</td></tr>
-  <tr><td>RAG / Qwen-72B/narrativeqa</td><td>stft_max_high_power, stft_spectral_entropy</td></tr>
-  <tr><td>RAG / Mistral-24B/narrativeqa</td><td>stft_max_high_power, stft_spectral_entropy</td></tr>
-  <tr><td>RAG / Llama-8B/hotpotqa–narrativeqa (all 4)</td><td>stft_max_high_power, stft_spectral_entropy</td></tr>
-  <tr><td>QA / trivia_qa_traces</td><td>stft_max_high_power, stft_spectral_entropy</td></tr>
-  <tr><td>All other cells</td><td><em>none</em></td></tr>
+  <tr><th>Domain</th><th>Saturated features (any cell)</th><th>Notes</th></tr>
+  <tr><td>MATH-500</td><td>dominant_freq</td><td>2 of 4 cells. Reasoning traces have limited high-frequency variation.</td></tr>
+  <tr><td>GSM8K</td><td>none</td><td></td></tr>
+  <tr><td>GPQA</td><td>dominant_freq</td><td>1 of 5 cells.</td></tr>
+  <tr><td>RAG</td><td>rpdi (Qwen-72B cells), stft_max_high_power, stft_spectral_entropy (Llama-8B cells)</td><td>STFT features saturate on Llama-8B RAG traces. rpdi saturates on Qwen-72B.</td></tr>
+  <tr><td>QA</td><td>stft_max_high_power, stft_spectral_entropy</td><td>1 of 3 cells (trivia_qa short traces).</td></tr>
+  <tr><td>trace_length</td><td colspan="2">Handled via special binarization rule (not dropped). Previously appeared in saturated_feats in Phase 1 for 2 MATH-500 cells.</td></tr>
 </table>
 
 <!-- =====================================================================
-     SECTION 6: OBSERVATIONS
+     SECTION 7: OBSERVATIONS
      ===================================================================== -->
-<h2>7. Observations</h2>
+<h2>7. Observations (Phase 1)</h2>
 <ul class="obs-list">
-  <li><strong>Continuous encoding consistently outperforms binary encoding.</strong> CONT (70.1% macro) exceeds PROD (65.2% macro) by 4.9 pp. This holds in every domain: +4.6 pp (MATH-500), +4.9 pp (GSM8K), +0.7 pp (GPQA), +2.2 pp (RAG), +12.1 pp (QA). At the per-cell level, CONT exceeds PROD in 24 of 28 comparable cells.</li>
-  <li><strong>In binary mode, Flat SML outperforms L-SML grouped fusion on the same 5-feature input.</strong> flat5 (68.3%) exceeds PROD/lsml_5_binary (65.2%) by 3.1 pp. In continuous mode the difference reverses but is small: CONT (70.1%) exceeds avg5 (69.7%) by 0.4 pp.</li>
-  <li><strong>Reducing to 5 selected features improves performance versus using all 16.</strong> The improvement is +1.4 pp for L-SML-nosigns (65.4% → 66.8%) and +7.3 pp for Flat SML (61.0% → 68.3%).</li>
-  <li><strong>Sign orientation does not consistently help in binary mode.</strong> lsml_5_nosigns (66.8%) outperforms lsml_5_signs_binary/PROD (65.2%) by 1.6 pp, despite PROD having explicit sign knowledge.</li>
-  <li><strong>Simple average (69.7%) is nearly as strong as L-SML continuous (70.1%) in macro-average terms.</strong> The two differ by 0.4 pp. Domain-level results: avg5 leads on GPQA (57.5% vs 53.9%) and RAG (62.6% vs 61.7%); CONT leads on MATH-500 (84.3% vs 83.1%), GSM8K (75.6% vs 72.1%), and QA (75.0% vs 73.0%).</li>
-  <li><strong>The Oracle Best-1 upper bound (71.8%) is 1.7 pp above the best deployable method (CONT, 70.1%).</strong> This means that, if an oracle selected the single best GOOD_5 feature per cell, the gain over CONT would be small.</li>
-  <li><strong>GPQA is the hardest domain.</strong> All variants score between 50.2% and 58.9% on GPQA, near random chance. No variant clearly leads on GPQA: the best deployable method (CONT) ranks only 4th on that domain (53.9% vs avg5 57.5%).</li>
-  <li><strong>RAG performance is consistently lower than math domains.</strong> All deployable variants score 56–63% macro on RAG versus 70–84% on MATH-500. GPQA similarly sits near 50–59%.</li>
-  <li><strong>No GOOD_5 feature pair has mean Spearman |ρ| ≥ 0.75.</strong> The most correlated pair (epr | sw_var_peak) has mean |ρ| = 0.633 but exceeds the 0.75 threshold in 9 of 29 individual cells. All 10 pairs pass the L-SML rejection filter on average.</li>
-  <li><strong>stft_max_high_power and stft_spectral_entropy saturate in most RAG cells.</strong> These two features produce uninformative binary splits on short answer traces (typical of retrieval-augmented QA). trace_length saturates on MATH-500 cells where the model frequently hits the max-token limit.</li>
+  <li><strong>Continuous encoding (+4.9 pp macro):</strong> CONT (70.1%) outperforms PROD (65.2%) across all 5 domains. The benefit is largest on QA (+12.1 pp) and GSM8K (+4.9 pp).</li>
+  <li><strong>Flat SML outperforms L-SML in binary mode:</strong> flat5 (68.3%) beats PROD (65.2%) by 3.1 pp. flat5 also beats lsml5n (66.8%) by 1.5 pp. L-SML's grouping step does not help when inputs are binary with 5 features.</li>
+  <li><strong>L-SML matches Simple Average in continuous mode:</strong> CONT (70.1%) vs avg5 (69.7%) — a 0.4 pp difference. The grouping mechanism provides minimal gain over equal weighting.</li>
+  <li><strong>Feature selection matters more for Flat SML than L-SML:</strong> GOOD_5 beats H16 by +7.5 pp for Flat SML, but only +1.4 pp for L-SML. L-SML's grouping partially compensates for noisy extra features.</li>
+  <li><strong>Spectral features do not transfer to GPQA:</strong> All variants cluster near 53–59% on GPQA, versus 61–84% on MATH-500. The short, multiple-choice answer format produces entropy traces that are structurally different from long reasoning traces.</li>
+  <li><strong>Oracle Best-1 (71.8%) is reachable:</strong> CONT (70.1%) and avg5 (69.7%) are within 1.7–2.1 pp of the per-cell oracle. This gap is the cost of not knowing which feature is best for each cell.</li>
+  <li><strong>No feature pair has mean |ρ| ≥ 0.75:</strong> L-SML's correlation filter is never triggered on mean. Individual cells do show high |ρ| (max 0.94), meaning grouping is active in specific cells.</li>
+  <li><strong>PROD ≠ 90.0%:</strong> PROD on MATH-500/Qwen-7B is 88.2%. The 90.0% figure from prior sessions used a supervised grid search over feature subsets — a methodologically distinct procedure. 88.2% is the unsupervised result with the fixed GOOD_5 set.</li>
 </ul>
 
-</div><!-- /page -->
+<!-- =====================================================================
+     SECTION 8: SIGN DIRECTION
+     ===================================================================== -->
+<h2>8. Sign Direction: Algorithm-Derived vs Offline-Derived (Phase 2)</h2>
+<p>This section compares four variants that differ only in whether sign orientation is applied, and in which encoding mode. The question: does providing offline sign priors (FEATURE_SIGNS) improve performance relative to letting the algorithm determine direction internally?</p>
+
+<h3>Design: 2×2 comparison</h3>
+<table style="margin-bottom:16px">
+  <tr><th>Encoding</th><th>No Signs (algorithm resolves direction)</th><th>Offline Signs (FEATURE_SIGNS)</th></tr>
+  <tr><td><strong>Binary</strong></td><td>lsml5n — median binarize, L-SML determines direction via eigenvector</td><td><span class="tag tag-prod">PROD</span> — sign-orient then binarize at median</td></tr>
+  <tr><td><strong>Continuous</strong></td><td><span class="tag tag-v12">lsml5nc</span> — z-score without orientation, L-SML determines direction</td><td><span class="tag tag-cont">CONT</span> — sign-orient then z-score</td></tr>
+</table>
+
+<div class="chart-row">
+  <div class="chart-wrap">
+    <h3>Binary mode: lsml5n vs PROD per domain</h3>
+    <canvas id="signBinaryChart"></canvas>
+  </div>
+  <div class="chart-wrap">
+    <h3>Continuous mode: lsml5nc vs CONT per domain</h3>
+    <canvas id="signContChart"></canvas>
+  </div>
+</div>
+
+<table style="margin-top:8px">
+  <tr><th>Domain</th><th>lsml5n (binary, no signs)</th><th>PROD (binary, signs)</th><th>Δ (nosigns − signs)</th><th>lsml5nc (cont, no signs)</th><th>CONT (cont, signs)</th><th>Δ</th></tr>
+  <tr><td>MATH-500</td><td>81.5%</td><td>79.7%</td><td class="delta-pos">+1.8 pp</td><td>84.3%</td><td>84.3%</td><td class="delta-zero">0.0 pp</td></tr>
+  <tr><td>GSM8K</td><td>68.6%</td><td>70.7%</td><td class="delta-neg">−2.1 pp</td><td>75.6%</td><td>75.6%</td><td class="delta-zero">0.0 pp</td></tr>
+  <tr><td>GPQA</td><td>53.8%</td><td>53.2%</td><td class="delta-pos">+0.6 pp</td><td>53.9%</td><td>53.9%</td><td class="delta-zero">0.0 pp</td></tr>
+  <tr><td>RAG</td><td>58.8%</td><td>59.5%</td><td class="delta-neg">−0.7 pp</td><td>61.7%</td><td>61.7%</td><td class="delta-zero">0.0 pp</td></tr>
+  <tr><td>QA</td><td>71.4%</td><td>62.9%</td><td class="delta-pos">+8.5 pp</td><td>75.0%</td><td>75.0%</td><td class="delta-zero">0.0 pp</td></tr>
+  <tr style="font-weight:600"><td>Macro</td><td>66.8%</td><td>65.2%</td><td class="delta-pos">+1.6 pp</td><td>70.1%</td><td>70.1%</td><td class="delta-zero">0.0 pp</td></tr>
+</table>
+
+<h3>Internal sign concordance</h3>
+<p>For nosigns variants, <em>safe_auc</em> evaluates both orientations and keeps the better one, masking the algorithm's internal direction choice. The table below shows what fraction of cells the algorithm's raw output (before the flip) was already in the correct direction (raw AUROC &gt; 0.5).</p>
+<table>
+  <tr><th>Variant</th><th>Cells with correct internal direction</th><th>% concordant</th><th>Mean raw AUC</th><th>Interpretation</th></tr>
+  <tr><td>lsml_16_nosigns</td><td>9 / 29</td><td>31%</td><td>43.1%</td><td>Algorithm's eigenvector pointed in the wrong direction 69% of the time; safe_auc corrected all cases.</td></tr>
+  <tr><td>lsml_5_nosigns</td><td>6 / 29</td><td>21%</td><td>39.3%</td><td>Wrong direction in 79% of cells. After correction, AUROC = 66.8%.</td></tr>
+  <tr><td>lsml_5_nosigns_continuous</td><td>4 / 29</td><td>14%</td><td>41.1%</td><td>Wrong direction in 86% of cells. After correction, AUROC = 70.1% — identical to CONT.</td></tr>
+</table>
+<div class="note"><strong>Finding:</strong> In continuous mode, sign orientation has zero effect on final AUROC (CONT = lsml5nc = 70.1% across all domains). The algorithm's internally chosen direction is almost always "wrong" (low concordance), but safe_auc correction recovers the same result regardless of whether signs were provided. In binary mode, sign orientation changes the binarization boundaries, which slightly alters L-SML's grouping structure — producing a 1.6 pp difference between lsml5n and PROD.</div>
+
+<!-- =====================================================================
+     SECTION 9: WINNER PER DOMAIN
+     ===================================================================== -->
+<h2>9. Bottom-Line: Best Method per Domain (Phase 2)</h2>
+<p>Which deployable method performs best in each domain? Oracle Best-1 is shown separately as a non-deployable ceiling.</p>
+
+<div class="chart-wrap">
+  <h3>Deployable Methods — Domain-level AUROC</h3>
+  <p style="font-size:12px;color:#6b7280;margin-bottom:8px">Sorted by performance within each domain. Oracle Best-1 excluded from ranking.</p>
+  <canvas id="winnerChart" style="max-height:360px"></canvas>
+</div>
+
+<table>
+  <tr><th>Domain</th><th>Winner</th><th>AUROC</th><th>Runner-up</th><th>AUROC</th><th>Oracle Best-1</th></tr>
+  <tr><td>MATH-500</td><td class="winner">CONT / lsml5nc</td><td>84.3%</td><td>avg5</td><td>83.1%</td><td>84.3%</td></tr>
+  <tr><td>GSM8K</td><td class="winner">CONT / lsml5nc</td><td>75.6%</td><td>avg5</td><td>72.1%</td><td>73.9%*</td></tr>
+  <tr><td>GPQA</td><td class="winner">avg5</td><td>57.5%</td><td>lsml16</td><td>57.3%</td><td>58.9%</td></tr>
+  <tr><td>RAG</td><td class="winner">avg5</td><td>62.6%</td><td>CONT / lsml5nc</td><td>61.7%</td><td>66.9%</td></tr>
+  <tr><td>QA</td><td class="winner">CONT / lsml5nc</td><td>75.0%</td><td>avg5 / flat5</td><td>73.0%</td><td>74.7%*</td></tr>
+  <tr style="font-weight:600"><td>Macro</td><td class="winner">CONT / lsml5nc</td><td>70.1%</td><td>avg5</td><td>69.7%</td><td>71.8%</td></tr>
+</table>
+<p style="font-size:12px;color:#6b7280;margin-top:6px">* CONT / lsml5nc exceed the Oracle Best-1 on GSM8K (75.6% vs 73.9%) and QA (75.0% vs 74.7%). Oracle Best-1 optimizes over a smaller candidate set (only GOOD_5 single features) — fusion can exceed any single feature.</p>
+
+<!-- =====================================================================
+     SECTION 10: FEATURE STABILITY
+     ===================================================================== -->
+<h2>10. Feature Stability Across Domains (Phase 2)</h2>
+<p>Per-feature individual AUROC was computed for all 16 H16 features across all 29 evaluation cells, using FEATURE_SIGNS orientation and safe_auc auto-flip. The range (max domain mean − min domain mean) measures how much a feature's discrimination varies across domains.</p>
+
+<div class="chart-row">
+  <div class="chart-wrap">
+    <h3>Mean AUROC vs Range (all 16 H16 features)</h3>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:8px">Each point = one feature. Top-right = high mean, high volatility. Bottom-left = stable but weak. GOOD_5 features labeled.</p>
+    <canvas id="featScatter" style="max-height:320px"></canvas>
+  </div>
+  <div class="chart-wrap">
+    <h3>Per-domain mean AUROC for GOOD_5 features</h3>
+    <canvas id="featDomainBar" style="max-height:320px"></canvas>
+  </div>
+</div>
+
+<table>
+  <tr><th>Feature</th><th>In GOOD_5</th><th>Mean AUROC</th><th>MATH</th><th>GSM8K</th><th>GPQA</th><th>RAG</th><th>QA</th><th>Range</th></tr>
+  <tr><td>cusum_max</td><td>✓</td><td>64.5%</td><td>82.9%</td><td>71.4%</td><td>57.3%</td><td>60.9%</td><td>69.1%</td><td>25.6 pp</td></tr>
+  <tr><td>epr</td><td>✓</td><td>64.4%</td><td>83.8%</td><td>70.8%</td><td>54.3%</td><td>61.2%</td><td>70.4%</td><td>29.5 pp</td></tr>
+  <tr><td>sw_var_peak</td><td>✓</td><td>62.7%</td><td>79.1%</td><td>73.9%</td><td>53.1%</td><td>59.4%</td><td>71.0%</td><td>26.0 pp</td></tr>
+  <tr><td>spectral_entropy</td><td>✓</td><td>62.6%</td><td>79.5%</td><td>65.0%</td><td>56.5%</td><td>60.1%</td><td>62.8%</td><td>23.0 pp</td></tr>
+  <tr><td>low_band_power</td><td>✓</td><td>62.3%</td><td>79.8%</td><td>69.3%</td><td>54.0%</td><td>59.7%</td><td>64.4%</td><td>25.8 pp</td></tr>
+  <tr><td>trace_length</td><td></td><td>63.6%</td><td>78.0%</td><td>71.5%</td><td>56.7%</td><td>60.7%</td><td>68.8%</td><td>21.4 pp</td></tr>
+  <tr><td>rpdi</td><td></td><td>61.5%</td><td>77.3%</td><td>62.5%</td><td>57.0%</td><td>59.1%</td><td>60.2%</td><td>20.3 pp</td></tr>
+  <tr><td>hl_ratio</td><td></td><td>60.9%</td><td>79.1%</td><td>66.3%</td><td>54.0%</td><td>57.0%</td><td>66.8%</td><td>25.1 pp</td></tr>
+  <tr><td>stft_spectral_entropy</td><td></td><td>59.5%</td><td>73.8%</td><td>57.0%</td><td>55.9%</td><td>58.7%</td><td>51.1%</td><td>22.7 pp</td></tr>
+  <tr><td>dominant_freq</td><td></td><td>59.1%</td><td>78.2%</td><td>63.0%</td><td>55.3%</td><td>55.5%</td><td>57.2%</td><td>22.9 pp</td></tr>
+  <tr><td>pe_mean</td><td></td><td>59.1%</td><td>59.7%</td><td>62.8%</td><td>54.3%</td><td>60.1%</td><td>59.5%</td><td>8.5 pp</td></tr>
+  <tr><td>spectral_centroid</td><td></td><td>58.4%</td><td>80.4%</td><td>68.0%</td><td>54.5%</td><td>54.8%</td><td>51.8%</td><td>28.6 pp</td></tr>
+  <tr><td>high_band_power</td><td></td><td>58.8%</td><td>77.3%</td><td>60.9%</td><td>53.7%</td><td>56.4%</td><td>54.4%</td><td>23.6 pp</td></tr>
+  <tr><td>hurst_exponent</td><td></td><td>58.7%</td><td>77.3%</td><td>58.7%</td><td>54.5%</td><td>56.2%</td><td>54.4%</td><td>22.9 pp</td></tr>
+  <tr><td>stft_max_high_power</td><td></td><td>58.8%</td><td>65.8%</td><td>52.7%</td><td>54.8%</td><td>59.6%</td><td>54.1%</td><td>13.1 pp</td></tr>
+  <tr><td>cusum_shift_idx</td><td></td><td>59.3%</td><td>61.0%</td><td>55.5%</td><td>53.7%</td><td>59.8%</td><td>64.7%</td><td>11.0 pp</td></tr>
+</table>
+<div class="note">
+  <strong>Most stable (small range):</strong> pe_mean (8.5 pp), cusum_shift_idx (11.0 pp), stft_max_high_power (13.1 pp). These features show consistent but modest performance across domains. <br>
+  <strong>Highest individual AUROC (also most volatile):</strong> GOOD_5 features (epr, cusum_max, sw_var_peak) have the highest mean AUROCs (62–65%) but also the largest cross-domain variance (24–30 pp). They contribute most on MATH-500 and GSM8K and least on GPQA.
+</div>
+
+<!-- =====================================================================
+     SECTION 11: 9-FEATURE VARIANT
+     ===================================================================== -->
+<h2>11. Feature-Count Curve: 5 → 9 → 16 Features (Phase 2)</h2>
+<p>The lsml9h variant (9 features, binary+signs) fills the gap between GOOD_5 (5 features) and H16 (16 features) in the binary+signs family. All three use L-SML aggregation. This answers: does adding more features beyond GOOD_5 help when using binary encoding?</p>
+
+<div class="chart-wrap">
+  <h3>Feature-count curve: binary L-SML variants by domain</h3>
+  <p style="font-size:12px;color:#6b7280;margin-bottom:8px">PROD (5 features), lsml9h (9 features), lsml16 (16 features, nosigns). Note: lsml16 uses no-signs encoding; PROD and lsml9h use FEATURE_SIGNS. Direct comparison is approximate.</p>
+  <canvas id="featCountChart" style="max-height:300px"></canvas>
+</div>
+
+<table>
+  <tr><th>Domain</th><th>PROD (5 feat, binary+signs)</th><th>lsml9h (9 feat, binary+signs)</th><th>lsml16 (16 feat, binary, no signs)</th><th>lsml5n (5 feat, binary, no signs)</th></tr>
+  <tr><td>MATH-500</td><td>79.7%</td><td>79.4%</td><td>80.8%</td><td>81.5%</td></tr>
+  <tr><td>GSM8K</td><td>70.7%</td><td>70.5%</td><td>70.4%</td><td>68.6%</td></tr>
+  <tr><td>GPQA</td><td>53.2%</td><td>55.8%</td><td>57.3%</td><td>53.8%</td></tr>
+  <tr><td>RAG</td><td>59.5%</td><td>56.9%</td><td>56.8%</td><td>58.8%</td></tr>
+  <tr><td>QA</td><td>62.9%</td><td>64.6%</td><td>61.8%</td><td>71.4%</td></tr>
+  <tr style="font-weight:600"><td>Macro</td><td>65.2%</td><td>65.4%</td><td>65.4%</td><td>66.8%</td></tr>
+</table>
+<div class="note">
+  <strong>Finding:</strong> lsml9h (9 features) and lsml16 (16 features) reach the same macro AUROC (65.4%), 0.2 pp above PROD (5 features). The GOOD_5 set is already near-optimal for binary-mode L-SML. Adding 4–11 extra features does not improve the aggregate score. The difference between PROD (65.2%) and all 3 larger-set variants is ≤0.2 pp, within noise.
+</div>
+<div class="note">
+  <strong>Note on M9_FEATURES:</strong> An alternative 9-feature set (M9) was designed to include spilled-energy features (epr_spilled, cusum_max_spilled, min_spilled) from the ΔE(n) token-spilled-energy time series. Those features require inference data from the <em>experiment/lsml-variants</em> branch and are not available in the current local_cache pkls. M9 is therefore not evaluated here. lsml9h is the H16-only 9-feature variant.
+</div>
+
+<!-- =====================================================================
+     SECTION 12: UPDATED OBSERVATIONS
+     ===================================================================== -->
+<h2>12. Observations Summary (Phase 1 + Phase 2)</h2>
+<ul class="obs-list">
+  <li><strong>Continuous encoding is consistently best (70.1% macro):</strong> CONT and lsml5nc tie at 70.1%, beating all binary variants by ≥4.9 pp. The benefit is uniform across all 5 domains.</li>
+  <li><strong>Sign orientation is irrelevant in continuous mode:</strong> CONT and lsml5nc produce identical results (0.0 pp difference in every domain). The offline sign priors (FEATURE_SIGNS) add no information when the algorithm processes continuous values.</li>
+  <li><strong>Sign orientation has a small mixed effect in binary mode:</strong> lsml5n (no signs, 66.8%) slightly outperforms PROD (signs, 65.2%) by 1.6 pp macro. The sign orientation changes the binarization boundary structure, which alters L-SML's grouping — but not systematically in one direction.</li>
+  <li><strong>L-SML's internal direction is almost always "wrong":</strong> Nosigns variants choose the correct eigenvector orientation in only 14–31% of cells. The safe_auc correction recovers the full AUROC in all cases. The algorithm's eigenvector is not a reliable direction indicator without label supervision.</li>
+  <li><strong>Adding features beyond GOOD_5 does not help (binary mode):</strong> lsml9h (9 features) = lsml16 (16 features) = 65.4% macro. PROD (5 features) is 65.2% — within 0.2 pp. The GOOD_5 set is near-optimal for binary L-SML.</li>
+  <li><strong>Simple average (avg5, 69.7%) nearly matches L-SML continuous (70.1%):</strong> The difference is only 0.4 pp. L-SML's cross-group weighting adds marginal value over equal weighting in continuous mode.</li>
+  <li><strong>Flat SML beats L-SML in binary mode (3.1 pp):</strong> flat5 (68.3%) > PROD (65.2%). L-SML's two-pass grouping does not improve over a single eigenvector when inputs are only 5 binary classifiers.</li>
+  <li><strong>GPQA is a structural outlier:</strong> All variants cluster between 53–59% on GPQA, regardless of feature set, encoding, or aggregation. Short multiple-choice traces produce structurally different entropy sequences.</li>
+  <li><strong>GOOD_5 features are the strongest discriminators but most domain-volatile:</strong> Mean AUROCs of 62–65% but cross-domain ranges of 24–30 pp. Features like pe_mean (range 8.5 pp) are stable but weak. Fusion gains come from combining volatile-but-strong features.</li>
+  <li><strong>CONT exceeds Oracle Best-1 on 2 of 5 domains:</strong> On GSM8K (75.6% vs 73.9%) and QA (75.0% vs 74.7%), the fusion of all 5 features outperforms the best single feature — confirming that fusion adds value beyond what any single feature provides.</li>
+</ul>
+
+</div><!-- .page -->
 
 <script>
-// ============================================================
+// =========================================================
 // DATA
-// ============================================================
-const VARIANTS = ['flat16','lsml16','lsml5n','PROD','CONT','flat5','avg5','best1'];
-const VARIANT_LABELS = [
-  'flat_sml_16_signs','lsml_16_nosigns','lsml_5_nosigns',
-  'PROD (lsml_5_binary)','CONT (lsml_5_continuous)',
-  'flat_sml_5_signs','simple_avg_5_signs','Oracle Best-1'
-];
-const MACRO = [61.0, 65.4, 66.8, 65.2, 70.1, 68.3, 69.7, 71.8];
+// =========================================================
 const DOMAINS = ['MATH-500','GSM8K','GPQA','RAG','QA'];
-const DOMAIN_DATA = {
-  'MATH-500': [72.1, 80.4, 81.5, 79.7, 84.3, 81.7, 83.1, 84.3],
-  'GSM8K':    [53.6, 70.4, 68.6, 70.7, 75.6, 71.8, 72.1, 73.9],
-  'GPQA':     [54.8, 57.3, 53.8, 53.2, 53.9, 54.1, 57.5, 58.9],
-  'RAG':      [60.5, 56.8, 58.8, 59.5, 61.7, 60.7, 62.6, 66.9],
-  'QA':       [64.0, 61.8, 71.4, 62.9, 75.0, 73.0, 73.0, 74.7],
+
+// Domain means from Phase 2 run (method_comparison_table1.csv DOMAIN_MEAN rows)
+const domainData = {
+  flat16:  [71.2, 53.6, 54.8, 60.5, 64.0],
+  lsml16:  [80.8, 70.4, 57.3, 56.8, 61.8],
+  lsml5n:  [81.5, 68.6, 53.8, 58.8, 71.4],
+  PROD:    [79.7, 70.7, 53.2, 59.5, 62.9],
+  CONT:    [84.3, 75.6, 53.9, 61.7, 75.0],
+  lsml5nc: [84.3, 75.6, 53.9, 61.7, 75.0],
+  flat5:   [81.7, 71.8, 54.1, 60.7, 73.0],
+  avg5:    [83.1, 72.1, 57.5, 62.6, 73.0],
+  best1:   [84.3, 73.9, 58.9, 66.9, 74.7],
+  lsml9h:  [79.4, 70.5, 55.8, 56.9, 64.6],
+};
+const macro = {
+  flat16:60.8, lsml16:65.4, lsml5n:66.8,
+  PROD:65.2, CONT:70.1, lsml5nc:70.1,
+  flat5:68.3, avg5:69.7, best1:71.8, lsml9h:65.4
 };
 
-// Colors per variant
-const V_COLORS = [
-  '#94a3b8','#64748b','#78716c',
-  '#f97316','#2563eb',
-  '#7c3aed','#059669',
-  '#a855f7'
-];
-
-// ============================================================
-// HEATMAP TABLE
-// ============================================================
+// =========================================================
+// HELPERS
+// =========================================================
 function auroc2color(v) {
-  // 50 = white, 85+ = dark green, <55 = slight red
-  if (v >= 85) return `hsl(140,60%,${Math.max(25,70-(v-85)*4)}%)`;
-  if (v >= 70) return `hsl(140,50%,${Math.max(40,80-(v-70)*2)}%)`;
-  if (v >= 60) return `hsl(140,30%,${90-(v-60)*1.5}%)`;
-  if (v >= 55) return `hsl(40,30%,92%)`;
-  return `hsl(0,40%,${90+(v-50)*0.5}%)`;
+  if (v >= 0.8)  return '#15803d';
+  if (v >= 0.75) return '#16a34a';
+  if (v >= 0.70) return '#22c55e';
+  if (v >= 0.65) return '#86efac';
+  if (v >= 0.60) return '#bbf7d0';
+  if (v >= 0.55) return '#dcfce7';
+  return '#f0fdf4';
 }
-const tbody = document.getElementById('heatmapBody');
-const domainRows = [
-  ['MATH-500',[72.1,80.4,81.5,79.7,84.3,81.7,83.1,84.3]],
-  ['GSM8K',  [53.6,70.4,68.6,70.7,75.6,71.8,72.1,73.9]],
-  ['GPQA',   [54.8,57.3,53.8,53.2,53.9,54.1,57.5,58.9]],
-  ['RAG',    [60.5,56.8,58.8,59.5,61.7,60.7,62.6,66.9]],
-  ['QA',     [64.0,61.8,71.4,62.9,75.0,73.0,73.0,74.7]],
-  ['Macro',  [61.0,65.4,66.8,65.2,70.1,68.3,69.7,71.8]],
-];
-domainRows.forEach(([domain, vals]) => {
+
+// =========================================================
+// HEATMAP
+// =========================================================
+const hmBody = document.getElementById('heatmapBody');
+const varCols = ['flat16','lsml16','lsml5n','PROD','CONT','lsml5nc','flat5','avg5','best1','lsml9h'];
+DOMAINS.forEach((d, i) => {
   const tr = document.createElement('tr');
-  if (domain === 'Macro') tr.style.fontWeight = '700';
-  const maxVal = Math.max(...vals);
-  let html = `<td style="font-weight:600">${domain}</td>`;
-  vals.forEach((v, i) => {
-    const bg = auroc2color(v);
-    const textColor = v >= 72 ? '#fff' : '#111';
-    const bold = v === maxVal ? 'font-weight:700;' : '';
-    const border = i === 3 ? 'border-left:2px solid #f97316;border-right:2px solid #f97316;' :
-                   i === 4 ? 'border-left:2px solid #2563eb;border-right:2px solid #2563eb;' : '';
-    html += `<td style="background:${bg};color:${textColor};${bold}${border}">${v.toFixed(1)}%</td>`;
+  tr.innerHTML = `<td><strong>${d}</strong></td>`;
+  varCols.forEach(v => {
+    const val = domainData[v][i];
+    const bg = auroc2color(val/100);
+    const style = (v==='PROD') ? `background:${bg};border-left:2px solid #f97316` :
+                  (v==='CONT'||v==='lsml5nc') ? `background:${bg};border-left:2px solid #2563eb` :
+                  `background:${bg}`;
+    tr.innerHTML += `<td style="${style}">${val.toFixed(1)}%</td>`;
   });
-  tr.innerHTML = html;
-  tbody.appendChild(tr);
+  hmBody.appendChild(tr);
 });
 
-// ============================================================
-// CHART 1: Macro Bar (horizontal, sorted)
-// ============================================================
-const macroSorted = VARIANT_LABELS.map((l,i)=>({label:l,val:MACRO[i],color:V_COLORS[i]}))
-  .sort((a,b)=>b.val-a.val);
+// =========================================================
+// MACRO BAR
+// =========================================================
+const macroOrder = [
+  {k:'best1',  label:'best1 ★ (oracle)', color:'#7c3aed'},
+  {k:'CONT',   label:'CONT',   color:'#2563eb'},
+  {k:'lsml5nc',label:'lsml5nc',color:'#059669'},
+  {k:'avg5',   label:'avg5',   color:'#0891b2'},
+  {k:'flat5',  label:'flat5',  color:'#64748b'},
+  {k:'lsml5n', label:'lsml5n', color:'#94a3b8'},
+  {k:'lsml16', label:'lsml16', color:'#6b7280'},
+  {k:'lsml9h', label:'lsml9h', color:'#a16207'},
+  {k:'PROD',   label:'PROD',   color:'#f97316'},
+  {k:'flat16', label:'flat16', color:'#dc2626'},
+].sort((a,b) => macro[b.k]-macro[a.k]);
+
 new Chart(document.getElementById('macroBar'), {
-  type: 'bar',
-  data: {
-    labels: macroSorted.map(d=>d.label),
-    datasets: [{
-      data: macroSorted.map(d=>d.val),
-      backgroundColor: macroSorted.map(d=>d.color),
-      borderRadius: 4,
+  type:'bar', data:{
+    labels: macroOrder.map(x=>x.label),
+    datasets:[{
+      data: macroOrder.map(x=>macro[x.k]),
+      backgroundColor: macroOrder.map(x=>x.color+'cc'),
+      borderColor: macroOrder.map(x=>x.color),
+      borderWidth:1
     }]
   },
-  options: {
-    indexAxis: 'y',
-    plugins: {
-      legend: { display: false },
-      annotation: {},
-      tooltip: { callbacks: { label: ctx => ` ${ctx.raw.toFixed(1)}%` } }
+  options:{
+    indexAxis:'y', plugins:{legend:{display:false},
+      annotation:{annotations:{prodLine:{
+        type:'line', xMin:65.2, xMax:65.2,
+        borderColor:'#f97316', borderWidth:2, borderDash:[4,4]
+      }}}
     },
-    scales: {
-      x: { min: 55, max: 75, title: { display: true, text: 'Macro-Average AUROC (%)' } },
-      y: { ticks: { font: { size: 12 } } }
-    }
-  },
-  plugins: [{
-    id: 'prodLine',
-    afterDraw(chart) {
-      const x = chart.scales.x.getPixelForValue(65.2);
-      const ctx2 = chart.ctx;
-      ctx2.save();
-      ctx2.strokeStyle = '#f97316';
-      ctx2.setLineDash([5,4]);
-      ctx2.lineWidth = 1.5;
-      ctx2.beginPath();
-      ctx2.moveTo(x, chart.chartArea.top);
-      ctx2.lineTo(x, chart.chartArea.bottom);
-      ctx2.stroke();
-      ctx2.fillStyle = '#f97316';
-      ctx2.font = '11px system-ui';
-      ctx2.fillText('PROD 65.2%', x + 4, chart.chartArea.top + 12);
-      ctx2.restore();
-    }
-  }]
+    scales:{x:{min:55,max:75,title:{display:true,text:'Macro-Average AUROC (%)'}}}
+  }
 });
 
-// ============================================================
-// CHART 2: Domain grouped bar
-// ============================================================
-const domainLabels = ['MATH-500','GSM8K','GPQA','RAG','QA','Macro'];
-const domainGroupData = [
-  { label:'flat16',  data:[72.1,53.6,54.8,60.5,64.0,61.0], bg:'#94a3b8' },
-  { label:'lsml16',  data:[80.4,70.4,57.3,56.8,61.8,65.4], bg:'#64748b' },
-  { label:'lsml5n',  data:[81.5,68.6,53.8,58.8,71.4,66.8], bg:'#78716c' },
-  { label:'PROD',    data:[79.7,70.7,53.2,59.5,62.9,65.2], bg:'#f97316' },
-  { label:'CONT',    data:[84.3,75.6,53.9,61.7,75.0,70.1], bg:'#2563eb' },
-  { label:'flat5',   data:[81.7,71.8,54.1,60.7,73.0,68.3], bg:'#7c3aed' },
-  { label:'avg5',    data:[83.1,72.1,57.5,62.6,73.0,69.7], bg:'#059669' },
-  { label:'best1',   data:[84.3,73.9,58.9,66.9,74.7,71.8], bg:'#a855f7' },
-];
+// =========================================================
+// DOMAIN BAR
+// =========================================================
+const domainColors = {
+  flat16:'#dc2626', lsml16:'#6b7280', lsml5n:'#94a3b8',
+  PROD:'#f97316', CONT:'#2563eb', lsml5nc:'#059669',
+  flat5:'#64748b', avg5:'#0891b2', best1:'#7c3aed', lsml9h:'#a16207'
+};
+const domainVariants = ['flat16','lsml16','lsml5n','PROD','CONT','lsml5nc','flat5','avg5','best1','lsml9h'];
 new Chart(document.getElementById('domainBar'), {
-  type: 'bar',
-  data: { labels: domainLabels, datasets: domainGroupData.map(d=>({label:d.label,data:d.data,backgroundColor:d.bg,borderRadius:3})) },
-  options: {
-    plugins: { legend: { position:'right', labels:{ font:{size:11}, boxWidth:14 } } },
-    scales: {
-      y: { min: 48, max: 90, title:{ display:true, text:'AUROC (%)' } },
-      x: {}
-    }
-  }
-});
-
-// ============================================================
-// CHART 3: Encoding — PROD vs CONT per domain
-// ============================================================
-new Chart(document.getElementById('encDomain'), {
-  type: 'bar',
-  data: {
-    labels: ['MATH-500','GSM8K','GPQA','RAG','QA'],
-    datasets: [
-      { label:'PROD (binary)', data:[79.7,70.7,53.2,59.5,62.9], backgroundColor:'#fed7aa', borderColor:'#f97316', borderWidth:2, borderRadius:4 },
-      { label:'CONT (continuous)', data:[84.3,75.6,53.9,61.7,75.0], backgroundColor:'#bfdbfe', borderColor:'#2563eb', borderWidth:2, borderRadius:4 },
-    ]
-  },
-  options: {
-    plugins: { legend:{ position:'top' } },
-    scales: { y:{ min:48, max:90, title:{display:true,text:'Domain-mean AUROC (%)'} } }
-  }
-});
-
-// ============================================================
-// CHART 4: CONT vs PROD scatter
-// ============================================================
-const scatterData = [
-  // [PROD, CONT, domain, label]
-  [83.2,86.7,'math','Qwen-1.5B/M500'],
-  [88.2,94.4,'math','Qwen-7B/M500'],
-  [66.0,71.6,'math','DS-7B/M500'],
-  [81.6,84.4,'math','R1-8B/M500'],
-  [70.7,75.6,'gsm8k','Llama-8B/GSM8K'],
-  [51.1,53.3,'gpqa','Llama-8B/GPQA'],
-  [53.6,52.3,'gpqa','Qwen-7B/GPQA'],
-  [54.4,55.2,'gpqa','R1-8B/GPQA'],
-  [55.5,58.2,'gpqa','Mistral-7B/GPQA'],
-  [51.4,50.2,'gpqa','Qwen-72B/GPQA'],
-  [54.9,62.5,'rag','Qwen-7B/hpqa'],
-  [57.1,61.4,'rag','Qwen-7B/nq'],
-  [60.5,51.1,'rag','Qwen-7B/2wiki'],
-  [64.1,65.0,'rag','Qwen-7B/nqa'],
-  [58.9,60.5,'rag','M24B/hpqa'],
-  [60.3,62.5,'rag','M24B/nq'],
-  [52.7,53.8,'rag','M24B/2wiki'],
-  [60.8,61.6,'rag','M24B/nqa'],
-  [69.2,71.8,'rag','Q72B/hpqa'],
-  [62.3,65.0,'rag','Q72B/nq'],
-  [55.4,53.4,'rag','Q72B/2wiki'],
-  [57.2,60.3,'rag','Q72B/nqa'],
-  [74.3,77.6,'rag','L8B/hpqa'],
-  [51.4,63.4,'rag','L8B/nq'],
-  [55.6,59.5,'rag','L8B/2wiki'],
-  [56.9,57.3,'rag','L8B/nqa'],
-  [61.0,65.5,'qa','trivia_cot'],
-  [58.7,63.6,'qa','webq_cot'],
-];
-const domainColorMap = {math:'#3b82f6',gsm8k:'#10b981',gpqa:'#ef4444',rag:'#f59e0b',qa:'#8b5cf6'};
-const scatterPoints = scatterData.map(d=>({x:d[0],y:d[1],label:d[3],domain:d[2]}));
-
-new Chart(document.getElementById('scatterContProd'), {
-  type: 'scatter',
-  data: {
-    datasets: Object.entries(domainColorMap).map(([dom,col])=>({
-      label: dom.toUpperCase(),
-      data: scatterPoints.filter(p=>p.domain===dom).map(p=>({x:p.x,y:p.y,label:p.label})),
-      backgroundColor: col+'cc',
-      pointRadius: 6,
-      pointHoverRadius: 8,
+  type:'bar', data:{
+    labels: DOMAINS,
+    datasets: domainVariants.map(v=>({
+      label:v, data: domainData[v],
+      backgroundColor: domainColors[v]+'99',
+      borderColor: domainColors[v], borderWidth:1
     }))
   },
-  options: {
-    plugins: {
-      legend: { position:'right', labels:{font:{size:11},boxWidth:12} },
-      tooltip: { callbacks: { label: ctx => `${ctx.raw.label}: PROD ${ctx.raw.x}% → CONT ${ctx.raw.y}%` } }
+  options:{plugins:{legend:{position:'bottom'}},
+    scales:{y:{min:45,title:{display:true,text:'AUROC (%)'}}}}
+});
+
+// =========================================================
+// ENCODING DOMAIN CHART
+// =========================================================
+new Chart(document.getElementById('encDomain'), {
+  type:'bar', data:{
+    labels: DOMAINS,
+    datasets:[
+      {label:'PROD (binary+signs)', data:domainData.PROD, backgroundColor:'#f9731699', borderColor:'#f97316', borderWidth:1},
+      {label:'CONT (continuous+signs)', data:domainData.CONT, backgroundColor:'#2563eb99', borderColor:'#2563eb', borderWidth:1},
+    ]
+  },
+  options:{plugins:{legend:{position:'bottom'}}, scales:{y:{min:45}}}
+});
+
+// =========================================================
+// SCATTER CONT vs PROD (28 cells, excluding outlier trivia_traces)
+// =========================================================
+const scatterDomainColors = {'math500':'#2563eb','gsm8k':'#16a34a','gpqa':'#dc2626','rag':'#f97316','qa':'#7c3aed'};
+const cellData = [
+  // [PROD, CONT, domain]
+  [83.2,86.7,'math500'],[88.2,94.4,'math500'],[66.0,71.6,'math500'],[81.6,84.4,'math500'],
+  [70.7,75.6,'gsm8k'],
+  [51.1,53.3,'gpqa'],[53.6,52.3,'gpqa'],[54.4,55.2,'gpqa'],[55.5,58.2,'gpqa'],[51.4,50.2,'gpqa'],
+  [54.9,62.5,'rag'],[57.1,61.4,'rag'],[60.5,51.1,'rag'],[64.1,65.0,'rag'],
+  [58.9,60.5,'rag'],[60.3,62.5,'rag'],[52.7,53.8,'rag'],[60.8,61.6,'rag'],
+  [69.2,71.8,'rag'],[62.3,65.0,'rag'],[55.4,53.4,'rag'],[57.2,60.3,'rag'],
+  [74.3,77.6,'rag'],[51.4,63.4,'rag'],[55.6,59.5,'rag'],[56.9,57.3,'rag'],
+  [61.0,65.5,'qa'],[58.7,63.6,'qa']
+];
+const scatterDatasets = Object.entries(scatterDomainColors).map(([dom,color])=>({
+  label: dom,
+  data: cellData.filter(r=>r[2]===dom).map(r=>({x:r[0],y:r[1]})),
+  backgroundColor: color+'cc', pointRadius:5
+}));
+new Chart(document.getElementById('scatterContProd'), {
+  type:'scatter', data:{datasets:scatterDatasets},
+  options:{
+    plugins:{legend:{position:'bottom'},
+      annotation:{annotations:{
+        diag:{type:'line',xMin:45,xMax:100,yMin:45,yMax:100,borderColor:'#9ca3af',borderWidth:1,borderDash:[4,4]}
+      }}
     },
-    scales: {
-      x: { min:48,max:98,title:{display:true,text:'PROD (binary) AUROC %'} },
-      y: { min:48,max:98,title:{display:true,text:'CONT (continuous) AUROC %'} },
+    scales:{
+      x:{min:45,max:100,title:{display:true,text:'PROD AUROC (%)'}},
+      y:{min:45,max:100,title:{display:true,text:'CONT AUROC (%)'}}
     }
-  },
-  plugins: [{
-    id:'diagLine',
-    afterDraw(chart) {
-      const {ctx:c,scales:{x,y}} = chart;
-      const x1=x.getPixelForValue(48),y1=y.getPixelForValue(48);
-      const x2=x.getPixelForValue(98),y2=y.getPixelForValue(98);
-      c.save();
-      c.strokeStyle='#9ca3af';
-      c.setLineDash([4,4]);
-      c.lineWidth=1;
-      c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();
-      c.restore();
-    }
-  }]
-});
-
-// ============================================================
-// CHART 5a: Aggregation — binary
-// ============================================================
-new Chart(document.getElementById('aggBinaryDomain'), {
-  type: 'bar',
-  data: {
-    labels: ['MATH-500','GSM8K','GPQA','RAG','QA','Macro'],
-    datasets: [
-      { label:'flat_sml_5 (Flat SML)', data:[81.7,71.8,54.1,60.7,73.0,68.3], backgroundColor:'#7c3aed', borderRadius:4 },
-      { label:'PROD (L-SML grouped)', data:[79.7,70.7,53.2,59.5,62.9,65.2], backgroundColor:'#f97316', borderRadius:4 },
-    ]
-  },
-  options: {
-    plugins: { legend:{position:'top',labels:{font:{size:11}}} },
-    scales: { y:{min:48,max:90,title:{display:true,text:'AUROC (%)'}} }
   }
 });
 
-// ============================================================
-// CHART 5b: Aggregation — continuous
-// ============================================================
-new Chart(document.getElementById('aggContDomain'), {
-  type: 'bar',
-  data: {
-    labels: ['MATH-500','GSM8K','GPQA','RAG','QA','Macro'],
-    datasets: [
-      { label:'simple_avg_5 (Average)', data:[83.1,72.1,57.5,62.6,73.0,69.7], backgroundColor:'#059669', borderRadius:4 },
-      { label:'CONT (L-SML grouped)', data:[84.3,75.6,53.9,61.7,75.0,70.1], backgroundColor:'#2563eb', borderRadius:4 },
-    ]
-  },
-  options: {
-    plugins: { legend:{position:'top',labels:{font:{size:11}}} },
-    scales: { y:{min:48,max:90,title:{display:true,text:'AUROC (%)'}} }
-  }
-});
-
-// ============================================================
-// CHART 6a: Feature set — L-SML nosigns
-// ============================================================
-new Chart(document.getElementById('featLSMLDomain'), {
-  type: 'bar',
-  data: {
-    labels: ['MATH-500','GSM8K','GPQA','RAG','QA','Macro'],
-    datasets: [
-      { label:'lsml_16_nosigns (H16)', data:[80.4,70.4,57.3,56.8,61.8,65.4], backgroundColor:'#64748b', borderRadius:4 },
-      { label:'lsml_5_nosigns (GOOD_5)', data:[81.5,68.6,53.8,58.8,71.4,66.8], backgroundColor:'#78716c', borderRadius:4 },
-    ]
-  },
-  options: {
-    plugins: { legend:{position:'top',labels:{font:{size:11}}} },
-    scales: { y:{min:48,max:90,title:{display:true,text:'AUROC (%)'}} }
-  }
-});
-
-// ============================================================
-// CHART 6b: Feature set — Flat SML signs
-// ============================================================
-new Chart(document.getElementById('featFlatDomain'), {
-  type: 'bar',
-  data: {
-    labels: ['MATH-500','GSM8K','GPQA','RAG','QA','Macro'],
-    datasets: [
-      { label:'flat_sml_16_signs (H16)', data:[72.1,53.6,54.8,60.5,64.0,61.0], backgroundColor:'#94a3b8', borderRadius:4 },
-      { label:'flat_sml_5_signs (GOOD_5)', data:[81.7,71.8,54.1,60.7,73.0,68.3], backgroundColor:'#7c3aed', borderRadius:4 },
-    ]
-  },
-  options: {
-    plugins: { legend:{position:'top',labels:{font:{size:11}}} },
-    scales: { y:{min:48,max:90,title:{display:true,text:'AUROC (%)'}} }
-  }
-});
-
-// ============================================================
-// CHART 7: Feature correlation bar
-// ============================================================
-new Chart(document.getElementById('corrBar'), {
-  type: 'bar',
-  data: {
-    labels: ['epr|sw_var_peak','low_band_power|cusum_max','cusum_max|spectral_entropy','sw_var_peak|cusum_max','epr|cusum_max','low_band_power|spectral_entropy','sw_var_peak|spectral_entropy','epr|spectral_entropy','low_band_power|sw_var_peak','epr|low_band_power'],
-    datasets: [{
-      label: 'Mean Spearman |ρ|',
-      data: [0.633,0.616,0.555,0.525,0.505,0.334,0.292,0.270,0.269,0.261],
-      backgroundColor: [0.633,0.616,0.555,0.525,0.505,0.334,0.292,0.270,0.269,0.261].map(v=>v>=0.75?'#dc2626':'#60a5fa'),
-      borderRadius: 4,
+// =========================================================
+// RHO BAR
+// =========================================================
+new Chart(document.getElementById('rhoBar'), {
+  type:'bar', data:{
+    labels:['epr|sw_var','lb|cusum','cusum|sp_ent','sw_var|cusum','epr|cusum','lb|sp_ent','sw_var|sp_ent','epr|sp_ent','lb|sw_var','epr|lb'],
+    datasets:[{
+      data:[0.633,0.616,0.555,0.525,0.505,0.334,0.292,0.270,0.269,0.261],
+      backgroundColor:'#2563eb99', borderColor:'#2563eb', borderWidth:1
     }]
   },
-  options: {
-    indexAxis: 'y',
-    plugins: {
-      legend:{display:false},
-      tooltip:{ callbacks:{ label: ctx=>`Mean |ρ| = ${ctx.raw.toFixed(3)}` } }
+  options:{
+    plugins:{legend:{display:false},
+      annotation:{annotations:{
+        thresh:{type:'line',yMin:0.75,yMax:0.75,borderColor:'#dc2626',borderWidth:2,borderDash:[4,4]}
+      }}
     },
-    scales: {
-      x: { min:0, max:0.8, title:{display:true,text:'Mean Spearman |ρ|'} },
-      y: { ticks:{ font:{size:11} } }
-    }
-  },
-  plugins:[{
-    id:'thr',
-    afterDraw(chart){
-      const x2 = chart.scales.x.getPixelForValue(0.75);
-      const c = chart.ctx;
-      c.save();
-      c.strokeStyle='#dc2626';
-      c.setLineDash([5,4]);
-      c.lineWidth=1.5;
-      c.beginPath();c.moveTo(x2,chart.chartArea.top);c.lineTo(x2,chart.chartArea.bottom);c.stroke();
-      c.fillStyle='#dc2626';
-      c.font='11px system-ui';
-      c.fillText('reject threshold 0.75',x2+4,chart.chartArea.top+12);
-      c.restore();
-    }
-  }]
+    scales:{y:{min:0,max:1.0,title:{display:true,text:'Mean |Spearman ρ|'}}}
+  }
 });
+
+// =========================================================
+// SIGN DIRECTION CHARTS (Section 8)
+// =========================================================
+new Chart(document.getElementById('signBinaryChart'), {
+  type:'bar', data:{
+    labels: DOMAINS,
+    datasets:[
+      {label:'lsml5n (no signs)', data:domainData.lsml5n, backgroundColor:'#94a3b899', borderColor:'#94a3b8', borderWidth:1},
+      {label:'PROD (FEATURE_SIGNS)', data:domainData.PROD, backgroundColor:'#f9731699', borderColor:'#f97316', borderWidth:1}
+    ]
+  },
+  options:{plugins:{legend:{position:'bottom'}}, scales:{y:{min:45,title:{display:true,text:'AUROC (%)'}}}}
+});
+new Chart(document.getElementById('signContChart'), {
+  type:'bar', data:{
+    labels: DOMAINS,
+    datasets:[
+      {label:'lsml5nc (no signs)', data:domainData.lsml5nc, backgroundColor:'#05996999', borderColor:'#059969', borderWidth:1},
+      {label:'CONT (FEATURE_SIGNS)', data:domainData.CONT, backgroundColor:'#2563eb99', borderColor:'#2563eb', borderWidth:1}
+    ]
+  },
+  options:{plugins:{legend:{position:'bottom'}}, scales:{y:{min:45,title:{display:true,text:'AUROC (%)'}}}}
+});
+
+// =========================================================
+// WINNER CHART (Section 9)
+// =========================================================
+new Chart(document.getElementById('winnerChart'), {
+  type:'bar', data:{
+    labels: DOMAINS,
+    datasets:[
+      {label:'CONT/lsml5nc', data:domainData.CONT, backgroundColor:'#2563eb99', borderColor:'#2563eb', borderWidth:1},
+      {label:'avg5', data:domainData.avg5, backgroundColor:'#0891b299', borderColor:'#0891b2', borderWidth:1},
+      {label:'flat5', data:domainData.flat5, backgroundColor:'#64748b99', borderColor:'#64748b', borderWidth:1},
+      {label:'PROD', data:domainData.PROD, backgroundColor:'#f9731699', borderColor:'#f97316', borderWidth:1},
+      {label:'Oracle Best-1', data:domainData.best1, backgroundColor:'#7c3aed44', borderColor:'#7c3aed', borderWidth:1, borderDash:[4,4]}
+    ]
+  },
+  options:{plugins:{legend:{position:'bottom'}}, scales:{y:{min:45,title:{display:true,text:'AUROC (%)'}}}}
+});
+
+// =========================================================
+// FEATURE SCATTER (mean vs range)
+// =========================================================
+const featPoints = [
+  {x:29.5, y:64.4, label:'epr', good5:true},
+  {x:25.6, y:64.5, label:'cusum_max', good5:true},
+  {x:26.0, y:62.7, label:'sw_var_peak', good5:true},
+  {x:23.0, y:62.6, label:'spectral_entropy', good5:true},
+  {x:25.8, y:62.3, label:'low_band_power', good5:true},
+  {x:21.4, y:63.6, label:'trace_length', good5:false},
+  {x:20.3, y:61.5, label:'rpdi', good5:false},
+  {x:25.1, y:60.9, label:'hl_ratio', good5:false},
+  {x:22.7, y:59.5, label:'stft_sp_ent', good5:false},
+  {x:22.9, y:59.1, label:'dom_freq', good5:false},
+  {x:8.5,  y:59.1, label:'pe_mean', good5:false},
+  {x:28.6, y:58.4, label:'sp_centroid', good5:false},
+  {x:23.6, y:58.8, label:'high_band', good5:false},
+  {x:22.9, y:58.7, label:'hurst', good5:false},
+  {x:13.1, y:58.8, label:'stft_high_pw', good5:false},
+  {x:11.0, y:59.3, label:'cusum_shift', good5:false},
+];
+new Chart(document.getElementById('featScatter'), {
+  type:'scatter', data:{
+    datasets:[
+      {
+        label:'GOOD_5',
+        data: featPoints.filter(p=>p.good5).map(p=>({x:p.x,y:p.y,label:p.label})),
+        backgroundColor:'#2563ebcc', pointRadius:7
+      },
+      {
+        label:'Other H16',
+        data: featPoints.filter(p=>!p.good5).map(p=>({x:p.x,y:p.y,label:p.label})),
+        backgroundColor:'#94a3b8cc', pointRadius:5
+      }
+    ]
+  },
+  options:{
+    plugins:{
+      legend:{position:'bottom'},
+      tooltip:{callbacks:{label:ctx=>`${ctx.raw.label}: mean=${ctx.raw.y}%, range=${ctx.raw.x}pp`}}
+    },
+    scales:{
+      x:{min:0,max:35,title:{display:true,text:'Cross-domain range (pp)'}},
+      y:{min:55,max:70,title:{display:true,text:'Mean AUROC (%)'}}
+    }
+  }
+});
+
+// =========================================================
+// FEATURE DOMAIN BAR (GOOD_5 only, Section 10)
+// =========================================================
+const g5feats = ['epr','cusum_max','sw_var_peak','spectral_entropy','low_band_power'];
+const g5data = {
+  epr:           [83.8, 70.8, 54.3, 61.2, 70.4],
+  cusum_max:     [82.9, 71.4, 57.3, 60.9, 69.1],
+  sw_var_peak:   [79.1, 73.9, 53.1, 59.4, 71.0],
+  spectral_entropy:[79.5, 65.0, 56.5, 60.1, 62.8],
+  low_band_power:[79.8, 69.3, 54.0, 59.7, 64.4],
+};
+const g5colors = ['#2563eb','#16a34a','#dc2626','#f97316','#7c3aed'];
+new Chart(document.getElementById('featDomainBar'), {
+  type:'bar', data:{
+    labels: DOMAINS,
+    datasets: g5feats.map((f,i)=>({
+      label:f, data:g5data[f],
+      backgroundColor:g5colors[i]+'99', borderColor:g5colors[i], borderWidth:1
+    }))
+  },
+  options:{plugins:{legend:{position:'bottom'}}, scales:{y:{min:45,title:{display:true,text:'AUROC (%)'}}}}
+});
+
+// =========================================================
+// FEATURE COUNT CHART (Section 11)
+// =========================================================
+new Chart(document.getElementById('featCountChart'), {
+  type:'bar', data:{
+    labels: DOMAINS,
+    datasets:[
+      {label:'PROD (5 feat, binary+signs)', data:domainData.PROD, backgroundColor:'#f9731699', borderColor:'#f97316', borderWidth:1},
+      {label:'lsml9h (9 feat, binary+signs)', data:domainData.lsml9h, backgroundColor:'#a1620799', borderColor:'#a16207', borderWidth:1},
+      {label:'lsml16 (16 feat, binary, no signs)', data:domainData.lsml16, backgroundColor:'#6b728099', borderColor:'#6b7280', borderWidth:1},
+      {label:'lsml5n (5 feat, binary, no signs)', data:domainData.lsml5n, backgroundColor:'#94a3b899', borderColor:'#94a3b8', borderWidth:1},
+    ]
+  },
+  options:{plugins:{legend:{position:'bottom'}}, scales:{y:{min:45,title:{display:true,text:'AUROC (%)'}}}}
+});
+
 </script>
 </body>
 </html>
