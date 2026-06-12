@@ -381,7 +381,7 @@ The main risk is that verbalized confidence and EPR are correlated on our domain
 
 ## Direction 5 — Statistical Guarantees: Conformal Calibration of the Fusion Detector
 
-**Status**: Not started, but all prerequisites are in place. Pure theory/analysis direction.
+**Status**: Not started, but all prerequisites are in place. **Elevated to the immediate deployment priority after Steps 134–136**: the method now has a stable main configuration (continuous L-SML / CONT) and a validated separability story (AUROC), so the missing piece to make it a *usable detector* is (a) a frozen-weights inference scorer and (b) a thresholded decision with real detection metrics. Experiment 5D below is the engineering bridge to 5A–5C.
 
 ### Core Hypothesis
 The Nadler fusion score, despite being unsupervised, can be calibrated using a small held-out set (without ground-truth labels, using Bracha's PPI framework) to produce a threshold τ that guarantees: P(model hallucinated | score > τ) ≥ 1-δ. This is the rigorous deployment version of the thesis — not just "does the ensemble achieve higher AUC?" but "can we deploy it with a formal safety guarantee?"
@@ -408,8 +408,20 @@ The Nadler fusion score, despite being unsupervised, can be calibrated using a s
 - Use Pareto testing to find the τ that simultaneously satisfies both bounds
 - This enables a safety-accuracy tradeoff curve with formal guarantees
 
+**Experiment 5D — Deployment scorer + detection metrics under class imbalance** ← NEXT (engineering prerequisite for 5A–5C)
+
+*Motivation (from the Step-136 deployment discussion):* the L-SML fused score is a single **continuous, unbounded** real number per generation — `score = Σ_g cross_w[g] · ξ_g`, where `ξ_g = Σ_{i∈g} w_g[i] · z_i` and `z_i = (sign_i·x_i − μ_i)/σ_i`. It is **not** in [0,1] and **not** a probability; AUROC works on it directly because AUROC is rank-based and threshold-free. To actually *detect* (output hallucination yes/no) you must add a threshold τ — that τ is the "binarization at the end." Two open pieces:
+
+1. **Frozen-weights inference path** (the scorer the package lacks today — `zscore` currently recomputes μ/σ per batch, and weights come fresh from each `meta`). Build:
+   - `fit_lsml(calibration_batch)` → freeze cluster assignment `c`, `group_weights`, `cross_weights`, per-feature `μ_i, σ_i`, `sign_i`. Unsupervised (label-free), fit once on a representative batch.
+   - `score_one(features)` → apply frozen params → one continuous score. True single-forward-pass, single-sample inference (the current experiments are transductive: fit+evaluate on the same batch, valid for AUROC but not streaming deployment).
+2. **Decision metrics that survive imbalance.** Our cells are heavily skewed (GSM8K +1043/−276 → 79% majority; RAG/hotpotqa +15/−154 → 91% majority; MATH +84/−216 → 72% majority), so **raw accuracy is a trap** — a do-nothing majority predictor scores 72–91%. Report instead, at a chosen τ: **recall on the hallucination class (detection rate / TPR), precision, F1, balanced accuracy**, and the deployment-honest **TPR @ fixed FPR (1/5/10%)**; plus **AUPRC** as the threshold-free imbalanced companion to AUROC. Deliver a `decision_report(scores, labels, τ)` helper and a precision–recall curve with 1–2 named operating points — not a single accuracy number.
+3. **τ selection:** unsupervised via a calibration-score quantile (abstention-rate knob); or labeled via a target FPR / Youden's J. This hands off directly to 5A–5C, which replace the heuristic τ with a *guaranteed* one.
+
+*Why 5D is a separate experiment:* it converts the validated separability result ("94% AUROC on math") into a detection claim ("at a 5% false-alarm budget it catches N% of math hallucinations"), which is the statement that means *detection*. It also exposes the calibration/inference plumbing that 5A–5C need.
+
 ### Why This Matters
-Current hallucination detectors only report AUC — a ranking metric with no deployment semantics. A conformal guarantee turns the detector into a deployable tool: "this system will flag at least 90% of hallucinations at this confidence level." That's a publishable contribution even if the AUC improvement is modest.
+Current hallucination detectors often report only AUROC — a ranking metric with no deployment semantics, and one that says nothing about detection rate at a usable false-alarm budget. Worse, **accuracy** is actively misleading here because of class imbalance (see 5D). The path is: AUROC (separability, done) → thresholded detection metrics under imbalance (5D) → a conformal guarantee (5A–5C) that turns the detector into a deployable tool: "this system will flag at least 90% of hallucinations at this confidence level." That's a publishable contribution even if the AUROC improvement is modest.
 
 ### Feasibility: Low-Medium effort | Novelty: Medium (novel application, methods exist) | Risk: Low
 
@@ -490,8 +502,8 @@ The main uncertainty is whether hidden-state variance is decorrelated enough fro
 **After Unified run (regardless of outcome)**:
 2. **Direction 2 (RAG)** — EPR(with context) vs EPR(no context) on TriviaQA Wikipedia passages. Same model, same infrastructure, orthogonal signal. Lowest-risk unexplored direction.
 
-**Once best ensemble confirmed**:
-3. **Direction 5 (Conformal)** — thesis endpoint, not optional. LTT calibration of best ensemble score. ~50 lines. Turns AUC into formal guarantee. This is the Bracha chapter.
+**Once best ensemble confirmed** (main config now fixed = continuous L-SML / CONT, Steps 134–136):
+3. **Direction 5 (Conformal)** — thesis endpoint, not optional. **Start with Experiment 5D**: frozen-weights inference scorer + detection metrics under class imbalance (recall/precision/F1/balanced-acc/TPR@FPR/AUPRC — *not* raw accuracy), then LTT/PPI calibration (5A–5C) to turn AUROC into a formal guarantee. This is the Bracha chapter.
 
 **After Directions 1–2–5 are complete**:
 4. **Direction 4 (Agentic)** — Qwen3-7B, HotpotQA multi-hop, Nadler{EPR + AUQ verbalized confidence}.
