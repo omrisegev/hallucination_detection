@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unsupervised Spectral Hallucination Detection — Analysis &amp; Benchmarking</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{--blue:#2563eb;--green:#16a34a;--red:#dc2626;--gray:#6b7280;--border:#e5e7eb;--amber:#f59e0b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:system-ui,-apple-system,sans-serif;font-size:15px;color:#1f2937;background:#f9fafb;line-height:1.6;}
+  .page{max-width:980px;margin:0 auto;padding:48px 24px;}
+  h1{font-size:27px;font-weight:800;margin-bottom:6px;letter-spacing:-.01em;}
+  h2{font-size:20px;font-weight:700;margin:46px 0 6px;padding-top:18px;border-top:2px solid var(--border);}
+  h2 .q{display:block;font-size:13px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
+  h3{font-size:16px;font-weight:600;margin:22px 0 8px;color:#374151;}
+  p{margin-bottom:12px;color:#374151;}
+  .sub{color:var(--gray);font-size:14px;margin-bottom:8px;}
+  .lead{font-size:16px;color:#111827;}
+  strong{color:#111827;}
+  em.t{font-style:normal;background:#fef3c7;padding:0 3px;border-radius:3px;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:14px 0;}
+  th{background:#f1f5f9;font-weight:600;padding:8px 10px;text-align:left;border:1px solid var(--border);}
+  td{padding:7px 10px;border:1px solid var(--border);}
+  tr:hover td{background:#fafafa;}
+  .mono{font-family:ui-monospace,'Courier New',monospace;font-size:12.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;}
+  .chart-wrap{background:#fff;border:1px solid var(--border);border-radius:10px;padding:20px;margin:18px 0;}
+  canvas{max-height:380px;}
+  .takeaway{background:#ecfdf5;border-left:4px solid var(--green);padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0;font-size:14.5px;}
+  .takeaway b{color:#065f46;}
+  .qbox{background:#eff6ff;border-left:4px solid var(--blue);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;font-size:14.5px;}
+  .warn{background:#fffbeb;border-left:4px solid var(--amber);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;font-size:14px;color:#78350f;}
+  .term{background:#fff;border:1px solid var(--border);border-radius:10px;padding:4px 20px 14px;margin:16px 0;}
+  .win{color:var(--green);font-weight:700;}
+  .loss{color:var(--red);font-weight:700;}
+  .rec{background:#eff6ff;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .small{font-size:12.5px;color:var(--gray);}
+  ol.story{margin:8px 0 8px 22px;} ol.story li{margin-bottom:8px;}
+  ul.defs{margin:6px 0 6px 20px;} ul.defs li{margin-bottom:6px;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;}
+  .pill-cont{background:#dbeafe;color:#1e40af;} .pill-prod{background:#fed7aa;color:#9a3412;}
+  .hm{border-collapse:collapse;font-size:11px;width:100%;table-layout:fixed;}
+  .hm th{padding:3px 2px;font-size:10.5px;text-align:center;background:#f8fafc;font-weight:600;}
+  .hm td{padding:0;text-align:center;border:1px solid #fff;height:26px;color:#1f2937;font-variant-numeric:tabular-nums;}
+  .hm .rl{text-align:right;padding-right:6px;background:#f8fafc;font-weight:600;font-size:10.5px;}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>Unsupervised Spectral Hallucination Detection</h1>
+<div class="sub">A single-forward-pass detector built on the spectral structure of the token-entropy trace H(n). &nbsp;·&nbsp; Analysis over 29 cached model×dataset evaluation cells · June 2026</div>
+
+<p class="lead">This report reviews what the past phase of work established: <strong>which design choice was actually responsible for the performance we lost when the method was made fully unsupervised, how the algorithm behaves internally, and how it stands against the literature.</strong> It is organised as a sequence of questions; every table and chart is here to answer one of them.</p>
+
+<!-- ============================ TERMINOLOGY ============================ -->
+<h2><span class="q">Read this first</span>0. Terminology and how the numbers are aggregated</h2>
+<p>The analysis varies the method along <strong>three independent axes</strong>. Every variant named below is one choice on each axis:</p>
+<div class="term">
+<ul class="defs">
+  <li><strong>Feature set</strong> — how many H(n) features feed the fusion: <strong>5</strong> (the curated subset <span class="mono">GOOD_5</span> = epr, low_band_power, sw_var_peak, cusum_max, spectral_entropy), <strong>9</strong> (<span class="mono">STABLE_H9</span> — the H(n) features that rarely saturate), or <strong>16</strong> (all H(n) features, no selection).</li>
+  <li><strong>Encoding</strong> — <strong>binary</strong> (each feature median-split to ±1, as the source papers assume) vs <strong>continuous</strong> (each feature z-scored, magnitude preserved).</li>
+  <li><strong>Fusion</strong> — <strong>flat SML</strong> (Spectral Meta-Learner; assumes inputs are independent), <strong>L-SML</strong> (Latent SML; first clusters the dependent features, fuses within each cluster into a "virtual classifier," then across clusters), or a plain <strong>simple average</strong> baseline.</li>
+</ul>
+<p style="margin:4px 0 2px"><strong>Short names used throughout</strong> (axis values in parentheses):</p>
+<table style="margin-top:6px">
+  <tr><th>Name</th><th>Fusion</th><th>Encoding</th><th>Features</th><th>Note</th></tr>
+  <tr class="rec"><td><span class="pill pill-cont">CONT</span></td><td>L-SML</td><td>continuous</td><td>5</td><td>main configuration</td></tr>
+  <tr><td><span class="pill pill-prod">PROD</span></td><td>L-SML</td><td>binary</td><td>5</td><td>earlier ("production") config</td></tr>
+  <tr><td><span class="mono">lsml9c</span> / <span class="mono">lsml16c</span></td><td>L-SML</td><td>continuous</td><td>9 / 16</td><td>no-selection variants</td></tr>
+  <tr><td><span class="mono">flat5c</span> / <span class="mono">flat9c</span> / <span class="mono">flat16c</span></td><td>flat SML</td><td>continuous</td><td>5 / 9 / 16</td><td>clustering removed</td></tr>
+  <tr><td><span class="mono">avg5</span> / <span class="mono">avg9</span> / <span class="mono">avg16</span></td><td>average</td><td>continuous</td><td>5 / 9 / 16</td><td>fusion-free baseline</td></tr>
+  <tr><td><span class="mono">best1</span></td><td>—</td><td>—</td><td>1</td><td>oracle: best single feature per cell <em>(uses labels — not deployable, shown only as a ceiling)</em></td></tr>
+</table>
+</div>
+<p><strong>How results are aggregated</strong> — three levels, used consistently:</p>
+<ul class="defs">
+  <li>A <strong>cell</strong> is one model × dataset evaluation (e.g. MATH-500 on Qwen2.5-Math-7B). There are 29 cells.</li>
+  <li>A <strong>domain mean</strong> averages all cells in a domain (MATH-500 has 4 cells, RAG has 16, etc.).</li>
+  <li><strong>Macro</strong> is the mean of the five domain means — each domain weighted 1/5 regardless of cell count.</li>
+</ul>
+<div class="qbox"><b>Which level each section uses:</b> the analysis sections (Findings 1–4, feature stability, the per-domain ranking) report <strong>domain means / macro</strong>. The cluster examples (§7) are <strong>per individual cell</strong>, because clusters are formed per cell. The benchmarking tables (§10) are <strong>per cell</strong>, each matched to the exact model the published/in-house baseline ran on — that is what a model-matched comparison requires.</p></div>
+
+<!-- ============================ SETUP ============================ -->
+<h2><span class="q">What is being measured, and what went wrong</span>1. The detector, and the three changes that caused the drop</h2>
+<p>For each generated answer we record the per-token entropy sequence H(n) of the model's output distribution — one number per token, from a <strong>single forward pass</strong> (we never re-run the model; this is also the answer to the runtime question — we store the entropy trace, not the full logits). From H(n) we compute 16 spectral/temporal features (band powers, spectral entropy, entropy-production rate, sliding-window variance, CUSUM statistics, etc.) and fuse them into one correctness score. No labels are used at inference.</p>
+<p>When the pipeline was made faithful to the papers, three things changed at once:</p>
+<ol class="story">
+  <li><strong>Binary vs continuous.</strong> The SML theory assumes each input is a binary ±1 classifier; the earlier implementation fed it continuous (normalized) features.</li>
+  <li><strong>SML vs L-SML.</strong> Plain SML assumes the inputs are independent. Our 16 features all come from the same entropy trace, so they are dependent — L-SML first <em>clusters</em> the dependent features, fuses within each cluster, then across clusters.</li>
+  <li><strong>Label leakage.</strong> The old pipeline used ground-truth labels in two places: to search over feature subsets for the best-AUROC fusion, and to set each feature's sign/direction. Both were removed.</li>
+</ol>
+<div class="qbox"><b>The question this report answers:</b> of these three changes, which one actually caused the performance to fall — and how much of it can be recovered honestly? To find out, we ran <strong>~18 variants of the method over all 29 stored cells</strong>, changing one axis at a time. No new inference was needed — everything was recomputed from the stored entropy traces.</div>
+
+<!-- ============================ FINDING 1: ENCODING ============================ -->
+<h2><span class="q">Finding 1 — the dominant cause</span>2. It was the binarization, not the de-leaking</h2>
+<p>This table isolates <strong>one axis: the encoding</strong>. Feature set (the curated 5) and fusion (L-SML) are held fixed, so the two rows are exactly <span class="pill pill-prod">PROD</span> and <span class="pill pill-cont">CONT</span> — the only difference between them is binary ±1 vs continuous z-scored inputs. Each number is the <strong>domain mean</strong> (average over that domain's cells); the last column is the macro. These are not an average over all binary/all continuous variants — just the 5-feature L-SML pair.</p>
+<table>
+  <tr><th>L-SML, 5 features — encoding only</th><th>MATH-500</th><th>GSM8K</th><th>GPQA</th><th>RAG</th><th>QA</th><th>Macro</th></tr>
+  <tr><td><span class="pill pill-prod">PROD</span> binary (median ±1)</td><td>79.7</td><td>70.7</td><td>53.2</td><td>59.5</td><td>62.9</td><td>65.2</td></tr>
+  <tr class="rec"><td><span class="pill pill-cont">CONT</span> continuous (z-scored)</td><td>84.3</td><td>75.6</td><td>53.9</td><td>61.7</td><td>75.0</td><td><strong>70.1</strong></td></tr>
+  <tr><td>difference</td><td class="win">+4.6</td><td class="win">+4.9</td><td>+0.7</td><td class="win">+2.2</td><td class="win">+12.1</td><td class="win">+4.9</td></tr>
+</table>
+<div class="chart-wrap"><h3>Binary vs continuous, per domain (same features, same fusion)</h3><canvas id="encChart"></canvas></div>
+<div class="takeaway"><b>Takeaway:</b> a single change — continuous instead of binarized features — recovers <b>+4.9pp macro and up to +12pp on individual domains</b>. Median-binarization collapses each feature to "above/below median," discarding the magnitude information that actually separates correct from hallucinated generations. This, not the removal of label leakage, was the main cause of the drop. (Finding 4 shows continuous beats binary in <em>every</em> cell of the full grid, so this is not specific to the 5-feature set.)</div>
+
+<!-- ============================ FINDING 2: FEATURE SELECTION ============================ -->
+<h2><span class="q">Finding 2 — answering "is the subset necessary?"</span>3. Feature selection is a minor convenience, not a requirement</h2>
+<p>One of the two leakage sources was searching, with labels, for the best feature subset. A fair question (raised directly by the advisors): does the method depend on that hand-picked subset at all? We compare the curated 5-feature set against running continuous L-SML on the 9-feature stable set and on <em>all 16</em> features — same encoding, same fusion, only the feature count changes (all macro AUROC):</p>
+<table>
+  <tr><th>Continuous L-SML</th><th>Features</th><th>Macro AUROC</th></tr>
+  <tr class="rec"><td>CONT — curated subset</td><td>5</td><td><strong>70.1</strong></td></tr>
+  <tr><td>lsml9c — stable set, no curation</td><td>9</td><td>68.1</td></tr>
+  <tr><td>lsml16c — everything, no selection</td><td>16</td><td>69.2</td></tr>
+</table>
+<div class="takeaway"><b>Takeaway:</b> continuous L-SML lands at <b>68–70% whether it uses 5, 9, or all 16 features</b> — dropping feature selection entirely costs at most ~2pp (and only 0.9pp at 16). The method does <b>not</b> depend on a label-selected subset; the 5-feature set is a small, consistent optimisation on reasoning traces, not the source of the result. (Why L-SML can absorb the extra 4 or 11 features without harm is Finding 4 — and §7 shows the mechanism directly.)</div>
+
+<!-- ============================ FINDING 3: SIGNS ============================ -->
+<h2><span class="q">Finding 3 — the second leakage source</span>4. Feature "directions" collapse to one physical prior</h2>
+<p>The other leakage source was using labels to orient each feature (does a high value mean "more likely correct" or "more likely wrong"?). Two results show this is not a learned, label-dependent dictionary:</p>
+<p><strong>(a) In continuous mode, the offline directions change the AUROC by exactly zero.</strong> The variant with our signs and the variant with no signs produce identical AUROC in all 29 cells — because applying the signs (all five point the same way) is mathematically just a global sign-flip of the final score, which AUROC is invariant to. So the directions add no discriminative power; their only job is orientation.</p>
+<p><strong>(b) The paper's own unsupervised orientation rule does not work for our features.</strong> The L-SML "assumption (iii)" orients by assuming most classifiers beat random at predicting the correct class. Our features are uncertainty measures — they predict the <em>error</em> class — so the rule points the wrong way. Measured directly, the algorithm's internal direction is correct in only:</p>
+<table>
+  <tr><th>Variant (no external signs)</th><th>Cells with correct internal direction</th></tr>
+  <tr><td>L-SML, 16 features, binary</td><td>31% (9/29)</td></tr>
+  <tr><td>L-SML, 5 features, binary</td><td>21% (6/29)</td></tr>
+  <tr><td>L-SML, 5 features, continuous</td><td>14% (4/29)</td></tr>
+</table>
+<div class="takeaway"><b>Takeaway:</b> orientation cannot be recovered from unlabeled covariance alone, but it does <b>not</b> require labels either. It reduces to <b>one physical fact</b> — "higher entropy ⇒ more likely a hallucination" — supplied once, globally. That is domain knowledge, not a per-feature dictionary learned from the test set.</div>
+
+<!-- ============================ FINDING 4: SML vs L-SML ============================ -->
+<h2><span class="q">Finding 4 — when does the clustering earn its keep?</span>5. L-SML's clustering is what lets the method scale without feature selection</h2>
+<p>To place the fusion choice precisely, we ran the full grid: feature count (5 / 9 / 16) × encoding (binary / continuous) × fusion (flat SML / L-SML), plus a simple-average baseline. The 5-feature set is too clean to reveal the difference; the larger sets expose it. (Macro AUROC throughout.)</p>
+<div class="grid2">
+  <div>
+    <table>
+      <tr><th>5 features</th><th>Binary</th><th>Cont.</th></tr>
+      <tr><td>Flat SML</td><td>68.3</td><td>70.0</td></tr>
+      <tr><td>L-SML</td><td>65.2</td><td><strong>70.1</strong></td></tr>
+      <tr><td><em>Average</em></td><td>—</td><td>69.7</td></tr>
+    </table>
+    <table>
+      <tr><th>9 features</th><th>Binary</th><th>Cont.</th></tr>
+      <tr><td>Flat SML</td><td>61.0</td><td>64.5</td></tr>
+      <tr><td>L-SML</td><td>65.4</td><td><strong>68.1</strong></td></tr>
+      <tr><td><em>Average</em></td><td>—</td><td>69.7</td></tr>
+    </table>
+    <table>
+      <tr><th>16 features</th><th>Binary</th><th>Cont.</th></tr>
+      <tr><td>Flat SML</td><td>60.8</td><td>63.1</td></tr>
+      <tr><td>L-SML</td><td>65.4</td><td><strong>69.2</strong></td></tr>
+      <tr><td><em>Average</em></td><td>—</td><td>66.3</td></tr>
+    </table>
+  </div>
+  <div class="chart-wrap"><h3>As features are added, only L-SML holds up</h3>
+    <p class="small">Continuous encoding throughout. With more features, flat SML and the simple average degrade; L-SML stays flat.</p>
+    <canvas id="curveChart"></canvas>
+  </div>
+</div>
+<p>Two things are visible. First, <strong>continuous beats binary in every single cell of the grid</strong> (Finding 1 is universal, not specific to one feature set). Second, the value of clustering grows with the number of features: in continuous mode L-SML ties flat SML on the clean 5 (70.1 vs 70.0), beats it by <strong>+3.6 on 9</strong> features and <strong>+6.1 on 16</strong>, and beats the simple average by +2.9 on 16. The next section shows why — it is the feature dependence structure.</p>
+<div class="takeaway"><b>Takeaway:</b> on the clean 5-feature set the fusion choice barely matters — the encoding does the work. But L-SML is the <b>only</b> method that does not fall apart as features are added (it stays 68–70% from 5 to 16 features, while flat SML collapses 70 → 63). That robustness to redundant features is exactly what makes Finding 2 possible: you can skip feature selection <em>because</em> L-SML quarantines the noise.</div>
+
+<!-- ============================ DEPENDENCE STRUCTURE ============================ -->
+<h2><span class="q">Why clustering is the right tool</span>6. The features are dependent — the structure flat SML ignores</h2>
+<p>Flat SML assumes the inputs are conditionally independent. All 16 features are derived from the <em>same</em> entropy trace, so that assumption is false — and the violation is not uniform. The heatmap below is the mean |Spearman ρ| over all 29 cells for every one of the 120 feature pairs (darker = more dependent). It is the structure L-SML is built to exploit and flat SML is built to assume away.</p>
+<div class="chart-wrap"><h3>Feature dependence — mean |Spearman ρ| across 29 cells (all 120 pairs)</h3>
+  <div id="corrHeat"></div>
+  <p class="small" style="margin-top:8px">Median pair correlation is 0.25, but a tight band-power block stands out: <span class="mono">hl_ratio · spectral_centroid</span> 0.88, <span class="mono">high_band_power · hl_ratio</span> 0.84, <span class="mono">low_band_power · hl_ratio</span> 0.77 — 5 pairs exceed 0.75. Meanwhile <span class="mono">pe_mean</span> correlates weakly with everything (max 0.55, mostly &lt;0.25).</p>
+</div>
+<div class="takeaway"><b>Takeaway:</b> the dependence is <b>block-structured</b>, not flat — a handful of highly redundant band-power features, plus near-independent outliers like <span class="mono">pe_mean</span>. Flat SML double-counts the redundant block and is dragged by the outliers; L-SML groups the block into one virtual classifier and isolates the outliers. That is the mechanism, and §7 shows it operating per cell.</div>
+
+<!-- ============================ INSIDE: CLUSTER AUCs ============================ -->
+<h2><span class="q">Opening the box</span>7. The clusters L-SML forms, and how it suppresses weak features</h2>
+<p>L-SML's claim is mechanistic: it groups dependent features, fuses each group into a virtual classifier, then weights the groups when fusing across them. We can check all of this directly — score each cluster against the labels (its AUROC), and read off the <strong>across-group weight</strong> the algorithm assigns it (normalised to sum to 1 over the clusters in a cell; a near-zero weight means the cluster is effectively switched off). On <strong>MATH-500 / Qwen2.5-Math-7B</strong>:</p>
+<h3>5-feature L-SML (CONT) — two clean clusters, evenly weighted</h3>
+<table>
+  <tr><th>Cluster</th><th>Features</th><th>Cluster AUROC</th><th>Across-group weight</th></tr>
+  <tr><td>1</td><td>epr, low_band_power, sw_var_peak</td><td>95.2%</td><td>0.50</td></tr>
+  <tr><td>2</td><td>cusum_max, spectral_entropy</td><td>91.1%</td><td>0.50</td></tr>
+</table>
+<h3>16-feature L-SML (lsml16c) — informative blocks kept, the weak feature switched off</h3>
+<table>
+  <tr><th>Cluster</th><th>Features</th><th>Cluster AUROC</th><th>Across-group weight</th></tr>
+  <tr><td>1</td><td>low_band_power, high_band_power, hl_ratio, spectral_centroid, sw_var_peak</td><td>94.7%</td><td>0.34</td></tr>
+  <tr><td>2</td><td>epr, trace_length, stft_max_high_power, stft_spectral_entropy, rpdi, cusum_shift_idx</td><td>93.8%</td><td>0.33</td></tr>
+  <tr><td>3</td><td>spectral_entropy, hurst_exponent, cusum_max</td><td>92.2%</td><td>0.30</td></tr>
+  <tr class="rec"><td>4</td><td>pe_mean <span class="small">(isolated)</span></td><td>55.3%</td><td><strong>0.02</strong></td></tr>
+</table>
+<p>So the band-power block (the dark square in §6) is collapsed into <em>one</em> 94.7% cluster instead of being counted five times, the other informative features form two more ~93% clusters, and <strong>the weak outlier pe_mean is isolated and given a weight of 0.02 — the algorithm suppresses it automatically.</strong></p>
+
+<h3>Does pe_mean's weight tell us to delete it? Only sometimes — and that is the point</h3>
+<p>A natural reading is "pe_mean is always isolated at ~55% with weight ~0 — just remove it." That is true on some cells but <strong>not all</strong>, and the difference is informative. Here is pe_mean across three reasoning cells, 9-feature continuous L-SML:</p>
+<table>
+  <tr><th>Cell (domain / model)</th><th>pe_mean's cluster</th><th>Cluster AUROC</th><th>Across-group weight</th></tr>
+  <tr><td>MATH-500 / Qwen2.5-Math-7B</td><td>pe_mean alone</td><td>55.3%</td><td><strong>0.02</strong> — suppressed</td></tr>
+  <tr><td>QA / WebQ-CoT</td><td>pe_mean alone</td><td>51.3%</td><td><strong>0.02</strong> — suppressed</td></tr>
+  <tr><td>QA / TriviaQA-CoT</td><td>pe_mean alone</td><td>52.1%</td><td><strong>0.05</strong> — suppressed</td></tr>
+  <tr><td>GSM8K / Llama-3.1-8B</td><td>epr + pe_mean</td><td>67.7%</td><td>0.24 — kept</td></tr>
+</table>
+<div class="takeaway"><b>Takeaway:</b> where pe_mean is weak (MATH, both QA cells) L-SML isolates it and assigns its cluster a weight of <b>0.02–0.05 — it is already switched off</b>, so deleting it by hand would change essentially nothing. But on GSM8K pe_mean is dependent enough on epr to join a useful 67.7% cluster and earns a real weight (0.24). Its value is <b>domain-dependent</b>, and the across-group weight handles that adaptively per cell. That is a stronger argument than a static "remove pe_mean": <b>you do not need to — L-SML's weighting already does it where it should, and only there.</b></div>
+
+<!-- ============================ REGIME + STABILITY ============================ -->
+<h2><span class="q">Where the method works, and why</span>8. It is a reasoning-trace method — and no single feature is both strong and stable</h2>
+<p>The features are not uniformly useful, and their usefulness is not portable across domains. The scatter plots every feature's mean AUROC (over the five domain means) against its spread across domains. The pattern is stark: <strong>the strongest features are the least stable.</strong></p>
+<div class="chart-wrap"><h3>Feature strength vs cross-domain stability (each point = one H(n) feature)</h3><canvas id="stabChart"></canvas>
+  <p class="small" style="margin-top:8px">Up-and-right would be the ideal (strong and stable); it is empty. The strong features (<span class="mono">epr</span> 68.1 mean / 29.5 range, <span class="mono">cusum_max</span> 68.3 / 25.6, <span class="mono">sw_var_peak</span> 67.3 / 26.0) swing ~30pp between domains — ~84% on math, ~54% on GPQA. The stable features (<span class="mono">pe_mean</span> range 8.5, <span class="mono">cusum_shift_idx</span> 11.0) are weak everywhere. The five <span style="color:#2563eb;font-weight:700">GOOD_5</span> features are highlighted.</p>
+</div>
+<div class="chart-wrap"><h3>Continuous L-SML (5-feature) by domain</h3><canvas id="regimeChart"></canvas></div>
+<p>That no feature is both strong and stable is the structural reason fusion helps on reasoning and not on short-answer tasks. The method is strong on <strong>reasoning traces</strong> (MATH-500, GSM8K, and chain-of-thought factual QA) and weak on <strong>GPQA</strong> (short forced-choice) and <strong>RAG</strong> (retrieval-grounded) — those traces are short and lack the token-level temporal evolution the spectral analysis relies on. Restricted to the three reasoning domains, the 5-feature continuous method reaches a <strong>78.3% macro</strong> — and there it beats not only a simple average but also the <span class="mono">best1</span> oracle that picks the single best feature per cell <em>with</em> labels, confirming the fusion adds real signal where the method applies.</p>
+<div class="warn"><b>Honest limitation:</b> on GPQA the continuous 5-feature method is actually our weakest variant (53.9); the 16-feature variant does a little better (56.7) but still trails the baselines. We treat GPQA and RAG as outside the method's operating regime rather than claim them.</div>
+
+<!-- ============================ PER-DOMAIN RANKING ============================ -->
+<h2><span class="q">Which variant to trust where</span>9. Per-domain ranking of the deployable variants</h2>
+<p>Pulling the grid together: this heatmap ranks the deployable variants (oracle <span class="mono">best1</span> excluded) within each domain — greener = better <em>relative to the other variants in that column</em>. It shows there is no single dominant variant, but a clear tier.</p>
+<div class="chart-wrap"><h3>Variant × domain — domain-mean AUROC, colored by within-domain rank</h3>
+  <div id="rankHeat"></div>
+  <p class="small" style="margin-top:8px">CONT and flat5c lead on the three reasoning domains (MATH, GSM8K, QA); the average baseline (avg5) edges ahead only on the two out-of-regime domains (GPQA, RAG), where all variants are near-random and the ranking is noise. PROD (binary) is last or near-last in every column — the binarization cost again.</p>
+</div>
+<div class="takeaway"><b>Takeaway:</b> on the domains where the method works, the continuous L-SML / continuous flat-SML pair is consistently on top and the binary variant consistently on the bottom. The simple average only "wins" where nothing works, so it is not a real competitor to CONT — it is a reminder that GPQA/RAG are out of regime.</div>
+
+<!-- ============================ BENCHMARKING ============================ -->
+<h2><span class="q">How it stands against the literature</span>10. Benchmarking, model-matched</h2>
+<p>Each comparison uses our number <strong>on the same model</strong> the baseline ran on — a per-cell number, not our cross-model average, since that is what published baselines report. All sampling baselines (Semantic Entropy, Self-Consistency, SelfCheckGPT, Verbalized Confidence) were computed in-house on the same model and dataset; LapEigvals and LoS-Net are spectral/learned methods from the literature. Our rows are unsupervised continuous variants at a single forward pass; the 5-feature L-SML is the main variant, with the others shown as the spread (we do <em>not</em> pick the best per domain).</p>
+
+<h3>MATH-500 / Qwen2.5-Math-7B &nbsp;<span class="win">— win</span></h3>
+<table>
+  <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Compute</th></tr>
+  <tr class="rec"><td><strong>L-SML continuous, 5-feat</strong></td><td><strong>94.4%</strong></td><td>[90.1, 97.7]</td><td>1-pass</td></tr>
+  <tr><td>L-SML continuous, 16-feat (no selection)</td><td>94.2%</td><td>[89.7, 97.7]</td><td>1-pass</td></tr>
+  <tr><td>Simple average, 5-feat</td><td>93.6%</td><td>[89.4, 97.0]</td><td>1-pass</td></tr>
+  <tr><td>Semantic Entropy NLI K=10</td><td>87.7%</td><td>[79.7, 93.9]</td><td>K=10</td></tr>
+  <tr><td>Self-Consistency K=10</td><td>87.2%</td><td>[72.1, 98.4]</td><td>K=10</td></tr>
+  <tr><td class="small">L-SML binary, 5-feat (earlier number)</td><td class="small">88.2%</td><td class="small">[84.0, 92.0]</td><td class="small">1-pass</td></tr>
+</table>
+
+<h3>GSM8K / Llama-3.1-8B &nbsp;— competitive</h3>
+<table>
+  <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Compute</th></tr>
+  <tr><td>Self-Consistency K=10</td><td>78.5%</td><td>[72.0, 84.5]</td><td>K=10</td></tr>
+  <tr><td>Semantic Entropy NLI K=10</td><td>77.4%</td><td>[70.9, 83.5]</td><td>K=10</td></tr>
+  <tr class="rec"><td><strong>L-SML continuous, 5-feat</strong></td><td><strong>75.6%</strong></td><td>[72.2, 79.0]</td><td>1-pass</td></tr>
+  <tr><td>L-SML continuous, 16-feat (no selection)</td><td>73.8%</td><td>[70.4, 77.3]</td><td>1-pass</td></tr>
+  <tr><td>LapEigvals — unsupervised <span class="small">(spectral attention, arXiv 2502.17598)</span></td><td>72.0%</td><td>n/a</td><td>1-pass, white-box</td></tr>
+  <tr><td>Simple average, 5-feat</td><td>72.1%</td><td>[68.2, 75.7]</td><td>1-pass</td></tr>
+  <tr><td>LapEigvals — supervised</td><td>87.2%</td><td>n/a</td><td>1-pass, trained probe</td></tr>
+</table>
+<p class="small">LapEigvals is the closest method in the literature — also spectral, also one forward pass — but it analyses attention-map eigenvalues rather than the entropy trace, and its strong number requires a supervised probe. Our unsupervised number is competitive with its unsupervised setting.</p>
+
+<h3>GPQA Diamond / Qwen2.5-7B &nbsp;<span class="loss">— loss (out of regime)</span></h3>
+<table>
+  <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Compute</th></tr>
+  <tr><td>Semantic Entropy NLI K=10</td><td>70.6%</td><td>[43.6, 93.3]</td><td>K=10</td></tr>
+  <tr><td>Verbalized Confidence K=1</td><td>67.9%</td><td>[49.5, 83.3]</td><td>1-pass</td></tr>
+  <tr><td>L-SML continuous, 16-feat</td><td>56.4%</td><td>[48.2, 64.5]</td><td>1-pass</td></tr>
+  <tr class="rec"><td>L-SML continuous, 5-feat</td><td>52.3%</td><td>[43.4, 61.2]</td><td>1-pass</td></tr>
+  <tr><td>Self-Consistency K=10</td><td>33.6%</td><td>[11.0, 58.2]</td><td>K=10</td></tr>
+</table>
+<p class="small">Even our best GPQA variant trails Semantic Entropy. Note Self-Consistency collapses here (33.6%) — on GPQA the model repeats the same wrong answer confidently, so agreement ≠ correctness.</p>
+
+<h3>RAG — L-CiteEval / Qwen2.5-7B &nbsp;<span class="win">— win on 3 of 4</span></h3>
+<p class="small">Citation-grounded QA. 95% CIs are wide (8–28 positives per cell) — differences are mostly within noise.</p>
+<table>
+  <tr><th>Sub-domain</th><th>L-SML cont. 5-feat</th><th>L-SML cont. 16-feat</th><th>SelfCheckGPT K=5</th></tr>
+  <tr><td>NarrativeQA</td><td class="win">65.0%</td><td>62.8%</td><td>52.4%</td></tr>
+  <tr><td>Natural Questions</td><td>61.4%</td><td class="win">64.2%</td><td>57.1%</td></tr>
+  <tr><td>HotpotQA</td><td>62.5%</td><td class="win">69.4%</td><td>51.4%</td></tr>
+  <tr><td>2WikiMultiHopQA</td><td>51.1%</td><td>55.5%</td><td>55.3%</td></tr>
+</table>
+<p class="small">LoS-Net (arXiv 2503.14043, 72.9% on HotpotQA) and TOHA (71–80%) are stronger but supervised/white-box and use standard HotpotQA without citation markers — a different task. On the citation-grounding AUROC framing there is no published competitor.</p>
+
+<div class="takeaway"><b>Bottom line:</b> a single forward pass that <b>beats the K=10 sampling methods on math by ~7pp at ~10× less compute</b>, is within ~3pp of them on GSM8K, <b>beats the standard RAG baseline on 3 of 4 sub-tasks</b>, and loses on GPQA. Two comparisons are still pending — vs EDIS on the math-competition sets, and vs Verbalized-Confidence/Self-Consistency on a stronger GPQA reasoning model — held back by a grading issue in the EDIS run.</div>
+
+<!-- ============================ CONCLUSIONS ============================ -->
+<h2><span class="q">What we now know, and what is next</span>11. Conclusions</h2>
+<p><strong>Questions answered by these experiments:</strong></p>
+<ol class="story">
+  <li><strong>What caused the post-correction drop?</strong> Binarizing the features — not removing the label leakage. Continuous encoding recovers +4.9pp macro / +7.2pp on reasoning (§2), and is better in every cell of the grid (§5).</li>
+  <li><strong>Does the method need a hand-picked feature subset?</strong> No — continuous L-SML is 68–70% at 5, 9, or 16 features (§3). Selection is a ≤2pp convenience.</li>
+  <li><strong>Are the feature directions a label-dependent trick?</strong> No — they collapse to one physical prior ("higher entropy ⇒ hallucination") and add zero discriminative power in continuous mode (§4).</li>
+  <li><strong>Does L-SML's clustering matter, and how?</strong> Yes, with many features — it collapses the redundant band-power block into one virtual classifier and switches off weak outliers via a near-zero across-group weight (§6–§7), which is what lets it run on all 16 features without degrading.</li>
+  <li><strong>Should we delete pe_mean?</strong> No need — L-SML already gives it weight 0.02–0.05 where it is weak, and keeps it only where it helps (§7).</li>
+  <li><strong>Where does it work?</strong> Reasoning traces (78.3% macro on MATH-500 / GSM8K / QA, beating the oracle single feature); not GPQA or RAG, which lack the temporal structure (§8–§9).</li>
+</ol>
+<p><strong>Main configuration:</strong> continuous L-SML on the 5-feature set, with a single global orientation prior — fully unsupervised, one forward pass. <strong>Next steps:</strong> fix the grading bug in the EDIS comparison and complete the stronger-model GPQA comparison (Phase 14); then consider conformal calibration of the score for a deployable abstention threshold.</p>
+
+<p class="small" style="margin-top:30px;border-top:1px solid var(--border);padding-top:14px">All numbers are computed from the 29 cached evaluation cells (<span class="mono">method_comparison_table1–4.csv</span>, <span class="mono">feature_correlation_16.csv</span>); baseline numbers were computed in-house on matched models or cited where noted. Methods: SML — Parisi, Nadler &amp; Kluger, PNAS 2014; L-SML — Jaffé, Fetaya &amp; Nadler 2016; Semantic Entropy — Farquhar et al. 2024; SelfCheckGPT — Manakul et al. 2023; LapEigvals — arXiv 2502.17598; LoS-Net — arXiv 2503.14043; EDIS — arXiv 2602.01288.</p>
+
+</div><!-- .page -->
+
+<script>
+const DOMAINS=['MATH-500','GSM8K','GPQA','RAG','QA'];
+new Chart(document.getElementById('encChart'),{type:'bar',
+  data:{labels:DOMAINS,datasets:[
+    {label:'PROD — binary',data:[79.7,70.7,53.2,59.5,62.9],backgroundColor:'#f9731699',borderColor:'#f97316',borderWidth:1},
+    {label:'CONT — continuous',data:[84.3,75.6,53.9,61.7,75.0],backgroundColor:'#2563eb99',borderColor:'#2563eb',borderWidth:1}]},
+  options:{plugins:{legend:{position:'bottom'}},scales:{y:{min:45,title:{display:true,text:'AUROC (%)'}}}}});
+
+new Chart(document.getElementById('curveChart'),{type:'line',
+  data:{labels:['5 feat','9 feat','16 feat'],datasets:[
+    {label:'L-SML (continuous)',data:[70.1,68.1,69.2],borderColor:'#2563eb',backgroundColor:'#2563eb',borderWidth:3,tension:.2},
+    {label:'Flat SML (continuous)',data:[70.0,64.5,63.1],borderColor:'#dc2626',backgroundColor:'#dc2626',borderWidth:2,tension:.2},
+    {label:'Simple average',data:[69.7,69.7,66.3],borderColor:'#0891b2',backgroundColor:'#0891b2',borderWidth:2,borderDash:[5,4],tension:.2}]},
+  options:{plugins:{legend:{position:'bottom'}},scales:{y:{min:60,max:72,title:{display:true,text:'Macro AUROC (%)'}},x:{title:{display:true,text:'Number of features'}}}}});
+
+new Chart(document.getElementById('regimeChart'),{type:'bar',
+  data:{labels:DOMAINS,datasets:[{data:[84.3,75.6,53.9,61.7,75.0],
+    backgroundColor:['#16a34a','#16a34a','#dc2626','#f59e0b','#16a34a'],borderWidth:0}]},
+  options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+'%'}}},
+    scales:{y:{min:45,max:90,title:{display:true,text:'AUROC (%)'}}}}});
+
+// --- Feature strength vs stability scatter ---
+const GOOD5=new Set(['epr','low_band_power','sw_var_peak','cusum_max','spectral_entropy']);
+const FSTAB=[
+  ['epr',68.1,29.5],['low_band_power',65.4,25.8],['high_band_power',60.5,23.6],
+  ['hl_ratio',64.6,25.1],['spectral_centroid',61.9,28.6],['sw_var_peak',67.3,26.0],
+  ['rpdi',63.2,20.3],['pe_mean',59.3,8.5],['cusum_max',68.3,25.6],
+  ['spectral_entropy',64.8,23.0],['trace_length',67.1,21.4],['dominant_freq',61.9,22.9],
+  ['stft_max_high_power',57.4,13.1],['stft_spectral_entropy',59.3,22.7],
+  ['hurst_exponent',60.2,22.9],['cusum_shift_idx',59.0,11.0]];
+new Chart(document.getElementById('stabChart'),{type:'scatter',
+  data:{datasets:[
+    {label:'GOOD_5 features',data:FSTAB.filter(d=>GOOD5.has(d[0])).map(d=>({x:d[1],y:d[2],f:d[0]})),
+      backgroundColor:'#2563eb',pointRadius:6,pointHoverRadius:8},
+    {label:'other H(n) features',data:FSTAB.filter(d=>!GOOD5.has(d[0])).map(d=>({x:d[1],y:d[2],f:d[0]})),
+      backgroundColor:'#94a3b8',pointRadius:5,pointHoverRadius:7}]},
+  options:{plugins:{legend:{position:'bottom'},
+    tooltip:{callbacks:{label:c=>`${c.raw.f}: mean ${c.raw.x}%, range ${c.raw.y}pp`}}},
+    scales:{x:{title:{display:true,text:'Mean AUROC across domains (%)'}},
+      y:{title:{display:true,text:'Cross-domain range (max−min, pp)'}}}}});
+
+// --- Generic value heatmap renderer ---
+function renderHeat(elId,cols,rows,vmin,vmax,fmt,colByColumn){
+  // color: green(best) -> white(mid) -> red(worst), per-column if colByColumn
+  function color(v,lo,hi){
+    if(v==null) return '#fff';
+    const t=Math.max(0,Math.min(1,(v-lo)/(hi-lo)));
+    // 0->red(220,38,38) .5->white .5->1->green(22,163,74)
+    let r,g,b;
+    if(t<0.5){const k=t/0.5; r=220+(255-220)*k; g=38+(255-38)*k; b=38+(255-38)*k;}
+    else{const k=(t-0.5)/0.5; r=255+(22-255)*k; g=255+(163-255)*k; b=255+(74-255)*k;}
+    return `rgb(${r|0},${g|0},${b|0})`;
+  }
+  let colLo=[],colHi=[];
+  for(let j=0;j<cols.length;j++){
+    if(colByColumn){let vs=rows.map(r=>r.vals[j]).filter(v=>v!=null);
+      colLo[j]=Math.min(...vs);colHi[j]=Math.max(...vs);}
+    else{colLo[j]=vmin;colHi[j]=vmax;}
+  }
+  let h='<table class="hm"><tr><th></th>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
+  for(const r of rows){
+    h+=`<tr><td class="rl">${r.label}</td>`;
+    for(let j=0;j<cols.length;j++){const v=r.vals[j];
+      h+=`<td style="background:${color(v,colLo[j],colHi[j])}">${v==null?'':fmt(v)}</td>`;}
+    h+='</tr>';
+  }
+  document.getElementById(elId).innerHTML=h+'</table>';
+}
+
+// --- Per-domain ranking heatmap (colored within each column) ---
+renderHeat('rankHeat',
+  ['MATH-500','GSM8K','GPQA','RAG','QA'],
+  [
+   {label:'CONT (L-SML cont, 5)',  vals:[84.3,75.6,53.9,61.7,75.0]},
+   {label:'flat5c (flat cont, 5)', vals:[84.1,75.5,54.3,61.8,74.1]},
+   {label:'lsml16c (L-SML cont,16)',vals:[83.5,73.8,56.7,61.6,70.2]},
+   {label:'lsml9c (L-SML cont, 9)', vals:[82.6,73.3,55.5,60.3,68.8]},
+   {label:'avg5 (average, 5)',      vals:[83.1,72.1,57.5,62.6,73.0]},
+   {label:'PROD (L-SML bin, 5)',    vals:[79.7,70.7,53.2,59.5,62.9]},
+  ],
+  null,null,v=>v.toFixed(1),true);
+
+// --- Feature dependence heatmap (16x16 mean |rho|, global scale) ---
+const FNAMES=['epr','t_len','s_ent','lo_bp','hi_bp','hl_r','d_frq','s_cen','stft_p','stft_e','rpdi','swvp','pe_m','hurst','cmax','cidx'];
+const RHO=[
+[1.000,0.321,0.270,0.261,0.179,0.203,0.234,0.219,0.273,0.321,0.246,0.633,0.546,0.186,0.505,0.200],
+[0.321,1.000,0.838,0.399,0.206,0.328,0.432,0.365,0.561,0.550,0.248,0.326,0.209,0.248,0.679,0.171],
+[0.270,0.838,1.000,0.334,0.195,0.246,0.308,0.256,0.539,0.492,0.249,0.292,0.174,0.285,0.555,0.136],
+[0.261,0.399,0.334,1.000,0.412,0.765,0.494,0.731,0.200,0.377,0.217,0.269,0.175,0.537,0.615,0.155],
+[0.179,0.206,0.195,0.412,1.000,0.839,0.332,0.755,0.200,0.251,0.179,0.192,0.132,0.237,0.298,0.114],
+[0.203,0.328,0.246,0.765,0.839,1.000,0.483,0.880,0.179,0.322,0.202,0.223,0.167,0.390,0.476,0.127],
+[0.234,0.432,0.308,0.494,0.332,0.483,1.000,0.563,0.187,0.239,0.177,0.198,0.172,0.456,0.536,0.116],
+[0.219,0.365,0.256,0.731,0.755,0.880,0.563,1.000,0.166,0.349,0.205,0.219,0.174,0.411,0.530,0.132],
+[0.273,0.561,0.539,0.200,0.200,0.179,0.187,0.166,1.000,0.583,0.154,0.259,0.198,0.131,0.395,0.149],
+[0.321,0.550,0.492,0.377,0.251,0.322,0.239,0.349,0.583,1.000,0.247,0.273,0.300,0.316,0.420,0.183],
+[0.246,0.248,0.249,0.217,0.179,0.202,0.177,0.205,0.154,0.247,1.000,0.182,0.166,0.194,0.287,0.256],
+[0.633,0.326,0.292,0.269,0.192,0.223,0.198,0.219,0.259,0.273,0.182,1.000,0.322,0.133,0.525,0.149],
+[0.546,0.209,0.174,0.175,0.132,0.167,0.172,0.174,0.198,0.300,0.166,0.322,1.000,0.197,0.234,0.160],
+[0.186,0.248,0.285,0.537,0.237,0.390,0.456,0.411,0.131,0.316,0.194,0.133,0.197,1.000,0.489,0.126],
+[0.505,0.679,0.555,0.615,0.298,0.476,0.536,0.530,0.395,0.420,0.287,0.525,0.234,0.489,1.000,0.161],
+[0.200,0.171,0.136,0.155,0.114,0.127,0.116,0.132,0.149,0.183,0.256,0.149,0.160,0.126,0.161,1.000]];
+(function(){
+  function col(v){ // white(0)->deep blue(1)
+    const t=Math.max(0,Math.min(1,v));
+    const r=255+(37-255)*t, g=255+(99-255)*t, b=255+(235-255)*t;
+    return `rgb(${r|0},${g|0},${b|0})`;
+  }
+  let h='<table class="hm"><tr><th></th>'+FNAMES.map(c=>`<th>${c}</th>`).join('')+'</tr>';
+  for(let i=0;i<FNAMES.length;i++){
+    h+=`<tr><td class="rl">${FNAMES[i]}</td>`;
+    for(let j=0;j<FNAMES.length;j++){const v=RHO[i][j];
+      const txt=(i===j)?'':(v>=0.40?v.toFixed(2):'');
+      const fg=(v>0.6)?'#fff':'#1f2937';
+      h+=`<td style="background:${i===j?'#e2e8f0':col(v)};color:${fg}">${txt}</td>`;}
+    h+='</tr>';
+  }
+  document.getElementById('corrHeat').innerHTML=h+'</table>';
+})();
+</script>
+</body>
+</html>

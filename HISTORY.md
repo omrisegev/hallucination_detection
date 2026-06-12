@@ -4384,3 +4384,87 @@ Initial signs: `epr_spilled=-1`, `sw_var_peak_spilled=-1`, `cusum_max_spilled=-1
 - `Spectral_Analysis_GSM8K_SpilledEnergy_Verify.ipynb` — 24-cell notebook, fully run, results saved to Drive
 
 ---
+
+### Step 134 — Method comparison (12 variants): continuous encoding is the recovery lever; robustness hypothesis rejected; reasoning-only operating regime
+
+*(Numbering note: Step 132 = the still-pending MATH-500 spilled-energy GPU run; Step 133 = the `method_comparison.py` Phase 1+2 build commit. This entry consolidates the full local comparison investigation and its conclusions.)*
+
+**What**: Built and ran `scripts/method_comparison.py` (12 fusion variants × 29 cached cells) plus `scripts/feature_insulation.py`, producing `results/method_comparison_table1–4.csv` and a rebuilt `results/method_comparison_report.html`. Added the `lsml_16_continuous` variant (continuous L-SML on all 16 features) and the R4 feature-insulation analysis. Drafted `Bracha_Reply_Jun2026.md` answering Bracha's Jun-8 questions. All conclusions independently verified and co-signed by Gemini (`LSML_IMPLEMENTATION_REPORT.md` §13–17).
+
+**Why**: After the supervised→unsupervised correction (Steps 105–125) dropped the numbers, we needed to isolate *what recovers performance* and answer Bracha's questions: (1) what happens without feature selection, (2) is there a consistent subset, (3) do we save logits. The comparison disentangles the four design axes — fusion type, direction/sign, encoding, feature count.
+
+**Result**:
+- **Encoding is the dominant lever.** Binary→continuous L-SML: +4.9pp macro (PROD 65.2 → CONT 70.1), +7.2pp on reasoning. The `np.sign()` binarization in the old PROD pipeline was the single biggest source of lost signal.
+- **Feature selection is a minor tweak, not load-bearing.** `lsml16c` (all 16, continuous, *no selection*) = 69.2% macro — within 0.9pp of the curated 5-feature CONT (70.1). Selection helps +2.5pp on reasoning but *hurts* GPQA. Directly answers Bracha Q1.
+- **FEATURE_SIGNS = one global orientation bit, not a dictionary.** In continuous mode CONT ≡ lsml5nc to the decimal (global-negation identity, §14.1); signs add zero separability but are required for deployment orientation. The paper's internal sign algorithm (assumption iii) picks the wrong direction ~86% of the time on our error-predicting features.
+- **R4 robustness hypothesis REJECTED.** Cross-domain std: avg5 most stable (8.9pp), CONT least (10.9pp). L-SML grouping does not insulate against volatile features better than a flat average. Fusion's justification narrows to peak accuracy in-regime.
+- **Operating regime {MATH-500, GSM8K, QA}: CONT = 78.3%**, beating simple average (+2.2pp) and the per-cell oracle best-single-feature (+0.7pp). On its home turf, fusion beats even the oracle.
+- **Bracha Q2**: GOOD_5 is the consistent subset (clears 0.57 across 29 cells); best fixed singles cusum_max (68.3 macro), epr (68.1); no single feature is both strong and stable.
+- **Bracha Q3**: yes — top-50 logprobs/token saved, single forward pass, all features computed offline; the 1-pass advantage over SE/SC (K=10).
+- **Recommended config going forward: CONT = `lsml_continuous_pipeline(fd, GOOD_5, FEATURE_SIGNS)`** (continuous L-SML).
+
+**Files changed**: `scripts/method_comparison.py` (+`lsml_16_continuous`, continuous group feature-names), `scripts/feature_insulation.py` (new), `results/method_comparison_table1–4.csv`, `results/method_comparison_report.html` (+§13–16, lsml16c column), `Bracha_Reply_Jun2026.md` (new), `LSML_IMPLEMENTATION_REPORT.md` (§12–17).
+
+---
+
+### Step 135 — Variant-grid completion + literature benchmarking + narrative report
+
+**What**: Completed the full design grid and built the advisor-facing materials. Added 7 variants to `method_comparison.py` this session: `flat_sml_5_continuous` (flat5c), then `flat_sml_16_continuous` (flat16c), `simple_avg_16_signs` (avg16), `lsml_9_continuous` (lsml9c), `flat_sml_9_signs` (flat9), `flat_sml_9_continuous` (flat9c), `simple_avg_9_signs` (avg9) — giving the complete feature-count(5/9/16) × encoding(binary/continuous) × fusion(flat/L-SML) grid + average baselines. Verified every L-SML variant records its clusters + per-cluster AUC (vAUROC_bin/cont) to table2. Built the model-matched competitor benchmarking and the Bracha reply, and authored a new story-driven report.
+
+**Why**: Advisor (Bracha) reply needed (a) the answers to her three questions, (b) a competitor comparison in the per-domain/per-model format previously shared, and (c) a clear review document. The user also flagged missing grid corners (flat-SML-continuous, the STABLE_H9 variants) that were needed to make the SML-vs-L-SML claim airtight.
+
+**Result — the completed grid (macro AUROC)**:
+- **Continuous beats binary in every cell** of the grid, all feature counts and fusion methods.
+- **L-SML clustering helps only with many features**: continuous flat vs L-SML — 5 feat tie (70.0 vs 70.1), 9 feat +3.6 (64.5 vs 68.1), 16 feat +6.1 (63.1 vs 69.2). Flat-SML-continuous collapses 70→63 as features are added; L-SML holds 68–70. `flat5c`=70.0 ≈ CONT 70.1 confirms clustering is neutral on the clean 5.
+- **Cluster mechanism** (MATH-500/Qwen-Math-7B): in both 9- and 16-feature runs L-SML isolates the weak `pe_mean` into its own cluster (55.3%) while informative clusters score ~94% — all three feature-set sizes reach ~94.4% on this cell.
+
+**Result — benchmarking (model-matched, continuous CONT, 1-pass)**:
+- MATH-500/Qwen-Math-7B **94.4%** [90.1,97.7] — win vs SE 87.7 / SC 87.2 (K=10).
+- GSM8K/Llama-8B 75.6% [72.2,79.0] — competitive vs SC 78.5/SE 77.4; beats LapEigvals-unsupervised 72.0.
+- GPQA/Qwen-7B 52.3% — loss vs SE 70.6 / VC 67.9 (out of regime).
+- RAG L-CiteEval/Qwen-7B — beats SelfCheckGPT on 3 of 4 sub-tasks.
+- Literature context: LapEigvals (spectral attention, supervised 87.2 / unsup 72.0), LoS-Net (supervised 72.9, std HotpotQA), EDIS (paper 80.4).
+
+**Two data-integrity catches**:
+- **Step-117 "ours" numbers are leaked** (96.7 MATH / 71.3 GPQA / 88.1 RAG) — supervised Step-100 Nadler; must NOT be reused. Honest numbers are the CONT values above.
+- **EDIS Phase-13 head-to-head is invalid**: the notebook ran at 7.7% accuracy (model should be 36–49%) — the `\boxed{}` grading bug from Steps 41–42. L-SML=0.509 is a grading artifact; comparison can't be cited until grading is fixed.
+
+**Deliverables**:
+- `Bracha_Reply_Jun2026.md` — final concise reply (answers + recovery story + model-matched competitor tables with CIs).
+- `results/Spectral_LSML_Report.html` — **new narrative report** (9 sections, story-driven): the 3 changes → which caused the drop → feature selection → signs → when clustering helps (feature-count curve) → cluster AUCs (5/9/16) → operating regime → benchmarking vs literature → conclusions.
+- `results/method_comparison_report.html` — extended with §13–18 (lsml16c, R4, reasoning-only, per-cluster AUC, variant grid, competitor tables).
+
+**Open**: fix EDIS `\boxed{}` grading and re-run; complete Phase 14 (GPQA / DeepSeek-R1-8B). Nothing committed yet this session.
+
+**Files changed**: `scripts/method_comparison.py` (+6 grid variants, +flat5c, zscore import), `results/method_comparison_table1/2.csv`, `results/method_comparison_report.html` (+§17–18), `results/Spectral_LSML_Report.html` (new), `Bracha_Reply_Jun2026.md`.
+
+---
+
+
+### Step 136 — Cross-cluster weights + full feature-correlation + narrative report v2
+
+**What**: Closed the analysis loop on the L-SML cross-step and finalized the advisor report.
+1. **Across-group weights captured** — `extract_group_stats` in `method_comparison.py` now records each cluster's normalized cross-fusion weight (|w_g| / Σ|w_g|, from `meta['cross_weights']`), emitted as a `cross_weight` column in table2 + JSON. Full 29-cell rerun; all macro numbers reproduced (CONT 70.1 / lsml9c 68.1 / lsml16c 69.2 / PROD 65.2).
+2. **Full 16-feature dependence matrix** — new `scripts/feature_correlation_full.py` → `results/feature_correlation_16.csv` (+ ranked `_pairs.csv`): mean |Spearman rho| over all 120 H(n) pairs across 29 cells.
+3. **Report v2** — rewrote `results/Spectral_LSML_Report.html`: removed exec summary; added a Terminology section (3 axes, short-name table, cell/domain-mean/macro aggregation); clarified Finding-1 caption (5-feat L-SML, encoding-only, domain means); added the 9-feature result to Findings 1-2; expanded the cluster section with cross-weights + the multi-domain pe_mean evidence; added 3 graphs (16x16 dependence heatmap, feature strength-vs-stability scatter, per-domain variant-ranking heatmap).
+
+**Why**: Advisor review of the report flagged (a) undefined short-names, (b) ambiguous aggregation level, (c) missing 9-feature data, (d) a request to test the 'remove pe_mean' intuition via the actual fusion weight, and (e) three analytical graphs. Items (d) and the correlation graph needed data not previously stored.
+
+**Result — the cross-weight mechanism (answers the pe_mean question)**:
+- Cross-weights = leading eigenvector of the clusters' off-diagonal covariance (`sml_fuse_signed`), i.e. proportional to each cluster's *estimated reliability* — NOT a fixed average.
+- **K=2 clusters → always 0.50/0.50** (a 2x2 zero-diagonal covariance has eigenvector [1,1]; structural, not adaptive). The clean 5-feature MATH example splits 50/50 for this reason, not because the algorithm judged the clusters equal.
+- **K>=3 → weights separate**: 16-feat MATH-500/Qwen-Math-7B = 0.34/0.33/0.30 for the three ~93-95% clusters and **0.02 for the isolated pe_mean (55%)** — automatically suppressed (a true average would give it 0.25).
+- **pe_mean is domain-dependent, and L-SML handles it adaptively**: isolated + weight ~0.02-0.05 on MATH-500 and both QA-CoT cells (weak there); but on GSM8K/Llama-8B it joins `epr,pe_mean` (67.7%) with weight 0.24 (useful there). So 'delete pe_mean' is unnecessary — the cross-weight switches it off only where it should be.
+- Spread check: every cell's cross-weights span 0.18-0.42 (never uniform), with a 0.00-0.05 floor whenever a weak singleton is isolated.
+
+**Result — dependence + stability structure**:
+- Correlation is block-structured: band-power block tight (hl_ratio·spectral_centroid 0.88, high_band_power·hl_ratio 0.84, low_band_power·hl_ratio 0.77; 5 pairs >=0.75), median pair only 0.25; pe_mean near-independent (max 0.55, mostly <0.25). This is exactly what L-SML exploits and flat SML assumes away.
+- **No feature is both strong and stable**: strongest features are the most volatile across domains (epr 68.1 mean / 29.5pp range, cusum_max 68.3/25.6, sw_var_peak 67.3/26.0 — ~84%% math, ~54%% GPQA); the stable features (pe_mean range 8.5, cusum_shift_idx 11.0) are weak everywhere. Structural reason fusion helps on reasoning and not short-answer tasks.
+
+**Verification**: report passes — all 6 chart/heatmap element IDs resolve, inline JS passes `node --check`, zero 'recommended' occurrences, exec summary removed; HTML is self-contained except the Chart.js CDN (no local file deps).
+
+**Open**: fix EDIS `oxed{}` grading + re-run; Phase 14 (GPQA / DeepSeek-R1-8B).
+
+**Files changed**: `scripts/method_comparison.py` (+cross_weight), `scripts/feature_correlation_full.py` (new), `results/feature_correlation_16.csv` + `_pairs.csv` (new), `results/method_comparison_table2.csv` + JSON (regenerated with cross_weight), `results/Spectral_LSML_Report.html` (v2 rewrite).
+
+---

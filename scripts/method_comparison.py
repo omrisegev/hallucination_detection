@@ -31,7 +31,7 @@ if REPO_DIR not in sys.path:
     sys.path.insert(0, REPO_DIR)
 
 from spectral_utils import (
-    FEAT_NAMES, boot_auc,
+    FEAT_NAMES, boot_auc, zscore,
     binarize_classifiers, sml_fuse, lsml_fuse,
     lsml_continuous_pipeline, simple_average_fusion,
 )
@@ -88,14 +88,22 @@ RESULTS_DIR = os.path.join(REPO_DIR, 'results')
 VARIANT_ORDER = [
     'flat_sml_16_signs',
     'lsml_16_nosigns',
+    'lsml_16_continuous',         # 16-feat continuous: does GOOD_5 filter survive continuous encoding?
+    'flat_sml_16_continuous',     # 16-feat continuous flat SML (completes 16 grid)
+    'simple_avg_16_signs',        # 16-feat average baseline
     'lsml_5_nosigns',
     'lsml_5_signs_binary',        # PROD
     'lsml_5_signs_continuous',    # CONT
     'lsml_5_nosigns_continuous',  # V12: isolates sign effect in continuous mode
     'flat_sml_5_signs',
+    'flat_sml_5_continuous',      # flat SML, GOOD_5, continuous — isolates clustering vs CONT
     'simple_avg_5_signs',
     'best_individual_5',
     'lsml_9_h16_signs_binary',    # V11: 9-feature H16 subset (feature-count curve)
+    'lsml_9_continuous',          # STABLE_H9 continuous L-SML (completes 9 grid)
+    'flat_sml_9_signs',           # STABLE_H9 binary flat SML
+    'flat_sml_9_continuous',      # STABLE_H9 continuous flat SML
+    'simple_avg_9_signs',         # STABLE_H9 average baseline
     'lsml_9_signs_binary',        # skip if spilled energy absent
     'lsml_20_signs_binary',       # skip if spilled energy absent
 ]
@@ -103,24 +111,32 @@ VARIANT_ORDER = [
 VARIANT_SHORT = {
     'flat_sml_16_signs':          'flat16',
     'lsml_16_nosigns':            'lsml16',
+    'lsml_16_continuous':         'lsml16c',
+    'flat_sml_16_continuous':     'flat16c',
+    'simple_avg_16_signs':        'avg16',
     'lsml_5_nosigns':             'lsml5n',
     'lsml_5_signs_binary':        'PROD',
     'lsml_5_signs_continuous':    'CONT',
     'lsml_5_nosigns_continuous':  'lsml5nc',
     'flat_sml_5_signs':           'flat5',
+    'flat_sml_5_continuous':      'flat5c',
     'simple_avg_5_signs':         'avg5',
     'best_individual_5':          'best1',
     'lsml_9_h16_signs_binary':    'lsml9h',
+    'lsml_9_continuous':          'lsml9c',
+    'flat_sml_9_signs':           'flat9',
+    'flat_sml_9_continuous':      'flat9c',
+    'simple_avg_9_signs':         'avg9',
     'lsml_9_signs_binary':        'lsml9',
     'lsml_20_signs_binary':       'lsml20',
 }
 
 # Variants that produce per-group statistics
 LSML_VARIANTS = {
-    'lsml_16_nosigns', 'lsml_5_nosigns',
+    'lsml_16_nosigns', 'lsml_16_continuous', 'lsml_5_nosigns',
     'lsml_5_signs_binary', 'lsml_5_signs_continuous',
     'lsml_5_nosigns_continuous',
-    'lsml_9_h16_signs_binary',
+    'lsml_9_h16_signs_binary', 'lsml_9_continuous',
     'lsml_9_signs_binary', 'lsml_20_signs_binary',
 }
 
@@ -211,6 +227,14 @@ def extract_group_stats(lbl, meta, X_binary, feat_names_list=None, is_continuous
     For lsml_fuse (binary): virtual_classifiers[:,g] is ±1; vAUROC_cont uses X_binary[:,idx]@w.
     For lsml_continuous (is_continuous=True): virtual_classifiers[:,g] is continuous.
     """
+    # Across-group fusion weight per cluster (L-SML cross step). Normalize to
+    # |w_g| / sum_g |w_g| so each group's share of the final decision is on a
+    # 0–1 scale. A near-zero share means L-SML already suppresses that cluster.
+    cross_w = np.asarray(meta.get('cross_weights', [1.0]), dtype=float)
+    abs_cross = np.abs(cross_w)
+    cross_total = float(abs_cross.sum()) if abs_cross.size else 0.0
+    cross_share = (abs_cross / cross_total) if cross_total > 0 else abs_cross
+
     stats = []
     for g, (idx, w) in enumerate(meta['group_weights']):
         if is_continuous:
@@ -239,6 +263,7 @@ def extract_group_stats(lbl, meta, X_binary, feat_names_list=None, is_continuous
             'feature_names': group_feat_names,
             'vAUROC_bin': round(float(auc_bin), 4),
             'vAUROC_cont': round(float(auc_cont), 4),
+            'cross_weight': round(float(cross_share[g]), 4) if g < len(cross_share) else float('nan'),
         })
     return stats
 
@@ -317,6 +342,25 @@ def run_cell(fd, lbl, cell_key):
         print(f'  [{cell_key}] lsml_16_nosigns: {e}')
         variants['lsml_16_nosigns'] = None
 
+    # --- Variant 2b: lsml_16_continuous ---
+    # Continuous L-SML on all 16 features. Tests whether continuous encoding
+    # makes the GOOD_5 selection step redundant: if lsml16c ~= CONT, feature
+    # selection only rescued *binary* L-SML. FEATURE_SIGNS passed for orientation
+    # (defaults +1 for the 11 non-GOOD features; safe_auc reports best orientation,
+    # so AUROC is invariant to the unknown signs — see Section 14.1 of report).
+    try:
+        avail16c = [f for f in feat_list16 if f in fd]
+        if len(avail16c) >= 3:
+            fused, meta = lsml_continuous_pipeline(fd, avail16c, FEATURE_SIGNS)
+            a, lo, hi = safe_auc(lbl, fused)
+            gs = extract_group_stats(lbl, meta, None, feat_names_list=avail16c, is_continuous=True)
+            variants['lsml_16_continuous'] = _vres(a, lo, hi, meta['K'], gs)
+        else:
+            variants['lsml_16_continuous'] = None
+    except Exception as e:
+        print(f'  [{cell_key}] lsml_16_continuous: {e}')
+        variants['lsml_16_continuous'] = None
+
     # --- Variant 3: lsml_5_nosigns ---
     try:
         avail5 = [f for f in GOOD_5 if f in fd]
@@ -359,7 +403,7 @@ def run_cell(fd, lbl, cell_key):
         if len(avail5c) >= 3:
             fused, meta = lsml_continuous_pipeline(fd, avail5c, FEATURE_SIGNS)
             a, lo, hi = safe_auc(lbl, fused)
-            gs = extract_group_stats(lbl, meta, None, is_continuous=True)
+            gs = extract_group_stats(lbl, meta, None, feat_names_list=avail5c, is_continuous=True)
             variants['lsml_5_signs_continuous'] = _vres(a, lo, hi, meta['K'], gs)
         else:
             variants['lsml_5_signs_continuous'] = None
@@ -376,7 +420,7 @@ def run_cell(fd, lbl, cell_key):
             fused, meta = lsml_continuous_pipeline(fd, avail5nc, {})
             r_auc = _raw_auc(lbl, fused)
             a, lo, hi = safe_auc(lbl, fused)
-            gs = extract_group_stats(lbl, meta, None, is_continuous=True)
+            gs = extract_group_stats(lbl, meta, None, feat_names_list=avail5nc, is_continuous=True)
             vr = _vres(a, lo, hi, meta['K'], gs)
             vr['sign_internal_auc'] = round(r_auc, 4) if r_auc == r_auc else float('nan')
             variants['lsml_5_nosigns_continuous'] = vr
@@ -398,6 +442,23 @@ def run_cell(fd, lbl, cell_key):
     except Exception as e:
         print(f'  [{cell_key}] flat_sml_5_signs: {e}')
         variants['flat_sml_5_signs'] = None
+
+    # --- Variant 6b: flat_sml_5_continuous ---
+    # Flat SML (no clustering) on GOOD_5 with continuous z-scored inputs — same
+    # preprocessing as CONT, so CONT vs flat5c isolates L-SML's clustering step
+    # in continuous mode (vs flat5 which only had the binary control).
+    try:
+        views6c = [zscore(np.array(fd[f], dtype=float) * FEATURE_SIGNS.get(f, 1))
+                   for f in GOOD_5 if f in fd]
+        if len(views6c) >= 3:
+            fused, _ = sml_fuse(*views6c)
+            a, lo, hi = safe_auc(lbl, fused)
+            variants['flat_sml_5_continuous'] = _vres(a, lo, hi)
+        else:
+            variants['flat_sml_5_continuous'] = None
+    except Exception as e:
+        print(f'  [{cell_key}] flat_sml_5_continuous: {e}')
+        variants['flat_sml_5_continuous'] = None
 
     # --- Variant 7: simple_avg_5_signs ---
     try:
@@ -450,6 +511,90 @@ def run_cell(fd, lbl, cell_key):
     except Exception as e:
         print(f'  [{cell_key}] lsml_9_h16_signs_binary: {e}')
         variants['lsml_9_h16_signs_binary'] = None
+
+    # --- Grid-completion variants: 16-feature flat/avg, STABLE_H9 flat/avg/continuous ---
+    feat_list9, _ = usable_feats(fd, STABLE_H9)
+    avail9 = [f for f in feat_list9 if f in fd]
+
+    # flat_sml_16_continuous (flat16c): flat SML on H16, continuous (completes 16 grid)
+    try:
+        views = [zscore(np.array(fd[f], dtype=float) * FEATURE_SIGNS.get(f, 1))
+                 for f in feat_list16 if f in fd]
+        if len(views) >= 3:
+            fused, _ = sml_fuse(*views)
+            a, lo, hi = safe_auc(lbl, fused)
+            variants['flat_sml_16_continuous'] = _vres(a, lo, hi)
+        else:
+            variants['flat_sml_16_continuous'] = None
+    except Exception as e:
+        print(f'  [{cell_key}] flat_sml_16_continuous: {e}')
+        variants['flat_sml_16_continuous'] = None
+
+    # simple_avg_16_signs (avg16): average baseline on H16
+    try:
+        views = [np.array(fd[f], dtype=float) * FEATURE_SIGNS.get(f, 1)
+                 for f in feat_list16 if f in fd]
+        if len(views) >= 3:
+            fused, _ = simple_average_fusion(*views)
+            a, lo, hi = safe_auc(lbl, fused)
+            variants['simple_avg_16_signs'] = _vres(a, lo, hi)
+        else:
+            variants['simple_avg_16_signs'] = None
+    except Exception as e:
+        print(f'  [{cell_key}] simple_avg_16_signs: {e}')
+        variants['simple_avg_16_signs'] = None
+
+    # lsml_9_continuous (lsml9c): L-SML on STABLE_H9, continuous (completes 9 grid)
+    try:
+        if len(avail9) >= 3:
+            fused, meta = lsml_continuous_pipeline(fd, avail9, FEATURE_SIGNS)
+            a, lo, hi = safe_auc(lbl, fused)
+            gs = extract_group_stats(lbl, meta, None, feat_names_list=avail9, is_continuous=True)
+            variants['lsml_9_continuous'] = _vres(a, lo, hi, meta['K'], gs)
+        else:
+            variants['lsml_9_continuous'] = None
+    except Exception as e:
+        print(f'  [{cell_key}] lsml_9_continuous: {e}')
+        variants['lsml_9_continuous'] = None
+
+    # flat_sml_9_signs (flat9): flat SML on STABLE_H9, binary
+    try:
+        views = [binary_dict[f] for f in avail9 if f in binary_dict]
+        if len(views) >= 3:
+            fused, _ = sml_fuse(*views)
+            a, lo, hi = safe_auc(lbl, fused)
+            variants['flat_sml_9_signs'] = _vres(a, lo, hi)
+        else:
+            variants['flat_sml_9_signs'] = None
+    except Exception as e:
+        print(f'  [{cell_key}] flat_sml_9_signs: {e}')
+        variants['flat_sml_9_signs'] = None
+
+    # flat_sml_9_continuous (flat9c): flat SML on STABLE_H9, continuous
+    try:
+        views = [zscore(np.array(fd[f], dtype=float) * FEATURE_SIGNS.get(f, 1)) for f in avail9]
+        if len(views) >= 3:
+            fused, _ = sml_fuse(*views)
+            a, lo, hi = safe_auc(lbl, fused)
+            variants['flat_sml_9_continuous'] = _vres(a, lo, hi)
+        else:
+            variants['flat_sml_9_continuous'] = None
+    except Exception as e:
+        print(f'  [{cell_key}] flat_sml_9_continuous: {e}')
+        variants['flat_sml_9_continuous'] = None
+
+    # simple_avg_9_signs (avg9): average baseline on STABLE_H9
+    try:
+        views = [np.array(fd[f], dtype=float) * FEATURE_SIGNS.get(f, 1) for f in avail9]
+        if len(views) >= 3:
+            fused, _ = simple_average_fusion(*views)
+            a, lo, hi = safe_auc(lbl, fused)
+            variants['simple_avg_9_signs'] = _vres(a, lo, hi)
+        else:
+            variants['simple_avg_9_signs'] = None
+    except Exception as e:
+        print(f'  [{cell_key}] simple_avg_9_signs: {e}')
+        variants['simple_avg_9_signs'] = None
 
     # --- Variant 9: lsml_9_signs_binary (skip if spilled energy absent) ---
     if not all(f in fd for f in SPILLED_REQUIRED):
@@ -603,7 +748,7 @@ def write_table1(all_results, out_path):
 def write_table2(all_results, out_path):
     """Per-group stats for all L-SML variants."""
     fieldnames = ['domain', 'cell_key', 'variant', 'K', 'group_idx',
-                  'feature_names', 'size', 'vAUROC_bin', 'vAUROC_cont']
+                  'feature_names', 'size', 'vAUROC_bin', 'vAUROC_cont', 'cross_weight']
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, 'w', newline='') as f:
         w = csv.DictWriter(f, fieldnames=fieldnames)
@@ -624,6 +769,8 @@ def write_table2(all_results, out_path):
                         'size': gstat['size'],
                         'vAUROC_bin': _fmt(gstat['vAUROC_bin']),
                         'vAUROC_cont': _fmt(gstat['vAUROC_cont']),
+                        'cross_weight': f'{gstat.get("cross_weight", float("nan")):.3f}'
+                            if gstat.get('cross_weight') == gstat.get('cross_weight') else '',
                     })
     print(f'Table 2 -> {out_path}')
 
@@ -872,8 +1019,11 @@ def run_smoke_test():
     must_run = [
         'lsml_5_signs_binary', 'lsml_5_signs_continuous', 'flat_sml_5_signs',
         'simple_avg_5_signs', 'best_individual_5', 'lsml_5_nosigns',
-        'flat_sml_16_signs', 'lsml_16_nosigns',
+        'flat_sml_16_signs', 'lsml_16_nosigns', 'lsml_16_continuous',
         'lsml_9_h16_signs_binary', 'lsml_5_nosigns_continuous',
+        'flat_sml_5_continuous',
+        'flat_sml_16_continuous', 'simple_avg_16_signs',
+        'lsml_9_continuous', 'flat_sml_9_signs', 'flat_sml_9_continuous', 'simple_avg_9_signs',
     ]
     must_skip = ['lsml_9_signs_binary', 'lsml_20_signs_binary']
     for v in must_run:

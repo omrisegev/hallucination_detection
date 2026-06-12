@@ -1,24 +1,48 @@
-# MV_EPR — Session Progress Handoff
+# Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-06-09
-**Last updated**: Step 131 — GSM8K cross-dataset verification + VC null result complete
+**Date**: 2026-06-13
+**Last updated**: Step 136 — cross-cluster weights captured + full 16-feature correlation matrix + narrative report v2 (`results/Spectral_LSML_Report.html` finalized and sent to advisors)
 
 ---
 
 ## TL;DR — where we are today
 
-**Current official method** (production, master branch):
-`binarize_classifiers(feats_dict, FEATURE_SIGNS)` → filter to `GOOD_FEATURES` → `lsml_fuse(*binary_filt.values())`
+**Recommended method** (established by the Step-134 method comparison, 12 variants × 29 cells):
+`lsml_continuous_pipeline(feats_dict, GOOD_FEATURES, FEATURE_SIGNS)` — **continuous L-SML (CONT)**.
+- Macro AUROC **70.1%** vs the old binary PROD pipeline 65.2% (**+4.9pp**); **78.3%** on the reasoning regime {MATH-500, GSM8K, QA}.
+- On reasoning it beats a simple average (+2.2pp) and even the per-cell oracle best-single-feature (+0.7pp).
 
-**Candidate upgrade** (branch `experiment/lsml-variants`, pending merge):
-`lsml_continuous_pipeline(feats_dict, GOOD_FEATURES, FEATURE_SIGNS)` → +3.53pp mean, 25/29 wins
+**Old production method** (binary, Steps 100–131 — now superseded as the recommendation):
+`binarize_classifiers(feats_dict, FEATURE_SIGNS)` → filter to `GOOD_FEATURES` → `lsml_fuse(...)` — the `np.sign()` binarization was the single biggest source of lost signal.
 
-**New this session (Step 131)**:
+**Key conclusions from Step 134** (independently co-signed by Gemini, `LSML_IMPLEMENTATION_REPORT.md` §13–17):
+- **Encoding is the dominant lever**, not features or signs. Continuous beats binary by +4.9pp macro / +7.2pp reasoning.
+- **Feature selection is a minor tweak**: continuous L-SML on *all 16* features (`lsml16c`) = 69.2%, within 0.9pp of the selected 5-feature CONT. It helps on reasoning, hurts GPQA. (Answers Bracha Q1.)
+- **FEATURE_SIGNS = one global orientation bit**, not a learned dictionary (all 5 GOOD_5 signs equal → a single global flip). Required for deployment orientation; adds zero separability. The paper's internal sign algorithm fails on our error-predicting features (~14% concordance).
+- **Robustness (R4) hypothesis rejected**: grouping does *not* insulate against volatile features — avg5 is the most cross-domain-stable (8.9pp std), CONT the least (10.9pp). Fusion's justification is in-regime peak accuracy, not robustness.
+- **Operating regime**: spectral L-SML is a reasoning-trace method. GPQA (forced-choice MCQ) and RAG (retrieval-grounded) lack the temporal structure; there a simple average is as good or better.
+- **Deliverables**: `Bracha_Reply_Jun2026.md` (answers her 3 Jun-8 questions), updated `results/method_comparison_report.html` (§13–16: lsml16c, R4 robustness, reasoning-only, per-cluster AUC).
+
+**Step 135 — grid completion + benchmarking + narrative report**:
+- Full design grid done (5/9/16 × binary/continuous × flat/L-SML + avg). **Continuous beats binary in every cell.** L-SML clustering helps only with many features (5 feat: ties flat; 16 feat: +6.1). Flat-SML-continuous collapses 70→63 as features added; L-SML holds 68–70.
+- **Benchmarking (model-matched, CONT, 1-pass)**: MATH 94.4 (win vs SE 87.7/SC 87.2), GSM8K 75.6 (competitive; beats LapEigvals-unsup 72.0), GPQA 52.3 (loss vs SE 70.6), RAG beats SelfCheckGPT 3/4.
+- ⚠ **Do NOT reuse Step-117 "ours" numbers** (96.7/71.3/88.1 — leaked supervised). ⚠ **EDIS Phase-13 invalid** (7.7% acc = `\boxed{}` grading bug); fix before citing.
+- New: **`results/Spectral_LSML_Report.html`** — story-driven advisor report (this is the one to attach, not method_comparison_report.html).
+
+**Step 136 — cross-cluster weights + full correlation + report v2 (report sent to advisors)**:
+- **Across-group fusion weight now stored** per cluster (`cross_weight` col in table2/JSON). Mechanism: it is the leading eigenvector of the clusters' off-diagonal covariance = each cluster's estimated reliability, **not** an average.
+  - **K=2 → always 0.50/0.50** (structural — 2×2 zero-diag covariance). So a 2-cluster even split is NOT evidence of adaptive weighting.
+  - **K≥3 → weights separate**; a weak isolated cluster gets ≈0 (e.g. pe_mean 0.02 on 16-feat MATH-500). A true average would give it 0.25.
+- **pe_mean is domain-dependent — do NOT hard-delete it**: isolated + weight 0.02–0.05 where weak (MATH-500, both QA-CoT cells), but joins a useful `epr,pe_mean` cluster (67.7%, weight 0.24) on GSM8K. L-SML's weighting suppresses it adaptively, only where it should.
+- **Full 16×16 dependence matrix** → `results/feature_correlation_16.csv` (new `scripts/feature_correlation_full.py`): band-power block ρ 0.77–0.88, median pair 0.25, pe_mean near-independent. This is the structure L-SML exploits / flat SML ignores.
+- **No feature is both strong and stable**: strong features (epr/cusum_max/sw_var_peak) swing ~30pp across domains; stable features (pe_mean range 8.5) are weak everywhere.
+- Report v2: removed exec summary; added terminology + aggregation note + 9-feature data + 3 graphs (dependence heatmap, stability scatter, per-domain ranking heatmap). Self-contained except Chart.js CDN.
+- **Open**: fix EDIS grading + re-run; complete Phase 14 (GPQA/DeepSeek-R1-8B).
+
+**Prior session (Step 131)**:
 - GSM8K cross-dataset verification: spilled energy transfers well (cusum_max_spilled = 0.725 best individual)
-- Verbalized confidence: **null result on 1.5B** — model doesn't output "Confidence: X"; parser fallback captures answer magnitude; adding VC hurts L-SML (−1.77pp)
-- Parser fix: `parse_verbalized_confidence` now label-first + last-int fallback (correct for 1-pass and 2-pass)
-- Key structural finding: within_H/cross ratio = 0.04 (MATH-500) vs 0.99 (GSM8K) — H features are near-independent views on long traces but redundant on short traces
-- Best GSM8K result: L-SML GOOD_5 = 0.708 (no VC)
+- Verbalized confidence: **null result on 1.5B**; adding VC hurts L-SML (−1.77pp)
+- Structural finding: within_H/cross ratio = 0.04 (MATH-500) vs 0.99 (GSM8K) — H features are near-independent views on long traces but redundant on short traces
 - All changes on branch `experiment/lsml-variants` (commit `f4bc5e8`)
 
 ---
@@ -165,7 +189,7 @@ git push origin master
 
 | Setup | L-SML AUC | Notes |
 |-------|-----------|-------|
-| MATH-500 / Qwen-7B / T=1.0 | **90.0%** | spectral features work on long reasoning |
+| MATH-500 / Qwen-7B / T=1.0 | **88.2%** | PROD (binary L-SML). CONT (continuous L-SML) achieves **94.4%**. |
 | MATH-500 / Qwen-1.5B / T=1.5 | 88.3% | |
 | GSM8K / Llama-3.1-8B | 76.0% | vs LapEigvals unsupervised 72.0% |
 | GSM8K / Qwen2.5-Math-1.5B | 70.8% | L-SML GOOD_5; best individual 72.5% (cusum_max_spilled) |

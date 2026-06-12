@@ -67,7 +67,7 @@
 <div class="page">
 
 <h1>Spectral Hallucination Detection — Method Comparison</h1>
-<div class="subtitle">29 evaluation cells across 5 domains · 10 pipeline variants (Phase 2) · Run 2026-06-10</div>
+<div class="subtitle">29 evaluation cells across 5 domains · 18 pipeline variants · Run 2026-06-11</div>
 
 <!-- =====================================================================
      SECTION 1: GLOSSARY
@@ -102,11 +102,12 @@
   <tr><td><strong>Oracle Best-1</strong></td><td>For each cell independently, selects the GOOD_5 feature with the highest AUROC. Requires ground-truth labels to select the feature — not deployable. Shown as an upper bound only.</td></tr>
 </table>
 
-<h3>The 10 tested variants</h3>
+<h3>The 11 tested variants</h3>
 <table class="dim-table">
   <tr><th>Short name</th><th>Full identifier</th><th>Feature set</th><th>Encoding</th><th>Aggregation</th></tr>
   <tr><td>flat16</td><td><span class="mono">flat_sml_16_signs</span></td><td>H16</td><td>Binary + Signs</td><td>Flat SML</td></tr>
   <tr><td>lsml16</td><td><span class="mono">lsml_16_nosigns</span></td><td>H16</td><td>Binary, no signs</td><td>L-SML</td></tr>
+  <tr style="background:#eef6ff"><td>lsml16c</td><td><span class="mono">lsml_16_continuous</span></td><td>H16</td><td>Continuous + Signs</td><td>L-SML</td></tr>
   <tr><td>lsml5n</td><td><span class="mono">lsml_5_nosigns</span></td><td>GOOD_5</td><td>Binary, no signs</td><td>L-SML</td></tr>
   <tr style="background:#fff7ed"><td><span class="tag tag-prod">PROD</span></td><td><span class="mono">lsml_5_signs_binary</span></td><td>GOOD_5</td><td>Binary + Signs</td><td>L-SML</td></tr>
   <tr style="background:#eff6ff"><td><span class="tag tag-cont">CONT</span></td><td><span class="mono">lsml_5_signs_continuous</span></td><td>GOOD_5</td><td>Continuous + Signs</td><td>L-SML</td></tr>
@@ -117,7 +118,7 @@
   <tr><td>lsml9h</td><td><span class="mono">lsml_9_h16_signs_binary</span></td><td>STABLE_H9</td><td>Binary + Signs</td><td>L-SML</td></tr>
 </table>
 <div class="note" style="margin-top:12px">
-  <strong>PROD</strong> = the pipeline used in all prior experiments (Steps 100–131). <strong>CONT</strong> = continuous-encoding variant. <strong>lsml5nc</strong> = new Phase 2 variant, like CONT but no sign orientation. <strong>lsml9h</strong> = new Phase 2 variant, 9 non-saturating features. <strong>Oracle Best-1</strong> uses ground-truth labels to select the best feature — not deployable.
+  <strong>PROD</strong> = the pipeline used in all prior experiments (Steps 100–131). <strong>CONT</strong> = continuous-encoding variant (the main configuration). <strong>lsml5nc</strong> = like CONT but no sign orientation. <strong>lsml16c</strong> = continuous L-SML on all 16 features — tests whether feature selection is still needed once encoding is continuous (see §13). <strong>lsml9h</strong> = 9 non-saturating features. <strong>Oracle Best-1</strong> uses ground-truth labels to select the best feature — not deployable.
 </div>
 
 <!-- =====================================================================
@@ -161,7 +162,9 @@
   <thead>
     <tr>
       <th>Domain</th>
-      <th>flat16</th><th>lsml16</th><th>lsml5n</th>
+      <th>flat16</th><th>lsml16</th>
+      <th style="background:#eef6ff">lsml16c</th>
+      <th>lsml5n</th>
       <th style="background:#fff0e0">PROD</th>
       <th style="background:#e0eeff">CONT</th>
       <th style="background:#e8fdf0">lsml5nc</th>
@@ -235,7 +238,7 @@
      SECTION 5: FEATURE CORRELATION
      ===================================================================== -->
 <h2>5. Feature Correlation (Spearman ρ across GOOD_5 pairs)</h2>
-<p class="section-note">For each GOOD_5 feature pair, Spearman ρ was computed per evaluation cell. Pairs with mean |ρ| ≥ 0.75 indicate redundancy that would cause L-SML's correlation filter to reject the subset. 0 pairs exceed this threshold.</p>
+<p class="section-note">The dependence structure here is <em>why</em> L-SML is used at all: SML assumes independent classifiers, while L-SML clusters dependent ones before fusing. For each GOOD_5 feature pair, Spearman ρ was computed per evaluation cell. Pairs with mean |ρ| ≥ 0.75 indicate redundancy that would cause L-SML's correlation filter to reject the subset — 0 pairs exceed this threshold on average. Note, though, that the dependence is only <em>mild</em> (mean ρ 0.26–0.63): strong enough to motivate L-SML over flat SML on 16 features, but weak enough on GOOD_5 that a simple average nearly matches L-SML (§4B).</p>
 <div class="chart-wrap">
   <h3>Mean |ρ| by Feature Pair (across 29 cells)</h3>
   <p style="font-size:12px;color:#6b7280;margin-bottom:8px">Red dashed line = 0.75 rejection threshold. No pair exceeds mean ρ=0.75, confirming GOOD_5 is a valid input for L-SML.</p>
@@ -358,6 +361,7 @@
      ===================================================================== -->
 <h2>10. Feature Stability Across Domains (Phase 2)</h2>
 <p>Per-feature individual AUROC was computed for all 16 H16 features across all 29 evaluation cells, using FEATURE_SIGNS orientation and safe_auc auto-flip. The range (max domain mean − min domain mean) measures how much a feature's discrimination varies across domains.</p>
+<p class="section-note">Note: the "Mean AUROC" column below is the <em>flat</em> average over all 29 cells (which over-weights RAG's 16 cells). The <em>macro</em> mean (average of the five per-domain columns, equal domain weight) is the metric used elsewhere in this report — e.g. cusum_max is 64.5% flat but <strong>68.3% macro</strong>, the best fixed single feature. Both are computable from the per-domain columns shown.</p>
 
 <div class="chart-row">
   <div class="chart-wrap">
@@ -440,6 +444,209 @@
   <li><strong>CONT exceeds Oracle Best-1 on 2 of 5 domains:</strong> On GSM8K (75.6% vs 73.9%) and QA (75.0% vs 74.7%), the fusion of all 5 features outperforms the best single feature — confirming that fusion adds value beyond what any single feature provides.</li>
 </ul>
 
+<!-- =====================================================================
+     SECTION 13: 16-FEATURE CONTINUOUS (no feature selection)
+     ===================================================================== -->
+<h2>13. Does feature selection still matter once encoding is continuous?</h2>
+<p>Sections 4A and 7 establish that <strong>encoding</strong> (binary→continuous) is the dominant lever and that, in binary mode, the GOOD_5 selection rescues L-SML from noisy extra features. The natural test: run L-SML on <em>all 16</em> features with continuous encoding (<span class="mono">lsml16c</span>) and see whether feature selection is still needed.</p>
+
+<div class="chart-wrap">
+  <h3>Feature selection × encoding (L-SML, by domain)</h3>
+  <p style="font-size:12px;color:#6b7280;margin-bottom:8px">lsml16 (16 feat, binary) vs lsml16c (16 feat, continuous) vs CONT (GOOD_5, continuous).</p>
+  <canvas id="contCountChart" style="max-height:320px"></canvas>
+</div>
+
+<table>
+  <tr><th>Domain</th><th>lsml16 (16 feat, binary)</th><th>lsml16c (16 feat, continuous)</th><th>CONT (GOOD_5, continuous)</th><th>Δ (CONT − lsml16c)</th></tr>
+  <tr><td>MATH-500</td><td>80.8%</td><td>83.5%</td><td>84.3%</td><td class="delta-pos">+0.8 pp</td></tr>
+  <tr><td>GSM8K</td><td>70.4%</td><td>73.8%</td><td>75.6%</td><td class="delta-pos">+1.8 pp</td></tr>
+  <tr><td>GPQA</td><td>57.3%</td><td>56.7%</td><td>53.9%</td><td class="delta-neg">−2.8 pp</td></tr>
+  <tr><td>RAG</td><td>56.8%</td><td>61.6%</td><td>61.7%</td><td class="delta-zero">+0.1 pp</td></tr>
+  <tr><td>QA</td><td>61.8%</td><td>70.2%</td><td>75.0%</td><td class="delta-pos">+4.8 pp</td></tr>
+  <tr style="font-weight:600"><td>Macro</td><td>65.4%</td><td>69.2%</td><td>70.1%</td><td class="delta-pos">+0.9 pp</td></tr>
+</table>
+<div class="note">
+  <strong>Finding (directly answers "what happens without feature selection?"):</strong> continuous L-SML on all 16 features reaches <strong>69.2%</strong> macro — within <strong>0.9 pp</strong> of the curated 5-feature CONT (70.1%) — and recovers +3.8 pp over binary lsml16 (65.4%). So the GOOD_5 selection step was mostly rescuing the <em>binary</em> pipeline. In continuous mode, selection is a small optimization: it helps on reasoning (+0.8 to +4.8 pp on MATH/GSM8K/QA) but actually <em>hurts</em> on GPQA (−2.8 pp). <strong>The recovery lever is continuous encoding, not feature selection.</strong>
+</div>
+
+<!-- =====================================================================
+     SECTION 14: ROBUSTNESS / FEATURE INSULATION (R4)
+     ===================================================================== -->
+<h2>14. Robustness: does L-SML grouping insulate against volatile features?</h2>
+<p>Section 10 shows the strongest features are also the most domain-volatile (high on math, near-random on GPQA). A natural hypothesis is that L-SML's grouping "insulates" the fused score from that volatility better than a plain average. We test it directly: the cross-domain standard deviation of each method's five domain means (lower = more stable across domains).</p>
+
+<div class="chart-wrap">
+  <h3>Cross-domain volatility by method (std of the 5 domain means)</h3>
+  <p style="font-size:12px;color:#6b7280;margin-bottom:8px">Shorter bar = more robust across domains.</p>
+  <canvas id="robustChart" style="max-height:300px"></canvas>
+</div>
+
+<table>
+  <tr><th>Method</th><th>Macro AUROC</th><th>Cross-domain std</th></tr>
+  <tr style="background:#f5f3ff"><td>best1 (oracle)</td><td>71.7%</td><td>8.5 pp</td></tr>
+  <tr style="background:#ecfeff"><td><strong>avg5 (simple average)</strong></td><td>69.7%</td><td><strong>8.9 pp — most robust deployable</strong></td></tr>
+  <tr><td>lsml16</td><td>65.4%</td><td>9.1 pp</td></tr>
+  <tr><td>PROD</td><td>65.2%</td><td>9.2 pp</td></tr>
+  <tr><td>lsml16c</td><td>69.2%</td><td>9.4 pp</td></tr>
+  <tr><td>flat5</td><td>68.3%</td><td>9.7 pp</td></tr>
+  <tr style="background:#eff6ff"><td><strong>CONT</strong></td><td>70.1%</td><td><strong>10.9 pp — least robust</strong></td></tr>
+</table>
+<div class="note">
+  <strong>Finding (hypothesis rejected):</strong> L-SML grouping does <em>not</em> buy cross-domain robustness. CONT is the highest-scoring method but the <strong>least</strong> cross-domain-stable; the plain average (avg5) is the <strong>most</strong> stable multi-feature method. Grouping up-weights the dominant cluster, which amplifies the reasoning-vs-GPQA swing rather than damping it. <strong>Consequence:</strong> fusion's justification is not robustness — it is peak accuracy within the method's operating regime (see §15). At the feature level the grouping does tend to <em>carry</em> the one volatile GOOD_5 feature (spectral_entropy is isolated into its own cluster 31% of the time, and its cluster's AUROC is rescued/neutral in ~23 of 29 cells), but this does not translate into method-level stability because a flat average dilutes per-feature noise just as effectively.
+</div>
+
+<!-- =====================================================================
+     SECTION 15: OPERATING REGIME (reasoning domains)
+     ===================================================================== -->
+<h2>15. Operating regime: reasoning domains {MATH-500, GSM8K, QA}</h2>
+<p>The spectral analysis of the token-entropy sequence H(n) structurally requires long, temporally-evolving reasoning traces. GPQA (short forced-choice MCQ) and RAG (retrieval-grounded) lack that structure — every variant clusters near 53–62% there regardless of design (§3). Defining the method's operating regime as the three reasoning domains is therefore a statement of where it applies, not a selective filter. Restricting to {MATH-500, GSM8K, QA}:</p>
+
+<table>
+  <tr><th>Comparison</th><th>All 5 domains</th><th>Reasoning only</th><th>Effect of scoping</th></tr>
+  <tr><td>CONT macro</td><td>70.1%</td><td><strong>78.3%</strong></td><td>—</td></tr>
+  <tr><td>CONT vs PROD (continuous vs binary)</td><td>+4.9 pp</td><td class="delta-pos">+7.2 pp</td><td>encoding matters even more</td></tr>
+  <tr><td>CONT vs avg5 (fusion vs averaging)</td><td>+0.4 pp</td><td class="delta-pos">+2.2 pp</td><td>fusion's edge ~5× larger</td></tr>
+  <tr><td>CONT vs best1 (fusion vs <em>oracle</em> single feature)</td><td class="delta-neg">−1.7 pp</td><td class="delta-pos">+0.7 pp</td><td>CONT now beats the oracle</td></tr>
+  <tr><td>CONT vs lsml16c (selection vs none)</td><td>+0.9 pp</td><td class="delta-pos">+2.5 pp</td><td>feature selection earns its keep</td></tr>
+</table>
+<div class="note">
+  <strong>Finding:</strong> on the domains the method is built for, every design choice is vindicated — continuous L-SML on GOOD_5 reaches <strong>78.3%</strong> macro, beating a simple average by +2.2 pp and the per-cell oracle best-single-feature by +0.7 pp, while staying fully unsupervised (one global physical orientation bit). The "is fusion worth it?" ambiguity in the 5-domain view (§9, where CONT trails the oracle by 1.7 pp) was entirely driven by GPQA and RAG. <em>Caveat:</em> this is the method's operating regime, not a general number — the 5-domain results above show where and why it degrades. Sample base is thin (GSM8K = 1 large cell, QA = 3 cells).
+</div>
+
+<!-- =====================================================================
+     SECTION 16: PER-CLUSTER AUC INSIDE L-SML
+     ===================================================================== -->
+<h2>16. Inside L-SML: clusters formed and per-cluster AUC</h2>
+<p>L-SML works by grouping correlated features into K clusters, fusing within each cluster into a "virtual classifier", then fusing the virtual classifiers. This section opens the box: for representative cells it shows the clusters L-SML detected and each cluster's standalone AUROC against the ground-truth labels (<em>vAUROC_cont</em> = AUROC of the cluster's continuous virtual classifier). This is the "AUC per cluster" view — it shows whether each detected group is individually discriminative.</p>
+
+<h3>CONT (GOOD_5, continuous) — clusters per cell</h3>
+<table>
+  <tr><th>Cell</th><th>K</th><th>Cluster features</th><th>Cluster AUROC</th></tr>
+  <tr><td rowspan="2">MATH-500 / Qwen-Math-7B</td><td rowspan="2">2</td><td>epr, low_band_power, sw_var_peak</td><td>95.2%</td></tr>
+  <tr><td>cusum_max, spectral_entropy</td><td>91.1%</td></tr>
+  <tr><td rowspan="4">GSM8K / Llama-8B</td><td rowspan="4">4</td><td>sw_var_peak, cusum_max</td><td>74.2%</td></tr>
+  <tr><td>epr</td><td>70.8%</td></tr>
+  <tr><td>low_band_power</td><td>69.3%</td></tr>
+  <tr><td>spectral_entropy</td><td>65.0%</td></tr>
+  <tr><td rowspan="2">GPQA / Mistral-7B</td><td rowspan="2">2</td><td>epr, spectral_entropy</td><td>57.9%</td></tr>
+  <tr><td>low_band_power, sw_var_peak, cusum_max</td><td>57.5%</td></tr>
+</table>
+
+<h3>lsml16c (all 16 features, continuous) — clusters per cell</h3>
+<table>
+  <tr><th>Cell</th><th>K</th><th>Cluster features</th><th>Cluster AUROC</th></tr>
+  <tr><td rowspan="4">MATH-500 / Qwen-Math-7B</td><td rowspan="4">4</td><td>low_band_power, high_band_power, hl_ratio, spectral_centroid, sw_var_peak</td><td>94.7%</td></tr>
+  <tr><td>epr, trace_length, stft_max_high_power, stft_spectral_entropy, rpdi, cusum_shift_idx</td><td>93.8%</td></tr>
+  <tr><td>spectral_entropy, hurst_exponent, cusum_max</td><td>92.2%</td></tr>
+  <tr><td>pe_mean</td><td>55.3%</td></tr>
+  <tr><td rowspan="4">GSM8K / Llama-8B</td><td rowspan="4">4</td><td>epr, sw_var_peak, pe_mean, cusum_shift_idx</td><td>70.3%</td></tr>
+  <tr><td>trace_length, spectral_entropy, rpdi</td><td>70.1%</td></tr>
+  <tr><td>low_band_power, dominant_freq, stft_spectral_entropy, hurst_exponent, cusum_max</td><td>66.8%</td></tr>
+  <tr><td>high_band_power, hl_ratio, spectral_centroid, stft_max_high_power</td><td>64.5%</td></tr>
+</table>
+<div class="note">
+  <strong>Reading it:</strong> on long reasoning traces (MATH-500) every cluster is individually strong — all clusters of useful features land at 92–95% AUROC, so the cross-cluster fusion combines several high-quality signals. The lone weak feature (<span class="mono">pe_mean</span>) is correctly isolated into its own cluster (55%) where it cannot drag the others down. On GSM8K the clusters sit at 65–74%; on GPQA all clusters are stuck near 53–58% regardless of grouping — confirming the ceiling there is the signal, not the fusion. This is also the structural reason continuous L-SML works: the leading <em>continuous</em> within-cluster combination preserves the full discriminative signal that median-binarization (PROD) discards.
+</div>
+
+<!-- =====================================================================
+     SECTION 17: COMPLETE VARIANT GRID (feature-count × encoding × fusion)
+     ===================================================================== -->
+<h2>17. Complete variant grid: feature-count × encoding × fusion</h2>
+<p>To isolate each design choice we ran the full grid — 3 feature sets (5, 9, 16) × 2 encodings (binary, continuous) × 2 fusion methods (flat SML, L-SML), plus a simple-average baseline at each feature count. Macro-AUROC (mean of 5 domain means):</p>
+
+<div class="chart-row">
+  <div>
+    <h3>5 features (GOOD_5)</h3>
+    <table>
+      <tr><th></th><th>Binary</th><th>Continuous</th></tr>
+      <tr><td><strong>Flat SML</strong></td><td>68.3</td><td>70.0</td></tr>
+      <tr><td><strong>L-SML</strong></td><td>65.2 <span class="tag tag-prod">PROD</span></td><td><strong>70.1</strong> <span class="tag tag-cont">CONT</span></td></tr>
+      <tr><td><em>Average</em></td><td>—</td><td><em>69.7</em></td></tr>
+    </table>
+    <h3 style="margin-top:16px">9 features (STABLE_H9)</h3>
+    <table>
+      <tr><th></th><th>Binary</th><th>Continuous</th></tr>
+      <tr><td><strong>Flat SML</strong></td><td>61.0</td><td>64.5</td></tr>
+      <tr><td><strong>L-SML</strong></td><td>65.4</td><td><strong>68.1</strong></td></tr>
+      <tr><td><em>Average</em></td><td>—</td><td><em>69.7</em></td></tr>
+    </table>
+    <h3 style="margin-top:16px">16 features (H16)</h3>
+    <table>
+      <tr><th></th><th>Binary</th><th>Continuous</th></tr>
+      <tr><td><strong>Flat SML</strong></td><td>60.8</td><td>63.1</td></tr>
+      <tr><td><strong>L-SML</strong></td><td>65.4</td><td><strong>69.2</strong></td></tr>
+      <tr><td><em>Average</em></td><td>—</td><td><em>66.3</em></td></tr>
+    </table>
+  </div>
+  <div class="chart-wrap">
+    <h3>Feature-count curve (continuous encoding)</h3>
+    <p style="font-size:12px;color:#6b7280;margin-bottom:8px">As features are added (5→9→16), L-SML holds ~68–70% while flat SML collapses and the average degrades. L-SML is the only method that does not fall apart without feature selection.</p>
+    <canvas id="gridCurveChart" style="max-height:340px"></canvas>
+  </div>
+</div>
+
+<div class="note">
+  <strong>Three findings from the grid:</strong><br>
+  1. <strong>Continuous beats binary in every cell</strong> — no exceptions, at every feature count and fusion method.<br>
+  2. <strong>L-SML's clustering helps when there are many features.</strong> In continuous mode it ties flat SML on the clean 5 (70.1 vs 70.0), but beats it by +3.6 on 9 features (68.1 vs 64.5) and +6.1 on 16 (69.2 vs 63.1). On 16 features it also beats a simple average (69.2 vs 66.3).<br>
+  3. <strong>L-SML is what lets the method work without feature selection.</strong> Continuous L-SML stays 68–70% across 5/9/16 features; flat-SML-continuous collapses 70→63 and the average degrades 70→66. The clustering quarantines the noise that hand-selection would otherwise have to remove.
+</div>
+
+<!-- =====================================================================
+     SECTION 18: COMPARISON VS BASELINES (model-matched)
+     ===================================================================== -->
+<h2>18. Comparison vs published / computed baselines (model-matched)</h2>
+<p>Each comparison uses our number <strong>on the same model</strong> the baseline was run on (our macro-average over many models is not directly comparable to a baseline's single-model number). All baselines were computed in-house on the same model + dataset. Our rows are unsupervised continuous variants, single forward pass; <span class="tag tag-cont">CONT</span> (5-feature) is the main variant, with two others shown as the spread (not picked per-domain).</p>
+
+<h3>MATH-500 / Qwen2.5-Math-7B</h3>
+<table>
+  <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Compute</th></tr>
+  <tr style="background:#eff6ff"><td><strong>L-SML continuous, 5-feat</strong></td><td><strong>94.4%</strong></td><td>[90.1, 97.7]</td><td>1-pass</td></tr>
+  <tr><td>L-SML continuous, 16-feat (no selection)</td><td>94.2%</td><td>[89.7, 97.7]</td><td>1-pass</td></tr>
+  <tr><td>Simple average, 5-feat</td><td>93.6%</td><td>[89.4, 97.0]</td><td>1-pass</td></tr>
+  <tr><td>L-SML binary (prior)</td><td>88.2%</td><td>[84.0, 92.0]</td><td>1-pass</td></tr>
+  <tr><td>Semantic Entropy NLI K=10</td><td>87.7%</td><td>[79.7, 93.9]</td><td>K=10</td></tr>
+  <tr><td>Self-Consistency K=10</td><td>87.2%</td><td>[72.1, 98.4]</td><td>K=10</td></tr>
+</table>
+
+<h3>GSM8K / Llama-3.1-8B</h3>
+<table>
+  <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Compute</th></tr>
+  <tr><td>Self-Consistency K=10</td><td>78.5%</td><td>[72.0, 84.5]</td><td>K=10</td></tr>
+  <tr><td>Semantic Entropy NLI K=10</td><td>77.4%</td><td>[70.9, 83.5]</td><td>K=10</td></tr>
+  <tr style="background:#eff6ff"><td><strong>L-SML continuous, 5-feat</strong></td><td><strong>75.6%</strong></td><td>[72.2, 79.0]</td><td>1-pass</td></tr>
+  <tr><td>L-SML continuous, 16-feat (no selection)</td><td>73.8%</td><td>[70.4, 77.3]</td><td>1-pass</td></tr>
+  <tr><td>Simple average, 5-feat</td><td>72.1%</td><td>[68.2, 75.7]</td><td>1-pass</td></tr>
+  <tr><td>L-SML binary (prior)</td><td>70.7%</td><td>[67.2, 74.0]</td><td>1-pass</td></tr>
+  <tr><td>LapEigvals unsupervised</td><td>72.0%</td><td>n/a</td><td>1-pass (white-box)</td></tr>
+</table>
+
+<h3>GPQA Diamond / Qwen2.5-7B</h3>
+<table>
+  <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Compute</th></tr>
+  <tr><td>Semantic Entropy NLI K=10</td><td>70.6%</td><td>[43.6, 93.3]</td><td>K=10</td></tr>
+  <tr><td>Verbalized Confidence K=1</td><td>67.9%</td><td>[49.5, 83.3]</td><td>1-pass</td></tr>
+  <tr><td>L-SML continuous, 16-feat (no selection)</td><td>56.4%</td><td>[48.2, 64.5]</td><td>1-pass</td></tr>
+  <tr><td>Simple average, 5-feat</td><td>56.0%</td><td>[47.3, 64.8]</td><td>1-pass</td></tr>
+  <tr><td>L-SML binary (prior)</td><td>53.6%</td><td>[44.8, 62.2]</td><td>1-pass</td></tr>
+  <tr style="background:#eff6ff"><td><strong>L-SML continuous, 5-feat</strong></td><td>52.3%</td><td>[43.4, 61.2]</td><td>1-pass</td></tr>
+  <tr><td>Self-Consistency K=10</td><td>33.6%</td><td>[11.0, 58.2]</td><td>K=10</td></tr>
+</table>
+<p style="font-size:12px;color:#6b7280">GPQA is out of regime: even our best variant here (16-feat, 56.4%) trails Semantic Entropy. Short forced-choice traces lack the temporal structure the spectral analysis exploits.</p>
+
+<h3>RAG — L-CiteEval / Qwen2.5-7B</h3>
+<p class="section-note">95% CIs are wide (small n, 8–28 positives per cell); differences are mostly within noise.</p>
+<table>
+  <tr><th>Sub-domain</th><th>L-SML cont. 5-feat</th><th>L-SML cont. 16-feat</th><th>L-SML binary (prior)</th><th>SelfCheckGPT K=5</th></tr>
+  <tr><td>NarrativeQA</td><td><strong>65.0%</strong> [53.4, 76.5]</td><td>62.8%</td><td>64.1%</td><td>52.4% [41.7, 65.4]</td></tr>
+  <tr><td>Natural Questions</td><td>61.4% [42.3, 79.7]</td><td><strong>64.2%</strong></td><td>57.1%</td><td>57.1% [42.9, 70.5]</td></tr>
+  <tr><td>HotpotQA</td><td>62.5% [45.2, 79.6]</td><td><strong>69.4%</strong></td><td>54.9%</td><td>51.4% [41.5, 62.9]</td></tr>
+  <tr><td>2WikiMultiHopQA</td><td>51.1% [32.0, 70.2]</td><td>55.5%</td><td>60.5%</td><td>55.3% [35.7, 78.3]</td></tr>
+</table>
+<div class="note">
+  <strong>Bottom line:</strong> a single forward pass that <strong>beats the K=10 sampling methods on math</strong> (+6.7pp at ~10× less compute), is <strong>competitive on GSM8K</strong>, <strong>beats SelfCheckGPT on 3 of 4 RAG sub-tasks</strong>, and <strong>loses on GPQA</strong>. Comparisons vs EDIS (math-competition sets) and vs VC/SC on a stronger GPQA reasoning model are pending (EDIS run has a grading issue being fixed).
+</div>
+
 </div><!-- .page -->
 
 <script>
@@ -452,6 +659,7 @@ const DOMAINS = ['MATH-500','GSM8K','GPQA','RAG','QA'];
 const domainData = {
   flat16:  [71.2, 53.6, 54.8, 60.5, 64.0],
   lsml16:  [80.8, 70.4, 57.3, 56.8, 61.8],
+  lsml16c: [83.5, 73.8, 56.7, 61.6, 70.2],
   lsml5n:  [81.5, 68.6, 53.8, 58.8, 71.4],
   PROD:    [79.7, 70.7, 53.2, 59.5, 62.9],
   CONT:    [84.3, 75.6, 53.9, 61.7, 75.0],
@@ -462,7 +670,7 @@ const domainData = {
   lsml9h:  [79.4, 70.5, 55.8, 56.9, 64.6],
 };
 const macro = {
-  flat16:60.8, lsml16:65.4, lsml5n:66.8,
+  flat16:60.8, lsml16:65.4, lsml16c:69.2, lsml5n:66.8,
   PROD:65.2, CONT:70.1, lsml5nc:70.1,
   flat5:68.3, avg5:69.7, best1:71.8, lsml9h:65.4
 };
@@ -484,7 +692,7 @@ function auroc2color(v) {
 // HEATMAP
 // =========================================================
 const hmBody = document.getElementById('heatmapBody');
-const varCols = ['flat16','lsml16','lsml5n','PROD','CONT','lsml5nc','flat5','avg5','best1','lsml9h'];
+const varCols = ['flat16','lsml16','lsml16c','lsml5n','PROD','CONT','lsml5nc','flat5','avg5','best1','lsml9h'];
 DOMAINS.forEach((d, i) => {
   const tr = document.createElement('tr');
   tr.innerHTML = `<td><strong>${d}</strong></td>`;
@@ -507,6 +715,7 @@ const macroOrder = [
   {k:'CONT',   label:'CONT',   color:'#2563eb'},
   {k:'lsml5nc',label:'lsml5nc',color:'#059669'},
   {k:'avg5',   label:'avg5',   color:'#0891b2'},
+  {k:'lsml16c',label:'lsml16c',color:'#3b82f6'},
   {k:'flat5',  label:'flat5',  color:'#64748b'},
   {k:'lsml5n', label:'lsml5n', color:'#94a3b8'},
   {k:'lsml16', label:'lsml16', color:'#6b7280'},
@@ -540,11 +749,11 @@ new Chart(document.getElementById('macroBar'), {
 // DOMAIN BAR
 // =========================================================
 const domainColors = {
-  flat16:'#dc2626', lsml16:'#6b7280', lsml5n:'#94a3b8',
+  flat16:'#dc2626', lsml16:'#6b7280', lsml16c:'#3b82f6', lsml5n:'#94a3b8',
   PROD:'#f97316', CONT:'#2563eb', lsml5nc:'#059669',
   flat5:'#64748b', avg5:'#0891b2', best1:'#7c3aed', lsml9h:'#a16207'
 };
-const domainVariants = ['flat16','lsml16','lsml5n','PROD','CONT','lsml5nc','flat5','avg5','best1','lsml9h'];
+const domainVariants = ['flat16','lsml16','lsml16c','lsml5n','PROD','CONT','lsml5nc','flat5','avg5','best1','lsml9h'];
 new Chart(document.getElementById('domainBar'), {
   type:'bar', data:{
     labels: DOMAINS,
@@ -754,6 +963,66 @@ new Chart(document.getElementById('featCountChart'), {
     ]
   },
   options:{plugins:{legend:{position:'bottom'}}, scales:{y:{min:45,title:{display:true,text:'AUROC (%)'}}}}
+});
+
+// =========================================================
+// SECTION 13: feature selection x encoding (lsml16 / lsml16c / CONT)
+// =========================================================
+new Chart(document.getElementById('contCountChart'), {
+  type:'bar', data:{
+    labels: DOMAINS,
+    datasets:[
+      {label:'lsml16 (16 feat, binary)', data:domainData.lsml16, backgroundColor:'#6b728099', borderColor:'#6b7280', borderWidth:1},
+      {label:'lsml16c (16 feat, continuous)', data:domainData.lsml16c, backgroundColor:'#3b82f699', borderColor:'#3b82f6', borderWidth:1},
+      {label:'CONT (GOOD_5, continuous)', data:domainData.CONT, backgroundColor:'#2563eb99', borderColor:'#2563eb', borderWidth:1},
+    ]
+  },
+  options:{plugins:{legend:{position:'bottom'}}, scales:{y:{min:45,title:{display:true,text:'AUROC (%)'}}}}
+});
+
+// =========================================================
+// SECTION 14: cross-domain robustness (std of 5 domain means)
+// =========================================================
+const robustOrder = [
+  {label:'avg5',    std:8.9, color:'#0891b2'},
+  {label:'lsml16',  std:9.1, color:'#6b7280'},
+  {label:'PROD',    std:9.2, color:'#f97316'},
+  {label:'lsml16c', std:9.4, color:'#3b82f6'},
+  {label:'flat5',   std:9.7, color:'#64748b'},
+  {label:'CONT',    std:10.9,color:'#2563eb'},
+];
+new Chart(document.getElementById('robustChart'), {
+  type:'bar', data:{
+    labels: robustOrder.map(x=>x.label),
+    datasets:[{
+      data: robustOrder.map(x=>x.std),
+      backgroundColor: robustOrder.map(x=>x.color+'cc'),
+      borderColor: robustOrder.map(x=>x.color), borderWidth:1
+    }]
+  },
+  options:{
+    indexAxis:'y', plugins:{legend:{display:false}},
+    scales:{x:{min:8,max:11.5,title:{display:true,text:'Cross-domain std of domain means (pp) — lower = more robust'}}}
+  }
+});
+
+// =========================================================
+// SECTION 17: feature-count curve (continuous encoding)
+// =========================================================
+new Chart(document.getElementById('gridCurveChart'), {
+  type:'line', data:{
+    labels:['5 feat','9 feat','16 feat'],
+    datasets:[
+      {label:'L-SML (continuous)', data:[70.1,68.1,69.2], borderColor:'#2563eb', backgroundColor:'#2563eb', borderWidth:2, tension:0.2},
+      {label:'Flat SML (continuous)', data:[70.0,64.5,63.1], borderColor:'#dc2626', backgroundColor:'#dc2626', borderWidth:2, tension:0.2},
+      {label:'Simple average', data:[69.7,69.7,66.3], borderColor:'#0891b2', backgroundColor:'#0891b2', borderWidth:2, borderDash:[5,4], tension:0.2},
+    ]
+  },
+  options:{
+    plugins:{legend:{position:'bottom'}},
+    scales:{y:{min:60,max:72,title:{display:true,text:'Macro AUROC (%)'}},
+            x:{title:{display:true,text:'Number of features'}}}
+  }
 });
 
 </script>

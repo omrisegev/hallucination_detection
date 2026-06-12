@@ -3,7 +3,16 @@
 
 ---
 
-## Current Focus (updated 2026-06-01, post Step 111)
+## Current Focus (updated 2026-06-11, post Step 134)
+
+> **Step 134 update — recommended method and scope (12-variant comparison, Gemini co-signed).**
+> The thesis core method is now **continuous L-SML (CONT)**: `lsml_continuous_pipeline(feats, GOOD_5, FEATURE_SIGNS)`.
+> - **Encoding is the recovery lever**: continuous beats the old binary pipeline by **+4.9pp macro** (65.2→70.1) and **+7.2pp** on the reasoning regime. The `np.sign()` binarization was the largest source of lost signal.
+> - **Operating regime = reasoning traces {MATH-500, GSM8K, QA}**, where CONT = **78.3%**, beating a simple average (+2.2pp) and the per-cell oracle best-single-feature (+0.7pp). GPQA (MCQ) and RAG (retrieval) are out-of-regime — a simple average is as good or better there.
+> - **Feature selection is a minor optimization**: continuous L-SML on all 16 features = 69.2% (within 0.9pp of selected GOOD_5).
+> - **FEATURE_SIGNS = one global orientation bit**, not a learned dictionary; required for deployment orientation, adds zero separability.
+> - **Robustness (R4) closed NEGATIVE**: L-SML grouping does not insulate against volatile features better than a flat average (avg5 is the most cross-domain-stable; CONT the least). Fusion's justification is in-regime peak accuracy.
+> - Best results table below should be read as continuous-L-SML numbers; the old supervised 90.0%/96.6% figures are label-leakage artifacts (PROD MATH-500/Qwen-7B = 88.2%, CONT = 94.4%).
 
 The thesis core method is **paper-aligned L-SML with offline consensus orientation** (Parisi-Nadler-Kluger PNAS 2014 + Jaffé-Fetaya-Nadler 2016 + our offline feature-direction calibration). This replaces the earlier "Nadler" framing because:
 
