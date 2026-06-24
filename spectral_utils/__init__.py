@@ -54,6 +54,7 @@ from .fusion_utils import (
     sml_fuse_signed, detect_dependent_groups, lsml_fuse,
     lsml_continuous, lsml_continuous_pipeline,
     sml_unsupervised, sml_unsupervised_compare,
+    upcr_fuse, upcr_pipeline,
 )
 from .diagnostics import (
     decompose_auroc, threshold_sensitivity, derive_consensus_signs,
@@ -106,6 +107,7 @@ __all__ = [
     "sml_fuse_signed", "detect_dependent_groups", "lsml_fuse",
     "lsml_continuous", "lsml_continuous_pipeline",
     "sml_unsupervised", "sml_unsupervised_compare",
+    "upcr_fuse", "upcr_pipeline",
     "decompose_auroc", "threshold_sensitivity", "derive_consensus_signs",
     "plot_decomposition", "plot_per_feature_heatmap",
     "plot_sign_agreement", "plot_threshold_sweep",

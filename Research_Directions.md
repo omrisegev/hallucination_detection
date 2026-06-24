@@ -119,13 +119,15 @@ GPQA Diamond (MCQ science) is structurally out-of-regime: entropy dynamics are s
 
 ---
 
-### Item 1 — L-SML Literature Search
+### Item 1 — L-SML Literature Search ✅ COMPLETED (Step 139)
 
-Search Semantic Scholar / arXiv for Boaz Nadler's publications **after 2016** for extensions of the Spectral Meta-Learner. Relevant angles: continuous-input variants (no binarization required), improved eigenvector estimation beyond rank-1, K>2 class extensions, connections to recent spectral multi-view learning.
+**Result**: U-PCR (Tenzer, Dror, Nadler, Bilal, Kluger; AISTATS 2022 / arXiv:1703.02965) is Nadler's own continuous-input extension of L-SML. Under uncorrelated-error assumption, covariance off-diagonal C_ij = ρ_i + ρ_j − g² — recovers expert-response covariances ρ̂ without labels. Our CONT pipeline ≈ U-PCR; offline orientation = U-PCR's ρ̂_i exclusion criterion. **Cite Tenzer et al. (2022) in the thesis instead of "workaround for Lemma 1" language.**
 
-**Why**: Lemma 1's binary contract required our offline-orientation workaround. A native continuous variant would remove this patch and may fix the K=2 equal-weight collapse on small feature sets.
+Also found: **FUSE** (Lee et al., arXiv:2604.18547, 2026) — applies Jaffe-Nadler moment structure to LLM verifiers for Best-of-N response selection with zero labels. Same theoretical base as our work (Jaffe et al. 2015). Different task: multi-response selection vs single-generation hallucination detection. Strong related-work citation. Key finding: raw Jaffe 2015 underperforms naive ensemble in 7/10 settings for LLM verifiers — they fix this via TCI-minimizing binarization thresholds.
 
-**Output**: HISTORY.md step + update this document if a viable follow-up is found.
+Other Nadler follow-ups: Deep L-SML (Shaham et al., ICML 2016, arXiv:1602.02285); STDR latent-tree (Aizenbud et al., 2023, arXiv:2102.13276).
+
+Implementation: `upcr_fuse()` + `upcr_pipeline()` added to `spectral_utils/fusion_utils.py`. Comparison script: `scripts/run_upcr_comparison.py`.
 
 ---
 
@@ -248,7 +250,7 @@ Apply spectral features to visual language models; split visual-description toke
 *(Single authoritative list — updated 2026-06-23, post Jun 17 advisor meeting)*
 
 **Now — no GPU needed**
-1. L-SML literature search (Item 1)
+1. ~~L-SML literature search (Item 1)~~ ✅ done (Step 139)
 2. Logistic regression oracle `scripts/logistic_oracle.py` (Item 2)
 
 **Next Colab session**

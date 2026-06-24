@@ -4510,3 +4510,21 @@ Initial signs: `epr_spilled=-1`, `sw_var_peak_spilled=-1`, `cusum_max_spilled=-1
 **Files changed**: `papers/` (15 PDFs), `notebooks/` (30 ipynb), `docs/` (meetings + research_notes + presentations), `scripts/build/` (15 build scripts), root deletions.
 
 ---
+
+### Step 139 — U-PCR paper review + follow-up literature survey (advisor Item 1)
+
+**What**: Read "Crowdsourcing Regression: A Spectral Approach" (Tenzer, Dror, Nadler, Bilal, Kluger; AISTATS 2022 / arXiv:1703.02965). This is Nadler's own continuous-input extension of L-SML. Also surveyed the full post-2016 Nadler line and read FUSE (Lee et al., arXiv:2604.18547, 2026).
+
+**Why**: Advisor meeting Item 1 (Jun 17 2026) asked for a lit search on Nadler extensions/improvements of the 2016 L-SML paper.
+
+**Result**:
+- U-PCR is the regression analogue of L-SML. Under uncorrelated-error assumption (E[h_i h_j]=0), the covariance matrix has off-diagonal structure C_ij = ρ_i + ρ_j − g², which lets you solve for expert-response covariances ρ̂ without any labels. Lemma 2: leading eigenvector of C ≈ ρ (optimal weights).
+- Key upgrade for thesis: CONT ≈ U-PCR — can cite Tenzer et al. (2022) instead of "workaround for Lemma 1" language. Offline orientation ↔ U-PCR's ρ̂_i < 0 exclusion. within_H/cross ratio = empirical test of U-PCR's independence assumption.
+- U-PCR does NOT cluster dependent experts (unlike L-SML). When assumption is violated, U-PCR degrades gracefully; 2-component PCR variant helps mildly.
+- **FUSE** (Lee et al., arXiv:2604.18547, 2026): most important follow-up. Applies Jaffe-Nadler moment structure to LLM verifiers for Best-of-N response selection with zero labels. Three-step: (1) find binarization threshold τ* minimizing TCI violation statistic; (2) MoM estimation of verifier sensitivities/specificities; (3) logistic regression ensemble on pseudo-posteriors. Results: matches semi-supervised WEAVER with zero labels (GPQA Diamond 70B: FUSE 64.4% vs WEAVER 64.1%). Key difference from our work: FUSE ensembles external verifier models across N=50-100 candidate responses; we fuse internal spectral features of a single generation. Same theoretical base (Jaffe et al. 2015) — strong related-work citation, not a direct competitor.
+- Other Nadler follow-ups: Deep L-SML (Shaham et al., ICML 2016, arXiv:1602.02285); STDR latent-tree (Aizenbud et al., 2023, arXiv:2102.13276).
+- **Implementation**: added `upcr_fuse()` + `upcr_pipeline()` to `spectral_utils/fusion_utils.py`; comparison script at `scripts/run_upcr_comparison.py`.
+
+**Files changed**: `spectral_utils/fusion_utils.py` (+`upcr_fuse`, `upcr_pipeline`), `spectral_utils/__init__.py` (exports), `scripts/run_upcr_comparison.py` (new), `HISTORY.md`, `Research_Directions.md`.
+
+---

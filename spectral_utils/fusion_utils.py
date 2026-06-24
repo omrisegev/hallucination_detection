@@ -943,3 +943,130 @@ def best_nadler_pseudo_label(
         return real_auc, real_lo, real_hi, best_s, best_w
 
     return pl_auc, pl_lo, pl_hi, best_s, best_w
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# U-PCR — Unsupervised Principal Components Regression
+# Tenzer, Dror, Nadler, Bilal, Kluger (AISTATS 2022 / arXiv:1703.02965)
+# ────────────────────────────────────────────────────────────────────────────
+
+def upcr_fuse(F, var_y=0.25, n_components=1, min_frac=0.05, exclude_frac=3.0):
+    """
+    U-PCR fusion (Tenzer et al., AISTATS 2022 / arXiv:1703.02965).
+
+    Under the uncorrelated-error assumption E[h_i h_j] = 0, the off-diagonal
+    of the expert covariance matrix satisfies C_ij = rho_i + rho_j - g^2,
+    where rho_i = Cov(f_i, Y) and g^2 = Var(Y) - min_i Var(f_i - Y).
+    The leading eigenvector of C is proportional to rho, giving optimal weights.
+
+    Args:
+        F: (m, n) float array — m experts x n samples, already z-scored and
+           sign-oriented so higher value = more likely correct.
+        var_y: Var(Y) for the response. For binary Y with prevalence p: p*(1-p).
+               Default 0.25 (balanced). Used as the upper bound for the g^2 grid.
+        n_components: 1 or 2 — number of leading eigenvectors for weight projection.
+        min_frac: exclude experts with rho_hat_i < min_frac * var_y (too weak).
+        exclude_frac: exclude experts with rho_hat_i < rho_hat_max / exclude_frac.
+
+    Returns:
+        w: (m,) fusion weight vector (zero for excluded experts)
+        rho_hat: (m,) estimated expert-response covariances (full, including excluded)
+        g2_hat: float — estimated minimal attainable MSE
+    """
+    import numpy as np
+    from scipy.linalg import eigh
+
+    m, n = F.shape
+    C = (F @ F.T) / n  # sample covariance (m x m)
+
+    # Build linear system: C_ij = rho_i + rho_j - q  (off-diagonal, i < j)
+    pairs = [(i, j) for i in range(m) for j in range(i + 1, m)]
+    A = np.zeros((len(pairs), m))
+    c_vals = np.array([C[i, j] for i, j in pairs])
+    for k, (i, j) in enumerate(pairs):
+        A[k, i] = 1.0
+        A[k, j] = 1.0
+
+    # Leading eigenvector(s) of full C
+    k = min(n_components, m)
+    evals, evecs = eigh(C, subset_by_index=[m - k, m - 1])
+    evals = evals[::-1]
+    evecs = evecs[:, ::-1]
+    v1 = evecs[:, 0]
+
+    # Grid search: g2_hat = argmin_q || rho(q) - proj_{v1} rho(q) || / ||rho(q)||
+    q_grid = np.linspace(0, var_y, 300)
+    best_res, best_q, best_rho = np.inf, q_grid[0], None
+    for q in q_grid:
+        rho, *_ = np.linalg.lstsq(A, c_vals + q, rcond=None)
+        proj = v1 * (v1 @ rho)
+        res = np.linalg.norm(rho - proj) / (np.linalg.norm(rho) + 1e-12)
+        if res < best_res:
+            best_res, best_q, best_rho = res, q, rho.copy()
+
+    g2_hat = best_q
+    rho_hat_full = best_rho
+
+    # Exclusion: drop weak experts (Algorithm 1, step 4)
+    rho_max = np.max(rho_hat_full)
+    keep = (rho_hat_full >= min_frac * var_y) & (rho_hat_full >= rho_max / exclude_frac)
+    if keep.sum() < 3:  # fallback: keep top-3 by rho
+        keep = np.zeros(m, dtype=bool)
+        keep[np.argsort(rho_hat_full)[-3:]] = True
+
+    # Refit on kept experts only
+    F_k = F[keep]
+    n_k = keep.sum()
+    C_k = (F_k @ F_k.T) / n
+    pairs_k = [(i, j) for i in range(n_k) for j in range(i + 1, n_k)]
+    A_k = np.zeros((len(pairs_k), n_k))
+    c_vals_k = np.array([C_k[i, j] for i, j in pairs_k])
+    for idx, (i, j) in enumerate(pairs_k):
+        A_k[idx, i] = 1.0
+        A_k[idx, j] = 1.0
+    rho_k, *_ = np.linalg.lstsq(A_k, c_vals_k + g2_hat, rcond=None)
+
+    k2 = min(n_components, n_k)
+    evals_k, evecs_k = eigh(C_k, subset_by_index=[n_k - k2, n_k - 1])
+    evals_k = evals_k[::-1]
+    evecs_k = evecs_k[:, ::-1]
+    v1_k = evecs_k[:, 0]
+
+    # Weights: w = (v1^T rho / lambda_1) * v1  (Eq. 9 in Tenzer et al.)
+    w_k = (v1_k @ rho_k) / (evals_k[0] + 1e-12) * v1_k
+
+    # Embed back to full m-length vectors
+    w_full = np.zeros(m)
+    w_full[keep] = w_k
+    rho_hat_out = np.zeros(m)
+    rho_hat_out[keep] = rho_k
+
+    return w_full, rho_hat_out, g2_hat
+
+
+def upcr_pipeline(feats_dict, feat_names, signs, var_y=0.25, **kwargs):
+    """
+    Full U-PCR pipeline: orient signs -> z-score -> upcr_fuse -> ensemble score.
+
+    Args:
+        feats_dict: {feat_name: np.array(n,)} — raw feature arrays
+        feat_names: list of feature names to use (length m >= 3)
+        signs: dict {feat_name: +1 or -1} — orient so higher = more likely correct
+        var_y: Var(Y) passed to upcr_fuse (default 0.25 for balanced binary labels)
+        **kwargs: forwarded to upcr_fuse (n_components, min_frac, exclude_frac)
+
+    Returns:
+        score: (n,) ensemble score (higher = more likely correct)
+        w: (m,) fusion weights
+        rho_hat: (m,) estimated expert-response covariances
+        g2_hat: float
+    """
+    import numpy as np
+    F = np.stack(
+        [signs.get(f, 1) * zscore(np.array(feats_dict[f], dtype=float))
+         for f in feat_names],
+        axis=0,
+    )  # (m, n)
+    w, rho_hat, g2_hat = upcr_fuse(F, var_y=var_y, **kwargs)
+    score = w @ F  # (n,)
+    return score, w, rho_hat, g2_hat
