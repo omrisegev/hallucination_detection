@@ -4468,3 +4468,23 @@ Initial signs: `epr_spilled=-1`, `sw_var_peak_spilled=-1`, `cusum_max_spilled=-1
 **Files changed**: `scripts/method_comparison.py` (+cross_weight), `scripts/feature_correlation_full.py` (new), `results/feature_correlation_16.csv` + `_pairs.csv` (new), `results/method_comparison_table2.csv` + JSON (regenerated with cross_weight), `results/Spectral_LSML_Report.html` (v2 rewrite).
 
 ---
+
+### Step 137 — Advisor meeting Jun 17: 6 action items; roadmap updated
+
+**What**: Advisor meeting with Ofir, Bracha, and Amir on Jun 17, 2026. Omri sent action items by email; Ofir confirmed same day. Six items established as the new priority order, superseding the pre-meeting priority (Step 132 GPU run first). `PROGRESS.md` and `Research_Directions.md` updated Jun 23 to reflect the new priorities.
+
+**Action items (confirmed)**:
+1. **L-SML literature search** — search for Boaz Nadler's post-2016 follow-up work extending or improving L-SML beyond the 2016 Jaffé–Fetaya–Nadler paper.
+2. **Logistic regression oracle** — fit supervised LR on the 5/9/16 feature sets (5-fold CV) to estimate the supervised upper bound above our current unsupervised CONT = 70.1%.
+3. **Extend QA evaluation** — results on chain-of-thought factual QA (WebQ, TriviaQA) look stronger than in prior experiments; run additional QA datasets (NQ, SQuAD v2, AmbigQA, PopQA) to characterise the method in that domain.
+4. **Benchmarking completion** — model-matched comparisons for MATH-500, GSM8K, and QA datasets vs standard comparable methods (SE, SC, SelfCheckGPT).
+5. **Experiment 1 — Sampling fusion** — fuse one sampling-based method (Semantic Entropy, K=10) with our single-pass spectral features and measure the AUROC gain.
+6. **Experiment 2 — Temperature variation** — run the same model at different temperatures; examine how T affects the entropy trace and detection performance. Key question: does the gain from multiple temperatures come from diversity (different T) or just from having multiple forward passes?
+
+**Why**: The Step 133–136 work (variant grid, advisor report, cross-cluster weights) provided enough empirical grounding that the advisors could give concrete next-step guidance. Items 1–2 are analytic/scripting tasks (no GPU); items 3–6 require new Colab inference runs.
+
+**Result**: Roadmap updated. `PROGRESS.md` now leads with the 6 meeting items; `Research_Directions.md` has a new "Meeting Action Items — Jun 17, 2026" section with full experimental designs for each item.
+
+**Files changed**: `PROGRESS.md` (date, meeting section, priority reorder), `Research_Directions.md` (new meeting section + revised priority order), `HISTORY.md` (this step).
+
+---

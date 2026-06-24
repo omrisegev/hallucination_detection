@@ -1,7 +1,7 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-06-13
-**Last updated**: Step 136 — cross-cluster weights captured + full 16-feature correlation matrix + narrative report v2 (`results/Spectral_LSML_Report.html` finalized and sent to advisors)
+**Date**: 2026-06-23
+**Last updated**: Meeting action items from Jun 17, 2026 (Ofir, Bracha, Amir) integrated — 6 items added as new priority list. Step 136 remains the last completed analysis step; Step 137 = theorem validation work on branch `analysis/theorem-validation` (3 untracked results files pending commit: `LSML_Theorem_Validation.html`, `Pipeline_Flowchart.html`, `fusion_pipeline_flowchart.md`).
 
 ---
 
@@ -47,7 +47,26 @@
 
 ---
 
-## FINAL pipeline constants (do not change until merge decision)
+## MEETING ACTION ITEMS — Jun 17, 2026 (Ofir, Bracha, Amir)
+
+*Email thread: Omri → Ofir/Bracha/Amir, Jun 17 2026, confirmed by Ofir same day.*
+
+These 6 items are the current priority order. They supersede the old Step 132 GPU-first priority (Step 132 is still pending but de-prioritized until these are underway).
+
+| # | Action | Status |
+|---|--------|--------|
+| 1 | **L-SML literature search** — find Nadler post-2016 follow-up work extending or improving L-SML | Not started |
+| 2 | **Logistic regression oracle** — supervised LR on 5/9/16 feature sets → upper bound on fusion AUROC (5-fold CV, no in-sample leakage) | Not started |
+| 3 | **Extend QA evaluation** — run more QA datasets (NQ, SQuAD v2, AmbigQA, PopQA) to characterise CoT factual QA performance | Not started |
+| 4 | **Benchmarking completion** — model-matched comparisons for MATH-500, GSM8K, QA vs SE/SC/SelfCheckGPT | In progress (Step 135 partial) |
+| 5 | **Experiment 1 — Sampling fusion** — fuse SE (K=10) with single-pass spectral features; measure AUROC gain vs each alone | Not started |
+| 6 | **Experiment 2 — Temperature variation** — run same model at T∈{0.3,0.6,1.0,1.5,2.0}; does higher T improve detectability? Ablate: T-diversity vs just more passes | Not started |
+
+See `Research_Directions.md` § "Meeting Action Items — Jun 17, 2026" for full experimental designs.
+
+---
+
+## Current best-candidate pipeline constants (not finalised — pending meeting experiments and merge decision)
 
 ```python
 GOOD_FEATURES = ['epr', 'low_band_power', 'sw_var_peak', 'cusum_max', 'spectral_entropy']
@@ -72,32 +91,44 @@ Note: `min_spilled` sign updated from initial `+1` estimate to `-1` — validate
 
 ---
 
-## IMMEDIATE NEXT ACTION
+## IMMEDIATE NEXT ACTIONS
 
-### Step 132 — Run MATH-500 SpilledEnergy verification notebook in Colab
+*Priority order from the Jun 17 meeting. See table in "MEETING ACTION ITEMS" section above for status.*
 
-Open `Spectral_Analysis_SpilledEnergy_Verify.ipynb` on branch `experiment/lsml-variants`.
-Cell 1 clones from the right branch. Run sequentially — ~30–60 min for 100 samples.
+### Priority 1 — L-SML literature search (Item 1)
 
-**After inference, read these outputs carefully:**
+Search Semantic Scholar / arXiv for Boaz Nadler papers after 2016 extending the Spectral Meta-Learner. Look for: continuous-input variants, improved eigenvector estimation, non-binary multi-view extensions. Log findings in HISTORY.md.
 
-| Cell | What to check | Decision gate |
-|------|--------------|---------------|
-| Cell 7 | `Saturated: X%` — should be <5% with max_new=2048 | If >20%, increase further |
-| Cell 7 | `Spilled energies stored: True` | If False, inference used old code |
-| Cell 9 | Spilled feature AUROCs — competitive individually? | Need ≥0.55 to be useful |
-| Cell 14 | Sign validation for spilled features | Update FEATURE_SIGNS if mismatches |
-| Cell 10 | `within/cross ratio` for H(n) vs ΔE(n) groups | >1.5 needed for L-SML separation |
-| Cell 12 | Group assignment: spilled features in own group? | If mixed with H(n), not orthogonal |
-| Cell 15 | Lift of GOOD_5+spilled vs GOOD_5 | If >+1pp, merge spilled features |
-| Cell 16 | Pearson corr(epr_H, epr_ΔE) | GSM8K was 0.984 — expect similar |
+### Priority 2 — Logistic regression oracle (Item 2, no GPU needed)
 
-### Next priorities (in order after Step 132):
+Script: fit `sklearn.LogisticRegression` with 5-fold CV on the 29 cached feature cells (5-feat, 9-feat, 16-feat). Report macro AUROC vs CONT (70.1%). Add to `scripts/` and commit.
 
-2. **[DECISION] Merge continuous L-SML + spilled energy to master** — based on Step 132 results.
-3. **Phase 13** — EDIS vs L-SML on Qwen2.5-Math-1.5B, AMC23/AIME24 (GPU needed). Run after merge decision.
-4. **Verbalized confidence on 7B** — if VC is a priority, re-run GSM8K notebook with Qwen2.5-Math-7B. Parser is ready; one extra inference run.
-5. **Phase 14 Cell 9 re-run** — DeepSeek-R1-0528-Qwen3-8B / GPQA: L-SML v2 AUROC still TBD.
+### Priority 3 — Benchmarking completion (Item 4, partial)
+
+**Done** (Step 135): MATH-500 94.4% vs SE 87.7/SC 87.2 ✅ | GSM8K 75.6% vs SC 78.5/SE 77.4 ✅
+
+**Still needed**:
+- QA datasets: SelfCheckGPT / SE comparison on same model+dataset
+- Phase 14 Cell 9 re-run: DeepSeek-R1-0528-Qwen3-8B / GPQA (L-SML v2 AUROC still TBD; Cell 9 `n_boot` kwarg bug needs fix — see Running Experiments below)
+
+### Priority 4 — Experiment 1: Sampling fusion (Item 5, Colab GPU)
+
+Fuse SE (K=10) with CONT spectral features on one cell (MATH-500 or GSM8K). Key check: Spearman ρ(SE, spectral_score) < 0.75 before fusing.
+
+### Priority 5 — Temperature variation experiment (Item 6, Colab GPU)
+
+Run Qwen2.5-Math-7B on MATH-500 at T∈{0.3, 0.6, 1.0, 1.5, 2.0} + 4 extra runs at T=1.0 for the ablation. (T=1.0 and T=1.5 caches already exist.)
+
+### Priority 6 — Extend QA evaluation (Item 3, Colab GPU)
+
+Additional QA datasets with CoT prompt: NaturalQuestions, SQuAD v2, AmbigQA (in priority order). Use Qwen2.5-Math-7B or Falcon-3-10B.
+
+### De-prioritized (was Priority 1 before meeting)
+
+- **Step 132** (MATH-500 SpilledEnergy GPU run) — still pending, still valid, but not the current focus. Run when a Colab session is available between other GPU tasks.
+- **Merge decision** (continuous L-SML + spilled energy → master) — contingent on Step 132.
+- **Phase 13** (EDIS vs L-SML on AMC23/AIME24) — EDIS grading bug must be fixed first.
+- **Verbalized confidence on 7B** — low priority relative to meeting items.
 
 ---
 

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L-SML Pipeline — Algorithm Walkthrough</title>
+<style>
+  :root{--blue:#2563eb;--green:#16a34a;--red:#dc2626;--gray:#6b7280;--border:#e5e7eb;--amber:#f59e0b;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:system-ui,-apple-system,sans-serif;font-size:15px;color:#1f2937;background:#f9fafb;line-height:1.6;}
+  .page{max-width:980px;margin:0 auto;padding:48px 24px;}
+  h1{font-size:27px;font-weight:800;margin-bottom:6px;letter-spacing:-.01em;}
+  h2{font-size:20px;font-weight:700;margin:46px 0 6px;padding-top:18px;border-top:2px solid var(--border);}
+  h2 .q{display:block;font-size:13px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
+  p{margin-bottom:12px;color:#374151;}
+  .sub{color:var(--gray);font-size:14px;margin-bottom:8px;}
+  .lead{font-size:16px;color:#111827;}
+  strong{color:#111827;}
+  a{color:var(--blue);text-decoration:none;}a:hover{text-decoration:underline;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:14px 0;}
+  th{background:#f1f5f9;font-weight:600;padding:8px 10px;text-align:left;border:1px solid var(--border);}
+  td{padding:7px 10px;border:1px solid var(--border);}
+  .warn{background:#fffbeb;border-left:4px solid var(--amber);padding:12px 16px;border-radius:0 8px 8px 0;margin:24px 0;font-size:14px;color:#78350f;}
+  .small{font-size:12.5px;color:var(--gray);}
+  .mono{font-family:ui-monospace,'Courier New',monospace;font-size:12.5px;background:#f1f5f9;padding:1px 5px;border-radius:3px;}
+
+  /* ── Overview flowchart ── */
+  .ov{display:flex;flex-direction:column;align-items:center;margin:30px 0;gap:0;}
+  .ov-box{background:#fff;border:1px solid var(--border);border-radius:7px;
+          padding:10px 20px;width:680px;text-align:center;font-size:14px;}
+  .ov-box b{color:#111827;}
+  .ov-sub{font-size:12px;color:var(--gray);display:block;margin-top:1px;}
+  .ov-input{background:#f1f5f9;border-color:#d1d5db;font-weight:600;font-size:13.5px;}
+  .ov-arrow{text-align:center;color:#9ca3af;font-size:22px;line-height:1;padding:3px 0;width:680px;}
+  .ov-arrow.lbl{font-size:13px;color:var(--gray);font-style:italic;padding:2px 0;}
+  .ov-output{background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46;font-weight:600;font-size:13.5px;}
+  .ov-shared{background:#f8fafc;border:1px dashed #cbd5e1;font-size:12.5px;color:var(--gray);
+             text-align:center;padding:4px 0;width:680px;margin:0;}
+
+  /* divergence split — used twice */
+  .ov-div{width:680px;}
+  .ov-div-hdr{background:#fffbeb;border:2px solid var(--amber);border-bottom:none;
+              border-radius:7px 7px 0 0;text-align:center;padding:6px 12px;
+              font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#92400e;}
+  .ov-div-body{display:flex;border:2px solid var(--amber);border-top:none;border-radius:0 0 7px 7px;overflow:hidden;}
+  .ov-bin{flex:1;background:#fff7ed;padding:11px 16px;text-align:center;font-size:13px;}
+  .ov-bin b{color:#c2410c;}
+  .ov-sep{width:2px;background:var(--amber);}
+  .ov-cont{flex:1;background:#eff6ff;padding:11px 16px;text-align:center;font-size:13px;}
+  .ov-cont b{color:#1d4ed8;}
+  .ov-div-arrow{text-align:center;color:#9ca3af;font-size:22px;line-height:1;padding:3px 0;width:680px;}
+  .ov-div-arrow.lbl{font-size:13px;color:var(--gray);font-style:italic;padding:2px 0;}
+  code.sm{font-family:ui-monospace,'Courier New',monospace;font-size:12px;}
+
+  /* ── Detail flowchart ── */
+  .flow{display:flex;flex-direction:column;align-items:center;margin:28px 0;}
+  .fbox{background:#fff;border:1px solid var(--border);border-radius:8px;padding:16px 20px;width:760px;}
+  .fbox-stage{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray);margin-bottom:2px;}
+  .fbox-title{font-size:15px;font-weight:700;color:#111827;margin-bottom:8px;}
+  .ref{font-weight:400;font-size:13px;color:var(--gray);}
+  .fbox-note{margin-top:10px;font-size:13.5px;color:#374151;}
+  .farrow{font-size:26px;color:#9ca3af;text-align:center;padding:5px 0;line-height:1;width:760px;user-select:none;}
+  .farrow.lbl{font-size:13px;color:var(--gray);font-style:italic;}
+  pre{background:#f1f5f9;border-radius:5px;padding:11px 15px;
+      font-family:ui-monospace,'Courier New',monospace;
+      font-size:12.5px;line-height:1.65;white-space:pre-wrap;margin:8px 0 0;color:#1e293b;}
+  .cont{color:#2563eb;font-weight:700;}
+  .bin{color:#f97316;}
+  .divbox{background:#fffbeb;border:2px solid var(--amber);border-radius:8px;}
+  .divbox .fbox-stage{color:#92400e;}
+  .divbox .fbox-title{color:#92400e;}
+  .divbox pre{background:#fef9ec;}
+  .divbox .fbox-note{color:#78350f;}
+  .outbox{background:#f0fdf4;border:1px solid #bbf7d0;}
+  .outbox .fbox-title{color:#065f46;}
+  .code-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;margin-top:10px;margin-bottom:2px;}
+  pre.pseudo{background:#f5f3ff;border-left:3px solid #a78bfa;color:#4c1d95;font-style:normal;}
+  .divbox pre.pseudo{background:#fdf4ff;border-left-color:#c084fc;color:#6b21a8;}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>L-SML Pipeline — Algorithm Walkthrough</h1>
+<div class="sub">Stage-by-stage explanation with code references &nbsp;·&nbsp; June 2026</div>
+
+<p class="lead">This document explains <em>how the algorithm works</em>. For results and variant comparisons see <a href="Spectral_LSML_Report.html">Spectral_LSML_Report.html</a>. For theorem alignment tests see <a href="LSML_Theorem_Validation.html">LSML_Theorem_Validation.html</a>.</p>
+
+<!-- =================== SETUP =================== -->
+<h2><span class="q">Read this first</span>0. What we measure and what we fuse</h2>
+
+<p>For each generated answer, we record the per-token entropy of the model's output distribution during a <strong>single forward pass</strong> — one number per generated token, no re-sampling. This gives us the entropy trace H(1), H(2), …, H(T).</p>
+<p>From H(n) we extract <strong>16 scalar features</strong> that characterise the trace's shape, frequency content, and dynamics. These 16 scalars are the inputs to the fusion algorithm; no ground-truth labels are used at inference time.</p>
+
+<table>
+  <tr><th>Category</th><th>Features</th></tr>
+  <tr><td>Spectral (FFT)</td><td><span class="mono">epr</span>, <span class="mono">spectral_entropy</span>, <span class="mono">low_band_power</span>, <span class="mono">high_band_power</span>, <span class="mono">hl_ratio</span>, <span class="mono">dominant_freq</span>, <span class="mono">spectral_centroid</span></td></tr>
+  <tr><td>Short-time Fourier (STFT)</td><td><span class="mono">stft_max_high_power</span>, <span class="mono">stft_spectral_entropy</span></td></tr>
+  <tr><td>Time-domain</td><td><span class="mono">rpdi</span>, <span class="mono">sw_var_peak</span>, <span class="mono">pe_mean</span>, <span class="mono">hurst_exponent</span>, <span class="mono">trace_length</span></td></tr>
+  <tr><td>Change-point (CUSUM)</td><td><span class="mono">cusum_max</span>, <span class="mono">cusum_shift_idx</span></td></tr>
+</table>
+
+<!-- =================== OVERVIEW =================== -->
+<h2><span class="q">Full pipeline</span>1. Overview</h2>
+
+<p>The diagram below shows every stage at a glance. <a href="#deep">§2</a> expands each with code.</p>
+
+<div class="ov">
+
+  <div class="ov-box ov-input">
+    Input: H(n) entropy trace
+    <span class="ov-sub">per-token entropy from one forward pass → 16 scalar features</span>
+  </div>
+  <div class="ov-arrow">↓</div>
+
+  <!-- Divergence 1 — encoding -->
+  <div class="ov-div">
+    <div class="ov-div-hdr">⚡ Divergence 1 — how we encode the features (affects ALL subsequent steps)</div>
+    <div class="ov-div-body">
+      <div class="ov-bin">
+        <b>Binary path &nbsp;(sml_unsupervised)</b><br>
+        <code class="sm">binarize_classifiers()<br>→ each feature median-split to ±1</code><br>
+        <span style="font-size:11px;color:#9a3412;display:block;margin-top:4px">no explicit sign orientation — Assumption (iii) handles it</span>
+      </div>
+      <div class="ov-sep"></div>
+      <div class="ov-cont">
+        <b>Continuous path &nbsp;← ours &nbsp;(lsml_continuous_pipeline)</b><br>
+        <code class="sm">zscore(arr * FEATURE_SIGNS)<br>→ z-scored continuous features</code><br>
+        <span style="font-size:11px;color:#1e40af;display:block;margin-top:4px">explicit sign orientation + magnitude preserved</span>
+      </div>
+    </div>
+  </div>
+  <div class="ov-div-arrow lbl">↓ &nbsp;encoded features X &nbsp;(±1 or z-scored, depending on path)</div>
+
+  <!-- Shared stages B1 B2 D -->
+  <div class="ov-shared">both paths run the same algorithm from here on their encoded features</div>
+
+  <div class="ov-box">
+    <b>B1 &nbsp;·&nbsp; Feature covariance &amp; score matrix S &nbsp;<span style="font-weight:400;font-size:12px">(Eq. 15)</span></b>
+    <span class="ov-sub">R = cov(X) &nbsp;·&nbsp; S[i,j] = Σ |R[i,j]·R[k,l] − R[i,l]·R[k,j]| &nbsp;— how linked are features i and j?</span>
+    <span class="ov-sub" style="margin-top:2px">R differs between paths → S differs → groups differ</span>
+  </div>
+  <div class="ov-arrow">↓</div>
+
+  <div class="ov-box">
+    <b>B2 &nbsp;·&nbsp; Select K* groups &nbsp;<span style="font-weight:400;font-size:12px">(Eq. 14 residual)</span></b>
+    <span class="ov-sub">SpectralClustering on S for K = 2,3,… → pick K* minimising residual(K)</span>
+  </div>
+  <div class="ov-arrow lbl">↓ &nbsp;K* groups, assignment c</div>
+
+  <div class="ov-box">
+    <b>D &nbsp;·&nbsp; Within-group SML &nbsp;<span style="font-weight:400;font-size:12px">per group g</span></b>
+    <span class="ov-sub">leading signed eigenvector v of R_off (Lemma 1) → score_g = X_g @ v</span>
+  </div>
+  <div class="ov-arrow lbl">↓ &nbsp;score_g per group</div>
+
+  <!-- Divergence 2 — xi_g encoding -->
+  <div class="ov-div">
+    <div class="ov-div-hdr">⚡ Divergence 2 — how score_g becomes the virtual classifier ξ_g</div>
+    <div class="ov-div-body">
+      <div class="ov-bin">
+        <b>Binary path</b><br>
+        <code class="sm">xi_g = np.sign(score_g)<br>xi_g[xi_g == 0] = 1.0</code><br>
+        <span style="font-size:11px;color:#9a3412;display:block;margin-top:4px">collapses to ±1 · Lemma 1 contract preserved</span>
+      </div>
+      <div class="ov-sep"></div>
+      <div class="ov-cont">
+        <b>Continuous path &nbsp;← ours</b><br>
+        <code class="sm">xi_g = score_g</code><br>
+        <span style="font-size:11px;color:#1e40af;display:block;margin-top:4px">keeps magnitude · +4.9 pp macro AUROC</span>
+      </div>
+    </div>
+  </div>
+  <div class="ov-div-arrow lbl">↓ &nbsp;K* virtual classifiers &nbsp;ξ₁ … ξ_K*</div>
+
+  <div class="ov-box">
+    <b>F &nbsp;·&nbsp; Cross-group SML</b>
+    <span class="ov-sub">sml_fuse_signed(ξ₁, …, ξ_K*) → fused = virtual_arr @ v_cross</span>
+  </div>
+  <div class="ov-arrow">↓</div>
+
+  <div class="ov-box ov-output">
+    Output: final_score per sample &nbsp;(higher → more likely correct)
+  </div>
+
+</div><!-- .ov -->
+
+<!-- =================== DETAIL =================== -->
+<h2 id="deep"><span class="q">Stage by stage</span>2. Algorithm deep dive</h2>
+
+<p>Each box below expands one stage. All code references point to <span class="mono">spectral_utils/fusion_utils.py</span>.</p>
+
+<div class="flow">
+
+  <!-- ── Box A — Divergence 1 ── -->
+  <div class="fbox divbox">
+    <div class="fbox-stage">Stage A &nbsp;·&nbsp; Divergence 1 — encoding (affects ALL subsequent steps)</div>
+    <div class="fbox-title">How features are prepared before fusion</div>
+    <p class="code-label">Idea (pseudo-code)</p>
+    <pre class="pseudo"># Binary path
+for each feature f:
+    X_f[sample] = +1  if feat_f[sample] &gt;= median(feat_f)
+                = −1  otherwise
+    # no explicit sign orientation — handled later by Assumption (iii)
+
+# Continuous path
+for each feature f:
+    X_f[sample] = zscore( feat_f[sample] × sign_f )
+    # sign_f = +1 if higher value → more likely correct
+    #        = −1 if higher value → more likely wrong (e.g. high entropy = hallucination)</pre>
+    <p class="code-label">Implementation (Python)</p>
+    <pre><span class="bin"># Binary path — sml_unsupervised() :588 → binarize_classifiers() :81
+bin_dict = binarize_classifiers(feats_dict, feat_names)
+# binarize_classifiers internals (per feature):
+#   np.where(arr >= np.median(arr), 1, -1)
+# No sign orientation — Assumption (iii) inside sml_fuse_signed handles it.
+views = [bin_dict[f] for f in feat_names]   # k arrays of ±1</span>
+
+
+<span class="cont"># Continuous path — lsml_continuous_pipeline() :580–584   ← ours
+views = []
+for f in feat_names:
+    arr = np.array(feats_dict[f], dtype=float)
+    s = FEATURE_SIGNS.get(f, +1)        # +1 or -1 from domain knowledge
+    views.append(zscore(arr * s))       # orient then z-score
+# k arrays of z-scored floats, one per feature</span></pre>
+    <p class="fbox-note">This encoding choice propagates through every subsequent step — R, S, group detection, and within-group SML are all computed from different numerical inputs. The covariance structure of ±1 inputs is different from that of z-scored continuous inputs, so the groups detected can differ too.</p>
+  </div>
+  <div class="farrow lbl">↓ &nbsp;encoded feature arrays X (±1 or z-scored)</div>
+
+  <!-- ── Box B1 ── -->
+  <div class="fbox">
+    <div class="fbox-stage">Stage B &nbsp;·&nbsp; detect_dependent_groups() :375 — step ①</div>
+    <div class="fbox-title">Feature covariance R, then score matrix S <span class="ref">· Jaffé–Fetaya–Nadler 2016, Eq. 15 &nbsp;·&nbsp; _score_matrix_lsml() :275</span></div>
+    <p class="code-label">Idea (pseudo-code)</p>
+    <pre class="pseudo"># Step ①: covariance matrix
+R[i, j] = covariance(feature_i, feature_j)    # k × k
+
+# Step ②: score matrix  (Eq. 15)
+for each pair (i, j):
+    S[i, j] = Σ_{k≠i,j} Σ_{l≠i,j,k} |R[i,j]·R[k,l] − R[i,l]·R[k,j]|
+    # large S[i,j]: i and j co-vary in a way that can't be explained
+    #   by their individual correlations with the rest of the features
+    #   → evidence they share a latent group</pre>
+    <p class="code-label">Implementation (Python)</p>
+    <pre># detect_dependent_groups() :398–403
+X = np.column_stack(views)    # n_samples × k
+R = np.cov(X.T)               # k × k  (different for binary vs continuous — see Stage A)
+#   binary:     Pearson correlations of ±1 arrays, bounded in [−1, 1]
+#   continuous: covariance of z-scored floats, richer magnitude structure
+
+# _score_matrix_lsml() :275 — how "linked" are features i and j relative to the rest?
+s = np.zeros((m, m))
+for i in range(m):
+    for j in range(i + 1, m):
+        total = 0.0
+        for k in range(m):
+            if k == i or k == j: continue
+            for l in range(m):
+                if l == i or l == j or l == k: continue
+                total += abs(R[i,j] * R[k,l] - R[i,l] * R[k,j])
+        s[i,j] = s[j,i] = total   # symmetric; high s[i,j] → same latent group</pre>
+    <p class="fbox-note">High <span class="mono">S[i,j]</span> means i and j co-vary in a way that cannot be explained by their individual correlations with the rest — they form a latent group. The double sum is O(k⁴); tractable for k = 5–16.</p>
+  </div>
+  <div class="farrow">↓</div>
+
+  <!-- ── Box B2 ── -->
+  <div class="fbox">
+    <div class="fbox-stage">Stage B &nbsp;·&nbsp; detect_dependent_groups() :375 — steps ②③</div>
+    <div class="fbox-title">Select K* groups <span class="ref">· Eq. 14 residual &nbsp;·&nbsp; _residual_lsml() :343</span></div>
+    <p class="code-label">Idea (pseudo-code)</p>
+    <pre class="pseudo">for K = 2, 3, … max_K:
+    groups   = spectral_cluster(S, K)
+    residual = how well the K-group block structure reproduces R    (Eq. 14)
+               = Σ_{same group} (v_on[i]·v_on[j]  − R[i,j])²
+               + Σ_{diff group} (v_off[i]·v_off[j] − R[i,j])²
+    keep K with lowest residual → K*
+
+# K*=1 (all features independent) is flat SML
+# K*>1 means the hierarchical grouping explains R better than independence</pre>
+    <p class="code-label">Implementation (Python)</p>
+    <pre># detect_dependent_groups() :422–432
+best_K, best_c, best_resid = None, None, float('inf')
+for K in K_range:                               # K = 2, 3, … min(m, 8)
+    c = _spectral_cluster_precomputed(s, K)     # SpectralClustering on s
+    r = _residual_lsml(R, c)                    # Eq. 14:
+    if r < best_resid:
+        best_resid, best_K, best_c = r, K, c
+
+# _residual_lsml() :343 — how well does the K-group model explain R?
+resid = 0.0
+for i in range(m):
+    for j in range(m):
+        if i == j: continue
+        if c[i] == c[j]:                        # same group → within-group fit
+            resid += (v_on[i]  * v_on[j]  - R[i, j]) ** 2
+        else:                                   # different groups → cross-group fit
+            resid += (v_off[i] * v_off[j] - R[i, j]) ** 2
+# K=1 (all in one cluster) is the flat-SML independence assumption.
+# A drop from resid(1) → resid(K*) proves the grouped model fits R better.</pre>
+    <p class="fbox-note">On MATH-500 with 16 features the algorithm typically selects K∈{4…6} — the correlated band-power features cluster together (|ρ| up to 0.88), while near-independent features like <span class="mono">pe_mean</span> are isolated into their own singleton group.</p>
+  </div>
+  <div class="farrow lbl">↓ &nbsp;K* groups, assignment c</div>
+
+  <!-- ── Box D ── -->
+  <div class="fbox">
+    <div class="fbox-stage">Stage C &nbsp;·&nbsp; within each group g</div>
+    <div class="fbox-title">Within-group SML — Lemma 1 <span class="ref">· sml_fuse_signed() :241</span></div>
+    <p class="code-label">Idea (pseudo-code)</p>
+    <pre class="pseudo">for each group g with features {f_1, …, f_{k_g}}:
+    R_g  = covariance matrix of the group's features    # k_g × k_g
+    R_off = R_g with diagonal zeroed                    # removes self-correlation
+    v_g  = leading eigenvector of R_off
+    # Lemma 1 (for ±1 inputs): v_i ∝ (2 × balanced_accuracy_i − 1)
+    # Assumption (iii): flip v_g if majority of components are negative
+    #                   → majority direction now means "more likely correct"
+    score_g = group_features @ v_g     # weighted combination → one score per sample</pre>
+    <p class="code-label">Implementation (Python)</p>
+    <pre># lsml_continuous() :532–540 — called per group g (idx = feature indices in group)
+score, w = sml_fuse_signed(*[X[:, i] for i in idx])
+
+# sml_fuse_signed() :259–272 — the actual implementation:
+X_g = np.column_stack(classifiers)    # n_samples × k_g
+R = np.cov(X_g.T)                     # k_g × k_g covariance
+R_off = R - np.diag(np.diag(R))       # zero the diagonal
+_, vecs = eigh(R_off)
+v = vecs[:, -1]                        # leading eigenvector: L2-unit-norm, signed
+# Lemma 1 (Parisi–Nadler–Kluger 2014): for binary ±1 inputs, v_i ∝ (2α_i − 1)
+# Assumption (iii) — unsupervised orientation:
+if np.sum(v > 0) < k / 2:             # if most weights are negative, flip all
+    v = -v
+return X_g @ v, v                     # signed weighted sum + weight vector
+# v is used with its sign — NOT abs-normalised.
+# After the flip most v_i > 0; any remaining v_i < 0 subtract from the score.</pre>
+    <p class="fbox-note"><strong>Key detail</strong>: <span class="mono">sml_fuse_signed</span> returns <span class="mono">(X @ v, v)</span> where <span class="mono">v</span> is the raw signed L2-unit-norm eigenvector — not <span class="mono">|v| / |v|.sum()</span>. Positive components contribute, negative components subtract. The Assumption (iii) flip ensures that the majority direction corresponds to "higher score = more likely correct."</p>
+  </div>
+  <div class="farrow lbl">↓ &nbsp;score_g per group — before the encoding choice</div>
+
+  <!-- ── Box E ── -->
+  <div class="fbox divbox">
+    <div class="fbox-stage">Stage E &nbsp;·&nbsp; Divergence 2 — virtual classifier encoding (second difference)</div>
+    <div class="fbox-title">Binary path vs Continuous path: how score_g becomes ξ_g</div>
+    <p class="code-label">Idea (pseudo-code)</p>
+    <pre class="pseudo"># Both paths have score_g: a continuous weighted sum of group g's features.
+# They differ only in what they pass to the next (cross-group) step:
+
+# Binary path: collapse magnitude, preserve only sign
+xi_g[sample] = +1  if score_g[sample] > 0
+             = −1  otherwise   (Lemma 1 binary contract preserved)
+
+# Continuous path: pass through as-is
+xi_g[sample] = score_g[sample]   # keeps magnitude → +4.9 pp AUROC</pre>
+    <p class="code-label">Implementation (Python)</p>
+    <pre><span class="bin"># Binary path — paper-faithful ————————————————  fusion_utils.py :475–476
+xi_g = np.sign(score_g)
+xi_g[xi_g == 0] = 1.0         # tie-break exact zeros to +1
+
+# collapses virtual classifier to ±1 before cross-group step
+# → Lemma 1 binary contract preserved  |  magnitude information discarded</span>
+
+
+<span class="cont"># Continuous path — our adaptation ——————————  fusion_utils.py :539
+xi_g = score_g                 # keep continuous weighted sum as-is
+
+# → Lemma 1 binary contract not formally satisfied
+#   R_off rank-1 fraction still 81–91%  (LSML_Theorem_Validation.html §1)
+# → +4.9 pp macro AUROC over the binary path  (wins 25 of 29 cells)  ← ours</span></pre>
+    <p class="fbox-note">Everything above and below this point — group detection, <span class="mono">sml_fuse_signed</span> within groups, and <span class="mono">sml_fuse_signed</span> across groups — is <strong>shared code</strong>. Only this single assignment differs.</p>
+  </div>
+  <div class="farrow lbl">↓ &nbsp;K* virtual classifiers &nbsp;ξ₁ … ξ_K*</div>
+
+  <!-- ── Box F ── -->
+  <div class="fbox">
+    <div class="fbox-stage">Stage D &nbsp;·&nbsp; cross-group</div>
+    <div class="fbox-title">Cross-group fusion <span class="ref">· lsml_continuous() :552 &nbsp;·&nbsp; calls sml_fuse_signed() :241</span></div>
+    <p class="code-label">Idea (pseudo-code)</p>
+    <pre class="pseudo"># ξ_1 … ξ_K* are (approximately) independent — each represents a different group.
+# Apply the same SML logic one more time:
+R_cross    = covariance(ξ_1, …, ξ_K*)         # K* × K*
+R_off_cross = R_cross with diagonal zeroed
+v_cross    = leading eigenvector of R_off_cross
+# orient: Assumption (iii) flip (flip if majority negative)
+fused = [ξ_1, …, ξ_K*] @ v_cross              # final prediction score per sample</pre>
+    <p class="code-label">Implementation (Python)</p>
+    <pre># The K* virtual classifiers are (approximately) independent of each other —
+# each represents a different latent group.  Apply sml_fuse_signed once more:
+
+fused, v_cross = sml_fuse_signed(xi_1, xi_2, …, xi_K)
+# Same mechanics as within-group:
+#   v_cross = leading signed eigenvector of cov([ξ₁,…,ξ_K]) off-diagonal
+#   same Assumption (iii) orientation flip applies
+# fused = virtual_arr @ v_cross   ← the returned score</pre>
+    <p class="fbox-note">The cross-group weights <span class="mono">v_cross</span> are signed — features (now virtual classifiers) that contribute negatively get a negative weight. On MATH-500 / Qwen-7B with 16 features: three strong groups get weights ≈ 0.30–0.34 each; the singleton <span class="mono">pe_mean</span> group gets ≈ 0.02, effectively switched off. The <span class="mono">meta_dict</span> returned by <span class="mono">lsml_continuous()</span> stores these in <span class="mono">cross_weights</span> — the source of the cluster-AUROC tables in <a href="Spectral_LSML_Report.html">Spectral_LSML_Report.html §7</a>.</p>
+  </div>
+  <div class="farrow">↓</div>
+
+  <!-- ── Box G ── -->
+  <div class="fbox outbox">
+    <div class="fbox-stage">Output</div>
+    <div class="fbox-title">Final score per sample</div>
+    <pre>fused          # one scalar per sample  (higher → more likely correct)
+meta_dict      # K, assignment c, group_weights, cross_weights, virtual_classifiers</pre>
+    <p class="fbox-note" style="color:#065f46">No threshold, no labels. Used as a ranking signal evaluated by AUROC. The <span class="mono">meta_dict</span> is what powers the cluster-AUROC tables in <a href="Spectral_LSML_Report.html">Spectral_LSML_Report.html §7</a>.</p>
+  </div>
+
+</div><!-- .flow -->
+
+<!-- =================== SUMMARY =================== -->
+<div class="warn">
+  <b>Formal status of the continuous adaptation.</b>
+  Two geometric properties the algorithm relies on hold for continuous z-scored inputs:
+  the R_off rank-1 fraction is 81–91% across all 4 tested cells
+  (T1 PASS — weight-estimation basis survives) and the Eq. 14 residual decreases
+  monotonically with K in all 4 cells (T3 PASS — the grouping genuinely improves fit).
+  The cost of keeping magnitude: virtual classifiers remain correlated across groups
+  (T6 fails 3/4 cells). The strict Lemma 4 gap condition fails in finite samples for
+  both binary and continuous inputs equally — a shared finite-sample limitation.
+  Full test results: <a href="LSML_Theorem_Validation.html">LSML_Theorem_Validation.html</a>.
+  &nbsp;<strong>Net gain of the continuous path: +4.9 pp macro AUROC, winning 25 of 29 cells
+  over the paper-faithful binary version.</strong>
+</div>
+
+<p class="small" style="margin-top:30px;border-top:1px solid var(--border);padding-top:14px">
+  Methods: SML — Parisi, Nadler &amp; Kluger, PNAS 2014; L-SML — Jaffé, Fetaya &amp; Nadler 2016.
+  Code: <span class="mono">spectral_utils/fusion_utils.py</span>.
+  All line numbers refer to the <span class="mono">experiment/lsml-variants</span> branch.
+</p>
+
+</div><!-- .page -->
+</body>
+</html>
