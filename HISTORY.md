@@ -4488,3 +4488,25 @@ Initial signs: `epr_spilled=-1`, `sw_var_peak_spilled=-1`, `cusum_max_spilled=-1
 **Files changed**: `PROGRESS.md` (date, meeting section, priority reorder), `Research_Directions.md` (new meeting section + revised priority order), `HISTORY.md` (this step).
 
 ---
+
+### Step 138 — Repo reorganization: type-based folder structure
+
+**What**: Reduced root from ~100 mixed files to 6 files + 9 folders. Deleted 25 obsolete files (phase plans for completed/abandoned phases, one-off handoff docs, txt output dumps). Moved all remaining files into typed subfolders.
+
+**New layout**:
+- `papers/` — all 15 PDFs
+- `notebooks/` — all 30 Colab notebooks
+- `docs/meetings/` — advisor feedback, meeting notes, research proposal
+- `docs/research_notes/` — literature survey docs, research_phase10_rag JSON files
+- `docs/presentations/` — .pptx files
+- `scripts/build/` — `_build_*.py` and `_test_*.py` notebook builder/patch scripts
+
+**Why**: Root had become unnavigable — PDFs, notebooks, phase-plan docs, build scripts, and txt dumps all flat together. Research_Directions.md was also rewritten this session from 977 lines to ~320 (companion work).
+
+**Colab impact**: None. Cell 1 clones the repo and adds `REPO_DIR` to `sys.path`; it does not reference notebook paths. When opening a notebook from Colab, navigate to `notebooks/` instead of root.
+
+**Result**: Committed as `bb4c4b9`. 108 files changed (25 deleted, 83 renamed/moved).
+
+**Files changed**: `papers/` (15 PDFs), `notebooks/` (30 ipynb), `docs/` (meetings + research_notes + presentations), `scripts/build/` (15 build scripts), root deletions.
+
+---
