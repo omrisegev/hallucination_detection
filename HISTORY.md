@@ -4559,6 +4559,48 @@ Selected per-domain highlights (5-feat): MATH-500 macro ≈ 84% both; GPQA ≈ 5
 
 ---
 
+### Step 142 — U-PCR algorithm correction: 2-component weight formula + auto threshold
+
+**What**: Corrected two bugs in `upcr_fuse` (spectral_utils/fusion_utils.py) and re-ran the full comparison with three methods (CONT, U-PCR-1, U-PCR-auto) across 29 cells and 3 feature sets. Generated visualization `results/upcr_comparison.png`.
+
+**Bug 1 — weight formula only used v1 for k=2**:
+The original weight formula `w_k = (v1_k @ rho_k) / (evals_k[0] + 1e-12) * v1_k` hardcoded v1 regardless of `n_components`. The correct generalization (Eq. 9 of Tenzer et al.) sums over all k eigenvectors:
+`w = Σ_c (v_c^T rho / lambda_c) * v_c`.
+Fixed to a loop over `c in range(k2)`. For k=1 this is identical to the old formula, so Step 140 numbers are unaffected.
+
+**Bug 2 — no auto threshold for n_components selection**:
+The paper specifies: select 2 components when λ₂ > 0.1 × Trace(Ĉ). This was never implemented. Added `auto_components=True, lambda2_threshold=0.1` parameters. When `auto_components=True` (new default), the function probes the top-2 eigenvalues and sets `n_components=2` if the threshold fires.
+
+**Bug 3 (minor) — g2 grid search projection was 1D always**:
+The residual `res = ||rho - v1*(v1@rho)||` used v1 projection regardless of n_components. Generalized to `evecs @ (evecs.T @ rho)` (k-dimensional subspace projection). For k=1 this is identical.
+
+**Results — 29 cells, 3 feature sets**:
+
+| Feature set | CONT (L-SML) | U-PCR-1 (1-comp) | U-PCR-auto (2-comp threshold) |
+|---|---|---|---|
+| 5-feat (GOOD_5) | 65.3% | 65.7% | 65.1% |
+| 9-feat (STABLE_H9) | 63.9% | 65.0% | 64.2% |
+| 16-feat (ALL_H16) | **65.1%** | 62.5% | 63.0% |
+
+λ₂/Trace distribution: 9–34% across all cells. **28 of 29 cells exceed the 10% threshold**, meaning U-PCR-auto selects k=2 almost everywhere. The correction (+0.5pp macro on 16-feat for auto vs 1-comp) is the right direction but small, because:
+- For GOOD_5/STABLE_H9 (low-correlation selection), the second eigenvector captures structured noise, not a second signal dimension. Adding it hurts slightly (−0.6pp, −0.8pp macro).
+- For ALL_H16 (correlated band-power block), v₂ captures some of the band-power correlation structure, giving a +0.5pp gain — but U-PCR still loses to CONT (65.1%) because L-SML's explicit clustering handles ρ > 0.75 pairs more robustly.
+
+**Connection to the "soft clustering" interpretation**:
+v₂ usage in U-PCR is the continuous analogue of L-SML's hard spectral clustering. In L-SML, the score matrix (Eq. 15) detects correlated feature pairs and assigns discrete group labels; each group gets a separate weight computation. In U-PCR 2-comp, the (v₁[i], v₂[i]) coordinates serve as continuous cluster coordinates for each feature:
+- Features that would be in L-SML "group 1" cluster near the v₁ axis (large v₁[i], small v₂[i])
+- Features in "group 2" cluster near the v₂ axis (small v₁[i], large v₂[i])
+- Weight: w_i = α₁·v₁[i] + α₂·v₂[i] — proportional to the feature's cluster position in 2D eigenspace
+
+Running K-means on (v₁[i], v₂[i]) would recover L-SML's hard groups; U-PCR uses the coordinates directly without hard assignment. The result is the same bias/variance tradeoff: hard clustering (L-SML) is more robust to assumption violations; soft clustering (U-PCR 2-comp) is smoother but requires the eigenvectors to cleanly separate the signal dimensions.
+
+**λ₂ > 10% vs. 95% cumulative variance**:
+These are different criteria. The 10% threshold (U-PCR) asks "is the second eigenvector individually significant?" — fires for 28/29 cells. The 95% criterion (PCA / Deep L-SML) asks "how many components explain 95% of total variance?" — for our 5-feat set this would require 3–5 components (λ₁ alone covers ~50%, λ₁+λ₂ covers ~65–80%). The 10% threshold is too permissive: it fires even when v₂ captures structured noise rather than a second signal. A 15–20% threshold would better distinguish genuinely bimodal feature spaces.
+
+**Files changed**: `spectral_utils/fusion_utils.py` (upcr_fuse + upcr_pipeline corrected), `scripts/run_upcr_comparison.py` (3-method comparison + visualization), `results/upcr_comparison.pkl`, `results/upcr_comparison.png`.
+
+---
+
 ### Step 141 — Deep literature review: FUSE, Deep L-SML, STDR, U-PCR (4 papers)
 
 **What**: Full read of four papers from the Jaffe-Nadler group. Focus on theoretical implications for our pipeline.

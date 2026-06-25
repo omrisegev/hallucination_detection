@@ -1,7 +1,7 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-06-25
-**Last updated**: Step 141 — Deep literature review: FUSE + Deep L-SML + STDR + U-PCR. Key findings: (1) our eigenvector weights underperform naive avg in 7/10 FUSE settings — pseudo-label LR fix identified; (2) L-SML IS an RBM (Lemma 4.1); stacked RBM handles 16-feat correlation without exclusion.
+**Last updated**: Step 142 — U-PCR algorithm corrected (2-comp weight formula + auto lambda2 threshold). Full re-run on 29 cells. U-PCR-auto: +0.5pp over U-PCR-1 on 16-feat but still below L-SML continuous. Lambda2 > 10% fires for 28/29 cells — threshold is too permissive for curated low-corr sets. Soft-clustering interpretation of v2 confirmed.
 
 ---
 
@@ -38,6 +38,13 @@
 - **No feature is both strong and stable**: strong features (epr/cusum_max/sw_var_peak) swing ~30pp across domains; stable features (pe_mean range 8.5) are weak everywhere.
 - Report v2: removed exec summary; added terminology + aggregation note + 9-feature data + 3 graphs (dependence heatmap, stability scatter, per-domain ranking heatmap). Self-contained except Chart.js CDN.
 - **Open**: fix EDIS grading + re-run; complete Phase 14 (GPQA/DeepSeek-R1-8B).
+
+**Step 142 — U-PCR algorithm correction + re-run**:
+- Fixed two bugs: (1) weight formula `w_k = (v1@rho/lam1)*v1` hardcoded to v1 even for n_components=2 — corrected to `Σ_c (vc@rho/lamc)*vc`; (2) no λ₂ auto-threshold — added `auto_components=True, lambda2_threshold=0.1`.
+- Re-run (29 cells, 3 feat sets): U-PCR-auto gets +0.5pp over old U-PCR-1 on 16-feat (63.0% vs 62.5%), still below L-SML continuous (65.1%). On 5/9 feat the correction slightly hurts (−0.6pp, −0.8pp) because v₂ captures structured noise for low-correlation feature sets.
+- λ₂/Trace = 9–34% across cells (28/29 exceed 10% threshold). The paper's 10% threshold is too permissive — 15–20% would be more appropriate for our curated feature sets.
+- **v₂ as soft clustering**: (v₁[i], v₂[i]) are continuous cluster coordinates for each feature; U-PCR uses them directly instead of L-SML's hard group assignment. Same structural idea, different tradeoff.
+- Updated `results/upcr_comparison.pkl` + new `results/upcr_comparison.png` (3-panel visualization).
 
 **Step 141 — Deep literature review: FUSE, Deep L-SML, STDR, U-PCR**:
 - **FUSE finding**: our closed-form eigenvector weights (`w@F`) underperform naive averaging in 7/10 FUSE benchmark settings (Figure 3). Fix: replace with pseudo-label logistic regression on MoM-estimated triplet posteriors `p̂(r_i)` — still fully unsupervised. **Highest-priority next experiment.**

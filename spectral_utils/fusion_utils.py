@@ -950,14 +950,16 @@ def best_nadler_pseudo_label(
 # Tenzer, Dror, Nadler, Bilal, Kluger (AISTATS 2022 / arXiv:1703.02965)
 # ────────────────────────────────────────────────────────────────────────────
 
-def upcr_fuse(F, var_y=0.25, n_components=1, min_frac=0.05, exclude_frac=3.0):
+def upcr_fuse(F, var_y=0.25, n_components=1, auto_components=True,
+              lambda2_threshold=0.1, min_frac=0.05, exclude_frac=3.0,
+              return_diagnostics=False):
     """
     U-PCR fusion (Tenzer et al., AISTATS 2022 / arXiv:1703.02965).
 
     Under the uncorrelated-error assumption E[h_i h_j] = 0, the off-diagonal
     of the expert covariance matrix satisfies C_ij = rho_i + rho_j - g^2,
     where rho_i = Cov(f_i, Y) and g^2 = Var(Y) - min_i Var(f_i - Y).
-    The leading eigenvector of C is proportional to rho, giving optimal weights.
+    The leading eigenvector(s) of C are proportional to rho, giving optimal weights.
 
     Args:
         F: (m, n) float array — m experts x n samples, already z-scored and
@@ -965,19 +967,38 @@ def upcr_fuse(F, var_y=0.25, n_components=1, min_frac=0.05, exclude_frac=3.0):
         var_y: Var(Y) for the response. For binary Y with prevalence p: p*(1-p).
                Default 0.25 (balanced). Used as the upper bound for the g^2 grid.
         n_components: 1 or 2 — number of leading eigenvectors for weight projection.
+                      Only used when auto_components=False.
+        auto_components: if True (default), automatically select 2 components when
+                         lambda_2 > lambda2_threshold * Trace(C) (paper criterion).
+        lambda2_threshold: fraction of trace for auto 2-component selection (default 0.1).
         min_frac: exclude experts with rho_hat_i < min_frac * var_y (too weak).
         exclude_frac: exclude experts with rho_hat_i < rho_hat_max / exclude_frac.
+        return_diagnostics: if True, return a 4th value — dict with eigenvalue diagnostics.
 
     Returns:
         w: (m,) fusion weight vector (zero for excluded experts)
         rho_hat: (m,) estimated expert-response covariances (full, including excluded)
         g2_hat: float — estimated minimal attainable MSE
+        diagnostics: dict (only if return_diagnostics=True) — keys: n_components_used,
+                     lambda2_frac, evals_full (top-2 eigenvalues of full C)
     """
     import numpy as np
     from scipy.linalg import eigh
 
     m, n = F.shape
     C = (F @ F.T) / n  # sample covariance (m x m)
+    trace_C = float(np.trace(C))
+
+    # Auto-select n_components based on eigenspectrum (paper criterion: Sec. 3.2)
+    k_probe = min(2, m)
+    evals_probe, _ = eigh(C, subset_by_index=[m - k_probe, m - 1])
+    evals_probe = evals_probe[::-1]  # descending
+    lambda2_frac = float(evals_probe[1] / (trace_C + 1e-12)) if k_probe >= 2 else 0.0
+
+    if auto_components:
+        n_components = 2 if (k_probe >= 2 and lambda2_frac > lambda2_threshold) else 1
+
+    n_components_used = n_components
 
     # Build linear system: C_ij = rho_i + rho_j - q  (off-diagonal, i < j)
     pairs = [(i, j) for i in range(m) for j in range(i + 1, m)]
@@ -987,19 +1008,19 @@ def upcr_fuse(F, var_y=0.25, n_components=1, min_frac=0.05, exclude_frac=3.0):
         A[k, i] = 1.0
         A[k, j] = 1.0
 
-    # Leading eigenvector(s) of full C
+    # Leading eigenvector(s) of full C (for g2 grid search)
     k = min(n_components, m)
     evals, evecs = eigh(C, subset_by_index=[m - k, m - 1])
     evals = evals[::-1]
-    evecs = evecs[:, ::-1]
-    v1 = evecs[:, 0]
+    evecs = evecs[:, ::-1]  # (m, k) — columns are eigenvectors in descending order
 
-    # Grid search: g2_hat = argmin_q || rho(q) - proj_{v1} rho(q) || / ||rho(q)||
+    # Grid search: g2_hat = argmin_q || rho(q) - proj_{V_k} rho(q) || / ||rho(q)||
+    # Projection onto k-dimensional subspace: V_k @ (V_k^T @ rho)
     q_grid = np.linspace(0, var_y, 300)
     best_res, best_q, best_rho = np.inf, q_grid[0], None
     for q in q_grid:
         rho, *_ = np.linalg.lstsq(A, c_vals + q, rcond=None)
-        proj = v1 * (v1 @ rho)
+        proj = evecs @ (evecs.T @ rho)  # generalizes v1*(v1@rho) to k dimensions
         res = np.linalg.norm(rho - proj) / (np.linalg.norm(rho) + 1e-12)
         if res < best_res:
             best_res, best_q, best_rho = res, q, rho.copy()
@@ -1029,11 +1050,15 @@ def upcr_fuse(F, var_y=0.25, n_components=1, min_frac=0.05, exclude_frac=3.0):
     k2 = min(n_components, n_k)
     evals_k, evecs_k = eigh(C_k, subset_by_index=[n_k - k2, n_k - 1])
     evals_k = evals_k[::-1]
-    evecs_k = evecs_k[:, ::-1]
-    v1_k = evecs_k[:, 0]
+    evecs_k = evecs_k[:, ::-1]  # (n_k, k2)
 
-    # Weights: w = (v1^T rho / lambda_1) * v1  (Eq. 9 in Tenzer et al.)
-    w_k = (v1_k @ rho_k) / (evals_k[0] + 1e-12) * v1_k
+    # Weights: w = sum_c (v_c^T rho / lambda_c) * v_c   (Eq. 9, generalized)
+    # Each eigenvector contributes an additive correction to the weight vector.
+    # With k2=1: reduces to original 1-component formula.
+    w_k = np.zeros(n_k)
+    for c in range(k2):
+        vc = evecs_k[:, c]
+        w_k += (vc @ rho_k) / (evals_k[c] + 1e-12) * vc
 
     # Embed back to full m-length vectors
     w_full = np.zeros(m)
@@ -1041,10 +1066,21 @@ def upcr_fuse(F, var_y=0.25, n_components=1, min_frac=0.05, exclude_frac=3.0):
     rho_hat_out = np.zeros(m)
     rho_hat_out[keep] = rho_k
 
+    if return_diagnostics:
+        diag = {
+            'n_components_used': n_components_used,
+            'lambda2_frac': lambda2_frac,
+            'evals_top2': evals_probe.tolist(),
+            'trace_C': trace_C,
+            'n_kept': int(keep.sum()),
+        }
+        return w_full, rho_hat_out, g2_hat, diag
+
     return w_full, rho_hat_out, g2_hat
 
 
-def upcr_pipeline(feats_dict, feat_names, signs, var_y=0.25, **kwargs):
+def upcr_pipeline(feats_dict, feat_names, signs, var_y=0.25, return_diagnostics=False,
+                  **kwargs):
     """
     Full U-PCR pipeline: orient signs -> z-score -> upcr_fuse -> ensemble score.
 
@@ -1053,13 +1089,16 @@ def upcr_pipeline(feats_dict, feat_names, signs, var_y=0.25, **kwargs):
         feat_names: list of feature names to use (length m >= 3)
         signs: dict {feat_name: +1 or -1} — orient so higher = more likely correct
         var_y: Var(Y) passed to upcr_fuse (default 0.25 for balanced binary labels)
-        **kwargs: forwarded to upcr_fuse (n_components, min_frac, exclude_frac)
+        return_diagnostics: if True, also return eigenvalue diagnostics dict
+        **kwargs: forwarded to upcr_fuse (n_components, auto_components,
+                  lambda2_threshold, min_frac, exclude_frac)
 
     Returns:
         score: (n,) ensemble score (higher = more likely correct)
         w: (m,) fusion weights
         rho_hat: (m,) estimated expert-response covariances
         g2_hat: float
+        diagnostics: dict (only if return_diagnostics=True)
     """
     import numpy as np
     F = np.stack(
@@ -1067,6 +1106,12 @@ def upcr_pipeline(feats_dict, feat_names, signs, var_y=0.25, **kwargs):
          for f in feat_names],
         axis=0,
     )  # (m, n)
-    w, rho_hat, g2_hat = upcr_fuse(F, var_y=var_y, **kwargs)
-    score = w @ F  # (n,)
-    return score, w, rho_hat, g2_hat
+    result = upcr_fuse(F, var_y=var_y, return_diagnostics=return_diagnostics, **kwargs)
+    if return_diagnostics:
+        w, rho_hat, g2_hat, diag = result
+        score = w @ F
+        return score, w, rho_hat, g2_hat, diag
+    else:
+        w, rho_hat, g2_hat = result
+        score = w @ F
+        return score, w, rho_hat, g2_hat
