@@ -4528,3 +4528,66 @@ Initial signs: `epr_spilled=-1`, `sw_var_peak_spilled=-1`, `cusum_max_spilled=-1
 **Files changed**: `spectral_utils/fusion_utils.py` (+`upcr_fuse`, `upcr_pipeline`), `spectral_utils/__init__.py` (exports), `scripts/run_upcr_comparison.py` (new), `HISTORY.md`, `Research_Directions.md`.
 
 ---
+
+### Step 140 — U-PCR vs L-SML continuous comparison: empirical results + script fixes
+
+**What**: Ran `scripts/run_upcr_comparison.py` across all 29 cached cells (MATH-500, GSM8K, GPQA, RAG ×16, QA ×3) for 5, 9, and 16 feature sets. Fixed four bugs in the script before running.
+
+**Script bugs fixed**:
+1. Wrong data path — script looked for `consolidated_results/features_all.pkl` (doesn't exist); changed to `local_cache/{math500,gsm8k,gpqa,qa,rag}_res.pkl` matching `method_comparison.py`.
+2. Wrong data schema — expected `{'feats':…,'labels':…}` dict; actual format is `{cell_key: (fd, lbl)}` tuple.
+3. Missing 9-feat and 16-feat variants — added STABLE_H9 and ALL_H16 runs so results are comparable to the existing method comparison table.
+4. Raw `boot_auc` instead of `safe_auc` — `method_comparison.py` takes `max(AUC, 1−AUC)` (best orientation); without this, some L-SML continuous scores were sign-flipped (e.g. 5.6% instead of 94.4% on Qwen-Math-7B). Applied `safe_auc` to both methods for a fair comparison.
+
+**Results (macro across 29 cells)**:
+
+| Feature set | L-SML continuous | U-PCR | Delta |
+|-------------|-----------------|-------|-------|
+| 5-feat (GOOD_5) | 65.3% | 65.7% | +0.4pp |
+| 9-feat (STABLE_H9) | 63.9% | 65.0% | +1.1pp |
+| 16-feat (ALL_H16) | 65.1% | 62.5% | −2.5pp |
+
+Selected per-domain highlights (5-feat): MATH-500 macro ≈ 84% both; GPQA ≈ 54% both; RAG ≈ 63% both; QA ≈ 75% both.
+
+**Why U-PCR ≈ L-SML continuous on 5 and 9 features**: GOOD_5 and STABLE_H9 were selected to have low pairwise Spearman ρ (< 0.75 threshold). When features are approximately uncorrelated, U-PCR's core assumption E[h_i h_j] = 0 holds — the off-diagonal covariance C_ij ≈ ρ_i + ρ_j − g² is valid. Under low correlation, L-SML continuous finds K=1 or small K and its two-level spectral hierarchy collapses to approximately the same eigenvector weighting U-PCR computes directly. Both methods end up assigning weights proportional to Cov(f_i, Y).
+
+**Why L-SML continuous wins on 16 features (−2.5pp for U-PCR)**: ALL_H16 includes correlated features (e.g. high_band_power / hl_ratio, stft pairs). The uncorrelated-error assumption breaks; U-PCR's ρ̂ estimates become biased. L-SML continuous handles this via spectral clustering — it groups correlated features before fusing — and retains its advantage.
+
+**Terminology note**: "CONT" is retired. Use "L-SML continuous" (or "L-SML continuous 5/9/16" when the feature count matters).
+
+**Files changed**: `scripts/run_upcr_comparison.py` (4 bug fixes + 9/16-feat variants added), `results/upcr_comparison.pkl` (new).
+
+---
+
+### Step 141 — Deep literature review: FUSE, Deep L-SML, STDR, U-PCR (4 papers)
+
+**What**: Full read of four papers from the Jaffe-Nadler group. Focus on theoretical implications for our pipeline.
+
+(1) FUSE (Lee et al., arXiv:2604.18547, 2026)
+(2) A Deep Learning Approach to Unsupervised Ensemble Learning (Shaham et al., arXiv:1602.02285, 2016)
+(3) Spectral Top-Down Recovery of Latent Tree Models (Aizenbud et al., arXiv:2102.13276, 2021)
+(4) Unsupervised Ensemble Regression / U-PCR (Dror et al., arXiv:1703.02965, 2017) — revisited after Step 140 comparison
+
+**Why**: Step 139 identified FUSE as the most important follow-up. Step 140 showed U-PCR ≈ L-SML continuous on 5/9 features — this session provides the theoretical explanation and identifies next steps.
+
+**Result**:
+
+*FUSE — the closed-form weights problem:*
+Our L-SML continuous pipeline uses eigenvector weights `w = (v₁ᵀρ̂ / λ₁)·v₁`, then scores as `w@F`. FUSE Figure 3 shows these closed-form weights underperform naive equal-weight averaging in 7/10 benchmark settings (GPQA Diamond, MATH500, MMLU-Pro, HLE, IMO). FUSE's fix: replace the final `w@F` with a pseudo-label logistic regression where supervision comes from MoM-estimated triplet posteriors `p̂(r_i) = (1/C(m,3)) Σ p̂_{j1j2j3}(r_i)`. Still fully unsupervised — `p̂` never uses true labels. This is the single biggest available architectural upgrade to our current pipeline.
+
+*Deep L-SML — L-SML is already an RBM:*
+Shaham et al. Lemma 4.1 proves a bijection: the Dawid-Skene conditional independence model (L-SML's probabilistic backbone) is exactly equivalent to an RBM with a single hidden node. Our covariance + leading eigenvector step IS training that RBM — just via closed-form MoM rather than Contrastive Divergence gradient updates. The stacked RBM (Deep L-SML) is a principled extension for when features are correlated and the ρ > 0.75 filter excludes too many views. After one RBM hidden layer features become approximately conditionally independent (Figure 8 of the paper: 99 correlated classifiers → near-zero inter-correlation in hidden space). Relevant for a 16-feature expansion where band-power pairs (ρ 0.77–0.88) would trigger heavy exclusion. RBM training is still fully unsupervised: the objective is `log P(features)`, which depends only on observed feature values, not on any labels.
+
+*STDR — tree structure for large ensembles:*
+Fiedler vector partitioning recovers hierarchical tree-structured dependencies, O(m² log m). Not relevant at 5–16 features; becomes useful at 50+.
+
+*U-PCR revisited after Step 140 numbers:*
+L-SML continuous tied U-PCR on 5 and 9 features because GOOD_5 and STABLE_H9 were selected for low pairwise correlation — exactly the regime where U-PCR's uncorrelated-error assumption holds. L-SML continuous wins on 16 features because the band-power block (ρ 0.77–0.88) violates U-PCR's assumption; spectral clustering compensates. Step 140 is now fully explained theoretically.
+
+**Open experiments identified**:
+- Implement FUSE pseudo-label LR as replacement for `w@F` (highest priority)
+- Deep L-SML RBM preprocessing for 16-feature regime
+- EDIS as comparison baseline (same datasets, heuristic entropy spike detection)
+- New feature views: EAS = sum(H(n)), entropy_slope, entropy_autocorr, low-band logit variance from `top_k_logprobs`
+
+---

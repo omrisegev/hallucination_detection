@@ -1,14 +1,14 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-06-23
-**Last updated**: Meeting action items from Jun 17, 2026 (Ofir, Bracha, Amir) integrated — 6 items added as new priority list. Step 136 remains the last completed analysis step; Step 137 = theorem validation work on branch `analysis/theorem-validation` (3 untracked results files pending commit: `LSML_Theorem_Validation.html`, `Pipeline_Flowchart.html`, `fusion_pipeline_flowchart.md`).
+**Date**: 2026-06-25
+**Last updated**: Step 141 — Deep literature review: FUSE + Deep L-SML + STDR + U-PCR. Key findings: (1) our eigenvector weights underperform naive avg in 7/10 FUSE settings — pseudo-label LR fix identified; (2) L-SML IS an RBM (Lemma 4.1); stacked RBM handles 16-feat correlation without exclusion.
 
 ---
 
 ## TL;DR — where we are today
 
 **Recommended method** (established by the Step-134 method comparison, 12 variants × 29 cells):
-`lsml_continuous_pipeline(feats_dict, GOOD_FEATURES, FEATURE_SIGNS)` — **continuous L-SML (CONT)**.
+`lsml_continuous_pipeline(feats_dict, GOOD_FEATURES, FEATURE_SIGNS)` — **L-SML continuous** (previously called "CONT" — that term is retired).
 - Macro AUROC **70.1%** vs the old binary PROD pipeline 65.2% (**+4.9pp**); **78.3%** on the reasoning regime {MATH-500, GSM8K, QA}.
 - On reasoning it beats a simple average (+2.2pp) and even the per-cell oracle best-single-feature (+0.7pp).
 
@@ -38,6 +38,26 @@
 - **No feature is both strong and stable**: strong features (epr/cusum_max/sw_var_peak) swing ~30pp across domains; stable features (pe_mean range 8.5) are weak everywhere.
 - Report v2: removed exec summary; added terminology + aggregation note + 9-feature data + 3 graphs (dependence heatmap, stability scatter, per-domain ranking heatmap). Self-contained except Chart.js CDN.
 - **Open**: fix EDIS grading + re-run; complete Phase 14 (GPQA/DeepSeek-R1-8B).
+
+**Step 141 — Deep literature review: FUSE, Deep L-SML, STDR, U-PCR**:
+- **FUSE finding**: our closed-form eigenvector weights (`w@F`) underperform naive averaging in 7/10 FUSE benchmark settings (Figure 3). Fix: replace with pseudo-label logistic regression on MoM-estimated triplet posteriors `p̂(r_i)` — still fully unsupervised. **Highest-priority next experiment.**
+- **RBM = L-SML equivalence** (Lemma 4.1, Shaham et al. 2016): our covariance+eigenvector step IS a single-hidden-node RBM trained by MoM. Stacked RBM (Deep L-SML) handles correlated features without exclusion; relevant for 16-feat expansion where band-power pairs (ρ 0.77–0.88) trigger heavy filtering.
+- STDR (Fiedler vector tree recovery): not relevant at current feature counts.
+- Step 140 numbers now explained: U-PCR ≈ L-SML on 5/9 features (low-corr regime matches assumption); L-SML wins on 16 because clustering handles band-power block violation.
+
+**Steps 139–140 — U-PCR literature + implementation + empirical comparison**:
+- U-PCR (`upcr_fuse`, `upcr_pipeline`) implemented in `spectral_utils/fusion_utils.py` (Tenzer et al. 2022).
+- Comparison run across 29 cells, 5/9/16 feature sets. Results (macro AUROC):
+
+| Feature set | L-SML continuous | U-PCR | Delta |
+|-------------|-----------------|-------|-------|
+| 5-feat | 65.3% | 65.7% | +0.4pp |
+| 9-feat | 63.9% | 65.0% | +1.1pp |
+| 16-feat | 65.1% | 62.5% | −2.5pp |
+
+- **Conclusion**: U-PCR ≈ L-SML continuous on low-correlation feature sets (5, 9 feat — the assumption E[h_i h_j]=0 approximately holds). L-SML continuous wins on 16 features where correlated features (band-power block ρ 0.77–0.88) violate U-PCR's assumption; clustering handles this, plain eigenvector weighting doesn't.
+- Provides the theoretical citation for Step 134: L-SML continuous ↔ U-PCR's ρ̂-proportional weighting. Cite Tenzer et al. (2022) instead of "workaround for Lemma 1".
+- Advisor meeting Item 1 (lit search) ✅ complete.
 
 **Prior session (Step 131)**:
 - GSM8K cross-dataset verification: spilled energy transfers well (cusum_max_spilled = 0.725 best individual)
@@ -260,6 +280,7 @@ git push origin master
 9. Continuous L-SML (`lsml_continuous_pipeline`) is the candidate replacement — pending Step 132 validation before merge.
 10. Verbalized confidence on 1.5B: null result (Step 131). Do not include in GOOD_FEATURES for 1.5B runs.
 11. `min_spilled` sign = −1. Validated GSM8K Cell 12.
+12. "CONT" is retired. Say "L-SML continuous" (with feature count when relevant: "L-SML continuous 5").
 
 ---
 

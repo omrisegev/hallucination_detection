@@ -123,9 +123,15 @@ GPQA Diamond (MCQ science) is structurally out-of-regime: entropy dynamics are s
 
 **Result**: U-PCR (Tenzer, Dror, Nadler, Bilal, Kluger; AISTATS 2022 / arXiv:1703.02965) is Nadler's own continuous-input extension of L-SML. Under uncorrelated-error assumption, covariance off-diagonal C_ij = ρ_i + ρ_j − g² — recovers expert-response covariances ρ̂ without labels. Our CONT pipeline ≈ U-PCR; offline orientation = U-PCR's ρ̂_i exclusion criterion. **Cite Tenzer et al. (2022) in the thesis instead of "workaround for Lemma 1" language.**
 
-Also found: **FUSE** (Lee et al., arXiv:2604.18547, 2026) — applies Jaffe-Nadler moment structure to LLM verifiers for Best-of-N response selection with zero labels. Same theoretical base as our work (Jaffe et al. 2015). Different task: multi-response selection vs single-generation hallucination detection. Strong related-work citation. Key finding: raw Jaffe 2015 underperforms naive ensemble in 7/10 settings for LLM verifiers — they fix this via TCI-minimizing binarization thresholds.
+Also found and deeply read (Step 141):
 
-Other Nadler follow-ups: Deep L-SML (Shaham et al., ICML 2016, arXiv:1602.02285); STDR latent-tree (Aizenbud et al., 2023, arXiv:2102.13276).
+**FUSE** (Lee et al., arXiv:2604.18547, 2026) — applies Jaffe-Nadler moment structure to LLM verifiers for Best-of-N response selection with zero labels. Same theoretical base as our work (Jaffe et al. 2015). Different task: multi-response selection vs single-generation hallucination detection. Strong related-work citation. Critical finding for us: **our closed-form eigenvector weights (`w = (v₁ᵀρ̂/λ₁)·v₁`, then `score = w@F`) underperform naive equal-weight averaging in 7/10 FUSE benchmark settings** (Figure 3). FUSE's fix: pseudo-label logistic regression trained on MoM-estimated triplet posteriors `p̂(r_i)` — fully unsupervised (`p̂` never uses true labels). This is the single biggest available architectural upgrade to our pipeline. **Next experiment**: implement FUSE-style pseudo-label LR as replacement for `w@F` in `lsml_continuous_pipeline`.
+
+**Deep L-SML** (Shaham et al., ICML 2016, arXiv:1602.02285) — Lemma 4.1 proves our L-SML IS already an RBM: Dawid-Skene model = single-hidden-node RBM (bijective parameter map). Our covariance+eigenvector step = closed-form MoM training of that RBM. Stacked RBM (Deep L-SML) handles correlated features without exclusion — each hidden layer decorrelates the representation. Relevant if 16-feature expansion triggers heavy ρ > 0.75 filter exclusions (band-power pairs ρ 0.77–0.88). Still fully unsupervised (objective = `log P(features)`, no labels).
+
+**STDR** (Aizenbud et al., arXiv:2102.13276, 2021) — hierarchical tree-structured dependency recovery via Fiedler vector, O(m² log m). Not relevant at 5–16 features; revisit if feature set expands to 50+.
+
+**Empirical confirmation (Step 140)**: U-PCR ≈ L-SML continuous on 5/9 features (low correlation regime, assumption holds); L-SML wins on 16 features (band-power block violates U-PCR's uncorrelated-error assumption; clustering compensates).
 
 Implementation: `upcr_fuse()` + `upcr_pipeline()` added to `spectral_utils/fusion_utils.py`. Comparison script: `scripts/run_upcr_comparison.py`.
 
