@@ -1,7 +1,7 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-06-25
-**Last updated**: Step 142 — U-PCR algorithm corrected (2-comp weight formula + auto lambda2 threshold). Full re-run on 29 cells. U-PCR-auto: +0.5pp over U-PCR-1 on 16-feat but still below L-SML continuous. Lambda2 > 10% fires for 28/29 cells — threshold is too permissive for curated low-corr sets. Soft-clustering interpretation of v2 confirmed.
+**Last updated**: Step 142 — Logistic regression oracle (advisor Item 2). 5-fold stratified OOF CV on GOOD_5/STABLE_H9/ALL_H16 across 29 cells. L-SML CONT (65.1–65.3%) meets or exceeds supervised LR ceiling (62.4–63.7%) — unsupervised is not leaving supervised headroom on reasoning-heavy domains. Items 1 and 2 from advisor meeting both complete.
 
 ---
 
@@ -82,8 +82,8 @@ These 6 items are the current priority order. They supersede the old Step 132 GP
 
 | # | Action | Status |
 |---|--------|--------|
-| 1 | **L-SML literature search** — find Nadler post-2016 follow-up work extending or improving L-SML | Not started |
-| 2 | **Logistic regression oracle** — supervised LR on 5/9/16 feature sets → upper bound on fusion AUROC (5-fold CV, no in-sample leakage) | Not started |
+| 1 | **L-SML literature search** — find Nadler post-2016 follow-up work extending or improving L-SML | ✅ Complete (Step 141) |
+| 2 | **Logistic regression oracle** — supervised LR on 5/9/16 feature sets → upper bound on fusion AUROC (5-fold CV, no in-sample leakage) | ✅ Complete (Step 142) |
 | 3 | **Extend QA evaluation** — run more QA datasets (NQ, SQuAD v2, AmbigQA, PopQA) to characterise CoT factual QA performance | Not started |
 | 4 | **Benchmarking completion** — model-matched comparisons for MATH-500, GSM8K, QA vs SE/SC/SelfCheckGPT | In progress (Step 135 partial) |
 | 5 | **Experiment 1 — Sampling fusion** — fuse SE (K=10) with single-pass spectral features; measure AUROC gain vs each alone | Not started |
@@ -122,15 +122,7 @@ Note: `min_spilled` sign updated from initial `+1` estimate to `-1` — validate
 
 *Priority order from the Jun 17 meeting. See table in "MEETING ACTION ITEMS" section above for status.*
 
-### Priority 1 — L-SML literature search (Item 1)
-
-Search Semantic Scholar / arXiv for Boaz Nadler papers after 2016 extending the Spectral Meta-Learner. Look for: continuous-input variants, improved eigenvector estimation, non-binary multi-view extensions. Log findings in HISTORY.md.
-
-### Priority 2 — Logistic regression oracle (Item 2, no GPU needed)
-
-Script: fit `sklearn.LogisticRegression` with 5-fold CV on the 29 cached feature cells (5-feat, 9-feat, 16-feat). Report macro AUROC vs CONT (70.1%). Add to `scripts/` and commit.
-
-### Priority 3 — Benchmarking completion (Item 4, partial)
+### Priority 1 — Benchmarking completion (Item 4, partial)
 
 **Done** (Step 135): MATH-500 94.4% vs SE 87.7/SC 87.2 ✅ | GSM8K 75.6% vs SC 78.5/SE 77.4 ✅
 
@@ -138,15 +130,15 @@ Script: fit `sklearn.LogisticRegression` with 5-fold CV on the 29 cached feature
 - QA datasets: SelfCheckGPT / SE comparison on same model+dataset
 - Phase 14 Cell 9 re-run: DeepSeek-R1-0528-Qwen3-8B / GPQA (L-SML v2 AUROC still TBD; Cell 9 `n_boot` kwarg bug needs fix — see Running Experiments below)
 
-### Priority 4 — Experiment 1: Sampling fusion (Item 5, Colab GPU)
+### Priority 2 — Experiment 1: Sampling fusion (Item 5, Colab GPU)
 
 Fuse SE (K=10) with CONT spectral features on one cell (MATH-500 or GSM8K). Key check: Spearman ρ(SE, spectral_score) < 0.75 before fusing.
 
-### Priority 5 — Temperature variation experiment (Item 6, Colab GPU)
+### Priority 3 — Temperature variation experiment (Item 6, Colab GPU)
 
 Run Qwen2.5-Math-7B on MATH-500 at T∈{0.3, 0.6, 1.0, 1.5, 2.0} + 4 extra runs at T=1.0 for the ablation. (T=1.0 and T=1.5 caches already exist.)
 
-### Priority 6 — Extend QA evaluation (Item 3, Colab GPU)
+### Priority 4 — Extend QA evaluation (Item 3, Colab GPU)
 
 Additional QA datasets with CoT prompt: NaturalQuestions, SQuAD v2, AmbigQA (in priority order). Use Qwen2.5-Math-7B or Falcon-3-10B.
 

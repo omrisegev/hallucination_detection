@@ -4633,3 +4633,26 @@ L-SML continuous tied U-PCR on 5 and 9 features because GOOD_5 and STABLE_H9 wer
 - New feature views: EAS = sum(H(n)), entropy_slope, entropy_autocorr, low-band logit variance from `top_k_logprobs`
 
 ---
+
+### Step 142 — Add logistic regression oracle (advisor Item 2)
+
+**What**: Implemented `scripts/logistic_oracle.py` — a supervised upper-bound experiment that fits `sklearn.LogisticRegression` on spectral features using 5-fold stratified OOF cross-validation. `StandardScaler` is fitted inside each train fold (no leakage from the scaler). Loads pre-computed CONT AUROCs from `results/upcr_comparison.pkl` rather than recomputing them, so the script only computes the new LR oracle scores per cell per feature set.
+
+**Why**: Advisor Item 2 from the Jun 17 meeting: determine how much improvement supervised feature fusion could add over L-SML's unsupervised weighting — i.e., what is the labeled ceiling for these features?
+
+**Result**: L-SML CONT **meets or exceeds** the supervised LR oracle on macro AUROC across all three feature sets (29 cells):
+
+| Feature set | CONT (L-SML) | LR Oracle (5-fold CV) | Headroom |
+|---|---|---|---|
+| 5-feat (GOOD_5) | 65.3% | 63.7% | −1.5pp |
+| 9-feat (STABLE_H9) | 63.9% | 62.4% | −1.5pp |
+| 16-feat (ALL_H16) | 65.1% | 62.6% | −2.5pp |
+
+By domain: math500 and GSM8K are within ±1pp (LR offers no headroom on reasoning traces). GPQA has isolated cells with +5–12pp headroom for LR, most notably `Qwen2.5-72B-AWQ` (+12pp on 5-feat). RAG/QA: CONT usually beats LR — those cells are small enough that 5-fold CV itself overfits, making the unsupervised method more robust. **Conclusion**: L-SML already extracts nearly all available signal on reasoning-heavy domains; the supervised oracle is not a meaningful ceiling to chase.
+
+**Files changed**:
+- `scripts/logistic_oracle.py` — new script (444 lines): 5-fold OOF LR oracle, loads CONT from existing pkl, 3-row visualization (macro bar charts, per-cell scatter, headroom histogram)
+- `results/logistic_oracle.pkl` — per-cell CONT vs LR results for all 29 cells × 3 feature sets
+- `results/logistic_oracle.png` — macro bar charts, per-cell scatter (LR vs CONT), headroom histogram
+
+---
