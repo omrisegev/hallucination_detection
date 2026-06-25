@@ -1,7 +1,7 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-06-25
-**Last updated**: Step 142 — Logistic regression oracle (advisor Item 2). 5-fold stratified OOF CV on GOOD_5/STABLE_H9/ALL_H16 across 29 cells. L-SML CONT (65.1–65.3%) meets or exceeds supervised LR ceiling (62.4–63.7%) — unsupervised is not leaving supervised headroom on reasoning-heavy domains. Items 1 and 2 from advisor meeting both complete.
+**Last updated**: Step 143 — LR oracle evaluation corrected (two bugs: cross_val_predict concatenation + missing class_weight='balanced'). Corrected result: supervised LR (67.1–67.6% balanced averaged-fold CV) beats L-SML by 2–5pp; in-sample ceiling 71–73%. See SUPERVISED_ORACLE_CORRECTION.md. Items 1 and 2 from advisor meeting both complete.
 
 ---
 
@@ -83,7 +83,7 @@ These 6 items are the current priority order. They supersede the old Step 132 GP
 | # | Action | Status |
 |---|--------|--------|
 | 1 | **L-SML literature search** — find Nadler post-2016 follow-up work extending or improving L-SML | ✅ Complete (Step 141) |
-| 2 | **Logistic regression oracle** — supervised LR on 5/9/16 feature sets → upper bound on fusion AUROC (5-fold CV, no in-sample leakage) | ✅ Complete (Step 142) |
+| 2 | **Logistic regression oracle** — supervised LR on 5/9/16 feature sets → upper bound on fusion AUROC (5-fold CV, no in-sample leakage) | ✅ Complete (Steps 142–143: evaluation corrected) |
 | 3 | **Extend QA evaluation** — run more QA datasets (NQ, SQuAD v2, AmbigQA, PopQA) to characterise CoT factual QA performance | Not started |
 | 4 | **Benchmarking completion** — model-matched comparisons for MATH-500, GSM8K, QA vs SE/SC/SelfCheckGPT | In progress (Step 135 partial) |
 | 5 | **Experiment 1 — Sampling fusion** — fuse SE (K=10) with single-pass spectral features; measure AUROC gain vs each alone | Not started |
@@ -280,6 +280,7 @@ git push origin master
 10. Verbalized confidence on 1.5B: null result (Step 131). Do not include in GOOD_FEATURES for 1.5B runs.
 11. `min_spilled` sign = −1. Validated GSM8K Cell 12.
 12. "CONT" is retired. Say "L-SML continuous" (with feature count when relevant: "L-SML continuous 5").
+13. LR oracle corrected conclusion: supervised LR (67.1–67.6% averaged-fold balanced CV) beats L-SML by 2–5pp macro; in-sample ceiling 71–73%. See `SUPERVISED_ORACLE_CORRECTION.md` for evaluation rules.
 
 ---
 

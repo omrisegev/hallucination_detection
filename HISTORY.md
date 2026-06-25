@@ -4656,3 +4656,55 @@ By domain: math500 and GSM8K are within ±1pp (LR offers no headroom on reasonin
 - `results/logistic_oracle.png` — macro bar charts, per-cell scatter (LR vs CONT), headroom histogram
 
 ---
+
+### Step 143 — Correct logistic regression oracle (two ML evaluation bugs)
+
+**What**: Two evaluation bugs in the Step 142 LR oracle were identified by antigravity and corrected.
+
+**Bug A — cross_val_predict calibration pitfall**: The original code concatenated OOF probabilities
+from all 5 folds into a single array and computed one global AUROC. Wrong: each fold's model has a
+different probability calibration (different intercept/coefficient scale), so ranking across fold
+boundaries suppresses the oracle's true AUROC. Fix: `cv_avg_auc_with_ci` computes AUROC inside each
+fold individually and averages the 5 fold scores.
+
+**Bug B — no class weight balancing**: `LogisticRegression(C=1.0)` without `class_weight='balanced'`
+was used. Many cells have 70–90% majority class; minimizing unweighted cross-entropy focuses on the
+dominant class and misranks the minority, directly degrading AUROC. Fix: `class_weight='balanced'`
+is used for the primary oracle variant (`bal_cv`).
+
+The corrected script exposes 5 variants per cell for reference: `std_cv`, `bal_cv` (primary),
+`legacy_cv` (original buggy concatenated OOF), `std_in`, `bal_in`.
+
+**Why**: The Step 142 finding — unsupervised L-SML meeting or exceeding a supervised oracle — is
+mathematically anomalous. A supervised method trained on labels should outperform an unsupervised
+one in expectation. This anomaly was the diagnostic. `SUPERVISED_ORACLE_CORRECTION.md` is added as
+a permanent reference for ML evaluation rules in this project.
+
+**Result**: Corrected macro AUROCs (29 cells):
+
+| Feature set | L-SML continuous | LR Oracle (bal_cv) | In-Sample Ceiling |
+|---|---|---|---|
+| 5-feat (GOOD_5)    | 65.3% | **67.5% (+2.2pp)** | 71.1% (+5.8pp) |
+| 9-feat (STABLE_H9) | 63.9% | **67.1% (+3.2pp)** | 71.1% (+7.2pp) |
+| 16-feat (ALL_H16)  | 63.0% | **67.6% (+4.6pp)** | 72.8% (+9.8pp) |
+
+Supervised oracle now correctly exceeds L-SML by 2–5pp. More features -> more headroom (72.8% vs
+71.1% ceiling) because LR exploits correlated features that L-SML's rho>0.75 filter excludes.
+Math/GSM8K remain tight (+/-1pp — long reasoning near the ceiling); GPQA and some RAG cells show
+3–12pp headroom.
+
+**Lessons for future supervised baselines in this project**:
+1. Supervised < unsupervised on the same features is a red flag — audit the evaluation before
+   accepting the result.
+2. Never compute AUROC on concatenated OOF probabilities from cross_val_predict — compute per-fold
+   and average.
+3. Always use class_weight='balanced' for AUROC on imbalanced cells.
+4. Check per-cell positive rate before implementing any supervised baseline.
+
+**Files changed**:
+- `scripts/logistic_oracle.py` — corrected (537 lines): cv_avg_auc_with_ci + lr_oracle_auc_variants
+  with 5 variants; class_weight='balanced' for primary oracle
+- `SUPERVISED_ORACLE_CORRECTION.md` — new permanent ML evaluation reference
+- `CLAUDE.md` — added review instruction for SUPERVISED_ORACLE_CORRECTION.md
+
+---

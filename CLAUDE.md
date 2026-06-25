@@ -3,6 +3,8 @@
 ## Session start
 **Always read `PROGRESS.md` before doing anything else.** It has the current experiment status, what's running, what's fixed, and what to do next. Do not rely on git log alone — PROGRESS.md is the handoff document.
 
+**Review [SUPERVISED_ORACLE_CORRECTION.md](file:///C:/Users/omris/TAU/hallucination_detection/SUPERVISED_ORACLE_CORRECTION.md)** to understand the ML evaluation guidelines (specifically regarding class weight balancing and avoiding the `cross_val_predict` calibration pitfall) established after correcting the Step 142 Logistic Regression baseline.
+
 Shortcut: type `/session-start` to run the full initialization sequence automatically.
 
 ---

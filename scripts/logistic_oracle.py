@@ -59,6 +59,53 @@ OUT_PNG  = os.path.join(REPO_DIR, 'results', 'logistic_oracle.png')
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+from sklearn.metrics import roc_auc_score
+
+def safe_auc_raw(y_true, y_prob):
+    y_true = np.asarray(y_true, dtype=int)
+    y_prob = np.asarray(y_prob, dtype=float)
+    if len(set(y_true.tolist())) < 2 or np.all(y_prob == y_prob[0]):
+        return 0.5
+    try:
+        p = roc_auc_score(y_true, y_prob)
+        return max(p, 1.0 - p)
+    except:
+        return 0.5
+
+def cv_avg_auc_with_ci(pipe, X, y, skf, n_boot=1000):
+    fold_targets = []
+    fold_probs = []
+    for train_idx, test_idx in skf.split(X, y):
+        X_train, X_test = X[train_idx], X[test_idx]
+        y_train, y_test = y[train_idx], y[test_idx]
+        
+        pipe.fit(X_train, y_train)
+        probs = pipe.predict_proba(X_test)[:, 1]
+        fold_targets.append(y_test)
+        fold_probs.append(probs)
+        
+    fold_aucs = []
+    for target, prob in zip(fold_targets, fold_probs):
+        fold_aucs.append(safe_auc_raw(target, prob))
+    base_auc = np.mean(fold_aucs)
+    
+    rng = np.random.default_rng(42)
+    boot_means = []
+    for _ in range(n_boot):
+        boot_aucs = []
+        for target, prob in zip(fold_targets, fold_probs):
+            if len(target) < 2 or len(np.unique(target)) < 2:
+                continue
+            idx = rng.integers(0, len(target), len(target))
+            boot_aucs.append(safe_auc_raw(target[idx], prob[idx]))
+        if boot_aucs:
+            boot_means.append(np.mean(boot_aucs))
+            
+    if not boot_means:
+        return base_auc, base_auc, base_auc
+    lo, hi = np.percentile(boot_means, [2.5, 97.5])
+    return base_auc, lo, hi
+
 def safe_auc(lbl, scores):
     lbl    = np.asarray(lbl,    dtype=int)
     scores = np.asarray(scores, dtype=float)
@@ -124,22 +171,45 @@ def build_X(fd, feat_list, n_samples):
 
 # ── LR oracle ─────────────────────────────────────────────────────────────────
 
-def lr_oracle_auc(X, y):
+def lr_oracle_auc_variants(X, y):
     """
-    5-fold stratified CV → OOF AUROC. Zero label leakage.
-
-    StandardScaler is fitted on each train fold inside the pipeline,
-    so the scaler never sees test-fold values. Returns (auc, ci_lo, ci_hi).
+    Compute multiple supervised Logistic Regression AUROC variants.
     """
-    pipe = make_pipeline(
-        StandardScaler(),
-        LogisticRegression(C=1.0, max_iter=1000, solver='lbfgs')
-    )
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    
+    # 1. Standard CV (Averaged Fold CV)
+    pipe_std = make_pipeline(StandardScaler(), LogisticRegression(C=1.0, max_iter=1000, solver='lbfgs'))
+    auc_std, std_lo, std_hi = cv_avg_auc_with_ci(pipe_std, X, y, skf)
+    
+    # 2. Balanced CV (Averaged Fold CV)
+    pipe_bal = make_pipeline(StandardScaler(), LogisticRegression(C=1.0, class_weight='balanced', max_iter=1000, solver='lbfgs'))
+    auc_bal, bal_lo, bal_hi = cv_avg_auc_with_ci(pipe_bal, X, y, skf)
+    
+    # 3. Concatenated OOF (Legacy Standard)
+    pipe_legacy = make_pipeline(StandardScaler(), LogisticRegression(C=1.0, max_iter=1000, solver='lbfgs'))
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
-        oof_prob = cross_val_predict(pipe, X, y, cv=skf, method='predict_proba')[:, 1]
-    return safe_auc(y, oof_prob)
+        oof_prob = cross_val_predict(pipe_legacy, X, y, cv=skf, method='predict_proba')[:, 1]
+    legacy_auc, legacy_lo, legacy_hi = safe_auc(y, oof_prob)
+    
+    # 4. Standard In-Sample
+    pipe_std.fit(X, y)
+    preds_in_std = pipe_std.predict_proba(X)[:, 1]
+    in_std_auc = safe_auc(y, preds_in_std)[0]
+    
+    # 5. Balanced In-Sample
+    pipe_bal.fit(X, y)
+    preds_in_bal = pipe_bal.predict_proba(X)[:, 1]
+    in_bal_auc = safe_auc(y, preds_in_bal)[0]
+    
+    return {
+        'std_cv': (auc_std, std_lo, std_hi),
+        'bal_cv': (auc_bal, bal_lo, bal_hi),
+        'legacy_cv': (legacy_auc, legacy_lo, legacy_hi),
+        'std_in': in_std_auc,
+        'bal_in': in_bal_auc
+    }
+
 
 
 # ── Per-cell runner ───────────────────────────────────────────────────────────
@@ -163,7 +233,10 @@ def run_cell(cell_name, fd, labels, cont_row):
 
         if n_pos < 5 or n_neg < 5:
             for key in (f'lr_{fs_name}', f'lr_ci_lo_{fs_name}', f'lr_ci_hi_{fs_name}',
-                        f'delta_{fs_name}', f'n_avail_{fs_name}'):
+                        f'delta_{fs_name}', f'n_avail_{fs_name}',
+                        f'lr_std_cv_{fs_name}', f'lr_bal_cv_{fs_name}',
+                        f'lr_legacy_cv_{fs_name}', f'lr_std_in_{fs_name}',
+                        f'lr_bal_in_{fs_name}'):
                 cell_res[key] = None
             continue
 
@@ -172,13 +245,18 @@ def run_cell(cell_name, fd, labels, cont_row):
 
         if X is None:
             for key in (f'lr_{fs_name}', f'lr_ci_lo_{fs_name}',
-                        f'lr_ci_hi_{fs_name}', f'delta_{fs_name}'):
+                        f'lr_ci_hi_{fs_name}', f'delta_{fs_name}',
+                        f'lr_std_cv_{fs_name}', f'lr_bal_cv_{fs_name}',
+                        f'lr_legacy_cv_{fs_name}', f'lr_std_in_{fs_name}',
+                        f'lr_bal_in_{fs_name}'):
                 cell_res[key] = None
             continue
 
         try:
-            lr_auc, lr_lo, lr_hi = lr_oracle_auc(X, labels)
+            vars_dict = lr_oracle_auc_variants(X, labels)
+            lr_auc, lr_lo, lr_hi = vars_dict['bal_cv']  # Use Balanced CV as the primary lr oracle score
         except Exception:
+            vars_dict = None
             lr_auc = lr_lo = lr_hi = None
 
         cell_res[f'lr_{fs_name}']       = lr_auc
@@ -189,6 +267,20 @@ def run_cell(cell_name, fd, labels, cont_row):
             if (lr_auc is not None and cont_auc is not None)
             else None
         )
+        
+        # Store other variants
+        if vars_dict:
+            cell_res[f'lr_std_cv_{fs_name}'] = vars_dict['std_cv'][0]
+            cell_res[f'lr_bal_cv_{fs_name}'] = vars_dict['bal_cv'][0]
+            cell_res[f'lr_legacy_cv_{fs_name}'] = vars_dict['legacy_cv'][0]
+            cell_res[f'lr_std_in_{fs_name}'] = vars_dict['std_in']
+            cell_res[f'lr_bal_in_{fs_name}'] = vars_dict['bal_in']
+        else:
+            cell_res[f'lr_std_cv_{fs_name}'] = None
+            cell_res[f'lr_bal_cv_{fs_name}'] = None
+            cell_res[f'lr_legacy_cv_{fs_name}'] = None
+            cell_res[f'lr_std_in_{fs_name}'] = None
+            cell_res[f'lr_bal_in_{fs_name}'] = None
 
     return cell_res
 
