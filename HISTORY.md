@@ -4735,3 +4735,38 @@ required; no results yet.
   Cell 11: fixed undefined `lsml_ci` → `lsml_lo`/`lsml_hi`, `FORCE_SAVE=True`
 
 ---
+
+### Step 145 — Paper-accurate baseline corrections in baselines.py (SE and SelfCheckGPT)
+
+**What**: Audited `spectral_utils/baselines.py` against the official SE (Farquhar et al., Nature 2024) and SelfCheckGPT (Manakul et al., EMNLP 2023) repositories. Found and confirmed four discrepancies; added paper-accurate variants without modifying any existing functions.
+
+**Why**: The Phase 12 benchmarking results use `official_semantic_entropy` and `selfcheck_nli_score`, which we verified implement *discrete* (count-based) variants rather than the primary paper methods. To ensure AUROC comparisons are fair and citable, the library needs paper-accurate implementations for future benchmark runs.
+
+**Confirmed discrepancies**:
+
+1. **D-SE vs Likelihood-Weighted SE**: `official_semantic_entropy()` computes cluster-size entropy (= `cluster_assignment_entropy` in official code) — this is D-SE, not the primary SE. Primary SE aggregates per-cluster log-likelihoods via log-sum-exp, then applies Rao entropy: `−Σ p·log p`. Requires sequence-level log-likelihoods not present in existing Phase 12 K-sample caches.
+
+2. **SelfCheckGPT hard argmax vs soft probability**: `selfcheck_nli_score()` uses hard 0/1 from `nli_classify()`. Official code uses `torch.softmax(logits)[0][contradiction_idx].item()` — a continuous score. With K=5 samples, hard mode produces only 6 distinct output values (0.0, 0.2, ..., 1.0), severely limiting discrimination.
+
+3. **Premise/hypothesis ordering**: Our code calls `nli_classify(sample, sentence)` (premise=sample). Official code uses `(sentence, sample)` (premise=sentence). Paper text describes the opposite ordering — the official *implementation* is what produced the published AUROC numbers.
+
+4. **NLI model class index**: `cross-encoder/nli-deberta-v3-base` (our model) is 3-class with contradiction at index 0 (cross-encoder label order). `potsawee/deberta-v3-large-mnli` (official) is 2-class with contradiction at index 1 ("neutral is already removed"). Applying fixed index without detection reads the wrong class.
+
+**Additional issue found**: `_build_nli_clusters()` produces non-contiguous cluster IDs (e.g. `[0, 0, 2, 0, 4]`) via union-find merge. Official `logsumexp_by_id()` has `assert unique_ids == list(range(len(unique_ids)))` — would fail. `_entropy_from_cluster_ids()` (dict-based) is immune, so D-SE is unaffected. Likelihood-weighted SE requires a re-indexing step.
+
+**Result**: 5 additions to `baselines.py`, no existing functions modified:
+
+| Addition | Purpose |
+|----------|---------|
+| `discrete_semantic_entropy = official_semantic_entropy` | Alias clarifying D-SE identity; backward-compatible |
+| `_reindex_cluster_ids(ids)` | Remaps gap-containing cluster IDs to contiguous 0,1,2,… before logsumexp aggregation |
+| `likelihood_weighted_semantic_entropy(samples, log_likelihoods, ...)` | Primary SE from paper: log-sum-exp cluster aggregation + Rao entropy |
+| `_get_contradiction_idx(nli_model)` | Auto-detects contradiction class index: scans `id2label`, falls back on `num_labels` and `_name_or_path` |
+| `selfcheck_nli_score_official(main_text, samples, ...)` | Paper-accurate SelfCheckGPT-NLI: soft probability, premise=sentence ordering, auto-detected index |
+
+**Log-likelihood availability**: Existing Phase 12 K-sample caches (p1–p4) store only text strings — `token_spilled_energies` were discarded at generation time. `likelihood_weighted_semantic_entropy` requires re-running K-sample generation with `np.mean(-generate_full(...)['token_spilled_energies'])` saved per sample. `generate_full()` already returns `token_spilled_energies`; only the notebook K-sample loop needs updating.
+
+**Files changed**:
+- `spectral_utils/baselines.py` — 182 lines added after line 290 and after `selfcheck_nli_score`; no existing code modified
+
+---

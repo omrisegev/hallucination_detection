@@ -290,6 +290,75 @@ def official_semantic_entropy(
     return _entropy_from_cluster_ids(cluster_ids)
 
 
+# Alias: the count-only variant is Discrete Semantic Entropy (D-SE) in the paper.
+discrete_semantic_entropy = official_semantic_entropy
+
+
+def _reindex_cluster_ids(ids: List[int]) -> List[int]:
+    """Remap cluster IDs to contiguous 0, 1, 2, … preserving membership.
+
+    _build_nli_clusters() initialises IDs as list(range(n)) and merges by
+    overwriting, leaving gaps (e.g. [0, 0, 2, 0, 4]).  logsumexp_by_id and
+    np.bincount both require gap-free IDs, so call this before aggregating.
+    """
+    id_map = {old: new for new, old in enumerate(sorted(set(ids)))}
+    return [id_map[c] for c in ids]
+
+
+def likelihood_weighted_semantic_entropy(
+    samples: List[str],
+    log_likelihoods: List[float],
+    nli_model,
+    nli_tokenizer,
+    device: str = "cuda",
+    model_name: str = "cross-encoder/nli-deberta-v3-base",
+) -> float:
+    """
+    Compute Likelihood-Weighted Semantic Entropy (Farquhar et al., Nature 2024).
+
+    This is the *primary* SE metric from the paper — not D-SE / cluster_assignment_entropy.
+    It weights each semantic cluster by the aggregated likelihood of its members rather
+    than by count.
+
+    Args:
+        samples:          K text completions for the same question.
+        log_likelihoods:  Length-normalized sequence log-likelihoods, one per sample.
+                          Compute as ``float(np.mean(-token_spilled_energies))`` for each
+                          sample.  Length normalization matches the official implementation
+                          (compute_uncertainty_measures.py line 243: mean over tokens, not
+                          sum).
+        nli_model:        AutoModelForSequenceClassification for NLI.
+        nli_tokenizer:    Matching tokenizer.
+        device:           torch device string.
+        model_name:       Used for label-order lookup (passed through to _build_nli_clusters).
+
+    Returns:
+        Semantic entropy in nats (Rao formula).
+        Higher → more semantic uncertainty → more likely hallucinated.
+        Returns 0.0 if fewer than 2 samples.
+    """
+    if len(samples) < 2:
+        return 0.0
+
+    log_likelihoods = np.array(log_likelihoods, dtype=float)
+
+    cluster_ids = _build_nli_clusters(samples, nli_model, nli_tokenizer, device, model_name)
+    cluster_ids = _reindex_cluster_ids(cluster_ids)
+
+    unique_ids = sorted(set(cluster_ids))
+    log_total = np.log(np.sum(np.exp(log_likelihoods)))  # log normalizer
+
+    log_probs = []
+    for uid in unique_ids:
+        member_lls = log_likelihoods[[i for i, c in enumerate(cluster_ids) if c == uid]]
+        log_probs.append(np.log(np.sum(np.exp(member_lls))) - log_total)
+
+    log_probs = np.array(log_probs)
+    # Rao entropy: -sum(p * log p) using log-space probabilities
+    entropy = -float(np.sum(np.exp(log_probs) * log_probs))
+    return entropy
+
+
 # ── Self-Consistency (Wang et al., 2023) ─────────────────────────────────────
 #
 # Reference: Wang et al. (2023) "Self-Consistency Improves Chain of Thought
@@ -398,6 +467,107 @@ def selfcheck_nli_score(
             if rel == "contradiction":
                 contradiction_count += 1
         sentence_scores.append(contradiction_count / len(sample_responses))
+
+    return float(np.mean(sentence_scores))
+
+
+def _get_contradiction_idx(nli_model) -> int:
+    """Auto-detect the contradiction class index from model config.
+
+    Handles:
+    - 2-class models (e.g. potsawee/deberta-v3-large-mnli, id2label may be None):
+      contradiction is always at index 1.
+    - 3-class models with populated id2label (e.g. cross-encoder/nli-deberta-v3-base):
+      scan labels for "contradict".
+    - 3-class cross-encoder models without id2label: contradiction is at index 0
+      (cross-encoder label order: contradiction, entailment, neutral).
+    - Other 3-class models: contradiction at index 2 (standard MNLI order).
+    """
+    num_labels = getattr(nli_model.config, "num_labels", 3)
+    id2label = getattr(nli_model.config, "id2label", None)
+
+    contradiction_idx = None
+    if id2label:
+        for idx, label in id2label.items():
+            if "contradict" in str(label).lower():
+                contradiction_idx = int(idx)
+                break
+
+    if contradiction_idx is None:
+        if num_labels == 2:
+            contradiction_idx = 1
+        elif num_labels == 3:
+            model_path = str(getattr(nli_model.config, "_name_or_path", "")).lower()
+            if "cross-encoder" in model_path:
+                contradiction_idx = 0
+            else:
+                contradiction_idx = 2
+        else:
+            contradiction_idx = num_labels - 1
+
+    return contradiction_idx
+
+
+def selfcheck_nli_score_official(
+    main_text: str,
+    sample_responses: List[str],
+    nli_model,
+    nli_tokenizer,
+    device: str = "cuda",
+    model_name: str = "cross-encoder/nli-deberta-v3-base",
+    sentence_splitter=None,
+) -> float:
+    """
+    SelfCheckGPT-NLI (paper-accurate variant, Manakul et al. 2023).
+
+    Matches the official implementation (modeling_selfcheck_official.py) in three ways:
+    1. Soft contradiction probability instead of hard argmax classification.
+    2. Premise=sentence, hypothesis=sample ordering (official repo ordering — note the
+       paper text describes the opposite, but the published AUROC numbers were produced
+       with this ordering).
+    3. Contradiction class index auto-detected from model config via _get_contradiction_idx(),
+       handling both 2-class (potsawee/deberta-v3-large-mnli, index 1) and 3-class
+       (cross-encoder/nli-deberta-v3-base, index 0) models.
+
+    Higher score → more contradictions → more likely hallucinated.
+
+    Args:
+        main_text:        Primary generated response.
+        sample_responses: K alternative samples from the same prompt.
+        nli_model:        NLI model (DeBERTa or equivalent).
+        nli_tokenizer:    Matching tokenizer.
+        device:           torch device.
+        model_name:       Kept for API symmetry with selfcheck_nli_score; not used internally.
+        sentence_splitter: Optional callable(str) → List[str].
+
+    Returns:
+        Mean per-sentence soft contradiction probability in [0, 1].
+        NaN if no sentences or no samples.
+    """
+    if not main_text or not sample_responses:
+        return float("nan")
+
+    splitter = sentence_splitter if sentence_splitter is not None else _split_sentences
+    sentences = splitter(main_text)
+
+    if not sentences:
+        return float("nan")
+
+    contradiction_idx = _get_contradiction_idx(nli_model)
+
+    sentence_scores = []
+    for sentence in sentences:
+        sample_probs = []
+        for sample in sample_responses:
+            inputs = nli_tokenizer(
+                sentence, sample,
+                return_tensors="pt", truncation=True, max_length=512,
+            ).to(device)
+            with torch.no_grad():
+                logits = nli_model(**inputs).logits
+            probs = torch.softmax(logits, dim=-1)
+            sample_probs.append(probs[0][contradiction_idx].item())
+        sentence_scores.append(float(np.mean(sample_probs)))
 
     return float(np.mean(sentence_scores))
 

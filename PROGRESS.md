@@ -1,7 +1,7 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-06-26
-**Last updated**: Step 144 — Phase 14 GPQA notebook diagnosed and fixed. Prior inference cache (198 rows) was entirely truncated: MAX_NEW=1024 cut off all responses before </think>, giving invalid labels (19.2% acc), SC (0.476), and VC (13/198 coverage). Notebook fixed: MAX_NEW→4096, FORCE_RECOMPUTE=True, Cell 9 upgraded to lsml_continuous_pipeline (GOOD_5), lsml_ci bug fixed. Must rerun full inference in Colab (~4–5 hrs A100).
+**Last updated**: Step 145 — Paper-accurate baseline corrections in `spectral_utils/baselines.py`. Added `likelihood_weighted_semantic_entropy` (primary SE from Farquhar et al.), `selfcheck_nli_score_official` (soft contradiction probability, correct premise/hypothesis ordering, auto-detected class index), `_reindex_cluster_ids`, `_get_contradiction_idx`, and `discrete_semantic_entropy` alias. No existing functions modified. Existing Phase 12 K-sample caches lack logprobs; re-running K-sample loops required to use likelihood-weighted SE. File has uncommitted changes on `analysis/theorem-validation`.
 
 ---
 
@@ -129,6 +129,7 @@ Note: `min_spilled` sign updated from initial `+1` estimate to `-1` — validate
 **Still needed**:
 - QA datasets: SelfCheckGPT / SE comparison on same model+dataset
 - Phase 14 full rerun: prior cache entirely invalid (MAX_NEW=1024, 0/198 responses have `</think>`). Notebook fixed (Step 144). Needs fresh Colab A100 session (~4–5 hrs).
+- **Baseline function choice**: Phase 12 used D-SE (`official_semantic_entropy`) and hard-argmax SelfCheckGPT (`selfcheck_nli_score`). For paper-accurate comparisons use `likelihood_weighted_semantic_entropy` + `selfcheck_nli_score_official` (Step 145). Note: likelihood-weighted SE requires logprobs — Phase 12 K-sample caches do not have them.
 
 ### Priority 2 — Experiment 1: Sampling fusion (Item 5, Colab GPU)
 
