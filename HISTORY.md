@@ -4708,3 +4708,30 @@ Math/GSM8K remain tight (+/-1pp — long reasoning near the ceiling); GPQA and s
 - `CLAUDE.md` — added review instruction for SUPERVISED_ORACLE_CORRECTION.md
 
 ---
+
+### Step 144 — Diagnose and fix Phase 14 GPQA notebook (truncated inference + pipeline upgrade)
+
+**What**: Investigated why Phase 14 (GPQA Diamond / DeepSeek-R1-0528-Qwen3-8B) produced
+suspicious results (19.2% accuracy, SC AUROC 0.476 vs paper's 0.648). Downloaded the cached
+pkl from Drive and found that 0 of 198 responses contain `</think>` — the model's thinking
+traces were all cut off mid-thought by `MAX_NEW=1024`, which is far too short for DeepSeek-R1's
+chain-of-thought format (typically 2000–6000 tokens). As a result, labels were extracted from
+mid-reasoning text via fallback regex, making correctness labels, SC scores, and VC scores all
+invalid. The inference must be fully rerun.
+
+**Why**: Phase 14 is the GPQA comparison needed to complete benchmarking (advisor Item 4):
+L-SML@K=1 vs VC/SC/SCVC@K=2 from arXiv:2603.19118. Analysis cells 9–11 had never run
+(no outputs in notebook), and Cell 9 still used the old binary pipeline.
+
+**Result**: Notebook fixed and ready to rerun in Colab. Full inference (~4–5 hrs on A100)
+required; no results yet.
+
+**Files changed**:
+- `notebooks/Spectral_Analysis_Phase14_GPQA_Comparison.ipynb` — 5 cell edits:
+  Cell 1: added `lsml_continuous_pipeline` import;
+  Cell 2: `MAX_NEW 1024→4096`, added `GOOD_FEATURES`;
+  Cell 6: `FORCE_RECOMPUTE=True`, added truncation-detection guard;
+  Cell 9: replaced `binarize_classifiers`+`lsml_fuse` with `lsml_continuous_pipeline(GOOD_5)`;
+  Cell 11: fixed undefined `lsml_ci` → `lsml_lo`/`lsml_hi`, `FORCE_SAVE=True`
+
+---

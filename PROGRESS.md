@@ -1,7 +1,7 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-06-25
-**Last updated**: Step 143 — LR oracle evaluation corrected (two bugs: cross_val_predict concatenation + missing class_weight='balanced'). Corrected result: supervised LR (67.1–67.6% balanced averaged-fold CV) beats L-SML by 2–5pp; in-sample ceiling 71–73%. See SUPERVISED_ORACLE_CORRECTION.md. Items 1 and 2 from advisor meeting both complete.
+**Date**: 2026-06-26
+**Last updated**: Step 144 — Phase 14 GPQA notebook diagnosed and fixed. Prior inference cache (198 rows) was entirely truncated: MAX_NEW=1024 cut off all responses before </think>, giving invalid labels (19.2% acc), SC (0.476), and VC (13/198 coverage). Notebook fixed: MAX_NEW→4096, FORCE_RECOMPUTE=True, Cell 9 upgraded to lsml_continuous_pipeline (GOOD_5), lsml_ci bug fixed. Must rerun full inference in Colab (~4–5 hrs A100).
 
 ---
 
@@ -128,7 +128,7 @@ Note: `min_spilled` sign updated from initial `+1` estimate to `-1` — validate
 
 **Still needed**:
 - QA datasets: SelfCheckGPT / SE comparison on same model+dataset
-- Phase 14 Cell 9 re-run: DeepSeek-R1-0528-Qwen3-8B / GPQA (L-SML v2 AUROC still TBD; Cell 9 `n_boot` kwarg bug needs fix — see Running Experiments below)
+- Phase 14 full rerun: prior cache entirely invalid (MAX_NEW=1024, 0/198 responses have `</think>`). Notebook fixed (Step 144). Needs fresh Colab A100 session (~4–5 hrs).
 
 ### Priority 2 — Experiment 1: Sampling fusion (Item 5, Colab GPU)
 
@@ -202,15 +202,7 @@ git push origin master
 - **Step 132** (priority): `Spectral_Analysis_SpilledEnergy_Verify.ipynb` on `experiment/lsml-variants`
 - **Phase 13**: `Spectral_Analysis_MathComp_Phase13.ipynb` — L-SML vs EDIS, Qwen2.5-Math-1.5B
 - **Phase 14**: `Spectral_Analysis_Phase14_GPQA_Comparison.ipynb` — L-SML vs VC/SC, GPQA Diamond
-  - **Known bug in Drive copy**: old Cell 9 uses `boot_auc(..., n_boot=1000)` (wrong kwarg). Fix:
-    ```python
-    p_auc, p_lo, p_hi = boot_auc(labels[valid_mask], lsml_full[valid_mask])
-    n_auc, n_lo, n_hi = boot_auc(labels[valid_mask], -lsml_full[valid_mask])
-    if p_auc >= n_auc:
-        lsml_auc, lsml_lo, lsml_hi = p_auc, p_lo, p_hi
-    else:
-        lsml_auc, lsml_lo, lsml_hi = n_auc, n_lo, n_hi
-    ```
+  - **Fixed (Step 144)**: MAX_NEW→4096, FORCE_RECOMPUTE=True, Cell 9 uses `lsml_continuous_pipeline`, `lsml_ci` bug fixed. Upload fixed notebook to Drive and run from Cell 1.
 
 ---
 
