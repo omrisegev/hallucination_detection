@@ -1,7 +1,7 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-06-26
-**Last updated**: Step 145 — Paper-accurate baseline corrections in `spectral_utils/baselines.py`. Added `likelihood_weighted_semantic_entropy` (primary SE from Farquhar et al.), `selfcheck_nli_score_official` (soft contradiction probability, correct premise/hypothesis ordering, auto-detected class index), `_reindex_cluster_ids`, `_get_contradiction_idx`, and `discrete_semantic_entropy` alias. No existing functions modified. Existing Phase 12 K-sample caches lack logprobs; re-running K-sample loops required to use likelihood-weighted SE. File has uncommitted changes on `analysis/theorem-validation`.
+**Date**: 2026-06-28
+**Last updated**: Step 146 — Phase 12 Corrected notebook (`Spectral_Analysis_Phase12_Corrected.ipynb`) created and launched on Colab A100. Paper-accurate LW-SE and SelfCheckGPT-official baselines, L-SML strict 1-pass, sampling fusion (advisor Item 5) as 6-view `lsml_continuous_pipeline`. `analysis/theorem-validation` fast-forward merged into `master` — all work is now on master.
 
 ---
 
@@ -85,8 +85,8 @@ These 6 items are the current priority order. They supersede the old Step 132 GP
 | 1 | **L-SML literature search** — find Nadler post-2016 follow-up work extending or improving L-SML | ✅ Complete (Step 141) |
 | 2 | **Logistic regression oracle** — supervised LR on 5/9/16 feature sets → upper bound on fusion AUROC (5-fold CV, no in-sample leakage) | ✅ Complete (Steps 142–143: evaluation corrected) |
 | 3 | **Extend QA evaluation** — run more QA datasets (NQ, SQuAD v2, AmbigQA, PopQA) to characterise CoT factual QA performance | Not started |
-| 4 | **Benchmarking completion** — model-matched comparisons for MATH-500, GSM8K, QA vs SE/SC/SelfCheckGPT | In progress (Step 135 partial) |
-| 5 | **Experiment 1 — Sampling fusion** — fuse SE (K=10) with single-pass spectral features; measure AUROC gain vs each alone | Not started |
+| 4 | **Benchmarking completion** — model-matched comparisons for MATH-500, GSM8K, QA vs SE/SC/SelfCheckGPT | In progress — Phase 12 Corrected running on Colab A100 (Step 146) |
+| 5 | **Experiment 1 — Sampling fusion** — fuse SE (K=10) with single-pass spectral features; measure AUROC gain vs each alone | In progress — included in Phase 12 Corrected (Step 146) |
 | 6 | **Experiment 2 — Temperature variation** — run same model at T∈{0.3,0.6,1.0,1.5,2.0}; does higher T improve detectability? Ablate: T-diversity vs just more passes | Not started |
 
 See `Research_Directions.md` § "Meeting Action Items — Jun 17, 2026" for full experimental designs.
@@ -122,18 +122,26 @@ Note: `min_spilled` sign updated from initial `+1` estimate to `-1` — validate
 
 *Priority order from the Jun 17 meeting. See table in "MEETING ACTION ITEMS" section above for status.*
 
-### Priority 1 — Benchmarking completion (Item 4, partial)
+### Priority 1 — Phase 12 Corrected results (Items 4 + 5, RUNNING)
 
-**Done** (Step 135): MATH-500 94.4% vs SE 87.7/SC 87.2 ✅ | GSM8K 75.6% vs SC 78.5/SE 77.4 ✅
+**`Spectral_Analysis_Phase12_Corrected.ipynb` is currently running on Colab A100** (~4–6 hrs total).
 
-**Still needed**:
-- QA datasets: SelfCheckGPT / SE comparison on same model+dataset
-- Phase 14 full rerun: prior cache entirely invalid (MAX_NEW=1024, 0/198 responses have `</think>`). Notebook fixed (Step 144). Needs fresh Colab A100 session (~4–5 hrs).
-- **Baseline function choice**: Phase 12 used D-SE (`official_semantic_entropy`) and hard-argmax SelfCheckGPT (`selfcheck_nli_score`). For paper-accurate comparisons use `likelihood_weighted_semantic_entropy` + `selfcheck_nli_score_official` (Step 145). Note: likelihood-weighted SE requires logprobs — Phase 12 K-sample caches do not have them.
+This notebook produces in one run:
+- Paper-accurate competitor AUROCs: LW-SE (Farquhar et al. primary), SelfCheckGPT-official (soft probability + correct premise/hypothesis order), SC K=10, D-SE (Phase 12 comparison row)
+- L-SML as strict 1-pass (single `generate_full()` per question)
+- **Sampling fusion (Item 5)**: LW-SE + GOOD_5 spectral features as 6-view `lsml_continuous_pipeline`; Spearman ρ check before fusing
+- Domains: GSM8K/Llama-8B, MATH-500/Qwen-Math-7B, GPQA/Qwen-7B, RAG×4/Qwen-7B
+- Cache isolated at `phase12_corrected/` (separate from `phase12_baselines/`)
 
-### Priority 2 — Experiment 1: Sampling fusion (Item 5, Colab GPU)
+**When it finishes**: add Step 146 HISTORY.md entry with actual AUROCs. Template is in Cell 26 of the notebook.
 
-Fuse SE (K=10) with CONT spectral features on one cell (MATH-500 or GSM8K). Key check: Spearman ρ(SE, spectral_score) < 0.75 before fusing.
+**Still needed separately**:
+- Phase 14 full rerun (GPQA/DeepSeek-R1, `Spectral_Analysis_Phase14_GPQA_Comparison.ipynb`): fixed in Step 144, needs fresh Colab A100 (~4–5 hrs).
+- QA datasets (Item 3): NQ, SQuAD v2, AmbigQA — not started.
+
+### Priority 2 — Temperature variation experiment (Item 6, Colab GPU)
+
+Run Qwen2.5-Math-7B on MATH-500 at T∈{0.3, 0.6, 1.0, 1.5, 2.0}. (T=1.0 and T=1.5 caches already exist.)
 
 ### Priority 3 — Temperature variation experiment (Item 6, Colab GPU)
 
@@ -186,15 +194,11 @@ Group C — structural: rpdi, dominant_freq, stft_max_high_power
 
 | Branch | Status | Contents |
 |--------|--------|----------|
-| `master` | Production | Steps 1–125; 16-feature binarized L-SML |
-| `experiment/lsml-variants` | **Active, not merged** | Continuous L-SML + spilled energy + GSM8K verify + parser fix (Steps 128–131) |
+| `master` | **Current — all work here** | All Steps through 146; continuous L-SML, baselines.py corrections, Phase 12 Corrected notebook |
+| `experiment/lsml-variants` | Superseded (can delete) | Continuous L-SML development — all merged into master via `analysis/theorem-validation` |
+| `analysis/theorem-validation` | Merged — can delete | Steps 131–146; fast-forward merged to master (Step 146) |
 
-**To merge** (after Step 132 validation):
-```bash
-git checkout master
-git merge experiment/lsml-variants
-git push origin master
-```
+Colab clones `master` by default. All new work should be committed directly to master or a short-lived feature branch merged quickly.
 
 ---
 
@@ -267,7 +271,7 @@ git push origin master
 4. HTML table: per domain, per model, same-task/same-model/same-dataset only.
 5. Cite Jaffé-Fetaya-Nadler 2016. Never say "Nadler" alone. Method name = L-SML.
 6. Never say "MV_EPR" — the method is spectral/L-SML.
-7. Branch cleanup done — only `master`, `origin/main`, and `experiment/lsml-variants` remain.
+7. Branch cleanup done — all work on `master`. `analysis/theorem-validation` and `experiment/lsml-variants` are superseded and can be deleted.
 8. Hedging count: ruled out — not formalized, domain-dependent, weaker than spectral.
 9. Continuous L-SML (`lsml_continuous_pipeline`) is the candidate replacement — pending Step 132 validation before merge.
 10. Verbalized confidence on 1.5B: null result (Step 131). Do not include in GOOD_FEATURES for 1.5B runs.

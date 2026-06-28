@@ -4736,6 +4736,21 @@ required; no results yet.
 
 ---
 
+### Step 146 — Phase 12 Corrected notebook + branch consolidation
+
+**What**: Created `notebooks/Spectral_Analysis_Phase12_Corrected.ipynb` (26 cells) — a corrected re-run of Phase 12 benchmarking that (1) uses paper-accurate baselines (LW-SE, SelfCheckGPT-official) instead of the Phase 12 D-SE/hard-argmax variants, (2) keeps L-SML as strict 1-pass (single `generate_full()` per question for spectral features), and (3) implements sampling fusion (advisor Item 5) by adding LW-SE as a 6th view in `lsml_continuous_pipeline`. Also exported 3 new functions from `spectral_utils/__init__.py` (previously defined in baselines.py but missing from the package). Fixed Colab `ImportError: cannot import name 'discrete_semantic_entropy'` by merging `analysis/theorem-validation` into `master` via fast-forward (no conflicts — theorem-validation was strictly ahead by 20 commits).
+
+**Why**: Phase 12 baselines used D-SE (count-only cluster entropy) and hard-argmax SelfCheckGPT, which understate the competitor methods' true performance. Advisor Item 5 asks for sampling fusion combining spectral (single-pass) with a method that uses the generated answer directly (SE, K=10). The Colab ImportError revealed that the new functions existed on `analysis/theorem-validation` but Colab always clones `master` — the feature branch needed to be merged to unblock all GPU work.
+
+**Result**: Notebook launched and running on Colab A100 (~4–6 hrs total: two-pass inference + NLI computation for GSM8K/Llama-8B, MATH-500/Qwen-Math-7B, GPQA/Qwen-7B, RAG×4). Master now contains all work through Step 146. Results pending.
+
+**Files changed**:
+- `spectral_utils/__init__.py` — added `discrete_semantic_entropy`, `likelihood_weighted_semantic_entropy`, `selfcheck_nli_score_official` to import block and `__all__`
+- `notebooks/Spectral_Analysis_Phase12_Corrected.ipynb` — new 26-cell notebook; cache at `phase12_corrected/` (isolated from `phase12_baselines/`)
+- `master` branch — fast-forward merged from `analysis/theorem-validation`; `analysis/theorem-validation` can now be deleted
+
+---
+
 ### Step 145 — Paper-accurate baseline corrections in baselines.py (SE and SelfCheckGPT)
 
 **What**: Audited `spectral_utils/baselines.py` against the official SE (Farquhar et al., Nature 2024) and SelfCheckGPT (Manakul et al., EMNLP 2023) repositories. Found and confirmed four discrepancies; added paper-accurate variants without modifying any existing functions.
