@@ -66,8 +66,11 @@ from .baselines import (
     lite_semantic_entropy_for_statement, mean_neg_logprob_baseline,
     nli_load_model, nli_classify,
     official_semantic_entropy,
+    discrete_semantic_entropy,
+    likelihood_weighted_semantic_entropy,
     self_consistency_score,
     selfcheck_nli_score,
+    selfcheck_nli_score_official,
     parse_verbalized_confidence, VERBALIZED_CONF_SUFFIX,
 )
 from .agent_utils import (
@@ -115,8 +118,11 @@ __all__ = [
     "lite_semantic_entropy_for_statement", "mean_neg_logprob_baseline",
     "nli_load_model", "nli_classify",
     "official_semantic_entropy",
+    "discrete_semantic_entropy",
+    "likelihood_weighted_semantic_entropy",
     "self_consistency_score",
     "selfcheck_nli_score",
+    "selfcheck_nli_score_official",
     "parse_verbalized_confidence", "VERBALIZED_CONF_SUFFIX",
     "react_system_prompt", "react_user_prompt",
     "parse_thought", "parse_action", "parse_confidence", "parse_concern",
