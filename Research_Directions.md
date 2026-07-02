@@ -259,29 +259,57 @@ Register a forward hook on a transformer layer; compute variance of hidden state
 
 Apply spectral features to visual language models; split visual-description tokens vs factual-claim tokens. Not started. Only if committee wants a multimodal chapter.
 
+### Extension E — Streaming / Online Detection (pivot candidate — pilot ✅ COMPLETED, Step 148)
+
+**Status**: Pilot run 2026-07-02, local CPU, pre-registered gates. **Verdict: pivot NOT supported in its original framing (G2 FAIL); one significant surviving thread.** Full narrative: HISTORY.md Step 148; explainer: `results/Streaming_Pilot_Explainer.html`.
+
+**Hypothesis**: the spectral suite computed on growing prefixes of H(n) detects a failing CoT *while it is generated* — unsupervised, logprob-only — and beats a naive windowed statistic in that streaming regime.
+
+**Competitor** (closest prior work): *Streaming Hallucination Detection in Long CoT Reasoning*, arXiv:2601.02170 (BUPT/NTU/SWJTU/RUC, **arXiv preprint Jan 2026**, no venue as of Jul 2026). SUPERVISED probes over intermediate **hidden states** (anchor + synchronization losses), step labels annotated by Claude-4.5; custom MuSiQue-derived long-CoT set (10k+ trajectories / 200k+ steps). Prefix-level AUC: LLaMA-3.1-8B 72.69 / Qwen2.5-7B 81.05 / R1-Distill-8B 92.18. Their own limitations: "not directly applicable to black-box or API-only settings" — exactly our setting. **Reproducible baseline**: DeepConf (arXiv:2508.15260, Meta, Aug 2025) lowest-group-confidence — black-box, computable on our cached traces, hence the primary bar (G2).
+
+**Pilot results** (2 clean cells: GSM8K/Llama-8B n=200, MATH-500/Qwen-1.5B n=400 non-canonical; 2 R1/GPQA cells excluded — 99–100% truncated at 1024-token cap):
+- **G1 PASS** — AUROC@50%-of-trace ≥ 95% of full-trace on both clean cells; 32 tokens ≈ 91% of full signal on GSM8K. Early signal is real.
+- **G2 FAIL** — fused L-SML does not clear +2pp over the best DeepConf window at ≥2 absolute budgets on ≥2 clean cells. Over most of the trace, the fusion ≈ windowed entropy mean.
+- **Surviving thread** — the only *significant* spectral edge (paired bootstrap) is in the **earliest 10% of the trace, on both clean cells**: +9.8pp GSM8K, +4.6pp MATH-500. Fusion helps exactly where windows starve.
+- **G3 context** — our unsupervised GSM8K/Llama-8B 75.4 (L-SML-5) vs their supervised hidden-state 72.69 on the same model family (different benchmark + label protocol; context only).
+- **E3/E4** — best causal monitor flags 38% of wrong GSM8K traces @10% FA, saving 28% of wasted tokens.
+
+**Data debt exposed**: MATH-500/Qwen-7B (our ~90% cell) has NO raw-trace cache anywhere (Phase-12 K10 files are texts-only); no clean R1 cell exists (all capped at 1024 mid-`<think>`).
+
+**Next steps (in order)**:
+1. Colab re-inference: MATH-500/Qwen-7B + one R1 cell with ≥4096-token cap, saving `token_entropies` + top-50 logprobs (raw-data rule).
+2. Replicate the earliest-prefix edge there — absolute budgets only (fractions need oracle length), n large enough for the paired test.
+3. If replicated → reframe as **hybrid early-warning monitor** (spectral early / windowed late), not "fusion wins everywhere" (G2 refutes that).
+4. Method: per-budget refusion is sign-unstable (anchor_orient mitigates; 16-feat still erratic) → fit fusion weights once at a reference budget offline, reuse across budgets.
+5. Advisor decision: pursue hybrid framing vs fold streaming in as a thesis section.
+
 ---
 
 ## Recommended Priority Order
 
-*(Single authoritative list — updated 2026-06-23, post Jun 17 advisor meeting)*
+*(Single authoritative list — updated 2026-07-02, post streaming pilot Step 148)*
 
 **Now — no GPU needed**
 1. ~~L-SML literature search (Item 1)~~ ✅ done (Step 139)
-2. Logistic regression oracle `scripts/logistic_oracle.py` (Item 2)
+2. ~~Logistic regression oracle `scripts/logistic_oracle.py` (Item 2)~~ ✅ done (Steps 142–143, 147)
+3. ~~Streaming pivot pilot (Extension E)~~ ✅ done (Step 148 — G1 PASS / G2 FAIL; earliest-prefix edge is the surviving thread)
+4. Present streaming pilot verdict to advisors → decide hybrid framing vs thesis section (Extension E step 5)
 
 **Next Colab session**
-3. Benchmarking: fix `boot_auc` kwarg → Phase 14 Cell 9 re-run (Item 4)
-4. Sampling fusion: SE K=10 + CONT spectral (Item 5)
-5. Temperature variation: T=0.3/0.6/2.0 inference + A/B ablation (Item 6)
+5. Benchmarking: fix `boot_auc` kwarg → Phase 14 Cell 9 re-run (Item 4)
+6. **Raw-trace regeneration** (Extension E step 1): MATH-500/Qwen-7B + one R1 cell with ≥4096-token cap, saving `token_entropies` + top-50 logprobs — unblocks the earliest-prefix replication AND repays the raw-data debt
+7. Sampling fusion: SE K=10 + CONT spectral (Item 5)
+8. Temperature variation: T=0.3/0.6/2.0 inference + A/B ablation (Item 6)
 
 **Subsequent Colab sessions**
-6. Extend QA evaluation: NQ, SQuAD v2, AmbigQA, PopQA (Item 3)
-7. Extension A (Conformal): A1 frozen scorer + imbalance metrics first, then A2 LTT
+9. Streaming earliest-prefix replication on the regenerated cells (Extension E steps 2–3; local CPU once traces exist)
+10. Extend QA evaluation: NQ, SQuAD v2, AmbigQA, PopQA (Item 3)
+11. Extension A (Conformal): A1 frozen scorer + imbalance metrics first, then A2 LTT
 
 **Later**
-8. Extension B (Agentic): Qwen3-7B, HotpotQA multi-hop
-9. Extension C (Hidden states): one forward hook on Falcon
-10. Extension D (VLM): only if committee wants multimodal chapter
+12. Extension B (Agentic): Qwen3-7B, HotpotQA multi-hop
+13. Extension C (Hidden states): one forward hook on Falcon
+14. Extension D (VLM): only if committee wants multimodal chapter
 
 **De-prioritized (valid but not blocking)**
 - Step 132: MATH-500 SpilledEnergy GPU run — run opportunistically when Colab is free

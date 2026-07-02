@@ -4863,3 +4863,10 @@ GSM8K/Llama-8B: lsml5 rises 0.616 (16 tok) → 0.684 (32) → 0.754 (full); best
 **Result**: Early signal is real (G1), but the spectral suite does not clear the pre-registered +2pp bar over a windowed-mean baseline in the streaming regime (G2 FAIL) — the honest verdict is that the pivot in its current framing is not supported. The one consistent positive: a significant spectral edge in the earliest 10% of the trace on both clean cells, i.e. the fusion helps exactly where windowed statistics are starved (few tokens). If the streaming direction continues, that is the thread to pull — and it needs better data first: re-run inference saving raw traces for MATH-500/Qwen-7B + an R1 cell with a ≥4096-token cap.
 
 ---
+#### Step 148 addendum — competitor provenance verified + explainer deliverable
+
+Re-fetched arXiv:2601.02170 full text to ground the comparison claims: authors Lu, Pan, Li, Nan, Zhuang, Zhao, Sun, Wang, Liu (BUPT / NTU / Southwest Jiaotong / Renmin U); **arXiv preprint January 2026, no peer-reviewed venue as of July 2026**. Method confirmed white-box + supervised: probe over intermediate hidden states (best at intermediate layers), anchor loss (final-step correctness) + synchronization loss, exponentially weighted within-step token representations; labels annotated by Claude-4.5 with consistency checks + manual review; custom MuSiQue-derived long-CoT dataset, 10k+ trajectories / 200k+ steps; baselines TTPD / SAPLMA / ICR Probe / LLM-Check / global-mean. Their limitations section states the method "relies on access to intermediate hidden states" and "is therefore not directly applicable to black-box or API-only settings" — our exact operating regime, which is the differentiation.
+
+Deliverable: `results/Streaming_Pilot_Explainer.html` — self-contained explainer (what we tried, the competitor and its protocol, white-box/supervised comparison table, pilot gate results with caveats, prioritized next steps; embeds the prefix-AUROC + online-monitor figures). Extension E added to Research_Directions.md with the pilot verdict and the updated priority order.
+
+---
