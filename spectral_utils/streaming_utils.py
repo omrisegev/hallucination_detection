@@ -135,6 +135,36 @@ def prefix_feature_matrix(traces, n: int, feat_names: list):
     return {f: mat[:, i] for i, f in enumerate(feat_names)}, valid
 
 
+def anchor_orient(scores, anchor):
+    """
+    Resolve the global ± of an unsupervised fused score via a fixed anchor view.
+
+    L-SML's leading-eigenvector sign is ambiguous; the majority-vote rule in
+    sml_fuse_signed is a coin flip at K=2 (two cross-level components) and
+    whenever ~half the views violate the consensus orientation.  Refusing per
+    prefix budget re-rolls that coin at every budget, so budget curves flip
+    erratically.  Fix: orient the fused score to correlate positively with a
+    single anchor view chosen OFFLINE from domain knowledge — oriented epr
+    (higher mean token entropy → more likely wrong).  Labels are never used.
+
+    Args:
+        scores: fused score array (arbitrary global sign).
+        anchor: anchor view array, already sign-oriented (higher = correct).
+
+    Returns:
+        (oriented_scores, flipped: bool)
+    """
+    s = np.asarray(scores, dtype=float)
+    a = np.asarray(anchor, dtype=float)
+    sd_s, sd_a = s.std(), a.std()
+    if sd_s < 1e-12 or sd_a < 1e-12:
+        return s, False
+    r = float(np.corrcoef(s, a)[0, 1])
+    if r < 0:
+        return -s, True
+    return s, False
+
+
 # ---------------------------------------------------------------------------
 # DeepConf-style windowed-confidence baseline
 # ---------------------------------------------------------------------------

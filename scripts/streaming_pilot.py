@@ -33,7 +33,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from spectral_utils import (  # noqa: E402
-    FEAT_NAMES, FEATURE_SIGNS, boot_auc,
+    FEAT_NAMES, FEATURE_SIGNS, anchor_orient, boot_auc,
     causal_trajectories, deepconf_lowest_group_conf, deepconf_tail_conf,
     iter_entropy_traces, lsml_continuous_pipeline, online_flag_curve,
     prefix_feature_matrix,
@@ -101,11 +101,13 @@ def scores_at_budget(traces, n_tokens):
     pref_valid = [p for p, v in zip(prefixes, valid) if v]
 
     scores, meta = {}, {}
+    epr_view = -fd["epr"]  # oriented anchor: higher = more likely correct
     for tag, feats in (("lsml16", H16), ("lsml5", GOOD_5)):
         fused, m = lsml_continuous_pipeline(fd, feats, FEATURE_SIGNS)
+        fused, flipped = anchor_orient(fused, epr_view)
         scores[tag] = fused
-        meta[tag] = {"K": m["K"], "residual": m["residual"]}
-    scores["epr"] = -fd["epr"]
+        meta[tag] = {"K": m["K"], "residual": m["residual"], "anchor_flip": flipped}
+    scores["epr"] = epr_view
     scores["max_ent"] = np.array([-p.max() for p in pref_valid])
     scores["tail_conf"] = np.array([deepconf_tail_conf(p) for p in pref_valid])
     for w in DEEPCONF_WINDOWS:
@@ -138,7 +140,10 @@ def run_e1_e2(cells, res, out_path, n_boot):
                     prefs = [frac_prefix(tr, b) for tr in traces]
                     scores, valid, meta = scores_at_budget(prefs, None)
                 y = labels[valid]
-                entry = {"n_valid": int(valid.sum()), "meta": meta, "auc": {}}
+                entry = {"n_valid": int(valid.sum()), "meta": meta, "auc": {},
+                         "labels": y.astype(np.int8),
+                         "scores": {t: np.asarray(s, dtype=np.float32)
+                                    for t, s in scores.items()}}
                 for tag, sc in scores.items():
                     a, lo, hi = boot_auc(y, sc, n=n_boot)
                     entry["auc"][tag] = (float(a), float(lo), float(hi))

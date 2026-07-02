@@ -74,7 +74,7 @@ from .baselines import (
     parse_verbalized_confidence, VERBALIZED_CONF_SUFFIX,
 )
 from .streaming_utils import (
-    FEATURE_SIGNS, iter_entropy_traces,
+    FEATURE_SIGNS, iter_entropy_traces, anchor_orient,
     prefix_features, prefix_feature_matrix,
     deepconf_lowest_group_conf, deepconf_tail_conf,
     causal_trajectories, earliness_index, online_flag_curve,
@@ -130,7 +130,7 @@ __all__ = [
     "selfcheck_nli_score",
     "selfcheck_nli_score_official",
     "parse_verbalized_confidence", "VERBALIZED_CONF_SUFFIX",
-    "FEATURE_SIGNS", "iter_entropy_traces",
+    "FEATURE_SIGNS", "iter_entropy_traces", "anchor_orient",
     "prefix_features", "prefix_feature_matrix",
     "deepconf_lowest_group_conf", "deepconf_tail_conf",
     "causal_trajectories", "earliness_index", "online_flag_curve",
