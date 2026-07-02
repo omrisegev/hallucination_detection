@@ -4829,3 +4829,37 @@ FUSE (Lee, …, Candès; arXiv:2604.18547) ensembles many external verifier mode
 - memory — `feedback-lsml-5feat-degenerate` corrected (0.707 not 0.5/0.5); `project-fuse-positioning` created
 
 ---
+
+### Step 148 — Streaming pivot pilot: prefix/online detection vs DeepConf + supervised-probe context (local CPU)
+
+**What**: Ran the approved streaming-pivot pilot entirely locally (no GPU): compute the 16-feature suite on growing prefixes of H(n), fuse with continuous L-SML, and measure (E1) AUROC vs token budget, (E2) baseline shoot-out vs DeepConf-style lowest-group-confidence / mean / max / tail entropy at every budget, (E3) causal online monitor with threshold sweep, (E4) early-exit token savings. Label protocol: final-answer correctness only; labels used for evaluation only.
+
+**Why**: Step 147 + July-2026 conference sweep flagged trace-native streaming detection as the pivot candidate. Primary competitor "Streaming Hallucination Detection in Long CoT Reasoning" (arXiv:2601.02170) uses SUPERVISED hidden-state probes (Claude-4.5 step annotations): prefix-level AUC LLaMA-3.1-8B 72.69 / Qwen2.5-7B 81.05 / DeepSeek-R1-8B 92.18. We are unsupervised + logprob-only. Reproducible-on-our-data baseline: DeepConf (arXiv:2508.15260) lowest group confidence, windows {32,64,128}.
+
+#### Infrastructure (all committed before use)
+- `spectral_utils/streaming_utils.py` — FEATURE_SIGNS, tolerant `iter_entropy_traces` (list schema, K>1 traces/corrects, int-keyed Phase-1/2 dicts with `token_entropies|main_entropies` + `label|correct`), `prefix_features`/`prefix_feature_matrix`, `deepconf_lowest_group_conf`/`deepconf_tail_conf`, `causal_trajectories` (running mean/max, streaming CUSUM, trailing-window variance, group-conf-so-far — all O(n)), `earliness_index`, `online_flag_curve`, `anchor_orient`.
+- `scripts/streaming_pilot.py` — driver, per-(cell,budget) checkpointing, stores raw scores + labels per unit (derive-later). `scripts/streaming_pilot_report.py` — merge, gates, competitor table, figures (`results/figs/`).
+- **anchor_orient fix**: refusing L-SML at every prefix budget re-rolls the leading-eigenvector global sign (coin flip at K=2 cross level; canonical single-shot runs just landed lucky). First run produced mirror curves (lsml16 0.331 vs DeepConf 0.671 on the same cell). Fix: orient fused score to correlate positively with the oriented-epr anchor view — offline domain-knowledge choice, label-free. 16-feat fusion remains budget-unstable even anchored (gsm8k abs=256: 0.363); 5-feat is stable — consistent with the K=2 ±0.707 degeneracy notes.
+
+#### Data (provenance + gaps)
+| cache | stage generated | usable? |
+|---|---|---|
+| `p1_gsm8k_llama8b.pkl` (n=200, 80% correct) | Step 146 Phase 12 Corrected, part 1 | ✅ clean — token_entropies + correct (k_samples are SE-baseline texts only) |
+| `p2c_gpqa_deepseek_r1_7b_inference.pkl` (n=150) | Step 146 Phase 12 Corrected, part 2c | ⚠️ 99% of traces at the 1024-token cap → TRUNC flag |
+| `p4_math500_qwen7b_k10.pkl`, `p1_gsm8k_llama8b_k10.pkl` | Step 146 Phase 12 Corrected, parts 4/1-K10 | ❌ **no entropy traces** (texts/answers only — SC/SE caches) |
+| `math500_T1.0.pkl` (n=400, 20.7% correct) | early MATH-500/Qwen-1.5B phase folder on Drive | ✅ but **non-canonical** — canonical Step-100 cell is n=300 @ 44.3%, epr AUROC 0.856 vs 0.671 here (different run) |
+| `deepseek_r1_8b_gpqa_k2.pkl` (n=396) | recent R1/GPQA K=2 verbalized-confidence run | ⚠️ 100% truncated mid-`<think>` → labels confounded, TRUNC flag |
+
+Gap: MATH-500/Qwen-7B (our 90% cell) has **no raw trace cache anywhere** — Phase-12 K10 runs saved texts only. No clean R1 cell exists (both capped at 1024). 2 clean cells + 2 TRUNC = the gate minimum, pilot-grade only.
+
+#### Results (AUROC, unsupervised, final-answer labels)
+GSM8K/Llama-8B: lsml5 rises 0.616 (16 tok) → 0.684 (32) → 0.754 (full); best DeepConf 0.571 → 0.655 → 0.735. MATH-500/Qwen-1.5B: lsml5 0.531 → 0.635 (32) → 0.656 (full); DeepConf 0.563 → 0.611 → 0.672. TRUNC cells ~0.35–0.57 throughout (no valid signal — as expected).
+
+- **G1 (early detectability): PASS** — AUROC@50%-of-trace ≥ 95% of full-trace on both clean cells (lsml16: 0.693/0.710 gsm8k, 0.650/0.669 math500). Signal saturates early; at 32 absolute tokens lsml5 already has ~91% of its full-trace AUROC on gsm8k.
+- **G2 (spectral > DeepConf +2pp, ≥2 abs budgets, ≥2 clean cells): FAIL** as pre-registered (lsml16: 0 cells; lsml5: gsm8k only). Paired bootstrap (stored scores): the **only significant** lsml5−DeepConf deltas are at frac=0.1 on BOTH clean cells — gsm8k +9.8pp [+2.3,+17.1], math500 +4.6pp [+0.6,+8.7]. All absolute-budget deltas positive at 16–128 tokens but ns at pilot n. Caveat: frac budgets use oracle trace length.
+- **G3 (context vs supervised probes)**: gsm8k/Llama-8B ours 75.4 (lsml5) / 73.5 (DeepConf) vs their supervised LLaMA-3.1-8B 72.69 — an unsupervised logprob-only signal at supervised-hidden-state-probe level on the matching model family (different benchmark + label protocol; context only). math500 Qwen-1.5B 67.9 vs their Qwen2.5-7B 81.05 (weak model match + non-canonical cell). R1: no valid comparison (truncation).
+- **E3/E4 online monitor**: best causal monitor on gsm8k = running-max entropy: det 38% of wrong traces @ 10% false alarms, saving 28% of wasted wrong-trace tokens (aborting at flag). math500: 28% @ FA10, 8% saved. TRUNC cells ≈ nothing.
+
+**Result**: Early signal is real (G1), but the spectral suite does not clear the pre-registered +2pp bar over a windowed-mean baseline in the streaming regime (G2 FAIL) — the honest verdict is that the pivot in its current framing is not supported. The one consistent positive: a significant spectral edge in the earliest 10% of the trace on both clean cells, i.e. the fusion helps exactly where windowed statistics are starved (few tokens). If the streaming direction continues, that is the thread to pull — and it needs better data first: re-run inference saving raw traces for MATH-500/Qwen-7B + an R1 cell with a ≥4096-token cap.
+
+---
