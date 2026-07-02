@@ -4785,3 +4785,47 @@ required; no results yet.
 - `spectral_utils/baselines.py` — 182 lines added after line 290 and after `selfcheck_nli_score`; no existing code modified
 
 ---
+
+### Step 147 — Bracha reply + Ofir FUSE concern: LR-oracle validation, weight experiment, convergence figure, FUSE positioning
+
+**What**: Bracha replied to the Item-1/Item-2 advisor update with four questions — (Q1) the FUSE paper is "very close in spirit," (Q2) "LR with 5 features performs best, surprisingly close to unsupervised," (Q3) what do "cell" and "in-sample ceiling" mean, (Q4) do the LR weights correlate with the L-SML weights — and Ofir separately flagged the Candès FUSE paper. This step audits the LR-oracle numbers, runs the weight-agreement experiment, builds two figures, positions the work against FUSE, and drafts the reply. All local (`local_cache/`, `results/*.pkl`); no model re-runs.
+
+**Why**: Bracha's "surprising" observation warranted a hard audit before sending, and the FUSE overlap is a live thesis-positioning concern.
+
+#### Common-cell macro bug (a reporting artifact — the LR method itself is sound)
+`print_table` averaged CONT over every cell where CONT exists (29) but LR only over LR-valid cells (28). The `qa/…trivia_qa_traces` cell has CONT≈96% but LR=N/A (single-class → no CV), inflating the CONT macro and understating the supervised gap ~1pp. Fixed to a strict common-cell basis (both scores present). Corrected macro AUROC:
+
+| Feat set | CONT (L-SML) | LR bal-CV | gap | bal in-sample ceiling |
+| :-- | :-: | :-: | :-: | :-: |
+| 5 (GOOD_5) | 64.2% | 68.9% | +4.7pp | 70.5% |
+| 9 (STABLE_H9) | 62.9% | 66.8% | +3.8pp | 73.7% |
+| 16 (ALL_H16) | 64.1% | 67.8% | +3.6pp | 79.3% |
+
+Per-domain gap: +0.3–0.6pp on reasoning (both near the ~84% ceiling), +4.9pp GPQA (ceiling 60.9%), +5.8pp RAG+QA (ceiling 69.5%). Supervised beats unsupervised in every regime once corrected; the gap is largest where the feature ceiling itself is low.
+
+#### LR convergence experiment (`scripts/lr_convergence.py`) — answers "why is 5 best"
+The named sets are non-nested, so a clean convergence curve needs a nested sequence. Built one global feature ranking by mean in-sample univariate AUROC and swept the nested top-k, k=3..16, reusing the corrected CV helpers (`bal_cv`, `bal_in`). Findings: CV is essentially flat (peak ~69.5% at k=6–7, drifts to 67.8% at k=16) while the in-sample ceiling climbs monotonically 68.6%→79.3% — the overfitting gap widens to +11.5pp. Named-set vs nested: GOOD_5 = ranks {1,2,3,4,6} (≈ optimal — marginally beats the univariate top-5); STABLE_H9 = ranks {1,2,4,6,8,10,11,13,14}, which **drops spectral_entropy (rank 3)** and lands 2.3pp below the nested top-9. So "5 best / 9 dip" is feature composition + overfitting, not a supervision artifact — the same dip appears in the unsupervised L-SML. Feature ranking (top): cusum_max 63.8, epr 63.7, spectral_entropy 62.1, sw_var_peak 62.0, stft_spectral_entropy 61.3, low_band_power 61.3.
+
+#### LR-vs-L-SML weight agreement (`scripts/lr_weight_analysis.py`) — answers Q4
+Reconstructed the L-SML effective per-feature weight from the meta: `composite[i] = cross_weights[group(i)] · within_group_weight[i]`; validated `corr(reconstruction, fused score) = +1.0000`. `|LR coef|` vs `|L-SML composite|` Spearman ≈ 0.1–0.2 overall, ~0.32 on GPQA. Both lean on epr/spectral_entropy/cusum_max but weight them differently. Weak agreement = the features are correlated/redundant so the weighting is underdetermined; both methods reach similar AUROC through different routes. **L-SML meta now persisted** (was computed at runtime and discarded): 5-feat K distribution `{2:16, 3:9, 4:3}` (NOT "always K=2"); when K=2 the cross-weights are ±0.707 = 1/√2 (NOT 0.5/0.5 — corrects the Steps 134–136 note). 9-feat mode K=4; 16-feat modes K=4–6.
+
+#### FUSE positioning (Q1)
+FUSE (Lee, …, Candès; arXiv:2604.18547) ensembles many external verifier models for Best-of-N selection; same Parisi / Jaffe-Nadler SML lineage as ours. Differentiators: **signal** (spectral views of one model's own entropy/probability trace vs many external verifier models), **task** (per-answer hallucination detection vs within-query selection), **dependence handling** (FUSE = TCI-violation transform then a single spectral fusion; ours = K-group spectral clustering + hierarchical within/across fusion). Complementary, not competing — the contribution is the signal, not the fusion. See memory `project-fuse-positioning`.
+
+#### Plot fixes
+- `results/logistic_oracle.png` top-row bar chart was still on the old 29-cell CONT basis (65.3/63.9/65.1, headroom +3.6/+2.9/+2.7), self-contradicting its own headroom histogram (+4.7/+3.8/+3.6). Fixed to common-cell; stale subtitle "OOF CV" (wrong since the Step-142 move off concatenated OOF) → "per-fold AUROC averaged · common-cell macro."
+- `results/lr_convergence.png`: added a ranked-feature table + GOOD_5/STABLE_H9 membership columns + caption so "k features" is unambiguous and the named-set-vs-nested difference is visible on the figure.
+- Rounding note: headroom labels are computed from full-precision means, so eyeballing the rounded bars can differ by 0.1pp (9-feat true gap 3.84→+3.8, not 66.8−62.9=3.9; 16-feat 3.64→+3.6).
+
+**Result**: LR oracle validated — sound method, only the macro cell-set was off (~1pp). Corrected numbers, two publication-ready figures, the weight experiment, FUSE differentiation, and the drafted 4-point advisor reply (presented in chat, not sent). L-SML meta persistence closes a long-standing audit gap.
+
+**Files changed**:
+- `scripts/logistic_oracle.py` — added `iter_cells()` generator; `print_table` common-cell macro; `n_boot`/`compute_legacy` passthrough; bar-chart common-cell fix + corrected subtitle
+- `scripts/oracle_report.py` — new (common-cell macro + per-domain tables; `results/oracle_feature_count.png`)
+- `scripts/lr_convergence.py` — new (nested ranked sweep + convergence figure with ranked-feature table)
+- `scripts/lr_weight_analysis.py` — new (LR vs L-SML weights + L-SML meta persistence; `results/lr_weight_agreement.png`)
+- `SUPERVISED_ORACLE_CORRECTION.md` — Section 3 refreshed to common-cell numbers + snapshot stamp (methodology sections untouched)
+- `results/` — `logistic_oracle.pkl/png`, `oracle_feature_count.png`, `lr_convergence.pkl/png`, `lr_weight_analysis.pkl`, `lr_weight_agreement.png`
+- memory — `feedback-lsml-5feat-degenerate` corrected (0.707 not 0.5/0.5); `project-fuse-positioning` created
+
+---

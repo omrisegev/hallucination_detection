@@ -143,6 +143,40 @@ def load_cont_results():
     return {r['cell']: r for r in rows if not r.get('skipped')}
 
 
+def iter_cells(data_dir, verbose=True):
+    """
+    Yield (cell_name, feat_dict, labels) for every valid eval cell under data_dir.
+
+    Single source of truth for the RAG/QA cache-nesting + schema detection so the
+    oracle / convergence / weight-analysis scripts all iterate cells identically.
+    Skips unknown-schema and single-class cells (they can't be evaluated).
+    """
+    for domain, pkl_name in PKL_NAMES.items():
+        path = os.path.join(data_dir, pkl_name)
+        feats = load_cached_feats(path)
+        if feats is None:
+            if verbose:
+                print(f'[MISSING] {pkl_name}')
+            continue
+        if verbose:
+            print(f'\n--- {domain.upper()} ({len(feats)} cells) ---')
+        for cell_key, payload in feats.items():
+            if isinstance(payload, (list, tuple)) and len(payload) == 2:
+                fd, lbl = payload
+            elif isinstance(payload, dict) and 'feats' in payload:
+                fd, lbl = payload['feats'], payload['labels']
+            else:
+                if verbose:
+                    print(f'  [{cell_key}] unknown schema — skip')
+                continue
+            lbl_arr = np.asarray(lbl, dtype=int)
+            if len(set(lbl_arr.tolist())) < 2:
+                if verbose:
+                    print(f'  [{cell_key}] single class — skip')
+                continue
+            yield f'{domain}/{cell_key}', fd, lbl_arr
+
+
 # ── Feature matrix ────────────────────────────────────────────────────────────
 
 def build_X(fd, feat_list, n_samples):
@@ -171,27 +205,36 @@ def build_X(fd, feat_list, n_samples):
 
 # ── LR oracle ─────────────────────────────────────────────────────────────────
 
-def lr_oracle_auc_variants(X, y):
+def lr_oracle_auc_variants(X, y, n_boot=1000, compute_legacy=True):
     """
     Compute multiple supervised Logistic Regression AUROC variants.
+
+    n_boot=0 skips the per-fold bootstrap CI (lo/hi collapse to the point
+    estimate) — used by the feature-count convergence sweep, where the
+    across-cell percentile band is the uncertainty that gets shown, so
+    per-point CIs are wasted compute. compute_legacy=False skips the
+    known-buggy concatenated-OOF reference variant for the same reason.
     """
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    
+
     # 1. Standard CV (Averaged Fold CV)
     pipe_std = make_pipeline(StandardScaler(), LogisticRegression(C=1.0, max_iter=1000, solver='lbfgs'))
-    auc_std, std_lo, std_hi = cv_avg_auc_with_ci(pipe_std, X, y, skf)
-    
+    auc_std, std_lo, std_hi = cv_avg_auc_with_ci(pipe_std, X, y, skf, n_boot=n_boot)
+
     # 2. Balanced CV (Averaged Fold CV)
     pipe_bal = make_pipeline(StandardScaler(), LogisticRegression(C=1.0, class_weight='balanced', max_iter=1000, solver='lbfgs'))
-    auc_bal, bal_lo, bal_hi = cv_avg_auc_with_ci(pipe_bal, X, y, skf)
-    
-    # 3. Concatenated OOF (Legacy Standard)
-    pipe_legacy = make_pipeline(StandardScaler(), LogisticRegression(C=1.0, max_iter=1000, solver='lbfgs'))
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        oof_prob = cross_val_predict(pipe_legacy, X, y, cv=skf, method='predict_proba')[:, 1]
-    legacy_auc, legacy_lo, legacy_hi = safe_auc(y, oof_prob)
-    
+    auc_bal, bal_lo, bal_hi = cv_avg_auc_with_ci(pipe_bal, X, y, skf, n_boot=n_boot)
+
+    # 3. Concatenated OOF (Legacy Standard) — buggy reference, optional
+    if compute_legacy:
+        pipe_legacy = make_pipeline(StandardScaler(), LogisticRegression(C=1.0, max_iter=1000, solver='lbfgs'))
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            oof_prob = cross_val_predict(pipe_legacy, X, y, cv=skf, method='predict_proba')[:, 1]
+        legacy_auc, legacy_lo, legacy_hi = safe_auc(y, oof_prob)
+    else:
+        legacy_auc = legacy_lo = legacy_hi = None
+
     # 4. Standard In-Sample
     pipe_std.fit(X, y)
     preds_in_std = pipe_std.predict_proba(X)[:, 1]
@@ -311,8 +354,13 @@ def print_table(results):
             lrs = f'{100*lr:.1f}%' if lr is not None else '   N/A'
             ds  = f'{100*d:+.1f}'  if d  is not None else '  N/A'
             parts.append(f'{cs:>8} {lrs:>8} {ds:>6}')
-            if c  is not None: accum_cont[k].append(c)
-            if lr is not None: accum_lr[k].append(lr)
+            # Common-cell basis: only count a cell in the macro when BOTH CONT and
+            # LR exist for this feature set. Otherwise CONT-only cells (e.g. the
+            # trivia_qa_traces cell where LR=N/A) inflate the CONT macro and
+            # understate the supervised gap by ~1pp.
+            if c is not None and lr is not None:
+                accum_cont[k].append(c)
+                accum_lr[k].append(lr)
         print(f"  {r['cell']:<34} | " + ' | '.join(parts))
 
     print(sep)
@@ -362,8 +410,15 @@ def make_plots(results, out_path):
     # ── Row 0: Macro AUROC bar chart ─────────────────────────────────────────
     for ci, fs in enumerate(cols):
         ax = fig.add_subplot(gs[0, ci])
-        cont_vals = [r[f'cont_{fs}'] for r in valid if r.get(f'cont_{fs}') is not None]
-        lr_vals   = [r[f'lr_{fs}']   for r in valid if r.get(f'lr_{fs}')   is not None]
+        # Common-cell basis: average CONT and LR over the SAME cells (those where
+        # both scores exist). Averaging CONT over cells LR can't score (single-
+        # class → no CV) inflates the CONT macro and understates the gap ~1pp.
+        # This keeps the bars consistent with the per-cell headroom histogram
+        # below and with oracle_report.py / oracle_feature_count.png.
+        common    = [r for r in valid
+                     if r.get(f'cont_{fs}') is not None and r.get(f'lr_{fs}') is not None]
+        cont_vals = [r[f'cont_{fs}'] for r in common]
+        lr_vals   = [r[f'lr_{fs}']   for r in common]
         macro_c   = np.mean(cont_vals) * 100 if cont_vals else 0.0
         macro_lr  = np.mean(lr_vals)   * 100 if lr_vals   else 0.0
 
@@ -437,7 +492,8 @@ def make_plots(results, out_path):
 
     fig.suptitle(
         'Logistic Regression Oracle vs L-SML Continuous (unsupervised)\n'
-        '5-fold stratified OOF CV · StandardScaler per fold · Δ = supervised headroom',
+        '5-fold stratified CV (per-fold AUROC averaged) · common-cell macro · '
+        'Δ = supervised headroom',
         fontsize=11, fontweight='bold', y=0.99
     )
 
@@ -483,39 +539,20 @@ def main():
     print(f'CONT src : {CONT_PKL} ({len(cont_lookup)} cells loaded)\n')
 
     all_results = []
-    for domain, pkl_name in PKL_NAMES.items():
-        path  = os.path.join(data_dir, pkl_name)
-        feats = load_cached_feats(path)
-        if feats is None:
-            print(f'[MISSING] {pkl_name}')
-            continue
-        print(f'\n--- {domain.upper()} ({len(feats)} cells) ---')
-        for cell_key, payload in feats.items():
-            if isinstance(payload, (list, tuple)) and len(payload) == 2:
-                fd, lbl = payload
-            elif isinstance(payload, dict) and 'feats' in payload:
-                fd, lbl = payload['feats'], payload['labels']
-            else:
-                print(f'  [{cell_key}] unknown schema — skip')
-                all_results.append({'cell': f'{domain}/{cell_key}', 'skipped': True})
-                continue
-            lbl_arr = np.asarray(lbl, dtype=int)
-            if len(set(lbl_arr.tolist())) < 2:
-                print(f'  [{cell_key}] single class — skip')
-                continue
-            cell_name = f'{domain}/{cell_key}'
-            cont_row  = cont_lookup.get(cell_name)
-            r         = run_cell(cell_name, fd, lbl_arr, cont_row)
-            all_results.append(r)
+    for cell_name, fd, lbl_arr in iter_cells(data_dir):
+        cont_row = cont_lookup.get(cell_name)
+        r        = run_cell(cell_name, fd, lbl_arr, cont_row)
+        all_results.append(r)
 
-            lr5 = r.get('lr_5')
-            c5  = r.get('cont_5')
-            d5  = r.get('delta_5')
-            if lr5 is not None and c5 is not None and d5 is not None:
-                status = f'CONT={100*c5:.1f}%  LR={100*lr5:.1f}%  D={100*d5:+.1f}pp'
-            else:
-                status = 'N/A (small cell or insufficient features)'
-            print(f'  [{cell_key}] {status}')
+        cell_key = cell_name.split('/', 1)[-1]
+        lr5 = r.get('lr_5')
+        c5  = r.get('cont_5')
+        d5  = r.get('delta_5')
+        if lr5 is not None and c5 is not None and d5 is not None:
+            status = f'CONT={100*c5:.1f}%  LR={100*lr5:.1f}%  D={100*d5:+.1f}pp'
+        else:
+            status = 'N/A (small cell or insufficient features)'
+        print(f'  [{cell_key}] {status}')
 
     if not all_results:
         print('\nNo results — download pkl files to', data_dir)

@@ -35,15 +35,19 @@ The corrected implementation in [logistic_oracle.py](file:///C:/Users/omris/TAU/
 
 ---
 
-## 3. Corrected Results (Macro-Averaged AUROC across 29 cells)
+## 3. Corrected Results (macro AUROC, common-cell basis)
 
-| Feature Set | Unsupervised CONT | Supervised CV (Old Concatenated) | Supervised CV (Corrected Balanced Avg) | Supervised In-Sample (Balanced Ceiling) |
+**Snapshot note (updated 2026-07-01).** This table is a point-in-time snapshot. The figures originally here were the Step-143 numbers (2026-06-25); the local feature caches were then recomputed in **Steps 144–146** (paper-accurate spectral-entropy, SelfCheckGPT baseline, Phase 12 / GPQA fixes), which shifted the numbers (e.g. the 16-feat balanced ceiling moved 72.8% → 79.3%). Sections 1, 2, 4, and 5 (methodology and rules) are unchanged and remain authoritative.
+
+**Common-cell convention.** Macros average only over cells where BOTH the unsupervised CONT score and the supervised LR score exist for that feature set (28 cells). The earlier "29-cell" macro counted a CONT-only cell (`trivia_qa_traces`, where LR is N/A) toward CONT alone, inflating the CONT macro and understating the supervised gap by ~1pp. Reproduce with `python scripts/oracle_report.py`.
+
+| Feature Set | Unsupervised CONT | Supervised LR CV (Balanced Avg) | Supervised gap | In-Sample Ceiling (Balanced) |
 | :--- | :---: | :---: | :---: | :---: |
-| **5-Feat (GOOD_5)** | 65.3% | 63.7% | **67.5%** (+2.2pp) | 71.1% (+5.8pp) |
-| **9-Feat (STABLE_H9)** | 63.9% | 62.4% | **67.1%** (+3.2pp) | 71.1% (+7.2pp) |
-| **16-Feat (ALL_H16)** | 63.0% | 62.6% | **67.6%** (+4.6pp) | 72.8% (+9.8pp) |
+| **5-Feat (GOOD_5)** | 64.2% | **68.9%** | +4.7pp | 70.5% |
+| **9-Feat (STABLE_H9)** | 62.9% | **66.8%** | +3.8pp | 73.7% |
+| **16-Feat (ALL_H16)** | 64.1% | **67.8%** | +3.6pp | 79.3% |
 
-*The supervised baseline consistently beats the unsupervised CONT pipeline once corrected.*
+*The supervised baseline consistently beats the unsupervised CONT pipeline once corrected. The gap is largest on GPQA/RAG (+4–6pp) and negligible on reasoning (+0.3–0.6pp), where both methods already sit near the feature ceiling. See `scripts/oracle_report.py` for the per-domain breakdown and `scripts/lr_convergence.py` for the feature-count convergence view.*
 
 ---
 

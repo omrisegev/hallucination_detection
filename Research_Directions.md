@@ -111,7 +111,7 @@ GPQA Diamond (MCQ science) is structurally out-of-regime: entropy dynamics are s
 | # | Action | Status | GPU? |
 |---|--------|--------|------|
 | 1 | L-SML follow-up literature search (Nadler post-2016) | Not started | No |
-| 2 | Logistic regression oracle (5/9/16 features, 5-fold CV) | Not started | No |
+| 2 | Logistic regression oracle (5/9/16 features, 5-fold CV) | ✅ Completed (Steps 142–143, 147) | No |
 | 3 | Extend QA evaluation (NQ, SQuAD v2, AmbigQA, PopQA) | Not started | Yes |
 | 4 | Benchmarking completion (MATH-500 done; QA + Phase 14 remaining) | In progress | Partial |
 | 5 | Experiment 1 — sampling fusion: SE (K=10) + spectral features | Not started | Yes |
@@ -127,6 +127,8 @@ Also found and deeply read (Step 141):
 
 **FUSE** (Lee et al., arXiv:2604.18547, 2026) — applies Jaffe-Nadler moment structure to LLM verifiers for Best-of-N response selection with zero labels. Same theoretical base as our work (Jaffe et al. 2015). Different task: multi-response selection vs single-generation hallucination detection. Strong related-work citation. Critical finding for us: **our closed-form eigenvector weights (`w = (v₁ᵀρ̂/λ₁)·v₁`, then `score = w@F`) underperform naive equal-weight averaging in 7/10 FUSE benchmark settings** (Figure 3). FUSE's fix: pseudo-label logistic regression trained on MoM-estimated triplet posteriors `p̂(r_i)` — fully unsupervised (`p̂` never uses true labels). This is the single biggest available architectural upgrade to our pipeline. **Next experiment**: implement FUSE-style pseudo-label LR as replacement for `w@F` in `lsml_continuous_pipeline`.
 
+**Positioning against FUSE (Step 147, both Ofir and Bracha flagged it).** Three concrete differentiators, in decreasing order of importance: (1) **Signal** — we fuse spectral views of *one* model's own entropy/probability trace (internal, single-pass, no extra compute); FUSE fuses scores from *many external verifier models*. (2) **Task** — per-answer hallucination detection (absolute, across queries) vs within-query Best-of-N selection. (3) **Dependence handling** — FUSE detects dependent verifier pairs (triplet-conditional-independence violation) and *transforms* the scores so a single spectral fusion is well-conditioned; ours runs *K-group spectral clustering* then hierarchical within-/across-group fusion. Net: FUSE innovates on the fusion; our contribution is the **signal**, so the two are complementary. The thesis must foreground the entropy-trace signal, not "unsupervised spectral fusion," to avoid overlap. (Memory: `project-fuse-positioning`.)
+
 **Deep L-SML** (Shaham et al., ICML 2016, arXiv:1602.02285) — Lemma 4.1 proves our L-SML IS already an RBM: Dawid-Skene model = single-hidden-node RBM (bijective parameter map). Our covariance+eigenvector step = closed-form MoM training of that RBM. Stacked RBM (Deep L-SML) handles correlated features without exclusion — each hidden layer decorrelates the representation. Relevant if 16-feature expansion triggers heavy ρ > 0.75 filter exclusions (band-power pairs ρ 0.77–0.88). Still fully unsupervised (objective = `log P(features)`, no labels).
 
 **STDR** (Aizenbud et al., arXiv:2102.13276, 2021) — hierarchical tree-structured dependency recovery via Fiedler vector, O(m² log m). Not relevant at 5–16 features; revisit if feature set expands to 50+.
@@ -137,17 +139,25 @@ Implementation: `upcr_fuse()` + `upcr_pipeline()` added to `spectral_utils/fusio
 
 ---
 
-### Item 2 — Logistic Regression Oracle
+### Item 2 — Logistic Regression Oracle ✅ COMPLETED (Steps 142–143, 147)
 
 Fit supervised logistic regression on our feature sets to upper-bound what any fusion method can extract from the same features.
 
-**Setup**: 29 cached feature cells (`consolidated_results/features_all.pkl`); `sklearn.LogisticRegression` with 5-fold stratified CV; report macro AUROC for GOOD_5, STABLE_H9, all-16. Compare against CONT 70.1% (unsupervised), simple avg5 68.1%, oracle best-single 68.3%.
+**Setup**: 28 common LR-valid cells; `sklearn.LogisticRegression(class_weight='balanced')`, 5-fold stratified CV with **per-fold AUROC averaging** (not concatenated OOF — see `SUPERVISED_ORACLE_CORRECTION.md`).
 
-**Interpretation**:
-- Gap < 5pp → L-SML is near-optimal; feature engineering is the bottleneck
-- Gap > 15pp → significant headroom from supervision or better features
+**Result (Step 147, common-cell macro AUROC)** — supervised LR beats unsupervised L-SML everywhere once corrected:
 
-**Script**: `scripts/logistic_oracle.py`. No GPU needed.
+| Feat set | L-SML (CONT) | LR bal-CV | gap | in-sample ceiling |
+| :-- | :-: | :-: | :-: | :-: |
+| GOOD_5 | 64.2% | 68.9% | +4.7pp | 70.5% |
+| STABLE_H9 | 62.9% | 66.8% | +3.8pp | 73.7% |
+| ALL_H16 | 64.1% | 67.8% | +3.6pp | 79.3% |
+
+- **Per-domain**: gap ~0 on reasoning (both near the ~84% ceiling), +4.9pp GPQA (ceiling 60.9%), +5.8pp RAG+QA (ceiling 69.5%). The gap is largest exactly where the feature ceiling itself is low → **features are the bottleneck, not the fusion**. This lands in the "< 5pp on reasoning / moderate elsewhere" interpretation band: L-SML is near-optimal where the signal exists.
+- **"5 features best" explained** (`scripts/lr_convergence.py`): the named sets are non-nested (STABLE_H9 drops `spectral_entropy`, a top-3 feature), and in a proper nested ranked sweep the CV is flat from k=5 to k=16 (~68–69.5%) while the in-sample ceiling climbs to 79.3% — the extra features overfit rather than generalise. The same 9-feat dip appears in the unsupervised L-SML, so it is a feature-composition effect, not a supervision artifact.
+- **LR vs L-SML weights** (`scripts/lr_weight_analysis.py`, answers Bracha Q4): correlate only weakly (Spearman ≈ 0.1–0.2, ~0.32 on GPQA). Both lean on epr/spectral_entropy/cusum_max but weight them differently — the features are correlated/redundant, so the weighting is underdetermined and both reach similar AUROC through different routes.
+
+**Scripts**: `scripts/logistic_oracle.py` (oracle + `logistic_oracle.png`), `scripts/oracle_report.py` (common-cell tables + `oracle_feature_count.png`), `scripts/lr_convergence.py` (`lr_convergence.png`), `scripts/lr_weight_analysis.py` (`lr_weight_agreement.png`). No GPU needed.
 
 ---
 

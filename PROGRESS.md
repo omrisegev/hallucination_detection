@@ -1,7 +1,9 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-06-28
-**Last updated**: Step 146 — Phase 12 Corrected notebook (`Spectral_Analysis_Phase12_Corrected.ipynb`) created and launched on Colab A100. Paper-accurate LW-SE and SelfCheckGPT-official baselines, L-SML strict 1-pass, sampling fusion (advisor Item 5) as 6-view `lsml_continuous_pipeline`. `analysis/theorem-validation` fast-forward merged into `master` — all work is now on master.
+**Date**: 2026-07-02
+**Last updated**: Step 147 — Bracha reply + Ofir FUSE concern. LR-oracle re-validated on a strict common-cell basis (the ~1pp macro artifact fixed): corrected gaps LR vs L-SML = +4.7 / +3.8 / +3.6pp for 5/9/16 features (LR 68.9/66.8/67.8 vs CONT 64.2/62.9/64.1; in-sample ceilings 70.5/73.7/79.3). New `scripts/oracle_report.py`, `lr_convergence.py`, `lr_weight_analysis.py`; convergence + weight-agreement figures; `logistic_oracle.png` bar chart corrected to common-cell. FUSE positioned (signal + task + dependence-handling differ). 4-point advisor reply drafted (not sent). All local — no model re-runs.
+
+**Prior**: Step 146 — Phase 12 Corrected notebook (`Spectral_Analysis_Phase12_Corrected.ipynb`) created and launched on Colab A100. Paper-accurate LW-SE and SelfCheckGPT-official baselines, L-SML strict 1-pass, sampling fusion (advisor Item 5) as 6-view `lsml_continuous_pipeline`. `analysis/theorem-validation` fast-forward merged into `master` — all work is now on master.
 
 ---
 
@@ -83,7 +85,7 @@ These 6 items are the current priority order. They supersede the old Step 132 GP
 | # | Action | Status |
 |---|--------|--------|
 | 1 | **L-SML literature search** — find Nadler post-2016 follow-up work extending or improving L-SML | ✅ Complete (Step 141) |
-| 2 | **Logistic regression oracle** — supervised LR on 5/9/16 feature sets → upper bound on fusion AUROC (5-fold CV, no in-sample leakage) | ✅ Complete (Steps 142–143: evaluation corrected) |
+| 2 | **Logistic regression oracle** — supervised LR on 5/9/16 feature sets → upper bound on fusion AUROC (5-fold CV, no in-sample leakage) | ✅ Complete (Steps 142–143 corrected; Step 147 common-cell re-validation + convergence + weight-agreement experiments) |
 | 3 | **Extend QA evaluation** — run more QA datasets (NQ, SQuAD v2, AmbigQA, PopQA) to characterise CoT factual QA performance | Not started |
 | 4 | **Benchmarking completion** — model-matched comparisons for MATH-500, GSM8K, QA vs SE/SC/SelfCheckGPT | In progress — Phase 12 Corrected running on Colab A100 (Step 146) |
 | 5 | **Experiment 1 — Sampling fusion** — fuse SE (K=10) with single-pass spectral features; measure AUROC gain vs each alone | In progress — included in Phase 12 Corrected (Step 146) |
@@ -277,7 +279,7 @@ Colab clones `master` by default. All new work should be committed directly to m
 10. Verbalized confidence on 1.5B: null result (Step 131). Do not include in GOOD_FEATURES for 1.5B runs.
 11. `min_spilled` sign = −1. Validated GSM8K Cell 12.
 12. "CONT" is retired. Say "L-SML continuous" (with feature count when relevant: "L-SML continuous 5").
-13. LR oracle corrected conclusion: supervised LR (67.1–67.6% averaged-fold balanced CV) beats L-SML by 2–5pp macro; in-sample ceiling 71–73%. See `SUPERVISED_ORACLE_CORRECTION.md` for evaluation rules.
+13. LR oracle corrected conclusion (Step 147, common-cell basis): supervised LR beats L-SML by **+4.7 / +3.8 / +3.6pp** on 5/9/16 features (LR 68.9/66.8/67.8 vs CONT 64.2/62.9/64.1); in-sample ceilings 70.5/73.7/79.3. Gap largest on GPQA (+4.9pp) and RAG+QA (+5.8pp), ~0 on reasoning (both near ceiling). "5 best" = named sets non-nested (STABLE_H9 drops spectral_entropy) + overfitting (CV flat while ceiling climbs). LR vs L-SML weights correlate weakly (Spearman ~0.1–0.2). See `SUPERVISED_ORACLE_CORRECTION.md` for evaluation rules; reproduce with `python scripts/oracle_report.py`.
 
 ---
 
