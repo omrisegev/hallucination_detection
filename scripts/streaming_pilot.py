@@ -51,7 +51,7 @@ CELL_NAMES = {
     "p1_gsm8k_llama8b": "gsm8k/Llama-3.1-8B",
     "p1_gsm8k_llama8b_k10": "gsm8k/Llama-3.1-8B_K10",
     "p4_math500_qwen7b_k10": "math500/Qwen2.5-Math-7B_K10",
-    "p2c_gpqa_deepseek_r1_7b_inference": "gpqa/DeepSeek-R1-7B",
+    "p2c_gpqa_deepseek_r1_7b_inference": "gpqa/DeepSeek-R1-7B_TRUNC",  # 99% of traces hit the 1024-token cap
     "math500_T1.0": "math500/Qwen2.5-Math-1.5B_T1.0",
     "deepseek_r1_8b_gpqa_k2": "gpqa/DeepSeek-R1-8B_K2_TRUNC",
 }

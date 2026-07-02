@@ -49,28 +49,41 @@ def iter_entropy_traces(cache_obj):
     Yield (ents: np.ndarray, label: int) from any known raw-cache schema.
 
     Handles:
-        - list of per-sample dicts with 'token_entropies' + 'label'
+        - list of per-sample dicts with 'token_entropies'/'main_entropies'
+          + 'label'/'correct'
         - list of per-sample dicts with 'traces' + 'corrects' (K>1 sampling
           caches: each of the K generations yields its own trace/label pair)
+        - dict keyed by integer sample index over such dicts (Phase-1/2
+          inference caches)
         - dict wrapping such a list under 'results' / 'samples' / 'data'
     """
     if isinstance(cache_obj, dict):
-        for key in ("results", "samples", "data"):
-            if isinstance(cache_obj.get(key), list):
-                cache_obj = cache_obj[key]
-                break
+        keys = list(cache_obj)
+        if keys and all(isinstance(k, (int, np.integer)) for k in keys):
+            cache_obj = [cache_obj[k] for k in sorted(keys)]
         else:
-            raise ValueError(
-                f"Unrecognised cache schema: dict with keys {list(cache_obj)[:8]}"
-            )
+            for key in ("results", "samples", "data"):
+                if isinstance(cache_obj.get(key), list):
+                    cache_obj = cache_obj[key]
+                    break
+            else:
+                raise ValueError(
+                    f"Unrecognised cache schema: dict with keys {keys[:8]}"
+                )
 
     for s in cache_obj:
         if not isinstance(s, dict):
             continue
-        if s.get("token_entropies") is not None and s.get("label") is not None:
-            ents = np.asarray(s["token_entropies"], dtype=float)
+        ents = s.get("token_entropies")
+        if ents is None:
+            ents = s.get("main_entropies")
+        label = s.get("label")
+        if label is None:
+            label = s.get("correct")
+        if ents is not None and label is not None:
+            ents = np.asarray(ents, dtype=float)
             if len(ents) > 0:
-                yield ents, int(bool(s["label"]))
+                yield ents, int(bool(label))
         elif s.get("traces") is not None and s.get("corrects") is not None:
             for tr, c in zip(s["traces"], s["corrects"]):
                 ents = np.asarray(tr, dtype=float)
