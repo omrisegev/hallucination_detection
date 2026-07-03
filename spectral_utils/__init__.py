@@ -49,7 +49,8 @@ from .data_loaders import (
     load_lciteeval, lciteeval_prompt, lciteeval_grounding_label,
 )
 from .fusion_utils import (
-    zscore, boot_auc, binarize_classifiers, sml_fuse, nadler_fuse,
+    zscore, boot_auc, paired_boot_delta_auc,
+    binarize_classifiers, sml_fuse, nadler_fuse,
     simple_average_fusion, best_nadler_on, best_nadler_pseudo_label,
     sml_fuse_signed, detect_dependent_groups, lsml_fuse,
     lsml_continuous, lsml_continuous_pipeline,
@@ -74,10 +75,19 @@ from .baselines import (
     parse_verbalized_confidence, VERBALIZED_CONF_SUFFIX,
 )
 from .streaming_utils import (
-    FEATURE_SIGNS, iter_entropy_traces, anchor_orient,
+    FEATURE_SIGNS, iter_entropy_traces, iter_trace_records, anchor_orient,
     prefix_features, prefix_feature_matrix,
     deepconf_lowest_group_conf, deepconf_tail_conf,
     causal_trajectories, earliness_index, online_flag_curve,
+)
+from .anomaly_utils import (
+    build_feature_matrix, mahalanobis_scores, gmm_nll_scores,
+    kde_nll_scores, iforest_scores, ae_scores, prae_scores,
+    TRACKA_METHODS, AE_MIN_SAMPLES,
+)
+from .temporal_models import (
+    fit_gaussian_hmm, hmm_posteriors, hmm_trace_scores,
+    bocpd_gaussian, ar_innovation_scores, kalman_innovation_scores,
 )
 from .agent_utils import (
     react_system_prompt, react_user_prompt,
@@ -110,7 +120,8 @@ __all__ = [
     "load_webq", "webq_prompt", "is_correct_webq",
     "load_humaneval", "humaneval_prompt", "is_correct_humaneval",
     "load_lciteeval", "lciteeval_prompt", "lciteeval_grounding_label",
-    "zscore", "boot_auc", "binarize_classifiers", "sml_fuse",
+    "zscore", "boot_auc", "paired_boot_delta_auc",
+    "binarize_classifiers", "sml_fuse",
     "nadler_fuse", "simple_average_fusion", "best_nadler_on",
     "best_nadler_pseudo_label",
     "sml_fuse_signed", "detect_dependent_groups", "lsml_fuse",
@@ -130,10 +141,15 @@ __all__ = [
     "selfcheck_nli_score",
     "selfcheck_nli_score_official",
     "parse_verbalized_confidence", "VERBALIZED_CONF_SUFFIX",
-    "FEATURE_SIGNS", "iter_entropy_traces", "anchor_orient",
+    "FEATURE_SIGNS", "iter_entropy_traces", "iter_trace_records", "anchor_orient",
     "prefix_features", "prefix_feature_matrix",
     "deepconf_lowest_group_conf", "deepconf_tail_conf",
     "causal_trajectories", "earliness_index", "online_flag_curve",
+    "build_feature_matrix", "mahalanobis_scores", "gmm_nll_scores",
+    "kde_nll_scores", "iforest_scores", "ae_scores", "prae_scores",
+    "TRACKA_METHODS", "AE_MIN_SAMPLES",
+    "fit_gaussian_hmm", "hmm_posteriors", "hmm_trace_scores",
+    "bocpd_gaussian", "ar_innovation_scores", "kalman_innovation_scores",
     "react_system_prompt", "react_user_prompt",
     "parse_thought", "parse_action", "parse_confidence", "parse_concern",
     "simulate_retrieve_tool", "step_retrieved_supporting_fact",

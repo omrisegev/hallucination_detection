@@ -91,6 +91,61 @@ def iter_entropy_traces(cache_obj):
                     yield ents, int(bool(c))
 
 
+def iter_trace_records(cache_obj):
+    """
+    Yield {'ents', 'spilled', 'label', 'group'} dicts from any known
+    raw-cache schema.
+
+    Superset of iter_entropy_traces (which stays untouched): also carries the
+    aligned spilled-energy trace when the cache has one ('token_spilled' /
+    'token_spilled_energies', else None) and a 'group' id (the sample index),
+    so K>1 sampling caches expose which traces share a question — needed for
+    cluster bootstrap.
+    """
+    if isinstance(cache_obj, dict):
+        keys = list(cache_obj)
+        if keys and all(isinstance(k, (int, np.integer)) for k in keys):
+            cache_obj = [cache_obj[k] for k in sorted(keys)]
+        else:
+            for key in ("results", "samples", "data"):
+                if isinstance(cache_obj.get(key), list):
+                    cache_obj = cache_obj[key]
+                    break
+            else:
+                raise ValueError(
+                    f"Unrecognised cache schema: dict with keys {keys[:8]}"
+                )
+
+    for i, s in enumerate(cache_obj):
+        if not isinstance(s, dict):
+            continue
+        ents = s.get("token_entropies")
+        if ents is None:
+            ents = s.get("main_entropies")
+        label = s.get("label")
+        if label is None:
+            label = s.get("correct")
+        if ents is not None and label is not None:
+            ents = np.asarray(ents, dtype=float)
+            if len(ents) == 0:
+                continue
+            spilled = s.get("token_spilled")
+            if spilled is None:
+                spilled = s.get("token_spilled_energies")
+            if spilled is not None:
+                spilled = np.asarray(spilled, dtype=float)
+                if len(spilled) != len(ents):
+                    spilled = None
+            yield {"ents": ents, "spilled": spilled,
+                   "label": int(bool(label)), "group": i}
+        elif s.get("traces") is not None and s.get("corrects") is not None:
+            for tr, c in zip(s["traces"], s["corrects"]):
+                ents = np.asarray(tr, dtype=float)
+                if len(ents) > 0:
+                    yield {"ents": ents, "spilled": None,
+                           "label": int(bool(c)), "group": i}
+
+
 # ---------------------------------------------------------------------------
 # Prefix features
 # ---------------------------------------------------------------------------

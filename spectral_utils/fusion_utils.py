@@ -76,6 +76,51 @@ def boot_auc(y, scores, n: int = 1000):
     return base, lo, hi
 
 
+def paired_boot_delta_auc(y, scores_a, scores_b, n: int = 1000,
+                          seed: int = 42, clusters=None):
+    """
+    Paired bootstrap CI for the AUROC difference of two scores on the SAME
+    samples (delta = AUC(a) - AUC(b)).
+
+    Joint index resampling keeps the pairing, so shared sample noise cancels —
+    this is the correct test for "method a beats method b on this cell",
+    unlike comparing two marginal boot_auc CIs.  With clusters given (e.g.
+    question ids for K>1 sampling caches), whole clusters are resampled to
+    respect within-question correlation.
+
+    Returns (delta, ci_lo, ci_hi); (nan, nan, nan) if either score is
+    degenerate or y is single-class.
+    """
+    y = np.asarray(y, dtype=float)
+    a = np.asarray(scores_a, dtype=float)
+    b = np.asarray(scores_b, dtype=float)
+    mask = ~(np.isnan(y) | np.isnan(a) | np.isnan(b))
+    y, a, b = y[mask], a[mask], b[mask]
+    if len(y) < 2 or len(np.unique(y)) < 2 or a.std() < 1e-8 or b.std() < 1e-8:
+        return float("nan"), float("nan"), float("nan")
+
+    delta = roc_auc_score(y, a) - roc_auc_score(y, b)
+    rng = np.random.default_rng(seed)
+    if clusters is not None:
+        clusters = np.asarray(clusters)[mask]
+        uniq = np.unique(clusters)
+        members = {c: np.nonzero(clusters == c)[0] for c in uniq}
+    boots = []
+    for _ in range(n):
+        if clusters is None:
+            idx = rng.integers(0, len(y), len(y))
+        else:
+            picked = uniq[rng.integers(0, len(uniq), len(uniq))]
+            idx = np.concatenate([members[c] for c in picked])
+        if len(np.unique(y[idx])) < 2:
+            continue
+        boots.append(roc_auc_score(y[idx], a[idx]) - roc_auc_score(y[idx], b[idx]))
+    if not boots:
+        return float(delta), float(delta), float(delta)
+    lo, hi = np.percentile(boots, [2.5, 97.5])
+    return float(delta), float(lo), float(hi)
+
+
 # ── Binarization ──────────────────────────────────────────────────────────────
 
 def binarize_classifiers(feats_dict: dict, signs: dict,
