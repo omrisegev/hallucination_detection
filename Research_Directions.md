@@ -115,7 +115,7 @@ GPQA Diamond (MCQ science) is structurally out-of-regime: entropy dynamics are s
 | 3 | Extend QA evaluation (NQ, SQuAD v2, AmbigQA, PopQA) | Not started | Yes |
 | 4 | Benchmarking completion (MATH-500 done; QA + Phase 14 remaining) | In progress | Partial |
 | 5 | Experiment 1 — sampling fusion: SE (K=10) + spectral features | Not started | Yes |
-| 6 | Experiment 2 — temperature variation: T effect + diversity ablation | Not started | Yes |
+| 6 | Experiment 2 — temperature variation: T effect + diversity ablation | Notebook ready (Step 152, branch `experiment/item6-temperature`) — needs A100 | Yes |
 
 ---
 
@@ -218,7 +218,9 @@ Fuse Semantic Entropy (K=10 generations) with single-pass spectral features.
    - If B >> A: temperature diversity is the source of lift
    - If A ≈ B: multiple passes alone explain the gain; T doesn't matter
 
-**Setup**: Qwen2.5-Math-7B / MATH-500. Existing caches: T=1.0 and T=1.5. New inference needed: T=0.3, 0.6, 2.0 + 4 additional T=1.0 runs (for Condition A ablation).
+**Setup**: Qwen2.5-Math-7B / MATH-500. ~~Existing caches: T=1.0 and T=1.5~~ — **claim corrected (Step 152)**: no reusable raw cache exists for this cell. The T=1.5 88.3% cell is Qwen-**1.5B**; Step 148 established MATH-500/Qwen-7B has no raw entropy-trace cache anywhere; Phase 12 Corrected `p2` predates the Step-149/150 grading fixes and has no top-k logprobs. → **All 9 runs fresh** (5 temps + 4 extra T=1.0), each saving the full raw-data schema. T=1.0 run0 doubles as the canonical raw-trace cache for this cell, repaying the Extension E data debt.
+
+**Status (Step 152)**: `notebooks/Spectral_Analysis_Phase15_Temperature.ipynb` built and dry-run verified on branch `experiment/item6-temperature` (Cell 1 clones that branch — the new `generate_full(top_k_logprobs=)`, `paired_boot_delta_auc`, `multipass_lsml_continuous` helpers live there until the careful merge to master). ~5–9 A100-hours, fully resumable per run and per 25 samples. Gates pre-registered: G-T1 (some T≠1.0 ≥ +2pp with non-overlapping CIs, unpaired), G-T2 primary (paired AUC(B)−AUC(A) ≥ +2pp, CI excludes 0).
 
 ---
 

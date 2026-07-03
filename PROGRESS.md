@@ -1,9 +1,11 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-07-02
-**Last updated**: Step 148 — **Streaming pivot pilot (local CPU, 4 cells): G1 PASS / G2 FAIL.** Prefix-AUROC + DeepConf shoot-out + online monitor on GSM8K/Llama-8B + MATH-500/Qwen-1.5B (clean) and 2 truncated R1/GPQA cells. Early signal is real — 50% of the trace gives ≥95% of full-trace AUROC (G1 PASS); but fused L-SML does NOT beat the best DeepConf window by the pre-registered +2pp at ≥2 absolute budgets on ≥2 clean cells (G2 FAIL). Only significant spectral edge: earliest 10% of trace, BOTH clean cells (+9.8pp / +4.6pp paired bootstrap). Context: our unsupervised gsm8k 75.4 vs their SUPERVISED hidden-state probe 72.69 on the same model family (arXiv:2601.02170; different label protocol). New `spectral_utils/streaming_utils.py` (incl. `anchor_orient` — per-budget L-SML global-sign coin-flip fix), `scripts/streaming_pilot.py`, `scripts/streaming_pilot_report.py`; figures in `results/figs/`; advisor-ready explainer `results/Streaming_Pilot_Explainer.html`; Extension E (streaming) added to Research_Directions.md with updated priority order (raw-trace regeneration is the next Colab item). Data gaps found: MATH-500/Qwen-7B has NO raw-trace cache anywhere (Phase-12 K10 files are texts-only); no clean R1 cell (all traces capped at 1024). Verdict: streaming pivot NOT supported in current framing; the earliest-prefix edge is the thread to pull, and it needs a re-inference run saving raw traces first.
+**Date**: 2026-07-03
+**Last updated**: Step 152 (branch `experiment/item6-temperature`) — **Item 6 temperature-variation experiment READY TO RUN.** `notebooks/Spectral_Analysis_Phase15_Temperature.ipynb` built via `scripts/build/_build_phase15_notebook.py`, dry-run verified (analysis cells executed end-to-end on synthetic caches). 9 runs × 200 MATH-500 samples on Qwen2.5-Math-7B: T ∈ {0.3, 0.6, 1.0, 1.5, 2.0} run0 + 4 extra T=1.0 runs; ~5–9 A100-h, resumable per run and per 25 samples. Q1 = AUROC-vs-T curve; Q2 primary = paired Condition A (K=5 same-T) vs B (K=5 multi-T) via new `multipass_lsml_continuous` + `paired_boot_delta_auc`; gates G-T1/G-T2 pre-registered in the notebook. `generate_full` now saves compact top-50 logprobs + `gen_token_ids` (raw-data rule closed) — so T=1.0 run0 doubles as the canonical MATH-500/Qwen-7B raw-trace cache, repaying the Step-148 Extension E data debt. **Cell 1 clones `experiment/item6-temperature`, NOT master** (master stays stable for the running Phase 12 Corrected); merge carefully later, then flip Cell 1 to `-b master`. The "T=1.0/T=1.5 caches exist" claim in Research_Directions Item 6 was verified false for Qwen-7B and corrected. Note: Step 151 was taken by a parallel session on `experiment/pivot-alternatives` (anomaly_utils/temporal_models pilot helpers) — HISTORY numbering on the two branches is disjoint by design.
 
-**Prior**: Step 147 — Bracha reply + Ofir FUSE concern. LR-oracle re-validated on a strict common-cell basis (the ~1pp macro artifact fixed): corrected gaps LR vs L-SML = +4.7 / +3.8 / +3.6pp for 5/9/16 features (LR 68.9/66.8/67.8 vs CONT 64.2/62.9/64.1; in-sample ceilings 70.5/73.7/79.3). New `scripts/oracle_report.py`, `lr_convergence.py`, `lr_weight_analysis.py`; convergence + weight-agreement figures; `logistic_oracle.png` bar chart corrected to common-cell. FUSE positioned (signal + task + dependence-handling differ). 4-point advisor reply drafted (not sent). All local — no model re-runs.
+**Prior**: Step 148 — **Streaming pivot pilot (local CPU, 4 cells): G1 PASS / G2 FAIL.** Prefix-AUROC + DeepConf shoot-out + online monitor on GSM8K/Llama-8B + MATH-500/Qwen-1.5B (clean) and 2 truncated R1/GPQA cells. Early signal is real — 50% of the trace gives ≥95% of full-trace AUROC (G1 PASS); but fused L-SML does NOT beat the best DeepConf window by the pre-registered +2pp at ≥2 absolute budgets on ≥2 clean cells (G2 FAIL). Only significant spectral edge: earliest 10% of trace, BOTH clean cells (+9.8pp / +4.6pp paired bootstrap). Context: our unsupervised gsm8k 75.4 vs their SUPERVISED hidden-state probe 72.69 on the same model family (arXiv:2601.02170; different label protocol). New `spectral_utils/streaming_utils.py` (incl. `anchor_orient` — per-budget L-SML global-sign coin-flip fix), `scripts/streaming_pilot.py`, `scripts/streaming_pilot_report.py`; figures in `results/figs/`; advisor-ready explainer `results/Streaming_Pilot_Explainer.html`; Extension E (streaming) added to Research_Directions.md with updated priority order (raw-trace regeneration is the next Colab item). Data gaps found: MATH-500/Qwen-7B has NO raw-trace cache anywhere (Phase-12 K10 files are texts-only); no clean R1 cell (all traces capped at 1024). Verdict: streaming pivot NOT supported in current framing; the earliest-prefix edge is the thread to pull, and it needs a re-inference run saving raw traces first.
+
+**Earlier**: Step 147 — Bracha reply + Ofir FUSE concern. LR-oracle re-validated on a strict common-cell basis (the ~1pp macro artifact fixed): corrected gaps LR vs L-SML = +4.7 / +3.8 / +3.6pp for 5/9/16 features (LR 68.9/66.8/67.8 vs CONT 64.2/62.9/64.1; in-sample ceilings 70.5/73.7/79.3). New `scripts/oracle_report.py`, `lr_convergence.py`, `lr_weight_analysis.py`; convergence + weight-agreement figures; `logistic_oracle.png` bar chart corrected to common-cell. FUSE positioned (signal + task + dependence-handling differ). 4-point advisor reply drafted (not sent). All local — no model re-runs.
 
 
 ---
@@ -90,7 +92,7 @@ These 6 items are the current priority order. They supersede the old Step 132 GP
 | 3 | **Extend QA evaluation** — run more QA datasets (NQ, SQuAD v2, AmbigQA, PopQA) to characterise CoT factual QA performance | Not started |
 | 4 | **Benchmarking completion** — model-matched comparisons for MATH-500, GSM8K, QA vs SE/SC/SelfCheckGPT | In progress — Phase 12 Corrected running on Colab A100 (Step 146) |
 | 5 | **Experiment 1 — Sampling fusion** — fuse SE (K=10) with single-pass spectral features; measure AUROC gain vs each alone | In progress — included in Phase 12 Corrected (Step 146) |
-| 6 | **Experiment 2 — Temperature variation** — run same model at T∈{0.3,0.6,1.0,1.5,2.0}; does higher T improve detectability? Ablate: T-diversity vs just more passes | Not started |
+| 6 | **Experiment 2 — Temperature variation** — run same model at T∈{0.3,0.6,1.0,1.5,2.0}; does higher T improve detectability? Ablate: T-diversity vs just more passes | **Notebook ready (Step 152)** — `Spectral_Analysis_Phase15_Temperature.ipynb` on branch `experiment/item6-temperature`, needs ~5–9 A100-h |
 
 See `Research_Directions.md` § "Meeting Action Items — Jun 17, 2026" for full experimental designs.
 
@@ -142,15 +144,11 @@ This notebook produces in one run:
 - Phase 14 full rerun (GPQA/DeepSeek-R1, `Spectral_Analysis_Phase14_GPQA_Comparison.ipynb`): fixed in Step 144, needs fresh Colab A100 (~4–5 hrs).
 - QA datasets (Item 3): NQ, SQuAD v2, AmbigQA — not started.
 
-### Priority 2 — Temperature variation experiment (Item 6, Colab GPU)
+### Priority 2 — Temperature variation experiment (Item 6, Colab GPU) — NOTEBOOK READY
 
-Run Qwen2.5-Math-7B on MATH-500 at T∈{0.3, 0.6, 1.0, 1.5, 2.0}. (T=1.0 and T=1.5 caches already exist.)
+**`notebooks/Spectral_Analysis_Phase15_Temperature.ipynb` on branch `experiment/item6-temperature` (Step 152).** 9 runs × 200 MATH-500 samples on Qwen2.5-Math-7B: T∈{0.3, 0.6, 1.0, 1.5, 2.0} + 4 extra T=1.0 runs for the paired A/B ablation. ~5–9 A100-h, resumable. Cell 1 clones the feature branch (not master). ~~T=1.0 and T=1.5 caches already exist~~ — verified false for Qwen-7B (Step 152); all 9 runs are fresh and save the full raw schema, so T=1.0 run0 also repays the Extension E raw-trace debt for this cell.
 
-### Priority 3 — Temperature variation experiment (Item 6, Colab GPU)
-
-Run Qwen2.5-Math-7B on MATH-500 at T∈{0.3, 0.6, 1.0, 1.5, 2.0} + 4 extra runs at T=1.0 for the ablation. (T=1.0 and T=1.5 caches already exist.)
-
-### Priority 4 — Extend QA evaluation (Item 3, Colab GPU)
+### Priority 3 — Extend QA evaluation (Item 3, Colab GPU)
 
 Additional QA datasets with CoT prompt: NaturalQuestions, SQuAD v2, AmbigQA (in priority order). Use Qwen2.5-Math-7B or Falcon-3-10B.
 
@@ -197,11 +195,13 @@ Group C — structural: rpdi, dominant_freq, stft_max_high_power
 
 | Branch | Status | Contents |
 |--------|--------|----------|
-| `master` | **Current — all work here** | All Steps through 146; continuous L-SML, baselines.py corrections, Phase 12 Corrected notebook |
+| `master` | **Stable — do not touch while Phase 12 Corrected runs against it** | All Steps through 150 |
+| `experiment/item6-temperature` | **Active (this branch)** — worktree `../hallucination_detection-item6` | Step 152: Phase 15 temperature notebook + generate_full top-k logprobs + paired_boot_delta_auc + multipass_lsml_continuous. Phase 15 Cell 1 clones THIS branch |
+| `experiment/pivot-alternatives` | Active (main working tree, parallel session) | Step 151: anomaly_utils + temporal_models pivot pilot helpers |
 | `experiment/lsml-variants` | Superseded (can delete) | Continuous L-SML development — all merged into master via `analysis/theorem-validation` |
 | `analysis/theorem-validation` | Merged — can delete | Steps 131–146; fast-forward merged to master (Step 146) |
 
-Colab clones `master` by default. All new work should be committed directly to master or a short-lived feature branch merged quickly.
+Colab clones `master` by default — **except Phase 15**, whose Cell 1 clones `experiment/item6-temperature` until the careful merge (user decision, Step 152: keep master stable mid-Phase-12; merge item6 + pivot-alternatives deliberately when both are ready, then flip Phase 15 Cell 1 to `-b master`). Both active branches add import lines to `spectral_utils/__init__.py` and append to HISTORY.md — expect trivial, mechanical merge conflicts there.
 
 ---
 

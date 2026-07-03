@@ -4870,3 +4870,17 @@ Re-fetched arXiv:2601.02170 full text to ground the comparison claims: authors L
 Deliverable: `results/Streaming_Pilot_Explainer.html` — self-contained explainer (what we tried, the competitor and its protocol, white-box/supervised comparison table, pilot gate results with caveats, prioritized next steps; embeds the prefix-AUROC + online-monitor figures). Extension E added to Research_Directions.md with the pilot verdict and the updated priority order.
 
 ---
+
+### Step 152 — Phase 15 temperature-variation notebook (Item 6) built + generate_full raw-data upgrade
+
+**What**: Built the complete Item 6 experiment on a dedicated worktree branch `experiment/item6-temperature` (from master b64fd1d; main tree stays on `experiment/pivot-alternatives` untouched). Three package additions committed first: (1) `generate_full(top_k_logprobs=K)` now returns compact top-K logprobs (`{'ids': int32 [T,K], 'logprobs': float16 [T,K]}` via new `topk_logprobs_from_scores`) and always returns `gen_token_ids` — closes the raw-data-rule gap CLAUDE.md documented; (2) `paired_boot_delta_auc` ported verbatim from the pivot branch's working tree (identical code → trivial merge); (3) `multipass_lsml_continuous` — hierarchical per-pass L-SML-continuous + `anchor_orient` (label-free epr anchor, Step 148 fix), then cross-pass fusion of the K z-scored score-views, with K=1/K=2 fallbacks and per-pass Spearman ρ matrix. Then `scripts/build/_build_phase15_notebook.py` → `notebooks/Spectral_Analysis_Phase15_Temperature.ipynb` (20 cells, standard sequence).
+
+**Why**: Item 6 of the Jun 17 meeting (does T improve detectability? is multi-T fusion diversity or just more passes?). Design: Q1 = single-pass AUROC vs T ∈ {0.3, 0.6, 1.0, 1.5, 2.0}; Q2 primary = paired ablation, Condition A (K=5 all T=1.0) vs Condition B (K=5, one per T), labels = shared T=1.0 run0 base pass, tested with `paired_boot_delta_auc`. Gates pre-registered: G-T1 ≥ +2pp non-overlapping CIs (unpaired caveat printed); G-T2 primary Δ(B−A) ≥ +2pp with CI excluding 0. Hierarchical (5 score-views) chosen over flat 25 views so the cross-pass contrast isolates pass-level diversity; flat-25 kept as a secondary robustness cell.
+
+**Data-debt synergy**: the Research_Directions claim "T=1.0 and T=1.5 caches exist" was verified FALSE for Qwen-7B (T=1.5 cell is Qwen-1.5B; Step 148 found no raw trace cache anywhere for MATH-500/Qwen-7B; Phase-12-Corrected p2 predates the Step-149/150 grading fixes and lacks logprobs — probed but never reused). All 9 runs (5 temps + 4 extra T=1.0, N=200, MAX_NEW=2048, ~5–9 A100-h, per-run + per-25-sample resume) save the full raw schema, so T=1.0 run0 becomes the canonical raw-trace cache for the 90% cell — repaying the Extension E raw-trace debt in the same GPU budget.
+
+**Verification**: helpers smoke-tested on synthetic 5-pass data (fusion lifts AUC 0.836→0.986; K=2/K=1 fallbacks; paired delta CI behaves; top-k arrays match direct log_softmax). Notebook: valid JSON, all cells `ast.parse` clean, and a full dry run of analysis cells 7–13 against synthetic 9-run caches executed end-to-end (features → gates → results pkl → 4-panel figure). Step numbered 152 because the pivot branch took 151 in a parallel session.
+
+**Result**: Ready-to-run notebook on `experiment/item6-temperature` (pushed). Cell 1 clones this branch — master deliberately untouched while Phase 12 Corrected runs against it; merge carefully later, then flip Cell 1 to `-b master`. Colab checklist: open notebook → Runtime A100 → Run All; resumable at any point.
+
+---
