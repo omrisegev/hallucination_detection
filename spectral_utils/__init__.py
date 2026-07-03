@@ -20,7 +20,7 @@ Usage in Colab (always use git clone, never pip install git+):
 """
 
 from .io_utils import load_cache, save_cache
-from .model_utils import load_model, fmt_prompt, generate_full, token_entropies_from_scores, token_entropies_and_spilled, free_memory
+from .model_utils import load_model, fmt_prompt, generate_full, token_entropies_from_scores, token_entropies_and_spilled, topk_logprobs_from_scores, free_memory
 from .feature_utils import (
     compute_spectral_features,
     compute_stft_features,
@@ -49,10 +49,10 @@ from .data_loaders import (
     load_lciteeval, lciteeval_prompt, lciteeval_grounding_label,
 )
 from .fusion_utils import (
-    zscore, boot_auc, binarize_classifiers, sml_fuse, nadler_fuse,
+    zscore, boot_auc, paired_boot_delta_auc, binarize_classifiers, sml_fuse, nadler_fuse,
     simple_average_fusion, best_nadler_on, best_nadler_pseudo_label,
     sml_fuse_signed, detect_dependent_groups, lsml_fuse,
-    lsml_continuous, lsml_continuous_pipeline,
+    lsml_continuous, lsml_continuous_pipeline, multipass_lsml_continuous,
     sml_unsupervised, sml_unsupervised_compare,
     upcr_fuse, upcr_pipeline,
 )
@@ -93,7 +93,7 @@ __version__ = "0.1.0"
 __all__ = [
     "load_cache", "save_cache",
     "load_model", "fmt_prompt", "generate_full", "token_entropies_from_scores",
-    "token_entropies_and_spilled", "free_memory",
+    "token_entropies_and_spilled", "topk_logprobs_from_scores", "free_memory",
     "compute_spectral_features", "compute_stft_features", "compute_time_domain",
     "extract_all_features", "sw_var_peak_with_window", "sw_var_peak_adaptive",
     "compute_edis", "compute_spilled_energy_features", "segment_by_citations", "FEAT_NAMES",
@@ -110,11 +110,11 @@ __all__ = [
     "load_webq", "webq_prompt", "is_correct_webq",
     "load_humaneval", "humaneval_prompt", "is_correct_humaneval",
     "load_lciteeval", "lciteeval_prompt", "lciteeval_grounding_label",
-    "zscore", "boot_auc", "binarize_classifiers", "sml_fuse",
+    "zscore", "boot_auc", "paired_boot_delta_auc", "binarize_classifiers", "sml_fuse",
     "nadler_fuse", "simple_average_fusion", "best_nadler_on",
     "best_nadler_pseudo_label",
     "sml_fuse_signed", "detect_dependent_groups", "lsml_fuse",
-    "lsml_continuous", "lsml_continuous_pipeline",
+    "lsml_continuous", "lsml_continuous_pipeline", "multipass_lsml_continuous",
     "sml_unsupervised", "sml_unsupervised_compare",
     "upcr_fuse", "upcr_pipeline",
     "decompose_auroc", "threshold_sensitivity", "derive_consensus_signs",
