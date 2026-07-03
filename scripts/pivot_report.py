@@ -71,7 +71,7 @@ def report_track_a(res, comp):
         mc = macro([r['cont'] for r in any_rows])
         print(f'### feature set {fs} — L-SML continuous macro = {mc:.3f} '
               f'({len(any_rows)} common cells)\n')
-        print('| method | raw | **anchored** | oracle | Δ vs L-SML (anch) | '
+        print('| method | raw | **anchored** | oracle | delta vs L-SML (anch) | '
               'reasoning | gpqa | rag | flips |')
         print('|---|---|---|---|---|---|---|---|---|')
         for m, rows in data.items():

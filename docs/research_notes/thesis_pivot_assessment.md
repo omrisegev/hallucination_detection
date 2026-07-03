@@ -73,14 +73,54 @@ Everything piloted here is fit per cell on **all unlabeled samples**. PRAE is th
 - **Track A** (`scripts/pivot_trackA.py`): 6 anomaly scorers × 29-cell battery × feature sets {5, 16}. Orientation is label-free, three tiers: raw (fixed convention), **epr-anchored (primary, gated)**, oracle max(p,1−p) (diagnostic only — the only tier comparable to the stored L-SML numbers, which used label-peeked orientation; our gate is therefore conservative). Transductive fit-and-score matches L-SML's information access (it estimates eigenvector weights from the same unlabeled eval cell). **Gate A**: macro(anchored) ≥ macro(L-SML continuous) − 1pp on common cells ⇒ viable hedge; ≥ +1pp ⇒ genuine improvement. Diagnostic: PRAE ≤ Mahalanobis ⇒ nonlinearity adds nothing.
 - **Track B** (`scripts/pivot_trackB.py`): HMM occupancy, BOCPD change-point stats, AR/Kalman innovations on the one clean raw-trace cell (gsm8k/Llama-3.1-8B, n=200), vs recomputed DeepConf/L-SML baselines (cross-checked against Step-148 stored values). **Gate B**: candidate ≥ best DeepConf AND ≥ full-trace lsml5, paired-bootstrap 95% CI of the DeepConf delta excluding 0 ⇒ promote to Colab replication. MATH-500/Qwen-1.5B cell is secondary/non-canonical (K=8 correlated traces, cluster bootstrap), never gates.
 
-## 7. Track B results — PENDING (filled after run)
+## 7. Track A results — **Gate A: all candidates FAIL**
 
-*(placeholder — table + Gate B verdict + KalmanNet go/no-go call)*
+Run: 2026-07-03, 29 cells, ~30 min CPU. Full numbers in `results/pivot_trackA.pkl`, figures in `results/figs/pivot_trackA_*.png`.
 
-## 8. Track A results — PENDING (filled after run)
+| method (fs=16, PRIMARY) | macro anchored | L-SML cont. | Δ | verdict |
+|---|---|---|---|---|
+| maha | 0.513 | 0.651 | −13.8pp | FAIL |
+| **gmm2** (best) | **0.553** | 0.651 | −9.8pp | FAIL |
+| kde | 0.542 | 0.651 | −10.9pp | FAIL |
+| iforest | 0.504 | 0.651 | −14.6pp | FAIL |
+| ae | 0.535 | 0.646¹ | −11.2pp | FAIL |
+| prae | 0.523 | 0.646¹ | −12.3pp | FAIL |
 
-*(placeholder — per-method macro table, per-regime breakdown, orientation-inversion analysis, Gate A verdicts)*
+¹ ae/prae skipped on 4 cells with n<80, so their comparator macro differs slightly. fs=5 results are the same story (best: gmm2 0.555, −9.8pp).
 
-## 9. Recommendation — PENDING
+**Diagnostics:**
+- PRAE ≤ plain AE on both feature sets (−1.2 to −2.0pp): the robust gating **adds nothing** here.
+- PRAE ≈ Mahalanobis (+1.0pp on fs=16): the nonlinearity **adds ~nothing**.
+- Per-regime: only reasoning shows life (gmm2 0.701 on fs=16 reasoning — still ~8pp below L-SML's reasoning macro); gpqa and rag are at chance for every scorer.
+- **Not an orientation artifact**: even the oracle tier (label-peeked max(p,1−p), the most generous possible, and the tier directly comparable to how the stored L-SML comparators were computed) tops out at 0.59–0.60 macro — still ~5pp below L-SML. The scorers lack separability, full stop; the anchored/raw gaps just add inversion on top.
 
-*(placeholder — filled after both gates)*
+**Why this negative result is informative.** Anomaly/density scorers are *direction-free*: they score distance from the bulk in any direction of feature space. The label-relevant structure in our features is a specific **oriented consensus direction** (each feature has a known sign; correct answers sit on the agreeing side). L-SML's whole mechanism is estimating that consensus direction from the unlabeled covariance — which is precisely the information density models discard. The aggregation layer is therefore **not a commodity**: consensus-weighting matters, and "any unsupervised aggregator would do" is false. Implication for the FUSE concern: the right defense is the established one (contribution = the signal, L-SML cited as an off-the-shelf tool with FUSE as validation of the family) — not swapping in a weaker aggregator to manufacture distance.
+
+## 8. Track B results — **Gate B: no candidate promoted**
+
+Run: 2026-07-03, primary cell `gsm8k/Llama-3.1-8B` (n=200, 20% wrong). Recomputed baselines cross-checked against stored Step-148 values. Full numbers in `results/pivot_trackB.pkl`.
+
+Targets: best DeepConf = w32 **0.7355**; full-trace lsml5 **0.7539**.
+
+| candidate | AUROC (anchored) | vs entropy level (Spearman) | note |
+|---|---|---|---|
+| hmm_occ (2-state regime posterior) | 0.719 | ρ = 0.97 | repackages mean entropy |
+| ar2_mse (AR(2) innovations) | 0.717 | ρ = 0.94 | repackages mean entropy |
+| kalman_nis (Kalman innovations) | 0.703 | ρ = 0.93 | repackages mean entropy |
+| bocpd_ecp_l50 | 0.703 | ρ ≈ 0.03 | **orthogonal signal** |
+| bocpd_ecp (λ=100) | 0.685 | ρ = −0.07 | **orthogonal signal** |
+| hmm_tail / hmm_switch / bocpd_map… | 0.40–0.66 | — | weaker variants |
+
+No candidate reaches either target, so none clears the paired-CI clause either. **Gate B: temporal models tried-and-rejected at pilot scale.** The secondary MATH-500/Qwen-1.5B cell (non-canonical, K=8 correlated traces, cluster bootstrap) shows the same picture: best temporal candidate hmm_tail 0.710 vs best DeepConf 0.672, +3.8pp with CI [−0.6, +8.2] — includes 0, and the cell never gates.
+
+**KalmanNet go/no-go → NO-GO.** Innovations do carry label signal (0.70–0.72), but at ρ = 0.93–0.97 with plain mean entropy they are a repackaging of the level signal we already exploit, several points *below* the trivial baselines. A learned Kalman gain would have to overturn that from n=200 unlabeled traces; there is no headroom evidence. This also empirically undercuts the doc's "Markovian hallucination momentum" premise: the fitted high-entropy regime is not sticky (self-transition 0.46 vs 0.77 for the grounded state) — high-entropy visits are short bursts, not persistent regimes.
+
+**The one genuinely new finding: BOCPD change-point count is orthogonal to entropy level** (ρ ≈ 0 vs epr) yet scores 0.685–0.703 alone. It is the only candidate that measures something our 16 features don't already encode (cusum_max correlates with level; ecp doesn't). Exploratory post-hoc check (not gated): adding `bocpd_ecp` as a 6th L-SML view on this cell gives −0.28pp [−3.1, +3.0] — null at n=200. Verdict: not a replacement, possibly a **view candidate**; re-check for free on the raw traces from the already-queued Colab re-inference (MATH-500/Qwen-7B + clean R1) before spending anything on it.
+
+## 9. Recommendation
+
+1. **Do not pivot.** Both pre-registered gates failed decisively. The alternatives from the pivot doc are either weaker aggregators (Track A: −10 to −15pp) or repackagings of the entropy level (Track B: ρ ≥ 0.93). L-SML continuous over the spectral features remains the best unsupervised method we have tested — now against 6 anomaly scorers and 4 temporal-model families, on top of the earlier U-PCR / flat-SML / avg comparisons.
+2. **The FUSE defense stays as established** (Step 147 positioning): contribution = the entropy-trace signal; FUSE innovates on the fusion side of the same pipeline and validates the family. Track A now adds an empirical argument to that story: the aggregation layer is not swappable-at-zero-cost, and our use of L-SML is a choice that measurably matters — which is a *strength* in the narrative, not a liability.
+3. **KalmanNet, LOCA, IMM, the hybrid: drop** (per §0/§4 + pilot evidence). Diverging-flow density ideas survive only as the gmm/kde rows already tested (failed).
+4. **One cheap thread stays open:** BOCPD change-point count as a 17th view — orthogonal to everything we have, free to compute on the queued Colab re-inference traces. Decide after that data exists; do not schedule GPU time for it.
+5. If the advisors want an "alternatives were considered" section for the thesis, this memo + `results/pivot_track{A,B}.pkl` is that section, with pre-registered gates and honest nulls.
