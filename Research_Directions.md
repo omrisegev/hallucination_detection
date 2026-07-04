@@ -110,11 +110,11 @@ GPQA Diamond (MCQ science) is structurally out-of-regime: entropy dynamics are s
 
 | # | Action | Status | GPU? |
 |---|--------|--------|------|
-| 1 | L-SML follow-up literature search (Nadler post-2016) | Not started | No |
+| 1 | L-SML follow-up literature search (Nadler post-2016) | ✅ Completed (Steps 139–141) | No |
 | 2 | Logistic regression oracle (5/9/16 features, 5-fold CV) | ✅ Completed (Steps 142–143, 147) | No |
 | 3 | Extend QA evaluation (NQ, SQuAD v2, AmbigQA, PopQA) | Not started | Yes |
-| 4 | Benchmarking completion (MATH-500 done; QA + Phase 14 remaining) | In progress | Partial |
-| 5 | Experiment 1 — sampling fusion: SE (K=10) + spectral features | Not started | Yes |
+| 4 | Benchmarking completion (Phase 12 Corrected run done — Step 152; 4 open issues before citable; QA + Phase 14 remaining) | In progress | Partial |
+| 5 | Experiment 1 — sampling fusion: SE (K=10) + spectral features | ✅ Completed (Step 152) — gate NOT passed | No |
 | 6 | Experiment 2 — temperature variation: T effect + diversity ablation | Not started | Yes |
 
 ---
@@ -177,9 +177,16 @@ Characterise method scope on factual QA by adding four datasets (priority order)
 
 ### Item 4 — Benchmarking Completion
 
-**Done (Step 135)**:
+**Done (Step 135, old caches)**:
 - MATH-500 / Qwen-Math-7B: CONT **94.4%** vs SE NLI 87.7% / SC 87.2% (K=10) ✅
 - GSM8K / Llama-8B: CONT **75.6%** vs SC 78.5% / SE 77.4% (K=10) ✅
+
+**Done (Step 152, Phase 12 Corrected — fresh shared caches, paper-accurate baselines)**:
+- GSM8K / Llama-8B: **L-SML 1-pass 0.754 beats every multi-pass baseline** (SCGPT-official 0.701; D-SE/LW-SE/SC K=10 all ≈0.61). Third run at 75.4–76.0.
+- MATH-500 / Qwen-Math-7B: L-SML 0.230 = global sign flip (no `anchor_orient`; flipped ≡ 0.770 — still far below the 94.4 old-cache number, unresolved). SC K=10 wins at 0.863.
+- GPQA / Qwen2.5-7B: all sampling baselines at chance (0.50); VC 0.428; L-SML 0.553 best.
+- RAG×4: SelfCheckGPT below chance everywhere (official 0.24–0.44 < hard 0.32–0.48) — orientation/grading investigation needed.
+- ⚠ Fresh-cache SE/SC baselines collapse vs old Phase 12 (GSM8K SC 78.5→60.8, SE 77.4→61.4; GPQA SE 70.6→50.1; MATH SE 87.7→63.0 with SC stable). NLI truncation on long traces is the prime suspect. **Neither table is citable until reconciled** — see PROGRESS.md Priority 1.
 
 **Still needed**:
 - **QA datasets**: SelfCheckGPT / Semantic Entropy comparison on same model + dataset (WebQ, TriviaQA)
@@ -205,6 +212,18 @@ Fuse Semantic Entropy (K=10 generations) with single-pass spectral features.
 **Dataset**: MATH-500 / Qwen2.5-Math-7B (T=1.0 cache exists) or GSM8K / Llama-8B.
 
 **Decision gate**: ρ(SE score, CONT score) < 0.75 AND fused AUROC > max(CONT, SE) + 1pp → complementary signals; claim: "single-pass spectral provides cheap orthogonal signal to sampling-based methods."
+
+**✅ COMPLETED (Step 152) — gate NOT passed.** Fusion = L-SML GOOD_5 + LW-SE as 6th view in `lsml_continuous_pipeline`, run inside Phase 12 Corrected:
+
+| Cell | ρ(L-SML, LW-SE) | L-SML alone | LW-SE alone | Fused | Gain vs max |
+|------|-----------------|-------------|-------------|-------|-------------|
+| GSM8K / Llama-8B | 0.263 | 0.754 | 0.613 | 0.758 | +0.4pp — FAIL |
+| MATH-500 / Qwen-Math-7B | −0.251 | 0.230 (sign flip) | 0.625 | 0.232 | invalid (flip) |
+| GPQA / Qwen2.5-7B | −0.188 | 0.553 | 0.501 | 0.573 | +2.0pp — passes numerically, but LW-SE is at chance |
+
+- **Primary answer**: SE K=10 (10× compute) adds ≈nothing on top of 1-pass spectral on reasoning.
+- **Secondary answer**: the orthogonality runs the other way — spectral adds **+14.5pp** on top of LW-SE (GSM8K). Supports the "cheap single-pass signal" framing, but as spectral rescuing SE rather than SE lifting spectral.
+- MATH-500 fusion must be re-run with `anchor_orient` before the row is usable (PROGRESS.md Priority 1).
 
 ---
 

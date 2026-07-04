@@ -1,7 +1,9 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-07-03
-**Last updated**: Step 151 — **Pivot-alternatives pilot (branch `experiment/pivot-alternatives`): both gates FAIL → no pivot.** Assessed the 5 Gemini pivot options (`docs/research_notes/thesis_pivot_options.md`) in `docs/research_notes/thesis_pivot_assessment.md` and piloted the survivors locally with pre-registered gates. Track A (6 anomaly scorers — Mahalanobis/GMM/KDE/IForest/AE/PRAE — as L-SML replacements over the same 16 features, 29-cell battery): ALL FAIL, best gmm2 0.553 vs L-SML continuous 0.651; even label-peeked oracle orientation tops at ~0.60; PRAE ≤ plain AE ≈ Mahalanobis. Track B (2-state HMM, BOCPD, AR/Kalman innovations on raw traces, gsm8k/Llama-8B): none beats DeepConf 0.735 / lsml5 0.754; innovations are entropy-level repackaging (ρ 0.93–0.97) → **KalmanNet NO-GO**; LOCA/IMM/hybrid dropped in assessment. Positive residue: consensus-direction fusion measurably beats direction-free anomaly scoring (strengthens the signal-first FUSE defense), and **bocpd_ecp is a level-orthogonal signal (ρ≈−0.07, 0.685 AUROC alone)** — candidate 17th view, null in 1-cell fusion, re-check free on the queued raw-trace re-inference. New: `spectral_utils/anomaly_utils.py`, `spectral_utils/temporal_models.py`, `paired_boot_delta_auc`, `iter_trace_records`, `scripts/pivot_track{A,B}.py`, `scripts/pivot_report.py`; results `results/pivot_track{A,B}.pkl` + 3 figs. Branch not merged — merge decision with advisors.
+**Date**: 2026-07-04
+**Last updated**: Step 152 — **Phase 12 Corrected finished on Colab (Items 4+5).** GSM8K/Llama-8B: **L-SML 1-pass 0.754 beats every multi-pass baseline** (best: SelfCheckGPT-official K=5 0.701; D-SE/LW-SE/SC K=10 all 0.61); third independent run at 75.4–76.0. MATH-500/Qwen-Math-7B: L-SML 0.230 = **global sign flip** (notebook lacks `anchor_orient`; flipped ≡ 0.770 — still far below the 94.4 old-cache reference, unresolved); SC K=10 wins the cell at 0.863. GPQA: all sampling baselines at chance, VC 0.428, L-SML 0.553 best. RAG×4: SelfCheckGPT **below chance** everywhere (official 0.24–0.44, worse than hard). Fresh-cache baselines collapse vs old Phase 12 (GSM8K SC 78.5→60.8, SE 77.4→61.4; GPQA SE 70.6→50.1; MATH SE 87.7→63.0 — NLI-truncation suspect; old table no longer citable until reconciled). **Item 5 verdict: fusion gate NOT passed** — ρ low everywhere but gains ≤+2.0pp; SE K=10 adds ≈nothing over 1-pass spectral, while spectral adds +14.5pp over LW-SE (GSM8K). Follow-ups = new Priority 1 (anchor_orient re-analysis, MATH discrepancy, RAG below-chance, SE-drop reconciliation). Results: notebook Cell 25 + Drive `cache/phase12_corrected/phase12_corrected_results.pkl`.
+
+**Prior**: Step 151 — **Pivot-alternatives pilot (branch `experiment/pivot-alternatives`): both gates FAIL → no pivot.** Assessed the 5 Gemini pivot options (`docs/research_notes/thesis_pivot_options.md`) in `docs/research_notes/thesis_pivot_assessment.md` and piloted the survivors locally with pre-registered gates. Track A (6 anomaly scorers — Mahalanobis/GMM/KDE/IForest/AE/PRAE — as L-SML replacements over the same 16 features, 29-cell battery): ALL FAIL, best gmm2 0.553 vs L-SML continuous 0.651; even label-peeked oracle orientation tops at ~0.60; PRAE ≤ plain AE ≈ Mahalanobis. Track B (2-state HMM, BOCPD, AR/Kalman innovations on raw traces, gsm8k/Llama-8B): none beats DeepConf 0.735 / lsml5 0.754; innovations are entropy-level repackaging (ρ 0.93–0.97) → **KalmanNet NO-GO**; LOCA/IMM/hybrid dropped in assessment. Positive residue: consensus-direction fusion measurably beats direction-free anomaly scoring (strengthens the signal-first FUSE defense), and **bocpd_ecp is a level-orthogonal signal (ρ≈−0.07, 0.685 AUROC alone)** — candidate 17th view, null in 1-cell fusion, re-check free on the queued raw-trace re-inference. New: `spectral_utils/anomaly_utils.py`, `spectral_utils/temporal_models.py`, `paired_boot_delta_auc`, `iter_trace_records`, `scripts/pivot_track{A,B}.py`, `scripts/pivot_report.py`; results `results/pivot_track{A,B}.pkl` + 3 figs. Branch not merged — merge decision with advisors.
 
 **Prior**: Step 148 — **Streaming pivot pilot (local CPU, 4 cells): G1 PASS / G2 FAIL.** Prefix-AUROC + DeepConf shoot-out + online monitor on GSM8K/Llama-8B + MATH-500/Qwen-1.5B (clean) and 2 truncated R1/GPQA cells. Early signal is real — 50% of the trace gives ≥95% of full-trace AUROC (G1 PASS); but fused L-SML does NOT beat the best DeepConf window by the pre-registered +2pp at ≥2 absolute budgets on ≥2 clean cells (G2 FAIL). Only significant spectral edge: earliest 10% of trace, BOTH clean cells (+9.8pp / +4.6pp paired bootstrap). Context: our unsupervised gsm8k 75.4 vs their SUPERVISED hidden-state probe 72.69 on the same model family (arXiv:2601.02170; different label protocol). New `spectral_utils/streaming_utils.py` (incl. `anchor_orient` — per-budget L-SML global-sign coin-flip fix), `scripts/streaming_pilot.py`, `scripts/streaming_pilot_report.py`; figures in `results/figs/`; advisor-ready explainer `results/Streaming_Pilot_Explainer.html`; Extension E (streaming) added to Research_Directions.md with updated priority order (raw-trace regeneration is the next Colab item). Data gaps found: MATH-500/Qwen-7B has NO raw-trace cache anywhere (Phase-12 K10 files are texts-only); no clean R1 cell (all traces capped at 1024). Verdict: streaming pivot NOT supported in current framing; the earliest-prefix edge is the thread to pull, and it needs a re-inference run saving raw traces first.
 
@@ -90,8 +92,8 @@ These 6 items are the current priority order. They supersede the old Step 132 GP
 | 1 | **L-SML literature search** — find Nadler post-2016 follow-up work extending or improving L-SML | ✅ Complete (Step 141) |
 | 2 | **Logistic regression oracle** — supervised LR on 5/9/16 feature sets → upper bound on fusion AUROC (5-fold CV, no in-sample leakage) | ✅ Complete (Steps 142–143 corrected; Step 147 common-cell re-validation + convergence + weight-agreement experiments) |
 | 3 | **Extend QA evaluation** — run more QA datasets (NQ, SQuAD v2, AmbigQA, PopQA) to characterise CoT factual QA performance | Not started |
-| 4 | **Benchmarking completion** — model-matched comparisons for MATH-500, GSM8K, QA vs SE/SC/SelfCheckGPT | In progress — Phase 12 Corrected running on Colab A100 (Step 146) |
-| 5 | **Experiment 1 — Sampling fusion** — fuse SE (K=10) with single-pass spectral features; measure AUROC gain vs each alone | In progress — included in Phase 12 Corrected (Step 146) |
+| 4 | **Benchmarking completion** — model-matched comparisons for MATH-500, GSM8K, QA vs SE/SC/SelfCheckGPT | Run complete (Step 152); 4 open follow-ups (MATH sign flip/discrepancy, RAG below-chance, SE drops) before numbers are citable; Phase 14 + QA datasets remain |
+| 5 | **Experiment 1 — Sampling fusion** — fuse SE (K=10) with single-pass spectral features; measure AUROC gain vs each alone | ✅ Complete (Step 152) — gate NOT passed: SE K=10 adds ≤+2.0pp over 1-pass L-SML; spectral adds +14.5pp over LW-SE (GSM8K) |
 | 6 | **Experiment 2 — Temperature variation** — run same model at T∈{0.3,0.6,1.0,1.5,2.0}; does higher T improve detectability? Ablate: T-diversity vs just more passes | Not started |
 
 See `Research_Directions.md` § "Meeting Action Items — Jun 17, 2026" for full experimental designs.
@@ -127,18 +129,14 @@ Note: `min_spilled` sign updated from initial `+1` estimate to `-1` — validate
 
 *Priority order from the Jun 17 meeting. See table in "MEETING ACTION ITEMS" section above for status.*
 
-### Priority 1 — Phase 12 Corrected results (Items 4 + 5, RUNNING)
+### Priority 1 — Phase 12 Corrected follow-ups (Step 152 — run DONE, 4 open issues before numbers are citable)
 
-**`Spectral_Analysis_Phase12_Corrected.ipynb` is currently running on Colab A100** (~4–6 hrs total).
+The run completed (results in Step 152 HISTORY entry + `cache/phase12_corrected/phase12_corrected_results.pkl`). GSM8K is a clean headline (L-SML 1-pass 0.754 > all K=10 baselines). The other cells have open issues:
 
-This notebook produces in one run:
-- Paper-accurate competitor AUROCs: LW-SE (Farquhar et al. primary), SelfCheckGPT-official (soft probability + correct premise/hypothesis order), SC K=10, D-SE (Phase 12 comparison row)
-- L-SML as strict 1-pass (single `generate_full()` per question)
-- **Sampling fusion (Item 5)**: LW-SE + GOOD_5 spectral features as 6-view `lsml_continuous_pipeline`; Spearman ρ check before fusing
-- Domains: GSM8K/Llama-8B, MATH-500/Qwen-Math-7B, GPQA/Qwen-7B, RAG×4/Qwen-7B
-- Cache isolated at `phase12_corrected/` (separate from `phase12_baselines/`)
-
-**When it finishes**: add Step 146 HISTORY.md entry with actual AUROCs. Template is in Cell 26 of the notebook.
+1. **`anchor_orient` re-analysis** (cheap — analysis cells only, inference caches on Drive, no GPU re-inference): the notebook calls `lsml_continuous_pipeline` without the Step-148 label-free orientation fix. MATH-500 flipped (0.230 → 0.770); the MATH fusion number (0.232) is invalid for the same reason. Add `anchor_orient` to the three analysis cells and re-run Cells 9/10, 15, 20, 25, 26.
+2. **MATH-500 discrepancy**: flipped 0.770 vs 94.4 CONT reference (Step 135, old T=1.0 cache). Fresh traces at MAX_NEW=2048, data_loaders prompt. Compare trace-length distributions and per-feature AUCs old-cache vs new-cache before citing either number.
+3. **RAG SelfCheckGPT below chance** (official 0.243–0.442, worse than hard on all 4 datasets): check score orientation and grading in the long-context L-CiteEval setting.
+4. **SE baseline drops vs old Phase 12** (GSM8K 77.4→61.4, GPQA 70.6→50.1, MATH 87.7→63.0 while SC on MATH is stable): NLI cross-encoder truncation on long traces is the prime suspect; also different question subsets. Old Phase-12 competitor table is not citable until reconciled.
 
 **Still needed separately**:
 - Phase 14 full rerun (GPQA/DeepSeek-R1, `Spectral_Analysis_Phase14_GPQA_Comparison.ipynb`): fixed in Step 144, needs fresh Colab A100 (~4–5 hrs).
@@ -200,7 +198,7 @@ Group C — structural: rpdi, dominant_freq, stft_max_high_power
 | Branch | Status | Contents |
 |--------|--------|----------|
 | `master` | **Current — all work here** | All Steps through 146; continuous L-SML, baselines.py corrections, Phase 12 Corrected notebook |
-| `experiment/pivot-alternatives` | Open — merge decision with advisors | Step 151: pivot-options assessment memo + anomaly/temporal pilot (both gates FAIL, no pivot); anomaly_utils, temporal_models, paired_boot_delta_auc |
+| `experiment/pivot-alternatives` | Open — strictly ahead of master (fast-forwardable); merge decision with advisors | Step 151: pivot-options assessment memo + anomaly/temporal pilot (both gates FAIL, no pivot). Step 152: Phase 12 Corrected results + docs (committed here — master fast-forward picks them up) |
 | `experiment/lsml-variants` | Superseded (can delete) | Continuous L-SML development — all merged into master via `analysis/theorem-validation` |
 | `analysis/theorem-validation` | Merged — can delete | Steps 131–146; fast-forward merged to master (Step 146) |
 
@@ -251,7 +249,23 @@ Colab clones `master` by default. All new work should be committed directly to m
 
 ---
 
-## Available competitor numbers (Phase 12)
+## Available competitor numbers
+
+### Phase 12 Corrected (Step 152) — paper-accurate methods, fresh shared caches at T=1.0
+
+⚠ MATH-500 L-SML is sign-flipped (see Priority 1); RAG SelfCheckGPT below chance — pending investigation before citing.
+
+| Domain | Model | L-SML 1-pass | Best competitor | Other baselines | Fusion (L-SML+LW-SE) |
+|--------|-------|--------------|-----------------|-----------------|----------------------|
+| GSM8K | Llama-3.1-8B | **0.754** [0.66,0.84] | SCGPT-official K=5: 0.701 | D-SE 0.614 / LW-SE 0.613 / SC 0.608 / SCGPT-hard 0.601 | 0.758 (+0.4pp, ρ=0.26) |
+| MATH-500 | Qwen-Math-7B | 0.230 ⚠flip (≡0.770) | **SC K=10: 0.863** [0.80,0.91] | D-SE 0.630 / LW-SE 0.625 / SCGPT 0.549/0.593 | 0.232 (invalid — flip) |
+| GPQA | Qwen2.5-7B | **0.553** [0.45,0.66] | SCGPT-official K=5: 0.512 | D-SE 0.504 / LW-SE 0.501 / SC 0.504 / VC 0.428 | 0.573 (+2.0pp, ρ=−0.19) |
+| RAG hotpotqa | Qwen2.5-7B | — | SCGPT hard 0.317 / official 0.243 ⚠ | | |
+| RAG NQ | Qwen2.5-7B | — | SCGPT hard 0.393 / official 0.322 ⚠ | | |
+| RAG 2Wiki | Qwen2.5-7B | — | SCGPT hard 0.354 / official 0.306 ⚠ | | |
+| RAG NarrativeQA | Qwen2.5-7B | — | SCGPT hard 0.477 / official 0.442 ⚠ | | |
+
+### Old Phase 12 (superseded — do NOT cite until reconciled with Step 152; large unexplained SE/SC drops on fresh caches)
 
 | Domain | Model | Competitor | AUROC |
 |--------|-------|------------|-------|
