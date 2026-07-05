@@ -4884,3 +4884,50 @@ Deliverable: `results/Streaming_Pilot_Explainer.html` — self-contained explain
 **Result**: Ready-to-run notebook on `experiment/item6-temperature` (pushed). Cell 1 clones this branch — master deliberately untouched while Phase 12 Corrected runs against it; merge carefully later, then flip Cell 1 to `-b master`. Colab checklist: open notebook → Runtime A100 → Run All; resumable at any point.
 
 ---
+
+### Step 153 — Phase 15 temperature variation (Item 6) — RESULTS
+
+**What**: Ran the Phase 15 notebook to completion on Colab A100 — 9 runs × 200 MATH-500 samples on Qwen2.5-Math-7B, T ∈ {0.3, 0.6, 1.0, 1.5, 2.0} run0 + 4 extra T=1.0 runs. Results embedded in the committed notebook; consolidated dict + figure saved to `cache/phase15_temperature/results/` on Drive. Both raw caches and the derived `phase15_feats.pkl` are index-aligned across all 9 runs (common-valid intersection = 200/200).
+
+**Why**: Item 6 of the Jun 17 meeting — (Q1) does temperature change detectability, and (Q2, primary) does multi-pass fusion gain from *temperature diversity* or just from *more passes*?
+
+**Result — both pre-registered gates FAIL, and the failure is the finding.**
+
+- **Q1 (single-pass L-SML-continuous AUROC vs T)** — inverted-U, but confounded by accuracy collapse:
+  | T | AUROC [95% CI] | acc | note |
+  |---|---|---|---|
+  | 0.3 | 0.545 [0.440, 0.654] | 80.0% | |
+  | 0.6 | 0.644 [0.524, 0.757] | 81.5% | |
+  | 1.0 | 0.851 [0.777, 0.918] | 70.5% | |
+  | 1.5 | 0.878 [0.797, 0.949] | 27.5% | |
+  | 2.0 | 0.629 [0.377, 0.857] | 4.0% | minority=8 → underpowered, AUROC meaningless |
+
+  As T rises, model accuracy falls 80% → 4%, so the label mix — not just detectability — changes across the curve. **G-T1 FAIL**: no T≠1.0 beats T=1.0 by ≥2pp with non-overlapping CIs (T=1.5 is higher point-estimate 0.878 but CIs overlap and it is at 27.5% acc).
+
+- **Q2 (paired A vs B on the 200 common samples, labels = T=1.0 run0 correctness)** — the clean, primary result:
+  | Method | AUROC [95% CI] |
+  |---|---|
+  | single pass T=1.0 (base) | 0.851 [0.777, 0.918] |
+  | **A: K=5 same-T=1.0, L-SML** | **0.912 [0.858, 0.954]** |
+  | A: K=5 same-T, simple avg | 0.906 [0.850, 0.948] |
+  | B: K=5 multi-T, L-SML | 0.859 [0.794, 0.914] |
+  | B: K=5 multi-T, simple avg | 0.830 [0.760, 0.890] |
+
+  - paired **AUC(B) − AUC(A) = −0.053 [−0.103, −0.011]** → **G-T2 FAIL, and the sign is negative**: temperature diversity does not help, it *hurts*.
+  - paired **AUC(A) − AUC(base) = +0.061 [+0.004, +0.128]** → more same-T passes *do* help (CI excludes 0).
+  - Mechanism (per-pass Spearman ρ): Condition A off-diag mean **+0.45** (same signal + independent noise → averaging cleans it up); Condition B off-diag mean **+0.01** — but that decorrelation comes from the off-temperature passes being *near-random* (T=0.3/0.6 weak, T=2.0 degenerate at 4% acc), not from adding independent true signal. Decorrelation-from-noise ≠ decorrelation-from-diversity.
+  - Flat 25-view robustness cell agrees (A 0.907 vs B 0.879).
+
+  **Advisor takeaway**: the multi-pass lift is **variance reduction from repeated sampling at a single good temperature (T≈1.0)**, not temperature diversity. Mixing temperatures dilutes the fusion.
+
+- **Two methodological flags surfaced by the feature table (Cell 9)** — worth a follow-up, not fatal:
+  1. `spectral_entropy` is **sign-flipped** vs the fixed GOOD_5 convention at the hot temperatures (AUROC 0.261 @ T=1.0, 0.140 @ T=1.5 with sign −1 → i.e. ~0.74/0.86 if flipped). The fixed sign is temperature-dependent for this feature.
+  2. The label-free **L-SML fusion underperforms the best single feature at every T** (e.g. T=0.3: fused 0.545 vs `cusum_max` 0.811; T=1.0: fused 0.851 vs `cusum_max` 0.927). The `epr` anchor is weak at low T (0.681 @ T=0.3), so the global-sign orientation is fragile there — plausibly the main reason low-T fused AUROC looks poor. The "detectability is bad at low T" read from Q1 may be partly a fusion/anchor artifact, not a property of the signal.
+
+**Data-debt repaid**: T=1.0 run0 is now the **canonical MATH-500/Qwen-7B raw-trace cache** (`token_entropies` + `token_spilled_energies` + top-50 logprobs + `gen_token_ids`, N=200, 70.5% acc, MAX_NEW=2048) — closing the Step-148 Extension E gap that blocked the streaming earliest-prefix replication. All 9 runs carry the full raw schema.
+
+**Follow-up experiments enabled by this data** (all CPU once the 9 caches are downloaded — full list in Research_Directions Item 6): (1) self-consistency / semantic-entropy baseline over the 5 T=1.0 passes — the reviewer-mandatory "does spectral beat just sampling 5× and checking agreement?" test, also answers Item 5; (2) K-sweep AUROC(A) for K=1..5 — practical cost/benefit curve; (3) anchor/sign robustness across T — re-fuse with a stronger anchor (`cusum_max`) / per-feature label-free sign / leave-spectral_entropy-out, likely recovers the low-T gap; (4) ΔE spilled-energy spectral features (saved, never used); (5) top-50 logprob features (margin, varentropy, Rényi); (6) fairer diversity set (drop degenerate T=2.0); (7) streaming earliest-prefix replication now unblocked (Extension E).
+
+**Note on branch**: the run was launched from `experiment/item6-temperature` (pushed at `cf5a13b`); the downloaded results notebook had been saved into the main tree (then on `experiment/bocpd-features`) and was moved back onto this branch. The consolidated `phase15_results.pkl` on Drive keeps every raw score, so all follow-up analyses above are pure CPU once the caches are downloaded.
+
+---

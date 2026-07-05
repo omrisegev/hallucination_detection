@@ -115,7 +115,7 @@ GPQA Diamond (MCQ science) is structurally out-of-regime: entropy dynamics are s
 | 3 | Extend QA evaluation (NQ, SQuAD v2, AmbigQA, PopQA) | Not started | Yes |
 | 4 | Benchmarking completion (MATH-500 done; QA + Phase 14 remaining) | In progress | Partial |
 | 5 | Experiment 1 — sampling fusion: SE (K=10) + spectral features | Not started | Yes |
-| 6 | Experiment 2 — temperature variation: T effect + diversity ablation | Notebook ready (Step 152, branch `experiment/item6-temperature`) — needs A100 | Yes |
+| 6 | Experiment 2 — temperature variation: T effect + diversity ablation | ✅ Completed (Step 153) — both gates FAIL: lift = variance reduction at T≈1.0, not T-diversity. CPU follow-ups queued | Done (GPU); follow-ups CPU |
 
 ---
 
@@ -220,7 +220,33 @@ Fuse Semantic Entropy (K=10 generations) with single-pass spectral features.
 
 **Setup**: Qwen2.5-Math-7B / MATH-500. ~~Existing caches: T=1.0 and T=1.5~~ — **claim corrected (Step 152)**: no reusable raw cache exists for this cell. The T=1.5 88.3% cell is Qwen-**1.5B**; Step 148 established MATH-500/Qwen-7B has no raw entropy-trace cache anywhere; Phase 12 Corrected `p2` predates the Step-149/150 grading fixes and has no top-k logprobs. → **All 9 runs fresh** (5 temps + 4 extra T=1.0), each saving the full raw-data schema. T=1.0 run0 doubles as the canonical raw-trace cache for this cell, repaying the Extension E data debt.
 
-**Status (Step 152)**: `notebooks/Spectral_Analysis_Phase15_Temperature.ipynb` built and dry-run verified on branch `experiment/item6-temperature` (Cell 1 clones that branch — the new `generate_full(top_k_logprobs=)`, `paired_boot_delta_auc`, `multipass_lsml_continuous` helpers live there until the careful merge to master). ~5–9 A100-hours, fully resumable per run and per 25 samples. Gates pre-registered: G-T1 (some T≠1.0 ≥ +2pp with non-overlapping CIs, unpaired), G-T2 primary (paired AUC(B)−AUC(A) ≥ +2pp, CI excludes 0).
+**Status (Step 153) — ✅ RAN on Colab A100. Both pre-registered gates FAIL; the negative result is clean and interpretable.**
+
+Results (9 runs × 200 MATH-500 / Qwen2.5-Math-7B; full narrative in HISTORY Step 153; consolidated `cache/phase15_temperature/results/phase15_results.pkl`):
+
+- **Q1 — AUROC vs T (single-pass L-SML-continuous, GOOD_5)**: inverted-U — 0.545 / 0.644 / 0.851 / 0.878 / 0.629 at T = 0.3 / 0.6 / 1.0 / 1.5 / 2.0 — **confounded by accuracy collapsing 80% → 4%** across the curve, so the "peak" partly reflects the shifting class mix, not detectability alone. T=2.0 is underpowered (8 correct). **G-T1 FAIL** (T=1.5's higher 0.878 has overlapping CIs and sits at 27.5% acc).
+- **Q2 (primary) — diversity vs more passes**, paired on the 200 common samples (labels = T=1.0 run0):
+  - **AUC(A: K=5 same-T=1.0) = 0.912**, **AUC(B: K=5 multi-T) = 0.859**, single-pass base 0.851.
+  - paired **AUC(B) − AUC(A) = −0.053 [−0.103, −0.011]** → **G-T2 FAIL, sign negative** — temperature diversity *hurts*.
+  - paired **AUC(A) − AUC(base) = +0.061 [+0.004, +0.128]** → more same-T passes *help*.
+  - Mechanism: A off-diagonal Spearman ρ +0.45 (same signal + independent noise → averaging denoises); B off-diagonal ρ +0.01, but that decorrelation is the off-temperature passes being *near-random* (T=0.3/0.6 weak, T=2.0 degenerate), not independent true signal.
+  - **Answer to the meeting question**: A ≈ B is refuted in the *unfavourable* direction — the multi-pass lift is **variance reduction from repeated sampling at a single good temperature (T≈1.0)**, and mixing temperatures dilutes it. Temperature is not the lever; repeated sampling is.
+- **Two method flags surfaced (not fatal, → follow-up)**: (1) `spectral_entropy` sign is temperature-dependent — AUROC 0.261 @ T=1.0 / 0.140 @ T=1.5 with the fixed −1 sign (i.e. informative if flipped); (2) the label-free L-SML fusion **underperforms the best single feature at every T** (fused 0.851 vs `cusum_max` 0.927 @ T=1.0; fused 0.545 vs `cusum_max` 0.811 @ T=0.3) because the `epr` anchor is weak at low T (0.681 @ T=0.3) → fragile global-sign orientation. The low-T "poor detectability" in Q1 is plausibly a fusion/anchor artifact, not a signal property.
+
+**Data-debt repaid**: T=1.0 run0 is now the **canonical MATH-500/Qwen-7B raw-trace cache** (entropies + spilled energies + top-50 logprobs + token ids, N=200, 70.5% acc) — closes the Extension E gap.
+
+**Follow-up experiments on this data — all CPU once the 9 caches are downloaded** (prioritised):
+
+1. **Self-consistency / semantic-entropy baseline** (highest value; also closes Item 5). We have 5 T=1.0 full-text generations per question → extract final answers, compute answer-agreement / cluster (semantic) entropy = the standard sampling-based confidence. Answers the reviewer-mandatory *"does spectral add anything over just sampling 5× and voting?"* and whether SC ⊕ spectral is complementary (ρ < 0.75, fused > max + 1pp).
+2. **K-sweep for Condition A**: AUROC(A) at K = 1..5 — does the same-T lift saturate at K=3? A practical cost/benefit curve from data already in hand.
+3. **Anchor / sign robustness across T**: re-fuse with (a) a stronger, more T-stable anchor (`cusum_max`), (b) per-feature label-free sign via each feature's own anchor, (c) leave-`spectral_entropy`-out — quantify how much of the low-T gap and the fusion-vs-best-single gap is recoverable. Directly tests whether Q1's low-T dip is real.
+4. **New feature families from saved-but-unused data**: (a) run the spectral suite on the **ΔE spilled-energy** trace (saved for all 9 runs, never used) and test orthogonality to H(n); (b) **top-50 logprob** features — top1−top2 margin, varentropy, Rényi entropy at several orders, tail mass; recompute entropy at any K.
+5. **Fairer diversity set**: re-run B dropping the degenerate T=2.0 (and maybe T=0.3), e.g. B′ = {0.6, 1.0, 1.5} — confirms the negative Q2 is robust and not an artifact of including the useless hot pass.
+6. **Cross-temperature probing**: does a hot pass's entropy trace predict the *cold* (T=1.0) answer's correctness? (Sample hot to probe uncertainty, evaluate the cold answer.) Uses the index-aligned runs.
+7. **Length-controlled AUROC per T**: hot traces are longer/degenerate — partial out trace length to confirm the spectral signal isn't just length.
+8. **Streaming earliest-prefix replication (Extension E)** — now unblocked by the fresh raw cache; run absolute-budget prefixes on the T=1.0 run0 traces.
+
+A couple (K-sweep beyond K=5, more temperatures for the pooling curve) would need a small extra GPU run; everything else is local CPU.
 
 ---
 
@@ -276,11 +302,11 @@ Apply spectral features to visual language models; split visual-description toke
 - **G3 context** — our unsupervised GSM8K/Llama-8B 75.4 (L-SML-5) vs their supervised hidden-state 72.69 on the same model family (different benchmark + label protocol; context only).
 - **E3/E4** — best causal monitor flags 38% of wrong GSM8K traces @10% FA, saving 28% of wasted tokens.
 
-**Data debt exposed**: MATH-500/Qwen-7B (our ~90% cell) has NO raw-trace cache anywhere (Phase-12 K10 files are texts-only); no clean R1 cell exists (all capped at 1024 mid-`<think>`).
+**Data debt exposed** (MATH-500/Qwen-7B partially repaid — Step 153): the MATH-500/Qwen-7B raw-trace cache **now exists** — Phase 15's T=1.0 run0 (`cache/phase15_temperature/math500_qwen7b_T1.0_run0.pkl`, N=200, `token_entropies` + `token_spilled_energies` + top-50 logprobs + token ids, MAX_NEW=2048). ~~NO raw-trace cache anywhere~~ resolved for this cell. Still missing: a clean R1 cell (all prior R1 traces capped at 1024 mid-`<think>`).
 
 **Next steps (in order)**:
-1. Colab re-inference: MATH-500/Qwen-7B + one R1 cell with ≥4096-token cap, saving `token_entropies` + top-50 logprobs (raw-data rule).
-2. Replicate the earliest-prefix edge there — absolute budgets only (fractions need oracle length), n large enough for the paired test.
+1. ~~Colab re-inference for MATH-500/Qwen-7B~~ ✅ done (Step 153, Phase 15 T=1.0 run0). Still need one **R1 cell with ≥4096-token cap** saving `token_entropies` + top-50 logprobs.
+2. Replicate the earliest-prefix edge on the Phase 15 T=1.0 run0 traces (CPU now) — absolute budgets only (fractions need oracle length), n=200 for the paired test.
 3. If replicated → reframe as **hybrid early-warning monitor** (spectral early / windowed late), not "fusion wins everywhere" (G2 refutes that).
 4. Method: per-budget refusion is sign-unstable (anchor_orient mitigates; 16-feat still erratic) → fit fusion weights once at a reference budget offline, reuse across budgets.
 5. Advisor decision: pursue hybrid framing vs fold streaming in as a thesis section.
@@ -289,29 +315,28 @@ Apply spectral features to visual language models; split visual-description toke
 
 ## Recommended Priority Order
 
-*(Single authoritative list — updated 2026-07-02, post streaming pilot Step 148)*
+*(Single authoritative list — updated 2026-07-05, post temperature experiment Step 153)*
 
-**Now — no GPU needed**
+**Now — no GPU needed** (Phase 15 data is downloadable → these are all local CPU)
 1. ~~L-SML literature search (Item 1)~~ ✅ done (Step 139)
 2. ~~Logistic regression oracle `scripts/logistic_oracle.py` (Item 2)~~ ✅ done (Steps 142–143, 147)
 3. ~~Streaming pivot pilot (Extension E)~~ ✅ done (Step 148 — G1 PASS / G2 FAIL; earliest-prefix edge is the surviving thread)
-4. Present streaming pilot verdict to advisors → decide hybrid framing vs thesis section (Extension E step 5)
+4. ~~Temperature variation inference + A/B ablation (Item 6)~~ ✅ done (Step 153 — both gates FAIL; lift is variance reduction at T≈1.0, not diversity)
+5. **Self-consistency / semantic-entropy baseline** on the 5 Phase-15 T=1.0 passes (Item 6 follow-up #1 = Item 5 sampling-fusion) — the reviewer-mandatory "does spectral beat sample-5×-and-vote?" test
+6. **Anchor/sign robustness + new feature families** on the Phase-15 caches (Item 6 follow-ups #3–4: `cusum_max` anchor, ΔE spectral, logprob features)
+7. **Streaming earliest-prefix replication** on the Phase-15 T=1.0 run0 traces (Extension E steps 2–3 — now unblocked)
+8. Present streaming + temperature verdicts to advisors → decide hybrid framing vs thesis section
 
 **Next Colab session**
-5. Benchmarking: fix `boot_auc` kwarg → Phase 14 Cell 9 re-run (Item 4)
-6. **Raw-trace regeneration** (Extension E step 1): MATH-500/Qwen-7B + one R1 cell with ≥4096-token cap, saving `token_entropies` + top-50 logprobs — unblocks the earliest-prefix replication AND repays the raw-data debt
-7. Sampling fusion: SE K=10 + CONT spectral (Item 5)
-8. Temperature variation: T=0.3/0.6/2.0 inference + A/B ablation (Item 6)
-
-**Subsequent Colab sessions**
-9. Streaming earliest-prefix replication on the regenerated cells (Extension E steps 2–3; local CPU once traces exist)
-10. Extend QA evaluation: NQ, SQuAD v2, AmbigQA, PopQA (Item 3)
-11. Extension A (Conformal): A1 frozen scorer + imbalance metrics first, then A2 LTT
+9. Benchmarking: fix `boot_auc` kwarg → Phase 14 Cell 9 re-run (Item 4)
+10. **R1 raw-trace regeneration** (Extension E step 1, remaining half): one R1 cell with ≥4096-token cap, saving `token_entropies` + top-50 logprobs (MATH-500/Qwen-7B half already done via Phase 15)
+11. Extend QA evaluation: NQ, SQuAD v2, AmbigQA, PopQA (Item 3)
+12. Extension A (Conformal): A1 frozen scorer + imbalance metrics first, then A2 LTT
 
 **Later**
-12. Extension B (Agentic): Qwen3-7B, HotpotQA multi-hop
-13. Extension C (Hidden states): one forward hook on Falcon
-14. Extension D (VLM): only if committee wants multimodal chapter
+13. Extension B (Agentic): Qwen3-7B, HotpotQA multi-hop
+14. Extension C (Hidden states): one forward hook on Falcon
+15. Extension D (VLM): only if committee wants multimodal chapter
 
 **De-prioritized (valid but not blocking)**
 - Step 132: MATH-500 SpilledEnergy GPU run — run opportunistically when Colab is free
