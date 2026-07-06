@@ -4931,3 +4931,62 @@ Deliverables: `results/Subset_Sweep_Report.html` (12 sections incl. honesty appe
 - `local_cache/derived_views.pkl`, `local_cache/trace_cells.pkl` — Stage-0 caches (untracked)
 
 ---
+
+### Step 154 — AIRCC cluster onboarding: `generate_full` top-k logprobs, `\boxed{}` grader fix, Slurm infrastructure, smoke test PASS
+
+**What**: End-to-end onboarding to the AIRCC national GPU cluster (NVIDIA B200, Slurm + rootless Docker), plus two `spectral_utils` fixes needed for the Phase-13 / EDIS re-run, plus new cluster-facing Claude Code skills and a sub-agent.
+
+**Part A — `spectral_utils` fixes (Commit bf708a5)**:
+
+1. **`\boxed{}` grading bug fixed** (`spectral_utils/data_loaders.py`): the regex `r"\boxed\{([^}]*)\}"` truncated at the first `}`, so `\boxed{\frac{1}{2}}` was extracted as `\frac{1` — the root cause of Phase-13's implausible 7.7% AIME24 accuracy. Replaced with a balanced-brace scanner `_extract_boxed(text)` that returns the last `\boxed{...}` regardless of nesting depth, plus `_normalize_math_answer` (strips `\text{}`, converts `\frac{a}{b}` → float, removes thousands commas). Applied to both `_extract_math_answer` (MATH-500/AMC/AIME grader) and the boxed branch of `is_correct_gsm8k`. All 9 test cases pass (nested fracs, last-boxed-wins, truncated generation, deep nesting).
+
+2. **`generate_full` extended** (`spectral_utils/model_utils.py`): new `logprob_top_k: int = 50` parameter; new helper `extract_top_k_logprobs(scores, top_k=50)` → compact numpy pair `{'ids': int32 [T,K], 'logprobs': float32 [T,K]}` (~3.5× smaller than list-of-tuples). Return dict now includes `'top_k_logprobs'` and `'gen_token_ids'`. Removes the "must be updated" inline-workaround note from CLAUDE.md. Exported from `spectral_utils/__init__.py`.
+
+3. **`save_cache_atomic` added** (`spectral_utils/io_utils.py`): `.tmp` + `os.replace` pattern; exported from `__init__.py`. Required by the cluster driver's checkpoint logic.
+
+**Part B — `cluster/` directory (Commit 88bca56)**:
+
+| File | Purpose |
+|---|---|
+| `cluster/run_inference.py` | Standalone GPU driver: `--dataset {gsm8k,math500,amc23,aime24} --model --temps --k --n-samples --max-new --out --checkpoint-every --logprob-top-k --seed`. Idempotent resume (skip completed idx, fill partial candidates); SIGTERM handler → atomic checkpoint + exit 0; saves 7-key rich schema per candidate. |
+| `cluster/submit_inference.sbatch` | `--gpus=1 --time=08:00:00 --requeue --signal=B:TERM@900`; rootless Docker preamble; NGC image `nvcr.io/nvidia/pytorch:25.01-py3`; `exec python` (PID 1 for TERM forwarding) + trap/wait chain. |
+| `cluster/smoke_test.py` + `.sbatch` | Sandbox partition (15 min): B200 capability (10,0) check, bf16 matmul, spectral_utils import, proof file write. |
+| `cluster/prefetch.sbatch` | Sandbox: NGC image pull + `snapshot_download` for Qwen2.5-Math-1.5B-Instruct → `/shared/.../hf_cache`. (Login node has no Docker/GPU; prefetch must run on a compute node.) |
+| `cluster/setup_cluster.sh` | One-time: creates `$SHARED/{code,hf_cache,results,logs,pip_cache}`. |
+| `cluster/sync_code.sh` | tar-over-ssh push-independent code transfer (no GitHub credential needed). |
+| `cluster/requirements.txt` | `transformers>=4.51,<5`, accelerate, datasets, scipy, scikit-learn, huggingface_hub. No torch/numpy (NGC ships them). |
+| `cluster/aircc.env` | Discovered QoS: `OWNER_PARTITION=power-gpu`, `OWNER_QOS=owner_880`. |
+| `.gitattributes` | `cluster/** text eol=lf` (authored on Windows; CRLF in .sh/.sbatch fails silently on Linux). |
+
+**Part C — Skills + sub-agent (Commit 0be44e4)**:
+
+| Skill | Purpose |
+|---|---|
+| `/aircc-setup` | One-time bootstrap: manual steps (VPN → key download) split from automated (ssh config → dirs → prefetch). |
+| `/aircc-submit` | Sync + sbatch + parse job id. |
+| `/aircc-status` | `squeue`/`sacct` + log tail + verdict table. |
+| `/aircc-fetch` | scp raw pkls → 7-key schema validation → offline `extract_all_features` sanity. |
+| `cluster-ops` agent | Read-only remote ops agent: `ssh aircc` loops for squeue/sacct/log-tail/ls; fixed compact report format; stops immediately on VPN failure. |
+
+CLAUDE.md updated: 4 new slash-command rows, new "AIRCC cluster" section (shared path, NGC-image rule, preemption semantics, VPN caveat, tar-over-ssh).
+
+**Part D — Live cluster verification**:
+
+- Account provisioned: `omrisegev1`, group `cycle2_tau_averbuch_prj`, partitions `power-gpu` (QoS `owner_880`) + `sandbox` (QoS `sandbox_owner_880`), 5760 GPU-h (1237 used by group), 10 TB storage.
+- Slurm fix: non-interactive ssh didn't source `/etc/profile.d/slurm-configless.sh` → `squeue`/`sacct` failed with DNS errors. Fix: `export SLURM_CONF_SERVER=controller-primary` added to remote `~/.bashrc`.
+- Cluster dirs created, code synced via `sync_code.sh`.
+- **Prefetch job 97123 (sandbox)**: COMPLETED (00:04:04, exit 0). NGC image pulled; model at `$SHARED/hf_cache/hub/models--Qwen--Qwen2.5-Math-1.5B-Instruct/snapshots/aafeb0...`.
+- **Smoke test job 97148 (sandbox)**: COMPLETED (00:03:53, exit 0). Log: `device: NVIDIA B200 | capability: (10, 0)` / `bf16 matmul OK` / `spectral_utils 0.1.0 imported OK` / `transformers 4.57.6 | datasets 5.0.0 | scipy 1.14.1 | sklearn 1.6.1` / `SMOKE TEST PASS`. Proof file written.
+
+**Why**: EDIS paper (Zhu et al. 2026) comparison requires AIME24 (missing from Colab caches); Phase-13 numbers are invalid due to grading bug. The cluster demo also establishes the infrastructure for longer GPU jobs that routinely time out on Colab free-tier.
+
+**Result**: Cluster access confirmed end-to-end. Next: `/aircc-submit` AIME24 demo (30 problems × K=8 × T∈{0.2,0.6,1.0}, Qwen2.5-Math-1.5B-Instruct, est. 1.5–3 h on one B200). Then owner-queue smoke to close the verification ladder.
+
+**Files changed**:
+- `spectral_utils/model_utils.py`, `spectral_utils/data_loaders.py`, `spectral_utils/io_utils.py`, `spectral_utils/__init__.py`
+- `cluster/run_inference.py`, `cluster/submit_inference.sbatch`, `cluster/smoke_test.py`, `cluster/smoke_test.sbatch`, `cluster/prefetch.sbatch`, `cluster/setup_cluster.sh`, `cluster/sync_code.sh`, `cluster/requirements.txt`, `cluster/aircc.env`, `cluster/README.md`
+- `.claude/commands/aircc-{setup,submit,status,fetch}.md`, `.claude/agents/cluster-ops.md`
+- `CLAUDE.md`, `.gitattributes`
+- Commits: bf708a5 (1/3), 88bca56 (2/3), 0be44e4 (3/3)
+
+---

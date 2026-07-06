@@ -1,7 +1,7 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-07-06
-**Last updated**: Step 153 — **Exhaustive L-SML subset sweep (branch `experiment/bocpd-features`): 1.66M subset fits over 32 cells.** Headline: **honest (LOCO) subset selection does NOT beat GOOD_5** (0.6295 vs 0.636 macro; in-cell best-of-65k ceiling 0.7205 = +8.5pp pure selection bias) — GOOD_5 is validated, feature selection stays a minor tweak. All-cell consensus best = {spectral_entropy, sw_var_peak, cusum_max, cusum_shift_idx} (+0.9pp, in-sample). **Every pivot signal HURTS as an added fusion view** (anomaly views −4.9..−7.9pp with 120–179 sig-negative bases; bocpd_ecp −4.8pp; bocpd_ecp_spilled = BOCPD-on-logprobs standalone 0.726 on gsm8k-trace but −1.0pp fused) → Step-151 17th-view thread CLOSED. **ρ≥0.75 subset filter refuted for continuous L-SML** (high-ρ subsets average HIGHER AUROC 0.600 vs 0.556 — clustering absorbs dependence). Sweep GOOD_5 matches table1 CONT 29/29 to ≤0.001; label-free anchor misorients 3/29 cells (the honest cost, now quantified). ⚠ Spilled signs inverted on gsm8k/Llama-8B trace cell (0.27–0.31 oriented) — cross-model sign instability, recheck at Step 132. New: `spectral_utils/subset_sweep.py`, `scripts/{build_derived_views,run_subset_sweep,subset_sweep_report}.py`, `results/Subset_Sweep_Report.html` + `results/subset_sweep/` CSVs/manifests; sweep is chunked+resumable (`--with-trace-cells --workers 7 --yes` resumes anywhere).
+**Date**: 2026-07-07
+**Last updated**: Step 154 — **Exhaustive L-SML subset sweep (branch `experiment/bocpd-features`): 1.66M subset fits over 32 cells.** Headline: **honest (LOCO) subset selection does NOT beat GOOD_5** (0.6295 vs 0.636 macro; in-cell best-of-65k ceiling 0.7205 = +8.5pp pure selection bias) — GOOD_5 is validated, feature selection stays a minor tweak. All-cell consensus best = {spectral_entropy, sw_var_peak, cusum_max, cusum_shift_idx} (+0.9pp, in-sample). **Every pivot signal HURTS as an added fusion view** (anomaly views −4.9..−7.9pp with 120–179 sig-negative bases; bocpd_ecp −4.8pp; bocpd_ecp_spilled = BOCPD-on-logprobs standalone 0.726 on gsm8k-trace but −1.0pp fused) → Step-151 17th-view thread CLOSED. **ρ≥0.75 subset filter refuted for continuous L-SML** (high-ρ subsets average HIGHER AUROC 0.600 vs 0.556 — clustering absorbs dependence). Sweep GOOD_5 matches table1 CONT 29/29 to ≤0.001; label-free anchor misorients 3/29 cells (the honest cost, now quantified). ⚠ Spilled signs inverted on gsm8k/Llama-8B trace cell (0.27–0.31 oriented) — cross-model sign instability, recheck at Step 132. New: `spectral_utils/subset_sweep.py`, `scripts/{build_derived_views,run_subset_sweep,subset_sweep_report}.py`, `results/Subset_Sweep_Report.html` + `results/subset_sweep/` CSVs/manifests; sweep is chunked+resumable (`--with-trace-cells --workers 7 --yes` resumes anywhere).
 
 **Prior**: Step 152 — **Phase 12 Corrected finished on Colab (Items 4+5).** GSM8K/Llama-8B: **L-SML 1-pass 0.754 beats every multi-pass baseline** (best: SelfCheckGPT-official K=5 0.701; D-SE/LW-SE/SC K=10 all 0.61); third independent run at 75.4–76.0. MATH-500/Qwen-Math-7B: L-SML 0.230 = **global sign flip** (notebook lacks `anchor_orient`; flipped ≡ 0.770 — still far below the 94.4 old-cache reference, unresolved); SC K=10 wins the cell at 0.863. GPQA: all sampling baselines at chance, VC 0.428, L-SML 0.553 best. RAG×4: SelfCheckGPT **below chance** everywhere (official 0.24–0.44, worse than hard). Fresh-cache baselines collapse vs old Phase 12 (GSM8K SC 78.5→60.8, SE 77.4→61.4; GPQA SE 70.6→50.1; MATH SE 87.7→63.0 — NLI-truncation suspect; old table no longer citable until reconciled). **Item 5 verdict: fusion gate NOT passed** — ρ low everywhere but gains ≤+2.0pp; SE K=10 adds ≈nothing over 1-pass spectral, while spectral adds +14.5pp over LW-SE (GSM8K). Follow-ups = new Priority 1 (anchor_orient re-analysis, MATH discrepancy, RAG below-chance, SE-drop reconciliation). Results: notebook Cell 25 + Drive `cache/phase12_corrected/phase12_corrected_results.pkl`.
 
@@ -127,9 +127,42 @@ Note: `min_spilled` sign updated from initial `+1` estimate to `-1` — validate
 
 ---
 
+---
+
+## AIRCC CLUSTER — current state (Step 154, 2026-07-07)
+
+Account `omrisegev1`, group `cycle2_tau_averbuch_prj`. VPN required for all access (`ssh aircc`).
+
+| Resource | Value |
+|---|---|
+| Owner partition | `power-gpu` (36 nodes, no time limit) / QoS `owner_880` |
+| Sandbox partition | `sandbox` (1 node, 2 h limit) / QoS `sandbox_owner_880` |
+| Allocation | 5760 GPU-h (1237 used by group) |
+| Shared dir | `/shared/cycle2_tau_averbuch_prj/omrisegev1/{code,hf_cache,results,logs,pip_cache}` |
+| Model cache | Qwen2.5-Math-1.5B-Instruct prefetched ✓ (snapshot at `$SHARED/hf_cache/hub/...`) |
+| NGC image | `nvcr.io/nvidia/pytorch:25.01-py3` (pulled on sandbox node ✓) |
+
+**Verification ladder**:
+- [x] Stage −1: first login + key
+- [x] Stage 0: partition/QoS discovered → `cluster/aircc.env`
+- [x] Stage 1: sandbox smoke test job 97148 → **PASS** (B200 (10,0), bf16 OK, spectral_utils OK)
+- [ ] Stage 2: owner-queue smoke test (same `smoke_test.sbatch` on `power-gpu`/`owner_880`)
+- [ ] Stage 3: `/aircc-submit` AIME24 demo (30 problems × K=8 × T∈{0.2,0.6,1.0}, Qwen2.5-Math-1.5B, ~1.5–3 h)
+- [ ] Stage 4: `/aircc-fetch` + pkl validation + AIME24 accuracy check (expected ~30–40% with fixed grader, vs buggy 7.7%)
+
+**Code sync**: `bash cluster/sync_code.sh` (tar-over-ssh, push-independent). After any local change, re-sync before submitting. Omri must push commits A–C (bf708a5, 88bca56, 0be44e4) from his own terminal (GitHub credential needed).
+
+---
+
 ## IMMEDIATE NEXT ACTIONS
 
 *Priority order from the Jun 17 meeting. See table in "MEETING ACTION ITEMS" section above for status.*
+
+### Priority 0 (new) — AIRCC demo completion
+
+1. Owner-queue smoke test: `ssh aircc 'cd $SHARED/code && sbatch --partition=power-gpu --qos=owner_880 cluster/smoke_test.sbatch'` → check with `/aircc-status`
+2. AIME24 demo job: `/aircc-submit` (dataset=aime24, k=8, temps=0.2,0.6,1.0, n=30, model=Qwen/Qwen2.5-Math-1.5B-Instruct)
+3. Fetch + validate: `/aircc-fetch edis_aime24`
 
 ### Priority 1 — Phase 12 Corrected follow-ups (Step 152 — run DONE, 4 open issues before numbers are citable)
 
