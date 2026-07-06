@@ -292,6 +292,59 @@ def _mask_matrix(cells):
     return universe, M, cc
 
 
+REASONING_DOMAINS = ('math500', 'gsm8k', 'qa')
+
+
+def sec_top_subsets(cells, sweep_dir, top_n=5):
+    """
+    Top-N consensus subsets by (a) domain-weighted macro (project convention:
+    per-cell -> per-domain mean -> mean of domain means), (b) plain cell-mean
+    macro, (c) reasoning-regime macro over {math500, gsm8k, qa} only.
+    GOOD_5 is pinned to every table for reference. In-sample across cells —
+    upper bounds, not held-out numbers (see LOCO for those).
+    """
+    universe, M, cc = _mask_matrix(cells)
+    doms = np.array([c['domain'] for c in cc])
+    dom_names = sorted(set(doms))
+    enough = np.isfinite(M).sum(axis=1) >= int(np.ceil(0.9 * len(cc)))
+    with np.errstate(invalid='ignore'):
+        dom_means = {d: np.nanmean(M[:, doms == d], axis=1) for d in dom_names}
+        macro_dw = np.nanmean(np.column_stack([dom_means[d] for d in dom_names]), axis=1)
+        macro_cell = np.nanmean(M, axis=1)
+        reasoning_doms = [d for d in REASONING_DOMAINS if d in dom_names]
+        reasoning = np.nanmean(np.column_stack(
+            [dom_means[d] for d in reasoning_doms]), axis=1)
+
+    g5_mask = 0
+    for f in GOOD_5:
+        g5_mask |= 1 << CANONICAL_POOL.index(f)
+    g5_idx = np.nonzero(universe == np.uint64(g5_mask))[0]
+    g5_idx = int(g5_idx[0]) if len(g5_idx) else None
+
+    tables, csv_rows = {}, []
+    for label, score in (('macro_domain_weighted', macro_dw),
+                         ('macro_cell_mean', macro_cell),
+                         ('reasoning_math500_gsm8k_qa', reasoning)):
+        s = np.where(enough & np.isfinite(score), score, -np.inf)
+        order = np.argsort(s)[::-1][:top_n]
+        rows = []
+        picks = [(f'#{r}', int(i)) for r, i in enumerate(order, 1)]
+        if g5_idx is not None:
+            picks.append(('GOOD_5', g5_idx))
+        for tag, i in picks:
+            names = canonical_to_names(universe[i])
+            row = {'rank': tag, 'score': round(float(score[i]), 4),
+                   'size': len(names), 'subset': '|'.join(names)}
+            for d in dom_names:
+                v = dom_means[d][i]
+                row[d] = round(float(v), 3) if np.isfinite(v) else None
+            rows.append(row)
+            csv_rows.append({'ranking': label, **row})
+        tables[label] = rows
+    write_csv(os.path.join(sweep_dir, 'top_subsets.csv'), csv_rows)
+    return tables
+
+
 def sec_loco(cells, sweep_dir):
     universe, M, cc = _mask_matrix(cells)
     n_cells = len(cc)
@@ -776,15 +829,75 @@ def build_html(out_path, S):
             })
     land_boxes, land_js = landscape_charts_html(S['charts'])
 
+    n_cells = len(S['cells'])
     parts = [f"""<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>L-SML Subset Sweep Report</title><style>{CSS}</style>
 <script src="{CHART_JS}"></script></head><body>
 <h1>Exhaustive L-SML Feature-Subset Sweep</h1>
-<p class="note">Continuous L-SML on every feature subset (sizes 3..pool) per cell.
-Global sign resolved label-free (anchor = oriented epr). AUROC is raw — never
-max(auc, 1-auc). In-cell "best" over the whole enumeration is a
-<b>selection ceiling</b>; the honest numbers are the LOCO / consensus rows (section 5).
-Full detail in the CSVs next to this file under results/subset_sweep/.</p>
+
+<h2>0 — What was run, step by step</h2>
+<p><b>The question.</b> We have 16 features extracted from every answer's
+token-entropy trace H(n), and the L-SML method fuses a chosen subset of them
+into one hallucination score. Until now the subset (GOOD_5) was chosen by
+intuition + small experiments. This sweep asks: <i>over ALL possible subsets,
+which ones actually work, how does L-SML cluster and weight them, and can any
+of the other signals we ever built (BOCPD, HMM, Kalman, spilled energy,
+anomaly scorers) improve the fusion?</i></p>
+
+<p><b>Step A — Stage 0: build the extra signals</b>
+(<span class="mono">scripts/build_derived_views.py</span>).
+Why: the pivot-pilot signals are not in the cached feature files. What was done:
+(1) six anomaly scorers (Mahalanobis, GMM, KDE, IsolationForest, AE, PRAE) were
+computed from each cell's own feature matrix — possible for all cells;
+(2) for the 3 cells that have raw token traces on disk, the temporal signals were
+computed per trace: BOCPD change-point statistics on H(n) <i>and on the logprob
+trace &Delta;E(n)</i> (<span class="mono">bocpd_ecp_spilled</span> — answering
+"can we run BOCPD on the logprobs?": yes), a 2-state HMM, AR and Kalman
+innovations, and the 4 spilled-energy features.</p>
+
+<p><b>Step B — the exhaustive sweep</b>
+(<span class="mono">scripts/run_subset_sweep.py</span>).
+For every cell (a dataset&times;model combination, {n_cells} total) and for
+EVERY subset of its usable features of size 3 up to all of them —
+65,399 subsets when all 16 features are usable, ~1.9M subset-fits overall —
+we ran the full continuous L-SML pipeline: orient each feature by its fixed
+offline sign, z-score, detect dependent groups (spectral clustering, paper
+residual criterion), fuse within groups then across groups. Per subset we
+recorded: the AUROC, whether the label-free anchor had to flip the global sign,
+the number of clusters K and which feature sits in which cluster, the effective
+weight of every feature (within-group weight &times; its cluster's cross-weight
+— these reproduce the fused score exactly), and the correlations inside the
+subset. Honesty rules: the global sign is fixed by correlating with oriented
+epr (never with labels), and AUROC is reported raw — no max(auc, 1&minus;auc).</p>
+
+<p><b>Step C — augmentation stage.</b> The extra Stage-A signals were NOT thrown
+into the exhaustive enumeration (that would multiply the cost ~64&times;).
+Instead, each extra view v was tested the way you would actually use it: add it
+to a good subset. For every cell we evaluated S&cup;{{v}} for S = GOOD_5,
+STABLE_H9, ALL_16 and the cell's top-20 subsets, with a paired bootstrap on the
+AUROC difference. <i>Found: every extra view lowers AUROC on average</i>
+(section 10) — the Step-151 "17th view" idea is closed.</p>
+
+<p><b>Step D — the analyses over the sweep output.</b>
+(1) <i>Top subsets</i> (section 2/2b) — but a warning first: picking the best of
+65,399 subsets by test AUROC is massive selection bias (~+8.5pp, we measured it).
+So (2) <i>LOCO</i> (section 5) is the honest version: for each held-out cell,
+choose the subset on the other {n_cells - 1} cells, then evaluate it
+on the held-out cell. <i>Found: LOCO cannot beat GOOD_5</i> — the current
+5-feature choice is already at the honest optimum.
+(3) <i>Feature marginal value</i> (section 4): which features earn their place.
+(4) <i>K-census</i> (section 6): what the clustering actually does.
+(5) <i>&rho;-check</i> (section 7): is the old "skip subsets with correlated
+pairs" rule justified? <i>Found: no — high-&rho; subsets score HIGHER; the
+clustering absorbs the dependence.</i>
+(6) <i>Method grid</i> (section 9): L-SML vs flat SML vs simple average vs U-PCR
+on the same subsets. (7) <i>Competitors</i> (section 11): recorded SE /
+SelfCheckGPT / VC / LapEigvals numbers next to our label-free numbers.</p>
+
+<p class="note">Reading aids: a "cell" = dataset&times;model; "K" = number of
+dependent-feature clusters L-SML detected; "flipped" = the label-free anchor
+negated the fused score; weights are L1-normalized and signed. Full per-subset
+data: results/subset_sweep/*.npz; every table here also exists as a CSV.</p>
 
 <h2>1 — Overview</h2>
 {html_table(S['overview'])}
@@ -795,6 +908,19 @@ Full detail in the CSVs next to this file under results/subset_sweep/.</p>
 
 <h2>2 — Top subsets per cell (top-5 shown; top-20 in top20 CSV / manifests)</h2>
 {html_table(top20_rows)}
+
+<h2>2b — Top-5 consensus subsets (across cells)</h2>
+<p class="note">Ranked by mean AUROC across cells — three aggregations:
+the project macro convention (per-domain means, then mean of the 5 domains),
+a plain mean over all {n_cells} cells, and the reasoning regime only
+(math500 + gsm8k + qa). These are in-sample across cells (selection sees every
+cell) — treat as upper bounds; the held-out version is section 5.</p>
+<h3>By macro (domain-weighted — project convention)</h3>
+{html_table(S['top_subsets'].get('macro_domain_weighted', []))}
+<h3>By macro (plain cell-mean)</h3>
+{html_table(S['top_subsets'].get('macro_cell_mean', []))}
+<h3>Reasoning regime only (math500, gsm8k, qa)</h3>
+{html_table(S['top_subsets'].get('reasoning_math500_gsm8k_qa', []))}
 
 <h2>3 — AUROC-vs-size landscape</h2>
 {land_boxes}
@@ -892,6 +1018,7 @@ def main():
     S['crosscheck'] = table1_crosscheck(cells)
     _, S['charts'] = sec_landscape(cells, args.sweep_dir)
     S['feature_value'] = sec_feature_value(cells, args.sweep_dir)
+    S['top_subsets'] = sec_top_subsets(cells, args.sweep_dir)
     S['loco'], S['loco_summary'] = sec_loco(cells, args.sweep_dir)
     S['k_census'] = sec_k_census(cells, args.sweep_dir)
     S['rho_table'], S['rho_summary'] = sec_rho_check(cells, args.sweep_dir)

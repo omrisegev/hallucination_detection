@@ -13,11 +13,70 @@ td:first-child,td:nth-child(2),th:first-child,th:nth-child(2){text-align:left}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script></head><body>
 <h1>Exhaustive L-SML Feature-Subset Sweep</h1>
-<p class="note">Continuous L-SML on every feature subset (sizes 3..pool) per cell.
-Global sign resolved label-free (anchor = oriented epr). AUROC is raw — never
-max(auc, 1-auc). In-cell "best" over the whole enumeration is a
-<b>selection ceiling</b>; the honest numbers are the LOCO / consensus rows (section 5).
-Full detail in the CSVs next to this file under results/subset_sweep/.</p>
+
+<h2>0 — What was run, step by step</h2>
+<p><b>The question.</b> We have 16 features extracted from every answer's
+token-entropy trace H(n), and the L-SML method fuses a chosen subset of them
+into one hallucination score. Until now the subset (GOOD_5) was chosen by
+intuition + small experiments. This sweep asks: <i>over ALL possible subsets,
+which ones actually work, how does L-SML cluster and weight them, and can any
+of the other signals we ever built (BOCPD, HMM, Kalman, spilled energy,
+anomaly scorers) improve the fusion?</i></p>
+
+<p><b>Step A — Stage 0: build the extra signals</b>
+(<span class="mono">scripts/build_derived_views.py</span>).
+Why: the pivot-pilot signals are not in the cached feature files. What was done:
+(1) six anomaly scorers (Mahalanobis, GMM, KDE, IsolationForest, AE, PRAE) were
+computed from each cell's own feature matrix — possible for all cells;
+(2) for the 3 cells that have raw token traces on disk, the temporal signals were
+computed per trace: BOCPD change-point statistics on H(n) <i>and on the logprob
+trace &Delta;E(n)</i> (<span class="mono">bocpd_ecp_spilled</span> — answering
+"can we run BOCPD on the logprobs?": yes), a 2-state HMM, AR and Kalman
+innovations, and the 4 spilled-energy features.</p>
+
+<p><b>Step B — the exhaustive sweep</b>
+(<span class="mono">scripts/run_subset_sweep.py</span>).
+For every cell (a dataset&times;model combination, 32 total) and for
+EVERY subset of its usable features of size 3 up to all of them —
+65,399 subsets when all 16 features are usable, ~1.9M subset-fits overall —
+we ran the full continuous L-SML pipeline: orient each feature by its fixed
+offline sign, z-score, detect dependent groups (spectral clustering, paper
+residual criterion), fuse within groups then across groups. Per subset we
+recorded: the AUROC, whether the label-free anchor had to flip the global sign,
+the number of clusters K and which feature sits in which cluster, the effective
+weight of every feature (within-group weight &times; its cluster's cross-weight
+— these reproduce the fused score exactly), and the correlations inside the
+subset. Honesty rules: the global sign is fixed by correlating with oriented
+epr (never with labels), and AUROC is reported raw — no max(auc, 1&minus;auc).</p>
+
+<p><b>Step C — augmentation stage.</b> The extra Stage-A signals were NOT thrown
+into the exhaustive enumeration (that would multiply the cost ~64&times;).
+Instead, each extra view v was tested the way you would actually use it: add it
+to a good subset. For every cell we evaluated S&cup;{v} for S = GOOD_5,
+STABLE_H9, ALL_16 and the cell's top-20 subsets, with a paired bootstrap on the
+AUROC difference. <i>Found: every extra view lowers AUROC on average</i>
+(section 10) — the Step-151 "17th view" idea is closed.</p>
+
+<p><b>Step D — the analyses over the sweep output.</b>
+(1) <i>Top subsets</i> (section 2/2b) — but a warning first: picking the best of
+65,399 subsets by test AUROC is massive selection bias (~+8.5pp, we measured it).
+So (2) <i>LOCO</i> (section 5) is the honest version: for each held-out cell,
+choose the subset on the other 31 cells, then evaluate it
+on the held-out cell. <i>Found: LOCO cannot beat GOOD_5</i> — the current
+5-feature choice is already at the honest optimum.
+(3) <i>Feature marginal value</i> (section 4): which features earn their place.
+(4) <i>K-census</i> (section 6): what the clustering actually does.
+(5) <i>&rho;-check</i> (section 7): is the old "skip subsets with correlated
+pairs" rule justified? <i>Found: no — high-&rho; subsets score HIGHER; the
+clustering absorbs the dependence.</i>
+(6) <i>Method grid</i> (section 9): L-SML vs flat SML vs simple average vs U-PCR
+on the same subsets. (7) <i>Competitors</i> (section 11): recorded SE /
+SelfCheckGPT / VC / LapEigvals numbers next to our label-free numbers.</p>
+
+<p class="note">Reading aids: a "cell" = dataset&times;model; "K" = number of
+dependent-feature clusters L-SML detected; "flipped" = the label-free anchor
+negated the fused score; weights are L1-normalized and signed. Full per-subset
+data: results/subset_sweep/*.npz; every table here also exists as a CSV.</p>
 
 <h2>1 — Overview</h2>
 <table><tr><th>domain</th><th>cell</th><th>n</th><th>pos_rate</th><th>pool</th><th>dropped</th><th>subsets</th><th>nan_auroc</th><th>K1_fallback</th><th>anchor</th><th>method</th><th>seconds</th></tr>
@@ -347,6 +406,40 @@ Full detail in the CSVs next to this file under results/subset_sweep/.</p>
 <tr><td>trace</td><td>math500_qwen1.5b_raw</td><td>GOOD_5 (rank 52780, pctile 19.3)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.6563</td><td>[0.585,0.721]</td><td>2</td><td>-</td></tr>
 <tr><td>trace</td><td>math500_qwen1.5b_raw</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.6778</td><td>[0.602,0.741]</td><td>4</td><td>-</td></tr>
 <tr><td>trace</td><td>math500_qwen1.5b_raw</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.6695</td><td>[0.596,0.732]</td><td>6</td><td>-</td></tr>
+</table>
+
+<h2>2b — Top-5 consensus subsets (across cells)</h2>
+<p class="note">Ranked by mean AUROC across cells — three aggregations:
+the project macro convention (per-domain means, then mean of the 5 domains),
+a plain mean over all 32 cells, and the reasoning regime only
+(math500 + gsm8k + qa). These are in-sample across cells (selection sees every
+cell) — treat as upper bounds; the held-out version is section 5.</p>
+<h3>By macro (domain-weighted — project convention)</h3>
+<table><tr><th>rank</th><th>score</th><th>size</th><th>subset</th><th>gpqa</th><th>gsm8k</th><th>math500</th><th>qa</th><th>rag</th></tr>
+<tr><td>#1</td><td>0.6926</td><td>5</td><td>epr|spectral_entropy|hl_ratio|sw_var_peak|cusum_max</td><td>0.51</td><td>0.753</td><td>0.842</td><td>0.756</td><td>0.602</td></tr>
+<tr><td>#2</td><td>0.6918</td><td>4</td><td>epr|hl_ratio|sw_var_peak|cusum_max</td><td>0.524</td><td>0.743</td><td>0.837</td><td>0.767</td><td>0.589</td></tr>
+<tr><td>#3</td><td>0.6914</td><td>4</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.542</td><td>0.749</td><td>0.82</td><td>0.735</td><td>0.61</td></tr>
+<tr><td>#4</td><td>0.6913</td><td>4</td><td>spectral_entropy|hl_ratio|sw_var_peak|cusum_max</td><td>0.531</td><td>0.749</td><td>0.832</td><td>0.753</td><td>0.59</td></tr>
+<tr><td>#5</td><td>0.6911</td><td>6</td><td>epr|spectral_entropy|low_band_power|hl_ratio|sw_var_peak|cusum_max</td><td>0.523</td><td>0.75</td><td>0.837</td><td>0.751</td><td>0.595</td></tr>
+<tr><td>GOOD_5</td><td>0.6902</td><td>5</td><td>epr|spectral_entropy|low_band_power|sw_var_peak|cusum_max</td><td>0.506</td><td>0.756</td><td>0.843</td><td>0.75</td><td>0.596</td></tr>
+</table>
+<h3>By macro (plain cell-mean)</h3>
+<table><tr><th>rank</th><th>score</th><th>size</th><th>subset</th><th>gpqa</th><th>gsm8k</th><th>math500</th><th>qa</th><th>rag</th></tr>
+<tr><td>#1</td><td>0.6453</td><td>4</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.542</td><td>0.749</td><td>0.82</td><td>0.735</td><td>0.61</td></tr>
+<tr><td>#2</td><td>0.6431</td><td>6</td><td>epr|spectral_entropy|high_band_power|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.524</td><td>0.738</td><td>0.837</td><td>0.712</td><td>0.613</td></tr>
+<tr><td>#3</td><td>0.6421</td><td>5</td><td>spectral_entropy|hl_ratio|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.535</td><td>0.75</td><td>0.833</td><td>0.725</td><td>0.606</td></tr>
+<tr><td>#4</td><td>0.641</td><td>5</td><td>epr|spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.51</td><td>0.736</td><td>0.834</td><td>0.707</td><td>0.616</td></tr>
+<tr><td>#5</td><td>0.6403</td><td>5</td><td>epr|spectral_entropy|hl_ratio|sw_var_peak|cusum_max</td><td>0.51</td><td>0.753</td><td>0.842</td><td>0.756</td><td>0.602</td></tr>
+<tr><td>GOOD_5</td><td>0.636</td><td>5</td><td>epr|spectral_entropy|low_band_power|sw_var_peak|cusum_max</td><td>0.506</td><td>0.756</td><td>0.843</td><td>0.75</td><td>0.596</td></tr>
+</table>
+<h3>Reasoning regime only (math500, gsm8k, qa)</h3>
+<table><tr><th>rank</th><th>score</th><th>size</th><th>subset</th><th>gpqa</th><th>gsm8k</th><th>math500</th><th>qa</th><th>rag</th></tr>
+<tr><td>#1</td><td>0.7839</td><td>5</td><td>epr|spectral_entropy|hl_ratio|sw_var_peak|cusum_max</td><td>0.51</td><td>0.753</td><td>0.842</td><td>0.756</td><td>0.602</td></tr>
+<tr><td>#2</td><td>0.7831</td><td>5</td><td>epr|spectral_entropy|low_band_power|sw_var_peak|cusum_max</td><td>0.506</td><td>0.756</td><td>0.843</td><td>0.75</td><td>0.596</td></tr>
+<tr><td>#3</td><td>0.7822</td><td>5</td><td>epr|spectral_entropy|hl_ratio|sw_var_peak|hurst_exponent</td><td>0.495</td><td>0.757</td><td>0.84</td><td>0.749</td><td>0.577</td></tr>
+<tr><td>#4</td><td>0.782</td><td>4</td><td>epr|hl_ratio|sw_var_peak|cusum_max</td><td>0.524</td><td>0.743</td><td>0.837</td><td>0.767</td><td>0.589</td></tr>
+<tr><td>#5</td><td>0.7795</td><td>7</td><td>epr|spectral_entropy|hl_ratio|sw_var_peak|hurst_exponent|cusum_max|cusum_shift_idx</td><td>0.499</td><td>0.751</td><td>0.836</td><td>0.752</td><td>0.592</td></tr>
+<tr><td>GOOD_5</td><td>0.7831</td><td>5</td><td>epr|spectral_entropy|low_band_power|sw_var_peak|cusum_max</td><td>0.506</td><td>0.756</td><td>0.843</td><td>0.75</td><td>0.596</td></tr>
 </table>
 
 <h2>3 — AUROC-vs-size landscape</h2>
