@@ -105,10 +105,11 @@ def is_correct_gsm8k(gen: str, gold_answer) -> bool:
         gold_answer = gold_answer.get("answer", "")
     gold_norm = normalize_gsm8k(extract_gold_gsm8k(gold_answer))
 
-    # Primary: boxed answer (Qwen-Math and most modern math models)
-    m = re.search(r"\\boxed\{([^}]*)\}", gen)
-    if m:
-        model_norm = normalize_gsm8k(re.sub(r"[^\d\.\-\/]", "", m.group(1).replace(",", "")))
+    # Primary: boxed answer (Qwen-Math and most modern math models).
+    # _extract_boxed handles nested braces; the old first-'}' regex truncated them.
+    boxed = _extract_boxed(gen)
+    if boxed is not None:
+        model_norm = normalize_gsm8k(re.sub(r"[^\d\.\-\/]", "", _normalize_math_answer(boxed)))
         if model_norm is not None:
             if isinstance(gold_norm, float) and isinstance(model_norm, float):
                 if abs(gold_norm - model_norm) < 1e-6:
@@ -160,10 +161,49 @@ def math_prompt(row: dict) -> str:
     )
 
 
+def _extract_boxed(text: str):
+    """
+    Return the balanced-brace content of the LAST \\boxed{...} in text, or None.
+
+    Replaces the old regex r"\\boxed\\{([^}]*)\\}" which stopped at the first '}'
+    and truncated nested LaTeX (\\boxed{\\frac{1}{2}} -> "\\frac{1") — the Phase-13
+    7.7%-accuracy grading bug. The LAST boxed is used because models sometimes box
+    intermediate results; the final answer is the last one.
+    """
+    start = text.rfind("\\boxed{")
+    if start == -1:
+        return None
+    depth, out = 1, []
+    for c in text[start + len("\\boxed{"):]:
+        if c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                break
+        out.append(c)
+    # depth > 0 = generation truncated mid-answer; return best-effort content
+    return "".join(out) if out else None
+
+
+def _normalize_math_answer(val: str) -> str:
+    """Normalize a boxed LaTeX answer for numeric/string comparison."""
+    val = val.replace(",", "").replace("$", "").strip()
+    val = re.sub(r"\\text(?:bf|it|rm)?\{([^{}]*)\}", r"\1", val)
+    val = re.sub(r"\\(?:d|t)?frac\{([^{}]+)\}\{([^{}]+)\}", r"(\1)/(\2)", val)
+    val = re.sub(r"\\left|\\right|\\!|\\,|\\;|\\ ", "", val).strip()
+    # pure numeric fraction -> decimal so is_correct_math's float path can compare
+    m = re.fullmatch(r"\((-?\d+(?:\.\d+)?)\)/\((-?\d+(?:\.\d+)?)\)", val)
+    if m and float(m.group(2)) != 0:
+        return repr(float(m.group(1)) / float(m.group(2)))
+    cleaned = re.sub(r"[^\d\.\-\/\(\)]", "", val)
+    return cleaned if cleaned else val
+
+
 def _extract_math_answer(text: str) -> str:
-    m = re.search(r"\\boxed\{([^}]*)\}", text)
-    if m:
-        val = re.sub(r"[^\d\.\-\/\(\)]", "", m.group(1).replace(",", ""))
+    boxed = _extract_boxed(text)
+    if boxed is not None:
+        val = _normalize_math_answer(boxed)
         if val:
             return val
     nums = re.findall(r"[\-\d]+(?:\.\d+)?", text.replace(",", ""))

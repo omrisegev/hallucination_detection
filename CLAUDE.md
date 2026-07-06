@@ -210,25 +210,14 @@ Per-sample pkl entry must include:
 | `full_text` | `str` | Generated answer string |
 | `token_entropies` | `list[float]` | H(n) — Shannon entropy per token (top-K=15) |
 | `token_spilled_energies` | `list[float]` | ΔE(n) = −log p(sampled token) per token |
-| `top_k_logprobs` | `list[list[tuple]]` | Top-50 `(token_id, log_prob)` pairs per token |
+| `top_k_logprobs` | `{'ids': int32 [T,50], 'logprobs': float32 [T,50]}` | Top-50 log-probs per token as a numpy-array pair (~3.5× smaller than the old `list[list[tuple]]` form; both schemas are valid in old caches) |
 | `gen_token_ids` | `list[int]` | Sampled token IDs (needed for ΔE and attention features) |
 | `label` | `int/bool` | Correctness label (graded at inference time) |
 | `question` | `str` | Original question text |
 
-**Why `top_k_logprobs`**: H(n) and ΔE(n) are derived quantities that fix K=15 and the sampled token at generation time. Saving top-50 logprobs lets you recompute entropy at any K, compute probability mass features, implement token-level confidence, or compute any future feature — without re-running the model. Storage cost: ~100 KB/sample at 500 tokens × 50 top entries.
+**Why `top_k_logprobs`**: H(n) and ΔE(n) are derived quantities that fix K=15 and the sampled token at generation time. Saving top-50 logprobs lets you recompute entropy at any K, compute probability mass features, implement token-level confidence, or compute any future feature — without re-running the model. Storage cost: ~200 KB/sample at 500 tokens × 50 top entries (numpy form).
 
-**`generate_full()` must be updated** to return `top_k_logprobs` and `gen_token_ids`. Until that is done, add the extraction inline in the notebook's inference loop:
-
-```python
-def extract_top_k_logprobs(scores, gen_ids, K=50):
-    import torch.nn.functional as F
-    result = []
-    for s, tid in zip(scores, gen_ids):
-        lp = F.log_softmax(s[0], dim=-1)
-        topk = torch.topk(lp, min(K, lp.shape[-1]))
-        result.append(list(zip(topk.indices.tolist(), topk.values.tolist())))
-    return result
-```
+`generate_full()` returns `top_k_logprobs` and `gen_token_ids` since the AIRCC onboarding commit (param `logprob_top_k=50`, set 0 to disable). The standalone extractor is also exported as `spectral_utils.extract_top_k_logprobs(scores, top_k=50)` for recomputation from cached scores.
 
 Old cached pkls that only have `token_entropies` are still valid for H(n)-based features. The spilled energy and logprob features simply won't be available for those runs.
 

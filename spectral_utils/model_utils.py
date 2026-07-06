@@ -5,6 +5,7 @@ Supports arbitrary HuggingFace causal LMs via device_map='auto'.
 Pass quantize_4bit=True for 70B-class models on a single GPU.
 """
 import gc
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -137,8 +138,36 @@ def token_entropies_and_spilled(scores, gen_ids, K: int = 15):
     return ents, spilled
 
 
+def extract_top_k_logprobs(scores, top_k: int = 50):
+    """
+    Extract the top-K log-probabilities per generated token as compact numpy arrays.
+
+    Saving the raw top-50 lets any future feature (entropy at arbitrary K, probability
+    mass, token-level confidence) be recomputed offline without re-running the model.
+    The numpy-pair form is ~3.5x smaller on disk than list[list[(id, logprob)]].
+
+    Args:
+        scores: tuple of (1, vocab_size) tensors from model.generate output_scores=True.
+        top_k:  Number of top entries to keep per token.
+
+    Returns:
+        {'ids': int32 array [T, K], 'logprobs': float32 array [T, K]} — row t sorted
+        by descending log-prob. None if scores is empty.
+    """
+    if not scores:
+        return None
+    ids_rows, lp_rows = [], []
+    for s in scores:
+        lp   = F.log_softmax(s[0], dim=-1)
+        topk = torch.topk(lp, min(top_k, lp.shape[-1]))
+        ids_rows.append(topk.indices.cpu().numpy().astype(np.int32))
+        lp_rows.append(topk.values.cpu().numpy().astype(np.float32))
+    return {"ids": np.stack(ids_rows), "logprobs": np.stack(lp_rows)}
+
+
 def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
-                  K: int = 15, max_new_tokens: int = 512, **kwargs):
+                  K: int = 15, max_new_tokens: int = 512,
+                  logprob_top_k: int = 50, **kwargs):
     """
     Generate a response and return text, per-token entropies, spilled energies, and char offsets.
 
@@ -149,6 +178,8 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
         temperature:    Sampling temperature. (Also accepts 'T' as kwarg.)
         K:              Top-K for entropy estimation.
         max_new_tokens: Maximum response length. (Also accepts 'max_new' as kwarg.)
+        logprob_top_k:  Top-K entries to keep in 'top_k_logprobs' (0 disables — saves
+                        memory/disk when raw logprobs are not needed).
 
     Returns:
         dict with keys:
@@ -158,6 +189,9 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
             'token_offsets':          list[(start_char, end_char)] from re-tokenizing full_text
                                       (length may differ from token_entropies by 1–2 tokens; callers
                                        should trim both to min(len) before slicing).
+            'top_k_logprobs':         {'ids': int32 [T, K], 'logprobs': float32 [T, K]}
+                                      or None when logprob_top_k=0
+            'gen_token_ids':          list[int] — sampled token IDs
     """
     temp = kwargs.get("T", temperature)
     max_tokens = kwargs.get("max_new", max_new_tokens)
@@ -182,6 +216,7 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
     gen_ids   = out.sequences[0][inputs.input_ids.shape[1]:]
     full_text = tok.decode(gen_ids, skip_special_tokens=True).strip()
     all_ents, all_spilled = token_entropies_and_spilled(out.scores, gen_ids, K)
+    top_k_lp  = extract_top_k_logprobs(out.scores, logprob_top_k) if logprob_top_k > 0 else None
 
     encoding = tok(full_text, return_offsets_mapping=True, add_special_tokens=False)
     offsets  = encoding.offset_mapping
@@ -191,4 +226,6 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
         "token_entropies":        all_ents,
         "token_spilled_energies": all_spilled,
         "token_offsets":          offsets,
+        "top_k_logprobs":         top_k_lp,
+        "gen_token_ids":          gen_ids.tolist(),
     }
