@@ -1,0 +1,606 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>L-SML Subset Sweep Report</title><style>
+body{font-family:Segoe UI,Arial,sans-serif;margin:24px auto;max-width:1240px;color:#1a1a2e}
+h1{border-bottom:3px solid #16213e}h2{color:#16213e;border-bottom:1px solid #ccc;margin-top:40px}
+table{border-collapse:collapse;margin:12px 0;font-size:13px}
+th,td{border:1px solid #ccc;padding:4px 8px;text-align:right}
+th{background:#16213e;color:#fff;position:sticky;top:0}
+td:first-child,td:nth-child(2),th:first-child,th:nth-child(2){text-align:left}
+.caveat{background:#fff3cd;border:1px solid #ffc107;padding:10px;border-radius:4px;margin:10px 0}
+.note{color:#555;font-size:13px}.mono{font-family:Consolas,monospace;font-size:12px}
+.chartbox{width:560px;height:340px;display:inline-block;margin:8px}
+.heat td{width:30px;height:22px;font-size:10px;text-align:center;padding:1px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script></head><body>
+<h1>Exhaustive L-SML Feature-Subset Sweep</h1>
+<p class="note">Continuous L-SML on every feature subset (sizes 3..pool) per cell.
+Global sign resolved label-free (anchor = oriented epr). AUROC is raw — never
+max(auc, 1-auc). In-cell "best" over the whole enumeration is a
+<b>selection ceiling</b>; the honest numbers are the LOCO / consensus rows (section 5).
+Full detail in the CSVs next to this file under results/subset_sweep/.</p>
+
+<h2>1 — Overview</h2>
+<table><tr><th>domain</th><th>cell</th><th>n</th><th>pos_rate</th><th>pool</th><th>dropped</th><th>subsets</th><th>nan_auroc</th><th>K1_fallback</th><th>anchor</th><th>method</th><th>seconds</th></tr>
+<tr><td>gpqa</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>198</td><td>0.242</td><td>14</td><td>trace_length;dominant_freq</td><td>16278</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>332.4</td></tr>
+<tr><td>gpqa</td><td>Llama-8B_T1.0</td><td>198</td><td>0.268</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1220.9</td></tr>
+<tr><td>gpqa</td><td>Mistral-7B_T1.0</td><td>198</td><td>0.253</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1462.9</td></tr>
+<tr><td>gpqa</td><td>Qwen-7B_T1.0</td><td>198</td><td>0.303</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1227.6</td></tr>
+<tr><td>gpqa</td><td>Qwen2.5-72B-Instruct-AWQ_T1.0</td><td>198</td><td>0.404</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1289.6</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>1319</td><td>0.791</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1259.4</td></tr>
+<tr><td>math500</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>300</td><td>0.41</td><td>15</td><td>trace_length</td><td>32647</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>612.1</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>300</td><td>0.28</td><td>14</td><td>trace_length;dominant_freq</td><td>16278</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>372.9</td></tr>
+<tr><td>math500</td><td>Qwen2.5-Math-1.5B-Instruct_T1.0</td><td>300</td><td>0.443</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1263.6</td></tr>
+<tr><td>math500</td><td>deepseek-math-7b-instruct_T1.0</td><td>300</td><td>0.197</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>831.8</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_cot_traces_T1.0</td><td>285</td><td>0.277</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1233.6</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_traces_T1.0</td><td>52</td><td>0.038</td><td>14</td><td>stft_max_high_power;stft_spectral_entropy</td><td>16278</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>305.5</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_webq_cot_traces_T1.0</td><td>290</td><td>0.114</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1243.6</td></tr>
+<tr><td>rag</td><td>Llama-8B/2wikimultihopqa</td><td>99</td><td>0.253</td><td>14</td><td>stft_max_high_power;stft_spectral_entropy</td><td>16278</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>387.9</td></tr>
+<tr><td>rag</td><td>Llama-8B/hotpotqa</td><td>93</td><td>0.312</td><td>14</td><td>stft_max_high_power;stft_spectral_entropy</td><td>16278</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>304.5</td></tr>
+<tr><td>rag</td><td>Llama-8B/narrativeqa</td><td>459</td><td>0.146</td><td>14</td><td>stft_max_high_power;stft_spectral_entropy</td><td>16278</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>356.4</td></tr>
+<tr><td>rag</td><td>Llama-8B/natural-questions</td><td>121</td><td>0.066</td><td>14</td><td>stft_max_high_power;stft_spectral_entropy</td><td>16278</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>303.4</td></tr>
+<tr><td>rag</td><td>Mistral-24B/2wikimultihopqa</td><td>47</td><td>0.319</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>2209.9</td></tr>
+<tr><td>rag</td><td>Mistral-24B/hotpotqa</td><td>46</td><td>0.391</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>2336.8</td></tr>
+<tr><td>rag</td><td>Mistral-24B/narrativeqa</td><td>238</td><td>0.143</td><td>14</td><td>stft_max_high_power;stft_spectral_entropy</td><td>16278</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>313.0</td></tr>
+<tr><td>rag</td><td>Mistral-24B/natural-questions</td><td>44</td><td>0.205</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1227.2</td></tr>
+<tr><td>rag</td><td>Qwen-72B/2wikimultihopqa</td><td>198</td><td>0.116</td><td>15</td><td>rpdi</td><td>32647</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>626.1</td></tr>
+<tr><td>rag</td><td>Qwen-72B/hotpotqa</td><td>169</td><td>0.154</td><td>15</td><td>rpdi</td><td>32647</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>606.6</td></tr>
+<tr><td>rag</td><td>Qwen-72B/narrativeqa</td><td>345</td><td>0.104</td><td>14</td><td>stft_max_high_power;stft_spectral_entropy</td><td>16278</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>318.0</td></tr>
+<tr><td>rag</td><td>Qwen-72B/natural-questions</td><td>171</td><td>0.129</td><td>13</td><td>stft_max_high_power;stft_spectral_entropy;rpdi</td><td>8100</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>187.4</td></tr>
+<tr><td>rag</td><td>Qwen-7B/2wikimultihopqa</td><td>192</td><td>0.073</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1472.3</td></tr>
+<tr><td>rag</td><td>Qwen-7B/hotpotqa</td><td>169</td><td>0.089</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1360.4</td></tr>
+<tr><td>rag</td><td>Qwen-7B/narrativeqa</td><td>235</td><td>0.119</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1362.7</td></tr>
+<tr><td>rag</td><td>Qwen-7B/natural-questions</td><td>103</td><td>0.107</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1488.5</td></tr>
+<tr><td>trace</td><td>gpqa_r1_7b_raw</td><td>150</td><td>0.287</td><td>15</td><td>trace_length</td><td>32647</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>600.0</td></tr>
+<tr><td>trace</td><td>gsm8k_llama8b_raw</td><td>200</td><td>0.8</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1232.5</td></tr>
+<tr><td>trace</td><td>math500_qwen1.5b_raw</td><td>400</td><td>0.207</td><td>16</td><td>-</td><td>65399</td><td>0</td><td>0</td><td>epr</td><td>residual</td><td>1234.3</td></tr>
+</table>
+<h3>Cross-check vs method_comparison_table1 CONT (GOOD_5)</h3>
+<p class="note">table1 used best-orientation AUROC; the sweep is raw anchor-oriented —
+"1-x" match means the anchor chose the opposite global sign on that cell.</p>
+<table><tr><th>domain</th><th>cell</th><th>sweep_good5</th><th>table1_CONT</th><th>match</th><th>abs_diff</th></tr>
+<tr><td>gpqa</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>0.5525</td><td>0.552</td><td>direct</td><td>0.0005</td></tr>
+<tr><td>gpqa</td><td>Llama-8B_T1.0</td><td>0.5327</td><td>0.533</td><td>direct</td><td>0.0003</td></tr>
+<tr><td>gpqa</td><td>Mistral-7B_T1.0</td><td>0.4177</td><td>0.582</td><td>1-x</td><td>0.0003</td></tr>
+<tr><td>gpqa</td><td>Qwen-7B_T1.0</td><td>0.5234</td><td>0.523</td><td>direct</td><td>0.0004</td></tr>
+<tr><td>gpqa</td><td>Qwen2.5-72B-Instruct-AWQ_T1.0</td><td>0.5018</td><td>0.502</td><td>direct</td><td>0.0002</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>0.7563</td><td>0.756</td><td>direct</td><td>0.0003</td></tr>
+<tr><td>math500</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>0.8439</td><td>0.844</td><td>direct</td><td>0.0001</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>0.9444</td><td>0.944</td><td>direct</td><td>0.0004</td></tr>
+<tr><td>math500</td><td>Qwen2.5-Math-1.5B-Instruct_T1.0</td><td>0.8667</td><td>0.867</td><td>direct</td><td>0.0003</td></tr>
+<tr><td>math500</td><td>deepseek-math-7b-instruct_T1.0</td><td>0.7157</td><td>0.716</td><td>direct</td><td>0.0003</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_cot_traces_T1.0</td><td>0.6549</td><td>0.655</td><td>direct</td><td>0.0001</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_traces_T1.0</td><td>0.96</td><td>0.96</td><td>direct</td><td>0.0</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_webq_cot_traces_T1.0</td><td>0.6359</td><td>0.636</td><td>direct</td><td>0.0001</td></tr>
+<tr><td>rag</td><td>Llama-8B/2wikimultihopqa</td><td>0.5946</td><td>0.595</td><td>direct</td><td>0.0004</td></tr>
+<tr><td>rag</td><td>Llama-8B/hotpotqa</td><td>0.7759</td><td>0.776</td><td>direct</td><td>0.0001</td></tr>
+<tr><td>rag</td><td>Llama-8B/narrativeqa</td><td>0.5729</td><td>0.573</td><td>direct</td><td>0.0001</td></tr>
+<tr><td>rag</td><td>Llama-8B/natural-questions</td><td>0.6338</td><td>0.634</td><td>direct</td><td>0.0002</td></tr>
+<tr><td>rag</td><td>Mistral-24B/2wikimultihopqa</td><td>0.4625</td><td>0.538</td><td>1-x</td><td>0.0005</td></tr>
+<tr><td>rag</td><td>Mistral-24B/hotpotqa</td><td>0.6052</td><td>0.605</td><td>direct</td><td>0.0002</td></tr>
+<tr><td>rag</td><td>Mistral-24B/narrativeqa</td><td>0.6158</td><td>0.616</td><td>direct</td><td>0.0002</td></tr>
+<tr><td>rag</td><td>Mistral-24B/natural-questions</td><td>0.3746</td><td>0.625</td><td>1-x</td><td>0.0004</td></tr>
+<tr><td>rag</td><td>Qwen-72B/2wikimultihopqa</td><td>0.5339</td><td>0.534</td><td>direct</td><td>0.0001</td></tr>
+<tr><td>rag</td><td>Qwen-72B/hotpotqa</td><td>0.7179</td><td>0.718</td><td>direct</td><td>0.0001</td></tr>
+<tr><td>rag</td><td>Qwen-72B/narrativeqa</td><td>0.6031</td><td>0.603</td><td>direct</td><td>0.0001</td></tr>
+<tr><td>rag</td><td>Qwen-72B/natural-questions</td><td>0.6495</td><td>0.65</td><td>direct</td><td>0.0005</td></tr>
+<tr><td>rag</td><td>Qwen-7B/2wikimultihopqa</td><td>0.5108</td><td>0.511</td><td>direct</td><td>0.0002</td></tr>
+<tr><td>rag</td><td>Qwen-7B/hotpotqa</td><td>0.6253</td><td>0.625</td><td>direct</td><td>0.0003</td></tr>
+<tr><td>rag</td><td>Qwen-7B/narrativeqa</td><td>0.6496</td><td>0.65</td><td>direct</td><td>0.0004</td></tr>
+<tr><td>rag</td><td>Qwen-7B/natural-questions</td><td>0.6136</td><td>0.614</td><td>direct</td><td>0.0004</td></tr>
+</table>
+
+<h2>2 — Top subsets per cell (top-5 shown; top-20 in top20 CSV / manifests)</h2>
+<table><tr><th>domain</th><th>cell</th><th>rank</th><th>subset</th><th>size</th><th>auroc</th><th>ci</th><th>K</th><th>d_vs_good5_pp</th></tr>
+<tr><td>gpqa</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>1</td><td>stft_max_high_power|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max</td><td>6</td><td>0.6081</td><td>[0.520,0.694]</td><td>4</td><td>5.6</td></tr>
+<tr><td>gpqa</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>2</td><td>stft_max_high_power|pe_mean|hurst_exponent</td><td>3</td><td>0.6071</td><td>[0.516,0.692]</td><td>2</td><td>5.5</td></tr>
+<tr><td>gpqa</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>3</td><td>high_band_power|stft_max_high_power|rpdi|pe_mean|hurst_exponent|cusum_max</td><td>6</td><td>0.6049</td><td>[0.515,0.693]</td><td>4</td><td>5.2</td></tr>
+<tr><td>gpqa</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>4</td><td>rpdi|pe_mean|hurst_exponent</td><td>3</td><td>0.6049</td><td>[0.506,0.695]</td><td>2</td><td>5.2</td></tr>
+<tr><td>gpqa</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>5</td><td>stft_max_high_power|rpdi|pe_mean|hurst_exponent|cusum_max</td><td>5</td><td>0.6047</td><td>[0.517,0.691]</td><td>4</td><td>5.2</td></tr>
+<tr><td>gpqa</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>GOOD_5 (rank 10766, pctile 33.86)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.5525</td><td>[0.454,0.647]</td><td>3</td><td>-</td></tr>
+<tr><td>gpqa</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.5515</td><td>[0.455,0.640]</td><td>5</td><td>-</td></tr>
+<tr><td>gpqa</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>ALL_H16</td><td>epr|spectral_entropy|low_band_power|high_band_power|hl_ratio|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>14</td><td>0.5575</td><td>[0.463,0.647]</td><td>7</td><td>-</td></tr>
+<tr><td>gpqa</td><td>Llama-8B_T1.0</td><td>1</td><td>trace_length|spectral_centroid|stft_max_high_power|stft_spectral_entropy|cusum_shift_idx</td><td>5</td><td>0.5722</td><td>[0.477,0.674]</td><td>3</td><td>3.9</td></tr>
+<tr><td>gpqa</td><td>Llama-8B_T1.0</td><td>2</td><td>trace_length|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi</td><td>5</td><td>0.5709</td><td>[0.478,0.673]</td><td>2</td><td>3.8</td></tr>
+<tr><td>gpqa</td><td>Llama-8B_T1.0</td><td>3</td><td>trace_length|high_band_power|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak</td><td>6</td><td>0.5701</td><td>[0.473,0.668]</td><td>3</td><td>3.7</td></tr>
+<tr><td>gpqa</td><td>Llama-8B_T1.0</td><td>4</td><td>trace_length|low_band_power|hl_ratio|stft_max_high_power|rpdi</td><td>5</td><td>0.5697</td><td>[0.478,0.667]</td><td>2</td><td>3.7</td></tr>
+<tr><td>gpqa</td><td>Llama-8B_T1.0</td><td>5</td><td>trace_length|high_band_power|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak</td><td>7</td><td>0.5694</td><td>[0.478,0.669]</td><td>2</td><td>3.7</td></tr>
+<tr><td>gpqa</td><td>Llama-8B_T1.0</td><td>GOOD_5 (rank 35597, pctile 45.57)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.5327</td><td>[0.436,0.627]</td><td>4</td><td>-</td></tr>
+<tr><td>gpqa</td><td>Llama-8B_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.55</td><td>[0.454,0.645]</td><td>4</td><td>-</td></tr>
+<tr><td>gpqa</td><td>Llama-8B_T1.0</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.5459</td><td>[0.453,0.641]</td><td>6</td><td>-</td></tr>
+<tr><td>gpqa</td><td>Mistral-7B_T1.0</td><td>1</td><td>stft_max_high_power|rpdi|cusum_shift_idx</td><td>3</td><td>0.6014</td><td>[0.508,0.684]</td><td>2</td><td>18.4</td></tr>
+<tr><td>gpqa</td><td>Mistral-7B_T1.0</td><td>2</td><td>spectral_entropy|dominant_freq|rpdi|cusum_shift_idx</td><td>4</td><td>0.6011</td><td>[0.513,0.687]</td><td>3</td><td>18.3</td></tr>
+<tr><td>gpqa</td><td>Mistral-7B_T1.0</td><td>3</td><td>dominant_freq|stft_max_high_power|rpdi|cusum_shift_idx</td><td>4</td><td>0.5973</td><td>[0.506,0.681]</td><td>3</td><td>18.0</td></tr>
+<tr><td>gpqa</td><td>Mistral-7B_T1.0</td><td>4</td><td>stft_max_high_power|stft_spectral_entropy|rpdi|cusum_shift_idx</td><td>4</td><td>0.5955</td><td>[0.504,0.683]</td><td>3</td><td>17.8</td></tr>
+<tr><td>gpqa</td><td>Mistral-7B_T1.0</td><td>5</td><td>dominant_freq|rpdi|cusum_shift_idx</td><td>3</td><td>0.5922</td><td>[0.505,0.680]</td><td>2</td><td>17.4</td></tr>
+<tr><td>gpqa</td><td>Mistral-7B_T1.0</td><td>GOOD_5 (rank 43038, pctile 34.19)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.4177</td><td>[0.337,0.495]</td><td>2</td><td>-</td></tr>
+<tr><td>gpqa</td><td>Mistral-7B_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.4445</td><td>[0.358,0.537]</td><td>3</td><td>-</td></tr>
+<tr><td>gpqa</td><td>Mistral-7B_T1.0</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.4416</td><td>[0.357,0.532]</td><td>5</td><td>-</td></tr>
+<tr><td>gpqa</td><td>Qwen-7B_T1.0</td><td>1</td><td>epr|trace_length|high_band_power|spectral_centroid|rpdi|cusum_max</td><td>6</td><td>0.5967</td><td>[0.510,0.674]</td><td>3</td><td>7.3</td></tr>
+<tr><td>gpqa</td><td>Qwen-7B_T1.0</td><td>2</td><td>epr|trace_length|high_band_power|spectral_centroid|rpdi|pe_mean|cusum_max</td><td>7</td><td>0.5952</td><td>[0.509,0.672]</td><td>3</td><td>7.2</td></tr>
+<tr><td>gpqa</td><td>Qwen-7B_T1.0</td><td>3</td><td>trace_length|spectral_entropy|high_band_power|spectral_centroid|rpdi|pe_mean|cusum_max</td><td>7</td><td>0.5952</td><td>[0.509,0.675]</td><td>3</td><td>7.2</td></tr>
+<tr><td>gpqa</td><td>Qwen-7B_T1.0</td><td>4</td><td>epr|trace_length|high_band_power|hl_ratio|spectral_centroid|rpdi|pe_mean|cusum_max</td><td>8</td><td>0.5948</td><td>[0.508,0.674]</td><td>3</td><td>7.1</td></tr>
+<tr><td>gpqa</td><td>Qwen-7B_T1.0</td><td>5</td><td>epr|trace_length|high_band_power|hl_ratio|spectral_centroid|rpdi|cusum_max</td><td>7</td><td>0.5944</td><td>[0.507,0.672]</td><td>3</td><td>7.1</td></tr>
+<tr><td>gpqa</td><td>Qwen-7B_T1.0</td><td>GOOD_5 (rank 18239, pctile 72.11)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.5234</td><td>[0.433,0.612]</td><td>3</td><td>-</td></tr>
+<tr><td>gpqa</td><td>Qwen-7B_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.5742</td><td>[0.487,0.657]</td><td>4</td><td>-</td></tr>
+<tr><td>gpqa</td><td>Qwen-7B_T1.0</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.4359</td><td>[0.355,0.518]</td><td>5</td><td>-</td></tr>
+<tr><td>gpqa</td><td>Qwen2.5-72B-Instruct-AWQ_T1.0</td><td>1</td><td>trace_length|sw_var_peak|cusum_max|cusum_shift_idx</td><td>4</td><td>0.6604</td><td>[0.577,0.735]</td><td>3</td><td>15.9</td></tr>
+<tr><td>gpqa</td><td>Qwen2.5-72B-Instruct-AWQ_T1.0</td><td>2</td><td>trace_length|dominant_freq|sw_var_peak</td><td>3</td><td>0.6596</td><td>[0.579,0.732]</td><td>2</td><td>15.8</td></tr>
+<tr><td>gpqa</td><td>Qwen2.5-72B-Instruct-AWQ_T1.0</td><td>3</td><td>spectral_entropy|dominant_freq|sw_var_peak|cusum_shift_idx</td><td>4</td><td>0.6566</td><td>[0.581,0.725]</td><td>2</td><td>15.5</td></tr>
+<tr><td>gpqa</td><td>Qwen2.5-72B-Instruct-AWQ_T1.0</td><td>4</td><td>trace_length|dominant_freq|sw_var_peak|cusum_max</td><td>4</td><td>0.6557</td><td>[0.575,0.728]</td><td>3</td><td>15.4</td></tr>
+<tr><td>gpqa</td><td>Qwen2.5-72B-Instruct-AWQ_T1.0</td><td>5</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>4</td><td>0.6508</td><td>[0.569,0.720]</td><td>2</td><td>14.9</td></tr>
+<tr><td>gpqa</td><td>Qwen2.5-72B-Instruct-AWQ_T1.0</td><td>GOOD_5 (rank 4453, pctile 93.19)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.5018</td><td>[0.417,0.583]</td><td>2</td><td>-</td></tr>
+<tr><td>gpqa</td><td>Qwen2.5-72B-Instruct-AWQ_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.5441</td><td>[0.460,0.625]</td><td>4</td><td>-</td></tr>
+<tr><td>gpqa</td><td>Qwen2.5-72B-Instruct-AWQ_T1.0</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.3931</td><td>[0.316,0.474]</td><td>7</td><td>-</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>1</td><td>epr|spectral_entropy|low_band_power|stft_spectral_entropy|sw_var_peak|cusum_shift_idx</td><td>6</td><td>0.7655</td><td>[0.731,0.799]</td><td>4</td><td>0.9</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>2</td><td>epr|spectral_entropy|low_band_power|stft_spectral_entropy|sw_var_peak</td><td>5</td><td>0.7646</td><td>[0.731,0.798]</td><td>3</td><td>0.8</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>3</td><td>epr|trace_length|low_band_power|stft_spectral_entropy|sw_var_peak|cusum_shift_idx</td><td>6</td><td>0.7637</td><td>[0.730,0.797]</td><td>4</td><td>0.7</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>4</td><td>epr|trace_length|low_band_power|stft_spectral_entropy|sw_var_peak</td><td>5</td><td>0.7627</td><td>[0.730,0.795]</td><td>2</td><td>0.6</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>5</td><td>epr|trace_length|stft_spectral_entropy|sw_var_peak</td><td>4</td><td>0.7624</td><td>[0.729,0.796]</td><td>2</td><td>0.6</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>GOOD_5 (rank 312, pctile 99.52)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.7563</td><td>[0.721,0.790]</td><td>4</td><td>-</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.7329</td><td>[0.697,0.772]</td><td>4</td><td>-</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.7382</td><td>[0.704,0.773]</td><td>4</td><td>-</td></tr>
+<tr><td>math500</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>1</td><td>epr|spectral_entropy|dominant_freq|stft_spectral_entropy|rpdi|sw_var_peak</td><td>6</td><td>0.8611</td><td>[0.817,0.902]</td><td>2</td><td>1.7</td></tr>
+<tr><td>math500</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>2</td><td>epr|spectral_entropy|dominant_freq|rpdi|sw_var_peak</td><td>5</td><td>0.861</td><td>[0.817,0.903]</td><td>3</td><td>1.7</td></tr>
+<tr><td>math500</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>3</td><td>epr|spectral_entropy|stft_spectral_entropy|rpdi|sw_var_peak|cusum_shift_idx</td><td>6</td><td>0.8592</td><td>[0.815,0.900]</td><td>4</td><td>1.5</td></tr>
+<tr><td>math500</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>4</td><td>epr|spectral_entropy|rpdi|sw_var_peak|hurst_exponent|cusum_shift_idx</td><td>6</td><td>0.8588</td><td>[0.815,0.900]</td><td>2</td><td>1.5</td></tr>
+<tr><td>math500</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>5</td><td>epr|spectral_entropy|stft_spectral_entropy|rpdi|sw_var_peak</td><td>5</td><td>0.8582</td><td>[0.812,0.899]</td><td>2</td><td>1.4</td></tr>
+<tr><td>math500</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>GOOD_5 (rank 644, pctile 98.03)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.8439</td><td>[0.798,0.888]</td><td>2</td><td>-</td></tr>
+<tr><td>math500</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.8207</td><td>[0.771,0.870]</td><td>3</td><td>-</td></tr>
+<tr><td>math500</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>ALL_H16</td><td>epr|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>15</td><td>0.8268</td><td>[0.779,0.875]</td><td>3</td><td>-</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>1</td><td>epr|hl_ratio|stft_spectral_entropy|rpdi|cusum_shift_idx</td><td>5</td><td>0.9585</td><td>[0.923,0.984]</td><td>2</td><td>1.4</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>2</td><td>epr|hl_ratio|stft_spectral_entropy|rpdi|pe_mean|cusum_shift_idx</td><td>6</td><td>0.9572</td><td>[0.920,0.984]</td><td>3</td><td>1.3</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>3</td><td>epr|high_band_power|stft_spectral_entropy|rpdi|pe_mean|cusum_shift_idx</td><td>6</td><td>0.9566</td><td>[0.918,0.984]</td><td>3</td><td>1.2</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>4</td><td>epr|high_band_power|hl_ratio</td><td>3</td><td>0.956</td><td>[0.923,0.980]</td><td>2</td><td>1.2</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>5</td><td>epr|spectral_centroid|stft_spectral_entropy|rpdi|sw_var_peak|cusum_shift_idx</td><td>6</td><td>0.9552</td><td>[0.914,0.985]</td><td>2</td><td>1.1</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>GOOD_5 (rank 3647, pctile 77.6)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.9444</td><td>[0.901,0.977]</td><td>2</td><td>-</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.9441</td><td>[0.900,0.979]</td><td>4</td><td>-</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>ALL_H16</td><td>epr|spectral_entropy|low_band_power|high_band_power|hl_ratio|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>14</td><td>0.9409</td><td>[0.895,0.976]</td><td>4</td><td>-</td></tr>
+<tr><td>math500</td><td>Qwen2.5-Math-1.5B-Instruct_T1.0</td><td>1</td><td>epr|trace_length|spectral_entropy|dominant_freq|hurst_exponent|cusum_shift_idx</td><td>6</td><td>0.8863</td><td>[0.846,0.923]</td><td>4</td><td>2.0</td></tr>
+<tr><td>math500</td><td>Qwen2.5-Math-1.5B-Instruct_T1.0</td><td>2</td><td>epr|trace_length|spectral_entropy|dominant_freq|pe_mean|hurst_exponent</td><td>6</td><td>0.8859</td><td>[0.844,0.920]</td><td>2</td><td>1.9</td></tr>
+<tr><td>math500</td><td>Qwen2.5-Math-1.5B-Instruct_T1.0</td><td>3</td><td>epr|trace_length|spectral_entropy|hurst_exponent</td><td>4</td><td>0.8853</td><td>[0.843,0.921]</td><td>2</td><td>1.9</td></tr>
+<tr><td>math500</td><td>Qwen2.5-Math-1.5B-Instruct_T1.0</td><td>4</td><td>epr|trace_length|spectral_entropy|dominant_freq|hurst_exponent</td><td>5</td><td>0.885</td><td>[0.844,0.920]</td><td>2</td><td>1.8</td></tr>
+<tr><td>math500</td><td>Qwen2.5-Math-1.5B-Instruct_T1.0</td><td>5</td><td>epr|trace_length|spectral_centroid|hurst_exponent|cusum_shift_idx</td><td>5</td><td>0.8849</td><td>[0.842,0.919]</td><td>4</td><td>1.8</td></tr>
+<tr><td>math500</td><td>Qwen2.5-Math-1.5B-Instruct_T1.0</td><td>GOOD_5 (rank 22580, pctile 65.47)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.8667</td><td>[0.822,0.905]</td><td>2</td><td>-</td></tr>
+<tr><td>math500</td><td>Qwen2.5-Math-1.5B-Instruct_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.8602</td><td>[0.818,0.900]</td><td>4</td><td>-</td></tr>
+<tr><td>math500</td><td>Qwen2.5-Math-1.5B-Instruct_T1.0</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.8667</td><td>[0.824,0.905]</td><td>6</td><td>-</td></tr>
+<tr><td>math500</td><td>deepseek-math-7b-instruct_T1.0</td><td>1</td><td>epr|trace_length|spectral_entropy|pe_mean|hurst_exponent|cusum_shift_idx</td><td>6</td><td>0.7475</td><td>[0.666,0.816]</td><td>5</td><td>3.2</td></tr>
+<tr><td>math500</td><td>deepseek-math-7b-instruct_T1.0</td><td>2</td><td>epr|trace_length|spectral_entropy|hurst_exponent|cusum_shift_idx</td><td>5</td><td>0.7473</td><td>[0.668,0.815]</td><td>4</td><td>3.2</td></tr>
+<tr><td>math500</td><td>deepseek-math-7b-instruct_T1.0</td><td>3</td><td>epr|trace_length|spectral_centroid|stft_max_high_power|cusum_shift_idx</td><td>5</td><td>0.7449</td><td>[0.665,0.819]</td><td>4</td><td>2.9</td></tr>
+<tr><td>math500</td><td>deepseek-math-7b-instruct_T1.0</td><td>4</td><td>epr|trace_length|pe_mean|cusum_max</td><td>4</td><td>0.7445</td><td>[0.662,0.815]</td><td>3</td><td>2.9</td></tr>
+<tr><td>math500</td><td>deepseek-math-7b-instruct_T1.0</td><td>5</td><td>epr|trace_length|spectral_entropy|spectral_centroid|pe_mean|hurst_exponent|cusum_shift_idx</td><td>7</td><td>0.7439</td><td>[0.663,0.815]</td><td>5</td><td>2.8</td></tr>
+<tr><td>math500</td><td>deepseek-math-7b-instruct_T1.0</td><td>GOOD_5 (rank 9527, pctile 85.43)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.7157</td><td>[0.630,0.793]</td><td>4</td><td>-</td></tr>
+<tr><td>math500</td><td>deepseek-math-7b-instruct_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.6762</td><td>[0.591,0.756]</td><td>5</td><td>-</td></tr>
+<tr><td>math500</td><td>deepseek-math-7b-instruct_T1.0</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.6996</td><td>[0.615,0.776]</td><td>4</td><td>-</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_cot_traces_T1.0</td><td>1</td><td>high_band_power|dominant_freq|rpdi|sw_var_peak</td><td>4</td><td>0.7151</td><td>[0.647,0.788]</td><td>3</td><td>6.0</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_cot_traces_T1.0</td><td>2</td><td>high_band_power|dominant_freq|rpdi|sw_var_peak|pe_mean</td><td>5</td><td>0.715</td><td>[0.647,0.788]</td><td>4</td><td>6.0</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_cot_traces_T1.0</td><td>3</td><td>dominant_freq|rpdi|sw_var_peak</td><td>3</td><td>0.7141</td><td>[0.647,0.782]</td><td>2</td><td>5.9</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_cot_traces_T1.0</td><td>4</td><td>hl_ratio|rpdi|sw_var_peak|pe_mean</td><td>4</td><td>0.7131</td><td>[0.646,0.787]</td><td>3</td><td>5.8</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_cot_traces_T1.0</td><td>5</td><td>spectral_centroid|rpdi|sw_var_peak|pe_mean</td><td>4</td><td>0.7119</td><td>[0.646,0.786]</td><td>3</td><td>5.7</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_cot_traces_T1.0</td><td>GOOD_5 (rank 255, pctile 99.61)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.6549</td><td>[0.585,0.728]</td><td>2</td><td>-</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_cot_traces_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.5877</td><td>[0.516,0.663]</td><td>4</td><td>-</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_cot_traces_T1.0</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.5746</td><td>[0.503,0.648]</td><td>4</td><td>-</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_traces_T1.0</td><td>1</td><td>epr|spectral_entropy|hl_ratio|dominant_freq|pe_mean|cusum_shift_idx</td><td>6</td><td>1.0</td><td>[1.000,1.000]</td><td>3</td><td>4.0</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_traces_T1.0</td><td>2</td><td>epr|trace_length|spectral_entropy|hl_ratio|dominant_freq|sw_var_peak|pe_mean|cusum_shift_idx</td><td>8</td><td>1.0</td><td>[1.000,1.000]</td><td>3</td><td>4.0</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_traces_T1.0</td><td>3</td><td>epr|trace_length|spectral_entropy|high_band_power|hl_ratio|dominant_freq|rpdi|sw_var_peak|cusum_shift_idx</td><td>9</td><td>1.0</td><td>[1.000,1.000]</td><td>3</td><td>4.0</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_traces_T1.0</td><td>4</td><td>high_band_power|hl_ratio|dominant_freq|rpdi</td><td>4</td><td>1.0</td><td>[1.000,1.000]</td><td>3</td><td>4.0</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_traces_T1.0</td><td>5</td><td>epr|high_band_power|pe_mean|cusum_shift_idx</td><td>4</td><td>1.0</td><td>[1.000,1.000]</td><td>3</td><td>4.0</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_traces_T1.0</td><td>GOOD_5 (rank 321, pctile 98.03)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.96</td><td>[0.863,1.000]</td><td>2</td><td>-</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_traces_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.9</td><td>[0.802,0.980]</td><td>3</td><td>-</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_traces_T1.0</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>14</td><td>0.91</td><td>[0.819,0.980]</td><td>5</td><td>-</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_webq_cot_traces_T1.0</td><td>1</td><td>stft_max_high_power|sw_var_peak|cusum_max</td><td>3</td><td>0.6728</td><td>[0.577,0.763]</td><td>2</td><td>3.7</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_webq_cot_traces_T1.0</td><td>2</td><td>epr|high_band_power|stft_max_high_power|cusum_max</td><td>4</td><td>0.6715</td><td>[0.582,0.769]</td><td>3</td><td>3.6</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_webq_cot_traces_T1.0</td><td>3</td><td>epr|stft_max_high_power|sw_var_peak|cusum_max</td><td>4</td><td>0.6684</td><td>[0.573,0.766]</td><td>3</td><td>3.3</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_webq_cot_traces_T1.0</td><td>4</td><td>hl_ratio|stft_max_high_power|sw_var_peak|pe_mean|cusum_max</td><td>5</td><td>0.6682</td><td>[0.575,0.760]</td><td>4</td><td>3.2</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_webq_cot_traces_T1.0</td><td>5</td><td>epr|hl_ratio|stft_max_high_power|sw_var_peak|cusum_max</td><td>5</td><td>0.6681</td><td>[0.573,0.766]</td><td>4</td><td>3.2</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_webq_cot_traces_T1.0</td><td>GOOD_5 (rank 3083, pctile 95.29)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.6359</td><td>[0.545,0.727]</td><td>3</td><td>-</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_webq_cot_traces_T1.0</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.5754</td><td>[0.478,0.665]</td><td>6</td><td>-</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_webq_cot_traces_T1.0</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.6212</td><td>[0.531,0.711]</td><td>8</td><td>-</td></tr>
+<tr><td>rag</td><td>Llama-8B/2wikimultihopqa</td><td>1</td><td>low_band_power|hl_ratio|rpdi|sw_var_peak|cusum_shift_idx</td><td>5</td><td>0.7184</td><td>[0.609,0.813]</td><td>2</td><td>12.4</td></tr>
+<tr><td>rag</td><td>Llama-8B/2wikimultihopqa</td><td>2</td><td>rpdi|sw_var_peak|cusum_shift_idx</td><td>3</td><td>0.7162</td><td>[0.602,0.813]</td><td>2</td><td>12.2</td></tr>
+<tr><td>rag</td><td>Llama-8B/2wikimultihopqa</td><td>3</td><td>hl_ratio|spectral_centroid|rpdi|sw_var_peak|hurst_exponent|cusum_shift_idx</td><td>6</td><td>0.6935</td><td>[0.572,0.802]</td><td>2</td><td>9.9</td></tr>
+<tr><td>rag</td><td>Llama-8B/2wikimultihopqa</td><td>4</td><td>low_band_power|high_band_power|hl_ratio|rpdi|sw_var_peak|cusum_shift_idx</td><td>6</td><td>0.6876</td><td>[0.568,0.789]</td><td>2</td><td>9.3</td></tr>
+<tr><td>rag</td><td>Llama-8B/2wikimultihopqa</td><td>5</td><td>hl_ratio|spectral_centroid|rpdi|sw_var_peak|cusum_shift_idx</td><td>5</td><td>0.6832</td><td>[0.566,0.786]</td><td>2</td><td>8.9</td></tr>
+<tr><td>rag</td><td>Llama-8B/2wikimultihopqa</td><td>GOOD_5 (rank 294, pctile 98.19)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.5946</td><td>[0.457,0.738]</td><td>2</td><td>-</td></tr>
+<tr><td>rag</td><td>Llama-8B/2wikimultihopqa</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.5795</td><td>[0.441,0.719]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Llama-8B/2wikimultihopqa</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>14</td><td>0.5405</td><td>[0.402,0.682]</td><td>4</td><td>-</td></tr>
+<tr><td>rag</td><td>Llama-8B/hotpotqa</td><td>1</td><td>epr|dominant_freq|rpdi|pe_mean</td><td>4</td><td>0.8847</td><td>[0.815,0.942]</td><td>3</td><td>10.9</td></tr>
+<tr><td>rag</td><td>Llama-8B/hotpotqa</td><td>2</td><td>epr|low_band_power|hl_ratio|spectral_centroid|rpdi|pe_mean</td><td>6</td><td>0.8847</td><td>[0.814,0.944]</td><td>5</td><td>10.9</td></tr>
+<tr><td>rag</td><td>Llama-8B/hotpotqa</td><td>3</td><td>epr|hl_ratio|dominant_freq|spectral_centroid|rpdi|pe_mean</td><td>6</td><td>0.8825</td><td>[0.810,0.941]</td><td>5</td><td>10.7</td></tr>
+<tr><td>rag</td><td>Llama-8B/hotpotqa</td><td>4</td><td>epr|dominant_freq|rpdi|sw_var_peak|pe_mean</td><td>5</td><td>0.8815</td><td>[0.806,0.937]</td><td>3</td><td>10.6</td></tr>
+<tr><td>rag</td><td>Llama-8B/hotpotqa</td><td>5</td><td>epr|hl_ratio|dominant_freq|hurst_exponent</td><td>4</td><td>0.8809</td><td>[0.804,0.940]</td><td>3</td><td>10.5</td></tr>
+<tr><td>rag</td><td>Llama-8B/hotpotqa</td><td>GOOD_5 (rank 3379, pctile 79.24)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.7759</td><td>[0.672,0.875]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Llama-8B/hotpotqa</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.8103</td><td>[0.712,0.897]</td><td>5</td><td>-</td></tr>
+<tr><td>rag</td><td>Llama-8B/hotpotqa</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>14</td><td>0.7306</td><td>[0.618,0.835]</td><td>5</td><td>-</td></tr>
+<tr><td>rag</td><td>Llama-8B/narrativeqa</td><td>1</td><td>epr|spectral_centroid|rpdi|cusum_shift_idx</td><td>4</td><td>0.6513</td><td>[0.574,0.724]</td><td>3</td><td>7.8</td></tr>
+<tr><td>rag</td><td>Llama-8B/narrativeqa</td><td>2</td><td>epr|hl_ratio|dominant_freq|rpdi|cusum_shift_idx</td><td>5</td><td>0.6491</td><td>[0.572,0.720]</td><td>4</td><td>7.6</td></tr>
+<tr><td>rag</td><td>Llama-8B/narrativeqa</td><td>3</td><td>epr|low_band_power|hl_ratio|rpdi|cusum_shift_idx</td><td>5</td><td>0.6462</td><td>[0.569,0.720]</td><td>4</td><td>7.3</td></tr>
+<tr><td>rag</td><td>Llama-8B/narrativeqa</td><td>4</td><td>epr|low_band_power|spectral_centroid|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>9</td><td>0.644</td><td>[0.572,0.715]</td><td>3</td><td>7.1</td></tr>
+<tr><td>rag</td><td>Llama-8B/narrativeqa</td><td>5</td><td>epr|rpdi|pe_mean|cusum_shift_idx</td><td>4</td><td>0.6438</td><td>[0.564,0.718]</td><td>2</td><td>7.1</td></tr>
+<tr><td>rag</td><td>Llama-8B/narrativeqa</td><td>GOOD_5 (rank 2959, pctile 81.82)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.5729</td><td>[0.497,0.650]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Llama-8B/narrativeqa</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.5828</td><td>[0.505,0.661]</td><td>2</td><td>-</td></tr>
+<tr><td>rag</td><td>Llama-8B/narrativeqa</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>14</td><td>0.5343</td><td>[0.454,0.615]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Llama-8B/natural-questions</td><td>1</td><td>trace_length|spectral_entropy|low_band_power|high_band_power|rpdi|pe_mean|cusum_max|cusum_shift_idx</td><td>8</td><td>0.7146</td><td>[0.479,0.884]</td><td>3</td><td>8.1</td></tr>
+<tr><td>rag</td><td>Llama-8B/natural-questions</td><td>2</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|rpdi|pe_mean|hurst_exponent|cusum_max</td><td>9</td><td>0.7091</td><td>[0.481,0.874]</td><td>3</td><td>7.5</td></tr>
+<tr><td>rag</td><td>Llama-8B/natural-questions</td><td>3</td><td>trace_length|spectral_entropy|high_band_power|dominant_freq|sw_var_peak|hurst_exponent|cusum_max|cusum_shift_idx</td><td>8</td><td>0.7058</td><td>[0.464,0.858]</td><td>3</td><td>7.2</td></tr>
+<tr><td>rag</td><td>Llama-8B/natural-questions</td><td>4</td><td>trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|pe_mean</td><td>6</td><td>0.7058</td><td>[0.457,0.888]</td><td>2</td><td>7.2</td></tr>
+<tr><td>rag</td><td>Llama-8B/natural-questions</td><td>5</td><td>trace_length|spectral_entropy|high_band_power|dominant_freq|hurst_exponent|cusum_max|cusum_shift_idx</td><td>7</td><td>0.7046</td><td>[0.466,0.866]</td><td>3</td><td>7.1</td></tr>
+<tr><td>rag</td><td>Llama-8B/natural-questions</td><td>GOOD_5 (rank 4469, pctile 72.55)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.6338</td><td>[0.364,0.867]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Llama-8B/natural-questions</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.6073</td><td>[0.399,0.778]</td><td>5</td><td>-</td></tr>
+<tr><td>rag</td><td>Llama-8B/natural-questions</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>14</td><td>0.6372</td><td>[0.412,0.803]</td><td>5</td><td>-</td></tr>
+<tr><td>rag</td><td>Mistral-24B/2wikimultihopqa</td><td>1</td><td>epr|low_band_power|high_band_power|hl_ratio|cusum_shift_idx</td><td>5</td><td>0.7417</td><td>[0.569,0.885]</td><td>2</td><td>27.9</td></tr>
+<tr><td>rag</td><td>Mistral-24B/2wikimultihopqa</td><td>2</td><td>epr|hl_ratio|stft_spectral_entropy|rpdi</td><td>4</td><td>0.7146</td><td>[0.562,0.853]</td><td>2</td><td>25.2</td></tr>
+<tr><td>rag</td><td>Mistral-24B/2wikimultihopqa</td><td>3</td><td>epr|low_band_power|high_band_power|spectral_centroid|rpdi|pe_mean|hurst_exponent</td><td>7</td><td>0.7083</td><td>[0.513,0.873]</td><td>2</td><td>24.6</td></tr>
+<tr><td>rag</td><td>Mistral-24B/2wikimultihopqa</td><td>4</td><td>epr|low_band_power|high_band_power|hl_ratio|pe_mean</td><td>5</td><td>0.7063</td><td>[0.525,0.875]</td><td>2</td><td>24.4</td></tr>
+<tr><td>rag</td><td>Mistral-24B/2wikimultihopqa</td><td>5</td><td>epr|high_band_power|hl_ratio|spectral_centroid|pe_mean</td><td>5</td><td>0.7042</td><td>[0.518,0.881]</td><td>2</td><td>24.2</td></tr>
+<tr><td>rag</td><td>Mistral-24B/2wikimultihopqa</td><td>GOOD_5 (rank 11047, pctile 83.11)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.4625</td><td>[0.296,0.627]</td><td>2</td><td>-</td></tr>
+<tr><td>rag</td><td>Mistral-24B/2wikimultihopqa</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.4146</td><td>[0.259,0.579]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Mistral-24B/2wikimultihopqa</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.4229</td><td>[0.259,0.594]</td><td>6</td><td>-</td></tr>
+<tr><td>rag</td><td>Mistral-24B/hotpotqa</td><td>1</td><td>hl_ratio|hurst_exponent|cusum_shift_idx</td><td>3</td><td>0.7738</td><td>[0.625,0.897]</td><td>2</td><td>16.9</td></tr>
+<tr><td>rag</td><td>Mistral-24B/hotpotqa</td><td>2</td><td>spectral_centroid|hurst_exponent|cusum_shift_idx</td><td>3</td><td>0.7619</td><td>[0.612,0.890]</td><td>2</td><td>15.7</td></tr>
+<tr><td>rag</td><td>Mistral-24B/hotpotqa</td><td>3</td><td>hl_ratio|dominant_freq|cusum_shift_idx</td><td>3</td><td>0.75</td><td>[0.589,0.892]</td><td>2</td><td>14.5</td></tr>
+<tr><td>rag</td><td>Mistral-24B/hotpotqa</td><td>4</td><td>hl_ratio|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_shift_idx</td><td>6</td><td>0.748</td><td>[0.588,0.881]</td><td>2</td><td>14.3</td></tr>
+<tr><td>rag</td><td>Mistral-24B/hotpotqa</td><td>5</td><td>hl_ratio|rpdi|sw_var_peak|hurst_exponent|cusum_shift_idx</td><td>5</td><td>0.748</td><td>[0.590,0.875]</td><td>2</td><td>14.3</td></tr>
+<tr><td>rag</td><td>Mistral-24B/hotpotqa</td><td>GOOD_5 (rank 51392, pctile 21.42)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.6052</td><td>[0.411,0.790]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Mistral-24B/hotpotqa</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.6032</td><td>[0.404,0.791]</td><td>4</td><td>-</td></tr>
+<tr><td>rag</td><td>Mistral-24B/hotpotqa</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.631</td><td>[0.441,0.801]</td><td>6</td><td>-</td></tr>
+<tr><td>rag</td><td>Mistral-24B/narrativeqa</td><td>1</td><td>epr|spectral_entropy|pe_mean|cusum_shift_idx</td><td>4</td><td>0.6734</td><td>[0.564,0.775]</td><td>3</td><td>5.8</td></tr>
+<tr><td>rag</td><td>Mistral-24B/narrativeqa</td><td>2</td><td>epr|spectral_entropy|hl_ratio</td><td>3</td><td>0.6704</td><td>[0.562,0.773]</td><td>2</td><td>5.5</td></tr>
+<tr><td>rag</td><td>Mistral-24B/narrativeqa</td><td>3</td><td>epr|spectral_entropy|high_band_power|hl_ratio</td><td>4</td><td>0.6688</td><td>[0.573,0.767]</td><td>3</td><td>5.3</td></tr>
+<tr><td>rag</td><td>Mistral-24B/narrativeqa</td><td>4</td><td>epr|spectral_entropy|hl_ratio|cusum_shift_idx</td><td>4</td><td>0.6638</td><td>[0.553,0.773]</td><td>3</td><td>4.8</td></tr>
+<tr><td>rag</td><td>Mistral-24B/narrativeqa</td><td>5</td><td>epr|trace_length|spectral_entropy|hl_ratio|cusum_shift_idx</td><td>5</td><td>0.659</td><td>[0.542,0.772]</td><td>4</td><td>4.3</td></tr>
+<tr><td>rag</td><td>Mistral-24B/narrativeqa</td><td>GOOD_5 (rank 466, pctile 97.14)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.6158</td><td>[0.499,0.737]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Mistral-24B/narrativeqa</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.5285</td><td>[0.415,0.643]</td><td>4</td><td>-</td></tr>
+<tr><td>rag</td><td>Mistral-24B/narrativeqa</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>14</td><td>0.5644</td><td>[0.450,0.677]</td><td>6</td><td>-</td></tr>
+<tr><td>rag</td><td>Mistral-24B/natural-questions</td><td>1</td><td>high_band_power|rpdi|sw_var_peak|pe_mean</td><td>4</td><td>0.7714</td><td>[0.583,0.921]</td><td>3</td><td>39.7</td></tr>
+<tr><td>rag</td><td>Mistral-24B/natural-questions</td><td>2</td><td>high_band_power|dominant_freq|rpdi|sw_var_peak|pe_mean|cusum_max</td><td>6</td><td>0.7619</td><td>[0.578,0.923]</td><td>3</td><td>38.7</td></tr>
+<tr><td>rag</td><td>Mistral-24B/natural-questions</td><td>3</td><td>high_band_power|stft_spectral_entropy|rpdi|sw_var_peak|cusum_max|cusum_shift_idx</td><td>6</td><td>0.7587</td><td>[0.579,0.918]</td><td>3</td><td>38.4</td></tr>
+<tr><td>rag</td><td>Mistral-24B/natural-questions</td><td>4</td><td>spectral_entropy|high_band_power|rpdi|sw_var_peak|cusum_max|cusum_shift_idx</td><td>6</td><td>0.7587</td><td>[0.565,0.926]</td><td>4</td><td>38.4</td></tr>
+<tr><td>rag</td><td>Mistral-24B/natural-questions</td><td>5</td><td>high_band_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|cusum_max|cusum_shift_idx</td><td>7</td><td>0.7556</td><td>[0.529,0.934]</td><td>4</td><td>38.1</td></tr>
+<tr><td>rag</td><td>Mistral-24B/natural-questions</td><td>GOOD_5 (rank 35384, pctile 45.9)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.3746</td><td>[0.178,0.582]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Mistral-24B/natural-questions</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.3968</td><td>[0.174,0.639]</td><td>5</td><td>-</td></tr>
+<tr><td>rag</td><td>Mistral-24B/natural-questions</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.4032</td><td>[0.149,0.673]</td><td>4</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-72B/2wikimultihopqa</td><td>1</td><td>spectral_entropy|stft_spectral_entropy|hurst_exponent</td><td>3</td><td>0.6681</td><td>[0.564,0.767]</td><td>2</td><td>13.4</td></tr>
+<tr><td>rag</td><td>Qwen-72B/2wikimultihopqa</td><td>2</td><td>spectral_entropy|spectral_centroid|stft_spectral_entropy|hurst_exponent</td><td>4</td><td>0.6648</td><td>[0.561,0.768]</td><td>3</td><td>13.1</td></tr>
+<tr><td>rag</td><td>Qwen-72B/2wikimultihopqa</td><td>3</td><td>spectral_entropy|hl_ratio|stft_spectral_entropy|hurst_exponent</td><td>4</td><td>0.6648</td><td>[0.551,0.766]</td><td>3</td><td>13.1</td></tr>
+<tr><td>rag</td><td>Qwen-72B/2wikimultihopqa</td><td>4</td><td>spectral_entropy|spectral_centroid|stft_spectral_entropy</td><td>3</td><td>0.6529</td><td>[0.531,0.770]</td><td>2</td><td>11.9</td></tr>
+<tr><td>rag</td><td>Qwen-72B/2wikimultihopqa</td><td>5</td><td>hl_ratio|stft_spectral_entropy|hurst_exponent</td><td>3</td><td>0.6499</td><td>[0.542,0.755]</td><td>2</td><td>11.6</td></tr>
+<tr><td>rag</td><td>Qwen-72B/2wikimultihopqa</td><td>GOOD_5 (rank 11945, pctile 63.41)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.5339</td><td>[0.380,0.681]</td><td>2</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-72B/2wikimultihopqa</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|pe_mean|cusum_max</td><td>8</td><td>0.4788</td><td>[0.338,0.623]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-72B/2wikimultihopqa</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>15</td><td>0.5072</td><td>[0.362,0.658]</td><td>4</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-72B/hotpotqa</td><td>1</td><td>trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|stft_max_high_power|hurst_exponent|cusum_max|cusum_shift_idx</td><td>9</td><td>0.7988</td><td>[0.724,0.867]</td><td>3</td><td>8.1</td></tr>
+<tr><td>rag</td><td>Qwen-72B/hotpotqa</td><td>2</td><td>trace_length|spectral_entropy|low_band_power|high_band_power|stft_max_high_power|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>9</td><td>0.7945</td><td>[0.707,0.865]</td><td>3</td><td>7.7</td></tr>
+<tr><td>rag</td><td>Qwen-72B/hotpotqa</td><td>3</td><td>trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|stft_max_high_power|sw_var_peak|hurst_exponent</td><td>8</td><td>0.7926</td><td>[0.713,0.862]</td><td>3</td><td>7.5</td></tr>
+<tr><td>rag</td><td>Qwen-72B/hotpotqa</td><td>4</td><td>trace_length|spectral_entropy|high_band_power|stft_max_high_power|hurst_exponent|cusum_max</td><td>6</td><td>0.7918</td><td>[0.713,0.859]</td><td>2</td><td>7.4</td></tr>
+<tr><td>rag</td><td>Qwen-72B/hotpotqa</td><td>5</td><td>trace_length|spectral_entropy|low_band_power|high_band_power|stft_max_high_power|sw_var_peak|hurst_exponent</td><td>7</td><td>0.7918</td><td>[0.713,0.860]</td><td>2</td><td>7.4</td></tr>
+<tr><td>rag</td><td>Qwen-72B/hotpotqa</td><td>GOOD_5 (rank 22085, pctile 32.35)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.7179</td><td>[0.605,0.815]</td><td>2</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-72B/hotpotqa</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|pe_mean|cusum_max</td><td>8</td><td>0.6915</td><td>[0.574,0.794]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-72B/hotpotqa</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>15</td><td>0.7598</td><td>[0.660,0.846]</td><td>4</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-72B/narrativeqa</td><td>1</td><td>epr|spectral_centroid|pe_mean</td><td>3</td><td>0.6742</td><td>[0.574,0.774]</td><td>2</td><td>7.1</td></tr>
+<tr><td>rag</td><td>Qwen-72B/narrativeqa</td><td>2</td><td>hl_ratio|spectral_centroid|pe_mean</td><td>3</td><td>0.6728</td><td>[0.573,0.771]</td><td>2</td><td>7.0</td></tr>
+<tr><td>rag</td><td>Qwen-72B/narrativeqa</td><td>3</td><td>epr|spectral_centroid|pe_mean|hurst_exponent</td><td>4</td><td>0.6718</td><td>[0.573,0.779]</td><td>2</td><td>6.9</td></tr>
+<tr><td>rag</td><td>Qwen-72B/narrativeqa</td><td>4</td><td>epr|hl_ratio|spectral_centroid|pe_mean|hurst_exponent</td><td>5</td><td>0.6718</td><td>[0.573,0.779]</td><td>2</td><td>6.9</td></tr>
+<tr><td>rag</td><td>Qwen-72B/narrativeqa</td><td>5</td><td>epr|hl_ratio|pe_mean</td><td>3</td><td>0.671</td><td>[0.576,0.767]</td><td>2</td><td>6.8</td></tr>
+<tr><td>rag</td><td>Qwen-72B/narrativeqa</td><td>GOOD_5 (rank 6750, pctile 58.53)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.6031</td><td>[0.502,0.705]</td><td>2</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-72B/narrativeqa</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.6364</td><td>[0.544,0.732]</td><td>5</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-72B/narrativeqa</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>14</td><td>0.604</td><td>[0.498,0.719]</td><td>5</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-72B/natural-questions</td><td>1</td><td>epr|hl_ratio|spectral_centroid|hurst_exponent</td><td>4</td><td>0.6922</td><td>[0.572,0.806]</td><td>3</td><td>4.3</td></tr>
+<tr><td>rag</td><td>Qwen-72B/natural-questions</td><td>2</td><td>epr|low_band_power|spectral_centroid|sw_var_peak|hurst_exponent|cusum_max</td><td>6</td><td>0.6846</td><td>[0.576,0.792]</td><td>2</td><td>3.5</td></tr>
+<tr><td>rag</td><td>Qwen-72B/natural-questions</td><td>3</td><td>epr|low_band_power|high_band_power|dominant_freq|sw_var_peak|hurst_exponent|cusum_max</td><td>7</td><td>0.6836</td><td>[0.580,0.784]</td><td>3</td><td>3.4</td></tr>
+<tr><td>rag</td><td>Qwen-72B/natural-questions</td><td>4</td><td>low_band_power|hl_ratio|spectral_centroid|sw_var_peak|hurst_exponent</td><td>5</td><td>0.683</td><td>[0.574,0.791]</td><td>3</td><td>3.4</td></tr>
+<tr><td>rag</td><td>Qwen-72B/natural-questions</td><td>5</td><td>epr|low_band_power|high_band_power|hl_ratio|dominant_freq|sw_var_peak|hurst_exponent|cusum_max</td><td>8</td><td>0.683</td><td>[0.581,0.784]</td><td>3</td><td>3.4</td></tr>
+<tr><td>rag</td><td>Qwen-72B/natural-questions</td><td>GOOD_5 (rank 1080, pctile 86.67)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.6495</td><td>[0.527,0.774]</td><td>2</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-72B/natural-questions</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|pe_mean|cusum_max</td><td>8</td><td>0.6348</td><td>[0.521,0.751]</td><td>4</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-72B/natural-questions</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>13</td><td>0.6553</td><td>[0.519,0.785]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/2wikimultihopqa</td><td>1</td><td>low_band_power|hl_ratio|dominant_freq|stft_spectral_entropy|hurst_exponent|cusum_shift_idx</td><td>6</td><td>0.7741</td><td>[0.667,0.865]</td><td>2</td><td>26.3</td></tr>
+<tr><td>rag</td><td>Qwen-7B/2wikimultihopqa</td><td>2</td><td>low_band_power|dominant_freq|stft_spectral_entropy|rpdi|hurst_exponent</td><td>5</td><td>0.7669</td><td>[0.662,0.862]</td><td>2</td><td>25.6</td></tr>
+<tr><td>rag</td><td>Qwen-7B/2wikimultihopqa</td><td>3</td><td>epr|low_band_power|dominant_freq|stft_max_high_power|stft_spectral_entropy|hurst_exponent</td><td>6</td><td>0.7665</td><td>[0.644,0.872]</td><td>2</td><td>25.6</td></tr>
+<tr><td>rag</td><td>Qwen-7B/2wikimultihopqa</td><td>4</td><td>low_band_power|dominant_freq|spectral_centroid|stft_spectral_entropy|hurst_exponent|cusum_shift_idx</td><td>6</td><td>0.7608</td><td>[0.647,0.850]</td><td>2</td><td>25.0</td></tr>
+<tr><td>rag</td><td>Qwen-7B/2wikimultihopqa</td><td>5</td><td>low_band_power|dominant_freq|stft_spectral_entropy|hurst_exponent</td><td>4</td><td>0.7604</td><td>[0.662,0.851]</td><td>2</td><td>25.0</td></tr>
+<tr><td>rag</td><td>Qwen-7B/2wikimultihopqa</td><td>GOOD_5 (rank 38805, pctile 40.66)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.5108</td><td>[0.320,0.702]</td><td>2</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/2wikimultihopqa</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.435</td><td>[0.267,0.633]</td><td>4</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/2wikimultihopqa</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.5554</td><td>[0.338,0.772]</td><td>5</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/hotpotqa</td><td>1</td><td>spectral_entropy|dominant_freq|stft_max_high_power</td><td>3</td><td>0.7788</td><td>[0.679,0.875]</td><td>2</td><td>15.3</td></tr>
+<tr><td>rag</td><td>Qwen-7B/hotpotqa</td><td>2</td><td>epr|spectral_entropy|hl_ratio|dominant_freq|stft_max_high_power</td><td>5</td><td>0.7727</td><td>[0.657,0.873]</td><td>4</td><td>14.7</td></tr>
+<tr><td>rag</td><td>Qwen-7B/hotpotqa</td><td>3</td><td>epr|trace_length|spectral_entropy|stft_max_high_power|hurst_exponent|cusum_shift_idx</td><td>6</td><td>0.7714</td><td>[0.627,0.894]</td><td>2</td><td>14.6</td></tr>
+<tr><td>rag</td><td>Qwen-7B/hotpotqa</td><td>4</td><td>spectral_entropy|high_band_power|stft_max_high_power|rpdi|cusum_max|cusum_shift_idx</td><td>6</td><td>0.7712</td><td>[0.640,0.888]</td><td>4</td><td>14.6</td></tr>
+<tr><td>rag</td><td>Qwen-7B/hotpotqa</td><td>5</td><td>epr|spectral_entropy|high_band_power|hl_ratio|stft_max_high_power</td><td>5</td><td>0.7708</td><td>[0.646,0.882]</td><td>4</td><td>14.5</td></tr>
+<tr><td>rag</td><td>Qwen-7B/hotpotqa</td><td>GOOD_5 (rank 30644, pctile 53.14)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.6253</td><td>[0.452,0.796]</td><td>2</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/hotpotqa</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.524</td><td>[0.355,0.679]</td><td>4</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/hotpotqa</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.6944</td><td>[0.534,0.835]</td><td>4</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/narrativeqa</td><td>1</td><td>spectral_entropy|hl_ratio|spectral_centroid|sw_var_peak|pe_mean|cusum_shift_idx</td><td>6</td><td>0.7239</td><td>[0.628,0.813]</td><td>5</td><td>7.4</td></tr>
+<tr><td>rag</td><td>Qwen-7B/narrativeqa</td><td>2</td><td>epr|spectral_entropy|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|pe_mean|cusum_shift_idx</td><td>8</td><td>0.7236</td><td>[0.628,0.815]</td><td>5</td><td>7.4</td></tr>
+<tr><td>rag</td><td>Qwen-7B/narrativeqa</td><td>3</td><td>epr|spectral_entropy|high_band_power|hl_ratio|dominant_freq|spectral_centroid|sw_var_peak|pe_mean|cusum_shift_idx</td><td>9</td><td>0.7234</td><td>[0.632,0.812]</td><td>5</td><td>7.4</td></tr>
+<tr><td>rag</td><td>Qwen-7B/narrativeqa</td><td>4</td><td>epr|spectral_entropy|high_band_power|spectral_centroid|sw_var_peak|pe_mean|cusum_shift_idx</td><td>7</td><td>0.7219</td><td>[0.630,0.813]</td><td>4</td><td>7.2</td></tr>
+<tr><td>rag</td><td>Qwen-7B/narrativeqa</td><td>5</td><td>epr|spectral_entropy|hl_ratio|dominant_freq|spectral_centroid|sw_var_peak|pe_mean|cusum_shift_idx</td><td>8</td><td>0.7212</td><td>[0.619,0.817]</td><td>5</td><td>7.2</td></tr>
+<tr><td>rag</td><td>Qwen-7B/narrativeqa</td><td>GOOD_5 (rank 10989, pctile 83.2)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.6496</td><td>[0.534,0.765]</td><td>2</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/narrativeqa</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.6032</td><td>[0.489,0.725]</td><td>3</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/narrativeqa</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.6285</td><td>[0.514,0.750]</td><td>7</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/natural-questions</td><td>1</td><td>low_band_power|high_band_power|stft_max_high_power|cusum_max</td><td>4</td><td>0.7599</td><td>[0.638,0.868]</td><td>2</td><td>14.6</td></tr>
+<tr><td>rag</td><td>Qwen-7B/natural-questions</td><td>2</td><td>trace_length|low_band_power|high_band_power|stft_max_high_power|cusum_max</td><td>5</td><td>0.752</td><td>[0.621,0.865]</td><td>2</td><td>13.8</td></tr>
+<tr><td>rag</td><td>Qwen-7B/natural-questions</td><td>3</td><td>stft_max_high_power|stft_spectral_entropy|rpdi|hurst_exponent|cusum_max|cusum_shift_idx</td><td>6</td><td>0.7411</td><td>[0.622,0.854]</td><td>2</td><td>12.7</td></tr>
+<tr><td>rag</td><td>Qwen-7B/natural-questions</td><td>4</td><td>trace_length|low_band_power|stft_max_high_power|rpdi|cusum_shift_idx</td><td>5</td><td>0.7391</td><td>[0.614,0.852]</td><td>3</td><td>12.5</td></tr>
+<tr><td>rag</td><td>Qwen-7B/natural-questions</td><td>5</td><td>epr|spectral_entropy|stft_max_high_power|stft_spectral_entropy|rpdi|cusum_shift_idx</td><td>6</td><td>0.7391</td><td>[0.616,0.855]</td><td>2</td><td>12.5</td></tr>
+<tr><td>rag</td><td>Qwen-7B/natural-questions</td><td>GOOD_5 (rank 30928, pctile 52.71)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.6136</td><td>[0.423,0.797]</td><td>2</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/natural-questions</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.5672</td><td>[0.395,0.753]</td><td>4</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/natural-questions</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.6423</td><td>[0.483,0.799]</td><td>6</td><td>-</td></tr>
+<tr><td>trace</td><td>gpqa_r1_7b_raw</td><td>1</td><td>epr|spectral_entropy|hl_ratio|stft_max_high_power|hurst_exponent</td><td>5</td><td>0.6088</td><td>[0.497,0.705]</td><td>2</td><td>14.4</td></tr>
+<tr><td>trace</td><td>gpqa_r1_7b_raw</td><td>2</td><td>epr|spectral_entropy|low_band_power|high_band_power|hurst_exponent</td><td>5</td><td>0.6018</td><td>[0.490,0.702]</td><td>2</td><td>13.7</td></tr>
+<tr><td>trace</td><td>gpqa_r1_7b_raw</td><td>3</td><td>epr|spectral_entropy|high_band_power|stft_max_high_power|hurst_exponent|cusum_max</td><td>6</td><td>0.5992</td><td>[0.493,0.701]</td><td>4</td><td>13.5</td></tr>
+<tr><td>trace</td><td>gpqa_r1_7b_raw</td><td>4</td><td>epr|spectral_entropy|spectral_centroid|hurst_exponent</td><td>4</td><td>0.5986</td><td>[0.492,0.698]</td><td>2</td><td>13.4</td></tr>
+<tr><td>trace</td><td>gpqa_r1_7b_raw</td><td>5</td><td>hl_ratio|stft_max_high_power|sw_var_peak|hurst_exponent|cusum_shift_idx</td><td>5</td><td>0.5949</td><td>[0.487,0.685]</td><td>3</td><td>13.0</td></tr>
+<tr><td>trace</td><td>gpqa_r1_7b_raw</td><td>GOOD_5 (rank 6876, pctile 78.94)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.4645</td><td>[0.360,0.579]</td><td>2</td><td>-</td></tr>
+<tr><td>trace</td><td>gpqa_r1_7b_raw</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.4564</td><td>[0.356,0.566]</td><td>3</td><td>-</td></tr>
+<tr><td>trace</td><td>gpqa_r1_7b_raw</td><td>ALL_H16</td><td>epr|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>15</td><td>0.4234</td><td>[0.327,0.532]</td><td>5</td><td>-</td></tr>
+<tr><td>trace</td><td>gsm8k_llama8b_raw</td><td>1</td><td>epr|trace_length|low_band_power|rpdi|pe_mean</td><td>5</td><td>0.7983</td><td>[0.707,0.881]</td><td>2</td><td>4.4</td></tr>
+<tr><td>trace</td><td>gsm8k_llama8b_raw</td><td>2</td><td>epr|trace_length|spectral_centroid|rpdi|pe_mean</td><td>5</td><td>0.7967</td><td>[0.710,0.874]</td><td>2</td><td>4.3</td></tr>
+<tr><td>trace</td><td>gsm8k_llama8b_raw</td><td>3</td><td>epr|trace_length|low_band_power|stft_max_high_power|rpdi|pe_mean</td><td>6</td><td>0.7961</td><td>[0.706,0.878]</td><td>2</td><td>4.2</td></tr>
+<tr><td>trace</td><td>gsm8k_llama8b_raw</td><td>4</td><td>epr|trace_length|low_band_power|rpdi|sw_var_peak|pe_mean</td><td>6</td><td>0.7953</td><td>[0.710,0.877]</td><td>2</td><td>4.1</td></tr>
+<tr><td>trace</td><td>gsm8k_llama8b_raw</td><td>5</td><td>epr|trace_length|low_band_power|high_band_power|rpdi|pe_mean</td><td>6</td><td>0.7948</td><td>[0.703,0.878]</td><td>2</td><td>4.1</td></tr>
+<tr><td>trace</td><td>gsm8k_llama8b_raw</td><td>GOOD_5 (rank 4337, pctile 93.37)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.7539</td><td>[0.659,0.843]</td><td>2</td><td>-</td></tr>
+<tr><td>trace</td><td>gsm8k_llama8b_raw</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.7703</td><td>[0.673,0.854]</td><td>4</td><td>-</td></tr>
+<tr><td>trace</td><td>gsm8k_llama8b_raw</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.7097</td><td>[0.609,0.803]</td><td>7</td><td>-</td></tr>
+<tr><td>trace</td><td>math500_qwen1.5b_raw</td><td>1</td><td>epr|trace_length|high_band_power|cusum_shift_idx</td><td>4</td><td>0.6939</td><td>[0.623,0.756]</td><td>3</td><td>3.8</td></tr>
+<tr><td>trace</td><td>math500_qwen1.5b_raw</td><td>2</td><td>epr|trace_length|high_band_power|stft_max_high_power</td><td>4</td><td>0.6924</td><td>[0.622,0.755]</td><td>3</td><td>3.6</td></tr>
+<tr><td>trace</td><td>math500_qwen1.5b_raw</td><td>3</td><td>epr|trace_length|high_band_power|stft_max_high_power|cusum_shift_idx</td><td>5</td><td>0.6919</td><td>[0.622,0.755]</td><td>4</td><td>3.6</td></tr>
+<tr><td>trace</td><td>math500_qwen1.5b_raw</td><td>4</td><td>epr|trace_length|high_band_power</td><td>3</td><td>0.6915</td><td>[0.621,0.756]</td><td>2</td><td>3.5</td></tr>
+<tr><td>trace</td><td>math500_qwen1.5b_raw</td><td>5</td><td>epr|trace_length|high_band_power|cusum_max</td><td>4</td><td>0.6913</td><td>[0.620,0.757]</td><td>2</td><td>3.5</td></tr>
+<tr><td>trace</td><td>math500_qwen1.5b_raw</td><td>GOOD_5 (rank 52780, pctile 19.3)</td><td>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</td><td>5</td><td>0.6563</td><td>[0.585,0.721]</td><td>2</td><td>-</td></tr>
+<tr><td>trace</td><td>math500_qwen1.5b_raw</td><td>STABLE_H9</td><td>epr|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|rpdi|pe_mean|cusum_max</td><td>9</td><td>0.6778</td><td>[0.602,0.741]</td><td>4</td><td>-</td></tr>
+<tr><td>trace</td><td>math500_qwen1.5b_raw</td><td>ALL_H16</td><td>epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|cusum_shift_idx</td><td>16</td><td>0.6695</td><td>[0.596,0.732]</td><td>6</td><td>-</td></tr>
+</table>
+
+<h2>3 — AUROC-vs-size landscape</h2>
+<div class="chartbox"><canvas id="land0"></canvas></div>
+<div class="chartbox"><canvas id="land1"></canvas></div>
+<div class="chartbox"><canvas id="land2"></canvas></div>
+<div class="chartbox"><canvas id="land3"></canvas></div>
+<div class="chartbox"><canvas id="land4"></canvas></div>
+<script>
+new Chart(document.getElementById('land0'), {type:'line',
+ data:{labels:[3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],datasets:[
+  {label:'max',data:[0.603, 0.6044, 0.6009, 0.5998, 0.5968, 0.5919, 0.5859, 0.5827, 0.5699, 0.5537, 0.5459, 0.5189, 0.4997, 0.4541],borderColor:'#e63946',pointRadius:2},
+  {label:'p75',data:[0.5224, 0.5169, 0.5132, 0.5101, 0.5078, 0.5069, 0.5065, 0.5049, 0.4863, 0.4842, 0.4817, 0.48, 0.4571, 0.4541],borderColor:'#457b9d',fill:'+1',backgroundColor:'rgba(69,123,157,.18)',pointRadius:0},
+  {label:'median',data:[0.4816, 0.4802, 0.4781, 0.4765, 0.4753, 0.4747, 0.4745, 0.4745, 0.4743, 0.4738, 0.473, 0.4726, 0.4519, 0.4541],borderColor:'#1d3557',pointRadius:2},
+  {label:'p25',data:[0.4537, 0.4543, 0.4545, 0.4555, 0.4587, 0.461, 0.4624, 0.4633, 0.464, 0.4651, 0.4662, 0.4674, 0.4455, 0.4541],borderColor:'#457b9d',pointRadius:0}]},
+ options:{plugins:{title:{display:true,text:'gpqa — AUROC vs subset size (mean over cells)'}},
+  scales:{y:{min:0.4,max:1.0},x:{title:{display:true,text:'subset size'}}},animation:false}});
+
+new Chart(document.getElementById('land1'), {type:'line',
+ data:{labels:[3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],datasets:[
+  {label:'max',data:[0.7595, 0.7624, 0.7646, 0.7655, 0.7624, 0.7615, 0.7613, 0.761, 0.7592, 0.7578, 0.7567, 0.7536, 0.7522, 0.7382],borderColor:'#e63946',pointRadius:2},
+  {label:'p75',data:[0.7156, 0.7245, 0.7299, 0.7329, 0.7349, 0.7368, 0.7386, 0.7402, 0.7416, 0.743, 0.7441, 0.7451, 0.7444, 0.7382],borderColor:'#457b9d',fill:'+1',backgroundColor:'rgba(69,123,157,.18)',pointRadius:0},
+  {label:'median',data:[0.6903, 0.703, 0.7113, 0.7164, 0.7196, 0.7227, 0.7259, 0.7294, 0.7317, 0.7349, 0.7368, 0.7393, 0.7396, 0.7382],borderColor:'#1d3557',pointRadius:2},
+  {label:'p25',data:[0.6391, 0.6654, 0.6781, 0.6887, 0.6974, 0.7035, 0.7086, 0.7133, 0.718, 0.7221, 0.7259, 0.7278, 0.7368, 0.7382],borderColor:'#457b9d',pointRadius:0}]},
+ options:{plugins:{title:{display:true,text:'gsm8k — AUROC vs subset size (mean over cells)'}},
+  scales:{y:{min:0.4,max:1.0},x:{title:{display:true,text:'subset size'}}},animation:false}});
+
+new Chart(document.getElementById('land2'), {type:'line',
+ data:{labels:[3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],datasets:[
+  {label:'max',data:[0.8582, 0.8603, 0.8629, 0.863, 0.8597, 0.8582, 0.8577, 0.8554, 0.8526, 0.8481, 0.8445, 0.8402, 0.8039, 0.7832],borderColor:'#e63946',pointRadius:2},
+  {label:'p75',data:[0.8261, 0.8312, 0.8337, 0.835, 0.836, 0.8364, 0.8366, 0.837, 0.8373, 0.8378, 0.8372, 0.836, 0.7995, 0.7832],borderColor:'#457b9d',fill:'+1',backgroundColor:'rgba(69,123,157,.18)',pointRadius:0},
+  {label:'median',data:[0.8066, 0.8175, 0.8233, 0.826, 0.8273, 0.8282, 0.8289, 0.8296, 0.8301, 0.8308, 0.8319, 0.8315, 0.7973, 0.7832],borderColor:'#1d3557',pointRadius:2},
+  {label:'p25',data:[0.7691, 0.7969, 0.8072, 0.8139, 0.8166, 0.8185, 0.8201, 0.8217, 0.823, 0.8243, 0.8256, 0.8279, 0.7956, 0.7832],borderColor:'#457b9d',pointRadius:0}]},
+ options:{plugins:{title:{display:true,text:'math500 — AUROC vs subset size (mean over cells)'}},
+  scales:{y:{min:0.4,max:1.0},x:{title:{display:true,text:'subset size'}}},animation:false}});
+
+new Chart(document.getElementById('land3'), {type:'line',
+ data:{labels:[3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],datasets:[
+  {label:'max',data:[0.7956, 0.7955, 0.7944, 0.7869, 0.7787, 0.775, 0.7728, 0.7659, 0.7471, 0.7421, 0.7266, 0.7149, 0.6096, 0.5979],borderColor:'#e63946',pointRadius:2},
+  {label:'p75',data:[0.6953, 0.7028, 0.7039, 0.7076, 0.7088, 0.7106, 0.7119, 0.7129, 0.7136, 0.7102, 0.7124, 0.706, 0.6043, 0.5979],borderColor:'#457b9d',fill:'+1',backgroundColor:'rgba(69,123,157,.18)',pointRadius:0},
+  {label:'median',data:[0.6232, 0.6259, 0.638, 0.6474, 0.6615, 0.6688, 0.678, 0.6841, 0.689, 0.694, 0.6958, 0.7006, 0.5978, 0.5979],borderColor:'#1d3557',pointRadius:2},
+  {label:'p25',data:[0.5329, 0.5216, 0.5359, 0.5483, 0.5655, 0.5787, 0.6086, 0.6312, 0.6504, 0.6714, 0.6759, 0.689, 0.5881, 0.5979],borderColor:'#457b9d',pointRadius:0}]},
+ options:{plugins:{title:{display:true,text:'qa — AUROC vs subset size (mean over cells)'}},
+  scales:{y:{min:0.4,max:1.0},x:{title:{display:true,text:'subset size'}}},animation:false}});
+
+new Chart(document.getElementById('land4'), {type:'line',
+ data:{labels:[3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],datasets:[
+  {label:'max',data:[0.7211, 0.7258, 0.7279, 0.7222, 0.7188, 0.7091, 0.6968, 0.6864, 0.6727, 0.6576, 0.6304, 0.6066, 0.5937, 0.5682],borderColor:'#e63946',pointRadius:2},
+  {label:'p75',data:[0.6074, 0.6091, 0.6078, 0.6065, 0.6055, 0.6052, 0.6043, 0.6036, 0.6034, 0.6029, 0.602, 0.5933, 0.5854, 0.5682],borderColor:'#457b9d',fill:'+1',backgroundColor:'rgba(69,123,157,.18)',pointRadius:0},
+  {label:'median',data:[0.5613, 0.5652, 0.5689, 0.5718, 0.575, 0.578, 0.5805, 0.5826, 0.5847, 0.5866, 0.5884, 0.5866, 0.5804, 0.5682],borderColor:'#1d3557',pointRadius:2},
+  {label:'p25',data:[0.5109, 0.5152, 0.5232, 0.5306, 0.5376, 0.5434, 0.55, 0.5557, 0.5606, 0.5651, 0.5709, 0.576, 0.5733, 0.5682],borderColor:'#457b9d',pointRadius:0}]},
+ options:{plugins:{title:{display:true,text:'rag — AUROC vs subset size (mean over cells)'}},
+  scales:{y:{min:0.4,max:1.0},x:{title:{display:true,text:'subset size'}}},animation:false}});</script>
+
+<h2>4 — Feature marginal value (Bracha Q1)</h2>
+<p class="note">rate_top1pct = how often the feature appears in the top-1% subsets of a
+cell (symmetric enumeration makes rates directly comparable); marginal_lift =
+mean AUROC difference with-vs-without the feature at fixed subset size.</p>
+<table><tr><th>feature</th><th>mean_rate_top1pct</th><th>mean_marginal_lift</th><th>mean_single_auroc</th><th>n_cells</th></tr>
+<tr><td>epr</td><td>0.605</td><td>0.0139</td><td>0.629</td><td>32</td></tr>
+<tr><td>rpdi</td><td>0.555</td><td>-0.0036</td><td>0.553</td><td>29</td></tr>
+<tr><td>sw_var_peak</td><td>0.492</td><td>0.0193</td><td>0.618</td><td>32</td></tr>
+<tr><td>cusum_shift_idx</td><td>0.46</td><td>-0.0015</td><td>0.475</td><td>32</td></tr>
+<tr><td>stft_max_high_power</td><td>0.449</td><td>0.0096</td><td>0.541</td><td>24</td></tr>
+<tr><td>trace_length</td><td>0.449</td><td>-0.0004</td><td>0.384</td><td>28</td></tr>
+<tr><td>hl_ratio</td><td>0.422</td><td>-0.0016</td><td>0.436</td><td>32</td></tr>
+<tr><td>pe_mean</td><td>0.416</td><td>-0.0067</td><td>0.544</td><td>32</td></tr>
+<tr><td>spectral_entropy</td><td>0.412</td><td>0.0007</td><td>0.563</td><td>32</td></tr>
+<tr><td>hurst_exponent</td><td>0.407</td><td>-0.0094</td><td>0.437</td><td>32</td></tr>
+<tr><td>cusum_max</td><td>0.405</td><td>0.0164</td><td>0.63</td><td>32</td></tr>
+<tr><td>stft_spectral_entropy</td><td>0.402</td><td>0.001</td><td>0.487</td><td>24</td></tr>
+<tr><td>low_band_power</td><td>0.393</td><td>-0.0046</td><td>0.595</td><td>32</td></tr>
+<tr><td>high_band_power</td><td>0.367</td><td>-0.0078</td><td>0.475</td><td>32</td></tr>
+<tr><td>spectral_centroid</td><td>0.335</td><td>-0.0093</td><td>0.449</td><td>32</td></tr>
+<tr><td>dominant_freq</td><td>0.298</td><td>-0.0149</td><td>0.464</td><td>30</td></tr>
+</table>
+
+<h2>5 — Honest selection (LOCO + consensus)</h2>
+<p class="note">LOCO: subset chosen by macro AUROC over the OTHER cells, evaluated on the
+held-out cell — no test-cell information used in selection. Consensus subset:
+<b>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</b>.
+The oracle column is the label-peeking ceiling (best of the full enumeration on
+the same cell) — never cite it as method performance.</p>
+<table><tr><th>n_candidate_masks</th><th>consensus_subset</th><th>consensus_macro</th><th>loco_macro</th><th>good5_macro</th><th>oracle_macro_CEILING</th></tr>
+<tr><td>4017</td><td>['spectral_entropy', 'sw_var_peak', 'cusum_max', 'cusum_shift_idx']</td><td>0.6453</td><td>0.6295</td><td>0.636</td><td>0.7205</td></tr>
+</table>
+<table><tr><th>domain</th><th>cell</th><th>loco_auroc</th><th>loco_subset</th><th>good5</th><th>all16</th><th>consensus_auroc</th><th>oracle_best_LABEL_PEEKING_CEILING</th></tr>
+<tr><td>gpqa</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>0.5658</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.5525</td><td>0.5575</td><td>0.5658</td><td>0.5932</td></tr>
+<tr><td>gpqa</td><td>Llama-8B_T1.0</td><td>0.5129</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.5327</td><td>0.5459</td><td>0.5129</td><td>0.5594</td></tr>
+<tr><td>gpqa</td><td>Mistral-7B_T1.0</td><td>0.4111</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.4177</td><td>0.4416</td><td>0.4111</td><td>0.5757</td></tr>
+<tr><td>gpqa</td><td>Qwen-7B_T1.0</td><td>0.5716</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.5234</td><td>0.4359</td><td>0.5716</td><td>0.5879</td></tr>
+<tr><td>gpqa</td><td>Qwen2.5-72B-Instruct-AWQ_T1.0</td><td>0.5395</td><td>epr|spectral_entropy|high_band_power|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.5018</td><td>0.3931</td><td>0.6508</td><td>0.6566</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>0.7486</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.7563</td><td>0.7382</td><td>0.7486</td><td>0.7611</td></tr>
+<tr><td>math500</td><td>DeepSeek-R1-Distill-Llama-8B_T1.0</td><td>0.8288</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.8439</td><td>0.8268</td><td>0.8288</td><td>0.8538</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>0.9264</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.9444</td><td>0.9409</td><td>0.9264</td><td>0.956</td></tr>
+<tr><td>math500</td><td>Qwen2.5-Math-1.5B-Instruct_T1.0</td><td>0.8517</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.8667</td><td>0.8667</td><td>0.8517</td><td>0.8794</td></tr>
+<tr><td>math500</td><td>deepseek-math-7b-instruct_T1.0</td><td>0.6735</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.7157</td><td>0.6996</td><td>0.6735</td><td>0.7411</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_cot_traces_T1.0</td><td>0.608</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.6549</td><td>0.5746</td><td>0.608</td><td>0.6919</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_trivia_qa_traces_T1.0</td><td>0.88</td><td>epr|spectral_entropy|high_band_power|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.96</td><td>0.91</td><td>0.96</td><td>1.0</td></tr>
+<tr><td>qa</td><td>spectral_phase9_cache_webq_cot_traces_T1.0</td><td>0.638</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.6359</td><td>0.6212</td><td>0.638</td><td>0.6668</td></tr>
+<tr><td>rag</td><td>Llama-8B/2wikimultihopqa</td><td>0.5135</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.5946</td><td>0.5405</td><td>0.5135</td><td>0.6222</td></tr>
+<tr><td>rag</td><td>Llama-8B/hotpotqa</td><td>0.7548</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.7759</td><td>0.7306</td><td>0.7548</td><td>0.8809</td></tr>
+<tr><td>rag</td><td>Llama-8B/narrativeqa</td><td>0.528</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.5729</td><td>0.5343</td><td>0.528</td><td>0.6272</td></tr>
+<tr><td>rag</td><td>Llama-8B/natural-questions</td><td>0.5664</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.6338</td><td>0.6372</td><td>0.5664</td><td>0.7035</td></tr>
+<tr><td>rag</td><td>Mistral-24B/2wikimultihopqa</td><td>0.4979</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.4625</td><td>0.4229</td><td>0.4979</td><td>0.7417</td></tr>
+<tr><td>rag</td><td>Mistral-24B/hotpotqa</td><td>0.629</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.6052</td><td>0.631</td><td>0.629</td><td>0.7738</td></tr>
+<tr><td>rag</td><td>Mistral-24B/narrativeqa</td><td>0.6034</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.6158</td><td>0.5644</td><td>0.6034</td><td>0.6734</td></tr>
+<tr><td>rag</td><td>Mistral-24B/natural-questions</td><td>0.419</td><td>epr|spectral_entropy|hl_ratio|sw_var_peak|cusum_max</td><td>0.3746</td><td>0.4032</td><td>0.6857</td><td>0.6984</td></tr>
+<tr><td>rag</td><td>Qwen-72B/2wikimultihopqa</td><td>0.5409</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.5339</td><td>0.5072</td><td>0.5409</td><td>0.6379</td></tr>
+<tr><td>rag</td><td>Qwen-72B/hotpotqa</td><td>0.7361</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.7179</td><td>0.7598</td><td>0.7361</td><td>0.7695</td></tr>
+<tr><td>rag</td><td>Qwen-72B/narrativeqa</td><td>0.5857</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.6031</td><td>0.604</td><td>0.5857</td><td>0.6742</td></tr>
+<tr><td>rag</td><td>Qwen-72B/natural-questions</td><td>0.6089</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.6495</td><td>0.6553</td><td>0.6089</td><td>0.6922</td></tr>
+<tr><td>rag</td><td>Qwen-7B/2wikimultihopqa</td><td>0.5742</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.5108</td><td>0.5554</td><td>0.5742</td><td>0.7364</td></tr>
+<tr><td>rag</td><td>Qwen-7B/hotpotqa</td><td>0.6699</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.6253</td><td>0.6944</td><td>0.6699</td><td>0.7067</td></tr>
+<tr><td>rag</td><td>Qwen-7B/narrativeqa</td><td>0.6632</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.6496</td><td>0.6285</td><td>0.6632</td><td>0.7239</td></tr>
+<tr><td>rag</td><td>Qwen-7B/natural-questions</td><td>0.6097</td><td>spectral_entropy|sw_var_peak|cusum_max|cusum_shift_idx</td><td>0.6136</td><td>0.6423</td><td>0.6097</td><td>0.7095</td></tr>
+</table>
+
+<h2>6 — K-census</h2>
+<p class="note">K=2 cross-weights are structurally 0.50/0.50 (share below); adaptive
+weighting only exists for K&ge;3. K=1 = clustering-failure fallback.</p>
+<table><tr><th>k1_rate</th><th>k2_rate</th><th>k2_structural_0.5_share</th></tr>
+<tr><td>0.0</td><td>0.2071</td><td>0.0</td></tr>
+</table>
+<table><tr><th>size</th><th>K2</th><th>K3</th><th>K4</th><th>K5</th><th>K6</th><th>K7</th><th>K8</th></tr>
+<tr><td>3</td><td>15462</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>4</td><td>20579</td><td>27365</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>5</td><td>50000</td><td>29902</td><td>30039</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>6</td><td>73501</td><td>59874</td><td>40779</td><td>18753</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>7</td><td>69067</td><td>101252</td><td>57917</td><td>28730</td><td>7298</td><td>-</td><td>-</td></tr>
+<tr><td>8</td><td>44117</td><td>116037</td><td>80183</td><td>32526</td><td>11131</td><td>1720</td><td>-</td></tr>
+<tr><td>9</td><td>20596</td><td>91743</td><td>80880</td><td>38349</td><td>10470</td><td>2381</td><td>254</td></tr>
+<tr><td>10</td><td>7299</td><td>52060</td><td>60445</td><td>33079</td><td>10313</td><td>1954</td><td>301</td></tr>
+<tr><td>11</td><td>1867</td><td>21627</td><td>32712</td><td>21525</td><td>7810</td><td>1690</td><td>207</td></tr>
+<tr><td>12</td><td>299</td><td>6444</td><td>12701</td><td>10204</td><td>4583</td><td>1033</td><td>148</td></tr>
+<tr><td>13</td><td>32</td><td>1404</td><td>3412</td><td>3251</td><td>1962</td><td>464</td><td>102</td></tr>
+<tr><td>14</td><td>-</td><td>206</td><td>586</td><td>684</td><td>546</td><td>174</td><td>33</td></tr>
+<tr><td>15</td><td>-</td><td>17</td><td>67</td><td>88</td><td>76</td><td>33</td><td>11</td></tr>
+<tr><td>16</td><td>-</td><td>-</td><td>5</td><td>3</td><td>6</td><td>3</td><td>1</td></tr>
+</table>
+<h3>Co-clustering frequency (P(same group) when both features in a subset)</h3>
+<table class="heat"><tr><th></th><th title="epr">epr</th><th title="trace_length">trace_l</th><th title="spectral_entropy">spectra</th><th title="low_band_power">low_ban</th><th title="high_band_power">high_ba</th><th title="hl_ratio">hl_rati</th><th title="dominant_freq">dominan</th><th title="spectral_centroid">spectra</th><th title="stft_max_high_power">stft_ma</th><th title="stft_spectral_entropy">stft_sp</th><th title="rpdi">rpdi</th><th title="sw_var_peak">sw_var_</th><th title="pe_mean">pe_mean</th><th title="hurst_exponent">hurst_e</th><th title="cusum_max">cusum_m</th><th title="cusum_shift_idx">cusum_s</th></tr>
+<tr><th style="text-align:left">epr</th><td>-</td><td style="background:rgb(255,213,213)" title="epr|trace_length=0.16">0.16</td><td style="background:rgb(255,217,217)" title="epr|spectral_entropy=0.15">0.15</td><td style="background:rgb(255,238,238)" title="epr|low_band_power=0.07">0.07</td><td style="background:rgb(255,245,245)" title="epr|high_band_power=0.04">0.04</td><td style="background:rgb(255,242,242)" title="epr|hl_ratio=0.05">0.05</td><td style="background:rgb(255,241,241)" title="epr|dominant_freq=0.05">0.05</td><td style="background:rgb(255,244,244)" title="epr|spectral_centroid=0.04">0.04</td><td style="background:rgb(255,198,198)" title="epr|stft_max_high_power=0.22">0.22</td><td style="background:rgb(255,204,204)" title="epr|stft_spectral_entropy=0.20">0.20</td><td style="background:rgb(255,188,188)" title="epr|rpdi=0.26">0.26</td><td style="background:rgb(255,45,45)" title="epr|sw_var_peak=0.82">0.82</td><td style="background:rgb(255,94,94)" title="epr|pe_mean=0.63">0.63</td><td style="background:rgb(255,213,213)" title="epr|hurst_exponent=0.16">0.16</td><td style="background:rgb(255,164,164)" title="epr|cusum_max=0.36">0.36</td><td style="background:rgb(255,189,189)" title="epr|cusum_shift_idx=0.26">0.26</td></tr>
+<tr><th style="text-align:left">trace_length</th><td style="background:rgb(255,213,213)" title="trace_length|epr=0.16">0.16</td><td>-</td><td style="background:rgb(255,38,38)" title="trace_length|spectral_entropy=0.85">0.85</td><td style="background:rgb(255,225,225)" title="trace_length|low_band_power=0.11">0.11</td><td style="background:rgb(255,243,243)" title="trace_length|high_band_power=0.04">0.04</td><td style="background:rgb(255,234,234)" title="trace_length|hl_ratio=0.08">0.08</td><td style="background:rgb(255,224,224)" title="trace_length|dominant_freq=0.12">0.12</td><td style="background:rgb(255,244,244)" title="trace_length|spectral_centroid=0.04">0.04</td><td style="background:rgb(255,121,121)" title="trace_length|stft_max_high_power=0.52">0.52</td><td style="background:rgb(255,135,135)" title="trace_length|stft_spectral_entropy=0.47">0.47</td><td style="background:rgb(255,210,210)" title="trace_length|rpdi=0.18">0.18</td><td style="background:rgb(255,210,210)" title="trace_length|sw_var_peak=0.17">0.17</td><td style="background:rgb(255,226,226)" title="trace_length|pe_mean=0.11">0.11</td><td style="background:rgb(255,222,222)" title="trace_length|hurst_exponent=0.13">0.13</td><td style="background:rgb(255,93,93)" title="trace_length|cusum_max=0.63">0.63</td><td style="background:rgb(255,225,225)" title="trace_length|cusum_shift_idx=0.11">0.11</td></tr>
+<tr><th style="text-align:left">spectral_entropy</th><td style="background:rgb(255,217,217)" title="spectral_entropy|epr=0.15">0.15</td><td style="background:rgb(255,38,38)" title="spectral_entropy|trace_length=0.85">0.85</td><td>-</td><td style="background:rgb(255,215,215)" title="spectral_entropy|low_band_power=0.15">0.15</td><td style="background:rgb(255,233,233)" title="spectral_entropy|high_band_power=0.08">0.08</td><td style="background:rgb(255,225,225)" title="spectral_entropy|hl_ratio=0.11">0.11</td><td style="background:rgb(255,225,225)" title="spectral_entropy|dominant_freq=0.12">0.12</td><td style="background:rgb(255,228,228)" title="spectral_entropy|spectral_centroid=0.10">0.10</td><td style="background:rgb(255,122,122)" title="spectral_entropy|stft_max_high_power=0.52">0.52</td><td style="background:rgb(255,149,149)" title="spectral_entropy|stft_spectral_entropy=0.41">0.41</td><td style="background:rgb(255,207,207)" title="spectral_entropy|rpdi=0.19">0.19</td><td style="background:rgb(255,204,204)" title="spectral_entropy|sw_var_peak=0.20">0.20</td><td style="background:rgb(255,226,226)" title="spectral_entropy|pe_mean=0.11">0.11</td><td style="background:rgb(255,183,183)" title="spectral_entropy|hurst_exponent=0.28">0.28</td><td style="background:rgb(255,138,138)" title="spectral_entropy|cusum_max=0.46">0.46</td><td style="background:rgb(255,209,209)" title="spectral_entropy|cusum_shift_idx=0.18">0.18</td></tr>
+<tr><th style="text-align:left">low_band_power</th><td style="background:rgb(255,238,238)" title="low_band_power|epr=0.07">0.07</td><td style="background:rgb(255,225,225)" title="low_band_power|trace_length=0.11">0.11</td><td style="background:rgb(255,215,215)" title="low_band_power|spectral_entropy=0.15">0.15</td><td>-</td><td style="background:rgb(255,148,148)" title="low_band_power|high_band_power=0.42">0.42</td><td style="background:rgb(255,151,151)" title="low_band_power|hl_ratio=0.41">0.41</td><td style="background:rgb(255,135,135)" title="low_band_power|dominant_freq=0.47">0.47</td><td style="background:rgb(255,90,90)" title="low_band_power|spectral_centroid=0.64">0.64</td><td style="background:rgb(255,233,233)" title="low_band_power|stft_max_high_power=0.08">0.08</td><td style="background:rgb(255,186,186)" title="low_band_power|stft_spectral_entropy=0.27">0.27</td><td style="background:rgb(255,227,227)" title="low_band_power|rpdi=0.11">0.11</td><td style="background:rgb(255,227,227)" title="low_band_power|sw_var_peak=0.11">0.11</td><td style="background:rgb(255,230,230)" title="low_band_power|pe_mean=0.10">0.10</td><td style="background:rgb(255,92,92)" title="low_band_power|hurst_exponent=0.64">0.64</td><td style="background:rgb(255,175,175)" title="low_band_power|cusum_max=0.31">0.31</td><td style="background:rgb(255,222,222)" title="low_band_power|cusum_shift_idx=0.13">0.13</td></tr>
+<tr><th style="text-align:left">high_band_power</th><td style="background:rgb(255,245,245)" title="high_band_power|epr=0.04">0.04</td><td style="background:rgb(255,243,243)" title="high_band_power|trace_length=0.04">0.04</td><td style="background:rgb(255,233,233)" title="high_band_power|spectral_entropy=0.08">0.08</td><td style="background:rgb(255,148,148)" title="high_band_power|low_band_power=0.42">0.42</td><td>-</td><td style="background:rgb(255,96,96)" title="high_band_power|hl_ratio=0.62">0.62</td><td style="background:rgb(255,97,97)" title="high_band_power|dominant_freq=0.62">0.62</td><td style="background:rgb(255,37,37)" title="high_band_power|spectral_centroid=0.85">0.85</td><td style="background:rgb(255,197,197)" title="high_band_power|stft_max_high_power=0.23">0.23</td><td style="background:rgb(255,219,219)" title="high_band_power|stft_spectral_entropy=0.14">0.14</td><td style="background:rgb(255,232,232)" title="high_band_power|rpdi=0.09">0.09</td><td style="background:rgb(255,230,230)" title="high_band_power|sw_var_peak=0.10">0.10</td><td style="background:rgb(255,238,238)" title="high_band_power|pe_mean=0.06">0.06</td><td style="background:rgb(255,210,210)" title="high_band_power|hurst_exponent=0.18">0.18</td><td style="background:rgb(255,237,237)" title="high_band_power|cusum_max=0.07">0.07</td><td style="background:rgb(255,233,233)" title="high_band_power|cusum_shift_idx=0.08">0.08</td></tr>
+<tr><th style="text-align:left">hl_ratio</th><td style="background:rgb(255,242,242)" title="hl_ratio|epr=0.05">0.05</td><td style="background:rgb(255,234,234)" title="hl_ratio|trace_length=0.08">0.08</td><td style="background:rgb(255,225,225)" title="hl_ratio|spectral_entropy=0.11">0.11</td><td style="background:rgb(255,151,151)" title="hl_ratio|low_band_power=0.41">0.41</td><td style="background:rgb(255,96,96)" title="hl_ratio|high_band_power=0.62">0.62</td><td>-</td><td style="background:rgb(255,158,158)" title="hl_ratio|dominant_freq=0.38">0.38</td><td style="background:rgb(255,128,128)" title="hl_ratio|spectral_centroid=0.50">0.50</td><td style="background:rgb(255,216,216)" title="hl_ratio|stft_max_high_power=0.15">0.15</td><td style="background:rgb(255,221,221)" title="hl_ratio|stft_spectral_entropy=0.13">0.13</td><td style="background:rgb(255,210,210)" title="hl_ratio|rpdi=0.17">0.17</td><td style="background:rgb(255,226,226)" title="hl_ratio|sw_var_peak=0.11">0.11</td><td style="background:rgb(255,214,214)" title="hl_ratio|pe_mean=0.16">0.16</td><td style="background:rgb(255,208,208)" title="hl_ratio|hurst_exponent=0.18">0.18</td><td style="background:rgb(255,228,228)" title="hl_ratio|cusum_max=0.11">0.11</td><td style="background:rgb(255,206,206)" title="hl_ratio|cusum_shift_idx=0.19">0.19</td></tr>
+<tr><th style="text-align:left">dominant_freq</th><td style="background:rgb(255,241,241)" title="dominant_freq|epr=0.05">0.05</td><td style="background:rgb(255,224,224)" title="dominant_freq|trace_length=0.12">0.12</td><td style="background:rgb(255,225,225)" title="dominant_freq|spectral_entropy=0.12">0.12</td><td style="background:rgb(255,135,135)" title="dominant_freq|low_band_power=0.47">0.47</td><td style="background:rgb(255,97,97)" title="dominant_freq|high_band_power=0.62">0.62</td><td style="background:rgb(255,158,158)" title="dominant_freq|hl_ratio=0.38">0.38</td><td>-</td><td style="background:rgb(255,84,84)" title="dominant_freq|spectral_centroid=0.67">0.67</td><td style="background:rgb(255,238,238)" title="dominant_freq|stft_max_high_power=0.06">0.06</td><td style="background:rgb(255,231,231)" title="dominant_freq|stft_spectral_entropy=0.09">0.09</td><td style="background:rgb(255,233,233)" title="dominant_freq|rpdi=0.08">0.08</td><td style="background:rgb(255,232,232)" title="dominant_freq|sw_var_peak=0.09">0.09</td><td style="background:rgb(255,227,227)" title="dominant_freq|pe_mean=0.11">0.11</td><td style="background:rgb(255,155,155)" title="dominant_freq|hurst_exponent=0.39">0.39</td><td style="background:rgb(255,197,197)" title="dominant_freq|cusum_max=0.22">0.22</td><td style="background:rgb(255,229,229)" title="dominant_freq|cusum_shift_idx=0.10">0.10</td></tr>
+<tr><th style="text-align:left">spectral_centroi</th><td style="background:rgb(255,244,244)" title="spectral_centroid|epr=0.04">0.04</td><td style="background:rgb(255,244,244)" title="spectral_centroid|trace_length=0.04">0.04</td><td style="background:rgb(255,228,228)" title="spectral_centroid|spectral_entropy=0.10">0.10</td><td style="background:rgb(255,90,90)" title="spectral_centroid|low_band_power=0.64">0.64</td><td style="background:rgb(255,37,37)" title="spectral_centroid|high_band_power=0.85">0.85</td><td style="background:rgb(255,128,128)" title="spectral_centroid|hl_ratio=0.50">0.50</td><td style="background:rgb(255,84,84)" title="spectral_centroid|dominant_freq=0.67">0.67</td><td>-</td><td style="background:rgb(255,229,229)" title="spectral_centroid|stft_max_high_power=0.10">0.10</td><td style="background:rgb(255,198,198)" title="spectral_centroid|stft_spectral_entropy=0.22">0.22</td><td style="background:rgb(255,233,233)" title="spectral_centroid|rpdi=0.08">0.08</td><td style="background:rgb(255,234,234)" title="spectral_centroid|sw_var_peak=0.08">0.08</td><td style="background:rgb(255,237,237)" title="spectral_centroid|pe_mean=0.07">0.07</td><td style="background:rgb(255,183,183)" title="spectral_centroid|hurst_exponent=0.28">0.28</td><td style="background:rgb(255,223,223)" title="spectral_centroid|cusum_max=0.12">0.12</td><td style="background:rgb(255,229,229)" title="spectral_centroid|cusum_shift_idx=0.10">0.10</td></tr>
+<tr><th style="text-align:left">stft_max_high_po</th><td style="background:rgb(255,198,198)" title="stft_max_high_power|epr=0.22">0.22</td><td style="background:rgb(255,121,121)" title="stft_max_high_power|trace_length=0.52">0.52</td><td style="background:rgb(255,122,122)" title="stft_max_high_power|spectral_entropy=0.52">0.52</td><td style="background:rgb(255,233,233)" title="stft_max_high_power|low_band_power=0.08">0.08</td><td style="background:rgb(255,197,197)" title="stft_max_high_power|high_band_power=0.23">0.23</td><td style="background:rgb(255,216,216)" title="stft_max_high_power|hl_ratio=0.15">0.15</td><td style="background:rgb(255,238,238)" title="stft_max_high_power|dominant_freq=0.06">0.06</td><td style="background:rgb(255,229,229)" title="stft_max_high_power|spectral_centroid=0.10">0.10</td><td>-</td><td style="background:rgb(255,93,93)" title="stft_max_high_power|stft_spectral_entropy=0.63">0.63</td><td style="background:rgb(255,206,206)" title="stft_max_high_power|rpdi=0.19">0.19</td><td style="background:rgb(255,209,209)" title="stft_max_high_power|sw_var_peak=0.18">0.18</td><td style="background:rgb(255,216,216)" title="stft_max_high_power|pe_mean=0.15">0.15</td><td style="background:rgb(255,235,235)" title="stft_max_high_power|hurst_exponent=0.08">0.08</td><td style="background:rgb(255,199,199)" title="stft_max_high_power|cusum_max=0.22">0.22</td><td style="background:rgb(255,211,211)" title="stft_max_high_power|cusum_shift_idx=0.17">0.17</td></tr>
+<tr><th style="text-align:left">stft_spectral_en</th><td style="background:rgb(255,204,204)" title="stft_spectral_entropy|epr=0.20">0.20</td><td style="background:rgb(255,135,135)" title="stft_spectral_entropy|trace_length=0.47">0.47</td><td style="background:rgb(255,149,149)" title="stft_spectral_entropy|spectral_entropy=0.41">0.41</td><td style="background:rgb(255,186,186)" title="stft_spectral_entropy|low_band_power=0.27">0.27</td><td style="background:rgb(255,219,219)" title="stft_spectral_entropy|high_band_power=0.14">0.14</td><td style="background:rgb(255,221,221)" title="stft_spectral_entropy|hl_ratio=0.13">0.13</td><td style="background:rgb(255,231,231)" title="stft_spectral_entropy|dominant_freq=0.09">0.09</td><td style="background:rgb(255,198,198)" title="stft_spectral_entropy|spectral_centroid=0.22">0.22</td><td style="background:rgb(255,93,93)" title="stft_spectral_entropy|stft_max_high_power=0.63">0.63</td><td>-</td><td style="background:rgb(255,205,205)" title="stft_spectral_entropy|rpdi=0.20">0.20</td><td style="background:rgb(255,223,223)" title="stft_spectral_entropy|sw_var_peak=0.13">0.13</td><td style="background:rgb(255,198,198)" title="stft_spectral_entropy|pe_mean=0.22">0.22</td><td style="background:rgb(255,178,178)" title="stft_spectral_entropy|hurst_exponent=0.30">0.30</td><td style="background:rgb(255,200,200)" title="stft_spectral_entropy|cusum_max=0.22">0.22</td><td style="background:rgb(255,201,201)" title="stft_spectral_entropy|cusum_shift_idx=0.21">0.21</td></tr>
+<tr><th style="text-align:left">rpdi</th><td style="background:rgb(255,188,188)" title="rpdi|epr=0.26">0.26</td><td style="background:rgb(255,210,210)" title="rpdi|trace_length=0.18">0.18</td><td style="background:rgb(255,207,207)" title="rpdi|spectral_entropy=0.19">0.19</td><td style="background:rgb(255,227,227)" title="rpdi|low_band_power=0.11">0.11</td><td style="background:rgb(255,232,232)" title="rpdi|high_band_power=0.09">0.09</td><td style="background:rgb(255,210,210)" title="rpdi|hl_ratio=0.17">0.17</td><td style="background:rgb(255,233,233)" title="rpdi|dominant_freq=0.08">0.08</td><td style="background:rgb(255,233,233)" title="rpdi|spectral_centroid=0.08">0.08</td><td style="background:rgb(255,206,206)" title="rpdi|stft_max_high_power=0.19">0.19</td><td style="background:rgb(255,205,205)" title="rpdi|stft_spectral_entropy=0.20">0.20</td><td>-</td><td style="background:rgb(255,200,200)" title="rpdi|sw_var_peak=0.22">0.22</td><td style="background:rgb(255,198,198)" title="rpdi|pe_mean=0.22">0.22</td><td style="background:rgb(255,213,213)" title="rpdi|hurst_exponent=0.16">0.16</td><td style="background:rgb(255,197,197)" title="rpdi|cusum_max=0.22">0.22</td><td style="background:rgb(255,93,93)" title="rpdi|cusum_shift_idx=0.63">0.63</td></tr>
+<tr><th style="text-align:left">sw_var_peak</th><td style="background:rgb(255,45,45)" title="sw_var_peak|epr=0.82">0.82</td><td style="background:rgb(255,210,210)" title="sw_var_peak|trace_length=0.17">0.17</td><td style="background:rgb(255,204,204)" title="sw_var_peak|spectral_entropy=0.20">0.20</td><td style="background:rgb(255,227,227)" title="sw_var_peak|low_band_power=0.11">0.11</td><td style="background:rgb(255,230,230)" title="sw_var_peak|high_band_power=0.10">0.10</td><td style="background:rgb(255,226,226)" title="sw_var_peak|hl_ratio=0.11">0.11</td><td style="background:rgb(255,232,232)" title="sw_var_peak|dominant_freq=0.09">0.09</td><td style="background:rgb(255,234,234)" title="sw_var_peak|spectral_centroid=0.08">0.08</td><td style="background:rgb(255,209,209)" title="sw_var_peak|stft_max_high_power=0.18">0.18</td><td style="background:rgb(255,223,223)" title="sw_var_peak|stft_spectral_entropy=0.13">0.13</td><td style="background:rgb(255,200,200)" title="sw_var_peak|rpdi=0.22">0.22</td><td>-</td><td style="background:rgb(255,128,128)" title="sw_var_peak|pe_mean=0.50">0.50</td><td style="background:rgb(255,210,210)" title="sw_var_peak|hurst_exponent=0.17">0.17</td><td style="background:rgb(255,146,146)" title="sw_var_peak|cusum_max=0.42">0.42</td><td style="background:rgb(255,213,213)" title="sw_var_peak|cusum_shift_idx=0.16">0.16</td></tr>
+<tr><th style="text-align:left">pe_mean</th><td style="background:rgb(255,94,94)" title="pe_mean|epr=0.63">0.63</td><td style="background:rgb(255,226,226)" title="pe_mean|trace_length=0.11">0.11</td><td style="background:rgb(255,226,226)" title="pe_mean|spectral_entropy=0.11">0.11</td><td style="background:rgb(255,230,230)" title="pe_mean|low_band_power=0.10">0.10</td><td style="background:rgb(255,238,238)" title="pe_mean|high_band_power=0.06">0.06</td><td style="background:rgb(255,214,214)" title="pe_mean|hl_ratio=0.16">0.16</td><td style="background:rgb(255,227,227)" title="pe_mean|dominant_freq=0.11">0.11</td><td style="background:rgb(255,237,237)" title="pe_mean|spectral_centroid=0.07">0.07</td><td style="background:rgb(255,216,216)" title="pe_mean|stft_max_high_power=0.15">0.15</td><td style="background:rgb(255,198,198)" title="pe_mean|stft_spectral_entropy=0.22">0.22</td><td style="background:rgb(255,198,198)" title="pe_mean|rpdi=0.22">0.22</td><td style="background:rgb(255,128,128)" title="pe_mean|sw_var_peak=0.50">0.50</td><td>-</td><td style="background:rgb(255,190,190)" title="pe_mean|hurst_exponent=0.25">0.25</td><td style="background:rgb(255,207,207)" title="pe_mean|cusum_max=0.19">0.19</td><td style="background:rgb(255,190,190)" title="pe_mean|cusum_shift_idx=0.25">0.25</td></tr>
+<tr><th style="text-align:left">hurst_exponent</th><td style="background:rgb(255,213,213)" title="hurst_exponent|epr=0.16">0.16</td><td style="background:rgb(255,222,222)" title="hurst_exponent|trace_length=0.13">0.13</td><td style="background:rgb(255,183,183)" title="hurst_exponent|spectral_entropy=0.28">0.28</td><td style="background:rgb(255,92,92)" title="hurst_exponent|low_band_power=0.64">0.64</td><td style="background:rgb(255,210,210)" title="hurst_exponent|high_band_power=0.18">0.18</td><td style="background:rgb(255,208,208)" title="hurst_exponent|hl_ratio=0.18">0.18</td><td style="background:rgb(255,155,155)" title="hurst_exponent|dominant_freq=0.39">0.39</td><td style="background:rgb(255,183,183)" title="hurst_exponent|spectral_centroid=0.28">0.28</td><td style="background:rgb(255,235,235)" title="hurst_exponent|stft_max_high_power=0.08">0.08</td><td style="background:rgb(255,178,178)" title="hurst_exponent|stft_spectral_entropy=0.30">0.30</td><td style="background:rgb(255,213,213)" title="hurst_exponent|rpdi=0.16">0.16</td><td style="background:rgb(255,210,210)" title="hurst_exponent|sw_var_peak=0.17">0.17</td><td style="background:rgb(255,190,190)" title="hurst_exponent|pe_mean=0.25">0.25</td><td>-</td><td style="background:rgb(255,163,163)" title="hurst_exponent|cusum_max=0.36">0.36</td><td style="background:rgb(255,200,200)" title="hurst_exponent|cusum_shift_idx=0.22">0.22</td></tr>
+<tr><th style="text-align:left">cusum_max</th><td style="background:rgb(255,164,164)" title="cusum_max|epr=0.36">0.36</td><td style="background:rgb(255,93,93)" title="cusum_max|trace_length=0.63">0.63</td><td style="background:rgb(255,138,138)" title="cusum_max|spectral_entropy=0.46">0.46</td><td style="background:rgb(255,175,175)" title="cusum_max|low_band_power=0.31">0.31</td><td style="background:rgb(255,237,237)" title="cusum_max|high_band_power=0.07">0.07</td><td style="background:rgb(255,228,228)" title="cusum_max|hl_ratio=0.11">0.11</td><td style="background:rgb(255,197,197)" title="cusum_max|dominant_freq=0.22">0.22</td><td style="background:rgb(255,223,223)" title="cusum_max|spectral_centroid=0.12">0.12</td><td style="background:rgb(255,199,199)" title="cusum_max|stft_max_high_power=0.22">0.22</td><td style="background:rgb(255,200,200)" title="cusum_max|stft_spectral_entropy=0.22">0.22</td><td style="background:rgb(255,197,197)" title="cusum_max|rpdi=0.22">0.22</td><td style="background:rgb(255,146,146)" title="cusum_max|sw_var_peak=0.42">0.42</td><td style="background:rgb(255,207,207)" title="cusum_max|pe_mean=0.19">0.19</td><td style="background:rgb(255,163,163)" title="cusum_max|hurst_exponent=0.36">0.36</td><td>-</td><td style="background:rgb(255,225,225)" title="cusum_max|cusum_shift_idx=0.12">0.12</td></tr>
+<tr><th style="text-align:left">cusum_shift_idx</th><td style="background:rgb(255,189,189)" title="cusum_shift_idx|epr=0.26">0.26</td><td style="background:rgb(255,225,225)" title="cusum_shift_idx|trace_length=0.11">0.11</td><td style="background:rgb(255,209,209)" title="cusum_shift_idx|spectral_entropy=0.18">0.18</td><td style="background:rgb(255,222,222)" title="cusum_shift_idx|low_band_power=0.13">0.13</td><td style="background:rgb(255,233,233)" title="cusum_shift_idx|high_band_power=0.08">0.08</td><td style="background:rgb(255,206,206)" title="cusum_shift_idx|hl_ratio=0.19">0.19</td><td style="background:rgb(255,229,229)" title="cusum_shift_idx|dominant_freq=0.10">0.10</td><td style="background:rgb(255,229,229)" title="cusum_shift_idx|spectral_centroid=0.10">0.10</td><td style="background:rgb(255,211,211)" title="cusum_shift_idx|stft_max_high_power=0.17">0.17</td><td style="background:rgb(255,201,201)" title="cusum_shift_idx|stft_spectral_entropy=0.21">0.21</td><td style="background:rgb(255,93,93)" title="cusum_shift_idx|rpdi=0.63">0.63</td><td style="background:rgb(255,213,213)" title="cusum_shift_idx|sw_var_peak=0.16">0.16</td><td style="background:rgb(255,190,190)" title="cusum_shift_idx|pe_mean=0.25">0.25</td><td style="background:rgb(255,200,200)" title="cusum_shift_idx|hurst_exponent=0.22">0.22</td><td style="background:rgb(255,225,225)" title="cusum_shift_idx|cusum_max=0.12">0.12</td><td>-</td></tr>
+</table>
+
+<h2>7 — rho &ge; 0.75 validation</h2>
+<table><tr><th>rho_bin</th><th>mean_auroc</th><th>p95_auroc</th><th>n_cells</th></tr>
+<tr><td>&lt;0.25</td><td>0.5563</td><td>0.6616</td><td>31</td></tr>
+<tr><td>0.25-0.5</td><td>0.5855</td><td>0.6778</td><td>32</td></tr>
+<tr><td>0.5-0.75</td><td>0.5922</td><td>0.6722</td><td>32</td></tr>
+<tr><td>&gt;=0.75</td><td>0.5998</td><td>0.6656</td><td>32</td></tr>
+</table>
+<table><tr><th>share_with_violating_pair_top1pct</th><th>share_with_violating_pair_all</th></tr>
+<tr><td>0.6893</td><td>0.804</td></tr>
+</table>
+
+<h2>8 — Weight stability across cells</h2>
+<table><tr><th>subset</th><th>feature</th><th>n_cells</th><th>mean_abs_w</th><th>cv_abs_w</th><th>sign_agreement</th><th>mean_pairwise_ARI</th></tr>
+<tr><td>GOOD_5</td><td>epr</td><td>29</td><td>0.1976</td><td>0.193</td><td>1.0</td><td>0.299</td></tr>
+<tr><td>GOOD_5</td><td>spectral_entropy</td><td>29</td><td>0.2143</td><td>0.249</td><td>0.828</td><td>0.299</td></tr>
+<tr><td>GOOD_5</td><td>low_band_power</td><td>29</td><td>0.1978</td><td>0.128</td><td>0.897</td><td>0.299</td></tr>
+<tr><td>GOOD_5</td><td>sw_var_peak</td><td>29</td><td>0.186</td><td>0.266</td><td>1.0</td><td>0.299</td></tr>
+<tr><td>GOOD_5</td><td>cusum_max</td><td>29</td><td>0.2043</td><td>0.08</td><td>0.897</td><td>0.299</td></tr>
+<tr><td>consensus</td><td>spectral_entropy</td><td>29</td><td>0.2736</td><td>0.223</td><td>0.897</td><td>-0.009</td></tr>
+<tr><td>consensus</td><td>sw_var_peak</td><td>29</td><td>0.2483</td><td>0.247</td><td>1.0</td><td>-0.009</td></tr>
+<tr><td>consensus</td><td>cusum_max</td><td>29</td><td>0.2732</td><td>0.187</td><td>0.931</td><td>-0.009</td></tr>
+<tr><td>consensus</td><td>cusum_shift_idx</td><td>29</td><td>0.2049</td><td>0.362</td><td>0.862</td><td>-0.009</td></tr>
+</table>
+
+
+<h2>9 — Method grid on sampled subsets (GOOD_5 + top-20 + 200 random per cell)</h2>
+<table><tr><th>domain</th><th>n</th><th>lsml_minus_flat_pp</th><th>winrate_vs_flat</th><th>lsml_minus_avg_pp</th><th>winrate_vs_avg</th><th>lsml_minus_upcr_pp</th><th>winrate_vs_upcr</th></tr>
+<tr><td>gpqa</td><td>1105</td><td>0.51</td><td>0.561</td><td>0.48</td><td>0.513</td><td>0.81</td><td>0.531</td></tr>
+<tr><td>gsm8k</td><td>221</td><td>-0.34</td><td>0.357</td><td>13.52</td><td>0.986</td><td>7.55</td><td>0.896</td></tr>
+<tr><td>math500</td><td>882</td><td>-0.08</td><td>0.448</td><td>33.32</td><td>0.984</td><td>3.62</td><td>0.717</td></tr>
+<tr><td>qa</td><td>663</td><td>1.53</td><td>0.563</td><td>8.56</td><td>0.46</td><td>2.22</td><td>0.62</td></tr>
+<tr><td>rag</td><td>3534</td><td>1.01</td><td>0.558</td><td>-0.2</td><td>0.514</td><td>1.05</td><td>0.536</td></tr>
+</table>
+
+<h2>10 — Extra-view augmentation (pivot signals as fusable views)</h2>
+<p class="note">Each extra view v is added to reference + top-20 subsets: delta =
+AUROC(S&cup;{v}) - AUROC(S), paired bootstrap. sig_pos / sig_neg count bases whose
+95% CI excludes 0. Anomaly views are transductive but label-free; temporal views
+exist only on the raw-trace cells.</p>
+<table><tr><th>view</th><th>n_cells</th><th>n_bases</th><th>mean_delta_pp</th><th>sig_pos</th><th>sig_neg</th><th>mean_view_auroc</th><th>mean_rho_vs_anchor</th></tr>
+<tr><td>rpdi</td><td>3</td><td>69</td><td>1.32</td><td>10</td><td>0</td><td>0.656</td><td>0.404</td></tr>
+<tr><td>sw_var_peak_spilled</td><td>1</td><td>23</td><td>-0.01</td><td>1</td><td>0</td><td>0.273</td><td>0.596</td></tr>
+<tr><td>epr_spilled</td><td>1</td><td>23</td><td>-0.45</td><td>1</td><td>0</td><td>0.278</td><td>0.959</td></tr>
+<tr><td>dominant_freq</td><td>2</td><td>46</td><td>-0.51</td><td>0</td><td>1</td><td>0.288</td><td>0.441</td></tr>
+<tr><td>bocpd_ecp_spilled</td><td>1</td><td>23</td><td>-1.03</td><td>1</td><td>0</td><td>0.726</td><td>0.11</td></tr>
+<tr><td>cusum_max_spilled</td><td>1</td><td>23</td><td>-1.59</td><td>0</td><td>0</td><td>0.314</td><td>0.294</td></tr>
+<tr><td>trace_length</td><td>3</td><td>69</td><td>-1.94</td><td>1</td><td>2</td><td>0.238</td><td>0.582</td></tr>
+<tr><td>ar_mse_innov</td><td>3</td><td>69</td><td>-3.11</td><td>2</td><td>0</td><td>0.628</td><td>0.92</td></tr>
+<tr><td>kalman_nis</td><td>3</td><td>69</td><td>-3.68</td><td>2</td><td>0</td><td>0.616</td><td>0.897</td></tr>
+<tr><td>kalman_mse_innov</td><td>3</td><td>69</td><td>-3.69</td><td>1</td><td>0</td><td>0.614</td><td>0.895</td></tr>
+<tr><td>hmm_occupancy</td><td>3</td><td>69</td><td>-3.79</td><td>1</td><td>1</td><td>0.623</td><td>0.947</td></tr>
+<tr><td>hmm_tail_occupancy</td><td>3</td><td>69</td><td>-4.12</td><td>5</td><td>1</td><td>0.607</td><td>0.564</td></tr>
+<tr><td>bocpd_ecp</td><td>3</td><td>69</td><td>-4.79</td><td>0</td><td>0</td><td>0.597</td><td>0.268</td></tr>
+<tr><td>ar_innov_ratio</td><td>3</td><td>69</td><td>-4.83</td><td>1</td><td>0</td><td>0.371</td><td>0.414</td></tr>
+<tr><td>prae</td><td>25</td><td>575</td><td>-4.91</td><td>5</td><td>120</td><td>0.479</td><td>0.244</td></tr>
+<tr><td>ae</td><td>25</td><td>575</td><td>-5.4</td><td>3</td><td>135</td><td>0.502</td><td>0.227</td></tr>
+<tr><td>stft_max_high_power</td><td>8</td><td>184</td><td>-5.63</td><td>0</td><td>62</td><td>0.526</td><td>0.275</td></tr>
+<tr><td>gmm_nll</td><td>29</td><td>667</td><td>-5.71</td><td>4</td><td>142</td><td>0.491</td><td>0.271</td></tr>
+<tr><td>stft_spectral_entropy</td><td>8</td><td>184</td><td>-6.13</td><td>1</td><td>68</td><td>0.519</td><td>0.273</td></tr>
+<tr><td>hmm_switch_rate</td><td>3</td><td>69</td><td>-6.87</td><td>0</td><td>15</td><td>0.437</td><td>0.671</td></tr>
+<tr><td>mahalanobis</td><td>29</td><td>667</td><td>-7.09</td><td>3</td><td>167</td><td>0.453</td><td>0.192</td></tr>
+<tr><td>bocpd_mean_p0</td><td>3</td><td>69</td><td>-7.36</td><td>0</td><td>7</td><td>0.507</td><td>0.369</td></tr>
+<tr><td>iforest</td><td>29</td><td>667</td><td>-7.36</td><td>3</td><td>176</td><td>0.448</td><td>0.189</td></tr>
+<tr><td>kde_nll</td><td>29</td><td>667</td><td>-7.91</td><td>11</td><td>179</td><td>0.484</td><td>0.324</td></tr>
+</table>
+
+<h2>11 — Competitor comparison</h2>
+<div class="caveat"><b>Caveat:</b> Phase 12 Corrected (Step 152) numbers - pending reconciliation: MATH-500 L-SML sign flip unresolved, RAG SelfCheckGPT below chance, SE drops vs old Phase 12 (NLI truncation suspect). Shown for orientation only, not citable yet.</div>
+<p class="note">LSML_LOCO is the honest selection number (section 5). LR16 oracle is
+SUPERVISED (balanced 5-fold CV; SUPERVISED_ORACLE_CORRECTION.md). LapEigvals is a
+literature number. Empty = not available for that cell.</p>
+<table><tr><th>domain</th><th>cell</th><th>LSML_LOCO</th><th>LSML_GOOD5</th><th>epr_single</th><th>avg_pool</th><th>LR16_oracle_supervised</th><th>LapEigvals_lit</th><th>SCGPT-official K=5</th><th>D-SE K=10</th><th>LW-SE K=10</th><th>SC K=10</th><th>VC</th><th>SCGPT-hard K=5</th><th>D-SE-lite (local recompute, experimental)</th></tr>
+<tr><td>gpqa</td><td>Qwen-7B_T1.0</td><td>0.5716</td><td>0.5234299516908212</td><td>0.4531400966183575</td><td>0.4592995169082126</td><td>0.5791</td><td>-</td><td>0.512</td><td>0.504</td><td>0.501</td><td>0.504</td><td>0.428</td><td>-</td><td>-</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>0.7486</td><td>0.7563292898133867</td><td>0.7074735642725138</td><td>0.6075979268275737</td><td>0.7488</td><td>0.72</td><td>0.701</td><td>0.614</td><td>0.613</td><td>0.608</td><td>-</td><td>0.601</td><td>-</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>0.9264</td><td>0.9443893298059964</td><td>0.9662147266313933</td><td>0.18524029982363316</td><td>0.9347</td><td>-</td><td>0.593</td><td>0.63</td><td>0.625</td><td>0.863</td><td>-</td><td>0.549</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/2wikimultihopqa</td><td>0.5742</td><td>0.5108346709470305</td><td>0.5714285714285714</td><td>0.6420545746388444</td><td>0.6861</td><td>-</td><td>0.306</td><td>-</td><td>-</td><td>-</td><td>-</td><td>0.354</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/hotpotqa</td><td>0.6699</td><td>0.6253246753246754</td><td>0.5829004329004329</td><td>0.645021645021645</td><td>0.6678</td><td>-</td><td>0.243</td><td>-</td><td>-</td><td>-</td><td>-</td><td>0.317</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/narrativeqa</td><td>0.6632</td><td>0.6495859213250518</td><td>0.6761559696342304</td><td>0.6670117322291236</td><td>0.567</td><td>-</td><td>0.442</td><td>-</td><td>-</td><td>-</td><td>-</td><td>0.477</td><td>-</td></tr>
+<tr><td>rag</td><td>Qwen-7B/natural-questions</td><td>0.6097</td><td>0.6136363636363636</td><td>0.5849802371541503</td><td>0.7124505928853755</td><td>0.7224</td><td>-</td><td>0.322</td><td>-</td><td>-</td><td>-</td><td>-</td><td>0.393</td><td>-</td></tr>
+<tr><td>gsm8k</td><td>Llama-8B_T1.0</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>0.7772</td></tr>
+<tr><td>math500</td><td>Qwen-Math-7B_T1.0</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>0.4371</td></tr>
+</table>
+
+<h2>12 — Honesty appendix</h2>
+<ul class="note">
+<li><b>Label-free:</b> feature signs (fixed offline), z-scoring, L-SML fusion,
+anchor orientation, LOCO/consensus subset selection, anomaly/temporal views.</li>
+<li><b>Label-dependent (reporting only):</b> AUROC evaluation, in-cell top-K tables,
+the oracle ceiling column, feature marginal-value stats.</li>
+<li><b>Multiple comparisons:</b> the in-cell maximum over 65399
+subsets is an extreme order statistic; on small cells its inflation is large.
+Only LOCO/consensus numbers are selection-honest.</li>
+<li>No max(auc, 1-auc) anywhere; global-sign flips are recorded per subset
+('flipped') and GOOD_5 anchor-vs-table1 disagreements are listed in section 1.</li>
+</ul>
+<p class="note">Generated by scripts/subset_sweep_report.py.</p>
+</body></html>

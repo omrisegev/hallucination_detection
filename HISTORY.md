@@ -4906,3 +4906,28 @@ Deliverable: `results/Streaming_Pilot_Explainer.html` — self-contained explain
 - Drive (not in repo): `cache/phase12_corrected/` — p1/p2/p3 inference + SE caches + RAG×4 + `phase12_corrected_results.pkl`
 
 ---
+
+### Step 153 — Run exhaustive L-SML subset sweep (sizes 3–16, 1.66M fits): GOOD_5 validated by LOCO, pivot views ruled out as fusion views, ρ-filter refuted
+
+**What**: Built `spectral_utils/subset_sweep.py` + drivers and enumerated EVERY feature subset (sizes 3..pool, 65,399 for a full 16-feature pool) per cell with continuous L-SML, recording per subset: label-free anchor-oriented raw AUROC (never max(auc,1−auc)), detected K + packed group assignment, effective per-feature weights (exact linear composition: within-group × cross-group, verified `V@w == fused`), and within-subset |Spearman| stats. Ran on the 29 cached cells + 3 self-contained raw-trace cells (Stage 0 re-extracts H-16 from the traces so temporal views are sample-aligned). Stage 0 also computed 6 anomaly-scorer views (Mahalanobis/GMM/KDE/IForest/AE/PRAE) for all cells and BOCPD/HMM/AR/Kalman views — including `bocpd_ecp_spilled` = BOCPD on the ΔE(n) logprob trace — for the trace cells; an augmentation stage then tested every extra view as S∪{v} against references + each cell's top-20 with paired bootstrap. Chunked + resumable, 7 workers, ~14 h wall; survived one mid-run session kill with zero loss.
+
+**Why**: Omri asked for the full landscape over all subset combinations (AUROC, correlations, clustering, weights) plus two review questions: can BOCPD be computed on the logprobs (yes — ΔE(n) is the logprob trace), and can the Track-A/B pivot signals be fused as extra views. Also settles Bracha Q1 (feature selection) at landscape level, the Step-151 bocpd_ecp 17th-view thread, and provides the honest (LOCO) subset-selection number the Step-142 lesson demands.
+
+**Result**:
+1. **GOOD_5 validated — honest selection cannot beat it.** LOCO macro 0.6295 vs GOOD_5 0.636; the in-cell oracle ceiling is 0.7205, i.e. **+8.5pp of pure selection bias** when picking best-of-65k by test AUROC. All-cell consensus best = {spectral_entropy, sw_var_peak, cusum_max, cusum_shift_idx} at 0.6453 (+0.9pp — in-sample upper bound); most consistent tweak = low_band_power→hl_ratio inside GOOD_5 (beats it on 18/29 cells, +0.4pp macro). Feature selection remains a minor tweak (confirms Step 134).
+2. **Every pivot signal hurts as an added fusion view** (augmentation stage, paired bootstrap): anomaly views −4.9 to −7.9pp mean Δ with 120–179 significantly-negative bases each (vs ≤11 significant positives); bocpd_ecp −4.8pp; HMM/AR/Kalman −3.1 to −7.4pp. `bocpd_ecp_spilled` is a decent standalone signal on the gsm8k trace cell (0.726) but −1.0pp when fused. **Closes Step 151: no 17th view.**
+3. **The ρ≥0.75 subset filter is empirically refuted for continuous L-SML**: subsets containing a violating pair average HIGHER AUROC (0.600) than low-ρ subsets (0.556) — the clustering absorbs dependence (consistent with Steps 135/141); the old `best_nadler_on` correlation filter is unnecessary in the continuous pipeline.
+4. **Feature marginal value (Bracha Q1), size-controlled**: sw_var_peak +1.9pp, cusum_max +1.6pp, epr +1.4pp, stft_max_high_power +1.0pp; negative: dominant_freq −1.5pp, hurst_exponent −0.9pp, spectral_centroid −0.9pp. cusum_shift_idx appears in 8 of the top-10 consensus subsets (shift *timing* matters, not just magnitude).
+5. **Integrity**: 1.66M fits, 0 NaN AUROCs, 0 K=1 clustering fallbacks; GOOD_5 sweep rows match `method_comparison_table1.csv` CONT on 29/29 cells to ≤0.001 — 3 cells match as 1−x (Mistral-7B/GPQA, Mistral-24B/2wiki, Mistral-24B/NQ), where the label-free epr anchor picks the opposite global sign: the honest, now-quantified cost of not peeking at labels (anchor misorientation rate 3/29).
+6. ⚠ **Spilled-feature signs look inverted on the gsm8k/Llama-8B trace cell** (oriented AUROC 0.27–0.31 for epr_spilled/sw_var_peak_spilled/cusum_max_spilled) — Step-131 signs were validated on Qwen-1.5B; sign instability across models. Recheck when Step 132 runs.
+
+Deliverables: `results/Subset_Sweep_Report.html` (12 sections incl. honesty appendix + competitor table carrying the Phase-12-Corrected caveats verbatim), `results/subset_sweep/` CSVs + per-cell manifests + `augmentation.pkl`. The 52 MB of per-subset npz artifacts stay untracked (fully reproducible via the resumable driver).
+
+**Files changed**:
+- `spectral_utils/subset_sweep.py` — sweep module (enumeration, eval, weights, chunked runner, augmentation) — committed a4a921d
+- `scripts/build_derived_views.py` — Stage 0: anomaly views (29 cells) + trace cells incl. bocpd_ecp_spilled — a4a921d
+- `scripts/run_subset_sweep.py`, `scripts/subset_sweep_report.py` — CLI driver + report — a4a921d
+- `results/Subset_Sweep_Report.html`, `results/subset_sweep/*.csv`, `*.manifest.json`, `augmentation.pkl` — results
+- `local_cache/derived_views.pkl`, `local_cache/trace_cells.pkl` — Stage-0 caches (untracked)
+
+---

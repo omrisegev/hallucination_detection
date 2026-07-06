@@ -1,0 +1,709 @@
+{
+ "domain": "rag",
+ "cell_key": "Qwen-72B/hotpotqa",
+ "pool": [
+  "epr",
+  "trace_length",
+  "spectral_entropy",
+  "low_band_power",
+  "high_band_power",
+  "hl_ratio",
+  "dominant_freq",
+  "spectral_centroid",
+  "stft_max_high_power",
+  "stft_spectral_entropy",
+  "sw_var_peak",
+  "pe_mean",
+  "hurst_exponent",
+  "cusum_max",
+  "cusum_shift_idx"
+ ],
+ "pool_bits": [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  11,
+  12,
+  13,
+  14,
+  15
+ ],
+ "n": 169,
+ "n_pos": 26,
+ "anchor_name": "epr",
+ "dropped": {
+  "rpdi": "saturated"
+ },
+ "n_imputed": 0,
+ "method": "residual",
+ "min_size": 3,
+ "max_size": 15,
+ "chunk_size": 2000,
+ "n_subsets": 32647,
+ "n_chunks": 17,
+ "trace_derived": false,
+ "versions": {
+  "python": "3.13.3",
+  "numpy": "2.2.4",
+  "scipy": "1.17.1",
+  "sklearn": "1.8.0",
+  "git_rev": "a4a921d"
+ },
+ "created": "2026-07-05 19:58:27",
+ "sweep_seconds": 606.6,
+ "reference": {
+  "GOOD_5": {
+   "available": [
+    "epr",
+    "low_band_power",
+    "sw_var_peak",
+    "cusum_max",
+    "spectral_entropy"
+   ],
+   "auroc": 0.7178590640129101,
+   "ci": [
+    0.6045883261301033,
+    0.8154183738322986
+   ],
+   "K": 2,
+   "flipped": false,
+   "mask": 18445,
+   "sweep_row": 2153,
+   "sweep_auroc": 0.7178590893745422
+  },
+  "STABLE_H9": {
+   "available": [
+    "epr",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "spectral_centroid",
+    "sw_var_peak",
+    "pe_mean",
+    "cusum_max"
+   ],
+   "auroc": 0.6915008068854224,
+   "ci": [
+    0.5735027917161752,
+    0.7939913793103448
+   ],
+   "K": 3,
+   "flipped": false,
+   "mask": 22713,
+   "sweep_row": 18985,
+   "sweep_auroc": 0.6915007829666138
+  },
+  "ALL_H16": {
+   "available": [
+    "epr",
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "dominant_freq",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "stft_spectral_entropy",
+    "sw_var_peak",
+    "pe_mean",
+    "hurst_exponent",
+    "cusum_max",
+    "cusum_shift_idx"
+   ],
+   "auroc": 0.7598171059709521,
+   "ci": [
+    0.6600024937046403,
+    0.8455960705516327
+   ],
+   "K": 4,
+   "flipped": false,
+   "mask": 64511,
+   "sweep_row": 32646,
+   "sweep_auroc": 0.7598171234130859
+  },
+  "_singles": {
+   "epr": 0.6525013448090371,
+   "trace_length": 0.27716514254975794,
+   "spectral_entropy": 0.7283485745024206,
+   "low_band_power": 0.6853146853146853,
+   "high_band_power": 0.5817643894566972,
+   "hl_ratio": 0.522189349112426,
+   "dominant_freq": 0.4940828402366864,
+   "spectral_centroid": 0.48655190962883266,
+   "stft_max_high_power": 0.7331898870360409,
+   "stft_spectral_entropy": 0.6888111888111887,
+   "sw_var_peak": 0.6663528778913395,
+   "pe_mean": 0.6268154922001076,
+   "hurst_exponent": 0.44540075309306076,
+   "cusum_max": 0.7302313071543841,
+   "cusum_shift_idx": 0.3496503496503497
+  },
+  "_anchor_single": {
+   "name": "epr",
+   "auroc": 0.6525013448090371,
+   "ci": [
+    0.5145920190589637,
+    0.7724384911368106
+   ]
+  },
+  "_avg_pool": {
+   "auroc": 0.6837009144701452,
+   "ci": [
+    0.556470824721837,
+    0.7897662653578177
+   ]
+  }
+ },
+ "top20": [
+  {
+   "rank": 1,
+   "mask": 57662,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "stft_max_high_power",
+    "hurst_exponent",
+    "cusum_max",
+    "cusum_shift_idx"
+   ],
+   "size": 9,
+   "auroc": 0.7988165680473372,
+   "ci": [
+    0.7241356825499612,
+    0.8671681997125305
+   ],
+   "K": 3,
+   "flipped": true,
+   "delta_vs_good5": [
+    0.08095750403442714,
+    -0.0009577818933139152,
+    0.17998567194187942
+   ]
+  },
+  {
+   "rank": 2,
+   "mask": 61726,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "stft_max_high_power",
+    "pe_mean",
+    "hurst_exponent",
+    "cusum_max",
+    "cusum_shift_idx"
+   ],
+   "size": 9,
+   "auroc": 0.7945131791285638,
+   "ci": [
+    0.7069391311183314,
+    0.865250610581806
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07665411511565368,
+    -0.0008502806063412437,
+    0.16355525924088318
+   ]
+  },
+  {
+   "rank": 3,
+   "mask": 10558,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "stft_max_high_power",
+    "sw_var_peak",
+    "hurst_exponent"
+   ],
+   "size": 8,
+   "auroc": 0.7926304464766003,
+   "ci": [
+    0.7134939078284174,
+    0.8620508569316804
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.0747713824636902,
+    -9.197939661406172e-06,
+    0.16410210112133178
+   ]
+  },
+  {
+   "rank": 4,
+   "mask": 24854,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "high_band_power",
+    "stft_max_high_power",
+    "hurst_exponent",
+    "cusum_max"
+   ],
+   "size": 6,
+   "auroc": 0.7918235610543303,
+   "ci": [
+    0.7127870702350083,
+    0.8594728377881637
+   ],
+   "K": 2,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07396449704142016,
+    -0.022459387566278816,
+    0.178796607419305
+   ]
+  },
+  {
+   "rank": 5,
+   "mask": 10526,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "stft_max_high_power",
+    "sw_var_peak",
+    "hurst_exponent"
+   ],
+   "size": 7,
+   "auroc": 0.7918235610543303,
+   "ci": [
+    0.7126553385481957,
+    0.8599367261411334
+   ],
+   "K": 2,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07396449704142016,
+    -0.004371411260253518,
+    0.16636992055038402
+   ]
+  },
+  {
+   "rank": 6,
+   "mask": 10622,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "dominant_freq",
+    "stft_max_high_power",
+    "sw_var_peak",
+    "hurst_exponent"
+   ],
+   "size": 9,
+   "auroc": 0.7912856374394837,
+   "ci": [
+    0.7138847643546594,
+    0.8599292861186029
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07342657342657355,
+    -0.0005087574235914018,
+    0.1640987368566743
+   ]
+  },
+  {
+   "rank": 7,
+   "mask": 29118,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "pe_mean",
+    "hurst_exponent",
+    "cusum_max"
+   ],
+   "size": 10,
+   "auroc": 0.7912856374394837,
+   "ci": [
+    0.7038492298822173,
+    0.861682734204793
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07342657342657355,
+    -0.006008951604494877,
+    0.16004807509324812
+   ]
+  },
+  {
+   "rank": 8,
+   "mask": 57790,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "hurst_exponent",
+    "cusum_max",
+    "cusum_shift_idx"
+   ],
+   "size": 10,
+   "auroc": 0.7910166756320602,
+   "ci": [
+    0.7133318886861314,
+    0.8596847839664297
+   ],
+   "K": 3,
+   "flipped": true,
+   "delta_vs_good5": [
+    0.07315761161915013,
+    -0.017999798555721033,
+    0.17556077203964532
+   ]
+  },
+  {
+   "rank": 9,
+   "mask": 16786,
+   "feats": [
+    "trace_length",
+    "high_band_power",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "cusum_max"
+   ],
+   "size": 5,
+   "auroc": 0.7907477138246369,
+   "ci": [
+    0.6943216777126934,
+    0.8695586289589018
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07288864981172682,
+    -0.010101087848932627,
+    0.16434829515815436
+   ]
+  },
+  {
+   "rank": 10,
+   "mask": 24862,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "stft_max_high_power",
+    "hurst_exponent",
+    "cusum_max"
+   ],
+   "size": 7,
+   "auroc": 0.7904787520172136,
+   "ci": [
+    0.7108417701979071,
+    0.8633490805946792
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07261968800430352,
+    -0.011032253160584113,
+    0.17111111644796242
+   ]
+  },
+  {
+   "rank": 11,
+   "mask": 25086,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "dominant_freq",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "hurst_exponent",
+    "cusum_max"
+   ],
+   "size": 10,
+   "auroc": 0.7896718665949436,
+   "ci": [
+    0.7159954407294833,
+    0.8617810893950058
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07181280258203349,
+    -0.014451754385965054,
+    0.17213587196680047
+   ]
+  },
+  {
+   "rank": 12,
+   "mask": 8479,
+   "feats": [
+    "epr",
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "stft_max_high_power",
+    "hurst_exponent"
+   ],
+   "size": 7,
+   "auroc": 0.7894029047875202,
+   "ci": [
+    0.6998349174045768,
+    0.8615170459989373
+   ],
+   "K": 2,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07154384077461007,
+    -0.000516255695693898,
+    0.156639766589308
+   ]
+  },
+  {
+   "rank": 13,
+   "mask": 25006,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "hl_ratio",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "hurst_exponent",
+    "cusum_max"
+   ],
+   "size": 8,
+   "auroc": 0.7891339429800968,
+   "ci": [
+    0.7117496273251669,
+    0.8594893782947236
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07127487896718665,
+    -0.01307613908872898,
+    0.17252710644852806
+   ]
+  },
+  {
+   "rank": 14,
+   "mask": 27054,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "hl_ratio",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "sw_var_peak",
+    "hurst_exponent",
+    "cusum_max"
+   ],
+   "size": 9,
+   "auroc": 0.7888649811726736,
+   "ci": [
+    0.7091098977080366,
+    0.85637870215335
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07100591715976345,
+    0.00047098792187319266,
+    0.15630482447176383
+   ]
+  },
+  {
+   "rank": 15,
+   "mask": 8511,
+   "feats": [
+    "epr",
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "stft_max_high_power",
+    "hurst_exponent"
+   ],
+   "size": 8,
+   "auroc": 0.7888649811726735,
+   "ci": [
+    0.7015952840995413,
+    0.8612356566335228
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07100591715976334,
+    -0.0016669664268585515,
+    0.15661585796501426
+   ]
+  },
+  {
+   "rank": 16,
+   "mask": 12606,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "stft_max_high_power",
+    "pe_mean",
+    "hurst_exponent"
+   ],
+   "size": 8,
+   "auroc": 0.7888649811726735,
+   "ci": [
+    0.6989905428741029,
+    0.8591954022988506
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07100591715976334,
+    -0.009145308752997612,
+    0.16342935640796777
+   ]
+  },
+  {
+   "rank": 17,
+   "mask": 24886,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "high_band_power",
+    "hl_ratio",
+    "stft_max_high_power",
+    "hurst_exponent",
+    "cusum_max"
+   ],
+   "size": 7,
+   "auroc": 0.7885960193652501,
+   "ci": [
+    0.708606200931792,
+    0.8605682423688817
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07073695535234004,
+    -0.029218201754386077,
+    0.18169710547461812
+   ]
+  },
+  {
+   "rank": 18,
+   "mask": 16814,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "hl_ratio",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "cusum_max"
+   ],
+   "size": 7,
+   "auroc": 0.7885960193652501,
+   "ci": [
+    0.6952922915745061,
+    0.8662037037037037
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07073695535234004,
+    -0.008342181467181438,
+    0.1550541488673471
+   ]
+  },
+  {
+   "rank": 19,
+   "mask": 57854,
+   "feats": [
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "dominant_freq",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "hurst_exponent",
+    "cusum_max",
+    "cusum_shift_idx"
+   ],
+   "size": 11,
+   "auroc": 0.7883270575578268,
+   "ci": [
+    0.7072125065206051,
+    0.8606719001698337
+   ],
+   "K": 3,
+   "flipped": false,
+   "delta_vs_good5": [
+    0.07046799354491673,
+    -0.014534426645875332,
+    0.16799624568520694
+   ]
+  },
+  {
+   "rank": 20,
+   "mask": 8455,
+   "feats": [
+    "epr",
+    "trace_length",
+    "spectral_entropy",
+    "stft_max_high_power",
+    "hurst_exponent"
+   ],
+   "size": 5,
+   "auroc": 0.7883270575578267,
+   "ci": [
+    0.703306680463062,
+    0.860932750488351
+   ],
+   "K": 2,
+   "flipped": true,
+   "delta_vs_good5": [
+    0.07046799354491662,
+    -0.009867610837438518,
+    0.1623734936234936
+   ]
+  }
+ ],
+ "good5_rank": 22085,
+ "good5_pctile": 32.35
+}
