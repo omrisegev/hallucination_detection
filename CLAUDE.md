@@ -19,6 +19,10 @@ Shortcut: type `/session-start` to run the full initialization sequence automati
 | `/nadler-audit` | Before/after Nadler fusion — validates all 4 invariants (views, z-score, ρ, sign) |
 | `/colab-setup` | New notebook — generates Cell 1 + Cell 2 + gptqmodel stub for the requested model |
 | `/notebook-audit` | Before committing a notebook — spawns sub-agent to check for 8 common bugs |
+| `/aircc-setup` | One-time AIRCC cluster bootstrap (first login is manual; config/dirs/prefetch automated) |
+| `/aircc-submit` | Submit an inference job to the AIRCC cluster (sync code + sbatch + job id) |
+| `/aircc-status` | Check AIRCC job state — squeue/sacct + log tail + verdict |
+| `/aircc-fetch` | Fetch finished cluster results + validate the rich-save pkl schema |
 
 ---
 
@@ -196,6 +200,25 @@ def ensure_flat_dir(repo_id, token=None):
 ```
 
 `load_model()` still auto-detects AWQ from the path string (looks for "awq"/"gptq"), so passing `/content/drive/MyDrive/hf_cache_flat/Qwen__Qwen2.5-72B-Instruct-AWQ` works the same as the Hub ID.
+
+---
+
+## AIRCC cluster (Slurm GPU allocation)
+
+Second GPU backend besides Colab: national AIRCC cluster, 8× NVIDIA B200, ssh alias `aircc`
+(omrisegev1@slurm-login.iucc.ac.il, **TAU VPN required** — a hanging ssh means VPN is down).
+Full reference: [cluster/README.md](cluster/README.md). Rules that must never be violated:
+
+- Work only under `/shared/cycle2_tau_averbuch_prj/omrisegev1`, never `$HOME`.
+- B200 = sm_100: jobs run inside `nvcr.io/nvidia/pytorch:25.01-py3` (rootless Docker).
+  Never pip-upgrade torch inside it; `cluster/requirements.txt` deliberately omits torch/numpy.
+- Preemption: SIGTERM → 15 min → SIGKILL → auto-requeue. Every long job must use the
+  `cluster/run_inference.py` checkpoint/resume pattern (atomic saves via `save_cache_atomic`,
+  SIGTERM trap, idempotent restart).
+- Code reaches the cluster via `bash cluster/sync_code.sh` (tar-over-ssh) — never rely on
+  Claude pushing to GitHub (credentials are not available in-session).
+- Workflow: `/aircc-setup` (once) → `/aircc-submit` → `/aircc-status` → `/aircc-fetch`.
+  For repeated polling, spawn the `cluster-ops` sub-agent instead of looping in the main context.
 
 ---
 
