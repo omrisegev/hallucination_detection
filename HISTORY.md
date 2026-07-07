@@ -5008,3 +5008,22 @@ CLAUDE.md updated: 4 new slash-command rows, new "AIRCC cluster" section (shared
 - `PROGRESS.md`, `Research_Directions.md` — Item 3 dataset priority correction + plan status
 
 ---
+
+### Step 156 — Complete AIRCC verification ladder (Stages 2–4): Pyxis fix, AIME24 run, fetch + validate
+
+**What**: Closed the four remaining stages of the cluster verification ladder opened in Step 154. (1) Owner-queue smoke test (Stage 2): discovered rootless Docker daemon had been failed on all power-gpu nodes since 2026-07-01 due to cgroup v2 BPF permission block. Rewrote all three sbatch files from rootless-Docker to Pyxis (`#SBATCH --container-image/mounts/workdir/name`); job 97306 on power-gpu/owner_880 → SMOKE TEST PASS. (2) AIME24 demo (Stage 3): submitted job 97309 (30 problems × K=8 × T∈{0.2,0.6,1.0}, Qwen2.5-Math-1.5B-Instruct); completed in 2h 52m on gpu-node-05. (3) Fetch + validate (Stage 4): scp'd three pkls, validated 7-key schema and `top_k_logprobs` shapes, ran `extract_all_features` on 5 traces. (4) Updated all four cluster skills with live learnings: Pyxis named-container cache is per-node (~8 min first time), `SLURM_CONF_SERVER=controller-primary` required in `~/.bashrc`, HF_TOKEN needed for gated models, known capture gaps flagged in `/aircc-fetch`.
+
+**Why**: Step 154 left Stages 2–4 pending. The Docker→Pyxis switch was forced by the daemon failure; the skill updates reflect the actual runtime behavior learned from live jobs rather than the planned Docker workflow.
+
+**Result**: Per-candidate AIME24 accuracy: T=0.2 2.9%, T=0.6 2.5%, T=1.0 1.7% — honest numbers with the fixed `_extract_boxed` grader (vs buggy 7.7% in old Phase 13 run). All 3 pkls VALID: 30 problems × 8/8 candidates, `int32[T,50]` / `float32[T,50]` shape confirmed, 20/20 features finite across all tested traces. Full end-to-end pipeline confirmed: code sync → Pyxis sbatch → B200 inference → checkpoint → scp fetch → `extract_all_features`.
+
+**Files changed**:
+- `cluster/submit_inference.sbatch` — Docker → Pyxis; added `export HF_HOME`
+- `cluster/smoke_test.sbatch` — Docker → Pyxis
+- `cluster/prefetch.sbatch` — Docker → Pyxis
+- `.claude/commands/aircc-setup.md` — Pyxis per-node cache note, `SLURM_CONF_SERVER` step, HF_TOKEN gated-model guidance, Docker tombstone
+- `.claude/commands/aircc-submit.md` — Pyxis import warning, HF_TOKEN flag, DATASET scope note
+- `.claude/commands/aircc-status.md` — updated FAILED causes, added STARTING state for Pyxis import
+- `.claude/commands/aircc-fetch.md` — added known capture gaps section
+
+---
