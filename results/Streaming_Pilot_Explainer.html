@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Streaming Pivot Pilot — What, Who Did It Before, and What's Next (Step 148)</title>
+<style>
+  body { font-family: Georgia, 'Times New Roman', serif; max-width: 920px; margin: 2em auto; padding: 0 1.5em; color: #222; line-height: 1.55; }
+  h1 { font-size: 1.7em; border-bottom: 3px solid #2c5f8a; padding-bottom: 0.3em; }
+  h2 { font-size: 1.3em; color: #2c5f8a; margin-top: 1.8em; border-bottom: 1px solid #ccc; padding-bottom: 0.2em; }
+  h3 { font-size: 1.05em; color: #444; }
+  table { border-collapse: collapse; margin: 1em 0; font-size: 0.92em; font-family: 'Segoe UI', Arial, sans-serif; }
+  th, td { border: 1px solid #bbb; padding: 5px 10px; text-align: left; }
+  th { background: #eef3f8; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pass { color: #1a7a2e; font-weight: bold; }
+  .fail { color: #b02318; font-weight: bold; }
+  .warn { color: #a56000; font-weight: bold; }
+  .box { background: #f6f8fa; border-left: 4px solid #2c5f8a; padding: 0.7em 1em; margin: 1em 0; }
+  .caveat { background: #fdf6ec; border-left: 4px solid #a56000; padding: 0.7em 1em; margin: 1em 0; font-size: 0.95em; }
+  code { background: #f0f0f0; padding: 1px 4px; font-size: 0.9em; }
+  img { max-width: 100%; border: 1px solid #ddd; margin: 0.5em 0; }
+  .small { font-size: 0.88em; color: #555; }
+</style>
+</head>
+<body>
+
+<h1>Streaming Pivot Pilot (Step 148)</h1>
+<p class="small">July 2, 2026 · local CPU run, no GPU · code: <code>spectral_utils/streaming_utils.py</code>, <code>scripts/streaming_pilot.py</code>, <code>scripts/streaming_pilot_report.py</code></p>
+
+<h2>1. What were we trying to do</h2>
+<p>
+Everything we have built so far answers a <em>post-hoc</em> question: given a <strong>finished</strong> answer,
+was it hallucinated? The pilot tests a pivot to the <em>streaming</em> question:
+</p>
+<div class="box">
+<strong>Can we detect that a long chain-of-thought is going wrong <em>while it is still being generated</em> —
+unsupervised, from the per-token entropy trace H(n) alone?</strong>
+</div>
+<p>
+Concretely: compute our 16 spectral/time-domain features on growing <em>prefixes</em> of the entropy trace
+(first 16, 32, 64, … tokens), fuse them per budget with continuous L-SML, and measure how detection AUROC
+evolves as the trace unfolds. If most of the full-trace signal is already present early, the method becomes an
+<em>online monitor</em>: flag (or abort) doomed traces mid-generation and save the wasted tokens.
+</p>
+<p>Four experiments, with pass/fail gates fixed <em>before</em> running:</p>
+<table>
+<tr><th>Exp</th><th>Question</th></tr>
+<tr><td>E1</td><td>Prefix-AUROC curves — how early does detection quality saturate?</td></tr>
+<tr><td>E2</td><td>Baseline shoot-out at every budget — does the spectral suite beat a naive windowed statistic?</td></tr>
+<tr><td>E3</td><td>True online monitor — causal per-token risk score, threshold sweep → detection rate vs false alarms, and how early the flag fires</td></tr>
+<tr><td>E4</td><td>Early-exit value — at 5%/10% false alarms, what fraction of wasted tokens does aborting save?</td></tr>
+</table>
+<p>
+Labels (final-answer correctness) are used <strong>only for evaluation</strong>, never inside the method.
+</p>
+
+<h2>2. The paper that does this before us</h2>
+<table>
+<tr><th>Title</th><td><em>Streaming Hallucination Detection in Long Chain-of-Thought Reasoning</em></td></tr>
+<tr><th>Reference</th><td>arXiv:2601.02170</td></tr>
+<tr><th>Published</th><td><strong>arXiv preprint, January 2026</strong>. No peer-reviewed venue as of July 2026 — preprint only.</td></tr>
+<tr><th>Authors / groups</th><td>Lu, Pan, Li, Nan, Zhuang, Zhao, Sun, Wang, Liu — Beijing University of Posts and Telecommunications, Nanyang Technological University, Southwest Jiaotong University, Renmin University of China</td></tr>
+</table>
+<p>
+They pose essentially our target task: monitor a long CoT trajectory step by step and decide, at each point,
+whether the reasoning has entered a hallucinated state ("identifying 78% of CoT instances as reasoning unfolds").
+This is the closest prior work and the reason the pilot exists — before committing the thesis to this direction we
+needed to know where we stand relative to them.
+</p>
+
+<h3>Are they white-box? Are they supervised? (Yes and yes)</h3>
+<table>
+<tr><th></th><th>Their method (arXiv:2601.02170)</th><th>Ours</th></tr>
+<tr><td><strong>Signal</strong></td><td><strong>White-box</strong>: intermediate hidden states of the generating model (probing works best at intermediate layers). Their own limitations section: the method "relies on access to intermediate hidden states" and "is therefore not directly applicable to black-box or API-only settings".</td><td><strong>Gray-box</strong>: per-token output entropies only — computable from API top-k logprobs. No access to model internals needed.</td></tr>
+<tr><td><strong>Supervision</strong></td><td><strong>Supervised</strong>: a lightweight probe trained with binary labels (dual loss: an anchor loss tied to final-step correctness + a synchronization loss for step-level evidence). Step representations use exponentially weighted within-step tokens.</td><td><strong>Unsupervised</strong>: L-SML spectral fusion of 16 features; no labels touch the method.</td></tr>
+<tr><td><strong>Labels source</strong></td><td>Step-level annotations produced by <strong>Claude 4.5</strong>, validated by consistency checks + manual expert review.</td><td>Final-answer correctness, evaluation only.</td></tr>
+</table>
+
+<h3>How they evaluate</h3>
+<ul>
+<li><strong>Data</strong>: a custom long-CoT dataset built from MuSiQue and other challenging benchmarks — 10,000+ trajectories, 200k+ annotated steps, generated by three models: LLaMA-3.1-8B-Instruct, Qwen2.5-7B-Instruct, DeepSeek-R1-Distill-8B.</li>
+<li><strong>Two granularities</strong>: <em>step-level</em> ("does this reasoning step introduce incorrect/unsupported information?") and <em>prefix-level</em> ("has the reasoning prefix entered a hallucinated state?" — the setting closest to our prefix-AUROC).</li>
+<li><strong>Metrics</strong>: AUC / Accuracy / F1, plus a battery of dynamic streaming metrics (detection lag, immediate capture rate, etc.).</li>
+<li><strong>Their baselines</strong>: TTPD, SAPLMA, ICR Probe, LLM-Check, global-mean aggregation of hidden states.</li>
+</ul>
+<table>
+<tr><th>Generating model</th><th>Step-level AUC</th><th>Prefix-level AUC (final)</th></tr>
+<tr><td>LLaMA-3.1-8B-Instruct</td><td class="num">87.83</td><td class="num">72.69</td></tr>
+<tr><td>Qwen2.5-7B-Instruct</td><td class="num">86.70</td><td class="num">81.05</td></tr>
+<tr><td>DeepSeek-R1-Distill-8B</td><td class="num">93.27</td><td class="num">92.18</td></tr>
+</table>
+
+<h3>The second reference point: DeepConf</h3>
+<p>
+<em>Deep Think with Confidence</em> (arXiv:2508.15260, August 2025) is not a detection paper — it uses
+<strong>lowest group confidence</strong> (the worst sliding-window mean of token confidence) to early-stop and
+filter reasoning traces for test-time efficiency. It matters to us for two reasons: (a) it is black-box like us,
+and (b) its core statistic is computable on our cached entropy traces, so it is the <strong>only competitor we can
+reproduce under identical conditions</strong>. It was therefore the primary success bar (gate G2): if our spectral
+suite cannot beat a windowed entropy mean, the fusion machinery adds nothing in the streaming regime.
+</p>
+
+<h2>3. What the pilot found</h2>
+<p class="small">Cells: GSM8K/Llama-3.1-8B (n=200, clean) and MATH-500/Qwen-1.5B (n=400, clean but a weaker non-canonical run) for the gates; two GPQA/DeepSeek-R1 cells excluded from gates because 99–100% of their traces were truncated at a 1024-token cap mid-<code>&lt;think&gt;</code>.</p>
+
+<table>
+<tr><th>Gate</th><th>Criterion (pre-registered)</th><th>Verdict</th></tr>
+<tr><td><strong>G1</strong> — early signal</td><td>AUROC at 50% of the trace ≥ 95% of full-trace AUROC, on ≥2 clean cells</td><td class="pass">PASS — both cells; on GSM8K, 32 tokens already carry ~91% of full-trace AUROC</td></tr>
+<tr><td><strong>G2</strong> — spectral adds value (primary)</td><td>Fused L-SML ≥ best DeepConf window +2pp at ≥2 absolute budgets, on ≥2 clean cells</td><td class="fail">FAIL — over most of the trace the fusion ≈ windowed entropy mean</td></tr>
+<tr><td><strong>G3</strong> — competitor context</td><td>Table vs their supervised prefix-AUC, caveats stated</td><td>See below</td></tr>
+</table>
+
+<p><strong>The one replicated positive:</strong> paired bootstrap on stored scores shows the only <em>statistically
+significant</em> spectral edge over DeepConf sits in the <strong>earliest 10% of the trace — on both clean cells</strong>
+(+9.8pp [+2.3,+17.1] GSM8K, +4.6pp [+0.6,+8.7] MATH-500). The spectral fusion helps exactly where a sliding-window
+statistic is starved of tokens. At longer budgets the two converge.</p>
+
+<h3>G3 — where we stand vs the supervised probe paper</h3>
+<table>
+<tr><th>Cell (ours, unsupervised, logprob-only)</th><th>Ours: L-SML-5</th><th>Ours: best DeepConf</th><th>Theirs (supervised, white-box, prefix AUC)</th></tr>
+<tr><td>GSM8K / Llama-3.1-8B</td><td class="num"><strong>75.4</strong></td><td class="num">73.5</td><td class="num">72.69 (LLaMA-3.1-8B)</td></tr>
+<tr><td>MATH-500 / Qwen-1.5B (non-canonical run)</td><td class="num">65.6</td><td class="num">67.2</td><td class="num">81.05 (Qwen2.5-<strong>7B</strong>)</td></tr>
+<tr><td>GPQA / R1 (both cells truncated)</td><td colspan="2" style="text-align:center">no valid comparison</td><td class="num">92.18 (R1-Distill-8B)</td></tr>
+</table>
+<div class="caveat">
+<strong>Protocol caveats — this is context, not a head-to-head.</strong> Different benchmark (their custom MuSiQue-derived
+long-CoT set vs our GSM8K/MATH-500), different labels (their Claude-4.5 step annotations vs our final-answer correctness),
+different trace lengths. The legitimate talking point: on the same model family (Llama-3.1-8B), an <em>unsupervised</em>
+signal computed from <em>output logprobs only</em> lands at the level of their <em>supervised hidden-state probe</em> —
+in a setting their own limitations section says they cannot operate in (black-box / API-only).
+</div>
+
+<h3>Online monitor (E3/E4)</h3>
+<p>
+A causal per-token risk score (best: running-max entropy) flags <strong>38%</strong> of eventually-wrong GSM8K traces at
+<strong>10% false alarms</strong>; aborting at the flag saves <strong>28%</strong> of all tokens spent on wrong traces.
+MATH-500: 28% detected, 8% saved. Modest but real early-exit economics from a zero-cost signal.
+</p>
+
+<img src="figs/prefix_auroc_abs.png" alt="Prefix-AUROC vs absolute token budget, per cell">
+<img src="figs/online_monitor.png" alt="Online monitor detection vs false-alarm curves">
+
+<h2>4. Next steps for this direction</h2>
+<ol>
+<li><strong>Regenerate raw traces (one Colab run — the blocking item).</strong> The pilot exposed data debt:
+MATH-500/Qwen-7B — our strongest cell (~90% full-trace AUROC) — has <em>no raw trace cache anywhere</em>
+(the Phase-12 K=10 files saved texts only), and no clean DeepSeek-R1 cell exists (all R1 traces were capped at
+1024 tokens mid-reasoning). One inference run: MATH-500/Qwen-7B + an R1 cell with a ≥4096-token cap, saving
+<code>token_entropies</code> + top-50 logprobs per the raw-data rule.</li>
+<li><strong>Replicate the earliest-prefix edge on the regenerated cells.</strong> The +5–10pp early-budget win is the
+pilot's one significant finding; it must replicate on stronger cells, with absolute budgets (the honest online
+setting — fraction budgets need oracle trace length) and enough samples for the paired test.</li>
+<li><strong>If it replicates, reframe the contribution as a hybrid early-warning monitor.</strong> Spectral fusion where
+windows starve (first ~10% of the trace), windowed confidence thereafter — rather than claiming the fusion wins
+everywhere, which G2 refutes.</li>
+<li><strong>Stabilize per-budget fusion.</strong> Refusing L-SML at every budget re-rolls the eigenvector's global sign
+(fixed with an oriented-epr anchor this run), and the 16-feature variant stays budget-unstable even anchored.
+Cleanest candidate fix: fit fusion weights once at a reference budget offline and reuse them across budgets.</li>
+<li><strong>Optional label upgrade.</strong> The pilot was deliberately label-free. A step-level annotation pass
+(LLM-annotated hallucination onset on our traces, mirroring their Claude-4.5 protocol) would enable
+detection-lag metrics and a fairer prefix-level comparison — decide after step 2, not before.</li>
+<li><strong>Advisor decision.</strong> Present the pilot verdict honestly: early signal is real (G1), the pure
+"streaming pivot" as framed is not supported (G2 fail), the early-prefix niche is the surviving thread. Decide:
+pursue the hybrid framing, or fold streaming in as one section of the current thesis line.</li>
+</ol>
+
+<p class="small">Full numbers: <code>results/sp_*.pkl</code> (raw scores + labels stored per cell × budget) ·
+gates and tables: <code>python scripts/streaming_pilot_report.py</code> · narrative: HISTORY.md Step 148.</p>
+
+</body>
+</html>
