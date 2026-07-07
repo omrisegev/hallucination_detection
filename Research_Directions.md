@@ -56,7 +56,7 @@ All 16 features are implemented in `spectral_utils/feature_utils.py`. Feature co
 - **Final feature set** (5 / 9 / 16) — logistic oracle (Item 2) will bound the headroom
 - **Whether sampling fusion adds lift** — Item 5 tests SE K=10 + spectral
 - **Whether temperature diversity matters** — Item 6 ablates same-T vs mixed-T multi-pass
-- **Scope on factual QA** — Item 3 extends to NQ, SQuAD v2, AmbigQA, PopQA
+- **Scope on factual QA** — Item 3 extends to CoQA, SQuAD v2, TruthfulQA (priority corrected Step 155 — published SE/SC baselines exist)
 
 The final method choice has not been made. CONT + GOOD_5 is the current strongest result, not a decided thesis configuration.
 
@@ -112,7 +112,7 @@ GPQA Diamond (MCQ science) is structurally out-of-regime: entropy dynamics are s
 |---|--------|--------|------|
 | 1 | L-SML follow-up literature search (Nadler post-2016) | ✅ Completed (Steps 139–141) | No |
 | 2 | Logistic regression oracle (5/9/16 features, 5-fold CV) | ✅ Completed (Steps 142–143, 147) | No |
-| 3 | Extend QA evaluation (NQ, SQuAD v2, AmbigQA, PopQA) | Not started | Yes |
+| 3 | Extend QA evaluation (CoQA > SQuAD v2 > TruthfulQA — priority corrected Step 155) | Planned — folded into replication grid (Step 155) | Yes (AIRCC) |
 | 4 | Benchmarking completion (Phase 12 Corrected run done — Step 152; 4 open issues before citable; QA + Phase 14 remaining) | In progress | Partial |
 | 5 | Experiment 1 — sampling fusion: SE (K=10) + spectral features | ✅ Completed (Step 152) — gate NOT passed | No |
 | 6 | Experiment 2 — temperature variation: T effect + diversity ablation | Not started | Yes |
@@ -163,13 +163,12 @@ Fit supervised logistic regression on our feature sets to upper-bound what any f
 
 ### Item 3 — Extend QA Evaluation
 
-Characterise method scope on factual QA by adding four datasets (priority order):
-1. NaturalQuestions (CoT prompt, same setup as TriviaQA/WebQ)
-2. SQuAD v2 (includes unanswerable questions — tests specificity)
-3. AmbigQA (ambiguous queries test calibration near decision boundary)
-4. PopQA (entity popularity confound)
+**Priority corrected (Step 155)** — pick datasets with published SE/SC baselines so results are directly comparable (AmbigQA/PopQA have none):
+1. CoQA (SE-ICLR primary dataset — 8K dev, published SE numbers; INSIDE 80.4 EigenScore reference)
+2. SQuAD v2 (includes unanswerable questions — tests specificity; INSIDE reference 81.5)
+3. TruthfulQA (hallucination-specific benchmark; LapEigvals + HSAD references)
 
-**Setup**: same model (Qwen2.5-Math-7B or Falcon-3-10B), same spectral pipeline, N=200 samples, CONT fusion.
+**Setup**: folded into the Step-155 replication grid — AIRCC inference-only presets per competitor protocol (K, T, prompt, labeling locked per paper), all scoring local CPU. Loaders (CoQA, SQuAD v2, NQ-Open, TruthfulQA, SciQ) are the implementation follow-up.
 
 **Decision gate**: ≥3 of 4 datasets show CONT AUROC ≥ 65% → method extends credibly to factual QA domain.
 
@@ -322,7 +321,7 @@ Apply spectral features to visual language models; split visual-description toke
 
 **Subsequent Colab sessions**
 9. Streaming earliest-prefix replication on the regenerated cells (Extension E steps 2–3; local CPU once traces exist)
-10. Extend QA evaluation: NQ, SQuAD v2, AmbigQA, PopQA (Item 3)
+10. Extend QA evaluation: CoQA > SQuAD v2 > TruthfulQA (Item 3, priority corrected Step 155 — runs on AIRCC as part of the replication grid)
 11. Extension A (Conformal): A1 frozen scorer + imbalance metrics first, then A2 LTT
 
 **Later**

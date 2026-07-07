@@ -4990,3 +4990,21 @@ CLAUDE.md updated: 4 new slash-command rows, new "AIRCC cluster" section (shared
 - Commits: bf708a5 (1/3), 88bca56 (2/3), 0be44e4 (3/3)
 
 ---
+
+### Step 155 — Thesis replication grid: gather plan for competitor-exact QA evaluation + HF-token cluster wiring
+
+**What**: Full planning session (plan file finalized after web-agent protocol research + Gemini review + inference-only scoping). Produced a gather plan covering: (a) 9 protocol cards — EPR, Semantic Energy, Spilled Energy, SE-ICLR'23 (arXiv 2302.09664: OPT family, CoQA dev 8K + TriviaQA train 8K, K=10 @ T=0.5, ROUGE-L>0.3, DeBERTa-large-MNLI bidirectional entailment), SE-Nature'23 (LLaMA-2/Falcon/Mistral, GPT-4 judge — proprietary; adapt ICLR protocol instead of replicating), INSIDE/EigenScore (arXiv 2402.03744: K=10 @ T=0.5 top-p=0.99 top-k=5, middle-layer int(L/2) last-token hidden states, ROUGE-L>0.5, CoQA 80.4 headline), LapEigvals (arXiv 2502.17598: all-layers×all-heads attention Laplacian top-k eigvals → PCA-512 → LR probe, gpt-4o-mini judge, Mistral-Small-24B GSM8K 92.5), LOS-Net (arXiv 2503.14043: TDS top-K=1000 logprobs + Transformer probe ~1M params, HotpotQA/Mistral-7B-v0.2 = 72.92 ± 0.45 — G3 gate figure CONFIRMED correct), HSAD (arXiv 2509.13154: FFT across layer axis of 4 per-layer nodes, BLEURT labeling; 2 GB/sample raw → compute FFT on-GPU, store per-layer scalar amplitudes). (b) Capture-schema additions: `token_logsumexp[t] = logsumexp(scores[t])` — blocking dependency for both energy papers (raw logit = logprob + logsumexp); GOOD_5 needs nothing beyond `token_entropies`. (c) Data organization: `local_cache/replication_grid/{preset_id}/` with `manifest.json` provenance (paper, model, dataset, split, N, K, T, capture flags, job id) + per-sample pkl schema + 6 offline CPU scoring scripts; strict inference-only boundary (GPU = generation+capture; ALL scoring local CPU). (d) Consolidated gather lists: 17 datasets, 26 models (gated LLaMA-2/3 flagged), 6 auxiliary judge/NLI models, ~160 GB storage vs 10 TB quota. (e) Infra: HF_TOKEN + Pyxis cache-warm strategy.
+
+**HF-token wiring executed** (cluster login menu blocks interactive `echo`, so token is hardcoded in a gitignored sbatch): created tracked `cluster/submit_inference.sbatch.template` (`HF_TOKEN=REPLACE_ME`); `git rm --cached` the live sbatch + added it to `.gitignore`; hardcoded the real token in the live file; synced via `sync_code.sh` (tars working tree, so gitignored file still ships); verified on cluster + `chmod 600`. Learned: `ssh aircc "<cmd>"` bypasses the login menu — only interactive logins are trapped.
+
+**Why**: Omri wants thesis comparisons to be airtight — our L-SML continuous GOOD_5 (Steps 134–136 baseline, NOT Step-100/107 numbers) run on the exact (dataset, model, protocol) grids of the competitor papers so every number is directly comparable to a published table. Gated models (LLaMA-2/3) 401 silently without HF_TOKEN in the sbatch.
+
+**Result**: Plan complete with 4 high-impact grid cells prioritized: (1) HotpotQA × Mistral-7B-v0.2 (LOS-Net head-to-head), (2) GSM8K × Llama-3.1-8B (LapEigvals), (3) TriviaQA × Llama-3.1-8B (LapEigvals + Spilled Energy), (4) CoQA × LLaMA-7B base (INSIDE + SE-ICLR). Token live on cluster (verified, 600 perms). Implementation scoped as follow-up: `generate_full` extensions (token_logsumexp, hidden-state capture, at-capture attention/FFT reducers), 5 new dataset loaders (CoQA, SQuAD v2, NQ-Open, TruthfulQA, SciQ), cluster preset system, offline scoring scripts. Item 3 dataset priority corrected to CoQA > SQuAD v2 > TruthfulQA (published SE/SC baselines exist; AmbigQA/PopQA have none).
+
+**Files changed**:
+- `cluster/submit_inference.sbatch.template` — new tracked template (placeholder token)
+- `.gitignore` — ignore live `cluster/submit_inference.sbatch` (carries real token)
+- `cluster/submit_inference.sbatch` — untracked from git (still on disk + cluster, token hardcoded)
+- `PROGRESS.md`, `Research_Directions.md` — Item 3 dataset priority correction + plan status
+
+---

@@ -44,3 +44,14 @@ traces are analysis-ready without any notebook.
 Print a table: file | problems | candidates/K | accuracy | mean trace len | verdict
 (VALID / PARTIAL / STALE). Remind: raw pkls are gitignored-scale artifacts — keep them in
 `cache/`, do not commit; back up to Drive if the run is expensive to redo.
+
+## Known capture gaps (for Thesis Replication Grid runs)
+
+Current caches do NOT include:
+- `token_logsumexp` — needed to reconstruct raw logits for Semantic/Spilled Energy. Missing
+  from `generate_full`. Caches without it can compute H(n) and ΔE(n) but not Boltzmann energy.
+- Hidden states — needed for INSIDE/EigenScore/HSAD. Not yet captured.
+- Attention spectral features — needed for LapEigvals. Not yet captured.
+
+Flag these absences in the validation report if the run was intended for competitor replication.
+For the current EDIS/our-method pipeline these keys are not required.

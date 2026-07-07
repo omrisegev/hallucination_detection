@@ -1,4 +1,10 @@
 #!/bin/bash
+# TEMPLATE for cluster/submit_inference.sbatch — the live file is gitignored because
+# it carries a hardcoded HF_TOKEN (gated models: LLaMA-2/3 401 silently without it).
+# To regenerate the live file: copy this template to cluster/submit_inference.sbatch
+# and replace REPLACE_ME with a real HuggingFace token (account needs Meta access
+# approval for LLaMA-gated repos). NEVER commit the live file.
+#
 # AIRCC batch inference job — runs cluster/run_inference.py inside the B200-compatible
 # NGC container via Pyxis. Preemption-safe: --signal=B:TERM@900 delivers SIGTERM
 # to the Python driver (after exec), which checkpoints and exits 0; Slurm requeues.
@@ -23,6 +29,11 @@
 set -uo pipefail
 
 SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
+export HF_HOME=$SHARED/hf_cache
+export HF_DATASETS_CACHE=$SHARED/hf_cache/datasets
+export PIP_CACHE_DIR=$SHARED/pip_cache
+# HuggingFace auth for gated models (huggingface_hub reads HF_TOKEN automatically).
+export HF_TOKEN=REPLACE_ME
 
 echo "[sbatch] job $SLURM_JOB_ID on $(hostname), args: $*"
 

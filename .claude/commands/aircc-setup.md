@@ -51,6 +51,14 @@ Host aircc
 
 Verify: `ssh -o ConnectTimeout=5 aircc 'echo ok; hostname'`. If it fails, tell the user: **check that TAU VPN is connected** — that is the cause ~90% of the time.
 
+Ensure `SLURM_CONF_SERVER=controller-primary` is in the remote `~/.bashrc` — required for
+non-interactive ssh commands (squeue/sacct/sbatch called via `ssh aircc '...'` will fail
+silently without it):
+
+```bash
+ssh aircc 'grep -q SLURM_CONF_SERVER ~/.bashrc || echo "export SLURM_CONF_SERVER=controller-primary" >> ~/.bashrc'
+```
+
 ## Step 4 — Discover account partition/QoS
 
 Run `ssh aircc 'sdata'` and `ssh aircc 'sinfo -o "%P %a %l %D"'`. From the output, identify:
@@ -66,6 +74,8 @@ OWNER_QOS=<discovered>
 
 `/aircc-submit` reads this file. If `sdata` output is ambiguous, show it to the user and ask.
 
+Known values (confirmed 2026-07-06): `OWNER_PARTITION=power-gpu`, `OWNER_QOS=owner_880`.
+
 ## Step 5 — Cluster directory setup + code sync + prefetch
 
 ```bash
@@ -74,8 +84,27 @@ bash cluster/sync_code.sh
 ssh aircc 'cd /shared/cycle2_tau_averbuch_prj/omrisegev1/code && sbatch cluster/prefetch.sbatch'
 ```
 
-The prefetch job pulls the ~10 GB NGC image and downloads Qwen2.5-Math-1.5B-Instruct to
-`$SHARED/hf_cache` (login node can't do this — no docker/GPU). Check it with `/aircc-status`.
+The prefetch job uses Pyxis (`#SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
+--container-name=ngc_pytorch_2501`). On first run it imports the ~10 GB NGC image and caches
+it as a named enroot container on that node (~8 min). **The cache is per-node**: if a later
+inference job lands on a different compute node, Pyxis will re-import the image (~8 min
+one-time cost per new node). This is normal and not an error; subsequent jobs on that node
+reuse the cache instantly.
+
+The prefetch job also downloads the default model (Qwen2.5-Math-1.5B-Instruct) to
+`$SHARED/hf_cache`. To download additional models, add their HF IDs as args:
+`sbatch cluster/prefetch.sbatch Qwen/Qwen2.5-Math-7B-Instruct`.
+
+**Gated models** (LLaMA-2 family, LLaMA-3, etc.) require a HF token. Set it in the sbatch
+or as an env var before download:
+```bash
+ssh aircc 'echo "HF_TOKEN=hf_xxx" >> /shared/cycle2_tau_averbuch_prj/omrisegev1/.hf_token'
+```
+Then add `source $SHARED/.hf_token && export HF_TOKEN` to the sbatch body before the
+`snapshot_download` call. Get HF access approved first (LLaMA-2: 1–3 day turnaround).
+
+**Rootless Docker is NOT available** on power-gpu nodes (daemon failed since 2026-07-01,
+cgroup v2 BPF permissions block nvidia-container-cli). All sbatch files use Pyxis exclusively.
 
 ## Step 6 — Report
 
