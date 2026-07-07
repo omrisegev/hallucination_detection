@@ -1,7 +1,7 @@
 #!/bin/bash
-# Sandbox smoke test: docker + B200 + spectral_utils inside the NGC container.
-# Submit:   sbatch cluster/smoke_test.sbatch
-# Owner-queue variant (Stage 2): sbatch -p <partition> --qos=<qos> cluster/smoke_test.sbatch
+# Sandbox smoke test: Pyxis container + B200 + spectral_utils inside the NGC image.
+# Submit (sandbox):     sbatch cluster/smoke_test.sbatch
+# Submit (owner queue): sbatch -p power-gpu --qos=owner_880 cluster/smoke_test.sbatch
 #
 #SBATCH --job-name=smoke_test
 #SBATCH --partition=sandbox
@@ -9,27 +9,17 @@
 #SBATCH --gpus=1
 #SBATCH --time=00:15:00
 #SBATCH --output=/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/%x_%j.out
+#SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
+#SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
+#SBATCH --container-workdir=/shared/cycle2_tau_averbuch_prj/omrisegev1/code
+#SBATCH --container-name=ngc_pytorch_2501
 
 set -uo pipefail
 
 SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
-CODE_DIR=$SHARED/code
-IMAGE=nvcr.io/nvidia/pytorch:25.01-py3
 
 echo "[smoke] job $SLURM_JOB_ID on $(hostname)"
-nvidia-smi || echo "[smoke] nvidia-smi not available on host"
 
-systemctl --user start docker || true
-export DOCKER_HOST=unix:///run/user/$UID/docker.sock
-docker info >/dev/null || { echo "[smoke] FATAL: docker daemon not reachable"; exit 1; }
+pip install -q -r cluster/requirements.txt
 
-docker run --rm --gpus all \
-  --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 \
-  -v "$SHARED":"$SHARED" -w "$CODE_DIR" \
-  -e HF_HOME="$SHARED/hf_cache" \
-  -e PIP_CACHE_DIR="$SHARED/pip_cache" \
-  -e PYTHONUNBUFFERED=1 \
-  -e SLURM_JOB_ID="$SLURM_JOB_ID" \
-  -e SMOKE_OUT="$SHARED/results" \
-  "$IMAGE" \
-  bash -c "pip install -q -r cluster/requirements.txt && python cluster/smoke_test.py"
+SMOKE_OUT=$SHARED/results python cluster/smoke_test.py
