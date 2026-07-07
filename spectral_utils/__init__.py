@@ -53,7 +53,7 @@ from .fusion_utils import (
     binarize_classifiers, sml_fuse, nadler_fuse,
     simple_average_fusion, best_nadler_on, best_nadler_pseudo_label,
     sml_fuse_signed, detect_dependent_groups, lsml_fuse,
-    lsml_continuous, lsml_continuous_pipeline,
+    lsml_continuous, lsml_continuous_pipeline, multipass_lsml_continuous,
     sml_unsupervised, sml_unsupervised_compare,
     upcr_fuse, upcr_pipeline,
 )
@@ -125,7 +125,7 @@ __all__ = [
     "nadler_fuse", "simple_average_fusion", "best_nadler_on",
     "best_nadler_pseudo_label",
     "sml_fuse_signed", "detect_dependent_groups", "lsml_fuse",
-    "lsml_continuous", "lsml_continuous_pipeline",
+    "lsml_continuous", "lsml_continuous_pipeline", "multipass_lsml_continuous",
     "sml_unsupervised", "sml_unsupervised_compare",
     "upcr_fuse", "upcr_pipeline",
     "decompose_auroc", "threshold_sensitivity", "derive_consensus_signs",

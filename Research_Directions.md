@@ -236,7 +236,35 @@ Fuse Semantic Entropy (K=10 generations) with single-pass spectral features.
    - If B >> A: temperature diversity is the source of lift
    - If A ≈ B: multiple passes alone explain the gain; T doesn't matter
 
-**Setup**: Qwen2.5-Math-7B / MATH-500. Existing caches: T=1.0 and T=1.5. New inference needed: T=0.3, 0.6, 2.0 + 4 additional T=1.0 runs (for Condition A ablation).
+**Setup**: Qwen2.5-Math-7B / MATH-500. ~~Existing caches: T=1.0 and T=1.5~~ — **claim corrected (Step 157)**: no reusable raw cache exists for this cell. The T=1.5 88.3% cell is Qwen-**1.5B**; Step 148 established MATH-500/Qwen-7B has no raw entropy-trace cache anywhere; Phase 12 Corrected `p2` predates the Step-149/150 grading fixes and has no top-k logprobs. → **All 9 runs fresh** (5 temps + 4 extra T=1.0), each saving the full raw-data schema. T=1.0 run0 doubles as the canonical raw-trace cache for this cell, repaying the Extension E data debt.
+
+**Status (Step 158) — ✅ RAN on Colab A100. Both pre-registered gates FAIL; the negative result is clean and interpretable.**
+
+Results (9 runs × 200 MATH-500 / Qwen2.5-Math-7B; full narrative in HISTORY Step 158; consolidated `cache/phase15_temperature/results/phase15_results.pkl`):
+
+- **Q1 — AUROC vs T (single-pass L-SML-continuous, GOOD_5)**: inverted-U — 0.545 / 0.644 / 0.851 / 0.878 / 0.629 at T = 0.3 / 0.6 / 1.0 / 1.5 / 2.0 — **confounded by accuracy collapsing 80% → 4%** across the curve, so the "peak" partly reflects the shifting class mix, not detectability alone. T=2.0 is underpowered (8 correct). **G-T1 FAIL** (T=1.5's higher 0.878 has overlapping CIs and sits at 27.5% acc).
+- **Q2 (primary) — diversity vs more passes**, paired on the 200 common samples (labels = T=1.0 run0):
+  - **AUC(A: K=5 same-T=1.0) = 0.912**, **AUC(B: K=5 multi-T) = 0.859**, single-pass base 0.851.
+  - paired **AUC(B) − AUC(A) = −0.053 [−0.103, −0.011]** → **G-T2 FAIL, sign negative** — temperature diversity *hurts*.
+  - paired **AUC(A) − AUC(base) = +0.061 [+0.004, +0.128]** → more same-T passes *help*.
+  - Mechanism: A off-diagonal Spearman ρ +0.45 (same signal + independent noise → averaging denoises); B off-diagonal ρ +0.01, but that decorrelation is the off-temperature passes being *near-random* (T=0.3/0.6 weak, T=2.0 degenerate), not independent true signal.
+  - **Answer to the meeting question**: A ≈ B is refuted in the *unfavourable* direction — the multi-pass lift is **variance reduction from repeated sampling at a single good temperature (T≈1.0)**, and mixing temperatures dilutes it. Temperature is not the lever; repeated sampling is.
+- **Two method flags surfaced (not fatal, → follow-up)**: (1) `spectral_entropy` sign is temperature-dependent — AUROC 0.261 @ T=1.0 / 0.140 @ T=1.5 with the fixed −1 sign (i.e. informative if flipped); (2) the label-free L-SML fusion **underperforms the best single feature at every T** (fused 0.851 vs `cusum_max` 0.927 @ T=1.0; fused 0.545 vs `cusum_max` 0.811 @ T=0.3) because the `epr` anchor is weak at low T (0.681 @ T=0.3) → fragile global-sign orientation. The low-T "poor detectability" in Q1 is plausibly a fusion/anchor artifact, not a signal property.
+
+**Data-debt repaid**: T=1.0 run0 is now the **canonical MATH-500/Qwen-7B raw-trace cache** (entropies + spilled energies + top-50 logprobs + token ids, N=200, 70.5% acc) — closes the Extension E gap.
+
+**Follow-up experiments on this data — all CPU once the 9 caches are downloaded** (prioritised):
+
+1. **Self-consistency / semantic-entropy baseline** (highest value; also closes Item 5). We have 5 T=1.0 full-text generations per question → extract final answers, compute answer-agreement / cluster (semantic) entropy = the standard sampling-based confidence. Answers the reviewer-mandatory *"does spectral add anything over just sampling 5× and voting?"* and whether SC ⊕ spectral is complementary (ρ < 0.75, fused > max + 1pp).
+2. **K-sweep for Condition A**: AUROC(A) at K = 1..5 — does the same-T lift saturate at K=3? A practical cost/benefit curve from data already in hand.
+3. **Anchor / sign robustness across T**: re-fuse with (a) a stronger, more T-stable anchor (`cusum_max`), (b) per-feature label-free sign via each feature's own anchor, (c) leave-`spectral_entropy`-out — quantify how much of the low-T gap and the fusion-vs-best-single gap is recoverable. Directly tests whether Q1's low-T dip is real.
+4. **New feature families from saved-but-unused data**: (a) run the spectral suite on the **ΔE spilled-energy** trace (saved for all 9 runs, never used) and test orthogonality to H(n); (b) **top-50 logprob** features — top1−top2 margin, varentropy, Rényi entropy at several orders, tail mass; recompute entropy at any K.
+5. **Fairer diversity set**: re-run B dropping the degenerate T=2.0 (and maybe T=0.3), e.g. B′ = {0.6, 1.0, 1.5} — confirms the negative Q2 is robust and not an artifact of including the useless hot pass.
+6. **Cross-temperature probing**: does a hot pass's entropy trace predict the *cold* (T=1.0) answer's correctness? (Sample hot to probe uncertainty, evaluate the cold answer.) Uses the index-aligned runs.
+7. **Length-controlled AUROC per T**: hot traces are longer/degenerate — partial out trace length to confirm the spectral signal isn't just length.
+8. **Streaming earliest-prefix replication (Extension E)** — now unblocked by the fresh raw cache; run absolute-budget prefixes on the T=1.0 run0 traces.
+
+A couple (K-sweep beyond K=5, more temperatures for the pooling curve) would need a small extra GPU run; everything else is local CPU.
 
 ---
 
