@@ -630,6 +630,87 @@ def lsml_continuous_pipeline(feats_dict: dict, feat_names: list, signs: dict,
     return lsml_continuous(*views, K_range=K_range, method=method)
 
 
+def multipass_lsml_continuous(runs_feats: list, feat_names: list, signs: dict,
+                              anchor_feature: str = 'epr', K_range=None,
+                              method: str = 'residual'):
+    """
+    Hierarchical multi-pass fusion: continuous L-SML within each generation
+    pass, then across passes.
+
+    Stage 1 — per pass: lsml_continuous_pipeline over ``feat_names``, then the
+    fused score's global ± (a leading-eigenvector coin flip, Step 148) is
+    resolved label-free with anchor_orient against the sign-oriented, z-scored
+    ``anchor_feature`` of that pass.
+
+    Stage 2 — cross-pass: the oriented per-pass scores are z-scored into K
+    score-views and fused with lsml_continuous, anchored against their mean.
+    L-SML needs ≥ 3 views: with 2 passes 'fused' falls back to the simple
+    average; with 1 pass it is that pass's score (so the same call serves the
+    single-pass AUROC-vs-T curve).  'avg_fused' is always the equal-weight
+    baseline over the score-views.
+
+    Args:
+        runs_feats:     list of feats_dicts, one per pass — each
+                        {feature_name: np.ndarray}, index-aligned across passes
+                        (same samples, same order).
+        feat_names:     features fused within each pass.
+        signs:          {feature_name: +1|-1} orientation dict.
+        anchor_feature: anchor view for label-free global-sign resolution.
+        K_range, method: forwarded to lsml_continuous.
+
+    Returns dict:
+        'per_pass_scores': list of oriented per-pass fused scores
+        'fused':           cross-pass L-SML score (oriented; see fallbacks)
+        'avg_fused':       equal-weight mean of the z-scored per-pass scores
+        'rho':             K×K Spearman matrix of the per-pass scores
+        'meta':            {'per_pass_meta', 'per_pass_flipped', 'cross_meta',
+                            'cross_flipped', 'fallback'}
+    """
+    # streaming_utils depends only on feature_utils; import locally to keep
+    # fusion_utils importable without the streaming module.
+    from .streaming_utils import anchor_orient
+
+    per_scores, per_metas, per_flips = [], [], []
+    for feats in runs_feats:
+        score, meta = lsml_continuous_pipeline(feats, feat_names, signs,
+                                               K_range=K_range, method=method)
+        anchor = zscore(np.asarray(feats[anchor_feature], dtype=float)
+                        * signs.get(anchor_feature, +1))
+        score, flipped = anchor_orient(score, anchor)
+        per_scores.append(np.asarray(score, dtype=float))
+        per_metas.append(meta)
+        per_flips.append(flipped)
+
+    k = len(per_scores)
+    views = [zscore(s) for s in per_scores]
+    avg_fused, _ = simple_average_fusion(*views)
+
+    fallback, cross_meta, cross_flip = None, None, False
+    if k >= 3:
+        fused, cross_meta = lsml_continuous(*views, K_range=K_range, method=method)
+        fused, cross_flip = anchor_orient(fused, avg_fused)
+    elif k == 2:
+        fused, fallback = avg_fused, 'K=2 passes < 3 views — simple average'
+    else:
+        fused, fallback = views[0], 'single pass — per-pass score returned'
+
+    rho = np.eye(k)
+    for i in range(k):
+        for j in range(i + 1, k):
+            r = spearmanr(per_scores[i], per_scores[j])[0]
+            rho[i, j] = rho[j, i] = r
+
+    return {
+        'per_pass_scores': per_scores,
+        'fused': np.asarray(fused, dtype=float),
+        'avg_fused': avg_fused,
+        'rho': rho,
+        'meta': {'per_pass_meta': per_metas, 'per_pass_flipped': per_flips,
+                 'cross_meta': cross_meta, 'cross_flipped': cross_flip,
+                 'fallback': fallback},
+    }
+
+
 def sml_unsupervised(feats_dict: dict, feat_names: list,
                      K_range=None, method: str = 'residual'):
     """

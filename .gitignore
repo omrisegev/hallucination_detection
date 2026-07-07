@@ -90,3 +90,10 @@ local_cache/
 # Generated HTML reports (reproducible from archive.jsonl)
 results/runs/
 results/report_*.html
+
+# Phase 15+ notebooks — re-include (would otherwise match Phase1* above)
+!Spectral_Analysis_Phase15*.ipynb
+
+# scripts/build holds notebook generators, not Python dist output — re-include
+# (the `build/` rule above is meant for packaging artifacts)
+!scripts/build/
