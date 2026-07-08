@@ -752,16 +752,25 @@ def _qa_f1(pred: str, refs) -> float:
 def load_coqa(n_samples: int = 500, split: str = "validation") -> list[dict]:
     """
     Load CoQA and flatten each story's conversational turns into individual
-    {story, question, answers} examples (capped at n_samples) — the per-turn unit
-    used by SE-ICLR'23 and INSIDE (CoQA headline 80.4).
+    {story, history, question, answers} examples (capped at n_samples) — the per-turn
+    unit used by SE-ICLR'23 and INSIDE (CoQA headline 80.4).
+
+    CoQA is conversational: many questions are anaphoric ("who is he?", "why?") and are
+    only answerable given the preceding turns. SE-ICLR/INSIDE condition each turn on the
+    prior turns, so we carry them as `history` = list[(question, gold_answer)] for the
+    turns before this one in the same story (teacher-forced gold answers, as the papers
+    do — not the model's own prior generations).
     """
     from datasets import load_dataset
     ds = load_dataset("stanfordnlp/coqa", split=split)
     items = []
     for row in ds:
         answers = row["answers"]["input_text"]
+        history = []
         for q, a in zip(row["questions"], answers):
-            items.append({"story": row["story"], "question": q, "answers": [a]})
+            items.append({"story": row["story"], "history": list(history),
+                          "question": q, "answers": [a]})
+            history.append((q, a))
             if len(items) >= n_samples:
                 print(f"Loaded {len(items)} CoQA {split} turns.")
                 return items
@@ -770,10 +779,15 @@ def load_coqa(n_samples: int = 500, split: str = "validation") -> list[dict]:
 
 
 def coqa_prompt(row: dict) -> str:
-    """Terse reading-comprehension prompt matching the SE-ICLR'23 / INSIDE CoQA setup."""
+    """Reading-comprehension prompt matching the SE-ICLR'23 / INSIDE CoQA setup,
+    conditioned on the preceding conversation turns (needed for anaphoric questions)."""
+    convo = ""
+    if row.get("history"):
+        convo = "\n".join(f"Question: {q}\nAnswer: {a}" for q, a in row["history"]) + "\n"
     return (
         f"{row['story']}\n\n"
-        f"Answer the question with a short answer based on the passage above.\n\n"
+        f"Answer each question with a short answer based on the passage above.\n\n"
+        f"{convo}"
         f"Question: {row['question']}\n\n"
         f"Answer:"
     )

@@ -165,29 +165,33 @@ def extract_top_k_logprobs(scores, top_k: int = 50):
     return {"ids": np.stack(ids_rows), "logprobs": np.stack(lp_rows)}
 
 
-def token_logsumexp_from_scores(scores) -> list:
+def token_logsumexp_from_scores(logits) -> list:
     """
     Compute per-token logsumexp of the FULL-vocab logits (the log-partition Z_n).
 
     This is the blocking capture field for the energy baselines (EPR, Semantic Energy,
-    Spilled Energy). The raw logit of any token decomposes as
+    Spilled Energy), which all define energy via the partition function over the ENTIRE
+    vocabulary of the RAW logits (confirmed in all three papers). The raw logit of any
+    token decomposes as
         logit_i = logprob_i + logsumexp(logits)
-    so saving Z_n = logsumexp(scores[n]) alongside the top-K logprobs lets every raw
+    so saving Z_n = logsumexp(logits[n]) alongside the raw top-K logprobs lets every raw
     logit — and therefore every energy quantity — be reconstructed offline without
     re-running the model.
 
-    Note: HuggingFace `scores` are the post-processed generation logits (already scaled
-    by the sampling temperature / top-k mask). For an unbiased energy signal, generate
-    the energy-paper cells at their protocol temperature and read Z_n as-is; do not
-    re-scale offline.
+    IMPORTANT: pass `out.logits` (from generate(output_logits=True)), NOT `out.scores`.
+    `out.scores` are the post-processed generation logits — already divided by the
+    sampling temperature and masked to top-k / top-p — so logsumexp(out.scores) is a
+    partition over only the surviving tokens at the wrong scale, NOT the true Z_n.
+    `out.logits` are the raw, pre-warper, full-vocab logits, which is what the energy
+    papers use.
 
     Args:
-        scores: tuple of (1, vocab_size) tensors from model.generate output_scores=True.
+        logits: tuple of (1, vocab_size) RAW-logit tensors from generate(output_logits=True).
 
     Returns:
         List of float log-partition values, one per generated token.
     """
-    return [torch.logsumexp(s[0], dim=-1).item() for s in scores]
+    return [torch.logsumexp(s[0], dim=-1).item() for s in logits]
 
 
 def _middle_last_hidden(hidden_states, layer=None):
@@ -239,8 +243,13 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
 
     Replication-grid capture flags (all default OFF — the GOOD_5 / spectral path is
     unchanged when every flag is False; only the listed extra key is added when True):
-        capture_logsumexp:  add 'token_logsumexp' (list[float], Z_n per token) —
-                            blocking field for the energy baselines.
+        capture_logsumexp:  add 'token_logsumexp' (list[float], the true full-vocab
+                            log-partition Z_n per token, from RAW logits via
+                            output_logits=True) AND 'top_k_logprobs_raw' (raw-logit
+                            top-K, distinct from the sampling-distribution
+                            'top_k_logprobs') — the blocking fields for the energy
+                            baselines (EPR / Semantic Energy / Spilled Energy), which
+                            need the partition over the whole vocabulary of raw logits.
         capture_hidden:     add 'hidden_middle_last' (float16 [hidden_dim]) — the INSIDE
                             /EigenScore last-token middle-layer sentence embedding.
         hidden_layer:       explicit layer index for the hidden capture (default int(L/2)).
@@ -260,7 +269,11 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
             'top_k_logprobs':         {'ids': int32 [T, K], 'logprobs': float32 [T, K]}
                                       or None when logprob_top_k=0
             'gen_token_ids':          list[int] — sampled token IDs
-            'token_logsumexp':        list[float] — only when capture_logsumexp=True
+            'token_logsumexp':        list[float] — true full-vocab Z_n from raw logits,
+                                      only when capture_logsumexp=True
+            'top_k_logprobs_raw':     {'ids':int32[T,K], 'logprobs':float32[T,K]} from the
+                                      RAW (pre-warper) distribution — only when
+                                      capture_logsumexp=True and logprob_top_k>0
             'hidden_middle_last':     float16 [hidden_dim] — only when capture_hidden=True
     """
     if capture_attention:
@@ -292,6 +305,7 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
             top_k=gen_top_k if sampling else None,
             top_p=gen_top_p if (sampling and gen_top_p is not None) else None,
             output_scores=True,
+            output_logits=capture_logsumexp,     # RAW full-vocab logits for the energy Z_n
             output_hidden_states=capture_hidden,
             return_dict_in_generate=True,
             pad_token_id=tok.eos_token_id,
@@ -314,7 +328,13 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
         "gen_token_ids":          gen_ids.tolist(),
     }
     if capture_logsumexp:
-        result["token_logsumexp"] = token_logsumexp_from_scores(out.scores)
+        # out.logits are the RAW, pre-warper, full-vocab logits (unlike out.scores, which
+        # are temperature-scaled + top-k/top-p masked). The energy baselines define energy
+        # via the partition over the whole vocabulary of raw logits, so Z_n and the raw
+        # top-K logprobs must come from out.logits.
+        result["token_logsumexp"] = token_logsumexp_from_scores(out.logits)
+        if logprob_top_k > 0:
+            result["top_k_logprobs_raw"] = extract_top_k_logprobs(out.logits, logprob_top_k)
     if capture_hidden:
         result["hidden_middle_last"] = _middle_last_hidden(out.hidden_states, hidden_layer)
     return result

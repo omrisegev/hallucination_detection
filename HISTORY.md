@@ -5126,3 +5126,61 @@ CLAUDE.md updated: 4 new slash-command rows, new "AIRCC cluster" section (shared
 **Result**: Grid infra is code-complete and unit-tested locally — grader truth tables pass; `build_cfg` correctly resolves presets and lets `--n-samples 30` override for the gate pilot; `accuracy_gate` REJECTs the reproduced AIME24 floor (4/240) and the 92% ceiling, VALIDs a healthy 55% cell. Capture path is off by default (GOOD_5 unchanged). Next: `bash cluster/sync_code.sh` → submit the 4 high-impact cells as N=30 pilots (read the GATE line before scaling), then offline scoring scripts (with `anchor_orient`). Deferred: LapEigvals attention-Laplacian + HSAD layer-FFT on-GPU reducers (raise until implemented).
 
 ---
+### Step 161 — Review of Step-160 replication-grid impl: merge verified complete + two protocol-fidelity corrections (raw-logit energy capture, CoQA dialogue history)
+
+**What**: Reviewed the Step-160 implementation against (a) the "compare exactly as the competitor papers published" intent and (b) the Step-159 branch-consolidation completeness. Consolidation verified complete — `multipass_lsml_continuous`, `paired_boot_delta_auc`, `subset_sweep.py`/`anomaly_utils.py`/`temporal_models.py`, and the Phase-12-Corrected + Phase-15 notebooks are all on master and exported. Two protocol-fidelity fixes applied after confirming against the source PDFs + Omri (AskUserQuestion, both "recommended"):
+
+1. **Energy capture now uses RAW full-vocab logits.** EPR / Semantic Energy / Spilled Energy (all three PDFs checked) define energy via the partition function over the *entire vocabulary of the raw logits*. Step 160 computed `token_logsumexp` from `out.scores` (temperature-scaled + top-k=50 masked) — numerically verified ~+10 nats off and non-constant, so unusable for energy reconstruction. Fixed `generate_full` to pass `output_logits=True` and compute `token_logsumexp` from `out.logits` (true Z_n); added `top_k_logprobs_raw` (raw-distribution top-K, distinct from the sampling-distribution `top_k_logprobs`) so raw logits reconstruct via `logit_i = logprob_i + Z_n`. Both fields only when `capture_logsumexp=True`; energy cells are all short (max_new<=256) so `out.logits` memory is bounded. GOOD_5 / spectral path unchanged.
+
+2. **CoQA conditions on dialogue history.** SE-ICLR'23 / INSIDE run CoQA as a conversation; anaphoric turns ("who is he?") need the prior turns. `load_coqa` now carries `history=list[(q, gold_a)]` per turn (teacher-forced gold answers, as the papers do) and `coqa_prompt` prepends them.
+
+**Why**: Both were silent apples-to-oranges risks against the published tables — the entire point of the replication grid.
+
+**Result**: `token_logsumexp_from_scores` docstring corrected (pass `out.logits`, not `out.scores`); `generate_full` returns `token_logsumexp` (raw Z_n) + `top_k_logprobs_raw` when `capture_logsumexp` on. CoQA carries + renders history. Verified locally: all files parse; CoQA prompt renders history for turn>0 and omits for turn 0; raw-vs-masked Z_n numerically distinct and raw top-K reconstruction exact. Smaller notes logged, not blocking: INSIDE cell labels at ROUGE-L>0.3 not INSIDE's >0.5 (re-gradeable offline — full_text saved); LapEigvals preset `published`=92.5 is the *supervised* probe on Mistral-Small-24B, not the cell's unsupervised Llama-8B (honest same-cell anchor ~72.0); `--dataset gsm8k` with no preset passes split=None (always drive gsm8k via a preset). Not committed (awaiting Omri).
+
+**Files changed**: `spectral_utils/model_utils.py` (generate_full output_logits + raw energy capture; token_logsumexp_from_scores docstring), `spectral_utils/data_loaders.py` (load_coqa history + coqa_prompt).
+
+---
+### Step 162 — Replication grid EXECUTED on AIRCC: 5 VALID full-N cells produced + validated locally; two cluster infra bugs fixed; 3 cells paused out-of-band
+
+**What**: Ran the Step-155/160/161 thesis replication grid on the AIRCC cluster — **inference + capture only; all scoring stays local CPU** (scope unchanged). Gate-first waves: N=30 pilots, then auto-scale in-band cells to full N. Outcome: **5 VALID full-N cells** produced, fetched, and schema-validated locally; **3 cells paused** as out-of-band (kept as N=30 pilots for offline re-grading). The uncommitted Step-161 fixes shipped via `bash cluster/sync_code.sh` (tar-over-ssh, push-independent — no commit needed to run).
+
+**Two cluster infra bugs found and fixed (the first pilot wave crashed — caught early by a log health-check):**
+1. **Shared-`$HOME` pip race.** The sbatch's `pip install -r requirements.txt` installed into the *shared, persistent* `$HOME/.local` (rootless container → pip auto-selects `--user`). Four concurrent jobs corrupted each other's install — a half-written `dill-0.4.1.dist-info/METADATA` made `importlib.metadata.version("dill")` return `None`, so `datasets/config.py` crashed on `version.parse(None)`. The Step-156 EDIS demo never hit this because it was a *single* job (no race). **Fix**: node-local per-job `PYTHONUSERBASE=/tmp/pyuserbase_$SLURM_JOB_ID` + explicit `pip install --user` — isolates each job's install and keeps the poisoned `$HOME/.local` off `sys.path`. Cleaned the poisoned dir once.
+2. **Pyxis `--container-name` collision.** Two jobs landing on one node raced to first-create the same named enroot rootfs (`error: pyxis: File already exists: .../pyxis_ngc_pytorch_2501`); the loser died. **Fix**: dropped the static `--container-name` — anonymous per-job containers can't collide (the image squashfs stays enroot-cached, so re-import stays cheap).
+
+Both fixed in `cluster/submit_inference.sbatch(.template)`, resynced, and **re-validated by running 3 jobs concurrently with zero corruption**. Concurrent submission is now safe. (These are the only cluster changes; the `spectral_utils` Step-161 fixes were already on disk and shipped by sync.)
+
+**Cells that RAN (5 VALID, full N) — each stored at `$SHARED/results/repgrid/<preset_id>/`:**
+
+| preset_id | model | N × K | T | acc | mean trace | capture | published anchor |
+|---|---|---|---|---|---|---|---|
+| losnet_hotpotqa_mistral7b | Mistral-7B-Instruct-v0.2 | 500 × 1 | 0.0 | 0.338 | 95 | top-1000 logprobs | LOS-Net 72.92 (G3 gate) |
+| lapeigvals_gsm8k_llama8b | Llama-3.1-8B-Instruct | 500 × 1 | 1.0 | 0.724 | 168 | — | LapEigvals 92.5\* |
+| spilled_triviaqa_llama8b | Llama-3.1-8B-Instruct | 500 × 1 | 1.0 | 0.320 | 18 | logsumexp (raw) | EPR / Semantic / Spilled Energy |
+| se_squad_v2_llama8b | Llama-3.1-8B-Instruct | 1000 × 10 | 0.5 | 0.606 | 9 | logsumexp (raw) | SE-ICLR |
+| truthfulqa_llama8b | Llama-3.1-8B-Instruct | 817 × 10 | 0.5 | 0.222 | 128 | logsumexp (raw) | SE-ICLR (proxy label) |
+
+\* LapEigvals 92.5 = their *supervised* probe on Mistral-Small-24B; this cell runs our unsupervised L-SML continuous on the gsm8k trace (honest same-cell anchor ~72). LapEigvals's own attention-Laplacian number is deferred (see "did NOT run").
+
+**Where everything is stored (future reference):**
+- **Cluster (canonical):** `$SHARED/results/repgrid/<preset_id>/{raw_<dataset>_T<temp>.pkl, manifest.json}`, where `$SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1`. On the 10 TB shared FS; ~1.5 GB total. Job logs: `$SHARED/logs/spectral_infer_<jobid>.out`. pkl names: losnet `raw_hotpotqa_T0.0.pkl`, lapeigvals `raw_gsm8k_T1.0.pkl`, spilled `raw_trivia_qa_T1.0.pkl`, se_squad `raw_squad_v2_T0.5.pkl`, truthfulqa `raw_truthfulqa_T0.5.pkl`, inside `raw_coqa_T0.5.pkl`.
+- **Local (fetched, analysis-ready):** `cache/repgrid/<preset_id>/` — all 5 VALID pkls + the 3 paused pilots + manifests. **gitignored (large) — do NOT commit.** losnet is 857 MB (top-1000 logprobs); fetch is ~0.9 MB/s over VPN (losnet ~16 min alone — fetch it in the background).
+- Each `manifest.json` carries full provenance: paper/model/dataset/split/N/K/T/capture flags/job_id/seed + a per-temp gate cell (accuracy, mean_trace, pos/neg/minority, gate_ok, gate_reasons).
+
+**Rich-save schema confirmed on real B200 output** (validated locally with `validate_cell.py`): the 7 base keys (`full_text`, `token_entropies`, `token_spilled_energies`, `token_offsets`, `top_k_logprobs`, `gen_token_ids`, `label`) present on every candidate; the Step-161 energy keys (`token_logsumexp` + `top_k_logprobs_raw`) present exactly where `capture=logsumexp` (spilled, se_squad, truthfulqa) and absent otherwise; `hidden_middle_last` (4096-d fp16) on the INSIDE cell; `top_k_logprobs` = {ids int32[T,K], logprobs float32[T,K]} with K=1000 for losnet, else 50. **Step-161 energy fix verified effective on cluster data**: token-0 raw full-vocab logsumexp vs sampling-masked = **22.8 / 29.1 / 24.2 nats** on the three energy cells — proves the true Z_n is captured, not the temperature-warped distribution. `extract_all_features` yields **0 genuinely non-finite** features on all cells; short traces correctly return `None` (`token_offsets` is len T−1..T−2 by design — decode→re-tokenize round-trip; callers trim to min, documented in `model_utils.py`).
+
+**What did NOT run, and why:**
+- **inside_coqa_llama7b — PAUSED (acc 0.183 < band [0.20, 0.85]).** llama-7b *base* (INSIDE's exact model) rambles ~162-token answers on CoQA, so the ROUGE-L>0.3 grader rarely fires. Kept as an N=30 pilot; `full_text` + `hidden_middle_last` are saved → re-gradeable offline (a lenient/substring grader may lift it in-band; INSIDE/EigenScore baseline is computable regardless). Not scaled.
+- **se_nq_open_llama8b — PAUSED (acc 0.067, hard floor).** Open-domain single-fact, Llama-8B terse → nearly all wrong. Likely a genuine boundary; energy features still computable from the pilot. N=30 pilot only.
+- **sciq_llama8b — PAUSED (acc 0.900 > band, ceiling).** 4-way MCQ too easy for Llama-8B → too few errors to score a trustworthy AUROC. N=30 pilot only.
+- **LapEigvals attention-Laplacian capture + HSAD layer-FFT reducers — still `NotImplementedError`** (on-GPU reducers not built). The lapeigvals cell therefore produced only our L-SML trace data on gsm8k; LapEigvals's own number stays deferred (Step 160 note).
+- **Offline scoring itself** — out of scope by design (cluster = inference only). No L-SML / logprob / energy AUROCs computed yet.
+
+**How to reproduce / extend (future agent):** `bash cluster/sync_code.sh` → `ssh aircc "cd $SHARED/code && sbatch -p power-gpu --qos=owner_880 cluster/submit_inference.sbatch --preset <id> [--n-samples 30] --out $SHARED/results/repgrid/<id>"`. Pilot and full-N **share the same `--out`** (idx-aligned resume reuses pilot work). **Reading the gate**: `min_minority=30` always REJECTs a K=1 pilot at N=30 — decide scaling by accuracy in-band + trace not pinned at max_new, NOT the printed VALID/REJECT flag. Job-ID trail: pilots 98667–98670 (first wave — 98667 pyxis, 98668/98670 dill, **98669 spilled won the race and completed**), resubmit 98683–98685, Wave 2 (3 scale + 4 QA pilots) 98714–98720, Wave 3 (se_squad + truthfulqa full-N) 99089–99090. Owner queue `power-gpu`/`owner_880` had zero wait; all models now cached in `$SHARED/hf_cache` (Mistral-7B, Llama-3.1-8B, llama-7b) so re-runs skip downloads.
+
+**Result**: 5 apples-to-apples VALID cells are on disk locally, schema-validated and analysis-ready, each sitting next to its published anchor; 3 cells honestly flagged out-of-band with raw data preserved for offline re-grading. All four capture paths (base / raw-energy / wide-logprob / hidden-state) confirmed on real B200 output. Nothing scored yet — offline L-SML continuous + logprob/energy scoring on the 5 cells is the next task (local CPU). Cluster grid run: **complete**.
+
+**Files changed**: `cluster/submit_inference.sbatch.template` (+ regenerated live `cluster/submit_inference.sbatch`, gitignored/token) — node-local `PYTHONUSERBASE` + `pip --user`; removed `--container-name`. Local analysis-ready data under `cache/repgrid/` (gitignored). Validator: `scratchpad/validate_cell.py`.
+
+---

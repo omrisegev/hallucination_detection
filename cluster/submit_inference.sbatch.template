@@ -24,7 +24,11 @@
 #SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
 #SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
 #SBATCH --container-workdir=/shared/cycle2_tau_averbuch_prj/omrisegev1/code
-#SBATCH --container-name=ngc_pytorch_2501
+# NOTE: no --container-name on purpose. A persistent NAMED container makes two jobs that
+# land on the same node race to first-create the same enroot rootfs
+# ("error: pyxis: File already exists: .../data/pyxis_ngc_pytorch_2501"), and the loser
+# dies (job 98667, first wave). Anonymous per-job containers cannot collide; the image
+# squashfs is still cached by enroot, so re-import stays cheap.
 
 set -uo pipefail
 
@@ -32,12 +36,19 @@ SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
 export HF_HOME=$SHARED/hf_cache
 export HF_DATASETS_CACHE=$SHARED/hf_cache/datasets
 export PIP_CACHE_DIR=$SHARED/pip_cache
+# Per-job, NODE-LOCAL pip install target. Concurrent jobs must NOT share a pip target:
+# the first wave ran `pip install` into the SHARED $HOME/.local at the same time and
+# corrupted each other (half-written dill-0.4.1.dist-info/METADATA -> datasets crashed on
+# `version.parse(None)`, killing jobs 98668/98670). A node-local PYTHONUSERBASE isolates
+# each job's install AND keeps the poisoned $HOME/.local off sys.path entirely.
+export PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID}
+mkdir -p "$PYTHONUSERBASE"
 # HuggingFace auth for gated models (huggingface_hub reads HF_TOKEN automatically).
 export HF_TOKEN=REPLACE_ME
 
 echo "[sbatch] job $SLURM_JOB_ID on $(hostname), args: $*"
 
-pip install -q -r cluster/requirements.txt
+pip install -q --user -r cluster/requirements.txt
 
 # exec replaces bash with python so SIGTERM from Slurm reaches the driver directly.
 exec python cluster/run_inference.py "$@"
