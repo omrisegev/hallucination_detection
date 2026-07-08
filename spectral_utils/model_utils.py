@@ -165,9 +165,65 @@ def extract_top_k_logprobs(scores, top_k: int = 50):
     return {"ids": np.stack(ids_rows), "logprobs": np.stack(lp_rows)}
 
 
+def token_logsumexp_from_scores(scores) -> list:
+    """
+    Compute per-token logsumexp of the FULL-vocab logits (the log-partition Z_n).
+
+    This is the blocking capture field for the energy baselines (EPR, Semantic Energy,
+    Spilled Energy). The raw logit of any token decomposes as
+        logit_i = logprob_i + logsumexp(logits)
+    so saving Z_n = logsumexp(scores[n]) alongside the top-K logprobs lets every raw
+    logit — and therefore every energy quantity — be reconstructed offline without
+    re-running the model.
+
+    Note: HuggingFace `scores` are the post-processed generation logits (already scaled
+    by the sampling temperature / top-k mask). For an unbiased energy signal, generate
+    the energy-paper cells at their protocol temperature and read Z_n as-is; do not
+    re-scale offline.
+
+    Args:
+        scores: tuple of (1, vocab_size) tensors from model.generate output_scores=True.
+
+    Returns:
+        List of float log-partition values, one per generated token.
+    """
+    return [torch.logsumexp(s[0], dim=-1).item() for s in scores]
+
+
+def _middle_last_hidden(hidden_states, layer=None):
+    """
+    Extract the last-token hidden state at a middle layer — the INSIDE/EigenScore
+    sentence embedding (arXiv 2402.03744 uses the int(L/2) layer, last token).
+
+    `hidden_states` is model.generate's output_hidden_states tuple: one entry per
+    generated step, each a tuple over (embeddings + L transformer layers), each of
+    shape (batch, seq_len_at_that_step, hidden). We take the final step's chosen layer
+    at its last position — the representation of the last generated token.
+
+    Args:
+        hidden_states: out.hidden_states from generate(output_hidden_states=True).
+        layer:         layer index into the per-step tuple. None -> int(L_total/2),
+                       where L_total = len(per-step tuple) = num_layers + 1.
+
+    Returns:
+        float16 numpy vector [hidden_dim], or None if hidden_states is empty.
+    """
+    if not hidden_states:
+        return None
+    last_step = hidden_states[-1]            # tuple over layers for the final token
+    idx = len(last_step) // 2 if layer is None else layer
+    vec = last_step[idx][0, -1, :]
+    return vec.float().cpu().numpy().astype(np.float16)
+
+
 def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
                   K: int = 15, max_new_tokens: int = 512,
-                  logprob_top_k: int = 50, **kwargs):
+                  logprob_top_k: int = 50,
+                  gen_top_p: float = None, gen_top_k: int = 50,
+                  capture_logsumexp: bool = False,
+                  capture_hidden: bool = False, hidden_layer: int = None,
+                  capture_attention: bool = False, capture_layer_fft: bool = False,
+                  **kwargs):
     """
     Generate a response and return text, per-token entropies, spilled energies, and char offsets.
 
@@ -181,6 +237,18 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
         logprob_top_k:  Top-K entries to keep in 'top_k_logprobs' (0 disables — saves
                         memory/disk when raw logprobs are not needed).
 
+    Replication-grid capture flags (all default OFF — the GOOD_5 / spectral path is
+    unchanged when every flag is False; only the listed extra key is added when True):
+        capture_logsumexp:  add 'token_logsumexp' (list[float], Z_n per token) —
+                            blocking field for the energy baselines.
+        capture_hidden:     add 'hidden_middle_last' (float16 [hidden_dim]) — the INSIDE
+                            /EigenScore last-token middle-layer sentence embedding.
+        hidden_layer:       explicit layer index for the hidden capture (default int(L/2)).
+        capture_attention:  reserved for LapEigvals (attention-Laplacian eigvals) — not
+                            yet implemented; raises so a preset never silently no-ops.
+        capture_layer_fft:  reserved for HSAD (layer-axis FFT scalars) — not yet
+                            implemented; raises so a preset never silently no-ops.
+
     Returns:
         dict with keys:
             'full_text':              str
@@ -192,7 +260,20 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
             'top_k_logprobs':         {'ids': int32 [T, K], 'logprobs': float32 [T, K]}
                                       or None when logprob_top_k=0
             'gen_token_ids':          list[int] — sampled token IDs
+            'token_logsumexp':        list[float] — only when capture_logsumexp=True
+            'hidden_middle_last':     float16 [hidden_dim] — only when capture_hidden=True
     """
+    if capture_attention:
+        raise NotImplementedError(
+            "capture_attention (LapEigvals attention-Laplacian reducer) is not yet "
+            "implemented — see replication-grid plan U-follow-up. Do not enable it in a "
+            "preset until the on-GPU reducer lands; scoring our L-SML needs only "
+            "token_entropies, so run the LapEigvals cell with capture_attention=False.")
+    if capture_layer_fft:
+        raise NotImplementedError(
+            "capture_layer_fft (HSAD layer-axis FFT reducer) is not yet implemented — "
+            "see replication-grid plan U-follow-up.")
+
     temp = kwargs.get("T", temperature)
     max_tokens = kwargs.get("max_new", max_new_tokens)
 
@@ -201,14 +282,17 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
     if "token_type_ids" in inputs:
         del inputs["token_type_ids"]
 
+    sampling = temp > 1e-4
     with torch.no_grad():
         out = mdl.generate(
             **inputs,
             max_new_tokens=max_tokens,
-            do_sample=True if temp > 1e-4 else False,
-            temperature=temp if temp > 1e-4 else None,
-            top_k=50 if temp > 1e-4 else None,
+            do_sample=sampling,
+            temperature=temp if sampling else None,
+            top_k=gen_top_k if sampling else None,
+            top_p=gen_top_p if (sampling and gen_top_p is not None) else None,
             output_scores=True,
+            output_hidden_states=capture_hidden,
             return_dict_in_generate=True,
             pad_token_id=tok.eos_token_id,
         )
@@ -221,7 +305,7 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
     encoding = tok(full_text, return_offsets_mapping=True, add_special_tokens=False)
     offsets  = encoding.offset_mapping
 
-    return {
+    result = {
         "full_text":              full_text,
         "token_entropies":        all_ents,
         "token_spilled_energies": all_spilled,
@@ -229,3 +313,8 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
         "top_k_logprobs":         top_k_lp,
         "gen_token_ids":          gen_ids.tolist(),
     }
+    if capture_logsumexp:
+        result["token_logsumexp"] = token_logsumexp_from_scores(out.scores)
+    if capture_hidden:
+        result["hidden_middle_last"] = _middle_last_hidden(out.hidden_states, hidden_layer)
+    return result

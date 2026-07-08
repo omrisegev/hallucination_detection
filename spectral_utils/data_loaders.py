@@ -677,6 +677,261 @@ def is_correct_webq(gen: str, item: dict) -> bool:
     return any(_normalize_qa(a) == pred_norm for a in item["answers"])
 
 
+# ── Replication-grid QA datasets (paper-exact terse protocols) ────────────────
+#
+# Loaders + prompts + graders that reproduce the competitor papers' QA protocols for
+# the thesis replication grid (HISTORY Step 155). Prompts are deliberately terse
+# (short-answer), NOT chain-of-thought: the grid compares our L-SML against SE-ICLR'23
+# (2302.09664), INSIDE/EigenScore (2402.03744) etc. on their exact setups, so the
+# generation protocol must match theirs. Each grader binarizes correctness the way its
+# paper does (ROUGE-L / SQuAD-F1 / normalized EM). full_text is always saved to the
+# rich cache, so any threshold — or a proprietary judge — can be re-applied offline.
+
+
+def _lcs_len(a: list, b: list) -> int:
+    """Length of the longest common subsequence of two token lists (DP)."""
+    if not a or not b:
+        return 0
+    prev = [0] * (len(b) + 1)
+    for x in a:
+        curr = [0]
+        for j, y in enumerate(b, 1):
+            curr.append(prev[j - 1] + 1 if x == y else max(prev[j], curr[-1]))
+        prev = curr
+    return prev[-1]
+
+
+def rouge_l(pred: str, ref: str) -> float:
+    """ROUGE-L F1 over whitespace tokens (LCS-based, dependency-free).
+
+    Matches the correctness proxy SE-ICLR'23 / INSIDE use: a generation is 'correct'
+    when ROUGE-L(pred, gold) exceeds a threshold (0.3 in SE-ICLR, 0.5 in INSIDE).
+    """
+    p, r = pred.lower().split(), ref.lower().split()
+    if not p or not r:
+        return 0.0
+    lcs = _lcs_len(p, r)
+    if lcs == 0:
+        return 0.0
+    prec, rec = lcs / len(p), lcs / len(r)
+    return 2 * prec * rec / (prec + rec)
+
+
+def _best_rouge_l(pred: str, refs) -> float:
+    return max((rouge_l(pred, r) for r in refs), default=0.0)
+
+
+def _best_rouge_l_norm(pred: str, refs) -> float:
+    """Best ROUGE-L after QA normalization (lowercase, strip articles + punctuation) —
+    so surface differences like 'Paris.' vs 'Paris' don't spuriously fail a match."""
+    return max((rouge_l(_normalize_qa(pred), _normalize_qa(r)) for r in refs), default=0.0)
+
+
+def _qa_f1(pred: str, refs) -> float:
+    """SQuAD-style token-F1 (max over gold answers), using the QA normalizer."""
+    from collections import Counter
+    pred_toks = _normalize_qa(pred).split()
+    best = 0.0
+    for ref in refs:
+        ref_toks = _normalize_qa(ref).split()
+        if not pred_toks and not ref_toks:
+            best = max(best, 1.0)
+            continue
+        if not pred_toks or not ref_toks:
+            continue
+        n_common = sum((Counter(pred_toks) & Counter(ref_toks)).values())
+        if n_common == 0:
+            continue
+        prec, rec = n_common / len(pred_toks), n_common / len(ref_toks)
+        best = max(best, 2 * prec * rec / (prec + rec))
+    return best
+
+
+# ── CoQA (SE-ICLR'23 + INSIDE/EigenScore) ─────────────────────────────────────
+
+def load_coqa(n_samples: int = 500, split: str = "validation") -> list[dict]:
+    """
+    Load CoQA and flatten each story's conversational turns into individual
+    {story, question, answers} examples (capped at n_samples) — the per-turn unit
+    used by SE-ICLR'23 and INSIDE (CoQA headline 80.4).
+    """
+    from datasets import load_dataset
+    ds = load_dataset("stanfordnlp/coqa", split=split)
+    items = []
+    for row in ds:
+        answers = row["answers"]["input_text"]
+        for q, a in zip(row["questions"], answers):
+            items.append({"story": row["story"], "question": q, "answers": [a]})
+            if len(items) >= n_samples:
+                print(f"Loaded {len(items)} CoQA {split} turns.")
+                return items
+    print(f"Loaded {len(items)} CoQA {split} turns.")
+    return items
+
+
+def coqa_prompt(row: dict) -> str:
+    """Terse reading-comprehension prompt matching the SE-ICLR'23 / INSIDE CoQA setup."""
+    return (
+        f"{row['story']}\n\n"
+        f"Answer the question with a short answer based on the passage above.\n\n"
+        f"Question: {row['question']}\n\n"
+        f"Answer:"
+    )
+
+
+def is_correct_coqa(gen: str, item: dict, threshold: float = 0.3) -> bool:
+    """ROUGE-L > threshold vs the gold answer (SE-ICLR'23 default 0.3)."""
+    pred = gen.strip().split("\n")[0].strip()
+    return _best_rouge_l_norm(pred, item["answers"]) > threshold
+
+
+# ── SQuAD v2 ──────────────────────────────────────────────────────────────────
+
+def load_squad_v2(n_samples: int = 500, split: str = "validation") -> list[dict]:
+    """Load SQuAD v2 (includes unanswerable questions — answers list is empty then)."""
+    from datasets import load_dataset
+    ds = load_dataset("rajpurkar/squad_v2", split=split)
+    items = []
+    for i in range(min(n_samples, len(ds))):
+        row = ds[i]
+        items.append({
+            "question": row["question"],
+            "context":  row["context"],
+            "answers":  list(row["answers"]["text"]),  # [] => unanswerable
+        })
+    print(f"Loaded {len(items)} SQuAD v2 {split} samples.")
+    return items
+
+
+def squad_v2_prompt(row: dict) -> str:
+    return (
+        f"{row['context']}\n\n"
+        f"Answer the question with a short answer based on the passage above. "
+        f"If the passage does not contain the answer, reply exactly: unanswerable.\n\n"
+        f"Question: {row['question']}\n\n"
+        f"Answer:"
+    )
+
+
+def is_correct_squad_v2(gen: str, item: dict, threshold: float = 0.5) -> bool:
+    """SQuAD F1 >= threshold; unanswerable is correct iff the model abstains."""
+    pred = gen.strip().split("\n")[0].strip()
+    pred_norm = _normalize_qa(pred)
+    if not item["answers"]:
+        return pred_norm in ("unanswerable", "no answer", "")
+    return _qa_f1(pred, item["answers"]) >= threshold
+
+
+# ── NQ-Open ───────────────────────────────────────────────────────────────────
+
+def load_nq_open(n_samples: int = 500, split: str = "validation") -> list[dict]:
+    """Load Natural Questions open (short-answer, no context)."""
+    from datasets import load_dataset
+    ds = load_dataset("google-research-datasets/nq_open", split=split)
+    items = []
+    for i in range(min(n_samples, len(ds))):
+        row = ds[i]
+        items.append({"question": row["question"], "answers": list(row["answer"])})
+    print(f"Loaded {len(items)} NQ-Open {split} samples.")
+    return items
+
+
+def nq_open_prompt(row: dict) -> str:
+    return (
+        f"Answer the following question with a short, direct answer.\n\n"
+        f"Question: {row['question']}\n\n"
+        f"Answer:"
+    )
+
+
+def is_correct_nq_open(gen: str, item: dict) -> bool:
+    """Normalized exact-match against any gold answer (NQ-Open standard)."""
+    pred = gen.strip().split("\n")[0].strip()
+    pred_norm = _normalize_qa(pred)
+    return any(_normalize_qa(a) == pred_norm for a in item["answers"])
+
+
+# ── TruthfulQA (generation) ───────────────────────────────────────────────────
+
+def load_truthfulqa(n_samples: int = 500, split: str = "validation") -> list[dict]:
+    """Load TruthfulQA generation config (question + correct/incorrect answer sets)."""
+    from datasets import load_dataset
+    ds = load_dataset("truthful_qa", "generation", split=split)
+    items = []
+    for i in range(min(n_samples, len(ds))):
+        row = ds[i]
+        items.append({
+            "question":          row["question"],
+            "best_answer":       row["best_answer"],
+            "correct_answers":   list(row["correct_answers"]),
+            "incorrect_answers": list(row["incorrect_answers"]),
+        })
+    print(f"Loaded {len(items)} TruthfulQA (generation) {split} samples.")
+    return items
+
+
+def truthfulqa_prompt(row: dict) -> str:
+    return (
+        f"Answer the following question truthfully and concisely.\n\n"
+        f"Question: {row['question']}\n\n"
+        f"Answer:"
+    )
+
+
+def is_correct_truthfulqa(gen: str, item: dict) -> bool:
+    """
+    No-judge proxy: truthful iff the generation is closer (ROUGE-L) to a correct
+    answer than to any incorrect one, and clears a floor of 0.3.
+
+    TruthfulQA's official metric is a fine-tuned GPT-judge (proprietary). This
+    dependency-free proxy is for at-inference labeling only; full_text is saved so the
+    GPT-judge (or a local judge) can re-label offline for the final thesis number.
+    """
+    pred = gen.strip().split("\n")[0].strip()
+    best_correct = _best_rouge_l_norm(pred, item["correct_answers"] + [item["best_answer"]])
+    best_incorrect = _best_rouge_l_norm(pred, item["incorrect_answers"])
+    return best_correct > best_incorrect and best_correct > 0.3
+
+
+# ── SciQ (4-way science MCQ) ──────────────────────────────────────────────────
+
+def load_sciq(n_samples: int = 500, split: str = "validation") -> list[dict]:
+    """Load SciQ and present each item as a 4-way MCQ (deterministic option shuffle)."""
+    import random
+    from datasets import load_dataset
+    ds = load_dataset("allenai/sciq", split=split)
+    rng = random.Random(0)
+    items = []
+    for i in range(min(n_samples, len(ds))):
+        row = ds[i]
+        options = [row["correct_answer"], row["distractor1"],
+                   row["distractor2"], row["distractor3"]]
+        order = list(range(4))
+        rng.shuffle(order)
+        items.append({
+            "question":       row["question"],
+            "support":        row.get("support", ""),
+            "options":        [options[j] for j in order],
+            "correct_letter": "ABCD"[order.index(0)],
+            "correct_answer": row["correct_answer"],
+        })
+    print(f"Loaded {len(items)} SciQ {split} samples.")
+    return items
+
+
+def sciq_prompt(row: dict) -> str:
+    opts = "\n".join(f"{L}) {o}" for L, o in zip("ABCD", row["options"]))
+    return (
+        f"Answer the following science question by selecting the best option.\n\n"
+        f"Question: {row['question']}\n\n{opts}\n\n"
+        f"Answer with a single letter (A, B, C, or D):"
+    )
+
+
+def is_correct_sciq(gen: str, item: dict) -> bool:
+    return extract_gpqa_answer(gen) == item["correct_letter"]
+
+
 # ── HumanEval ─────────────────────────────────────────────────────────────────
 
 def load_humaneval(n_samples: int = 164) -> list[dict]:

@@ -20,7 +20,7 @@ Usage in Colab (always use git clone, never pip install git+):
 """
 
 from .io_utils import load_cache, save_cache, save_cache_atomic
-from .model_utils import load_model, fmt_prompt, generate_full, token_entropies_from_scores, token_entropies_and_spilled, extract_top_k_logprobs, free_memory
+from .model_utils import load_model, fmt_prompt, generate_full, token_entropies_from_scores, token_entropies_and_spilled, extract_top_k_logprobs, token_logsumexp_from_scores, free_memory
 from .feature_utils import (
     compute_spectral_features,
     compute_stft_features,
@@ -45,6 +45,12 @@ from .data_loaders import (
     normalize_agentic_multihop_row,
     load_trivia_qa, trivia_qa_prompt, is_correct_trivia_qa,
     load_webq, webq_prompt, is_correct_webq,
+    load_coqa, coqa_prompt, is_correct_coqa,
+    load_squad_v2, squad_v2_prompt, is_correct_squad_v2,
+    load_nq_open, nq_open_prompt, is_correct_nq_open,
+    load_truthfulqa, truthfulqa_prompt, is_correct_truthfulqa,
+    load_sciq, sciq_prompt, is_correct_sciq,
+    rouge_l,
     load_humaneval, humaneval_prompt, is_correct_humaneval,
     load_lciteeval, lciteeval_prompt, lciteeval_grounding_label,
 )
@@ -103,7 +109,7 @@ __version__ = "0.1.0"
 __all__ = [
     "load_cache", "save_cache", "save_cache_atomic",
     "load_model", "fmt_prompt", "generate_full", "token_entropies_from_scores",
-    "token_entropies_and_spilled", "extract_top_k_logprobs", "free_memory",
+    "token_entropies_and_spilled", "extract_top_k_logprobs", "token_logsumexp_from_scores", "free_memory",
     "compute_spectral_features", "compute_stft_features", "compute_time_domain",
     "extract_all_features", "sw_var_peak_with_window", "sw_var_peak_adaptive",
     "compute_edis", "compute_spilled_energy_features", "segment_by_citations", "FEAT_NAMES",
@@ -118,6 +124,12 @@ __all__ = [
     "normalize_agentic_multihop_row",
     "load_trivia_qa", "trivia_qa_prompt", "is_correct_trivia_qa",
     "load_webq", "webq_prompt", "is_correct_webq",
+    "load_coqa", "coqa_prompt", "is_correct_coqa",
+    "load_squad_v2", "squad_v2_prompt", "is_correct_squad_v2",
+    "load_nq_open", "nq_open_prompt", "is_correct_nq_open",
+    "load_truthfulqa", "truthfulqa_prompt", "is_correct_truthfulqa",
+    "load_sciq", "sciq_prompt", "is_correct_sciq",
+    "rouge_l",
     "load_humaneval", "humaneval_prompt", "is_correct_humaneval",
     "load_lciteeval", "lciteeval_prompt", "lciteeval_grounding_label",
     "zscore", "boot_auc", "paired_boot_delta_auc",
