@@ -1,0 +1,199 @@
+#!/usr/bin/env python
+"""
+smoke_preset.py — CPU-only pre-submit validation for a cluster preset.
+
+Catches the *pure-CPU* pilot bugs (Qwen3 empty-`<think>`, OPT-30B few-shot/raw_prompt,
+multimodal list-content `fmt_prompt`, grader / judge-parse) offline in seconds — so an
+N=30 cluster pilot only ever fails on a genuine GPU/model issue, not on prompt/label logic.
+Four of the six Step-163 pilot bugs were exactly this kind and each cost a full GPU round-trip.
+
+It runs the preset's REAL `prompt_fn` / `grader` / judge helpers (imported from the same
+source of truth the driver uses — `run_inference.DATASETS`, `spectral_utils.judge_utils`)
+on hand-made fixtures. It never loads the model and never touches the dataset. The tokenizer
+group is best-effort (needs `transformers` + model access); the grader and judge-parse groups
+are hard and network-free.
+
+Gate order (see CLAUDE.md): local smoke  ->  N=30 pilot  ->  full N.
+
+Usage:
+    python scripts/smoke_preset.py <preset_id> [<preset_id> ...]
+    python scripts/smoke_preset.py --all
+Exit code is nonzero iff a HARD check fails.
+"""
+import argparse
+import os
+import sys
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, REPO)
+sys.path.insert(0, os.path.join(REPO, "cluster"))  # so `presets` / `run_inference` resolve
+
+from presets import PRESETS                                   # cluster/presets.py (pure data)
+from run_inference import DATASETS                            # source-of-truth dataset -> triple
+from spectral_utils.judge_utils import (                      # pure-python (no transformers)
+    judge_prompt, _parse_decision, gold_answers_from_row,
+)
+
+PASS, FAIL, SKIP = "PASS", "FAIL", "SKIP"
+
+
+# ── Fixtures ──────────────────────────────────────────────────────────────────
+# Grader fixtures are chosen so the expected label is grader-AGNOSTIC: exact-match
+# (is_correct_trivia_qa) and ROUGE-L>0.3 (is_correct_trivia_qa_rougel) agree on all five,
+# so the same table validates every trivia_qa-family preset. Each row exercises a real
+# Step-163 failure mode.
+def _trivia_row(alias, q="What is the capital of France?"):
+    return {"question": q, "aliases": [alias], "answer_value": alias}
+
+
+GRADER_FIXTURES = {
+    "trivia_qa_family": [
+        ("Paris",                               _trivia_row("Paris"),  True,  "exact match"),
+        ("London",                              _trivia_row("Paris"),  False, "wrong answer"),
+        ("<think>\n\n</think>\n\nParis",         _trivia_row("Paris"),  True,  "Qwen3 empty-<think> stripped"),
+        ("Ross Bagdasarian\n\nQuestion: Who created Alvin?",
+         _trivia_row("Ross Bagdasarian", "Who created the Chipmunks?"), True,  "OPT-30B ramble -> first line only"),
+        ("",                                    _trivia_row("Paris"),  False, "empty generation"),
+    ],
+}
+
+# Judge-output parse fixtures (grader-agnostic). The critical one is 'incorrect', which
+# CONTAINS 'correct' — the parser must test the negative first (_parse_decision does).
+PARSE_FIXTURES = [
+    ("Final Decision: correct",                    True,  "plain correct"),
+    ("Final Decision: incorrect",                  False, "'incorrect' contains 'correct' (ordering guard)"),
+    ("The answer is wrong.\nFinal Decision: incorrect", False, "reasoned incorrect"),
+    ("Final Decision: Correct",                    True,  "capitalized"),
+    ("I am not sure.",                             False, "unparseable -> conservative False"),
+]
+
+
+def _fixture_family(dataset):
+    if dataset.startswith("trivia_qa"):
+        return "trivia_qa_family"
+    return None
+
+
+# ── Check groups ──────────────────────────────────────────────────────────────
+def check_grader(preset):
+    """HARD: the preset's real grader classifies the fixtures correctly."""
+    ds = preset["dataset"]
+    fam = _fixture_family(ds)
+    if fam is None:
+        return [("grader", ds, SKIP, "no fixtures for this dataset family — add one to GRADER_FIXTURES")]
+    _, _, grader = DATASETS[ds]
+    out = []
+    for gen, row, expected, desc in GRADER_FIXTURES[fam]:
+        try:
+            got = bool(grader(gen, row))
+            status = PASS if got == expected else FAIL
+            out.append(("grader", desc, status, f"grader={got} expected={expected}"))
+        except Exception as e:
+            out.append(("grader", desc, FAIL, f"raised {type(e).__name__}: {e}"))
+    return out
+
+
+def check_judge(preset):
+    """HARD (only when the preset uses an LLM judge): prompt build strips <think> and
+    embeds the gold; _parse_decision maps every canned verdict correctly."""
+    if preset.get("judge") is None:
+        return [("judge", "n/a", SKIP, "preset has no LLM judge (lexical/ROUGE-L grader)")]
+    out = []
+    q, gold = "What is the capital of France?", ["Paris"]
+    think_answer = "<think>\nlet me think, it might be Lyon\n</think>\n\nParis"
+    try:
+        p = judge_prompt(q, think_answer, gold)
+        checks = {
+            "non-empty": bool(p and p.strip()),
+            "contains gold 'Paris'": "Paris" in p,
+            "<think> stripped from answer": "<think>" not in p,
+            "has 'Final Decision' instruction": "Final Decision" in p,
+        }
+        for name, ok in checks.items():
+            out.append(("judge.prompt", name, PASS if ok else FAIL, ""))
+    except Exception as e:
+        out.append(("judge.prompt", "build", FAIL, f"raised {type(e).__name__}: {e}"))
+    for text, expected, desc in PARSE_FIXTURES:
+        try:
+            got = bool(_parse_decision(text))
+            out.append(("judge.parse", desc, PASS if got == expected else FAIL,
+                        f"parsed={got} expected={expected}"))
+        except Exception as e:
+            out.append(("judge.parse", desc, FAIL, f"raised {type(e).__name__}: {e}"))
+    # gold extraction from a stored gold_row (dataset-agnostic path used at label time)
+    try:
+        g = gold_answers_from_row(_trivia_row("Paris"))
+        out.append(("judge.gold", "gold_answers_from_row", PASS if "Paris" in g else FAIL, f"got={g}"))
+    except Exception as e:
+        out.append(("judge.gold", "gold_answers_from_row", FAIL, f"raised {type(e).__name__}: {e}"))
+    return out
+
+
+def check_prompt(preset):
+    """SOFT: mirror the driver's prompt construction (run_temp + generate_full). Needs
+    `transformers` + tokenizer access; SKIP (not FAIL) if unavailable — the load itself is
+    what the N=30 pilot exists to test. When the tokenizer DOES load, a raised exception here
+    is a real fmt_prompt / raw_prompt bug and fails."""
+    ds = preset["dataset"]
+    try:
+        from transformers import AutoTokenizer
+    except Exception as e:
+        return [("prompt", "tokenizer", SKIP, f"transformers unavailable locally ({type(e).__name__})")]
+    try:
+        tok = AutoTokenizer.from_pretrained(preset["model"])
+    except Exception as e:
+        return [("prompt", "tokenizer", SKIP, f"tokenizer load failed (gated/offline?): {type(e).__name__}")]
+    try:
+        _, prompt_fn, _ = DATASETS[ds]
+        row = _trivia_row("Paris") if _fixture_family(ds) else {"question": "What is 2+2?"}
+        msg = prompt_fn(row)
+        if preset.get("prompt_suffix"):
+            msg = f"{msg}{preset['prompt_suffix']}"
+        if preset.get("raw_prompt"):
+            prompt = msg                                     # base LM: no chat template
+        else:
+            from spectral_utils.model_utils import fmt_prompt
+            prompt = fmt_prompt(tok, msg)
+        ok = isinstance(prompt, str) and bool(prompt.strip())
+        mode = "raw_prompt" if preset.get("raw_prompt") else "fmt_prompt"
+        return [("prompt", mode, PASS if ok else FAIL, f"{len(prompt)} chars")]
+    except Exception as e:
+        return [("prompt", "build", FAIL, f"raised {type(e).__name__}: {e}")]
+
+
+def smoke_one(preset_id):
+    if preset_id not in PRESETS:
+        print(f"  UNKNOWN preset '{preset_id}' — known: {', '.join(sorted(PRESETS))}")
+        return False
+    preset = PRESETS[preset_id]
+    print(f"\n=== {preset_id} | {preset['model']} | dataset={preset['dataset']} | "
+          f"judge={preset.get('judge')} | raw_prompt={preset.get('raw_prompt')} ===")
+    rows = check_grader(preset) + check_judge(preset) + check_prompt(preset)
+    hard_fail = 0
+    for group, name, status, detail in rows:
+        soft = group.startswith("prompt")                    # prompt group is best-effort
+        if status == FAIL and not soft:
+            hard_fail += 1
+        mark = {"PASS": "ok  ", "FAIL": "FAIL", "SKIP": "skip"}[status]
+        print(f"  [{mark}] {group:14s} {name:44s} {detail}")
+    verdict = "PASS" if hard_fail == 0 else f"FAIL ({hard_fail} hard)"
+    print(f"  ---> {preset_id}: {verdict}")
+    return hard_fail == 0
+
+
+def main():
+    ap = argparse.ArgumentParser(description="CPU-only pre-submit validation for a cluster preset.")
+    ap.add_argument("presets", nargs="*", help="preset id(s) to smoke-test")
+    ap.add_argument("--all", action="store_true", help="smoke-test every preset")
+    args = ap.parse_args()
+
+    ids = sorted(PRESETS) if args.all else args.presets
+    if not ids:
+        ap.error("give one or more preset ids, or --all")
+    ok_all = all([smoke_one(pid) for pid in ids])
+    print(f"\n{'ALL PRESETS PASS' if ok_all else 'SOME PRESETS FAILED'} ({len(ids)} tested)")
+    sys.exit(0 if ok_all else 1)
+
+
+if __name__ == "__main__":
+    main()

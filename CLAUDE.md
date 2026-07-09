@@ -218,7 +218,8 @@ Full reference: [cluster/README.md](cluster/README.md). Rules that must never be
 - Code reaches the cluster via `bash cluster/sync_code.sh` (tar-over-ssh) — never rely on
   Claude pushing to GitHub (credentials are not available in-session).
 - Workflow: `/aircc-setup` (once) → `/aircc-submit` → `/aircc-status` → `/aircc-fetch`.
-  For repeated polling, spawn the `cluster-ops` sub-agent instead of looping in the main context.
+- **All cluster polling / log-tailing goes through `/aircc-status` or the `cluster-ops` sub-agent — never raw `ssh aircc "squeue/sacct/tail"` loops in the main context.** Each raw ssh re-prints the login banner and dumps full logs into context; the sub-agent returns a one-line verdict. (Step-163 retro: inline ssh polling was the single biggest recurring token sink.)
+- **A new `cluster/presets.py` preset MUST pass `python scripts/smoke_preset.py <id>` (CPU-only) before it is submitted.** It runs the preset's real prompt/grader/judge helpers on fixtures — catching prompt / grader / judge-parse bugs offline instead of via a GPU round-trip (4 of the 6 Step-163 pilot bugs were this kind). Gate order: **local smoke → N=30 pilot → full N.**
 
 ---
 
@@ -269,6 +270,10 @@ else:
 ```
 
 Same pattern as Cell 6's `run_inference_for_cell` checkpoint logic. Apply it to every cell that takes more than ~30 seconds.
+
+**Local offline scoring — token/time economy** (Step-163 retro):
+- **Scoring or feature-extracting a cell >100 MB or K≥10 runs in the background** (`run_in_background: true`) with a generous timeout — never a foreground short timeout. The 857 MB losnet cell timed out at `timeout 400` and had to be re-run; K=10 FFT extraction on a big pkl needs minutes.
+- **Inspect any cell's schema with `python scripts/inspect_cell.py <pkl|preset_dir>` before scoring** — it prints N/K, label dist, trace lengths, key-presence (base + energy + judge keys), and the extractable feature set + valid-rate. This replaces ad-hoc `python -c` pkl spelunking.
 
 **Known package gap**: `model_utils.py` still uses `device_map="auto"`. Safe for AWQ and small models. For 72B BNB, override in the notebook or patch the package before the run.
 

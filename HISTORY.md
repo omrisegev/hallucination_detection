@@ -5219,3 +5219,47 @@ Against the two current strong *single-answer* baselines on TriviaQA (EPR K=1, S
 **Result**: The core thesis claim now has clean head-to-head evidence — an unsupervised single-signal spectral method **ties EPR and beats Semantic Energy on TriviaQA under identical conditions**, while the honest losses (SE-ICLR sampling regime, LOS-Net supervised probe) are documented with their reasons. whatis confirms 4-5 features is the QA sweet spot and the new energy/logprob views help short-QA (not reasoning). Replication grid: **scored + reported**.
 
 ---
+
+### Step 164 — Workflow token-economy tooling: smoke_preset + inspect_cell + 3 CLAUDE.md rules (from the Step-163 retro)
+
+**What**: Turned the Step-163 retro's findings into standing tooling + rules. Two CPU-only scripts and
+three CLAUDE.md rules. The PDF text-cache + latent-space (RAG) paper-search idea was scoped in but
+**deferred to a separate design pass** (Omri's call) — groundwork facts recorded in the plan.
+
+**Why**: The replication-grid arc leaked tokens/time in three recurring ways — (1) polling the cluster with
+raw `ssh` in the main context (login banner + full log dumps every call), (2) six pilot bugs each caught by a
+full GPU round-trip when 4 were pure-CPU logic, (3) re-discovering the pkl schema with throwaway `python -c`.
+
+**Built:**
+- `scripts/smoke_preset.py <id>` — CPU-only pre-submit validator. Runs the preset's REAL prompt/grader/judge
+  helpers (imported from the source of truth: `run_inference.DATASETS`, `spectral_utils.judge_utils`) on
+  hand-made fixtures — no model load, no dataset. Three groups: grader (hard; 5 fixtures incl. the Qwen3
+  empty-`<think>` and OPT-30B ramble regression cases, expected labels grader-agnostic so one table validates
+  every trivia_qa-family preset), judge prompt+parse (hard; incl. the `incorrect`⊃`correct` ordering guard),
+  tokenizer/prompt path (soft; SKIP if `transformers`/tokenizer unavailable). Exit nonzero on any hard fail.
+  **Verified**: all 3 new presets PASS; a tampered fixture correctly forces FAIL (regression guard works).
+- `scripts/inspect_cell.py <pkl|preset_dir>` — standard schema report: N/K (uniform vs ragged), label dist +
+  judge-vs-lexical agreement, trace lengths (+ `<8 tok` no-spectral count), per-candidate key presence
+  (7 base + energy `token_logsumexp`/`top_k_logprobs_raw` + judge + hidden), and extractable features + valid-rate
+  via the real `load_repgrid_cell`. **Verified** on semenergy (K=10, acc 0.493, logsumexp+judge present,
+  GOOD_5 valid 0.88) and losnet (K=1, 899 MB top-1000 logprobs, no energy keys).
+
+**Three CLAUDE.md rules** (AIRCC + analysis-persistence sections): (1) all cluster polling/log-tailing goes
+through `/aircc-status` or the `cluster-ops` sub-agent — never raw `ssh squeue/sacct/tail` in the main context;
+(2) a new preset MUST pass `smoke_preset.py` before submission (gate order: local smoke → N=30 pilot → full N);
+(3) scoring/extraction on a cell >100 MB or K≥10 runs in the background with a generous timeout, and inspect
+schema with `inspect_cell.py` before scoring.
+
+**Deferred (separate design pass): PDF text-cache + RAG.** Idea: on first read of a `papers/*.pdf`, mechanically
+extract text to a committable `papers/extracted/*.md` (PyMuPDF `fitz` is installed; `*.pdf` is gitignored but the
+`.md` is not, so it persists across clones — "read the extract, not the PDF next time"); Phase 2 adds latent-space
+search (fork: zero-dep sklearn TF-IDF vs a sentence-transformers embedder — no embed libs installed yet).
+
+**Files changed**: new `scripts/smoke_preset.py`, `scripts/inspect_cell.py`; modified `CLAUDE.md` (3 rules).
+No package/model/cluster changes.
+
+**Result**: The two cheapest high-leverage retro wins are now standing tooling with enforcing rules — future
+preset bugs get caught on CPU in seconds, cluster polling stays out of the main context, and cell schemas are
+one command away. PDF/RAG captured for a dedicated design session.
+
+---
