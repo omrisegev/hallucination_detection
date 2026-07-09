@@ -1,0 +1,177 @@
+cell,model,dataset,n_problems,acc,subset,method,n_feats,auroc_X,lo,hi,n_rows,valid_rate,published_Y,Y_method,delta_X_minus_Y,head_to_head,flipped
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,consensus_4,lsml,4,0.6708,0.6247,0.7154,621,0.621,0.746,EPR,-0.0752,SAME-MODEL,True
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,consensus_4,upcr,4,0.7097,0.6639,0.753,621,0.621,0.746,EPR,-0.0363,SAME-MODEL,False
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,GOOD_5,lsml,5,0.7073,0.6609,0.7523,621,0.621,0.746,EPR,-0.0387,SAME-MODEL,False
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,GOOD_5,upcr,5,0.7282,0.6843,0.7717,621,0.621,0.746,EPR,-0.0178,SAME-MODEL,False
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,top_macro_5,lsml,5,0.7032,0.6557,0.7478,621,0.621,0.746,EPR,-0.0428,SAME-MODEL,True
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,top_macro_5,upcr,5,0.7282,0.6843,0.7717,621,0.621,0.746,EPR,-0.0178,SAME-MODEL,False
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,STABLE_H9,lsml,9,0.6789,0.629,0.7262,621,0.621,0.746,EPR,-0.0671,SAME-MODEL,False
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,STABLE_H9,upcr,9,0.7275,0.683,0.7713,621,0.621,0.746,EPR,-0.0185,SAME-MODEL,False
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,ALL_H16,lsml,16,0.6678,0.6218,0.715,621,0.621,0.746,EPR,-0.0782,SAME-MODEL,False
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,ALL_H16,upcr,16,0.6766,0.6293,0.723,621,0.621,0.746,EPR,-0.0694,SAME-MODEL,False
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,GOOD_5+spilled,lsml,9,0.7207,0.6758,0.763,621,0.621,0.746,EPR,-0.0253,SAME-MODEL,True
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,GOOD_5+spilled,upcr,9,0.686,0.6377,0.7322,621,0.621,0.746,EPR,-0.06,SAME-MODEL,False
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,GOOD_5+energy,lsml,9,0.7315,0.6897,0.7723,621,0.621,0.746,EPR,-0.0145,SAME-MODEL,False
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,GOOD_5+energy,upcr,9,0.7174,0.6743,0.7603,621,0.621,0.746,EPR,-0.0286,SAME-MODEL,False
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,GOOD_5+logprob,lsml,8,0.7312,0.6859,0.7757,621,0.621,0.746,EPR,-0.0148,SAME-MODEL,False
+epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,1000,0.786,GOOD_5+logprob,upcr,8,0.7358,0.6891,0.7795,621,0.621,0.746,EPR,-0.0102,SAME-MODEL,False
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,consensus_4,lsml,4,0.4729,0.3927,0.5528,249,0.83,0.804,INSIDE,-0.3311,,True
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,consensus_4,upcr,4,0.4499,0.3745,0.5272,249,0.83,0.804,INSIDE,-0.3541,,False
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,GOOD_5,lsml,5,0.5333,0.4476,0.6062,249,0.83,0.804,INSIDE,-0.2707,,True
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,GOOD_5,upcr,5,0.4705,0.3896,0.5473,249,0.83,0.804,INSIDE,-0.3335,,True
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,top_macro_5,lsml,5,0.5786,0.5038,0.657,249,0.83,0.804,INSIDE,-0.2254,,True
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,top_macro_5,upcr,5,0.6519,0.5753,0.7268,249,0.83,0.804,INSIDE,-0.1521,,False
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,STABLE_H9,lsml,9,0.524,0.4444,0.6099,249,0.83,0.804,INSIDE,-0.28,,False
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,STABLE_H9,upcr,9,0.563,0.4824,0.6472,249,0.83,0.804,INSIDE,-0.241,,False
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,ALL_H16,lsml,16,0.5477,0.468,0.627,249,0.83,0.804,INSIDE,-0.2563,,False
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,ALL_H16,upcr,16,0.5697,0.4907,0.6532,249,0.83,0.804,INSIDE,-0.2343,,False
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,GOOD_5+spilled,lsml,9,0.5594,0.4793,0.6387,249,0.83,0.804,INSIDE,-0.2446,,False
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,GOOD_5+spilled,upcr,9,0.5351,0.4505,0.6123,249,0.83,0.804,INSIDE,-0.2689,,True
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,GOOD_5+energy,lsml,5,0.5333,0.4476,0.6062,249,0.83,0.804,INSIDE,-0.2707,,True
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,GOOD_5+energy,upcr,5,0.4705,0.3896,0.5473,249,0.83,0.804,INSIDE,-0.3335,,True
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,GOOD_5+logprob,lsml,8,,,,0,0.0,0.804,INSIDE,,,
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,30,0.1833,GOOD_5+logprob,upcr,8,,,,0,0.0,0.804,INSIDE,,,
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,consensus_4,lsml,4,0.7634,0.71,0.8087,500,1.0,0.925,LapEigvals,-0.1616,,False
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,consensus_4,upcr,4,0.7916,0.7384,0.8325,500,1.0,0.925,LapEigvals,-0.1334,,False
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,GOOD_5,lsml,5,0.8152,0.7678,0.8541,500,1.0,0.925,LapEigvals,-0.1098,,False
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,GOOD_5,upcr,5,0.8119,0.7625,0.8524,500,1.0,0.925,LapEigvals,-0.1131,,False
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,top_macro_5,lsml,5,0.8088,0.7606,0.8508,500,1.0,0.925,LapEigvals,-0.1162,,True
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,top_macro_5,upcr,5,0.8029,0.7509,0.8443,500,1.0,0.925,LapEigvals,-0.1221,,False
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,STABLE_H9,lsml,9,0.8048,0.7556,0.8478,500,1.0,0.925,LapEigvals,-0.1202,,True
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,STABLE_H9,upcr,9,0.7826,0.7322,0.8298,500,1.0,0.925,LapEigvals,-0.1424,,False
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,ALL_H16,lsml,16,0.7945,0.7441,0.8372,500,1.0,0.925,LapEigvals,-0.1305,,True
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,ALL_H16,upcr,16,0.738,0.6892,0.7852,500,1.0,0.925,LapEigvals,-0.187,,True
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,GOOD_5+spilled,lsml,9,0.8061,0.7586,0.8458,500,1.0,0.925,LapEigvals,-0.1189,,True
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,GOOD_5+spilled,upcr,9,0.7535,0.6992,0.8004,500,1.0,0.925,LapEigvals,-0.1715,,False
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,GOOD_5+energy,lsml,5,0.8152,0.7678,0.8541,500,1.0,0.925,LapEigvals,-0.1098,,False
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,GOOD_5+energy,upcr,5,0.8119,0.7625,0.8524,500,1.0,0.925,LapEigvals,-0.1131,,False
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,GOOD_5+logprob,lsml,8,0.8112,0.7626,0.8521,500,1.0,0.925,LapEigvals,-0.1138,,False
+lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,500,0.724,GOOD_5+logprob,upcr,8,0.7831,0.7337,0.8273,500,1.0,0.925,LapEigvals,-0.1419,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,consensus_4,lsml,4,0.5788,0.5254,0.632,500,1.0,0.7292000000000001,LOS-Net,-0.1504,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,consensus_4,upcr,4,0.58,0.5252,0.6336,500,1.0,0.7292000000000001,LOS-Net,-0.1492,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,GOOD_5,lsml,5,0.5754,0.5221,0.6301,500,1.0,0.7292000000000001,LOS-Net,-0.1538,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,GOOD_5,upcr,5,0.5777,0.524,0.6324,500,1.0,0.7292000000000001,LOS-Net,-0.1515,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,top_macro_5,lsml,5,0.5707,0.5186,0.6257,500,1.0,0.7292000000000001,LOS-Net,-0.1585,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,top_macro_5,upcr,5,0.5833,0.5297,0.6384,500,1.0,0.7292000000000001,LOS-Net,-0.1459,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,STABLE_H9,lsml,9,0.5229,0.4717,0.5779,500,1.0,0.7292000000000001,LOS-Net,-0.2063,,True
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,STABLE_H9,upcr,9,0.5697,0.5172,0.6226,500,1.0,0.7292000000000001,LOS-Net,-0.1595,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,ALL_H16,lsml,16,0.5434,0.4915,0.5955,500,1.0,0.7292000000000001,LOS-Net,-0.1858,,True
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,ALL_H16,upcr,16,0.4933,0.4392,0.5482,500,1.0,0.7292000000000001,LOS-Net,-0.2359,,True
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,GOOD_5+spilled,lsml,9,0.5805,0.5289,0.6345,500,1.0,0.7292000000000001,LOS-Net,-0.1487,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,GOOD_5+spilled,upcr,9,0.552,0.5003,0.6085,500,1.0,0.7292000000000001,LOS-Net,-0.1772,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,GOOD_5+energy,lsml,5,0.5754,0.5221,0.6301,500,1.0,0.7292000000000001,LOS-Net,-0.1538,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,GOOD_5+energy,upcr,5,0.5777,0.524,0.6324,500,1.0,0.7292000000000001,LOS-Net,-0.1515,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,GOOD_5+logprob,lsml,8,0.5746,0.5224,0.6267,500,1.0,0.7292000000000001,LOS-Net,-0.1546,,False
+losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,500,0.338,GOOD_5+logprob,upcr,8,0.5576,0.5049,0.6123,500,1.0,0.7292000000000001,LOS-Net,-0.1716,,False
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,consensus_4,lsml,4,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,consensus_4,upcr,4,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,GOOD_5,lsml,5,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,GOOD_5,upcr,5,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,top_macro_5,lsml,5,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,top_macro_5,upcr,5,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,STABLE_H9,lsml,9,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,STABLE_H9,upcr,9,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,ALL_H16,lsml,16,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,ALL_H16,upcr,16,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,GOOD_5+spilled,lsml,9,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,GOOD_5+spilled,upcr,9,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,GOOD_5+energy,lsml,5,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,GOOD_5+energy,upcr,5,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,GOOD_5+logprob,lsml,8,,,,6,0.2,,,,,
+sciq_llama8b,meta-llama/Llama-3.1-8B-Instruct,sciq,30,0.9,GOOD_5+logprob,upcr,8,,,,6,0.2,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,consensus_4,lsml,4,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,consensus_4,upcr,4,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,GOOD_5,lsml,5,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,GOOD_5,upcr,5,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,top_macro_5,lsml,5,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,top_macro_5,upcr,5,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,STABLE_H9,lsml,9,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,STABLE_H9,upcr,9,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,ALL_H16,lsml,16,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,ALL_H16,upcr,16,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,GOOD_5+spilled,lsml,9,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,GOOD_5+spilled,upcr,9,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,GOOD_5+energy,lsml,9,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,GOOD_5+energy,upcr,9,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,GOOD_5+logprob,lsml,8,,,,258,0.86,,,,,
+se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,30,0.0667,GOOD_5+logprob,upcr,8,,,,258,0.86,,,,,
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,consensus_4,lsml,4,0.764,0.7418,0.7828,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,consensus_4,upcr,4,0.7406,0.7194,0.759,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,GOOD_5,lsml,5,0.7982,0.7776,0.8154,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,GOOD_5,upcr,5,0.7923,0.7723,0.8093,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,top_macro_5,lsml,5,0.8004,0.7811,0.8173,2933,0.293,,,,,True
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,top_macro_5,upcr,5,0.7608,0.7411,0.7785,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,STABLE_H9,lsml,9,0.749,0.7283,0.7697,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,STABLE_H9,upcr,9,0.6822,0.6636,0.7038,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,ALL_H16,lsml,16,0.7659,0.7462,0.785,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,ALL_H16,upcr,16,0.6995,0.6792,0.7167,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,GOOD_5+spilled,lsml,9,0.7961,0.7756,0.8131,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,GOOD_5+spilled,upcr,9,0.7894,0.7687,0.8073,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,GOOD_5+energy,lsml,9,0.8297,0.811,0.8449,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,GOOD_5+energy,upcr,9,0.8003,0.7799,0.8174,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,GOOD_5+logprob,lsml,8,0.7997,0.7798,0.8163,2933,0.293,,,,,False
+se_squad_v2_llama8b,meta-llama/Llama-3.1-8B-Instruct,squad_v2,1000,0.6059,GOOD_5+logprob,upcr,8,0.7649,0.7453,0.7821,2933,0.293,,,,,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,consensus_4,lsml,4,0.6304,0.6148,0.6452,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.1996,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,consensus_4,upcr,4,0.6197,0.6046,0.6344,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2103,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,GOOD_5,lsml,5,0.5948,0.5799,0.6097,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2352,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,GOOD_5,upcr,5,0.5895,0.5752,0.605,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2405,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,top_macro_5,lsml,5,0.5971,0.5828,0.612,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2329,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,top_macro_5,upcr,5,0.6067,0.5918,0.622,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2233,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,STABLE_H9,lsml,9,0.5329,0.5182,0.5483,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2971,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,STABLE_H9,upcr,9,0.5543,0.5391,0.5711,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2757,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,ALL_H16,lsml,16,0.5308,0.5152,0.5462,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2992,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,ALL_H16,upcr,16,0.514,0.4991,0.5298,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.316,SAME-MODEL,True
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,GOOD_5+spilled,lsml,9,0.5867,0.5717,0.6022,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2433,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,GOOD_5+spilled,upcr,9,0.5914,0.577,0.6067,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2386,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,GOOD_5+energy,lsml,9,0.5885,0.5738,0.603,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2415,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,GOOD_5+energy,upcr,9,0.5914,0.5768,0.6062,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2386,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,GOOD_5+logprob,lsml,8,0.5873,0.5725,0.603,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.2427,SAME-MODEL,False
+seiclr_triviaqa_opt30b,facebook/opt-30b,trivia_qa_rougel,500,0.4648,GOOD_5+logprob,upcr,8,0.59,0.5737,0.6055,4993,0.999,0.83,Semantic Entropy (SE-ICLR'23),-0.24,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,consensus_4,lsml,4,0.7443,0.7303,0.7593,4392,0.878,0.748,Semantic Energy,-0.0037,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,consensus_4,upcr,4,0.2457,0.2322,0.26,4392,0.878,0.748,Semantic Energy,-0.5023,SAME-MODEL,True
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,GOOD_5,lsml,5,0.8006,0.7871,0.8134,4392,0.878,0.748,Semantic Energy,0.0526,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,GOOD_5,upcr,5,0.7954,0.7823,0.8078,4392,0.878,0.748,Semantic Energy,0.0474,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,top_macro_5,lsml,5,0.7991,0.7863,0.8118,4392,0.878,0.748,Semantic Energy,0.0511,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,top_macro_5,upcr,5,0.7954,0.7823,0.8078,4392,0.878,0.748,Semantic Energy,0.0474,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,STABLE_H9,lsml,9,0.7377,0.7228,0.7517,4392,0.878,0.748,Semantic Energy,-0.0103,SAME-MODEL,True
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,STABLE_H9,upcr,9,0.7314,0.7165,0.7459,4392,0.878,0.748,Semantic Energy,-0.0166,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,ALL_H16,lsml,16,0.7145,0.6995,0.7289,4392,0.878,0.748,Semantic Energy,-0.0335,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,ALL_H16,upcr,16,0.7961,0.7827,0.8098,4392,0.878,0.748,Semantic Energy,0.0481,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,GOOD_5+spilled,lsml,9,0.7877,0.7745,0.8006,4392,0.878,0.748,Semantic Energy,0.0397,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,GOOD_5+spilled,upcr,9,0.7719,0.7583,0.7856,4392,0.878,0.748,Semantic Energy,0.0239,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,GOOD_5+energy,lsml,9,0.706,0.6911,0.7209,4392,0.878,0.748,Semantic Energy,-0.042,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,GOOD_5+energy,upcr,9,0.6248,0.6082,0.6407,4392,0.878,0.748,Semantic Energy,-0.1232,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,GOOD_5+logprob,lsml,8,0.7705,0.7567,0.7838,4392,0.878,0.748,Semantic Energy,0.0225,SAME-MODEL,False
+semenergy_triviaqa_qwen3_8b,Qwen/Qwen3-8B,trivia_qa,500,0.4926,GOOD_5+logprob,upcr,8,0.7731,0.7597,0.7863,4392,0.878,0.748,Semantic Energy,0.0251,SAME-MODEL,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,consensus_4,lsml,4,0.962,0.9126,0.9954,256,0.512,,,,,True
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,consensus_4,upcr,4,0.9287,0.8786,0.9782,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,GOOD_5,lsml,5,0.934,0.8769,0.9911,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,GOOD_5,upcr,5,0.914,0.7952,0.992,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,top_macro_5,lsml,5,0.9453,0.8868,0.9921,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,top_macro_5,upcr,5,0.91,0.7821,0.9905,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,STABLE_H9,lsml,9,0.8967,0.7773,0.9902,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,STABLE_H9,upcr,9,0.7053,0.4941,0.8932,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,ALL_H16,lsml,16,0.9067,0.7913,0.996,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,ALL_H16,upcr,16,0.764,0.5981,0.9094,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,GOOD_5+spilled,lsml,9,0.9513,0.888,0.9941,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,GOOD_5+spilled,upcr,9,0.9307,0.8412,0.9902,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,GOOD_5+energy,lsml,9,0.926,0.8709,0.9862,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,GOOD_5+energy,upcr,9,0.9447,0.8825,0.992,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,GOOD_5+logprob,lsml,8,0.938,0.8343,0.9968,256,0.512,,,,,False
+spilled_triviaqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,trivia_qa,500,0.32,GOOD_5+logprob,upcr,8,0.8853,0.743,0.9934,256,0.512,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,consensus_4,lsml,4,0.6641,0.6489,0.6794,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,consensus_4,upcr,4,0.6675,0.6523,0.6828,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,GOOD_5,lsml,5,0.666,0.651,0.6816,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,GOOD_5,upcr,5,0.6769,0.6622,0.6923,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,top_macro_5,lsml,5,0.6786,0.664,0.6945,7633,0.934,,,,,True
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,top_macro_5,upcr,5,0.6769,0.6622,0.6923,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,STABLE_H9,lsml,9,0.6113,0.5958,0.6274,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,STABLE_H9,upcr,9,0.6393,0.6247,0.6544,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,ALL_H16,lsml,16,0.6514,0.637,0.6667,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,ALL_H16,upcr,16,0.6784,0.6636,0.694,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,GOOD_5+spilled,lsml,9,0.6737,0.6589,0.6896,7633,0.934,,,,,True
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,GOOD_5+spilled,upcr,9,0.6507,0.6353,0.6662,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,GOOD_5+energy,lsml,9,0.6701,0.6549,0.6858,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,GOOD_5+energy,upcr,9,0.6593,0.6436,0.6745,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,GOOD_5+logprob,lsml,8,0.6759,0.661,0.6924,7633,0.934,,,,,False
+truthfulqa_llama8b,meta-llama/Llama-3.1-8B-Instruct,truthfulqa,817,0.2219,GOOD_5+logprob,upcr,8,0.6499,0.6353,0.6654,7633,0.934,,,,,False

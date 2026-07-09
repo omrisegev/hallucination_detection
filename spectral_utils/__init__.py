@@ -44,6 +44,7 @@ from .data_loaders import (
     load_hotpotqa_agentic, load_2wikimultihopqa, load_agentic_multihop_dataset,
     normalize_agentic_multihop_row,
     load_trivia_qa, trivia_qa_prompt, is_correct_trivia_qa,
+    trivia_qa_fewshot_prompt, is_correct_trivia_qa_rougel,
     load_webq, webq_prompt, is_correct_webq,
     load_coqa, coqa_prompt, is_correct_coqa,
     load_squad_v2, squad_v2_prompt, is_correct_squad_v2,
@@ -79,6 +80,9 @@ from .baselines import (
     selfcheck_nli_score,
     selfcheck_nli_score_official,
     parse_verbalized_confidence, VERBALIZED_CONF_SUFFIX,
+)
+from .judge_utils import (
+    load_judge, judge_correct, judge_label_cache, gold_answers_from_row,
 )
 from .streaming_utils import (
     FEATURE_SIGNS, iter_entropy_traces, iter_trace_records, anchor_orient,
@@ -123,6 +127,7 @@ __all__ = [
     "load_hotpotqa_agentic", "load_2wikimultihopqa", "load_agentic_multihop_dataset",
     "normalize_agentic_multihop_row",
     "load_trivia_qa", "trivia_qa_prompt", "is_correct_trivia_qa",
+    "trivia_qa_fewshot_prompt", "is_correct_trivia_qa_rougel",
     "load_webq", "webq_prompt", "is_correct_webq",
     "load_coqa", "coqa_prompt", "is_correct_coqa",
     "load_squad_v2", "squad_v2_prompt", "is_correct_squad_v2",
@@ -153,6 +158,7 @@ __all__ = [
     "selfcheck_nli_score",
     "selfcheck_nli_score_official",
     "parse_verbalized_confidence", "VERBALIZED_CONF_SUFFIX",
+    "load_judge", "judge_correct", "judge_label_cache", "gold_answers_from_row",
     "FEATURE_SIGNS", "iter_entropy_traces", "iter_trace_records", "anchor_orient",
     "prefix_features", "prefix_feature_matrix",
     "deepconf_lowest_group_conf", "deepconf_tail_conf",

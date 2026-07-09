@@ -62,10 +62,24 @@ def load_model(model_id: str, quantize_4bit: bool = False):
         # "dtype" is the current kwarg name (transformers ≥4.50 deprecated "torch_dtype")
         kwargs["dtype"] = torch.bfloat16
 
-    mdl = AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
+    try:
+        mdl = AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
+        mm_tag = ""
+    except (ValueError, KeyError) as e:
+        # Multimodal checkpoints (Mistral3, Gemma3, ...) aren't AutoModelForCausalLM-mappable.
+        # Load the image-text-to-text class and drive it text-only (generate with input_ids
+        # only, no pixel_values) — the LM head still yields output_scores/output_logits, so
+        # entropy/logsumexp capture is unaffected.
+        from transformers import AutoModelForImageTextToText
+        mm_kwargs = dict(attn_implementation="eager", trust_remote_code=False,
+                         device_map="auto", dtype=torch.bfloat16)
+        print(f"AutoModelForCausalLM failed ({type(e).__name__}); loading {model_id} via "
+              f"AutoModelForImageTextToText (text-only)")
+        mdl = AutoModelForImageTextToText.from_pretrained(model_id, **mm_kwargs)
+        mm_tag = " [multimodal/text-only]"
     mdl.eval()
     quant_tag = " [AWQ]" if is_prequantized else (" [4-bit NF4]" if quantize_4bit else "")
-    print(f"Loaded {model_id}{quant_tag}")
+    print(f"Loaded {model_id}{quant_tag}{mm_tag}")
     return mdl, tok
 
 
@@ -75,14 +89,18 @@ def fmt_prompt(tok, msg: str) -> str:
     Falls back to a plain <|user|>/<|assistant|> format if the tokenizer
     does not have a chat template defined.
     """
-    try:
-        return tok.apply_chat_template(
-            [{"role": "user", "content": msg}],
-            tokenize=False,
-            add_generation_prompt=True,
-        )
-    except Exception:
-        return f"<|user|>\n{msg}\n<|assistant|>\n"
+    # Try plain-string content (most models), then multimodal list-content (Gemma-3 /
+    # Mistral-3 processors expect content as a list of typed parts), then a raw fallback.
+    for content in (msg, [{"type": "text", "text": msg}]):
+        try:
+            return tok.apply_chat_template(
+                [{"role": "user", "content": content}],
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+        except Exception:
+            continue
+    return f"<|user|>\n{msg}\n<|assistant|>\n"
 
 
 def token_entropies_from_scores(scores, K: int = 15) -> list:
@@ -290,7 +308,10 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
     temp = kwargs.get("T", temperature)
     max_tokens = kwargs.get("max_new", max_new_tokens)
 
-    prompt = fmt_prompt(tok, prompt_msg)
+    # Base LMs (e.g. OPT-30B) have no chat template — a few-shot prompt must go in raw,
+    # not wrapped in a synthetic <|user|>/<|assistant|> frame the model never saw.
+    raw_prompt = kwargs.get("raw_prompt", False)
+    prompt = prompt_msg if raw_prompt else fmt_prompt(tok, prompt_msg)
     inputs = tok(prompt, return_tensors="pt").to(mdl.device)
     if "token_type_ids" in inputs:
         del inputs["token_type_ids"]

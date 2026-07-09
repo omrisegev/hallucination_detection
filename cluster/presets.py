@@ -44,6 +44,10 @@ def _preset(**kw):
     kw.setdefault("acc_band", DEFAULT_ACC_BAND)
     kw.setdefault("min_minority", DEFAULT_MIN_MINORITY)
     kw.setdefault("published", {})
+    kw.setdefault("judge", None)          # LLM-judge HF id for correctness labels; None -> dataset's lexical grader
+    kw.setdefault("head_to_head", None)   # "SAME-MODEL" when our model matches the paper's exactly
+    kw.setdefault("prompt_suffix", "")    # appended to every user message (e.g. Qwen3 "/no_think")
+    kw.setdefault("raw_prompt", False)    # skip chat template (base LMs like OPT-30B + few-shot)
     kw.setdefault("notes", "")
     return kw
 
@@ -133,6 +137,71 @@ PRESETS = {
         dataset="sciq", split="validation", n_samples=1000,
         k=1, temps=[1.0], max_new=512,
         notes="MCQ -> suppressed entropy dynamics (GPQA-like); expect a modest cell.",
+    ),
+
+    # ── Exact-scenario re-runs (Step 163) — same model+dataset+protocol+grading as the ──
+    #    paper, so OUR L-SML/U-PCR AUROC (X) sits next to the paper's PUBLISHED AUROC (Y)
+    #    and the only difference is the method. Cluster does inference + judge-LABELING
+    #    only; competitor detectors are NOT reproduced (their Y comes from the paper).
+
+    # EPR (Entropy Production Rate). Exact model+dataset: Mistral-Small-3.1-24B on TriviaQA
+    # (Wikipedia domain), non-greedy T=1.0, single generation. Correctness graded by an
+    # LLM judge (paper used Gemma-3-12b-it). Published EPR baseline AUROC = 74.6.
+    "epr_triviaqa_mistral24b": _preset(
+        paper="EPR — Entropy Production Rate",
+        model="mistralai/Mistral-Small-3.1-24B-Instruct-2503", gated=True,
+        dataset="trivia_qa_wiki", split="validation", n_samples=1000,
+        k=1, temps=[1.0], max_new=64,
+        capture={"logsumexp": True}, logprob_top_k=50,
+        judge="Qwen/Qwen2.5-7B-Instruct",
+        head_to_head="SAME-MODEL",
+        published={"method": "EPR", "metric": "AUROC", "value": 74.6,
+                   "model_note": "Mistral-Small-3.1-24B / TriviaQA (unsupervised EPR baseline; "
+                                 "WEPR supervised is higher)"},
+        notes="Exact EPR scenario (model/dataset/decoding). JUDGE DEVIATION: paper used Gemma-3-12b-it "
+              "(access pending Google review), so we use the open, reliable Qwen2.5-7B-Instruct as a "
+              "uniform LLM-judge for correctness labels. N=1000. capture logsumexp -> our energy views.",
+    ),
+
+    # Semantic Energy. Exact model+dataset: Qwen3-8B on TriviaQA, sampling T=0.6, K=10.
+    # Correctness graded by an LLM judge (paper used TIGER-Lab/general-verifier). Published:
+    # Semantic Entropy baseline 69.6, Semantic Energy 74.8. Qwen3 thinking mode is disabled
+    # via the "/no_think" prompt suffix (short factual answers, matches the main-table setup).
+    "semenergy_triviaqa_qwen3_8b": _preset(
+        paper="Semantic Energy",
+        model="Qwen/Qwen3-8B",
+        dataset="trivia_qa", split="validation", n_samples=500,
+        k=10, temps=[0.6], max_new=64,
+        capture={"logsumexp": True}, logprob_top_k=50,
+        judge="Qwen/Qwen2.5-7B-Instruct",
+        head_to_head="SAME-MODEL",
+        prompt_suffix=" /no_think",
+        published={"method": "Semantic Energy", "metric": "AUROC", "value": 74.8,
+                   "baseline_semantic_entropy": 69.6,
+                   "model_note": "Qwen3-8B / TriviaQA (English; CSQA Chinese skipped)"},
+        notes="Exact Semantic Energy scenario (model/dataset/decoding). JUDGE DEVIATION: paper used "
+              "TIGER-Lab/general-verifier (bespoke format incompatible with a clean correctness "
+              "prompt), so we use Qwen2.5-7B-Instruct as a uniform LLM-judge. K=10; Qwen3 /no_think.",
+    ),
+
+    # SE-ICLR'23 (Semantic Uncertainty, Kuhn/Gal/Farquhar). Exact scenario: OPT-30B (base)
+    # on closed-book TriviaQA, K=10, T=0.5, correctness = ROUGE-L>0.3 (NO LLM judge — the
+    # paper's own grader). Few-shot prompt for the base model. Published Semantic Entropy
+    # AUROC = 0.83 (TriviaQA/OPT-30B); CoQA 0.77.
+    "seiclr_triviaqa_opt30b": _preset(
+        paper="Semantic Uncertainty (SE-ICLR'23, arXiv 2302.09664)",
+        model="facebook/opt-30b",
+        dataset="trivia_qa_rougel", split="validation", n_samples=500,
+        k=10, temps=[0.5], max_new=64,
+        capture={"logsumexp": True}, logprob_top_k=50,
+        raw_prompt=True,   # OPT-30B base model -> few-shot prompt goes in raw, no chat template
+        head_to_head="SAME-MODEL",
+        published={"method": "Semantic Entropy (SE-ICLR'23)", "metric": "AUROC", "value": 83.0,
+                   "coqa_value": 77.0,
+                   "model_note": "OPT-30B / TriviaQA closed-book, ROUGE-L>0.3 grader"},
+        notes="Exact SE-ICLR scenario. Grader=ROUGE-L>0.3 (is_correct_trivia_qa_rougel), no judge. "
+              "OPT-30B base -> few-shot prompt (trivia_qa_fewshot_prompt). Paper used an 8k subset; "
+              "N=500 is AUROC-stable. Pilot check: base model may ramble -> watch accuracy.",
     ),
 }
 

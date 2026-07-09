@@ -587,15 +587,20 @@ def load_agentic_multihop_dataset(dataset: str, n_samples: int = 200) -> list[di
 
 # ── TriviaQA ──────────────────────────────────────────────────────────────────
 
-def load_trivia_qa(n_samples: int = 300, split: str = "validation") -> list[dict]:
+def load_trivia_qa(n_samples: int = 300, split: str = "validation",
+                   config: str = "rc.nocontext") -> list[dict]:
     """
-    Load TriviaQA rc.nocontext from HuggingFace.
+    Load TriviaQA from HuggingFace.
 
     Returns list of {question, answer_value, aliases} dicts.
     aliases is the full list of valid answer strings (from the dataset).
+
+    config selects the TriviaQA subset:
+      - "rc.nocontext"  (default) — closed-book QA pairs, all sources (SE-ICLR / Semantic Energy).
+      - "rc.wikipedia"  — the Wikipedia-domain subset (EPR's "TriviaQA (Wikipedia domain)").
     """
     from datasets import load_dataset
-    ds = load_dataset("trivia_qa", "rc.nocontext", split=split)
+    ds = load_dataset("trivia_qa", config, split=split)
     items = []
     for i in range(min(n_samples, len(ds))):
         row = ds[i]
@@ -604,7 +609,7 @@ def load_trivia_qa(n_samples: int = 300, split: str = "validation") -> list[dict
             "answer_value": row["answer"]["value"],
             "aliases":      row["answer"]["aliases"],
         })
-    print(f"Loaded {len(items)} TriviaQA {split} samples.")
+    print(f"Loaded {len(items)} TriviaQA {config} {split} samples.")
     return items
 
 
@@ -617,6 +622,33 @@ def trivia_qa_prompt(question: str) -> str:
     )
 
 
+# Five-shot exemplars for base (non-chat) LMs like OPT-30B, mirroring the SE-ICLR'23
+# closed-book TriviaQA setup — a base model given a bare "Question:/Answer:" line tends
+# to ramble or continue the question, flooring accuracy. The few-shot frame anchors the
+# short-answer format without adding any task-specific hints.
+_TRIVIA_FEWSHOT = (
+    "Answer these trivia questions with a short, direct answer.\n\n"
+    "Question: What is the capital of France?\nAnswer: Paris\n\n"
+    "Question: Who wrote the play Romeo and Juliet?\nAnswer: William Shakespeare\n\n"
+    "Question: What is the chemical symbol for gold?\nAnswer: Au\n\n"
+    "Question: In which year did the Second World War end?\nAnswer: 1945\n\n"
+    "Question: Which planet is known as the Red Planet?\nAnswer: Mars\n\n"
+)
+
+
+def trivia_qa_fewshot_prompt(question: str) -> str:
+    """Five-shot closed-book prompt for base LMs (SE-ICLR'23 / OPT-30B setup)."""
+    return f"{_TRIVIA_FEWSHOT}Question: {question}\nAnswer:"
+
+
+def is_correct_trivia_qa_rougel(gen: str, item: dict, threshold: float = 0.3) -> bool:
+    """ROUGE-L(pred, best alias) > threshold — the SE-ICLR'23 correctness criterion
+    (0.3), used for the OPT-30B TriviaQA head-to-head. Distinct from the default
+    alias exact-match grader (is_correct_trivia_qa)."""
+    pred = first_answer_line(gen)
+    return _best_rouge_l_norm(pred, item["aliases"]) > threshold
+
+
 def _normalize_qa(s: str) -> str:
     """Normalize for QA exact-match: lowercase, strip articles, strip punctuation."""
     s = s.lower().strip()
@@ -625,14 +657,34 @@ def _normalize_qa(s: str) -> str:
     return " ".join(s.split())
 
 
+def strip_think(text: str) -> str:
+    """Remove <think>...</think> reasoning blocks (Qwen3 etc.). Qwen3 emits an empty
+    <think></think> even under /no_think, whose first line would otherwise be grabbed as
+    the answer. Also drops a dangling open/close tag."""
+    t = re.sub(r"<think>.*?</think>", " ", text or "", flags=re.DOTALL)
+    if "</think>" in t:
+        t = t.split("</think>")[-1]
+    if "<think>" in t:
+        t = t.split("<think>")[0]
+    return t.strip()
+
+
+def first_answer_line(gen: str) -> str:
+    """First non-empty line of the generation, after stripping any <think> block."""
+    for line in strip_think(gen).split("\n"):
+        if line.strip():
+            return line.strip()
+    return ""
+
+
 def is_correct_trivia_qa(gen: str, item: dict) -> bool:
     """
     Normalized exact-match against all aliases (TriviaQA standard evaluation).
 
-    Extracts the first line / text before a newline as the model's answer,
+    Extracts the first answer line (after stripping <think> blocks) as the model's answer,
     then checks if the normalized form matches any normalized alias.
     """
-    pred = gen.strip().split("\n")[0].strip()
+    pred = first_answer_line(gen)
     pred_norm = _normalize_qa(pred)
     return any(_normalize_qa(a) == pred_norm for a in item["aliases"])
 

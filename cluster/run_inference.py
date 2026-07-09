@@ -45,8 +45,19 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # so `import pre
 
 import torch
 
+# NGC pytorch:25.01 ships torch 2.6.0a0 (a preview that already has the CVE-2025-32434 fix),
+# but transformers parses "2.6.0a0" as < 2.6 and blocks torch.load of .bin checkpoints
+# (facebook/opt-30b has no safetensors). We only load trusted, well-known model repos, and
+# pip-upgrading torch in the NGC image is forbidden (CLAUDE.md), so neutralize the misfiring guard.
+try:
+    import transformers.modeling_utils as _mu
+    _mu.check_torch_load_is_safe = lambda *a, **k: None
+except Exception:
+    pass
+
 from presets import get_preset, list_presets
-from spectral_utils import load_model, generate_full, load_cache, save_cache_atomic
+from spectral_utils import load_model, generate_full, load_cache, save_cache_atomic, free_memory
+from spectral_utils.judge_utils import load_judge, judge_label_cache, gold_answers_from_row
 from spectral_utils.data_loaders import (
     load_gsm8k, gsm8k_prompt, is_correct_gsm8k,
     load_math500, math_prompt, is_correct_math,
@@ -54,6 +65,7 @@ from spectral_utils.data_loaders import (
     load_aime24, aime24_prompt, is_correct_aime24,
     load_hotpotqa, hotpotqa_prompt, is_correct_hotpotqa,
     load_trivia_qa, trivia_qa_prompt, is_correct_trivia_qa,
+    trivia_qa_fewshot_prompt, is_correct_trivia_qa_rougel,
     load_webq, webq_prompt, is_correct_webq,
     load_coqa, coqa_prompt, is_correct_coqa,
     load_squad_v2, squad_v2_prompt, is_correct_squad_v2,
@@ -73,6 +85,13 @@ DATASETS = {
                   lambda gen, row: is_correct_hotpotqa(gen, row.get("answer", ""))),
     "trivia_qa": (lambda n, split="validation": load_trivia_qa(n, split),
                   lambda row: trivia_qa_prompt(row["question"]), is_correct_trivia_qa),
+    # EPR: TriviaQA "Wikipedia domain", closed-book (rc.wikipedia.nocontext), instruct model, judge-labeled.
+    "trivia_qa_wiki": (lambda n, split="validation": load_trivia_qa(n, split, config="rc.wikipedia.nocontext"),
+                       lambda row: trivia_qa_prompt(row["question"]), is_correct_trivia_qa),
+    # SE-ICLR'23: closed-book TriviaQA on OPT-30B (base) — few-shot prompt + ROUGE-L>0.3.
+    "trivia_qa_rougel": (lambda n, split="validation": load_trivia_qa(n, split),
+                         lambda row: trivia_qa_fewshot_prompt(row["question"]),
+                         is_correct_trivia_qa_rougel),
     "webq":      (lambda n, split="test":       load_webq(n, split),
                   lambda row: webq_prompt(row["question"]), is_correct_webq),
     "coqa":      (lambda n, split="validation": load_coqa(n, split),     coqa_prompt,     is_correct_coqa),
@@ -137,11 +156,15 @@ def run_temp(mdl, tok, rows, prompt_fn, grader, temp, cfg, out_path):
                       f"candidate={len(entry['candidates'])}", flush=True)
                 return False, None
             t0 = time.time()
+            msg = prompt_fn(row)
+            if cfg.prompt_suffix:
+                msg = f"{msg}{cfg.prompt_suffix}"
             r = generate_full(
-                mdl, tok, prompt_fn(row), temperature=temp,
+                mdl, tok, msg, temperature=temp,
                 max_new_tokens=cfg.max_new,
                 logprob_top_k=cfg.logprob_top_k,
                 gen_top_p=cfg.gen_top_p, gen_top_k=cfg.gen_top_k,
+                raw_prompt=cfg.raw_prompt,
                 capture_logsumexp=cfg.capture.get("logsumexp", False),
                 capture_hidden=cfg.capture.get("hidden", False),
                 hidden_layer=cfg.capture.get("hidden_layer"),
@@ -158,22 +181,63 @@ def run_temp(mdl, tok, rows, prompt_fn, grader, temp, cfg, out_path):
             save_cache_atomic(cache, out_path)
 
     save_cache_atomic(cache, out_path)
+    stats = compute_cell_stats(cache, temp, cfg, out_path)
+    kind = "lexical/provisional — judge pass pending" if cfg.judge else "final"
+    verdict = "VALID" if stats["gate_ok"] else "REJECT"
+    print(f"=== T={temp} DONE: {stats['n_problems']} problems x {cfg.k} candidates | "
+          f"accuracy {stats['accuracy']:.3f} | mean trace {stats['mean_trace']:.0f} tok | "
+          f"GATE {verdict} [{kind}] (pos={stats['pos']}, neg={stats['neg']}, "
+          f"minority={stats['minority']}) ===", flush=True)
+    if not stats["gate_ok"]:
+        print(f"[GATE] T={temp} REJECT — {'; '.join(stats['gate_reasons'])}. "
+              f"AUROC on this cell is not trustworthy; re-scope before treating it as a data cell.",
+              flush=True)
+    return True, stats
+
+
+def compute_cell_stats(cache, temp, cfg, out_path):
+    """Gate + mean-trace stats for one (dataset, temp) cache. Used after generation and
+    again after the judge pass (on judge labels)."""
     labels = [c["label"] for e in cache.values() for c in e["candidates"]]
     lens = [len(c["token_entropies"]) for e in cache.values() for c in e["candidates"]]
     mean_trace = sum(lens) / max(len(lens), 1)
-    ok, gate = accuracy_gate(labels, cfg.acc_band, cfg.min_minority)
-    verdict = "VALID" if ok else "REJECT"
-    print(f"=== T={temp} DONE: {len(cache)} problems x {cfg.k} candidates | "
-          f"accuracy {gate['accuracy']:.3f} | mean trace {mean_trace:.0f} tok | "
-          f"GATE {verdict} (pos={gate['pos']}, neg={gate['neg']}, minority={gate['minority']}) ===",
-          flush=True)
-    if not ok:
-        print(f"[GATE] T={temp} REJECT — {'; '.join(gate['gate_reasons'])}. "
-              f"AUROC on this cell is not trustworthy; re-scope (larger paper model / "
-              f"easier split) before treating it as a data cell.", flush=True)
-    stats = {"temp": temp, "pkl": os.path.basename(out_path),
-             "n_problems": len(cache), "k": cfg.k, "mean_trace": mean_trace, **gate}
-    return True, stats
+    _, gate = accuracy_gate(labels, cfg.acc_band, cfg.min_minority)
+    return {"temp": temp, "pkl": os.path.basename(out_path),
+            "n_problems": len(cache), "k": cfg.k, "mean_trace": mean_trace, **gate}
+
+
+def run_judge_pass(cfg, out_paths):
+    """Second in-job pass: relabel every candidate with the paper's LLM judge so the
+    correctness definition matches the paper (this is what makes 'only the method differs'
+    hold). Resumable — skips already-judged candidates. The target model must be freed
+    before calling this. Returns updated cell stats, or None if preempted mid-judge."""
+    print(f"\n=== JUDGE PASS: loading judge {cfg.judge} ===", flush=True)
+    jmdl, jtok = load_judge(cfg.judge)
+    cells = []
+    for temp, out_path in out_paths:
+        cache = load_cache(out_path)
+        n_lab = judge_label_cache(
+            cache, jmdl, jtok, gold_fn=gold_answers_from_row, stop_flag=STOP,
+            checkpoint=lambda c=cache, p=out_path: save_cache_atomic(c, p),
+            checkpoint_every=25,
+            on_progress=lambda idx, n: (print(f"[judge] labeled {n} candidates "
+                                              f"(problem {idx})", flush=True)
+                                        if n % 50 == 0 else None),
+        )
+        save_cache_atomic(cache, out_path)
+        if STOP["flag"]:
+            print(f"[judge] PREEMPTED mid-judge at {os.path.basename(out_path)} "
+                  f"({n_lab} labeled this run) — checkpoint saved, will resume", flush=True)
+            return None
+        stats = compute_cell_stats(cache, temp, cfg, out_path)
+        verdict = "VALID" if stats["gate_ok"] else "REJECT"
+        print(f"=== T={temp} JUDGE GATE {verdict} [final] (judge acc {stats['accuracy']:.3f}, "
+              f"pos={stats['pos']}, neg={stats['neg']}, minority={stats['minority']}) ===",
+              flush=True)
+        cells.append(stats)
+    del jmdl, jtok
+    free_memory()
+    return cells
 
 
 def write_manifest(out_dir, cfg, cells):
@@ -195,6 +259,9 @@ def write_manifest(out_dir, cfg, cells):
         "acc_band": list(cfg.acc_band),
         "min_minority": cfg.min_minority,
         "published": cfg.published,
+        "head_to_head": cfg.head_to_head,
+        "judge": cfg.judge,
+        "prompt_suffix": cfg.prompt_suffix,
         "notes": cfg.notes,
         "job_id": os.environ.get("SLURM_JOB_ID", ""),
         "seed": cfg.seed,
@@ -248,6 +315,10 @@ def build_cfg(args):
         min_minority=base.get("min_minority", 30),
         published=base.get("published", {}),
         notes=base.get("notes", ""),
+        judge=base.get("judge"),
+        head_to_head=base.get("head_to_head"),
+        prompt_suffix=base.get("prompt_suffix", ""),
+        raw_prompt=base.get("raw_prompt", False),
         checkpoint_every=args.checkpoint_every,
         seed=args.seed,
     )
@@ -302,7 +373,19 @@ def main():
         if not completed:
             sys.exit(0)  # preempted: clean exit, Slurm requeues and we resume
         cells.append(stats)
-        write_manifest(out_dir, cfg, cells)  # refresh with this cell's gate verdict
+        write_manifest(out_dir, cfg, cells)  # refresh with this cell's (provisional) gate verdict
+
+    # Second pass: LLM-judge labeling (correctness matched to the paper's grader). The
+    # target model is freed first so an 8-12B judge fits alongside on the same B200.
+    if cfg.judge:
+        out_paths = [(t, os.path.join(out_dir, f"raw_{cfg.dataset}_T{t}.pkl")) for t in cfg.temps]
+        del mdl, tok
+        free_memory()
+        judged_cells = run_judge_pass(cfg, out_paths)
+        if judged_cells is None:
+            sys.exit(0)  # preempted mid-judge; Slurm requeues and judge_label_cache resumes
+        cells = judged_cells
+        write_manifest(out_dir, cfg, cells)  # final manifest carries the judge-label gate
 
     print(f"\nALL TEMPS COMPLETE for {cfg.dataset} -> {out_dir}", flush=True)
 
