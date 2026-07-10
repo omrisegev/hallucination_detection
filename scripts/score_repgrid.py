@@ -125,12 +125,21 @@ def main():
                 print(f"   {r['subset']:16s} {r['method']:5s} X={xtxt} "
                       f"vs Y={Y}  d={dtxt}  (n={r['n']}, valid={r['valid_rate']:.2f})")
 
+    # Merge-on-write: keep rows of cells NOT re-scored this run, so a --cells run never
+    # drops the other cells' scores (a --cells overwrite silently lost the Step-163 rows).
     out_csv = os.path.join(args.out, "scores_lsml_upcr.csv")
+    scored_cells = {r["cell"] for r in rows_out}
+    kept = []
+    if os.path.exists(out_csv):
+        with open(out_csv, newline="") as f:
+            kept = [r for r in csv.DictReader(f) if r.get("cell") not in scored_cells]
+    fieldnames = list(rows_out[0].keys())
     with open(out_csv, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(rows_out[0].keys()))
+        w = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
         w.writeheader()
+        w.writerows(kept)
         w.writerows(rows_out)
-    print(f"\nwrote {len(rows_out)} rows -> {out_csv}")
+    print(f"\nwrote {len(rows_out)} new + {len(kept)} kept rows -> {out_csv}")
 
 
 if __name__ == "__main__":

@@ -55,6 +55,23 @@ GRADER_FIXTURES = {
          _trivia_row("Ross Bagdasarian", "Who created the Chipmunks?"), True,  "OPT-30B ramble -> first line only"),
         ("",                                    _trivia_row("Paris"),  False, "empty generation"),
     ],
+    # GSM8K exact-match (is_correct_gsm8k): gold row carries "#### N"; boxed OR "final answer is"
+    # both count. The <think>-then-boxed case guards the R1-Distill / Qwen3 reasoning cells.
+    "gsm8k_family": [
+        (r"The answer is \boxed{42}",           {"answer": "steps... #### 42"}, True,  "boxed correct"),
+        (r"\boxed{7}",                          {"answer": "#### 42"},          False, "boxed wrong"),
+        ("The final answer is 42",              {"answer": "#### 42"},          True,  "final-answer-is fallback (LapEigvals prompt)"),
+        ("<think>maybe 10</think>\n\nThe answer is \\boxed{42}",
+                                                {"answer": "#### 42"},          True,  "R1/Qwen3 <think> then boxed"),
+        ("",                                    {"answer": "#### 42"},          False, "empty generation"),
+    ],
+    # MATH-500 (is_correct_math): gold row carries the boxed solution; numeric/frac equivalence.
+    "math_family": [
+        (r"Work...\boxed{42}",                  {"solution": r"...\boxed{42}"}, True,  "boxed correct"),
+        (r"\boxed{7}",                          {"solution": r"\boxed{42}"},    False, "boxed wrong"),
+        (r"<think>..</think>\boxed{\frac{1}{2}}", {"solution": r"\boxed{0.5}"}, True,  "<think> + \\frac numeric normalization"),
+        ("",                                    {"solution": r"\boxed{42}"},    False, "empty generation"),
+    ],
 }
 
 # Judge-output parse fixtures (grader-agnostic). The critical one is 'incorrect', which
@@ -71,6 +88,10 @@ PARSE_FIXTURES = [
 def _fixture_family(dataset):
     if dataset.startswith("trivia_qa"):
         return "trivia_qa_family"
+    if dataset == "gsm8k":
+        return "gsm8k_family"
+    if dataset in ("math500", "math"):
+        return "math_family"
     return None
 
 

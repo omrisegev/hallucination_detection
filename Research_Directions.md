@@ -329,6 +329,24 @@ Apply spectral features to visual language models; split visual-description toke
 4. Method: per-budget refusion is sign-unstable (anchor_orient mitigates; 16-feat still erratic) → fit fusion weights once at a reference budget offline, reuse across budgets.
 5. Advisor decision: pursue hybrid framing vs fold streaming in as a thesis section.
 
+### Extension F — Step-Level Error Localization (ProcessBench / MR-GSM8K) — DEFERRED (2026-07-10)
+
+The July-2026 SOTA survey recommends a process-level benchmark as a secondary evaluation for
+reasoning-focused detectors: **ProcessBench** (arXiv 2412.06559 — 3,400 expert-annotated cases
+across GSM8K/MATH/OlympiadBench/Omni-MATH with first-error-step labels, F1 metric) or
+**MR-GSM8K** (arXiv 2312.17080). This is a different task from our sequence-level AUROC
+detection — it asks *where* the reasoning breaks, not *whether* the answer is wrong.
+
+**Why it fits us structurally**: our sliding-window features (`sw_var_peak_with_window` keeps the
+window index) and CUSUM drift (`cusum_shift_idx` is literally a change-point location) are
+naturally step-localizable — a per-step L-SML score is a modest extension, not a redesign.
+
+**Why deferred (Omri, 2026-07-10)**: keeps the current benchmarking pass focused on AUROC
+head-to-heads; step-level would need a new grading harness (their provided solutions, not our
+generations), a step-alignment layer (token index → solution step), and an F1 protocol. Revisit
+after the reasoning replication grid completes, if a reviewer or committee member asks for
+error localization.
+
 ---
 
 ## Recommended Priority Order

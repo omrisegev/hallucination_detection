@@ -315,7 +315,7 @@ def build_cfg(args):
         min_minority=base.get("min_minority", 30),
         published=base.get("published", {}),
         notes=base.get("notes", ""),
-        judge=base.get("judge"),
+        judge=(args.judge if args.judge is not None else base.get("judge")),
         head_to_head=base.get("head_to_head"),
         prompt_suffix=base.get("prompt_suffix", ""),
         raw_prompt=base.get("raw_prompt", False),
@@ -343,6 +343,13 @@ def main():
     ap.add_argument("--checkpoint-every", type=int, default=1,
                     help="save cache every N completed problems")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--judge", default=None,
+                    help="LLM-judge HF id; overrides the preset (use with --regrade for "
+                         "cells whose preset has no judge)")
+    ap.add_argument("--regrade", action="store_true",
+                    help="judge-relabel an EXISTING run dir (no generation): loads each "
+                         "raw_<dataset>_T*.pkl under --out, runs the judge pass "
+                         "(label_lexical preserved, resumable), refreshes the manifest")
     args = ap.parse_args()
 
     cfg = build_cfg(args)
@@ -351,6 +358,24 @@ def main():
 
     out_dir = args.out or f"results_{cfg.preset_id or cfg.dataset}"
     os.makedirs(out_dir, exist_ok=True)
+
+    if args.regrade:
+        # Regrade-only: no dataset load, no target model. Judge the already-fetched pkls.
+        if not cfg.judge:
+            raise SystemExit("--regrade needs a judge (preset judge or --judge)")
+        out_paths = [(t, os.path.join(out_dir, f"raw_{cfg.dataset}_T{t}.pkl"))
+                     for t in cfg.temps]
+        missing = [p for _, p in out_paths if not os.path.exists(p)]
+        if missing:
+            raise SystemExit(f"--regrade: missing pkl(s) under {out_dir}: {missing}")
+        print(f"[driver] REGRADE preset={cfg.preset_id or '(none)'} judge={cfg.judge} "
+              f"pkls={[os.path.basename(p) for _, p in out_paths]}", flush=True)
+        judged_cells = run_judge_pass(cfg, out_paths)
+        if judged_cells is None:
+            sys.exit(0)  # preempted mid-judge; Slurm requeues and judge_label_cache resumes
+        write_manifest(out_dir, cfg, judged_cells)
+        print(f"\nREGRADE COMPLETE for {cfg.dataset} -> {out_dir}", flush=True)
+        return
 
     print(f"[driver] preset={cfg.preset_id or '(none)'} model={cfg.model} "
           f"dataset={cfg.dataset} split={cfg.split} N={cfg.n_samples} K={cfg.k} "

@@ -1,0 +1,46 @@
+dataset,model,method,is_ours,supervision,category,auroc,ci_lo,ci_hi,compute,citable,source,note
+MATH-500,Qwen2.5-Math-7B,L-SML continuous 5-feat,yes,unsupervised,UGB,94.4,90.1,97.7,1-pass,yes,Spectral_LSML_Report / HISTORY Step 135,Our reasoning headline. Beats K=10 sampling at ~10x less compute.
+MATH-500,Qwen2.5-Math-7B,Semantic Entropy NLI,no,unsupervised,UGB,87.7,79.7,93.9,K=10,no,Phase-12 old-cache,Old-cache; NLI-truncation on long traces suspected (Step 152 P1). Not yet citable.
+MATH-500,Qwen2.5-Math-7B,Self-Consistency,no,unsupervised,BB,87.2,72.1,98.4,K=10,no,Phase-12 old-cache,Old-cache; pending re-inference reconciliation. Not yet citable.
+MATH-500,Qwen3-8B,ARS (CCS),no,supervised,SUP,78.66,,,1-pass+trained,yes,arXiv 2601.17467 Table 1,Supervised representation shaping. Best baseline in-paper TSV 63.12. Different model.
+MATH-500,DeepSeek-R1-Distill-Llama-8B,ARS (CCS),no,supervised,SUP,86.38,,,1-pass+trained,yes,arXiv 2601.17467 Table 1,Supervised. Best baseline in-paper G-Detector 64.45. SAME-MODEL as our matched cell below.
+MATH-500,DeepSeek-R1-Distill-Llama-8B,L-SML GOOD_5,yes,unsupervised,UGB,84.4,,,1-pass,yes,subset_sweep math500__DeepSeek-R1-Distill-Llama-8B_T1.0.npz (N=300),SAME-MODEL head-to-head: our UNSUPERVISED GOOD_5 (84.4) nearly matches ARS SUPERVISED (86.38) on the same R1-Distill-8B/MATH-500 cell. Fixed subset (not label-selected).
+GSM8K,Llama-3.1-8B,L-SML continuous 5-feat,yes,unsupervised,UGB,75.6,72.2,79.0,1-pass,yes,Spectral_LSML_Report / HISTORY Step 135,Competitive vs K=10 sampling at 1-pass.
+GSM8K,Llama-3.1-8B,L-SML GOOD_5 (repgrid),yes,unsupervised,UGB,81.5,,,1-pass,yes,scores_lsml_upcr.csv / repgrid fresh local,"Fresh local re-score on the cluster GSM8K trace (N=500). GOOD_5 = epr, low_band_power, sw_var_peak, cusum_max, spectral_entropy."
+GSM8K,Llama-3.1-8B,EDIS (-EDIS conf),no,unsupervised,UGB,80.9,76.1,85.0,1-pass,yes,edis_scores.csv / score_edis.py,"EDIS competitor scored on OUR trace (local). rho(EDIS,L-SML)=0.87 -> not complementary, both beat LapEigvals-unsup."
+GSM8K,Llama-3.1-8B,LapEigvals AttentionScore,no,unsupervised,WB,72.0,,,1-pass,yes,arXiv 2502.17598 / HISTORY Step 69,SAME-MODEL unsupervised white-box anchor. Our L-SML BEATS this (WIN).
+GSM8K,Llama-3.1-8B,LapEigvals probe,no,supervised,SUP,87.2,,,1-pass+trained,yes,arXiv 2502.17598 / HISTORY Step 69,SAME-MODEL supervised ceiling (80% labeled train split).
+GSM8K,Llama-3.1-8B,Self-Consistency,no,unsupervised,BB,78.5,72.0,84.5,K=10,no,Phase-12 old-cache,Old-cache; pending reconciliation.
+GSM8K,Llama-3.1-8B,Semantic Entropy NLI,no,unsupervised,UGB,77.4,70.9,83.5,K=10,no,Phase-12 old-cache,Old-cache; pending reconciliation.
+GSM8K,Qwen3-8B,ARS (CCS),no,supervised,SUP,90.37,,,1-pass+trained,yes,arXiv 2601.17467 Table 1,Supervised. Best baseline in-paper SE 72.51. Different model.
+GSM8K,DeepSeek-R1-Distill-Llama-8B,ARS (CCS),no,supervised,SUP,74.72,,,1-pass+trained,yes,arXiv 2601.17467 Table 1,Supervised. Best baseline in-paper G-Detector 70.38. Target for our matched R1-Distill cell (A4).
+GSM8K,Qwen2.5-7B,Internal-States + Reasoning-Consistency,no,supervised,SUP,79.15,,,multi-path+trained,yes,arXiv 2510.11529 Table,Supervised (LLM-judge labels). Best baseline in-paper V-STaR 76.55. Supervised ceiling reference.
+GPQA,Qwen2.5-7B,L-SML continuous 5-feat,yes,unsupervised,UGB,52.3,43.4,61.2,1-pass,yes,Spectral_LSML_Report,Out-of-regime loss. MCQ suppresses entropy dynamics. Reported honestly.
+GSM8K,Qwen2.5-7B,L-SML GOOD_5 (repgrid),yes,unsupervised,UGB,63.9,,,1-pass,no,scores_lsml_upcr.csv / job 101077 N=500,SAME-MODEL vs Internal-States sup 79.15. GOOD_5+logprob 66.0. NOT-YET-CITABLE: T=1.0 sampling collapses Qwen2.5-7B GSM8K acc to 0.284 (greedy ~85%); diagnosed GENUINE errors not misgrades (99% of wrong answers still have \boxed). Different operating point than IS (near-greedy); re-run at the paper's decoding T to compare.MATH-500,DeepSeek-R1-Distill-Llama-8B,EigenScore (vanilla),no,unsupervised,WB,75.89,,,multi-pass,yes,arXiv 2601.17467 Table 2,Unsup WB baseline on the SAME cell. Our GOOD_5 84.4 beats every unsup baseline here.
+MATH-500,DeepSeek-R1-Distill-Llama-8B,Semantic Entropy,no,unsupervised,UGB,43.6,,,K=10,yes,arXiv 2601.17467 Table 2,Collapses on long R1 reasoning traces.
+MATH-500,DeepSeek-R1-Distill-Llama-8B,Perplexity,no,unsupervised,UGB,40.96,,,1-pass,yes,arXiv 2601.17467 Table 2,Collapses on long R1 reasoning traces.
+GSM8K,DeepSeek-R1-Distill-Llama-8B,EigenScore (vanilla),no,unsupervised,WB,52.98,,,multi-pass,yes,arXiv 2601.17467 Table 2,Unsup baseline for our queued ars_gsm8k_r1distill8b cell.
+GSM8K,DeepSeek-R1-Distill-Llama-8B,Semantic Entropy,no,unsupervised,UGB,61.98,,,K=10,yes,arXiv 2601.17467 Table 2,
+GSM8K,DeepSeek-R1-Distill-Llama-8B,Perplexity,no,unsupervised,UGB,58.48,,,1-pass,yes,arXiv 2601.17467 Table 2,
+GSM8K,Qwen3-8B,EigenScore (vanilla),no,unsupervised,WB,63.4,,,multi-pass,yes,arXiv 2601.17467 Table 2,Fair UNSUP anchor beside supervised ARS 90.37. Our cell running (job 101075).
+MATH-500,Qwen3-8B,EigenScore (vanilla),no,unsupervised,WB,81.38,,,multi-pass,yes,arXiv 2601.17467 Table 2,Fair UNSUP anchor beside supervised ARS 78.66. Our cell running (job 101076).
+GSM8K,Qwen2.5-7B,SelfCheckGPT,no,unsupervised,BB,67.98,,,K>1,yes,arXiv 2510.11529 Table 1,Fair unsup Y for our cell (pending judge regrade of job 101077).
+GSM8K,Qwen2.5-7B,Semantic Entropy,no,unsupervised,UGB,58.36,,,K=10,yes,arXiv 2510.11529 Table 1,
+GSM8K,Qwen2.5-7B,SAPLMA,no,supervised,SUP,59.72,,,1-pass+trained,yes,arXiv 2510.11529 Table 1,Supervised hidden-state probe baseline.
+GSM8K,Llama-3.2-3B-Instruct,Noise Injection,no,unsupervised,UGB,82.7,,,K=10,yes,arXiv 2502.03799 v4 Table 3,Question-level majority-vote labels (protocol gap vs our K=1 answer-level). Our cell queued (lapeigvals_gsm8k_llama3b).
+GSM8K,Llama-3.2-3B-Instruct,Answer entropy (K=10),no,unsupervised,UGB,76.53,,,K=10,yes,arXiv 2502.03799 v4 Table 3,NI's no-noise baseline.
+GSM8K,Llama-3.2-3B-Instruct,LapEigvals AttentionScore,no,unsupervised,WB,71.7,,,1-pass,yes,arXiv 2502.17598 Table 1,Same-model unsup WB anchor.
+GSM8K,Llama-3.2-3B-Instruct,LapEigvals probe,no,supervised,SUP,87.0,,,1-pass+trained,yes,arXiv 2502.17598 Table 1,Supervised ceiling.
+GSM8K,Phi-3-mini-4k-instruct,Noise Injection,no,unsupervised,UGB,72.51,,,K=10,yes,arXiv 2502.03799 v4 Table 3,Our cell queued (noise_gsm8k_phi3mini).
+GSM8K,Phi-3-mini-4k-instruct,Answer entropy (K=10),no,unsupervised,UGB,65.86,,,K=10,yes,arXiv 2502.03799 v4 Table 3,
+GSM8K,Mistral-7B-Instruct-v0.3,Noise Injection,no,unsupervised,UGB,78.5,,,K=10,yes,arXiv 2502.03799 v4 Table 3,Our cell queued (noise_gsm8k_mistral7b).
+GSM8K,Mistral-7B-Instruct-v0.3,Answer entropy (K=10),no,unsupervised,UGB,75.85,,,K=10,yes,arXiv 2502.03799 v4 Table 3,
+GSM8K,Gemma-2B-it,Noise Injection,no,unsupervised,UGB,57.11,,,K=10,yes,arXiv 2502.03799 v4 Table 3,Near-chance; our matched run is pilot-gated (acc floor risk).
+GSM8K,Phi-3.5-mini-instruct,L-SML GOOD_5 (repgrid),yes,unsupervised,UGB,80.3,,,1-pass,yes,scores_lsml_upcr.csv / job 101074 N=1319,Beats LapEigvals same-model unsup AttentionScore 66.6 by +13.7pp.
+GSM8K,Phi-3.5-mini-instruct,LapEigvals AttentionScore,no,unsupervised,WB,66.6,,,1-pass,yes,arXiv 2502.17598 Table 1,Same-model unsup WB anchor. WIN for us.
+GSM8K,Phi-3.5-mini-instruct,LapEigvals probe,no,supervised,SUP,88.5,,,1-pass+trained,yes,arXiv 2502.17598 Table 1,Supervised ceiling.
+GSM8K,Phi-3.5-mini-instruct,Sequence logprob,no,unsupervised,UGB,80.78,,,1-pass,yes,ubaseline_scores.csv / score_ubaselines.py,Scored on OUR trace (like EDIS). Strong simple baseline.
+GSM8K,Phi-3.5-mini-instruct,Perplexity,no,unsupervised,UGB,75.91,,,1-pass,yes,ubaseline_scores.csv / score_ubaselines.py,Scored on OUR trace.
+GSM8K,Llama-3.1-8B,Sequence logprob,no,unsupervised,UGB,80.35,,,1-pass,yes,ubaseline_scores.csv / score_ubaselines.py,Scored on OUR trace. Within 1.2pp of our GOOD_5 81.5 - honest caveat.
+GSM8K,Llama-3.1-8B,Perplexity,no,unsupervised,UGB,77.68,,,1-pass,yes,ubaseline_scores.csv / score_ubaselines.py,Scored on OUR trace.
+GSM8K,Llama-3.1-8B,Naive entropy (mean H),no,unsupervised,UGB,78.44,,,1-pass,yes,ubaseline_scores.csv / score_ubaselines.py,Scored on OUR trace; equals our epr feature alone.

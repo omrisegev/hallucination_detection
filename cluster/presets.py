@@ -78,10 +78,16 @@ PRESETS = {
         model="meta-llama/Llama-3.1-8B-Instruct", gated=True,
         dataset="gsm8k", split="test", n_samples=500,
         k=1, temps=[1.0], max_new=2048,   # U1: reasoning trace, do not truncate
-        published={"method": "LapEigvals", "metric": "AUROC", "value": 92.5,
-                   "model_note": "supervised probe on Mistral-Small-24B, not Llama-8B"},
+        published={"method": "LapEigvals", "metric": "AUROC",
+                   # SAME-MODEL anchors (GSM8K / Llama-3.1-8B, HISTORY Steps 66-69):
+                   "value": 72.0,   # unsupervised AttentionScore (white-box, no labels) — our head-to-head Y
+                   "supervised": 87.2,   # supervised attention-Laplacian probe (80% labeled train split)
+                   "cross_model": 92.5,  # supervised probe on Mistral-Small-24B (cross-model, NOT comparable)
+                   "model_note": "GSM8K/Llama-3.1-8B: unsup AttentionScore 72.0, sup probe 87.2. "
+                                 "92.5 is the paper's cross-model Mistral-Small-24B supervised number."},
         notes="capture_attention deferred (NotImplemented). gsm8k_prompt is the boxed "
-              "CoT prompt, not LapEigvals Listing-5 — note when citing.",
+              "CoT prompt, not LapEigvals Listing-5 — note when citing. Same-model unsup "
+              "AttentionScore=72.0 is the fair head-to-head Y for our unsupervised L-SML.",
     ),
 
     # 3. Energy baselines (EPR / Semantic Energy / Spilled Energy) + LapEigvals on a
@@ -129,7 +135,16 @@ PRESETS = {
         model="meta-llama/Llama-3.1-8B-Instruct", gated=True,
         dataset="truthfulqa", split="validation", n_samples=817,
         k=10, temps=[0.5], max_new=128, capture={"logsumexp": True},
-        notes="At-inference label is a ROUGE-L proxy; re-label offline with a judge.",
+        published={"method": "TSV (arXiv 2503.01917)", "metric": "AUROC",
+                   "value": 84.2,                    # SAME-MODEL Llama-3.1-8B, but SEMI-SUPERVISED
+                   "supervision": "semi-supervised (32 labeled exemplars + OT pseudo-labels)",
+                   "supervised": 85.5,               # TSV fully-supervised upper bound
+                   "haloscope": 78.64,               # HaloScope, LLaMA-2-7b-chat — DIFFERENT model
+                   "model_note": "TruthfulQA / Llama-3.1-8B: TSV 84.2±0.2 (semi-sup), sup ceiling 85.5. "
+                                 "HaloScope 78.64 is Llama-2-7b-chat (cross-model, annotate)."},
+        head_to_head="SAME-MODEL",
+        notes="At-inference label is a ROUGE-L proxy; judge-regrade offline before citing. TSV anchor is "
+              "semi-supervised (not a fair unsup Y — report as ceiling-ish reference).",
     ),
     "sciq_llama8b": _preset(
         paper="SciQ (4-way MCQ)",
@@ -202,6 +217,222 @@ PRESETS = {
         notes="Exact SE-ICLR scenario. Grader=ROUGE-L>0.3 (is_correct_trivia_qa_rougel), no judge. "
               "OPT-30B base -> few-shot prompt (trivia_qa_fewshot_prompt). Paper used an 8k subset; "
               "N=500 is AUROC-stable. Pilot check: base model may ramble -> watch accuracy.",
+    ),
+
+    # ── ARS-matched reasoning cells (arXiv 2601.17467, "Answer-agreement Representation
+    #    Shaping"). ARS is a SUPERVISED trace-embedding-shaping detector. We run the exact
+    #    (model, dataset) so our UNSUPERVISED L-SML sits next to ARS's supervised Y.
+    #    MATH-500/R1-Distill already exists offline (subset_sweep npz, GOOD_5=84.4 vs ARS 86.38);
+    #    this preset documents that cell + adds GSM8K/R1-Distill (the missing matched point).
+    "ars_math500_r1distill8b": _preset(
+        paper="ARS (arXiv 2601.17467)",
+        model="deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+        dataset="math500", split=None, n_samples=300,
+        k=1, temps=[1.0], max_new=4096,   # U1: R1-Distill emits very long CoT; do not truncate
+        head_to_head="SAME-MODEL",
+        published={"method": "ARS (CCS)", "metric": "AUROC", "value": 86.38,
+                   "supervision": "supervised (representation shaping)",
+                   "best_baseline": "G-Detector 64.45",
+                   # ARS Table 2 unsupervised baselines on this exact cell — our GOOD_5 84.4
+                   # beats every one of them:
+                   "eigenscore_unsup": 75.89, "semantic_entropy_unsup": 43.60,
+                   "perplexity_unsup": 40.96,
+                   "model_note": "MATH-500 / DeepSeek-R1-Distill-Llama-8B (ARS Table 1). "
+                                 "Our unsupervised L-SML GOOD_5=84.4 on the same cell (subset_sweep). "
+                                 "ARS Table 2 unsup: EigenScore 75.89, SE 43.60, Perplexity 40.96."},
+        notes="ALREADY HAVE offline data (math500__DeepSeek-R1-Distill-Llama-8B_T1.0.npz, N=300, "
+              "GOOD_5=0.844, best-subset=0.861). Preset documents provenance + allows a raw-trace "
+              "re-run for EDIS/energy features. is_correct_math extracts \\boxed{} after </think>.",
+    ),
+    "ars_gsm8k_r1distill8b": _preset(
+        paper="ARS (arXiv 2601.17467)",
+        model="deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+        dataset="gsm8k", split="test", n_samples=500,
+        k=1, temps=[1.0], max_new=4096,
+        head_to_head="SAME-MODEL",
+        published={"method": "ARS (CCS)", "metric": "AUROC", "value": 74.72,
+                   "supervision": "supervised (representation shaping)",
+                   "best_baseline": "G-Detector 70.38",
+                   # ARS Table 2 unsupervised baselines on this exact cell:
+                   "eigenscore_unsup": 52.98, "semantic_entropy_unsup": 61.98,
+                   "perplexity_unsup": 58.48,
+                   "model_note": "GSM8K / DeepSeek-R1-Distill-Llama-8B (ARS Table 1). "
+                                 "ARS Table 2 unsup: EigenScore 52.98, SE 61.98, Perplexity 58.48."},
+        notes="MISSING matched cell — the one ARS point we do not yet have offline. Run this to "
+              "place our unsupervised L-SML next to ARS supervised 74.72 on GSM8K/R1-Distill. "
+              "Gate: smoke -> N=30 pilot (watch trace not pinned at max_new, acc in [0.20,0.85]) -> full.",
+    ),
+
+    # ── LapEigvals GSM8K model-sweep (arXiv 2502.17598, EMNLP'25). LapEigvals published
+    #    AUROC on GSM8K (test split, N=1319, exact-match) for FIVE models, each with an
+    #    UNSUPERVISED "AttentionScore" baseline and the SUPERVISED LapEigvals probe. We have
+    #    Llama-3.1-8B (lapeigvals_gsm8k_llama8b, our L-SML 0.815 vs AttentionScore 0.720). These
+    #    four fill the rest of the sweep: our unsupervised L-SML vs their unsupervised
+    #    AttentionScore (fair Y), with the supervised probe as the ceiling. Inference-only —
+    #    L-SML needs only token_entropies; capture_attention (their signal) is NOT reproduced.
+    "lapeigvals_gsm8k_llama3b": _preset(
+        paper="LapEigvals (arXiv 2502.17598)",
+        model="meta-llama/Llama-3.2-3B-Instruct", gated=True,
+        dataset="gsm8k", split="test", n_samples=1319,   # full test split, as LapEigvals
+        k=1, temps=[1.0], max_new=2048,
+        head_to_head="SAME-MODEL",
+        published={"method": "LapEigvals", "metric": "AUROC",
+                   "value": 71.7,          # unsupervised AttentionScore — the fair head-to-head Y
+                   "supervised": 87.0,      # supervised attention-Laplacian probe (ceiling)
+                   # Noise Injection (arXiv 2502.03799 v4, Table 3) — SAME model+dataset,
+                   # unsupervised gray-box, but K=10 T=0.5 with question-level majority-vote
+                   # labels (vs our K=1 answer-level): annotate the protocol gap when citing.
+                   "noise_injection_k10": 82.70,
+                   "answer_entropy_k10": 76.53,   # NI's no-noise baseline (answer entropy, K=10)
+                   "model_note": "GSM8K / Llama-3.2-3B (LapEigvals Table 1): AttentionScore 71.7, probe 87.0. "
+                                 "Noise Injection v4 Table 3 (same cell, K=10 question-level): "
+                                 "answer entropy 76.53 -> +noise 82.70."},
+        notes="LapEigvals GSM8K model-sweep + Noise Injection triple-anchor cell. Fair K=1 Y = unsup "
+              "AttentionScore 71.7; NI 82.70 is K=10 question-level (protocol gap). Prompt = our boxed-CoT "
+              "gsm8k_prompt (not LapEigvals Listing-5) — annotate when citing. Grader is_correct_gsm8k.",
+    ),
+    "lapeigvals_gsm8k_phi35": _preset(
+        paper="LapEigvals (arXiv 2502.17598)",
+        model="microsoft/Phi-3.5-mini-instruct",
+        dataset="gsm8k", split="test", n_samples=1319,
+        k=1, temps=[1.0], max_new=2048,
+        head_to_head="SAME-MODEL",
+        published={"method": "LapEigvals", "metric": "AUROC",
+                   "value": 66.6,          # unsupervised AttentionScore
+                   "supervised": 88.5,
+                   "model_note": "GSM8K / Phi-3.5-mini (LapEigvals Table 1): AttentionScore 66.6, probe 88.5."},
+        notes="LapEigvals GSM8K model-sweep. Fair Y = unsup AttentionScore 66.6. boxed-CoT prompt; "
+              "is_correct_gsm8k grader. Phi-3.5 not gated.",
+    ),
+    "lapeigvals_gsm8k_nemo": _preset(
+        paper="LapEigvals (arXiv 2502.17598)",
+        model="mistralai/Mistral-Nemo-Instruct-2407", gated=True,
+        dataset="gsm8k", split="test", n_samples=1319,
+        k=1, temps=[1.0], max_new=2048,
+        head_to_head="SAME-MODEL",
+        published={"method": "LapEigvals", "metric": "AUROC",
+                   "value": 63.0,          # unsupervised AttentionScore
+                   "supervised": 89.0,
+                   "model_note": "GSM8K / Mistral-Nemo-12B (LapEigvals Table 1): AttentionScore 63.0, probe 89.0."},
+        notes="LapEigvals GSM8K model-sweep. Fair Y = unsup AttentionScore 63.0. boxed-CoT prompt; "
+              "is_correct_gsm8k grader.",
+    ),
+    "lapeigvals_gsm8k_mistral24b": _preset(
+        paper="LapEigvals (arXiv 2502.17598)",
+        model="mistralai/Mistral-Small-24B-Instruct-2501", gated=True,
+        dataset="gsm8k", split="test", n_samples=1319,
+        k=1, temps=[1.0], max_new=2048,
+        head_to_head="SAME-MODEL",
+        published={"method": "LapEigvals", "metric": "AUROC",
+                   "value": 57.6,          # unsupervised AttentionScore
+                   "supervised": 92.5,
+                   "model_note": "GSM8K / Mistral-Small-24B (LapEigvals Table 1): AttentionScore 57.6, probe 92.5."},
+        notes="LapEigvals GSM8K model-sweep. Fair Y = unsup AttentionScore 57.6; probe 92.5 is the same "
+              "92.5 previously miscited as the Llama-8B anchor. Strong model -> watch acc ceiling on the "
+              "N=30 pilot (band [0.20,0.85]). boxed-CoT prompt; is_correct_gsm8k grader.",
+    ),
+
+    # ── ARS Qwen3-8B cells (arXiv 2601.17467) — ARS's OWN headline models. Supervised Y.
+    "ars_gsm8k_qwen3_8b": _preset(
+        paper="ARS (arXiv 2601.17467)",
+        model="Qwen/Qwen3-8B",
+        dataset="gsm8k", split="test", n_samples=500,
+        k=1, temps=[1.0], max_new=4096,   # Qwen3 thinking mode -> long CoT; do NOT add /no_think here
+        head_to_head="SAME-MODEL",
+        published={"method": "ARS (CCS)", "metric": "AUROC", "value": 90.37,
+                   "supervision": "supervised (representation shaping)",
+                   "best_baseline": "Semantic Entropy 72.51",
+                   "eigenscore_unsup": 63.40,   # ARS Table 2 vanilla EigenScore — fair UNSUP Y
+                   "model_note": "GSM8K / Qwen3-8B (ARS Table 1) — ARS's strongest published cell. "
+                                 "Unsup anchors from ARS Table 2: EigenScore 63.40."},
+        notes="Reasoning cell: KEEP Qwen3 thinking ON (no /no_think) — ARS scores reasoning trajectories. "
+              "is_correct_gsm8k extracts the boxed/final answer after </think>. N=30 pilot: watch acc band.",
+    ),
+    "ars_math500_qwen3_8b": _preset(
+        paper="ARS (arXiv 2601.17467)",
+        model="Qwen/Qwen3-8B",
+        dataset="math500", split=None, n_samples=500,
+        k=1, temps=[1.0], max_new=4096,
+        head_to_head="SAME-MODEL",
+        published={"method": "ARS (CCS)", "metric": "AUROC", "value": 78.66,
+                   "supervision": "supervised (representation shaping)",
+                   "best_baseline": "TSV 63.12",
+                   "eigenscore_unsup": 81.38,   # ARS Table 2 vanilla EigenScore — fair UNSUP Y
+                   "model_note": "MATH-500 / Qwen3-8B (ARS Table 1). "
+                                 "Unsup anchors from ARS Table 2: EigenScore 81.38."},
+        notes="Reasoning cell: Qwen3 thinking ON. is_correct_math extracts \\boxed{} after </think>.",
+    ),
+
+    # ── Internal-States + Reasoning-Consistency (arXiv 2510.11529) — supervised. GSM8K/Qwen2.5-7B.
+    "internalstates_gsm8k_qwen25_7b": _preset(
+        paper="Internal-States + Reasoning-Consistency (arXiv 2510.11529)",
+        model="Qwen/Qwen2.5-7B-Instruct",
+        dataset="gsm8k", split="test", n_samples=500,
+        k=1, temps=[1.0], max_new=2048,   # standard instruct CoT (non-reasoning model)
+        head_to_head="SAME-MODEL",
+        published={"method": "Internal-States+RC", "metric": "AUROC", "value": 79.15,
+                   "supervision": "supervised (LLM-judge labels, multi-path)",
+                   "best_baseline": "V-STaR 76.55",
+                   # Same paper's Table 1 UNSUPERVISED baselines — the fair Y for our L-SML:
+                   "selfcheckgpt_unsup": 67.98,   # ± 1.28
+                   "semantic_entropy_unsup": 58.36, "saplma": 59.72,
+                   "model_note": "GSM8K / Qwen2.5-7B (arXiv 2510.11529). Fair unsup Y = SelfCheckGPT "
+                                 "67.98±1.28; also SE 58.36, SAPLMA 59.72 (Table 1)."},
+        notes="Supervised ceiling 79.15 + fair unsupervised Y SelfCheckGPT 67.98 on GSM8K/Qwen2.5-7B. "
+              "boxed-CoT prompt; is_correct_gsm8k grader. Paper labels are LLM-judge -> our cell must be "
+              "judge-regraded before citing (lexical acc 0.284 confound, job 101077).",
+    ),
+
+    # ── Noise Injection GSM8K sweep (arXiv 2502.03799 v4, Table 3). NI is the strongest
+    #    published UNSUPERVISED GRAY-BOX GSM8K detector (answer entropy over K=10 samples,
+    #    lifted by activation-noise injection). We run each of the paper's remaining models
+    #    K=1 (our regime) on GSM8K and put our L-SML next to their K=10 numbers — protocol
+    #    gap (K + question-level majority-vote labels vs our answer-level) annotated, same
+    #    pattern as the SE-ICLR cell. Llama-3.2-3B is covered by lapeigvals_gsm8k_llama3b.
+    #    NI protocol verified from v4: N=1319 (full test), K=10, T=0.5, majority-vote labels.
+    "noise_gsm8k_phi3mini": _preset(
+        paper="Noise Injection (arXiv 2502.03799)",
+        model="microsoft/Phi-3-mini-4k-instruct",
+        dataset="gsm8k", split="test", n_samples=1319,
+        k=1, temps=[1.0], max_new=2048,
+        head_to_head="SAME-MODEL",
+        published={"method": "Noise Injection", "metric": "AUROC",
+                   "value": 72.51,               # +noise, K=10 question-level
+                   "answer_entropy_k10": 65.86,  # NI's no-noise baseline
+                   "model_note": "GSM8K / Phi-3-mini-4k-instruct (NI v4 Table 3): "
+                                 "answer entropy 65.86 -> +noise 72.51. K=10 question-level."},
+        notes="NI GSM8K sweep. NOT the staged Phi-3.5 (that one is LapEigvals'). Protocol gap: "
+              "NI is K=10 T=0.5 majority-vote question-level; ours K=1 answer-level. boxed-CoT "
+              "prompt; is_correct_gsm8k grader.",
+    ),
+    "noise_gsm8k_mistral7b": _preset(
+        paper="Noise Injection (arXiv 2502.03799)",
+        model="mistralai/Mistral-7B-Instruct-v0.3", gated=True,
+        dataset="gsm8k", split="test", n_samples=1319,
+        k=1, temps=[1.0], max_new=2048,
+        head_to_head="SAME-MODEL",
+        published={"method": "Noise Injection", "metric": "AUROC",
+                   "value": 78.50,               # +noise, K=10 question-level
+                   "answer_entropy_k10": 75.85,
+                   "model_note": "GSM8K / Mistral-7B-Instruct-v0.3 (NI v4 Table 3): "
+                                 "answer entropy 75.85 -> +noise 78.50. K=10 question-level."},
+        notes="NI GSM8K sweep. v0.3 exactly (paper-verified). Protocol gap as phi3mini. "
+              "boxed-CoT prompt; is_correct_gsm8k grader.",
+    ),
+    "noise_gsm8k_gemma2b": _preset(
+        paper="Noise Injection (arXiv 2502.03799)",
+        model="google/gemma-2b-it", gated=True,
+        dataset="gsm8k", split="test", n_samples=1319,
+        k=1, temps=[1.0], max_new=2048,
+        head_to_head="SAME-MODEL",
+        published={"method": "Noise Injection", "metric": "AUROC",
+                   "value": 57.11,               # +noise, K=10 question-level
+                   "answer_entropy_k10": 51.36,
+                   "model_note": "GSM8K / Gemma-2B-it (NI v4 Table 3): answer entropy 51.36 -> "
+                                 "+noise 57.11. K=10 question-level."},
+        notes="NI GSM8K sweep — HIGH ACC-FLOOR RISK (2B on GSM8K; NI's own near-chance AUROC "
+              "suggests very low accuracy). N=30 pilot gate decides; a REJECT is itself the "
+              "reportable outcome. gemma-2b-it NOT gemma-2-2b. boxed-CoT prompt; is_correct_gsm8k.",
     ),
 }
 

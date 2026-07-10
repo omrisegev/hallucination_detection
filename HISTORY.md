@@ -5263,3 +5263,160 @@ preset bugs get caught on CPU in seconds, cluster polling stays out of the main 
 one command away. PDF/RAG captured for a dedicated design session.
 
 ---
+
+### Step 165 — Reasoning-first advisor report: EDIS scored, ARS/LapEigvals anchors fixed, report rebuilt from CSV
+
+**What**: Filled the missing reasoning-domain comparisons and replaced the Gemini-authored
+`results/Advisors_Action_Items_Report.html` with a generated, fact-checked one.
+
+**Why**: The old report omitted our strongest evidence (reasoning-domain benchmarking) and carried factual
+errors (wrong competitor attributions, a wrong fusion number, an unresolved bug framed as a "discovery",
+a mislabeled EPR column, a stale done-already next-steps list).
+
+**Workstream A (get the missing comparisons)**:
+- **A1 LapEigvals same-model anchor** (`cluster/presets.py`): `lapeigvals_gsm8k_llama8b.published` now carries
+  the same-model GSM8K/Llama-3.1-8B numbers — unsup AttentionScore **72.0** (our head-to-head Y) and sup probe
+  **87.2** — with 92.5 kept only as the labeled cross-model (Mistral-Small-24B) note. Re-verified 72.0/87.2 vs
+  HISTORY Steps 66–69.
+- **A2 EDIS scored locally** (`scripts/score_edis.py`, new): `-compute_edis(H)` per candidate + AUROC (boot) +
+  ρ(EDIS, L-SML GOOD_5) on all 11 repgrid cells → `results/repgrid/edis_scores.csv`. **GSM8K/Llama-8B EDIS =
+  0.809** (L-SML GOOD_5 0.815, ρ=0.87 → redundant, no fusion lift); QA cells weak (0.53–0.66). L-SML GOOD_5
+  values reproduce `whatis_size_trend.csv` exactly (alignment validated).
+- **A2b MATH-500 EDIS**: the raw-trace pkls on Drive are ~50 MB (too big to pull through the MCP base64 bridge);
+  GSM8K EDIS already covers the reasoning claim, so MATH-500 EDIS is documented as a Colab one-liner in the
+  report's next-steps rather than fetched here.
+- **A3 published reasoning anchors** (verified from arXiv full text): **ARS (2601.17467, supervised repr.
+  shaping)** — GSM8K/Qwen3-8B 90.37, GSM8K/R1-Distill 74.72, MATH-500/Qwen3-8B 78.66, **MATH-500/R1-Distill
+  86.38**; **Internal-States (2510.11529, supervised)** — GSM8K/Qwen2.5-7B 79.15. Written to new
+  `results/reasoning_benchmark.csv` with supervision + citable flags.
+- **A4 matched ARS cell**: discovered we **already have** `results/subset_sweep/math500__DeepSeek-R1-Distill-Llama-8B_T1.0.npz`
+  → looked up the fixed **GOOD_5 = 0.844** (best-of-sweep 0.861) via the manifest bitmask map, giving a
+  same-model head-to-head: our **unsupervised** GOOD_5 (84.4) nearly matches ARS's **supervised** 86.38 with zero
+  labels and one pass. Also validated MATH-500/Qwen-Math-7B GOOD_5 = **0.9444** (= the 94.4 headline exactly).
+  Added ready-to-run presets `ars_math500_r1distill8b` + `ars_gsm8k_r1distill8b` (smoke-passed); the GSM8K/R1-Distill
+  cluster run is the async tail (VPN+queue).
+
+**Workstream B (report generator + corrections)**: new `scripts/advisor_report.py` renders the HTML with every
+numeric table sourced from a CSV (`reasoning_benchmark.csv`, `repgrid/{headline_X_vs_Y,edis_scores,subset_by_domain}.csv`).
+Corrections baked in: reasoning-first Item 4; **Semantic Energy = Chen et al. (2508.14496), not Farquhar**; dropped
+unverified "Minut et al." from EPR; **EPR column labeled U-PCR+logprob, not L-SML GOOD_5**; **fusion 0.768 → 0.758**
+(PROGRESS Step 152); NLI-truncation reframed as suspected/unresolved with SE/SC reasoning baselines flagged
+not-yet-citable; selection-bias caveats for spilled_triviaqa (n_pos=6) and se_squad (valid 0.29); a closed-subset
+table (domain means per candidate subset, features written out); rewritten next-steps. Built-in terminology
+guardrail scan passes (no bare "Nadler"/"MV_EPR"/"recommended"/"best_nadler_on").
+
+**Result**: `results/Advisors_Action_Items_Report.html` regenerated (28 KB, guardrail-clean). The reasoning story now
+leads: MATH-500 94.4 unsup 1-pass; R1-Distill/MATH-500 84.4 unsup ≈ ARS 86.4 sup (same model); GSM8K beats
+LapEigvals-unsup 72.0; EDIS 0.809 but redundant with L-SML. New/changed files: `scripts/score_edis.py`,
+`scripts/advisor_report.py`, `results/reasoning_benchmark.csv`, `results/repgrid/edis_scores.csv`,
+`cluster/presets.py` (A1 + 2 ARS presets). Not committed (await Omri).
+
+---
+
+### Step 166 — Reasoning replication-grid presets staged: 7 new inference-only cells (our L-SML vs published AUROC)
+
+**What**: Reviewed the Gemini `BENCHMARKING_COMPETITOR_GUIDE.md` for hallucination-detection methods evaluated on
+REASONING tasks that we lack an apples-to-apples comparison for, verified each against the actual paper, and staged
+inference-only cluster presets to fill the real gaps. Same replication-grid pattern as Steps 162–163: run inference
+on the competitor's exact (dataset X, model Y, N), score OUR L-SML offline, put our AUROC next to their published Y
+— **no competitor detector is reproduced**.
+
+**Why**: The guide claimed several methods evaluate on reasoning; verifying the papers showed which are real gaps and
+which are noise. Reasoning is our strongest domain, so more same-scenario reasoning comparisons directly strengthen
+the thesis.
+
+**Paper verification (read this session, corrects the guide)**:
+- **EPR (2509.04492)** is **QA-only** (TriviaQA / WebQ / financial RAG on Mistral-24B / Falcon-3-10B / Phi-4 /
+  Ministral-8B) — the guide's "EPR evals GSM8K/MATH" is wrong. We already have its TriviaQA cell. Excluded.
+- **LapEigvals (2502.17598)** evaluated **GSM8K only** (N=1319, exact-match) on **5 models**, each with a published
+  UNSUPERVISED AttentionScore + SUPERVISED probe AUROC: Llama-3.1-8B 0.720/0.872 (we HAVE, L-SML 0.815),
+  Llama-3.2-3B 0.717/0.870, Phi-3.5 0.666/0.885, Mistral-Nemo 0.630/0.890, Mistral-Small-24B 0.576/0.925. The 4
+  missing models are the highest-value gap (one dataset, one grader, a fair unsupervised Y per model).
+- **EDIS (2602.01288)** reports one AGGREGATE AUROC 0.804 (vs mean-entropy 0.673) on Qwen2.5-Math-1.5B across
+  GSM8K/MATH/AMC/AIME at T∈{0.2,0.6,1.0} — no per-dataset AUROC. Tier-3 optional; deferred.
+- **INSIDE/EigenScore, LOS-Net** — QA-domain in their papers (not GSM8K/MATH). **FG-PRM / FUSE** report best-of-N
+  selection accuracy, not per-answer detection AUROC. All excluded from the reasoning grid.
+
+**Presets added** (`cluster/presets.py`, all smoke-passed, inference-only, K=1, default capture = token_entropies +
+top_k_logprobs which is all L-SML needs):
+- Tier 1 — LapEigvals GSM8K model-sweep (N=1319, T=1.0): `lapeigvals_gsm8k_llama3b`, `lapeigvals_gsm8k_phi35`,
+  `lapeigvals_gsm8k_nemo`, `lapeigvals_gsm8k_mistral24b`. Each carries the unsupervised AttentionScore as the fair
+  head-to-head Y and the supervised probe as the ceiling.
+- Tier 2 — `ars_gsm8k_qwen3_8b` (vs ARS 90.37), `ars_math500_qwen3_8b` (vs 78.66), `internalstates_gsm8k_qwen25_7b`
+  (vs 79.15). Qwen3 cells keep thinking mode ON (reasoning traces; no /no_think).
+
+**Tooling**: added GSM8K + MATH grader fixtures to `scripts/smoke_preset.py` (`gsm8k_family`, `math_family` +
+`_fixture_family` mapping) so the CPU smoke gate now actually validates the math graders — including the critical
+`<think>`-then-`\boxed{}` case (R1-Distill / Qwen3) and `\frac` numeric normalization. Verified all fixtures against
+the real `is_correct_gsm8k` / `is_correct_math` first. `smoke_preset.py --all` = 20/20 PASS (no regression).
+
+**Result**: 7 reasoning cells staged and gate-1 (smoke) green. Next = the cluster async tail (VPN + queue, user-run):
+per cell `bash cluster/sync_code.sh` → `/aircc-submit <id>` N=30 pilot (acc in [0.20,0.85], trace not pinned at
+max_new; strong models Mistral-Small-24B / Qwen3-8B may ceiling on GSM8K) → scale to full N → `/aircc-fetch` →
+`python scripts/score_repgrid.py --cells <id>` + append to `results/reasoning_benchmark.csv` →
+`python scripts/advisor_report.py`. Files changed: `cluster/presets.py`, `scripts/smoke_preset.py`. Not committed
+(await Omri).
+
+---
+### Step 167 — Survey-driven benchmarking pass: verify anchors from primary sources, score survey baselines on our traces, stage the Noise-Injection sweep
+
+**What**: Executed the benchmarking plan derived from the July-2026 SOTA survey (`papers/State of the Art in LLM
+Hallucination Detection for Reasoning Tasks (as of July 2026)...md`). Four moves: (1) **verified every survey number
+against the primary arXiv source** before citing (cheap Haiku web-subagent, verbatim-quote protocol — kept ~85k tokens
+of paper-fetching out of the main context); (2) **scored the survey's standard unsupervised gray-box baselines
+(perplexity, sequence logprob, naive entropy, LN-entropy/predictive-entropy for K≥2) on OUR replication-grid traces**
+via new `scripts/score_ubaselines.py` (13 cells, one cheap pass per pkl, no FFT extraction, L-SML joined from the
+existing CSV instead of recomputed); (3) **enriched 7 presets with the verified anchors and added 3 Noise-Injection
+GSM8K presets** (Phi-3-mini-4k, Mistral-7B-v0.3, Gemma-2B-it — full-sweep decision by Omri, Gemma pilot-gated);
+(4) added a **`--regrade` + `--judge` mode to `cluster/run_inference.py`** (judge-relabel an existing fetched run dir,
+no generation; `judge_label_cache` already preserves `label_lexical` and resumes) to unblock the two label-confounded
+cells.
+
+**Why**: The survey mapped the 2024–26 landscape and showed the canonical unsupervised detectors (SE, INSIDE,
+SelfCheckGPT, KLE, HaloScope) never reported GSM8K/MATH AUROC — the math numbers exist only in 2025–26 re-evals.
+That is exactly our territory; every verified anchor placed next to our L-SML strengthens the thesis claim. The
+survey itself warns its numbers are provisional, hence the verify-first gate.
+
+**Verification results (all VERIFIED from primary sources)**:
+- **Noise Injection (2502.03799 v4 Table 3)** — the v4 revision (Jun 2026) contains Llama-3.2-3B 76.53→82.70 (a
+  stale-version fetch initially missed it); Phi-3-mini-4k 65.86→72.51, Mistral-7B-v0.3 75.85→78.50, Gemma-2B-it
+  51.36→57.11, Llama-2-13B 77.20→79.25. Protocol: N=1319, K=10, T=0.5, question-level majority-vote labels.
+- **ARS paper (2601.17467 Table 2)** — vanilla EigenScore Qwen3-8B: GSM8K 63.40 / MATH-500 81.38; R1-Distill unsup
+  baselines: GSM8K EigenScore 52.98 / SE 61.98 / Perplexity 58.48; MATH-500 75.89 / 43.60 / 40.96 → **our GOOD_5
+  84.4 on MATH-500/R1-Distill beats every published unsupervised baseline on that cell.**
+- **Internal-States (2510.11529 Table 1)** — SelfCheckGPT 67.98±1.28 is the fair unsup Y on GSM8K/Qwen2.5-7B
+  (+ SE 58.36, SAPLMA 59.72). **TSV (2503.01917)** TruthfulQA 84.2±0.2 semi-sup on Llama-3.1-8B (sup 85.5);
+  **HaloScope (2409.17504)** 78.64. **Janiak (2508.08285)** degradation quotes confirmed.
+
+**Ubaseline sweep highlights** (`results/repgrid/ubaseline_scores.csv`): GSM8K/Llama-8B — seq-logprob 80.4 /
+naive-entropy 78.4 / perplexity 77.7 vs our GOOD_5 81.5 (honest: the simple baseline is close); GSM8K/Phi-3.5 —
+seq-logprob 80.8 ≈ our GOOD_5 80.3, both far above LapEigvals AttentionScore 66.6; **dual-label effect on our own
+cells**: EPR/TriviaQA naive entropy 70.2 (judge) vs 35.6 (lexical) — the label protocol alone moves a baseline 35pp,
+our in-house confirmation of the Janiak caveat.
+
+**Infra fix**: `score_repgrid.py --cells` used to OVERWRITE `scores_lsml_upcr.csv` — a concurrent session's phi35
+re-score silently dropped the 11 Step-163 cells. Now merge-on-write (keeps rows of cells not re-scored); CSV restored
+to 13 cells / 208 rows (GOOD_5 llama8b 0.8152 regression-checked intact) and internalstates re-scored in place.
+Incorporated the fresh **phi35 cell (job 101074, N=1319, acc 0.848)**: L-SML GOOD_5 **80.3 vs LapEigvals same-model
+unsup AttentionScore 66.6 → +13.7pp WIN** (second point of the LapEigvals sweep).
+
+**Result**: `results/reasoning_benchmark.csv` 19→49 rows + a `category` column (UGB/BB/WB/SUP survey taxonomy);
+`results/Advisors_Action_Items_Report.html` regenerated (guardrail-clean) with the math-reasoning-gap positioning,
+category badges, and a new judge-vs-lexical robustness section; `smoke_preset.py --all` 23/23 PASS.
+ProcessBench/MR-GSM8K step-level eval deferred → Research_Directions.md Extension F. Cluster tail (user-run):
+regrade job for internalstates+truthfulqa first, then `ars_gsm8k_r1distill8b`, `lapeigvals_gsm8k_llama3b`
+(triple-anchor cell), 3 NI cells, `lapeigvals_gsm8k_{nemo,mistral24b}`; jobs 101075/101076 (Qwen3-8B ARS cells)
+still running — fetch+score on completion.
+
+**Files changed**:
+- `scripts/score_ubaselines.py` — NEW: survey baselines scored on our traces + dual-label AUROCs
+- `scripts/score_repgrid.py` — merge-on-write CSV fix (concurrent-session data-loss)
+- `cluster/presets.py` — 7 presets anchor-enriched (verified values only) + 3 NI presets
+- `cluster/run_inference.py` — `--regrade` / `--judge` flags (judge-relabel existing runs)
+- `scripts/advisor_report.py` — category column, survey positioning box, dual-label section
+- `results/reasoning_benchmark.csv` — category column + 28 verified-anchor/our-trace rows
+- `results/repgrid/ubaseline_scores.csv` — NEW: 13-cell baseline sweep output
+- `results/repgrid/scores_lsml_upcr.csv` — restored 13 cells + fresh phi35/internalstates rows
+- `Research_Directions.md` — Extension F (step-level localization, deferred)
+
+---
