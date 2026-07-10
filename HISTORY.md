@@ -5419,4 +5419,15 @@ still running — fetch+score on completion.
 - `results/repgrid/scores_lsml_upcr.csv` — restored 13 cells + fresh phi35/internalstates rows
 - `Research_Directions.md` — Extension F (step-level localization, deferred)
 
+**Correction (same session, from `HANDOFF_step166.md` — the Step-166 agent's handoff)**: three assumptions above are
+wrong and are corrected in-place across presets/CSV/report/PROGRESS: (1) **the internalstates acc-0.284 is NOT a
+grader bug** — pkl inspection showed 99% of wrong answers DO produce `oxed{}` and are genuinely wrong (T=1.0
+sampling collapse; greedy Qwen2.5-7B is ~85% on GSM8K). A judge regrade will NOT unblock the cell; apples-to-apples
+vs Internal-States (near-greedy) needs a **temperature-matched re-run** — regrade queue reduced to truthfulqa only.
+(2) **`ars_gsm8k_qwen3_8b` (101075) is a ceiling cell** — pilot acc 0.967 → ~17 negatives at N=500 → expect a gate
+REJECT/wide CI; MATH-500 (101076) is the usable ARS/Qwen3 comparison. (3) **gated-token risk**: `sync_code.sh` tars
+the working tree over `$SHARED/code`, possibly clobbering the live `HF_TOKEN` sbatch with the REPLACE_ME template —
+verify before submitting any gated cell. Also repaired: the handoff agent's row-19 CSV edit had merged two rows
+(missing newline) — the swallowed MATH-500/R1-Distill EigenScore row is restored (46 rows, all field-counts clean).
+
 ---

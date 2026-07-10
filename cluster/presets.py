@@ -346,7 +346,9 @@ PRESETS = {
                    "model_note": "GSM8K / Qwen3-8B (ARS Table 1) — ARS's strongest published cell. "
                                  "Unsup anchors from ARS Table 2: EigenScore 63.40."},
         notes="Reasoning cell: KEEP Qwen3 thinking ON (no /no_think) — ARS scores reasoning trajectories. "
-              "is_correct_gsm8k extracts the boxed/final answer after </think>. N=30 pilot: watch acc band.",
+              "is_correct_gsm8k extracts the boxed/final answer after </think>. CEILING CELL: pilot acc "
+              "0.967 (job 101075) -> ~17 negatives at N=500, minority<30 -> expect a gate REJECT / wide CI. "
+              "The MATH-500/Qwen3 cell (101076) is the usable ARS/Qwen3 comparison.",
     ),
     "ars_math500_qwen3_8b": _preset(
         paper="ARS (arXiv 2601.17467)",
@@ -379,8 +381,10 @@ PRESETS = {
                    "model_note": "GSM8K / Qwen2.5-7B (arXiv 2510.11529). Fair unsup Y = SelfCheckGPT "
                                  "67.98±1.28; also SE 58.36, SAPLMA 59.72 (Table 1)."},
         notes="Supervised ceiling 79.15 + fair unsupervised Y SelfCheckGPT 67.98 on GSM8K/Qwen2.5-7B. "
-              "boxed-CoT prompt; is_correct_gsm8k grader. Paper labels are LLM-judge -> our cell must be "
-              "judge-regraded before citing (lexical acc 0.284 confound, job 101077).",
+              "boxed-CoT prompt; is_correct_gsm8k grader. OPERATING-POINT CONFOUND (job 101077, "
+              "HANDOFF_step166 diagnosis): T=1.0 sampling collapses Qwen2.5-7B to acc 0.284 with "
+              "GENUINE errors (99% of wrongs still \\boxed{}) - a judge regrade will NOT fix it. "
+              "Apples-to-apples needs a re-run at the paper's near-greedy decoding T.",
     ),
 
     # ── Noise Injection GSM8K sweep (arXiv 2502.03799 v4, Table 3). NI is the strongest

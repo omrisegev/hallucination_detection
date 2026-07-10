@@ -464,8 +464,11 @@ def build_html():
     <div class="takeaway-box"><b>Why this matters:</b> the label protocol alone moves a baseline by up
     to <strong>35 AUROC points</strong> (naive entropy on the TriviaQA/Mistral-24B cell). This is why
     every head-to-head cell is graded with the paper-matched protocol (LLM judge where the paper used
-    one), and why the GSM8K/Qwen2.5-7B cell is held back as not-citable until its judge re-grade
-    completes — its lexical grader shows 0.284 accuracy where the model plausibly scores ~0.8.</div>
+    one). A related but distinct confound holds back the GSM8K/Qwen2.5-7B cell: its 0.284 accuracy is
+    <strong>not a grading artifact</strong> — inspection shows genuine T=1.0 sampling errors (99% of
+    wrong answers still produce a boxed final answer). The mismatch there is the <em>decoding operating
+    point</em> (our T=1.0 vs the paper's near-greedy), so the fix is a temperature-matched re-run, not
+    a re-grade. The judge re-grade path applies where labels are the problem (TruthfulQA's ROUGE proxy).</div>
   </div>
 
   <!-- CLOSED SUBSET -->
