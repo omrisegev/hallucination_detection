@@ -127,6 +127,8 @@ def reasoning_rows_html(reasoning):
         ("GSM8K", "Phi-3-mini-4k-instruct"),
         ("GSM8K", "Mistral-7B-Instruct-v0.3"),
         ("GSM8K", "Gemma-2B-it"),
+        ("GSM8K", "Mistral-Nemo-Instruct-2407"),
+        ("GSM8K", "Mistral-Small-24B-Instruct-2501"),
         ("GPQA", "Qwen2.5-7B"),
     ]
     by_cell = defaultdict(list)
@@ -185,12 +187,14 @@ def qa_headline_html(headline, edis):
         "se_squad_v2_llama8b": ("SE-ICLR protocol (adapted)", "SQuAD v2", "Llama-3.1-8B", False),
         "spilled_triviaqa_llama8b": ("Spilled/Semantic Energy (boundary)", "TriviaQA", "Llama-3.1-8B", False),
         "truthfulqa_llama8b": ("TruthfulQA (generation)", "TruthfulQA", "Llama-3.1-8B", False),
+        "se_nq_open_llama8b": ("SE-ICLR protocol (adapted, judge labels)", "NQ-Open", "Llama-3.1-8B", False),
     }
     # keep lsml rows; index by cell
     lsml = {r["cell"]: r for r in headline if r["method"] == "lsml"}
     upcr = {r["cell"]: r for r in headline if r["method"] == "upcr"}
     order = ["semenergy_triviaqa_qwen3_8b", "epr_triviaqa_mistral24b",
-             "seiclr_triviaqa_opt30b", "inside_coqa_llama7b", "losnet_hotpotqa_mistral7b"]
+             "seiclr_triviaqa_opt30b", "inside_coqa_llama7b", "losnet_hotpotqa_mistral7b",
+             "se_nq_open_llama8b"]
     out = []
     for cell in order:
         if cell not in lsml:
@@ -204,7 +208,8 @@ def qa_headline_html(headline, edis):
             ur = upcr.get(cell)
             xtxt = f'<strong>{pct(ur["X"])}</strong> <span style="color:#64748b;font-size:12px">(U-PCR + logprob)</span>'
         else:
-            xtxt = f'<strong>{pct(X)}</strong> <span style="color:#64748b;font-size:12px">(L-SML GOOD_5)</span>'
+            xtxt = (f'<strong>{pct(X)}</strong> <span style="color:#64748b;font-size:12px">'
+                    f'(L-SML {esc(r.get("best_subset", "GOOD_5"))})</span>')
         ytxt = pct(Y) if Y else "n/a"
         if Y:
             d = X - float(Y)
