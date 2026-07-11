@@ -103,10 +103,10 @@ These 6 items are the current priority order. They supersede the old Step 132 GP
 |---|--------|--------|
 | 1 | **L-SML literature search** — find Nadler post-2016 follow-up work extending or improving L-SML | ✅ Complete (Step 141) |
 | 2 | **Logistic regression oracle** — supervised LR on 5/9/16 feature sets → upper bound on fusion AUROC (5-fold CV, no in-sample leakage) | ✅ Complete (Steps 142–143 corrected; Step 147 common-cell re-validation + convergence + weight-agreement experiments) |
-| 3 | **Extend QA evaluation** — priority corrected (Step 155): **CoQA > SQuAD v2 > TruthfulQA** — these have published SE/SC baselines to compare against; AmbigQA/PopQA have none. Folded into the replication-grid plan (loaders + presets) | Loaders + paper-terse prompts + graders + presets **implemented + unit-tested** (Step 160); pending cluster run |
-| 4 | **Benchmarking completion** — model-matched comparisons for MATH-500, GSM8K, QA vs SE/SC/SelfCheckGPT | Run complete (Step 152); 4 open follow-ups (MATH sign flip/discrepancy, RAG below-chance, SE drops) before numbers are citable; Phase 14 + QA datasets remain |
+| 3 | **Extend QA evaluation** — priority corrected (Step 155): **CoQA > SQuAD v2 > TruthfulQA** — these have published SE/SC baselines to compare against; AmbigQA/PopQA have none. Folded into the replication-grid plan (loaders + presets) | In progress — actively running (Steps 160–169); TruthfulQA + SciQ freshly scored, CoQA/NQ-Open mid-flight |
+| 4 | **Benchmarking completion** — model-matched comparisons for MATH-500, GSM8K, QA vs SE/SC/SelfCheckGPT | In progress — actively running (Steps 160–169); 3 cells still in queue, Wave-3 scored with 3 wins + 1 tie + 1 edge |
 | 5 | **Experiment 1 — Sampling fusion** — fuse SE (K=10) with single-pass spectral features; measure AUROC gain vs each alone | ✅ Complete (Step 152) — gate NOT passed: SE K=10 adds ≤+2.0pp over 1-pass L-SML; spectral adds +14.5pp over LW-SE (GSM8K) |
-| 6 | **Experiment 2 — Temperature variation** — run same model at T∈{0.3,0.6,1.0,1.5,2.0}; does higher T improve detectability? Ablate: T-diversity vs just more passes | Not started |
+| 6 | **Experiment 2 — Temperature variation** — run same model at T∈{0.3,0.6,1.0,1.5,2.0}; does higher T improve detectability? Ablate: T-diversity vs just more passes | ✅ Complete (Step 158) — temperature diversity hurts fusion (−5.3pp, CI excludes 0); same-T sampling helps (+6.1pp) |
 
 See `Research_Directions.md` § "Meeting Action Items — Jun 17, 2026" for full experimental designs.
 

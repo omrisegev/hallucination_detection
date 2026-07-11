@@ -164,11 +164,21 @@ def main():
         print("no cells matched")
         return
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
+
+    # Merge-on-write: keep rows of cells NOT re-scored this run, so a --cells run never
+    # drops the other cells' scores (a --cells overwrite silently lost rows in Step 169).
+    scored_cells = {r["cell"] for r in rows}
+    kept = []
+    if os.path.exists(args.out):
+        with open(args.out, newline="") as f:
+            kept = [r for r in csv.DictReader(f) if r.get("cell") not in scored_cells]
+    fieldnames = list(rows[0].keys())
     with open(args.out, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+        w = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
         w.writeheader()
+        w.writerows(kept)
         w.writerows(rows)
-    print(f"\nwrote {len(rows)} rows -> {args.out}")
+    print(f"\nwrote {len(rows)} new + {len(kept)} kept rows -> {args.out}")
 
 
 if __name__ == "__main__":

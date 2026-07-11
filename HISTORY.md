@@ -5512,3 +5512,54 @@ score the 10 running cells when chains finish (~1–4 walls each).
 - `cache/repgrid/*` (gitignored) — internalstates T1.0 + ars_math500 mn8192 pilot archived locally
 
 ---
+
+### Step 170 — Advisor action-items report: 9 HTML pages, anchor re-derivation, ubaseline data-loss recovery, legacy U-PCR, Phase-12/15 partial re-scores
+
+**What**: Built the per-item advisor report (`scripts/action_items_report.py` → 9 pages under
+`results/action_items/`: index, items 1–6, per_domain_breakdown, advisor_scrutiny) plus the
+supporting analyses. (0a) Fixed the stale Item-3/4/6 status rows in PROGRESS.md and
+Research_Directions.md (Item 6 said "Not started"; it finished at Step 158). (0e) Recovered
+`results/repgrid/ubaseline_scores.csv` from a silent merge-less overwrite (6 → 22 rows via the
+`4df18aa` git version) and ported score_repgrid's merge-on-write into `score_ubaselines.py`.
+(0b) New test `scripts/test_multi_anchor_orient.py`: single-epr anchor vs multi-feature-average
+anchor (the `multipass_lsml_continuous` cross-pass pattern applied within-pass) on the 29-cell
+battery. (1) `scripts/compute_legacy_upcr.py`: per-cell U-PCR for all 24 non-GPQA legacy cells
+× 4 subsets → `results/subset_sweep/upcr_legacy.csv` (192 rows; lsml rows reproduce
+sweep_summary, e.g. MATH-500/Qwen-Math GOOD_5 0.9444). (0c) `scripts/refix_phase12_signs.py`:
+the Phase-12-Corrected MATH-500 sign flip corrected — the dropped results pkl stores only
+(auc, lo, hi), so the fix is exact mirror arithmetic with the flip direction corroborated
+label-free on the same-model battery cell; full label-free re-derivation is code-armed for when
+the raw two-pass caches land. (0d) `scripts/rescore_phase15_selfconsistency.py`: partial mode —
+the Item-5 gate applied to Phase-15's same-T K=5 entropy-averaging arm; the answer-agreement arm
+is code-armed for the 5 raw pass caches.
+
+**Why**: Omri asked for a status/results pass over the six 2026-06-17 meeting action items plus
+a per-domain leading-variant breakdown, a coverage check, and an explicit critical-review pass
+("what would an advisor push back on") instead of a repackaging of per-cell writeups.
+
+**Result**:
+- **0b — epr anchor kept.** GOOD_5: 26/29 cells agree exactly, macro 63.6 (epr) vs 63.9 (multi);
+  the 3 disagreements are 2 GPQA cells (epr side >0.5) and 1 RAG cell (multi side >0.5).
+  ALL_H16: multi-anchor is a large net loss (macro 62.3 → 54.7, 6/29 disagreements, flipping the
+  strongest MATH-500 cells to their mirror, e.g. Qwen-Math 0.942 → 0.058). The single-epr anchor
+  is not a live failure mode on real cells; it stays, and 0c uses it.
+- **0c — MATH-500 corrected**: L-SML 0.230 → **0.770 [0.684, 0.848]**, fusion 0.232 → **0.768
+  [0.678, 0.850]** (mirror; battery corroboration: anchor_orient(epr) flips the same-model
+  battery cell and lands 0.944). GSM8K/GPQA unchanged (already >0.5). → `results/repgrid/phase12_signfix.json`.
+- **0d — Items 5/6 reconciled with a computed number**: same-T K=5 entropy-averaging arm passes
+  Item 5's own gate (cross-pass ρ +0.45 < 0.75, paired +6.1pp [+0.4, +12.8] > 1pp) while SE-K=10
+  fusion failed it (+0.4pp) — extra passes help; what you compute from them decides whether it
+  shows. → `results/repgrid/phase15_rescore.json`.
+- **Report computed checks**: (a) CI-overlap scan found **3** headline claims that are
+  numerically-ahead-but-CI-overlapping (R1-Distill 75.0 [70.4,79.7] vs ARS 74.7; Qwen2.5-7B
+  U-PCR 69.1 [64.0,73.8] vs SelfCheckGPT 68.0; Phi-3-mini 66.4 [63.1,69.6] vs answer-entropy
+  65.9 — the third was not previously flagged); the LapEigvals-family wins are CI-clear.
+  (b) GOOD_5 vs same-trace seq-logprob across 19 cells: **6 wins / 3 ties / 10 losses**
+  (±0.5pp band) — the trivial baseline is ahead more often than not; wins cluster on QA/long-trace
+  cells (CoQA +12.4pp), losses on strong-model GSM8K cells.
+- Guardrail scan clean on all 9 pages; every numeric cell CSV/JSON-sourced; pages carry the
+  "as of commit 5af2931, 3 cells running (A2/A3/C1)" caveat.
+- Not committed (await Omri). Rerunning `action_items_report.py` after A2/A3/C1 land refreshes
+  the pages.
+
+---

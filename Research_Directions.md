@@ -112,10 +112,10 @@ GPQA Diamond (MCQ science) is structurally out-of-regime: entropy dynamics are s
 |---|--------|--------|------|
 | 1 | L-SML follow-up literature search (Nadler post-2016) | ✅ Completed (Steps 139–141) | No |
 | 2 | Logistic regression oracle (5/9/16 features, 5-fold CV) | ✅ Completed (Steps 142–143, 147) | No |
-| 3 | Extend QA evaluation (CoQA > SQuAD v2 > TruthfulQA — priority corrected Step 155) | Planned — folded into replication grid (Step 155) | Yes (AIRCC) |
-| 4 | Benchmarking completion (Phase 12 Corrected run done — Step 152; 4 open issues before citable; QA + Phase 14 remaining) | In progress | Partial |
+| 3 | Extend QA evaluation (CoQA > SQuAD v2 > TruthfulQA — priority corrected Step 155) | In progress — actively running (Steps 160–169) | Yes (AIRCC) |
+| 4 | Benchmarking completion (Phase 12 Corrected run done — Step 152; 4 open issues before citable; QA + Phase 14 remaining) | In progress — actively running (Steps 160–169) | Partial |
 | 5 | Experiment 1 — sampling fusion: SE (K=10) + spectral features | ✅ Completed (Step 152) — gate NOT passed | No |
-| 6 | Experiment 2 — temperature variation: T effect + diversity ablation | Not started | Yes |
+| 6 | Experiment 2 — temperature variation: T effect + diversity ablation | ✅ Completed (Step 158) — diversity hurts, same-T sampling helps | Yes |
 
 ---
 
