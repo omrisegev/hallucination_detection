@@ -5431,3 +5431,45 @@ verify before submitting any gated cell. Also repaired: the handoff agent's row-
 (missing newline) — the swallowed MATH-500/R1-Distill EigenScore row is restored (46 rows, all field-counts clean).
 
 ---
+
+### Step 168 — Wave-2 postmortem: requeue bug fixed, ARS/Internal-States operating points corrected from primary sources, Wave-3 handed off
+
+**What**: (1) Status check on the wave-2 Qwen3 jobs (101075/101076, via cluster-ops subagent): both hit the
+8h wall, SIGTERM-checkpointed, **exited 0 → Slurm recorded COMPLETED and never requeued** → stalled at partial
+N (440/500 GSM8K, 279/500 MATH-500). (2) The Step-166 agent appended §7–8 to `HANDOFF_step166.md` while this
+session ran: it fetched + scored both partials to scratch and diagnosed the deeper confound — **13% (GSM8K) /
+45% (MATH-500) of traces pinned at `max_new=4096`**; truncated generations grade wrong, so cap-hitting
+correlates with the label = length-leakage; both cells provisional/not-clean. Also: `GOOD_5+logprob` HURTS
+MATH-500/Qwen3 (0.724); U-PCR ≥ L-SML on both Qwen3 cells. (3) Verified the papers' decoding configs from
+primary arXiv sources (Haiku subagent, verbatim-quote protocol): **ARS §5.1 = greedy decoding** for main
+results ("By default, greedy decoding is used to generate model answers"); **Internal-States §3.1 = T=0.8, max
+300 tokens** ("all decoding at a fixed temperature of 0.8 and a maximum length of 300 tokens"), dual-LLM-judge
+labels. The wave-2 "near-greedy" guess is replaced by exact values. (4) **Fixes landed**: `run_inference.py`
+now exits **85** (`EXIT_INCOMPLETE`) instead of 0 on every preempt-checkpoint path (3 sites) — exit 0 was the
+requeue-bug root cause (`--requeue` only acts on preemption/node-failure, never on a clean exit); the sbatch
+template header documents the **chain-submit resume pattern** (`sbatch --dependency=afterany:$jid`, idempotent
+no-op if the cell already finished); presets `ars_gsm8k_qwen3_8b`, `ars_math500_qwen3_8b`,
+`ars_gsm8k_r1distill8b` → `temps=[0.0], max_new=8192`; `internalstates_gsm8k_qwen25_7b` → `temps=[0.8]`. Local
+partial caches renamed `cache/repgrid/ars_*_qwen3_8b_mn4096_partial` (`score_repgrid.py` globs ALL `raw_*.pkl`
+in a cell dir — stale pkls would silently pollute re-scores). (5) Per Omri: **execution deferred to a new
+session** — full runbook written to `HANDOFF_step168_cluster_wave3.md` (Wave A = 4 re-runs incl. the truthfulqa
+judge-regrade; Wave B = the 7 round-1 presets that never ran; pre-flight HF_TOKEN check; per-cell
+fetch→inspect→score→ubaselines→CSV→report loop; do-NOT list).
+
+**Why**: Omri's decisions on the wave-2 postmortem: fresh re-runs at the papers' decoding configs with the
+ORIGINAL N=500 (not partial-N resumes, not reduced N — hence multi-wall chain-submits), plus finally running
+everything from round 1 that never ran; this session only prepares, the next one executes.
+
+**Result**: `smoke_preset.py --all` **23/23 PASS** after the preset edits. Wave-2 provisional numbers (NOT in
+canonical CSVs, superseded by the coming re-runs): Qwen3/GSM8K GOOD_5 0.938 / U-PCR 0.962 vs ARS supervised
+0.904; Qwen3/MATH-500 GOOD_5 0.795 / U-PCR 0.834 vs ARS supervised 0.787 — nominal unsupervised-beats-
+supervised wins, but truncation-confounded. Wave 3 is submit-ready.
+
+**Files changed**:
+- `cluster/run_inference.py` — `EXIT_INCOMPLETE=85` on all preempt-checkpoint exits (was 0 → no requeue)
+- `cluster/submit_inference.sbatch.template` — corrected wall/requeue doc + chain-submit pattern
+- `cluster/presets.py` — 3 ARS presets → greedy/mn8192 (verified §5.1); internalstates → T=0.8 (verified §3.1)
+- `HANDOFF_step168_cluster_wave3.md` — NEW: Wave-3 execution runbook for the next session
+- `PROGRESS.md` — Step-168 blob; cluster tail superseded by the handoff
+
+---

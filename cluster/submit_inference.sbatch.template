@@ -6,8 +6,17 @@
 # approval for LLaMA-gated repos). NEVER commit the live file.
 #
 # AIRCC batch inference job — runs cluster/run_inference.py inside the B200-compatible
-# NGC container via Pyxis. Preemption-safe: --signal=B:TERM@900 delivers SIGTERM
-# to the Python driver (after exec), which checkpoints and exits 0; Slurm requeues.
+# NGC container via Pyxis. Wall-safe: --signal=B:TERM@900 delivers SIGTERM to the
+# Python driver (after exec) 15 min before the wall; the driver checkpoints and exits
+# 85 (EXIT_INCOMPLETE). NOTE: Slurm does NOT requeue on that exit — --requeue only
+# acts on preemption/node-failure. A clean exit 0 records COMPLETED (this is how jobs
+# 101075/101076 stalled at partial N). For any run expected to outlive one 8h wall,
+# chain resume jobs AT SUBMIT TIME — a resume of a finished cell is an idempotent
+# no-op (loads checkpoint, sees all samples done, refreshes manifest, exits 0):
+#
+#   jid=$(sbatch -p power-gpu --qos=owner_880 cluster/submit_inference.sbatch <args> | awk '{print $4}')
+#   jid=$(sbatch --dependency=afterany:$jid -p power-gpu --qos=owner_880 cluster/submit_inference.sbatch <args> | awk '{print $4}')
+#   # ...repeat one line per extra 8h wall the run might need
 #
 # Submit (partition/QoS passed on command line; trailing args go to run_inference.py):
 #

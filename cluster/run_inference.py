@@ -103,6 +103,14 @@ DATASETS = {
 
 STOP = {"flag": False}
 
+# Exit code for "checkpointed but incomplete". Exiting 0 after a SIGTERM checkpoint
+# makes Slurm record COMPLETED and NOT requeue (jobs 101075/101076 stalled at partial
+# N this way — --requeue only acts on preemption/node-failure, never on a clean exit).
+# A distinct non-zero code makes sacct show FAILED(85) = "resume me", and the submit
+# procedure chains resume jobs with --dependency=afterany (see submit_inference.sbatch
+# header); a resume on an already-complete cell is a cheap idempotent no-op.
+EXIT_INCOMPLETE = 85
+
 
 def _on_sigterm(signum, frame):
     STOP["flag"] = True
@@ -372,7 +380,8 @@ def main():
               f"pkls={[os.path.basename(p) for _, p in out_paths]}", flush=True)
         judged_cells = run_judge_pass(cfg, out_paths)
         if judged_cells is None:
-            sys.exit(0)  # preempted mid-judge; Slurm requeues and judge_label_cache resumes
+            print("[driver] INCOMPLETE (mid-judge) — resubmit with the same --out to resume", flush=True)
+            sys.exit(EXIT_INCOMPLETE)  # judge_label_cache resumes on the next run
         write_manifest(out_dir, cfg, judged_cells)
         print(f"\nREGRADE COMPLETE for {cfg.dataset} -> {out_dir}", flush=True)
         return
@@ -396,7 +405,8 @@ def main():
         out_path = os.path.join(out_dir, f"raw_{cfg.dataset}_T{temp}.pkl")
         completed, stats = run_temp(mdl, tok, rows, prompt_fn, grader, temp, cfg, out_path)
         if not completed:
-            sys.exit(0)  # preempted: clean exit, Slurm requeues and we resume
+            print("[driver] INCOMPLETE — resubmit with the same --out to resume", flush=True)
+            sys.exit(EXIT_INCOMPLETE)  # idx-aligned resume picks up from the checkpoint
         cells.append(stats)
         write_manifest(out_dir, cfg, cells)  # refresh with this cell's (provisional) gate verdict
 
@@ -408,7 +418,8 @@ def main():
         free_memory()
         judged_cells = run_judge_pass(cfg, out_paths)
         if judged_cells is None:
-            sys.exit(0)  # preempted mid-judge; Slurm requeues and judge_label_cache resumes
+            print("[driver] INCOMPLETE (mid-judge) — resubmit with the same --out to resume", flush=True)
+            sys.exit(EXIT_INCOMPLETE)  # judge_label_cache resumes on the next run
         cells = judged_cells
         write_manifest(out_dir, cfg, cells)  # final manifest carries the judge-label gate
 

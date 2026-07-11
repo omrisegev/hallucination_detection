@@ -248,7 +248,10 @@ PRESETS = {
         paper="ARS (arXiv 2601.17467)",
         model="deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
         dataset="gsm8k", split="test", n_samples=500,
-        k=1, temps=[1.0], max_new=4096,
+        # Greedy per ARS §5.1 ("By default, greedy decoding is used"); mn8192 because
+        # R1-Distill thinking traces exceed 4096 like Qwen3's did (13-45% cap-pinning
+        # on jobs 101075/101076 = truncation-label leakage). Never ran at T=1.0.
+        k=1, temps=[0.0], max_new=8192,
         head_to_head="SAME-MODEL",
         published={"method": "ARS (CCS)", "metric": "AUROC", "value": 74.72,
                    "supervision": "supervised (representation shaping)",
@@ -337,7 +340,11 @@ PRESETS = {
         paper="ARS (arXiv 2601.17467)",
         model="Qwen/Qwen3-8B",
         dataset="gsm8k", split="test", n_samples=500,
-        k=1, temps=[1.0], max_new=4096,   # Qwen3 thinking mode -> long CoT; do NOT add /no_think here
+        # Greedy per ARS §5.1: "By default, greedy decoding is used to generate model
+        # answers" (verified from arXiv 2026-07-11). max_new=8192: the T=1.0/mn4096 run
+        # (job 101075) had 13% of traces pinned at the 4096 cap -> truncation-label
+        # leakage; Qwen3 thinking routinely exceeds 4096. Do NOT lower max_new.
+        k=1, temps=[0.0], max_new=8192,   # Qwen3 thinking ON; do NOT add /no_think here
         head_to_head="SAME-MODEL",
         published={"method": "ARS (CCS)", "metric": "AUROC", "value": 90.37,
                    "supervision": "supervised (representation shaping)",
@@ -346,15 +353,21 @@ PRESETS = {
                    "model_note": "GSM8K / Qwen3-8B (ARS Table 1) — ARS's strongest published cell. "
                                  "Unsup anchors from ARS Table 2: EigenScore 63.40."},
         notes="Reasoning cell: KEEP Qwen3 thinking ON (no /no_think) — ARS scores reasoning trajectories. "
-              "is_correct_gsm8k extracts the boxed/final answer after </think>. CEILING CELL: pilot acc "
-              "0.967 (job 101075) -> ~17 negatives at N=500, minority<30 -> expect a gate REJECT / wide CI. "
-              "The MATH-500/Qwen3 cell (101076) is the usable ARS/Qwen3 comparison.",
+              "is_correct_gsm8k extracts the boxed/final answer after </think>. CEILING CELL: T=1.0 run "
+              "(job 101075, partial N=440) had acc 0.904 (~42 negatives); greedy may push higher -> watch "
+              "the pilot. Greedy+thinking repetition risk: check pilot trace-length dist for cap-pinning. "
+              "RE-RUN v2 (greedy/mn8192): archive the old partial first "
+              "(mv $SHARED/results/repgrid/ars_gsm8k_qwen3_8b{,_mn4096_partial}); needs ~2 chained walls "
+              "(sbatch --dependency=afterany, see submit_inference.sbatch header).",
     ),
     "ars_math500_qwen3_8b": _preset(
         paper="ARS (arXiv 2601.17467)",
         model="Qwen/Qwen3-8B",
         dataset="math500", split=None, n_samples=500,
-        k=1, temps=[1.0], max_new=4096,
+        # Greedy per ARS §5.1 (see gsm8k cell). max_new=8192: the T=1.0/mn4096 run
+        # (job 101076) had 45% of traces pinned at the cap (median 3621 tok) ->
+        # cap-hitting correlates with label = length-leakage; that run is NOT clean.
+        k=1, temps=[0.0], max_new=8192,
         head_to_head="SAME-MODEL",
         published={"method": "ARS (CCS)", "metric": "AUROC", "value": 78.66,
                    "supervision": "supervised (representation shaping)",
@@ -362,7 +375,10 @@ PRESETS = {
                    "eigenscore_unsup": 81.38,   # ARS Table 2 vanilla EigenScore — fair UNSUP Y
                    "model_note": "MATH-500 / Qwen3-8B (ARS Table 1). "
                                  "Unsup anchors from ARS Table 2: EigenScore 81.38."},
-        notes="Reasoning cell: Qwen3 thinking ON. is_correct_math extracts \\boxed{} after </think>.",
+        notes="Reasoning cell: Qwen3 thinking ON. is_correct_math extracts \\boxed{} after </think>. "
+              "Slowest cell of the grid (long thinking traces): RE-RUN v2 (greedy/mn8192) needs ~3 chained "
+              "walls at N=500 (T=1.0 run produced 279 in 7.75h at mn4096). Archive the old partial first "
+              "(mv $SHARED/results/repgrid/ars_math500_qwen3_8b{,_mn4096_partial}).",
     ),
 
     # ── Internal-States + Reasoning-Consistency (arXiv 2510.11529) — supervised. GSM8K/Qwen2.5-7B.
@@ -370,7 +386,11 @@ PRESETS = {
         paper="Internal-States + Reasoning-Consistency (arXiv 2510.11529)",
         model="Qwen/Qwen2.5-7B-Instruct",
         dataset="gsm8k", split="test", n_samples=500,
-        k=1, temps=[1.0], max_new=2048,   # standard instruct CoT (non-reasoning model)
+        # T=0.8 per the paper §3.1: "all decoding at a fixed temperature of 0.8 and a
+        # maximum length of 300 tokens" (verified from arXiv 2026-07-11). We keep
+        # max_new=2048 (their 300-token cap would truncate our entropy traces; the cap
+        # is non-binding for GSM8K CoT ~150-250 tok — annotated protocol difference).
+        k=1, temps=[0.8], max_new=2048,
         head_to_head="SAME-MODEL",
         published={"method": "Internal-States+RC", "metric": "AUROC", "value": 79.15,
                    "supervision": "supervised (LLM-judge labels, multi-path)",
@@ -381,10 +401,12 @@ PRESETS = {
                    "model_note": "GSM8K / Qwen2.5-7B (arXiv 2510.11529). Fair unsup Y = SelfCheckGPT "
                                  "67.98±1.28; also SE 58.36, SAPLMA 59.72 (Table 1)."},
         notes="Supervised ceiling 79.15 + fair unsupervised Y SelfCheckGPT 67.98 on GSM8K/Qwen2.5-7B. "
-              "boxed-CoT prompt; is_correct_gsm8k grader. OPERATING-POINT CONFOUND (job 101077, "
-              "HANDOFF_step166 diagnosis): T=1.0 sampling collapses Qwen2.5-7B to acc 0.284 with "
-              "GENUINE errors (99% of wrongs still \\boxed{}) - a judge regrade will NOT fix it. "
-              "Apples-to-apples needs a re-run at the paper's near-greedy decoding T.",
+              "boxed-CoT prompt; is_correct_gsm8k grader. RE-RUN v2 at the paper's T=0.8: the T=1.0 run "
+              "(job 101077, HANDOFF_step166 diagnosis) collapsed Qwen2.5-7B to acc 0.284 with GENUINE "
+              "errors (99% of wrongs still \\boxed{}) - operating-point confound, judge regrade won't fix. "
+              "New T -> new pkl name (raw_gsm8k_T0.8.pkl), so the same --out dir is safe, but archive the "
+              "T1.0 pkl before fetching (score_repgrid globs ALL raw_*.pkl in a cell dir). Labels: paper "
+              "uses dual-LLM judge (GPT-4.1+Gemini) - ours stays lexical boxed-match, annotated.",
     ),
 
     # ── Noise Injection GSM8K sweep (arXiv 2502.03799 v4, Table 3). NI is the strongest
