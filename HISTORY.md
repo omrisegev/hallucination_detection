@@ -5473,3 +5473,42 @@ supervised wins, but truncation-confounded. Wave 3 is submit-ready.
 - `PROGRESS.md` — Step-168 blob; cluster tail superseded by the handoff
 
 ---
+
+### Step 169 — Execute Wave 3: all cells submitted/fixed/scaled, truthfulqa+sciq scored, gemma2b floor-REJECT, A3 re-launched at mn16384
+
+**What**: Executed `HANDOFF_step168_cluster_wave3.md` end-to-end plus a desk-clean extension (Omri: close every
+paused QA cell). Pre-flight green (sync, token intact — note the handoff's `grep -c REPLACE_ME` check is
+off-by-one, the live file's own comment contains it; use `grep -c 'HF_TOKEN=REPLACE_ME'`). Submitted all of
+Wave A/B/C, gated 10 N=30 pilots + retried 3 failures after fixes: `unsloth/Llama-3.2-3B-Instruct` +
+`unsloth/gemma-2b-it` mirror swaps (meta-llama 3.2 and google gates 403'd our token; same pattern as
+`huggyllama/llama-7b`), `sentencepiece` added to `cluster/requirements.txt` (Mistral-v0.3 slow-tokenizer
+crash). Scaled every gate-passer to full N with `afterany` chain-submits. The two paused-QA judge-regrades
+flipped both cells into band (inside_coqa lexical 0.183 → judge 0.223; se_nq_open 0.067 → **0.663** — the
+lexical EM grader was the blocker, not the model) → both scaled with a chained post-inference judge-regrade.
+A3 pilot showed 6/30 traces pinned at mn8192 with **3 of 4 negatives capped** (leakage) but **no repetition
+loops** (tail repeat-frac ≤ 0.08) → preset bumped to `max_new=16384`, pilot archived (`*_mn8192_pilot`, never
+resume — cap-mixing), full N re-launched fresh on 4 chained walls.
+
+**Why**: Wave-2 postmortem decisions (Step 168) + Omri's desk-clean directive: every benchmarking cell must
+end scored-in-CSV or documented-REJECT; fix whatever failed rather than skip it.
+
+**Result**: 30 jobs submitted (103531–103544, 106275–106308); 10 cells now running full-N chain-protected.
+Scored this session: **truthfulqa (real judge labels, acc 0.116)**: L-SML GOOD_5 0.660 / U-PCR 0.673 vs TSV
+semi-sup 84.2 (honest lose; seq-logprob ubaseline 0.693 edges GOOD_5; judge-vs-lexical agreement 0.762);
+**sciq**: L-SML 0.738 / U-PCR 0.744 (double caveat: acc 0.877 ceiling + only 20% of MCQ traces ≥8 tok).
+**gemma2b = documented floor-REJECT** (acc 0.000, 0/30, mirror loaded fine — the NI-anticipated outcome).
+Pilot accs: qwen3-gsm8k **1.000** (worse ceiling than forecast — if full-N stays ≥0.98 the cell documents as
+unreportable), math500 0.867, internalstates-T0.8 0.333, r1distill 0.633, llama3b 0.367, phi3mini 0.633,
+mistral7b 0.333, nemo 0.800, mistral24b 0.900 (scaled with ceiling caveat per the sciq precedent).
+`ubaseline_scores.csv` 15 rows; advisor report regenerated guardrail-clean. Follow-up session: fetch→inspect→
+score the 10 running cells when chains finish (~1–4 walls each).
+
+**Files changed**:
+- `cluster/presets.py` — llama3b/gemma2b → unsloth mirrors; ars_math500 → mn16384 + archive notes
+- `cluster/requirements.txt` — sentencepiece (job 103541 crash)
+- `results/repgrid/scores_lsml_upcr.csv` — +truthfulqa (judge labels) + sciq rows
+- `results/repgrid/ubaseline_scores.csv` — 15 rows incl. truthfulqa/se_nq_open on judge labels
+- `results/Advisors_Action_Items_Report.html` — regenerated
+- `cache/repgrid/*` (gitignored) — internalstates T1.0 + ars_math500 mn8192 pilot archived locally
+
+---

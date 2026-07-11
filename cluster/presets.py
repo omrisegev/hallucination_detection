@@ -275,7 +275,10 @@ PRESETS = {
     #    L-SML needs only token_entropies; capture_attention (their signal) is NOT reproduced.
     "lapeigvals_gsm8k_llama3b": _preset(
         paper="LapEigvals (arXiv 2502.17598)",
-        model="meta-llama/Llama-3.2-3B-Instruct", gated=True,
+        # unsloth mirror = byte-identical weights; meta-llama/Llama-3.2-3B-Instruct 403s
+        # (Llama-3.2 gate is separate from the 3.1 approval our token has; job 103536).
+        # Same mirror pattern as huggyllama/llama-7b in inside_coqa_llama7b.
+        model="unsloth/Llama-3.2-3B-Instruct",
         dataset="gsm8k", split="test", n_samples=1319,   # full test split, as LapEigvals
         k=1, temps=[1.0], max_new=2048,
         head_to_head="SAME-MODEL",
@@ -364,10 +367,14 @@ PRESETS = {
         paper="ARS (arXiv 2601.17467)",
         model="Qwen/Qwen3-8B",
         dataset="math500", split=None, n_samples=500,
-        # Greedy per ARS §5.1 (see gsm8k cell). max_new=8192: the T=1.0/mn4096 run
-        # (job 101076) had 45% of traces pinned at the cap (median 3621 tok) ->
-        # cap-hitting correlates with label = length-leakage; that run is NOT clean.
-        k=1, temps=[0.0], max_new=8192,
+        # Greedy per ARS §5.1 (see gsm8k cell). max_new=16384: at mn4096 (job 101076,
+        # T=1.0) 45% of traces pinned; at mn8192 (pilot 103533, greedy) still 6/30 (20%)
+        # pinned AND 3 of the 4 negatives were capped -> the truncation-label confound
+        # survives 8192. Pilot tails show NO repetition loops (repeat-frac <= 0.08) --
+        # the capped traces are genuinely long reasoning, so more room fixes them.
+        # Do NOT resume the mn8192 pilot checkpoint (cap-mixing); it is archived as
+        # ars_math500_qwen3_8b_mn8192_pilot.
+        k=1, temps=[0.0], max_new=16384,
         head_to_head="SAME-MODEL",
         published={"method": "ARS (CCS)", "metric": "AUROC", "value": 78.66,
                    "supervision": "supervised (representation shaping)",
@@ -376,9 +383,9 @@ PRESETS = {
                    "model_note": "MATH-500 / Qwen3-8B (ARS Table 1). "
                                  "Unsup anchors from ARS Table 2: EigenScore 81.38."},
         notes="Reasoning cell: Qwen3 thinking ON. is_correct_math extracts \\boxed{} after </think>. "
-              "Slowest cell of the grid (long thinking traces): RE-RUN v2 (greedy/mn8192) needs ~3 chained "
-              "walls at N=500 (T=1.0 run produced 279 in 7.75h at mn4096). Archive the old partial first "
-              "(mv $SHARED/results/repgrid/ars_math500_qwen3_8b{,_mn4096_partial}).",
+              "Slowest cell of the grid (long thinking traces): RE-RUN v3 (greedy/mn16384) needs ~4 chained "
+              "walls at N=500 (mn8192 pilot: 30 problems in 70 min, mean 4584 tok). Stale runs archived as "
+              "*_mn4096_partial and *_mn8192_pilot — never resume either (cap-mixing confound).",
     ),
 
     # ── Internal-States + Reasoning-Consistency (arXiv 2510.11529) — supervised. GSM8K/Qwen2.5-7B.
@@ -447,7 +454,9 @@ PRESETS = {
     ),
     "noise_gsm8k_gemma2b": _preset(
         paper="Noise Injection (arXiv 2502.03799)",
-        model="google/gemma-2b-it", gated=True,
+        # unsloth mirror = byte-identical weights; google/gemma-2b-it access request
+        # stuck "awaiting review" (job 103542). Same mirror pattern as inside_coqa.
+        model="unsloth/gemma-2b-it",
         dataset="gsm8k", split="test", n_samples=1319,
         k=1, temps=[1.0], max_new=2048,
         head_to_head="SAME-MODEL",

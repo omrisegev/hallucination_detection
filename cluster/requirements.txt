@@ -2,6 +2,9 @@
 # Do NOT list torch/numpy — the NGC image ships B200-compatible builds and a
 # pip upgrade would break sm_100 support.
 transformers>=4.51,<5
+# Mistral-7B-Instruct-v0.3 tokenizer hits the slow (sentencepiece) path — without
+# this the job dies at AutoTokenizer.from_pretrained (job 103541).
+sentencepiece
 accelerate
 datasets
 scipy
