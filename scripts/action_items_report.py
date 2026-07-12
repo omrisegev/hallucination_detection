@@ -35,14 +35,19 @@ for p in (REPO, SCRIPTS):
         sys.path.insert(0, p)
 
 from advisor_report import esc, pct, read_csv, CSS, guardrail_scan  # noqa: E402
+from report_figs import (  # noqa: E402 — CSV-driven inline-SVG figures
+    FIG_CSS, fig_gsm8k_forest, fig_same_model_deltas,
+    fig_cell_landscape_losnet, fig_cell_landscape_gsm8k_llama8b, fig_good5_vs_seqlp,
+)
 
 RESULTS = os.path.join(REPO, "results")
 REPGRID = os.path.join(RESULTS, "repgrid")
 SWEEP = os.path.join(RESULTS, "subset_sweep")
 OUT_DIR = os.path.join(RESULTS, "action_items")
 
-AS_OF = ("Cluster state as of commit 5af2931 — 3 cells still running "
-         "(A2 ars_gsm8k_qwen3_8b, A3 ars_math500_qwen3_8b, C1 inside_coqa + judge-regrade)")
+AS_OF = ("Cluster state 2026-07-12 PM — A2 ars_gsm8k_qwen3_8b fetched+scored (ceiling caveat), "
+         "C1 inside_coqa fetched+scored (floor-REJECT, judge acc 0.132); "
+         "A3 ars_math500_qwen3_8b still running (wall 3/4)")
 GEN_DATE = "2026-07-12"
 
 EXTRA_CSS = """
@@ -53,7 +58,7 @@ EXTRA_CSS = """
   .item-card h3{margin-top:0;}
   .item-card a.cta{color:var(--blue);font-weight:700;text-decoration:none;}
   .neutral{color:var(--gray-600);font-weight:600;}
-"""
+""" + FIG_CSS
 
 
 # ── tiny helpers ───────────────────────────────────────────────────────────────
@@ -485,6 +490,12 @@ and <span class="mono">BENCHMARKING_COMPETITOR_GUIDE.md</span>. Every cell passe
 <span class="mono">results/reasoning_benchmark.csv</span> and
 <span class="mono">results/repgrid/scores_lsml_upcr.csv</span>.</p>
 
+<h3>The picture first — four figures, regenerated from the CSVs on every build</h3>
+{fig_gsm8k_forest()}
+{fig_same_model_deltas()}
+{fig_cell_landscape_gsm8k_llama8b()}
+{fig_cell_landscape_losnet()}
+
 <h3>Papers cited in this comparison</h3>
 <p>Generated from the distinct competitor-method values actually present in the two source CSVs
 (so this list cannot drift from what is actually compared against):</p>
@@ -525,8 +536,9 @@ both are scored (<span class="mono">ubaseline_scores.csv</span>, post data-loss 
 <div class="warn-box"><b>Tally: GOOD_5 {seq_tally['wins']} wins / {seq_tally['ties']} ties /
 {seq_tally['losses']} losses (&plusmn;0.5pp band).</b> The trivial baseline is ahead more often
 than not on this larger sample — the full discussion, including where the wins cluster, is
-<a href="advisor_scrutiny.html">scrutiny point 2</a>. ({len(seq_skipped)} partial mid-run cells
-excluded: {esc(', '.join(seq_skipped))}.)</div>
+<a href="advisor_scrutiny.html">scrutiny point 2</a>. ({len(seq_skipped)} cells without a scored
+L-SML GOOD_5 row excluded — partials, archived pilots and documented-REJECT cells:
+{esc(', '.join(seq_skipped))}.)</div>
 
 <div class="warn-box"><b>Not citable yet:</b> the old Phase-12 Semantic-Entropy /
 Self-Consistency reasoning baselines are excluded pending the NLI-truncation reconciliation
@@ -943,6 +955,7 @@ def build_scrutiny(scan, seq_rows, seq_tally):
         f"<tr><td class='mono'>{esc(r['cell'])}</td><td>{pct(r['g5'])}</td>"
         f"<td>{pct(r['seqlp'])}</td>"
         f"<td class='{wl_class(r['delta'])}'>{pp(r['delta'])}pp</td></tr>" for r in seq_top)
+    seq_fig = fig_good5_vs_seqlp()
 
     # point 3 numbers from 0d
     p15 = P15 or {}
@@ -989,11 +1002,14 @@ and the LapEigvals-family wins don't."</p>
 <strong>{seq_tally['losses']}</strong> against mean sequence-logprob (&plusmn;0.5pp band).
 Extremes:</p>
 <table><tr><th>Cell</th><th>GOOD_5</th><th>seq-logprob</th><th>Delta</th></tr>{seq_html}</table>
-<p>This is a materially more useful headline for Item 4 than "we beat LapEigvals-unsup": the
-competitor numbers come from different models/budgets, whereas seq-logprob-on-our-own-trace is
-the tightest baseline available — and it is now slightly ahead of the full spectral fusion more
-often than not, including on <span class="mono">ars_gsm8k_r1distill8b</span>
-(&minus;2.2pp), the very cell headlined as a supervised-beating win. The open question to
+{seq_fig}
+<p>Framing note (2026-07-12): the headline of Item 4 stays the <em>published-method</em> scoreboard —
+that is the comparison the thesis is judged on, and sequence log-prob is an in-house audit, not a cited
+rival (it is, however, the standard likelihood baseline the cited papers themselves report — Malinin &amp;
+Gales 2021; Guerreiro et al. EACL 2023 — so it belongs in the appendix with a stated verdict). The audit's
+finding stands: the trivial baseline is slightly ahead more often than not, including on
+<span class="mono">ars_gsm8k_r1distill8b</span> (&minus;2.2pp), the very cell headlined as a
+supervised-matching win. The open question to
 answer directly: <strong>what is GOOD_5's real marginal value over mean(&minus;logprob), and
 does it cluster by domain?</strong> (Wins cluster on QA/long-trace cells — CoQA +12.4pp,
 TriviaQA-semenergy +4.3pp, SQuAD v2 +3.4pp; losses on GSM8K cells with strong models.)

@@ -65,6 +65,43 @@
   .item-card h3{margin-top:0;}
   .item-card a.cta{color:var(--blue);font-weight:700;text-decoration:none;}
   .neutral{color:var(--gray-600);font-weight:600;}
+
+  .rf-fig{background:#fff;border:1px solid var(--gray-200);border-radius:12px;
+    padding:18px 20px 10px;margin:20px 0;}
+  .rf-fig .rf-cap{font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:2px;}
+  .rf-fig .rf-sub{font-size:12.5px;color:var(--gray-600);margin-bottom:10px;}
+  .rf-chart{width:100%;height:auto;display:block;}
+  .rf-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 10px;align-items:center;}
+  .rf-legend .rf-li{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-700);}
+  .rf-fnote{font-size:11.5px;color:var(--gray-600);margin:8px 0 4px;line-height:1.5;}
+  .rf-grid{stroke:var(--gray-200);stroke-width:1;}
+  .rf-zero{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-tick{fill:var(--gray-600);font-size:11px;}
+  .rf-axname{fill:var(--gray-600);font-size:11.5px;}
+  .rf-rowlbl{fill:var(--gray-800);font-size:12px;font-weight:600;}
+  .rf-rowsub{fill:var(--gray-600);font-size:10px;}
+  .rf-vlbl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-barlbl{fill:var(--gray-700);font-size:11px;}
+  .rf-dlbl{fill:var(--gray-600);font-size:10.5px;}
+  .rf-dlbl-ours{fill:var(--blue);font-weight:700;}
+  .rf-region{fill:var(--gray-600);font-size:11px;font-style:italic;}
+  .rf-albl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-leader{stroke:#94a3b8;stroke-width:1;}
+  .rf-ci{stroke:var(--blue);stroke-width:2;stroke-linecap:round;}
+  .rf-ours{fill:var(--blue);stroke:#fff;stroke-width:2;}
+  .rf-anchor{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-sup{fill:none;stroke:#475569;stroke-width:2;}
+  .rf-seqlp{stroke:var(--gray-700);stroke-width:1.5;opacity:.85;}
+  .rf-bar-pos{fill:var(--blue);}
+  .rf-bar-neg{fill:var(--red);}
+  .rf-bar-ctx{opacity:.42;}
+  .rf-bar-ours{fill:var(--blue);}
+  .rf-bar-gray{fill:#94a3b8;}
+  .rf-bar-gray-sup{fill:#475569;}
+  .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-diag{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-wash{fill:rgba(37,99,235,.06);}
 </style>
 </head>
 <body>
@@ -73,7 +110,7 @@
   <div class="subtitle">Seven questions a careful advisor would ask before these numbers go into a meeting or a paper — with the evidence, recomputed.</div>
   <div class="meta-pills">
     <span class="meta-pill">Generated 2026-07-12 by scripts/action_items_report.py</span>
-    <span class="meta-pill">Cluster state as of commit 5af2931 — 3 cells still running (A2 ars_gsm8k_qwen3_8b, A3 ars_math500_qwen3_8b, C1 inside_coqa + judge-regrade)</span>
+    <span class="meta-pill">Cluster state 2026-07-12 PM — A2 ars_gsm8k_qwen3_8b fetched+scored (ceiling caveat), C1 inside_coqa fetched+scored (floor-REJECT, judge acc 0.132); A3 ars_math500_qwen3_8b still running (wall 3/4)</span>
     <span class="meta-pill">Every numeric cell sourced from a CSV/JSON</span>
   </div>
 </div></div>
@@ -105,16 +142,19 @@ these wins are CI-clear and can be stated plainly:</p>
 and the LapEigvals-family wins don't."</p>
 
 <h3>2 — The trivial same-trace baseline is ahead more often than not</h3>
-<p>Across all 19 cells where both are scored on our own traces, GOOD_5 wins
-<strong>6</strong>, ties <strong>3</strong>, loses
+<p>Across all 20 cells where both are scored on our own traces, GOOD_5 wins
+<strong>7</strong>, ties <strong>3</strong>, loses
 <strong>10</strong> against mean sequence-logprob (&plusmn;0.5pp band).
 Extremes:</p>
-<table><tr><th>Cell</th><th>GOOD_5</th><th>seq-logprob</th><th>Delta</th></tr><tr><td class='mono'>inside_coqa_llama7b</td><td>53.3</td><td>41.0</td><td class='win'>+12.4pp</td></tr><tr><td class='mono'>semenergy_triviaqa_qwen3_8b</td><td>80.1</td><td>75.8</td><td class='win'>+4.3pp</td></tr><tr><td class='mono'>seiclr_triviaqa_opt30b</td><td>59.5</td><td>55.7</td><td class='win'>+3.8pp</td></tr><tr><td class='mono'>se_squad_v2_llama8b</td><td>79.8</td><td>76.4</td><td class='win'>+3.4pp</td></tr><tr><td class='mono'>lapeigvals_gsm8k_nemo</td><td>78.2</td><td>80.3</td><td class='loss'>-2.1pp</td></tr><tr><td class='mono'>ars_gsm8k_r1distill8b</td><td>75.0</td><td>77.2</td><td class='loss'>-2.2pp</td></tr><tr><td class='mono'>truthfulqa_llama8b</td><td>66.0</td><td>69.2</td><td class='loss'>-3.3pp</td></tr><tr><td class='mono'>lapeigvals_gsm8k_mistral24b</td><td>80.1</td><td>85.7</td><td class='loss'>-5.6pp</td></tr><tr><td class='mono'>internalstates_gsm8k_qwen25_7b</td><td>62.8</td><td>70.5</td><td class='loss'>-7.7pp</td></tr></table>
-<p>This is a materially more useful headline for Item 4 than "we beat LapEigvals-unsup": the
-competitor numbers come from different models/budgets, whereas seq-logprob-on-our-own-trace is
-the tightest baseline available — and it is now slightly ahead of the full spectral fusion more
-often than not, including on <span class="mono">ars_gsm8k_r1distill8b</span>
-(&minus;2.2pp), the very cell headlined as a supervised-beating win. The open question to
+<table><tr><th>Cell</th><th>GOOD_5</th><th>seq-logprob</th><th>Delta</th></tr><tr><td class='mono'>inside_coqa_llama7b_n30_pilot</td><td>53.3</td><td>41.0</td><td class='win'>+12.4pp</td></tr><tr><td class='mono'>inside_coqa_llama7b</td><td>53.3</td><td>44.7</td><td class='win'>+8.6pp</td></tr><tr><td class='mono'>semenergy_triviaqa_qwen3_8b</td><td>80.1</td><td>75.8</td><td class='win'>+4.3pp</td></tr><tr><td class='mono'>seiclr_triviaqa_opt30b</td><td>59.5</td><td>55.7</td><td class='win'>+3.8pp</td></tr><tr><td class='mono'>lapeigvals_gsm8k_nemo</td><td>78.2</td><td>80.3</td><td class='loss'>-2.1pp</td></tr><tr><td class='mono'>ars_gsm8k_r1distill8b</td><td>75.0</td><td>77.2</td><td class='loss'>-2.2pp</td></tr><tr><td class='mono'>truthfulqa_llama8b</td><td>66.0</td><td>69.2</td><td class='loss'>-3.3pp</td></tr><tr><td class='mono'>lapeigvals_gsm8k_mistral24b</td><td>80.1</td><td>85.7</td><td class='loss'>-5.6pp</td></tr><tr><td class='mono'>internalstates_gsm8k_qwen25_7b</td><td>62.8</td><td>70.5</td><td class='loss'>-7.7pp</td></tr></table>
+<div class="rf-fig"><div class="rf-cap">L-SML GOOD_5 vs sequence log-prob, scored on identical traces and labels</div><div class="rf-sub">Each dot is one (dataset, model) cell. Above the diagonal = the spectral fusion beats the one-number baseline.</div><div class="rf-legend"><span class="rf-li"><svg width="14" height="14"><circle cx="7" cy="7" r="5.5" class="rf-ours"/></svg> math CoT cells (GSM8K / MATH-500)</span><span class="rf-li"><svg width="14" height="14"><circle cx="7" cy="7" r="5.5" class="rf-pt-qa"/></svg> QA / other cells</span><span class="rf-li"><svg width="24" height="14"><line x1="2" y1="12" x2="22" y2="2" class="rf-diag"/></svg> y = x (no gain over the baseline)</span></div><svg viewBox="0 0 520 520" role="img" class="rf-chart" preserveAspectRatio="xMidYMid meet"><path d="M 54.0 466.0 L 506.0 14.0 L 54.0 14.0 Z" class="rf-wash"/><line x1="69.1" y1="466.0" x2="69.1" y2="14.0" class="rf-grid"/><line x1="54.0" y1="450.9" x2="506.0" y2="450.9" class="rf-grid"/><text x="69.1" y="482.0" class="rf-tick" text-anchor="middle">40</text><text x="46.0" y="454.9" class="rf-tick" text-anchor="end">40</text><line x1="144.4" y1="466.0" x2="144.4" y2="14.0" class="rf-grid"/><line x1="54.0" y1="375.6" x2="506.0" y2="375.6" class="rf-grid"/><text x="144.4" y="482.0" class="rf-tick" text-anchor="middle">50</text><text x="46.0" y="379.6" class="rf-tick" text-anchor="end">50</text><line x1="219.7" y1="466.0" x2="219.7" y2="14.0" class="rf-grid"/><line x1="54.0" y1="300.3" x2="506.0" y2="300.3" class="rf-grid"/><text x="219.7" y="482.0" class="rf-tick" text-anchor="middle">60</text><text x="46.0" y="304.3" class="rf-tick" text-anchor="end">60</text><line x1="295.1" y1="466.0" x2="295.1" y2="14.0" class="rf-grid"/><line x1="54.0" y1="224.9" x2="506.0" y2="224.9" class="rf-grid"/><text x="295.1" y="482.0" class="rf-tick" text-anchor="middle">70</text><text x="46.0" y="228.9" class="rf-tick" text-anchor="end">70</text><line x1="370.4" y1="466.0" x2="370.4" y2="14.0" class="rf-grid"/><line x1="54.0" y1="149.6" x2="506.0" y2="149.6" class="rf-grid"/><text x="370.4" y="482.0" class="rf-tick" text-anchor="middle">80</text><text x="46.0" y="153.6" class="rf-tick" text-anchor="end">80</text><line x1="445.7" y1="466.0" x2="445.7" y2="14.0" class="rf-grid"/><line x1="54.0" y1="74.3" x2="506.0" y2="74.3" class="rf-grid"/><text x="445.7" y="482.0" class="rf-tick" text-anchor="middle">90</text><text x="46.0" y="78.3" class="rf-tick" text-anchor="end">90</text><line x1="54.0" y1="466.0" x2="506.0" y2="14.0" class="rf-diag"/><text x="182.1" y="81.8" class="rf-region">spectral fusion ahead</text><text x="295.1" y="420.8" class="rf-region">sequence log-prob ahead</text><circle cx="349.2" cy="187.3" r="5.5" class="rf-ours"><title>ars_gsm8k_r1distill8b: GOOD_5 75.0 vs seq-logprob 77.2</title></circle><circle cx="312.2" cy="219.4" r="5.5" class="rf-pt-qa"><title>epr_triviaqa_mistral24b: GOOD_5 70.7 vs seq-logprob 72.3</title></circle><circle cx="299.0" cy="279.0" r="5.5" class="rf-ours"><title>internalstates_gsm8k_qwen25_7b: GOOD_5 62.8 vs seq-logprob 70.5</title></circle><circle cx="291.1" cy="236.6" r="5.5" class="rf-ours"><title>lapeigvals_gsm8k_llama3b: GOOD_5 68.5 vs seq-logprob 69.5</title></circle><circle cx="373.0" cy="138.1" r="5.5" class="rf-ours"><title>lapeigvals_gsm8k_llama8b: GOOD_5 81.5 vs seq-logprob 80.3</title></circle><circle cx="413.3" cy="149.1" r="5.5" class="rf-ours"><title>lapeigvals_gsm8k_mistral24b: GOOD_5 80.1 vs seq-logprob 85.7</title></circle><circle cx="372.7" cy="163.2" r="5.5" class="rf-ours"><title>lapeigvals_gsm8k_nemo: GOOD_5 78.2 vs seq-logprob 80.3</title></circle><circle cx="376.3" cy="147.2" r="5.5" class="rf-ours"><title>lapeigvals_gsm8k_phi35: GOOD_5 80.3 vs seq-logprob 80.8</title></circle><circle cx="210.5" cy="318.8" r="5.5" class="rf-pt-qa"><title>losnet_hotpotqa_mistral7b: GOOD_5 57.5 vs seq-logprob 58.8</title></circle><circle cx="367.6" cy="160.8" r="5.5" class="rf-ours"><title>noise_gsm8k_mistral7b: GOOD_5 78.5 vs seq-logprob 79.6</title></circle><circle cx="266.4" cy="251.8" r="5.5" class="rf-ours"><title>noise_gsm8k_phi3mini: GOOD_5 66.4 vs seq-logprob 66.2</title></circle><circle cx="333.8" cy="196.2" r="5.5" class="rf-pt-qa"><title>sciq_llama8b: GOOD_5 73.8 vs seq-logprob 75.1</title></circle><circle cx="299.3" cy="211.4" r="5.5" class="rf-pt-qa"><title>se_nq_open_llama8b: GOOD_5 71.8 vs seq-logprob 70.6</title></circle><circle cx="343.2" cy="151.0" r="5.5" class="rf-pt-qa"><title>se_squad_v2_llama8b: GOOD_5 79.8 vs seq-logprob 76.4</title></circle><circle cx="187.1" cy="304.2" r="5.5" class="rf-pt-qa"><title>seiclr_triviaqa_opt30b: GOOD_5 59.5 vs seq-logprob 55.7</title></circle><circle cx="338.6" cy="149.1" r="5.5" class="rf-pt-qa"><title>semenergy_triviaqa_qwen3_8b: GOOD_5 80.1 vs seq-logprob 75.8</title></circle><circle cx="471.1" cy="48.7" r="5.5" class="rf-pt-qa"><title>spilled_triviaqa_llama8b: GOOD_5 93.4 vs seq-logprob 93.4</title></circle><circle cx="289.4" cy="255.4" r="5.5" class="rf-pt-qa"><title>truthfulqa_llama8b: GOOD_5 66.0 vs seq-logprob 69.2</title></circle><circle cx="104.7" cy="236.9" r="5.5" class="rf-pt-qa"><title>inside_coqa_llama7b: GOOD_5 68.4 vs seq-logprob 44.7</title></circle><line x1="299.0" y1="283.0" x2="309.0" y2="292.0" class="rf-leader"/><text x="311.0" y="295.0" class="rf-albl" text-anchor="start">internalstates gsm8k qwen25 7b -7.7</text><line x1="104.7" y1="232.9" x2="114.7" y2="221.9" class="rf-leader"/><text x="116.7" y="224.9" class="rf-albl" text-anchor="start">inside coqa llama7b +23.7</text><text x="280.0" y="516" class="rf-axname" text-anchor="middle">Sequence log-prob AUROC (%) — same traces, same labels</text><text x="14" y="240.0" class="rf-axname" text-anchor="middle" transform="rotate(-90 14 240.0)">L-SML GOOD_5 AUROC (%)</text></svg><p class="rf-fnote">Standard-baselines audit (appendix): sequence log-prob is the classic likelihood baseline (Malinin &amp; Gales 2021; Guerreiro et al. EACL 2023). Pilot/partial cells excluded. Source: ubaseline_scores.csv × scores_lsml_upcr.csv.</p></div>
+<p>Framing note (2026-07-12): the headline of Item 4 stays the <em>published-method</em> scoreboard —
+that is the comparison the thesis is judged on, and sequence log-prob is an in-house audit, not a cited
+rival (it is, however, the standard likelihood baseline the cited papers themselves report — Malinin &amp;
+Gales 2021; Guerreiro et al. EACL 2023 — so it belongs in the appendix with a stated verdict). The audit's
+finding stands: the trivial baseline is slightly ahead more often than not, including on
+<span class="mono">ars_gsm8k_r1distill8b</span> (&minus;2.2pp), the very cell headlined as a
+supervised-matching win. The open question to
 answer directly: <strong>what is GOOD_5's real marginal value over mean(&minus;logprob), and
 does it cluster by domain?</strong> (Wins cluster on QA/long-trace cells — CoQA +12.4pp,
 TriviaQA-semenergy +4.3pp, SQuAD v2 +3.4pp; losses on GSM8K cells with strong models.)

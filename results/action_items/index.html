@@ -65,6 +65,43 @@
   .item-card h3{margin-top:0;}
   .item-card a.cta{color:var(--blue);font-weight:700;text-decoration:none;}
   .neutral{color:var(--gray-600);font-weight:600;}
+
+  .rf-fig{background:#fff;border:1px solid var(--gray-200);border-radius:12px;
+    padding:18px 20px 10px;margin:20px 0;}
+  .rf-fig .rf-cap{font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:2px;}
+  .rf-fig .rf-sub{font-size:12.5px;color:var(--gray-600);margin-bottom:10px;}
+  .rf-chart{width:100%;height:auto;display:block;}
+  .rf-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 10px;align-items:center;}
+  .rf-legend .rf-li{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-700);}
+  .rf-fnote{font-size:11.5px;color:var(--gray-600);margin:8px 0 4px;line-height:1.5;}
+  .rf-grid{stroke:var(--gray-200);stroke-width:1;}
+  .rf-zero{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-tick{fill:var(--gray-600);font-size:11px;}
+  .rf-axname{fill:var(--gray-600);font-size:11.5px;}
+  .rf-rowlbl{fill:var(--gray-800);font-size:12px;font-weight:600;}
+  .rf-rowsub{fill:var(--gray-600);font-size:10px;}
+  .rf-vlbl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-barlbl{fill:var(--gray-700);font-size:11px;}
+  .rf-dlbl{fill:var(--gray-600);font-size:10.5px;}
+  .rf-dlbl-ours{fill:var(--blue);font-weight:700;}
+  .rf-region{fill:var(--gray-600);font-size:11px;font-style:italic;}
+  .rf-albl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-leader{stroke:#94a3b8;stroke-width:1;}
+  .rf-ci{stroke:var(--blue);stroke-width:2;stroke-linecap:round;}
+  .rf-ours{fill:var(--blue);stroke:#fff;stroke-width:2;}
+  .rf-anchor{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-sup{fill:none;stroke:#475569;stroke-width:2;}
+  .rf-seqlp{stroke:var(--gray-700);stroke-width:1.5;opacity:.85;}
+  .rf-bar-pos{fill:var(--blue);}
+  .rf-bar-neg{fill:var(--red);}
+  .rf-bar-ctx{opacity:.42;}
+  .rf-bar-ours{fill:var(--blue);}
+  .rf-bar-gray{fill:#94a3b8;}
+  .rf-bar-gray-sup{fill:#475569;}
+  .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-diag{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-wash{fill:rgba(37,99,235,.06);}
 </style>
 </head>
 <body>
@@ -73,7 +110,7 @@
   <div class="subtitle">Six action items from the 2026-06-17 meeting: status, results, coverage gaps, and the critical-review page.</div>
   <div class="meta-pills">
     <span class="meta-pill">Generated 2026-07-12 by scripts/action_items_report.py</span>
-    <span class="meta-pill">Cluster state as of commit 5af2931 — 3 cells still running (A2 ars_gsm8k_qwen3_8b, A3 ars_math500_qwen3_8b, C1 inside_coqa + judge-regrade)</span>
+    <span class="meta-pill">Cluster state 2026-07-12 PM — A2 ars_gsm8k_qwen3_8b fetched+scored (ceiling caveat), C1 inside_coqa fetched+scored (floor-REJECT, judge acc 0.132); A3 ars_math500_qwen3_8b still running (wall 3/4)</span>
     <span class="meta-pill">Every numeric cell sourced from a CSV/JSON</span>
   </div>
 </div></div>
@@ -85,8 +122,8 @@
 <h2>Advisor action items — compilation</h2>
 <p>All numbers are correct and CSV-sourced, but read together they raise questions the per-cell
 writeups didn't have room for: <strong>three</strong> headline "beats/edges" claims are
-CI-overlapping rather than CI-clear, and on 19 comparable cells the trivial same-trace sequence-logprob baseline is ahead
-of GOOD_5 more often than not (6 wins / 3 ties /
+CI-overlapping rather than CI-clear, and on 20 comparable cells the trivial same-trace sequence-logprob baseline is ahead
+of GOOD_5 more often than not (7 wins / 3 ties /
 10 losses for GOOD_5). Start with the
 <a href="advisor_scrutiny.html"><strong>scrutiny page</strong></a>, then the items.</p>
 </div>

@@ -65,6 +65,43 @@
   .item-card h3{margin-top:0;}
   .item-card a.cta{color:var(--blue);font-weight:700;text-decoration:none;}
   .neutral{color:var(--gray-600);font-weight:600;}
+
+  .rf-fig{background:#fff;border:1px solid var(--gray-200);border-radius:12px;
+    padding:18px 20px 10px;margin:20px 0;}
+  .rf-fig .rf-cap{font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:2px;}
+  .rf-fig .rf-sub{font-size:12.5px;color:var(--gray-600);margin-bottom:10px;}
+  .rf-chart{width:100%;height:auto;display:block;}
+  .rf-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 10px;align-items:center;}
+  .rf-legend .rf-li{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-700);}
+  .rf-fnote{font-size:11.5px;color:var(--gray-600);margin:8px 0 4px;line-height:1.5;}
+  .rf-grid{stroke:var(--gray-200);stroke-width:1;}
+  .rf-zero{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-tick{fill:var(--gray-600);font-size:11px;}
+  .rf-axname{fill:var(--gray-600);font-size:11.5px;}
+  .rf-rowlbl{fill:var(--gray-800);font-size:12px;font-weight:600;}
+  .rf-rowsub{fill:var(--gray-600);font-size:10px;}
+  .rf-vlbl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-barlbl{fill:var(--gray-700);font-size:11px;}
+  .rf-dlbl{fill:var(--gray-600);font-size:10.5px;}
+  .rf-dlbl-ours{fill:var(--blue);font-weight:700;}
+  .rf-region{fill:var(--gray-600);font-size:11px;font-style:italic;}
+  .rf-albl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-leader{stroke:#94a3b8;stroke-width:1;}
+  .rf-ci{stroke:var(--blue);stroke-width:2;stroke-linecap:round;}
+  .rf-ours{fill:var(--blue);stroke:#fff;stroke-width:2;}
+  .rf-anchor{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-sup{fill:none;stroke:#475569;stroke-width:2;}
+  .rf-seqlp{stroke:var(--gray-700);stroke-width:1.5;opacity:.85;}
+  .rf-bar-pos{fill:var(--blue);}
+  .rf-bar-neg{fill:var(--red);}
+  .rf-bar-ctx{opacity:.42;}
+  .rf-bar-ours{fill:var(--blue);}
+  .rf-bar-gray{fill:#94a3b8;}
+  .rf-bar-gray-sup{fill:#475569;}
+  .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-diag{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-wash{fill:rgba(37,99,235,.06);}
 </style>
 </head>
 <body>
@@ -73,7 +110,7 @@
   <div class="subtitle">Status and live numbers for the QA extension, with the Step-155 decision-gate check.</div>
   <div class="meta-pills">
     <span class="meta-pill">Generated 2026-07-12 by scripts/action_items_report.py</span>
-    <span class="meta-pill">Cluster state as of commit 5af2931 — 3 cells still running (A2 ars_gsm8k_qwen3_8b, A3 ars_math500_qwen3_8b, C1 inside_coqa + judge-regrade)</span>
+    <span class="meta-pill">Cluster state 2026-07-12 PM — A2 ars_gsm8k_qwen3_8b fetched+scored (ceiling caveat), C1 inside_coqa fetched+scored (floor-REJECT, judge acc 0.132); A3 ars_math500_qwen3_8b still running (wall 3/4)</span>
     <span class="meta-pill">Every numeric cell sourced from a CSV/JSON</span>
   </div>
 </div></div>
@@ -92,7 +129,7 @@ stated; source <span class="mono">results/repgrid/scores_lsml_upcr.csv</span>.</
 <table>
 <tr><th>Dataset</th><th>Model</th><th>Acc</th><th>n</th><th>L-SML GOOD_5 [95% CI]</th>
 <th>U-PCR GOOD_5</th><th>Best subset</th><th>Published same-model anchor</th><th>Notes</th></tr>
-<tr><td>SQuAD v2</td><td>Llama-3.1-8B</td><td>60.6%</td><td>2933</td><td>79.8 [77.8, 81.5]</td><td>79.2</td><td>GOOD_5+energy/lsml = 83.0</td><td>— (no published same-model anchor)</td><td>—</td></tr><tr><td>SciQ</td><td>Llama-3.1-8B</td><td>87.7%</td><td>198</td><td>73.8 [66.5, 80.8]</td><td>74.4</td><td>GOOD_5/upcr = 74.4</td><td>— (no published same-model anchor)</td><td>ceiling caveat: acc 0.877</td></tr><tr><td>TruthfulQA (gen.)</td><td>Llama-3.1-8B</td><td>11.6%</td><td>7633</td><td>66.0 [63.8, 68.0]</td><td>67.3</td><td>consensus_4/upcr = 67.5</td><td>84.2 (TSV (arXiv 2503.01917))</td><td>label floor: acc 0.116</td></tr><tr><td>NQ-Open</td><td>Llama-3.1-8B</td><td>50.1%</td><td>8460</td><td>71.8 [70.7, 72.9]</td><td>73.2</td><td>STABLE_H9/upcr = 74.3</td><td>— (no published same-model anchor)</td><td>judge-rescued: acc 0.067 → 0.501</td></tr><tr><td>CoQA</td><td>LLaMA-7B</td><td>18.3%</td><td>249</td><td>53.3 [44.8, 60.6]</td><td>47.0</td><td>top_macro_5/upcr = 65.2</td><td>80.4 (INSIDE)</td><td>OLD floor run (acc 0.183) — judge-regraded full-N rerun in flight (C1)</td></tr><tr><td>TriviaQA (wiki)</td><td>Mistral-Small-24B</td><td>78.6%</td><td>621</td><td>70.7 [66.1, 75.2]</td><td>72.8</td><td>GOOD_5+logprob/upcr = 73.6</td><td>74.6 (EPR)</td><td>—</td></tr><tr><td>TriviaQA</td><td>Qwen3-8B</td><td>49.3%</td><td>4392</td><td>80.1 [78.7, 81.3]</td><td>79.5</td><td>GOOD_5/lsml = 80.1</td><td>74.8 (Semantic Energy)</td><td>—</td></tr><tr><td>TriviaQA</td><td>OPT-30B</td><td>46.5%</td><td>4993</td><td>59.5 [58.0, 61.0]</td><td>59.0</td><td>consensus_4/lsml = 63.0</td><td>83.0 (Semantic Entropy (SE-ICLR&#x27;23))</td><td>—</td></tr><tr><td>TriviaQA (spilled cfg)</td><td>Llama-3.1-8B</td><td>32.0%</td><td>256</td><td>93.4 [87.7, 99.1]</td><td>91.4</td><td>consensus_4/lsml = 96.2</td><td>— (no published same-model anchor)</td><td>selection caveat: n_pos=6 flagged at Step 163</td></tr><tr><td>HotpotQA</td><td>Mistral-7B</td><td>33.8%</td><td>500</td><td>57.5 [52.2, 63.0]</td><td>57.8</td><td>top_macro_5/upcr = 58.3</td><td>72.9 (LOS-Net)</td><td>—</td></tr>
+<tr><td>SQuAD v2</td><td>Llama-3.1-8B</td><td>60.6%</td><td>2933</td><td>79.8 [77.8, 81.5]</td><td>79.2</td><td>GOOD_5+energy/lsml = 83.0</td><td>— (no published same-model anchor)</td><td>—</td></tr><tr><td>SciQ</td><td>Llama-3.1-8B</td><td>87.7%</td><td>198</td><td>73.8 [66.5, 80.8]</td><td>74.4</td><td>GOOD_5/upcr = 74.4</td><td>— (no published same-model anchor)</td><td>ceiling caveat: acc 0.877</td></tr><tr><td>TruthfulQA (gen.)</td><td>Llama-3.1-8B</td><td>11.6%</td><td>7633</td><td>66.0 [63.8, 68.0]</td><td>67.3</td><td>consensus_4/upcr = 67.5</td><td>84.2 (TSV (arXiv 2503.01917))</td><td>label floor: acc 0.116</td></tr><tr><td>NQ-Open</td><td>Llama-3.1-8B</td><td>50.1%</td><td>8460</td><td>71.8 [70.7, 72.9]</td><td>73.2</td><td>STABLE_H9/upcr = 74.3</td><td>— (no published same-model anchor)</td><td>judge-rescued: acc 0.067 → 0.501</td></tr><tr><td>CoQA</td><td>LLaMA-7B</td><td>13.2%</td><td>4504</td><td>68.4 [66.6, 70.1]</td><td>60.8</td><td>GOOD_5/lsml = 68.4</td><td>80.4 (INSIDE)</td><td>OLD floor run (acc 0.183) — judge-regraded full-N rerun in flight (C1)</td></tr><tr><td>TriviaQA (wiki)</td><td>Mistral-Small-24B</td><td>78.6%</td><td>621</td><td>70.7 [66.1, 75.2]</td><td>72.8</td><td>GOOD_5+logprob/upcr = 73.6</td><td>74.6 (EPR)</td><td>—</td></tr><tr><td>TriviaQA</td><td>Qwen3-8B</td><td>49.3%</td><td>4392</td><td>80.1 [78.7, 81.3]</td><td>79.5</td><td>GOOD_5/lsml = 80.1</td><td>74.8 (Semantic Energy)</td><td>—</td></tr><tr><td>TriviaQA</td><td>OPT-30B</td><td>46.5%</td><td>4993</td><td>59.5 [58.0, 61.0]</td><td>59.0</td><td>consensus_4/lsml = 63.0</td><td>83.0 (Semantic Entropy (SE-ICLR&#x27;23))</td><td>—</td></tr><tr><td>TriviaQA (spilled cfg)</td><td>Llama-3.1-8B</td><td>32.0%</td><td>256</td><td>93.4 [87.7, 99.1]</td><td>91.4</td><td>consensus_4/lsml = 96.2</td><td>— (no published same-model anchor)</td><td>selection caveat: n_pos=6 flagged at Step 163</td></tr><tr><td>HotpotQA</td><td>Mistral-7B</td><td>33.8%</td><td>500</td><td>57.5 [52.2, 63.0]</td><td>57.8</td><td>top_macro_5/upcr = 58.3</td><td>72.9 (LOS-Net)</td><td>—</td></tr>
 </table>
 
 <h3>Step-155 decision gate</h3>

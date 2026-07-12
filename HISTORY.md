@@ -5563,3 +5563,48 @@ a per-domain leading-variant breakdown, a coverage check, and an explicit critic
   the pages.
 
 ---
+
+### Step 171 — Figures in the advisor report, published-roster reframing, LOS-Net baseline family, A2/C1 landed
+
+**What**: (1) Omri's review of the Step-170 report: the story lacked plots and had drifted to
+headlining the in-house seq-logprob audit over the published citation roster. Reframed
+everything advisor-facing around the cited papers (roster list saved to memory) and built
+`scripts/report_figs.py` — 5 CSV-driven inline-SVG figures (GSM8K 9-model forest plot with CIs
+vs published same-model anchors/supervised ceilings; same-model Δ diverging bars from
+scores_lsml_upcr GOOD_5-lsml rows; GSM8K/Llama-8B one-cell landscape; LOS-Net-table landscape;
+GOOD_5-vs-seqlp scatter) wired into `action_items_report.py` (item4 ×4 + scrutiny ×1, FIG_CSS,
+guardrail-clean; scrutiny §2 prose reframed: published roster = headline, seqlp = appendix
+audit). Figures regenerate from the CSVs on every build; new GSM8K models need a GSM8K_SPEC
+entry (same convention as advisor_report's order list). A parallel standalone review page with
+the same figures + methodology critique published as a claude.ai artifact.
+(2) Verified LOS-Net (2503.14043) Table 1 baselines from arXiv: Logits/Probas-mean/min/max,
+p(True) (Kadavath 2022), SE, activation probes — their HotpotQA/Mistral-7B-v0.2 column is our
+matched cell → 12 published rows saved to new `results/repgrid/published_baselines.csv`
+(p(True)=54.0 there; our GOOD_5 57.5 clears it even on our out-of-regime loss cell).
+`score_ubaselines.py` extended with the same aggregation family computed on our traces
+(pmean/pmin/pmax from ΔE; lmean/lmin/lmax from ΔE+logsumexp on energy cells) — all 24 rows
+re-scored with merge-on-write intact.
+(3) Cluster: A2 `ars_gsm8k_qwen3_8b` fetched (489 MB, N=500 greedy/mn8192) → **documented
+REJECT**: acc 0.942 (29 negatives < min_minority) AND 15/29 negatives cap-pinned at 8192 — the
+wave-2 truncation-label leakage reproduced at full N; not scored into canonical CSVs (gemma2b
+policy), REJECT noted on the RB EigenScore/Qwen3 row. C1 `inside_coqa_llama7b` full-N + judge
+regrade fetched (484 MB, K=10) → judge acc 0.132 = **floor-REJECT caveat**, but scored for the
+books: **GOOD_5 L-SML 0.684** (n=4504, valid 0.90) vs INSIDE published 0.804 = −12.0pp honest
+loss — far above the N=30 pilot's 0.533 (pilot dir archived as `*_n30_pilot`). A3 still
+running (wall 3/4, ~356/500). `repgrid_report.py` re-run → headline_X_vs_Y.csv refreshed;
+all 9 action-items pages regenerated, guardrail clean.
+
+**Why**: Advisor-readiness: the wins were invisible in prose tables, undefined jargon
+(GOOD_5/consensus_4/energy/logprob) had no glossary, and the comparison set must be the
+papers we cite (LapEigvals, ARS, EPR, SE, SelfCheckGPT, NI, INSIDE, LOS-Net, TSV, EDIS,
+p(True)…), not an unpublished sanity baseline.
+
+**Result**: item4_benchmarking.html now opens with 4 figures (16→47 KB), scrutiny carries the
+seqlp scatter; p(True) + the trivial-aggregation family are in the roster with published
+same-cell values; A2 = REJECT documented, C1 = scored floor-caveated loss; ubaseline CSV
+24 rows × 9 baselines. Artifact: https://claude.ai/code/artifact/86f71ec2-0473-4158-8e7e-4da7d916bc16
+Not committed (await Omri). Follow-ups: A3 fetch→inspect (verify no 16384 cap-pinning)→score
+when its chain ends; optional p(True) run on our own cells (one extra pass, --regrade-style
+infra); consider a paired-bootstrap GOOD_5-vs-seqlp significance script.
+
+---

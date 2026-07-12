@@ -112,8 +112,8 @@ GPQA Diamond (MCQ science) is structurally out-of-regime: entropy dynamics are s
 |---|--------|--------|------|
 | 1 | L-SML follow-up literature search (Nadler post-2016) | ✅ Completed (Steps 139–141) | No |
 | 2 | Logistic regression oracle (5/9/16 features, 5-fold CV) | ✅ Completed (Steps 142–143, 147) | No |
-| 3 | Extend QA evaluation (CoQA > SQuAD v2 > TruthfulQA — priority corrected Step 155) | In progress — actively running (Steps 160–169) | Yes (AIRCC) |
-| 4 | Benchmarking completion (Phase 12 Corrected run done — Step 152; 4 open issues before citable; QA + Phase 14 remaining) | In progress — actively running (Steps 160–169) | Partial |
+| 3 | Extend QA evaluation (CoQA > SQuAD v2 > TruthfulQA — priority corrected Step 155) | Nearly complete (Steps 160–171): CoQA/INSIDE full-N scored 68.4 vs 80.4 (floor caveat, Step 171); SQuAD v2 / NQ-Open / TruthfulQA / SciQ scored | Yes (AIRCC) |
+| 4 | Benchmarking completion (Phase 12 Corrected run done — Step 152; 4 open issues before citable; QA + Phase 14 remaining) | In progress (Steps 160–171): one cell left in flight (ars_math500_qwen3 wall 3/4); A2 qwen3-GSM8K documented REJECT (ceiling + truncation leakage); report now carries CSV-driven figures (report_figs.py) + LOS-Net Table-1 baseline family incl. p(True) | Partial |
 | 5 | Experiment 1 — sampling fusion: SE (K=10) + spectral features | ✅ Completed (Step 152) — gate NOT passed | No |
 | 6 | Experiment 2 — temperature variation: T effect + diversity ablation | ✅ Completed (Step 158) — diversity hurts, same-T sampling helps | Yes |
 

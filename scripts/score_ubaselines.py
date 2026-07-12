@@ -8,10 +8,19 @@ Baselines (all computed from raw signals already saved per candidate — no mode
     Perplexity / mean logprob   confidence = -mean(token_spilled_energies)   [K=1 units]
     Sequence logprob            confidence = -sum(token_spilled_energies)    [K=1 units]
     Naive entropy               confidence = -mean(token_entropies)  (== EPR / our `epr`)
+    Probas-mean/min/max         LOS-Net Table-1 aggregations (arXiv 2503.14043) of the
+                                sampled-token probability p_n = exp(-dE_n): mean(p),
+                                min(p) via -max(dE), max(p) via -min(dE)
+    Logits-mean/min/max         same aggregations of the sampled token's RAW logit
+                                z_n = -dE_n + logsumexp_n; only on cells captured with
+                                token_logsumexp (energy cells), NaN elsewhere
     LN-entropy (Malinin-Gales)  K>=2 cells only, QUESTION level: mean over the K samples
                                 of per-sample length-normalized -logprob; majority-vote
                                 correctness label per question (survey/NI convention)
     Predictive entropy          K>=2 cells only, question level, non-length-normalized
+p(True) (Kadavath et al. 2022) is NOT here: it needs one extra forward pass per answer
+and cannot be derived from saved traces. Published p(True) values on matched cells
+(e.g. LOS-Net Table 1: 54.0 on HotpotQA/Mistral-7B-v0.2) live in reasoning_benchmark.csv.
 
 The script deliberately avoids extract_all_features (FFT et al.) so the 100 MB - 1 GB
 cells stay cheap: one pickle load, one pass. Our L-SML GOOD_5 AUROC per cell is JOINED
@@ -61,19 +70,38 @@ def load_cell_signals(pkl_path):
     with open(pkl_path, "rb") as f:
         data = pickle.load(f)
     ppl, seqlp, nent, lab, lab_lex, pid = [], [], [], [], [], []
+    pmean, pmin, pmax = [], [], []
+    lmean, lmin, lmax = [], [], []
     for idx in sorted(data.keys()):
         for c in data[idx]["candidates"]:
             dE = c.get("token_spilled_energies")
             H = c.get("token_entropies")
+            Z = c.get("token_logsumexp")
             ppl.append(-float(np.mean(dE)) if dE is not None and len(dE) else np.nan)
             seqlp.append(-float(np.sum(dE)) if dE is not None and len(dE) else np.nan)
             nent.append(-float(np.mean(H)) if H is not None and len(H) else np.nan)
+            if dE is not None and len(dE):
+                p = np.exp(-np.asarray(dE, dtype=float))
+                pmean.append(float(np.mean(p)))
+                pmin.append(-float(np.max(dE)))   # log p_min: same AUROC as min(p)
+                pmax.append(-float(np.min(dE)))   # log p_max
+            else:
+                pmean.append(np.nan); pmin.append(np.nan); pmax.append(np.nan)
+            if dE is not None and Z is not None and len(Z) == len(dE):
+                z = -np.asarray(dE, dtype=float) + np.asarray(Z, dtype=float)
+                lmean.append(float(np.mean(z)))
+                lmin.append(float(np.min(z)))
+                lmax.append(float(np.max(z)))
+            else:
+                lmean.append(np.nan); lmin.append(np.nan); lmax.append(np.nan)
             label = bool(c.get("label", False))
             lab.append(label)
             lab_lex.append(bool(c.get("label_lexical", label)))
             pid.append(int(idx))
     return {
         "ppl": np.asarray(ppl), "seqlp": np.asarray(seqlp), "nent": np.asarray(nent),
+        "pmean": np.asarray(pmean), "pmin": np.asarray(pmin), "pmax": np.asarray(pmax),
+        "lmean": np.asarray(lmean), "lmin": np.asarray(lmin), "lmax": np.asarray(lmax),
         "labels": np.asarray(lab, dtype=bool), "labels_lex": np.asarray(lab_lex, dtype=bool),
         "problem_id": np.asarray(pid, dtype=int), "n_problems": len(data),
     }
@@ -126,7 +154,8 @@ def score_one(pkl_path, cell_id, lsml_join, n_boot):
     res = {"cell": cell_id, "n_cands": len(y), "n_problems": sig["n_problems"],
            "acc": round(float(y.mean()), 4), "acc_lex": round(float(y_lex.mean()), 4),
            "label_agreement": round(agree, 4)}
-    for name, s in (("ppl", sig["ppl"]), ("seqlp", sig["seqlp"]), ("nent", sig["nent"])):
+    for name in ("ppl", "seqlp", "nent", "pmean", "pmin", "pmax", "lmean", "lmin", "lmax"):
+        s = sig[name]
         auc, lo, hi = _auc(y, s, n_boot)
         res[f"{name}_auroc"], res[f"{name}_lo"], res[f"{name}_hi"] = auc, lo, hi
         # Janiak dual-label check: same baseline under the OTHER label scheme.

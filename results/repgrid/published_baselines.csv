@@ -1,0 +1,13 @@
+cell,dataset,model,method,supervision,auroc,source,note
+losnet_hotpotqa_mistral7b,hotpotqa,mistralai/Mistral-7B-Instruct-v0.2,LOS-Net,supervised,72.92,arXiv 2503.14043 Table 1,"+-0.45; supervised sequence probe on top-k logprobs"
+losnet_hotpotqa_mistral7b,hotpotqa,mistralai/Mistral-7B-Instruct-v0.2,Activation Probes,supervised,73.0,arXiv 2503.14043 Table 1,"+-0.6; white-box supervised reference"
+losnet_hotpotqa_mistral7b,hotpotqa,mistralai/Mistral-7B-Instruct-v0.2,ATP+R-Transf.,supervised,69.7,arXiv 2503.14043 Table 1,"+-0.39; LOS-Net's learnable baseline"
+losnet_hotpotqa_mistral7b,hotpotqa,mistralai/Mistral-7B-Instruct-v0.2,ATP+R-MLP,supervised,68.92,arXiv 2503.14043 Table 1,"+-0.24; LOS-Net's learnable baseline"
+losnet_hotpotqa_mistral7b,hotpotqa,mistralai/Mistral-7B-Instruct-v0.2,Semantic Entropy,unsupervised,67.66,arXiv 2503.14043 Table 1,"+-0.55; K>1 sampling (Kuhn et al. ICLR 2023)"
+losnet_hotpotqa_mistral7b,hotpotqa,mistralai/Mistral-7B-Instruct-v0.2,Probas-mean,unsupervised,63.0,arXiv 2503.14043 Table 1,"+-0.3; mean sampled-token probability"
+losnet_hotpotqa_mistral7b,hotpotqa,mistralai/Mistral-7B-Instruct-v0.2,Logits-mean,unsupervised,61.0,arXiv 2503.14043 Table 1,"+-0.2; mean sampled-token raw logit"
+losnet_hotpotqa_mistral7b,hotpotqa,mistralai/Mistral-7B-Instruct-v0.2,Logits-min,unsupervised,61.0,arXiv 2503.14043 Table 1,"+-0.3"
+losnet_hotpotqa_mistral7b,hotpotqa,mistralai/Mistral-7B-Instruct-v0.2,Probas-min,unsupervised,58.0,arXiv 2503.14043 Table 1,"+-0.3; min sampled-token probability"
+losnet_hotpotqa_mistral7b,hotpotqa,mistralai/Mistral-7B-Instruct-v0.2,p(True),unsupervised,54.0,arXiv 2503.14043 Table 1,"+-0.6; Kadavath et al. 2022 self-evaluation prompt"
+losnet_hotpotqa_mistral7b,hotpotqa,mistralai/Mistral-7B-Instruct-v0.2,Logits-max,unsupervised,53.0,arXiv 2503.14043 Table 1,"+-0.8"
+losnet_hotpotqa_mistral7b,hotpotqa,mistralai/Mistral-7B-Instruct-v0.2,Probas-max,unsupervised,50.0,arXiv 2503.14043 Table 1,"+-0.5"

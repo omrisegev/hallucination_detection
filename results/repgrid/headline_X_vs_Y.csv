@@ -1,8 +1,6 @@
 cell,model,dataset,method,best_subset,X,Y,delta,head_to_head,n,valid_rate
 epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,lsml,GOOD_5+energy,0.7315,0.746,-0.014499999999999957,SAME-MODEL,621,0.621
 epr_triviaqa_mistral24b,mistralai/Mistral-Small-3.1-24B-Instruct-2503,trivia_qa_wiki,upcr,GOOD_5+logprob,0.7358,0.746,-0.010199999999999987,SAME-MODEL,621,0.621
-inside_coqa_llama7b,huggyllama/llama-7b,coqa,lsml,top_macro_5,0.5786,0.804,-0.22540000000000004,,249,0.83
-inside_coqa_llama7b,huggyllama/llama-7b,coqa,upcr,top_macro_5,0.6519,0.804,-0.1521,,249,0.83
 lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,lsml,GOOD_5,0.8152,0.925,-0.10980000000000001,,500,1.0
 lapeigvals_gsm8k_llama8b,meta-llama/Llama-3.1-8B-Instruct,gsm8k,upcr,GOOD_5,0.8119,0.925,-0.11310000000000009,,500,1.0
 losnet_hotpotqa_mistral7b,mistralai/Mistral-7B-Instruct-v0.2,hotpotqa,lsml,GOOD_5+spilled,0.5805,0.7292000000000001,-0.14870000000000005,,500,1.0
@@ -37,3 +35,7 @@ noise_gsm8k_phi3mini,microsoft/Phi-3-mini-4k-instruct,gsm8k,lsml,GOOD_5+logprob,
 noise_gsm8k_phi3mini,microsoft/Phi-3-mini-4k-instruct,gsm8k,upcr,top_macro_5,0.6689,0.7251000000000001,-0.05620000000000003,SAME-MODEL,1319,1.0
 se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,lsml,GOOD_5+logprob,0.7411,,,,8460,0.846
 se_nq_open_llama8b,meta-llama/Llama-3.1-8B-Instruct,nq_open,upcr,STABLE_H9,0.7433,,,,8460,0.846
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,lsml,GOOD_5,0.6841,0.804,-0.1199,,4504,0.901
+inside_coqa_llama7b,huggyllama/llama-7b,coqa,upcr,top_macro_5,0.6326,0.804,-0.1714,,4504,0.901
+inside_coqa_llama7b_n30_pilot,huggyllama/llama-7b,coqa,lsml,top_macro_5,0.5786,0.804,-0.22540000000000004,,249,0.83
+inside_coqa_llama7b_n30_pilot,huggyllama/llama-7b,coqa,upcr,top_macro_5,0.6519,0.804,-0.1521,,249,0.83
