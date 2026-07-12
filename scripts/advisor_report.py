@@ -192,6 +192,22 @@ def qa_headline_html(headline, edis):
     # keep lsml rows; index by cell
     lsml = {r["cell"]: r for r in headline if r["method"] == "lsml"}
     upcr = {r["cell"]: r for r in headline if r["method"] == "upcr"}
+    # Gate policy (2026-07-12): band violations are scored + FLAGGED, never dropped;
+    # the flag also disqualifies the row from reading as a clean WIN.
+    accs = {r["cell"]: r.get("acc")
+            for r in read_csv(os.path.join(REPGRID, "scores_lsml_upcr.csv"))
+            if r.get("subset") == "GOOD_5" and r.get("method") == "lsml"}
+
+    def _gate(cell):
+        try:
+            a = float(accs.get(cell))
+        except (TypeError, ValueError):
+            return ""
+        if a < 0.20:
+            return "FLOOR"
+        if a > 0.85:
+            return "CEILING"
+        return ""
     order = ["semenergy_triviaqa_qwen3_8b", "epr_triviaqa_mistral24b",
              "seiclr_triviaqa_opt30b", "inside_coqa_llama7b", "losnet_hotpotqa_mistral7b",
              "se_nq_open_llama8b"]
@@ -211,15 +227,23 @@ def qa_headline_html(headline, edis):
             xtxt = (f'<strong>{pct(X)}</strong> <span style="color:#64748b;font-size:12px">'
                     f'(L-SML {esc(r.get("best_subset", "GOOD_5"))})</span>')
         ytxt = pct(Y) if Y else "n/a"
+        gate = _gate(cell)
         if Y:
             d = X - float(Y)
             if cell == "epr_triviaqa_mistral24b":
                 d = float(upcr[cell]["X"]) - float(Y)
-            outcome = (f'<span class="win">+{d*100:.1f} WIN</span>' if d > 0.005
-                       else (f'<span class="loss">{d*100:.1f}</span>' if d < -0.03
-                             else f'<strong>{d*100:+.1f} tie</strong>'))
+            if gate and d > 0.005:  # out-of-band: shown, never a clean WIN
+                outcome = f'<strong>+{d*100:.1f}</strong> <span class="loss">[{gate} — excluded from tally]</span>'
+            else:
+                outcome = (f'<span class="win">+{d*100:.1f} WIN</span>' if d > 0.005
+                           else (f'<span class="loss">{d*100:.1f}</span>' if d < -0.03
+                                 else f'<strong>{d*100:+.1f} tie</strong>'))
+                if gate:
+                    outcome += f' <span class="loss">[{gate}]</span>'
         else:
             outcome = '<span style="color:#94a3b8">no clean published anchor</span>'
+            if gate:
+                outcome += f' <span class="loss">[{gate}]</span>'
         ed = edis.get(cell, {})
         edtxt = pct(ed.get("edis_auroc")) if ed.get("edis_auroc") else "—"
         note = ""

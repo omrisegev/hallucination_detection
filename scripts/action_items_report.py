@@ -45,9 +45,9 @@ REPGRID = os.path.join(RESULTS, "repgrid")
 SWEEP = os.path.join(RESULTS, "subset_sweep")
 OUT_DIR = os.path.join(RESULTS, "action_items")
 
-AS_OF = ("Cluster state 2026-07-12 PM — A2 ars_gsm8k_qwen3_8b fetched+scored (ceiling caveat), "
-         "C1 inside_coqa fetched+scored (floor-REJECT, judge acc 0.132); "
-         "A3 ars_math500_qwen3_8b still running (wall 3/4)")
+AS_OF = ("Cluster state 2026-07-12 late — benchmarking desk CLOSED: all cells fetched. "
+         "A2 + A3 (both Qwen3/ARS) = documented REJECT (truncation-label leakage at 8192/16384); "
+         "C1 inside_coqa scored 68.4 vs INSIDE 80.4 (FLOOR flag, judge acc 0.132); no jobs left in queue")
 GEN_DATE = "2026-07-12"
 
 EXTRA_CSS = """
@@ -489,6 +489,18 @@ and <span class="mono">BENCHMARKING_COMPETITOR_GUIDE.md</span>. Every cell passe
 <strong>local smoke test &rarr; N=30 pilot &rarr; full N</strong>; numbers land in
 <span class="mono">results/reasoning_benchmark.csv</span> and
 <span class="mono">results/repgrid/scores_lsml_upcr.csv</span>.</p>
+
+<div class="info-box"><b>Gate policy (formalized 2026-07-12, applies desk-wide — reasoning and QA).</b>
+Two tiers. (1) <b>Band violation</b> — cell accuracy outside [0.20, 0.85] — is a <em>quality flag</em>:
+the cell is scored, appears in every table and figure with a CEILING / FLOOR tag, and is excluded from
+the headline win tally. A flagged number is a noisy estimate of the right quantity.
+(2) <b>Label-validity failure</b> — truncation-label leakage (cap-pinned negatives) or a single-class
+label set — is a <em>documented REJECT</em>, never scored: there the AUROC would be a clean estimate of
+the <em>wrong</em> quantity, and no caveat fixes that. Current REJECTs: ars_gsm8k_qwen3_8b (15/29
+negatives cap-pinned at 8192), ars_math500_qwen3_8b (23/50 negatives cap-pinned at 16384 — Qwen3's
+reasoning on hard MATH-500 items is effectively unbounded), noise_gsm8k_gemma2b (acc 0.000, single
+class). The Qwen3/ARS pair is closed as REJECT-leakage — itself a reportable finding about capped
+greedy Qwen3 protocols.</div>
 
 <h3>The picture first — four figures, regenerated from the CSVs on every build</h3>
 {fig_gsm8k_forest()}

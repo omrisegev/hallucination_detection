@@ -5608,3 +5608,47 @@ when its chain ends; optional p(True) run on our own cells (one extra pass, --re
 infra); consider a paired-bootstrap GOOD_5-vs-seqlp significance script.
 
 ---
+
+### Step 172 — Benchmarking desk CLOSED: A3 REJECT-leakage, two-tier gate policy formalized and made structural
+
+**What**: (1) A3 `ars_math500_qwen3_8b` finished (jobs 106305–08, greedy/mn16384, 500/500, acc
+0.900) and was fetched (1.09 GiB). The decisive check: **23/50 negatives cap-pinned at 16384**
+(p95 of ALL traces = the cap) — Qwen3-8B greedy reasoning on hard MATH-500 items is effectively
+unbounded, so the truncation-label leakage that killed the mn4096 partials and the mn8192 pilot
+persists at 16k. **Both Qwen3/ARS cells are closed as documented REJECT-leakage** (A2: 15/29
+pinned at 8192); raising max_new again is not a fix. Cache dirs renamed `*_reject`; RB notes
+updated; the R1-Distill pair remains the citable ARS head-to-head. With C1 scored in Step 171,
+**every benchmarking cell is now fetched and dispositioned — the queue is empty.**
+(2) Per Omri's directive ("use those cells even though they don't meet criteria, just mark
+them — desk-wide, benchmarking and QA"), the gate policy is now a formal two-tier rule
+implemented structurally, not editorially: **band violation (acc outside [0.20,0.85]) = quality
+FLAG** — cell scored, shown everywhere with CEILING/FLOOR tag (derived from each cell's acc at
+report-build time via `gate_flag()` in report_figs.py), excluded from the headline win tally
+(AUROC is prevalence-invariant → out-of-band estimates are unbiased, just noisy);
+**label-validity failure (cap-pinned negatives, single-class labels) = documented REJECT via
+`REJECT_REGISTRY`** — never scored, because AUROC would cleanly measure the wrong quantity.
+Wired into: the GSM8K forest plot (auto †/▿ row tags), the delta chart (out-of-band bars fade +
+[FLAG] label, dropped from clean-win coloring), the QA head-to-head table in advisor_report.py
+(FLOOR/CEILING badges + "excluded from tally" on flagged wins), and an item4 policy info-box.
+Also discussed and documented: minority-class enrichment (case-control) is statistically
+legitimate (AUROC prevalence-invariance) but appendix-only — ADD fresh same-distribution
+problems, never REPLACE, never in a published-comparison row, and it cannot fix the
+ceiling-regime difficulty confound. Full write-up in BENCHMARKING_COMPETITOR_GUIDE.md §5.2.
+
+**Why**: Omri asked why ceiling cells can't simply be rebalanced with extra minority samples;
+the answer (add-don't-replace, case-control labeling, exact-benchmark comparability, difficulty
+confound) crystallized into the desk-wide rule that flags mark noisy-but-honest cells while
+REJECTs mark corrupted-label cells.
+
+**Result**: Desk tally is final as of this step: **4 CI-clear wins** (LapEigvals family:
+Llama-8B +9.5, Phi-3.5 +13.7, Nemo +15.2; Semantic Energy +5.3), **1 flagged win outside the
+tally** (Mistral-24B +22.5 CEILING), **1 exact tie** (Mistral-7B vs NI K=10 at ~10× less
+compute), **2 CI-overlap edges** (R1-Distill vs supervised ARS +0.3; Qwen2.5-7B U-PCR vs
+SelfCheckGPT +1.1), **honest losses** (Llama-3B −3.2, Phi-3-mini −6.1, EPR −1.0 ≈ tie,
+TruthfulQA, HotpotQA/LOS-Net, CoQA FLOOR 68.4 vs 80.4, SE-ICLR protocol-mismatch), **3
+REJECTs** (Gemma-2B single-class; both Qwen3/ARS leakage). advisor_report + all 9 action-items
+pages regenerated guardrail-clean; artifact updated (same URL). Follow-ups unchanged: optional
+p(True) pass, paired-bootstrap seqlp significance, optional `math_extended_casecontrol`
+appendix cell.
+
+---

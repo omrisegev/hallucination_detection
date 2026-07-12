@@ -51,6 +51,36 @@ def _load_all():
     return lu, rb, ub, pb
 
 
+# ── Gate-status policy (desk rule, formalized 2026-07-12) ─────────────────────
+# Two tiers, applied desk-wide (reasoning + QA):
+#   1. BAND VIOLATION (accuracy outside [0.20, 0.85]) = quality flag. The cell is
+#      SCORED, shown everywhere with a CEILING/FLOOR flag, and excluded from the
+#      headline win tally. A flag marks a noisy estimate of the right quantity.
+#   2. LABEL-VALIDITY FAILURE = documented REJECT, never scored: truncation-label
+#      leakage (cap-pinned negatives) or a single-class label set make AUROC a
+#      clean estimate of the WRONG quantity — no caveat rescues that.
+ACC_BAND = (0.20, 0.85)
+REJECT_REGISTRY = {
+    "ars_gsm8k_qwen3_8b": "truncation leakage: 15/29 negatives cap-pinned at 8192 (+ ceiling acc 0.942)",
+    "ars_gsm8k_qwen3_8b_reject": "same cell, archived dir name",
+    "ars_math500_qwen3_8b": "truncation leakage: 23/50 negatives cap-pinned at 16384 (acc 0.900; p95 trace = cap — unbounded reasoning)",
+    "ars_math500_qwen3_8b_reject": "same cell, archived dir name",
+    "noise_gsm8k_gemma2b": "single-class labels: acc 0.000 (0/30 pilot) — AUROC undefined",
+}
+
+
+def gate_flag(acc):
+    """'' if in-band, else 'CEILING'/'FLOOR'. Feed it any cell's accuracy."""
+    a = _f(acc)
+    if a is None:
+        return ""
+    if a < ACC_BAND[0]:
+        return "FLOOR"
+    if a > ACC_BAND[1]:
+        return "CEILING"
+    return ""
+
+
 # Scoped CSS: light-theme values matched to advisor_report.py's palette.
 FIG_CSS = """
   .rf-fig{background:#fff;border:1px solid var(--gray-200);border-radius:12px;
@@ -109,11 +139,10 @@ def _fig(cap, sub, legend, svg, fnote):
 GSM8K_SPEC = [
     ("Llama-3.1-8B",        "Llama-3.1-8B",                    "lapeigvals_gsm8k_llama8b",       "LapEigvals AttentionScore", "LapEigvals probe", ""),
     ("Phi-3.5-mini",        "Phi-3.5-mini-instruct",           "lapeigvals_gsm8k_phi35",         "LapEigvals AttentionScore", "LapEigvals probe", ""),
-    ("Mistral-Small-24B",   "Mistral-Small-24B-Instruct-2501", "lapeigvals_gsm8k_mistral24b",    "LapEigvals AttentionScore", "LapEigvals probe", "†"),
+    ("Mistral-Small-24B",   "Mistral-Small-24B-Instruct-2501", "lapeigvals_gsm8k_mistral24b",    "LapEigvals AttentionScore", "LapEigvals probe", ""),
     ("Mistral-7B-v0.3",     "Mistral-7B-Instruct-v0.3",        "noise_gsm8k_mistral7b",          "Noise Injection",           None,               "¶"),
     ("Mistral-Nemo-12B",    "Mistral-Nemo-Instruct-2407",      "lapeigvals_gsm8k_nemo",          "LapEigvals AttentionScore", "LapEigvals probe", ""),
     ("R1-Distill-Llama-8B", "DeepSeek-R1-Distill-Llama-8B",    "ars_gsm8k_r1distill8b",          "Semantic Entropy",          "ARS (CCS)",        ""),
-    ("Qwen3-8B (greedy)",   "Qwen3-8B",                        "ars_gsm8k_qwen3_8b",             "EigenScore (vanilla)",      "ARS (CCS)",        "†"),
     ("Llama-3.2-3B",        "Llama-3.2-3B-Instruct",           "lapeigvals_gsm8k_llama3b",       "LapEigvals AttentionScore", "LapEigvals probe", "§"),
     ("Phi-3-mini",          "Phi-3-mini-4k-instruct",          "noise_gsm8k_phi3mini",           "Noise Injection",           None,               "¶"),
     ("Qwen2.5-7B (T=0.8)",  "Qwen2.5-7B",                      "internalstates_gsm8k_qwen25_7b", "SelfCheckGPT",              "Internal-States + Reasoning-Consistency", "‡"),
@@ -146,6 +175,8 @@ def fig_gsm8k_forest():
     lu, rb, ub, _ = _load_all()
     rows = []
     for (lbl, model, cell, anch_m, sup_m, note) in GSM8K_SPEC:
+        if cell in REJECT_REGISTRY:
+            continue  # label-validity REJECT — documented, never plotted as a score
         g = _lu_g5(lu, cell)
         if g is None:
             continue  # cell not scored yet — appears automatically once it is
@@ -154,7 +185,9 @@ def fig_gsm8k_forest():
         sv = _rb_val(rb, "GSM8K", model, sup_m) if sup_m else None
         u = _ub_row(ub, cell)
         sq = _f(u["seqlp_auroc"]) * 100 if u and _f(u.get("seqlp_auroc")) else None
-        rows.append((lbl + (" " + note if note else ""), v, lo, hi, av, anch_m, sv, sup_m, sq))
+        flag = gate_flag(g.get("acc"))
+        tag = (" †" if flag == "CEILING" else " ▿" if flag == "FLOOR" else "")
+        rows.append((lbl + tag + (" " + note if note else ""), v, lo, hi, av, anch_m, sv, sup_m, sq))
     rows.sort(key=lambda r: -r[1])
     if not rows:
         return ""
@@ -192,7 +225,9 @@ def fig_gsm8k_forest():
         '<span class="rf-li"><svg width="16" height="14"><path d="M 8 1 L 14 7 L 8 13 L 2 7 Z" class="rf-anchor"/></svg> published unsupervised anchor, same model</span>'
         '<span class="rf-li"><svg width="16" height="14"><path d="M 8 2 L 14 12 L 2 12 Z" class="rf-sup"/></svg> published supervised probe (ceiling)</span>'
         '<span class="rf-li"><svg width="10" height="14"><line x1="5" y1="1" x2="5" y2="13" class="rf-seqlp"/></svg> sequence log-prob on our own traces</span>')
-    fnote = ("† accuracy above the [0.20, 0.85] gate band — ceiling caveat. "
+    fnote = ("Gate flags derived from each cell's accuracy at build time: † CEILING (acc &gt; 0.85), ▿ FLOOR (acc &lt; 0.20) "
+             "— flagged cells are scored and shown but excluded from the headline win tally; label-validity REJECTs "
+             "(truncation leakage, single-class) are never plotted. "
              "¶ Noise Injection anchor is K=10 with question-level majority-vote labels. "
              "§ the NI anchor for Llama-3.2-3B (82.7) is protocol-mismatched and omitted; the plotted anchor is LapEigvals AttentionScore. "
              "‡ run at the Internal-States paper's T=0.8; the U-PCR GOOD_5 variant on this cell is the number quoted in the CSV notes. "
@@ -225,7 +260,7 @@ def fig_same_model_deltas():
         if r["subset"] != "GOOD_5" or r["method"] != "lsml":
             continue
         cell = r["cell"]
-        if cell.endswith(("_partial", "_pilot")):
+        if cell.endswith(("_partial", "_pilot")) or cell in REJECT_REGISTRY:
             continue
         y_val, y_m, fair_override = OVERRIDE_Y.get(cell, (None, None, None))
         if y_val is None:
@@ -238,8 +273,12 @@ def fig_same_model_deltas():
         ds = DS_PRETTY.get(r["dataset"], r["dataset"])
         sup = SUP_Y.get(y_m, "")
         note = NOTE_Y.get(y_m, "")
-        sub = f"vs {y_m}" + (f" — {sup}" if sup else "") + (f" ({note})" if note else "")
-        fair = fair_override if fair_override is not None else (not sup and "mismatch" not in note)
+        flag = gate_flag(r.get("acc"))
+        sub = (f"vs {y_m}" + (f" — {sup}" if sup else "") + (f" ({note})" if note else "")
+               + (f" [{flag}]" if flag else ""))
+        # out-of-band cells are shown but never counted as clean wins: fade them
+        fair = (fair_override if fair_override is not None
+                else (not sup and "mismatch" not in note)) and not flag
         bars.append((d, f"{model} · {ds}", sub, fair))
     bars.sort(key=lambda b: -b[0])
     if not bars:
@@ -285,8 +324,10 @@ def fig_same_model_deltas():
     legend = (
         '<span class="rf-li"><svg width="16" height="12"><rect x="1" y="2" width="14" height="8" rx="2" class="rf-bar-pos"/></svg> we are ahead</span>'
         '<span class="rf-li"><svg width="16" height="12"><rect x="1" y="2" width="14" height="8" rx="2" class="rf-bar-neg"/></svg> published number ahead</span>'
-        '<span class="rf-li"><svg width="16" height="12"><rect x="1" y="2" width="14" height="8" rx="2" class="rf-bar-pos rf-bar-ctx"/></svg> faded = anchor is supervised / protocol-mismatched (context)</span>')
+        '<span class="rf-li"><svg width="16" height="12"><rect x="1" y="2" width="14" height="8" rx="2" class="rf-bar-pos rf-bar-ctx"/></svg> faded = supervised / protocol-mismatched anchor, or out-of-band cell [CEILING/FLOOR] — shown, never counted as a clean win</span>')
     fnote = ("Ours = L-SML GOOD_5 (fixed subset, primary method) throughout — per-cell best variants are ablations, not headlines. "
+             "Gate policy: band violations (acc outside [0.20, 0.85]) are scored + flagged; label-validity REJECTs "
+             "(truncation leakage, single-class) are excluded entirely. "
              "¶ SE-ICLR evaluates per-question K=10 semantic sampling — different units. "
              "Source: scores_lsml_upcr.csv (published_Y verified from each paper's table).")
     return _fig("Every same-model head-to-head, one picture",
