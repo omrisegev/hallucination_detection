@@ -39,6 +39,7 @@ from report_figs import (  # noqa: E402 — CSV-driven inline-SVG figures
     FIG_CSS, fig_gsm8k_forest, fig_same_model_deltas,
     fig_cell_landscape_losnet, fig_cell_landscape_gsm8k_llama8b, fig_good5_vs_seqlp,
     fig_math500_forest, fig_triviaqa_forest, fig_qa_extension_forest, master_table_html,
+    fig_item6_temperature, fig_item6_arms,
 )
 
 RESULTS = os.path.join(REPO, "results")
@@ -705,6 +706,7 @@ results: <span class="mono">cache/phase15_temperature/results/phase15_results.pk
 <p>The "peak" at T=1.5 is <strong>confounded by the accuracy collapse (80% &rarr; 4%)</strong> —
 the class mix shifts under the curve, and T=2.0 has only 8 correct answers. Gate G-T1 FAIL
 (overlapping CIs at 27.5% accuracy). So Q1's honest answer: no usable temperature lever here.</p>
+{fig_item6_temperature()}
 
 <h3>Q2 (primary) — diversity vs simply more passes</h3>
 <p>Paired on the 200 common samples: <strong>condition A</strong> (K=5 passes, all T=1.0) vs
@@ -720,6 +722,7 @@ the class mix shifts under the curve, and T=2.0 has only 8 correct answers. Gate
 <p>Paired deltas: <strong>A &minus; base = +6.1pp [+0.4, +12.8]</strong> (more same-T passes help);
 <strong>B &minus; A = &minus;5.3pp [&minus;10.3, &minus;1.1]</strong> (CI excludes 0 —
 temperature diversity <em>hurts</em>). Gate G-T2 FAIL, sign negative.</p>
+{fig_item6_arms()}
 <p><strong>Mechanism</strong> (off-diagonal cross-pass correlation): same-T passes correlate at
 &rho; &asymp; +0.45 — same signal plus independent noise, so averaging denoises. Multi-T passes
 correlate at &rho; &asymp; +0.01 — but that decorrelation is the off-temperature passes being

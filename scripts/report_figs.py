@@ -118,6 +118,12 @@ FIG_CSS = """
   .rf-bar-gray-sup{fill:#475569;}
   .rf-bar-gray-flag{fill:#cbd5e1;}
   .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-line{stroke:var(--blue);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-line-acc{stroke:var(--green);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-dot-acc{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-panes{display:flex;gap:24px;flex-wrap:wrap;}
+  .rf-pane{flex:1 1 340px;min-width:300px;}
+  .rf-pane .rf-ptitle{font-size:13px;font-weight:700;color:var(--gray-900);margin-bottom:6px;}
   .rf-diag{stroke:#94a3b8;stroke-width:1.5;}
   .rf-wash{fill:rgba(37,99,235,.06);}
 """
@@ -525,7 +531,7 @@ def _sweep_val(sw, domain, key_substr):
     return None, None, None, None
 
 
-def _generic_forest(rows, D0, D1, axname, teach=True):
+def _generic_forest(rows, D0, D1, axname, teach=True, ticks=None):
     """rows: (label, v, lo, hi, anchors[(val,name,kind)], seqlp)
     kind: 'unsup' filled diamond | 'sup' open triangle | 'flag' open diamond
     lo/hi None -> no whisker (legacy cells)."""
@@ -534,7 +540,7 @@ def _generic_forest(rows, D0, D1, axname, teach=True):
     H = TOP + n * ROW + 34
     x = lambda v: _lin(v, D0, D1, X0, X1)
     s = [_svg(900, H)]
-    gticks = [g for g in (40, 50, 60, 70, 80, 90) if D0 <= g <= D1]
+    gticks = [g for g in (ticks or (40, 50, 60, 70, 80, 90)) if D0 <= g <= D1]
     for gv in gticks:
         s.append(f'<line x1="{x(gv):.1f}" y1="{TOP}" x2="{x(gv):.1f}" y2="{TOP+n*ROW}" class="rf-grid"/>')
         s.append(f'<text x="{x(gv):.1f}" y="{TOP+n*ROW+16}" class="rf-tick" text-anchor="middle">{gv}</text>')
@@ -782,6 +788,76 @@ lives in the npz manifests); Acc column shows the positive-class rate. RAG and G
 out-of-regime domains (thesis scope: spectral features of H(n) live on reasoning traces) — shown in
 full rather than hidden, many at FLOOR. Phase-9 QA legacy cells predate the model-matched protocol.</p>
 """
+
+
+# ── Item 6 figures (Phase-15 temperature experiment, Step 158) ────────────────
+# Values are the same hardcoded Step-158 numbers the item6 tables show
+# (source: HISTORY Step 158 / phase15 results summary — no CSV exists for them).
+P15_T = [0.3, 0.6, 1.0, 1.5, 2.0]
+P15_AUROC = [54.5, 64.4, 85.1, 87.8, 62.9]
+P15_ACC = [80.0, 81.5, 70.5, 27.5, 4.0]
+P15_ARMS = [
+    ("Single pass T=1.0 (base)",        85.1, 77.7, 91.8),
+    ("A · K=5 same-T — L-SML fusion",   91.2, 85.8, 95.4),
+    ("A · K=5 same-T — simple average", 90.6, 85.0, 94.8),
+    ("B · K=5 multi-T — L-SML fusion",  85.9, 79.4, 91.4),
+    ("B · K=5 multi-T — simple average", 83.0, 76.0, 89.0),
+]
+
+
+def _line_panel(ys, cls_line, cls_dot, ylab, y0, y1, band=None):
+    """Single-series line over T (x linear in temperature). All 5 points labeled —
+    the chart replaces a 5-value table row."""
+    W, H, ML, MB = 430, 260, 46, 34
+    x = lambda t: _lin(t, 0.2, 2.1, ML, W - 14)
+    y = lambda v: _lin(v, y0, y1, H - MB, 12)
+    s = [_svg(W, H)]
+    if band:  # accuracy gate band [20, 85]
+        s.append(f'<rect x="{ML}" y="{y(band[1]):.1f}" width="{W-14-ML}" height="{y(band[0])-y(band[1]):.1f}" class="rf-wash"/>')
+        s.append(f'<text x="{ML+6}" y="{y(band[1])+14:.1f}" class="rf-region">gate band [{band[0]}, {band[1]}]</text>')
+    for gv in range(int(y0), int(y1) + 1, 20):
+        s.append(f'<line x1="{ML}" y1="{y(gv):.1f}" x2="{W-14}" y2="{y(gv):.1f}" class="rf-grid"/>')
+        s.append(f'<text x="{ML-6}" y="{y(gv)+4:.1f}" class="rf-tick" text-anchor="end">{gv}</text>')
+    for t in P15_T:
+        s.append(f'<text x="{x(t):.1f}" y="{H-MB+16}" class="rf-tick" text-anchor="middle">{t}</text>')
+    pts = " ".join(f"{x(t):.1f},{y(v):.1f}" for t, v in zip(P15_T, ys))
+    s.append(f'<polyline points="{pts}" class="{cls_line}"/>')
+    for t, v in zip(P15_T, ys):
+        s.append(f'<circle cx="{x(t):.1f}" cy="{y(v):.1f}" r="4.5" class="{cls_dot}"><title>T={t}: {v}</title></circle>')
+        dy = -9 if v < (y0 + y1) / 2 or v > y1 - 8 else -9
+        s.append(f'<text x="{x(t):.1f}" y="{y(v)+dy:.1f}" class="rf-vlbl" text-anchor="middle">{v:g}</text>')
+    s.append(f'<text x="{(ML+W-14)//2}" y="{H-2}" class="rf-axname" text-anchor="middle">sampling temperature T</text>')
+    s.append(f'<text x="12" y="{(y(y0)+y(y1))//2:.0f}" class="rf-axname" text-anchor="middle" transform="rotate(-90 12 {(y(y0)+y(y1))//2:.0f})">{ylab}</text>')
+    s.append("</svg>")
+    return "".join(s)
+
+
+def fig_item6_temperature():
+    p1 = _line_panel(P15_AUROC, "rf-line", "rf-ours", "single-pass AUROC (%)", 40, 100)
+    p2 = _line_panel(P15_ACC, "rf-line-acc", "rf-dot-acc", "accuracy (%)", 0, 100, band=(20, 85))
+    body = (f'<div class="rf-panes"><div class="rf-pane"><div class="rf-ptitle">Detection AUROC vs T</div>{p1}</div>'
+            f'<div class="rf-pane"><div class="rf-ptitle">Task accuracy vs T (the confound)</div>{p2}</div></div>')
+    fnote = ("Two panels, one axis each (never a dual-axis chart): the left panel's apparent peak at T=1.5 must be read "
+             "against the right panel — accuracy collapses 80% → 4%, leaving the gate band above T=1.0, so the class mix "
+             "under the AUROC shifts and T=2.0 has only 8 correct answers. That is why gate G-T1 FAILS and Q1's honest "
+             "answer is: no usable temperature lever. Values = the Q1 table above (Step 158, MATH-500 / Qwen2.5-Math-7B, N=200).")
+    return _fig("Q1 as a picture — the inverted-U and its confound",
+                "Same numbers as the Q1 table: single-pass L-SML GOOD_5 AUROC per temperature (left), task accuracy per temperature (right).",
+                "", body, fnote)
+
+
+def fig_item6_arms():
+    rows = [(lbl, v, lo, hi, [], None) for (lbl, v, lo, hi) in P15_ARMS]
+    svg = _generic_forest(rows, 74, 97, "AUROC (%) · paired on the same 200 MATH-500 questions",
+                          teach=False, ticks=(75, 80, 85, 90, 95))
+    fnote = ("Same numbers as the Q2 table. The paired deltas are the result: A − base = <b>+6.1pp [+0.4, +12.8]</b> "
+             "(more same-T passes help) and B − A = <b>−5.3pp [−10.3, −1.1]</b>, CI excluding zero — temperature "
+             "diversity hurts. Mechanism: same-T passes correlate ρ ≈ +0.45 (averaging denoises one good signal); "
+             "multi-T passes decorrelate (ρ ≈ +0.01) only because the off-temperature passes are near-random. "
+             "Single (dataset, model) result — MATH-500 / Qwen2.5-Math-7B.")
+    return _fig("Q2 as a picture — five arms, one axis",
+                "Single pass vs K=5 same-temperature vs K=5 mixed-temperature, each with its 95% CI.",
+                "", svg, fnote)
 
 
 if __name__ == "__main__":
