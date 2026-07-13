@@ -5652,3 +5652,36 @@ p(True) pass, paired-bootstrap seqlp significance, optional `math_extended_casec
 appendix cell.
 
 ---
+
+### Step 173 — Multi-dataset comparison figures (EDIS/EPR-paper style): MATH-500 + TriviaQA + QA-extension forests, master per-domain table
+
+**What**: Omri: the reports only showed GSM8K figures while the papers we cite (EDIS, EPR)
+present one panel per dataset across models — and the finished QA extension was invisible.
+Added to `scripts/report_figs.py` (all CSV-driven, generic `_generic_forest` builder):
+(1) **MATH-500 forest, 4 models** (legacy sweep values: Qwen-Math-7B 94.4, Qwen-1.5B 86.7,
+R1-Distill 84.4 vs ARS sup 86.4 + 3 unsup anchors, DeepSeek-Math-7B 71.6) → item4;
+(2) **TriviaQA forest, 4 models** — the EPR-Table-1 analog: Qwen3-8B 80.1 vs Semantic Energy
+74.8 (CI-clear win), Mistral-Small-3.1-24B 70.7 vs the EPR paper's own same-model row
+(SelfCheckGPT 79.0 / EPR 74.6 unsup; HalluDetect 78.7 / WEPR 82.0 sup — 4 new rows in
+published_baselines.csv), Llama-8B energy-subset 93.4 §, OPT-30B 59.5 vs SE-ICLR 83 ¶ → item3;
+(3) **QA-extension forest, 7 datasets** (SQuAD v2 79.8, SciQ 73.8 †, NQ-Open 71.8, CoQA 68.4 ▿
+vs INSIDE 80.4, TruthfulQA 66.0 ▿ vs TSV 84.2, HotpotQA 57.5 vs LOS-Net 72.9 sup + SE 67.7
+unsup, WebQ legacy 63.6 ▿) → item3, which is now badged Complete;
+(4) **master per-domain table** — every (dataset, model) cell in the project (repgrid + legacy
+sweep incl. GPQA ×5 and the RAG 4×4 grid, flags applied) → per_domain_breakdown + artifact.
+Documented why the exact EDIS/EPR grids are not reproducible: AIME24 floored at ~2 percent
+(Phase 15), AMC23 never run; of EPR's four models only Mistral-24B was run (no Falcon-3-10B /
+Phi-4 / Ministral-8B / ArGiMi). **CSV hygiene**: a concurrent session's full `score_repgrid.py`
+run had scored the REJECT-archived and truncation-confounded dirs into scores_lsml_upcr.csv
+(401 rows) — stripped the 5 leakage cells (back to 320 rows; `inside_coqa_llama7b_n30_pilot`
+kept as a valid archive).
+
+**Why**: the thesis presentation should mirror how the cited papers show results — per-dataset
+across models, not GSM8K-only — and the completed Item-3 QA extension deserved its own figures.
+
+**Result**: item3 23 KB (2 figures + gate table), item4 53 KB (3 forests + deltas + landscapes),
+per_domain_breakdown 29 KB (master table, ~45 rows). Guardrail clean on all 9 pages. Artifact
+updated (same URL) with Figs 6–8 + the master table. No Drive pull was needed — all values from
+local CSVs.
+
+---

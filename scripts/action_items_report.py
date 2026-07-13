@@ -38,6 +38,7 @@ from advisor_report import esc, pct, read_csv, CSS, guardrail_scan  # noqa: E402
 from report_figs import (  # noqa: E402 — CSV-driven inline-SVG figures
     FIG_CSS, fig_gsm8k_forest, fig_same_model_deltas,
     fig_cell_landscape_losnet, fig_cell_landscape_gsm8k_llama8b, fig_good5_vs_seqlp,
+    fig_math500_forest, fig_triviaqa_forest, fig_qa_extension_forest, master_table_html,
 )
 
 RESULTS = os.path.join(REPO, "results")
@@ -366,13 +367,18 @@ def build_item3():
 
     body = f"""
 <div class="section-card">
-{badge('progress', 'In progress — actively running (Steps 160–169)')}
+{badge('done', 'Complete — every QA dataset scored or REJECT-documented (Step 172)')}
 <h2>Item 3 — Extend the evaluation to short-form QA</h2>
 <p>All five originally-prioritised datasets (CoQA, SQuAD v2, TruthfulQA, NQ-Open, SciQ) plus
-TriviaQA and HotpotQA now have data. TruthfulQA and SciQ were scored at Step 169; NQ-Open was
+TriviaQA and HotpotQA are now scored. TruthfulQA and SciQ were scored at Step 169; NQ-Open was
 rescued from its label floor by LLM-judge regrading (accuracy 0.067 &rarr; 0.501) and scored;
-CoQA's judge-regraded full-N rerun is still in flight (cell C1). Numbers below are GOOD_5 unless
-stated; source <span class="mono">results/repgrid/scores_lsml_upcr.csv</span>.</p>
+CoQA's judge-regraded full-N landed at Step 171 (GOOD_5 68.4 vs INSIDE 80.4, FLOOR flag).
+Numbers below are GOOD_5 unless stated; source
+<span class="mono">results/repgrid/scores_lsml_upcr.csv</span>.</p>
+
+<h3>The QA story in two pictures</h3>
+{fig_triviaqa_forest()}
+{fig_qa_extension_forest()}
 
 <table>
 <tr><th>Dataset</th><th>Model</th><th>Acc</th><th>n</th><th>L-SML GOOD_5 [95% CI]</th>
@@ -502,8 +508,9 @@ reasoning on hard MATH-500 items is effectively unbounded), noise_gsm8k_gemma2b 
 class). The Qwen3/ARS pair is closed as REJECT-leakage — itself a reportable finding about capped
 greedy Qwen3 protocols.</div>
 
-<h3>The picture first — four figures, regenerated from the CSVs on every build</h3>
+<h3>The picture first — regenerated from the CSVs on every build</h3>
 {fig_gsm8k_forest()}
+{fig_math500_forest()}
 {fig_same_model_deltas()}
 {fig_cell_landscape_gsm8k_llama8b()}
 {fig_cell_landscape_losnet()}
@@ -917,6 +924,8 @@ local-cache cells computed fresh this session by
 non-GPQA cells; the L-SML rows reproduce <span class="mono">sweep_summary.csv</span>, e.g. the
 MATH-500/Qwen-Math 94.4 headline, so the two sources are consistent). Bold = row max of the
 four variants. AUROC, percent.</p>
+
+{master_table_html()}
 
 <h3>Reasoning (GSM8K, MATH-500)</h3>
 {block(reasoning_rows)}

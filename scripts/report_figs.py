@@ -107,6 +107,7 @@ FIG_CSS = """
   .rf-ci{stroke:var(--blue);stroke-width:2;stroke-linecap:round;}
   .rf-ours{fill:var(--blue);stroke:#fff;stroke-width:2;}
   .rf-anchor{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-anchor-open{fill:none;stroke:var(--green);stroke-width:2;}
   .rf-sup{fill:none;stroke:#475569;stroke-width:2;}
   .rf-seqlp{stroke:var(--gray-700);stroke-width:1.5;opacity:.85;}
   .rf-bar-pos{fill:var(--blue);}
@@ -505,12 +506,294 @@ def fig_good5_vs_seqlp():
                 legend, "".join(s), fnote)
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# Multi-dataset family (2026-07-13): the EDIS/EPR-paper-style comparisons —
+# same figure per dataset across models, plus the master per-domain table.
+# Legacy cells come from results/subset_sweep/sweep_summary.csv (no CIs there).
+
+SWEEP = os.path.join(RESULTS, "subset_sweep", "sweep_summary.csv")
+
+
+def _sweep():
+    return _read(SWEEP)
+
+
+def _sweep_val(sw, domain, key_substr):
+    for r in sw:
+        if r["domain"] == domain and key_substr in r["cell_key"]:
+            return _f(r["good5_auroc"]), _f(r["pos_rate"]), r["cell_key"], _f(r["n"])
+    return None, None, None, None
+
+
+def _generic_forest(rows, D0, D1, axname, teach=True):
+    """rows: (label, v, lo, hi, anchors[(val,name,kind)], seqlp)
+    kind: 'unsup' filled diamond | 'sup' open triangle | 'flag' open diamond
+    lo/hi None -> no whisker (legacy cells)."""
+    X0, X1, ROW, TOP = 235, 850, 38, 14
+    n = len(rows)
+    H = TOP + n * ROW + 34
+    x = lambda v: _lin(v, D0, D1, X0, X1)
+    s = [_svg(900, H)]
+    gticks = [g for g in (40, 50, 60, 70, 80, 90) if D0 <= g <= D1]
+    for gv in gticks:
+        s.append(f'<line x1="{x(gv):.1f}" y1="{TOP}" x2="{x(gv):.1f}" y2="{TOP+n*ROW}" class="rf-grid"/>')
+        s.append(f'<text x="{x(gv):.1f}" y="{TOP+n*ROW+16}" class="rf-tick" text-anchor="middle">{gv}</text>')
+    s.append(f'<text x="{(X0+X1)//2}" y="{H-2}" class="rf-axname" text-anchor="middle">{axname}</text>')
+    for i, (lbl, v, lo, hi, anchors, sq) in enumerate(rows):
+        cy = TOP + i * ROW + ROW / 2
+        s.append(f'<text x="225" y="{cy+4:.1f}" class="rf-rowlbl" text-anchor="end">{lbl}</text>')
+        if lo is not None and hi is not None:
+            s.append(f'<line x1="{x(lo):.1f}" y1="{cy:.1f}" x2="{x(hi):.1f}" y2="{cy:.1f}" class="rf-ci"/>')
+        if sq is not None:
+            s.append(f'<line x1="{x(sq):.1f}" y1="{cy-8:.1f}" x2="{x(sq):.1f}" y2="{cy+8:.1f}" class="rf-seqlp"><title>Sequence log-prob on our traces: {sq:.1f}</title></line>')
+        for (av, an, kind) in anchors:
+            ax = x(av)
+            if kind == "sup":
+                s.append(f'<path d="M {ax:.1f} {cy-6:.1f} L {ax+6:.1f} {cy+5:.1f} L {ax-6:.1f} {cy+5:.1f} Z" class="rf-sup"><title>{an}: {av} (supervised, same model)</title></path>')
+            elif kind == "flag":
+                s.append(f'<path d="M {ax:.1f} {cy-6.5:.1f} L {ax+6.5:.1f} {cy:.1f} L {ax:.1f} {cy+6.5:.1f} L {ax-6.5:.1f} {cy:.1f} Z" class="rf-anchor-open"><title>{an}: {av} (published — caveated, see footnote)</title></path>')
+            else:
+                s.append(f'<path d="M {ax:.1f} {cy-6.5:.1f} L {ax+6.5:.1f} {cy:.1f} L {ax:.1f} {cy+6.5:.1f} L {ax-6.5:.1f} {cy:.1f} Z" class="rf-anchor"><title>{an}: {av} (published, unsupervised, same model)</title></path>')
+        s.append(f'<circle cx="{x(v):.1f}" cy="{cy:.1f}" r="5.5" class="rf-ours"><title>L-SML GOOD_5 (ours): {v:.1f}' + (f" [{lo:.1f}, {hi:.1f}]" if lo is not None else " (legacy, no CI in summary CSV)") + '</title></circle>')
+        if teach and i == 0:
+            s.append(f'<text x="{x(v):.1f}" y="{cy-10:.1f}" class="rf-dlbl rf-dlbl-ours" text-anchor="middle">{v:.1f}</text>')
+    s.append("</svg>")
+    return "".join(s)
+
+
+FOREST_LEGEND = (
+    '<span class="rf-li"><svg width="30" height="14"><line x1="2" y1="7" x2="28" y2="7" class="rf-ci"/><circle cx="15" cy="7" r="5.5" class="rf-ours"/></svg> L-SML GOOD_5 — ours, K=1, unsupervised (95% CI where scored fresh)</span>'
+    '<span class="rf-li"><svg width="16" height="14"><path d="M 8 1 L 14 7 L 8 13 L 2 7 Z" class="rf-anchor"/></svg> published unsupervised anchor, same model</span>'
+    '<span class="rf-li"><svg width="16" height="14"><path d="M 8 1 L 14 7 L 8 13 L 2 7 Z" class="rf-anchor-open"/></svg> published but caveated (old-cache / protocol mismatch)</span>'
+    '<span class="rf-li"><svg width="16" height="14"><path d="M 8 2 L 14 12 L 2 12 Z" class="rf-sup"/></svg> published supervised (ceiling)</span>'
+    '<span class="rf-li"><svg width="10" height="14"><line x1="5" y1="1" x2="5" y2="13" class="rf-seqlp"/></svg> sequence log-prob on our own traces</span>')
+
+MATH500_SPEC = [
+    # display label, sweep cell_key substring, RB model string (for anchors)
+    ("Qwen2.5-Math-7B",      "Qwen-Math-7B",                 "Qwen2.5-Math-7B"),
+    ("Qwen2.5-Math-1.5B",    "Qwen2.5-Math-1.5B",            None),
+    ("R1-Distill-Llama-8B",  "DeepSeek-R1-Distill-Llama-8B", "DeepSeek-R1-Distill-Llama-8B"),
+    ("DeepSeek-Math-7B",     "deepseek-math-7b",             None),
+]
+
+
+def _rb_anchors(rb, dataset, model):
+    out = []
+    if not model:
+        return out
+    for r in rb:
+        if r["dataset"] != dataset or r["model"] != model or r["is_ours"] == "yes":
+            continue
+        v = _f(r["auroc"])
+        if v is None:
+            continue
+        kind = ("sup" if r.get("supervision") == "supervised"
+                else "flag" if r.get("citable") == "no" else "unsup")
+        out.append((v, r["method"], kind))
+    return out
+
+
+def fig_math500_forest():
+    _, rb, _, _ = _load_all()
+    sw = _sweep()
+    rows = []
+    for (lbl, key, rbm) in MATH500_SPEC:
+        v, pos, _ck, _n = _sweep_val(sw, "math500", key)
+        if v is None:
+            continue
+        flag = gate_flag(pos)
+        tag = " †" if flag == "CEILING" else " ▿" if flag == "FLOOR" else ""
+        rows.append((lbl + tag, v * 100, None, None, _rb_anchors(rb, "MATH-500", rbm), None))
+    rows.sort(key=lambda r: -r[1])
+    if not rows:
+        return ""
+    fnote = ("Ours = legacy subset-sweep cells (N=300, T=1.0; sweep_summary.csv carries no CIs — the per-cell bootstrap "
+             "lives in the npz manifests). R1-Distill anchors from ARS arXiv 2601.17467 Tables 1–2 (same model): the supervised "
+             "probe at 86.4 vs our unsupervised 84.4, with every published unsupervised baseline 8–43pp below us — Semantic Entropy "
+             "and Perplexity collapse below chance on long R1 traces. Qwen2.5-Math-7B's old-cache anchors (open diamonds) are "
+             "under the NLI-truncation reconciliation (Step 152 P1) and not yet citable.")
+    return _fig("MATH-500, single-pass unsupervised detection across four models",
+                "Same story as the GSM8K sweep, on the second reasoning dataset. Rows sorted by our AUROC.",
+                FOREST_LEGEND, _generic_forest(rows, 38, 98, "AUROC (%) · MATH-500, same model per row"), fnote)
+
+
+def fig_triviaqa_forest():
+    lu, _, ub, pb = _load_all()
+    spec = [
+        # label, cell, note
+        ("Qwen3-8B",                 "semenergy_triviaqa_qwen3_8b", ""),
+        ("Llama-3.1-8B §",           "spilled_triviaqa_llama8b",    "energy-capture subset, valid 0.51"),
+        ("Mistral-Small-3.1-24B",    "epr_triviaqa_mistral24b",     ""),
+        ("OPT-30B (base) ¶",         "seiclr_triviaqa_opt30b",      "SE-ICLR per-question K=10 protocol"),
+    ]
+    rows = []
+    for (lbl, cell, note) in spec:
+        g = _lu_g5(lu, cell)
+        if g is None:
+            continue
+        v, lo, hi = _f(g["auroc_X"]) * 100, _f(g["lo"]) * 100, _f(g["hi"]) * 100
+        anchors = [(_f(r["auroc"]), r["method"],
+                    "sup" if r["supervision"].startswith("sup") else "unsup")
+                   for r in pb if r["cell"] == cell]
+        if not anchors:
+            y, ym = _f(g.get("published_Y")), g.get("Y_method", "")
+            if y:
+                kind = "flag" if "ICLR" in ym else "unsup"
+                anchors = [(y * 100, ym, kind)]
+        u = _ub_row(ub, cell)
+        sq = _f(u["seqlp_auroc"]) * 100 if u and _f(u.get("seqlp_auroc")) else None
+        flag = gate_flag(g.get("acc"))
+        tag = " †" if flag == "CEILING" else " ▿" if flag == "FLOOR" else ""
+        rows.append((lbl + tag, v, lo, hi, anchors, sq))
+    rows.sort(key=lambda r: -r[1])
+    if not rows:
+        return ""
+    fnote = ("The EPR-paper-style comparison (their Table 1) on the models we share with the literature. "
+             "Mistral-Small-3.1-24B anchors are the EPR paper's own same-model TriviaQA row: SelfCheckGPT 79.0 and EPR 74.6 "
+             "(unsupervised, diamonds) plus HalluDetect 78.7 and WEPR 82.0 (supervised, triangles) — we sit below their "
+             "unsupervised pair on this cell (our best variant, U-PCR GOOD_5+logprob, reaches 73.6). "
+             "Qwen3-8B: we beat Semantic Energy's published 74.8 by +5.3pp, CI-clear. "
+             "§ energy-capture cell — only 51% of traces carry the energy fields (selection caveat). "
+             "¶ SE-ICLR's 83 is per-question K=10 semantic sampling — different units, caveated open diamond. "
+             "The EPR paper's other models (Falcon-3-10B, Phi-4, Ministral-8B) and ArGiMi were not run — no same-model row exists for them.")
+    return _fig("TriviaQA, single-pass unsupervised detection across four models",
+                "The QA flagship dataset, model-by-model against every published same-model number we track.",
+                FOREST_LEGEND, _generic_forest(rows, 48, 98, "AUROC (%) · TriviaQA, same model per row"), fnote)
+
+
+def fig_qa_extension_forest():
+    lu, _, ub, pb = _load_all()
+    sw = _sweep()
+    spec = [
+        ("SQuAD v2 · Llama-8B",          "se_squad_v2_llama8b"),
+        ("SciQ (MCQ) · Llama-8B",        "sciq_llama8b"),
+        ("NQ-Open · Llama-8B",           "se_nq_open_llama8b"),
+        ("CoQA · LLaMA-7B",              "inside_coqa_llama7b"),
+        ("TruthfulQA · Llama-8B",        "truthfulqa_llama8b"),
+        ("HotpotQA · Mistral-7B-v0.2",   "losnet_hotpotqa_mistral7b"),
+    ]
+    rows = []
+    for (lbl, cell) in spec:
+        g = _lu_g5(lu, cell)
+        if g is None:
+            continue
+        v, lo, hi = _f(g["auroc_X"]) * 100, _f(g["lo"]) * 100, _f(g["hi"]) * 100
+        anchors = []
+        y, ym = _f(g.get("published_Y")), g.get("Y_method", "")
+        if y:
+            kind = "sup" if any(k in ym for k in ("LOS-Net", "TSV")) else "unsup"
+            anchors.append((y * 100, ym, kind))
+        for r in pb:  # add the published unsup SE row on the LOS-Net cell
+            if r["cell"] == cell and r["method"] == "Semantic Entropy":
+                anchors.append((_f(r["auroc"]), "Semantic Entropy (LOS-Net T1)", "unsup"))
+        u = _ub_row(ub, cell)
+        sq = _f(u["seqlp_auroc"]) * 100 if u and _f(u.get("seqlp_auroc")) else None
+        flag = gate_flag(g.get("acc"))
+        tag = " †" if flag == "CEILING" else " ▿" if flag == "FLOOR" else ""
+        rows.append((lbl + tag, v, lo, hi, anchors, sq))
+    # WebQuestions from the legacy Phase-9 cache (no CI, no seqlp)
+    v, pos, _ck, _n = _sweep_val(sw, "qa", "webq_cot")
+    if v is not None:
+        flag = gate_flag(pos)
+        tag = " ▿" if flag == "FLOOR" else " †" if flag == "CEILING" else ""
+        rows.append(("WebQuestions · Phase-9 legacy" + tag, v * 100, None, None, [], None))
+    rows.sort(key=lambda r: -r[1])
+    if not rows:
+        return ""
+    fnote = ("The Item-3 QA extension, complete: every dataset ends scored (gate flags: † CEILING, ▿ FLOOR — scored, "
+             "flagged, out of the win tally). CoQA and TruthfulQA carry published same-model anchors (INSIDE 80.4; TSV 84.2 "
+             "semi-supervised) — both honest losses on floor-flagged cells. HotpotQA shows LOS-Net's supervised probe (triangle) "
+             "and its own published unsupervised Semantic Entropy row (diamond). SQuAD v2 / NQ-Open / SciQ have no published "
+             "same-model detection anchor — our rows stand with the seq-logprob audit tick. WebQuestions is the legacy Phase-9 "
+             "CoT cache (model differs from the EPR paper's WebQ models, so their anchors do not transfer; no CI in the sweep CSV). "
+             "TriviaQA rows live in the dedicated TriviaQA figure.")
+    return _fig("The QA extension, dataset by dataset",
+                "Seven short-answer / open-domain QA datasets beyond TriviaQA — ours vs every published same-model anchor that exists.",
+                FOREST_LEGEND, _generic_forest(rows, 40, 96, "AUROC (%) · one QA dataset per row"), fnote)
+
+
+# ── Master per-domain table (EPR-Table-1 style): every dataset × model we ran ──
+def master_table_html():
+    lu, rb, ub, _ = _load_all()
+    sw = _sweep()
+    ubx = {r["cell"]: r for r in ub}
+
+    def _row(domain, ds, model, n, acc, ours, ci, seqlp, y, ym, flag):
+        d = f"{(ours - y):+.1f}" if (y is not None and ours is not None) else "—"
+        fl = f'<span class="loss">{flag}</span>' if flag else ""
+        return (f"<tr><td>{domain}</td><td>{ds}</td><td>{model}</td><td>{n or '—'}</td>"
+                f"<td>{acc if acc is not None else '—'}</td><td><strong>{ours:.1f}</strong>{ci}</td>"
+                f"<td>{seqlp if seqlp else '—'}</td><td>{ym + ' ' + format(y, '.1f') if y else '—'}</td>"
+                f"<td>{d}</td><td>{fl}</td></tr>")
+
+    rows = []
+    # repgrid cells (fresh, with CI + seqlp + anchor)
+    for r in lu:
+        if r["subset"] != "GOOD_5" or r["method"] != "lsml":
+            continue
+        cell = r["cell"]
+        if any(s in cell for s in ("_partial", "_pilot", "_reject")):
+            continue
+        ds = DS_PRETTY.get(r["dataset"], r["dataset"])
+        model = r["model"].split("/")[-1]
+        ours = _f(r["auroc_X"]) * 100
+        ci = f' <span class="mono" style="font-size:11px">[{_f(r["lo"])*100:.1f}, {_f(r["hi"])*100:.1f}]</span>'
+        u = ubx.get(cell)
+        sq = f"{_f(u['seqlp_auroc'])*100:.1f}" if u and _f(u.get("seqlp_auroc")) else None
+        y = _f(r.get("published_Y"))
+        y = y * 100 if y else None
+        domain = "Math CoT" if r["dataset"] in MATH_DS else "QA"
+        rows.append(("0" + domain, _row(domain, ds, model, r.get("n_problems"), r.get("acc"),
+                                        ours, ci, sq, y, r.get("Y_method", ""), gate_flag(r.get("acc")))))
+    # legacy sweep cells (no CI in summary csv)
+    LEG = {"math500": ("Math CoT", "MATH-500"), "gsm8k": ("Math CoT", "GSM8K (legacy)"),
+           "gpqa": ("MCQ", "GPQA"), "qa": ("QA (legacy)", None), "rag": ("RAG", None)}
+    for r in sw:
+        if r["domain"] not in LEG:
+            continue
+        dom, dsfix = LEG[r["domain"]]
+        key = r["cell_key"]
+        ds = dsfix or key.replace("spectral_phase9_cache_", "").replace("_traces_T1.0", "")
+        model = key.replace("_T1.0", "")
+        if r["domain"] == "rag":
+            model, ds = key.split("/")[0], key.split("/")[1]
+        elif r["domain"] == "qa":
+            model = "Phase-9 legacy"
+        ours = _f(r["good5_auroc"])
+        if ours is None:
+            continue
+        rows.append(("1" + dom, _row(dom + " (legacy)", ds, model, r.get("n"), r.get("pos_rate"),
+                                     ours * 100, "", None, None, None, gate_flag(r.get("pos_rate")))))
+    rows.sort(key=lambda t: t[0])
+    body = "".join(t[1] for t in rows)
+    return f"""
+<h3>Every (dataset, model) cell we ran — one table</h3>
+<p>The EPR-paper-Table-1 view of the whole project: fresh replication-grid cells first (with CIs,
+the same-trace seq-logprob audit, and the published same-model anchor where one exists), then the
+legacy subset-sweep battery (MATH-500, GPQA, WebQ/TriviaQA CoT, and the 4-model × 4-dataset RAG
+grid). Gate flags per the two-tier policy; flagged cells are scored but out of the win tally.</p>
+<div style="overflow-x:auto"><table>
+<tr><th>Domain</th><th>Dataset</th><th>Model</th><th>N</th><th>Acc</th><th>Ours GOOD_5</th>
+<th>seq-logprob</th><th>Published same-model Y</th><th>Δ</th><th>Flag</th></tr>
+{body}
+</table></div>
+<p class="rf-fnote">Legacy rows: subset-sweep summary carries point estimates only (per-cell bootstrap
+lives in the npz manifests); Acc column shows the positive-class rate. RAG and GPQA are the documented
+out-of-regime domains (thesis scope: spectral features of H(n) live on reasoning traces) — shown in
+full rather than hidden, many at FLOOR. Phase-9 QA legacy cells predate the model-matched protocol.</p>
+"""
+
+
 if __name__ == "__main__":
     # quick self-check: render all figures, report sizes
     for name, fn in (("gsm8k_forest", fig_gsm8k_forest),
                      ("same_model_deltas", fig_same_model_deltas),
                      ("losnet_landscape", fig_cell_landscape_losnet),
                      ("gsm8k_llama8b_landscape", fig_cell_landscape_gsm8k_llama8b),
-                     ("good5_vs_seqlp", fig_good5_vs_seqlp)):
+                     ("good5_vs_seqlp", fig_good5_vs_seqlp),
+                     ("math500_forest", fig_math500_forest),
+                     ("triviaqa_forest", fig_triviaqa_forest),
+                     ("qa_extension_forest", fig_qa_extension_forest),
+                     ("master_table", master_table_html)):
         h = fn()
         print(f"{name}: {len(h)} chars, svg={'<svg' in h}")
