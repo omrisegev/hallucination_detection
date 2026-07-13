@@ -1,0 +1,62 @@
+# Paper index
+
+Cache index for the `paper-digest` skill (`skills/paper-digest/SKILL.md`). **Check this table
+before reading any PDF in `papers/`.**
+
+- `raw` — nothing cached yet; PDF only.
+- `extracted` — full text pulled to `papers/extracted/<slug>.md`, no digest card yet.
+- `digested` — `papers/digests/<slug>.md` exists; read that instead of the PDF.
+
+Slug is filled in the first time a paper is extracted (Step 2/4 of the skill) — don't
+hand-type it in advance, the script computes it.
+
+| Paper | Slug | Status | One-line takeaway | Last updated |
+|---|---|---|---|---|
+| `A Deep Learning Approach to Unsupervised Ensemble Learning.pdf` | `a-deep-learning-approach-to-unsupervised-ensemble-learning` | digested | RBM-based deep neural networks model dependent base classifiers to outperform Dawid-Skene and majority voting. | 2026-07-13 |
+| `EDIS paper.pdf` | `edis-paper` | digested | Temporal token-level entropy trajectories diagnose reasoning errors and improve best-k-of-N selection. | 2026-07-13 |
+| `EPR.pdf` | `epr` | digested | Weighted Entropy Production Rate (WEPR) over accessible top-K log-probabilities achieves 0.75 ROC-AUC for black-box hallucination detection. | 2026-07-13 |
+| `Entropy and Attention Dynamics in Small Language Models A Trace-Level Structural Analysis on the TruthfulQA Benchmark.pdf` | `entropy-and-attention-dynamics-in-small-language-models-a-tr` | digested | Trace-level entropy and attention distribution dynamics characterize factual drift in small language models on TruthfulQA. | 2026-07-13 |
+| `Estimating the Accuracies of Multiple Classifiers Without Labeled Data.pdf` | `estimating-the-accuracies-of-multiple-classifiers-without-la` | digested | Algebraic agreement statistics provably recover individual classifier accuracies without labeled data. | 2026-07-13 |
+| `FUSE - Ensembling Verifiers with Zero Labeled Data.pdf` | `fuse-ensembling-verifiers-with-zero-labeled-data` | digested | FUSE ensembles LLM verifiers with zero labeled data to match or exceed semi-supervised verification on frontier benchmarks. | 2026-07-13 |
+| `GeoFaith A Spatio-Temporal Dual View of Faithful Chain-of-Thought.pdf` | `geofaith-a-spatio-temporal-dual-view-of-faithful-chain-of-th` | digested | Combining latent geometric structure with temporal entropy dynamics diagnoses unfaithful Chain-of-Thought reasoning. | 2026-07-13 |
+| `HalluHard A Hard Multi-Turn Hallucination Benchmark.pdf` | `halluhard-a-hard-multi-turn-hallucination-benchmark` | digested | HALLUHARD demonstrates that even frontier models with web search exhibit ≈30% hallucination rates in multi-turn domains. | 2026-07-13 |
+| `How Uncertainty Estimation Scales with Sampling in Reasoning Models.pdf` | `how-uncertainty-estimation-scales-with-sampling-in-reasoning` | digested | Combining verbalized confidence with self-consistency at just N=2 samples improves uncertainty AUROC by up to +12. | 2026-07-13 |
+| `Humanity's Last Exam.pdf` | `humanity-s-last-exam` | digested | Humanity's Last Exam provides a contamination-resistant, graduate-hard benchmark where frontier models score below 25%. | 2026-07-13 |
+| `LongCoT Benchmarking Long-Horizon Chain-of-Thought Reasoning.pdf` | `longcot-benchmarking-long-horizon-chain-of-thought-reasoning` | digested | LongCoT benchmarks extended reasoning trajectories to evaluate error compounding in long-horizon Chain-of-Thought models. | 2026-07-13 |
+| `RAGTruth A Hallucination Corpus for Developing Trustworthy Retrieval-Augmented Language Models.pdf` | `ragtruth-a-hallucination-corpus-for-developing-trustworthy-r` | digested | RAGTruth provides fine-grained span-level human annotations across 18,000 RAG outputs for hallucination detection. | 2026-07-13 |
+| `Semantic Energy Detecting LLM Hallucination Beyond Entropy.pdf` | `semantic-energy-detecting-llm-hallucination-beyond-entropy` | digested | Semantic Energy aggregates probability mass across semantic clusters to outperform standard entropy for hallucination detection. | 2026-07-13 |
+| `Spectral Top-Down Recovery of Latent Tree Models.pdf` | `spectral-top-down-recovery-of-latent-tree-models` | digested | Spectral Top-Down Recovery (STDR) deterministically reconstructs latent tree graphical models via low-rank tensor decompositions. | 2026-07-13 |
+| `Spilled Energy in Large Language Models.pdf` | `spilled-energy-in-large-language-models` | digested | Spilled Energy tracks logit energy discrepancies across consecutive decoding steps as a training-free hallucination detector. | 2026-07-13 |
+| `The Lessons of Developing Process Reward Models in Mathematical Reasoning.pdf` | `the-lessons-of-developing-process-reward-models-in-mathemati` | digested | LLM-as-a-judge and human supervision yield superior Process Reward Models compared to Monte Carlo estimation synthesis. | 2026-07-13 |
+| `Uncertainty Under the Curve A Sequence-Level Entropy Area Metric for Reasoning LLM.pdf` | `uncertainty-under-the-curve-a-sequence-level-entropy-area-me` | digested | Integrating token-level predictive entropy over generation trajectories (EAS/UUC) quantifies reasoning uncertainty efficiently. | 2026-07-13 |
+| `Unsupervised Ensemble Learning with Dependent Classifiers.pdf` | `unsupervised-ensemble-learning-with-dependent-classifiers` | digested | Detecting and modeling base classifier dependencies improves unsupervised accuracy estimation and meta-learner performance. | 2026-07-13 |
+| `Unsupervised Ensemble Regression.pdf` | `unsupervised-ensemble-regression` | digested | Spectral covariance moment analysis provably recovers optimal unsupervised regression weights from unlabeled expert predictions. | 2026-07-13 |
+| `../Tenzer2022_Crowdsourcing_Regression_Spectral.pdf (repo root)` | `tenzer2022-crowdsourcing-regression-spectral` | digested | Spectral covariance moment analysis provably recovers optimal unsupervised regression weights from unlabeled expert predictions. | 2026-07-13 |
+| `DoLa Decoding by Contrasting Layers Improves Factuality in Large Language Models.pdf` | `dola-decoding-by-contrasting-layers-improves-factuality-in-l` | digested | Contrasting mature vs premature layer logits during decoding suppresses hallucinations without training. | 2026-07-13 |
+| `HaloScope Harnessing Unlabeled LLM Generations for Hallucination Detection.pdf` | `haloscope-harnessing-unlabeled-llm-generations-for-hallucina` | digested | HaloScope learns factual classifiers directly from unlabeled in-the-wild LLM generations. | 2026-07-13 |
+| `HALT Hallucination Assessment via Log-probs as Time series.pdf` | `halt-hallucination-assessment-via-log-probs-as-time-series` | digested | Modeling top-K token log-probabilities as a temporal time series outperforms static scalar confidence aggregation. | 2026-07-13 |
+| `Revisiting Hallucination Detection with Effective Rank-based Uncertainty.pdf` | `revisiting-hallucination-detection-with-effective-rank-based` | digested | Effective spectral rank of internal representations quantifies hallucination uncertainty. | 2026-07-13 |
+| `Semantic Entropy Probes Robust and Cheap Hallucination Detection in LLMs.pdf` | `semantic-entropy-probes-robust-and-cheap-hallucination-detec` | digested | Semantic Entropy Probes approximate multi-sample semantic entropy at single-pass inference cost. | 2026-07-13 |
+| `TraceDet Hallucination Detection from the Decoding Trace of Diffusion Large Language Models.pdf` | `tracedet-hallucination-detection-from-the-decoding-trace-of` | digested | Intermediate denoising entropy trajectories detect hallucinations in diffusion language models. | 2026-07-13 |
+| `Automatic Layer Selection for Hallucination Detection.pdf` | `automatic-layer-selection-for-hallucination-detection` | digested | Intrinsic dimension peak (FEPoID) automatically identifies the optimal intermediate layer for hallucination probing; same-model overlap confirmed on LLaMA-3.1-8B-Instruct/Mistral-7B-Instruct-v0.3 across CoQA/SQuAD-v1/TriviaQA (corrected 2026-07-13 — digest previously said model unspecified, no numbers). ICML 2026 (confirmed: PMLR 306, 2026). | 2026-07-13 |
+| `Efficient Hallucination Detection for LLMs Using Uncertainty-Aware Attention Heads.pdf` | `efficient-hallucination-detection-for-llms-using-uncertainty` | digested | RAUQ: attention dispersion across specific uncertainty-aware heads predicts hallucinations without supervision. **ICML 2026** (corrected 2026-07-13 — was mislabeled ICLR 2026; paper's own header confirms PMLR 306, ICML 2026). | 2026-07-13 |
+| `Enhancing Hallucination Detection through Noise Injection.pdf` | `enhancing-hallucination-detection-through-noise-injection` | digested | Injecting controlled activation noise as a sampling-time perturbation improves existing uncertainty metrics (Predictive Entropy, Semantic Entropy, etc.), not a standalone detector. ICLR 2026 (confirmed). | 2026-07-13 |
+| `Grad Detect Gradient-Based Hallucination Detection in LLMs.pdf` | `grad-detect-gradient-based-hallucination-detection-in-llms` | digested | Layer-wise gradient norms predict hallucinations reliably at single-pass backward cost. **Workshop paper** (2nd Workshop on Compositional Learning, co-located with ICML 2026 — not main track; corrected 2026-07-13). | 2026-07-13 |
+| `HalluGuard Demystifying Data-Driven and Reasoning-Driven Hallucinations in LLMs.pdf` | `halluguard-demystifying-data-driven-and-reasoning-driven-hal` | digested | HALLUGUARD is an NTK (Neural Tangent Kernel)-based Hallucination Risk Bound score, not "spectral norm analysis of Jacobians" as first drafted (corrected 2026-07-13); separates data- vs reasoning-driven hallucinations. ICLR 2026 (confirmed). | 2026-07-13 |
+| `Harnessing Reasoning Trajectories for Hallucination Detection via Answer-agreement Representation Shaping.pdf` | `harnessing-reasoning-trajectories-for-hallucination-detectio` | digested | Answer-agreement Representation Shaping (ARS) improves reasoning hallucination detection on TruthfulQA/TriviaQA/GSM8K/MATH-500 (not GPQA — corrected 2026-07-13). ICML 2026 (confirmed). | 2026-07-13 |
+| `HARP Hallucination Detection via Reasoning Subspace Projection.pdf` | `harp-hallucination-detection-via-reasoning-subspace-projecti` | digested | Projecting hidden states onto orthogonal reasoning subspaces isolates hallucination signals (92.8% AUROC on TriviaQA). **No confirmed venue** — originally mislabeled ICLR 2026; the PDF has no acceptance banner anywhere (corrected 2026-07-13); appears to be an unreviewed arXiv preprint (arXiv:2509.11536). | 2026-07-13 |
+| `Semantic Uncertainty Quantification of Hallucinations in LLMs A Quantum Tensor Network Based Method.pdf` | `semantic-uncertainty-quantification-of-hallucinations-in-llm` | digested | Quantum tensor network perturbation theory quantifies TS-probability uncertainty for semantic Rényi entropy (SRE-UQ). **Documented-REJECT for benchmarking** (corrected 2026-07-13): 8 named models (Llama-2/Mistral-7B/Falcon-RW-1B/Llama-3.2-1B family), zero roster overlap; all results are figure-only win-rate matrices, no numeric table anywhere in the paper. ICLR 2026 (confirmed). | 2026-07-13 |
+| `Zero-source LLM Hallucination Detection with Human-like Criteria Probing.pdf` | `zero-source-llm-hallucination-detection-with-human-like-crit` | digested | Human-like multi-criteria probing (HCPD) detects zero-source hallucinations on TriviaQA/SciQ/NQ-Open/CoQA (not HaluEval/TruthfulQA/FactScore — corrected 2026-07-13), beating supervised baselines by ~10pp AUROC. ICML 2026 (confirmed). | 2026-07-13 |
+
+Not tracked here: `papers/State of the Art in LLM Hallucination Detection...md` — that's a
+literature-survey deliverable (produced by the `/research-report` family), not a per-paper
+digest target.
+
+**Audit note (2026-07-13)**: the 9 rows above from the ICLR/ICML-2026 batch were verified
+against `papers/extracted/*.md` after the initial digest pass contained fabricated
+datasets/models (Grad Detect, HCPD, ARS, Noise Injection), a fabricated venue (HARP — no
+acceptance banner in the PDF at all), a wrong venue (RAUQ — ICML not ICLR), an incomplete author
+list (HalluGuard — 2 of 7 authors), and a mischaracterized method (HalluGuard — NTK-based, not
+"spectral norm analysis"). See the `## Notes / open questions` section of each corrected digest
+for the specific diff. This table itself was also previously split into three disconnected
+markdown fragments (only the first had a header/separator row) — merged into one table here.

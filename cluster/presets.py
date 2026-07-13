@@ -39,6 +39,8 @@ def _preset(**kw):
     kw.setdefault("temps", [1.0])
     kw.setdefault("gen_top_p", None)
     kw.setdefault("gen_top_k", 50)
+    kw.setdefault("repetition_penalty", None)
+    kw.setdefault("no_repeat_ngram_size", None)
     kw.setdefault("logprob_top_k", 50)
     kw.setdefault("capture", {})
     kw.setdefault("acc_band", DEFAULT_ACC_BAND)
@@ -99,6 +101,15 @@ PRESETS = {
         dataset="trivia_qa", split="validation", n_samples=500,
         k=1, temps=[1.0], max_new=256,    # short factual answer
         capture={"logsumexp": True},      # energy papers need Z_n
+        published={"method": "HCPD (arXiv 2606.12900)", "metric": "AUROC",
+                   "value": 86.25,
+                   "supervision": "unsupervised (zero-source, agentic multi-criteria probing)",
+                   "model_note": "TriviaQA / Llama-3.1-8B-Instruct: HCPD 86.25 (Table 2). "
+                                 "Same-paper baselines: Perplexity 80.62, Semantic Entropy 78.71, "
+                                 "SAPLMA(sup) 78.51, TSV(sup) 79.78 -- full table in "
+                                 "published_baselines.csv. HARP's cross-model TriviaQA anchor "
+                                 "92.8 (model unspecified) tracked separately, same file."},
+        head_to_head="SAME-MODEL",
         notes="Boundary cell: single-fact QA -> short trace -> spectral has little signal.",
     ),
 
@@ -128,6 +139,14 @@ PRESETS = {
         model="meta-llama/Llama-3.1-8B-Instruct", gated=True,
         dataset="nq_open", split="validation", n_samples=1000,
         k=10, temps=[0.5], max_new=128, capture={"logsumexp": True},
+        published={"method": "HCPD (arXiv 2606.12900)", "metric": "AUROC",
+                   "value": 90.38,
+                   "supervision": "unsupervised (zero-source, agentic multi-criteria probing)",
+                   "model_note": "NQ-Open / Llama-3.1-8B-Instruct: HCPD 90.38 (Table 2). "
+                                 "Same-paper baselines: Perplexity 57.92, Semantic Entropy 61.04, "
+                                 "SAPLMA(sup) 76.23, TSV(sup) 70.17 -- full table in "
+                                 "published_baselines.csv."},
+        head_to_head="SAME-MODEL",
         notes="Boundary cell: open-domain single-fact -> short trace.",
     ),
     "truthfulqa_llama8b": _preset(
@@ -151,7 +170,54 @@ PRESETS = {
         model="meta-llama/Llama-3.1-8B-Instruct", gated=True,
         dataset="sciq", split="validation", n_samples=1000,
         k=1, temps=[1.0], max_new=512,
+        published={"method": "HCPD (arXiv 2606.12900)", "metric": "AUROC",
+                   "value": 86.04,
+                   "supervision": "unsupervised (zero-source, agentic multi-criteria probing)",
+                   "model_note": "SciQ / Llama-3.1-8B-Instruct: HCPD 86.04 (Table 2). "
+                                 "Same-paper baselines: Perplexity 66.12, Semantic Entropy 77.81, "
+                                 "SAPLMA(sup) 85.63, TSV(sup) 80.01 -- full table in "
+                                 "published_baselines.csv."},
+        head_to_head="SAME-MODEL",
         notes="MCQ -> suppressed entropy dynamics (GPQA-like); expect a modest cell.",
+    ),
+
+    # HCPD CoQA on the CORRECT model. inside_coqa_llama7b runs CoQA on huggyllama/llama-7b
+    # BASE — a model mismatch vs HCPD/Automatic-Layer-Selection, which both use the 3.1-8B
+    # INSTRUCT checkpoint. This closes HCPD's 4-dataset same-model grid (TriviaQA/SciQ/
+    # NQ-Open already scored above) and gives Automatic Layer Selection a same-model CoQA
+    # anchor too (see papers/digests/automatic-layer-selection-for-hallucination-detection.md).
+    # Decoding: HCPD's extraction (line ~920) states responses are generated with plain
+    # greedy decoding; a separate "greedy decoding with 5 beam search" mention (line ~2214)
+    # is a DIFFERENT section (RL training-data construction, citing Kuhn et al. 2023's
+    # protocol for a canonical reference answer) — not the Table-2 detection-eval protocol,
+    # verified 2026-07-13 before writing this preset.
+    "hcpd_coqa_llama8b": _preset(
+        paper="HCPD (arXiv 2606.12900) + Automatic Layer Selection (arXiv 2605.26366)",
+        model="meta-llama/Llama-3.1-8B-Instruct", gated=True,
+        dataset="coqa", split="validation", n_samples=500,   # matches inside_coqa for comparability
+        k=1, temps=[0.0], max_new=256,        # HCPD: single response per query, greedy decoding
+        capture={"logsumexp": True},          # energy views (Step 163 whatis C)
+        judge="Qwen/Qwen2.5-7B-Instruct",     # HCPD labels via LLM-judge/BLEURT>0.5 — deviation,
+                                               # same uniform-judge pattern as EPR/SemEnergy cells.
+                                               # is_correct_coqa (ROUGE-L>0.3) still runs at-inference
+                                               # as the lexical label; judge label is the citable one.
+        head_to_head="SAME-MODEL",
+        published={"method": "HCPD (arXiv 2606.12900)", "metric": "AUROC",
+                   "value": 90.07,
+                   "supervision": "unsupervised (zero-source, agentic multi-criteria probing)",
+                   "als_fepoid_ceiling": 67.05,   # Automatic Layer Selection's own method — SUPERVISED
+                                                   # MLP-probe ceiling (9k-example trained probe), not
+                                                   # a fair unsup Y; see published_baselines.csv.
+                   "model_note": "CoQA / Llama-3.1-8B-Instruct: HCPD 90.07 (Table 2). Same-paper "
+                                 "baselines: Perplexity 81.41, Semantic Entropy 75.26, SAPLMA(sup) "
+                                 "71.58, TSV(sup) 69.31. Automatic Layer Selection's own FEPoID reaches "
+                                 "67.05 but is a supervised probe ceiling, not comparable head-to-head; "
+                                 "their unsupervised baselines (Pred.Entropy 58.33, Semantic Entropy "
+                                 "50.03, Lexical Similarity 67.80) are the fair comparison set — full "
+                                 "table in published_baselines.csv once this cell is scored."},
+        notes="Replaces inside_coqa_llama7b as the SAME-MODEL CoQA cell (that cell stays for the "
+              "INSIDE/llama-7b-base comparison it was built for). is_correct_coqa ROUGE-L>0.3 grader "
+              "unchanged from inside_coqa_llama7b.",
     ),
 
     # ── Exact-scenario re-runs (Step 163) — same model+dataset+protocol+grading as the ──
@@ -468,6 +534,133 @@ PRESETS = {
         notes="NI GSM8K sweep — HIGH ACC-FLOOR RISK (2B on GSM8K; NI's own near-chance AUROC "
               "suggests very low accuracy). N=30 pilot gate decides; a REJECT is itself the "
               "reportable outcome. gemma-2b-it NOT gemma-2-2b. boxed-CoT prompt; is_correct_gsm8k.",
+    ),
+    # ── EDIS grid (arXiv 2602.01288, Zhu et al.) — base Qwen2.5-Math-1.5B, the paper's own
+    #    §5.3 protocol: GSM8K+MATH+AMC23+AIME24, T in {0.2,0.6,1.0}, K=8 responses/problem
+    #    treated as independent points. Published: EDIS AUC=0.804 vs mean-entropy AUC=0.673
+    #    (pooled, 26356 valid responses). Two prior attempts failed on class starvation /
+    #    the wrong grading regex (HISTORY Steps 36/41/42, Phase 13, Step 156) — this sweep
+    #    fixes both: is_correct_math's balanced-brace \boxed{} extraction (already fixed
+    #    post-Phase-13) plus a new standing policy of over-collecting so both classes clear
+    #    min_minority=100 per (dataset,T) cell, sized from the paper's OWN Table-1 "Mean"
+    #    (unfiltered) baseline accuracy per dataset: GSM8K 36.0, MATH 30.0, AMC23 38.9,
+    #    AIME24 7.2. Qwen2.5-Math-1.5B is a BASE checkpoint but its HF tokenizer_config.json
+    #    ships a full ChatML chat_template tuned for boxed CoT math (verified) — raw_prompt
+    #    stays False, same boxed-CoT prompts as every other math preset in this file.
+    #
+    #    PILOT FINDING, ROUND 1 (N=30 pilots on all 4, first attempt): 27-47% of responses
+    #    hit the max_new cap with NO boxed answer — genuine degenerate-loop collapse (e.g.
+    #    "Assistant\nAssistant\n..." or a single repeated token for the rest of the budget).
+    #    ROUND 2 (misdiagnosed fix): tried repetition_penalty=1.15 + no_repeat_ngram_size=4.
+    #    Loops stopped but accuracy got WORSE (7-9% vs a 30-39% expected baseline) — the hard
+    #    n-gram ban was corrupting legitimate token repeats (variable names, digits) into
+    #    garbled substitutes. Both generation-time knobs also bake into the entropy trace
+    #    (LogitsProcessors run pre-sampling), which is a real fidelity problem for a project
+    #    whose whole methodology depends on faithful H(n) — reverted, not just wrong-but-costly.
+    #    ROOT CAUSE (found by checking the actual HF Hub configs, not guessing): Qwen2.5-Math-
+    #    1.5B is a base checkpoint whose tokenizer_config.json ships a full ChatML
+    #    chat_template (ending every turn with <|im_end|>, id 151645) but whose
+    #    generation_config.json lists eos_token_id=151643 (<|endoftext|>) ONLY. generate()
+    #    stops on generation_config.eos_token_id, not on whatever the chat template happens
+    #    to close a turn with — so the model correctly finishes its answer, emits <|im_end|>,
+    #    and generate() doesn't recognize that as done, so it keeps sampling into territory
+    #    it was never trained to continue. That is exactly the observed symptom. FIX (this
+    #    round): generate_full() now unions generation_config's eos_token_id with the chat
+    #    template's turn-end marker (spectral_utils.model_utils.chat_turn_end_token_ids) —
+    #    a pure stopping-criterion fix, doesn't touch the sampling distribution at all, so
+    #    entropy fidelity is preserved. repetition_penalty/no_repeat_ngram_size reverted to
+    #    None (paper-faithful — the paper doesn't describe any anti-repetition sampling, and
+    #    now there's no reason to want it). Re-piloted before committing to a full run.
+    #    Prompt content: the paper's extracted text (all 16 pages) never states an exact
+    #    prompt string. Qwen's own shipped chat_template for this model defaults to the
+    #    system message "Please reason step by step, and put your final answer within
+    #    \boxed{}." — near-identical to this project's existing boxed-CoT prompt phrasing,
+    #    so no prompt change was made; raw_prompt stays False (uses that chat_template).
+    "edis_gsm8k_qwenmath15b": _preset(
+        paper="EDIS (arXiv 2602.01288)",
+        model="Qwen/Qwen2.5-Math-1.5B",
+        dataset="gsm8k", split="test", n_samples=500,
+        k=8, temps=[0.2, 0.6, 1.0], max_new=3072,
+        capture={"full_entropy": True},
+        min_minority=100,
+        head_to_head="SAME-MODEL",
+        published={"method": "EDIS", "metric": "AUROC (pooled, all 4 datasets x 3 temps)",
+                   "value": 80.4, "mean_entropy_baseline": 67.3, "n_responses_paper": 26356,
+                   "baseline_acc_gsm8k": 36.0,   # Table 1 "Mean" column (unfiltered accuracy)
+                   "model_note": "GSM8K+MATH+AMC23+AIME24 / Qwen2.5-Math-1.5B (base), pooled "
+                                 "T={0.2,0.6,1.0}. Table-1 Mean baseline acc: GSM8K 36.0, "
+                                 "MATH 30.0, AMC23 38.9, AIME24 7.2."},
+        notes="Section-5.3 protocol cell (GSM8K leg). n_samples=500/k=8 is ~5x the paper's own "
+              "N=100 problems (standing over-collection policy: both classes must clear "
+              "min_minority=100 per (dataset,T) cell). capture full_entropy for the paper's exact "
+              "full-vocab H_t (Eq.1); our own top-K=15 token_entropies is captured unconditionally "
+              "and used for L-SML GOOD_5. No-answer (unboxed) responses grade incorrect here rather "
+              "than being excluded (the paper excludes them from its 26356) — protocol annotation, "
+              "not a bug. max_new 2048->3072 for headroom; degenerate-loop fix is the eos_token_id "
+              "stopping-criterion patch in generate_full, not a sampling-distribution change — see "
+              "PILOT FINDING above. is_correct_gsm8k grader.",
+    ),
+    "edis_math500_qwenmath15b": _preset(
+        paper="EDIS (arXiv 2602.01288)",
+        model="Qwen/Qwen2.5-Math-1.5B",
+        dataset="math500", split=None, n_samples=500,
+        k=8, temps=[0.2, 0.6, 1.0], max_new=3072,
+        capture={"full_entropy": True},
+        min_minority=100,
+        head_to_head="SAME-MODEL",
+        published={"method": "EDIS", "metric": "AUROC (pooled, all 4 datasets x 3 temps)",
+                   "value": 80.4, "mean_entropy_baseline": 67.3, "n_responses_paper": 26356,
+                   "baseline_acc_math500": 30.0,
+                   "model_note": "See edis_gsm8k_qwenmath15b for the full pooled protocol note."},
+        notes="Section-5.3 protocol cell (MATH leg). Same sizing/capture rationale as "
+              "edis_gsm8k_qwenmath15b, incl. the eos_token_id stopping-criterion fix (see PILOT "
+              "FINDING above). is_correct_math grader (balanced-brace \\boxed{} extraction).",
+    ),
+    "edis_amc23_qwenmath15b": _preset(
+        paper="EDIS (arXiv 2602.01288)",
+        model="Qwen/Qwen2.5-Math-1.5B",
+        dataset="amc23", split=None, n_samples=40,   # full AMC23 set, as the paper uses
+        k=32, temps=[0.2, 0.6, 1.0], max_new=3072,    # k is the only lever: n_samples caps at 40
+        capture={"full_entropy": True},
+        min_minority=100,
+        head_to_head="SAME-MODEL",
+        published={"method": "EDIS", "metric": "AUROC (pooled, all 4 datasets x 3 temps)",
+                   "value": 80.4, "mean_entropy_baseline": 67.3, "n_responses_paper": 26356,
+                   "baseline_acc_amc23": 38.9,
+                   "model_note": "See edis_gsm8k_qwenmath15b for the full pooled protocol note."},
+        notes="Section-5.3 protocol cell (AMC23 leg). Full 40-problem set (paper-exact) x k=32 gives "
+              "~500 minority-class responses at the paper's own 38.9% baseline acc — comfortably over "
+              "the 100 target even at k=8; k=32 kept for CI tightness under the over-collection policy. "
+              "This was the WORST cell in the pre-fix pilot (12.2% acc vs 38.9% expected, 36% no-boxed) "
+              "— see PILOT FINDING above for the eos_token_id stopping-criterion fix, re-piloted before "
+              "full. is_correct_amc23 grader (numeric boxed match, letter-match fallback unused here).",
+    ),
+    "edis_aime24_qwenmath15b": _preset(
+        paper="EDIS (arXiv 2602.01288)",
+        model="Qwen/Qwen2.5-Math-1.5B",
+        dataset="aime24", split=None, n_samples=30,   # full AIME24 set, as the paper uses
+        k=64, temps=[0.2, 0.6, 1.0], max_new=4096,    # extra headroom: hardest cell, base model
+        capture={"full_entropy": True},
+        min_minority=100,
+        acc_band=(0.02, 0.85),   # paper's own baseline is ~7.2% — EXPECTED FLOOR, not a REJECT
+        head_to_head="SAME-MODEL",
+        published={"method": "EDIS", "metric": "AUROC (pooled, all 4 datasets x 3 temps)",
+                   "value": 80.4, "mean_entropy_baseline": 67.3, "n_responses_paper": 26356,
+                   "baseline_acc_aime24": 7.2,
+                   "model_note": "See edis_gsm8k_qwenmath15b for the full pooled protocol note. AIME24 "
+                                 "is the paper's own hardest cell for this model (Table 1 Mean=7.2 at m=4)."},
+        notes="Section-5.3 protocol cell (AIME24 leg) — EXPECTED FLOOR, not a pipeline bug: the paper's "
+              "own Table-1 baseline accuracy for Qwen2.5-Math-1.5B/AIME24 is ~7.2%. k=64 (vs 8/32 "
+              "elsewhere) is sized from the min_minority=100 rule at that accuracy (100/(0.072*30)≈46, "
+              "64 for margin against per-T variance) — may need re-sizing once the eos_token_id fix's "
+              "effect on measured accuracy is known (see PILOT FINDING above; other 3 legs' accuracy "
+              "was measured artificially low by degenerate-loop non-answers). Two-tier gate policy: "
+              "scored + FLOOR flag, never REJECTed, as long as inspect_cell.py shows no cap-pinned "
+              "leakage at max_new=4096. This is the cell that floored at Step 156 (1.7-2.9% acc, "
+              "MAX_NEW=1024) — 4096 + the paper-verified 7.2% baseline should fix the truncation "
+              "confound and the class-starvation failure mode from Steps 41/42; the eos_token_id fix "
+              "addresses the distinct degenerate-loop failure mode found in this session's pilot. "
+              "is_correct_aime24 grader.",
     ),
 }
 

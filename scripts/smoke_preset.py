@@ -46,6 +46,10 @@ def _trivia_row(alias, q="What is the capital of France?"):
     return {"question": q, "aliases": [alias], "answer_value": alias}
 
 
+def _coqa_row(gold, q="What color was the cat?"):
+    return {"question": q, "answers": [gold]}
+
+
 GRADER_FIXTURES = {
     "trivia_qa_family": [
         ("Paris",                               _trivia_row("Paris"),  True,  "exact match"),
@@ -72,6 +76,35 @@ GRADER_FIXTURES = {
         (r"<think>..</think>\boxed{\frac{1}{2}}", {"solution": r"\boxed{0.5}"}, True,  "<think> + \\frac numeric normalization"),
         ("",                                    {"solution": r"\boxed{42}"},    False, "empty generation"),
     ],
+    # AMC23 (is_correct_amc23): gold row is {question, answer} — numeric boxed match via
+    # is_correct_math first, falls back to a single-letter match on the last line only
+    # when the gold answer itself is A-E (rare for AMC23's mostly-numeric answers).
+    "amc23_family": [
+        (r"Work...\boxed{25}",                  {"answer": "25"}, True,  "boxed correct (numeric)"),
+        (r"\boxed{7}",                          {"answer": "25"}, False, "boxed wrong"),
+        (r"<think>..</think>\boxed{25}",        {"answer": "25"}, True,  "<think> + boxed"),
+        ("The answer is C",                     {"answer": "C"},  True,  "letter-match fallback (no boxed)"),
+        ("",                                    {"answer": "25"}, False, "empty generation"),
+    ],
+    # AIME24 (is_correct_aime24 == is_correct_math): gold row is {question, answer}, integer
+    # 0-999 boxed match.
+    "aime24_family": [
+        (r"Work...\boxed{204}",                 {"answer": "204"}, True,  "boxed correct"),
+        (r"\boxed{7}",                          {"answer": "204"}, False, "boxed wrong"),
+        (r"<think>..</think>\boxed{204}",       {"answer": "204"}, True,  "<think> + boxed"),
+        ("",                                    {"answer": "204"}, False, "empty generation"),
+    ],
+    # CoQA (is_correct_coqa): ROUGE-L>0.3 vs item["answers"][0], first line only. Hand-verified
+    # against rouge_l's LCS/F1 formula + _normalize_qa (lowercase, strip articles/punctuation):
+    # "The cat was black." -> normalized "cat was black" vs "black" gives LCS=1, P=1/3, R=1,
+    # F1=0.5 > 0.3 (true positive from a full-sentence answer, not just exact match).
+    "coqa_family": [
+        ("black",                               _coqa_row("black"), True,  "exact match"),
+        ("The cat was black.",                  _coqa_row("black"), True,  "full-sentence answer, ROUGE-L 0.5>0.3"),
+        ("white",                                _coqa_row("black"), False, "wrong answer, zero token overlap"),
+        ("black\n\nQuestion: What did it eat?", _coqa_row("black"), True,  "multi-line ramble -> first line only"),
+        ("",                                    _coqa_row("black"), False, "empty generation"),
+    ],
 }
 
 # Judge-output parse fixtures (grader-agnostic). The critical one is 'incorrect', which
@@ -92,6 +125,12 @@ def _fixture_family(dataset):
         return "gsm8k_family"
     if dataset in ("math500", "math"):
         return "math_family"
+    if dataset == "amc23":
+        return "amc23_family"
+    if dataset == "aime24":
+        return "aime24_family"
+    if dataset == "coqa":
+        return "coqa_family"
     return None
 
 

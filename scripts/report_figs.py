@@ -660,6 +660,12 @@ def fig_triviaqa_forest():
              "(unsupervised, diamonds) plus HalluDetect 78.7 and WEPR 82.0 (supervised, triangles) — we sit below their "
              "unsupervised pair on this cell (our best variant, U-PCR GOOD_5+logprob, reaches 73.6). "
              "Qwen3-8B: we beat Semantic Energy's published 74.8 by +5.3pp, CI-clear. "
+             "Llama-3.1-8B: two independent same-model anchors. HCPD (arXiv 2606.12900) own headline 86.25 (unsupervised, "
+             "zero-source) — we beat it by +7.1pp, plus their Perplexity 80.62 / Semantic Entropy 78.71 baselines and "
+             "SAPLMA(sup) 78.51 / TSV(sup) 79.78 ceilings. Automatic Layer Selection (arXiv 2605.26366): unsupervised "
+             "Pred.Entropy 68.59 / Semantic Entropy 55.05 / Lexical Similarity 68.38 baselines (we beat all three) plus their "
+             "own FEPoID 75.16 — a SUPERVISED MLP-probe ceiling (9k-example trained probe), not a fair unsup comparison. "
+             "HARP's 92.8 is model-unspecified — cross-model reference only, not same-model. "
              "§ energy-capture cell — only 51% of traces carry the energy fields (selection caveat). "
              "¶ SE-ICLR's 83 is per-question K=10 semantic sampling — different units, caveated open diamond. "
              "The EPR paper's other models (Falcon-3-10B, Phi-4, Ministral-8B) and ArGiMi were not run — no same-model row exists for them.")
@@ -690,9 +696,14 @@ def fig_qa_extension_forest():
         if y:
             kind = "sup" if any(k in ym for k in ("LOS-Net", "TSV")) else "unsup"
             anchors.append((y * 100, ym, kind))
-        for r in pb:  # add the published unsup SE row on the LOS-Net cell
-            if r["cell"] == cell and r["method"] == "Semantic Entropy":
-                anchors.append((_f(r["auroc"]), "Semantic Entropy (LOS-Net T1)", "unsup"))
+        for r in pb:  # add each cell's published Semantic-Entropy baseline row(s) as a
+            # secondary anchor -- narrowly scoped (not "all pb rows") so cells with a big
+            # ablation table (e.g. losnet_hotpotqa_mistral7b's 11 extra baselines) don't
+            # flood this compact one-row-per-dataset chart; the full table is in
+            # fig_cell_landscape_losnet() / fig_triviaqa_forest() instead.
+            if r["cell"] == cell and r["method"].startswith("Semantic Entropy"):
+                kind = "sup" if r["supervision"].startswith("sup") else "unsup"
+                anchors.append((_f(r["auroc"]), r["method"], kind))
         u = _ub_row(ub, cell)
         sq = _f(u["seqlp_auroc"]) * 100 if u and _f(u.get("seqlp_auroc")) else None
         flag = gate_flag(g.get("acc"))
@@ -709,11 +720,15 @@ def fig_qa_extension_forest():
         return ""
     fnote = ("The Item-3 QA extension, complete: every dataset ends scored (gate flags: † CEILING, ▿ FLOOR — scored, "
              "flagged, out of the win tally). CoQA and TruthfulQA carry published same-model anchors (INSIDE 80.4; TSV 84.2 "
-             "semi-supervised) — both honest losses on floor-flagged cells. HotpotQA shows LOS-Net's supervised probe (triangle) "
-             "and its own published unsupervised Semantic Entropy row (diamond). SQuAD v2 / NQ-Open / SciQ have no published "
-             "same-model detection anchor — our rows stand with the seq-logprob audit tick. WebQuestions is the legacy Phase-9 "
-             "CoT cache (model differs from the EPR paper's WebQ models, so their anchors do not transfer; no CI in the sweep CSV). "
-             "TriviaQA rows live in the dedicated TriviaQA figure.")
+             "semi-supervised) — both honest losses on floor-flagged cells (CoQA is huggyllama/llama-7b BASE, not "
+             "Llama-3.1-8B-Instruct -- a fair same-model CoQA cell is a staged next run). HotpotQA shows LOS-Net's supervised "
+             "probe (triangle) and its own published unsupervised Semantic Entropy row (diamond). NQ-Open and SciQ now carry "
+             "HCPD's (arXiv 2606.12900) same-model headline anchor (90.4 / 86.0, unsupervised zero-source probing) plus its own "
+             "Semantic Entropy baseline — both honest losses for us on these two cells. SQuAD v2 carries the Automatic Layer "
+             "Selection paper's (arXiv 2605.26366) unsupervised Semantic Entropy baseline (55.2) as a rough anchor — their "
+             "SQuAD is v1 (answerable-only), ours is v2 (includes unanswerables), so treat as indicative, not exact. "
+             "WebQuestions is the legacy Phase-9 CoT cache (model differs from the EPR paper's WebQ models, so their anchors do "
+             "not transfer; no CI in the sweep CSV). TriviaQA rows live in the dedicated TriviaQA figure.")
     return _fig("The QA extension, dataset by dataset",
                 "Seven short-answer / open-domain QA datasets beyond TriviaQA — ours vs every published same-model anchor that exists.",
                 FOREST_LEGEND, _generic_forest(rows, 40, 96, "AUROC (%) · one QA dataset per row"), fnote)
