@@ -114,7 +114,7 @@ GPQA Diamond (MCQ science) is structurally out-of-regime: entropy dynamics are s
 | 2 | Logistic regression oracle (5/9/16 features, 5-fold CV) | ✅ Completed (Steps 142–143, 147) | No |
 | 3 | Extend QA evaluation (CoQA > SQuAD v2 > TruthfulQA — priority corrected Step 155) | Nearly complete (Steps 160–171): CoQA/INSIDE full-N scored 68.4 vs 80.4 (floor caveat, Step 171); SQuAD v2 / NQ-Open / TruthfulQA / SciQ scored | Yes (AIRCC) |
 | 4 | Benchmarking completion (Phase 12 Corrected run done — Step 152; 4 open issues before citable; QA + Phase 14 remaining) | In progress (Steps 160–171): one cell left in flight (ars_math500_qwen3 wall 3/4); A2 qwen3-GSM8K documented REJECT (ceiling + truncation leakage); report now carries CSV-driven figures (report_figs.py) + LOS-Net Table-1 baseline family incl. p(True) | Partial |
-| 5 | Experiment 1 — sampling fusion: SE (K=10) + spectral features | ✅ Completed (Step 152) — gate NOT passed | No |
+| 5 | Experiment 1 — sampling fusion: SE (K=10) + spectral features | ✅ Completed — verdict REVISED (Step 174): answer-agreement SC K=5 fuses with 1-pass L-SML to 95.2 [91.8, 98.0] (ρ +0.23) — gate PASSES; the Step-152 FAIL was the NLI-based arm | No |
 | 6 | Experiment 2 — temperature variation: T effect + diversity ablation | ✅ Completed (Step 158) — diversity hurts, same-T sampling helps | Yes |
 
 ---

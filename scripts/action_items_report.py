@@ -39,7 +39,7 @@ from report_figs import (  # noqa: E402 — CSV-driven inline-SVG figures
     FIG_CSS, fig_gsm8k_forest, fig_same_model_deltas,
     fig_cell_landscape_losnet, fig_cell_landscape_gsm8k_llama8b, fig_good5_vs_seqlp,
     fig_math500_forest, fig_triviaqa_forest, fig_qa_extension_forest, master_table_html,
-    fig_item6_temperature, fig_item6_arms,
+    fig_item6_temperature, fig_item6_arms, fig_item5_fusion,
 )
 
 RESULTS = os.path.join(REPO, "results")
@@ -605,9 +605,29 @@ are copied into <span class="mono">local_cache/</span>.</p>"""
     # 0d results
     p15 = P15 or {}
     if p15.get("mode") == "full-rescore":
-        p15_html = f"""<p><strong>Answer-agreement re-test ran in full:</strong> SC K=5
-{pct(p15['sc'][0])}, L-SML 1-pass {pct(p15['lsml'][0])}, &rho; {p15['rho']:+.2f}, fused
-{pct(p15['fused'][0])} — gate {'PASS' if p15['gate_pass'] else 'FAIL'}.</p>"""
+        fu, ls, sc_ = p15["fused"], p15["lsml"], p15["sc"]
+        gain = (fu[0] - max(ls[0], sc_[0])) * 100
+        p15_html = f"""
+<p><strong>The answer-agreement re-test ran in full (2026-07-13, raw pass caches dropped into
+<span class="mono">local_cache/</span>):</strong> from the 5 cached T=1.0 passes,
+<span class="mono">rescore_phase15_selfconsistency.py</span> extracted the boxed answer per pass,
+built the K=5 answer-agreement self-consistency score, and fused it (z-score average) with the
+single-pass L-SML GOOD_5 score from run0.</p>
+<table>
+<tr><th>Arm</th><th>AUROC [95% CI]</th></tr>
+<tr><td>L-SML GOOD_5, 1 pass</td><td>{pct(ls[0])} [{pct(ls[1])}, {pct(ls[2])}]</td></tr>
+<tr><td>Answer-agreement SC, K=5</td><td>{pct(sc_[0])} [{pct(sc_[1])}, {pct(sc_[2])}]</td></tr>
+<tr><td><strong>Fused (z-score average)</strong></td><td class="win"><strong>{pct(fu[0])}
+[{pct(fu[1])}, {pct(fu[2])}]</strong></td></tr>
+</table>
+<p>Spearman &rho; between the arms: <strong>{p15['rho']:+.2f}</strong> — genuinely complementary
+signals (the gate bar is 0.75). Fusion gains <strong>+{gain:.1f}pp over the best single arm</strong>
+and clears the original pre-registered gate: <strong>gate
+{'PASS' if p15['gate_pass'] else 'FAIL'}</strong>. This is the strongest fusion number in the
+project — it also beats the Item-6 same-T entropy-averaging arm (91.2). Caveat: one (dataset,
+model) cell, N={p15.get('n', 200)}; and this run's 1-pass score (85.1, fresh MAX_NEW=2048 traces)
+sits below the legacy-cache 94.4 headline — the known Step-152 P2 trace-regime discrepancy.</p>
+{fig_item5_fusion()}"""
     elif p15.get("mode") == "partial-results-pkl":
         aucs = p15["aucs"]
         base = aucs["single pass T=1.0 (base)"]
@@ -628,9 +648,12 @@ same-T K=5 entropy-averaging arm from Phase-15 gives cross-pass &rho;
         p15_html = ("<p><strong>Pending local data drop</strong> — "
                     "<span class='mono'>local_cache/phase15_results.pkl</span>.</p>")
 
+    i5_badge = (badge('done', 'Complete — answer-agreement re-test PASSES the gate (2026-07-13)')
+                if p15.get("mode") == "full-rescore" else
+                badge('flagged', 'Complete (Step 152) — but flagged: partial re-score done, one arm pending raw caches'))
     body = f"""
 <div class="section-card">
-{badge('flagged', 'Complete (Step 152) — but flagged: partial re-score done, one arm pending raw caches')}
+{i5_badge}
 <h2>Item 5 — Does sampling-based fusion add anything?</h2>
 <p>The Step-152 experiment fused the 1-pass spectral L-SML score with a K=10
 likelihood-weighted semantic-entropy (LW-SE) baseline. Pre-registered gate:
@@ -669,6 +692,9 @@ extra passes were spent on <em>different signals</em> — Item 5 spent them on a
 semantic-clustering score; Item 6's condition A spent them on averaging the same cheap entropy
 signal, which denoises (cross-pass &rho; &asymp; +0.45) and clears Item 5's own gate. Sampling
 helps; <em>what you compute from the samples</em> is what decides whether it shows.
+The completed answer-agreement re-test above closes the loop: with the <em>right</em> second view
+(answer agreement, no NLI anywhere), the fusion doesn't just pass the gate — it beats every
+single-signal arm in the Phase-15 experiment.
 (<a href="advisor_scrutiny.html">Scrutiny point 3</a>.)</div>
 </div>"""
     return page("Item 5 — Sampling-based fusion", "Step-152 gate result, the problems found on "
@@ -981,10 +1007,11 @@ def build_scrutiny(scan, seq_rows, seq_tally):
         f"<td class='{wl_class(r['delta'])}'>{pp(r['delta'])}pp</td></tr>" for r in seq_top)
     seq_fig = fig_good5_vs_seqlp()
 
-    # point 3 numbers from 0d
+    # point 3 numbers from 0d (nested under "partial" once the full rescore has run)
     p15 = P15 or {}
-    d = p15.get("delta_A_minus_base", (0.0614, 0.0042, 0.1278))
-    rho = p15.get("a_rho_offdiag_mean", 0.447)
+    p15p = p15.get("partial", p15)
+    d = p15p.get("delta_A_minus_base", (0.0614, 0.0042, 0.1278))
+    rho = p15p.get("a_rho_offdiag_mean", 0.447)
 
     # point 4 — 0b + 0c
     sf = SIGNFIX or {}

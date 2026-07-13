@@ -18,6 +18,7 @@ entry in GSM8K_SPEC below (exact reasoning_benchmark.csv model string + cell id)
 exactly like advisor_report.py's order list — otherwise the row silently drops.
 """
 import csv
+import json
 import os
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -788,6 +789,39 @@ lives in the npz manifests); Acc column shows the positive-class rate. RAG and G
 out-of-regime domains (thesis scope: spectral features of H(n) live on reasoning traces) — shown in
 full rather than hidden, many at FLOOR. Phase-9 QA legacy cells predate the model-matched protocol.</p>
 """
+
+
+# ── Item 5 figure: the completed answer-agreement fusion re-test ──────────────
+P15_JSON = os.path.join(REPGRID, "phase15_rescore.json")
+
+
+def fig_item5_fusion():
+    """Reads phase15_rescore.json (written by rescore_phase15_selfconsistency.py).
+    Renders only when the full rescore has run; empty string otherwise."""
+    if not os.path.exists(P15_JSON):
+        return ""
+    with open(P15_JSON, encoding="utf-8") as fh:
+        d = json.load(fh)
+    if d.get("mode") != "full-rescore":
+        return ""
+    lsml, sc, fu = d["lsml"], d["sc"], d["fused"]
+    rows = [
+        ("L-SML GOOD_5 — 1 pass (spectral)",       lsml[0] * 100, lsml[1] * 100, lsml[2] * 100, [], None),
+        ("Answer-agreement SC — K=5 passes",       sc[0] * 100,   sc[1] * 100,   sc[2] * 100,   [], None),
+        ("K=5 same-T entropy averaging (Item 6 A)", 91.2, 85.8, 95.4, [], None),
+        ("Spectral + SC fused (z-score average)",  fu[0] * 100,   fu[1] * 100,   fu[2] * 100,   [], None),
+    ]
+    svg = _generic_forest(rows, 73, 100, "AUROC (%) · MATH-500 / Qwen2.5-Math-7B, N=" + str(d.get("n", 200)),
+                          teach=False, ticks=(75, 80, 85, 90, 95, 100))
+    fnote = (f"Full rescore from the 5 raw T=1.0 pass caches (rescore_phase15_selfconsistency.py → phase15_rescore.json). "
+             f"The two single arms are nearly orthogonal — Spearman ρ = {d['rho']:+.2f}, far under the 0.75 gate bar — and their "
+             f"fusion gains +{(fu[0] - max(lsml[0], sc[0])) * 100:.1f}pp over the best single arm, clearing the +1pp gate: "
+             f"<b>gate {'PASS' if d.get('gate_pass') else 'FAIL'}</b>. It also beats the Item-6 same-T entropy-averaging arm (91.2) — "
+             "answer agreement carries information the entropy trace does not, and vice versa. Single (dataset, model) cell; "
+             "the Step-152 FAIL used an NLI-based LW-SE arm on a different cell — same gate, different second view.")
+    return _fig("The completed Item-5 re-test: spectral × answer-agreement fusion",
+                "One pass of spectral features + K=5 answer agreement, fused label-free — each arm with its 95% CI.",
+                "", svg, fnote)
 
 
 # ── Item 6 figures (Phase-15 temperature experiment, Step 158) ────────────────

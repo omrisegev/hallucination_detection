@@ -162,6 +162,10 @@ def main():
 
     if len(have) == N_PASSES:
         report = full_rescore(run_paths)
+        # keep the partial-mode derivation too — the same-T averaging gate read
+        # (Items 5/6 reconciliation) is reported by the scrutiny page.
+        print()
+        report["partial"] = partial_from_results(res)
     else:
         print("PARTIAL mode — phase15_results.pkl has the fused arrays and labels "
               "but not the generated texts, so the answer-agreement arm needs the "

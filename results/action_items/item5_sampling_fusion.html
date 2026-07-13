@@ -125,7 +125,7 @@
 <div class="nav-bar"><strong>Navigate:</strong> <a href="index.html">&larr; Index</a> &bull; <a href="advisor_scrutiny.html">Scrutiny page</a> &bull; <a href="per_domain_breakdown.html">Per-domain breakdown</a></div>
 
 <div class="section-card">
-<span class="section-badge badge-flagged">Complete (Step 152) — but flagged: partial re-score done, one arm pending raw caches</span>
+<span class="section-badge badge-completed">Complete — answer-agreement re-test PASSES the gate (2026-07-13)</span>
 <h2>Item 5 — Does sampling-based fusion add anything?</h2>
 <p>The Step-152 experiment fused the 1-pass spectral L-SML score with a K=10
 likelihood-weighted semantic-entropy (LW-SE) baseline. Pre-registered gate:
@@ -170,22 +170,35 @@ at the time.</p>
 
 <h3>What later work tells us (reconciling Items 5 and 6)</h3>
 
-<p><strong>Partial re-score done by <span class="mono">scripts/rescore_phase15_selfconsistency.py</span></strong>
-(the Phase-15 results pkl holds fused arrays + labels but not the generated texts, so the
-answer-agreement arm needs the 5 raw pass caches —
-<span class="mono">math500_qwen7b_T1.0_run0..4.pkl</span> from Drive
-<span class="mono">cache/phase15_temperature/</span>; the script upgrades itself automatically
-when they land). What <em>is</em> label-free derivable now: applying Item 5's own gate to the
-same-T K=5 entropy-averaging arm from Phase-15 gives cross-pass &rho;
-+0.45 &lt; 0.75 <em>and</em> fused 91.2 &gt; single-pass
-85.1 + 1pp (paired delta +6.1pp, CI [+0.4, +12.8]) —
-<strong>that arm PASSES the gate</strong>. See "What later work tells us" below.</p>
+<p><strong>The answer-agreement re-test ran in full (2026-07-13, raw pass caches dropped into
+<span class="mono">local_cache/</span>):</strong> from the 5 cached T=1.0 passes,
+<span class="mono">rescore_phase15_selfconsistency.py</span> extracted the boxed answer per pass,
+built the K=5 answer-agreement self-consistency score, and fused it (z-score average) with the
+single-pass L-SML GOOD_5 score from run0.</p>
+<table>
+<tr><th>Arm</th><th>AUROC [95% CI]</th></tr>
+<tr><td>L-SML GOOD_5, 1 pass</td><td>85.1 [77.7, 91.8]</td></tr>
+<tr><td>Answer-agreement SC, K=5</td><td>82.1 [75.8, 87.9]</td></tr>
+<tr><td><strong>Fused (z-score average)</strong></td><td class="win"><strong>95.2
+[91.8, 98.0]</strong></td></tr>
+</table>
+<p>Spearman &rho; between the arms: <strong>+0.23</strong> — genuinely complementary
+signals (the gate bar is 0.75). Fusion gains <strong>+10.1pp over the best single arm</strong>
+and clears the original pre-registered gate: <strong>gate
+PASS</strong>. This is the strongest fusion number in the
+project — it also beats the Item-6 same-T entropy-averaging arm (91.2). Caveat: one (dataset,
+model) cell, N=200; and this run's 1-pass score (85.1, fresh MAX_NEW=2048 traces)
+sits below the legacy-cache 94.4 headline — the known Step-152 P2 trace-regime discrepancy.</p>
+<div class="rf-fig"><div class="rf-cap">The completed Item-5 re-test: spectral × answer-agreement fusion</div><div class="rf-sub">One pass of spectral features + K=5 answer agreement, fused label-free — each arm with its 95% CI.</div><svg viewBox="0 0 900 200" role="img" class="rf-chart" preserveAspectRatio="xMidYMid meet"><line x1="280.6" y1="14" x2="280.6" y2="166" class="rf-grid"/><text x="280.6" y="182" class="rf-tick" text-anchor="middle">75</text><line x1="394.4" y1="14" x2="394.4" y2="166" class="rf-grid"/><text x="394.4" y="182" class="rf-tick" text-anchor="middle">80</text><line x1="508.3" y1="14" x2="508.3" y2="166" class="rf-grid"/><text x="508.3" y="182" class="rf-tick" text-anchor="middle">85</text><line x1="622.2" y1="14" x2="622.2" y2="166" class="rf-grid"/><text x="622.2" y="182" class="rf-tick" text-anchor="middle">90</text><line x1="736.1" y1="14" x2="736.1" y2="166" class="rf-grid"/><text x="736.1" y="182" class="rf-tick" text-anchor="middle">95</text><line x1="850.0" y1="14" x2="850.0" y2="166" class="rf-grid"/><text x="850.0" y="182" class="rf-tick" text-anchor="middle">100</text><text x="542" y="198" class="rf-axname" text-anchor="middle">AUROC (%) · MATH-500 / Qwen2.5-Math-7B, N=200</text><text x="225" y="37.0" class="rf-rowlbl" text-anchor="end">L-SML GOOD_5 — 1 pass (spectral)</text><line x1="341.9" y1="33.0" x2="664.2" y2="33.0" class="rf-ci"/><circle cx="509.7" cy="33.0" r="5.5" class="rf-ours"><title>L-SML GOOD_5 (ours): 85.1 [77.7, 91.8]</title></circle><text x="225" y="75.0" class="rf-rowlbl" text-anchor="end">Answer-agreement SC — K=5 passes</text><line x1="298.7" y1="71.0" x2="573.8" y2="71.0" class="rf-ci"/><circle cx="441.5" cy="71.0" r="5.5" class="rf-ours"><title>L-SML GOOD_5 (ours): 82.1 [75.8, 87.9]</title></circle><text x="225" y="113.0" class="rf-rowlbl" text-anchor="end">K=5 same-T entropy averaging (Item 6 A)</text><line x1="526.6" y1="109.0" x2="745.2" y2="109.0" class="rf-ci"/><circle cx="649.6" cy="109.0" r="5.5" class="rf-ours"><title>L-SML GOOD_5 (ours): 91.2 [85.8, 95.4]</title></circle><text x="225" y="151.0" class="rf-rowlbl" text-anchor="end">Spectral + SC fused (z-score average)</text><line x1="664.1" y1="147.0" x2="803.5" y2="147.0" class="rf-ci"/><circle cx="740.2" cy="147.0" r="5.5" class="rf-ours"><title>L-SML GOOD_5 (ours): 95.2 [91.8, 98.0]</title></circle></svg><p class="rf-fnote">Full rescore from the 5 raw T=1.0 pass caches (rescore_phase15_selfconsistency.py → phase15_rescore.json). The two single arms are nearly orthogonal — Spearman ρ = +0.23, far under the 0.75 gate bar — and their fusion gains +10.1pp over the best single arm, clearing the +1pp gate: <b>gate PASS</b>. It also beats the Item-6 same-T entropy-averaging arm (91.2) — answer agreement carries information the entropy trace does not, and vice versa. Single (dataset, model) cell; the Step-152 FAIL used an NLI-based LW-SE arm on a different cell — same gate, different second view.</p></div>
 <div class="info-box"><b>The reconciling sentence no earlier document says out loud:</b>
 Item 5 ("SE K=10 adds nothing") and Item 6 ("K=5 same-T adds +6.1pp") are both true because the
 extra passes were spent on <em>different signals</em> — Item 5 spent them on a fragile NLI
 semantic-clustering score; Item 6's condition A spent them on averaging the same cheap entropy
 signal, which denoises (cross-pass &rho; &asymp; +0.45) and clears Item 5's own gate. Sampling
 helps; <em>what you compute from the samples</em> is what decides whether it shows.
+The completed answer-agreement re-test above closes the loop: with the <em>right</em> second view
+(answer agreement, no NLI anywhere), the fusion doesn't just pass the gate — it beats every
+single-signal arm in the Phase-15 experiment.
 (<a href="advisor_scrutiny.html">Scrutiny point 3</a>.)</div>
 </div>
 </div>

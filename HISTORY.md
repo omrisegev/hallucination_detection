@@ -5685,3 +5685,30 @@ updated (same URL) with Figs 6–8 + the master table. No Drive pull was needed 
 local CSVs.
 
 ---
+
+### Step 174 — Item-5 answer-agreement re-test COMPLETE: fusion gate PASSES at 95.2
+
+**What**: Omri dropped the 5 raw Phase-15 T=1.0 pass caches
+(`local_cache/math500_qwen7b_T1.0_run0..4.pkl`), unblocking the code-armed full mode of
+`scripts/rescore_phase15_selfconsistency.py`: extract the boxed answer per pass -> K=5
+answer-agreement self-consistency score -> fuse (z-score average) with the single-pass L-SML
+GOOD_5 score from run0 (epr anchor per Step-170 0b) -> re-check the original pre-registered
+Item-5 gate (rho < 0.75 AND fused > best single + 1pp). Script now persists both full and
+partial derivations in `results/repgrid/phase15_rescore.json`; item5 page rebuilt with the
+result + a 4-arm CI forest figure (`fig_item5_fusion` in report_figs.py, JSON-driven);
+scrutiny-page reads updated for the nested schema.
+
+**Why**: Item 5's Step-152 FAIL was measured against a fragile NLI-based LW-SE arm; the proper
+zero-GPU re-test with a clean second view was waiting only on the Drive caches.
+
+**Result**: MATH-500 / Qwen2.5-Math-7B, N=200 common samples: L-SML 1-pass **85.1 [77.7,
+91.8]**, answer-agreement SC K=5 **82.1 [75.8, 87.9]**, Spearman rho **+0.23** (genuinely
+complementary), fused **95.2 [91.8, 98.0]** = +10.1pp over the best single arm -> **gate
+PASS** — the strongest fusion number in the project, above the Item-6 same-T entropy-averaging
+arm (91.2). Reconciliation now closes cleanly: sampling helps when spent on answer agreement
+(or same-T averaging), not NLI clustering. Caveats: single cell; this run's 1-pass 85.1 is the
+fresh-trace regime, below the legacy-cache 94.4 headline (Step-152 P2 discrepancy, still open).
+Item-5 rows updated in PROGRESS + Research_Directions. Follow-up: replicate on a second cell
+(GSM8K/Llama-8B K=5 caches would need a cluster run at K=5).
+
+---
