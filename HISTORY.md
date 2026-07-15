@@ -6108,3 +6108,65 @@ task itself is NOT started — it is the next session's job.
 
 ---
 
+### Step 183 — Fix degenerate generation on the EDIS-grid replication (base Qwen2.5-Math-1.5B); full-N collection in progress
+
+**What**: Fixed a real `compute_edis()` formula bug (an erroneous `sqrt` around `1+Var(H)` not
+matching Eq. 7). Ran N=30 pilots across GSM8K/MATH500/AMC23/AIME24 × 3 temperatures to validate the
+EDIS-grid replication protocol from Step 173's punch list, which surfaced a severe degenerate-
+generation failure (27–47% of responses cap-pinned in true infinite loops). A first fix attempt
+(`repetition_penalty`/`no_repeat_ngram_size`) stopped the loops but corrupted the entropy trace and
+collapsed accuracy further (GSM8K to 7.9%). Root-caused the real issue instead: Qwen2.5-Math-1.5B's
+`generation_config.json` only registers `<|endoftext|>` as EOS, not the chat template's `<|im_end|>`
+turn-end token, so `generate()` never recognized a completed answer as done. Added
+`chat_turn_end_token_ids()` + an explicit `eos_token_id` union in `generate_full()` — a pure
+stopping-criterion fix with no effect on the sampling distribution.
+
+**Why**: Steps 36/41/42/156/173 all recorded failed or infeasible attempts at reproducing EDIS's
+own §5.3 head-to-head (AUROC 0.804 vs mean-entropy 0.673) — grading bugs, class starvation, and an
+AIME24 floor each blocked prior tries. This session re-attempts it with the paper's exact
+base-model protocol and a per-cell over-collection sizing policy for class balance.
+
+**Result**: Re-piloted N=30 across all 4 datasets × 3 temps with the fix — clean generation, no
+runaway loops, GSM8K T=0.2 accuracy 32.9% (paper ≈36%). Preliminary offline scoring (3-of-4
+datasets, N=30, not yet paper-scale) shows the qualitative EDIS-beats-mean-entropy finding
+replicating (pooled EDIS AUROC 0.693 vs mean-H 0.545) though below the paper's absolute numbers
+(0.804/0.673) as expected at this N. L-SML GOOD_5 showed a known `anchor_orient` low-temperature
+fragility (sub-random AUROC at T≤0.6, competitive-or-better at T=1.0) — flagged, not resolved.
+Full-N compute estimate came in ~10x over the original plan (~230 GPU-hours across 4 datasets, not
+~16-40); AMC23 (n=40,k=32) and AIME24 (n=30,k=64) full-N chained runs are currently in progress on
+AIRCC (jobs 112804-112808, 112810-112818), several clean checkpoint/resume handoffs confirmed.
+GSM8K/MATH500 full-N sizing and all analysis/write-up are deferred to a fresh session per Omri's
+direction (he wants a clean-slate comparison since parts of the L-SML method may have changed).
+
+**Files changed**:
+- `spectral_utils/model_utils.py` — `chat_turn_end_token_ids()` + eos_token_id fix; full-vocab
+  entropy capture flag; repetition_penalty/no_repeat_ngram_size params (added then de-recommended)
+- `spectral_utils/feature_utils.py` — `compute_edis()` sqrt bug fix
+- `cluster/presets.py` — 4 new EDIS-grid presets + pilot-diagnosis documentation
+- `cluster/run_inference.py` — capture/generation-param passthrough
+- `scripts/smoke_preset.py` — AMC23/AIME24 grader fixtures
+- `scripts/score_edis_grid.py` (new) — offline EDIS/mean-H/L-SML scorer
+- `papers/digests/edis-paper.md` — rewrote body with grounded Table 1/Table 4 numbers
+- `results/repgrid/edis_scores.csv` — regenerated (values unchanged)
+
+Note: the first five files above were already committed in `f13e8bc` under an unrelated message (a
+concurrent session's commit swept them up); only `score_edis_grid.py` and `edis-paper.md` were
+still untracked as of this step.
+
+**Next session (per Omri's direction — pick this up cold)**:
+1. Check AIRCC job state (`squeue -u omrisegev1`) — AMC23 chain 112804-112808 and AIME24 chain
+   112810-112818 may have finished or may still need resubmission past job 5/9 if the estimate ran
+   long. `/aircc-fetch edis_amc23_qwenmath15b_full` / `edis_aime24_qwenmath15b_full` once complete.
+2. Decide GSM8K/MATH500 full-N sizing (full n_samples=500 is ~65-78h each; a reduced n_samples
+   was proposed but not decided — see the AskUserQuestion exchange this session for the tradeoff).
+3. Before trusting any L-SML number on this grid: investigate the `anchor_orient` low-T fragility
+   found in the preliminary scoring (rho(EDIS,L-SML) flips sign between T=0.2/0.6 and T=1.0; L-SML
+   AUROC is sub-random at low T on this domain/model, competitive at T=1.0). This is the first time
+   L-SML has run on Qwen2.5-Math-1.5B/competition-math — the anchor mechanism is unvalidated here.
+4. Re-run `scripts/score_edis_grid.py` once full-N data lands (preliminary partial CSVs from this
+   session — `results/repgrid/edis_grid_partial.csv`/`_pooled_partial.csv` — are N=30/3-dataset
+   pilot numbers only, not the final replication result; do not cite them).
+5. Update Research_Directions.md's EDIS status once a real verdict exists.
+
+---
+
