@@ -66,12 +66,29 @@ ANOMALY_VIEWS = ['mahalanobis', 'gmm_nll', 'kde_nll', 'iforest', 'ae', 'prae']
 EXTRA_VIEWS = TEMPORAL_VIEWS + ANOMALY_VIEWS
 EXTRA_VIEW_SIGNS = {v: -1 for v in EXTRA_VIEWS}
 
+# Repgrid-only augmentation views (Step 182): raw-energy (Z_n), top-K logprob, and
+# extended-logprob features that only exist on cells captured with logsumexp/top_k
+# logprobs. Mirror repgrid_scoring's names + fixed signs. They enter via the
+# augmentation stage (never the exhaustive H16 enumeration) — same as the temporal /
+# anomaly views. APPENDED after EXTRA_VIEWS so existing canonical bit indices (and the
+# Step-154 npz masks) are unchanged.
+REPGRID_VIEWS = [
+    'epr_energy', 'min_energy', 'sw_var_peak_energy', 'cusum_max_energy',
+    'mean_top1_logprob', 'logprob_margin', 'mean_logprob_entropy',
+    'varentropy', 'renyi_entropy_2', 'topk_tail_mass',
+]
+REPGRID_VIEW_SIGNS = {
+    'epr_energy': -1, 'min_energy': -1, 'sw_var_peak_energy': -1, 'cusum_max_energy': -1,
+    'mean_top1_logprob': +1, 'logprob_margin': +1, 'mean_logprob_entropy': -1,
+    'varentropy': -1, 'renyi_entropy_2': -1, 'topk_tail_mass': -1,
+}
+
 # Bit i of a canonical mask <-> CANONICAL_POOL[i]. Frozen order: never reorder
 # or insert — only append. Resume validation compares this list via manifests.
-CANONICAL_POOL = list(FEAT_NAMES) + EXTRA_VIEWS
+CANONICAL_POOL = list(FEAT_NAMES) + EXTRA_VIEWS + REPGRID_VIEWS
 assert len(CANONICAL_POOL) <= 64, "canonical masks are uint64"
 
-ALL_SIGNS = {**FEATURE_SIGNS, **EXTRA_VIEW_SIGNS}
+ALL_SIGNS = {**FEATURE_SIGNS, **EXTRA_VIEW_SIGNS, **REPGRID_VIEW_SIGNS}
 
 # Default exhaustive-enumeration pool: the 16 H(n) features present in every
 # cached cell. Spilled/temporal/anomaly views enter via the augmentation stage
@@ -99,6 +116,7 @@ PKL_NAMES = {
     'gpqa':    'gpqa_res.pkl',
     'rag':     'rag_feats_all.pkl',
     'qa':      'qa_res.pkl',
+    'repgrid': 'repgrid_cells.pkl',   # Step-182 replication-grid cells (dict payload)
 }
 
 RECORD_FIELDS = ('mask', 'size', 'auroc', 'flipped', 'K', 'residual',
@@ -151,9 +169,15 @@ def iter_cells(data_dir, domains=None, cells=None,
         if d is None:
             print(f"[iter_cells] {domain}: {fname} missing — skipped")
             continue
-        for cell_key, (fd, labels) in d.items():
+        for cell_key, payload in d.items():
             if cells and not any(c in cell_key for c in cells):
                 continue
+            # payload is either the legacy (feats_dict, labels) 2-tuple or the newer
+            # {'feats','labels', ...} dict (repgrid cells) — accept both.
+            if isinstance(payload, dict) and 'feats' in payload:
+                fd, labels = payload['feats'], payload['labels']
+            else:
+                fd, labels = payload
             labels = np.asarray(labels, dtype=int)
             if len(np.unique(labels)) < 2:
                 print(f"[iter_cells] {domain}/{cell_key}: single-class labels — skipped")

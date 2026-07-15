@@ -28,7 +28,9 @@ if REPO_DIR not in sys.path:
 from spectral_utils import boot_auc, FEAT_NAMES
 
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import StratifiedKFold, cross_val_predict
+from sklearn.model_selection import (
+    StratifiedKFold, StratifiedGroupKFold, cross_val_predict,
+)
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
@@ -72,10 +74,12 @@ def safe_auc_raw(y_true, y_prob):
     except:
         return 0.5
 
-def cv_avg_auc_with_ci(pipe, X, y, skf, n_boot=1000):
+def cv_avg_auc_with_ci(pipe, X, y, skf, n_boot=1000, groups=None):
     fold_targets = []
     fold_probs = []
-    for train_idx, test_idx in skf.split(X, y):
+    # StratifiedKFold ignores `groups`; StratifiedGroupKFold uses it to keep a
+    # question's candidates (K>1 cells) within one fold — the repgrid leakage fix.
+    for train_idx, test_idx in skf.split(X, y, groups):
         X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
         
@@ -205,7 +209,7 @@ def build_X(fd, feat_list, n_samples):
 
 # ── LR oracle ─────────────────────────────────────────────────────────────────
 
-def lr_oracle_auc_variants(X, y, n_boot=1000, compute_legacy=True):
+def lr_oracle_auc_variants(X, y, n_boot=1000, compute_legacy=True, groups=None):
     """
     Compute multiple supervised Logistic Regression AUROC variants.
 
@@ -214,23 +218,30 @@ def lr_oracle_auc_variants(X, y, n_boot=1000, compute_legacy=True):
     across-cell percentile band is the uncertainty that gets shown, so
     per-point CIs are wasted compute. compute_legacy=False skips the
     known-buggy concatenated-OOF reference variant for the same reason.
+
+    groups (repgrid K>1 cells): when given, folds are StratifiedGroupKFold on the
+    per-candidate problem id so a question's candidates never straddle train/test
+    (the sampling-cell leakage fix). None -> plain StratifiedKFold (legacy behavior).
     """
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    if groups is not None:
+        skf = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
+    else:
+        skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
     # 1. Standard CV (Averaged Fold CV)
     pipe_std = make_pipeline(StandardScaler(), LogisticRegression(C=1.0, max_iter=1000, solver='lbfgs'))
-    auc_std, std_lo, std_hi = cv_avg_auc_with_ci(pipe_std, X, y, skf, n_boot=n_boot)
+    auc_std, std_lo, std_hi = cv_avg_auc_with_ci(pipe_std, X, y, skf, n_boot=n_boot, groups=groups)
 
     # 2. Balanced CV (Averaged Fold CV)
     pipe_bal = make_pipeline(StandardScaler(), LogisticRegression(C=1.0, class_weight='balanced', max_iter=1000, solver='lbfgs'))
-    auc_bal, bal_lo, bal_hi = cv_avg_auc_with_ci(pipe_bal, X, y, skf, n_boot=n_boot)
+    auc_bal, bal_lo, bal_hi = cv_avg_auc_with_ci(pipe_bal, X, y, skf, n_boot=n_boot, groups=groups)
 
     # 3. Concatenated OOF (Legacy Standard) — buggy reference, optional
     if compute_legacy:
         pipe_legacy = make_pipeline(StandardScaler(), LogisticRegression(C=1.0, max_iter=1000, solver='lbfgs'))
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            oof_prob = cross_val_predict(pipe_legacy, X, y, cv=skf, method='predict_proba')[:, 1]
+            oof_prob = cross_val_predict(pipe_legacy, X, y, cv=skf, method='predict_proba', groups=groups)[:, 1]
         legacy_auc, legacy_lo, legacy_hi = safe_auc(y, oof_prob)
     else:
         legacy_auc = legacy_lo = legacy_hi = None

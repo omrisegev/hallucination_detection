@@ -76,6 +76,50 @@ def logprob_features(top_k_logprobs) -> dict:
     }
 
 
+LOGPROB_FEATS_EXT = ["varentropy", "renyi_entropy_2", "topk_tail_mass"]
+LOGPROB_SIGNS_EXT = {"varentropy": -1, "renyi_entropy_2": -1, "topk_tail_mass": -1}
+
+
+def logprob_features_extended(top_k_logprobs, tail_k: int = 5) -> dict:
+    """Second-order token-distribution features from the saved top-K logprobs, computed
+    over the same restricted top-K support as logprob_features() (so all values are a lower
+    bound / approximation of the true full-vocab quantity when K < vocab size).
+
+    top_k_logprobs = {'ids': int32[T,K], 'logprobs': float32[T,K]} (K>=2).
+
+    varentropy:        mean per-token variance of surprisal -log p over the top-K support
+                        (Kadavath et al. 2022 "varentropy" — dispersion of information content,
+                        distinct from the mean surprisal itself).
+    renyi_entropy_2:    mean per-token order-2 (collision) Renyi entropy, -log(sum(p^2)),
+                        computed on the renormalized top-K distribution.
+    topk_tail_mass:     mean per-token probability mass outside the top-`tail_k` (0 if
+                        tail_k >= K) — a concentration proxy: near 0 = peaked, larger = flat.
+    """
+    if not isinstance(top_k_logprobs, dict) or "logprobs" not in top_k_logprobs:
+        return {k: np.nan for k in LOGPROB_FEATS_EXT}
+    lp = np.asarray(top_k_logprobs["logprobs"], dtype=float)  # [T, K], sorted desc
+    if lp.ndim != 2 or lp.shape[0] == 0:
+        return {k: np.nan for k in LOGPROB_FEATS_EXT}
+    p = np.exp(lp)
+    p = p / (p.sum(axis=1, keepdims=True) + 1e-12)            # renormalized top-K probs
+
+    surprisal = -np.log(p + 1e-12)                             # [T, K]
+    mean_surprisal = (p * surprisal).sum(axis=1, keepdims=True)
+    varentropy = (p * (surprisal - mean_surprisal) ** 2).sum(axis=1)
+
+    renyi2 = -np.log((p ** 2).sum(axis=1) + 1e-12)
+
+    k = min(tail_k, lp.shape[1])
+    tail_mass = 1.0 - p[:, :k].sum(axis=1)
+    tail_mass = np.clip(tail_mass, 0.0, 1.0)
+
+    return {
+        "varentropy":      float(np.mean(varentropy)),
+        "renyi_entropy_2": float(np.mean(renyi2)),
+        "topk_tail_mass":  float(np.mean(tail_mass)),
+    }
+
+
 def _candidate_features(cand: dict) -> dict:
     """All computable features for one candidate (missing ones absent/NaN)."""
     feats = extract_all_features(cand.get("token_entropies", []),

@@ -354,12 +354,13 @@ def extract_all_features(ents, spilled_energies=None) -> dict | None:
 
 def compute_edis(entropies, tau_b: float = 1.36, tau_r: float = 1.33) -> float:
     """
-    EDIS score (arXiv 2602.01288, eq. 4). Higher = more entropy instability = less stable.
+    EDIS score (arXiv 2602.01288, eq. 7). Higher = more entropy instability = less stable.
 
     For correctness detection pass -compute_edis(trace) as the confidence feature
     (higher confidence → more likely correct).
 
-    tau_b, tau_r: burst/rebound spike thresholds from paper Appendix E.
+    tau_b, tau_r: burst/rebound spike thresholds (paper: "the same spike detection
+    thresholds (τb = 1.36, τr = 1.33) that work at Step 0 remain effective at Step 500").
     """
     H = np.array(entropies, dtype=float)
     if len(H) < 2:
@@ -368,7 +369,10 @@ def compute_edis(entropies, tau_b: float = 1.36, tau_r: float = 1.33) -> float:
     S_burst   = float((dH > tau_b).sum())
     S_rebound = float((H - np.minimum.accumulate(H) > tau_r).sum())
     S = 0.5 * (S_burst + S_rebound)
-    return float(S * np.sqrt(1.0 + np.var(H)))
+    # Eq. 7: EDIS(H) = S(H) * (1 + Var(H)) -- NOT sqrt(1 + Var(H)). Confirmed against the
+    # paper extract and HISTORY.md Step 35's transcription; a sqrt had been present here
+    # since compute_edis was first added and does not match either source.
+    return float(S * (1.0 + np.var(H)))
 
 
 def segment_by_citations(text: str, token_offsets: list) -> list:

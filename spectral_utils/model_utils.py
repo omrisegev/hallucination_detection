@@ -103,6 +103,34 @@ def fmt_prompt(tok, msg: str) -> str:
     return f"<|user|>\n{msg}\n<|assistant|>\n"
 
 
+_CHAT_TURN_END_MARKERS = ("<|im_end|>", "<end_of_turn>", "<|eot_id|>")
+
+
+def chat_turn_end_token_ids(tok) -> list:
+    """
+    Token id(s) that end an assistant turn under a ChatML-style template, beyond
+    whatever the model's own generation_config.json lists as eos_token_id.
+
+    Some "base" checkpoints (e.g. Qwen2.5-Math-1.5B) ship a full chat_template in
+    tokenizer_config.json for convenience, but their generation_config.json was never
+    updated to match — it still lists only the bare completion EOS (e.g. <|endoftext|>).
+    generate() stops on generation_config.eos_token_id, not on whatever the chat
+    template happens to close a turn with, so a model that correctly finishes its
+    answer and emits <|im_end|> is not recognized as done: it keeps sampling past the
+    end of its own turn into territory it was never trained to continue, which shows
+    up as degenerate repetition ("Assistant\nAssistant\n...") or garbled text. Verified
+    for Qwen/Qwen2.5-Math-1.5B directly against the HF Hub configs: generation_config.json
+    eos_token_id=151643 (<|endoftext|> only) while tokenizer_config.json's chat_template
+    ends every turn with <|im_end|> (id 151645) -- never registered as a stop condition.
+    """
+    ids = []
+    for marker in _CHAT_TURN_END_MARKERS:
+        tid = tok.convert_tokens_to_ids(marker)
+        if tid is not None and tid != tok.unk_token_id and tid not in ids:
+            ids.append(tid)
+    return ids
+
+
 def token_entropies_from_scores(scores, K: int = 15) -> list:
     """
     Convert a sequence of HuggingFace generation scores to per-token entropy values.
@@ -183,6 +211,32 @@ def extract_top_k_logprobs(scores, top_k: int = 50):
     return {"ids": np.stack(ids_rows), "logprobs": np.stack(lp_rows)}
 
 
+def token_entropy_full_from_logits(logits) -> list:
+    """
+    Compute per-token Shannon entropy over the FULL vocabulary from raw (pre-warper) logits.
+
+    Unlike token_entropies_from_scores (a top-K estimate over the post-warp sampling
+    distribution), this is the exact H_t = -sum_v p_v log p_v over the entire vocabulary of
+    the model's raw predictive distribution — the definition EDIS (arXiv:2602.01288) Eq. 1
+    uses. Requires out.logits (generate(output_logits=True)), not out.scores, for the same
+    reason token_logsumexp_from_scores does: out.scores are temperature-scaled and
+    top-k/top-p masked, so a full-vocab entropy over them would be at the wrong scale and
+    missing mass.
+
+    Args:
+        logits: tuple of (1, vocab_size) RAW-logit tensors from generate(output_logits=True).
+
+    Returns:
+        List of float entropy values, one per generated token.
+    """
+    ents = []
+    for s in logits:
+        lp = F.log_softmax(s[0], dim=-1)
+        p = torch.exp(lp)
+        ents.append(-(p * lp).sum().item())
+    return ents
+
+
 def token_logsumexp_from_scores(logits) -> list:
     """
     Compute per-token logsumexp of the FULL-vocab logits (the log-partition Z_n).
@@ -242,9 +296,12 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
                   K: int = 15, max_new_tokens: int = 512,
                   logprob_top_k: int = 50,
                   gen_top_p: float = None, gen_top_k: int = 50,
+                  repetition_penalty: float = None, no_repeat_ngram_size: int = None,
                   capture_logsumexp: bool = False,
                   capture_hidden: bool = False, hidden_layer: int = None,
-                  capture_attention: bool = False, capture_layer_fft: bool = False,
+                  capture_attention: bool = False, attention_top_k: int = 100,
+                  capture_layer_fft: bool = False,
+                  capture_full_entropy: bool = False,
                   **kwargs):
     """
     Generate a response and return text, per-token entropies, spilled energies, and char offsets.
@@ -258,6 +315,22 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
         max_new_tokens: Maximum response length. (Also accepts 'max_new' as kwarg.)
         logprob_top_k:  Top-K entries to keep in 'top_k_logprobs' (0 disables — saves
                         memory/disk when raw logprobs are not needed).
+        repetition_penalty:   HF generate() repetition penalty (None -> HF default/off).
+                        NOT the fix for degenerate-loop generation on a "base checkpoint
+                        with a chat_template" model (see chat_turn_end_token_ids) — that
+                        turned out to be a missing eos_token_id, not a sampling problem.
+                        This is a LogitsProcessor applied before sampling, so it is baked
+                        into 'token_entropies' / 'top_k_logprobs' like temperature/top_p/
+                        top_k already are (see token_logsumexp_from_scores' out.scores-vs
+                        -out.logits note) — avoid it unless you specifically want a
+                        distorted entropy trace; always check eos_token_id coverage first.
+        no_repeat_ngram_size: HF generate() hard ban on repeating an n-gram (None -> off).
+                        Same caveat as repetition_penalty. Concretely dangerous for math/
+                        code generation: a hard n-gram ban forces the model off legitimate
+                        repeated substrings (variable names, digits) into garbled
+                        substitutes — this is what happened when it was tried as an EDIS-
+                        grid fix (see cluster/presets.py PILOT FINDING), before the real
+                        cause (missing eos_token_id) was found and this was reverted.
 
     Replication-grid capture flags (all default OFF — the GOOD_5 / spectral path is
     unchanged when every flag is False; only the listed extra key is added when True):
@@ -271,10 +344,21 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
         capture_hidden:     add 'hidden_middle_last' (float16 [hidden_dim]) — the INSIDE
                             /EigenScore last-token middle-layer sentence embedding.
         hidden_layer:       explicit layer index for the hidden capture (default int(L/2)).
-        capture_attention:  reserved for LapEigvals (attention-Laplacian eigvals) — not
-                            yet implemented; raises so a preset never silently no-ops.
+        capture_attention:  add 'attn_lap_eigvals' (float16 [L, H, attention_top_k]) +
+                            'attn_diag_logmean' (float32 [L, H]) + 'attn_lap_meta' via
+                            attn_laplacian_capture() — the LapEigvals (2502.17598)
+                            attention-Laplacian reducer, computed on-GPU from ONE extra
+                            teacher-forced forward pass over prompt+generation (never
+                            stores the raw [L,H,T,T] maps).
+        attention_top_k:    eigenvalues kept per (layer, head) — 100 covers the paper's
+                            whole k in {5,10,20,50,100} sweep offline.
         capture_layer_fft:  reserved for HSAD (layer-axis FFT scalars) — not yet
                             implemented; raises so a preset never silently no-ops.
+        capture_full_entropy: add 'token_entropies_full' (list[float], exact full-vocab
+                            Shannon entropy per token from RAW logits via
+                            output_logits=True) — the EDIS paper's H_t definition, as
+                            opposed to the top-K=15 'token_entropies' our own spectral
+                            features use.
 
     Returns:
         dict with keys:
@@ -293,13 +377,9 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
                                       RAW (pre-warper) distribution — only when
                                       capture_logsumexp=True and logprob_top_k>0
             'hidden_middle_last':     float16 [hidden_dim] — only when capture_hidden=True
+            'token_entropies_full':   list[float] — full-vocab H(n), only when
+                                      capture_full_entropy=True
     """
-    if capture_attention:
-        raise NotImplementedError(
-            "capture_attention (LapEigvals attention-Laplacian reducer) is not yet "
-            "implemented — see replication-grid plan U-follow-up. Do not enable it in a "
-            "preset until the on-GPU reducer lands; scoring our L-SML needs only "
-            "token_entropies, so run the LapEigvals cell with capture_attention=False.")
     if capture_layer_fft:
         raise NotImplementedError(
             "capture_layer_fft (HSAD layer-axis FFT reducer) is not yet implemented — "
@@ -316,6 +396,19 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
     if "token_type_ids" in inputs:
         del inputs["token_type_ids"]
 
+    # Union the model's own generation_config eos_token_id(s) with the chat template's
+    # turn-end marker(s) -- see chat_turn_end_token_ids docstring. Only additive: never
+    # removes a stop condition the model already had, just plugs the common gap where a
+    # base checkpoint ships a chat_template without updating generation_config.json.
+    cfg_eos = getattr(mdl.generation_config, "eos_token_id", None)
+    if cfg_eos is None:
+        cfg_eos = tok.eos_token_id
+    eos_ids = list(cfg_eos) if isinstance(cfg_eos, (list, tuple)) else [cfg_eos]
+    if not raw_prompt:
+        for tid in chat_turn_end_token_ids(tok):
+            if tid not in eos_ids:
+                eos_ids.append(tid)
+
     sampling = temp > 1e-4
     with torch.no_grad():
         out = mdl.generate(
@@ -325,10 +418,13 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
             temperature=temp if sampling else None,
             top_k=gen_top_k if sampling else None,
             top_p=gen_top_p if (sampling and gen_top_p is not None) else None,
+            repetition_penalty=repetition_penalty if repetition_penalty is not None else None,
+            no_repeat_ngram_size=no_repeat_ngram_size if no_repeat_ngram_size is not None else None,
             output_scores=True,
-            output_logits=capture_logsumexp,     # RAW full-vocab logits for the energy Z_n
+            output_logits=capture_logsumexp or capture_full_entropy,  # RAW full-vocab logits
             output_hidden_states=capture_hidden,
             return_dict_in_generate=True,
+            eos_token_id=eos_ids,
             pad_token_id=tok.eos_token_id,
         )
 
@@ -358,4 +454,76 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
             result["top_k_logprobs_raw"] = extract_top_k_logprobs(out.logits, logprob_top_k)
     if capture_hidden:
         result["hidden_middle_last"] = _middle_last_hidden(out.hidden_states, hidden_layer)
+    if capture_full_entropy:
+        result["token_entropies_full"] = token_entropy_full_from_logits(out.logits)
+    if capture_attention:
+        result.update(attn_laplacian_capture(mdl, out.sequences[0], top_k=attention_top_k))
+        result["attn_lap_meta"] = {
+            "total_len": int(out.sequences.shape[1]),
+            "prompt_len": int(inputs.input_ids.shape[1]),
+            "top_k": int(attention_top_k),
+        }
     return result
+
+
+# ── LapEigvals attention-Laplacian reducer (arXiv 2502.17598) ────────────────────
+#
+# Their pipeline: causal attention map A(l,h) (row-stochastic, LOWER-TRIANGULAR) ->
+# out-degree-style diagonal d_ii = (sum_u a_ui) / (T - i)  (0-based i, divisor T..1 —
+# their length-independence normalization) -> Laplacian L = D - A -> top-k LARGEST
+# eigenvalues per (layer, head), concatenated -> PCA-512 -> logistic-regression probe
+# (class_weight='balanced'). KEY SIMPLIFICATION: L inherits A's lower-triangularity,
+# so eig(L) = diag(L) = d_ii - a_ii exactly (the paper's own z~ = sort(diag(L))) — no
+# eigendecomposition is ever needed, which is what makes on-GPU capture cheap.
+#
+# We additionally store the per-(layer, head) mean of log(a_ii) — the sufficient
+# statistic for LLM-Check-style unsupervised Attention Scores (the paper's unsupervised
+# baseline family), so both a supervised probe AND an unsupervised attention score can
+# be computed offline from the same capture.
+
+def _attn_lap_diag_stats(layer_att, top_k: int):
+    """LapEigvals eigenvalues + diag-log stat for ONE layer's attention probs.
+
+    layer_att: [1, H, T, T] row-stochastic causal attention (any device/dtype).
+    Returns (eigvals float16 [H, top_k] CPU — NaN-padded when T < top_k,
+             diag_logmean float32 [H] CPU).
+    """
+    att = layer_att[0].float()                              # [H, T, T]
+    H, T, _ = att.shape
+    colsum = att.sum(dim=1)                                 # [H, T]: sum_u a_ui
+    denom = (T - torch.arange(T, device=att.device, dtype=att.dtype))   # T..1
+    diag = torch.diagonal(att, dim1=1, dim2=2)              # [H, T]: a_ii
+    eig = colsum / denom - diag                             # diag(L) = eig(L)
+    eig = torch.sort(eig, dim=1, descending=True).values
+    k = min(top_k, T)
+    out = torch.full((H, top_k), float("nan"), dtype=torch.float16)
+    out[:, :k] = eig[:, :k].to(torch.float16).cpu()
+    diag_logmean = torch.log(diag.clamp_min(1e-12)).mean(dim=1).float().cpu()
+    return out, diag_logmean
+
+
+def attn_laplacian_capture(mdl, full_ids, top_k: int = 100) -> dict:
+    """One teacher-forced forward pass over the full sequence (prompt + generation)
+    with output_attentions=True, reduced on-GPU to the LapEigvals features.
+
+    SDPA attention falls back to eager for this call (transformers does this
+    automatically when output_attentions=True); flash-attention-2 loads would raise —
+    the project's load_model uses the default (sdpa) implementation. Peak memory is
+    the eager maps for all layers at once (~[L,H,T,T] float32: ~20 GB at T≈2200 for an
+    8B model) — sized for the B200 cluster nodes, not Colab T4s.
+
+    Returns {'attn_lap_eigvals': float16 [L, H, top_k],
+             'attn_diag_logmean': float32 [L, H]}.
+    """
+    import numpy as _np
+    ids = full_ids if full_ids.dim() == 2 else full_ids.unsqueeze(0)
+    with torch.no_grad():
+        fwd = mdl(input_ids=ids.to(mdl.device), output_attentions=True, use_cache=False)
+    eig_list, dlm_list = [], []
+    for layer_att in fwd.attentions:
+        e, d = _attn_lap_diag_stats(layer_att, top_k)
+        eig_list.append(e.numpy())
+        dlm_list.append(d.numpy())
+    del fwd
+    return {"attn_lap_eigvals": _np.stack(eig_list),        # [L, H, top_k] float16
+            "attn_diag_logmean": _np.stack(dlm_list)}       # [L, H] float32

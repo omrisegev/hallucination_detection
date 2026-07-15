@@ -49,6 +49,36 @@ def zscore(arr: np.ndarray) -> np.ndarray:
 
 # ── AUC with bootstrap CI ─────────────────────────────────────────────────────
 
+def _fast_auc(y, s):
+    """
+    Exact AUROC via the Mann–Whitney U rank statistic (ties → average ranks).
+    Numerically identical to sklearn.metrics.roc_auc_score for binary y, but
+    ~50–100× faster inside a bootstrap loop (one argsort + bincount, no ROC-curve
+    construction). Assumes y ∈ {0,1} with BOTH classes present and no NaNs —
+    callers pre-filter and guard the single-class bootstrap case.
+    """
+    s = np.asarray(s, dtype=np.float64)
+    y = np.asarray(y)
+    n = len(s)
+    order = np.argsort(s, kind="mergesort")
+    sorted_s = s[order]
+    is_start = np.empty(n, dtype=bool)
+    is_start[0] = True
+    np.not_equal(sorted_s[1:], sorted_s[:-1], out=is_start[1:])
+    grp = np.cumsum(is_start) - 1                 # tie-group id per sorted position
+    cnt = np.bincount(grp)
+    first = np.zeros_like(cnt)
+    first[1:] = np.cumsum(cnt)[:-1]               # first 0-indexed sorted pos of each group
+    avg_rank_grp = first + (cnt + 1) / 2.0        # 1-indexed average rank per group
+    ranks = np.empty(n, dtype=np.float64)
+    ranks[order] = avg_rank_grp[grp]
+    ypos = y > 0.5
+    n_pos = int(ypos.sum())
+    n_neg = n - n_pos
+    r_pos = ranks[ypos].sum()
+    return (r_pos - n_pos * (n_pos + 1) / 2.0) / (n_pos * n_neg)
+
+
 def boot_auc(y, scores, n: int = 1000):
     """
     Bootstrap AUROC with 95% confidence interval.
@@ -68,9 +98,11 @@ def boot_auc(y, scores, n: int = 1000):
     boots = []
     for _ in range(n):
         idx = rng.integers(0, len(y), len(y))
-        if len(np.unique(y[idx])) < 2:
+        yi = y[idx]
+        npos = yi.sum()
+        if npos == 0 or npos == len(yi):
             continue
-        boots.append(roc_auc_score(y[idx], s[idx]))
+        boots.append(_fast_auc(yi, s[idx]))
 
     lo, hi = np.percentile(boots, [2.5, 97.5]) if boots else (base, base)
     return base, lo, hi
@@ -112,9 +144,11 @@ def paired_boot_delta_auc(y, scores_a, scores_b, n: int = 1000,
         else:
             picked = uniq[rng.integers(0, len(uniq), len(uniq))]
             idx = np.concatenate([members[c] for c in picked])
-        if len(np.unique(y[idx])) < 2:
+        yi = y[idx]
+        npos = yi.sum()
+        if npos == 0 or npos == len(yi):
             continue
-        boots.append(roc_auc_score(y[idx], a[idx]) - roc_auc_score(y[idx], b[idx]))
+        boots.append(_fast_auc(yi, a[idx]) - _fast_auc(yi, b[idx]))
     if not boots:
         return float(delta), float(delta), float(delta)
     lo, hi = np.percentile(boots, [2.5, 97.5])

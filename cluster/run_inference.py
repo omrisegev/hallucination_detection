@@ -172,12 +172,15 @@ def run_temp(mdl, tok, rows, prompt_fn, grader, temp, cfg, out_path):
                 max_new_tokens=cfg.max_new,
                 logprob_top_k=cfg.logprob_top_k,
                 gen_top_p=cfg.gen_top_p, gen_top_k=cfg.gen_top_k,
+                repetition_penalty=cfg.repetition_penalty, no_repeat_ngram_size=cfg.no_repeat_ngram_size,
                 raw_prompt=cfg.raw_prompt,
                 capture_logsumexp=cfg.capture.get("logsumexp", False),
                 capture_hidden=cfg.capture.get("hidden", False),
                 hidden_layer=cfg.capture.get("hidden_layer"),
                 capture_attention=cfg.capture.get("attention", False),
+                attention_top_k=cfg.capture.get("attention_top_k", 100),
                 capture_layer_fft=cfg.capture.get("layer_fft", False),
+                capture_full_entropy=cfg.capture.get("full_entropy", False),
             )
             r["label"] = bool(grader(r["full_text"], row))
             entry["candidates"].append(r)
@@ -318,6 +321,8 @@ def build_cfg(args):
         logprob_top_k=pick(args.logprob_top_k, "logprob_top_k", 50),
         gen_top_p=base.get("gen_top_p"),
         gen_top_k=base.get("gen_top_k", 50),
+        repetition_penalty=pick(args.repetition_penalty, "repetition_penalty", None),
+        no_repeat_ngram_size=pick(args.no_repeat_ngram_size, "no_repeat_ngram_size", None),
         capture=base.get("capture", {}),
         acc_band=tuple(base.get("acc_band", (0.20, 0.85))),
         min_minority=base.get("min_minority", 30),
@@ -344,6 +349,8 @@ def main():
     ap.add_argument("--k", type=int, default=None, help="candidates per problem")
     ap.add_argument("--n-samples", type=int, default=None, help="number of problems")
     ap.add_argument("--max-new", type=int, default=None)
+    ap.add_argument("--repetition-penalty", type=float, default=None)
+    ap.add_argument("--no-repeat-ngram-size", type=int, default=None)
     ap.add_argument("--logprob-top-k", type=int, default=None,
                     help="top-K logprobs saved per token (0 disables)")
     ap.add_argument("--out", default=None,

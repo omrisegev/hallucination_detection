@@ -5902,3 +5902,209 @@ regenerates all 9 pages clean (guardrail scan passes); `python scripts/smoke_pre
 
 ---
 
+### Step 181 — Phase-15 CPU follow-ups: K-sweep, spilled/logprob orthogonality, fairer diversity B′, cross-temperature probing
+
+**What**: Ran the 4 of Step-158's 8 numbered follow-ups that were still open after Step 174
+closed #1 (self-consistency fusion) — all pure CPU on the already-local Phase-15 caches
+(`local_cache/math500_qwen7b_T1.0_run{0..4}.pkl` + `phase15_results.pkl`). New
+`scripts/phase15_followups.py` + `spectral_utils/repgrid_scoring.py::logprob_features_extended`
+(varentropy, Renyi-2/collision entropy, top-K tail mass — new features from the already-saved
+top-50 logprobs, no new capture needed).
+
+**Why**: A HISTORY.md review (all steps to date) found these follow-ups explicitly flagged as
+"pure CPU once the caches are downloaded" (Step 158) and then never run, even after Step 174
+confirmed the caches were downloaded. Closing them was the user's pick from a broader punch-list
+of stale threads surfaced across the project (self-consistency fusion, conformal calibration,
+ProcessBench, verbalized confidence on 7B+, etc. — those stay open, this session scoped to just
+the Phase-15 CPU items + a PROGRESS.md cleanup pass).
+
+**Result** (MATH-500 / Qwen2.5-Math-7B, N=200; F1's K=1/K=5 reproduce Step 158's q1/q2 numbers
+exactly — 0.8506 / 0.9120 — confirming the reimplementation is consistent with the original run):
+- **F1 K-sweep (closes #2)**: AUROC(K) = 0.851 / 0.869 / 0.863 / 0.905 / 0.912 for K=1..5. No
+  early saturation — a dip at K=3, then most of the lift arrives at K=4-5. Repeated same-T
+  sampling needs close to the full K=5 budget on this cell, not just 3 passes.
+- **F2 new feature families (closes #4)**: spilled-energy `cusum_max_spilled` is a strong
+  individual feature (AUROC 0.909, ρ=+0.56 vs GOOD_5) and, fused in as a 6th view, **clears the
+  Item-5-style gate** (ρ<0.75 AND Δ>1pp): +1.13pp over GOOD_5 alone [+0.36,+2.11], CI excludes 0
+  — a second, smaller genuine complementary signal alongside Item 5's answer-agreement result.
+  Extended logprob features: `topk_tail_mass` (new) is the strongest individual logprob feature
+  (0.902) but its fusion gain (+0.72pp [+0.08,+1.52]) is CI-significant yet doesn't clear the
+  1pp bar — reported as a near-miss, not a pass. `varentropy` (new) is individually weaker
+  (0.740) but clearly above chance.
+- **F3 fairer diversity B′ = {0.6,1.0,1.5} (closes #5)**: simple-average 0.881, L-SML 0.856 —
+  both statistically indistinguishable from a matched K=3 same-T=1.0 arm (0.863; delta −0.006
+  [−0.073,+0.060], CI spans 0). Confirms Step 158's original Q2 finding is not an artifact of
+  the degenerate T=2.0/T=0.3 passes: even the "fairer" diverse set doesn't beat same-T repetition.
+- **F4 cross-temperature probing (closes #6)**: every hot temperature's fused score predicts its
+  OWN label far better than it predicts the COLD (T=1.0 run0) label on the same questions (e.g.
+  T=1.5: own-label 0.878 vs cold-label 0.626; T=0.3: own-label 0.545 vs cold-label 0.388 —
+  actually anti-predictive). Gives a mechanistic explanation for why temperature diversity hurts
+  fusion (Step 158): each temperature's uncertainty signal is entangled with *that generation's
+  own* correctness, not a stable per-question difficulty signal — combining across temperatures
+  combines partially incommensurate signals, not independent views of one target.
+- **Still blocked — #3 (anchor/sign robustness across T) and #7 (length-controlled AUROC per
+  T)**: both need raw per-sample GOOD_5 feature values / trace lengths at T≠1.0, which
+  `phase15_results.pkl` never stored (only scalar per-(feature,temp) AUROCs in `feat_table`).
+  Needs `cache/phase15_temperature/math500_qwen7b_T{0.3,0.6,1.5,2.0}_run0.pkl` copied to
+  `local_cache/` the way Omri already did for T=1.0, before they're answerable.
+
+Full results in `results/repgrid/phase15_followups.json`. Files: `scripts/phase15_followups.py`
+(new), `spectral_utils/repgrid_scoring.py` (`logprob_features_extended` added, existing
+`logprob_features` unchanged). Not committed (await Omri).
+
+---
+
+### Step 182 — Punch-list closure (8 items) + the two stale-data analyses re-run on the 19-cell replication grid
+
+**What**: Executed `HANDOFF_punchlist_and_reruns.md` end-to-end as a two-phase plan (Phase 1 =
+close the 8 open punch-list items; Phase 2 = re-run the feature-subset search + LR oracle, whose
+conclusions rested on the old 32-cell battery and had never seen the replication grid). Structural
+items 9–10 (Extension A1, Extension F) deferred by Omri to a separate session.
+
+#### Phase 1 — punch-list
+
+**A1 — the MATH-500 "85.1 vs 94.4 discrepancy" is a TEMPERATURE MISLABEL, not a regression
+(closes Step-152 P2 / Step-174 caveat).** All four cells in `local_cache/math500_res.pkl` keyed
+`_T1.0` actually hold the Phase-4 **T=1.5** runs — they match that table exactly on accuracy *and*
+per-feature AUROC. The 94.4 headline is therefore a T=1.5 / 28%-accuracy operating point, while
+the genuine T=1.0 anchor (Phase 5) is fusion 90.0 at 69% accuracy — fully consistent with the
+fresh unsupervised 1-pass 85.1. The same recipe reproduces both caches (fresh 0.851, legacy
+0.944), so there is no unexplained gap and nothing to reconcile. → `results/phase1/math500_discrepancy.json`
+
+**A2 — Extension E earliest-prefix edge REPLICATES on the clean cache.** On the canonical fresh
+raw-trace cache, `lsml16` beats the best DeepConf window by **+5.6pp [+0.9,+10.6]** (paired
+bootstrap, CI excludes 0) at the earliest 10% of the trace; the earliness index reaches full-trace
+AUROC at that budget. The pilot's only significant finding survives a clean re-run.
+→ `results/streaming_replication.pkl`
+
+**A3 — RAG SelfCheckGPT below-chance is a LABEL-PROTOCOL MISMATCH, not a bug.** On all 4 RAG
+caches, grounded (label-1) responses carry *higher* SCGPT contradiction scores than ungrounded
+ones — SCGPT self-consistency is anti-aligned with the citation-grounding label by construction.
+Recommendation: annotate those rows NOT-CITABLE rather than "fix" or flip them.
+→ `results/phase1/rag_scgpt_orientation.json`
+
+**B (#3 anchor robustness + #7 length control) — unblocked and closed.** Omri pulled the T≠1.0
+Drive folder to `local_cache/phase15_temperature/`. The low-T "poor detectability" is **not** a
+fusion/anchor artifact: swapping the `epr` anchor for `cusum_max` leaves the AUROCs unchanged.
+The real culprit is **`spectral_entropy`'s temperature-dependent sign** (single-feature AUROC
+0.69 at T=0.3 → 0.14 at hot T); dropping it *raises* GOOD_4 to 0.76 at T=0.3. Length control:
+T≥1.5 traces are cap-pinned at 2048 and the signal there partly tracks length, but at T≤1.0 the
+length-residualized AUROC stays well above chance. → `results/phase1/temperature_followups.json`
+
+**C1–C3 — cluster staging (Omri submits; gate order local smoke → N=30 pilot → full N).**
+`fusion_gsm8k_llama8b_k5` (K=5 same-T, the second Item-5 fusion cell) and `verbconf_gsm8k_llama8b`
+(verbalized confidence via a subtle prompt clause) added to `cluster/presets.py`, with a new
+trailing-`Confidence:` fixture group in `scripts/smoke_preset.py`. **The LapEigvals
+attention-Laplacian reducer is now implemented** — `generate_full(capture_attention=...)` no longer
+raises `NotImplementedError`: `attn_laplacian_capture()` does one teacher-forced pass with
+`output_attentions=True` and reduces on-GPU to per-(layer,head) Laplacian eigenvalues
+(`attn_lap_eigvals` [L,H,top_k] float16 + `attn_diag_logmean` [L,H]), never storing the ~2 GB/sample
+raw attention. Key algebraic shortcut (from the paper): the graph Laplacian of a causal attention
+matrix is lower-triangular, so its eigenvalues ARE its diagonal — no eigendecomposition needed.
+`scripts/test_attn_laplacian.py` verifies this against a dense `eig(L)` (exact match, float32) plus
+float16-storage/NaN-padding/sort invariants; `scripts/score_lapeigvals.py` is the offline
+PCA-512 + balanced-LR probe (supervised, as published) with a synthetic self-test. Preset
+`lapeigvals_gsm8k_llama8b` now captures attention (re-run required; ~20 GB mem on 8B).
+`python scripts/smoke_preset.py --all` → **30/30 PASS**.
+
+#### Phase 2 — the two re-runs on the replication grid
+
+**Adapter (`scripts/build_repgrid_featcache.py`, new).** The repgrid cells use a per-candidate
+schema neither consumer can read, so the DATA was adapted once rather than teaching each consumer
+the schema: extract every feature per candidate, complete-case-filter on the H16 spectral pool
+(which exactly reproduces `repgrid_scoring.score_subset`'s valid rows, since `extract_all_features`
+is all-or-none per row), and emit one legacy-schema pkl both consumers read
+(`local_cache/repgrid_cells.pkl` + `repgrid_cont.pkl`; `problem_id` carried for grouped CV).
+**Validation gate: GOOD_5 L-SML recomputed from the featcache reproduces the canonical
+`scores_lsml_upcr.csv` on all 19 cells to Δ=0.0000** — the adapter is exactly faithful.
+
+**LR oracle (`scripts/repgrid_oracle.py`, new; `scripts/logistic_oracle.py` extended).**
+Supervised headroom over unsupervised L-SML on the 19 never-seen cells (5-fold, per-fold AUROC
+averaged, `class_weight='balanced'` per SUPERVISED_ORACLE_CORRECTION.md; **new grouped-CV path** —
+K=10 cells pass `problem_id` as `groups` to `StratifiedGroupKFold` so a question's candidates
+cannot straddle folds):
+
+| feature set | CONT (unsup L-SML) | LR (supervised) | Δ headroom |
+|---|---|---|---|
+| GOOD_5 | 73.3 | 75.6 | **+2.4pp** |
+| STABLE_H9 | 68.1 | 74.0 | +5.9pp |
+| ALL_H16 | 67.2 | 75.6 | +8.4pp |
+
+This *sharpens* the Step-147 "features are the bottleneck, not fusion" conclusion (+3.6–4.7pp there).
+**On the compact curated subset the unsupervised fusion is already near the supervised ceiling
+(+2.4pp).** The large headroom on the wider sets is unsupervised L-SML *degrading* on extra
+correlated/noisy features while a supervised model still exploits them (`ars_gsm8k` ALL_H16: CONT
+36.4 → LR 73.0; `inside_coqa` STABLE_H9: 47.5 → LR 80.2). So the bottleneck is feature
+*selection* — which GOOD_5 already solves. → `results/repgrid/oracle_repgrid.csv`
+
+**Subset sweep (19/19 cells, exhaustive H16 = 65,399 subsets on the p=16 cells).**
+`spectral_utils/subset_sweep.py` extended: dict-payload support in `iter_cells`, `'repgrid'` in
+`PKL_NAMES`, and 10 new augmentation views (4 energy + 3 logprob + 3 extended-logprob) **appended**
+to `CANONICAL_POOL` (append-only — existing canonical bit indices and the Step-154 npz masks stay
+valid). Results:
+
+- **GOOD_5 replicates as the best FIXED subset.** Honest leave-one-cell-out selection does *not*
+  beat it: repgrid LOCO macro **72.19** vs **GOOD_5 73.28** (+1.09pp), consensus 72.70, ALL_H16
+  66.94, label-peeking per-cell oracle ceiling 75.98. The margin matches the original battery
+  almost exactly (+0.96pp there; +1.01pp over all 48 cells) — **the Step-154 conclusion holds on a
+  completely different domain mix.** GOOD_5 sits at the **median 98.0th percentile** of all
+  enumerated subsets and is top-decile on **15/19** cells.
+- **`cusum_max_spilled` — the Step-181 gate pass — does NOT replicate.** Fused as a 6th view over
+  GOOD_5 across the 19 cells it is worth **−0.02pp on average** and is significantly *negative* on
+  7 cells vs positive on 4. The Step-181 result (+1.13pp, CI excluded 0) was a single MATH-500 cell
+  and does not generalize. Treat it as cell-specific, not a new default view.
+- **`varentropy` is a genuine new candidate.** +1.12pp macro over GOOD_5 (73.28 → **74.40**),
+  significantly positive on 9/19 cells and negative on only 1, available on every cell (needs only
+  the already-saved top-50 logprobs), and individually strong (median AUROC 74.4 — on par with the
+  whole GOOD_5 fusion). It closes ~41% of the gap to the label-peeking ceiling, and it **repairs
+  GOOD_5's worst failure cell** (`internalstates_gsm8k_qwen25_7b` 62.8 → 68.5, the 5.3-percentile
+  outlier). `min_energy` is the only view with a higher mean (+1.13pp, 6/7 significant-positive)
+  but exists on just 7 cells (needs logsumexp capture).
+- GOOD_5's two genuine failures, for the record: `internalstates_gsm8k_qwen25_7b` (5.3 pctile,
+  −10.0pp vs in-cell oracle) and `lapeigvals_gsm8k_mistral24b` (43.0 pctile, −6.9pp).
+
+**Performance fix (`spectral_utils/fusion_utils.py`).** The first sweep stalled: with 10
+augmentation views, `augment_cell` runs ~10 views × 23 bases × a 1000-iteration paired bootstrap,
+each iteration calling `roc_auc_score` twice — ~12 min *per small cell*, and hours per K=10 cell
+(the whole run was headed for a day+). Added **`_fast_auc`**, an exact vectorized rank-based AUROC
+(Mann–Whitney U with tie-averaged ranks) and swapped it into the `boot_auc` /
+`paired_boot_delta_auc` inner loops. Verified **identical to `roc_auc_score` to 1e-16** over 200
+datasets including heavy ties — so no previously-reported number changes — while running ~**20×
+faster** (paired bootstrap n=1000 on 4504 samples: 1.1s vs ~22s). Point estimates still use
+`roc_auc_score`; only the bootstrap resamples take the fast path. This makes every future sweep and
+every bootstrap CI in the project cheaper.
+
+**Why**: the punch-list items were blocking a clean Phase-15/Item-5 story (A1 in particular left a
+9.3pp "unexplained regression" hanging over the headline MATH-500 number), and the subset/oracle
+conclusions were the last two results still resting entirely on the old 32-cell battery — they had
+never been tested on the newer, far more domain-diverse replication grid.
+
+**Result**: all 8 in-scope punch-list items closed; both stale-data analyses re-run on 19 new cells
+with their conclusions **confirmed and strengthened** — GOOD_5 survives as the default (beats
+honest LOCO selection by +1.09pp, near the supervised ceiling at +2.4pp), one previously "passing"
+view (`cusum_max_spilled`) is retired as non-replicating, and one new view (`varentropy`) is
+promoted to a real candidate for an updated default. Files: `scripts/{phase1_math500_discrepancy,
+streaming_replication,rag_scgpt_orientation,temperature_followups,build_repgrid_featcache,
+repgrid_oracle,test_attn_laplacian,score_lapeigvals}.py` (new), `scripts/{logistic_oracle,
+smoke_preset,run_inference}.py` + `spectral_utils/{subset_sweep,fusion_utils,model_utils}.py` +
+`cluster/presets.py` (extended); results under `results/phase1/`, `results/repgrid/`,
+`results/subset_sweep/` + `results/Subset_Sweep_Report.html`.
+
+**Post-session finding (drives the next task)**: A1's correction has NOT yet been propagated to the
+advisor-facing deliverables. The mislabeled **94.4 = T=1.5 (acc 0.28)** number still appears as the
+citable "reasoning headline" in `results/reasoning_benchmark.csv` and ~9 HTML reports
+(`Advisors_Action_Items_Report.html`, `action_items/{advisor_scrutiny,item4,item5,per_domain}.html`,
+`method_comparison_report.html`, `Spectral_LSML_Report.html`, `method_comparison_table1.csv`),
+several with a now-stale "Step-152 P2 unresolved" caveat that A1 actually resolves. The genuine
+T=1.0 operating point is GOOD_5 1-pass **85.1 [77.7,91.8]** at acc 0.70 (~90 fused). This one bug
+motivates a full number-provenance + label-integrity + published-baseline audit of every advisor
+HTML — specced in **`HANDOFF_report_verification.md`** (paste-ready prompt at the bottom). The
+`CLAUDE.md` "Best results" table already handles this correctly (separate T=1.0 90.0% / T=1.5 88.3%
+rows) and is the convention to mirror.
+
+Committed this session (Steps 181–182 unit) at Omri's request; the 82 MB of sweep `.npz` stay
+untracked per the Step-154 convention (CSVs are the tracked deliverable). The report-verification
+task itself is NOT started — it is the next session's job.
+
+---
+

@@ -80,6 +80,7 @@ PRESETS = {
         model="meta-llama/Llama-3.1-8B-Instruct", gated=True,
         dataset="gsm8k", split="test", n_samples=500,
         k=1, temps=[1.0], max_new=2048,   # U1: reasoning trace, do not truncate
+        capture={"attention": True, "attention_top_k": 100},  # LapEigvals reducer (Step-182)
         published={"method": "LapEigvals", "metric": "AUROC",
                    # SAME-MODEL anchors (GSM8K / Llama-3.1-8B, HISTORY Steps 66-69):
                    "value": 72.0,   # unsupervised AttentionScore (white-box, no labels) — our head-to-head Y
@@ -87,9 +88,19 @@ PRESETS = {
                    "cross_model": 92.5,  # supervised probe on Mistral-Small-24B (cross-model, NOT comparable)
                    "model_note": "GSM8K/Llama-3.1-8B: unsup AttentionScore 72.0, sup probe 87.2. "
                                  "92.5 is the paper's cross-model Mistral-Small-24B supervised number."},
-        notes="capture_attention deferred (NotImplemented). gsm8k_prompt is the boxed "
-              "CoT prompt, not LapEigvals Listing-5 — note when citing. Same-model unsup "
-              "AttentionScore=72.0 is the fair head-to-head Y for our unsupervised L-SML.",
+        notes="capture_attention NOW LIVE (Step 182 reducer, scripts/test_attn_laplacian.py "
+              "PASS): one extra teacher-forced forward pass -> attn_lap_eigvals [L,H,100] + "
+              "attn_diag_logmean [L,H]. Offline: scripts/score_lapeigvals.py builds the paper's "
+              "OWN supervised Y (top-k eigvals -> PCA-512 -> balanced LR 5-fold CV) AND an "
+              "unsupervised AttentionScore from attn_diag_logmean, so the cell finally carries a "
+              "self-reproduced LapEigvals number, not just the cited 72.0/87.2. THIS IS A RE-RUN: "
+              "the current fetched cache has no attention -> archive it (mv *_noattn) before "
+              "re-fetch. gsm8k_prompt is the boxed CoT prompt, not LapEigvals Listing-5 — note "
+              "when citing. Same-model unsup AttentionScore=72.0 stays the fair head-to-head Y "
+              "for our unsupervised L-SML. MEMORY: attention capture on 8B at T<=2048 peaks ~20GB "
+              "(eager maps, all layers) — B200-sized, verify no OOM at the N=30 pilot before full. "
+              "The other lapeigvals_gsm8k_* cells stay capture-free until this one validates on GPU "
+              "(24B would need far more; flip per-cell after checking peak mem).",
     ),
 
     # 3. Energy baselines (EPR / Semantic Energy / Spilled Energy) + LapEigvals on a
@@ -661,6 +672,47 @@ PRESETS = {
               "confound and the class-starvation failure mode from Steps 41/42; the eos_token_id fix "
               "addresses the distinct degenerate-loop failure mode found in this session's pilot. "
               "is_correct_aime24 grader.",
+    ),
+
+    # ── Punch-list cells (HANDOFF_punchlist_and_reruns.md, staged 2026-07-14) ──────
+
+    # Item 6 — second cell for the Step-174 Item-5 fusion result. MATH-500/Qwen-Math-7B
+    # showed L-SML 1-pass x answer-agreement SC K=5 -> 95.2 [91.8,98.0] (+10.1pp over the
+    # best single arm, rho +0.23). Single-cell so far. This cell mirrors the Phase-15
+    # protocol (K same-T raw passes, full rich-save schema) on GSM8K/Llama-8B, where the
+    # fresh 1-pass GOOD_5 L-SML arm is already known (0.815, lapeigvals_gsm8k_llama8b).
+    "fusion_gsm8k_llama8b_k5": _preset(
+        paper="internal — Item-5 fusion replication (HISTORY Steps 174/181)",
+        model="meta-llama/Llama-3.1-8B-Instruct", gated=True,
+        dataset="gsm8k", split="test", n_samples=500,
+        k=5, temps=[1.0], max_new=2048,
+        notes="NOT a competitor cell — no published Y. Offline rescore mirrors "
+              "scripts/rescore_phase15_selfconsistency.py: answer-agreement SC over the "
+              "K=5 same-T passes, fused with the 1-pass L-SML GOOD_5 arm; gate = fused "
+              "beats best single arm by >=1pp with CI excluding 0. K=5 at T=1.0 exactly "
+              "(never mix temperatures — Step 158: diversity hurts -5.3pp). Expected acc "
+              "~0.72 (in band) from the K=1 sibling cell.",
+    ),
+
+    # Item 7 — verbalized confidence on a 7B+ instruct model. The Step-131 null result
+    # (model ignored the instruction) is only known on Qwen2.5-Math-1.5B; flagged
+    # "expected to work on 7B+, untested" ever since. One-pass elicitation via
+    # prompt_suffix; spectral capture unchanged, so the same trace also carries L-SML.
+    "verbconf_gsm8k_llama8b": _preset(
+        paper="internal — verbalized-confidence 7B+ test (HISTORY Step 131 follow-up)",
+        model="meta-llama/Llama-3.1-8B-Instruct", gated=True,
+        dataset="gsm8k", split="test", n_samples=500,
+        k=1, temps=[1.0], max_new=2048,
+        prompt_suffix='\n\nAfter your final boxed answer, end with one extra line '
+                      '"Confidence: X" where X is an integer 0-100 giving your '
+                      'confidence that the answer is correct.',
+        notes="Offline scoring: spectral_utils.baselines.parse_verbalized_confidence on "
+              "full_text (label-style regex first, last-integer fallback) -> report parse "
+              "rate, VC AUROC, and rho(VC, GOOD_5 L-SML) for fusion viability (Extension B "
+              "check). Grader unaffected by the trailing Confidence line: is_correct_gsm8k "
+              "extracts \\boxed{} first and the fallback is pattern-anchored, not "
+              "last-number (verified + smoke fixture). If parse rate < ~0.7 at pilot, the "
+              "Step-131 null extends to 7B+ and that is the reportable outcome.",
     ),
 }
 

@@ -23,6 +23,7 @@ Shortcut: type `/session-start` to run the full initialization sequence automati
 | `/aircc-submit` | Submit an inference job to the AIRCC cluster (sync code + sbatch + job id) |
 | `/aircc-status` | Check AIRCC job state — squeue/sacct + log tail + verdict |
 | `/aircc-fetch` | Fetch finished cluster results + validate the rich-save pkl schema |
+| `/paper-digest` | Read/re-read a paper under `papers/` — checks the cache (`papers/index.md`) first, only extracts + digests if not already cached |
 
 ---
 
@@ -336,11 +337,17 @@ Do **not** duplicate information between Research_Directions.md and HISTORY.md. 
 
 ## Research papers
 
-When a PDF appears in the working directory or the user references a paper:
-1. Read it with the `Read` tool (specify pages for large PDFs — max 20 per call).
-2. Extract: (a) core method/finding, (b) connection to our spectral pipeline, (c) usable benchmarks, code, or hyperparameters.
-3. Append a HISTORY.md step: `### Step N — [Paper title]: assessed`.
-4. If the paper changes the roadmap, update `PROGRESS.md` and `Research_Directions.md`.
+Papers live in `papers/`. **Check `papers/index.md` first** — if a paper is already
+`digested`, read `papers/digests/<slug>.md` (and `papers/extracted/<slug>.md` for exact
+quotes) instead of re-reading the PDF from scratch.
+
+If it's not cached yet: follow `skills/paper-digest/SKILL.md` (extract → digest → index),
+or just run `/paper-digest`. Same procedure whether you're Claude Code or antigravity/Gemini
+— the skill is mirrored to `.gemini/skills/paper-digest/` for exactly that reason.
+
+If the paper changes the roadmap, still update `PROGRESS.md` and `Research_Directions.md`.
+A substantive new read is worth a HISTORY.md step (title + pointer to the digest file); a
+cache hit is not.
 
 ---
 

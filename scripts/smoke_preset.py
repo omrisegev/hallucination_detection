@@ -67,6 +67,8 @@ GRADER_FIXTURES = {
         ("The final answer is 42",              {"answer": "#### 42"},          True,  "final-answer-is fallback (LapEigvals prompt)"),
         ("<think>maybe 10</think>\n\nThe answer is \\boxed{42}",
                                                 {"answer": "#### 42"},          True,  "R1/Qwen3 <think> then boxed"),
+        ("The answer is \\boxed{42}\n\nConfidence: 85",
+                                                {"answer": "#### 42"},          True,  "trailing Confidence line (verbconf preset)"),
         ("",                                    {"answer": "#### 42"},          False, "empty generation"),
     ],
     # MATH-500 (is_correct_math): gold row carries the boxed solution; numeric/frac equivalence.
@@ -106,6 +108,19 @@ GRADER_FIXTURES = {
         ("",                                    _coqa_row("black"), False, "empty generation"),
     ],
 }
+
+# Verbalized-confidence parse fixtures (parse_verbalized_confidence, exact behavior):
+# labeled "Confidence: X" wins; without a label the LAST integer in [0,100] is taken —
+# which grabs the math answer itself (documented 1-pass hazard: parse RATE must be
+# measured on the labeled path only). Expected values are floats or nan.
+VC_FIXTURES = [
+    ("The answer is \\boxed{42}\n\nConfidence: 85", 0.85, "labeled confidence after boxed answer"),
+    ("Confidence: 100",                             1.00, "boundary value 100"),
+    ("confidence: 40",                              0.40, "lowercase label"),
+    ("The answer is \\boxed{42}",                   0.42, "no label -> last-int fallback grabs the math answer (known hazard)"),
+    ("Confidence: 150",                             float("nan"), "out-of-range -> NaN"),
+    ("",                                            float("nan"), "empty -> NaN"),
+]
 
 # Judge-output parse fixtures (grader-agnostic). The critical one is 'incorrect', which
 # CONTAINS 'correct' — the parser must test the negative first (_parse_decision does).
@@ -189,6 +204,31 @@ def check_judge(preset):
     return out
 
 
+def check_verbconf(preset):
+    """HARD (only when the preset elicits verbalized confidence via prompt_suffix):
+    parse_verbalized_confidence maps every canned response correctly. Imported lazily —
+    spectral_utils.baselines has a top-level torch import; SKIP if torch is absent."""
+    if "Confidence" not in (preset.get("prompt_suffix") or ""):
+        return [("verbconf", "n/a", SKIP, "preset does not elicit verbalized confidence")]
+    try:
+        from spectral_utils.baselines import parse_verbalized_confidence
+    except Exception as e:
+        return [("verbconf", "import", SKIP,
+                 f"baselines import failed locally ({type(e).__name__}) — torch needed")]
+    import math as _math
+    out = []
+    for text, expected, desc in VC_FIXTURES:
+        try:
+            got = parse_verbalized_confidence(text)
+            ok = (_math.isnan(got) if _math.isnan(expected)
+                  else abs(got - expected) < 1e-9)
+            out.append(("verbconf", desc, PASS if ok else FAIL,
+                        f"parsed={got} expected={expected}"))
+        except Exception as e:
+            out.append(("verbconf", desc, FAIL, f"raised {type(e).__name__}: {e}"))
+    return out
+
+
 def check_prompt(preset):
     """SOFT: mirror the driver's prompt construction (run_temp + generate_full). Needs
     `transformers` + tokenizer access; SKIP (not FAIL) if unavailable — the load itself is
@@ -228,7 +268,8 @@ def smoke_one(preset_id):
     preset = PRESETS[preset_id]
     print(f"\n=== {preset_id} | {preset['model']} | dataset={preset['dataset']} | "
           f"judge={preset.get('judge')} | raw_prompt={preset.get('raw_prompt')} ===")
-    rows = check_grader(preset) + check_judge(preset) + check_prompt(preset)
+    rows = (check_grader(preset) + check_judge(preset) + check_verbconf(preset)
+            + check_prompt(preset))
     hard_fail = 0
     for group, name, status, detail in rows:
         soft = group.startswith("prompt")                    # prompt group is best-effort

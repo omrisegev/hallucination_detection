@@ -1,0 +1,92 @@
+{
+ "legacy_vs_phase4": {
+  "Qwen2.5-Math-1.5B-Instruct_T1.0": {
+   "n": 300,
+   "acc": 0.4433,
+   "epr_auroc": 0.8558,
+   "phase4_T15_acc": 0.443,
+   "phase4_T15_epr": 0.856,
+   "matches_T15": true
+  },
+  "Qwen-Math-7B_T1.0": {
+   "n": 300,
+   "acc": 0.28,
+   "epr_auroc": 0.9662,
+   "phase4_T15_acc": 0.28,
+   "phase4_T15_epr": 0.966,
+   "matches_T15": true
+  },
+  "deepseek-math-7b-instruct_T1.0": {
+   "n": 300,
+   "acc": 0.1967,
+   "epr_auroc": 0.7079,
+   "phase4_T15_acc": 0.197,
+   "phase4_T15_epr": 0.708,
+   "matches_T15": true
+  },
+  "DeepSeek-R1-Distill-Llama-8B_T1.0": {
+   "n": 300,
+   "acc": 0.41,
+   "epr_auroc": 0.8211,
+   "phase4_T15_acc": 0.41,
+   "phase4_T15_epr": 0.821,
+   "matches_T15": true
+  },
+  "verdict": "ALL 4 legacy \"_T1.0\" cells match the Phase-4 T=1.5 table -> MISLABELED"
+ },
+ "fresh_T10": {
+  "n_raw": 200,
+  "n_valid": 200,
+  "acc": 0.705,
+  "good5_lsml": {
+   "auroc": 0.8506,
+   "lo": 0.7769,
+   "hi": 0.9184,
+   "flipped": true
+  },
+  "singles": {
+   "epr": 0.8507,
+   "low_band_power": 0.9114,
+   "sw_var_peak": 0.9082,
+   "cusum_max": 0.9267,
+   "spectral_entropy": 0.2611
+  },
+  "trace_len_mean": 817.9,
+  "trace_len_median": 496.5,
+  "neg_len_auroc": 0.9252,
+  "ref_good5": 0.851
+ },
+ "legacy_qwen7b": {
+  "n": 300,
+  "acc": 0.28,
+  "good5_lsml": {
+   "auroc": 0.9444,
+   "lo": 0.9007,
+   "hi": 0.9771,
+   "flipped": true
+  },
+  "ref_sweep_good5": 0.9444
+ },
+ "fresh_T15": {
+  "n_raw": 200,
+  "n_valid": 200,
+  "acc": 0.275,
+  "good5_lsml": {
+   "auroc": 0.8782,
+   "lo": 0.7968,
+   "hi": 0.9487,
+   "flipped": true
+  },
+  "epr": 0.9347,
+  "trace_len_mean": 1532.4
+ },
+ "verdict": [
+  "The 85.1-vs-94.4 \"discrepancy\" is a temperature mislabel, not a pipeline regression:",
+  "- math500_res.pkl cell keys say _T1.0 but carry the Phase-4 (Step 54) T=1.5 runs",
+  "  (all 4 cells match that table on acc AND epr AUROC).",
+  "- 94.4 is therefore a T=1.5 / 28%-accuracy / ~800-tok operating point.",
+  "- The genuine legacy T=1.0 anchor is Phase 5 (Step 56): acc 0.687, best single ~0.868,",
+  "  supervised-subset fusion 0.900 \u2014 fully consistent with the fresh unsupervised",
+  "  1-pass GOOD_5 0.851 at acc 0.705."
+ ]
+}
