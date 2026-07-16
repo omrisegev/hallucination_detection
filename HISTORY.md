@@ -6170,3 +6170,201 @@ still untracked as of this step.
 
 ---
 
+### Step 184 — Fixed the 94.4 MATH-500 mislabel across every report; added the GOOD_6 subset-ladder + anchor-robustness comparison arms
+
+**What**: Two threads, both scoped to the 19-cell replication grid, fixed and regenerated through
+the whole report chain (never hand-edited generated HTML).
+
+*Task A — 94.4 mislabel.* Per `HANDOFF_report_verification.md` and
+`results/phase1/math500_discrepancy.json` (re-ran this session, reproduces byte-for-byte): 4 legacy
+`math500_res.pkl` cache keys (`Qwen-Math-7B_T1.0`, `Qwen2.5-Math-1.5B-Instruct_T1.0`,
+`deepseek-math-7b-instruct_T1.0`, `DeepSeek-R1-Distill-Llama-8B_T1.0`) all actually hold Phase-4
+T=1.5 data. Fixed at the source: `scripts/method_comparison.py` gained a documented
+`MISLABELED_KEYS` correction map (regenerated `method_comparison_table1/2/4.csv`);
+`results/reasoning_benchmark.csv` now carries both the genuine T=1.0 anchor (GOOD_5 85.1 [77.7,
+91.8], acc 0.705) and the T=1.5/acc-0.28 operating point (94.4) as separate, explicitly labeled
+rows — for both the Qwen2.5-Math-7B AND the R1-Distill-Llama-8B cell (the audit caught a second,
+independently-mislabeled headline claim on the same 4-cell list that wasn't in the original scope).
+Propagated the same relabel through 10 `results/subset_sweep/*.csv` files, 4 manifest+npz pairs
+(renamed `_T1.0`→`_T1.5`, `subset_sweep_report.py` reads cell identity from the manifests, not the
+CSVs), `phase12_signfix.json`, and 3 hand-written HTML pages. Full grep audit for unlabeled
+94.4/0.944 across every `results/**/*.html`/`*.csv` came back clean — every remaining hit is
+explicitly qualified as the T=1.5 operating point. Also fixed two self-introduced regressions
+during the propagation (a blind string-replace that over-matched a same-named GPQA row; a
+hardcoded `LEGACY_MODEL_NAMES` lookup dict that briefly broke `per_domain_breakdown.html`'s legacy
+MATH-500 rows) and one pre-existing report bug found during the audit
+(`action_items_report.py`'s "CI-clear win" table was presenting a comparison against a
+`citable=no` competitor number as a clean win — added a citability check + warning badge).
+
+*Task B — subset-size ladder + anchor-orientation robustness.* Omri wanted the report to show every
+subset size the latest sweep validated as good/stable (not just one new GOOD_6 row), and to
+surface that anchor-orientation choice is a second known source of result variability — both
+scoped to the *same* cell-set (19-cell replication grid only), since GOOD_6 (`GOOD_5 +
+varentropy`) needs `top_k_logprobs`, an AIRCC-era-only capture field the old pre-AIRCC battery
+never had at all. Added `GOOD_6` to `spectral_utils/subset_sweep.py`'s `REFERENCE_SUBSETS` and to
+`score_repgrid.py`'s `BASE_SUBSETS` (via a file-local `load_repgrid_cell_ext` that merges
+`logprob_features_extended`, without touching the shared `repgrid_scoring.py` the concurrent EDIS
+session also depends on). Re-scored all 20 canonical cells in the background (`--cells`
+explicitly excluding `edis_*`/reject/partial dirs) — landed cleanly, zero `edis_*` contamination.
+Added a second scoring pass per cell with `anchor="cusum_max"` (score_subset already took an
+`anchor` param) alongside the default `epr` anchor, as a new `anchor` column (backward-compatible,
+defaults to `"epr"` on every pre-existing row). Independently cross-checked every new GOOD_6 value
+via `build_repgrid_featcache.py`'s validation gate (separate code path, same `logprob_features_extended`
+input) — **Δ=0.0000 on all 19 non-pilot cells**. Wired consensus_4/GOOD_5/GOOD_6 into a new
+same-footprint table + grouped-bar figure in `advisor_report.py` and `action_items_report.py`
+(deliberately *not* added to the pre-existing `closed_subset_html`/`subset_by_domain.csv` table,
+which mixes old+new battery cells and would have silently compared different cell-sets per
+column); wired the anchor-robustness comparison into a new table + dumbbell-chart figure in
+`repgrid_report.py`. All new "ours vs published" tables (`headline`, `whatis_*`) now go through a
+new `epr_anchor_rows()` filter so the alternate-anchor rows can never silently double-count into
+tables that assume one row per (cell, subset, method).
+
+**Why**: The 94.4 fix was the top of PROGRESS.md's priority list going into this session. The
+subset-ladder/anchor work started as "just add GOOD_6" but Omri broadened it twice: first to show
+the validated size ladder generally (not one arm), then to require every subset in the comparison
+share one cell-set after asking why the report doesn't reuse the old ~30-cell battery (answer:
+GOOD_6's extra feature structurally cannot run there). The anchor-robustness check exists because
+Step 170/182 each touched anchor-choice sensitivity in isolation, and the concurrent EDIS session's
+Step 183 just found real anchor fragility on a different domain — this was the first time either
+alternate-anchor swap had been checked on the 19-cell grid itself.
+
+**Result**: Anchors **agree exactly (Δ=0.0000) on 18/19 non-pilot cells** for both GOOD_5 and
+GOOD_6 — only the n=30 CoQA pilot cell disagrees (−6.7pp GOOD_5, −12.6pp GOOD_6), consistent with
+a small-N noise effect rather than a systematic fragility on this grid; this extends but does not
+resolve the concurrent session's different-domain finding. Subset-size ladder (19-cell macro,
+epr anchor, pilot excluded): consensus_4 **64.0** → GOOD_5 **73.3** → GOOD_6 **74.4**, GOOD_6
+significantly positive on 15/19 cells, negative on 2. Two more real bugs were caught during
+verification and fixed before regenerating: (1) the pre-existing `results/repgrid/subset_by_domain.csv`
+turned out to be stale — it covers only 11/20 current grid cells (missing 8 GSM8K cells + the CoQA
+pilot) — so the new ladder table's domain lookup was rebuilt from each row's own `dataset` field
+(`report_figs.cell_domain_map`) instead of depending on that file; (2) the takeaway prose in two
+pages had been hand-typed from the plan's draft numbers (72.70/9/19/1) rather than computed from
+the regenerated CSV, and disagreed with the real values (64.0/15/19/2) — fixed to interpolate
+computed stats instead of hardcoded text, the same "never hand-type a headline number" rule this
+session was itself enforcing for the 94.4 fix. All 9 `results/action_items/*.html` pages plus
+`Advisors_Action_Items_Report.html` and `Replication_Grid_Report.html` regenerate with the
+guardrail scan clean.
+
+**Files changed**:
+- `results/reasoning_benchmark.csv`, `results/phase1/math500_discrepancy.json` (re-verified, unchanged)
+- `scripts/method_comparison.py` (`MISLABELED_KEYS`) + regenerated `results/method_comparison_table{1,2,4}*.csv`
+- `results/repgrid/phase12_signfix.json`, 10 `results/subset_sweep/*.csv`, 4 manifest+npz pairs (renamed)
+- `results/Spectral_LSML_Report.html`, `results/method_comparison_report.html`, `results/Phase12_Corrected_Explainer.html`
+- `spectral_utils/subset_sweep.py` (`GOOD_6`), `scripts/score_repgrid.py` (`GOOD_6`, `load_repgrid_cell_ext`, anchor param + column)
+- `scripts/build_repgrid_featcache.py` (`GOOD_6` gate cross-check)
+- `scripts/repgrid_report.py` (`epr_anchor_rows`, `anchor_robustness`, section 6)
+- `scripts/report_figs.py` (`cell_domain_map`, `fig_subset_ladder`, `fig_anchor_sensitivity`, `_load_lu_raw`/`_load_all` anchor filter)
+- `scripts/advisor_report.py` (`subset_ladder_html`, anchor filter on `LU`/`CELL_ROWS`)
+- `scripts/action_items_report.py` (`good6_lift_rows`, GOOD_6 section, anchor filter, citability-check fix)
+- `results/repgrid/scores_lsml_upcr.csv`, `results/repgrid/anchor_robustness.csv` (new), `headline_X_vs_Y.csv`, `whatis_*.csv`
+- `results/Advisors_Action_Items_Report.html`, `results/Replication_Grid_Report.html`, `results/action_items/*.html` (regenerated)
+
+**Follow-ups** (not done this session — flagged, not silently dropped):
+1. Task A2 (protocol prose + matching plots + worked Q→A examples across all ~14 advisor pages,
+   per Omri's content-quality-bar feedback) is deferred — the new Task B tables/figures got inline
+   protocol notes, but the full page-by-page rewrite is a separate-session-sized effort.
+2. The B3-extension idea (a multi-anchor majority-vote panel instead of one alternate anchor,
+   operationalizing the same "majority beats random" assumption L-SML itself relies on) is noted
+   in the plan file but not built — the single-alt-anchor check found near-zero disagreement on
+   this grid, so the extra machinery isn't justified by the data yet.
+3. A GOOD_6 row for the supervised LR-oracle comparison (item 2) needs a separate
+   `logistic_oracle.py` rerun.
+4. `results/repgrid/subset_by_domain.csv` is confirmed stale (11/20 cell coverage) — still used
+   as-is by the pre-existing `closed_subset_html` old+new table; regenerating it properly is a
+   separate, pre-existing-bug follow-up, not part of this session's scope.
+
+---
+
+### Step 185 — Feature-subset selection research memo: literature survey + assumptions audit (Jul-2026 meeting action item)
+
+**What**: Research-only session (no `spectral_utils` changes, no pilot, no GPU) answering the Jul-2026
+Ofir/Bracha meeting's action item: add a new algorithmic contribution, candidate = a principled,
+label-free, in-pipeline **feature-subset selection step** replacing the manual grid search over macros
+(GOOD_5/GOOD_6/top_macro_5/…). Conformal calibration (Bracha's other mention) stays explicitly parked.
+Mined empirical evidence from prior validation runs (Steps 134–136, 151, 153, 181, 184;
+`results/subset_sweep/*.csv`, `results/repgrid/headline_X_vs_Y.csv`); pulled verbatim assumption quotes
+from `papers/extracted/` for SML/L-SML/U-PCR/FUSE; ran 4 parallel web-research threads (A: Ofir
+Lindenbaum's feature-selection line, B: Boaz Nadler portfolio + SML-family follow-ups, C: tabular
+foundation-model frontier, D: assumption diagnostics + per-instance adaptive selection), each grounded
+with fetch-verified citations; spot-checked 4 of the most decision-relevant citations myself via
+WebFetch. Synthesized everything into `docs/research_notes/feature_subset_selection_landscape.md`.
+
+**Why**: 46 registered fusion features now exist (`CANONICAL_POOL`), and no fixed macro wins
+consistently across (dataset, model, temperature) cells — GOOD_5, the documented main configuration,
+wins only 3/40 per-cell picks. The user's framing (turn 2 of this session): this needs to become an
+in-pipeline, data-driven step, not another manual macro. FUSE's own move — a label-free
+assumption-violation statistic turned into a selection objective — is the model to follow.
+
+**Result**:
+- **The prize is real but only reachable in-cell**: in-cell oracle subset selection beats fixed GOOD_5
+  by +7.6pp macro AUROC (0.747 vs 0.671, 51-cell sweep), concentrated in RAG (+14.1pp) and GPQA
+  (+10.2pp). But LOCO (leave-one-cell-out) subset transfer is flat (0.664 vs 0.674) — a domain lookup
+  table cannot capture the prize; the selection signal must come from something computable label-free
+  inside the cell.
+- **The pipeline already has label-free feature-viability machinery to build on**:
+  `_build_cell_context` (`subset_sweep.py:319-380`) already drops features per-cell via label-free
+  constant/saturated tests, with a clear domain pattern (STFT features drop on short-answer QA/RAG,
+  `trace_length` drops on long-CoT reasoning) — direct precedent for generalizing single-feature
+  viability into subset-level fitness.
+- **The inherited ρ≥0.75 correlation filter is empirically the wrong diagnostic for continuous L-SML**:
+  Step 153 found violating subsets score *higher* AUROC on average (0.600 vs 0.556) — clustering
+  absorbs dependence rather than being hurt by it. Any new violation-statistic design must be checked
+  against this null result, not assumed correct by analogy to FUSE.
+- **U-PCR and continuous L-SML are not the same algorithm** — answers a standing question. Same
+  Nadler lineage (both descend from the rank-1-covariance idea in Parisi et al. 2014), but different
+  structural models of the off-diagonal covariance (multiplicative rank-1 `v⊗v` vs. additive
+  `ρᵢ+ρⱼ−g²`), different estimators, different weight semantics, different dependence handling.
+  `results/subset_sweep/method_grid.csv` (9,719 subset-fits) shows L-SML wins 62% of subsets overall
+  but the split is domain-dependent (GSM8K 90% L-SML-favoring vs. GPQA/RAG ~53%, near coin-flip) —
+  which structural model fits better is itself a candidate label-free per-cell diagnostic.
+- **Thread A identified Ofir's "trace of a sub-matrix" lead**: the Gated Laplacian objective
+  (Lindenbaum, Shaham, Svirsky, Peterfreund, Kluger — NeurIPS 2021, arXiv:2007.04728) scores a gated
+  feature sub-matrix `X̃` by `Tr[X̃ᵀ L_X̃ X̃]` — label-free, subset-level, built for exactly this
+  small-n/fixed-pool regime. Spot-checked by direct fetch this session.
+- **Thread B closed a citation gap**: Parisi, Strino, Nadler, Kluger, "Ranking and combining multiple
+  predictors without labeled data," PNAS 2014, has an archivable arXiv preprint (arXiv:1303.3257) —
+  the lineage root of SML/L-SML/U-PCR/FUSE, previously uncached. Also surfaced Kritchman-Nadler rank
+  estimation (IEEE TSP 2009 / Chemometrics 2008) as K-selection prior art, with an explicit small-n
+  caveat (Tracy-Widom asymptotics assume large n,m at a stable ratio; ours is n≈100–500, m≤46).
+- **Thread C**: most tabular foundation models (TabPFN v2, CARTE, TP-BERTa, XTab, FT-Transformer) are
+  fundamentally supervised — useful for architectural concepts (attention-as-soft-feature-weighting,
+  amortized meta-learning across small tasks) but not directly adoptable. Concrete Autoencoders
+  (Balın-Abid-Zou, ICML 2019) flagged as the most directly adoptable unsupervised, fixed-pool,
+  small-n primitive. A 2026 "Worse-than-Random" result (arXiv:2605.22973) mandates benchmarking any
+  new selector against random-subset fusion as a floor.
+- **Thread D**: FUSE's Ŝ statistic (Prop. 2.4) is the most directly reusable label-free violation
+  objective; vanishing-tetrad tests (Bollen-Ting 1998) and the Ahn-Horenstein eigenvalue-ratio test are
+  cheaper pre-screens for the rank-1 assumption specifically; MetaOD (Zhao-Rossi-Akoglu, NeurIPS 2021)
+  is the closest published analog to the dual-use cross-cell router idea (D5) — selects an unsupervised
+  detector per new dataset from meta-features + historical performance, zero deploy-time labels.
+- **Five candidate pipeline-step designs (D1–D5)** proposed, none piloted: D1 assumption-violation-
+  minimizing subset search (lowest risk — reuses existing L-SML/U-PCR residual code); D2 unsupervised
+  gated FS pre-fusion step (flagged risk: Step-151's direction-free-scorer finding); D3
+  rank/eigengap-guided grouping; D4 FUSE-style transformation search; D5 the user's dual-use
+  data-signature router, with two access-tier flavors made explicit (in-cell label-free vs. cross-cell
+  learned-at-train-time-only) since flavor (ii) is a different information-access tier than the rest of
+  the pipeline.
+- Answered the user's standing question inline in the memo (§2.4): confirmed the U-PCR/continuous-SML
+  distinction; confirmed the dual-use "features pick the subset, subset picks the label" idea was
+  understood correctly (now D5); incorporated prior validation-run evidence throughout rather than
+  treating this as a from-scratch literature exercise; reframed the tabular-data thread from
+  "papers by Ofir" to the tabular-foundation-model frontier per the user's turn-3 correction.
+
+**Deliverables**: `docs/research_notes/feature_subset_selection_landscape.md` (new — problem statement
++ evidence, per-method assumptions audit with primary-source quotes, 4 annotated bibliographies,
+5 candidate designs, recommendation + open questions for Ofir/Bracha); `Research_Directions.md`
+("Meeting Action Items — Jul 2026" section + new "Extension G — Automatic Feature-Subset Selection"
+entry + priority-order update).
+
+**Verification**: grepped both new/changed files for banned terminology (clean). Every cited paper
+carries an arXiv ID/DOI/URL; 4 of the highest-stakes citations (Gated Laplacian, Parisi 2014 PNAS,
+MetaOD, TabPFN v2) were independently re-verified by direct fetch this session, beyond the sub-agents'
+own fetch-based verification; items the agents could not verify are tagged UNVERIFIED in the memo
+rather than presented as fact (a lesson from the Step 176/179 Gemini fabrication history).
+
+**Not done this session** (explicit non-goals, per user scoping): no `spectral_utils` code changes, no
+diagnostic pilot/implementation, no conformal work, no advisor-facing HTML, no GPU/cluster jobs. The
+`var_y=0.25` hardcoded-constant audit item (memo §2.3) is flagged but not fixed.
+
+---
+

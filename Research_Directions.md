@@ -268,6 +268,20 @@ Items 2/4/5/6 results: `results/repgrid/phase15_followups.json` (Step 181). A co
 
 ---
 
+## Meeting Action Items — Jul 2026 (Ofir, Bracha)
+
+*Ofir and Bracha were pleased with the results shown; FUSE is not considered blocking. The one
+concrete action item from this meeting: add a new contribution to the algorithm, and the chosen
+candidate is a principled, label-free, in-pipeline **feature-subset selection step** — see Extension G
+below. Bracha also raised conformal calibration; **explicitly parked** (still Extension A, unchanged
+priority).*
+
+| # | Action | Status |
+|---|--------|--------|
+| 1 | Feature-subset selection step: literature survey (Lindenbaum FS line, Nadler portfolio, tabular foundation-model frontier, assumption diagnostics) + assumptions audit + candidate designs | ✅ Research memo complete (Step 185) — `docs/research_notes/feature_subset_selection_landscape.md`; see Extension G |
+
+---
+
 ## Future Extensions
 
 Not the current priority. Ordered by proximity to the main thesis.
@@ -329,6 +343,40 @@ Apply spectral features to visual language models; split visual-description toke
 4. Method: per-budget refusion is sign-unstable (anchor_orient mitigates; 16-feat still erratic) → fit fusion weights once at a reference budget offline, reuse across budgets.
 5. Advisor decision: pursue hybrid framing vs fold streaming in as a thesis section.
 
+### Extension G — Automatic Feature-Subset Selection (meeting priority, Jul 2026)
+
+**Status**: Research memo complete (Step 185), no implementation/pilot yet. **This is the current
+top priority for a new algorithmic contribution** (per the Jul-2026 meeting action item above).
+
+**Motivation**: 46 registered fusion features (`CANONICAL_POOL`); no fixed macro wins consistently —
+GOOD_5, the documented main configuration, wins only 3/40 per-cell picks in the repgrid headline
+comparison. In-cell oracle subset selection is worth **+7.6pp macro AUROC** over fixed GOOD_5 (0.747
+vs 0.671, 51-cell sweep), concentrated in RAG (+14.1pp) and GPQA (+10.2pp) — but LOCO (leave-one-cell-
+out) subset transfer is flat (0.664 vs 0.674), so **the prize is only reachable by an in-cell,
+label-free selection mechanism**, not a domain lookup table.
+
+**Approach**: follow the FUSE precedent (Candès et al., arXiv:2604.18547) — turn a label-free
+assumption-violation statistic into a selection objective, the same move FUSE makes for verifier
+binarization thresholds. Full assumptions audit (SML/L-SML/U-PCR/FUSE), 4-thread literature survey,
+and 5 candidate pipeline-step designs (D1 assumption-violation-minimizing subset search — lowest
+risk/highest priority; D2 unsupervised gated FS pre-fusion step; D3 rank/eigengap-guided grouping; D4
+FUSE-style transformation search; D5 Omri's dual-use data-signature router, two access-tier flavors)
+are in the memo. Key finding: **U-PCR and continuous L-SML are not the same algorithm** — different
+structural covariance models (multiplicative rank-1 vs. additive) — and which one fits a given cell
+better is itself a candidate label-free diagnostic (domain-dependent: L-SML dominant on GSM8K 90% win
+rate, near coin-flip with U-PCR on GPQA/RAG 53%).
+
+**Full memo**: `docs/research_notes/feature_subset_selection_landscape.md` — problem statement +
+evidence, per-method assumptions audit with primary-source quotes, annotated bibliographies (Thread A:
+Lindenbaum's Gated-Laplacian trace criterion identified as the "sub-matrix trace" method; Thread B:
+Nadler portfolio incl. Parisi 2014 PNAS lineage-root citation gap closed, Kritchman-Nadler rank
+estimation; Thread C: tabular foundation-model concepts, Concrete Autoencoders flagged as the most
+directly adoptable primitive; Thread D: FUSE's Ŝ statistic, vanishing-tetrad tests, MetaOD as the
+closest per-instance-router precedent), candidate designs, open questions for Ofir/Bracha.
+
+**Next steps**: resolve the open questions in the memo (§5) with Ofir/Bracha, then pilot D1 (lowest
+implementation risk, reuses existing L-SML/U-PCR residual code) on the 19-cell replication grid.
+
 ### Extension F — Step-Level Error Localization (ProcessBench / MR-GSM8K) — DEFERRED (2026-07-10)
 
 The July-2026 SOTA survey recommends a process-level benchmark as a secondary evaluation for
@@ -354,6 +402,7 @@ error localization.
 *(Single authoritative list — updated 2026-07-02, post streaming pilot Step 148)*
 
 **Now — no GPU needed**
+0. ~~Feature-subset selection literature survey + assumptions audit (Extension G)~~ ✅ done (Step 185) — **next**: resolve open questions with Ofir/Bracha, then pilot D1 on the 19-cell replication grid (current top priority per the Jul-2026 meeting)
 1. ~~L-SML literature search (Item 1)~~ ✅ done (Step 139)
 2. ~~Logistic regression oracle `scripts/logistic_oracle.py` (Item 2)~~ ✅ done (Steps 142–143, 147)
 3. ~~Streaming pivot pilot (Extension E)~~ ✅ done (Step 148 — G1 PASS / G2 FAIL; earliest-prefix edge is the surviving thread)
