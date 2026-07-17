@@ -50,7 +50,11 @@ def registered():
     return dict(_REGISTRY)
 
 
-from . import a1_residual  # noqa: E402,F401  (registers itself on import)
+# Selectors developed inline on master (register on import).
+from . import a1_residual       # noqa: E402,F401  residual-guided (Nadler/Kluger)
+from . import classical_fs      # noqa: E402,F401  Laplacian Score / SPEC / MCFS
+from . import simple_stats      # noqa: E402,F401  random / MAD / kurtosis / decorr
+from . import reference_macros  # noqa: E402,F401  GOOD_5/6, STABLE_H9, ... baselines
 
 # Worktree-developed selector modules — pre-stubbed so branch merges never
 # conflict on this file. Absent modules are simply skipped.

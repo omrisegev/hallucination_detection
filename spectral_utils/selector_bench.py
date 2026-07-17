@@ -328,6 +328,9 @@ def bench_selector(selector_name, pool_mode, data_root, npz_dir, out_csv,
             cache = selector_cache_from_table(table, ctx.pool_bits)
             ucell = UnlabeledCell.from_context(ctx)
             rng = _cell_rng(seed, ctx.domain, ctx.cell_key)
+            # random floor depends only on (cell, size) — compute once, reuse
+            # across all of this cell's variants (was the c46 arm's bottleneck)
+            ctx._floor_cache = {}
 
             t0 = time.time()
             try:
@@ -397,9 +400,16 @@ def _evaluate_selection(ctx, table, sel, pool_mode, rand_R=32, rng=None):
         row['pctile_within_size'] = pctile_within_size(
             table, len(cols), row['auroc'])
     elif is_default and table is None and np.isfinite(row['auroc']):
-        floor = sample_random_live(ctx, len(cols), R=rand_R, rng=rng)
-        if len(floor):
-            row['rand_med'] = float(np.median(floor))
+        cache = getattr(ctx, '_floor_cache', None)
+        size = len(cols)
+        if cache is not None and size in cache:
+            med = cache[size]
+        else:
+            floor = sample_random_live(ctx, size, R=rand_R, rng=rng)
+            med = float(np.median(floor)) if len(floor) else float('nan')
+            if cache is not None:
+                cache[size] = med
+        row['rand_med'] = med
     return row
 
 
