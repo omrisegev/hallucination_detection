@@ -435,11 +435,13 @@ def _residual_lsml(R: np.ndarray, c: np.ndarray) -> float:
     return float(resid)
 
 
-def _eigengap_K(s: np.ndarray, max_K: int = 8) -> int:
+def _eigengap_K(s: np.ndarray, max_K: int = 8, return_gaps: bool = False):
     """
     Eigengap heuristic on the normalized Laplacian of similarity matrix s.
     Returns K maximizing the gap between consecutive smallest Laplacian
-    eigenvalues (K = index of largest gap + 1, with K ≥ 2).
+    eigenvalues (K = index of largest gap + 1, with K ≥ 2). With
+    ``return_gaps=True`` also returns the gap vector (selector-bench
+    diagnostic, Step 186+).
     """
     m = s.shape[0]
     deg = s.sum(axis=1) + 1e-12
@@ -448,10 +450,14 @@ def _eigengap_K(s: np.ndarray, max_K: int = 8) -> int:
     L_norm = np.eye(m) - S_norm
     eigvals = np.sort(np.linalg.eigvalsh(L_norm))[:max_K + 1]
     gaps = np.diff(eigvals)
-    return max(int(np.argmax(gaps)) + 1, 2)
+    K = max(int(np.argmax(gaps)) + 1, 2)
+    if return_gaps:
+        return K, gaps
+    return K
 
 
-def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'residual'):
+def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'residual',
+                            return_curve: bool = False):
     """
     Paper 1 Algorithm 1: detect groups of dependent binary classifiers.
 
@@ -470,9 +476,15 @@ def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'res
         binary_classifiers: iterable of ±1 arrays, length n each.
         K_range:            iterable of K to try (default 2..min(m,8)).
         method:             'residual' or 'eigengap'.
+        return_curve:       if True, also return the per-K residual curve
+                            [(K, residual, assignment), ...] that the search
+                            already computes (selector-bench diagnostic,
+                            Step 186+; default False keeps the legacy 4-tuple).
 
     Returns:
         (best_K, assignment_c, residual_at_best_K, score_matrix_s)
+        or, with return_curve=True,
+        (best_K, assignment_c, residual_at_best_K, score_matrix_s, curve)
     """
     X = np.column_stack(binary_classifiers)
     m = X.shape[1]
@@ -492,12 +504,16 @@ def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'res
         try:
             c = _spectral_cluster_precomputed(s, K)
         except Exception:
-            return 1, np.zeros(m, dtype=int), float('inf'), s
-        return K, c, _residual_lsml(R, c), s
+            out = (1, np.zeros(m, dtype=int), float('inf'), s)
+            return out + ([],) if return_curve else out
+        r = _residual_lsml(R, c)
+        out = (K, c, r, s)
+        return out + ([(K, r, c)],) if return_curve else out
 
     if method != 'residual':
         raise ValueError(f"Unknown method {method!r}; use 'residual' or 'eigengap'.")
 
+    curve = []
     best_K, best_c, best_resid = None, None, float('inf')
     for K in K_range:
         try:
@@ -505,14 +521,18 @@ def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'res
         except Exception:
             continue
         r = _residual_lsml(R, c)
+        curve.append((K, r, c))
         if r < best_resid:
             best_resid, best_K, best_c = r, K, c
     if best_K is None:
-        return 1, np.zeros(m, dtype=int), float('inf'), s
-    return best_K, best_c, best_resid, s
+        out = (1, np.zeros(m, dtype=int), float('inf'), s)
+        return out + (curve,) if return_curve else out
+    out = (best_K, best_c, best_resid, s)
+    return out + (curve,) if return_curve else out
 
 
-def lsml_fuse(*binary_classifiers, K_range=None, method: str = 'residual'):
+def lsml_fuse(*binary_classifiers, K_range=None, method: str = 'residual',
+              groups=None):
     """
     Latent SML (L-SML) — Paper 1 Algorithm 2 (Jaffé-Fetaya-Nadler 2016).
 
@@ -527,6 +547,14 @@ def lsml_fuse(*binary_classifiers, K_range=None, method: str = 'residual'):
 
     All inputs must be binary ±1.  Real labels never enter this function.
 
+    Args:
+        groups: optional precomputed group assignment (int array, length m).
+            When given, step 1's spectral clustering is SKIPPED and this
+            assignment is used verbatim — the clustering-swap seam for
+            external group-discovery methods (selector bench, Step 186+).
+            K, residual, and score_matrix are still computed for the meta
+            dict so downstream consumers are unaffected.
+
     Returns:
         (fused_scores, meta_dict)
         meta_dict:
@@ -538,9 +566,20 @@ def lsml_fuse(*binary_classifiers, K_range=None, method: str = 'residual'):
     X = np.column_stack(binary_classifiers)
     n, m = X.shape
 
-    K, c, residual, s_mat = detect_dependent_groups(
-        binary_classifiers, K_range=K_range, method=method,
-    )
+    if groups is not None:
+        c = np.asarray(groups, dtype=int)
+        if len(c) != m:
+            raise ValueError(f"groups has length {len(c)}, expected m={m}")
+        R = np.cov(X.T)
+        if R.ndim == 0:
+            R = np.array([[float(R)]])
+        s_mat = _score_matrix_lsml(R)
+        K = len(np.unique(c))
+        residual = _residual_lsml(R, c)
+    else:
+        K, c, residual, s_mat = detect_dependent_groups(
+            binary_classifiers, K_range=K_range, method=method,
+        )
 
     virtual = []
     group_weights = []
@@ -576,7 +615,8 @@ def lsml_fuse(*binary_classifiers, K_range=None, method: str = 'residual'):
     }
 
 
-def lsml_continuous(*views, K_range=None, method: str = 'residual'):
+def lsml_continuous(*views, K_range=None, method: str = 'residual',
+                    groups=None):
     """
     Continuous L-SML — same group detection as lsml_fuse but skips binarization
     of virtual classifiers.
@@ -595,6 +635,11 @@ def lsml_continuous(*views, K_range=None, method: str = 'residual'):
         *views:   z-scored, sign-oriented continuous np.ndarrays (n_samples each).
         K_range:  iterable of K values to try (default: range(2, min(m,9))).
         method:   'residual' or 'eigengap' — K-selection method.
+        groups:   optional precomputed group assignment (int array, length m).
+                  When given, the spectral-clustering detection is SKIPPED and
+                  this assignment is used verbatim — the clustering-swap seam
+                  for external group-discovery methods (selector bench,
+                  Step 186+). K/residual/score_matrix still fill the meta dict.
 
     Returns:
         (fused_scores, meta_dict) — same format as lsml_fuse.
@@ -602,9 +647,20 @@ def lsml_continuous(*views, K_range=None, method: str = 'residual'):
     X = np.column_stack(views)
     n, m = X.shape
 
-    K, c, residual, s_mat = detect_dependent_groups(
-        views, K_range=K_range, method=method,
-    )
+    if groups is not None:
+        c = np.asarray(groups, dtype=int)
+        if len(c) != m:
+            raise ValueError(f"groups has length {len(c)}, expected m={m}")
+        R = np.cov(X.T)
+        if R.ndim == 0:
+            R = np.array([[float(R)]])
+        s_mat = _score_matrix_lsml(R)
+        K = len(np.unique(c))
+        residual = _residual_lsml(R, c)
+    else:
+        K, c, residual, s_mat = detect_dependent_groups(
+            views, K_range=K_range, method=method,
+        )
 
     virtual = []
     group_weights = []
@@ -1110,6 +1166,28 @@ def best_nadler_pseudo_label(
 # Tenzer, Dror, Nadler, Bilal, Kluger (AISTATS 2022 / arXiv:1703.02965)
 # ────────────────────────────────────────────────────────────────────────────
 
+def _upcr_g2_grid(A, c_vals, evecs, var_y):
+    """
+    U-PCR g² grid search: for each q on a 300-point grid over [0, var_y],
+    solve the linear system rho(q) = lstsq(A, c_vals + q) and score the
+    relative eigen-projection residual ||rho − proj_V rho|| / ||rho||.
+
+    Returns (best_res, best_q, best_rho). Extracted verbatim from upcr_fuse
+    (Step 186 selector bench) so the projection residual — a label-free
+    structural-fit statistic — is also computable standalone via
+    upcr_proj_residual without running the full fusion.
+    """
+    q_grid = np.linspace(0, var_y, 300)
+    best_res, best_q, best_rho = np.inf, q_grid[0], None
+    for q in q_grid:
+        rho, *_ = np.linalg.lstsq(A, c_vals + q, rcond=None)
+        proj = evecs @ (evecs.T @ rho)  # generalizes v1*(v1@rho) to k dimensions
+        res = np.linalg.norm(rho - proj) / (np.linalg.norm(rho) + 1e-12)
+        if res < best_res:
+            best_res, best_q, best_rho = res, q, rho.copy()
+    return best_res, best_q, best_rho
+
+
 def upcr_fuse(F, var_y=0.25, n_components=1, auto_components=True,
               lambda2_threshold=0.1, min_frac=0.05, exclude_frac=3.0,
               return_diagnostics=False):
@@ -1175,15 +1253,7 @@ def upcr_fuse(F, var_y=0.25, n_components=1, auto_components=True,
     evecs = evecs[:, ::-1]  # (m, k) — columns are eigenvectors in descending order
 
     # Grid search: g2_hat = argmin_q || rho(q) - proj_{V_k} rho(q) || / ||rho(q)||
-    # Projection onto k-dimensional subspace: V_k @ (V_k^T @ rho)
-    q_grid = np.linspace(0, var_y, 300)
-    best_res, best_q, best_rho = np.inf, q_grid[0], None
-    for q in q_grid:
-        rho, *_ = np.linalg.lstsq(A, c_vals + q, rcond=None)
-        proj = evecs @ (evecs.T @ rho)  # generalizes v1*(v1@rho) to k dimensions
-        res = np.linalg.norm(rho - proj) / (np.linalg.norm(rho) + 1e-12)
-        if res < best_res:
-            best_res, best_q, best_rho = res, q, rho.copy()
+    best_res, best_q, best_rho = _upcr_g2_grid(A, c_vals, evecs, var_y)
 
     g2_hat = best_q
     rho_hat_full = best_rho
@@ -1233,10 +1303,75 @@ def upcr_fuse(F, var_y=0.25, n_components=1, auto_components=True,
             'evals_top2': evals_probe.tolist(),
             'trace_C': trace_C,
             'n_kept': int(keep.sum()),
+            # Step-186 selector-bench additions (previously computed then
+            # discarded): the label-free structural-fit residual, the
+            # weak-expert keep mask, and the pre-exclusion rho estimates.
+            'proj_residual': float(best_res),
+            'keep': keep.copy(),
+            'rho_hat_full': rho_hat_full.copy(),
         }
         return w_full, rho_hat_out, g2_hat, diag
 
     return w_full, rho_hat_out, g2_hat
+
+
+def upcr_proj_residual(F, var_y=0.25, n_components=1, auto_components=True,
+                       lambda2_threshold=0.1):
+    """
+    Label-free U-PCR structural-fit residual (selector bench, Step 186+).
+
+    Runs only the ESTIMATION stage of upcr_fuse — sample covariance, linear
+    system C_ij = rho_i + rho_j − g², eigen-projection, g² grid search — and
+    returns the best relative projection residual ||rho − proj rho||/||rho||.
+    Small residual ⇒ the additive uncorrelated-error structural model fits
+    this expert set well. Mirrors upcr_fuse's numerics exactly (same grid,
+    same lstsq); no expert exclusion, no weights, no fusion.
+
+    IMPORTANT (smoke-test finding, 2026-07-17): for STRUCTURAL-MODEL
+    DIAGNOSIS (the A1 router / selection objective) call with
+    ``auto_components=False, n_components=1``. The auto 2-component mode is
+    upcr_fuse's own robustness mechanism for dependent experts — it widens
+    the projection subspace exactly when block dependence inflates λ₂, so the
+    auto-mode residual ABSORBS the violation instead of measuring it (block
+    data scored LOWER than independent data in the known-answer test).
+
+    Args:
+        F: (m, n) float array — m experts × n samples, z-scored + oriented.
+        var_y / n_components / auto_components / lambda2_threshold: as in
+            upcr_fuse.
+
+    Returns:
+        (proj_residual, g2_hat, rho_hat_full) — floats + (m,) array.
+    """
+    from scipy.linalg import eigh
+
+    F = np.asarray(F, dtype=float)
+    m, n = F.shape
+    if m < 3:
+        raise ValueError(f"U-PCR needs m >= 3 experts, got {m}")
+    C = (F @ F.T) / n
+    trace_C = float(np.trace(C))
+
+    k_probe = min(2, m)
+    evals_probe, _ = eigh(C, subset_by_index=[m - k_probe, m - 1])
+    evals_probe = evals_probe[::-1]
+    lambda2_frac = float(evals_probe[1] / (trace_C + 1e-12)) if k_probe >= 2 else 0.0
+    if auto_components:
+        n_components = 2 if (k_probe >= 2 and lambda2_frac > lambda2_threshold) else 1
+
+    pairs = [(i, j) for i in range(m) for j in range(i + 1, m)]
+    A = np.zeros((len(pairs), m))
+    c_vals = np.array([C[i, j] for i, j in pairs])
+    for k, (i, j) in enumerate(pairs):
+        A[k, i] = 1.0
+        A[k, j] = 1.0
+
+    k = min(n_components, m)
+    evals, evecs = eigh(C, subset_by_index=[m - k, m - 1])
+    evecs = evecs[:, ::-1]
+
+    best_res, best_q, best_rho = _upcr_g2_grid(A, c_vals, evecs, var_y)
+    return float(best_res), float(best_q), best_rho
 
 
 def upcr_pipeline(feats_dict, feat_names, signs, var_y=0.25, return_diagnostics=False,
