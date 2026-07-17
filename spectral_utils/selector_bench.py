@@ -224,18 +224,24 @@ def eval_subset_flex(ctx, cols, fusion='lsml', groups=None, K_override=None,
 
 def sample_random_live(ctx, size, R=32, rng=None, max_size_cap=None):
     """Size-matched random-subset floor for live-scored pools (c46 arm):
-    R random subsets of `size`, default-lsml scored; returns finite AUROCs."""
+    R random subsets of `size`, default-lsml scored; returns finite AUROCs.
+
+    Scored via eval_subset_flex, NOT subset_sweep.eval_subset — the latter
+    packs the group assignment at 3 bits/member into a uint64 and overflows
+    for subsets larger than 21 features (hit by gate selectors on the
+    46-view pool, 2026-07-17)."""
     rng = rng or np.random.default_rng(0)
     p = ctx.V.shape[1]
     size = int(min(size, p))
     aurocs = []
     for _ in range(R):
-        cols = rng.choice(p, size=size, replace=False)
-        rec = eval_subset(ctx.V, ctx.labels, ctx.anchor, ctx.rho,
-                          np.sort(cols), ctx.pool_bits)
-        a = float(rec['auroc'])
+        cols = np.sort(rng.choice(p, size=size, replace=False))
+        try:
+            a = eval_subset_flex(ctx, cols)['auroc']
+        except Exception:
+            continue
         if np.isfinite(a):
-            aurocs.append(a)
+            aurocs.append(float(a))
     return np.asarray(aurocs)
 
 
