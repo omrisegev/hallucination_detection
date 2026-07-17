@@ -345,8 +345,34 @@ Apply spectral features to visual language models; split visual-description toke
 
 ### Extension G — Automatic Feature-Subset Selection (meeting priority, Jul 2026)
 
-**Status**: Research memo complete (Step 185), no implementation/pilot yet. **This is the current
-top priority for a new algorithmic contribution** (per the Jul-2026 meeting action item above).
+**Status**: Memo (Step 185) → **full multi-algorithm bench EXECUTED (Step 186, 2026-07-17/18)** —
+six label-free selector families implemented + benched on both pools (H16 51 cells, 46-view 19
+repgrid cells) through one select→same-L-SML→AUROC harness with labels structurally unreachable
+during selection. All results in `results/selector_bench/comparison.csv` + the dashboard
+(`results/selector_bench/dashboard.html`); research note
+`docs/research_notes/selector_bench_results.md`; no pass/fail gatekeeping — the researcher reads
+the full leaderboard.
+
+**Step-186 outcome (headline numbers)**:
+- **No learned selector beats the curated subsets.** c46/repgrid-19 macro: GOOD_6 0.7440 >
+  top_macro_5 0.7364 > GOOD_5 0.7328; best learned = **GroupFS `a2.select` 0.7323 — a
+  label-free TIE with GOOD_5** (first learned selector to reach it); everything else trails by
+  1-6pp. On H16/51-cell every learned family lands 0.56-0.63 vs GOOD_5 0.671.
+- **Pre-registered admissibility (A1.0)**: no label-free objective is globally admissible as a
+  selection criterion; the relative Eq-14 residual is weakly admissible on repgrid/qa only
+  (median Spearman −0.109/−0.17); the lsml-vs-upcr structural-residual router is NOT-USEFUL in
+  every domain (worse than best-constant by 3-6pp). The ρ-filter refutation (Step 153)
+  replicates as a family-wide pattern.
+- **Clustering swap** (theorem-validation follow-up): GroupFS's discovered groups replacing
+  L-SML's spectral clustering ≈ tie on GOOD_5 (0.717-0.728 vs 0.733) — clustering is not the
+  bottleneck on the repgrid pool.
+- The **+7.6pp RAG/GPQA oracle prize remains uncaptured** by every label-free method tried.
+
+**Next steps**: bring the leaderboard + dashboard to Ofir/Bracha; candidate follow-ups —
+(i) GroupFS on the 46-view pool as the deployable label-free default (ties GOOD_5 without
+curation), (ii) the D5-(ii) cross-cell signature router (train-time labels, deploy label-free)
+as the remaining unexplored design, (iii) the a4 antigravity track (branch
+`selector/a4-antigravity-unsupervised`, Omri's parallel worktree).
 
 **Motivation**: 46 registered fusion features (`CANONICAL_POOL`); no fixed macro wins consistently —
 GOOD_5, the documented main configuration, wins only 3/40 per-cell picks in the repgrid headline

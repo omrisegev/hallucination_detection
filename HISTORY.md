@@ -6368,3 +6368,52 @@ diagnostic pilot/implementation, no conformal work, no advisor-facing HTML, no G
 
 ---
 
+### Step 186 — Feature-selection bench: six label-free selector families, one harness, full leaderboard
+
+**What**: Executed the Step-185 memo as a full multi-algorithm bench. Built the selector harness
+(`spectral_utils/selector_bench.py`: `UnlabeledCell` with labels structurally unreachable during
+selection; Step-153 npz lookup giving exact percentile-within-size = exact random-floor CDF;
+`eval_subset_flex` for groups/K/fusion overrides; resume-safe incremental CSVs) + a known-answer
+unit-test gate (`scripts/smoke_selectors.py`, 17 tests — every new component validated standalone
+on synthetic data BEFORE integration, per Omri's directive). Exposed the needed label-free
+diagnostics in `fusion_utils` (per-K residual curve, `groups=` clustering-swap seam on
+lsml_fuse/lsml_continuous, U-PCR projection residual + keep mask, standalone `upcr_proj_residual`)
+with byte-identical regression fixtures, and added `rank_tests.py` (Ahn-Horenstein with the
+mock-eigenvalue k=0 device; Kritchman-Nadler sequential TW test). Six selector families through
+the same select→same-L-SML→AUROC path: **A1** residual-guided (raw/relative Eq-14 + U-PCR
+objectives, exhaustive/greedy, structural-model router, AH/KN K-rules), **classical spectral FS**
+(Laplacian Score, SPEC, MCFS), **simple-stats floor** (random/MAD/kurtosis/decorrelation),
+**reference macros** (GOOD_5/GOOD_6/STABLE_H9/top_macro_5/consensus_4/ALL_H16 as first-class
+rows), **A2 GroupFS** (arXiv:2511.09166, AAAI 2026 — reimplemented, no official code; digest
+grounded in fetched HTML; branch selector/a2-groupfs), **A3 Concrete-AE** (arXiv:1901.09346;
+branch selector/a3-cae). A2/A3 were developed on worktree branches (new-file-only + pre-stubbed
+registry imports → conflict-free merges) — sub-agents hit session limits twice, so both were
+finished inline from their salvage. Pre-registered admissibility analysis
+(`scripts/selector_admissibility.py`) ran BEFORE any A1 result was interpreted.
+
+**Why**: Jul-2026 meeting action item (new algorithmic contribution = in-pipeline, label-free
+feature-subset selection). Mid-session course correction from Omri: the FS stage must be a
+dedicated pre-fusion step (not the fusion model judging subsets by its own residual), with ALL
+results + visualization and no pass/fail gatekeeping — gates demoted to columns.
+
+**Result**: `results/selector_bench/comparison.csv` + dashboard.html (published artifact) +
+`docs/research_notes/selector_bench_results.md`. Headline: **no learned label-free selector beats
+the curated subsets** — repgrid-19/c46 macro: GOOD_6 0.7440 > top_macro_5 0.7364 > GOOD_5 0.7328;
+best learned = **GroupFS a2.select 0.7323, a label-free TIE with GOOD_5** (first learned selector
+to reach it; 0 fallbacks on 19/19 cells); Concrete-AE 0.68-0.71 (Step-151 reconstruction≠relevance
+confirmed at scale); classical FS ≈ 0.70; simple-stats floor up to 0.72 (kurtosis) — embarrassingly
+close to several sophisticated methods. On H16/51 cells every learned family lands 0.56-0.63 vs
+GOOD_5 0.671. Admissibility: NO objective globally admissible (relative Eq-14 residual weakly
+admissible on repgrid/qa only, median Spearman −0.109/−0.17); the structural-residual router is
+NOT-USEFUL in every domain; the RAG/GPQA +7.6pp oracle prize remains uncaptured. Clustering swap:
+GroupFS groups ≈ tie vs spectral clustering on GOOD_5 — clustering is not the bottleneck.
+Unit-test-first paid off repeatedly: caught the U-PCR auto-component violation-absorption (k=1
+diagnosis rule), the z-scoring-makes-covariance-multiplicative fact, the GroupFS joint-gate
+saturation (selection moved to group-granular DUFS gates — deviation 8), the CAE mode
+collapse/local-basin issues (minibatch + best-val restarts + swap polish), the MCFS Lasso scale
+bug (fixed alpha zeroed all coefs on n≥1200 cells), and a >21-feature uint64 packing overflow in
+the random floor. New branch observed (not mine): selector/a4-antigravity-unsupervised (Omri's
+parallel antigravity track). Commits: f0d88ac, c4d066f, 22ef7aa, 1adc713, 6017955, 10964ab,
+3e7e7f5, f662176 (+ branch commits). Not pushed — Omri pushes.
+
+---
