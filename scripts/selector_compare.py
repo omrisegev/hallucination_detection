@@ -76,6 +76,18 @@ def baseline_macros(comp):
     return pd.DataFrame(rows)
 
 
+def _md_table(df):
+    """Minimal DataFrame->GitHub-markdown (avoids the tabulate dependency)."""
+    cols = [str(c) for c in df.columns]
+    lines = ['| ' + ' | '.join(cols) + ' |',
+             '| ' + ' | '.join('---' for _ in cols) + ' |']
+    for _, row in df.iterrows():
+        cells = ['' if v is None or (isinstance(v, float) and np.isnan(v))
+                 else str(v) for v in row.tolist()]
+        lines.append('| ' + ' | '.join(cells) + ' |')
+    return '\n'.join(lines)
+
+
 def render_note(leader, bases, out_md, bench_dir):
     import pandas as pd
     lines = [
@@ -93,24 +105,24 @@ def render_note(leader, bases, out_md, bench_dir):
         '',
         '## Baselines (same cell basis)',
         '',
-        bases.to_markdown(index=False),
+        _md_table(bases),
         '',
         '## Leaderboard',
         '',
-        leader.to_markdown(index=False),
+        _md_table(leader),
         '',
     ]
     adm_path = os.path.join(bench_dir, 'admissibility_summary.csv')
     if os.path.exists(adm_path):
         adm = pd.read_csv(adm_path)
         lines += ['## Objective admissibility (A1.0, pre-registered)', '',
-                  adm[adm['domain'] == 'ALL'].to_markdown(index=False), '',
+                  _md_table(adm[adm["domain"] == "ALL"]), '',
                   'Per-domain detail: `results/selector_bench/admissibility_summary.csv`.', '']
     rt_path = os.path.join(bench_dir, 'admissibility_router_summary.csv')
     if os.path.exists(rt_path):
         rt = pd.read_csv(rt_path)
         lines += ['## Structural-model router validity (memo §2.4)', '',
-                  rt.to_markdown(index=False), '']
+                  _md_table(rt), '']
     os.makedirs(os.path.dirname(out_md), exist_ok=True)
     with open(out_md, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines))
