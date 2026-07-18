@@ -6417,3 +6417,34 @@ parallel antigravity track). Commits: f0d88ac, c4d066f, 22ef7aa, 1adc713, 601795
 3e7e7f5, f662176 (+ branch commits). Not pushed — Omri pushes.
 
 ---
+
+### Step 187 — A4 (antigravity) review, four deep-report HTMLs, per-feature sign audit
+
+**What**: Reviewed the uncommitted A4 worktree (`selector/a4-antigravity-unsupervised`): ran its
+smoke gate (13/13), joined its CSVs cell-by-cell against the Step-186 bench, and identified two
+protocol issues (its "c46" arm ran all 51 cells because it omitted `--domains repgrid` — only
+its repgrid-19 rows are comparable; its comparison embeds stale pre-MCFS-fix classical CSVs). Built
+`scripts/selector_deep_report.py` → four pages under `results/selector_bench/`:
+`methods_protocol.html`, `experiment_results.html`, `benchmark_vs_published.html`,
+`feature_value_audit.html` (also published as artifacts).
+**Why**: Omri asked (1) whether the two parallel implementations agree, (2) whether A4's novel
+directions hold up, (3) for a methods/results/benchmark explainer set, and (4) for a per-feature
+AUROC audit of the 46-pool ("drop the noise features").
+**Result**: Overlaps AGREE via different routes — K-swap ties GOOD_5 despite 2% K-agreement
+(subset-spectrum vs pool-spectrum KN); A4's greedy CSSP reproduces A3's Concrete-AE exactly
+(h16 macro 0.6124 both, Jaccard 0.52, per-cell r=0.85): the reconstruction objective, not the
+optimizer, is refuted. A4's anchor-affinity family is the best learned selector on H16 (0.6593)
+but equals epr alone (0.6606, 25W/26L) — it picks the anchor's clones; mRMR-style diversity
+is the salvage. Dynamic-vs-fixed reframing: a2.select's tie with GOOD_5 is the intended win, and
+excluding one catastrophic cell (inside_coqa_llama7b −14pp) it strictly beats GOOD_5
+(0.7427 vs 0.7355) and top_macro_5 (0.7406); GOOD_6 (0.7482) still leads. Per-cell-oracle metric:
+already the bench's gap_captured/pctile — uncaptured by every family (best +4.8%); the 0.7472
+oracle is winner's-curse-inflated — split-half ceiling proposed before adopting it as judge.
+**Feature audit headline: zero flat-noise features; 13/30 repgrid-pool features consistently
+ANTI-ORIENTED (mean AUC 0.27–0.45, incl. the whole spilled/energy family and GOOD_5's
+hl_ratio 0.378) — wrong fixed offline sign with domain-dependent polarity. Harmless to L-SML
+(negative weights), material to U-PCR/anchor-correlation consumers; candidate offline sign fix
+pending re-validation.** GroupFS's stable 8-feature core coincides with the audit's top-8 KEEP
+features. Latent `eval_subset_flex` K_override>m clamp noted.
+
+---

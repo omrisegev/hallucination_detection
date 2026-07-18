@@ -1,0 +1,177 @@
+<title>Methods, algorithms &amp; experiment protocol</title>
+<style>
+:root{
+  --bg:#faf9f7; --panel:#ffffff; --ink:#1f2430; --muted:#5b6472;
+  --line:#e3e1dc; --accent:#1baf7a; --ref:#2a78d6; --warn:#c98500;
+  --bad:#c0392b; --chip:#f0efec; --code:#f4f3f0;
+}
+:root[data-theme="dark"]{
+  --bg:#14171d; --panel:#1c2027; --ink:#e8eaf0; --muted:#9aa2af;
+  --line:#2c313a; --accent:#22c286; --ref:#3987e5; --warn:#eda100;
+  --bad:#e26d5a; --chip:#252a33; --code:#232830;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14171d; --panel:#1c2027; --ink:#e8eaf0; --muted:#9aa2af;
+    --line:#2c313a; --accent:#22c286; --ref:#3987e5; --warn:#eda100;
+    --bad:#e26d5a; --chip:#252a33; --code:#232830;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.55 "Segoe UI",system-ui,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:28px 20px 80px}
+h1{font-size:26px;line-height:1.25;margin:6px 0 2px;text-wrap:balance}
+h2{font-size:19px;margin:38px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:22px 0 6px}
+p{max-width:76ch}
+.sub{color:var(--muted);margin:0 0 18px}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin:0}
+table{border-collapse:collapse;font-size:13.5px;margin:10px 0}
+th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:left;
+  font-variant-numeric:tabular-nums}
+th{font-size:12px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.05em;white-space:nowrap}
+td.num,th.num{text-align:right}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;
+  padding:4px 8px;background:var(--panel)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:16px 18px;margin:14px 0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+.chip{display:inline-block;background:var(--chip);border-radius:999px;
+  padding:1px 10px;font-size:12px;color:var(--muted);margin-right:6px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:3px;
+  margin-right:6px;vertical-align:baseline}
+.k{font-weight:600}
+.good{color:var(--accent);font-weight:600}
+.badv{color:var(--bad);font-weight:600}
+.warnv{color:var(--warn);font-weight:600}
+.mut{color:var(--muted)}
+code{background:var(--code);border-radius:4px;padding:1px 5px;font-size:13px}
+.note{border-left:3px solid var(--warn);padding:8px 14px;background:var(--panel);
+  border-radius:0 8px 8px 0;margin:12px 0;max-width:80ch}
+.big{font-size:30px;font-weight:650;font-variant-numeric:tabular-nums}
+svg text{font:11.5px "Segoe UI",system-ui,sans-serif;fill:var(--ink)}
+svg .mut{fill:var(--muted)}
+.legend{margin:8px 0 2px;font-size:13px;color:var(--muted)}
+a{color:var(--ref)}
+</style>
+<main>
+<p class="eyebrow">Step 186-187 &middot; label-free feature-subset selection</p>
+<h1>Methods, algorithms &amp; experiment protocol</h1><p class="sub">What each compared selector is, where it was published, what it assumes, and whether those assumptions hold on our data.</p>
+
+<h2>What this experiment is</h2>
+<p>The July-2026 meeting picked <span class="k">label-free, per-cell feature-subset
+selection</span> as the thesis's new algorithmic contribution. The pipeline stays
+single-generation and unsupervised: from one generated answer we extract up to 46
+scalar views of the entropy trace (the canonical pool), and a fusion step (continuous
+L-SML, or U-PCR) combines a <em>subset</em> of them into one hallucination score.
+Until now the subset was fixed (GOOD_5), found by a labeled grid search &mdash; prior
+knowledge. The question here: can an algorithm choose the subset <em>per cell</em>
+(model &times; dataset &times; temperature), from the unlabeled feature matrix alone,
+and match or beat the fixed label-derived subsets?</p>
+
+<div class="card"><p style="margin:0" class="k">Pipeline with the new stage</p>
+<p style="margin:6px 0 0"><code>entropy / logprob trace</code> &rarr;
+<code>46 scalar features (fixed offline signs, z-scored)</code> &rarr;
+<span style="color:var(--accent);font-weight:650">&#9655; NEW: label-free subset
+selector &#9665;</span> &rarr; <code>same L-SML fusion (unchanged)</code> &rarr;
+<code>label-free anchor orientation (epr)</code> &rarr; <code>AUROC</code></p>
+<p class="mut" style="margin:8px 0 0;font-size:13px">Selectors receive an
+<code>UnlabeledCell</code> object that structurally has no labels field &mdash;
+label leakage is impossible by construction. Labels are used only to score the
+final AUROC, exactly as for every existing method.</p></div>
+
+<h2>Two experiment arms</h2>
+<table>
+<tr><th>arm</th><th>cells</th><th>pool</th><th>evaluation</th></tr>
+<tr><td class="k">H16</td><td>51 cells (math500, gsm8k, gpqa, rag, qa, trace,
+repgrid)</td><td>16 core H(n) features</td><td>exact lookup in the Step-153
+exhaustive sweep (all 65,399 subsets per cell) &mdash; gives the exact
+percentile-within-size and the per-cell oracle</td></tr>
+<tr><td class="k">c46</td><td>19 replication-grid cells</td><td>canonical 46-feature
+pool (23&ndash;29 available per cell after drops: entropy + spilled-energy + logprob
+families)</td><td>live L-SML scoring; no oracle enumerable at p&asymp;2<sup>46</sup></td></tr>
+</table>
+<p>Every selector runs on identical fixed cell sets with fixed seeds; failures
+emit flagged fallback rows and are never dropped; every AUROC is raw
+(<code>roc_auc_score</code> after label-free anchor orientation, never
+max-flipped). A mandatory random-subset floor and simple-stats floors run beside
+every learned method. There is <span class="k">no pass/fail gatekeeping</span>:
+all results are reported and the researcher chooses.</p>
+
+<h2>Compared methods</h2>
+
+<h3>Fixed-subset references (the prior-knowledge baselines)</h3>
+<div class="card">
+<table>
+<tr><th>reference</th><th>what it is</th><th>prior knowledge used</th></tr>
+<tr><td class="k">GOOD_5</td><td>epr, spectral_entropy, hl_ratio, sw_var_peak,
+pe_mean</td><td>labeled grid search over earlier phases</td></tr>
+<tr><td class="k">GOOD_6</td><td>GOOD_5 + varentropy</td><td>labeled; only defined
+where varentropy exists (c46 arm)</td></tr>
+<tr><td class="k">top_macro_5</td><td>top-5 features by individual macro AUROC
+(epr, spectral_entropy, hl_ratio, sw_var_peak, cusum_max)</td><td>labeled
+per-feature ranking of the Step-153 sweep</td></tr>
+<tr><td class="k">STABLE_H9 / consensus_4 / ALL_H16</td><td>stability-picked 9 /
+4-feature consensus / the whole H16 pool</td><td>labeled analyses</td></tr>
+<tr><td class="k">epr alone</td><td>the single anchor feature</td><td>none (it is
+the pipeline's fixed anchor)</td></tr>
+<tr><td class="k">per-cell oracle</td><td>best subset per cell from the exhaustive
+sweep</td><td>full label peeking; upper reference only (winner's-curse-inflated:
+argmax over 65k subsets on the same labels)</td></tr>
+</table></div>
+
+<h3>The six label-free selector families</h3>
+<div class="card"><h3 style="margin-top:0"><span class="dot" style="background:#008300"></span>A1 — Residual-guided selection (repo-internal objectives)</h3><p class="mut" style="margin:2px 0 8px;font-size:13px">No external paper — the fusion models' own structure-fit statistics, in the SML lineage (Parisi et&nbsp;al. 2014; Jaffe et&nbsp;al. 2015) and the U-PCR projection model. K-rules from random-matrix theory: Ahn &amp; Horenstein (2013) eigenvalue-ratio; Kritchman &amp; Nadler (2009) sequential Tracy&ndash;Widom rank test.</p><p style="margin:6px 0">Pick the subset whose <em>fusion-model fit</em> is best: minimize the L-SML Eq-14 spectral residual (exhaustively from the sweep cache, or greedily), or the U-PCR projection residual; route between L-SML and U-PCR per cell by whichever residual is smaller; or keep GOOD_5 and swap only K (the cluster count) using the rank tests.</p><p style="margin:8px 0 4px"><span class="k">Assumes:</span> a subset on which the fusion model fits its structural assumptions better will also detect hallucinations better (residual &harr; AUROC correlation).</p><table><tr><th>assumption</th><th>validated on our data?</th></tr><tr><td style="white-space:nowrap">residual tracks AUROC within size</td><td><span class="badv">Refuted</span> &mdash; pre-registered admissibility criterion (median within-size Spearman &le; &minus;0.10 AND &ge;60% negative cells) fails globally; weakly admissible only on repgrid (&minus;0.109) and qa (&minus;0.170). Same fate as the old &rho;&ge;0.75 filter.</td></tr><tr><td style="white-space:nowrap">router: smaller residual picks the better fusion family</td><td><span class="badv">Refuted</span> &mdash; NOT-USEFUL in every domain; a constant choice is at least as good.</td></tr><tr><td style="white-space:nowrap">K estimable from subset covariance spectrum</td><td><span class="warnv">Partially</span> &mdash; estimators disagree with each other (KN subset-vs-pool agreement 2%) yet ALL land within &plusmn;0.2pp of GOOD_5: K is simply not a lever here.</td></tr></table></div><div class="card"><h3 style="margin-top:0"><span class="dot" style="background:#d55181"></span>Classical spectral FS — Laplacian Score / SPEC / MCFS</h3><p class="mut" style="margin:2px 0 8px;font-size:13px">He, Cai &amp; Niyogi, NIPS 2005 (Laplacian Score); Zhao &amp; Liu, ICML 2007 (SPEC &phi;2); Cai, Zhang &amp; He, KDD 2010 (MCFS).</p><p style="margin:6px 0">Build a Gaussian kNN similarity graph over <em>samples</em>; rank each feature by how well it respects that graph: LS = degree-centred Laplacian Rayleigh quotient; SPEC = normalized-Laplacian quotient with the trivial eigendirection removed; MCFS = L1-regress the top spectral embeddings on the features, score = max |coefficient|.</p><p style="margin:8px 0 4px"><span class="k">Assumes:</span> the discriminative signal varies smoothly along the sample manifold (cluster assumption): features aligned with graph structure are the informative ones.</p><table><tr><th>assumption</th><th>validated on our data?</th></tr><tr><td style="white-space:nowrap">graph smoothness &amp;harr; label relevance</td><td><span class="badv">Refuted</span> on our cells &mdash; correct/incorrect answers do not form separated sample clusters in feature space; all three land at &asymp;0.70 (c46) / 0.61&ndash;0.63 (h16), below the kurtosis floor.</td></tr><tr><td style="white-space:nowrap">MCFS: discrete multi-cluster structure</td><td><span class="badv">Refuted</span> &mdash; unstable on weak-cluster data (documented); its Lasso needed a scale-free fix (eigenvector targets shrink as 1/&radic;n) to produce non-zero scores at n&ge;1200 at all.</td></tr></table></div><div class="card"><h3 style="margin-top:0"><span class="dot" style="background:#1baf7a"></span>A2 — GroupFS: selection through group discovery (+ DUFS baseline)</h3><p class="mut" style="margin:2px 0 8px;font-size:13px">Lifshitz, Lindenbaum, Mishne, Meir &amp; Benisty, &ldquo;Unsupervised Feature Selection Through Group Discovery&rdquo;, AAAI 2026 (arXiv:2511.09166). No official code &mdash; clean-room torch-CPU reimplementation grounded in the fetched paper; predecessor DUFS (Lindenbaum et&nbsp;al., 2021, Gated Laplacian) reproduced as the same-family baseline <code>a2.dufs</code>.</p><p style="margin:6px 0">Jointly discover latent <em>groups</em> of related features and gate whole groups on/off. Three-term loss: sample-graph diffusion smoothness of the gated data + feature-graph smoothness of the group embedding (with orthogonality) + group-sparsity via stochastic gates; Gumbel-Softmax feature&rarr;group assignment, warm-started from spectral clustering of the feature graph. Selection = features of the open-gate groups. Documented deviation: under our CPU budget the paper's joint group-gate training saturates (all gates open), so selection pressure comes from per-feature DUFS gates aggregated to group granularity; discovery mechanics kept.</p><p style="margin:8px 0 4px"><span class="k">Assumes:</span> informative structure lives in correlated feature groups; data varies smoothly on a sample manifold; group sparsity separates signal groups from nuisance.</p><table><tr><th>assumption</th><th>validated on our data?</th></tr><tr><td style="white-space:nowrap">feature groups exist and are discoverable</td><td><span class="good">Yes</span> &mdash; planted-groups smoke: ARI &ge; 0.6, noise excluded; on real cells it finds a stable 8-feature core + cell-dependent periphery.</td></tr><tr><td style="white-space:nowrap">its groups improve L-SML&#x27;s clustering step</td><td><span class="warnv">Partially</span> &mdash; feeding discovered groups to L-SML (<code>a2.select+groups</code> 0.7282) &asymp; letting L-SML cluster alone (0.7323): clustering is not the bottleneck.</td></tr><tr><td style="white-space:nowrap">selection transfers to detection AUROC</td><td><span class="good">Yes</span> on the 46-view pool: 0.7323 vs GOOD_5 0.7328 label-free (10W/2T/7L per cell); <span class="badv">Refuted</span> on the already-curated H16 pool (0.6337) &mdash; nothing left to select there.</td></tr></table></div><div class="card"><h3 style="margin-top:0"><span class="dot" style="background:#d95926"></span>A3 — Concrete Autoencoder</h3><p class="mut" style="margin:2px 0 8px;font-size:13px">Bal&#305;n, Abid &amp; Zou, &ldquo;Concrete Autoencoders: Differentiable Feature Selection and Reconstruction&rdquo;, ICML 2019 (arXiv:1901.09346). Torch-CPU reimplementation, linear decoder.</p><p style="margin:6px 0">A concrete (Gumbel-Softmax) selector layer with k slots picks k features; a decoder reconstructs ALL features from them; temperature annealed 10 &rarr; 0.01; best-of-3-seeds by held-out reconstruction MSE + a closed-form greedy swap polish on the same objective; k from the val-MSE elbow.</p><p style="margin:8px 0 4px"><span class="k">Assumes:</span> features that best linearly reconstruct the whole matrix are the informative ones (reconstruction &asymp; relevance).</p><table><tr><th>assumption</th><th>validated on our data?</th></tr><tr><td style="white-space:nowrap">reconstruction &amp;asymp; label relevance</td><td><span class="badv">Refuted</span> &mdash; the Step-151 negative replicated at scale: best 0.7099 (c46) / 0.62 (h16). Independently confirmed by A4's greedy CSSP on the same objective: identical h16 macro (0.6124 = 0.6124 at k=5), chosen-set Jaccard 0.52, per-cell r=0.85 &mdash; the objective, not the optimizer, is the dead end.</td></tr></table></div><div class="card"><h3 style="margin-top:0"><span class="dot" style="background:#8a63d2"></span>A4 — Antigravity track (anchor-affinity / intrinsic-dim / greedy CSSP)</h3><p class="mut" style="margin:2px 0 8px;font-size:13px">No single paper &mdash; three heuristics built on the shared harness in the parallel Antigravity worktree (uncommitted branch <code>selector/a4-antigravity-unsupervised</code>). CSSP = classic column subset selection; rank rules reuse the A1 estimators.</p><p style="margin:6px 0">(i) <code>a4.anchor_*</code>: rank features by |Spearman| with the epr anchor, keep the top-s (self-supervision by proxy). (ii) <code>a4.intrinsic_k_ah</code>: subset size = eigenvalue-ratio intrinsic dimension + 3, same anchor ranking. (iii) <code>a4.recon_*</code>: greedy forward selection minimizing linear reconstruction error of the full matrix (deterministic CSSP analog of A3). Plus GOOD_5 with K forced from the full-pool spectrum.</p><p style="margin:8px 0 4px"><span class="k">Assumes:</span> features that agree with the strongest single view make a good ensemble; the covariance spectrum's effective rank prescribes the subset size.</p><table><tr><th>assumption</th><th>validated on our data?</th></tr><tr><td style="white-space:nowrap">anchor-correlates form a good ensemble</td><td><span class="badv">Refuted</span> &mdash; it selects the anchor's clones (maximum redundancy): a4.anchor_s4 0.6593 &asymp; epr alone 0.6606 (25W/26L per cell). The ensemble adds nothing over its anchor; GOOD_5's +1.1pp comes from complementary features this objective cannot find. Best <em>learned</em> selector on H16 nonetheless.</td></tr><tr><td style="white-space:nowrap">reconstruction &amp;asymp; relevance (CSSP)</td><td><span class="badv">Refuted</span> &mdash; converges exactly to A3 (see above); confirms the objective-level refutation with a 100&times; cheaper optimizer.</td></tr><tr><td style="white-space:nowrap">smoke gate</td><td><span class="good">Yes</span> &mdash; 13/13 known-answer tests pass in the worktree; deterministic; zero fallback rows.</td></tr></table></div><div class="card"><h3 style="margin-top:0"><span class="dot" style="background:#c98500"></span>Simple-stats floors</h3><p class="mut" style="margin:2px 0 8px;font-size:13px">No paper &mdash; the mandatory guardrails: random subsets, |kurtosis|, MAD, greedy decorrelation. (Random-floor discipline motivated by Rajabinasab et&nbsp;al. 2026.)</p><p style="margin:6px 0">Rank features by a one-line statistic of the unlabeled column and take the top-s. Any learned selector that cannot beat these is not learning anything about the data.</p><p style="margin:8px 0 4px"><span class="k">Assumes:</span> none (that is the point).</p><table><tr><th>assumption</th><th>validated on our data?</th></tr><tr><td style="white-space:nowrap">learned methods clear the dumb floor</td><td><span class="warnv">Partially</span> &mdash; embarrassingly, |kurtosis| (top-6) scores 0.7199 on the 46-view grid, above every classical-FS method and A3/A4; only the GroupFS family and the K-rule ties clear it.</td></tr></table></div>
+<h3>The clustering-swap sub-experiment (from the theorem-validation lead)</h3>
+<p>The L-SML theorem validation found the Lemma-4 within-vs-between-cluster
+correlation contrast never materialized (negative in 4/4 inspected cells), so the
+bench folded in three ways to replace or override L-SML's internal spectral
+clustering: forced group assignments from GroupFS (<code>a2.select+groups</code>,
+<code>a2.groups@good5</code>), forced K from the two rank tests
+(<code>*.good5+K_ah</code>, <code>*.good5+K_kn</code> &mdash; both subset-spectrum
+and full-pool-spectrum variants exist), and the residual router between L-SML and
+U-PCR. <span class="k">Verdict: every variant lands within &plusmn;0.6pp of its
+untouched counterpart</span> &mdash; two implementations, opposite K estimates,
+same answer: the clustering step is not where performance is lost, and the missing
+theorem contrast has no practical cost on this grid.</p>
+
+<h2>Objective admissibility (the pre-registered analysis behind A1)</h2>
+<p>Before trusting any selector that optimizes a label-free objective, we measured
+whether each candidate objective even <em>correlates</em> with AUROC among
+same-size subsets (Spearman, within cell &times; size, over the 65k-subset sweep;
+criterion fixed in advance: median &le; &minus;0.10 and &ge;60% of units negative).</p>
+<div class="scroll"><table>
+<tr><th>objective</th><th class="num">median &rho; (all domains)</th>
+<th class="num">domains admissible</th><th>which</th></tr>
+<tr><td>L-SML residual (size-normalized)</td><td class="num">-0.065</td><td class="num">2/7</td><td>qa, repgrid</td></tr><tr><td>L-SML residual (raw Eq-14)</td><td class="num">-0.049</td><td class="num">0/7</td><td>&mdash;</td></tr><tr><td>U-PCR projection residual (k=1)</td><td class="num">+0.036</td><td class="num">0/7</td><td>&mdash;</td></tr><tr><td>mean pairwise |Spearman|</td><td class="num">-0.035</td><td class="num">1/7</td><td>gpqa</td></tr><tr><td>max pairwise |Spearman|</td><td class="num">+0.015</td><td class="num">2/7</td><td>gpqa, math500</td></tr><tr><td>detected cluster count K</td><td class="num">+0.003</td><td class="num">0/7</td><td>&mdash;</td></tr>
+</table></div>
+<p class="mut">Consequence: no label-free objective is globally admissible &mdash;
+selection cannot be reduced to optimizing any single one of these statistics. The
+methods that work (GroupFS) do not optimize a fit statistic; they exploit
+structure (groups + smoothness + sparsity).</p>
+
+<h2>Verification discipline</h2>
+<p>Every new component passed a standalone known-answer unit test on synthetic
+data with an obvious expected result <em>before</em> integration
+(<code>scripts/smoke_selectors.py</code>, 17 tests: planted-K rank tests, fusion
+regression against pre-refactor fixtures, planted-group ARI, planted-factor
+recovery, mask round-trips, lookup-vs-live &le;1e&minus;6, no-label-leak
+assertion). Gate order mirrored the cluster rule: component smoke &rarr; 2-cell
+bench &rarr; full bench.</p>
+
+</main>
+
+<script>
+(function(){var b=document.createElement('button');b.textContent='\u25d0 theme';
+b.style.cssText='position:fixed;top:10px;right:12px;z-index:9;background:var(--panel);'+
+'color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:3px 10px;'+
+'cursor:pointer;font-size:12px';
+b.onclick=function(){var r=document.documentElement;
+var cur=r.getAttribute('data-theme')||
+(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+r.setAttribute('data-theme',cur==='dark'?'light':'dark');};
+document.body.appendChild(b);})();
+</script>
