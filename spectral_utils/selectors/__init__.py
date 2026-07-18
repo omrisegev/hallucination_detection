@@ -52,6 +52,7 @@ def registered():
 
 # Selectors developed inline on master (register on import).
 from . import a1_residual       # noqa: E402,F401  residual-guided (Nadler/Kluger)
+from . import a5_mrmr           # noqa: E402,F401  mRMR relevance-vs-redundancy (Step 189)
 from . import classical_fs      # noqa: E402,F401  Laplacian Score / SPEC / MCFS
 from . import simple_stats      # noqa: E402,F401  random / MAD / kurtosis / decorr
 from . import reference_macros  # noqa: E402,F401  GOOD_5/6, STABLE_H9, ... baselines

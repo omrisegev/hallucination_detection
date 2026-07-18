@@ -76,6 +76,36 @@ def baseline_macros(comp):
     return pd.DataFrame(rows)
 
 
+def epr_alone_rows(comp):
+    """Synthetic bench-shaped rows for 'epr.alone' — the raw single-feature
+    AUROC (L-SML needs >=3 views to run fusion at all, so this is scored
+    directly, not through eval_subset_flex). Derived from comp['epr_auroc']
+    (already computed by the Step-153 exhaustive sweep — never hand-typed),
+    so it appears as a first-class LEADERBOARD row next to the learned/
+    curated subsets instead of only in the separate baselines table above it
+    — Step-186/187 found several learned selectors are statistically
+    indistinguishable from this single feature, which only reads clearly
+    when it sits in the same table. c46 rows are repgrid-only (the 46-view
+    pool doesn't exist elsewhere), matching every other c46 leaderboard row.
+    """
+    import pandas as pd
+    base = dict(selector='epr_alone', variant='epr.alone', size=1, fusion='none',
+               flipped=False, fallback=False, seconds=0.0, seed=0, K=-1,
+               p_pool=1, residual=float('nan'), chosen='epr', eval_mode='raw',
+               pctile_within_size=float('nan'), rand_med=float('nan'),
+               diag_json='{}')
+    rows = []
+    for _, r in comp.iterrows():
+        if not np.isfinite(r['epr_auroc']):
+            continue
+        common = dict(base, domain=r['domain'], cell=r['cell'], n=int(r['n']),
+                      auroc=float(r['epr_auroc']))
+        rows.append(dict(common, pool_mode='h16'))
+        if r['domain'] == 'repgrid':
+            rows.append(dict(common, pool_mode='c46'))
+    return pd.DataFrame(rows)
+
+
 def _md_table(df):
     """Minimal DataFrame->GitHub-markdown (avoids the tabulate dependency)."""
     cols = [str(c) for c in df.columns]
@@ -150,6 +180,10 @@ def main():
     print(f"loaded {len(df)} bench rows from {len(files)} files")
 
     comp = load_comparators(args.sweep_dir)
+    epr_rows = epr_alone_rows(comp)
+    df = pd.concat([df, epr_rows], ignore_index=True)
+    print(f"added {len(epr_rows)} epr.alone rows (h16 51-cell + c46 repgrid-19)")
+
     leader = summarize_bench(df, comp[['domain', 'cell', 'good5_auroc',
                                        'oracle_auroc']])
     bases = baseline_macros(comp)

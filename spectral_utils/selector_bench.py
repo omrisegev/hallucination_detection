@@ -204,7 +204,15 @@ def eval_subset_flex(ctx, cols, fusion='lsml', groups=None, K_override=None,
                 raise ValueError(f"groups length {len(g)} != subset size {m}")
             kw['groups'] = g
         elif K_override is not None:
-            kw['K_range'] = [int(K_override)]
+            # Clamp to the same valid range lsml_continuous itself enforces
+            # (2..min(m-1,8) — K==m is degenerate all-singletons, see
+            # detect_dependent_groups). Rank-test K-rules (AH/KN) are fit on
+            # the FULL pool's eigenvalues and can return a K exceeding a
+            # smaller evaluated subset's size; never triggered in Step-186
+            # benching so far, but not guaranteed for future callers.
+            k_max = max(2, min(m - 1, 8))
+            k_clamped = max(2, min(int(K_override), k_max))
+            kw['K_range'] = [k_clamped]
         fused, meta = lsml_continuous(*[ctx.V[:, j] for j in cols],
                                       method=method, **kw)
         out['K'] = int(meta['K'])
