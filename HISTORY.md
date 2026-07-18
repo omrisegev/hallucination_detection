@@ -6448,3 +6448,28 @@ pending re-validation.** GroupFS's stable 8-feature core coincides with the audi
 features. Latent `eval_subset_flex` K_override>m clamp noted.
 
 ---
+### Step 188 — Chosen-sets report, non-probability-view audit, and the Z_n backfill discovery
+
+**What**: (1) Research discussion: alternatives to the epr anchor (the 1-bit sign ambiguity is
+irreducible — candidate replacements: theory-signed orientation set, self-consistency majority
+agreement) and considerations for learned feature extraction from probabilities (objective
+mismatch per the Step-186 CAE result, N~10³ regime, L-SML view-signability, length confounds;
+proposed joint solve: self-consistency-contrastive encoder with direction-by-construction).
+(2) Identified the 5 views NOT derived from token probabilities: `trace_length` + the 4 Z_n
+energy views (softmax destroys absolute logit scale). (3) NEW `scripts/selector_chosen_sets_report.py`
+→ `results/selector_bench/chosen_sets.html`: per-cell grid-search-best subset (oracle) vs GOOD_5
+vs GOOD_6 vs best GOOD_5+view (Step-182 augmentation arm) vs a2.select chosen subset, with
+feature chips, two dumbbell charts, and an availability-aware chosen-frequency table.
+(4) Coverage audit of all 51+19 cells and the raw pkls under `cache/repgrid/`.
+**Why**: Omri asked whether non-probability views earn their keep in a2.select, where the old
+item4-style figures were for the new selector data, and what each cell actually has available.
+**Result**: a2.select keeps `trace_length` 33/45 (h16) and, where available, `sw_var_peak_energy`
+6/7, `cusum_max_energy` 5/7 — and the best single-view GOOD_5 augmentation is an energy view on
+5 of the 7 cells that have one (+0.7..+2.8pp). **Z_n backfill discovery: the 12/19 analysis
+cells missing `token_logsumexp` ALL have `gen_token_ids` saved → a teacher-forced forward pass
+recovers Z_n exactly (and any probability-derived view) with labels and traces unchanged — no
+re-generation needed.** Colab-era cells (gpqa 5, gsm8k 1, math500 4, qa 3, rag 16, trace 3 = 32)
+are H16-only locally; their Drive raw pkls need a key audit. Full-coverage unification plan →
+`HANDOFF_full_coverage.md` (next session).
+
+---
