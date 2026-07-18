@@ -6473,3 +6473,116 @@ are H16-only locally; their Drive raw pkls need a key audit. Full-coverage unifi
 `HANDOFF_full_coverage.md` (next session).
 
 ---
+
+### Step 189 — Selector-bench punch list: split-half oracle reveals the prize was mostly winner's-curse, `inside_coqa_llama7b` autopsy, A4 merged, A5 mRMR salvage
+
+**What**: Executed the 4-item punch list from a review of Steps 186-188: (1) autopsied
+`a2.select`'s single worst miss vs GOOD_5; (2) built and ran an honest, out-of-sample **split-half
+oracle** (`scripts/selector_splithalf_oracle.py`) to replace/contextualize the winner's-curse-flagged
+full-data exhaustive oracle; (3) built and benched **A5 — an mRMR hybrid selector**
+(`spectral_utils/selectors/a5_mrmr.py`) as the named salvage of A4's anchor-affinity finding; (4)
+properly committed the `selector/a4-antigravity-unsupervised` worktree's new selector file onto its
+branch and merged it into master (clean, no conflicts — new-file-only pattern), re-benched its c46
+arm restricted to the repgrid-19 domain (it had run all 51 cells previously — Step 187's finding),
+fixed the `eval_subset_flex` `K_override` unclamped-range bug, and added an `epr.alone` row directly
+into the leaderboard (not just the separate baselines table) via a synthetic-row injection in
+`selector_compare.py`, derived from the already-computed `epr_auroc` column.
+
+**Why**: Reviewing HISTORY/PROGRESS and the selector-bench results surfaced four concrete, well-scoped
+follow-ups that were flagged but not yet done, in priority order set by the user: which cell was
+costing `a2.select` its win over GOOD_5; whether the +7.6pp oracle prize motivating the whole
+direction is trustworthy; whether A4's best-learned-selector-on-H16 finding could be salvaged past its
+"picks epr's clones" diagnosis; and closing out the uncommitted parallel A4 track cleanly.
+
+**Result**:
+
+1. **`inside_coqa_llama7b` autopsy — root cause found, not a bug.** This cell (n=4504, llama-7b BASE
+   model, pos_rate=0.147 — one of the 4 most class-imbalanced repgrid cells) is where GroupFS's
+   `a2.select` selects **100% of the available pool (23/23 features)** — its DUFS gates saturate open
+   here exactly as Step 186 flagged generically ("joint-gate saturation"), with `feat_gates` diag
+   showing only 4/23 gates even slightly negative and none excluded from `n_selected`. Directly
+   computing raw per-feature oriented AUROC on this cell found **7 of the 23 pool features are
+   anti-oriented even after the fixed offline sign** (`spectral_entropy` 0.359 — one of GOOD_5's own
+   five features — down to `spectral_centroid` 0.448), plus several more near chance. GOOD_5 survives
+   this (0.684 AUROC) because L-SML's own clustering isolates one bad feature inside a clean 5-feature
+   set; `a2.select`'s 23-feature dump, containing 7+ anti-signed features (some likely correlated with
+   each other, e.g. the entropy/complexity cluster), overwhelms L-SML's own K=7-cluster isolation
+   mechanism and drags the fused score to near-chance (0.544). Confirmed this cell is a genuine outlier
+   for feature-count sensitivity: `GOOD_5 − ALL_H16` is its 2nd-worst gap of all 19 repgrid cells
+   (+22.3pp), behind only `ars_gsm8k_r1distill8b` (+38.6pp) — which tolerates full-pool selection fine
+   (pos_rate=0.728, far less imbalanced) despite the same H16-sensitivity, confirming imbalance + a
+   large anti-signed contingent (not feature-count alone) is the mechanism. **Directly connects to the
+   still-open Step-187 feature-sign-fix item** — this cell is a worst-case demonstration of exactly
+   that unresolved issue, and is very likely to flip from "tie" to "beat GOOD_5" once fixed.
+
+2. **Split-half honest oracle — the headline finding.** `scripts/selector_splithalf_oracle.py`: for
+   R=10 random 50/50 splits per H16-pool cell (51 cells, n≥40), a bounded greedy forward search
+   (sizes 3-6, eigengap K-selection, seeded by the 3 individually-strongest raw-AUROC features since
+   fusion needs ≥3 views) runs on half A ONLY, then the found subset is refit and scored on held-out
+   half B — the first fully honest (zero label-overlap between selection and evaluation) subset-
+   selection number this project has computed. **Result: the 0.7472-macro exhaustive-sweep oracle
+   collapses to 0.6842 macro when the SAME full-data-chosen subset is refit and scored on a genuinely
+   held-out half (−6.3pp), and the fully-honest greedy-search-on-half-A number is 0.668 — a
+   statistical tie with GOOD_5 scored on the identical splits (0.6692).** Per-domain, this lands
+   exactly where it matters most: **RAG's claimed +14.1pp prize (0.5998→0.7375 in-sample) collapses to
+   ~+1.6pp honestly (0.5998→0.6156); GPQA's claimed +10.2pp prize (0.5055→0.6078) collapses to
+   ~+1.6pp honestly (0.5055→0.5212).** These are the exact two domains the Step-185 memo's
+   "+7.6pp prize, concentrated in RAG/GPQA" framing was built on. **This retroactively explains Steps
+   186-189's uniform negative results**: six selector families (A1-A5) failing to beat GOOD_5 was not
+   a failure of selector design — there was never much of a real prize to capture. The 65,536-subset
+   exhaustive search (Step 153) guarantees a large multiple-comparisons overfit at n≈100-500 per cell;
+   the "oracle" was measuring how well the best of 65k noise-fits happens to align with its own
+   evaluation sample, not a real achievable ceiling.
+
+3. **A5 (mRMR hybrid) — the salvage works, partially.** `a5.mrmr_a{alpha}_{size|adapt}` for
+   alpha∈{0,0.3,0.5,0.7}: greedy forward selection scoring candidate `j` by
+   `relevance(j) − alpha·redundancy(j|S)` (relevance = `|Spearman(feature,anchor)|`, redundancy = mean
+   `|Spearman|` with already-selected features, read from the cell's cached ρ matrix — no recompute).
+   alpha=0 exactly reproduces A4's `a4.anchor_s*` numbers (verified: `a5.mrmr_a0.0_s4` = `a4.anchor_s4`
+   = 0.6593 macro on H16, bit-for-bit same selection logic). **On the 46-view c46/repgrid-19 pool, the
+   diversity term genuinely helps**: `a5.mrmr_a0.7_adapt` (0.7190) is the new top of the whole
+   anchor/mrmr/epr sub-family, beating `a4.anchor_adapt` (0.7173, +0.17pp) and `epr.alone` (0.7133,
+   +0.57pp) — confirmed via a synthetic smoke test (clone-cluster + independent-second-signal
+   construction) that alpha=0 collapses to picking clones while alpha=0.7 correctly trades a clone for
+   the second signal direction. **On H16 (51 cells), diversity does NOT help** — `epr.alone` (0.6606)
+   remains the top of the sub-family, ahead of every anchor/mrmr variant including the best mRMR
+   configs. Neither pool clears GOOD_5 (best is −1.4 to −2.0pp below), so the overall Step-186 verdict
+   is unchanged, but the specific "picks epr's clones" pathology A4 was diagnosed with is measurably,
+   if partially, fixed.
+
+4. **A4 merged; K_override clamped; epr.alone promoted to a leaderboard row.** Committed the
+   worktree's one new file (`spectral_utils/selectors/a4_antigravity.py`) onto
+   `selector/a4-antigravity-unsupervised` (new-file-only — its stale local classical/reference/
+   simple-stats CSVs and modified `__init__.py`/`comparison.csv`/results-note were deliberately NOT
+   brought over, superseded by master's already-fixed versions), then a clean, conflict-free
+   `git merge` into master. Re-benched its c46 arm with `--domains repgrid` (Step 187 found the
+   original run silently included all 51 domains); confirmed clean at 19/19 repgrid cells, 0
+   fallbacks. `eval_subset_flex`'s `K_override` now clamps to `[2, min(m-1,8)]` — the same range
+   `lsml_continuous`'s own default K-search enforces — guarding against AH/KN rank-test K's (fit on
+   the full pool) exceeding a smaller evaluated subset's size (never triggered so far, but not
+   guaranteed for future callers). `epr.alone` now appears as a first-class leaderboard row (both
+   pools) via a synthetic-row injection into `summarize_bench`'s input, derived from the already-
+   computed `epr_auroc` column — not hand-typed — so it carries full gate/wins/losses columns instead
+   of only the separate baselines-table macro number.
+
+**Verification**: full smoke suite (`scripts/smoke_selectors.py`) 19/19 green after all changes
+(one transient CPU-contention flake on `a3_concrete_ae` during a concurrent background run,
+reproduced clean in isolation — not a regression); bench integrity self-check
+(`run_selector_bench.py --self-check`) still passes (51 cells, GOOD_5 lookup max |diff| 2.9e-08);
+`comparison.csv`/`baselines.csv`/`docs/research_notes/selector_bench_results.md`/`dashboard.html`
+regenerated end-to-end from the CSVs (dashboard's family-color map extended for `a4.`/`a5.`/`epr.`
+prefixes, previously silently dropped into an unplotted "other" bucket).
+
+**Files changed**:
+- `spectral_utils/selector_bench.py` (K_override clamp)
+- `spectral_utils/selectors/a5_mrmr.py` (new), `spectral_utils/selectors/a4_antigravity.py` (merged
+  from `selector/a4-antigravity-unsupervised`), `spectral_utils/selectors/__init__.py` (+a4, +a5)
+- `scripts/selector_splithalf_oracle.py` (new), `scripts/selector_compare.py` (+epr_alone_rows,
+  +split-half section), `scripts/selector_viz.py` (+antigrav/mrmr family colors)
+- `results/selector_bench/a4_antigravity__{h16,c46}.csv`, `a5_mrmr__{h16,c46}.csv`,
+  `splithalf_oracle.csv`, `splithalf_oracle_summary.csv` (new); `comparison.csv`, `baselines.csv`,
+  `dashboard.html` (regenerated)
+- `docs/research_notes/selector_bench_results.md` (regenerated — split-half section, epr.alone rows,
+  a4/a5 leaderboard entries)
+
+---

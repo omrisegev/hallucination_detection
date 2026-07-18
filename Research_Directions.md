@@ -345,7 +345,9 @@ Apply spectral features to visual language models; split visual-description toke
 
 ### Extension G — Automatic Feature-Subset Selection (meeting priority, Jul 2026)
 
-**Status**: Memo (Step 185) → **full multi-algorithm bench EXECUTED (Step 186, 2026-07-17/18)** —
+**Status**: Memo (Step 185) → **full multi-algorithm bench EXECUTED (Step 186, 2026-07-17/18)** →
+**punch-list follow-ups + split-half honest oracle (Step 189, 2026-07-18) — see below, the motivating
++7.6pp prize itself is now known to be mostly winner's-curse** —
 six label-free selector families implemented + benched on both pools (H16 51 cells, 46-view 19
 repgrid cells) through one select→same-L-SML→AUROC harness with labels structurally unreachable
 during selection. All results in `results/selector_bench/comparison.csv` + the dashboard
@@ -368,11 +370,32 @@ the full leaderboard.
   bottleneck on the repgrid pool.
 - The **+7.6pp RAG/GPQA oracle prize remains uncaptured** by every label-free method tried.
 
-**Next steps**: bring the leaderboard + dashboard to Ofir/Bracha; candidate follow-ups —
-(i) GroupFS on the 46-view pool as the deployable label-free default (ties GOOD_5 without
-curation), (ii) the D5-(ii) cross-cell signature router (train-time labels, deploy label-free)
-as the remaining unexplored design, (iii) the a4 antigravity track (branch
-`selector/a4-antigravity-unsupervised`, Omri's parallel worktree).
+**Step-189 correction — the prize itself was mostly winner's-curse.** A split-half honest oracle
+(`scripts/selector_splithalf_oracle.py`: bounded greedy search on held-out half A, refit + scored on
+half B, R=10 splits × 51 cells) found the 0.7472-macro exhaustive-sweep oracle **collapses to 0.668
+macro when fully honest — a statistical TIE with GOOD_5 (0.6692) on the identical splits.**
+Per-domain, this lands exactly on the two domains the "+7.6pp prize" framing above was built on:
+**RAG's claimed +14.1pp shrinks to ~+1.6pp honestly; GPQA's claimed +10.2pp shrinks to ~+1.6pp
+honestly.** This retroactively explains the uniform Step-186–189 negative results (six selector
+families, A1–A5, all failing to beat GOOD_5): the 65,536-subset exhaustive search (Step 153)
+guarantees a large multiple-comparisons overfit at n≈100–500 per cell, so "no selector captures the
+prize" was never really a selector-design failure. **Also this session**: an autopsy of `a2.select`'s
+one catastrophic miss (`inside_coqa_llama7b`, −14pp) found GroupFS's gates saturate open (selects
+100% of a 23-feature pool containing 7 anti-oriented features) on a severely imbalanced, small-n-style
+cell — connects directly to the still-open Step-187 feature-sign-fix item. An mRMR hybrid (A5,
+`spectral_utils/selectors/a5_mrmr.py`) salvages part of A4's "picks epr's clones" pathology on the
+46-view pool (+0.57pp over bare epr) but not on H16, and still doesn't clear GOOD_5. Full detail:
+HISTORY Step 189; `docs/research_notes/selector_bench_results.md` (split-half section).
+
+**Next steps (revised)**: the selection direction's motivating premise needs re-scoping with
+Ofir/Bracha — realistic honest headroom looks like ~1–2pp, not ~7–8pp, which changes whether further
+selector-design investment is worthwhile at all. Before any further design work: (0) the Step-187
+feature-sign fix (13/30 anti-oriented features) is the one still-open, concrete, likely-cheap win,
+independent of the selection-prize question — do this first, it may already close some of the small
+residual gap on its own. If selection work continues: (i) GroupFS on the 46-view pool remains the
+best label-free tie-with-GOOD_5 result and needs no further justification to ship as a deployable
+default; (ii) the D5-(ii) cross-cell signature router is the one design from the original memo never
+attempted — lower priority now given (2) above suggests little headroom exists to route toward.
 
 **Motivation**: 46 registered fusion features (`CANONICAL_POOL`); no fixed macro wins consistently —
 GOOD_5, the documented main configuration, wins only 3/40 per-cell picks in the repgrid headline
@@ -428,7 +451,7 @@ error localization.
 *(Single authoritative list — updated 2026-07-02, post streaming pilot Step 148)*
 
 **Now — no GPU needed**
-0. ~~Feature-subset selection literature survey + assumptions audit (Extension G)~~ ✅ done (Step 185) — **next**: resolve open questions with Ofir/Bracha, then pilot D1 on the 19-cell replication grid (current top priority per the Jul-2026 meeting)
+0. ~~Feature-subset selection: memo (Step 185), full bench (Step 186), punch-list + split-half oracle (Step 189)~~ ✅ done — **next**: re-scope with Ofir/Bracha (honest headroom is ~1-2pp, not ~7-8pp — the split-half oracle found the original prize was mostly winner's-curse); do the Step-187 feature-sign fix first regardless (cheap, independent win)
 1. ~~L-SML literature search (Item 1)~~ ✅ done (Step 139)
 2. ~~Logistic regression oracle `scripts/logistic_oracle.py` (Item 2)~~ ✅ done (Steps 142–143, 147)
 3. ~~Streaming pivot pilot (Extension E)~~ ✅ done (Step 148 — G1 PASS / G2 FAIL; earliest-prefix edge is the surviving thread)

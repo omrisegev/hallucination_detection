@@ -153,6 +153,32 @@ def render_note(leader, bases, out_md, bench_dir):
         rt = pd.read_csv(rt_path)
         lines += ['## Structural-model router validity (memo §2.4)', '',
                   _md_table(rt), '']
+    sh_path = os.path.join(bench_dir, 'splithalf_oracle_summary.csv')
+    if os.path.exists(sh_path):
+        sh = pd.read_csv(sh_path)
+        macro = sh[['greedy_halfA', 'greedy_halfB', 'good5_halfB',
+                    'fulloracle_halfB', 'fulloracle_insample',
+                    'optimism_gap']].mean().round(4)
+        lines += [
+            '## Split-half honest oracle (Step 189)', '',
+            'Addresses the winner\'s-curse flag on the exhaustive-sweep oracle: '
+            'that number is best-of-up-to-65k picked by FULL-DATASET AUROC. This '
+            'is the out-of-sample counterpart — bounded greedy forward search '
+            '(H16 pool, sizes 3-6, eigengap K-selection) on held-out half A '
+            'ONLY, refit and scored on half B; R=10 random 50/50 splits/cell, '
+            f'macro over {len(sh)} cells with n>=40.', '',
+            f'| metric | macro (mean over cells of per-split mean) |',
+            f'| --- | --- |',
+            f'| greedy search, in-sample (half A, label-peeking within the half) | {macro["greedy_halfA"]} |',
+            f'| **greedy search, held out (half B) — the honest ceiling** | **{macro["greedy_halfB"]}** |',
+            f'| GOOD_5, held out (half B, same split) | {macro["good5_halfB"]} |',
+            f'| full-data exhaustive-sweep oracle subset, refit + scored on held-out half B | {macro["fulloracle_halfB"]} |',
+            f'| full-data exhaustive-sweep oracle, in-sample (reference — the 0.7472-macro number) | {macro["fulloracle_insample"]} |',
+            f'| optimism gap (half A in-sample minus half B held-out, greedy search) | {macro["optimism_gap"]} |',
+            '',
+            'Per-cell detail: `results/selector_bench/splithalf_oracle_summary.csv`. '
+            'Full per-split rows: `results/selector_bench/splithalf_oracle.csv`.', '',
+        ]
     os.makedirs(os.path.dirname(out_md), exist_ok=True)
     with open(out_md, 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines))

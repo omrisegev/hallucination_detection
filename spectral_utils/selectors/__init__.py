@@ -59,7 +59,7 @@ from . import reference_macros  # noqa: E402,F401  GOOD_5/6, STABLE_H9, ... base
 
 # Worktree-developed selector modules — pre-stubbed so branch merges never
 # conflict on this file. Absent modules are simply skipped.
-for _optional in ('a2_groupfs', 'a3_concrete_ae'):
+for _optional in ('a2_groupfs', 'a3_concrete_ae', 'a4_antigravity'):
     try:
         importlib.import_module(f'.{_optional}', __name__)
     except ImportError:

@@ -39,8 +39,12 @@ FAMILIES = [
     ('decorr',    'stats',     'Simple-stats floor',               '#eda100', '#c98500'),
     ('a2.',       'groupfs',   'GroupFS (Lindenbaum, AAAI 2026)',  '#1baf7a', '#199e70'),
     ('a3.',       'cae',       'Concrete-AE (ICML 2019)',          '#eb6834', '#d95926'),
+    ('a4.',       'antigrav',  'Antigravity (anchor/intrinsic-dim/CSSP)', '#8a4fd6', '#7a3fc0'),
+    ('a5.',       'mrmr',      'mRMR hybrid (relevance-redundancy)', '#0891b2', '#0e7490'),
+    ('epr.',      'reference', 'Reference macros (fixed subsets)', '#2a78d6', '#3987e5'),
 ]
-FAM_ORDER = ['reference', 'residual', 'classical', 'stats', 'groupfs', 'cae']
+FAM_ORDER = ['reference', 'residual', 'classical', 'stats', 'groupfs', 'cae',
+            'antigrav', 'mrmr']
 FAM_LABEL = {k: lbl for _, k, lbl, _, _ in FAMILIES}
 FAM_LIGHT = {k: lo for _, k, _, lo, _ in FAMILIES}
 FAM_DARK = {k: dk for _, k, _, _, dk in FAMILIES}
