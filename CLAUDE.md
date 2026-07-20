@@ -370,4 +370,8 @@ cache hit is not.
 | GPQA / Mistral-7B / T=1.0 | 65.4% | Phase 4 best — beaten by 72B (Phase 8) |
 | HotpotQA / Mistral-7B | 59.5% | spectral doesn't transfer to multi-hop QA |
 
-**Thesis scope**: Spectral features of H(n) work on reasoning-heavy domains (math, science MCQ). Not general-purpose; short factual QA traces are structurally incompatible.
+**Thesis scope (updated Step 191 — Omri, 2026-07-20)**:
+- **In scope, and the focus going forward = reasoning (math: MATH-500 / GSM8K) + QA** (single-answer factual — TriviaQA / SQuAD / NQ-Open / etc.; several QA cells score well, e.g. `spilled_triviaqa` 0.93, `se_squad_v2` 0.80).
+- **Out of scope = RAG (multi-hop retrieval, `lciteeval`) and GPQA (science MCQ).** Step 191's honest-ceiling check (30-view pool, split-half oracle) is the evidence: GPQA features are **uniformly at chance** (every feature 0.51–0.55, no signal to orient), and RAG signal is **confined to one sub-dataset (hotpotqa) and bottlenecked by feature sign, not pool size** — adding the energy/logprob views moved the honest ceiling only +3.6pp (RAG) / −0.5pp (GPQA). This **supersedes** the earlier "science MCQ works / short factual QA structurally incompatible" note above (that predated the cluster-data cells; it had GPQA backwards and was too pessimistic on single-answer QA).
+
+**Top subset = GOOD_6, not GOOD_5**: `GOOD_6 = GOOD_5 + varentropy` is the current best fixed subset (Step 182/184 sweep: +1.1pp macro over GOOD_5 on the 19-cell grid, repairs GOOD_5's worst cells, uses the already-saved top-50 logprobs). Treat GOOD_5 as the compatibility/reference subset, not the headline candidate. Note: on the now-out-of-scope RAG cells GOOD_5 also mis-fuses badly for a *sign* reason (Step 187/191 domain-dependent polarity), separate from the GOOD_6 improvement.

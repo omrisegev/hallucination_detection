@@ -193,6 +193,13 @@ def main():
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--domains', default=None)
     ap.add_argument('--cells', default=None)
+    ap.add_argument('--pool-mode', default='h16',
+                    help="feature pool: 'h16' (16 H(n)-derived views, the Step-189 "
+                         "baseline) or 'c46' (the full 46-view CANONICAL_POOL — only "
+                         "meaningful on cells with genuine 46-view coverage, e.g. the "
+                         "Step-190 domain='repgrid' rag_/gpqa_ cells). Write c46 runs to "
+                         "a separate --out so the h16 baseline CSV is not clobbered "
+                         "(resume dedup keys on (domain, cell, split), not pool).")
     args = ap.parse_args()
 
     ss = pd.read_csv(args.sweep_summary)
@@ -210,7 +217,7 @@ def main():
         writer = csv.DictWriter(f, fieldnames=FIELDS)
         if new_file:
             writer.writeheader()
-        for ctx in iter_prepared_cells(args.data_root, 'h16', domains, cells):
+        for ctx in iter_prepared_cells(args.data_root, args.pool_mode, domains, cells):
             key0 = (ctx.domain, ctx.cell_key, 0)
             if key0 in done_splits:
                 print(f"[splithalf] {ctx.domain}/{ctx.cell_key}: already done — skip")

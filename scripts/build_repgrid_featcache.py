@@ -117,11 +117,48 @@ def good5_lsml_auroc(fd, labels):
     return float(auc)
 
 
+# GOOD_6 = GOOD_5 + varentropy (Step 182 sweep finding, Task B). This featcache already
+# computes varentropy in candidate_feats() via LOGPROB_FEATS_EXT -- reuse it as a free,
+# independent cross-check that score_repgrid.py's new GOOD_6 rows are correct, via a
+# completely separate code path (fd built here vs. score_repgrid's load_repgrid_cell_ext).
+GOOD_6 = GOOD_5 + ["varentropy"]
+
+
+def good6_lsml_auroc(fd, labels):
+    """Same recipe as good5_lsml_auroc, over GOOD_6. FEATURE_SIGNS must know varentropy's
+    sign (-1, higher varentropy -> more likely wrong) -- see LOGPROB_SIGNS_EXT in
+    spectral_utils.repgrid_scoring; anchor_orient corrects the global sign regardless."""
+    present = [f for f in GOOD_6 if f in fd]
+    if len(present) < 3:
+        return None
+    sub = {f: fd[f] for f in present}
+    signs = {**FEATURE_SIGNS, "varentropy": -1}
+    score, _ = lsml_continuous_pipeline(sub, present, signs)
+    anchor_feat = "epr" if "epr" in present else present[0]
+    anchor = zscore(fd[anchor_feat] * signs.get(anchor_feat, +1))
+    score, _ = anchor_orient(np.asarray(score, dtype=float), anchor)
+    auc, _, _ = boot_auc(labels, score, n=500)
+    return float(auc)
+
+
 def load_csv_refs():
+    """GOOD_5/GOOD_6 gate reference values from the canonical CSV.
+
+    The featcache's good5/good6_lsml_auroc orient against the *epr* anchor, so the
+    gate must compare against the epr-anchored CSV row. score_repgrid.py also emits
+    a cusum_max-anchored robustness row per (cell, GOOD_5/GOOD_6, method); keying only
+    on (cell, subset, method) let last-write-wins pick up that cusum_max row, which
+    on a chance-level cell (where the two anchors resolve the arbitrary global sign
+    oppositely, AUROCs reflected about 0.5) produced a spurious gate FAIL — e.g.
+    gpqa_r1distill8b epr=0.4856 vs cusum_max=0.5144. Filter to the epr anchor so the
+    gate compares like-with-like. Rows predating the anchor column default to epr.
+    """
     refs = {}
     if not os.path.exists(CSV):
         return refs
     for r in csv.DictReader(open(CSV)):
+        if (r.get("anchor") or "epr") != "epr":
+            continue
         key = (r["cell"], r["subset"], r["method"])
         try:
             refs[key] = float(r["auroc_X"]) if r["auroc_X"] not in ("", None) else None
@@ -176,10 +213,23 @@ def main():
             d = abs(g5 - ref)
             status = f"{'OK' if d <= args.gate_tol else 'FAIL'} (Δ={d:.4f})"
             if d > args.gate_tol:
-                gate_fail.append((pid, g5, ref, d))
+                gate_fail.append(("GOOD_5", pid, g5, ref, d))
         print(f"[cell] {pid:<32} n={len(y):>5} acc={acc:.3f} feats={len(fd):>2} "
               f"k={man.get('k',1)} | GOOD_5 lsml={g5 if g5 is None else round(g5,4)} "
               f"vs CSV {ref} -> {status}")
+
+        # same gate for GOOD_6 (Task B) -- only meaningful on cells with top_k_logprobs
+        g6 = good6_lsml_auroc(fd, y)
+        ref6 = refs.get((pid, "GOOD_6", "lsml"))
+        status6 = "n/a"
+        if g6 is not None and ref6 is not None:
+            d6 = abs(g6 - ref6)
+            status6 = f"{'OK' if d6 <= args.gate_tol else 'FAIL'} (Δ={d6:.4f})"
+            if d6 > args.gate_tol:
+                gate_fail.append(("GOOD_6", pid, g6, ref6, d6))
+        print(f"         {'':<32} {'':<5} {'':<5} {'':<7} "
+              f"  GOOD_6 lsml={g6 if g6 is None else round(g6,4)} "
+              f"vs CSV {ref6} -> {status6}")
 
         # CONT row for the oracle (repgrid/<id>), from the CSV's lsml AUROCs
         cont = {"cell": f"repgrid/{pid}", "n": int(len(y)), "prevalence": acc}
@@ -196,11 +246,11 @@ def main():
     print(f"\nwrote {len(cells)} cells -> {args.out_dir}/repgrid_cells.pkl")
     print(f"wrote {len(cont_rows)} CONT rows -> {args.out_dir}/repgrid_cont.pkl")
     if gate_fail:
-        print(f"\nGATE FAIL on {len(gate_fail)} cells (Δ>{args.gate_tol}):")
-        for pid, g5, ref, d in gate_fail:
-            print(f"  {pid}: featcache {g5:.4f} vs CSV {ref:.4f} (Δ={d:.4f})")
+        print(f"\nGATE FAIL on {len(gate_fail)} (subset, cell) pairs (Δ>{args.gate_tol}):")
+        for subset, pid, val, ref, d in gate_fail:
+            print(f"  {subset}/{pid}: featcache {val:.4f} vs CSV {ref:.4f} (Δ={d:.4f})")
         sys.exit(1)
-    print("\nvalidation gate PASS — featcache GOOD_5 reproduces the canonical CSV.")
+    print("\nvalidation gate PASS — featcache GOOD_5/GOOD_6 reproduce the canonical CSV.")
 
 
 if __name__ == "__main__":

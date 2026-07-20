@@ -6586,3 +6586,139 @@ prefixes, previously silently dropped into an unplotted "other" bucket).
   a4/a5 leaderboard entries)
 
 ---
+
+### Step 190 — 46-view-coverage regen wave landed: 33/35 preset dirs fetched and integrated into `cache/repgrid/`; gpqa T-mislabel found to extend beyond the regen batch
+
+**What**: Closed out `HANDOFF_regen_fetch.md`. The 32-preset full-N "46-view coverage" regen wave
+(20 RAG, 5 gpqa, 3 math500 T=1.5, `internalstates_gsm8k_qwen25_7b`) plus 3 additive long-cap
+`_mn4096` flavour presets were submitted and landed on AIRCC in a prior session; this session did
+the fetch + local integration. **Cluster status check (one-shot `cluster-ops`, no polling)**: both
+still-running long-cap chains are healthy, not failed — `sacct`'s `FAILED exit 85` on the first leg
+of each is the standard SIGTERM-checkpoint-resume convention, not a real failure.
+`gpqa_r1distill8b_mn4096` at 64/198 problems (~32%), `trace_gpqa_r1qwen7b_mn4096` at 72/198 (~36%),
+both resumed cleanly onto queued successor legs. **Fetched the 33 landed dirs** (`gpqa_llama70b`,
+`gpqa_llama8b`, `gpqa_mistral7b`, `gpqa_qwen72b`, `gpqa_r1distill8b`,
+`internalstates_gsm8k_qwen25_7b`, `math500_dsmath7b`, `math500_qwenmath7b`, `math500_r1distill8b`,
+`math500_r1distill8b_mn4096`, all 20 RAG cells, `trace_gpqa_r1qwen7b`, `trace_gsm8k_llama8b_k10`,
+`trace_math500_qwenmath15b_k10` — 17.6 GB total) via plain `scp -r` per preset dir (no reusable
+script needed, per the handoff's own scoping — this is a one-time bulk fetch).
+
+**Integration**: since every regen preset was run through `cluster/run_inference.py` at the
+repgrid rich-save schema, and `BACKFILL_SPECS`'s repgrid convention already treats `preset_id` as
+the `cell_key` (`results/repgrid/<cid>` remote ↔ `cache/repgrid/<cid>` local — confirmed
+`score_repgrid.py::discover_cells` auto-globs `cache/repgrid/*/manifest.json`, no separate
+registry to update), integration was a straight `preset_id`-named move into `cache/repgrid/` for
+32 of the 33 dirs — no key translation needed, since the handoff's "map to a legacy or new key"
+decisions (72B AWQ→bf16 new key, gpqa small models new true-T1.0 keys, `_mn4096` additive keys)
+all already correspond 1:1 to distinct `preset_id`s. **One real collision**:
+`internalstates_gsm8k_qwen25_7b` — the regen exists specifically because the Jul-11 local copy
+(job 106282, `capture={}`, no Z_n) failed every teacher-forced backfill attempt (frac_close 0.722),
+so this is a genuine same-condition supersession, not a new condition. Archived the old
+capture-less pkl to `cache/repgrid/internalstates_gsm8k_qwen25_7b/archive_2026-07-11_capture_none/`
+(mirrors `fetch_backfill.py`'s backup-then-swap discipline) and swapped in the new 46-view pkl.
+**Spot-checked 4 cells with `scripts/inspect_cell.py`** post-integration (`gpqa_llama70b`,
+`rag_hotpotqa_llama70b`, `internalstates_gsm8k_qwen25_7b`, `math500_dsmath7b`): all show full
+46-view key presence (base + `token_logsumexp`/energy + `top_k_logprobs_raw`), GOOD_5/+energy/+logprob
+100% valid-row extraction, and accuracies matching the prior session's informal comparison numbers
+almost exactly (internalstates 0.294 exact match, dsmath7b 0.190 exact match, gpqa llama70b 0.457
+vs the informal 0.480 — small drift expected, that number was a preliminary pilot read).
+
+**gpqa T-mislabel propagation — checked, found to be broader than the regen batch**: the regen
+wave's 5 gpqa presets retire the T1.5-mislabeled-as-T1.0 sweep-pool entries for
+`Llama-3.1-8B-Instruct`, `Mistral-7B-Instruct-v0.2`, and `DeepSeek-R1-Distill-Llama-8B` (their
+backfill roundtrips failed, forcing regeneration); `gpqa_qwen72b`/`gpqa_llama70b` are new
+conditions, not mislabel fixes. But `cluster/backfill_specs.py`'s own comment ("ALL FOUR
+small-model gpqa sweep cells labeled T1.0 actually hold the phase4 T=1.5 generations") names a
+**4th** cell the regen wave never touched: `c_gpqa_Qwen2.5-7B-Instruct` (cell key `Qwen-7B_T1.0`).
+Its backfill roundtrip **passed** at bf16 (`backfill_specs.py` line ~212: "QwenMath math500 + gpqa
+Qwen-7B passed at bf16 and are deliberately left untouched"), so it has full Z_n coverage — but
+backfill only appends keys, it never touches temperature labels, so this cell is still live under
+the wrong "T1.0" tag today in `results/latest.csv`, `results/method_comparison_table1.csv`,
+`results/method_comparison_table2.csv`, and `results/archive.jsonl`. It does **not** appear in the
+19-cell replication grid or the 51-cell selector-bench pool (only in the stale
+`subset_by_domain.csv` and the older sweep/method-comparison chain), so it hasn't tainted current
+headline numbers, but it needs the same T1.0→T1.5 relabel the other three got via regen, at
+whatever point the unified rebuild touches the gpqa sweep pool.
+
+**Not done this session (explicitly deferred)**: the 2 still-running `_mn4096` jobs
+(`gpqa_r1distill8b_mn4096`, `trace_gpqa_r1qwen7b_mn4096`) — handoff itself expected these to
+finish "unattended over the next day or two"; fetch them in a later session once `sacct` shows
+both chains COMPLETED. Phase 5 (unified featcache rebuild, selector re-bench, report regen chain)
+from `HANDOFF_full_coverage.md` was **not started** — per PROGRESS.md Step 189's still-current
+next-priority note, the selector-bench direction needs re-scoping with Ofir/Bracha before more
+selector-design or featcache-rebuild effort, so starting Phase 5 now would be premature.
+
+**Why**: this closes the fetch/integration half of `HANDOFF_regen_fetch.md` (submit → land →
+compare was already done; fetch → map → integrate is this step), and is the direct prerequisite
+for Phase 5's "one unified dataset over ALL cells" goal — `cache/repgrid/` now holds 33 new fully
+46-view-covered cells (5 gpqa, 20 RAG, 4 math500 T1.5 variants incl. one `_mn4096`, 3 trace, 1
+internalstates-superseded) on top of the existing 19-23 repgrid cells, all auto-discoverable by
+`score_repgrid.py` with no further registration.
+
+**Result**: 33/35 regen preset dirs fetched (17.6 GB) and integrated; `cache/repgrid/` cell count
+grows from ~23 to ~56 (pending Phase-5 scoring); 1 cell (`internalstates_gsm8k_qwen25_7b`)
+correctly superseded with old data archived, not lost; 1 previously-unscoped mislabel-propagation
+gap identified (`gpqa`/`Qwen2.5-7B-Instruct`, cell key `Qwen-7B_T1.0`) for the eventual unified
+rebuild to fix; 2 preset dirs still pending on the cluster, not yet fetchable.
+
+---
+
+### Step 191 — Measure the honest ceiling on the enlarged (46→30-view) RAG/GPQA pool; find the binding constraint is sign/composition, not pool size
+
+**What**: Executed the "honest ceiling on the 46-view RAG/GPQA pool" plan on the Step-190
+cluster cells. Three-command pipeline: `score_repgrid.py` (33 new cells, safe `--cells` list to
+respect the Step-173 reject/partial hygiene rule since the script only skips `edis_`), then
+`build_repgrid_featcache.py`, then `selector_splithalf_oracle.py` at the enlarged pool. Added a
+`--pool-mode` arg to the oracle (it hardcoded `h16` — the plan wrongly assumed it read the wide
+pool automatically) and ran it at BOTH `h16` (16 views) and `c46` (the enlarged pool) on the same
+new cells, writing to separate output files so the Step-189 H16 baseline stays intact — a
+controlled pool-effect measurement, not a confounded old-vs-new one. On Omri's review request,
+then audited feature provenance, cluster-load integrity, and per-domain anchor behavior.
+
+**Why**: Omri's hypothesis — RAG/GPQA had only ever carried the 16 H(n) views, never the
+energy/logprob/varentropy views Steps 181/182/188 showed carry signal, so the honest ceiling might
+be much higher with the full pool. A cheap premise-check before any further selector-design effort
+or advisor meeting, following the Step-189 "premise-check before building" lesson.
+
+**Result**: **The pool is not the binding constraint.** (1) *Coverage*: the enlarged pool is **30
+views, not 46** — the 16 anomaly-scorer views (iforest/AE/bocpd/hmm/kalman/…) are Stage-0 *derived*
+views built locally by `build_derived_views.py`, never inference outputs, and that pkl has zero
+`repgrid`-domain entries (documented follow-up; Step 186 already found this family the dead end).
+`min_spilled` is dropped on 12 big-model cells as a genuine zero-variance constant (100% of traces
+contain a p=1.0 token). All hypothesis-relevant views (energy/logprob/varentropy) ARE present.
+(2) *Load integrity 33/33 clean*: 1 pkl/dir, problems×K == candidates == featcache n exactly,
+valid_rate 1.00 everywhere, two independent code paths agree 51/51 at Δ=0.0000. (3) *Controlled
+honest split-half* (greedy_halfB, seed=0, R=10): **RAG** GOOD_5 0.5214 → greedy@H16 0.5525 →
+greedy@30v **0.5887** (views +3.6pp, selection-within-H16 +3.1pp, total honest headroom over GOOD_5
++6.7pp); **GPQA** 0.5368 → 0.5387 → **0.5336** (views **−0.5pp**, honest ceiling stays at chance).
+(4) *Root cause via per-feature oriented AUROC*: **GPQA every feature is dead** (0.51–0.55 incl. epr
+and all new logprob/energy views) — no signal to orient, so no anchor/sign/selector can help.
+**RAG has signal but GOOD_5 misfires three ways** — anchor good but fusion buries it (hotpotqa: epr
+alone 0.71–0.86 vs GOOD_5-fused 0.52–0.54, the other members dead-to-anti here); dead anchor →
+random global sign (2wiki cells, GOOD_5 0.29–0.35 are 0.65–0.71 upside down); genuinely
+anti-oriented anchor (natural_questions llama8b/70b, epr oriented 0.39–0.43). A label-peeking
+unflip bound lifts GOOD_5's RAG mean 0.524 → 0.628, i.e. **~10pp of the RAG deficit is pure
+global-sign error** — the Step-187 domain-dependent-polarity finding reproduced on fresh cluster
+data. Signal lives in hotpotqa (multi-hop), not 2wiki/NQ. **Conclusion: 30/46 views do not unlock
+RAG/GPQA; the next cheap win is the still-open Step-187 offline sign-fix (worth ~10pp on GOOD_5's
+RAG baseline), not a wider pool or a RAG-targeted selector; GPQA is bound by nothing fixable.**
+Also fixed a **latent gate bug** — `build_repgrid_featcache.load_csv_refs` didn't disambiguate the
+CSV ref by anchor, so on the one chance-level cell (`gpqa_r1distill8b`, all features ~0.5) it
+compared the epr-anchored featcache against the cusum_max-anchored CSV row (AUROCs reflected about
+0.5) and spuriously failed; keyed the lookup to the epr anchor → 51/51 pass. **Provisional**:
+`gpqa_r1distill8b` (175 problems) and `trace_gpqa_r1qwen7b` (188) came in below the other GPQA
+cells' 198 — consistent with their mn2048 chains being superseded by the still-running `_mn4096`
+re-runs (PROGRESS Step 190); treat those two GPQA numbers as provisional until the `_mn4096` dirs
+land. *Seed-robustness sweep on the +3.6pp views component is an optional follow-up — the
+load-bearing conclusions (GPQA dead, RAG sign-bound) are per-feature/per-cell facts independent of
+the split seed.*
+
+**Files changed**:
+- `scripts/selector_splithalf_oracle.py` — added `--pool-mode` arg (default `h16`, backward-compatible) so the oracle can measure the enlarged pool
+- `scripts/build_repgrid_featcache.py` — `load_csv_refs` now filters the gate reference to the epr anchor (fixes spurious chance-cell gate FAIL)
+- `results/repgrid/scores_lsml_upcr.csv` — 33 new cells scored (726 new + 418 kept rows, 52 cells)
+- `local_cache/repgrid_cells.pkl`, `local_cache/repgrid_cont.pkl` — rebuilt over 51 cells (untracked, local only)
+- `results/selector_bench/splithalf_oracle_c46{,_summary}.csv` — new: honest oracle on the 30-view pool
+- `results/selector_bench/splithalf_oracle_h16_newdata{,_summary}.csv` — new: H16 control on the same cells
+
+---
