@@ -1,7 +1,7 @@
 # HANDOFF — In-scope competitor grid + 4 method variants (post-Step-192)
 
-Planning doc for the next session. Four items Omri raised after the Step-192 in-scope
-evaluation. **Do not start until this is turned into a plan and approved.** Scope is the
+Planning doc for the next session. Three items Omri raised after the Step-192 in-scope
+evaluation (a fourth, an SML-vs-L-SML pilot, was considered and CUT). **Do not start until this is turned into a plan and approved.** Scope is the
 25 in-scope cells (10 QA + 15 math); RAG/GPQA remain out of scope. GOOD_6 is the leading
 detector (0.7587 macro); the label-free selection prize is small and label-gated (honest
 split-half ceiling +1.7pp, math-only). Read HISTORY Step 192 + PROGRESS first.
@@ -60,38 +60,7 @@ curated subset competitive with the papers AND with supervised / selection ceili
 
 ---
 
-## Item 2 — SML (not L-SML): does the extra clustering hurt once selection is done?
-
-**Hypothesis (Omri)**: L-SML adds a view-clustering + K-selection step on top of SML; if a selector
-(GroupFS) has already curated the subset, the extra clustering may be redundant or harmful. Test plain
-**SML** on the selected subset.
-
-What exists: `spectral_utils/fusion_utils.py` — `sml_fuse` (L213), `sml_fuse_signed` (L320),
-`binarize_classifiers` (L160). So SML is implementable with no new fusion code. `lsml_continuous` (L618)
-is the current L-SML.
-
-**Caveats to design around (these decide whether the test is fair)**:
-- SML (Parisi 2014 / Nadler) assumes **conditionally-independent classifiers** and operates on the
-  rank-1 eigenvector of the classifier covariance — it is the *native* method for BINARY predictions.
-  Its honest form needs `binarize_classifiers`, not z-scored continuous views.
-- The memo (`docs/research_notes/feature_subset_selection_landscape.md`) already flagged: **z-scoring
-  makes the independent-error covariance multiplicative**, so the *additive* SML model is misspecified
-  on z-scored continuous views by construction — which is *why* L-SML's clustering was added. So the
-  clean test is SML on the selected subset in its native (binarized) form, vs L-SML on the same subset.
-- Continuous L-SML was found to be the main config (memo `project_lsml_canonical_state`); SML dropping
-  clustering could hurt MORE on correlated views, not less — unless the selector already decorrelated.
-
-**Cheap pilot first**: on ~5 cells (mix of GOOD_5-wins and GroupFS-wins), run 3 arms on the SAME
-GroupFS-selected subset: (a) L-SML continuous [current], (b) SML on binarized views, (c) SML on
-z-scored continuous [expected-misspecified, include as the control the memo predicts fails). If SML
-ties or beats L-SML on the selected subset, it's a genuine simplification worth a full 25-cell run +
-its own `ref.SML_*` leaderboard rows. If it loses (likely on correlated cells), document as a null and
-move on. Risk: LOW (existing fusion primitives). Value: MEDIUM (a real architecture simplification if it
-holds; a clean null if not).
-
----
-
-## Item 3 — Ofir Lindenbaum's trace-based (Gated-Laplacian) selector
+## Item 2 — Ofir Lindenbaum's trace-based (Gated-Laplacian) selector
 
 **What Omri means** ("another method by Ofir Lindenbaum … with the trace"): from the Step-185 memo,
 Ofir's "trace of a sub-matrix" reference was identified as the **Gated-Laplacian objective
@@ -109,15 +78,40 @@ with a planted-cluster known-answer test). **Verify the identification against `
 the memo before coding** (the memo left it as "candidate identification", not confirmed — re-read the
 arXiv:2007.04728 extraction; digest the paper via `/paper-digest` if not cached).
 
+**Why the Gated-Laplacian specifically (the feature-independence angle)**: across the FS research,
+"feature independence" appeared in TWO roles, and the Gated-Laplacian is the strongest label-free
+selector that operates in role A while respecting the lesson from role B — that's exactly why it's the
+one to build.
+- **Role A — selectors that pick a NON-REDUNDANT subset** (enforce independence *between chosen
+  features*): our A5 **mRMR** (`a5_mrmr.py`, relevance − redundancy, `alpha` knob — helped only on the
+  wide pool, not H16), the `decorr` simple-stats floor (greedy low-|ρ|), **LSCAE** (Shaham/Lindenbaum
+  NN 2022, arXiv:2110.05306 — reconstruction + Laplacian, "drops redundant/correlated features"), and
+  **the Gated-Laplacian itself**. The Gated-Laplacian is the subset-LEVEL member of this family: it
+  scores the gated *sub-matrix's* Laplacian trace `Tr[X̃ᵀL_X̃X̃]`, so redundant columns are penalized by
+  construction rather than filtered pairwise or ranked one-at-a-time.
+- **Role B — the fusion models whose ASSUMPTION is conditional independence of the classifiers given Y**:
+  SML (pairwise CI), our **L-SML** (block/latent-group CI — the assumption our band-power features fit
+  best, Step 136), U-PCR (uncorrelated errors, Eq. 13, "may be strongly violated"), FUSE (triplet CI).
+- **The catch that shapes the design** (memo §1.5, `results/subset_sweep/rho_check.csv`): the naive
+  Nadler-lineage proxy for role B — the **ρ≥0.75 correlation filter** — is **empirically REFUTED for
+  continuous L-SML** (subsets that violate it score *higher* AUROC). So a good independence-aware
+  selector must NOT be a hard pairwise-correlation filter; it must model subset-level structure the way
+  L-SML's latent groups already do. The Gated-Laplacian's soft, subset-level, graph-smoothness objective
+  is the right shape for this (and is a cleaner formulation than GroupFS's DUFS gates, which saturate —
+  Item 1); it is the natural "enforce in selection the independence L-SML assumes in fusion" experiment.
+
 **Manage expectations**: Step 189/192 established the label-free selection prize is small (~ties GOOD_5,
 honest ceiling +1.7pp math-only). This is another *label-free* selector and cannot exceed that ceiling.
-BUT it's **Ofir's own method** → high advisor relevance, and it may dodge GroupFS's gate-saturation
-failure mode (Item 1), which would be a clean scientific result even at parity macro. Risk: MEDIUM (new
-learned selector + paper re-grounding). Value: MEDIUM-HIGH (advisor buy-in; better failure mode).
+BUT it's **Ofir's own method** → high advisor relevance; it's the strongest independence-aware label-free
+selector we haven't built; and it may dodge GroupFS's gate-saturation failure mode (Item 1) — a clean
+scientific result even at parity macro. Risk: MEDIUM (new learned selector + paper re-grounding). Value:
+MEDIUM-HIGH (advisor buy-in; principled independence handling; better failure mode). Register it in the
+same bench harness as a new family (`a6_gated_laplacian`), new-file-only worktree branch with a
+planted-cluster `smoke()`, per the A2/A3/A4 convention.
 
 ---
 
-## Item 4 — Use a left-out H16 feature as the orientation anchor
+## Item 3 — Use a left-out H16 feature as the orientation anchor
 
 **Idea (Omri)**: the anchor only fixes the label-free global SIGN (it is not itself fused). Currently
 `ANCHOR_PRIORITY = ['epr','low_band_power','spectral_entropy','cusum_max']` — all GOOD_5 members. Try
@@ -150,11 +144,12 @@ is best should be used consistently).
 
 ## Suggested sequencing (fastest-payoff first)
 
-1. **Item 4** anchor sweep (minutes; sets the anchor for everything else).
+*(SML-vs-L-SML pilot CUT per Omri — the extra-clustering-hurts hypothesis is dropped for now.)*
+
+1. **Item 3** anchor sweep (minutes; sets the anchor for everything else).
 2. **Item 1** competitor grid (mostly plumbing; the advisor deliverable) — LR@30 extension + GroupFS@16
    6-cell run + the join/render + the GroupFS-non-optimality diagnosis panel.
-3. **Item 2** SML pilot on ~5 cells (cheap null-or-win on existing primitives).
-4. **Item 3** gated-Laplacian selector (largest build; re-ground the paper first).
+3. **Item 2** gated-Laplacian selector (largest build; re-ground the paper first).
 
 All must pass `python scripts/smoke_selectors.py` after any bench/selector change and follow the
 `SUPERVISED_ORACLE_CORRECTION.md` rules for the LR arms. Keep in-scope artifacts as separate files;
@@ -165,10 +160,10 @@ do not regenerate the canonical all-cell reports (they'd re-mix RAG/GPQA).
 ### Paste-ready next-session prompt
 
 > Read HISTORY Step 192, PROGRESS, and HANDOFF_inscope_competitor_and_variants.md. Plan (don't execute
-> yet) the four post-Step-192 items on the 25 in-scope cells: (1) a per-cell competitor grid comparing
+> yet) the three post-Step-192 items on the 25 in-scope cells: (1) a per-cell competitor grid comparing
 > GOOD_5 / GOOD_6 / top_macro_5 / paper-competitor / LR@16 / LR@30 / GroupFS@16 / GroupFS@30 with
-> GroupFS's chosen features and a why-it's-non-optimal (gate-saturation) diagnosis; (2) an SML-vs-L-SML
-> pilot on the selected subset; (3) implementing Ofir Lindenbaum's trace-based Gated-Laplacian selector
-> as a new bench family; (4) a left-out-H16-feature anchor sweep. Reuse published_baselines.csv,
-> logistic_oracle.py, a2_groupfs__c46.csv (chosen features), selector_chosen_sets_report.py. Sequence
-> anchor-sweep → competitor-grid → SML-pilot → gated-Laplacian.
+> GroupFS's chosen features and a why-it's-non-optimal (gate-saturation) diagnosis; (2) implementing Ofir
+> Lindenbaum's trace-based Gated-Laplacian selector as a new bench family; (3) a left-out-H16-feature
+> anchor sweep. (The SML-vs-L-SML pilot is CUT.) Reuse published_baselines.csv, logistic_oracle.py,
+> a2_groupfs__c46.csv (chosen features), selector_chosen_sets_report.py. Sequence anchor-sweep →
+> competitor-grid → gated-Laplacian.
