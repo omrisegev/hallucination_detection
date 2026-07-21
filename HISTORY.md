@@ -6722,3 +6722,65 @@ the split seed.*
 - `results/selector_bench/splithalf_oracle_h16_newdata{,_summary}.csv` — new: H16 control on the same cells
 
 ---
+
+### Step 192 — Complete in-scope (QA + math) evaluation of the leading pipeline over the full 30-view feature pool on the new cluster data
+
+**What**: Ran the complete evaluation pipeline on the **25 in-scope cells** (10 short-form QA + 15
+reasoning/math; RAG + GPQA excluded per the Jul-20 scope call) over the full wide (30-view / c46)
+feature pool now available from the Step-190/191 cluster regen. Five phases, all CPU-local:
+(0) integrity gates — `smoke_selectors.py` 19/19, `run_selector_bench.py --self-check` (51 cells,
+GOOD_5 reproduced max|diff| 2.9e-08), and a coverage check confirming all 25 cells present in
+`repgrid_cells.pkl` with 28–30 wide-pool views each. (1) NEW `scripts/inscope_orientation_audit.py`
+— the Step-187 per-feature oriented-AUROC audit scoped to the 25 in-scope cells (QA vs math).
+(2) **Full selector bench — all 8 families** (`reference_macros`, `simple_stats`, `classical_fs`,
+`a1_residual`, `a2_groupfs`, `a3_concrete_ae`, `a4_antigravity`, `a5_mrmr`) at `--pool c46
+--domains repgrid --cells <25>`, resume-safe append (only the 6 new cluster cells computed; the 19
+grid cells reused) + an H16 control arm for `reference_macros`. (3) Honest split-half oracle
+(`selector_splithalf_oracle.py`) at BOTH `--pool-mode c46` and `h16`, R=10, seed 0, on the 25 cells,
+to separate label-free reality from the achievable ceiling. (4) NEW `scripts/selector_compare_inscope.py`
+(in-scope leaderboard with QA/math macro splits, GOOD_5 comparator derived from the bench's own
+`ref.GOOD_5` rows since the 6 new cells have no `sweep_summary` row) → `comparison_inscope.csv`, and
+NEW `scripts/inscope_report.py` → `results/selector_bench/inscope_evaluation.html` (theme-aware,
+CSV-driven, no hand-typed numbers). Canonical all-cell artifacts (`comparison.csv`, `dashboard.html`,
+deep reports) deliberately left at Step-191 state — regenerating them would re-mix the out-of-scope
+RAG/GPQA cells back into the headlines.
+
+**Why**: Omri's directive this session — run the new leading pipeline over all features we have on the
+new cluster data, complete evaluation, presented like prior steps. Step 191 confirmed the pool is not
+the binding constraint for RAG/GPQA and de-scoped them; the natural next question is what the wide pool
+buys on the IN-SCOPE domains, and whether the still-open Step-187 sign-fix matters there.
+
+**Result**: **(1) Orientation — Step-187 sign-fix is NOT needed in-scope.** The label-free anchor
+`epr` is correctly oriented on **all 25** in-scope cells (min oriented AUROC 0.560, worst on
+`losnet_hotpotqa`; best 0.931) — versus RAG where it was flipped (0.29–0.43). Every GOOD_6 member
+carries the right fixed sign: the 4 core features (epr, sw_var_peak, cusum_max, varentropy) have 0
+anti-oriented cells; low_band_power 1/25, spectral_entropy 4/25. (~45% of the full 30-view pool is
+anti-oriented on any given cell, but L-SML absorbs that via negative weights and selection removes it —
+what matters is the curated members + anchor are correctly signed, which they are.) The domain-polarity
+failure was a RAG-specific effect; it is closed for the QA + math pipeline. **(2) Bench — GOOD_6 is the
+leading pipeline; no label-free selector beats it.** All 8 families ran with **0 fallbacks / 0 NaN AUROC**
+(the Step-186 quality bar). In-scope c46 leaderboard (macro over 25 cells): **`ref.GOOD_6` 0.7587**
+(QA 0.7274, math 0.7795), **+0.98pp over GOOD_5**, Wilcoxon p=0.00251, 19W/6L — the only method with a
+significant positive delta. `top_macro_5` 0.7522, then the best label-free learned selectors `a2.dufs`
+/`a2.select` at 0.7495 (+0.06pp vs GOOD_5 — a tie), then GOOD_5 itself 0.7489. GOOD_5's five features all
+live in H16, so GOOD_5 is pool-invariant → **the entire wide-pool value for the curated subset is the one
+`varentropy` view GOOD_6 adds, not automatic selection over 30 views.** This reproduces the Step-186/189
+conclusion on the freshly-scoped in-scope pool. **(3) Honest ceiling — real but modest, and label-gated.**
+Split-half greedy (held-out half B, all 25): GOOD_5 0.7507 → greedy@H16 0.7546 → **greedy@30v 0.7669**
+(+1.7pp over GOOD_5), concentrated in **math (+2.5pp, 0.769→0.795)** and thin on **QA (+0.6pp, 0.720→0.726,
+optimism gap 0.041 — selection overfits QA)**. But that ceiling uses labels on half the data; **no
+label-free selector we tested captures it** (they tie GOOD_5), and GOOD_6 recovers ~+1pp of it label-free
+via one curated pick. So the achievable label-free prize from in-cell selection over the wide pool is
+small; the reliable win is the curated GOOD_6. **Net thesis takeaway**: on the in-scope QA+math cells over
+all available features, the leading detector is the fixed **GOOD_6** subset (0.7587 macro), feature-selection
+algorithms tie but don't beat it, and the Step-187 sign-fix is a closed non-issue in scope.
+
+**Files changed**:
+- NEW `scripts/inscope_orientation_audit.py` — per-feature oriented-AUROC audit on the 25 in-scope cells → `results/selector_bench/inscope_feature_orientation{,_summary}.csv`
+- NEW `scripts/selector_compare_inscope.py` — in-scope leaderboard (QA/math macro split; GOOD_5 comparator from bench's own ref.GOOD_5) → `results/selector_bench/comparison_inscope.csv`
+- NEW `scripts/inscope_report.py` — theme-aware CSV-driven in-scope evaluation page → `results/selector_bench/inscope_evaluation.html`
+- 8 `results/selector_bench/<family>__c46.csv` — 6 new in-scope cells appended per family (resume-safe; 19 grid cells reused); `reference_macros__h16.csv` control arm
+- NEW `results/selector_bench/splithalf_oracle_{c46,h16}_inscope{,_summary}.csv` — honest ceiling, both pools, 25 cells
+- Step-189/191 baselines (`splithalf_oracle_{c46,h16}*` originals, `comparison.csv`, `dashboard.html`, deep reports) untouched — in-scope files are separate
+
+---

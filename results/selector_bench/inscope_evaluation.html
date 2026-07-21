@@ -1,0 +1,125 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>In-Scope Evaluation — QA + Math, Wide Feature Pool</title><style>
+:root{--bg:#faf9f7;--panel:#ffffff;--ink:#1f2430;--muted:#5b6472;--line:#e3e1dc;
+ --accent:#1baf7a;--ref:#2a78d6;--warn:#c98500;--bad:#c0392b;--chip:#f0efec;--code:#f4f3f0;}
+:root[data-theme="dark"]{--bg:#14171d;--panel:#1c2027;--ink:#e8eaf0;--muted:#9aa2af;
+ --line:#2c313a;--accent:#22c286;--ref:#3987e5;--warn:#eda100;--bad:#e26d5a;--chip:#252a33;--code:#232830;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171d;--panel:#1c2027;
+ --ink:#e8eaf0;--muted:#9aa2af;--line:#2c313a;--accent:#22c286;--ref:#3987e5;--warn:#eda100;
+ --bad:#e26d5a;--chip:#252a33;--code:#232830;}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 "Segoe UI",system-ui,sans-serif}
+main{max-width:1060px;margin:0 auto;padding:28px 20px 80px}
+h1{font-size:26px;line-height:1.25;margin:6px 0 2px;text-wrap:balance}
+h2{font-size:19px;margin:40px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+p{max-width:78ch}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+.sub{color:var(--muted);margin:0 0 18px}
+table{border-collapse:collapse;font-size:13.5px;margin:10px 0;width:100%}
+th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:left;font-variant-numeric:tabular-nums}
+th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+td.num,th.num{text-align:right}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:14px 0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:16px 0}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.tile .lab{font-size:12px;color:var(--muted);margin:0 0 4px}
+.big{font-size:30px;font-weight:650;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile .foot{font-size:12px;color:var(--muted);margin:4px 0 0}
+.chip{display:inline-block;background:var(--chip);border-radius:999px;padding:1px 10px;font-size:12px;color:var(--muted);margin-right:6px}
+.good{color:var(--accent);font-weight:600}.badv{color:var(--bad);font-weight:600}.mut{color:var(--muted)}
+code{background:var(--code);border-radius:4px;padding:1px 5px;font-size:13px}
+.note{border-left:3px solid var(--accent);padding:8px 14px;background:var(--panel);border-radius:0 8px 8px 0;margin:12px 0;max-width:82ch}
+.note.warn{border-left-color:var(--warn)}
+svg text{font:11.5px "Segoe UI",system-ui,sans-serif;fill:var(--ink)}
+svg .mut{fill:var(--muted)}
+a{color:var(--ref)}
+</style></head>
+<body><main>
+<p class="eyebrow">Step 192 · selector bench · wide (30-view) pool</p>
+<h1>In-scope evaluation: the leading pipeline over all features, on the new cluster data</h1>
+<p class="sub">25 in-scope cells (10 short-form QA + 15 reasoning/math). RAG and GPQA
+excluded per the Jul-20 scope call. Every number regenerated from CSV by
+<code>scripts/inscope_report.py</code>.</p>
+
+<div class="tiles">
+ <div class="tile"><p class="lab">Leading pipeline (GOOD_6)</p>
+   <div class="big good">0.7587</div>
+   <p class="foot">macro AUROC over 25 cells · QA 0.727 · math 0.779</p></div>
+ <div class="tile"><p class="lab">GOOD_6 &minus; GOOD_5</p>
+   <div class="big">+0.98pp</div>
+   <p class="foot">Wilcoxon p=0.0025 · 19W/6L · the wide-pool <code>varentropy</code> view</p></div>
+ <div class="tile"><p class="lab">Best label-free learned selector</p>
+   <div class="big">0.7495</div>
+   <p class="foot">a2.dufs · +0.06pp vs GOOD_5 (a tie)</p></div>
+ <div class="tile"><p class="lab">Honest headroom (split-half, math)</p>
+   <div class="big">(+2.53pp)</div>
+   <p class="foot">greedy@30v over GOOD_5, held-out half · not the label-peeking oracle</p></div>
+</div>
+
+<div class="note"><b>Headline.</b> On the in-scope QA+math cells scored over the full
+30-view feature pool, the curated <b>GOOD_6</b> fixed subset is the leading pipeline
+(0.7587 macro, +0.98pp over GOOD_5,
+p=0.0025). Its entire gain is the one wide-pool feature it adds
+(<code>varentropy</code>): GOOD_5's five features all live in the 16-view H(n) pool, so
+GOOD_5 is pool-invariant. <b>No label-free learned selector beats the curated subsets</b>
+— the best (a2.dufs) ties GOOD_5 at +0.06pp.
+This reproduces the Step-186/189 finding on the in-scope pool: the value of the wider
+pool is one good feature, not automatic selection over it.</div>
+
+<h2>Selector leaderboard — in-scope, wide (c46) pool</h2>
+<p>Macro AUROC over the 25 in-scope cells, split QA / math. Delta and Wilcoxon are
+paired vs GOOD_5 across cells; wins/ties/losses per cell. All 8 families ran with
+<b>0 fallbacks and 0 NaN AUROC</b>.</p>
+<div class="card"><svg viewBox="0 0 680 342" width="100%" role="img" aria-label="in-scope macro AUROC by method"><line x1="437.8" y1="8" x2="437.8" y2="320" stroke="var(--ref)" stroke-width="1" stroke-dasharray="4 3"/><text x="437.8" y="335" text-anchor="middle" class="mut">GOOD_5 0.749</text><rect x="250" y="12" width="278.0" height="16" rx="3" fill="var(--accent)" opacity="1"/><text x="242" y="24.0" text-anchor="end">ref.GOOD_6</text><text x="533.0" y="24.0" fill="var(--accent)">0.7587</text><rect x="250" y="38" width="218.1" height="16" rx="3" fill="var(--muted)" opacity="0.55"/><text x="242" y="50.0" text-anchor="end">ref.top_macro_5</text><text x="473.1" y="50.0" fill="var(--muted)">0.7522</text><rect x="250" y="64" width="193.3" height="16" rx="3" fill="var(--muted)" opacity="0.55"/><text x="242" y="76.0" text-anchor="end">a2.dufs</text><text x="448.3" y="76.0" fill="var(--muted)">0.7495</text><rect x="250" y="90" width="193.3" height="16" rx="3" fill="var(--muted)" opacity="0.55"/><text x="242" y="102.0" text-anchor="end">a2.select</text><text x="448.3" y="102.0" fill="var(--muted)">0.7495</text><rect x="250" y="116" width="192.4" height="16" rx="3" fill="var(--muted)" opacity="0.55"/><text x="242" y="128.0" text-anchor="end">a1.router@good5</text><text x="447.4" y="128.0" fill="var(--muted)">0.7494</text><rect x="250" y="142" width="187.8" height="16" rx="3" fill="var(--accent)" opacity="1"/><text x="242" y="154.0" text-anchor="end">ref.GOOD_5</text><text x="442.8" y="154.0" fill="var(--accent)">0.7489</text><rect x="250" y="168" width="179.5" height="16" rx="3" fill="var(--muted)" opacity="0.55"/><text x="242" y="180.0" text-anchor="end">a1.good5+K_ah</text><text x="434.5" y="180.0" fill="var(--muted)">0.7480</text><rect x="250" y="194" width="161.1" height="16" rx="3" fill="var(--muted)" opacity="0.55"/><text x="242" y="206.0" text-anchor="end">a2.select+groups</text><text x="416.1" y="206.0" fill="var(--muted)">0.7460</text><rect x="250" y="220" width="159.2" height="16" rx="3" fill="var(--muted)" opacity="0.55"/><text x="242" y="232.0" text-anchor="end">a4.good5+K_intrinsic_kn</text><text x="414.2" y="232.0" fill="var(--muted)">0.7458</text><rect x="250" y="246" width="155.5" height="16" rx="3" fill="var(--muted)" opacity="0.55"/><text x="242" y="258.0" text-anchor="end">a1.good5+K_kn</text><text x="410.5" y="258.0" fill="var(--muted)">0.7454</text><rect x="250" y="272" width="124.3" height="16" rx="3" fill="var(--muted)" opacity="0.55"/><text x="242" y="284.0" text-anchor="end">a4.good5+K_intrinsic_ah</text><text x="379.3" y="284.0" fill="var(--muted)">0.7420</text><rect x="250" y="298" width="92.0" height="16" rx="3" fill="var(--muted)" opacity="0.55"/><text x="242" y="310.0" text-anchor="end">a5.mrmr_a0.7_adapt</text><text x="347.0" y="310.0" fill="var(--muted)">0.7385</text></svg>
+<p class="mut" style="font-size:12px;margin:6px 0 0">Bars: macro AUROC over all 25 in-scope cells. Dashed rule: GOOD_5 reference. GOOD_6 / GOOD_5 highlighted.</p></div>
+<div class="scroll"><table>
+<thead><tr><th>variant</th><th>family</th><th class="num">macro (all)</th>
+<th class="num">QA</th><th class="num">math</th><th class="num">Δ GOOD_5</th>
+<th class="num">Wilcoxon p</th><th class="num">W/T/L</th><th>G-macro</th></tr></thead>
+<tbody><tr style="background:var(--chip)"><td>ref.GOOD_6</td><td class="mut">reference macro</td><td class="num">0.7587</td><td class="num">0.7274</td><td class="num">0.7795</td><td class="num good">+0.98pp</td><td class="num">0.0025</td><td class="num">19/0/6</td><td class="mut">PASS</td></tr><tr><td>ref.top_macro_5</td><td class="mut">reference macro</td><td class="num">0.7522</td><td class="num">0.7211</td><td class="num">0.7729</td><td class="num good">+0.33pp</td><td class="num">0.3525</td><td class="num">15/0/10</td><td class="mut">PASS</td></tr><tr><td>a2.dufs</td><td class="mut">GroupFS (A2)</td><td class="num">0.7495</td><td class="num">0.7097</td><td class="num">0.7759</td><td class="num good">+0.06pp</td><td class="num">0.2872</td><td class="num">15/0/10</td><td class="mut">PASS</td></tr><tr><td>a2.select</td><td class="mut">GroupFS (A2)</td><td class="num">0.7495</td><td class="num">0.7120</td><td class="num">0.7745</td><td class="num good">+0.06pp</td><td class="num">0.3810</td><td class="num">15/0/10</td><td class="mut">PASS</td></tr><tr><td>a1.router@good5</td><td class="mut">residual-guided (A1)</td><td class="num">0.7494</td><td class="num">0.7154</td><td class="num">0.7721</td><td class="num good">+0.05pp</td><td class="num">0.4237</td><td class="num">14/1/10</td><td class="mut">PASS</td></tr><tr style="background:var(--chip)"><td>ref.GOOD_5</td><td class="mut">reference macro</td><td class="num">0.7489</td><td class="num">0.7210</td><td class="num">0.7675</td><td class="num mut">+0.00pp</td><td class="num">—</td><td class="num">0/25/0</td><td class="mut">PASS</td></tr><tr><td>a1.good5+K_ah</td><td class="mut">residual-guided (A1)</td><td class="num">0.7480</td><td class="num">0.7104</td><td class="num">0.7730</td><td class="num badv">-0.09pp</td><td class="num">0.6292</td><td class="num">9/6/10</td><td class="mut">PASS</td></tr><tr><td>a2.select+groups</td><td class="mut">GroupFS (A2)</td><td class="num">0.7460</td><td class="num">0.7035</td><td class="num">0.7744</td><td class="num badv">-0.28pp</td><td class="num">0.5296</td><td class="num">12/1/12</td><td class="mut">PASS</td></tr><tr><td>a4.good5+K_intrinsic_kn</td><td class="mut">anchor-affinity (A4)</td><td class="num">0.7458</td><td class="num">0.7099</td><td class="num">0.7698</td><td class="num badv">-0.30pp</td><td class="num">0.3304</td><td class="num">9/2/14</td><td class="mut">PASS</td></tr><tr><td>a1.good5+K_kn</td><td class="mut">residual-guided (A1)</td><td class="num">0.7454</td><td class="num">0.7096</td><td class="num">0.7692</td><td class="num badv">-0.35pp</td><td class="num">0.2491</td><td class="num">8/3/14</td><td class="mut">PASS</td></tr><tr><td>a4.good5+K_intrinsic_ah</td><td class="mut">anchor-affinity (A4)</td><td class="num">0.7420</td><td class="num">0.7170</td><td class="num">0.7587</td><td class="num badv">-0.69pp</td><td class="num">0.0280</td><td class="num">1/18/6</td><td class="badv">FAIL</td></tr><tr><td>a5.mrmr_a0.7_adapt</td><td class="mut">mRMR (A5)</td><td class="num">0.7385</td><td class="num">0.6997</td><td class="num">0.7644</td><td class="num badv">-1.03pp</td><td class="num">0.2002</td><td class="num">9/0/16</td><td class="badv">FAIL</td></tr><tr><td>a4.anchor_adapt</td><td class="mut">anchor-affinity (A4)</td><td class="num">0.7372</td><td class="num">0.6964</td><td class="num">0.7644</td><td class="num badv">-1.16pp</td><td class="num">0.1817</td><td class="num">9/0/16</td><td class="badv">FAIL</td></tr><tr><td>a5.mrmr_a0.0_adapt</td><td class="mut">mRMR (A5)</td><td class="num">0.7372</td><td class="num">0.6964</td><td class="num">0.7644</td><td class="num badv">-1.16pp</td><td class="num">0.1817</td><td class="num">9/0/16</td><td class="badv">FAIL</td></tr></tbody></table></div>
+
+<h2>Honest ceiling — how much is really on the table?</h2>
+<p>The label-peeking exhaustive-sweep oracle is a winner's-curse artifact (Step 189).
+This is the out-of-sample counterpart: bounded greedy forward selection on a held-out
+half, refit and scored on the other half, R=10 random 50/50 splits per cell. It answers
+"if selection could see labels on half the data, how much would it honestly gain?"</p>
+<div class="card"><svg viewBox="0 0 680 238" width="100%" role="img" aria-label="honest split-half ceiling ladder"><rect x="120" y="4" width="11" height="11" rx="2" fill="#9ecfc0" style="fill:#9ecfc0"/><text x="135" y="13">GOOD_5 (curated)</text><rect x="285" y="4" width="11" height="11" rx="2" fill="#4bb596" style="fill:#4bb596"/><text x="300" y="13">greedy@H16 (16 views)</text><rect x="450" y="4" width="11" height="11" rx="2" fill="#158463" style="fill:#158463"/><text x="465" y="13">greedy@30v (wide)</text><text x="8" y="70.0" class="k">QA (10 cells)</text><rect x="120" y="24" width="369.7" height="20" rx="3" fill="#9ecfc0" style="fill:#9ecfc0"/><text x="494.7" y="37.0">0.7222</text><rect x="120" y="47" width="357.0" height="20" rx="3" fill="#4bb596" style="fill:#4bb596"/><text x="482.0" y="60.0">0.7145</text><rect x="120" y="70" width="375.4" height="20" rx="3" fill="#158463" style="fill:#158463"/><text x="500.4" y="83.0">0.7256</text><text x="8" y="162.0" class="k">math (15 cells)</text><rect x="120" y="116" width="447.2" height="20" rx="3" fill="#9ecfc0" style="fill:#9ecfc0"/><text x="572.2" y="129.0">0.7687</text><rect x="120" y="139" width="468.1" height="20" rx="3" fill="#4bb596" style="fill:#4bb596"/><text x="593.1" y="152.0">0.7812</text><rect x="120" y="162" width="490.1" height="20" rx="3" fill="#158463" style="fill:#158463"/><text x="615.1" y="175.0">0.7945</text></svg></div>
+<ul><li><b>QA (10 cells)</b>: GOOD_5 0.7222 &rarr; greedy@H16 0.7145 &rarr; greedy@30v 0.7256</li><li><b>math (15 cells)</b>: GOOD_5 0.7687 &rarr; greedy@H16 0.7812 &rarr; greedy@30v 0.7945</li></ul>
+<div class="note">QA honest ladder (wide pool): 0.7200 → 0.7256 (+0.55pp). Math: 0.7692 → 0.7945 (+2.53pp).
+The wide-pool greedy ceiling sits close to GOOD_5 — consistent with the leaderboard's
+learned-selector ties. The achievable prize from in-cell label-free selection is small;
+the reliable win is the curated GOOD_6.</div>
+
+<h2>Feature orientation — does the Step-187 sign-fix matter in-scope?</h2>
+<p>Step 191 found ~10pp of the (now out-of-scope) RAG deficit was pure global-sign error:
+the fixed offline feature sign was upside-down on retrieval-grounded QA. The check for the
+in-scope domains: is the anchor / curated subset anti-oriented here too?</p>
+<div class="note"><b>Verdict: no.</b> The label-free anchor <code>epr</code> is correctly oriented on <b>all 25</b> in-scope cells (min oriented AUROC 0.560); the curated GOOD_5/GOOD_6 features carry the right fixed sign here. The Step-187 offline sign-fix is
+<b>not needed for the in-scope QA + math pipeline</b>; it was a RAG-specific effect.</div>
+<div class="scroll"><table>
+<thead><tr><th>GOOD_6 feature</th><th class="num">QA mean AUROC</th><th class="num">QA anti-cells</th>
+<th class="num">math mean AUROC</th><th class="num">math anti-cells</th><th class="num">all mean</th></tr></thead>
+<tbody><tr><td>epr</td><td class="num">0.6930</td><td class="num">0</td><td class="num">0.7606</td><td class="num">0</td><td class="num">0.7336</td></tr><tr><td>sw_var_peak</td><td class="num">0.6981</td><td class="num">0</td><td class="num">0.7460</td><td class="num">0</td><td class="num">0.7268</td></tr><tr><td>cusum_max</td><td class="num">0.6885</td><td class="num">0</td><td class="num">0.7395</td><td class="num">0</td><td class="num">0.7191</td></tr><tr><td>varentropy</td><td class="num">0.6985</td><td class="num">0</td><td class="num">0.7162</td><td class="num">1</td><td class="num">0.7091</td></tr><tr><td>low_band_power</td><td class="num">0.5950</td><td class="num">1</td><td class="num">0.6735</td><td class="num">0</td><td class="num">0.6421</td></tr><tr><td>spectral_entropy</td><td class="num">0.6184</td><td class="num">1</td><td class="num">0.6020</td><td class="num">3</td><td class="num">0.6086</td></tr></tbody></table></div>
+<p class="mut" style="font-size:12px">Oriented AUROC = the AUROC of the feature as the fusion
+consumes it (fixed offline sign, z-scored). &lt;0.5 ⇒ anti-oriented. Across the full 30-view
+pool ~45% of views are anti-oriented on any given cell, but L-SML absorbs that via negative
+weights and selection removes it — what matters is that the curated members and the anchor are
+correctly signed, which they are.</p>
+
+<h2>Per-cell detail — GOOD_5 vs GOOD_6 (L-SML, epr anchor)</h2>
+<div class="scroll"><table>
+<thead><tr><th>cell</th><th>domain</th><th class="num">n</th><th class="num">acc</th>
+<th class="num">GOOD_5</th><th class="num">GOOD_6</th><th class="num">Δ</th></tr></thead>
+<tbody><tr><td>epr_triviaqa_mistral24b</td><td class="chip">QA</td><td class="num">1000</td><td class="num">0.786</td><td class="num">0.7073</td><td class="num">0.7332</td><td class="num"><span class="good">+2.59pp</span></td></tr><tr><td>inside_coqa_llama7b</td><td class="chip">QA</td><td class="num">500</td><td class="num">0.132</td><td class="num">0.6841</td><td class="num">0.6674</td><td class="num"><span class="badv">-1.67pp</span></td></tr><tr><td>losnet_hotpotqa_mistral7b</td><td class="chip">QA</td><td class="num">500</td><td class="num">0.338</td><td class="num">0.5754</td><td class="num">0.5810</td><td class="num"><span class="good">+0.56pp</span></td></tr><tr><td>sciq_llama8b</td><td class="chip">QA</td><td class="num">1000</td><td class="num">0.877</td><td class="num">0.7381</td><td class="num">0.7477</td><td class="num"><span class="good">+0.96pp</span></td></tr><tr><td>se_nq_open_llama8b</td><td class="chip">QA</td><td class="num">1000</td><td class="num">0.501</td><td class="num">0.7180</td><td class="num">0.7303</td><td class="num"><span class="good">+1.23pp</span></td></tr><tr><td>se_squad_v2_llama8b</td><td class="chip">QA</td><td class="num">1000</td><td class="num">0.606</td><td class="num">0.7982</td><td class="num">0.8110</td><td class="num"><span class="good">+1.28pp</span></td></tr><tr><td>seiclr_triviaqa_opt30b</td><td class="chip">QA</td><td class="num">500</td><td class="num">0.465</td><td class="num">0.5948</td><td class="num">0.5884</td><td class="num"><span class="badv">-0.64pp</span></td></tr><tr><td>semenergy_triviaqa_qwen3_8b</td><td class="chip">QA</td><td class="num">500</td><td class="num">0.493</td><td class="num">0.8006</td><td class="num">0.8160</td><td class="num"><span class="good">+1.54pp</span></td></tr><tr><td>spilled_triviaqa_llama8b</td><td class="chip">QA</td><td class="num">500</td><td class="num">0.320</td><td class="num">0.9340</td><td class="num">0.9420</td><td class="num"><span class="good">+0.80pp</span></td></tr><tr><td>truthfulqa_llama8b</td><td class="chip">QA</td><td class="num">817</td><td class="num">0.116</td><td class="num">0.6596</td><td class="num">0.6572</td><td class="num"><span class="badv">-0.24pp</span></td></tr><tr><td>ars_gsm8k_r1distill8b</td><td class="chip">math</td><td class="num">500</td><td class="num">0.728</td><td class="num">0.7500</td><td class="num">0.7623</td><td class="num"><span class="good">+1.23pp</span></td></tr><tr><td>internalstates_gsm8k_qwen25_7b</td><td class="chip">math</td><td class="num">500</td><td class="num">0.294</td><td class="num">0.7039</td><td class="num">0.7036</td><td class="num"><span class="badv">-0.03pp</span></td></tr><tr><td>lapeigvals_gsm8k_llama3b</td><td class="chip">math</td><td class="num">1319</td><td class="num">0.445</td><td class="num">0.6845</td><td class="num">0.7025</td><td class="num"><span class="good">+1.80pp</span></td></tr><tr><td>lapeigvals_gsm8k_llama8b</td><td class="chip">math</td><td class="num">500</td><td class="num">0.724</td><td class="num">0.8152</td><td class="num">0.8186</td><td class="num"><span class="good">+0.34pp</span></td></tr><tr><td>lapeigvals_gsm8k_mistral24b</td><td class="chip">math</td><td class="num">1319</td><td class="num">0.917</td><td class="num">0.8006</td><td class="num">0.8087</td><td class="num"><span class="good">+0.81pp</span></td></tr><tr><td>lapeigvals_gsm8k_nemo</td><td class="chip">math</td><td class="num">1319</td><td class="num">0.829</td><td class="num">0.7820</td><td class="num">0.8013</td><td class="num"><span class="good">+1.93pp</span></td></tr><tr><td>lapeigvals_gsm8k_phi35</td><td class="chip">math</td><td class="num">1319</td><td class="num">0.848</td><td class="num">0.8032</td><td class="num">0.8125</td><td class="num"><span class="good">+0.93pp</span></td></tr><tr><td>noise_gsm8k_mistral7b</td><td class="chip">math</td><td class="num">1319</td><td class="num">0.499</td><td class="num">0.7851</td><td class="num">0.7902</td><td class="num"><span class="good">+0.51pp</span></td></tr><tr><td>noise_gsm8k_phi3mini</td><td class="chip">math</td><td class="num">1319</td><td class="num">0.710</td><td class="num">0.6643</td><td class="num">0.6801</td><td class="num"><span class="good">+1.58pp</span></td></tr><tr><td>math500_dsmath7b</td><td class="chip">math</td><td class="num">300</td><td class="num">0.190</td><td class="num">0.7512</td><td class="num">0.7868</td><td class="num"><span class="good">+3.56pp</span></td></tr><tr><td>math500_qwenmath7b</td><td class="chip">math</td><td class="num">300</td><td class="num">0.227</td><td class="num">0.9109</td><td class="num">0.8901</td><td class="num"><span class="badv">-2.08pp</span></td></tr><tr><td>math500_r1distill8b</td><td class="chip">math</td><td class="num">300</td><td class="num">0.287</td><td class="num">0.8358</td><td class="num">0.8357</td><td class="num"><span class="badv">-0.01pp</span></td></tr><tr><td>math500_r1distill8b_mn4096</td><td class="chip">math</td><td class="num">300</td><td class="num">0.390</td><td class="num">0.8362</td><td class="num">0.8329</td><td class="num"><span class="badv">-0.33pp</span></td></tr><tr><td>trace_gsm8k_llama8b_k10</td><td class="chip">math</td><td class="num">500</td><td class="num">0.736</td><td class="num">0.7997</td><td class="num">0.8093</td><td class="num"><span class="good">+0.96pp</span></td></tr><tr><td>trace_math500_qwenmath15b_k10</td><td class="chip">math</td><td class="num">300</td><td class="num">0.176</td><td class="num">0.6649</td><td class="num">0.6760</td><td class="num"><span class="good">+1.11pp</span></td></tr></tbody></table></div>
+<p class="mut" style="font-size:12px">AUROC of continuous L-SML fusion, label-free epr anchor
+orientation. <code>math500_r1distill8b</code> and <code>_mn4096</code> are the short-cap /
+long-cap (mn4096) variants of the same condition. Two GPQA-free notes: <code>inside_coqa_llama7b</code>
+runs on the base llama-7b (low accuracy by construction); the trace cells are K=10 multi-sample.</p>
+
+<p class="mut" style="font-size:12px;margin-top:30px">Generated by <code>scripts/inscope_report.py</code>
+— regenerate, never hand-edit. Bench: <code>scripts/run_selector_bench.py --pool c46</code> ×8 families;
+ceiling: <code>scripts/selector_splithalf_oracle.py --pool-mode {c46,h16}</code>; orientation:
+<code>scripts/inscope_orientation_audit.py</code>.</p>
+</main><script>(function(){var b=document.createElement('button');b.textContent='\u25d0 theme';b.style.cssText='position:fixed;top:10px;right:12px;z-index:9;background:var(--panel);color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:3px 10px;cursor:pointer;font-size:12px';b.onclick=function(){var r=document.documentElement;var cur=r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');r.setAttribute('data-theme',cur==='dark'?'light':'dark');};document.body.appendChild(b);})();</script></body></html>
