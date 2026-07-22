@@ -59,13 +59,27 @@ if they separate, re-open GPQA and re-run the in-scope evaluation with GPQA incl
 
 ## NEXT SESSION — PRIORITY: exhaustive subset sweep over the 30 views, then prune the pool
 
-**STATUS (Step 194, 2026-07-22): the sizes-3-5 sweep is RUNNING.** Launched exactly as planned
-below: `results/subset_sweep_c46/` (NEW dir — H16 npz untouched), 30-view pool verified in the
-manifests, 173,971 subsets/cell, 87 chunks, resume-safe. First launch died with the session
-process at **19/25 cells complete**; relaunched. When done: run the inclusion-frequency audit +
-LOCO protocol (sections B-D below) and apply the pre-registered **stop rule: held-out delta
-<= +0.2pp ⇒ write up as negative, do NOT extend to sizes 3-6**. Sections D/E already bound the
-in-sample prize at +0.11pp, so expect the negative outcome.
+**STATUS (Step 195, 2026-07-22): sweep DONE, analysis DONE — and the expected negative turned
+into the session's biggest positive.** The LOCO consensus over the 30-view sizes-3-5
+enumerations is stable in 22/25 folds on the SAME new 5-view subset:
+
+    {cusum_max, logprob_margin, min_energy, spectral_entropy, topk_tail_mass}
+
+- LOCO-honest vs GOOD_5: **+1.59pp (19W/2L)** — reverses the Step-154 H16 verdict; the
+  enlarged pool changed the answer.
+- vs GOOD_6 on the same 24 cells: **0.7705 vs 0.7632 = +0.73pp, 17W/7L, p = 0.029**, sign
+  label-free (anchor_orient/epr, verified). Same corpus-level label character as GOOD_6's own
+  derivation but MORE disciplined (LOCO).
+- Coverage caveat: runs on **24/25** cells (`inside_coqa_llama7b` lacks the energy/logprob
+  views — Z_n backfill gap). GOOD_6 covers 25/25.
+- **Pruning: definitively negative** — LOCO drop list EMPTY in all 25 folds; no view is
+  "never in any cell's top-100". Pool stays at 30.
+- **Stop rule: EXTEND to sizes 3-6 is justified** (+1.59pp >> +0.2pp; would also enumerate
+  GOOD_6-sized subsets directly). ~3-4 days CPU — awaiting Omri's go-ahead, not auto-launched.
+- NEXT: name the subset, add it to `REFERENCE_SUBSETS`/reference_macros, re-run the report
+  chain so it appears as a candidate headline next to GOOD_6; decide the size-6 extension.
+
+(Original plan below, kept for the protocol details.)
 
 **Omri's intention (2026-07-21):** re-run the search over all possible subsets of the 30 views, per
 cell, on the new runs. Then use *which features actually appear in the best subsets* to prune the

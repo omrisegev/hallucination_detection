@@ -7117,3 +7117,48 @@ competitor numbers.
 - `results/advisor_inscope/` — regenerated 10-page report + `a6_evaluation.csv` + `reconciliation.csv`
 
 ---
+### Step 195 — Analyze the c46 sizes-3-5 sweep: LOCO consensus finds a NEW 5-view subset that honestly beats GOOD_6; pruning verdict negative (no view is droppable)
+
+**What**: The Step-194 sweep finished (25/25 in-scope cells + 5 GPQA extras kept on disk;
+`sweep_summary.csv` + per-cell npz in `results/subset_sweep_c46/`). Extended
+`feature_inclusion_audit.py` with a `--pool c46` arm and wrote NEW
+`scripts/c46_sweep_analysis.py`: two leave-one-cell-out tests over the enumerations —
+(1) LOCO consensus (rank every mask by mean AUROC over the 24 training cells, score the winner
+on the held-out cell), (2) LOCO prune (drop list from 24 training cells by Omri's
+"never-in-any-top-100 AND LOVO<=0.05pp" criterion, ceiling cost on the held-out cell).
+Staleness spot-check: the new `internalstates_gsm8k_qwen25_7b` manifest has n_pos=147 =
+current cache (not the stale 153).
+
+**Why**: The pre-registered Step-194 plan — inclusion-frequency + LOCO before any pool/pruning
+claim, with a stop rule for the sizes-3-6 extension.
+
+**Result**:
+- **NEW SUBSET FOUND — the LOCO consensus is astonishingly stable: 22/25 folds independently
+  pick the SAME 5 views: `{cusum_max, logprob_margin, min_energy, spectral_entropy,
+  topk_tail_mass}`** (3 new energy/logprob views + 2 H16 views; only cusum_max +
+  spectral_entropy shared with GOOD_5/GOOD_6).
+- **Honest performance: LOCO delta vs GOOD_5 = +1.59pp (19W/2L over 21 scoreable folds)** —
+  the opposite of the Step-154 H16 verdict (where LOCO selection did NOT beat GOOD_5). The
+  enlarged pool changed the answer.
+- **vs GOOD_6 on the same 24 cells: 0.7705 vs 0.7632 = +0.73pp, 17W/7L, Wilcoxon p = 0.029.**
+  The npz AUROCs are label-free-deployable: sign comes from `anchor_orient` vs the epr anchor
+  (verified in `fuse_subset`), not from labels. Corpus-level label use is the same kind as
+  GOOD_6's own derivation, but MORE disciplined (leave-one-cell-out vs chosen-once-in-sample).
+- **Coverage caveat: 24/25** — the subset cannot run on `inside_coqa_llama7b` (Colab-era cache
+  missing the energy/logprob views; the known Z_n backfill gap). GOOD_6 covers 25/25.
+- **Pruning verdict NEGATIVE, definitively**: the LOCO drop list is EMPTY in all 25 folds —
+  no view satisfies "absent from every training cell's top-100". Every one of the 30 views is
+  in some cell's top-100 (per-cell audit: 9 weak candidates exist, but none survives the
+  cross-cell criterion). The pool stays at 30; pruning is not the lever (consistent with
+  Step-193/194 pool-size experiments).
+- **Stop rule: +1.59pp >> +0.2pp ⇒ the sizes-3-6 extension IS justified** (~3-4 days CPU;
+  would also put GOOD_6-sized subsets directly in the enumeration). NOT auto-launched — needs
+  Omri's go-ahead for a multi-day background burn.
+
+**Files changed**:
+- `scripts/c46_sweep_analysis.py` — NEW: LOCO consensus + LOCO prune + stop-rule verdicts
+- `scripts/feature_inclusion_audit.py` — `--pool c46` / `--npz-dir` arms
+- `results/advisor_inscope/c46_loco_analysis.csv`, `feature_inclusion_audit_c46.csv` — outputs
+- `results/subset_sweep_c46/` — sweep artifacts (npz/manifests/sweep_summary; NOT committed — large)
+
+---
