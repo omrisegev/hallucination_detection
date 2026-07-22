@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Competitor grid</title>
+<style>
+  :root{--blue:#2563eb;--blue-light:#eff6ff;--blue-dark:#1e40af;--green:#10b981;--green-light:#ecfdf5;
+  --green-dark:#065f46;--red:#ef4444;--amber:#f59e0b;--amber-light:#fffbeb;--amber-dark:#92400e;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-600:#475569;--gray-700:#334155;
+  --gray-800:#1e293b;--gray-900:#0f172a;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:15px;color:var(--gray-800);
+  background:var(--gray-50);line-height:1.65;}
+  .header-hero{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#fff;padding:56px 24px 44px;
+  border-bottom:4px solid var(--blue);}
+  .header-content{max-width:1040px;margin:0 auto;}
+  .header-hero h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px;}
+  .header-hero .subtitle{font-size:16px;color:#cbd5e1;max-width:820px;}
+  .meta-pills{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+  .meta-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);padding:4px 12px;
+  border-radius:20px;font-size:13px;font-weight:500;}
+  .page{max-width:1040px;margin:0 auto;padding:40px 24px 64px;}
+  .nav-bar{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:14px 20px;
+  margin-bottom:36px;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+  .nav-bar strong{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-600);margin-right:4px;}
+  .nav-bar a{color:var(--blue);text-decoration:none;font-weight:600;font-size:14px;}
+  .section-card{background:#fff;border:1px solid var(--gray-200);border-radius:14px;padding:36px;
+  margin-bottom:36px;box-shadow:0 2px 6px rgba(0,0,0,.03);}
+  .section-badge{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;padding:4px 12px;border-radius:20px;margin-bottom:12px;}
+  .badge-completed{background:var(--green-light);color:var(--green-dark);}
+  .badge-progress{background:var(--blue-light);color:var(--blue-dark);}
+  .badge-finding{background:#f3e8ff;color:#6b21a8;}
+  h2{font-size:24px;font-weight:800;letter-spacing:-.015em;color:var(--gray-900);margin-bottom:12px;}
+  h3{font-size:17px;font-weight:700;color:var(--gray-900);margin:24px 0 10px;}
+  p{margin-bottom:14px;color:var(--gray-700);}
+  .takeaway-box{background:var(--green-light);border-left:4px solid var(--green);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .takeaway-box b{color:var(--green-dark);}
+  .info-box{background:var(--blue-light);border-left:4px solid var(--blue);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .info-box b{color:var(--blue-dark);}
+  .warn-box{background:var(--amber-light);border-left:4px solid var(--amber);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .warn-box b{color:var(--amber-dark);}
+  table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+  th{background:var(--gray-100);color:var(--gray-800);font-weight:700;text-align:left;padding:12px 14px;
+  border:1px solid var(--gray-200);}
+  td{padding:11px 14px;border:1px solid var(--gray-200);color:var(--gray-700);}
+  .win{color:#16a34a;font-weight:700;}
+  .loss{color:#dc2626;font-weight:700;}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:var(--gray-100);
+  padding:2px 6px;border-radius:4px;color:var(--gray-800);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0;}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr;}}
+  .chart-card{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:24px;margin:20px 0;}
+  .chart-card h4{font-size:15px;font-weight:700;color:var(--gray-800);margin-bottom:4px;}
+  canvas{max-height:340px;width:100%;}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:18px 0}
+.tile{background:#fff;border:1px solid #dde3ea;border-radius:10px;padding:14px 16px}
+.tile .v{font-size:1.7em;font-weight:700;color:#12395e;line-height:1.1}
+.tile .l{font-size:.82em;color:#5c6b7a;margin-top:4px}
+.tile .d{font-size:.78em;color:#7a8794;margin-top:6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.card{background:#fff;border:1px solid #dde3ea;border-radius:10px;padding:16px}
+.card h3{margin:0 0 6px;font-size:1.02em}
+.card p{margin:0;font-size:.88em;color:#5c6b7a}
+.nav-bar{background:#eef3f8;border:1px solid #d6e0ea;border-radius:8px;padding:9px 13px;
+         margin-bottom:18px;font-size:.87em}
+.nav-bar a{margin-right:4px}
+table{font-size:.86em}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.good{color:#1b7f4b;font-weight:600}
+.bad{color:#b3261e;font-weight:600}
+.dim{color:#8b97a3}
+.badge{display:inline-block;padding:1px 7px;border-radius:9px;font-size:.76em;font-weight:600}
+.b-ok{background:#e4f4ea;color:#1b7f4b}
+.b-warn{background:#fdf1dc;color:#8a5a00}
+.b-bad{background:#fbe4e2;color:#b3261e}
+.b-neutral{background:#eef1f4;color:#5c6b7a}
+.chips span{display:inline-block;background:#eef3f8;border:1px solid #d6e0ea;border-radius:9px;
+            padding:0 6px;margin:1px 2px;font-size:.76em;color:#3d4a57}
+.callout{border-left:4px solid #2a6faf;background:#f3f8fd;padding:12px 15px;margin:16px 0;
+         border-radius:0 8px 8px 0}
+.callout.warn{border-left-color:#d08c00;background:#fffaf0}
+.callout.bad{border-left-color:#b3261e;background:#fdf3f2}
+.small{font-size:.85em;color:#5c6b7a}
+
+  .rf-fig{background:#fff;border:1px solid var(--gray-200);border-radius:12px;
+    padding:18px 20px 10px;margin:20px 0;}
+  .rf-fig .rf-cap{font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:2px;}
+  .rf-fig .rf-sub{font-size:12.5px;color:var(--gray-600);margin-bottom:10px;}
+  .rf-chart{width:100%;height:auto;display:block;}
+  .rf-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 10px;align-items:center;}
+  .rf-legend .rf-li{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-700);}
+  .rf-fnote{font-size:11.5px;color:var(--gray-600);margin:8px 0 4px;line-height:1.5;}
+  .rf-grid{stroke:var(--gray-200);stroke-width:1;}
+  .rf-zero{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-tick{fill:var(--gray-600);font-size:11px;}
+  .rf-axname{fill:var(--gray-600);font-size:11.5px;}
+  .rf-rowlbl{fill:var(--gray-800);font-size:12px;font-weight:600;}
+  .rf-rowsub{fill:var(--gray-600);font-size:10px;}
+  .rf-vlbl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-barlbl{fill:var(--gray-700);font-size:11px;}
+  .rf-dlbl{fill:var(--gray-600);font-size:10.5px;}
+  .rf-dlbl-ours{fill:var(--blue);font-weight:700;}
+  .rf-region{fill:var(--gray-600);font-size:11px;font-style:italic;}
+  .rf-albl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-leader{stroke:#94a3b8;stroke-width:1;}
+  .rf-ci{stroke:var(--blue);stroke-width:2;stroke-linecap:round;}
+  .rf-ours{fill:var(--blue);stroke:#fff;stroke-width:2;}
+  .rf-anchor{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-anchor-open{fill:none;stroke:var(--green);stroke-width:2;}
+  .rf-sup{fill:none;stroke:#475569;stroke-width:2;}
+  .rf-seqlp{stroke:var(--gray-700);stroke-width:1.5;opacity:.85;}
+  .rf-bar-pos{fill:var(--blue);}
+  .rf-bar-neg{fill:var(--red);}
+  .rf-bar-ctx{opacity:.42;}
+  .rf-bar-ours{fill:var(--blue);}
+  .rf-bar-gray{fill:#94a3b8;}
+  .rf-bar-gray-sup{fill:#475569;}
+  .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-bar-c4{fill:#cbd5e1;}
+  .rf-bar-g5{fill:#475569;}
+  .rf-bar-g6{fill:var(--blue);}
+  .rf-dumbbell-epr{fill:var(--blue);stroke:#fff;stroke-width:1.5;}
+  .rf-dumbbell-alt{fill:var(--green);stroke:#fff;stroke-width:1.5;}
+  .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-line{stroke:var(--blue);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-line-acc{stroke:var(--green);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-dot-acc{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-panes{display:flex;gap:24px;flex-wrap:wrap;}
+  .rf-pane{flex:1 1 340px;min-width:300px;}
+  .rf-pane .rf-ptitle{font-size:13px;font-weight:700;color:var(--gray-900);margin-bottom:6px;}
+  .rf-diag{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-wash{fill:rgba(37,99,235,.06);}
+</style>
+</head>
+<body>
+<div class="header-hero"><div class="header-content">
+  <h1>Competitor grid</h1>
+  <div class="subtitle">The selection pipeline against the published numbers, per cell</div>
+  <div class="meta-pills">
+    <span class="meta-pill">Generated 2026-07-22 by scripts/advisor_inscope_report.py</span>
+    <span class="meta-pill">25 in-scope cells: 10 QA + 15 math</span>
+    <span class="meta-pill">Every numeric cell read from a CSV at build time</span>
+  </div>
+</div></div>
+<div class="page">
+<div class="nav-bar"><strong>Pages:</strong> <a href="index.html">Overview</a> &bull; <strong>Competitor grid</strong> &bull; <a href="competitor_sources.html">Competitor provenance</a> &bull; <a href="supervised_ceiling.html">Supervised ceiling</a> &bull; <a href="subset_gap_analysis.html">Selection headroom</a> &bull; <a href="selector_choices.html">What it selects</a> &bull; <a href="groupfs_diagnosis.html">Learned selector</a> &bull; <a href="gated_laplacian.html">Gated-Laplacian</a> &bull; <a href="anchor_sweep.html">Anchor robustness</a> &bull; <a href="verification.html">Verification</a></div>
+
+<p>The contribution is the <strong>pipeline</strong>: label-free feature selection, then
+continuous L-SML fusion (the Jaffe-Fetaya-Nadler unsupervised-ensemble lineage). So the
+leading column is the <strong>selector</strong> — the trace-based Gated-Laplacian, which
+picks each cell's feature subset from unlabelled data. GOOD_6 / GOOD_5 are the fixed
+hand-curated subsets, shown for reference.</p>
+
+<div class="callout warn">
+<strong>Read the two tallies separately.</strong> Of the 18 cells with a published
+anchor, only 15 of those anchors are unsupervised. The rest (INSIDE, TSV, LOS-Net,
+HCPD, the ICLR-2023 Semantic Entropy) are supervised probes or multi-sample methods and are
+not like-for-like against a single-pass label-free detector. Against the unsupervised
+anchors the selector is ahead; against the mixed set it is behind, and the gap is dominated
+by those supervised competitors.
+</div>
+
+<table><thead><tr><th>Comparison basis</th><th>Our method</th><th class="num">cells</th><th class="num">ours</th><th class="num">competitor</th><th class="num">delta pp</th><th class="num">W/L</th></tr></thead><tbody><tr><td>all published anchors</td><td>Selector: trace-based Gated-Laplacian</td><td class='num'>18</td><td class='num'>72.81</td><td class='num'>76.02</td><td class='num bad'>-3.21</td><td class='num'>6W / 12L</td></tr><tr><td>all published anchors</td><td>Selector: GroupFS</td><td class='num'>18</td><td class='num'>72.61</td><td class='num'>76.02</td><td class='num bad'>-3.42</td><td class='num'>6W / 12L</td></tr><tr><td>all published anchors</td><td>Fixed subset GOOD_6</td><td class='num'>18</td><td class='num'>74.13</td><td class='num'>76.02</td><td class='num bad'>-1.89</td><td class='num'>8W / 10L</td></tr><tr><td>all published anchors</td><td>Best selector per cell (ceiling)</td><td class='num'>18</td><td class='num'>75.42</td><td class='num'>76.02</td><td class='num bad'>-0.60</td><td class='num'>8W / 10L</td></tr><tr><td>unsupervised anchors only</td><td>Selector: trace-based Gated-Laplacian</td><td class='num'>15</td><td class='num'>74.55</td><td class='num'>75.47</td><td class='num bad'>-0.93</td><td class='num'>6W / 9L</td></tr><tr><td>unsupervised anchors only</td><td>Selector: GroupFS</td><td class='num'>15</td><td class='num'>74.32</td><td class='num'>75.47</td><td class='num bad'>-1.15</td><td class='num'>6W / 9L</td></tr><tr><td>unsupervised anchors only</td><td>Fixed subset GOOD_6</td><td class='num'>15</td><td class='num'>76.01</td><td class='num'>75.47</td><td class='num good'>+0.54</td><td class='num'>8W / 7L</td></tr><tr><td>unsupervised anchors only</td><td>Best selector per cell (ceiling)</td><td class='num'>15</td><td class='num'>77.11</td><td class='num'>75.47</td><td class='num good'>+1.63</td><td class='num'>8W / 7L</td></tr></tbody></table>
+
+<div class="rf-fig"><div class="rf-cap">Ours vs the published competitor, cell by cell</div><div class="rf-sub">Each row pairs our label-free selector with the published number on the same (dataset, model) cell.</div><div class="rf-legend"><span class="rf-li"><svg width="16" height="14"><circle cx="8" cy="7" r="5" class="rf-ours"/></svg> our label-free selector (a2.dufs)</span><span class="rf-li"><svg width="16" height="14"><circle cx="8" cy="7" r="5" class="rf-anchor"/></svg> published competitor — unsupervised (like-for-like)</span><span class="rf-li"><svg width="16" height="14"><circle cx="8" cy="7" r="5" class="rf-sup"/></svg> published competitor — supervised (context only)</span></div><svg viewBox="0 0 900 578" role="img" class="rf-chart" preserveAspectRatio="xMidYMid meet"><line x1="270.2" y1="8" x2="270.2" y2="548" class="rf-grid"/><text x="270.2" y="563" class="rf-tick" text-anchor="middle">50</text><line x1="399.6" y1="8" x2="399.6" y2="548" class="rf-grid"/><text x="399.6" y="563" class="rf-tick" text-anchor="middle">60</text><line x1="529.0" y1="8" x2="529.0" y2="548" class="rf-grid"/><text x="529.0" y="563" class="rf-tick" text-anchor="middle">70</text><line x1="658.3" y1="8" x2="658.3" y2="548" class="rf-grid"/><text x="658.3" y="563" class="rf-tick" text-anchor="middle">80</text><line x1="787.7" y1="8" x2="787.7" y2="548" class="rf-grid"/><text x="787.7" y="563" class="rf-tick" text-anchor="middle">90</text><text x="254" y="22.0" class="rf-rowlbl" text-anchor="end">lapeigvals_gsm8k_mistral24b</text><text x="254" y="34.0" class="rf-rowsub" text-anchor="end">vs AttentionScore (LapEigvals paper)</text><line x1="715.8" y1="23.0" x2="368.6" y2="23.0" class="rf-leader"/><circle cx="368.6" cy="23.0" r="5" class="rf-anchor"><title>AttentionScore (LapEigvals paper) (unsupervised): 57.6</title></circle><circle cx="715.8" cy="23.0" r="5" class="rf-ours"><title>selector (a2.dufs): 84.4</title></circle><text x="724.8" y="27.0" class="rf-dlbl rf-dlbl-ours" text-anchor="start">+26.8</text><text x="254" y="52.0" class="rf-rowlbl" text-anchor="end">lapeigvals_gsm8k_nemo</text><text x="254" y="64.0" class="rf-rowsub" text-anchor="end">vs AttentionScore (LapEigvals paper)</text><line x1="650.0" y1="53.0" x2="438.4" y2="53.0" class="rf-leader"/><circle cx="438.4" cy="53.0" r="5" class="rf-anchor"><title>AttentionScore (LapEigvals paper) (unsupervised): 63.0</title></circle><circle cx="650.0" cy="53.0" r="5" class="rf-ours"><title>selector (a2.dufs): 79.4</title></circle><text x="659.0" y="57.0" class="rf-dlbl rf-dlbl-ours" text-anchor="start">+16.4</text><text x="254" y="82.0" class="rf-rowlbl" text-anchor="end">lapeigvals_gsm8k_phi35</text><text x="254" y="94.0" class="rf-rowsub" text-anchor="end">vs AttentionScore (LapEigvals paper)</text><line x1="664.6" y1="83.0" x2="485.0" y2="83.0" class="rf-leader"/><circle cx="485.0" cy="83.0" r="5" class="rf-anchor"><title>AttentionScore (LapEigvals paper) (unsupervised): 66.6</title></circle><circle cx="664.6" cy="83.0" r="5" class="rf-ours"><title>selector (a2.dufs): 80.5</title></circle><text x="673.6" y="87.0" class="rf-dlbl rf-dlbl-ours" text-anchor="start">+13.9</text><text x="254" y="112.0" class="rf-rowlbl" text-anchor="end">lapeigvals_gsm8k_llama8b</text><text x="254" y="124.0" class="rf-rowsub" text-anchor="end">vs AttentionScore (LapEigvals paper)</text><line x1="681.9" y1="113.0" x2="554.9" y2="113.0" class="rf-leader"/><circle cx="554.9" cy="113.0" r="5" class="rf-anchor"><title>AttentionScore (LapEigvals paper) (unsupervised): 72.0</title></circle><circle cx="681.9" cy="113.0" r="5" class="rf-ours"><title>selector (a2.dufs): 81.8</title></circle><text x="690.9" y="117.0" class="rf-dlbl rf-dlbl-ours" text-anchor="start">+9.8</text><text x="254" y="142.0" class="rf-rowlbl" text-anchor="end">spilled_triviaqa_llama8b</text><text x="254" y="154.0" class="rf-rowsub" text-anchor="end">vs HCPD (arXiv 2606.12900)</text><line x1="841.2" y1="143.0" x2="739.2" y2="143.0" class="rf-leader"/><circle cx="739.2" cy="143.0" r="5" class="rf-anchor"><title>HCPD (arXiv 2606.12900) (unsupervised): 86.2</title></circle><circle cx="841.2" cy="143.0" r="5" class="rf-ours"><title>selector (a2.dufs): 94.1</title></circle><text x="850.2" y="147.0" class="rf-dlbl rf-dlbl-ours" text-anchor="start">+7.9</text><text x="254" y="172.0" class="rf-rowlbl" text-anchor="end">semenergy_triviaqa_qwen3_8b</text><text x="254" y="184.0" class="rf-rowsub" text-anchor="end">vs Semantic Energy</text><line x1="644.2" y1="173.0" x2="591.1" y2="173.0" class="rf-leader"/><circle cx="591.1" cy="173.0" r="5" class="rf-anchor"><title>Semantic Energy (unsupervised): 74.8</title></circle><circle cx="644.2" cy="173.0" r="5" class="rf-ours"><title>selector (a2.dufs): 78.9</title></circle><text x="653.2" y="177.0" class="rf-dlbl rf-dlbl-ours" text-anchor="start">+4.1</text><text x="254" y="202.0" class="rf-rowlbl" text-anchor="end">epr_triviaqa_mistral24b</text><text x="254" y="214.0" class="rf-rowsub" text-anchor="end">vs EPR</text><line x1="587.6" y1="203.0" x2="588.5" y2="203.0" class="rf-leader"/><circle cx="588.5" cy="203.0" r="5" class="rf-anchor"><title>EPR (unsupervised): 74.6</title></circle><circle cx="587.6" cy="203.0" r="5" class="rf-ours"><title>selector (a2.dufs): 74.5</title></circle><text x="597.5" y="207.0" class="rf-dlbl" text-anchor="start">-0.1</text><text x="254" y="232.0" class="rf-rowlbl" text-anchor="end">noise_gsm8k_mistral7b</text><text x="254" y="244.0" class="rf-rowsub" text-anchor="end">vs Noise Injection</text><line x1="630.0" y1="233.0" x2="638.9" y2="233.0" class="rf-leader"/><circle cx="638.9" cy="233.0" r="5" class="rf-anchor"><title>Noise Injection (unsupervised): 78.5</title></circle><circle cx="630.0" cy="233.0" r="5" class="rf-ours"><title>selector (a2.dufs): 77.8</title></circle><text x="647.9" y="237.0" class="rf-dlbl" text-anchor="start">-0.7</text><text x="254" y="262.0" class="rf-rowlbl" text-anchor="end">lapeigvals_gsm8k_llama3b</text><text x="254" y="274.0" class="rf-rowsub" text-anchor="end">vs AttentionScore (LapEigvals paper)</text><line x1="540.3" y1="263.0" x2="551.0" y2="263.0" class="rf-leader"/><circle cx="551.0" cy="263.0" r="5" class="rf-anchor"><title>AttentionScore (LapEigvals paper) (unsupervised): 71.7</title></circle><circle cx="540.3" cy="263.0" r="5" class="rf-ours"><title>selector (a2.dufs): 70.9</title></circle><text x="560.0" y="267.0" class="rf-dlbl" text-anchor="start">-0.8</text><text x="254" y="292.0" class="rf-rowlbl" text-anchor="end">ars_gsm8k_r1distill8b</text><text x="254" y="304.0" class="rf-rowsub" text-anchor="end">vs ARS (CCS)</text><line x1="532.9" y1="293.0" x2="590.0" y2="293.0" class="rf-leader"/><circle cx="590.0" cy="293.0" r="5" class="rf-anchor"><title>ARS (CCS) (unsupervised): 74.7</title></circle><circle cx="532.9" cy="293.0" r="5" class="rf-ours"><title>selector (a2.dufs): 70.3</title></circle><text x="599.0" y="297.0" class="rf-dlbl" text-anchor="start">-4.4</text><text x="254" y="322.0" class="rf-rowlbl" text-anchor="end">noise_gsm8k_phi3mini</text><text x="254" y="334.0" class="rf-rowsub" text-anchor="end">vs Noise Injection</text><line x1="501.3" y1="323.0" x2="561.5" y2="323.0" class="rf-leader"/><circle cx="561.5" cy="323.0" r="5" class="rf-anchor"><title>Noise Injection (unsupervised): 72.5</title></circle><circle cx="501.3" cy="323.0" r="5" class="rf-ours"><title>selector (a2.dufs): 67.9</title></circle><text x="570.5" y="327.0" class="rf-dlbl" text-anchor="start">-4.6</text><text x="254" y="352.0" class="rf-rowlbl" text-anchor="end">internalstates_gsm8k_qwen25_7b</text><text x="254" y="364.0" class="rf-rowsub" text-anchor="end">vs Internal-States+RC (supervised)</text><line x1="530.3" y1="353.0" x2="647.4" y2="353.0" class="rf-leader"/><circle cx="647.4" cy="353.0" r="5" class="rf-sup"><title>Internal-States+RC (supervised): 79.1</title></circle><circle cx="530.3" cy="353.0" r="5" class="rf-ours"><title>selector (a2.dufs): 70.1</title></circle><text x="656.4" y="357.0" class="rf-dlbl" text-anchor="start">-9.1</text><text x="254" y="382.0" class="rf-rowlbl" text-anchor="end">sciq_llama8b</text><text x="254" y="394.0" class="rf-rowsub" text-anchor="end">vs HCPD (arXiv 2606.12900)</text><line x1="581.8" y1="383.0" x2="736.5" y2="383.0" class="rf-leader"/><circle cx="736.5" cy="383.0" r="5" class="rf-anchor"><title>HCPD (arXiv 2606.12900) (unsupervised): 86.0</title></circle><circle cx="581.8" cy="383.0" r="5" class="rf-ours"><title>selector (a2.dufs): 74.1</title></circle><text x="745.5" y="387.0" class="rf-dlbl" text-anchor="start">-12.0</text><text x="254" y="412.0" class="rf-rowlbl" text-anchor="end">se_nq_open_llama8b</text><text x="254" y="424.0" class="rf-rowsub" text-anchor="end">vs HCPD (arXiv 2606.12900)</text><line x1="597.2" y1="413.0" x2="792.6" y2="413.0" class="rf-leader"/><circle cx="792.6" cy="413.0" r="5" class="rf-anchor"><title>HCPD (arXiv 2606.12900) (unsupervised): 90.4</title></circle><circle cx="597.2" cy="413.0" r="5" class="rf-ours"><title>selector (a2.dufs): 75.3</title></circle><text x="801.6" y="417.0" class="rf-dlbl" text-anchor="start">-15.1</text><text x="254" y="442.0" class="rf-rowlbl" text-anchor="end">losnet_hotpotqa_mistral7b</text><text x="254" y="454.0" class="rf-rowsub" text-anchor="end">vs LOS-Net (supervised)</text><line x1="358.7" y1="443.0" x2="566.8" y2="443.0" class="rf-leader"/><circle cx="566.8" cy="443.0" r="5" class="rf-sup"><title>LOS-Net (supervised): 72.9</title></circle><circle cx="358.7" cy="443.0" r="5" class="rf-ours"><title>selector (a2.dufs): 56.8</title></circle><text x="575.8" y="447.0" class="rf-dlbl" text-anchor="start">-16.1</text><text x="254" y="472.0" class="rf-rowlbl" text-anchor="end">truthfulqa_llama8b</text><text x="254" y="484.0" class="rf-rowsub" text-anchor="end">vs TSV (arXiv 2503.01917) (supervised)</text><line x1="469.7" y1="473.0" x2="712.7" y2="473.0" class="rf-leader"/><circle cx="712.7" cy="473.0" r="5" class="rf-sup"><title>TSV (arXiv 2503.01917) (supervised): 84.2</title></circle><circle cx="469.7" cy="473.0" r="5" class="rf-ours"><title>selector (a2.dufs): 65.4</title></circle><text x="721.7" y="477.0" class="rf-dlbl" text-anchor="start">-18.8</text><text x="254" y="502.0" class="rf-rowlbl" text-anchor="end">seiclr_triviaqa_opt30b</text><text x="254" y="514.0" class="rf-rowsub" text-anchor="end">vs Semantic Entropy (SE-ICLR&#x27;23)</text><line x1="349.7" y1="503.0" x2="697.2" y2="503.0" class="rf-leader"/><circle cx="697.2" cy="503.0" r="5" class="rf-anchor"><title>Semantic Entropy (SE-ICLR&#x27;23) (unsupervised): 83.0</title></circle><circle cx="349.7" cy="503.0" r="5" class="rf-ours"><title>selector (a2.dufs): 56.1</title></circle><text x="706.2" y="507.0" class="rf-dlbl" text-anchor="start">-26.9</text><text x="254" y="532.0" class="rf-rowlbl" text-anchor="end">inside_coqa_llama7b</text><text x="254" y="544.0" class="rf-rowsub" text-anchor="end">vs INSIDE</text><line x1="298.8" y1="533.0" x2="663.5" y2="533.0" class="rf-leader"/><circle cx="663.5" cy="533.0" r="5" class="rf-anchor"><title>INSIDE (unsupervised): 80.4</title></circle><circle cx="298.8" cy="533.0" r="5" class="rf-ours"><title>selector (a2.dufs): 52.2</title></circle><text x="672.5" y="537.0" class="rf-dlbl" text-anchor="start">-28.2</text><text x="570" y="577" class="rf-axname" text-anchor="middle">AUROC (%)</text></svg><p class="rf-fnote">Sorted by delta (ours − competitor). Against the 15 unsupervised anchors the selector wins 6/15; supervised anchors (open circles) are shown for context, not tallied — they consume labels our method never sees. The 6 cluster cells have no published anchor and do not appear. Source: selector_vs_competitor.csv (competitor values verified against each paper's own table, competitors_verified.csv).</p></div>
+
+<p class="small">&ldquo;Best selector per cell&rdquo; is a <strong>ceiling, not a method</strong>
+&mdash; it picks the winning variant per cell with hindsight. It is included to bound what any
+per-cell label-free selector could achieve on this data.</p>
+
+<h2>Per cell</h2>
+<table><thead><tr><th>Cell</th><th>Group</th><th class='num'>n</th><th class='num'>Selector@30</th><th class='num'>GroupFS@30</th><th class='num'>Selector@16</th><th class='num'>GOOD_6</th><th class='num'>GOOD_5</th><th class='num'>Published</th><th>vs published</th><th>vs GOOD_6</th><th>Method</th><th>Supervision</th><th>Access</th><th class='num'>Passes</th></tr></thead><tbody><tr><td><code>epr_triviaqa_mistral24b</code></td><td>QA</td><td class='num'>621</td><td class='num' class="bad"><strong>74.5</strong></td><td class='num'>74.3</td><td class='num'>67.2</td><td class='num'>73.3</td><td class='num'>70.7</td><td class='num'>74.6</td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-ok">WIN</span></td><td>EPR<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-warn">grey-box</span></td><td class='num'><span class="">1</span></td></tr><tr><td><code>inside_coqa_llama7b</code></td><td>QA</td><td class='num'>4504</td><td class='num' class="bad"><strong>52.2</strong></td><td class='num'>50.4</td><td class='num'>45.5</td><td class='num'>66.7</td><td class='num'>68.4</td><td class='num'>80.4</td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-bad">LOSS</span></td><td>INSIDE<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-bad">white-box</span></td><td class='num'><span class="bad">10</span></td></tr><tr><td><code>losnet_hotpotqa_mistral7b</code></td><td>QA</td><td class='num'>500</td><td class='num' class="bad"><strong>56.8</strong></td><td class='num'>57.7</td><td class='num'>54.1</td><td class='num'>58.1</td><td class='num'>57.5</td><td class='num'>72.9</td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-bad">LOSS</span></td><td>LOS-Net<br><span class="badge b-ok">verified</span></td><td><span class="badge b-warn">supervised</span></td><td><span class="badge b-warn">grey-box</span></td><td class='num'><span class="">1</span></td></tr><tr><td><code>sciq_llama8b</code></td><td>QA</td><td class='num'>198</td><td class='num' class="bad"><strong>74.1</strong></td><td class='num'>74.0</td><td class='num'>73.1</td><td class='num'>74.8</td><td class='num'>73.8</td><td class='num'>86.0</td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-bad">LOSS</span></td><td>HCPD (arXiv 2606.12900)<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-ok">black-box</span></td><td class='num'><span class="bad">K (multi-sample)</span></td></tr><tr><td><code>se_nq_open_llama8b</code></td><td>QA</td><td class='num'>8460</td><td class='num' class="bad"><strong>75.3</strong></td><td class='num'>75.0</td><td class='num'>67.6</td><td class='num'>73.0</td><td class='num'>71.8</td><td class='num'>90.4</td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-ok">WIN</span></td><td>HCPD (arXiv 2606.12900)<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-ok">black-box</span></td><td class='num'><span class="bad">K (multi-sample)</span></td></tr><tr><td><code>se_squad_v2_llama8b</code></td><td>QA</td><td class='num'>2933</td><td class='num'><strong>81.2</strong></td><td class='num'>81.1</td><td class='num'>75.2</td><td class='num'>81.1</td><td class='num'>79.8</td><td class='num'><span class="dim">--</span></td><td><span class="dim">--</span></td><td><span class="badge b-ok">WIN</span></td><td><span class="badge b-neutral">no published baseline</span></td><td><span class="dim">--</span></td><td><span class="dim">--</span></td><td class='num'><span class="dim">--</span></td></tr><tr><td><code>seiclr_triviaqa_opt30b</code></td><td>QA</td><td class='num'>4993</td><td class='num' class="bad"><strong>56.1</strong></td><td class='num'>57.5</td><td class='num'>52.3</td><td class='num'>58.8</td><td class='num'>59.5</td><td class='num'>83.0</td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-bad">LOSS</span></td><td>Semantic Entropy (SE-ICLR&#x27;23)<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-ok">black-box</span></td><td class='num'><span class="bad">K (sampled)</span> <span class="badge b-neutral">inferred</span></td></tr><tr><td><code>semenergy_triviaqa_qwen3_8b</code></td><td>QA</td><td class='num'>4392</td><td class='num' class="good"><strong>78.9</strong></td><td class='num'>78.0</td><td class='num'>70.8</td><td class='num'>81.6</td><td class='num'>80.1</td><td class='num'>74.8</td><td><span class="badge b-ok">WIN</span></td><td><span class="badge b-bad">LOSS</span></td><td>Semantic Energy<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-warn">grey-box</span></td><td class='num'><span class="bad">K (sampled)</span></td></tr><tr><td><code>spilled_triviaqa_llama8b</code></td><td>QA</td><td class='num'>256</td><td class='num' class="good"><strong>94.1</strong></td><td class='num'>93.7</td><td class='num'>90.0</td><td class='num'>94.2</td><td class='num'>93.4</td><td class='num'>86.2</td><td><span class="badge b-ok">WIN</span></td><td><span class="badge b-bad">LOSS</span></td><td>HCPD (arXiv 2606.12900)<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-ok">black-box</span></td><td class='num'><span class="bad">K (multi-sample)</span></td></tr><tr><td><code>truthfulqa_llama8b</code></td><td>QA</td><td class='num'>7633</td><td class='num' class="bad"><strong>65.4</strong></td><td class='num'>65.4</td><td class='num'>67.9</td><td class='num'>65.7</td><td class='num'>66.0</td><td class='num'>84.2</td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-bad">LOSS</span></td><td>TSV (arXiv 2503.01917)<br><span class="badge b-ok">verified</span></td><td><span class="badge b-warn">supervised</span></td><td><span class="badge b-bad">white-box</span></td><td class='num'><span class="">1</span> <span class="badge b-neutral">inferred</span></td></tr><tr><td><code>ars_gsm8k_r1distill8b</code></td><td>math</td><td class='num'>500</td><td class='num' class="bad"><strong>70.3</strong></td><td class='num'>70.9</td><td class='num'>37.0</td><td class='num'>76.2</td><td class='num'>75.0</td><td class='num'>74.7</td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-bad">LOSS</span></td><td>ARS (CCS)<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-bad">white-box</span></td><td class='num'><span class="">1</span></td></tr><tr><td><code>internalstates_gsm8k_qwen25_7b</code></td><td>math</td><td class='num'>500</td><td class='num' class="bad"><strong>70.1</strong></td><td class='num'>69.0</td><td class='num'>66.8</td><td class='num'>70.4</td><td class='num'>70.4</td><td class='num'>79.1</td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-bad">LOSS</span></td><td>Internal-States+RC<br><span class="badge b-ok">verified</span></td><td><span class="badge b-warn">supervised</span></td><td><span class="badge b-bad">white-box</span></td><td class='num'><span class="bad">3 (multi-path)</span></td></tr><tr><td><code>lapeigvals_gsm8k_llama3b</code></td><td>math</td><td class='num'>1319</td><td class='num' class="bad"><strong>70.9</strong></td><td class='num'>71.4</td><td class='num'>64.4</td><td class='num'>70.3</td><td class='num'>68.5</td><td class='num'>71.7</td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-ok">WIN</span></td><td>AttentionScore (LapEigvals paper)<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-bad">white-box</span></td><td class='num'><span class="">1</span></td></tr><tr><td><code>lapeigvals_gsm8k_llama8b</code></td><td>math</td><td class='num'>500</td><td class='num' class="good"><strong>81.8</strong></td><td class='num'>81.9</td><td class='num'>78.9</td><td class='num'>81.9</td><td class='num'>81.5</td><td class='num'>72.0</td><td><span class="badge b-ok">WIN</span></td><td><span class="badge b-bad">LOSS</span></td><td>AttentionScore (LapEigvals paper)<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-bad">white-box</span></td><td class='num'><span class="">1</span></td></tr><tr><td><code>lapeigvals_gsm8k_mistral24b</code></td><td>math</td><td class='num'>1319</td><td class='num' class="good"><strong>84.4</strong></td><td class='num'>84.5</td><td class='num'>80.5</td><td class='num'>80.9</td><td class='num'>80.1</td><td class='num'>57.6</td><td><span class="badge b-ok">WIN</span></td><td><span class="badge b-ok">WIN</span></td><td>AttentionScore (LapEigvals paper)<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-bad">white-box</span></td><td class='num'><span class="">1</span></td></tr><tr><td><code>lapeigvals_gsm8k_nemo</code></td><td>math</td><td class='num'>1319</td><td class='num' class="good"><strong>79.4</strong></td><td class='num'>79.1</td><td class='num'>75.3</td><td class='num'>80.1</td><td class='num'>78.2</td><td class='num'>63.0</td><td><span class="badge b-ok">WIN</span></td><td><span class="badge b-bad">LOSS</span></td><td>AttentionScore (LapEigvals paper)<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-bad">white-box</span></td><td class='num'><span class="">1</span></td></tr><tr><td><code>lapeigvals_gsm8k_phi35</code></td><td>math</td><td class='num'>1319</td><td class='num' class="good"><strong>80.5</strong></td><td class='num'>79.6</td><td class='num'>72.5</td><td class='num'>81.2</td><td class='num'>80.3</td><td class='num'>66.6</td><td><span class="badge b-ok">WIN</span></td><td><span class="badge b-bad">LOSS</span></td><td>AttentionScore (LapEigvals paper)<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-bad">white-box</span></td><td class='num'><span class="">1</span></td></tr><tr><td><code>noise_gsm8k_mistral7b</code></td><td>math</td><td class='num'>1319</td><td class='num' class="bad"><strong>77.8</strong></td><td class='num'>77.2</td><td class='num'>76.3</td><td class='num'>79.0</td><td class='num'>78.5</td><td class='num'>78.5</td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-bad">LOSS</span></td><td>Noise Injection<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-bad">white-box</span></td><td class='num'><span class="bad">10</span></td></tr><tr><td><code>noise_gsm8k_phi3mini</code></td><td>math</td><td class='num'>1319</td><td class='num' class="bad"><strong>67.9</strong></td><td class='num'>67.1</td><td class='num'>42.4</td><td class='num'>68.0</td><td class='num'>66.4</td><td class='num'>72.5</td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-bad">LOSS</span></td><td>Noise Injection<br><span class="badge b-ok">verified</span></td><td><span class="badge b-ok">unsupervised</span></td><td><span class="badge b-bad">white-box</span></td><td class='num'><span class="bad">10</span></td></tr><tr><td><code>math500_dsmath7b</code> <span class="badge b-neutral">new</span></td><td>math</td><td class='num'>300</td><td class='num'><strong>78.3</strong></td><td class='num'>77.1</td><td class='num'>65.4</td><td class='num'>78.7</td><td class='num'>75.1</td><td class='num'><span class="dim">--</span></td><td><span class="dim">--</span></td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-neutral">no published baseline</span></td><td><span class="dim">--</span></td><td><span class="dim">--</span></td><td class='num'><span class="dim">--</span></td></tr><tr><td><code>math500_qwenmath7b</code> <span class="badge b-neutral">new</span></td><td>math</td><td class='num'>300</td><td class='num'><strong>90.5</strong></td><td class='num'>90.6</td><td class='num'>89.2</td><td class='num'>89.0</td><td class='num'>91.1</td><td class='num'><span class="dim">--</span></td><td><span class="dim">--</span></td><td><span class="badge b-ok">WIN</span></td><td><span class="badge b-neutral">no published baseline</span></td><td><span class="dim">--</span></td><td><span class="dim">--</span></td><td class='num'><span class="dim">--</span></td></tr><tr><td><code>math500_r1distill8b</code> <span class="badge b-neutral">new</span></td><td>math</td><td class='num'>300</td><td class='num'><strong>84.0</strong></td><td class='num'>84.1</td><td class='num'>79.0</td><td class='num'>83.6</td><td class='num'>83.6</td><td class='num'><span class="dim">--</span></td><td><span class="dim">--</span></td><td><span class="badge b-ok">WIN</span></td><td><span class="badge b-neutral">no published baseline</span></td><td><span class="dim">--</span></td><td><span class="dim">--</span></td><td class='num'><span class="dim">--</span></td></tr><tr><td><code>math500_r1distill8b_mn4096</code> <span class="badge b-neutral">new</span></td><td>math</td><td class='num'>300</td><td class='num'><strong>80.9</strong></td><td class='num'>80.9</td><td class='num'>73.0</td><td class='num'>83.3</td><td class='num'>83.6</td><td class='num'><span class="dim">--</span></td><td><span class="dim">--</span></td><td><span class="badge b-bad">LOSS</span></td><td><span class="badge b-neutral">no published baseline</span></td><td><span class="dim">--</span></td><td><span class="dim">--</span></td><td class='num'><span class="dim">--</span></td></tr><tr><td><code>trace_gsm8k_llama8b_k10</code> <span class="badge b-neutral">new</span></td><td>math</td><td class='num'>5000</td><td class='num'><strong>81.1</strong></td><td class='num'>80.7</td><td class='num'>75.4</td><td class='num'>80.9</td><td class='num'>80.0</td><td class='num'><span class="dim">--</span></td><td><span class="dim">--</span></td><td><span class="badge b-ok">WIN</span></td><td><span class="badge b-neutral">no published baseline</span></td><td><span class="dim">--</span></td><td><span class="dim">--</span></td><td class='num'><span class="dim">--</span></td></tr><tr><td><code>trace_math500_qwenmath15b_k10</code> <span class="badge b-neutral">new</span></td><td>math</td><td class='num'>3000</td><td class='num'><strong>68.9</strong></td><td class='num'>68.9</td><td class='num'>66.9</td><td class='num'>67.6</td><td class='num'>66.5</td><td class='num'><span class="dim">--</span></td><td><span class="dim">--</span></td><td><span class="badge b-ok">WIN</span></td><td><span class="badge b-neutral">no published baseline</span></td><td><span class="dim">--</span></td><td><span class="dim">--</span></td><td class='num'><span class="dim">--</span></td></tr></tbody></table>
+
+<h2>What the three method columns mean</h2>
+<p>A competitor's AUROC is only comparable to ours if it is paying the same price. These three
+columns say what each method actually needs, all read off the papers themselves:</p>
+<ul>
+<li><strong>Supervision</strong> &mdash; does it fit anything on hallucination labels?
+    Ours never sees a label.</li>
+<li><strong>Access</strong> &mdash; the taxonomy is the LOS-Net paper's own:
+    <span class="badge b-ok">black-box</span> generated text only;
+    <span class="badge b-warn">grey-box</span> output distributions / log-probabilities;
+    <span class="badge b-bad">white-box</span> model internals (hidden states, attention maps,
+    activations), which the same paper calls &ldquo;incomparable&rdquo; to output-only methods.
+    <strong>Ours is grey-box</strong> &mdash; it needs the top-k log-probabilities and nothing
+    deeper.</li>
+<li><strong>Passes</strong> &mdash; generations per question at detection time.
+    <strong>Ours is 1.</strong> A method at K=10 costs an order of magnitude more per
+    question, which matters as much as AUROC for deployment.</li>
+</ul>
+<p class="small">Rows marked <span class="badge b-neutral">inferred</span> are the ones whose
+paper is not in the local library, so the profile comes from the method's description
+elsewhere rather than from its own text.</p>
+
+<h2>How to read this</h2>
+<ul>
+<li><strong>Selector@30 / Selector@16</strong> are the trace-based Gated-Laplacian
+    (<code>a2.dufs</code>) on the 30-view and 16-view pools; <strong>GroupFS@30</strong> is
+    the group-granular rule (<code>a2.select</code>) on the same gates.</li>
+<li>All AUROC values are percentages, direction-resolved label-free against the
+    <code>epr</code> anchor (see <a href="anchor_sweep.html">anchor robustness</a>).</li>
+<li>Every competitor number is re-derived from <code>competitors_verified.csv</code>; see
+    <a href="competitor_sources.html">provenance</a> for which are verified.</li>
+<li>The selector loses to the fixed subsets on macro. That is explained on the
+    <a href="subset_gap_analysis.html">selection-headroom page</a>: per-cell label-free
+    selection is dominated by selection noise, while a subset fixed once across the whole
+    corpus is a better-regularised estimator.</li>
+</ul>
+
+</div>
+</body>
+</html>

@@ -6784,3 +6784,336 @@ algorithms tie but don't beat it, and the Step-187 sign-fix is a closed non-issu
 - Step-189/191 baselines (`splithalf_oracle_{c46,h16}*` originals, `comparison.csv`, `dashboard.html`, deep reports) untouched — in-scope files are separate
 
 ---
+### Step 193 — In-scope competitor grid + method variants: a data-integrity audit that corrects the Step-192 headline, and a winner's-curse answer to "why no better subset?"
+
+**What**: Ran the three post-Step-192 items from `HANDOFF_inscope_competitor_and_variants.md`
+(competitor grid, Gated-Laplacian, anchor sweep) as an advisor deliverable, gated behind a
+verification phase Omri insisted on. The verification phase turned out to be the substantive work.
+
+**Why**: The deliverable is HTML sent to Ofir/Bracha/Amir, so every number had to be traceable and
+verified. Exploration had already found two artifacts disagreeing on 19 of 150 (cell, subset) pairs.
+
+#### Sub-step A — the disagreement is staleness, not a code bug (root cause named)
+
+The two fusion paths were never in conflict: driving `lsml_continuous_pipeline` and
+`prepare_cell`+`eval_subset_flex` on the same cell reproduces the same AUROC, K and residual exactly
+(0.7039 / K=4 / residual 1.452855, `flipped=False` both).
+
+Root cause: **`internalstates_gsm8k_qwen25_7b` was re-graded and re-extracted between 2026-07-14 and
+2026-07-20** — the subset-sweep manifest records `n_pos=153`, the current cache has **147**, and the
+fused covariance changed too (K 2 to 4, which labels alone cannot cause). Every artifact predating the
+re-grade was stale. **Three independent carriers of that staleness**, each needing its own fix:
+
+1. **Bench CSV rows** — `bench_selector` is resume-safe (`_existing_keys` skips any
+   (variant, domain, cell) already present), so no existing row was ever recomputed. 139 stale rows
+   across all 16 files, all one cell. Fixed by delete + re-run.
+2. **Pool enlargement on 11 further cells** — every learned selector had searched a c46 pool 4 views
+   smaller than the current one (26 to 30 / 25 to 29 / 23 to 27), i.e. the selectors were handicapped.
+   Fixed by delete + re-run of all 8 families on those 11 cells.
+3. **The h16 enumeration NPZ** — 255/285 h16 reference rows are `eval_mode=lookup`, so the "re-run"
+   in (1) faithfully re-read the stale 2026-07-14 npz. Only c46 (no enumeration, hence live) was
+   actually corrected. Fixed by rebuilding the enumeration (65,399 subsets, ~20 min).
+
+`run_selector_bench.py --self-check` did not catch (3): it samples ~20 lookup-vs-live pairs.
+An exhaustive audit (101 lookups over 25 cells) found exactly the 5 stale ones. **Standing lesson:
+the self-check's sampling is not a staleness guarantee.**
+
+**Result — corrected Step-192 headline** (verified: 3377/3377 plain-variant rows now reproduce live;
+the 258 residual "stale" flags are `+K_ah`/`+K_kn`/`+groups`/`@good5`/`intrinsic_k` variants that
+pass `groups`/`K_override` and are structurally not reproducible from cols alone):
+
+| Quantity | Step 192 | Step 193 corrected |
+|---|---|---|
+| GOOD_6 macro | 0.7587 | **0.7594** |
+| GOOD_5 macro | 0.7489 | **0.7519** |
+| GOOD_6 minus GOOD_5 | +0.98pp | **+0.75pp** |
+| Wilcoxon p | 0.0025 | **0.00507** |
+| W/L | 19W/6L | **18W/7L** |
+| best label-free selector (a2.dufs) | 0.7495, +0.06pp (ahead of GOOD_5) | **0.7502, -0.17pp (behind)** |
+| h16 ranking | top_macro_5 0.7522 > GOOD_5 0.7489 | **GOOD_5 0.7519 > top_macro_5 0.7489** (inversion was the stale row) |
+
+The qualitative conclusion is unchanged and slightly stronger: GOOD_6 leads, and no label-free
+selector beats it — now it does not beat GOOD_5 either.
+
+#### Sub-step B — competitor numbers verified against the papers (2 real errors found)
+
+`scores_lsml_upcr.csv` carries 19 anchors in `published_Y`/`Y_method` with **no citation of any
+kind**. Each anchor with a local PDF was checked against `papers/extracted/` (raw text, not digests —
+`papers/index.md` records a digest pass that fabricated datasets/models/venues).
+
+7 papers verified: EPR (Table 1, Mistral-Small-24B row 79.0/74.6/78.7/82.0), HCPD (Table 2,
+`TriviaQA | SciQ | NQ Open | CoQA`, all 15 rows, club glyph = trained on labels), ARS (Table 1,
+GSM8K col, Supervision = no), Noise Injection (Table 4 GSM8K, the *w/ Noise* rows), Semantic Energy
+(Qwen3-8B TriviaQA 74.8), ALS/FEPoID (Table 2, reported as 0-1 decimals — all 7 rows), HARP.
+
+**Two errors corrected**: (a) HARP was tagged `unsupervised` but the paper trains its detector with
+binary cross-entropy on hallucination labels — it is **supervised**; (b) the stored HARP anchor 92.8
+is the **Qwen-2.5-7B-Instruct** row, while our cell is Llama-3.1-8B-Instruct (92.9) — it was
+cross-model. NEW `scripts/build_competitors_verified.py` produces
+`results/advisor_inscope/competitors_verified.csv`, 57 rows, **38 verified**, 19/25 cells covered.
+**12 anchors remain UNVERIFIED** (no local PDF): LapEigvals x5 (also the G3 gate), INSIDE x2,
+LOS-Net + its 11 baselines, Internal-States+RC, SE-ICLR'23, TSV/TruthfulQA.
+
+#### Sub-step C — LR oracle audited; it is clean
+
+`safe_auc_raw`'s per-fold `max(p, 1-p)` floor is a real inflation risk but **immaterial here**: only
+**1 of 500 folds** flips (+0.07pp on the 9-view set, +0.00 elsewhere), so the supervised-headroom
+framing needs no unwinding. Grouped folds confirmed on every k>1 cell; **no GOOD_6 member is ever
+dropped** by `build_X`. One genuine caveat: `C=1.0` is untuned and the C-spread at 30 views reaches
+**6.2pp** on the worst cell. LR@30 macro = **0.7810** over all 25 cells, so honest supervised headroom
+is **+2.2pp** over GOOD_6. `FEATURE_SETS` gained `'30': CANONICAL_POOL`; `repgrid_oracle.py` now
+stores `used_{fs}` and passes `compute_legacy=False` (kills the `cross_val_predict` pitfall).
+
+#### Sub-step D — anchor sweep: `epr` confirmed AT the ceiling
+
+Fusion is anchor-independent (only the global sign depends on it), so GOOD_6 was fused once per cell
+and re-oriented against 9 candidates. **`epr` resolves the sign correctly on all 25 cells**, giving
+macro 0.7594 = the sign-always-correct ceiling, so no anchor can beat it. The choice is **robust**
+(`topk_tail_mass`, `mean_logprob_entropy`, `renyi_entropy_2`, `cusum_max` all agree 25/25 and tie
+exactly) but **not arbitrary**: `rpdi` misses 5 signs (macro to 0.6687, QA to 0.5366),
+`spectral_entropy` 4, `stft_max_high_power` 2, `low_band_power` 1.
+
+#### Sub-step E — the handoff's gate-saturation diagnosis is REFUTED
+
+On corrected data: `a2.select` (group-granular) saturates on **12/25** cells, `a2.dufs`
+(per-feature = the Gated-Laplacian rule) on **0/25**. So saturation is a property of the **group
+granularity, not the gates** — a clean structural result. **But it does not cause the AUROC losses**:
+rho(frac_selected, gap vs GOOD_5) = **-0.028**. Removing saturation entirely moves the macro
+**+0.20pp** and still lands below GOOD_5. The replacement hypothesis (anti-oriented content / class
+imbalance) is **also unsupported**: rho <= 0.33 for `frac_anti_chosen`, `n_anti_chosen`, `pos_rate`,
+`stability`. **No measured covariate explains the per-cell gaps.** `inside_coqa_llama7b` (-18.0pp
+select / -16.2pp dufs, pos_rate 0.132, 12 anti-oriented chosen) is an outlier that should be named,
+not averaged.
+
+Consequence: **`a6_gated_laplacian` was NOT built.** Its target (fix saturation) is already solved by
+the per-feature rule and solving it did not help; there is no surviving mechanism to attack.
+
+#### Sub-step F — why no better subset was found: winner's curse, driven by n
+
+Split-half oracle over 25 cells (`scripts/subset_gap_analysis.py`):
+
+| | value |
+|---|---|
+| apparent (in-sample) gain over GOOD_5 | **+4.95pp**, better on **25/25** cells |
+| honest (held-out) gain | **+1.74pp**, better on only **19/25** |
+| winner's-curse optimism | **+3.21pp** = **65% of the apparent gain is illusion** |
+
+**Sample size is the only covariate that explains it: rho(n, optimism) = -0.671.** All others are
+noise: `n_anti_oriented` -0.207, `pos_rate` -0.043, `K` +0.034, `p_pool` +0.120. Concretely,
+`spilled_triviaqa_llama8b` (n=256) looks +6.3pp better in-sample and is **-8.6pp worse** held-out,
+while `se_nq_open_llama8b` (n=8460) agrees to within 0.1pp. **Answer: on most cells there was less to
+find than it appeared, and the shortfall tracks selection noise, not feature quality.**
+
+**Result**: NEW `results/advisor_inscope/` — 9 HTML pages (`scripts/advisor_inscope_report.py`,
+guardrail-clean, every numeric cell read from a CSV at build time, Spearman rho values computed at
+build time rather than typed). NEW scripts: `inscope_cells.py` (25-cell roster hoisted out of 3
+copy-pasted definitions, membership verified identical to `git HEAD`),
+`build_competitors_verified.py`, `anchor_sweep_inscope.py`, `subset_gap_analysis.py`,
+`groupfs_diagnosis.py`. Gates: smoke **19/19**, self-check **PASS** (51 cells, max|diff| 2.94e-08),
+exhaustive npz lookup audit **0 stale**, plain-variant staleness audit **0/3377**.
+Canonical all-cell artifacts (`comparison.csv`, `dashboard.html`, the four deep reports) untouched.
+
+---
+### Step 193b — LapEigvals located and verified: all 5 anchors were mislabeled; the paper's method is SUPERVISED
+
+**What**: Omri pointed out that the LapEigvals paper IS in `papers/` — filed under its title,
+`Hallucination Detection in LLMs Using Spectral Features of Attention.pdf` (Binkowski, Janiak,
+Sawczyn, Gabrys, Kajdanowicz; Wroclaw Univ. of Science and Technology / Univ. of Technology
+Sydney), not under the method name. That is why Step 193's provenance audit left 5 cells
+UNVERIFIED. Extracted (32 pages) and verified against Table 1.
+
+**Why**: LapEigvals covers 5 of the 25 in-scope cells and is the G3 decision gate in
+`Research_Directions.md`, so an unverified anchor there has consequences beyond the report.
+
+**Result — every one of the 5 stored anchors was wrong, in two different ways.**
+
+Table 1 (temp=1.0, test AUROC), columns `CoQA | GSM8K | HaluevalQA | NQOpen | SQuADv2 | TriviaQA
+| TruthfulQA`. GSM8K column:
+
+| Paper model | AttentionScore (unsupervised) | LapEigvals (supervised) |
+|---|---|---|
+| Llama3.2-3B | 0.717 | 0.870 |
+| Llama3.1-8B | 0.720 | 0.872 |
+| Phi3.5 | 0.666 | 0.885 |
+| Mistral-Nemo | 0.630 | 0.890 |
+| Mistral-Small-24B | 0.576 | 0.925 |
+
+1. **4 of 5 stored anchors are the paper's `AttentionScore` baseline, not LapEigvals**
+   (0.717 / 0.666 / 0.630 / 0.576). The *values* were right; the method name and the
+   supervision tag were wrong.
+2. **`lapeigvals_gsm8k_llama8b` stored 0.925 — that is Mistral-Small-24B's LapEigvals**, a
+   different model. Its own model (Llama3.1-8B) gives 0.720 / 0.872.
+
+**The supervision distinction is the substantive finding.** The paper's probe is
+*"a logistic regression model ... `max_iter=2000`, `class_weight='balanced'`"* scored on a test
+split, and the Table-1 caption states: *"We mark results for AttentionScore in gray as it is an
+unsupervised approach, not directly comparable to the others."* So:
+
+- **`AttentionScore` is the correct like-for-like comparator for our label-free detector** — and
+  it is the number we had been (accidentally) comparing against all along.
+- **`LapEigvals` itself is supervised** (LR probe over Laplacian eigenvalues of attention maps,
+  requiring model internals *and* labels) and belongs against our LR oracle, not our label-free
+  score. It had been sitting in an unsupervised comparison unlabeled.
+
+Both comparisons, now correctly paired:
+
+| Cell | model | AttentionScore (unsup) | **GOOD_6 (ours, unsup)** | LapEigvals (sup) | our LR@30 (sup) |
+|---|---|---|---|---|---|
+| lapeigvals_gsm8k_llama3b | Llama3.2-3B | 0.717 | 0.703 | 0.870 | 0.752 |
+| lapeigvals_gsm8k_llama8b | Llama3.1-8B | 0.720 | **0.819** | 0.872 | 0.810 |
+| lapeigvals_gsm8k_phi35 | Phi3.5 | 0.666 | **0.812** | 0.885 | 0.809 |
+| lapeigvals_gsm8k_nemo | Mistral-Nemo | 0.630 | **0.801** | 0.890 | 0.802 |
+| lapeigvals_gsm8k_mistral24b | Mistral-Small-24B | 0.576 | **0.809** | 0.925 | 0.869 |
+
+**Label-free vs label-free: GOOD_6 beats AttentionScore on 4 of 5 cells** (loses only on
+Llama3.2-3B, 0.703 vs 0.717). **Supervised vs supervised: LapEigvals beats our LR@30 on all 5**
+by 6-12pp. Caveat: not a strict head-to-head — their generation, correctness grading and split
+differ from ours, and their signal is attention maps (white-box internals) while ours is the
+entropy/logprob trace.
+
+`scripts/build_competitors_verified.py` now rebuilds these 5 cells from the verified table,
+emitting BOTH rows per cell (AttentionScore as the unsupervised anchor, LapEigvals as a
+supervised reference) with the correction recorded in `caveat`. Verified anchors rose from
+**10/18 to 15/18**. `papers/index.md` gained the row, with an explicit note that this file is
+the LapEigvals paper — the naming mismatch is what hid it.
+
+**Also settled this round** (asked alongside):
+- **Trace-based selector vs GroupFS**: `a2.dufs` (per-feature Gated-Laplacian) 0.7502 vs
+  `a2.select` (GroupFS group-granular) 0.7481 — **+0.20pp, 16W/9L, Wilcoxon p = 0.173**. So it is
+  *nominally* better and structurally cleaner (0/25 saturated vs 12/25), but **not significantly
+  better**, and both remain below GOOD_5 (0.7519). Biggest gain +1.82pp on `inside_coqa_llama7b`,
+  biggest loss -1.36pp on `seiclr_triviaqa_opt30b`.
+- **Coverage audit — no cell was excluded.** All 25 in-scope cells are present in every analysis
+  artifact (reference macros h16+c46, GroupFS h16+c46, LR audit, anchor sweep, split-half gap,
+  GroupFS diagnosis). The only 19/25 is `competitors_verified.csv`, because the 6 new cluster
+  cells have no published paper to compare against; the same 6 are the only ones missing the
+  split-half `fulloracle` column (never exhaustively swept). Both are data facts, not exclusions.
+
+---
+### Step 193d — INSIDE + LOS-Net verified; method-profile columns; explicit W/L marking; and what the selector actually selects
+
+**What**: Omri pointed out INSIDE and LOS-Net are also in `papers/` under their full titles. Both
+extracted and verified. Then added the three columns he asked for to `competitor_grid.html`
+(supervision / access / passes), explicit WIN-LOSS marking, and a new page answering the question
+that had been left implicit: on cells where the selector loses to GOOD_6, *what did it select and
+why*.
+
+**Result A — both papers verified, provenance now essentially complete.**
+- **INSIDE** = `INSIDE LLMS' INTERNAL STATES RETAIN THE.pdf` (Chen et al., **ICLR 2024**, Alibaba
+  Cloud / Zhejiang). Table 1, LLaMA-7B / EigenScore / CoQA **AUCs 80.4** = our stored 0.804 ✓. The
+  score is called **EigenScore**; INSIDE is the framework. Implementation: *"The number of
+  generations is set to K = 10"*, embeddings from *"the middle layer"* → **white-box, 10 passes**.
+- **LOS-Net** = `Beyond Next Token Probabilities...pdf` (Bar-Shalom, Frasca et al.,
+  Technion/MIT/Nvidia). Table 1, HotpotQA/Mistral-7B **72.92 ± 0.45** ✓, **and all 11 of its
+  baselines match** (SemEntropy 67.66, ATP+R-Transf. 69.70, ATP+R-MLP 68.92, Act.Probe 73.00,
+  Logits/Probas/p(True)). Supervised, **grey-box, 1 pass**.
+- Provenance: **61/62 rows verified, 17/18 anchors**. Only `Internal-States+RC` still lacks a PDF.
+
+**Result B — method-profile columns (the taxonomy is LOS-Net's own).** *"probing techniques ...
+require restrictive white-box access to model internals ... gray-box methods relax these
+assumptions by operating only on LLM outputs."* Added `access` / `passes` / `profile_src` to
+`competitors_verified.csv` and to the grid. Across the 18 anchors:
+
+| | count |
+|---|---|
+| white-box (needs internals) | **11 / 18** |
+| multi-pass (K generations) | **9 / 18** |
+| supervised | 3 / 18 |
+| **matching OUR profile exactly** (unsupervised + not white-box + 1 pass) | **1 / 18** — EPR |
+
+Against that single like-for-like anchor we score 74.5 vs 74.6 — a dead heat. The two worst
+"losses" are both cost-explained: INSIDE (−28.2pp) needs internal states *and* K=10 generations;
+LOS-Net (−16.1pp) is a trained network. Our method is unsupervised / grey-box / 1 pass.
+
+**Result C — explicit W/L marking.** `selector_vs_competitor.csv` gained
+`verdict_selector_vs_comp`, `verdict_good6_vs_comp`, `verdict_selector_vs_good6`; the grid now has
+`vs published` and `vs GOOD_6` badge columns. Tallies: selector vs competitor **6W/12L**; GOOD_6 vs
+competitor **8W/10L**; selector vs GOOD_6 **9W/16L**.
+
+**Result D — NEW `scripts/selector_choice_analysis.py` + `selector_choices.html`: what the selector
+picks, and why it loses to GOOD_6.**
+
+1. **What it selects** — ~**14 views** out of a ~28-view pool, about 3× the size of GOOD_6. It
+   *keeps* most of GOOD_6 and adds a long tail: mean **13.9 extra** views, of which **7.4 are
+   anti-oriented** (individually below chance on that cell).
+2. **How it differs** — the disagreement is concentrated on two members. `spectral_entropy` is
+   dropped on **13/25** cells and `low_band_power` on **7/25**; `epr`, `sw_var_peak`, `cusum_max`
+   and `varentropy` are almost never dropped (0-2 cells).
+3. **Why** — the gates optimise a **Laplacian-smoothness objective over the sample graph**, which
+   never sees a label and is not a proxy for separability. Measured directly:
+   **ρ(gate value, that view's own oriented AUROC) = +0.149** on average across the 25 cells
+   (range −0.085 … +0.342). So the selector is not picking *badly*, it is picking for a
+   **different criterion**. It does tilt the right way — selected views average **55.3%** AUROC vs
+   **47.7%** for unselected (**+7.6pp**) — but ρ ≈ 0.15 is far too weak to reconstruct a six-view
+   subset that took a corpus-wide *labelled* search to find.
+
+**The honest asymmetry**: GOOD_6 was chosen once by macro AUROC across the whole grid (Step
+182/184), so it carries corpus-level label information even though *applying* it needs no labels.
+The selector gets no such prior and must rediscover a subset per cell from unlabelled data. Losing
+~2pp under those conditions is a reasonable outcome, not a defect.
+
+**What does NOT explain the losses**: the cells it WINS on add *more* anti-oriented views (8.7 vs
+6.7) and have a *larger* selected-vs-unselected quality gap (+9.2pp vs +6.8pp). The one covariate
+that separates win from loss is **GOOD_6 members kept** (5.4/6 on wins vs 4.9/6 on losses).
+Consistent with the Step-193 diagnosis, where no covariate explained the gaps.
+
+Deliverable now **10 pages**; guardrail clean.
+
+---
+### Step 194 — Build a6 pseudo-label gates (Omri's idea): both pre-registered gates FAIL, yet it lands as the best label-free selector on the board; plus c46 sweep launch, advisor figures, competitor reconciliation
+
+**What**: Implemented Omri's pseudo-label-anchor idea as selector family `a6_pseudolabel_gates`:
+fuse 4 seed views (`epr`, `low_band_power`, `spectral_entropy`, `cusum_max` — identical set on
+all 25 cells) with continuous L-SML into a pseudo-label, then supervise the DUFS gates with a
+**centered** agreement term `L = L_smooth + lam2*E[Pz] - lam3*E[Pz*(a_f - abar)]` — centering
+redistributes the sparsity budget rather than relaxing it (the uncentered form kept 4/6 planted
+noise columns; centered keeps 0). Seeds are held out of the selectable pool (circularity guard);
+lam2 is chosen by the same cross-seed stability rule as the unsupervised control *before* lam3
+enters, so the arms are comparable. Benched on all 25 in-scope cells against two gates
+pre-registered before the run. Also: launched the bounded c46 subset sweep (sizes 3-5, 30-view
+pool, NEW dir `results/subset_sweep_c46/`, resumable); added three item4-idiom SVG figures to
+the advisor_inscope pages; wrote `reconcile_competitors.py` diffing the Step-193 verified
+competitor table against the pre-193 generation.
+
+**Why**: Step 193d measured the selector's defect as rho(gate value, view's own AUROC) = +0.149
+— the Laplacian objective is nearly orthogonal to separability, and pool size and anchor choice
+were already ruled out as levers. The pseudo-label idea is the only proposal on the table that
+attacks that measured mechanism. The sweep answers "is any of the 14 never-enumerated
+energy/logprob views ever worth picking"; the reconciliation prevents a third re-litigation of
+competitor numbers.
+
+**Result**:
+- **Mechanism gate FAIL**: mean rho(learned gate, view AUROC) = **+0.207** (25 cells, range
+  -0.108..+0.402) vs threshold 0.30 — improved over a2's +0.149 but below the bar (a6's rho
+  excludes the always-on seeds; a2's includes its full pool).
+- **Performance gate FAIL**: `a6.pl_dufs` vs `a2.dufs` **+0.22pp, 14W/7L, Wilcoxon p = 0.0273**
+  — significant, but below the pre-registered >=+1.0pp effect size (the bar was sized to the
+  GOOD_6 gap).
+- **Adopted as the selector of record anyway** (the gates govern the CLAIM, not the tool): macro
+  **0.7524**, the **first label-free selector to nominally edge GOOD_5** (0.7519, +0.05pp,
+  17W/8L, p = 0.173 n.s.). GOOD_6 0.7594 remains the headline detector. Ablations: gates beat
+  pseudo-label ranking +0.37pp; seeds contribute +0.46pp; the `a6.dufs` control reproduces
+  `a2.dufs` to +0.06pp (harness sane). Smoke 20/20, zero fallbacks.
+- **Sweep**: 30-view manifest verified (173,971 subsets/cell, 87 chunks). First launch died with
+  the session process at 19/25 cells complete; relaunched (resume-safe). Inclusion-frequency +
+  LOCO analysis is next-session, with the pre-registered stop rule (<= +0.2pp held-out => do NOT
+  extend to sizes 3-6).
+- **Reconciliation**: 79 rows — **59 MATCH, 5 DELTA (every one a known Step-193b LapEigvals
+  correction), 15 coverage-only, all explained**. Three rows hand-verified against the paper's
+  extracted Table 1 (0.720 / 0.872 / 0.925 / 0.576 / 0.717 all confirmed). Finding:
+  `scores_lsml_upcr.csv` still carries `published_Y=0.925` for `lapeigvals_gsm8k_llama8b`, so
+  `report_figs.OVERRIDE_Y` stays load-bearing until the score_repgrid regen chain is re-run.
+- **Figures**: per-cell dumbbell vs published competitors (supervised anchors as open circles,
+  untallied), macro-by-method bar ranking (a6 included), pool-size line ("composition matters,
+  size does not"). Guardrail scan clean.
+
+**Files changed**:
+- `spectral_utils/selectors/a6_pseudolabel_gates.py` — NEW: the selector family + planted-signal smoke()
+- `spectral_utils/selectors/__init__.py` — register a6 in the optional-import tuple
+- `scripts/a6_evaluation.py` — NEW: pre-registered gate evaluator -> `a6_evaluation.csv`
+- `scripts/reconcile_competitors.py` — NEW: two-generation competitor diff -> `reconciliation.csv`
+- `scripts/advisor_inscope_report.py` — three SVG figures, reconciliation section, a6 headline, stale bullets fixed
+- `results/selector_bench/a6_pseudolabel_gates__c46.csv` + `comparison{,_inscope}.csv` — bench + leaderboard
+- `results/advisor_inscope/` — regenerated 10-page report + `a6_evaluation.csv` + `reconciliation.csv`
+
+---

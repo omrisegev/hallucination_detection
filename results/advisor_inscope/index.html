@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>In-scope evaluation &amp;mdash; QA and reasoning</title>
+<style>
+  :root{--blue:#2563eb;--blue-light:#eff6ff;--blue-dark:#1e40af;--green:#10b981;--green-light:#ecfdf5;
+  --green-dark:#065f46;--red:#ef4444;--amber:#f59e0b;--amber-light:#fffbeb;--amber-dark:#92400e;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-600:#475569;--gray-700:#334155;
+  --gray-800:#1e293b;--gray-900:#0f172a;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:15px;color:var(--gray-800);
+  background:var(--gray-50);line-height:1.65;}
+  .header-hero{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#fff;padding:56px 24px 44px;
+  border-bottom:4px solid var(--blue);}
+  .header-content{max-width:1040px;margin:0 auto;}
+  .header-hero h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px;}
+  .header-hero .subtitle{font-size:16px;color:#cbd5e1;max-width:820px;}
+  .meta-pills{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+  .meta-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);padding:4px 12px;
+  border-radius:20px;font-size:13px;font-weight:500;}
+  .page{max-width:1040px;margin:0 auto;padding:40px 24px 64px;}
+  .nav-bar{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:14px 20px;
+  margin-bottom:36px;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+  .nav-bar strong{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-600);margin-right:4px;}
+  .nav-bar a{color:var(--blue);text-decoration:none;font-weight:600;font-size:14px;}
+  .section-card{background:#fff;border:1px solid var(--gray-200);border-radius:14px;padding:36px;
+  margin-bottom:36px;box-shadow:0 2px 6px rgba(0,0,0,.03);}
+  .section-badge{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;padding:4px 12px;border-radius:20px;margin-bottom:12px;}
+  .badge-completed{background:var(--green-light);color:var(--green-dark);}
+  .badge-progress{background:var(--blue-light);color:var(--blue-dark);}
+  .badge-finding{background:#f3e8ff;color:#6b21a8;}
+  h2{font-size:24px;font-weight:800;letter-spacing:-.015em;color:var(--gray-900);margin-bottom:12px;}
+  h3{font-size:17px;font-weight:700;color:var(--gray-900);margin:24px 0 10px;}
+  p{margin-bottom:14px;color:var(--gray-700);}
+  .takeaway-box{background:var(--green-light);border-left:4px solid var(--green);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .takeaway-box b{color:var(--green-dark);}
+  .info-box{background:var(--blue-light);border-left:4px solid var(--blue);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .info-box b{color:var(--blue-dark);}
+  .warn-box{background:var(--amber-light);border-left:4px solid var(--amber);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .warn-box b{color:var(--amber-dark);}
+  table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+  th{background:var(--gray-100);color:var(--gray-800);font-weight:700;text-align:left;padding:12px 14px;
+  border:1px solid var(--gray-200);}
+  td{padding:11px 14px;border:1px solid var(--gray-200);color:var(--gray-700);}
+  .win{color:#16a34a;font-weight:700;}
+  .loss{color:#dc2626;font-weight:700;}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:var(--gray-100);
+  padding:2px 6px;border-radius:4px;color:var(--gray-800);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0;}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr;}}
+  .chart-card{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:24px;margin:20px 0;}
+  .chart-card h4{font-size:15px;font-weight:700;color:var(--gray-800);margin-bottom:4px;}
+  canvas{max-height:340px;width:100%;}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:18px 0}
+.tile{background:#fff;border:1px solid #dde3ea;border-radius:10px;padding:14px 16px}
+.tile .v{font-size:1.7em;font-weight:700;color:#12395e;line-height:1.1}
+.tile .l{font-size:.82em;color:#5c6b7a;margin-top:4px}
+.tile .d{font-size:.78em;color:#7a8794;margin-top:6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.card{background:#fff;border:1px solid #dde3ea;border-radius:10px;padding:16px}
+.card h3{margin:0 0 6px;font-size:1.02em}
+.card p{margin:0;font-size:.88em;color:#5c6b7a}
+.nav-bar{background:#eef3f8;border:1px solid #d6e0ea;border-radius:8px;padding:9px 13px;
+         margin-bottom:18px;font-size:.87em}
+.nav-bar a{margin-right:4px}
+table{font-size:.86em}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.good{color:#1b7f4b;font-weight:600}
+.bad{color:#b3261e;font-weight:600}
+.dim{color:#8b97a3}
+.badge{display:inline-block;padding:1px 7px;border-radius:9px;font-size:.76em;font-weight:600}
+.b-ok{background:#e4f4ea;color:#1b7f4b}
+.b-warn{background:#fdf1dc;color:#8a5a00}
+.b-bad{background:#fbe4e2;color:#b3261e}
+.b-neutral{background:#eef1f4;color:#5c6b7a}
+.chips span{display:inline-block;background:#eef3f8;border:1px solid #d6e0ea;border-radius:9px;
+            padding:0 6px;margin:1px 2px;font-size:.76em;color:#3d4a57}
+.callout{border-left:4px solid #2a6faf;background:#f3f8fd;padding:12px 15px;margin:16px 0;
+         border-radius:0 8px 8px 0}
+.callout.warn{border-left-color:#d08c00;background:#fffaf0}
+.callout.bad{border-left-color:#b3261e;background:#fdf3f2}
+.small{font-size:.85em;color:#5c6b7a}
+
+  .rf-fig{background:#fff;border:1px solid var(--gray-200);border-radius:12px;
+    padding:18px 20px 10px;margin:20px 0;}
+  .rf-fig .rf-cap{font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:2px;}
+  .rf-fig .rf-sub{font-size:12.5px;color:var(--gray-600);margin-bottom:10px;}
+  .rf-chart{width:100%;height:auto;display:block;}
+  .rf-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 10px;align-items:center;}
+  .rf-legend .rf-li{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-700);}
+  .rf-fnote{font-size:11.5px;color:var(--gray-600);margin:8px 0 4px;line-height:1.5;}
+  .rf-grid{stroke:var(--gray-200);stroke-width:1;}
+  .rf-zero{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-tick{fill:var(--gray-600);font-size:11px;}
+  .rf-axname{fill:var(--gray-600);font-size:11.5px;}
+  .rf-rowlbl{fill:var(--gray-800);font-size:12px;font-weight:600;}
+  .rf-rowsub{fill:var(--gray-600);font-size:10px;}
+  .rf-vlbl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-barlbl{fill:var(--gray-700);font-size:11px;}
+  .rf-dlbl{fill:var(--gray-600);font-size:10.5px;}
+  .rf-dlbl-ours{fill:var(--blue);font-weight:700;}
+  .rf-region{fill:var(--gray-600);font-size:11px;font-style:italic;}
+  .rf-albl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-leader{stroke:#94a3b8;stroke-width:1;}
+  .rf-ci{stroke:var(--blue);stroke-width:2;stroke-linecap:round;}
+  .rf-ours{fill:var(--blue);stroke:#fff;stroke-width:2;}
+  .rf-anchor{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-anchor-open{fill:none;stroke:var(--green);stroke-width:2;}
+  .rf-sup{fill:none;stroke:#475569;stroke-width:2;}
+  .rf-seqlp{stroke:var(--gray-700);stroke-width:1.5;opacity:.85;}
+  .rf-bar-pos{fill:var(--blue);}
+  .rf-bar-neg{fill:var(--red);}
+  .rf-bar-ctx{opacity:.42;}
+  .rf-bar-ours{fill:var(--blue);}
+  .rf-bar-gray{fill:#94a3b8;}
+  .rf-bar-gray-sup{fill:#475569;}
+  .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-bar-c4{fill:#cbd5e1;}
+  .rf-bar-g5{fill:#475569;}
+  .rf-bar-g6{fill:var(--blue);}
+  .rf-dumbbell-epr{fill:var(--blue);stroke:#fff;stroke-width:1.5;}
+  .rf-dumbbell-alt{fill:var(--green);stroke:#fff;stroke-width:1.5;}
+  .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-line{stroke:var(--blue);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-line-acc{stroke:var(--green);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-dot-acc{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-panes{display:flex;gap:24px;flex-wrap:wrap;}
+  .rf-pane{flex:1 1 340px;min-width:300px;}
+  .rf-pane .rf-ptitle{font-size:13px;font-weight:700;color:var(--gray-900);margin-bottom:6px;}
+  .rf-diag{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-wash{fill:rgba(37,99,235,.06);}
+</style>
+</head>
+<body>
+<div class="header-hero"><div class="header-content">
+  <h1>In-scope evaluation &amp;mdash; QA and reasoning</h1>
+  <div class="subtitle">Label-free spectral hallucination detection on 25 cells</div>
+  <div class="meta-pills">
+    <span class="meta-pill">Generated 2026-07-22 by scripts/advisor_inscope_report.py</span>
+    <span class="meta-pill">25 in-scope cells: 10 QA + 15 math</span>
+    <span class="meta-pill">Every numeric cell read from a CSV at build time</span>
+  </div>
+</div></div>
+<div class="page">
+<div class="nav-bar"><strong>Pages:</strong> <strong>Overview</strong> &bull; <a href="competitor_grid.html">Competitor grid</a> &bull; <a href="competitor_sources.html">Competitor provenance</a> &bull; <a href="supervised_ceiling.html">Supervised ceiling</a> &bull; <a href="subset_gap_analysis.html">Selection headroom</a> &bull; <a href="selector_choices.html">What it selects</a> &bull; <a href="groupfs_diagnosis.html">Learned selector</a> &bull; <a href="gated_laplacian.html">Gated-Laplacian</a> &bull; <a href="anchor_sweep.html">Anchor robustness</a> &bull; <a href="verification.html">Verification</a></div>
+
+<div class="callout">
+<strong>What this is.</strong> An evaluation of our label-free spectral detector on the 25
+in-scope cells &mdash; 10 short-form QA and 15 math/reasoning. RAG and GPQA are out of
+scope. Every number below traces to a CSV in <code>results/</code>, and the
+<a href="verification.html">verification page</a> documents the integrity audit that had
+to pass before any of it was published.
+</div>
+
+<div class="tiles"><div class="tile"><div class="v">75.94</div><div class="l">GOOD_6 macro AUROC</div><div class="d">the leading label-free detector</div></div><div class="tile"><div class="v">75.19</div><div class="l">GOOD_5 macro AUROC</div><div class="d">the reference subset</div></div><div class="tile"><div class="v">+0.75 pp</div><div class="l">GOOD_6 over GOOD_5</div><div class="d">Wilcoxon p = 0.00507, 18W / 7L</div></div><div class="tile"><div class="v">75.24</div><div class="l">best label-free selector</div><div class="d">a6.pl_dufs (pseudo-label gates, Step 194) &mdash; first to edge GOOD_5, not significantly</div></div><div class="tile"><div class="v">78.10</div><div class="l">supervised ceiling (LR, 30 views)</div><div class="d">headroom +2.16 pp over GOOD_6</div></div><div class="tile"><div class="v">+1.74 pp</div><div class="l">honest selection headroom</div><div class="d">vs +4.95 pp in-sample &mdash; the rest is winner&rsquo;s curse</div></div></div>
+
+<h2>Headline</h2>
+<p><strong>GOOD_6 is the leading label-free detector at 75.94% macro AUROC</strong>, beating
+the GOOD_5 reference by +0.75 pp (Wilcoxon p = 0.00507, 18 wins /
+7 losses over 25 cells). No label-free feature-selection method we
+tested beats it. The best of them &mdash; the new pseudo-label-gated selector
+(<code>a6.pl_dufs</code>, Step 194) at 75.24% &mdash; is the first to nominally edge
+GOOD_5 (+0.05 pp, Wilcoxon p = 0.173, not significant); the previous best,
+the Gated-Laplacian (<code>a2.dufs</code>) at 75.02%, sits just below GOOD_5.</p>
+
+<p>With labels, logistic regression over the same views reaches 78.10%, so the
+supervised headroom is +2.16 pp. That gap is the honest measure of how much
+our detector leaves on the table.</p>
+
+<div class="rf-fig"><div class="rf-cap">Macro AUROC by method — the one-glance ranking</div><div class="rf-sub">Fixed subsets vs label-free selectors vs the supervised ceiling, same 25 cells throughout.</div><div class="rf-legend"><span class="rf-li"><svg width="16" height="12"><rect x="1" y="2" width="14" height="8" rx="2" class="rf-bar-g6"/></svg> fixed subsets</span><span class="rf-li"><svg width="16" height="12"><rect x="1" y="2" width="14" height="8" rx="2" class="rf-bar-ours"/></svg> label-free selectors</span><span class="rf-li"><svg width="16" height="12"><rect x="1" y="2" width="14" height="8" rx="2" class="rf-bar-gray"/></svg> ablations / controls</span><span class="rf-li"><svg width="16" height="12"><rect x="1" y="2" width="14" height="8" rx="2" class="rf-bar-gray-sup"/></svg> supervised ceiling (not a peer)</span></div><svg viewBox="0 0 880 342" role="img" class="rf-chart" preserveAspectRatio="xMidYMid meet"><line x1="-1480.9" y1="8" x2="-1480.9" y2="312" class="rf-grid"/><text x="-1480.9" y="327" class="rf-tick" text-anchor="middle">40</text><line x1="-368.7" y1="8" x2="-368.7" y2="312" class="rf-grid"/><text x="-368.7" y="327" class="rf-tick" text-anchor="middle">60</text><line x1="187.4" y1="8" x2="187.4" y2="312" class="rf-grid"/><text x="187.4" y="327" class="rf-tick" text-anchor="middle">70</text><line x1="743.5" y1="8" x2="743.5" y2="312" class="rf-grid"/><text x="743.5" y="327" class="rf-tick" text-anchor="middle">80</text><line x1="1299.6" y1="8" x2="1299.6" y2="312" class="rf-grid"/><text x="1299.6" y="327" class="rf-tick" text-anchor="middle">90</text><line x1="1855.6" y1="8" x2="1855.6" y2="312" class="rf-grid"/><text x="1855.6" y="327" class="rf-tick" text-anchor="middle">100</text><line x1="-924.8" y1="8" x2="-924.8" y2="312" class="rf-zero"/><text x="-924.8" y="327" class="rf-tick" text-anchor="middle">50 = chance</text><path d="M -924.8 24.0 H 633.6 Q 637.6 24.0 637.6 28.0 V 34.0 Q 637.6 38.0 633.6 38.0 H -924.8 Z" class="rf-bar-gray-sup"><title>Logistic regression @30 views (SUPERVISED ceiling): 78.1 uses labels — not a peer</title></path><text x="12" y="18.0" class="rf-barlbl">Logistic regression @30 views (SUPERVISED ceiling)</text><text x="643.6" y="35.0" class="rf-vlbl" text-anchor="start">78.1</text><path d="M -924.8 62.0 H 513.7 Q 517.7 62.0 517.7 66.0 V 72.0 Q 517.7 76.0 513.7 76.0 H -924.8 Z" class="rf-bar-g6"><title>GOOD_6 (fixed subset — headline reference): 75.9 macro over 25 in-scope cells</title></path><text x="12" y="56.0" class="rf-barlbl">GOOD_6 (fixed subset — headline reference)</text><text x="523.7" y="73.0" class="rf-vlbl" text-anchor="start">75.9</text><path d="M -924.8 100.0 H 474.8 Q 478.8 100.0 478.8 104.0 V 110.0 Q 478.8 114.0 474.8 114.0 H -924.8 Z" class="rf-bar-ours"><title>Pseudo-label gates (a6.pl_dufs): 75.2 macro over 25 in-scope cells</title></path><text x="12" y="94.0" class="rf-barlbl">Pseudo-label gates (a6.pl_dufs)</text><text x="484.8" y="111.0" class="rf-vlbl" text-anchor="start">75.2</text><path d="M -924.8 138.0 H 472.0 Q 476.0 138.0 476.0 142.0 V 148.0 Q 476.0 152.0 472.0 152.0 H -924.8 Z" class="rf-bar-g5"><title>GOOD_5 (compatibility reference): 75.2 macro over 25 in-scope cells</title></path><text x="12" y="132.0" class="rf-barlbl">GOOD_5 (compatibility reference)</text><text x="482.0" y="149.0" class="rf-vlbl" text-anchor="start">75.2</text><path d="M -924.8 176.0 H 465.9 Q 469.9 176.0 469.9 180.0 V 186.0 Q 469.9 190.0 465.9 190.0 H -924.8 Z" class="rf-bar-gray"><title>a6 unsupervised control (a6.dufs): 75.1 macro over 25 in-scope cells</title></path><text x="12" y="170.0" class="rf-barlbl">a6 unsupervised control (a6.dufs)</text><text x="475.9" y="187.0" class="rf-vlbl" text-anchor="start">75.1</text><path d="M -924.8 214.0 H 462.5 Q 466.5 214.0 466.5 218.0 V 224.0 Q 466.5 228.0 462.5 228.0 H -924.8 Z" class="rf-bar-ours"><title>Gated-Laplacian selector (a2.dufs): 75.0 macro over 25 in-scope cells</title></path><text x="12" y="208.0" class="rf-barlbl">Gated-Laplacian selector (a2.dufs)</text><text x="472.5" y="225.0" class="rf-vlbl" text-anchor="start">75.0</text><path d="M -924.8 252.0 H 454.2 Q 458.2 252.0 458.2 256.0 V 262.0 Q 458.2 266.0 454.2 266.0 H -924.8 Z" class="rf-bar-gray"><title>Pseudo-label rank ablation (a6.pl_rank): 74.9 macro over 25 in-scope cells</title></path><text x="12" y="246.0" class="rf-barlbl">Pseudo-label rank ablation (a6.pl_rank)</text><text x="464.2" y="263.0" class="rf-vlbl" text-anchor="start">74.9</text><path d="M -924.8 290.0 H 450.9 Q 454.9 290.0 454.9 294.0 V 300.0 Q 454.9 304.0 450.9 304.0 H -924.8 Z" class="rf-bar-gray"><title>GroupFS selector (a2.select): 74.8 macro over 25 in-scope cells</title></path><text x="12" y="284.0" class="rf-barlbl">GroupFS selector (a2.select)</text><text x="460.9" y="301.0" class="rf-vlbl" text-anchor="start">74.8</text><text x="435" y="341" class="rf-axname" text-anchor="middle">AUROC (%), bars grow from chance</text></svg><p class="rf-fnote">All rows are macro AUROC over the same 25 in-scope cells (10 QA + 15 math) on the 30-view pool. GOOD_6 was chosen once by corpus-wide labelled search (Step 182/184), so it carries corpus-level label information even though applying it is label-free; the selectors get no such prior. The LR ceiling is fully supervised and shown only to bound the headroom. Source: comparison_inscope.csv + lr_oracle_audit.csv.</p></div>
+
+<div class="callout warn">
+<strong>Two corrections to previously circulated numbers.</strong> A data-integrity audit
+found that one cell's bench rows, and every learned-selector row on 11 further cells, had
+been computed against a superseded feature cache and were never recomputed. Both are fixed
+here. The GOOD_6-over-GOOD_5 margin moves from +0.98 pp to +0.75 pp, and the best
+learned selector moves from marginally ahead of GOOD_5 to marginally behind it. Details on
+the <a href="verification.html">verification page</a>.
+</div>
+
+<h2>Pages</h2>
+<div class="cards"><a class="card" href="competitor_grid.html" style="text-decoration:none;display:block"><h3>Competitor grid</h3><p>One row per cell: our fixed subsets, the published competitor, and the learned selector.</p></a><a class="card" href="competitor_sources.html" style="text-decoration:none;display:block"><h3>Competitor provenance</h3><p>Which published numbers were verified against the paper&#x27;s own table, and which could not be.</p></a><a class="card" href="supervised_ceiling.html" style="text-decoration:none;display:block"><h3>Supervised ceiling</h3><p>What logistic regression achieves with labels, and an audit of how that number is computed.</p></a><a class="card" href="subset_gap_analysis.html" style="text-decoration:none;display:block"><h3>Selection headroom</h3><p>How much of the apparent gain from searching subsets survives out of sample.</p></a><a class="card" href="groupfs_diagnosis.html" style="text-decoration:none;display:block"><h3>Learned selector</h3><p>Why GroupFS is non-optimal, and which proposed explanations the data does not support.</p></a><a class="card" href="gated_laplacian.html" style="text-decoration:none;display:block"><h3>Gated-Laplacian</h3><p>The trace-based selector, already implemented, and what its selection rule changes.</p></a><a class="card" href="anchor_sweep.html" style="text-decoration:none;display:block"><h3>Anchor robustness</h3><p>Whether the label-free sign anchor is load-bearing.</p></a><a class="card" href="verification.html" style="text-decoration:none;display:block"><h3>Verification</h3><p>The data-integrity audit that gates everything else on this site.</p></a></div>
+
+</div>
+</body>
+</html>

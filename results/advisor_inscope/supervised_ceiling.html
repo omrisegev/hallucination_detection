@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supervised ceiling</title>
+<style>
+  :root{--blue:#2563eb;--blue-light:#eff6ff;--blue-dark:#1e40af;--green:#10b981;--green-light:#ecfdf5;
+  --green-dark:#065f46;--red:#ef4444;--amber:#f59e0b;--amber-light:#fffbeb;--amber-dark:#92400e;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-600:#475569;--gray-700:#334155;
+  --gray-800:#1e293b;--gray-900:#0f172a;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:15px;color:var(--gray-800);
+  background:var(--gray-50);line-height:1.65;}
+  .header-hero{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#fff;padding:56px 24px 44px;
+  border-bottom:4px solid var(--blue);}
+  .header-content{max-width:1040px;margin:0 auto;}
+  .header-hero h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px;}
+  .header-hero .subtitle{font-size:16px;color:#cbd5e1;max-width:820px;}
+  .meta-pills{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+  .meta-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);padding:4px 12px;
+  border-radius:20px;font-size:13px;font-weight:500;}
+  .page{max-width:1040px;margin:0 auto;padding:40px 24px 64px;}
+  .nav-bar{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:14px 20px;
+  margin-bottom:36px;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+  .nav-bar strong{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-600);margin-right:4px;}
+  .nav-bar a{color:var(--blue);text-decoration:none;font-weight:600;font-size:14px;}
+  .section-card{background:#fff;border:1px solid var(--gray-200);border-radius:14px;padding:36px;
+  margin-bottom:36px;box-shadow:0 2px 6px rgba(0,0,0,.03);}
+  .section-badge{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;padding:4px 12px;border-radius:20px;margin-bottom:12px;}
+  .badge-completed{background:var(--green-light);color:var(--green-dark);}
+  .badge-progress{background:var(--blue-light);color:var(--blue-dark);}
+  .badge-finding{background:#f3e8ff;color:#6b21a8;}
+  h2{font-size:24px;font-weight:800;letter-spacing:-.015em;color:var(--gray-900);margin-bottom:12px;}
+  h3{font-size:17px;font-weight:700;color:var(--gray-900);margin:24px 0 10px;}
+  p{margin-bottom:14px;color:var(--gray-700);}
+  .takeaway-box{background:var(--green-light);border-left:4px solid var(--green);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .takeaway-box b{color:var(--green-dark);}
+  .info-box{background:var(--blue-light);border-left:4px solid var(--blue);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .info-box b{color:var(--blue-dark);}
+  .warn-box{background:var(--amber-light);border-left:4px solid var(--amber);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .warn-box b{color:var(--amber-dark);}
+  table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+  th{background:var(--gray-100);color:var(--gray-800);font-weight:700;text-align:left;padding:12px 14px;
+  border:1px solid var(--gray-200);}
+  td{padding:11px 14px;border:1px solid var(--gray-200);color:var(--gray-700);}
+  .win{color:#16a34a;font-weight:700;}
+  .loss{color:#dc2626;font-weight:700;}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:var(--gray-100);
+  padding:2px 6px;border-radius:4px;color:var(--gray-800);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0;}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr;}}
+  .chart-card{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:24px;margin:20px 0;}
+  .chart-card h4{font-size:15px;font-weight:700;color:var(--gray-800);margin-bottom:4px;}
+  canvas{max-height:340px;width:100%;}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:18px 0}
+.tile{background:#fff;border:1px solid #dde3ea;border-radius:10px;padding:14px 16px}
+.tile .v{font-size:1.7em;font-weight:700;color:#12395e;line-height:1.1}
+.tile .l{font-size:.82em;color:#5c6b7a;margin-top:4px}
+.tile .d{font-size:.78em;color:#7a8794;margin-top:6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.card{background:#fff;border:1px solid #dde3ea;border-radius:10px;padding:16px}
+.card h3{margin:0 0 6px;font-size:1.02em}
+.card p{margin:0;font-size:.88em;color:#5c6b7a}
+.nav-bar{background:#eef3f8;border:1px solid #d6e0ea;border-radius:8px;padding:9px 13px;
+         margin-bottom:18px;font-size:.87em}
+.nav-bar a{margin-right:4px}
+table{font-size:.86em}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.good{color:#1b7f4b;font-weight:600}
+.bad{color:#b3261e;font-weight:600}
+.dim{color:#8b97a3}
+.badge{display:inline-block;padding:1px 7px;border-radius:9px;font-size:.76em;font-weight:600}
+.b-ok{background:#e4f4ea;color:#1b7f4b}
+.b-warn{background:#fdf1dc;color:#8a5a00}
+.b-bad{background:#fbe4e2;color:#b3261e}
+.b-neutral{background:#eef1f4;color:#5c6b7a}
+.chips span{display:inline-block;background:#eef3f8;border:1px solid #d6e0ea;border-radius:9px;
+            padding:0 6px;margin:1px 2px;font-size:.76em;color:#3d4a57}
+.callout{border-left:4px solid #2a6faf;background:#f3f8fd;padding:12px 15px;margin:16px 0;
+         border-radius:0 8px 8px 0}
+.callout.warn{border-left-color:#d08c00;background:#fffaf0}
+.callout.bad{border-left-color:#b3261e;background:#fdf3f2}
+.small{font-size:.85em;color:#5c6b7a}
+
+  .rf-fig{background:#fff;border:1px solid var(--gray-200);border-radius:12px;
+    padding:18px 20px 10px;margin:20px 0;}
+  .rf-fig .rf-cap{font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:2px;}
+  .rf-fig .rf-sub{font-size:12.5px;color:var(--gray-600);margin-bottom:10px;}
+  .rf-chart{width:100%;height:auto;display:block;}
+  .rf-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 10px;align-items:center;}
+  .rf-legend .rf-li{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-700);}
+  .rf-fnote{font-size:11.5px;color:var(--gray-600);margin:8px 0 4px;line-height:1.5;}
+  .rf-grid{stroke:var(--gray-200);stroke-width:1;}
+  .rf-zero{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-tick{fill:var(--gray-600);font-size:11px;}
+  .rf-axname{fill:var(--gray-600);font-size:11.5px;}
+  .rf-rowlbl{fill:var(--gray-800);font-size:12px;font-weight:600;}
+  .rf-rowsub{fill:var(--gray-600);font-size:10px;}
+  .rf-vlbl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-barlbl{fill:var(--gray-700);font-size:11px;}
+  .rf-dlbl{fill:var(--gray-600);font-size:10.5px;}
+  .rf-dlbl-ours{fill:var(--blue);font-weight:700;}
+  .rf-region{fill:var(--gray-600);font-size:11px;font-style:italic;}
+  .rf-albl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-leader{stroke:#94a3b8;stroke-width:1;}
+  .rf-ci{stroke:var(--blue);stroke-width:2;stroke-linecap:round;}
+  .rf-ours{fill:var(--blue);stroke:#fff;stroke-width:2;}
+  .rf-anchor{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-anchor-open{fill:none;stroke:var(--green);stroke-width:2;}
+  .rf-sup{fill:none;stroke:#475569;stroke-width:2;}
+  .rf-seqlp{stroke:var(--gray-700);stroke-width:1.5;opacity:.85;}
+  .rf-bar-pos{fill:var(--blue);}
+  .rf-bar-neg{fill:var(--red);}
+  .rf-bar-ctx{opacity:.42;}
+  .rf-bar-ours{fill:var(--blue);}
+  .rf-bar-gray{fill:#94a3b8;}
+  .rf-bar-gray-sup{fill:#475569;}
+  .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-bar-c4{fill:#cbd5e1;}
+  .rf-bar-g5{fill:#475569;}
+  .rf-bar-g6{fill:var(--blue);}
+  .rf-dumbbell-epr{fill:var(--blue);stroke:#fff;stroke-width:1.5;}
+  .rf-dumbbell-alt{fill:var(--green);stroke:#fff;stroke-width:1.5;}
+  .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-line{stroke:var(--blue);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-line-acc{stroke:var(--green);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-dot-acc{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-panes{display:flex;gap:24px;flex-wrap:wrap;}
+  .rf-pane{flex:1 1 340px;min-width:300px;}
+  .rf-pane .rf-ptitle{font-size:13px;font-weight:700;color:var(--gray-900);margin-bottom:6px;}
+  .rf-diag{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-wash{fill:rgba(37,99,235,.06);}
+</style>
+</head>
+<body>
+<div class="header-hero"><div class="header-content">
+  <h1>Supervised ceiling</h1>
+  <div class="subtitle">What logistic regression achieves with labels &mdash; and an audit of that number</div>
+  <div class="meta-pills">
+    <span class="meta-pill">Generated 2026-07-22 by scripts/advisor_inscope_report.py</span>
+    <span class="meta-pill">25 in-scope cells: 10 QA + 15 math</span>
+    <span class="meta-pill">Every numeric cell read from a CSV at build time</span>
+  </div>
+</div></div>
+<div class="page">
+<div class="nav-bar"><strong>Pages:</strong> <a href="index.html">Overview</a> &bull; <a href="competitor_grid.html">Competitor grid</a> &bull; <a href="competitor_sources.html">Competitor provenance</a> &bull; <strong>Supervised ceiling</strong> &bull; <a href="subset_gap_analysis.html">Selection headroom</a> &bull; <a href="selector_choices.html">What it selects</a> &bull; <a href="groupfs_diagnosis.html">Learned selector</a> &bull; <a href="gated_laplacian.html">Gated-Laplacian</a> &bull; <a href="anchor_sweep.html">Anchor robustness</a> &bull; <a href="verification.html">Verification</a></div>
+
+<div class="callout">
+<strong>This panel is supervised.</strong> It is not a peer of our detector &mdash; it is a
+ceiling. Logistic regression sees the labels; our method never does. The number that
+matters is the gap.
+</div>
+
+<p>Logistic regression, 5-fold cross-validated, <code>class_weight='balanced'</code>, with
+folds grouped by <code>problem_id</code> on the multi-candidate cells so a question's
+candidates never straddle train and test. Macro over all 25 cells:</p>
+
+<div class="tiles">
+<div class="tile"><div class="v">77.20</div><div class="l">LR, 5 views</div></div><div class="tile"><div class="v">75.80</div><div class="l">LR, 9 views</div></div><div class="tile"><div class="v">77.15</div><div class="l">LR, 16 views</div></div><div class="tile"><div class="v">78.10</div><div class="l">LR, 30 views</div></div>
+<div class="tile"><div class="v">75.94</div><div class="l">GOOD_6 (label-free)</div></div>
+<div class="tile"><div class="v">+2.16 pp</div>
+<div class="l">supervised headroom</div>
+<div class="d">what labels buy over our detector</div></div>
+</div>
+
+<h2>Audit of how this number is computed</h2>
+<p>Three properties of the oracle code were checked before publishing it, because each
+could have inflated the ceiling:</p>
+<table><thead><tr><th>Check</th><th>Finding</th></tr></thead><tbody>
+<tr><td>Per-fold AUROC is floored at 0.5 and direction-free
+(<code>max(p, 1&minus;p)</code>), so an anti-predictive fold is flipped upward</td>
+<td><span class="badge b-ok">immaterial here</span> &mdash; only
+<strong>1 of 500 folds</strong> flip. Macro inflation is +0.07 pp on the
+9-view set and +0.00 pp on the others, so the headroom framing stands.</td></tr>
+<tr><td>Grouped folds actually applied on the multi-candidate cells</td>
+<td><span class="badge b-ok">confirmed</span> for every k&gt;1 cell.</td></tr>
+<tr><td>The saturation filter silently drops views</td>
+<td><span class="badge b-ok">no GOOD_6 member dropped</span> on any cell.</td></tr>
+<tr><td>Regularisation strength <code>C</code> is fixed at 1.0 and never tuned</td>
+<td><span class="badge b-warn">a real caveat</span> &mdash; across
+C &isin; {0.1, 1, 10} at 30 views the AUROC spread averages
+1.24 pp and reaches
+<strong>6.16 pp</strong> on the worst cell. The ceiling is therefore
+an untuned point estimate, not a tuned maximum.</td></tr>
+</tbody></table>
+
+<h2>Per cell</h2>
+<table><thead><tr><th>Cell</th><th>Group</th><th class="num">GOOD_6</th>
+<th class="num">LR@5</th><th class="num">LR@9</th><th class="num">LR@16</th><th class="num">LR@30</th>
+<th class="num">views used</th><th class="num">headroom</th></tr></thead>
+<tbody><tr><td><code>epr_triviaqa_mistral24b</code></td><td>QA</td><td class='num'>73.3</td><td class='num'>72.8</td><td class='num'>72.4</td><td class='num'>71.1</td><td class='num'>70.2</td><td class='num'>28</td><td class='num bad'>-3.1</td></tr><tr><td><code>inside_coqa_llama7b</code></td><td>QA</td><td class='num'>66.7</td><td class='num'>73.5</td><td class='num'>80.2</td><td class='num'>81.5</td><td class='num'>82.6</td><td class='num'>27</td><td class='num good'>+15.8</td></tr><tr><td><code>losnet_hotpotqa_mistral7b</code></td><td>QA</td><td class='num'>58.1</td><td class='num'>57.3</td><td class='num'>56.6</td><td class='num'>58.5</td><td class='num'>63.1</td><td class='num'>29</td><td class='num good'>+5.0</td></tr><tr><td><code>sciq_llama8b</code></td><td>QA</td><td class='num'>74.8</td><td class='num'>76.8</td><td class='num'>72.2</td><td class='num'>72.3</td><td class='num'>67.5</td><td class='num'>30</td><td class='num bad'>-7.3</td></tr><tr><td><code>se_nq_open_llama8b</code></td><td>QA</td><td class='num'>73.0</td><td class='num'>74.5</td><td class='num'>74.0</td><td class='num'>74.1</td><td class='num'>74.8</td><td class='num'>27</td><td class='num good'>+1.8</td></tr><tr><td><code>se_squad_v2_llama8b</code></td><td>QA</td><td class='num'>81.1</td><td class='num'>81.4</td><td class='num'>77.6</td><td class='num'>80.6</td><td class='num'>81.4</td><td class='num'>27</td><td class='num good'>+0.3</td></tr><tr><td><code>seiclr_triviaqa_opt30b</code></td><td>QA</td><td class='num'>58.8</td><td class='num'>65.7</td><td class='num'>65.4</td><td class='num'>68.4</td><td class='num'>72.0</td><td class='num'>28</td><td class='num good'>+13.2</td></tr><tr><td><code>semenergy_triviaqa_qwen3_8b</code></td><td>QA</td><td class='num'>81.6</td><td class='num'>79.5</td><td class='num'>79.7</td><td class='num'>79.3</td><td class='num'>81.8</td><td class='num'>27</td><td class='num good'>+0.2</td></tr><tr><td><code>spilled_triviaqa_llama8b</code></td><td>QA</td><td class='num'>94.2</td><td class='num'>92.6</td><td class='num'>80.6</td><td class='num'>88.6</td><td class='num'>90.0</td><td class='num'>28</td><td class='num bad'>-4.2</td></tr><tr><td><code>truthfulqa_llama8b</code></td><td>QA</td><td class='num'>65.7</td><td class='num'>68.2</td><td class='num'>64.8</td><td class='num'>67.5</td><td class='num'>68.9</td><td class='num'>29</td><td class='num good'>+3.1</td></tr><tr><td><code>ars_gsm8k_r1distill8b</code></td><td>math</td><td class='num'>76.2</td><td class='num'>76.4</td><td class='num'>74.4</td><td class='num'>73.0</td><td class='num'>74.2</td><td class='num'>30</td><td class='num bad'>-2.0</td></tr><tr><td><code>internalstates_gsm8k_qwen25_7b</code></td><td>math</td><td class='num'>70.4</td><td class='num'>73.0</td><td class='num'>68.7</td><td class='num'>72.3</td><td class='num'>76.0</td><td class='num'>29</td><td class='num good'>+5.6</td></tr><tr><td><code>lapeigvals_gsm8k_llama3b</code></td><td>math</td><td class='num'>70.3</td><td class='num'>71.0</td><td class='num'>70.3</td><td class='num'>70.0</td><td class='num'>75.2</td><td class='num'>30</td><td class='num good'>+5.0</td></tr><tr><td><code>lapeigvals_gsm8k_llama8b</code></td><td>math</td><td class='num'>81.9</td><td class='num'>80.9</td><td class='num'>80.5</td><td class='num'>80.4</td><td class='num'>81.0</td><td class='num'>29</td><td class='num bad'>-0.9</td></tr><tr><td><code>lapeigvals_gsm8k_mistral24b</code></td><td>math</td><td class='num'>80.9</td><td class='num'>85.0</td><td class='num'>84.4</td><td class='num'>86.8</td><td class='num'>86.9</td><td class='num'>30</td><td class='num good'>+6.1</td></tr><tr><td><code>lapeigvals_gsm8k_nemo</code></td><td>math</td><td class='num'>80.1</td><td class='num'>80.5</td><td class='num'>78.4</td><td class='num'>79.7</td><td class='num'>80.2</td><td class='num'>29</td><td class='num good'>+0.1</td></tr><tr><td><code>lapeigvals_gsm8k_phi35</code></td><td>math</td><td class='num'>81.2</td><td class='num'>81.1</td><td class='num'>78.3</td><td class='num'>79.9</td><td class='num'>80.9</td><td class='num'>29</td><td class='num bad'>-0.3</td></tr><tr><td><code>noise_gsm8k_mistral7b</code></td><td>math</td><td class='num'>79.0</td><td class='num'>80.8</td><td class='num'>78.6</td><td class='num'>81.8</td><td class='num'>82.4</td><td class='num'>29</td><td class='num good'>+3.4</td></tr><tr><td><code>noise_gsm8k_phi3mini</code></td><td>math</td><td class='num'>68.0</td><td class='num'>68.5</td><td class='num'>68.5</td><td class='num'>71.4</td><td class='num'>71.7</td><td class='num'>29</td><td class='num good'>+3.7</td></tr><tr><td><code>math500_dsmath7b</code></td><td>math</td><td class='num'>78.7</td><td class='num'>77.1</td><td class='num'>75.7</td><td class='num'>73.5</td><td class='num'>72.4</td><td class='num'>30</td><td class='num bad'>-6.2</td></tr><tr><td><code>math500_qwenmath7b</code></td><td>math</td><td class='num'>89.0</td><td class='num'>93.9</td><td class='num'>94.9</td><td class='num'>95.2</td><td class='num'>93.7</td><td class='num'>28</td><td class='num good'>+4.7</td></tr><tr><td><code>math500_r1distill8b</code></td><td>math</td><td class='num'>83.6</td><td class='num'>85.4</td><td class='num'>85.5</td><td class='num'>86.3</td><td class='num'>86.5</td><td class='num'>28</td><td class='num good'>+3.0</td></tr><tr><td><code>math500_r1distill8b_mn4096</code></td><td>math</td><td class='num'>83.3</td><td class='num'>83.6</td><td class='num'>84.5</td><td class='num'>85.1</td><td class='num'>84.8</td><td class='num'>29</td><td class='num good'>+1.5</td></tr><tr><td><code>trace_gsm8k_llama8b_k10</code></td><td>math</td><td class='num'>80.9</td><td class='num'>80.7</td><td class='num'>81.1</td><td class='num'>81.7</td><td class='num'>82.6</td><td class='num'>29</td><td class='num good'>+1.7</td></tr><tr><td><code>trace_math500_qwenmath15b_k10</code></td><td>math</td><td class='num'>67.6</td><td class='num'>69.9</td><td class='num'>67.7</td><td class='num'>69.9</td><td class='num'>71.4</td><td class='num'>30</td><td class='num good'>+3.8</td></tr></tbody></table>
+
+</div>
+</body>
+</html>

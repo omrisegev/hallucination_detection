@@ -1,7 +1,269 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-07-21
-**Last updated**: Step 192 — **Complete in-scope (QA + math) evaluation of the leading pipeline over the FULL 30-view feature pool on the new cluster data — the in-scope evaluation Step 191 flagged as the next priority. Headline: on the 25 in-scope cells (10 QA + 15 math; RAG/GPQA excluded per Jul-20), the leading detector over all available features is the fixed `GOOD_6` subset (macro AUROC 0.7587, QA 0.727, math 0.780), +0.98pp over GOOD_5 (Wilcoxon p=0.0025, 19W/6L) — and NO label-free learned selector beats it (best a2.dufs/a2.select tie at +0.06pp).** Five phases, all CPU-local. **Integrity**: smoke 19/19, self-check GOOD_5 reproduced max|diff| 2.9e-08, all 25 cells present with 28–30 wide-pool views. **Step-187 sign-fix is NOT needed in-scope** (NEW `scripts/inscope_orientation_audit.py`): the label-free anchor `epr` is correctly oriented on ALL 25 cells (min oriented AUROC 0.560, best 0.931 — vs RAG where it was flipped 0.29–0.43); all GOOD_6 members carry the right fixed sign (4 core features 0/25 anti-oriented, low_band_power 1/25, spectral_entropy 4/25). The ~45% pool-wide anti-orientation is absorbed by L-SML's negative weights / removed by selection; the domain-polarity failure was RAG-specific and is closed for QA+math. **Full selector bench — all 8 families** at `--pool c46 --domains repgrid --cells <25>`, resume-safe (only the 6 new cluster cells computed; 19 grid cells reused), **0 fallbacks / 0 NaN** (Step-186 quality bar). GOOD_5 is pool-invariant (its 5 features all live in H16) → **the entire wide-pool value for the curated subset is the one `varentropy` view GOOD_6 adds, not automatic selection over 30 views** (reproduces Step-186/189 on the freshly-scoped pool). **Honest split-half ceiling** (both pools, R=10, seed 0, held-out half B, 25 cells): GOOD_5 0.7507 → greedy@H16 0.7546 → greedy@30v **0.7669** (+1.7pp over GOOD_5) — real but LABEL-GATED (uses labels on half the data), concentrated in **math (+2.5pp)**, thin on **QA (+0.6pp, optimism gap 0.041 = selection overfits QA)**; no label-free selector captures it, GOOD_6 recovers ~+1pp of it label-free. **Deliverables**: NEW `scripts/{inscope_orientation_audit,selector_compare_inscope,inscope_report}.py`; `results/selector_bench/{comparison_inscope.csv, inscope_feature_orientation{,_summary}.csv, splithalf_oracle_{c46,h16}_inscope{,_summary}.csv, inscope_evaluation.html}` (theme-aware CSV-driven results page — open locally, matches the Spectral_LSML_Report house style). **Canonical all-cell artifacts left at Step-191 state on purpose** — regenerating `comparison.csv`/`dashboard.html`/deep reports would re-mix out-of-scope RAG/GPQA into the headlines. **Next priority**: advisor read of the in-scope result (GOOD_6 is the leading detector; the label-free selection prize is small — is a curation-free selector still worth pursuing given the ceiling is math-only and label-gated?); optional seed-robustness on the +1.7pp greedy@30v ceiling; the 2 still-running GPQA `_mn4096` cluster dirs remain fetch-pending but are out of scope now. Full detail: HISTORY Step 192.
+**Date**: 2026-07-22
+**Last updated**: Step 194 — **a6 pseudo-label gates built + benched: both pre-registered gates
+FAIL, yet `a6.pl_dufs` is adopted as the SELECTOR OF RECORD** (supersedes `a2.dufs`). Omri's idea
+implemented as `spectral_utils/selectors/a6_pseudolabel_gates.py`: 4 seed views (`epr`,
+`low_band_power`, `spectral_entropy`, `cusum_max` — same set resolved on all 25 cells) fused by
+continuous L-SML into a pseudo-label that supervises the DUFS gates via a **centered** agreement
+term (centering = redistribution of the sparsity budget, not relaxation; lam2 chosen by the same
+stability rule as the control BEFORE lam3 enters). Verdicts on 25/25 cells, 0 fallbacks:
+**mechanism gate FAIL** (rho(gate, view AUROC) +0.207 vs threshold 0.30; a2 baseline +0.149),
+**performance gate FAIL** (+0.22pp vs a2.dufs, 14W/7L, Wilcoxon **p = 0.0273** — significant but
+below the +1.0pp bar sized to the GOOD_6 gap). Still: macro **0.7524 = best label-free selector,
+first to nominally edge GOOD_5** (0.7519, +0.05pp, p = 0.173 n.s.); GOOD_6 0.7594 remains the
+headline detector. Ablations: gates > pseudo-label ranking +0.37pp; seeds +0.46pp; `a6.dufs`
+control reproduces `a2.dufs` +0.06pp (harness sane). **The gates govern the claim, not the tool**
+— report as "best selector, parity with GOOD_5, gap to GOOD_6 not closed". Also Step 194:
+c46 subset sweep (sizes 3-5) running — see sweep section below; three item4-idiom SVG figures on
+the advisor_inscope pages; `scripts/reconcile_competitors.py` → 59 MATCH / 5 DELTA (all five =
+known Step-193b LapEigvals corrections, 3 hand-verified vs papers/extracted) / 15 coverage-only;
+NOTE `report_figs.OVERRIDE_Y` is still load-bearing (`scores_lsml_upcr.csv` still says 0.925).
+
+**Previously (Step 193b)** — **LapEigvals located and verified; all 5 of its anchors were mislabeled.** The paper was in `papers/` all along under its *title*, `Hallucination Detection in LLMs Using Spectral Features of Attention.pdf` (Binkowski et al., Wroclaw/UTS) — not the method name, which is why the Step-193 audit left it UNVERIFIED. Table 1 (temp=1.0, cols `CoQA | GSM8K | HaluevalQA | NQOpen | SQuADv2 | TriviaQA | TruthfulQA`): **4 of our 5 stored "LapEigvals" anchors are actually the paper's `AttentionScore` baseline** (0.717/0.666/0.630/0.576 — values right, method name and supervision tag wrong), and **`lapeigvals_gsm8k_llama8b`'s 0.925 is Mistral-Small-24B's LapEigvals**, a different model (its own model gives 0.720/0.872). **Substantive point: LapEigvals is SUPERVISED** — a logistic-regression probe (`max_iter=2000`, `class_weight='balanced'`) over Laplacian eigenvalues of attention maps; the caption itself says *"We mark results for AttentionScore in gray as it is an unsupervised approach, not directly comparable to the others."* So `AttentionScore` is the correct like-for-like comparator for our label-free detector, and LapEigvals belongs against our LR oracle. Correctly paired: **label-free — GOOD_6 beats AttentionScore on 4/5 cells** (loses only Llama3.2-3B 0.703 vs 0.717); **supervised — LapEigvals beats our LR@30 on all 5 by 6–12pp** (0.870–0.925 vs 0.752–0.869), though not a strict head-to-head (their signal is attention maps / white-box internals, ours is the entropy-logprob trace; different generation + grading + split). Verified anchors **10/18 → 15/18**. **Trace-based selector vs GroupFS**: `a2.dufs` 0.7502 vs `a2.select` 0.7481 — **+0.20pp, 16W/9L, Wilcoxon p=0.173** → nominally better and structurally cleaner (0/25 saturated vs 12/25) but **not significant**, and both below GOOD_5 0.7519. **Coverage audit: NO cell was excluded** — all 25 present in every analysis artifact; the only 19/25 is `competitors_verified.csv` (the 6 new cluster cells have no published paper) and those same 6 lack the split-half `fulloracle` column (never exhaustively swept).
+
+---
+
+## NEXT SESSION — cluster results are WAITING; 2 GPQA long-answer jobs stalled
+
+**Cluster state as of 2026-07-21 (checked via cluster-ops; `squeue` is EMPTY).** The jobs Omri
+submitted 2026-07-20 have finished. 40 slurm jobs, all `spectral_infer`; the 21 "FAILED" entries
+are exit-85 preemption/requeue links, not real failures.
+
+**9 of 11 presets COMPLETE — pkl ready to fetch** from
+`/shared/cycle2_tau_averbuch_prj/omrisegev1/results/regen/<preset>/`:
+`gpqa_qwen72b` (1.2G), `gpqa_llama70b` (1.2G), `gpqa_llama8b` (1023M), `gpqa_r1distill8b` (3.2G),
+`gpqa_mistral7b` (803M), `trace_gpqa_r1qwen7b` (3.2G), `trace_gsm8k_llama8b_k10` (1.1G),
+`trace_math500_qwenmath15b_k10` (1.2G), `math500_r1distill8b_mn4096` (654M). All 198/198 (GPQA) or
+full-N, each ending `ALL TEMPS COMPLETE`. `/shared` at 77% (43T free).
+
+**2 presets STALLED — and they are exactly the untruncated-GPQA experiment.** `_mn4096` = the
+raised `max_new_tokens` runs, i.e. the "answers not cut off mid-generation" test:
+
+| preset | progress | state |
+|---|---|---|
+| `gpqa_r1distill8b_mn4096` | **126/198** | preempted, checkpoint saved, **no job queued** |
+| `trace_gpqa_r1qwen7b_mn4096` | **135/198** | preempted, checkpoint saved, **no job queued** |
+
+Last line: `JOB 126281 ... CANCELLED ... DUE TO SIGNAL Terminated` → `PREEMPTED — checkpoint saved at
+T=1.0 problem=135 candidate=0`. The requeue chain stopped while incomplete. Checkpoints exist, so
+resubmitting resumes cheaply (`cluster/run_inference.py` is idempotent) — **just re-submit those two
+via `/aircc-submit`; do NOT restart from scratch.**
+
+**Then, the GPQA question Omri actually wants answered:** Step 191 ruled GPQA out of scope because
+its features came back *uniformly at chance* (every feature 0.51–0.55, nothing to orient) — but that
+was measured on **truncated** generations. Once the two `_mn4096` runs finish, `/aircc-fetch` all 11,
+build the featcache, and **run `scripts/inscope_orientation_audit.py` on the new GPQA cells first**.
+If features still sit at 0.51–0.55, truncation was not the cause and the out-of-scope call stands;
+if they separate, re-open GPQA and re-run the in-scope evaluation with GPQA included.
+
+## NEXT SESSION — PRIORITY: exhaustive subset sweep over the 30 views, then prune the pool
+
+**STATUS (Step 194, 2026-07-22): the sizes-3-5 sweep is RUNNING.** Launched exactly as planned
+below: `results/subset_sweep_c46/` (NEW dir — H16 npz untouched), 30-view pool verified in the
+manifests, 173,971 subsets/cell, 87 chunks, resume-safe. First launch died with the session
+process at **19/25 cells complete**; relaunched. When done: run the inclusion-frequency audit +
+LOCO protocol (sections B-D below) and apply the pre-registered **stop rule: held-out delta
+<= +0.2pp ⇒ write up as negative, do NOT extend to sizes 3-6**. Sections D/E already bound the
+in-sample prize at +0.11pp, so expect the negative outcome.
+
+**Omri's intention (2026-07-21):** re-run the search over all possible subsets of the 30 views, per
+cell, on the new runs. Then use *which features actually appear in the best subsets* to prune the
+pool — a view that is never chosen in any cell's optimal subset probably should not be in the pool
+at all. **The intent is sound and the motivation is stronger than "tidying":** a smaller pool
+directly reduces selection variance, and Step 193 measured selection variance as the binding
+constraint (65% of apparent per-cell selection gain is winner's curse, rho(n, optimism) = -0.671).
+Pruning attacks that mechanism.
+
+Two things must be handled or the result will be wrong.
+
+### A. Full enumeration is not possible — use bounded sizes
+
+Measured rate from the Step-193 rebuild: **53.8 subsets/sec** at `--workers 8`.
+
+| Sweep | subsets | per cell | 25 cells |
+|---|---|---|---|
+| H16 sizes 3-16 (today) | 65,399 | 0.3 h | 8.4 h |
+| **30 views, sizes 3-30 (full)** | **1,073,741,358** | **231 days** | **15.8 YEARS** |
+| 30 views, sizes 3-21 (code cap) | 1,065,084,421 | 229 days | 15.7 years |
+| 30 views, sizes 3-8 | 8,656,471 | 44.7 h | 46.6 days |
+| 30 views, sizes 3-7 | 2,803,546 | 14.5 h | 15.1 days |
+| **30 views, sizes 3-6 (recommended)** | **767,746** | **4.0 h** | **4.1 days** |
+| 30 views, sizes 3-5 (pilot) | 173,971 | 0.9 h | 22.5 h |
+
+Also a hard code limit: `spectral_utils/subset_sweep.py` sets **`MAX_SUBSET_SIZE = 21`** (the group
+assignment packs 3 bits/member into a uint64 = 63 bits), and `enumerate_masks` raises above it — so
+sizes 22-30 cannot even be represented today.
+
+**This does not block the goal.** The question "is this view ever worth picking" is answered by
+*small* subsets: GOOD_5/GOOD_6 are size 5-6, and the deployable subsets are small. Recommended plan:
+run **sizes 3-5 first (~1 day, all 25 cells)** to get the inclusion-frequency signal, then extend to
+**3-6 (~4 days)** only if the size-5 answer looks marginal. Command shape:
+`python scripts/run_subset_sweep.py --domains repgrid --cells <25> --min-size 3 --max-size 6 --workers 8 --yes`
+(resumable and chunked; safe to kill). Confirm the sweep uses the **c46/30-view** pool, not H16 —
+today's npz artifacts are H16-only, so these are NEW artifacts and must not overwrite them.
+
+### B. The leakage trap — derive the prune list OUT of sample
+
+Choosing best-subsets-per-cell **uses labels**. If we then prune the pool on that and evaluate our
+label-free method on the same cells, **the pool itself becomes label-derived** and the results are no
+longer label-free at the corpus level. This is exactly the asymmetry Step 193d documented for GOOD_6
+(chosen once by macro AUROC across the grid) — but much heavier, because it would consume labels
+from every cell.
+
+**Fix, and the machinery already exists:** `results/subset_sweep/loco.csv` is leave-one-cell-out and
+already carries an explicit `oracle_best_LABEL_PEEKING_CEILING` column, so the repo already
+separates LOCO from label-peeking. Protocol: derive the prune list on 24 cells, evaluate the pruned
+pool on the held-out 25th, rotate. **Report held-out numbers only**; the in-sample pruned number is
+a ceiling, not a result.
+
+### C. Prune on inclusion frequency, NOT on individual AUROC
+
+A view can be near-random alone and still valuable in a subset — L-SML exploits correlation
+structure and assigns negative weights. Step 193 evidence that this is not hypothetical: the
+selector's picks average **7.4 anti-oriented views**, and the cells it **wins** on contain *more* of
+them (8.7) than the cells it loses on (6.7). So an individual-AUROC filter would drop useful views.
+Omri's proposed criterion (never appears in an optimal subset) is the right one precisely because it
+captures subset-context value.
+
+Concretely, per view: (i) how many of the 25 cells include it in that cell's top-N subsets,
+(ii) mean rank/percentile of the best subset containing it, (iii) best AUROC achievable *without* it
+(the leave-one-view-out ceiling — the cleanest "is it ever needed" test). Drop candidates are views
+that are absent from every cell's top-N **and** whose removal costs ~0 on the leave-one-view-out
+ceiling.
+
+**Decision gate:** the pruned pool is adopted only if, on **held-out** cells, it matches or beats
+the current 30-view pool for the label-free selector. If it only helps in-sample, it is winner's
+curse again and must be reported as such.
+
+### D. What the EXISTING enumerations already tell us (done 2026-07-21, no new compute)
+
+NEW `scripts/feature_inclusion_audit.py` answers the pruning question for the **H16 pool** from the
+Step-153 npz enumerations we already have — **19 of 25 in-scope cells** (the 6 cluster cells were
+never swept). GPQA/RAG npz on disk are *not* touched: the script iterates `INSCOPE` only.
+
+**Result: no H16 view is a clean drop.** All 16 appear in some cell's top-100 subsets, and every one
+has a non-zero leave-one-view-out cost on at least one cell. Ranked by how often they appear in a
+cell's 100 best subsets:
+
+| view | in top-100 | absent on | in that cell's best subset | LOVO max |
+|---|---|---|---|---|
+| `epr` | **92.0%** | 0 cells | **18/19** | 3.65 pp |
+| `sw_var_peak` | 74.1% | 1 | 12/19 | 1.50 |
+| `cusum_max` | 58.8% | 0 | 8/19 | 3.54 |
+| `spectral_entropy` | 56.0% | 0 | 11/19 | 7.78 |
+| `trace_length` | 55.6% | 2 | 10/19 | 1.21 |
+| ... | | | | |
+| `hurst_exponent` | 14.3% | 4 | 3/19 | 0.34 |
+| `spectral_centroid` | 13.1% | 4 | 1/19 | 0.26 |
+| **`low_band_power`** | **10.8%** | 3 | **1/19** | **0.19** |
+
+**Notable tension: `low_band_power` is a GOOD_6 member and is the LEAST-picked view in H16** —
+it appears in only 10.8% of top subsets, is in the single best subset on 1 of 19 cells, and banning
+it outright costs at most 0.19 pp. It is redundant on 18 of 19 cells. Worth re-examining whether
+GOOD_6 should carry it. (Consistent with Step 193d: the selector drops `low_band_power` on 7/25
+cells.)
+
+### E. Pool-size experiment — pruning does NOT close the gap (done 2026-07-21)
+
+NEW `scripts/pool_size_experiment.py` answers Omri's "would dropping to ~20 views raise
+performance?" directly: nested pools ranked by **informativeness** (`|AUROC - 0.5|`, the criterion
+L-SML actually cares about, since it flips signs with negative weights), same selector, 25 cells.
+
+| pool | selector (a2.dufs) | vs 30 | GOOD_6 | mean views picked |
+|---|---|---|---|---|
+| 30 | 0.7507 | — | 0.7594 | 19.0 |
+| **24** | **0.7518** | **+0.11 pp** | 0.7594 | 17.6 |
+| **20** | **0.7516** | **+0.09 pp** | 0.7594 | 15.8 |
+| 16 | 0.7516 | +0.08 pp | 0.7533 | 13.0 |
+| 12 | 0.7447 | −0.61 pp | 0.7533 | 10.2 |
+
+**Conclusion: pool size barely matters between 16 and 30 (all within 0.11 pp), and pruning does not
+close the gap to GOOD_6 (0.7594) at any size.** Pruning is not the lever. Below ~16 views it starts
+to cost real accuracy. GOOD_6 itself drops to 0.7533 at pool≤16 because `spectral_entropy` (rank 17)
+and `low_band_power` (rank 20) fall out of the pool — those two are worth +0.6 pp together, which
+also re-values `low_band_power` upward versus the H16-only audit below.
+
+**Correction to an earlier reading**: the h16-vs-c46 bench gap (selector 0.6828 @16 vs 0.7502 @30,
++6.7 pp) looked like evidence that bigger pools are better. It is not a size effect — H16 is a
+*badly chosen* 16 that excludes the strongest views (7 of the top 10 by informativeness are the NEW
+logprob/energy views). A *well-chosen* 16 scores 0.7516, essentially tying 30. **Composition
+matters, size does not.**
+
+Only 2 of the 30 views are near chance: `pe_mean` (0.535 flipped) and `stft_spectral_entropy`
+(0.579). A defensible prune is 30 -> 28, worth ~0.1 pp.
+
+*Caveat*: the ranking uses labelled AUROC aggregated over all 25 cells, so these are IN-SAMPLE
+upper bounds — same corpus-level label asymmetry as GOOD_6. A real claim needs the LOCO protocol
+in **B** above. Since the in-sample upper bound is only +0.11 pp, the honest LOCO number is very
+likely ~0, which should be weighed before spending 4 days of sweep compute.
+
+**Caveat**: the H16 audit below covers the 16 H16 views only. The 14 energy/logprob views (`*_spilled`,
+`*_energy`, `mean_top1_logprob`, `logprob_margin`, `mean_logprob_entropy`, `varentropy`,
+`renyi_entropy_2`, `topk_tail_mass`) have never been exhaustively enumerated — that is exactly what
+the bounded 30-view sweep above is for.
+
+## Omri's questions from 2026-07-22 (Step 193g) — ALL THREE CLOSED at Step 194
+
+1. **Pseudo-label anchor → BUILT and benched** (`a6_pseudolabel_gates`; verdicts in the Step-194
+   header above and HISTORY Step 194). 2. **Charts → DONE** (dumbbell / macro bars / pool-size
+   line on the advisor_inscope pages, item4 idiom, guardrail clean). 3. **Cross-check → DONE**
+   (`reconciliation.csv`; every DELTA is a known Step-193b correction). Original briefs kept
+   below for context.
+
+### (original briefs, superseded)
+
+1. **Pseudo-label anchor for the SELECTOR (highest-value idea on the table).** The anchor sweep
+   showed `epr` already resolves the sign correctly on 25/25 cells, so a better anchor cannot help
+   *orientation*. But Omri's deeper proposal — fuse K strong views with their own L-SML to form the
+   anchor — becomes powerful if that fused score is used as a **pseudo-label to supervise the
+   gates**, not just to fix the sign. Step 193d measured the actual defect:
+   **rho(gate value, view's own AUROC) = +0.149** — the Laplacian-smoothness objective is nearly
+   orthogonal to separability. Replacing/augmenting it with "agreement with the anchor-fused
+   pseudo-label" attacks exactly that. **This is the first idea this session that targets the
+   measured mechanism.** Build as `a6_pseudolabel_gates`; guard against the circularity (the
+   pseudo-label comes from views that may themselves be selected) by holding the anchor views out
+   of the selectable pool.
+2. **Charts.** `results/action_items/item4_benchmarking.html` is the visual standard Omri wants.
+   `scripts/report_figs.py` (`_svg`, `_bar_panel`, `_dumbbell_panel`, `_lin`, `FIG_CSS`) is already
+   imported by the new report but **never used** — the advisor_inscope pages are tables-only. Add
+   dumbbell (ours vs competitor per cell), bar panels (macro by method), and a pool-size line.
+3. **Cross-check against the action_items numbers.** The old `results/action_items/*` tables and
+   `published_baselines.csv` were verified in earlier steps; the Step-193 `competitors_verified.csv`
+   was re-verified from scratch. Diff the two so a number is never re-litigated a third time, and
+   record the reconciliation so future sessions start from it.
+4. **`topk_tail_mass` and `renyi_entropy_2` have never been offered to any fixed subset.** They rank
+   #1 and #5 of 30 by informativeness, yet appear in NONE of the scored subset variants (GOOD_5/6,
+   top_macro_5, consensus_4, GOOD_5+{spilled,energy,logprob}). Score `GOOD_5+topk` / `GOOD_6+topk`
+   / a `GOOD_5+entropy_family` variant — a cheap, possibly-large win that has simply never been run.
+
+## NEXT SESSION — carry-over analysis items (Step 193c)
+
+1. **Lead with the selector, not the fixed subset, everywhere else too.** `competitor_grid.html`
+   now leads with the trace-based selector (`scripts/selector_vs_competitor.py` →
+   `selector_vs_competitor.csv`), but `index.html`, `inscope_evaluation.html` and the HISTORY/
+   PROGRESS headlines still quote GOOD_6 as *the* result. The contribution is the pipeline
+   (label-free selection → L-SML), so the selector's number is the headline and GOOD_6 is the
+   reference. Re-word the remaining pages.
+2. **Finish the competitor provenance.** Still UNVERIFIED with no local PDF: INSIDE (2 cells),
+   LOS-Net + its 11 baseline rows, Internal-States+RC, SE-ICLR'23 (Kuhn), TSV/TruthfulQA. Four of
+   the five worst selector "losses" are against these, so they matter to the story.
+3. **Split the competitor tally by supervision in every view.** Against the 13 *unsupervised*
+   anchors the selector is +3.17pp; against all 18 it is −3.21pp. Only the first is like-for-like.
+4. **Decide the `a6` question formally** — currently NOT built, on the evidence that no covariate
+   explains the selector gaps (all ρ ≤ 0.33) and 65% of apparent selection gain is winner's curse.
+5. **Regenerate `oracle_repgrid.csv`'s CONT column** — it still reads `repgrid_cont.pkl`
+   (GOOD_5/STABLE_H9/ALL_H16 from `scores_lsml_upcr.csv`), so its printed macro headroom
+   (+9.6/+11.3/+13.5pp over 51 all-domain cells) is NOT the in-scope number. The in-scope figure is
+   LR@30 0.7810 vs GOOD_6 0.7594 = **+2.2pp**, from `advisor_inscope/lr_oracle_audit.csv`.
+
+---
+
+**Previously (Step 193)**: **In-scope competitor grid + method variants, gated behind a data-integrity audit that CORRECTS the Step-192 headline.** Root cause of the long-standing artifact disagreement is now named: `internalstates_gsm8k_qwen25_7b` was **re-graded/re-extracted between 2026-07-14 and 2026-07-20** (sweep manifest `n_pos=153`, current cache **147**; fused covariance also moved, K 2→4). The two fusion paths were never in conflict — they reproduce each other exactly. Staleness travelled by **three separate carriers**, each fixed: (1) resume-safe bench rows never recomputed (139 rows, 16 files); (2) **11 further cells** whose learned selectors searched a c46 pool 4 views too small (26→30 / 25→29 / 23→27) — i.e. handicapped; (3) the **h16 enumeration NPZ** (255/285 h16 rows are `eval_mode=lookup`, so re-running faithfully re-read the stale npz) — rebuilt, 65,399 subsets. **`--self-check` samples only ~20 lookup-vs-live pairs and did NOT catch (3); an exhaustive 101-lookup audit did.** **Corrected numbers: GOOD_6 0.7594 (was 0.7587), GOOD_5 0.7519 (was 0.7489), delta +0.75pp (was +0.98pp), Wilcoxon p=0.00507, 18W/7L (was 19W/6L); best label-free selector a2.dufs 0.7502 is now BEHIND GOOD_5 by 0.17pp (was ahead by 0.06pp); on h16 the stale row had inverted the ranking — GOOD_5 0.7519 > top_macro_5 0.7489.** Qualitative conclusion unchanged and stronger: GOOD_6 leads, no label-free selector beats it. **Competitor audit**: 19 anchors in `scores_lsml_upcr.csv` carry **no citation at all**; 7 papers verified line-by-line against `papers/extracted/` (EPR, HCPD, ARS, Noise Injection, Semantic Energy, ALS, HARP) → **2 errors found**: HARP is **supervised** (BCE-trained detector), not unsupervised, and the stored 92.8 anchor is the **Qwen** row (our Llama cell is 92.9, cross-model). **12 anchors remain UNVERIFIED** (LapEigvals ×5 — also the G3 gate — INSIDE ×2, LOS-Net, Internal-States+RC, SE-ICLR'23, TSV). **LR oracle audited and CLEAN**: the `max(p,1−p)` per-fold floor flips only 1/500 folds (+0.07pp on one set), grouped folds correct, no GOOD_6 member dropped; sole caveat is untuned `C=1.0` (spread up to 6.2pp). LR@30 = **0.7810**, honest supervised headroom **+2.2pp**. **Anchor sweep**: `epr` is AT the sign-resolution ceiling (25/25 correct); 4 other views tie exactly, but 4 of 9 candidates get signs wrong (`rpdi` −9pp macro), so the anchor is a real choice with a wide safe band. **Gate-saturation diagnosis REFUTED**: `a2.select` saturates 12/25, `a2.dufs` 0/25 (saturation is group-granularity, not gates) — but ρ(frac_selected, gap) = **−0.028**, and the replacement hypotheses (anti-orientation, imbalance, stability) are all ρ ≤ 0.33. **No covariate explains the selector gaps; `a6_gated_laplacian` was deliberately NOT built.** **Why no better subset exists**: split-half shows the greedy search beats GOOD_5 in-sample on **25/25** cells (+4.95pp) but held-out on only **19/25** (+1.74pp) — **65% of the apparent gain is winner's curse**, and **ρ(n, optimism) = −0.671** is the only explanatory covariate. Deliverable: **NEW `results/advisor_inscope/` (9 HTML pages)**. Gates: smoke 19/19, self-check PASS (max|diff| 2.94e-08), npz lookup audit 0 stale, plain-variant staleness 0/3377.
+
+---
+
+**Previously (Step 192 — its headline numbers are SUPERSEDED by the corrected ones above)**: **Complete in-scope (QA + math) evaluation of the leading pipeline over the FULL 30-view feature pool on the new cluster data — the in-scope evaluation Step 191 flagged as the next priority. Headline: on the 25 in-scope cells (10 QA + 15 math; RAG/GPQA excluded per Jul-20), the leading detector over all available features is the fixed `GOOD_6` subset (macro AUROC 0.7587, QA 0.727, math 0.780), +0.98pp over GOOD_5 (Wilcoxon p=0.0025, 19W/6L) — and NO label-free learned selector beats it (best a2.dufs/a2.select tie at +0.06pp).** Five phases, all CPU-local. **Integrity**: smoke 19/19, self-check GOOD_5 reproduced max|diff| 2.9e-08, all 25 cells present with 28–30 wide-pool views. **Step-187 sign-fix is NOT needed in-scope** (NEW `scripts/inscope_orientation_audit.py`): the label-free anchor `epr` is correctly oriented on ALL 25 cells (min oriented AUROC 0.560, best 0.931 — vs RAG where it was flipped 0.29–0.43); all GOOD_6 members carry the right fixed sign (4 core features 0/25 anti-oriented, low_band_power 1/25, spectral_entropy 4/25). The ~45% pool-wide anti-orientation is absorbed by L-SML's negative weights / removed by selection; the domain-polarity failure was RAG-specific and is closed for QA+math. **Full selector bench — all 8 families** at `--pool c46 --domains repgrid --cells <25>`, resume-safe (only the 6 new cluster cells computed; 19 grid cells reused), **0 fallbacks / 0 NaN** (Step-186 quality bar). GOOD_5 is pool-invariant (its 5 features all live in H16) → **the entire wide-pool value for the curated subset is the one `varentropy` view GOOD_6 adds, not automatic selection over 30 views** (reproduces Step-186/189 on the freshly-scoped pool). **Honest split-half ceiling** (both pools, R=10, seed 0, held-out half B, 25 cells): GOOD_5 0.7507 → greedy@H16 0.7546 → greedy@30v **0.7669** (+1.7pp over GOOD_5) — real but LABEL-GATED (uses labels on half the data), concentrated in **math (+2.5pp)**, thin on **QA (+0.6pp, optimism gap 0.041 = selection overfits QA)**; no label-free selector captures it, GOOD_6 recovers ~+1pp of it label-free. **Deliverables**: NEW `scripts/{inscope_orientation_audit,selector_compare_inscope,inscope_report}.py`; `results/selector_bench/{comparison_inscope.csv, inscope_feature_orientation{,_summary}.csv, splithalf_oracle_{c46,h16}_inscope{,_summary}.csv, inscope_evaluation.html}` (theme-aware CSV-driven results page — open locally, matches the Spectral_LSML_Report house style). **Canonical all-cell artifacts left at Step-191 state on purpose** — regenerating `comparison.csv`/`dashboard.html`/deep reports would re-mix out-of-scope RAG/GPQA into the headlines. **Next priority**: advisor read of the in-scope result (GOOD_6 is the leading detector; the label-free selection prize is small — is a curation-free selector still worth pursuing given the ceiling is math-only and label-gated?); optional seed-robustness on the +1.7pp greedy@30v ceiling; the 2 still-running GPQA `_mn4096` cluster dirs remain fetch-pending but are out of scope now. Full detail: HISTORY Step 192.
 
 **Previous (Step 191)** — **Honest-ceiling premise-check on the enlarged RAG/GPQA pool: the feature POOL is NOT the binding constraint — GPQA has no signal at all, and RAG is bottlenecked by feature SIGN/composition (the still-open Step-187 fix), not by missing views.** Ran the plan `i-am-wondering-what-cuddly-wozniak.md` as a 3-command pipeline on the Step-190 cluster cells: `score_repgrid.py` (33 new cells via a safe `--cells` list — the script only skips `edis_`, so a bare run would have violated the Step-173 reject/partial hygiene rule) → `build_repgrid_featcache.py` → `selector_splithalf_oracle.py`. **The plan had a latent gap**: the oracle hardcoded the `h16` pool, so as-written it would have re-measured the OLD number — added a backward-compatible `--pool-mode` arg and ran BOTH `h16` (16 views) and the enlarged pool on the SAME new cells (separate output files, Step-189 H16 baseline untouched) for a clean controlled pool-effect. **Coverage correction**: the enlarged pool is **30 views, not 46** — the 16 anomaly-scorer views (iforest/AE/bocpd/hmm/kalman/…) are Stage-0 *derived* views (`build_derived_views.py`), never built for `repgrid`-domain cells (documented low-value follow-up; Step 186 found that family the dead end); `min_spilled` is a genuine zero-variance drop on 12 big-model cells; all hypothesis-relevant energy/logprob/varentropy views ARE present. **Load integrity 33/33 clean** (1 pkl/dir, problems×K==candidates==featcache n, valid 1.00, two code paths agree 51/51 at Δ=0.0000). **Controlled honest split-half (greedy_halfB, seed=0 R=10): RAG** GOOD_5 0.5214 → greedy@H16 0.5525 → greedy@30v **0.5887** (views +3.6pp, selection-within-H16 +3.1pp); **GPQA** 0.5368 → 0.5387 → **0.5336** (views −0.5pp — ceiling stays at chance). **Root cause (per-feature oriented AUROC)**: GPQA every feature dead (0.51–0.55, incl. epr + all new views) → nothing to orient. RAG has signal but GOOD_5 misfires 3 ways (fusion buries a good anchor on hotpotqa where epr alone hits 0.71–0.86; dead-anchor random sign on 2wiki; genuinely anti-oriented anchor on natural_questions) — the label-peeking unflip bound lifts GOOD_5's RAG mean 0.524→0.628, so **~10pp of the RAG deficit is pure global-sign error** (Step-187 domain-polarity reproduced on fresh cluster data). Signal lives in hotpotqa, not 2wiki/NQ. **Also fixed a latent gate bug** (`load_csv_refs` didn't disambiguate by anchor → spurious FAIL on the one chance cell `gpqa_r1distill8b`; now 51/51 pass). **Provisional**: `gpqa_r1distill8b` (175 problems) + `trace_gpqa_r1qwen7b` (188) are below the other GPQA cells' 198 — their mn2048 chains superseded by the still-running `_mn4096` re-runs; treat as provisional until those land. **Omri's Jul-20 scope calls (recorded here + in CLAUDE.md's "Thesis scope"/"Top subset" — the durable home)**: **(a) GOOD_5 is no longer the top candidate** — `GOOD_6` (GOOD_5 + varentropy) supersedes it (Step 182/184: +1.1pp macro, repairs GOOD_5's worst cells); treat GOOD_5 as the compatibility reference. **(b) RAG and GPQA are out of thesis scope** — this session's honest-ceiling result IS the evidence (GPQA uniformly dead; RAG signal confined to hotpotqa and sign-bound) — **the focus is QA + reasoning (math)**. **Next priority (reframed by (b))**: evaluate/validate the pipeline on the IN-SCOPE **QA + reasoning** cells — Omri is starting a fresh session to plan this. **The Step-187 sign-fix drops from "headline next win" to a targeted check**: its ~10pp value was measured on the now-out-of-scope RAG cells; reasoning cells (math500/gsm8k) are already correctly signed, so it only matters if IN-SCOPE QA cells show anti-orientation (cheap to check first, before assuming the pipeline needs it). Lower/optional: selector-bench re-scoping with Ofir/Bracha (Step 189, headroom now confirmed small); seed-robustness sweep on the +3.6pp views component (load-bearing conclusions are seed-independent); derived-views backfill for repgrid-domain cells (low value). Full detail: HISTORY Step 191.
 

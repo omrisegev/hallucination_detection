@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selection headroom</title>
+<style>
+  :root{--blue:#2563eb;--blue-light:#eff6ff;--blue-dark:#1e40af;--green:#10b981;--green-light:#ecfdf5;
+  --green-dark:#065f46;--red:#ef4444;--amber:#f59e0b;--amber-light:#fffbeb;--amber-dark:#92400e;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-600:#475569;--gray-700:#334155;
+  --gray-800:#1e293b;--gray-900:#0f172a;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:15px;color:var(--gray-800);
+  background:var(--gray-50);line-height:1.65;}
+  .header-hero{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#fff;padding:56px 24px 44px;
+  border-bottom:4px solid var(--blue);}
+  .header-content{max-width:1040px;margin:0 auto;}
+  .header-hero h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px;}
+  .header-hero .subtitle{font-size:16px;color:#cbd5e1;max-width:820px;}
+  .meta-pills{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+  .meta-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);padding:4px 12px;
+  border-radius:20px;font-size:13px;font-weight:500;}
+  .page{max-width:1040px;margin:0 auto;padding:40px 24px 64px;}
+  .nav-bar{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:14px 20px;
+  margin-bottom:36px;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+  .nav-bar strong{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-600);margin-right:4px;}
+  .nav-bar a{color:var(--blue);text-decoration:none;font-weight:600;font-size:14px;}
+  .section-card{background:#fff;border:1px solid var(--gray-200);border-radius:14px;padding:36px;
+  margin-bottom:36px;box-shadow:0 2px 6px rgba(0,0,0,.03);}
+  .section-badge{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;padding:4px 12px;border-radius:20px;margin-bottom:12px;}
+  .badge-completed{background:var(--green-light);color:var(--green-dark);}
+  .badge-progress{background:var(--blue-light);color:var(--blue-dark);}
+  .badge-finding{background:#f3e8ff;color:#6b21a8;}
+  h2{font-size:24px;font-weight:800;letter-spacing:-.015em;color:var(--gray-900);margin-bottom:12px;}
+  h3{font-size:17px;font-weight:700;color:var(--gray-900);margin:24px 0 10px;}
+  p{margin-bottom:14px;color:var(--gray-700);}
+  .takeaway-box{background:var(--green-light);border-left:4px solid var(--green);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .takeaway-box b{color:var(--green-dark);}
+  .info-box{background:var(--blue-light);border-left:4px solid var(--blue);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .info-box b{color:var(--blue-dark);}
+  .warn-box{background:var(--amber-light);border-left:4px solid var(--amber);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .warn-box b{color:var(--amber-dark);}
+  table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+  th{background:var(--gray-100);color:var(--gray-800);font-weight:700;text-align:left;padding:12px 14px;
+  border:1px solid var(--gray-200);}
+  td{padding:11px 14px;border:1px solid var(--gray-200);color:var(--gray-700);}
+  .win{color:#16a34a;font-weight:700;}
+  .loss{color:#dc2626;font-weight:700;}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:var(--gray-100);
+  padding:2px 6px;border-radius:4px;color:var(--gray-800);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0;}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr;}}
+  .chart-card{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:24px;margin:20px 0;}
+  .chart-card h4{font-size:15px;font-weight:700;color:var(--gray-800);margin-bottom:4px;}
+  canvas{max-height:340px;width:100%;}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:18px 0}
+.tile{background:#fff;border:1px solid #dde3ea;border-radius:10px;padding:14px 16px}
+.tile .v{font-size:1.7em;font-weight:700;color:#12395e;line-height:1.1}
+.tile .l{font-size:.82em;color:#5c6b7a;margin-top:4px}
+.tile .d{font-size:.78em;color:#7a8794;margin-top:6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.card{background:#fff;border:1px solid #dde3ea;border-radius:10px;padding:16px}
+.card h3{margin:0 0 6px;font-size:1.02em}
+.card p{margin:0;font-size:.88em;color:#5c6b7a}
+.nav-bar{background:#eef3f8;border:1px solid #d6e0ea;border-radius:8px;padding:9px 13px;
+         margin-bottom:18px;font-size:.87em}
+.nav-bar a{margin-right:4px}
+table{font-size:.86em}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.good{color:#1b7f4b;font-weight:600}
+.bad{color:#b3261e;font-weight:600}
+.dim{color:#8b97a3}
+.badge{display:inline-block;padding:1px 7px;border-radius:9px;font-size:.76em;font-weight:600}
+.b-ok{background:#e4f4ea;color:#1b7f4b}
+.b-warn{background:#fdf1dc;color:#8a5a00}
+.b-bad{background:#fbe4e2;color:#b3261e}
+.b-neutral{background:#eef1f4;color:#5c6b7a}
+.chips span{display:inline-block;background:#eef3f8;border:1px solid #d6e0ea;border-radius:9px;
+            padding:0 6px;margin:1px 2px;font-size:.76em;color:#3d4a57}
+.callout{border-left:4px solid #2a6faf;background:#f3f8fd;padding:12px 15px;margin:16px 0;
+         border-radius:0 8px 8px 0}
+.callout.warn{border-left-color:#d08c00;background:#fffaf0}
+.callout.bad{border-left-color:#b3261e;background:#fdf3f2}
+.small{font-size:.85em;color:#5c6b7a}
+
+  .rf-fig{background:#fff;border:1px solid var(--gray-200);border-radius:12px;
+    padding:18px 20px 10px;margin:20px 0;}
+  .rf-fig .rf-cap{font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:2px;}
+  .rf-fig .rf-sub{font-size:12.5px;color:var(--gray-600);margin-bottom:10px;}
+  .rf-chart{width:100%;height:auto;display:block;}
+  .rf-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 10px;align-items:center;}
+  .rf-legend .rf-li{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-700);}
+  .rf-fnote{font-size:11.5px;color:var(--gray-600);margin:8px 0 4px;line-height:1.5;}
+  .rf-grid{stroke:var(--gray-200);stroke-width:1;}
+  .rf-zero{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-tick{fill:var(--gray-600);font-size:11px;}
+  .rf-axname{fill:var(--gray-600);font-size:11.5px;}
+  .rf-rowlbl{fill:var(--gray-800);font-size:12px;font-weight:600;}
+  .rf-rowsub{fill:var(--gray-600);font-size:10px;}
+  .rf-vlbl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-barlbl{fill:var(--gray-700);font-size:11px;}
+  .rf-dlbl{fill:var(--gray-600);font-size:10.5px;}
+  .rf-dlbl-ours{fill:var(--blue);font-weight:700;}
+  .rf-region{fill:var(--gray-600);font-size:11px;font-style:italic;}
+  .rf-albl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-leader{stroke:#94a3b8;stroke-width:1;}
+  .rf-ci{stroke:var(--blue);stroke-width:2;stroke-linecap:round;}
+  .rf-ours{fill:var(--blue);stroke:#fff;stroke-width:2;}
+  .rf-anchor{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-anchor-open{fill:none;stroke:var(--green);stroke-width:2;}
+  .rf-sup{fill:none;stroke:#475569;stroke-width:2;}
+  .rf-seqlp{stroke:var(--gray-700);stroke-width:1.5;opacity:.85;}
+  .rf-bar-pos{fill:var(--blue);}
+  .rf-bar-neg{fill:var(--red);}
+  .rf-bar-ctx{opacity:.42;}
+  .rf-bar-ours{fill:var(--blue);}
+  .rf-bar-gray{fill:#94a3b8;}
+  .rf-bar-gray-sup{fill:#475569;}
+  .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-bar-c4{fill:#cbd5e1;}
+  .rf-bar-g5{fill:#475569;}
+  .rf-bar-g6{fill:var(--blue);}
+  .rf-dumbbell-epr{fill:var(--blue);stroke:#fff;stroke-width:1.5;}
+  .rf-dumbbell-alt{fill:var(--green);stroke:#fff;stroke-width:1.5;}
+  .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-line{stroke:var(--blue);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-line-acc{stroke:var(--green);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-dot-acc{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-panes{display:flex;gap:24px;flex-wrap:wrap;}
+  .rf-pane{flex:1 1 340px;min-width:300px;}
+  .rf-pane .rf-ptitle{font-size:13px;font-weight:700;color:var(--gray-900);margin-bottom:6px;}
+  .rf-diag{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-wash{fill:rgba(37,99,235,.06);}
+</style>
+</head>
+<body>
+<div class="header-hero"><div class="header-content">
+  <h1>Selection headroom</h1>
+  <div class="subtitle">How much of the gain from searching subsets is real</div>
+  <div class="meta-pills">
+    <span class="meta-pill">Generated 2026-07-22 by scripts/advisor_inscope_report.py</span>
+    <span class="meta-pill">25 in-scope cells: 10 QA + 15 math</span>
+    <span class="meta-pill">Every numeric cell read from a CSV at build time</span>
+  </div>
+</div></div>
+<div class="page">
+<div class="nav-bar"><strong>Pages:</strong> <a href="index.html">Overview</a> &bull; <a href="competitor_grid.html">Competitor grid</a> &bull; <a href="competitor_sources.html">Competitor provenance</a> &bull; <a href="supervised_ceiling.html">Supervised ceiling</a> &bull; <strong>Selection headroom</strong> &bull; <a href="selector_choices.html">What it selects</a> &bull; <a href="groupfs_diagnosis.html">Learned selector</a> &bull; <a href="gated_laplacian.html">Gated-Laplacian</a> &bull; <a href="anchor_sweep.html">Anchor robustness</a> &bull; <a href="verification.html">Verification</a></div>
+
+<p>The open question after the last round was: on cells where a <em>searched</em> subset
+looks better than our fixed one, why does no label-free selector deliver that gain? There
+are two very different answers, and they call for opposite responses &mdash; either the
+search is failing and we should build better selectors, or the gain was never real and we
+should stop.</p>
+
+<p>The split-half oracle settles it. A subset is chosen greedily on half the data and then
+scored on the <strong>held-out</strong> half:</p>
+
+<div class="tiles">
+<div class="tile"><div class="v">+4.95 pp</div>
+<div class="l">apparent gain (in-sample)</div>
+<div class="d">better than GOOD_5 on 25/25 cells</div></div>
+<div class="tile"><div class="v">+1.74 pp</div>
+<div class="l">gain that survives (held-out)</div>
+<div class="d">better on only 19/25 cells</div></div>
+<div class="tile"><div class="v">+3.21 pp</div>
+<div class="l">winner&rsquo;s curse</div>
+<div class="d">65% of the apparent gain is illusion</div></div>
+</div>
+
+<div class="callout">
+<strong>The answer is mostly &ldquo;there was nothing to find&rdquo;.</strong> Searching
+subsets beats GOOD_5 on every single cell in-sample, but two thirds of that advantage
+evaporates out of sample, and on 6 of 25 cells the searched subset is actually
+<em>worse</em> than the fixed one. The remaining honest headroom over GOOD_5 is
++1.74 pp &mdash; and GOOD_6 already captures a large part of it.
+</div>
+
+<h2>What drives the illusion</h2>
+<p>Rank correlation of each candidate explanation against the per-cell winner&rsquo;s-curse
+magnitude, over 25 cells:</p>
+<table><thead><tr><th>Candidate cause</th><th class="num">Spearman &rho;</th><th>Verdict</th></tr></thead><tbody><tr><td>Sample size <code>n</code></td><td class='num'><strong>&minus;0.671</strong></td><td><span class="badge b-ok">explains it</span> small cells overfit the selection</td></tr><tr><td>Anti-oriented feature count</td><td class='num'>&minus;0.207</td><td><span class="badge b-neutral">weak</span></td></tr><tr><td>Class balance <code>pos_rate</code></td><td class='num'>&minus;0.043</td><td><span class="badge b-neutral">no relationship</span></td></tr><tr><td>Fusion group count <code>K</code></td><td class='num'>+0.034</td><td><span class="badge b-neutral">no relationship</span></td></tr><tr><td>Pool size</td><td class='num'>+0.120</td><td><span class="badge b-neutral">no relationship</span></td></tr></tbody></table>
+
+<p class="small">The two extremes make the mechanism concrete. On
+<code>spilled_triviaqa_llama8b</code> (n = 256) the greedy subset looks 6.3 pp better than
+GOOD_5 in-sample and comes out <strong>8.6 pp worse</strong> held-out. On
+<code>se_nq_open_llama8b</code> (n = 8460) the in-sample and held-out gains agree to within
+0.1 pp. Selection noise, not feature quality, is what separates them.</p>
+
+<h2>Per cell</h2>
+<table><thead><tr><th>Cell</th><th>Group</th><th class="num">n</th>
+<th class="num">in-sample gain</th><th class="num">honest gain</th>
+<th class="num">winner&rsquo;s curse</th><th class="num">pos rate</th></tr></thead>
+<tbody><tr><td><code>spilled_triviaqa_llama8b</code></td><td>QA</td><td class='num'>256</td><td class='num'>+6.31</td><td class='num bad'><strong>-8.62</strong></td><td class='num'>+14.94</td><td class='num'>0.320</td></tr><tr><td><code>inside_coqa_llama7b</code></td><td>QA</td><td class='num'>4504</td><td class='num'>+2.88</td><td class='num bad'><strong>-5.31</strong></td><td class='num'>+8.19</td><td class='num'>0.132</td></tr><tr><td><code>sciq_llama8b</code></td><td>QA</td><td class='num'>198</td><td class='num'>+3.69</td><td class='num bad'><strong>-1.41</strong></td><td class='num'>+5.10</td><td class='num'>0.877</td></tr><tr><td><code>ars_gsm8k_r1distill8b</code></td><td>math</td><td class='num'>500</td><td class='num'>+5.02</td><td class='num bad'><strong>-0.29</strong></td><td class='num'>+5.31</td><td class='num'>0.728</td></tr><tr><td><code>lapeigvals_gsm8k_llama8b</code></td><td>math</td><td class='num'>500</td><td class='num'>+2.05</td><td class='num bad'><strong>-0.28</strong></td><td class='num'>+2.33</td><td class='num'>0.724</td></tr><tr><td><code>lapeigvals_gsm8k_phi35</code></td><td>math</td><td class='num'>1319</td><td class='num'>+2.93</td><td class='num bad'><strong>-0.19</strong></td><td class='num'>+3.12</td><td class='num'>0.848</td></tr><tr><td><code>losnet_hotpotqa_mistral7b</code></td><td>QA</td><td class='num'>500</td><td class='num'>+7.20</td><td class='num good'><strong>+0.30</strong></td><td class='num'>+6.90</td><td class='num'>0.338</td></tr><tr><td><code>math500_r1distill8b_mn4096</code></td><td>math</td><td class='num'>300</td><td class='num'>+4.48</td><td class='num good'><strong>+1.04</strong></td><td class='num'>+3.44</td><td class='num'>0.390</td></tr><tr><td><code>semenergy_triviaqa_qwen3_8b</code></td><td>QA</td><td class='num'>4392</td><td class='num'>+1.59</td><td class='num good'><strong>+1.74</strong></td><td class='num'>-0.15</td><td class='num'>0.493</td></tr><tr><td><code>trace_gsm8k_llama8b_k10</code></td><td>math</td><td class='num'>5000</td><td class='num'>+2.55</td><td class='num good'><strong>+1.76</strong></td><td class='num'>+0.79</td><td class='num'>0.736</td></tr><tr><td><code>lapeigvals_gsm8k_llama3b</code></td><td>math</td><td class='num'>1319</td><td class='num'>+3.91</td><td class='num good'><strong>+1.80</strong></td><td class='num'>+2.11</td><td class='num'>0.445</td></tr><tr><td><code>math500_r1distill8b</code></td><td>math</td><td class='num'>300</td><td class='num'>+7.40</td><td class='num good'><strong>+1.92</strong></td><td class='num'>+5.49</td><td class='num'>0.287</td></tr><tr><td><code>noise_gsm8k_phi3mini</code></td><td>math</td><td class='num'>1319</td><td class='num'>+2.83</td><td class='num good'><strong>+2.02</strong></td><td class='num'>+0.81</td><td class='num'>0.710</td></tr><tr><td><code>lapeigvals_gsm8k_nemo</code></td><td>math</td><td class='num'>1319</td><td class='num'>+4.51</td><td class='num good'><strong>+2.48</strong></td><td class='num'>+2.02</td><td class='num'>0.829</td></tr><tr><td><code>noise_gsm8k_mistral7b</code></td><td>math</td><td class='num'>1319</td><td class='num'>+4.07</td><td class='num good'><strong>+2.62</strong></td><td class='num'>+1.45</td><td class='num'>0.499</td></tr><tr><td><code>se_squad_v2_llama8b</code></td><td>QA</td><td class='num'>2933</td><td class='num'>+2.88</td><td class='num good'><strong>+2.88</strong></td><td class='num'>+0.00</td><td class='num'>0.606</td></tr><tr><td><code>truthfulqa_llama8b</code></td><td>QA</td><td class='num'>7633</td><td class='num'>+3.63</td><td class='num good'><strong>+3.13</strong></td><td class='num'>+0.50</td><td class='num'>0.116</td></tr><tr><td><code>math500_qwenmath7b</code></td><td>math</td><td class='num'>300</td><td class='num'>+5.17</td><td class='num good'><strong>+3.53</strong></td><td class='num'>+1.64</td><td class='num'>0.227</td></tr><tr><td><code>epr_triviaqa_mistral24b</code></td><td>QA</td><td class='num'>621</td><td class='num'>+8.05</td><td class='num good'><strong>+3.82</strong></td><td class='num'>+4.23</td><td class='num'>0.786</td></tr><tr><td><code>se_nq_open_llama8b</code></td><td>QA</td><td class='num'>8460</td><td class='num'>+3.86</td><td class='num good'><strong>+3.97</strong></td><td class='num'>-0.11</td><td class='num'>0.501</td></tr><tr><td><code>internalstates_gsm8k_qwen25_7b</code></td><td>math</td><td class='num'>500</td><td class='num'>+8.59</td><td class='num good'><strong>+4.35</strong></td><td class='num'>+4.24</td><td class='num'>0.294</td></tr><tr><td><code>seiclr_triviaqa_opt30b</code></td><td>QA</td><td class='num'>4993</td><td class='num'>+6.67</td><td class='num good'><strong>+5.03</strong></td><td class='num'>+1.64</td><td class='num'>0.465</td></tr><tr><td><code>trace_math500_qwenmath15b_k10</code></td><td>math</td><td class='num'>3000</td><td class='num'>+4.81</td><td class='num good'><strong>+5.25</strong></td><td class='num'>-0.44</td><td class='num'>0.176</td></tr><tr><td><code>lapeigvals_gsm8k_mistral24b</code></td><td>math</td><td class='num'>1319</td><td class='num'>+8.89</td><td class='num good'><strong>+5.75</strong></td><td class='num'>+3.13</td><td class='num'>0.917</td></tr><tr><td><code>math500_dsmath7b</code></td><td>math</td><td class='num'>300</td><td class='num'>+9.74</td><td class='num good'><strong>+6.14</strong></td><td class='num'>+3.60</td><td class='num'>0.190</td></tr></tbody></table>
+
+</div>
+</body>
+</html>

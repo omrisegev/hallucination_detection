@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gated-Laplacian selector</title>
+<style>
+  :root{--blue:#2563eb;--blue-light:#eff6ff;--blue-dark:#1e40af;--green:#10b981;--green-light:#ecfdf5;
+  --green-dark:#065f46;--red:#ef4444;--amber:#f59e0b;--amber-light:#fffbeb;--amber-dark:#92400e;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-600:#475569;--gray-700:#334155;
+  --gray-800:#1e293b;--gray-900:#0f172a;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:15px;color:var(--gray-800);
+  background:var(--gray-50);line-height:1.65;}
+  .header-hero{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#fff;padding:56px 24px 44px;
+  border-bottom:4px solid var(--blue);}
+  .header-content{max-width:1040px;margin:0 auto;}
+  .header-hero h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px;}
+  .header-hero .subtitle{font-size:16px;color:#cbd5e1;max-width:820px;}
+  .meta-pills{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+  .meta-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);padding:4px 12px;
+  border-radius:20px;font-size:13px;font-weight:500;}
+  .page{max-width:1040px;margin:0 auto;padding:40px 24px 64px;}
+  .nav-bar{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:14px 20px;
+  margin-bottom:36px;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+  .nav-bar strong{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-600);margin-right:4px;}
+  .nav-bar a{color:var(--blue);text-decoration:none;font-weight:600;font-size:14px;}
+  .section-card{background:#fff;border:1px solid var(--gray-200);border-radius:14px;padding:36px;
+  margin-bottom:36px;box-shadow:0 2px 6px rgba(0,0,0,.03);}
+  .section-badge{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;padding:4px 12px;border-radius:20px;margin-bottom:12px;}
+  .badge-completed{background:var(--green-light);color:var(--green-dark);}
+  .badge-progress{background:var(--blue-light);color:var(--blue-dark);}
+  .badge-finding{background:#f3e8ff;color:#6b21a8;}
+  h2{font-size:24px;font-weight:800;letter-spacing:-.015em;color:var(--gray-900);margin-bottom:12px;}
+  h3{font-size:17px;font-weight:700;color:var(--gray-900);margin:24px 0 10px;}
+  p{margin-bottom:14px;color:var(--gray-700);}
+  .takeaway-box{background:var(--green-light);border-left:4px solid var(--green);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .takeaway-box b{color:var(--green-dark);}
+  .info-box{background:var(--blue-light);border-left:4px solid var(--blue);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .info-box b{color:var(--blue-dark);}
+  .warn-box{background:var(--amber-light);border-left:4px solid var(--amber);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .warn-box b{color:var(--amber-dark);}
+  table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+  th{background:var(--gray-100);color:var(--gray-800);font-weight:700;text-align:left;padding:12px 14px;
+  border:1px solid var(--gray-200);}
+  td{padding:11px 14px;border:1px solid var(--gray-200);color:var(--gray-700);}
+  .win{color:#16a34a;font-weight:700;}
+  .loss{color:#dc2626;font-weight:700;}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:var(--gray-100);
+  padding:2px 6px;border-radius:4px;color:var(--gray-800);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0;}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr;}}
+  .chart-card{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:24px;margin:20px 0;}
+  .chart-card h4{font-size:15px;font-weight:700;color:var(--gray-800);margin-bottom:4px;}
+  canvas{max-height:340px;width:100%;}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:18px 0}
+.tile{background:#fff;border:1px solid #dde3ea;border-radius:10px;padding:14px 16px}
+.tile .v{font-size:1.7em;font-weight:700;color:#12395e;line-height:1.1}
+.tile .l{font-size:.82em;color:#5c6b7a;margin-top:4px}
+.tile .d{font-size:.78em;color:#7a8794;margin-top:6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.card{background:#fff;border:1px solid #dde3ea;border-radius:10px;padding:16px}
+.card h3{margin:0 0 6px;font-size:1.02em}
+.card p{margin:0;font-size:.88em;color:#5c6b7a}
+.nav-bar{background:#eef3f8;border:1px solid #d6e0ea;border-radius:8px;padding:9px 13px;
+         margin-bottom:18px;font-size:.87em}
+.nav-bar a{margin-right:4px}
+table{font-size:.86em}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.good{color:#1b7f4b;font-weight:600}
+.bad{color:#b3261e;font-weight:600}
+.dim{color:#8b97a3}
+.badge{display:inline-block;padding:1px 7px;border-radius:9px;font-size:.76em;font-weight:600}
+.b-ok{background:#e4f4ea;color:#1b7f4b}
+.b-warn{background:#fdf1dc;color:#8a5a00}
+.b-bad{background:#fbe4e2;color:#b3261e}
+.b-neutral{background:#eef1f4;color:#5c6b7a}
+.chips span{display:inline-block;background:#eef3f8;border:1px solid #d6e0ea;border-radius:9px;
+            padding:0 6px;margin:1px 2px;font-size:.76em;color:#3d4a57}
+.callout{border-left:4px solid #2a6faf;background:#f3f8fd;padding:12px 15px;margin:16px 0;
+         border-radius:0 8px 8px 0}
+.callout.warn{border-left-color:#d08c00;background:#fffaf0}
+.callout.bad{border-left-color:#b3261e;background:#fdf3f2}
+.small{font-size:.85em;color:#5c6b7a}
+
+  .rf-fig{background:#fff;border:1px solid var(--gray-200);border-radius:12px;
+    padding:18px 20px 10px;margin:20px 0;}
+  .rf-fig .rf-cap{font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:2px;}
+  .rf-fig .rf-sub{font-size:12.5px;color:var(--gray-600);margin-bottom:10px;}
+  .rf-chart{width:100%;height:auto;display:block;}
+  .rf-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 10px;align-items:center;}
+  .rf-legend .rf-li{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-700);}
+  .rf-fnote{font-size:11.5px;color:var(--gray-600);margin:8px 0 4px;line-height:1.5;}
+  .rf-grid{stroke:var(--gray-200);stroke-width:1;}
+  .rf-zero{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-tick{fill:var(--gray-600);font-size:11px;}
+  .rf-axname{fill:var(--gray-600);font-size:11.5px;}
+  .rf-rowlbl{fill:var(--gray-800);font-size:12px;font-weight:600;}
+  .rf-rowsub{fill:var(--gray-600);font-size:10px;}
+  .rf-vlbl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-barlbl{fill:var(--gray-700);font-size:11px;}
+  .rf-dlbl{fill:var(--gray-600);font-size:10.5px;}
+  .rf-dlbl-ours{fill:var(--blue);font-weight:700;}
+  .rf-region{fill:var(--gray-600);font-size:11px;font-style:italic;}
+  .rf-albl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-leader{stroke:#94a3b8;stroke-width:1;}
+  .rf-ci{stroke:var(--blue);stroke-width:2;stroke-linecap:round;}
+  .rf-ours{fill:var(--blue);stroke:#fff;stroke-width:2;}
+  .rf-anchor{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-anchor-open{fill:none;stroke:var(--green);stroke-width:2;}
+  .rf-sup{fill:none;stroke:#475569;stroke-width:2;}
+  .rf-seqlp{stroke:var(--gray-700);stroke-width:1.5;opacity:.85;}
+  .rf-bar-pos{fill:var(--blue);}
+  .rf-bar-neg{fill:var(--red);}
+  .rf-bar-ctx{opacity:.42;}
+  .rf-bar-ours{fill:var(--blue);}
+  .rf-bar-gray{fill:#94a3b8;}
+  .rf-bar-gray-sup{fill:#475569;}
+  .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-bar-c4{fill:#cbd5e1;}
+  .rf-bar-g5{fill:#475569;}
+  .rf-bar-g6{fill:var(--blue);}
+  .rf-dumbbell-epr{fill:var(--blue);stroke:#fff;stroke-width:1.5;}
+  .rf-dumbbell-alt{fill:var(--green);stroke:#fff;stroke-width:1.5;}
+  .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-line{stroke:var(--blue);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-line-acc{stroke:var(--green);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-dot-acc{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-panes{display:flex;gap:24px;flex-wrap:wrap;}
+  .rf-pane{flex:1 1 340px;min-width:300px;}
+  .rf-pane .rf-ptitle{font-size:13px;font-weight:700;color:var(--gray-900);margin-bottom:6px;}
+  .rf-diag{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-wash{fill:rgba(37,99,235,.06);}
+</style>
+</head>
+<body>
+<div class="header-hero"><div class="header-content">
+  <h1>Gated-Laplacian selector</h1>
+  <div class="subtitle">The trace-based label-free selector: status, results, and what it settles</div>
+  <div class="meta-pills">
+    <span class="meta-pill">Generated 2026-07-22 by scripts/advisor_inscope_report.py</span>
+    <span class="meta-pill">25 in-scope cells: 10 QA + 15 math</span>
+    <span class="meta-pill">Every numeric cell read from a CSV at build time</span>
+  </div>
+</div></div>
+<div class="page">
+<div class="nav-bar"><strong>Pages:</strong> <a href="index.html">Overview</a> &bull; <a href="competitor_grid.html">Competitor grid</a> &bull; <a href="competitor_sources.html">Competitor provenance</a> &bull; <a href="supervised_ceiling.html">Supervised ceiling</a> &bull; <a href="subset_gap_analysis.html">Selection headroom</a> &bull; <a href="selector_choices.html">What it selects</a> &bull; <a href="groupfs_diagnosis.html">Learned selector</a> &bull; <strong>Gated-Laplacian</strong> &bull; <a href="anchor_sweep.html">Anchor robustness</a> &bull; <a href="verification.html">Verification</a></div>
+
+<p>The trace-based Gated-Laplacian selector &mdash; per-feature stochastic gates trained on
+a Laplacian-trace objective over the gated sub-matrix &mdash; is the independence-aware
+label-free selector most directly relevant to this work. It was raised as the strongest
+option we had not yet built.</p>
+
+<div class="callout">
+<strong>It was already built and already benchmarked.</strong> It is implemented in
+<code>spectral_utils/selectors/a2_groupfs.py</code> as the per-feature gate rule, and ships
+as bench variant <code>a2.dufs</code>. It has rows on all 25 in-scope cells. The objective
+is the Laplacian trace on the gated sub-matrix plus a gate-sparsity penalty; the gate
+regularisation strength is chosen label-free by selection stability across seeds, which is
+our own addition rather than the source method's prescription.
+</div>
+
+<div class="tiles">
+<div class="tile"><div class="v">75.02</div><div class="l">Gated-Laplacian macro</div>
+<div class="d">QA 70.9 &bull; math 77.8</div></div>
+<div class="tile"><div class="v">75.19</div><div class="l">GOOD_5</div></div>
+<div class="tile"><div class="v">75.94</div><div class="l">GOOD_6</div></div>
+<div class="tile"><div class="v">-0.17 pp</div>
+<div class="l">vs GOOD_5</div><div class="d">Wilcoxon p = 0.442 &mdash; not significant</div></div>
+</div>
+
+<div class="rf-fig"><div class="rf-cap">Pool size barely matters — composition does</div><div class="rf-sub">Same selector, same cells; only the feature pool shrinks (best-ranked views kept).</div><div class="rf-legend"><span class="rf-li"><svg width="16" height="14"><circle cx="8" cy="7" r="4" class="rf-ours"/></svg> label-free selector (a2.dufs)</span><span class="rf-li"><svg width="16" height="14"><circle cx="8" cy="7" r="4" class="rf-dot-acc"/></svg> GOOD_6 (fixed)</span></div><svg viewBox="0 0 880 260" role="img" class="rf-chart" preserveAspectRatio="xMidYMid meet"><line x1="70" y1="169.7" x2="850" y2="169.7" class="rf-grid"/><text x="62" y="173.7" class="rf-tick" text-anchor="end">74.5</text><line x1="70" y1="129.0" x2="850" y2="129.0" class="rf-grid"/><text x="62" y="133.0" class="rf-tick" text-anchor="end">75.0</text><line x1="70" y1="88.3" x2="850" y2="88.3" class="rf-grid"/><text x="62" y="92.3" class="rf-tick" text-anchor="end">75.5</text><line x1="70" y1="47.6" x2="850" y2="47.6" class="rf-grid"/><text x="62" y="51.6" class="rf-tick" text-anchor="end">76.0</text><text x="70.0" y="223" class="rf-tick" text-anchor="middle">12</text><text x="243.3" y="223" class="rf-tick" text-anchor="middle">16</text><text x="416.7" y="223" class="rf-tick" text-anchor="middle">20</text><text x="590.0" y="223" class="rf-tick" text-anchor="middle">24</text><text x="850.0" y="223" class="rf-tick" text-anchor="middle">30</text><path d="M 70.0 172.5 L 243.3 116.2 L 416.7 116.1 L 590.0 114.4 L 850.0 123.0" class="rf-line"/><path d="M 70.0 102.5 L 243.3 102.5 L 416.7 52.5 L 590.0 52.5 L 850.0 52.5" class="rf-line-acc"/><circle cx="70.0" cy="102.5" r="4" class="rf-dot-acc"><title>GOOD_6 @ pool 12: 75.33</title></circle><circle cx="243.3" cy="102.5" r="4" class="rf-dot-acc"><title>GOOD_6 @ pool 16: 75.33</title></circle><circle cx="416.7" cy="52.5" r="4" class="rf-dot-acc"><title>GOOD_6 @ pool 20: 75.94</title></circle><circle cx="590.0" cy="52.5" r="4" class="rf-dot-acc"><title>GOOD_6 @ pool 24: 75.94</title></circle><circle cx="850.0" cy="52.5" r="4" class="rf-dot-acc"><title>GOOD_6 @ pool 30: 75.94</title></circle><circle cx="70.0" cy="172.5" r="4" class="rf-ours"><title>selector @ pool 12: 74.47</title></circle><circle cx="243.3" cy="116.2" r="4" class="rf-ours"><title>selector @ pool 16: 75.16</title></circle><circle cx="416.7" cy="116.1" r="4" class="rf-ours"><title>selector @ pool 20: 75.16</title></circle><circle cx="590.0" cy="114.4" r="4" class="rf-ours"><title>selector @ pool 24: 75.18</title></circle><circle cx="850.0" cy="123.0" r="4" class="rf-ours"><title>selector @ pool 30: 75.07</title></circle><text x="460" y="256" class="rf-axname" text-anchor="middle">pool size (views, nested by informativeness rank)</text><text x="14" y="112" class="rf-axname" transform="rotate(-90 14 112)" text-anchor="middle">macro AUROC (%)</text></svg><p class="rf-fnote">Nested pools ranked by informativeness (|AUROC − 0.5|, the criterion L-SML actually exploits — it flips signs with negative weights). Between 16 and 30 views everything is within 0.11 pp; below ~16 real accuracy is lost, and GOOD_6 itself drops when spectral_entropy and low_band_power fall out of the pool. CAVEAT: the ranking uses labelled AUROC aggregated over all 25 cells, so these are IN-SAMPLE upper bounds — the honest LOCO number for pruning is bounded above by +0.11 pp. Source: pool_size_experiment.csv.</p></div>
+
+<h2>What the per-feature rule actually changes</h2>
+<p>Compared with the group-granular rule (<code>a2.select</code>, macro 74.81%), the
+per-feature rule is a clean structural improvement in one respect and a null result in
+another:</p>
+<ul>
+<li>It <strong>eliminates gate saturation entirely</strong> &mdash; from 12 of 25 cells
+selecting the whole pool down to none. That isolates saturation as a consequence of group
+granularity rather than of the gates themselves, which is a clean and quotable finding.</li>
+<li>It <strong>does not convert that into accuracy</strong>. Macro moves +0.21 pp, the
+difference from GOOD_5 is not significant, and on the worst cell it remains catastrophic.</li>
+</ul>
+
+<div class="callout warn">
+<strong>Recommendation withheld on building a further variant.</strong> The motivation for
+a new gate variant was to fix saturation. Saturation turns out to be already solved by the
+per-feature rule, and solving it did not help. With the
+<a href="subset_gap_analysis.html">honest selection headroom</a> at
++1.74
+pp over GOOD_5 and two thirds of any apparent gain being winner's curse, there is little
+room for a new label-free selector to win, and no measured mechanism left to attack.
+</div>
+
+<p class="small"><strong>Grounding status.</strong> The source method is currently cited
+second-hand through the group-discovery paper's description of it; the primary paper is not
+yet in <code>papers/</code>. The implementation should be read as
+&ldquo;our reconstruction of the method as described by its successor&rdquo; until that is
+closed.</p>
+
+</div>
+</body>
+</html>

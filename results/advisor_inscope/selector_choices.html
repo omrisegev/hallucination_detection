@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What the selector chooses</title>
+<style>
+  :root{--blue:#2563eb;--blue-light:#eff6ff;--blue-dark:#1e40af;--green:#10b981;--green-light:#ecfdf5;
+  --green-dark:#065f46;--red:#ef4444;--amber:#f59e0b;--amber-light:#fffbeb;--amber-dark:#92400e;
+  --gray-50:#f8fafc;--gray-100:#f1f5f9;--gray-200:#e2e8f0;--gray-600:#475569;--gray-700:#334155;
+  --gray-800:#1e293b;--gray-900:#0f172a;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:15px;color:var(--gray-800);
+  background:var(--gray-50);line-height:1.65;}
+  .header-hero{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#fff;padding:56px 24px 44px;
+  border-bottom:4px solid var(--blue);}
+  .header-content{max-width:1040px;margin:0 auto;}
+  .header-hero h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px;}
+  .header-hero .subtitle{font-size:16px;color:#cbd5e1;max-width:820px;}
+  .meta-pills{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+  .meta-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);padding:4px 12px;
+  border-radius:20px;font-size:13px;font-weight:500;}
+  .page{max-width:1040px;margin:0 auto;padding:40px 24px 64px;}
+  .nav-bar{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:14px 20px;
+  margin-bottom:36px;box-shadow:0 1px 3px rgba(0,0,0,.04);display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+  .nav-bar strong{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-600);margin-right:4px;}
+  .nav-bar a{color:var(--blue);text-decoration:none;font-weight:600;font-size:14px;}
+  .section-card{background:#fff;border:1px solid var(--gray-200);border-radius:14px;padding:36px;
+  margin-bottom:36px;box-shadow:0 2px 6px rgba(0,0,0,.03);}
+  .section-badge{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;padding:4px 12px;border-radius:20px;margin-bottom:12px;}
+  .badge-completed{background:var(--green-light);color:var(--green-dark);}
+  .badge-progress{background:var(--blue-light);color:var(--blue-dark);}
+  .badge-finding{background:#f3e8ff;color:#6b21a8;}
+  h2{font-size:24px;font-weight:800;letter-spacing:-.015em;color:var(--gray-900);margin-bottom:12px;}
+  h3{font-size:17px;font-weight:700;color:var(--gray-900);margin:24px 0 10px;}
+  p{margin-bottom:14px;color:var(--gray-700);}
+  .takeaway-box{background:var(--green-light);border-left:4px solid var(--green);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .takeaway-box b{color:var(--green-dark);}
+  .info-box{background:var(--blue-light);border-left:4px solid var(--blue);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .info-box b{color:var(--blue-dark);}
+  .warn-box{background:var(--amber-light);border-left:4px solid var(--amber);padding:16px 20px;
+  border-radius:0 10px 10px 0;margin:18px 0;}
+  .warn-box b{color:var(--amber-dark);}
+  table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+  th{background:var(--gray-100);color:var(--gray-800);font-weight:700;text-align:left;padding:12px 14px;
+  border:1px solid var(--gray-200);}
+  td{padding:11px 14px;border:1px solid var(--gray-200);color:var(--gray-700);}
+  .win{color:#16a34a;font-weight:700;}
+  .loss{color:#dc2626;font-weight:700;}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:var(--gray-100);
+  padding:2px 6px;border-radius:4px;color:var(--gray-800);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0;}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr;}}
+  .chart-card{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:24px;margin:20px 0;}
+  .chart-card h4{font-size:15px;font-weight:700;color:var(--gray-800);margin-bottom:4px;}
+  canvas{max-height:340px;width:100%;}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:18px 0}
+.tile{background:#fff;border:1px solid #dde3ea;border-radius:10px;padding:14px 16px}
+.tile .v{font-size:1.7em;font-weight:700;color:#12395e;line-height:1.1}
+.tile .l{font-size:.82em;color:#5c6b7a;margin-top:4px}
+.tile .d{font-size:.78em;color:#7a8794;margin-top:6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:18px 0}
+.card{background:#fff;border:1px solid #dde3ea;border-radius:10px;padding:16px}
+.card h3{margin:0 0 6px;font-size:1.02em}
+.card p{margin:0;font-size:.88em;color:#5c6b7a}
+.nav-bar{background:#eef3f8;border:1px solid #d6e0ea;border-radius:8px;padding:9px 13px;
+         margin-bottom:18px;font-size:.87em}
+.nav-bar a{margin-right:4px}
+table{font-size:.86em}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.good{color:#1b7f4b;font-weight:600}
+.bad{color:#b3261e;font-weight:600}
+.dim{color:#8b97a3}
+.badge{display:inline-block;padding:1px 7px;border-radius:9px;font-size:.76em;font-weight:600}
+.b-ok{background:#e4f4ea;color:#1b7f4b}
+.b-warn{background:#fdf1dc;color:#8a5a00}
+.b-bad{background:#fbe4e2;color:#b3261e}
+.b-neutral{background:#eef1f4;color:#5c6b7a}
+.chips span{display:inline-block;background:#eef3f8;border:1px solid #d6e0ea;border-radius:9px;
+            padding:0 6px;margin:1px 2px;font-size:.76em;color:#3d4a57}
+.callout{border-left:4px solid #2a6faf;background:#f3f8fd;padding:12px 15px;margin:16px 0;
+         border-radius:0 8px 8px 0}
+.callout.warn{border-left-color:#d08c00;background:#fffaf0}
+.callout.bad{border-left-color:#b3261e;background:#fdf3f2}
+.small{font-size:.85em;color:#5c6b7a}
+
+  .rf-fig{background:#fff;border:1px solid var(--gray-200);border-radius:12px;
+    padding:18px 20px 10px;margin:20px 0;}
+  .rf-fig .rf-cap{font-size:14px;font-weight:700;color:var(--gray-900);margin-bottom:2px;}
+  .rf-fig .rf-sub{font-size:12.5px;color:var(--gray-600);margin-bottom:10px;}
+  .rf-chart{width:100%;height:auto;display:block;}
+  .rf-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 10px;align-items:center;}
+  .rf-legend .rf-li{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--gray-700);}
+  .rf-fnote{font-size:11.5px;color:var(--gray-600);margin:8px 0 4px;line-height:1.5;}
+  .rf-grid{stroke:var(--gray-200);stroke-width:1;}
+  .rf-zero{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-tick{fill:var(--gray-600);font-size:11px;}
+  .rf-axname{fill:var(--gray-600);font-size:11.5px;}
+  .rf-rowlbl{fill:var(--gray-800);font-size:12px;font-weight:600;}
+  .rf-rowsub{fill:var(--gray-600);font-size:10px;}
+  .rf-vlbl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-barlbl{fill:var(--gray-700);font-size:11px;}
+  .rf-dlbl{fill:var(--gray-600);font-size:10.5px;}
+  .rf-dlbl-ours{fill:var(--blue);font-weight:700;}
+  .rf-region{fill:var(--gray-600);font-size:11px;font-style:italic;}
+  .rf-albl{fill:var(--gray-700);font-size:11px;font-weight:600;}
+  .rf-leader{stroke:#94a3b8;stroke-width:1;}
+  .rf-ci{stroke:var(--blue);stroke-width:2;stroke-linecap:round;}
+  .rf-ours{fill:var(--blue);stroke:#fff;stroke-width:2;}
+  .rf-anchor{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-anchor-open{fill:none;stroke:var(--green);stroke-width:2;}
+  .rf-sup{fill:none;stroke:#475569;stroke-width:2;}
+  .rf-seqlp{stroke:var(--gray-700);stroke-width:1.5;opacity:.85;}
+  .rf-bar-pos{fill:var(--blue);}
+  .rf-bar-neg{fill:var(--red);}
+  .rf-bar-ctx{opacity:.42;}
+  .rf-bar-ours{fill:var(--blue);}
+  .rf-bar-gray{fill:#94a3b8;}
+  .rf-bar-gray-sup{fill:#475569;}
+  .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-bar-c4{fill:#cbd5e1;}
+  .rf-bar-g5{fill:#475569;}
+  .rf-bar-g6{fill:var(--blue);}
+  .rf-dumbbell-epr{fill:var(--blue);stroke:#fff;stroke-width:1.5;}
+  .rf-dumbbell-alt{fill:var(--green);stroke:#fff;stroke-width:1.5;}
+  .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-line{stroke:var(--blue);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-line-acc{stroke:var(--green);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  .rf-dot-acc{fill:var(--green);stroke:#fff;stroke-width:2;}
+  .rf-panes{display:flex;gap:24px;flex-wrap:wrap;}
+  .rf-pane{flex:1 1 340px;min-width:300px;}
+  .rf-pane .rf-ptitle{font-size:13px;font-weight:700;color:var(--gray-900);margin-bottom:6px;}
+  .rf-diag{stroke:#94a3b8;stroke-width:1.5;}
+  .rf-wash{fill:rgba(37,99,235,.06);}
+</style>
+</head>
+<body>
+<div class="header-hero"><div class="header-content">
+  <h1>What the selector chooses</h1>
+  <div class="subtitle">The features it picks, how they differ from GOOD_6, and why</div>
+  <div class="meta-pills">
+    <span class="meta-pill">Generated 2026-07-22 by scripts/advisor_inscope_report.py</span>
+    <span class="meta-pill">25 in-scope cells: 10 QA + 15 math</span>
+    <span class="meta-pill">Every numeric cell read from a CSV at build time</span>
+  </div>
+</div></div>
+<div class="page">
+<div class="nav-bar"><strong>Pages:</strong> <a href="index.html">Overview</a> &bull; <a href="competitor_grid.html">Competitor grid</a> &bull; <a href="competitor_sources.html">Competitor provenance</a> &bull; <a href="supervised_ceiling.html">Supervised ceiling</a> &bull; <a href="subset_gap_analysis.html">Selection headroom</a> &bull; <strong>What it selects</strong> &bull; <a href="groupfs_diagnosis.html">Learned selector</a> &bull; <a href="gated_laplacian.html">Gated-Laplacian</a> &bull; <a href="anchor_sweep.html">Anchor robustness</a> &bull; <a href="verification.html">Verification</a></div>
+
+<p>The selector loses to the fixed GOOD_6 subset on <strong>16 of 25</strong>
+cells. This page answers the obvious follow-up: <em>what did it actually choose, how does that
+differ from GOOD_6, and why does it choose that?</em></p>
+
+<h2>1. What it selects</h2>
+<p>GOOD_6 is six hand-curated views. The selector picks
+<strong>19 views on average</strong> out of a ~28-view pool &mdash; roughly
+three times larger. It generally <em>keeps</em> most of GOOD_6 and adds a large tail around it.</p>
+
+<div class="tiles">
+<div class="tile"><div class="v">4.9 / 6</div>
+<div class="l">GOOD_6 members kept, on cells it LOSES</div></div>
+<div class="tile"><div class="v">5.4 / 6</div>
+<div class="l">GOOD_6 members kept, on cells it WINS</div>
+<div class="d">keeping more of GOOD_6 is the clearest difference between the two groups</div></div>
+<div class="tile"><div class="v">13.9</div>
+<div class="l">extra views added beyond GOOD_6</div></div>
+<div class="tile"><div class="v">7.4</div>
+<div class="l">of those extras, inverted-polarity</div>
+<div class="d">AUROC below 0.5 &mdash; informative but pointing the wrong way; L-SML flips
+them with a negative weight</div></div>
+<div class="tile"><div class="v">1.12 vs 0.00</div>
+<div class="l">truly near-random extras: LOSS vs WIN cells</div>
+<div class="d">the cells it wins on admit none at all</div></div>
+</div>
+
+<h2>2. How it differs from GOOD_6</h2>
+<p>Which GOOD_6 members the selector drops, across the 25 cells:</p>
+<table><thead><tr><th>GOOD_6 member</th><th class="num">cells where dropped</th>
+<th class="num">cells where kept</th></tr></thead><tbody><tr><td><code>spectral_entropy</code></td><td class='num'>13</td><td class='num'>12</td></tr><tr><td><code>low_band_power</code></td><td class='num'>7</td><td class='num'>18</td></tr><tr><td><code>sw_var_peak</code></td><td class='num'>2</td><td class='num'>23</td></tr><tr><td><code>cusum_max</code></td><td class='num'>1</td><td class='num'>24</td></tr></tbody></table>
+<p class="small">The four remaining GOOD_6 members (<code>epr</code>,
+<code>sw_var_peak</code>, <code>cusum_max</code>, <code>varentropy</code>) are almost never
+dropped &mdash; the disagreement is concentrated on <code>spectral_entropy</code> and
+<code>low_band_power</code>.</p>
+
+<h2>3. Why it chooses that &mdash; the objective is aimed elsewhere</h2>
+<div class="callout bad">
+The gates are trained on a <strong>Laplacian-smoothness objective over the sample graph</strong>.
+That objective never sees a label, and it is not a proxy for separability. Measured directly:
+the rank correlation between a view's <strong>gate value</strong> (what the objective maximises)
+and that view's <strong>own oriented AUROC</strong> (what we actually want) is
+<strong>&rho; = +0.149</strong> on average across the 25 cells.
+<br><br>
+So the selector is not picking <em>badly</em> &mdash; it is picking for a <em>different
+criterion</em>. It does tilt in the right direction: the views it selects average
+55.3% AUROC against 47.7% for the
+views it leaves out (+7.7 pp). But a &rho; of +0.149 is far too
+weak to reconstruct a six-view subset that took a corpus-wide labelled search to find.
+</div>
+
+<p><strong>And that is the honest asymmetry.</strong> GOOD_6 was chosen once by macro AUROC
+<em>across the whole grid</em>, so it carries label information at the corpus level even though
+applying it to a new cell needs no labels. The selector is given no such prior: it must
+rediscover a good subset per cell, from unlabelled data, using an objective only weakly aligned
+with the target. Losing by ~2 pp under those conditions is a reasonable outcome, not a defect.</p>
+
+<div class="callout warn">
+<strong>&ldquo;Inverted-polarity&rdquo; is not the same as &ldquo;bad&rdquo;, and the
+distinction changes the conclusion.</strong> A view with AUROC 0.30 is <em>strongly</em>
+informative &mdash; flipped, it scores 0.70 &mdash; and continuous L-SML flips it automatically
+with a negative weight. Of the below-chance views the selector actually picks, <strong>80% sit
+below 0.40</strong> (strong once flipped) and only <strong>6% are genuinely near-random</strong>.
+<br><br>
+Splitting the two separates the win and loss cells cleanly:
+the cells it <strong>wins</strong> on take 8.1 strongly
+informative inverted views and <strong>0.00 near-random ones</strong>;
+the cells it <strong>loses</strong> on take 4.8 strong ones
+but let <strong>1.12 near-random views in</strong>. So the useful
+statement is the narrow one: <em>admitting genuinely uninformative views tracks the losses;
+admitting inverted-polarity views does not.</em> That is a direct argument for pruning the pool on
+uninformativeness rather than on raw AUROC sign.
+</div>
+
+<h2>Per cell</h2>
+<table><thead><tr><th>Cell</th><th>Group</th><th>vs GOOD_6</th><th class="num">gap pp</th>
+<th class="num">selected</th><th class="num">GOOD_6 kept</th><th>GOOD_6 dropped</th>
+<th class="num">extra</th><th class="num">extra anti-oriented</th>
+<th class="num">sel. AUROC</th><th class="num">unsel. AUROC</th>
+<th class="num">diff</th></tr></thead><tbody><tr><td><code>inside_coqa_llama7b</code></td><td>QA</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-14.53</td><td class='num'>20/27</td><td class='num'>6/6</td><td class='chips'><span class="dim">none</span></td><td class='num'>14</td><td class='num'>7</td><td class='num'>50.8</td><td class='num'>51.0</td><td class='num good'>-0.2</td></tr><tr><td><code>ars_gsm8k_r1distill8b</code></td><td>math</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-5.93</td><td class='num'>16/30</td><td class='num'>4/6</td><td class='chips'><span>low_band_power</span><span>spectral_entropy</span></td><td class='num'>12</td><td class='num'>5</td><td class='num'>56.4</td><td class='num'>49.4</td><td class='num good'>+7.1</td></tr><tr><td><code>seiclr_triviaqa_opt30b</code></td><td>QA</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-2.70</td><td class='num'>12/28</td><td class='num'>3/6</td><td class='chips'><span>sw_var_peak</span><span>cusum_max</span><span>spectral_entropy</span></td><td class='num'>9</td><td class='num'>3</td><td class='num'>52.8</td><td class='num'>51.5</td><td class='num good'>+1.3</td></tr><tr><td><code>semenergy_triviaqa_qwen3_8b</code></td><td>QA</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-2.69</td><td class='num'>20/27</td><td class='num'>6/6</td><td class='chips'><span class="dim">none</span></td><td class='num'>14</td><td class='num'>6</td><td class='num'>59.1</td><td class='num'>39.9</td><td class='num good'>+19.2</td></tr><tr><td><code>math500_r1distill8b_mn4096</code></td><td>math</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-2.37</td><td class='num'>24/29</td><td class='num'>6/6</td><td class='chips'><span class="dim">none</span></td><td class='num'>18</td><td class='num'>10</td><td class='num'>57.7</td><td class='num'>56.6</td><td class='num good'>+1.1</td></tr><tr><td><code>losnet_hotpotqa_mistral7b</code></td><td>QA</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-1.26</td><td class='num'>12/29</td><td class='num'>4/6</td><td class='chips'><span>low_band_power</span><span>spectral_entropy</span></td><td class='num'>8</td><td class='num'>3</td><td class='num'>53.6</td><td class='num'>50.1</td><td class='num good'>+3.5</td></tr><tr><td><code>noise_gsm8k_mistral7b</code></td><td>math</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-1.22</td><td class='num'>19/29</td><td class='num'>5/6</td><td class='chips'><span>spectral_entropy</span></td><td class='num'>14</td><td class='num'>8</td><td class='num'>56.2</td><td class='num'>50.2</td><td class='num good'>+6.0</td></tr><tr><td><code>lapeigvals_gsm8k_nemo</code></td><td>math</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-0.78</td><td class='num'>17/29</td><td class='num'>5/6</td><td class='chips'><span>spectral_entropy</span></td><td class='num'>12</td><td class='num'>7</td><td class='num'>56.7</td><td class='num'>49.3</td><td class='num good'>+7.4</td></tr><tr><td><code>lapeigvals_gsm8k_phi35</code></td><td>math</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-0.76</td><td class='num'>16/29</td><td class='num'>5/6</td><td class='chips'><span>spectral_entropy</span></td><td class='num'>11</td><td class='num'>6</td><td class='num'>60.3</td><td class='num'>46.8</td><td class='num good'>+13.5</td></tr><tr><td><code>sciq_llama8b</code></td><td>QA</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-0.69</td><td class='num'>21/30</td><td class='num'>5/6</td><td class='chips'><span>low_band_power</span></td><td class='num'>16</td><td class='num'>8</td><td class='num'>56.1</td><td class='num'>46.0</td><td class='num good'>+10.2</td></tr><tr><td><code>math500_dsmath7b</code></td><td>math</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-0.34</td><td class='num'>17/30</td><td class='num'>4/6</td><td class='chips'><span>sw_var_peak</span><span>spectral_entropy</span></td><td class='num'>13</td><td class='num'>7</td><td class='num'>57.7</td><td class='num'>50.7</td><td class='num good'>+7.0</td></tr><tr><td><code>truthfulqa_llama8b</code></td><td>QA</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-0.31</td><td class='num'>18/29</td><td class='num'>5/6</td><td class='chips'><span>low_band_power</span></td><td class='num'>13</td><td class='num'>5</td><td class='num'>55.6</td><td class='num'>47.6</td><td class='num good'>+8.0</td></tr><tr><td><code>internalstates_gsm8k_qwen25_7b</code></td><td>math</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-0.26</td><td class='num'>18/29</td><td class='num'>5/6</td><td class='chips'><span>spectral_entropy</span></td><td class='num'>13</td><td class='num'>8</td><td class='num'>52.9</td><td class='num'>48.6</td><td class='num good'>+4.3</td></tr><tr><td><code>noise_gsm8k_phi3mini</code></td><td>math</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-0.14</td><td class='num'>16/29</td><td class='num'>5/6</td><td class='chips'><span>spectral_entropy</span></td><td class='num'>11</td><td class='num'>5</td><td class='num'>56.7</td><td class='num'>49.2</td><td class='num good'>+7.6</td></tr><tr><td><code>spilled_triviaqa_llama8b</code></td><td>QA</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-0.07</td><td class='num'>19/28</td><td class='num'>5/6</td><td class='chips'><span>low_band_power</span></td><td class='num'>14</td><td class='num'>8</td><td class='num'>55.0</td><td class='num'>45.4</td><td class='num good'>+9.6</td></tr><tr><td><code>lapeigvals_gsm8k_llama8b</code></td><td>math</td><td><span class="badge b-bad">LOSS</span></td><td class='num bad'>-0.05</td><td class='num'>22/29</td><td class='num'>5/6</td><td class='chips'><span>spectral_entropy</span></td><td class='num'>17</td><td class='num'>11</td><td class='num'>52.0</td><td class='num'>49.2</td><td class='num good'>+2.8</td></tr><tr><td><code>se_squad_v2_llama8b</code></td><td>QA</td><td><span class="badge b-ok">WIN</span></td><td class='num good'>+0.08</td><td class='num'>20/27</td><td class='num'>6/6</td><td class='chips'><span class="dim">none</span></td><td class='num'>14</td><td class='num'>7</td><td class='num'>56.8</td><td class='num'>39.4</td><td class='num good'>+17.4</td></tr><tr><td><code>trace_gsm8k_llama8b_k10</code></td><td>math</td><td><span class="badge b-ok">WIN</span></td><td class='num good'>+0.16</td><td class='num'>22/29</td><td class='num'>5/6</td><td class='chips'><span>spectral_entropy</span></td><td class='num'>17</td><td class='num'>11</td><td class='num'>52.6</td><td class='num'>48.1</td><td class='num good'>+4.5</td></tr><tr><td><code>math500_r1distill8b</code></td><td>math</td><td><span class="badge b-ok">WIN</span></td><td class='num good'>+0.44</td><td class='num'>21/28</td><td class='num'>6/6</td><td class='chips'><span class="dim">none</span></td><td class='num'>15</td><td class='num'>8</td><td class='num'>60.6</td><td class='num'>53.9</td><td class='num good'>+6.7</td></tr><tr><td><code>lapeigvals_gsm8k_llama3b</code></td><td>math</td><td><span class="badge b-ok">WIN</span></td><td class='num good'>+0.62</td><td class='num'>17/30</td><td class='num'>5/6</td><td class='chips'><span>spectral_entropy</span></td><td class='num'>12</td><td class='num'>6</td><td class='num'>56.9</td><td class='num'>45.3</td><td class='num good'>+11.5</td></tr><tr><td><code>epr_triviaqa_mistral24b</code></td><td>QA</td><td><span class="badge b-ok">WIN</span></td><td class='num good'>+1.21</td><td class='num'>20/28</td><td class='num'>5/6</td><td class='chips'><span>low_band_power</span></td><td class='num'>15</td><td class='num'>8</td><td class='num'>55.8</td><td class='num'>46.1</td><td class='num good'>+9.8</td></tr><tr><td><code>trace_math500_qwenmath15b_k10</code></td><td>math</td><td><span class="badge b-ok">WIN</span></td><td class='num good'>+1.27</td><td class='num'>24/30</td><td class='num'>6/6</td><td class='chips'><span class="dim">none</span></td><td class='num'>18</td><td class='num'>11</td><td class='num'>50.5</td><td class='num'>43.6</td><td class='num good'>+6.9</td></tr><tr><td><code>math500_qwenmath7b</code></td><td>math</td><td><span class="badge b-ok">WIN</span></td><td class='num good'>+1.46</td><td class='num'>24/28</td><td class='num'>6/6</td><td class='chips'><span class="dim">none</span></td><td class='num'>18</td><td class='num'>10</td><td class='num'>50.3</td><td class='num'>37.2</td><td class='num good'>+13.1</td></tr><tr><td><code>se_nq_open_llama8b</code></td><td>QA</td><td><span class="badge b-ok">WIN</span></td><td class='num good'>+2.24</td><td class='num'>18/27</td><td class='num'>5/6</td><td class='chips'><span>low_band_power</span></td><td class='num'>13</td><td class='num'>7</td><td class='num'>56.2</td><td class='num'>48.6</td><td class='num good'>+7.6</td></tr><tr><td><code>lapeigvals_gsm8k_mistral24b</code></td><td>math</td><td><span class="badge b-ok">WIN</span></td><td class='num good'>+3.57</td><td class='num'>21/30</td><td class='num'>5/6</td><td class='chips'><span>spectral_entropy</span></td><td class='num'>16</td><td class='num'>10</td><td class='num'>54.2</td><td class='num'>48.7</td><td class='num good'>+5.6</td></tr></tbody></table>
+
+</div>
+</body>
+</html>

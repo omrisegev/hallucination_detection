@@ -1,0 +1,80 @@
+cell,method_a,method_b,source_b,auroc_a,auroc_b,delta,status,resolution
+ars_gsm8k_r1distill8b,ARS (CCS),ARS (CCS),scores_lsml_upcr.csv,0.7472,0.7472,+0.0000,MATCH,
+ars_gsm8k_r1distill8b,ARS (CCS),ARS (CCS),reasoning_benchmark.csv,0.7472,0.7472,+0.0000,MATCH,
+epr_triviaqa_mistral24b,EPR,EPR,published_baselines.csv,0.7460,0.7460,+0.0000,MATCH,
+epr_triviaqa_mistral24b,EPR,EPR,scores_lsml_upcr.csv,0.7460,0.7460,+0.0000,MATCH,
+epr_triviaqa_mistral24b,HalluDetect,HalluDetect,published_baselines.csv,0.7870,0.7870,+0.0000,MATCH,
+epr_triviaqa_mistral24b,SelfCheckGPT,SelfCheckGPT,published_baselines.csv,0.7900,0.7900,+0.0000,MATCH,
+epr_triviaqa_mistral24b,WEPR,WEPR,published_baselines.csv,0.8200,0.8200,+0.0000,MATCH,
+inside_coqa_llama7b,INSIDE,INSIDE,scores_lsml_upcr.csv,0.8040,0.8040,+0.0000,MATCH,
+internalstates_gsm8k_qwen25_7b,Internal-States+RC,Internal-States+RC,scores_lsml_upcr.csv,0.7915,0.7915,-0.0000,MATCH,
+lapeigvals_gsm8k_llama3b,LapEigvals,LapEigvals,scores_lsml_upcr.csv,0.8700,0.7170,+0.1530,DELTA,"value right, method mislabeled: it is the paper's AttentionScore baseline (unsupervised), not supervised LapEigvals (Step 193b)"
+lapeigvals_gsm8k_llama3b,AttentionScore (LapEigvals paper),LapEigvals AttentionScore,reasoning_benchmark.csv,0.7170,0.7170,-0.0000,MATCH,
+lapeigvals_gsm8k_llama8b,LapEigvals,LapEigvals,scores_lsml_upcr.csv,0.8720,0.9250,-0.0530,DELTA,old 0.925 is Mistral-Small-24B's LapEigvals column — wrong MODEL (Step 193b); own-model values are 0.720 (AttentionScore) / 0.872 (probe)
+lapeigvals_gsm8k_llama8b,AttentionScore (LapEigvals paper),,,0.7200,,,ONLY_A,new/renamed row introduced by the Step-193 rebuild (no old counterpart at this value)
+lapeigvals_gsm8k_mistral24b,LapEigvals,LapEigvals,scores_lsml_upcr.csv,0.9250,0.5760,+0.3490,DELTA,"value right, method mislabeled -> AttentionScore (Step 193b)"
+lapeigvals_gsm8k_mistral24b,AttentionScore (LapEigvals paper),LapEigvals AttentionScore,reasoning_benchmark.csv,0.5760,0.5760,-0.0000,MATCH,
+lapeigvals_gsm8k_nemo,LapEigvals,LapEigvals,scores_lsml_upcr.csv,0.8900,0.6300,+0.2600,DELTA,"value right, method mislabeled -> AttentionScore (Step 193b)"
+lapeigvals_gsm8k_nemo,AttentionScore (LapEigvals paper),LapEigvals AttentionScore,reasoning_benchmark.csv,0.6300,0.6300,+0.0000,MATCH,
+lapeigvals_gsm8k_phi35,LapEigvals,LapEigvals,scores_lsml_upcr.csv,0.8850,0.6660,+0.2190,DELTA,"value right, method mislabeled -> AttentionScore (Step 193b)"
+lapeigvals_gsm8k_phi35,AttentionScore (LapEigvals paper),LapEigvals AttentionScore,reasoning_benchmark.csv,0.6660,0.6660,+0.0000,MATCH,
+losnet_hotpotqa_mistral7b,ATP+R-MLP,ATP+R-MLP,published_baselines.csv,0.6892,0.6892,+0.0000,MATCH,
+losnet_hotpotqa_mistral7b,ATP+R-Transf.,ATP+R-Transf.,published_baselines.csv,0.6970,0.6970,-0.0000,MATCH,
+losnet_hotpotqa_mistral7b,Activation Probes,Activation Probes,published_baselines.csv,0.7300,0.7300,+0.0000,MATCH,
+losnet_hotpotqa_mistral7b,LOS-Net,LOS-Net,published_baselines.csv,0.7292,0.7292,-0.0000,MATCH,
+losnet_hotpotqa_mistral7b,LOS-Net,LOS-Net,scores_lsml_upcr.csv,0.7292,0.7292,-0.0000,MATCH,
+losnet_hotpotqa_mistral7b,Logits-max,Logits-max,published_baselines.csv,0.5300,0.5300,+0.0000,MATCH,
+losnet_hotpotqa_mistral7b,Logits-mean,Logits-mean,published_baselines.csv,0.6100,0.6100,+0.0000,MATCH,
+losnet_hotpotqa_mistral7b,Logits-min,Logits-min,published_baselines.csv,0.6100,0.6100,+0.0000,MATCH,
+losnet_hotpotqa_mistral7b,Probas-max,Probas-max,published_baselines.csv,0.5000,0.5000,+0.0000,MATCH,
+losnet_hotpotqa_mistral7b,Probas-mean,Probas-mean,published_baselines.csv,0.6300,0.6300,+0.0000,MATCH,
+losnet_hotpotqa_mistral7b,Probas-min,Probas-min,published_baselines.csv,0.5800,0.5800,+0.0000,MATCH,
+losnet_hotpotqa_mistral7b,Semantic Entropy,Semantic Entropy,published_baselines.csv,0.6766,0.6766,+0.0000,MATCH,
+losnet_hotpotqa_mistral7b,p(True),p(True),published_baselines.csv,0.5400,0.5400,+0.0000,MATCH,
+noise_gsm8k_mistral7b,Noise Injection,Noise Injection,scores_lsml_upcr.csv,0.7850,0.7850,+0.0000,MATCH,
+noise_gsm8k_mistral7b,Noise Injection,Noise Injection,reasoning_benchmark.csv,0.7850,0.7850,+0.0000,MATCH,
+noise_gsm8k_phi3mini,Noise Injection,Noise Injection,scores_lsml_upcr.csv,0.7251,0.7251,-0.0000,MATCH,
+noise_gsm8k_phi3mini,Noise Injection,Noise Injection,reasoning_benchmark.csv,0.7251,0.7251,-0.0000,MATCH,
+sciq_llama8b,HCPD,HCPD,published_baselines.csv,0.8604,0.8604,+0.0000,MATCH,
+sciq_llama8b,HCPD,HCPD (arXiv 2606.12900),scores_lsml_upcr.csv,0.8604,0.8604,+0.0000,MATCH,
+sciq_llama8b,Perplexity,Perplexity,published_baselines.csv,0.6612,0.6612,+0.0000,MATCH,
+sciq_llama8b,SAPLMA,SAPLMA,published_baselines.csv,0.8563,0.8563,+0.0000,MATCH,
+sciq_llama8b,Semantic Entropy,Semantic Entropy,published_baselines.csv,0.7781,0.7781,+0.0000,MATCH,
+sciq_llama8b,TSV,TSV,published_baselines.csv,0.8001,0.8001,+0.0000,MATCH,
+se_nq_open_llama8b,HCPD,HCPD,published_baselines.csv,0.9038,0.9038,+0.0000,MATCH,
+se_nq_open_llama8b,HCPD,HCPD (arXiv 2606.12900),scores_lsml_upcr.csv,0.9038,0.9038,+0.0000,MATCH,
+se_nq_open_llama8b,Perplexity,Perplexity,published_baselines.csv,0.5792,0.5792,+0.0000,MATCH,
+se_nq_open_llama8b,SAPLMA,SAPLMA,published_baselines.csv,0.7623,0.7623,-0.0000,MATCH,
+se_nq_open_llama8b,Semantic Entropy,Semantic Entropy,published_baselines.csv,0.6104,0.6104,+0.0000,MATCH,
+se_nq_open_llama8b,TSV,TSV,published_baselines.csv,0.7017,0.7017,+0.0000,MATCH,
+se_squad_v2_llama8b,FEPoID (ALS ceiling),FEPoID (ALS ceiling),published_baselines.csv,0.6377,0.6377,+0.0000,MATCH,
+se_squad_v2_llama8b,Lexical Similarity (ALS),Lexical Similarity (ALS),published_baselines.csv,0.5988,0.5988,+0.0000,MATCH,
+se_squad_v2_llama8b,Pred. Entropy (ALS),Pred. Entropy (ALS),published_baselines.csv,0.5703,0.5703,+0.0000,MATCH,
+se_squad_v2_llama8b,Semantic Entropy (ALS),Semantic Entropy (ALS),published_baselines.csv,0.5518,0.5518,+0.0000,MATCH,
+seiclr_triviaqa_opt30b,Semantic Entropy (SE-ICLR'23),Semantic Entropy (SE-ICLR'23),scores_lsml_upcr.csv,0.8300,0.8300,+0.0000,MATCH,
+semenergy_triviaqa_qwen3_8b,Semantic Energy,Semantic Energy,scores_lsml_upcr.csv,0.7480,0.7480,+0.0000,MATCH,
+spilled_triviaqa_llama8b,FEPoID (ALS ceiling),FEPoID (ALS ceiling),published_baselines.csv,0.7516,0.7516,+0.0000,MATCH,
+spilled_triviaqa_llama8b,HARP,HARP,published_baselines.csv,0.9280,0.9280,+0.0000,MATCH,
+spilled_triviaqa_llama8b,HCPD,HCPD,published_baselines.csv,0.8625,0.8625,+0.0000,MATCH,
+spilled_triviaqa_llama8b,HCPD,HCPD (arXiv 2606.12900),scores_lsml_upcr.csv,0.8625,0.8625,+0.0000,MATCH,
+spilled_triviaqa_llama8b,Lexical Similarity (ALS),Lexical Similarity (ALS),published_baselines.csv,0.6838,0.6838,+0.0000,MATCH,
+spilled_triviaqa_llama8b,Perplexity,Perplexity,published_baselines.csv,0.8062,0.8062,+0.0000,MATCH,
+spilled_triviaqa_llama8b,Pred. Entropy (ALS),Pred. Entropy (ALS),published_baselines.csv,0.6859,0.6859,-0.0000,MATCH,
+spilled_triviaqa_llama8b,SAPLMA,SAPLMA,published_baselines.csv,0.7851,0.7851,+0.0000,MATCH,
+spilled_triviaqa_llama8b,Semantic Entropy,Semantic Entropy,published_baselines.csv,0.7871,0.7871,+0.0000,MATCH,
+spilled_triviaqa_llama8b,TSV,TSV,published_baselines.csv,0.7978,0.7978,-0.0000,MATCH,
+truthfulqa_llama8b,TSV (arXiv 2503.01917),TSV (arXiv 2503.01917),scores_lsml_upcr.csv,0.8420,0.8420,-0.0000,MATCH,
+ars_gsm8k_r1distill8b,,EigenScore (vanilla),reasoning_benchmark.csv,,0.5298,,ONLY_B,"baseline row from our OWN benchmark runs (citable=yes) — competitors_verified.csv holds published paper-table values only, so absence is structural, not a conflict"
+ars_gsm8k_r1distill8b,,Perplexity,reasoning_benchmark.csv,,0.5848,,ONLY_B,"baseline row from our OWN benchmark runs (citable=yes) — competitors_verified.csv holds published paper-table values only, so absence is structural, not a conflict"
+ars_gsm8k_r1distill8b,,Semantic Entropy,reasoning_benchmark.csv,,0.6198,,ONLY_B,"baseline row from our OWN benchmark runs (citable=yes) — competitors_verified.csv holds published paper-table values only, so absence is structural, not a conflict"
+inside_coqa_llama7b_n30_pilot,,INSIDE,scores_lsml_upcr.csv,,0.8040,,ONLY_B,"cell has no row in competitors_verified.csv (out-of-scope cell or no published anchor) — coverage fact, not a conflict"
+lapeigvals_gsm8k_llama3b,,Answer entropy (K=10),reasoning_benchmark.csv,,0.7653,,ONLY_B,"baseline row from our OWN benchmark runs (citable=yes) — competitors_verified.csv holds published paper-table values only, so absence is structural, not a conflict"
+lapeigvals_gsm8k_llama3b,,Noise Injection,reasoning_benchmark.csv,,0.8270,,ONLY_B,"baseline row from our OWN benchmark runs (citable=yes) — competitors_verified.csv holds published paper-table values only, so absence is structural, not a conflict"
+lapeigvals_gsm8k_phi35,,Perplexity,reasoning_benchmark.csv,,0.7591,,ONLY_B,"baseline row from our OWN benchmark runs (citable=yes) — competitors_verified.csv holds published paper-table values only, so absence is structural, not a conflict"
+lapeigvals_gsm8k_phi35,,Sequence logprob,reasoning_benchmark.csv,,0.8078,,ONLY_B,"baseline row from our OWN benchmark runs (citable=yes) — competitors_verified.csv holds published paper-table values only, so absence is structural, not a conflict"
+math500_r1distill8b,,ARS (CCS),reasoning_benchmark.csv,,0.8638,,ONLY_B,"cell has no row in competitors_verified.csv (out-of-scope cell or no published anchor) — coverage fact, not a conflict"
+math500_r1distill8b,,EigenScore (vanilla),reasoning_benchmark.csv,,0.7589,,ONLY_B,"cell has no row in competitors_verified.csv (out-of-scope cell or no published anchor) — coverage fact, not a conflict"
+math500_r1distill8b,,Perplexity,reasoning_benchmark.csv,,0.4096,,ONLY_B,"cell has no row in competitors_verified.csv (out-of-scope cell or no published anchor) — coverage fact, not a conflict"
+math500_r1distill8b,,Semantic Entropy,reasoning_benchmark.csv,,0.4360,,ONLY_B,"cell has no row in competitors_verified.csv (out-of-scope cell or no published anchor) — coverage fact, not a conflict"
+noise_gsm8k_mistral7b,,Answer entropy (K=10),reasoning_benchmark.csv,,0.7585,,ONLY_B,"baseline row from our OWN benchmark runs (citable=yes) — competitors_verified.csv holds published paper-table values only, so absence is structural, not a conflict"
+noise_gsm8k_phi3mini,,Answer entropy (K=10),reasoning_benchmark.csv,,0.6586,,ONLY_B,"baseline row from our OWN benchmark runs (citable=yes) — competitors_verified.csv holds published paper-table values only, so absence is structural, not a conflict"
