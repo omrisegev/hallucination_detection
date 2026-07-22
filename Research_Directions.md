@@ -355,7 +355,21 @@ during selection. All results in `results/selector_bench/comparison.csv` + the d
 `docs/research_notes/selector_bench_results.md`; no pass/fail gatekeeping — the researcher reads
 the full leaderboard.
 
-**Step-186 outcome (headline numbers)**:
+**UPDATE (Steps 194-195, 2026-07-22) — two supersessions of the Step-186 verdict below:**
+1. **Best learned selector is now `a6.pl_dufs`** (pseudo-label-supervised gates, Omri's idea):
+   macro 0.7524 on the 25 in-scope cells, significantly better than `a2.dufs` (+0.22pp,
+   p=0.0273) and the FIRST label-free selector to nominally edge GOOD_5 (0.7519, p=0.17 n.s.).
+   Both pre-registered gates FAILED (mechanism rho 0.207 vs 0.30 bar; effect below +1.0pp), so
+   the claim stays "GOOD_5 parity, GOOD_6 gap not closed" — but it is the selector of record.
+2. **A fixed subset that honestly beats GOOD_6 exists.** The sizes-3-5 exhaustive sweep over
+   the 30-view pool (Step 194/195, `results/subset_sweep_c46/`) yields a LOCO consensus stable
+   in 22/25 folds: `{cusum_max, logprob_margin, min_energy, spectral_entropy, topk_tail_mass}`
+   — LOCO-honest +1.59pp vs GOOD_5 (19W/2L); vs GOOD_6 on the same 24 cells 0.7705 vs 0.7632
+   (+0.73pp, p=0.029), sign label-free. Coverage 24/25 (`inside_coqa_llama7b` lacks the energy
+   views). This REVERSES the Step-154 "LOCO cannot beat GOOD_5" verdict — the enlarged pool
+   changed the answer. Pruning stays negative (LOCO drop list empty in all folds).
+
+**Step-186 outcome (headline numbers, superseded as above)**:
 - **No learned selector beats the curated subsets.** c46/repgrid-19 macro: GOOD_6 0.7440 >
   top_macro_5 0.7364 > GOOD_5 0.7328; best learned = **GroupFS `a2.select` 0.7323 — a
   label-free TIE with GOOD_5** (first learned selector to reach it); everything else trails by
@@ -451,7 +465,7 @@ error localization.
 *(Single authoritative list — updated 2026-07-02, post streaming pilot Step 148)*
 
 **Now — no GPU needed**
-0. ~~Feature-subset selection: memo (Step 185), full bench (Step 186), punch-list + split-half oracle (Step 189)~~ ✅ done — **next**: re-scope with Ofir/Bracha (honest headroom is ~1-2pp, not ~7-8pp — the split-half oracle found the original prize was mostly winner's-curse); do the Step-187 feature-sign fix first regardless (cheap, independent win)
+0. ~~Feature-subset selection: memo (Step 185), full bench (Step 186), punch-list + split-half oracle (Step 189), a6 pseudo-label gates + 30-view LOCO sweep (Steps 194-195)~~ ✅ done — **the sweep found a NEW 5-view subset that honestly beats GOOD_6** (+0.73pp, p=0.029, LOCO-stable 22/25 folds; see Extension G update above). **Next**: name it, add to `REFERENCE_SUBSETS`, run the report chain, present to Ofir/Bracha; decide the sizes-3-6 extension (~3-4 days CPU, stop-rule-justified)
 1. ~~L-SML literature search (Item 1)~~ ✅ done (Step 139)
 2. ~~Logistic regression oracle `scripts/logistic_oracle.py` (Item 2)~~ ✅ done (Steps 142–143, 147)
 3. ~~Streaming pivot pilot (Extension E)~~ ✅ done (Step 148 — G1 PASS / G2 FAIL; earliest-prefix edge is the surviving thread)
