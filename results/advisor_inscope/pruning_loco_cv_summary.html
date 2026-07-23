@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stage 3 LOCO CV Feature Pruning Results</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f9; color: #333; margin: 0; padding: 20px; }
+        h1, h2 { color: #1e293b; }
+        .header { background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .card { background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .metric { text-align: center; padding: 15px; background: #e0f2fe; border-radius: 8px; font-size: 24px; font-weight: bold; color: #0369a1; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { padding: 10px 12px; border: 1px solid #e2e8f0; text-align: left; }
+        th { background: #f8fafc; color: #475569; }
+        tr:nth-child(even) { background: #f8fafc; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Stage 3 Leave-One-Cell-Out (LOCO) CV Feature Pruning</h1>
+    <p>Honest cross-validated selection of pruning hyperparameters across 25 in-scope cells (Zero Cell-Level Overfitting).</p>
+</div>
+
+<div class="grid">
+    <div class="card">
+        <h2>LOCO CV Honest Performance</h2>
+        <div class="metric">0.7468 Macro AUROC</div>
+        <p style="text-align:center; margin-top:10px;">Mean Subset Size: <b>10.6 features</b> (pruned down from 20.5)</p>
+    </div>
+    <div class="card">
+        <h2>Domain Breakdown</h2>
+        <p><b>QA Cells (10):</b> <span style="font-weight:bold; color:#059669;">0.7059 Macro AUROC</span></p>
+        <p><b>Math/Reasoning (15):</b> <span style="font-weight:bold; color:#2563eb;">0.7741 Macro AUROC</span></p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Per-Cell Held-Out LOCO CV Results</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Cell Key</th>
+                <th>Domain</th>
+                <th>Chosen K_max</th>
+                <th>Chosen λ₂ Mult</th>
+                <th>Held-Out AUROC</th>
+                <th>Selected Size</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>ars_gsm8k_r1distill8b</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.6987</b></td>
+                <td>11</td>
+            </tr><tr>
+                <td><b>epr_triviaqa_mistral24b</b></td>
+                <td>QA</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.7371</b></td>
+                <td>8</td>
+            </tr><tr>
+                <td><b>inside_coqa_llama7b</b></td>
+                <td>QA</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.5432</b></td>
+                <td>9</td>
+            </tr><tr>
+                <td><b>internalstates_gsm8k_qwen25_7b</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.6846</b></td>
+                <td>13</td>
+            </tr><tr>
+                <td><b>lapeigvals_gsm8k_llama3b</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.7033</b></td>
+                <td>6</td>
+            </tr><tr>
+                <td><b>lapeigvals_gsm8k_llama8b</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.8026</b></td>
+                <td>10</td>
+            </tr><tr>
+                <td><b>lapeigvals_gsm8k_mistral24b</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.8369</b></td>
+                <td>17</td>
+            </tr><tr>
+                <td><b>lapeigvals_gsm8k_nemo</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.7878</b></td>
+                <td>11</td>
+            </tr><tr>
+                <td><b>lapeigvals_gsm8k_phi35</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.8051</b></td>
+                <td>13</td>
+            </tr><tr>
+                <td><b>losnet_hotpotqa_mistral7b</b></td>
+                <td>QA</td>
+                <td>15</td>
+                <td>4.0</td>
+                <td><b>0.5702</b></td>
+                <td>14</td>
+            </tr><tr>
+                <td><b>math500_dsmath7b</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.7888</b></td>
+                <td>11</td>
+            </tr><tr>
+                <td><b>math500_qwenmath7b</b></td>
+                <td>math</td>
+                <td>20</td>
+                <td>2.0</td>
+                <td><b>0.8962</b></td>
+                <td>20</td>
+            </tr><tr>
+                <td><b>math500_r1distill8b</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.8386</b></td>
+                <td>7</td>
+            </tr><tr>
+                <td><b>math500_r1distill8b_mn4096</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.8335</b></td>
+                <td>5</td>
+            </tr><tr>
+                <td><b>noise_gsm8k_mistral7b</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.7732</b></td>
+                <td>11</td>
+            </tr><tr>
+                <td><b>noise_gsm8k_phi3mini</b></td>
+                <td>math</td>
+                <td>15</td>
+                <td>4.0</td>
+                <td><b>0.6816</b></td>
+                <td>15</td>
+            </tr><tr>
+                <td><b>sciq_llama8b</b></td>
+                <td>QA</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.7439</b></td>
+                <td>11</td>
+            </tr><tr>
+                <td><b>se_nq_open_llama8b</b></td>
+                <td>QA</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.7381</b></td>
+                <td>8</td>
+            </tr><tr>
+                <td><b>se_squad_v2_llama8b</b></td>
+                <td>QA</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.7895</b></td>
+                <td>8</td>
+            </tr><tr>
+                <td><b>seiclr_triviaqa_opt30b</b></td>
+                <td>QA</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.5755</b></td>
+                <td>10</td>
+            </tr><tr>
+                <td><b>semenergy_triviaqa_qwen3_8b</b></td>
+                <td>QA</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.7620</b></td>
+                <td>4</td>
+            </tr><tr>
+                <td><b>spilled_triviaqa_llama8b</b></td>
+                <td>QA</td>
+                <td>15</td>
+                <td>4.0</td>
+                <td><b>0.9360</b></td>
+                <td>16</td>
+            </tr><tr>
+                <td><b>trace_gsm8k_llama8b_k10</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.8078</b></td>
+                <td>6</td>
+            </tr><tr>
+                <td><b>trace_math500_qwenmath15b_k10</b></td>
+                <td>math</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.6727</b></td>
+                <td>10</td>
+            </tr><tr>
+                <td><b>truthfulqa_llama8b</b></td>
+                <td>QA</td>
+                <td>5</td>
+                <td>8.0</td>
+                <td><b>0.6635</b></td>
+                <td>10</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

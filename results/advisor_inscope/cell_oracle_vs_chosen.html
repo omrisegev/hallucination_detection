@@ -1,0 +1,347 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<title>Per-cell: oracle ceiling vs our algorithm's chosen subset</title>
+<style>
+body{font-family:Segoe UI,system-ui,sans-serif;margin:24px;color:#1a1a19;background:#fcfcfb}
+h1{font-size:19px} p.note{color:#555;max-width:900px;line-height:1.5;font-size:13px}
+table{border-collapse:collapse;font-size:12px;width:100%}
+th{background:#f0efec;text-align:left;padding:6px 8px;position:sticky;top:0}
+td{padding:6px 8px;border-bottom:1px solid #eee;vertical-align:top}
+td.num{text-align:right;white-space:nowrap}
+td.feats{max-width:340px;font-size:11px;color:#444;word-break:break-word}
+tr.block td{background:#f7f6f3;font-weight:600;color:#666;text-transform:uppercase;font-size:11px}
+.tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600}
+.tag-ceiling{background:#f0e6c8;color:#7a5b00}
+.tag-ours{background:#dbe8f7;color:#0d4a8f}
+.wrap{overflow-x:auto}
+</style>
+</style></head><body>
+<h1>Per-cell &mdash; oracle ceiling vs
+<span class="tag tag-ours">OUR ALGORITHM</span> (a6.pl_dufs (selector of record, Step 194))</h1>
+<p class="note">
+<span class="tag tag-ceiling">CEILING</span> = the c46 30-view sweep's best
+subset for THAT cell (sizes 3-5, results/subset_sweep_c46/). This is
+LABEL-PEEKING and IN-SAMPLE (chosen using that cell's own labels) &mdash;
+it is an upper bound on what any label-free method could achieve on this
+cell, not an honest, achievable number. It is shown to answer "how much is
+left on the table", not as a competitor row.<br><br>
+<span class="tag tag-ours">OUR ALGORITHM</span> = a6.pl_dufs, the label-free
+selector adopted as the SELECTOR OF RECORD (HISTORY Step 194) &mdash; this is
+the actual output of our FS pipeline, run and scored with zero label access.
+GOOD_5/GOOD_6 (right two columns) are shown for reference only: they are
+hand-curated FIXED subsets, not our algorithm's output.<br><br>
+Gap (pp) = oracle ceiling &minus; our algorithm, colored green (&le;1pp),
+amber (&le;5pp), red (&gt;5pp). Feature overlap = Jaccard between the
+oracle's chosen features and ours &mdash; low overlap with a small gap means
+different subsets reach similar performance; high gap with low overlap means
+our algorithm is missing the cell's actual signal.
+Generated 2026-07-23.</p>
+<div class="wrap"><table>
+<tr><th>cell</th><th>ceiling AUROC</th><th>size</th>
+<th>ceiling features</th><th>ours AUROC</th><th>size</th>
+<th>our features</th><th>gap (pp)</th><th>feat overlap</th>
+<th>GOOD_5</th><th>GOOD_6</th></tr>
+<tr class="block"><td colspan="10">QA (10 cells)</td></tr><tr>
+<td>epr_triviaqa_mistral24b</td>
+<td class="num">0.760</td>
+<td class="num">5</td>
+<td class="feats">hl_ratio|epr_spilled|min_spilled|min_energy|topk_tail_mass</td>
+<td class="num">0.745</td>
+<td class="num">20</td>
+<td class="feats">epr|trace_length|spectral_entropy|low_band_power|hl_ratio|sw_var_peak|cusum_max|epr_spilled|sw_var_peak_spilled|cusum_max_spilled|epr_energy|min_energy|sw_var_peak_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+1.52</td>
+<td class="num">0.19</td>
+<td class="num">0.707</td>
+<td class="num">0.733</td>
+</tr><tr>
+<td>inside_coqa_llama7b</td>
+<td class="num">0.777</td>
+<td class="num">4</td>
+<td class="feats">spectral_entropy|stft_spectral_entropy|mean_top1_logprob|topk_tail_mass</td>
+<td class="num">0.526</td>
+<td class="num">22</td>
+<td class="feats">epr|spectral_entropy|low_band_power|dominant_freq|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|pe_mean|hurst_exponent|cusum_max|epr_spilled|sw_var_peak_spilled|cusum_max_spilled|epr_energy|cusum_max_energy|mean_top1_logprob|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#d03b3b;font-weight:600">+25.05</td>
+<td class="num">0.18</td>
+<td class="num">0.684</td>
+<td class="num">0.667</td>
+</tr><tr>
+<td>losnet_hotpotqa_mistral7b</td>
+<td class="num">0.622</td>
+<td class="num">5</td>
+<td class="feats">spectral_entropy|stft_max_high_power|pe_mean|sw_var_peak_spilled|sw_var_peak_energy</td>
+<td class="num">0.570</td>
+<td class="num">17</td>
+<td class="feats">epr|spectral_entropy|low_band_power|hl_ratio|spectral_centroid|sw_var_peak|cusum_max|epr_spilled|sw_var_peak_spilled|cusum_max_spilled|epr_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#d03b3b;font-weight:600">+5.16</td>
+<td class="num">0.10</td>
+<td class="num">0.575</td>
+<td class="num">0.581</td>
+</tr><tr>
+<td>sciq_llama8b</td>
+<td class="num">0.771</td>
+<td class="num">5</td>
+<td class="feats">spectral_entropy|spectral_centroid|sw_var_peak_energy|logprob_margin|varentropy</td>
+<td class="num">0.740</td>
+<td class="num">22</td>
+<td class="feats">epr|trace_length|spectral_entropy|low_band_power|hl_ratio|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|cusum_max|epr_spilled|sw_var_peak_spilled|cusum_max_spilled|epr_energy|min_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+3.03</td>
+<td class="num">0.12</td>
+<td class="num">0.738</td>
+<td class="num">0.748</td>
+</tr><tr>
+<td>se_nq_open_llama8b</td>
+<td class="num">0.760</td>
+<td class="num">5</td>
+<td class="feats">spectral_entropy|epr_energy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num">0.751</td>
+<td class="num">19</td>
+<td class="feats">epr|trace_length|spectral_entropy|low_band_power|hl_ratio|sw_var_peak|cusum_max|epr_spilled|sw_var_peak_spilled|cusum_max_spilled|epr_energy|min_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#0ca30c;font-weight:600">+0.82</td>
+<td class="num">0.26</td>
+<td class="num">0.718</td>
+<td class="num">0.730</td>
+</tr><tr>
+<td>se_squad_v2_llama8b</td>
+<td class="num">0.838</td>
+<td class="num">5</td>
+<td class="feats">epr|trace_length|spectral_entropy|min_energy|logprob_margin</td>
+<td class="num">0.806</td>
+<td class="num">20</td>
+<td class="feats">epr|trace_length|spectral_entropy|low_band_power|hl_ratio|dominant_freq|spectral_centroid|rpdi|sw_var_peak|cusum_max|epr_spilled|sw_var_peak_spilled|cusum_max_spilled|epr_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+3.19</td>
+<td class="num">0.19</td>
+<td class="num">0.798</td>
+<td class="num">0.811</td>
+</tr><tr>
+<td>seiclr_triviaqa_opt30b</td>
+<td class="num">0.671</td>
+<td class="num">3</td>
+<td class="feats">cusum_max|cusum_shift_idx|min_energy</td>
+<td class="num">0.567</td>
+<td class="num">18</td>
+<td class="feats">epr|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_spectral_entropy|sw_var_peak|cusum_max|epr_spilled|epr_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#d03b3b;font-weight:600">+10.38</td>
+<td class="num">0.05</td>
+<td class="num">0.595</td>
+<td class="num">0.588</td>
+</tr><tr>
+<td>semenergy_triviaqa_qwen3_8b</td>
+<td class="num">0.831</td>
+<td class="num">5</td>
+<td class="feats">low_band_power|sw_var_peak|cusum_max_energy|varentropy|topk_tail_mass</td>
+<td class="num">0.789</td>
+<td class="num">20</td>
+<td class="feats">epr|trace_length|spectral_entropy|low_band_power|hl_ratio|rpdi|sw_var_peak|cusum_max|epr_spilled|sw_var_peak_spilled|cusum_max_spilled|epr_energy|sw_var_peak_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+4.23</td>
+<td class="num">0.25</td>
+<td class="num">0.801</td>
+<td class="num">0.816</td>
+</tr><tr>
+<td>spilled_triviaqa_llama8b</td>
+<td class="num">0.993</td>
+<td class="num">5</td>
+<td class="feats">spectral_entropy|cusum_shift_idx|epr_spilled|cusum_max_spilled|varentropy</td>
+<td class="num">0.933</td>
+<td class="num">23</td>
+<td class="feats">epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|sw_var_peak|cusum_max|epr_spilled|sw_var_peak_spilled|cusum_max_spilled|min_spilled|epr_energy|min_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#d03b3b;font-weight:600">+5.93</td>
+<td class="num">0.17</td>
+<td class="num">0.934</td>
+<td class="num">0.942</td>
+</tr><tr>
+<td>truthfulqa_llama8b</td>
+<td class="num">0.703</td>
+<td class="num">5</td>
+<td class="feats">trace_length|spectral_entropy|rpdi|epr_energy|min_energy</td>
+<td class="num">0.663</td>
+<td class="num">18</td>
+<td class="feats">epr|trace_length|spectral_entropy|low_band_power|hl_ratio|stft_max_high_power|stft_spectral_entropy|sw_var_peak|cusum_max|epr_spilled|cusum_max_spilled|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+4.01</td>
+<td class="num">0.10</td>
+<td class="num">0.660</td>
+<td class="num">0.657</td>
+</tr><tr class="block"><td colspan="10">math (15 cells)</td></tr><tr>
+<td>ars_gsm8k_r1distill8b</td>
+<td class="num">0.798</td>
+<td class="num">5</td>
+<td class="feats">rpdi|cusum_max|cusum_max_spilled|epr_energy|sw_var_peak_energy</td>
+<td class="num">0.709</td>
+<td class="num">19</td>
+<td class="feats">epr|spectral_entropy|low_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_spectral_entropy|sw_var_peak|cusum_max|epr_spilled|cusum_max_spilled|epr_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#d03b3b;font-weight:600">+8.84</td>
+<td class="num">0.14</td>
+<td class="num">0.750</td>
+<td class="num">0.762</td>
+</tr><tr>
+<td>internalstates_gsm8k_qwen25_7b</td>
+<td class="num">0.772</td>
+<td class="num">5</td>
+<td class="feats">spectral_entropy|hurst_exponent|cusum_max_spilled|epr_energy|logprob_margin</td>
+<td class="num">0.709</td>
+<td class="num">19</td>
+<td class="feats">epr|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_spectral_entropy|sw_var_peak|cusum_max|epr_spilled|cusum_max_spilled|epr_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#d03b3b;font-weight:600">+6.32</td>
+<td class="num">0.20</td>
+<td class="num">0.704</td>
+<td class="num">0.704</td>
+</tr><tr>
+<td>lapeigvals_gsm8k_llama3b</td>
+<td class="num">0.725</td>
+<td class="num">5</td>
+<td class="feats">cusum_max|sw_var_peak_energy|cusum_max_energy|logprob_margin|varentropy</td>
+<td class="num">0.709</td>
+<td class="num">18</td>
+<td class="feats">epr|spectral_entropy|low_band_power|hl_ratio|dominant_freq|spectral_centroid|sw_var_peak|cusum_max|epr_spilled|cusum_max_spilled|epr_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+1.62</td>
+<td class="num">0.21</td>
+<td class="num">0.685</td>
+<td class="num">0.703</td>
+</tr><tr>
+<td>lapeigvals_gsm8k_llama8b</td>
+<td class="num">0.838</td>
+<td class="num">5</td>
+<td class="feats">trace_length|rpdi|min_energy|sw_var_peak_energy|logprob_margin</td>
+<td class="num">0.820</td>
+<td class="num">23</td>
+<td class="feats">epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_spectral_entropy|sw_var_peak|hurst_exponent|cusum_max|epr_spilled|cusum_max_spilled|epr_energy|min_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+1.74</td>
+<td class="num">0.12</td>
+<td class="num">0.815</td>
+<td class="num">0.819</td>
+</tr><tr>
+<td>lapeigvals_gsm8k_mistral24b</td>
+<td class="num">0.872</td>
+<td class="num">5</td>
+<td class="feats">dominant_freq|sw_var_peak|cusum_max_energy|logprob_margin|varentropy</td>
+<td class="num">0.843</td>
+<td class="num">22</td>
+<td class="feats">epr|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|sw_var_peak|cusum_max|epr_spilled|sw_var_peak_spilled|cusum_max_spilled|min_spilled|epr_energy|min_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+2.88</td>
+<td class="num">0.23</td>
+<td class="num">0.801</td>
+<td class="num">0.809</td>
+</tr><tr>
+<td>lapeigvals_gsm8k_nemo</td>
+<td class="num">0.824</td>
+<td class="num">5</td>
+<td class="feats">trace_length|spectral_entropy|epr_energy|varentropy|topk_tail_mass</td>
+<td class="num">0.796</td>
+<td class="num">19</td>
+<td class="feats">epr|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|sw_var_peak|cusum_max|epr_spilled|cusum_max_spilled|epr_energy|min_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+2.82</td>
+<td class="num">0.20</td>
+<td class="num">0.782</td>
+<td class="num">0.801</td>
+</tr><tr>
+<td>lapeigvals_gsm8k_phi35</td>
+<td class="num">0.828</td>
+<td class="num">5</td>
+<td class="feats">trace_length|stft_spectral_entropy|logprob_margin|varentropy|topk_tail_mass</td>
+<td class="num">0.808</td>
+<td class="num">16</td>
+<td class="feats">epr|spectral_entropy|low_band_power|hl_ratio|dominant_freq|spectral_centroid|sw_var_peak|cusum_max|epr_spilled|cusum_max_spilled|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+2.01</td>
+<td class="num">0.17</td>
+<td class="num">0.803</td>
+<td class="num">0.812</td>
+</tr><tr>
+<td>noise_gsm8k_mistral7b</td>
+<td class="num">0.822</td>
+<td class="num">5</td>
+<td class="feats">trace_length|spectral_entropy|rpdi|epr_energy|varentropy</td>
+<td class="num">0.787</td>
+<td class="num">20</td>
+<td class="feats">epr|trace_length|spectral_entropy|low_band_power|hl_ratio|dominant_freq|spectral_centroid|sw_var_peak|cusum_max|epr_spilled|cusum_max_spilled|epr_energy|min_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+3.42</td>
+<td class="num">0.19</td>
+<td class="num">0.785</td>
+<td class="num">0.790</td>
+</tr><tr>
+<td>noise_gsm8k_phi3mini</td>
+<td class="num">0.698</td>
+<td class="num">5</td>
+<td class="feats">epr|spectral_entropy|spectral_centroid|cusum_shift_idx|varentropy</td>
+<td class="num">0.682</td>
+<td class="num">18</td>
+<td class="feats">epr|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_spectral_entropy|sw_var_peak|cusum_max|epr_spilled|cusum_max_spilled|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+1.52</td>
+<td class="num">0.21</td>
+<td class="num">0.664</td>
+<td class="num">0.680</td>
+</tr><tr>
+<td>math500_dsmath7b</td>
+<td class="num">0.824</td>
+<td class="num">5</td>
+<td class="feats">cusum_max|min_energy|cusum_max_energy|logprob_margin|topk_tail_mass</td>
+<td class="num">0.785</td>
+<td class="num">20</td>
+<td class="feats">epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_spectral_entropy|cusum_max|epr_spilled|cusum_max_spilled|epr_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+3.93</td>
+<td class="num">0.19</td>
+<td class="num">0.751</td>
+<td class="num">0.787</td>
+</tr><tr>
+<td>math500_qwenmath7b</td>
+<td class="num">0.957</td>
+<td class="num">5</td>
+<td class="feats">epr|hl_ratio|rpdi|min_spilled|epr_energy</td>
+<td class="num">0.905</td>
+<td class="num">24</td>
+<td class="feats">epr|spectral_entropy|low_band_power|high_band_power|hl_ratio|spectral_centroid|stft_max_high_power|stft_spectral_entropy|rpdi|sw_var_peak|hurst_exponent|cusum_max|cusum_shift_idx|epr_spilled|cusum_max_spilled|epr_energy|min_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#d03b3b;font-weight:600">+5.27</td>
+<td class="num">0.16</td>
+<td class="num">0.911</td>
+<td class="num">0.890</td>
+</tr><tr>
+<td>math500_r1distill8b</td>
+<td class="num">0.881</td>
+<td class="num">5</td>
+<td class="feats">spectral_entropy|rpdi|cusum_max|min_spilled|topk_tail_mass</td>
+<td class="num">0.840</td>
+<td class="num">21</td>
+<td class="feats">epr|spectral_entropy|low_band_power|high_band_power|hl_ratio|spectral_centroid|stft_spectral_entropy|rpdi|sw_var_peak|cusum_max|epr_spilled|cusum_max_spilled|epr_energy|min_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+4.05</td>
+<td class="num">0.18</td>
+<td class="num">0.836</td>
+<td class="num">0.836</td>
+</tr><tr>
+<td>math500_r1distill8b_mn4096</td>
+<td class="num">0.876</td>
+<td class="num">5</td>
+<td class="feats">spectral_entropy|rpdi|min_energy|sw_var_peak_energy|topk_tail_mass</td>
+<td class="num">0.826</td>
+<td class="num">19</td>
+<td class="feats">epr|spectral_entropy|low_band_power|high_band_power|hl_ratio|spectral_centroid|sw_var_peak|cusum_max|epr_spilled|cusum_max_spilled|epr_energy|min_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+5.00</td>
+<td class="num">0.14</td>
+<td class="num">0.836</td>
+<td class="num">0.833</td>
+</tr><tr>
+<td>trace_gsm8k_llama8b_k10</td>
+<td class="num">0.826</td>
+<td class="num">5</td>
+<td class="feats">trace_length|rpdi|cusum_max|epr_energy|logprob_margin</td>
+<td class="num">0.810</td>
+<td class="num">24</td>
+<td class="feats">epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_spectral_entropy|sw_var_peak|hurst_exponent|cusum_max|epr_spilled|sw_var_peak_spilled|cusum_max_spilled|epr_energy|min_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+1.62</td>
+<td class="num">0.16</td>
+<td class="num">0.800</td>
+<td class="num">0.809</td>
+</tr><tr>
+<td>trace_math500_qwenmath15b_k10</td>
+<td class="num">0.729</td>
+<td class="num">5</td>
+<td class="feats">trace_length|rpdi|cusum_shift_idx|min_spilled|epr_energy</td>
+<td class="num">0.689</td>
+<td class="num">24</td>
+<td class="feats">epr|trace_length|spectral_entropy|low_band_power|high_band_power|hl_ratio|dominant_freq|spectral_centroid|stft_spectral_entropy|rpdi|sw_var_peak|hurst_exponent|cusum_max|epr_spilled|cusum_max_spilled|epr_energy|min_energy|cusum_max_energy|mean_top1_logprob|logprob_margin|mean_logprob_entropy|varentropy|renyi_entropy_2|topk_tail_mass</td>
+<td class="num" style="color:#fab219;font-weight:600">+4.04</td>
+<td class="num">0.12</td>
+<td class="num">0.665</td>
+<td class="num">0.676</td>
+</tr>
+</table></div>
+<p class="note">See <code>GLOSSARY.md</code> (repo root) for what every
+nickname in this project's reports means.</p>
+</body></html>

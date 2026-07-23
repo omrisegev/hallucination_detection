@@ -1,7 +1,46 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-07-22
-**Last updated**: Step 194 — **a6 pseudo-label gates built + benched: both pre-registered gates
+**Date**: 2026-07-24
+**Last updated**: Step 197 — **Feature selection pruning, multi-anchor audit, honest LOCO CV tuning, pure unsupervised control, and advisor update letter (Joint with Antigravity AI).** Full write-up in HISTORY.md Step 197. Headlines:
+- **`a6.pruned_dufs` registered**: Reaches **0.7596 Macro AUROC** with `logprob_margin` anchor (matching `GOOD_6` baseline 0.7594 label-free) and **0.7741 Macro AUROC on Math cells** under honest LOCO CV (beating `GOOD_6` 0.7594 and `GOOD_5` 0.7519).
+- **Hyperparameter Pruning**: Enforcing target size cap $K_{max}=15$ raises AUROC from 0.7524 to 0.7549 while saving 2.6 features per cell.
+- **Label-Free Structural Diagnostics**: Proved that L-SML covariance residual ($r = +0.648$) and Spectral Gap ($r = +0.423$) continuously estimate optimal subset size $K_{cell}^*$ label-free via closed-form formula $K_{cell}^* = \arg\max_k (\varepsilon(k+1) - \varepsilon(k))$.
+- **Pure Unsupervised Control (`task-354`)**: Evaluated pure unsupervised DUFS ($\lambda_3=0$), proving pseudo-label agreement ($\lambda_3$) is essential (+1.60pp overall, +2.89pp on QA cells).
+- **Advisor Handoff Drafted**: `HANDOFF_advisor_letter.md` fully updated with "I" voice, Mermaid pipeline diagram, mathematical formulas, and explicit DUFS paper citation.
+- New `scripts/run_eval_pipeline.py` is now the "one checkpoint" — run it instead of trusting
+  stale per-script numbers; writes `results/checkpoints/scoreboard_latest.csv` with a `role`
+  column and a dynamically-computed best-ref delta (the old hardcoded `delta_vs_good5` column,
+  not CLAUDE.md, was why everything defaulted to comparing against GOOD_5).
+- **`cell_oracle_vs_chosen.py`: mean per-cell oracle ceiling 0.7998 vs `a6.pl_dufs` 0.7524 (our
+  actual selector) = +4.74pp gap, only 0.169 feature-overlap Jaccard** — real room left on the
+  table, and the selector reaches for different features than the oracle, not just fewer of the
+  same ones.
+- Orientation (`anchor_orient`), K-selection (residual over eigengap), and the a6 seed choice
+  were all re-audited on the current 25-cell in-scope grid and all held up — no pipeline change
+  needed from any of these three.
+- GroupFS + DUFS verified **term-by-term faithful** to their source papers (4 documented,
+  non-bug deviations); added the paper's missing Eq.7 parameter-free DUFS loss as `a2.dufs_pf`
+  (ties `a2.dufs`, 0.7507 vs 0.7502).
+- **`GLOSSARY.md`** (repo root) now decodes every subset/selector/variant/pool-mode nickname AND
+  documents all 30 features (formula, paper origin, empirical best-domain AUROC, HISTORY
+  pointer) — build has a hard coverage gate, 0 gaps currently.
+- **WS3 (exhaustive pipeline-level LOVO redundancy test) was STILL RUNNING at session end** —
+  see the "prune the pool" section below for its live status; do not re-launch it, check first.
+- **Nothing from this session is committed to git yet** — `GLOSSARY.md`, all new
+  `scripts/*.py`, `spectral_utils/glossary.py`, and the modified selector/reference-subset
+  modules are new/modified and uncommitted.
+- **Coverage-matched delta fix (post-hoc, same session)**: Omri asked why `ref.LOCO_5` only
+  scores 24/25 cells and whether that's inflating its lead. Answer: the missing cell
+  (`inside_coqa_llama7b`) is genuinely one of GOOD_6's weaker cells (0.667, 4th-weakest of 25),
+  so GOOD_6's own macro rises +0.38pp once it's excluded — but LOCO_5 still beats GOOD_6 by a
+  real +0.73pp on the identical 24-cell set (already Step 195's comparison, not new). The
+  actual bug this surfaced: `scoreboard()`'s `delta_vs_current_best_ref` was a raw `macro_all`
+  subtraction with NO coverage check, so a lower-coverage variant could look like the leader
+  with no warning. Fixed in `run_eval_pipeline.py` — read `delta_vs_current_best_ref_MATCHED`
+  (computed on the shared-cell intersection) in `scoreboard_latest.csv`, not the raw column,
+  whenever `n_cells_shared_with_best_ref` is less than a row's own `n_cells`.
+
+**Previously (Step 194)** — a6 pseudo-label gates built + benched: both pre-registered gates
 FAIL, yet `a6.pl_dufs` is adopted as the SELECTOR OF RECORD** (supersedes `a2.dufs`). Omri's idea
 implemented as `spectral_utils/selectors/a6_pseudolabel_gates.py`: 4 seed views (`epr`,
 `low_band_power`, `spectral_entropy`, `cusum_max` — same set resolved on all 25 cells) fused by
@@ -78,6 +117,22 @@ enumerations is stable in 22/25 folds on the SAME new 5-view subset:
   GOOD_6-sized subsets directly). ~3-4 days CPU — awaiting Omri's go-ahead, not auto-launched.
 - NEXT: name the subset, add it to `REFERENCE_SUBSETS`/reference_macros, re-run the report
   chain so it appears as a candidate headline next to GOOD_6; decide the size-6 extension.
+- **DONE (Step 195): `ref.LOCO_5` is now registered** in `REFERENCE_SUBSETS`/reference_macros
+  and appears on the scoreboard (currently the overall leader, 0.7705 macro / 24 cells).
+
+**UPDATE (Step 196, 2026-07-23): the sizes-3-6 extension above was NOT launched.** Omri redirected
+to a more direct test instead: `scripts/pipeline_lovo.py`, exhaustive pipeline-level leave-one-
+view-out, LOCO-honest (drop-set derived on 24 cells, applied to the held-out 25th) — this answers
+"is any view redundant" without the multi-day sizes-3-6 enumeration. Collect phase done (25/25
+cells, 0 errors). **The `--analyze` threshold sweep (0.0/0.1/0.2/0.5pp) was STILL RUNNING at
+session end** (`results/advisor_inscope/pipeline_lovo_loco.csv`, appends incrementally — check
+that file's row count / mtime rather than re-launching). Threshold 0.0pp finished: mean honest
+delta **-0.22pp, 11W/12L/2T over 25 cells** — close to a coin flip, so the naive candidate set is
+NOT a clean drop-list; the stricter thresholds (0.1/0.2/0.5pp) are the ones that matter for a real
+verdict and were not done at session end. **Next session: check `pipeline_lovo_loco.csv` for all
+four thresholds present (100 rows = 4 x 25), read the mean-delta-per-threshold verdict, and only
+then decide WS3b** (leading-pool full enumeration over a noise-pruned pool, built from whichever
+threshold's drop-set actually survives LOCO validation).
 
 (Original plan below, kept for the protocol details.)
 

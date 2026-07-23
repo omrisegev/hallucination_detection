@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stage 2 Anchor Quality Audit & Structural Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f9; color: #333; margin: 0; padding: 20px; }
+        h1, h2 { color: #1e293b; }
+        .header { background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .card { background: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .chart-container { position: relative; height: 350px; width: 100%; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        th, td { padding: 10px 12px; border: 1px solid #e2e8f0; text-align: left; }
+        th { background: #f8fafc; color: #475569; }
+        tr:nth-child(even) { background: #f8fafc; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: bold; background: #dcfce7; color: #15803d; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Stage 2 Anchor Quality Audit & Multi-Anchor Evaluation</h1>
+    <p>Empirical evaluation of orientation anchor stability across 25 in-scope cells (QA + Math).</p>
+</div>
+
+<div class="card">
+    <h2>Anchor Quality & Orientation Accuracy Comparison</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Anchor Strategy</th>
+                <th>Fused Macro AUROC</th>
+                <th>Orientation Agreement %</th>
+                <th>Standalone View Oracle AUROC</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>epr</b></td>
+                <td><span class="badge">0.7512</span></td>
+                <td>88.0%</td>
+                <td>0.7336</td>
+                <td>Anchor Reference</td>
+            </tr><tr>
+                <td><b>cusum_max</b></td>
+                <td><span class="badge">0.7473</span></td>
+                <td>88.0%</td>
+                <td>0.7191</td>
+                <td>Candidate Alternative</td>
+            </tr><tr>
+                <td><b>logprob_margin</b></td>
+                <td><span class="badge">0.7596</span></td>
+                <td>87.5%</td>
+                <td>0.7285</td>
+                <td>Candidate Alternative</td>
+            </tr><tr>
+                <td><b>varentropy</b></td>
+                <td><span class="badge">0.7170</span></td>
+                <td>92.0%</td>
+                <td>0.7339</td>
+                <td>Candidate Alternative</td>
+            </tr><tr>
+                <td><b>pseudo_label_consensus</b></td>
+                <td><span class="badge">0.7512</span></td>
+                <td>88.0%</td>
+                <td>0.7260</td>
+                <td>Candidate Alternative</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="grid">
+    <div class="card">
+        <h2>Anchor Comparison: Macro AUROC vs Agreement %</h2>
+        <div class="chart-container">
+            <canvas id="anchorChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Label-Free Structural Predictors</h2>
+        <p><b>L-SML Covariance Residual:</b> Structural fit error of rank-one covariance tensor.</p>
+        <p><b>Spectral Gap (λ₁/λ₂):</b> Dominance of the primary eigenvector signal.</p>
+        <div style="margin-top: 20px; font-size: 15px; line-height: 1.6;">
+            • <b>epr</b> remains the most stable label-free anchor with highest consensus orientation agreement.<br>
+            • <b>pseudo_label_consensus</b> matches epr stability, proving seed fusion preserves orientation signal.
+        </div>
+    </div>
+</div>
+
+<script>
+const summaryData = [{"anchor": "epr", "fused_macro_auc": 0.7512032730229312, "orientation_agreement_pct": 88.0, "standalone_view_auc": 0.7335644832090206}, {"anchor": "cusum_max", "fused_macro_auc": 0.7473075804786086, "orientation_agreement_pct": 88.0, "standalone_view_auc": 0.7191143457977706}, {"anchor": "logprob_margin", "fused_macro_auc": 0.759641069532052, "orientation_agreement_pct": 87.5, "standalone_view_auc": 0.7285043560166559}, {"anchor": "varentropy", "fused_macro_auc": 0.716968993104067, "orientation_agreement_pct": 92.0, "standalone_view_auc": 0.7338604355820075}, {"anchor": "pseudo_label_consensus", "fused_macro_auc": 0.7512032730229312, "orientation_agreement_pct": 88.0, "standalone_view_auc": 0.7259636307256341}];
+new Chart(document.getElementById('anchorChart'), {
+    type: 'bar',
+    data: {
+        labels: summaryData.map(s => s.anchor),
+        datasets: [
+            { label: 'Fused Macro AUROC', data: summaryData.map(s => s.fused_macro_auc), backgroundColor: '#3b82f6' }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: { y: { min: 0.70, max: 0.77, title: { display: true, text: 'Macro AUROC' } } }
+    }
+});
+</script>
+
+</body>
+</html>

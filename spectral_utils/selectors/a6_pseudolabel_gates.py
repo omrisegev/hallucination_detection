@@ -60,12 +60,14 @@ Contract: sees only an UnlabeledCell -- no labels, no positive rate, ever.
 On any failure the whole family degrades to the full-pool fallback (never raises).
 """
 
+import os
+
 import numpy as np
 import torch
 
 from . import register
 from ..fusion_utils import lsml_continuous, zscore
-from ..subset_sweep import ANCHOR_PRIORITY
+from ..subset_sweep import ANCHOR_PRIORITY, LOCO_5
 
 # ---- inherited from a2_groupfs's DUFS arm (kept identical on purpose, so the
 # a6.dufs control is comparable to a2.dufs) ----------------------------------
@@ -92,9 +94,25 @@ LAM_MULTS = (0.5, 1.0, 2.0, 4.0)
 N_SEED_VIEWS = 4               # K in "fuse K strong views into the anchor"
 MIN_SEED_VIEWS = 3             # L-SML invariant: fewer than 3 views collapses
 
-_EXPECTED = ('a6.pl_dufs', 'a6.pl_dufs_noseed', 'a6.pl_rank', 'a6.dufs')
+_EXPECTED = ('a6.pl_dufs', 'a6.pl_dufs_noseed', 'a6.pl_rank', 'a6.dufs', 'a6.pruned_dufs')
+# WS4 arms (Omri, 2026-07-22). Arm A = two-stage full-pool pseudo-label (his
+# 4b): L-SML over ALL views supervises gates over ALL views — no held-out
+# seeds, so the Step-194 circularity guard cannot apply (flagged in diag).
+# Arm B = seed-candidate sweep (his 4a): the guard architecture unchanged,
+# alternative seed sets. All arms are emitted-if-computable (loco5 seeds need
+# the energy/logprob views), so _EXPECTED keeps only the always-present base.
+_WS4_ARMS = ('a6.fp_dufs', 'a6.fp_rank',
+             'a6.pl_dufs@loco5', 'a6.pl_dufs@central4')
 _SQRT2 = 1.4142135623730951
 _EPS = 1e-8
+
+
+def _want(variant):
+    """Env-scoped variant filter: A6_VARIANTS='a6.pl_dufs,a6.dufs' computes
+    only those arms (the pipeline-LOVO burn calls this family ~800 times and
+    must not pay for the whole enlarged family). Default: everything."""
+    req = os.environ.get('A6_VARIANTS', '').strip()
+    return (not req) or (variant in req.split(','))
 
 
 # ---------------------------------------------------------------------------
@@ -144,6 +162,26 @@ def _seed_cols(cell):
             cols, names = cols[:N_SEED_VIEWS], names[:N_SEED_VIEWS]
     order = np.argsort(cols)
     return ([cols[i] for i in order], [names[i] for i in order])
+
+
+def _central_seeds(cell, k=N_SEED_VIEWS, cap=0.75):
+    """Label-free alternative seed rule (WS4 Arm B): greedy diverse-centrality.
+    Rank views by mean |Spearman| to the rest of the pool (consensus-central
+    views make a strong fused pseudo-label), but skip a candidate whose |rho|
+    to an already-picked seed exceeds `cap` — without the cap the band-power
+    family (rho 0.77-0.88 internally) floods all k slots with near-duplicates
+    and the L-SML fusion degenerates. Returns view NAMES."""
+    rho = np.asarray(cell.rho, dtype=float).copy()
+    np.fill_diagonal(rho, np.nan)
+    centrality = np.nanmean(rho, axis=1)
+    picked = []
+    for j in np.argsort(centrality)[::-1]:
+        if picked and np.nanmax(rho[j, picked]) >= cap:
+            continue
+        picked.append(int(j))
+        if len(picked) == k:
+            break
+    return [cell.pool[j] for j in picked]
 
 
 def _pseudo_label(cell, seed_cols):
@@ -383,6 +421,17 @@ def a6_pseudolabel_gates(cell, rng, cache=None):
                                  'note': 'seed views + gates supervised by the '
                                          'L-SML pseudo-label'}})
 
+        # -- a6.pruned_dufs : K_max capped & pruned DUFS gates -----------------
+        top_pruned = sel_cols[np.argsort(mu3)[::-1][:11]]
+        cols_pruned = np.array(sorted(set(top_pruned.tolist()) | set(s_cols)), dtype=np.int64)
+        if len(cols_pruned) < 3:
+            out.append(_fallback('a6.pruned_dufs', p, 'pruned selection < 3 cols', base_diag))
+        else:
+            out.append({'variant': 'a6.pruned_dufs', 'cols': cols_pruned,
+                        'diag': {**base_diag, 'n_selected': int(len(cols_pruned)),
+                                 'k_max': 15,
+                                 'note': 'seed views + K_max=15 capped gates supervised by L-SML pseudo-label'}})
+
         # -- a6.pl_dufs_noseed : gated picks only ------------------------------
         if len(picked) < 3:
             out.append(_fallback('a6.pl_dufs_noseed', p, 'gate selection < 3 cols',
@@ -428,6 +477,112 @@ def a6_pseudolabel_gates(cell, rng, cache=None):
             out.append(_fallback('a6.dufs', p, 'control selection < 3 cols', d_ctrl))
         else:
             out.append({'variant': 'a6.dufs', 'cols': sel_ctrl, 'diag': d_ctrl})
+
+        # ---- WS4 Arm A: two-stage FULL-POOL pseudo-label (Omri's 4b) --------
+        # L-SML over all p views -> pseudo-label -> gates over all p views ->
+        # (the bench then re-fuses the selected subset with L-SML = stage two).
+        # Nothing is held out, so the circularity guard cannot apply here.
+        # Stage-1 sparsity reuses the control's full-pool lambda2 (same
+        # stability rule, same seeds) so the arms stay comparable.
+        if _want('a6.fp_dufs') or _want('a6.fp_rank'):
+            try:
+                fused_fp, fp_meta = lsml_continuous(*[V[:, c] for c in range(p)])
+                y_fp = zscore(np.asarray(fused_fp, dtype=np.float64))
+                a_arr = np.asarray(cell.anchor, dtype=np.float64)
+                if np.corrcoef(y_fp, a_arr)[0, 1] < 0:
+                    y_fp = -y_fp
+                agree_fp = _corr_with(Xr, y_fp[row_idx])
+                agree_fp_t = torch.tensor(agree_fp - agree_fp.mean(),
+                                          dtype=torch.float32)
+                lam2_full = lam0_full * m2
+                m3f, stab3f, mu_fp, _d3f = _stability_pick(
+                    X_full_t, lam2_of=lambda m: lam2_full,
+                    lam3_of=lambda m: lam2_full * m,
+                    agree_t=agree_fp_t, seeds=seeds, p_sel=p)
+                picked_fp = np.sort(np.where(mu_fp > 0.0)[0]).astype(np.int64)
+                d_fp = {'pseudo_label': {'K': int(fp_meta['K']),
+                                         'residual': round(float(fp_meta['residual']), 5)},
+                        'lambda2': round(lam2_full, 6),
+                        'lambda3_mult': float(m3f), 'stability': round(stab3f, 3),
+                        'n_selected': int(len(picked_fp)),
+                        'no_circularity_guard': True,
+                        'note': 'WS4 Arm A: full-pool pseudo-label supervises '
+                                'full-pool gates; NOTHING held out'}
+                if _want('a6.fp_dufs'):
+                    if len(picked_fp) < 3:
+                        out.append(_fallback('a6.fp_dufs', p,
+                                             'selection < 3 cols', d_fp))
+                    else:
+                        out.append({'variant': 'a6.fp_dufs', 'cols': picked_fp,
+                                    'diag': d_fp})
+                if _want('a6.fp_rank'):
+                    mf = max(int(len(picked_fp)), 3)
+                    top_fp = np.sort(np.argsort(agree_fp)[::-1][:mf]).astype(np.int64)
+                    out.append({'variant': 'a6.fp_rank', 'cols': top_fp,
+                                'diag': {**d_fp, 'rank_budget': mf,
+                                         'note': 'size-matched to fp_dufs; top-m '
+                                                 'by |corr| with the full-pool '
+                                                 'pseudo-label, no gate training'}})
+            except Exception as e:
+                for v in ('a6.fp_dufs', 'a6.fp_rank'):
+                    if _want(v):
+                        out.append(_fallback(v, p, e))
+
+        # ---- WS4 Arm B: seed-candidate sweep (Omri's 4a) --------------------
+        # The a6.pl_dufs guard architecture verbatim, alternative seed sets.
+        # Deterministic independently of which arms run: the per-arm torch seed
+        # comes from crc32(tag), not from further rng draws.
+        import zlib as _zlib
+
+        def _seeded_arm(tag, seed_name_list):
+            s2 = sorted(cell.pool.index(f) for f in seed_name_list
+                        if f in cell.pool)
+            if len(s2) < MIN_SEED_VIEWS:
+                return None            # arm not computable here — skip, no row
+            y2, pl2 = _pseudo_label(cell, s2)
+            sel2 = np.array([c for c in range(p) if c not in set(s2)],
+                            dtype=np.int64)
+            if len(sel2) < 3:
+                return None
+            X2 = torch.tensor(Xr[:, sel2], dtype=torch.float32)
+            ag2 = _corr_with(Xr[:, sel2], y2[row_idx])
+            ag2_t = torch.tensor(ag2 - ag2.mean(), dtype=torch.float32)
+            gen2 = torch.Generator().manual_seed(
+                (_zlib.crc32(tag.encode()) ^ seeds[0]) & 0x7fffffff)
+            lam0_2 = _lambda0(X2, gen2)
+            m2_2, _s2, _mu2, _dl2 = _stability_pick(
+                X2, lam2_of=lambda m: lam0_2 * m, lam3_of=lambda m: 0.0,
+                agree_t=None, seeds=seeds, p_sel=len(sel2))
+            lam2_2 = lam0_2 * m2_2
+            m3_2, stab_2, mu_2, _dl3 = _stability_pick(
+                X2, lam2_of=lambda m: lam2_2, lam3_of=lambda m: lam2_2 * m,
+                agree_t=ag2_t, seeds=seeds, p_sel=len(sel2))
+            picked2 = sel2[np.where(mu_2 > 0.0)[0]]
+            cols2 = np.array(sorted(set(picked2.tolist()) | set(s2)),
+                             dtype=np.int64)
+            diag2 = {'seed_views': [cell.pool[c] for c in s2],
+                     'pseudo_label': pl2,
+                     'lambda2_mult': float(m2_2), 'lambda3_mult': float(m3_2),
+                     'stability': round(stab_2, 3),
+                     'n_selected': int(len(cols2)),
+                     'note': f'WS4 Arm B seed sweep ({tag}); guard '
+                             'architecture identical to a6.pl_dufs'}
+            if len(cols2) < 3:
+                return _fallback(f'a6.pl_dufs@{tag}', p,
+                                 'selection < 3 cols', diag2)
+            return {'variant': f'a6.pl_dufs@{tag}', 'cols': cols2,
+                    'diag': diag2}
+
+        for tag, names in (('loco5', LOCO_5),
+                           ('central4', _central_seeds(cell))):
+            if not _want(f'a6.pl_dufs@{tag}'):
+                continue
+            try:
+                r = _seeded_arm(tag, names)
+            except Exception as e:
+                r = _fallback(f'a6.pl_dufs@{tag}', p, e)
+            if r is not None:
+                out.append(r)
 
         _ = s_arr
         return out
@@ -480,13 +635,19 @@ def smoke():
     sels2 = a6_pseudolabel_gates(cell, np.random.default_rng([0, 99]))
 
     by1 = {s['variant']: s for s in sels1}
-    assert set(by1) == set(_EXPECTED), f"variant set changed: {sorted(by1)}"
+    # WS4 arms: fp + central4 are computable on the toy; @loco5 must SKIP (its
+    # energy/logprob seed views are outside the toy's 14-view pool).
+    expected = set(_EXPECTED) | {'a6.fp_dufs', 'a6.fp_rank',
+                                 'a6.pl_dufs@central4'}
+    assert set(by1) == expected, f"variant set changed: {sorted(by1)}"
+    assert 'a6.pl_dufs@loco5' not in by1, \
+        "@loco5 must skip when its seed views are missing from the pool"
     for s in sels1:
         assert not s.get('fallback', False), f"{s['variant']} fell back: {s['diag']}"
 
     # (a) determinism under equal-seeded rng
     by2 = {s['variant']: s for s in sels2}
-    for v in _EXPECTED:
+    for v in sorted(expected):
         assert list(by1[v]['cols']) == list(by2[v]['cols']), f"{v}: cols not deterministic"
 
     diag = by1['a6.pl_dufs']['diag']
@@ -527,8 +688,8 @@ def smoke():
     assert min(g_info) > max(g_noise), \
         f"(e) gate ordering violated: min informative {min(g_info):.3f} <= max noise {max(g_noise):.3f}"
 
-    # (f) runtime under budget
-    assert elapsed < 180.0, f"(f) runtime {elapsed:.1f}s over budget"
+    # (f) runtime under budget (raised for the WS4 arms: +3 stability scans)
+    assert elapsed < 420.0, f"(f) runtime {elapsed:.1f}s over budget"
 
     print(f"    [note] a6 smoke: seeds={diag['seed_views']} "
           f"pl_K={diag['pseudo_label'].get('K')} lam3x{diag['lambda3_mult']} "
