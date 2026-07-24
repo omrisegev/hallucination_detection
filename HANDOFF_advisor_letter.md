@@ -31,7 +31,7 @@ In the original DUFS paper, the target feature budget K is specified by the user
 
 ### Performance Scoreboard
 
-Here is where our feature selection variants and baseline benchmarks stand across the 25 in-scope cells (canonical numbers from `results/selector_bench/comparison_inscope.csv`):
+Here is where our feature selection variants and baseline benchmarks stand across the 25 in-scope cells (canonical numbers from `results/selector_bench/comparison_inscope.csv` and `results/advisor_inscope/a6_pruned_dufs_postfix_results.csv`):
 
 | Selector / Variant | 25-Cell Macro | Math Macro (15) | QA Macro (10) | Mean Features | Notes |
 |---|:---:|:---:|:---:|:---:|---|
@@ -41,6 +41,7 @@ Here is where our feature selection variants and baseline benchmarks stand acros
 | GOOD_5 + `logprob_margin` Anchor | 76.0% | 78.1% | 72.7% | 5.0 | GOOD_5 subset re-oriented by logprob margin |
 | GOOD_6 | 75.9% | 78.1% | 72.7% | 6.0 | Baseline reference subset |
 | GOOD_5 | 75.2% | 77.3% | 72.1% | 5.0 | Baseline reference subset |
+| **a6.pruned_dufs (my selector)** | **74.9%** | **77.7%** | **70.6%** | **15.0** | **Pruned STG DUFS selector (0 fallbacks)** |
 | **a6.pruned_dufs (LOCO CV)** | **74.7%** | **77.4%** | **70.6%** | **10.6** | **Honest held-out cross-validated selector** |
 | Pure Unsupervised DUFS (No Pseudo-Labels) | 74.4% | 77.4% | 69.8% | 11.0 | Unsupervised control (lambda3=0) |
 
