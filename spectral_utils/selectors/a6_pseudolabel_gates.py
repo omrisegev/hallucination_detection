@@ -422,7 +422,7 @@ def a6_pseudolabel_gates(cell, rng, cache=None):
                                          'L-SML pseudo-label'}})
 
         # -- a6.pruned_dufs : K_max capped & pruned DUFS gates -----------------
-        top_pruned = sel_cols[np.argsort(mu3)[::-1][:11]]
+        top_pruned = sel_cols[np.argsort(mu_sel)[::-1][:11]]
         cols_pruned = np.array(sorted(set(top_pruned.tolist()) | set(s_cols)), dtype=np.int64)
         if len(cols_pruned) < 3:
             out.append(_fallback('a6.pruned_dufs', p, 'pruned selection < 3 cols', base_diag))
