@@ -26,7 +26,10 @@
     },
     "sign_recovery_loss": {
       "delta_all": 0.0207,
-      "delta_qa": 0.0315
+      "delta_qa": 0.0315,
+      "confounded_with_fusion_method": true,
+      "isolated_sign_effect_all": 0.0,
+      "note": "R2-R0 mixes sign with fusion method; the isolated sign effect is 0.0 (L-SML gauge invariance, see results/advisor_inscope/h1_orientation_audit.csv)"
     },
     "weight_estimation_loss": {
       "delta_all": 0.0145,
@@ -37,9 +40,19 @@
       "R6_macro_qa": 0.7262,
       "delta_vs_good6": 0.0082,
       "delta_vs_D2_alone": 0.0103,
-      "p_vs_good6": 0.0,
+      "p_vs_good6": 0.00014,
+      "wins_vs_good6": 22,
+      "losses_vs_good6": 3,
+      "p_contrast": "R6@FULL vs R0@GOOD_6, paired Wilcoxon over cells",
       "verdict": "DEAD"
     },
-    "dominant_term": "sign_recovery"
+    "dominant_term": "weight_estimation",
+    "dominant_term_basis": {
+      "sign_recovery": 0.0,
+      "weight_estimation": 0.0145,
+      "nonlinearity": -999.0,
+      "nonstationary_sign": -999.0,
+      "target_quality": -999.0
+    }
   }
 }

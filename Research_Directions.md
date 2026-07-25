@@ -554,7 +554,7 @@ pseudo-label + H1's Z2-sync orientation, benched vs GOOD_6 on the 25 cells, befo
 > |---|---|---|
 > | **H1** orientation | no headroom | L-SML is **gauge-invariant** to feature signs — 1150/1150 sign vectors bit-identical, so sign is worth exactly **0.0pp**; the prior-free skew tiebreaker costs **−10.7pp** and its premise (hallucination = minority) is false here (9/25 cells have pos_rate > 0.5) |
 > | **H2** label-free K | **REFUTED** | no rule met the pre-registered oracle-K bar; `eff_rank` Spearman **−0.0995** (p=0.64); **fixed K=15 beats every adaptive rule**. Oracle-K median is **14** while the spectrum rules predict 4–6 — they count independent directions (~4.5), but L-SML exploits **correlated** views, so effective rank is the wrong quantity |
-> | **H3** selection | bounded | **R6 = 0.7676 DEAD** (+0.82pp, under the +1.0pp gate) — a *perfect label-derived target* does not clear GOOD_6; the fixed `a7.iter_consensus` lands −2.16pp (8W/17L, p=0.011) |
+> | **H3** selection | bounded | **R6 = 0.7676 DEAD** — +0.82pp, under the +1.0pp gate. Note the corrected contrast gives **22W/3L, p = 0.00014**: a perfect label-derived target buys a *reliable but sub-1pp* gain, not nothing. The fixed `a7.iter_consensus` lands −2.16pp (8W/17L, p=0.011) |
 > | **Phase 4b** GroupFS grouping | bounded | now genuinely swept (λ1 guard PASS: 71/700 configs vs 0/350 for the stand-in); best 0.7508, and its **label-peeking ceiling 0.7585 only ties GOOD_6** (−0.09pp, p=0.33) — bounded, not mis-tuned |
 >
 > **Durable gain (subtractive)**: `ALL_SIGNS` — 42 hand-derived per-feature polarities — is provably a

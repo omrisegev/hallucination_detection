@@ -7770,7 +7770,7 @@ had never actually been run.
 | 3 | `adaptive_k`: de-duplicated the two parallel implementations (Gemini's inline rules vs my helpers) and added `raw_k()` exposing the **unclamped** estimate, so clamping can no longer disguise a constant as an adaptive rule. |
 | 4 | `sweep_dufs_groupfs.py` **rewritten onto the real mechanism** — `a2_groupfs._train_groupfs` with the feature-graph Laplacian, spectral warm start, stochastic gates and orthogonality term; `C`, `lambda1`, `tau`, readout all genuinely swept. `_train_groupfs` gained optional `temp_start`/`temp_min` (defaults unchanged, so the deployed a2 path is untouched — its smoke still passes, ARI 1.00). Added a **λ1 regression guard**. |
 | 5,6 | `a7_iter_consensus`: removed the dead `distributional_orient` call (orientation is the bench's job); `smoke()` rewritten on the a6 pattern with a real `UnlabeledCell` and assertions that can actually fail (`not fallback`, signal-over-noise, determinism). |
-| 7 | `gap_ladder.py`: `target_quality.p_vs_good6` now the paired Wilcoxon of **R6@FULL vs R0@GOOD_6** (it previously read R6 vs R0@**FULL**, so delta and p described different contrasts), plus `wins/losses` and an explicit `p_contrast` field; `sign_recovery_loss` annotated as confounded with fusion method. |
+| 7 | `gap_ladder.py`: `target_quality.p_vs_good6` now the paired Wilcoxon of **R6@FULL vs R0@GOOD_6** (it previously read R6 vs R0@**FULL**, so delta and p described different contrasts), plus `wins/losses` and an explicit `p_contrast` field; `sign_recovery_loss` annotated as confounded with fusion method, and **`dominant_term` recomputed from the isolated sign effect (0.0) instead of the confounded R2−R0 — it now reads `weight_estimation` (0.0145), not `sign_recovery`**, with a `dominant_term_basis` field showing the ranking inputs. Re-run confirms both validity checks still pass (R3 = 0.7809, R0@GOOD_6 = 0.7594). |
 | 9 | **New defect found while fixing 8**: `test_user_pipeline.py` and `test_iterative_lsml_pruning.py` applied `max(auc, 1-auc)` to *every* arm — a label-peeking sign oracle that floored each number at 0.5, so none of those arms were label-free. Also removed undocumented `1e-6*randn` feature jitter. |
 
 #### B. Corrected results (all vs GOOD_6 = 0.7594, 25 cells)
@@ -7833,6 +7833,18 @@ exploits, so effective rank is simply the wrong quantity for this K.
    median 4.55). The rule is still refuted, but for the deeper reason in §D, not for being constant.
 2. **A ninth defect existed** (the `max(auc, 1-auc)` sign oracle, §A row 9), found only while fixing
    defect 8.
+
+#### F. What the corrected R6 p-value shows (nuance worth keeping)
+
+With the contrast fixed, R6 vs GOOD_6 is **+0.82pp, 22W/3L, p = 0.00014**. So the perfect-target
+effect is **highly consistent but small** — it is not "no effect", it is an effect below the
+pre-registered 1.0pp bar, which `SPEC_gap_ladder.md` §7 set deliberately because 25 cells only
+resolve ~≥1pp and the entire macro gap to the supervised oracle is 2.16pp. The gate verdict stands
+(**DEAD** on magnitude), and the honest phrasing is "a perfect target buys a reliable but sub-1pp
+gain", not "a perfect target buys nothing".
+
+Relatedly, `dominant_term` now reports **`weight_estimation` (0.0145)** rather than `sign_recovery`:
+the old ranking fed it the confounded R2−R0 (0.0207), and the isolated sign effect is 0.0.
 
 **Result**: with valid measurement, **all three Extension H sub-problems are bounded**. H1 — no sign
 headroom exists (L-SML gauge invariance, Step 201) and the prior-free tiebreaker costs −10.7pp. H2 —

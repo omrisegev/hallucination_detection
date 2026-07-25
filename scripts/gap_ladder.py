@@ -797,7 +797,13 @@ def run_gap_ladder():
 
     # Dominant term
     gaps_map = {
-        "sign_recovery": delta_sign_rec_all,
+        # Step 201/202: R2-R0 confounds sign with fusion method (R2 is an
+        # equal-weight mean, R0 is L-SML). The ISOLATED sign effect is exactly
+        # 0.0 -- L-SML is gauge-invariant to input feature signs (1150/1150 sign
+        # vectors bit-identical, scripts/h1_orientation_audit.py). Ranking the
+        # confounded value here is what made "sign_recovery" the reported
+        # dominant term; use the isolated effect so the ranking is honest.
+        "sign_recovery": 0.0,
         "weight_estimation": delta_weight_est_all,
         "nonlinearity": delta_r4_all if verdict_nonlinearity == "ALIVE" else -999.0,
         "nonstationary_sign": delta_r5_all if verdict_nonstationary == "ALIVE" else -999.0,
