@@ -17,12 +17,9 @@ for p in (REPO, os.path.join(REPO, "scripts")):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-from inscope_cells import INSCOPE
-from spectral_utils.subset_sweep import iter_cells, ALL_SIGNS, REFERENCE_SUBSETS
-from spectral_utils.orientation import z2_sign_recovery
-from spectral_utils.fusion_utils import lsml_continuous, zscore
+from inscope_cells import GROUP
+from spectral_utils.fusion_utils import lsml_continuous
 from spectral_utils.selectors.adaptive_k import predict_k
-from spectral_utils.streaming_utils import anchor_orient
 
 def compute_lsml_weights(V):
     """
@@ -117,97 +114,70 @@ def iterative_group_pruning(V, initial_C, target_C):
     return list(dict.fromkeys(selected_features))
 
 def main():
-    data_dir = os.path.join(REPO, "local_cache")
+    # Step 201 rewrite (defects 8 + 9): the previous version built the pool from
+    # `fd.keys()`, anchored orientation on `sub[:, 0]` (an arbitrary column),
+    # added undocumented `1e-6 * randn` jitter, and applied `max(auc, 1 - auc)`
+    # to every arm — a label-peeking sign oracle that floored each number at 0.5
+    # and made none of these arms label-free. Its GOOD_6 reference came out
+    # 0.7273 instead of the canonical 0.7594, so every comparison was against a
+    # mis-computed baseline. Now: canonical loading + scoring, raw AUROC.
+    from inscope_bench_common import (load_cells, score_cols, good6_score,
+                                      assert_good6)
+    from spectral_utils.selectors.adaptive_k import raw_k
+
+    cells = load_cells()
+    ok, macro_g6 = assert_good6(cells)
+    if not ok:
+        print("FAIL — refusing to report (SPEC_gap_ladder §8).")
+        sys.exit(1)
+
     results = []
-    
-    for domain, cell_key, fd, labels in iter_cells(
-        data_dir, ["repgrid"],
-        os.path.join(data_dir, "derived_views.pkl"),
-        os.path.join(data_dir, "trace_cells.pkl")
-    ):
-        if cell_key not in INSCOPE:
-            continue
-            
-        feat_names = [f for f in fd.keys() if not f.startswith("_")]
-        valid_cols = [f for f in feat_names if np.isfinite(fd[f]).mean() > 0.9]
-        if len(valid_cols) < 3:
-            continue
-            
-        feats = {f: fd[f] * ALL_SIGNS.get(f, +1) for f in valid_cols}
-        X = np.column_stack([feats[f] for f in valid_cols])
-        valid = np.isfinite(X).all(axis=1)
-        if valid.sum() < 20:
-            continue
-            
-        V = X[valid, :]
-        y = np.asarray(labels, dtype=int)[valid]
-        if y.sum() in (0, len(y)):
-            continue
-            
-        n, p = V.shape
+    for cell_key, cell in sorted(cells.items()):
+        V = cell["V"]
+        p = V.shape[1]
         k_eff = predict_k(V, list(range(p)), rule='eff_rank')
-        
-        # Method 1: Iterative Weight Pruning
+
         sel_weight = iterative_feature_pruning(V, k_eff)
-        sub_w = V[:, sel_weight]
-        z2_w = z2_sign_recovery(sub_w)
-        sub_w_signed = sub_w * z2_w + 1e-6 * np.random.RandomState(42).randn(n, len(sel_weight))
-        fused_w, _ = lsml_continuous(*[sub_w_signed[:, c] for c in range(len(sel_weight))])
-        fused_w_orient, _ = anchor_orient(fused_w, zscore(sub_w[:, 0]))
-        auc_weight = roc_auc_score(y, fused_w_orient)
-        auc_weight = max(auc_weight, 1.0 - auc_weight)
-        
-        # Method 2: Iterative Residual Pruning
         sel_res = iterative_residual_pruning(V, k_eff)
-        sub_r = V[:, sel_res]
-        z2_r = z2_sign_recovery(sub_r)
-        sub_r_signed = sub_r * z2_r + 1e-6 * np.random.RandomState(42).randn(n, len(sel_res))
-        fused_r, _ = lsml_continuous(*[sub_r_signed[:, c] for c in range(len(sel_res))])
-        fused_r_orient, _ = anchor_orient(fused_r, zscore(sub_r[:, 0]))
-        auc_res = roc_auc_score(y, fused_r_orient)
-        auc_res = max(auc_res, 1.0 - auc_res)
-        
-        # Method 3: Iterative GroupFS Cluster Pruning (Initial C=8 -> target C=k_eff)
         sel_grp = iterative_group_pruning(V, initial_C=8, target_C=k_eff)
-        sub_g = V[:, sel_grp]
-        z2_g = z2_sign_recovery(sub_g)
-        sub_g_signed = sub_g * z2_g + 1e-6 * np.random.RandomState(42).randn(n, len(sel_grp))
-        fused_g, _ = lsml_continuous(*[sub_g_signed[:, c] for c in range(len(sel_grp))])
-        fused_g_orient, _ = anchor_orient(fused_g, zscore(sub_g[:, 0]))
-        auc_grp = roc_auc_score(y, fused_g_orient)
-        auc_grp = max(auc_grp, 1.0 - auc_grp)
-        
-        # GOOD_6 reference
-        good6_cols = [f for f in REFERENCE_SUBSETS['GOOD_6'] if f in valid_cols]
-        good6_idx = [valid_cols.index(f) for f in good6_cols]
-        sub_g6 = V[:, good6_idx]
-        z2_g6 = z2_sign_recovery(sub_g6)
-        sub_g6_signed = sub_g6 * z2_g6 + 1e-6 * np.random.RandomState(42).randn(n, len(good6_idx))
-        fused_g6, _ = lsml_continuous(*[sub_g6_signed[:, c] for c in range(len(good6_idx))])
-        fused_g6_orient, _ = anchor_orient(fused_g6, zscore(sub_g6[:, 0]))
-        auc_good6 = roc_auc_score(y, fused_g6_orient)
-        auc_good6 = max(auc_good6, 1.0 - auc_good6)
-        
+
         results.append({
             'cell': cell_key,
-            'domain': domain,
+            'group': GROUP.get(cell_key, '?'),
             'k_eff': k_eff,
-            'auc_iter_weight': auc_weight,
-            'auc_iter_residual': auc_res,
-            'auc_iter_group': auc_grp,
-            'auc_good6': auc_good6
+            'raw_eff_rank': round(float(raw_k(V, list(range(p)), 'eff_rank')), 3),
+            'auc_iter_weight': score_cols(cell, sel_weight),
+            'auc_iter_residual': score_cols(cell, sel_res),
+            'auc_iter_group': score_cols(cell, sel_grp),
+            'auc_good6': good6_score(cell),
         })
+        r = results[-1]
+        print(f"  {cell_key:34s} K={k_eff} | weight {r['auc_iter_weight']:.4f} | "
+              f"resid {r['auc_iter_residual']:.4f} | group {r['auc_iter_group']:.4f} "
+              f"| good6 {r['auc_good6']:.4f}", flush=True)
         
     df = pd.DataFrame(results)
     out_csv = os.path.join(REPO, "results", "advisor_inscope", "iterative_pruning_results.csv")
     df.to_csv(out_csv, index=False)
     
-    print("=== Iterative L-SML Pruning Benchmark Results ===")
-    print(f"Total cells evaluated: {len(df)}")
-    print(f"1. Iterative Weight Pruning AUROC   : {df['auc_iter_weight'].mean():.4f}")
-    print(f"2. Iterative Residual Pruning AUROC : {df['auc_iter_residual'].mean():.4f}")
-    print(f"3. Iterative Group Pruning AUROC    : {df['auc_iter_group'].mean():.4f}")
-    print(f"GOOD_6 Reference Baseline AUROC     : {df['auc_good6'].mean():.4f}")
+    from scipy.stats import wilcoxon
+    print("\n=== Iterative L-SML pruning (canonical scoring, raw AUROC) ===")
+    print(f"cells: {len(df)}   GOOD_6 macro: {macro_g6:.4f} (canonical 0.7594)")
+    print(f"k_eff distribution: {df['k_eff'].value_counts().to_dict()}  "
+          f"(raw eff_rank median {df['raw_eff_rank'].median():.2f})")
+    base = df['auc_good6'].to_numpy()
+    print(f"\n{'arm':22s} {'macro':>8s} {'vs GOOD_6':>11s} {'W/L':>8s} {'p':>9s}")
+    print("-" * 64)
+    for arm in ('auc_iter_weight', 'auc_iter_residual', 'auc_iter_group',
+                'auc_good6'):
+        v = df[arm].to_numpy()
+        d = v - base
+        try:
+            pv = float(wilcoxon(v, base).pvalue) if np.any(d != 0) else float('nan')
+        except Exception:
+            pv = float('nan')
+        print(f"{arm:22s} {v.mean():8.4f} {d.mean()*100:+10.2f}pp "
+              f"{int((d>0).sum()):3d}/{int((d<0).sum()):<3d} {pv:9.4f}")
     print("\nSaved detailed results to:", out_csv)
 
 if __name__ == '__main__':

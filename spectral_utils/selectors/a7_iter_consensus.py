@@ -102,9 +102,12 @@ def a7_iter_consensus(cell, rng, cache=None):
             ranking = list(np.argsort(corrs)[::-1])
             selected_cols = ranking[:k_star]
 
-        # Step 5: Prior-free global orientation
-        oriented_score, flipped = distributional_orient(y_curr)
-
+        # NOTE (Step 201, defect 5): this used to call `distributional_orient`
+        # here and keep only the `flipped` flag, so the prior-free orientation
+        # never reached a scored number -- the bench re-fuses `cols` through its
+        # own path anyway. Orientation is the BENCH's job (it scores an anchored
+        # and a prior-free arm side by side); the selector's contract is to
+        # return `cols`. The dead call is removed rather than papered over.
         return [{
             'variant': 'a7.iter_consensus',
             'cols': selected_cols,
@@ -112,7 +115,6 @@ def a7_iter_consensus(cell, rng, cache=None):
             'diag': {
                 'k_star': int(k_star),
                 'n_iter': int(it + 1),
-                'flipped': bool(flipped),
                 'final_residual': float(meta.get('residual', np.nan)) if 'meta' in locals() else np.nan
             }
         }]
@@ -127,26 +129,61 @@ def a7_iter_consensus(cell, rng, cache=None):
 
 
 def smoke():
-    """Known-answer sanity test for a7_iter_consensus."""
-    class DummyCell:
-        def __init__(self):
-            rng = np.random.RandomState(42)
-            n, p = 100, 10
-            # 3 strong correlated signal columns + 7 noise columns
-            signal = rng.randn(n, 1)
-            noise = rng.randn(n, p - 3)
-            self.V = np.hstack([signal + 0.1 * rng.randn(n, 3), noise])
-            self.feat_names = [f"f{i}" for i in range(p)]
-            self.cell_key = "dummy_cell"
+    """Planted-signal known-answer test (auto-discovered by smoke_selectors.py).
 
-    cell = DummyCell()
-    rng = np.random.default_rng(42)
-    res = a7_iter_consensus(cell, rng)
-    assert isinstance(res, list) and len(res) == 1
+    Rewritten for Step 201 (defect 6). The previous version could not fail: the
+    fallback path returns ALL p columns, and the only assertion was
+    `len(cols) >= 3`, so a selector that fell back on every cell still passed. It
+    also used a local `DummyCell` carrying only `.V`/`.feat_names`, so the real
+    `UnlabeledCell` contract (pool / anchor / rho / pool_bits) was never
+    exercised. This version asserts the things that can actually break.
+    """
+    from ..selector_bench import UnlabeledCell
+    from ..subset_sweep import CANONICAL_POOL
+    from ..fusion_utils import zscore
+
+    # Planted world: N_INFO informative columns driven by a latent consensus,
+    # the rest pure noise. A working selector must PREFER the informative ones.
+    rng_np = np.random.default_rng(20260725)
+    n, p, N_INFO = 400, 14, 6
+    y = rng_np.standard_normal(n)
+    cols = [zscore(y + 0.55 * rng_np.standard_normal(n)) for _ in range(N_INFO)]
+    cols += [zscore(rng_np.standard_normal(n)) for _ in range(p - N_INFO)]
+    V = np.column_stack(cols)
+
+    pool = list(CANONICAL_POOL[:p])
+    assert len(pool) == p
+    rho = np.abs(np.corrcoef(V.T))
+    cell = UnlabeledCell(domain='smoke', cell_key='iter_consensus', pool=pool,
+                         pool_bits=np.arange(p, dtype=np.uint8), V=V,
+                         anchor=zscore(V[:, 0]), anchor_name=pool[0], rho=rho)
+
+    res = a7_iter_consensus(cell, np.random.default_rng([0, 7]))
+    assert isinstance(res, list) and len(res) == 1, f"expected 1 result, got {res}"
     item = res[0]
-    assert 'variant' in item and item['variant'] == 'a7.iter_consensus'
-    assert 'cols' in item and len(item['cols']) >= 3
-    print("a7_iter_consensus smoke test passed!")
+    assert item['variant'] == 'a7.iter_consensus', item['variant']
+
+    # (a) THE assertion the old test was missing: it must not silently fall back.
+    assert not item.get('fallback', False), \
+        f"(a) selector fell back instead of selecting: {item['diag']}"
+
+    sel = set(int(c) for c in item['cols'])
+    assert 3 <= len(sel) < p, f"(b) degenerate selection size {len(sel)} (p={p})"
+
+    # (c) it must actually prefer the planted signal over the planted noise
+    info = sel & set(range(N_INFO))
+    noise = sel - set(range(N_INFO))
+    assert len(info) > len(noise), \
+        f"(c) selection is noise-dominated: {len(info)} informative vs {len(noise)} noise"
+
+    # (d) determinism under an equal-seeded rng
+    res2 = a7_iter_consensus(cell, np.random.default_rng([0, 7]))
+    assert list(res2[0]['cols']) == list(item['cols']), "(d) cols not deterministic"
+
+    d = item['diag']
+    print(f"    [note] a7 smoke: k_star={d.get('k_star')} n_iter={d.get('n_iter')} "
+          f"selected={len(sel)} (informative {len(info)}/{N_INFO}, "
+          f"noise {len(noise)}/{p - N_INFO})")
 
 
 if __name__ == '__main__':

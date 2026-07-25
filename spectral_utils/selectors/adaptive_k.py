@@ -147,6 +147,34 @@ def _norm_curve(eps):
     return (e - lo) / max(hi - lo, _EPS)
 
 
+def raw_k(V, ranking, rule):
+    """UNCLAMPED estimate for the spectrum rules — the degeneracy diagnostic.
+
+    `predict_k` clamps into [k_min, k_max], which hides the failure mode found in
+    Step 201: on rank-one-dominant cells the participation ratio is ~1-2, so
+    `eff_rank` clamps to k_min on 25/25 cells and looks like a constant K rather
+    than an adaptive rule. Reporting the raw value makes that visible instead of
+    presenting a clamped constant as "per-cell adaptive".
+    """
+    V = np.asarray(V, dtype=np.float64)
+    if rule == 'eff_rank':
+        return participation_ratio(V)
+    if rule == 'mp_floor':
+        return float(mp_signal_dim(V))
+    if rule == 'stability':
+        # bootstrap the participation ratio over resampled rows
+        n = V.shape[0]
+        rng = np.random.default_rng(42)
+        vals = []
+        for _ in range(10):
+            idx = rng.integers(0, n, size=n)
+            vals.append(participation_ratio(V[idx]))
+        return float(np.median(vals)) if vals else float(K_MIN)
+    if rule == 'boot_elbow':
+        return float(bootstrap_elbow_k(V, ranking))
+    raise ValueError(f"raw_k: unknown rule {rule!r}")
+
+
 def predict_k(V, ranking, rule='elbow_fwd', k_min=K_MIN, k_max=K_MAX,
               gap_threshold=3.0, compact_k=6, broad_k=15, return_curve=False):
     """Label-free per-cell K*. Never sees labels.
@@ -179,39 +207,18 @@ def predict_k(V, ranking, rule='elbow_fwd', k_min=K_MIN, k_max=K_MAX,
     V = np.asarray(V, dtype=np.float64)
     n, p = V.shape
 
-    if rule == 'eff_rank':
-        cov = np.cov(V, rowvar=False)
-        ev = np.linalg.eigvalsh(cov)
-        ev = ev[ev > _EPS]
-        if len(ev) > 0:
-            k = int(np.round((np.sum(ev) ** 2) / np.sum(ev ** 2)))
-        else:
-            k = k_min
-        k = int(min(max(k, k_min), min(k_max, len(ranking))))
-        return (k, ([], [])) if return_curve else k
-
-    if rule == 'mp_floor':
-        cov = np.cov(V, rowvar=False)
-        ev = np.linalg.eigvalsh(cov)
-        sigma2 = float(np.median(ev))
-        lambda_plus = sigma2 * (1.0 + np.sqrt(p / max(n, 1))) ** 2
-        k = int(np.sum(ev > lambda_plus))
-        k = int(min(max(k, k_min), min(k_max, len(ranking))))
-        return (k, ([], [])) if return_curve else k
-
-    if rule == 'stability':
-        # Bootstrap subsample feature correlation stability
-        rng = np.random.RandomState(42)
-        boot_ks = []
-        for _ in range(10):
-            idx = rng.choice(n, size=int(0.8 * n), replace=True)
-            V_boot = V[idx, :]
-            cov_b = np.cov(V_boot, rowvar=False)
-            ev_b = np.linalg.eigvalsh(cov_b)
-            ev_b = ev_b[ev_b > _EPS]
-            if len(ev_b) > 0:
-                boot_ks.append(int(np.round((np.sum(ev_b) ** 2) / np.sum(ev_b ** 2))))
-        k = int(np.median(boot_ks)) if boot_ks else k_min
+    # Spectrum rules delegate to the module-level estimators above rather than
+    # re-implementing them inline (Step 201: the two had drifted into duplicate,
+    # slightly different definitions of the same quantity).
+    #
+    # IMPORTANT (Step 201, defect 3): these return a raw estimate that is then
+    # CLAMPED into [k_min, k_max]. On the real in-scope cells the pool is
+    # rank-one dominant, so the participation ratio lands ~1-2 and `eff_rank`
+    # clamps to k_min on every cell -- i.e. it silently becomes a fixed K, the
+    # very prior it was meant to remove. Use `raw_k()` to see the unclamped
+    # value, and `validate()` to test any rule against oracle-K before adopting.
+    if rule in ('eff_rank', 'mp_floor', 'stability'):
+        k = int(round(raw_k(V, ranking, rule)))
         k = int(min(max(k, k_min), min(k_max, len(ranking))))
         return (k, ([], [])) if return_curve else k
 

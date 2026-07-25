@@ -773,7 +773,26 @@ def run_gap_ladder():
     r6_macro_qa = float(sum_full.loc['R6', 'macro_qa']) if 'R6' in sum_full.index else 0.0
     delta_r6_good6 = r6_macro_all - r0_g6_all
     delta_r6_d2 = r6_macro_all - 0.7573
-    p_r6_vs_good6 = float(sum_full.loc['R6', 'w_p_vs_R0_all']) if ('R6' in sum_full.index and sum_full.loc['R6', 'w_p_vs_R0_all'] is not None) else 1.0
+    # Step 201 (defect 7): this used to read `w_p_vs_R0_all`, which is R6 vs
+    # R0 at *FULL* (0.7457) -- NOT vs GOOD_6 (0.7594). The delta and the p-value
+    # therefore described different contrasts. Compute the paired Wilcoxon that
+    # actually matches `delta_vs_good6`: R6@FULL vs R0@GOOD_6, per cell.
+    _pc = pd.DataFrame(percell_rows)
+    _r6 = (_pc[(_pc['fset'] == 'FULL') & (_pc['rung'] == 'R6')]
+           .set_index('cell')['auroc'].dropna())
+    _r0g6 = (_pc[(_pc['fset'] == 'GOOD_6') & (_pc['rung'] == 'R0')]
+             .set_index('cell')['auroc'].dropna())
+    _common = _r6.index.intersection(_r0g6.index)
+    if len(_common) >= 3:
+        _a, _b = _r6[_common].to_numpy(), _r0g6[_common].to_numpy()
+        try:
+            p_r6_vs_good6 = float(wilcoxon(_a, _b).pvalue) if np.any(_a != _b) else 1.0
+        except Exception:
+            p_r6_vs_good6 = 1.0
+        r6_wins_vs_good6 = int((_a > _b).sum())
+        r6_losses_vs_good6 = int((_a < _b).sum())
+    else:
+        p_r6_vs_good6, r6_wins_vs_good6, r6_losses_vs_good6 = 1.0, 0, 0
     verdict_target_quality = "ALIVE" if (delta_r6_good6 >= 0.010 and p_r6_vs_good6 <= 0.05) else "DEAD"
 
     # Dominant term
@@ -817,7 +836,20 @@ def run_gap_ladder():
             },
             "sign_recovery_loss": {
                 "delta_all": round(delta_sign_rec_all, 4),
-                "delta_qa": round(delta_sign_rec_qa, 4)
+                "delta_qa": round(delta_sign_rec_qa, 4),
+                # Step 201: this contrast is R2 (equal-weight mean of ORACLE-SIGNED
+                # columns) minus R0 (L-SML), so it confounds sign recovery with
+                # FUSION METHOD and must not be read as "sign is the bottleneck".
+                # Measured directly (scripts/h1_orientation_audit.py): holding the
+                # fusion fixed and varying only the input signs changes the fused
+                # score by EXACTLY 0.0 -- 1150/1150 sign vectors, incl. 20 random
+                # per cell, are bit-identical. L-SML is gauge-invariant to input
+                # column signs, so there is no sign headroom to recover here.
+                "confounded_with_fusion_method": True,
+                "isolated_sign_effect_all": 0.0,
+                "note": ("R2-R0 mixes sign with fusion method; the isolated sign "
+                         "effect is 0.0 (L-SML gauge invariance, see "
+                         "results/advisor_inscope/h1_orientation_audit.csv)")
             },
             "weight_estimation_loss": {
                 "delta_all": round(delta_weight_est_all, 4),
@@ -829,6 +861,9 @@ def run_gap_ladder():
                 "delta_vs_good6": round(delta_r6_good6, 4),
                 "delta_vs_D2_alone": round(delta_r6_d2, 4),
                 "p_vs_good6": round(p_r6_vs_good6, 5),
+                "wins_vs_good6": r6_wins_vs_good6,
+                "losses_vs_good6": r6_losses_vs_good6,
+                "p_contrast": "R6@FULL vs R0@GOOD_6, paired Wilcoxon over cells",
                 "verdict": verdict_target_quality
             },
             "dominant_term": dominant_term

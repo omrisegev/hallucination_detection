@@ -249,8 +249,15 @@ def _gumbel_like(shape, gen):
 
 
 def _train_groupfs(X_t, L_feat_t, C, lam1, lam2, beta, epochs, batch,
-                   torch_seed, warm_logits_np, cluster_sizes):
-    """One GroupFS training run. Returns (logits, mu, final_loss) as numpy/float."""
+                   torch_seed, warm_logits_np, cluster_sizes,
+                   temp_start=TEMP_START, temp_min=TEMP_MIN):
+    """One GroupFS training run. Returns (logits, mu, final_loss) as numpy/float.
+
+    `temp_start`/`temp_min` default to the module constants, so the deployed
+    selector path is unchanged; they are exposed only so the Step-202 sweep can
+    treat the Gumbel-Softmax anneal as a swept knob (it was declared swept in
+    Step 200 but never actually varied).
+    """
     torch.manual_seed(int(torch_seed))
     gen = torch.Generator().manual_seed(int(torch_seed))
     R, d = X_t.shape
@@ -266,7 +273,7 @@ def _train_groupfs(X_t, L_feat_t, C, lam1, lam2, beta, epochs, batch,
 
     loss_val = float('nan')
     for e in range(epochs):
-        T = max(TEMP_MIN, TEMP_START - (TEMP_START - TEMP_MIN) * e / max(epochs, 1))
+        T = max(temp_min, temp_start - (temp_start - temp_min) * e / max(epochs, 1))
         idx = torch.randperm(R, generator=gen)[:B]
         Xb = X_t[idx]                                            # [B, d]
         M = torch.softmax((logits + _gumbel_like((d, C), gen)) / T, dim=1)   # [d, C]

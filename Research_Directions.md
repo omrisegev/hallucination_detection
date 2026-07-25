@@ -545,6 +545,25 @@ with zero hand-picked input. Matching GOOD_6 prior-free is itself a real contrib
 hand-tuning); beating it is the headline. First concrete step (CPU): H3's full-pool L-SML consensus
 pseudo-label + H1's Z2-sync orientation, benched vs GOOD_6 on the 25 cells, before touching H2.
 
+> **STATUS: ✅ CLOSED AS BOUNDED — gate NOT met (Steps 200–202, 2026-07-25).**
+> Built (Step 200), audited (Step 201 — 9 defects, the "GroupFS sweep" never ran GroupFS), fixed and
+> re-measured on a canonical scoring path with GOOD_6 = 0.7594 asserted on every bench (Step 202).
+> All four components are bounded and **GOOD_6 remains unbeaten**:
+>
+> | Component | Verdict | Evidence |
+> |---|---|---|
+> | **H1** orientation | no headroom | L-SML is **gauge-invariant** to feature signs — 1150/1150 sign vectors bit-identical, so sign is worth exactly **0.0pp**; the prior-free skew tiebreaker costs **−10.7pp** and its premise (hallucination = minority) is false here (9/25 cells have pos_rate > 0.5) |
+> | **H2** label-free K | **REFUTED** | no rule met the pre-registered oracle-K bar; `eff_rank` Spearman **−0.0995** (p=0.64); **fixed K=15 beats every adaptive rule**. Oracle-K median is **14** while the spectrum rules predict 4–6 — they count independent directions (~4.5), but L-SML exploits **correlated** views, so effective rank is the wrong quantity |
+> | **H3** selection | bounded | **R6 = 0.7676 DEAD** (+0.82pp, under the +1.0pp gate) — a *perfect label-derived target* does not clear GOOD_6; the fixed `a7.iter_consensus` lands −2.16pp (8W/17L, p=0.011) |
+> | **Phase 4b** GroupFS grouping | bounded | now genuinely swept (λ1 guard PASS: 71/700 configs vs 0/350 for the stand-in); best 0.7508, and its **label-peeking ceiling 0.7585 only ties GOOD_6** (−0.09pp, p=0.33) — bounded, not mis-tuned |
+>
+> **Durable gain (subtractive)**: `ALL_SIGNS` — 42 hand-derived per-feature polarities — is provably a
+> no-op in the fusion path and can be deleted at zero cost. The only orientation prior that remains is
+> a **single ±1 bit**, and the `epr` anchor already spends it optimally (an oracle bit ties it).
+>
+> **Where the gap actually is**: the ladder's clean rungs put the deploy-point gap in **weight
+> estimation**, not sign, target quality, or K. Any successor direction should attack that.
+
 ---
 
 ## Recommended Priority Order
@@ -552,12 +571,20 @@ pseudo-label + H1's Z2-sync orientation, benched vs GOOD_6 on the 25 cells, befo
 *(Single authoritative list — updated 2026-07-02, post streaming pilot Step 148)*
 
 **Now — no GPU needed**
-0. **← TOP PRIORITY (Step 199): Extension H — Prior-Free L-SML.** Strip every hand-picked prior
-   (`epr` anchor, `GOOD_6` seeds, fixed K) from the pipeline; derive orientation (H1, Z2 sync),
-   size (H2, covariance spectrum), and selection (H3, seed-free full-pool L-SML consensus) from
-   structure alone. First bench: H3 consensus pseudo-label + H1 orientation vs GOOD_6 on 25 cells.
-   See Extension H above. **Rationale**: the prior-dependent selector (Extension G) is proven capped
-   at GOOD_6 — the GOOD_6-seeded pseudo-label is byte-identical to the GOOD_6 fusion on 25/25 cells.
+0. ~~**Extension H — Prior-Free L-SML** (Step 199 pivot): strip every hand-picked prior (`epr`
+   anchor, `GOOD_6` seeds, fixed K); derive orientation (H1), size (H2), selection (H3) from
+   structure alone~~ ✅ **CLOSED AS BOUNDED (Steps 200–202) — decision gate NOT met.** H1 has no
+   headroom (sign is a gauge, worth 0.0pp), H2 is refuted (fixed K=15 beats every label-free rule;
+   `eff_rank` r_s = −0.0995), H3 is capped (R6 perfect-target = DEAD at +0.82pp), and GroupFS
+   grouping's own label-peeking ceiling only ties GOOD_6. **GOOD_6 (0.7594) still unbeaten.** The one
+   durable gain is subtractive: `ALL_SIGNS` (42 priors) is a provable no-op and can be deleted.
+   See the Extension H status block above.
+
+0-NEXT. **← DECIDE WITH OMRI: attack weight estimation.** Both the gap-ladder's clean rungs and the
+   Extension H post-mortem point at the same place — at the deploy point the gap to the supervised
+   linear oracle is **weight estimation**, not sign (0.0pp), not target quality (R6 DEAD), and not
+   subset size (fixed K wins). Extensions G and H are both closed as bounded, so this is the open
+   question. No experiment is pre-registered for it yet.
 0b. ~~Feature-subset selection: memo (Step 185), full bench (Step 186), a6 pseudo-label gates +
    30-view LOCO sweep (Steps 194-195), D1/D2 build + honest refutation (Steps 197-198)~~ ✅ **CLOSED
    as bounded** — no label-free selector beats GOOD_6; D1 (adaptive-K) refuted, D2 (PL-mRMR) beats

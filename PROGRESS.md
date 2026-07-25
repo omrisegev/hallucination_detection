@@ -1,12 +1,70 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-07-25
-**Last updated**: Step 200 — **Extension H (Prior-Free L-SML): R6 Gate Verification, Z2 Orientation, Adaptive Size Rules, and GroupFS Sweep.** Full write-up in HISTORY.md Step 200. Headlines:
+**Last updated**: Step 202 — **Extension H re-measured on fixed code: every prior-free component is bounded.** Full write-up in HISTORY.md Step 202 (Step 201 = the audit that preceded it). Headlines:
+
+- **The whole Extension H program is now bounded, on valid measurement.** All three sub-problems plus
+  the last untested mechanism have honest verdicts, and **GOOD_6 (0.7594) remains unbeaten**:
+  | Component | Verdict | Evidence |
+  |---|---|---|
+  | H1 orientation | **no headroom** | L-SML is gauge-invariant to feature signs (sign worth exactly 0.0pp); prior-free tiebreaker −10.7pp |
+  | H2 label-free K | **REFUTED** | every rule fails the oracle-K bar; `eff_rank` Spearman **−0.0995**; fixed K=15 *beats* all of them |
+  | H3 selection | **bounded** | R6 (perfect target) DEAD at +0.82pp; fixed `a7` −2.16pp (p=0.011) |
+  | Phase 4b GroupFS | **bounded** | its *label-peeking ceiling* 0.7585 only **ties** GOOD_6 (−0.09pp, p=0.33) |
+- **GroupFS grouping was finally tested** (Step-200's "sweep" never ran GroupFS). Rebuilt on the real
+  `a2_groupfs._train_groupfs`; the **λ1 regression guard now PASSES** (λ1 moves 71/700 configs vs
+  0/350 before). Best config C=8/λ1=0.1/group_median = 0.7508. **It is bounded, not mis-tuned** — no
+  further hyperparameter search is warranted.
+- **H2's failure mechanism is informative**: oracle-K has **median 14**, while the spectrum rules
+  predict 4–6. Participation ratio / MP-edge count *how many independent directions exist* (~4.5), but
+  L-SML wants many **correlated** views — redundancy is what it exploits, so effective rank is the
+  wrong quantity for this K.
+- **All 9 defects fixed and re-measured** with GOOD_6 = 0.7594 asserted on every bench. Fixes moved
+  arms by up to **+14.2pp** (prior-free a7: 0.5103 → 0.6524), confirming Step-200 measured bugs, not
+  methods. New `scripts/inscope_bench_common.py` is now the single canonical load+score path.
+- **The durable win is subtractive**: `ALL_SIGNS` (42 hand-derived polarities) is provably free to
+  delete, and the only remaining orientation prior is a single ±1 bit the `epr` anchor already spends
+  optimally.
+- **NEXT**: the prior-free direction as specified in Extension H is closed. Decide with Omri where the
+  effort goes — the ladder says the deploy-point gap is **weight estimation**, not sign, target, or K.
+
+<details><summary>Step 201 headlines (the audit — superseded by 202 above)</summary>
+
+**Step 201** — **Audit of the Step-200 Extension H build.** Full write-up in HISTORY.md Step 201. Headlines:
+- **R6 RAN AND IS THE HEADLINE: `R6 = 0.7676` = +0.82pp over GOOD_6 → DEAD** by the pre-registered
+  ≥+1.0pp gate (`ladder_gates.json` records `"verdict": "DEAD"`). A *perfect, label-derived* consensus
+  target still lands inside noise of GOOD_6, so **target quality is NOT the cap** — the constraint is
+  downstream, in fusion / weight estimation. This closes H3's premise.
+- **The gap-ladder is now trustworthy.** The `StratifiedGroupKFold` fix worked: R3 = 0.7809 vs LR
+  oracle 0.7810 ✅, R0@GOOD_6 = 0.7594 ✅, and R4 fell 0.7938 → 0.7659 (now −0.015, p = 0.004) — the
+  k=10 leakage is gone.
+- **H1 is settled by measurement, and there is no headroom.** L-SML is *exactly gauge-invariant* to
+  input feature signs (1150/1150 sign vectors incl. 20 random per cell — bit-identical, worst dev
+  `0.000e+00`). So `ALL_SIGNS` (42 hand-derived polarities) is a **free no-op** to remove; the
+  ladder's `dominant_term: sign_recovery` is an **artifact** (R2−R0 confounds sign with fusion
+  method — sign alone is worth 0.0000pp); and the prior-free skew tiebreaker is **refuted** (only
+  9/25 cells have pos_rate > 0.5; it costs −13pp and inverts 6 cells).
+- **Step 200 is banner-annotated SUPERSEDED IN PART** — four of its claims are contradicted by the
+  files it cites: it calls the DEAD R6 gate "viable"; "100% sign accuracy" is the gauge, not accuracy;
+  "adaptive K" is the constant `{3: 25}`; and a7's "prior-free 0.6840" actually uses the epr anchor
+  (the genuinely prior-free arm is **0.5103**, chance).
+- **8 code defects catalogued (Step 201 §C); the prior-free numbers are void pending fixes.** Most
+  consequential: `sweep_dufs_groupfs.py` **never runs GroupFS** — it is `sklearn
+  AgglomerativeClustering`, and λ1 is written to the CSV but never used in any computation (λ1 changed
+  nothing in **0/350** configs). **GroupFS grouping therefore remains untested.** Fixes + corrected
+  numbers land in Step 202.
+
+</details>
+
+<details><summary>Step 200 headlines as originally written (superseded — see Step 201)</summary>
+
 - **Phase 0 R6 Ceiling**: Gemini's refreshed run verified on disk (`ladder_gates.json`). Reached **$0.7676$ macro AUROC** (+0.82pp over `GOOD_6`), confirming target quality as a real lever.
 - **Phase 1 H1 Orientation ($Z_2$ Synchronization)**: Built `spectral_utils/orientation.py`. $Z_2$ eigenvector sign recovery (`z2_sign_recovery`) achieves **100% relative sign accuracy** on `GOOD_6` ($0.7594$ macro AUROC), solving relative feature orientation. Pure feature-free skewness (`distributional_orient`) drops to $0.5103$ macro AUROC because Math cells are symmetric/left-skewed (1 anchor view still required for global $\pm 1$ sign).
 - **Phase 2 H2 Signal Dimension (Adaptive $K^*$)**: Added participation ratio $(\sum \lambda)^2 / \sum \lambda^2$ (`eff_rank`) and Marchenko-Pastur noise floor (`mp_floor`) to [spectral_utils/selectors/adaptive_k.py](file:///C:/Users/omris/TAU/hallucination_detection/spectral_utils/selectors/adaptive_k.py). Dynamically sizes $K^* \approx 3..6$ per cell, solving the fixed $K=15$ budget requirement.
 - **Phase 3 H3 Iterative Selector**: Registered `a7.iter_consensus` in [spectral_utils/selectors/a7_iter_consensus.py](file:///C:/Users/omris/TAU/hallucination_detection/spectral_utils/selectors/a7_iter_consensus.py) with Z2-synchronized fusion. Smoke test passed; achieved $0.6840$ macro AUROC prior-free.
 - **Phase 4 & 5 GroupFS & Integrated Benchmark**: Built [scripts/sweep_dufs_groupfs.py](file:///C:/Users/omris/TAU/hallucination_detection/scripts/sweep_dufs_groupfs.py) and [scripts/prior_free_bench.py](file:///C:/Users/omris/TAU/hallucination_detection/scripts/prior_free_bench.py). GroupFS $C=3$ latent clustering reaches **$0.7063$ macro AUROC** prior-free, demonstrating data-driven feature selection.
+
+</details>
 
 ---
 

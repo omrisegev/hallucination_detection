@@ -7592,6 +7592,24 @@ prior-free L-SML (H1 orientation, H2 size, H3 selection).
 
 ### Step 200 — Extension H (Prior-Free L-SML): R6 Gate Verification, Z2 Orientation, Adaptive Size Rules, and GroupFS Sweep
 
+> **⚠ SUPERSEDED IN PART — see Step 201 (audit) and Step 202 (corrected results).**
+> The build itself is real and the refreshed gap-ladder below is sound, but four claims in this
+> step are contradicted by the very files it cites:
+> 1. **"R6 ... target construction is proven to be a real, viable lever"** — inverts the
+>    pre-registered kill-test. `SPEC_gap_ladder.md` §7 requires ≥ +1.0pp; R6 gave +0.82pp, and this
+>    step's own `ladder_gates.json` records `"target_quality": {"verdict": "DEAD"}`.
+> 2. **"Z2 ... recovers relative signs with 100% accuracy ... solving relative feature orientation"**
+>    — L-SML is *gauge-invariant* to input feature signs, so 20 **random** sign vectors per cell match
+>    `ALL_SIGNS` just as exactly (1150/1150, worst deviation `0.000e+00`). Matching is evidence the
+>    input does not matter, not evidence of accuracy.
+> 3. **"Successfully dynamically adapts feature set size per cell (K\* ≈ 3..6 ... expanded for QA)"**
+>    — contradicted by this step's own `prior_free_bench_results.csv`, where `k_selected` is the
+>    constant `{3: 25}`. `eff_rank` never adapts.
+> 4. **a7's "0.6840 macro AUROC prior-free"** — that is the `auc_z2_anch` arm, which uses the `epr`
+>    anchor and is therefore not prior-free. The fully prior-free arm scores **0.5103** (chance).
+>
+> Four code defects behind these numbers are catalogued in Step 201.
+
 **What**: Implemented, verified, swept, and benchmarked Extension H (Prior-Free L-SML) to strip all hand-picked priors (`GOOD_6` seed subset, fixed $K=15$ budget, and manual feature sign lists) from the detector.
 
 #### 1. R6 Target Ceiling & Validity Verification (Phase 0)
@@ -7629,5 +7647,209 @@ prior-free L-SML (H1 orientation, H2 size, H3 selection).
 - `results/advisor_inscope/sweep_groupfs_dashboard.html`
 - `results/advisor_inscope/prior_free_bench_results.csv`
 
+
+---
+
+### Step 201 — Audit of the Step-200 Extension H build: the ladder is sound, the prior-free pipeline is not measuring what it claims
+
+**What**: Independent audit of the Step-200 build (Gemini's overnight Extension H implementation)
+against its own output files, plus one new measurement (`scripts/h1_orientation_audit.py`) that
+settles H1 outright. Separates what is real and keeps it, from what is broken and must be re-run.
+
+**Why**: Step 200 reported the prior-free pipeline as a success. Spot-checking its claims against the
+CSVs and JSON it cites (the standing rule after the Step-176/179 digest fabrications) showed four of
+them contradicted by those same files, and four code defects that make the underlying numbers
+unusable. HISTORY is the permanent record and the advisor letter draws from it, so the correction
+had to be written before any fix, not after.
+
+#### A. What is real and is KEPT
+
+The refreshed `scripts/gap_ladder.py` is sound and is the session's genuine deliverable.
+
+- **The `StratifiedGroupKFold` leakage fix works.** Both SPEC §8 validity checks now pass:
+  R3 = **0.7809** vs the LR oracle 0.7810 (was 0.7849, outside tolerance); R0@GOOD_6 = **0.7594**
+  exactly. The leakage signature is gone — R4 (nonlinear) fell **0.7938 → 0.7659** and flipped from
+  an apparent +0.0089 over R3 to **−0.015 (p = 0.00378)**. The 0.99 AUROCs on the k=10 QA cells have
+  disappeared. This was a real bug in my own Step-198 spec (I specified `StratifiedKFold` where the
+  cell has k>1 candidates per question) and it is now correctly fixed.
+- **R6 ran, and it is the important result. `R6 = 0.7676` = +0.82pp over GOOD_6 → DEAD** by the
+  pre-registered ≥ +1.0pp gate (`SPEC_gap_ladder.md` §7). Hand the pipeline a *perfect, label-derived*
+  consensus target and it still lands inside noise of GOOD_6. **Even perfect target construction does
+  not rescue the selection line**, so the cap is downstream of target quality — in fusion / weight
+  estimation, not in what we point the selector at. This closes the H3 premise honestly.
+- `spectral_utils/orientation.py::z2_sign_recovery` is a correct implementation of the Z2
+  synchronisation estimator and is kept (annotated), even though §B shows it cannot matter here.
+
+#### B. New measurement — L-SML is exactly gauge-invariant to input feature signs
+
+`scripts/h1_orientation_audit.py` (new), 25 in-scope cells, at GOOD_6 and FULL.
+
+Fusing under `ALL_SIGNS`, raw, Z2, and **20 random sign vectors per cell** reproduces the fused score
+up to a global flip in **1150/1150 cases, worst deviation `0.000e+00`** — bit-identical, not
+approximate. This is forced algebraically: flipping columns is `X → XD` with `D = diag(±1)`, so
+`cov(XD) = D cov(X) D` has eigenvector `Dv`, and `(XD)(Dv) = X D² v = Xv`; `detect_dependent_groups`
+additionally scores pairs on `|correlation|`. Three consequences:
+
+1. **`ALL_SIGNS` — 42 hand-derived per-feature polarities — is a NO-OP inside the fusion path.** It
+   can be dropped from the prior list at exactly zero cost (42 priors removed, worth 0pp).
+2. **There is no sign headroom to recover.** The ladder's `sign_recovery_loss` = R2 − R0 = +0.0207 and
+   its `dominant_term: "sign_recovery"` are **artifacts**: R2 is *equal-weight mean of oracle-signed
+   columns* while R0 is *L-SML*, so the contrast confounds sign with fusion method. Holding fusion
+   fixed and varying only signs is worth **exactly 0.0000pp**. (Consistent with Step 199's clean-rung
+   note that R2 − R1 = +0.0005.)
+3. **"Z2 recovers signs with 100% accuracy" is unsupported.** Z2 matching `ALL_SIGNS` is the gauge, not
+   a validation; random signs match identically.
+
+The one real orientation prior is the **single global ±1 bit**. Measured, the `epr` anchor already
+spends it optimally: an *oracle* global bit ties the anchor (GOOD_6 5W/2L p = 0.257; FULL 3W/4L
+p = 0.706), with 0/25 cells below 0.5 in every anchored condition.
+
+**`distributional_orient`'s premise is false on this corpus.** It assumes hallucination is the
+minority mode; measured, `pos_rate` spans **0.023 → 0.917, median 0.465, and only 9/25 cells exceed
+0.5**. The rule costs **−13.2pp (FULL) / −14.0pp (GOOD_6)** and inverts 6 cells (p = 0.028).
+Prior-free orientation via a distributional tiebreaker is **refuted**, not merely unhelpful.
+
+Artifacts: `results/advisor_inscope/h1_orientation_audit.csv`, `h1_orientation_summary.csv`.
+
+#### C. Code defects found (all verified against measured evidence)
+
+| # | File | Defect | Evidence |
+|---|---|---|---|
+| 1 | `prior_free_bench.py:87-90` | a7 arm fuses **raw, un-z-scored** V while the GOOD_6 arm z-scores via `lsml_continuous_pipeline`; arms are not comparable | column std ratio **9.3e+08** on cell 1 — covariance dominated by a single column |
+| 2 | `prior_free_bench.py:91-92` | anchor falls back to `feat_names[0]` (arbitrary dict key) with `ALL_SIGNS` defaulting to `+1` | `auc_z2_anch` has **2 cells < 0.5**, min **0.3558**; the canonical path never goes sub-0.5 |
+| 3 | `adaptive_k.predict_k` (`eff_rank`) | participation ratio on rank-one-dominant cells lands ~1-2 and clamps to `k_min` | `k_selected = {3: 25}` — a constant, i.e. the fixed-K prior reintroduced as K=3 |
+| 4 | `sweep_dufs_groupfs.py:60-66` | **Never runs GroupFS.** Uses `sklearn AgglomerativeClustering` on correlation distance; never imports `a2_groupfs`/`_train_groupfs`; no stochastic gates, no τ anneal, no orthogonality term. `l1` is bound in the loop and written to the CSV but **never used in any computation**; `tau` never swept | λ1 changes AUROC or `n_selected` in **0/350** (cell, C, readout) groups — spread exactly `0.00e+00` |
+| 5 | `a7_iter_consensus.py:106` | computes `oriented_score`, keeps only the `flipped` flag — the prior-free orientation never reaches a scored number | dead value |
+| 6 | `a7_iter_consensus.py:129-149` | `smoke()` cannot fail — the fallback returns all `p` columns and the only assertion is `len(cols) >= 3`; `DummyCell` lacks `pool`/`anchor`/`rho`, so the real `UnlabeledCell` contract is never exercised | passes even if the selector falls back on all 25 cells |
+| 7 | `gap_ladder.py` gates | `target_quality.p_vs_good6` is read from `w_p_vs_R0_all` = R6 vs **R0@FULL** (0.7457), not vs GOOD_6 (0.7594) | delta and p-value describe different contrasts |
+| 8 | `test_user_pipeline.py`, `test_iterative_lsml_pruning.py` | compare against a **wrong GOOD_6** — macro **0.7273**, not the canonical 0.7594 | differs from `prior_free_bench`'s own GOOD_6 on **25/25 cells**, max diff **0.1294** |
+
+Defect 4 is the most consequential for the roadmap: **GroupFS grouping — the one mechanism flagged as
+genuinely unexplored — has still never been tested.** The sweep was agglomerative clustering wearing
+its name.
+
+#### D. What the Step-200 numbers actually say
+
+| Arm | Macro | vs GOOD_6 0.7594 |
+|---|---|---|
+| `auc_pf_distr` (fully prior-free) | **0.5103**, 10/25 cells < 0.5 | −24.9pp |
+| `auc_z2_anch` (uses the epr anchor) | 0.6840, 2 cells < 0.5 | −7.5pp |
+| GroupFS "sweep" best (C=3) | 0.7063 | −5.3pp |
+| R6 (oracle-target ceiling) | 0.7676 | +0.8pp → **DEAD** |
+
+**Result**: the gap-ladder and its R6 verdict are sound and kept — R6 = 0.7676 DEAD closes the
+target-quality hypothesis. H1 is settled by measurement: `ALL_SIGNS` is a free no-op, there is no sign
+headroom, and the prior-free tiebreaker is refuted on a false premise. The prior-free pipeline's own
+numbers (a7, GroupFS) are void pending the 8 fixes, and GroupFS grouping remains untested. Step 200
+banner-annotated; fixes and corrected numbers in Step 202.
+
+**Files**: `scripts/h1_orientation_audit.py` (new), `results/advisor_inscope/h1_orientation_audit.csv`,
+`results/advisor_inscope/h1_orientation_summary.csv`; audit targets `scripts/gap_ladder.py`,
+`scripts/prior_free_bench.py`, `scripts/sweep_dufs_groupfs.py`,
+`spectral_utils/selectors/a7_iter_consensus.py`, `spectral_utils/selectors/adaptive_k.py`,
+`spectral_utils/orientation.py`.
+
+---
+
+### Step 202 — Extension H re-measured on fixed code: every prior-free component is bounded, and GroupFS grouping is finally tested
+
+**What**: Fixed the nine defects catalogued in Step 201, then re-ran every Extension H arm through
+one canonical scoring path. All numbers below carry the GOOD_6 validity anchor (macro **0.7594**,
+PASS on every bench), a paired Wilcoxon p, and wins/losses over the 25 in-scope cells.
+
+**Why**: Step 201 showed the Step-200 pipeline was measuring bugs rather than methods, so the
+prior-free direction could not be judged on those numbers. The point of this step is to decide
+Extension H on evidence that survives audit — including the one mechanism (GroupFS grouping) that
+had never actually been run.
+
+#### A. The fixes
+
+| # | Fix |
+|---|---|
+| 1,2,8 | New `scripts/inscope_bench_common.py` — a single canonical load+score path mirroring `repgrid_scoring.score_subset` (cells via `prepare_cell` → z-scored V over `CANONICAL_POOL`, the cell's own resolved anchor, raw AUROC). `prior_free_bench.py`, `test_user_pipeline.py`, `test_iterative_lsml_pruning.py` all routed through it, each asserting the GOOD_6 anchor before reporting. |
+| 3 | `adaptive_k`: de-duplicated the two parallel implementations (Gemini's inline rules vs my helpers) and added `raw_k()` exposing the **unclamped** estimate, so clamping can no longer disguise a constant as an adaptive rule. |
+| 4 | `sweep_dufs_groupfs.py` **rewritten onto the real mechanism** — `a2_groupfs._train_groupfs` with the feature-graph Laplacian, spectral warm start, stochastic gates and orthogonality term; `C`, `lambda1`, `tau`, readout all genuinely swept. `_train_groupfs` gained optional `temp_start`/`temp_min` (defaults unchanged, so the deployed a2 path is untouched — its smoke still passes, ARI 1.00). Added a **λ1 regression guard**. |
+| 5,6 | `a7_iter_consensus`: removed the dead `distributional_orient` call (orientation is the bench's job); `smoke()` rewritten on the a6 pattern with a real `UnlabeledCell` and assertions that can actually fail (`not fallback`, signal-over-noise, determinism). |
+| 7 | `gap_ladder.py`: `target_quality.p_vs_good6` now the paired Wilcoxon of **R6@FULL vs R0@GOOD_6** (it previously read R6 vs R0@**FULL**, so delta and p described different contrasts), plus `wins/losses` and an explicit `p_contrast` field; `sign_recovery_loss` annotated as confounded with fusion method. |
+| 9 | **New defect found while fixing 8**: `test_user_pipeline.py` and `test_iterative_lsml_pruning.py` applied `max(auc, 1-auc)` to *every* arm — a label-peeking sign oracle that floored each number at 0.5, so none of those arms were label-free. Also removed undocumented `1e-6*randn` feature jitter. |
+
+#### B. Corrected results (all vs GOOD_6 = 0.7594, 25 cells)
+
+| Arm | Step-200 (broken) | **Corrected** | Δ vs GOOD_6 | W/L | p |
+|---|---|---|---|---|---|
+| full-pool L-SML (30 views) | — | 0.7457 | −1.37pp | 10/15 | 0.114 |
+| `a7.iter_consensus` + anchor | 0.6840 | **0.7378** | −2.16pp | 8/17 | 0.0105 |
+| `a7.iter_consensus` prior-free | 0.5103 | **0.6524** | −10.70pp | 6/19 | 0.0010 |
+| mRMR @ `eff_rank` K | — | 0.7395 | −1.99pp | 7/18 | 0.0115 |
+| mRMR @ `mp_floor` K | — | 0.7396 | −1.98pp | 7/18 | 0.0061 |
+| iterative weight pruning | 0.7003 | 0.7337 | −2.57pp | 5/20 | 0.0007 |
+| iterative residual pruning | 0.6737 | 0.7004 | −5.90pp | 5/20 | 0.0001 |
+| iterative group pruning | 0.6902 | 0.6676 | −9.18pp | 3/22 | <0.0001 |
+
+The fixes moved every arm materially (the prior-free arm by **+14.2pp**), confirming the Step-200
+numbers were measuring defects rather than methods. `a7` now falls back on **0/25** cells, and its
+selected size varies (`{5:9, 4:8, 6:4, 3:4}`) rather than being pinned at 3. **No arm clears GOOD_6.**
+
+#### C. GroupFS grouping — tested for the first time, and bounded
+
+The λ1 **regression guard PASSES**: λ1 now changes AUROC/`n_selected` in **71/700** (cell, C, τ,
+readout) groups, max spread 0.0451 — against **0/350** for the Step-200 stand-in. The mechanism is
+genuinely being exercised. 2800 rows, 25 cells.
+
+- Best config: **C=8, λ1=0.1, group_median → 0.7508** (the real mechanism beats the agglomerative
+  stand-in's 0.7063 by +4.5pp, but is still under GOOD_6).
+- **`LABEL_PEEKING_CEILING` = 0.7585, −0.09pp vs GOOD_6 (14W/11L, p = 0.325).** Choosing the best
+  GroupFS configuration *per cell, with labels*, only **ties** a fixed hand-picked 6-feature subset.
+- Deployable `label_free_LOCO` = **0.7474**, −1.20pp (8W/17L, p = 0.080).
+
+**This is the decisive result for Phase 4b.** GroupFS grouping does not fail because it is badly
+tuned — its own oracle ceiling does not clear GOOD_6. The direction is bounded, not mis-configured,
+and no further hyperparameter search is warranted.
+
+#### D. H2 (label-free K) — refuted on the honest test
+
+Applying the test that refuted D1 (agreement with per-cell **oracle-K**, not with downstream AUROC):
+
+| rule | Spearman vs oracle-K | p | mean abs ΔK | macro |
+|---|---|---|---|---|
+| `fixed` (K=15) | — | — | 3.44 | **0.7518** |
+| `elbow_fwd` | +0.068 | 0.747 | 3.72 | 0.7479 |
+| `stability` | −0.070 | 0.739 | 7.40 | 0.7413 |
+| `eff_rank` | **−0.0995** | 0.636 | 7.44 | 0.7403 |
+| `mp_floor` | −0.025 | 0.907 | 7.76 | 0.7383 |
+
+**Every rule REFUTED; none met the pre-registered bar** (Spearman ≥ 0.30, p < 0.05, macro ≥ fixed-K).
+The fixed K=15 prior that H2 set out to remove **beats every adaptive rule**.
+
+The mechanism is informative: **oracle-K has median 14** (min 3, max 15) while the spectrum rules
+predict 4–6. Participation ratio and the MP edge count *how many independent directions exist*
+(~4.5), but L-SML wants many **correlated** views — redundancy is what its covariance structure
+exploits, so effective rank is simply the wrong quantity for this K.
+
+#### E. Two corrections to Step 201's own audit
+
+1. **Defect 3 was partly misdiagnosed.** The constant `k_selected = {3: 25}` was mostly an artifact
+   of the un-z-scored V (defect 1), not of `eff_rank` itself; on canonical data it varies 3–6 (raw
+   median 4.55). The rule is still refuted, but for the deeper reason in §D, not for being constant.
+2. **A ninth defect existed** (the `max(auc, 1-auc)` sign oracle, §A row 9), found only while fixing
+   defect 8.
+
+**Result**: with valid measurement, **all three Extension H sub-problems are bounded**. H1 — no sign
+headroom exists (L-SML gauge invariance, Step 201) and the prior-free tiebreaker costs −10.7pp. H2 —
+every label-free K rule is refuted; fixed K=15 wins. H3 — R6 already showed a perfect target does not
+clear GOOD_6, and the fixed a7 lands −2.16pp. Phase 4b — GroupFS grouping's *label-peeking ceiling*
+ties GOOD_6 (−0.09pp, n.s.), so the last untested mechanism is bounded too. **GOOD_6 (0.7594) remains
+unbeaten, and the prior-free program as specified in Extension H does not reach it.** The durable
+gain is subtractive: `ALL_SIGNS` (42 hand-derived polarities) is provably free to delete, and the
+remaining orientation prior is a single ±1 bit that the `epr` anchor already spends optimally.
+
+**Files**: `scripts/inscope_bench_common.py` (new), `scripts/validate_k_rules.py` (new),
+`scripts/sweep_dufs_groupfs.py` (rewritten), `scripts/prior_free_bench.py`,
+`scripts/test_user_pipeline.py`, `scripts/test_iterative_lsml_pruning.py`, `scripts/gap_ladder.py`,
+`spectral_utils/selectors/adaptive_k.py`, `spectral_utils/selectors/a7_iter_consensus.py`,
+`spectral_utils/selectors/a2_groupfs.py`;
+results `prior_free_bench_{results,summary}.csv`, `sweep_groupfs_{results,summary}.csv`,
+`sweep_groupfs_dashboard.html`, `k_rule_validation{,_rules}.csv`, `user_pipeline_results.csv`,
+`iterative_pruning_results.csv`.
 
 ---
