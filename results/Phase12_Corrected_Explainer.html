@@ -177,6 +177,14 @@ correlation with LW-SE (an independent uncertainty signal on the same samples) i
 scored on the old T=1.0 cache (Step 135). The runs differ in traces (fresh sampling, MAX_NEW 2048 vs 1024) and question subset. Until that
 discrepancy is understood, <em>neither</em> 0.944 nor 0.770 should be cited for MATH-500.
 </div>
+<div class="box"><strong>Update (Step 182 A1 / Step 184): the gap IS now understood — it was never a trace-regime
+discrepancy.</strong> The old-cache <code>math500_res.pkl</code> keys read "T=1.0" but their accuracy (28%) and
+per-feature AUROC match the Phase-4 <strong>T=1.5</strong> table exactly (<code>results/phase1/math500_discrepancy.json</code>)
+— <strong>0.944 is a T=1.5 result mislabeled as T=1.0</strong>, not a genuine same-temperature comparison point for this
+page's fresh run. A dedicated fresh T=1.0 diagnostic re-run (N=200, MAX_NEW=2048) gives GOOD_5 <strong>0.851 [0.777, 0.918]</strong>
+at accuracy 70.5% — consistent with this page's own orientation-fixed 0.770 (same temperature, different sampling/MAX_NEW/question
+subset, hence the residual ~8pp gap, not a mislabel). <strong>0.851 is now the citable T=1.0 MATH-500 headline</strong>; 0.944 remains
+valid only as a labeled T=1.5/accuracy-28% operating point.</div>
 
 <h2>7. Item 5 — is sampling orthogonal to the 1-pass signal?</h2>
 <p>
@@ -201,14 +209,14 @@ entropy trace to the sampling methods — not the other way.
 <tr><th>Claim</th><th>Status</th></tr>
 <tr><td>GSM8K: 1-pass L-SML 0.754 beats all K=5/K=10 baselines on a shared cache</td><td class="pass">Solid — third consistent run</td></tr>
 <tr><td>Item 5: sampling adds ≈nothing on top of the 1-pass signal</td><td class="pass">Answered (gate failed by design of the question)</td></tr>
-<tr><td>MATH-500 — any L-SML number</td><td class="warn">Blocked: flip fixable, but 0.770 vs 0.944 old-cache gap unresolved</td></tr>
+<tr><td>MATH-500 — any L-SML number</td><td class="pass">Resolved (Step 182 A1): 0.944 = T=1.5/acc-28% mislabeled as T=1.0; genuine T=1.0 headline is 0.851 [0.777, 0.918]</td></tr>
 <tr><td>Competitor table (old or new)</td><td class="warn">Blocked until the baseline collapse is reconciled</td></tr>
 <tr><td>RAG SelfCheckGPT numbers</td><td class="fail">Not usable — below chance, orientation/grading suspect</td></tr>
 </table>
 <p>Open follow-ups (Priority 1 in <code>PROGRESS.md</code>; all are analysis-only — the inference caches are on Drive, no GPU re-runs needed except where noted):</p>
 <ol>
 <li>Add <code>anchor_orient</code> to the three analysis cells and re-run analysis-only → fixes the MATH-500 (and fusion) flip properly.</li>
-<li>MATH-500 discrepancy: compare trace-length distributions, prompts, and question subsets between this run and the Step-135 cache.</li>
+<li><s>MATH-500 discrepancy: compare trace-length distributions, prompts, and question subsets between this run and the Step-135 cache.</s> Done (Step 182 A1) — resolved as a temperature mislabel, see the update box in section 6 above.</li>
 <li>RAG below-chance: check score orientation and answer grading in the long-context setting.</li>
 <li>SE collapse: test the NLI-truncation hypothesis directly (truncate old-cache traces to 512 tokens and see if old SE numbers reproduce the drop).</li>
 </ol>

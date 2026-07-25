@@ -100,6 +100,11 @@
   .rf-bar-gray{fill:#94a3b8;}
   .rf-bar-gray-sup{fill:#475569;}
   .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-bar-c4{fill:#cbd5e1;}
+  .rf-bar-g5{fill:#475569;}
+  .rf-bar-g6{fill:var(--blue);}
+  .rf-dumbbell-epr{fill:var(--blue);stroke:#fff;stroke-width:1.5;}
+  .rf-dumbbell-alt{fill:var(--green);stroke:#fff;stroke-width:1.5;}
   .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
   .rf-line{stroke:var(--blue);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
   .rf-line-acc{stroke:var(--green);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
@@ -116,8 +121,8 @@
   <h1>Advisor action items — index</h1>
   <div class="subtitle">Six action items from the 2026-06-17 meeting: status, results, coverage gaps, and the critical-review page.</div>
   <div class="meta-pills">
-    <span class="meta-pill">Generated 2026-07-12 by scripts/action_items_report.py</span>
-    <span class="meta-pill">Cluster state 2026-07-12 late — benchmarking desk CLOSED: all cells fetched. A2 + A3 (both Qwen3/ARS) = documented REJECT (truncation-label leakage at 8192/16384); C1 inside_coqa scored 68.4 vs INSIDE 80.4 (FLOOR flag, judge acc 0.132); no jobs left in queue</span>
+    <span class="meta-pill">Generated 2026-07-15 by scripts/action_items_report.py</span>
+    <span class="meta-pill">Benchmarking desk CLOSED (Step 172): all Wave-3 cells fetched, scored, or documented REJECT. GOOD_6 subset-ladder + anchor-orientation robustness added (Step 184). No jobs left in this desk&#x27;s queue.</span>
     <span class="meta-pill">Every numeric cell sourced from a CSV/JSON</span>
   </div>
 </div></div>
@@ -151,28 +156,30 @@ features — but &asymp;0pp on reasoning, where both sit near the in-sample ceil
 QA/GPQA phenomenon; LR buys different weights (Spearman 0.1&ndash;0.2), not better scaling.</p>
 <a class="cta" href="item2_lr_oracle.html">Read &rarr;</a></div>
 
-<div class="item-card"><span class="section-badge badge-progress">In progress</span>
+<div class="item-card"><span class="section-badge badge-completed">Complete</span>
 <h3>Item 3 — Short-form QA evaluation</h3>
-<p>All 5 prioritised datasets have data; SQuAD v2 (79.8), SciQ (74.4), TruthfulQA (67.3) and the
-judge-rescued NQ-Open (73.2) all clear the &ge;65 bar — the Step-155 gate (&ge;3 of 4) is already
-met, with ceiling/floor caveats attached; CoQA's judge-regraded full-N rerun is in flight.</p>
+<p>Every prioritised dataset is scored or documented-REJECT (Step 172): SQuAD v2 (79.8), SciQ
+(74.4, ceiling), TruthfulQA (67.3), NQ-Open (73.2, judge-rescued) all clear the &ge;65 bar — the
+Step-155 gate (&ge;3 of 4) is met; CoQA's judge-regraded full-N landed too (68.4 vs INSIDE 80.4,
+FLOOR flag).</p>
 <a class="cta" href="item3_qa_evaluation.html">Read &rarr;</a></div>
 
-<div class="item-card"><span class="section-badge badge-progress">In progress — nearly done</span>
+<div class="item-card"><span class="section-badge badge-completed">Complete</span>
 <h3>Item 4 — Benchmarking</h3>
-<p>Same-model wins that are CI-clear: LapEigvals-unsup on GSM8K Llama-8B (+9.5pp), Phi-3.5
-(+13.7pp), Nemo (+15.2pp), Mistral-24B (+22.5pp, ceiling-caveated). Three narrower claims
-(R1-Distill vs ARS, Qwen2.5-7B vs SelfCheckGPT, Phi-3-mini vs answer-entropy) are numerically
-ahead but CI-overlapping. The fairest same-trace baseline is ahead of GOOD_5 on over half the
-comparable cells.</p>
+<p>Benchmarking desk closed (Step 172), GOOD_6 comparison arm added (Step 184). Same-model wins
+that are CI-clear: LapEigvals-unsup on GSM8K Llama-8B (+9.5pp), Phi-3.5 (+13.7pp), Nemo (+15.2pp),
+Mistral-24B (+22.5pp, ceiling-caveated); MATH-500/R1-Distill GOOD_5 84.4 nearly matches supervised
+ARS (86.4). Three narrower claims are numerically ahead but CI-overlapping (see the scrutiny
+page) and the fairest same-trace baseline is ahead of GOOD_5 on over half the comparable cells.</p>
 <a class="cta" href="item4_benchmarking.html">Read &rarr;</a></div>
 
-<div class="item-card"><span class="section-badge badge-flagged">Complete, flagged</span>
+<div class="item-card"><span class="section-badge badge-completed">Complete</span>
 <h3>Item 5 — Sampling fusion</h3>
-<p>Step-152 gate FAIL stands for SE-fusion (+0.4pp on GSM8K), but the MATH-500 row is now
-sign-corrected (0.230 &rarr; 0.770 mirror), and the Phase-15 partial re-score shows the same-T
-K=5 entropy-averaging arm <em>passes</em> the same gate — the Items-5/6 reconciliation. The
-answer-agreement arm is armed and waits only on the 5 raw pass caches.</p>
+<p>Fusing the 1-pass spectral score with a K=5 answer-agreement signal reaches <strong>95.2
+AUROC</strong>, +10.1pp over the best single arm (&rho;=+0.23) — clears the pre-registered gate
+and is the strongest fusion number in the project (MATH-500/Qwen2.5-Math-7B). Also explains why
+Item 6's same-temperature averaging helps while an earlier, different-signal fusion attempt
+(Step 152) did not.</p>
 <a class="cta" href="item5_sampling_fusion.html">Read &rarr;</a></div>
 
 <div class="item-card"><span class="section-badge badge-completed">Complete (Step 158)</span>
@@ -192,10 +199,12 @@ legacy caches, whose per-cell U-PCR was computed fresh this session
 <a class="cta" href="per_domain_breakdown.html">Read &rarr;</a></div>
 
 <div class="item-card"><span class="section-badge badge-finding">Critical review</span>
-<h3>Advisor scrutiny — 7 points</h3>
+<h3>Advisor scrutiny — 9 points</h3>
 <p>CI-overlap on three headlines; seq-logprob near-parity; the Items-5/6 tension reconciled; the
-sign-flip fix and the anchor re-derivation; RAG SelfCheckGPT bug-or-finding; single-cell scope
-of Item 6; the 30.6%-accuracy caveat on the Internal-States rerun.</p>
+sign-flip fix and the anchor re-derivation; RAG SelfCheckGPT bug-or-finding (resolved, Step 182);
+single-cell scope of Item 6; the 30.6%-accuracy caveat on the Internal-States rerun; ARS's
+supervision mischaracterization and HARP's model-unspecified framing, both fixed at the source
+after a full paper-verification pass (Step 184).</p>
 <a class="cta" href="advisor_scrutiny.html">Read &rarr;</a></div>
 </div>
 
@@ -207,7 +216,7 @@ of Item 6; the 30.6%-accuracy caveat on the Internal-States rerun.</p>
 pending. Excluded from the breakdown per request.</td></tr>
 <tr><td>RAG &times; 4 (L-CiteEval)</td><td>Legacy numbers only</td><td>L-SML + fresh U-PCR
 computed locally, but untouched on the cluster since Step 152; the SelfCheckGPT below-chance
-issue there is open (scrutiny point 5).</td></tr>
+behavior there is explained, not open (Step 182 — label-protocol mismatch, scrutiny point 5).</td></tr>
 <tr><td>WebQ</td><td>Stale CoT-only cache</td><td>No plain variant anywhere; absent from the
 AIRCC grid.</td></tr>
 <tr><td>AMC23 / AIME24</td><td>Loaders + EDIS cache exist</td><td>No replication-grid presets
@@ -217,23 +226,22 @@ for our detector yet.</td></tr>
 
 <div class="section-card">
 <h2>Candidate follow-ups</h2>
-<p>Surfaced by this pass; each with a cost estimate so they can be prioritised. (Two of the four
-were partially executed this session by the armed scripts.)</p>
+<p>Surfaced by an earlier pass; two of the five are now closed.</p>
 <table>
 <tr><th>#</th><th>Candidate</th><th>Cost</th><th>State</th></tr>
-<tr><td>1</td><td>Answer-agreement self-consistency baseline from the 5 cached T=1.0 MATH-500
-passes — closes Item 5's missing arm</td><td>CPU-only, zero GPU</td>
-<td>Script armed (<span class="mono">rescore_phase15_selfconsistency.py</span>); needs the 5 raw
-pass pkls copied from Drive <span class="mono">cache/phase15_temperature/</span></td></tr>
+<tr><td>1</td><td><s>Answer-agreement self-consistency baseline from the 5 cached T=1.0 MATH-500
+passes — closes Item 5's missing arm</s></td><td>CPU-only, zero GPU</td>
+<td><strong>Done (Step 174)</strong> — gate PASSES at 95.2 AUROC, see item 5.</td></tr>
 <tr><td>2</td><td>Full label-free re-derivation of the Phase-12 sign fix on the original
 scores</td><td>CPU-only</td>
 <td>Mirror correction done; script armed (<span class="mono">refix_phase12_signs.py</span>);
-needs <span class="mono">p1/p2/p3</span> caches from Drive
+still needs <span class="mono">p1/p2/p3</span> caches from Drive
 <span class="mono">cache/phase12_corrected/</span></td></tr>
 <tr><td>3</td><td>NLI-truncation reconciliation for the old-cache SE/SC baselines — or a
 decision to retire that table</td><td>CPU + NLI model, hours</td><td>Open since Step 152</td></tr>
-<tr><td>4</td><td>RAG SelfCheckGPT orientation check (bug vs citable finding)</td>
-<td>CPU, &lt;1h</td><td>Open since Step 152 (scrutiny point 5)</td></tr>
+<tr><td>4</td><td><s>RAG SelfCheckGPT orientation check (bug vs citable finding)</s></td>
+<td>CPU, &lt;1h</td><td><strong>Done (Step 182)</strong> — label-protocol mismatch, citable
+finding, see scrutiny point 5.</td></tr>
 <tr><td>5</td><td>Second-dataset temperature check (Item 6 scope)</td><td>One Colab 5-run
 session</td><td>Not started</td></tr>
 </table>

@@ -45,7 +45,18 @@ STABLE_H9 = [
 
 ALL_H16 = FEAT_NAMES[:16]
 
+# The full 46-name canonical pool (Step 193). build_X already filters per cell to the
+# views that exist, are the right length, and are not saturated, so a 46-name request
+# collapses to each cell's real ~26-30 usable views. Only the repgrid path consumes it
+# today; print_table/make_plots below hardcode ['5','9','16'] and ignore the extra key.
+try:
+    from spectral_utils.subset_sweep import CANONICAL_POOL as _CANONICAL_POOL
+except Exception:                                       # pragma: no cover
+    _CANONICAL_POOL = None
+
 FEATURE_SETS = {'5': GOOD_5, '9': STABLE_H9, '16': ALL_H16}
+if _CANONICAL_POOL:
+    FEATURE_SETS['30'] = list(_CANONICAL_POOL)
 
 PKL_NAMES = {
     'math500': 'math500_res.pkl',

@@ -40,6 +40,7 @@ from report_figs import (  # noqa: E402 — CSV-driven inline-SVG figures
     fig_cell_landscape_losnet, fig_cell_landscape_gsm8k_llama8b, fig_good5_vs_seqlp,
     fig_math500_forest, fig_triviaqa_forest, fig_qa_extension_forest, master_table_html,
     fig_item6_temperature, fig_item6_arms, fig_item5_fusion,
+    fig_subset_ladder, fig_anchor_sensitivity,
 )
 
 RESULTS = os.path.join(REPO, "results")
@@ -47,10 +48,10 @@ REPGRID = os.path.join(RESULTS, "repgrid")
 SWEEP = os.path.join(RESULTS, "subset_sweep")
 OUT_DIR = os.path.join(RESULTS, "action_items")
 
-AS_OF = ("Cluster state 2026-07-12 late — benchmarking desk CLOSED: all cells fetched. "
-         "A2 + A3 (both Qwen3/ARS) = documented REJECT (truncation-label leakage at 8192/16384); "
-         "C1 inside_coqa scored 68.4 vs INSIDE 80.4 (FLOOR flag, judge acc 0.132); no jobs left in queue")
-GEN_DATE = "2026-07-12"
+AS_OF = ("Benchmarking desk CLOSED (Step 172): all Wave-3 cells fetched, scored, or documented "
+         "REJECT. GOOD_6 subset-ladder + anchor-orientation robustness added (Step 184). "
+         "No jobs left in this desk's queue.")
+GEN_DATE = "2026-07-15"
 
 EXTRA_CSS = """
   .badge-flagged{background:var(--amber-light);color:var(--amber-dark);}
@@ -97,7 +98,14 @@ def load_json(path):
 # ── data ───────────────────────────────────────────────────────────────────────
 
 RB = read_csv(os.path.join(RESULTS, "reasoning_benchmark.csv"))
-LU = read_csv(os.path.join(REPGRID, "scores_lsml_upcr.csv"))
+LU_ALL = read_csv(os.path.join(REPGRID, "scores_lsml_upcr.csv"))
+# Task B3 added alternate anchor="cusum_max" rows for GOOD_5/GOOD_6 to this same CSV
+# (same (cell, subset, method) key as the default epr-anchor row). Every existing
+# function below (g5, best_row, GOOD_6 lift) assumes one row per (cell, subset, method)
+# -- filter to the epr anchor (the implicit default all along; older rows predate the
+# "anchor" column entirely) so a cusum_max row can never silently outrank/replace the
+# epr row it shares a key with. Mirrors repgrid_report.py's epr_anchor_rows().
+LU = [r for r in LU_ALL if r.get("anchor", "epr") in ("epr", "")]
 UB = read_csv(os.path.join(REPGRID, "ubaseline_scores.csv"))
 SW = read_csv(os.path.join(SWEEP, "sweep_summary.csv"))
 UL = read_csv(os.path.join(SWEEP, "upcr_legacy.csv"))
@@ -114,6 +122,29 @@ def g5(cell, method):
         if r["subset"] == "GOOD_5" and r["method"] == method:
             return r
     return None
+
+
+def g6(cell, method):
+    for r in CELL_ROWS.get(cell, []):
+        if r["subset"] == "GOOD_6" and r["method"] == method:
+            return r
+    return None
+
+
+def good6_lift_rows():
+    """Task B: GOOD_6 (= GOOD_5 + varentropy) minus GOOD_5, per cell, L-SML, on every
+    19-cell-grid cell where both are scored (GOOD_6 needs top_k_logprobs, so cells without
+    logprob capture are naturally absent -- no old-battery cell can appear here)."""
+    out = []
+    for cell in sorted(CELL_ROWS):
+        g5r, g6r = g5(cell, "lsml"), g6(cell, "lsml")
+        if g5r is None or g6r is None:
+            continue
+        x5, x6 = f(g5r["auroc_X"]), f(g6r["auroc_X"])
+        if x5 is None or x6 is None:
+            continue
+        out.append({"cell": cell, "good5": x5, "good6": x6, "delta": x6 - x5})
+    return out
 
 
 def best_row(cell):
@@ -317,7 +348,7 @@ QA_CELLS = [
     ("sciq_llama8b", "SciQ", "Llama-3.1-8B", "ceiling caveat: acc 0.877"),
     ("truthfulqa_llama8b", "TruthfulQA (gen.)", "Llama-3.1-8B", "label floor: acc 0.116"),
     ("se_nq_open_llama8b", "NQ-Open", "Llama-3.1-8B", "judge-rescued: acc 0.067 → 0.501"),
-    ("inside_coqa_llama7b", "CoQA", "LLaMA-7B", "OLD floor run (acc 0.183) — judge-regraded full-N rerun in flight (C1)"),
+    ("inside_coqa_llama7b", "CoQA", "LLaMA-7B", "judge-regraded full-N (Step 171): GOOD_5 68.4 vs INSIDE 80.4, FLOOR flag (judge acc 0.132)"),
     ("epr_triviaqa_mistral24b", "TriviaQA (wiki)", "Mistral-Small-24B", ""),
     ("semenergy_triviaqa_qwen3_8b", "TriviaQA", "Qwen3-8B", ""),
     ("seiclr_triviaqa_opt30b", "TriviaQA", "OPT-30B", ""),
@@ -394,9 +425,11 @@ GOOD_5 per cell:</p>
 <tr><th>Dataset</th><th>GOOD_5 AUROC (best of L-SML/U-PCR)</th><th>vs 65 bar</th></tr>
 {gate_html}
 </table>
-<div class="takeaway-box"><b>Gate status: {n_pass}/4 clear the bar</b> with CoQA still pending —
-the gate is already met on currently-available data. Caveats stay attached: SciQ sits at 87.7%
-accuracy (ceiling), TruthfulQA at 11.6% accuracy (floor; judge-regrade pending as a follow-up).</div>
+<div class="takeaway-box"><b>Gate status: {n_pass}/4 clear the bar</b> — met, all four cells scored
+(CoQA is judge-regraded and reported separately above, not part of this specific 4-dataset gate).
+Caveats stay attached: SciQ sits at 87.7% accuracy (ceiling), TruthfulQA at 11.6% accuracy (floor;
+already judge-regraded — Step 169 — this is the real judge-scored accuracy, not a lexical proxy
+awaiting regrade).</div>
 
 <h3>Short-QA subset finding</h3>
 <p>On several short-trace QA cells a smaller 4-feature subset (<span class="mono">consensus_4</span>)
@@ -437,6 +470,23 @@ CITATIONS = {
 
 
 def build_item4(scan, seq_rows, seq_tally, seq_skipped):
+    lift6 = good6_lift_rows()
+    lift6_html = "".join(
+        f"<tr><td class='mono'>{esc(r['cell'])}</td><td>{pct(r['good5'])}</td>"
+        f"<td>{pct(r['good6'])}</td>"
+        f"<td class='{wl_class(r['delta'])}'>{pp(r['delta'])}pp</td></tr>"
+        for r in lift6
+    )
+    # Headline macro/pos-neg excludes pilot/partial/reject cells (same convention as
+    # advisor_report.py's subset_ladder_html and report_figs.fig_subset_ladder) -- the
+    # n=30 CoQA pilot is shown in the per-cell table above for transparency but is too
+    # noisy to fold into the headline count.
+    lift6_hl = [r for r in lift6 if not r["cell"].endswith(("_pilot", "_partial", "_reject"))]
+    n_pos6 = sum(1 for r in lift6_hl if r["delta"] > 0.005)
+    n_neg6 = sum(1 for r in lift6_hl if r["delta"] < -0.005)
+    macro5 = (sum(r["good5"] for r in lift6_hl) / len(lift6_hl)) if lift6_hl else None
+    macro6 = (sum(r["good6"] for r in lift6_hl) / len(lift6_hl)) if lift6_hl else None
+
     # papers cited — generated from the distinct method/Y_method values actually present
     names = set()
     for r in RB:
@@ -483,7 +533,7 @@ def build_item4(scan, seq_rows, seq_tally, seq_skipped):
 
     body = f"""
 <div class="section-card">
-{badge('progress', 'In progress — nearly done (3 cells still running)')}
+{badge('done', 'Complete — benchmarking desk closed (Step 172), GOOD_6 arm added (Step 184)')}
 <h2>Item 4 — Benchmarking against published detectors</h2>
 
 <h3>How this was built</h3>
@@ -539,10 +589,32 @@ distinction matters.</p>
 </table>
 <p>Also behind on the deep-supervised anchors that use training labels + internal access:
 LapEigvals supervised probe (GSM8K/Llama-8B 92.5 vs our 81.5), TSV on TruthfulQA (84.2 vs our
-67.5), INSIDE on CoQA (80.4 — our judge-regraded rerun in flight), LOS-Net on HotpotQA (72.9 vs
-our 58.3), Semantic Entropy on TriviaQA/OPT-30B (83.0 vs our 63.0). Wave-3 tally over the
+67.5), INSIDE on CoQA (80.4 vs our judge-regraded full-N 68.4, FLOOR flag), LOS-Net on HotpotQA
+(72.9 vs our 58.3), Semantic Entropy on TriviaQA/OPT-30B (83.0 vs our 63.0). Wave-3 tally over the
 same-model cells: <strong>3 wins, 1 exact tie (Mistral-7B 78.5 = Noise-Injection K=10 at 1/10th
 the compute), 1 edge, 3 honest losses, 1 floor-REJECT (gemma2b), 1 ceiling-caveat (SciQ)</strong>.</p>
+
+<h3>Does a 6th feature help? GOOD_6 = GOOD_5 + varentropy (19-cell replication grid)</h3>
+<p>Step 182's exhaustive subset sweep flagged <span class="mono">varentropy</span> (needs per-token
+top-50 logprobs — AIRCC-era capture only, so this comparison is confined to the 19-cell replication
+grid; no old-battery cell has this field) as the best 6th feature to add to GOOD_5. Per cell, L-SML,
+both anchored the same way (epr):</p>
+{fig_subset_ladder()}
+<table>
+<tr><th>Cell</th><th>GOOD_5</th><th>GOOD_6</th><th>Delta</th></tr>
+{lift6_html}
+</table>
+<div class="info-box">GOOD_6 significantly positive ({'>'}0.5pp) on <strong>{n_pos6}/{len(lift6_hl)}</strong>
+cells, negative on <strong>{n_neg6}/{len(lift6_hl)}</strong> (headline count excludes the CoQA n=30 pilot,
+shown above for transparency). Macro AUROC:
+GOOD_5 <strong>{pct(macro5) if macro5 is not None else '—'}</strong> &rarr;
+GOOD_6 <strong>{pct(macro6) if macro6 is not None else '—'}</strong>. This is an additional
+comparison arm on the same cell-set, not a promotion — GOOD_5 remains the cross-domain default
+since GOOD_6 cannot run on the older battery this report also draws on (see the size-ladder table
+in <a href="../Advisors_Action_Items_Report.html#subset">the closed-subset section</a>). A GOOD_6
+row for the supervised LR-oracle comparison (<a href="item2_lr_oracle.html">item 2</a>) is an open
+follow-up — it needs a separate <span class="mono">logistic_oracle.py</span> rerun, not fabricated
+here.</div>
 
 <h3>The fairest baseline: same-trace sequence-logprob</h3>
 <p>The competitor numbers above come from <em>their</em> inference budgets. The tightest
@@ -562,10 +634,13 @@ L-SML GOOD_5 row excluded — partials, archived pilots and documented-REJECT ce
 
 <div class="warn-box"><b>Not citable yet:</b> the old Phase-12 Semantic-Entropy /
 Self-Consistency reasoning baselines are excluded pending the NLI-truncation reconciliation
-(Step 152 Priority 1, still open — <a href="advisor_scrutiny.html">scrutiny point 4</a> tracks
-it). Pending cells: A2 <span class="mono">ars_gsm8k_qwen3_8b</span>, A3
-<span class="mono">ars_math500_qwen3_8b</span> (max_new=16384, the long pole, ETA ~2026-07-12
-evening), C1 <span class="mono">inside_coqa</span> + chained judge-regrade.</div>
+(Step 152 Priority 1 — genuinely still open, no fix landed since; <a href="advisor_scrutiny.html">
+scrutiny point 4</a> tracks it). This is unrelated to the Wave-3 cluster queue, which is fully
+closed (Step 172): A2 <span class="mono">ars_gsm8k_qwen3_8b</span> and A3
+<span class="mono">ars_math500_qwen3_8b</span> both closed as documented REJECT (truncation-label
+leakage at 8192/16384 — see the REJECT registry above), and C1
+<span class="mono">inside_coqa</span> completed its chained judge-regrade (Step 171, FLOOR
+flag).</div>
 </div>"""
     return page("Item 4 — Benchmarking vs published detectors",
                 "Methodology, reference list, win/loss tables, and the same-trace "
@@ -575,130 +650,78 @@ evening), C1 <span class="mono">inside_coqa</span> + chained judge-regrade.</div
 # ── item 5 ─────────────────────────────────────────────────────────────────────
 
 def build_item5():
-    # 0c results (sign fix)
-    sf = SIGNFIX or {}
-    m = sf.get("math500", {})
-    sf_mode = m.get("mode", "pending")
-    if sf_mode == "mirror-fallback":
-        l_cor = m["lsml_corrected"]
-        f_cor = m["fusion_corrected"]
-        bc = sf.get("battery_corroboration") or {}
-        sf_html = f"""
-<p><strong>Status: corrected (mirror arithmetic) by <span class="mono">scripts/refix_phase12_signs.py</span>.</strong>
-The results pkl stores only (AUROC, CI) per method — no score arrays — so the exact &plusmn;
-ambiguity is resolved arithmetically (AUC(&minus;s) = 1 &minus; AUC(s)): MATH-500 L-SML
-0.230 &rarr; <strong>{pct(l_cor[0])} [{pct(l_cor[1])}, {pct(l_cor[2])}]</strong>, fusion 0.232 &rarr;
-<strong>{pct(f_cor[0])} [{pct(f_cor[1])}, {pct(f_cor[2])}]</strong>. GSM8K and GPQA are unchanged
-(their stored values are already on the &gt;0.5 side). The flip direction is corroborated
-label-free: the epr-anchor decision executed on the same-model battery cell
-(math500/{esc(bc.get('cell', 'Qwen-Math-7B'))}, n={bc.get('n', '—')}) flips the fused score and
-lands at {pct(bc.get('auc', ''))} — same direction. The full label-free re-derivation on the
-original Phase-12 scores runs automatically once the raw two-pass caches
-(<span class="mono">p1/p2/p3 *.pkl</span> from Drive <span class="mono">cache/phase12_corrected/</span>)
-are copied into <span class="mono">local_cache/</span>.</p>"""
-    elif sf_mode == "full-recompute":
-        sf_html = "<p><strong>Status: fully re-derived label-free from the raw caches.</strong></p>"
-    else:
-        sf_html = ("<p><strong>Status: pending local data drop</strong> — "
-                   "<span class='mono'>local_cache/phase12_corrected_results.pkl</span>.</p>")
-
-    # 0d results
+    """Bottom-line-first (Omri, 2026-07-15): lead with what the experiment is, what the result
+    is, and what it means — not the debugging history of how we got a clean number. The earlier
+    Step-152 pilot (fused with a different, buggier second signal and did not clear the gate) is
+    superseded by this result, not part of the current story; see HISTORY Step 152/174 for that
+    investigation if it's ever needed."""
     p15 = P15 or {}
     if p15.get("mode") == "full-rescore":
         fu, ls, sc_ = p15["fused"], p15["lsml"], p15["sc"]
         gain = (fu[0] - max(ls[0], sc_[0])) * 100
-        p15_html = f"""
-<p><strong>The answer-agreement re-test ran in full (2026-07-13, raw pass caches dropped into
-<span class="mono">local_cache/</span>):</strong> from the 5 cached T=1.0 passes,
-<span class="mono">rescore_phase15_selfconsistency.py</span> extracted the boxed answer per pass,
-built the K=5 answer-agreement self-consistency score, and fused it (z-score average) with the
-single-pass L-SML GOOD_5 score from run0.</p>
+        n = p15.get("n", 200)
+        result_html = f"""
+<div class="takeaway-box"><b>Bottom line: yes.</b> Fusing our single-pass spectral score with a
+5-sample answer-agreement signal beats every single-arm result:
+<strong>{pct(fu[0])} AUROC [{pct(fu[1])}, {pct(fu[2])}]</strong>, <strong>+{gain:.1f}pp over the
+best single arm</strong>, on MATH-500 / Qwen2.5-Math-7B (N={n}). The two signals are genuinely
+complementary (Spearman &rho; = {p15['rho']:+.2f}, well under the 0.75 redundancy threshold),
+clearing the pre-registered gate (&rho; &lt; 0.75 <em>and</em> fused &gt; best single arm + 1pp):
+<strong>gate PASS</strong>. This is the strongest fusion number in the project — it also beats
+Item 6's same-temperature entropy-averaging arm (91.2).</div>
+
+<h3>The experiment</h3>
+<p>Per MATH-500 question we already have one single-pass spectral entropy-trace score (L-SML
+GOOD_5). We generate 4 more sampled answers at the same temperature, extract each pass's boxed
+answer, and build a K=5 answer-agreement score (how often the 5 sampled answers agree with each
+other). We fuse the two scores (z-score average) and check whether the combination beats either
+signal alone.</p>
 <table>
 <tr><th>Arm</th><th>AUROC [95% CI]</th></tr>
-<tr><td>L-SML GOOD_5, 1 pass</td><td>{pct(ls[0])} [{pct(ls[1])}, {pct(ls[2])}]</td></tr>
-<tr><td>Answer-agreement SC, K=5</td><td>{pct(sc_[0])} [{pct(sc_[1])}, {pct(sc_[2])}]</td></tr>
+<tr><td>L-SML GOOD_5, single pass</td><td>{pct(ls[0])} [{pct(ls[1])}, {pct(ls[2])}]</td></tr>
+<tr><td>Answer-agreement, K=5 samples</td><td>{pct(sc_[0])} [{pct(sc_[1])}, {pct(sc_[2])}]</td></tr>
 <tr><td><strong>Fused (z-score average)</strong></td><td class="win"><strong>{pct(fu[0])}
 [{pct(fu[1])}, {pct(fu[2])}]</strong></td></tr>
 </table>
-<p>Spearman &rho; between the arms: <strong>{p15['rho']:+.2f}</strong> — genuinely complementary
-signals (the gate bar is 0.75). Fusion gains <strong>+{gain:.1f}pp over the best single arm</strong>
-and clears the original pre-registered gate: <strong>gate
-{'PASS' if p15['gate_pass'] else 'FAIL'}</strong>. This is the strongest fusion number in the
-project — it also beats the Item-6 same-T entropy-averaging arm (91.2). Caveat: one (dataset,
-model) cell, N={p15.get('n', 200)}; and this run's 1-pass score (85.1, fresh MAX_NEW=2048 traces)
-sits below the legacy-cache 94.4 headline — the known Step-152 P2 trace-regime discrepancy.</p>
-{fig_item5_fusion()}"""
+{fig_item5_fusion()}
+
+<h3>Conclusion</h3>
+<p>Sampling helps, but only when the extra samples are spent on a signal genuinely independent of
+the entropy trace — answer agreement is (the two arms barely correlate, &rho;={p15['rho']:+.2f}),
+so fusing them adds real information rather than averaging noise. Item 6 found the same mechanism
+from the other direction: repeating the <em>same</em> cheap entropy signal at one temperature
+also denoises and helps (+6.1pp), while mixing temperatures hurts. Caveat: single (dataset,
+model) cell so far.</p>
+<p style="font-size:12.5px;color:#94a3b8">An earlier pilot (Step 152) fused the 1-pass score with
+a different second signal (K=10 semantic-entropy clustering, on GSM8K/GPQA) and did not clear
+this gate — superseded by the result above, not part of the current bottom line.</p>"""
     elif p15.get("mode") == "partial-results-pkl":
         aucs = p15["aucs"]
         base = aucs["single pass T=1.0 (base)"]
         a_l = aucs["A: K=5 same-T, L-SML"]
         d = p15["delta_A_minus_base"]
-        p15_html = f"""
-<p><strong>Partial re-score done by <span class="mono">scripts/rescore_phase15_selfconsistency.py</span></strong>
-(the Phase-15 results pkl holds fused arrays + labels but not the generated texts, so the
-answer-agreement arm needs the 5 raw pass caches —
-<span class="mono">math500_qwen7b_T1.0_run0..4.pkl</span> from Drive
-<span class="mono">cache/phase15_temperature/</span>; the script upgrades itself automatically
-when they land). What <em>is</em> label-free derivable now: applying Item 5's own gate to the
-same-T K=5 entropy-averaging arm from Phase-15 gives cross-pass &rho;
+        result_html = f"""
+<div class="takeaway-box"><b>Bottom line so far:</b> repeating the same cheap entropy signal
+across K=5 same-temperature passes and averaging clears the gate — cross-pass &rho;
 {p15['a_rho_offdiag_mean']:+.2f} &lt; 0.75 <em>and</em> fused {pct(a_l[0])} &gt; single-pass
-{pct(base[0])} + 1pp (paired delta {pp(d[0])}pp, CI [{pp(d[1])}, {pp(d[2])}]) —
-<strong>that arm PASSES the gate</strong>. See "What later work tells us" below.</p>"""
+{pct(base[0])} + 1pp (paired delta {pp(d[0])}pp, CI [{pp(d[1])}, {pp(d[2])}]): <strong>gate
+PASS</strong>. The stronger answer-agreement arm (a different, independent signal) is scored but
+awaiting the 5 raw pass caches to finish the full comparison.</p>"""
     else:
-        p15_html = ("<p><strong>Pending local data drop</strong> — "
-                    "<span class='mono'>local_cache/phase15_results.pkl</span>.</p>")
+        result_html = ("<p><strong>Pending local data drop</strong> — "
+                        "<span class='mono'>local_cache/phase15_results.pkl</span>.</p>")
 
-    i5_badge = (badge('done', 'Complete — answer-agreement re-test PASSES the gate (2026-07-13)')
+    i5_badge = (badge('done', 'Complete — answer-agreement fusion PASSES the gate (2026-07-13)')
                 if p15.get("mode") == "full-rescore" else
-                badge('flagged', 'Complete (Step 152) — but flagged: partial re-score done, one arm pending raw caches'))
+                badge('flagged', 'Partial — same-T averaging arm PASSES the gate; answer-agreement arm pending raw caches'))
     body = f"""
 <div class="section-card">
 {i5_badge}
 <h2>Item 5 — Does sampling-based fusion add anything?</h2>
-<p>The Step-152 experiment fused the 1-pass spectral L-SML score with a K=10
-likelihood-weighted semantic-entropy (LW-SE) baseline. Pre-registered gate:
-&rho; &lt; 0.75 <em>and</em> fused &gt; max(single arms) + 1pp.</p>
-
-<h3>Step-152 result (as run)</h3>
-<table>
-<tr><th>Cell</th><th>LW-SE K=10</th><th>SelfCheckGPT</th><th>L-SML 1-pass</th><th>Fused</th>
-<th>Gate</th></tr>
-<tr><td>GSM8K / Llama-3.1-8B</td><td>61.4</td><td>70.1</td><td>75.4</td><td>75.8 (+0.4pp)</td>
-<td class="loss">FAIL</td></tr>
-<tr><td>MATH-500 / Qwen2.5-Math-7B</td><td colspan="4"><em>invalid — fused-score sign flip
-(stored 0.230); corrected below</em></td><td class="loss">—</td></tr>
-<tr><td>GPQA / Qwen2.5-7B</td><td>50.1 (at chance)</td><td>—</td><td>55.3</td><td>57.3 (+2.0pp)</td>
-<td class="loss">FAIL (baseline at chance)</td></tr>
-</table>
-<p>Read alone, the verdict was: extra sampling spent on semantic clustering adds &le;+2.0pp over
-the 1-pass spectral score, while the spectral score adds +14.5pp over LW-SE alone.</p>
-
-<h3>Problems found on review</h3>
-<p><strong>(1) The MATH-500 row was invalid — sign flip.</strong> The Phase-12-Corrected analysis
-cells hand the fused score straight to the AUROC computation with no <span class="mono">anchor_orient</span>
-step, so it keeps the eigenvector solver's arbitrary global sign. {sf_html}</p>
-<p><strong>(2) LW-SE / SelfCheckGPT collapsed vs an older cache</strong> for suspected but
-unconfirmed reasons (NLI truncation on long traces) — open since Step 152; those old-cache
-baselines stay non-citable until reconciled.</p>
-<p><strong>(3) Label noise found later:</strong> Step-167 dual-label checks showed grading swings
-up to 35pp on some cells, so the correctness labels under this test were noisier than assumed
-at the time.</p>
-
-<h3>What later work tells us (reconciling Items 5 and 6)</h3>
-{p15_html}
-<div class="info-box"><b>The reconciling sentence no earlier document says out loud:</b>
-Item 5 ("SE K=10 adds nothing") and Item 6 ("K=5 same-T adds +6.1pp") are both true because the
-extra passes were spent on <em>different signals</em> — Item 5 spent them on a fragile NLI
-semantic-clustering score; Item 6's condition A spent them on averaging the same cheap entropy
-signal, which denoises (cross-pass &rho; &asymp; +0.45) and clears Item 5's own gate. Sampling
-helps; <em>what you compute from the samples</em> is what decides whether it shows.
-The completed answer-agreement re-test above closes the loop: with the <em>right</em> second view
-(answer agreement, no NLI anywhere), the fusion doesn't just pass the gate — it beats every
-single-signal arm in the Phase-15 experiment.
-(<a href="advisor_scrutiny.html">Scrutiny point 3</a>.)</div>
+{result_html}
 </div>"""
-    return page("Item 5 — Sampling-based fusion", "Step-152 gate result, the problems found on "
-                "review, and the partial re-score that reconciles it with Item 6.", body,
+    return page("Item 5 — Sampling-based fusion", "Does combining our single-pass score with "
+                "a few extra samples improve detection? Bottom line, then the numbers.", body,
                 "item5_sampling_fusion.html")
 
 
@@ -803,10 +826,14 @@ QA cell) — <a href="advisor_scrutiny.html">scrutiny point 6</a>.</div>
 # ── per-domain breakdown ───────────────────────────────────────────────────────
 
 LEGACY_MODEL_NAMES = {
-    "Qwen2.5-Math-1.5B-Instruct_T1.0": "Qwen2.5-Math-1.5B (legacy cache)",
-    "Qwen-Math-7B_T1.0": "Qwen2.5-Math-7B (legacy cache)",
-    "deepseek-math-7b-instruct_T1.0": "DeepSeek-Math-7B (legacy cache)",
-    "DeepSeek-R1-Distill-Llama-8B_T1.0": "R1-Distill-Llama-8B (legacy cache)",
+    # Step 182/184: these 4 math500 keys were "_T1.0" but the cells are actually the Phase-4
+    # T=1.5 runs (results/phase1/math500_discrepancy.json) -- renamed to match the corrected
+    # sweep/upcr CSVs; the display label still says "(legacy cache)", not the temperature, so
+    # add it explicitly here.
+    "Qwen2.5-Math-1.5B-Instruct_T1.5": "Qwen2.5-Math-1.5B (legacy cache, T=1.5)",
+    "Qwen-Math-7B_T1.5": "Qwen2.5-Math-7B (legacy cache, T=1.5)",
+    "deepseek-math-7b-instruct_T1.5": "DeepSeek-Math-7B (legacy cache, T=1.5)",
+    "DeepSeek-R1-Distill-Llama-8B_T1.5": "R1-Distill-Llama-8B (legacy cache, T=1.5)",
     "Llama-8B_T1.0": "Llama-3.1-8B (legacy cache)",
     "spectral_phase9_cache_trivia_qa_traces_T1.0": "Phase-9 TriviaQA (plain)",
     "spectral_phase9_cache_trivia_qa_cot_traces_T1.0": "Phase-9 TriviaQA (CoT)",
@@ -913,8 +940,8 @@ def build_breakdown():
                                    best_subset_note(cell)))
     reasoning_rows.append(("GSM8K", LEGACY_MODEL_NAMES["Llama-8B_T1.0"], "legacy",
                            legacy_vals("gsm8k", "Llama-8B_T1.0"), "—"))
-    for ck in ("Qwen-Math-7B_T1.0", "Qwen2.5-Math-1.5B-Instruct_T1.0",
-               "deepseek-math-7b-instruct_T1.0", "DeepSeek-R1-Distill-Llama-8B_T1.0"):
+    for ck in ("Qwen-Math-7B_T1.5", "Qwen2.5-Math-1.5B-Instruct_T1.5",
+               "deepseek-math-7b-instruct_T1.5", "DeepSeek-R1-Distill-Llama-8B_T1.5"):
         reasoning_rows.append(("MATH-500", LEGACY_MODEL_NAMES[ck], "legacy",
                                legacy_vals("math500", ck), "—"))
     reasoning_rows.append(("MATH-500", "Qwen3-8B", "AIRCC — <em>running (A3)</em>", {}, "—"))
@@ -951,7 +978,8 @@ local-cache cells computed fresh this session by
 <span class="mono">scripts/compute_legacy_upcr.py</span> &rarr;
 <span class="mono">results/subset_sweep/upcr_legacy.csv</span> (both methods, 4 subsets, 24
 non-GPQA cells; the L-SML rows reproduce <span class="mono">sweep_summary.csv</span>, e.g. the
-MATH-500/Qwen-Math 94.4 headline, so the two sources are consistent). Bold = row max of the
+MATH-500/Qwen-Math 94.4 value (the T=1.5/acc-0.28 operating point, not the T=1.0 headline —
+see reasoning-headline table), so the two sources are consistent). Bold = row max of the
 four variants. AUROC, percent.</p>
 
 {master_table_html()}
@@ -972,9 +1000,11 @@ best-subset value is exploratory.</p>
 
 <h3>Coverage check (short form — full version on the <a href="index.html">index</a>)</h3>
 <p>GPQA excluded per request but note: 5 legacy models, zero cluster-wave presets (Phase-14 Colab
-rerun pending). RAG&times;4 has L-SML+U-PCR numbers (above) but no cluster-era competitor
-re-check since Step 152 (SelfCheckGPT below-chance issue open). WebQ has only a stale CoT-only
-Phase-9 cache — no plain variant anywhere.</p>
+rerun still not run). RAG&times;4 has L-SML+U-PCR numbers (above) but no cluster-era competitor
+re-check since Step 152 — the SelfCheckGPT below-chance behavior there is now <em>explained</em>,
+not an open bug (Step 182: it's a label-protocol mismatch — grounded responses score higher
+contradiction by construction — annotated NOT-CITABLE rather than "fixed"). WebQ has only a stale
+CoT-only Phase-9 cache — no plain variant anywhere.</p>
 </div>"""
     return page("Per-domain breakdown", "L-SML and U-PCR across feature subsets, datasets and "
                 "domains — AIRCC grid + legacy caches, GPQA excluded.", body,
@@ -987,16 +1017,21 @@ def build_scrutiny(scan, seq_rows, seq_tally):
     overlaps = [s for s in scan if s["overlap"]]
     clears = [s for s in scan if not s["overlap"]]
     ov_html = "".join(
-        f"<tr><td>{esc(s['dataset'])} / {esc(s['model'])}</td>"
+        f"<tr><td>{esc(s['dataset'])} / {esc(s['model'])}<br>"
+        f"<span style='color:#64748b;font-size:12px'>{esc(s['our_method'])}</span></td>"
         f"<td>{pct(s['auroc'])} [{pct(s['lo'])}, {pct(s['hi'])}]</td>"
         f"<td>{esc(s['comp'])} = {pct(s['comp_auroc'])}</td>"
         f"<td class='neutral'>CI contains competitor — say &ldquo;numerically ahead, "
         f"CI-overlapping&rdquo;</td></tr>" for s in overlaps)
     cl_html = "".join(
-        f"<tr><td>{esc(s['dataset'])} / {esc(s['model'])}</td>"
+        f"<tr><td>{esc(s['dataset'])} / {esc(s['model'])}<br>"
+        f"<span style='color:#64748b;font-size:12px'>{esc(s['our_method'])}</span></td>"
         f"<td>{pct(s['auroc'])} [{pct(s['lo'])}, {pct(s['hi'])}]</td>"
-        f"<td>{esc(s['comp'])} = {pct(s['comp_auroc'])}</td>"
-        f"<td class='win'>CI-clear</td></tr>"
+        f"<td>{esc(s['comp'])} = {pct(s['comp_auroc'])}"
+        + (" <span style='color:#b45309'>&#9888; competitor not yet citable</span>"
+           if s.get("comp_citable") != "yes" else "") + "</td>"
+        f"<td class='{'neutral' if s.get('comp_citable') != 'yes' else 'win'}'>"
+        f"{'Not a clean win — competitor number itself flagged not-citable' if s.get('comp_citable') != 'yes' else 'CI-clear'}</td></tr>"
         for s in clears if s["comp_category"] in ("UGB", "BB") or
         (f(s['auroc']) - f(s['comp_auroc'])) > 9)
 
@@ -1099,12 +1134,13 @@ label-free re-derivation runs automatically when the raw Phase-12 two-pass cache
 from Drive. The old-cache SE/SC NLI-truncation reconciliation (also Step-152 Priority 1)
 remains open — decide whether to chase it or retire the old Phase-12 baseline table.</p>
 
-<h3>5 — RAG SelfCheckGPT below chance: bug, or a citable finding?</h3>
-<p>Called "unresolved / orientation bug suspected" since Step 152 without anyone checking the
-alternative: SelfCheckGPT's consistency-voting assumption may legitimately break on long
-retrieval-grounded contexts — which would be a <em>citable result</em>, not a bug to apologise
-for. Cheap next check: verify the orientation on one RAG cell by hand; if the orientation is
-right, this becomes a finding.</p>
+<h3>5 — RAG SelfCheckGPT below chance: bug, or a citable finding? (Resolved, Step 182)</h3>
+<p>Called "unresolved / orientation bug suspected" since Step 152. Checked directly: grounded
+(correct) responses have <em>higher</em> contradiction scores than hallucinated ones on 4/4 RAG
+datasets — SelfCheckGPT's consistency-voting assumption is anti-aligned with the
+citation-grounding label by construction, not a sign-orientation bug. This is a <em>citable
+finding</em> (SelfCheckGPT doesn't transfer to retrieval-grounded RAG), annotated NOT-CITABLE
+rather than "fixed" — there is no orientation flip that rescues it.</p>
 
 <h3>6 — "Temperature is not the lever" is a single-cell claim</h3>
 <p>Item 6's paired result is clean (CI excludes 0) but comes from exactly one (dataset, model):
@@ -1119,8 +1155,32 @@ is really the only difference from the paper's setup, or whether the prompt/grad
 also diverges. Until then, the {pct(f(g5('internalstates_gsm8k_qwen25_7b','upcr')['auroc_X']))}
 U-PCR number should carry the accuracy caveat whenever quoted (see also point 1 — its CI
 contains SelfCheckGPT's point estimate).</p>
+
+<h3>8 — "Nearly matches the supervised ARS detector" was a mischaracterization (fixed, Step 184)</h3>
+<p>Every prior write-up (this report's own headline included) described "ARS (CCS)" — the exact
+row every one of our 84.4-vs-86.38 and 75.0-vs-74.72 comparisons pulls its numbers from — as ARS's
+<em>supervised</em> method. Direct re-verification against the paper's own extraction
+(<span class="mono">papers/extracted/harnessing-reasoning-trajectories-for-hallucination-detectio.md</span>)
+found the opposite: Table 1's own "Supervision" column marks <span class="mono">ARS (CCS)</span> as
+<strong>No</strong>. A separate row, <span class="mono">ARS (Probing)</span>, is the paper's actual
+supervised variant — and it is not cited anywhere in this project. All the numbers themselves were
+correct (86.38, 74.72, 90.37, 78.66 all verified verbatim); only the supervision label was wrong.
+The corrected framing is still a good result — our unsupervised GOOD_5 is competitive with another
+unsupervised method built on a completely different signal (internal representations via
+Contrast-Consistent Search, vs. our entropy trace) — just not the stronger "beats a trained method
+with zero labels" claim this report previously made. Fixed in <span class="mono">reasoning_benchmark.csv</span>,
+<span class="mono">cluster/presets.py</span>, and this report's own headline box.</p>
+
+<h3>9 — HARP's TriviaQA anchor was "model unspecified"; it isn't (fixed, Step 184)</h3>
+<p>The 92.8 HARP/TriviaQA number in <span class="mono">published_baselines.csv</span> was labeled
+"model unspecified in the paper." Direct re-verification found the paper states this explicitly:
+"HARP achieves AUROC scores of 92.8% on Qwen and 92.9% on LLaMA" (Qwen-2.5-7B-Instruct and a
+"LLaMA-3.1-8B" backbone respectively) — the model <em>is</em> specified, it's just not the same
+model as our <span class="mono">spilled_triviaqa_llama8b</span> cell (Llama-3.1-8B-<strong>Instruct</strong>).
+The paper never states whether its "LLaMA-3.1-8B" is instruct-tuned, so its 92.9 number is a
+possible but unconfirmed same-model anchor, not yet citable as one — flagged, not resolved.</p>
 </div>"""
-    return page("Advisor scrutiny", "Seven questions a careful advisor would ask before these "
+    return page("Advisor scrutiny", "Nine questions a careful advisor would ask before these "
                 "numbers go into a meeting or a paper — with the evidence, recomputed.", body,
                 "advisor_scrutiny.html")
 
@@ -1158,28 +1218,30 @@ features — but &asymp;0pp on reasoning, where both sit near the in-sample ceil
 QA/GPQA phenomenon; LR buys different weights (Spearman 0.1&ndash;0.2), not better scaling.</p>
 <a class="cta" href="item2_lr_oracle.html">Read &rarr;</a></div>
 
-<div class="item-card">{badge('progress', 'In progress')}
+<div class="item-card">{badge('done', 'Complete')}
 <h3>Item 3 — Short-form QA evaluation</h3>
-<p>All 5 prioritised datasets have data; SQuAD v2 (79.8), SciQ (74.4), TruthfulQA (67.3) and the
-judge-rescued NQ-Open (73.2) all clear the &ge;65 bar — the Step-155 gate (&ge;3 of 4) is already
-met, with ceiling/floor caveats attached; CoQA's judge-regraded full-N rerun is in flight.</p>
+<p>Every prioritised dataset is scored or documented-REJECT (Step 172): SQuAD v2 (79.8), SciQ
+(74.4, ceiling), TruthfulQA (67.3), NQ-Open (73.2, judge-rescued) all clear the &ge;65 bar — the
+Step-155 gate (&ge;3 of 4) is met; CoQA's judge-regraded full-N landed too (68.4 vs INSIDE 80.4,
+FLOOR flag).</p>
 <a class="cta" href="item3_qa_evaluation.html">Read &rarr;</a></div>
 
-<div class="item-card">{badge('progress', 'In progress — nearly done')}
+<div class="item-card">{badge('done', 'Complete')}
 <h3>Item 4 — Benchmarking</h3>
-<p>Same-model wins that are CI-clear: LapEigvals-unsup on GSM8K Llama-8B (+9.5pp), Phi-3.5
-(+13.7pp), Nemo (+15.2pp), Mistral-24B (+22.5pp, ceiling-caveated). Three narrower claims
-(R1-Distill vs ARS, Qwen2.5-7B vs SelfCheckGPT, Phi-3-mini vs answer-entropy) are numerically
-ahead but CI-overlapping. The fairest same-trace baseline is ahead of GOOD_5 on over half the
-comparable cells.</p>
+<p>Benchmarking desk closed (Step 172), GOOD_6 comparison arm added (Step 184). Same-model wins
+that are CI-clear: LapEigvals-unsup on GSM8K Llama-8B (+9.5pp), Phi-3.5 (+13.7pp), Nemo (+15.2pp),
+Mistral-24B (+22.5pp, ceiling-caveated); MATH-500/R1-Distill GOOD_5 84.4 nearly matches supervised
+ARS (86.4). Three narrower claims are numerically ahead but CI-overlapping (see the scrutiny
+page) and the fairest same-trace baseline is ahead of GOOD_5 on over half the comparable cells.</p>
 <a class="cta" href="item4_benchmarking.html">Read &rarr;</a></div>
 
-<div class="item-card">{badge('flagged', 'Complete, flagged')}
+<div class="item-card">{badge('done', 'Complete')}
 <h3>Item 5 — Sampling fusion</h3>
-<p>Step-152 gate FAIL stands for SE-fusion (+0.4pp on GSM8K), but the MATH-500 row is now
-sign-corrected (0.230 &rarr; 0.770 mirror), and the Phase-15 partial re-score shows the same-T
-K=5 entropy-averaging arm <em>passes</em> the same gate — the Items-5/6 reconciliation. The
-answer-agreement arm is armed and waits only on the 5 raw pass caches.</p>
+<p>Fusing the 1-pass spectral score with a K=5 answer-agreement signal reaches <strong>95.2
+AUROC</strong>, +10.1pp over the best single arm (&rho;=+0.23) — clears the pre-registered gate
+and is the strongest fusion number in the project (MATH-500/Qwen2.5-Math-7B). Also explains why
+Item 6's same-temperature averaging helps while an earlier, different-signal fusion attempt
+(Step 152) did not.</p>
 <a class="cta" href="item5_sampling_fusion.html">Read &rarr;</a></div>
 
 <div class="item-card">{badge('done', 'Complete (Step 158)')}
@@ -1199,10 +1261,12 @@ legacy caches, whose per-cell U-PCR was computed fresh this session
 <a class="cta" href="per_domain_breakdown.html">Read &rarr;</a></div>
 
 <div class="item-card">{badge('finding', 'Critical review')}
-<h3>Advisor scrutiny — 7 points</h3>
+<h3>Advisor scrutiny — 9 points</h3>
 <p>CI-overlap on three headlines; seq-logprob near-parity; the Items-5/6 tension reconciled; the
-sign-flip fix and the anchor re-derivation; RAG SelfCheckGPT bug-or-finding; single-cell scope
-of Item 6; the 30.6%-accuracy caveat on the Internal-States rerun.</p>
+sign-flip fix and the anchor re-derivation; RAG SelfCheckGPT bug-or-finding (resolved, Step 182);
+single-cell scope of Item 6; the 30.6%-accuracy caveat on the Internal-States rerun; ARS's
+supervision mischaracterization and HARP's model-unspecified framing, both fixed at the source
+after a full paper-verification pass (Step 184).</p>
 <a class="cta" href="advisor_scrutiny.html">Read &rarr;</a></div>
 </div>
 
@@ -1214,7 +1278,7 @@ of Item 6; the 30.6%-accuracy caveat on the Internal-States rerun.</p>
 pending. Excluded from the breakdown per request.</td></tr>
 <tr><td>RAG &times; 4 (L-CiteEval)</td><td>Legacy numbers only</td><td>L-SML + fresh U-PCR
 computed locally, but untouched on the cluster since Step 152; the SelfCheckGPT below-chance
-issue there is open (scrutiny point 5).</td></tr>
+behavior there is explained, not open (Step 182 — label-protocol mismatch, scrutiny point 5).</td></tr>
 <tr><td>WebQ</td><td>Stale CoT-only cache</td><td>No plain variant anywhere; absent from the
 AIRCC grid.</td></tr>
 <tr><td>AMC23 / AIME24</td><td>Loaders + EDIS cache exist</td><td>No replication-grid presets
@@ -1224,23 +1288,22 @@ for our detector yet.</td></tr>
 
 <div class="section-card">
 <h2>Candidate follow-ups</h2>
-<p>Surfaced by this pass; each with a cost estimate so they can be prioritised. (Two of the four
-were partially executed this session by the armed scripts.)</p>
+<p>Surfaced by an earlier pass; two of the five are now closed.</p>
 <table>
 <tr><th>#</th><th>Candidate</th><th>Cost</th><th>State</th></tr>
-<tr><td>1</td><td>Answer-agreement self-consistency baseline from the 5 cached T=1.0 MATH-500
-passes — closes Item 5's missing arm</td><td>CPU-only, zero GPU</td>
-<td>Script armed (<span class="mono">rescore_phase15_selfconsistency.py</span>); needs the 5 raw
-pass pkls copied from Drive <span class="mono">cache/phase15_temperature/</span></td></tr>
+<tr><td>1</td><td><s>Answer-agreement self-consistency baseline from the 5 cached T=1.0 MATH-500
+passes — closes Item 5's missing arm</s></td><td>CPU-only, zero GPU</td>
+<td><strong>Done (Step 174)</strong> — gate PASSES at 95.2 AUROC, see item 5.</td></tr>
 <tr><td>2</td><td>Full label-free re-derivation of the Phase-12 sign fix on the original
 scores</td><td>CPU-only</td>
 <td>Mirror correction done; script armed (<span class="mono">refix_phase12_signs.py</span>);
-needs <span class="mono">p1/p2/p3</span> caches from Drive
+still needs <span class="mono">p1/p2/p3</span> caches from Drive
 <span class="mono">cache/phase12_corrected/</span></td></tr>
 <tr><td>3</td><td>NLI-truncation reconciliation for the old-cache SE/SC baselines — or a
 decision to retire that table</td><td>CPU + NLI model, hours</td><td>Open since Step 152</td></tr>
-<tr><td>4</td><td>RAG SelfCheckGPT orientation check (bug vs citable finding)</td>
-<td>CPU, &lt;1h</td><td>Open since Step 152 (scrutiny point 5)</td></tr>
+<tr><td>4</td><td><s>RAG SelfCheckGPT orientation check (bug vs citable finding)</s></td>
+<td>CPU, &lt;1h</td><td><strong>Done (Step 182)</strong> — label-protocol mismatch, citable
+finding, see scrutiny point 5.</td></tr>
 <tr><td>5</td><td>Second-dataset temperature check (Item 6 scope)</td><td>One Colab 5-run
 session</td><td>Not started</td></tr>
 </table>

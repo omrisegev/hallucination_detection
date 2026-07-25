@@ -18,7 +18,7 @@ elsewhere it would silently collapse to GOOD_5, so it is skipped.
 
 import numpy as np
 
-from ..subset_sweep import GOOD_5, GOOD_6, STABLE_H9, H16
+from ..subset_sweep import GOOD_5, GOOD_6, LOCO_5, STABLE_H9, H16
 from . import register
 
 TOP_MACRO_5 = ['epr', 'spectral_entropy', 'hl_ratio', 'sw_var_peak', 'cusum_max']
@@ -27,11 +27,17 @@ CONSENSUS_4 = ['spectral_entropy', 'sw_var_peak', 'cusum_max', 'cusum_shift_idx'
 MACROS = {
     'ref.GOOD_5': GOOD_5,
     'ref.GOOD_6': GOOD_6,
+    'ref.LOCO_5': LOCO_5,
     'ref.STABLE_H9': STABLE_H9,
     'ref.top_macro_5': TOP_MACRO_5,
     'ref.consensus_4': CONSENSUS_4,
     'ref.ALL_H16': H16,
 }
+
+# Macros that are a specific mask, not a family: emitting a partial version
+# would silently score a DIFFERENT subset. Skip the cell unless every member
+# is present (GOOD_6 has its own varentropy guard below).
+ALL_OR_NOTHING = {'ref.LOCO_5'}
 
 
 @register('reference_macros')
@@ -43,6 +49,8 @@ def reference_macros(cell, rng, cache=None):
             continue                     # not scorable on this cell's pool
         if variant == 'ref.GOOD_6' and 'varentropy' not in cell.pool:
             continue                     # would collapse to GOOD_5 — skip
+        if variant in ALL_OR_NOTHING and len(cols) < len(names):
+            continue                     # partial mask = different subset — skip
         out.append({'variant': variant, 'cols': np.sort(cols),
                     'diag': {'macro': variant.split('.', 1)[1],
                              'n_present': len(cols)}})

@@ -1,0 +1,76 @@
+{
+  "cell_id": "se_squad_v2_llama8b",
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "keys": [
+    "token_logsumexp",
+    "top_k_logprobs_raw",
+    "token_spilled_energies",
+    "top_k_logprobs"
+  ],
+  "raw_top_k": 50,
+  "validate_only": true,
+  "tolerances": {
+    "tol_median": 0.02,
+    "tol_first": 0.05,
+    "min_frac_close": 0.9
+  },
+  "git_sha": "",
+  "job_id": "123561",
+  "written_utc": "2026-07-18T18:07:15+00:00",
+  "pkls": [
+    {
+      "pkl": "raw_squad_v2_T0.5.pkl",
+      "temp": 0.5,
+      "gate": {
+        "H": {
+          "name": "token_entropies",
+          "n_traces": 500,
+          "n_len_mismatch": 0,
+          "n_tokens": 5712,
+          "median_abs": 6.161109808999754e-07,
+          "p99_abs": 0.08323895931243896,
+          "max_abs": 0.18435335159301758,
+          "frac_close": 0.9581582633053222,
+          "first_tok_median": 0.0009111315011978149,
+          "first_tok_p99": 0.1268618106842041,
+          "median_r": 0.9998141913789887,
+          "frac_r_ge_0999": 0.6472945891783567
+        },
+        "dE": {
+          "name": "token_spilled_energies",
+          "n_traces": 500,
+          "n_len_mismatch": 0,
+          "n_tokens": 5712,
+          "median_abs": 1.1175870895385742e-07,
+          "p99_abs": 0.19911353230476483,
+          "max_abs": 0.7162249088287354,
+          "frac_close": 0.9422268907563025,
+          "first_tok_median": 0.00011044368147850037,
+          "first_tok_p99": 0.28864276528358457,
+          "median_r": 0.999947986465844,
+          "frac_r_ge_0999": 0.657314629258517
+        },
+        "Z": {
+          "name": "token_logsumexp",
+          "n_traces": 500,
+          "n_len_mismatch": 0,
+          "n_tokens": 5712,
+          "median_abs": 0.00262451171875,
+          "p99_abs": 0.25,
+          "max_abs": 2.6240463256835938,
+          "frac_close": 0.6262254901960784,
+          "first_tok_median": 0.035312652587890625,
+          "first_tok_p99": 0.16481781005859375,
+          "median_r": 0.9997908121670763,
+          "frac_r_ge_0999": 0.9839679358717435
+        }
+      },
+      "gate_b_pass": true,
+      "gate_b_reasons": [],
+      "gate_n_problems": 50,
+      "gate_tokens": 5712,
+      "validate_only": true,
+      "gate_seconds": 4.5
+    }
+  ]
+}

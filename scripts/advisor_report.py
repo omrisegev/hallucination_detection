@@ -28,9 +28,15 @@ Usage:
 import argparse
 import csv
 import html
+import json
 import os
 import sys
 from collections import defaultdict
+
+SCRIPTS = os.path.dirname(os.path.abspath(__file__))
+if SCRIPTS not in sys.path:
+    sys.path.insert(0, SCRIPTS)
+from report_figs import cell_domain_map, LADDER_DOM_ORDER  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RESULTS = os.path.join(REPO, "results")
@@ -69,12 +75,28 @@ def load_edis():
     return {r["cell"]: r for r in rows}
 
 
+def load_phase15_rescore():
+    """Item 5's current bottom line: does the answer-agreement fusion (Step 174) clear the
+    pre-registered gate? Loaded live (not hardcoded) so the report can never drift from
+    results/repgrid/phase15_rescore.json the way the old hardcoded 0.758 GSM8K number did."""
+    path = os.path.join(REPGRID, "phase15_rescore.json")
+    if not os.path.exists(path):
+        return {}
+    with open(path) as f:
+        return json.load(f)
+
+
 def load_headline():
     return read_csv(os.path.join(REPGRID, "headline_X_vs_Y.csv"))
 
 
 def load_subset_by_domain():
     return read_csv(os.path.join(REPGRID, "subset_by_domain.csv"))
+
+
+def load_scores_lsml_upcr():
+    path = os.path.join(REPGRID, "scores_lsml_upcr.csv")
+    return read_csv(path) if os.path.exists(path) else []
 
 
 def load_ubaselines():
@@ -295,6 +317,92 @@ def closed_subset_html(sbd):
     return "\n".join(out)
 
 
+def subset_ladder_html(scores_rows):
+    """Task B: consensus_4 / GOOD_5 / GOOD_6, all three scored on the SAME cell-set (the
+    19-cell replication grid only -- Omri: "I prefer all subsets are evaluated on the same
+    data"). GOOD_6 (= GOOD_5 + varentropy) needs top_k_logprobs, an AIRCC-era-only capture
+    field that never existed in the old pre-AIRCC battery, so it cannot be scored there at
+    all -- mixing it into closed_subset_html's old+new domain means would silently compare
+    different cell-sets in the same row. Source: scores_lsml_upcr.csv (single source of
+    truth, epr anchor, lsml method) for both the values AND the cell->domain lookup (via
+    report_figs.cell_domain_map, derived from each row's own "dataset" field) -- NOT
+    subset_by_domain.csv, which is stale and covers only 11/20 current grid cells."""
+    ladder = ["consensus_4", "GOOD_5", "GOOD_6"]
+    cell_domain = cell_domain_map(scores_rows)
+    dom_order = LADDER_DOM_ORDER
+
+    by_cell = defaultdict(dict)
+    for r in scores_rows:
+        if r.get("method") != "lsml" or r.get("subset") not in ladder:
+            continue
+        if r.get("anchor", "epr") not in ("epr", ""):
+            continue
+        # Headline macro excludes pilot/partial/reject cells (same convention as
+        # report_figs.fig_same_model_deltas) -- the n=30 CoQA pilot is noisy enough that
+        # its epr/cusum_max anchor disagreement is itself a finding (see the anchor-
+        # robustness table), not something that should silently drag the headline macro.
+        if r["cell"].endswith(("_pilot", "_partial", "_reject")):
+            continue
+        if r["cell"] not in cell_domain:
+            continue
+        a = r.get("auroc_X")
+        if a in (None, ""):
+            continue
+        by_cell[r["cell"]][r["subset"]] = float(a)
+
+    agg = defaultdict(lambda: defaultdict(list))
+    macro = defaultdict(list)
+    for cell, vals in by_cell.items():
+        dom = cell_domain[cell]
+        for s in ladder:
+            if s in vals:
+                agg[dom][s].append(vals[s])
+                macro[s].append(vals[s])
+
+    out = []
+    for dom in dom_order:
+        cells = agg.get(dom, {})
+        if not cells:
+            continue
+        n_cells = len(next((cells[s] for s in ladder if cells.get(s)), []))
+        tds = ""
+        best_s, best_v = None, -1
+        means = {}
+        for s in ladder:
+            vals = cells.get(s, [])
+            if vals:
+                m = sum(vals) / len(vals)
+                means[s] = m
+                if m > best_v:
+                    best_v, best_s = m, s
+        for s in ladder:
+            m = means.get(s)
+            if m is None:
+                tds += "<td>—</td>"
+            else:
+                strong = ' style="background:#ecfdf5;font-weight:700"' if s == best_s else ""
+                tds += f"<td{strong}>{m*100:.1f}</td>"
+        out.append(f'<tr><td><strong>{esc(dom)}</strong> <span style="color:#94a3b8">({n_cells} cells)</span></td>{tds}</tr>')
+
+    macro_tds = ""
+    macro_means = {s: (sum(v) / len(v) if v else None) for s, v in macro.items()}
+    best_macro_s = max(macro_means, key=lambda s: (macro_means[s] if macro_means[s] is not None else -1)) if macro_means else None
+    for s in ladder:
+        m = macro_means.get(s)
+        if m is None:
+            macro_tds += "<td>—</td>"
+        else:
+            strong = ' style="background:#ecfdf5;font-weight:700"' if s == best_macro_s else ""
+            macro_tds += f"<td{strong}>{m*100:.1f}</td>"
+    n_macro = len(next((v for v in macro.values() if v), []))
+    out.append(f'<tr style="border-top:2px solid #333"><td><strong>MACRO ({n_macro}-cell grid)</strong> <span style="color:#94a3b8">({n_macro} cells)</span></td>{macro_tds}</tr>')
+
+    n_pos = sum(1 for vals in by_cell.values() if "GOOD_5" in vals and "GOOD_6" in vals and vals["GOOD_6"] - vals["GOOD_5"] > 0.005)
+    n_neg = sum(1 for vals in by_cell.values() if "GOOD_5" in vals and "GOOD_6" in vals and vals["GOOD_6"] - vals["GOOD_5"] < -0.005)
+    stats = {"macro_means": macro_means, "n_cells": n_macro, "n_pos6": n_pos, "n_neg6": n_neg}
+    return "\n".join(out), stats
+
+
 # ── HTML assembly ──────────────────────────────────────────────────────────────
 CSS = """
   :root{--blue:#2563eb;--blue-light:#eff6ff;--blue-dark:#1e40af;--green:#10b981;--green-light:#ecfdf5;
@@ -365,7 +473,13 @@ def build_html():
     reasoning_tbl = reasoning_rows_html(reasoning)
     qa_tbl = qa_headline_html(headline, edis)
     closed_tbl = closed_subset_html(sbd)
+    ladder_tbl, ladder_stats = subset_ladder_html(load_scores_lsml_upcr())
     dual_tbl = dual_label_html(load_ubaselines())
+    p15 = load_phase15_rescore()
+    p15_ls = p15.get("lsml", [None, None, None])
+    p15_sc = p15.get("sc", [None, None, None])
+    p15_fu = p15.get("fused", [None, None, None])
+    p15_gain = (p15_fu[0] - max(p15_ls[0], p15_sc[0])) * 100 if p15_fu[0] is not None else None
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -411,10 +525,14 @@ def build_html():
     honest headline is domain-scoped: <strong>it works on reasoning traces (math), is competitive
     on GSM8K, and is out of regime on GPQA / multi-hop RAG.</strong> This report leads with the
     reasoning-domain competitor grid — our strongest evidence — which the previous draft omitted.</p>
-    <div class="takeaway-box"><b>One-line result:</b> on <strong>MATH-500 / Qwen2.5-Math-7B</strong>
-    our unsupervised single-pass L-SML reaches <strong>94.4 AUROC</strong>, and on the same
-    <strong>R1-Distill-8B / MATH-500</strong> cell used by the supervised ARS detector (86.4) our
-    unsupervised GOOD_5 reaches <strong>84.4</strong> — nearly matching a trained method with zero labels.</p>
+    <div class="takeaway-box"><b>One-line result:</b> on <strong>MATH-500 / Qwen2.5-Math-7B</strong> (T=1.0)
+    our unsupervised single-pass L-SML reaches <strong>85.1 AUROC</strong> [77.7, 91.8] (at a T=1.5,
+    accuracy-28% operating point the same cell reaches 94.4 — see the reasoning table below for both),
+    and on the same <strong>R1-Distill-8B / MATH-500</strong> cell used by ARS's own unsupervised CCS
+    detector (86.4 — corrected: this is ARS's unsupervised variant, not its supervised one; see
+    scrutiny page) our unsupervised GOOD_5 reaches <strong>84.4</strong> — nearly matching another
+    unsupervised method with a completely different signal (internal representations vs. our
+    entropy trace).</p>
   </div>
 
   <!-- ITEM 4 REASONING FIRST -->
@@ -443,7 +561,8 @@ def build_html():
     <div class="takeaway-box"><b>Reasoning verdict:</b> single-pass unsupervised L-SML
     <strong>beats LapEigvals' same-model unsupervised AttentionScore (72.0)</strong> on GSM8K, sits
     within a few points of the supervised LapEigvals probe (87.2), and on R1-Distill/MATH-500
-    <strong>nearly matches the supervised ARS detector</strong> (84.4 vs 86.4) with no labels and one
+    <strong>nearly matches ARS's own unsupervised CCS detector</strong> (84.4 vs 86.4 — both
+    unsupervised, different signals: internal representations vs. our entropy trace) with one
     forward pass. EDIS scored on our GSM8K trace = {gsm8k_edis_auroc}, but it is
     <strong>redundant with L-SML</strong> (ρ = {gsm8k_edis_rho}), so it adds no fusion lift.</p></div>
     <div class="warn-box"><b>Suspected, unresolved — long-CoT NLI truncation:</b> the K=10 sampling
@@ -528,6 +647,28 @@ def build_html():
     <span class="mono">STABLE_H9</span> add nothing and often hurt (block collinearity). A single
     <strong>5-feature GOOD_5</strong> set is the defensible cross-domain default; the new
     energy/logprob views help only specific QA cells and do not displace it.</div>
+
+    <h3 style="margin-top:28px">Validated size-ladder: consensus_4 &rarr; GOOD_5 &rarr; GOOD_6</h3>
+    <p><span class="mono">GOOD_6</span> = <span class="mono">GOOD_5</span> + <span class="mono">varentropy</span>
+    (Step 182 sweep finding). It needs per-token top-50 logprobs, an AIRCC-era-only capture field that
+    never existed in the old pre-AIRCC battery — so unlike the table above, <strong>every column here is
+    scored on the exact same 19-cell replication grid</strong> (no old-battery cells mixed in), to keep the
+    three subset sizes on a single, consistent footprint.</p>
+    <table>
+      <thead><tr><th>Domain</th><th>consensus_4 (4-feat)</th><th>GOOD_5 (5-feat)</th><th>GOOD_6 (6-feat)</th></tr></thead>
+      <tbody>
+      {ladder_tbl}
+      </tbody>
+    </table>
+    <div class="takeaway-box"><b>Size-ladder takeaway:</b> on the {ladder_stats['n_cells']}-cell replication
+    grid, macro AUROC rises monotonically with size across this specific ladder —
+    <span class="mono">consensus_4</span> {pct(ladder_stats['macro_means'].get('consensus_4'))}
+    &rarr; <span class="mono">GOOD_5</span> {pct(ladder_stats['macro_means'].get('GOOD_5'))}
+    &rarr; <span class="mono">GOOD_6</span> {pct(ladder_stats['macro_means'].get('GOOD_6'))} — with GOOD_6
+    significantly positive on {ladder_stats['n_pos6']}/{ladder_stats['n_cells']} cells and negative on
+    {ladder_stats['n_neg6']}. This does not overturn GOOD_5 as the canonical cross-domain default (GOOD_6's
+    extra feature is AIRCC-capture-only, so it cannot run on the older battery this report also draws on) —
+    it is an additional, same-data comparison arm, not a replacement.</div>
   </div>
 
   <!-- ITEM 1 FUSE -->
@@ -579,25 +720,26 @@ def build_html():
   <!-- ITEM 5 SAMPLING FUSION -->
   <div class="section-card" id="item5">
     <span class="section-badge badge-completed">Action item 5</span>
-    <h2>Sampling fusion: single-pass L-SML vs Semantic Entropy K=10</h2>
-    <p>Does adding K=10 Semantic Entropy to our K=1 spectral features help on GSM8K / Llama-3.1-8B?</p>
+    <h2>Sampling fusion: does adding 5 extra samples help?</h2>
+    <p>Per MATH-500 question, we fuse our single-pass spectral score (L-SML GOOD_5) with a K=5
+    answer-agreement signal (how often 5 sampled answers at the same temperature agree with each
+    other) and check whether the combination beats either signal alone.</p>
     <div class="grid2">
       <div><table>
-        <thead><tr><th>Method</th><th>K</th><th>AUROC</th><th>Cost</th></tr></thead>
+        <thead><tr><th>Arm</th><th>K</th><th>AUROC [95% CI]</th></tr></thead>
         <tbody>
-        <tr><td>Likelihood-weighted Semantic Entropy</td><td>10</td><td>0.614</td><td>10× compute</td></tr>
-        <tr><td>SelfCheckGPT (official soft NLI)</td><td>5</td><td>0.701</td><td>5× + NLI</td></tr>
-        <tr><td><strong>Single-pass spectral L-SML (GOOD_5)</strong></td><td><strong>1</strong></td><td><strong>0.754</strong></td><td><strong>1× (zero extra)</strong></td></tr>
-        <tr><td>Sampling fusion (SE K=10 + L-SML)</td><td>10</td><td><strong>0.758</strong></td><td>10× compute</td></tr>
+        <tr><td>L-SML GOOD_5, single pass</td><td>1</td><td>{pct(p15_ls[0])} [{pct(p15_ls[1])}, {pct(p15_ls[2])}]</td></tr>
+        <tr><td>Answer-agreement</td><td>5</td><td>{pct(p15_sc[0])} [{pct(p15_sc[1])}, {pct(p15_sc[2])}]</td></tr>
+        <tr><td><strong>Fused (z-score average)</strong></td><td><strong>5</strong></td><td><strong>{pct(p15_fu[0])} [{pct(p15_fu[1])}, {pct(p15_fu[2])}]</strong></td></tr>
         </tbody></table></div>
-      <div><div class="chart-card"><h4>Single-pass vs multi-pass on GSM8K</h4><canvas id="chartFusion"></canvas></div></div>
+      <div><div class="chart-card"><h4>Single-pass vs fused, MATH-500 / Qwen2.5-Math-7B</h4><canvas id="chartFusion"></canvas></div></div>
     </div>
-    <div class="takeaway-box"><b>Fusion gate did not pass:</b> single-pass L-SML (0.754) already beats
-    every multi-pass sampling baseline. Fusing SE K=10 on top adds only <strong>+0.4pp → 0.758</strong>
-    (ρ = 0.26; PROGRESS Step 152). The reverse — adding L-SML to weak SE — helps SE a lot, confirming
-    L-SML already carries the semantic-uncertainty signal in one pass.</div>
-    <p style="font-size:12.5px;color:#94a3b8">Fusion value 0.758 is the Step-152 handoff number; the
-    <span class="mono">phase12_corrected</span> pkl lives on Drive, so this cites the recorded value.</p>
+    <div class="takeaway-box"><b>Gate {'PASSES' if p15.get('gate_pass') else 'did not pass'}:</b>
+    fusing the two signals reaches <strong>{pct(p15_fu[0])} AUROC</strong>, beating
+    the best single arm by <strong>+{f'{p15_gain:.1f}' if p15_gain is not None else '—'}pp</strong>
+    — the strongest fusion result in the project. The two signals are genuinely complementary
+    (Spearman ρ = {p15.get('rho', 0):+.2f}, well under the 0.75 redundancy bar), so the gain is real
+    information, not averaged noise. Single (dataset, model) cell so far, N={p15.get('n', 200)}.</div>
   </div>
 
   <!-- ITEM 6 TEMPERATURE -->
@@ -631,13 +773,13 @@ def build_html():
       <tr><td><strong>1</strong></td><td>Reconcile the SE/SC NLI-truncation drop (re-run NLI with a long-context
       cross-encoder or sentence-level chunking on the fresh long-trace caches).</td>
       <td>Blocks citing the old-cache SE 87.7 / SC 87.2 reasoning baselines. Step-152 Priority 1.</td></tr>
-      <tr><td><strong>2</strong></td><td>Run the matched <span class="mono">ars_gsm8k_r1distill8b</span> cluster
-      cell (preset added; smoke passes). MATH-500/R1-Distill already exists (GOOD_5 84.4 vs ARS 86.4).</td>
-      <td>Completes the same-model ARS head-to-head with a second point (vs ARS 74.72 on GSM8K).</td></tr>
-      <tr><td><strong>3</strong></td><td>Score EDIS on MATH-500 from the Drive raw-trace cache
-      (<span class="mono">math500_qwen7b_T1.0_run*.pkl</span>) on Colab: <span class="mono">python
-      scripts/score_edis.py --pkl &lt;drive_path&gt; --cell math500_qwen7b</span>.</td>
-      <td>50MB pkl is too large to pull through the MCP bridge here; GSM8K EDIS already covers the reasoning claim.</td></tr>
+      <tr><td><strong>2</strong></td><td><s>Run the matched <span class="mono">ars_gsm8k_r1distill8b</span> cluster
+      cell</s> — done: GOOD_5 75.0 [70.4, 79.7] vs ARS 74.7 on GSM8K (CI-overlapping, see item 4).</td>
+      <td>Closed — the same-model ARS head-to-head now has both a GSM8K and a MATH-500 point.</td></tr>
+      <tr><td><strong>3</strong></td><td>EDIS-vs-L-SML replication is now its own much larger effort
+      (GSM8K/MATH-500/AMC23/AIME24 &times; 3 temperatures on base Qwen2.5-Math-1.5B) — in progress on
+      AIRCC, analysis deferred to a fresh session (Step 183).</td>
+      <td>Supersedes the original narrow "score EDIS on one MATH-500 cache" plan.</td></tr>
       <tr><td><strong>4</strong></td><td>Treat <span class="mono">spilled_triviaqa</span> (n_pos=6) and
       <span class="mono">se_squad</span> (valid 0.29) as selection-biased; do not headline them.</td>
       <td>Prevents an inflated boundary-QA number from misrepresenting the QA story.</td></tr>
@@ -653,9 +795,9 @@ def build_html():
     {{label:'Sup LR CV',data:[68.9,66.8,67.8],backgroundColor:'#10b981'}},
     {{label:'In-sample ceiling',data:[70.5,73.7,79.3],backgroundColor:'#cbd5e1'}}]}},
     options:{{responsive:true,scales:{{y:{{min:55,max:85,title:{{display:true,text:'Macro AUROC (%)'}}}}}},plugins:{{legend:{{position:'top'}}}}}}}});
-  new Chart(document.getElementById('chartFusion'),{{type:'bar',data:{{labels:['SE (K=10)','SelfCheckGPT (K=5)','Single-pass L-SML (K=1)','SE + L-SML (K=10)'],
-    datasets:[{{label:'AUROC on GSM8K',data:[0.614,0.701,0.754,0.758],backgroundColor:['#94a3b8','#94a3b8','#2563eb','#10b981']}}]}},
-    options:{{responsive:true,scales:{{y:{{min:0.5,max:0.85,title:{{display:true,text:'AUROC'}}}}}},plugins:{{legend:{{display:false}}}}}}}});
+  new Chart(document.getElementById('chartFusion'),{{type:'bar',data:{{labels:['L-SML (K=1)','Answer-agreement (K=5)','Fused (K=1+5)'],
+    datasets:[{{label:'AUROC on MATH-500',data:[{p15_ls[0] or 0},{p15_sc[0] or 0},{p15_fu[0] or 0}],backgroundColor:['#94a3b8','#94a3b8','#10b981']}}]}},
+    options:{{responsive:true,scales:{{y:{{min:0.7,max:1.0,title:{{display:true,text:'AUROC'}}}}}},plugins:{{legend:{{display:false}}}}}}}});
   new Chart(document.getElementById('chartTemp'),{{type:'bar',data:{{labels:['Single (T=1.0)','Same-T (5×T=1.0)','Diverse-T (0.3..2.0)'],
     datasets:[{{label:'AUROC',data:[0.851,0.912,0.859],backgroundColor:['#64748b','#10b981','#f59e0b']}}]}},
     options:{{responsive:true,scales:{{y:{{min:0.75,max:0.95,title:{{display:true,text:'Multi-pass AUROC'}}}}}},plugins:{{legend:{{display:false}}}}}}}});

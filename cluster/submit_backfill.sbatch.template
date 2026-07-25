@@ -1,0 +1,58 @@
+#!/bin/bash
+# TEMPLATE for cluster/submit_backfill.sbatch — the live file is gitignored because it
+# carries a hardcoded HF_TOKEN (same convention as submit_inference.sbatch). To
+# regenerate: copy to cluster/submit_backfill.sbatch and replace REPLACE_ME.
+#
+# AIRCC teacher-forced view-backfill job — runs cluster/backfill_views.py inside the
+# B200 NGC container. Preemption-safe: --signal=B:TERM@900 delivers SIGTERM to the
+# driver, which checkpoints (append-only pkl writes via save_cache_atomic) and exits
+# 85; chain resume jobs with --dependency=afterany exactly like inference jobs.
+#
+# Gate-A validate-only pass (the 7 Z_n-complete cells, writes nothing):
+#   sbatch -p power-gpu --qos=owner_880 cluster/submit_backfill.sbatch \
+#       --cells spilled_triviaqa_llama8b,... --validate-only
+#
+# Backfill (cells grouped by model to amortize the load):
+#   sbatch -p power-gpu --qos=owner_880 cluster/submit_backfill.sbatch \
+#       --cells lapeigvals_gsm8k_llama8b,sciq_llama8b,se_nq_open_llama8b
+#
+#SBATCH --job-name=view_backfill
+#SBATCH --gpus=1
+#SBATCH --time=08:00:00
+#SBATCH --requeue
+#SBATCH --signal=B:TERM@900
+#SBATCH --output=/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/%x_%j.out
+#SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
+#SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
+#SBATCH --container-workdir=/shared/cycle2_tau_averbuch_prj/omrisegev1/code
+# No --container-name on purpose — named containers race on shared enroot rootfs
+# creation when two jobs land on one node (see submit_inference.sbatch.template).
+
+set -uo pipefail
+
+SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
+export HF_HOME=$SHARED/hf_cache
+export HF_DATASETS_CACHE=$SHARED/hf_cache/datasets
+export PIP_CACHE_DIR=$SHARED/pip_cache
+export PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID}
+mkdir -p "$PYTHONUSERBASE"
+export HF_TOKEN=REPLACE_ME
+
+echo "[sbatch] backfill job $SLURM_JOB_ID on $(hostname), args: $*"
+
+pip install -q --user -r cluster/requirements.txt
+
+# Opt-in AWQ runtime (Qwen2.5-72B-Instruct-AWQ cells), keyed off the --cells arg —
+# NEVER via sbatch --export: any non-default --export makes this Slurm attempt
+# user-env retrieval on the node, which fails cluster-wide ("user env retrieval
+# failed requeued held", jobs 123720/123721 on two different nodes).
+# --no-deps everywhere heavy: torch/transformers/accelerate are already in the NGC
+# image and MUST NOT be upgraded (sm_100). Pure-python leftovers installed plainly.
+if [[ "$*" == *awq* || "$*" == *qwen72b* ]]; then
+  pip install -q --user --no-deps autoawq gptqmodel
+  pip install -q --user --no-deps device-smi tokenicer defuser
+  pip install -q --user logbar zstandard
+fi
+
+# exec replaces bash with python so SIGTERM from Slurm reaches the driver directly.
+exec python cluster/backfill_views.py "$@"

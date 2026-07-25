@@ -118,8 +118,10 @@ PRESETS = {
                    "model_note": "TriviaQA / Llama-3.1-8B-Instruct: HCPD 86.25 (Table 2). "
                                  "Same-paper baselines: Perplexity 80.62, Semantic Entropy 78.71, "
                                  "SAPLMA(sup) 78.51, TSV(sup) 79.78 -- full table in "
-                                 "published_baselines.csv. HARP's cross-model TriviaQA anchor "
-                                 "92.8 (model unspecified) tracked separately, same file."},
+                                 "published_baselines.csv. HARP's Qwen-2.5-7B-Instruct TriviaQA anchor "
+                                 "92.8 (cross-model vs this cell; corrected Step 184, was wrongly called "
+                                 "'model unspecified') tracked separately, same file -- HARP also reports "
+                                 "92.9 for an unconfirmed-instruct-tuning 'LLaMA-3.1-8B' backbone."},
         head_to_head="SAME-MODEL",
         notes="Boundary cell: single-fact QA -> short trace -> spectral has little signal.",
     ),
@@ -197,11 +199,13 @@ PRESETS = {
     # INSTRUCT checkpoint. This closes HCPD's 4-dataset same-model grid (TriviaQA/SciQ/
     # NQ-Open already scored above) and gives Automatic Layer Selection a same-model CoQA
     # anchor too (see papers/digests/automatic-layer-selection-for-hallucination-detection.md).
-    # Decoding: HCPD's extraction (line ~920) states responses are generated with plain
-    # greedy decoding; a separate "greedy decoding with 5 beam search" mention (line ~2214)
-    # is a DIFFERENT section (RL training-data construction, citing Kuhn et al. 2023's
-    # protocol for a canonical reference answer) — not the Table-2 detection-eval protocol,
-    # verified 2026-07-13 before writing this preset.
+    # Decoding (CORRECTED Step 184 -- this note had the attribution backwards): HCPD's
+    # Appendix C.2.3 states the TEST split (source of the Table-2 detection numbers we cite)
+    # uses "greedy decoding with 5 beam search", matching Kuhn et al. (2023)'s protocol; the
+    # TRAINING split instead uses T=0.5 sampling, no beam search. So the numbers we compare
+    # against (86.25/86.04/90.38/90.07) are greedy+beam-search, not plain greedy -- our own
+    # preset below (k=1, temps=[0.0], no beam search) is a close but not exact decoding match.
+    # Verified against papers/extracted/zero-source-llm-hallucination-detection-with-human-like-crit.md.
     "hcpd_coqa_llama8b": _preset(
         paper="HCPD (arXiv 2606.12900) + Automatic Layer Selection (arXiv 2605.26366)",
         model="meta-llama/Llama-3.1-8B-Instruct", gated=True,
@@ -297,8 +301,12 @@ PRESETS = {
     ),
 
     # ── ARS-matched reasoning cells (arXiv 2601.17467, "Answer-agreement Representation
-    #    Shaping"). ARS is a SUPERVISED trace-embedding-shaping detector. We run the exact
-    #    (model, dataset) so our UNSUPERVISED L-SML sits next to ARS's supervised Y.
+    #    Shaping"). The cited "ARS (CCS)" row is UNSUPERVISED per the paper's own Table 1
+    #    "Supervision" column (corrected Step 184 -- a different row, "ARS (Probing)", is
+    #    the paper's supervised variant and is not cited anywhere in this project). We run
+    #    the exact (model, dataset) so our UNSUPERVISED L-SML sits next to ARS (CCS)'s own
+    #    unsupervised Y -- this is an unsupervised-vs-unsupervised comparison, not a
+    #    "beats a supervised method" claim.
     #    MATH-500/R1-Distill already exists offline (subset_sweep npz, GOOD_5=84.4 vs ARS 86.38);
     #    this preset documents that cell + adds GSM8K/R1-Distill (the missing matched point).
     "ars_math500_r1distill8b": _preset(
@@ -308,7 +316,10 @@ PRESETS = {
         k=1, temps=[1.0], max_new=4096,   # U1: R1-Distill emits very long CoT; do not truncate
         head_to_head="SAME-MODEL",
         published={"method": "ARS (CCS)", "metric": "AUROC", "value": 86.38,
-                   "supervision": "supervised (representation shaping)",
+                   # CORRECTED Step 184 (verified against papers/extracted/): the paper's own
+                   # Table 1 "Supervision" column marks ARS (CCS) = No (unsupervised). Only the
+                   # separate "ARS (Probing)" row (not cited anywhere in this project) is supervised.
+                   "supervision": "unsupervised (CCS = Contrast-Consistent Search on internal reps, no labels)",
                    "best_baseline": "G-Detector 64.45",
                    # ARS Table 2 unsupervised baselines on this exact cell — our GOOD_5 84.4
                    # beats every one of them:
@@ -331,7 +342,10 @@ PRESETS = {
         k=1, temps=[0.0], max_new=8192,
         head_to_head="SAME-MODEL",
         published={"method": "ARS (CCS)", "metric": "AUROC", "value": 74.72,
-                   "supervision": "supervised (representation shaping)",
+                   # CORRECTED Step 184 (verified against papers/extracted/): the paper's own
+                   # Table 1 "Supervision" column marks ARS (CCS) = No (unsupervised). Only the
+                   # separate "ARS (Probing)" row (not cited anywhere in this project) is supervised.
+                   "supervision": "unsupervised (CCS = Contrast-Consistent Search on internal reps, no labels)",
                    "best_baseline": "G-Detector 70.38",
                    # ARS Table 2 unsupervised baselines on this exact cell:
                    "eigenscore_unsup": 52.98, "semantic_entropy_unsup": 61.98,
@@ -339,7 +353,7 @@ PRESETS = {
                    "model_note": "GSM8K / DeepSeek-R1-Distill-Llama-8B (ARS Table 1). "
                                  "ARS Table 2 unsup: EigenScore 52.98, SE 61.98, Perplexity 58.48."},
         notes="MISSING matched cell — the one ARS point we do not yet have offline. Run this to "
-              "place our unsupervised L-SML next to ARS supervised 74.72 on GSM8K/R1-Distill. "
+              "place our unsupervised L-SML next to ARS (CCS)'s own unsupervised 74.72 on GSM8K/R1-Distill. "
               "Gate: smoke -> N=30 pilot (watch trace not pinned at max_new, acc in [0.20,0.85]) -> full.",
     ),
 
@@ -427,7 +441,10 @@ PRESETS = {
         k=1, temps=[0.0], max_new=8192,   # Qwen3 thinking ON; do NOT add /no_think here
         head_to_head="SAME-MODEL",
         published={"method": "ARS (CCS)", "metric": "AUROC", "value": 90.37,
-                   "supervision": "supervised (representation shaping)",
+                   # CORRECTED Step 184 (verified against papers/extracted/): the paper's own
+                   # Table 1 "Supervision" column marks ARS (CCS) = No (unsupervised). Only the
+                   # separate "ARS (Probing)" row (not cited anywhere in this project) is supervised.
+                   "supervision": "unsupervised (CCS = Contrast-Consistent Search on internal reps, no labels)",
                    "best_baseline": "Semantic Entropy 72.51",
                    "eigenscore_unsup": 63.40,   # ARS Table 2 vanilla EigenScore — fair UNSUP Y
                    "model_note": "GSM8K / Qwen3-8B (ARS Table 1) — ARS's strongest published cell. "
@@ -454,7 +471,10 @@ PRESETS = {
         k=1, temps=[0.0], max_new=16384,
         head_to_head="SAME-MODEL",
         published={"method": "ARS (CCS)", "metric": "AUROC", "value": 78.66,
-                   "supervision": "supervised (representation shaping)",
+                   # CORRECTED Step 184 (verified against papers/extracted/): the paper's own
+                   # Table 1 "Supervision" column marks ARS (CCS) = No (unsupervised). Only the
+                   # separate "ARS (Probing)" row (not cited anywhere in this project) is supervised.
+                   "supervision": "unsupervised (CCS = Contrast-Consistent Search on internal reps, no labels)",
                    "best_baseline": "TSV 63.12",
                    "eigenscore_unsup": 81.38,   # ARS Table 2 vanilla EigenScore — fair UNSUP Y
                    "model_note": "MATH-500 / Qwen3-8B (ARS Table 1). "
@@ -475,6 +495,11 @@ PRESETS = {
         # max_new=2048 (their 300-token cap would truncate our entropy traces; the cap
         # is non-binding for GSM8K CoT ~150-250 tok — annotated protocol difference).
         k=1, temps=[0.8], max_new=2048,
+        # Added 2026-07-19: this cell is being RE-GENERATED for 46-view coverage —
+        # no teacher-forced warp variant reproduced its saved entropies (probe job
+        # 123716, best frac_close 0.722), so backfill is impossible and a fresh run
+        # with native Z_n capture replaces it.
+        capture={"logsumexp": True},
         head_to_head="SAME-MODEL",
         published={"method": "Internal-States+RC", "metric": "AUROC", "value": 79.15,
                    "supervision": "supervised (LLM-judge labels, multi-path)",
@@ -715,6 +740,179 @@ PRESETS = {
               "Step-131 null extends to 7B+ and that is the reportable outcome.",
     ),
 }
+
+
+# ── Full-coverage regeneration cells (2026-07-19, Omri-authorized) ────────────
+# The phase10 RAG raw pkls cannot be teacher-force backfilled: gen_token_ids were
+# never saved and citation-bracket BPE merges make the full_text roundtrip locally
+# misalign (probe job 123716: frac_close 0.55-0.74 across all 12 probed cells at
+# median|dH|~0 — structural, not a warp/prompt error). These presets RE-GENERATE
+# the RAG grid under the modern rich-save schema (all 46-view keys native), keeping
+# the phase10 protocol: lciteeval_prompt variant 0, T=1.0, max_new=1024, k=1,
+# statement-level labels re-derived offline. The 72B slot moves from the Colab-era
+# Qwen2.5-72B-Instruct-AWQ to full-precision Qwen2.5-72B-Instruct (bf16 fits a
+# 192GB B200; AWQ runtime is dead on the cluster — job 123722). Llama-3.3-70B is
+# the extra model Omri asked for ("more data"), on both RAG and GPQA.
+_REGEN_RAG_MODELS = {
+    "qwen7b":     ("Qwen/Qwen2.5-7B-Instruct", False),
+    "llama8b":    ("meta-llama/Llama-3.1-8B-Instruct", True),
+    "mistral24b": ("mistralai/Mistral-Small-24B-Instruct-2501", True),
+    "qwen72b":    ("Qwen/Qwen2.5-72B-Instruct", False),
+    "llama70b":   ("meta-llama/Llama-3.3-70B-Instruct", True),
+}
+_REGEN_RAG_DATASETS = ["hotpotqa", "natural_questions", "2wikimultihopqa",
+                       "narrativeqa"]
+for _mk, (_model, _gated) in _REGEN_RAG_MODELS.items():
+    for _ds in _REGEN_RAG_DATASETS:
+        PRESETS[f"rag_{_ds}_{_mk}"] = _preset(
+            paper="internal — phase10 L-CiteEval regeneration (full 46-view coverage)",
+            model=_model, gated=_gated,
+            dataset=f"lciteeval_{_ds}", split="test", n_samples=500,  # caps at split size
+            k=1, temps=[1.0], max_new=1024,
+            capture={"logsumexp": True},
+            acc_band=(0.10, 0.90),  # "accuracy" here = sample-level grounding rate
+            notes="Regen of the phase10 Colab cell (same prompt/T/max_new). Stored "
+                  "label is the coarse sample-level grounding label "
+                  "(is_grounded_lciteeval); canonical statement-level labels come "
+                  "from segment_by_citations offline, as in phase10.",
+        )
+
+# Tier-3 trace cells (local_cache/raw_traces): text+entropy-only pkls with no
+# gen_token_ids and no clean roundtrip — regenerated fresh. K follows the legacy
+# pkl (gsm8k 10, math500 8 -> rounded to 10, gpqa single-trace -> 10 for usable
+# minority counts); N raised to the standard cell sizes ("more data" per Omri).
+PRESETS["trace_gsm8k_llama8b_k10"] = _preset(
+    paper="internal — tier-3 trace-cell regeneration (p1_gsm8k_llama8b_k10)",
+    model="meta-llama/Llama-3.1-8B-Instruct", gated=True,
+    dataset="gsm8k", split="test", n_samples=500,
+    k=10, temps=[1.0], max_new=2048,
+    capture={"logsumexp": True},
+    notes="Replaces the K=10 trace pkl (N=200, texts+labels only).",
+)
+PRESETS["trace_gpqa_r1qwen7b"] = _preset(
+    paper="internal — tier-3 trace-cell regeneration (p2c_gpqa_deepseek_r1_7b)",
+    model="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+    dataset="gpqa", split="train", n_samples=198,
+    k=10, temps=[1.0], max_new=2048,
+    capture={"logsumexp": True},
+    notes="Replaces the single-trace pkl (N=150, main_text/main_entropies only). "
+          "max_new=2048 for <think> traces.",
+)
+PRESETS["trace_math500_qwenmath15b_k10"] = _preset(
+    paper="internal — tier-3 trace-cell regeneration (math500_T1.0 traces)",
+    model="Qwen/Qwen2.5-Math-1.5B-Instruct",
+    dataset="math500", split="test", n_samples=300,
+    k=10, temps=[1.0], max_new=2048,
+    capture={"logsumexp": True},
+    notes="Replaces the K=8 trace list (N=50). K=10/N=300 for stable CIs.",
+)
+
+# GPQA Diamond regen additions: full-precision 72B replacing the AWQ Colab cell,
+# plus the extra 70B model. K=10 samples per question at T=1.0 matches the phase4
+# small-model gpqa cells (198 questions alone are too few for stable AUROC CIs).
+# Phase4 cells whose teacher-forced backfill FAILED in both bf16 and fp16
+# (probe jobs 123716/123730/123731): R1-Distill math500+gpqa (frac_close <=0.68),
+# deepseek-math math500 (0.805), gpqa Llama-8B (0.884). Regenerated fresh under the
+# rich-save schema. math500 keeps the phase4 T=1.5 protocol (matches the *_T1.5
+# cell keys); gpqa regens at TRUE T=1.0 — the old "T1.0" gpqa cells were actually
+# phase4 T=1.5 data (fingerprint-proven mislabel), and regenerating at the
+# advertised temperature retires that mislabel instead of propagating it.
+for _pid, _model, _gated, _mx in [
+    ("math500_r1distill8b", "deepseek-ai/DeepSeek-R1-Distill-Llama-8B", False, 2048),
+    ("math500_dsmath7b",    "deepseek-ai/deepseek-math-7b-instruct",    False, 2048),
+    # T=1.5 degenerate text broke the roundtrip on 198/300 candidates (write job
+    # 123725: deltas to -47) — 34% backfill coverage is unusable, regen instead.
+    ("math500_qwenmath7b",  "Qwen/Qwen2.5-Math-7B-Instruct",            False, 2048),
+]:
+    PRESETS[_pid] = _preset(
+        paper="internal — phase4 math500 regeneration (backfill-unrescuable cell)",
+        model=_model, gated=_gated,
+        dataset="math500", split="test", n_samples=300,
+        k=1, temps=[1.5], max_new=_mx,
+        capture={"logsumexp": True},
+        notes="Replaces the Colab phase4 inference_cache (T=1.5, math500_300). "
+              "max_new=2048 per U1 (reasoning traces; phase4's cap was tighter but "
+              "truncation hurts the entropy trace).",
+    )
+
+# Pilot 123899: Qwen-Math-7B at the legacy T=1.5 protocol grades 0.167 with 27/30
+# traces at the 2048 cap — the same degenerate-text behavior that made this cell's
+# backfill unrescuable in the first place, i.e. it IS the legacy protocol, not a
+# pipeline bug. ~17% positives at N=300 (~50 minority) is usable for AUROC, so the
+# gate widens instead of the protocol changing (T/max_new stay legacy-faithful).
+PRESETS["math500_qwenmath7b"]["acc_band"] = (0.10, 0.90)
+
+for _pid, _model, _gated, _mx in [
+    ("gpqa_llama8b",     "meta-llama/Llama-3.1-8B-Instruct",           True,  1024),
+    ("gpqa_r1distill8b", "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",   False, 2048),
+    # gated write attempt (job 123885) aborted on a 1/48 trace alignment error —
+    # joins the T=1.0 regen batch rather than per-candidate gate exemptions.
+    ("gpqa_mistral7b",   "mistralai/Mistral-7B-Instruct-v0.2",         False, 1024),
+]:
+    PRESETS[_pid] = _preset(
+        paper="internal — phase4 gpqa regeneration at true T=1.0 (mislabel retired)",
+        model=_model, gated=_gated,
+        dataset="gpqa", split="train", n_samples=198,
+        k=10, temps=[1.0], max_new=_mx,
+        capture={"logsumexp": True},
+        notes="Replaces the Colab phase4 gpqa cell that was T=1.5 data mislabeled "
+              "as T1.0 in the sweep pool. K=10 matches the phase4 multi-sample "
+              "protocol; R1-Distill gets max_new=2048 for <think> traces.",
+    )
+
+for _pid, _model, _gated in [
+    ("gpqa_qwen72b",  "Qwen/Qwen2.5-72B-Instruct", False),
+    ("gpqa_llama70b", "meta-llama/Llama-3.3-70B-Instruct", True),
+]:
+    PRESETS[_pid] = _preset(
+        paper="internal — GPQA 70B-class regeneration (full 46-view coverage)",
+        model=_model, gated=_gated,
+        dataset="gpqa", split="train", n_samples=198,  # Diamond has one split
+        k=10, temps=[1.0], max_new=1024,
+        capture={"logsumexp": True},
+        notes="Replaces/extends the Colab-era Qwen2.5-72B-Instruct-AWQ gpqa cell "
+              "(phase8 protocol: T=1.0, max_new=1024, per-idx choice permutation). "
+              "Strong model keeps both label classes populated (72B ~50% on Diamond).",
+    )
+
+
+# Long-cap flavours (Omri 2026-07-20): ADDITIVE cells, never replacing the
+# capped runs above — both flavours are kept. Motivation: the R1-style cells
+# frequently hit the 2048 cap mid-<think>, and the legacy Colab caps were far
+# tighter still (R1 gpqa 768 with 100% of traces truncated, R1 math500 1536
+# with 55%, trace-gpqa-r1 1024 with 98.7%) — an untruncated-reasoning flavour
+# of these cells has never existed. The 2048 runs stay the legacy-comparable
+# flavour; these add the completed-thinking one. qwenmath7b is deliberately
+# excluded: its cap-hitting is T=1.5 degenerate rambling (legacy cap-hitter
+# acc 0.025), which a longer cap feeds rather than fixes.
+for _src in ("math500_r1distill8b", "gpqa_r1distill8b", "trace_gpqa_r1qwen7b"):
+    _p = dict(PRESETS[_src])
+    _p["max_new"] = 4096
+    _p["notes"] = (f"Long-cap flavour of {_src} (max_new 2048->4096). Additive "
+                   "cell — the 2048 run is kept as the legacy-comparable flavour.")
+    PRESETS[f"{_src}_mn4096"] = _p
+
+# mn16384 (2026-07-22): the _mn4096 GPQA flavours above are STILL confounded — an
+# uncensored max_new=32768 pilot (N=25, K=2, cluster/cpu_job.sbatch +
+# scripts/cap_pilot_audit.py) measured the real length distribution with zero traces
+# hitting the pilot cap and zero degenerate repetition (genuine long <think>, not
+# looping): gpqa_r1distill8b p99=16648/max=16648; trace_gpqa_r1qwen7b p99=12489/
+# max=12489. At mn4096 these cells are still 78-80% pinned, and
+# scripts/truncation_confound_audit.py shows heavily-capped cells (>=20% pinned)
+# collapse to a mean L-SML AUROC delta of -0.12 between all-rows and complete-only
+# scoring (near 0 on cells <5% pinned) -- i.e. the mn4096 GPQA numbers are mostly
+# measuring the cap, not the detector. 16384 covers both models' p99 with room
+# (<=2% pinned target). NOT extended to math500_r1distill8b here: that cell was
+# also seen at 51% pinned at mn4096 in the same audit, but its own length
+# distribution was never piloted uncensored -- do not reuse the GPQA p99 for a
+# different domain/model without measuring it.
+for _src in ("gpqa_r1distill8b", "trace_gpqa_r1qwen7b"):
+    _p = dict(PRESETS[_src])
+    _p["max_new"] = 16384
+    _p["notes"] = (f"Long-cap flavour of {_src} (max_new 2048->16384), replacing the "
+                   f"still-confounded {_src}_mn4096 attempt. Cap chosen from an uncensored "
+                   "32768 pilot's p99, not a guess -- see comment above the preset loop.")
+    PRESETS[f"{_src}_mn16384"] = _p
 
 
 def get_preset(preset_id: str) -> dict:

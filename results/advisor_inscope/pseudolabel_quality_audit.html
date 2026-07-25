@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Step 1 - Pseudo-Label Quality Audit (D1+D2 Gate)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background:#f4f7f9; color:#333;
+         margin:0; padding:20px; }
+  h1,h2 { color:#1e293b; }
+  .card { background:#fff; padding:20px; border-radius:10px;
+           box-shadow:0 4px 6px rgba(0,0,0,.05); margin-bottom:22px; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font-size:13px; }
+  th,td { padding:8px 10px; border:1px solid #e2e8f0; text-align:left; }
+  th { background:#f8fafc; color:#475569; }
+  .verdict { font-size:22px; font-weight:bold; color:#b91c1c; }
+  .vbox { background:#fee2e2; padding:16px; border-radius:8px; border-left:6px solid #b91c1c; }
+  .chart { position:relative; height:340px; }
+  code { background:#f1f5f9; padding:1px 5px; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Step 1 - Pseudo-Label Quality Audit</h1>
+  <p>Prerequisite gate for <b>D2</b> (<code>a6.adaptive_pl_mrmr</code>), which would make
+     pseudo-label agreement the primary feature-relevance driver. This measures whether
+     <code>y_hat</code> is trustworthy enough to play that role, especially on the weak QA cells.</p>
+  <div class="vbox">
+    <div class="verdict">GATE: RED</div>
+    <p style="margin:8px 0 0">2 QA cells below 0.6 (losnet_hotpotqa_mistral7b, seiclr_triviaqa_opt30b) with the shipping seed rule.</p>
+  </div>
+  <p style="margin-top:14px">
+    Median QA <code>auc_pl</code>: <b>0.7317</b> &nbsp;|&nbsp;
+    Sign-inverted cells: <b>0</b>
+    
+  </p>
+  <p style="font-size:13px;color:#64748b">
+    Label-free degeneracy detector (<code>consensus</code> = mean |corr(y_hat, its own seed
+    views)|): mean on inverted cells <b>nan</b>
+    (max nan) vs mean on healthy cells
+    <b>0.7273</b> (min 0.5670). A clean separation
+    means Option B can catch the broken fusions without labels.
+  </p>
+</div>
+
+<div class="card">
+  <h2>Option A: seed-rule comparison (decided on data)</h2>
+  <p style="font-size:13px;color:#64748b">
+    Each row re-builds the pseudo-label by L-SML fusing a different reference subset.
+    <code>anchor4</code> is what <code>_seed_cols</code> ships today.
+    <code>hybrid_caq</code> is the undocumented list hardcoded at
+    <code>compare_anchor_quality.py:141</code> and mislabeled there as GOOD_5.</p>
+  <table>
+    <thead><tr><th>Seed rule</th><th>Macro (25)</th><th>QA</th><th>Math</th>
+    <th>Median QA</th><th>#QA&lt;0.60</th><th>#inverted</th><th>Gate</th></tr></thead>
+    <tbody><tr><td><b>loco5</b> &#11088;<br><span style='font-size:11px;color:#64748b'>cusum_max|logprob_margin|min_energy|spectral_entropy|topk_tail_mass</span></td><td><b>0.7609</b></td><td>0.7222</td><td>0.7866</td><td>0.7361</td><td>2</td><td>0<br><span style='font-size:11px;color:#b91c1c'></span></td><td style='color:#b91c1c;font-weight:bold'>RED</td></tr><tr><td><b>good6</b><br><span style='font-size:11px;color:#64748b'>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy|varentropy</span></td><td><b>0.7594</b></td><td>0.7274</td><td>0.7807</td><td>0.7317</td><td>2</td><td>0<br><span style='font-size:11px;color:#b91c1c'></span></td><td style='color:#b91c1c;font-weight:bold'>RED</td></tr><tr><td><b>good5</b><br><span style='font-size:11px;color:#64748b'>epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy</span></td><td><b>0.7519</b></td><td>0.7210</td><td>0.7725</td><td>0.7127</td><td>2</td><td>0<br><span style='font-size:11px;color:#b91c1c'></span></td><td style='color:#b91c1c;font-weight:bold'>RED</td></tr><tr><td><b>hybrid_caq</b><br><span style='font-size:11px;color:#64748b'>epr|cusum_max|logprob_margin|spectral_entropy|topk_tail_mass</span></td><td><b>0.7512</b></td><td>0.7050</td><td>0.7820</td><td>0.7088</td><td>3</td><td>0<br><span style='font-size:11px;color:#b91c1c'></span></td><td style='color:#b91c1c;font-weight:bold'>RED</td></tr><tr><td><b>anchor4</b><br><span style='font-size:11px;color:#64748b'>epr|low_band_power|spectral_entropy|cusum_max</span></td><td><b>0.7249</b></td><td>0.6821</td><td>0.7535</td><td>0.6807</td><td>3</td><td>2<br><span style='font-size:11px;color:#b91c1c'>inside_coqa_llama7b,noise_gsm8k_phi3mini</span></td><td style='color:#b91c1c;font-weight:bold'>RED</td></tr></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Pseudo-Label AUROC by cell (shipping rule)</h2>
+  <div class="chart"><canvas id="c1"></canvas></div>
+</div>
+
+<div class="card">
+  <h2>Per-cell detail</h2>
+  <p style="font-size:13px;color:#64748b">
+    Columns are the fused pseudo-label AUROC under each seed rule (as-is, anchor-oriented --
+    values &lt; 0.5 are sign-inverted). <code>consensus</code> is the label-free degeneracy
+    statistic for the shipping rule. Red rows &lt; 0.6,
+    amber &lt; 0.7.</p>
+  <table>
+    <thead><tr><th>Cell</th><th>Group</th><th>N</th><th>loco5</th><th>good6</th><th>good5</th><th>hybrid_caq</th><th>anchor4</th>
+    <th>consensus</th><th>best single seed</th><th>fallback view</th></tr></thead>
+    <tbody><tr><td><b>spilled_triviaqa_llama8b</b></td><td>QA</td><td>256</td><td>0.9567</td><td>0.9420</td><td>0.9340</td><td>0.9540</td><td>0.9180</td><td>0.8070</td><td>0.8987 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.9073 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>semenergy_triviaqa_qwen3_8b</b></td><td>QA</td><td>4392</td><td>0.7941</td><td>0.8160</td><td>0.8006</td><td>0.6915</td><td>0.7620</td><td>0.6821</td><td>0.7967 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.6175 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>se_squad_v2_llama8b</b></td><td>QA</td><td>2933</td><td>0.8320</td><td>0.8110</td><td>0.7982</td><td>0.8220</td><td>0.7959</td><td>0.7578</td><td>0.7707 <span style='font-size:11px;color:#64748b'>cusum_max</span></td><td>0.7676 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>sciq_llama8b</b></td><td>QA</td><td>198</td><td>0.7473</td><td>0.7477</td><td>0.7381</td><td>0.7541</td><td>0.7472</td><td>0.7819</td><td>0.7438 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.7409 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>epr_triviaqa_mistral24b</b></td><td>QA</td><td>621</td><td>0.7366</td><td>0.7332</td><td>0.7073</td><td>0.7261</td><td>0.6792</td><td>0.7350</td><td>0.7375 <span style='font-size:11px;color:#64748b'>epr</span></td><td>0.7044 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>se_nq_open_llama8b</b></td><td>QA</td><td>8460</td><td>0.7356</td><td>0.7303</td><td>0.7180</td><td>0.7439</td><td>0.6822</td><td>0.7506</td><td>0.7465 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.7213 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr style="background:#fef3c7"><td><b>inside_coqa_llama7b</b></td><td>QA</td><td>4504</td><td>0.5292</td><td>0.6674</td><td>0.6841</td><td>0.5487</td><td>0.4483</td><td>0.6612</td><td>0.6408 <span style='font-size:11px;color:#64748b'>spectral_entropy</span></td><td>0.5728 <span style='font-size:11px;color:#64748b'>anchor:epr</span></td></tr><tr style="background:#fef3c7"><td><b>truthfulqa_llama8b</b></td><td>QA</td><td>7633</td><td>0.6764</td><td>0.6572</td><td>0.6596</td><td>0.6431</td><td>0.6463</td><td>0.6970</td><td>0.6747 <span style='font-size:11px;color:#64748b'>spectral_entropy</span></td><td>0.5466 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr style="background:#fee2e2"><td><b>seiclr_triviaqa_opt30b</b></td><td>QA</td><td>4993</td><td>0.6342</td><td>0.5884</td><td>0.5948</td><td>0.5901</td><td>0.5750</td><td>0.6490</td><td>0.6248 <span style='font-size:11px;color:#64748b'>cusum_max</span></td><td>0.5448 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr style="background:#fee2e2"><td><b>losnet_hotpotqa_mistral7b</b></td><td>QA</td><td>500</td><td>0.5802</td><td>0.5810</td><td>0.5754</td><td>0.5764</td><td>0.5664</td><td>0.7290</td><td>0.5834 <span style='font-size:11px;color:#64748b'>sw_var_peak</span></td><td>0.5444 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>math500_qwenmath7b</b></td><td>math</td><td>300</td><td>0.9317</td><td>0.8901</td><td>0.9109</td><td>0.9279</td><td>0.9206</td><td>0.9232</td><td>0.9306 <span style='font-size:11px;color:#64748b'>epr</span></td><td>0.9360 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>math500_r1distill8b</b></td><td>math</td><td>300</td><td>0.8453</td><td>0.8357</td><td>0.8358</td><td>0.8434</td><td>0.8397</td><td>0.7965</td><td>0.8402 <span style='font-size:11px;color:#64748b'>cusum_max</span></td><td>0.8167 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>math500_r1distill8b_mn4096</b></td><td>math</td><td>300</td><td>0.8510</td><td>0.8329</td><td>0.8362</td><td>0.8459</td><td>0.8354</td><td>0.8687</td><td>0.8269 <span style='font-size:11px;color:#64748b'>spectral_entropy</span></td><td>0.8154 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>lapeigvals_gsm8k_llama8b</b></td><td>math</td><td>500</td><td>0.8155</td><td>0.8186</td><td>0.8152</td><td>0.8005</td><td>0.8047</td><td>0.7212</td><td>0.8012 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.7749 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>lapeigvals_gsm8k_phi35</b></td><td>math</td><td>1319</td><td>0.8042</td><td>0.8125</td><td>0.8032</td><td>0.8044</td><td>0.7973</td><td>0.6760</td><td>0.7843 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.7667 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>trace_gsm8k_llama8b_k10</b></td><td>math</td><td>5000</td><td>0.8102</td><td>0.8093</td><td>0.7997</td><td>0.8043</td><td>0.7933</td><td>0.7290</td><td>0.8023 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.7861 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>lapeigvals_gsm8k_mistral24b</b></td><td>math</td><td>1319</td><td>0.8128</td><td>0.8087</td><td>0.8006</td><td>0.7755</td><td>0.7408</td><td>0.7756</td><td>0.8548 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.8302 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>lapeigvals_gsm8k_nemo</b></td><td>math</td><td>1319</td><td>0.8074</td><td>0.8013</td><td>0.7820</td><td>0.8091</td><td>0.7766</td><td>0.6904</td><td>0.7809 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.7547 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>noise_gsm8k_mistral7b</b></td><td>math</td><td>1319</td><td>0.8021</td><td>0.7902</td><td>0.7851</td><td>0.8028</td><td>0.7876</td><td>0.7447</td><td>0.7590 <span style='font-size:11px;color:#64748b'>spectral_entropy</span></td><td>0.7216 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>math500_dsmath7b</b></td><td>math</td><td>300</td><td>0.8110</td><td>0.7868</td><td>0.7512</td><td>0.7959</td><td>0.7825</td><td>0.6295</td><td>0.7706 <span style='font-size:11px;color:#64748b'>epr</span></td><td>0.7698 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>ars_gsm8k_r1distill8b</b></td><td>math</td><td>500</td><td>0.7669</td><td>0.7623</td><td>0.7500</td><td>0.7323</td><td>0.6958</td><td>0.5670</td><td>0.7018 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.6670 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>internalstates_gsm8k_qwen25_7b</b></td><td>math</td><td>500</td><td>0.7411</td><td>0.7036</td><td>0.7039</td><td>0.7165</td><td>0.7062</td><td>0.6822</td><td>0.6913 <span style='font-size:11px;color:#64748b'>sw_var_peak</span></td><td>0.6980 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr><td><b>lapeigvals_gsm8k_llama3b</b></td><td>math</td><td>1319</td><td>0.6475</td><td>0.7025</td><td>0.6845</td><td>0.7171</td><td>0.6851</td><td>0.6780</td><td>0.7107 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.7079 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr style="background:#fef3c7"><td><b>noise_gsm8k_phi3mini</b></td><td>math</td><td>1319</td><td>0.6675</td><td>0.6801</td><td>0.6643</td><td>0.6819</td><td>0.4798</td><td>0.5905</td><td>0.6735 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.6516 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr><tr style="background:#fef3c7"><td><b>trace_math500_qwenmath15b_k10</b></td><td>math</td><td>3000</td><td>0.6852</td><td>0.6760</td><td>0.6649</td><td>0.6727</td><td>0.6575</td><td>0.8584</td><td>0.6872 <span style='font-size:11px;color:#64748b'>varentropy</span></td><td>0.6927 <span style='font-size:11px;color:#64748b'>logprob_margin</span></td></tr></tbody>
+  </table>
+</div>
+
+<script>
+const D = {"qa_labels": ["spilled_triviaqa_llama8b", "semenergy_triviaqa_qwen3_8b", "se_squad_v2_llama8b", "sciq_llama8b", "epr_triviaqa_mistral24b", "se_nq_open_llama8b", "inside_coqa_llama7b", "truthfulqa_llama8b", "seiclr_triviaqa_opt30b", "losnet_hotpotqa_mistral7b"], "qa_vals": [0.942, 0.816, 0.811, 0.7477, 0.7332, 0.7303, 0.6674, 0.6572, 0.5884, 0.581], "math_labels": ["math500_qwenmath7b", "math500_r1distill8b", "math500_r1distill8b_mn4096", "lapeigvals_gsm8k_llama8b", "lapeigvals_gsm8k_phi35", "trace_gsm8k_llama8b_k10", "lapeigvals_gsm8k_mistral24b", "lapeigvals_gsm8k_nemo", "noise_gsm8k_mistral7b", "math500_dsmath7b", "ars_gsm8k_r1distill8b", "internalstates_gsm8k_qwen25_7b", "lapeigvals_gsm8k_llama3b", "noise_gsm8k_phi3mini", "trace_math500_qwenmath15b_k10"], "math_vals": [0.8901, 0.8357, 0.8329, 0.8186, 0.8125, 0.8093, 0.8087, 0.8013, 0.7902, 0.7868, 0.7623, 0.7036, 0.7025, 0.6801, 0.676]};
+new Chart(document.getElementById('c1'), {
+  type:'bar',
+  data:{ labels: D.qa_labels.concat(D.math_labels),
+    datasets:[{ label:'QA cells', backgroundColor:'#ef4444',
+                 data: D.qa_vals.concat(D.math_labels.map(()=>null)) },
+              { label:'Math cells', backgroundColor:'#3b82f6',
+                 data: D.qa_labels.map(()=>null).concat(D.math_vals) }] },
+  options:{ responsive:true, maintainAspectRatio:false,
+    scales:{ y:{ min:0.4, max:1.0, title:{display:true,text:'Pseudo-label AUROC'} },
+              x:{ ticks:{ font:{size:9}, maxRotation:90, minRotation:60 } } },
+    plugins:{ annotation:false } }
+});
+</script>
+
+</body>
+</html>

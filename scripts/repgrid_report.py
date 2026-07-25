@@ -20,6 +20,11 @@ import os
 import sys
 from collections import defaultdict
 
+SCRIPTS = os.path.dirname(os.path.abspath(__file__))
+if SCRIPTS not in sys.path:
+    sys.path.insert(0, SCRIPTS)
+from report_figs import FIG_CSS, fig_anchor_sensitivity  # noqa: E402 — CSV-driven inline-SVG figure
+
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SWEEP = os.path.join(REPO, "results", "subset_sweep")
 
@@ -32,6 +37,43 @@ def read_csv(path):
         return []
     with open(path, newline="") as f:
         return list(csv.DictReader(f))
+
+
+def epr_anchor_rows(rows):
+    """All existing headline/whatis tables assume one row per (cell, subset, method) —
+    the default epr-anchor scoring. Task B3 added alternate anchor="cusum_max" rows for
+    GOOD_5/GOOD_6 to the same CSV; filter them out here so nothing downstream silently
+    mixes anchors (older rows predate the "anchor" column entirely -- treat blank/missing
+    as epr, the implicit default all along)."""
+    return [r for r in rows if r.get("anchor", "epr") in ("epr", "")]
+
+
+def anchor_robustness(rows):
+    """Task B3: for GOOD_5/GOOD_6, compare epr-anchor vs cusum_max-anchor AUROC per cell.
+    Extends (does not resolve) the anchor-orientation-sensitivity thread -- Step 170 found
+    epr vs multi-feature-average mostly agree on the old battery; Step 182 found epr vs
+    cusum_max "changes nothing" on a single T-varied MATH-500 cache; this is the first time
+    either swap has been checked on the 19-cell replication grid."""
+    by_key = {}
+    for r in rows:
+        if r["method"] != "lsml" or r["subset"] not in ("GOOD_5", "GOOD_6"):
+            continue
+        anchor = r.get("anchor", "epr") or "epr"
+        X = _f(r["auroc_X"])
+        if X is None:
+            continue
+        by_key[(r["cell"], r["subset"], anchor)] = X
+    out = []
+    for (cell, subset, anchor), X in by_key.items():
+        if anchor != "epr":
+            continue
+        alt = by_key.get((cell, subset, "cusum_max"))
+        if alt is None:
+            continue
+        d = alt - X
+        out.append({"cell": cell, "subset": subset, "epr_auroc": X, "cusum_max_auroc": alt,
+                    "delta": d, "flag": "DISAGREE" if abs(d) > 0.02 else "agree"})
+    return out
 
 
 def _f(x):
@@ -93,14 +135,16 @@ def whatis_macro(rows, headline_rows):
 
 
 def whatis_view_lift(rows):
-    """GOOD_5 vs GOOD_5+{spilled,energy,logprob} per cell (L-SML)."""
+    """GOOD_5 vs GOOD_5+{spilled,energy,logprob} per cell, plus GOOD_6 (= GOOD_5 + varentropy,
+    Task B) treated the same way -- both are "does this extra view help GOOD_5?" (L-SML)."""
     base = {}
     for r in rows:
         if r["method"] == "lsml" and r["subset"] == "GOOD_5" and _f(r["auroc_X"]) is not None:
             base[r["cell"]] = _f(r["auroc_X"])
     out = []
     for r in rows:
-        if r["method"] == "lsml" and r["subset"].startswith("GOOD_5+") and r["cell"] in base:
+        is_view = r["subset"].startswith("GOOD_5+") or r["subset"] == "GOOD_6"
+        if r["method"] == "lsml" and is_view and r["cell"] in base:
             X = _f(r["auroc_X"])
             if X is not None:
                 out.append({"cell": r["cell"], "view": r["subset"], "base_GOOD5": base[r["cell"]],
@@ -143,15 +187,24 @@ def main():
     ap.add_argument("--out", default=os.path.join(REPO, "results", "Replication_Grid_Report.html"))
     args = ap.parse_args()
 
-    rows = read_csv(args.scores)
-    if not rows:
+    rows_all = read_csv(args.scores)
+    if not rows_all:
         sys.exit(f"no scores at {args.scores} — run scripts/score_repgrid.py first")
+
+    # Task B3: score_repgrid.py now also emits anchor="cusum_max" rows for GOOD_5/GOOD_6.
+    # Every existing table (headline/whatis) assumes one row per (cell, subset, method) at
+    # the default epr anchor -- filter those alternate rows out before feeding them in, so
+    # they can't silently double-count or overwrite an epr row sharing the same key.
+    rows = epr_anchor_rows(rows_all)
 
     hl = headline(rows)
     nvo = whatis_new_vs_old(rows)
     macro = whatis_macro(rows, hl)
     lift = whatis_view_lift(rows)
     size = whatis_size_trend(rows)
+    anchor_rob = anchor_robustness(rows_all)  # needs both anchors -> unfiltered rows
+    n_disagree = sum(1 for r in anchor_rob if r["flag"] == "DISAGREE")
+    macro_abs_delta = (sum(abs(r["delta"]) for r in anchor_rob) / len(anchor_rob)) if anchor_rob else None
 
     out_dir = os.path.dirname(args.scores)
     for name, data, cols in [
@@ -159,6 +212,7 @@ def main():
         ("whatis_new_vs_old", nvo, ["cell", "dataset", "new_GOOD5_lsml", "old_GOOD5", "delta_new_minus_old"]),
         ("whatis_view_lift", lift, ["cell", "view", "base_GOOD5", "augmented", "lift"]),
         ("whatis_size_trend", size, ["cell", "method"] + SIZE_LADDER),
+        ("anchor_robustness", anchor_rob, ["cell", "subset", "epr_auroc", "cusum_max_auroc", "delta", "flag"]),
     ]:
         p = os.path.join(out_dir, f"{name}.csv")
         with open(p, "w", newline="") as f:
@@ -167,9 +221,12 @@ def main():
             w.writerows([{k: r.get(k) for k in cols} for r in data])
 
     html = f"""<!doctype html><meta charset=utf-8><title>Replication Grid — our L-SML/U-PCR vs published</title>
-<style>body{{font:14px system-ui;margin:2rem;max-width:1100px}}table{{border-collapse:collapse;margin:1rem 0}}
+<style>:root{{--blue:#2563eb;--green:#10b981;--red:#ef4444;--gray-200:#e2e8f0;--gray-600:#475569;
+--gray-700:#334155;--gray-800:#1e293b;--gray-900:#0f172a;}}
+body{{font:14px system-ui;margin:2rem;max-width:1100px}}table{{border-collapse:collapse;margin:1rem 0}}
 td,th{{border:1px solid #ccc;padding:4px 8px;text-align:right}}th{{background:#f4f4f4}}td:first-child,th:first-child{{text-align:left}}
-h2{{border-bottom:2px solid #333;padding-top:1rem}} .note{{color:#555}}</style>
+h2{{border-bottom:2px solid #333;padding-top:1rem}} .note{{color:#555}}
+{FIG_CSS}</style>
 <h1>Replication Grid — OUR method vs the papers' PUBLISHED numbers</h1>
 <p class=note>X = our AUROC (L-SML continuous / U-PCR), raw with bootstrap CI. Y = the paper's published AUROC.
 <b>SAME-MODEL</b> = X and Y share the exact model+dataset+protocol, so the only difference is the method.
@@ -191,6 +248,19 @@ old+new: <b>{macro['macro_old_plus_new']}</b> (n={macro['n_all']})</p>
 
 <h2>5. whatis (D) — more features -> better on short QA? (AUROC vs subset size)</h2>
 {_tbl(size, ["cell","method"]+SIZE_LADDER, {s:"{:.4f}" for s in SIZE_LADDER})}
+
+<h2>6. Task B3 — anchor-choice robustness (epr vs cusum_max, GOOD_5/GOOD_6, L-SML)</h2>
+<p class=note>score_subset resolves the L-SML fused score's global sign via a fixed, label-free
+"anchor" feature (default <code>epr</code>). This re-scores GOOD_5/GOOD_6 on every 19-cell-grid
+cell with an alternate anchor (<code>cusum_max</code>, the swap already validated as
+"changes nothing" on a single T-varied MATH-500 cache — Step 182 Item B) to check whether that
+holds here too. <b>Extends, not resolves</b>, the anchor-fragility thread the concurrent EDIS
+session flagged (unresolved, different domain, Step 183) — this only adds visibility into the
+existing 19 replication-grid cells.</p>
+<p>{n_disagree} / {len(anchor_rob)} (cell, subset) pairs DISAGREE (|delta| &gt; 0.02) &nbsp;|&nbsp;
+mean |delta|: <b>{f'{macro_abs_delta:.4f}' if macro_abs_delta is not None else 'n/a'}</b></p>
+{fig_anchor_sensitivity()}
+{_tbl(anchor_rob, ["cell","subset","epr_auroc","cusum_max_auroc","delta","flag"], {"epr_auroc":"{:.4f}","cusum_max_auroc":"{:.4f}","delta":"{:+.4f}"})}
 """
     with open(args.out, "w", encoding="utf-8") as f:
         f.write(html)

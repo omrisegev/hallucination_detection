@@ -48,9 +48,11 @@ DEVIATIONS from the paper (explicit, per §):
      Jaccard of the selected set over N_SEEDS=5 seeds), among {lambda0/4, lambda0, 4*lambda0},
      preferring a non-degenerate median size (3<=size<p). This replaces the paper's
      lowest-*loss* grid search — we have no per-cell held-out clustering signal. [§App B.1]
-  5. lambda1 snapped to the nearest of {0.1,1,10,100} by the epoch-1 |L_s|/|L_f_core| ratio
-     (L_f_core = the smoothness trace term only, so it is independent of beta=1/lambda1 and
-     the circularity is avoided). [§App B.1]
+  5. (NOT a deviation — reclassified by the 2026-07-22 fidelity audit.) lambda1 snapped to the
+     nearest of {0.1,1,10,100} by the epoch-1 |L_s|/|L_f_core| ratio IS the paper's own rule
+     ("chosen so that L_s and L_f have comparable magnitude during the first epoch", App B.1).
+     L_f_core = the smoothness trace term only, so it is independent of beta=1/lambda1 and the
+     circularity is avoided. Kept in this list only to preserve the numbering.
   6. C via the App-D Procrustes distortion heuristic with a knee rule (smallest C within 5%
      of the min distortion), C_max=min(p-1,8) for our small pools (p<=16 h16 / <=~40 c46).
   7. Gate learning rate raised to GATE_LR=2e-2 (logits/Q keep the paper's lr=1e-3) so the
@@ -69,6 +71,42 @@ DEVIATIONS from the paper (explicit, per §):
      keeps GroupFS's core "select groups, not features" semantics with a selection signal
      that demonstrably works at our scale. lambda for the DUFS gates is chosen label-free
      by selection stability across seeds (same rule as deviation 4).
+
+     REPORTING CONSEQUENCE (fidelity audit, 2026-07-22): because selection runs through
+     DUFS gates, `a2.select` and `a2.dufs` share the SAME gate mechanism and differ only in
+     READOUT GRANULARITY (group-median vs per-feature). So the bench line
+     "a2.select 0.7481 vs a2.dufs 0.7502" is NOT paper-GroupFS vs paper-DUFS — it is one
+     gate mechanism read out two ways, and group granularity costs 0.21pp. Any
+     advisor-facing text comparing the two must say so.
+  9. lambda2's group-gate role is vestigial in the deployed path: _train_groupfs runs ONCE at
+     lambda2=lambda0 purely to refine the grouping logits, and its gates are discarded
+     (deviation 8). The paper's lambda2 sweep from "all gates closed" to "all gates open" is
+     never performed for the group gates.
+ 10. The `F` column centering + unit-l2 renormalization is applied INSIDE the forward pass
+     (gradients flow through it), not the paper's "after each update step". Numerically close,
+     not identical.
+
+DUFS-ARM DEVIATIONS (the `a2.dufs` / `a2.dufs_pf` variants, vs Lindenbaum et al. 2021 —
+found and documented by the 2026-07-22 fidelity audit; see
+results/advisor_inscope/fs_paper_fidelity.md):
+  D1. KERNEL. DUFS App. S1 Eq. (8)-(9) uses a GLOBAL bandwidth sigma_b = max_i(C*||x_i-x_k||)
+      with k=2 nearest neighbors and C=5 (2 for COIL20/PIX10), i.e. K_ij =
+      exp(-||x_i-x_j||^2 / sigma_b). We instead use the per-point SELF-TUNING kernel
+      exp(-d^2/(gamma_i*gamma_j)) with k=7 — GroupFS's Eq. (1). Deliberate: it makes a2.dufs
+      graph-identical to a2.select, which is what makes the granularity comparison above
+      meaningful. But it IS a departure from DUFS.
+  D2. OPTIMIZATION BUDGET. Paper: SGD, lr 0.3-1, 5,000-26,000 epochs, full batch on most
+      datasets. Ours: Adam, lr 2e-2, 120-180 epochs, batch 256. Same class of compute
+      deviation as GroupFS deviation 7.
+  D3. LAMBDA SELECTION IS STRICTER THAN THE PAPER'S. DUFS §5 sweeps lambda and keeps the run
+      with the best CLUSTERING ACCURACY, where "labels are utilized to evaluate clustering
+      accuracy" — a label-peeking protocol. Ours is label-free (stability, deviation 4), and
+      `a2.dufs_pf` removes lambda altogether.
+  Everything else in the DUFS arm is faithful: Eq. (6) objective (our per-d normalization
+  rescales BOTH terms equally, so the minimizer is unchanged), L_rw = D^-1 K exactly as the
+  paper defines it in §2.1, t=2 (App. S3), STG Eq. (1) with mu init 0.5 and sigma fixed,
+  the Eq. (2) regularizer (identical to ours by erf(-x) = -erf(x)), and the readout
+  "remove the stochasticity and retain features such that Z_i > 0" <=> mu_i > 0.
 
 Determinism: every random draw comes from the passed `rng` (numpy) or a torch.Generator
 seeded from it; torch.set_num_threads(1) fixes BLAS ordering. Equal-seeded rng => identical
@@ -109,7 +147,10 @@ EPOCHS_FINAL = 180            # final chosen-lambda2 training
 C_MAX_CAP = 8
 KNEE_TOL = 0.05               # App-D distortion knee tolerance
 
-_EXPECTED = ('a2.select', 'a2.select+groups', 'a2.groups@good5', 'a2.dufs')
+PF_DELTA = 1e-8               # Eq. (7) division guard ("a small constant")
+
+_EXPECTED = ('a2.select', 'a2.select+groups', 'a2.groups@good5', 'a2.dufs',
+             'a2.dufs_pf')
 _SQRT2 = 1.4142135623730951
 _EPS = 1e-8
 
@@ -252,9 +293,18 @@ def _train_groupfs(X_t, L_feat_t, C, lam1, lam2, beta, epochs, batch,
     return logits.detach().numpy(), mu.detach().numpy(), loss_val
 
 
-def _train_dufs(X_t, lam2, epochs, batch, torch_seed):
+def _train_dufs(X_t, lam2, epochs, batch, torch_seed, param_free=False):
     """DUFS (Lindenbaum 2021): per-feature STG gates on the Laplacian-score sample
-    objective, no grouping. Returns per-feature gate means."""
+    objective, no grouping. Returns per-feature gate means.
+
+    param_free=False -> paper Eq. (6): L = -tr[Xtil^T L_Xtil Xtil]/m + lam*sum_i P(Z_i>=0).
+      (Our normalization divides the trace by B*d and uses the MEAN of P; both terms
+      pick up the same 1/d, so L_code = L_paper/d at equal lam -- same minimizer.)
+    param_free=True -> paper Eq. (7), the PARAMETER-FREE variant:
+      L = -tr[Xtil^T L_Xtil Xtil] / (m * (sum_i P(Z_i>=0) + delta)).
+      This is the paper's own way to "obviate the need to tune lambda", and it is
+      what they use for every two-moons experiment. `lam2` is ignored.
+    """
     torch.manual_seed(int(torch_seed))
     gen = torch.Generator().manual_seed(int(torch_seed))
     R, d = X_t.shape
@@ -268,9 +318,12 @@ def _train_dufs(X_t, lam2, epochs, batch, torch_seed):
         z = torch.clamp(mu + torch.randn(d, generator=gen) * STG_SIGMA, 0.0, 1.0)
         Xtil = Xb * z[None, :]
         Pt = _random_walk_power(_self_tuning_affinity(Xtil, k_samp), DIFFUSION_T)
-        Ls = -(Xtil * (Pt @ Xtil)).sum() / (B * d)
+        trace = -(Xtil * (Pt @ Xtil)).sum() / B
         Pz = 0.5 * (1.0 + torch.erf(mu / (STG_SIGMA * _SQRT2)))
-        loss = Ls + lam2 * Pz.mean()
+        if param_free:
+            loss = trace / (Pz.sum() + PF_DELTA)
+        else:
+            loss = trace / d + lam2 * Pz.mean()
         opt.zero_grad()
         loss.backward()
         opt.step()
@@ -468,6 +521,25 @@ def a2_groupfs(cell, rng, cache=None):
             out.append(_fallback('a2.dufs', p, 'DUFS selection < 3 cols', d4))
         else:
             out.append({'variant': 'a2.dufs', 'cols': sel_d, 'diag': d4})
+
+        # -- a2.dufs_pf : DUFS Eq. (7), the PARAMETER-FREE loss (WS8 finding D4) ----
+        # The paper's own answer to lambda tuning. Needs no stability search, so it
+        # is 5 trainings (one per seed) instead of 20 — and it is strictly more
+        # faithful than our lambda rule. Seed-averaged for determinism, exactly as
+        # the Eq. (6) arm above.
+        mu_pf = np.mean([_train_dufs(X_t, 0.0, EPOCHS_STAB, BATCH, s,
+                                     param_free=True) for s in seeds], axis=0)
+        sel_pf = np.array(sorted(np.where(mu_pf > 0.0)[0].tolist()), dtype=np.int64)
+        d5 = {'n_selected': int(len(sel_pf)),
+              'feat_gate_means': [round(float(x), 3) for x in mu_pf],
+              'note': 'DUFS Eq. (7) parameter-free variant: '
+                      '-tr[.]/(m*(sum_i P(Z_i>=0)+delta)); no lambda, no '
+                      'stability search. Delta vs a2.dufs isolates the cost of '
+                      'our label-free lambda rule.'}
+        if len(sel_pf) < 3:
+            out.append(_fallback('a2.dufs_pf', p, 'PF selection < 3 cols', d5))
+        else:
+            out.append({'variant': 'a2.dufs_pf', 'cols': sel_pf, 'diag': d5})
 
         return out
 

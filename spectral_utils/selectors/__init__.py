@@ -56,6 +56,7 @@ from . import a5_mrmr           # noqa: E402,F401  mRMR relevance-vs-redundancy 
 from . import classical_fs      # noqa: E402,F401  Laplacian Score / SPEC / MCFS
 from . import simple_stats      # noqa: E402,F401  random / MAD / kurtosis / decorr
 from . import reference_macros  # noqa: E402,F401  GOOD_5/6, STABLE_H9, ... baselines
+from . import a7_iter_consensus  # noqa: E402,F401  Extension H prior-free consensus
 
 # Worktree-developed selector modules — pre-stubbed so branch merges never
 # conflict on this file. Absent modules are simply skipped.

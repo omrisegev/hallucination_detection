@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DUFS & GroupFS Sweep Dashboard</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 20px; color: #333; }
+        h1, h2, h3 { color: #111; }
+        table { margin-top: 10px; width: 100%; max-width: 800px; }
+    </style>
+</head>
+<body>
+    <h1>DUFS & GroupFS Hyperparameter Sweep Dashboard (Phase 4)</h1>
+    
+        <h3>GroupFS Hyperparameter Sweep Summary (25 In-Scope Cells)</h3>
+        <p><strong>Top Config:</strong> C=3, lambda1=0.1, readout=per_feature — Mean AUROC: <strong>0.7063</strong></p>
+        <table border="1" cellpadding="6" style="border-collapse: collapse;">
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th>C Clusters</th><th>Lambda1</th><th>Readout</th><th>Mean AUROC</th><th>Std</th>
+                </tr>
+            </thead>
+            <tbody>
+        <tr><td>3</td><td>0.1</td><td>per_feature</td><td>0.7063</td><td>0.1011</td></tr><tr><td>3</td><td>1.0</td><td>per_feature</td><td>0.7063</td><td>0.1011</td></tr><tr><td>3</td><td>0.01</td><td>per_feature</td><td>0.7063</td><td>0.1011</td></tr><tr><td>3</td><td>0.0</td><td>per_feature</td><td>0.7063</td><td>0.1011</td></tr><tr><td>2</td><td>0.0</td><td>group_median</td><td>0.7042</td><td>0.1046</td></tr><tr><td>2</td><td>0.01</td><td>group_median</td><td>0.7042</td><td>0.1046</td></tr><tr><td>2</td><td>1.0</td><td>group_median</td><td>0.7042</td><td>0.1046</td></tr><tr><td>2</td><td>0.1</td><td>group_median</td><td>0.7042</td><td>0.1046</td></tr><tr><td>4</td><td>0.1</td><td>group_median</td><td>0.7019</td><td>0.1096</td></tr><tr><td>4</td><td>1.0</td><td>group_median</td><td>0.7019</td><td>0.1096</td></tr><tr><td>4</td><td>0.01</td><td>group_median</td><td>0.7019</td><td>0.1096</td></tr><tr><td>4</td><td>0.0</td><td>group_median</td><td>0.7019</td><td>0.1096</td></tr><tr><td>2</td><td>1.0</td><td>per_feature</td><td>0.7008</td><td>0.1068</td></tr><tr><td>2</td><td>0.1</td><td>per_feature</td><td>0.7008</td><td>0.1068</td></tr><tr><td>2</td><td>0.0</td><td>per_feature</td><td>0.7008</td><td>0.1068</td></tr></tbody></table>
+</body>
+</html>

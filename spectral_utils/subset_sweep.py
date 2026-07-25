@@ -96,11 +96,24 @@ ALL_SIGNS = {**FEATURE_SIGNS, **EXTRA_VIEW_SIGNS, **REPGRID_VIEW_SIGNS}
 H16 = list(FEAT_NAMES[:16])
 
 GOOD_5 = ['epr', 'low_band_power', 'sw_var_peak', 'cusum_max', 'spectral_entropy']
+# GOOD_6 = GOOD_5 + varentropy (Step 182 sweep finding: +1.12pp macro on the 19-cell
+# replication grid). Only valid on repgrid cells with top_k_logprobs captured (AIRCC-era) --
+# varentropy is not computable on the old pre-AIRCC battery (see REPGRID_VIEWS below).
+GOOD_6 = GOOD_5 + ['varentropy']
 STABLE_H9 = [
     'epr', 'low_band_power', 'high_band_power', 'hl_ratio',
     'spectral_centroid', 'sw_var_peak', 'rpdi', 'pe_mean', 'cusum_max',
 ]
-REFERENCE_SUBSETS = {'GOOD_5': GOOD_5, 'STABLE_H9': STABLE_H9, 'ALL_H16': H16}
+# LOCO_5 = the Step-195 c46-sweep LOCO-consensus subset: 22/25 leave-one-cell-out
+# folds independently rank this exact 5-view mask best on their 24 training cells
+# (results/advisor_inscope/c46_loco_analysis.csv). Held-out: +1.59pp vs GOOD_5
+# (19W/2L), 0.7705 vs GOOD_6's 0.7632 on the shared 24 cells (p=0.029). Needs the
+# energy/logprob views, so it is unscorable on pre-AIRCC cells missing them
+# (known gap: inside_coqa_llama7b).
+LOCO_5 = ['cusum_max', 'logprob_margin', 'min_energy', 'spectral_entropy',
+          'topk_tail_mass']
+REFERENCE_SUBSETS = {'GOOD_5': GOOD_5, 'GOOD_6': GOOD_6, 'LOCO_5': LOCO_5,
+                     'STABLE_H9': STABLE_H9, 'ALL_H16': H16}
 
 # Anchor for label-free global-sign resolution (Step 148). First pool feature
 # with non-degenerate variance wins; oriented epr is the documented choice.

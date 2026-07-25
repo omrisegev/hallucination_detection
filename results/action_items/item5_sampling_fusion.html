@@ -100,6 +100,11 @@
   .rf-bar-gray{fill:#94a3b8;}
   .rf-bar-gray-sup{fill:#475569;}
   .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-bar-c4{fill:#cbd5e1;}
+  .rf-bar-g5{fill:#475569;}
+  .rf-bar-g6{fill:var(--blue);}
+  .rf-dumbbell-epr{fill:var(--blue);stroke:#fff;stroke-width:1.5;}
+  .rf-dumbbell-alt{fill:var(--green);stroke:#fff;stroke-width:1.5;}
   .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
   .rf-line{stroke:var(--blue);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
   .rf-line-acc{stroke:var(--green);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
@@ -114,10 +119,10 @@
 <body>
 <div class="header-hero"><div class="header-content">
   <h1>Item 5 — Sampling-based fusion</h1>
-  <div class="subtitle">Step-152 gate result, the problems found on review, and the partial re-score that reconciles it with Item 6.</div>
+  <div class="subtitle">Does combining our single-pass score with a few extra samples improve detection? Bottom line, then the numbers.</div>
   <div class="meta-pills">
-    <span class="meta-pill">Generated 2026-07-12 by scripts/action_items_report.py</span>
-    <span class="meta-pill">Cluster state 2026-07-12 late — benchmarking desk CLOSED: all cells fetched. A2 + A3 (both Qwen3/ARS) = documented REJECT (truncation-label leakage at 8192/16384); C1 inside_coqa scored 68.4 vs INSIDE 80.4 (FLOOR flag, judge acc 0.132); no jobs left in queue</span>
+    <span class="meta-pill">Generated 2026-07-15 by scripts/action_items_report.py</span>
+    <span class="meta-pill">Benchmarking desk CLOSED (Step 172): all Wave-3 cells fetched, scored, or documented REJECT. GOOD_6 subset-ladder + anchor-orientation robustness added (Step 184). No jobs left in this desk&#x27;s queue.</span>
     <span class="meta-pill">Every numeric cell sourced from a CSV/JSON</span>
   </div>
 </div></div>
@@ -125,81 +130,43 @@
 <div class="nav-bar"><strong>Navigate:</strong> <a href="index.html">&larr; Index</a> &bull; <a href="advisor_scrutiny.html">Scrutiny page</a> &bull; <a href="per_domain_breakdown.html">Per-domain breakdown</a></div>
 
 <div class="section-card">
-<span class="section-badge badge-completed">Complete — answer-agreement re-test PASSES the gate (2026-07-13)</span>
+<span class="section-badge badge-completed">Complete — answer-agreement fusion PASSES the gate (2026-07-13)</span>
 <h2>Item 5 — Does sampling-based fusion add anything?</h2>
-<p>The Step-152 experiment fused the 1-pass spectral L-SML score with a K=10
-likelihood-weighted semantic-entropy (LW-SE) baseline. Pre-registered gate:
-&rho; &lt; 0.75 <em>and</em> fused &gt; max(single arms) + 1pp.</p>
 
-<h3>Step-152 result (as run)</h3>
-<table>
-<tr><th>Cell</th><th>LW-SE K=10</th><th>SelfCheckGPT</th><th>L-SML 1-pass</th><th>Fused</th>
-<th>Gate</th></tr>
-<tr><td>GSM8K / Llama-3.1-8B</td><td>61.4</td><td>70.1</td><td>75.4</td><td>75.8 (+0.4pp)</td>
-<td class="loss">FAIL</td></tr>
-<tr><td>MATH-500 / Qwen2.5-Math-7B</td><td colspan="4"><em>invalid — fused-score sign flip
-(stored 0.230); corrected below</em></td><td class="loss">—</td></tr>
-<tr><td>GPQA / Qwen2.5-7B</td><td>50.1 (at chance)</td><td>—</td><td>55.3</td><td>57.3 (+2.0pp)</td>
-<td class="loss">FAIL (baseline at chance)</td></tr>
-</table>
-<p>Read alone, the verdict was: extra sampling spent on semantic clustering adds &le;+2.0pp over
-the 1-pass spectral score, while the spectral score adds +14.5pp over LW-SE alone.</p>
+<div class="takeaway-box"><b>Bottom line: yes.</b> Fusing our single-pass spectral score with a
+5-sample answer-agreement signal beats every single-arm result:
+<strong>95.2 AUROC [91.8, 98.0]</strong>, <strong>+10.1pp over the
+best single arm</strong>, on MATH-500 / Qwen2.5-Math-7B (N=200). The two signals are genuinely
+complementary (Spearman &rho; = +0.23, well under the 0.75 redundancy threshold),
+clearing the pre-registered gate (&rho; &lt; 0.75 <em>and</em> fused &gt; best single arm + 1pp):
+<strong>gate PASS</strong>. This is the strongest fusion number in the project — it also beats
+Item 6's same-temperature entropy-averaging arm (91.2).</div>
 
-<h3>Problems found on review</h3>
-<p><strong>(1) The MATH-500 row was invalid — sign flip.</strong> The Phase-12-Corrected analysis
-cells hand the fused score straight to the AUROC computation with no <span class="mono">anchor_orient</span>
-step, so it keeps the eigenvector solver's arbitrary global sign. 
-<p><strong>Status: corrected (mirror arithmetic) by <span class="mono">scripts/refix_phase12_signs.py</span>.</strong>
-The results pkl stores only (AUROC, CI) per method — no score arrays — so the exact &plusmn;
-ambiguity is resolved arithmetically (AUC(&minus;s) = 1 &minus; AUC(s)): MATH-500 L-SML
-0.230 &rarr; <strong>77.0 [68.4, 84.8]</strong>, fusion 0.232 &rarr;
-<strong>76.8 [67.8, 85.0]</strong>. GSM8K and GPQA are unchanged
-(their stored values are already on the &gt;0.5 side). The flip direction is corroborated
-label-free: the epr-anchor decision executed on the same-model battery cell
-(math500/Qwen-Math-7B_T1.0, n=300) flips the fused score and
-lands at 94.4 — same direction. The full label-free re-derivation on the
-original Phase-12 scores runs automatically once the raw two-pass caches
-(<span class="mono">p1/p2/p3 *.pkl</span> from Drive <span class="mono">cache/phase12_corrected/</span>)
-are copied into <span class="mono">local_cache/</span>.</p></p>
-<p><strong>(2) LW-SE / SelfCheckGPT collapsed vs an older cache</strong> for suspected but
-unconfirmed reasons (NLI truncation on long traces) — open since Step 152; those old-cache
-baselines stay non-citable until reconciled.</p>
-<p><strong>(3) Label noise found later:</strong> Step-167 dual-label checks showed grading swings
-up to 35pp on some cells, so the correctness labels under this test were noisier than assumed
-at the time.</p>
-
-<h3>What later work tells us (reconciling Items 5 and 6)</h3>
-
-<p><strong>The answer-agreement re-test ran in full (2026-07-13, raw pass caches dropped into
-<span class="mono">local_cache/</span>):</strong> from the 5 cached T=1.0 passes,
-<span class="mono">rescore_phase15_selfconsistency.py</span> extracted the boxed answer per pass,
-built the K=5 answer-agreement self-consistency score, and fused it (z-score average) with the
-single-pass L-SML GOOD_5 score from run0.</p>
+<h3>The experiment</h3>
+<p>Per MATH-500 question we already have one single-pass spectral entropy-trace score (L-SML
+GOOD_5). We generate 4 more sampled answers at the same temperature, extract each pass's boxed
+answer, and build a K=5 answer-agreement score (how often the 5 sampled answers agree with each
+other). We fuse the two scores (z-score average) and check whether the combination beats either
+signal alone.</p>
 <table>
 <tr><th>Arm</th><th>AUROC [95% CI]</th></tr>
-<tr><td>L-SML GOOD_5, 1 pass</td><td>85.1 [77.7, 91.8]</td></tr>
-<tr><td>Answer-agreement SC, K=5</td><td>82.1 [75.8, 87.9]</td></tr>
+<tr><td>L-SML GOOD_5, single pass</td><td>85.1 [77.7, 91.8]</td></tr>
+<tr><td>Answer-agreement, K=5 samples</td><td>82.1 [75.8, 87.9]</td></tr>
 <tr><td><strong>Fused (z-score average)</strong></td><td class="win"><strong>95.2
 [91.8, 98.0]</strong></td></tr>
 </table>
-<p>Spearman &rho; between the arms: <strong>+0.23</strong> — genuinely complementary
-signals (the gate bar is 0.75). Fusion gains <strong>+10.1pp over the best single arm</strong>
-and clears the original pre-registered gate: <strong>gate
-PASS</strong>. This is the strongest fusion number in the
-project — it also beats the Item-6 same-T entropy-averaging arm (91.2). Caveat: one (dataset,
-model) cell, N=200; and this run's 1-pass score (85.1, fresh MAX_NEW=2048 traces)
-sits below the legacy-cache 94.4 headline — the known Step-152 P2 trace-regime discrepancy.</p>
 <div class="rf-fig"><div class="rf-cap">The completed Item-5 re-test: spectral × answer-agreement fusion</div><div class="rf-sub">One pass of spectral features + K=5 answer agreement, fused label-free — each arm with its 95% CI.</div><svg viewBox="0 0 900 200" role="img" class="rf-chart" preserveAspectRatio="xMidYMid meet"><line x1="280.6" y1="14" x2="280.6" y2="166" class="rf-grid"/><text x="280.6" y="182" class="rf-tick" text-anchor="middle">75</text><line x1="394.4" y1="14" x2="394.4" y2="166" class="rf-grid"/><text x="394.4" y="182" class="rf-tick" text-anchor="middle">80</text><line x1="508.3" y1="14" x2="508.3" y2="166" class="rf-grid"/><text x="508.3" y="182" class="rf-tick" text-anchor="middle">85</text><line x1="622.2" y1="14" x2="622.2" y2="166" class="rf-grid"/><text x="622.2" y="182" class="rf-tick" text-anchor="middle">90</text><line x1="736.1" y1="14" x2="736.1" y2="166" class="rf-grid"/><text x="736.1" y="182" class="rf-tick" text-anchor="middle">95</text><line x1="850.0" y1="14" x2="850.0" y2="166" class="rf-grid"/><text x="850.0" y="182" class="rf-tick" text-anchor="middle">100</text><text x="542" y="198" class="rf-axname" text-anchor="middle">AUROC (%) · MATH-500 / Qwen2.5-Math-7B, N=200</text><text x="225" y="37.0" class="rf-rowlbl" text-anchor="end">L-SML GOOD_5 — 1 pass (spectral)</text><line x1="341.9" y1="33.0" x2="664.2" y2="33.0" class="rf-ci"/><circle cx="509.7" cy="33.0" r="5.5" class="rf-ours"><title>L-SML GOOD_5 (ours): 85.1 [77.7, 91.8]</title></circle><text x="225" y="75.0" class="rf-rowlbl" text-anchor="end">Answer-agreement SC — K=5 passes</text><line x1="298.7" y1="71.0" x2="573.8" y2="71.0" class="rf-ci"/><circle cx="441.5" cy="71.0" r="5.5" class="rf-ours"><title>L-SML GOOD_5 (ours): 82.1 [75.8, 87.9]</title></circle><text x="225" y="113.0" class="rf-rowlbl" text-anchor="end">K=5 same-T entropy averaging (Item 6 A)</text><line x1="526.6" y1="109.0" x2="745.2" y2="109.0" class="rf-ci"/><circle cx="649.6" cy="109.0" r="5.5" class="rf-ours"><title>L-SML GOOD_5 (ours): 91.2 [85.8, 95.4]</title></circle><text x="225" y="151.0" class="rf-rowlbl" text-anchor="end">Spectral + SC fused (z-score average)</text><line x1="664.1" y1="147.0" x2="803.5" y2="147.0" class="rf-ci"/><circle cx="740.2" cy="147.0" r="5.5" class="rf-ours"><title>L-SML GOOD_5 (ours): 95.2 [91.8, 98.0]</title></circle></svg><p class="rf-fnote">Full rescore from the 5 raw T=1.0 pass caches (rescore_phase15_selfconsistency.py → phase15_rescore.json). The two single arms are nearly orthogonal — Spearman ρ = +0.23, far under the 0.75 gate bar — and their fusion gains +10.1pp over the best single arm, clearing the +1pp gate: <b>gate PASS</b>. It also beats the Item-6 same-T entropy-averaging arm (91.2) — answer agreement carries information the entropy trace does not, and vice versa. Single (dataset, model) cell; the Step-152 FAIL used an NLI-based LW-SE arm on a different cell — same gate, different second view.</p></div>
-<div class="info-box"><b>The reconciling sentence no earlier document says out loud:</b>
-Item 5 ("SE K=10 adds nothing") and Item 6 ("K=5 same-T adds +6.1pp") are both true because the
-extra passes were spent on <em>different signals</em> — Item 5 spent them on a fragile NLI
-semantic-clustering score; Item 6's condition A spent them on averaging the same cheap entropy
-signal, which denoises (cross-pass &rho; &asymp; +0.45) and clears Item 5's own gate. Sampling
-helps; <em>what you compute from the samples</em> is what decides whether it shows.
-The completed answer-agreement re-test above closes the loop: with the <em>right</em> second view
-(answer agreement, no NLI anywhere), the fusion doesn't just pass the gate — it beats every
-single-signal arm in the Phase-15 experiment.
-(<a href="advisor_scrutiny.html">Scrutiny point 3</a>.)</div>
+
+<h3>Conclusion</h3>
+<p>Sampling helps, but only when the extra samples are spent on a signal genuinely independent of
+the entropy trace — answer agreement is (the two arms barely correlate, &rho;=+0.23),
+so fusing them adds real information rather than averaging noise. Item 6 found the same mechanism
+from the other direction: repeating the <em>same</em> cheap entropy signal at one temperature
+also denoises and helps (+6.1pp), while mixing temperatures hurts. Caveat: single (dataset,
+model) cell so far.</p>
+<p style="font-size:12.5px;color:#94a3b8">An earlier pilot (Step 152) fused the 1-pass score with
+a different second signal (K=10 semantic-entropy clustering, on GSM8K/GPQA) and did not clear
+this gate — superseded by the result above, not part of the current bottom line.</p>
 </div>
 </div>
 </body>

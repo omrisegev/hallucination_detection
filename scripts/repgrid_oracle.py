@@ -11,7 +11,7 @@ Reuses the canonical, correction-compliant machinery from logistic_oracle.py:
   build_X                 — feature matrix (median-imputed, saturation filter),
   lr_oracle_auc_variants  — 5-fold CV, per-fold AUROC averaged, class_weight='balanced'
                             (SUPERVISED_ORACLE_CORRECTION.md), NOW with grouped folds,
-  FEATURE_SETS            — GOOD_5 / STABLE_H9 / ALL_H16.
+  FEATURE_SETS            — GOOD_5 / STABLE_H9 / ALL_H16 / CANONICAL_POOL ('30', Step 193).
 
 Leakage fix: cells with k>1 (se_squad_v2, truthfulqa, se_nq_open, semenergy: K=10) pass
 problem_id as `groups` so StratifiedGroupKFold keeps a question's candidates in one fold.
@@ -58,11 +58,15 @@ def main():
             for r in pickle.load(f):
                 cont[r["cell"].split("/", 1)[-1]] = r   # keyed by preset_id
 
+    # Feature-set keys come from FEATURE_SETS so adding '30' (Step 193) widens the
+    # table automatically instead of silently dropping out of the printout.
+    SETS = tuple(FEATURE_SETS)
+
     results = []
     print(f"{'cell':<32} {'k':>2} {'n':>5} {'acc':>5} | "
-          + " | ".join(f"{'CONT-'+s:>8} {'LR-'+s:>7} {'Δ-'+s:>6}" for s in ("5", "9", "16")))
+          + " | ".join(f"{'CONT-'+s:>8} {'LR-'+s:>7} {'Δ-'+s:>6}" for s in SETS))
     print("-" * 120)
-    accum = {s: {"cont": [], "lr": []} for s in ("5", "9", "16")}
+    accum = {s: {"cont": [], "lr": []} for s in SETS}
 
     for pid in sorted(cells):
         cell = cells[pid]
@@ -78,10 +82,17 @@ def main():
             c = (cont.get(pid) or {}).get(f"cont_{s}")
             row[f"cont_{s}"] = c
             row[f"n_avail_{s}"] = len(avail)
+            # Persist WHICH views survived, not just how many. At 30 the surviving set
+            # varies per cell, and the grid has to be able to say what LR actually used.
+            row[f"used_{s}"] = "|".join(avail)
             lr = None
             if X is not None and y.sum() >= 5 and (n - y.sum()) >= 5:
                 try:
-                    v = lr_oracle_auc_variants(X, y, groups=groups)
+                    # compute_legacy=False skips the concatenated-OOF cross_val_predict
+                    # variant — the calibration pitfall SUPERVISED_ORACLE_CORRECTION.md
+                    # exists to avoid. The reported number is bal_cv either way.
+                    v = lr_oracle_auc_variants(X, y, groups=groups,
+                                               compute_legacy=False)
                     lr = v["bal_cv"][0]
                     row[f"lr_{s}"] = lr
                     row[f"lr_ci_{s}"] = [v["bal_cv"][1], v["bal_cv"][2]]
@@ -104,7 +115,7 @@ def main():
 
     print("-" * 120)
     macro_parts = []
-    for s in ("5", "9", "16"):
+    for s in SETS:
         mc = np.mean(accum[s]["cont"]) if accum[s]["cont"] else None
         ml = np.mean(accum[s]["lr"]) if accum[s]["lr"] else None
         md = (ml - mc) if (mc is not None and ml is not None) else None

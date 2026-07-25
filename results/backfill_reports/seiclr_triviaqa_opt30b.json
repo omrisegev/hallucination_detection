@@ -1,0 +1,76 @@
+{
+  "cell_id": "seiclr_triviaqa_opt30b",
+  "model": "facebook/opt-30b",
+  "keys": [
+    "token_logsumexp",
+    "top_k_logprobs_raw",
+    "token_spilled_energies",
+    "top_k_logprobs"
+  ],
+  "raw_top_k": 50,
+  "validate_only": true,
+  "tolerances": {
+    "tol_median": 0.02,
+    "tol_first": 0.05,
+    "min_frac_close": 0.9
+  },
+  "git_sha": "",
+  "job_id": "123561",
+  "written_utc": "2026-07-18T18:06:57+00:00",
+  "pkls": [
+    {
+      "pkl": "raw_trivia_qa_rougel_T0.5.pkl",
+      "temp": 0.5,
+      "gate": {
+        "H": {
+          "name": "token_entropies",
+          "n_traces": 500,
+          "n_len_mismatch": 0,
+          "n_tokens": 32000,
+          "median_abs": 1.6723424778319895e-05,
+          "p99_abs": 0.09396792292594906,
+          "max_abs": 0.18037700653076172,
+          "frac_close": 0.95971875,
+          "first_tok_median": 0.006582379341125488,
+          "first_tok_p99": 0.08145278692245483,
+          "median_r": 0.9995086879569439,
+          "frac_r_ge_0999": 0.914
+        },
+        "dE": {
+          "name": "token_spilled_energies",
+          "n_traces": 500,
+          "n_len_mismatch": 0,
+          "n_tokens": 32000,
+          "median_abs": 2.264955583086703e-06,
+          "p99_abs": 0.19225358963012695,
+          "max_abs": Infinity,
+          "frac_close": 0.9405625,
+          "first_tok_median": 0.0027962923049926758,
+          "first_tok_p99": 0.21927735090255718,
+          "median_r": 0.9994235908272034,
+          "frac_r_ge_0999": 0.7208835341365462
+        },
+        "Z": {
+          "name": "token_logsumexp",
+          "n_traces": 500,
+          "n_len_mismatch": 0,
+          "n_tokens": 32000,
+          "median_abs": 0.00146484375,
+          "p99_abs": 0.12499618530273438,
+          "max_abs": 1.5709152221679688,
+          "frac_close": 0.7985,
+          "first_tok_median": 0.015668869018554688,
+          "first_tok_p99": 0.1222076416015625,
+          "median_r": 0.9998848845043562,
+          "frac_r_ge_0999": 0.996
+        }
+      },
+      "gate_b_pass": true,
+      "gate_b_reasons": [],
+      "gate_n_problems": 50,
+      "gate_tokens": 32000,
+      "validate_only": true,
+      "gate_seconds": 5.8
+    }
+  ]
+}

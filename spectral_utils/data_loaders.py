@@ -1234,3 +1234,26 @@ def lciteeval_grounding_label(citation_ids: list, row: dict) -> int:
                 if ans and isinstance(ans, str) and ans.lower().strip() in chunk_lower:
                     return 1
     return 0
+
+
+# Same marker pattern as feature_utils.segment_by_citations — keep in sync.
+_LCITEEVAL_CITE_RE = re.compile(r"\[\d+(?:[\s,\-]*\d+)*\]")
+
+
+def is_grounded_lciteeval(gen: str, row: dict) -> bool:
+    """
+    Sample-level grounding label for a full L-CiteEval generation.
+
+    Pools every [n]-style citation marker in the response and applies
+    lciteeval_grounding_label to the union. A citation-free response is
+    ungrounded (False) — same convention as the phase10 statement pipeline.
+
+    This is the coarse per-candidate `label` the cluster driver stores; the
+    canonical statement-level labels are still re-derived offline via
+    segment_by_citations + lciteeval_grounding_label on the saved raw traces.
+    """
+    ids = sorted({int(x) for m in _LCITEEVAL_CITE_RE.finditer(gen)
+                  for x in re.findall(r"\d+", m.group())})
+    if not ids:
+        return False
+    return bool(lciteeval_grounding_label(ids, row))

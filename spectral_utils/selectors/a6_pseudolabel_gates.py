@@ -66,8 +66,9 @@ import numpy as np
 import torch
 
 from . import register
+from .adaptive_k import predict_k, spectral_gap
 from ..fusion_utils import lsml_continuous, zscore
-from ..subset_sweep import ANCHOR_PRIORITY, LOCO_5
+from ..subset_sweep import ANCHOR_PRIORITY, GOOD_6, LOCO_5
 
 # ---- inherited from a2_groupfs's DUFS arm (kept identical on purpose, so the
 # a6.dufs control is comparable to a2.dufs) ----------------------------------
@@ -94,7 +95,38 @@ LAM_MULTS = (0.5, 1.0, 2.0, 4.0)
 N_SEED_VIEWS = 4               # K in "fuse K strong views into the anchor"
 MIN_SEED_VIEWS = 3             # L-SML invariant: fewer than 3 views collapses
 
-_EXPECTED = ('a6.pl_dufs', 'a6.pl_dufs_noseed', 'a6.pl_rank', 'a6.dufs', 'a6.pruned_dufs')
+# Step-198 seed rule (measured, `scripts/audit_pseudolabel_quality.py`).
+# The original rule fused ANCHOR_PRIORITY ['epr','low_band_power',
+# 'spectral_entropy','cusum_max'] capped at 4. Audited across the 25 in-scope
+# cells that rule was the WORST of five candidates and the ONLY one that
+# produced sign-inverted pseudo-labels:
+#
+#     rule        macro      QA    math   inverted
+#     loco5      0.7609  0.7222  0.7866      0
+#     good6      0.7594  0.7274  0.7807      0     <- adopted (best QA)
+#     good5      0.7519  0.7210  0.7725      0
+#     anchor4    0.7249  0.6821  0.7535      2     <- was shipping
+#
+# QA is the domain we are trying to fix, so GOOD_6 (best QA macro, and it keeps
+# inside_coqa at 0.667 where LOCO_5 collapses to 0.529) is the seed set. All six
+# views are used -- capping at N_SEED_VIEWS=4 would not reproduce the audited
+# number, so the seed cap is the size of the seed set itself.
+SEED_RULES = {'good6': GOOD_6, 'loco5': LOCO_5, 'anchor4': ANCHOR_PRIORITY}
+SEED_RULE = os.environ.get('A6_SEED_RULE', 'good6')
+SEED_VIEWS = SEED_RULES.get(SEED_RULE, GOOD_6)
+MAX_SEED_VIEWS = len(SEED_VIEWS)
+
+# ---- D1 + D2 (Step 198) ----------------------------------------------------
+# alpha trades pseudo-label relevance against redundancy in the PL-MRMR score.
+# 0.5 is the classic mRMR-difference default; the a5.mrmr family sweeps it, so
+# the benchmark can too via the env override.
+MRMR_ALPHA = float(os.environ.get('A6_MRMR_ALPHA', '0.5'))
+# Which label-free K* rule D1 uses. Overridable so Step 3 can benchmark the
+# rules against each other without editing code.
+ADAPTIVE_K_RULE = os.environ.get('A6_K_RULE', 'elbow_fwd')
+
+_EXPECTED = ('a6.pl_dufs', 'a6.pl_dufs_noseed', 'a6.pl_rank', 'a6.dufs',
+             'a6.pruned_dufs', 'a6.adaptive_pl_mrmr')
 # WS4 arms (Omri, 2026-07-22). Arm A = two-stage full-pool pseudo-label (his
 # 4b): L-SML over ALL views supervises gates over ALL views — no held-out
 # seeds, so the Step-194 circularity guard cannot apply (flagged in diag).
@@ -146,12 +178,16 @@ def _random_walk_power(W, t):
 # ---------------------------------------------------------------------------
 
 def _seed_cols(cell):
-    """Label-free seed choice: ANCHOR_PRIORITY order, intersected with the
-    cell's available pool, capped at N_SEED_VIEWS. The cell's own anchor is
-    force-included (it is the orientation reference downstream)."""
+    """Label-free seed choice: SEED_VIEWS (GOOD_6 by default, see the constant
+    block above for the measured justification) intersected with the cell's
+    available pool, capped at MAX_SEED_VIEWS. The cell's own anchor is
+    force-included (it is the orientation reference downstream).
+
+    Override with A6_SEED_RULE=anchor4 to reproduce the pre-Step-198 behaviour.
+    """
     cols, names = [], []
-    for f in ANCHOR_PRIORITY:
-        if f in cell.pool and len(cols) < N_SEED_VIEWS:
+    for f in SEED_VIEWS:
+        if f in cell.pool and len(cols) < MAX_SEED_VIEWS:
             cols.append(cell.pool.index(f))
             names.append(f)
     if cell.anchor_name in cell.pool:
@@ -159,7 +195,7 @@ def _seed_cols(cell):
         if a not in cols:
             cols.insert(0, a)
             names.insert(0, cell.anchor_name)
-            cols, names = cols[:N_SEED_VIEWS], names[:N_SEED_VIEWS]
+            cols, names = cols[:MAX_SEED_VIEWS], names[:MAX_SEED_VIEWS]
     order = np.argsort(cols)
     return ([cols[i] for i in order], [names[i] for i in order])
 
@@ -204,6 +240,37 @@ def _pseudo_label(cell, seed_cols):
         y = -y
     return y, {'K': int(meta['K']), 'residual': round(float(meta['residual']), 5),
                'cross_weights': [round(float(w), 4) for w in meta['cross_weights']]}
+
+
+def _plmrmr_order(Xr_sel, agree, alpha=0.5):
+    """D2 ranking: greedy mRMR with the PSEUDO-LABEL as the relevance target.
+
+    Standard DUFS optimises Laplacian smoothness and then has the lambda3 term
+    tilt it back toward task agreement. D2 inverts those roles -- agreement with
+    y_hat IS the relevance criterion, and the redundancy term (mean |corr| to the
+    already-picked set) does the decorrelation that the graph term used to.
+
+        score(f) = |corr(X_f, y_hat)| - alpha * mean_{g in S} |corr(X_f, X_g)|
+
+    Operates on the SELECTABLE columns only, so the circularity guard is intact:
+    the views that built y_hat can never be ranked by their agreement with it.
+    Returns local column indices, best first.
+    """
+    p = Xr_sel.shape[1]
+    C = np.abs(np.corrcoef(Xr_sel, rowvar=False))
+    C[~np.isfinite(C)] = 0.0
+    np.fill_diagonal(C, 0.0)
+    rel = np.abs(np.asarray(agree, dtype=np.float64))
+    rel[~np.isfinite(rel)] = 0.0
+
+    order = [int(np.argmax(rel))]
+    remaining = [j for j in range(p) if j != order[0]]
+    while remaining:
+        red = C[np.ix_(remaining, order)].mean(axis=1)
+        scores = rel[remaining] - alpha * red
+        pick = int(np.argmax(scores))
+        order.append(remaining.pop(pick))
+    return order
 
 
 def _corr_with(Xr, y):
@@ -431,6 +498,38 @@ def a6_pseudolabel_gates(cell, rng, cache=None):
                         'diag': {**base_diag, 'n_selected': int(len(cols_pruned)),
                                  'k_max': 15,
                                  'note': 'seed views + K_max=15 capped gates supervised by L-SML pseudo-label'}})
+
+        # -- a6.adaptive_pl_mrmr : D1 (adaptive K) + D2 (PL-MRMR ranking) ------
+        # Ranking = seeds first (they are always kept) then the PL-MRMR order, so
+        # the prefix at k IS the candidate subset of size k and K* is a total size.
+        try:
+            order_local = _plmrmr_order(Xr[:, sel_cols], agree, alpha=MRMR_ALPHA)
+            rank_global = [int(c) for c in s_cols] + \
+                          [int(sel_cols[j]) for j in order_local]
+            k_star, (ks_curve, eps_curve) = predict_k(
+                V, rank_global, rule=ADAPTIVE_K_RULE, return_curve=True)
+            cols_ad = np.array(sorted(set(rank_global[:k_star])), dtype=np.int64)
+            if len(cols_ad) < 3:
+                out.append(_fallback('a6.adaptive_pl_mrmr', p,
+                                     'adaptive selection < 3 cols', base_diag))
+            else:
+                out.append({'variant': 'a6.adaptive_pl_mrmr', 'cols': cols_ad,
+                            'diag': {**base_diag, 'n_selected': int(len(cols_ad)),
+                                     'k_star': int(k_star),
+                                     'k_rule': ADAPTIVE_K_RULE,
+                                     'mrmr_alpha': MRMR_ALPHA,
+                                     'spectral_gap': round(spectral_gap(V), 4),
+                                     'residual_curve': [
+                                         [int(a), round(float(b), 5)]
+                                         for a, b in zip(ks_curve, eps_curve)],
+                                     'mrmr_order': [cell.pool[c] for c in
+                                                    rank_global[:k_star]],
+                                     'note': 'D1 adaptive K* over a D2 PL-MRMR '
+                                             'ranking (pseudo-label relevance, '
+                                             'correlation redundancy)'}})
+        except Exception as e:                                   # never raise
+            out.append(_fallback('a6.adaptive_pl_mrmr', p,
+                                 f'adaptive/mrmr failed: {e}', base_diag))
 
         # -- a6.pl_dufs_noseed : gated picks only ------------------------------
         if len(picked) < 3:

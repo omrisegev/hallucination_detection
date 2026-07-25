@@ -1,0 +1,45 @@
+{
+  "validity": {
+    "R3_FULL_macro_qa": 0.7524,
+    "R3_FULL_macro_math": 0.8,
+    "R3_FULL_macro_all": 0.7809,
+    "ref_lr_oracle_qa": 0.7524,
+    "ref_lr_oracle_math": 0.8,
+    "ref_lr_oracle_all": 0.781,
+    "R3_reproduces_lr_oracle": true,
+    "R0_GOOD_6_macro_all": 0.7594,
+    "ref_good6_macro_all": 0.7594,
+    "R0_reproduces_good6": true
+  },
+  "gates": {
+    "nonlinearity": {
+      "delta_all": -0.015,
+      "delta_qa": -0.0075,
+      "p_all": 0.00378,
+      "verdict": "DEAD"
+    },
+    "nonstationary_sign": {
+      "delta_all": 0.0007,
+      "delta_qa": 0.0086,
+      "p_all": 0.63383,
+      "verdict": "DEAD"
+    },
+    "sign_recovery_loss": {
+      "delta_all": 0.0207,
+      "delta_qa": 0.0315
+    },
+    "weight_estimation_loss": {
+      "delta_all": 0.0145,
+      "delta_qa": 0.0147
+    },
+    "target_quality": {
+      "R6_macro_all": 0.7676,
+      "R6_macro_qa": 0.7262,
+      "delta_vs_good6": 0.0082,
+      "delta_vs_D2_alone": 0.0103,
+      "p_vs_good6": 0.0,
+      "verdict": "DEAD"
+    },
+    "dominant_term": "sign_recovery"
+  }
+}

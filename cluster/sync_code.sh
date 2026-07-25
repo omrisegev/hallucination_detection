@@ -21,6 +21,6 @@ tar czf - \
   --exclude=results \
   --exclude=__pycache__ \
   --exclude=.claude \
-  . | ssh "$REMOTE" "mkdir -p $SHARED/code && tar xzf - -C $SHARED/code"
+  . | ssh "$REMOTE" "mkdir -p $SHARED/code && tar xzf - --overwrite -C $SHARED/code"
 
 echo "sync done"

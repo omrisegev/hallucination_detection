@@ -35,22 +35,8 @@ if REPO_DIR not in sys.path:
 
 from spectral_utils.selector_bench import summarize_bench   # noqa: E402
 
-QA_CELLS = [
-    'epr_triviaqa_mistral24b', 'inside_coqa_llama7b', 'losnet_hotpotqa_mistral7b',
-    'sciq_llama8b', 'se_nq_open_llama8b', 'se_squad_v2_llama8b',
-    'seiclr_triviaqa_opt30b', 'semenergy_triviaqa_qwen3_8b',
-    'spilled_triviaqa_llama8b', 'truthfulqa_llama8b',
-]
-MATH_CELLS = [
-    'ars_gsm8k_r1distill8b', 'internalstates_gsm8k_qwen25_7b',
-    'lapeigvals_gsm8k_llama3b', 'lapeigvals_gsm8k_llama8b',
-    'lapeigvals_gsm8k_mistral24b', 'lapeigvals_gsm8k_nemo',
-    'lapeigvals_gsm8k_phi35', 'noise_gsm8k_mistral7b', 'noise_gsm8k_phi3mini',
-    'math500_dsmath7b', 'math500_qwenmath7b', 'math500_r1distill8b',
-    'math500_r1distill8b_mn4096', 'trace_gsm8k_llama8b_k10',
-    'trace_math500_qwenmath15b_k10',
-]
-INSCOPE = QA_CELLS + MATH_CELLS
+from inscope_cells import QA_CELLS, MATH_CELLS, INSCOPE  # noqa: E402,F401
+
 
 
 def good5_comparator(df):

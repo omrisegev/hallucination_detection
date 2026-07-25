@@ -72,7 +72,30 @@ from spectral_utils.data_loaders import (
     load_nq_open, nq_open_prompt, is_correct_nq_open,
     load_truthfulqa, truthfulqa_prompt, is_correct_truthfulqa,
     load_sciq, sciq_prompt, is_correct_sciq,
+    load_gpqa, gpqa_prompt_and_answer, is_correct_gpqa,
+    load_lciteeval, lciteeval_prompt, is_grounded_lciteeval,
 )
+
+
+def _load_gpqa_rows(n, split=None):
+    """GPQA Diamond rows with the per-idx choice permutation baked in.
+
+    gpqa_prompt_and_answer shuffles choices with rng(idx) — the same convention
+    every phase4/8 gpqa cell used — so prompt and gold letter are precomputed
+    here and carried on the row (the DATASETS triple has no idx channel).
+    """
+    rows = load_gpqa()[:n]
+    out = []
+    for idx, row in enumerate(rows):
+        r = dict(row)
+        r["_prompt"], r["_gold_letter"] = gpqa_prompt_and_answer(row, idx)
+        out.append(r)
+    return out
+
+
+def _lciteeval_entry(task):
+    return (lambda n, split=None: load_lciteeval(task, n),
+            lciteeval_prompt, is_grounded_lciteeval)
 
 # dataset -> (loader(n, split) -> list[row], prompt_fn(row) -> str, grader(gen, row) -> bool)
 # All loaders share a (n_samples, split) signature; QA prompts/graders take the row dict.
@@ -99,6 +122,15 @@ DATASETS = {
     "nq_open":   (lambda n, split="validation": load_nq_open(n, split),  nq_open_prompt,  is_correct_nq_open),
     "truthfulqa":(lambda n, split="validation": load_truthfulqa(n, split), truthfulqa_prompt, is_correct_truthfulqa),
     "sciq":      (lambda n, split="validation": load_sciq(n, split),     sciq_prompt,     is_correct_sciq),
+    # GPQA Diamond (gated HF repo — needs HF_TOKEN). Permutation baked at load time.
+    "gpqa":      (_load_gpqa_rows, lambda row: row["_prompt"],
+                  lambda gen, row: is_correct_gpqa(gen, row["_gold_letter"])),
+    # L-CiteEval RAG (phase10 protocol: variant-0 prompt, citation-grounding label).
+    # Test splits are small (hotpotqa/2wiki/narrativeqa 240, NQ 160) — n_samples caps there.
+    "lciteeval_hotpotqa":         _lciteeval_entry("hotpotqa"),
+    "lciteeval_natural_questions": _lciteeval_entry("natural_questions"),
+    "lciteeval_2wikimultihopqa":  _lciteeval_entry("2wikimultihopqa"),
+    "lciteeval_narrativeqa":      _lciteeval_entry("narrativeqa"),
 }
 
 STOP = {"flag": False}

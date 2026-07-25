@@ -44,8 +44,18 @@ def _lin(v, d0, d1, r0, r1):
     return r0 + (v - d0) / (d1 - d0) * (r1 - r0)
 
 
+def _load_lu_raw():
+    return _read(os.path.join(REPGRID, "scores_lsml_upcr.csv"))
+
+
 def _load_all():
-    lu = _read(os.path.join(REPGRID, "scores_lsml_upcr.csv"))
+    # Task B3 added alternate anchor="cusum_max" rows for GOOD_5/GOOD_6 to this same CSV
+    # (same cell/subset/method key as the default epr-anchor row). Every figure below
+    # assumes one row per (cell, subset, method) -- filter to the epr anchor (the implicit
+    # default all along; older rows predate the "anchor" column entirely) so a cell can't
+    # silently plot twice. The one figure that wants both anchors (fig_anchor_sensitivity)
+    # reads _load_lu_raw() directly instead.
+    lu = [r for r in _load_lu_raw() if r.get("anchor", "epr") in ("epr", "")]
     rb = _read(os.path.join(RESULTS, "reasoning_benchmark.csv"))
     ub = _read(os.path.join(REPGRID, "ubaseline_scores.csv"))
     pb = _read(os.path.join(REPGRID, "published_baselines.csv"))
@@ -118,6 +128,11 @@ FIG_CSS = """
   .rf-bar-gray{fill:#94a3b8;}
   .rf-bar-gray-sup{fill:#475569;}
   .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-bar-c4{fill:#cbd5e1;}
+  .rf-bar-g5{fill:#475569;}
+  .rf-bar-g6{fill:var(--blue);}
+  .rf-dumbbell-epr{fill:var(--blue);stroke:#fff;stroke-width:1.5;}
+  .rf-dumbbell-alt{fill:var(--green);stroke:#fff;stroke-width:1.5;}
   .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
   .rf-line{stroke:var(--blue);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
   .rf-line-acc{stroke:var(--green);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
@@ -363,7 +378,8 @@ def _bar_panel(rows, d0=35, d1=100, W=880):
         by, h = y0 + 16, 14
         bx = x(v)
         cls = {"ours": "rf-bar-ours", "ctx": "rf-bar-gray",
-               "ctx-sup": "rf-bar-gray-sup", "ctx-flag": "rf-bar-gray-flag"}[kind]
+               "ctx-sup": "rf-bar-gray-sup", "ctx-flag": "rf-bar-gray-flag",
+               "c4": "rf-bar-c4", "g5": "rf-bar-g5", "g6": "rf-bar-g6"}[kind]
         rr = 4
         if v >= 50:
             path = (f'M {zx:.1f} {by:.1f} H {bx-rr:.1f} Q {bx:.1f} {by:.1f} {bx:.1f} {by+rr:.1f} '
@@ -610,11 +626,17 @@ def fig_math500_forest():
             continue
         flag = gate_flag(pos)
         tag = " †" if flag == "CEILING" else " ▿" if flag == "FLOOR" else ""
-        rows.append((lbl + tag, v * 100, None, None, _rb_anchors(rb, "MATH-500", rbm), None))
+        # Step 182 A1: this sweep cell's temperature is whatever the (corrected) cell_key
+        # says, not necessarily T=1.0 -- surface it per-row rather than assuming.
+        temp_tag = " (T=1.5)" if _ck and "T1.5" in _ck else ""
+        rows.append((lbl + temp_tag + tag, v * 100, None, None, _rb_anchors(rb, "MATH-500", rbm), None))
     rows.sort(key=lambda r: -r[1])
     if not rows:
         return ""
-    fnote = ("Ours = legacy subset-sweep cells (N=300, T=1.0; sweep_summary.csv carries no CIs — the per-cell bootstrap "
+    fnote = ("Ours = legacy subset-sweep cells (N=300; T=1.0 unless a row is marked (T=1.5) -- "
+             "Qwen2.5-Math-7B's cache was found mislabeled and corrected, Step 182 A1; the genuine "
+             "T=1.0 result for that cell is 85.1 [77.7, 91.8], see the reasoning table; "
+             "sweep_summary.csv carries no CIs — the per-cell bootstrap "
              "lives in the npz manifests). R1-Distill anchors from ARS arXiv 2601.17467 Tables 1–2 (same model): the supervised "
              "probe at 86.4 vs our unsupervised 84.4, with every published unsupervised baseline 8–43pp below us — Semantic Entropy "
              "and Perplexity collapse below chance on long R1 traces. Qwen2.5-Math-7B's old-cache anchors (open diamonds) are "
@@ -663,9 +685,12 @@ def fig_triviaqa_forest():
              "Llama-3.1-8B: two independent same-model anchors. HCPD (arXiv 2606.12900) own headline 86.25 (unsupervised, "
              "zero-source) — we beat it by +7.1pp, plus their Perplexity 80.62 / Semantic Entropy 78.71 baselines and "
              "SAPLMA(sup) 78.51 / TSV(sup) 79.78 ceilings. Automatic Layer Selection (arXiv 2605.26366): unsupervised "
-             "Pred.Entropy 68.59 / Semantic Entropy 55.05 / Lexical Similarity 68.38 baselines (we beat all three) plus their "
-             "own FEPoID 75.16 — a SUPERVISED MLP-probe ceiling (9k-example trained probe), not a fair unsup comparison. "
-             "HARP's 92.8 is model-unspecified — cross-model reference only, not same-model. "
+             "Pred.Entropy 68.59 / Lexical Similarity 68.38 baselines (we beat both) plus their "
+             "own FEPoID 75.16 — a SUPERVISED MLP-probe ceiling (9k-example trained probe), not a fair unsup comparison "
+             "(their TriviaQA Semantic-Entropy number isn't independently confirmed, so it's not cited here). "
+             "HARP's 92.8 is its Qwen-2.5-7B-Instruct row (cross-model vs our Llama-3.1-8B-Instruct cell); the paper "
+             "also reports 92.9 for a \"LLaMA-3.1-8B\" backbone but never confirms whether that's instruct-tuned, "
+             "so treat 92.9 as a possible but unconfirmed same-model anchor, not a citable one yet. "
              "§ energy-capture cell — only 51% of traces carry the energy fields (selection caveat). "
              "¶ SE-ICLR's 83 is per-question K=10 semantic sampling — different units, caveated open diamond. "
              "The EPR paper's other models (Falcon-3-10B, Phi-4, Ministral-8B) and ArGiMi were not run — no same-model row exists for them.")
@@ -732,6 +757,152 @@ def fig_qa_extension_forest():
     return _fig("The QA extension, dataset by dataset",
                 "Seven short-answer / open-domain QA datasets beyond TriviaQA — ours vs every published same-model anchor that exists.",
                 FOREST_LEGEND, _generic_forest(rows, 40, 96, "AUROC (%) · one QA dataset per row"), fnote)
+
+
+# ── Figure: validated subset-size ladder, 19-cell replication grid only ───────
+# NOTE: subset_by_domain.csv's src=="new" rows are STALE -- they cover only 11/20 current
+# grid cells (missing 8 gsm8k cells + the coqa pilot, added to the grid after that CSV was
+# last built). Do not use it as a cell->domain lookup for anything scoped to the *current*
+# 19/20-cell grid; derive domain from the "dataset" field already on every scores_lsml_upcr
+# row instead, so coverage can never silently lag behind newly-scored cells. Domain labels
+# match subset_by_domain.csv's own convention where a dataset already appears there (e.g.
+# hotpotqa -> Short-QA, not RAG -- RAG in that file is old-battery multi-hop RAG cells only,
+# none of which exist in the current grid).
+DATASET_DOMAIN = {
+    "gsm8k": "Reasoning-Math", "math500": "Reasoning-Math",
+    "trivia_qa": "Short-QA", "trivia_qa_rougel": "Short-QA", "trivia_qa_wiki": "Short-QA",
+    "coqa": "Short-QA", "squad_v2": "Short-QA", "nq_open": "Short-QA", "truthfulqa": "Short-QA",
+    "hotpotqa": "Short-QA",
+    "sciq": "MCQ-Science", "gpqa": "MCQ-Science",
+}
+LADDER_DOM_ORDER = ["Reasoning-Math", "Short-QA", "MCQ-Science"]
+
+
+def cell_domain_map(lu_rows):
+    """cell -> domain for every cell present in the (already-scored) CSV rows, derived from
+    each row's own "dataset" field -- always in sync with whatever has actually been scored,
+    unlike the stale subset_by_domain.csv."""
+    out = {}
+    for r in lu_rows:
+        ds = r.get("dataset")
+        if ds in DATASET_DOMAIN and r["cell"] not in out:
+            out[r["cell"]] = DATASET_DOMAIN[ds]
+    return out
+
+
+def fig_subset_ladder():
+    """Task B: consensus_4 -> GOOD_5 -> GOOD_6, all three scored on the exact same 19-cell
+    grid (GOOD_6 needs top_k_logprobs, AIRCC-era-only, so it cannot run on the old battery
+    at all -- every bar here shares one cell-set, matching advisor_report.py's
+    subset_ladder_html table)."""
+    lu = _load_lu_raw()
+    cell_domain = cell_domain_map(lu)
+    ladder = [("consensus_4", "c4"), ("GOOD_5", "g5"), ("GOOD_6", "g6")]
+    agg = {}
+    for r in lu:
+        if r.get("method") != "lsml" or r.get("anchor", "epr") not in ("epr", ""):
+            continue
+        if r["cell"].endswith(("_pilot", "_partial", "_reject")):
+            continue  # headline excludes pilot/partial/reject cells (n=30 CoQA pilot etc.)
+        sub = r.get("subset")
+        if sub not in dict(ladder) or r["cell"] not in cell_domain:
+            continue
+        a = _f(r.get("auroc_X"))
+        if a is None:
+            continue
+        dom = cell_domain[r["cell"]]
+        agg.setdefault(dom, {}).setdefault(sub, []).append(a)
+    rows = []
+    macro = {}
+    for dom in LADDER_DOM_ORDER:
+        cells = agg.get(dom, {})
+        if not cells:
+            continue
+        for sub, kind in ladder:
+            vals = cells.get(sub, [])
+            if not vals:
+                continue
+            m = sum(vals) / len(vals)
+            macro.setdefault(sub, []).extend(vals)
+            rows.append((f"{dom} — {sub}", m * 100, kind, f"n={len(vals)} cells"))
+    for sub, kind in ladder:
+        vals = macro.get(sub, [])
+        if vals:
+            rows.append((f"MACRO — {sub}", sum(vals) / len(vals) * 100, kind, f"n={len(vals)} cells"))
+    if not rows:
+        return ""
+    fnote = ("consensus_4 (4-feat) / GOOD_5 (5-feat, default) / GOOD_6 (= GOOD_5 + varentropy, 6-feat) — every bar "
+             "scored on the same 19-cell replication grid (no old-battery cells mixed in, since GOOD_6 cannot run "
+             "there at all). MACRO rows are the cell-mean across all domains. This is an additional comparison arm, "
+             "not a promotion — GOOD_5 stays the cross-domain default because GOOD_6's extra feature is AIRCC-capture-only.")
+    return _fig("Task B — does a bigger subset help? (19-cell grid only)",
+                "consensus_4 vs GOOD_5 vs GOOD_6, per domain and macro, all on the same cell-set.",
+                "", _bar_panel(rows, d0=45, d1=90), fnote)
+
+
+# ── Figure: anchor-choice robustness (epr vs cusum_max, GOOD_5/GOOD_6) ────────
+def _dumbbell_panel(rows, d0, d1, W=880):
+    """rows: (label, v_epr, v_alt, flag). Two dots per row (epr=blue, cusum_max=green)
+    joined by a leader line -- the anchor-choice analogue of a paired-delta plot."""
+    ROW, TOP = 30, 8
+    n = len(rows)
+    X0, X1 = 190, W - 20
+    H = TOP + n * ROW + 30
+    x = lambda v: _lin(v, d0, d1, X0, X1)
+    s = [_svg(W, H)]
+    for gv in range(int(d0 // 10 * 10), int(d1) + 1, 10):
+        if gv < d0 or gv > d1:
+            continue
+        s.append(f'<line x1="{x(gv):.1f}" y1="{TOP}" x2="{x(gv):.1f}" y2="{TOP+n*ROW}" class="rf-grid"/>')
+        s.append(f'<text x="{x(gv):.1f}" y="{TOP+n*ROW+15}" class="rf-tick" text-anchor="middle">{gv}</text>')
+    for i, (lbl, v1, v2, flag) in enumerate(rows):
+        cy = TOP + i * ROW + ROW / 2
+        s.append(f'<text x="{X0-6}" y="{cy+4:.1f}" class="rf-rowlbl" text-anchor="end">{lbl}{" ⚠" if flag == "DISAGREE" else ""}</text>')
+        x1, x2 = x(v1), x(v2)
+        s.append(f'<line x1="{x1:.1f}" y1="{cy:.1f}" x2="{x2:.1f}" y2="{cy:.1f}" class="rf-leader"/>')
+        s.append(f'<circle cx="{x1:.1f}" cy="{cy:.1f}" r="5" class="rf-dumbbell-epr"><title>epr anchor: {v1:.1f}</title></circle>')
+        s.append(f'<circle cx="{x2:.1f}" cy="{cy:.1f}" r="5" class="rf-dumbbell-alt"><title>cusum_max anchor: {v2:.1f}</title></circle>')
+    s.append(f'<text x="{(X0+X1)//2}" y="{H-1}" class="rf-axname" text-anchor="middle">AUROC (%)</text>')
+    s.append("</svg>")
+    return "".join(s)
+
+
+def fig_anchor_sensitivity():
+    """Task B3: for every (cell, subset) with GOOD_5/GOOD_6 scored under both the default
+    epr anchor and the alternate cusum_max anchor, plot both AUROCs. Extends, not resolves,
+    the anchor-fragility thread the concurrent EDIS session flagged on a different domain."""
+    lu = _load_lu_raw()
+    by_key = {}
+    for r in lu:
+        if r.get("method") != "lsml" or r.get("subset") not in ("GOOD_5", "GOOD_6"):
+            continue
+        a = _f(r.get("auroc_X"))
+        if a is None:
+            continue
+        by_key[(r["cell"], r["subset"], r.get("anchor", "epr") or "epr")] = a
+    rows = []
+    for (cell, sub, anchor), v_epr in sorted(by_key.items()):
+        if anchor != "epr":
+            continue
+        v_alt = by_key.get((cell, sub, "cusum_max"))
+        if v_alt is None:
+            continue
+        flag = "DISAGREE" if abs(v_alt - v_epr) > 0.02 else "agree"
+        rows.append((f"{cell} · {sub}", v_epr * 100, v_alt * 100, flag))
+    if not rows:
+        return ""
+    n_dis = sum(1 for r in rows if r[3] == "DISAGREE")
+    legend = ('<span class="rf-li"><svg width="16" height="14"><circle cx="8" cy="7" r="5" class="rf-dumbbell-epr"/></svg> epr anchor (default)</span>'
+              '<span class="rf-li"><svg width="16" height="14"><circle cx="8" cy="7" r="5" class="rf-dumbbell-alt"/></svg> cusum_max anchor (alternate)</span>')
+    fnote = (f"{n_dis}/{len(rows)} (cell, subset) pairs disagree by &gt;2pp (⚠). Step 170 found epr vs a "
+             "multi-feature-average anchor mostly agree on the old battery; Step 182 Item B found epr vs cusum_max "
+             "\"changes nothing\" on a single T-varied MATH-500 cache. This is the first check of either swap on the "
+             "19-cell replication grid. A large, systematic disagreement here would itself be a reportable finding, "
+             "not a bug to silently fix — see the concurrent EDIS session's Step-183 anchor-fragility thread on a "
+             "different domain, which this extends but does not resolve.")
+    return _fig("Task B3 — does the anchor-orientation choice change the answer?",
+                "epr vs cusum_max anchor, GOOD_5/GOOD_6, every scored (cell, subset) pair on the 19-cell grid.",
+                legend, _dumbbell_panel(rows, d0=45, d1=100), fnote)
 
 
 # ── Master per-domain table (EPR-Table-1 style): every dataset × model we ran ──

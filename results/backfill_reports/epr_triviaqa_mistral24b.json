@@ -1,0 +1,76 @@
+{
+  "cell_id": "epr_triviaqa_mistral24b",
+  "model": "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
+  "keys": [
+    "token_logsumexp",
+    "top_k_logprobs_raw",
+    "token_spilled_energies",
+    "top_k_logprobs"
+  ],
+  "raw_top_k": 50,
+  "validate_only": true,
+  "tolerances": {
+    "tol_median": 0.02,
+    "tol_first": 0.05,
+    "min_frac_close": 0.9
+  },
+  "git_sha": "",
+  "job_id": "123561",
+  "written_utc": "2026-07-18T18:07:45+00:00",
+  "pkls": [
+    {
+      "pkl": "raw_trivia_qa_wiki_T1.0.pkl",
+      "temp": 1.0,
+      "gate": {
+        "H": {
+          "name": "token_entropies",
+          "n_traces": 50,
+          "n_len_mismatch": 0,
+          "n_tokens": 1209,
+          "median_abs": 0.0021530427038669586,
+          "p99_abs": 0.07712712287902844,
+          "max_abs": 0.1764594316482544,
+          "frac_close": 0.9619520264681555,
+          "first_tok_median": 0.00949937105178833,
+          "first_tok_p99": 0.07850344955921172,
+          "median_r": 0.9994548631049562,
+          "frac_r_ge_0999": 0.7551020408163265
+        },
+        "dE": {
+          "name": "token_spilled_energies",
+          "n_traces": 50,
+          "n_len_mismatch": 0,
+          "n_tokens": 1209,
+          "median_abs": 0.00045159459114074707,
+          "p99_abs": 0.12534492015838627,
+          "max_abs": 0.29639947414398193,
+          "frac_close": 0.9073614557485525,
+          "first_tok_median": 0.014810234308242798,
+          "first_tok_p99": 0.20484054446220362,
+          "median_r": 0.9997037459288272,
+          "frac_r_ge_0999": 0.8571428571428571
+        },
+        "Z": {
+          "name": "token_logsumexp",
+          "n_traces": 50,
+          "n_len_mismatch": 0,
+          "n_tokens": 1209,
+          "median_abs": 0.00547027587890625,
+          "p99_abs": 0.24659843444824234,
+          "max_abs": 0.3188896179199219,
+          "frac_close": 0.6286186931348222,
+          "first_tok_median": 0.01688098907470703,
+          "first_tok_p99": 0.12120161056518554,
+          "median_r": 0.9997065106940967,
+          "frac_r_ge_0999": 0.9183673469387755
+        }
+      },
+      "gate_b_pass": true,
+      "gate_b_reasons": [],
+      "gate_n_problems": 50,
+      "gate_tokens": 1209,
+      "validate_only": true,
+      "gate_seconds": 1.3
+    }
+  ]
+}

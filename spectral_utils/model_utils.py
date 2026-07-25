@@ -17,7 +17,8 @@ def free_memory() -> None:
         torch.cuda.empty_cache()
 
 
-def load_model(model_id: str, quantize_4bit: bool = False):
+def load_model(model_id: str, quantize_4bit: bool = False, attn_impl: str = "eager",
+               dtype: str = "bfloat16"):
     """
     Load a HuggingFace causal LM and its tokenizer.
 
@@ -28,6 +29,17 @@ def load_model(model_id: str, quantize_4bit: bool = False):
                         relative entropy ordering.
                         Ignored for pre-quantized AWQ/GPTQ model IDs — those are loaded
                         as-is since bitsandbytes and AWQ/GPTQ configs conflict.
+        attn_impl:      transformers attn_implementation. Default "eager" (unchanged —
+                        attn_laplacian_capture needs attention probs, and eager is what
+                        every published run used). The teacher-forced view backfill
+                        (cluster/backfill_views.py) passes "sdpa": it never reads
+                        attention maps and eager's O(T^2) score materialization would
+                        dominate memory on long RAG prompts.
+        dtype:          "bfloat16" (default, matches every cluster run) or "float16".
+                        The phase4/5 Colab notebooks loaded models with
+                        torch_dtype=torch.float16; teacher-forced backfill of those
+                        cells must match the generation dtype or Gate B diverges.
+                        Ignored under quantize_4bit (BNB owns dtype internally).
 
     Returns:
         (model, tokenizer)
@@ -40,7 +52,11 @@ def load_model(model_id: str, quantize_4bit: bool = False):
 
     is_prequantized = any(tag in model_id.lower() for tag in ("awq", "gptq"))
 
-    kwargs = dict(attn_implementation="eager", trust_remote_code=False)
+    if dtype not in ("bfloat16", "float16"):
+        raise ValueError(f"dtype must be 'bfloat16' or 'float16', got {dtype!r}")
+    torch_dtype = getattr(torch, dtype)
+
+    kwargs = dict(attn_implementation=attn_impl, trust_remote_code=False)
 
     if quantize_4bit and not is_prequantized:
         # device_map="auto" reads the pre-quantization FP16 size and may dispatch layers
@@ -60,7 +76,7 @@ def load_model(model_id: str, quantize_4bit: bool = False):
         # AWQ/GPTQ weights are already quantized on disk; auto sees the true (small) size.
         kwargs["device_map"] = "auto"
         # "dtype" is the current kwarg name (transformers ≥4.50 deprecated "torch_dtype")
-        kwargs["dtype"] = torch.bfloat16
+        kwargs["dtype"] = torch_dtype
 
     try:
         mdl = AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
@@ -71,15 +87,16 @@ def load_model(model_id: str, quantize_4bit: bool = False):
         # only, no pixel_values) — the LM head still yields output_scores/output_logits, so
         # entropy/logsumexp capture is unaffected.
         from transformers import AutoModelForImageTextToText
-        mm_kwargs = dict(attn_implementation="eager", trust_remote_code=False,
-                         device_map="auto", dtype=torch.bfloat16)
+        mm_kwargs = dict(attn_implementation=attn_impl, trust_remote_code=False,
+                         device_map="auto", dtype=torch_dtype)
         print(f"AutoModelForCausalLM failed ({type(e).__name__}); loading {model_id} via "
               f"AutoModelForImageTextToText (text-only)")
         mdl = AutoModelForImageTextToText.from_pretrained(model_id, **mm_kwargs)
         mm_tag = " [multimodal/text-only]"
     mdl.eval()
     quant_tag = " [AWQ]" if is_prequantized else (" [4-bit NF4]" if quantize_4bit else "")
-    print(f"Loaded {model_id}{quant_tag}{mm_tag}")
+    dtype_tag = "" if (quantize_4bit or dtype == "bfloat16") else f" [{dtype}]"
+    print(f"Loaded {model_id}{quant_tag}{mm_tag}{dtype_tag}")
     return mdl, tok
 
 

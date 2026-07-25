@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Gap Decomposition Ladder (Step 198)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; background: #f8fafc; color: #1e293b; }
+        h1, h2, h3 { color: #0f172a; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .metric-card { background: #f1f5f9; padding: 15px; border-radius: 6px; text-align: center; }
+        .metric-val { font-size: 24px; font-weight: bold; color: #2563eb; }
+        .verdict-dead { color: #dc2626; font-weight: bold; }
+        .verdict-alive { color: #16a34a; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f1f5f9; }
+        tr:hover { background: #f8fafc; }
+        .chart-container { position: relative; height: 350px; width: 100%; }
+    </style>
+</head>
+<body>
+    <h1>Gap Decomposition Ladder (Step 198)</h1>
+    
+    <div class="card">
+        <h2>1. Gate Verdicts & Validity</h2>
+        <div class="grid">
+            <div class="metric-card">
+                <div>Nonlinearity Gate</div>
+                <div class="metric-val verdict-dead">DEAD</div>
+                <div>&Delta;=-0.0150 (p=0.0038)</div>
+            </div>
+            <div class="metric-card">
+                <div>Non-stationary Sign Gate</div>
+                <div class="metric-val verdict-dead">DEAD</div>
+                <div>&Delta;=+0.0007 (p=0.6338)</div>
+            </div>
+            <div class="metric-card">
+                <div>Sign Recovery Loss</div>
+                <div class="metric-val">&Delta;=+0.0207</div>
+                <div>(R2 vs R0)</div>
+            </div>
+            <div class="metric-card">
+                <div>Weight Estimation Loss</div>
+                <div class="metric-val">&Delta;=+0.0145</div>
+                <div>(R3 vs R2)</div>
+            </div>
+            <div class="metric-card">
+                <div>Target Quality Gate</div>
+                <div class="metric-val verdict-dead">DEAD</div>
+                <div>R6=0.7676 (&Delta;=+0.0082)</div>
+            </div>
+        </div>
+        <p><b>Dominant Term:</b> <span style="font-size: 16px; font-weight: bold; color: #0284c7;">SIGN_RECOVERY</span></p>
+        <p><b>Validity Checks:</b> R3 FULL reproduces LR Oracle: <b>True</b> | R0 GOOD_6 reproduces GOOD_6: <b>True</b></p>
+    </div>
+
+    <div class="card">
+        <h2>2. Ladder Summary Table (FULL Feature Set)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rung</th>
+                    <th>Name</th>
+                    <th>Macro All</th>
+                    <th>Macro QA</th>
+                    <th>Macro Math</th>
+                    <th>&Delta; vs R0</th>
+                    <th>p vs R0</th>
+                    <th>&Delta; vs R3</th>
+                    <th>p vs R3</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td><b>R0</b></td>
+                    <td>R0</td>
+                    <td><b>0.7457</b></td>
+                    <td>0.7062</td>
+                    <td>0.7720</td>
+                    <td>+0.0000</td>
+                    <td>nan</td>
+                    <td>-0.0353</td>
+                    <td>0.01145</td>
+                </tr>
+
+                <tr>
+                    <td><b>R0b</b></td>
+                    <td>R0b</td>
+                    <td><b>0.7331</b></td>
+                    <td>0.7109</td>
+                    <td>0.7480</td>
+                    <td>-0.0125</td>
+                    <td>0.68914</td>
+                    <td>-0.0478</td>
+                    <td>0.00964</td>
+                </tr>
+
+                <tr>
+                    <td><b>R1</b></td>
+                    <td>R1</td>
+                    <td><b>0.7659</b></td>
+                    <td>0.7376</td>
+                    <td>0.7848</td>
+                    <td>+0.0203</td>
+                    <td>0.00164</td>
+                    <td>-0.0150</td>
+                    <td>0.04512</td>
+                </tr>
+
+                <tr>
+                    <td><b>R2</b></td>
+                    <td>R2</td>
+                    <td><b>0.7664</b></td>
+                    <td>0.7377</td>
+                    <td>0.7856</td>
+                    <td>+0.0207</td>
+                    <td>0.00278</td>
+                    <td>-0.0145</td>
+                    <td>0.0667</td>
+                </tr>
+
+                <tr>
+                    <td><b>R2_cv</b></td>
+                    <td>R2_cv</td>
+                    <td><b>0.7649</b></td>
+                    <td>0.7372</td>
+                    <td>0.7834</td>
+                    <td>+0.0193</td>
+                    <td>0.01355</td>
+                    <td>-0.0160</td>
+                    <td>0.04826</td>
+                </tr>
+
+                <tr>
+                    <td><b>R3</b></td>
+                    <td>R3</td>
+                    <td><b>0.7809</b></td>
+                    <td>0.7524</td>
+                    <td>0.8000</td>
+                    <td>+0.0353</td>
+                    <td>0.01145</td>
+                    <td>+0.0000</td>
+                    <td>nan</td>
+                </tr>
+
+                <tr>
+                    <td><b>R4</b></td>
+                    <td>R4</td>
+                    <td><b>0.7659</b></td>
+                    <td>0.7449</td>
+                    <td>0.7800</td>
+                    <td>+0.0203</td>
+                    <td>0.58723</td>
+                    <td>-0.0150</td>
+                    <td>0.00378</td>
+                </tr>
+
+                <tr>
+                    <td><b>R5</b></td>
+                    <td>R5</td>
+                    <td><b>0.7816</b></td>
+                    <td>0.7610</td>
+                    <td>0.7953</td>
+                    <td>+0.0360</td>
+                    <td>0.0</td>
+                    <td>+0.0007</td>
+                    <td>0.63383</td>
+                </tr>
+
+                <tr>
+                    <td><b>R5_cv</b></td>
+                    <td>R5_cv</td>
+                    <td><b>0.7642</b></td>
+                    <td>0.7402</td>
+                    <td>0.7803</td>
+                    <td>+0.0186</td>
+                    <td>0.07548</td>
+                    <td>-0.0167</td>
+                    <td>0.03934</td>
+                </tr>
+
+                <tr>
+                    <td><b>R6</b></td>
+                    <td>R6</td>
+                    <td><b>0.7676</b></td>
+                    <td>0.7262</td>
+                    <td>0.7952</td>
+                    <td>+0.0219</td>
+                    <td>0.0</td>
+                    <td>-0.0134</td>
+                    <td>0.44184</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>3. Label-free Sign Error vs R2 - R0 Gain</h2>
+        <div class="chart-container">
+            <canvas id="scatterChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const scatterData = [
+{ x: 0.4, y: 0.0947, label: 'ars_gsm8k_r1distill8b', group: 'math' },
+{ x: 0.5, y: -0.0034, label: 'epr_triviaqa_mistral24b', group: 'QA' },
+{ x: 0.4444, y: 0.2401, label: 'inside_coqa_llama7b', group: 'QA' },
+{ x: 0.4483, y: 0.0036, label: 'internalstates_gsm8k_qwen25_7b', group: 'math' },
+{ x: 0.5333, y: 0.0183, label: 'lapeigvals_gsm8k_llama3b', group: 'math' },
+{ x: 0.5172, y: -0.0010, label: 'lapeigvals_gsm8k_llama8b', group: 'math' },
+{ x: 0.5, y: 0.0048, label: 'lapeigvals_gsm8k_mistral24b', group: 'math' },
+{ x: 0.4483, y: 0.0108, label: 'lapeigvals_gsm8k_nemo', group: 'math' },
+{ x: 0.4138, y: 0.0154, label: 'lapeigvals_gsm8k_phi35', group: 'math' },
+{ x: 0.3793, y: 0.0241, label: 'losnet_hotpotqa_mistral7b', group: 'QA' },
+{ x: 0.4333, y: 0.0135, label: 'math500_dsmath7b', group: 'math' },
+{ x: 0.5714, y: 0.0003, label: 'math500_qwenmath7b', group: 'math' },
+{ x: 0.4286, y: -0.0034, label: 'math500_r1distill8b', group: 'math' },
+{ x: 0.4138, y: 0.0011, label: 'math500_r1distill8b_mn4096', group: 'math' },
+{ x: 0.4483, y: 0.0120, label: 'noise_gsm8k_mistral7b', group: 'math' },
+{ x: 0.3793, y: 0.0238, label: 'noise_gsm8k_phi3mini', group: 'math' },
+{ x: 0.4667, y: -0.0004, label: 'sciq_llama8b', group: 'QA' },
+{ x: 0.4815, y: -0.0146, label: 'se_nq_open_llama8b', group: 'QA' },
+{ x: 0.4815, y: -0.0046, label: 'se_squad_v2_llama8b', group: 'QA' },
+{ x: 0.3571, y: 0.0446, label: 'seiclr_triviaqa_opt30b', group: 'QA' },
+{ x: 0.4074, y: 0.0200, label: 'semenergy_triviaqa_qwen3_8b', group: 'QA' },
+{ x: 0.4643, y: 0.0180, label: 'spilled_triviaqa_llama8b', group: 'QA' },
+{ x: 0.5172, y: 0.0080, label: 'trace_gsm8k_llama8b_k10', group: 'math' },
+{ x: 0.5667, y: 0.0022, label: 'trace_math500_qwenmath15b_k10', group: 'math' },
+{ x: 0.4483, y: -0.0092, label: 'truthfulqa_llama8b', group: 'QA' },
+
+        ];
+
+        new Chart(document.getElementById('scatterChart'), {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'QA Cells',
+                        data: scatterData.filter(d => d.group === 'QA'),
+                        backgroundColor: '#ef4444'
+                    },
+                    {
+                        label: 'Math Cells',
+                        data: scatterData.filter(d => d.group === 'math'),
+                        backgroundColor: '#3b82f6'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { title: { display: true, text: 'Fraction Label-Free Sign Wrong' } },
+                    y: { title: { display: true, text: 'R2 - R0 Gain (AUROC)' } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

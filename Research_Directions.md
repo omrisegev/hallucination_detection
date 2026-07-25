@@ -369,6 +369,41 @@ the full leaderboard.
    views). This REVERSES the Step-154 "LOCO cannot beat GOOD_5" verdict — the enlarged pool
    changed the answer. Pruning stays negative (LOCO drop list empty in all folds).
 
+**UPDATE (Step 198, 2026-07-24) — the selection line is now measured out, and the bottleneck is renamed:**
+
+3. **`GOOD_6` is unbeaten by every label-free selector, and it is a local optimum.** Post-fix
+   seven-arm bench on 25 in-scope cells (`results/advisor_inscope/seven_arm_summary.csv`, one run,
+   canonical `eval_subset_flex`): GOOD_6 0.7594 > D1_D2 0.7580 > D2 (PL-mRMR) 0.7573 >
+   `a6.pruned_dufs` 0.7537 > `a6.pl_dufs` 0.7527 > GOOD_5 0.7519 > D1 0.7506. D2 beats GOOD_5
+   significantly (p=0.037) and beats every prior DUFS variant, but under LOCO-CV budget selection
+   lands 0.7572, below GOOD_6, and its math edge is p=0.2114 (9W/6L). The best D2 configuration is
+   GOOD_6 **plus one** selected feature at 0.7590, i.e. adding any selected feature to GOOD_6 hurts
+   macro at every budget K=7..20 even with the budget chosen on test data.
+4. **Adaptive-K (D1) is refuted.** Five label-free size rules tested against oracle K
+   (`results/advisor_inscope/adaptive_k_validation_rules.csv`): best rule r_s = +0.007, p = 0.975.
+   The residual correlating with AUROC (r=0.65) does not transfer to predicting the optimal size.
+   `D1_alone` is the worst of seven arms. Closed.
+5. **The one real win of the step is the pseudo-label seed rule**: `ANCHOR_PRIORITY`x4 -> `GOOD_6`
+   (`A6_SEED_RULE` env, default `good6`) takes the pseudo-label from 0.7249/0.6821 QA to
+   0.7594/0.7274 QA and removes 2 sign-inverted cells. A weak consensus target points the gates at
+   the wrong features, it does not merely add noise.
+6. **The bottleneck is estimation, not model capacity, and the QA deficit is two cells.** The
+   per-cell supervised oracle is logistic regression, i.e. a stationary global linear model with
+   fixed per-feature signs, and it reaches 0.7810 macro / 0.7524 QA on the same 30 features
+   (`lr_oracle_audit.csv`, `fset=30`). So the linear class already contains a solution above us.
+   The QA gap concentrates in `inside_coqa_llama7b` (0.667 vs oracle 0.826, INSIDE publishes 0.804:
+   **estimation failure**) and `seiclr_triviaqa_opt30b` (0.588 vs oracle 0.720 while SE publishes
+   0.830: **feature-coverage failure that no fusion change can fix**). The other 8 QA cells average
+   ~0 gap to the supervised oracle. This kills the "stationary sign bottleneck" framing and the
+   three methods proposed on top of it (regime-conditional signs, SNF, GMM density ratio).
+7. **Next**: `SPEC_gap_ladder.md` (repo root) specifies a 7-rung gap-decomposition ladder at two
+   feature sets with pre-registered kill-gates: `R3->R4` (supervised nonlinear vs supervised linear)
+   kills the nonlinear directions if flat, `R3->R5` (oracle regime signs) kills the non-stationary
+   sign direction. Both run with labels, so a negative is conclusive. Gemini implements
+   `scripts/gap_ladder.py`, Claude reviews and analyses. Candidate follow-ons if sign recovery
+   dominates: Z2 synchronisation on the pairwise-sign matrix (`sign(cov_ij)` estimates `s_i*s_j`)
+   and a robust (Spearman / Tyler) covariance in place of Pearson.
+
 **Step-186 outcome (headline numbers, superseded as above)**:
 - **No learned selector beats the curated subsets.** c46/repgrid-19 macro: GOOD_6 0.7440 >
   top_macro_5 0.7364 > GOOD_5 0.7328; best learned = **GroupFS `a2.select` 0.7323 — a
@@ -460,12 +495,75 @@ error localization.
 
 ---
 
+### Extension H — Prior-Free L-SML: derive orientation, size, and selection from structure alone (NEW top priority, Step 199, 2026-07-25)
+
+**Omri's decision (2026-07-25).** Stop optimizing the prior-dependent selector. Every piece of the
+current pipeline is bootstrapped from hand-picked prior knowledge, and Step 199 proved that caps it:
+
+- **Seeds = GOOD_6** (a hand-picked subset) build the pseudo-label. The GOOD_6-seeded pseudo-label
+  is **byte-identical to the GOOD_6 fused score on 25/25 cells** (`pseudolabel_quality_audit.csv`),
+  so the selector is guided by GOOD_6 and mathematically cannot beat it.
+- **Anchor = `epr` / `logprob_margin`** (a hand-picked feature) sets the orientation sign.
+- **K = 15** is a fixed hyperparameter.
+
+A full week of variants over this scaffolding moved macro AUROC ~1pp and stayed 0.2pp under GOOD_6.
+The goal now: a selector with **zero hand-picked features or subsets**, deriving all three decisions
+from the data's own structure. Three sub-problems.
+
+**H1 — Orientation without an anchor feature.** *Current*: `anchor_orient` against `epr`.
+*Target*: recover the fused score's sign from structure alone. *Candidate*: Z2 synchronization —
+`sign(cov_ij)` is a noisy observation of `s_i * s_j`, so recover the relative sign vector
+`s in {+/-1}^p` spectrally / by SDP from the pairwise-sign matrix (no anchor). The single remaining
+global +/-1 ambiguity is broken by a **distributional** prior, not a feature: e.g. the class-imbalance
+mode (hallucination is the minority) or the skew of the consensus score. *Honest caveat (Step 199)*:
+at small subsets orientation costs ~0 (R2-R0 = +0.0002 at GOOD_6) but at the full pool it costs
+~2pp — so prior-free orientation matters most precisely in the large-pool regime a prior-free
+selector operates in.
+
+**H2 — Feature-set size without a fixed K.** *Current*: fixed K=15; the residual-elbow rule already
+**FAILED** (Step 198, r_s=+0.007 vs oracle-K). *Target*: a label-free size from the covariance
+spectrum. *Candidates*: effective rank / participation ratio of `cov(V)`; count of eigenvalues above
+a Marchenko-Pastur noise floor (the "signal dimension" under L-SML's low-rank model); bootstrap
+stability selection. *Must* be validated against oracle-K the same honest way D1 was — correlating
+with AUROC is not predicting the optimal size.
+
+**H3 — Feature selection without seed priors.** *Current*: mRMR against a GOOD_6-seeded pseudo-label
+(proven ≡ GOOD_6). *Target*: a seed-free consensus. *Candidate*: build the pseudo-label as the
+**L-SML consensus over ALL features** (Nadler/Jaffe: the ensemble's self-consistent agreement, which
+down-weights uninformative views through the covariance structure), then select features by
+agreement with that consensus and iterate. *Risk*: garbage features polluting the consensus — bound
+it with the never-run **R6** (perfect-target ceiling, `SPEC_gap_ladder.md`) and a low-signal-cell
+guard. This is the natural escape from the GOOD_6 cap because the full-pool consensus is not tied to
+any hand-picked subset.
+
+**Grounding**: all three sit in the project's spectral-meta-learning lineage (Nadler 2012, Jaffe
+2014, Parisi) — the right place to look for structure-only estimators of orientation (Z2 sync),
+dimension (spectrum), and consensus (L-SML over all views).
+
+**Decision gate**: a prior-free pipeline is worth adopting only if it reaches **GOOD_6 (0.7594)**
+with zero hand-picked input. Matching GOOD_6 prior-free is itself a real contribution (it removes the
+hand-tuning); beating it is the headline. First concrete step (CPU): H3's full-pool L-SML consensus
+pseudo-label + H1's Z2-sync orientation, benched vs GOOD_6 on the 25 cells, before touching H2.
+
+---
+
 ## Recommended Priority Order
 
 *(Single authoritative list — updated 2026-07-02, post streaming pilot Step 148)*
 
 **Now — no GPU needed**
-0. ~~Feature-subset selection: memo (Step 185), full bench (Step 186), punch-list + split-half oracle (Step 189), a6 pseudo-label gates + 30-view LOCO sweep (Steps 194-195)~~ ✅ done — **the sweep found a NEW 5-view subset that honestly beats GOOD_6** (+0.73pp, p=0.029, LOCO-stable 22/25 folds; see Extension G update above). **Next**: name it, add to `REFERENCE_SUBSETS`, run the report chain, present to Ofir/Bracha; decide the sizes-3-6 extension (~3-4 days CPU, stop-rule-justified)
+0. **← TOP PRIORITY (Step 199): Extension H — Prior-Free L-SML.** Strip every hand-picked prior
+   (`epr` anchor, `GOOD_6` seeds, fixed K) from the pipeline; derive orientation (H1, Z2 sync),
+   size (H2, covariance spectrum), and selection (H3, seed-free full-pool L-SML consensus) from
+   structure alone. First bench: H3 consensus pseudo-label + H1 orientation vs GOOD_6 on 25 cells.
+   See Extension H above. **Rationale**: the prior-dependent selector (Extension G) is proven capped
+   at GOOD_6 — the GOOD_6-seeded pseudo-label is byte-identical to the GOOD_6 fusion on 25/25 cells.
+0b. ~~Feature-subset selection: memo (Step 185), full bench (Step 186), a6 pseudo-label gates +
+   30-view LOCO sweep (Steps 194-195), D1/D2 build + honest refutation (Steps 197-198)~~ ✅ **CLOSED
+   as bounded** — no label-free selector beats GOOD_6; D1 (adaptive-K) refuted, D2 (PL-mRMR) beats
+   GOOD_5 (p=0.037) but not GOOD_6. The one durable win is the seed rule (→GOOD_6, +3.5pp macro).
+   `LOCO_5` (sweep consensus, 77.1% on 24 cells) is the strongest fixed subset found and still
+   warrants naming + `REFERENCE_SUBSETS` entry independent of Extension H.
 1. ~~L-SML literature search (Item 1)~~ ✅ done (Step 139)
 2. ~~Logistic regression oracle `scripts/logistic_oracle.py` (Item 2)~~ ✅ done (Steps 142–143, 147)
 3. ~~Streaming pivot pilot (Extension E)~~ ✅ done (Step 148 — G1 PASS / G2 FAIL; earliest-prefix edge is the surviving thread)

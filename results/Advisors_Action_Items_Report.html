@@ -95,10 +95,14 @@
     honest headline is domain-scoped: <strong>it works on reasoning traces (math), is competitive
     on GSM8K, and is out of regime on GPQA / multi-hop RAG.</strong> This report leads with the
     reasoning-domain competitor grid — our strongest evidence — which the previous draft omitted.</p>
-    <div class="takeaway-box"><b>One-line result:</b> on <strong>MATH-500 / Qwen2.5-Math-7B</strong>
-    our unsupervised single-pass L-SML reaches <strong>94.4 AUROC</strong>, and on the same
-    <strong>R1-Distill-8B / MATH-500</strong> cell used by the supervised ARS detector (86.4) our
-    unsupervised GOOD_5 reaches <strong>84.4</strong> — nearly matching a trained method with zero labels.</p>
+    <div class="takeaway-box"><b>One-line result:</b> on <strong>MATH-500 / Qwen2.5-Math-7B</strong> (T=1.0)
+    our unsupervised single-pass L-SML reaches <strong>85.1 AUROC</strong> [77.7, 91.8] (at a T=1.5,
+    accuracy-28% operating point the same cell reaches 94.4 — see the reasoning table below for both),
+    and on the same <strong>R1-Distill-8B / MATH-500</strong> cell used by ARS's own unsupervised CCS
+    detector (86.4 — corrected: this is ARS's unsupervised variant, not its supervised one; see
+    scrutiny page) our unsupervised GOOD_5 reaches <strong>84.4</strong> — nearly matching another
+    unsupervised method with a completely different signal (internal representations vs. our
+    entropy trace).</p>
   </div>
 
   <!-- ITEM 4 REASONING FIRST -->
@@ -121,16 +125,17 @@
     <table>
       <thead><tr><th>Cell</th><th>Method</th><th>Supervision</th><th>Category</th><th>AUROC</th><th>Note</th></tr></thead>
       <tbody>
-      <tr style="background:#eff6ff"><td rowspan="3"><strong>MATH-500</strong><br><span style="color:#64748b;font-size:13px">Qwen2.5-Math-7B</span></td><td>👉 L-SML continuous 5-feat</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td><strong>94.4 <span style="color:#94a3b8">[90.1, 97.7]</span></strong></td><td style="font-size:12.5px;color:#64748b">Our reasoning headline. Beats K=10 sampling at ~10x less compute.</td></tr>
+      <tr style="background:#eff6ff"><td rowspan="4"><strong>MATH-500</strong><br><span style="color:#64748b;font-size:13px">Qwen2.5-Math-7B</span></td><td>👉 L-SML GOOD_5</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td><strong>85.1 <span style="color:#94a3b8">[77.7, 91.8]</span></strong></td><td style="font-size:12.5px;color:#64748b"> N=200) / HISTORY Step 182</td></tr>
+<tr style="background:#eff6ff"><td>👉 L-SML GOOD_5 (T=1.5)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td><strong>94.4 <span style="color:#94a3b8">[90.1, 97.7]</span></strong></td><td style="font-size:12.5px;color:#64748b">T=1.5, acc 0.28 operating point (harder task, easier detection) -- NOT T=1.0. The math500_res.pkl cell keyed _T1.0 actually holds this Phase-4 T=1.5 run (matches on acc AND epr AUROC to 3 decimals). Valid result, but do not present as the T=1.0 headline (Step-152 P2 / Step-174 discrepancy is now resolved: this was a temperature mislabel, not a regression).</td></tr>
 <tr><td>Semantic Entropy NLI</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td>87.7 <span style="color:#94a3b8">[79.7, 93.9]</span></td><td style="font-size:12.5px;color:#64748b">⚠ Old-cache; NLI-truncation on long traces suspected (Step 152 P1). Not yet citable.</td></tr>
 <tr><td>Self-Consistency</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">BB</span></td><td>87.2 <span style="color:#94a3b8">[72.1, 98.4]</span></td><td style="font-size:12.5px;color:#64748b">⚠ Old-cache; pending re-inference reconciliation. Not yet citable.</td></tr>
-<tr style="background:#eff6ff"><td rowspan="5"><strong>MATH-500</strong><br><span style="color:#64748b;font-size:13px">DeepSeek-R1-Distill-Llama-8B</span></td><td>👉 L-SML GOOD_5</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td><strong>84.4</strong></td><td style="font-size:12.5px;color:#64748b">SAME-MODEL head-to-head: our UNSUPERVISED GOOD_5 (84.4) nearly matches ARS SUPERVISED (86.38) on the same R1-Distill-8B/MATH-500 cell. Fixed subset (not label-selected).</td></tr>
-<tr><td>EigenScore (vanilla)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">WB</span></td><td>75.9</td><td style="font-size:12.5px;color:#64748b">Unsup WB baseline on the SAME cell. Our GOOD_5 84.4 beats every unsup baseline here.</td></tr>
+<tr style="background:#eff6ff"><td rowspan="5"><strong>MATH-500</strong><br><span style="color:#64748b;font-size:13px">DeepSeek-R1-Distill-Llama-8B</span></td><td>👉 L-SML GOOD_5 (T=1.5)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td><strong>84.4</strong></td><td style="font-size:12.5px;color:#64748b">SAME-MODEL head-to-head: our UNSUPERVISED GOOD_5 (84.4) nearly matches ARS&#x27;s own UNSUPERVISED CCS variant (86.38) on the same R1-Distill-8B/MATH-500 cell -- NOT a supervised-vs-unsupervised comparison (corrected Step 184: ARS (CCS)&#x27;s &quot;Supervision&quot; column reads No in the paper&#x27;s own Table 1; only the separate ARS (Probing) row is supervised). Fixed subset (not label-selected). CAVEAT (Step 182 A1 / Step 184): this cache cell is confirmed T=1.5 (acc 0.41), not T=1.0 as previously labeled -- same mislabel pattern as the Qwen2.5-Math-7B cell, applies to all 4 legacy math500_res.pkl keys. No genuine T=1.0 re-run exists yet for this model. ARS&#x27;s own protocol is greedy decoding, not T=1.5 sampling, so this comparison is temperature-mismatched on both sides -- report as suggestive, not as a clean same-condition win, until a T=1.0 (or greedy) re-run exists.</td></tr>
+<tr><td>ARS (CCS)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">WB</span></td><td>86.4</td><td style="font-size:12.5px;color:#64748b">Unsupervised (paper&#x27;s own &quot;Supervision&quot; column marks ARS (CCS) = No -- corrected Step 184). Best baseline in-paper G-Detector 64.45 (that baseline IS supervised, unlike ARS (CCS) itself). SAME-MODEL as our matched cell below.</td></tr>
+<tr><td>EigenScore (vanilla)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">WB</span></td><td>75.9</td><td style="font-size:12.5px;color:#64748b">Unsup WB baseline on the SAME cell. Our GOOD_5 84.4 (T=1.5</td></tr>
 <tr><td>Semantic Entropy</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td>43.6</td><td style="font-size:12.5px;color:#64748b">Collapses on long R1 reasoning traces.</td></tr>
 <tr><td>Perplexity</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td>41.0</td><td style="font-size:12.5px;color:#64748b">Collapses on long R1 reasoning traces.</td></tr>
-<tr><td>ARS (CCS)</td><td><span style="color:#dc2626;font-weight:600">supervised</span></td><td><span class="mono">SUP</span></td><td>86.4</td><td style="font-size:12.5px;color:#64748b">Supervised. Best baseline in-paper G-Detector 64.45. SAME-MODEL as our matched cell below.</td></tr>
-<tr><td rowspan="2"><strong>MATH-500</strong><br><span style="color:#64748b;font-size:13px">Qwen3-8B</span></td><td>EigenScore (vanilla)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">WB</span></td><td>81.4</td><td style="font-size:12.5px;color:#64748b">Fair UNSUP anchor beside supervised ARS 78.66. Our matched run (jobs 106305-08, greedy/mn16384, N=500, fetched 2026-07-12): documented REJECT - 23/50 negatives cap-pinned at 16384 (p95 trace = cap; Qwen3 reasoning on hard MATH-500 items is effectively unbounded, so truncation-label leakage persists even at 16k). Both Qwen3/ARS cells now closed as REJECT-leakage; note the confound may equally affect any capped greedy Qwen3 protocol.</td></tr>
-<tr><td>ARS (CCS)</td><td><span style="color:#dc2626;font-weight:600">supervised</span></td><td><span class="mono">SUP</span></td><td>78.7</td><td style="font-size:12.5px;color:#64748b">Supervised representation shaping. Best baseline in-paper TSV 63.12. Different model.</td></tr>
+<tr><td rowspan="2"><strong>MATH-500</strong><br><span style="color:#64748b;font-size:13px">Qwen3-8B</span></td><td>ARS (CCS)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">WB</span></td><td>78.7</td><td style="font-size:12.5px;color:#64748b">Unsupervised (paper&#x27;s own Table 1 &quot;Supervision&quot; column marks ARS (CCS) = No; only the separate &quot;ARS (Probing)&quot; row is supervised -- corrected Step 184, verified against papers/extracted/). Best baseline in-paper TSV 63.12. Different model.</td></tr>
+<tr><td>EigenScore (vanilla)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">WB</span></td><td>81.4</td><td style="font-size:12.5px;color:#64748b">Fair UNSUP anchor beside ARS&#x27;s own unsupervised CCS variant 78.66 (not supervised -- corrected Step 184). Our matched run (jobs 106305-08, greedy/mn16384, N=500, fetched 2026-07-12): documented REJECT - 23/50 negatives cap-pinned at 16384 (p95 trace = cap; Qwen3 reasoning on hard MATH-500 items is effectively unbounded, so truncation-label leakage persists even at 16k). Both Qwen3/ARS cells now closed as REJECT-leakage; note the confound may equally affect any capped greedy Qwen3 protocol.</td></tr>
 <tr style="background:#eff6ff"><td rowspan="10"><strong>GSM8K</strong><br><span style="color:#64748b;font-size:13px">Llama-3.1-8B</span></td><td>👉 L-SML continuous 5-feat</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td><strong>75.6 <span style="color:#94a3b8">[72.2, 79.0]</span></strong></td><td style="font-size:12.5px;color:#64748b">Competitive vs K=10 sampling at 1-pass.</td></tr>
 <tr style="background:#eff6ff"><td>👉 L-SML GOOD_5 (repgrid)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td><strong>81.5</strong></td><td style="font-size:12.5px;color:#64748b">Fresh local re-score on the cluster GSM8K trace (N=500). GOOD_5 = epr, low_band_power, sw_var_peak, cusum_max, spectral_entropy.</td></tr>
 <tr><td>EDIS (-EDIS conf)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td>80.9 <span style="color:#94a3b8">[76.1, 85.0]</span></td><td style="font-size:12.5px;color:#64748b">EDIS competitor scored on OUR trace (local). rho(EDIS,L-SML)=0.87 -&gt; not complementary, both beat LapEigvals-unsup.</td></tr>
@@ -146,13 +151,13 @@
 <tr><td>Sequence logprob</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td>80.8</td><td style="font-size:12.5px;color:#64748b">Scored on OUR trace (like EDIS). Strong simple baseline.</td></tr>
 <tr><td>Perplexity</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td>75.9</td><td style="font-size:12.5px;color:#64748b">Scored on OUR trace.</td></tr>
 <tr><td>LapEigvals probe</td><td><span style="color:#dc2626;font-weight:600">supervised</span></td><td><span class="mono">SUP</span></td><td>88.5</td><td style="font-size:12.5px;color:#64748b">Supervised ceiling.</td></tr>
-<tr style="background:#eff6ff"><td rowspan="5"><strong>GSM8K</strong><br><span style="color:#64748b;font-size:13px">DeepSeek-R1-Distill-Llama-8B</span></td><td>👉 L-SML GOOD_5 (repgrid)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td><strong>75.0 <span style="color:#94a3b8">[70.4, 79.7]</span></strong></td><td style="font-size:12.5px;color:#64748b">SAME-MODEL head-to-head, paper decoding (greedy per ARS 5.1): our UNSUPERVISED GOOD_5 75.0 (GOOD_5+logprob 75.6) BEATS the SUPERVISED ARS anchor 74.72 and beats every ARS Table-2 unsup baseline by 13pp+ (SE 61.98, PPL 58.48, EigenScore 52.98). acc 0.728, no cap-pinning (max 1406 tok). Caveat: our seq-logprob ubaseline on the same traces = 77.2 (ubaseline_scores.csv).</td></tr>
+<tr style="background:#eff6ff"><td rowspan="5"><strong>GSM8K</strong><br><span style="color:#64748b;font-size:13px">DeepSeek-R1-Distill-Llama-8B</span></td><td>👉 L-SML GOOD_5 (repgrid)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td><strong>75.0 <span style="color:#94a3b8">[70.4, 79.7]</span></strong></td><td style="font-size:12.5px;color:#64748b">SAME-MODEL head-to-head, paper decoding (greedy per ARS 5.1): our UNSUPERVISED GOOD_5 75.0 (GOOD_5+logprob 75.6) beats ARS&#x27;s own UNSUPERVISED CCS anchor 74.72 (NOT supervised -- corrected Step 184: ARS (CCS)&#x27;s &quot;Supervision&quot; column reads No in the paper&#x27;s Table 1) and beats every ARS unsup baseline by 13pp+ (SE 61.98, PPL 58.48 -- both Table 1, alongside CCS, not Table 2 as previously mislabeled; EigenScore 52.98 is genuinely Table 2). acc 0.728, no cap-pinning (max 1406 tok). Caveat: our seq-logprob ubaseline on the same traces = 77.2 (ubaseline_scores.csv).</td></tr>
+<tr><td>ARS (CCS)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">WB</span></td><td>74.7</td><td style="font-size:12.5px;color:#64748b">Unsupervised (paper&#x27;s own &quot;Supervision&quot; column marks ARS (CCS) = No -- corrected Step 184). Best baseline in-paper G-Detector 70.38 (that baseline IS supervised). Target for our matched R1-Distill cell (A4).</td></tr>
 <tr><td>EigenScore (vanilla)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">WB</span></td><td>53.0</td><td style="font-size:12.5px;color:#64748b">Unsup baseline for our queued ars_gsm8k_r1distill8b cell.</td></tr>
 <tr><td>Semantic Entropy</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td>62.0</td><td style="font-size:12.5px;color:#64748b"></td></tr>
 <tr><td>Perplexity</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td>58.5</td><td style="font-size:12.5px;color:#64748b"></td></tr>
-<tr><td>ARS (CCS)</td><td><span style="color:#dc2626;font-weight:600">supervised</span></td><td><span class="mono">SUP</span></td><td>74.7</td><td style="font-size:12.5px;color:#64748b">Supervised. Best baseline in-paper G-Detector 70.38. Target for our matched R1-Distill cell (A4).</td></tr>
-<tr><td rowspan="2"><strong>GSM8K</strong><br><span style="color:#64748b;font-size:13px">Qwen3-8B</span></td><td>EigenScore (vanilla)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">WB</span></td><td>63.4</td><td style="font-size:12.5px;color:#64748b">Fair UNSUP anchor beside supervised ARS 90.37. Our matched run (job 106278 chain, greedy/mn8192, N=500, fetched 2026-07-12): documented REJECT - acc 0.942 ceiling (29 negatives &lt; min_minority 30) AND 15/29 negatives cap-pinned at 8192 tok (truncation-label leakage persists at greedy decoding; the wave-2 confound reproduced at full N). Not scored into scores_lsml_upcr.csv - same policy as the gemma2b floor-REJECT.</td></tr>
-<tr><td>ARS (CCS)</td><td><span style="color:#dc2626;font-weight:600">supervised</span></td><td><span class="mono">SUP</span></td><td>90.4</td><td style="font-size:12.5px;color:#64748b">Supervised. Best baseline in-paper SE 72.51. Different model.</td></tr>
+<tr><td rowspan="2"><strong>GSM8K</strong><br><span style="color:#64748b;font-size:13px">Qwen3-8B</span></td><td>ARS (CCS)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">WB</span></td><td>90.4</td><td style="font-size:12.5px;color:#64748b">Unsupervised (paper&#x27;s own &quot;Supervision&quot; column marks ARS (CCS) = No -- corrected Step 184). Best baseline in-paper SE 72.51. Different model.</td></tr>
+<tr><td>EigenScore (vanilla)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">WB</span></td><td>63.4</td><td style="font-size:12.5px;color:#64748b">Fair UNSUP anchor beside ARS&#x27;s own unsupervised CCS variant 90.37 (not supervised -- corrected Step 184). Our matched run (job 106278 chain, greedy/mn8192, N=500, fetched 2026-07-12): documented REJECT - acc 0.942 ceiling (29 negatives &lt; min_minority 30) AND 15/29 negatives cap-pinned at 8192 tok (truncation-label leakage persists at greedy decoding; the wave-2 confound reproduced at full N). Not scored into scores_lsml_upcr.csv - same policy as the gemma2b floor-REJECT.</td></tr>
 <tr style="background:#eff6ff"><td rowspan="5"><strong>GSM8K</strong><br><span style="color:#64748b;font-size:13px">Qwen2.5-7B</span></td><td>👉 L-SML GOOD_5 U-PCR (repgrid)</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td><strong>69.1 <span style="color:#94a3b8">[64.0, 73.8]</span></strong></td><td style="font-size:12.5px;color:#64748b">SAME-MODEL at the PAPER operating point (T=0.8 per IS 3.1; supersedes the not-citable T=1.0 run). acc 0.306 - T=0.8 only partially recovers the sampling collapse (greedy ~85%). U-PCR GOOD_5 69.1 edges the fair unsup Y SelfCheckGPT 67.98 (+1.1pp); L-SML 62.8; GOOD_5+logprob L-SML 68.8. Loses to the SUPERVISED IS probe 79.15 (-10pp) as expected. Caveat: our seq-logprob ubaseline on the same traces = 70.5 (ubaseline_scores.csv).</td></tr>
 <tr><td>SelfCheckGPT</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">BB</span></td><td>68.0</td><td style="font-size:12.5px;color:#64748b">Fair unsup Y for our cell. T-matched re-run scored: see our T=0.8 row (U-PCR GOOD_5 69.1 edges this anchor by +1.1pp).</td></tr>
 <tr><td>Semantic Entropy</td><td><span style="color:#16a34a;font-weight:600">unsupervised</span></td><td><span class="mono">UGB</span></td><td>58.4</td><td style="font-size:12.5px;color:#64748b"></td></tr>
@@ -182,7 +187,8 @@
     <div class="takeaway-box"><b>Reasoning verdict:</b> single-pass unsupervised L-SML
     <strong>beats LapEigvals' same-model unsupervised AttentionScore (72.0)</strong> on GSM8K, sits
     within a few points of the supervised LapEigvals probe (87.2), and on R1-Distill/MATH-500
-    <strong>nearly matches the supervised ARS detector</strong> (84.4 vs 86.4) with no labels and one
+    <strong>nearly matches ARS's own unsupervised CCS detector</strong> (84.4 vs 86.4 — both
+    unsupervised, different signals: internal representations vs. our entropy trace) with one
     forward pass. EDIS scored on our GSM8K trace = 80.9, but it is
     <strong>redundant with L-SML</strong> (ρ = 0.8749), so it adds no fusion lift.</p></div>
     <div class="warn-box"><b>Suspected, unresolved — long-CoT NLI truncation:</b> the K=10 sampling
@@ -203,12 +209,12 @@
       <thead><tr><th>Paper / competitor</th><th>Dataset</th><th>Model</th><th>Ours (X)</th>
       <th>Published (Y)</th><th>EDIS (ours)</th><th>Outcome</th></tr></thead>
       <tbody>
-      <tr><td><strong>Semantic Energy (Chen et al., 2508.14496)</strong></td><td>TriviaQA</td><td>Qwen3-8B</td><td><strong>80.1</strong> <span style="color:#64748b;font-size:12px">(L-SML GOOD_5)</span></td><td>74.8</td><td>59.3</td><td><span class="win">+5.3 WIN</span></td></tr>
+      <tr><td><strong>Semantic Energy (Chen et al., 2508.14496)</strong></td><td>TriviaQA</td><td>Qwen3-8B</td><td><strong>81.6</strong> <span style="color:#64748b;font-size:12px">(L-SML GOOD_6)</span></td><td>74.8</td><td>59.3</td><td><span class="win">+6.8 WIN</span></td></tr>
 <tr><td><strong>EPR — Entropy Production Rate</strong></td><td>TriviaQA (Wiki)</td><td>Mistral-24B</td><td><strong>73.6</strong> <span style="color:#64748b;font-size:12px">(U-PCR + logprob)</span></td><td>74.6</td><td>66.3</td><td><strong>-1.0 tie</strong></td></tr>
 <tr><td><strong>Semantic Entropy (Kuhn/Gal/Farquhar, ICLR&#x27;23)</strong></td><td>TriviaQA</td><td>OPT-30B</td><td><strong>63.0</strong> <span style="color:#64748b;font-size:12px">(L-SML consensus_4)</span></td><td>83.0</td><td>54.0</td><td><span class="loss">-20.0</span></td></tr>
 <tr><td><strong>INSIDE / EigenScore (2402.03744)</strong></td><td>CoQA</td><td>LLaMA-7B</td><td><strong>68.4</strong> <span style="color:#64748b;font-size:12px">(L-SML GOOD_5)</span></td><td>80.4</td><td>63.7</td><td><span class="loss">-12.0</span> <span class="loss">[FLOOR]</span></td></tr>
-<tr><td><strong>LOS-Net (supervised probe)</strong></td><td>HotpotQA</td><td>Mistral-7B-v0.2</td><td><strong>58.1</strong> <span style="color:#64748b;font-size:12px">(L-SML GOOD_5+spilled)</span></td><td>72.9 (supervised-probe anchor)</td><td>57.0</td><td><span class="loss">-14.9</span></td></tr>
-<tr><td><strong>SE-ICLR protocol (adapted, judge labels)</strong></td><td>NQ-Open</td><td>Llama-3.1-8B</td><td><strong>74.1</strong> <span style="color:#64748b;font-size:12px">(L-SML GOOD_5+logprob)</span></td><td>n/a</td><td>62.1</td><td><span style="color:#94a3b8">no clean published anchor</span></td></tr>
+<tr><td><strong>LOS-Net (supervised probe)</strong></td><td>HotpotQA</td><td>Mistral-7B-v0.2</td><td><strong>58.1</strong> <span style="color:#64748b;font-size:12px">(L-SML GOOD_6)</span></td><td>72.9 (supervised-probe anchor)</td><td>57.0</td><td><span class="loss">-14.8</span></td></tr>
+<tr><td><strong>SE-ICLR protocol (adapted, judge labels)</strong></td><td>NQ-Open</td><td>Llama-3.1-8B</td><td><strong>74.1</strong> <span style="color:#64748b;font-size:12px">(L-SML GOOD_5+logprob)</span></td><td>90.4</td><td>62.1</td><td><span class="loss">-16.3</span></td></tr>
       </tbody>
     </table>
     <div class="warn-box"><b>Selection-bias caveats (do not read as headline wins):</b>
@@ -280,6 +286,31 @@
     <span class="mono">STABLE_H9</span> add nothing and often hurt (block collinearity). A single
     <strong>5-feature GOOD_5</strong> set is the defensible cross-domain default; the new
     energy/logprob views help only specific QA cells and do not displace it.</div>
+
+    <h3 style="margin-top:28px">Validated size-ladder: consensus_4 &rarr; GOOD_5 &rarr; GOOD_6</h3>
+    <p><span class="mono">GOOD_6</span> = <span class="mono">GOOD_5</span> + <span class="mono">varentropy</span>
+    (Step 182 sweep finding). It needs per-token top-50 logprobs, an AIRCC-era-only capture field that
+    never existed in the old pre-AIRCC battery — so unlike the table above, <strong>every column here is
+    scored on the exact same 19-cell replication grid</strong> (no old-battery cells mixed in), to keep the
+    three subset sizes on a single, consistent footprint.</p>
+    <table>
+      <thead><tr><th>Domain</th><th>consensus_4 (4-feat)</th><th>GOOD_5 (5-feat)</th><th>GOOD_6 (6-feat)</th></tr></thead>
+      <tbody>
+      <tr><td><strong>Reasoning-Math</strong> <span style="color:#94a3b8">(9 cells)</span></td><td>58.8</td><td>74.6</td><td style="background:#ecfdf5;font-weight:700">76.2</td></tr>
+<tr><td><strong>Short-QA</strong> <span style="color:#94a3b8">(9 cells)</span></td><td>68.5</td><td>71.9</td><td style="background:#ecfdf5;font-weight:700">72.5</td></tr>
+<tr><td><strong>MCQ-Science</strong> <span style="color:#94a3b8">(1 cells)</span></td><td>70.0</td><td>73.8</td><td style="background:#ecfdf5;font-weight:700">74.8</td></tr>
+<tr style="border-top:2px solid #333"><td><strong>MACRO (19-cell grid)</strong> <span style="color:#94a3b8">(19 cells)</span></td><td>64.0</td><td>73.3</td><td style="background:#ecfdf5;font-weight:700">74.4</td></tr>
+      </tbody>
+    </table>
+    <div class="takeaway-box"><b>Size-ladder takeaway:</b> on the 19-cell replication
+    grid, macro AUROC rises monotonically with size across this specific ladder —
+    <span class="mono">consensus_4</span> 64.0
+    &rarr; <span class="mono">GOOD_5</span> 73.3
+    &rarr; <span class="mono">GOOD_6</span> 74.4 — with GOOD_6
+    significantly positive on 15/19 cells and negative on
+    2. This does not overturn GOOD_5 as the canonical cross-domain default (GOOD_6's
+    extra feature is AIRCC-capture-only, so it cannot run on the older battery this report also draws on) —
+    it is an additional, same-data comparison arm, not a replacement.</div>
   </div>
 
   <!-- ITEM 1 FUSE -->
@@ -331,25 +362,26 @@
   <!-- ITEM 5 SAMPLING FUSION -->
   <div class="section-card" id="item5">
     <span class="section-badge badge-completed">Action item 5</span>
-    <h2>Sampling fusion: single-pass L-SML vs Semantic Entropy K=10</h2>
-    <p>Does adding K=10 Semantic Entropy to our K=1 spectral features help on GSM8K / Llama-3.1-8B?</p>
+    <h2>Sampling fusion: does adding 5 extra samples help?</h2>
+    <p>Per MATH-500 question, we fuse our single-pass spectral score (L-SML GOOD_5) with a K=5
+    answer-agreement signal (how often 5 sampled answers at the same temperature agree with each
+    other) and check whether the combination beats either signal alone.</p>
     <div class="grid2">
       <div><table>
-        <thead><tr><th>Method</th><th>K</th><th>AUROC</th><th>Cost</th></tr></thead>
+        <thead><tr><th>Arm</th><th>K</th><th>AUROC [95% CI]</th></tr></thead>
         <tbody>
-        <tr><td>Likelihood-weighted Semantic Entropy</td><td>10</td><td>0.614</td><td>10× compute</td></tr>
-        <tr><td>SelfCheckGPT (official soft NLI)</td><td>5</td><td>0.701</td><td>5× + NLI</td></tr>
-        <tr><td><strong>Single-pass spectral L-SML (GOOD_5)</strong></td><td><strong>1</strong></td><td><strong>0.754</strong></td><td><strong>1× (zero extra)</strong></td></tr>
-        <tr><td>Sampling fusion (SE K=10 + L-SML)</td><td>10</td><td><strong>0.758</strong></td><td>10× compute</td></tr>
+        <tr><td>L-SML GOOD_5, single pass</td><td>1</td><td>85.1 [77.7, 91.8]</td></tr>
+        <tr><td>Answer-agreement</td><td>5</td><td>82.1 [75.8, 87.9]</td></tr>
+        <tr><td><strong>Fused (z-score average)</strong></td><td><strong>5</strong></td><td><strong>95.2 [91.8, 98.0]</strong></td></tr>
         </tbody></table></div>
-      <div><div class="chart-card"><h4>Single-pass vs multi-pass on GSM8K</h4><canvas id="chartFusion"></canvas></div></div>
+      <div><div class="chart-card"><h4>Single-pass vs fused, MATH-500 / Qwen2.5-Math-7B</h4><canvas id="chartFusion"></canvas></div></div>
     </div>
-    <div class="takeaway-box"><b>Fusion gate did not pass:</b> single-pass L-SML (0.754) already beats
-    every multi-pass sampling baseline. Fusing SE K=10 on top adds only <strong>+0.4pp → 0.758</strong>
-    (ρ = 0.26; PROGRESS Step 152). The reverse — adding L-SML to weak SE — helps SE a lot, confirming
-    L-SML already carries the semantic-uncertainty signal in one pass.</div>
-    <p style="font-size:12.5px;color:#94a3b8">Fusion value 0.758 is the Step-152 handoff number; the
-    <span class="mono">phase12_corrected</span> pkl lives on Drive, so this cites the recorded value.</p>
+    <div class="takeaway-box"><b>Gate PASSES:</b>
+    fusing the two signals reaches <strong>95.2 AUROC</strong>, beating
+    the best single arm by <strong>+10.1pp</strong>
+    — the strongest fusion result in the project. The two signals are genuinely complementary
+    (Spearman ρ = +0.23, well under the 0.75 redundancy bar), so the gain is real
+    information, not averaged noise. Single (dataset, model) cell so far, N=200.</div>
   </div>
 
   <!-- ITEM 6 TEMPERATURE -->
@@ -383,13 +415,13 @@
       <tr><td><strong>1</strong></td><td>Reconcile the SE/SC NLI-truncation drop (re-run NLI with a long-context
       cross-encoder or sentence-level chunking on the fresh long-trace caches).</td>
       <td>Blocks citing the old-cache SE 87.7 / SC 87.2 reasoning baselines. Step-152 Priority 1.</td></tr>
-      <tr><td><strong>2</strong></td><td>Run the matched <span class="mono">ars_gsm8k_r1distill8b</span> cluster
-      cell (preset added; smoke passes). MATH-500/R1-Distill already exists (GOOD_5 84.4 vs ARS 86.4).</td>
-      <td>Completes the same-model ARS head-to-head with a second point (vs ARS 74.72 on GSM8K).</td></tr>
-      <tr><td><strong>3</strong></td><td>Score EDIS on MATH-500 from the Drive raw-trace cache
-      (<span class="mono">math500_qwen7b_T1.0_run*.pkl</span>) on Colab: <span class="mono">python
-      scripts/score_edis.py --pkl &lt;drive_path&gt; --cell math500_qwen7b</span>.</td>
-      <td>50MB pkl is too large to pull through the MCP bridge here; GSM8K EDIS already covers the reasoning claim.</td></tr>
+      <tr><td><strong>2</strong></td><td><s>Run the matched <span class="mono">ars_gsm8k_r1distill8b</span> cluster
+      cell</s> — done: GOOD_5 75.0 [70.4, 79.7] vs ARS 74.7 on GSM8K (CI-overlapping, see item 4).</td>
+      <td>Closed — the same-model ARS head-to-head now has both a GSM8K and a MATH-500 point.</td></tr>
+      <tr><td><strong>3</strong></td><td>EDIS-vs-L-SML replication is now its own much larger effort
+      (GSM8K/MATH-500/AMC23/AIME24 &times; 3 temperatures on base Qwen2.5-Math-1.5B) — in progress on
+      AIRCC, analysis deferred to a fresh session (Step 183).</td>
+      <td>Supersedes the original narrow "score EDIS on one MATH-500 cache" plan.</td></tr>
       <tr><td><strong>4</strong></td><td>Treat <span class="mono">spilled_triviaqa</span> (n_pos=6) and
       <span class="mono">se_squad</span> (valid 0.29) as selection-biased; do not headline them.</td>
       <td>Prevents an inflated boundary-QA number from misrepresenting the QA story.</td></tr>
@@ -405,9 +437,9 @@
     {label:'Sup LR CV',data:[68.9,66.8,67.8],backgroundColor:'#10b981'},
     {label:'In-sample ceiling',data:[70.5,73.7,79.3],backgroundColor:'#cbd5e1'}]},
     options:{responsive:true,scales:{y:{min:55,max:85,title:{display:true,text:'Macro AUROC (%)'}}},plugins:{legend:{position:'top'}}}});
-  new Chart(document.getElementById('chartFusion'),{type:'bar',data:{labels:['SE (K=10)','SelfCheckGPT (K=5)','Single-pass L-SML (K=1)','SE + L-SML (K=10)'],
-    datasets:[{label:'AUROC on GSM8K',data:[0.614,0.701,0.754,0.758],backgroundColor:['#94a3b8','#94a3b8','#2563eb','#10b981']}]},
-    options:{responsive:true,scales:{y:{min:0.5,max:0.85,title:{display:true,text:'AUROC'}}},plugins:{legend:{display:false}}}});
+  new Chart(document.getElementById('chartFusion'),{type:'bar',data:{labels:['L-SML (K=1)','Answer-agreement (K=5)','Fused (K=1+5)'],
+    datasets:[{label:'AUROC on MATH-500',data:[0.8505830027647553,0.8206515206154587,0.9517970909965139],backgroundColor:['#94a3b8','#94a3b8','#10b981']}]},
+    options:{responsive:true,scales:{y:{min:0.7,max:1.0,title:{display:true,text:'AUROC'}}},plugins:{legend:{display:false}}}});
   new Chart(document.getElementById('chartTemp'),{type:'bar',data:{labels:['Single (T=1.0)','Same-T (5×T=1.0)','Diverse-T (0.3..2.0)'],
     datasets:[{label:'AUROC',data:[0.851,0.912,0.859],backgroundColor:['#64748b','#10b981','#f59e0b']}]},
     options:{responsive:true,scales:{y:{min:0.75,max:0.95,title:{display:true,text:'Multi-pass AUROC'}}},plugins:{legend:{display:false}}}});

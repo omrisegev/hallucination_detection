@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<title>D2 corrected K-sweep + LOCO CV</title>
+<style>
+ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f4f7f9;color:#333;margin:0;padding:20px}
+ h1,h2{color:#1e293b}
+ .card{background:#fff;padding:20px;border-radius:10px;box-shadow:0 4px 6px rgba(0,0,0,.05);margin-bottom:22px}
+ table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+ th,td{padding:8px 10px;border:1px solid #e2e8f0;text-align:left}
+ th{background:#f8fafc;color:#475569}
+ code{background:#f1f5f9;padding:1px 5px;border-radius:3px}
+ .note{font-size:13px;color:#64748b}
+ .warn{background:#fef3c7;border-left:6px solid #b45309;padding:14px;border-radius:8px}
+</style></head><body>
+
+<div class="card">
+  <h1>D2 corrected budget sweep + honest LOCO CV</h1>
+  <div class="warn"><b>Why this supersedes the first sweep.</b> The PL-MRMR ranking is
+   seeds-first and the seeds are GOOD_6, so on <b>25/25 cells</b> the ranking's top-5 is
+   exactly GOOD_5 and its top-6 is exactly GOOD_6. Every <code>D2 (K&le;6)</code> figure in
+   the earlier sweep was a fixed baseline relabelled, and "K_QA=6 &rarr; 0.7274" was simply
+   GOOD_6's QA macro. PL-MRMR does nothing until K&ge;7, so K&le;6 is excluded here.
+   The earlier 0.7609 also picked K per domain on the very cells it reported.</div>
+  <p class="note" style="margin-top:14px"><b>Rows are colour-coded:</b>
+   <span style="color:#475569">fixed reference</span> ·
+   <span style="color:#b45309">in-sample best K (optimistic, shown only to expose the gap)</span> ·
+   <span style="color:#15803d">LOCO CV (honest, held-out)</span>.</p>
+</div>
+
+<div class="card">
+  <h2>Headline comparison</h2>
+  <table><thead><tr><th>Arm</th><th>K</th><th>Macro (25)</th><th>QA (10)</th>
+   <th>Math (15)</th></tr></thead><tbody><tr><td style='color:#475569'><b>ref.GOOD_5</b></td><td>5</td><td><b>0.7519</b></td><td>0.7210</td><td>0.7725</td></tr><tr><td style='color:#475569'><b>ref.GOOD_6</b></td><td>6</td><td><b>0.7594</b></td><td>0.7274</td><td>0.7807</td></tr><tr><td style='color:#b45309'><b>D2_seeded in-sample best K (all)</b></td><td>7</td><td><b>0.7590</b></td><td>-</td><td>-</td></tr><tr><td style='color:#b45309'><b>D2_seeded in-sample best K (qa)</b></td><td>7</td><td><b>-</b></td><td>0.7263</td><td>-</td></tr><tr><td style='color:#b45309'><b>D2_seeded in-sample best K (math)</b></td><td>17</td><td><b>-</b></td><td>-</td><td>0.7838</td></tr><tr><td style='color:#b45309'><b>D2_pure in-sample best K (all)</b></td><td>10</td><td><b>0.7555</b></td><td>-</td><td>-</td></tr><tr><td style='color:#b45309'><b>D2_pure in-sample best K (qa)</b></td><td>11</td><td><b>-</b></td><td>0.7158</td><td>-</td></tr><tr><td style='color:#b45309'><b>D2_pure in-sample best K (math)</b></td><td>10</td><td><b>-</b></td><td>-</td><td>0.7831</td></tr><tr><td style='color:#15803d'><b>D2_seeded LOCO-CV (per-domain K)</b></td><td>17 (med)</td><td><b>0.7572</b></td><td>0.7197</td><td>0.7821</td></tr><tr><td style='color:#15803d'><b>D2_seeded LOCO-CV (global K)</b></td><td>7 (med)</td><td><b>0.7555</b></td><td>0.7201</td><td>0.7791</td></tr><tr><td style='color:#15803d'><b>D2_pure LOCO-CV (per-domain K)</b></td><td>10 (med)</td><td><b>0.7538</b></td><td>0.7158</td><td>0.7792</td></tr><tr><td style='color:#15803d'><b>D2_pure LOCO-CV (global K)</b></td><td>10 (med)</td><td><b>0.7535</b></td><td>0.7133</td><td>0.7803</td></tr></tbody></table>
+</div>
+
+<div class="card">
+  <h2>Paired significance test</h2>
+  <p>Math, D2_seeded@K=18 (0.7831) vs GOOD_6 (0.7807): delta +0.0024, Wilcoxon p = <b>0.2114</b>, 9 wins / 6 losses of 15 cells &rarr; <b>NOT significant</b></p>
+</div>
+
+<div class="card">
+  <h2>Full budget curves</h2>
+  <table><thead><tr><th>Variant</th><th>K</th><th>Macro</th><th>QA</th><th>Math</th></tr></thead>
+   <tbody><tr><td>D2_seeded</td><td>7</td><td>0.7590</td><td>0.7263</td><td>0.7807</td></tr><tr><td>D2_seeded</td><td>8</td><td>0.7568</td><td>0.7221</td><td>0.7799</td></tr><tr><td>D2_seeded</td><td>9</td><td>0.7548</td><td>0.7169</td><td>0.7801</td></tr><tr><td>D2_seeded</td><td>10</td><td>0.7551</td><td>0.7171</td><td>0.7805</td></tr><tr><td>D2_seeded</td><td>11</td><td>0.7568</td><td>0.7191</td><td>0.7819</td></tr><tr><td>D2_seeded</td><td>12</td><td>0.7570</td><td>0.7195</td><td>0.7819</td></tr><tr><td>D2_seeded</td><td>13</td><td>0.7569</td><td>0.7191</td><td>0.7821</td></tr><tr><td>D2_seeded</td><td>14</td><td>0.7568</td><td>0.7188</td><td>0.7822</td></tr><tr><td>D2_seeded</td><td>15</td><td>0.7573</td><td>0.7191</td><td>0.7828</td></tr><tr><td>D2_seeded</td><td>16</td><td>0.7581</td><td>0.7200</td><td>0.7835</td></tr><tr><td>D2_seeded</td><td>17</td><td>0.7583</td><td>0.7200</td><td>0.7838</td></tr><tr><td>D2_seeded</td><td>18</td><td>0.7576</td><td>0.7194</td><td>0.7831</td></tr><tr><td>D2_seeded</td><td>19</td><td>0.7564</td><td>0.7187</td><td>0.7815</td></tr><tr><td>D2_seeded</td><td>20</td><td>0.7555</td><td>0.7166</td><td>0.7815</td></tr><tr><td>D2_pure</td><td>3</td><td>0.7491</td><td>0.7098</td><td>0.7753</td></tr><tr><td>D2_pure</td><td>4</td><td>0.7468</td><td>0.7050</td><td>0.7747</td></tr><tr><td>D2_pure</td><td>5</td><td>0.7506</td><td>0.7100</td><td>0.7776</td></tr><tr><td>D2_pure</td><td>6</td><td>0.7511</td><td>0.7131</td><td>0.7764</td></tr><tr><td>D2_pure</td><td>7</td><td>0.7507</td><td>0.7120</td><td>0.7764</td></tr><tr><td>D2_pure</td><td>8</td><td>0.7517</td><td>0.7126</td><td>0.7778</td></tr><tr><td>D2_pure</td><td>9</td><td>0.7538</td><td>0.7142</td><td>0.7802</td></tr><tr><td>D2_pure</td><td>10</td><td>0.7555</td><td>0.7140</td><td>0.7831</td></tr><tr><td>D2_pure</td><td>11</td><td>0.7554</td><td>0.7158</td><td>0.7818</td></tr><tr><td>D2_pure</td><td>12</td><td>0.7545</td><td>0.7132</td><td>0.7820</td></tr><tr><td>D2_pure</td><td>13</td><td>0.7536</td><td>0.7137</td><td>0.7802</td></tr><tr><td>D2_pure</td><td>14</td><td>0.7537</td><td>0.7130</td><td>0.7808</td></tr><tr><td>D2_pure</td><td>15</td><td>0.7521</td><td>0.7104</td><td>0.7798</td></tr><tr><td>D2_pure</td><td>16</td><td>0.7519</td><td>0.7086</td><td>0.7808</td></tr><tr><td>D2_pure</td><td>17</td><td>0.7520</td><td>0.7077</td><td>0.7815</td></tr><tr><td>D2_pure</td><td>18</td><td>0.7515</td><td>0.7076</td><td>0.7808</td></tr><tr><td>D2_pure</td><td>19</td><td>0.7510</td><td>0.7062</td><td>0.7809</td></tr><tr><td>D2_pure</td><td>20</td><td>0.7509</td><td>0.7052</td><td>0.7815</td></tr></tbody></table>
+</div>
+</body></html>

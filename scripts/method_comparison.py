@@ -82,6 +82,18 @@ PKL_NAMES = {
     'qa':      'qa_res.pkl',
 }
 
+# Step-182 finding (results/phase1/math500_discrepancy.json): these 4 math500_res.pkl
+# keys say "_T1.0" but their accuracy AND per-feature AUROC match the Phase-4 (Step 54)
+# T=1.5 table exactly -- the cells were generated at T=1.5 and mislabeled at save time.
+# Relabel here so every downstream table/report inherits the correct temperature, rather
+# than patching method_comparison_table1.csv by hand (Step 184).
+MISLABELED_KEYS = {
+    'Qwen2.5-Math-1.5B-Instruct_T1.0': 'Qwen2.5-Math-1.5B-Instruct_T1.5',
+    'Qwen-Math-7B_T1.0': 'Qwen-Math-7B_T1.5',
+    'deepseek-math-7b-instruct_T1.0': 'deepseek-math-7b-instruct_T1.5',
+    'DeepSeek-R1-Distill-Llama-8B_T1.0': 'DeepSeek-R1-Distill-Llama-8B_T1.5',
+}
+
 RESULTS_DIR = os.path.join(REPO_DIR, 'results')
 
 # Variant run order — determines column order in all output tables
@@ -1076,6 +1088,8 @@ def main():
             continue
         print(f'\n--- {domain.upper()} ({len(feats)} cells) ---')
         for cell_key, payload in feats.items():
+            if domain == 'math500' and cell_key in MISLABELED_KEYS:
+                cell_key = MISLABELED_KEYS[cell_key]
             fd, lbl = payload
             lbl_arr = np.asarray(lbl, dtype=int)
             if len(set(lbl_arr.tolist())) < 2:

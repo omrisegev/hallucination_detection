@@ -225,14 +225,22 @@
 <p>Each comparison uses our number <strong>on the same model</strong> the baseline ran on — a per-cell number, not our cross-model average, since that is what published baselines report. All sampling baselines (Semantic Entropy, Self-Consistency, SelfCheckGPT, Verbalized Confidence) were computed in-house on the same model and dataset; LapEigvals and LoS-Net are spectral/learned methods from the literature. Our rows are unsupervised continuous variants at a single forward pass; the 5-feature L-SML is the main variant, with the others shown as the spread (we do <em>not</em> pick the best per domain).</p>
 
 <h3>MATH-500 / Qwen2.5-Math-7B &nbsp;<span class="win">— win</span></h3>
+<div class="warn"><b>Temperature correction (Step 182 A1 / Step 184):</b> the <span class="mono">math500_res.pkl</span>
+cache keys used for the table below say &ldquo;T=1.0&rdquo; but their accuracy (28%) and per-feature AUROC
+match the Phase-4 T=1.5 table exactly &mdash; they were generated at <b>T=1.5</b> and mislabeled at save
+time, not T=1.0. The genuine T=1.0 result is <b>GOOD_5 continuous, 1-pass, 85.1% [77.7, 91.8]</b>
+(accuracy 70.5%, N=200, fresh diagnostic run) &mdash; that is now the citable headline for this cell.
+The table below is retained as a valid <b>T=1.5, accuracy-28%</b> operating point (harder task,
+easier detection), not as the T=1.0 result it was previously presented as.</div>
 <table>
   <tr><th>Method</th><th>AUROC</th><th>95% CI</th><th>Compute</th></tr>
-  <tr class="rec"><td><strong>L-SML continuous, 5-feat</strong></td><td><strong>94.4%</strong></td><td>[90.1, 97.7]</td><td>1-pass</td></tr>
-  <tr><td>L-SML continuous, 16-feat (no selection)</td><td>94.2%</td><td>[89.7, 97.7]</td><td>1-pass</td></tr>
-  <tr><td>Simple average, 5-feat</td><td>93.6%</td><td>[89.4, 97.0]</td><td>1-pass</td></tr>
-  <tr><td>Semantic Entropy NLI K=10</td><td>87.7%</td><td>[79.7, 93.9]</td><td>K=10</td></tr>
-  <tr><td>Self-Consistency K=10</td><td>87.2%</td><td>[72.1, 98.4]</td><td>K=10</td></tr>
-  <tr><td class="small">L-SML binary, 5-feat (earlier number)</td><td class="small">88.2%</td><td class="small">[84.0, 92.0]</td><td class="small">1-pass</td></tr>
+  <tr class="rec"><td><strong>L-SML GOOD_5 (T=1.0, acc 70.5%)</strong></td><td><strong>85.1%</strong></td><td>[77.7, 91.8]</td><td>1-pass</td></tr>
+  <tr><td>L-SML continuous, 5-feat (T=1.5, acc 28%)</td><td>94.4%</td><td>[90.1, 97.7]</td><td>1-pass</td></tr>
+  <tr><td>L-SML continuous, 16-feat (T=1.5, no selection)</td><td>94.2%</td><td>[89.7, 97.7]</td><td>1-pass</td></tr>
+  <tr><td>Simple average, 5-feat (T=1.5)</td><td>93.6%</td><td>[89.4, 97.0]</td><td>1-pass</td></tr>
+  <tr><td>Semantic Entropy NLI K=10 <span class="small">(old-cache, not yet citable — Step 152 P1)</span></td><td>87.7%</td><td>[79.7, 93.9]</td><td>K=10</td></tr>
+  <tr><td>Self-Consistency K=10 <span class="small">(old-cache, not yet citable — Step 152 P1)</span></td><td>87.2%</td><td>[72.1, 98.4]</td><td>K=10</td></tr>
+  <tr><td class="small">L-SML binary, 5-feat (earlier number, T=1.5)</td><td class="small">88.2%</td><td class="small">[84.0, 92.0]</td><td class="small">1-pass</td></tr>
 </table>
 
 <h3>GSM8K / Llama-3.1-8B &nbsp;— competitive</h3>

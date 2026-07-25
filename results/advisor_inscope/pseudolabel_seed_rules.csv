@@ -1,0 +1,6 @@
+rule,views,n_cells,macro_all,macro_qa,macro_math,median_qa,n_weak_qa,weak_qa,n_inverted,inverted,gate
+loco5,cusum_max|logprob_margin|min_energy|spectral_entropy|topk_tail_mass,25,0.7609,0.7222,0.7866,0.7361,2,"inside_coqa_llama7b,losnet_hotpotqa_mistral7b",0,,RED
+good6,epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy|varentropy,25,0.7594,0.7274,0.7807,0.7317,2,"losnet_hotpotqa_mistral7b,seiclr_triviaqa_opt30b",0,,RED
+good5,epr|low_band_power|sw_var_peak|cusum_max|spectral_entropy,25,0.7519,0.721,0.7725,0.7127,2,"losnet_hotpotqa_mistral7b,seiclr_triviaqa_opt30b",0,,RED
+hybrid_caq,epr|cusum_max|logprob_margin|spectral_entropy|topk_tail_mass,25,0.7512,0.705,0.782,0.7088,3,"inside_coqa_llama7b,losnet_hotpotqa_mistral7b,seiclr_triviaqa_opt30b",0,,RED
+anchor4,epr|low_band_power|spectral_entropy|cusum_max,25,0.7249,0.6821,0.7535,0.6807,3,"inside_coqa_llama7b,losnet_hotpotqa_mistral7b,seiclr_triviaqa_opt30b",2,"inside_coqa_llama7b,noise_gsm8k_phi3mini",RED

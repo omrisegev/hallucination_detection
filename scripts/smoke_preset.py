@@ -50,6 +50,17 @@ def _coqa_row(gold, q="What color was the cat?"):
     return {"question": q, "answers": [gold]}
 
 
+def _lciteeval_row():
+    # Normalized load_lciteeval row: passage [1] is the gold supporting fact.
+    return {
+        "question": "What is the capital of France?",
+        "docs": [{"title": "France", "text": "Paris is the capital of France."},
+                 {"title": "Bordeaux", "text": "Bordeaux is known for wine."}],
+        "answers": ["Paris"],
+        "raw_row": {"supporting_facts": {"title": ["France"], "sent_id": [0]}},
+    }
+
+
 GRADER_FIXTURES = {
     "trivia_qa_family": [
         ("Paris",                               _trivia_row("Paris"),  True,  "exact match"),
@@ -107,6 +118,24 @@ GRADER_FIXTURES = {
         ("black\n\nQuestion: What did it eat?", _coqa_row("black"), True,  "multi-line ramble -> first line only"),
         ("",                                    _coqa_row("black"), False, "empty generation"),
     ],
+    # GPQA (is_correct_gpqa on the precomputed _gold_letter): letter extraction
+    # tolerates reasoning preambles; bare-mention fallback takes the LAST letter.
+    "gpqa_family": [
+        ("The answer is B",                     {"_gold_letter": "B"}, True,  "answer-is form"),
+        ("Reasoning...\n\nFinal answer: C",     {"_gold_letter": "C"}, True,  "final-answer form"),
+        ("The answer is B",                     {"_gold_letter": "A"}, False, "wrong letter"),
+        ("<think>maybe A</think>\nThe answer is D", {"_gold_letter": "D"}, True, "reasoning then answer"),
+        ("",                                    {"_gold_letter": "A"}, False, "empty generation"),
+    ],
+    # L-CiteEval (is_grounded_lciteeval): grounded iff any cited passage title is in
+    # supporting_facts (or gold-answer substring fallback); no citations -> ungrounded.
+    "lciteeval_family": [
+        ("Paris is the capital [1].",           _lciteeval_row(), True,  "cites supporting passage"),
+        ("Paris is the capital [2].",           _lciteeval_row(), False, "cites non-supporting passage"),
+        ("Paris is the capital.",               _lciteeval_row(), False, "citation-free -> ungrounded"),
+        ("It is Paris [1, 2].",                 _lciteeval_row(), True,  "multi-id marker, one supporting"),
+        ("",                                    _lciteeval_row(), False, "empty generation"),
+    ],
 }
 
 # Verbalized-confidence parse fixtures (parse_verbalized_confidence, exact behavior):
@@ -146,6 +175,10 @@ def _fixture_family(dataset):
         return "aime24_family"
     if dataset == "coqa":
         return "coqa_family"
+    if dataset == "gpqa":
+        return "gpqa_family"
+    if dataset.startswith("lciteeval"):
+        return "lciteeval_family"
     return None
 
 
@@ -245,7 +278,16 @@ def check_prompt(preset):
         return [("prompt", "tokenizer", SKIP, f"tokenizer load failed (gated/offline?): {type(e).__name__}")]
     try:
         _, prompt_fn, _ = DATASETS[ds]
-        row = _trivia_row("Paris") if _fixture_family(ds) else {"question": "What is 2+2?"}
+        fam = _fixture_family(ds)
+        if fam == "gpqa_family":
+            row = {"_prompt": "Question...\nA) x\nB) y\nC) z\nD) w\n\nAnswer:",
+                   "_gold_letter": "A"}
+        elif fam == "lciteeval_family":
+            row = _lciteeval_row()
+        elif fam:
+            row = _trivia_row("Paris")
+        else:
+            row = {"question": "What is 2+2?"}
         msg = prompt_fn(row)
         if preset.get("prompt_suffix"):
             msg = f"{msg}{preset['prompt_suffix']}"

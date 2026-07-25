@@ -167,13 +167,18 @@ def load_csv_refs():
     return refs
 
 
-def discover(cache_dir, only=None):
+def discover(cache_dir, only=None, exclude=None):
     for man_path in sorted(glob.glob(os.path.join(cache_dir, "*", "manifest.json"))):
         d = os.path.dirname(man_path)
         pid = os.path.basename(d)
         if not is_analysis_cell(pid):
             continue
         if only and not any(s in pid for s in only):
+            continue
+        # exclude wins over only — --cells is substring-matched, so a base name like
+        # gpqa_r1distill8b also selects gpqa_r1distill8b_mn4096; this is how an
+        # in-flight cell is kept out of an otherwise-complete build.
+        if exclude and any(s in pid for s in exclude):
             continue
         pkls = sorted(glob.glob(os.path.join(d, "raw_*.pkl")))
         if pkls:
@@ -186,15 +191,18 @@ def main():
     ap.add_argument("--cache-dir", default="cache/repgrid")
     ap.add_argument("--out-dir", default="local_cache")
     ap.add_argument("--cells", default=None, help="comma-sep substrings")
+    ap.add_argument("--exclude", default=None,
+                    help="comma-sep substrings to skip; wins over --cells")
     ap.add_argument("--gate-tol", type=float, default=0.005)
     args = ap.parse_args()
 
     only = args.cells.split(",") if args.cells else None
+    skip = args.exclude.split(",") if args.exclude else None
     refs = load_csv_refs()
     csv_sub = {"cont_5": "GOOD_5", "cont_9": "STABLE_H9", "cont_16": "ALL_H16"}
 
     cells, cont_rows, gate_fail = {}, [], []
-    for pid, man, pkl in discover(args.cache_dir, only=only):
+    for pid, man, pkl in discover(args.cache_dir, only=only, exclude=skip):
         built = build_cell(pkl)
         if built is None:
             print(f"[skip] {pid}: <20 spectral-scorable candidates")

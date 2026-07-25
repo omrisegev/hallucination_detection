@@ -38,7 +38,7 @@ import numpy as np
 
 from ..fusion_utils import detect_dependent_groups, upcr_proj_residual
 from ..rank_tests import ahn_horenstein_K, cov_eigvals, kritchman_nadler_K
-from ..subset_sweep import GOOD_5
+from ..subset_sweep import GOOD_5, LOCO_5
 from . import register
 
 ADAPT_SIZES = (3, 4, 5, 6, 7, 8)     # pre-registered adaptive-size range
@@ -203,6 +203,14 @@ def a1_residual(cell, rng, cache=None):
                 'fallback': g5_fallback, 'diag': router_diag})
     out.append({'variant': 'a1.router@minres', 'cols': greedy_cols,
                 'fusion': route, 'diag': router_diag})
+    # router on the Step-195 LOCO-consensus subset (Omri, 2026-07-22). All-or-
+    # nothing: a partial LOCO_5 is a different subset, so skip when any member
+    # view is missing from this cell's pool (mirrors ref.LOCO_5).
+    l5_cols = np.asarray([cell.pool.index(f) for f in LOCO_5
+                          if f in cell.pool], dtype=np.int64)
+    if len(l5_cols) == len(LOCO_5):
+        out.append({'variant': 'a1.router@loco5', 'cols': l5_cols,
+                    'fusion': route, 'diag': router_diag})
 
     # -- K-rule swaps on fixed subsets (rank_tests) --------------------------
     def k_rule(cols, fn, **kw):

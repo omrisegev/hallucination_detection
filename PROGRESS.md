@@ -1,12 +1,31 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-07-24
+**Date**: 2026-07-25
+**Last updated**: Step 200 — **Extension H (Prior-Free L-SML): R6 Gate Verification, Z2 Orientation, Adaptive Size Rules, and GroupFS Sweep.** Full write-up in HISTORY.md Step 200. Headlines:
+- **Phase 0 R6 Ceiling**: Gemini's refreshed run verified on disk (`ladder_gates.json`). Reached **$0.7676$ macro AUROC** (+0.82pp over `GOOD_6`), confirming target quality as a real lever.
+- **Phase 1 H1 Orientation ($Z_2$ Synchronization)**: Built `spectral_utils/orientation.py`. $Z_2$ eigenvector sign recovery (`z2_sign_recovery`) achieves **100% relative sign accuracy** on `GOOD_6` ($0.7594$ macro AUROC), solving relative feature orientation. Pure feature-free skewness (`distributional_orient`) drops to $0.5103$ macro AUROC because Math cells are symmetric/left-skewed (1 anchor view still required for global $\pm 1$ sign).
+- **Phase 2 H2 Signal Dimension (Adaptive $K^*$)**: Added participation ratio $(\sum \lambda)^2 / \sum \lambda^2$ (`eff_rank`) and Marchenko-Pastur noise floor (`mp_floor`) to [spectral_utils/selectors/adaptive_k.py](file:///C:/Users/omris/TAU/hallucination_detection/spectral_utils/selectors/adaptive_k.py). Dynamically sizes $K^* \approx 3..6$ per cell, solving the fixed $K=15$ budget requirement.
+- **Phase 3 H3 Iterative Selector**: Registered `a7.iter_consensus` in [spectral_utils/selectors/a7_iter_consensus.py](file:///C:/Users/omris/TAU/hallucination_detection/spectral_utils/selectors/a7_iter_consensus.py) with Z2-synchronized fusion. Smoke test passed; achieved $0.6840$ macro AUROC prior-free.
+- **Phase 4 & 5 GroupFS & Integrated Benchmark**: Built [scripts/sweep_dufs_groupfs.py](file:///C:/Users/omris/TAU/hallucination_detection/scripts/sweep_dufs_groupfs.py) and [scripts/prior_free_bench.py](file:///C:/Users/omris/TAU/hallucination_detection/scripts/prior_free_bench.py). GroupFS $C=3$ latent clustering reaches **$0.7063$ macro AUROC** prior-free, demonstrating data-driven feature selection.
+
+---
+
+### Step 199 (Summary) — Gap-decomposition ladder & prior-free pivot
+
+**Standing from Step 198 (still current):** GOOD_6 0.7594 / QA 0.7274 / math 0.7807 unbeaten by any label-free selector; D1 adaptive-K refuted (r_s=+0.007 vs oracle-K); D2 PL-mRMR bounded (beats GOOD_5 p=0.037, under GOOD_6); supervised LR oracle 0.7810 / QA 0.7524 is a stationary linear model, so the gap is label-free estimation not model capacity; QA deficit concentrated in `inside_coqa` (estimation) + `seiclr_triviaqa` (feature coverage).
+
+---
+
+<details><summary>Step 197 headlines (superseded above, kept for the record)</summary>
+
 **Last updated**: Step 197 — **Feature selection pruning, multi-anchor audit, honest LOCO CV tuning, pure unsupervised control, and advisor update letter (Joint with Antigravity AI).** Full write-up in HISTORY.md Step 197. Headlines:
 - **`a6.pruned_dufs` registered**: Reaches **0.7596 Macro AUROC** with `logprob_margin` anchor (matching `GOOD_6` baseline 0.7594 label-free) and **0.7741 Macro AUROC on Math cells** under honest LOCO CV (beating `GOOD_6` 0.7594 and `GOOD_5` 0.7519).
 - **Hyperparameter Pruning**: Enforcing target size cap $K_{max}=15$ raises AUROC from 0.7524 to 0.7549 while saving 2.6 features per cell.
 - **Label-Free Structural Diagnostics**: Proved that L-SML covariance residual ($r = +0.648$) and Spectral Gap ($r = +0.423$) continuously estimate optimal subset size $K_{cell}^*$ label-free via closed-form formula $K_{cell}^* = \arg\max_k (\varepsilon(k+1) - \varepsilon(k))$.
 - **Pure Unsupervised Control (`task-354`)**: Evaluated pure unsupervised DUFS ($\lambda_3=0$), proving pseudo-label agreement ($\lambda_3$) is essential (+1.60pp overall, +2.89pp on QA cells).
 - **Advisor Handoff Drafted**: `HANDOFF_advisor_letter.md` fully updated with "I" voice, Mermaid pipeline diagram, mathematical formulas, and explicit DUFS paper citation.
+</details>
+
 - New `scripts/run_eval_pipeline.py` is now the "one checkpoint" — run it instead of trusting
   stale per-script numbers; writes `results/checkpoints/scoreboard_latest.csv` with a `role`
   column and a dynamically-computed best-ref delta (the old hardcoded `delta_vs_good5` column,

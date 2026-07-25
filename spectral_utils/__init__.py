@@ -53,7 +53,7 @@ from .data_loaders import (
     load_sciq, sciq_prompt, is_correct_sciq,
     rouge_l,
     load_humaneval, humaneval_prompt, is_correct_humaneval,
-    load_lciteeval, lciteeval_prompt, lciteeval_grounding_label,
+    load_lciteeval, lciteeval_prompt, lciteeval_grounding_label, is_grounded_lciteeval,
 )
 from .fusion_utils import (
     zscore, boot_auc, paired_boot_delta_auc,
@@ -137,7 +137,7 @@ __all__ = [
     "load_sciq", "sciq_prompt", "is_correct_sciq",
     "rouge_l",
     "load_humaneval", "humaneval_prompt", "is_correct_humaneval",
-    "load_lciteeval", "lciteeval_prompt", "lciteeval_grounding_label",
+    "load_lciteeval", "lciteeval_prompt", "lciteeval_grounding_label", "is_grounded_lciteeval",
     "zscore", "boot_auc", "paired_boot_delta_auc",
     "binarize_classifiers", "sml_fuse",
     "nadler_fuse", "simple_average_fusion", "best_nadler_on",

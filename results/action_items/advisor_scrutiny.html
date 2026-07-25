@@ -100,6 +100,11 @@
   .rf-bar-gray{fill:#94a3b8;}
   .rf-bar-gray-sup{fill:#475569;}
   .rf-bar-gray-flag{fill:#cbd5e1;}
+  .rf-bar-c4{fill:#cbd5e1;}
+  .rf-bar-g5{fill:#475569;}
+  .rf-bar-g6{fill:var(--blue);}
+  .rf-dumbbell-epr{fill:var(--blue);stroke:#fff;stroke-width:1.5;}
+  .rf-dumbbell-alt{fill:var(--green);stroke:#fff;stroke-width:1.5;}
   .rf-pt-qa{fill:var(--green);stroke:#fff;stroke-width:2;}
   .rf-line{stroke:var(--blue);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
   .rf-line-acc{stroke:var(--green);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round;}
@@ -114,10 +119,10 @@
 <body>
 <div class="header-hero"><div class="header-content">
   <h1>Advisor scrutiny</h1>
-  <div class="subtitle">Seven questions a careful advisor would ask before these numbers go into a meeting or a paper — with the evidence, recomputed.</div>
+  <div class="subtitle">Nine questions a careful advisor would ask before these numbers go into a meeting or a paper — with the evidence, recomputed.</div>
   <div class="meta-pills">
-    <span class="meta-pill">Generated 2026-07-12 by scripts/action_items_report.py</span>
-    <span class="meta-pill">Cluster state 2026-07-12 late — benchmarking desk CLOSED: all cells fetched. A2 + A3 (both Qwen3/ARS) = documented REJECT (truncation-label leakage at 8192/16384); C1 inside_coqa scored 68.4 vs INSIDE 80.4 (FLOOR flag, judge acc 0.132); no jobs left in queue</span>
+    <span class="meta-pill">Generated 2026-07-15 by scripts/action_items_report.py</span>
+    <span class="meta-pill">Benchmarking desk CLOSED (Step 172): all Wave-3 cells fetched, scored, or documented REJECT. GOOD_6 subset-ladder + anchor-orientation robustness added (Step 184). No jobs left in this desk&#x27;s queue.</span>
     <span class="meta-pill">Every numeric cell sourced from a CSV/JSON</span>
   </div>
 </div></div>
@@ -139,12 +144,12 @@ recomputed from the live CSVs by this script, not copied from earlier writeups.<
 <p>Recomputed CI-overlap scan (our 95% CI vs the competitor's point estimate, all same-model
 comparisons where we are numerically ahead):</p>
 <table><tr><th>Cell</th><th>Ours [95% CI]</th><th>Competitor</th><th>Verdict</th></tr>
-<tr><td>GSM8K / DeepSeek-R1-Distill-Llama-8B</td><td>75.0 [70.4, 79.7]</td><td>ARS (CCS) = 74.7</td><td class='neutral'>CI contains competitor — say &ldquo;numerically ahead, CI-overlapping&rdquo;</td></tr><tr><td>GSM8K / Phi-3-mini-4k-instruct</td><td>66.4 [63.1, 69.6]</td><td>Answer entropy (K=10) = 65.9</td><td class='neutral'>CI contains competitor — say &ldquo;numerically ahead, CI-overlapping&rdquo;</td></tr><tr><td>GSM8K / Qwen2.5-7B</td><td>69.1 [64.0, 73.8]</td><td>SelfCheckGPT = 68.0</td><td class='neutral'>CI contains competitor — say &ldquo;numerically ahead, CI-overlapping&rdquo;</td></tr></table>
+<tr><td>GSM8K / DeepSeek-R1-Distill-Llama-8B<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 (repgrid)</span></td><td>75.0 [70.4, 79.7]</td><td>ARS (CCS) = 74.7</td><td class='neutral'>CI contains competitor — say &ldquo;numerically ahead, CI-overlapping&rdquo;</td></tr><tr><td>GSM8K / Phi-3-mini-4k-instruct<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 (repgrid)</span></td><td>66.4 [63.1, 69.6]</td><td>Answer entropy (K=10) = 65.9</td><td class='neutral'>CI contains competitor — say &ldquo;numerically ahead, CI-overlapping&rdquo;</td></tr><tr><td>GSM8K / Qwen2.5-7B<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 U-PCR (repgrid)</span></td><td>69.1 [64.0, 73.8]</td><td>SelfCheckGPT = 68.0</td><td class='neutral'>CI contains competitor — say &ldquo;numerically ahead, CI-overlapping&rdquo;</td></tr></table>
 <p>PROGRESS.md's own phrasing ("beats ARS supervised", "edges SelfCheckGPT") is not statistically
 supported for the first two; the Phi-3-mini case was not previously flagged at all. By contrast
 these wins are CI-clear and can be stated plainly:</p>
 <table><tr><th>Cell</th><th>Ours [95% CI]</th><th>Competitor</th><th>Verdict</th></tr>
-<tr><td>GSM8K / DeepSeek-R1-Distill-Llama-8B</td><td>75.0 [70.4, 79.7]</td><td>EigenScore (vanilla) = 53.0</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / DeepSeek-R1-Distill-Llama-8B</td><td>75.0 [70.4, 79.7]</td><td>Semantic Entropy = 62.0</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / DeepSeek-R1-Distill-Llama-8B</td><td>75.0 [70.4, 79.7]</td><td>Perplexity = 58.5</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / Mistral-7B-Instruct-v0.3</td><td>78.5 [76.0, 80.9]</td><td>Answer entropy (K=10) = 75.8</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / Mistral-Nemo-Instruct-2407</td><td>78.2 [74.6, 81.6]</td><td>LapEigvals AttentionScore = 63.0</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / Mistral-Small-24B-Instruct-2501</td><td>80.1 [75.6, 84.8]</td><td>LapEigvals AttentionScore = 57.6</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / Qwen2.5-7B</td><td>69.1 [64.0, 73.8]</td><td>Semantic Entropy = 58.4</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / Qwen2.5-7B</td><td>69.1 [64.0, 73.8]</td><td>SAPLMA = 59.7</td><td class='win'>CI-clear</td></tr><tr><td>MATH-500 / Qwen2.5-Math-7B</td><td>94.4 [90.1, 97.7]</td><td>Semantic Entropy NLI = 87.7</td><td class='win'>CI-clear</td></tr><tr><td>MATH-500 / Qwen2.5-Math-7B</td><td>94.4 [90.1, 97.7]</td><td>Self-Consistency = 87.2</td><td class='win'>CI-clear</td></tr></table>
+<tr><td>GSM8K / DeepSeek-R1-Distill-Llama-8B<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 (repgrid)</span></td><td>75.0 [70.4, 79.7]</td><td>EigenScore (vanilla) = 53.0</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / DeepSeek-R1-Distill-Llama-8B<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 (repgrid)</span></td><td>75.0 [70.4, 79.7]</td><td>Semantic Entropy = 62.0</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / DeepSeek-R1-Distill-Llama-8B<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 (repgrid)</span></td><td>75.0 [70.4, 79.7]</td><td>Perplexity = 58.5</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / Mistral-7B-Instruct-v0.3<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 (repgrid)</span></td><td>78.5 [76.0, 80.9]</td><td>Answer entropy (K=10) = 75.8</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / Mistral-Nemo-Instruct-2407<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 (repgrid)</span></td><td>78.2 [74.6, 81.6]</td><td>LapEigvals AttentionScore = 63.0</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / Mistral-Small-24B-Instruct-2501<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 (repgrid)</span></td><td>80.1 [75.6, 84.8]</td><td>LapEigvals AttentionScore = 57.6</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / Qwen2.5-7B<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 U-PCR (repgrid)</span></td><td>69.1 [64.0, 73.8]</td><td>Semantic Entropy = 58.4</td><td class='win'>CI-clear</td></tr><tr><td>GSM8K / Qwen2.5-7B<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 U-PCR (repgrid)</span></td><td>69.1 [64.0, 73.8]</td><td>SAPLMA = 59.7</td><td class='win'>CI-clear</td></tr><tr><td>MATH-500 / Qwen2.5-Math-7B<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 (T=1.5)</span></td><td>94.4 [90.1, 97.7]</td><td>Semantic Entropy NLI = 87.7 <span style='color:#b45309'>&#9888; competitor not yet citable</span></td><td class='neutral'>Not a clean win — competitor number itself flagged not-citable</td></tr><tr><td>MATH-500 / Qwen2.5-Math-7B<br><span style='color:#64748b;font-size:12px'>L-SML GOOD_5 (T=1.5)</span></td><td>94.4 [90.1, 97.7]</td><td>Self-Consistency = 87.2 <span style='color:#b45309'>&#9888; competitor not yet citable</span></td><td class='neutral'>Not a clean win — competitor number itself flagged not-citable</td></tr></table>
 <p>So this isn't "the wins are fake" — it's "three specific headline claims need softer language,
 and the LapEigvals-family wins don't."</p>
 
@@ -200,12 +205,13 @@ label-free re-derivation runs automatically when the raw Phase-12 two-pass cache
 from Drive. The old-cache SE/SC NLI-truncation reconciliation (also Step-152 Priority 1)
 remains open — decide whether to chase it or retire the old Phase-12 baseline table.</p>
 
-<h3>5 — RAG SelfCheckGPT below chance: bug, or a citable finding?</h3>
-<p>Called "unresolved / orientation bug suspected" since Step 152 without anyone checking the
-alternative: SelfCheckGPT's consistency-voting assumption may legitimately break on long
-retrieval-grounded contexts — which would be a <em>citable result</em>, not a bug to apologise
-for. Cheap next check: verify the orientation on one RAG cell by hand; if the orientation is
-right, this becomes a finding.</p>
+<h3>5 — RAG SelfCheckGPT below chance: bug, or a citable finding? (Resolved, Step 182)</h3>
+<p>Called "unresolved / orientation bug suspected" since Step 152. Checked directly: grounded
+(correct) responses have <em>higher</em> contradiction scores than hallucinated ones on 4/4 RAG
+datasets — SelfCheckGPT's consistency-voting assumption is anti-aligned with the
+citation-grounding label by construction, not a sign-orientation bug. This is a <em>citable
+finding</em> (SelfCheckGPT doesn't transfer to retrieval-grounded RAG), annotated NOT-CITABLE
+rather than "fixed" — there is no orientation flip that rescues it.</p>
 
 <h3>6 — "Temperature is not the lever" is a single-cell claim</h3>
 <p>Item 6's paired result is clean (CI excludes 0) but comes from exactly one (dataset, model):
@@ -220,6 +226,30 @@ is really the only difference from the paper's setup, or whether the prompt/grad
 also diverges. Until then, the 69.1
 U-PCR number should carry the accuracy caveat whenever quoted (see also point 1 — its CI
 contains SelfCheckGPT's point estimate).</p>
+
+<h3>8 — "Nearly matches the supervised ARS detector" was a mischaracterization (fixed, Step 184)</h3>
+<p>Every prior write-up (this report's own headline included) described "ARS (CCS)" — the exact
+row every one of our 84.4-vs-86.38 and 75.0-vs-74.72 comparisons pulls its numbers from — as ARS's
+<em>supervised</em> method. Direct re-verification against the paper's own extraction
+(<span class="mono">papers/extracted/harnessing-reasoning-trajectories-for-hallucination-detectio.md</span>)
+found the opposite: Table 1's own "Supervision" column marks <span class="mono">ARS (CCS)</span> as
+<strong>No</strong>. A separate row, <span class="mono">ARS (Probing)</span>, is the paper's actual
+supervised variant — and it is not cited anywhere in this project. All the numbers themselves were
+correct (86.38, 74.72, 90.37, 78.66 all verified verbatim); only the supervision label was wrong.
+The corrected framing is still a good result — our unsupervised GOOD_5 is competitive with another
+unsupervised method built on a completely different signal (internal representations via
+Contrast-Consistent Search, vs. our entropy trace) — just not the stronger "beats a trained method
+with zero labels" claim this report previously made. Fixed in <span class="mono">reasoning_benchmark.csv</span>,
+<span class="mono">cluster/presets.py</span>, and this report's own headline box.</p>
+
+<h3>9 — HARP's TriviaQA anchor was "model unspecified"; it isn't (fixed, Step 184)</h3>
+<p>The 92.8 HARP/TriviaQA number in <span class="mono">published_baselines.csv</span> was labeled
+"model unspecified in the paper." Direct re-verification found the paper states this explicitly:
+"HARP achieves AUROC scores of 92.8% on Qwen and 92.9% on LLaMA" (Qwen-2.5-7B-Instruct and a
+"LLaMA-3.1-8B" backbone respectively) — the model <em>is</em> specified, it's just not the same
+model as our <span class="mono">spilled_triviaqa_llama8b</span> cell (Llama-3.1-8B-<strong>Instruct</strong>).
+The paper never states whether its "LLaMA-3.1-8B" is instruct-tuned, so its 92.9 number is a
+possible but unconfirmed same-model anchor, not yet citable as one — flagged, not resolved.</p>
 </div>
 </div>
 </body>
