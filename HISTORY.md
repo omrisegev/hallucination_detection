@@ -7865,3 +7865,99 @@ results `prior_free_bench_{results,summary}.csv`, `sweep_groupfs_{results,summar
 `iterative_pruning_results.csv`.
 
 ---
+### Step 203 — The trimming study: the fit criterion is informative but sign-inverted, and ~1M cached subset scores are stale
+
+**What**: Ran Omri's cluster-localized trimming proposal end-to-end for the first time, plus four
+supporting experiments, as a self-contained study under `results/pruning_study/` (5 experiment
+folders + `all_results.csv` + `all_results.html` + `README.md`, every chart backed by its CSV/NPZ).
+Reporting was deliberately de-gated: per Omri, **no result is claimed on a 1–2pp difference** and
+nothing is adopted on an average alone — win/loss splits and Wilcoxon p sit beside every number.
+
+**Why**: The proposal (remove one measurement at a time, steering by the L-SML residual, localized to
+the worst-fitting cluster) had been recorded as refuted at 0.7004. The audit that preceded this step
+found that number is void: `scripts/test_iterative_lsml_pruning.py::compute_lsml_residual` computes
+`‖Cov·v₁ − λ₁·v₁‖`, which is **zero by construction** (measured 2.2e-15 … 5.2e-15) because `v₁` is
+Cov's own eigenvector. It ranked candidate removals by floating-point rounding error. None of that
+file's three arms is the proposed algorithm either — arm 1 is a global |w| ranking, arm 2 prunes whole
+clusters found by `sklearn` agglomerative clustering (not L-SML's own groups), arm 3 is the broken
+global residual. **The idea had never been tested.**
+
+**Result**:
+
+**C1 — The fit criterion carries real signal, with the sign inverted (the headline).** Two
+independent experiments agree:
+- Exp 3 (live, 6,756 sampled combinations, 25 cells): within-size Spearman(residual, AUROC) =
+  **+0.223 mean / +0.185 median, positive in 24/25 cells**. Residual is *misfit* (lower = better fit),
+  so combinations that fit the one-factor model **worse** are **more accurate**.
+- Exp 2: repairing the worst-fitting group scores **0.7080**; repairing a **random** group scores
+  **0.7302** — the localizer is **−2.22pp vs its own random control**, W/L 7/18, p=0.032.
+
+Mechanism (same in both): the worst-fitting group is reliably the near-duplicate confidence cluster
+(`epr`, `epr_spilled`, `epr_energy`, `mean_top1_logprob`, `logprob_margin`) — i.e. the *strongest*
+individual views. They fit the rank-one model badly **because** they are several readings of one
+quantity, and that duplication is exactly the extra shared structure a single-factor model cannot
+absorb. **In this data poor fit marks where the signal is concentrated, not where the junk is**, so
+minimising misfit strips the informative views first. The algorithm as specified steers against the
+gradient.
+
+**C2 — Trimming has a high ceiling and a poor average.** Typical-combination accuracy rises
+monotonically with size in **25/25** cells (0.6928 at k=3 → 0.7450 at k=21); best-found-at-size falls
+(0.7740 at k=3 → 0.7634 at k=25). So there is **no interior peak** — no turn for a stopping rule to
+find (this reproduces, on live data and the 30-view pool, the D1/H2 refutations) — while the
+best small subsets sit ~4pp above typical ones. All value is in *choosing well*, none in being small.
+
+**C3 — Near-ties dominate, so the tie-breaker makes most decisions.** ~11 of 18 removal steps per cell
+had a runner-up within 10% of the best candidate's fit gain. Laplacian-smoothness tie-breakers were
+built on `classical_fs._laplacian_score` with the **graph scope** as the swept variable (all-30 /
+surviving / group-only / group-minus-candidate / anchor-only). Spread is small — coin-flip 0.7063 vs
+best variant (anchor-only) 0.7112 — **too small to call**, and moot once the localizer is inverted.
+Note the graph is over *answers* built *from* measurements, so "restrict to a cluster" rebuilds a
+different graph rather than taking a subgraph; within-cluster comparison is legitimate, cross-cluster
+is not.
+
+**C4 — Nothing tested closes the weight-estimation gap (R3−R2 = +1.45pp).** A 2×4×2 factorial
+(conditioning × loading estimator × weighting) spans only **0.7434–0.7555**. Main effects: triplets
+0.7548 > low-rank+sparse 0.7538 > eigenvector 0.7527 > robust-IRLS 0.7494; RMT cleaning 0.7534 vs none
+0.7520; signal 0.7533 vs precision 0.7520. **Precision weighting — predicted a priori at +0.5…+1.2pp
+— measures −0.13pp as a main effect.** Reported as main effects, not best-of-16, because 16 configs ×
+25 cells × 1.45pp headroom is a winner's-curse setup (Step 193 lesson).
+
+**C5 — The grouping step does not earn its keep.** Grouping OFF beats ON at **every** size tested
+(13/13, 12 individually p<0.05); full pool 0.7457 → 0.7533 (p=0.024, 17/25). Effect is <1pp, so this
+says the stage fails at its own job — not that removing it is a shippable win. Exp 4 confirms it is
+not idle: near-duplicates (max |ρ| 0.996–1.000, 30–102 pairs >0.75) exist in every cell.
+
+**C6 — ~1.03M cached subset scores in `results/subset_sweep/` are STALE.** Only **5/19** repgrid cells
+still reproduce against the canonical path; disagreements reach **0.374 AUROC**. The cells were
+re-graded after the sweep. *An earlier pass of this study used that cache and reported the fit-score
+correlation as ≈ −0.02 with inconsistent sign; that reading is superseded by C1's +0.223.* This is the
+third distinct staleness carrier (cf. Step 193's three) and the most dangerous, because the npz files
+look healthy.
+
+**C7 — Weight-estimation diagnostic (no gate, aims the repair).** Second factor sits at median
+**0.312** of the first (one factor explains ~81% of `R_off`'s squared spectral mass), so the rank-one
+premise is only approximate. Guessed vs learned trust levels: rank agreement **+0.186** median, sign
+agreement **0.55** median (measured *after* resolving the single global ±1 that `anchor_orient`
+resolves anyway — charging that one bit to all 30 views understates agreement), top-5 overlap **1/5**.
+The guess and the supervised model largely disagree about which views matter.
+
+**Performance work (shared code, all verified output-identical)**: `_score_matrix_lsml` vectorised
+(482ms → 14.2ms at m=30, **34×**, max abs diff 8e-16); `_residual_lsml` and `_estimate_von_voff`
+inner loops vectorised; new `lsml_continuous(..., compute_score_matrix=False)` skips the O(m⁴) Eq.15
+matrix on the `groups=`-given path where nothing reads it (**103×**, default unchanged). Regression
+anchor held: K=4, residual 88.455, group sizes [5,7,7,11] on `ars_gsm8k_r1distill8b`, and GOOD_6 =
+0.7594 asserted at the top of every experiment.
+
+**Correction to the reference table**: `ref.LOCO_5` (0.7705 on 24 cells) was missing from the study's
+reference points, which made GOOD_6 look like the selection ceiling. Also clarified that
+**`a6.pl_dufs` (0.7524) is label-free at runtime but seeded from GOOD_6**, which was chosen with
+answer keys — so it is not prior-free, and it is selector of record *by default, not by merit* (both
+pre-registered gates failed: mechanism 0.207 vs 0.30, performance +0.22pp vs +1.0pp).
+
+**Files**: `scripts/pruning_study/` (`study_common.py`, `exp01_grouping.py`,
+`exp02_cluster_localized.py`, `exp03_preflight.py`, `exp04_weight_diagnostic.py`,
+`exp05_weighting_factorial.py`, `render_reports.py`, `build_index.py`, `build_results_table.py`);
+`spectral_utils/fusion_utils.py` (vectorisation + `compute_score_matrix` flag);
+`results/pruning_study/**` (5 experiment folders, `all_results.{csv,html}`, `README.md`, `index.html`).
+
+---

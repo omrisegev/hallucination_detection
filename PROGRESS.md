@@ -1,32 +1,59 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-07-25
-**Last updated**: Step 202 — **Extension H re-measured on fixed code: every prior-free component is bounded.** Full write-up in HISTORY.md Step 202 (Step 201 = the audit that preceded it). Headlines:
+**Date**: 2026-07-26
+**Last updated**: Step 203 — **The trimming study: the fit criterion is informative but its sign is
+inverted.** Full write-up in HISTORY.md Step 203; browsable results in
+`results/pruning_study/index.html` (+ `all_results.html` for one table of all 82 measured rows).
 
-- **The whole Extension H program is now bounded, on valid measurement.** All three sub-problems plus
-  the last untested mechanism have honest verdicts, and **GOOD_6 (0.7594) remains unbeaten**:
-  | Component | Verdict | Evidence |
+- **HEADLINE — every selector we built minimised a quantity that should have been maximised.**
+  Two independent measurements, both on live current data:
+  | Evidence | Number | Consistency |
   |---|---|---|
-  | H1 orientation | **no headroom** | L-SML is gauge-invariant to feature signs (sign worth exactly 0.0pp); prior-free tiebreaker −10.7pp |
-  | H2 label-free K | **REFUTED** | every rule fails the oracle-K bar; `eff_rank` Spearman **−0.0995**; fixed K=15 *beats* all of them |
-  | H3 selection | **bounded** | R6 (perfect target) DEAD at +0.82pp; fixed `a7` −2.16pp (p=0.011) |
-  | Phase 4b GroupFS | **bounded** | its *label-peeking ceiling* 0.7585 only **ties** GOOD_6 (−0.09pp, p=0.33) |
-- **GroupFS grouping was finally tested** (Step-200's "sweep" never ran GroupFS). Rebuilt on the real
-  `a2_groupfs._train_groupfs`; the **λ1 regression guard now PASSES** (λ1 moves 71/700 configs vs
-  0/350 before). Best config C=8/λ1=0.1/group_median = 0.7508. **It is bounded, not mis-tuned** — no
-  further hyperparameter search is warranted.
-- **H2's failure mechanism is informative**: oracle-K has **median 14**, while the spectrum rules
-  predict 4–6. Participation ratio / MP-edge count *how many independent directions exist* (~4.5), but
-  L-SML wants many **correlated** views — redundancy is what it exploits, so effective rank is the
-  wrong quantity for this K.
-- **All 9 defects fixed and re-measured** with GOOD_6 = 0.7594 asserted on every bench. Fixes moved
-  arms by up to **+14.2pp** (prior-free a7: 0.5103 → 0.6524), confirming Step-200 measured bugs, not
-  methods. New `scripts/inscope_bench_common.py` is now the single canonical load+score path.
-- **The durable win is subtractive**: `ALL_SIGNS` (42 hand-derived polarities) is provably free to
-  delete, and the only remaining orientation prior is a single ±1 bit the `epr` anchor already spends
-  optimally.
-- **NEXT**: the prior-free direction as specified in Extension H is closed. Decide with Omri where the
-  effort goes — the ladder says the deploy-point gap is **weight estimation**, not sign, target, or K.
+  | Within-size Spearman(misfit, AUROC), 30-view pool, 6,756 subsets | **+0.223** mean / +0.185 median | **24/25 cells positive** |
+  | Repair worst-fitting group vs repair **random** group | **−2.22pp** | W/L 7/18, **p = 0.032** |
+  Misfit is *lower = better fit*, so **worse-fitting subsets score higher**. Mechanism: the
+  worst-fitting group is reliably the near-duplicate confidence cluster (`epr`, `epr_spilled`,
+  `epr_energy`, `mean_top1_logprob`) — the *strongest* views, which break the rank-one model
+  **because** they are several readings of one quantity. **Poor fit marks where the signal is, not
+  where the junk is.** → new **Extension I** in Research_Directions.md, with I1–I4 and theorems T1–T4.
+- **Omri's cluster-localized idea had never actually been tested.** The prototype's fit score
+  (`test_iterative_lsml_pruning.py`) is `‖Cov·v₁ − λ₁·v₁‖` = **zero by construction** (2e-15); it
+  ranked removals by rounding error, so the recorded 0.7004 is void. None of its three arms was the
+  proposed algorithm. Now run properly — and refuted, but for an informative reason (above).
+- **~1.03M cached subset scores are STALE.** Only **5/19** repgrid cells in `results/subset_sweep/`
+  still reproduce; disagreements to **0.374 AUROC** (cells re-graded after the sweep). The npz files
+  look healthy — only re-scoring detects it. *An earlier pass of this study used that cache and
+  reported the correlation as ≈ −0.02; superseded by +0.223.* Audit:
+  `results/pruning_study/03_size_and_criterion/cache_staleness_audit.csv`.
+- **No interior best size, on live data and the full pool**: typical-subset accuracy rises
+  monotonically with size in **25/25** cells (0.6928@k=3 → 0.7450@k=21) while best-found-at-size falls
+  (0.7740@k=3 → 0.7634@k=25). Trimming has a **high ceiling and a poor average** — all value is in
+  choosing well, none in being small. No turn exists for a stopping rule to find.
+- **Weight estimation (R3−R2 = +1.45pp) is measured but not closed** (→ **Extension J**). A 2×4×2
+  factorial spans only **0.7434–0.7555**. Main effects: triplets +0.21pp, low-rank+sparse +0.11pp,
+  RMT cleaning +0.14pp, robust-IRLS −0.33pp, **precision weighting −0.13pp** (predicted a priori at
+  +0.5…+1.2pp). Diagnostic: second factor at **0.312** of the first, rank agreement +0.186, **top-5
+  overlap 1/5** — the label-free estimator and the supervised model disagree about *which* views
+  matter, so this is not a calibration problem.
+- **Grouping step does not earn its keep**: OFF beats ON at **every** size (13/13, 12 at p<0.05);
+  full pool 0.7457 → 0.7533 (p=0.024, 17/25). Effect <1pp — it fails at its own job rather than being
+  idle (near-duplicates exist in every cell, max |ρ| 0.996–1.000).
+- **Shared-code speedups, all output-identical**: `_score_matrix_lsml` vectorised (**34×**),
+  `_residual_lsml`/`_estimate_von_voff` vectorised, and new
+  `lsml_continuous(..., compute_score_matrix=False)` skips the unused O(m⁴) matrix on the `groups=`
+  path (**103×** at m=30). Regression anchor held (K=4, residual 88.455, sizes [5,7,7,11]); GOOD_6 =
+  0.7594 asserted at the top of every experiment.
+- **Reference-table corrections**: `ref.LOCO_5` (0.7705, 24 cells) was missing — GOOD_6 is *not* the
+  selection ceiling. And **`a6.pl_dufs` (0.7524) is label-free at runtime but seeded from GOOD_6**
+  (chosen with answer keys), and is selector of record *by default, not by merit* (both gates failed).
+- **NEXT**: **Extension I1 — sign-flip the existing selectors** (`a1.residual`, `a6.pl_dufs`, the
+  Step-203 localized arm) to maximise misfit instead of minimising it. Hours of work on code that
+  already exists, and decisive. Bar to clear is **0.7524** (the automatic-picker bar), not 0.7594.
+  Per Omri: **report effect sizes with W/L + Wilcoxon; do not gate on 1–2pp differences.**
+
+<details><summary>Step 202 headlines (superseded by 203 above)</summary>
+
+</details>
 
 <details><summary>Step 201 headlines (the audit — superseded by 202 above)</summary>
 

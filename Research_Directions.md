@@ -566,6 +566,102 @@ pseudo-label + H1's Z2-sync orientation, benched vs GOOD_6 on the 25 cells, befo
 
 ---
 
+### Extension I — Inverted-fit selection: the criterion is right, the sign is wrong (NEW, Step 203, 2026-07-26)
+
+**Status**: Open. Evidence is strong and consistent; no experiment pre-registered yet.
+
+**The finding.** The L-SML residual — the quantity every trimming rule in this project steers by — is
+*informative about subset quality but anti-correlated with the direction we optimise*:
+
+| Evidence | Number | Consistency |
+|---|---|---|
+| Within-size Spearman(residual, AUROC), live 30-view pool | **+0.223** mean / +0.185 median | **24/25 cells positive** |
+| Repair worst-fitting group vs repair **random** group | **−2.22pp** | W/L 7/18, p = 0.032 |
+
+Residual is *misfit* (lower = better rank-one fit), so a positive correlation means **worse-fitting
+subsets score higher**. Minimising misfit is descending the wrong gradient.
+
+**Why (mechanism, measured).** The worst-fitting group is reliably the near-duplicate confidence
+cluster — `epr`, `epr_spilled`, `epr_energy`, `mean_top1_logprob`, `logprob_margin` — i.e. the
+*strongest* individual views. They break the rank-one model **because** they are several readings of
+one underlying quantity, and that duplication is precisely the extra shared structure a single-factor
+model cannot absorb. In this data **redundancy and informativeness travel together**, so poor fit
+marks where the signal is concentrated.
+
+**This reframes three earlier closed results rather than contradicting them.** Extension G/H closed
+because every label-free selector *minimising* something rank-one-flavoured landed at ≈0.75. If the
+sign is inverted, they were all optimising away from the answer, and "bounded" may be "bounded in the
+direction tested".
+
+#### Proposed experiments (in dependency order)
+
+- **I1 — Sign-flip the existing selectors (cheapest, decisive).** Re-run `a1.residual`,
+  `a6.pl_dufs`, and the Step-203 cluster-localized arm with the criterion **maximised** instead of
+  minimised. Pre-register: label-free macro ≥ 0.7524 (`a6.pl_dufs`, the automatic-picker bar) with
+  W/L and Wilcoxon reported; report effect sizes, do not gate on <1pp.
+- **I2 — Redundancy-preserving trimming.** Trim to *increase* misfit, i.e. keep at least one member
+  of each near-duplicate family and cut from the best-fitting (most "explained") groups. This is
+  Yen's Q3 read backwards and is the natural constructive form of the finding.
+- **I3 — Is the inversion a property of the data or of the estimator?** Recompute the correlation
+  after removing one member of every |ρ|>0.9 pair. If the correlation collapses toward 0, the
+  inversion is *caused by* duplication (and disappears in a de-duplicated pool); if it survives, it is
+  a property of the fusion. This decides whether I2 is a fix or a workaround.
+- **I4 — Per-cell sign check.** The 1/25 cell with negative correlation is a natural held-out probe:
+  is it structurally different (fewer duplicate pairs? lower second-factor share?), or noise?
+
+#### Candidate theorems / analytical targets
+
+These are conjectures suggested by the measurements, stated so they can be proved or refuted rather
+than assumed:
+
+- **T1 (redundancy inflates misfit monotonically).** For `x_j = a_j y + ε_j`, adding a duplicate view
+  `x_{m+1} = x_k + δ` with `Var(δ) → 0` increases the Eq.(14) rank-one residual by a quantity
+  monotone in `a_k²`. *If true, misfit is partly a measure of how much signal a subset carries, which
+  explains the observed positive correlation directly and predicts the effect scales with the
+  duplicated view's loading.*
+- **T2 (the localizer is a signal detector).** Under T1, `argmax_g` (within-group misfit per pair)
+  selects the group maximising `Σ_{i,j∈g} a_i²a_j²` rather than the group containing the least
+  informative view. *This would make "repair the worst group" provably a signal-removal operator, and
+  the −2.22pp vs random a predicted consequence rather than an empirical accident.*
+- **T3 (no interior optimum in expectation).** For subsets drawn uniformly at size k from a pool with
+  bounded loadings, `E[AUROC(k)]` is non-decreasing in k. *Consistent with 25/25 cells here and with
+  D1/H2's refutations; if provable it closes "find the right K by following a curve" analytically
+  rather than one grid at a time.*
+- **T4 (gauge invariance extends to the diagonal).** Step 201 proved L-SML is invariant to input
+  feature signs (`X→XD`). Does the same hold for the precision-weighted variant `w_j ∝ a_j/(R_jj −
+  a_j²)`, which *reads* the diagonal? Step 203 measured precision weighting at −0.13pp; a proof that
+  it is also gauge-invariant would explain why it cannot move.
+
+---
+
+### Extension J — Weight estimation (the R3 − R2 = +1.45pp term) — first evidence in, still open
+
+**Status**: Open. Step 203 supplies the first systematic measurement; no repair found.
+
+**What was tested (Step 203, Exp 5).** A 2×4×2 factorial over the three slots the five proposed
+paradigms actually occupy — conditioning (none / RMT eigenvalue clipping) × loading estimator
+(eigenvector / triplets / low-rank+sparse / robust-IRLS) × weighting (signal / precision). **Span:
+0.7434–0.7555.** Main effects: triplets +0.21pp over the eigenvector, low-rank+sparse +0.11pp, robust
+IRLS −0.33pp, RMT cleaning +0.14pp, precision weighting **−0.13pp**. Nothing separates from noise on
+25 cells.
+
+**Diagnostic (Exp 4), which should aim any next attempt.** Second factor at median **0.312** of the
+first (one factor explains ~81% of `R_off`'s squared spectral mass) — the rank-one premise is
+approximate, not exact. Guessed vs supervised trust levels: rank agreement **+0.186**, sign agreement
+**0.55** (after resolving the single global flip), **top-5 overlap 1/5**. The label-free estimator and
+the supervised model largely disagree about *which* views matter — this is not a calibration problem.
+
+**Ruled out analytically or empirically**: Ledoit–Wolf linear shrinkage (provably inert — scales
+`R_off` by a positive constant, identical eigenvector); non-linear shrinkage *as usually specified*
+(modifies eigenvalues, keeps eigenvectors — inert unless the diagonal is re-zeroed and re-decomposed,
+which is the form tested here); bagging (identical to 4 d.p.).
+
+**Next**: given Extension I, the most promising route is not a better rank-one estimator but an
+explicitly **rank-2** model, or de-duplicating the pool before estimation (I3). A repair aimed at the
+one-factor premise is aimed at a premise the data only approximately satisfies.
+
+---
+
 ## Recommended Priority Order
 
 *(Single authoritative list — updated 2026-07-02, post streaming pilot Step 148)*
@@ -580,7 +676,13 @@ pseudo-label + H1's Z2-sync orientation, benched vs GOOD_6 on the 25 cells, befo
    durable gain is subtractive: `ALL_SIGNS` (42 priors) is a provable no-op and can be deleted.
    See the Extension H status block above.
 
-0-NEXT. **← DECIDE WITH OMRI: attack weight estimation.** Both the gap-ladder's clean rungs and the
+0-NEXT. **← Extension I — inverted-fit selection (Step 203).** The strongest new lead: the residual
+   criterion correlates **+0.223 with accuracy in 24/25 cells** and repairing the worst-fitting group
+   is **−2.22pp vs a random-group control (p=0.032)** — i.e. every selector we built minimised a
+   quantity that should have been maximised. I1 (sign-flip the existing selectors) is hours of work on
+   code that already exists and is decisive. See the Extension I block above.
+
+0-ALSO. **DECIDE WITH OMRI: attack weight estimation (Extension J).** Both the gap-ladder's clean rungs and the
    Extension H post-mortem point at the same place — at the deploy point the gap to the supervised
    linear oracle is **weight estimation**, not sign (0.0pp), not target quality (R6 DEAD), and not
    subset size (fixed K wins). Extensions G and H are both closed as bounded, so this is the open

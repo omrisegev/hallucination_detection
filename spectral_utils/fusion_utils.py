@@ -355,20 +355,27 @@ def _score_matrix_lsml(R: np.ndarray) -> np.ndarray:
     """
     Paper 1 Eq. (15): s_ij = Σ_{k,l ≠ i,j} |r_ij·r_kl − r_il·r_kj|.
     Large values indicate dependent (same-group) classifier pairs.
+
+    Vectorised over (k, l): for a fixed pair (i, j) the summand matrix is
+    ``A = |R[i,j]*R - outer(R[:,j], R[i,:])|``, and the excluded index sets are
+    removed by subtracting the corresponding rows, columns and diagonal rather
+    than by branching. Identical output to the original quadruple loop, ~100x
+    faster at m=30 (the loop dominated every subset sweep).
     """
     m = R.shape[0]
     s = np.zeros((m, m))
     for i in range(m):
+        Ri = R[i, :]
         for j in range(i + 1, m):
-            total = 0.0
-            for k in range(m):
-                if k == i or k == j:
-                    continue
-                for l in range(m):
-                    if l == i or l == j or l == k:
-                        continue
-                    total += abs(R[i, j] * R[k, l] - R[i, l] * R[k, j])
-            s[i, j] = s[j, i] = total
+            A = np.abs(R[i, j] * R - np.outer(R[:, j], Ri))
+            rows = A.sum(axis=1)
+            # k ranges over all indices except i and j
+            total = rows.sum() - rows[i] - rows[j]
+            # for those k, drop l == i, l == j and l == k
+            col_i = A[:, i].sum() - A[i, i] - A[j, i]
+            col_j = A[:, j].sum() - A[i, j] - A[j, j]
+            dg = np.trace(A) - A[i, i] - A[j, j]
+            s[i, j] = s[j, i] = total - col_i - col_j - dg
     return s
 
 
@@ -405,11 +412,9 @@ def _estimate_von_voff(R: np.ndarray, c: np.ndarray) -> tuple:
         except Exception:
             v_on[idx] = 1.0 / np.sqrt(len(idx))
 
-    R_off_only = R.copy()
-    for i in range(m):
-        for j in range(m):
-            if c[i] == c[j]:
-                R_off_only[i, j] = 0.0
+    # zero every within-group entry (vectorised; was an O(m^2) Python loop)
+    R_off_only = np.where(np.asarray(c)[:, None] == np.asarray(c)[None, :],
+                          0.0, R)
     try:
         _, vecs = eigh(R_off_only)
         v_off = vecs[:, -1]
@@ -420,19 +425,18 @@ def _estimate_von_voff(R: np.ndarray, c: np.ndarray) -> tuple:
 
 
 def _residual_lsml(R: np.ndarray, c: np.ndarray) -> float:
-    """Paper 1 Eq. (14) residual under assignment c."""
-    m = R.shape[0]
+    """Paper 1 Eq. (14) residual under assignment c.
+
+    Vectorised (was an O(m^2) Python double loop called once per candidate K,
+    i.e. up to 7x per fusion). Bit-identical up to float summation order.
+    """
     v_on, v_off = _estimate_von_voff(R, c)
-    resid = 0.0
-    for i in range(m):
-        for j in range(m):
-            if i == j:
-                continue
-            if c[i] == c[j]:
-                resid += (v_on[i] * v_on[j] - R[i, j]) ** 2
-            else:
-                resid += (v_off[i] * v_off[j] - R[i, j]) ** 2
-    return float(resid)
+    c = np.asarray(c)
+    same = c[:, None] == c[None, :]
+    pred = np.where(same, np.outer(v_on, v_on), np.outer(v_off, v_off))
+    d = (pred - R) ** 2
+    np.fill_diagonal(d, 0.0)
+    return float(d.sum())
 
 
 def _eigengap_K(s: np.ndarray, max_K: int = 8, return_gaps: bool = False):
@@ -616,7 +620,7 @@ def lsml_fuse(*binary_classifiers, K_range=None, method: str = 'residual',
 
 
 def lsml_continuous(*views, K_range=None, method: str = 'residual',
-                    groups=None):
+                    groups=None, compute_score_matrix: bool = True):
     """
     Continuous L-SML — same group detection as lsml_fuse but skips binarization
     of virtual classifiers.
@@ -640,6 +644,12 @@ def lsml_continuous(*views, K_range=None, method: str = 'residual',
                   this assignment is used verbatim — the clustering-swap seam
                   for external group-discovery methods (selector bench,
                   Step 186+). K/residual/score_matrix still fill the meta dict.
+        compute_score_matrix: only consulted when ``groups`` is given. The Eq.15
+                  score matrix is O(m^4) and costs ~238 ms at m=30, yet nothing
+                  downstream reads it on the groups-given path. Pass False to
+                  skip it (meta['score_matrix'] becomes None) for a ~500x
+                  speedup in subset sweeps. Default True preserves the old
+                  meta dict exactly.
 
     Returns:
         (fused_scores, meta_dict) — same format as lsml_fuse.
@@ -654,7 +664,7 @@ def lsml_continuous(*views, K_range=None, method: str = 'residual',
         R = np.cov(X.T)
         if R.ndim == 0:
             R = np.array([[float(R)]])
-        s_mat = _score_matrix_lsml(R)
+        s_mat = _score_matrix_lsml(R) if compute_score_matrix else None
         K = len(np.unique(c))
         residual = _residual_lsml(R, c)
     else:

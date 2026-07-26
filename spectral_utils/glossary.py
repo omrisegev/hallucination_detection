@@ -59,6 +59,22 @@ REFERENCE_SUBSET_NOTES = {
 # ---------------------------------------------------------------------------
 
 FAMILY_NOTES = {
+    "a7_iter_consensus": {
+        "paper": "None — Extension H in-house design (Step 199 pivot), in the "
+                 "spirit of Jaffe/Nadler consensus estimation but with the "
+                 "target rebuilt each iteration.",
+        "relies_on": "Its own consensus target rebuilt per iteration; no `epr` "
+                     "anchor and no `GOOD_6` seeds, which is the whole point "
+                     "of the prior-free arm.",
+        "performance": "It is not. Fixed and re-measured in Step 202: with the "
+                       "`epr` anchor 0.7378 (-2.16pp vs GOOD_6, W/L 8/17, "
+                       "p=0.0105); genuinely prior-free 0.6524 (-10.70pp, W/L "
+                       "6/19, p=0.0010). Step 200's reported 0.6840 "
+                       "'prior-free' actually used the anchor, and the truly "
+                       "prior-free arm was 0.5103 (chance) before the fixes. "
+                       "Part of Extension H, closed as bounded.",
+        "history": "Steps 200-202",
+    },
     "reference_macros": {
         "paper": "None — not a selector.",
         "relies_on": "Emits the fixed subsets (GOOD_5/6, LOCO_5, ...) "
@@ -242,6 +258,11 @@ FAMILY_NOTES = {
 # ---------------------------------------------------------------------------
 
 VARIANT_NOTES = {
+    "a6.pruned_dufs": (
+        "a6 gates plus a hyperparameter-pruning pass (target-size cap "
+        "K_max=15, `logprob_margin` anchor). Audited numbers: 0.7537 macro / "
+        "0.7141 QA / 0.7801 math, mean size 17.0 -- below `a6.pl_dufs`.",
+        "Step 197"),
     "a1.router@good5": ("Routes GOOD_5's fusion to whichever of L-SML/U-PCR "
                         "has the better structural residual on this cell.",
                         "Step 186"),
@@ -418,7 +439,12 @@ ROLE_NOTES = {
         "the output of any of our label-free selection algorithms.",
     "OUR ALGORITHM (selector of record)":
         "The one selector variant actually adopted as our method's output "
-        "— what we would deploy. Currently a6.pl_dufs.",
+        "-- what we would deploy. Currently a6.pl_dufs. CAVEAT (Step 203): "
+        "adopted by default, not by merit -- both its pre-registered gates "
+        "failed (mechanism 0.207 vs 0.30 bar; performance +0.22pp vs "
+        "+1.0pp bar), and it is label-free at RUNTIME but seeded from "
+        "GOOD_6, which was chosen using answer keys. Treat 0.7524 as the "
+        "number to beat, not a strong result.",
     "fs_selector_candidate":
         "Output of one of our label-free selection algorithms (a1-a6, "
         "classical_fs), benched but not adopted as the selector of record.",
@@ -541,6 +567,73 @@ OUT_OF_SCOPE_DERIVED_VIEWS_NOTE = (
 # Pool modes — how many / which features a selector was allowed to choose
 # from. "c46" is itself a known misnomer, worth stating plainly.
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Method / study terminology (Step 203, the trimming study under
+# results/pruning_study/). These are words that appear in the write-ups and
+# mean something specific here — kept in the generator so they survive a
+# GLOSSARY.md rebuild.
+# ---------------------------------------------------------------------------
+
+METHOD_TERM_NOTES = {
+    "misfit (a.k.a. fit score, residual)":
+        "The Eq.(14) L-SML residual `_residual_lsml(R, c)` — how far the "
+        "observed covariance sits from what a one-shared-cause model predicts "
+        "under grouping `c`. LOWER = better fit. Every trimming rule in this "
+        "project steers by minimising it; Step 203 found that direction is "
+        "inverted (see 'sign inversion').",
+    "sign inversion":
+        "Step 203's headline: misfit correlates +0.223 with AUROC (24/25 "
+        "cells, within-size) and repairing the worst-fitting group is -2.22pp "
+        "vs a random-group control (p=0.032). Worse-fitting subsets score "
+        "HIGHER, because near-duplicate strong views (epr / epr_spilled / "
+        "epr_energy / mean_top1_logprob) break the rank-one model precisely by "
+        "being strong AND duplicated. Poor fit marks where the signal is, not "
+        "where the junk is.",
+    "localizer":
+        "Using the PER-GROUP misfit to choose WHICH group to repair, as "
+        "opposed to using total misfit to rank whole subsets. Different "
+        "quantity, different job: the localizer discriminates strongly but "
+        "points the wrong way. Do not conflate the two when citing whether "
+        "'the residual is informative'.",
+    "degenerate residual":
+        "`scripts/test_iterative_lsml_pruning.py::compute_lsml_residual` = "
+        "||Cov*v1 - lambda1*v1||, which is ZERO BY CONSTRUCTION (measured "
+        "2e-15) since v1 is Cov's own eigenvector. Every number that file "
+        "produced is void, including the 0.7004 once recorded against Omri's "
+        "trimming idea. Do not reuse that file.",
+    "near-tie":
+        "A removal step whose runner-up candidate improves the fit within 10% "
+        "of the best candidate. ~11 of 18 steps per cell — so the tie-breaker, "
+        "not the criterion, makes most of the decisions.",
+    "graph scope (tie-breaker)":
+        "Which measurements build the ANSWER-by-ANSWER graph used by "
+        "`classical_fs._laplacian_score`. Restricting attention to a cluster "
+        "does NOT take a subgraph — it rebuilds a different graph. "
+        "Within-cluster comparison is legitimate; cross-cluster is not (the "
+        "score is a Rayleigh quotient normalised inside its own graph). Swept "
+        "as all-30 / surviving / group-only / group-minus-candidate / "
+        "anchor-only.",
+    "automatic picker vs fixed subset":
+        "An AUTOMATIC PICKER chooses views itself, per cell, at runtime "
+        "(a6.pl_dufs, 0.7524 — the bar a new label-free method must clear). A "
+        "FIXED SUBSET was chosen once USING labels and then reused (GOOD_6 "
+        "0.7594; LOCO_5 0.7705 on 24 cells). Comparing a label-free selector "
+        "against GOOD_6 is comparing against an anchor, not a fair target.",
+    "stale sweep cache":
+        "results/subset_sweep/repgrid__*.npz — ~1.03M scored subsets, of which "
+        "only 5/19 cells still reproduce (disagreements to 0.374 AUROC) "
+        "because cells were re-graded after the sweep. The npz files look "
+        "healthy; only re-scoring detects it. Audit before any reuse: "
+        "results/pruning_study/03_size_and_criterion/cache_staleness_audit.csv.",
+    "compute_score_matrix=False":
+        "Flag on `lsml_continuous` that skips the O(m^4) Eq.(15) score matrix "
+        "on the `groups=`-given path, where nothing reads it. 103x faster at "
+        "m=30, output bit-identical. Default True preserves the old meta dict. "
+        "Use it in any subset sweep. (Step 203 also vectorised "
+        "`_score_matrix_lsml` 34x and the `_residual_lsml` / "
+        "`_estimate_von_voff` inner loops.)",
+}
 
 POOL_MODE_NOTES = {
     "h16": (f"The original {len(H16)} H(n) spectral features "
