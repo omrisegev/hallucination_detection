@@ -593,9 +593,21 @@ because every label-free selector *minimising* something rank-one-flavoured land
 sign is inverted, they were all optimising away from the answer, and "bounded" may be "bounded in the
 direction tested".
 
+> **⚠ RUN `SPEC_residual_scaling_fix.md` FIRST (raised 2026-07-26, after this block was written).**
+> Omri asked why the clustering — which is *supposed* to group dependent features together — ends up
+> flagging those groups as the worst fit. Answer: `_estimate_von_voff` returns the **unit-norm**
+> eigenvector, but Lemma 1 requires `v_i·v_j = r_ij`, i.e. `a = √λ₁·v`. A perfect `m`-duplicate block
+> is therefore scored with misfit/pair rising 0.25 → 0.83 as `m` goes 2 → 11, so misfit is inflated by
+> **group size × coupling strength** — largest exactly where the clustering *succeeded*. That makes
+> "repair the worst group" mean "dismantle the biggest tight cluster", i.e. **the selection step
+> optimises against the clustering step**. It also sits in the deployed detector, since K is chosen by
+> minimising this residual (15/25 cells pinned at K ≥ 7). **If the scaling fix flips the sign, I1 below
+> is the wrong remedy** — the criterion needed scaling, not inverting. Treat I1 as the fallback.
+
 #### Proposed experiments (in dependency order)
 
-- **I1 — Sign-flip the existing selectors (cheapest, decisive).** Re-run `a1.residual`,
+- **I0 — Fix the eigenvalue scale first.** See `SPEC_residual_scaling_fix.md` (checks U1-U2, predictions P1-P3, anchors R1-R3). Gates everything below.
+- **I1 — Sign-flip the existing selectors (only if I0 does not flip the sign).** Re-run `a1.residual`,
   `a6.pl_dufs`, and the Step-203 cluster-localized arm with the criterion **maximised** instead of
   minimised. Pre-register: label-free macro ≥ 0.7524 (`a6.pl_dufs`, the automatic-picker bar) with
   W/L and Wilcoxon reported; report effect sizes, do not gate on <1pp.

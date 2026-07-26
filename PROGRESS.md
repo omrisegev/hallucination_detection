@@ -46,7 +46,22 @@ inverted.** Full write-up in HISTORY.md Step 203; browsable results in
 - **Reference-table corrections**: `ref.LOCO_5` (0.7705, 24 cells) was missing — GOOD_6 is *not* the
   selection ceiling. And **`a6.pl_dufs` (0.7524) is label-free at runtime but seeded from GOOD_6**
   (chosen with answer keys), and is selector of record *by default, not by merit* (both gates failed).
-- **NEXT**: **Extension I1 — sign-flip the existing selectors** (`a1.residual`, `a6.pl_dufs`, the
+- **MECHANISM FOUND (post-commit, 2026-07-26)** — Omri: *"L-SML clustering is supposed to cluster the
+  dependent features together — isn't that the assumption?"* It is, and the clustering works. The
+  **residual scoring it is mis-scaled**: `_estimate_von_voff` returns the **unit-norm** eigenvector,
+  but Lemma 1 requires `v_i·v_j = r_ij` (i.e. `a = √λ₁·v`). A perfect `m`-duplicate block — the ideal
+  the clustering exists to produce — scores misfit/pair **0.25 → 0.83 as m goes 2 → 11**. So misfit is
+  inflated by **group size × coupling strength**, and "repair the worst group" means "dismantle the
+  biggest tight cluster": **the selection step optimises against the clustering step.** This supersedes
+  the "redundancy and informativeness travel together" explanation (that was the symptom). It also sits
+  in the **deployed detector** — K is chosen by minimising this residual, and **15/25 cells are pinned
+  at K ≥ 7**, the predicted upward bias. Written up with a full test plan in
+  **`SPEC_residual_scaling_fix.md`** (nothing changed in code yet).
+- **NEXT**: **`SPEC_residual_scaling_fix.md` (Extension I0) before anything else** — scale `v_on` by
+  `√λ₁` behind a flag, then read predictions P1 (K falls), P2 (the +0.223 sign weakens/flips), P3 (the
+  −2.22pp localizer deficit shrinks/reverses), with anchors R1 (GOOD_6 = 0.7594 on flag-off) and R2
+  (K=4, residual 88.455, sizes [5,7,7,11]). **If the sign flips, I1 below is the wrong remedy.**
+- **THEN (fallback)**: **Extension I1 — sign-flip the existing selectors** (`a1.residual`, `a6.pl_dufs`, the
   Step-203 localized arm) to maximise misfit instead of minimising it. Hours of work on code that
   already exists, and decisive. Bar to clear is **0.7524** (the automatic-picker bar), not 0.7594.
   Per Omri: **report effect sizes with W/L + Wilcoxon; do not gate on 1–2pp differences.**
