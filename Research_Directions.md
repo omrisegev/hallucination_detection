@@ -566,9 +566,28 @@ pseudo-label + H1's Z2-sync orientation, benched vs GOOD_6 on the 25 cells, befo
 
 ---
 
-### Extension I — Inverted-fit selection: the criterion is right, the sign is wrong (NEW, Step 203, 2026-07-26)
+### Extension I — Inverted-fit selection: the criterion is right, the sign is wrong (Step 203, 2026-07-26)
 
-**Status**: Open. Evidence is strong and consistent; no experiment pre-registered yet.
+**Status**: ❌ **CLOSED AS REFUTED (Step 204, 2026-07-27). Do not build I1.** The whole premise — that
+the fit criterion's sign is inverted — was an artifact of the L-SML loading scale.
+`_estimate_von_voff` returned the unit-norm eigenvector where Lemma 1 requires the loadings to
+reproduce the covariance, so misfit was inflated by group size × coupling strength — largest exactly
+where the clustering succeeded. With a masked rank-one completion estimator:
+
+| loading scale | Spearman(misfit, AUROC) | positive cells |
+|---|---|---|
+| `unit` (what Step 203 measured) | **+0.223** | 24/25 |
+| `eigen` (the SPEC's literal fix) | +0.183 | 25/25 |
+| `complete` (exact on the unit checks) | **−0.006** | 12/25 |
+
+Shift **−0.228, Wilcoxon p = 0.0015**; the `unit` arm reproduces Step 203 exactly, so the harness is
+sound. **The criterion never needed inverting — it needed scaling.** I1 (sign-flip the selectors)
+would have been curing a symptom. I2–I4 and theorems T1–T4 rest on the same artifact and are void as
+stated; T1 in particular ("redundancy inflates misfit monotonically") is *true of the broken
+estimator* and is precisely the bug, not a property of the data.
+Evidence: `results/pruning_study/06_scale_vs_criterion/`, `results/residual_scaling/`, HISTORY Step 204 §B.
+
+<details><summary>Original Step 203 framing, kept for the record</summary>
 
 **The finding.** The L-SML residual — the quantity every trimming rule in this project steers by — is
 *informative about subset quality but anti-correlated with the direction we optimise*:
@@ -646,9 +665,38 @@ than assumed:
 
 ---
 
+</details>
+
 ### Extension J — Weight estimation (the R3 − R2 = +1.45pp term) — first evidence in, still open
 
-**Status**: Open. Step 203 supplies the first systematic measurement; no repair found.
+**Status**: Open, and **narrowed by Step 204, narrowed further by Step 205**.
+
+> **Step 205 closes the last U-PCR lead and corrects how one of its numbers should be read.**
+> The `lambda2_threshold` hypothesis — that we are pinned at 2 eigenvectors and the redundant second
+> factor is what hurts — is **refuted**. `lambda2_frac` is tightly clustered just above the hardcoded
+> 0.1 (median 0.1435, range 0.0942–0.2328), so the threshold flips 24/25 cells at once; sweeping it
+> to remove the second component everywhere buys **+0.43pp (9W/15L, p = 0.16)** (`exp07`).
+> **And Step 204's "−3.67pp for the 2-eigenvector rule" is a factorial MAIN EFFECT**, averaged over
+> the 32 combinations of the other five factors. At the deployed configuration the same switch is
+> **−0.43pp mean / +0.07pp median, 15W/9L, p = 0.16** — a wash. The sign reversal of Step 142 stands;
+> the magnitude does not transfer, and should not be quoted as a deployed cost.
+> Separately, Step 204's B1 ("the g2 range never binds") holds only for the **pre-exclusion** fit: the
+> g2 the pipeline returns comes from the post-exclusion refit and is at the grid ceiling in 24/25
+> cells. Un-pinning it is −0.28pp (12W/13L), so the conclusion survives and the mechanism does not.
+> **Nothing in the g2 / component-count apparatus is actionable. Do not re-open it.**
+
+The U-PCR line is closed as inert: every paper-faithful
+flag hurts or does nothing, one-component U-PCR is *exactly* PC1 of the surviving features (cosine
+deviation 7e-12) so its ρ/g²/Eq.-20 machinery enters only through the exclusion mask, and no
+configuration of 64 reaches GOOD_6. The dependent-features extension (fit the additive system on
+cross-cluster pairs only) is **refuted**: it fails both pre-registered mechanism gates and loses
+−4.46pp (9W/16L, p = 0.030), and its premise was a confound — fit error is essentially pair
+correlation (Spearman 0.870), the raw 2.03× same-vs-cross gap collapses to 0.97–1.00 when matched on
+|C_ij| decile, and magnitude-only clustering separates it *better* than L-SML.
+**What is left of J**: the disagreement diagnostic itself (rank agreement +0.186, top-5 overlap 1/5)
+is unexplained, and the one lever that moved anything this session was **orientation**, not weighting.
+
+Step 203 supplies the first systematic measurement; no repair found.
 
 **What was tested (Step 203, Exp 5).** A 2×4×2 factorial over the three slots the five proposed
 paradigms actually occupy — conditioning (none / RMT eigenvalue clipping) × loading estimator
@@ -688,11 +736,18 @@ one-factor premise is aimed at a premise the data only approximately satisfies.
    durable gain is subtractive: `ALL_SIGNS` (42 priors) is a provable no-op and can be deleted.
    See the Extension H status block above.
 
-0-NEXT. **← Extension I — inverted-fit selection (Step 203).** The strongest new lead: the residual
-   criterion correlates **+0.223 with accuracy in 24/25 cells** and repairing the worst-fitting group
-   is **−2.22pp vs a random-group control (p=0.032)** — i.e. every selector we built minimised a
-   quantity that should have been maximised. I1 (sign-flip the existing selectors) is hours of work on
-   code that already exists and is decisive. See the Extension I block above.
+0-NEXT. ~~**Extension I — inverted-fit selection (Step 203)**~~ ❌ **CLOSED AS REFUTED
+   (Step 204).** The +0.223 correlation was an artifact of the L-SML loading scale; corrected it
+   is −0.006 (p = 0.0015 for the shift). **Do not build I1.** See the Extension I block above.
+
+0-NOW. **← Orientation without hand-picked signs (Step 204, Phase E).** The one lever that moved
+   anything: deriving per-feature polarity from `sign(rho)` beats the 42 hand signs by **+1.46pp
+   (20W/5L, p < 0.001)**, and **15 of 30 pool features carry the wrong hand sign**. Two caveats
+   that shape the experiment: correcting the signs is a **0.0000pp no-op on the L-SML path**
+   (sign-gauge invariance), so the value is only for sign-SENSITIVE consumers; and the global
+   ±1 is **provably not recoverable** from the covariance (a global flip leaves rho
+   bit-identical), so the `epr` anchor bit cannot be removed this way. Pre-register against the
+   0.7524 automatic-picker bar, not 0.7594.
 
 0-ALSO. **DECIDE WITH OMRI: attack weight estimation (Extension J).** Both the gap-ladder's clean rungs and the
    Extension H post-mortem point at the same place — at the deploy point the gap to the supervised

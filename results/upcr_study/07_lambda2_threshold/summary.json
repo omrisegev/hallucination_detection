@@ -1,0 +1,125 @@
+{
+  "n_cells": 25,
+  "thresholds": [
+    0.05,
+    0.08,
+    0.1,
+    0.12,
+    0.15,
+    0.18,
+    0.2,
+    0.25
+  ],
+  "deployed_threshold": 0.1,
+  "scale_ratio": 0.25,
+  "lambda2_frac": {
+    "median": 0.14352465157584096,
+    "min": 0.09415953048782728,
+    "max": 0.23282438477530307
+  },
+  "table": [
+    {
+      "threshold": 0.05,
+      "macro": 0.7403084858549168,
+      "delta_pp": -0.02053752535496889,
+      "n_two_component": 25,
+      "n_cells": 25,
+      "wins": 1,
+      "losses": 0,
+      "p": 0.31731050786291415
+    },
+    {
+      "threshold": 0.08,
+      "macro": 0.7403084858549168,
+      "delta_pp": -0.02053752535496889,
+      "n_two_component": 25,
+      "n_cells": 25,
+      "wins": 1,
+      "losses": 0,
+      "p": 0.31731050786291415
+    },
+    {
+      "threshold": 0.1,
+      "macro": 0.7405138611084665,
+      "delta_pp": 0.0,
+      "n_two_component": 24,
+      "n_cells": 25,
+      "wins": 0,
+      "losses": 0,
+      "p": NaN
+    },
+    {
+      "threshold": 0.12,
+      "macro": 0.744322913774811,
+      "delta_pp": 0.3809052666344459,
+      "n_two_component": 16,
+      "n_cells": 25,
+      "wins": 3,
+      "losses": 5,
+      "p": 0.16142946236708333
+    },
+    {
+      "threshold": 0.15,
+      "macro": 0.7440861165981728,
+      "delta_pp": 0.35722554897062997,
+      "n_two_component": 11,
+      "n_cells": 25,
+      "wins": 4,
+      "losses": 9,
+      "p": 0.08686008151624075
+    },
+    {
+      "threshold": 0.18,
+      "macro": 0.743145615236429,
+      "delta_pp": 0.263175412796246,
+      "n_two_component": 4,
+      "n_cells": 25,
+      "wins": 8,
+      "losses": 12,
+      "p": 0.43304828842793475
+    },
+    {
+      "threshold": 0.2,
+      "macro": 0.7441203983008247,
+      "delta_pp": 0.360653719235815,
+      "n_two_component": 2,
+      "n_cells": 25,
+      "wins": 9,
+      "losses": 13,
+      "p": 0.30646485459506156
+    },
+    {
+      "threshold": 0.25,
+      "macro": 0.7447809180681365,
+      "delta_pp": 0.42670569596700014,
+      "n_two_component": 0,
+      "n_cells": 25,
+      "wins": 9,
+      "losses": 15,
+      "p": 0.16151331846754213
+    }
+  ],
+  "deployed_macro": 0.7405138611084665,
+  "best_threshold": 0.25,
+  "best_macro": 0.7447809180681365,
+  "best_gain_pp": 0.42670569596700014,
+  "spearman_n2component_vs_macro": -0.8313253012048192,
+  "components_at_deployed_config": {
+    "one_component_macro": 0.7447809180681365,
+    "auto_component_macro": 0.7405138611084665,
+    "delta_pp_auto_minus_one": -0.42670569596700014,
+    "median_delta_pp": 0.07294355291213028,
+    "wins": 15,
+    "losses": 9,
+    "p": 0.16151331846754213
+  },
+  "step204_main_effect_for_contrast": {
+    "mean_delta_pp": -3.666,
+    "median_delta_pp": -2.364,
+    "wins": 3,
+    "losses": 21,
+    "p": 9.067e-05,
+    "note": "marginal over 32 other-factor combinations, not the deployed config"
+  },
+  "verdict": "THE DIAL IS INERT. The best threshold (0.25) buys +0.43pp over the deployed 0.1, inside noise, even though it changes the component count on 24 cells. So the component count is NOT the mechanism behind Step 204's -3.67pp for the 2-eigenvector rule, and Omri's 'the redundant second factor gets in' is not actionable through this knob. Consistent with Step 204's other finding that one-component U-PCR is exactly PC1 of the surviving features - the estimation machinery is inert here and what mattered was orientation and exclusion. AND IT QUALIFIES A STEP-204 HEADLINE: throwing the same switch directly at the DEPLOYED configuration gives -0.43pp mean / +0.07pp median, 15W/9L, p=0.1615 - not the -3.67pp / -2.36pp, 3W/21L, p=9.1e-05 that exp03 reports. exp03's number is a factorial MAIN EFFECT, averaged over the 32 combinations of the other five factors, most of which are not configurations we run. Both are correct measurements of different quantities, but only the deployed-config one answers 'what does the 2-eigenvector rule cost us today', and the answer is: nothing measurable."
+}

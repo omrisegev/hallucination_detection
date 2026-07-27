@@ -311,7 +311,7 @@ def _existing_keys(out_csv):
 
 
 def bench_selector(selector_name, pool_mode, data_root, npz_dir, out_csv,
-                   seed=0, domains=None, cells=None, rand_R=32):
+                   seed=0, domains=None, cells=None, rand_R=32, sel_kwargs=None):
     """
     Run one registered selector family over the cell set; append one CSV row
     per (variant, cell), incrementally (resume-safe: existing rows skipped).
@@ -322,6 +322,13 @@ def bench_selector(selector_name, pool_mode, data_root, npz_dir, out_csv,
     ('lsml'|'upcr'), fallback (bool), diag (JSON-able dict).
     `cache` is the label-free npz slice (selector_cache_from_table) or None;
     selectors must degrade gracefully without it.
+
+    `sel_kwargs` is forwarded to the selector as extra keywords — the seam for
+    running one family under a variant of its own objective (e.g. a1_residual at
+    loading_scale='complete') without touching the published arm. EVALUATION is
+    unaffected: it stays on the canonical default path so the new rows remain
+    comparable to every other number in results/selector_bench/. Always write
+    those runs to a different --out file; never mix two objectives in one CSV.
     """
     from .selectors import get_selector
     selector = get_selector(selector_name)
@@ -348,7 +355,7 @@ def bench_selector(selector_name, pool_mode, data_root, npz_dir, out_csv,
 
             t0 = time.time()
             try:
-                selections = selector(ucell, rng, cache=cache)
+                selections = selector(ucell, rng, cache=cache, **(sel_kwargs or {}))
             except Exception as e:
                 print(f"[bench] {ctx.domain}/{ctx.cell_key}: selector raised "
                       f"{type(e).__name__}: {e} — fallback full pool")

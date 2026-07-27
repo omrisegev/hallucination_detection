@@ -1,0 +1,59 @@
+{
+  "U0_eq15_vectorisation_matches_loop": true,
+  "U1_duplicate_block_exact": true,
+  "U2_block_diagonal_exact": true,
+  "U3_fixed_point_stable": true,
+  "U3_convergence": {
+    "n_blocks": 122,
+    "n_converged": 102,
+    "n_guard_fired": 72,
+    "K_stable_100_vs_500": true
+  },
+  "U5_grouping_invariance": true,
+  "U6_sign_and_zscore_hygiene": true,
+  "R1_good6_unchanged": true,
+  "R1_good6_macro": 0.7593977574189023,
+  "R2_anchor_cell_unchanged": true,
+  "P1_K_distribution": {
+    "unit": {
+      "mean_K": 6.56,
+      "dist": {
+        "4": 4,
+        "5": 1,
+        "6": 5,
+        "7": 7,
+        "8": 8
+      },
+      "n_K_ge_7": 15,
+      "n_K_lt_3": 0
+    },
+    "eigen": {
+      "mean_K": 4.2,
+      "dist": {
+        "2": 6,
+        "3": 2,
+        "4": 5,
+        "5": 6,
+        "6": 5,
+        "7": 1
+      },
+      "n_K_ge_7": 1,
+      "n_K_lt_3": 6
+    },
+    "complete": {
+      "mean_K": 5.0,
+      "dist": {
+        "3": 3,
+        "4": 4,
+        "5": 13,
+        "6": 2,
+        "7": 1,
+        "8": 2
+      },
+      "n_K_ge_7": 3,
+      "n_K_lt_3": 0
+    }
+  },
+  "recommended_scale": "complete",
+  "why": "'eigen' (the SPEC's literal proposal) fails U1 at m=2 and drops 6/25 cells to K=2, where the clustered U-PCR variant is non-identifiable. 'complete' is exact on U1/U2 and keeps every cell at K>=3."
+}

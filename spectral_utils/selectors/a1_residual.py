@@ -61,15 +61,24 @@ def _offdiag_energy(C2, cols):
     return float(sub.sum() - np.trace(sub))
 
 
-def _eq14_residual(V, cols):
-    """Raw Eq-14 residual at the residual-grid best K for V[:, cols]."""
-    _, _, resid, _ = detect_dependent_groups([V[:, j] for j in cols])
+def _eq14_residual(V, cols, loading_scale='unit'):
+    """Raw Eq-14 residual at the residual-grid best K for V[:, cols].
+
+    ``loading_scale`` reaches L-SML's rank-one loading estimator. Default 'unit'
+    is what every committed bench row was computed with; Phase 0 of the U-PCR
+    study (Step 204) showed 'unit' does not satisfy Lemma 1 and that the
+    residual's correlation with AUROC vanishes once it is scaled correctly, so
+    re-deriving this family at 'complete' is a separate, labelled arm — never a
+    silent default change.
+    """
+    _, _, resid, _ = detect_dependent_groups([V[:, j] for j in cols],
+                                             loading_scale=loading_scale)
     return float(resid)
 
 
-def _lsml_rel_residual(V, cols=None):
+def _lsml_rel_residual(V, cols=None, loading_scale='unit'):
     cols = np.arange(V.shape[1]) if cols is None else np.asarray(cols)
-    resid = _eq14_residual(V, cols)
+    resid = _eq14_residual(V, cols, loading_scale=loading_scale)
     C2 = _pearson(V) ** 2
     energy = _offdiag_energy(C2, cols)
     return resid / max(energy, 1e-12)
@@ -137,7 +146,7 @@ def _greedy_min(V, objective, rng, max_size=MAX_GREEDY_SIZE):
 # ---------------------------------------------------------------------------
 
 @register('a1_residual')
-def a1_residual(cell, rng, cache=None):
+def a1_residual(cell, rng, cache=None, loading_scale='unit'):
     V = cell.V
     p = V.shape[1]
     out = []
@@ -178,7 +187,13 @@ def a1_residual(cell, rng, cache=None):
         emit_exh('a1.relres_exh', rel)
 
     # -- greedy variants (deployment path, always available) ----------------
-    rel_obj = lambda V_, c: _eq14_residual(V_, c) / max(_offdiag_energy(C2, c), 1e-12)
+    # NOTE: the exhaustive branch above reads `cache['residual']`, which was
+    # precomputed at the 'unit' loading scale by the Step-153 sweep. Those
+    # variants therefore ignore `loading_scale` — re-deriving them would mean
+    # regenerating ~65k residuals per cell. Only the greedy/router arms below
+    # honour it.
+    rel_obj = lambda V_, c: (_eq14_residual(V_, c, loading_scale=loading_scale)
+                             / max(_offdiag_energy(C2, c), 1e-12))
     greedy_cols, rel_path = _greedy_min(V, rel_obj, rng)
     out.append({'variant': 'a1.relres_greedy', 'cols': greedy_cols,
                 'diag': {'path': rel_path}})
@@ -188,7 +203,7 @@ def a1_residual(cell, rng, cache=None):
                 'diag': {'path': upcr_path}})
 
     # -- structural-model router (full-pool residual comparison) ------------
-    lsml_rel_full = _lsml_rel_residual(V)
+    lsml_rel_full = _lsml_rel_residual(V, loading_scale=loading_scale)
     upcr_rel_full = _upcr_k1_residual(V, np.arange(p))
     route = 'lsml' if lsml_rel_full <= upcr_rel_full else 'upcr'
     router_diag = {'lsml_rel_residual': lsml_rel_full,

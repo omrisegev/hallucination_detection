@@ -1,9 +1,129 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-07-26
-**Last updated**: Step 203 — **The trimming study: the fit criterion is informative but its sign is
-inverted.** Full write-up in HISTORY.md Step 203; browsable results in
-`results/pruning_study/index.html` (+ `all_results.html` for one table of all 82 measured rows).
+**Date**: 2026-07-27
+**Last updated**: Step 205 — **every published number replayed through today's code; the one real
+defect found, fixed exactly, and gated.** Full write-up in HISTORY.md Step 205; the advisor-facing
+page is `results/upcr_study/comparison.html`.
+
+- **UNEXPLAINED ROWS = 0**, and **the instability is gone, not just documented.** All 169 published
+  (variant, pool) rows were replayed through current code and cross-tabulated against their own
+  numerical noise. Re-running the jitter audit *after* the fix is the pass/fail test, and it passes
+  outright: rows moving <0.1pp go **134/165 → 165/165**, rows ≥0.5pp go **22 → 0**, the size-4 band's
+  median spread goes **0.439pp → 0.000pp** (18 unstable rows → 0), and Spearman(size, spread) goes
+  −0.492 → −0.072 — the size dependence disappears because there is no instability left to predict.
+  The worst remaining row moves a single *cell* by 0.02pp.
+- Page verdicts: **63 verified / 49 within their own noise / 34 `code fix: Step-205 exact small-m
+  solve` / 8 lookup-table / 4 not replayable / 2 Step-189 K clamp**. The exact count fell (75 → 63)
+  *because* the fix moved the size-4 rows and the post-fix noise floor is ~0, so any drift above
+  0.02pp must now be named rather than absorbed. Those old values were tie-breaks; today's code
+  returns a defined answer.
+- **THE ANSWER TO "did the fixes help, or is it just instability?" — neither fix improved any
+  algorithm, and the instability is real but sharply localised.** The m<4 short-circuit restores old
+  numbers by design; the corrected loading scale is +0.08pp (10W/15L); the new exact small-m solve
+  is +0.03pp (15W/10L, p=0.696). **Determinacy was the only thing on offer.** Under a 1e-10 jitter,
+  134 of 165 rows move <0.1pp; the whole problem sits at **mean size 4** (median spread 0.439pp,
+  18 of 36 rows ≥0.5pp) against 0.000pp at every other size. **Size 3 is degenerate but
+  deterministic** (Eq.15 is exactly zero → constant tie-break); **size 4 is meaningful but
+  undetermined** (Eq.15 has two terms; K ∈ {2,3} decided in the last bits).
+- **THE DEFECT, AND THE FIX.** Spectral clustering is a *heuristic* for "partition minimising the
+  Eq.14 residual"; at small m it ties and float noise settles it. Demonstrated at 5.55e-17: `np.cov`
+  on a non-contiguous column slice vs a contiguous copy of the same numbers flips the m=4 partition
+  and moves one cell 9.7pp. Now: **canonical covariance input** at every m, **exact enumeration of
+  all partitions at m ≤ 4**, and a **near-degeneracy flag** (`return_diag=True` →
+  `meta['grouping_diag']`) that fires at any m when the winner beats its rival by less than noise.
+  **Every headline anchor moves 0.00pp** (GOOD_6 0.7594, GOOD_5 0.7519, LOCO_5 0.7705, `a6.pl_dufs`
+  0.7524, `a2.dufs` 0.7502); only the m=4 reference `ref.consensus_4` moves, +0.60pp.
+- **THE STANDING MECHANISM: gate U5.** Asserts the grouping is invariant to (i) memory layout,
+  (ii) feature-order permutation, (iii) a 1e-12 jitter, on real cells at m=3..8. **An invariance
+  failure is the signature of an answer decided by rounding, not by data.** It already found one
+  near-tie above the exact-solve cutoff: `m=8 math500_r1distill8b` is relabel-dependent. Gate U6
+  covers two smaller determinism/robustness holes (`sml_fuse_signed`'s even-k tie, `zscore` on
+  non-finite input) — both verified inert on current data before being fixed.
+- **STEP 204's HEADLINE (P2) SURVIVES, re-measured on fixed code.** All three size-3-inclusive
+  pruning studies were re-run. `exp06`: Spearman(misfit, AUROC) unit **+0.222** (published +0.223,
+  23/25 positive) → complete **−0.022** (published −0.006, 10/25), shift **−0.243, p = 0.0006**
+  (published −0.228, p = 0.0015) — **P2 holds, slightly strengthened**, so the loading-scale
+  correction and the decision *not* to build Extension I1 rest on current numbers. `exp01_grouping`:
+  grouping OFF beats ON at **13/13 sizes, 12 at p<0.05** — unchanged. `exp03_preflight`: typical
+  accuracy rises with size in **25/25 cells**, and *only the k=3 endpoints moved* (typical
+  0.6928→0.6881 at k=3 but 0.7450→0.7450 at k=21; best-found 0.7740→0.7726 at k=3 but
+  0.7634→0.7634 at k=25) — a clean confirmation of the fix's blast radius.
+- **STEP 204's B1 IS NARROWED.** "The g2 search range never binds" is true of the **pre-exclusion**
+  fit (which is the only one exp01 draws) and **false** of the g2 the pipeline returns: Algorithm 1
+  excludes weak experts and recalculates g2 on the ~12 survivors of ~29, where it lands **exactly on
+  the ceiling in 24/25 cells**. The conclusion survives — un-pinning it is −0.28pp, 12W/13L, a wash.
+  And g2 is **not** the component-count dial: `auto_components` keys off `lambda2_frac > 0.1`,
+  computed before g2 and independently of it.
+- **STEP 204's R2 IS QUALIFIED, and this one matters for how we report.** The 2-eigenvector rule at
+  "−3.67pp, p=9.1e-05" is a **factorial main effect** — each cell's delta averaged over the 32
+  combinations of the other five factors, most of which we never run. At the **deployed**
+  configuration the identical switch is **−0.43pp mean / +0.07pp median, 15W/9L, p=0.16** (new
+  `exp07`, verified two independent ways). The reversal of Step 142's *sign* stands; the *magnitude*
+  does not transfer. **Do not quote a factorial main effect as a deployed cost.**
+- **`lambda2_threshold` — the most promising open lead — is dead.** Sweeping it 0.05→0.25 moves the
+  component count on 24/25 cells and buys **+0.43pp (9W/15L, p=0.16)**. Consistent with Step 204's
+  finding that one-component U-PCR is exactly PC1 of the surviving features: the estimation
+  machinery is inert on our data, and what mattered was orientation and exclusion.
+- **NEXT** (unchanged from Step 204): build the **orientation** result into a proper experiment —
+  `sign(ρ̂)` polarity against `ALL_SIGNS` on the L-SML path (a free no-op) and on every
+  sign-sensitive consumer (where it is not), plus a decision on the 15 mis-signed entries. Do **not**
+  build Extension I1.
+
+<details><summary>Step 204 headlines (still current except where Step 205 narrows them above)</summary>
+
+- **STEP 203's HEADLINE IS SUPERSEDED.** The "+0.223, every selector minimised what should have been
+  maximised" finding is an **artifact of the L-SML loading scale**. `_estimate_von_voff` returned the
+  unit-norm eigenvector where Lemma 1 requires the loadings to reproduce the covariance, so misfit was
+  inflated by group size. Corrected: Spearman(misfit, AUROC) goes **+0.223 (24/25 positive) → −0.006
+  (12/25)**, shift −0.228, **p = 0.0015**. The `unit` arm reproduces Step 203 exactly, so the harness
+  is sound. **→ Extension I1 (sign-flip the selectors) is the wrong remedy and should not be built.**
+- **The SPEC's own proposed fix was not the right one.** `SPEC_residual_scaling_fix.md` pre-registered
+  `eigen` (`sqrt(λ₁)·v`); it **fails the SPEC's own U1 check** (0.2500 at m=2, identical to the broken
+  path) and drops 6/25 cells to K=2. A masked rank-one **completion** estimator is exact (~1e-25) and
+  keeps every cell at K≥3. Per Omri, the loading scale is now **reported three ways everywhere rather
+  than chosen** (`common.SCALES`), because `complete` is also the convenient answer.
+  Anchors hold: GOOD_6 = 0.7594 and K=4 / residual 88.455 / sizes [5,7,7,11] on flag-off.
+- **U-PCR: every claimed deviation from the paper was real, and none of them helps.** All seven
+  verified against the paper. On fixed code **two previously-settled results reverse**: the
+  2-eigenvector rule is **−3.67pp** (3W/21L, p=0.0001), not Step 142's +0.5pp (that measurement was
+  confounded by the g2 range cap — g2 *is* the 1-vs-2 dial); **→ QUALIFIED IN STEP 205**: −3.67pp is
+  a factorial main effect averaged over 32 other-factor combinations; at the deployed config the
+  same switch is −0.43pp / +0.07pp median, 15W/9L, p=0.16. And g2 is *not* the 1-vs-2 dial —
+  `lambda2_threshold` is, and it is inert (exp07). The sign reversal stands; the magnitude does not
+  transfer. And the absolute loss is a **wash**
+  (+0.07pp median, 13W/12L, p=0.615), never actually measured before. Being faithful *loses*
+  (0.6910 vs 0.7392, but only −0.18pp median, p=0.173). No configuration of 64 beats GOOD_6.
+- **The g2 search range — the headline suspect — never binds.** Chosen g2 sits at q≈0.01–0.08 and
+  widening the range 16× moves it in **0/25 cells**. `var_y` acts entirely through the **abstain gate**
+  (cells declared too hard 3.9 → 17.6 of 25): a routing knob, not a weight-estimation knob.
+  **→ NARROWED IN STEP 205**: true of the pre-exclusion fit only. The g2 `upcr_fit` returns comes
+  from the post-exclusion refit and **is** at the ceiling in 24/25 cells. Un-pinning it is a wash
+  (−0.28pp, 12W/13L), so the conclusion holds and the mechanism sentence does not.
+- **The clustered variant is refuted, and its premise was a confound.** Fit error is essentially pair
+  correlation (Spearman **0.870**); the raw 2.03× same-vs-cross gap collapses to **0.97–1.00** when
+  matched on |C_ij| decile, a random partition gives the same, and **magnitude-only clustering
+  separates it *better* (3.06–3.81)**. The variant fails both pre-registered gates and loses
+  **−4.46pp** (9W/16L, p=0.030). Identifiability requirement derived and enforced: **K ≥ 3** (the
+  cross-cluster pair graph is complete multipartite; at K=2 it is bipartite and rho is unidentifiable).
+- **THE FINDING WORTH CARRYING FORWARD — orientation.** Deriving per-feature polarity from `sign(ρ̂)`
+  **beats the 42 hand signs**: 0.7551 vs 0.7405, **+1.46pp, 20W/5L, p<0.001**. And **15 of 30 pool
+  features carry the wrong hand sign** (`epr_spilled` 0.277, `cusum_max_spilled` 0.281 oriented AUROC,
+  both below 0.5 in 25/25 cells) — though correcting them moves GOOD_6/LOCO_5 by **exactly 0.0000pp**
+  (sign-gauge invariance, re-verified). Structure recovers the **empirical** direction on **91.8%** of
+  features (p<0.001). **The global ±1 is provably NOT recoverable** — a global flip leaves ρ̂
+  bit-identical (max|Δρ| = 0.000e+00), so the anchor bit cannot be derived from covariance structure.
+- **An independent adversarial review found 17 defects in this session's own work**, several changing a
+  conclusion — including a `pairs=None` that made the clustered variant measure an all-pairs fit, two
+  anti-regression gates that were no-ops (`bool((ok, macro))` is always True), and main-effect p-values
+  pseudo-replicated to n=800. All fixed and re-run; withdrawn claims are named in HISTORY Step 204 §F.
+- **The honest headline**: one-component U-PCR is *exactly* PC1 of the surviving features (cosine
+  deviation 7e-12), so the whole ρ/g²/Eq.-20 apparatus enters only through the exclusion mask.
+  **U-PCR's estimation machinery is inert on our data; what mattered was orientation and exclusion.**
+- **NEXT**: build the orientation result into a proper experiment — `sign(ρ̂)` polarity against
+  `ALL_SIGNS` on the L-SML path (where it is a free no-op) and on every sign-sensitive consumer (where
+  it is not), plus a decision on correcting the 15 mis-signed entries. Do **not** build Extension I1.
+
+<details><summary>Step 203 headlines (superseded above, kept for the record)</summary>
 
 - **HEADLINE — every selector we built minimised a quantity that should have been maximised.**
   Two independent measurements, both on live current data:
@@ -65,6 +185,11 @@ inverted.** Full write-up in HISTORY.md Step 203; browsable results in
   Step-203 localized arm) to maximise misfit instead of minimising it. Hours of work on code that
   already exists, and decisive. Bar to clear is **0.7524** (the automatic-picker bar), not 0.7594.
   Per Omri: **report effect sizes with W/L + Wilcoxon; do not gate on 1–2pp differences.**
+  *(Step 204 resolution: P1 HOLDS, P2 HOLDS — the +0.223 goes to −0.006, p = 0.0015 — so **I1 is the
+  wrong remedy and is not to be built**. P3 was not measured separately: it asks the same question as
+  P2 and P2 answered it.)*
+
+</details>
 
 <details><summary>Step 202 headlines (superseded by 203 above)</summary>
 

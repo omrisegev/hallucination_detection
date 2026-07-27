@@ -157,12 +157,32 @@ def main():
     S.save_csv(os.path.join(out, "criterion_power_per_size.csv"), crit_rows)
 
     all_sizes = SIZES
-    mean_of_means = [float(np.nanmean([np.nanmean(
-        [r["auroc"] for r in by_cell[c] if r["size"] == s]) for c in by_cell]))
-        for s in all_sizes]
-    mean_of_max = [float(np.nanmean([np.nanmax(
-        [r["auroc"] for r in by_cell[c] if r["size"] == s]) for c in by_cell]))
-        for s in all_sizes]
+    # NOT every cell reaches every size: pool sizes run 27-30, and the sampling
+    # loop skips `size > p`, so size 30 exists on only 6 of 25 cells. Aggregating
+    # over `by_cell` unconditionally hands np.nanmax an EMPTY list, which raises
+    # (nanmean merely warns and returns NaN, which is why the crash landed here
+    # and not one line earlier). Aggregate over the cells that actually have rows
+    # at that size, and record the coverage so a thin size cannot be read as if
+    # it were measured on all 25. Found Step 205; pre-existing.
+    def _per_size(reduce_fn):
+        out = []
+        for s in all_sizes:
+            vals = [reduce_fn(v) for v in
+                    ([r["auroc"] for r in by_cell[c] if r["size"] == s]
+                     for c in by_cell) if v]
+            out.append(float(np.nanmean(vals)) if vals else float("nan"))
+        return out
+
+    size_coverage = [sum(1 for c in by_cell
+                         if any(r["size"] == s for r in by_cell[c]))
+                     for s in all_sizes]
+    mean_of_means = _per_size(np.nanmean)
+    mean_of_max = _per_size(np.nanmax)
+    thin = [(s, n) for s, n in zip(all_sizes, size_coverage) if n < len(by_cell)]
+    if thin:
+        print("  NOTE: sizes not measured on all "
+              f"{len(by_cell)} cells (pool sizes differ): "
+              + ", ".join(f"size {s} on {n}" for s, n in thin))
 
     corrs = np.array([r["mean_correlation_fit_vs_accuracy"] for r in curve_rows], float)
     rising = sum(1 for r in curve_rows

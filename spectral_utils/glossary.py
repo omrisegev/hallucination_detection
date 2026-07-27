@@ -282,7 +282,13 @@ VARIANT_NOTES = {
                          "(raw residual / off-diagonal correlation energy) "
                          "— the structure-seeking form.", "Step 186"),
     "a1.upcrres_greedy": ("Greedy search minimizing the U-PCR k=1 projection "
-                         "residual.", "Step 186"),
+                         "residual. Uses the LEGACY fusion_utils.upcr_proj_residual "
+                         "(var_y pinned at 0.25), not the paper-faithful "
+                         "spectral_utils.upcr built in Step 204 — the objective "
+                         "predates it. Step 204 found faithful vs legacy U-PCR is "
+                         "-0.18pp median (p=0.173) at fusion time, so the gap is "
+                         "unlikely to matter here, but it has not been measured "
+                         "as a selection criterion.", "Step 186"),
 
     "a2.select": ("GroupFS's own selection readout (feature-granular, via "
                   "the group discovery mechanism).", "Step 186"),
@@ -350,10 +356,19 @@ SUFFIX_NOTES = {
     "_s{N}": "Best subset of exactly size N found by this method.",
     "_adapt": "Size chosen adaptively by the method's own rule, not fixed.",
     "_k{N}": "Bottleneck / latent dimension N (Concrete Autoencoder).",
+    "+scale_{S}": ("Same method, re-derived with L-SML's rank-one loading "
+                   "estimator set to scale S. 'unit' is the historical default "
+                   "and does not satisfy Lemma 1; 'complete' is the exact "
+                   "masked-completion fit. Only selectors whose objective calls "
+                   "L-SML are affected."),
 }
 
 _SIZE_SUFFIX_RE = re.compile(r"_(s\d+|adapt)$")
 _K_SUFFIX_RE = re.compile(r"_k\d+$")
+# Step 205: an arm re-derived under a different loading scale. Deliberately NOT
+# spelled with '@' — that character already means "fixed subset, fusion choice
+# only" to every consumer of these names.
+_SCALE_SUFFIX_RE = re.compile(r"\+scale_(unit|eigen|complete)$")
 
 BASE_VARIANT_NOTES = {
     "a1.minres_exh": ("Exhaustive search minimizing the raw Eq-14 residual.",
@@ -391,6 +406,11 @@ def resolve(variant):
     if variant in VARIANT_NOTES:
         note, step = VARIANT_NOTES[variant]
         return note, step, None
+    m = _SCALE_SUFFIX_RE.search(variant)
+    if m:
+        base = resolve(variant[:m.start()])
+        if base:
+            return base[0], base[1], f"+scale_{m.group(1)}"
     if variant in REFERENCE_SUBSET_NOTES:
         note, step = REFERENCE_SUBSET_NOTES[variant]
         return note, step, None

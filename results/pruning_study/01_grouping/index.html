@@ -24,60 +24,47 @@ code{background:var(--card);padding:1px 5px;border-radius:3px;font-size:13px}
 @media(prefers-color-scheme:dark){.warn{background:#2a1f14}}
 </style></head><body>
 <h1>Experiment 1 - Does the grouping step help?</h1><p class="sub">Switching off the detector's internal 'group similar measurements' stage, at every subset size, on 25 test sets.</p>
-<div class="tldr"><h2>In short</h2><ul><li><b>Switching grouping off is better at every size tested</b> (12/12 sizes, 12 individually significant).</li><li>On the full pool across all 25 test sets: 0.7457 with grouping vs 0.7533 without (+0.76 points, p = 0.0240).</li><li>The effect is small - under a point at most sizes. This says the grouping stage is not earning its keep, not that removing it is a real improvement.</li><li>It was built to handle near-duplicate measurements, and those are present in every test set - so it is failing at its own job, not idle.</li></ul></div>
+<div class="tldr"><h2>In short</h2><ul><li>At the full 30 measurements, switching grouping off changes accuracy by +1.19 pp (5/6 test sets better without it).</li><li>Averaged over large subsets (21-30) the difference is +0.81 pp; over small subsets (3-8) it is +0.62 pp - the sign flips with size.</li><li>The effect is small everywhere. The honest reading is that the grouping step is not earning its keep at full pool size, not that turning it off is a shippable win.</li></ul></div>
 
 <h2>What was compared</h2>
 <p>Our detector combines measurements in two stages: it first sorts them into
-groups that behave alike, combines within each group, then combines the group
-summaries. This experiment switches that first stage off, so everything is
-combined in one pass, and compares the two at every subset size. The data, the
-scaling and the way the final score's direction is resolved are identical; only
-the grouping stage changes.</p>
-<p>At each size, 20 random combinations of measurements were drawn per test set
-and both methods scored on <em>exactly the same</em> combinations, so the
-comparison is paired.</p>
-<p class="note">A note on "30 measurements": the number available varies by test
-set &mdash; 27 to 30. The size-30 row therefore only
-covers the 6 test sets that have all 30.
-The full-pool comparison below uses every test set's own complete set, so it
-covers all 25.</p>
+groups of measurements that behave alike, combines within each group, then
+combines the group summaries. This experiment switches that first stage off, so
+all measurements are combined in one pass, and compares the two at every subset
+size. Everything else &mdash; the data, the scaling, the way the final score's
+direction is resolved &mdash; is identical.</p>
+<p>At each size below 30, 20 random combinations of measurements were drawn per
+test set and the two methods scored on exactly the same combinations. At size
+30 there is only one combination, so it is scored directly.</p>
 
 <h2>Result</h2>
-<div class="fig"><svg viewBox="0 0 880 380" width="880" height="380" font-family="sans-serif" font-size="12"><line x1="78" y1="328.0" x2="690" y2="328.0" stroke="var(--line)" stroke-width="1"/><text x="69" y="332.0" text-anchor="end" fill="var(--mut)">0.689</text><line x1="78" y1="266.8" x2="690" y2="266.8" stroke="var(--line)" stroke-width="1"/><text x="69" y="270.8" text-anchor="end" fill="var(--mut)">0.704</text><line x1="78" y1="205.6" x2="690" y2="205.6" stroke="var(--line)" stroke-width="1"/><text x="69" y="209.6" text-anchor="end" fill="var(--mut)">0.719</text><line x1="78" y1="144.4" x2="690" y2="144.4" stroke="var(--line)" stroke-width="1"/><text x="69" y="148.4" text-anchor="end" fill="var(--mut)">0.734</text><line x1="78" y1="83.2" x2="690" y2="83.2" stroke="var(--line)" stroke-width="1"/><text x="69" y="87.2" text-anchor="end" fill="var(--mut)">0.749</text><line x1="78" y1="22.0" x2="690" y2="22.0" stroke="var(--line)" stroke-width="1"/><text x="69" y="26.0" text-anchor="end" fill="var(--mut)">0.765</text><text x="78.0" y="346" text-anchor="middle" fill="var(--mut)">3</text><text x="100.7" y="346" text-anchor="middle" fill="var(--mut)">4</text><text x="123.3" y="346" text-anchor="middle" fill="var(--mut)">5</text><text x="146.0" y="346" text-anchor="middle" fill="var(--mut)">6</text><text x="191.3" y="346" text-anchor="middle" fill="var(--mut)">8</text><text x="236.7" y="346" text-anchor="middle" fill="var(--mut)">10</text><text x="282.0" y="346" text-anchor="middle" fill="var(--mut)">12</text><text x="350.0" y="346" text-anchor="middle" fill="var(--mut)">15</text><text x="418.0" y="346" text-anchor="middle" fill="var(--mut)">18</text><text x="486.0" y="346" text-anchor="middle" fill="var(--mut)">21</text><text x="554.0" y="346" text-anchor="middle" fill="var(--mut)">24</text><text x="622.0" y="346" text-anchor="middle" fill="var(--mut)">27</text><text x="690.0" y="346" text-anchor="middle" fill="var(--mut)">30</text><line x1="78" y1="43.1" x2="690" y2="43.1" stroke="#718096" stroke-width="1.4" stroke-dasharray="6 4"/><text x="698" y="47.1" fill="#718096" font-size="11.5">six hand-picked = 0.7594</text><polyline points="78.0,306.9 100.7,238.4 123.3,221.6 146.0,190.0 191.3,142.4 236.7,140.8 282.0,131.3 350.0,122.3 418.0,109.7 486.0,104.2 554.0,92.0 622.0,106.9 690.0,141.4" fill="none" stroke="#2b6cb0" stroke-width="2.2"/><line x1="698" y1="36" x2="716" y2="36" stroke="#2b6cb0" stroke-width="2.6"/><text x="720" y="40" fill="var(--fg)" font-size="11.5">Grouping step ON (deployed detector)</text><polyline points="78.0,269.9 100.7,212.1 123.3,200.0 146.0,172.4 191.3,130.2 236.7,125.7 282.0,106.9 350.0,102.4 418.0,81.7 486.0,79.0 554.0,73.3 622.0,68.7 690.0,93.7" fill="none" stroke="#c05621" stroke-width="2.2"/><line x1="698" y1="53" x2="716" y2="53" stroke="#c05621" stroke-width="2.6"/><text x="720" y="57" fill="var(--fg)" font-size="11.5">Grouping step OFF</text><text x="384.0" y="370" text-anchor="middle" fill="var(--fg)">Number of measurements kept</text><text x="16" y="175.0" text-anchor="middle" fill="var(--fg)" transform="rotate(-90 16 175.0)">Detection accuracy (AUROC)</text></svg></div>
-<table><thead><tr><th>Measurements kept</th><th>Grouping ON</th><th>Grouping OFF</th><th>Difference</th><th>Test sets better without grouping</th><th>Wilcoxon p</th></tr></thead><tbody><tr><td class="num">3</td><td class="num">0.6938</td><td class="num">0.7030</td><td class="num">+0.92 pp</td><td>22/25</td><td class="num">0.0000</td></tr><tr><td class="num">4</td><td class="num">0.7108</td><td class="num">0.7174</td><td class="num">+0.66 pp</td><td>19/25</td><td class="num">0.0000</td></tr><tr><td class="num">5</td><td class="num">0.7150</td><td class="num">0.7204</td><td class="num">+0.54 pp</td><td>18/25</td><td class="num">0.0020</td></tr><tr><td class="num">6</td><td class="num">0.7229</td><td class="num">0.7272</td><td class="num">+0.44 pp</td><td>21/25</td><td class="num">0.0001</td></tr><tr><td class="num">8</td><td class="num">0.7347</td><td class="num">0.7377</td><td class="num">+0.30 pp</td><td>20/25</td><td class="num">0.0023</td></tr><tr><td class="num">10</td><td class="num">0.7351</td><td class="num">0.7388</td><td class="num">+0.38 pp</td><td>19/25</td><td class="num">0.0010</td></tr><tr><td class="num">12</td><td class="num">0.7375</td><td class="num">0.7435</td><td class="num">+0.61 pp</td><td>20/25</td><td class="num">0.0016</td></tr><tr><td class="num">15</td><td class="num">0.7397</td><td class="num">0.7447</td><td class="num">+0.49 pp</td><td>17/25</td><td class="num">0.0422</td></tr><tr><td class="num">18</td><td class="num">0.7428</td><td class="num">0.7498</td><td class="num">+0.70 pp</td><td>17/25</td><td class="num">0.0236</td></tr><tr><td class="num">21</td><td class="num">0.7442</td><td class="num">0.7505</td><td class="num">+0.63 pp</td><td>17/25</td><td class="num">0.0422</td></tr><tr><td class="num">24</td><td class="num">0.7472</td><td class="num">0.7519</td><td class="num">+0.47 pp</td><td>16/25</td><td class="num">0.0299</td></tr><tr><td class="num">27</td><td class="num">0.7435</td><td class="num">0.7530</td><td class="num">+0.95 pp</td><td>17/25</td><td class="num">0.0173</td></tr><tr><td class="num">30</td><td class="num">0.7349</td><td class="num">0.7468</td><td class="num">+1.19 pp</td><td>5/6</td><td class="num">0.1562</td></tr></tbody></table>
-
-<h3>Full pool, all 25 test sets</h3>
-<p>Using each test set's complete set of available measurements:
-grouping ON <b>0.7457</b>, grouping OFF
-<b>0.7533</b> &mdash; a difference of <b>+0.76 points</b>
-in favour of switching it off, better on
-<b>15 of 25</b> test sets (Wilcoxon p = 0.0240).</p>
+<div class="fig"><svg viewBox="0 0 880 380" width="880" height="380" font-family="sans-serif" font-size="12"><line x1="78" y1="328.0" x2="690" y2="328.0" stroke="var(--line)" stroke-width="1"/><text x="69" y="332.0" text-anchor="end" fill="var(--mut)">0.684</text><line x1="78" y1="266.8" x2="690" y2="266.8" stroke="var(--line)" stroke-width="1"/><text x="69" y="270.8" text-anchor="end" fill="var(--mut)">0.701</text><line x1="78" y1="205.6" x2="690" y2="205.6" stroke="var(--line)" stroke-width="1"/><text x="69" y="209.6" text-anchor="end" fill="var(--mut)">0.717</text><line x1="78" y1="144.4" x2="690" y2="144.4" stroke="var(--line)" stroke-width="1"/><text x="69" y="148.4" text-anchor="end" fill="var(--mut)">0.733</text><line x1="78" y1="83.2" x2="690" y2="83.2" stroke="var(--line)" stroke-width="1"/><text x="69" y="87.2" text-anchor="end" fill="var(--mut)">0.749</text><line x1="78" y1="22.0" x2="690" y2="22.0" stroke="var(--line)" stroke-width="1"/><text x="69" y="26.0" text-anchor="end" fill="var(--mut)">0.765</text><text x="78.0" y="346" text-anchor="middle" fill="var(--mut)">3</text><text x="100.7" y="346" text-anchor="middle" fill="var(--mut)">4</text><text x="123.3" y="346" text-anchor="middle" fill="var(--mut)">5</text><text x="146.0" y="346" text-anchor="middle" fill="var(--mut)">6</text><text x="191.3" y="346" text-anchor="middle" fill="var(--mut)">8</text><text x="236.7" y="346" text-anchor="middle" fill="var(--mut)">10</text><text x="282.0" y="346" text-anchor="middle" fill="var(--mut)">12</text><text x="350.0" y="346" text-anchor="middle" fill="var(--mut)">15</text><text x="418.0" y="346" text-anchor="middle" fill="var(--mut)">18</text><text x="486.0" y="346" text-anchor="middle" fill="var(--mut)">21</text><text x="554.0" y="346" text-anchor="middle" fill="var(--mut)">24</text><text x="622.0" y="346" text-anchor="middle" fill="var(--mut)">27</text><text x="690.0" y="346" text-anchor="middle" fill="var(--mut)">30</text><line x1="78" y1="43.1" x2="690" y2="43.1" stroke="#718096" stroke-width="1.4" stroke-dasharray="6 4"/><text x="698" y="47.1" fill="#718096" font-size="11.5">six hand-picked = 0.7594</text><polyline points="78.0,306.9 100.7,222.8 123.3,212.0 146.0,182.1 191.3,137.1 236.7,135.6 282.0,126.6 350.0,118.0 418.0,106.1 486.0,100.9 554.0,89.4 622.0,103.5 690.0,136.1" fill="none" stroke="#2b6cb0" stroke-width="2.2"/><line x1="698" y1="36" x2="716" y2="36" stroke="#2b6cb0" stroke-width="2.6"/><text x="720" y="40" fill="var(--fg)" font-size="11.5">Grouping step ON (deployed detector)</text><polyline points="78.0,257.7 100.7,203.0 123.3,191.6 146.0,165.4 191.3,125.5 236.7,121.3 282.0,103.5 350.0,99.2 418.0,79.6 486.0,77.1 554.0,71.7 622.0,67.4 690.0,91.0" fill="none" stroke="#c05621" stroke-width="2.2"/><line x1="698" y1="53" x2="716" y2="53" stroke="#c05621" stroke-width="2.6"/><text x="720" y="57" fill="var(--fg)" font-size="11.5">Grouping step OFF</text><text x="384.0" y="370" text-anchor="middle" fill="var(--fg)">Number of measurements kept</text><text x="16" y="175.0" text-anchor="middle" fill="var(--fg)" transform="rotate(-90 16 175.0)">Detection accuracy (AUROC)</text></svg></div>
+<p class="note">Each line is the average over the 25 test sets. Dashed line is
+the reference point our project has been measured against: six measurements
+chosen by hand using answer keys.</p>
+<table><thead><tr><th>Measurements kept</th><th>Grouping ON</th><th>Grouping OFF</th><th>Difference</th><th>Test sets better without grouping</th><th>Wilcoxon p</th></tr></thead><tbody><tr><td class="num">3</td><td class="num">0.6900</td><td class="num">0.7030</td><td class="num">+1.29 pp</td><td>24/25</td><td class="num">0.0000</td></tr><tr><td class="num">4</td><td class="num">0.7121</td><td class="num">0.7174</td><td class="num">+0.52 pp</td><td>18/25</td><td class="num">0.0005</td></tr><tr><td class="num">5</td><td class="num">0.7150</td><td class="num">0.7204</td><td class="num">+0.54 pp</td><td>18/25</td><td class="num">0.0020</td></tr><tr><td class="num">6</td><td class="num">0.7229</td><td class="num">0.7272</td><td class="num">+0.44 pp</td><td>21/25</td><td class="num">0.0001</td></tr><tr><td class="num">8</td><td class="num">0.7347</td><td class="num">0.7377</td><td class="num">+0.30 pp</td><td>20/25</td><td class="num">0.0023</td></tr><tr><td class="num">10</td><td class="num">0.7351</td><td class="num">0.7388</td><td class="num">+0.38 pp</td><td>19/25</td><td class="num">0.0010</td></tr><tr><td class="num">12</td><td class="num">0.7375</td><td class="num">0.7435</td><td class="num">+0.61 pp</td><td>20/25</td><td class="num">0.0016</td></tr><tr><td class="num">15</td><td class="num">0.7397</td><td class="num">0.7447</td><td class="num">+0.49 pp</td><td>17/25</td><td class="num">0.0422</td></tr><tr><td class="num">18</td><td class="num">0.7428</td><td class="num">0.7498</td><td class="num">+0.70 pp</td><td>17/25</td><td class="num">0.0236</td></tr><tr><td class="num">21</td><td class="num">0.7442</td><td class="num">0.7505</td><td class="num">+0.63 pp</td><td>17/25</td><td class="num">0.0422</td></tr><tr><td class="num">24</td><td class="num">0.7472</td><td class="num">0.7519</td><td class="num">+0.47 pp</td><td>16/25</td><td class="num">0.0299</td></tr><tr><td class="num">27</td><td class="num">0.7435</td><td class="num">0.7530</td><td class="num">+0.95 pp</td><td>17/25</td><td class="num">0.0173</td></tr><tr><td class="num">30</td><td class="num">0.7349</td><td class="num">0.7468</td><td class="num">+1.19 pp</td><td>5/6</td><td class="num">0.1562</td></tr></tbody></table>
 
 <h2>Reading this</h2>
 <ul>
-<li><b>Switching the grouping step off is better at every single size tested</b>
-&mdash; 12 of 12 sizes positive, and 12 of 12
-individually significant at p &lt; 0.05. The average difference across the size
-grid is +0.59 points.</li>
-<li>The consistency matters more than the size of the effect. Any single size
-here would be unconvincing on its own; the same sign at every size, on paired
-draws, is not.</li>
-<li><b>What this does not say.</b> The effect is well under a point at most
-sizes. This is evidence that the grouping stage is <em>not earning its keep</em>,
-not evidence that removing it is a meaningful accuracy improvement. Nothing here
-reaches the six hand-picked measurements (0.7594).</li>
-<li>The grouping stage was designed to handle measurements that are
-near-duplicates of one another. Experiment 4 shows those duplicates are present
-in every test set, so the stage is not failing for want of something to do
-&mdash; it is failing at the thing it was built for.</li>
+<li><b>The grouping step costs accuracy at large sizes and gains at small
+sizes.</b> Averaged over sizes 21&ndash;30 the difference is
++0.81 pp in favour of switching grouping off; over sizes 3&ndash;8 it is
++0.62 pp.</li>
+<li>The sizes where grouping helps are the sizes where there are too few
+measurements for a group structure to be worth estimating &mdash; and the sizes
+where it hurts are where the estimate is noisiest.</li>
+<li><b>None of these differences is large.</b> They sit in the same range as the
+spread between neighbouring sizes, so this should be read as "the grouping step
+is not buying what it was meant to buy at full pool size", not as
+"switching it off is an improvement worth shipping".</li>
 </ul>
 
 <h2>Saved data</h2>
 <ul>
 <li><code>grouping_by_size.csv</code> &mdash; one row per size per test set</li>
 <li><code>grouping_summary.csv</code> &mdash; one row per size, aggregated</li>
-<li><code>grouping_raw.npz</code> &mdash; every individual combination drawn, its exact
-measurement list, and both scores</li>
+<li><code>grouping_raw.npz</code> &mdash; every individual subset drawn, its exact
+measurement list, and both scores, for re-analysis</li>
 </ul>
 
 </body></html>

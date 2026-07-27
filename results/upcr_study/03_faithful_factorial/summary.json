@@ -1,0 +1,100 @@
+{
+  "n_configs": 64,
+  "n_cells": 25,
+  "macro_legacy_config": 0.7391515914753798,
+  "macro_faithful_config": 0.6910274671017013,
+  "macro_best_config": 0.7532641261501071,
+  "macro_worst_config": 0.6266998223691186,
+  "span": 0.12656430378098849,
+  "faithful_vs_legacy": {
+    "mean_delta": -0.048124124373678384,
+    "median_delta": -0.0017834653666464195,
+    "wins": 10,
+    "losses": 15,
+    "n": 25,
+    "p": 0.17295855283737183,
+    "unit": "test sets"
+  },
+  "references_by_scale": {
+    "unit": {
+      "good6": 0.7593977574189023,
+      "lsml_all30": 0.7456670478545834
+    },
+    "eigen": {
+      "good6": 0.7547688940839109,
+      "lsml_all30": 0.7444374191568083
+    },
+    "complete": {
+      "good6": 0.7582259436864405,
+      "lsml_all30": 0.7452223692498311
+    }
+  },
+  "main_effects": [
+    {
+      "factor": "scale_ratio",
+      "from": "0.25",
+      "to": "1.0",
+      "mean_delta_pp": -1.05273106326689,
+      "median_delta_pp": -1.0432536055250852,
+      "wins": 7,
+      "losses": 18,
+      "n_test_sets": 25,
+      "wilcoxon_p": 0.0007149577140808105
+    },
+    {
+      "factor": "loss",
+      "from": "l2",
+      "to": "l1",
+      "mean_delta_pp": -1.2883679880016055,
+      "median_delta_pp": 0.07168707001664609,
+      "wins": 13,
+      "losses": 12,
+      "n_test_sets": 25,
+      "wilcoxon_p": 0.615043044090271
+    },
+    {
+      "factor": "g2_projection_k",
+      "from": "1",
+      "to": "match",
+      "mean_delta_pp": -0.5924876913115975,
+      "median_delta_pp": -0.1199868975731988,
+      "wins": 6,
+      "losses": 18,
+      "n_test_sets": 25,
+      "wilcoxon_p": 0.002964178167173091
+    },
+    {
+      "factor": "components",
+      "from": "one",
+      "to": "auto",
+      "mean_delta_pp": -3.666086704242191,
+      "median_delta_pp": -2.364115690052382,
+      "wins": 3,
+      "losses": 21,
+      "n_test_sets": 25,
+      "wilcoxon_p": 9.067222017758301e-05
+    },
+    {
+      "factor": "exclusion",
+      "from": "True",
+      "to": "False",
+      "mean_delta_pp": -2.282702150542007,
+      "median_delta_pp": -2.071425682310135,
+      "wins": 4,
+      "losses": 21,
+      "n_test_sets": 25,
+      "wilcoxon_p": 0.00032907724380493164
+    },
+    {
+      "factor": "difficulty_gate",
+      "from": "False",
+      "to": "True",
+      "mean_delta_pp": -2.173914491803056,
+      "median_delta_pp": -1.1645264276628486,
+      "wins": 3,
+      "losses": 22,
+      "n_test_sets": 25,
+      "wilcoxon_p": 2.562999725341797e-06
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+Loading 25 in-scope cells...
+[iter_cells] qa/spectral_phase9_cache_webq_traces_T1.0: single-class labels — skipped
+Loaded 25/25 cells for Stage 2 Anchor Audit.
+VALIDITY CHECK: six hand-picked measurements = 0.7594 (must be 0.7594 +/- 0.002) -> PASS
+  ars_gsm8k_r1distill8b              done  (197s)
+  epr_triviaqa_mistral24b            done  (356s)
+  inside_coqa_llama7b                done  (533s)
+  internalstates_gsm8k_qwen25_7b     done  (706s)
+  lapeigvals_gsm8k_llama3b           done  (871s)
+  lapeigvals_gsm8k_llama8b           done  (1043s)
+  lapeigvals_gsm8k_mistral24b        done  (1229s)
+  lapeigvals_gsm8k_nemo              done  (1449s)
+  lapeigvals_gsm8k_phi35             done  (1681s)
+  losnet_hotpotqa_mistral7b          done  (1924s)
+  math500_dsmath7b                   done  (2177s)
+  math500_qwenmath7b                 done  (2340s)
+  math500_r1distill8b                done  (2492s)
+  math500_r1distill8b_mn4096         done  (2658s)
+  noise_gsm8k_mistral7b              done  (2814s)
+  noise_gsm8k_phi3mini               done  (2961s)
+  sciq_llama8b                       done  (3110s)
+  se_nq_open_llama8b                 done  (3270s)
+  se_squad_v2_llama8b                done  (3438s)
+  seiclr_triviaqa_opt30b             done  (3611s)
+  semenergy_triviaqa_qwen3_8b        done  (3781s)
+  spilled_triviaqa_llama8b           done  (3940s)
+  trace_gsm8k_llama8b_k10            done  (4108s)
+  trace_math500_qwenmath15b_k10      done  (4289s)
+  truthfulqa_llama8b                 done  (4463s)
+  saved results\pruning_study\06_scale_vs_criterion\draws.csv  (6756 rows)
+  saved results\pruning_study\06_scale_vs_criterion\per_cell.csv  (25 rows)
+
+P2 - within-size Spearman(misfit, AUROC). Step 203 baseline: +0.223 mean, positive in 24/25
+    scale   mean rho    median   n positive  macro AUROC
+     unit      0.223     0.185       24/25        0.7293
+    eigen      0.183     0.175       25/25        0.7246
+ complete     -0.006    -0.038       12/25        0.7259
+  eigen vs unit: mean shift -0.039, Wilcoxon p=0.3525
+  complete vs unit: mean shift -0.228, Wilcoxon p=0.0015
+
+P2 HOLDS - correlation weakened/flipped; Extension I1 (sign-flip the selectors) is curing a symptom
+  saved results\pruning_study\06_scale_vs_criterion\summary.json
+Wrote -> C:\Users\omris\TAU\hallucination_detection\results\pruning_study\06_scale_vs_criterion

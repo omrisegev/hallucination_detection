@@ -46,6 +46,11 @@ def main():
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--rand-R', type=int, default=32,
                     help='random-floor sample size for live pools (c46 arm)')
+    ap.add_argument('--sel-kwargs', default=None,
+                    help='JSON dict of extra keywords for the selector, e.g. '
+                         '\'{"loading_scale":"complete"}\'. Changes the selector\'s '
+                         'OBJECTIVE only; evaluation stays on the canonical path. '
+                         'Always pair with a distinct --out.')
     ap.add_argument('--self-check', action='store_true',
                     help='run the bench integrity gate (lookup-vs-live, GOOD_5 '
                          'reproduction, no-label-leak) and exit')
@@ -66,9 +71,11 @@ def main():
                                    f"{args.selector}__{args.pool}.csv")
     domains = args.domains.split(',') if args.domains else None
     cells = args.cells.split(',') if args.cells else None
+    import json
+    sel_kwargs = json.loads(args.sel_kwargs) if args.sel_kwargs else None
     n = bench_selector(args.selector, args.pool, args.data_root, npz_dir, out,
                        seed=args.seed, domains=domains, cells=cells,
-                       rand_R=args.rand_R)
+                       rand_R=args.rand_R, sel_kwargs=sel_kwargs)
     print(f"wrote {n} new rows -> {out}")
 
 

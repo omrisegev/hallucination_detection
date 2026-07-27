@@ -42,7 +42,20 @@ def zscore(arr: np.ndarray) -> np.ndarray:
     """
     Zero-mean, unit-variance standardization.
     Returns mean-centered array if std < 1e-8 (constant feature).
+
+    NON-FINITE INPUT IS HANDLED EXPLICITLY. With a NaN anywhere in ``arr``,
+    ``arr.std()`` is NaN and ``NaN > 1e-8`` is False, so the old code silently
+    took the constant-feature branch and returned an all-NaN array — a feature
+    that looks standardized and poisons every covariance it enters. The current
+    25-cell pool has no non-finite column (measured, Step 205), so this is
+    defensive; the point is that it now fails loudly instead of quietly.
     """
+    arr = np.asarray(arr, dtype=float)
+    if not np.isfinite(arr).all():
+        raise ValueError(
+            f"zscore received {int((~np.isfinite(arr)).sum())} non-finite value(s) "
+            f"out of {arr.size}. Fix the feature upstream — silently returning NaNs "
+            f"here would propagate into every covariance downstream.")
     std = arr.std()
     return (arr - arr.mean()) / std if std > 1e-8 else arr - arr.mean()
 
@@ -346,6 +359,22 @@ def sml_fuse_signed(*classifiers: np.ndarray) -> tuple:
         v = vecs[:, -1]
         if np.sum(v > 0) < k / 2:
             v = -v
+        elif k % 2 == 0 and int(np.sum(v > 0)) == k // 2:
+            # EXACT TIE, and the majority rule cannot break it: at even k with
+            # exactly k/2 positive entries the test above is False for BOTH +v
+            # and -v, so the returned sign is whatever LAPACK happened to
+            # produce — which varies with BLAS build and CPU, not with the data.
+            # Fires on real data (1 of 52 group calls on the GOOD_6 path: a k=2
+            # group with v = [-0.707, +0.707]). Break it on the first non-zero
+            # component so the answer is a function of the data alone.
+            #
+            # This CANNOT move a published number: L-SML is exactly gauge-
+            # invariant to per-group sign, re-verified in Step 205 by flipping
+            # EVERY group's v (GOOD_6 moved 0.00pp on 0/25 cells). It is a
+            # cross-environment reproducibility fix, not a correctness fix.
+            nz = np.flatnonzero(np.abs(v) > 1e-12)
+            if nz.size and v[nz[0]] < 0:
+                v = -v
     except Exception:
         v = np.ones(k) / k
     return X @ v, v
@@ -361,9 +390,30 @@ def _score_matrix_lsml(R: np.ndarray) -> np.ndarray:
     removed by subtracting the corresponding rows, columns and diagonal rather
     than by branching. Identical output to the original quadruple loop, ~100x
     faster at m=30 (the loop dominated every subset sweep).
+
+    m < 4 IS SPECIAL, and getting it wrong cost this project a set of published
+    numbers. The double sum is EMPTY there: {i, j} already uses two of at most
+    three indices, k is forced to the remaining one, and then no l is left that
+    differs from i, j and k. The original loop therefore returned exactly 0.0.
+    The vectorised form computes the same empty sum as a difference of large
+    partial sums, and catastrophic cancellation leaves ~1e-17 of float noise
+    instead. Spectral clustering of an all-zero similarity is arbitrary either
+    way, but the noise makes it arbitrary DIFFERENTLY: on a real 3-feature subset
+    the assignment flipped [0,0,1] -> [1,0,1], the Eq.14 residual moved
+    0.00297 -> 0.05284, and the fused AUROC moved 0.6023 -> 0.5891. That silently
+    invalidated every size-3 row in results/selector_bench/ written before the
+    vectorisation landed (Step 203) — which is most of the a1_residual family,
+    since the residual-guided selectors converge on 3 features.
+
+    Returning the exact zero restores the documented equality with the loop. It
+    does NOT make L-SML meaningful at m=3: with three features Eq.15 carries no
+    information at all, so the group assignment is whatever the clustering's
+    tie-break yields. Treat any size-3 fusion as structurally undetermined.
     """
     m = R.shape[0]
     s = np.zeros((m, m))
+    if m < 4:
+        return s
     for i in range(m):
         Ri = R[i, :]
         for j in range(i + 1, m):
@@ -389,13 +439,233 @@ def _spectral_cluster_precomputed(similarity: np.ndarray, K: int, seed: int = 42
     return sc.fit_predict(similarity + 1e-12)
 
 
-def _estimate_von_voff(R: np.ndarray, c: np.ndarray) -> tuple:
+# ---------------------------------------------------------------------------
+# small-m exact solve — Step 205
+# ---------------------------------------------------------------------------
+# Spectral clustering is a HEURISTIC for "partition minimising the Eq.14
+# residual". At small m the heuristic ties, and the tie is settled by float
+# noise rather than by the data:
+#
+#   Eq.15's double sum has ZERO terms at m=3 (the score matrix is identically
+#   zero, so the partition is pure tie-break) and exactly TWO at m=4. At m=4 the
+#   score matrix barely separates partitions, and a 5.55e-17 difference in R —
+#   the gap between np.cov on a non-contiguous column slice and on a
+#   column_stack copy, i.e. BLAS summation order alone — flips the K=3 partition
+#   from [0,1,2,0] (residual 0.6018) to [0,1,0,2] (0.3927). The residual grid
+#   then prefers a different K, and the fused AUROC moves 9.7pp on
+#   lapeigvals_gsm8k_phi35 / consensus_4.
+#
+# At m <= 4 there is no reason to approximate: Bell(3)=5 and Bell(4)=15, so we
+# enumerate every partition and take the exact argmin, with a deterministic
+# tie-break. Measured over all 30 all-size-4 bench rows this is +0.03pp
+# (15W/10L, p=0.696) — determinacy is free, accuracy was never on offer here.
+#
+# WHY THE CUTOFF IS 4 AND NOT 5. Exhaustive is affordable at m=5 too (Bell=52)
+# and does find lower residuals there, because spectral clustering is only a
+# heuristic for this argmin at every m. But m=5 shows no DETERMINACY defect:
+# the Step-205 stability audit puts the 5-6 band at 0.000pp median spread under
+# a 1e-10 jitter, with 3 of 87 rows above 0.5pp, against 0.439pp median and 18
+# of 36 at m=4. Extending the exact solve to m=5 was measured (+0.22pp on that
+# band) and DELIBERATELY NOT ADOPTED: it would move a published reference anchor
+# (ref.LOCO_5 0.7705 -> 0.7673) to fix something that is not broken. "Is spectral
+# clustering a good optimiser for Eq.14 at larger m" is a real question, but it
+# is a research question, not this defect — and Steps 203/204 already found the
+# residual criterion itself to be a poor guide, so a better optimiser for it is
+# not self-evidently an improvement.
+SMALL_M_EXACT = 4
+DEGENERATE_REL_TOL = 1e-9
+
+
+def _canonical_partitions(m: int, k_allowed):
+    """Every set partition of ``m`` items whose block count is in ``k_allowed``.
+
+    Emitted as restricted-growth strings (``c[0] == 0`` and
+    ``c[i] <= max(c[:i]) + 1``), which are canonical — one string per partition,
+    no relabelling duplicates — and generated in lexicographic order. That order
+    IS the tie-break: the search keeps a candidate only on a strict improvement,
+    so among equal residuals the lexicographically first wins, deterministically.
+    """
+    k_allowed = set(int(k) for k in k_allowed)
+    out, cur = [], [0] * m
+
+    def rec(i, mx):
+        if i == m:
+            if (mx + 1) in k_allowed:
+                out.append(tuple(cur))
+            return
+        for v in range(mx + 2):
+            cur[i] = v
+            rec(i + 1, max(mx, v))
+
+    rec(1, 0)
+    return out
+
+
+def _exact_small_m_groups(R, K_range, loading_scale):
+    """Exact Eq.14 residual argmin over all partitions with K in ``K_range``.
+
+    Returns ``(best_K, assignment, best_residual, curve, degenerate)`` where
+    ``curve`` mirrors the spectral path's per-K entries (best partition found at
+    each K) and ``degenerate`` says the winner was not separated from the runner
+    up by more than float noise — i.e. this answer is a coin flip and any number
+    derived from it is one draw, not a measurement.
+    """
+    m = R.shape[0]
+    parts = _canonical_partitions(m, K_range)
+    if not parts:
+        return None, None, float('inf'), [], True
+
+    scored = [(_residual_lsml(R, np.asarray(p, dtype=int),
+                              loading_scale=loading_scale), p) for p in parts]
+    best_r, best_p = scored[0]
+    for r, p in scored[1:]:
+        if r < best_r:                       # strict: lexicographic first wins ties
+            best_r, best_p = r, p
+
+    per_K = {}
+    for r, p in scored:
+        k = len(set(p))
+        if k not in per_K or r < per_K[k][0]:
+            per_K[k] = (r, p)
+    curve = [(k, per_K[k][0], np.asarray(per_K[k][1], dtype=int))
+             for k in sorted(per_K)]
+
+    gap = _rel_gap([r for r, p in scored if p != best_p], best_r)
+    degenerate = bool(gap is not None and gap <= DEGENERATE_REL_TOL)
+
+    return (len(set(best_p)), np.asarray(best_p, dtype=int), best_r,
+            curve, degenerate, gap)
+
+
+def _rel_gap(others, best):
+    """Separation between the winner and the best alternative, relative to scale.
+
+    ``None`` when there is no alternative (nothing to be degenerate about).
+    """
+    alts = [r for r in others if np.isfinite(r) and r > best]
+    runner_up = min(alts) if alts else None
+    if runner_up is None:
+        # every alternative ties or is non-finite: degenerate iff a finite tie exists
+        return 0.0 if any(np.isfinite(r) for r in others) else None
+    scale = max(abs(best), abs(runner_up), 1e-300)
+    return float((runner_up - best) / scale)
+
+
+def _diag(m, exact, gap, degenerate):
+    return {'m': int(m), 'exact_small_m': bool(exact),
+            'residual_gap_rel': gap, 'degenerate': bool(degenerate)}
+
+
+def _pack(K, c, resid, s, curve, diag, return_curve, return_diag):
+    """Assemble the return tuple. Legacy shape is (K, c, residual, s); ``curve``
+    and then ``diag`` are appended only when asked for, so existing 4- and
+    5-tuple unpacking at every call site keeps working."""
+    out = (K, c, resid, s)
+    if return_curve:
+        out = out + (curve,)
+    if return_diag:
+        out = out + (diag,)
+    return out
+
+
+LOADING_SCALES = ('unit', 'eigen', 'complete')
+
+
+def _rank1_masked(M: np.ndarray, unknown: np.ndarray, scale: str,
+                  max_iter: int = 100, tol: float = 1e-12,
+                  return_info: bool = False):
+    """Fit a rank-one factor v to the OBSERVED entries of M (``unknown`` masks
+    the entries Lemma 1 says nothing about), under one of three scalings.
+
+    Lemma 1 constrains only ``i != j`` (and, for v^off, only cross-group pairs);
+    every masked entry is a free parameter of the fit, not a zero.
+
+    scale='unit'      leading eigenvector of M with masked entries zeroed,
+                      NORMALISED TO 1. This is the historical behaviour and the
+                      default everywhere — it is what every committed number in
+                      the repo was computed with. It does NOT satisfy Lemma 1:
+                      the unit vector obeys ``lam1 * v_i*v_j ~ r_ij``, so it is
+                      short by a factor of ``sqrt(lam1)``.
+    scale='eigen'     ``sqrt(lam1) * v`` — the literal fix proposed in
+                      SPEC_residual_scaling_fix.md. Removes the group-size blow-up
+                      but is still biased: zeroing the masked entries removes the
+                      rank-one matrix's own diagonal, shrinking the estimate by
+                      ``sqrt((m-1)/m)`` on a uniform block. Measured misfit/pair on
+                      a perfect m-duplicate block: 0.2500 (m=2) -> 0.0083 (m=11).
+    scale='complete'  masked-entry completion fixed point: fill the masked entries
+                      with the current outer-product estimate, re-decompose, repeat.
+                      Exact under Lemma 1 — misfit/pair ~1e-25 on a perfect
+                      duplicate block for every m, and recovers unequal loadings to
+                      ~1e-14. 3-30x lower misfit than 'eigen' under noise.
+
+    The best iterate by observed-entry misfit is kept, so a non-converging or
+    diverging fixed point can never return something worse than its start. Pass
+    ``return_info=True`` to get (v, info) with the convergence record — the
+    keep-best guard would otherwise MASK non-convergence silently, which on real
+    covariance blocks happens often enough to be worth reporting (review finding).
+    """
+    S = np.array(M, dtype=float, copy=True)
+    S[unknown] = 0.0
+    try:
+        vals, vecs = eigh(S)
+    except Exception:
+        return np.ones(S.shape[0]) / np.sqrt(S.shape[0])
+
+    u = vecs[:, -1]
+    if scale == 'unit':
+        return (u, {'converged': True, 'iters': 0, 'guard_fired': False})             if return_info else u
+
+    lam = max(float(vals[-1]), 0.0)
+    v = u * np.sqrt(lam)
+    if scale == 'eigen':
+        return (v, {'converged': True, 'iters': 0, 'guard_fired': False})             if return_info else v
+
+    if scale != 'complete':
+        raise ValueError(f"loading_scale must be one of {LOADING_SCALES}, got {scale!r}")
+
+    observed = ~unknown
+
+    def _misfit(vec):
+        return float((((np.outer(vec, vec) - M) ** 2)[observed]).sum())
+
+    best_v, best_r = v, _misfit(v)
+    converged, used_iters, guard_fired = False, 0, False
+    for _it in range(max_iter):
+        used_iters = _it + 1
+        filled = np.where(unknown, np.outer(v, v), M)
+        try:
+            vals_i, vecs_i = eigh(filled)
+        except Exception:
+            guard_fired = True
+            break
+        lam_i = max(float(vals_i[-1]), 0.0)
+        v_new = vecs_i[:, -1] * np.sqrt(lam_i)
+        r_new = _misfit(v_new)
+        if r_new < best_r:
+            best_v, best_r = v_new, r_new
+        else:
+            guard_fired = True
+        if np.linalg.norm(v_new - v) < tol:
+            converged = True
+            break
+        v = v_new
+    if return_info:
+        return best_v, {'converged': converged, 'iters': used_iters,
+                        'guard_fired': guard_fired}
+    return best_v
+
+
+def _estimate_von_voff(R: np.ndarray, c: np.ndarray,
+                       loading_scale: str = 'unit') -> tuple:
     """
     Estimate v^on and v^off per Paper 1 Lemma 1.
 
-    v^on_i for i ∈ group g: leading eigenvector of the within-group submatrix
-    of R (diagonal zeroed).
-    v^off: leading eigenvector of R with within-group entries zeroed.
+    v^on_i for i ∈ group g: rank-one factor of the within-group submatrix of R,
+    with the diagonal treated as unobserved (Lemma 1 constrains only i != j).
+    v^off: rank-one factor of R with all within-group entries unobserved.
+
+    ``loading_scale`` selects how the factor is scaled — see _rank1_masked.
+    Default 'unit' reproduces every committed number in the repo.
     """
     m = R.shape[0]
     v_on = np.zeros(m)
@@ -404,33 +674,38 @@ def _estimate_von_voff(R: np.ndarray, c: np.ndarray) -> tuple:
         if len(idx) == 1:
             v_on[idx] = 1.0
             continue
-        sub = R[np.ix_(idx, idx)].copy()
-        sub -= np.diag(np.diag(sub))
+        sub = R[np.ix_(idx, idx)]
+        unknown = np.eye(len(idx), dtype=bool)
         try:
-            _, vecs = eigh(sub)
-            v_on[idx] = vecs[:, -1]
+            v_on[idx] = _rank1_masked(sub, unknown, loading_scale)
+        except ValueError:
+            raise
         except Exception:
             v_on[idx] = 1.0 / np.sqrt(len(idx))
 
-    # zero every within-group entry (vectorised; was an O(m^2) Python loop)
-    R_off_only = np.where(np.asarray(c)[:, None] == np.asarray(c)[None, :],
-                          0.0, R)
+    # within-group entries (incl. the diagonal) are unobserved for v^off
+    same = np.asarray(c)[:, None] == np.asarray(c)[None, :]
     try:
-        _, vecs = eigh(R_off_only)
-        v_off = vecs[:, -1]
+        v_off = _rank1_masked(R, same, loading_scale)
+    except ValueError:
+        raise
     except Exception:
         v_off = np.ones(m) / np.sqrt(m)
 
     return v_on, v_off
 
 
-def _residual_lsml(R: np.ndarray, c: np.ndarray) -> float:
+def _residual_lsml(R: np.ndarray, c: np.ndarray,
+                   loading_scale: str = 'unit') -> float:
     """Paper 1 Eq. (14) residual under assignment c.
 
     Vectorised (was an O(m^2) Python double loop called once per candidate K,
     i.e. up to 7x per fusion). Bit-identical up to float summation order.
+
+    NOTE: the residual's units change with ``loading_scale``, so absolute
+    residual values are comparable only within one scale (SPEC §8).
     """
-    v_on, v_off = _estimate_von_voff(R, c)
+    v_on, v_off = _estimate_von_voff(R, c, loading_scale=loading_scale)
     c = np.asarray(c)
     same = c[:, None] == c[None, :]
     pred = np.where(same, np.outer(v_on, v_on), np.outer(v_off, v_off))
@@ -461,7 +736,8 @@ def _eigengap_K(s: np.ndarray, max_K: int = 8, return_gaps: bool = False):
 
 
 def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'residual',
-                            return_curve: bool = False):
+                            return_curve: bool = False, loading_scale: str = 'unit',
+                            return_diag: bool = False):
     """
     Paper 1 Algorithm 1: detect groups of dependent binary classifiers.
 
@@ -484,13 +760,31 @@ def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'res
                             [(K, residual, assignment), ...] that the search
                             already computes (selector-bench diagnostic,
                             Step 186+; default False keeps the legacy 4-tuple).
+        loading_scale:      'unit' (default, historical) | 'eigen' | 'complete'.
+                            Passed to _residual_lsml, so with method='residual'
+                            it changes WHICH K is selected. See _rank1_masked.
+        return_diag:        append a diagnostics dict with keys ``m``,
+                            ``exact_small_m``, ``residual_gap_rel`` and
+                            ``degenerate``. ``degenerate=True`` means the chosen
+                            grouping beat its nearest rival by less than float
+                            noise, so the fused score derived from it is one draw
+                            rather than a measurement (Step 205).
+
+    At ``m <= SMALL_M_EXACT`` the K search is replaced by an EXACT enumeration of
+    every partition — spectral clustering is only a heuristic for that argmin,
+    and at small m the heuristic ties and the tie is broken by float noise. See
+    :func:`_exact_small_m_groups`.
 
     Returns:
         (best_K, assignment_c, residual_at_best_K, score_matrix_s)
-        or, with return_curve=True,
-        (best_K, assignment_c, residual_at_best_K, score_matrix_s, curve)
+        then ``curve`` if return_curve, then ``diag`` if return_diag.
     """
-    X = np.column_stack(binary_classifiers)
+    # np.cov is NOT bit-identical across memory layouts: a non-contiguous column
+    # slice and a contiguous copy of the same numbers sum in a different order
+    # and differ by ~5e-17. At small m that is enough to change the answer
+    # (Step 205), so pin the layout here — the covariance is then a function of
+    # the data alone, whatever the caller passed in.
+    X = np.ascontiguousarray(np.column_stack(binary_classifiers), dtype=float)
     m = X.shape[1]
     R = np.cov(X.T)
     if R.ndim == 0:
@@ -510,12 +804,22 @@ def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'res
         except Exception:
             out = (1, np.zeros(m, dtype=int), float('inf'), s)
             return out + ([],) if return_curve else out
-        r = _residual_lsml(R, c)
+        r = _residual_lsml(R, c, loading_scale=loading_scale)
         out = (K, c, r, s)
         return out + ([(K, r, c)],) if return_curve else out
 
     if method != 'residual':
         raise ValueError(f"Unknown method {method!r}; use 'residual' or 'eigengap'.")
+
+    # -- small m: solve exactly instead of clustering (see _exact_small_m_groups)
+    if m <= SMALL_M_EXACT:
+        best_K, best_c, best_resid, curve, degen, gap = _exact_small_m_groups(
+            R, K_range, loading_scale)
+        if best_K is None:
+            return _pack(1, np.zeros(m, dtype=int), float('inf'), s, [],
+                         _diag(m, True, None, True), return_curve, return_diag)
+        return _pack(best_K, best_c, best_resid, s, curve,
+                     _diag(m, True, gap, degen), return_curve, return_diag)
 
     curve = []
     best_K, best_c, best_resid = None, None, float('inf')
@@ -524,19 +828,26 @@ def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'res
             c = _spectral_cluster_precomputed(s, K)
         except Exception:
             continue
-        r = _residual_lsml(R, c)
+        r = _residual_lsml(R, c, loading_scale=loading_scale)
         curve.append((K, r, c))
         if r < best_resid:
             best_resid, best_K, best_c = r, K, c
     if best_K is None:
-        out = (1, np.zeros(m, dtype=int), float('inf'), s)
-        return out + (curve,) if return_curve else out
-    out = (best_K, best_c, best_resid, s)
-    return out + (curve,) if return_curve else out
+        return _pack(1, np.zeros(m, dtype=int), float('inf'), s, curve,
+                     _diag(m, False, None, True), return_curve, return_diag)
+    # Degeneracy detector, live at EVERY m — the generalisable half of the
+    # Step-205 fix. If the winner is not separated from the runner-up by more
+    # than float noise, the choice was decided in the last bits, and the number
+    # downstream is one draw rather than a measurement. Report it; never absorb it.
+    gap = _rel_gap([r for _K, r, _c in curve], best_resid)
+    return _pack(best_K, best_c, best_resid, s, curve,
+                 _diag(m, False, gap,
+                       bool(gap is not None and gap <= DEGENERATE_REL_TOL)),
+                 return_curve, return_diag)
 
 
 def lsml_fuse(*binary_classifiers, K_range=None, method: str = 'residual',
-              groups=None):
+              groups=None, loading_scale: str = 'unit'):
     """
     Latent SML (L-SML) — Paper 1 Algorithm 2 (Jaffé-Fetaya-Nadler 2016).
 
@@ -579,10 +890,11 @@ def lsml_fuse(*binary_classifiers, K_range=None, method: str = 'residual',
             R = np.array([[float(R)]])
         s_mat = _score_matrix_lsml(R)
         K = len(np.unique(c))
-        residual = _residual_lsml(R, c)
+        residual = _residual_lsml(R, c, loading_scale=loading_scale)
     else:
         K, c, residual, s_mat = detect_dependent_groups(
             binary_classifiers, K_range=K_range, method=method,
+            loading_scale=loading_scale,
         )
 
     virtual = []
@@ -620,7 +932,8 @@ def lsml_fuse(*binary_classifiers, K_range=None, method: str = 'residual',
 
 
 def lsml_continuous(*views, K_range=None, method: str = 'residual',
-                    groups=None, compute_score_matrix: bool = True):
+                    groups=None, compute_score_matrix: bool = True,
+                    loading_scale: str = 'unit'):
     """
     Continuous L-SML — same group detection as lsml_fuse but skips binarization
     of virtual classifiers.
@@ -666,11 +979,17 @@ def lsml_continuous(*views, K_range=None, method: str = 'residual',
             R = np.array([[float(R)]])
         s_mat = _score_matrix_lsml(R) if compute_score_matrix else None
         K = len(np.unique(c))
-        residual = _residual_lsml(R, c)
+        residual = _residual_lsml(R, c, loading_scale=loading_scale)
+        # groups were supplied, so nothing was chosen here and nothing can be
+        # degenerate — say that explicitly rather than leaving the key absent.
+        diag = {'m': int(m), 'exact_small_m': False, 'residual_gap_rel': None,
+                'degenerate': False, 'groups_supplied': True}
     else:
-        K, c, residual, s_mat = detect_dependent_groups(
+        K, c, residual, s_mat, diag = detect_dependent_groups(
             views, K_range=K_range, method=method,
+            loading_scale=loading_scale, return_diag=True,
         )
+        diag = dict(diag, groups_supplied=False)
 
     virtual = []
     group_weights = []
@@ -702,6 +1021,11 @@ def lsml_continuous(*views, K_range=None, method: str = 'residual',
         'group_weights': group_weights,
         'cross_weights': cross_w,
         'virtual_classifiers': virtual_arr,
+        # Step 205: True means the grouping this score rests on beat its nearest
+        # rival by less than float noise. Callers that tabulate AUROC should
+        # carry it, so a coin flip is never presented as a measurement.
+        'grouping_diag': diag,
+        'degenerate': bool(diag.get('degenerate', False)),
     }
 
 

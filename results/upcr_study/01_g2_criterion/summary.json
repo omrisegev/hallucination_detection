@@ -1,0 +1,28 @@
+{
+  "n_cells": 25,
+  "n_legacy_pinned_at_ceiling": 0,
+  "mean_auroc_spread_over_q": 0.09108971027104594,
+  "max_auroc_spread_over_q": 0.34533333333333327,
+  "mean_regret_legacy_range": 0.012092573133017988,
+  "mean_regret_full_range": 0.012092573133017988,
+  "mean_spearman_RES_vs_AUROC": -0.8331168892008871,
+  "n_cells_criterion_correct_direction": 22,
+  "widen_range_effect": {
+    "mean_delta": 0.0,
+    "median_delta": 0.0,
+    "wins": 0,
+    "losses": 0,
+    "n": 25,
+    "p": NaN,
+    "unit": "observations"
+  },
+  "n_post_exclusion_pinned_at_ceiling": 24,
+  "g2_post_exclusion_frac_of_var_y_median": 0.9999999999960001,
+  "g2_pre_exclusion_frac_of_var_y_median": 0.11036789297658862,
+  "lambda2_frac_median": 0.14352465157584104,
+  "n_cells_criterion_points_wrong_way": 2,
+  "n_argmin_moved_when_range_widened": 0,
+  "n_cells_auroc_monotone_in_q": 6,
+  "n_cells_auroc_best_at_q_zero": 23,
+  "verdict": "THE RANGE DOES NOT BIND ON THE PRE-EXCLUSION FIT - WHICH IS THE ONLY FIT THIS FIGURE DRAWS. On the full pool the residual minimum sits at q~0.01-0.08 in all 25 cells, far below the legacy 0.25 ceiling, and widening the range 16x moves the chosen q in 0/25 cells. BUT THE DEPLOYED g2 IS A DIFFERENT FIT: upcr_fit excludes weak experts and RECALCULATES rho and g2 on the 12 survivors of ~29, and there g2 sits exactly on the ceiling in 24/25 cells (g2/var_y median 1.0000). So an unqualified 'the range never binds' is WRONG - it binds on the estimate the pipeline actually returns, and Step 204's B1 is narrowed to the pre-exclusion fit accordingly (Step 205). The PRACTICAL conclusion survives: un-pinning it (scale_ratio 0.25 -> 1.0 with the difficulty gate off) is -0.28pp, 12W/13L, a wash, so var_y=0.25 still costs ~nothing. And g2 is NOT the component-count dial that was suspected: auto_components keys off lambda2_frac > lambda2_threshold, computed before g2 and independently of it (median lambda2_frac 0.1435 against a threshold of 0.1 - that threshold is the real dial, see exp07). g2 IS a large lever (9.11pp mean AUROC swing, 34.53pp max) and the criterion mostly points the right way (wrong direction in 2/25 cells), but it leaves 1.21pp on the table against the oracle q. AUROC is strictly monotone in q in only 6/25 cells (an earlier version of this script reported 24/25 by computing monotonicity in RES rather than in q), so the curve does have interior structure - it is simply structure this criterion does not exploit."
+}

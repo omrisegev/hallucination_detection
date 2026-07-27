@@ -7961,3 +7961,374 @@ pre-registered gates failed: mechanism 0.207 vs 0.30, performance +0.22pp vs +1.
 `results/pruning_study/**` (5 experiment folders, `all_results.{csv,html}`, `README.md`, `index.html`).
 
 ---
+### Step 204 — U-PCR made paper-faithful, a clustered variant built and refuted, and the Step-203 inversion explained away by the loading-scale fix
+
+**What**: Executed the approved U-PCR plan end to end, then had an **independent adversarial
+reviewer** audit the plan, the code and the results. The review found **17 defects**, several of which
+changed a stated conclusion. Everything below is post-correction; withdrawn claims are named rather
+than quietly dropped. Browsable at `results/upcr_study/index.html` (5 experiment pages) and
+`results/residual_scaling/`.
+
+**Why**: Two review documents (`vscode claude plan for U-PCR  1.md`, `vscode chat - u-pcr 2.md`)
+claimed our `upcr_fuse` had drifted from Dror–Nadler–Bilal–Kluger 2017. All seven claimed deviations
+verified true against `papers/extracted/unsupervised-ensemble-regression.md`. Omri's call was to make
+the implementation faithful and **re-measure rather than carry prior numbers over** — which turned out
+to be right: two previously-settled results reverse on fixed code.
+
+#### A — Phase 0: the L-SML loading scale (prerequisite, `SPEC_residual_scaling_fix.md`)
+
+`_estimate_von_voff` returned the **unit-norm** eigenvector where Lemma 1 requires the loadings to
+reproduce the covariance. Three scalings now selectable via `fusion_utils.LOADING_SCALES`:
+
+| scale | perfect m-duplicate block, misfit/pair | K>=7 | K<3 |
+|---|---|---|---|
+| `unit` (historical) | 0.2500 (m=2) -> 0.8264 (m=11), **grows** | 15/25 | 0/25 |
+| `eigen` (the SPEC's literal fix) | 0.2500 (m=2) -> 0.0083 | 1/25 | **6/25** |
+| `complete` (masked rank-one completion) | **~1e-25 for every m** | 3/25 | 0/25 |
+
+The SPEC's own `eigen` proposal **fails the SPEC's own U1 check**: zeroing the masked entries removes
+the rank-one matrix's own diagonal, leaving it short by `sqrt((m-1)/m)`. At m=2 it is identical to the
+broken path. `complete` is exact on U1/U2 and recovers unequal loadings to ~1e-14.
+R1 (GOOD_6 = 0.7594) and R2 (K=4, residual 88.455, sizes [5,7,7,11]) hold exactly on flag-off.
+Convergence gate added: 102/122 real blocks reach tolerance, and **chosen K is identical at 100 vs
+500 iterations** (2 cells differ at 10, so 10 is too few).
+
+#### B — P2: the Step-203 inversion is an artifact of that scale
+
+| loading scale | Spearman(misfit, AUROC) | positive cells |
+|---|---|---|
+| `unit` | **+0.223** | 24/25 |
+| `eigen` | +0.183 | 25/25 |
+| `complete` | **-0.006** | 12/25 |
+
+Shift **-0.228, Wilcoxon p = 0.0015**. The `unit` row reproduces Step 203 exactly, so the harness is
+sound. **Extension I1 (sign-flip the selectors) is therefore the wrong remedy** — the criterion never
+needed inverting, it needed scaling. This was the SPEC's pre-registered P2 and it holds.
+
+#### C — Phases A-C: faithful U-PCR, and two reversals
+
+New `spectral_utils/upcr.py` (paper-faithful, every deviation flagged) and
+`spectral_utils/upcr_clustered.py` (our extension). `fusion_utils.upcr_fuse` untouched and
+bit-compatible (max |dw| = 3.3e-16 over 25 cells). Six unit gates in `scripts/upcr_study/smoke_upcr.py`.
+
+- **B1 — the g2 search range never binds.** The chosen g2 sits at q ~ 0.01-0.08 in all 25 cells, and
+  widening the range 16x moves it in **0/25**. So `var_y = 0.25` costs nothing through g2. It is still
+  a large lever (9.11pp mean AUROC swing, 34.5pp max) and leaves **1.21pp** against the oracle q,
+  pointing the wrong way in 3/25 cells. At **one component AUROC is exactly flat in q** (0.00e+00) —
+  the direction is always v1, so q only rescales.
+  > **NARROWED IN STEP 205.** True of the **pre-exclusion** fit, which is the only one exp01 draws —
+  > and false of the g2 the pipeline returns. `upcr_fit` excludes weak experts and *recalculates* rho
+  > and g2 on the ~12 survivors of ~29, and on that block the normalised residual falls monotonically
+  > across `[0, var_y]`, so g2 lands **exactly on the ceiling in 24/25 cells** (g2/var_y median
+  > 1.0000, vs 0.05–0.31 pre-exclusion; `exclusion=False` restores 0/25). The **conclusion survives**:
+  > un-pinning it is −0.28pp, 12W/13L, a wash. But "never binds" is wrong as stated.
+- **B1 addendum (Step 205) — the −3.67pp below is a factorial main effect, not a deployed cost.**
+  See §C's R2 bullet: throwing the same switch at the deployed configuration is **−0.43pp mean /
+  +0.07pp median, 15W/9L, p = 0.16**. Details in Step 205.
+- **R2 REVERSES.** The 2-eigenvector rule is **-3.67pp mean / -2.36pp median, 3W/21L, p = 0.0001**.
+  Step 142's +0.5pp was measured with the g2 range capped — i.e. confounded by the dial it was testing.
+  > **QUALIFIED IN STEP 205.** This is a **factorial main effect**: each cell's delta is averaged over
+  > the 32 combinations of the other five factors, most of which are configurations we never run. At
+  > the **deployed** configuration the identical switch is **−0.43pp mean / +0.07pp median, 15W/9L,
+  > p = 0.16** — a wash. Both numbers are correct measurements of different quantities; only the
+  > second answers "what does the 2-eigenvector rule cost us". The reversal of Step 142's sign stands;
+  > the magnitude does not transfer to the deployed system. See Step 205 / `exp07`.
+- **R4 is a wash.** Absolute loss: -1.29pp mean but **+0.07pp median, 13W/12L, p = 0.615**. Never
+  actually measured before (Step 203's robust-IRLS was a different estimator on the L-SML path).
+- **`var_y` is a routing knob, not a weight knob.** Its whole effect runs through the abstain gate
+  (cells declared too hard: 3.9 -> 17.6 of 25); with both thresholds off it is +0.28pp, a grid-
+  resolution artifact.
+- **Being faithful does not help**: 0.6910 vs legacy 0.7392, but only **-0.18pp median, p = 0.173**.
+  All 64 configurations span 12.66pp and none beats GOOD_6.
+
+#### D — the clustered variant: premise confounded, variant refuted
+
+Relaxing "uncorrelated errors" to hold only ACROSS L-SML clusters, and fitting the additive system on
+cross-cluster pairs only. Identifiability derived and enforced (`check_identifiability`): the
+cross-cluster pair graph is complete multipartite, so **K >= 3** is required — at K = 2 it is complete
+bipartite, rank drops to m-1, and rho is unidentifiable. This is the paper's own "m >= 3 experts"
+lifted from features to clusters, and it is why `complete` (K>=3 on 25/25) matters and `eigen`
+(19/25) does not suffice.
+
+**The premise was a confound and is WITHDRAWN.** Fit error is essentially pair correlation
+(Spearman **0.870**). The raw same-vs-cross ratio of 2.03x collapses under control:
+
+| control | unit | eigen | complete |
+|---|---|---|---|
+| raw ratio | 2.06 | 2.17 | 2.03 |
+| **matched on \|C_ij\| decile** | **0.971** | **0.974** | **0.996** |
+| random partition, same sizes | 0.987 | 1.004 | 0.977 |
+| **magnitude-only clustering** | **3.06** | **3.81** | **3.41** |
+
+A clustering that ignores L-SML entirely separates the "violation" *better*. The variant then fails
+its own pre-registered gates: rank agreement +0.160 -> **+0.041** (bar +0.186), top-5 overlap
+unchanged at 1/5, performance **-4.46pp, 9W/16L, p = 0.030**; hierarchical -10.86pp.
+
+#### E — orientation: the 42 signs can go, the 1 anchor bit cannot
+
+- Deriving per-feature polarity from `sign(rho)` **beats the 42 hand signs**: 0.7551 vs 0.7405,
+  **+1.46pp, 20W/5L, p < 0.001**.
+- **The global +-1 is provably unidentifiable from the covariance.** `C(-F) == C(F)`, so a global flip
+  leaves rho bit-identical — measured `max|d rho| = 0.000e+00` on all 25 cells. A rule reading rho for
+  it was wrong in 25/25 cells (0.2449 = 1 - 0.7551 exactly). Removed from the shipped module.
+- **15 of 30 pool features carry the wrong hand sign** (`epr_spilled` 0.277 and `cusum_max_spilled`
+  0.281 oriented AUROC, both below 0.5 in 25/25 cells). Correcting them changes GOOD_6 and LOCO_5 by
+  **exactly 0.0000pp** — Step 201's sign-gauge invariance, re-verified independently — and none is in
+  `ANCHOR_PRIORITY`. Structure recovers the **empirical** direction on **91.8%** of features
+  (p < 0.001); agreement with our *declared* signs is 56.1%, at the 57.5% chance level for that folded
+  statistic (p = 0.88) and therefore **not a result**.
+
+#### F — the 17 review defects (the ones that changed a conclusion)
+
+| # | defect | effect |
+|---|---|---|
+| D2 | `upcr.py` discarded the cross-cluster restriction on the post-exclusion refit (`pairs=None`), and exclusion fires on 23/25 cells | Phase D was measuring an all-pairs fit; -6.34pp -> **-4.46pp** |
+| D3 | B2's comparison was a confound | premise **withdrawn** |
+| D6 | `assert_good6` returns `(ok, macro)`; `bool(tuple)` is always True | **both anchor gates were no-ops** in 3 files |
+| D7 | main effects pooled 25 cells x 32 combinations into one n=800 test | p-values up to 1e-44 were pseudo-replication |
+| D4/D5 | "three features mis-signed" / "56% polarity recovery" | 15 are; 56% is chance |
+| D8/D9 | "monotone in q 24/25" measured monotonicity in RES; argmin used the paper's k=1 residual not the deployed one | 6/25; regret 0.76pp -> **1.21pp** |
+| D13 | `orient='rho'` shipped in `__init__.py` as a provable no-op | removed |
+| D10/D11 | "A1 is free" circular as stated; "300x speedup" | restated; **13.8x** |
+
+**Result**: Every claimed deviation from the paper was real and **none of them helps**. One-component
+U-PCR is *exactly* PC1 of the surviving features (cosine deviation 7e-12), so the whole rho/g2/Eq.-20
+apparatus enters only through the exclusion mask. **U-PCR's estimation machinery is inert on our data;
+what mattered was feature orientation and feature exclusion.** The finding worth carrying forward is
+Phase E's label-free orientation. Per Omri's decision, the loading scale is **reported three ways
+everywhere rather than chosen**, because `complete` — though independently justified — is also the
+only scale under which the clustered variant runs on every cell.
+
+**Files**: new `spectral_utils/{upcr,upcr_clustered}.py`; modified `spectral_utils/fusion_utils.py`
+(`_rank1_masked`, `LOADING_SCALES`, `loading_scale` threaded through `_estimate_von_voff`,
+`_residual_lsml`, `detect_dependent_groups`, `lsml_fuse`, `lsml_continuous`) and
+`spectral_utils/__init__.py`; new `scripts/verify_residual_scaling.py`,
+`scripts/pruning_study/exp06_scale_vs_criterion.py`, `scripts/upcr_study/*`;
+outputs under `results/upcr_study/` and `results/residual_scaling/`.
+
+---
+### Step 205 — the reproduction audit, and an instability that is real but sharply localised
+
+**What**: Omri asked whether every number on `results/upcr_study/comparison.html` is one today's
+code actually produces ("any leftovers?"). Rather than reason about which might be stale, the
+previous session built an instrument that replays all 169 published (variant, pool) rows through
+current code (`reproduction_audit.py`) and measures how far each moves under a 1e-10 relative
+jitter (`stability_audit.py`). This session **verified that work independently**, resolved the
+contradiction it left open, and fixed the defect it found.
+
+Mid-session Omri asked the question this step exists to answer:
+
+> "I am trying to see if the fixes actually improve the algorithms or we just found numerical
+> instability of our algorithm that makes it impossible to reproduce the numbers?"
+
+**The answer: the fixes improved nothing, and the instability is real — but it is confined to
+m = 4, and every row anyone quotes is unaffected.**
+
+#### A — verification of the previous session's findings
+
+Each claim was re-derived from scratch rather than inherited.
+
+| claim | verdict |
+|---|---|
+| Eq.15 is identically zero at m < 4, and the Step-203 vectorisation returned ~1e-17 instead | **holds** — U0 gate checks the vectorised form against a literal transcription of the paper's sum at m = 2..9 |
+| m=4 knife-edge on `lapeigvals_gsm8k_phi35` / `consensus_4` | **holds** — magnitude 0.1557, partitions `[0,1,2,0]`→0.6018 and `[0,1,0,2]`→0.3927, AUROC 0.6833 vs 0.7802 = **9.68pp**, all reproduced |
+| `stability_audit.csv` rows | **exact** — `ref.GOOD_6 [c46]` and `ref.consensus_4 [h16]` hand-reproduced to every decimal |
+| size-band table, Spearman(mean size, macro spread) | **holds**, Spearman **−0.492** (the handoff's −0.499 came from a superseded file) |
+
+Two corrections to the handoff's write-up:
+
+1. It attributes AUROC **0.6833** to a K=3 partition. It belongs to the **K=2** route `[0,1,1,0]`
+   (residual 0.5257). Enumerating all 15 partitions of 4 items makes the chain exact: if the K=3
+   tie-break lands on `[0,1,2,0]` (residual 0.6018 > 0.5257) the argmin over K falls back to K=2,
+   and *that* is where 0.6833 comes from.
+2. **The loop-vs-vectorised framing is wrong on current code** — both give the same K=3 partition
+   at m=4. The real trigger is smaller and better: `np.cov(V[:, cols].T)` on a non-contiguous
+   column slice and `np.cov(np.column_stack([...]).T)` on a contiguous copy of *the same numbers*
+   differ by **5.55e-17** from BLAS summation order alone, and that flips the partition. No
+   deliberate jitter is needed to expose this.
+
+#### B — §4b resolved: two of our own measurements were both right
+
+The handoff flagged a direct contradiction: `exp01_g2_criterion` reports the g2 search range as
+never binding (0/25 pinned), while `upcr_fit(scale_ratio=0.25)` reports `g2_at_ceiling` in 24/25.
+Both reproduce, in one process. They fit **different feature sets**:
+
+| fit | g2 / var_y | at ceiling |
+|---|---|---|
+| full pool, pre-exclusion — what exp01 draws | 0.050 – 0.311 | **0/25** |
+| post-exclusion refit — what `upcr_fit` returns and what feeds Eq. 21 | 1.0000 median | **24/25** |
+| `upcr_fit(exclusion=False)` | as row 1 | **0/25** |
+
+Algorithm 1 excludes weak experts and *recalculates* rho and g2 on the ~12 survivors of ~29; on
+that smaller block the normalised residual falls monotonically across `[0, var_y]`, so the argmin
+sits on the grid edge. **Step 204's B1 is narrowed, not retracted** — and its practical conclusion
+survives, because un-pinning the range (scale_ratio 0.25 → 1.0, difficulty gate off) is **−0.28pp,
+12W/13L**, a wash. `exp01_g2_criterion.py` now measures and reports both fits so the distinction
+cannot be lost again.
+
+**Omri's mechanism was half right.** The pinning is real, but g2 does not choose the component
+count: `auto_components` keys off `lambda2_frac > lambda2_threshold`, computed *before* g2 and
+independently of it. That made `lambda2_threshold = 0.1` the lead — and it looked sharp, since
+`lambda2_frac` is tightly clustered just above it (median 0.1435, min 0.0942, max 0.2328).
+
+#### C — exp07: the component-count dial is inert, and it qualifies a Step-204 headline
+
+New `scripts/upcr_study/exp07_lambda2_threshold.py` sweeps the threshold across the whole observed
+range, difficulty gate off:
+
+| threshold | 2-component cells | macro | vs deployed 0.10 | W/L | p |
+|---|---|---|---|---|---|
+| 0.05 | 25/25 | 0.7403 | −0.02pp | 1/0 | 0.317 |
+| **0.10 (deployed)** | 24/25 | 0.7405 | — | — | — |
+| 0.12 | 16/25 | 0.7443 | +0.38pp | 3/5 | 0.161 |
+| 0.15 | 11/25 | 0.7441 | +0.36pp | 4/9 | 0.087 |
+| 0.20 | 2/25 | 0.7441 | +0.36pp | 9/13 | 0.307 |
+| 0.25 | 0/25 | 0.7448 | +0.43pp | 9/15 | 0.161 |
+
+Removing the second component **everywhere** buys **+0.43pp, p = 0.16**. Spearman(#2-component
+cells, macro) = −0.831, so the direction is right, but the magnitude is nothing.
+
+**This qualifies Step 204's R2.** That step reports the 2-eigenvector rule at **−3.67pp mean /
+−2.36pp median, 3W/21L, p = 9.1e-05**. That figure is a **factorial main effect**: `exp03` averages
+each cell's delta over the **32 combinations of the other five factors**, most of which are
+configurations we never run. Throwing the identical switch at the **deployed** configuration —
+verified two independent ways, via the threshold and via `auto_components=False` — gives **−0.43pp
+mean / +0.07pp median, 15W/9L, p = 0.16**. Both are correct measurements of different quantities.
+The *reversal of Step 142's sign* stands; **the magnitude does not transfer to the deployed
+system**, and should not be quoted as what the rule costs us.
+
+#### D — the fix, and the mechanism that catches the next one
+
+Spectral clustering is a *heuristic* for "partition minimising the Eq.14 residual". At small m it
+ties, and the tie is settled by float noise. So at small m we stopped approximating.
+
+- **Canonical covariance input** — `detect_dependent_groups` now builds R from
+  `np.ascontiguousarray(...)`, removing memory-layout dependence at every m.
+- **Exact solve at m ≤ 4** — enumerate all partitions (Bell(3)=5, Bell(4)=15) with K in `K_range`
+  and take the exact residual argmin, tie-broken lexicographically on the canonical labelling.
+- **A near-degeneracy detector, live at every m** — `return_diag=True` reports `residual_gap_rel`
+  and a `degenerate` flag when the winner beats its nearest rival by less than float noise;
+  `lsml_continuous` carries it in `meta['grouping_diag']`. A coin flip is now visible as one.
+- **Gate U5** — grouping invariance under (i) contiguous vs sliced input, (ii) feature-order
+  permutation, (iii) 1e-12 relative jitter, on real cells at m = 3..8. **An invariance failure is
+  the signature of an answer decided by rounding.** It passes at m ≤ 4 (asserted) and immediately
+  found one near-tie above the cutoff: `m=8 math500_r1distill8b` is **relabel-dependent**.
+- **Gate U6** — two hygiene fixes: `sml_fuse_signed`'s majority rule cannot break an exact k/2 tie
+  at even k, so the sign was whatever LAPACK returned (fires on 1 of 52 group calls on the GOOD_6
+  path); and `zscore` silently returned an all-NaN array on non-finite input, because
+  `NaN > 1e-8` is False. Both verified inert on current data before being fixed.
+
+**Why the cutoff is 4 and not 5.** Exhaustive is affordable at m=5 (Bell=52) and does find lower
+residuals there — but m=5 shows no *determinacy* defect (5–6 band: 0.000pp median jitter spread,
+3 of 87 rows above 0.5pp, against 0.439pp and 18 of 36 at m=4). Extending it to m=5 was measured
+(+0.22pp on that band) and **deliberately not adopted**: it would move a published reference anchor
+(`ref.LOCO_5` 0.7705 → 0.7673) to fix something that is not broken.
+
+Impact, all 169 rows re-scored: **every headline anchor moves 0.00pp** — GOOD_6 0.7594, GOOD_5
+0.7519, LOCO_5 0.7705, `a6.pl_dufs` 0.7524, `a2.dufs` 0.7502. Only `ref.consensus_4` (the m=4
+reference) moves, +0.60pp. Size-3 band −0.02pp, size-4 band +0.32pp.
+
+#### E — the honest answer to Omri's question
+
+**Neither fix improved any algorithm.** The m<4 short-circuit restores old numbers by design; the
+corrected loading scale is +0.08pp with 10W/15L; the exact small-m solve is +0.03pp (15W/10L,
+p = 0.696) on the rows it touches. **Determinacy was the only thing on offer, and it is what we
+bought.** Measured alternatives at m=4: pinning K=2 is −0.41pp (8W/17L, p = 0.030); pinning K=3 is
++0.07pp (16W/12L, p = 0.043).
+
+**But "impossible to reproduce" is too strong.** Under a 1e-10 relative jitter, 134 of 165 rows
+moved < 0.1pp. The instability had a shape, and re-running the same audit on fixed code is the
+pass/fail test for the repair:
+
+| mean subset size | rows | median macro spread | rows ≥ 0.5pp | **after the fix** |
+|---|---|---|---|---|
+| 3 (degenerate) | 12 | 0.000pp | 1 | **0.000pp / 0** |
+| **4** | **36** | **0.439pp** | **18** | **0.000pp / 0** |
+| 5–6 | 87 | 0.000pp | 3 | **0.000pp / 0** |
+| 7–10 | 14 | 0.000pp | 0 | 0.000pp / 0 |
+| 11+ | 16 | 0.000pp | 0 | 0.000pp / 0 |
+
+**Size 3 was degenerate but deterministic** (Eq.15 exactly zero → a constant tie-break); **size 4 was
+meaningful but undetermined** (Eq.15 has exactly two terms and K ∈ {2,3} decided in the last bits).
+Both are bad, for opposite reasons, and both are now solved exactly.
+
+**The repair is complete, not partial.** Rows moving < 0.1pp: **134/165 → 165/165**. Rows ≥ 0.5pp:
+**22 → 0**. The worst remaining row moves a single *cell* by 0.02pp. Spearman(mean size, macro
+spread) goes **−0.492 → −0.072** — the size dependence disappears because there is no instability
+left for size to predict. **Every number on the page is now a measurement rather than a draw.**
+
+Reproduction after the change: **63 verified / 49 within their own noise / 34 labelled `code fix:
+Step-205 exact small-m solve` / 8 lookup-table / 4 not replayable / 2 Step-189 K clamp, and
+UNEXPLAINED = 0.** The exact count fell (75 → 63 of the 169-row core) *because* the fix moved the
+size-4 rows, and because the post-fix noise floor is now ~0, so a drift above 0.02pp has to be
+named rather than absorbed. That is the intended direction: those published values were tie-breaks,
+and today's code returns a defined answer instead.
+
+#### F — re-running the studies whose size grids start at 3
+
+Three pruning-study experiments sample sizes starting at 3, so their size-3 rows were computed
+with the noisy score matrix and their size-4 rows on the knife-edge. Only `exp06` was named in the
+handoff; `exp01_grouping` and `exp03_preflight` have the same exposure and source Step-203 claims
+that are still quoted. All three were re-run on fixed code.
+
+- **`exp01_grouping` — Step 203's claim reproduces exactly.** Grouping OFF beats ON at **13/13
+  sizes, 12 at p < 0.05** (size 3: +1.29pp, 24/25 cells; size 27: +0.95pp). Unchanged.
+- **`exp03_preflight` — the structural claim holds, and only the k=3 endpoints moved.** Typical
+  accuracy still rises with size in **25/25 cells**. Typical: 0.6928 → **0.6881** at k=3 and
+  0.7450 → **0.7450** at k=21; best-found-at-size: 0.7740 → **0.7726** at k=3 and 0.7634 →
+  **0.7634** at k=25. The large-size ends are identical to the last digit and *only* the k=3
+  endpoints shift (−0.47pp, −0.14pp) — precisely the regime the exact solve touches and nowhere
+  else, which is about as clean a confirmation of the change's blast radius as the data can give.
+  **No interior best size, still: trimming has a high ceiling and a poor average.**
+- **`exp06_scale_vs_criterion` — P2 holds, and the numbers barely move.** This is the study the
+  handoff named, and the one that sources Step 204's headline (the loading-scale correction that
+  superseded Step 203). On fixed code:
+
+  | scale | mean ρ | median | positive in | macro |
+  |---|---|---|---|---|
+  | unit | **+0.222** (published +0.223) | 0.202 | 23/25 (was 24/25) | 0.7291 |
+  | eigen | +0.188 | 0.169 | 25/25 | 0.7247 |
+  | complete | **−0.022** (published −0.006) | −0.047 | 10/25 (was 12/25) | 0.7254 |
+
+  Shift **−0.243, Wilcoxon p = 0.0006** against the published −0.228, p = 0.0015. **P2 HOLDS**, very
+  slightly strengthened. So the Step-204 correction — and with it the decision *not* to build
+  Extension I1 — stands on numbers today's code produces.
+- **A pre-existing crash in `exp03_preflight`, found by re-running it.** Pool sizes run 27–30 and the
+  sweep skips `size > p`, so size 30 exists on only **6 of 25 cells** — and the aggregation handed
+  `np.nanmax` an empty list, which raises. (`np.nanmean` merely warns and returns NaN, which is why
+  the failure surfaced on the second of the two lines.) Fixed to aggregate over the cells that have
+  rows at each size, and to print which sizes are thin so a 6-cell size cannot be read as if it were
+  measured on 25.
+
+#### G — an external bug audit, checked claim by claim
+
+A Gemini-run audit proposed 7 defects. Checked against the code: 2 were real-but-inert and are
+fixed here (U6 above); 2 restated findings from this session (the m=4 degeneracy, the router's
+incommensurate units); 1 reported a *documented, proven* property as a defect (`z2_sign_recovery`'s
+global sign is provably not recoverable from covariance structure — Step 204 measured
+`max|Δρ| = 0.000e+00` under a global flip — which is why `anchor_orient` exists); 1 was **false**
+(`_greedy_min`'s rng is a parameter, derived deterministically per cell by `_cell_rng`); and 1 was
+wrong on mechanism and off the deployed path (`np.linalg.pinv` truncates small singular values
+rather than inverting them, and `nadler_fuse` is not the deployed detector). **No claim changed a
+published number.** Recorded because the base rate matters when triaging the next audit.
+
+**Why**: the page is going to advisors. Every number on it has to be one today's code produces, or
+be labelled as not — and "it drifted" is not a useful verdict when most drift is smaller than the
+row's own numerical noise.
+
+**Result**: unexplained rows = **0**. Every row that reproduces exactly is also numerically stable
+(< 0.1pp) — reproducibility and determinacy turn out to be the same property here. The m ≤ 4 regime
+is now solved exactly rather than by tie-break, and U5 is the standing mechanism that will catch
+the next answer decided by rounding rather than by data.
+
+**Files**: modified `spectral_utils/fusion_utils.py` (`_canonical_partitions`,
+`_exact_small_m_groups`, `_rel_gap`, `_diag`, `_pack`, `SMALL_M_EXACT`, `DEGENERATE_REL_TOL`;
+canonical R and `return_diag` in `detect_dependent_groups`; `grouping_diag` in `lsml_continuous`;
+tie-break in `sml_fuse_signed`; non-finite guard in `zscore`), `scripts/verify_residual_scaling.py`
+(gates U5, U6), `scripts/upcr_study/exp01_g2_criterion.py`, `scripts/upcr_study/build_index.py`,
+`scripts/upcr_study/build_comparison.py` (Step-205 verdict category); new
+`scripts/upcr_study/exp07_lambda2_threshold.py`. Re-ran `reproduction_audit.py`,
+`stability_audit.py`, and all three size-3-inclusive pruning studies (`exp01_grouping`,
+`exp03_preflight`, `exp06_scale_vs_criterion`).
+
+---

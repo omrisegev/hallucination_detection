@@ -64,6 +64,16 @@ from .fusion_utils import (
     sml_unsupervised, sml_unsupervised_compare,
     upcr_fuse, upcr_pipeline,
 )
+# Paper-faithful U-PCR + our dependent-feature extension. `upcr_fuse` above is the
+# legacy path and stays byte-identical so committed numbers reproduce.
+from .upcr import (
+    upcr_fit, upcr_pipeline_faithful, UPCRResult,
+    additive_design, solve_additive, moment_match,
+)
+from .upcr_clustered import (
+    upcr_clustered_fit, upcr_hierarchical_fit,
+    discover_clusters, cross_cluster_pairs, check_identifiability,
+)
 from .diagnostics import (
     decompose_auroc, threshold_sensitivity, derive_consensus_signs,
     plot_decomposition, plot_per_feature_heatmap,
@@ -146,6 +156,10 @@ __all__ = [
     "lsml_continuous", "lsml_continuous_pipeline", "multipass_lsml_continuous",
     "sml_unsupervised", "sml_unsupervised_compare",
     "upcr_fuse", "upcr_pipeline",
+    "upcr_fit", "upcr_pipeline_faithful", "UPCRResult",
+    "additive_design", "solve_additive", "moment_match",
+    "upcr_clustered_fit", "upcr_hierarchical_fit",
+    "discover_clusters", "cross_cluster_pairs", "check_identifiability",
     "decompose_auroc", "threshold_sensitivity", "derive_consensus_signs",
     "plot_decomposition", "plot_per_feature_heatmap",
     "plot_sign_agreement", "plot_threshold_sweep",
