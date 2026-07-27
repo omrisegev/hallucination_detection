@@ -574,14 +574,16 @@ the fit criterion's sign is inverted — was an artifact of the L-SML loading sc
 reproduce the covariance, so misfit was inflated by group size × coupling strength — largest exactly
 where the clustering succeeded. With a masked rank-one completion estimator:
 
-| loading scale | Spearman(misfit, AUROC) | positive cells |
-|---|---|---|
-| `unit` (what Step 203 measured) | **+0.223** | 24/25 |
-| `eigen` (the SPEC's literal fix) | +0.183 | 25/25 |
-| `complete` (exact on the unit checks) | **−0.006** | 12/25 |
+| loading scale | Spearman(misfit, AUROC) | positive cells | **re-measured Step 205** |
+|---|---|---|---|
+| `unit` (what Step 203 measured) | **+0.223** | 24/25 | **+0.222**, 23/25 |
+| `eigen` (the SPEC's literal fix) | +0.183 | 25/25 | +0.188, 25/25 |
+| `complete` (exact on the unit checks) | **−0.006** | 12/25 | **−0.022**, 10/25 |
 
 Shift **−0.228, Wilcoxon p = 0.0015**; the `unit` arm reproduces Step 203 exactly, so the harness is
-sound. **The criterion never needed inverting — it needed scaling.** I1 (sign-flip the selectors)
+sound. **Re-run on Step-205's fixed code** (this study's size grid starts at 3, so it was the one
+most exposed to the small-m degeneracy): shift **−0.243, p = 0.0006** — the conclusion holds and
+strengthens slightly. **The criterion never needed inverting — it needed scaling.** I1 (sign-flip the selectors)
 would have been curing a symptom. I2–I4 and theorems T1–T4 rest on the same artifact and are void as
 stated; T1 in particular ("redundancy inflates misfit monotonically") is *true of the broken
 estimator* and is precisely the bug, not a property of the data.
@@ -737,8 +739,11 @@ one-factor premise is aimed at a premise the data only approximately satisfies.
    See the Extension H status block above.
 
 0-NEXT. ~~**Extension I — inverted-fit selection (Step 203)**~~ ❌ **CLOSED AS REFUTED
-   (Step 204).** The +0.223 correlation was an artifact of the L-SML loading scale; corrected it
-   is −0.006 (p = 0.0015 for the shift). **Do not build I1.** See the Extension I block above.
+   (Step 204), re-verified on fixed code (Step 205).** The +0.223 correlation was an artifact of
+   the L-SML loading scale. Re-measured after the Step-205 small-m fix: unit **+0.222** (23/25
+   positive) → complete **−0.022** (10/25), shift **−0.243, p = 0.0006** (Step 204 published
+   −0.228, p = 0.0015). **P2 holds, slightly strengthened. Do not build I1.** See the Extension I
+   block above.
 
 0-NOW. **← Orientation without hand-picked signs (Step 204, Phase E).** The one lever that moved
    anything: deriving per-feature polarity from `sign(rho)` beats the 42 hand signs by **+1.46pp
