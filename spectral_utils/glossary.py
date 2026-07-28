@@ -44,6 +44,28 @@ REFERENCE_SUBSET_NOTES = {
                         "multiple early subset searches.", "Step 155 era"),
     "ref.ALL_H16": ("All 16 original H(n) spectral features, no selection — "
                     "the un-pruned floor/ceiling reference.", "Phase 4"),
+    # --- the ADD test (Step 206) --------------------------------------------
+    # `topk_tail_mass` and `renyi_entropy_2` rank #1 and #5 of 30 by individual
+    # informativeness yet had never been offered to any scored fixed subset.
+    # Six variants pre-registered TOGETHER, so the best is a ceiling. All six
+    # land below GOOD_6: high individual informativeness does not imply
+    # additive value once the subset already covers that direction.
+    "ref.GOOD_6+topk": ("ADD test, best of six. 0.7587 — ties GOOD_6 "
+                        "(−0.07pp, 8W/17L, p=0.426) and loses to LOCO_5 "
+                        "(−0.72pp, p=0.065).", "Step 206"),
+    "ref.GOOD_6+renyi": ("ADD test. 0.7574, −0.20pp vs GOOD_6 (p=0.096).",
+                         "Step 206"),
+    "ref.GOOD_6+both": ("ADD test. 0.7569, −0.25pp vs GOOD_6 (p=0.113) — "
+                        "adding BOTH is worse than adding either alone.",
+                        "Step 206"),
+    "ref.GOOD_5+renyi": ("ADD test. 0.7558; +0.39pp over GOOD_5 (p=0.080) but "
+                         "−0.36pp under GOOD_6 (p=0.003).", "Step 206"),
+    "ref.GOOD_5+topk": ("ADD test. 0.7534; +0.15pp over GOOD_5 (p=0.200), "
+                        "−0.60pp under GOOD_6 (p=0.003).", "Step 206"),
+    "ref.ENTROPY_6": ("ADD test — an all-entropy-family subset. 0.7462, the "
+                      "WORST of the six (−1.32pp vs GOOD_6, p=0.024): six "
+                      "readings of one quantity is what the correlation "
+                      "filter exists to prevent.", "Step 206"),
 }
 
 # ---------------------------------------------------------------------------
@@ -267,11 +289,30 @@ FAMILY_NOTES = {
 # ---------------------------------------------------------------------------
 
 VARIANT_NOTES = {
+    # Coverage-gate gaps closed in Step 206 (both pre-existing; the gate had
+    # been passing only because these two were not yet in a benched CSV).
+    "a7.iter_consensus": (
+        "The a7 family's single output — picks its own subset AND its own K, "
+        "with no `epr` anchor and no GOOD_6 seeds. 0.7378 with the anchor "
+        "step ON, 0.6524 with it OFF (the anchor-ablation pair that measures "
+        "the global-sign bit at -8.5pp). See the family note.", "Steps 200-202"),
+    "a6.adaptive_pl_mrmr": (
+        "a6's D1+D2 arm: adaptive per-cell K (D1) combined with PL-MRMR "
+        "ranking (D2) on top of the pseudo-label gates. Step 198 refuted D1 "
+        "(r_s=+0.007 vs oracle-K) and bounded D2 (beats GOOD_5 p=0.037, stays "
+        "under GOOD_6), so this is a diagnostic arm, not a candidate.",
+        "Step 198"),
     "a6.pruned_dufs": (
         "a6 gates plus a hyperparameter-pruning pass (target-size cap "
-        "K_max=15, `logprob_margin` anchor). Audited numbers: 0.7537 macro / "
-        "0.7141 QA / 0.7801 math, mean size 17.0 -- below `a6.pl_dufs`.",
-        "Step 197"),
+        "K_max=15, `logprob_margin` anchor). **0.7514 macro / 0.7117 QA / "
+        "0.7779 math, size 17.0 on all 25 cells** (Step 206 re-bench on "
+        "current code: 0 errors, 0 fallbacks) -- below `a6.pl_dufs` (0.7524) "
+        "and `GOOD_5` (0.7519). Supersedes four earlier conflicting values: "
+        "Step 197 claimed 0.7596, the prior glossary said 0.7537, "
+        "`a6_pruned_dufs_postfix_results.csv` gives 0.7487, and the bench read "
+        "0.7456 while contaminated by stale `mu3` NameError rows on 11/25 "
+        "cells. See HISTORY Step 206 section D.",
+        "Step 197, re-benched Step 206"),
     "a1.router@good5": ("Routes GOOD_5's fusion to whichever of L-SML/U-PCR "
                         "has the better structural residual on this cell.",
                         "Step 186"),

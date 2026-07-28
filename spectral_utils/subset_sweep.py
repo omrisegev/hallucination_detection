@@ -112,8 +112,28 @@ STABLE_H9 = [
 # (known gap: inside_coqa_llama7b).
 LOCO_5 = ['cusum_max', 'logprob_margin', 'min_energy', 'spectral_entropy',
           'topk_tail_mass']
+# --- the ADD test (Step 206, Omri 2026-07-28) --------------------------------
+# `topk_tail_mass` and `renyi_entropy_2` rank #1 and #5 of 30 by informativeness
+# (|AUROC - 0.5|) yet had never been offered to ANY scored fixed subset -- the gap
+# flagged at PROGRESS.md:548. Removal has three independent negatives (WS3 LOCO,
+# the pool-size experiment, feature_inclusion_audit_c46); addition was never tried.
+# These SIX are pre-registered together, before any was scored, so the best of them
+# is read as a ceiling rather than a discovery. Note LOCO_5 already contains
+# `topk_tail_mass` -- the exhaustive Step-195 LOCO search picked it independently,
+# which is why LOCO_5 (0.7705), not GOOD_6 (0.7594), is the honest bar here.
+ADD_VARIANTS = {
+    'GOOD_5+topk':  GOOD_5 + ['topk_tail_mass'],
+    'GOOD_6+topk':  GOOD_6 + ['topk_tail_mass'],
+    'GOOD_5+renyi': GOOD_5 + ['renyi_entropy_2'],
+    'GOOD_6+renyi': GOOD_6 + ['renyi_entropy_2'],
+    'GOOD_6+both':  GOOD_6 + ['topk_tail_mass', 'renyi_entropy_2'],
+    'ENTROPY_6':    ['epr', 'spectral_entropy', 'varentropy', 'renyi_entropy_2',
+                     'mean_logprob_entropy', 'topk_tail_mass'],
+}
+
 REFERENCE_SUBSETS = {'GOOD_5': GOOD_5, 'GOOD_6': GOOD_6, 'LOCO_5': LOCO_5,
-                     'STABLE_H9': STABLE_H9, 'ALL_H16': H16}
+                     'STABLE_H9': STABLE_H9, 'ALL_H16': H16,
+                     **ADD_VARIANTS}
 
 # Anchor for label-free global-sign resolution (Step 148). First pool feature
 # with non-degenerate variance wins; oriented epr is the documented choice.

@@ -18,7 +18,7 @@ elsewhere it would silently collapse to GOOD_5, so it is skipped.
 
 import numpy as np
 
-from ..subset_sweep import GOOD_5, GOOD_6, LOCO_5, STABLE_H9, H16
+from ..subset_sweep import GOOD_5, GOOD_6, LOCO_5, STABLE_H9, H16, ADD_VARIANTS
 from . import register
 
 TOP_MACRO_5 = ['epr', 'spectral_entropy', 'hl_ratio', 'sw_var_peak', 'cusum_max']
@@ -32,12 +32,17 @@ MACROS = {
     'ref.top_macro_5': TOP_MACRO_5,
     'ref.consensus_4': CONSENSUS_4,
     'ref.ALL_H16': H16,
+    # Step 206 ADD test — see subset_sweep.ADD_VARIANTS for the pre-registration.
+    **{f'ref.{k}': v for k, v in ADD_VARIANTS.items()},
 }
 
 # Macros that are a specific mask, not a family: emitting a partial version
 # would silently score a DIFFERENT subset. Skip the cell unless every member
 # is present (GOOD_6 has its own varentropy guard below).
-ALL_OR_NOTHING = {'ref.LOCO_5'}
+# Every ADD variant is all-or-nothing by construction: `ref.GOOD_6+topk` minus
+# `topk_tail_mass` IS GOOD_6, which would silently duplicate the baseline row
+# under a name claiming to be the test.
+ALL_OR_NOTHING = {'ref.LOCO_5'} | {f'ref.{k}' for k in ADD_VARIANTS}
 
 
 @register('reference_macros')

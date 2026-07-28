@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The ADD test — the two strongest never-used views</title><style>
+:root{--bg:#fff;--fg:#1a202c;--mut:#4a5568;--line:#cbd5e0;--card:#f7fafc}
+@media(prefers-color-scheme:dark){:root{--bg:#12161c;--fg:#e6edf3;--mut:#9aa5b1;--line:#2d3748;--card:#1a2029}}
+:root[data-theme=dark]{--bg:#12161c;--fg:#e6edf3;--mut:#9aa5b1;--line:#2d3748;--card:#1a2029}
+:root[data-theme=light]{--bg:#fff;--fg:#1a202c;--mut:#4a5568;--line:#cbd5e0;--card:#f7fafc}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,sans-serif;
+max-width:1100px;margin:0 auto;padding:28px 20px 64px}
+h1{font-size:26px;margin:0 0 6px} h2{font-size:19px;margin:34px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+h3{font-size:16px;margin:22px 0 8px}
+.sub{color:var(--mut);margin:0 0 22px}
+.tldr{background:var(--card);border-left:4px solid #2b6cb0;padding:16px 18px;border-radius:6px;margin:0 0 26px}
+.tldr h2{margin:0 0 8px;border:0;padding:0;font-size:17px}
+.tldr ul{margin:8px 0 0;padding-left:20px} .tldr li{margin:5px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;white-space:nowrap}
+th{background:var(--card);font-weight:600}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.fig{margin:18px 0;overflow-x:auto}
+.note{color:var(--mut);font-size:13.5px;margin:8px 0 0}
+code{background:var(--card);padding:1px 5px;border-radius:3px;font-size:13px}
+.warn{background:#fffaf0;border-left:4px solid #c05621;padding:12px 16px;border-radius:6px;margin:14px 0}
+@media(prefers-color-scheme:dark){.warn{background:#2a1f14}}
+</style></head><body>
+<h1>The ADD test — the two strongest never-used views</h1><p class="sub">U-PCR study, exp09 — does offering topk_tail_mass / renyi_entropy_2 to the fixed subsets help?</p>
+<div class="tldr"><h2>In short</h2><ul><li>Best of six pre-registered ADD variants: <b>ref.GOOD_6+topk</b> at <b>0.7587</b> — -0.07pp 8W/17L p=0.426 vs GOOD_6 and -0.72pp 8W/16L p=0.065 vs LOCO_5.</li><li><code>topk_tail_mass</code> and <code>renyi_entropy_2</code> rank #1 and #5 of 30 by individual informativeness, yet neither improves a hand-curated subset. High individual informativeness does not imply additive value — the information is already covered.</li><li>The honest bar is <b>LOCO_5</b> (0.7705), not GOOD_6: LOCO_5 already contains <code>topk_tail_mass</code>, picked independently by the Step-195 exhaustive LOCO search. The view is valuable; adding it to a subset that already covers it is not.</li><li>All six were pre-registered together, so the best is a ceiling.</li></ul></div>
+<table><thead><tr><th>subset</th><th>size</th><th>cells</th><th>macro</th><th>QA</th><th>math</th><th>vs GOOD_5</th><th>vs GOOD_6</th><th>vs LOCO_5</th></tr></thead><tbody><tr><td>ref.LOCO_5</td><td class="num">5</td><td class="num">24</td><td class="num">0.7705</td><td class="num">0.7437</td><td class="num">0.7866</td><td>+1.58pp 22W/2L p=0.000</td><td>+0.73pp 17W/7L p=0.029</td><td>-</td></tr><tr><td>ref.GOOD_6</td><td class="num">6</td><td class="num">25</td><td class="num">0.7594</td><td class="num">0.7274</td><td class="num">0.7807</td><td>+0.75pp 18W/7L p=0.005</td><td>-</td><td>-0.73pp 7W/17L p=0.029</td></tr><tr><td>ref.GOOD_6+topk</td><td class="num">7</td><td class="num">25</td><td class="num">0.7587</td><td class="num">0.7257</td><td class="num">0.7807</td><td>+0.68pp 19W/6L p=0.015</td><td>-0.07pp 8W/17L p=0.426</td><td>-0.72pp 8W/16L p=0.065</td></tr><tr><td>ref.GOOD_6+renyi</td><td class="num">7</td><td class="num">25</td><td class="num">0.7574</td><td class="num">0.7244</td><td class="num">0.7794</td><td>+0.55pp 18W/7L p=0.045</td><td>-0.20pp 8W/17L p=0.096</td><td>-0.91pp 7W/17L p=0.027</td></tr><tr><td>ref.GOOD_6+both</td><td class="num">8</td><td class="num">25</td><td class="num">0.7569</td><td class="num">0.7225</td><td class="num">0.7799</td><td>+0.50pp 18W/7L p=0.071</td><td>-0.25pp 7W/18L p=0.113</td><td>-0.86pp 8W/16L p=0.046</td></tr><tr><td>ref.GOOD_5+renyi</td><td class="num">6</td><td class="num">25</td><td class="num">0.7558</td><td class="num">0.7209</td><td class="num">0.7791</td><td>+0.39pp 15W/10L p=0.080</td><td>-0.36pp 5W/20L p=0.003</td><td>-1.12pp 3W/21L p=0.001</td></tr><tr><td>ref.GOOD_5+topk</td><td class="num">6</td><td class="num">25</td><td class="num">0.7534</td><td class="num">0.7205</td><td class="num">0.7753</td><td>+0.15pp 16W/9L p=0.200</td><td>-0.60pp 6W/19L p=0.003</td><td>-1.42pp 4W/20L p=0.000</td></tr><tr><td>ref.GOOD_5</td><td class="num">5</td><td class="num">25</td><td class="num">0.7519</td><td class="num">0.7210</td><td class="num">0.7725</td><td>-</td><td>-0.75pp 7W/18L p=0.005</td><td>-1.58pp 2W/22L p=0.000</td></tr><tr><td>ref.ENTROPY_6</td><td class="num">6</td><td class="num">25</td><td class="num">0.7462</td><td class="num">0.7096</td><td class="num">0.7705</td><td>-0.57pp 13W/12L p=0.615</td><td>-1.32pp 8W/17L p=0.024</td><td>-1.80pp 6W/18L p=0.007</td></tr></tbody></table>
+</body></html>

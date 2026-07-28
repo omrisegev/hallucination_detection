@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pool pruning under the updated U-PCR</title><style>
+:root{--bg:#fff;--fg:#1a202c;--mut:#4a5568;--line:#cbd5e0;--card:#f7fafc}
+@media(prefers-color-scheme:dark){:root{--bg:#12161c;--fg:#e6edf3;--mut:#9aa5b1;--line:#2d3748;--card:#1a2029}}
+:root[data-theme=dark]{--bg:#12161c;--fg:#e6edf3;--mut:#9aa5b1;--line:#2d3748;--card:#1a2029}
+:root[data-theme=light]{--bg:#fff;--fg:#1a202c;--mut:#4a5568;--line:#cbd5e0;--card:#f7fafc}
+body{background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,sans-serif;
+max-width:1100px;margin:0 auto;padding:28px 20px 64px}
+h1{font-size:26px;margin:0 0 6px} h2{font-size:19px;margin:34px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+h3{font-size:16px;margin:22px 0 8px}
+.sub{color:var(--mut);margin:0 0 22px}
+.tldr{background:var(--card);border-left:4px solid #2b6cb0;padding:16px 18px;border-radius:6px;margin:0 0 26px}
+.tldr h2{margin:0 0 8px;border:0;padding:0;font-size:17px}
+.tldr ul{margin:8px 0 0;padding-left:20px} .tldr li{margin:5px 0}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;white-space:nowrap}
+th{background:var(--card);font-weight:600}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.fig{margin:18px 0;overflow-x:auto}
+.note{color:var(--mut);font-size:13.5px;margin:8px 0 0}
+code{background:var(--card);padding:1px 5px;border-radius:3px;font-size:13px}
+.warn{background:#fffaf0;border-left:4px solid #c05621;padding:12px 16px;border-radius:6px;margin:14px 0}
+@media(prefers-color-scheme:dark){.warn{background:#2a1f14}}
+</style></head><body>
+<h1>Pool pruning under the updated U-PCR</h1><p class="sub">U-PCR study, exp08 — does removing weak views raise AUROC on the rho-polarity path?</p>
+<div class="tldr"><h2>In short</h2><ul><li>Best held-out result across four drop thresholds: <b>-0.000pp</b> at 0.2pp (0W/1L/24T, p = 0.317).</li><li>WS3 asked this on the <b>L-SML</b> path and answered no. This asks it on <code>upcr.rho_polarities</code> (0.7551), which the bench cannot reach: <code>eval_subset_flex(fusion='upcr')</code> runs the legacy <code>upcr_fuse</code> (0.7392), not this recipe.</li><li><b>Why pruning hurts:</b> U-PCR's own exclusion is data-dependent, so removing a zero-weight view is not a no-op. Where the survivor set is unchanged the prediction holds — 91% exact no-ops, mean |delta| 0.035pp. Where removal shifts which OTHER views survive (56 of 193 pairs), 0% are no-ops and mean |delta| is 0.656pp.</li><li>Held-out deltas only. In-sample numbers are a ceiling, not a result.</li></ul></div>
+<h2>LOCO-honest verdict per drop threshold</h2><table><thead><tr><th>drop threshold</th><th>mean delta</th><th>median</th><th>W/L/T</th><th>Wilcoxon p</th><th>views dropped</th><th>macro full</th><th>macro pruned</th><th>dropped in &gt;=20/25 folds</th></tr></thead><tbody><tr><td>0.0pp</td><td class="num">-0.501pp</td><td class="num">-0.116pp</td><td>7/18/0</td><td class="num">0.010</td><td class="num">6.60</td><td class="num">0.7551</td><td class="num">0.7501</td><td>cusum_shift_idx|high_band_power|mean_top1_logprob|sw_var_peak_energy</td></tr><tr><td>0.1pp</td><td class="num">-0.046pp</td><td class="num">+0.000pp</td><td>0/2/23</td><td class="num">0.180</td><td class="num">0.04</td><td class="num">0.7551</td><td class="num">0.7546</td><td>(none)</td></tr><tr><td>0.2pp</td><td class="num">-0.000pp</td><td class="num">+0.000pp</td><td>0/1/24</td><td class="num">0.317</td><td class="num">0.00</td><td class="num">0.7551</td><td class="num">0.7551</td><td>(none)</td></tr><tr><td>0.5pp</td><td class="num">-0.000pp</td><td class="num">+0.000pp</td><td>0/1/24</td><td class="num">0.317</td><td class="num">0.00</td><td class="num">0.7551</td><td class="num">0.7551</td><td>(none)</td></tr></tbody></table>
+</body></html>
