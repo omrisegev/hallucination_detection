@@ -1,6 +1,167 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-07-27
+**Date**: 2026-07-29
+**Last updated**: Step 207 — **the label-free standing page shipped, and building it exposed two
+reporting errors that were in every draft.** Full write-up in HISTORY.md Step 207; page at
+`results/action_items/labelfree_standing.html`.
+
+**Also landed this session, from a parallel thread: Step 208** — the Huleihel / Oren-Loberman
+publication line assessed against our open threads. Three proposed imports rejected, one adopted.
+Full write-up in HISTORY.md Step 208.
+
+- **Adopted: `Online Auditing of Information Flow`** (Oren-Loberman, Azar, Huleihel;
+  arXiv:2310.14595, IEEE TSIPN 10:487-499, 2024) — digested. Sequential detection under a risk that
+  prices **error and delay**; the optimal rule is a two-sided threshold on the posterior, a
+  Wald-calibrated SPRT. That is exactly what **Extension E** lacks (the Step-148 pilot scores
+  prefixes at fixed budgets with no stopping rule). Two caveats in the digest: the offline stage is
+  **supervised**, and the graph/path machinery does not transfer to a single fully-observed decoded
+  trace. **Cite it for the formulation, not the theorems.** Metric lesson: report
+  **(AUROC at budget, tokens consumed)**, not AUROC alone — their accuracy is a wash (0.86 vs 0.85)
+  and the entire contribution is 6.29 vs 12.75 events to decide.
+- **`Inhomogeneous Submatrix Detection`** (arXiv:2603.09602) — extracted, **deliberately not
+  digested**. Detection only: its tests do not localize the support, so it supplies no K\* selection
+  criterion. Live angle, if any, is the variance-shift + consecutive-placement variant as a formal
+  model for `sw_var_peak` window selection.
+- **Two papers Omri picked out, now OBTAINED + EXTRACTED but NOT DIGESTED** — index rows are
+  grounded in the extracts, but carry abstract-level claims only. **Run `/paper-digest` before
+  citing anything deeper**; nobody has read either in full:
+  - **`Detection and Recovery of Hidden Submatrices`** (Dadon, Huleihel, Bendory; arXiv:2306.06643v2,
+    IEEE TSIPN 10:69-82, 2024) — the **recovery/localization** companion, and the answer to the
+    objection that sank the 2026 inhomogeneous paper: it locates the planted support, with low-degree
+    lower bounds and an impossible/hard/easy partition. **If the submatrix -> feature-selection idea
+    is pursued at all, this is the entry point** — but it is *homogeneous* (one common elevated mean,
+    mean-shift only), so it is a weaker model than the paper it corrects, and the idea it serves is
+    still rated low because pool composition is closed in both directions.
+  - **`Einstein from Noise: Statistical Analysis`** (Balanov, Huleihel, Bendory; arXiv:2407.05277v3,
+    IEEE T-SP 74:1751-1766, 2026) — a formal analysis of an estimator manufacturing the structure it
+    was told to look for: align pure noise to a template and average, and the **Fourier phases of the
+    estimator converge to the template's phases** ("phase locking"). **Framing and citable
+    methodological support, not a source of method**: Steps 203-206 are an empirical rediscovery of
+    the same class of artifact. Companion, not obtained: `Confirmation Bias in Gaussian Mixture
+    Models` (T-IT 2025, same authors).
+  - **Standing is unchanged by having obtained them.** `Online Auditing` is still the only one of the
+    four that touches an open thread.
+- **`AdaRankGrad` (ICLR'25) is co-authored by Huleihel and O. Lindenbaum** — there is already a warm
+  path to that group through Ofir.
+- **No roadmap change.** Orientation remains the single open lever (Steps 204/206); none of these
+  papers speaks to it. Extension E gains a formulation and a corrected metric definition for a
+  future re-run.
+
+- **NEW DELIVERABLE: `results/action_items/labelfree_standing.html`** (78 KB, self-contained, zero
+  external references), built by `scripts/labelfree_standing_report.py`. One page replacing
+  `item3_qa_evaluation.html` + `item4_benchmarking.html` for the two arms that need nothing
+  hand-picked beyond the anchor bit, on the 25 in-scope cells. Nothing copied from the old pages:
+  every AUROC recomputed through the canonical path with bootstrap CIs, behind two gates that abort
+  the build — the GOOD_6 validity anchor at 0.7594, and per-arm reproduction within 5e-4 of the
+  recorded value. Both pass 25/25.
+- **ERROR 1 — `upcr.rho_polarities` keeps 21 of ~29 views, NOT 12.** `comparison.csv` prints
+  `size_mean = 11.7` on *every* `upcr.*` row because `build_comparison.py:495-502` computes one
+  shared `kept_on` from the 64-config factorial, and **every config there is hand-oriented**.
+  Re-orienting by `sign(rho)` makes every rho positive, so far fewer views trip Algorithm 1's
+  exclusion. Measured on the deployed `FIT`: hand arm **0.416 → 12.0 views**, `sign(rho)` arm
+  **0.731 → 21.0**. "U-PCR keeps ~12 of 30, so it is itself a selector" describes the arm we do
+  **not** deploy. The "found a selector" reading survives on Step 204's mechanism (one-component
+  U-PCR is exactly PC1 of the survivors, so exclusion is the only live part) rather than on the drop
+  rate, which is 8 of 29.
+- **ERROR 2 — Bar B is NOT our cost class.** The headline "+8.7pp on 11 cells, p = 0.042" is **Bar
+  B** (unsupervised, one pass, *any* access, i.e. it includes white-box competitors). **Bar A**, our
+  exact grey-box class, is **+6.17pp / +6.56pp over 5 cells, p = 0.312**. Both source pages, both
+  letter drafts and `benchmark_standing.py`'s section-3 heading called the Bar B number "our own
+  cost class". Fixed in the new page and in `benchmark_standing.py` (regenerated).
+- **Also corrected: GroupFS is 0.7481, not 0.7502** (`a2.select` vs `a2.dufs`) — the drafts gave
+  DUFS's number to both.
+- **Measured on the 25 cells, with CIs, for the first time on these arms:**
+
+  | Arm | macro | QA (10) | math (15) | in-band (19) | kept |
+  |---|---:|---:|---:|---:|---:|
+  | U-PCR + sign(rho) | 0.7551 | 0.7126 | 0.7834 | 0.7593 | 21.0 |
+  | DUFS parameter-free + L-SML | 0.7507 | 0.7089 | 0.7787 | 0.7532 | 16.9 |
+  | GOOD_6 (reference) | 0.7594 | 0.7274 | 0.7807 | 0.7604 | 6 |
+
+  Paired: `upcr − dufs_pf` +0.43pp 16W/9L p=0.059; `GOOD_6 − dufs_pf` +0.87pp p=0.191;
+  `GOOD_6 − upcr` +0.43pp p=0.615. **Nothing separates the three.**
+- **The QA deficit is ONE cell.** GOOD_6 leads QA by 1.49pp and trails math by 0.27pp. **CoQA alone
+  contributes 13.19pp**; drop it and the QA gap over the remaining nine is **0.18pp**. Base model,
+  14.7% positive rate, both label-free arms near chance (53.5 / 53.2) where GOOD_6 is not (66.7).
+- **Step-155's QA gate re-run label-free: 4 of 4** (SQuAD v2 81.0, TruthfulQA 66.3, SciQ 74.1,
+  NQ-Open 75.5). CoQA is deliberately not in that gate and was Item 3's top-priority dataset — the
+  page says so, because the first draft did not and it read as a clean sweep of short-form QA.
+- **Trivial-baseline floor: 10W/2T/7L over 19 cells, +1.14pp, p = 0.182** vs seq-logprob on our own
+  traces. Ahead on balance, not significantly. Appendix, per the published-roster rule.
+- **Flags now come from the scored-label positive rate, not task accuracy.** They differ >5pp on 3
+  cells (SciQ 0.877/0.662, SQuAD v2 0.606/0.280, spilled TriviaQA 0.320/0.023) where only part of
+  the traces carry every field. This re-flags cells vs the old pages: SciQ was CEILING, now in-band;
+  `math500_dsmath7b` is now FLOOR.
+- **HAZARD, now fixed: `scripts/build_glossary.py` was silently DELETING hand-written GLOSSARY.md
+  content.** The file and its generator had diverged in both directions — running the generator
+  destroyed the whole `## Grouping determinacy (Step 205)` section (6 terms), the `prior tiers` row,
+  the a1 Step-205 caveat and the a6 anchor-only-tier text, none of which existed in
+  `spectral_utils/glossary.py`. All of it is ported into the source now, plus a
+  `GROUPING_TERM_NOTES` dict and its renderer section, and the regenerated GLOSSARY.md is verified a
+  strict superset of HEAD (0 rows/sections lost, 8 Step-206 rows gained). **The rule "GLOSSARY.md is
+  generated, hand-edits are overwritten" was being violated in practice — do not hand-edit it.**
+- **Open follow-up (small):** `benchmark_standing.py`'s SHORTLIST still carries `a2.dufs`, not
+  `a2.dufs_pf`, so `BENCHMARK_STANDING.md` does not show the arm the advisor letter now leads with.
+  `cell_method_matrix.csv` has no `a2.dufs_pf` column; the per-cell values are in
+  `results/selector_bench/a2_groupfs__c46.csv` (`variant == 'a2.dufs_pf'`).
+- **Advisor letter**: reviewed against the data, three numbers corrected before sending (U-PCR keep
+  count, the cost-class attribution, GroupFS's macro). The two drafts under `docs/meetings/`
+  (`Advisor_Update_Jul2026_long.md` / `_short.md`) still carry the pre-correction wording and were
+  deliberately not edited — treat them as superseded by the version Omri is sending.
+
+<details><summary>Step 206 headlines (still current)</summary>
+
+**Last updated**: Step 206 — **pool composition is closed as a lever, in both directions.** Full
+write-up in HISTORY.md Step 206; pages at `results/upcr_study/08_pool_lovo/index.html` and
+`results/upcr_study/09_add_test/index.html`.
+
+- **REMOVING views is significantly HARMFUL on U-PCR** (`exp08`), where on L-SML it was a coin
+  flip. Omri's objection to WS3 was correct and verified: `pipeline_lovo.py:95-96` defaults to
+  `fusion='lsml'`, so all 775 WS3 runs used L-SML, and it ran 2026-07-23 — before Steps 204/205.
+  Re-run LOCO-honest on `upcr.rho_polarities`: **−0.50pp, 7W/18L, p = 0.0096** at threshold 0.0pp;
+  −0.046pp (p = 0.18) at 0.1pp; and at **≥ 0.2pp no view qualifies for removal at all**, on either
+  path. Anchor gate: the FULL condition reproduces exp06's 0.7551 to 4dp.
+- **THE MECHANISM — a pre-registered check failed, and that is the finding.** A view U-PCR already
+  excludes (`w_i = 0`) should be a no-op to remove. It is not: where removal leaves the survivor
+  set unchanged, **90.5% are exact no-ops** (mean |Δ| 0.035pp); where removal **changes which other
+  views survive** (56 of 193 pairs), **0% are no-ops** (mean |Δ| 0.656pp). **U-PCR's Algorithm-1
+  exclusion is data-dependent — exclusion and removal are different operations.** Pruning hurts
+  because you are perturbing the estimator that decides what counts as dead, not deleting dead
+  weight.
+- **THE ADD TEST IS ALSO NEGATIVE** (`exp09`). `topk_tail_mass` / `renyi_entropy_2` rank #1 and #5
+  of 30 by informativeness and had never been in any scored subset. Six variants pre-registered
+  together; **all six land below GOOD_6**. Best is `ref.GOOD_6+topk` **0.7587** (−0.07pp vs GOOD_6,
+  p = 0.426; −0.72pp vs LOCO_5). Worst is `ref.ENTROPY_6` **0.7462** (−1.32pp) — six readings of
+  one quantity. Reproduced by `run_eval_pipeline.py` to 4dp on every row.
+- **The shared lesson: high individual informativeness ≠ additive value.** `topk_tail_mass` is
+  genuinely strong — `ref.LOCO_5` contains it, picked independently by the Step-195 exhaustive LOCO
+  search. Adding it to a subset that already covers that direction buys nothing. Adding to GOOD_5
+  helps (+0.39pp renyi, +0.15pp topk); adding to GOOD_6 hurts, because `varentropy` holds the slot.
+- **Pool composition now has FOUR independent negatives** (WS3 LOCO, pool-size, inclusion audit,
+  exp08) plus exp09 on the add side. **Orientation remains the single open lever** — the NEXT item
+  below is unchanged.
+- **A THIRD STALENESS CARRIER, beyond Step 193's three: a cached ERROR row.**
+  `a6.pruned_dufs` carried `{"error": "name 'mu3' is not defined"}` on 11/25 cells, falling back to
+  the full pool (size 27-30 against a declared `k_max=15`). **`mu3` exists nowhere in the current
+  codebase** — cached from a code version that no longer exists and kept alive by resume-skip,
+  which only stale-gates on row `n`. Dropped + re-benched: **the true value is 0.7514 macro /
+  0.7117 QA / 0.7779 math**, uniform size 17.0, 0 errors, 0 fallbacks — still below `a6.pl_dufs`
+  (0.7524) and GOOD_5 (0.7519), so the old verdict holds even though all four previously-quoted
+  numbers were wrong (Step 197 claimed 0.7596, GLOSSARY said 0.7537, the postfix CSV 0.7487, the
+  contaminated bench 0.7456). **General point: the stale-gate cannot see code changes.** Every bench CSV predates the
+  Step-205 grouping fix; only the 430 size-4 rows can actually move, and no headline row is among
+  them.
+- **`a6.adaptive_pl_mrmr` surfaced as a new bench row at 0.7569** — above the selector of record
+  `a6.pl_dufs` (0.7524), and 6th on the scoreboard. Not yet investigated.
+- Also corrected: the GLOSSARY coverage gate was **failing** on two pre-existing gaps
+  (`a7.iter_consensus`, `a6.adaptive_pl_mrmr`) — the "0 gaps currently" note below was stale.
+  Both entries added to `spectral_utils/glossary.py` (**GLOSSARY.md is generated — hand-edits are
+  overwritten**).
+
+</details>
+
+<details><summary>Step 205 headlines (still current)</summary>
+
 **Last updated**: Step 205 — **every published number replayed through today's code; the one real
 defect found, fixed exactly, and gated.** Full write-up in HISTORY.md Step 205; the advisor-facing
 page is `results/upcr_study/comparison.html`.
@@ -67,7 +228,10 @@ page is `results/upcr_study/comparison.html`.
 - **NEXT** (unchanged from Step 204): build the **orientation** result into a proper experiment —
   `sign(ρ̂)` polarity against `ALL_SIGNS` on the L-SML path (a free no-op) and on every
   sign-sensitive consumer (where it is not), plus a decision on the 15 mis-signed entries. Do **not**
-  build Extension I1.
+  build Extension I1. **Step 206 reinforces this**: pool composition is now closed in both
+  directions (four negatives on removal, six on addition), so orientation is the only lever left.
+
+</details>
 
 <details><summary>Step 204 headlines (still current except where Step 205 narrows them above)</summary>
 
@@ -122,6 +286,8 @@ page is `results/upcr_study/comparison.html`.
 - **NEXT**: build the orientation result into a proper experiment — `sign(ρ̂)` polarity against
   `ALL_SIGNS` on the L-SML path (where it is a free no-op) and on every sign-sensitive consumer (where
   it is not), plus a decision on correcting the 15 mis-signed entries. Do **not** build Extension I1.
+
+</details>
 
 <details><summary>Step 203 headlines (superseded above, kept for the record)</summary>
 
@@ -267,9 +433,16 @@ page is `results/upcr_study/comparison.html`.
   (ties `a2.dufs`, 0.7507 vs 0.7502).
 - **`GLOSSARY.md`** (repo root) now decodes every subset/selector/variant/pool-mode nickname AND
   documents all 30 features (formula, paper origin, empirical best-domain AUROC, HISTORY
-  pointer) — build has a hard coverage gate, 0 gaps currently.
-- **WS3 (exhaustive pipeline-level LOVO redundancy test) was STILL RUNNING at session end** —
-  see the "prune the pool" section below for its live status; do not re-launch it, check first.
+  pointer) — build has a hard coverage gate. **CORRECTED (Step 206): it was FAILING** on two
+  pre-existing gaps (`a7.iter_consensus`, `a6.adaptive_pl_mrmr`); both now have entries and it
+  passes again. **GLOSSARY.md is generated from `spectral_utils/glossary.py` — hand-edits to the
+  .md are overwritten on the next build.**
+- ~~**WS3 (exhaustive pipeline-level LOVO redundancy test) was STILL RUNNING at session end**~~
+  **CORRECTED (Step 206): WS3 FINISHED 2026-07-23.** `pipeline_lovo_loco.csv` has all 100 rows
+  (4 thresholds × 25 cells). Verdict: **negative** — mean held-out Δ −0.22pp (11W/12L/2T) at
+  threshold 0.0pp, +0.04pp (14W/7L/4T, p = 0.23) at 0.1pp, and **nothing qualifies for removal at
+  ≥ 0.2pp**. Re-run on U-PCR in Step 206 (`exp08`), where it is significantly harmful. Do not
+  re-launch.
 - **Nothing from this session is committed to git yet** — `GLOSSARY.md`, all new
   `scripts/*.py`, `spectral_utils/glossary.py`, and the modified selector/reference-subset
   modules are new/modified and uncommitted.
@@ -545,10 +718,12 @@ the bounded 30-view sweep above is for.
    `published_baselines.csv` were verified in earlier steps; the Step-193 `competitors_verified.csv`
    was re-verified from scratch. Diff the two so a number is never re-litigated a third time, and
    record the reconciliation so future sessions start from it.
-4. **`topk_tail_mass` and `renyi_entropy_2` have never been offered to any fixed subset.** They rank
-   #1 and #5 of 30 by informativeness, yet appear in NONE of the scored subset variants (GOOD_5/6,
-   top_macro_5, consensus_4, GOOD_5+{spilled,energy,logprob}). Score `GOOD_5+topk` / `GOOD_6+topk`
-   / a `GOOD_5+entropy_family` variant — a cheap, possibly-large win that has simply never been run.
+4. ~~**`topk_tail_mass` and `renyi_entropy_2` have never been offered to any fixed subset.**~~
+   **DONE and NEGATIVE in Step 206 (`exp09`).** Six variants pre-registered together; all six land
+   below GOOD_6. Best `ref.GOOD_6+topk` 0.7587 (−0.07pp, p = 0.426), worst `ref.ENTROPY_6` 0.7462
+   (−1.32pp). The "cheap, possibly-large win" reading was wrong: high individual informativeness
+   does not imply additive value — `ref.LOCO_5` already contains `topk_tail_mass`, so the view is
+   strong but the information is covered.
 
 ## NEXT SESSION — carry-over analysis items (Step 193c)
 

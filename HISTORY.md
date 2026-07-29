@@ -8332,3 +8332,344 @@ tie-break in `sml_fuse_signed`; non-finite guard in `zscore`), `scripts/verify_r
 `exp03_preflight`, `exp06_scale_vs_criterion`).
 
 ---
+
+### Step 206 — pool pruning answered on the U-PCR path, and the ADD test: both negative, for one shared reason
+
+**What**: Omri asked three questions — where the candidate feature pool came from, whether a
+better (logprob) orientation anchor had been seen before, and whether removing suspected-useless
+features raises AUROC. The third already had an answer (WS3), but Omri's objection to it was
+correct and is the reason this step exists:
+
+> "But it probably ran with L-SML, not with the updated U-PCR"
+
+Verified: `pipeline_lovo.py:95-96` calls `eval_subset_flex(..., fusion=sel.get("fusion","lsml"))`
+and the a6 selectors never set `fusion`, so all 775 WS3 runs used L-SML. WS3 also ran 2026-07-23,
+before Step 204 and Step 205. Two new experiments close the gap, plus the mirror-image question
+that had never been asked at all.
+
+#### A — the pool's provenance, and the anchor question (no new compute)
+
+`CANONICAL_POOL` (`subset_sweep.py:86-89`) was never chosen by a search. It is an **append-only
+accumulation**, frozen because the enumeration cache packs uint64 bitmasks over it: `FEAT_NAMES`
+(20 spectral/time views of H(n)) + `EXTRA_VIEWS` (16 changepoint/anomaly-model views) +
+`REPGRID_VIEWS` (10 logprob/energy views) = **46 slots**, hence "c46"; ~30 resolve on in-scope
+cells. `ref.consensus_4` is **not** the pool — it is a 4-view reference subset from the Step-155
+era, and the m=4 reference Step 205's grouping fix moved +0.60pp.
+
+The anchor: `anchor_sweep.csv` (9 candidates x 25 cells) shows **five anchors tie at zero wrong
+signs** — `epr`, `cusum_max`, `mean_logprob_entropy`, `renyi_entropy_2`, `topk_tail_mass` — all at
+macro 0.759392, which *is* GOOD_6. `mean_logprob_entropy` is almost certainly the "logprob
+something" Omri remembered; it **ties** `epr` rather than beating it, and no anchor can do better
+because the fusion does not depend on the anchor and `epr` is already right on 25/25. There is no
+headroom. `logprob_margin` was never tested as an anchor (it is a `ref.LOCO_5` member).
+
+#### B — exp08: pruning the pool under the updated U-PCR is SIGNIFICANTLY HARMFUL
+
+New `scripts/upcr_study/exp08_pool_lovo_upcr.py`. The trap it exists to avoid: the updated U-PCR
+is **not reachable from the bench** — `eval_subset_flex(fusion='upcr')` calls
+`fusion_utils.upcr_fuse`, which requires sign-oriented input and is `upcr.legacy` (0.7392), not
+`upcr.rho_polarities` (0.7551). The rho-polarity path is `spectral_utils.upcr.upcr_fit` driven as
+`exp06_orientation.py:83-111` drives it. Anchor gate: the FULL condition reproduces exp06's
+`macro_rho_anchor` = **0.7551** to 4dp before any removal is measured.
+
+LOCO-honest, mirroring WS3's stage 2 exactly (same four thresholds, held-out deltas only):
+
+| drop threshold | mean delta | median | W/L/T | p | views dropped |
+|---|---|---|---|---|---|
+| **0.0pp** | **-0.50pp** | -0.12pp | **7/18/0** | **0.0096** | 6.60 |
+| 0.1pp | -0.046pp | 0.000 | 0/2/23 | 0.180 | 0.04 |
+| 0.2pp | 0.000 | 0.000 | 0/1/24 | 0.317 | **0** |
+| 0.5pp | 0.000 | 0.000 | 0/1/24 | 0.317 | **0** |
+
+**On U-PCR removal is not merely null — it is significantly harmful** (-0.50pp, 18L/7W,
+p = 0.0096), where on L-SML it was a coin flip (-0.22pp, p = 0.39). At thresholds >= 0.2pp no view
+qualifies for removal at all, on either path.
+
+**MECHANISM — a pre-registered sanity check failed, and the failure is the finding.** Prediction:
+a view U-PCR already excludes (`w_i = 0`) should be a no-op to remove from the pool. It is not.
+Splitting on whether removal changes the survivor set:
+
+| removing an already-excluded view... | n | exact no-ops | mean abs delta |
+|---|---|---|---|
+| ...leaves the survivor set unchanged | 137 | **90.5%** | 0.035pp |
+| ...**changes which OTHER views survive** | 56 | **0%** | **0.656pp** |
+
+**U-PCR's Algorithm-1 exclusion is data-dependent: exclusion (`w_i = 0`) and removal (view absent
+from C) are different operations, and they diverge 29% of the time.** Dropping a zero-weight view
+still perturbs C, hence rho-hat, hence *who else gets excluded*. That is why pruning hurts — you are
+not deleting dead weight, you are perturbing the estimator that decides what counts as dead. Kept
+views move 1.41x more than excluded ones (Mann-Whitney p = 1.4e-29), so the machinery is sound.
+
+#### C — exp09: the ADD test, the mirror-image question, never previously asked
+
+`topk_tail_mass` and `renyi_entropy_2` rank **#1 and #5 of 30** by individual informativeness yet
+had never appeared in any scored fixed subset (the gap flagged at PROGRESS.md:548). Six variants
+**pre-registered together** in `subset_sweep.ADD_VARIANTS` before any was scored, so the best reads
+as a ceiling. New `scripts/upcr_study/exp09_add_test.py`; also registered in
+`reference_macros.MACROS` (all-or-nothing — a partial mask *is* the base subset and would silently
+duplicate the baseline under a name claiming to be the test), so the bench scores them
+automatically. Anchors reproduce exactly: GOOD_5 0.7519, GOOD_6 0.7594, LOCO_5 0.7705.
+
+| subset | size | macro | QA | math | vs GOOD_6 | vs LOCO_5 |
+|---|---|---|---|---|---|---|
+| `ref.LOCO_5` | 5 | **0.7705** | 0.7437 | 0.7866 | +0.73pp 17W/7L p=0.029 | — |
+| `ref.GOOD_6` | 6 | **0.7594** | 0.7274 | 0.7807 | — | -0.73pp p=0.029 |
+| `ref.GOOD_6+topk` | 7 | 0.7587 | 0.7257 | 0.7807 | -0.07pp 8W/17L p=0.426 | -0.72pp p=0.065 |
+| `ref.GOOD_6+renyi` | 7 | 0.7574 | 0.7244 | 0.7794 | -0.20pp 8W/17L p=0.096 | -0.91pp p=0.027 |
+| `ref.GOOD_6+both` | 8 | 0.7569 | 0.7225 | 0.7799 | -0.25pp 7W/18L p=0.113 | -0.86pp p=0.046 |
+| `ref.GOOD_5+renyi` | 6 | 0.7558 | 0.7209 | 0.7791 | -0.36pp 5W/20L p=0.003 | -1.12pp p=0.001 |
+| `ref.GOOD_5+topk` | 6 | 0.7534 | 0.7205 | 0.7753 | -0.60pp 6W/19L p=0.003 | -1.42pp p=0.000 |
+| `ref.ENTROPY_6` | 6 | 0.7462 | 0.7096 | 0.7705 | -1.32pp 8W/17L p=0.024 | -1.80pp p=0.007 |
+
+**Negative.** Neither top-ranked view improves a hand-curated subset; the best of six ties GOOD_6
+and loses to LOCO_5. Independently reproduced by `run_eval_pipeline.py` to 4dp on every row.
+
+Three readings worth keeping:
+- **High individual informativeness does not imply additive value.** `topk_tail_mass` *is* a strong
+  view — `ref.LOCO_5` contains it, picked independently by the Step-195 exhaustive LOCO search, and
+  LOCO_5 is the best fixed subset we have. Adding it to a subset that already covers that direction
+  buys nothing.
+- Adding to **GOOD_5** helps (+0.39pp renyi, +0.15pp topk) while adding to **GOOD_6** hurts
+  slightly — GOOD_6's `varentropy` already occupies the slot.
+- `ref.ENTROPY_6` is the **worst** of the six: six readings of one quantity is exactly what the
+  correlation filter exists to prevent, and it costs -1.32pp.
+
+#### D — defects found and fixed
+
+- **`a6.pruned_dufs`'s bench rows were stale-by-code.** 11 of 25 cells carried
+  `{"error": "name 'mu3' is not defined"}` and fell back to the full pool (size 27-30 against a
+  declared `k_max=15`). `mu3` exists nowhere in the current codebase — these were cached from a
+  code version that no longer exists, kept alive by resume-skip, which only stale-gates on row `n`.
+  This is a **third staleness carrier** beyond the three Step 193 catalogued: a cached *error* row.
+  Rows dropped (backup `a6_pseudolabel_gates__c46.csv.step206.bak`) and re-benched.
+  **RESOLVED: `a6.pruned_dufs` = 0.7514 macro / 0.7117 QA / 0.7779 math**, uniform size 17.0 on
+  25/25 cells, **0 errors and 0 fallbacks** — the `k_max=15` cap now binds consistently. This
+  settles a four-way conflict: Step 197 claimed **0.7596** (inflated, joint-with-Antigravity),
+  GLOSSARY said **0.7537** (right configuration — its "size 17.0" matches — but pre-Step-204/205
+  code, worth 0.23pp), `a6_pruned_dufs_postfix_results.csv` gives **0.7487**, and the contaminated
+  bench read **0.7456**. The old verdict "below `a6.pl_dufs`" survives: 0.7514 < 0.7524 (pl_dufs)
+  and < 0.7519 (GOOD_5).
+- **GLOSSARY coverage gate was failing** on two pre-existing gaps (`a7.iter_consensus`,
+  `a6.adaptive_pl_mrmr`) — PROGRESS's "0 gaps currently" was stale. Entries added to
+  `spectral_utils/glossary.py` (GLOSSARY.md is generated; hand-edits are overwritten).
+- **PROGRESS.md said WS3 was "STILL RUNNING at session end"** since Step 195.
+  `pipeline_lovo_loco.csv` has had all 100 rows (4 thresholds x 25 cells) since 2026-07-23.
+
+**Why**: Omri's question was whether pruning the pool helps. It had been answered on one fusion
+path and never on the other, and the reverse question had never been asked.
+
+**Result**: **Pool composition is closed as a lever.** Removal is null on L-SML and significantly
+harmful on U-PCR; addition of the two strongest unused views is negative on all six pre-registered
+variants. Four independent negatives now (WS3 LOCO, pool-size, inclusion audit, exp08) plus exp09.
+The mechanism is the same one in both directions — **what governs is redundancy and estimator
+coupling, not view quality** — and it is now measured rather than asserted. `a6.adaptive_pl_mrmr`
+surfaced as a new bench row at **0.7569**, above the selector of record `a6.pl_dufs` (0.7524).
+Orientation remains the single open lever.
+
+---
+### Step 207 — the label-free standing page, and two reporting errors it exposed
+
+**What**: Built `scripts/labelfree_standing_report.py` → `results/action_items/labelfree_standing.html`,
+one page replacing `item3_qa_evaluation.html` + `item4_benchmarking.html` for the two arms that need
+nothing hand-picked beyond the anchor bit. Both source pages reported `L-SML GOOD_5`: a label-chosen
+subset, on the 16-view pool, over a roster that still contained RAG and GPQA. Nothing is copied from
+them — every AUROC is recomputed through the canonical path (`load_cells` → z-scored
+`CANONICAL_POOL` → `lsml_continuous` / `upcr_fit` → `anchor_orient` → raw AUROC) with bootstrap CIs,
+behind two gates that abort the build: the GOOD_6 validity anchor at 0.7594, and per-arm reproduction
+within 5e-4 of the recorded value in `a2_groupfs__c46.csv` / `06_orientation/per_cell.csv`. Both pass
+on 25/25 cells. The page was then audited by a sub-agent against the source CSVs, and the advisor
+letter was reviewed against the same data.
+
+#### The two reporting errors
+
+- **`upcr.rho_polarities` keeps 21 of ~29 views, not 12.** `comparison.csv` prints `size_mean = 11.7`
+  on *every* `upcr.*` row, because `build_comparison.py:495-502` computes one shared `kept_on` as
+  `mean(mean_frac_features_kept | exclusion=True)` over the 64-config factorial — and **every config
+  in that factorial is hand-oriented**. The deployed arm re-orients by `sign(rho)`, which makes every
+  rho positive, so far fewer views trip Algorithm 1's exclusion thresholds. Measured directly on the
+  deployed `FIT`: hand-polarity arm **frac 0.416 → 12.0 views** (reproduces
+  `03_faithful_factorial/per_config.csv` exactly for those flags), `sign(rho)` arm **frac 0.731 →
+  21.0 views**, pool mean 28.7. Consequence: "U-PCR keeps about 12 of 30, so it is itself a feature
+  selector" describes the arm we do **not** deploy. The "went looking for a weight estimator and
+  found a selector" reading survives, but on the mechanism from Step 204 (one-component U-PCR is
+  exactly PC1 of the survivors, so the estimation machinery is inert and exclusion is the only live
+  part) rather than on the drop rate, which is 8 of 29 and not 17 of 29.
+- **Bar B is not our cost class.** The headline "+8.7pp on 11 cells, p = 0.042" is **Bar B**
+  (unsupervised, one pass, *any* access — it includes white-box competitors). **Bar A**, our exact
+  grey-box class, is **+6.17pp (U-PCR) / +6.56pp (DUFS parameter-free) over 5 cells, p = 0.312**,
+  nowhere near significance. Both source pages, both letter drafts and `benchmark_standing.py`'s
+  section-3 heading called the Bar B number "our own cost class". Beating Bar B is arguably the
+  better claim, since those methods have *more* access than we do; it is simply not the claim the
+  phrase makes.
+- Also corrected: **GroupFS is 0.7481, not 0.7502** — `a2.select` vs `a2.dufs`. The drafts attributed
+  DUFS's number to both.
+
+#### What the page now establishes on the 25 in-scope cells
+
+| Arm | macro | QA (10) | math (15) | in-band (19) | views kept |
+|---|---:|---:|---:|---:|---:|
+| U-PCR + sign(rho) | 0.7551 | 0.7126 | 0.7834 | 0.7593 | 21.0 |
+| DUFS parameter-free + L-SML | 0.7507 | 0.7089 | 0.7787 | 0.7532 | 16.9 |
+| GOOD_6 (reference) | 0.7594 | 0.7274 | 0.7807 | 0.7604 | 6 |
+
+Paired over 25: `upcr − dufs_pf` +0.43pp, 16W/9L, p = 0.059; `GOOD_6 − dufs_pf` +0.87pp, p = 0.191;
+`GOOD_6 − upcr` +0.43pp, p = 0.615. Nothing separates any of the three.
+
+- **The QA deficit is one cell.** GOOD_6 leads QA by 1.49pp and trails math by 0.27pp, so the whole
+  macro gap is on the QA desk. **CoQA alone contributes 13.19pp of it**; drop that one cell and the
+  QA gap over the remaining nine is **0.18pp**. It is a base model at a 14.7% positive rate where
+  both label-free arms sit near chance (53.5 / 53.2) and the hand-picked subset does not (66.7).
+- **Step-155's QA gate re-run label-free: 4 of 4** (SQuAD v2 81.0, TruthfulQA 66.3, SciQ 74.1,
+  NQ-Open 75.5). CoQA is deliberately not one of the four, and it was Item 3's top-priority dataset —
+  the superseded page disclosed that and the first draft of this one did not.
+- **Trivial-baseline floor**: best-of-ours vs seq-logprob on our own traces is **10W/2T/7L over 19
+  cells, +1.14pp, p = 0.182**. Ahead on balance, not significantly. Kept in the appendix per the
+  published-roster rule.
+- **Flags now derive from the scored-label positive rate, not task accuracy.** They differ by more
+  than 5pp on **3** cells (SciQ 0.877 vs 0.662, SQuAD v2 0.606 vs 0.280, spilled TriviaQA 0.320 vs
+  0.023) because only part of those traces carry every field the pool needs. This re-flags cells
+  relative to the old pages: SciQ was CEILING and is now in-band, `math500_dsmath7b` is now FLOOR.
+  Both numbers are printed side by side rather than one being chosen.
+
+#### Audit
+
+Sub-agent check over number fidelity, aggregates, scope, prose-vs-data, self-containment, internal
+consistency and retired numbers. **2 MAJOR + 3 MINOR, all fixed**: the Bar A/B mislabel above; a
+hardcoded "four cells" next to a computed star rule that fires on three; the Step-155 box reading as
+a clean sweep of short-form QA with no CoQA disclosure; two method names listed as sources for marks
+that never render (`HCPD`, a naming duplicate, now deduped on an arXiv-suffix rule narrow enough not
+to swallow the genuinely distinct `Semantic Entropy` vs `Semantic Entropy (SE-ICLR'23)`; and
+`Logits-min`, a real number that coincides with `Logits-mean` at 0.61 and is now footnoted); and axis
+titles sitting 2px from the viewBox edge with their descenders clipped in all three figures. Clean on
+everything else: all six tables against source, every aggregate recomputed independently, no
+out-of-roster cell anywhere, zero external references, all 140 SVG tooltips agreeing with the tables,
+and none of the retired numbers present.
+
+**Why**: The advisor letter needed a benchmarking attachment for the two label-free arms, and every
+existing page was GOOD_5 on the old pool over the old roster. Rebuilding it from the canonical path
+rather than editing the old pages is what surfaced both reporting errors, neither of which was
+visible in any single artifact — the keep-count error needed the factorial and the deployed fit side
+by side, and the cost-class error needed the bar definition and the quoted sentence in the same view.
+
+**Result**: page shipped and self-contained at 78 KB. Three numbers corrected in the advisor letter
+before sending: U-PCR's keep count (12 → 21), the cost-class attribution of the +8.7pp result, and
+GroupFS's macro. No headline AUROC moved; all three were reporting defects, not measurement defects.
+
+---
+
+### Step 208 — the Huleihel / Oren-Loberman line assessed: three proposed imports rejected, one adopted for Extension E, and an existing co-authorship link to Ofir
+
+**What**: Omri surfaced Mor Oren-Loberman's Scholar profile (PhD candidate, TAU EE, Wasim
+Huleihel's group) with a pre-drafted three-row table mapping her papers onto our pipeline, then
+asked for the same on Huleihel's full publication list (48 entries). Read the abstracts of all
+four of Oren-Loberman's non-optics papers, downloaded and extracted two PDFs into the
+`paper-digest` cache, and digested the one that survives scrutiny.
+
+#### The pre-drafted table: 3 of 3 mappings rejected
+
+The proposed table read: *Inhomogeneous Submatrix Detection → a formal K\* feature-selection
+criterion; Testing Hidden Geometry → a per-cell signal pre-filter; Graph Dependency Testing →
+cross-layer view alignment.* None survives:
+
+- **All three are detection papers, not selection or estimation papers.** They establish the
+  signal strength at which the null becomes distinguishable, and give a matching test. We never
+  face a detection question — we know structure exists and need to select and weight. Verified in
+  the extract: `inhomogeneous-submatrix-detection.md:44-45` names detection and recovery as
+  *separate* problems and takes the detection one; the tests are a global sum, a global quadratic,
+  and scan-maxima, none of which localizes the support.
+- **Submatrix → K\***: the model shape does rhyme (under L-SML the informative block of the
+  correlation matrix is `C_ij = ρ_i·ρ_j`, an inhomogeneous planted block on S×S). But their matrix
+  is `n×n` with **i.i.d.** entries (`:36`), and ours is a symmetric *sample* correlation matrix
+  whose entries are dependent by construction (`Ĉ_ij` and `Ĉ_ik` share feature *i*) at noise scale
+  1/√N. Thresholds are asymptotic and loose by log factors; at V=30, N≈200–1000 they yield no
+  actionable number. And the lever is already closed empirically — Step 206 has four negatives on
+  removal and six on addition.
+- **Hidden geometry → pre-filter**: the observation is a graph (ER vs. random geometric graph on
+  𝕊^(d−1)). Thresholding our correlation matrix into a graph does not reconstruct that generative
+  model, so the thresholds say nothing about our cells.
+- **Graph dependency → cross-layer alignment**: the entire technical difficulty is the **unknown
+  vertex permutation**. Our features are named; there is no permutation to recover, so the paper's
+  core contribution addresses a difficulty we do not have. It also targets Extension C, which is
+  not started.
+
+#### What was adopted
+
+**`Online Auditing of Information Flow`** (Oren-Loberman, Azar, Huleihel; arXiv:2310.14595, IEEE
+TSIPN vol. 10 pp. 487–499, 2024) — absent from the proposed table and the only direct hit.
+Digest: `papers/digests/online-auditing-of-information-flow.md`. It formulates detection as
+**sequential detection under a risk that prices error *and* delay**, collapses the joint
+minimization over (stopping time, decision rule) to optimal stopping on the posterior, and gives
+a two-sided threshold rule representable as a Wald-calibrated SPRT. That is precisely what
+**Extension E** lacks: the Step-148 pilot scores prefixes at fixed absolute budgets and compares
+AUROC, with no stopping rule and no price on delay. Their `ℓ` (propagation event) maps to our `n`
+(generated token); their `Z_ℓ` (edge weight at Z=4 levels) maps to a quantized `token_entropies`
+or `token_spilled_energies`, both already saved per token.
+
+Two caveats recorded in the digest: **the offline stage is supervised** (labeled traces train the
+edge classifier *and* estimate `α_0, α_1`), so it enters as a labeled baseline unless the
+transition matrices can be estimated label-free; and the graph/path machinery — the marginalization
+over all directed paths, the hidden-Markov structure from partial observation — does **not**
+transfer, because a decoded trace is one path observed in full and in order. What remains is a
+classical SPRT on a two-state HMM. Cite it for the formulation, not the theorems.
+
+The metric lesson is the actionable one: their accuracy is a wash (0.86 vs. QuickStop 0.85) and
+the whole contribution is **6.29 vs. 12.75 events to decide**. If we adopt the framing, the
+reporting pair for streaming detection is (AUROC at budget, tokens consumed) — not AUROC alone,
+which is how G2 was defined.
+
+#### From Huleihel's full list (48 entries) — three things the Scholar profile did not show
+
+- **`AdaRankGrad` (ICLR'25) is co-authored with O. Lindenbaum.** Huleihel has already published
+  with Omri's advisor. Any approach to this group has a warm path rather than a cold one.
+- **`Detection and Recovery of Hidden Submatrices`** (Dadon, Huleihel, Bendory; arXiv:2306.06643v2,
+  IEEE TSIPN vol. 10 pp. 69–82, 2024) is the **recovery/localization** companion, and answers the
+  exact objection raised against the 2026 inhomogeneous paper — its abstract states outright that
+  "recovery refers to the task of locating the hidden submatrices," with matching algorithms, low-
+  degree computational lower bounds, and an impossible/hard/easy partition of parameter space. If
+  the submatrix→selection idea is pursued at all, this is the correct entry point — not the paper
+  in the proposed table. The trade is that it is **homogeneous**: one common elevated mean,
+  mean-shift only, no variance-shift, so it is a weaker model than the 2026 paper it corrects.
+- **`Mathematical Framework for Online Social Media Auditing`** (Refael, Huleihel; JMLR vol. 25,
+  2024 + ICML'24) and the preprint **`Sequential Classification of Misinformation`** (with D. Toma)
+  are the fuller sequential-detection theory behind the digested paper — the natural follow-ups
+  for Extension E.
+
+Also flagged as thesis *framing* rather than algorithm: **`Einstein from Noise: Statistical
+Analysis`** (Balanov, Huleihel, Bendory; arXiv:2407.05277v3, IEEE T-SP vol. 74 pp. 1751–1766,
+2026) and its sibling **`Confirmation Bias in Gaussian Mixture Models`** (T-IT 2025, same authors,
+not obtained). EfN is the phenomenon where aligning *pure-noise* observations to a template by
+cross-correlation and averaging them reproduces the template. The paper proves the mechanism: the
+**Fourier phases of the estimator converge to the template's phases** ("phase locking"), at a rate
+inversely proportional to the number of observations and, in high dimension, to the template's
+Fourier magnitudes — and in high dimension the estimator converges to a scaled copy of the
+template. Steps 203–206 are an empirical rediscovery of that same class of artifact (the
+loading-scale inflation that made misfit track group size, the m≤4 grouping decided by rounding,
+the misfit-sign inversion), so it is citable support for the methodological/validation sections
+rather than a source of method.
+
+#### Follow-up (same day, at Omri's direction)
+
+Omri selected these two as the ones to keep. Both PDFs were downloaded and extracted —
+`papers/extracted/detection-and-recovery-of-hidden-submatrices.md` (36 pp) and
+`papers/extracted/einstein-from-noise-statistical-analysis.md` (78 pp) — and both index rows are
+now grounded in those extracts rather than in a citation list. **Neither is digested**: the index
+rows carry abstract-level claims only and say so, so a later session must run `/paper-digest`
+before citing anything deeper. Their standing is unchanged by being obtained: *Hidden Submatrices*
+is the correct entry point for an idea currently rated low (pool composition is closed in both
+directions), and *Einstein from Noise* is framing, not method. **`Online Auditing of Information
+Flow` remains the only one of the four that touches an open thread.**
+
+**Why**: The proposed table was plausible-sounding and pointed at pool composition — the one lever
+this project has closed in both directions. Checking each mapping against the papers' own
+observation models, rather than against their titles, redirected the search to the one paper that
+touches a genuinely open thread.
+
+**Result**: `papers/index.md` gains two rows —
+`online-auditing-of-information-flow` (**digested**) and `inhomogeneous-submatrix-detection`
+(**extracted**, deliberately not digested; its row records why the K\* reading fails and that the
+live angle is instead the variance-shift + consecutive-placement variant as a formal model for
+`sw_var_peak` window selection). No roadmap change: orientation remains the single open lever per
+Steps 204/206, and none of these papers speaks to it. Extension E gains a concrete formulation and
+a corrected metric definition for a future re-run.
+
+---
