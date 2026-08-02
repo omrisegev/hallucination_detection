@@ -8673,3 +8673,1037 @@ Steps 204/206, and none of these papers speaks to it. Extension E gains a concre
 a corrected metric definition for a future re-run.
 
 ---
+### Step 209 — the Jul-2026 advisor meeting: the feature-selection line is closed, and three action items replace it
+
+**What**: Recorded the outcome of the 2026-07-30 advisor meeting, at which the **feature-selection
+direction was closed**. The advisors' reading — L-SML over the full ~30-view pool, L-SML after a
+DUFS selection stage, and U-PCR's own built-in exclusion all land at essentially the same place,
+on essentially every cell — matches what this repo already measured but had not yet been written
+down as a decision:
+
+- Step 207, on the 25 in-scope cells with CIs: `upcr.rho_polarities` **0.7551**, DUFS
+  parameter-free + L-SML **0.7507**, GOOD_6 **0.7594**. Paired: `upcr − dufs_pf` +0.43pp
+  (16W/9L, p=0.059); `GOOD_6 − dufs_pf` +0.87pp (p=0.191); `GOOD_6 − upcr` +0.43pp (p=0.615).
+  **Nothing separates the three.**
+- Step 206 closed pool composition in **both** directions: removing views is significantly harmful
+  on the U-PCR path (−0.50pp, 7W/18L, p=0.0096) and all six pre-registered ADD variants land below
+  GOOD_6. Four independent negatives on removal, six on addition.
+- Step 198 had already shown GOOD_6 to be a local optimum that no label-free selector beats.
+
+Three action items came out of the meeting, and they replace the selection line as the active
+work:
+
+1. **Understand why we fail where we fail** — a per-cell deep dive rather than another aggregate.
+2. **Consider a clustering mechanism inside U-PCR.**
+3. **Consider adjacent applications** — hallucination localization, and detection early in the
+   generation process.
+
+**Item 2 is already answered and is not open.** Step 204 §D built exactly this: the assumption of
+uncorrelated errors relaxed to hold only *across* L-SML clusters, with the additive system fitted
+on cross-cluster pairs only (`spectral_utils/upcr_clustered.py`), including a derived and enforced
+identifiability requirement of K ≥ 3. It **failed both pre-registered gates and lost −4.46pp
+(9W/16L, p = 0.030)**, and its premise turned out to be a confound: the raw 2.03× same-vs-cross
+fit-error gap collapses to **0.97–1.00×** once matched on |C_ij| decile, a random partition
+reproduces it, and magnitude-only clustering separates it *better* (3.06–3.81×). One variant has
+never been run — K-means on the (v₁[i], v₂[i]) coordinates to recover hard groups from the
+two-component fit — but Step 205 makes it unpromising: `lambda2_threshold` is inert on our data
+(+0.43pp, 9W/15L, p=0.16) and one-component U-PCR is *exactly* PC1 of the surviving features
+(cosine deviation 7e-12), so the second component has nothing to cluster on.
+
+**Item 3 has the most existing groundwork.** Extension E already carries a replicated effect: on
+the canonical fresh raw-trace cache, `lsml16` beats the best DeepConf window by **+5.6pp
+[+0.9, +10.6]** (paired bootstrap, CI excludes 0) at the **earliest 10% of the trace**. Step 208
+adopted `Online Auditing of Information Flow` (Oren-Loberman, Azar, Huleihel; arXiv:2310.14595)
+for the piece it lacks — a stopping rule rather than fixed budgets — and for the corrected metric,
+**(AUROC at budget, tokens consumed)** rather than AUROC alone. Extension F (step-level
+localization) exists but is deferred and needs annotation we do not have.
+
+**"Failing" was pinned to nine specific cells**, read off `results/action_items/labelfree_standing.html`.
+Omri named eight; TruthfulQA was added because it ranks 4th of 25 on every weakness measure and
+sits interleaved with the named cells, so excluding it would leave a hole in the middle of the
+ordering:
+
+| Cell | Page name | GOOD_6 | DUFS+L-SML | U-PCR |
+|---|---|---:|---:|---:|
+| `losnet_hotpotqa_mistral7b` | HotpotQA / Mistral-7B-v0.2 | 0.5810 | 0.5684 | 0.5696 |
+| `inside_coqa_llama7b` | CoQA / LLaMA-7B (base) | 0.6674 | 0.5320 | 0.5355 |
+| `seiclr_triviaqa_opt30b` | TriviaQA / OPT-30B (base) | 0.5884 | 0.5614 | 0.5751 |
+| `truthfulqa_llama8b` | TruthfulQA (gen.) / Llama-3.1-8B | 0.6572 | 0.6606 | 0.6634 |
+| `internalstates_gsm8k_qwen25_7b` | GSM8K (T=0.8) / Qwen2.5-7B | 0.7036 | 0.6911 | 0.7082 |
+| `noise_gsm8k_phi3mini` | GSM8K / Phi-3-mini | 0.6801 | 0.6764 | 0.6831 |
+| `trace_math500_qwenmath15b_k10` | MATH-500 (K=10) / Qwen2.5-Math-1.5B | 0.6760 | 0.6901 | 0.6861 |
+| `ars_gsm8k_r1distill8b` | GSM8K / R1-Distill-Llama-8B | 0.7623 | 0.7142 | 0.7385 |
+| `lapeigvals_gsm8k_llama3b` | GSM8K / Llama-3.2-3B | 0.7025 | 0.7087 | 0.6992 |
+
+`losnet_hotpotqa_mistral7b` is multi-hop RAG, which Step 191 declared out of scope; it is
+nonetheless one of the 25 and was named, so it stays in the diagnosis with that caveat attached.
+
+**Why**: The three arms tying is a real result, but until it is written down as a *decision* the
+docs still point the next session at the wrong thing — `PROGRESS.md` led with "**No roadmap
+change.** Orientation remains the single open lever", which was true of Step 208's paper
+assessment and is no longer true of the project. Recording the meeting also prevents item 2 from
+being rebuilt: the clustered variant is a refuted design with a confounded premise, and that fact
+lives in a §D subsection of a long step where it is easy to miss.
+
+**Result**: Feature selection closed as a direction. Item 1 is now the active work and is scoped
+to diagnosis only (per Omri) — the mechanisms get named first, and any repair is pre-registered
+and tested in a later step so the diagnosis cannot be tuned to make a fix look good. Item 2 is
+recorded as answered, with the one untried variant named and rated low. Item 3 is recorded as the
+strongest publishable arm, with its existing effect size and its adopted formulation. Orientation
+remains a genuine finding (Step 204: `sign(ρ̂)` beats the 42 hand signs by +1.46pp, and the global
+±1 is provably not recoverable from covariance structure) but is no longer the thing being worked
+on.
+
+---
+
+### Step 210 — why we fail where we fail: the mechanism is label-free relative-sign recovery, and three of the nine cells have no defect at all
+
+**What**: Built `scripts/failure_deepdive.py` + `scripts/failure_deepdive_report.py` and ran the
+Jul-30 action item 1 diagnosis on the nine weak cells, with **all 25 in-scope cells measured as
+the comparison group** — a diagnostic that only looks at failing cells cannot say what is
+*different* about them. Page: `results/failure_deepdive/index.html` (37 KB, self-contained).
+Diagnosis only, per Omri; no repair was run.
+
+#### The obvious answer was a confound, and killing it was the precondition for everything else
+
+The nine weak cells are exactly the nine lowest `anchor_auc` in the grid and
+Spearman(anchor_auc, deployed AUROC) = **+0.981**, which reads as an orientation failure. It is
+not one: **Spearman(anchor_auc, best single view) = +0.975** — `epr` is itself a pooled feature,
+so a weak anchor only means every view is weak on that cell. Two further checks agree, and both
+are decisive rather than suggestive: `h1_orientation_summary.csv` returns **identically 0.7594**
+under the `allsigns` / `z2` / `raw` / `oracle` anchor conditions with zero cells below chance, and
+on the deployed path the global-sign rung costs **exactly 0.00pp on 25 of 25 cells**. **The global
+orientation bit is resolved correctly everywhere.** Had this not been checked, the whole diagnosis
+would have concluded "the anchor is weak" and pointed at a lever that is already closed.
+
+#### THE MECHANISM — L-SML is a sign-recovery machine, and it under-recovers exactly where the views are weak
+
+The five-rung ladder (best single view → simple average with oracle relative signs → simple
+average with no signs → L-SML → L-SML + anchor global sign) isolates it. Not knowing the per-view
+signs costs a simple average `d_signs`; recovering that without labels is precisely what L-SML's
+grouping and weighting is *for*. The ratio `d_lsml_vs_avg / −d_signs` is how much comes back:
+
+| | recovery ratio |
+|---|---|
+| healthy cells (14 where signs matter) | **0.919 – 1.247**, median 1.025 |
+| weak cells (8 where signs matter) | **4 of 8 below 0.90** |
+| healthy cells below 0.90 | **0 of 14** |
+
+**Fisher exact p = 0.0096 — ⚠ WITHDRAWN IN STEP 212**, where requiring a numerically stable
+denominator gives p = 0.0735 (≥2pp) and p = 0.2500 (≥3pp). Read the pattern, not the p-value.
+The four that fail are `seiclr_triviaqa_opt30b` (−1.269 — L-SML makes it *worse*),
+`inside_coqa_llama7b` (−0.122), `ars_gsm8k_r1distill8b` (0.156) and `noise_gsm8k_phi3mini`
+(0.761); two of those four have denominators under 2pp. The reading is that the label-free machinery for recovering *relative*
+polarity stops working on exactly the cells where the views are individually weak — which is where
+it has the least covariance structure to work from.
+
+Aggregate, for the record (fusion minus best single view, mean pp):
+
+| Arm | weak (9) | healthy (16) |
+|---|---:|---:|
+| U-PCR + sign(rho) | **−2.96** | −0.03 |
+| DUFS + L-SML | **−3.58** | −0.36 |
+| GOOD_6 (hand-picked) | −1.18 | −0.35 |
+
+#### Two secondary mechanisms, each confined to specific cells
+
+- **The selector drops the pool's strongest view on 4 cells**, 3 of them weak:
+  `internalstates_gsm8k_qwen25_7b` **−4.81pp**, `seiclr_triviaqa_opt30b` **−4.57pp**,
+  `losnet_hotpotqa_mistral7b` −1.20pp (`se_squad_v2_llama8b` −1.73pp is the healthy one). On the
+  two worst this discards more than the entire gap to the ceiling *before fusion starts*. Two weak
+  cells share a Jaccard of **exactly 0.000** against the label-chosen oracle-5 — the selector and
+  the oracle agree on nothing at all.
+- **CoQA's views are non-monotone, and it is the only such cell.** Cross-fitted over 5 folds, the
+  mean gain of a bin-mean predictor over the view's own oracle-oriented AUROC is **+0.045** on
+  CoQA against a median of −0.016 elsewhere and a maximum of +0.020 over all other 24 cells
+  (**z = +3.19**). Its p90 is +0.110. Signal that no monotone, sign-oriented use of the view can
+  reach — and every fusion in this project is monotone in each view. This is also the cell with
+  the largest headroom in the grid — but see the correction below, which splits that headroom in
+  two.
+
+#### A suspect cleared, and a lead withdrawn
+
+**K-selection is not the failure.** The Step-205 degeneracy flag fires on **0 of 25** cells — the
+grouping is a measurement everywhere here, not a coin flip — and swapping the residual criterion
+for the eigengap helps on only **5 of 25**, mean **−1.39pp**. The Step-209 lead pointing the other
+way (`ars_gsm8k_r1distill8b` picking K=4 → **0.364**, below chance, where the eigengap picks K=2 →
+0.658) is real but sits on `ALL_H16`, an obsolete 16-view subset we do not deploy; on the subset
+actually in use that cell's eigengap delta is +3.10pp and the residual choice is fine.
+**Withdrawn as a live mechanism.**
+
+#### THREE OF THE NINE HAVE NO DEFECT AT ALL
+
+`truthfulqa_llama8b`, `lapeigvals_gsm8k_llama3b` and `trace_math500_qwenmath15b_k10` trip **none**
+of the four mechanisms: sign recovery at or above 0.90, the selector keeps the strongest view, the
+views are monotone, the grouping is determinate. They score low because the signal is weak, not
+because anything is broken — their remaining headroom (4.2 / 1.6 / 3.9pp) is real but reachable
+only with labels. So **"why do we fail here" has two different answers**: six cells have a named,
+fixable defect and three are simply hard, where the honest move is to report the ceiling rather
+than chase it.
+
+#### Repairs — pre-registered, with gates, and NOT run
+
+Written down before any is tested, so the diagnosis cannot be tuned to make a fix look good:
+1. **A better label-free relative-sign estimator** (the only repair aimed at the headline
+   mechanism). Candidate: Z₂ synchronisation on the correlation sign pattern —
+   `spectral_utils/orientation.z2_sign_recovery`, already written and currently unused on this
+   path. **Gate**: lift recovery above 0.90 on the four failing cells while moving the 22 healthy
+   ones by less than 0.5pp.
+2. **Rank/quantile transform of each view before fusion** (CoQA). **Gate**: a no-op (<0.5pp) on
+   the 24 cells whose non-monotone gain is ≈0, or it is buying CoQA with everything else.
+3. **Keep the pool's strongest view unconditionally** (the 4 selection-miss cells). Label-free
+   only if "strongest" can be decided without labels, which may sink it.
+
+**Not proposed, with reasons**: any K-selection change (cleared above), anything touching
+orientation (the global bit costs 0.00pp on 25/25), anything touching pool composition (Step 206
+closed it in both directions).
+
+**Why**: The advisors asked why we fail on specific cells, and the aggregate tables could not
+answer it — they show the three arms tying and say nothing about where the AUROC goes. The ladder
+does, because each rung adds exactly one thing.
+
+**Result**: Five gates pass — GOOD_6 validity anchor 0.7594; **both deployed arms reproduce their
+recorded per-cell values to <5e-4 on 25/25**; the ladder's `r5 ≤ r4` invariant holds everywhere;
+the confound re-check returns +0.975 on freshly loaded data; and 0 cells needed a joined K or
+residual (every one recomputed under current code, since all bench CSVs predate the Step-205
+grouping fix). Artifacts: `results/failure_deepdive/{percell.csv, perfeature.csv,
+residual_curves.csv, gates.json, index.html}` — 25, 718 and 450 rows.
+
+**Correction to Step 209**: the per-cell "U-PCR" column in that step's table was
+`cell_method_matrix.csv`'s `a2.dufs`, which is DUFS+L-SML, not U-PCR. The tables in Step 209 and
+`Research_Directions.md` now carry both arms, freshly measured. The affected figures moved
+slightly (CoQA U-PCR 0.5355 not 0.5221; the weak-cell fusion-minus-best-view gap −2.96pp for
+U-PCR, not −3.92pp); no conclusion changes.
+
+---
+
+### Step 211 — the per-cell action-item site, and a reproduction check that confirmed the mechanism a second time
+
+**What**: Rebuilt the Jul-30 action items as a browsable site with **one page per cell** rather
+than a macro report, at Omri's direction ("don't talk in macros, talk per cell"), with every term
+defined on the page that uses it and the **feature distributions actually drawn**. Structure:
+
+```
+results/action_items_jul2026/
+  index.html                              the three items
+  item1_failure_deepdive/index.html       vocabulary, then every cell side by side
+  item1_failure_deepdive/cell_<key>.html  x25 — one per cell
+  item2_upcr_clustering/index.html
+  item3_adjacent_applications/index.html
+```
+
+Built by `scripts/action_items_jul2026/{build_data.py, build_pages.py, common.py}`. `build_data.py`
+emits one JSON per cell so the pages can be re-rendered without paying the ~4 min cell load again.
+Each cell page carries: the cell's size and class balance; the anchor view with its own AUROC, its
+class-conditional distribution, and **what the fused score would be under a true-label anchor**;
+every view in the pool with its AUROC, oracle sign, non-monotone gain, subset memberships,
+L-SML weight, and a **class-conditional histogram so the view can be looked at**; all four subsets
+fused with K, grouping, residual and fused-score distributions; the six-rung ladder; and what the
+selector discarded. 29 pages, 2.8 MB, zero external references.
+
+#### THE ANCHOR QUESTION, ANSWERED PER CELL
+
+Omri asked what it looks like with a true-label anchor. Every cell page now reports it beside the
+deployed number. **The difference is exactly +0.00pp on all 25 cells** — including on
+`losnet_hotpotqa_mistral7b`, whose anchor view is itself at 0.560. The single prior the label-free
+arms still carry costs nothing anywhere on this grid. This is the per-cell version of the Step-210
+claim, and it is stronger than the macro form because it holds cell by cell rather than on average.
+
+#### A REPRODUCTION CHECK THAT TURNED INTO CONFIRMATION
+
+Taking each cell's **label-chosen** five views and fusing them through the ordinary label-free
+pipeline should reproduce what the original label-using oracle search recorded.
+**It does, exactly, on 23 of 25 cells (gap 0.0000).** The two exceptions are
+`inside_coqa_llama7b` (**17.08pp**) and `seiclr_triviaqa_opt30b` (0.82pp) — **the two
+worst-recovery cells in the grid** (−0.122 and −1.269). Across the cells where the ratio is
+defined, Spearman(gap, recovery) = **−0.497, p = 0.019**.
+
+So on the cells where sign recovery fails, the pipeline cannot correctly fuse even the *perfect*
+subset. The mechanism appears a second time, from a direction that was set up as a sanity check
+rather than as a test of it.
+
+**This corrects a Step-210 number.** CoQA's headroom was quoted as 24.5pp against the recorded
+oracle-5 of 0.7768. Those are two different quantities: from the deployed 0.5320, **a perfect
+selector buys +7.4pp** (to 0.6060, the label-chosen views fused our way), and the remaining
+**+17.1pp needs the sign recovery fixed** — it is not reachable by choosing better views. The
+earlier figure conflated "better selection" with "better selection *and* label-supplied
+orientation", and reading it as selection headroom would have pointed the next experiment at the
+wrong repair. Fixed in Step 210, `PROGRESS.md`, and on the pages.
+
+**Why**: The Step-210 report was written in macros — "weak cells average −2.96pp" — which cannot
+answer "what does this cell's failure actually look like". Per-cell pages also made the
+re-fusion check natural to run, and that is what surfaced the conflated headroom.
+
+**Result**: The 9 weak cells keep the mechanisms assigned in Step 210; nothing in the diagnosis
+reverses. Two things are sharper: the anchor is exonerated **per cell** rather than on average,
+and CoQA's headroom is now split into the part selection can reach (+7.4pp) and the part only the
+sign fix can (+17.1pp). Item 2 and item 3 each get a page carrying their own evidence, so neither
+decision has to be taken on trust.
+
+---
+
+### Step 212 — the diagnosis run on BOTH leading arms, and the headline's significance withdrawn
+
+**What**: Omri asked whether the Step-210/211 debugging covered **both** arms we lead with. It did
+not. The ladder and the recovery ratio — the headline mechanism — were computed on the
+**DUFS + L-SML** path only; U-PCR appeared in the data (its AUROC, its survivor set, its weights,
+its true-label-anchor counterfactual) but was never put through the same decomposition. That gap
+mattered more than symmetry, because the two arms recover signs by different means: **L-SML is
+sign-gauge invariant** and recovers polarity implicitly through its grouping, while **U-PCR
+estimates each view's polarity explicitly as sign(ρ̂)**, over the whole pool rather than a chosen
+subset. U-PCR's sign step can fail on its own and had never been measured.
+
+Added to `build_data.py`: a full U-PCR ladder on the full pool (best view → average with oracle
+signs → average with no signs → **average with U-PCR's own sign(ρ̂) polarities** → U-PCR weights →
+deployed), plus its recovery ratio, the recovery attributable to the sign step alone, and its
+per-view polarity agreement against the oracle. Every cell page now carries a §5b for it.
+
+#### FIRST FINDING — the two arms fail together, which strengthens the mechanism
+
+**Spearman(L-SML recovery, U-PCR recovery) = +0.707, p = 0.00023** over the 22 cells where both
+are defined. The three worst cells on U-PCR's polarity agreement — `inside_coqa_llama7b`
+**0.630**, `seiclr_triviaqa_opt30b` **0.714**, `losnet_hotpotqa_mistral7b` **0.793**, against a
+healthy median of **0.966** — are also the three worst on L-SML recovery, on U-PCR recovery, and
+on the sign step alone. **Two differently-built estimators, one sign-invariant and one explicitly
+sign-estimating, degrade together on the same cells.** So the mechanism is not an L-SML
+implementation quirk; it is a property of recovering sign structure from a covariance matrix when
+the views are individually weak.
+
+#### SECOND FINDING — a bug in the new metric, and the reason it looked catastrophic
+
+Raw agreement between sign(ρ̂) and the oracle polarity is **below 0.5 on all 25 cells**, which
+first read as U-PCR getting nearly every polarity backwards. It is not: a global flip leaves the
+covariance bit-identical, so sign(ρ̂) recovers polarity only **up to one overall ±1 it provably
+cannot determine** (Step 204). Comparing raw signs measures that gauge, not the estimate. The
+metric is therefore reported as **max(a, 1−a)**, and the anchor supplies the missing bit
+downstream.
+
+#### THIRD FINDING, AND A WITHDRAWAL — the p = 0.0096 does not survive
+
+The recovery ratio has a denominator: how much AUROC the relative signs are worth on that cell.
+Where that is small the ratio is numerically unstable, and **9 of 25 cells sit under 2pp** — one
+returns 3.123 off a 0.77pp denominator. Requiring a meaningful denominator:
+
+| Required denominator | cells | L-SML recovery < 0.90 | Fisher exact p |
+|---|---:|---|---:|
+| ≥ 0.5pp (as published in Step 210) | 22 | weak 4/8 · healthy 0/14 | **0.0096** |
+| ≥ 2.0pp | 17 | weak 2/5 · healthy 0/12 | 0.0735 |
+| ≥ 3.0pp | 16 | weak 1/4 · healthy 0/12 | 0.2500 |
+| the same test on U-PCR (≥ 0.5pp) | 22 | weak 3/8 · healthy 1/14 | 0.1167 |
+| U-PCR polarity agreement < 0.85 (no denominator) | 25 | weak 3/9 · healthy 1/16 | 0.1162 |
+
+**The Step-210 headline "Fisher exact p = 0.0096" is withdrawn.** Its significance was carried by
+cells whose denominator is under 1pp, and two of the four failing cells are among them
+(`seiclr_triviaqa_opt30b` at 0.78pp, `noise_gsm8k_phi3mini` at 1.59pp). The U-PCR version never
+reaches significance, and neither does polarity agreement. With 9 weak cells against 16, this
+design cannot establish an effect of this size.
+
+**What survives, and it is still worth acting on**: the three weakest QA cells are worst on *every*
+sign-related measure in *both* arms; the two arms rank the cells the same way (+0.707, p = 0.0002);
+the anchor costs exactly 0.00pp on 25/25; and on two cells the pipeline cannot fuse even the
+label-chosen subset (Step 211). That is a coherent, reproducible pattern and a sufficient reason to
+build the repair — but **the repair is what would confirm it, not this table**. The
+pre-registration in Step 210 is unchanged and its gate (recovery above 0.90 on the failing cells,
+under 0.5pp movement elsewhere) is now the test that matters.
+
+**Why**: The question exposed a real asymmetry in the diagnosis, and closing it did two things at
+once — it made the mechanism more credible (two independent estimators, same cells) and the
+statistics less (the significance was an artifact of an unstable ratio). Both had to be reported.
+
+**Result**: Every cell page gains §5b (the U-PCR ladder, its sign step, its polarity agreement, its
+survivor count, abstention and component count). The item-1 index gains a two-arm comparison table
+and a section stating plainly how far the evidence goes. Step 210's mechanism assignments are
+unchanged; only the claimed significance is.
+
+---
+
+### Step 213 — the pre-registered sign repair is built and REFUTED, and the premise check caught that half of it was a no-op by construction
+
+**What**: Built and ran the repair pre-registered in Step 210 —
+`spectral_utils.orientation.z2_sign_recovery` (Z₂ synchronisation on the sign pattern of the
+correlation matrix) as a replacement label-free relative-sign estimator — against its own gate:
+*lift recovery above 0.90 on the four failing cells while moving the healthy ones by less than
+0.5pp.* Script: `scripts/action_items_jul2026/test_sign_repair.py`.
+
+#### GATE P — the premise check, which should have run before the pre-registration
+
+Step 204 measured L-SML to be sign-gauge invariant (1150/1150 sign vectors bit-identical). Gate P
+re-tests it on today's data: fusing the deployed subset after applying (a) the Z₂ signs and (b) a
+random ±1 sign vector gives **max |Δ AUROC| = 0.00e+00 in both cases, on all 25 cells**.
+
+**So "feed L-SML a better sign estimate" is a no-op by construction, and the repair as written
+could never have applied to the DUFS + L-SML arm.** That should have been caught when the repair
+was pre-registered in Step 210 — the invariance is in this project's own glossary. The test was
+adapted instead of abandoned: Z₂ was evaluated where signs can actually bind, as a **replacement**
+for L-SML (arm A: Z₂ + simple average) and as a **replacement for U-PCR's own `sign(ρ̂)` step**
+(arm B).
+
+#### THE GATE: FAILED, BOTH ARMS, BOTH CONDITIONS
+
+| | (i) recovery ≥ 0.90 on the four failing cells | (ii) healthy cells move < 0.5pp |
+|---|---|---|
+| **A** Z₂ + simple average | **1 of 4** — FAIL | **13 of 16** — FAIL |
+| **B** Z₂ inside U-PCR | **1 of 4** — FAIL | **15 of 16** — FAIL |
+
+Per failing cell, arm A: `inside_coqa_llama7b` −0.122 → 0.038 (+2.40pp AUROC),
+`ars_gsm8k_r1distill8b` 0.155 → 0.243 (+0.22pp), `noise_gsm8k_phi3mini` 0.757 → 1.000 (+0.39pp),
+and `seiclr_triviaqa_opt30b` gets **worse**, −1.264 → −1.644 (−0.30pp). Arm B is worse still:
+CoQA −0.46pp and `ars_gsm8k_r1distill8b` **−2.89pp**. The healthy-side damage is real —
+`semenergy_triviaqa_qwen3_8b` **−3.30pp** under arm A, `math500_qwenmath7b` **−2.31pp** under arm B.
+
+#### FULL REGRESSION, all 25 cells
+
+| Arm | macro | QA (10) | math (15) |
+|---|---:|---:|---:|
+| DUFS + L-SML (baseline) | 0.7507 | 0.7089 | 0.7786 |
+| U-PCR + sign(ρ̂) (baseline) | **0.7551** | 0.7126 | 0.7834 |
+| Z₂ + simple average, deployed subset | 0.7493 | 0.7078 | 0.7770 |
+| Z₂ + simple average, full pool | 0.7512 | 0.7066 | 0.7809 |
+| Z₂ inside U-PCR | 0.7529 | 0.7124 | 0.7799 |
+
+Paired: `z2+avg − DUFS+L-SML` **−0.14pp**, 7W/18L, p = 0.0952; `z2+avg(full) − DUFS+L-SML`
+**+0.04pp**, 12W/13L, p = 0.8949 (a dead wash); `z2+U-PCR − U-PCR` **−0.22pp**, 2W/5L, p = 0.1282.
+**Nothing improves on either baseline, and U-PCR + sign(ρ̂) remains the best arm.**
+
+Note that arm B is **exactly +0.00pp on 15 of 25 cells**: Z₂ and `sign(ρ̂)` return the same
+polarities on most cells, and where they differ Z₂ is the worse of the two.
+
+#### WHAT THIS DOES TO THE MECHANISM CLAIM
+
+The descriptive finding is untouched — the three weakest QA cells are still worst on every
+sign-related measure in both arms, and the arms still rank the cells alike (Spearman +0.707,
+p = 0.0002). But the **actionable** version is refuted: *a better label-free sign estimator does
+not recover those cells.* Combined with Step 212's withdrawal of the significance, the honest
+position is now weaker than Step 210's:
+
+- **Repair 1 is CLOSED.** Z₂ synchronisation is not better than what L-SML and U-PCR already do.
+- The `r4 − r3` gap is real, but calling it "sign recovery" oversold it. L-SML does not *recover*
+  signs — it is **invariant** to them, and the gap measures how much better a sign-invariant
+  estimator is than a sign-sensitive one fed the wrong signs. That is a fair normalisation but it
+  does not license "fix the sign estimate and the cell improves", which is exactly what failed.
+- The remaining reading is closer to **"there is not enough covariance structure on these cells for
+  any label-free method"** than to "we have a fixable defect". That is consistent with the three
+  weak cells that trip no mechanism at all, and it moves weight toward reporting ceilings rather
+  than chasing them.
+
+The one durable positive: **CoQA gains +2.40pp** (0.5320 → 0.5560) under Z₂ + simple average, the
+largest single-cell gain anywhere in the test and on the flagship failing cell — but its recovery
+ratio only moves to 0.038, and its selection headroom (Step 211) is +7.4pp, so this is a small
+part of a small part.
+
+**Why**: The pre-registration said the repair, not the diagnosis table, was the confirmation. It
+was run, and it did not confirm.
+
+**Result**: Repair 1 closed as refuted. Repairs 2 (rank/quantile transform, aimed at CoQA's
+non-monotonicity) and 3 (keep the pool's strongest view) are untouched and remain pre-registered —
+3 is the one now most worth running, because the selection miss (−4.8pp on the worst cell) is a
+measured loss that does not depend on the sign story at all. Gate P is retained as a standing
+check: **test the premise before pre-registering a repair that depends on it.**
+
+---
+### Step 214 — features or algorithm: matched cell pairs, and the supervised ceiling says "about half each"
+
+**What**: Steps 209–213 asked what the *fusion* does differently on the weak cells, and every
+answer came back negative (orientation +0.00pp on 25/25, 0/25 degenerate groupings, pool
+composition closed both ways, the pre-registered sign repair refuted at −0.14pp macro). Omri's
+redirect: stop interrogating the algorithm and look at the **features**. New script
+`scripts/action_items_jul2026/build_pair_compare.py` pairs each weak cell with a **high-scoring
+cell that holds as much as possible fixed**, and compares the raw material — per-view
+class-conditional densities, per-view separability, the view×view correlation structure, and the
+ceiling a 5-fold supervised LR (`class_weight='balanced'`, AUROC averaged per fold) reaches from
+the same features. Site: `results/action_items_jul2026/item1b_feature_comparison/`.
+
+Three pairs, ordered by how much they hold fixed:
+
+| pair | held fixed | weak | strong |
+|---|---|---|---|
+| `triviaqa` | dataset + task shape | TriviaQA / OPT-30B 0.5614 | TriviaQA / Llama-3.1-8B 0.9413 |
+| `gsm8k_llama` | dataset + source cache + decoding + family; **size is the only variable** | GSM8K / Llama-3.2-3B 0.7087 | GSM8K / Llama-3.1-8B 0.8149 |
+| `k10_traces` | the K=10 multi-trace pipeline | MATH-500 K=10 / Qwen2.5-Math-1.5B 0.6901 | GSM8K K=10 / Llama-3.1-8B 0.8115 |
+
+**Result**: four findings, two of which cut against hypotheses I had been carrying.
+
+1. **About half the gap is genuinely in the features.** Supervised-ceiling gap as a fraction of
+   the label-free gap: **52% / 39% / 81%**. So the weak cells do hand the fusion worse raw
+   material — but on no pair does that account for all of it.
+2. **The consistent feature-level difference is the label-driven correlation, ~3× smaller on
+   every weak cell.** Mean |excess ρ| (total correlation minus within-class correlation) runs
+   0.0051/0.0136, 0.0183/0.0566, 0.0123/0.0566 (weak/strong). That is exactly the quantity both
+   L-SML and U-PCR estimate: where it is 3× smaller, both read a 3×-fainter signal off the same
+   size matrix.
+3. **RETIRES the estimation-noise hypothesis** I had flagged as under-weighted at the end of Step
+   213. Excess-over-noise (mean|excess ρ| × √(n−3)) is 0.36×/0.22×, 0.66×/1.26×, 0.67×/4.00× — it
+   does **not** order the pairs. The strong TriviaQA cell has the **worst** ratio on the page
+   (0.22×, n=256) and still scores 0.9413; it gets there on individually strong views (best single
+   0.9607), not on a well-estimated correlation matrix. The proposed subsample-to-matched-signal
+   test is therefore not worth running.
+4. **The rank-1 assumption misfits on only one pair.** Residuals 0.351/0.222, 0.258/0.237,
+   0.228/0.241 — TriviaQA shows a real misspecification difference, the other two are a wash and
+   one runs the wrong way. Not a general mechanism.
+
+**The number to act on**: `seiclr_triviaqa_opt30b` has a **supervised ceiling of 0.7229 against
+our 0.5614 — 16.2pp of reachable headroom** — and we score below its own best single view
+(0.6248), so on that cell fusing is actively worse than picking one view. That is not a feature
+ceiling; it is signal the features carry and the method discards. It is also the same cell
+carrying the largest measured selection miss (−4.57pp, Step 211), which makes **Repair 3 (keep the
+pool's strongest view) the clearly indicated next test.**
+
+**Why this reframes the standing**: on the strong cell of two of the three pairs our label-free
+score is **at or above** a cross-validated supervised LR (0.9413 vs 0.9220; 0.8149 vs 0.7947), and
+on every weak cell it is well under. The method does not fail uniformly — it **degrades faster
+than supervision does as the features weaken**. Half the weak-cell deficit is a feature ceiling and
+should be reported as one; the other half is ours.
+
+---
+### Step 215 — adversarial review of Step 214: three of four findings withdrawn, the pair rebuilt on a defensible cell
+
+**What**: Omri asked for an independent, non-confirmatory review of Step 214. It found four
+substantive problems and two code defects; all were verified independently before being accepted,
+and the site was rebuilt rather than annotated.
+
+**The disqualified cell (the root error).** Step 214's headline pair used
+`spilled_triviaqa_llama8b` (0.9413) as the "strong" TriviaQA cell. That cell has **6 positives out
+of 256**, `trace_length` alone scores **0.925** on it, and the repo already carried a standing
+instruction — `scripts/advisor_report.py:783`, from Step 163 — to **treat it as selection-biased
+and not headline it**. Its best view `cusum_max_spilled` correlates |r| = 0.892 with trace_length
+and falls to 0.5740 once length is regressed out. It is a length detector, and half its 6
+positives sit exactly on the ≥8-token validity floor. Replaced with
+`semenergy_triviaqa_qwen3_8b` (n = 4,392, pos_rate 0.477 vs the weak cell's 0.465). The
+label-free gap drops from +37.99pp to **+22.53pp**.
+**Standing rule added: check the existing per-cell caveats before making a cell the anchor of a
+comparison.**
+
+**What survives.** Some of the gap is genuinely in the features on all three pairs, and on none is
+it all of it: supervised-ceiling gap over label-free gap = **51% / 52% / 84%** on the rebuilt
+pairs. But the *number* is not a measurement — bootstrap CIs are [25,74] / [14,111] / [59,104],
+mutually overlapping, two consistent with 100%, and swapping among equally defensible TriviaQA
+partners moves it across **−2% to 60%**. Report the sign, never the percentage.
+
+**Withdrawn 1 — "the label-driven correlation is ~3× smaller on every weak cell".** Algebraically
+implied by the per-view Cohen's d reported one section earlier. With κ = π(1−π),
+`E_ij = w_ij(g_i g_j − 1) + κ d_i d_j g_i g_j`, `g_i = 1/√(1+κd_i²)`; predicting E from (d, W, π)
+alone reproduces the measured E **entrywise at corr ≥ +0.99997 on 6/6 cells**. The apparent
+consistency was an uncontrolled class prior (κ = 0.249 vs 0.023 on the original pair) — κ-adjusted
+the ratios are **28.9× / 3.8× / 3.4×**. It was §2 restated, presented as independent evidence.
+
+**Withdrawn 2 — "estimation noise is retired", and the instruction it produced is rescinded.**
+The statistic divided mean|E| by 1/√n, the SE of a *single* correlation. C and W are computed from
+the same rows, so under the null their difference is far tighter than that — the normalisation was
+wrong by roughly √n, which made real structure look sub-noise. Against a proper 200-permutation
+null the excess is **46×–639× its own null** on every cell. Also `Spearman(label-free − ceiling, n)
+= −0.462, p = 0.020` across all 25 cells. **The subsample-to-matched-signal test is back on the
+table**; Step 214 cancelled it on a mis-normalised statistic evaluated on the 6-positive cell.
+
+**Withdrawn 3 — "the method matches supervision on strong cells / degrades faster than
+supervision".** Across all 25 cells label-free exceeds the ceiling on 4, and **all four have
+n ≤ 700** (n ≤ 700: 4/11, mean −0.77pp; n > 700: 0/14, mean −6.03pp; Mann-Whitney p = 0.035). On
+the rebuilt pairs the only remaining exceedance is `lapeigvals_gsm8k_llama8b` at **+0.64pp against
+an across-seed sd of 0.0076** — noise. The new strong TriviaQA cell sits **4.97pp below** its
+ceiling. It was a small-sample effect throughout.
+
+**Withdrawn 4 — "16.2pp of reachable headroom".** The gap itself is solid (0.7223 vs 0.5614, ceiling
+sd 0.0009, CI ≈ ±2.5pp), but "reachable" was wrong. It decomposes as **≈1.8pp** label-free sign
+loss, **≈4.1pp** that requires *labels* to identify the right single view, and **≈10.2pp** of
+multivariate supervised gain with no label-free analogue. The honest label-free target is single
+digits.
+
+**The one genuinely new positive, and it strengthens the next step.** On `seiclr_triviaqa_opt30b`
+the loss is **selection and sign, not dilution**: honest best single view over the pool 0.6200
+(split-half ±0.0067) → best view inside the 12 the selector chose **0.5791** (the selector had
+already discarded the pool's two strongest views, `cusum_max` 0.6248 and `min_energy` 0.6234) →
+L-SML **0.5614**. So ≈4.1pp selection + ≈1.8pp sign. An oracle-signed simple average of those 12
+lands *exactly* on the best view in the subset, so **dilution explains 0.0pp**. And L-SML's
+effective per-view signs disagree with the oracle on **2 of 12** views here versus **0 of 12** on
+all five other cells — the plain label-free average beats L-SML, 0.5708 vs 0.5614.
+
+**Code defects fixed** in `scripts/action_items_jul2026/build_pair_compare.py`:
+1. `lr_ceiling` applied `max(a, 1−a)` to a **supervised** score. That transform exists for
+   unsupervised scores of undetermined sign; `predict_proba` has a determined direction, so it can
+   only fire on noise and only inflate — **+12.6pp** on the 6-positive cell (permutation null there:
+   mean 0.6256, p95 0.8143). Removed.
+2. Single-seed CV → **10 seeds with the across-seed sd reported** (that sd was 0.0282 on the
+   6-positive cell — larger than the effect Step 214 claimed from it).
+3. `rank1_fit`'s ALS did not converge: a period-2 limit cycle (answer depended on iteration
+   parity) that diverged from almost every start other than the eigenvector init. Replaced with a
+   multi-start L-BFGS minimisation. The ordering was unaffected but the absolute residuals were
+   wrong — and the corrected values now run the *wrong way* on 2 of 3 pairs, so the rank-1 lead is
+   dead as a general mechanism.
+4. Documented that the ceiling is on the shared pool while the label-free rows are on their
+   canonical footings.
+
+**Also confirmed correct** and left alone: no CV leakage (scaler fit on train folds only), per-fold
+AUROC averaging per `SUPERVISED_ORACLE_CORRECTION.md`, and `deployed_scores()` reproducing both
+published arms **exactly on 6/6 cells** (`a2.dufs_pf` and `auroc_rho_anchor`).
+
+**Why**: Step 214's conclusions were being used to set the next experiment and to tell a future
+session *not* to run a test. Both were wrong.
+
+**Result**: Site rebuilt at `results/action_items_jul2026/item1b_feature_comparison/` with the
+withdrawals stated on the page. **Repair 3 is still the indicated next test, for a better reason**:
+on the worst cell the selector demonstrably discarded the pool's two strongest views, worth ≈4.1pp.
+The noise test is un-cancelled.
+
+---
+### Step 216 — two base-model cells were generating garbage: one cropped, one rejected, and both leading arms re-benchmarked on the corrected data
+
+**What**: Chasing why `seiclr_triviaqa_opt30b` scored 0.5614, the raw traces turned out to be
+malformed, and the defect set turned out to be **exactly the base-model set**. Cross-checking
+every in-scope cell against its checkpoint (`cluster/presets.py` + `cache/repgrid/*/manifest.json`),
+23 of 25 run instruct-tuned models and the only two base checkpoints are the two cells the audit
+flagged — found independently of the model roster. (`Qwen/Qwen3-8B` reads like a base repo name but
+ships a chat template and audits healthy: 0.4% at cap, 0.0% unusable.)
+
+| cell | checkpoint | `raw_prompt` | mechanism | treatment |
+|---|---|---|---|---|
+| `seiclr_triviaqa_opt30b` | `facebook/opt-30b` | `True` — correct | no learned EOS for the few-shot format → 99.7% pinned at `max_new=64`, runs on into a fabricated `Question:` block; median answer 3 tokens = 4.7% of trace | **crop** |
+| `inside_coqa_llama7b` | `huggyllama/llama-7b` | `False` — **the bug** | chat template applied to a base checkpoint → 45.1% of spans are `[/INST]` echoes, fabricated `Question:` turns, or empty | **reject** |
+
+**The crop is a bug fix, not a modelling choice, because the grader already crops.**
+`is_correct_trivia_qa_rougel` scores `first_answer_line(gen)`, so the LABEL was computed on the
+answer while the FEATURES were computed on all 64 tokens. `spectral_utils/answer_span.py` removes
+that inconsistency by giving the extractor the same span the grader reads. **No re-generation is
+needed**: decoding is autoregressive, so `token_entropies[i]` conditions only on tokens < i, and
+truncating a suffix offline is bit-identical to having passed a stop sequence at generation time.
+
+**Two controls, both passed.** *Specificity*: cropping gains +13.8pp / +6.6pp mean |AUROC−0.5| on
+exactly those two cells and **−0.4 to −5.2pp on all eight other QA cells** — and the criterion was
+derived from at_cap / ans_frac / unusable, never from AUROC. *Artifact check*: on OPT-30B the gain
+is +11.46pp restricted to usable spans vs +11.51pp overall (clean); on CoQA it falls +3.46 →
++2.37pp, and `pos_rate` is **0.002 on broken generations vs 0.239 on usable ones** — 45% of CoQA's
+rows are a degenerate sub-population whose label is near-deterministic given "the prompt broke".
+That is why CoQA is rejected rather than cropped.
+
+The 25-cell audit (`scripts/answer_span_audit.py` → `results/answer_span/audit.csv`) cleared
+everything else: 8 other QA cells are healthy (at_cap ≤ 21%, answer ≥ 54% of trace), and the 15
+math cells plus `losnet_hotpotqa_mistral7b` answer *last*, so cropping them would keep the preamble
+and discard the answer.
+
+#### The rejection is recorded in code, not by deletion
+
+`scripts/inscope_cells.py` gains a `REJECTED_CELLS` dict (cell → reason + evidence) and builds
+`QA_CELLS` / `INSCOPE` by excluding it — roster **25 → 24**, QA **10 → 9**. `INSCOPE_ALL` /
+`QA_CELLS_ALL` keep the pre-rejection lists so a report can still quote what was removed. The two
+rejection registries (`inscope_cells.REJECTED_CELLS` and `answer_span.UNREPAIRABLE_CELLS`) are
+asserted equal at import, so they cannot drift.
+
+A circularity had to be fixed with it: `answer_span_audit.py` iterated `INSCOPE`, so once the cell
+was rejected the audit stopped measuring it, reported no unrepairable cells, and its own registry
+drift-check fired against the registry it exists to justify. It now iterates `INSCOPE_ALL` — the
+rejection is *derived from* the audit, not upstream of it.
+
+#### `GOOD6_EXPECTED` was re-derived, not adjusted to fit
+
+The bench-wide validity anchor moved, and the decomposition is exact, each step measured per cell:
+
+| roster / state | GOOD_6 macro |
+|---|---:|
+| 25 cells, pre-repair | **0.759398** — the old constant, reproduced to 4dp |
+| 24 cells, `inside_coqa_llama7b` rejected | 0.763232 (+0.38pp; its GOOD_6 was 0.6674, below macro) |
+| + `seiclr_triviaqa_opt30b` answer-cropped | **0.773344** (+1.01pp; 0.5884 → 0.8311) |
+
+**After an intentional data change the macro is not the gate.** The gate is per-cell equality on
+the untouched cells, and `scripts/answer_span_score_check.py` (new) asserts it at the SCORED level
+— not just the feature level `answer_span_repair.py` already checked: GOOD_6, full-pool L-SML and
+U-PCR + sign(rho) all reproduce **bit-identically on 23/23** unaffected in-scope cells (tol = 0.0).
+
+#### Both leading arms re-benchmarked
+
+Re-ran DUFS selection on the repaired cell, then `exp06_orientation.py`, then
+`labelfree_standing_report.py` and `benchmark_standing.py`. Every macro moved on both counts —
+one cell repaired, one removed:
+
+| arm | before (25 cells) | after (24 cells) | QA | math |
+|---|---:|---:|---:|---:|
+| U-PCR + sign(rho) | 0.7551 | **0.7741** | 0.7586 | 0.7834 |
+| DUFS parameter-free + L-SML | 0.7507 | **0.7687** | 0.7520 | 0.7786 |
+| GOOD_6 (reference) | 0.7594 | **0.7733** | 0.7611 | 0.7807 |
+
+Paired: `upcr − dufs_pf` +0.55pp 15W/9L p=0.067; `GOOD_6 − dufs_pf` +0.47pp p=0.271;
+**`GOOD_6 − upcr` −0.08pp 13W/11L p=0.819** — for the first time the label-free arm is nominally
+*above* the hand-picked subset. Nothing separates the three, as before; what changed is the sign.
+
+**The QA deficit was two broken cells, not a method property.** GOOD_6's QA lead was 1.49pp over
+10 cells and is now **0.25pp over 9**. The Step-207 reading "the QA deficit is ONE cell (CoQA)"
+survives only in the sense that the cell was broken.
+
+#### `seiclr_triviaqa_opt30b`: a data failure, not a method failure — state it plainly
+
+| | before | after |
+|---|---:|---:|
+| `a2.dufs_pf` | 0.5614 | **0.7726** |
+| U-PCR + sign(rho) | 0.5751 | **0.8119** |
+| GOOD_6 | 0.5884 | **0.8311** (caveated) |
+| best single view | ~0.62 | **0.8258** (`topk_tail_mass`) |
+
+Against SE-ICLR'23's published **83.0** on OPT-30B, the fused arms went from ~27pp below it to
+level with it. **The answer to "was this cell ever a method failure" is no.** It also retracts a
+per-cell diagnosis: Step 215's account of this cell (selection miss + L-SML sign disagreement on
+2 of 12 views) was measuring the run-on artifact — its "honest best single view 0.6200" is 0.8258
+once the features are read off the answer.
+
+**Two caveats carried, not hidden.** (1) GOOD_6 has only **4 of its 6 views** on the repaired
+cell (`low_band_power`, `spectral_entropy` need ≥ 8 tokens), and per Step 205 L-SML is numerically
+undetermined at 4 views — so 0.8311 is not quoted as comparable. (2) The pool shrinks **30 → 20**:
+on a 3-token answer the spectral views do not exist, so the cell reduces to its aggregate views —
+which is what SE-ICLR'23 used in the first place.
+
+#### The staleness carriers, again
+
+Per the Step-193 lesson, the crop left stale `n=4993` rows in **17 selector-bench CSVs**, not just
+the one the repair touched. All were backed up (`*.step216.bak`), stripped and re-run on the
+repaired cell. Two consequences are reportable rather than errors: `reference_macros__c46` now
+writes 5 variants instead of 13, and the `h16` pool arm largely does not apply — the h16 pool *is*
+the 16 spectral views, and a 3-token answer has none of the FFT-based ones.
+
+**Why**: the two cells sat in the published-comparison grid and in every macro, and both were
+measuring a generation defect rather than the detector. Left alone, every future number would have
+kept re-measuring it, and the per-cell failure diagnosis (Steps 210–215) was already being written
+around them.
+
+**Result**: roster 24; `GOOD6_EXPECTED` 0.7594 → 0.7733; both arms up ~+1.9pp; the OPT-30B row of
+the published comparison changes and the INSIDE CoQA row is withdrawn. New/changed code:
+`spectral_utils/answer_span.py`, `extract_all_features(..., allow_short=)`,
+`_candidate_features(..., allow_short=)`, `build_cell(..., crop=)`,
+`scripts/answer_span_{audit,repair,score_check}.py`, `scripts/inscope_cells.py`,
+`scripts/inscope_bench_common.py`, `scripts/labelfree_standing_report.py`.
+
+---
+
+### Step 217 — the non-monotone line assessed: the effect is REAL and cell-specific; three symmetric transforms fail to capture it, and the curves show why
+
+**What**: Gemini proposed replacing/augmenting five "non-monotone" features with `|x − median(x)|`,
+`x²` or `|Φ⁻¹(rank%)|` and reported +0.54pp, asking for it to be wired into L-SML+DUFS and U-PCR.
+Reviewed, re-measured on the canonical path, and gated. **The proposal is not adopted, but the
+phenomenon behind it is real** — the honest answer took two passes and the first one was wrong.
+
+#### The four review defects, each reproduced against the repo's own artifacts
+
+1. `sweep_feature_transforms.py:19-26` — `safe_auc` returns `max(a, 1−a)`, resolving the **global
+   sign with the labels**. The canonical path (`inscope_bench_common.py:20`) is `anchor_orient` +
+   raw AUROC, "never `max(a, 1-a)`". Same class of bug as the one Step 215 removed from
+   `lr_ceiling`.
+2. `sweep_feature_transforms.py:71` — **the optimised objective is computed on the wrong cells.**
+   `is_prob = 'math500' in fname or 'qa' in fname` selects 3 GPQA pkls (out of scope since Step 191;
+   every feature 0.51–0.55, i.e. at chance) and 5 duplicate copies of one MATH-500 run, while
+   `repgrid_cells.pkl` — where 23 of the then-25 in-scope cells live — is classed "other". **Zero
+   in-scope cells are in the set being maximised.**
+3. `sweep_feature_transforms.py:106` vs `:113` — the transform is chosen per feature by argmax on
+   exactly the data the final number is reported on. No held-out anything.
+4. `sweep_feature_transforms.py:17` — by the repo's own `nonmono_gain`, three of the five targets
+   are not non-monotone: `dominant_freq` −0.0109, `spectral_entropy` −0.0127, `epr_energy` −0.0130
+   (binning is *worse* than monotone use).
+
+Also reverted: `run_upcr_comparison.py` had been edited to inject **all 15 transforms
+unconditionally** — not the "optimized configuration" the walkthrough described — contradicting
+Step 206. The `run_lsml_experiments.py` change is a semantic no-op and was left.
+
+#### Defect 5, in OUR code, found while building the replacement
+
+`gap_ladder.py:64`'s `safe_auc_raw` returns `max(p, 1−p)`, and `gap_ladder.py:220` applies it to
+**each fold's binned test score** inside `nonmono_gain`. A bin map fitted on train already carries
+its direction, so there is no sign left to resolve: folding it is a **one-sided noise floor** that
+can raise the binned side and never lower it, while the monotone baseline it is subtracted from is
+a single global number. Measured over 682 cell × feature pairs, the inflation is **never negative**
+(median 0.0000, max +0.2000) and `Spearman(corrected gain, inflation) = −0.171, p = 7e-06` — **the
+metric credits a view more the closer its binned mapping sits to chance.** `pe_mean`, which topped
+the ranking Gemini's list was drawn from at +0.0438, is +0.0402 inflation.
+
+#### The first verdict was withdrawn — the aggregation was wrong
+
+C1 (`nonmono_transform_bench.py --stage c1`) gated on the **per-feature mean** of `nonmono_gain`
+across cells and found nothing above +0.01, concluding the premise was an artifact. **Omri rejected
+that from the per-cell deep-dive pages, and was right.** Non-monotonicity here is *cell-specific*:
+a view can be +12pp on 7 cells and flat on 17, which averages to zero. The largest per-cell gains
+carry **zero** fold inflation and sit on the biggest cells in the grid.
+
+#### The fair instrument: `scripts/nonmono_shape_test.py`
+
+`nonmono_gain` is unfair in both directions — its non-monotone side is a cross-fitted 4-bin map,
+its monotone side a single global raw AUROC that was never cross-fitted, so estimation noise is
+charged to one side only; and 4 bins is too coarse to resolve a U. Replaced with:
+
+* **Test 1 (label-derived ground truth)**: isotonic regression (the *best monotone* function) vs an
+  unconstrained 10-bin quantile map, **both fitted on the same training folds and scored on the same
+  held-out folds**, raw AUROC throughout, calibrated against each pair's own **label-permutation
+  null**. Validated on synthetic data: −0.0006 on a monotone signal, **+0.2039** on a U-shaped one.
+* **Test 2 (label-free, the deployable one)**: Omri's actual proposal — the marginal shape is
+  visible without an answer key. KDE peak count with a prominence floor, GMM ΔBIC, bimodality
+  coefficient, plus `spike_frac` to flag discrete views.
+
+**Test 1 — the effect is real. 32 of 682 pairs beat their own null.**
+
+| cell | view | gain | across-seed sd | null₉₅ | n |
+|---|---|---:|---:|---:|---:|
+| `semenergy_triviaqa_qwen3_8b` | `rpdi` | +0.1227 | 0.0019 | 0.0168 | 4392 |
+| `se_squad_v2_llama8b` | `pe_mean` | +0.1149 | 0.0028 | 0.0346 | 2933 |
+| `se_nq_open_llama8b` | `rpdi` | +0.0755 | 0.0014 | 0.0158 | 8460 |
+| `semenergy_triviaqa_qwen3_8b` | `epr_energy` | +0.0634 | 0.0007 | 0.0174 | 4392 |
+
+**Gemini's list was half right and missed two.** Recurrent across cells: `rpdi` (7 of 24),
+`pe_mean` (6 of 23). Not supported: `dominant_freq` (**0 cells**), `spectral_entropy` (1),
+`epr_energy` (1). **Missed by the list**: `cusum_shift_idx` (6), `hurst_exponent` (3).
+
+**Test 2 — the label-free handle does not exist.** `Spearman(shape_gain, KDE peak count) = +0.014,
+p = 0.72`; "≥ 2 peaks" flags 47 pairs at **precision 0.128 against a 0.047 base rate**; ΔBIC
+correlates (+0.216) but flags 563 of 682 pairs, so it gates nothing. The reason is structural:
+**P(y|x) can bend without the marginal density of x having two humps** — the two humps visible on
+the deep-dive pages are the two *class-conditional* densities, a different object.
+
+#### C2/C3 on the corrected candidate set — G3 and G2 pass, G1 fails on both arms
+
+Candidates taken from Test 1 (`rpdi`, `pe_mean`, `cusum_shift_idx`, `hurst_exponent`), transform
+chosen per feature **leave-one-cell-out** so the decision is always held-out:
+
+| gate | arm A: DUFS + L-SML | arm B: U-PCR + sign(rho) |
+|---|---|---|
+| **G1** macro ≥ +0.5pp, p < 0.05 | **−0.07pp**, 2W/3L, p=0.345 — **FAIL** | **−0.04pp**, 5W/9L, p=0.158 — **FAIL** |
+| **G2** no cell worse than −2pp | −1.60pp worst — PASS | −0.54pp worst — PASS |
+| **G3** same choice on ≥ 80% of folds | 92–100% — PASS | 96–100% — PASS |
+
+**G3 passing is what makes this a real negative rather than a noise result**: the LOCO choice is
+stable, so the transform is a genuine property of the feature and the experiment had the power to
+find a win if there was one. There is not one — and **not on the flagged cells either**. Restricted
+to the 11 cells where a candidate view provably beat its own permutation null, the transform is
+**−0.13pp (1W/2L)** on arm A and **−0.09pp (2W/4L)** on arm B. No hidden per-cell win is being
+masked by the macro.
+
+Also measured, as pre-registered: in `Add` mode the induced |ρ| against the parent view has
+**median 0.198 and max 1.000** — a perfectly dependent pair, exactly what the ρ ≥ 0.75 filter
+exists to exclude, and a second reason `Add` was never going to work under a fusion whose premise
+is conditional independence.
+
+**Why**: the proposal arrived with a number attached and would have gone straight upstream into
+both leading arms. The measurement that produced the number could not support it, and the artifact
+the *feature list* was drawn from turned out to carry a `max(p, 1−p)` of our own.
+
+#### WHAT THIS DOES *NOT* RULE OUT — the line stays OPEN (Omri, 2026-08-02)
+
+The negative above is **scoped to what was tested**, and the scope is narrower than "reshaping does
+not help". Omri's position, recorded because it is the right reading of the evidence: *if a feature
+is non-monotone it needs to be reshaped, and once it is replaced — or joined by a view carrying the
+same information in monotone form — the fusion should improve.* Step 217 does not refute that. It
+refutes one family of transform, applied one way. Three gaps, all real:
+
+1. **THE TRANSFORMS WERE THE WRONG FAMILY, AND THE CURVES SHOW IT.** All three (`|x − median|`,
+   `x²`, `|Φ⁻¹(rank%)|`) are symmetric and centred on the middle of the distribution. Printing
+   P(correct) by decile for the eight strongest survivors (n ≥ 1000) gives shapes that are nothing
+   like that — `^` marks the argmax decile, `v` the argmin:
+
+   | cell | view | P(correct) by decile | shape |
+   |---|---|---|---|
+   | `semenergy_triviaqa_qwen3_8b` | `rpdi` | `#-..v-#+^=` | W-shaped: high left edge, dip, second rise |
+   | `se_squad_v2_llama8b` | `pe_mean` | `=v+= . .^-` | dip at decile 2, peak at decile 9 |
+   | `semenergy_triviaqa_qwen3_8b` | `epr_energy` | `=+++*^#*=v` | **inverted-U peaking at decile 6-7**, not 5 |
+   | `se_nq_open_llama8b` | `rpdi` | `*:: v..=+^` | argmax at the EDGE — the gain is an interior *dip* |
+
+   An inverted-U centred at decile 6–7 is systematically **mis-centred** by a median-centred
+   transform, and a W-shape or an interior dip is not in the family at all. That is a sufficient
+   explanation for G1 failing, and it is a fixable defect in the candidate set rather than a fact
+   about the data.
+2. **SELECTION WAS HELD FIXED ON ARM A.** `score_config` keeps the DUFS-chosen view set (re-running
+   DUFS per config is ~30s x 24 cells x 25 configs). So a reshaped view could never be *chosen*
+   where the raw one was not — and it shows: **only 5 of 24 cells moved at all** on that arm.
+3. **"ADD A VIEW THAT CARRIES THE INFORMATION MONOTONICALLY" WAS NEVER TESTED.** Only transforms of
+   the existing column were, and only in `Replace` / `Add` against the same parent.
+
+**The pre-registered next tests**, for a later session, in priority order:
+  * **(a) Fit the centre, do not assume it.** A `|x − c|` family with `c` chosen **leave-one-cell-out**
+    (so the choice is held-out and fixed offline, hence label-free at deployment), or centred on the
+    KDE mode — which `nonmono_shape_test.py` already computes label-free — instead of the median.
+  * **(b) Use the winning curve itself as the view.** The cross-fitted bin-mean map IS the function
+    worth +12pp; the open question is whether a LOCO-fitted version of it transfers across cells.
+    That is the strongest form of the reshaping idea and the direct test of it.
+  * **(c) Re-run selection with the reshaped view in the pool**, closing gap 2.
+  * The gate stays G1/G2/G3 as written, on both arms.
+
+**Result**: **the three symmetric transforms are not adopted, and the line stays open** — the
+finding is that the effect is real and that this transform family misses it, not that no reshaping
+helps. One mechanism does hold as a partial explanation and should be tested against rather than
+assumed: a single view's shape is substantially **redundant** once 15–20 other views are fused,
+so an isolated +12pp shape gain need not convert to +12pp of macro. Two durable outputs regardless
+of where the line lands: `nonmono_gain` in `ladder_featdiag.csv` is **inflated and should not be
+quoted** without the correction, and `scripts/nonmono_shape_test.py` is the instrument for any
+future non-monotonicity question. New code: `scripts/nonmono_transform_bench.py`,
+`scripts/nonmono_shape_test.py`; artifacts under `results/nonmono_transform/`.
+
+---
+
+
+### Step 218 — the non-monotone line CLOSED: the fold repairs the view, U-PCR re-admits it, and the pool already had the information
+
+**What**: Step 217 left the line open with three pre-registered gaps — (a) fit the centre instead
+of assuming it, (b) use the winning curve itself as the view, (c) re-run selection with the reshaped
+view in the pool. All three are closed here, together with the measurement defects that made Step
+217's null uninterpretable. New package `scripts/nonmono_v2/`, artifacts under `results/nonmono_v2/`.
+
+#### 218.1 — the instrument was wrong in two places, and the survivor list is two populations
+
+`_isomap` chose the isotonic direction by Pearson `corrcoef` (`nonmono_shape_test.py:109`). On a
+U-shape that correlation is ~0 and its **sign is coin-flip noise**, so the monotone baseline was
+fitted backwards, scored below 0.5, and inflated the gain — a false-positive source aimed squarely
+at the shapes being hunted. `common.iso_fit` replaces it with the constrained MLE over the union of
+both monotone cones (chosen by train Bernoulli log-likelihood; isotonic *is* the monotone MLE under
+Bernoulli). `common.kde_modes` repairs `nonmono_shape_test.py:194`, which computed the KDE peak
+indices and then discarded the **location** — the location is the label-free centre `r0` the whole
+`|u − c|` family needs. `common.isoboot_labels` replaces label permutation with the null that
+matches the hypothesis: resample `y* ~ Bernoulli(iso(x))`, which holds the relationship *monotone*
+rather than *absent*.
+
+Stratifying Step 217's 32 survivors by cell size shows they are two populations: **n ≥ 2000 →
+22/188 flag (11.7%)**, a real excess over the 5% per-pair null; **n < 2000 → 10/494 (2.0%)**,
+*below* the null rate. 22 of the 32 sit on five large QA cells, and every small-cell survivor —
+including Step 217's headline `spilled_triviaqa_llama8b/rpdi +0.2943` on a cell with n_pos = 6 — is
+consistent with noise. Detection is now gated on `n_min = min(n_pos, n_neg) >= 30`, not on `len(y)`.
+
+#### 218.2 — Stage 0 was the wrong instrument, and the single-view unit test is the right one
+
+Stage 0 measured the headroom of the **fused** score (arm A median −0.35pp, negative on 18/23; arm B
+−0.59pp, negative on 21/23) and reported it as a gate. That was a mistake: it bounds "does the fused
+score bend", which does **not** bound the channel that matters — *repair a view so it re-enters the
+fusion*. Omri called this out mid-session: the transforms and the suspect features were both already
+known, and the cheap decisive test is the single view. It is self-contained because **AUROC is
+invariant under monotone reparametrisation**, so a view's oriented single-view AUROC *is* the ceiling
+over every monotone reading of it, and any transform that raises it is necessarily non-monotone.
+
+#### 218.3 — transform selection, with the visual justification
+
+38 candidates (measured headroom >= 3pp) against 61 controls, over a menu of 6 strictly label-free
+options, 2 leave-one-cell-out options, and 2 label-fitted diagnostics (`best_centre`, `hinge`, centre
+and asymmetry swept on the cell's own labels) that mark the family's own ceiling and are **never
+adopted** — they exist to answer "wrong family, or wrong centre?". Two advisor pages published:
+`shape_evidence.html` (the defects) and `transform_choices.html` (951 KB, 99 panels) showing the
+correct-vs-hallucinated class-conditional densities before and after, for **every option considered**,
+plus a centre sweep scored against both the true labels and the label-free consensus.
+
+#### 218.4 — the ensemble test, with Step 217's frozen-selection artefact removed
+
+`dufs_pf.py` extracts `a2.dufs_pf` standalone and reproduces `results/selector_bench/a2_groupfs__c46.csv`
+**exactly on 24/24 cells** (the RNG stream needs three discarded `rng.integers` draws between the row
+subsample and the five stability seeds). Arm A therefore re-selects on the *transformed* matrix
+instead of scoring a column it never looks at — Step 217's 19/24 exact zeros were the frozen
+selection, not a null. Four selection rules x 2 modes x 4 arms x 23 cells
+(`spilled_triviaqa_llama8b` has n_pos = 6 and carries no tested pair). Raw `add` was **not** tested:
+U-PCR's Eq. 15/21 estimate rho-hat from `cov(f_i,f_j) = rho_i rho_j var(y)` *assuming conditional
+independence*, so a deterministic function of an existing column biases the whole rho-hat vector, not
+just its own entry. `add_orth` appends the fold with its rank-linear component projected out instead.
+
+#### 218.5 — R2, the decisive measurement
+
+`stage4_redundancy.py` conditions on the fusion instead of measuring the view alone: `s` = the
+deployed U-PCR score computed **without** view j, then a logistic on `[iso(s), iso(x_j)]` versus
+`[iso(s), binmap_K(x_j)]`. The difference is the value of a non-monotone reading of view j *given
+everything else the fusion already knows*. It applies **no transform**, so it bounds every possible
+transform of that view — not just the ten on the menu.
+
+**Why**: Step 217's negative was scoped to one transform family applied one way, and Omri's reading
+of it — a non-monotone view needs reshaping, and once reshaped the fusion should improve — was the
+right reading of that evidence. Closing the line needed the single-view question answered first
+(does the fold repair the view at all?), and only then the ensemble question.
+
+**Result**: **the fold works; the fusion cannot spend it; per-view reshaping is CLOSED.**
+
+*Single view.* On 27 pairs with >= 5pp headroom the symmetric family recovers ~73% of it: `squared`
++7.09pp (23/27 wins), `abs_rank` +6.70, `dist_median` +6.10, `mode_centre` +5.41. On 45 pairs with
+<= 0 headroom the same transforms **lose** (`squared` −5.69pp, 7/45 wins). Spearman(headroom, delta)
+= **+0.68, p = 1.4e-14** — the transform helps exactly where the shape is, and nowhere else. A
+transform was adopted on **34 of 38** candidates (all label-free; across all 99 views, 42 Tier-A and
+5 Tier-B picks). Best: `sciq_llama8b/pe_mean` 0.434 → **0.699** (+26.5pp),
+`math500_qwenmath7b/pe_mean` 0.458 → **0.668** (+21.1), `math500_r1distill8b_mn4096/hurst_exponent`
+0.542 → **0.700** (+15.8), `truthfulqa_llama8b/rpdi` 0.487 → **0.614** (+12.7). **This corrects Step
+217's diagnosis**: the symmetric family is not "the wrong family". It works at the single-view level
+and failed downstream — at selection and exclusion.
+
+*The exclusion channel opens, exactly as `upcr.py:287-293` predicts.* **8 of 24 excluded views (33%)**
+are re-admitted to `keep` after folding. `truthfulqa_llama8b/rpdi`: rho-hat −0.032 → **+0.168**, `keep`
+False → True, single-view 0.487 → 0.614. One view (`truthfulqa/pe_mean`) becomes newly DUFS-selected.
+The mechanism is confirmed, not assumed.
+
+*And it buys almost nothing.* Macro over 23 cells; the CI is a **paired cell-level bootstrap** (23
+independent units) and is quoted before the p:
+
+| arm | selection | macro | 95% CI | p | W/L |
+|---|---|---|---|---|---|
+| `upcr` | oracle_headroom *(label-selected ceiling)* | +0.23pp | [+0.05, +0.45] | 0.013 | 9/1 |
+| `upcr` | **free_adaptive** *(deployable)* | **+0.05pp** | [−0.02, +0.14] | 0.308 | 9/3 |
+| `lsml_dufs` | oracle_headroom *(ceiling)* | +0.26pp | [+0.04, +0.53] | 0.028 | 6/1 |
+| `lsml_dufs` | **free_adaptive** *(deployable)* | **+0.14pp** | [+0.01, +0.31] | 0.093 | 6/2 |
+| any arm | `all_fold` *(control)* | **−20.6pp** | [−24.1, −17.1] | 0.000 | 0/23 |
+
+`oracle_headroom` picks *which* views to fold using the answer key, so its +0.23pp is a ceiling, not
+a result. **G1 (>= +0.5pp) fails everywhere.** G4 passes — max placebo +0.05pp — so the +0.23pp is
+real, just small. `replace` beat `add_orth` on 8 of 9 comparisons (+0.31pp, p = 0.021 / 0.041 on the
+two oracle configs).
+
+*Why: the pool is saturated.* Across all 38 candidates the marginal shape gain of **+8.00pp** becomes
+a conditional gain of **+0.05pp — 99% absorbed**. Positive on 19/38 (a coin flip), Wilcoxon
+**p = 0.99**, and **Spearman(marginal, conditional) = −0.013, p = 0.94**: what a fold is worth in
+isolation carries *no information* about what it is worth in the fusion. The view's plain **monotone**
+reading is worth +0.046pp conditionally too — so it is not the shape that is redundant, it is the
+**whole view**. Because the conditioning is a supervised 2-D logistic, i.e. an upper bound on what
+*any* fusion could extract from that pair, the near-zero is decisive rather than suggestive. **This
+points at better views, not a non-linear fusion.**
+
+*The selector is the weak link, and it is quantified.* The label-free consensus detector (pseudo-label
+= median-binarised mean of the other views) correlates with true headroom at only Spearman **+0.309,
+p = 1.9e-3, n = 99**; best-threshold precision **0.562** against a 0.384 base rate, and **13 of 61**
+control views would be falsely folded. Folding a healthy view costs ~5pp, so that is a real bill.
+
+#### 218.6 — the pool decision, and the transform of record
+
+**The feature pool ships UNCHANGED. No view is added, none is replaced.** At +0.05pp deployable
+against a GOOD_6 macro of 0.7733, with a ceiling of +0.26pp and a −20.6pp failure mode if the
+selection goes wrong, a per-view reshaping stage is not worth its risk.
+
+Recorded for when that changes:
+
+1. **If it is ever adopted, the mode is `replace`, never `add`.** The reason is structural, not
+   empirical: a folded view sitting alongside its parent duplicates the parent's rank information and
+   biases U-PCR's whole rho-hat vector (Eq. 15/21 assume conditional independence). Step 217 measured
+   induced |rho| up to 1.000 in `add` mode. The measured penalty is +0.31pp for `replace` over
+   `add_orth` on both oracle configs.
+2. **The transform of record is `mode_centre`** (`|u − c|`, `c` = the KDE mode percentile). Under the
+   selector we actually have, the criterion is `p*(gain on a true positive) + (1−p)*(cost on a false
+   positive)`, and `mode_centre` is the least harmful when misapplied: **+4.77pp on a TP, −2.34pp on
+   an FP**, versus `squared`'s **+6.02 / −4.69**. Note `dist_median` (+5.46 / −3.18) is a dead heat
+   with it at today's precision (+1.68 vs +1.66pp); `mode_centre` is preferred on principle — its
+   centre is *estimated* from the marginal rather than assumed at the median — not on evidence.
+3. **`squared` becomes the right choice at selector precision p\* = 0.654.** Solving the same
+   expression: `squared` overtakes `mode_centre` above 0.654, `abs_rank` above 0.715, `dist_median`
+   above 0.549. The consensus selector currently achieves **0.562** — nine points short. So *once the
+   selection / clustering side improves past ~0.65 precision, switch to `squared`*, which has the
+   highest ceiling of the family (+6.02pp mean on true candidates, and +6.58pp on the views the
+   current rule flags correctly). This is a falsifiable trigger, not a preference.
+4. **`mode_centre` is a FEATURE-level recommendation, not a fusion-level one.** Applying it to every
+   flagged view scores −0.09pp on U-PCR (worst cell −2.21pp on `math500_qwenmath7b`) versus +0.05pp
+   for the per-view pseudo-label pick. All four numbers are within noise and none is adopted, but the
+   two claims must not be blurred.
+
+*On the transform family itself, per Omri's observation that `squared` is nearly always as good as
+the alternatives — confirmed, and the reason is that they are the same transform.* `squared` is within
+1pp of the best option on **28/38 (74%)**, within 2pp on 33/38, median rank 2 of 6, and statistically
+tied with `abs_rank` (p = 0.30) and `dist_median` (p = 0.097). The three symmetric folds are
+`|x − centre|` with the centre at the mean, the median, and the rank-median respectively:
+Spearman(x^2, |x − median|) median **0.979**, Spearman(x^2, |Phi^-1(u)|) **0.988**, and the median
+|mean − median| of a z-scored view is **0.094 sd**. AUROC is rank-based, so they can only differ where
+those centres differ. One blanket `squared` captures +6.0pp of the +8.0pp available (mean single-view
+AUROC 0.5293 → 0.5895), against 0.6057 for the full per-view menu — **the entire per-view machinery
+is worth +1.6pp over a single decision.**
+
+**What survives this step**: non-monotonicity is real and concentrated on large QA cells; the fold
+repairs the view; `upcr.py:287-293`'s linear-covariance exclusion is the gate that keeps it out and
+it does open; and the pool is saturated. The next place to spend effort is **better views**, or a
+sharper label-free selector — not per-view reshaping.
+
+**Files changed**:
+- `scripts/nonmono_v2/common.py` — corrected shape instrument: `iso_fit` (union-of-cones MLE, replaces the `corrcoef` direction bug), `kde_modes` (keeps the mode *location*), `isoboot_labels` (a null that holds the relationship monotone rather than absent), Besag–Clifford sequential MC + GPD tail, Simes/BH/Storey
+- `scripts/nonmono_v2/stage0_headroom.py` — fused-score headroom + mechanism diagnostics → `headroom.csv`, `mechanism.csv`
+- `scripts/nonmono_v2/unit_test_transforms.py` — the single-view unit test → `unit_test_transforms.csv`
+- `scripts/nonmono_v2/transform_selection.py` — 10-option menu, centre + hinge sweeps, the consensus pseudo-label detector → `transform_selection.json`
+- `scripts/nonmono_v2/repick_transforms.py` — re-derives the pick under the agreed Tier A/B label policy without repeating the ~40 min sweep
+- `scripts/nonmono_v2/dufs_pf.py` — standalone `a2.dufs_pf`, bit-exact on 24/24; `--verify` is the reproduction gate
+- `scripts/nonmono_v2/stage3_ensemble.py` — the ensemble bench → `ensemble_bench.csv`, `ensemble_mechanism.csv`, `ensemble_summary.json`
+- `scripts/nonmono_v2/stage4_redundancy.py` — R2 conditional shape gain → `redundancy.csv`
+- `scripts/nonmono_v2/shape_curves_export.py`, `build_shape_page.py` — the advisor evidence page
+- `scripts/nonmono_v2/build_transform_page.py` — the per-candidate visual justification page
+
+---
