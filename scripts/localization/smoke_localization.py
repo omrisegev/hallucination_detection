@@ -27,6 +27,7 @@ MODULES = [
     ("evidence_drop", "Evidence Drop detector + the three paper baselines"),
     ("selective_metrics", "risk-coverage / AURC / selective accuracy / NP calibration"),
     ("localization_metrics", "step-level SLA + ProcessBench official F1"),
+    ("our_arm", "our L-SML/U-PCR fusion entered into the protocol"),
     ("spectral_utils.localization_data", "full-MATH loader helpers"),
     ("spectral_utils.processbench", "ProcessBench loading + token->step alignment"),
 ]
