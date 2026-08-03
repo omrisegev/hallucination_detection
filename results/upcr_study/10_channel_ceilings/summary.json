@@ -1,0 +1,154 @@
+{
+  "n_cells": 24,
+  "runs": [
+    "r2"
+  ],
+  "arm": "U-PCR + sign(rho) (exp06 rho+anchor), the BENCHMARK_STANDING arm",
+  "arm_macro": 0.7740927938176672,
+  "fit": {
+    "loss": "l2",
+    "exclusion": true,
+    "difficulty_gate": false,
+    "simple_avg_fallback": true,
+    "recompute_after_exclusion": true,
+    "g2_projection_k": 1,
+    "scale_ratio": 0.25
+  },
+  "r7a": {
+    "NOTE": "var_y=p(1-p) against a UNIT diagonal is scale_ratio in (0, 0.25], a one-sided perturbation bounded above by the deployed value. It is NOT an oracle. See r4's scale_ratio slice.",
+    "wl_pq_vs_deployed": {
+      "mean_delta": -0.0022746227449713017,
+      "median_delta": -0.00017690586193958024,
+      "wins": 8,
+      "losses": 14,
+      "n": 24,
+      "p": 0.014239798947219488,
+      "unit": "observations"
+    },
+    "wl_a1_vs_deployed": {
+      "mean_delta": -0.0010474443025159975,
+      "median_delta": 2.6672035283004103e-05,
+      "wins": 13,
+      "losses": 10,
+      "n": 24,
+      "p": 0.8314013177040228,
+      "unit": "observations"
+    },
+    "macro_deployed": 0.7740927938176672,
+    "macro_var_y_pq": 0.771818171072696,
+    "macro_a1_ratio1": 0.7730453495151514,
+    "p_min": 0.0234375,
+    "p_median": 0.4707879781420765,
+    "box_ratio_max": 10.922666666666666,
+    "n_g2_at_ceiling_deployed": 20,
+    "n_g2_at_ceiling_oracle": 22,
+    "mean_keep_deployed": 20.875,
+    "mean_keep_oracle": 20.458333333333332
+  },
+  "r1": {
+    "total_dropped": 181,
+    "total_views": 682,
+    "mean_oracle_auroc_dropped": 0.5839934913165717,
+    "mean_oracle_auroc_kept": 0.7082045032020318,
+    "n_dropped_beating_best_kept": 1
+  },
+  "r3": {
+    "wl": {
+      "mean_delta": 0.004934505748731795,
+      "median_delta": 0.0026356488600878247,
+      "wins": 24,
+      "losses": 0,
+      "n": 24,
+      "p": 1.1920928955078125e-07,
+      "unit": "observations"
+    },
+    "macro_deployed": 0.7740927938176672,
+    "macro_oracle_mix": 0.779027299566399,
+    "n_two_component": 23,
+    "n_simple_average": 0
+  },
+  "r4": {
+    "deployed_macro": 0.7740927938176672,
+    "best_global_setting": {
+      "min_frac": 0.05,
+      "exclude_frac": Infinity,
+      "scale_ratio": 0.25
+    },
+    "best_global_macro": 0.7760145251491298,
+    "best_global_delta_pp": 0.19217313314626727,
+    "per_cell_oracle_macro": 0.7788868887957943,
+    "n_settings": 125
+  },
+  "r5": {
+    "primary": "partial_spearman_given_n_keep",
+    "mean_partial_spearman": -0.12954129344859033,
+    "median_partial_spearman": -0.2673509718511039,
+    "n_cells_negative_partial": 14,
+    "n_cells_finite_partial": 24,
+    "mean_spearman_within_scale_ratio": 0.25736203002689156,
+    "mean_spearman_full_grid_CONFOUNDED": -0.04456093607858721,
+    "mean_partial_res_vs_nkeep": 0.4270361483191057,
+    "n_cells": 24,
+    "reading": "Eq. 20 MINIMISES RES, so ordering masks correctly means NEGATIVE. The raw and within-scale_ratio numbers are both nuisance-driven: RES is computed on a block whose dimension IS n_keep, and n_keep is what min_frac/exclude_frac move. Only the partial is interpretable."
+  },
+  "r7b": {
+    "n_cells_with_root": 24,
+    "n_roots_in_box": 2,
+    "median_root": 0.36338266654415563,
+    "wl": {
+      "mean_delta": -0.0006230047269885399,
+      "median_delta": 3.590912444045857e-05,
+      "wins": 13,
+      "losses": 10,
+      "n": 24,
+      "p": 0.9272980307084063,
+      "unit": "observations"
+    }
+  },
+  "r2": {
+    "wl_insample_vs_start": {
+      "mean_delta": 0.030864809982180847,
+      "median_delta": 0.02820878076422928,
+      "wins": 24,
+      "losses": 0,
+      "n": 24,
+      "p": 1.1920928955078125e-07,
+      "unit": "observations"
+    },
+    "wl_splithalf_vs_deployed": {
+      "mean_delta": 0.01478016533639015,
+      "median_delta": 0.01142299268152941,
+      "wins": 21,
+      "losses": 3,
+      "n": 24,
+      "p": 2.9802322387695312e-06,
+      "unit": "observations"
+    },
+    "wl_splithalf_vs_NULL": {
+      "mean_delta": 0.07937384575235366,
+      "median_delta": 0.08163902198559203,
+      "wins": 23,
+      "losses": 1,
+      "n": 24,
+      "p": 2.384185791015625e-07,
+      "unit": "observations"
+    },
+    "wl_null_vs_deployed": {
+      "mean_delta": -0.06459368041596351,
+      "median_delta": -0.066612175169249,
+      "wins": 1,
+      "losses": 23,
+      "n": 24,
+      "p": 2.384185791015625e-07,
+      "unit": "observations"
+    },
+    "macro_deployed": 0.7740927938176672,
+    "macro_oracle_insample": 0.8052157307339458,
+    "macro_splithalf_deployed": 0.7703927003450944,
+    "macro_splithalf_oracle": 0.7851728656814846,
+    "macro_splithalf_NULL": 0.7057990199291307,
+    "n_cells_greedy_unconverged_insample": 0,
+    "n_split_greedies_unconverged": 0,
+    "greedy_max_steps": 60
+  }
+}

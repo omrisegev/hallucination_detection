@@ -9707,3 +9707,83 @@ sharper label-free selector — not per-view reshaping.
 - `scripts/nonmono_v2/build_transform_page.py` — the per-candidate visual justification page
 
 ---
+### Step 220 — the U-PCR ceilings: feature selection is the only channel with room, and it is not ranked by rho
+
+**What**: Before building the clustering stage the July meeting asked for, priced every channel
+through which U-PCR's machinery can reach the output, by letting the labels do that step
+perfectly. Four channels pre-registered (`exp10_channel_ceilings.py`), six controls added after
+review (`exp11_posthoc_controls.py`), plus a direction diagnostic
+(`action_items_jul2026/sign_identifiability.py`). 24 in-scope cells, arm of record = U-PCR +
+sign(rho) at 0.7741; both anchor gates raise on every run.
+
+**Why**: Step 204 built a clustering variant and lost 4.46pp. Omri's objection was that the
+*placement* was wrong, not the idea. Rather than try a fifth variant, price each placement first
+— a channel that oracles at zero can be closed with a number instead of another refuted attempt.
+
+**Result**:
+
+| channel | best possible gain | 95% CI |
+|---|---:|---|
+| **which features get kept** | **+1.48pp** (21W/3L) | [+0.97, +2.03] |
+| the v1/v2 blend, held out | +0.19pp (11W/13L, p=0.57) | [−0.08, +0.51] |
+| the three hard-coded constants | +0.19pp (best of 125, in-sample) | — |
+| `var_y` | ~0, three ways (p=0.014 / 0.83 / 0.93) | — |
+| **every view's sign correct** | **−0.06pp** (4W/3L, p=1.00, 17/24 exactly 0.0000) | [−0.29, +0.08] |
+
+**Three of the four clustering placements price at zero.** The fourth has room, but:
+- the good masks keep ~10 views vs the deployed ~21 — **smaller on 24/24 cells**;
+- their overlap with the top-k by |rho_hat| is **0.340 against a random baseline of 0.360** —
+  at chance. `V4`'s "top-rho per cluster" ranks on a quantity that does not order the target;
+- keeping fewer *by rho* loses at every size (−1.49pp at k=6 → −0.28pp at k=16);
+- and none of it transfers: a LOCO keep-set scores −0.81pp at matched size, −2.37pp at top-10.
+- Random same-size subsets lose 1.55pp, so the gain is view **identity**, not count; a shallow
+  label search recovers +0.69pp of the +1.48pp, so the rest needs depth.
+
+**The sign line is closed by a ceiling the plan never registered.** Part 2B, target T4, S1/S2/S3
+and runs R6/R9 were all authorised against a channel worth −0.06pp with a perfect oracle. The
+diagnostic underneath is real — recovery is 65.8% on non-monotone views vs 93.4% elsewhere,
+cell-clustered permutation p=0.0003 — but those views are also the weakest (mean oracle single-view
+AUROC 0.5417 vs 0.6022; 12 of 13 wrong-signed ones at ≤0.557, i.e. at chance where the sign costs
+nothing). Gate P passes (max |ΔAUROC| = 0.4395, 0/24 invariant), so U-PCR *is* sign-sensitive —
+but **sensitivity is not headroom**, and that inference is what justified the whole line.
+
+**Eq. 20's residual does not rank masks.** Partial Spearman vs AUROC flips sign with the
+conditioning set (−0.13 given n_keep, +0.15 given scale_ratio), |rho| < 0.16 throughout, 14/24
+cells. L1/L3 die; L2 (the Laplacian-smooth pseudo-label) never depended on it and survives.
+
+**Sub-step 220.1 — three review passes, and what they cost.**
+- *Code correctness*: 16 findings. The greedy was capped at 12 steps and still improving on
+  **17/24 cells** (+2.43pp → +3.09pp at budget 60); `binom_p_weak_vs_half = 5.7e-50` tested a
+  folded statistic against a bound it cannot cross while pooling 225 views into one n; a leakage
+  hole where a failed half-A fit fell back to the full-cell keep set; Gate P printed instead of
+  raising. All fixed.
+- *Adversarial results*: 11 findings, two of them missing **measurements** rather than defects —
+  the oracle sign ceiling (which overturned §7) and the oracle-mask/rho orthogonality (the phase's
+  most actionable result, sitting unread in its own CSV).
+- *Pre-registration compliance*: every Phase-1 run executed and every checkpoint branch fires the
+  same way under the registered reading — but three gates were justified in the write-up by text
+  the same document retracts, the headline was reported for two turns **without a CI**, and one
+  Phase-2 run (R9) was consumed early without its C0 reproduction gate, so its 0.500-vs-0.562
+  number is not quotable.
+
+**Two self-corrections worth recording.** (1) The first cut of `exp10` fitted `cell["V"]`, which
+`prepare_cell` has already hand-oriented — it reproduced exp06's `macro_hand_anchor` = **0.75713**
+to 5dp, the wrong arm with a plausible number. `derive_cell` + `derived_arm_gate` now assert 0.7741.
+(2) This plan's own claim that `g2` reaches the exclusion mask is refuted: across a 10.9× change in
+`var_y` the mean survivor count moves 20.88 → 20.46 and most masks are identical.
+
+**Status**: the clustering line **closes on ceilings**. The live question is a feature-selection
+one — what separates the good views, if not rho? Forward plan, including the deciding test between
+Bracha's two DUFS proposals, in `results/action_items_jul2026/item2_upcr_clustering/PLAN_NEXT.md`.
+
+**Files added**:
+- `scripts/upcr_study/exp10_channel_ceilings.py` — the four pre-registered ceilings + the constant
+  sweep + the criterion-ranking test
+- `scripts/upcr_study/exp11_posthoc_controls.py` — the six post-hoc controls, made reproducible
+  (they were session scratch; the sign ceiling that closed a whole line was not in the repo)
+- `scripts/action_items_jul2026/sign_identifiability.py` — Gate P + the direction diagnostic
+- `results/action_items_jul2026/item2_upcr_clustering/{PHASE1_RESULTS.md,PLAN_NEXT.md}`
+- `results/upcr_study/{10_channel_ceilings,11_posthoc_controls}/`
+- `scripts/upcr_study/common.py` — stale 0.7594 in the validity-failure message → `GOOD6_EXPECTED`
+
+---

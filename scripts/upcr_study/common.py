@@ -68,11 +68,12 @@ def validity_check(cells, verbose=True):
     a gate, and this project already lost a session to a mis-computed baseline
     (Step 201). Note `assert_good6` returns the TUPLE (ok, macro), so
     `bool(assert_good6(...))` is always True; unpack it."""
-    from inscope_bench_common import assert_good6
+    from inscope_bench_common import assert_good6, GOOD6_EXPECTED
     ok, macro = assert_good6(cells, verbose=verbose)
     if not ok:
         raise SystemExit(
-            f"VALIDITY CHECK FAILED: GOOD_6 macro = {macro:.4f}, expected 0.7594. "
+            f"VALIDITY CHECK FAILED: GOOD_6 macro = {macro:.4f}, expected "
+            f"{GOOD6_EXPECTED}. "
             "The loaded data is not the data our numbers came from — refusing to "
             "report anything downstream.")
     return ok, macro

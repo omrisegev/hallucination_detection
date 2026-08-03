@@ -1,10 +1,29 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-02
-**Last updated**: Step 218 — **the non-monotone line is CLOSED. The fold repairs the view (up to
+**Date**: 2026-08-03
+**Last updated**: Step 220 — **the U-PCR clustering line is CLOSED on ceilings. Feature selection
+is the only channel with room in it (+1.48pp held out, CI [+0.97, +2.03]); the weighting blend
+(+0.19pp, p=0.57), the constants, `var_y`, and getting every view's sign right (−0.06pp, p=1.00,
+17/24 cells exactly unchanged) are all empty.** The live question is now a *selection* question,
+not a clustering one: the good masks keep ~10 views vs the deployed ~21 (smaller on 24/24) and
+overlap the top-k by |rho_hat| at **0.340 against a random baseline of 0.360** — at chance. So
+every variant that ranks by rho is aiming at a target rho does not order.
+
+**READ NEXT**: `results/action_items_jul2026/item2_upcr_clustering/PLAN_NEXT.md` — the pruned
+forward plan, built around Bracha's two DUFS proposals and the one cheap test that decides
+between them. `PHASE1_RESULTS.md` in the same directory has the measurements.
+
+**Note on step numbering**: Step 219 belongs to the localization/Extension-F work on the
+`experiment/step-localization` worktree. This is Step 220 on master.
+
+<details><summary>Step 218 (previous) — the non-monotone line</summary>
+
+**Step 218**: **the non-monotone line is CLOSED. The fold repairs the view (up to
 +26.5pp single-view), U-PCR re-admits 33% of the views it had excluded, and it is worth +0.05pp
 fused because the pool already had the information (99% absorbed). The feature pool ships
 unchanged.** Steps 216–217 below remain current for the roster and the validity constant.
+
+</details>
 
 ## Steps 216–217 — THE ROSTER AND THE VALIDITY CONSTANT BOTH CHANGED (READ THIS FIRST)
 
