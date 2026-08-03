@@ -133,6 +133,14 @@ DATASETS = {
     "lciteeval_narrativeqa":      _lciteeval_entry("narrativeqa"),
 }
 
+# Worktree-developed dataset modules — pre-stubbed so branch merges never conflict on this
+# file. An absent module is simply skipped; a present one raises on any key collision above.
+try:
+    from datasets_localization import register_all as _register_localization_datasets
+    _register_localization_datasets(DATASETS)
+except ImportError:
+    pass
+
 STOP = {"flag": False}
 
 # Exit code for "checkpointed but incomplete". Exiting 0 after a SIGTERM checkpoint

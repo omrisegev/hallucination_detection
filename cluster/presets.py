@@ -915,6 +915,16 @@ for _src in ("gpqa_r1distill8b", "trace_gpqa_r1qwen7b"):
     PRESETS[f"{_src}_mn16384"] = _p
 
 
+# Worktree-developed preset modules — pre-stubbed so branch merges never conflict on this
+# file. An absent module is simply skipped; a present one registers its own ids and raises
+# on any collision with the ids above.
+try:
+    from presets_localization import register_all as _register_localization
+    _register_localization(PRESETS, _preset)
+except ImportError:
+    pass
+
+
 def get_preset(preset_id: str) -> dict:
     if preset_id not in PRESETS:
         raise KeyError(f"unknown preset {preset_id!r}; known: {sorted(PRESETS)}")
