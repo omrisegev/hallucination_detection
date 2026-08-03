@@ -9707,3 +9707,96 @@ sharper label-free selector — not per-view reshaping.
 - `scripts/nonmono_v2/build_transform_page.py` — the per-candidate visual justification page
 
 ---
+
+### Step 219 — Extension F reactivated: the Evidence Drop replication is built, and the paper has five defects worth knowing about
+
+**What**: Ofir asked at the last meeting about applications beyond detection — localizing a
+hallucination inside the trace rather than only flagging the answer — and shared *Mind the Gap:
+Catching Hallucinations via Evidence Drop on the Reasoning Manifold* (ICML 2026, PMLR 306), which
+does step-level localization on ProcessBench. Omri told the advisors we would run it on the
+cluster. Built on worktree `.worktrees/localization`, branch `experiment/step-localization`.
+
+Also digested *Deep Think with Confidence* (arXiv:2508.15260) for the first time — it has been our
+Extension-E baseline since Step 148 and was never in `papers/index.md`.
+
+**Why**: this is Extension F, deferred on 2026-07-10 behind three named blockers (a grading harness
+over provided solutions, a token→step alignment layer, an F1 protocol). All three are now closed.
+
+#### The papers were not what the cache said
+
+`papers/digests/mind-the-gap-*.md` said "no PDF available, abstract-only", with models, baselines
+and scores marked UNVERIFIED and an invented AUROC row. The PDF is in `papers/` — 25 pages with
+appendices. Re-digested from source. **Five defects in the paper, each verified against the
+extract**, all of which change how it must be reproduced:
+
+1. **The calibration quantile is self-contradictory.** §4 and App. C.2 say the (1−α)-quantile;
+   Eq. 43 with `Accept if φ ≤ τ̂` requires the **α**-quantile. Table 1's monotone decrease in
+   selective accuracy as α grows settles it empirically. We implement the α-quantile.
+2. **Two incompatible definitions of "evidence".** Eq. 10 is negative renormalized top-K *entropy*;
+   App. B Eq. 36/39 is log top-K probability *mass*. **The theorem is proved for the one the method
+   does not use.**
+3. **Table 5 panels (a) and (b) are byte-identical, row for row**, so only one of the M / EMA-span
+   ablations was ever run. M=10 (90.75) also beats the M=5 default (88.26).
+4. **Table 3 has duplicate cells** — `LN-S Drop` == `Shannon Avg` exactly on two Qwen3-4B rows.
+5. **Table 1's MATH accuracy is 59.24 ± 0.21 for *both* 4B and 8B** — the 4B value copied into the
+   8B row. App. E.2 Table 6 has the real figures (66.1 vs 57.9).
+
+For DeepConf, two pins that change what gets built: `C_i` **excludes the sampled token** in their
+reference code (App. G.4) though Eq. 2 implies otherwise, and **Table 1 / Fig. 5 contain no
+Qwen3-8B** — it lives only in appendix Tables 5–10.
+
+#### The operating point is the whole ballgame
+
+Selective accuracy and AURC are both monotone in base error rate, so reproducing "Shannon Drop
+88.26%" at a different base accuracy is not reproducing it at all. The paper never states a prompt
+template, thinking mode, max length or seed, but its three accuracy figures (GSM8K 91.07 / 87.63,
+MATH ~66) are consistent with Qwen3 **non-thinking** and not with thinking-on — our own thinking-on
+caches sit at 94.2 / 90.0. So `/no_think` is the primary arm and a thinking-on GSM8K cell is the
+control that decides the mode by measurement. Non-thinking also fixes the calibration set and the
+truncation confound (below). Dataset is the **full MATH test split**, not MATH-500: the paper says
+"MATH" and the string "MATH-500" appears nowhere in it.
+
+#### Three bugs the known-answer tests caught before any number was produced
+
+- **The obvious vectorized adjusted EMA is unusable here.** `cumsum(x/w)*w` divides by `(1−α)^t`,
+  which underflows to zero after a few hundred tokens. Our traces are thousands of tokens, so every
+  Drop score would have been NaN. Replaced with an IIR recursion + closed-form denominator.
+- **Eq. 44's finite-sample correction, implemented from the upper tail, was *more* permissive than
+  the uncorrected quantile** (9.0 vs 5.0) — the opposite of a safety correction. The right rule is
+  the Clopper-Pearson upper bound: largest `k` with `cdf(k; n, α) ≤ δ`.
+- **A bare `d < 0` flux test turns EMA rounding into drops.** The EMA of a flat trace returns the
+  constant only to ~1e-16, so a trace where nothing happened scored a nonzero risk. Fixed with a
+  scale-relative tolerance.
+
+#### A feature-pool hazard that only appears at step level
+
+`extract_all_features` returns None below 8 tokens, but between 8 and 32 it returns a **full** dict
+in which several views are constants rather than measurements — and they are **finite**, so
+`subset_matrix`'s validity check admits them to the fusion as information-free columns. Measured on
+30 random steps per length: at n=8 `low_band_power`, `stft_max_high_power`, `stft_spectral_entropy`
+are all constant; at n=31 the two STFT views still are; at n=40 none are. Causes are structural —
+`compute_stft_features` has `min_len=32` and returns **0.0, not NaN**, and the low band
+(`0 < freq ≤ 0.10`) contains no rFFT bins for N < 10, which also degenerates `hl_ratio` into
+`high_band_power × 1e12`. `our_arm.degenerate_features()` NaNs these per step. **This matters
+because ProcessBench steps are routinely under 32 tokens.**
+
+**Result**: 41 known-answer checks across 6 modules pass (`scripts/localization/smoke_localization.py`);
+all 5 `evdrop_*` presets pass `scripts/smoke_preset.py`. The answer-level pipeline was run end to end
+on `ars_gsm8k_qwen3_8b_reject` (500 rows) and reproduces the paper's central claim — Drop beats Avg
+on all three baselines (Shannon 68.5 → 18.8, LN-S 72.2 → 21.3, LogTokU 144.9 → 25.9 AURC ×1000) —
+plus their "Avg gives no meaningful threshold" phenomenon (Shannon Avg selective accuracy
+10.58 ± 23.62 at α=0.05: threshold instability, not a score). Our arm leads on AURC (L-SML/GOOD_5
+**8.4**).
+
+**Those numbers are a plumbing validation, not a result, and must not be quoted as one.** That cell
+is the thinking-on control at 94.2% accuracy against the paper's 91.07%, and its own diagnostics
+disqualify it twice: `n_cal_incorrect` min **8** (so the α=0.05 "quantile" is the minimum order
+statistic) and **51.7% of the negative class (15/29) is cap-truncation**, not hallucination. The
+comparable numbers come from the `/no_think` cells. N=30 pilot submitted as job **155987**.
+
+**Allocation note**: the cluster is at **3,472 of 5,760 GPU-hours used** (~2,290 left). Track A is
+cheap (~20–30 GPU-h all in). One full-pool DeepConf cell is ~100 GPU-h ≈ 4.4% of what remains, and
+the full DeepConf roster (~1,570 GPU-h) is no longer affordable — that decision now needs the
+staged measurement from the B2 pilot before anything is launched.
+
+---

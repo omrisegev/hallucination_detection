@@ -1,10 +1,75 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-02
-**Last updated**: Step 218 — **the non-monotone line is CLOSED. The fold repairs the view (up to
-+26.5pp single-view), U-PCR re-admits 33% of the views it had excluded, and it is worth +0.05pp
-fused because the pool already had the information (99% absorbed). The feature pool ships
-unchanged.** Steps 216–217 below remain current for the roster and the validity constant.
+**Date**: 2026-08-03
+**Last updated**: Step 219 — **Extension F (step-level localization) is REACTIVATED and built.**
+The Evidence Drop replication (ICML 2026) exists end to end on the worktree
+`.worktrees/localization` (branch `experiment/step-localization`): presets, the ProcessBench
+teacher-forcing path, the metric machinery, and our arm. N=30 pilot submitted as job **155987**.
+Step 218 below is unchanged and still current for the pool decision and the roster.
+
+## Step 219 — Extension F is active (READ THIS FIRST)
+
+**> NEXT SESSION STARTS HERE.**
+
+### What exists now
+
+| Piece | Where |
+|---|---|
+| Answer-level presets (`evdrop_*`, 5 cells) | `cluster/presets_localization.py` |
+| Full MATH test loader (not MATH-500) | `spectral_utils/localization_data.py` |
+| ProcessBench loader + token→step alignment | `spectral_utils/processbench.py` |
+| Teacher-forced driver (+ Gate B) | `cluster/run_teacher_forced.py` |
+| Evidence Drop + its 3 baselines, Avg and Drop | `scripts/localization/evidence_drop.py` |
+| Risk-coverage / AURC / selective accuracy / NP calibration | `scripts/localization/selective_metrics.py` |
+| SLA + ProcessBench official F1 | `scripts/localization/localization_metrics.py` |
+| Our L-SML/U-PCR arm (mirror-gated) | `scripts/localization/our_arm.py` |
+| End-to-end answer-level driver | `scripts/localization/score_evdrop.py` |
+| The gate — 41 known-answer checks, 6 modules | `scripts/localization/smoke_localization.py` |
+
+Shared files take only a 3-line pre-stubbed `try/except` each (`cluster/presets.py`,
+`cluster/run_inference.py`), per the Step-186 worktree convention.
+
+### The four things that will bite whoever picks this up
+
+1. **THE OPERATING POINT IS THE WHOLE BALLGAME.** Selective accuracy and AURC are monotone in base
+   error rate, so a reproduction at the wrong accuracy is not a reproduction. The paper's figures
+   (GSM8K 91.07 / 87.63, MATH ~66) imply Qwen3 **non-thinking**; our thinking-on caches sit at
+   94.2 / 90.0. `/no_think` is the primary arm; `evdrop_gsm8k_qwen3_8b_think` is the control that
+   settles it by measurement. **N=30 cannot resolve a 3pp accuracy gap — the mode decision needs
+   the full-N run.**
+2. **MATH means the full Hendrycks test split, not MATH-500.** The string "MATH-500" appears
+   nowhere in the paper. Seeded subject-stratified shuffle, so N<5000 is reproducible.
+3. **Cite App. E.2 Table 6 for MATH accuracy, never Table 1** — Table 1 has the 4B value copied
+   into the 8B row (59.24 ± 0.21 for both models).
+4. **Step-level features are structurally thinner than answer-level ones.** Between 8 and 32 tokens
+   `extract_all_features` returns a full dict whose STFT views are **0.0, not NaN** — finite, so
+   they enter the fusion as constant columns. Below N=10 `low_band_power` has no rFFT bins and
+   `hl_ratio` degenerates to `high_band_power × 1e12`. `our_arm.degenerate_features()` handles it;
+   report availability before any step-level score.
+
+### Validation status
+
+- 41 known-answer checks pass; all 5 presets pass `scripts/smoke_preset.py`.
+- End-to-end on `ars_gsm8k_qwen3_8b_reject` (500 rows): the paper's central claim reproduces —
+  Drop beats Avg on all three baselines (Shannon 68.5 → 18.8, LN-S 72.2 → 21.3, LogTokU
+  144.9 → 25.9 AURC ×1000) — and our arm leads (L-SML/GOOD_5 **8.4**).
+- **⚠ Those are NOT results.** That cell is the thinking-on control at the wrong operating point,
+  with `n_cal_incorrect` min **8** and **51.7% of its negatives cap-truncated**. Plumbing only.
+
+### Next actions
+
+1. **Fetch and read the N=30 pilot (job 155987)** — plumbing check only.
+2. **Submit the four `/no_think` full-N cells**, then decide the thinking mode from accuracy.
+3. **Run Gate B for the teacher-forced driver** (`--validate` against a generated cell) *before*
+   trusting any ProcessBench output. It is the gate that catches a wrong prompt/template.
+4. **Then ProcessBench**, all 4 subsets, both models.
+5. **Track B (DeepConf) stays BLOCKED** on the Track-A gate — and see the allocation note.
+
+### ⚠ Allocation: 3,472 of 5,760 GPU-hours are already spent
+
+~2,290 remain. Track A is cheap (~20–30 GPU-h all in). **One full-pool DeepConf cell is ~100 GPU-h
+≈ 4.4% of what is left, and the full DeepConf roster (~1,570 GPU-h) is no longer affordable.** The
+staged B2 throughput pilot must produce a measured cost before anything at that scale is launched.
 
 ## Steps 216–217 — THE ROSTER AND THE VALIDITY CONSTANT BOTH CHANGED (READ THIS FIRST)
 

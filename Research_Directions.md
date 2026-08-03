@@ -475,23 +475,64 @@ closest per-instance-router precedent), candidate designs, open questions for Of
 **Next steps**: resolve the open questions in the memo (§5) with Ofir/Bracha, then pilot D1 (lowest
 implementation risk, reuses existing L-SML/U-PCR residual code) on the 19-cell replication grid.
 
-### Extension F — Step-Level Error Localization (ProcessBench / MR-GSM8K) — DEFERRED (2026-07-10)
+### Extension F — Step-Level Error Localization (ProcessBench) — **ACTIVE (2026-08-03, Step 219)**
 
-The July-2026 SOTA survey recommends a process-level benchmark as a secondary evaluation for
-reasoning-focused detectors: **ProcessBench** (arXiv 2412.06559 — 3,400 expert-annotated cases
-across GSM8K/MATH/OlympiadBench/Omni-MATH with first-error-step labels, F1 metric) or
-**MR-GSM8K** (arXiv 2312.17080). This is a different task from our sequence-level AUROC
-detection — it asks *where* the reasoning breaks, not *whether* the answer is wrong.
+**Status: ACTIVE.** Reactivated by Omri after the advisor meeting where Ofir raised applications
+beyond detection — localizing the hallucination inside the trace rather than only flagging the
+answer — and shared *Mind the Gap: Catching Hallucinations via Evidence Drop on the Reasoning
+Manifold* (Chen, Chen, Yue, Li; **ICML 2026, PMLR 306**), which does exactly this on ProcessBench.
+Branch: `experiment/step-localization` (worktree `.worktrees/localization`).
+
+ProcessBench: arXiv 2412.06559 — 3,400 expert-annotated cases across
+GSM8K/MATH/OlympiadBench/Omni-MATH with first-error-step labels. A different task from our
+sequence-level AUROC detection: it asks *where* the reasoning breaks, not *whether* the answer is
+wrong.
 
 **Why it fits us structurally**: our sliding-window features (`sw_var_peak_with_window` keeps the
 window index) and CUSUM drift (`cusum_shift_idx` is literally a change-point location) are
 naturally step-localizable — a per-step L-SML score is a modest extension, not a redesign.
 
-**Why deferred (Omri, 2026-07-10)**: keeps the current benchmarking pass focused on AUROC
-head-to-heads; step-level would need a new grading harness (their provided solutions, not our
-generations), a step-alignment layer (token index → solution step), and an F1 protocol. Revisit
-after the reasoning replication grid completes, if a reviewer or committee member asks for
-error localization.
+#### The three 2026-07-10 blockers are closed
+
+| Blocker (as written when deferred) | Closed by |
+|---|---|
+| "a new grading harness (their provided solutions, not our generations)" | `spectral_utils/processbench.py` — schema-validated loader; the solutions are given and the labels are the annotations |
+| "a step-alignment layer (token index → solution step)" | `processbench.step_token_spans` + `assert_alignment`; verified against the real Qwen3 BPE (5/5 steps round-trip, coverage 1.0) |
+| "an F1 protocol" | `scripts/localization/localization_metrics.py` — **both** the paper's SLA and ProcessBench's official F1 |
+
+Inference is `cluster/run_teacher_forced.py`, reusing `backfill_views.forward_batch` /
+`candidate_quantities` (one forward pass per row over the *provided* chain — no generation).
+
+#### What must travel with every number from this arm
+
+- **The signal is different.** Teacher-forcing measures *our model's surprise at another model's
+  text*. Correct per the paper, but not the same quantity as our own-generation cells.
+- **Six things the paper leaves undefined are ours**, pre-registered in
+  `localization_metrics.py`'s docstring before any number existed — chiefly `Δ_t := min` over the
+  step's tokens, flux `j` attributed to the step containing token `j+1`, global (not per-step) EMA,
+  and `label = −1` rows excluded from SLA but used by F1.
+- **The step-level feature pool is smaller than the answer-level one, structurally.**
+  `compute_spectral_features` needs ≥8 tokens and `compute_stft_features` ≥32. Worse, between 8 and
+  32 tokens the STFT views return **0.0, not NaN** — finite, so they pass `subset_matrix`'s validity
+  check and enter the fusion as constant columns. Below N=10 `low_band_power` has no rFFT bins at all
+  and `hl_ratio` degenerates to `high_band_power × 1e12`. `our_arm.degenerate_features()` NaNs these
+  per step. Availability must be reported before any step-level score.
+
+#### Answer-level companion (same paper, Tables 1–2)
+
+Presets `evdrop_{gsm8k,math}_qwen3_{4b,8b}` + a thinking-on control. **The operating point is the
+whole ballgame**: selective accuracy and AURC are monotone in base error rate, so matching the
+paper's accuracy (GSM8K 91.07 / 87.63, MATH ~66 per App. E.2 Table 6 — *not* Table 1's 59.24, which
+is the 4B value copied into the 8B row) is a precondition for comparability. Their figures imply
+Qwen3 **non-thinking**; our thinking-on caches sit at 94.2 / 90.0. Full MATH test split, not
+MATH-500 — the paper says "MATH" and the string "MATH-500" appears nowhere in it.
+
+#### Decision gate
+
+**G-F1**: on the paper's own protocol and metrics, our fused arm must beat the best of
+{Shannon, LN-S, LogTokU} × {Avg, Drop} on **AURC** at the matched operating point, and be within
+noise or better on **SLA / ProcessBench F1**. Reported with `n_cal_incorrect` and
+`frac_pinned_in_negatives` beside every cell.
 
 ---
 
