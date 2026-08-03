@@ -26,7 +26,9 @@ for p in (REPO, HERE):
 MODULES = [
     ("evidence_drop", "Evidence Drop detector + the three paper baselines"),
     ("selective_metrics", "risk-coverage / AURC / selective accuracy / NP calibration"),
+    ("localization_metrics", "step-level SLA + ProcessBench official F1"),
     ("spectral_utils.localization_data", "full-MATH loader helpers"),
+    ("spectral_utils.processbench", "ProcessBench loading + token->step alignment"),
 ]
 
 
