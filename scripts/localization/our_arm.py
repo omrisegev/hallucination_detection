@@ -32,9 +32,25 @@ if _REPO not in sys.path:
 from spectral_utils.fusion_utils import (
     zscore, boot_auc, lsml_continuous_pipeline, upcr_pipeline,
 )
-from spectral_utils.repgrid_scoring import ALL_SIGNS, subset_matrix, score_subset
+from spectral_utils.repgrid_scoring import (
+    ALL_SIGNS, LOGPROB_SIGNS_EXT, load_repgrid_cell, logprob_features_extended,
+    score_subset, subset_matrix,
+)
 from spectral_utils.streaming_utils import anchor_orient
 from spectral_utils.subset_sweep import GOOD_5, GOOD_6, H16
+
+# `load_repgrid_cell` -> `_candidate_features` calls `logprob_features` (3 views) but NOT
+# `logprob_features_extended` (varentropy / renyi_entropy_2 / topk_tail_mass). So `varentropy`
+# never appears in a cell loaded that way — and **GOOD_6, the headline subset per CLAUDE.md, is
+# silently unscoreable**: `score_subset` just returns NaN and the row vanishes from the table.
+# (`selectors/reference_macros.py:55` guards for exactly this, which is why the selector bench
+# never hit it — it reads a featcache built by `scripts/build_repgrid_featcache.py`, not
+# `load_repgrid_cell`.)
+#
+# `load_cell` below re-adds the extended views on top of the canonical loader rather than
+# editing the shared module, per the worktree convention. The signs come from the package's own
+# LOGPROB_SIGNS_EXT, never hand-typed.
+SIGNS = {**ALL_SIGNS, **LOGPROB_SIGNS_EXT}
 
 # The subsets we enter. GOOD_6 is the headline per CLAUDE.md; GOOD_5 is the compatibility
 # reference; H16 is the full spectral pool. All three are imported, never hand-typed
@@ -42,6 +58,27 @@ from spectral_utils.subset_sweep import GOOD_5, GOOD_6, H16
 SUBSETS = {"GOOD_6": GOOD_6, "GOOD_5": GOOD_5, "H16": H16}
 
 METHODS = ("lsml", "upcr")
+
+
+def load_cell(pkl_path, label_key: str = "label") -> dict:
+    """`load_repgrid_cell` plus the extended logprob views, so GOOD_6 is actually scoreable.
+
+    Everything except the three extra columns comes from the canonical loader untouched.
+    """
+    import pickle
+
+    cell = load_repgrid_cell(pkl_path, label_key=label_key)
+    with open(pkl_path, "rb") as f:
+        data = pickle.load(f)
+    i = 0
+    for idx in sorted(data.keys()):
+        for cand in data[idx]["candidates"]:
+            tk = cand.get("top_k_logprobs")
+            if tk is not None:
+                cell["rows"][i].update(logprob_features_extended(tk))
+            i += 1
+    cell["available"] = sorted({k for r in cell["rows"] for k in r})
+    return cell
 
 
 def fused_risk(cell, feat_names, method: str = "lsml", signs=None, anchor: str = "epr"):
@@ -54,7 +91,7 @@ def fused_risk(cell, feat_names, method: str = "lsml", signs=None, anchor: str =
     guards: fewer than 20 valid rows, fewer than 3 features (L-SML is information-free at 3 and
     numerically undetermined at 4 — Step 205), or a single-class label vector.
     """
-    signs = ALL_SIGNS if signs is None else signs
+    signs = SIGNS if signs is None else signs
     rows, labels = cell["rows"], cell["labels"]
     X, valid = subset_matrix(rows, feat_names)
     n_valid = int(valid.sum())
@@ -86,7 +123,8 @@ def assert_mirrors_canonical(cell, feat_names, method="lsml", anchor="epr", tol=
     risk vector is negated back before comparison. Any drift here means the mirror has diverged
     from the canonical scorer — which is the failure this gate exists to make loud.
     """
-    canon = score_subset(cell, feat_names, method=method, anchor=anchor, n_boot=2)
+    canon = score_subset(cell, feat_names, method=method, signs=SIGNS,
+                         anchor=anchor, n_boot=2)
     risk, valid = fused_risk(cell, feat_names, method=method, anchor=anchor)
     if risk is None:
         if np.isfinite(canon["auroc"]):
@@ -197,6 +235,11 @@ def smoke() -> None:
     assert GOOD_6 == GOOD_5 + ["varentropy"], GOOD_6
     assert len(H16) == 16, len(H16)
     assert set(SUBSETS) == {"GOOD_6", "GOOD_5", "H16"}
+
+    # 2a. GOOD_6's extra view has a sign in the table we actually pass to the fusion. Without
+    #     this, `varentropy` would fall back to +1 and the fusion would orient it backwards.
+    assert "varentropy" in SIGNS, "GOOD_6's varentropy has no sign in SIGNS"
+    assert SIGNS["varentropy"] == -1, SIGNS["varentropy"]
 
     # 2. `fused_risk` reproduces `score_subset` exactly on a synthetic cell. Built with a real
     #    signal so the AUROC is not degenerate, and with every GOOD_6 feature present.

@@ -35,9 +35,8 @@ for p in (REPO, HERE):
         sys.path.insert(0, p)
 
 from evidence_drop import METHODS as EVDROP_METHODS, candidate_risks
-from our_arm import METHODS as OUR_METHODS, SUBSETS, fused_risk
+from our_arm import METHODS as OUR_METHODS, SUBSETS, fused_risk, load_cell
 from selective_metrics import aurc, repeated_split_eval
-from spectral_utils.repgrid_scoring import load_repgrid_cell
 
 ALPHAS = (0.05, 0.10, 0.50)
 
@@ -110,7 +109,9 @@ def score(pkl_path, out_dir, n_splits=200, seed=0, delta=None):
     labels = np.asarray(labels)
 
     # ── our arm, via the canonical feature path ──────────────────────────────
-    cell = load_repgrid_cell(pkl_path)
+    # `load_cell`, not `load_repgrid_cell`: the canonical loader omits varentropy, which
+    # would make GOOD_6 silently unscoreable. See our_arm.SIGNS.
+    cell = load_cell(pkl_path)
     for sub_name, feats in SUBSETS.items():
         for meth in OUR_METHODS:
             fr, valid = fused_risk(cell, feats, method=meth)
