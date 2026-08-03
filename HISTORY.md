@@ -9800,3 +9800,42 @@ the full DeepConf roster (~1,570 GPU-h) is no longer affordable — that decisio
 staged measurement from the B2 pilot before anything is launched.
 
 ---
+
+#### Step 219 addendum — the pilots answered the thinking-mode question
+
+Both N=30 pilots completed. The mode ambiguity the paper leaves open is now settled by
+measurement rather than assumption:
+
+| arm | dataset | accuracy | mean trace | paper's figure |
+|---|---|---|---:|---|
+| `/no_think` (new, job 155987) | GSM8K | 0.967 (29/30) | 319 tok | 91.07 — *cannot discriminate at N=30* |
+| `/no_think` (new, job 155990) | **full MATH** | **0.700 (21/30)** | 784 tok | **66.16 (App. E.2 Table 6) — consistent** |
+| thinking-on (existing cache) | MATH-500 | 0.900 | 5400 tok | +24pp, outside the pilot's CI |
+
+**GSM8K cannot decide it** — 29/30 has a 95% CI of roughly [83, 99], which contains both 91.07 and
+our thinking-on 94.2. **MATH can**, because the modes separate by ~24pp there rather than ~3pp, and
+non-thinking lands on the paper's figure while thinking-on does not. `/no_think` is confirmed as
+the primary arm. (Two things change at once between our old cache and this cell — mode *and*
+MATH-500 → full MATH — so this identifies the protocol, not the mode in isolation.)
+
+Also confirmed on the cluster: `load_math_full` resolves the real benchmark —
+`Loaded 5000 MATH problems from EleutherAI/hendrycks_math (7 subject configs)` — so the full
+Hendrycks test split loads from the per-subject configs and the seeded subject-stratified shuffle
+is what N truncates.
+
+`/no_think` also removes the truncation confound as predicted: mean trace 319 (GSM8K) and 784
+(MATH) tokens against caps of 1024/2048, longest observed 599/~1200. Nothing pinned.
+
+Full-N cells submitted: **156011** (gsm8k/8B), **156012** (gsm8k/4B), **156013** (math/8B),
+**156014** (math/4B). Estimated ~24 GPU-h for all four.
+
+**One defect found and fixed while wiring our arm**: `load_repgrid_cell` never produces
+`varentropy`, because `_candidate_features` calls `logprob_features` but not
+`logprob_features_extended`. **GOOD_6 — the headline subset — therefore returned NaN and vanished
+from the results table with no error.** The main tree has the same gap; the selector bench never hit
+it because it reads a featcache instead, and `selectors/reference_macros.py:55` carries an explicit
+guard for exactly this. `our_arm.load_cell()` layers the three extended views on top of the
+canonical loader. Worth checking whether anything else reads `load_repgrid_cell` and quietly drops
+GOOD_6.
+
+---
