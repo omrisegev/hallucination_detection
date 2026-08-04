@@ -9787,3 +9787,230 @@ Bracha's two DUFS proposals, in `results/action_items_jul2026/item2_upcr_cluster
 - `scripts/upcr_study/common.py` — stale 0.7594 in the validity-failure message → `GOOD6_EXPECTED`
 
 ---
+### Step 221 — the feature-selection question answered: the correlation with correctness identifies the good features and buys nothing, and a perfect estimate of it is priced at zero
+
+**What**: Step 220 left one live channel — *which* features get kept, worth about +1.5pp held
+out — and one question: what separates the good features, if not their estimated correlation
+with correctness? The plan made that question decide between Bracha's two DUFS proposals. Ran
+the deciding test, then a second run that removed a confound the review found in it.
+
+#### The deciding test — rank by the TRUE correlation
+
+`scripts/upcr_study/exp12_what_separates_good_features.py`. Per test set, five split-halves:
+select on half A, score on half B, halves z-scored independently, polarity re-derived on A from
+`sign(rho_hat_full)` and applied to both. Rank half A's features by their *actual* correlation
+with correctness — labels used deliberately, so this is a ceiling on any estimator — take the
+good set's own size, score held out. Arms: the deployed pool, the greedy good set, the true
+correlation, U-PCR's own `rho_hat`, 25 random subsets as a floor, and a size sweep at
+6/8/10/12/14/16 so a null could not be dismissed as a size artefact.
+
+| held out on half B, paired over 24 test sets, vs the deployed pool | delta | CI | W/L | p |
+|---|---:|---|---:|---:|
+| the good set (the ceiling) | **+1.41pp** | [+0.80, +2.07] | 22/2 | 4e-5 |
+| true correlation, good set's size | −0.66pp | [−1.57, +0.12] | 11/13 | 0.34 |
+| estimated correlation, same size | −1.23pp | [−1.94, −0.58] | 5/19 | 0.0014 |
+| random subsets, same size | −1.54pp | [−2.31, −0.97] | 1/23 | 1e-6 |
+
+Size sweep, all negative, best at the largest size tested: −1.56pp at 6 features through
+−0.31pp at 16. That trend toward zero is the arm converging on the do-nothing baseline — the
+deployed keep set averages 20.9 features, above every size tested — not the ranking improving.
+
+Ceiling reproduction gate: +1.41pp inside Step 220's [+0.97, +2.03]. Both anchor gates passed
+(GOOD_6 0.7733, U-PCR + sign(rho) 0.7741). Re-run byte-identical; zero fit failures across the
+whole run, so nothing was silently dropped from any floor. Dropping the six splits at k ≤ 4
+moves the ceiling to +1.38pp; dropping the three test sets containing them, +1.28pp.
+
+#### What the review found, and the second run
+
+Two agents in parallel, one on the code, one on the results against the pre-registration.
+Three findings changed something:
+
+1. **The comparison was confounded.** The good set is a greedy search *starting from* the
+   deployed keep set (`exp12:155-159`) that trims it down; the ranking arm built a fresh top-k
+   from nothing (`exp12:175`). So −0.66pp mixed "wrong quantity" with "threw away the incumbent".
+2. **The overlap null was too easy.** It drew uniformly from the pool, but 94.5% of the true
+   correlation's top-k and 98.3% of `rho_hat`'s sit inside a keep set that is only 73.5% of the
+   pool.
+3. **One reported diagnostic was a tautology** (`exp12:195-196`): the top-k set is by
+   construction the size-k set with the largest mean |correlation|, so "the good set is weaker"
+   held 24/24 by arithmetic. The informative comparison runs the other way — good set 0.2932 vs
+   whole pool 0.2563, and the pool mean *is* the random-subset expectation, so the good features
+   are individually **above** average, about a third of the way from random to the maximum.
+
+`scripts/upcr_study/exp13_incumbent_anchored_ranking.py` fixes 1 and 2 on exp12's exact splits
+(same seeds, exp12's random consumption replayed call-for-call, deployed AUROC asserted equal
+per split). It gives the ranking the incumbent to prune instead of rebuilding, adds a matched
+random-pruning floor, and re-measures overlap against a null with the same inside/outside
+keep-set composition as the ranking being tested.
+
+| | delta | CI | W/L | p |
+|---|---:|---|---:|---:|
+| true correlation, **pruning** the keep set | −0.77pp | [−1.68, +0.01] | 9/15 | 0.18 |
+| estimated correlation, pruning | −1.11pp | [−1.79, −0.50] | 5/19 | 0.0018 |
+| random pruning (**the matched floor**) | −0.84pp | [−1.06, −0.63] | 1/23 | <1e-4 |
+| true correlation pruning **vs that floor** | **+0.08pp** | [−0.78, +0.87] | 11/13 | **0.62** |
+| pruning minus rebuilding, true correlation | −0.10pp | [−0.24, +0.02] | 4/7 | 0.13 |
+
+**Result**: two answers pointing opposite ways, both solid.
+
+- **The true correlation identifies the good features.** Overlap 0.562 against the uniform null
+  0.416 (+0.15, 22W/2L); against the null that also controls for U-PCR's keep set, **+0.11,
+  20W/4L, p < 1e-4**. Survives the correction.
+- **And none of it converts.** Against a floor built the same way it is, it is worth **+0.08pp,
+  p = 0.62** — indistinguishable from trimming at random. The rebuild was not the explanation:
+  pruning is 0.10pp *worse* than rebuilding, not better. What the fix did remove was 0.69pp of
+  flattery from the old floor — most of the true correlation's apparent +0.88pp edge over the
+  rebuilt floor was "it started from the incumbent", not "it picked well".
+
+**The number that decides the branch**: a *perfect* estimate of the correlation, spent on
+selection, is worth **+0.34pp, CI [−0.47, +1.30], p = 0.88** over U-PCR's actual estimate. Put
+beside Step 220's other two channels the same estimate feeds — the weighting blend at +0.19pp
+(p = 0.57) and polarity at −0.06pp (p = 1.00) — **every place a better `rho_hat` can reach is
+now priced, and all three are worth nothing.** Bracha's second proposal (differentiable pair
+reweighting to improve U-PCR's estimation) cannot pay through any of them and is closed before
+being built. The only version that would escape the bound is one that stops being an estimator
+of the correlation, which is not what the proposal is.
+
+**Her first proposal — DUFS supplies the ranking — is what survives**, and for the right
+reason: its gates are learned from the sample-graph geometry, not from marginal agreement with
+correctness. The caution the run adds is that what failed here is the *shape* "score each
+feature alone, keep the top k", and DUFS has that shape too.
+
+**Two corrections to numbers we were carrying forward**:
+
+- U-PCR's own ranking is not merely at chance with respect to the good features. Against the
+  null that controls for its own keep rule it is **below** chance — −0.05, 5W/19L, p = 0.016.
+  It systematically avoids them.
+- **The floor of record is −0.84pp, not −1.55pp**, and the room against a matched floor is
+  **+2.25pp, CI [+1.53, +3.04], 23W/1L** — a larger and cleaner statement of the headroom than
+  the +1.41pp against the deployed pool.
+
+Two open items recorded, neither blocking: the shallow-search comparison (+0.69pp) was measured
+against the rebuilt floor and is due a re-read against the matched one, and no permutation null
+was carried into either new script (Step 220's shows the ceiling clears its null by +7.94pp,
+23W/1L).
+
+**Files**: `scripts/upcr_study/exp12_what_separates_good_features.py`,
+`scripts/upcr_study/exp13_incumbent_anchored_ranking.py`,
+`results/upcr_study/{12_what_separates_good_features,13_incumbent_anchored_ranking}/`,
+`results/action_items_jul2026/item2_upcr_clustering/{PLAN_NEXT.md,PHASE1_RESULTS.md}` (corrected).
+
+---
+
+### Step 222 — the ranker menu lands on the floor: no label-free per-feature statistic reaches the feature-selection room, and the one that most identifies the good features performs worst
+
+**What**: Priced a pre-registered menu of label-free rankers in the only U-PCR channel with room
+in it. `scripts/upcr_study/exp14_ranker_menu.py` replays exp12's splits through exp13's harness
+and scores eight arms twice each: held-out AUROC of the pruned keep set against the matched
+pruning floor (primary, Holm–Bonferroni over the six label-free arms), and overlap with the
+held-out good set against a composition-matched null (secondary). The menu was written into the
+module docstring before any scoring, directions included.
+
+**Why**: Step 221 closed Bracha's second proposal by pricing it. Her first — DUFS supplies the
+ranking — was the live one, and the standing rule says price it before building on it. Step 221
+also left a warning: what failed there is a *shape*, "score each feature alone and keep the top
+k", and DUFS's gates have that shape too.
+
+**Result**: **Every label-free arm is on the floor or below it.** Room and floor re-derive
+exactly (+2.25pp, CI [+1.53, +3.04], 23W/1L; floor −0.84pp vs deployed), so the bar is the same
+one Step 221 set.
+
+| arm | ranks by | vs the matched floor | Holm p | overlap vs null |
+|---|---|---|---|---|
+| cluster round-robin (**set-level**) | one feature per L-SML group in rotation | +0.23pp [−0.09, +0.55] | 0.53 | −0.00, p=0.92 |
+| additive pair-fit residual | how badly U-PCR's own Eq. 15 explains its pair covariances | −0.09pp [−0.73, +0.56] | 0.66 | −0.02, p=0.08 |
+| **DUFS gate value** (Bracha's first proposal) | the trained stochastic gate, Eq. 7 | −0.70pp [−1.45, −0.03] | 0.36 | −0.01, p=0.32 |
+| principal-direction leverage | loading on the top 2 covariance eigenvectors | −0.92pp [−1.78, −0.19] | 0.36 | −0.03, p=0.08 |
+| L-SML cluster size | size of the group it lands in | **−1.61pp** [−2.60, −0.71] | **0.008** | +0.02, p=0.49 |
+| redundancy to the pool | mean abs. correlation to the other features | **−3.13pp** [−4.80, −1.62] | **0.002** | **+0.04**, p=0.10 |
+| *estimated correlation* (control) | U-PCR's own `rho_hat` | −0.26pp | — | **−0.05**, p=0.023 |
+| *true correlation* (control) | uses labels; ceiling on the marginal family | +0.08pp | — | **+0.09**, p=0.0002 |
+
+**The sharpest result is the redundancy arm.** It is the label-free statistic that *most*
+identifies the good features (overlap +0.036, 17W/7L, bootstrap CI [+0.001, +0.071] excluding
+zero) and it is the *worst* performer of the eight (−3.13pp, Holm 0.002, 19 of 24 cells
+negative). That is Step 221's two-sided finding in its cleanest form, now with a label-free
+statistic instead of an oracle one, and it is what turns this from "a menu lost" into the
+impossibility statement `PLAN_NEXT.md` pre-registered as the stronger deliverable: **the +2.25pp
+is not reachable by scoring features one at a time.** The true correlation already established
+the ceiling of the marginal family and put it on the floor; the menu shows the label-free members
+of that family do not merely fail to reach it — two of them are significantly worse than pruning
+at random.
+
+**DUFS specifically**: its point estimate sits below the floor (−0.70pp, 9W/15L) but it is not
+separable from the floor after multiplicity (Holm 0.36), and principal-direction leverage sits
+lower still (−0.92pp) on the identical record. The DUFS number is also a three-cell effect — 9 of
+24 cells are positive, and 80% of the deficit comes from `internalstates_gsm8k_qwen25_7b`,
+`ars_gsm8k_r1distill8b` and `se_squad_v2_llama8b`. Two of the eight arms have consistent sign
+across the grid, and both are the ones significant after Holm. A further caveat: on 16 of 120
+splits DUFS opens fewer gates than the target size k, so the top-k there must admit *rejected*
+(negative-µ) gates ranked by how strongly they were rejected — 13% of the evidence sits outside
+the selector's own operating range.
+
+**The set-level arm is not an escape.** Cluster round-robin is the only arm that is not a
+per-feature score and the only one on the positive side of the floor, but it is indistinguishable
+from a uniform draw inside the keep set on the overlap test (−0.00, p=0.92 — the closest to the
+null of all eight) and from the floor on performance (Holm 0.53). Across the six label-free arms,
+|overlap excess| against performance has Spearman −0.71: the nearer an arm is to random, the
+better it scores against a floor that *is* random. Its rank-1 position is what that relationship
+produces, not evidence that the shape mattered. Exploratory: at the other two L-SML loading
+scales it is +0.04pp (`eigen`) and −0.02pp (`complete`), so it does not survive its own scale
+choice either. The floor-crossing arms do survive it (cluster size −1.48 to −2.12pp, significant
+at all three).
+
+**Gates, all four passed before any number was read**: DUFS gate extraction exact on 24/24 cells
+against the published bench; GOOD_6 = 0.7733 and U-PCR + sign(ρ) = 0.7741 checked by value; every
+exp13 arm reproduced per split to <1e-9 (in fact to exactly 0.0 on all 120 splits — deployed,
+greedy, floor, both controls, both control overlaps, k, m, keep-set size); and DUFS's gates
+verified invariant to per-column sign flips at exactly 0.000e+00, which is what licenses feeding
+it the derived-polarity matrix rather than the hand-oriented one the bench used.
+
+**Two limits of the design, both recorded rather than discovered later**:
+
+- The floor is matched to the arms but the **room is not**. The good set that defines +2.25pp
+  lives only 81.3% inside the deployed keep set, while every pruning arm is confined to it
+  (99.85%). About a fifth of the target is unreachable by any arm in this design, so
+  "recovers 10% of the room" has a denominator the arms cannot fully address.
+- Under pruning the conditional null **collapses to a single composition** on all 120 splits, so
+  the secondary endpoint is a common-null comparison across arms rather than eight separately
+  matched ones.
+
+**One arm is largely a coin flip and should not be read as a ranking**: L-SML cluster size takes
+only 4.75 distinct values on average over a pool of 28.4, so with ~21 candidates and ~11.75 kept
+the cut necessarily falls inside a block of 4–6 tied features ordered by the random tie-break.
+Its −1.61pp prices "a coarse partition plus a coin flip", not a ranking. Cluster round-robin
+shares that tie-break stream.
+
+**And one check that the negative result is measured, not forced**: the arms remain genuinely
+different objects. Mean pairwise Jaccard among the six label-free selections is 0.36 on the 95
+splits with ≥5 features to drop (0.45 overall), only 1 of 120 splits has all six choosing the
+same set, and the median split has 9 features to drop from a keep set of ~21. Sixteen splits are
+near-degenerate (≤2 to drop, Jaccard 0.84 there) and two have k > keep set.
+
+**Review**: two agents, one on the diff and one on the results against the pre-registration. The
+code pass found the dry-run artifacts sharing an output path with real ones, `cluster_rr` silently
+falling back to pool-index order under a NaN gate (spectral→energy→logprob — the exact prior the
+random tie-break exists to remove), the conditional null re-estimated per arm when it depends on
+the arm only through a composition all arms share, an unreported loading-scale degree of freedom
+on the two cluster arms, Holm counting NaN arms in its family, and a docstring arguing the
+opposite sign to the pre-registered direction. All six were fixed and the menu re-run; the
+tie-break and null streams were split so the primary table is invariant to anything done to the
+secondary, and the continuous arms came back bit-identical across the change. The results pass
+then rejected three claims as drafted — "DUFS is below the floor" (not after Holm, and selective
+against principal-direction leverage), "no arm clears the overlap null" (redundancy's bootstrap
+CI does exclude zero, and suppressing it suppresses the best evidence for the impossibility
+statement), and any reading of cluster round-robin as an escape from the failed shape — and
+corrected "the controls reproduce exp13" to "re-measured on a pruned-set estimand, both
+directions and both significances hold" (+0.09 here vs +0.11 there are two measurements, not a
+discrepancy).
+
+**Refactor**: the DUFS gate extraction and its RNG discipline moved into
+`spectral_utils/selectors/a2_groupfs.py` (`dufs_pf_gates`, `dufs_pf_cell_rng`), with
+`scripts/nonmono_v2/dufs_pf.py` delegating. `scripts/upcr_study/` cannot import that script — both
+directories have a `common.py` and the wrong one wins from `sys.modules` — and duplicating the
+three-discard-then-five-seeds dance would have produced a second selector wearing the same name.
+
+**Files**: `scripts/upcr_study/exp14_ranker_menu.py`, `results/upcr_study/14_ranker_menu/`,
+`spectral_utils/selectors/a2_groupfs.py`, `scripts/nonmono_v2/dufs_pf.py`.
+
+---

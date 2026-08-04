@@ -1,22 +1,67 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-03
-**Last updated**: Step 220 — **the U-PCR clustering line is CLOSED on ceilings. Feature selection
-is the only channel with room in it (+1.48pp held out, CI [+0.97, +2.03]); the weighting blend
-(+0.19pp, p=0.57), the constants, `var_y`, and getting every view's sign right (−0.06pp, p=1.00,
-17/24 cells exactly unchanged) are all empty.** The live question is now a *selection* question,
-not a clustering one: the good masks keep ~10 views vs the deployed ~21 (smaller on 24/24) and
-overlap the top-k by |rho_hat| at **0.340 against a random baseline of 0.360** — at chance. So
-every variant that ranks by rho is aiming at a target rho does not order.
+**Date**: 2026-08-04
+**Last updated**: Step 222 — **the ranker menu landed on the floor, and Bracha's first proposal
+is now priced too.** Eight arms, pre-registered with directions before scoring, in the only
+U-PCR channel with room (+2.25pp). **Not one label-free per-feature statistic clears the matched
+floor**; the best is a set-level cluster round-robin at +0.23pp with an interval crossing zero
+(Holm 0.53), and **two arms are significantly *worse* than pruning at random** — redundancy to
+the pool −3.13pp (Holm 0.002) and L-SML cluster size −1.61pp (Holm 0.008). **DUFS's gate value
+is −0.70pp**, 9W/15L, not separable from the floor after multiplicity (Holm 0.36) and a
+three-cell effect; principal-direction leverage is lower still at −0.92pp.
 
-**READ NEXT**: `results/action_items_jul2026/item2_upcr_clustering/PLAN_NEXT.md` — the pruned
-forward plan, built around Bracha's two DUFS proposals and the one cheap test that decides
-between them. `PHASE1_RESULTS.md` in the same directory has the measurements.
+**The result that makes this a statement rather than a loss**: the redundancy statistic is the
+one that *most* identifies the good features (overlap +0.036, 17W/7L, bootstrap CI excluding
+zero) and the *worst* performer of the eight. That is Step 221's two-sided finding reproduced
+with a label-free statistic instead of an oracle one, and together with the true correlation
+already sitting on the floor it closes the family: **the +2.25pp is not reachable by scoring
+features one at a time.** `PLAN_NEXT.md` pre-registered that as the stronger deliverable.
+
+**Do not read the round-robin as an escape from the failed shape.** It is indistinguishable from
+a uniform draw inside the keep set on the overlap test (p=0.92, closest to the null of all
+eight), and across the six label-free arms |overlap excess| vs performance has Spearman −0.71 —
+the nearer an arm is to random, the better it scores against a floor that *is* random. It also
+does not survive its own L-SML loading-scale choice (+0.04 `eigen`, −0.02 `complete`, exploratory).
+
+**Two numbers to keep using**: the floor of record is **−0.84pp**, not −1.55pp, and the room is
+**+2.25pp, CI [+1.53, +3.04], 23W/1L** (both re-derived exactly at Step 222). U-PCR's own ranking
+is **below** chance at finding the good features (−0.05, p=0.016), not at chance. **One limit to
+quote with the room**: the good set lives only 81.3% inside the deployed keep set while every
+pruning arm is confined to it, so ~a fifth of the target is unreachable by this design and
+"recovers X% of the room" has a denominator the arms cannot fully address.
+
+**READ NEXT**: `results/action_items_jul2026/item2_upcr_clustering/PLAN_NEXT.md` — the forward
+plan. `PHASE1_RESULTS.md` in the same directory has the measurements. `HANDOFF_upcr_selection.md`
+has the traps. The pre-registration for Step 222 is the module docstring of
+`scripts/upcr_study/exp14_ranker_menu.py`.
 
 **Note on step numbering**: Step 219 belongs to the localization/Extension-F work on the
-`experiment/step-localization` worktree. This is Step 220 on master.
+`experiment/step-localization` worktree. Master is at 222.
 
-<details><summary>Step 218 (previous) — the non-monotone line</summary>
+<details><summary>Step 221 (previous) — what separates the good features</summary>
+
+**Step 221**: the correlation with correctness **identifies** the good feature sets (+0.11
+overlap above a null matched on keep-set composition, 20W/4L, p<1e-4) and **buys nothing**
+(+0.08pp over a matched floor, p=0.62). A *perfect* estimate of it, spent on selection, is worth
+**+0.34pp, CI [−0.47, +1.30], p=0.88** — so with the weighting blend at +0.19pp and polarity at
+−0.06pp, every channel a better `rho_hat` feeds is priced at zero, and Bracha's **second**
+proposal (differentiable pair reweighting) is closed before being built. Step 222 then priced her
+**first** and closed the whole per-feature family.
+
+</details>
+
+<details><summary>Step 220 — the U-PCR ceilings</summary>
+
+**Step 220**: the U-PCR clustering line CLOSED on ceilings. Feature selection is the only
+channel with room in it (+1.48pp held out, CI [+0.97, +2.03]); the weighting blend (+0.19pp,
+p=0.57), the constants, `var_y`, and getting every view's sign right (−0.06pp, p=1.00, 17/24
+cells exactly unchanged) are all empty. The good masks keep ~10 views vs the deployed ~21,
+smaller on 24/24. Step 221 supersedes its floor (−1.55pp → −0.84pp) and its "at chance"
+reading of the rho ranking (→ below chance).
+
+</details>
+
+<details><summary>Step 218 — the non-monotone line</summary>
 
 **Step 218**: **the non-monotone line is CLOSED. The fold repairs the view (up to
 +26.5pp single-view), U-PCR re-admits 33% of the views it had excluded, and it is worth +0.05pp

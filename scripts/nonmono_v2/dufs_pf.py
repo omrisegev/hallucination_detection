@@ -31,10 +31,8 @@ import argparse
 import csv
 import os
 import sys
-import zlib
 
 import numpy as np
-import torch
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
@@ -42,16 +40,8 @@ if HERE not in sys.path:
 
 from common import DUFS_BENCH, INSCOPE, load_cells_cached          # noqa: E402
 from spectral_utils.selectors.a2_groupfs import (                  # noqa: E402
-    _train_dufs, BATCH, EPOCHS_STAB, N_SEEDS_STABILITY, R_MAX)
-
-N_RNG_DISCARD = 3          # c_seed, gen0 seed, GroupFS final seed
-
-
-def cell_rng(cell_key, domain, seed=0):
-    """`selector_bench._cell_rng`, reproduced (it is not importable without the
-    bench's data-root machinery)."""
-    return np.random.default_rng(
-        [int(seed), zlib.crc32(f"{domain}/{cell_key}".encode())])
+    dufs_pf_cell_rng as cell_rng, dufs_pf_gates as _gates,
+    DUFS_PF_RNG_DISCARD as N_RNG_DISCARD)
 
 
 def bench_domains(path=DUFS_BENCH):
@@ -66,24 +56,25 @@ def bench_chosen(path=DUFS_BENCH):
                 for r in csv.DictReader(fh) if r["variant"] == "a2.dufs_pf"}
 
 
+def dufs_pf_gates(V, cell_key, domain, seed=0):
+    """The seed-averaged gate vector `mu` this selector thresholds at zero.
+
+    Thin wrapper over `spectral_utils.selectors.a2_groupfs.dufs_pf_gates`, which is
+    where the RNG dance now lives so callers that cannot import this script (module
+    name `common` collides with `scripts/upcr_study/common.py`) still get the SAME
+    stream. `--verify` gates both.
+    """
+    return _gates(V, cell_rng(cell_key, domain, seed))
+
+
 def dufs_pf_cols(V, cell_key, domain, seed=0):
     """Column indices `a2.dufs_pf` selects on this matrix.
 
     V is the matrix the selector sees; passing a TRANSFORMED V is the whole point.
     The row subsample depends only on n, so it is identical between base and
     config — the selection can only move because the columns moved."""
-    torch.set_num_threads(1)
-    V = np.asarray(V, dtype=np.float64)
-    n, p = V.shape
-    rng = cell_rng(cell_key, domain, seed)
-    R = int(min(n, R_MAX))
-    Xr = V[np.sort(rng.choice(n, size=R, replace=False))] if R < n else V
-    X_t = torch.tensor(Xr, dtype=torch.float32)
-    for _ in range(N_RNG_DISCARD):
-        rng.integers(2 ** 31)
-    seeds = [int(rng.integers(2 ** 31)) for _ in range(N_SEEDS_STABILITY)]
-    mu = np.mean([_train_dufs(X_t, 0.0, EPOCHS_STAB, BATCH, s, param_free=True)
-                  for s in seeds], axis=0)
+    p = np.asarray(V).shape[1]
+    mu = dufs_pf_gates(V, cell_key, domain, seed)
     sel = sorted(int(i) for i in np.where(mu > 0.0)[0])
     if len(sel) < 3:                      # `_fallback` -> the full pool
         return list(range(p)), False

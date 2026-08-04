@@ -113,6 +113,8 @@ seeded from it; torch.set_num_threads(1) fixes BLAS ordering. Equal-seeded rng =
 output. On any failure the whole family degrades to the full-pool fallback (never raises).
 """
 
+import zlib
+
 import numpy as np
 import torch
 
@@ -335,6 +337,47 @@ def _train_dufs(X_t, lam2, epochs, batch, torch_seed, param_free=False):
         loss.backward()
         opt.step()
     return mu.detach().numpy()
+
+
+DUFS_PF_RNG_DISCARD = 3    # c_seed, gen0 seed, GroupFS final seed
+
+
+def dufs_pf_cell_rng(cell_key, domain, seed=0):
+    """`selector_bench._cell_rng`, reproduced here so callers outside the bench can
+    build the SAME stream (the bench's own copy is not importable without its data-root
+    machinery). Lives here rather than in a script because two callers now need it."""
+    return np.random.default_rng(
+        [int(seed), zlib.crc32(f"{domain}/{cell_key}".encode())])
+
+
+def dufs_pf_gates(V, rng):
+    """The seed-averaged gate vector `mu` that the `a2.dufs_pf` selector thresholds at
+    zero. `rng` must be freshly built by :func:`dufs_pf_cell_rng` — this function
+    consumes it in the exact order `a2_groupfs` does:
+
+        rng.choice(n, R_MAX)      the row subsample
+        3 x rng.integers(2**31)   discarded (c_seed, gen0 seed, GroupFS final seed)
+        5 x rng.integers(2**31)   the stability seeds, reused by dufs_pf
+
+    Getting that consumption wrong yields a different selector wearing the same name;
+    `scripts/nonmono_v2/dufs_pf.py --verify` reproduces the published bench on 24/24
+    cells and is the gate on this function.
+
+    The gate is SIGNED and not symmetric about zero: MU_INIT is 0.5 and Adam drives
+    rejected features negative, so ranking by |mu| would promote the most strongly
+    REJECTED features alongside the kept ones. Rank by mu itself.
+    """
+    torch.set_num_threads(1)
+    V = np.asarray(V, dtype=np.float64)
+    n = V.shape[0]
+    R = int(min(n, R_MAX))
+    Xr = V[np.sort(rng.choice(n, size=R, replace=False))] if R < n else V
+    X_t = torch.tensor(Xr, dtype=torch.float32)
+    for _ in range(DUFS_PF_RNG_DISCARD):
+        rng.integers(2 ** 31)
+    seeds = [int(rng.integers(2 ** 31)) for _ in range(N_SEEDS_STABILITY)]
+    return np.mean([_train_dufs(X_t, 0.0, EPOCHS_STAB, BATCH, s, param_free=True)
+                    for s in seeds], axis=0)
 
 
 def _init_magnitudes(X_t, L_feat_t, C, warm, cluster_sizes, gen):
