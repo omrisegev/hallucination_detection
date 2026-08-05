@@ -1,0 +1,68 @@
+{
+  "config_hash": "568dc60530928f54",
+  "deem_base": {
+    "batch_size": 1024,
+    "cd_k": 10,
+    "deterministic": true,
+    "device": "auto",
+    "epochs": 100,
+    "hidden_dim": 1,
+    "init_method": "mv_rand",
+    "input_mode": "soft",
+    "learning_rate": 0.001,
+    "momentum": 0.9,
+    "preprocessing_activation": "sparsemax",
+    "preprocessing_init": "identity",
+    "preprocessing_layers": 1,
+    "sampler_steps": 5,
+    "strict_version": true,
+    "use_preprocessing": true,
+    "use_weighted": true
+  },
+  "deem_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "experiment_version": "dependency-fusion-v1",
+  "incumbent_fit": {
+    "difficulty_gate": false,
+    "exclusion": true,
+    "g2_projection_k": 1,
+    "loss": "l2",
+    "recompute_after_exclusion": true,
+    "scale_ratio": 0.25,
+    "simple_avg_fallback": true
+  },
+  "iu_paper_fit": {
+    "auto_components": false,
+    "difficulty_gate": false,
+    "exclusion": false,
+    "g2_projection_k": 1,
+    "loss": "l2",
+    "n_components": 2,
+    "recompute_after_exclusion": false,
+    "scale_ratio": 0.25,
+    "simple_avg_fallback": false
+  },
+  "source_sha256": {
+    "scripts/run_dependency_fusion_experiment.py": "b0546131b85d95af78f5487c15c33c6fb98d491896331b0adcd7faf6515d1f85",
+    "spectral_utils/deem_adapter.py": "e97573f6c5d050f61eb8e9b6347ede2c09a61fedb31bc7dad103dac856f2177b",
+    "spectral_utils/dependency_fusion.py": "25269b5837a0a6202bd55f0af06144c66b4aebe621c361c9ec96ef386e788b65",
+    "spectral_utils/upcr.py": "aad67a2da79d4fa2075cb6f22de571996150342091df03fbfca8c63d16e54399"
+  },
+  "sparse_fit": {
+    "decomposition_tol": 1e-08,
+    "g2_projection_components": 1,
+    "inner_completion_iter": 40,
+    "max_iter": 100,
+    "max_sparse_fraction": null,
+    "n_components": 2,
+    "rank": 2,
+    "scale_ratio": 0.25,
+    "target_condition": 100.0,
+    "threshold_multiplier": 1.0
+  }
+}
