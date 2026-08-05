@@ -128,7 +128,20 @@ FAMILY_NOTES = {
                        "not admissible as a selection criterion — it is "
                        "nearly orthogonal to separability (weakly "
                        "ANTI-correlated with AUROC, Spearman ~ -0.11 to "
-                       "-0.17).",
+                       "-0.17). READ THIS FAMILY'S NUMBERS WITH STEP 205 IN "
+                       "MIND: its variants converge on 3 features, i.e. "
+                       "straight into the regime where Eq.(15) carries no "
+                       "information at all (see 'the small-m degeneracy'). "
+                       "Since Step 205 the grouping there is an exact "
+                       "enumeration rather than a tie-break, so it is at "
+                       "least deterministic; but a size-3 residual is still "
+                       "a degenerate case of the model, not the model. "
+                       "Separately, THE ROUTER IS DEAD: it compares "
+                       "lsml_rel_residual against upcr_k1_residual, two "
+                       "quantities in different units, and under the "
+                       "corrected loading scale it stops routing entirely "
+                       "(a1.router@loco5 is bit-identical to ref.LOCO_5 on "
+                       "24/24 shared cells).",
         "history": "Step 186",
     },
     "a2_groupfs": {
@@ -236,8 +249,13 @@ FAMILY_NOTES = {
                      "the only one producing sign-inverted pseudo-labels "
                      "(0.7249 vs 0.7594), and replaced. So a6.pl_dufs is "
                      "label-free at RUNTIME but NOT prior-free — it inherits "
-                     "the heaviest prior in the project, and does not belong "
-                     "on a prior-free leaderboard.",
+                     "the heaviest prior in the project. When ranking methods "
+                     "by how little prior knowledge they use it does NOT "
+                     "belong on the anchor-only tier; upcr.rho_polarities "
+                     "(0.7551, full pool + sign(rho) polarity + the one "
+                     "anchor bit) and a2.dufs / a2.dufs_pf (0.7502 / 0.7507, "
+                     "unsupervised gates → L-SML, where hand signs are a "
+                     "proven no-op) do.",
         "performance": "a6.pl_dufs 0.7524 — the ONLY learned selector to "
                        "nominally edge GOOD_5 (+0.05pp, not significant), "
                        "and ADOPTED AS THE SELECTOR OF RECORD despite both "
@@ -689,7 +707,9 @@ METHOD_TERM_NOTES = {
         "(a6.pl_dufs, 0.7524 — the bar a new label-free method must clear). A "
         "FIXED SUBSET was chosen once USING labels and then reused (GOOD_6 "
         "0.7594; LOCO_5 0.7705 on 24 cells). Comparing a label-free selector "
-        "against GOOD_6 is comparing against an anchor, not a fair target.",
+        "against GOOD_6 is comparing against an anchor, not a fair target. "
+        "**But \"label-free at runtime\" is not \"prior-free\" — see the prior "
+        "tiers below.**",
     "stale sweep cache":
         "results/subset_sweep/repgrid__*.npz — ~1.03M scored subsets, of which "
         "only 5/19 cells still reproduce (disagreements to 0.374 AUROC) "
@@ -703,6 +723,72 @@ METHOD_TERM_NOTES = {
         "Use it in any subset sweep. (Step 203 also vectorised "
         "`_score_matrix_lsml` 34x and the `_residual_lsml` / "
         "`_estimate_von_voff` inner loops.)",
+    'prior tiers (how much hand knowledge a method actually uses)':
+        'Four separable priors, not one. (1) A **label-chosen fixed subset** —'
+        'GOOD_6/GOOD_5/LOCO_5/consensus_4, picked with answer keys; the heaviest.'
+        '(2) The **42 hand feature signs** (`ALL_SIGNS`) — a **proven no-op on the'
+        'L-SML path** (sign-gauge invariance, 1150/1150 sign vectors bit-'
+        'identical), so it only binds on sign-SENSITIVE consumers such as U-PCR.'
+        '(3) The **anchor bit** (`epr`) — **irreducible**: a global flip leaves rho'
+        'bit-identical (max\\|d rho\\| = 0.000e+00), so no covariance-based rule can'
+        'supply it. (4) The **30-feature CANONICAL_POOL**, shared by everything.'
+        '**Anchor-only tier** (nothing but prior 3): `upcr.rho_polarities`'
+        '**0.7551**, `a2.dufs_pf` 0.7507, `a2.dufs` 0.7502. **NOT on that tier**:'
+        '`a6.pl_dufs` (GOOD_6-seeded) and every `ref.*`. **With no anchor either:'
+        "0.5103 = chance** (Step 201's correction of Step 200).",
+}
+
+# Restored 2026-07-29: these six rows lived only in the generated
+# GLOSSARY.md, so running build_glossary.py deleted them. Source of truth
+# is here now. See HISTORY Step 207.
+GROUPING_TERM_NOTES = {
+    'the small-m degeneracy':
+        "Eq.(15)'s double sum `Σ_{k≠i,j} Σ_{l≠i,j,k}` has **no valid term at m=3**"
+        '(the score matrix is identically zero, so the grouping is pure tie-break)'
+        'and **exactly two at m=4**. At m=4 that is too little to decide the'
+        'partition from the data: on `lapeigvals_gsm8k_phi35`/`consensus_4`,'
+        'computing the covariance from a non-contiguous column slice instead of a'
+        'contiguous copy of the SAME numbers differs by 5.55e-17 — BLAS summation'
+        'order alone — and flips the K=3 partition, moving the residual'
+        '0.6018→0.3927, flipping the selected K, and moving AUROC 9.7pp. **Size-3'
+        'was degenerate but deterministic; size-4 was meaningful but'
+        'undetermined.**',
+    'exact small-m solve':
+        'The fix. Spectral clustering is only a HEURISTIC for "the partition'
+        'minimising the Eq.(14) residual", so at `m <= SMALL_M_EXACT` (=4)'
+        '`detect_dependent_groups` stops approximating: it enumerates every set'
+        'partition (Bell(3)=5, Bell(4)=15) with K in `K_range` and takes the exact'
+        'argmin, tie-broken lexicographically on the canonical labelling.'
+        'Covariance input is also pinned to a contiguous layout at every m.'
+        '**Bought determinacy, not accuracy** (+0.03pp, 15W/10L, p=0.696); every'
+        'headline anchor unchanged to 0.00pp.',
+    'why the cutoff is 4, not 5':
+        'Exhaustive is affordable at m=5 (Bell=52) and finds lower residuals there,'
+        'but m=5 shows no determinacy defect (5–6 band: 0.000pp median jitter'
+        'spread). Extending it was measured (+0.22pp) and **deliberately not'
+        'adopted** — it would move a published reference anchor (`ref.LOCO_5`'
+        '0.7705→0.7673) to fix something that is not broken.',
+    '`degenerate` flag':
+        "`detect_dependent_groups(..., return_diag=True)` → `{'m', 'exact_small_m',"
+        "'residual_gap_rel', 'degenerate'}`, surfaced as `lsml_continuous`'s"
+        "`meta['grouping_diag']`. True means the chosen grouping beat its nearest"
+        'rival by less than float noise, i.e. **that score is one draw, not a'
+        'measurement.** Live at EVERY m, so the next instance is visible rather'
+        'than silent.',
+    'gate U5 (grouping invariance)':
+        '`scripts/verify_residual_scaling.py`. Asserts the grouping is identical'
+        'under (i) contiguous vs sliced input, (ii) feature-order permutation,'
+        '(iii) a 1e-12 relative jitter, on real cells at m=3..8. **An invariance'
+        'failure is the signature of an answer decided by rounding rather than by'
+        'data.** Asserted at m<=4; reported above the cutoff — it already flagged'
+        '`m=8 math500_r1distill8b` as relabel-dependent. Gate U6 covers'
+        "`sml_fuse_signed`'s even-k sign tie and `zscore` on non-finite input.",
+    '`code fix: Step-205 exact small-m solve`':
+        'A verdict category on `results/upcr_study/comparison.html`. Marks a row'
+        'whose published number moved because the fix replaced a tie-break with a'
+        'defined answer. Requires that the row actually reaches m<=4 AND that no'
+        'more cells changed than have a small subset — so it cannot absorb a'
+        'genuine anomaly.',
 }
 
 POOL_MODE_NOTES = {

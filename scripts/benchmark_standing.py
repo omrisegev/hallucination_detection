@@ -198,7 +198,11 @@ def main():
                      f"median, {sum(x > 0 for x in d)}W/{sum(x < 0 for x in d)}L of {len(cs)}, "
                      f"p={wilcoxon(d).pvalue:.3f} |")
 
-    L.append("\n## 3. Per-cell, against the strongest same-cost-class published number (Bar B)\n")
+    L.append("\n## 3. Per-cell, against the strongest unsupervised single-pass number (Bar B)\n")
+    L.append("**Bar B is not our own cost class** — it allows white-box access we never use. "
+             "Our exact class is Bar A. Quote the Bar B result as what it is: against every "
+             "unsupervised single-pass method, including ones reading model internals. "
+             "(Step 207: every earlier draft called this number 'our own cost class'.)\n")
     B = bars["B"]
     L.append("| Cell | DUFS+L-SML | U-PCR+sign(rho) | GOOD_6 | Published (Bar B) | Best of ours − them |")
     L.append("|---|---:|---:|---:|---|---:|")

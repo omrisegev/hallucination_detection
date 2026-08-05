@@ -120,10 +120,14 @@ def logprob_features_extended(top_k_logprobs, tail_k: int = 5) -> dict:
     }
 
 
-def _candidate_features(cand: dict) -> dict:
-    """All computable features for one candidate (missing ones absent/NaN)."""
+def _candidate_features(cand: dict, allow_short: bool = False) -> dict:
+    """All computable features for one candidate (missing ones absent/NaN).
+
+    `allow_short` is for answer-span-cropped candidates only — see
+    `spectral_utils.answer_span` and `extract_all_features`."""
     feats = extract_all_features(cand.get("token_entropies", []),
-                                 spilled_energies=cand.get("token_spilled_energies"))
+                                 spilled_energies=cand.get("token_spilled_energies"),
+                                 allow_short=allow_short)
     out = dict(feats) if feats is not None else {}   # 20 spectral+spilled, or {} if trace<8
     if cand.get("token_logsumexp") is not None:
         out.update(energy_features_from_logsumexp(cand["token_logsumexp"]))

@@ -1,7 +1,101 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-04
-**Last updated**: Step 222 — **the ranker menu landed on the floor, and Bracha's first proposal
+**Date**: 2026-08-05
+**Last updated**: Step 225 — a standing instruction from Omri that governs how the next round is
+run, plus the repo made self-sufficient for a machine that has no dataset.
+
+> **Tailor, do not transplant.** A published metric is **inspiration, not a specification**.
+> Take the concept, then develop it into the form our problem needs. True of *every* algorithm
+> and metric we try. Each variant gets its own discussion before it is built.
+
+This **rescopes Step 224 without retracting a number**: what closed is *transplanting a published
+keep rule into this channel*, not the ideas inside those papers. Fidelity to the paper is no
+longer the acceptance criterion for a new arm — it stays the criterion for anything *labelled*
+with an author's name. Full statement, and the rewritten live line it produced, in
+[HANDOFF_FEATURE_SELECTION_AND_FUSE.md](HANDOFF_FEATURE_SELECTION_AND_FUSE.md) §0 and §4.
+
+Also in Step 225: all **66 research PDFs** un-ignored (`.gitignore`'s blanket `*.pdf` was
+suppressing them), `results/upcr_study/README.md` written so every headline number in Steps
+210–224 can be **re-derived from the saved CSVs with no dataset**, and the ℓ0-CCA **dry run**
+committed on purpose — it caught a structural-prior trap (a no-signal arm scoring +0.32pp,
+p = 0.019 against the wrong floor) before any real number existed.
+
+⚠ **And a backlog: 49 modified + ~90 untracked source/result files, Steps 206–223, had never been
+committed.** The pattern is a session committing its own *new* files and leaving edits to *shared*
+files behind. It was structural, not cosmetic — `spectral_utils/answer_span.py` was untracked
+while `repgrid_scoring.py` and `build_repgrid_featcache.py` **import it**, so a clean clone could
+not run the feature cache; and `scripts/labelfree_standing_report.py`, the canonical U-PCR entry
+point named in `CLAUDE.md`, was not in the repo either. All now staged and attributed per step in
+HISTORY.md Step 225. **Before ending a session, check `git status` for edits to shared files, not
+just for your own new ones.**
+
+**Step 224** — **the published unsupervised feature-selection literature has now been
+run in this channel, and none of it beats the deployed keep rule.** 21 conditions, 111 variants, 24
+cells × 5 splits × 2 arenas. **Every variant is negative against the deployed rule.** The five
+pre-registered primaries: DUFS Eq.(7) −0.96pp (Holm 0.0072), Concrete Autoencoder −2.74pp (0.0002),
+Laplacian Score and SPEC −3.77pp (0.0000), Eq-14 residual −5.89pp (0.0000). Against a same-size
+random floor, nothing in the family clears Holm (best `a3.cae`, adjusted p = 0.282).
+
+**The three results that survive the null and should be quoted:**
+
+1. **The anti-redundancy family is not merely useless here, it is harmful — measured three
+   independent ways.** `cohesion_set` −0.75pp (Step 223), `decorr_s5` −5.98pp (1W/23L), and
+   `dpp.k4` **−8.08pp, 0W/24L**, all against a *random* subset of the same size. DPP MAP is the
+   canonical diversity criterion, and the damage is **dose-dependent**: at size 21.9 its own
+   data-driven stop declines to prune and is neutral (−0.47pp, 12W/12L); the harm scales with how
+   much diversity is enforced. This is the empirical answer to the whole four-cluster reading list,
+   whose clusters A/C/D are the same condition in different formalisms.
+
+2. **The target is not a stable object (Step 223).** Two random half-splits of the *same* cell,
+   both using that cell's own labels, produce good sets agreeing at Jaccard **0.524** (across cells
+   0.303) — yet the room is real and a label-handed oracle transfers **84%** of it (+1.88pp). Both
+   hold only if **many different subsets are good**. Consequence: every `overlap_*` secondary in
+   Steps 213–223 has been scoring reproduction of a set that a rerun would only half reproduce.
+   **Stop using overlap-with-the-good-set as evidence.**
+
+3. **Cohesion is not the mechanism (Step 223).** Selected-set cohesion minus the floor's: good set
+   −0.127; the `cohesion_set` arm −0.131 — it matched the target almost exactly and finished
+   **last**; the label-handed oracle −0.019 — it matched nothing and **won**.
+
+**Also settled**: mmDUFS (non-linear shared graph operator, `P_shared = LxLy + LyLx`) scores −0.12pp,
+identical to ℓ0-CCA's linear cross-channel criterion. **The null on the two-channel split is a
+property of the channel, not of linearity.**
+
+**Four conditions were ruled out by reading the paper, not by experiment** — record these so they are
+not re-proposed: **SEFS** is not label-free at selection (π is fixed and equal across all features
+throughout the self-supervised phase; it becomes feature-specific only under `ℓY(y,·)`);
+**Feature Manifold Learning** is Cohen/Shnitzer/Kluger/Talmon ICML 2023, **not Bracha's**, and is
+supervised by construction; **VICReg**'s variance hinge is identically zero on z-scored views
+(verified over 6,820 views, max |std−1| = 1.3e−14); **Graph Information Bottleneck** needs a
+labelled graph, not a feature matrix.
+
+**Numbers of record, unchanged and re-derived in all three Step-224 runs**: the floor is **−0.84pp**,
+the room is **+2.25pp, CI [+1.52, +3.05], 23W/1L**. The new size-matched floor agrees with exp13's
+fixed-k floor to **−0.01pp** (p=0.99). Two limits to quote with the room: it is measured at
+k ≈ 11.75, so it is not comparable to a floor-relative gain at k = 3; and the good set lives only
+81.3% inside the deployed keep set, so the `keep` arena cannot reach it.
+
+**FULL HANDOFF for the next session (read this first if picking up cold)**:
+[HANDOFF_FEATURE_SELECTION_AND_FUSE.md](HANDOFF_FEATURE_SELECTION_AND_FUSE.md) — §0 the standing
+instruction, §2 what is closed and with what evidence, §4 the live line (triplet consistency as a
+concept to develop: scoring **the views**, and scoring **each sample** as a pseudo-label for the
+**weights** channel), §6 the sparse-Δ estimator relaxation, §7 eleven practical traps already hit,
+§9 how to work from the repo with no dataset.
+
+**Shareable report**: https://claude.ai/code/artifact/a4d307aa-3053-4e52-83df-8c2c917967f5
+
+**What is open**: the feature-selection channel has absorbed per-feature rankers (Step 222),
+set-level covariance functionals (Step 223), and the published literature **as transplanted**
+(Step 224). The search is not the bottleneck — handed labels, the same greedy takes 84% of the
+room. What is live, under the Step-225 instruction: the **triplet-consistency concept developed
+into our own statistic** — quadruplet residuals (m=4 is the first order with spare equations) and
+the variance of the implied `v̂_i` across a view's triplets are the two least-explored forms — and
+the **per-sample pseudo-label** aimed at the weights channel, where +1.24pp (CI [+0.17, +2.29],
+p=0.016) is measured and unclaimed. Order of work in the handoff §8; older plan in `PLAN_NEXT.md`.
+
+<details>
+<summary>Step 222 — the ranker menu (superseded as headline by Step 224)</summary>
+
 is now priced too.** Eight arms, pre-registered with directions before scoring, in the only
 U-PCR channel with room (+2.25pp). **Not one label-free per-feature statistic clears the matched
 floor**; the best is a set-level cluster round-robin at +0.23pp with an interval crossing zero
@@ -37,6 +131,8 @@ has the traps. The pre-registration for Step 222 is the module docstring of
 
 **Note on step numbering**: Step 219 belongs to the localization/Extension-F work on the
 `experiment/step-localization` worktree. Master is at 222.
+
+</details>
 
 <details><summary>Step 221 (previous) — what separates the good features</summary>
 

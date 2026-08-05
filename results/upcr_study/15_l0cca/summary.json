@@ -1,0 +1,448 @@
+{
+  "n_cells": 24,
+  "n_splits": 120,
+  "PROVENANCE": "Pre-registered in this file's docstring before the run. Splits are exp12's; exp13's arms asserted identical per split to 1e-09.",
+  "args": {
+    "cells": null,
+    "no_cca": false,
+    "check_sign": false
+  },
+  "is_partial_run": false,
+  "channel_split": {
+    "X_spectral": [
+      "cusum_max",
+      "cusum_shift_idx",
+      "dominant_freq",
+      "epr",
+      "high_band_power",
+      "hl_ratio",
+      "hurst_exponent",
+      "low_band_power",
+      "pe_mean",
+      "rpdi",
+      "spectral_centroid",
+      "spectral_entropy",
+      "stft_max_high_power",
+      "stft_spectral_entropy",
+      "sw_var_peak",
+      "trace_length"
+    ]
+  },
+  "lambda_grid": [
+    0.0,
+    0.01,
+    0.03,
+    0.1,
+    0.3,
+    1.0
+  ],
+  "label_free_arms": [
+    "cca_leverage",
+    "cca_gates"
+  ],
+  "controls": [
+    "rho",
+    "truecorr"
+  ],
+  "sensitivity_arms_not_in_family": [
+    "cca_leverage_rr",
+    "cca_gates_rr",
+    "cca_init_r50",
+    "chan_rr_random",
+    "cca_gates_lam0",
+    "cca_gates_lam1",
+    "cca_gates_lam2",
+    "cca_gates_lam3",
+    "cca_gates_lam4",
+    "cca_gates_lam5"
+  ],
+  "room": {
+    "mean_delta": 2.249788144004449,
+    "ci95": [
+      1.5347500097071827,
+      3.0358067712361225
+    ],
+    "wins": 23,
+    "losses": 1,
+    "n": 24,
+    "p": 3.5762786865234375e-07
+  },
+  "floor_vs_deployed": {
+    "mean_delta": -0.844557348044507,
+    "ci95": [
+      -1.0617380540148857,
+      -0.6318617600795335
+    ],
+    "wins": 1,
+    "losses": 23,
+    "n": 24,
+    "p": 2.384185791015625e-07
+  },
+  "primary_vs_floor": {
+    "cca_leverage": {
+      "mean_delta": -0.12411126418743247,
+      "ci95": [
+        -0.7685393484595031,
+        0.4731606544181996
+      ],
+      "wins": 12,
+      "losses": 12,
+      "n": 24,
+      "p": 0.9888126850128174
+    },
+    "cca_gates": {
+      "mean_delta": -0.4701484032617516,
+      "ci95": [
+        -1.1567279429253254,
+        0.1470943792187469
+      ],
+      "wins": 12,
+      "losses": 12,
+      "n": 24,
+      "p": 0.4223414659500122
+    },
+    "rho": {
+      "mean_delta": -0.26412069084963924,
+      "ci95": [
+        -0.8578599788564513,
+        0.267135679317019
+      ],
+      "wins": 11,
+      "losses": 13,
+      "n": 24,
+      "p": 0.5456695556640625
+    },
+    "truecorr": {
+      "mean_delta": 0.07930072527864705,
+      "ci95": [
+        -0.7848555587791459,
+        0.8711602623393494
+      ],
+      "wins": 11,
+      "losses": 13,
+      "n": 24,
+      "p": 0.6230943202972412
+    }
+  },
+  "primary_holm_adjusted_p": {
+    "cca_leverage": 0.9888126850128174,
+    "cca_gates": 0.8446829319000244
+  },
+  "fraction_of_room": {
+    "cca_leverage": -0.055165756170500575,
+    "cca_gates": -0.2089745225632329,
+    "rho": -0.11739802770029929,
+    "truecorr": 0.03524808568752518
+  },
+  "secondary_overlap": {
+    "cca_leverage": {
+      "mean_delta": -0.027309518867274604,
+      "ci95": [
+        -0.05579367405719682,
+        8.212195486278726e-05
+      ],
+      "wins": 9,
+      "losses": 15,
+      "n": 24,
+      "p": 0.09509599208831787
+    },
+    "cca_gates": {
+      "mean_delta": 0.005013025790796369,
+      "ci95": [
+        -0.021707237792145954,
+        0.031332687827360275
+      ],
+      "wins": 14,
+      "losses": 10,
+      "n": 24,
+      "p": 0.6431422233581543
+    },
+    "rho": {
+      "mean_delta": -0.0471275133727691,
+      "ci95": [
+        -0.08172068787420357,
+        -0.011965116214693485
+      ],
+      "wins": 6,
+      "losses": 18,
+      "n": 24,
+      "p": 0.022932052612304688
+    },
+    "truecorr": {
+      "mean_delta": 0.09146208924740627,
+      "ci95": [
+        0.053964481193426096,
+        0.1307769238800269
+      ],
+      "wins": 20,
+      "losses": 4,
+      "n": 24,
+      "p": 0.00017547607421875
+    }
+  },
+  "sensitivity": {
+    "cca_leverage_rr": {
+      "mean_delta": 0.2690277789854562,
+      "ci95": [
+        -0.361570574223874,
+        0.8672731693408343
+      ],
+      "wins": 13,
+      "losses": 11,
+      "n": 24,
+      "p": 0.30289924144744873
+    },
+    "cca_gates_rr": {
+      "mean_delta": -0.07638749175645776,
+      "ci95": [
+        -0.514305389759294,
+        0.33240507017101445
+      ],
+      "wins": 14,
+      "losses": 10,
+      "n": 24,
+      "p": 0.8333734273910522
+    },
+    "cca_init_r50": {
+      "mean_delta": -0.04667730367553661,
+      "ci95": [
+        -0.7129947582225017,
+        0.5436975926134747
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.47316575050354004
+    },
+    "chan_rr_random": {
+      "mean_delta": 0.32002334458223386,
+      "ci95": [
+        0.03407668224383116,
+        0.5827595655967115
+      ],
+      "wins": 18,
+      "losses": 6,
+      "n": 24,
+      "p": 0.019441962242126465
+    },
+    "cca_gates_lam0": {
+      "mean_delta": -0.11946203540544505,
+      "ci95": [
+        -0.7596065705614291,
+        0.38514427789055117
+      ],
+      "wins": 14,
+      "losses": 10,
+      "n": 24,
+      "p": 0.37475037574768066
+    },
+    "cca_gates_lam1": {
+      "mean_delta": -0.2376278058802986,
+      "ci95": [
+        -0.9369144809504224,
+        0.30723755200083763
+      ],
+      "wins": 14,
+      "losses": 10,
+      "n": 24,
+      "p": 0.899570107460022
+    },
+    "cca_gates_lam2": {
+      "mean_delta": -0.5772100724585861,
+      "ci95": [
+        -1.4584649903100655,
+        0.16648928801328938
+      ],
+      "wins": 14,
+      "losses": 10,
+      "n": 24,
+      "p": 0.9218088388442993
+    },
+    "cca_gates_lam3": {
+      "mean_delta": 0.31845231367945476,
+      "ci95": [
+        -0.1002976359423983,
+        0.7183065065953557
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.1355280876159668
+    },
+    "cca_gates_lam4": {
+      "mean_delta": 0.4444360714202265,
+      "ci95": [
+        -0.00785043304478846,
+        0.8620861322714534
+      ],
+      "wins": 15,
+      "losses": 9,
+      "n": 24,
+      "p": 0.029131293296813965
+    },
+    "cca_gates_lam5": {
+      "mean_delta": -0.09212535645862545,
+      "ci95": [
+        -0.8325347297489554,
+        0.586798020921215
+      ],
+      "wins": 15,
+      "losses": 9,
+      "n": 24,
+      "p": 0.704756498336792
+    }
+  },
+  "roundrobin_vs_channel_balance": {
+    "cca_leverage_rr": {
+      "mean_delta": -0.05099556559677768,
+      "ci95": [
+        -0.7593391828017356,
+        0.6418005159991048
+      ],
+      "wins": 11,
+      "losses": 13,
+      "n": 24,
+      "p": 0.899570107460022
+    },
+    "cca_gates_rr": {
+      "mean_delta": -0.3964108363386916,
+      "ci95": [
+        -0.8569749540220251,
+        0.07748032328505548
+      ],
+      "wins": 10,
+      "losses": 14,
+      "n": 24,
+      "p": 0.128027081489563
+    }
+  },
+  "lambda_path": [
+    {
+      "lam": 0.0,
+      "mean_heldout_total_corr": 2.816316003619391,
+      "mean_n_open": 28.416666666666668,
+      "vs_floor_pp": -0.11946203540544505
+    },
+    {
+      "lam": 0.01,
+      "mean_heldout_total_corr": 2.817341499723367,
+      "mean_n_open": 28.024999999999995,
+      "vs_floor_pp": -0.2376278058802986
+    },
+    {
+      "lam": 0.03,
+      "mean_heldout_total_corr": 2.8078968761295537,
+      "mean_n_open": 26.05,
+      "vs_floor_pp": -0.5772100724585861
+    },
+    {
+      "lam": 0.1,
+      "mean_heldout_total_corr": 2.6285389463566387,
+      "mean_n_open": 17.533333333333335,
+      "vs_floor_pp": 0.31845231367945476
+    },
+    {
+      "lam": 0.3,
+      "mean_heldout_total_corr": 2.0075207203345293,
+      "mean_n_open": 7.75,
+      "vs_floor_pp": 0.4444360714202265
+    },
+    {
+      "lam": 1.0,
+      "mean_heldout_total_corr": 0.023991895301645166,
+      "mean_n_open": 0.08333333333333333,
+      "vs_floor_pp": -0.09212535645862545
+    }
+  ],
+  "lambda_chosen_distribution": {
+    "0.0": 28,
+    "0.01": 34,
+    "0.03": 42,
+    "0.1": 15,
+    "0.3": 1
+  },
+  "n_splits_k_ge_5": 114,
+  "n_cells_k_ge_5": 24,
+  "primary_vs_floor_k_ge_5": {
+    "room": {
+      "mean_delta": 2.1687817259983686,
+      "ci95": [
+        1.473073887950166,
+        2.9350107487195545
+      ],
+      "wins": 23,
+      "losses": 1,
+      "n": 24,
+      "p": 3.5762786865234375e-07
+    },
+    "cca_leverage": {
+      "mean_delta": -0.2081998235608821,
+      "ci95": [
+        -0.8320122677028009,
+        0.37869470174141423
+      ],
+      "wins": 11,
+      "losses": 13,
+      "n": 24,
+      "p": 0.6230943202972412
+    },
+    "cca_gates": {
+      "mean_delta": -0.444877720086174,
+      "ci95": [
+        -1.127884921844706,
+        0.1638224542444258
+      ],
+      "wins": 13,
+      "losses": 11,
+      "n": 24,
+      "p": 0.45587432384490967
+    },
+    "rho": {
+      "mean_delta": -0.3293054892898833,
+      "ci95": [
+        -0.94270044176481,
+        0.22057262932174013
+      ],
+      "wins": 11,
+      "losses": 13,
+      "n": 24,
+      "p": 0.49079859256744385
+    },
+    "truecorr": {
+      "mean_delta": -0.02002467130034676,
+      "ci95": [
+        -0.847663008292367,
+        0.7302914251794351
+      ],
+      "wins": 11,
+      "losses": 13,
+      "n": 24,
+      "p": 0.7898378372192383
+    }
+  },
+  "diagnostics": {
+    "n_random_prune_fits_failed": 0,
+    "mean_k": 11.75,
+    "mean_keepset": 20.883333333333333,
+    "n_splits_k_gt_keepset": 2,
+    "mean_n_x": 14.916666666666666,
+    "mean_n_y": 13.5,
+    "mean_cca_n_open": 26.583333333333332,
+    "n_splits_cca_open_lt_k": 1,
+    "mean_cca_init_n_distinct": 14.833333333333334,
+    "mean_distinct_null_compositions": 1.0,
+    "mean_frac_spectral": {
+      "cca_leverage": 0.4090990659004103,
+      "cca_gates": 0.31247168743092657,
+      "rho": 0.32383108411153066,
+      "truecorr": 0.34311314148098204,
+      "greedy": 0.5100783530086347
+    },
+    "mean_frac_inside_keepset": {
+      "cca_leverage": 0.9985265700483091,
+      "cca_gates": 0.9985265700483091,
+      "rho": 0.9985265700483091,
+      "truecorr": 0.9985265700483091
+    }
+  }
+}

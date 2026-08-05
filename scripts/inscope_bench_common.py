@@ -36,12 +36,30 @@ from spectral_utils.fusion_utils import lsml_continuous          # noqa: E402
 from spectral_utils.streaming_utils import anchor_orient         # noqa: E402
 from spectral_utils.subset_sweep import GOOD_6                   # noqa: E402
 
-GOOD6_EXPECTED = 0.7594
+# STEP 216 — THIS CONSTANT CHANGED, AND IT WAS RE-DERIVED, NOT ADJUSTED TO FIT.
+# It was 0.7594 on the 25-cell roster. Two intentional data changes moved it, and the
+# decomposition is exact (each step measured, per cell, in that order):
+#
+#   0.759398  25 cells, pre-repair                      <- the old constant, reproduced
+#   0.763232  24 cells: `inside_coqa_llama7b` REJECTED  (+0.38pp; its GOOD_6 was 0.6674,
+#             for a generation defect, not a result      below macro, so dropping it lifts)
+#   0.773344  + `seiclr_triviaqa_opt30b` answer-cropped (+1.01pp; 0.5884 -> 0.8311)
+#
+# After an intentional data change the macro is NOT the gate — it is expected to move.
+# The real gate is per-cell equality on the untouched cells, which
+# `scripts/answer_span_score_check.py` asserts (all 3 scored metrics bit-identical on
+# 23/23). This constant remains the anti-regression anchor for everything AFTER that.
+#
+# CAVEAT carried by the 0.7733 figure: on the cropped cell GOOD_6 has only 4 of its 6
+# views (`low_band_power` and `spectral_entropy` need >= 8 tokens; the median answer is
+# 3). Per Step 205 L-SML is numerically undetermined at 4 views, so that cell's 0.8311
+# is reported with an explicit caveat rather than quoted as comparable to the others.
+GOOD6_EXPECTED = 0.7733
 GOOD6_TOL = 0.002
 
 
 def load_cells():
-    """All 25 in-scope cells through the canonical `prepare_cell` path.
+    """All in-scope cells (24 since Step 216) through the canonical `prepare_cell` path.
 
     Returns {cell_key: {V, anchor, pool, labels, unlabeled}} where V is z-scored
     over CANONICAL_POOL and `anchor` is the cell's own resolved anchor view.
@@ -81,7 +99,7 @@ def good6_score(cell):
 
 def assert_good6(cells, verbose=True):
     """Validity anchor (SPEC_gap_ladder.md §8). The GOOD_6 macro must reproduce
-    0.7594; if it does not, the loaded data is not the data the canonical numbers
+    GOOD6_EXPECTED; if it does not, the loaded data is not the data the canonical numbers
     came from and every downstream conclusion is void."""
     vals = [good6_score(c) for c in cells.values()]
     macro = float(np.nanmean(vals))

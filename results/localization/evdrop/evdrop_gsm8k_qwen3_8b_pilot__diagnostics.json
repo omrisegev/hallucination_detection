@@ -1,0 +1,72 @@
+{
+  "cell": "evdrop_gsm8k_qwen3_8b_pilot",
+  "manifest": {
+    "preset_id": "evdrop_gsm8k_qwen3_8b",
+    "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306)",
+    "model": "Qwen/Qwen3-8B",
+    "dataset": "gsm8k",
+    "split": "test",
+    "n_samples": 30,
+    "k": 1,
+    "temps": [
+      0.0
+    ],
+    "gen_top_p": 0.95,
+    "gen_top_k": 20,
+    "max_new": 1024,
+    "logprob_top_k": 50,
+    "capture": {
+      "logsumexp": true
+    },
+    "acc_band": [
+      0.05,
+      0.98
+    ],
+    "min_minority": 10,
+    "published": {
+      "method": "Evidence Drop (Shannon Drop)",
+      "metric": "selective accuracy @ alpha, and AURC x1000",
+      "pretrained_accuracy": 91.07,
+      "accuracy_source": "Table 1",
+      "evdrop_defaults": {
+        "M": 5,
+        "ema_span": 5,
+        "top_k": 20
+      },
+      "model_note": "Selective accuracy and AURC are monotone in base error rate, so the `pretrained_accuracy` above is a PRECONDITION for comparability, not a secondary statistic. Verification gate 3."
+    },
+    "head_to_head": "SAME-MODEL",
+    "judge": null,
+    "prompt_suffix": " /no_think",
+    "notes": "Evidence Drop answer-level cell, NON-THINKING (primary arm). Target accuracy 91.07 (paper Table 1). max_new=1024 is ample for a non-thinking GSM8K answer; if `frac_pinned` within the negative class exceeds 5%, raise it and re-run rather than reporting a truncation-contaminated negative class. Full test split so the calibration half has enough incorrect samples for the alpha-quantile to be an actual quantile.",
+    "job_id": "155987",
+    "seed": 0,
+    "written_utc": "2026-08-03T06:03:51+00:00",
+    "cells": [
+      {
+        "temp": 0.0,
+        "pkl": "raw_gsm8k_T0.0.pkl",
+        "n_problems": 30,
+        "k": 1,
+        "mean_trace": 319.0,
+        "accuracy": 0.9666666666666667,
+        "pos": 29,
+        "neg": 1,
+        "minority": 1,
+        "gate_ok": false,
+        "gate_reasons": [
+          "minority class 1 < 10"
+        ]
+      }
+    ]
+  },
+  "diagnostics": {
+    "n": 30,
+    "accuracy": 0.9666666666666667,
+    "n_incorrect": 1,
+    "max_new": 1024,
+    "frac_pinned": 0.0,
+    "frac_pinned_in_negatives": 0.0,
+    "n_pinned_in_negatives": 0
+  }
+}

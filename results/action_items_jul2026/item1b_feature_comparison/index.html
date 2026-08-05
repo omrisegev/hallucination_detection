@@ -1,0 +1,65 @@
+<title>Features or algorithm — matched cell pairs</title><style>
+:root{--bg:#fff;--fg:#141414;--mut:#666;--line:#e4e4e7;--hi:#fff8e1;--box:#f6f7f9;
+ --ok:#1e7e34;--bad:#c0392b;--warn:#b8860b;--acc:#1a4f8a;--pos:#2b6cb0;--neg:#c53030}
+*{box-sizing:border-box}
+body{margin:0;padding:0 18px 90px;background:var(--bg);color:var(--fg);
+ font:15px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1240px;margin:0 auto}
+a{color:var(--acc)} a:hover{text-decoration:underline}
+h1{font-size:26px;margin:30px 0 4px;line-height:1.25}
+h2{font-size:20px;margin:38px 0 10px;padding-top:13px;border-top:2px solid var(--line)}
+h3{font-size:16.5px;margin:26px 0 7px}
+h4{font-size:14.5px;margin:18px 0 6px;color:var(--mut);text-transform:uppercase;
+   letter-spacing:.04em}
+p{margin:9px 0}
+.sub{color:var(--mut);font-size:14px;margin:0 0 20px}
+.crumb{font-size:13px;color:var(--mut);margin:16px 0 0}
+.box{background:var(--box);border-left:4px solid var(--acc);padding:11px 15px;
+ margin:15px 0;border-radius:0 4px 4px 0}
+.box.bad{border-left-color:var(--bad);background:#fdf0ee}
+.box.warn{border-left-color:var(--warn);background:var(--hi)}
+.box.ok{border-left-color:var(--ok);background:#eef7f0}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:12px 0}
+table{border-collapse:collapse;font-size:13px;width:100%;min-width:600px}
+th,td{padding:5px 9px;border-bottom:1px solid var(--line);text-align:right;
+ white-space:nowrap;vertical-align:middle}
+th:first-child,td:first-child{text-align:left}
+th{background:#f0f0f3;font-weight:600}
+tr.weak{background:var(--hi)}
+tr.hl{background:#eaf2fb}
+td.neg,.neg{color:var(--bad)} td.pos,.pos{color:var(--ok)}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+code{background:#f0f0f3;padding:1px 5px;border-radius:3px}
+.chip{display:inline-block;padding:0 6px;border-radius:9px;font-size:10.5px;
+ font-weight:700;color:#fff;margin-right:3px;line-height:16px}
+.c-g6{background:#1a4f8a}.c-dep{background:#8a4f1a}.c-or{background:#1e7e34}
+.c-up{background:#5a3d8a}.c-drop{background:#999}
+.dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 14px;font-size:13.5px;
+ margin:10px 0}
+.dl dt{color:var(--mut)} .dl dd{margin:0}
+.glo dt{font-weight:600;color:var(--fg);margin-top:9px}
+.glo dd{margin:0 0 4px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;
+ margin:18px 0}
+.card{border:1px solid var(--line);border-radius:7px;padding:13px 15px;background:var(--box)}
+.card h3{margin:0 0 5px;font-size:16px}
+.card p{margin:5px 0;font-size:13.5px;color:var(--mut)}
+.foot{color:var(--mut);font-size:12.5px;margin-top:34px;border-top:1px solid var(--line);
+ padding-top:13px}
+.lg{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;
+ margin-right:4px}
+@media (prefers-color-scheme:dark){
+ :root{--bg:#15171b;--fg:#e9e9ec;--mut:#9aa0a6;--line:#2b2e35;--hi:#2d2a1b;--box:#1d2025;
+  --acc:#63a0d8;--bad:#e57373;--ok:#66bb6a;--warn:#d4a017;--pos:#63a0d8;--neg:#e57373}
+ th{background:#22252b} code{background:#22252b}
+ tr.hl{background:#1b2733} .box.bad{background:#2a1d1c} .box.ok{background:#1a2620}
+}
+:root[data-theme="dark"]{--bg:#15171b;--fg:#e9e9ec;--mut:#9aa0a6;--line:#2b2e35;
+ --hi:#2d2a1b;--box:#1d2025;--acc:#63a0d8;--bad:#e57373;--ok:#66bb6a;--warn:#d4a017;
+ --pos:#63a0d8;--neg:#e57373}
+:root[data-theme="dark"] th{background:#22252b}
+:root[data-theme="light"]{--bg:#fff;--fg:#141414;--mut:#666;--line:#e4e4e7;--hi:#fff8e1;
+ --box:#f6f7f9;--acc:#1a4f8a;--bad:#c0392b;--ok:#1e7e34;--warn:#b8860b;
+ --pos:#2b6cb0;--neg:#c53030}
+:root[data-theme="light"] th{background:#f0f0f3}
+</style><div class="wrap"><p class="crumb"><a href="../index.html">&larr; action items</a></p><h1>Is it the algorithm, or is it the features?</h1><p class="sub">Three matched cell pairs. In each, a weak cell is set against a high-scoring one that holds as much as possible fixed, and the comparison is on the features &mdash; their distributions, their individual separability, their correlation with one another, and the ceiling a fully supervised model reaches from them.</p><div class="box"><p>Every fusion-side diagnostic has come back negative. Orientation costs <b>+0.00pp on all 25 cells</b>; <b>0/25</b> groupings are degenerate; pool composition was closed in both directions (Step 206); and the pre-registered sign repair failed its gate and moved the macro <b>&minus;0.14pp</b> (Step 213). That leaves one hypothesis standing: the weak cells hand the fusion worse raw material. The decisive test is the <b>supervised ceiling</b> &mdash; hand a model the labels, and see whether it too is stuck.</p><p><b>It is stuck part of the way.</b> Some of the gap is in the features on all three pairs; none of the three attributes all of it there. The exact split is not measurable at these sample sizes &mdash; see the caveats below.</p></div><div class="box bad"><p><b>Revised after adversarial review (Step 215). Three of Step 214's four findings did not survive.</b></p><ul><li><b>The TriviaQA partner cell was disqualified.</b> The original strong cell, <code>spilled_triviaqa_llama8b</code> (0.9413), has <b>6 positives out of 256</b>, <code>trace_length</code> alone scores 0.925 on it, and the project already carried a standing instruction to treat it as selection-biased and not headline it (<code>scripts/advisor_report.py:783</code>). It has been replaced with <code>semenergy_triviaqa_qwen3_8b</code> (n = 4,392).</li><li><b>&ldquo;The label-driven correlation is ~3&times; smaller&rdquo; is withdrawn.</b> It is algebraically implied by the per-view Cohen's d values already reported one section earlier (entrywise correlation &ge; +0.99997), and its apparent consistency came from an uncontrolled class prior &mdash; &kappa; = 0.249 vs 0.023 on the original pair.</li><li><b>&ldquo;Estimation noise is retired&rdquo; is withdrawn.</b> The statistic behind it divided by 1/&radic;n, the error bar on a single correlation. C and W are computed from the same rows, so their difference is far tighter than that; the normalisation was wrong by roughly &radic;n. A permutation null replaces it here.</li><li><b>&ldquo;The method matches supervision on strong cells&rdquo; is withdrawn.</b> Across all 25 cells the label-free score exceeds the ceiling on 4, and <b>all four have n &le; 700</b> (n &le; 700: 4/11 exceed, mean &minus;0.77pp; n &gt; 700: 0/14, mean &minus;6.03pp; Mann-Whitney p = 0.035). It was a small-sample effect, not a features-strength effect.</li><li>Two code defects are fixed here: the ceiling no longer applies <code>max(a, 1&minus;a)</code> to a supervised score (which inflated it by +12.6pp on the 6-positive cell) and is averaged over 10 seeds; and the rank-1 fit is minimised properly rather than by a non-convergent iteration.</li></ul></div><h2>The answer, in one table</h2><div class="scroll"><table><tr><th>pair</th><th>cell</th><th></th><th>label-free</th><th>sup. ceiling</th><th>headroom</th><th>best single view</th><th>mean |excess &rho;|</th><th>rank-1 residual</th></tr><tr class="weak"><td rowspan="2"><a href="pair_triviaqa.html">triviaqa</a></td><td style="text-align:left">TriviaQA / OPT-30B (base)</td><td>weak</td><td>0.5614</td><td>0.7223</td><td class="neg">+16.1pp</td><td>0.6248</td><td>0.0051</td><td>0.347</td></tr><tr><td style="text-align:left">TriviaQA / Qwen3-8B</td><td>strong</td><td>0.7867</td><td>0.8364</td><td class="neg">+5.0pp</td><td>0.8205</td><td>0.0421</td><td>0.549</td></tr><tr class="weak"><td rowspan="2"><a href="pair_gsm8k_llama.html">gsm8k_llama</a></td><td style="text-align:left">GSM8K / Llama-3.2-3B</td><td>weak</td><td>0.7087</td><td>0.7529</td><td class="neg">+4.4pp</td><td>0.7107</td><td>0.0183</td><td>0.254</td></tr><tr><td style="text-align:left">GSM8K / Llama-3.1-8B</td><td>strong</td><td>0.8149</td><td>0.8085</td><td class="">-0.6pp</td><td>0.8043</td><td>0.0566</td><td>0.233</td></tr><tr class="weak"><td rowspan="2"><a href="pair_k10_traces.html">k10_traces</a></td><td style="text-align:left">MATH-500 (K=10 traces) / Qwen2.5-Math-1.5B</td><td>weak</td><td>0.6901</td><td>0.7247</td><td class="neg">+3.5pp</td><td>0.7102</td><td>0.0123</td><td>0.224</td></tr><tr><td style="text-align:left">GSM8K (K=10 traces) / Llama-3.1-8B</td><td>strong</td><td>0.8115</td><td>0.8265</td><td class="">+1.5pp</td><td>0.8044</td><td>0.0566</td><td>0.236</td></tr></table></div><p style="font-size:13px;color:var(--mut)">Headroom = supervised ceiling &minus; what we deliver. Positive means signal the features carry and the label-free method does not reach.</p><h2>What the three pairs say together</h2><p><b>1. Roughly half the gap really is in the features, and the split is not the same on every pair.</b> The supervised-ceiling gap as a fraction of the label-free gap is <b>51%</b> (triviaqa), <b>52%</b> (gsm8k_llama), <b>84%</b> (k10_traces). So the weak cells genuinely do hand the fusion worse raw material &mdash; but on none of the three pairs does that account for all of it.</p><p><b>2. The rest of the gap is ours, and on the worst cell it is selection and sign &mdash; not dilution.</b> On <code>seiclr_triviaqa_opt30b</code> the drop from its best single view to what we deliver decomposes as: honest best single view over the pool <b>0.6200</b> (split-half, &plusmn;0.0067) &rarr; best view inside the 12 the selector chose <b>0.5791</b> (the selector had already discarded the pool's two strongest views) &rarr; L-SML <b>0.5614</b>. That is <b>&asymp;4.1pp of selection loss and &asymp;1.8pp of sign loss</b>. Averaging itself costs essentially nothing: an oracle-signed simple average of those 12 views lands exactly on the best view in the subset, so <b>dilution explains 0.0pp</b>. And L-SML's effective per-view signs disagree with the oracle on <b>2 of 12</b> views on this cell against <b>0 of 12</b> on the others &mdash; the plain label-free average beats L-SML here, 0.5708 to 0.5614.</p><p><b>3. The rank-1 assumption is not a general mechanism.</b> Residuals are 0.347 vs 0.549, 0.254 vs 0.233, 0.224 vs 0.236 (weak vs strong). No consistent direction across the three pairs.</p><div class="box bad"><p><b>The one number to act on.</b> TriviaQA / OPT-30B (base) has a supervised ceiling of 0.7223 against our 0.5614 &mdash; a <b>16.1pp gap</b> (bootstrap CI roughly &plusmn;2.5pp; across-seed sd on the ceiling &plusmn;0.0009). We also score below its own best single view, so on that cell fusing is actively worse than picking one view.</p><p><b>But almost none of that gap is label-free reachable</b>, and Step 214 was wrong to call it &ldquo;reachable headroom&rdquo;. It splits into &asymp;1.8pp that better label-free signs would recover, &asymp;4.1pp that needs <i>labels</i> to identify the right single view, and &asymp;10.2pp of multivariate supervised gain with no label-free analogue at all. The honest label-free target here is single digits, not 16pp.</p></div><p>Read together: <b>some of the weak-cell deficit is a feature ceiling and should be reported as one; the part that is ours is concentrated in view selection and per-view sign on specific cells, not in the fusion arithmetic.</b> That makes Repair 3 &mdash; keep the pool's strongest view unconditionally &mdash; the indicated next test, for the measured reason that the selector discarded the two strongest views on the worst cell.</p><h2>The three pairs</h2><div class='cards'><div class="card"><h3><a href="pair_triviaqa.html">TriviaQA — the same dataset, our worst QA cell against a healthy one</a></h3><p><b>varies:</b> the model (OPT-30B base vs Qwen3-8B), the source cache, and the grader (ROUGE-L &amp;gt; 0.3 vs normalised exact match + judge)</p><p>This is the pair Omri named first. Both cells answer the same benchmark at comparable n and comparable class balance, so neither sample size nor prevalence can explain the gap.</p></div><div class="card"><h3><a href="pair_gsm8k_llama.html">GSM8K / Llama-3 — model size is the only variable</a></h3><p><b>varies:</b> model size, 3B vs 8B — and nothing else</p><p>The cleanest controlled comparison in the grid. If the feature quality moves here, it moves because of the model alone, with the data pipeline held fixed. This is the pair that can rule out a cache-specific artifact.</p></div><div class="card"><h3><a href="pair_k10_traces.html">K=10 multi-trace — the same pipeline, weak vs strong</a></h3><p><b>varies:</b> the dataset (MATH-500 vs GSM8K) and the model (Qwen2.5-Math-1.5B vs Llama-3.1-8B)</p><p>Both cells are built by the same multi-trace code, so a defect in that pipeline would hit both. It separates &#x27;the K=10 path is broken&#x27; from &#x27;this dataset/model is hard&#x27;.</p></div></div><p class="foot">Built by <code>scripts/action_items_jul2026/build_pair_compare.py</code>. All numbers recomputed from <code>local_cache/</code> in this run; nothing read off a stored CSV. Validity gate: GOOD_6 macro must reproduce 0.7594.</p></div>

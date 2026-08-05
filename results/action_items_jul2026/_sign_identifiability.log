@@ -1,0 +1,74 @@
+Loading 25 in-scope cells...
+[iter_cells] qa/spectral_phase9_cache_webq_traces_T1.0: single-class labels — skipped
+Loaded 24/25 cells for Stage 2 Anchor Audit.
+VALIDITY: GOOD_6 macro = 0.7733 (expected 0.7733 +/- 0.002) -> PASS
+
+=== GATE P — is U-PCR + sign(rho) sign-sensitive? ===
+  ars_gsm8k_r1distill8b              base 0.7385  max|d AUROC| under random +-1: 1.21e-01
+  epr_triviaqa_mistral24b            base 0.7457  max|d AUROC| under random +-1: 7.67e-02
+  internalstates_gsm8k_qwen25_7b     base 0.7082  max|d AUROC| under random +-1: 5.38e-02
+  lapeigvals_gsm8k_llama3b           base 0.6992  max|d AUROC| under random +-1: 2.19e-02
+  lapeigvals_gsm8k_llama8b           base 0.8108  max|d AUROC| under random +-1: 2.03e-02
+  lapeigvals_gsm8k_mistral24b        base 0.8486  max|d AUROC| under random +-1: 1.12e-02
+  lapeigvals_gsm8k_nemo              base 0.7973  max|d AUROC| under random +-1: 1.39e-01
+  lapeigvals_gsm8k_phi35             base 0.8088  max|d AUROC| under random +-1: 1.19e-01
+  losnet_hotpotqa_mistral7b          base 0.5696  max|d AUROC| under random +-1: 3.32e-02
+  math500_dsmath7b                   base 0.7865  max|d AUROC| under random +-1: 8.72e-02
+  math500_qwenmath7b                 base 0.9155  max|d AUROC| under random +-1: 2.37e-02
+  math500_r1distill8b                base 0.8386  max|d AUROC| under random +-1: 8.86e-02
+  math500_r1distill8b_mn4096         base 0.8358  max|d AUROC| under random +-1: 2.10e-02
+  noise_gsm8k_mistral7b              base 0.7831  max|d AUROC| under random +-1: 6.65e-02
+  noise_gsm8k_phi3mini               base 0.6831  max|d AUROC| under random +-1: 8.13e-02
+  sciq_llama8b                       base 0.7390  max|d AUROC| under random +-1: 6.46e-02
+  se_nq_open_llama8b                 base 0.7469  max|d AUROC| under random +-1: 2.09e-02
+  se_squad_v2_llama8b                base 0.8103  max|d AUROC| under random +-1: 7.27e-02
+  seiclr_triviaqa_opt30b             base 0.8119  max|d AUROC| under random +-1: 4.40e-01
+  semenergy_triviaqa_qwen3_8b        base 0.8103  max|d AUROC| under random +-1: 2.91e-01
+  spilled_triviaqa_llama8b           base 0.9300  max|d AUROC| under random +-1: 2.87e-02
+  trace_gsm8k_llama8b_k10            base 0.8113  max|d AUROC| under random +-1: 9.55e-03
+  trace_math500_qwenmath15b_k10      base 0.6861  max|d AUROC| under random +-1: 4.14e-03
+  truthfulqa_llama8b                 base 0.6634  max|d AUROC| under random +-1: 2.92e-01
+
+  max |d AUROC| over all cells and draws: 4.395e-01
+  cells that are EXACTLY sign-invariant: 0/24
+
+=== M0 — sign stability and correctness (B = 500) ===
+  ars_gsm8k_r1distill8b              recovery  93.3%  mean stability  93.8%  WEAK
+  epr_triviaqa_mistral24b            recovery  92.9%  mean stability  99.0%  
+  internalstates_gsm8k_qwen25_7b     recovery 100.0%  mean stability  98.1%  WEAK
+  lapeigvals_gsm8k_llama3b           recovery  96.7%  mean stability  97.8%  WEAK
+  lapeigvals_gsm8k_llama8b           recovery  96.6%  mean stability  99.0%  
+  lapeigvals_gsm8k_mistral24b        recovery  96.7%  mean stability  99.1%  
+  lapeigvals_gsm8k_nemo              recovery  96.6%  mean stability  98.1%  
+  lapeigvals_gsm8k_phi35             recovery  96.6%  mean stability  99.9%  
+  losnet_hotpotqa_mistral7b          recovery  79.3%  mean stability  96.2%  WEAK
+  math500_dsmath7b                   recovery  96.7%  mean stability  98.9%  
+  math500_qwenmath7b                 recovery  53.6%  mean stability  91.8%  
+  math500_r1distill8b                recovery  96.4%  mean stability  96.8%  
+  math500_r1distill8b_mn4096         recovery 100.0%  mean stability  98.1%  
+  noise_gsm8k_mistral7b              recovery 100.0%  mean stability 100.0%  
+  noise_gsm8k_phi3mini               recovery  93.1%  mean stability  99.2%  WEAK
+  sciq_llama8b                       recovery  96.7%  mean stability  98.9%  
+  se_nq_open_llama8b                 recovery  96.3%  mean stability 100.0%  
+  se_squad_v2_llama8b                recovery  96.3%  mean stability  99.9%  
+  seiclr_triviaqa_opt30b             recovery 100.0%  mean stability  99.9%  WEAK
+  semenergy_triviaqa_qwen3_8b        recovery  88.9%  mean stability  99.3%  
+  spilled_triviaqa_llama8b           recovery  96.4%  mean stability  98.4%  
+  trace_gsm8k_llama8b_k10            recovery  96.6%  mean stability  98.7%  
+  trace_math500_qwenmath15b_k10      recovery 100.0%  mean stability 100.0%  WEAK
+  truthfulqa_llama8b                 recovery 100.0%  mean stability 100.0%  WEAK
+
+========================================================================
+T4 — SIGN IDENTIFIABILITY, THE INCUMBENT NUMBER
+========================================================================
+  sign(rho) recovers the oracle sign on 94.1% of views (macro over cells)
+  bootstrap self-stability                 98.4%
+  folded agreement 94.1% vs CHANCE 57.5% [55.4, 59.8]  p=0.0000
+Traceback (most recent call last):
+  File "C:\Users\omris\TAU\hallucination_detection\scripts\action_items_jul2026\sign_identifiability.py", line 473, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\omris\TAU\hallucination_detection\scripts\action_items_jul2026\sign_identifiability.py", line 455, in main
+    f"(weak vs coin flip p={weak_block['binom_p_weak_vs_half']:.3g})")
+                            ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'binom_p_weak_vs_half'

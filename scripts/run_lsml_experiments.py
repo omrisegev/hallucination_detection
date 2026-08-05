@@ -141,7 +141,7 @@ def run_cell(cell_key, feats_dict, labels, verbose=False):
         exp2_auc, exp2_K
     """
     # Use known features present in this cell, in a stable order
-    feat_names = [f for f in FEATURE_SIGNS if f in feats_dict]
+    feat_names = [f for f in list(FEATURE_SIGNS.keys()) if f in feats_dict]
     if len(feat_names) < 3:
         return None
 

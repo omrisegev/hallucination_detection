@@ -57,6 +57,10 @@ from . import classical_fs      # noqa: E402,F401  Laplacian Score / SPEC / MCFS
 from . import simple_stats      # noqa: E402,F401  random / MAD / kurtosis / decorr
 from . import reference_macros  # noqa: E402,F401  GOOD_5/6, STABLE_H9, ... baselines
 from . import a7_iter_consensus  # noqa: E402,F401  Extension H prior-free consensus
+from . import a8_lscae          # noqa: E402,F401  LS-CAE nuisance+correlated (Step 224)
+from . import a9_dpp            # noqa: E402,F401  DPP MAP, greedy log-det (Step 224)
+from . import a10_mmdufs        # noqa: E402,F401  multi-modal DUFS (Step 224)
+from . import a11_rfae_scfs     # noqa: E402,F401  RFAE + SCFS (Step 224)
 
 # Worktree-developed selector modules — pre-stubbed so branch merges never
 # conflict on this file. Absent modules are simply skipped.

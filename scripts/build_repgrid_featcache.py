@@ -46,6 +46,7 @@ if REPO not in sys.path:
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+from spectral_utils.answer_span import RUNON_CELLS, crop_candidate
 from spectral_utils.feature_utils import FEAT_NAMES
 from spectral_utils.fusion_utils import zscore, boot_auc, lsml_continuous_pipeline
 from spectral_utils.streaming_utils import FEATURE_SIGNS, anchor_orient
@@ -65,23 +66,33 @@ def is_analysis_cell(preset_id):
     return not any(preset_id.endswith(s) for s in SKIP_SUFFIXES) and "_pilot" not in preset_id
 
 
-def candidate_feats(c):
+def candidate_feats(c, allow_short=False):
     """All computable features for one candidate incl. the extended logprob views."""
-    feats = dict(_candidate_features(c))            # 20 spectral+spilled (+energy +logprob)
+    feats = dict(_candidate_features(c, allow_short=allow_short))
     if c.get("top_k_logprobs") is not None:
         feats.update(logprob_features_extended(c["top_k_logprobs"]))
     return feats
 
 
-def build_cell(pkl_path):
+def build_cell(pkl_path, crop=False):
     """Load a raw repgrid pkl -> (feats_dict, labels, problem_id) on the complete-case
-    (spectral-scorable) rows. feats_dict keeps every feature finite on ALL kept rows."""
+    (spectral-scorable) rows. feats_dict keeps every feature finite on ALL kept rows.
+
+    `crop=True` (Step 216, cells in `answer_span.RUNON_CELLS`) computes the features
+    over the answer span the grader already reads instead of the full run-on
+    generation. Those spans are far below the FFT minimum, so the complete-case row
+    filter is dropped for them — keeping it would discard ~97% of the rows to save
+    spectral views that are undefined at that length anyway. The per-feature filter
+    below then selects exactly the views computable on every row, which is what
+    shrinks the pool rather than the sample.
+    """
     with open(pkl_path, "rb") as f:
         data = pickle.load(f)
     rows, labels, pid = [], [], []
     for idx in sorted(data.keys()):
         for c in data[idx]["candidates"]:
-            rows.append(candidate_feats(c))
+            rows.append(candidate_feats(crop_candidate(c) if crop else c,
+                                        allow_short=crop))
             labels.append(bool(c.get("label", False)))
             pid.append(int(idx))
     labels = np.asarray(labels, dtype=int)
@@ -89,7 +100,11 @@ def build_cell(pkl_path):
 
     # complete-case = rows where every spectral feature is present (trace >= 8). Because
     # extract_all_features is all-or-none, this is exactly score_subset's GOOD_5 valid set.
-    keep = np.array([all(np.isfinite(r.get(f, np.nan)) for f in H16) for r in rows], dtype=bool)
+    if crop:
+        keep = np.ones(len(rows), dtype=bool)
+    else:
+        keep = np.array([all(np.isfinite(r.get(f, np.nan)) for f in H16) for r in rows],
+                        dtype=bool)
     if keep.sum() < 20:
         return None
     kept_rows = [r for r, k in zip(rows, keep) if k]
@@ -203,7 +218,8 @@ def main():
 
     cells, cont_rows, gate_fail = {}, [], []
     for pid, man, pkl in discover(args.cache_dir, only=only, exclude=skip):
-        built = build_cell(pkl)
+        crop = pid in RUNON_CELLS
+        built = build_cell(pkl, crop=crop)
         if built is None:
             print(f"[skip] {pid}: <20 spectral-scorable candidates")
             continue
@@ -211,7 +227,17 @@ def main():
         acc = float(y.mean())
         cells[pid] = {"feats": fd, "labels": y, "problem_id": pid_arr,
                       "k": int(man.get("k", 1)), "dataset": man.get("dataset"),
-                      "model": man.get("model"), "acc": acc}
+                      "model": man.get("model"), "acc": acc, "answer_cropped": crop}
+
+        if crop:
+            # The CSV rows for this cell were computed on the un-cropped trace, so a
+            # gate against them would only re-measure the defect. Reported, not gated.
+            print(f"[cell] {pid:<32} n={len(y):>5} acc={acc:.3f} feats={len(fd):>2} "
+                  f"k={man.get('k',1)} | ANSWER-CROPPED (Step 216) — CSV gate N/A")
+            cont_rows.append({"cell": f"repgrid/{pid}", "n": int(len(y)),
+                              "prevalence": acc, "cont_5": None, "cont_9": None,
+                              "cont_16": None})
+            continue
 
         # validation gate vs the CSV GOOD_5/lsml value
         g5 = good5_lsml_auroc(fd, y)

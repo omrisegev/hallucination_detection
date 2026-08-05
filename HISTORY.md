@@ -10014,3 +10014,260 @@ three-discard-then-five-seeds dance would have produced a second selector wearin
 `spectral_utils/selectors/a2_groupfs.py`, `scripts/nonmono_v2/dufs_pf.py`.
 
 ---
+
+### Step 223 — the label-free objective family closes: five composite-reliability arms and ℓ0-CCA both land on the floor
+
+**What**: Two independent attempts to reach the +2.25pp feature-selection room with a *set-level*
+label-free criterion, both pre-registered before the run, both on exp12's 120 splits with exp13's
+arms asserted per split to 1e-9.
+
+**Composite reliability** (`exp15_composite_reliability.py`, `spectral_utils/composite_reliability.py`).
+Motivated by Omri's relaxation of U-PCR's `E[h_i h_j] = 0`: the assumption is measurably broken
+(normalised additive misfit 0.464 on the full pool), the violation is *sparse* rather than low-rank
+(top decile of pairs carries 44% of the residual mass; leading eigenvalue share 0.33), and
+degree-of-freedom counting shows a full Δ saturates while a sparse Δ has 360 spare equations at
+m≈28. Five arms over `C_S = λλᵀ + Ψ + Δ` with Δ soft-thresholded: `omega_sparse` (McDonald's ω),
+`resid_dep` (Σ|Δ_ij|), `m_eff`, `cohesion_set`, `loading_sum`. **None clears the floor** — best is
+`m_eff` at +0.08pp, Holm 0.72. ω's pre-registered failure mode fired exactly as written (it selects
+HIGH-cohesion sets, +0.22 excess, 24W/0L).
+
+**ℓ0-CCA** (`exp15_l0cca.py`, `spectral_utils/selectors/l0cca.py`) — Lindenbaum, Salhov, **Averbuch**,
+Kluger, arXiv:2010.05620. Stochastic gates trained jointly with the CCA directions on a cross-channel
+total-correlation loss. `cca_leverage` −0.12pp (Holm 0.99), `cca_gates` −0.47pp (Holm 0.84). The best
+row in its own table is a **random** channel round-robin at +0.32pp.
+
+**Why**: Step 222 closed per-feature ranking. These were the two strongest candidates for a set-level
+replacement — one derived from U-PCR's own broken assumption, one from the advisors' own method.
+
+**Result**: The channel survives both. Three findings that outlast the null:
+
+1. **Cohesion is not the mechanism.** Selected-set cohesion minus the floor's: good set −0.127, the
+   `cohesion_set` arm −0.131 (it matched the target almost exactly) and it finished **last**; the
+   label-handed oracle −0.019 (it matched nothing) and it **won**. The "low internal cohesion + high
+   loading" story the experiment was built on is refuted by the experiment.
+2. **The search is not the bottleneck.** The same greedy handed half-A labels clears the floor by
+   **+1.88pp** [+1.30, +2.52], 22W/2L — 84% of the room. The objective is what fails.
+3. **The target is not a stable object.** Two random half-splits of the *same* cell, both using that
+   cell's own labels, produce good sets agreeing at Jaccard **0.524** (across cells 0.303). Yet the
+   room is real and the oracle transfers 84% of it. Both hold only if *many different subsets are
+   good* — so every `overlap_*` secondary in Steps 213–223 has been scoring reproduction of a set a
+   rerun would only half reproduce.
+
+**Correction carried forward**: the summary table first reported for this step mislabelled two rows.
+"full pool (no selection)" is `fit_cols(cb, range(m))` — U-PCR on all views **with its own exclusion
+active**, i.e. the deployed method — and "DEPLOYED keep set" is half A's keep set **frozen** with
+exclusion off. The −0.08pp between them is the cost of freezing the selection, not of selecting.
+
+**Files**: `spectral_utils/composite_reliability.py`, `scripts/test_composite_reliability.py`,
+`scripts/upcr_study/exp15_composite_reliability.py`, `scripts/upcr_study/exp15_l0cca.py`,
+`spectral_utils/selectors/l0cca.py`, `results/upcr_study/15_composite_reliability/`,
+`results/upcr_study/15_l0cca/`.
+
+---
+
+### Step 224 — the published unsupervised feature-selection literature, run as U-PCR keep rules: 21 conditions, none beats the deployed rule
+
+**What**: Every applicable condition from the Step-224 reading list was evaluated *as a replacement
+for U-PCR's keep rule* (`upcr.py:287-293`), holding polarity, the fit, the weights, the anchor and
+the scoring fixed. 24 cells × 5 splits × 2 arenas (`full` = choose from the whole pool, the real
+swap; `keep` = prune the deployed keep set, the arena where the room and floor are defined), 111
+variants, three separately launched sweeps. Driver `scripts/upcr_study/exp16_paper_conditions.py`.
+
+**Two contrasts per condition**, because the size-matched floor is a low bar at small sizes:
+(A) vs 25 random subsets of the same size from the same population; (B) vs the deployed rule.
+
+**Four conditions newly implemented**, each with a planted-world known-answer test:
+
+- `a8_lscae.py` — **LS-CAE** (Shaham, **Lindenbaum**, Svirsky, Kluger 2021). Eq. (6): reconstruction
+  and a Laplacian score computed *at the concrete layer*, each inversely weighted by its own
+  magnitude so there is no λ. The direct successor to DUFS; its §4.2 documents the same
+  gate-saturation failure our GroupFS arm hit.
+- `a9_dpp.py` — **DPP MAP**, `argmax_S det(C_S)` by pivoted Cholesky. Attributed as the offline
+  greedy log-det, *not* as Reddy et al.'s streaming algorithm (their kernel is non-symmetric and
+  their contribution is the one-pass memory constraint, neither of which applies here).
+- `a10_mmdufs.py` — **mmDUFS** (Yang, **Lindenbaum**, Kluger, **Jaffe** 2023). `P_shared = LxLy +
+  LyLx` over the same two-channel split ℓ0-CCA used.
+- `a11_rfae_scfs.py` — **RFAE** (Sun, Li, Han 2025) and **SCFS** (Parsa, Zare, Ghatee 2019).
+
+**Four ruled out on inspection, not by experiment**: SEFS (π is fixed and *equal across all
+features* through the self-supervised phase; it becomes feature-specific only under `ℓY(y,·)` — not
+label-free at selection); Feature Manifold Learning (Cohen, Shnitzer, Kluger, Talmon ICML 2023 —
+"few-sample **supervised** FS", learns the manifold of *each class*); VICReg (its variance hinge is
+identically zero on z-scored views — verified across 6,820 views, max |std−1| = 1.3e−14 — and its
+invariance term needs two augmented views we do not have); Graph Information Bottleneck (needs a
+labelled graph, not a feature matrix).
+
+**Why**: eight published conditions were already implemented in `spectral_utils/selectors/` and not
+one had ever been scored against this channel's floor — they were benchmarked in the Step-186
+selector bench against a different baseline on a different harness.
+
+**Result**: **Every one of the 111 variants is negative on contrast B.** The five pre-registered
+primaries: DUFS Eq.(7) −0.96pp (Holm 0.0072), CAE −2.74pp (0.0002), Laplacian Score and SPEC
+−3.77pp (0.0000), Eq-14 residual −5.89pp (0.0000). On contrast A nothing in the family clears Holm
+(best `a3.cae`, adjusted p = 0.282).
+
+Three results carry beyond the null:
+
+1. **The anti-redundancy family is actively harmful, measured three independent ways.**
+   `cohesion_set` −0.75pp (Step 223), `decorr_s5` −5.98pp (1W/23L), and `dpp.k4` **−8.08pp, 0W/24L**
+   — all against a *random* subset of the same size. DPPs are the canonical diversity criterion; the
+   damage is dose-dependent (at size 21.9 the data-driven stop is neutral at −0.47pp, 12W/12L).
+2. **mmDUFS answers the question ℓ0-CCA left open.** Linear cross-channel criterion −0.12pp;
+   non-linear shared graph operator −0.12pp. The null on that channel is a property of the channel,
+   not of linearity.
+3. **The strongest floor-relative results came from the last two conditions built**: `scfs.k3`
+   +3.64pp (22W/2L, p<1e-4) and `rfae.k4` +2.84pp (22W/2L) — the first to clear the same-size floor
+   decisively, and still −2.09 to −3.17pp against the deployed rule because they keep 3–4 views
+   against its ~21.
+
+**Review** (two agents, before the run). The fidelity pass cut the pre-registered family from eight
+to five: GroupFS's published keep rule had been replaced by DUFS gates (`a2_groupfs.py:512-515`),
+`a1.upcrres_greedy` ran our U-PCR residual and not Jaffe/Nadler/Kluger Eq. 14, `a5.mrmr_*` seeds its
+greedy on the hand-picked `epr` anchor (57/57 bench rows) and its "adaptive" size is a constant 8 via
+an unreachable break condition, and `mcfs_adapt` carries an undocumented `max(0, 1−λ_c)` re-weighting
+of the Lasso coefficients. It also confirmed the DUFS signed-µ readout is correct everywhere — an
+`|µ|` readout disagrees on 4 of 13 kept views on a probed cell. The harness pass found Holm shrinking
+below its registered family size when an arm went missing, and full-pool fallbacks being scored as
+selections against a degenerate floor; both push toward manufacturing the null and both were fixed.
+Per-cell checkpointing and `--resume` were added after a 5.8h projection with no incremental saving.
+
+**Verification**: room +2.25pp and floor −0.84pp re-derived independently in all three runs; the new
+size-matched floor agrees with exp13's fixed-k floor to −0.01pp (p=0.99); exp13's arms asserted per
+split to 1e-9; floors and nulls drawn from substreams keyed by (cell, split, arena, size) so a
+single-condition run reproduces the full sweep exactly.
+
+**Scope**: `a6_pseudolabel_gates` excluded for runtime (it consumes a pseudo-label and is not a
+label-free condition). Four of the six size rules in the primary family are ours — Laplacian Score,
+SPEC, MCFS, mRMR and the autoencoder family all define a ranking only, leaving the count as a user
+parameter. The `keep` arena cannot reach the room (19% of the good set lies outside the deployed
+keep set).
+
+**Report**: https://claude.ai/code/artifact/a4d307aa-3053-4e52-83df-8c2c917967f5
+
+**Files**: `scripts/upcr_study/exp16_paper_conditions.py`, `spectral_utils/selectors/a8_lscae.py`,
+`a9_dpp.py`, `a10_mmdufs.py`, `a11_rfae_scfs.py`,
+`results/upcr_study/16_paper_conditions{,_dpp,_round2}/`, digests for LS-CAE / SEFS /
+Feature-Manifold plus 5 new extracts under `papers/`.
+
+---
+### Step 225 — the standing instruction that reframes Step 224: published metrics are inspiration, not specifications; and the repo is made self-sufficient for a machine with no dataset
+
+**What**: Two things, both from Omri on 2026-08-05 after reading the Step-224 results.
+
+**1. The methodological directive.** In his words: a published metric *"should be used as
+inspiration… I thought of using this metric of triplets of features/views to score the views
+themselves and choose those who are doing well. we can improve this by thinking of it and
+developing it. This concept is true to all algorithms and metrics we are trying to use. we should
+tailor it to match our needs. If we need to run a discussion on each variant — so be it."*
+
+This is recorded as section 0 of `HANDOFF_FEATURE_SELECTION_AND_FUSE.md` and it governs the
+whole document. It changes three things going forward: fidelity to the paper stops being the
+acceptance criterion for a new arm (it remains the criterion for anything *labelled* with an
+author's name); a published statistic is a starting point to be reshaped, and the reshaping is
+where the work is; and each variant is discussed before it is built, rather than a family being
+batch-built and reported as a table.
+
+It also **rescopes Step 224 without retracting any number.** What Step 224 closed is
+*transplanting a published keep rule into this channel* — 111 variants, all negative, with a
+fidelity review that cut the primary family from eight to five for not being faithful enough.
+That is not evidence that the ideas inside those papers are exhausted in a tailored form. The
+one sub-result that survives reformulation is the anti-redundancy family (section 2.4), because
+it is a finding about the *direction* of the criterion rather than its algebra: harmful three
+independent ways, dose-dependent, `dpp.k4` at −8.08pp / 0W/24L.
+
+Section 4 of the handoff was rewritten accordingly. The triplet-consistency concept now carries
+**two distinct uses**, which earlier sessions had conflated: scoring **the views** (Omri's
+original framing, feature-selection channel) and scoring **each sample** as a pseudo-label
+(FUSE's own Steps 4–5, weights channel, where the unclaimed +1.24pp sits). Six concrete
+developments of the view-scoring statistic are written out, the two least-explored being
+**quadruplets** — at m=4 the rank-1 model first has spare equations, so a genuine residual
+exists where m=3 admits only pass/fail admissibility — and the **variance of the implied `v̂_i`
+across a view's triplets**, which is a different statistic from its pass rate.
+
+**2. The repo is now self-sufficient for a session with no dataset.**
+- `.gitignore`'s blanket `*.pdf` (written for generated plots) was suppressing all **66 research
+  PDFs**. Un-ignored, plus the root `Tenzer2022_*.pdf`. With `papers/extracted/` (63) and
+  `papers/digests/` (52) the reading pipeline now migrates whole. Cost: ~214 MB.
+- `results/upcr_study/README.md` written — directory map for Steps 200–224, CSV schemas, the
+  aggregation order that reproduces the published numbers, and a worked re-derivation.
+- `results/upcr_study/15_l0cca_partial/` committed **deliberately**, per Omri. It is a
+  structural dry run (`--no-cca`, every score NaN) and it caught a real trap before any real
+  number existed: with no signal at all, the channel round-robin arms scored **+0.32pp,
+  p = 0.019** against the pruning floor, because one-view-per-channel rotation is a
+  channel-*balance* prior that pays by itself (good sets are 51% spectral; marginal rankings
+  pick 32–34%). Scored against `chan_rr_random`, the same arms are −0.05pp and −0.40pp. Now
+  trap 9b in the handoff: **an arm carrying a structural prior needs a floor carrying the same
+  prior**, and the dry run is nearly free.
+- Three exploratory probes moved out of scratchpad into `scripts/upcr_study/`, each header-marked
+  exploratory and not quotable, so the next session extends them rather than rewriting them:
+  `probe_triplet_consistency.py` (the naive baseline for the section-4.2 developments),
+  `probe_delta_violation.py` (provenance for the 0.464 misfit and the good-sets-fit-worse sign),
+  and `probe_delta_followups.py` — whose follow-up (c) is where the **+1.24pp outside
+  `span(v1,v2)`** comes from, i.e. the single load-bearing number behind choosing the weights
+  channel. Flagged in the handoff as **re-run and confirm before building on it**.
+- `spectral_utils/composite_reliability.py`'s test turned out to exist after all —
+  `scripts/test_composite_reliability.py`, CPU-only, no dataset, passing (planted-Delta support
+  recovery, sparse-vs-low-rank separation, exact fixed-k landing, the MIN_SET=3 floor, all five
+  objectives co-oriented). It had been **written in Step 223 and never `git add`ed**, which is
+  the same failure as the rest of this step's backlog. Now tracked. The remaining gap is that it
+  is a standalone script rather than wired into `scripts/smoke_selectors.py`.
+- Handoff section 9 states plainly what a repo-only machine can and cannot do: it **can**
+  re-derive, re-test and re-aggregate every headline number in Steps 210–224 from the saved
+  CSVs, and can verify any selector via `scripts/smoke_selectors.py` (planted-world tests, no
+  data needed); it **cannot** run a new arm, re-fit U-PCR, or recompute any `ρ̂`.
+
+**3. Eighteen sessions' worth of stranded work committed, and attributed.** Staging the above
+surfaced that the working tree carried **49 modified files and ~90 untracked source/result files
+that were never committed** — spanning Steps 206 through 223. The pattern is the one already
+recorded for the selector bench: a session commits its own *new* files and leaves edits to
+*shared* files behind, so the next session inherits a tree that no longer matches HEAD.
+
+The worst case was structural, not cosmetic: `spectral_utils/answer_span.py` was untracked while
+`spectral_utils/repgrid_scoring.py` and `scripts/build_repgrid_featcache.py` **import it**. A
+clean clone of `master` could not have run the feature cache at all. `scripts/labelfree_standing_report.py`
+was also untracked — the script `CLAUDE.md` names as the canonical U-PCR entry point
+(`upcr_rho_oriented`), i.e. the answer to "which implementation is the maintained arm" was not in
+the repo.
+
+| step | what was stranded |
+|---|---|
+| **206** | `results/_bench_refresh_step206.log`, `_step206_a6rebench.log`, `_step206_addtest.log` |
+| **207** | `scripts/labelfree_standing_report.py`, `two_pipelines_explained.py` + their pages; `benchmark_standing.py`'s Bar B relabelling (the fix that stopped calling an internals-reading bar "our own cost class") |
+| **210** | `scripts/failure_deepdive{,_report}.py` + `results/failure_deepdive/` |
+| **211, 213** | `scripts/action_items_jul2026/` (incl. `test_sign_repair.py`) + `results/action_items_jul2026/` |
+| **216** | the largest one: `spectral_utils/answer_span.py`, `scripts/answer_span_{audit,repair,score_check}.py`, the `allow_short` path through `feature_utils.extract_all_features` → `repgrid_scoring._candidate_features` → `build_repgrid_featcache`, `inscope_cells`/`inscope_bench_common` rejection registries, and the **entire re-grade cascade** it forced through `results/selector_bench/*.csv`, `results/advisor_inscope/*.html`, `results/benchmark_standing.csv` and `results/BENCHMARK_STANDING.md` (`seiclr_triviaqa_opt30b` rows removed) |
+| **217** | `scripts/nonmono_{shape_test,transform_bench}.py` + `results/nonmono_transform/` |
+| **223** | `scripts/test_composite_reliability.py` |
+| mixed | `spectral_utils/glossary.py` + `GLOSSARY.md` (the Step-205 small-m degeneracy warning and the dead-router note), `Research_Directions.md` (+201 lines: Extension K, and the Step-216 banner invalidating two rows) |
+
+Verified before staging: every module under `spectral_utils/` and every script under `scripts/`
+is now in the index, and `pkgutil.walk_packages` imports all of `spectral_utils` with **0 errors**.
+
+**Deliberately left out**: ~20 one-off agent scratch scripts that had leaked into the repo root
+(`read_history_lines.py`, `find_all_history.py`, `extract_batch.py`, `inspect_cache_structure.py`
+and similar), `arxiv_search_batch_results.json`, `audit_drive_coverage.ipynb`, and
+`cache/_backup/**/manifest.json`. They are disposable and would only add noise for the next
+session.
+
+**Why**: Step 224 was built to answer "does the published literature beat our keep rule", and it
+answered it. The risk on the other side of that result is a next session reading it as "the
+literature is closed" and either stopping or repeating the same faithfulness exercise on the
+remaining papers. Omri's directive names the third option. Separately, the next session may run
+on a different machine with only the GitHub repo — the papers and the result CSVs were the two
+things that would not have survived that move.
+
+**Result**: No new experimental number. A clean clone of `master` now runs: `answer_span` and the
+canonical U-PCR entry point are in the repo, all of `spectral_utils` imports with 0 errors, and
+`scripts/smoke_selectors.py` + `scripts/test_composite_reliability.py` verify the machinery with
+no dataset present. `HANDOFF_FEATURE_SELECTION_AND_FUSE.md` gains section 0
+(the directive), a rewritten section 4 (two uses, six tailoring directions), trap 9b, and section
+9 (repo-only operation); section 2.3 gains an explicit scope note; section 5 is re-framed so the
+existing triplet probe reads as the naive baseline for section 4.2 rather than as a verdict.
+`results/upcr_study/README.md` is new. 66 PDFs and the ℓ0-CCA dry run now travel with the repo.
+
+**Files**: `.gitignore`, `HANDOFF_FEATURE_SELECTION_AND_FUSE.md`,
+`results/upcr_study/README.md`, `scripts/upcr_study/probe_triplet_consistency.py`,
+`papers/*.pdf` (66, newly tracked), `Tenzer2022_Crowdsourcing_Regression_Spectral.pdf`,
+`results/upcr_study/15_l0cca{,_partial}/`, `results/upcr_study/15_composite_reliability/`.
+
+---

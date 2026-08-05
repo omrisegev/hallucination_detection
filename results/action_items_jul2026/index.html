@@ -1,0 +1,65 @@
+<title>Jul-2026 advisor action items</title><style>
+:root{--bg:#fff;--fg:#141414;--mut:#666;--line:#e4e4e7;--hi:#fff8e1;--box:#f6f7f9;
+ --ok:#1e7e34;--bad:#c0392b;--warn:#b8860b;--acc:#1a4f8a;--pos:#2b6cb0;--neg:#c53030}
+*{box-sizing:border-box}
+body{margin:0;padding:0 18px 90px;background:var(--bg);color:var(--fg);
+ font:15px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1240px;margin:0 auto}
+a{color:var(--acc)} a:hover{text-decoration:underline}
+h1{font-size:26px;margin:30px 0 4px;line-height:1.25}
+h2{font-size:20px;margin:38px 0 10px;padding-top:13px;border-top:2px solid var(--line)}
+h3{font-size:16.5px;margin:26px 0 7px}
+h4{font-size:14.5px;margin:18px 0 6px;color:var(--mut);text-transform:uppercase;
+   letter-spacing:.04em}
+p{margin:9px 0}
+.sub{color:var(--mut);font-size:14px;margin:0 0 20px}
+.crumb{font-size:13px;color:var(--mut);margin:16px 0 0}
+.box{background:var(--box);border-left:4px solid var(--acc);padding:11px 15px;
+ margin:15px 0;border-radius:0 4px 4px 0}
+.box.bad{border-left-color:var(--bad);background:#fdf0ee}
+.box.warn{border-left-color:var(--warn);background:var(--hi)}
+.box.ok{border-left-color:var(--ok);background:#eef7f0}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:12px 0}
+table{border-collapse:collapse;font-size:13px;width:100%;min-width:600px}
+th,td{padding:5px 9px;border-bottom:1px solid var(--line);text-align:right;
+ white-space:nowrap;vertical-align:middle}
+th:first-child,td:first-child{text-align:left}
+th{background:#f0f0f3;font-weight:600}
+tr.weak{background:var(--hi)}
+tr.hl{background:#eaf2fb}
+td.neg,.neg{color:var(--bad)} td.pos,.pos{color:var(--ok)}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+code{background:#f0f0f3;padding:1px 5px;border-radius:3px}
+.chip{display:inline-block;padding:0 6px;border-radius:9px;font-size:10.5px;
+ font-weight:700;color:#fff;margin-right:3px;line-height:16px}
+.c-g6{background:#1a4f8a}.c-dep{background:#8a4f1a}.c-or{background:#1e7e34}
+.c-up{background:#5a3d8a}.c-drop{background:#999}
+.dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 14px;font-size:13.5px;
+ margin:10px 0}
+.dl dt{color:var(--mut)} .dl dd{margin:0}
+.glo dt{font-weight:600;color:var(--fg);margin-top:9px}
+.glo dd{margin:0 0 4px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;
+ margin:18px 0}
+.card{border:1px solid var(--line);border-radius:7px;padding:13px 15px;background:var(--box)}
+.card h3{margin:0 0 5px;font-size:16px}
+.card p{margin:5px 0;font-size:13.5px;color:var(--mut)}
+.foot{color:var(--mut);font-size:12.5px;margin-top:34px;border-top:1px solid var(--line);
+ padding-top:13px}
+.lg{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;
+ margin-right:4px}
+@media (prefers-color-scheme:dark){
+ :root{--bg:#15171b;--fg:#e9e9ec;--mut:#9aa0a6;--line:#2b2e35;--hi:#2d2a1b;--box:#1d2025;
+  --acc:#63a0d8;--bad:#e57373;--ok:#66bb6a;--warn:#d4a017;--pos:#63a0d8;--neg:#e57373}
+ th{background:#22252b} code{background:#22252b}
+ tr.hl{background:#1b2733} .box.bad{background:#2a1d1c} .box.ok{background:#1a2620}
+}
+:root[data-theme="dark"]{--bg:#15171b;--fg:#e9e9ec;--mut:#9aa0a6;--line:#2b2e35;
+ --hi:#2d2a1b;--box:#1d2025;--acc:#63a0d8;--bad:#e57373;--ok:#66bb6a;--warn:#d4a017;
+ --pos:#63a0d8;--neg:#e57373}
+:root[data-theme="dark"] th{background:#22252b}
+:root[data-theme="light"]{--bg:#fff;--fg:#141414;--mut:#666;--line:#e4e4e7;--hi:#fff8e1;
+ --box:#f6f7f9;--acc:#1a4f8a;--bad:#c0392b;--ok:#1e7e34;--warn:#b8860b;
+ --pos:#2b6cb0;--neg:#c53030}
+:root[data-theme="light"] th{background:#f0f0f3}
+</style><div class="wrap"><h1>Advisor meeting — Jul 2026: action items</h1><p class="sub">Three items came out of the meeting that closed the feature-selection line. One page per item.</p><div class="box"><p><b>Why the direction closed.</b> L-SML over the full ~30-view pool, L-SML after DUFS selection, and U-PCR's own built-in exclusion all land within noise of each other on essentially every cell: 0.7551 / 0.7507 / 0.7594 macro, with no pairwise contrast significant (p = 0.059 / 0.191 / 0.615).</p></div><div class="cards"><div class="card"><h3><a href="item1_failure_deepdive/index.html">1 · Why we fail where we fail</a></h3><p>Nine cells, one page each: the views, their distributions, the anchor, the subsets, and where the AUROC is lost. The sign-recovery mechanism proposed here was <b>withdrawn</b> in Steps 212–213 — its significance was an artifact and its repair failed. The eliminations stand.</p></div><div class="card"><h3><a href="item1b_feature_comparison/index.html">1b · Features, or algorithm?</a></h3><p>Matched cell pairs — a weak cell against a high-scoring one that holds the dataset or the pipeline fixed. Distributions, correlation structure, and the supervised ceiling, to see whether the gap predates the fusion.</p></div><div class="card"><h3><a href="item2_upcr_clustering/index.html">2 · Clustering inside U-PCR</a></h3><p>Already built and refuted (−4.46pp, p = 0.030), and its premise was a confound. The evidence, so the decision is not taken on trust.</p></div><div class="card"><h3><a href="item3_adjacent_applications/index.html">3 · Adjacent applications</a></h3><p>Early detection already has +5.6pp [+0.9, +10.6] at the earliest 10% of the trace. Localization is blocked on annotation.</p></div></div><div class="foot">Built from <code>local_cache/</code> through the canonical scoring path. GOOD_6 validity anchor 0.7594; both deployed arms reproduce to &lt;5e-4 on 25/25 cells.</div></div>

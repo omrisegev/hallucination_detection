@@ -279,6 +279,129 @@ priority).*
 | # | Action | Status |
 |---|--------|--------|
 | 1 | Feature-subset selection step: literature survey (Lindenbaum FS line, Nadler portfolio, tabular foundation-model frontier, assumption diagnostics) + assumptions audit + candidate designs | ✅ Research memo complete (Step 185) — `docs/research_notes/feature_subset_selection_landscape.md`; see Extension G |
+| 2 | Avoid the fixed subset — add a label-free selection step ahead of fusion | ✅ **Done, and it is a tie rather than a win.** Two arms reach the hand-picked bar carrying only the anchor bit: `upcr.rho_polarities` **0.7551** and `a2.dufs_pf` **0.7507**, against GOOD_6 0.7594 / GOOD_5 0.7519. No gap is significant (Steps 186–206, standing page Step 207) |
+| 3 | Review Ofir's earlier FS work (DUFS, GroupFS) | ✅ Both benchmarked on the same 25 cells: `a2.dufs` 0.7502, `a2.dufs_pf` 0.7507 (Eq. 7, no lambda to tune), `a2.select` (GroupFS) 0.7481 |
+| 4 | Assumptions audit of the L-SML / U-PCR line, in the spirit of FUSE on verifier dependence | ✅ Seven real deviations found; fixing all of them **hurts** (69.1% faithful vs 73.9%). Independence assumption tested head-on and refuted (−4.5pp). The one thing that helped came out of the same audit: polarity from `sign(rho)`, **+1.5pp, 20W/5L, p < 0.001** (Step 204) |
+| 5 | Bracha's conformal calibration suggestion | ⬜ **Not started, deliberately** — parked until the selection track closed. Still Extension A, unchanged priority. ITCR (arXiv:2606.08831, ICML 2026) is the paper to read first; **split conformal with *marginal* coverage**, never "conformal risk control", and never claim a per-instance guarantee |
+
+**Advisor-facing deliverables for this block**: `results/upcr_study/comparison.html` (all 196 variants,
+sortable, with a provenance column) and `results/action_items/labelfree_standing.html` (the two
+label-free arms scored per-cell against the published roster, Step 207). Both self-contained.
+
+**Reporting rule established in Step 207, do not regress**: the "+8.7pp on 11 cells, p = 0.042"
+external result is **Bar B** (unsupervised, one forward pass, *any* access — it includes white-box
+competitors). It is **not** our own cost class; that is Bar A, grey-box only, where the numbers are
++6.17pp / +6.56pp over 5 cells at p = 0.312. Quote Bar B as what it is.
+
+---
+
+## Meeting Action Items — Jul 30, 2026 (Ofir, Bracha, Amir)
+
+*The **feature-selection line is closed**. L-SML over the full ~30-view pool, L-SML after DUFS
+selection, and U-PCR's own built-in exclusion all tie, on essentially every cell — Step 207's
+`upcr` 0.7551 / `dufs_pf` 0.7507 / GOOD_6 0.7594, no pairwise contrast significant. Three action
+items replace it. Recorded in HISTORY.md Step 209.*
+
+| # | Action | Status |
+|---|--------|--------|
+| 1 | **Understand why we fail where we fail** — per-cell deep dive, not another aggregate | 🔵 **ACTIVE — diagnosis only.** Nine cells pinned as "failing" (below). Repairs are pre-registered and tested in a *later* step so the diagnosis cannot be tuned to make a fix look good |
+| 2 | Consider a clustering mechanism inside U-PCR | ❌ **Already answered — do not rebuild.** Step 204 §D built it (`spectral_utils/upcr_clustered.py`): failed both pre-registered gates, **−4.46pp (9W/16L, p = 0.030)**, and the premise was a confound (2.03× same-vs-cross fit gap → 0.97–1.00× matched on \|C_ij\| decile; a random partition reproduces it). One untried variant — K-means on the (v₁,v₂) coordinates — rated **low**: `lambda2_threshold` is inert and one-component U-PCR is exactly PC1 of the survivors, so the second component has nothing to cluster on |
+| 3 | Consider adjacent applications — localization, and detection early in generation | 🟡 **Strongest publishable arm.** Early detection = Extension E, which already has a replicated effect: `lsml16` beats the best DeepConf window by **+5.6pp [+0.9, +10.6]** at the **earliest 10% of the trace**. Step 208 adopted `Online Auditing of Information Flow` (arXiv:2310.14595) for the missing stopping rule and the corrected metric, **(AUROC at budget, tokens consumed)**. Localization = Extension F, still deferred — needs step-level annotation we do not have |
+
+> ### ⚠ STEP 216 INVALIDATES TWO ROWS OF THE TABLE BELOW — read this first
+>
+> **Two of the nine "failing" cells were not failing; they were generating malformed traces**, and
+> they are exactly the two *base* checkpoints in the grid (23 of 25 run instruct-tuned models).
+>
+> * **`seiclr_triviaqa_opt30b`** (`facebook/opt-30b`) — no learned EOS for the few-shot format, so
+>   99.7% of generations sit at `max_new=64` and run on past a 3-token median answer. The grader
+>   already cropped (`first_answer_line`) while the features did not, so label and features were
+>   computed over different spans. **REPAIRED by cropping**: `GOOD_6 0.5884 → 0.8311`, `DUFS+L-SML
+>   0.5614 → 0.7726`, `U-PCR 0.5751 → 0.8119`, best single view ~0.62 → **0.8258**. Against
+>   SE-ICLR'23's published **83.0** it is now level rather than ~27pp below. **It was never a method
+>   failure.**
+> * **`inside_coqa_llama7b`** (`huggyllama/llama-7b`) — a chat template applied to a base
+>   checkpoint; 45.1% of answer spans are `[/INST]` echoes or fabricated turns, `pos_rate` 0.002 on
+>   the broken rows vs 0.239 on the usable ones. **REJECTED** (`scripts/inscope_cells.REJECTED_CELLS`)
+>   until re-generated with `raw_prompt=True`.
+>
+> **The roster is 24, and `GOOD6_EXPECTED` is 0.7733, not 0.7594.** Both leading arms moved:
+> **U-PCR + sign(rho) 0.7551 → 0.7741**, **DUFS+L-SML 0.7507 → 0.7687**, GOOD_6 0.7594 → 0.7733 —
+> and `GOOD_6 − U-PCR` is now **−0.08pp (p=0.819)**, the first time the label-free arm sits
+> nominally above the hand-picked subset. **The QA deficit was these two cells**: GOOD_6's QA lead
+> was 1.49pp over 10 cells and is 0.25pp over 9.
+>
+> **Consequences for the diagnosis**: seven of the nine remain genuinely hard and the mechanism work
+> in Steps 210–215 stands for them. But the per-cell account of `seiclr_triviaqa_opt30b` in Step 215
+> (selection miss + L-SML sign disagreement on 2 of 12 views) is **retracted** — it was measuring
+> the run-on artifact. Two rows below are kept for the record with their pre-repair numbers.
+
+**The nine "failing" cells** (eight named by Omri off `results/action_items/labelfree_standing.html`,
+plus TruthfulQA, which ranks 4th of 25 on every weakness measure and is interleaved with the named
+cells) — **numbers below are PRE-Step-216**:
+
+| Cell | Page name | GOOD_6 | DUFS+L-SML | U-PCR |
+|---|---|---:|---:|---:|
+| `losnet_hotpotqa_mistral7b` | HotpotQA / Mistral-7B-v0.2 | 0.5810 | 0.5684 | 0.5696 |
+| `inside_coqa_llama7b` | CoQA / LLaMA-7B (base) | 0.6674 | 0.5320 | 0.5355 |
+| `seiclr_triviaqa_opt30b` | TriviaQA / OPT-30B (base) | 0.5884 | 0.5614 | 0.5751 |
+| `truthfulqa_llama8b` | TruthfulQA (gen.) / Llama-3.1-8B | 0.6572 | 0.6606 | 0.6634 |
+| `internalstates_gsm8k_qwen25_7b` | GSM8K (T=0.8) / Qwen2.5-7B | 0.7036 | 0.6911 | 0.7082 |
+| `noise_gsm8k_phi3mini` | GSM8K / Phi-3-mini | 0.6801 | 0.6764 | 0.6831 |
+| `trace_math500_qwenmath15b_k10` | MATH-500 (K=10) / Qwen2.5-Math-1.5B | 0.6760 | 0.6901 | 0.6861 |
+| `ars_gsm8k_r1distill8b` | GSM8K / R1-Distill-Llama-8B | 0.7623 | 0.7142 | 0.7385 |
+| `lapeigvals_gsm8k_llama3b` | GSM8K / Llama-3.2-3B | 0.7025 | 0.7087 | 0.6992 |
+
+`losnet_hotpotqa_mistral7b` is multi-hop RAG, which Step 191 declared out of scope; it is still one
+of the 25 and was named, so it stays in the diagnosis with that caveat attached.
+
+**The confound this diagnosis must not fall into**: the nine cells are exactly the nine lowest
+`anchor_auc` in the grid, and Spearman(anchor_auc, U-PCR AUROC) = **+0.967, p = 3.8e-15** — which
+looks like an orientation story. It is not. **Spearman(anchor_auc, best_single_feature) = +0.975**:
+`epr` is itself a pooled feature, so a weak anchor just means every view is weak on that cell. And
+`h1_orientation_summary.csv` rules it out independently — the `allsigns` / `z2` / `raw` / `oracle`
+anchor conditions all return **identically 0.7594** with `cells_below_0.5 = 0`.
+
+---
+
+### Extension K — Reshaping non-monotone views (Step 217, 2026-08-02) — 🔵 OPEN, next session
+
+**Status**: the phenomenon is **confirmed**; one transform family was tested and **failed**; Omri's
+call is that the line stays open because a non-monotone feature needs reshaping and the right
+reshaping has not been tried yet.
+
+**What is established** (`scripts/nonmono_shape_test.py`, `results/nonmono_transform/`):
+- Under a fair test — isotonic (best *monotone* function) vs an unconstrained 10-bin map, both
+  cross-fitted on the same folds, against each pair's own **label-permutation null** — **32 of 682
+  cell × view pairs are genuinely non-monotone**, several at 5–7× their null on cells with thousands
+  of rows (`semenergy_triviaqa_qwen3_8b`/`rpdi` **+0.1227**, n=4392, across-seed sd 0.0019).
+- The effect is **cell-specific**, which is why a per-feature-mean gate missed it entirely. Recurrent
+  views: `rpdi` (7 of 24 cells), `pe_mean` (6), `cusum_shift_idx` (6), `hurst_exponent` (3).
+- **No label-free handle via marginal bimodality**: `Spearman(shape_gain, KDE peak count) = +0.014,
+  p = 0.72`. P(y|x) can bend without the *marginal* density of x having two humps.
+- **A correction to our own code**: `nonmono_gain` in `results/advisor_inscope/ladder_featdiag.csv`
+  is **inflated** — `gap_ladder.py:64,220` folds `max(p, 1−p)` onto each fold's binned score, a
+  one-sided noise floor (`Spearman(corrected gain, inflation) = −0.171, p=7e-06`). Do not quote it.
+
+**What failed, and why that is not the end of it**: `|x − median|`, `x²`, `|Φ⁻¹(rank%)|` in
+Replace/Add, chosen leave-one-cell-out, gave **G1 FAIL on both arms** (−0.07pp / −0.04pp) with G2
+and G3 passing (the LOCO choice is stable on 92–100% of folds, so the test had power). But all
+three are **symmetric and centred on the middle of the distribution**, and the actual curves are
+not: `semenergy/epr_energy` is an inverted-U peaking at **decile 6–7**, `semenergy/rpdi` is
+**W-shaped**, `se_nq_open/rpdi` peaks at the **edge** with an interior dip. Two further gaps: arm A
+**held the DUFS selection fixed** (only 5 of 24 cells moved at all), and **"add a view carrying the
+same information monotonically" was never tested**.
+
+**Pre-registered next tests**, priority order:
+1. **Fit the centre, do not assume it** — `|x − c|` with `c` chosen **leave-one-cell-out**, or
+   centred on the **KDE mode** (`nonmono_shape_test.py` computes it label-free).
+2. **Use the winning curve itself as the view** — the cross-fitted bin-mean map *is* the +12pp
+   function; test whether a LOCO-fitted version transfers across cells. Strongest form of the idea.
+3. **Re-run selection with the reshaped view in the pool.**
+
+**The competing explanation to test against, not assume**: a single view's shape may be largely
+**redundant** once 15–20 other views are fused. Test 2 above is what separates that from "wrong
+transform family". Gate stays G1/G2/G3 on both arms.
 
 ---
 
@@ -374,7 +497,10 @@ the full leaderboard.
 3. **`GOOD_6` is unbeaten by every label-free selector, and it is a local optimum.** Post-fix
    seven-arm bench on 25 in-scope cells (`results/advisor_inscope/seven_arm_summary.csv`, one run,
    canonical `eval_subset_flex`): GOOD_6 0.7594 > D1_D2 0.7580 > D2 (PL-mRMR) 0.7573 >
-   `a6.pruned_dufs` 0.7537 > `a6.pl_dufs` 0.7527 > GOOD_5 0.7519 > D1 0.7506. D2 beats GOOD_5
+   `a6.pruned_dufs` 0.7537 (**⚠ CORRECTED in Step 206 to 0.7514** — the old rows carried a stale
+   `mu3` NameError on 11/25 cells; re-benched clean, which moves it BELOW `a6.pl_dufs` and GOOD_5
+   in this ordering, see HISTORY Step 206 §D) > `a6.pl_dufs` 0.7527 > GOOD_5 0.7519 > D1 0.7506.
+   D2 beats GOOD_5
    significantly (p=0.037) and beats every prior DUFS variant, but under LOCO-CV budget selection
    lands 0.7572, below GOOD_6, and its math edge is p=0.2114 (9W/6L). The best D2 configuration is
    GOOD_6 **plus one** selected feature at 0.7590, i.e. adding any selected feature to GOOD_6 hurts
@@ -726,9 +852,65 @@ one-factor premise is aimed at a premise the data only approximately satisfies.
 
 ## Recommended Priority Order
 
-*(Single authoritative list — updated 2026-07-02, post streaming pilot Step 148)*
+*(Single authoritative list — updated 2026-07-30, post advisor meeting Step 209)*
 
 **Now — no GPU needed**
+
+0-TOP. **← FAILURE DIAGNOSIS (Jul-30 action item 1), DIAGNOSIS ONLY.** Nine cells, all 25 measured
+   as the comparison group. ✅ **DONE (Step 210)** — `results/failure_deepdive/index.html`.
+   **The mechanism is label-free relative-sign recovery.** L-SML's job is to give back what a
+   simple average loses by not knowing the per-view signs; it recovers **0.919–1.247 of it on
+   every healthy cell** (median 1.025) and **below 0.90 on 4 of 8 weak cells, 0 of 14 healthy**
+   (Fisher p = 0.0096 — **significance withdrawn in Step 212**: requiring a stable denominator gives
+   p = 0.0735 / 0.2500, and U-PCR's version never reaches it. The *pattern* holds and both arms
+   show it — Spearman(L-SML, U-PCR recovery) = +0.707, p = 0.0002 — but the repair, not the table,
+   is the confirmation). Three secondary mechanisms: the selector drops the pool's strongest view
+   on 4 cells (−4.8pp worst), CoQA's views are non-monotone (z = +3.19 vs every other cell), and
+   3 of the 9 trip **nothing** — they are simply hard. **Cleared as suspects: orientation**
+   (global bit costs 0.00pp on 25/25) and **K-selection** (0/25 degenerate; eigengap helps 5/25,
+   mean −1.39pp). **No fixes were run**; three are pre-registered with gates on the page.
+   **⚠ Repair 1 (Z₂ as the label-free sign estimator) was then built and REFUTED (Step 213)** —
+   1/4 on gate (i), 13/16 and 15/16 on gate (ii), full regression a dead wash (+0.04pp, p = 0.89).
+
+0-NEXT. **← REPAIR 3: keep the pool's strongest view unconditionally.** Promoted by **Step 214**
+   (features vs algorithm) and kept there by **Step 215**, which was an adversarial review that
+   **withdrew three of Step 214's four findings**. Site:
+   `results/action_items_jul2026/item1b_feature_comparison/`. Read the withdrawals before quoting
+   anything from this line.
+   - **SURVIVES**: some of the gap is genuinely in the features on all three pairs, and on none is
+     it all of it (ceiling-gap / label-free-gap = 51% / 52% / 84% on the rebuilt pairs). **Quote
+     the sign, not the percentage** — bootstrap CIs [25,74] / [14,111] / [59,104] overlap, two
+     include 100%, and the TriviaQA figure ranges −2% to 60% across defensible partner cells.
+   - **SURVIVES, and is the reason for Repair 3**: on `seiclr_triviaqa_opt30b` the loss is
+     **selection + sign, and dilution explains 0.0pp**. Honest best single over the pool 0.6200
+     (split-half ±0.0067) → best inside the 12 the selector chose 0.5791 (**the selector discarded
+     the pool's two strongest views**) → L-SML 0.5614. ≈4.1pp selection + ≈1.8pp sign. L-SML's
+     effective per-view signs are wrong on 2/12 views here vs 0/12 on the other five cells.
+   - **⚠ WITHDRAWN — the pair's strong cell was disqualified.** `spilled_triviaqa_llama8b` has
+     n_pos = 6/256, `trace_length` alone scores 0.925 on it, and `scripts/advisor_report.py:783`
+     already said do not headline it. Replaced with `semenergy_triviaqa_qwen3_8b` (n=4392).
+   - **⚠ WITHDRAWN — "label-driven correlation ~3× smaller".** Algebraically implied by the
+     per-view Cohen's d already reported (entrywise corr ≥ +0.99997, 6/6 cells); the consistency
+     was an uncontrolled class prior (κ-adjusted: 28.9× / 3.8× / 3.4×).
+   - **⚠ WITHDRAWN — "the estimation-noise hypothesis is retired", and the do-not-run instruction
+     is RESCINDED.** The statistic was normalised by 1/√n, the SE of a single correlation, when C
+     and W share rows; wrong by ~√n. Against a permutation null the excess is 46×–639× its null.
+     `Spearman(label-free − ceiling, n) = −0.462, p = 0.020` over 25 cells. **The
+     subsample-to-matched-signal test is back on the table.**
+   - **⚠ WITHDRAWN — "the method matches supervision on strong cells".** Label-free exceeds the
+     ceiling on 4/25 cells, **all with n ≤ 700** (Mann-Whitney p = 0.035). A small-sample effect.
+   - **⚠ WITHDRAWN — "16.2pp of reachable headroom".** The gap is real (0.7223 vs 0.5614) but
+     splits into ≈1.8pp label-free-reachable, ≈4.1pp needing labels, ≈10.2pp supervised-only.
+     **Honest label-free target: single digits.**
+
+0-THEN. **Adjacent applications (Jul-30 action item 3)** — Extension E first, since it already has
+   a replicated effect (+5.6pp [+0.9, +10.6] over the best DeepConf window at the earliest 10% of
+   the trace) and an adopted formulation (SPRT stopping rule; report **(AUROC at budget, tokens
+   consumed)**). Extension F (localization) stays deferred.
+
+0-CLOSED. ~~**Feature-subset selection**~~ ❌ **CLOSED BY THE JUL-30 MEETING.** The three arms tie
+   and nothing separates them. Superseded as a *direction*; the results stand.
+
 0. ~~**Extension H — Prior-Free L-SML** (Step 199 pivot): strip every hand-picked prior (`epr`
    anchor, `GOOD_6` seeds, fixed K); derive orientation (H1), size (H2), selection (H3) from
    structure alone~~ ✅ **CLOSED AS BOUNDED (Steps 200–202) — decision gate NOT met.** H1 has no
@@ -785,6 +967,21 @@ one-factor premise is aimed at a premise the data only approximately satisfies.
 12. Extension B (Agentic): Qwen3-7B, HotpotQA multi-hop
 13. Extension C (Hidden states): one forward hook on Falcon
 14. Extension D (VLM): only if committee wants multimodal chapter
+
+**CLOSED — do not re-open without new evidence (Step 206, 2026-07-28)**
+- **Pool composition is not a lever, in either direction.** *Removal*: null on L-SML
+  (WS3 LOCO, −0.22…+0.04pp, n.s.) and **significantly harmful on U-PCR** (`exp08`, −0.50pp,
+  7W/18L, p = 0.0096); at any drop threshold ≥ 0.2pp **no view qualifies at all**. Corroborated by
+  the pool-size experiment (16→30 views within 0.11pp) and `feature_inclusion_audit_c46` (every
+  view has non-zero LOVO cost somewhere). *Addition*: all six pre-registered ADD variants land
+  below GOOD_6 (`exp09`; best `ref.GOOD_6+topk` 0.7587, worst `ref.ENTROPY_6` 0.7462).
+- **The mechanism, which is why both directions fail together**: U-PCR's Algorithm-1 exclusion is
+  **data-dependent** — removing a zero-weight view still perturbs C → ρ̂ → *which other views
+  survive* (29% of the time). And on the add side, high individual informativeness does not imply
+  additive value: `topk_tail_mass` ranks #1 of 30 and is a `ref.LOCO_5` member, yet adds nothing to
+  a subset already covering that direction. **What governs is redundancy and estimator coupling,
+  not view quality.**
+- ⇒ **Orientation is the only remaining lever.** Priority item unchanged.
 
 **De-prioritized (valid but not blocking)**
 - Step 132: MATH-500 SpilledEnergy GPU run — run opportunistically when Colab is free

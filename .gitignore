@@ -47,6 +47,14 @@ cluster/submit_inference.sbatch
 *.pdf
 *.svg
 
+# ...but the research papers themselves DO travel with the repo (~214 MB, 66 PDFs).
+# A future session may run on a machine that has the repo and nothing else — no Drive,
+# no inference cells, no local PDF library. The papers are the one input that cannot be
+# re-derived from anything else here, so they are tracked deliberately.
+!papers/**/*.pdf
+!papers/*.pdf
+!Tenzer2022_Crowdsourcing_Regression_Spectral.pdf
+
 # Older / result notebooks — kept local only (may contain API tokens in outputs)
 *_res.ipynb
 View_Optimizer.ipynb

@@ -34,6 +34,7 @@ from spectral_utils.glossary import (   # noqa: E402
     REFERENCE_SUBSET_NOTES, FAMILY_NOTES, VARIANT_NOTES, ROLE_NOTES,
     POOL_MODE_NOTES, BASE_VARIANT_NOTES, SUFFIX_NOTES, FEATURE_NOTES,
     METHOD_TERM_NOTES,
+    GROUPING_TERM_NOTES,
     OUT_OF_SCOPE_DERIVED_VIEWS_NOTE, resolve, role_of)
 from spectral_utils.selectors import registered  # noqa: E402
 from spectral_utils.selectors.reference_macros import MACROS  # noqa: E402
@@ -184,6 +185,12 @@ def render():
     lines.append("| Term | Meaning |")
     lines.append("|---|---|")
     for term, meaning in METHOD_TERM_NOTES.items():
+        lines.append(f"| **{term}** | {meaning} |")
+
+    lines.append("\n## Grouping determinacy (Step 205)\n")
+    lines.append("| Term | Meaning |")
+    lines.append("|---|---|")
+    for term, meaning in GROUPING_TERM_NOTES.items():
         lines.append(f"| **{term}** | {meaning} |")
 
     lines.append("\n## Pool modes (`h16` vs `c46`)\n")

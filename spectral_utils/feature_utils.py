@@ -318,7 +318,7 @@ def compute_spilled_energy_features(spilled) -> dict:
     }
 
 
-def extract_all_features(ents, spilled_energies=None) -> dict | None:
+def extract_all_features(ents, spilled_energies=None, allow_short=False) -> dict | None:
     """
     Extract all spectral features from an entropy trace (and optionally spilled energies).
 
@@ -330,20 +330,38 @@ def extract_all_features(ents, spilled_energies=None) -> dict | None:
         ents:             Per-token Shannon entropy trace H(n).
         spilled_energies: Per-token Spilled Energy trace ΔE(n) from generate_full().
                           If provided, adds 4 spilled energy features to the result.
+        allow_short:      When the trace is below the FFT minimum, return the
+                          length-independent subset instead of None (see below).
+                          Default False — every pre-existing caller is unaffected.
+
+    `allow_short` exists for answer-span-cropped cells (Step 216,
+    `spectral_utils.answer_span`). Cropping `seiclr_triviaqa_opt30b` to the span its
+    grader already reads leaves a 3-token median trace, which is below the FFT
+    minimum — so the all-or-none gate would discard `epr` and the CUSUM/spilled
+    views too, even though those are plain means/extrema that are perfectly well
+    defined at T=1. The four gated extractors (spectral, STFT, permutation
+    entropy, Hurst) are genuinely undefined there and stay absent, so the caller's
+    complete-case filter drops them on its own. Note `rpdi` and `sw_var_peak`
+    degrade rather than fail at T < 16 (their own fallbacks): they are returned,
+    but on a 3-token trace they carry little more than the variance.
     """
     e      = np.array(ents, dtype=float)
-    result = {"epr": float(e.mean()), "trace_length": float(len(e))}
+    result = {"epr": float(e.mean()) if e.size else float("nan"),
+              "trace_length": float(len(e))}
 
     gf = compute_spectral_features(ents)
-    if gf is None:
+    if gf is None and not allow_short:
         return None
-    result.update(gf)
-    result.update(compute_stft_features(ents))
+    if gf is not None:
+        result.update(gf)
+        result.update(compute_stft_features(ents))
+
     result.update(compute_time_domain(ents))
 
     # Advanced features (Phase C)
-    result.update(compute_permutation_entropy(ents))
-    result.update({"hurst_exponent": compute_hurst_exponent(ents)})
+    if gf is not None:
+        result.update(compute_permutation_entropy(ents))
+        result.update({"hurst_exponent": compute_hurst_exponent(ents)})
     result.update(compute_cusum_residuals(ents))
 
     if spilled_energies is not None:

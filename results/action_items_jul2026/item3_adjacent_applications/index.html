@@ -1,0 +1,65 @@
+<title>Item 3 — adjacent applications</title><style>
+:root{--bg:#fff;--fg:#141414;--mut:#666;--line:#e4e4e7;--hi:#fff8e1;--box:#f6f7f9;
+ --ok:#1e7e34;--bad:#c0392b;--warn:#b8860b;--acc:#1a4f8a;--pos:#2b6cb0;--neg:#c53030}
+*{box-sizing:border-box}
+body{margin:0;padding:0 18px 90px;background:var(--bg);color:var(--fg);
+ font:15px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1240px;margin:0 auto}
+a{color:var(--acc)} a:hover{text-decoration:underline}
+h1{font-size:26px;margin:30px 0 4px;line-height:1.25}
+h2{font-size:20px;margin:38px 0 10px;padding-top:13px;border-top:2px solid var(--line)}
+h3{font-size:16.5px;margin:26px 0 7px}
+h4{font-size:14.5px;margin:18px 0 6px;color:var(--mut);text-transform:uppercase;
+   letter-spacing:.04em}
+p{margin:9px 0}
+.sub{color:var(--mut);font-size:14px;margin:0 0 20px}
+.crumb{font-size:13px;color:var(--mut);margin:16px 0 0}
+.box{background:var(--box);border-left:4px solid var(--acc);padding:11px 15px;
+ margin:15px 0;border-radius:0 4px 4px 0}
+.box.bad{border-left-color:var(--bad);background:#fdf0ee}
+.box.warn{border-left-color:var(--warn);background:var(--hi)}
+.box.ok{border-left-color:var(--ok);background:#eef7f0}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:12px 0}
+table{border-collapse:collapse;font-size:13px;width:100%;min-width:600px}
+th,td{padding:5px 9px;border-bottom:1px solid var(--line);text-align:right;
+ white-space:nowrap;vertical-align:middle}
+th:first-child,td:first-child{text-align:left}
+th{background:#f0f0f3;font-weight:600}
+tr.weak{background:var(--hi)}
+tr.hl{background:#eaf2fb}
+td.neg,.neg{color:var(--bad)} td.pos,.pos{color:var(--ok)}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+code{background:#f0f0f3;padding:1px 5px;border-radius:3px}
+.chip{display:inline-block;padding:0 6px;border-radius:9px;font-size:10.5px;
+ font-weight:700;color:#fff;margin-right:3px;line-height:16px}
+.c-g6{background:#1a4f8a}.c-dep{background:#8a4f1a}.c-or{background:#1e7e34}
+.c-up{background:#5a3d8a}.c-drop{background:#999}
+.dl{display:grid;grid-template-columns:max-content 1fr;gap:2px 14px;font-size:13.5px;
+ margin:10px 0}
+.dl dt{color:var(--mut)} .dl dd{margin:0}
+.glo dt{font-weight:600;color:var(--fg);margin-top:9px}
+.glo dd{margin:0 0 4px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px;
+ margin:18px 0}
+.card{border:1px solid var(--line);border-radius:7px;padding:13px 15px;background:var(--box)}
+.card h3{margin:0 0 5px;font-size:16px}
+.card p{margin:5px 0;font-size:13.5px;color:var(--mut)}
+.foot{color:var(--mut);font-size:12.5px;margin-top:34px;border-top:1px solid var(--line);
+ padding-top:13px}
+.lg{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;
+ margin-right:4px}
+@media (prefers-color-scheme:dark){
+ :root{--bg:#15171b;--fg:#e9e9ec;--mut:#9aa0a6;--line:#2b2e35;--hi:#2d2a1b;--box:#1d2025;
+  --acc:#63a0d8;--bad:#e57373;--ok:#66bb6a;--warn:#d4a017;--pos:#63a0d8;--neg:#e57373}
+ th{background:#22252b} code{background:#22252b}
+ tr.hl{background:#1b2733} .box.bad{background:#2a1d1c} .box.ok{background:#1a2620}
+}
+:root[data-theme="dark"]{--bg:#15171b;--fg:#e9e9ec;--mut:#9aa0a6;--line:#2b2e35;
+ --hi:#2d2a1b;--box:#1d2025;--acc:#63a0d8;--bad:#e57373;--ok:#66bb6a;--warn:#d4a017;
+ --pos:#63a0d8;--neg:#e57373}
+:root[data-theme="dark"] th{background:#22252b}
+:root[data-theme="light"]{--bg:#fff;--fg:#141414;--mut:#666;--line:#e4e4e7;--hi:#fff8e1;
+ --box:#f6f7f9;--acc:#1a4f8a;--bad:#c0392b;--ok:#1e7e34;--warn:#b8860b;
+ --pos:#2b6cb0;--neg:#c53030}
+:root[data-theme="light"] th{background:#f0f0f3}
+</style><div class="wrap"><p class="crumb"><a href="../index.html">Jul-2026 action items</a> › Item 3</p><h1>Item 3 — adjacent applications</h1><p class="sub">Two were named: detecting a hallucination early in generation, and localizing it. They are in very different states.</p><h2>Early detection — has a replicated effect already</h2><div class="box ok"><p>On the canonical fresh raw-trace cache, the 16-view L-SML score beats the best DeepConf window by <b>+5.6pp [+0.9, +10.6]</b> (paired bootstrap, CI excludes zero) at the <b>earliest 10% of the trace</b>, and the earliness index reaches full-trace AUROC at that budget. This is the surviving finding of the Step-148 streaming pilot, re-run on a clean cache.</p></div><p>Why this is the strongest publishable arm: the current headline is a detector that <i>ties</i> two other label-free arms and beats its own cost class by an insignificant margin. “Same detection at a tenth of the trace” is a different claim, with a real effect size and a cost axis (tokens) where we are not competing against supervised probes.</p><h3>What it is missing, and what supplies it</h3><p>The pilot scores prefixes at <b>fixed budgets</b> and has no stopping rule. <i>Online Auditing of Information Flow</i> (Oren-Loberman, Azar, Huleihel; arXiv:2310.14595, IEEE TSIPN 2024) formulates exactly this: sequential detection under a risk that prices <b>both error and delay</b>, where the optimal rule is a two-sided threshold on the posterior — a Wald-calibrated SPRT. Adopted in Step 208 <b>for the formulation, not the theorems</b>: its offline stage is supervised, and its graph machinery does not transfer to a single fully-observed decoded trace.</p><div class="box warn"><p><b>The metric lesson, which changes how we report.</b> That paper's accuracy is a wash against its baseline (0.86 vs 0.85); its entire contribution is <b>6.29 vs 12.75 events to decide</b>. So the metric is <b>(AUROC at budget, tokens consumed)</b> — never AUROC alone. Reporting only AUROC would hide the whole result.</p></div><h2>Localization — deferred, and the blocker is data</h2><p>Extension F (step-level error localization) is written up but not started. It needs step-level annotation we do not have; AgentHallu supplies a schema (hallucination_step, category, reason) and shows the problem is open — Gemini 2.5 Pro reaches 41.1% step localization, and 11.6% on tool use. Real headroom, but it is an annotation project before it is a method project.</p><h2>Suggested order</h2><p>Early detection first: the effect is measured, the formulation is adopted, the data exists, and the re-run is CPU-only against caches we already hold. Localization stays deferred until there is a reason to buy annotation.</p><div class="foot">Evidence: HISTORY.md Steps 148, 152 (A2), 208; Research_Directions.md Extensions E and F.</div></div>

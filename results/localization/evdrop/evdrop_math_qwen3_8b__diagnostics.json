@@ -1,0 +1,70 @@
+{
+  "cell": "evdrop_math_qwen3_8b",
+  "manifest": {
+    "preset_id": "evdrop_math_qwen3_8b",
+    "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306)",
+    "model": "Qwen/Qwen3-8B",
+    "dataset": "math",
+    "split": "test",
+    "n_samples": 1500,
+    "k": 1,
+    "temps": [
+      0.0
+    ],
+    "gen_top_p": 0.95,
+    "gen_top_k": 20,
+    "max_new": 2048,
+    "logprob_top_k": 50,
+    "capture": {
+      "logsumexp": true
+    },
+    "acc_band": [
+      0.05,
+      0.98
+    ],
+    "min_minority": 10,
+    "published": {
+      "method": "Evidence Drop (Shannon Drop)",
+      "metric": "selective accuracy @ alpha, and AURC x1000",
+      "pretrained_accuracy": 66.16,
+      "accuracy_source": "Appendix E.2 Table 6 (NOT Table 1 \u2014 see digest caveat 5)",
+      "evdrop_defaults": {
+        "M": 5,
+        "ema_span": 5,
+        "top_k": 20
+      },
+      "model_note": "Selective accuracy and AURC are monotone in base error rate, so the `pretrained_accuracy` above is a PRECONDITION for comparability, not a secondary statistic. Verification gate 3."
+    },
+    "head_to_head": "SAME-MODEL",
+    "judge": null,
+    "prompt_suffix": " /no_think",
+    "notes": "Evidence Drop answer-level cell, NON-THINKING (primary arm), on the FULL MATH test split (Hendrycks et al., 2021) \u2014 not MATH-500. The paper says 'MATH' and the strings MATH-500/MATH500/500 appear nowhere in it; the two have different difficulty mixes, and selective accuracy / AURC are monotone in base error. Target accuracy 66.16 (App. E.2 Table 6). Rows are seeded-shuffled across all 7 subjects before truncation (spectral_utils.localization_data.MATH_SAMPLE_SEED), so N=1500 is subject-representative and reproducible.",
+    "job_id": "156592",
+    "seed": 0,
+    "written_utc": "2026-08-03T23:15:36+00:00",
+    "cells": [
+      {
+        "temp": 0.0,
+        "pkl": "raw_math_T0.0.pkl",
+        "n_problems": 1500,
+        "k": 1,
+        "mean_trace": 787.1353333333333,
+        "accuracy": 0.794,
+        "pos": 1191,
+        "neg": 309,
+        "minority": 309,
+        "gate_ok": true,
+        "gate_reasons": []
+      }
+    ]
+  },
+  "diagnostics": {
+    "n": 1500,
+    "accuracy": 0.794,
+    "n_incorrect": 309,
+    "max_new": 2048,
+    "frac_pinned": 0.08933333333333333,
+    "frac_pinned_in_negatives": 0.43042071197411,
+    "n_pinned_in_negatives": 133
+  }
+}

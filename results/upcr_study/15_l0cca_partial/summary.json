@@ -1,0 +1,406 @@
+{
+  "n_cells": 24,
+  "n_splits": 120,
+  "PROVENANCE": "Pre-registered in this file's docstring before the run. Splits are exp12's; exp13's arms asserted identical per split to 1e-09.",
+  "args": {
+    "cells": null,
+    "no_cca": true,
+    "check_sign": false
+  },
+  "is_partial_run": true,
+  "channel_split": {
+    "X_spectral": [
+      "cusum_max",
+      "cusum_shift_idx",
+      "dominant_freq",
+      "epr",
+      "high_band_power",
+      "hl_ratio",
+      "hurst_exponent",
+      "low_band_power",
+      "pe_mean",
+      "rpdi",
+      "spectral_centroid",
+      "spectral_entropy",
+      "stft_max_high_power",
+      "stft_spectral_entropy",
+      "sw_var_peak",
+      "trace_length"
+    ]
+  },
+  "lambda_grid": [
+    0.0,
+    0.01,
+    0.03,
+    0.1,
+    0.3,
+    1.0
+  ],
+  "label_free_arms": [
+    "cca_leverage",
+    "cca_gates"
+  ],
+  "controls": [
+    "rho",
+    "truecorr"
+  ],
+  "sensitivity_arms_not_in_family": [
+    "cca_leverage_rr",
+    "cca_gates_rr",
+    "cca_init_r50",
+    "cca_gates_lam0",
+    "cca_gates_lam1",
+    "cca_gates_lam2",
+    "cca_gates_lam3",
+    "cca_gates_lam4",
+    "cca_gates_lam5"
+  ],
+  "WARNING": "PARTIAL RUN \u2014 --cells and/or --no-cca was passed. Not comparable to the full run; the l0-CCA arms are NaN under --no-cca.",
+  "room": {
+    "mean_delta": 2.249788144004449,
+    "ci95": [
+      1.5347500097071827,
+      3.0358067712361225
+    ],
+    "wins": 23,
+    "losses": 1,
+    "n": 24,
+    "p": 3.5762786865234375e-07
+  },
+  "floor_vs_deployed": {
+    "mean_delta": -0.844557348044507,
+    "ci95": [
+      -1.0617380540148857,
+      -0.6318617600795335
+    ],
+    "wins": 1,
+    "losses": 23,
+    "n": 24,
+    "p": 2.384185791015625e-07
+  },
+  "primary_vs_floor": {
+    "cca_leverage": {
+      "mean_delta": 0.08556195251614718,
+      "ci95": [
+        -0.3897307520876969,
+        0.4475037735000005
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.060427069664001465
+    },
+    "cca_gates": {
+      "mean_delta": 0.08556195251614718,
+      "ci95": [
+        -0.3897307520876969,
+        0.4475037735000005
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.060427069664001465
+    },
+    "rho": {
+      "mean_delta": -0.26412069084963924,
+      "ci95": [
+        -0.8578599788564513,
+        0.267135679317019
+      ],
+      "wins": 11,
+      "losses": 13,
+      "n": 24,
+      "p": 0.5456695556640625
+    },
+    "truecorr": {
+      "mean_delta": 0.07930072527864705,
+      "ci95": [
+        -0.7848555587791459,
+        0.8711602623393494
+      ],
+      "wins": 11,
+      "losses": 13,
+      "n": 24,
+      "p": 0.6230943202972412
+    }
+  },
+  "primary_holm_adjusted_p": {
+    "cca_leverage": 0.12085413932800293,
+    "cca_gates": 0.12085413932800293
+  },
+  "fraction_of_room": {
+    "cca_leverage": 0.038031115393760376,
+    "cca_gates": 0.038031115393760376,
+    "rho": -0.11739802770029929,
+    "truecorr": 0.03524808568752518
+  },
+  "secondary_overlap": {
+    "cca_leverage": {
+      "mean_delta": -0.01616694809525337,
+      "ci95": [
+        -0.030222100927356426,
+        -0.0028849324940031004
+      ],
+      "wins": 8,
+      "losses": 16,
+      "n": 24,
+      "p": 0.060427069664001465
+    },
+    "cca_gates": {
+      "mean_delta": -0.01616694809525337,
+      "ci95": [
+        -0.030222100927356426,
+        -0.0028849324940031004
+      ],
+      "wins": 8,
+      "losses": 16,
+      "n": 24,
+      "p": 0.060427069664001465
+    },
+    "rho": {
+      "mean_delta": -0.0471275133727691,
+      "ci95": [
+        -0.08172068787420357,
+        -0.011965116214693485
+      ],
+      "wins": 6,
+      "losses": 18,
+      "n": 24,
+      "p": 0.022932052612304688
+    },
+    "truecorr": {
+      "mean_delta": 0.09146208924740627,
+      "ci95": [
+        0.053964481193426096,
+        0.1307769238800269
+      ],
+      "wins": 20,
+      "losses": 4,
+      "n": 24,
+      "p": 0.00017547607421875
+    }
+  },
+  "sensitivity": {
+    "cca_leverage_rr": {
+      "mean_delta": 0.32002334458223386,
+      "ci95": [
+        0.03407668224383116,
+        0.5827595655967115
+      ],
+      "wins": 18,
+      "losses": 6,
+      "n": 24,
+      "p": 0.019441962242126465
+    },
+    "cca_gates_rr": {
+      "mean_delta": 0.32002334458223386,
+      "ci95": [
+        0.03407668224383116,
+        0.5827595655967115
+      ],
+      "wins": 18,
+      "losses": 6,
+      "n": 24,
+      "p": 0.019441962242126465
+    },
+    "cca_init_r50": {
+      "mean_delta": 0.08556195251614718,
+      "ci95": [
+        -0.3897307520876969,
+        0.4475037735000005
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.060427069664001465
+    },
+    "cca_gates_lam0": {
+      "mean_delta": 0.08556195251614718,
+      "ci95": [
+        -0.3897307520876969,
+        0.4475037735000005
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.060427069664001465
+    },
+    "cca_gates_lam1": {
+      "mean_delta": 0.08556195251614718,
+      "ci95": [
+        -0.3897307520876969,
+        0.4475037735000005
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.060427069664001465
+    },
+    "cca_gates_lam2": {
+      "mean_delta": 0.08556195251614718,
+      "ci95": [
+        -0.3897307520876969,
+        0.4475037735000005
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.060427069664001465
+    },
+    "cca_gates_lam3": {
+      "mean_delta": 0.08556195251614718,
+      "ci95": [
+        -0.3897307520876969,
+        0.4475037735000005
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.060427069664001465
+    },
+    "cca_gates_lam4": {
+      "mean_delta": 0.08556195251614718,
+      "ci95": [
+        -0.3897307520876969,
+        0.4475037735000005
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.060427069664001465
+    },
+    "cca_gates_lam5": {
+      "mean_delta": 0.08556195251614718,
+      "ci95": [
+        -0.3897307520876969,
+        0.4475037735000005
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.060427069664001465
+    }
+  },
+  "lambda_path": [
+    {
+      "lam": 0.0,
+      "mean_heldout_total_corr": NaN,
+      "mean_n_open": NaN,
+      "vs_floor_pp": 0.08556195251614718
+    },
+    {
+      "lam": 0.01,
+      "mean_heldout_total_corr": NaN,
+      "mean_n_open": NaN,
+      "vs_floor_pp": 0.08556195251614718
+    },
+    {
+      "lam": 0.03,
+      "mean_heldout_total_corr": NaN,
+      "mean_n_open": NaN,
+      "vs_floor_pp": 0.08556195251614718
+    },
+    {
+      "lam": 0.1,
+      "mean_heldout_total_corr": NaN,
+      "mean_n_open": NaN,
+      "vs_floor_pp": 0.08556195251614718
+    },
+    {
+      "lam": 0.3,
+      "mean_heldout_total_corr": NaN,
+      "mean_n_open": NaN,
+      "vs_floor_pp": 0.08556195251614718
+    },
+    {
+      "lam": 1.0,
+      "mean_heldout_total_corr": NaN,
+      "mean_n_open": NaN,
+      "vs_floor_pp": 0.08556195251614718
+    }
+  ],
+  "n_splits_k_ge_5": 114,
+  "n_cells_k_ge_5": 24,
+  "primary_vs_floor_k_ge_5": {
+    "room": {
+      "mean_delta": 2.1687817259983686,
+      "ci95": [
+        1.473073887950166,
+        2.9350107487195545
+      ],
+      "wins": 23,
+      "losses": 1,
+      "n": 24,
+      "p": 3.5762786865234375e-07
+    },
+    "cca_leverage": {
+      "mean_delta": 0.05226897923543324,
+      "ci95": [
+        -0.4101013713517954,
+        0.38909134672203777
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.06464934349060059
+    },
+    "cca_gates": {
+      "mean_delta": 0.05226897923543324,
+      "ci95": [
+        -0.4101013713517954,
+        0.38909134672203777
+      ],
+      "wins": 16,
+      "losses": 8,
+      "n": 24,
+      "p": 0.06464934349060059
+    },
+    "rho": {
+      "mean_delta": -0.3293054892898833,
+      "ci95": [
+        -0.94270044176481,
+        0.22057262932174013
+      ],
+      "wins": 11,
+      "losses": 13,
+      "n": 24,
+      "p": 0.49079859256744385
+    },
+    "truecorr": {
+      "mean_delta": -0.02002467130034676,
+      "ci95": [
+        -0.847663008292367,
+        0.7302914251794351
+      ],
+      "wins": 11,
+      "losses": 13,
+      "n": 24,
+      "p": 0.7898378372192383
+    }
+  },
+  "diagnostics": {
+    "n_random_prune_fits_failed": 0,
+    "mean_k": 11.75,
+    "mean_keepset": 20.883333333333333,
+    "n_splits_k_gt_keepset": 2,
+    "mean_n_x": 14.916666666666666,
+    "mean_n_y": 13.5,
+    "mean_cca_n_open": -1.0,
+    "n_splits_cca_open_lt_k": 0,
+    "mean_cca_init_n_distinct": -1.0,
+    "mean_distinct_null_compositions": 1.0,
+    "mean_frac_spectral": {
+      "cca_leverage": 0.43337373682961927,
+      "cca_gates": 0.43337373682961927,
+      "rho": 0.32383108411153066,
+      "truecorr": 0.34311314148098204,
+      "greedy": 0.5100783530086347
+    },
+    "mean_frac_inside_keepset": {
+      "cca_leverage": 0.9985265700483091,
+      "cca_gates": 0.9985265700483091,
+      "rho": 0.9985265700483091,
+      "truecorr": 0.9985265700483091
+    }
+  }
+}

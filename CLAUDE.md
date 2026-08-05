@@ -374,4 +374,32 @@ cache hit is not.
 - **In scope, and the focus going forward = reasoning (math: MATH-500 / GSM8K) + QA** (single-answer factual — TriviaQA / SQuAD / NQ-Open / etc.; several QA cells score well, e.g. `spilled_triviaqa` 0.93, `se_squad_v2` 0.80).
 - **Out of scope = RAG (multi-hop retrieval, `lciteeval`) and GPQA (science MCQ).** Step 191's honest-ceiling check (30-view pool, split-half oracle) is the evidence: GPQA features are **uniformly at chance** (every feature 0.51–0.55, no signal to orient), and RAG signal is **confined to one sub-dataset (hotpotqa) and bottlenecked by feature sign, not pool size** — adding the energy/logprob views moved the honest ceiling only +3.6pp (RAG) / −0.5pp (GPQA). This **supersedes** the earlier "science MCQ works / short factual QA structurally incompatible" note above (that predated the cluster-data cells; it had GPQA backwards and was too pessimistic on single-answer QA).
 
-**Top subset = GOOD_6, not GOOD_5**: `GOOD_6 = GOOD_5 + varentropy` is the current best fixed subset (Step 182/184 sweep: +1.1pp macro over GOOD_5 on the 19-cell grid, repairs GOOD_5's worst cells, uses the already-saved top-50 logprobs). Treat GOOD_5 as the compatibility/reference subset, not the headline candidate. Note: on the now-out-of-scope RAG cells GOOD_5 also mis-fuses badly for a *sign* reason (Step 187/191 domain-dependent polarity), separate from the GOOD_6 improvement.
+## Which method to evaluate — ASK, never assume
+
+**Do not infer "the method we use" or "our best variant" from this file, from a results table, or from whatever a recent report happened to headline. Ask Omri explicitly which method to score, before writing any evaluation code.**
+
+The leading arm changes as the work moves, and the ranking is close enough that a stale assumption produces a plausible-looking table of the wrong thing. Two failure modes have already happened:
+
+- **Naming a fixed subset as "the headline".** Hand-picked subsets (`GOOD_5`, `GOOD_6`, `LOCO_5`, …) exist as **reference/compatibility rows**, not as the contribution. Reporting one as the method misrepresents the thesis.
+- **Calling the right method by name but running the wrong implementation.** Several methods have more than one entry point, and the obvious one is often the legacy path. Example: if U-PCR is the method asked for, the maintained arm goes through `spectral_utils.upcr.upcr_fit` over the full pool with a fitted config and `sign(ρ̂)` polarity (`scripts/labelfree_standing_report.py:upcr_rho_oriented`) — **not** `fusion_utils.upcr_pipeline` / `eval_subset_flex(fusion='upcr')`. Once Omri names a method, find and mirror the script that actually produced the last reported number for it (`feedback_read_canonical_scorer_first`).
+
+**The research direction, which does not change**: the thesis is about **label-free methods that carry no hand-picked prior knowledge** — deriving orientation, subset size, and feature selection from the data's own structure rather than from a curated feature list, a chosen anchor, or a fixed K (Extension H / Step 199). Any new evaluation should default to that family. A hand-picked subset may appear **beside** it as a reference, clearly labelled, never as the result.
+
+When in doubt about which arm, which subset, or which fusion entry point: **stop and ask.**
+
+## Borrowing from a paper — tailor, never transplant
+
+**Omri, 2026-08-05 (Step 225).** A published metric is **inspiration, not a specification**. Take
+the concept, then develop it into the form this problem actually needs. This holds for every
+algorithm and metric we try. *"If we need to run a discussion on each variant — so be it."*
+
+Step 224 ran 21 published unsupervised feature-selection conditions faithfully — a fidelity
+reviewer even cut the primary family from eight to five for insufficient fidelity — and all 111
+variants lost to the deployed U-PCR keep rule. That closed **transplanting a published keep rule
+into this channel**. It did not close the ideas in those papers.
+
+- Fidelity to the paper is **not** the acceptance criterion for a new arm. It remains the
+  criterion for anything *labelled* with an author's name: describe the mechanism, cite the idea,
+  do not claim the method (convention in `spectral_utils/selectors/a9_dpp.py`'s docstring).
+- **Do not batch-build a family and report the table.** One variant, one discussion, then build.
+- Worked example of the reshaping: `HANDOFF_FEATURE_SELECTION_AND_FUSE.md` §0 and §4.2.
