@@ -121,7 +121,14 @@ GPQA Diamond (MCQ science) is structurally out-of-regime: entropy dynamics are s
 
 ### Item 1 — L-SML Literature Search ✅ COMPLETED (Step 139)
 
-**Result**: U-PCR (Tenzer, Dror, Nadler, Bilal, Kluger; AISTATS 2022 / arXiv:1703.02965) is Nadler's own continuous-input extension of L-SML. Under uncorrelated-error assumption, covariance off-diagonal C_ij = ρ_i + ρ_j − g² — recovers expert-response covariances ρ̂ without labels. Our CONT pipeline ≈ U-PCR; offline orientation = U-PCR's ρ̂_i exclusion criterion. **Cite Tenzer et al. (2022) in the thesis instead of "workaround for Lemma 1" language.**
+**Result, corrected Step 226**: U-PCR (Tenzer, Dror, Nadler, Bilal, Kluger;
+AISTATS 2022, [PMLR](https://proceedings.mlr.press/v151/tenzer22a.html)) is Nadler's
+continuous-input extension of L-SML. Under the uncorrelated-error variant, covariance
+off-diagonal `C_ij = rho_i + rho_j - g²` recovers expert-response covariances without labels.
+The actual paper also contains **SU-PCR**, `C=L+S` with sparse correlated errors; the local file
+named `Tenzer2022_...pdf` is the older Dror et al. 2017 paper and caused this extension to be
+missed. Our CONT pipeline approximates **IU-PCR only**. Cite the PMLR paper and distinguish IU-PCR,
+SU-PCR, and our tailored dependency-weighted extension.
 
 Also found and deeply read (Step 141):
 
@@ -797,7 +804,18 @@ than assumed:
 
 ### Extension J — Weight estimation (the R3 − R2 = +1.45pp term) — first evidence in, still open
 
-**Status**: Open, and **narrowed by Step 204, narrowed further by Step 205**.
+**Status**: **Experiment implemented and pre-registered in Step 226; awaiting the data-machine run.**
+
+> **Step 226 corrects the literature baseline and turns the live sparse-Delta idea into a
+> controlled experiment.** The real Tenzer et al. 2022 paper already contains sparse-error
+> SU-PCR; the repo's file with that name is Dror et al. 2017. Therefore "add sparse Delta" is not
+> the contribution. `SPEC_DEPENDENCY_FUSION_EXPERIMENT.md` registers a 2x2 factorial separating
+> independent vs sparse reliability estimation from PCR vs structured regularized weights, plus
+> iRBM/deep-hard/deep-soft DEEM baselines. H1 prices published SU-PCR; H2 (`SDSF - SU-PCR`) is the
+> contribution test. Full-pool is primary, the incumbent keep set is secondary, and labels enter
+> only after scores are frozen. Implementation: `spectral_utils/dependency_fusion.py`,
+> `spectral_utils/deem_adapter.py`, `scripts/run_dependency_fusion_experiment.py`, and the
+> dataset-free planted-world gates in `scripts/test_dependency_fusion.py`.
 
 > **Step 205 closes the last U-PCR lead and corrects how one of its numbers should be read.**
 > The `lambda2_threshold` hypothesis — that we are pinned at 2 eigenvectors and the redundant second
@@ -813,7 +831,8 @@ than assumed:
 > cells. Un-pinning it is −0.28pp (12W/13L), so the conclusion survives and the mechanism does not.
 > **Nothing in the g2 / component-count apparatus is actionable. Do not re-open it.**
 
-The U-PCR line is closed as inert: every paper-faithful
+The **previously implemented independent-error U-PCR flag sweep** is closed as inert: every
+paper-faithful
 flag hurts or does nothing, one-component U-PCR is *exactly* PC1 of the surviving features (cosine
 deviation 7e-12) so its ρ/g²/Eq.-20 machinery enters only through the exclusion mask, and no
 configuration of 64 reaches GOOD_6. The dependent-features extension (fit the additive system on
@@ -844,9 +863,9 @@ the supervised model largely disagree about *which* views matter — this is not
 (modifies eigenvalues, keeps eigenvectors — inert unless the diagonal is re-zeroed and re-decomposed,
 which is the form tested here); bagging (identical to 4 d.p.).
 
-**Next**: given Extension I, the most promising route is not a better rank-one estimator but an
-explicitly **rank-2** model, or de-duplicating the pool before estimation (I3). A repair aimed at the
-one-factor premise is aimed at a premise the data only approximately satisfies.
+**Next**: run the registered Step-226 dependency-fusion experiment on the data machine. Its SU-PCR
+arm is explicitly rank two; its SDSF arm changes only the final weights. Do not tune sparse support,
+ridge, DEEM architecture, or seeds after reading AUROC.
 
 ---
 
@@ -936,11 +955,12 @@ one-factor premise is aimed at a premise the data only approximately satisfies.
    bit-identical), so the `epr` anchor bit cannot be removed this way. Pre-register against the
    0.7524 automatic-picker bar, not 0.7594.
 
-0-ALSO. **DECIDE WITH OMRI: attack weight estimation (Extension J).** Both the gap-ladder's clean rungs and the
-   Extension H post-mortem point at the same place — at the deploy point the gap to the supervised
-   linear oracle is **weight estimation**, not sign (0.0pp), not target quality (R6 DEAD), and not
-   subset size (fixed K wins). Extensions G and H are both closed as bounded, so this is the open
-   question. No experiment is pre-registered for it yet.
+0-READY. **← RUN DEPENDENCY-AWARE WEIGHT ESTIMATION (Extension J, Step 226).** The experiment is
+   pre-registered and fully implemented in `SPEC_DEPENDENCY_FUSION_EXPERIMENT.md`. It separates the
+   already-published SU-PCR reliability correction from our SDSF weighting change, includes the
+   ridge-only ablation needed to prevent a false novelty claim, and benchmarks modern DEEM hard/soft
+   against its iRBM endpoint. The repo-only machine cannot produce the number; the data machine only
+   needs to install the pinned extra, run the planted gates, and execute the runner.
 0b. ~~Feature-subset selection: memo (Step 185), full bench (Step 186), a6 pseudo-label gates +
    30-view LOCO sweep (Steps 194-195), D1/D2 build + honest refutation (Steps 197-198)~~ ✅ **CLOSED
    as bounded** — no label-free selector beats GOOD_6; D1 (adaptive-K) refuted, D2 (PL-mRMR) beats

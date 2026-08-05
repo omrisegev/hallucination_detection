@@ -74,6 +74,15 @@ from .upcr_clustered import (
     upcr_clustered_fit, upcr_hierarchical_fit,
     discover_clusters, cross_cluster_pairs, check_identifiability,
 )
+from .dependency_fusion import (
+    SparseDecomposition, SparseUPCRResult,
+    projected_sparse_decomposition, regularized_covariance_weights,
+    sparse_upcr_fit,
+)
+from .deem_adapter import (
+    DEEM_PINNED_VERSION, DeemConfig, DeemRunResult,
+    continuous_to_deem_hard, continuous_to_deem_soft, fit_deem_score,
+)
 from .diagnostics import (
     decompose_auroc, threshold_sensitivity, derive_consensus_signs,
     plot_decomposition, plot_per_feature_heatmap,
@@ -160,6 +169,11 @@ __all__ = [
     "additive_design", "solve_additive", "moment_match",
     "upcr_clustered_fit", "upcr_hierarchical_fit",
     "discover_clusters", "cross_cluster_pairs", "check_identifiability",
+    "SparseDecomposition", "SparseUPCRResult",
+    "projected_sparse_decomposition", "regularized_covariance_weights",
+    "sparse_upcr_fit",
+    "DEEM_PINNED_VERSION", "DeemConfig", "DeemRunResult",
+    "continuous_to_deem_hard", "continuous_to_deem_soft", "fit_deem_score",
     "decompose_auroc", "threshold_sensitivity", "derive_consensus_signs",
     "plot_decomposition", "plot_per_feature_heatmap",
     "plot_sign_agreement", "plot_threshold_sweep",

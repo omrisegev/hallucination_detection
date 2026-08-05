@@ -1,8 +1,29 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-05
-**Last updated**: Step 225 — a standing instruction from Omri that governs how the next round is
-run, plus the repo made self-sufficient for a machine that has no dataset.
+**Last updated**: Step 226 — the dependency-aware weights experiment is paper-corrected,
+pre-registered, implemented, and ready for the data machine. No real-data result exists yet.
+
+**What changed in Step 226.** Omri's sparse-error idea was confirmed in the Step-223/225 history,
+but the literature baseline needed correction: the actual Tenzer et al. AISTATS 2022 paper already
+contains SU-PCR (`C=L+S` with sparse correlated errors). The root `Tenzer2022_...pdf` is actually
+Dror et al. 2017, which is why the repo implemented only the independent-error equation. The new
+experiment therefore does not claim sparse Delta as novel. It prices published SU-PCR first, then
+tests the tailored contribution: use the same sparse fit and `rho`, but replace top-two PCR with a
+PSD, condition-controlled structured covariance solve. A ridge-without-sparsity arm identifies
+whether any gain is merely regularization. Modern DEEM is included as iRBM-hard, deep-hard, and
+deep-soft rank inputs over five fixed seeds.
+
+**Run next:** [SPEC_DEPENDENCY_FUSION_EXPERIMENT.md](SPEC_DEPENDENCY_FUSION_EXPERIMENT.md). The
+data machine runs `python3 scripts/test_dependency_fusion.py`, then
+`python3 scripts/run_dependency_fusion_experiment.py --data-dir local_cache --device auto`.
+Arm/seed checkpoints resume safely and the runner produces paired cell-bootstrap/Wilcoxon/Holm
+tables plus equal-dataset, DEEM seed-stability, and sparse-support diagnostics. The mechanism gate
+is also wired into `scripts/smoke_selectors.py` and passes; official DEEM 0.2.0 hard/deep/soft
+synthetic fits and the resumable report path were dry-run successfully. H1 (`SU-PCR - IU-PCR`)
+belongs to the published method; H2 (`SDSF - SU-PCR`) is the actual contribution gate. Files:
+`spectral_utils/dependency_fusion.py`, `spectral_utils/deem_adapter.py`,
+`scripts/run_dependency_fusion_experiment.py`, `scripts/test_dependency_fusion.py`.
 
 > **Tailor, do not transplant.** A published metric is **inspiration, not a specification**.
 > Take the concept, then develop it into the form our problem needs. True of *every* algorithm

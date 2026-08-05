@@ -10271,3 +10271,56 @@ existing triplet probe reads as the naive baseline for section 4.2 rather than a
 `results/upcr_study/15_l0cca{,_partial}/`, `results/upcr_study/15_composite_reliability/`.
 
 ---
+
+### Step 226 — sparse-error U-PCR corrected, SDSF isolated, and the complete dependency experiment prepared
+
+**What prompted it**: Omri returned to the earlier modelling suggestion that feature errors are
+not independent and asked whether SDSF expressed that idea, whether the newly downloaded DEEM
+paper overlaps it, and then requested a complete experiment implementation that leaves the data
+computer only the execution step.
+
+**Literature correction**: the root `Tenzer2022_Crowdsourcing_Regression_Spectral.pdf` is not
+Tenzer et al. 2022; it is Dror et al. 2017 *Unsupervised Ensemble Regression*. The actual AISTATS
+paper already derives `C=L+S`, calls its sparse-error variant SU-PCR, proves exact uniqueness only
+for `||vec(S)||_0 < (m-1)/2`, and reports SU-PCR better than IU-PCR on 15/17 regression tasks. Thus
+the Step-223 sparse-Delta idea is real and independently recorded as Omri's, but sparse Delta alone
+cannot be the novelty. DEEM (Maymon, Buznah, Shaham; AISTATS 2026) attacks the same dependence
+failure by learned multinomial layers before an identifiable iRBM; its guarantees stop at the
+conditionally independent endpoint, so it is a nonlinear baseline rather than the same estimator.
+
+**Experiment design**: `SPEC_DEPENDENCY_FUSION_EXPERIMENT.md` freezes a full-pool primary and
+incumbent-keep secondary arena. A 2x2 factorial crosses independent/sparse `rho` estimation with
+PCR/condition-controlled covariance weights: IU-PCR, IU-ridge, SU-PCR reproduction, and SDSF.
+This makes `SU-PCR-IU-PCR` the published reliability effect and `SDSF-SU-PCR` the proposed weighting
+effect. DEEM runs iRBM-hard, deep-hard and deep-soft rank pseudo-probabilities over seeds 0–4; seed
+probabilities are averaged before labels are read. The three primary tests have a fixed Holm family
+size of three. No support, ridge, architecture, epoch or seed is selected using AUROC.
+
+**Implementation**:
+
+- `spectral_utils/dependency_fusion.py` — off-diagonal rank-two plus sparse projected fit,
+  Tenzer-style `rho/g2` recovery, SU-PCR weights, and PSD condition-controlled SDSF weights.
+- `spectral_utils/deem_adapter.py` — pinned `deem==0.2.0`, hard/soft continuous-view adaptations,
+  and the necessary majority-vote class-map correction for probability columns.
+- `scripts/run_dependency_fusion_experiment.py` — canonical cache loading, GOOD_6 validity gate,
+  exact deployed references, full/keep arenas, arm/seed JSONL checkpointing, resume, paired
+  cell-bootstrap/Wilcoxon/fixed-Holm reporting, equal-dataset sensitivity, source-code hashes,
+  DEEM seed-stability and sparse-diagnostic tables, and generated Markdown/CSV/JSON results.
+- `scripts/test_dependency_fusion.py` — dataset-free planted support, rank-two recovery,
+  clean-world, condition-number, transform and no-label-seam gates.
+- `setup.py` — pinned `dependency-experiment` extra; paper digests and index corrected/extended.
+
+**Validation before handoff**: the accumulating `scripts/smoke_selectors.py` gate now includes the
+new mechanism suite. The planted test recovers positive and negative sparse edges, clean rank-two
+data does not invent dense support, the PSD ridge meets its condition cap, and the estimator APIs
+have no label parameter. The complete accumulated selector gate passes **26/26**. A disposable
+environment using the official
+`deem==0.2.0` package completed iRBM-hard, deep-hard, and deep-soft fits; a three-cell/two-seed
+synthetic runner dry run completed 63 arm/seed records with zero failures and generated every
+registered result artifact. This validates execution plumbing only, not hallucination AUROC.
+
+**Result**: no real-data number was produced on this machine because `local_cache/` is absent.
+The only remaining work on the data computer is installation, the dataset-free gate, and the one
+registered runner command.
+
+---

@@ -359,6 +359,18 @@ def bench_eval_subset_flex_paths():
 
 
 # ---------------------------------------------------------------------------
+# dependency-fusion experiment — registered planted-world mechanism gate
+# ---------------------------------------------------------------------------
+
+@test
+def dependency_fusion_registered_gates():
+    """Keep the new SU-PCR/SDSF/DEEM seams in the accumulating smoke gate."""
+    from scripts import test_dependency_fusion as dependency_tests
+    dependency_tests.FAILED.clear()
+    dependency_tests.main()
+
+
+# ---------------------------------------------------------------------------
 # runner
 # ---------------------------------------------------------------------------
 

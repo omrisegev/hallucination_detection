@@ -19,5 +19,12 @@ setup(
             "datasets",
             "bitsandbytes",
         ],
+        # Pinned because the adapter relies on the 0.2.0 probability/alignment
+        # API and the package is still alpha.  This extra is intentionally
+        # separate from GPU inference: the dependency-fusion experiment can run
+        # entirely from cached feature matrices.
+        "dependency-experiment": [
+            "deem==0.2.0",
+        ],
     },
 )
