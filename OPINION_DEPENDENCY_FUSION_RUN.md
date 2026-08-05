@@ -389,8 +389,15 @@ correct phrasing is "the off-diagonal residual is 8–23% of the off-diagonal Fr
 **8.5 "A dense higher-rank correction is the next thing to pursue" — retracted, and now measured
 against.** I flagged it as a hypothesis but should not have promoted it. It is also wrong in the
 direction the data can see: the residual's **top-5 eigenvalues carry only 55% of its spectral mass**
-(median over 24 cells, out of ~28 directions). The leftover is diffuse, not low-rank. A higher-rank
-dense correction is the wrong shape for it.
+(median over 24 cells, out of ~28 directions).
+
+> **CORRECTION (added after review).** *"The leftover is diffuse, not low-rank"* is **retracted as
+> unsupported**. 55% over 5 of ~28 directions is **3× the uniform share (17.86%)**, so the number I
+> quoted points the opposite way from the word I attached to it. Without a null distribution,
+> "diffuse" was an impression. A share statistic also cannot see magnitude — a tiny residual can have
+> a concentrated spectrum — so the operator and Frobenius norms have to be tested too. The falsifiable
+> version is `SPEC_SOLVER_MECHANISM_STUDY.md` §4: latent-preserving nulls, B = 1000, the complete
+> decomposition pipeline refit on every draw. Until that runs, the shape of the residual is unknown.
 
 **8.6 The DEEM base-rate confound — retracted.** `continuous_to_deem_soft` maps to
 `(rank − 0.5)/n`, whose per-feature mean is ≈ 0.5, so the soft arm has balanced marginals too.
@@ -469,26 +476,56 @@ The mechanism is the one the reviewer proposed, and it is now measured:
 
 PCR puts all of its weight in the leading two directions by construction. A condition cap of 100
 still admits all 20–30 directions, so the ridge puts roughly **80% of its weight into low-eigenvalue
-directions** — and those coefficients are so unstably estimated that on the worst cell the ridge
-weight vector fitted on even samples is **essentially orthogonal to the one fitted on odd samples**
-(|cos| = 0.007, against 0.39 for PCR). PCR's hard truncation is doing variance control, and removing
-it is what destroys the score.
+directions**, and on the worst cell the ridge weight vector fitted on even samples is **essentially
+orthogonal to the one fitted on odd samples** (|cos| = 0.007, against 0.39 for PCR).
 
-Two of the reviewer's speculations are refuted by the same export, and I should say so:
+> **CORRECTION (added after review).** The sentence that followed — *"PCR's hard truncation is doing
+> variance control, and removing it is what destroys the score"* — is **retracted**. It does not
+> survive the cross-cell test. Correlating the per-cell ridge−PCR AUROC delta against the ridge's own
+> split-half weight stability gives **ρ = −0.048, p = 0.82**: cells where the ridge weight vector is
+> unstable are *not* the cells where the ridge loses. The two correlations that are strong —
+> score agreement (+0.803) and ridge top-2 concentration (+0.735) — are partly tautological (if two
+> scores agree their AUROCs agree; concentration measures similarity to PCR), so neither is
+> independent evidence for a mechanism. **The mechanism is unidentified**, which is why the
+> head-scaling × ridge-tail factorial in `SPEC_SOLVER_MECHANISM_STUDY.md` is an intervention rather
+> than another correlation.
 
-- **PSD projection adds no distortion.** Zero negative eigenvalues were clipped and
-  `‖PSD(C) − C‖/‖C‖ = 0.0000` on **both** matrices, on all 24 cells. The structured covariance is
-  already PSD here; the projection is a no-op.
-- **The structured covariance is not a numerical problem — it is better conditioned than the
-  observed one**, median condition number 9.4e2 versus 5.2e5. The harm is not ill-conditioning of
-  the dependency-structured matrix.
+> **CORRECTION (added after review).** What stood here were two claims that the reviewer's
+> speculations about PSD repair were "refuted". **Both were wrong**, and the reviewer was right:
+>
+> - **PSD projection does clip the structured matrix.** Measured over the shipped per-cell columns:
+>   **6 of 24 cells, 8 negative eigenvalues, maximum distortion `‖PSD(C)−C‖/‖C‖ = 2.096%`**, with
+>   minimum eigenvalues −0.08 to −0.29 against a unit diagonal — `epr_triviaqa_mistral24b`,
+>   `se_nq_open_llama8b`, `truthfulqa_llama8b`, `ars_gsm8k_r1distill8b`, `noise_gsm8k_mistral7b`,
+>   `math500_qwenmath7b`. My "zero clipped, 0.0000 distortion" is true of the **observed** covariance
+>   only (0 clipped, distortion ≤ 2.7e-15, all 24 cells), and I generalized it to both matrices.
+> - **The conditioning claim is a median that inverts on exactly those 6 cells.** "Better conditioned,
+>   9.4e2 versus 5.2e5" holds at the median; on the clipped cells the projection drives the condition
+>   number to 4e16–3e18. And the column name `cond_raw_*` is a misnomer — it reports `cond(PSD(C))`,
+>   not `cond(C)`.
+>
+> This matters beyond the correction: the 6 cells needing PSD repair are almost exactly the cells
+> where the sparse mechanism is live, plus the +51pp H1 outlier — so the PSD step, not the dependency
+> model, may own most of the structured-matrix loss. Which of the two it is has a preregistered
+> three-way test in `SPEC_SOLVER_MECHANISM_STUDY.md` §3c, and the direction I implied there was also
+> backwards: if PSD-projected structured PCR *recovers* observed PCR, the projection **repairs** the
+> loss and raw indefiniteness caused it.
+>
+> The reviewer could only find this because the raw bundle shipped the per-cell columns. The export
+> did its job.
 
 ### What this does to the conclusion
 
-**Closed:** replacing U-PCR's two-component truncation with a full-inverse, condition-100 ridge
-solve. −3.74pp with the covariance held fixed, 2W/22L, and a mechanism (variance in the discarded
-directions) that explains it. I would not revisit this with a different γ; the instability is in the
-directions the cap admits, not in the cap's value.
+**Closed as a result, open as a mechanism:** replacing U-PCR's two-component truncation with a
+full-inverse, condition-100 ridge solve costs **−3.74pp** with the covariance held fixed, 2W/22L,
+p = 6e-7. The loss is not in doubt.
+
+> **CORRECTION (added after review).** I wrote that a mechanism — "variance in the discarded
+> directions" — explains it, and that I would not revisit it. The first half is retracted (see the
+> correction above: ρ = −0.048, p = 0.82 against ridge stability). The second half stands for a **γ
+> sweep**, which is still not worth running, but not for the decomposition: the ridge changes two
+> things at once — it rescales the top-two coefficients *and* it admits the low-eigenvalue tail — and
+> nothing published here separates them. The factorial that does is preregistered.
 
 **Not closed, and I was wrong to imply it was:** dependency-aware fusion. The structured covariance
 has only ever been evaluated *through* a solver that independently costs 3.74pp. On the paper's own
@@ -497,12 +534,17 @@ absence of evidence either way, and it has the same signature as the sparse-reli
 mechanism that changes almost nothing on this data at the registered threshold.
 
 **Which means the interesting question is now the one the reviewer's 2×2 exposes:** the dependency
-structure is nearly inert, and the residual it leaves behind is diffuse (top-5 share 0.55), not
-low-rank. Both of those point the same way — that the off-diagonal misfit recorded in
-`HANDOFF_FEATURE_SELECTION_AND_FUSE.md` §6 is not concentrated in a form any of these three
-corrections (sparse, rank-two, full-inverse) is shaped to capture. That is a more useful place to
-stop than "dependency weighting is harmful", which is what I wrote and which the data does not
-support.
+structure is nearly inert under the paper's own solver, and the residual it leaves behind has an
+**untested** shape.
+
+> **CORRECTION (added after review).** The original sentence continued "…and the residual it leaves
+> behind is diffuse (top-5 share 0.55), not low-rank. Both of those point the same way — that the
+> off-diagonal misfit is not concentrated in a form any of these three corrections is shaped to
+> capture." That inference is **retracted**: it rests on the "diffuse" reading retracted in §8.5, and
+> 0.55 over 5 of ~28 directions is 3× uniform. The honest statement is that the dependency-structured
+> covariance is **undemonstrated rather than disproved** — it has only ever been evaluated through a
+> solver that independently costs 3.74pp — and that whether its residual carries real structure is
+> now a preregistered test with an explicit abandonment condition, not an impression.
 
 **Still not worth doing:** a γ sweep, a rank sweep, or a sparse-threshold sweep. The solver's failure
 mode is variance in admitted directions and the matrix's effect is null under the good solver;
