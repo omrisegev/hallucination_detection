@@ -110,3 +110,43 @@ print(tally)
 seed ensemble only when **all five** registered seeds succeeded, so any cell with
 `ensemble_eligible = 0` is silently absent from that arm's paired contrast rather than scored as a
 loss.
+
+---
+
+## Addendum — the three secondary studies (2026-08-06)
+
+Preregistered in `SPEC_SOLVER_MECHANISM_STUDY.md`, written up in `OPINION_DEPENDENCY_FUSION_RUN.md`
+§12–§14. All three are **secondary and diagnostic**: they change no registered arm, they live in
+their own output directories, and none of the four files hashed into `config_hash` was edited. Each
+ran only after the registered sweep exited.
+
+| directory | written by | what it lets you check |
+|---|---|---|
+| `results/solver_mechanism/` | `scripts/solver_mechanism_study.py` | `per_cell.csv` — the four factorial arms at the registered κ plus matrix inertia, leakage, tail-to-head norm, head–tail score correlation, and the two gate columns (`identity_rel_error_k*`, `pcr_consistency_rel_error`). `kappa_path.csv` — every arm at all five κ. `factorial_effects.csv` — the five contrasts with family-blocked CIs. `heldout.csv` — 24 cells × 3 fractions with held-out AUROC per arm and the tail/subspace stability columns. |
+| `results/residual_identifiability/` | `scripts/residual_identifiability_study.py` | `per_cell.csv` — observed residual operator/Frobenius/top-5 statistics against 1000 draws of each null, with the observed percentile and a descriptive per-cell p-value. `family_tests.csv` — the eight family-level tests that carry the inference. `lofo.csv` — the global statistic with each family dropped. |
+| `results/deem_probe/` | `scripts/deem_soft_collapse_probe.py`, `scripts/deem_winner_validation.py` | `per_fit.csv` — every fit with score sd, health class, and per-history-key first/last/finite columns, i.e. what the runner's `except` branch discarded. `grid.csv` — the 15 preregistered configurations. `winner_validation.csv` / `.json` — the winner on all 5 registered seeds. |
+
+Four things worth knowing before using these:
+
+- **The gates are in the data, not just in the log.** `solver_mechanism/per_cell.csv` carries
+  `identity_rel_error_k*` per cell (max observed 1e-10 by construction — the script exits if any
+  exceeds it). If you re-run and those move, the factorial is no longer decomposing the registered
+  ridge and nothing downstream should be read.
+- **`heldout.csv` weights and orientation are train-only.** The `sign(ρ̂)` polarity probe, the
+  covariance, the decomposition, ρ, the weight vectors, and the anchor flip are all fitted on the
+  training rows; the frozen sign is applied to the test rows. `n_train_over_m` and
+  `underdetermined_flag` are there so the small-n regime stays visible (1 row of 72 is under-determined).
+- **Null draws are re-standardised.** Every null sample is row-wise z-scored with `prepare_cell`'s
+  convention before its covariance is formed, and the script hard-fails if
+  `max|diag(C*) − 1| > 1e-8` on any draw. Without that step, permuting residuals changes per-feature
+  variance and the null would not share preprocessing with the observation.
+- **`residual_identifiability/per_cell.csv` cell-level p-values are descriptive.** The inference is
+  the global statistic plus the eight family tests in `family_tests.csv` under BH q = 0.10. Reading
+  the 24 cell p-values as 24 tests is exactly the thing the family-level design exists to avoid.
+
+One column in that file deserves a warning: `splithalf_jaccard_median` and
+`splithalf_sign_agreement_median` describe the **sparse component S**, not the residual R, and S is
+empty on 9 of 24 cells (`support_size = 0`), so they are NaN or near-zero there for a structural
+reason rather than an instability one. The residual's own stability column is
+`splithalf_angle_deg_median`. §13 of the opinion file explains why this matters for the registered
+verdict.
