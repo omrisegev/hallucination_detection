@@ -1,0 +1,208 @@
+{
+  "factorial_effects": [
+    {
+      "candidate": "auroc_head_ridge",
+      "ci_hi_pp": 0.06201218131526298,
+      "ci_lo_pp": -0.004208891299720626,
+      "contrast": "head rescaling, tail absent",
+      "family_macro_delta_pp": 0.030987499651937908,
+      "losses": 9,
+      "mean_delta_pp": 0.017761114199725998,
+      "median_delta_pp": 0.0,
+      "n_cells": 24,
+      "p_wilcoxon": 0.9039076325167246,
+      "reference": "auroc_head_pcr",
+      "wins": 10
+    },
+    {
+      "candidate": "auroc_head_ridge_plus_tail",
+      "ci_hi_pp": -0.006000599028458768,
+      "ci_lo_pp": -0.03552563537522098,
+      "contrast": "head rescaling, tail present",
+      "family_macro_delta_pp": -0.012564070703702523,
+      "losses": 19,
+      "mean_delta_pp": -0.02922815471816803,
+      "median_delta_pp": -0.025173037037817814,
+      "n_cells": 24,
+      "p_wilcoxon": 0.0006580763435422673,
+      "reference": "auroc_head_pcr_plus_tail",
+      "wins": 4
+    },
+    {
+      "candidate": "auroc_head_pcr_plus_tail",
+      "ci_hi_pp": -1.758085758451841,
+      "ci_lo_pp": -5.356875261604097,
+      "contrast": "tail addition at PCR head",
+      "family_macro_delta_pp": -2.419456862169376,
+      "losses": 22,
+      "mean_delta_pp": -3.7136596163466162,
+      "median_delta_pp": -2.1815632222246917,
+      "n_cells": 24,
+      "p_wilcoxon": 5.960464477539062e-07,
+      "reference": "auroc_head_pcr",
+      "wins": 2
+    },
+    {
+      "candidate": "auroc_head_ridge_plus_tail",
+      "ci_hi_pp": -1.8265989777990057,
+      "ci_lo_pp": -5.3988537908721295,
+      "contrast": "tail addition at ridge head",
+      "family_macro_delta_pp": -2.4630084325250166,
+      "losses": 22,
+      "mean_delta_pp": -3.760648885264511,
+      "median_delta_pp": -2.2088543241669867,
+      "n_cells": 24,
+      "p_wilcoxon": 5.960464477539062e-07,
+      "reference": "auroc_head_ridge",
+      "wins": 2
+    },
+    {
+      "candidate": "auroc_head_ridge_plus_tail",
+      "ci_hi_pp": -1.8562495898082219,
+      "ci_lo_pp": -5.384761795621674,
+      "contrast": "solver leg, both at once",
+      "family_macro_delta_pp": -2.432020932873079,
+      "losses": 22,
+      "mean_delta_pp": -3.7428877710647845,
+      "median_delta_pp": -2.2141766628091473,
+      "n_cells": 24,
+      "p_wilcoxon": 5.960464477539062e-07,
+      "reference": "auroc_head_pcr",
+      "wins": 2
+    },
+    {
+      "candidate": "auroc_pcr_structured",
+      "ci_hi_pp": -0.011371395125904649,
+      "ci_lo_pp": -0.8122812027351637,
+      "contrast": "matrix leg, PCR solver (raw structured)",
+      "family_macro_delta_pp": -0.4231735024583804,
+      "losses": 14,
+      "mean_delta_pp": -0.37063231484257136,
+      "median_delta_pp": -0.0026328659606889016,
+      "n_cells": 24,
+      "p_wilcoxon": 0.08534092651572474,
+      "reference": "auroc_head_pcr",
+      "wins": 7
+    },
+    {
+      "candidate": "auroc_pcr_structured_psd",
+      "ci_hi_pp": -0.05274507251819184,
+      "ci_lo_pp": -0.8103012824299605,
+      "contrast": "matrix leg, PCR solver (PSD structured)",
+      "family_macro_delta_pp": -0.4231735024583804,
+      "losses": 14,
+      "mean_delta_pp": -0.37063231484257136,
+      "median_delta_pp": -0.0026328659606889016,
+      "n_cells": 24,
+      "p_wilcoxon": 0.08534092651572474,
+      "reference": "auroc_head_pcr",
+      "wins": 7
+    },
+    {
+      "candidate": "auroc_pcr_structured_psd",
+      "ci_hi_pp": 0.0,
+      "ci_lo_pp": 0.0,
+      "contrast": "PSD repair on the structured matrix",
+      "family_macro_delta_pp": 0.0,
+      "losses": 0,
+      "mean_delta_pp": 0.0,
+      "median_delta_pp": 0.0,
+      "n_cells": 24,
+      "p_wilcoxon": NaN,
+      "reference": "auroc_pcr_structured",
+      "wins": 0
+    },
+    {
+      "candidate": "auroc_rho_only",
+      "ci_hi_pp": 2.239604517379422,
+      "ci_lo_pp": -0.24094996656301823,
+      "contrast": "no inversion at all",
+      "family_macro_delta_pp": 1.186274001144495,
+      "losses": 16,
+      "mean_delta_pp": 0.5205889479182226,
+      "median_delta_pp": -0.09196261071232614,
+      "n_cells": 24,
+      "p_wilcoxon": 0.20761656761169434,
+      "reference": "auroc_head_pcr",
+      "wins": 8
+    },
+    {
+      "candidate": "-",
+      "ci_hi_pp": -0.022382546631157563,
+      "ci_lo_pp": -0.0834367679652166,
+      "contrast": "interaction (tail effect at ridge head - at PCR head)",
+      "family_macro_delta_pp": -0.043551570355640445,
+      "losses": 20,
+      "mean_delta_pp": -0.046989268917894046,
+      "median_delta_pp": -0.03380162643387141,
+      "n_cells": 24,
+      "p_wilcoxon": 7.687343458186032e-05,
+      "reference": "-",
+      "wins": 3
+    }
+  ],
+  "gates": {
+    "arithmetic": "h_ridge + t_ridge == regularized_covariance_weights(C,rho) to 1e-10 relative, all cells, all kappa",
+    "validity": "assert_good6 passed before any arm ran",
+    "wiring": "head_pcr and head_ridge_plus_tail reproduce committed per-cell AUROC to 1e-9 on all cells"
+  },
+  "heldout": {
+    "fractions": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "n_rows": 72,
+    "repeats": 50
+  },
+  "kappa_path": [
+    3.0,
+    10.0,
+    30.0,
+    100.0,
+    300.0
+  ],
+  "kappa_trend": {
+    "ci_hi": -0.2692667555171064,
+    "ci_lo": -1.2497570145882377,
+    "head_effect_slope_pp_per_log_kappa": -0.14405387409702317,
+    "prediction": "negative slope if low-eigenvalue amplification is causal",
+    "slope_pp_per_log_kappa": -0.7448381621468979,
+    "statistic": "family-weighted OLS slope of the tail effect on log kappa"
+  },
+  "macro_auroc": {
+    "head_pcr": 0.7668251256497479,
+    "head_pcr_plus_tail": 0.7296885294862818,
+    "head_ridge": 0.7670027367917452,
+    "head_ridge_plus_tail": 0.7293962479391002
+  },
+  "psd_attribution": {
+    "clipped_cells": [
+      "epr_triviaqa_mistral24b",
+      "se_nq_open_llama8b",
+      "truthfulqa_llama8b",
+      "ars_gsm8k_r1distill8b",
+      "noise_gsm8k_phi3mini",
+      "math500_qwenmath7b"
+    ],
+    "equivalence_criterion": "|macro delta| <= 0.25pp AND family-blocked 95% CI inside +/-0.50pp (an equivalence criterion, not TOST)",
+    "macro_24": {
+      "pcr_structured_psd": 0.7631188025013224,
+      "pcr_structured_raw": 0.7631188025013224,
+      "pcr_top2_observed": 0.7668251256497479
+    },
+    "n_clipped_cells": 6,
+    "note": "raw and PSD structured weights are bit-identical on the non-clipped cells, so the 24-cell macro dilutes the effect by those zeros; the clipped subgroup is the informative read.",
+    "subgroup_clipped_only": {
+      "n": 6,
+      "pcr_structured_psd": 0.7039549411097475,
+      "pcr_structured_raw": 0.7039549411097475,
+      "pcr_top2_observed": 0.7185432351410127
+    }
+  },
+  "registered_kappa": 100.0,
+  "rho": "held fixed at the SU (sparse-corrected) estimate for every arm",
+  "runtime_seconds": 347.8340744972229,
+  "spec": "SPEC_SOLVER_MECHANISM_STUDY.md",
+  "status": "SECONDARY diagnostic, not a registered arm"
+}

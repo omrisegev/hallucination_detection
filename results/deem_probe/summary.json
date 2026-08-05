@@ -1,0 +1,87 @@
+{
+  "base_config": {
+    "batch_size": 1024,
+    "cd_k": 10,
+    "deterministic": true,
+    "device": "auto",
+    "epochs": 100,
+    "hidden_dim": 1,
+    "init_method": "mv_rand",
+    "input_mode": "soft",
+    "learning_rate": 0.001,
+    "momentum": 0.9,
+    "preprocessing_activation": "sparsemax",
+    "preprocessing_init": "identity",
+    "preprocessing_layers": 1,
+    "sampler_steps": 5,
+    "strict_version": true,
+    "use_preprocessing": true,
+    "use_weighted": true
+  },
+  "decision_hard_deem": {
+    "arms": {
+      "deem_deep_hard_ensemble": {
+        "family_blocked_ci_hi_pp": 5.437024269205653,
+        "mean_delta_pp": 0.01844039018435521,
+        "n_cells": 24,
+        "shows_no_meaningful_advantage_over_iu": false,
+        "verdict": "hard DEEM retains a possible meaningful gain"
+      },
+      "deem_irbm_hard_ensemble": {
+        "family_blocked_ci_hi_pp": 0.5281313178841075,
+        "mean_delta_pp": -0.777989203548676,
+        "n_cells": 24,
+        "shows_no_meaningful_advantage_over_iu": true,
+        "verdict": "abandon hard DEEM \u2014 no meaningful advantage over IU (this rules out the preregistered +1.0pp gain; it does NOT prove inferiority)"
+      }
+    },
+    "available": true
+  },
+  "decision_soft_deem": {
+    "completion_rate": 1.0,
+    "n_fits": 3,
+    "repair_succeeded": true,
+    "required": 0.9,
+    "verdict": "soft DEEM repaired \u2014 run its predefined evaluation, regardless of how hard DEEM performs",
+    "winner": {
+      "epochs": 100,
+      "learning_rate": 0.0001
+    }
+  },
+  "decisions_are_independent": "hard-DEEM performance does not veto a repaired soft DEEM; they are different methods",
+  "definitions": {
+    "collapsed_sd": 1e-06,
+    "completion_min": 0.9,
+    "healthy_sd": 0.001,
+    "meaningful_gain_pp": 1.0,
+    "primary_comparison": "ensemble AUROC (H3 is registered on full.deem_deep_soft_ensemble); mean per-seed AUROC reported alongside, never substituted"
+  },
+  "grid": {
+    "epochs": [
+      100,
+      300,
+      1000
+    ],
+    "learning_rate": [
+      0.0001,
+      0.0003,
+      0.001,
+      0.003,
+      0.01
+    ]
+  },
+  "pilot_cells": [
+    "sciq_llama8b",
+    "spilled_triviaqa_llama8b",
+    "math500_dsmath7b"
+  ],
+  "runtime_seconds": 2957.1844384670258,
+  "spec": "SPEC_SOLVER_MECHANISM_STUDY.md \u00a75",
+  "status": "SECONDARY diagnostic, not a registered arm",
+  "sweep_gate": "quiet for 3037s, summary.json present",
+  "tiebreaker_trace": [
+    "step 1 completion rate == 1.00: 1 configs remain",
+    "step 2 finite objective required: 1 configs remain",
+    "step 4 smallest deviation from the registered default: lr=0.0001, epochs=100"
+  ]
+}

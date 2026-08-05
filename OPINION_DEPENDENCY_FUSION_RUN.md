@@ -496,7 +496,7 @@ orthogonal to the one fitted on odd samples** (|cos| = 0.007, against 0.39 for P
 > - **PSD projection does clip the structured matrix.** Measured over the shipped per-cell columns:
 >   **6 of 24 cells, 8 negative eigenvalues, maximum distortion `‖PSD(C)−C‖/‖C‖ = 2.096%`**, with
 >   minimum eigenvalues −0.08 to −0.29 against a unit diagonal — `epr_triviaqa_mistral24b`,
->   `se_nq_open_llama8b`, `truthfulqa_llama8b`, `ars_gsm8k_r1distill8b`, `noise_gsm8k_mistral7b`,
+>   `se_nq_open_llama8b`, `truthfulqa_llama8b`, `ars_gsm8k_r1distill8b`, `noise_gsm8k_phi3mini`,
 >   `math500_qwenmath7b`. My "zero clipped, 0.0000 distortion" is true of the **observed** covariance
 >   only (0 clipped, distortion ≤ 2.7e-15, all 24 cells), and I generalized it to both matrices.
 > - **The conditioning claim is a median that inverts on exactly those 6 cells.** "Better conditioned,
@@ -619,3 +619,144 @@ discards DEEM's training history.** `save_method_record`'s `except` branch keeps
 `error` and `traceback`, and the exception is raised by `orient_score` *after* `score_fn()` has
 already computed the history dict. So for exactly the fits worth diagnosing, the loss curve is
 thrown away. Retaining `dynamic_diag` on failure is the change to make before DEEM is re-run.
+
+---
+
+## 12. Solver mechanism — the ridge loses entirely on the tail, and it is not a sample-size problem
+
+Preregistered in `SPEC_SOLVER_MECHANISM_STUDY.md` §3 before any number below was read; run by
+`scripts/solver_mechanism_study.py`; raw output in `results/solver_mechanism/`.
+
+The reviewer rejected my first attempt at this decomposition because two of the proposed arms were
+the same vector. The replacement is a factorial that crosses what a ridge actually does — rescale the
+top-two coefficients, and admit the low-eigenvalue tail:
+
+|  | tail absent | + `t_ridge` |
+|---|---:|---:|
+| **PCR head scaling** | 0.7668 *(= committed `su_pcr_reproduction`)* | 0.7297 |
+| **ridge head scaling** | 0.7670 | 0.7294 *(= committed `ridge_observed`)* |
+
+Two corners are committed arms, so the wiring gate is free; both reproduce their committed per-cell
+AUROC to 1e-9 on all 24 cells, and `h_ridge + t_ridge` equals the registered ridge solution to 1e-10
+relative on all cells at all five κ.
+
+| effect (AUROC points, family-blocked 95% CI) | mean | CI | W/L | p |
+|---|---:|---|---|---:|
+| **head rescaling, tail absent** | **+0.02** | [−0.00, +0.06] | 10/9 | 0.904 |
+| head rescaling, tail present | −0.03 | [−0.04, −0.01] | 4/19 | 6.6e-4 |
+| **tail addition at the PCR head** | **−3.71** | [−5.36, −1.76] | 2/22 | 6.0e-7 |
+| tail addition at the ridge head | −3.76 | [−5.40, −1.83] | 2/22 | 6.0e-7 |
+| solver leg, both at once | −3.74 | [−5.38, −1.86] | 2/22 | 6.0e-7 |
+| interaction | −0.05 | [−0.08, −0.02] | 3/20 | 7.7e-5 |
+
+**The whole −3.74pp solver loss is admitting the tail. Rescaling the top-two coefficients is free.**
+That is a sharper statement than "the full-inverse solver failed", and it is the statement the
+earlier design could not have produced.
+
+**The κ path agrees.** Family-weighted slope of the tail effect on log κ = **−0.745 pp per log κ**,
+95% CI [−1.250, −0.269] — negative and excluding zero, which is the direction preregistered for
+low-eigenvalue amplification being causal. The head-rescaling slope is −0.144, an order of magnitude
+smaller.
+
+**And it is not finite-sample noise.** Repeated unlabeled train/test at 25/50/75% (50 repetitions,
+weights *and* the anchor flip frozen on train, AUROC on held-out samples only):
+
+| train fraction | held-out ridge−PCR gap | tail cosine across repeats | tail norm CV | top-2 subspace angle |
+|---|---:|---:|---:|---:|
+| 0.25 | −4.40pp | 0.644 | 0.397 | 19.7° |
+| 0.50 | −4.23pp | 0.855 | 0.241 | 10.5° |
+| 0.75 | −4.21pp | 0.967 | 0.127 | 5.4° |
+
+The tail estimate stabilises sharply — by 75% it is essentially reproducible across repeated splits —
+and **the gap does not move**. By the preregistered reading that is *structural model mismatch*, not
+estimation variance. Tripling the data does not rescue the full inverse, so a better-regularised
+version of the same idea is not the fix.
+
+**The PSD question, answered, and the answer is not the one I implied.** Raw and PSD-projected
+structured PCR give **bit-identical AUROC on all 24 cells** (0W/0L): `_pcr_weights` takes the top-two
+*algebraic* eigenvalues, and clipping only touches negative ones, so the PCR arm never sees the
+repair. By the corrected three-way rule this is "raw ≈ PSD, both below observed ⇒ the structured
+estimator causes the loss". PSD repair is irrelevant to the PCR arm — my worry that it owned most of
+the structured-matrix loss is dead.
+
+What indefiniteness does mark is *where* the structured estimator is worst: on the 6 clipped cells the
+matrix leg is **−1.45pp** (0.7185 → 0.7040) against **−0.37pp** over all 24. So the
+dependency-structured covariance is not uniformly inert; it is inert on 18 cells and mildly harmful on
+the 6 where its own estimate goes indefinite.
+
+## 13. Residual identifiability — a large residual, and a decision rule of mine that does not measure it
+
+Preregistered in `SPEC_SOLVER_MECHANISM_STUDY.md` §4; run by
+`scripts/residual_identifiability_study.py`; raw output in `results/residual_identifiability/`.
+B = 1000 draws per cell per null, each put through the complete decomposition pipeline, every null
+sample re-standardised with `prepare_cell`'s convention and gated at `max|diag(C*) − 1| ≤ 1e-8`.
+
+**The magnitude result is unambiguous.** Global primary endpoint T = **+64.0**, p = **0.000999** (the
+B = 1000 floor). All eight dataset families sit at the floor under BH q = 0.10, and
+leave-one-family-out never lifts the worst p above the floor, so this is not gsm8k or math500 driving
+it. The observed residual operator norm is **2–20× the independent-error null** on every cell. There
+is a great deal of off-diagonal structure that rank-two-plus-sparse does not capture.
+
+**The registered verdict is nevertheless FAILURE, and I do not think it means what it says.** The
+decision required ≥ 5 of 8 families to pass a three-part stability gate; 1 did. But two of the three
+criteria I preregistered — support Jaccard ≥ 0.50 and edge-sign agreement ≥ 0.80 — are properties of
+the **sparse component S**, not of the **residual R** this study is about. And S is **empty on 9 of 24
+cells** and has ≤ 7 edges on 8 more, so its Jaccard is undefined (NaN, which the gate counts as a
+failure) or trivially near zero. The one criterion that *is* about R — the principal angle between
+residual subspaces across 50 deterministic split halves — **passes on all 24 cells**: median 34.0°,
+worst 59.6°, threshold 60°. Edge-sign agreement is 1.000 wherever it is defined at all.
+
+So the honest report is: *by the rule I committed, the study fails; the rule is partly measuring the
+wrong object.* I am not rewriting a preregistration after watching it fail — that is what
+preregistration is for. **This needs the reviewer's decision**: either re-specify the gate on R alone
+and re-run, or let the FAILURE stand. What should not happen is quoting "the residual is 2–20× the
+null" as a positive result while the committed rule says otherwise.
+
+One caveat I would attach either way: T = +64 is an enormous effect, and effects that large usually
+mean the null is easier than the observation for some reason beyond the hypothesis. Null (a) preserves
+the fitted latent signal and every error marginal, so the comparison is the right one in principle —
+but the size of the gap deserves a sceptical second look before anyone builds on it.
+
+## 14. DEEM — the soft arm did not fit, and a single label-free configuration change fixes it
+
+Preregistered in `SPEC_SOLVER_MECHANISM_STUDY.md` §5; run after the registered sweep exited, by
+`scripts/deem_soft_collapse_probe.py` and `scripts/deem_winner_validation.py`; output in
+`results/deem_probe/`.
+
+Final sweep tally for `deem_deep_soft`: **108 failed / 7 "ok" of 115**. All seven non-failures are
+**collapsed** by the preregistered `sd < 1e-6` rule (σ from 8.9e-11 to 4.3e-07) — a definition
+calibrated in advance so that the three then-visible "successes" at σ ≈ 1e-8 would not count as
+successes. **No cell has all five soft seeds succeed**, so H3's candidate set is empty. That is a
+finding — the arm did not fit — not a gap in the experiment.
+
+The runner discards the evidence: the exception is raised by `orient_score` *after* `fit_deem_score`
+returns, so a completed fit and its history are thrown away. Calling `fit_deem_score` directly
+recovers them, which is all the probe does.
+
+The preregistered 5 × 3 grid, selected on label-free criteria only:
+
+| | epochs 100 | 300 | 1000 |
+|---|---|---|---|
+| **lr 1e-4** | **completion 1.00, median σ 0.434** | 0.00 | 0.00 |
+| lr 3e-4 | 0.00 | 0.00 | 0.00 |
+| lr 1e-3 *(registered)* | 0.00 | 0.00 | 0.00 |
+| lr 3e-3 | 0.00 | 0.00 | 0.00 |
+| lr 1e-2 | 0.00 | 0.00 | 0.00 |
+
+Exactly one configuration survives, and collapse is monotone in both learning rate and epoch count —
+the signature of an optimisation collapse, not a data problem. Validated on all five registered seeds
+across the three pilot cells: **15 of 15 healthy**, median σ 0.429, cross-seed |Spearman| 0.991–0.999.
+AUROC was never consulted at any step; the tie-breaker trace is in `summary.json`.
+
+The two stopping decisions are independent, per the review — hard categorical DEEM and repaired soft
+DEEM are different methods:
+
+- **Soft DEEM: repaired.** Completion 1.00 against the 0.90 requirement. Its predefined evaluation
+  should run, regardless of how hard DEEM performs.
+- **Hard DEEM:** `deem_irbm_hard_ensemble` shows **no meaningful advantage over IU** — which rules out
+  the preregistered +1.0pp gain and does *not* prove inferiority. `deem_deep_hard_ensemble` retains a
+  possible meaningful gain.
+
+The registered H3 row stands as run and is not replaced. What this changes is the interpretation: H3's
+empty candidate set is an artefact of a learning rate that collapses this input, not evidence that
+nonlinear dependency modelling cannot fit continuous detector ranks.
