@@ -1,0 +1,69 @@
+{
+  "factor_contrasts": [
+    {
+      "candidate": "ridge_observed",
+      "effect": "solver PCR->ridge, observed C",
+      "losses": 22,
+      "mean_delta_pp": -3.7428877710647845,
+      "median_delta_pp": -2.2141766628091473,
+      "n": 24,
+      "p_wilcoxon": 5.960464477539062e-07,
+      "reference": "su_pcr_reproduction",
+      "wins": 2
+    },
+    {
+      "candidate": "sdsf",
+      "effect": "solver PCR->ridge, structured C",
+      "losses": 22,
+      "mean_delta_pp": -5.276374662949485,
+      "median_delta_pp": -2.5914094975276356,
+      "n": 24,
+      "p_wilcoxon": 5.960464477539062e-07,
+      "reference": "pcr_structured",
+      "wins": 2
+    },
+    {
+      "candidate": "pcr_structured",
+      "effect": "matrix observed->structured, PCR",
+      "losses": 14,
+      "mean_delta_pp": -0.37063231484257136,
+      "median_delta_pp": -0.0026328659606889016,
+      "n": 24,
+      "p_wilcoxon": 0.08534092651572474,
+      "reference": "su_pcr_reproduction",
+      "wins": 7
+    },
+    {
+      "candidate": "sdsf",
+      "effect": "matrix observed->structured, ridge",
+      "losses": 20,
+      "mean_delta_pp": -1.9041192067272725,
+      "median_delta_pp": -0.7766304727978346,
+      "n": 24,
+      "p_wilcoxon": 7.62939453125e-05,
+      "reference": "ridge_observed",
+      "wins": 4
+    },
+    {
+      "candidate": "sdsf",
+      "effect": "registered H2 (both at once)",
+      "losses": 22,
+      "mean_delta_pp": -5.647006977792056,
+      "median_delta_pp": -2.851102360530333,
+      "n": 24,
+      "p_wilcoxon": 5.960464477539062e-07,
+      "reference": "su_pcr_reproduction",
+      "wins": 2
+    }
+  ],
+  "macro_auroc": {
+    "pcr_structured": 0.7631188025013224,
+    "ridge_observed": 0.7293962479391002,
+    "sdsf": 0.7103550558718275,
+    "su_pcr_reproduction": 0.7668251256497479
+  },
+  "rho": "held fixed at the SU (sparse-corrected) estimate for all four arms",
+  "status": "SECONDARY diagnostic, not a registered arm",
+  "target_condition": 100.0,
+  "wiring_gate": "su_pcr_reproduction and sdsf reproduce committed per-cell AUROC to 1e-9 on all cells"
+}

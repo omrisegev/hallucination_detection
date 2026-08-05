@@ -13,7 +13,25 @@ this decides what the conclusion is.
 
 ---
 
+> ## REVISED 2026-08-05 after independent review of commit `64f57cd`
+>
+> A reviewing model checked this file against remote `master` and raised seven objections. **Six
+> are correct and I have retracted them below; the seventh is the important one and I settled it
+> with a new measurement rather than an argument.** Read **§8 (corrections)** and **§9 (the clean
+> 2×2)** before §0–§6, which are the original text and are now partly superseded.
+>
+> The headline changes. The original text concluded that dependency-aware weighting is harmful.
+> The correct conclusion is narrower: **the full-inverse condition-100 ridge *solver* is harmful
+> (−3.74pp with the covariance held fixed), and the dependency-structured covariance was never
+> given a fair test** — under the paper's own two-component solver it is −0.37pp, median −0.00pp,
+> p = 0.085, i.e. indistinguishable from inert. The reviewer's diagnosis was right and my
+> attribution was wrong.
+
+---
+
 ## 0. Executive summary
+
+*(original text; superseded on the attribution question by §8–§9)*
 
 The experiment is well built and it answers its own question cleanly. The answer is **no**.
 
@@ -312,11 +330,250 @@ CSVs:
 | `results/dependency_fusion_study/summary.json` | all of the above plus the failure records |
 | `results/dependency_fusion_study/REPORT.md` | the runner's own generated human-readable table |
 
-Not committed and why: `records.jsonl`, the append-only checkpoint, is 11 MB and was being written
-by the live DEEM process at commit time. It holds raw per-sample score vectors; it is required to
-rebuild the DEEM seed ensembles but not to re-derive any number quoted here. Say the word and I will
-add it once the sweep finishes.
+**Superseded by §11:** `records.jsonl` was withheld from the first commit as a live 11 MB file. It is
+now pushed as `results/dependency_fusion_raw/records.jsonl.gz`, together with the per-cell feature
+matrices, so nothing has to be taken on trust.
 
 Still outstanding: the DEEM arms (H3, A2, A3, P2). They are **not** in the committed tables. The
 snapshot committed here is spectral-only, and the runner will regenerate every table when the DEEM
 pass completes.
+
+---
+
+## 8. Corrections after independent review
+
+Six objections were raised against §0–§6 and I accept all six. Where I could check a claim
+numerically I did, and the check is named.
+
+**8.1 "All six §8 conditions fail" — wrong. Four of six fail.** Audited condition by condition:
+
+| §8 condition | value | verdict |
+|---|---|---|
+| 1. mean gain ≥ +1.0pp | −5.65pp | fails |
+| 2. bootstrap 95% lower bound > 0 | −10.19pp | fails |
+| 3. Holm-adjusted p < 0.05 | 1.8e−06 | **passes as written** |
+| 4. neither QA nor math below −0.5pp | −4.08 / −6.59 | fails |
+| 5. equal-dataset macro positive | −3.77pp | fails |
+| 6. ≥ 90% decompositions converge | 24/24 | **passes** |
+
+The reviewer's framing is exactly right: the Holm p-value is significant *evidence of harm*, not of
+benefit. **This is also a defect in the spec, not only in my prose:** condition 3 is written as a
+two-sided Wilcoxon p-value inside a one-sided advancement gate, so an arm that loses catastrophically
+satisfies it. §8 should read "Holm-adjusted p < 0.05 **and** the mean delta is positive", or use a
+one-sided test. As written, four of the six conditions carry the whole gate.
+
+**8.2 The theorem flag tests the recovered support, not the population support — my framing was
+overstated.** `theorem_support_ok` is computed from `nnz` of the *estimated* sparse matrix, whereas
+Tenzer's uniqueness condition constrains the unknown true `S`. So "the mechanism is inert wherever
+its own theorem applies" is not justified. The defensible statement is: **the mechanism is inert on
+the 21 cells where the recovered support is sparse** (−0.01pp, median +0.00pp, p = 0.42) and moves
+large amounts only on the 3 cells where the recovered support is dense. The empirical pattern stands;
+the appeal to the theorem does not.
+
+**8.3 The MATH500 rescue is not attributable to exclusion — retracted.** `full.iu_pcr` and
+`full.su_pcr_reproduction` use the identical 28-feature set with `exclusion=False` in both. The
+sparse correction alone moves that cell 0.4187 → 0.9300. My sentence "the exclusion step, not sparse
+modelling, is what protects U-PCR on our data" conflated two separate facts and got the attribution
+of the H1 delta wrong. What survives is narrower and still worth recording: **two independent
+interventions each repair the same pathological cell** — the sparse correction (0.9300) and the
+deployed arm's exclusion step (0.9155) — which says plain two-component IU-PCR is fragile enough to
+invert below chance there, not that sparsity is what fixed it.
+
+**8.4 "15% unexplained covariance mass" is not what that number is — retracted.**
+`relative_residual` is `‖residual[triu]‖_F / ‖observed[triu]‖_F`, a ratio of Frobenius norms over
+off-diagonal entries. It is neither variance-explained nor a fraction of covariance mass, and it
+pools model mismatch, finite-sample noise, and approximation error from the custom decomposition. The
+correct phrasing is "the off-diagonal residual is 8–23% of the off-diagonal Frobenius norm
+(median 15%)", and it does not license the interpretation I put on it.
+
+**8.5 "A dense higher-rank correction is the next thing to pursue" — retracted, and now measured
+against.** I flagged it as a hypothesis but should not have promoted it. It is also wrong in the
+direction the data can see: the residual's **top-5 eigenvalues carry only 55% of its spectral mass**
+(median over 24 cells, out of ~28 directions). The leftover is diffuse, not low-rank. A higher-rank
+dense correction is the wrong shape for it.
+
+**8.6 The DEEM base-rate confound — retracted.** `continuous_to_deem_soft` maps to
+`(rank − 0.5)/n`, whose per-feature mean is ≈ 0.5, so the soft arm has balanced marginals too.
+Balanced marginals are common to both arms and are not a competing explanation for A2; the reviewer
+is right that A2 does mostly measure hard-versus-continuous information. My §4 paragraph on this is
+void.
+
+**8.7 The CRLF configuration-hash issue — confirmed, and it is theirs, not mine.** I verified it:
+all four entries in `run_config.json`'s `source_sha256` match the **CRLF working-tree** bytes, not the
+LF git blobs. So the registered configuration hash is line-ending dependent and an otherwise
+identical Linux or macOS checkout would be **refused as a configuration mismatch** by
+`main()`'s hash check. Their proposed fix — record the git commit, dirty status, input-cache hashes,
+the DUFS-choice-file hash, and *normalized* source hashes — is the right one.
+
+Two of their side-notes I also checked: **H2 without the extreme cell is −3.64pp** (their figure,
+confirmed to 2 d.p.), and their independent verification that **DUFS + L-SML also reproduces on
+24/24 cells** closes §5 item 1 empirically for this run, though the missing assert is still worth
+adding.
+
+On provenance: the attribution is deliberate, not incidental. The commit carries
+`Co-Authored-By: Claude Opus 5` by this repo's standing convention and this file names its author in
+its own header. Nothing is being concealed and nothing should be.
+
+---
+
+## 9. The clean 2×2: it is the solver that failed, not the dependency structure
+
+This was the reviewer's central objection and it is correct. The registered comparison changes **two**
+things at once, and the registered ablation does not separate them:
+
+| arm | reliability ρ | solver | matrix |
+|---|---|---|---|
+| `su_pcr_reproduction` | SU | 2-component PCR | observed `C` |
+| `sdsf` | SU | condition-100 ridge | **structured** `C` |
+| `iu_ridge` | **IU** | condition-100 ridge | observed `C` |
+
+So H2 = solver + matrix, while the ablation A1 changes solver *and* reliability estimate on the
+observed matrix. The registered interaction term therefore cannot support the claim I made — "sparse
+structure makes the ridge weight rule worse" — because it conflates the covariance substitution with
+the solver substitution.
+
+I ran the missing decomposition: hold ρ fixed at the SU estimate for all four arms and cross the two
+remaining factors. `scripts/dependency_fusion_solver_matrix_diagnostic.py`, output in
+`results/dependency_fusion_solver_matrix/`. **Wiring gate first:** the two anchor cells of the square
+reproduce their committed per-cell AUROC to **1e−9 on all 24 cells**, so this is measuring the same
+objects the registered run measured.
+
+Macro AUROC, ρ held fixed at the SU estimate:
+
+| | observed `C` | structured `C` |
+|---|---:|---:|
+| **2-component PCR** | 0.7668 *(= `su_pcr_reproduction`)* | 0.7631 |
+| **condition-100 ridge** | 0.7294 | 0.7104 *(= `sdsf`)* |
+
+| effect | mean | median | W/L | p |
+|---|---:|---:|---:|---:|
+| **solver**, PCR → ridge, observed `C` | **−3.74pp** | −2.21 | 2/22 | 6.0e−07 |
+| **solver**, PCR → ridge, structured `C` | **−5.28pp** | −2.59 | 2/22 | 6.0e−07 |
+| **matrix**, observed → structured, PCR | **−0.37pp** | **−0.00** | 7/14 | **0.085** |
+| **matrix**, observed → structured, ridge | −1.90pp | −0.78 | 4/20 | 7.6e−05 |
+| registered H2 (both at once) | −5.65pp | −2.85 | 2/22 | 6.0e−07 |
+
+**The solver carries the loss.** Substituting the dependency-structured covariance under the paper's
+own two-component rule costs −0.37pp with a median of exactly zero and p = 0.085 — the same
+"statistically indistinguishable from inert" signature as H1. Swapping the solver costs −3.74pp with
+the matrix held fixed.
+
+The mechanism is the one the reviewer proposed, and it is now measured:
+
+| diagnostic (median over 24 cells) | 2-component PCR | condition-100 ridge |
+|---|---:|---:|
+| share of ‖w‖² in the top-2 eigendirections, observed `C` | 1.0000 | **0.1627** |
+| share of ‖w‖² in the top-2 eigendirections, structured `C` | 1.0000 | 0.2298 |
+| split-half weight-vector agreement, ‖cos‖, median | 0.9896 | 0.9295 |
+| split-half weight-vector agreement, ‖cos‖, **worst cell** | 0.3863 | **0.0066** |
+
+PCR puts all of its weight in the leading two directions by construction. A condition cap of 100
+still admits all 20–30 directions, so the ridge puts roughly **80% of its weight into low-eigenvalue
+directions** — and those coefficients are so unstably estimated that on the worst cell the ridge
+weight vector fitted on even samples is **essentially orthogonal to the one fitted on odd samples**
+(|cos| = 0.007, against 0.39 for PCR). PCR's hard truncation is doing variance control, and removing
+it is what destroys the score.
+
+Two of the reviewer's speculations are refuted by the same export, and I should say so:
+
+- **PSD projection adds no distortion.** Zero negative eigenvalues were clipped and
+  `‖PSD(C) − C‖/‖C‖ = 0.0000` on **both** matrices, on all 24 cells. The structured covariance is
+  already PSD here; the projection is a no-op.
+- **The structured covariance is not a numerical problem — it is better conditioned than the
+  observed one**, median condition number 9.4e2 versus 5.2e5. The harm is not ill-conditioning of
+  the dependency-structured matrix.
+
+### What this does to the conclusion
+
+**Closed:** replacing U-PCR's two-component truncation with a full-inverse, condition-100 ridge
+solve. −3.74pp with the covariance held fixed, 2W/22L, and a mechanism (variance in the discarded
+directions) that explains it. I would not revisit this with a different γ; the instability is in the
+directions the cap admits, not in the cap's value.
+
+**Not closed, and I was wrong to imply it was:** dependency-aware fusion. The structured covariance
+has only ever been evaluated *through* a solver that independently costs 3.74pp. On the paper's own
+solver it is −0.37pp with a zero median. That is not evidence against dependency modelling; it is an
+absence of evidence either way, and it has the same signature as the sparse-reliability arm — a
+mechanism that changes almost nothing on this data at the registered threshold.
+
+**Which means the interesting question is now the one the reviewer's 2×2 exposes:** the dependency
+structure is nearly inert, and the residual it leaves behind is diffuse (top-5 share 0.55), not
+low-rank. Both of those point the same way — that the off-diagonal misfit recorded in
+`HANDOFF_FEATURE_SELECTION_AND_FUSE.md` §6 is not concentrated in a form any of these three
+corrections (sparse, rank-two, full-inverse) is shaped to capture. That is a more useful place to
+stop than "dependency weighting is harmful", which is what I wrote and which the data does not
+support.
+
+**Still not worth doing:** a γ sweep, a rank sweep, or a sparse-threshold sweep. The solver's failure
+mode is variance in admitted directions and the matrix's effect is null under the good solver;
+neither is a configuration-search problem.
+
+---
+
+## 10. DEEM: interim evidence, and what the reviewer asked for
+
+The reviewer could not verify the collapse claim because `records.jsonl` is not pushed. Fair. Interim
+export: `results/dependency_fusion_study/deem_interim_seed_records.csv` — every DEEM arm/seed record
+written so far, with status, runtime, error, and for successful fits the score standard deviation,
+unique-value count, class map and history keys.
+
+State at the time of writing (the sweep is still running, 4 of 24 cells touched):
+
+| arm | ok | failed |
+|---|---:|---:|
+| `deem_irbm_hard` | 20 | 0 |
+| `deem_deep_hard` | 15 | 0 |
+| `deem_deep_soft` | **2** | **13** |
+
+Per cell, the soft arm is 1/5, 1/5 and **0/5** on the three completed cells. **No cell has all five
+soft seeds succeed**, and `collect_scores` requires all five to build the ensemble — so on current
+evidence H3's candidate set will be **empty**, not merely reduced. That is a stronger version of the
+§4 warning: the survivorship-bias concern becomes moot if nothing survives, and the finding becomes
+"the arm did not fit."
+
+One artifact defect this exposed, which supports the reviewer's request: **the failure path discards
+the training history.** `save_method_record` catches the exception raised by `orient_score` *after*
+`score_fn()` has already computed DEEM's history dict, and the except branch stores only
+`error_type`, `error` and `traceback`. So for exactly the fits we most want to diagnose, the loss
+curve is thrown away. Retaining `dynamic_diag` on failure is a small change and it is the one I would
+make before re-running DEEM.
+
+Their remaining requests — regenerated tables, `deem_seeds.csv`, `deem_seed_summary.csv`, and
+per-contrast `n` in `REPORT.md` — need the sweep to finish. I will push them when it does. Adding
+per-contrast `n` to the report table is a one-line change to `build_reports`; `contrasts.csv` already
+carries it. `records.jsonl.gz` is pushed now, as an interim snapshot — see §11.
+
+---
+
+## 11. Raw data, so nothing has to be taken on trust
+
+The reviewer asked for the raw data to review independently. Pushed as
+`results/dependency_fusion_raw/`, written by `scripts/export_dependency_fusion_raw.py`:
+
+| file | what it lets you do |
+|---|---|
+| `cells.npz` | re-derive **every arm from scratch** — per cell the canonical z-scored `V`, the `sign(ρ̂)`-oriented `F` that every arm consumes, the hand signs, the derived polarity, the anchor, the labels, and the pool names |
+| `cells_manifest.csv` | n, m, positive rate, GOOD_6 coverage, anchor name per cell |
+| `records.jsonl.gz` | the runner's append-only checkpoint verbatim — every arm/seed frozen score vector and diagnostic, **including the failures** |
+| `deem_interim_seed_records.csv` | flat DEEM per-seed table with `score_std` and `score_n_unique`, which is how a collapsed fit is identified |
+| `RAW_DATA_README.md` | schemas, array conventions, and a runnable snippet that reproduces the GOOD_6 constant and two registered arms from the bundle alone |
+
+Three things about it worth knowing before using it:
+
+- **It is self-validating.** The README's snippet must print GOOD_6 = **0.7733442**. If it does not,
+  the bundle is not the data the committed numbers came from and nothing downstream should be
+  trusted. That is the project's standing rule and it applies to me as much as to anyone.
+- **`V` and `F` are float64 verbatim, not downcast.** This review turned on agreement at 1e−9, so
+  approximate reproduction would not have been good enough.
+- **`records.jsonl.gz` is an interim snapshot** — the DEEM sweep was still running when it was
+  written, so its per-arm counts are a point in time, not the final tally.
+
+Scope: derived spectral features and correctness labels only. No prompts, no generated text, no model
+weights — the same scope as the result CSVs the repo already tracks, and it makes the Step-225 goal
+(a repo-only machine can re-derive every headline number) true for this experiment too.
+
+One limitation I cannot export around, and it is the runner's, not the bundle's: **the failure path
+discards DEEM's training history.** `save_method_record`'s `except` branch keeps only `error_type`,
+`error` and `traceback`, and the exception is raised by `orient_score` *after* `score_fn()` has
+already computed the history dict. So for exactly the fits worth diagnosing, the loss curve is
+thrown away. Retaining `dynamic_diag` on failure is the change to make before DEEM is re-run.
