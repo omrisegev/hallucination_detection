@@ -41,15 +41,89 @@ than disproved**. Two questions remain open, and both are answerable without new
 A third question is operational: `deem_deep_soft` is failing on 27 of 30 attempts and the runner
 discards the evidence.
 
+### 0.1 Synthetic admission addendum (post-run, not part of the preregistration above)
+
+At Omri's request, real-data follow-up is now conditional on a known-truth synthetic admission
+benchmark: `scripts/synthetic_dependency_fusion_validation.py`. This addendum records the observed
+result after the run; it is not presented as text written before those results. The thresholds and
+four worlds are embedded in the source that produced the SHA-256-bound summary.
+
+The benchmark uses independent training and test draws from a joint Gaussian model whose
+off-diagonal clean covariance exactly satisfies U-PCR's additive equation. It tests:
+
+- a clean independent-error world;
+- the same world with four planted sparse error-correlation edges at n=300 and n=3000;
+- a dense-block stress world that intentionally violates the sparse-support assumption;
+- random feature sign flips and the deployed two-pass sign(rho) orientation;
+- population-oracle linear and two-component PCR references;
+- IU-PCR, SU-PCR, SDSF, structured-matrix PCR, observed ridge, full-pool L-SML, and a small declared
+  exact DUFS-PF + L-SML secondary sample.
+
+Labels are generated with the test draw and reach only AUROC after training-only weights and anchor
+orientation have been frozen. Forty repetitions per world and 6,000 independent test samples per
+repetition separate estimator instability from test-metric noise.
+
+**Observed decision: `STOP_AND_REVISE`.** In the primary sparse-large world:
+
+- planted support recovery succeeded (mean recall 0.9375, precision 1.0000);
+- the oracle full solve beat oracle PCR by +0.895pp, so the world contains the tail value required to
+  test the solver claim;
+- with planted orientation supplied as a diagnostic, SDSF beat SU-PCR on 40/40 repetitions by
+  +0.786pp, 95% bootstrap CI [+0.704, +0.866];
+- with deployable sign(rho), SDSF beat SU-PCR on 33/40 and had median +0.601pp, but seven catastrophic
+  failures changed the mean to -1.616pp, CI [-3.617, +0.068];
+- structured-matrix PCR stayed tied to SU-PCR (-0.017pp), while SDSF versus that same structured PCR
+  reproduced the loss. The failure is the full/tail solver, not the structured covariance estimate;
+- the label-free reliability-tail fraction correlated -0.908 with the SDSF effect. Half-sample
+  polarity stability correlated only +0.063 because a wrong orientation can be stable.
+
+A post-hoc rule that falls back to SU-PCR when `||(I-P2)rho||/||rho|| > 0.25` would have kept all 33
+wins and removed all seven losses (+0.571pp mean), but that threshold was seen after v1 and is **not
+evidence**. The next admissible experiment is a new, preregistered, disjoint-seed confirmation of that
+unchanged guard (and alternatives fixed before the run). Until one passes, the orchestrator blocks
+all new real-data Step-227 work without a bypass.
+
+Artifacts: `results/synthetic_dependency_fusion/{REPORT.md,summary.json,replicates.csv,contrasts.csv,
+method_summary.csv}`.
+
+### 0.2 Fixed-orientation v2 result (post-run)
+
+The feature-direction hypothesis was then isolated in a versioned run on a disjoint synthetic seed
+namespace. `confidence-orientation-v1` emits every synthetic view in a frozen “higher = more likely
+correct” direction; random sign flips remain only in the legacy `sign(rho)` control. The v1 numeric
+thresholds were carried forward unchanged.
+
+The correction removes the failure mechanism in the sparse worlds. In sparse-large, fixed SDSF
+beats fixed SU-PCR by **+0.845pp**, 95% bootstrap CI **[+0.747, +0.943]pp**, with **39/40** wins. It
+wins **77/80** repetitions across sparse-small and sparse-large. Support recovery remains accurate
+(recall 0.956, precision 1.000), the clean-world no-harm gate passes, and SDSF captures 89.2% of the
+available oracle-over-PCR gap.
+
+The overall decision nevertheless remains **`STOP_AND_REVISE`**. The one failed preregistered gate
+is fixed SU-PCR versus fixed IU-PCR: **-0.0004pp** against a required +0.25pp. Sparse covariance
+cleaning does not improve the two-component PCR solution by itself. The supported, narrower claim
+is that the full SDSF reliability/dependency-weighted solve recovers the planted tail value once
+feature direction is fixed. The unsupported claim is that covariance cleaning alone is useful.
+This narrows the mechanism attribution and does not retroactively convert the conjunctive gate to a
+pass or license a new real-data run.
+
+Artifacts: `results/synthetic_dependency_fusion_fixed_v2/{REPORT.md,summary.json,replicates.csv,
+contrasts.csv,method_summary.csv}`. Feature contract and reproduction commands:
+`FEATURE_ORIENTATION_CONTRACT.md`.
+
 ---
 
 ## 1. Hard constraints
 
-1. **No computation starts until the registered sweep exits.** The reviewer required this for the
+1. **No real-data Step-227 computation starts until the registered sweep exits and synthetic
+   admission passes.** The synthetic benchmark can run on the separate no-data computer and never
+   reads the cache. The reviewer required the sweep-exit gate for the
    DEEM probe (a concurrent fit competes for CPU threads and memory bandwidth and can affect the
    registered run's timing and stability); Omri extended it to all three studies, because the residual
    study is ~48,000 decomposition refits. Gate: PID of the running sweep gone, no new `records.jsonl`
-   line for ≥ 10 minutes, `summary.json` written.
+   line for ≥ 10 minutes, and a readable `summary.json` newer than the checkpoint. PID inspection is
+   cross-platform (`os.kill(pid, 0)` plus `ps` on POSIX, `tasklist` on Windows); an inspection failure
+   blocks execution rather than declaring the sweep dead.
 2. **The four files hashed into `config_hash` are never edited** — `spectral_utils/upcr.py`,
    `spectral_utils/dependency_fusion.py`, `spectral_utils/deem_adapter.py`,
    `scripts/run_dependency_fusion_experiment.py`. `JsonlStore` discards records whose `config_hash`
@@ -81,9 +155,10 @@ Consequences, fixed in advance:
 
 - Any inferential claim about replication is made at the **family** level (§4.5), never by counting
   24 correlated cells.
-- Every macro confidence interval in this document is a **dataset-family-blocked bootstrap** —
-  resample families with replacement, then take all cells within the resampled families — not a flat
-  24-cell resample. (Reviewer, round 2.)
+- Every macro confidence interval in this document is an **equal-family bootstrap** — first average
+  cells within each dataset family, then resample the eight family means. Merely concatenating all
+  cells after resampling a family would still let GSM8K outweigh singleton families. (Reviewer,
+  round 2.)
 - The global statistic is reported with **leave-one-family-out** values so it cannot be driven by
   gsm8k or math500.
 
@@ -158,6 +233,10 @@ finite-sample estimation variance or because the full-inverse model is structura
   decomposition, `ρ`, every weight vector, **and the global anchor flip** — `anchor_orient` decides on
   the train score and that frozen sign is applied to the test score;
 - AUROC is computed on held-out samples only.
+- every repetition re-centers and re-scales each view using **training rows only**, then freezes that
+  affine transform onto test rows. Training labels are never inspected; a fixed split with a
+  single-class test set is retained with undefined AUROC rather than replaced.
+- every repetition is written to `heldout_repetitions.csv`; `heldout.csv` contains paired summaries.
 
 Reported per (cell, fraction): held-out AUROC per arm; the held-out ridge−PCR gap; the CV of
 `‖t_ridge‖` across repetitions; median `|cos|` between `t_ridge` across repetitions; mean principal
@@ -274,6 +353,9 @@ identical preprocessing, and the comparison would be confounded by scale.
 observed `C`. A violation is a hard error, not a warning — it would mean the null and the observation
 are not comparable objects.
 
+The same re-standardization and unit-diagonal gate are applied independently to both halves of every
+split-half stability repetition.
+
 ### 4.3 Statistics
 
 Magnitude as well as concentration — a tiny residual matrix can have a concentrated spectrum, so the
@@ -302,6 +384,8 @@ gate arbitrarily. Fixed:
 - the **cell statistic is the median over repetitions** of each of: principal angle over `d_res`,
   support Jaccard, edge-sign agreement;
 - the 10th and 90th percentiles across repetitions are reported alongside every median.
+- every repetition also applies the identical split-half procedure to a fresh primary-null sample;
+  the observed median angle must be strictly below that null median as well as below 60°.
 
 ### 4.5 Inference: one global test, then eight family tests (round-2 item 2.2)
 
@@ -358,6 +442,10 @@ This is a real abandonment condition and it is written before the test.
 prints the projected wall clock; if that exceeds 8 h single-core it runs cells in parallel processes.
 No labels are involved, so this choice cannot bias a result.
 
+Exactly 1000 valid draws are required for each null and cell. A failed draw is a contextualized hard
+error; it is never discarded in a way that changes Monte Carlo resolution. Parallel results are
+restored to canonical `INSCOPE` order before aggregation.
+
 ---
 
 ## 5. Study C — the DEEM soft collapse
@@ -374,14 +462,11 @@ failed**, and every one of the 27 failures is the identical
 completes and `save_method_record`'s `except` branch (`:333-346`) discards the completed
 `DeemRunResult`, including `model.history_`.
 
-The probe therefore calls **`fit_deem_score` directly**, before any orientation, and retains the
-score, the aligned probabilities, the class map, per-epoch history, output variance, finite-likelihood
-checks, sparsemax dead-unit counts and an explicit failure reason.
-
-**Preregistered fallback**: if `model.fit()` itself starts raising, `fit_deem_score` loses the model
-object (`deem_adapter.py:201`) and history cannot be recovered through it. The probe then constructs
-`DEEM(...)` directly with kwargs identical to the adapter's and instruments the fit loop. This is
-read-only reuse; the hashed adapter is not edited.
+The probe constructs pinned `DEEM==0.2.0` with kwargs identical to the hashed adapter and injects a
+trainer callback without editing either dependency. It retains scores, aligned probabilities, full
+loss history, per-epoch output standard deviation, parameter and gradient norms, sparsemax zero/dead
+unit fractions, and the last finite checkpoint for a collapsed or failed fit. The same path therefore
+retains evidence if `model.fit()` raises partway through training.
 
 ### 5.2 Numeric definitions
 
@@ -410,6 +495,11 @@ decisions:
 3. **If repaired soft DEEM is healthy, its predefined evaluation runs regardless of hard-DEEM
    performance.** Neither decision vetoes the other.
 
+The selected configuration must first complete all 3 pilot cells × 5 seeds. If that gate passes, the
+frozen configuration runs on all in-scope cells and all five seeds. The final evaluation requires
+both seed-fit completion and ensemble-cell completion ≥90%; ensemble AUROC is compared with IU using
+equal-family aggregation and a family bootstrap interval.
+
 `_ensemble` requires all five seeds (`run_dependency_fusion_experiment.py:584`), so an empty H3
 candidate set remains a legitimate finding — "the arm did not fit" — and is reported as one rather
 than as a gap.
@@ -437,9 +527,9 @@ pilot is secondary and never replaces a registered row.
 
 | directory | contents |
 |---|---|
-| `results/solver_mechanism/` | `per_cell.csv`, `factorial_effects.csv`, `kappa_path.csv`, `heldout.csv`, `summary.json` |
+| `results/solver_mechanism/` | `per_cell.csv`, `factorial_effects.csv`, `kappa_path.csv`, `heldout.csv`, `heldout_repetitions.csv`, `summary.json` |
 | `results/residual_identifiability/` | `per_cell.csv`, `family_tests.csv`, `null_draws_summary.csv`, `summary.json` |
-| `results/deem_probe/` | `per_fit.csv`, `grid.csv`, `summary.json` |
+| `results/deem_probe/` | `per_fit.csv`, `grid.csv`, `evaluation_seeds.csv`, `evaluation_per_cell.csv`, `artifacts/`, `summary.json` |
 
 Plus an addendum to `results/dependency_fusion_raw/RAW_DATA_README.md`, and `§12 Solver mechanism` /
 `§13 Residual identifiability` in `OPINION_DEPENDENCY_FUSION_RUN.md`. `HISTORY.md` and `PROGRESS.md`

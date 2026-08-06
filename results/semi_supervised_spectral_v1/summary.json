@@ -1,0 +1,117 @@
+{
+  "budgets": [
+    0,
+    5,
+    10,
+    20,
+    40,
+    80
+  ],
+  "decision": {
+    "all_gates_pass": false,
+    "decision": "STOP_AND_REVISE",
+    "eligible_confirmatory_run": true,
+    "gates": [
+      {
+        "gate": "platt_ranking_invariant",
+        "observed": 0.0,
+        "operator": "<=",
+        "pass": true,
+        "threshold": 1e-10
+      },
+      {
+        "gate": "real_mean_vs_upcr",
+        "observed": -0.003552641079178238,
+        "operator": ">=",
+        "pass": false,
+        "threshold": 0.01
+      },
+      {
+        "gate": "real_ci_low_vs_upcr",
+        "observed": -0.006398718591470704,
+        "operator": ">",
+        "pass": false,
+        "threshold": 0.0
+      },
+      {
+        "gate": "real_mean_vs_gold_ridge",
+        "observed": 0.07288551181963271,
+        "operator": ">=",
+        "pass": true,
+        "threshold": 0.0
+      },
+      {
+        "gate": "real_qa_vs_upcr",
+        "observed": -0.006147282370058633,
+        "operator": ">=",
+        "pass": false,
+        "threshold": -0.005
+      },
+      {
+        "gate": "real_math_vs_upcr",
+        "observed": -0.0019958563046500013,
+        "operator": ">=",
+        "pass": true,
+        "threshold": -0.005
+      },
+      {
+        "gate": "real_catastrophic_losses",
+        "observed": 0.0,
+        "operator": "<=",
+        "pass": true,
+        "threshold": 2.0
+      },
+      {
+        "gate": "synthetic_grouped_vs_upcr",
+        "observed": 0.0007091956198106763,
+        "operator": ">",
+        "pass": true,
+        "threshold": 0.0
+      },
+      {
+        "gate": "synthetic_weak_block_vs_upcr",
+        "observed": 0.30711577424562553,
+        "operator": ">",
+        "pass": true,
+        "threshold": 0.0
+      },
+      {
+        "gate": "synthetic_worlds_beating_ridge",
+        "observed": 3.0,
+        "operator": ">=",
+        "pass": true,
+        "threshold": 3.0
+      },
+      {
+        "gate": "synthetic_independent_not_harmful",
+        "observed": -0.003276552443504646,
+        "operator": ">=",
+        "pass": true,
+        "threshold": -0.005
+      }
+    ]
+  },
+  "feature_schema": "confidence-orientation-v1",
+  "methods": [
+    "upcr",
+    "platt_upcr",
+    "gold_pcr2",
+    "gold_pcr6",
+    "gold_ridge_all",
+    "anchored_pcr2",
+    "anchored_pcr6",
+    "pseudo_gold_pcr6"
+  ],
+  "n_real_cells": 24,
+  "real_bundle_validity": 0.7735279028911624,
+  "real_repeats": 30,
+  "runtime_seconds": 33.977104902267456,
+  "synthetic_repeats": 40,
+  "synthetic_worlds": [
+    "independent",
+    "grouped",
+    "sparse_pairs",
+    "correlated_weak_block"
+  ],
+  "version": "semi-supervised-spectral-v1-2026-08-06"
+}

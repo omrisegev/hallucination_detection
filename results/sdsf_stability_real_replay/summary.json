@@ -1,0 +1,97 @@
+{
+  "config": {
+    "bundle": "/Users/osegev/Desktop/hallucination_detection/results/dependency_fusion_raw/cells.npz",
+    "gates": {
+      "cell_ci_low_vs_current_sdsf_min_pp": 0.0,
+      "cell_ci_low_vs_su_min_pp": 0.0,
+      "family_macro_vs_su_min_pp": 0.0,
+      "math_vs_su_min_pp": -0.5,
+      "mean_vs_current_sdsf_min_pp": 0.0,
+      "mean_vs_su_min_pp": 1.0,
+      "qa_vs_su_min_pp": -0.5
+    },
+    "n_boot": 10,
+    "tau": 0.5
+  },
+  "contrasts": [
+    {
+      "candidate": "stable_sdsf",
+      "catastrophic_losses_5pp": 3,
+      "ci95_high_pp": -1.8418972004808192,
+      "ci95_low_pp": -4.104113309928356,
+      "family_macro_delta_pp": -1.6959985052952093,
+      "losses": 22,
+      "math_delta_pp": -3.045977378004616,
+      "mean_delta_pp": -2.907050900334789,
+      "median_delta_pp": -2.0685726042409036,
+      "qa_delta_pp": -2.675506770885077,
+      "reference": "su_pcr",
+      "wins": 2,
+      "worst_cell_delta_pp": -11.141860641443625
+    },
+    {
+      "candidate": "stable_sdsf",
+      "catastrophic_losses_5pp": 0,
+      "ci95_high_pp": 3.1564925256849183,
+      "ci95_low_pp": 0.9877388559591647,
+      "family_macro_delta_pp": 1.3096493734702985,
+      "losses": 1,
+      "math_delta_pp": 1.4122950605185536,
+      "mean_delta_pp": 1.8025836106079436,
+      "median_delta_pp": 1.1888276530771458,
+      "qa_delta_pp": 2.4530645274235936,
+      "reference": "current_sdsf",
+      "wins": 23,
+      "worst_cell_delta_pp": -0.032601608346016775
+    }
+  ],
+  "decision": "DOES_NOT_MEET_REAL_CONTRIBUTION_GATE",
+  "feature_schema": "confidence-orientation-v1",
+  "gates": [
+    {
+      "gate": "mean_vs_su_min_pp",
+      "observed": -2.907050900334789,
+      "pass": false,
+      "threshold": 1.0
+    },
+    {
+      "gate": "cell_ci_low_vs_su_min_pp",
+      "observed": -4.104113309928356,
+      "pass": false,
+      "threshold": 0.0
+    },
+    {
+      "gate": "qa_vs_su_min_pp",
+      "observed": -2.675506770885077,
+      "pass": false,
+      "threshold": -0.5
+    },
+    {
+      "gate": "math_vs_su_min_pp",
+      "observed": -3.045977378004616,
+      "pass": false,
+      "threshold": -0.5
+    },
+    {
+      "gate": "family_macro_vs_su_min_pp",
+      "observed": -1.6959985052952093,
+      "pass": false,
+      "threshold": 0.0
+    },
+    {
+      "gate": "mean_vs_current_sdsf_min_pp",
+      "observed": 1.8025836106079436,
+      "pass": true,
+      "threshold": 0.0
+    },
+    {
+      "gate": "cell_ci_low_vs_current_sdsf_min_pp",
+      "observed": 0.9877388559591647,
+      "pass": true,
+      "threshold": 0.0
+    }
+  ],
+  "interpretation": "The candidate fails at least one predeclared real-data contribution condition. Synthetic stabilization therefore does not justify replacing SU-PCR or current SDSF on the hallucination artifact. The failed gates identify the next hypothesis; they must not be repaired by tuning tau on these labels.",
+  "n_cells": 24,
+  "version": "sdsf-stability-real-replay-v1"
+}

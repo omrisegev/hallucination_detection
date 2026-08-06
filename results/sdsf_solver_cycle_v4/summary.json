@@ -1,0 +1,83 @@
+{
+  "conclusion": "The low-eigenvalue tail, not top-two rescaling, carries the loss; it remains harmful on held-out rows at the largest training fraction. Direct channel CCA also fails to beat PCR. The supported action is to abandon full-inverse SDSF for these features, retain the low-dimensional PCR solver, and investigate dependency information only as a reliability correction on genuinely new families.",
+  "config": {
+    "fractions": [
+      0.25,
+      0.5,
+      0.75
+    ],
+    "kappas": [
+      3.0,
+      10.0,
+      30.0,
+      100.0,
+      300.0
+    ],
+    "repeats": 50
+  },
+  "contrasts": [
+    {
+      "contrast": "head rescaling only",
+      "family_ci_high_pp": 0.001873782390656234,
+      "family_ci_low_pp": -0.02235025929533327,
+      "family_macro_delta_pp": -0.007452002089967588,
+      "losses": 11,
+      "mean_delta_pp": -0.003546248559639642,
+      "median_delta_pp": 0.0,
+      "wins": 10
+    },
+    {
+      "contrast": "tail addition only",
+      "family_ci_high_pp": -0.7651583920623154,
+      "family_ci_low_pp": -3.470015039809781,
+      "family_macro_delta_pp": -2.0115267504984957,
+      "losses": 21,
+      "mean_delta_pp": -3.275503295260813,
+      "median_delta_pp": -2.335286135804288,
+      "wins": 3
+    },
+    {
+      "contrast": "full inverse vs PCR",
+      "family_ci_high_pp": -0.7775267879185576,
+      "family_ci_low_pp": -3.5240914555329295,
+      "family_macro_delta_pp": -2.037771754632103,
+      "losses": 21,
+      "mean_delta_pp": -3.3153325913475755,
+      "median_delta_pp": -2.3723822878466083,
+      "wins": 3
+    },
+    {
+      "contrast": "direct two-channel CCA vs PCR",
+      "family_ci_high_pp": -0.45569971833562484,
+      "family_ci_low_pp": -3.665046901607724,
+      "family_macro_delta_pp": -1.9610300334678232,
+      "losses": 17,
+      "mean_delta_pp": -1.475262119320418,
+      "median_delta_pp": -1.1129369346108253,
+      "wins": 7
+    }
+  ],
+  "decision": "ABANDON_FULL_INVERSE_SDSF",
+  "heldout_summary": [
+    {
+      "fraction": 0.25,
+      "head_effect_pp": 0.0014613281508087338,
+      "n": 1200,
+      "tail_effect_pp": -4.441922498560073
+    },
+    {
+      "fraction": 0.5,
+      "head_effect_pp": 0.0018865948386003416,
+      "n": 1199,
+      "tail_effect_pp": -3.861731288963205
+    },
+    {
+      "fraction": 0.75,
+      "head_effect_pp": -0.000700493404769958,
+      "n": 1187,
+      "tail_effect_pp": -3.3441739720666073
+    }
+  ],
+  "kappa_slope_pp_per_log": -0.6165948166878666,
+  "version": "sdsf-solver-cycle-v4-fixed-stable"
+}

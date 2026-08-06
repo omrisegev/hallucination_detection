@@ -162,21 +162,23 @@ def boot_seed(name):
 
 
 def family_block_ci(deltas, families, name, n_boot=N_BOOT, alpha=0.05):
-    """Dataset-family-blocked bootstrap CI.
+    """Equal-family bootstrap CI for the dataset-family macro.
 
-    Resample the 8 families with replacement, then take all cells inside the resampled
-    families.  A flat 24-cell resample would treat gsm8k's 10 cells as 10 independent draws.
+    First average cells within each family, then resample those family means.  Concatenating
+    every cell after resampling a family would still let gsm8k's 10 cells outweigh a singleton
+    family, which is exactly the dependence problem this interval is intended to avoid.
     """
     deltas = np.asarray(deltas, dtype=float)
     families = np.asarray(families)
     fams = sorted(set(families.tolist()))
-    idx = {f: np.flatnonzero(families == f) for f in fams}
+    family_delta = np.array([
+        float(np.mean(deltas[np.flatnonzero(families == f)])) for f in fams
+    ])
     rng = np.random.default_rng(boot_seed(name))
     stats = np.empty(n_boot)
     for b in range(n_boot):
         pick = rng.integers(0, len(fams), size=len(fams))
-        rows = np.concatenate([idx[fams[k]] for k in pick])
-        stats[b] = deltas[rows].mean()
+        stats[b] = family_delta[pick].mean()
     lo, hi = np.percentile(stats, [100 * alpha / 2, 100 * (1 - alpha / 2)])
     return float(lo), float(hi)
 
@@ -189,18 +191,24 @@ def family_weights(families):
 
 
 def contrast(rows, families, a, b, name):
-    """Paired candidate-minus-reference in AUROC points, family-blocked CI + Wilcoxon."""
+    """Paired candidate-minus-reference in AUROC points, inferred by family."""
     d = np.array([100.0 * (r[b] - r[a]) for r in rows], dtype=float)
     lo, hi = family_block_ci(d, families, name)
-    p = float(wilcoxon(d).pvalue) if len(d) >= 5 and np.any(d) else float("nan")
+    families_arr = np.asarray(families)
+    family_delta = np.array([
+        float(np.mean(d[families_arr == f])) for f in sorted(set(families))
+    ])
+    p = (float(wilcoxon(family_delta).pvalue)
+         if len(family_delta) >= 5 and np.any(family_delta) else float("nan"))
     w = family_weights(families)
     return {
         "contrast": name, "reference": a, "candidate": b, "n_cells": len(d),
+        "n_families": len(family_delta),
         "mean_delta_pp": float(d.mean()), "median_delta_pp": float(np.median(d)),
         "family_macro_delta_pp": float(np.average(d, weights=w)),
         "ci_lo_pp": lo, "ci_hi_pp": hi,
         "wins": int((d > 0).sum()), "losses": int((d < 0).sum()),
-        "p_wilcoxon": p,
+        "p_wilcoxon_family": p,
     }
 
 
@@ -331,68 +339,115 @@ def score_arm(w, F, anchor, labels):
 # held-out / sample-size study (spec §3.3)
 # ============================================================================================
 
+def train_fitted_standardization(V, train_idx, test_idx):
+    """Fit per-view centering/scaling on train and freeze it onto test.
+
+    ``cell['V']`` was standardized when the complete cell was prepared.  Re-standardizing from
+    the training rows removes that otherwise subtle test-distribution leakage.  Because the
+    original transform is affine, doing this to ``V`` is equivalent to starting from the raw
+    feature values for every nonconstant view.
+    """
+    V = np.asarray(V, dtype=float)
+    mu = V[train_idx].mean(axis=0)
+    sd = V[train_idx].std(axis=0)
+    bad = np.flatnonzero(~np.isfinite(sd) | (sd < 1e-8))
+    if len(bad):
+        raise ValueError(f"{len(bad)} view(s) constant/non-finite on the training split")
+    return (V[train_idx] - mu) / sd, (V[test_idx] - mu) / sd
+
+
 def heldout_for_cell(cell_key, cell, verbose=True):
     """Repeated unlabeled train/test splits; weights AND orientation frozen on train."""
     V = np.asarray(cell["V"], dtype=float)                       # (n, m)
     labels = np.asarray(cell["labels"], dtype=int)
     anchor = np.asarray(cell["anchor"], dtype=float)
     hand = np.array([ALL_SIGNS.get(name, +1) for name in cell["pool"]], dtype=float)
-    Vh = V * hand
     n = len(labels)
 
-    rows = []
+    rows, repetition_rows = [], []
     for frac in FRACTIONS:
-        keep = {a: [] for a in FACTORIAL_ARMS}
-        tails, top2s, resids, n_ok, n_skip = [], [], [], 0, 0
+        tails, top2s, resids, n_ok = [], [], [], 0
         for rep in range(N_REPEATS):
             rng = np.random.default_rng(boot_seed(f"{cell_key}|{frac}|{rep}"))
             perm = rng.permutation(n)
             n_tr = int(round(frac * n))
             tr, te = perm[:n_tr], perm[n_tr:]
-            if len(np.unique(labels[te])) < 2 or len(np.unique(labels[tr])) < 2:
-                n_skip += 1
-                continue
-            sub = {"V": V[tr], "pool": cell["pool"], "anchor": anchor[tr],
-                   "labels": labels[tr], "domain": cell.get("domain")}
+            rec = {
+                "cell": cell_key, "domain": GROUP.get(cell_key),
+                "family": dataset_family(cell_key), "fraction": frac, "rep": rep,
+                "split_seed": boot_seed(f"{cell_key}|{frac}|{rep}"),
+                "n_train": len(tr), "n_test": len(te),
+            }
             try:
-                _, polarity, _ = derive_oriented_matrix(sub)
-                F_tr = (Vh[tr] * polarity).T
-                F_te = (Vh[te] * polarity).T
+                V_tr, V_te = train_fitted_standardization(V, tr, te)
+                anchor_mu, anchor_sd = float(anchor[tr].mean()), float(anchor[tr].std())
+                if not np.isfinite(anchor_sd) or anchor_sd < 1e-8:
+                    raise ValueError("anchor is constant/non-finite on the training split")
+                anchor_tr = (anchor[tr] - anchor_mu) / anchor_sd
+                sub = {"V": V_tr, "pool": cell["pool"], "anchor": anchor_tr,
+                       "domain": cell.get("domain")}
+                F_tr, polarity, _ = derive_oriented_matrix(sub)
+                F_te = (V_te * hand * polarity).T
                 per_kappa, _, _, fit = cell_weight_sets(F_tr)
-            except Exception:
-                n_skip += 1
+            except Exception as exc:
+                rec.update({"status": "fit_failed", "error_type": type(exc).__name__,
+                            "error": str(exc)[:300], "test_auc_defined": 0})
+                repetition_rows.append(rec)
                 continue
+
             w_set = per_kappa[REGISTERED_KAPPA]
+            rec.update({
+                "status": "fit_ok",
+                "test_auc_defined": int(len(np.unique(labels[te])) == 2),
+                "test_n_positive": int(np.sum(labels[te] == 1)),
+                "test_n_negative": int(np.sum(labels[te] == 0)),
+            })
             for arm in FACTORIAL_ARMS:
                 raw_tr = w_set[arm] @ F_tr
                 if np.std(raw_tr) < 1e-12:
-                    keep[arm].append(float("nan"))
+                    rec[f"heldout_auroc_{arm}"] = float("nan")
                     continue
                 # orientation decided on TRAIN, applied frozen to TEST
-                _, flipped = anchor_orient(raw_tr, anchor[tr])
+                _, flipped = anchor_orient(raw_tr, anchor_tr)
                 sign = -1.0 if flipped else 1.0
-                keep[arm].append(evaluate_score(labels[te], sign * (w_set[arm] @ F_te)))
+                rec[f"heldout_auroc_{arm}"] = (
+                    evaluate_score(labels[te], sign * (w_set[arm] @ F_te))
+                    if rec["test_auc_defined"] else float("nan")
+                )
+            for effect, candidate, reference in (
+                ("ridge_minus_pcr_pp", "head_ridge_plus_tail", "head_pcr"),
+                ("tail_effect_pp", "head_pcr_plus_tail", "head_pcr"),
+                ("head_effect_pp", "head_ridge", "head_pcr"),
+            ):
+                a = rec.get(f"heldout_auroc_{candidate}", float("nan"))
+                b = rec.get(f"heldout_auroc_{reference}", float("nan"))
+                rec[f"heldout_{effect}"] = 100.0 * (a - b) if np.isfinite(a + b) else float("nan")
+            repetition_rows.append(rec)
             tails.append(w_set["_t_ridge"])
             top2s.append(top_subspace(_nearest_psd(fit.covariance)[0], 2))
             resids.append(magnitude_subspace(fit.decomposition.residual, D_RES))
             n_ok += 1
 
+        these = [r for r in repetition_rows if r["fraction"] == frac]
         row = {"cell": cell_key, "domain": GROUP.get(cell_key),
                "family": dataset_family(cell_key), "fraction": frac,
                "n": n, "m": int(V.shape[1]), "n_train": int(round(frac * n)),
                "n_train_over_m": float(round(frac * n) / V.shape[1]),
                "underdetermined_flag": int(round(frac * n) < 2 * V.shape[1]),
-               "reps_ok": n_ok, "reps_skipped": n_skip}
+               "reps_fit_ok": n_ok,
+               "reps_fit_failed": int(sum(r["status"] != "fit_ok" for r in these)),
+               "reps_auc_defined": int(sum(r.get("test_auc_defined", 0) for r in these))}
         for arm in FACTORIAL_ARMS:
-            vals = np.array(keep[arm], dtype=float)
-            row[f"heldout_auroc_{arm}"] = float(np.nanmean(vals)) if vals.size else float("nan")
-            row[f"heldout_auroc_sd_{arm}"] = float(np.nanstd(vals)) if vals.size else float("nan")
-        row["heldout_ridge_minus_pcr_pp"] = 100.0 * (
-            row["heldout_auroc_head_ridge_plus_tail"] - row["heldout_auroc_head_pcr"])
-        row["heldout_tail_effect_pp"] = 100.0 * (
-            row["heldout_auroc_head_pcr_plus_tail"] - row["heldout_auroc_head_pcr"])
-        row["heldout_head_effect_pp"] = 100.0 * (
-            row["heldout_auroc_head_ridge"] - row["heldout_auroc_head_pcr"])
+            vals = np.array([r.get(f"heldout_auroc_{arm}", float("nan")) for r in these],
+                            dtype=float)
+            finite = vals[np.isfinite(vals)]
+            row[f"heldout_auroc_{arm}"] = float(finite.mean()) if finite.size else float("nan")
+            row[f"heldout_auroc_sd_{arm}"] = float(finite.std()) if finite.size else float("nan")
+        # Average the paired per-repetition effects; do not subtract arm means computed from
+        # potentially different valid-repetition sets.
+        for effect in ("ridge_minus_pcr_pp", "tail_effect_pp", "head_effect_pp"):
+            vals = np.array([r.get(f"heldout_{effect}", float("nan")) for r in these], dtype=float)
+            row[f"heldout_{effect}"] = float(np.nanmean(vals)) if np.isfinite(vals).any() else float("nan")
 
         if len(tails) >= 2:
             norms = np.array([np.linalg.norm(t) for t in tails])
@@ -417,7 +472,7 @@ def heldout_for_cell(cell_key, cell, verbose=True):
             print(f"    frac={frac:.2f}  ok={n_ok:3d}  ridge-PCR={row['heldout_ridge_minus_pcr_pp']:+6.2f}pp"
                   f"  tail={row['heldout_tail_effect_pp']:+6.2f}pp"
                   f"  head={row['heldout_head_effect_pp']:+6.2f}pp", flush=True)
-    return rows
+    return rows, repetition_rows
 
 
 # ============================================================================================
@@ -529,15 +584,21 @@ def main():
                              for r in rows])
     inter = d_tail_ridge - d_tail_pcr
     lo, hi = family_block_ci(inter, families, "interaction")
+    families_arr = np.asarray(families)
+    inter_family = np.array([
+        float(np.mean(inter[families_arr == f])) for f in sorted(set(families))
+    ])
     effects.append({"contrast": "interaction (tail effect at ridge head - at PCR head)",
                     "reference": "-", "candidate": "-", "n_cells": len(inter),
+                    "n_families": len(inter_family),
                     "mean_delta_pp": float(inter.mean()),
                     "median_delta_pp": float(np.median(inter)),
                     "family_macro_delta_pp": float(np.average(inter,
                                                               weights=family_weights(families))),
                     "ci_lo_pp": lo, "ci_hi_pp": hi,
                     "wins": int((inter > 0).sum()), "losses": int((inter < 0).sum()),
-                    "p_wilcoxon": float(wilcoxon(inter).pvalue) if np.any(inter) else float("nan")})
+                    "p_wilcoxon_family": (float(wilcoxon(inter_family).pvalue)
+                                            if np.any(inter_family) else float("nan"))})
 
     # ---- kappa trend: family-weighted slope vs log kappa (spec §3.2) --------------------
     by_cell = {}
@@ -580,6 +641,29 @@ def main():
     # ---- PSD attribution, corrected three-way rule (spec §3.6) --------------------------
     clipped = [r["cell"] for r in rows if r["structured_raw_n_negative_eig"] > 0]
     sub = [r for r in rows if r["cell"] in clipped]
+    subgroup_effects = []
+    if sub:
+        sub_families = [r["family"] for r in sub]
+        subgroup_effects = [
+            contrast(sub, sub_families, "auroc_head_pcr", "auroc_pcr_structured",
+                     "clipped subgroup: observed to raw structured"),
+            contrast(sub, sub_families, "auroc_head_pcr", "auroc_pcr_structured_psd",
+                     "clipped subgroup: observed to PSD structured"),
+            contrast(sub, sub_families, "auroc_pcr_structured", "auroc_pcr_structured_psd",
+                     "clipped subgroup: PSD repair"),
+        ]
+        effects.extend(subgroup_effects)
+
+    def equivalent(effect):
+        return bool(abs(effect["family_macro_delta_pp"]) <= 0.25
+                    and effect["ci_lo_pp"] >= -0.50 and effect["ci_hi_pp"] <= 0.50)
+
+    structured_effects = {
+        effect["contrast"]: {**effect, "equivalent": equivalent(effect)}
+        for effect in effects if ("matrix leg" in effect["contrast"]
+                                  or "PSD repair" in effect["contrast"]
+                                  or "clipped subgroup" in effect["contrast"])
+    }
     psd_attr = {
         "clipped_cells": clipped, "n_clipped_cells": len(clipped),
         "equivalence_criterion": "|macro delta| <= 0.25pp AND family-blocked 95% CI "
@@ -595,20 +679,25 @@ def main():
             "pcr_structured_raw": float(np.mean([r["auroc_pcr_structured"] for r in sub])) if sub else None,
             "pcr_structured_psd": float(np.mean([r["auroc_pcr_structured_psd"] for r in sub])) if sub else None,
         },
+        "equivalence_tests": structured_effects,
         "note": "raw and PSD structured weights are bit-identical on the non-clipped cells, so "
                 "the 24-cell macro dilutes the effect by those zeros; the clipped subgroup is "
                 "the informative read.",
     }
 
     # ---- held-out study ------------------------------------------------------------------
-    heldout_rows = []
+    heldout_rows, heldout_repetition_rows = [], []
     if not args.skip_heldout:
         print("\nheld-out / sample-size study "
               f"({len(FRACTIONS)} fractions x {N_REPEATS} repeats x {len(keys)} cells)")
         for ck in keys:
             print(f"  [{ck}]", flush=True)
-            heldout_rows.extend(heldout_for_cell(ck, cells[ck]))
+            summaries, repetitions = heldout_for_cell(ck, cells[ck])
+            heldout_rows.extend(summaries)
+            heldout_repetition_rows.extend(repetitions)
             write_csv(os.path.join(out_dir, "heldout.csv"), heldout_rows)
+            write_csv(os.path.join(out_dir, "heldout_repetitions.csv"),
+                      heldout_repetition_rows)
 
     # ---- write ---------------------------------------------------------------------------
     write_csv(os.path.join(out_dir, "per_cell.csv"), rows)
@@ -624,7 +713,7 @@ def main():
     for e in effects:
         print(f"  {e['contrast']:44s} {e['mean_delta_pp']:+7.2f}  "
               f"[{e['ci_lo_pp']:+6.2f},{e['ci_hi_pp']:+6.2f}]  "
-              f"{e['wins']}W/{e['losses']}L  p={e['p_wilcoxon']:.3g}")
+              f"{e['wins']}W/{e['losses']}L  p_family={e['p_wilcoxon_family']:.3g}")
     print(f"\nkappa trend: slope {trend['slope_pp_per_log_kappa']:+.3f} pp per log-kappa "
           f"[{trend['ci_lo']:+.3f},{trend['ci_hi']:+.3f}]  "
           f"({'consistent with' if trend['ci_hi'] < 0 else 'does NOT support'} "
@@ -646,7 +735,10 @@ def main():
             "macro_auroc": macro, "factorial_effects": effects, "kappa_trend": trend,
             "psd_attribution": psd_attr,
             "heldout": {"fractions": list(FRACTIONS), "repeats": N_REPEATS,
-                        "n_rows": len(heldout_rows)},
+                        "n_summary_rows": len(heldout_rows),
+                        "n_repetition_rows": len(heldout_repetition_rows),
+                        "preprocessing": "feature centering/scaling fit on train only; frozen "
+                                         "onto test; train labels never inspected"},
             "runtime_seconds": time.time() - started,
         }, handle, indent=2, sort_keys=True, default=str)
     print(f"\nwrote {out_dir}  ({time.time() - started:.1f}s)")

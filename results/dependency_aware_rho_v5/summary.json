@@ -1,0 +1,412 @@
+{
+  "conclusion": "Covariance-aware moment weighting did not satisfy the preregistered mechanism-and-no-harm criteria on disjoint synthetic validation. The correlated pair equations are real, but correcting their sampling covariance is not a demonstrated improvement to U-PCR under these worlds. The real artifact was intentionally not opened for candidate selection.",
+  "config": {
+    "candidates": [
+      "ols",
+      "diag_var",
+      "diag_mad",
+      "gaussian_gls",
+      "lw_gls",
+      "hybrid_gls"
+    ],
+    "dev_repeats": 8,
+    "moment_max_condition": 100.0,
+    "primary_worlds": [
+      "sparse_gaussian",
+      "sparse_small",
+      "sparse_t5",
+      "sparse_mixed_kurtosis"
+    ],
+    "real_gates": {
+      "ci95_low_pp": 0.0,
+      "family_macro_delta_pp": 0.0,
+      "math_delta_pp": -0.5,
+      "mean_delta_pp": 1.0,
+      "qa_delta_pp": -0.5
+    },
+    "stress_worlds": [
+      "sparse_contaminated"
+    ],
+    "validation_repeats": 16,
+    "worlds": {
+      "clean_gaussian": {
+        "dependency": "clean",
+        "n_train": 1000,
+        "sampling": "gaussian"
+      },
+      "sparse_contaminated": {
+        "dependency": "sparse",
+        "n_train": 1200,
+        "sampling": "contaminated"
+      },
+      "sparse_gaussian": {
+        "dependency": "sparse",
+        "n_train": 2500,
+        "sampling": "gaussian"
+      },
+      "sparse_mixed_kurtosis": {
+        "dependency": "sparse",
+        "n_train": 1200,
+        "sampling": "mixed_kurtosis"
+      },
+      "sparse_small": {
+        "dependency": "sparse",
+        "n_train": 350,
+        "sampling": "gaussian"
+      },
+      "sparse_t5": {
+        "dependency": "sparse",
+        "n_train": 1800,
+        "sampling": "t5"
+      }
+    }
+  },
+  "decision": "STOP_SYNTHETIC_HYPOTHESIS_REJECTED",
+  "development": [
+    {
+      "candidate": "diag_var",
+      "clean_auc_delta": -2.0625727024103924e-06,
+      "phase": "development",
+      "primary_auc_ci_high": 1.7995010959418485e-05,
+      "primary_auc_ci_low": -3.416792133807498e-05,
+      "primary_auc_delta": -6.002391550186115e-06,
+      "primary_auc_p05": -8.361260073602161e-05,
+      "primary_rho_ci_high": 0.016556813978003786,
+      "primary_rho_ci_low": -0.08316067453521142,
+      "primary_rho_reduction": -0.02918419086438582,
+      "promoted": true,
+      "running_best": -0.02919619564748619,
+      "step": 1,
+      "stress_auc_delta": -2.2695857370788608e-05,
+      "utility": -0.02919619564748619,
+      "worlds": {
+        "clean_gaussian": {
+          "auc_delta": -2.0625727024103924e-06,
+          "rho_relative_reduction": 0.0064997907628418245
+        },
+        "sparse_contaminated": {
+          "auc_delta": -2.2695857370788608e-05,
+          "rho_relative_reduction": -0.39694666683912005
+        },
+        "sparse_gaussian": {
+          "auc_delta": 9.31273210735828e-06,
+          "rho_relative_reduction": -0.05965969017468778
+        },
+        "sparse_mixed_kurtosis": {
+          "auc_delta": 2.15229402458772e-06,
+          "rho_relative_reduction": 0.041706030821412596
+        },
+        "sparse_small": {
+          "auc_delta": 1.796910914611538e-05,
+          "rho_relative_reduction": -0.0023284643564111685
+        },
+        "sparse_t5": {
+          "auc_delta": -5.344370147880584e-05,
+          "rho_relative_reduction": -0.09645463974785692
+        }
+      }
+    },
+    {
+      "candidate": "diag_mad",
+      "clean_auc_delta": 1.9073993795387656e-06,
+      "phase": "development",
+      "primary_auc_ci_high": 6.3847811771791806e-06,
+      "primary_auc_ci_low": -3.05281070095211e-05,
+      "primary_auc_delta": -8.649645261184224e-06,
+      "primary_auc_p05": -2.2725309382626292e-05,
+      "primary_rho_ci_high": 0.0129112241249194,
+      "primary_rho_ci_low": -0.02843477279456705,
+      "primary_rho_reduction": -0.007823382603096576,
+      "promoted": true,
+      "running_best": -0.007840681893618945,
+      "step": 2,
+      "stress_auc_delta": 3.517000741036502e-05,
+      "utility": -0.007840681893618945,
+      "worlds": {
+        "clean_gaussian": {
+          "auc_delta": 1.9073993795387656e-06,
+          "rho_relative_reduction": 0.010020731896157917
+        },
+        "sparse_contaminated": {
+          "auc_delta": 3.517000741036502e-05,
+          "rho_relative_reduction": -0.14343129558093903
+        },
+        "sparse_gaussian": {
+          "auc_delta": -2.249258420822242e-06,
+          "rho_relative_reduction": -0.01679468264293575
+        },
+        "sparse_mixed_kurtosis": {
+          "auc_delta": 1.440911644785825e-05,
+          "rho_relative_reduction": -0.0388863547699315
+        },
+        "sparse_small": {
+          "auc_delta": -4.1132276687727565e-05,
+          "rho_relative_reduction": 0.02693025287386655
+        },
+        "sparse_t5": {
+          "auc_delta": -5.626162384045341e-06,
+          "rho_relative_reduction": -0.002542745873385613
+        }
+      }
+    },
+    {
+      "candidate": "gaussian_gls",
+      "clean_auc_delta": 5.345618169630417e-06,
+      "phase": "development",
+      "primary_auc_ci_high": 0.00012039420941162759,
+      "primary_auc_ci_low": -3.747235225351622e-05,
+      "primary_auc_delta": 2.7574536374291164e-05,
+      "primary_auc_p05": -0.00012083867840246288,
+      "primary_rho_ci_high": -0.014057437415539161,
+      "primary_rho_ci_low": -0.17793876140557274,
+      "primary_rho_reduction": -0.09080665354984019,
+      "promoted": false,
+      "running_best": -0.007840681893618945,
+      "step": 3,
+      "stress_auc_delta": -3.407067441889289e-05,
+      "utility": -0.0907515044770916,
+      "worlds": {
+        "clean_gaussian": {
+          "auc_delta": 5.345618169630417e-06,
+          "rho_relative_reduction": 0.09223588274758138
+        },
+        "sparse_contaminated": {
+          "auc_delta": -3.407067441889289e-05,
+          "rho_relative_reduction": -0.015036059312241626
+        },
+        "sparse_gaussian": {
+          "auc_delta": 5.397124783618201e-06,
+          "rho_relative_reduction": -0.1192262586942662
+        },
+        "sparse_mixed_kurtosis": {
+          "auc_delta": -3.244323556027273e-05,
+          "rho_relative_reduction": -0.06879966592799262
+        },
+        "sparse_small": {
+          "auc_delta": 0.00016843398276632227,
+          "rho_relative_reduction": -0.06604879817644854
+        },
+        "sparse_t5": {
+          "auc_delta": -3.108972649250308e-05,
+          "rho_relative_reduction": -0.1091518914006534
+        }
+      }
+    },
+    {
+      "candidate": "lw_gls",
+      "clean_auc_delta": -3.3755563512011255e-06,
+      "phase": "development",
+      "primary_auc_ci_high": 0.00015378787018421202,
+      "primary_auc_ci_low": -8.961077570815626e-05,
+      "primary_auc_delta": 1.0439362367536259e-05,
+      "primary_auc_p05": -0.0002929814751022386,
+      "primary_rho_ci_high": 0.04811761931459995,
+      "primary_rho_ci_low": -0.1533959576250109,
+      "primary_rho_reduction": -0.04959956002328808,
+      "promoted": true,
+      "running_best": -0.007840681893618945,
+      "step": 4,
+      "stress_auc_delta": -1.3284687338355194e-05,
+      "utility": -0.04957868129855301,
+      "worlds": {
+        "clean_gaussian": {
+          "auc_delta": -3.3755563512011255e-06,
+          "rho_relative_reduction": 0.0967277990762099
+        },
+        "sparse_contaminated": {
+          "auc_delta": -1.3284687338355194e-05,
+          "rho_relative_reduction": -0.21478108437772808
+        },
+        "sparse_gaussian": {
+          "auc_delta": 7.329944893039175e-06,
+          "rho_relative_reduction": -0.17255713337823692
+        },
+        "sparse_mixed_kurtosis": {
+          "auc_delta": -4.228933977783178e-05,
+          "rho_relative_reduction": -0.08996110753150131
+        },
+        "sparse_small": {
+          "auc_delta": 0.00022431899511043962,
+          "rho_relative_reduction": -0.026802325903777437
+        },
+        "sparse_t5": {
+          "auc_delta": -0.00014760215075550198,
+          "rho_relative_reduction": 0.09092232672036335
+        }
+      }
+    },
+    {
+      "candidate": "hybrid_gls",
+      "clean_auc_delta": 1.062762915962634e-06,
+      "phase": "development",
+      "primary_auc_ci_high": 0.00014664050554594698,
+      "primary_auc_ci_low": -5.839219767638515e-05,
+      "primary_auc_delta": 2.3487038212244987e-05,
+      "primary_auc_p05": -0.00015898844461802452,
+      "primary_rho_ci_high": 0.035681274610273275,
+      "primary_rho_ci_low": -0.1522038555361551,
+      "primary_rho_reduction": -0.05312948895661553,
+      "promoted": false,
+      "running_best": -0.007840681893618945,
+      "step": 5,
+      "stress_auc_delta": -9.0977711395962e-06,
+      "utility": -0.05308251488019104,
+      "worlds": {
+        "clean_gaussian": {
+          "auc_delta": 1.062762915962634e-06,
+          "rho_relative_reduction": 0.11011077285341675
+        },
+        "sparse_contaminated": {
+          "auc_delta": -9.0977711395962e-06,
+          "rho_relative_reduction": -0.03305255438948635
+        },
+        "sparse_gaussian": {
+          "auc_delta": 6.050486444864056e-06,
+          "rho_relative_reduction": -0.16160650742442517
+        },
+        "sparse_mixed_kurtosis": {
+          "auc_delta": -3.735222696800433e-05,
+          "rho_relative_reduction": -0.03403079272907987
+        },
+        "sparse_small": {
+          "auc_delta": 0.0002060013205209127,
+          "rho_relative_reduction": -0.008303230250242079
+        },
+        "sparse_t5": {
+          "auc_delta": -8.075142714879247e-05,
+          "rho_relative_reduction": -0.008577425422715015
+        }
+      }
+    }
+  ],
+  "feature_schema": "confidence-orientation-v1",
+  "frozen_winner": null,
+  "real_replay": null,
+  "runtime_seconds": 3.5042059421539307,
+  "validation": [
+    {
+      "candidate": "diag_mad",
+      "clean_auc_delta": 4.539099188786977e-06,
+      "pass": false,
+      "phase": "sealed_validation",
+      "primary_auc_ci_high": 4.930417167754194e-06,
+      "primary_auc_ci_low": -1.3929650927090986e-05,
+      "primary_auc_delta": -3.3802158797904824e-06,
+      "primary_auc_p05": -3.915318013947289e-05,
+      "primary_rho_ci_high": 0.014842443212562407,
+      "primary_rho_ci_low": -0.025082393023875414,
+      "primary_rho_reduction": -0.003461611184945732,
+      "stress_auc_delta": -6.856063152740899e-05,
+      "utility": -0.003468371616705313,
+      "worlds": {
+        "clean_gaussian": {
+          "auc_delta": 4.539099188786977e-06,
+          "rho_relative_reduction": -0.0025577247284870683
+        },
+        "sparse_contaminated": {
+          "auc_delta": -6.856063152740899e-05,
+          "rho_relative_reduction": -0.0470673806622998
+        },
+        "sparse_gaussian": {
+          "auc_delta": -1.74987470362431e-06,
+          "rho_relative_reduction": 0.004439184137470196
+        },
+        "sparse_mixed_kurtosis": {
+          "auc_delta": -3.9076803221779755e-06,
+          "rho_relative_reduction": -0.0033375370210638614
+        },
+        "sparse_small": {
+          "auc_delta": -1.2191698201276246e-05,
+          "rho_relative_reduction": 0.013647775121728158
+        },
+        "sparse_t5": {
+          "auc_delta": 4.328389707916602e-06,
+          "rho_relative_reduction": -0.02859586697791742
+        }
+      }
+    },
+    {
+      "candidate": "diag_var",
+      "clean_auc_delta": -4.1919095573814125e-06,
+      "pass": false,
+      "phase": "sealed_validation",
+      "primary_auc_ci_high": 1.9968406900895335e-05,
+      "primary_auc_ci_low": -1.0302974259499692e-05,
+      "primary_auc_delta": 4.040430440638287e-06,
+      "primary_auc_p05": -6.28999297584476e-05,
+      "primary_rho_ci_high": 0.006803019281184168,
+      "primary_rho_ci_low": -0.06221193022047412,
+      "primary_rho_reduction": -0.024655244865512432,
+      "stress_auc_delta": -9.810140929396305e-05,
+      "utility": -0.024647164004631156,
+      "worlds": {
+        "clean_gaussian": {
+          "auc_delta": -4.1919095573814125e-06,
+          "rho_relative_reduction": -0.0015255282000665891
+        },
+        "sparse_contaminated": {
+          "auc_delta": -9.810140929396305e-05,
+          "rho_relative_reduction": -0.22278673761683684
+        },
+        "sparse_gaussian": {
+          "auc_delta": -1.985131523357664e-06,
+          "rho_relative_reduction": 0.0005938901402356947
+        },
+        "sparse_mixed_kurtosis": {
+          "auc_delta": 2.6230301255342203e-06,
+          "rho_relative_reduction": -0.0328267569740541
+        },
+        "sparse_small": {
+          "auc_delta": 2.5337027336751194e-05,
+          "rho_relative_reduction": -0.025959931485580054
+        },
+        "sparse_t5": {
+          "auc_delta": -9.813204176374601e-06,
+          "rho_relative_reduction": -0.040428181142651266
+        }
+      }
+    },
+    {
+      "candidate": "lw_gls",
+      "clean_auc_delta": -1.534942116705046e-05,
+      "pass": false,
+      "phase": "sealed_validation",
+      "primary_auc_ci_high": 4.522599124108349e-05,
+      "primary_auc_ci_low": -4.15209932038355e-05,
+      "primary_auc_delta": 1.8265406391479444e-06,
+      "primary_auc_p05": -0.0003014024699371342,
+      "primary_rho_ci_high": 0.026252661793821786,
+      "primary_rho_ci_low": -0.18600674947231607,
+      "primary_rho_reduction": -0.06689981253603747,
+      "stress_auc_delta": -0.00021019830874485085,
+      "utility": -0.06689615945475917,
+      "worlds": {
+        "clean_gaussian": {
+          "auc_delta": -1.534942116705046e-05,
+          "rho_relative_reduction": 0.043525069855785165
+        },
+        "sparse_contaminated": {
+          "auc_delta": -0.00021019830874485085,
+          "rho_relative_reduction": -0.18775326431549955
+        },
+        "sparse_gaussian": {
+          "auc_delta": 1.0908819335492259e-05,
+          "rho_relative_reduction": -0.09942755393104236
+        },
+        "sparse_mixed_kurtosis": {
+          "auc_delta": -1.8937832346480055e-05,
+          "rho_relative_reduction": -0.16741966868455813
+        },
+        "sparse_small": {
+          "auc_delta": 5.086833543910957e-05,
+          "rho_relative_reduction": -0.05996548637553266
+        },
+        "sparse_t5": {
+          "auc_delta": -3.5533159871529996e-05,
+          "rho_relative_reduction": 0.05921345884698324
+        }
+      }
+    }
+  ],
+  "version": "dependency-aware-rho-v5-2026-08-06"
+}

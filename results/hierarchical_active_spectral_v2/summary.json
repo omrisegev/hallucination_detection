@@ -1,0 +1,143 @@
+{
+  "budgets": [
+    0,
+    5,
+    10,
+    20,
+    40,
+    80
+  ],
+  "common_real_features": [
+    "cusum_max",
+    "cusum_max_energy",
+    "cusum_max_spilled",
+    "epr",
+    "epr_energy",
+    "epr_spilled",
+    "logprob_margin",
+    "mean_logprob_entropy",
+    "mean_top1_logprob",
+    "min_energy",
+    "renyi_entropy_2",
+    "sw_var_peak",
+    "sw_var_peak_energy",
+    "sw_var_peak_spilled",
+    "topk_tail_mass",
+    "varentropy"
+  ],
+  "decision": {
+    "all_gates_pass": false,
+    "decision": "STOP_AND_REVISE",
+    "eligible_confirmatory_run": true,
+    "gates": [
+      {
+        "gate": "real_mean_vs_upcr",
+        "observed": -0.001872985267392574,
+        "operator": ">=",
+        "pass": false,
+        "threshold": 0.01
+      },
+      {
+        "gate": "real_ci_low_vs_upcr",
+        "observed": -0.0040757099597512406,
+        "operator": ">",
+        "pass": false,
+        "threshold": 0.0
+      },
+      {
+        "gate": "real_vs_local_uniform",
+        "observed": -0.0013901284947866698,
+        "operator": ">=",
+        "pass": false,
+        "threshold": 0.0
+      },
+      {
+        "gate": "real_active_vs_hybrid_uniform",
+        "observed": 0.007793506848910901,
+        "operator": ">=",
+        "pass": true,
+        "threshold": 0.0
+      },
+      {
+        "gate": "real_qa_vs_upcr",
+        "observed": -0.0031467848606760995,
+        "operator": ">=",
+        "pass": true,
+        "threshold": -0.005
+      },
+      {
+        "gate": "real_math_vs_upcr",
+        "observed": -0.0011087055114224586,
+        "operator": ">=",
+        "pass": true,
+        "threshold": -0.005
+      },
+      {
+        "gate": "real_catastrophic_losses",
+        "observed": 0.0,
+        "operator": "<=",
+        "pass": true,
+        "threshold": 2.0
+      },
+      {
+        "gate": "synthetic_shared_mean",
+        "observed": 0.47632028798526377,
+        "operator": ">=",
+        "pass": true,
+        "threshold": 0.01
+      },
+      {
+        "gate": "synthetic_shared_ci_low",
+        "observed": 0.46798563623954614,
+        "operator": ">",
+        "pass": true,
+        "threshold": 0.0
+      },
+      {
+        "gate": "synthetic_sufficient_no_harm",
+        "observed": -0.0006186241349205498,
+        "operator": ">=",
+        "pass": true,
+        "threshold": -0.005
+      },
+      {
+        "gate": "synthetic_family_shift_no_harm",
+        "observed": -0.00434935224262024,
+        "operator": ">=",
+        "pass": true,
+        "threshold": -0.01
+      },
+      {
+        "gate": "synthetic_shared_active_vs_uniform",
+        "observed": 0.0018483278533305096,
+        "operator": ">=",
+        "pass": true,
+        "threshold": 0.0
+      }
+    ]
+  },
+  "donor_labels_per_cell": 20,
+  "feature_schema": "confidence-orientation-v1",
+  "methods": [
+    "upcr",
+    "local_controlled2",
+    "local_uniform2",
+    "local_active2",
+    "pooled_domain_lofo",
+    "pooled_all_lofo",
+    "hybrid_domain_uniform",
+    "hybrid_domain_active"
+  ],
+  "n_common_real_features": 16,
+  "n_real_cells": 24,
+  "real_bundle_validity": 0.7735279028911624,
+  "real_repeats": 20,
+  "runtime_seconds": 40.51217985153198,
+  "synthetic_repeats": 20,
+  "synthetic_worlds": [
+    "upcr_sufficient",
+    "shared_correction",
+    "family_shift"
+  ],
+  "version": "hierarchical-active-spectral-v2-2026-08-06"
+}

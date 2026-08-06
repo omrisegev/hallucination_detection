@@ -1,0 +1,97 @@
+{
+  "all_cell_level_optimistic_endpoint_switches_below_1pp": false,
+  "candidate_methods": [
+    "gold_pcr2",
+    "anchored_pcr2",
+    "anchored_pcr6"
+  ],
+  "decision_name": "tested_u2_anchored_head_family",
+  "does_not_close_every_u2_angle_or_future_estimator": true,
+  "endpoint_switch_gate_definition": "every individual candidate\u00d7cell optimistic endpoint switch is strictly below +1.00 AUROC point",
+  "historical_full_angle_context": {
+    "ci95_pp": [
+      -0.07821117245781802,
+      0.5134439408452032
+    ],
+    "compatible_with_current_fixed_stable_schema": false,
+    "losses": 13,
+    "mean_delta_pp": 0.19313856958740838,
+    "reason": "historical full feature pool, per-split sign(rho) orientation, and historical deployed U-PCR configuration",
+    "wins": 11
+  },
+  "improves_definition": "strictly positive 24-cell macro mean delta versus U-PCR",
+  "method_summaries": [
+    {
+      "cells_endpoint_switch_at_least_1pp": [],
+      "delta_bootstrap_ci95_pp": [
+        -5.382518836096526,
+        -3.206258382648876
+      ],
+      "endpoint_switch_bootstrap_ci95_pp": [
+        0.0,
+        0.007810354068266134
+      ],
+      "losses": 23,
+      "math_delta_pp": -4.417472488436742,
+      "max_optimistic_endpoint_switch_gain_pp": 0.062482832546129075,
+      "mean_delta_pp": -4.279119904542975,
+      "mean_optimistic_endpoint_switch_gain_pp": 0.0026034513560887116,
+      "method": "gold_pcr2",
+      "n_cells": 24,
+      "n_cells_endpoint_switch_at_least_1pp": 0,
+      "qa_delta_pp": -4.0485322647200315,
+      "strictly_improves_cell_macro": false,
+      "wins": 1
+    },
+    {
+      "cells_endpoint_switch_at_least_1pp": [],
+      "delta_bootstrap_ci95_pp": [
+        -0.2529032774525614,
+        -0.04924860523965422
+      ],
+      "endpoint_switch_bootstrap_ci95_pp": [
+        0.0005224660397073108,
+        0.09509057581478844
+      ],
+      "losses": 20,
+      "math_delta_pp": -0.14304109399478313,
+      "max_optimistic_endpoint_switch_gain_pp": 0.41550511084561537,
+      "mean_delta_pp": -0.14937444855228402,
+      "mean_optimistic_endpoint_switch_gain_pp": 0.04262892218363373,
+      "method": "anchored_pcr2",
+      "n_cells": 24,
+      "n_cells_endpoint_switch_at_least_1pp": 0,
+      "qa_delta_pp": -0.15993003948145215,
+      "strictly_improves_cell_macro": false,
+      "wins": 4
+    },
+    {
+      "cells_endpoint_switch_at_least_1pp": [
+        "math500_qwenmath7b"
+      ],
+      "delta_bootstrap_ci95_pp": [
+        -0.6361413035872102,
+        -0.06217736998204655
+      ],
+      "endpoint_switch_bootstrap_ci95_pp": [
+        0.03638783563335552,
+        0.30076557931913256
+      ],
+      "losses": 16,
+      "math_delta_pp": -0.1995856304650001,
+      "max_optimistic_endpoint_switch_gain_pp": 1.4907739280499044,
+      "mean_delta_pp": -0.3552641079178238,
+      "mean_optimistic_endpoint_switch_gain_pp": 0.14867059098065682,
+      "method": "anchored_pcr6",
+      "n_cells": 24,
+      "n_cells_endpoint_switch_at_least_1pp": 1,
+      "qa_delta_pp": -0.6147282370058633,
+      "strictly_improves_cell_macro": false,
+      "wins": 8
+    }
+  ],
+  "no_candidate_strictly_improves": true,
+  "normalized_real_row_score_interpolation_available": false,
+  "stop_tested_family": false,
+  "version": "u2-prior-reconciliation-v1-2026-08-06"
+}

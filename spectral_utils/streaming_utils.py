@@ -16,27 +16,28 @@ Conventions:
 import numpy as np
 
 from .feature_utils import extract_all_features
+from .feature_contract import (
+    CONFIDENCE_FEATURE_SIGNS_V1,
+    LEGACY_FEATURE_SIGNS as _LEGACY_FEATURE_SIGNS,
+)
 
 
-# Sign orientation for the 16 H(n) features: +1 = higher feature value →
-# more likely correct.  Mirrors scripts/run_upcr_comparison.py (Step 141+).
+# Sign orientation for all 20 H(n)/spilled features: +1 = higher raw value
+# means more likely correct.  This is the corrected, versioned v1 feature
+# contract.  Keep the old mapping available for exact historical reconstruction.
 FEATURE_SIGNS = {
-    "epr": -1,
-    "trace_length": 1,
-    "spectral_entropy": -1,
-    "low_band_power": -1,
-    "high_band_power": -1,
-    "hl_ratio": -1,
-    "dominant_freq": -1,
-    "spectral_centroid": -1,
-    "stft_max_high_power": -1,
-    "stft_spectral_entropy": -1,
-    "rpdi": -1,
-    "sw_var_peak": -1,
-    "pe_mean": -1,
-    "hurst_exponent": 1,
-    "cusum_max": -1,
-    "cusum_shift_idx": 1,
+    name: int(CONFIDENCE_FEATURE_SIGNS_V1[name])
+    for name in (
+        "epr", "trace_length", "spectral_entropy", "low_band_power",
+        "high_band_power", "hl_ratio", "dominant_freq", "spectral_centroid",
+        "stft_max_high_power", "stft_spectral_entropy", "rpdi",
+        "sw_var_peak", "pe_mean", "hurst_exponent", "cusum_max",
+        "cusum_shift_idx", "epr_spilled", "sw_var_peak_spilled",
+        "cusum_max_spilled", "min_spilled",
+    )
+}
+LEGACY_FEATURE_SIGNS = {
+    name: int(_LEGACY_FEATURE_SIGNS[name]) for name in FEATURE_SIGNS
 }
 
 

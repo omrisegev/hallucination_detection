@@ -35,6 +35,7 @@ Usage:
 """
 
 import argparse
+from concurrent.futures import ProcessPoolExecutor, as_completed
 import csv
 import json
 import os
@@ -223,11 +224,19 @@ def draw_statistics(F_star):
     return residual_stats(dec.residual, C_star)
 
 
+def fit_standardized_subset(F, indices):
+    """Run the fitted method on a subset after repeating the original preprocessing."""
+    F_sub = restandardize(np.asarray(F, dtype=float)[:, indices])
+    covariance_of(F_sub)  # hard unit-diagonal gate before the fit
+    return sparse_upcr_fit(F_sub, **SPARSE_FIT)
+
+
 # ============================================================================================
 # per-cell work
 # ============================================================================================
 
-def analyse_cell(cell_key, cell, n_draws, verbose=True):
+def analyse_cell(cell_key, cell, n_draws, verbose=True, n_splithalf=None):
+    n_splithalf = N_SPLITHALF if n_splithalf is None else int(n_splithalf)
     F, _, _ = derive_oriented_matrix(cell)
     fit = sparse_upcr_fit(F, **SPARSE_FIT)
     C = covariance_of(F)                       # gated: the observation must satisfy diag == 1 too
@@ -239,31 +248,48 @@ def analyse_cell(cell_key, cell, n_draws, verbose=True):
     nulls = {"a": [], "b": []}
     rng_a = np.random.default_rng(seed_for(cell_key, "null_a"))
     rng_b = np.random.default_rng(seed_for(cell_key, "null_b"))
-    n_fail = 0
     for b in range(n_draws):
         for tag, maker in (("a", lambda: null_a_draw(F, V2, rng_a)),
                            ("b", lambda: null_b_draw(chol, F.shape[1], rng_b))):
             try:
                 nulls[tag].append(draw_statistics(maker()))
-            except Exception:
-                n_fail += 1
+            except Exception as exc:
+                # The preregistration requires exactly B comparable draws.  Continuing with a
+                # shorter or ragged null changes the attainable p-values and can fail only after
+                # hours of work, so any bad draw is a hard, contextualized error.
+                raise RuntimeError(
+                    f"{cell_key}: null-{tag} draw {b} failed; refusing fewer than "
+                    f"B={n_draws} valid draws"
+                ) from exc
         if verbose and (b + 1) % max(1, n_draws // 5) == 0:
             print(f"      draws {b + 1}/{n_draws}", flush=True)
 
     # ---- split-half stability, 50 deterministic repetitions (review item) ----------------
-    angles, jacc, signs = [], [], []
-    for rep in range(N_SPLITHALF):
+    angles, null_angles, jacc, signs = [], [], [], []
+    rng_null_stability = np.random.default_rng(seed_for(cell_key, "null_stability"))
+    for rep in range(n_splithalf):
         rng = np.random.default_rng(seed_for(cell_key, "splithalf", rep))
         perm = rng.permutation(F.shape[1])
         half = len(perm) // 2
         try:
-            fa = sparse_upcr_fit(F[:, perm[:half]], **SPARSE_FIT)
-            fb = sparse_upcr_fit(F[:, perm[half:2 * half]], **SPARSE_FIT)
-        except Exception:
-            continue
+            fa = fit_standardized_subset(F, perm[:half])
+            fb = fit_standardized_subset(F, perm[half:2 * half])
+            # The angle gate is relative to the same split-half procedure under the primary
+            # independent-error null, not merely to an arbitrary 60-degree cutoff.
+            F_null = null_a_draw(F, V2, rng_null_stability)
+            fna = fit_standardized_subset(F_null, perm[:half])
+            fnb = fit_standardized_subset(F_null, perm[half:2 * half])
+        except Exception as exc:
+            raise RuntimeError(
+                f"{cell_key}: split-half repetition {rep} failed; refusing an incomplete "
+                f"stability estimate ({n_splithalf} required)"
+            ) from exc
         Sa = magnitude_subspace(fa.decomposition.residual, D_RES)
         Sb = magnitude_subspace(fb.decomposition.residual, D_RES)
         angles.append(float(np.degrees(subspace_angles(Sa, Sb)).mean()))
+        Sna = magnitude_subspace(fna.decomposition.residual, D_RES)
+        Snb = magnitude_subspace(fnb.decomposition.residual, D_RES)
+        null_angles.append(float(np.degrees(subspace_angles(Sna, Snb)).mean()))
         ma, va, _ = support_mask(fa.decomposition.sparse, fa.covariance)
         mb, vb, _ = support_mask(fb.decomposition.sparse, fb.covariance)
         jacc.append(jaccard(ma, mb))
@@ -293,15 +319,23 @@ def analyse_cell(cell_key, cell, n_draws, verbose=True):
         "obs_fro_norm_ratio": obs["fro_norm_ratio"],
         "obs_top5_share": obs["top5_share"],
         "uniform_top5_share": 5.0 / F.shape[0],
-        "null_draw_failures": n_fail,
+        "null_draw_failures": 0,
+        "null_draws_required": int(n_draws),
+        "nulla_draws_completed": len(nulls["a"]),
+        "nullb_draws_completed": len(nulls["b"]),
         "splithalf_angle_deg_median": float(np.median(angles)) if angles else float("nan"),
         "splithalf_angle_deg_p10": float(np.percentile(angles, 10)) if angles else float("nan"),
         "splithalf_angle_deg_p90": float(np.percentile(angles, 90)) if angles else float("nan"),
+        "nulla_splithalf_angle_deg_median": (
+            float(np.median(null_angles)) if null_angles else float("nan")),
+        "angle_below_null_median": int(bool(angles and null_angles)
+                                       and np.median(angles) < np.median(null_angles)),
         "splithalf_jaccard_median": float(np.nanmedian(jacc)) if jacc else float("nan"),
         "splithalf_jaccard_p10": float(np.nanpercentile(jacc, 10)) if jacc else float("nan"),
         "splithalf_jaccard_p90": float(np.nanpercentile(jacc, 90)) if jacc else float("nan"),
         "splithalf_sign_agreement_median": float(np.nanmedian(signs)) if signs else float("nan"),
         "splithalf_reps_ok": len(angles),
+        "splithalf_reps_required": n_splithalf,
         "support_size": total,
         "support_within_family_frac": float(within / total) if total else float("nan"),
         "support_within_family_baseline": float(baseline),
@@ -330,6 +364,9 @@ def analyse_cell(cell_key, cell, n_draws, verbose=True):
 def standardized_matrix(obs_by_cell, nulls_by_cell, cells, stat="op_norm_ratio"):
     """z_obs per cell, and the B x n_cells matrix of leave-one-out standardized null draws."""
     z_obs, z_null = [], []
+    lengths = {ck: len(nulls_by_cell[ck]) for ck in cells}
+    if len(set(lengths.values())) != 1 or not lengths or min(lengths.values()) < 3:
+        raise RuntimeError(f"null arrays are incomplete or ragged: {lengths}")
     for ck in cells:
         vals = np.array([d[stat] for d in nulls_by_cell[ck]], dtype=float)
         mu, sd = float(vals.mean()), float(vals.std(ddof=1))
@@ -367,6 +404,8 @@ def main():
     parser.add_argument("--data-dir", default=os.path.join(REPO, "local_cache"))
     parser.add_argument("--out-dir", default=OUT)
     parser.add_argument("--draws", type=int, default=B_DRAWS)
+    parser.add_argument("--jobs", type=int, default=0,
+                        help="parallel cell workers; 0 chooses automatically after timing")
     parser.add_argument("--smoke", action="store_true")
     args = parser.parse_args()
 
@@ -388,15 +427,41 @@ def main():
 
     # ---- timing probe (operational, label-free) -----------------------------------------
     probe_start = time.time()
-    _ = analyse_cell(keys[0], cells[keys[0]], max(3, draws // 200), verbose=False)
-    per_draw = (time.time() - probe_start) / max(3, draws // 200)
+    probe_draws = max(3, draws // 200)
+    _ = analyse_cell(keys[0], cells[keys[0]], probe_draws, verbose=False, n_splithalf=0)
+    per_draw = (time.time() - probe_start) / probe_draws
+    projected_hours = per_draw * draws * len(keys) / 3600
     print(f"\ntiming probe: ~{per_draw:.2f}s per draw-pair -> projected "
-          f"{per_draw * draws * len(keys) / 3600:.1f} h for {len(keys)} cells at B={draws}\n")
+          f"{projected_hours:.1f} h for {len(keys)} cells at B={draws}\n")
+
+    jobs = int(args.jobs)
+    if jobs < 0:
+        raise SystemExit("--jobs must be >= 0")
+    if jobs == 0:
+        jobs = (min(4, len(keys), max(1, (os.cpu_count() or 2) // 2))
+                if projected_hours > 8.0 else 1)
+    print(f"execution workers: {jobs} ({'parallel' if jobs > 1 else 'sequential'})", flush=True)
 
     rows, obs_by_cell, nulls_a, nulls_b = [], {}, {}, {}
+    completed = {}
+    if jobs == 1:
+        for ck in keys:
+            print(f"  [{ck}]", flush=True)
+            completed[ck] = analyse_cell(ck, cells[ck], draws)
+    else:
+        with ProcessPoolExecutor(max_workers=jobs) as executor:
+            futures = {
+                executor.submit(analyse_cell, ck, cells[ck], draws, False, N_SPLITHALF): ck
+                for ck in keys
+            }
+            for future in as_completed(futures):
+                ck = futures[future]
+                completed[ck] = future.result()
+                print(f"  [{ck}] complete ({len(completed)}/{len(keys)})", flush=True)
+
+    # Restore the canonical INSCOPE order regardless of parallel completion order.
     for ck in keys:
-        print(f"  [{ck}]", flush=True)
-        row, obs, nulls = analyse_cell(ck, cells[ck], draws)
+        row, obs, nulls = completed[ck]
         rows.append(row)
         obs_by_cell[ck] = obs
         nulls_a[ck], nulls_b[ck] = nulls["a"], nulls["b"]
@@ -407,6 +472,23 @@ def main():
 
     families = [r["family"] for r in rows]
     fam_list = sorted(set(families))
+    if not args.smoke and len(fam_list) != 8:
+        raise SystemExit(f"family gate failed: expected 8 dataset families, found {fam_list}")
+
+    null_summary_rows = []
+    for row in rows:
+        for tag in ("a", "b"):
+            for stat in ("op_norm_ratio", "fro_norm_ratio", "top5_share"):
+                null_summary_rows.append({
+                    "cell": row["cell"], "family": row["family"], "null": tag,
+                    "statistic": stat, "draws": row[f"null{tag}_draws_completed"],
+                    "mean": row[f"null{tag}_{stat}_mean"],
+                    "sd": row[f"null{tag}_{stat}_sd"],
+                    "p95": row[f"null{tag}_{stat}_p95"],
+                    "observed_percentile": row[f"null{tag}_{stat}_obs_percentile"],
+                    "p_descriptive": row[f"null{tag}_{stat}_p_descriptive"],
+                })
+    write_csv(os.path.join(out_dir, "null_draws_summary.csv"), null_summary_rows)
 
     # ---- GLOBAL primary endpoint (one test) ----------------------------------------------
     z_obs, z_null = standardized_matrix(obs_by_cell, nulls_a, keys)
@@ -424,12 +506,18 @@ def main():
         members = [k for k, x in zip(keys, families) if x == f]
         med = lambda key: float(np.nanmedian([r[key] for r in rows if r["family"] == f]))
         stable = (med("splithalf_angle_deg_median") < ANGLE_MAX_DEG
+                  and med("splithalf_angle_deg_median")
+                      < med("nulla_splithalf_angle_deg_median")
                   and med("splithalf_jaccard_median") >= JACCARD_MIN
                   and med("splithalf_sign_agreement_median") >= SIGN_AGREEMENT_MIN)
         fam_rows.append({
             "family": f, "n_cells": len(members), "cells": "|".join(members),
             "family_z": float(fam_obs[0, i]), "p_empirical": p,
             "median_angle_deg": med("splithalf_angle_deg_median"),
+            "null_median_angle_deg": med("nulla_splithalf_angle_deg_median"),
+            "angle_below_null_median": int(
+                med("splithalf_angle_deg_median")
+                < med("nulla_splithalf_angle_deg_median")),
             "median_jaccard": med("splithalf_jaccard_median"),
             "median_sign_agreement": med("splithalf_sign_agreement_median"),
             "stability_pass": int(stable),
@@ -477,6 +565,7 @@ def main():
             "primary_null": "fitted latent + independently permuted residuals, re-standardized",
             "secondary_null": "parametric bootstrap from the fitted independent-error latent model",
             "B": draws, "preprocessing_gate": f"max|diag(C*)-1| <= {DIAG_TOL:.0e} on every draw",
+            "parallel_workers": jobs,
             "d_res": D_RES, "splithalf_repetitions": N_SPLITHALF, "fdr_q": FDR_Q,
             "thresholds": {"angle_deg_max": ANGLE_MAX_DEG, "jaccard_min": JACCARD_MIN,
                            "sign_agreement_min": SIGN_AGREEMENT_MIN,

@@ -45,6 +45,11 @@ from sklearn.metrics import roc_auc_score
 
 from .feature_utils import FEAT_NAMES, extract_all_features, compute_spilled_energy_features
 from .fusion_utils import zscore, boot_auc, lsml_continuous
+from .feature_contract import (
+    CONFIDENCE_FEATURE_SIGNS_V1,
+    FIXED_STABLE_EXCLUDED_V1,
+    LEGACY_FEATURE_SIGNS,
+)
 from .streaming_utils import FEATURE_SIGNS, anchor_orient, iter_trace_records
 from .temporal_models import (
     fit_gaussian_hmm, hmm_trace_scores, bocpd_gaussian,
@@ -78,9 +83,10 @@ REPGRID_VIEWS = [
     'varentropy', 'renyi_entropy_2', 'topk_tail_mass',
 ]
 REPGRID_VIEW_SIGNS = {
-    'epr_energy': -1, 'min_energy': -1, 'sw_var_peak_energy': -1, 'cusum_max_energy': -1,
-    'mean_top1_logprob': +1, 'logprob_margin': +1, 'mean_logprob_entropy': -1,
-    'varentropy': -1, 'renyi_entropy_2': -1, 'topk_tail_mass': -1,
+    name: int(CONFIDENCE_FEATURE_SIGNS_V1[name]) for name in REPGRID_VIEWS
+}
+LEGACY_REPGRID_VIEW_SIGNS = {
+    name: int(LEGACY_FEATURE_SIGNS[name]) for name in REPGRID_VIEWS
 }
 
 # Bit i of a canonical mask <-> CANONICAL_POOL[i]. Frozen order: never reorder
@@ -89,6 +95,16 @@ CANONICAL_POOL = list(FEAT_NAMES) + EXTRA_VIEWS + REPGRID_VIEWS
 assert len(CANONICAL_POOL) <= 64, "canonical masks are uint64"
 
 ALL_SIGNS = {**FEATURE_SIGNS, **EXTRA_VIEW_SIGNS, **REPGRID_VIEW_SIGNS}
+LEGACY_ALL_SIGNS = {
+    **{name: int(LEGACY_FEATURE_SIGNS[name]) for name in FEAT_NAMES},
+    **EXTRA_VIEW_SIGNS,
+    **LEGACY_REPGRID_VIEW_SIGNS,
+}
+FIXED_STABLE_POOL = [
+    name for name in CANONICAL_POOL if name not in FIXED_STABLE_EXCLUDED_V1
+]
+assert set(CANONICAL_POOL) <= set(ALL_SIGNS), "canonical feature missing a fixed sign"
+assert set(CANONICAL_POOL) <= set(LEGACY_ALL_SIGNS), "legacy sign map is incomplete"
 
 # Default exhaustive-enumeration pool: the 16 H(n) features present in every
 # cached cell. Spilled/temporal/anomaly views enter via the augmentation stage
@@ -380,7 +396,7 @@ def prepare_cell(domain, cell_key, fd, labels, feature_pool=None,
             dropped[f] = 'saturated'
             continue
         pool.append(f)
-        columns.append(zscore(arr * ALL_SIGNS.get(f, +1)))
+        columns.append(zscore(arr * ALL_SIGNS[f]))
     if len(pool) < min_size:
         return None
 
@@ -389,7 +405,7 @@ def prepare_cell(domain, cell_key, fd, labels, feature_pool=None,
         if f in fd:
             a = np.asarray(fd[f], dtype=float)
             if len(a) == len(labels) and np.isfinite(a).all() and a.std() > 1e-8:
-                anchor = zscore(a * ALL_SIGNS.get(f, +1))
+                anchor = zscore(a * ALL_SIGNS[f])
                 anchor_name = f
                 break
     if anchor is None:
@@ -865,7 +881,7 @@ def augment_cell(ctx, fd, results, method='residual', n_top=20, n_boot=1000):
         arr = np.asarray(fd[f], dtype=float)
         if len(arr) != len(ctx.labels) or not np.isfinite(arr).all() or arr.std() < 1e-8:
             continue
-        extras.append((f, zscore(arr * ALL_SIGNS.get(f, +1))))
+        extras.append((f, zscore(arr * ALL_SIGNS[f])))
     if not extras:
         return []
 

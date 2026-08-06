@@ -1,0 +1,75 @@
+{
+  "config": {
+    "budgets": [
+      4,
+      8,
+      16,
+      32,
+      64
+    ],
+    "calibration_draws": 16,
+    "confirmation_seed_offset": 2600000,
+    "current_upcr": {
+      "auto_components": false,
+      "difficulty_gate": false,
+      "exclusion": false,
+      "g2_projection_k": 1,
+      "loss": "l2",
+      "n_components": 2,
+      "recompute_after_exclusion": false,
+      "scale_ratio": 0.25,
+      "simple_avg_fallback": false
+    },
+    "development_seed_offset": 40000,
+    "fit_tolerances": {
+      "intercept_abs": 1e-07,
+      "objective_abs": 1e-07,
+      "score_scaled_max_abs": 1e-07,
+      "weight_max_abs": 1e-07
+    },
+    "geometry_tolerances": {
+      "covariance_orthonormality": 1e-08,
+      "max_principal_angle_rad": 1e-07,
+      "projector_fro": 1e-07,
+      "relative_reconstruction": 1e-07
+    },
+    "historical_upcr": {
+      "difficulty_gate": false,
+      "exclusion": true,
+      "g2_projection_k": 1,
+      "loss": "l2",
+      "recompute_after_exclusion": true,
+      "scale_ratio": 0.25,
+      "simple_avg_fallback": true
+    },
+    "n": 360,
+    "replicates": 8
+  },
+  "confirmation_generated": false,
+  "input_hashes": {
+    "results/semi_supervised_spectral_v1/replicates.csv": "c951284a3c0b99084fc477ab251d0cae339ca02499a8bd4de3134161392ed7da",
+    "results/upcr_study/11_posthoc_controls/mix_splithalf.csv": "b611bc3cfeaf7f0dddeaf0988ebfc4f7816bf3349d7ce4e1584e205594288f05",
+    "results/upcr_study/11_posthoc_controls/summary.json": "710e48215648f52df7e14e2e506c3963b1f64f8962e6349362655fda61bf5a24"
+  },
+  "matplotlib": "3.11.1",
+  "numpy": "2.4.6",
+  "python": "3.11.9",
+  "raw_real_features_opened": false,
+  "scikit_learn": "1.9.0",
+  "scipy": "1.17.1",
+  "scope": "consumed development synthetic plus saved real artifacts",
+  "source_hashes": {
+    "SPEC_U2_PRIOR_RECONCILIATION_V1.md": "1336668fbaab2751fe044c5752a7f55ac17ea218606bbc81fcc998ece6102d2f",
+    "scripts/target_anchored_laplacian_synthetic.py": "6317a6c9099318a3e513c7519ca25f0a26cb5fb2e3269353bbaf1cdf9a30a3a7",
+    "scripts/test_u2_prior_reconciliation.py": "c4bb51902c01dd7b3cce43390657c265a5833af6deff1f4dfdd762c3dd673d68",
+    "scripts/u2_prior_reconciliation.py": "adfec5ab38bf6f28079aa8c210519907265d8df24af6e740bf9968eb208bd0a2",
+    "spectral_utils/feature_contract.py": "65ffba0bfc9bf4ded859d9ebffce9bd563a28652c47f5ed8d80ce91b64d4385d",
+    "spectral_utils/fusion_utils.py": "1f47ed8f1d16a41532d85dfbacb0c0d727645aaf6921223e9e8e9f6ccc6fadd7",
+    "spectral_utils/laplacian_upcr.py": "885ebaa87a6e35f33edf58bd962e6b1d41bdddf387b1aa3512c1a71e1f1d877e",
+    "spectral_utils/semi_supervised_fusion.py": "3676d345cde7adcfc8a346f47dc43daeddb7a0b6552a1240a54def0d252ec8fb",
+    "spectral_utils/target_anchored_laplacian.py": "f2490a8220aeaa36f6dc2fd2eff67bd7cb8397c7f25440c6fe86b4589bb8860f",
+    "spectral_utils/u2_prior_reconciliation.py": "ad73d8ce2564398d583299c31e17d3ef78aee80fd1e78cd131e955f117595c50",
+    "spectral_utils/upcr.py": "60c6ff461426d4c828ead210f04233815f45211a6f1a49a50ed37811c50c26cc"
+  },
+  "version": "u2-prior-reconciliation-v1-2026-08-06"
+}

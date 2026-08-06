@@ -23,6 +23,7 @@ import pickle
 import numpy as np
 
 from .feature_utils import extract_all_features, FEAT_NAMES, compute_spilled_energy_features
+from .feature_contract import CONFIDENCE_FEATURE_SIGNS_V1
 from .fusion_utils import zscore, boot_auc, lsml_continuous_pipeline, upcr_pipeline
 from .streaming_utils import FEATURE_SIGNS, anchor_orient
 
@@ -32,12 +33,10 @@ from .streaming_utils import FEATURE_SIGNS, anchor_orient
 ENERGY_FEATS = ["epr_energy", "min_energy", "sw_var_peak_energy", "cusum_max_energy"]
 LOGPROB_FEATS = ["mean_top1_logprob", "logprob_margin", "mean_logprob_entropy"]
 
-ENERGY_SIGNS = {"epr_energy": -1, "min_energy": -1,
-                "sw_var_peak_energy": -1, "cusum_max_energy": -1}
+ENERGY_SIGNS = {
+    name: int(CONFIDENCE_FEATURE_SIGNS_V1[name]) for name in ENERGY_FEATS
+}
 LOGPROB_SIGNS = {"mean_top1_logprob": +1, "logprob_margin": +1, "mean_logprob_entropy": -1}
-
-# All fixed signs the scorer knows about (base FEATURE_SIGNS + the new views).
-ALL_SIGNS = {**FEATURE_SIGNS, **ENERGY_SIGNS, **LOGPROB_SIGNS}
 
 
 def energy_features_from_logsumexp(token_logsumexp) -> dict:
@@ -78,6 +77,15 @@ def logprob_features(top_k_logprobs) -> dict:
 
 LOGPROB_FEATS_EXT = ["varentropy", "renyi_entropy_2", "topk_tail_mass"]
 LOGPROB_SIGNS_EXT = {"varentropy": -1, "renyi_entropy_2": -1, "topk_tail_mass": -1}
+
+# All fixed signs the scorer knows about.  Extended log-probability features
+# used to be omitted from this mapping and could fall through to +1 at callers.
+ALL_SIGNS = {
+    **FEATURE_SIGNS,
+    **ENERGY_SIGNS,
+    **LOGPROB_SIGNS,
+    **LOGPROB_SIGNS_EXT,
+}
 
 
 def logprob_features_extended(top_k_logprobs, tail_k: int = 5) -> dict:

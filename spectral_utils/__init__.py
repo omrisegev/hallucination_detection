@@ -104,10 +104,19 @@ from .judge_utils import (
     load_judge, judge_correct, judge_label_cache, gold_answers_from_row,
 )
 from .streaming_utils import (
-    FEATURE_SIGNS, iter_entropy_traces, iter_trace_records, anchor_orient,
+    FEATURE_SIGNS, LEGACY_FEATURE_SIGNS, iter_entropy_traces, iter_trace_records, anchor_orient,
     prefix_features, prefix_feature_matrix,
     deepconf_lowest_group_conf, deepconf_tail_conf,
     causal_trajectories, earliness_index, online_flag_curve,
+)
+from .feature_contract import (
+    SCHEMA_VERSION as FEATURE_SCHEMA_VERSION,
+    CONFIDENCE_FEATURE_SIGNS_V1,
+    FIXED_SIGN_CHANGES_V1,
+    FIXED_STABLE_EXCLUDED_V1,
+    confidence_sign_vector,
+    confidence_oriented_matrix,
+    consensus_anchor,
 )
 from .anomaly_utils import (
     build_feature_matrix, mahalanobis_scores, gmm_nll_scores,
@@ -188,7 +197,11 @@ __all__ = [
     "selfcheck_nli_score_official",
     "parse_verbalized_confidence", "VERBALIZED_CONF_SUFFIX",
     "load_judge", "judge_correct", "judge_label_cache", "gold_answers_from_row",
-    "FEATURE_SIGNS", "iter_entropy_traces", "iter_trace_records", "anchor_orient",
+    "FEATURE_SIGNS", "LEGACY_FEATURE_SIGNS", "FEATURE_SCHEMA_VERSION",
+    "CONFIDENCE_FEATURE_SIGNS_V1", "FIXED_SIGN_CHANGES_V1",
+    "FIXED_STABLE_EXCLUDED_V1", "confidence_sign_vector",
+    "confidence_oriented_matrix", "consensus_anchor",
+    "iter_entropy_traces", "iter_trace_records", "anchor_orient",
     "prefix_features", "prefix_feature_matrix",
     "deepconf_lowest_group_conf", "deepconf_tail_conf",
     "causal_trajectories", "earliness_index", "online_flag_curve",

@@ -1,0 +1,90 @@
+{
+  "config": {
+    "confirm_replicates": 8,
+    "confirmation_seed_offset": 1700000,
+    "controls": [
+      "dufs",
+      "ungated",
+      "random_gates",
+      "permuted_graph",
+      "projected_ridge",
+      "oracle_latent"
+    ],
+    "dev_replicates": 8,
+    "dufs_epochs": 120,
+    "gate_seeds": [
+      11,
+      23,
+      37
+    ],
+    "k": 7,
+    "lambdas": [
+      0.0,
+      0.01,
+      0.03,
+      0.1,
+      0.3,
+      1.0,
+      3.0,
+      10.0
+    ],
+    "n": 360,
+    "version": "laplacian-upcr-synthetic-v3-2026-08-06",
+    "worlds": [
+      "smooth_signal",
+      "correlated_errors",
+      "nuisance_manifold",
+      "subspace_exclusion",
+      "disconnected_graph",
+      "pure_noise"
+    ]
+  },
+  "confirmation_command": [
+    "scripts/laplacian_upcr_synthetic.py",
+    "--stage",
+    "confirmation",
+    "--dev-replicates",
+    "8",
+    "--confirm-replicates",
+    "8",
+    "--n",
+    "360",
+    "--dufs-epochs",
+    "120",
+    "--out-dir",
+    "results/laplacian_upcr_synthetic"
+  ],
+  "dependencies": {
+    "matplotlib": "3.11.1",
+    "numpy": "2.4.6",
+    "scikit_learn": "1.9.0",
+    "scipy": "1.17.1",
+    "torch": "2.13.0"
+  },
+  "development_command": [
+    "scripts/laplacian_upcr_synthetic.py",
+    "--stage",
+    "development",
+    "--dev-replicates",
+    "8",
+    "--confirm-replicates",
+    "8",
+    "--n",
+    "360",
+    "--dufs-epochs",
+    "120",
+    "--out-dir",
+    "results/laplacian_upcr_synthetic"
+  ],
+  "git_head": "092233dc47e8f502c7381758f469b567130f8b24",
+  "platform": "macOS-26.6-arm64-arm-64bit",
+  "python": "3.11.9 (v3.11.9:de54cf5be3, Apr  2 2024, 07:12:50) [Clang 13.0.0 (clang-1300.0.29.30)]",
+  "source_hashes": {
+    "scripts/laplacian_upcr_synthetic.py": "cf43fecf79f5f4b90c63d910b454abb33bb92a4fa4a10a84ef8ebc4c1a9ddfaa",
+    "scripts/test_laplacian_upcr.py": "2bd4852167c717cf992aac847c71c7476b60cfe25f3042fa8a1a46a13206b0de",
+    "spectral_utils/laplacian_upcr.py": "885ebaa87a6e35f33edf58bd962e6b1d41bdddf387b1aa3512c1a71e1f1d877e",
+    "spectral_utils/selectors/a2_groupfs.py": "08f97208fda9fffa34e4ff1b187aee8d2f6a776078a0e101ad7dc3edc007be67",
+    "spectral_utils/upcr.py": "60c6ff461426d4c828ead210f04233815f45211a6f1a49a50ed37811c50c26cc"
+  },
+  "version": "laplacian-upcr-synthetic-v3-2026-08-06"
+}
