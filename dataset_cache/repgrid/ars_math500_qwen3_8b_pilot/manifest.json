@@ -1,0 +1,54 @@
+{
+  "preset_id": "ars_math500_qwen3_8b",
+  "paper": "ARS (arXiv 2601.17467)",
+  "model": "Qwen/Qwen3-8B",
+  "dataset": "math500",
+  "split": null,
+  "n_samples": 30,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 4096,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "ARS (CCS)",
+    "metric": "AUROC",
+    "value": 78.66,
+    "supervision": "supervised (representation shaping)",
+    "best_baseline": "TSV 63.12",
+    "model_note": "MATH-500 / Qwen3-8B (ARS Table 1)."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Reasoning cell: Qwen3 thinking ON. is_correct_math extracts \\boxed{} after </think>.",
+  "job_id": "100887",
+  "seed": 0,
+  "written_utc": "2026-07-09T18:45:33+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_math500_T1.0.pkl",
+      "n_problems": 30,
+      "k": 1,
+      "mean_trace": 3314.1666666666665,
+      "accuracy": 0.7,
+      "pos": 21,
+      "neg": 9,
+      "minority": 9,
+      "gate_ok": false,
+      "gate_reasons": [
+        "minority class 9 < 30"
+      ]
+    }
+  ]
+}

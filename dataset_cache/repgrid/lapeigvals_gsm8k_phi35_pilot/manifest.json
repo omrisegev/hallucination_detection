@@ -1,0 +1,53 @@
+{
+  "preset_id": "lapeigvals_gsm8k_phi35",
+  "paper": "LapEigvals (arXiv 2502.17598)",
+  "model": "microsoft/Phi-3.5-mini-instruct",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 30,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "LapEigvals",
+    "metric": "AUROC",
+    "value": 66.6,
+    "supervised": 88.5,
+    "model_note": "GSM8K / Phi-3.5-mini (LapEigvals Table 1): AttentionScore 66.6, probe 88.5."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "LapEigvals GSM8K model-sweep. Fair Y = unsup AttentionScore 66.6. boxed-CoT prompt; is_correct_gsm8k grader. Phi-3.5 not gated.",
+  "job_id": "100885",
+  "seed": 0,
+  "written_utc": "2026-07-09T17:59:04+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_gsm8k_T1.0.pkl",
+      "n_problems": 30,
+      "k": 1,
+      "mean_trace": 342.56666666666666,
+      "accuracy": 0.6,
+      "pos": 18,
+      "neg": 12,
+      "minority": 12,
+      "gate_ok": false,
+      "gate_reasons": [
+        "minority class 12 < 30"
+      ]
+    }
+  ]
+}

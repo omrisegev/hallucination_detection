@@ -1,0 +1,55 @@
+{
+  "preset_id": "ars_gsm8k_qwen3_8b",
+  "paper": "ARS (arXiv 2601.17467)",
+  "model": "Qwen/Qwen3-8B",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 30,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 4096,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "ARS (CCS)",
+    "metric": "AUROC",
+    "value": 90.37,
+    "supervision": "supervised (representation shaping)",
+    "best_baseline": "Semantic Entropy 72.51",
+    "model_note": "GSM8K / Qwen3-8B (ARS Table 1) \u2014 ARS's strongest published cell."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Reasoning cell: KEEP Qwen3 thinking ON (no /no_think) \u2014 ARS scores reasoning trajectories. is_correct_gsm8k extracts the boxed/final answer after </think>. N=30 pilot: watch acc band.",
+  "job_id": "100886",
+  "seed": 0,
+  "written_utc": "2026-07-09T18:26:35+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_gsm8k_T1.0.pkl",
+      "n_problems": 30,
+      "k": 1,
+      "mean_trace": 2092.3,
+      "accuracy": 0.9666666666666667,
+      "pos": 29,
+      "neg": 1,
+      "minority": 1,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.967 outside [0.2,0.85]",
+        "minority class 1 < 30"
+      ]
+    }
+  ]
+}

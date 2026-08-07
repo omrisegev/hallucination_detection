@@ -1,0 +1,64 @@
+{
+  "driver": "run_teacher_forced.py",
+  "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306) \u2014 ProcessBench SLA arm",
+  "model": "Qwen/Qwen3-8B",
+  "protocol": "teacher-forced single forward pass over the provided reasoning chain",
+  "prompt": "data_loaders.math_prompt on the problem (OUR choice \u2014 the paper states none)",
+  "prompt_suffix": " /no_think",
+  "thinking_mode": "off",
+  "step_separator": "\\n\\n",
+  "logprob_top_k": 50,
+  "n_samples_per_subset": 30,
+  "job_id": "157560",
+  "written_utc": "2026-08-04T04:00:28+00:00",
+  "cells": {
+    "gsm8k": {
+      "n_rows": 30,
+      "n_with_error": 30,
+      "n_all_correct": 0,
+      "mean_steps": 4.866666666666666,
+      "mean_tokens": 271.73333333333335,
+      "n_unmapped_steps": 0,
+      "n_rows_misaligned": 0,
+      "frac_steps_lt_8_tokens": 0.0,
+      "frac_steps_lt_32_tokens": 0.2876712328767123,
+      "median_step_tokens": 49.0
+    },
+    "math": {
+      "n_rows": 30,
+      "n_with_error": 30,
+      "n_all_correct": 0,
+      "mean_steps": 6.366666666666666,
+      "mean_tokens": 515.2666666666667,
+      "n_unmapped_steps": 0,
+      "n_rows_misaligned": 0,
+      "frac_steps_lt_8_tokens": 0.0,
+      "frac_steps_lt_32_tokens": 0.1518324607329843,
+      "median_step_tokens": 71.0
+    },
+    "olympiadbench": {
+      "n_rows": 30,
+      "n_with_error": 30,
+      "n_all_correct": 0,
+      "mean_steps": 8.033333333333333,
+      "mean_tokens": 791.8,
+      "n_unmapped_steps": 0,
+      "n_rows_misaligned": 0,
+      "frac_steps_lt_8_tokens": 0.0,
+      "frac_steps_lt_32_tokens": 0.11203319502074689,
+      "median_step_tokens": 90.0
+    },
+    "omnimath": {
+      "n_rows": 30,
+      "n_with_error": 30,
+      "n_all_correct": 0,
+      "mean_steps": 9.3,
+      "mean_tokens": 881.2666666666667,
+      "n_unmapped_steps": 0,
+      "n_rows_misaligned": 0,
+      "frac_steps_lt_8_tokens": 0.0,
+      "frac_steps_lt_32_tokens": 0.11469534050179211,
+      "median_step_tokens": 79.0
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "preset_id": "internalstates_gsm8k_qwen25_7b",
+  "paper": "Internal-States + Reasoning-Consistency (arXiv 2510.11529)",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 30,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "Internal-States+RC",
+    "metric": "AUROC",
+    "value": 79.15,
+    "supervision": "supervised (LLM-judge labels, multi-path)",
+    "best_baseline": "V-STaR 76.55",
+    "model_note": "GSM8K / Qwen2.5-7B (arXiv 2510.11529)."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Supervised ceiling reference on GSM8K/Qwen2.5-7B. boxed-CoT prompt; is_correct_gsm8k grader.",
+  "job_id": "100888",
+  "seed": 0,
+  "written_utc": "2026-07-09T17:59:25+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_gsm8k_T1.0.pkl",
+      "n_problems": 30,
+      "k": 1,
+      "mean_trace": 410.26666666666665,
+      "accuracy": 0.3,
+      "pos": 9,
+      "neg": 21,
+      "minority": 9,
+      "gate_ok": false,
+      "gate_reasons": [
+        "minority class 9 < 30"
+      ]
+    }
+  ]
+}

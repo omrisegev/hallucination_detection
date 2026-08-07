@@ -1,0 +1,54 @@
+{
+  "preset_id": "noise_gsm8k_gemma2b",
+  "paper": "Noise Injection (arXiv 2502.03799)",
+  "model": "unsloth/gemma-2b-it",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 30,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "Noise Injection",
+    "metric": "AUROC",
+    "value": 57.11,
+    "answer_entropy_k10": 51.36,
+    "model_note": "GSM8K / Gemma-2B-it (NI v4 Table 3): answer entropy 51.36 -> +noise 57.11. K=10 question-level."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "NI GSM8K sweep \u2014 HIGH ACC-FLOOR RISK (2B on GSM8K; NI's own near-chance AUROC suggests very low accuracy). N=30 pilot gate decides; a REJECT is itself the reportable outcome. gemma-2b-it NOT gemma-2-2b. boxed-CoT prompt; is_correct_gsm8k.",
+  "job_id": "106277",
+  "seed": 0,
+  "written_utc": "2026-07-11T14:09:14+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_gsm8k_T1.0.pkl",
+      "n_problems": 30,
+      "k": 1,
+      "mean_trace": 136.86666666666667,
+      "accuracy": 0.0,
+      "pos": 0,
+      "neg": 30,
+      "minority": 0,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.000 outside [0.2,0.85]",
+        "minority class 0 < 30"
+      ]
+    }
+  ]
+}
