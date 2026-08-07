@@ -110,3 +110,10 @@ results/report_*.html
 # (the `build/` rule above is meant for packaging artifacts)
 !scripts/build/
 cluster/submit_backfill.sbatch
+
+# Raw dataset cache — a curated subset of cache/repgrid (+ cache/edis_aime24) uploaded via
+# Git LFS: per-sample questions, answers, and token-level stats (CLAUDE.md's rich-save schema)
+# behind the committed result CSVs. Deliberate exception to the cache/repgrid "not for git"
+# policy above — see dataset_cache/README.md for what's included and why.
+!dataset_cache/**
+!dataset_cache/**/*.pkl
