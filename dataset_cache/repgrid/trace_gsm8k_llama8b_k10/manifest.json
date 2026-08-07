@@ -1,0 +1,47 @@
+{
+  "preset_id": "trace_gsm8k_llama8b_k10",
+  "paper": "internal \u2014 tier-3 trace-cell regeneration (p1_gsm8k_llama8b_k10)",
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 500,
+  "k": 10,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {},
+  "head_to_head": null,
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Replaces the K=10 trace pkl (N=200, texts+labels only).",
+  "job_id": "125093",
+  "seed": 0,
+  "written_utc": "2026-07-20T01:48:30+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_gsm8k_T1.0.pkl",
+      "n_problems": 500,
+      "k": 10,
+      "mean_trace": 266.0502,
+      "accuracy": 0.736,
+      "pos": 3680,
+      "neg": 1320,
+      "minority": 1320,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "preset_id": "trace_math500_qwenmath15b_k10",
+  "paper": "internal \u2014 tier-3 trace-cell regeneration (math500_T1.0 traces)",
+  "model": "Qwen/Qwen2.5-Math-1.5B-Instruct",
+  "dataset": "math500",
+  "split": "test",
+  "n_samples": 300,
+  "k": 10,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {},
+  "head_to_head": null,
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Replaces the K=8 trace list (N=50). K=10/N=300 for stable CIs.",
+  "job_id": "125101",
+  "seed": 0,
+  "written_utc": "2026-07-20T01:04:51+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_math500_T1.0.pkl",
+      "n_problems": 300,
+      "k": 10,
+      "mean_trace": 508.701,
+      "accuracy": 0.17633333333333334,
+      "pos": 529,
+      "neg": 2471,
+      "minority": 529,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.176 outside [0.2,0.85]"
+      ]
+    }
+  ]
+}

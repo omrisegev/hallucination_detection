@@ -1,0 +1,52 @@
+{
+  "preset_id": "epr_triviaqa_mistral24b",
+  "paper": "EPR \u2014 Entropy Production Rate",
+  "model": "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
+  "dataset": "trivia_qa_wiki",
+  "split": "validation",
+  "n_samples": 1000,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 64,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "EPR",
+    "metric": "AUROC",
+    "value": 74.6,
+    "model_note": "Mistral-Small-3.1-24B / TriviaQA (unsupervised EPR baseline; WEPR supervised is higher)"
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": "Qwen/Qwen2.5-7B-Instruct",
+  "prompt_suffix": "",
+  "notes": "Exact EPR scenario (model/dataset/decoding). JUDGE DEVIATION: paper used Gemma-3-12b-it (access pending Google review), so we use the open, reliable Qwen2.5-7B-Instruct as a uniform LLM-judge for correctness labels. N=1000. capture logsumexp -> our energy views.",
+  "job_id": "100226",
+  "seed": 0,
+  "written_utc": "2026-07-09T06:22:22+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_trivia_qa_wiki_T1.0.pkl",
+      "n_problems": 1000,
+      "k": 1,
+      "mean_trace": 18.768,
+      "accuracy": 0.786,
+      "pos": 786,
+      "neg": 214,
+      "minority": 214,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}

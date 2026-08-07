@@ -1,0 +1,79 @@
+{
+  "preset_id": "lapeigvals_gsm8k_llama8b",
+  "paper": "LapEigvals (arXiv 2502.17598)",
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 500,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "LapEigvals",
+    "metric": "AUROC",
+    "value": 92.5,
+    "model_note": "supervised probe on Mistral-Small-24B, not Llama-8B"
+  },
+  "notes": "capture_attention deferred (NotImplemented). gsm8k_prompt is the boxed CoT prompt, not LapEigvals Listing-5 \u2014 note when citing.",
+  "job_id": "98715",
+  "seed": 0,
+  "written_utc": "2026-07-08T07:52:13+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_gsm8k_T1.0.pkl",
+      "n_problems": 500,
+      "k": 1,
+      "mean_trace": 264.38,
+      "accuracy": 0.724,
+      "pos": 362,
+      "neg": 138,
+      "minority": 138,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ],
+  "backfill": [
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123596",
+      "git_sha": "",
+      "date_utc": "2026-07-18T18:24:14+00:00",
+      "gate_b": {
+        "raw_gsm8k_T1.0.pkl": true
+      }
+    },
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123597",
+      "git_sha": "",
+      "date_utc": "2026-07-18T19:11:57+00:00",
+      "gate_b": {
+        "raw_gsm8k_T1.0.pkl": true
+      }
+    }
+  ]
+}

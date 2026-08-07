@@ -1,0 +1,87 @@
+{
+  "preset_id": "ars_gsm8k_r1distill8b",
+  "paper": "ARS (arXiv 2601.17467)",
+  "model": "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 500,
+  "k": 1,
+  "temps": [
+    0.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 8192,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "ARS (CCS)",
+    "metric": "AUROC",
+    "value": 74.72,
+    "supervision": "supervised (representation shaping)",
+    "best_baseline": "G-Detector 70.38",
+    "eigenscore_unsup": 52.98,
+    "semantic_entropy_unsup": 61.98,
+    "perplexity_unsup": 58.48,
+    "model_note": "GSM8K / DeepSeek-R1-Distill-Llama-8B (ARS Table 1). ARS Table 2 unsup: EigenScore 52.98, SE 61.98, Perplexity 58.48."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "MISSING matched cell \u2014 the one ARS point we do not yet have offline. Run this to place our unsupervised L-SML next to ARS supervised 74.72 on GSM8K/R1-Distill. Gate: smoke -> N=30 pilot (watch trace not pinned at max_new, acc in [0.20,0.85]) -> full.",
+  "job_id": "106284",
+  "seed": 0,
+  "written_utc": "2026-07-11T15:39:37+00:00",
+  "cells": [
+    {
+      "temp": 0.0,
+      "pkl": "raw_gsm8k_T0.0.pkl",
+      "n_problems": 500,
+      "k": 1,
+      "mean_trace": 449.266,
+      "accuracy": 0.728,
+      "pos": 364,
+      "neg": 136,
+      "minority": 136,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ],
+  "backfill": [
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123596",
+      "git_sha": "",
+      "date_utc": "2026-07-18T18:13:39+00:00",
+      "gate_b": {
+        "raw_gsm8k_T0.0.pkl": true
+      }
+    },
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123597",
+      "git_sha": "",
+      "date_utc": "2026-07-18T19:11:06+00:00",
+      "gate_b": {
+        "raw_gsm8k_T0.0.pkl": true
+      }
+    }
+  ]
+}

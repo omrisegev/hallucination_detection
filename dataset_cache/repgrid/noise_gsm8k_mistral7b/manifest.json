@@ -1,0 +1,83 @@
+{
+  "preset_id": "noise_gsm8k_mistral7b",
+  "paper": "Noise Injection (arXiv 2502.03799)",
+  "model": "mistralai/Mistral-7B-Instruct-v0.3",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 1319,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "Noise Injection",
+    "metric": "AUROC",
+    "value": 78.5,
+    "answer_entropy_k10": 75.85,
+    "model_note": "GSM8K / Mistral-7B-Instruct-v0.3 (NI v4 Table 3): answer entropy 75.85 -> +noise 78.50. K=10 question-level."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "NI GSM8K sweep. v0.3 exactly (paper-verified). Protocol gap as phi3mini. boxed-CoT prompt; is_correct_gsm8k grader.",
+  "job_id": "106303",
+  "seed": 0,
+  "written_utc": "2026-07-11T18:21:02+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_gsm8k_T1.0.pkl",
+      "n_problems": 1319,
+      "k": 1,
+      "mean_trace": 335.8377558756634,
+      "accuracy": 0.4988627748294162,
+      "pos": 658,
+      "neg": 661,
+      "minority": 658,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ],
+  "backfill": [
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123596",
+      "git_sha": "",
+      "date_utc": "2026-07-18T18:49:59+00:00",
+      "gate_b": {
+        "raw_gsm8k_T1.0.pkl": true
+      }
+    },
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123597",
+      "git_sha": "",
+      "date_utc": "2026-07-18T19:13:06+00:00",
+      "gate_b": {
+        "raw_gsm8k_T1.0.pkl": true
+      }
+    }
+  ]
+}

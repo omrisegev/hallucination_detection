@@ -1,0 +1,51 @@
+{
+  "preset_id": "spilled_triviaqa_llama8b",
+  "paper": "Spilled/Semantic Energy + LapEigvals",
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "dataset": "trivia_qa",
+  "split": "validation",
+  "n_samples": 500,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 256,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "HCPD (arXiv 2606.12900)",
+    "metric": "AUROC",
+    "value": 86.25,
+    "supervision": "unsupervised (zero-source, agentic multi-criteria probing)",
+    "model_note": "TriviaQA / Llama-3.1-8B-Instruct: HCPD 86.25 (Table 2). Same-paper baselines: Perplexity 80.62, Semantic Entropy 78.71, SAPLMA(sup) 78.51, TSV(sup) 79.78 -- full table in published_baselines.csv. HARP's cross-model TriviaQA anchor 92.8 (model unspecified) tracked separately, same file."
+  },
+  "head_to_head": "SAME-MODEL",
+  "notes": "Boundary cell: single-fact QA -> short trace -> spectral has little signal.",
+  "job_id": "98716",
+  "seed": 0,
+  "written_utc": "2026-07-08T07:07:12+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_trivia_qa_T1.0.pkl",
+      "n_problems": 500,
+      "k": 1,
+      "mean_trace": 17.808,
+      "accuracy": 0.32,
+      "pos": 160,
+      "neg": 340,
+      "minority": 160,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}

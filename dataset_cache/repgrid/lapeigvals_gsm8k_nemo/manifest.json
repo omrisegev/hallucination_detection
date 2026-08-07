@@ -1,0 +1,83 @@
+{
+  "preset_id": "lapeigvals_gsm8k_nemo",
+  "paper": "LapEigvals (arXiv 2502.17598)",
+  "model": "mistralai/Mistral-Nemo-Instruct-2407",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 1319,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "LapEigvals",
+    "metric": "AUROC",
+    "value": 63.0,
+    "supervised": 89.0,
+    "model_note": "GSM8K / Mistral-Nemo-12B (LapEigvals Table 1): AttentionScore 63.0, probe 89.0."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "LapEigvals GSM8K model-sweep. Fair Y = unsup AttentionScore 63.0. boxed-CoT prompt; is_correct_gsm8k grader.",
+  "job_id": "106288",
+  "seed": 0,
+  "written_utc": "2026-07-11T17:20:15+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_gsm8k_T1.0.pkl",
+      "n_problems": 1319,
+      "k": 1,
+      "mean_trace": 271.33131159969673,
+      "accuracy": 0.8294162244124337,
+      "pos": 1094,
+      "neg": 225,
+      "minority": 225,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ],
+  "backfill": [
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123596",
+      "git_sha": "",
+      "date_utc": "2026-07-18T18:56:47+00:00",
+      "gate_b": {
+        "raw_gsm8k_T1.0.pkl": true
+      }
+    },
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123597",
+      "git_sha": "",
+      "date_utc": "2026-07-18T19:13:27+00:00",
+      "gate_b": {
+        "raw_gsm8k_T1.0.pkl": true
+      }
+    }
+  ]
+}

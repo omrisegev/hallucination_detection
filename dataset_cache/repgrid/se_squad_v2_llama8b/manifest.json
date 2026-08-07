@@ -1,0 +1,44 @@
+{
+  "preset_id": "se_squad_v2_llama8b",
+  "paper": "SE-ICLR'23 protocol (adapted)",
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "dataset": "squad_v2",
+  "split": "validation",
+  "n_samples": 1000,
+  "k": 10,
+  "temps": [
+    0.5
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 256,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {},
+  "notes": "SQuAD v2 includes unanswerable \u2014 grader rewards correct abstention.",
+  "job_id": "99089",
+  "seed": 0,
+  "written_utc": "2026-07-08T11:50:14+00:00",
+  "cells": [
+    {
+      "temp": 0.5,
+      "pkl": "raw_squad_v2_T0.5.pkl",
+      "n_problems": 1000,
+      "k": 10,
+      "mean_trace": 8.771,
+      "accuracy": 0.6059,
+      "pos": 6059,
+      "neg": 3941,
+      "minority": 3941,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}

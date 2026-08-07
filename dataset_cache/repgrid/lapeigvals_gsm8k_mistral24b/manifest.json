@@ -1,0 +1,85 @@
+{
+  "preset_id": "lapeigvals_gsm8k_mistral24b",
+  "paper": "LapEigvals (arXiv 2502.17598)",
+  "model": "mistralai/Mistral-Small-24B-Instruct-2501",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 1319,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "LapEigvals",
+    "metric": "AUROC",
+    "value": 57.6,
+    "supervised": 92.5,
+    "model_note": "GSM8K / Mistral-Small-24B (LapEigvals Table 1): AttentionScore 57.6, probe 92.5."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "LapEigvals GSM8K model-sweep. Fair Y = unsup AttentionScore 57.6; probe 92.5 is the same 92.5 previously miscited as the Llama-8B anchor. Strong model -> watch acc ceiling on the N=30 pilot (band [0.20,0.85]). boxed-CoT prompt; is_correct_gsm8k grader.",
+  "job_id": "106290",
+  "seed": 0,
+  "written_utc": "2026-07-11T17:13:38+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_gsm8k_T1.0.pkl",
+      "n_problems": 1319,
+      "k": 1,
+      "mean_trace": 256.08946171341927,
+      "accuracy": 0.9173616376042456,
+      "pos": 1210,
+      "neg": 109,
+      "minority": 109,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.917 outside [0.2,0.85]"
+      ]
+    }
+  ],
+  "backfill": [
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123596",
+      "git_sha": "",
+      "date_utc": "2026-07-18T19:03:41+00:00",
+      "gate_b": {
+        "raw_gsm8k_T1.0.pkl": true
+      }
+    },
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123597",
+      "git_sha": "",
+      "date_utc": "2026-07-18T19:13:55+00:00",
+      "gate_b": {
+        "raw_gsm8k_T1.0.pkl": true
+      }
+    }
+  ]
+}

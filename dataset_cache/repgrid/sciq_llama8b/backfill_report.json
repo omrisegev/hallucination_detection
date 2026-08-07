@@ -1,0 +1,79 @@
+{
+  "cell_id": "sciq_llama8b",
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "keys": [
+    "token_logsumexp",
+    "top_k_logprobs_raw",
+    "token_spilled_energies",
+    "top_k_logprobs"
+  ],
+  "raw_top_k": 50,
+  "validate_only": false,
+  "tolerances": {
+    "tol_median": 0.02,
+    "tol_first": 0.05,
+    "min_frac_close": 0.9
+  },
+  "git_sha": "",
+  "job_id": "123597",
+  "written_utc": "2026-07-18T19:11:58+00:00",
+  "pkls": [
+    {
+      "pkl": "raw_sciq_T1.0.pkl",
+      "temp": 1.0,
+      "gate": {
+        "H": {
+          "name": "token_entropies",
+          "n_traces": 50,
+          "n_len_mismatch": 0,
+          "n_tokens": 666,
+          "median_abs": 0.004220783710479736,
+          "p99_abs": 0.06865687966346748,
+          "max_abs": 0.1071648895740509,
+          "frac_close": 0.9594594594594594,
+          "first_tok_median": 0.00846186000853777,
+          "first_tok_p99": 0.10252659708261488,
+          "median_r": 0.9988067208095598,
+          "frac_r_ge_0999": 0.4791666666666667
+        },
+        "dE": {
+          "name": "token_spilled_energies",
+          "n_traces": 50,
+          "n_len_mismatch": 0,
+          "n_tokens": 666,
+          "median_abs": 0.0012836717069149017,
+          "p99_abs": 0.11432378292083747,
+          "max_abs": 0.388149619102478,
+          "frac_close": 0.8963963963963963,
+          "first_tok_median": 0.0020022898679599166,
+          "first_tok_p99": 0.2641157931089396,
+          "median_r": 0.9993476336807874,
+          "frac_r_ge_0999": 0.5416666666666666
+        },
+        "Z": {
+          "name": "token_logsumexp",
+          "n_traces": 50,
+          "n_len_mismatch": 0,
+          "n_tokens": 666,
+          "median_abs": 0.0,
+          "p99_abs": 0.0,
+          "max_abs": 0.0,
+          "frac_close": 1.0,
+          "first_tok_median": 0.0,
+          "first_tok_p99": 0.0,
+          "median_r": 1.0,
+          "frac_r_ge_0999": 1.0
+        }
+      },
+      "gate_b_pass": true,
+      "gate_b_reasons": [],
+      "gate_n_problems": 50,
+      "gate_tokens": 666,
+      "validate_only": false,
+      "n_candidates_written": 0,
+      "n_candidates_already_complete": 1000,
+      "write_tokens": 0,
+      "seconds": 1.4
+    }
+  ]
+}

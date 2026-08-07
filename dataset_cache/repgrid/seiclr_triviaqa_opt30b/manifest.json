@@ -1,0 +1,53 @@
+{
+  "preset_id": "seiclr_triviaqa_opt30b",
+  "paper": "Semantic Uncertainty (SE-ICLR'23, arXiv 2302.09664)",
+  "model": "facebook/opt-30b",
+  "dataset": "trivia_qa_rougel",
+  "split": "validation",
+  "n_samples": 500,
+  "k": 10,
+  "temps": [
+    0.5
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 64,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "Semantic Entropy (SE-ICLR'23)",
+    "metric": "AUROC",
+    "value": 83.0,
+    "coqa_value": 77.0,
+    "model_note": "OPT-30B / TriviaQA closed-book, ROUGE-L>0.3 grader"
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Exact SE-ICLR scenario. Grader=ROUGE-L>0.3 (is_correct_trivia_qa_rougel), no judge. OPT-30B base -> few-shot prompt (trivia_qa_fewshot_prompt). Paper used an 8k subset; N=500 is AUROC-stable. Pilot check: base model may ramble -> watch accuracy.",
+  "job_id": "100169",
+  "seed": 0,
+  "written_utc": "2026-07-09T08:02:26+00:00",
+  "cells": [
+    {
+      "temp": 0.5,
+      "pkl": "raw_trivia_qa_rougel_T0.5.pkl",
+      "n_problems": 500,
+      "k": 10,
+      "mean_trace": 63.861,
+      "accuracy": 0.4648,
+      "pos": 2324,
+      "neg": 2676,
+      "minority": 2324,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}

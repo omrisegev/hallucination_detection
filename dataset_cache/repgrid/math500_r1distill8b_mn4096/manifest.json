@@ -1,0 +1,47 @@
+{
+  "preset_id": "math500_r1distill8b_mn4096",
+  "paper": "internal \u2014 phase4 math500 regeneration (backfill-unrescuable cell)",
+  "model": "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+  "dataset": "math500",
+  "split": "test",
+  "n_samples": 300,
+  "k": 1,
+  "temps": [
+    1.5
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 4096,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {},
+  "head_to_head": null,
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Long-cap flavour of math500_r1distill8b (max_new 2048->4096). Additive cell \u2014 the 2048 run is kept as the legacy-comparable flavour.",
+  "job_id": "126273",
+  "seed": 0,
+  "written_utc": "2026-07-20T04:06:23+00:00",
+  "cells": [
+    {
+      "temp": 1.5,
+      "pkl": "raw_math500_T1.5.pkl",
+      "n_problems": 300,
+      "k": 1,
+      "mean_trace": 2712.5266666666666,
+      "accuracy": 0.39,
+      "pos": 117,
+      "neg": 183,
+      "minority": 117,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}

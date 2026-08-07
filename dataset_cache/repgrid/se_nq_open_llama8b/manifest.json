@@ -1,0 +1,53 @@
+{
+  "preset_id": "se_nq_open_llama8b",
+  "paper": "SE-ICLR'23 protocol (adapted)",
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "dataset": "nq_open",
+  "split": "validation",
+  "n_samples": 1000,
+  "k": 10,
+  "temps": [
+    0.5
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 128,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "HCPD (arXiv 2606.12900)",
+    "metric": "AUROC",
+    "value": 90.38,
+    "supervision": "unsupervised (zero-source, agentic multi-criteria probing)",
+    "model_note": "NQ-Open / Llama-3.1-8B-Instruct: HCPD 90.38 (Table 2). Same-paper baselines: Perplexity 57.92, Semantic Entropy 61.04, SAPLMA(sup) 76.23, TSV(sup) 70.17 -- full table in published_baselines.csv."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": "Qwen/Qwen2.5-7B-Instruct",
+  "prompt_suffix": "",
+  "notes": "Boundary cell: open-domain single-fact -> short trace.",
+  "job_id": "106296",
+  "seed": 0,
+  "written_utc": "2026-07-11T17:58:36+00:00",
+  "cells": [
+    {
+      "temp": 0.5,
+      "pkl": "raw_nq_open_T0.5.pkl",
+      "n_problems": 1000,
+      "k": 10,
+      "mean_trace": 29.1965,
+      "accuracy": 0.5007,
+      "pos": 5007,
+      "neg": 4993,
+      "minority": 4993,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}

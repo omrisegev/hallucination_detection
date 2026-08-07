@@ -1,0 +1,79 @@
+{
+  "preset_id": "sciq_llama8b",
+  "paper": "SciQ (4-way MCQ)",
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "dataset": "sciq",
+  "split": "validation",
+  "n_samples": 1000,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 512,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {},
+  "head_to_head": null,
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "MCQ -> suppressed entropy dynamics (GPQA-like); expect a modest cell.",
+  "job_id": "103539",
+  "seed": 0,
+  "written_utc": "2026-07-11T06:50:24+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_sciq_T1.0.pkl",
+      "n_problems": 1000,
+      "k": 1,
+      "mean_trace": 14.503,
+      "accuracy": 0.877,
+      "pos": 877,
+      "neg": 123,
+      "minority": 123,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.877 outside [0.2,0.85]"
+      ]
+    }
+  ],
+  "backfill": [
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123596",
+      "git_sha": "",
+      "date_utc": "2026-07-18T18:24:45+00:00",
+      "gate_b": {
+        "raw_sciq_T1.0.pkl": true
+      }
+    },
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123597",
+      "git_sha": "",
+      "date_utc": "2026-07-18T19:11:58+00:00",
+      "gate_b": {
+        "raw_sciq_T1.0.pkl": true
+      }
+    }
+  ]
+}

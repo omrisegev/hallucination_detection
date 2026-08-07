@@ -1,0 +1,85 @@
+{
+  "preset_id": "lapeigvals_gsm8k_llama3b",
+  "paper": "LapEigvals (arXiv 2502.17598)",
+  "model": "unsloth/Llama-3.2-3B-Instruct",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 1319,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "LapEigvals",
+    "metric": "AUROC",
+    "value": 71.7,
+    "supervised": 87.0,
+    "noise_injection_k10": 82.7,
+    "answer_entropy_k10": 76.53,
+    "model_note": "GSM8K / Llama-3.2-3B (LapEigvals Table 1): AttentionScore 71.7, probe 87.0. Noise Injection v4 Table 3 (same cell, K=10 question-level): answer entropy 76.53 -> +noise 82.70."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "LapEigvals GSM8K model-sweep + Noise Injection triple-anchor cell. Fair K=1 Y = unsup AttentionScore 71.7; NI 82.70 is K=10 question-level (protocol gap). Prompt = our boxed-CoT gsm8k_prompt (not LapEigvals Listing-5) \u2014 annotate when citing. Grader is_correct_gsm8k.",
+  "job_id": "106301",
+  "seed": 0,
+  "written_utc": "2026-07-11T17:07:53+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_gsm8k_T1.0.pkl",
+      "n_problems": 1319,
+      "k": 1,
+      "mean_trace": 234.42683851402577,
+      "accuracy": 0.4450341167551175,
+      "pos": 587,
+      "neg": 732,
+      "minority": 587,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ],
+  "backfill": [
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123596",
+      "git_sha": "",
+      "date_utc": "2026-07-18T19:09:14+00:00",
+      "gate_b": {
+        "raw_gsm8k_T1.0.pkl": true
+      }
+    },
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123597",
+      "git_sha": "",
+      "date_utc": "2026-07-18T19:14:08+00:00",
+      "gate_b": {
+        "raw_gsm8k_T1.0.pkl": true
+      }
+    }
+  ]
+}

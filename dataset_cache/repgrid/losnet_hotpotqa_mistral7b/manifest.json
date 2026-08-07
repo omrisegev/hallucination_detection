@@ -1,0 +1,79 @@
+{
+  "preset_id": "losnet_hotpotqa_mistral7b",
+  "paper": "LOS-Net (arXiv 2503.14043)",
+  "model": "mistralai/Mistral-7B-Instruct-v0.2",
+  "dataset": "hotpotqa",
+  "split": "validation",
+  "n_samples": 500,
+  "k": 1,
+  "temps": [
+    0.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 512,
+  "logprob_top_k": 1000,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "LOS-Net",
+    "metric": "AUROC",
+    "value": 72.92,
+    "pm": 0.45
+  },
+  "notes": "Greedy single-pass. LapEigvals-style attention not needed here. Our L-SML anchor is greedy (argmax) \u2014 anchor_orient offline.",
+  "job_id": "98714",
+  "seed": 0,
+  "written_utc": "2026-07-08T08:27:51+00:00",
+  "cells": [
+    {
+      "temp": 0.0,
+      "pkl": "raw_hotpotqa_T0.0.pkl",
+      "n_problems": 500,
+      "k": 1,
+      "mean_trace": 223.076,
+      "accuracy": 0.338,
+      "pos": 169,
+      "neg": 331,
+      "minority": 169,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ],
+  "backfill": [
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123596",
+      "git_sha": "",
+      "date_utc": "2026-07-18T18:42:26+00:00",
+      "gate_b": {
+        "raw_hotpotqa_T0.0.pkl": true
+      }
+    },
+    {
+      "keys_added": [
+        "token_logsumexp",
+        "top_k_logprobs_raw",
+        "token_spilled_energies",
+        "top_k_logprobs"
+      ],
+      "raw_top_k": 50,
+      "job_id": "123597",
+      "git_sha": "",
+      "date_utc": "2026-07-18T19:12:47+00:00",
+      "gate_b": {
+        "raw_hotpotqa_T0.0.pkl": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "preset_id": "math500_qwenmath7b",
+  "paper": "internal \u2014 phase4 math500 regeneration (backfill-unrescuable cell)",
+  "model": "Qwen/Qwen2.5-Math-7B-Instruct",
+  "dataset": "math500",
+  "split": "test",
+  "n_samples": 300,
+  "k": 1,
+  "temps": [
+    1.5
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.1,
+    0.9
+  ],
+  "min_minority": 30,
+  "published": {},
+  "head_to_head": null,
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Replaces the Colab phase4 inference_cache (T=1.5, math500_300). max_new=2048 per U1 (reasoning traces; phase4's cap was tighter but truncation hurts the entropy trace).",
+  "job_id": "125081",
+  "seed": 0,
+  "written_utc": "2026-07-19T18:09:28+00:00",
+  "cells": [
+    {
+      "temp": 1.5,
+      "pkl": "raw_math500_T1.5.pkl",
+      "n_problems": 300,
+      "k": 1,
+      "mean_trace": 1576.4366666666667,
+      "accuracy": 0.22666666666666666,
+      "pos": 68,
+      "neg": 232,
+      "minority": 68,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}

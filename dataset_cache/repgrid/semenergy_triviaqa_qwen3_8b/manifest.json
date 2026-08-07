@@ -1,0 +1,53 @@
+{
+  "preset_id": "semenergy_triviaqa_qwen3_8b",
+  "paper": "Semantic Energy",
+  "model": "Qwen/Qwen3-8B",
+  "dataset": "trivia_qa",
+  "split": "validation",
+  "n_samples": 500,
+  "k": 10,
+  "temps": [
+    0.6
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 64,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "Semantic Energy",
+    "metric": "AUROC",
+    "value": 74.8,
+    "baseline_semantic_entropy": 69.6,
+    "model_note": "Qwen3-8B / TriviaQA (English; CSQA Chinese skipped)"
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": "Qwen/Qwen2.5-7B-Instruct",
+  "prompt_suffix": " /no_think",
+  "notes": "Exact Semantic Energy scenario (model/dataset/decoding). JUDGE DEVIATION: paper used TIGER-Lab/general-verifier (bespoke format incompatible with a clean correctness prompt), so we use Qwen2.5-7B-Instruct as a uniform LLM-judge. K=10; Qwen3 /no_think.",
+  "job_id": "100250",
+  "seed": 0,
+  "written_utc": "2026-07-09T07:06:47+00:00",
+  "cells": [
+    {
+      "temp": 0.6,
+      "pkl": "raw_trivia_qa_T0.6.pkl",
+      "n_problems": 500,
+      "k": 10,
+      "mean_trace": 14.4156,
+      "accuracy": 0.4926,
+      "pos": 2463,
+      "neg": 2537,
+      "minority": 2463,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}

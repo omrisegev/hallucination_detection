@@ -1,0 +1,57 @@
+{
+  "preset_id": "truthfulqa_llama8b",
+  "paper": "TruthfulQA (generation)",
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "dataset": "truthfulqa",
+  "split": "validation",
+  "n_samples": 817,
+  "k": 10,
+  "temps": [
+    0.5
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 128,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "TSV (arXiv 2503.01917)",
+    "metric": "AUROC",
+    "value": 84.2,
+    "supervision": "semi-supervised (32 labeled exemplars + OT pseudo-labels)",
+    "supervised": 85.5,
+    "haloscope": 78.64,
+    "model_note": "TruthfulQA / Llama-3.1-8B: TSV 84.2\u00b10.2 (semi-sup), sup ceiling 85.5. HaloScope 78.64 is Llama-2-7b-chat (cross-model, annotate)."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": "Qwen/Qwen2.5-7B-Instruct",
+  "prompt_suffix": "",
+  "notes": "At-inference label is a ROUGE-L proxy; judge-regrade offline before citing. TSV anchor is semi-supervised (not a fair unsup Y \u2014 report as ceiling-ish reference).",
+  "job_id": "103531",
+  "seed": 0,
+  "written_utc": "2026-07-11T07:53:25+00:00",
+  "cells": [
+    {
+      "temp": 0.5,
+      "pkl": "raw_truthfulqa_T0.5.pkl",
+      "n_problems": 817,
+      "k": 10,
+      "mean_trace": 62.97674418604651,
+      "accuracy": 0.11566707466340269,
+      "pos": 945,
+      "neg": 7225,
+      "minority": 945,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.116 outside [0.2,0.85]"
+      ]
+    }
+  ]
+}

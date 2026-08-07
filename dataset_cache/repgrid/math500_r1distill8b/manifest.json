@@ -1,0 +1,47 @@
+{
+  "preset_id": "math500_r1distill8b",
+  "paper": "internal \u2014 phase4 math500 regeneration (backfill-unrescuable cell)",
+  "model": "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+  "dataset": "math500",
+  "split": "test",
+  "n_samples": 300,
+  "k": 1,
+  "temps": [
+    1.5
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {},
+  "head_to_head": null,
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Replaces the Colab phase4 inference_cache (T=1.5, math500_300). max_new=2048 per U1 (reasoning traces; phase4's cap was tighter but truncation hurts the entropy trace).",
+  "job_id": "125077",
+  "seed": 0,
+  "written_utc": "2026-07-19T18:09:52+00:00",
+  "cells": [
+    {
+      "temp": 1.5,
+      "pkl": "raw_math500_T1.5.pkl",
+      "n_problems": 300,
+      "k": 1,
+      "mean_trace": 1564.3433333333332,
+      "accuracy": 0.2866666666666667,
+      "pos": 86,
+      "neg": 214,
+      "minority": 86,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}
