@@ -1,0 +1,82 @@
+#!/bin/bash
+# TEMPLATE for cluster/submit_teacher_forced.sbatch — the live file is gitignored because it
+# carries a hardcoded HF_TOKEN, exactly like submit_inference.sbatch.
+#
+# To regenerate the live file ON THE CLUSTER, lifting the token from the file that already has
+# one rather than pasting it into a session:
+#
+#   cd /shared/cycle2_tau_averbuch_prj/omrisegev1/code
+#   tok=$(grep -m1 '^export HF_TOKEN=' cluster/submit_inference.sbatch | cut -d= -f2-)
+#   sed "s|^export HF_TOKEN=.*|export HF_TOKEN=$tok|" \
+#       cluster/submit_teacher_forced.sbatch.template > cluster/submit_teacher_forced.sbatch
+#
+# NEVER commit the live file.
+#
+# WHAT THIS RUNS — and why it is cheap
+# ------------------------------------
+# `cluster/run_teacher_forced.py`: ONE forward pass over a reasoning chain that already exists
+# (ProcessBench's pre-written solutions), with no generation at all. The entire 3,400-row corpus
+# is a couple of GPU-hours per model, against ~8 h for a single generated 1,500-problem cell.
+#
+# The signal this collects is therefore *our model's surprise at another model's text*, which is
+# the paper's protocol and is NOT the same quantity as the answer-level cells. That distinction
+# has to survive into the report; it is not an implementation detail.
+#
+# Wall-safety is identical to submit_inference.sbatch: --signal=B:TERM@900 reaches the driver
+# after exec, it checkpoints and exits 85 (EXIT_INCOMPLETE). Slurm does NOT requeue on that exit
+# — --requeue only fires on preemption or node failure, which is exactly how jobs 156013/156014
+# (the two MATH cells) stalled at ~880/1500 and sat FAILED with nothing queued behind them. So
+# for any run that might outlive one wall, CHAIN THE RESUMES AT SUBMIT TIME; a resume of a
+# finished cell is an idempotent no-op:
+#
+#   ARGS="--model Qwen/Qwen3-8B --out $SHARED/results/pb_qwen3_8b"
+#   jid=$(sbatch -p power-gpu --qos=owner_880 cluster/submit_teacher_forced.sbatch $ARGS | awk '{print $4}')
+#   jid=$(sbatch --dependency=afterany:$jid -p power-gpu --qos=owner_880 cluster/submit_teacher_forced.sbatch $ARGS | awk '{print $4}')
+#
+# Submit (partition/QoS on the command line; trailing args go to run_teacher_forced.py):
+#
+#   # Gate B first — teacher-forcing agreement against a GENERATED cell. Nothing is written.
+#   sbatch -p power-gpu --qos=owner_880 cluster/submit_teacher_forced.sbatch \
+#       --model Qwen/Qwen3-8B --validate \
+#       --validate-pkl /shared/cycle2_tau_averbuch_prj/omrisegev1/results/evdrop_gsm8k_qwen3_8b/raw_gsm8k_T0.0.pkl \
+#       --validate-dataset gsm8k --validate-n 20
+#
+#   # then the pilot, then the full corpus
+#   sbatch -p power-gpu --qos=owner_880 cluster/submit_teacher_forced.sbatch \
+#       --model Qwen/Qwen3-8B --n-samples 30 \
+#       --out /shared/cycle2_tau_averbuch_prj/omrisegev1/results/pb_qwen3_8b_pilot
+#
+#SBATCH --job-name=spectral_tf
+#SBATCH --gpus=1
+#SBATCH --time=08:00:00
+#SBATCH --requeue
+#SBATCH --signal=B:TERM@900
+#SBATCH --output=/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/%x_%j.out
+#SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
+#SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
+#SBATCH --container-workdir=/shared/cycle2_tau_averbuch_prj/omrisegev1/code
+# No --container-name on purpose: a persistent NAMED container makes two jobs landing on the
+# same node race to first-create the same enroot rootfs, and the loser dies (job 98667). This
+# arm submits 2 models x 4 subsets, so same-node collisions are the expected case, not the edge.
+
+set -uo pipefail
+
+SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
+export HF_HOME=$SHARED/hf_cache
+export HF_DATASETS_CACHE=$SHARED/hf_cache/datasets
+export PIP_CACHE_DIR=$SHARED/pip_cache
+# Per-job NODE-LOCAL pip target. Concurrent jobs sharing $HOME/.local corrupted each other's
+# installs in the first wave (half-written dill METADATA -> datasets crashed on
+# version.parse(None)). A node-local PYTHONUSERBASE isolates this job AND keeps any poisoned
+# shared .local off sys.path entirely.
+export PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID}
+mkdir -p "$PYTHONUSERBASE"
+export HF_TOKEN=REPLACE_ME
+
+echo "[sbatch] job $SLURM_JOB_ID on $(hostname), args: $*"
+
+pip install -q --user -r cluster/requirements.txt
+
+# exec replaces bash with python so Slurm's SIGTERM reaches the driver directly rather than the
+# shell — without it the checkpoint never runs and the wall costs the whole cell.
+exec python cluster/run_teacher_forced.py "$@"

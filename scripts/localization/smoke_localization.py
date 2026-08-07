@@ -28,6 +28,9 @@ MODULES = [
     ("selective_metrics", "risk-coverage / AURC / selective accuracy / NP calibration"),
     ("localization_metrics", "step-level SLA + ProcessBench official F1"),
     ("our_arm", "our L-SML/U-PCR fusion entered into the protocol"),
+    ("token_trace", "per-token fused evidence from the step fit's frozen parameters"),
+    ("positional_views", "localize via the per-token series the extractors discard"),
+    ("worked_example", "one trace marked up by the detector, for the report figure"),
     ("spectral_utils.localization_data", "full-MATH loader helpers"),
     ("spectral_utils.processbench", "ProcessBench loading + token->step alignment"),
 ]

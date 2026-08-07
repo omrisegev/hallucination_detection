@@ -91,6 +91,27 @@ def step_drop_scores(evidence, step_spans, ema_span: int = 5, aggregation: str =
     return out
 
 
+def step_avg_scores(evidence, step_spans):
+    """Per-step risk for the **Avg** family: `-mean(evidence)` inside the step. Higher = suspect.
+
+    The paper's Avg baselines average evidence over the whole sequence; the step-level analogue
+    is to average it over the step. No EMA and no differencing — that is exactly the contrast
+    their Figure 3 is about (Avg overlaps, Drop separates), and smoothing the Avg arm would
+    quietly hand it some of Drop's mechanism.
+    """
+    e = np.asarray(evidence, dtype=np.float64)
+    out = np.full(len(step_spans), np.nan)
+    for i, span in enumerate(step_spans):
+        if span is None:
+            continue
+        lo, hi = span
+        seg = e[lo:min(hi, e.size)]
+        seg = seg[np.isfinite(seg)]
+        if seg.size:
+            out[i] = float(-seg.mean())
+    return out
+
+
 def predict_first_error(step_scores, threshold: float) -> int:
     """First step whose risk exceeds `threshold`, or NO_ERROR if none does.
 
@@ -290,7 +311,20 @@ def smoke() -> None:
     s = step_drop_scores(np.zeros(40), [(0, 20), None, (20, 40)], ema_span=5)
     assert np.isnan(s[1]) and np.isfinite(s[0]) and np.isfinite(s[2]), s
 
-    print("localization_metrics.smoke: PASS (8 checks)")
+    # 9. `step_avg_scores` reads the LEVEL of evidence, not its change — so a step that is
+    #    uniformly low-evidence scores high even with no drop inside it, which is precisely the
+    #    behaviour that makes Avg and Drop different detectors.
+    ev = np.concatenate([np.full(20, 1.0), np.full(20, -1.0)])
+    spans = [(0, 20), (20, 40)]
+    a = step_avg_scores(ev, spans)
+    assert np.allclose(a, [-1.0, 1.0]), a
+    d = step_drop_scores(ev, spans, ema_span=1)
+    assert d[1] > d[0], (d, "the drop is at the boundary, attributed to the step entered")
+    flat = step_avg_scores(np.full(40, 0.5), spans)
+    assert np.allclose(flat, [-0.5, -0.5]), flat
+    assert np.isnan(step_avg_scores(ev, [None])[0]), "an unmapped step must be NaN, not 0"
+
+    print("localization_metrics.smoke: PASS (9 checks)")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,237 @@
+<title>U-PCR on step-level localization</title>
+<style>
+:root{
+  --ink:#141922; --ink-2:#4A5566; --ink-3:#727E90;
+  --paper:#F6F7F9; --card:#FFFFFF; --rule:#DCE1E8;
+  --signal:#1D5E8C; --signal-soft:#D6E6F1;
+  --risk:#B23B31; --risk-soft:#F2DAD6;
+  --ok:#2C7355; --accentbg:#EEF3F7;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --ink:#E4E8EF; --ink-2:#A3AEBF; --ink-3:#78849A;
+    --paper:#0E1218; --card:#151B24; --rule:#26303D;
+    --signal:#63A9D8; --signal-soft:#1A3span;
+    --signal-soft:#17324A; --risk:#E07C71; --risk-soft:#3E2320;
+    --ok:#63B694; --accentbg:#141C26;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#E4E8EF; --ink-2:#A3AEBF; --ink-3:#78849A;
+  --paper:#0E1218; --card:#151B24; --rule:#26303D;
+  --signal:#63A9D8; --signal-soft:#17324A; --risk:#E07C71; --risk-soft:#3E2320;
+  --ok:#63B694; --accentbg:#141C26;
+}
+:root[data-theme="light"]{
+  --ink:#141922; --ink-2:#4A5566; --ink-3:#727E90;
+  --paper:#F6F7F9; --card:#FFFFFF; --rule:#DCE1E8;
+  --signal:#1D5E8C; --signal-soft:#D6E6F1; --risk:#B23B31; --risk-soft:#F2DAD6;
+  --ok:#2C7355; --accentbg:#EEF3F7;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;}
+.wrap{max-width:1040px;margin:0 auto;padding:56px 24px 96px;}
+.mono{font-family:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;}
+
+header.top{border-bottom:2px solid var(--ink);padding-bottom:22px;margin-bottom:8px;}
+.eyebrow{font-family:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--signal);
+  margin:0 0 14px;}
+h1{font-family:ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  font-weight:600;font-size:clamp(30px,4.4vw,44px);line-height:1.12;letter-spacing:-.015em;
+  margin:0 0 12px;text-wrap:balance;}
+.standfirst{font-size:17.5px;color:var(--ink-2);max-width:66ch;margin:0;}
+.meta{display:flex;flex-wrap:wrap;gap:8px 26px;margin-top:20px;font-size:12.5px;
+  color:var(--ink-3);font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
+
+section{margin-top:52px;}
+h2{font-family:ui-serif,"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  font-size:25px;font-weight:600;letter-spacing:-.01em;margin:0 0 6px;text-wrap:balance;
+  padding-left:14px;border-left:3px solid var(--signal);}
+h3{font-size:15px;font-weight:650;letter-spacing:.01em;margin:30px 0 8px;color:var(--ink);}
+p{max-width:70ch;color:var(--ink-2);}
+p.lede{color:var(--ink);}
+code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.88em;
+  background:var(--accentbg);padding:1px 5px;border-radius:3px;color:var(--ink);}
+
+.tbl{margin:22px 0 0;}
+.tscroll{overflow-x:auto;border:1px solid var(--rule);border-radius:6px;background:var(--card);}
+table{border-collapse:collapse;width:100%;font-size:13.5px;
+  font-variant-numeric:tabular-nums;}
+th,td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--rule);}
+thead th{background:var(--accentbg);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--ink-2);font-weight:650;white-space:nowrap;}
+thead th .sub{font-family:ui-monospace,Menlo,monospace;text-transform:none;letter-spacing:0;
+  color:var(--ink-3);font-weight:400;}
+tbody tr:last-child td{border-bottom:none;}
+td.num{text-align:right;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
+td.num.best{font-weight:700;color:var(--signal);}
+td.num.ok{color:var(--ok);} td.num.warn{color:var(--risk);}
+.mname{white-space:nowrap;}
+.kind{display:inline-block;margin-left:9px;font-size:9.5px;letter-spacing:.08em;
+  text-transform:uppercase;padding:2px 6px;border-radius:3px;vertical-align:1px;
+  font-family:ui-monospace,Menlo,monospace;}
+.kind.k-ours{background:var(--signal);color:var(--card);}
+.kind.k-paper{background:var(--accentbg);color:var(--ink-2);border:1px solid var(--rule);}
+.kind.k-ref{background:transparent;color:var(--ink-3);border:1px dashed var(--rule);}
+.kind.k-target{background:var(--risk-soft);color:var(--risk);}
+tr.k-ours{background:color-mix(in srgb,var(--signal) 6%,transparent);}
+figcaption{font-size:12.5px;color:var(--ink-3);margin-top:9px;max-width:76ch;line-height:1.55;}
+
+.fig{display:block;margin:0;}
+.axis{stroke:var(--rule);stroke-width:1;}
+.stepline{stroke:var(--rule);stroke-width:1;stroke-dasharray:2 4;opacity:.75;}
+.curve{fill:none;stroke:var(--signal);stroke-width:1.7;stroke-linejoin:round;}
+.dropline{stroke:var(--risk);stroke-width:1;stroke-dasharray:3 3;opacity:.8;}
+.dropdot{fill:var(--risk);}
+.droplab{fill:var(--risk);font-size:10.5px;font-family:ui-monospace,Menlo,monospace;}
+.axlab{fill:var(--ink-3);font-size:10px;font-family:ui-monospace,Menlo,monospace;}
+.axttl{fill:var(--ink-3);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  font-family:ui-monospace,Menlo,monospace;}
+.barok{fill:color-mix(in srgb,var(--ok) 26%,transparent);stroke:var(--ok);stroke-width:1.2;}
+.barbad{fill:color-mix(in srgb,var(--risk) 26%,transparent);stroke:var(--risk);stroke-width:1.2;}
+.medok{stroke:var(--ok);stroke-width:1.4;stroke-dasharray:4 3;}
+.medbad{stroke:var(--risk);stroke-width:1.4;stroke-dasharray:4 3;}
+.medlab{font-size:10.5px;font-family:ui-monospace,Menlo,monospace;stroke:none;}
+.medlab.medok{fill:var(--ok);} .medlab.medbad{fill:var(--risk);}
+
+.panel{border:1px solid var(--rule);border-radius:8px;background:var(--card);padding:18px 20px;
+  margin:20px 0 0;overflow:hidden;}
+.panel-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 16px;
+  border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:14px;}
+.panel-title{font-weight:650;font-size:15px;}
+.panel-note{font-size:12.5px;color:var(--ink-3);font-family:ui-monospace,Menlo,monospace;}
+.verdict{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;
+  border-radius:3px;font-family:ui-monospace,Menlo,monospace;font-weight:650;}
+.v-caught{background:var(--risk);color:var(--card);}
+.v-clean{background:var(--ok);color:var(--card);}
+.v-missed{background:var(--accentbg);color:var(--ink-2);border:1px solid var(--rule);}
+
+.chain{display:flex;flex-direction:column;gap:3px;max-height:430px;overflow-y:auto;
+  border:1px solid var(--rule);border-radius:5px;padding:8px;background:var(--paper);}
+.step{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:6px 8px;border-radius:4px;
+  background:color-mix(in srgb,var(--risk) calc(var(--tint) * 42%),transparent);}
+.step-meta{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--ink-3);
+  display:flex;gap:8px;justify-content:space-between;padding-top:2px;}
+.step-r{font-variant-numeric:tabular-nums;}
+.step-body{font-size:13.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;
+  color:var(--ink);}
+.step-peak{outline:2px solid var(--risk);outline-offset:-1px;}
+.step-gt{box-shadow:inset 3px 0 0 var(--signal);}
+.tag{display:inline-block;margin-left:8px;font-size:9.5px;letter-spacing:.07em;
+  text-transform:uppercase;padding:1px 6px;border-radius:3px;font-family:ui-monospace,Menlo,monospace;
+  vertical-align:2px;}
+.tag-pick{background:var(--risk);color:var(--card);}
+.tag-gt{background:var(--signal);color:var(--card);}
+
+.pending{border:1px dashed var(--rule);border-radius:8px;padding:18px 20px;margin:22px 0 0;
+  background:var(--card);}
+.pending .ptag{display:inline-block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);border:1px solid var(--rule);border-radius:3px;padding:2px 7px;
+  margin-right:10px;font-family:ui-monospace,Menlo,monospace;}
+.pending p{margin:8px 0 0;font-size:13.5px;}
+.note{font-size:13px;color:var(--ink-3);}
+ul{max-width:70ch;color:var(--ink-2);padding-left:20px;}
+li{margin:6px 0;}
+.callout{border-left:3px solid var(--risk);background:color-mix(in srgb,var(--risk) 6%,transparent);
+  padding:14px 18px;border-radius:0 6px 6px 0;margin:20px 0;}
+.callout p{margin:0;max-width:none;color:var(--ink);}
+footer{margin-top:70px;padding-top:20px;border-top:1px solid var(--rule);font-size:12.5px;
+  color:var(--ink-3);font-family:ui-monospace,Menlo,monospace;}
+@media (max-width:640px){.step{grid-template-columns:1fr;gap:2px;}}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <p class="eyebrow">Thesis experiment &middot; step-level localization</p>
+  <h1>Does U-PCR find <em>where</em> the reasoning goes wrong?</h1>
+  <p class="standfirst">Our label-free arm, put through the protocol of &ldquo;Mind the Gap:
+  Catching Hallucinations via Evidence Drop&rdquo; (ICML 2026) &mdash; the same metrics, the same
+  calibration, the same baselines &mdash; at the answer level and at the step level.</p>
+  <div class="meta">
+    <span>arm: U-PCR over the full 46-view canonical pool</span>
+    <span>polarity: sign(&rho;&#770;), label-free</span>
+    <span>orientation: cell anchor</span>
+  </div>
+</header>
+
+<section>
+<h2>What is being measured</h2>
+<p class="lede">The paper's contribution is a detector: evidence
+<code>&Ecirc;&nbsp;=&nbsp;&minus;H(P&#771;)</code> over the renormalized top-20, smoothed with an
+EMA, and a risk score built from the <em>worst first-differences</em> of that curve &mdash; the
+&ldquo;drops&rdquo;. Ours is a different signal fused a different way: a pool of spectral,
+temporal and log-probability views over the entropy trace, combined by U-PCR with no labels, no
+hand-picked feature list and no chosen subset size.</p>
+<p>Both are one forward pass, both are unsupervised, so they are directly comparable on cost. The
+question is whether ours also localizes &mdash; whether the fused score points at the step where
+the reasoning broke, not just at the answer being wrong.</p>
+<div class="callout"><p><b>Which arm this is.</b> U-PCR here means
+<code>upcr_fit</code> over the full canonical pool with the fitted <code>exp06</code> config and
+polarity derived from <code>sign(&rho;&#770;)</code>. It is not <code>upcr_pipeline</code> and not
+a fixed subset. Every number below is produced by code that is checked bit-for-bit against the
+maintained scorer before it is allowed to report &mdash; the check is
+<code>assert_upcr_mirrors_canonical</code>, and it runs on every cell. The hand-picked L-SML
+subsets appear only as clearly-labelled reference rows.</p></div>
+</section>
+
+<section>
+<h2>Answer level &mdash; their Tables 1 and 2</h2>
+<p>Read the operating point first. Selective accuracy and AURC are both monotone in the base error
+rate, so a cell that is more accurate than theirs will look better on both no matter what the
+detector does.</p>
+<div class="pending"><span class="ptag">pending</span><b>Answer-level tables</b><p>no <code>*__evdrop.csv</code> yet — run <code>score_evdrop.py</code> on a fetched cell</p></div>
+</section>
+
+<section>
+<h2>Step level &mdash; their Table 3</h2>
+<p>ProcessBench, teacher-forced: a single forward pass over a reasoning chain someone else wrote,
+so the signal is <em>our model's surprise at another model's text</em>. That is their protocol,
+and it is not the same quantity the answer-level cells measure.</p>
+<div class="pending"><span class="ptag">pending</span><b>Step-level localization (their Table 3)</b><p>ProcessBench inference has not produced a cell yet — needs <code>submit_teacher_forced.sbatch</code> to run past Gate&nbsp;B</p></div>
+</section>
+
+<section>
+<h2>Where it marks the hallucination</h2>
+<p>The panels below are real traces from <code>evdrop_gsm8k_qwen3_8b</code>, chosen by a rule
+fixed before any score was looked at: the most confident catch, the case it misses, and a clean
+answer for contrast. Showing only the catch would be picking the evidence.</p>
+<div class="callout"><p><b>What these panels can and cannot show.</b> Our own generated answers
+carry a correctness label for the <em>answer</em> and no per-step annotation anywhere. So these
+show where the detector fires and how a wrong answer differs from a right one &mdash; but there
+is no ground-truth step to check the pick against. That comparison needs ProcessBench, whose rows
+carry an annotated first-erroneous step; those panels arrive with the table above.</p></div>
+<div class="pending"><span class="ptag">pending</span><b>Worked examples</b><p>run <code>build_examples.py</code> on a fetched cell</p></div>
+</section>
+
+<section>
+<h2>What is ours and not theirs</h2>
+<p>The paper defines its risk at the token level but reports localization at the step level, and
+never says how one becomes the other. Those choices are ours, fixed before any number was
+computed, and a gap against their table may be a rule difference rather than a method difference:</p>
+<ul>
+<li><b>Token &rarr; step.</b> A step's risk is the <em>worst</em> first-difference inside it, since
+the method is explicitly a worst-case drop detector. The mean is computed as a sensitivity, never
+as the headline.</li>
+<li><b>Flux attribution.</b> The difference between tokens <code>j</code> and <code>j+1</code>
+belongs to the step containing <code>j+1</code> &mdash; a drop that happens on the way into a bad
+step belongs to that step.</li>
+<li><b>Smoothing is global.</b> One EMA over the whole chain, then partition by step. Smoothing
+each step separately would reset the filter at every boundary and manufacture a drop there.</li>
+<li><b>Rows with no erroneous step</b> are excluded from SLA (there is nothing to localize) but
+kept for ProcessBench's official F1, which scores exactly that abstention.</li>
+<li><b>The step threshold</b> is the &alpha;-quantile of per-step risk on annotated erroneous
+steps in a calibration split &mdash; the same Neyman&ndash;Pearson construction they use at
+sequence level. They give no rule at all here.</li>
+<li><b>Window and stride.</b> W&nbsp;=&nbsp;32 tokens is not tuned: it is exactly the minimum
+length at which the full feature pool is measurable.</li>
+</ul>
+</section>
+
+<footer>
+Generated by <span class="mono">scripts/localization/localization_report.py</span> from the CSVs
+and JSON beside it. Every table is diffable; nothing on this page is typed by hand.
+</footer>
+</div>

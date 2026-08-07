@@ -41,15 +41,25 @@ Every baseline's per-token series is built so that HIGHER = MORE EVIDENCE, match
 the paper's own Ehat_i = -H(Ptilde) (a concentrated distribution -> low entropy -> high
 evidence). Concretely:
 
-    Shannon  ->  -H_i                      (the paper's own proxy, Eq. 10)
-    LogTokU  ->  +M_i = +sum_{v in V_K} log P(v)   (their "evidence mass", Eq. 47, unnegated)
-    LN-S     ->  +log P(sampled token)     (Eq. 48, unnegated)
+    Shannon           ->  -H_i                                  (the paper's proxy, Eq. 10)
+    LogTokU           ->  +M_i = +sum_{v in V_K} log P(v)        (Eq. 47, verbatim + unnegated)
+    LogTokU oriented  ->  -M_i                                   (Eq. 47, sign repaired)
+    LN-S              ->  +log P(sampled token)                  (Eq. 48, unnegated)
 
-The identical EMA + M-worst-negative-drop pipeline is then applied to all three. This is the
+The identical EMA + M-worst-negative-drop pipeline is then applied to all of them. This is the
 only reading under which "Drop" means the same operation for every baseline, and under which
 each series' Avg form is the plain negated mean the paper prints. Any gap against their Table 1
 / Table 3 may therefore be a convention difference rather than a method difference — which is
 exactly why it is written down before any number is produced.
+
+MEASURED EXCEPTION — LogTokU. Applying the convention above to Eq. 47 verbatim produces a series
+that is oriented BACKWARDS, and this is a defect in the equation, not in the convention: a sum of
+top-K log-probabilities is higher for a FLAT distribution than a peaked one, contradicting the
+sentence that follows Eq. 47 in the paper ("High mass indicates a concentration of confidence").
+On `evdrop_gsm8k_qwen3_8b` the verbatim form scores AUROC 0.178. Both forms are therefore
+reported: `logtoku_*` is the faithful replication and `logtoku_oriented_*` is the minimal repair.
+Neither is suppressed. See `logtoku_evidence` for the full derivation and the paper's own Eq. 36,
+which uses log-of-sum and is correctly oriented.
 """.strip()
 
 
@@ -87,14 +97,40 @@ def shannon_evidence(top_k_logprobs, k: int = 20) -> np.ndarray:
 
 
 def logtoku_evidence(top_k_logprobs, k: int = 20) -> np.ndarray:
-    """M_i = sum_{v in V_K} log P(v) per token (Eq. 47). Higher = more evidence.
+    """M_i = sum_{v in V_K} log P(v) per token — Eq. 47, VERBATIM, including its sign.
 
-    Note this is the RAW top-k log-probability mass, deliberately NOT renormalized — Eq. 47
-    sums log P(v), and renormalizing would make it a constant-shifted entropy and destroy the
-    distinction from the Shannon proxy.
+    THIS SERIES IS ORIENTED THE WRONG WAY AND THAT IS THE PAPER'S, NOT OURS. Eq. 47 is followed
+    by "High mass indicates a concentration of confidence among the top candidates", and the risk
+    is `phi = -mean(M)`. The interpretation does not hold for a sum of logs:
+
+        peaked token   top-1 ~ 0.99, ranks 2..20 ~ 1e-7  ->  M ~ 0 + 19*(-16)  = -304
+        flat token     all 20 ~ 0.05                     ->  M ~ 20*(-3.0)     =  -60
+
+    so M is HIGHER for the uncertain token. Measured on `evdrop_gsm8k_qwen3_8b`, the resulting
+    `logtoku_avg` risk scores **AUROC 0.178** (4B: 0.205) — not a weak detector, an inverted one,
+    since 1 - 0.178 = 0.822 sits right alongside the other baselines.
+
+    The paper's own Eq. 36-37, for ITS method, uses log-of-sum rather than sum-of-logs:
+    `E = log(sum_{v in Top-K} P(v))`, which correctly tends to `log(1) = 0` as the mass
+    concentrates. The log and the sum appear to have been transposed for this baseline.
+
+    We keep Eq. 47 exactly as written so the replication stays faithful, and report
+    `logtoku_oriented_*` beside it as the minimal repair. Reporting only the verbatim form would
+    publish an anti-correlated baseline without explanation; reporting only the repair would
+    silently improve a competitor's method.
     """
     lp = np.asarray(top_k_logprobs["logprobs"], dtype=np.float64)[:, :k]
     return lp.sum(axis=1)
+
+
+def logtoku_oriented_evidence(top_k_logprobs, k: int = 20) -> np.ndarray:
+    """Eq. 47 with the orientation its own sentence asserts: evidence = -M_i.
+
+    The minimal repair — same statistic, sign corrected so that "high mass = concentrated
+    confidence" is actually true of the returned series. Not a new method and not ours; it is
+    what Eq. 47 has to be for the paper's own description of it to hold.
+    """
+    return -logtoku_evidence(top_k_logprobs, k)
 
 
 def ln_s_evidence(token_spilled_energies) -> np.ndarray:
@@ -187,10 +223,14 @@ def average_risk(evidence) -> float:
 EVIDENCE_FNS = {
     "shannon": lambda cand, k: shannon_evidence(cand["top_k_logprobs"], k),
     "logtoku": lambda cand, k: logtoku_evidence(cand["top_k_logprobs"], k),
+    # Eq. 47 with the sign its own description requires. Reported beside the verbatim form, never
+    # in place of it — see `logtoku_oriented_evidence`.
+    "logtoku_oriented": lambda cand, k: logtoku_oriented_evidence(cand["top_k_logprobs"], k),
     "ln_s":    lambda cand, k: ln_s_evidence(cand["token_spilled_energies"]),
 }
 
-METHODS = [f"{b}_{agg}" for b in ("shannon", "logtoku", "ln_s") for agg in ("avg", "drop")]
+METHODS = [f"{b}_{agg}" for b in ("shannon", "logtoku", "logtoku_oriented", "ln_s")
+           for agg in ("avg", "drop")]
 
 
 def candidate_risks(cand, M: int = None, ema_span: int = None, top_k: int = None) -> dict:
@@ -288,7 +328,28 @@ def smoke() -> None:
     assert np.isnan(r["shannon_drop"]) and np.isnan(r["logtoku_avg"]), r
     assert np.isfinite(r["ln_s_avg"]) and np.isfinite(r["ln_s_drop"]), r
 
-    print("evidence_drop.smoke: PASS (10 checks)")
+        # 11. THE ORIENTATION TEST. A peaked distribution must yield MORE evidence than a flat one.
+    #     Eq. 47 verbatim fails this — that is the finding, asserted rather than described.
+    K = 20
+    peaked = np.full((4, K), -16.0); peaked[:, 0] = -0.01
+    flat = np.full((4, K), -np.log(K))
+    m_peak = logtoku_evidence({"logprobs": peaked}, K)[0]
+    m_flat = logtoku_evidence({"logprobs": flat}, K)[0]
+    assert m_peak < m_flat, (
+        f"Eq. 47 verbatim: peaked {m_peak:.1f} should be BELOW flat {m_flat:.1f} — if this ever "
+        "passes the other way the transposition has been silently fixed upstream")
+    o_peak = logtoku_oriented_evidence({"logprobs": peaked}, K)[0]
+    o_flat = logtoku_oriented_evidence({"logprobs": flat}, K)[0]
+    assert o_peak > o_flat, (o_peak, o_flat)
+    # and the repair really is just a sign, not a different statistic
+    assert np.allclose(logtoku_oriented_evidence({"logprobs": peaked}, K),
+                       -logtoku_evidence({"logprobs": peaked}, K))
+    # Shannon, by contrast, is oriented correctly as written
+    s_peak = shannon_evidence({"logprobs": peaked}, K)[0]
+    s_flat = shannon_evidence({"logprobs": flat}, K)[0]
+    assert s_peak > s_flat, (s_peak, s_flat)
+
+    print("evidence_drop.smoke: PASS (11 checks)")
 
 
 if __name__ == "__main__":

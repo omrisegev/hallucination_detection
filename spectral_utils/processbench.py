@@ -43,7 +43,7 @@ STEP_SEP = "\n\n"
 NO_ERROR = -1
 
 
-def load_processbench(subset: str, n_samples: int = None, split: str = "test") -> list:
+def load_processbench(subset: str, n_samples: int = None, split: str = None) -> list:
     """Rows for one ProcessBench sub-benchmark, schema-validated.
 
     Expected fields per row: `id`, `generator`, `problem`, `steps` (list[str]),
@@ -51,13 +51,32 @@ def load_processbench(subset: str, n_samples: int = None, split: str = "test") -
 
     The schema is asserted rather than assumed: a silent field rename upstream would otherwise
     surface as a wrong localization number rather than an error.
+
+    THE SUB-BENCHMARK IS A **SPLIT**, NOT A CONFIG. `Qwen/ProcessBench` ships exactly one builder
+    config (`default`) and exposes gsm8k / math / olympiadbench / omnimath as its four splits.
+    Passing the sub-benchmark as `name=` fails with `BuilderConfig 'gsm8k' not found` — and there
+    is no `test` split either, so the old signature was wrong in both arguments at once. `split`
+    stays overridable only so a future release that adds real splits does not need a code change.
     """
     if subset not in SUBSETS:
         raise ValueError(f"unknown ProcessBench subset {subset!r}; known: {SUBSETS}")
     from datasets import load_dataset
 
-    ds = load_dataset("Qwen/ProcessBench", split=split, name=subset)
-    rows = [dict(ds[i]) for i in range(len(ds) if n_samples is None else min(n_samples, len(ds)))]
+    ds = load_dataset("Qwen/ProcessBench", split=split or subset)
+
+    # A CAPPED DRAW MUST BE RANDOM, NOT THE HEAD. Measured on the N=30 pilot: all four subsets
+    # returned "30 rows | 30 with an error step", against dataset rates of 52% (gsm8k), 59%
+    # (math), 66% (olympiadbench), 76% (omnimath). ProcessBench is ordered erroneous-first, so
+    # `range(n_samples)` draws a population with NO error-free rows — which silently removes the
+    # entire negative class that ProcessBench's official F1 scores (`acc_correct` is measured on
+    # exactly those rows). A pilot that cannot expose that half of the metric is not a pilot.
+    # Seeded so a capped run stays reproducible and resumable: the same cap yields the same rows.
+    n = len(ds)
+    if n_samples is None or n_samples >= n:
+        idx = range(n)
+    else:
+        idx = sorted(np.random.default_rng(0).choice(n, n_samples, replace=False).tolist())
+    rows = [dict(ds[i]) for i in idx]
     for r in rows:
         validate_row(r)
     print(f"Loaded {len(rows)} ProcessBench/{subset} rows from Qwen/ProcessBench.")
@@ -81,10 +100,28 @@ def validate_row(row: dict) -> None:
         )
 
 
-def processbench_prompt(row: dict) -> str:
-    """The conditioning prompt for the teacher-forced pass. See the module docstring."""
+# Qwen3's non-thinking switch. THIS IS NOT COSMETIC. Every answer-level cell in this experiment
+# was generated with `prompt_suffix=" /no_think"` (see any `evdrop_*` manifest), the paper's
+# reported accuracies are only consistent with Qwen3 non-thinking, and the two modes put the model
+# in materially different states. Conditioning the ProcessBench pass in thinking mode while every
+# other number on the page is non-thinking would compare two different models wearing one name.
+#
+# Measured, not assumed: running Gate B without this suffix against a cell generated with it gave
+# median |dH| = 0.00003 but |dH| > 0.1 on 4.3% of tokens — near-identical wherever the next token
+# is obvious, materially different wherever the distribution is flat, which is exactly where a
+# hallucination detector reads its signal. The driver's own self-consistency floor put that same
+# statistic at 0.09%, so the gap was conditioning, not numerics.
+NO_THINK_SUFFIX = " /no_think"
+
+
+def processbench_prompt(row: dict, thinking_suffix: str = NO_THINK_SUFFIX) -> str:
+    """The conditioning prompt for the teacher-forced pass. See the module docstring.
+
+    Pass `thinking_suffix=""` to condition in thinking mode — a deliberate control arm, never the
+    default, and it must be recorded in the manifest when used.
+    """
     from .data_loaders import math_prompt
-    return math_prompt({"problem": row["problem"]})
+    return math_prompt({"problem": row["problem"]}) + (thinking_suffix or "")
 
 
 # ── the alignment layer ──────────────────────────────────────────────────────

@@ -35,7 +35,10 @@ for p in (REPO, HERE):
         sys.path.insert(0, p)
 
 from evidence_drop import METHODS as EVDROP_METHODS, candidate_risks
-from our_arm import METHODS as OUR_METHODS, SUBSETS, fused_risk, load_cell
+from our_arm import (
+    CANONICAL_POOL, REFERENCE_SUBSETS, assert_upcr_mirrors_canonical, fused_risk,
+    load_cell, upcr_risk_from_cell,
+)
 from selective_metrics import aurc, repeated_split_eval
 
 ALPHAS = (0.05, 0.10, 0.50)
@@ -109,17 +112,42 @@ def score(pkl_path, out_dir, n_splits=200, seed=0, delta=None):
     labels = np.asarray(labels)
 
     # ── our arm, via the canonical feature path ──────────────────────────────
-    # `load_cell`, not `load_repgrid_cell`: the canonical loader omits varentropy, which
-    # would make GOOD_6 silently unscoreable. See our_arm.SIGNS.
+    # `load_cell`, not `load_repgrid_cell`: the canonical loader omits the extended logprob
+    # views, which costs the full pool three views and makes GOOD_6 unscoreable. See our_arm.
     cell = load_cell(pkl_path)
-    for sub_name, feats in SUBSETS.items():
-        for meth in OUR_METHODS:
-            fr, valid = fused_risk(cell, feats, method=meth)
-            if fr is None:
-                continue
-            full = np.full(len(labels), np.nan)
-            full[valid] = fr
-            risks[f"ours_{meth}_{sub_name}"] = full
+
+    # THE HEADLINE ARM: U-PCR over the full 46-view CANONICAL_POOL, polarity from sign(rho-hat),
+    # global sign from the cell's own anchor. Nothing hand-picked. The mirror gate runs FIRST,
+    # against the real `labelfree_standing_report.upcr_rho_oriented`, so a drifted arm cannot
+    # reach the table (project_pool_composition_closed).
+    arm, valid = upcr_risk_from_cell(cell)
+    if arm is None:
+        print("  [WARN] U-PCR declined this cell (prepare_cell found <3 usable views) — "
+              "no headline row will be written")
+    else:
+        fd_gate = {f: np.array([r.get(f, np.nan) for r in cell["rows"]], dtype=float)
+                   for f in arm.pool}
+        g = assert_upcr_mirrors_canonical(fd_gate, np.asarray(cell["labels"], dtype=int))
+        print(f"  U-PCR mirror gate: PASS (drift {g['max_diff']:.1e}, apply "
+              f"{g['apply_max_diff']:.1e})  pool={len(arm.pool)}/{len(CANONICAL_POOL)} "
+              f"kept={arm.n_kept} "
+              f"anchor={arm.anchor_name} imputed={arm.n_imputed}")
+        if arm.dropped:
+            print(f"    dropped views: " + ", ".join(f"{k}({v})" for k, v in
+                                                     sorted(arm.dropped.items())))
+        full = np.full(len(labels), np.nan)
+        full[valid] = arm.risk
+        risks["ours_UPCR_fullpool"] = full
+
+    # Reference rows only — hand-picked subsets carrying prior knowledge the headline arm does
+    # not. Reported beside it, labelled, never as the contribution.
+    for sub_name, feats in REFERENCE_SUBSETS.items():
+        fr, valid = fused_risk(cell, feats)
+        if fr is None:
+            continue
+        full = np.full(len(labels), np.nan)
+        full[valid] = fr
+        risks[f"ref_lsml_{sub_name}"] = full
 
     rows = []
     for name, v in risks.items():
