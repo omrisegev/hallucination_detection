@@ -10341,13 +10341,17 @@ math-competition pilots, and the ProcessBench/localization grid.
 (questions/answers/token stats) to be uploaded, plus GPQA/RAG/EDIS/localization data he recalled
 producing across branches, so the repo is self-sufficient without Drive/cluster access.
 
-**Result**: 89 raw pkl files (~28GB) committed across 5 batches on master, each as its own
-commit. Left behind on purpose: cache/_backup (2.9GB stale duplicate), cache/_incoming (staging),
-and the REJECTED inside_coqa_llama7b cell (documented degenerate-generation bug, Step 216).
-Two GPQA files (2.97GB, 3.2GB) exceed common Git LFS per-file limits and may need attention at
-push time. `git push` hung twice on this machine's credential helper (both a plain branch push
-and the LFS-heavy master push) — six commits (LFS setup + 5 data batches) plus the two worktree
-branches are staged locally and still need `git push` run from Omri's own terminal.
+**Result**: 89 raw pkl files (~28GB) committed on master. Left behind on purpose: cache/_backup
+(2.9GB stale duplicate), cache/_incoming (staging), and the REJECTED inside_coqa_llama7b cell
+(documented degenerate-generation bug, Step 216). Two GPQA files (2.97GB, 3.2GB) exceeded
+GitHub's hard 2GB Git LFS per-object cap — the first push attempt failed on exactly those two
+objects. Fixed by splitting both into `.pkl.part-NN` chunks (reassembly documented in
+dataset_cache/README.md) and rewriting the still-unpushed local commit that introduced them —
+safe because nothing had reached GitHub yet. `git push` hung twice on this machine's credential
+helper (a plain branch push and the LFS-heavy master push) — three master commits (LFS setup,
+the 24-cell batch, and the combined GPQA/RAG/EDIS/ProcessBench batch with this Step 228 write-up)
+plus the two worktree branches are staged locally and still need `git push` run from Omri's own
+terminal.
 
 **Files changed**:
 - `.gitignore`, `.gitattributes` — dataset_cache/ Git LFS tracking + negation of the blanket `*.pkl` ignore

@@ -9,7 +9,9 @@ pre-registered, implemented, and ready for the data machine. No real-data result
 > 89 pkl files, ~28GB, across the 24 in-scope cells + GPQA + RAG + EDIS + ProcessBench/
 > localization. Two worktree branches (`experiment/step-localization`, `selector/a4-antigravity-
 > unsupervised`) had uncommitted work recovered and committed to their own branches (not merged
-> to master). **Six master commits + two branch commits are staged locally and still need
+> to master). Two GPQA files exceeded GitHub's 2GB Git LFS object cap on the first push attempt;
+> fixed by splitting them into `.pkl.part-NN` chunks and rewriting the still-unpushed commit.
+> **Three master commits + two branch commits are staged locally and still need
 > `git push` run from a terminal with working GitHub credentials** — the automated push hangs on
 > this machine's credential helper. Full detail in HISTORY.md Step 228. Note: Step 227 (the three
 > preregistered studies, already committed as `31f0677`/`092233d`) still has no HISTORY.md
