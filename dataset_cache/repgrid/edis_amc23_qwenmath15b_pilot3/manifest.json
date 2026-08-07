@@ -1,0 +1,92 @@
+{
+  "preset_id": "edis_amc23_qwenmath15b",
+  "paper": "EDIS (arXiv 2602.01288)",
+  "model": "Qwen/Qwen2.5-Math-1.5B",
+  "dataset": "amc23",
+  "split": null,
+  "n_samples": 30,
+  "k": 8,
+  "temps": [
+    0.2,
+    0.6,
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 3072,
+  "logprob_top_k": 50,
+  "capture": {
+    "full_entropy": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 100,
+  "published": {
+    "method": "EDIS",
+    "metric": "AUROC (pooled, all 4 datasets x 3 temps)",
+    "value": 80.4,
+    "mean_entropy_baseline": 67.3,
+    "n_responses_paper": 26356,
+    "baseline_acc_amc23": 38.9,
+    "model_note": "See edis_gsm8k_qwenmath15b for the full pooled protocol note."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Section-5.3 protocol cell (AMC23 leg). Full 40-problem set (paper-exact) x k=32 gives ~500 minority-class responses at the paper's own 38.9% baseline acc \u2014 comfortably over the 100 target even at k=8; k=32 kept for CI tightness under the over-collection policy. This was the WORST cell in the pre-fix pilot (12.2% acc vs 38.9% expected, 36% no-boxed) \u2014 see PILOT FINDING above for the eos_token_id stopping-criterion fix, re-piloted before full. is_correct_amc23 grader (numeric boxed match, letter-match fallback unused here).",
+  "job_id": "111384",
+  "seed": 0,
+  "written_utc": "2026-07-14T01:11:04+00:00",
+  "cells": [
+    {
+      "temp": 0.2,
+      "pkl": "raw_amc23_T0.2.pkl",
+      "n_problems": 30,
+      "k": 8,
+      "mean_trace": 1596.3416666666667,
+      "accuracy": 0.15416666666666667,
+      "pos": 37,
+      "neg": 203,
+      "minority": 37,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.154 outside [0.2,0.85]",
+        "minority class 37 < 100"
+      ]
+    },
+    {
+      "temp": 0.6,
+      "pkl": "raw_amc23_T0.6.pkl",
+      "n_problems": 30,
+      "k": 8,
+      "mean_trace": 1308.375,
+      "accuracy": 0.1375,
+      "pos": 33,
+      "neg": 207,
+      "minority": 33,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.138 outside [0.2,0.85]",
+        "minority class 33 < 100"
+      ]
+    },
+    {
+      "temp": 1.0,
+      "pkl": "raw_amc23_T1.0.pkl",
+      "n_problems": 30,
+      "k": 8,
+      "mean_trace": 1049.9875,
+      "accuracy": 0.05,
+      "pos": 12,
+      "neg": 228,
+      "minority": 12,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.050 outside [0.2,0.85]",
+        "minority class 12 < 100"
+      ]
+    }
+  ]
+}

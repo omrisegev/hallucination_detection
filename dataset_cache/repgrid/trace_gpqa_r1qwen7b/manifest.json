@@ -1,0 +1,33 @@
+{
+  "preset_id": "trace_gpqa_r1qwen7b",
+  "paper": "internal \u2014 tier-3 trace-cell regeneration (p2c_gpqa_deepseek_r1_7b)",
+  "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+  "dataset": "gpqa",
+  "split": "train",
+  "n_samples": 198,
+  "k": 10,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {},
+  "head_to_head": null,
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Replaces the single-trace pkl (N=150, main_text/main_entropies only). max_new=2048 for <think> traces.",
+  "job_id": "125097",
+  "seed": 0,
+  "written_utc": "2026-07-20T14:11:36+00:00",
+  "cells": []
+}

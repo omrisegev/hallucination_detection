@@ -1,0 +1,47 @@
+{
+  "preset_id": "gpqa_mistral7b",
+  "paper": "internal \u2014 phase4 gpqa regeneration at true T=1.0 (mislabel retired)",
+  "model": "mistralai/Mistral-7B-Instruct-v0.2",
+  "dataset": "gpqa",
+  "split": "train",
+  "n_samples": 198,
+  "k": 10,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 1024,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {},
+  "head_to_head": null,
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Replaces the Colab phase4 gpqa cell that was T=1.5 data mislabeled as T1.0 in the sweep pool. K=10 matches the phase4 multi-sample protocol; R1-Distill gets max_new=2048 for <think> traces.",
+  "job_id": "125090",
+  "seed": 0,
+  "written_utc": "2026-07-19T21:47:42+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_gpqa_T1.0.pkl",
+      "n_problems": 198,
+      "k": 10,
+      "mean_trace": 503.9707070707071,
+      "accuracy": 0.27121212121212124,
+      "pos": 537,
+      "neg": 1443,
+      "minority": 537,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}

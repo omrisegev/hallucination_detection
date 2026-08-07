@@ -1,0 +1,56 @@
+{
+  "preset_id": "ars_math500_qwen3_8b",
+  "paper": "ARS (arXiv 2601.17467)",
+  "model": "Qwen/Qwen3-8B",
+  "dataset": "math500",
+  "split": null,
+  "n_samples": 30,
+  "k": 1,
+  "temps": [
+    0.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 8192,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "ARS (CCS)",
+    "metric": "AUROC",
+    "value": 78.66,
+    "supervision": "supervised (representation shaping)",
+    "best_baseline": "TSV 63.12",
+    "eigenscore_unsup": 81.38,
+    "model_note": "MATH-500 / Qwen3-8B (ARS Table 1). Unsup anchors from ARS Table 2: EigenScore 81.38."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Reasoning cell: Qwen3 thinking ON. is_correct_math extracts \\boxed{} after </think>. Slowest cell of the grid (long thinking traces): RE-RUN v2 (greedy/mn8192) needs ~3 chained walls at N=500 (T=1.0 run produced 279 in 7.75h at mn4096). Archive the old partial first (mv $SHARED/results/repgrid/ars_math500_qwen3_8b{,_mn4096_partial}).",
+  "job_id": "103533",
+  "seed": 0,
+  "written_utc": "2026-07-11T07:49:32+00:00",
+  "cells": [
+    {
+      "temp": 0.0,
+      "pkl": "raw_math500_T0.0.pkl",
+      "n_problems": 30,
+      "k": 1,
+      "mean_trace": 4584.433333333333,
+      "accuracy": 0.8666666666666667,
+      "pos": 26,
+      "neg": 4,
+      "minority": 4,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.867 outside [0.2,0.85]",
+        "minority class 4 < 30"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "preset_id": "rag_2wikimultihopqa_mistral24b",
+  "paper": "internal \u2014 phase10 L-CiteEval regeneration (full 46-view coverage)",
+  "model": "mistralai/Mistral-Small-24B-Instruct-2501",
+  "dataset": "lciteeval_2wikimultihopqa",
+  "split": "test",
+  "n_samples": 500,
+  "k": 1,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 1024,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.1,
+    0.9
+  ],
+  "min_minority": 30,
+  "published": {},
+  "head_to_head": null,
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Regen of the phase10 Colab cell (same prompt/T/max_new). Stored label is the coarse sample-level grounding label (is_grounded_lciteeval); canonical statement-level labels come from segment_by_citations offline, as in phase10.",
+  "job_id": "125162",
+  "seed": 0,
+  "written_utc": "2026-07-19T15:28:06+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_lciteeval_2wikimultihopqa_T1.0.pkl",
+      "n_problems": 240,
+      "k": 1,
+      "mean_trace": 49.8,
+      "accuracy": 0.058333333333333334,
+      "pos": 14,
+      "neg": 226,
+      "minority": 14,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.058 outside [0.1,0.9]",
+        "minority class 14 < 30"
+      ]
+    }
+  ]
+}

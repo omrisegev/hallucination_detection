@@ -1,0 +1,33 @@
+{
+  "preset_id": "gpqa_r1distill8b",
+  "paper": "internal \u2014 phase4 gpqa regeneration at true T=1.0 (mislabel retired)",
+  "model": "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+  "dataset": "gpqa",
+  "split": "train",
+  "n_samples": 198,
+  "k": 10,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {},
+  "head_to_head": null,
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Replaces the Colab phase4 gpqa cell that was T=1.5 data mislabeled as T1.0 in the sweep pool. K=10 matches the phase4 multi-sample protocol; R1-Distill gets max_new=2048 for <think> traces.",
+  "job_id": "125087",
+  "seed": 0,
+  "written_utc": "2026-07-20T14:11:22+00:00",
+  "cells": []
+}

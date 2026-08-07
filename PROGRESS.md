@@ -1,8 +1,19 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-05
+**Date**: 2026-08-07
 **Last updated**: Step 226 — the dependency-aware weights experiment is paper-corrected,
 pre-registered, implemented, and ready for the data machine. No real-data result exists yet.
+
+> **Step 228 (2026-08-07, infra, not research):** the raw per-cell dataset cache (questions,
+> answers, token-level stats) is now uploaded to the repo under `dataset_cache/` via Git LFS —
+> 89 pkl files, ~28GB, across the 24 in-scope cells + GPQA + RAG + EDIS + ProcessBench/
+> localization. Two worktree branches (`experiment/step-localization`, `selector/a4-antigravity-
+> unsupervised`) had uncommitted work recovered and committed to their own branches (not merged
+> to master). **Six master commits + two branch commits are staged locally and still need
+> `git push` run from a terminal with working GitHub credentials** — the automated push hangs on
+> this machine's credential helper. Full detail in HISTORY.md Step 228. Note: Step 227 (the three
+> preregistered studies, already committed as `31f0677`/`092233d`) still has no HISTORY.md
+> write-up — separate outstanding item, not done this session.
 
 **What changed in Step 226.** Omri's sparse-error idea was confirmed in the Step-223/225 history,
 but the literature baseline needed correction: the actual Tenzer et al. AISTATS 2022 paper already

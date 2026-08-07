@@ -1,0 +1,56 @@
+{
+  "preset_id": "ars_gsm8k_qwen3_8b",
+  "paper": "ARS (arXiv 2601.17467)",
+  "model": "Qwen/Qwen3-8B",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 500,
+  "k": 1,
+  "temps": [
+    0.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 8192,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "ARS (CCS)",
+    "metric": "AUROC",
+    "value": 90.37,
+    "supervision": "supervised (representation shaping)",
+    "best_baseline": "Semantic Entropy 72.51",
+    "eigenscore_unsup": 63.4,
+    "model_note": "GSM8K / Qwen3-8B (ARS Table 1) \u2014 ARS's strongest published cell. Unsup anchors from ARS Table 2: EigenScore 63.40."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Reasoning cell: KEEP Qwen3 thinking ON (no /no_think) \u2014 ARS scores reasoning trajectories. is_correct_gsm8k extracts the boxed/final answer after </think>. CEILING CELL: T=1.0 run (job 101075, partial N=440) had acc 0.904 (~42 negatives); greedy may push higher -> watch the pilot. Greedy+thinking repetition risk: check pilot trace-length dist for cap-pinning. RE-RUN v2 (greedy/mn8192): archive the old partial first (mv $SHARED/results/repgrid/ars_gsm8k_qwen3_8b{,_mn4096_partial}); needs ~2 chained walls (sbatch --dependency=afterany, see submit_inference.sbatch header).",
+  "job_id": "106280",
+  "seed": 0,
+  "written_utc": "2026-07-11T23:29:17+00:00",
+  "cells": [
+    {
+      "temp": 0.0,
+      "pkl": "raw_gsm8k_T0.0.pkl",
+      "n_problems": 500,
+      "k": 1,
+      "mean_trace": 2263.712,
+      "accuracy": 0.942,
+      "pos": 471,
+      "neg": 29,
+      "minority": 29,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.942 outside [0.2,0.85]",
+        "minority class 29 < 30"
+      ]
+    }
+  ]
+}

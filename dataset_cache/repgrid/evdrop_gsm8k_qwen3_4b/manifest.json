@@ -1,0 +1,58 @@
+{
+  "preset_id": "evdrop_gsm8k_qwen3_4b",
+  "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306)",
+  "model": "Qwen/Qwen3-4B",
+  "dataset": "gsm8k",
+  "split": "test",
+  "n_samples": 1319,
+  "k": 1,
+  "temps": [
+    0.0
+  ],
+  "gen_top_p": 0.95,
+  "gen_top_k": 20,
+  "max_new": 1024,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.05,
+    0.98
+  ],
+  "min_minority": 10,
+  "published": {
+    "method": "Evidence Drop (Shannon Drop)",
+    "metric": "selective accuracy @ alpha, and AURC x1000",
+    "pretrained_accuracy": 87.63,
+    "accuracy_source": "Table 1",
+    "evdrop_defaults": {
+      "M": 5,
+      "ema_span": 5,
+      "top_k": 20
+    },
+    "model_note": "Selective accuracy and AURC are monotone in base error rate, so the `pretrained_accuracy` above is a PRECONDITION for comparability, not a secondary statistic. Verification gate 3."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": " /no_think",
+  "notes": "Evidence Drop answer-level cell, NON-THINKING (primary arm). Target accuracy 87.63 (paper Table 1). max_new=1024 is ample for a non-thinking GSM8K answer; if `frac_pinned` within the negative class exceeds 5%, raise it and re-run rather than reporting a truncation-contaminated negative class. Full test split so the calibration half has enough incorrect samples for the alpha-quantile to be an actual quantile.",
+  "job_id": "156012",
+  "seed": 0,
+  "written_utc": "2026-08-03T11:26:15+00:00",
+  "cells": [
+    {
+      "temp": 0.0,
+      "pkl": "raw_gsm8k_T0.0.pkl",
+      "n_problems": 1319,
+      "k": 1,
+      "mean_trace": 309.5921152388173,
+      "accuracy": 0.9120545868081881,
+      "pos": 1203,
+      "neg": 116,
+      "minority": 116,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}

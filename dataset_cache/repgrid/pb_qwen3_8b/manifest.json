@@ -1,0 +1,64 @@
+{
+  "driver": "run_teacher_forced.py",
+  "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306) \u2014 ProcessBench SLA arm",
+  "model": "Qwen/Qwen3-8B",
+  "protocol": "teacher-forced single forward pass over the provided reasoning chain",
+  "prompt": "data_loaders.math_prompt on the problem (OUR choice \u2014 the paper states none)",
+  "prompt_suffix": " /no_think",
+  "thinking_mode": "off",
+  "step_separator": "\\n\\n",
+  "logprob_top_k": 50,
+  "n_samples_per_subset": null,
+  "job_id": "157576",
+  "written_utc": "2026-08-04T04:16:44+00:00",
+  "cells": {
+    "gsm8k": {
+      "n_rows": 400,
+      "n_with_error": 207,
+      "n_all_correct": 193,
+      "mean_steps": 5.205,
+      "mean_tokens": 286.255,
+      "n_unmapped_steps": 0,
+      "n_rows_misaligned": 0,
+      "frac_steps_lt_8_tokens": 0.0,
+      "frac_steps_lt_32_tokens": 0.260806916426513,
+      "median_step_tokens": 51.0
+    },
+    "math": {
+      "n_rows": 1000,
+      "n_with_error": 594,
+      "n_all_correct": 406,
+      "mean_steps": 6.505,
+      "mean_tokens": 523.899,
+      "n_unmapped_steps": 0,
+      "n_rows_misaligned": 0,
+      "frac_steps_lt_8_tokens": 0.0009223674096848578,
+      "frac_steps_lt_32_tokens": 0.15588009223674096,
+      "median_step_tokens": 67.0
+    },
+    "olympiadbench": {
+      "n_rows": 1000,
+      "n_with_error": 661,
+      "n_all_correct": 339,
+      "mean_steps": 8.819,
+      "mean_tokens": 781.284,
+      "n_unmapped_steps": 0,
+      "n_rows_misaligned": 0,
+      "frac_steps_lt_8_tokens": 0.003741920852704388,
+      "frac_steps_lt_32_tokens": 0.13402880145141172,
+      "median_step_tokens": 75.0
+    },
+    "omnimath": {
+      "n_rows": 1000,
+      "n_with_error": 759,
+      "n_all_correct": 241,
+      "mean_steps": 8.291,
+      "mean_tokens": 773.607,
+      "n_unmapped_steps": 0,
+      "n_rows_misaligned": 0,
+      "frac_steps_lt_8_tokens": 0.0022916415390182125,
+      "frac_steps_lt_32_tokens": 0.10951634302255457,
+      "median_step_tokens": 80.0
+    }
+  }
+}

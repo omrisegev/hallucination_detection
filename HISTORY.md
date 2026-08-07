@@ -10324,3 +10324,36 @@ The only remaining work on the data computer is installation, the dataset-free g
 registered runner command.
 
 ---
+
+### Step 228 — Upload the raw dataset cache to the repo via Git LFS; recover two branches' uncommitted work
+
+**What**: Committed uncommitted work sitting in two active worktrees that had never been
+saved to their branches: the ProcessBench/"Mind the Gap" scoring pipeline (score_processbench.py,
+positional_views.py, build_examples.py, localization_report.py, worked_example.py) on
+experiment/step-localization, and the a4-antigravity selector bench results (c46+h16 CSVs) on
+selector/a4-antigravity-unsupervised. Then set up dataset_cache/ as a Git-LFS-tracked exception
+to the cache/repgrid "not for git" policy, and moved five categories of raw per-cell inference
+cache (questions, answers, token-level stats) into it: the 24 in-scope cells, GPQA, RAG, EDIS/
+math-competition pilots, and the ProcessBench/localization grid.
+
+**Why**: Omri believed the 24 in-scope cells' raw caches were already in the repo; they were not
+— only small derived CSV/JSON summaries were ever tracked. He asked for the full raw cache
+(questions/answers/token stats) to be uploaded, plus GPQA/RAG/EDIS/localization data he recalled
+producing across branches, so the repo is self-sufficient without Drive/cluster access.
+
+**Result**: 89 raw pkl files (~28GB) committed across 5 batches on master, each as its own
+commit. Left behind on purpose: cache/_backup (2.9GB stale duplicate), cache/_incoming (staging),
+and the REJECTED inside_coqa_llama7b cell (documented degenerate-generation bug, Step 216).
+Two GPQA files (2.97GB, 3.2GB) exceed common Git LFS per-file limits and may need attention at
+push time. `git push` hung twice on this machine's credential helper (both a plain branch push
+and the LFS-heavy master push) — six commits (LFS setup + 5 data batches) plus the two worktree
+branches are staged locally and still need `git push` run from Omri's own terminal.
+
+**Files changed**:
+- `.gitignore`, `.gitattributes` — dataset_cache/ Git LFS tracking + negation of the blanket `*.pkl` ignore
+- `dataset_cache/README.md` — schema, category breakdown, what was deliberately excluded
+- `dataset_cache/repgrid/**`, `dataset_cache/edis_aime24/**` — 89 raw pkls + manifests
+- `experiment/step-localization` branch — ProcessBench pipeline commit (not merged to master)
+- `selector/a4-antigravity-unsupervised` branch — A4 selector bench results commit (not merged to master)
+
+---

@@ -1,0 +1,55 @@
+{
+  "preset_id": "ars_math500_qwen3_8b",
+  "paper": "ARS (arXiv 2601.17467)",
+  "model": "Qwen/Qwen3-8B",
+  "dataset": "math500",
+  "split": null,
+  "n_samples": 500,
+  "k": 1,
+  "temps": [
+    0.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 16384,
+  "logprob_top_k": 50,
+  "capture": {},
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "ARS (CCS)",
+    "metric": "AUROC",
+    "value": 78.66,
+    "supervision": "supervised (representation shaping)",
+    "best_baseline": "TSV 63.12",
+    "eigenscore_unsup": 81.38,
+    "model_note": "MATH-500 / Qwen3-8B (ARS Table 1). Unsup anchors from ARS Table 2: EigenScore 81.38."
+  },
+  "head_to_head": "SAME-MODEL",
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Reasoning cell: Qwen3 thinking ON. is_correct_math extracts \\boxed{} after </think>. Slowest cell of the grid (long thinking traces): RE-RUN v3 (greedy/mn16384) needs ~4 chained walls at N=500 (mn8192 pilot: 30 problems in 70 min, mean 4584 tok). Stale runs archived as *_mn4096_partial and *_mn8192_pilot \u2014 never resume either (cap-mixing confound).",
+  "job_id": "106308",
+  "seed": 0,
+  "written_utc": "2026-07-12T13:51:42+00:00",
+  "cells": [
+    {
+      "temp": 0.0,
+      "pkl": "raw_math500_T0.0.pkl",
+      "n_problems": 500,
+      "k": 1,
+      "mean_trace": 5400.19,
+      "accuracy": 0.9,
+      "pos": 450,
+      "neg": 50,
+      "minority": 50,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.900 outside [0.2,0.85]"
+      ]
+    }
+  ]
+}

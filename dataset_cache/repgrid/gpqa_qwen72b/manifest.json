@@ -1,0 +1,47 @@
+{
+  "preset_id": "gpqa_qwen72b",
+  "paper": "internal \u2014 GPQA 70B-class regeneration (full 46-view coverage)",
+  "model": "Qwen/Qwen2.5-72B-Instruct",
+  "dataset": "gpqa",
+  "split": "train",
+  "n_samples": 198,
+  "k": 10,
+  "temps": [
+    1.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 1024,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {},
+  "head_to_head": null,
+  "judge": null,
+  "prompt_suffix": "",
+  "notes": "Replaces/extends the Colab-era Qwen2.5-72B-Instruct-AWQ gpqa cell (phase8 protocol: T=1.0, max_new=1024, per-idx choice permutation). Strong model keeps both label classes populated (72B ~50% on Diamond).",
+  "job_id": "125069",
+  "seed": 0,
+  "written_utc": "2026-07-20T12:40:54+00:00",
+  "cells": [
+    {
+      "temp": 1.0,
+      "pkl": "raw_gpqa_T1.0.pkl",
+      "n_problems": 198,
+      "k": 10,
+      "mean_trace": 737.3843434343435,
+      "accuracy": 0.44393939393939397,
+      "pos": 879,
+      "neg": 1101,
+      "minority": 879,
+      "gate_ok": true,
+      "gate_reasons": []
+    }
+  ]
+}
