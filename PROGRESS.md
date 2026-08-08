@@ -1,10 +1,56 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-09
-**Last updated**: localization and RAG benchmark literature consolidated and
-fact-checked after the application pivot.
+**Last updated**: Step 237 — two parallel cluster campaigns (RAGTruth
+evidence-contrast, ProcessBench external-family validation) built and
+launched; Gate-B generation cells submitted.
 
-## Current decision point — unified DUFS-LIU is the simplest leading candidate
+## Current decision point — two cluster campaigns launched (Step 237)
+
+Both applications from the Step 235/236 pivot are now running in parallel on
+AIRCC: **ProcessBench external-family validation** (Llama-3.1-8B-Instruct as
+a new scorer, testing frozen GL-LIU v1 against the unified core-five DUFS-LIU
+candidate with zero selection on the new family's labels) and **RAGTruth
+evidence-contrast** (Qwen2.5-1.5B-Instruct teacher-force-rescoring fixed
+published responses under full/no-context/leave-one-chunk-out conditions,
+fusing the contrasts with a new exogenous evidence graph — chunk-text
+similarity, not score covariance, the same class of independent signal the
+temporal-chain graph supplied for localization).
+
+**Launched**: Gate-B generation cells submitted — job **173188**
+(`gateb_gsm8k_llama31_8b`) and job **173189** (`gateb_gsm8k_qwen25_15b`).
+**Next actions, in order**: (1) Gate-B validation for both
+(`run_teacher_forced.py --validate` / `run_conditional_rescore.py
+--validate`) once the generation cells complete; (2) N=30 pilots for both,
+gated on alignment/chunking/direction sanity; (3) full-scale jobs (3,400
+ProcessBench rows; 16,200 RAGTruth (response,condition) items); (4) fetch,
+freeze-hash, then `scripts/gl_liu_external_v1/run.py` (built and dry-run
+validated) and the RAGTruth evaluator (`scripts/rag_ec_v1/`, not yet built —
+next session).
+
+**A blocking module was reconstructed this step**:
+`spectral_utils/token_feature_views.py` (the `gl_liu_factorial_v2` local-head
+feature contract) was confirmed absent from every branch and stash. Rebuilt
+from the frozen `RUN_DEFINITION.json` contract plus the never-lost
+`positional_views.py` machinery; validated by rerunning the full 8-cell
+factorial study — the three core-dependent headline F1 numbers reproduced to
+16 significant digits, and the broad-pool number preserves the qualitative
+finding (broad underperforms core) even though its exact magnitude differs as
+expected (7 of the 28 broad views have no exact-identity test by
+construction — see the module docstring). Full account, including a real
+`.gitignore` bug found along the way (a bare `*token*` credential pattern was
+silently blocking this exact file from `git add`), in HISTORY.md Step 237.
+
+Preregistrations: `docs/research_notes/ragtruth_ec_preregistration_v1.md`
+(RAG) and `cluster/manifests/{pb_llama31_8b_external_v1,ragtruth_ec_v1}.json`
+(both campaigns' competitor gates). Full narrative: HISTORY.md Step 237.
+
+---
+
+<details>
+<summary>Step 235/236 — unified DUFS-LIU frozen; localization/RAG literature consolidated (superseded as the session's current-decision section by Step 237 above, still current for the underlying algorithmic conclusions)</summary>
+
+## Previous decision point — unified DUFS-LIU is the simplest leading candidate
 
 The approved follow-up to the GL-LIU v1 handoff is complete. Two controlled
 2x2 matrices separated the choice of local graph from the choice of local
@@ -63,6 +109,8 @@ spectral fusion of dependent evidence contrasts. RAGTruth remains the primary
 span benchmark; TRIVIA+ is a strong long-context and label-noise confirmation
 candidate; RAGBench is a falsification test; and L-CiteEval is reserved for an
 explicit citation claim.
+
+</details>
 
 ---
 

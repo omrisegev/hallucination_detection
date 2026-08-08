@@ -11061,3 +11061,140 @@ external verifiers as separate ceilings.
 `docs/research_notes/evidence_contrast_upcr_rag_direction.md`.
 
 ---
+
+### Step 237 — two parallel cluster campaigns built and launched: RAGTruth evidence-contrast and ProcessBench external-family validation
+
+**Prompt**: Omri asked to attack the RAG-grounding and reasoning-localization
+frontiers with the DUFS-LIU Laplacian core as the algorithmic contribution, no
+K>1 generation this round, both campaigns collecting data on the cluster in
+parallel. Also asked what Mind the Gap compared itself with and what other RAG
+methods do — both answered from the Step 236 research plus a direct read of
+the paper PDF (see the digest refresh below).
+
+**Design principle carried into both campaigns**: every graph that failed in
+Steps 227–230 was endogenous, built from the same feature covariance it
+regularized. The two graphs that worked — the temporal chain and the DUFS gate
+anchored to it — are exogenous. The RAG campaign's new evidence graph (nodes =
+intervention views, edges = chunk-text similarity, not score covariance)
+follows the same rule.
+
+**Merge and housekeeping**: committed the outstanding SemGrad/HLE generation
+work as its own commit, merged Codex's `3581d9b` (the two method/benchmark
+maps), and merged `experiment/step-localization` into master (5 conflicts:
+HISTORY.md spliced to keep both sides in chronological order; PROGRESS.md and
+Research_Directions.md kept the newer status, with one caveat sentence about
+teacher-forcing folded in from the older side; the mind-the-gap digest took
+the branch's from-the-actual-PDF rewrite over master's stale abstract-only
+card; a corrupted duplicate `localization_report.html` resolved to the clean
+side). Found and fixed a real bug in `.gitignore`: a bare `*token*` line meant
+for credential files was silently blocking `git add` on any source file with
+"token" in its name, including the very module this step needed to
+reconstruct — narrowed to actual credential-filename patterns.
+
+**Campaign B — ProcessBench, Llama-3.1-8B-Instruct as a new scorer family.**
+`spectral_utils/token_feature_views.py` (the local-head feature contract
+`gl_liu_factorial_v2` needs) was confirmed absent from every branch and stash.
+Reconstructed it from the frozen `RUN_DEFINITION.json` contract plus
+`positional_views.py`'s unlost windowed-series machinery. A naive per-token
+implementation of the three views with no exact-identity test (rolling
+spectral tuple, Hurst, permutation entropy) made an 8-cell run exceed a
+10-minute foreground budget; a stride-then-forward-fill construction (not
+linear interpolation, which was verified to leak ~2 tokens of lookahead
+before being replaced) cut the combined cost per 1500-token row from 0.63s to
+0.07s. The reconstruction was accepted on two grounds: its own 8-check smoke
+test (exact MAX/MIN/MEAN collapse identities against `feature_utils`/
+`repgrid_scoring` on synthetic data) and a full rerun of
+`gl_liu_factorial_v2` on the real 8 archived cells. The three core-dependent
+headline numbers reproduced exactly — `mindgap_control_f1` 0.2570758394046303,
+`gl_liu_v1_reproduced_f1` 0.3135826458515879, `unified_core_f1`
+0.31723797415195304, all to 16 significant digits — while `verify.py`'s
+SHA256 hash check failed uniformly across all four checks on every cell,
+including `global_iu`/`global_dufs`, which never touch the new module at all.
+That uniformity is exculpatory: a bug in the reconstruction would fail the
+token-dependent checks selectively, not the answer-level ones too. The
+explanation is ordinary cross-machine BLAS/thread floating-point
+non-determinism, invisible to rank-based metrics but fatal to a bit-exact
+hash. The broad-28 pool's own headline (0.29811 vs archived 0.29028) differs
+by the expected amount — those 7 views have no exact-identity test by
+construction — but preserves the qualitative finding: broad still
+underperforms core, by 1.91pp here versus 2.70pp archived, same direction.
+
+Built `scripts/gl_liu_external_v1/` (`run.py`, `token_baselines.py`,
+`cells_llama31_8b.json`): reuses `answer_detectors`/`token_scores`/
+`mindgap_control`/`token_locators` unchanged from `scripts/gl_liu_v1/run.py`,
+reads the frozen v1 control and unified-core candidate names from
+`results/ours_only_localization_v1/selection.json` rather than recomputing
+selection on the new family's own labels, and adds six transparent locator
+baselines (max-entropy, min-token-prob, entropy-CUSUM, single change-point,
+random, last-step) paired with the candidate's detector — the check neither
+GL-LIU v1 nor the factorial study ever ran. Dry-run against the existing
+`qwen3_4b/gsm8k` cell: frozen v1 34.37% F1, unified-core 31.69%, both close to
+their 8-cell headlines; every baseline scores below both real systems except
+max-entropy/entropy-CUSUM, which are competitive but still lose.
+
+Added `gateb_gsm8k_llama31_8b` (`cluster/presets_localization.py`) and the
+competitor-gate manifest `cluster/manifests/pb_llama31_8b_external_v1.json`
+(naming Mind the Gap and uPRM, comparison level 3 — same dataset, quoted
+numbers).
+
+**Campaign A — RAGTruth evidence-contrast, Qwen2.5-1.5B-Instruct scorer.**
+Vendored the actual corpus (17,790 responses, pinned to GitHub commit
+`c103204b`) under `data/ragtruth_protocol/` — untracked by the existing
+`data/` convention, reaches the cluster via `sync_code.sh`'s tar, not git.
+Measured finding: **100% of the 900 test-split Summary rows have zero
+`"\n\n"` breaks** — the documented paragraph-split fallback is the universal
+case for that task type, not a rare edge case, so the leave-one-chunk-out
+condition and the evidence graph have real coverage only on QA and Data2txt
+this round.
+
+Built `spectral_utils/ragtruth.py`: every evidence condition is built by
+**prompt surgery** on the original published prompt (locate the evidence
+substring — verified exact for QA/Summary/Data2txt on all 2,700/2,700 test
+rows — and edit only that substring), never by reconstructing the
+surrounding instruction text. `distinct_conditions` drops the `loo_0`==`noctx`
+duplicate the Summary finding above produces. Full test split: 16,200
+(response, condition) items across 2,700 responses (mean 6.0 conditions/
+response).
+
+Built `cluster/run_conditional_rescore.py` (+ sbatch template +
+`presets_ragtruth.py`'s `gateb_gsm8k_qwen25_15b`): teacher-forced
+evidence-condition rescoring, modeled on `run_teacher_forced.py`, with
+`repetition_penalty=1.0` forced explicitly at the Gate-B preset (Qwen2.5-
+Instruct's `generation_config` default of 1.05 would otherwise silently
+invalidate the gate against the penalty-free code path the actual scoring
+passes use) and a 30k-token context guard.
+
+Built `spectral_utils/evidence_contrast.py`: per-token Δ views (entropy/NLL/
+logsumexp deltas for `noctx` and leave-one-chunk-out max/mean, per-token
+Jensen-Shannon divergence between top-K distributions) and
+`build_evidence_graph` — TF-IDF word-cosine similarity between chunk texts,
+the new exogenous graph construction. 6/6 smoke checks pass, including
+graceful degradation for a response with no interventions (needed by the
+full-context-only and fusion-isolation arms).
+
+Wrote the preregistration
+(`docs/research_notes/ragtruth_ec_preregistration_v1.md`) and the competitor
+gate manifest (naming GASP, RT4CHART, LettuceDetect;
+`cluster/manifests/ragtruth_ec_v1.json`) — the frozen arm roster includes a
+fusion-isolation ablation (EC views + naive average, no U-PCR/DUFS-LIU) as a
+registered primary, since GASP already does evidence perturbation and the
+entire novelty claim rests on the Laplacian fusion beating that row.
+
+**Launched**: code and the vendored corpus synced to `$SHARED/code` (verified
+file-by-file intact after the transfer, despite a benign `tar: file changed
+as we read it` warning from concurrent local commits). Gate-B generation
+cells submitted for both campaigns — job **173188** (`gateb_gsm8k_llama31_8b`)
+and job **173189** (`gateb_gsm8k_qwen25_15b`) — running on gpu-node-01 and
+gpu-node-02. Gate-B validation, the N=30 pilots, and the full-scale jobs are
+the next actions once these land.
+
+**Files**: `spectral_utils/{token_feature_views,ragtruth,evidence_contrast}.py`,
+`cluster/run_conditional_rescore.py`,
+`cluster/submit_conditional_rescore.sbatch.template`,
+`cluster/presets_ragtruth.py`, `cluster/presets_localization.py` (Llama Gate-B
+preset), `scripts/gl_liu_external_v1/`,
+`cluster/manifests/{pb_llama31_8b_external_v1,ragtruth_ec_v1}.json`,
+`docs/research_notes/ragtruth_ec_preregistration_v1.md`,
+`data/ragtruth_protocol/` (untracked; provenance in its own `PROVENANCE.md`).
+
+---
