@@ -182,6 +182,32 @@ def register_all(presets: dict, preset_fn) -> dict:
         **_think,
     )
 
+    # ── Gate-B validation cell for the Step-236 external-family campaign ──────
+    # `scripts/gl_liu_external_v1` scores Llama-3.1-8B-Instruct on ProcessBench via
+    # cluster/run_teacher_forced.py — a NEW scorer family relative to the eight existing
+    # Qwen3 cells. That driver's Gate B needs a GENERATED Llama-3.1-8B cell with
+    # `gen_token_ids`/`token_entropies` saved to validate against; no existing preset uses
+    # this model. Greedy, no /no_think suffix (that switch is Qwen3-specific and would
+    # inject a meaningless literal into a Llama prompt — see docs/methods and the
+    # `--prompt-suffix ""` note in the external-campaign submission commands).
+    new["gateb_gsm8k_llama31_8b"] = preset_fn(
+        paper="Step-236 external-family localization campaign — Gate-B validation only",
+        model="meta-llama/Llama-3.1-8B-Instruct",
+        dataset="gsm8k", split="test", n_samples=100,
+        k=1, temps=[0.0],
+        max_new=1024,
+        logprob_top_k=50,
+        capture={"logsumexp": True},
+        acc_band=(0.0, 1.0), min_minority=0,
+        notes=(
+            "VALIDATION-ONLY cell for cluster/run_teacher_forced.py's Gate B against the "
+            "NEW Llama-3.1-8B-Instruct scorer family. Never a data cell for any reported "
+            "result. Greedy, no prompt_suffix (Llama, not Qwen3 — /no_think is meaningless "
+            "here). Run the ProcessBench teacher-forced pass with --prompt-suffix \"\" to "
+            "match this cell's conditioning exactly."
+        ),
+    )
+
     clash = sorted(set(new) & set(presets))
     if clash:
         raise KeyError(

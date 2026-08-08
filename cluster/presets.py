@@ -1084,6 +1084,12 @@ try:
 except ImportError:
     pass
 
+try:
+    from presets_ragtruth import register_all as _register_ragtruth
+    _register_ragtruth(PRESETS, _preset)
+except ImportError:
+    pass
+
 
 def get_preset(preset_id: str) -> dict:
     if preset_id not in PRESETS:

@@ -1,0 +1,75 @@
+#!/bin/bash
+# TEMPLATE for cluster/submit_conditional_rescore.sbatch — the live file is gitignored
+# because it carries a hardcoded HF_TOKEN, exactly like submit_inference.sbatch and
+# submit_teacher_forced.sbatch.
+#
+# To regenerate the live file ON THE CLUSTER, lifting the token from a file that already
+# has one rather than pasting it into a session:
+#
+#   cd /shared/cycle2_tau_averbuch_prj/omrisegev1/code
+#   tok=$(grep -m1 '^export HF_TOKEN=' cluster/submit_inference.sbatch | cut -d= -f2-)
+#   sed "s|^export HF_TOKEN=.*|export HF_TOKEN=$tok|" \
+#       cluster/submit_conditional_rescore.sbatch.template > cluster/submit_conditional_rescore.sbatch
+#
+# NEVER commit the live file.
+#
+# WHAT THIS RUNS — and why it is cheap
+# ------------------------------------
+# `cluster/run_conditional_rescore.py`: teacher-forced rescoring of FIXED, already-published
+# RAGTruth responses under several evidence conditions (full context / no context /
+# leave-one-chunk-out). No generation at all. The full RAGTruth test split (2,700 responses,
+# ~16,200 (response,condition) items at mean 6.0 conditions/response — see
+# data/ragtruth_protocol/PROVENANCE.md) on a 1.5B scorer is a small job next to any
+# generation cell.
+#
+# Wall-safety is identical to submit_teacher_forced.sbatch: --signal=B:TERM@900 reaches the
+# driver after exec, it checkpoints and exits 85 (EXIT_INCOMPLETE). Slurm does NOT requeue on
+# that exit, so CHAIN THE RESUMES AT SUBMIT TIME; a resume of a finished cell is an idempotent
+# no-op:
+#
+#   ARGS="--model Qwen/Qwen2.5-1.5B-Instruct --split test --out $SHARED/results/ragtruth_ec_qwen25_15b"
+#   jid=$(sbatch -p power-gpu --qos=owner_880 cluster/submit_conditional_rescore.sbatch $ARGS | awk '{print $4}')
+#   jid=$(sbatch --dependency=afterany:$jid -p power-gpu --qos=owner_880 cluster/submit_conditional_rescore.sbatch $ARGS | awk '{print $4}')
+#
+# Submit (partition/QoS on the command line; trailing args go to run_conditional_rescore.py):
+#
+#   # Gate B first — teacher-forcing agreement against a GENERATED cell of the SAME model,
+#   # generated with repetition_penalty=1.0 (the gateb_gsm8k_qwen25_15b preset). Nothing is
+#   # written by this call.
+#   sbatch -p power-gpu --qos=owner_880 cluster/submit_conditional_rescore.sbatch \
+#       --model Qwen/Qwen2.5-1.5B-Instruct --validate \
+#       --validate-pkl /shared/cycle2_tau_averbuch_prj/omrisegev1/results/gateb_gsm8k_qwen25_15b/raw_gsm8k_T0.0.pkl \
+#       --validate-dataset gsm8k --validate-n 20
+#
+#   # then a pilot (30 responses, all task types, stratified), then the full test split
+#   sbatch -p power-gpu --qos=owner_880 cluster/submit_conditional_rescore.sbatch \
+#       --model Qwen/Qwen2.5-1.5B-Instruct --split test --n-samples 30 \
+#       --out /shared/cycle2_tau_averbuch_prj/omrisegev1/results/ragtruth_ec_pilot
+#
+#SBATCH --job-name=spectral_ec
+#SBATCH --gpus=1
+#SBATCH --time=08:00:00
+#SBATCH --requeue
+#SBATCH --signal=B:TERM@900
+#SBATCH --output=/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/%x_%j.out
+#SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
+#SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
+#SBATCH --container-workdir=/shared/cycle2_tau_averbuch_prj/omrisegev1/code
+# No --container-name on purpose — see submit_teacher_forced.sbatch.template's note on
+# same-node enroot rootfs collisions between concurrently submitted jobs.
+
+set -uo pipefail
+
+SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
+export HF_HOME=$SHARED/hf_cache
+export HF_DATASETS_CACHE=$SHARED/hf_cache/datasets
+export PIP_CACHE_DIR=$SHARED/pip_cache
+export PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID}
+mkdir -p "$PYTHONUSERBASE"
+export HF_TOKEN=REPLACE_ME
+
+echo "[sbatch] job $SLURM_JOB_ID on $(hostname), args: $*"
+
+pip install -q --user -r cluster/requirements.txt
+
+exec python cluster/run_conditional_rescore.py "$@"

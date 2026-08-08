@@ -1,0 +1,88 @@
+{
+  "version": "ragtruth_ec_v1",
+  "purpose": "Evidence-Contrast U-PCR/DUFS-LIU: teacher-forced rescoring of fixed RAGTruth responses under full/no-context/leave-one-chunk-out evidence conditions, for response-level grounding detection and span localization",
+  "written_utc": "2026-08-09",
+
+  "scorer": {
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "note": "OFF-POLICY scoring -- this scorer is NOT any of RAGTruth's 6 original generator models (gpt-4-0613, gpt-3.5-turbo-0613, mistral-7B-instruct, llama-2-{7b,13b,70b}-chat). Chosen to match the scorer class GASP used, for protocol comparability with the closest direct competitor.",
+    "repetition_penalty_trap": "Qwen2.5-Instruct's generation_config default is 1.05; the campaign's teacher-forced passes use warpers=None with no rep_penalty (correct, since there is no warp of OURS to mirror for someone else's fixed response). Gate B validates this exact code path via a repetition_penalty=1.0 generated cell (preset gateb_gsm8k_qwen25_15b)."
+  },
+
+  "protocol": {
+    "driver": "cluster/run_conditional_rescore.py",
+    "corpus": "RAGTruth (Niu et al. 2024, ACL) -- data/ragtruth_protocol/PROVENANCE.md, pinned commit c103204b9ce28d6bbad859304bf30de72b8ed8fe",
+    "unit": "teacher-forced rescoring of a FIXED published response; nothing is generated",
+    "conditions": "full context, no context, leave-one-chunk-out (per-task-type chunking: QA=3 passages, Data2txt=9 top-level JSON fields, Summary=1 whole-document chunk -- see PROVENANCE.md for why Summary has no sub-structure in this corpus)",
+    "prompt_construction": "prompt surgery on the ORIGINAL published prompt (source_info.jsonl's `prompt` field) -- the evidence substring is edited in place, never reconstructed from a template",
+    "split_round_1": "test split (2,700 responses, 16,200 (response,condition) items) + a 150-source_id dev slice drawn from train",
+    "splits_and_bootstrap": "grouped by source_id (never by response row) -- up to 6 responses share one source"
+  },
+
+  "frozen_arm_roster": {
+    "1_full_context_only_dufs_liu": "no evidence interventions; core-five token views from the 'full' pass only",
+    "2_likelihood_drop_baseline": "mean(NLL_noctx - NLL_full), the simplest evidence-sensitivity score",
+    "3_gasp_reproduction": "faithful reproduction of GASP's likelihood-change / JS-divergence perturbation score on the SAME teacher-forced passes (scripts/rag_ec_v1/gasp.py; fidelity level declared per the tailor-not-transplant convention)",
+    "4_ec_upcr": "evidence-contrast views fused with the deployed U-PCR solver",
+    "5_ec_dufs_liu_temporal": "evidence-contrast views fused with DUFS-LIU, temporal-chain Laplacian (default arm)",
+    "5b_ec_dufs_liu_evidence_graph": "evidence-contrast views fused with DUFS-LIU, EXOGENOUS evidence graph (nodes=intervention views, edges=TF-IDF chunk-text similarity) -- the new graph construction this campaign tests",
+    "6_fusion_isolation_ablation": "EC views + naive average, NOT U-PCR/DUFS-LIU -- THE NOVELTY CLAIM RESTS ON ROW 5/5b BEATING THIS ROW, since GASP already does evidence perturbation; unsupervised fusion of dependent contrasts is the only claimed contribution beyond GASP",
+    "quoted_ceilings_not_rerun": ["LettuceDetect (79.22% example F1, RAGTruth)", "RT4CHART (0.776 response F1, RAGTruth++)"]
+  },
+
+  "mandatory_competitor_gate": {
+    "named_competitors": [
+      {
+        "method": "GASP",
+        "paper": "arXiv 2607.04223",
+        "dataset_subset": "RAGTruth (response + span AUROC), TofuEval (transfer), short-answer RAGBench (falsification)",
+        "protocol": "fixed-answer evidence perturbation: full/no-context/leave-one-passage-out likelihood changes + JS divergence",
+        "supervision_access_sampling": "training-free, gray-box, multi-pass (m+2 conditions per response)",
+        "comparison_level": "1 (same exact outputs, RAGTruth published responses) for the faithful reproduction arm; 2 (same protocol) if scorer model differs from GASP's own choice",
+        "published_numbers": "~0.73 response AUROC / ~0.67 span AUROC on RAGTruth"
+      },
+      {
+        "method": "RT4CHART",
+        "paper": "arXiv 2603.27752",
+        "dataset_subset": "RAGTruth++ (response F1), RAGTruth-Enhance (span F1)",
+        "protocol": "claim decomposition + external verification against context",
+        "supervision_access_sampling": "external verifier model + claim decomposition, not gray-box",
+        "comparison_level": "3 (same dataset only) -- quoted as an external-verifier ceiling, not rerun"
+      },
+      {
+        "method": "LettuceDetect",
+        "paper": "arXiv 2502.17125",
+        "dataset_subset": "RAGTruth",
+        "protocol": "ModernBERT token classifier over context-question-answer triples",
+        "supervision_access_sampling": "supervised (trained on RAGTruth labels)",
+        "comparison_level": "3 (same dataset only) -- quoted as a supervised ceiling, not rerun"
+      }
+    ],
+    "comparison_level_definition": "1=same exact outputs, 2=same protocol/new sampling, 3=same dataset only (docs/research_notes/external_data_collection_plan_2026.md)"
+  },
+
+  "gate_b": {
+    "validation_preset": "gateb_gsm8k_qwen25_15b",
+    "requires": "a GENERATED greedy Qwen2.5-1.5B-Instruct cell with repetition_penalty=1.0 forced, gen_token_ids + token_entropies saved",
+    "thresholds": {"median_abs_diff_max": 0.05, "median_corr_min": 0.999,
+                   "fallback": "self-consistency floor (batch=1 vs batch=8)"}
+  },
+
+  "sequence": [
+    "1. local smokes: spectral_utils.ragtruth.smoke(), scripts/rag_ec_v1/smoke_ragtruth.py, smoke_preset.py gateb_gsm8k_qwen25_15b",
+    "2. bash cluster/sync_code.sh; push data/ragtruth_protocol/ explicitly (untracked, not in sync_code's tar)",
+    "3. submit gateb_gsm8k_qwen25_15b (N=100 greedy, repetition_penalty=1.0) via submit_inference.sbatch",
+    "4. Gate B: submit_conditional_rescore.sbatch --model Qwen/Qwen2.5-1.5B-Instruct --validate --validate-pkl <gateb raw pkl> --validate-dataset gsm8k --validate-n 20",
+    "5. N=30 pilot stratified over 3 task types x all distinct conditions (~150-200 passes); gate on alignment/chunking/direction sanity",
+    "6. full test split (~16,200 passes) + dev slice, chained --dependency=afterany walls",
+    "7. fetch, schema-validate (scripts/rag_ec_v1/inspect_conditional_cell.py), freeze hash, then scripts/rag_ec_v1/run.py"
+  ],
+
+  "label_policy": {
+    "score_fit": "no labels",
+    "score_hash": "before labels are read",
+    "threshold_calibration": "grouped by source_id",
+    "evaluation": "labels (response_label, span_labels) after scores freeze",
+    "preregistration_doc": "docs/research_notes/ragtruth_ec_preregistration_v1.md"
+  }
+}

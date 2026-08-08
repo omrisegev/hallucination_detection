@@ -38,10 +38,19 @@ desktop.ini
 # Keys / credentials
 keys.txt
 *.pem
-*token*
+# Narrowly scoped: a bare *token* previously matched any source file with "token" in its
+# name (e.g. spectral_utils/token_feature_views.py silently failed to `git add` under it,
+# with only a suppressible warning) — restrict to actual credential-shaped filenames.
+*.token
+.token*
+*_token.txt
+*_token.json
+hf_token*
+api_token*
 # Live sbatch carries a hardcoded HF_TOKEN — only the .template is tracked
 cluster/submit_inference.sbatch
 cluster/submit_teacher_forced.sbatch
+cluster/submit_conditional_rescore.sbatch
 
 # Generated plots (large, reproducible)
 *.png

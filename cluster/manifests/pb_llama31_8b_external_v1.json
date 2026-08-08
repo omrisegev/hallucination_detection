@@ -1,0 +1,82 @@
+{
+  "version": "pb_llama31_8b_external_v1",
+  "purpose": "External scorer-family validation of frozen GL-LIU v1 vs unified core-five DUFS-LIU on ProcessBench, using Llama-3.1-8B-Instruct as the teacher-forcing scorer (all 8 existing cells used Qwen3-4B/8B only)",
+  "written_utc": "2026-08-09",
+
+  "frozen_roster": {
+    "control": {
+      "name": "GL-LIU v1 (frozen)",
+      "detector": "answer_dufs_liu_mixed",
+      "locator": "token_temporal_liu_l0p3",
+      "source": "results/ours_only_localization_v1/selection.json"
+    },
+    "candidate": {
+      "name": "unified core-five DUFS-LIU",
+      "detector": "answer_dufs_liu_mixed",
+      "locator": "token_dufs_liu_l0p3",
+      "source": "results/gl_liu_factorial_v2/RUN_DEFINITION.json (factorial_1: global_dufs x local_dufs_core)"
+    },
+    "transparent_token_baselines": [
+      "max_entropy_step", "min_token_prob_step", "entropy_cusum_argmax_step",
+      "change_point_step", "random_step", "last_step"
+    ],
+    "no_selection_on_new_cells": "control and candidate names are read from the artifacts above, never recomputed from the Llama cells' own labels; DEV = {(qwen3_4b, gsm8k), (qwen3_4b, math)} does not move"
+  },
+
+  "mandatory_competitor_gate": {
+    "named_competitors": [
+      {
+        "method": "Mind the Gap / Evidence Drop",
+        "paper": "Chen, Chen, Yue, Li — ICML 2026, PMLR 306",
+        "dataset_subset": "same 4 ProcessBench subsets (GSM8K, MATH, OlympiadBench, Omni-MATH), Qwen3-4B/8B only — NOT run on Llama-3.1-8B",
+        "protocol": "teacher-forced single forward pass, Shannon-entropy Drop score, SLA metric (own reported numbers only; also reproduced in-repo under our F1 protocol at scripts/gl_liu_v1/localization/evidence_drop.py)",
+        "supervision_access_sampling": "training-free, gray-box (top-K logprobs), single-pass",
+        "comparison_level": "3 (same dataset only) — quoted from the paper / our existing Qwen3 reproduction, not rerun on Llama"
+      },
+      {
+        "method": "uPRM (Unsupervised Process Reward Models)",
+        "paper": "arXiv 2605.10158",
+        "dataset_subset": "ProcessBench first-error localization (subset/model TBD by /paper-digest audit)",
+        "protocol": "next-token-probability-based unsupervised scoring, batch-joint candidate evaluation",
+        "supervision_access_sampling": "unsupervised, gray-box (next-token probabilities), reported as label-free",
+        "comparison_level": "3 (same dataset only) — quoted, not rerun; first published label-free peer to audit per docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md"
+      }
+    ],
+    "comparison_level_definition": "1=same exact outputs, 2=same protocol/new sampling, 3=same dataset only (docs/research_notes/external_data_collection_plan_2026.md)"
+  },
+
+  "protocol": {
+    "driver": "cluster/run_teacher_forced.py",
+    "scorer_model": "meta-llama/Llama-3.1-8B-Instruct",
+    "conditioning": "no /no_think suffix (Qwen3-specific switch, meaningless for Llama) -- pass --prompt-suffix \"\"",
+    "dataset": "Qwen/ProcessBench (arXiv 2412.06559), all 4 subsets, full N=3400",
+    "prompt": "data_loaders.math_prompt on the problem (our pre-registered choice, same as the Qwen3 cells)",
+    "decoding": "teacher-forced greedy single forward pass over the GIVEN reasoning chain -- nothing is generated",
+    "step_separator": "\\n\\n",
+    "logprob_top_k": 50
+  },
+
+  "gate_b": {
+    "validation_preset": "gateb_gsm8k_llama31_8b",
+    "requires": "a GENERATED greedy Llama-3.1-8B-Instruct cell (gen_token_ids + token_entropies saved), no prompt_suffix",
+    "thresholds": {"median_abs_diff_max": 0.05, "median_corr_min": 0.999,
+                   "fallback": "self-consistency floor (batch=1 vs batch=8)"}
+  },
+
+  "sequence": [
+    "1. python scripts/smoke_preset.py gateb_gsm8k_llama31_8b (local, CPU)",
+    "2. submit gateb_gsm8k_llama31_8b via submit_inference.sbatch (N=100 greedy)",
+    "3. Gate B: submit_teacher_forced.sbatch --model meta-llama/Llama-3.1-8B-Instruct --validate --validate-pkl <gateb raw pkl> --validate-dataset gsm8k --validate-prompt-suffix \"\" --validate-n 20",
+    "4. N=30 pilot: --n-samples 30 --prompt-suffix \"\" --out .../pb_llama31_8b_pilot; gate on n_rows_misaligned==0, n_unmapped_steps==0",
+    "5. full N=3400: --prompt-suffix \"\" --out .../pb_llama31_8b, chained --dependency=afterany walls",
+    "6. fetch to dataset_cache/repgrid/pb_llama31_8b/, validate with load_rows(), then scripts/gl_liu_external_v1/run.py"
+  ],
+
+  "label_policy": {
+    "score_fit": "no labels",
+    "score_hash": "before labels are read (results/gl_liu_external_v1/FREEZE_MANIFEST.json)",
+    "threshold_calibration": "labels in calibration half only, 100 repeated splits",
+    "evaluation": "labels after scores freeze",
+    "tuning": "none -- frozen v1 selection carried unchanged; only the token_feature_views reconstruction (Step 236) was independently reproduction-tested against the 8 Qwen3 cells before being trusted on new data"
+  }
+}
