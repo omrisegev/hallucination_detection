@@ -81,6 +81,12 @@ automatically supervised PRMs, and critic models should be reported in separate
 access categories. See
 `docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md`.
 
+**Step 237 (2026-08-09): external-family confirmation launched.** Llama-3.1-8B-Instruct
+teacher-forced ProcessBench scoring (Gate-B generation cell submitted, job 173188) tests
+frozen GL-LIU v1 against the unified core-five DUFS-LIU candidate with zero selection on
+the new family's labels. `scripts/gl_liu_external_v1/run.py` is built and dry-run validated.
+See HISTORY.md Step 237 and `cluster/manifests/pb_llama31_8b_external_v1.json`.
+
 ### Application priority 2: hallucination in RAG citations
 
 RAG supplies the independent view that the core-algorithm experiments were
@@ -112,6 +118,16 @@ manifest, label boundary, and failure tests are registered.
 
 Canonical plan:
 `docs/research_notes/evidence_contrast_upcr_rag_direction.md`.
+
+**Step 237 (2026-08-09): implementation launched.** RAGTruth vendored
+(`data/ragtruth_protocol/`), the preregistration frozen
+(`docs/research_notes/ragtruth_ec_preregistration_v1.md`), and the Qwen2.5-1.5B
+Gate-B generation cell submitted (job 173189). The evidence graph is a NEW
+exogenous construction — chunk-text TF-IDF similarity, not score covariance —
+built in `spectral_utils/evidence_contrast.py`. Measured finding: RAGTruth's
+Summary task has zero natural paragraph structure in 100% of test rows, so
+the leave-one-chunk-out condition only has real coverage on QA and Data2txt
+this round. See HISTORY.md Step 237.
 
 The consolidated RAG field map is
 `docs/research_notes/rag_localization_methods_and_benchmarks_2026.md`. It
