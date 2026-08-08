@@ -19,6 +19,11 @@ from spectral_utils.feature_contract import (                         # noqa: E4
     confidence_sign_vector,
     consensus_anchor,
 )
+from spectral_utils.dufs_liu_feature_contract import (                # noqa: E402
+    FEATURE_ORDER,
+    FEATURE_TRANSFORMS,
+    dufs_liu_mixed_v2_matrix,
+)
 from spectral_utils.feature_utils import FEAT_NAMES                    # noqa: E402
 from spectral_utils.subset_sweep import (                             # noqa: E402
     ALL_SIGNS,
@@ -86,6 +91,30 @@ def main():
           and not (set(stable_names) & FIXED_STABLE_EXCLUDED_V1))
     check("stable signs align with stable names",
           np.array_equal(stable_signs, confidence_sign_vector(stable_names)))
+
+    candidate_raw = np.random.default_rng(11).normal(size=(201, len(names)))
+    candidate, candidate_names, details = dufs_liu_mixed_v2_matrix(
+        candidate_raw, names,
+    )
+    check("mixed-v2 covers exactly the four quarantined parents",
+          tuple(FEATURE_ORDER) == (
+              "pe_mean", "stft_spectral_entropy", "cusum_shift_idx", "rpdi"
+          ) and set(FEATURE_TRANSFORMS) == FIXED_STABLE_EXCLUDED_V1)
+    check("mixed-v2 freezes the selected per-feature operations",
+          dict(FEATURE_TRANSFORMS) == {
+              "pe_mean": "squared",
+              "stft_spectral_entropy": "mode",
+              "cusum_shift_idx": "raw",
+              "rpdi": "raw",
+          })
+    check("mixed-v2 replaces rather than duplicates columns",
+          candidate.shape == candidate_raw.shape and candidate_names == tuple(names))
+    check("mixed-v2 output is finite and standardized",
+          np.isfinite(candidate).all()
+          and np.allclose(candidate.mean(axis=0), 0.0, atol=1e-10)
+          and np.allclose(candidate.std(axis=0), 1.0, atol=1e-10))
+    check("mixed-v2 records every applied special operation",
+          set(details) == set(FEATURE_ORDER))
 
     rng = np.random.default_rng(17)
     shared = rng.normal(size=200)

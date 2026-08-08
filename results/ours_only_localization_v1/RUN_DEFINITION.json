@@ -1,0 +1,51 @@
+{
+  "version": "ours-only-continuous-token-localization-v1-2026-08-08",
+  "official_method_name": "GL-LIU v1",
+  "official_method_expansion": "Global-Local Laplacian IU-PCR",
+  "development_cells": [
+    "qwen3_4b/gsm8k",
+    "qwen3_4b/math"
+  ],
+  "confirmation_cells": [
+    "qwen3_4b/olympiadbench",
+    "qwen3_4b/omnimath",
+    "qwen3_8b/gsm8k",
+    "qwen3_8b/math",
+    "qwen3_8b/olympiadbench",
+    "qwen3_8b/omnimath"
+  ],
+  "selection": {
+    "detector_metric": "macro error-detection AUROC, then AUPRC",
+    "locator_metric": "macro exact first-error localization, then tolerance-1 accuracy",
+    "selected_detector": "answer_dufs_liu_mixed",
+    "selected_locator": "token_temporal_liu_l0p3"
+  },
+  "token_views": [
+    "entropy_series",
+    "sw_var_series",
+    "cusum_abs_series",
+    "sw_var_spilled_series",
+    "cusum_abs_spilled_series"
+  ],
+  "laplacian": {
+    "k": 7,
+    "lambdas": [0.03, 0.1, 0.3],
+    "dufs_seeds": [11, 23, 37],
+    "dufs_epochs": 80,
+    "max_fit_tokens": 60000,
+    "graph_variants": ["uniform_feature_knn", "dufs_feature_knn", "temporal_chain"]
+  },
+  "evaluation": {
+    "score_construction_uses_step_spans": false,
+    "step_spans_used_only_to_map_predicted_token_to_benchmark_step": true,
+    "threshold": "calibration-half ProcessBench-F1 optimum",
+    "repeated_splits": 100,
+    "split_seed": 0
+  },
+  "label_policy": {
+    "score_fit": "no labels",
+    "development_selection": "labels allowed only in declared development cells",
+    "threshold_calibration": "labels allowed in the calibration half",
+    "evaluation": "labels opened after scores freeze"
+  }
+}
