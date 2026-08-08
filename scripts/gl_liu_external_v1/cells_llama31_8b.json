@@ -1,0 +1,10 @@
+{
+  "version": "gl_liu_external_v1-llama31_8b",
+  "purpose": "External scorer-family confirmation of frozen GL-LIU v1 vs unified core-five DUFS-LIU, per docs/research_notes/external_data_collection_plan_2026.md and cluster/manifests/pb_llama31_8b_external_v1.json",
+  "model_tag": "llama31_8b",
+  "cache_root_default": "dataset_cache/repgrid",
+  "cell_path_pattern": "pb_{model_tag}/processbench_{subset}.pkl",
+  "subsets": ["gsm8k", "math", "olympiadbench", "omnimath"],
+  "role": "external_eval",
+  "note": "None of these cells are development cells. DEV stays frozen at (qwen3_4b, gsm8k)/(qwen3_4b, math) per results/ours_only_localization_v1/selection.json -- no selection is performed on this family's own labels."
+}
