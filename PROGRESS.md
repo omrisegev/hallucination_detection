@@ -1,7 +1,8 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-08
-**Last updated**: unified-DUFS factorial completed after the GL-LIU v1 handoff.
+**Date**: 2026-08-09
+**Last updated**: localization and RAG benchmark literature consolidated and
+fact-checked after the application pivot.
 
 ## Current decision point — unified DUFS-LIU is the simplest leading candidate
 
@@ -35,6 +36,33 @@ rolling windows, or new locators on the same ProcessBench labels.
 Canonical report: `results/gl_liu_factorial_v2/REPORT.md`. Advisor brief:
 `results/gl_liu_factorial_v2/ADVISOR_BRIEF.md`. Executed design:
 `docs/experiments/GL_LIU_FACTORIAL_V2.md`.
+
+### Benchmark literature update
+
+The earlier side research was recovered from the repository. It was not stored
+in a surviving separate Git worktree: the Git worktree registry and session
+records point to the same repository path, and the research files are already
+in `master`. The reasoning material was spread across a broad benchmarking
+guide, CoT/agent notes, and the localization handoff. The RAG material was
+stored under `docs/research_notes/research_phase10_rag/` and in the
+Evidence-Contrast U-PCR proposal.
+
+Two current decision maps now consolidate and fact-check that work:
+
+- `docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md`;
+- `docs/research_notes/rag_localization_methods_and_benchmarks_2026.md`.
+
+For reasoning localization, Mind the Gap is only the sole external method in
+the **existing frozen run**. uPRM is the closest newly identified label-free
+peer and should be the first baseline audited. Trained PRMs and critic models
+are required ceilings in separate categories.
+
+For RAG, GASP already uses fixed-answer evidence removal, so evidence
+perturbation alone is not novel. The proposed contribution is label-free
+spectral fusion of dependent evidence contrasts. RAGTruth remains the primary
+span benchmark; TRIVIA+ is a strong long-context and label-noise confirmation
+candidate; RAGBench is a falsification test; and L-CiteEval is reserved for an
+explicit citation claim.
 
 ---
 
