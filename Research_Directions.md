@@ -859,6 +859,13 @@ This extension is no longer deferred. Steps 232--233 implemented the grading
 harness, token-to-step mapping, global/local decomposition, repeated threshold
 protocol, and two controlled ProcessBench studies.
 
+Scoring uses teacher-forcing (`cluster/run_teacher_forced.py`, reusing
+`backfill_views.forward_batch` / `candidate_quantities` — one forward pass
+per row over the *given* solution, no generation), which measures **our
+model's surprise at another model's text**, not the same quantity as our
+own-generation cells — relevant for every new scorer family added to this
+benchmark.
+
 Current evidence:
 
 - GL-LIU v1: 31.36% ProcessBench F1 versus 25.71% for the reproduced Mind the
