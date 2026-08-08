@@ -54,6 +54,16 @@ export PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID}
 mkdir -p "$PYTHONUSERBASE"
 # HuggingFace auth for gated models (huggingface_hub reads HF_TOKEN automatically).
 export HF_TOKEN=REPLACE_ME
+# Set BEFORE any torch import (same rationale as the Colab Cell 1 convention in
+# CLAUDE.md): expandable_segments lets the allocator defragment instead of holding
+# unreusable free blocks. A long single-process run_inference.py loop generates
+# variable-length sequences (short QA answers up to long max_new_tokens completions)
+# back-to-back against one loaded model for hours — without this, the allocator
+# fragments over many alloc/free cycles and OOMs even with GBs nominally free (hit
+# this for real on job 169914: 72B bf16 model, HLE pilot, OOM at problem 32/200 with
+# "12.28 GiB free" but unusable due to fragmentation; PyTorch's own error message
+# suggested this exact fix).
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 echo "[sbatch] job $SLURM_JOB_ID on $(hostname), args: $*"
 

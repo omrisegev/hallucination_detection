@@ -1,0 +1,110 @@
+{
+  "experiment": "semgrad_pilot_v1",
+  "stage": "A — protocol lock (written before the smoke test, per external_data_collection_plan_2026.md's execution ladder)",
+  "written_utc": "2026-08-07",
+
+  "source_paper": {
+    "title": "Gradients with Respect to Semantics Preserving Embeddings Tell the Uncertainty of Large Language Models",
+    "authors": "Mingda Li, Rundong Lv, Xinyu Li, Weinan Zhang, Ting Liu",
+    "arxiv_id": "2605.04638",
+    "venue": "ICML 2026",
+    "methods_introduced": ["SemGrad", "HybridGrad"]
+  },
+
+  "official_code": {
+    "repo": "https://github.com/mingdali6717/SemGrad",
+    "license": "MIT",
+    "pinned_commit": "118b6949f9641df3872caa7ad65a797f4ae28d63",
+    "pinned_at_utc": "2026-08-07",
+    "note": "main branch HEAD at fetch time; re-fetch at this hash for byte-identical files."
+  },
+
+  "vendored_assets": {
+    "dir": "data/semgrad_protocol/",
+    "files": {
+      "sciq_test.jsonl": "data/datasets/sciq/test.jsonl in the official repo, 1000 rows",
+      "truthfulqa_test.jsonl": "data/datasets/truthfulqa/test.jsonl in the official repo, 817 rows",
+      "vocab.txt": "uncertainty/generation_evaluation/metrics/vocab.txt (BERT wordpiece vocab for BEM)",
+      "official_bem_reference.py": "uncertainty/generation_evaluation/metrics/bem.py, kept verbatim as the ground-truth reference for spectral_utils/bem_scorer.py",
+      "LICENSE": "repo root, MIT"
+    },
+    "schema": "{\"query\": str, \"truthful answer\": [str, ...]}"
+  },
+
+  "dataset": {
+    "sciq": {"dataset_key": "semgrad_sciq", "split": "test", "total_rows": 1000,
+              "pilot_n_samples": 200, "pilot_seed": 42, "form": "free-form open QA, NOT MCQ"},
+    "truthfulqa": {"dataset_key": "semgrad_truthfulqa", "split": "test", "total_rows": 817,
+                    "pilot_n_samples": 200, "pilot_seed": 42,
+                    "form": "free-form generation (HF truthful_qa/generation correct_answers)"}
+  },
+
+  "model": {
+    "id": "Qwen/Qwen3-4B-Instruct-2507",
+    "note": "Official repo's own llm.py config has a literal leading-slash bug ('/Qwen/Qwen3-4B-Instruct-2507'); the intended HF id has no leading slash, confirmed against the sibling qwen3-30b-instruct entry which has no such typo.",
+    "revision_pin": "NONE UPSTREAM — the SemGrad repo and paper pin no model commit/revision and no transformers version. Record whatever revision resolves at download time in cluster/manifests/*_run.json once the pilot actually runs (see write_manifest() in cluster/run_inference.py, which already does this automatically per-job)."
+  },
+
+  "prompt": {
+    "template": "Please directly answer the following question with one or few words:\n{query}",
+    "template_id_in_official_repo": 2,
+    "system_message": null,
+    "rendering": "tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True), single user turn — matches this repo's existing fmt_prompt() default exactly, no raw_prompt override needed."
+  },
+
+  "decoding": {
+    "do_sample": false,
+    "temps_in_preset": [0.0],
+    "note": "spectral_utils/model_utils.py's generate_full does `sampling = temp > 1e-4`, so temps=[0.0] already gives exact greedy decoding — no code change was needed for this.",
+    "max_new_tokens": 150,
+    "num_responses_per_prompt": 1,
+    "official_seed": 42
+  },
+
+  "telemetry_capture": {
+    "capture_logsumexp": true,
+    "reason": "needed for the pre-registered G-NLL competitor (full-vocab logsumexp from raw pre-warp logits)"
+  },
+
+  "grading": {
+    "inline_at_generation": {
+      "function": "spectral_utils.data_loaders.is_correct_semgrad_freeform",
+      "method": "ROUGE-L > 0.3 proxy vs truthful_answers",
+      "status": "INTERIM ONLY — drives presets.py's acc_band/min_minority sanity gate, not the authoritative label"
+    },
+    "authoritative_offline": {
+      "method": "BEM (Bulian et al. 2022, \"Answer Equivalence\")",
+      "checkpoint": "kagglehub: google/bert/tensorFlow2/answer-equivalence-bem (replaces the dead tfhub.dev/google/answer_equivalence/bem/1 URL the paper's own code uses)",
+      "threshold": 0.8,
+      "threshold_source": "uncertainty/generation_evaluation/utils.py compute_score(threshold=0.8) default — NEVER stated in the paper text",
+      "segment_order": "(candidate, reference, question) — candidate first, load-bearing",
+      "truncation": "candidate truncated from the end if question+reference+candidate > 508 tokens; question and reference never truncated",
+      "empty_candidate_handling": "empty string candidate replaced with literal \"None\" before scoring",
+      "multi_reference_aggregation": "max over all reference answers",
+      "implementation": "spectral_utils/bem_scorer.py (reimplements the official tokenization/segment-packing in pure Python + transformers.BertTokenizer over the same vendored vocab.txt, avoiding tensorflow_text/tensorflow_hub)",
+      "runs_on": "LOCAL machine, NOT the AIRCC B200/NGC cluster — BEM only scores already-generated text triples and never touches the LLM",
+      "regrade_script": "scripts/bem_regrade.py",
+      "cache_keys_written": ["label_lexical (preserves the interim ROUGE-L label)", "bem_score (raw float)", "label (overwritten with the BEM verdict)", "label_bem (idempotency marker)"]
+    }
+  },
+
+  "comparison_level": {
+    "value": 3,
+    "definition": "same dataset only (external_data_collection_plan_2026.md's Comparison Levels) — model/prompt/decoding are ours, matched to the official protocol, but the pre-registered LN-PE/G-NLL competitor pair is computed on THIS run's single greedy generation, not the paper's own 10-sample @ T=1.0 baseline protocol.",
+    "frozen_competitors": ["LN-PE (sampling-free adaptation, from token_logsumexp/top_k_logprobs)",
+                            "G-NLL (sampling-free adaptation, from token_logsumexp)"],
+    "explicit_non_claim": "This pilot does NOT reproduce or claim to reproduce SemGrad's own cited LN-PE/SemGrad/HybridGrad AUROC numbers."
+  },
+
+  "method_roster_for_fitting": {
+    "status": "OUT OF SCOPE for this manifest — confirmed with Omri 2026-08-07. This job collects raw generation + telemetry only; which of our own fusion methods (U-PCR, L-SML, etc.) get fit on this data is a separate later decision, not part of the pilot's protocol lock."
+  },
+
+  "pilot_health_gate": {
+    "rule": "no AUROC or method-selection claim from this pilot — schema/accuracy/telemetry validation only",
+    "minimum_class_balance": "at least 30 correct and 30 incorrect per cell (post-BEM-regrade) before any AUROC is treated as meaningful",
+    "next_steps_require_separate_approval": ["scaling to full N (1000 SciQ / 817 TruthfulQA)",
+                                              "adding TriviaQA or the other two models (Mistral-Nemo-12B, Llama-3.1-8B)",
+                                              "fitting any fusion method on this cell"]
+  }
+}

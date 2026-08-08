@@ -11,6 +11,10 @@ Supported datasets:
   - 2WikiMultiHopQA (multi-hop QA; normalized to Hotpot-style context)
   - TriviaQA    (rc.nocontext; normalized alias exact-match grading)
   - WebQ        (WebQuestions; normalized alias exact-match grading)
+  - SemGrad SciQ / TruthfulQA (free-form protocol reproduction; ROUGE-L proxy at
+    inference, authoritative label is offline BEM — see spectral_utils/bem_scorer.py)
+  - HLE (Humanity's Last Exam; official prompt/decoding protocol, system+user turns;
+    grading deferred — see data/hle_protocol/PROVENANCE.md)
 """
 import re
 import string
@@ -996,6 +1000,212 @@ def sciq_prompt(row: dict) -> str:
 
 def is_correct_sciq(gen: str, item: dict) -> bool:
     return extract_gpqa_answer(gen) == item["correct_letter"]
+
+
+# ── SemGrad protocol reproduction (free-form SciQ / TruthfulQA + BEM grading) ──
+#
+# Reproduces the SciQ and TruthfulQA cells of SemGrad (arXiv 2605.04638, ICML 2026,
+# github.com/mingdali6717/SemGrad, commit 118b6949f9641df3872caa7ad65a797f4ae28d63).
+# SemGrad presents SciQ as free-form open QA (no MCQ options) — distinct from the
+# sciq_llama8b preset's 4-way MCQ protocol above; both stay in the DATASETS registry.
+# Full protocol details: data/semgrad_protocol/PROVENANCE.md.
+
+_SEMGRAD_DIR = None  # resolved lazily in _load_semgrad_jsonl (avoids import-time os dependency)
+
+
+def _load_semgrad_jsonl(name: str, n_samples: int, seed: int) -> list[dict]:
+    """
+    Load a SemGrad-protocol jsonl vendored from the official repo and return a seeded
+    subsample of n_samples rows (or all rows if n_samples >= file length).
+
+    Schema on disk: {"query": str, "truthful answer": [str, ...]}. Subsampling is seeded
+    and re-sorted by original row index, so a given (n_samples, seed) always yields the
+    same rows in the same order.
+    """
+    import json
+    import os
+    import random
+
+    global _SEMGRAD_DIR
+    if _SEMGRAD_DIR is None:
+        _SEMGRAD_DIR = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "data", "semgrad_protocol",
+        )
+
+    path = os.path.join(_SEMGRAD_DIR, f"{name}_test.jsonl")
+    rows = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                rows.append(json.loads(line))
+
+    if n_samples < len(rows):
+        idx = sorted(random.Random(seed).sample(range(len(rows)), n_samples))
+    else:
+        idx = range(len(rows))
+
+    items = [
+        {"question": rows[i]["query"], "truthful_answers": list(rows[i]["truthful answer"])}
+        for i in idx
+    ]
+    print(f"Loaded {len(items)} SemGrad-protocol {name} samples "
+          f"(seed={seed}, of {len(rows)} total).")
+    return items
+
+
+def load_semgrad_sciq(n_samples: int = 200, seed: int = 42) -> list[dict]:
+    """SemGrad's free-form SciQ cell — official vendored test.jsonl, 1000 rows total."""
+    return _load_semgrad_jsonl("sciq", n_samples, seed)
+
+
+def load_semgrad_truthfulqa(n_samples: int = 200, seed: int = 42) -> list[dict]:
+    """SemGrad's free-form TruthfulQA cell — official vendored test.jsonl, 817 rows
+    total (a subset of HF truthful_qa/generation's correct_answers)."""
+    return _load_semgrad_jsonl("truthfulqa", n_samples, seed)
+
+
+def semgrad_prompt(row: dict) -> str:
+    """SemGrad's single official prompt template (shared by all 3 of their datasets),
+    no system message — verified from uncertainty/response_generator/generator.py,
+    template_id=2. fmt_prompt()/generate_full() already render a system-message-free
+    single user turn by default, so no raw_prompt override is needed."""
+    return (f"Please directly answer the following question with one or few words:\n"
+            f"{row['question']}")
+
+
+def is_correct_semgrad_freeform(gen: str, item: dict, threshold: float = 0.3) -> bool:
+    """
+    Interim ROUGE-L proxy (same pattern as is_correct_truthfulqa above) — NOT the
+    authoritative label. SemGrad's official metric is BEM (Bulian et al. 2022,
+    threshold 0.8, max-over-references) — see spectral_utils/bem_scorer.py and
+    scripts/bem_regrade.py, run offline after the cluster job. This proxy exists only
+    to drive presets.py's at-inference accuracy-band gate so a degenerate cell is
+    caught before the job finishes; full_text is saved so BEM regrading is exact.
+    """
+    pred = gen.strip().split("\n")[0].strip()
+    return _best_rouge_l_norm(pred, item["truthful_answers"]) > threshold
+
+
+# ── HLE (Humanity's Last Exam) — official protocol reproduction ────────────────
+#
+# Reproduces the CURRENT official prompt/decoding protocol from
+# github.com/centerforaisafety/hle against HF cais/hle pinned at revision
+# 5a81a4c7271a2a2a312b9a690f0c2fde837e4c29 (HLE is a rolling, gated dataset — see
+# data/hle_protocol/PROVENANCE.md for why this exact revision, and the documented
+# paper-vs-code prompt discrepancy this reproduces the CODE side of).
+#
+# Grading is DEFERRED (Omri, 2026-08-08): this pilot collects raw generation +
+# telemetry only. is_correct_hle_provisional below is a rough placeholder for the
+# at-inference sanity gate — NOT the authoritative label. A real judge pass (Claude/
+# Gemini or otherwise) comes later, offline, against the vendored official JUDGE_PROMPT
+# text in PROVENANCE.md.
+
+HLE_SYSTEM_PROMPT = (
+    "Your response should be in the following format:\n"
+    "Explanation: {your explanation for your answer choice}\n"
+    "Answer: {your chosen answer}\n"
+    "Confidence: {your confidence score between 0% and 100% for your answer}"
+)
+
+_HLE_REVISION = "5a81a4c7271a2a2a312b9a690f0c2fde837e4c29"
+
+
+def _load_hle_tier_index() -> dict:
+    """id -> HLE-Verified tier ('Gold subset' / 'Revision subset' / 'Uncertain subset')
+    from the vendored non-content index (data/hle_protocol/hle_verified_tiers.csv).
+    ids not in the index (e.g. added by a later HLE rolling update) map to None."""
+    import csv
+    import os
+
+    path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "data", "hle_protocol", "hle_verified_tiers.csv",
+    )
+    index = {}
+    with open(path, "r", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            index[row["id"]] = row["tier"]
+    return index
+
+
+def load_hle(n_samples: int = 200, seed: int = 42, text_only: bool = True) -> list[dict]:
+    """
+    Load Humanity's Last Exam (HF cais/hle, pinned revision) and return a
+    category-stratified, seeded subsample of n_samples rows (or every row if
+    n_samples >= the candidate pool).
+
+    text_only=True (default) drops the ~14% multimodal items — no image support in
+    this project's generation pipeline. Each row is tagged with its HLE-Verified tier
+    for later slice analysis (see data/hle_protocol/PROVENANCE.md); the pilot draw
+    itself is NOT restricted to any one tier, per
+    external_data_collection_plan_2026.md's "retain HLE-Verified status" instruction.
+    """
+    import random
+    from collections import defaultdict
+    from datasets import load_dataset
+
+    ds = load_dataset("cais/hle", split="test", revision=_HLE_REVISION)
+    tier_index = _load_hle_tier_index()
+
+    rows = []
+    for row in ds:
+        if text_only and row.get("image"):
+            continue
+        rows.append({
+            "id": row["id"],
+            "question": row["question"],
+            "answer": row["answer"],
+            "answer_type": row["answer_type"],
+            "category": row["category"],
+            "tier": tier_index.get(row["id"]),
+        })
+
+    tag = "text-only " if text_only else ""
+    if n_samples >= len(rows):
+        print(f"Loaded {len(rows)} HLE {tag}samples (all).")
+        return rows
+
+    # Category-stratified proportional sample, seeded — not a plain rows[:n] slice
+    # (dataset order is not random) and not an unstratified random.sample (would
+    # under-represent small categories like Chemistry/Engineering).
+    by_cat = defaultdict(list)
+    for i, r in enumerate(rows):
+        by_cat[r["category"]].append(i)
+    rng = random.Random(seed)
+    frac = n_samples / len(rows)
+    chosen = []
+    for idxs in by_cat.values():
+        k = min(len(idxs), max(1, round(len(idxs) * frac)))
+        chosen.extend(rng.sample(idxs, k))
+    rng.shuffle(chosen)
+    chosen = sorted(chosen[:n_samples])
+    items = [rows[i] for i in chosen]
+    print(f"Loaded {len(items)} HLE {tag}samples "
+          f"(stratified by category, seed={seed}, of {len(rows)} candidates).")
+    return items
+
+
+def hle_prompt(row: dict) -> str:
+    """Official HLE user turn: the bare question text, nothing appended. The format
+    instructions live in the SYSTEM turn (HLE_SYSTEM_PROMPT) — see cluster/presets.py's
+    system_message field, threaded through generate_full()/fmt_prompt()."""
+    return row["question"]
+
+
+def is_correct_hle_provisional(gen: str, item: dict, threshold: float = 0.3) -> bool:
+    """
+    Rough placeholder ONLY — drives the at-inference accuracy-band sanity gate, not a
+    real label (grading deferred, see module note above). Extracts the text after
+    "Answer:" (per HLE_SYSTEM_PROMPT's own format) and ROUGE-L-matches it against the
+    gold answer. HLE's real grading needs an LLM judge (official JUDGE_PROMPT vendored
+    in data/hle_protocol/PROVENANCE.md) — not attempted here.
+    """
+    text = strip_think(gen)
+    m = re.search(r"Answer:\s*(.+?)(?:\n|Confidence:|$)", text, flags=re.IGNORECASE | re.DOTALL)
+    pred = m.group(1).strip() if m else text.strip().split("\n")[0].strip()
+    return _best_rouge_l_norm(pred, [item["answer"]]) > threshold
 
 
 # ── HumanEval ─────────────────────────────────────────────────────────────────

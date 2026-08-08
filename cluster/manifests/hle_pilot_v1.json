@@ -1,0 +1,131 @@
+{
+  "experiment": "hle_pilot_v1",
+  "stage": "A — protocol lock (written before the smoke test, per external_data_collection_plan_2026.md's execution ladder)",
+  "written_utc": "2026-08-08",
+
+  "source_paper": {
+    "title": "Humanity's Last Exam",
+    "authors": "Long Phan, Alice Gatti, Ziwen Han, et al. (Center for AI Safety + Scale AI)",
+    "arxiv_id": "2501.14249",
+    "venue": "arXiv:2501.14249 (also Nature 649:1139-1146, 2026)"
+  },
+
+  "official_code": {
+    "repo": "https://github.com/centerforaisafety/hle",
+    "files_reproduced": ["hle_eval/run_model_predictions.py (system prompt, message format)",
+                          "hle_eval/run_judge_results.py (JUDGE_PROMPT, vendored for a later regrade pass, NOT used in this job)"],
+    "note": "No open-weight-model example/config exists in the official repo (verified) -- generation stack here is entirely this project's own (cluster/run_inference.py + generate_full)."
+  },
+
+  "dataset": {
+    "hf_id": "cais/hle",
+    "gated": true,
+    "access_verified_utc": "2026-08-08",
+    "pinned_revision": "5a81a4c7271a2a2a312b9a690f0c2fde837e4c29",
+    "why_pinned": "HLE is a rolling dataset (documented per-ID changes Feb 2026 and Jul 2026 in the repo's hle-rolling-changes.txt) -- this revision matches what inspect_evals pins and what our HF_TOKEN currently resolves to.",
+    "total_rows": 2500,
+    "text_only_rows": 2158,
+    "text_only_filter": "bool(row['image']) -- '' means text-only",
+    "answer_type_values": ["exactMatch", "multipleChoice"],
+    "avoid": "macabdul9/hle_text_only -- stale Jan-2025 snapshot (2370 rows), wrong counts, do not use"
+  },
+
+  "hle_verified_tiers": {
+    "vendored_index": "data/hle_protocol/hle_verified_tiers.csv",
+    "content": "id, tier, answer_type, category, has_image -- NO question/answer/rationale text (avoids redistributing benchmark content per HLE's own anti-contamination request)",
+    "tiers": {"Gold subset": 668, "Revision subset": 1143, "Uncertain subset": 689},
+    "caveat": "tier assignment is confounded with subject (verification pipeline is math-centric; Revision is 100% Math/Physics, Uncertain absorbs almost all Humanities/Engineering/Other/CS). Pilot draw is NOT restricted to any tier -- tier is attached per row for later slice analysis only.",
+    "tier_assignment_code": "NOT published by HLE-Verified -- tiers are taken as given data"
+  },
+
+  "pilot_sampling": {
+    "n_samples": 200,
+    "seed": 42,
+    "method": "category-stratified proportional sample over the 2158 text-only pool (8 categories: Math, Biology/Medicine, Physics, Computer Science/AI, Humanities/Social Science, Chemistry, Engineering, Other)",
+    "loader": "spectral_utils.data_loaders.load_hle"
+  },
+
+  "model": {
+    "id": "Qwen/Qwen2.5-72B-Instruct",
+    "precision": "bf16, full precision (not AWQ/BNB)",
+    "gated": false,
+    "selection_rationale": "\"strongest model used in this project\" (Omri, 2026-08-08) -- the largest model anywhere in cluster/presets.py (tied class with meta-llama/Llama-3.3-70B-Instruct at ~70-72B; Qwen is larger, non-gated, already proven on this exact cluster path via the gpqa_qwen72b preset, bf16 fits the 192GB B200).",
+    "not_a_reasoning_model": "No <think> chain-of-thought training -- max_new_tokens set to 2048, not the paper's 8192-for-reasoning-models recommendation.",
+    "revision_pin": "none upstream; whichever revision resolves at download time is recorded in the per-job manifest.json that cluster/run_inference.py writes automatically"
+  },
+
+  "prompt": {
+    "system_message": "Your response should be in the following format:\nExplanation: {your explanation for your answer choice}\nAnswer: {your chosen answer}\nConfidence: {your confidence score between 0% and 100% for your answer}",
+    "user_message": "the bare question text, nothing appended (matches official format_message() exactly)",
+    "source": "hle_eval/run_model_predictions.py::SYSTEM_PROMPT, CURRENT repo state",
+    "known_discrepancy": "the ORIGINAL PAPER (Appendix C.1.1) specified two system prompts keyed on answer_type (a separate 'Exact Answer:' wording); commit 67b32511 ('Unify system prompt', 2025-06-06) removed this split in the current repo. The removed code compared answer_type=='exact_match' (snake_case) against a dataset whose real values are camelCase ('exactMatch') -- that branch could never fire even before removal, so the single unified prompt was already the operative behavior in practice. DECISION: reproduce the CURRENT unified prompt (what the live official code does today), not the paper's original dual-prompt text -- documented explicitly, not an oversight.",
+    "infra_note": "This is the first preset in this project needing a genuine system+user two-turn chat template (every prior dataset used a single user turn). Added a new system_message field to _preset() and threaded it through spectral_utils/model_utils.py's fmt_prompt()/generate_full(), cluster/run_inference.py's build_cfg/run_temp/write_manifest -- general-purpose infra, not an HLE-only hack."
+  },
+
+  "decoding": {
+    "temperature": 0.0,
+    "do_sample": false,
+    "temps_in_preset": [0.0],
+    "max_new_tokens": 2048,
+    "note": "Paper's stated policy (Appendix C.5) is temperature 0.0 'when configurable'. The official code's own --temperature flag is DEAD (the line is commented out in run_model_predictions.py -- a documented bug, not a protocol choice) -- we follow the paper's stated intent, not the buggy script."
+  },
+
+  "telemetry_capture": {
+    "capture_logsumexp": true,
+    "reason": "consistent with other cluster presets; needed for any future G-NLL-style feature, not required for this pilot's own purpose"
+  },
+
+  "grading": {
+    "status": "DEFERRED (Omri, 2026-08-08) -- this job's only purpose is collecting raw generation + telemetry",
+    "inline_at_generation": {
+      "function": "spectral_utils.data_loaders.is_correct_hle_provisional",
+      "method": "ROUGE-L > 0.3 proxy vs item['answer'], extracted from the response's 'Answer:' line",
+      "status": "ROUGH PLACEHOLDER ONLY -- drives presets.py's accuracy-band sanity gate, not a real label. A REJECT verdict from near-zero measured accuracy is EXPECTED here (HLE is extremely hard, and this heuristic under-counts semantically-equivalent-but-differently-worded correct answers even more than a real judge would) -- not a bug, not a reason to change the pipeline.",
+      "min_minority_override": "10 (down from the project default of 30) purely so the job's own bookkeeping print doesn't misleadingly read as a hard failure before real grading exists -- this does NOT make the interim label trustworthy"
+    },
+    "authoritative_offline": {
+      "status": "NOT YET BUILT",
+      "plan": "a real judge pass, planned for later -- 'maybe Claude or Gemini... separately' (Omri) -- against the vendored official JUDGE_PROMPT text in data/hle_protocol/PROVENANCE.md",
+      "think_stripping_warning": "if the eventual judge is shown full_text for a reasoning-style model, strip <think>...</think> first (spectral_utils.data_loaders.strip_think) -- the official repo has zero handling for this (unmerged PR #18). Not an issue for THIS pilot's model (Qwen2.5-72B-Instruct is not reasoning-tuned) but will matter if a DeepSeek-R1-Distill class model is used on HLE later."
+    }
+  },
+
+  "comparison_level": {
+    "value": 3,
+    "definition": "same dataset only (external_data_collection_plan_2026.md's Comparison Levels) -- model differs from every model the paper evaluated (Qwen2.5-72B-Instruct is not in Table 1/Appendix C.5's model list).",
+    "frozen_competitor": "model's own stated Confidence (verbalized, from the official prompt format) -- same-output, no additional generation needed. AUROC/Brier/RMS-calibration for this baseline are NOT computed by this job (grading deferred) -- future work once labels exist."
+  },
+
+  "method_roster_for_fitting": {
+    "status": "OUT OF SCOPE for this manifest, same as the SemGrad pilot -- this job collects raw generation + telemetry only."
+  },
+
+  "pilot_health_gate": {
+    "rule": "no AUROC or method-selection claim from this pilot -- schema/telemetry validation only, since grading itself is deferred",
+    "expected_outcome": "very low measured accuracy under the placeholder grader is expected and acceptable; the job's success criterion is a clean ALL TEMPS COMPLETE with valid telemetry (token_entropies, token_logsumexp, top_k_logprobs, full_text) across all 200 problems, not a passing accuracy-band gate",
+    "next_steps_require_separate_approval": ["building the real grading pass (Claude/Gemini judge)",
+                                              "scaling to full N or additional models",
+                                              "computing any AUROC/calibration metric",
+                                              "fitting any fusion method on this cell"]
+  },
+
+  "pilot_outcome_2026_08_08": {
+    "result": "COMPLETED across 3 sbatch submissions (169914, 170046, 170219) due to two distinct CUDA OOM bugs found and fixed mid-run -- checkpoint/resume stitched them together with no data loss (32 + 103 + 65 = 200/200 problems)",
+    "bugs_found_and_fixed": [
+      "missing PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True in cluster/submit_inference.sbatch (+ .template) -- caused a fragmentation OOM at problem 32/200",
+      "eager attn_implementation's O(T^2) fp32 score materialization OOM'd on a long HLE prompt at problem 136/200 (155GB/178GB already used by the 72B model, needed 35.83GB more, only 22.88GB free) -- fixed by adding a new attn_impl preset field (cluster/presets.py, threaded through cluster/run_inference.py's build_cfg/run_temp/write_manifest) and setting attn_impl='sdpa' for this preset, since it never used capture.attention anyway"
+    ],
+    "measured_accuracy": "9.5% (19/200) under the placeholder ROUGE-L grader -- explicitly a FLOOR not the real accuracy (ROUGE-L undercounts exactMatch answers phrased differently from the literal gold string); gate correctly REJECTed, as documented above as expected",
+    "telemetry_validated": "all 200 problems, 1 candidate each, all rich-save keys present (token_logsumexp/top_k_logprobs_raw included), trace lengths 82-2048 (median 342, mean 511) -- long enough that the FULL spectral feature set (all 20 FEAT_NAMES) extracts without needing the allow_short fallback SemGrad's pilot needed",
+    "decision": "Omri approved graduating to the full run (2026-08-08) after reviewing the clean completion -- see hle_qwen72b_full preset"
+  },
+
+  "full_run_addendum_2026_08_08": {
+    "preset": "hle_qwen72b_full",
+    "scope_change": "n_samples 200 (stratified subsample) -> 2158 (every text-only item in the pinned revision, no stratification needed since it's the whole pool)",
+    "everything_else_unchanged": "same model, prompt, decoding, attn_impl=sdpa, grading-deferred status as the pilot",
+    "estimated_cost": "~15.3 GPU-hours, extrapolated from the pilot's tail-batch pace (65 problems in 27m44s = 25.6s/problem average) -- a rough estimate, not a hard bound, since per-problem time depends on answer length which varies by question",
+    "submission_plan": "a Slurm dependency chain of multiple 8h-wall sbatch jobs (sbatch ...; sbatch --dependency=afterany:$prev_jid ...), per submit_inference.sbatch.template's own documented convention for any run expected to outlive one 8h wall -- Slurm's --requeue only covers preemption/node-failure, NOT hitting the wall, so a single sbatch call would silently stop at exit code 85 (EXIT_INCOMPLETE) partway through without a requeue. Checkpoint/resume (checkpoint_every=1) makes every link in the chain, and any additional manual resubmission if the chain isn't long enough, a safe continuation from wherever the previous link left off.",
+    "still_out_of_scope": ["real grading (Claude/Gemini judge)", "AUROC/calibration metrics", "fitting any fusion method", "additional models"]
+  }
+}

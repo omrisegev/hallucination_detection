@@ -72,6 +72,8 @@ from spectral_utils.data_loaders import (
     load_nq_open, nq_open_prompt, is_correct_nq_open,
     load_truthfulqa, truthfulqa_prompt, is_correct_truthfulqa,
     load_sciq, sciq_prompt, is_correct_sciq,
+    load_semgrad_sciq, load_semgrad_truthfulqa, semgrad_prompt, is_correct_semgrad_freeform,
+    load_hle, hle_prompt, is_correct_hle_provisional,
     load_gpqa, gpqa_prompt_and_answer, is_correct_gpqa,
     load_lciteeval, lciteeval_prompt, is_grounded_lciteeval,
 )
@@ -122,6 +124,16 @@ DATASETS = {
     "nq_open":   (lambda n, split="validation": load_nq_open(n, split),  nq_open_prompt,  is_correct_nq_open),
     "truthfulqa":(lambda n, split="validation": load_truthfulqa(n, split), truthfulqa_prompt, is_correct_truthfulqa),
     "sciq":      (lambda n, split="validation": load_sciq(n, split),     sciq_prompt,     is_correct_sciq),
+    # SemGrad protocol reproduction (free-form, official jsonl + offline BEM grading —
+    # see spectral_utils/bem_scorer.py, scripts/bem_regrade.py, data/semgrad_protocol/PROVENANCE.md).
+    # NOT the MCQ "sciq" entry above — SemGrad's SciQ cell is open-ended free-form QA.
+    "semgrad_sciq":       (lambda n, split="test": load_semgrad_sciq(n),
+                           semgrad_prompt, is_correct_semgrad_freeform),
+    "semgrad_truthfulqa": (lambda n, split="test": load_semgrad_truthfulqa(n),
+                           semgrad_prompt, is_correct_semgrad_freeform),
+    # HLE (gated HF repo, pinned revision — see data/hle_protocol/PROVENANCE.md). Grading
+    # deferred: is_correct_hle_provisional is a sanity-gate placeholder, not a real label.
+    "hle": (lambda n, split="test": load_hle(n), hle_prompt, is_correct_hle_provisional),
     # GPQA Diamond (gated HF repo — needs HF_TOKEN). Permutation baked at load time.
     "gpqa":      (_load_gpqa_rows, lambda row: row["_prompt"],
                   lambda gen, row: is_correct_gpqa(gen, row["_gold_letter"])),
@@ -205,7 +217,7 @@ def run_temp(mdl, tok, rows, prompt_fn, grader, temp, cfg, out_path):
                 logprob_top_k=cfg.logprob_top_k,
                 gen_top_p=cfg.gen_top_p, gen_top_k=cfg.gen_top_k,
                 repetition_penalty=cfg.repetition_penalty, no_repeat_ngram_size=cfg.no_repeat_ngram_size,
-                raw_prompt=cfg.raw_prompt,
+                raw_prompt=cfg.raw_prompt, system_message=cfg.system_message,
                 capture_logsumexp=cfg.capture.get("logsumexp", False),
                 capture_hidden=cfg.capture.get("hidden", False),
                 hidden_layer=cfg.capture.get("hidden_layer"),
@@ -305,6 +317,8 @@ def write_manifest(out_dir, cfg, cells):
         "head_to_head": cfg.head_to_head,
         "judge": cfg.judge,
         "prompt_suffix": cfg.prompt_suffix,
+        "system_message": cfg.system_message,
+        "attn_impl": cfg.attn_impl,
         "notes": cfg.notes,
         "job_id": os.environ.get("SLURM_JOB_ID", ""),
         "seed": cfg.seed,
@@ -364,6 +378,8 @@ def build_cfg(args):
         head_to_head=base.get("head_to_head"),
         prompt_suffix=base.get("prompt_suffix", ""),
         raw_prompt=base.get("raw_prompt", False),
+        system_message=base.get("system_message"),
+        attn_impl=base.get("attn_impl", "eager"),
         checkpoint_every=args.checkpoint_every,
         seed=args.seed,
     )
@@ -437,7 +453,7 @@ def main():
     loader, prompt_fn, grader = DATASETS[cfg.dataset]
     rows = loader(cfg.n_samples, cfg.split)
     write_manifest(out_dir, cfg, cells=[])  # provenance up front; refreshed per cell
-    mdl, tok = load_model(cfg.model)
+    mdl, tok = load_model(cfg.model, attn_impl=cfg.attn_impl)
 
     cells = []
     for temp in cfg.temps:

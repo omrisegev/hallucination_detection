@@ -100,24 +100,35 @@ def load_model(model_id: str, quantize_4bit: bool = False, attn_impl: str = "eag
     return mdl, tok
 
 
-def fmt_prompt(tok, msg: str) -> str:
+def fmt_prompt(tok, msg: str, system_message: str = None) -> str:
     """
-    Apply the model's chat template to a single user message.
-    Falls back to a plain <|user|>/<|assistant|> format if the tokenizer
-    does not have a chat template defined.
+    Apply the model's chat template to a user message, with an optional system turn.
+
+    Every dataset in this project's DATASETS registry has used a single user-turn
+    protocol so far. system_message exists for protocols (e.g. HLE's official
+    Explanation/Answer/Confidence format instructions) that genuinely separate a
+    systemic instruction from the per-item user content — pass None (the default) to
+    get the old single-user-turn behavior unchanged.
+
+    Falls back to a plain <|user|>/<|assistant|> format (or <|system|>/<|user|>/
+    <|assistant|> when system_message is set) if the tokenizer has no chat template.
     """
     # Try plain-string content (most models), then multimodal list-content (Gemma-3 /
     # Mistral-3 processors expect content as a list of typed parts), then a raw fallback.
-    for content in (msg, [{"type": "text", "text": msg}]):
+    for content_msg in (msg, [{"type": "text", "text": msg}]):
         try:
+            content_messages = ([{"role": "system", "content": system_message}] if system_message else []) + [
+                {"role": "user", "content": content_msg}
+            ]
             return tok.apply_chat_template(
-                [{"role": "user", "content": content}],
+                content_messages,
                 tokenize=False,
                 add_generation_prompt=True,
             )
         except Exception:
             continue
-    return f"<|user|>\n{msg}\n<|assistant|>\n"
+    prefix = f"<|system|>\n{system_message}\n" if system_message else ""
+    return f"{prefix}<|user|>\n{msg}\n<|assistant|>\n"
 
 
 _CHAT_TURN_END_MARKERS = ("<|im_end|>", "<end_of_turn>", "<|eot_id|>")
@@ -408,7 +419,10 @@ def generate_full(mdl, tok, prompt_msg: str, temperature: float = 1.0,
     # Base LMs (e.g. OPT-30B) have no chat template — a few-shot prompt must go in raw,
     # not wrapped in a synthetic <|user|>/<|assistant|> frame the model never saw.
     raw_prompt = kwargs.get("raw_prompt", False)
-    prompt = prompt_msg if raw_prompt else fmt_prompt(tok, prompt_msg)
+    # system_message: optional system turn (e.g. HLE's official Explanation/Answer/
+    # Confidence format instructions) — None reproduces the old single-user-turn behavior.
+    system_message = kwargs.get("system_message", None)
+    prompt = prompt_msg if raw_prompt else fmt_prompt(tok, prompt_msg, system_message=system_message)
     inputs = tok(prompt, return_tensors="pt").to(mdl.device)
     if "token_type_ids" in inputs:
         del inputs["token_type_ids"]

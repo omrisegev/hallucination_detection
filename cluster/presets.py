@@ -50,6 +50,16 @@ def _preset(**kw):
     kw.setdefault("head_to_head", None)   # "SAME-MODEL" when our model matches the paper's exactly
     kw.setdefault("prompt_suffix", "")    # appended to every user message (e.g. Qwen3 "/no_think")
     kw.setdefault("raw_prompt", False)    # skip chat template (base LMs like OPT-30B + few-shot)
+    kw.setdefault("system_message", None) # real system turn (e.g. HLE's format instructions);
+                                           # None keeps every existing preset's single-user-turn behavior
+    kw.setdefault("attn_impl", "eager")   # transformers attn_implementation. "eager" is the default
+                                           # every published run used (attn_laplacian_capture needs
+                                           # attention probs) -- override to "sdpa" for presets that
+                                           # don't set capture.attention=True AND run long prompts on
+                                           # a large model, where eager's O(T^2) fp32 score
+                                           # materialization can OOM even with headroom nominally free
+                                           # (hit this for real on job 170046: 72B model, HLE's long
+                                           # prompts, capture.attention was never even True there).
     kw.setdefault("notes", "")
     return kw
 
@@ -192,6 +202,156 @@ PRESETS = {
                                  "published_baselines.csv."},
         head_to_head="SAME-MODEL",
         notes="MCQ -> suppressed entropy dynamics (GPQA-like); expect a modest cell.",
+    ),
+
+    # SemGrad protocol pilot (external_data_collection_plan_2026.md's "next new protocol
+    # candidate"). Free-form SciQ/TruthfulQA reproduction of arXiv 2605.04638 (ICML 2026),
+    # github.com/mingdali6717/SemGrad @ 118b6949f9641df3872caa7ad65a797f4ae28d63 -- distinct
+    # from the MCQ sciq_llama8b / TSV-anchored truthfulqa_llama8b cells above (different
+    # model, decoding, and grading protocol; both stay in DATASETS unmodified). Full protocol
+    # detail in data/semgrad_protocol/PROVENANCE.md and cluster/manifests/semgrad_pilot_v1.json.
+    # Pilot only: N=200 seeded subsample of the official 1000/817-row sets, one model
+    # (Qwen3-4B-Instruct-2507). Do not scale up or fit a fusion method until reviewed.
+    "semgrad_sciq_qwen3_4b": _preset(
+        paper="SemGrad (arXiv 2605.04638, ICML 2026)",
+        model="Qwen/Qwen3-4B-Instruct-2507",
+        dataset="semgrad_sciq", split="test", n_samples=200,
+        k=1, temps=[0.0], max_new=150,
+        capture={"logsumexp": True},
+        published={"method": "LN-PE / G-NLL (our sampling-free adaptation, computed on this "
+                              "run's own greedy outputs)",
+                   "paper_baselines_llama8b": "LN-PE 72.51, HybridGrad 78.21, ExGrad 75.31 "
+                                              "AUROC (Llama-3.1-8B row; Qwen3-4B row not yet "
+                                              "extracted from the appendix table)",
+                   "comparison_level": 3,
+                   "model_note": "SemGrad's own LN-PE/SE/SAR baselines use 10 (or 5) stochastic "
+                                 "samples @ T=1.0, not this preset's single greedy generation -- "
+                                 "our LN-PE/G-NLL numbers are a sampling-free adaptation, "
+                                 "Comparison Level 3 (same dataset only), never SemGrad's own "
+                                 "cited baseline score. See data/semgrad_protocol/PROVENANCE.md."},
+        head_to_head="SAME-MODEL",
+        notes="SemGrad protocol pilot. Free-form SciQ -- NOT the MCQ sciq_llama8b preset above. "
+              "Vendored official test.jsonl (1000 rows); this preset pulls a seeded 200-row "
+              "pilot subsample (seed=42, see load_semgrad_sciq). Greedy decoding via temps=[0.0] "
+              "(do_sample=False), max_new_tokens=150, single official prompt template, no system "
+              "message -- matches the official repo exactly. Inline label is an interim ROUGE-L "
+              "proxy (is_correct_semgrad_freeform); the authoritative label is offline BEM "
+              "(Bulian et al. 2022, threshold=0.8, max-over-references) -- run "
+              "scripts/bem_regrade.py on the fetched pkl LOCALLY, not on the cluster (BEM needs "
+              "TensorFlow; not worth fighting sm_100 compat inside the NGC container for a "
+              "BERT-base-scale scorer that never touches the LLM).",
+    ),
+    "semgrad_truthfulqa_qwen3_4b": _preset(
+        paper="SemGrad (arXiv 2605.04638, ICML 2026)",
+        model="Qwen/Qwen3-4B-Instruct-2507",
+        dataset="semgrad_truthfulqa", split="test", n_samples=200,
+        k=1, temps=[0.0], max_new=150,
+        capture={"logsumexp": True},
+        published={"method": "LN-PE / G-NLL (our sampling-free adaptation, computed on this "
+                              "run's own greedy outputs)",
+                   "paper_baselines_llama8b": "LN-PE 64.78, SemGrad 69.80, HybridGrad 70.21 "
+                                              "AUROC (Llama-3.1-8B row; Qwen3-4B row not yet "
+                                              "extracted from the appendix table)",
+                   "comparison_level": 3,
+                   "model_note": "Same sampling-mismatch caveat as semgrad_sciq_qwen3_4b -- see "
+                                 "data/semgrad_protocol/PROVENANCE.md."},
+        head_to_head="SAME-MODEL",
+        notes="SemGrad protocol pilot, TruthfulQA leg (same commit/decoding/prompt as "
+              "semgrad_sciq_qwen3_4b). Free-form generation (HF truthful_qa/generation's "
+              "correct_answers, official vendored 817-row test.jsonl), seeded 200-row pilot "
+              "subsample (seed=42, see load_semgrad_truthfulqa). Inline label is the interim "
+              "ROUGE-L proxy; authoritative label is offline BEM -- same bem_regrade.py pass as "
+              "the SciQ leg.",
+    ),
+
+    # HLE (Humanity's Last Exam) pilot. external_data_collection_plan_2026.md's next
+    # benchmark after SemGrad. Official current-code prompt (system+user turns) against
+    # HF cais/hle pinned at revision 5a81a4c7271a2a2a312b9a690f0c2fde837e4c29 -- see
+    # data/hle_protocol/PROVENANCE.md for the paper-vs-code prompt discrepancy this
+    # reproduces the CODE side of, and cluster/manifests/hle_pilot_v1.json for the lock.
+    # Model = "strongest model used in this project" (Omri, 2026-08-08) =
+    # Qwen/Qwen2.5-72B-Instruct (bf16, proven on this cluster via gpqa_qwen72b).
+    # Grading DEFERRED (Omri, 2026-08-08): inline label is a rough placeholder only,
+    # this job's only purpose is collecting raw generation + telemetry.
+    "hle_qwen72b_pilot": _preset(
+        paper="HLE (arXiv:2501.14249)",
+        model="Qwen/Qwen2.5-72B-Instruct",
+        dataset="hle", split="test", n_samples=200,
+        k=1, temps=[0.0], max_new=2048,
+        capture={"logsumexp": True},
+        # sdpa, not the eager default: capture.attention is never True here, and HLE's
+        # occasionally very long questions blow eager's O(T^2) fp32 score materialization
+        # past the ~23GB left free after the 72B model's own weights (real OOM on job
+        # 170046, problem 136/200, "Tried to allocate 35.83 GiB" -- expandable_segments
+        # doesn't help because there just isn't enough memory, not fragmentation).
+        attn_impl="sdpa",
+        # Keep verbatim in sync with spectral_utils.data_loaders.HLE_SYSTEM_PROMPT --
+        # presets.py is a pure-data module (no spectral_utils/torch import) by design.
+        system_message=("Your response should be in the following format:\n"
+                         "Explanation: {your explanation for your answer choice}\n"
+                         "Answer: {your chosen answer}\n"
+                         "Confidence: {your confidence score between 0% and 100% for your answer}"),
+        min_minority=10,
+        published={"method": "model's own stated Confidence (verbalized, from the official "
+                              "Explanation/Answer/Confidence format)",
+                   "comparison_level": 3,
+                   "model_note": "Frontier models score <25% accuracy on the full HLE (paper "
+                                 "Table 1); Qwen2.5-72B-Instruct is not a frontier reasoning "
+                                 "model and is not evaluated in the paper -- expect this cell "
+                                 "to run very low accuracy, likely near or below the default "
+                                 "min_minority=30 gate. min_minority lowered to 10 here so the "
+                                 "job doesn't REJECT purely on gate arithmetic before grading "
+                                 "even exists; a REJECT verdict from genuinely near-zero "
+                                 "accuracy is still expected and is not a bug (same convention "
+                                 "as AIME24 x Qwen-1.5B elsewhere in this file)."},
+        head_to_head=None,
+        notes="Pilot only -- N=200 category-stratified seeded subsample (seed=42) of the "
+              "2158 text-only HLE items, tagged with HLE-Verified Gold/Revision/Uncertain tier "
+              "(data/hle_protocol/hle_verified_tiers.csv) for later slice analysis, NOT "
+              "filtered to any one tier. Grading deferred: inline label "
+              "(is_correct_hle_provisional) is a rough ROUGE-L placeholder on the extracted "
+              "Answer: line, not a real label -- real grading needs an LLM judge (official "
+              "JUDGE_PROMPT vendored in data/hle_protocol/PROVENANCE.md), planned as a "
+              "separate offline pass (Claude/Gemini or otherwise), not part of this job. "
+              "Do not compute AUROC or fit any method on this cell until that regrade lands.",
+    ),
+
+    # Full-N graduation of hle_qwen72b_pilot (Omri, 2026-08-08, after reviewing the pilot's
+    # clean 200/200 run). Same model/prompt/decoding/attn_impl -- only n_samples changes,
+    # from a 200-item stratified subsample to every text-only item in the pinned revision
+    # (2158, per data/hle_protocol/PROVENANCE.md). load_hle(n_samples>=pool size) returns
+    # every row unfiltered by category/tier (no more stratified subsampling at this size).
+    # Grading is STILL deferred -- this run's only purpose is the full raw generation +
+    # telemetry collection; do not compute AUROC or fit any method on it either.
+    "hle_qwen72b_full": _preset(
+        paper="HLE (arXiv:2501.14249)",
+        model="Qwen/Qwen2.5-72B-Instruct",
+        dataset="hle", split="test", n_samples=2158,
+        k=1, temps=[0.0], max_new=2048,
+        capture={"logsumexp": True},
+        attn_impl="sdpa",
+        system_message=("Your response should be in the following format:\n"
+                         "Explanation: {your explanation for your answer choice}\n"
+                         "Answer: {your chosen answer}\n"
+                         "Confidence: {your confidence score between 0% and 100% for your answer}"),
+        published={"method": "model's own stated Confidence (verbalized, from the official "
+                              "Explanation/Answer/Confidence format)",
+                   "comparison_level": 3,
+                   "model_note": "Pilot (N=200) measured 9.5% under the placeholder ROUGE-L "
+                                 "grader (19/200) -- a floor, not the real accuracy: ROUGE-L "
+                                 "undercounts exactMatch answers that are correct but phrased "
+                                 "differently. Frontier models score <25% on the full HLE "
+                                 "(paper Table 1); Qwen2.5-72B-Instruct is not evaluated there."},
+        head_to_head=None,
+        notes="Full run -- every text-only item (2158) in the pinned revision "
+              "(5a81a4c7271a2a2a312b9a690f0c2fde837e4c29), not restricted to any "
+              "HLE-Verified tier. Estimated ~15 GPU-hours at the pilot's observed pace "
+              "(25.6s/problem) -- submitted as a dependency chain of multiple 8h jobs "
+              "(see cluster/manifests/hle_pilot_v1.json's full-run addendum), not a single "
+              "sbatch call. Grading deferred, same as the pilot: inline label "
+              "(is_correct_hle_provisional) is a rough ROUGE-L placeholder, not a real label. "
+              "Do not compute AUROC or fit any method on this cell until a real judge regrade "
+              "lands (Claude/Gemini or otherwise, per Omri).",
     ),
 
     # HCPD CoQA on the CORRECT model. inside_coqa_llama7b runs CoQA on huggyllama/llama-7b

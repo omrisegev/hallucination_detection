@@ -127,6 +127,33 @@ GRADER_FIXTURES = {
         ("<think>maybe A</think>\nThe answer is D", {"_gold_letter": "D"}, True, "reasoning then answer"),
         ("",                                    {"_gold_letter": "A"}, False, "empty generation"),
     ],
+    # SemGrad free-form protocol (is_correct_semgrad_freeform): ROUGE-L>0.3 proxy vs
+    # item["truthful_answers"] (list). Interim label only — authoritative label is offline
+    # BEM (spectral_utils/bem_scorer.py); this just guards the at-inference accuracy-band gate.
+    "semgrad_family": [
+        ("darwin",                              {"truthful_answers": ["darwin"]}, True,  "exact match"),
+        ("darwin\n\nExplanation: he proposed it in 1859.",
+                                                 {"truthful_answers": ["darwin"]}, True,  "multi-line ramble -> first line only"),
+        ("Charles Darwin",                      {"truthful_answers": ["darwin"]}, True,  "short phrase containing gold word, ROUGE-L 0.67>0.3"),
+        ("lincoln",                             {"truthful_answers": ["darwin"]}, False, "wrong answer, zero token overlap"),
+        ("Nothing happens if you eat watermelon seeds.",
+         {"truthful_answers": ["Nothing happens", "You eat watermelon seeds"]},  True,  "TruthfulQA-style multi-reference, ROUGE-L 0.44>0.3 vs best ref"),
+        ("",                                    {"truthful_answers": ["darwin"]}, False, "empty generation"),
+    ],
+    # HLE (is_correct_hle_provisional): PLACEHOLDER grader only (grading deferred, see
+    # data/hle_protocol/PROVENANCE.md) — extracts the "Answer:" line per the official
+    # Explanation/Answer/Confidence format, ROUGE-L>0.3 vs item["answer"].
+    "hle_family": [
+        ("Explanation: he proposed it.\nAnswer: 42\nConfidence: 90%",
+         {"answer": "42"}, True, "official format, exact numeric answer"),
+        ("Explanation: he proposed it.\nAnswer: 17\nConfidence: 50%",
+         {"answer": "42"}, False, "official format, wrong answer"),
+        ("<think>maybe 17</think>\nExplanation: clear\nAnswer: 42\nConfidence: 80%",
+         {"answer": "42"}, True, "<think> block stripped before Answer: extraction"),
+        ("I think it's Paris",
+         {"answer": "Paris"}, True, "no official format -> first-line fallback, partial phrase match"),
+        ("",                  {"answer": "42"}, False, "empty generation"),
+    ],
     # L-CiteEval (is_grounded_lciteeval): grounded iff any cited passage title is in
     # supporting_facts (or gold-answer substring fallback); no citations -> ungrounded.
     "lciteeval_family": [
@@ -179,6 +206,10 @@ def _fixture_family(dataset):
         return "gpqa_family"
     if dataset.startswith("lciteeval"):
         return "lciteeval_family"
+    if dataset.startswith("semgrad"):
+        return "semgrad_family"
+    if dataset == "hle":
+        return "hle_family"
     return None
 
 
@@ -295,7 +326,7 @@ def check_prompt(preset):
             prompt = msg                                     # base LM: no chat template
         else:
             from spectral_utils.model_utils import fmt_prompt
-            prompt = fmt_prompt(tok, msg)
+            prompt = fmt_prompt(tok, msg, system_message=preset.get("system_message"))
         ok = isinstance(prompt, str) and bool(prompt.strip())
         mode = "raw_prompt" if preset.get("raw_prompt") else "fmt_prompt"
         return [("prompt", mode, PASS if ok else FAIL, f"{len(prompt)} chars")]

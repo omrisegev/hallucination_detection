@@ -51,6 +51,8 @@ from .data_loaders import (
     load_nq_open, nq_open_prompt, is_correct_nq_open,
     load_truthfulqa, truthfulqa_prompt, is_correct_truthfulqa,
     load_sciq, sciq_prompt, is_correct_sciq,
+    load_semgrad_sciq, load_semgrad_truthfulqa, semgrad_prompt, is_correct_semgrad_freeform,
+    load_hle, hle_prompt, is_correct_hle_provisional, HLE_SYSTEM_PROMPT,
     rouge_l,
     load_humaneval, humaneval_prompt, is_correct_humaneval,
     load_lciteeval, lciteeval_prompt, lciteeval_grounding_label, is_grounded_lciteeval,
@@ -102,6 +104,12 @@ from .baselines import (
 )
 from .judge_utils import (
     load_judge, judge_correct, judge_label_cache, gold_answers_from_row,
+)
+# BEM (Bulian et al. 2022) offline correctness scorer for the SemGrad protocol pilot.
+# Only numpy is imported at module load time -- tensorflow/kagglehub/transformers are
+# lazy-imported inside the functions below, so this import is cheap even when unused.
+from .bem_scorer import (
+    load_bem_model, bem_score, bem_score_batch, bem_correct, bem_label_cache,
 )
 from .streaming_utils import (
     FEATURE_SIGNS, LEGACY_FEATURE_SIGNS, iter_entropy_traces, iter_trace_records, anchor_orient,
