@@ -1,0 +1,188 @@
+{
+  "candidate_scores": [
+    {
+      "actual_k": 3,
+      "bootstrap_ari": 0.8862679281197368,
+      "requested_k": 3,
+      "selection_score": 0.7987369844613585,
+      "silhouette": 0.488583814429358,
+      "singleton_fraction": 0.0,
+      "size_imbalance": 0.33085866411698595
+    },
+    {
+      "actual_k": 4,
+      "bootstrap_ari": 0.8666366935309281,
+      "requested_k": 4,
+      "selection_score": 0.7697337204642694,
+      "silhouette": 0.4734557080708647,
+      "singleton_fraction": 0.0,
+      "size_imbalance": 0.6389710663782151
+    },
+    {
+      "actual_k": 5,
+      "bootstrap_ari": 0.8426782911807337,
+      "requested_k": 5,
+      "selection_score": 0.7439137663605571,
+      "silhouette": 0.43906063389468414,
+      "singleton_fraction": 0.0,
+      "size_imbalance": 0.7438107540696153
+    },
+    {
+      "actual_k": 6,
+      "bootstrap_ari": 0.791159832179944,
+      "requested_k": 6,
+      "selection_score": 0.7303579328816483,
+      "silhouette": 0.46314680175588513,
+      "singleton_fraction": 0.0,
+      "size_imbalance": 0.6201736729458992
+    },
+    {
+      "actual_k": 7,
+      "bootstrap_ari": 0.8608399033677407,
+      "requested_k": 7,
+      "selection_score": 0.7421070759237884,
+      "silhouette": 0.4726232992761402,
+      "singleton_fraction": 0.14285714285714285,
+      "size_imbalance": 0.7008025830109113
+    },
+    {
+      "actual_k": 8,
+      "bootstrap_ari": 0.8516545727768466,
+      "requested_k": 8,
+      "selection_score": 0.7144606188537296,
+      "silhouette": 0.4666203106742944,
+      "singleton_fraction": 0.25,
+      "size_imbalance": 0.8104349040653459
+    }
+  ],
+  "chosen_bootstrap_ari": 0.8862679281197368,
+  "chosen_k": 3,
+  "chosen_requested_k": 3,
+  "chosen_silhouette": 0.488583814429358,
+  "chosen_singleton_fraction": 0.0,
+  "chosen_size_imbalance": 0.33085866411698595,
+  "feature_names": [
+    "cusum_max",
+    "cusum_max_energy",
+    "cusum_max_spilled",
+    "dominant_freq",
+    "epr",
+    "epr_energy",
+    "epr_spilled",
+    "high_band_power",
+    "hl_ratio",
+    "hurst_exponent",
+    "logprob_margin",
+    "low_band_power",
+    "mean_logprob_entropy",
+    "mean_top1_logprob",
+    "min_energy",
+    "min_spilled",
+    "renyi_entropy_2",
+    "spectral_centroid",
+    "spectral_entropy",
+    "stft_max_high_power",
+    "sw_var_peak",
+    "sw_var_peak_energy",
+    "sw_var_peak_spilled",
+    "topk_tail_mass",
+    "trace_length",
+    "varentropy"
+  ],
+  "global_partition": {
+    "micro_01": [
+      "cusum_max",
+      "cusum_max_spilled",
+      "min_energy",
+      "sw_var_peak",
+      "sw_var_peak_spilled"
+    ],
+    "micro_02": [
+      "cusum_max_energy",
+      "dominant_freq",
+      "high_band_power",
+      "hl_ratio",
+      "hurst_exponent",
+      "low_band_power",
+      "min_spilled",
+      "spectral_centroid",
+      "spectral_entropy",
+      "stft_max_high_power",
+      "sw_var_peak_energy",
+      "trace_length"
+    ],
+    "micro_03": [
+      "epr",
+      "epr_energy",
+      "epr_spilled",
+      "logprob_margin",
+      "mean_logprob_entropy",
+      "mean_top1_logprob",
+      "renyi_entropy_2",
+      "topk_tail_mass",
+      "varentropy"
+    ]
+  },
+  "held_cell": "math500_r1distill8b_mn4096",
+  "held_partition": {
+    "micro_01": [
+      "cusum_max",
+      "cusum_max_spilled",
+      "min_energy",
+      "sw_var_peak",
+      "sw_var_peak_spilled"
+    ],
+    "micro_02": [
+      "cusum_max_energy",
+      "dominant_freq",
+      "high_band_power",
+      "hl_ratio",
+      "hurst_exponent",
+      "low_band_power",
+      "min_spilled",
+      "spectral_centroid",
+      "spectral_entropy",
+      "stft_max_high_power",
+      "sw_var_peak_energy"
+    ],
+    "micro_03": [
+      "epr",
+      "epr_energy",
+      "epr_spilled",
+      "logprob_margin",
+      "mean_logprob_entropy",
+      "mean_top1_logprob",
+      "renyi_entropy_2",
+      "topk_tail_mass",
+      "varentropy"
+    ]
+  },
+  "schema_version": "fusion-aware-views-v1-2026-08-07",
+  "support_median_off_diagonal": 22.0,
+  "support_min_off_diagonal": 8,
+  "training_cells": [
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "sciq_llama8b",
+    "se_nq_open_llama8b",
+    "se_squad_v2_llama8b",
+    "seiclr_triviaqa_opt30b",
+    "semenergy_triviaqa_qwen3_8b",
+    "spilled_triviaqa_llama8b",
+    "truthfulqa_llama8b",
+    "ars_gsm8k_r1distill8b",
+    "internalstates_gsm8k_qwen25_7b",
+    "lapeigvals_gsm8k_llama3b",
+    "lapeigvals_gsm8k_llama8b",
+    "lapeigvals_gsm8k_mistral24b",
+    "lapeigvals_gsm8k_nemo",
+    "lapeigvals_gsm8k_phi35",
+    "noise_gsm8k_mistral7b",
+    "noise_gsm8k_phi3mini",
+    "math500_dsmath7b",
+    "math500_qwenmath7b",
+    "math500_r1distill8b",
+    "trace_gsm8k_llama8b_k10",
+    "trace_math500_qwenmath15b_k10"
+  ]
+}

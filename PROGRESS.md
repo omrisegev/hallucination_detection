@@ -1,8 +1,203 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-07
-**Last updated**: Step 226 — the dependency-aware weights experiment is paper-corrected,
-pre-registered, implemented, and ready for the data machine. No real-data result exists yet.
+**Date**: 2026-08-08
+**Last updated**: unified-DUFS factorial completed after the GL-LIU v1 handoff.
+
+## Current decision point — unified DUFS-LIU is the simplest leading candidate
+
+The approved follow-up to the GL-LIU v1 handoff is complete. Two controlled
+2x2 matrices separated the choice of local graph from the choice of local
+feature pool. Both global scores, the temporal-core curve, and the DUFS-core
+curve reproduce the frozen v1 artifacts exactly in all eight cells.
+
+Using DUFS-LIU in both heads with the frozen five local curves reaches **31.72%
+ProcessBench F1**, compared with **31.36%** for frozen GL-LIU v1 and **25.71%**
+for the reproduced Mind the Gap control. On the six cells outside component
+selection it reaches **31.41%**, versus **30.76%** for v1. The change is small
+and mixed: five cell wins and three losses. It supports a simpler common graph
+construction and slightly better transfer, but does not confirm a universal
+local DUFS gain.
+
+The broad local pool is rejected. Twenty-eight unique token-varying curves were
+constructed from the 30 registered global names: trace length cannot localize,
+and the two CUSUM summaries share one local curve to avoid duplicate voting.
+The broad DUFS locator lowers end-to-end F1 to **29.03%**, or -2.70 points
+against the five-view locator, and loses in seven of eight cells. All curves
+survived and the graph remained active; the failure is target alignment, not a
+numerical collapse. DUFS preserved a coherent token-confidence geometry that
+did not identify the first erroneous step.
+
+**Decision:** keep global mixed DUFS-LIU. Carry five-view local DUFS-LIU as the
+primary simplicity candidate and temporal LIU as the frozen robustness control
+into an external dataset/model-family test. Do not tune feature subsets,
+rolling windows, or new locators on the same ProcessBench labels.
+
+Canonical report: `results/gl_liu_factorial_v2/REPORT.md`. Advisor brief:
+`results/gl_liu_factorial_v2/ADVISOR_BRIEF.md`. Executed design:
+`docs/experiments/GL_LIU_FACTORIAL_V2.md`.
+
+---
+
+## Current leading ProcessBench method — GL-LIU v1
+
+GL-LIU v1 (Global-Local Laplacian IU-PCR) is now the canonical end-to-end
+method for ProcessBench. It replaces the Mind the Gap score with two parts that
+use only our token statistics:
+
+1. a global mixed-contract DUFS-LIU detector for error presence;
+2. a continuous moving-window temporal-LIU locator for the predicted token.
+
+The method never uses step boundaries to construct a score. Step spans are
+used only after prediction to map a token to the benchmark annotation. Score
+fitting is unlabeled. Labels are used on two declared development cells for
+component selection, inside each calibration half for the final threshold, and
+after scores freeze for evaluation. The method is therefore a **calibrated
+unsupervised scoring method**, not a fully label-free decision policy.
+
+Across eight ProcessBench model/dataset cells, GL-LIU v1 improves ProcessBench
+F1 from 25.71% for the reproduced Mind the Gap control to 31.36%. Exact first-
+error localization improves from 17.84% to 21.79%, tolerance-one localization
+from 39.35% to 46.76%, and clean-trace accuracy from 48.63% to 57.99%. On the
+six cells excluded from component selection, F1 is 30.76% versus 24.74%.
+GL-LIU has higher F1 in all eight cells.
+
+The evidence is not equally strong for both stages. The global mixed DUFS-LIU
+detector beats mixed ordinary IU-PCR in all eight cells by about +0.22 AUROC
+percentage points on average. The selected temporal locator wins on the two
+development cells in aggregate, but loses to the DUFS feature-graph locator on
+the six non-selection cells (about 25.14% versus 25.78% exact localization).
+Consequently, the global detector is the confirmed component. The temporal
+locator remains the frozen v1 candidate and must be compared with ordinary IU
+and DUFS feature-graph IU on a new dataset family.
+
+The two model sizes reuse the same underlying ProcessBench examples. The eight
+cells represent four independent dataset families; only OlympiadBench and
+OmniMath are new dataset-family confirmation sets relative to selection.
+
+Canonical definition: `docs/methods/gl_liu_v1.md`. Scientific report:
+`results/ours_only_localization_v1/REPORT.md`. Advisor presentation:
+`results/ours_only_localization_v1/REPORT.html`.
+
+---
+
+## Feature-contract refinement — 2026-08-07
+
+The current DUFS-LIU code had still been using `fixed_stable_v1`; the four
+non-monotone candidates were removed, not transformed. A label-isolated search
+now evaluated all 256 per-feature combinations of `drop`, `raw`, `squared`, and
+KDE `mode` under the frozen DUFS-LIU settings.
+
+The retrospective DUFS-LIU winner is `pe_mean=squared`,
+`stft_spectral_entropy=mode`, `cusum_shift_idx=raw`, and `rpdi=raw`. It scores
+0.776562 versus 0.774139 for stable-only (+0.242pp, 17W/7L). LOFO contract
+selection gives +0.123pp, but excluding `math500_qwenmath7b` reduces that mean
+to about +0.022pp. `rpdi=raw` and `stft=mode` are stable; the `pe_mean` and
+`cusum_shift_idx` choices are not.
+
+**Decision:** freeze this exact mapping as
+`dufs-liu-mixed-v2-development-2026-08-07` for the next external-family run.
+Keep the stable-only 0.774139 result as the historical headline until that
+confirmation. This is baseline refinement, not evidence that the target-neutral
+static-graph problem from Steps 227--230 has been solved. Full conclusion:
+`docs/research_notes/dufs_liu_mixed_feature_contract_conclusion.md`.
+
+---
+
+## Current research-priority override — 2026-08-07
+
+RCV-AD-IU-PCR is complete. It tested repeated complementary feature splits as
+a label-free alternative to family reliability anchors. Sixteen alternating-
+diffusion graphs were averaged for atomic-random, dependency-blocked, and
+family-blocked partitions. The registered primary kept absolute-Spearman
+dependency blocks intact, used `k=7` and `lambda=0.1`, and was evaluated only
+after all 24 score files and source hashes were frozen.
+
+The method converged but did not improve correctness. The primary is +0.004pp
+versus IU-PCR, 10W/14L, with equal-family interval [-0.052,+0.029]pp. Median
+partition graph CKA is 0.536 and `T=8` versus `T=16` score Spearman is 1.000,
+yet stability has Spearman -0.240 with utility. Random and family splits are
+also ties (+0.018pp and +0.019pp). Repairing connectivity with `k=11` remains
+a tie, and stronger graph regularization is harmful. Only 5/11 continuation
+gates passed.
+
+**Decision:** stop static repartitioning of the current feature pool as the
+leading direction. This is the fourth form of the same target-identifiability
+failure: stable geometry, stable operators, semantic family agreement, and now
+cross-partition agreement all reproduce structure without identifying
+hallucination correctness. Keep the supported Step-229 diagnosis that family
+expertise changes by IU-PCR regime. A new graph or router requires a genuinely
+independent view, not another function of the same static matrix. Full
+conclusion: `docs/research_notes/repeated_cross_view_diffusion_conclusion.md`;
+frozen report: `results/repeated_cross_view_diffusion_v1/REPORT.md`.
+
+---
+
+## Previous research-priority override — graph-coupled family relevance
+
+The GCFR-U-PCR family-relevance diagnostic is complete. It tested Omri's
+hypothesis that a feature family can be useful for one sample and noisy for
+another, and that a graph over related families can stabilize a sample-local
+reliability gate. The synthetic design explicitly separated inconsistent
+inactive noise from coherent inactive nuisance. The real fit was physically
+label-free, all scores and sources were frozen before evaluation, and all 24
+retrospective cells were evaluated with fixed controls.
+
+The hypothesis and the proposed mechanism must now be separated. Conditional
+family specialization **is supported**: choosing a family expert separately in
+frozen IU-PCR-rank quartiles has +2.833pp diagnostic headroom, with Holm
+`p=0.006`. But the graph-coupled router **failed**: the registered path lost
+0.135pp to IU-PCR, 0.243pp to its no-graph control, and did not beat any
+mechanism control. Every positive graph strength was negative on average. The
+gates were active, so this is not graph collapse or an optimization failure.
+
+**Decision:** stop before a learned mixture. The semantic family graph encodes
+which measurements are related, not which measurements share reliability for
+hallucination correctness. IU-PCR rank is retained only as a regime coordinate.
+The next premise must add independent interventional self-supervision—such as
+repeated generations, benign perturbations, evidence-conditioned answers, or
+semantic answer consistency—and first prove that it predicts family-expert
+usefulness on held-out cells/families. Do not tune a router on the current 24
+labels. Full conclusion:
+`docs/research_notes/family_relevance_diagnostic_conclusion.md`; report:
+`results/family_relevance_real_v1/REPORT.md`.
+
+---
+
+## Previous research-priority override — atomic operator audit
+
+The Phase-0 atomic-operator premise audit is complete. It tested the smallest
+remaining DUFS-inspired extension after the frozen view-fusion benchmark: use
+a fixed label-free score to identify which individual feature Laplacian should
+regularize the two-dimensional IU-PCR solve. All 24 score files and diagnostics
+were frozen and hashed before labels were opened. Independent pre-run and
+post-run reviews approved the protocol and the negative conclusion.
+
+The premise failed. Median within-cell Spearman between the proxy and atomic
+AUROC change was **-0.312**. The top-proxy atom lost **-0.838pp** cell-macro
+versus IU-PCR, with 7 wins, 17 losses, and a worst loss of **-3.658pp**. The
+equal-family change was **-1.178pp**, interval [-2.110, -0.372]. A label-only
+oracle showed optimistic atomic headroom of **+0.447pp** cell-macro, so useful
+actuation exists, but the label-free rule selects the wrong operators. Only 3
+of 15 continuation gates passed.
+
+This is not an optimization failure. The proxy ranking had median agreement
+0.990 with its final result after four subsamples. Every registered combination
+of `k` in {7,15,30} and `lambda` in {0.3,1,3} remained negatively associated
+with usefulness. Smaller `lambda` reduced harm but did not reverse selection.
+The failure is target identifiability: reproducibility, agreement with an
+IU-PCR pseudo-score, and strong actuation identify stable feature geometry,
+not hallucination correctness.
+
+**Decision:** do not implement AOG Phase 1 and do not tune proxy weights on
+these labels. Confidence-oriented U-PCR/IU-PCR remains the incumbent. DUFS-LIU,
+uniform atomic fusion, and atomic operators remain controls, not promoted
+methods. The next research junction must introduce an independent
+interventional self-supervised signal, such as repeated generations, benign
+prompt/decoding perturbations, evidence-conditioned answers, or semantic
+answer consistency. Its own premise must transfer leave-one-family-out before
+another fusion learner is built. Full conclusion:
+`docs/research_notes/atomic_operator_premise_audit_conclusion.md`; frozen
+report: `results/atomic_operator_premise_audit_v2/REPORT.md`.
 
 > **Step 228 (2026-08-07, infra, not research):** the raw per-cell dataset cache (questions,
 > answers, token-level stats) is now uploaded to the repo under `dataset_cache/` via Git LFS —
@@ -1638,6 +1833,69 @@ static tables here. See also Research_Directions.md's "Current Best Results" tab
     transform of record switches from `mode_centre` to `squared`), or a materially less redundant
     pool. If ever adopted the mode is `replace`, never `add`.
 14. LR oracle corrected conclusion (Step 147, common-cell basis): supervised LR beats L-SML by **+4.7 / +3.8 / +3.6pp** on 5/9/16 features (LR 68.9/66.8/67.8 vs CONT 64.2/62.9/64.1); in-sample ceilings 70.5/73.7/79.3. Gap largest on GPQA (+4.9pp) and RAG+QA (+5.8pp), ~0 on reasoning (both near ceiling). "5 best" = named sets non-nested (STABLE_H9 drops spectral_entropy) + overfitting (CV flat while ceiling climbs). LR vs L-SML weights correlate weakly (Spearman ~0.1–0.2). See `SUPERVISED_ORACLE_CORRECTION.md` for evaluation rules; reproduce with `python scripts/oracle_report.py`.
+
+## Latest development — Step 234
+
+Repeated-measurement reliability U-PCR was implemented and tested for global
+answer detection using one saved LLM pass. A synchronized moving-block
+bootstrap can estimate a stable within-procedure covariance after excluding
+features that the resampling procedure does not preserve. However, reliability
+did not improve the target ranking. The best safe connection, Wiener-filtered
+DUFS-LIU, changed AUROC by only +0.0006 on Qwen3-4B/GSM8K and +0.0013 on
+Qwen3-4B/MATH; both paired intervals include zero. Direct generalized latent
+coordinates are incompatible with U-PCR because they remove its required
+off-diagonal covariance. **Decision: retain DUFS-LIU mixed-v2 and do not open
+the six confirmation cells for this candidate.** Full report:
+`results/repeated_measurement_reliability/REPORT.md`.
+
+## Current direction — Step 235
+
+The current fusion-development cycle is closed. Across Steps 225--234, sparse
+dependency models, SU-PCR/SDSF, view and micro-view fusion, atomic operators,
+family relevance gates, repeated cross-view diffusion, feature
+transformations, and repeated-measurement reliability all exposed useful
+structure, but none produced a robust target-aligned gain over the common
+DUFS-LIU core on the current single-pass static feature pool.
+
+The closing 24-cell sensitivity experiment also tested deployed-U-PCR hard
+feature filtering before IU-PCR and DUFS-LIU. Full-pool mixed-v2 DUFS-LIU
+remains best at 0.776562 macro AUROC. The ordinary `rho_max/3` filter lowers it
+to 0.774249, and the strictest filter reaches 0.764153. DUFS's clean increment
+over matched IU-PCR changes from +0.048 AUROC points without filtering to
+-0.025 points with the ordinary filter. Median Spearman agreement between the
+full-pool DUFS gates and estimated rho is 0.794, showing that hard deletion
+mostly duplicates soft suppression while also removing covariance information.
+All previous IU-PCR, DUFS-LIU, and deployed-U-PCR score files reproduced
+exactly in 24/24 cells. Do not develop another hard-filter or gating variant on
+these cells.
+
+This is a bounded saturation result, not a claim that U-PCR cannot be improved.
+The forward implementation standard is **DUFS-LIU mixed-v2**. Historical
+stable-only runs remain unchanged for auditability. New core variants are
+paused until an application supplies a new identifiable signal, a valid
+nuisance intervention, or materially different features.
+
+The project now has two active application directions:
+
+1. **Hallucination localization.** Frozen GL-LIU v1 reaches 31.36% ProcessBench
+   F1 versus 25.71% for Mind the Gap. A unified global/local core-five
+   DUFS-LIU system reaches 31.72%, but its +0.37-point advantage is descriptive,
+   not a confirmed replacement. The broad-28 local contract is rejected at
+   29.03%. The next test must use a new dataset/model family and compare the
+   frozen temporal localizer with the simpler core-five local DUFS-LIU system.
+2. **Hallucination in RAG citations.** The next proposed system is
+   evidence-contrast U-PCR/DUFS-LIU: keep the generated answer fixed, perturb
+   the available evidence, and fuse full-evidence, no-evidence, and
+   leave-one-chunk-out response traces. This is not yet an experimental result.
+   Its benchmark, grouped split, label boundary, baselines, and failure tests
+   must be registered before implementation.
+
+Current decision and review package:
+`Research_Directions.md` and
+`docs/research_notes/claude_review_application_pivot_2026-08-08.md`.
+Hard-filter evidence:
+`results/hard_filter_dufs_liu_24cell/REPORT.md` and
+`results/hard_filter_dufs_liu_24cell/MECHANISM_ANALYSIS.md`.
 
 ---
 

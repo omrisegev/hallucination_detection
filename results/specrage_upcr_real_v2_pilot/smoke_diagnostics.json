@@ -1,0 +1,2406 @@
+[
+  {
+    "cell": "ars_gsm8k_r1distill8b",
+    "family": "gsm8k",
+    "domain": "math",
+    "config": "agreement_k15",
+    "config_hash": "704b760e14e5b8cb587f2209858e134cdb09a6aedd306069189ce57ca6b7a6a4",
+    "n_samples": 500,
+    "n_features": 26,
+    "view_schema": "specrage-provenance-views-v1-2026-08-06",
+    "view_members": {
+      "entropy_level": [
+        "epr"
+      ],
+      "entropy_dynamics": [
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "sw_var_peak",
+        "hurst_exponent",
+        "cusum_max"
+      ],
+      "sampled_token_energy": [
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "min_spilled"
+      ],
+      "partition_energy": [
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy"
+      ],
+      "topk_distribution": [
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "structural": [
+        "trace_length"
+      ]
+    },
+    "mean_view_weight": {
+      "entropy_level": 0.1778014504711589,
+      "entropy_dynamics": 0.13829895719062937,
+      "sampled_token_energy": 0.18907366000001197,
+      "partition_energy": 0.144030230054635,
+      "topk_distribution": 0.2637450289166868,
+      "structural": 0.08705067336687802
+    },
+    "dominant_view_fraction": {
+      "entropy_level": 0.012,
+      "entropy_dynamics": 0.042,
+      "sampled_token_energy": 0.106,
+      "partition_energy": 0.004,
+      "topk_distribution": 0.836,
+      "structural": 0.0
+    },
+    "alpha_entropy_normalized": 0.9559750490420144,
+    "alpha_seed_mad": 0.0,
+    "alpha_seed_std_mean": 0.0,
+    "graph_seed_relative_distance_mean": 0.0,
+    "score_seed_correlation_min": 1.0,
+    "base_edge_jaccard_mean": 0.056261743057576905,
+    "effective_edge_fraction": 0.4942875226645916,
+    "degree_p05_over_mean": 0.4000184917988039,
+    "near_isolated_fraction": 0.0,
+    "total_affinity_vs_uniform": 1.106518643533463,
+    "graph_collapsed": false,
+    "dufs_effective_feature_count": 25.286468861330572,
+    "dufs_seed_std": 0.0,
+    "seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.09285635501146317,
+        "final_loss": 0.09590989351272583,
+        "alpha_entropy_mean": 1.7128773480267545,
+        "alpha_entropy_normalized": 0.9559750499126508,
+        "alpha_max_mean": 0.27423920699954035,
+        "dominant_view_fraction": {
+          "entropy_level": 0.012,
+          "entropy_dynamics": 0.042,
+          "sampled_token_energy": 0.106,
+          "partition_energy": 0.004,
+          "topk_distribution": 0.836,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.17780145090818406,
+          "entropy_dynamics": 0.13829895744845272,
+          "sampled_token_energy": 0.18907366040349008,
+          "partition_energy": 0.14403023038059473,
+          "topk_distribution": 0.2637450294941664,
+          "structural": 0.08705067357048392
+        },
+        "orthogonality_error": 2.6747483181804875e-07,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.43760700926339335,
+            "rayleigh_trace": 492.2304733898053
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.1523814103051993,
+            "rayleigh_trace": 344.3358951656286
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.2306269071635917,
+            "rayleigh_trace": 262.70998970938945
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.21490666866417393,
+            "rayleigh_trace": 290.88886093383536
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.40628447464003115,
+            "rayleigh_trace": 369.285815832397
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.07457741896061203,
+            "rayleigh_trace": 281.64991967354825
+          }
+        ],
+        "mean_laplacian_commutator": 0.004566412944925223,
+        "n_nodes": 500,
+        "n_edges": 22490,
+        "n_components": 1,
+        "degree_min": 0.03323918168791241,
+        "degree_mean": 0.31018587201726,
+        "degree_max": 0.5705115815653535,
+        "algebraic_connectivity": 0.17815345808778138,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.18951917890536668,
+          "n_nodes": 500,
+          "n_edges": 4527,
+          "n_components": 1,
+          "degree_min": 2.04908397990198e-12,
+          "degree_mean": 5.837359030595246,
+          "degree_max": 11.864089558420067,
+          "algebraic_connectivity": 0.004351284292306208,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 90
+      }
+    ],
+    "uniform_seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.0023275488056242466,
+        "final_loss": 0.0036461572162806988,
+        "alpha_entropy_mean": 1.791759492824326,
+        "alpha_entropy_normalized": 1.0000000131693296,
+        "alpha_max_mean": 0.1666666716337204,
+        "dominant_view_fraction": {
+          "entropy_level": 1.0,
+          "entropy_dynamics": 0.0,
+          "sampled_token_energy": 0.0,
+          "partition_energy": 0.0,
+          "topk_distribution": 0.0,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1666666716337204,
+          "entropy_dynamics": 0.1666666716337204,
+          "sampled_token_energy": 0.1666666716337204,
+          "partition_energy": 0.1666666716337204,
+          "topk_distribution": 0.1666666716337204,
+          "structural": 0.1666666716337204
+        },
+        "orthogonality_error": 3.726914569073686e-06,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.6311185244252437,
+            "rayleigh_trace": 279.77707883215203
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.5831185975311104,
+            "rayleigh_trace": 381.77677271490586
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.6187072176844433,
+            "rayleigh_trace": 243.3345025409067
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.6054919799739539,
+            "rayleigh_trace": 358.4489771585052
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.6168547274931959,
+            "rayleigh_trace": 232.2143435110471
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.5766488915186755,
+            "rayleigh_trace": 503.342687593699
+          }
+        ],
+        "mean_laplacian_commutator": 0.004566412944925223,
+        "n_nodes": 500,
+        "n_edges": 22490,
+        "n_components": 1,
+        "degree_min": 0.030277418000864354,
+        "degree_mean": 0.2803259498185076,
+        "degree_max": 0.4877663197846522,
+        "algebraic_connectivity": 0.3686630723211229,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.11244285297693886,
+          "n_nodes": 500,
+          "n_edges": 4456,
+          "n_components": 1,
+          "degree_min": 7.501294095385431e-20,
+          "degree_mean": 5.922566530866881,
+          "degree_max": 12.19339841932238,
+          "algebraic_connectivity": 1.6442572207979704e-13,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 90
+      }
+    ]
+  },
+  {
+    "cell": "epr_triviaqa_mistral24b",
+    "family": "triviaqa",
+    "domain": "QA",
+    "config": "agreement_k15",
+    "config_hash": "704b760e14e5b8cb587f2209858e134cdb09a6aedd306069189ce57ca6b7a6a4",
+    "n_samples": 621,
+    "n_features": 25,
+    "view_schema": "specrage-provenance-views-v1-2026-08-06",
+    "view_members": {
+      "entropy_level": [
+        "epr"
+      ],
+      "entropy_dynamics": [
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "sw_var_peak",
+        "hurst_exponent",
+        "cusum_max"
+      ],
+      "sampled_token_energy": [
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "min_spilled"
+      ],
+      "partition_energy": [
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy"
+      ],
+      "topk_distribution": [
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "structural": [
+        "trace_length"
+      ]
+    },
+    "mean_view_weight": {
+      "entropy_level": 0.16954871431215562,
+      "entropy_dynamics": 0.17245171756822353,
+      "sampled_token_energy": 0.15433988778528576,
+      "partition_energy": 0.14595736868983486,
+      "topk_distribution": 0.23747697719741911,
+      "structural": 0.12022533444708113
+    },
+    "dominant_view_fraction": {
+      "entropy_level": 0.033816425120772944,
+      "entropy_dynamics": 0.11916264090177134,
+      "sampled_token_energy": 0.02576489533011272,
+      "partition_energy": 0.008051529790660225,
+      "topk_distribution": 0.7954911433172303,
+      "structural": 0.017713365539452495
+    },
+    "alpha_entropy_normalized": 0.9746117213014843,
+    "alpha_seed_mad": 0.0,
+    "alpha_seed_std_mean": 0.0,
+    "graph_seed_relative_distance_mean": 0.0,
+    "score_seed_correlation_min": 1.0,
+    "base_edge_jaccard_mean": 0.049622701574364464,
+    "effective_edge_fraction": 0.5657764791485557,
+    "degree_p05_over_mean": 0.3894118013001143,
+    "near_isolated_fraction": 0.0,
+    "total_affinity_vs_uniform": 1.0088291179663205,
+    "graph_collapsed": false,
+    "dufs_effective_feature_count": 24.862589527193865,
+    "dufs_seed_std": 0.0,
+    "seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.12562131881713867,
+        "final_loss": 0.13003042340278625,
+        "alpha_entropy_mean": 1.7462697806169478,
+        "alpha_entropy_normalized": 0.9746117213876339,
+        "alpha_max_mean": 0.24942884974529586,
+        "dominant_view_fraction": {
+          "entropy_level": 0.033816425120772944,
+          "entropy_dynamics": 0.11916264090177134,
+          "sampled_token_energy": 0.02576489533011272,
+          "partition_energy": 0.008051529790660225,
+          "topk_distribution": 0.7954911433172303,
+          "structural": 0.017713365539452495
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.16954871432648766,
+          "entropy_dynamics": 0.1724517176200706,
+          "sampled_token_energy": 0.1543398878796569,
+          "partition_energy": 0.14595736872746748,
+          "topk_distribution": 0.23747697729323414,
+          "structural": 0.12022533444102836
+        },
+        "orthogonality_error": 6.3312825434926595e-06,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.6430938403727846,
+            "rayleigh_trace": 186.28629850968218
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.5692943869035135,
+            "rayleigh_trace": 272.24808505304827
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.5915523213887137,
+            "rayleigh_trace": 240.10750731585395
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.6056263342305509,
+            "rayleigh_trace": 338.2132921767374
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.5648623512980788,
+            "rayleigh_trace": 160.48129933965637
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.5660607043145579,
+            "rayleigh_trace": 449.00995763143965
+          }
+        ],
+        "mean_laplacian_commutator": 0.004452903891017595,
+        "n_nodes": 621,
+        "n_edges": 28664,
+        "n_components": 1,
+        "degree_min": 0.04794526252229449,
+        "degree_mean": 0.3096791911227363,
+        "degree_max": 0.5516617870890094,
+        "algebraic_connectivity": 0.15292585141524156,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.10580343027429275,
+          "n_nodes": 621,
+          "n_edges": 5697,
+          "n_components": 1,
+          "degree_min": 3.54738318452523e-42,
+          "degree_mean": 5.859282399480991,
+          "degree_max": 13.253743827607886,
+          "algebraic_connectivity": 0.00021255624528370806,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 120
+      }
+    ],
+    "uniform_seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.001628680038265884,
+        "final_loss": 0.003188632195815444,
+        "alpha_entropy_mean": 1.7917594928243257,
+        "alpha_entropy_normalized": 1.0000000131693294,
+        "alpha_max_mean": 0.1666666716337204,
+        "dominant_view_fraction": {
+          "entropy_level": 1.0,
+          "entropy_dynamics": 0.0,
+          "sampled_token_energy": 0.0,
+          "partition_energy": 0.0,
+          "topk_distribution": 0.0,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1666666716337204,
+          "entropy_dynamics": 0.1666666716337204,
+          "sampled_token_energy": 0.1666666716337204,
+          "partition_energy": 0.1666666716337204,
+          "topk_distribution": 0.1666666716337204,
+          "structural": 0.1666666716337204
+        },
+        "orthogonality_error": 1.8742371796074072e-05,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.6571109351559782,
+            "rayleigh_trace": 504.05029421811423
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.6477425840556941,
+            "rayleigh_trace": 601.2706556311916
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.6055217973164178,
+            "rayleigh_trace": 611.5761908131244
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.6320519679215576,
+            "rayleigh_trace": 572.2534936492955
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.6052553220194896,
+            "rayleigh_trace": 408.9546841422807
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.6402880376962578,
+            "rayleigh_trace": 626.0302455031215
+          }
+        ],
+        "mean_laplacian_commutator": 0.004452903891017595,
+        "n_nodes": 621,
+        "n_edges": 28664,
+        "n_components": 1,
+        "degree_min": 0.07801199738658772,
+        "degree_mean": 0.30696894414023795,
+        "degree_max": 0.5288123659457977,
+        "algebraic_connectivity": 0.20011032819918953,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.048028444683967046,
+          "n_nodes": 621,
+          "n_edges": 5497,
+          "n_components": 4,
+          "degree_min": 0.0,
+          "degree_mean": 5.920075984869409,
+          "degree_max": 12.442874500320668,
+          "algebraic_connectivity": 0.0,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 120
+      }
+    ]
+  },
+  {
+    "cell": "internalstates_gsm8k_qwen25_7b",
+    "family": "gsm8k",
+    "domain": "math",
+    "config": "agreement_k15",
+    "config_hash": "704b760e14e5b8cb587f2209858e134cdb09a6aedd306069189ce57ca6b7a6a4",
+    "n_samples": 500,
+    "n_features": 25,
+    "view_schema": "specrage-provenance-views-v1-2026-08-06",
+    "view_members": {
+      "entropy_level": [
+        "epr"
+      ],
+      "entropy_dynamics": [
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "sw_var_peak",
+        "hurst_exponent",
+        "cusum_max"
+      ],
+      "sampled_token_energy": [
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled"
+      ],
+      "partition_energy": [
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy"
+      ],
+      "topk_distribution": [
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "structural": [
+        "trace_length"
+      ]
+    },
+    "mean_view_weight": {
+      "entropy_level": 0.19192751871841776,
+      "entropy_dynamics": 0.16260664705749178,
+      "sampled_token_energy": 0.15671618903570236,
+      "partition_energy": 0.12084886838847714,
+      "topk_distribution": 0.26534284985497286,
+      "structural": 0.10255792694493807
+    },
+    "dominant_view_fraction": {
+      "entropy_level": 0.04,
+      "entropy_dynamics": 0.042,
+      "sampled_token_energy": 0.016,
+      "partition_energy": 0.002,
+      "topk_distribution": 0.89,
+      "structural": 0.01
+    },
+    "alpha_entropy_normalized": 0.9608885025057137,
+    "alpha_seed_mad": 0.0,
+    "alpha_seed_std_mean": 0.0,
+    "graph_seed_relative_distance_mean": 0.0,
+    "score_seed_correlation_min": 1.0,
+    "base_edge_jaccard_mean": 0.050024093359212096,
+    "effective_edge_fraction": 0.490862875230858,
+    "degree_p05_over_mean": 0.2974585025710236,
+    "near_isolated_fraction": 0.0,
+    "total_affinity_vs_uniform": 1.0940831316251323,
+    "graph_collapsed": false,
+    "dufs_effective_feature_count": 24.42341139710775,
+    "dufs_seed_std": 0.0,
+    "seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.12004521489143372,
+        "final_loss": 0.13005118072032928,
+        "alpha_entropy_mean": 1.721681071308694,
+        "alpha_entropy_normalized": 0.9608885014295179,
+        "alpha_max_mean": 0.2729184358716011,
+        "dominant_view_fraction": {
+          "entropy_level": 0.04,
+          "entropy_dynamics": 0.042,
+          "sampled_token_energy": 0.016,
+          "partition_energy": 0.002,
+          "topk_distribution": 0.89,
+          "structural": 0.01
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1919275183454156,
+          "entropy_dynamics": 0.1626066464856267,
+          "sampled_token_energy": 0.15671618853509425,
+          "partition_energy": 0.12084886799752713,
+          "topk_distribution": 0.2653428492844105,
+          "structural": 0.10255792668834329
+        },
+        "orthogonality_error": 2.21770923075443e-06,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.5333094996578763,
+            "rayleigh_trace": 273.6760384955642
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.3970347081242165,
+            "rayleigh_trace": 397.58279066469146
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.491670724637297,
+            "rayleigh_trace": 366.8510624881163
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.45776589341674906,
+            "rayleigh_trace": 419.44488235166347
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.5474656918568186,
+            "rayleigh_trace": 262.78325024515965
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.5550823880054011,
+            "rayleigh_trace": 559.3102206150419
+          }
+        ],
+        "mean_laplacian_commutator": 0.005507703801490511,
+        "n_nodes": 500,
+        "n_edges": 22939,
+        "n_components": 1,
+        "degree_min": 0.010348181042394166,
+        "degree_mean": 0.294948490836139,
+        "degree_max": 0.5427564944395769,
+        "algebraic_connectivity": 0.18508436371382914,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.1414427131138647,
+          "n_nodes": 500,
+          "n_edges": 4581,
+          "n_components": 1,
+          "degree_min": 2.4772169211377202e-52,
+          "degree_mean": 5.764801029111777,
+          "degree_max": 12.763326452037832,
+          "algebraic_connectivity": 5.696935001440709e-05,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 90
+      }
+    ],
+    "uniform_seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.00195499905385077,
+        "final_loss": 0.0029063657857477665,
+        "alpha_entropy_mean": 1.791759492824326,
+        "alpha_entropy_normalized": 1.0000000131693296,
+        "alpha_max_mean": 0.1666666716337204,
+        "dominant_view_fraction": {
+          "entropy_level": 1.0,
+          "entropy_dynamics": 0.0,
+          "sampled_token_energy": 0.0,
+          "partition_energy": 0.0,
+          "topk_distribution": 0.0,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1666666716337204,
+          "entropy_dynamics": 0.1666666716337204,
+          "sampled_token_energy": 0.1666666716337204,
+          "partition_energy": 0.1666666716337204,
+          "topk_distribution": 0.1666666716337204,
+          "structural": 0.1666666716337204
+        },
+        "orthogonality_error": 2.10763353805211e-06,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.1442422158427328,
+            "rayleigh_trace": 310.15614552555917
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.23776591523770282,
+            "rayleigh_trace": 341.012210292216
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.1423511605745385,
+            "rayleigh_trace": 345.1593633433306
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.2823134438796717,
+            "rayleigh_trace": 452.5676384294854
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.13217083112734979,
+            "rayleigh_trace": 291.81710656751693
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.3013683275175651,
+            "rayleigh_trace": 492.2204657942063
+          }
+        ],
+        "mean_laplacian_commutator": 0.005507703801490511,
+        "n_nodes": 500,
+        "n_edges": 22939,
+        "n_components": 1,
+        "degree_min": 0.006483710427891846,
+        "degree_mean": 0.2695850996519431,
+        "degree_max": 0.4594938267108493,
+        "algebraic_connectivity": 0.380556301493753,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.11914747580271318,
+          "n_nodes": 500,
+          "n_edges": 4448,
+          "n_components": 1,
+          "degree_min": 1.9812043324700172e-275,
+          "degree_mean": 5.894937226372542,
+          "degree_max": 13.683953719575674,
+          "algebraic_connectivity": 4.91746106109211e-13,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 90
+      }
+    ]
+  },
+  {
+    "cell": "lapeigvals_gsm8k_llama3b",
+    "family": "gsm8k",
+    "domain": "math",
+    "config": "agreement_k15",
+    "config_hash": "704b760e14e5b8cb587f2209858e134cdb09a6aedd306069189ce57ca6b7a6a4",
+    "n_samples": 1319,
+    "n_features": 26,
+    "view_schema": "specrage-provenance-views-v1-2026-08-06",
+    "view_members": {
+      "entropy_level": [
+        "epr"
+      ],
+      "entropy_dynamics": [
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "sw_var_peak",
+        "hurst_exponent",
+        "cusum_max"
+      ],
+      "sampled_token_energy": [
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "min_spilled"
+      ],
+      "partition_energy": [
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy"
+      ],
+      "topk_distribution": [
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "structural": [
+        "trace_length"
+      ]
+    },
+    "mean_view_weight": {
+      "entropy_level": 0.19595741384918147,
+      "entropy_dynamics": 0.1453761438273464,
+      "sampled_token_energy": 0.16806347818990064,
+      "partition_energy": 0.14729763629442044,
+      "topk_distribution": 0.22941989175570512,
+      "structural": 0.11388543608344597
+    },
+    "dominant_view_fraction": {
+      "entropy_level": 0.05458680818802123,
+      "entropy_dynamics": 0.004548900682335102,
+      "sampled_token_energy": 0.032600454890068235,
+      "partition_energy": 0.008339651250947688,
+      "topk_distribution": 0.8991660348749052,
+      "structural": 0.000758150113722517
+    },
+    "alpha_entropy_normalized": 0.9807261097568037,
+    "alpha_seed_mad": 0.0,
+    "alpha_seed_std_mean": 0.0,
+    "graph_seed_relative_distance_mean": 0.0,
+    "score_seed_correlation_min": 1.0,
+    "base_edge_jaccard_mean": 0.029567481296833727,
+    "effective_edge_fraction": 0.5774080678662377,
+    "degree_p05_over_mean": 0.16837392661084893,
+    "near_isolated_fraction": 0.0,
+    "total_affinity_vs_uniform": 1.0096990375425616,
+    "graph_collapsed": false,
+    "dufs_effective_feature_count": 25.47006690782955,
+    "dufs_seed_std": 0.0,
+    "seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.09031099081039429,
+        "final_loss": 0.09058670699596405,
+        "alpha_entropy_mean": 1.7572252942650453,
+        "alpha_entropy_normalized": 0.9807261099739643,
+        "alpha_max_mean": 0.2322825858139287,
+        "dominant_view_fraction": {
+          "entropy_level": 0.05458680818802123,
+          "entropy_dynamics": 0.004548900682335102,
+          "sampled_token_energy": 0.032600454890068235,
+          "partition_energy": 0.008339651250947688,
+          "topk_distribution": 0.8991660348749052,
+          "structural": 0.000758150113722517
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.19595741388233345,
+          "entropy_dynamics": 0.14537614393044457,
+          "sampled_token_energy": 0.16806347823226606,
+          "partition_energy": 0.14729763639185625,
+          "topk_distribution": 0.22941989182205794,
+          "structural": 0.1138854361689276
+        },
+        "orthogonality_error": 2.2170826257099096e-06,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.5488804722500967,
+            "rayleigh_trace": 513.8906323870353
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.5128220504950788,
+            "rayleigh_trace": 528.8516355429927
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.558313852301381,
+            "rayleigh_trace": 580.0054180073619
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.5478687277417812,
+            "rayleigh_trace": 514.9048666136589
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.512275504734621,
+            "rayleigh_trace": 460.75452747213376
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.5000206323605954,
+            "rayleigh_trace": 954.2923920547724
+          }
+        ],
+        "mean_laplacian_commutator": 0.00390242947252788,
+        "n_nodes": 1319,
+        "n_edges": 65728,
+        "n_components": 1,
+        "degree_min": 0.0008871876001478709,
+        "degree_mean": 0.2724718116199322,
+        "degree_max": 0.5131124249940885,
+        "algebraic_connectivity": 0.1867495830385022,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.05591247094357474,
+          "n_nodes": 1319,
+          "n_edges": 12039,
+          "n_components": 1,
+          "degree_min": 1.055848850354299e-83,
+          "degree_mean": 5.747076232283688,
+          "degree_max": 14.630363984845099,
+          "algebraic_connectivity": NaN,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 270
+      }
+    ],
+    "uniform_seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 2.8026756808685604e-06,
+        "final_loss": 2.8026756808685604e-06,
+        "alpha_entropy_mean": 1.7917594928243257,
+        "alpha_entropy_normalized": 1.0000000131693294,
+        "alpha_max_mean": 0.1666666716337204,
+        "dominant_view_fraction": {
+          "entropy_level": 1.0,
+          "entropy_dynamics": 0.0,
+          "sampled_token_energy": 0.0,
+          "partition_energy": 0.0,
+          "topk_distribution": 0.0,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1666666716337204,
+          "entropy_dynamics": 0.1666666716337204,
+          "sampled_token_energy": 0.1666666716337204,
+          "partition_energy": 0.1666666716337204,
+          "topk_distribution": 0.1666666716337204,
+          "structural": 0.1666666716337204
+        },
+        "orthogonality_error": 0.9941402524375978,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.5506967943964733,
+            "rayleigh_trace": 44.40830142997858
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.6246692105549866,
+            "rayleigh_trace": 38.70725345005775
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.6389175640832406,
+            "rayleigh_trace": 90.67870080036495
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.6614162916679607,
+            "rayleigh_trace": 44.19434823900092
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.6178995677395852,
+            "rayleigh_trace": 56.91045124190528
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.4289664946694881,
+            "rayleigh_trace": 29.70008132852086
+          }
+        ],
+        "mean_laplacian_commutator": 0.00390242947252788,
+        "n_nodes": 1319,
+        "n_edges": 65728,
+        "n_components": 1,
+        "degree_min": 0.0008155028794689579,
+        "degree_mean": 0.26985449828876906,
+        "degree_max": 0.4790760098250258,
+        "algebraic_connectivity": 0.24352047602911883,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.03876200201038703,
+          "n_nodes": 1319,
+          "n_edges": 11889,
+          "n_components": 5,
+          "degree_min": 0.0,
+          "degree_mean": 5.769050978826212,
+          "degree_max": 15.171482589263526,
+          "algebraic_connectivity": 0.0,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 270
+      }
+    ]
+  },
+  {
+    "cell": "lapeigvals_gsm8k_llama8b",
+    "family": "gsm8k",
+    "domain": "math",
+    "config": "agreement_k15",
+    "config_hash": "704b760e14e5b8cb587f2209858e134cdb09a6aedd306069189ce57ca6b7a6a4",
+    "n_samples": 500,
+    "n_features": 25,
+    "view_schema": "specrage-provenance-views-v1-2026-08-06",
+    "view_members": {
+      "entropy_level": [
+        "epr"
+      ],
+      "entropy_dynamics": [
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "sw_var_peak",
+        "hurst_exponent",
+        "cusum_max"
+      ],
+      "sampled_token_energy": [
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled"
+      ],
+      "partition_energy": [
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy"
+      ],
+      "topk_distribution": [
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "structural": [
+        "trace_length"
+      ]
+    },
+    "mean_view_weight": {
+      "entropy_level": 0.21183878772193906,
+      "entropy_dynamics": 0.119303351241958,
+      "sampled_token_energy": 0.1659335616456306,
+      "partition_energy": 0.12288469315655672,
+      "topk_distribution": 0.29624984029615575,
+      "structural": 0.08378976593775983
+    },
+    "dominant_view_fraction": {
+      "entropy_level": 0.066,
+      "entropy_dynamics": 0.012,
+      "sampled_token_energy": 0.018,
+      "partition_energy": 0.006,
+      "topk_distribution": 0.898,
+      "structural": 0.0
+    },
+    "alpha_entropy_normalized": 0.9423736970060387,
+    "alpha_seed_mad": 0.0,
+    "alpha_seed_std_mean": 0.0,
+    "graph_seed_relative_distance_mean": 0.0,
+    "score_seed_correlation_min": 1.0,
+    "base_edge_jaccard_mean": 0.06498301732657313,
+    "effective_edge_fraction": 0.3885019535059121,
+    "degree_p05_over_mean": 0.13351306023322654,
+    "near_isolated_fraction": 0.0,
+    "total_affinity_vs_uniform": 1.1951085774545676,
+    "graph_collapsed": false,
+    "dufs_effective_feature_count": 24.62172818123631,
+    "dufs_seed_std": 0.0,
+    "seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.1403561681509018,
+        "final_loss": 0.1485632359981537,
+        "alpha_entropy_mean": 1.6885069967110857,
+        "alpha_entropy_normalized": 0.9423736978705889,
+        "alpha_max_mean": 0.3017054123878479,
+        "dominant_view_fraction": {
+          "entropy_level": 0.066,
+          "entropy_dynamics": 0.012,
+          "sampled_token_energy": 0.018,
+          "partition_energy": 0.006,
+          "topk_distribution": 0.898,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.21183878810703755,
+          "entropy_dynamics": 0.11930335158109664,
+          "sampled_token_energy": 0.16593356194533407,
+          "partition_energy": 0.12288469343632459,
+          "topk_distribution": 0.2962498408704996,
+          "structural": 0.08378976614028215
+        },
+        "orthogonality_error": 5.037863899646519e-07,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.5208988484822099,
+            "rayleigh_trace": 181.49464103737353
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.5093672247393107,
+            "rayleigh_trace": 415.0368495523181
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.42625343236566743,
+            "rayleigh_trace": 296.44569693122935
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.5017467213253336,
+            "rayleigh_trace": 387.30748040379444
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.48964855357710263,
+            "rayleigh_trace": 158.84284137518185
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.5181815426078212,
+            "rayleigh_trace": 460.40741221223806
+          }
+        ],
+        "mean_laplacian_commutator": 0.006614557749942866,
+        "n_nodes": 500,
+        "n_edges": 21529,
+        "n_components": 1,
+        "degree_min": 0.0009603137421738511,
+        "degree_mean": 0.30281900747533985,
+        "degree_max": 0.5920090622109064,
+        "algebraic_connectivity": 0.10987463344164879,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.11039492380107113,
+          "n_nodes": 500,
+          "n_edges": 4582,
+          "n_components": 1,
+          "degree_min": 1.6862246876222306e-185,
+          "degree_mean": 5.765589845433428,
+          "degree_max": 14.293929506521346,
+          "algebraic_connectivity": NaN,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 90
+      }
+    ],
+    "uniform_seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.0013987993588671088,
+        "final_loss": 0.0021938104182481766,
+        "alpha_entropy_mean": 1.791759492824326,
+        "alpha_entropy_normalized": 1.0000000131693296,
+        "alpha_max_mean": 0.1666666716337204,
+        "dominant_view_fraction": {
+          "entropy_level": 1.0,
+          "entropy_dynamics": 0.0,
+          "sampled_token_energy": 0.0,
+          "partition_energy": 0.0,
+          "topk_distribution": 0.0,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1666666716337204,
+          "entropy_dynamics": 0.1666666716337204,
+          "sampled_token_energy": 0.1666666716337204,
+          "partition_energy": 0.1666666716337204,
+          "topk_distribution": 0.1666666716337204,
+          "structural": 0.1666666716337204
+        },
+        "orthogonality_error": 2.3673088355739937e-06,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.1998398989631524,
+            "rayleigh_trace": 186.0168695166446
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.1999006408710745,
+            "rayleigh_trace": 247.67628869315593
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.26842505322688237,
+            "rayleigh_trace": 230.12049474291908
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.32770381128061415,
+            "rayleigh_trace": 177.74370073088906
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.20797798088507352,
+            "rayleigh_trace": 175.11048194798218
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.0805334524942815,
+            "rayleigh_trace": 385.9792371485533
+          }
+        ],
+        "mean_laplacian_commutator": 0.006614557749942866,
+        "n_nodes": 500,
+        "n_edges": 21529,
+        "n_components": 1,
+        "degree_min": 0.0017365911271177783,
+        "degree_mean": 0.2533820183560846,
+        "degree_max": 0.4215745221384232,
+        "algebraic_connectivity": 0.10909199161842259,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.08599614784453666,
+          "n_nodes": 500,
+          "n_edges": 4490,
+          "n_components": 1,
+          "degree_min": 1.9759551918943556e-23,
+          "degree_mean": 5.725717250783355,
+          "degree_max": 13.631127994715923,
+          "algebraic_connectivity": NaN,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 90
+      }
+    ]
+  },
+  {
+    "cell": "lapeigvals_gsm8k_mistral24b",
+    "family": "gsm8k",
+    "domain": "math",
+    "config": "agreement_k15",
+    "config_hash": "704b760e14e5b8cb587f2209858e134cdb09a6aedd306069189ce57ca6b7a6a4",
+    "n_samples": 1319,
+    "n_features": 26,
+    "view_schema": "specrage-provenance-views-v1-2026-08-06",
+    "view_members": {
+      "entropy_level": [
+        "epr"
+      ],
+      "entropy_dynamics": [
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "sw_var_peak",
+        "hurst_exponent",
+        "cusum_max"
+      ],
+      "sampled_token_energy": [
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "min_spilled"
+      ],
+      "partition_energy": [
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy"
+      ],
+      "topk_distribution": [
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "structural": [
+        "trace_length"
+      ]
+    },
+    "mean_view_weight": {
+      "entropy_level": 0.17700701313073453,
+      "entropy_dynamics": 0.15936551941304328,
+      "sampled_token_energy": 0.16860021896342353,
+      "partition_energy": 0.15636084817381157,
+      "topk_distribution": 0.20718214530981263,
+      "structural": 0.13148425500917443
+    },
+    "dominant_view_fraction": {
+      "entropy_level": 0.058377558756633814,
+      "entropy_dynamics": 0.05686125852918878,
+      "sampled_token_energy": 0.08946171341925702,
+      "partition_energy": 0.03335860500379075,
+      "topk_distribution": 0.7490523123578469,
+      "structural": 0.01288855193328279
+    },
+    "alpha_entropy_normalized": 0.987553608508355,
+    "alpha_seed_mad": 0.0,
+    "alpha_seed_std_mean": 0.0,
+    "graph_seed_relative_distance_mean": 0.0,
+    "score_seed_correlation_min": 1.0,
+    "base_edge_jaccard_mean": 0.02405529707090973,
+    "effective_edge_fraction": 0.6494235140375212,
+    "degree_p05_over_mean": 0.143025845857421,
+    "near_isolated_fraction": 0.002274450341167551,
+    "total_affinity_vs_uniform": 0.9917875207106984,
+    "graph_collapsed": false,
+    "dufs_effective_feature_count": 25.606608097236272,
+    "dufs_seed_std": 0.0,
+    "seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.102711521089077,
+        "final_loss": 0.11243569105863571,
+        "alpha_entropy_mean": 1.769458529763621,
+        "alpha_entropy_normalized": 0.9875536087028233,
+        "alpha_max_mean": 0.2144945660737358,
+        "dominant_view_fraction": {
+          "entropy_level": 0.058377558756633814,
+          "entropy_dynamics": 0.05686125852918878,
+          "sampled_token_energy": 0.08946171341925702,
+          "partition_energy": 0.03335860500379075,
+          "topk_distribution": 0.7490523123578469,
+          "structural": 0.01288855193328279
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1770070132229638,
+          "entropy_dynamics": 0.15936551945195043,
+          "sampled_token_energy": 0.16860021900956132,
+          "partition_energy": 0.15636084824687518,
+          "topk_distribution": 0.20718214535200297,
+          "structural": 0.13148425509581246
+        },
+        "orthogonality_error": 1.947202515233994e-05,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.6497066710979728,
+            "rayleigh_trace": 1192.2739857675883
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.6634577513977294,
+            "rayleigh_trace": 1062.7135376126494
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.6122917311582039,
+            "rayleigh_trace": 1231.6262797960117
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.6560236505380733,
+            "rayleigh_trace": 1119.2588274304373
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.6456383551247268,
+            "rayleigh_trace": 1091.4628023548216
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.6812316932589082,
+            "rayleigh_trace": 1133.0555824743249
+          }
+        ],
+        "mean_laplacian_commutator": 0.004140506950201931,
+        "n_nodes": 1319,
+        "n_edges": 66070,
+        "n_components": 1,
+        "degree_min": 4.492314726311519e-13,
+        "degree_mean": 0.2636861050769,
+        "degree_max": 0.49301049434491073,
+        "algebraic_connectivity": 0.3204687873820233,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.05401826091312757,
+          "n_nodes": 1319,
+          "n_edges": 12136,
+          "n_components": 3,
+          "degree_min": 0.0,
+          "degree_mean": 5.749327874424962,
+          "degree_max": 13.849377878336536,
+          "algebraic_connectivity": 0.0,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 270
+      }
+    ],
+    "uniform_seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.00028291609487496316,
+        "final_loss": 0.0008986704051494598,
+        "alpha_entropy_mean": 1.7917594928243257,
+        "alpha_entropy_normalized": 1.0000000131693294,
+        "alpha_max_mean": 0.1666666716337204,
+        "dominant_view_fraction": {
+          "entropy_level": 1.0,
+          "entropy_dynamics": 0.0,
+          "sampled_token_energy": 0.0,
+          "partition_energy": 0.0,
+          "topk_distribution": 0.0,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1666666716337204,
+          "entropy_dynamics": 0.1666666716337204,
+          "sampled_token_energy": 0.1666666716337204,
+          "partition_energy": 0.1666666716337204,
+          "topk_distribution": 0.1666666716337204,
+          "structural": 0.1666666716337204
+        },
+        "orthogonality_error": 1.2712683940149832e-05,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.06343666028418635,
+            "rayleigh_trace": 1195.9422866396085
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.09829866156010242,
+            "rayleigh_trace": 1227.9609417201336
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.12058344995253958,
+            "rayleigh_trace": 1122.5058143719973
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.11084289004031014,
+            "rayleigh_trace": 951.3961771686285
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.0829136967999665,
+            "rayleigh_trace": 1104.578201194888
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.10584397141462387,
+            "rayleigh_trace": 1278.5786361070952
+          }
+        ],
+        "mean_laplacian_commutator": 0.004140506950201931,
+        "n_nodes": 1319,
+        "n_edges": 66070,
+        "n_components": 1,
+        "degree_min": 3.2241479471318834e-13,
+        "degree_mean": 0.2658695687665261,
+        "degree_max": 0.476118091360489,
+        "algebraic_connectivity": 0.4014443779308168,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.02875463745220095,
+          "n_nodes": 1319,
+          "n_edges": 11869,
+          "n_components": 5,
+          "degree_min": 0.0,
+          "degree_mean": 5.64383548034981,
+          "degree_max": 13.750691745471263,
+          "algebraic_connectivity": 0.0,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 270
+      }
+    ]
+  },
+  {
+    "cell": "lapeigvals_gsm8k_nemo",
+    "family": "gsm8k",
+    "domain": "math",
+    "config": "agreement_k15",
+    "config_hash": "704b760e14e5b8cb587f2209858e134cdb09a6aedd306069189ce57ca6b7a6a4",
+    "n_samples": 1319,
+    "n_features": 25,
+    "view_schema": "specrage-provenance-views-v1-2026-08-06",
+    "view_members": {
+      "entropy_level": [
+        "epr"
+      ],
+      "entropy_dynamics": [
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "sw_var_peak",
+        "hurst_exponent",
+        "cusum_max"
+      ],
+      "sampled_token_energy": [
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled"
+      ],
+      "partition_energy": [
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy"
+      ],
+      "topk_distribution": [
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "structural": [
+        "trace_length"
+      ]
+    },
+    "mean_view_weight": {
+      "entropy_level": 0.19221526015671417,
+      "entropy_dynamics": 0.1607310448571033,
+      "sampled_token_energy": 0.15646004968137017,
+      "partition_energy": 0.14378318104861673,
+      "topk_distribution": 0.21659105797077385,
+      "structural": 0.1302194062854218
+    },
+    "dominant_view_fraction": {
+      "entropy_level": 0.12130401819560273,
+      "entropy_dynamics": 0.060652009097801364,
+      "sampled_token_energy": 0.011372251705837756,
+      "partition_energy": 0.00530705079605762,
+      "topk_distribution": 0.7937831690674754,
+      "structural": 0.0075815011372251705
+    },
+    "alpha_entropy_normalized": 0.9866328048049524,
+    "alpha_seed_mad": 0.0,
+    "alpha_seed_std_mean": 0.0,
+    "graph_seed_relative_distance_mean": 0.0,
+    "score_seed_correlation_min": 1.0,
+    "base_edge_jaccard_mean": 0.022778504579990463,
+    "effective_edge_fraction": 0.6298109458068664,
+    "degree_p05_over_mean": 0.3201967451280574,
+    "near_isolated_fraction": 0.000758150113722517,
+    "total_affinity_vs_uniform": 1.018152703126882,
+    "graph_collapsed": false,
+    "dufs_effective_feature_count": 24.539142870000955,
+    "dufs_seed_std": 0.0,
+    "seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.06923577189445496,
+        "final_loss": 0.0710560604929924,
+        "alpha_entropy_mean": 1.7678086685154768,
+        "alpha_entropy_normalized": 0.986632803607899,
+        "alpha_max_mean": 0.22187821681161465,
+        "dominant_view_fraction": {
+          "entropy_level": 0.12130401819560273,
+          "entropy_dynamics": 0.060652009097801364,
+          "sampled_token_energy": 0.011372251705837756,
+          "partition_energy": 0.00530705079605762,
+          "topk_distribution": 0.7937831690674754,
+          "structural": 0.0075815011372251705
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1922152595787992,
+          "entropy_dynamics": 0.1607310444319944,
+          "sampled_token_energy": 0.15646004925642257,
+          "partition_energy": 0.14378318064044696,
+          "topk_distribution": 0.21659105738245057,
+          "structural": 0.13021940591662468
+        },
+        "orthogonality_error": 6.039465477728674e-07,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.6246361612080442,
+            "rayleigh_trace": 613.4751501965702
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.6438658608622209,
+            "rayleigh_trace": 1065.0085125651967
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.6427843533291915,
+            "rayleigh_trace": 952.5216444697919
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.6372553895359038,
+            "rayleigh_trace": 962.632867807386
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.6084945855063355,
+            "rayleigh_trace": 700.0810704273097
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.6416635538818604,
+            "rayleigh_trace": 1235.1887805817405
+          }
+        ],
+        "mean_laplacian_commutator": 0.003290429350310883,
+        "n_nodes": 1319,
+        "n_edges": 66661,
+        "n_components": 1,
+        "degree_min": 0.00021829566242162533,
+        "degree_mean": 0.2753390951784645,
+        "degree_max": 0.49258478268149664,
+        "algebraic_connectivity": 0.2671083775501279,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.06071794427360233,
+          "n_nodes": 1319,
+          "n_edges": 11925,
+          "n_components": 6,
+          "degree_min": 0.0,
+          "degree_mean": 5.731732576765194,
+          "degree_max": 13.594904432160615,
+          "algebraic_connectivity": 0.0,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 270
+      }
+    ],
+    "uniform_seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 2.2813310351921245e-05,
+        "final_loss": 2.2813310351921245e-05,
+        "alpha_entropy_mean": 1.7917594928243257,
+        "alpha_entropy_normalized": 1.0000000131693294,
+        "alpha_max_mean": 0.1666666716337204,
+        "dominant_view_fraction": {
+          "entropy_level": 1.0,
+          "entropy_dynamics": 0.0,
+          "sampled_token_energy": 0.0,
+          "partition_energy": 0.0,
+          "topk_distribution": 0.0,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1666666716337204,
+          "entropy_dynamics": 0.1666666716337204,
+          "sampled_token_energy": 0.1666666716337204,
+          "partition_energy": 0.1666666716337204,
+          "topk_distribution": 0.1666666716337204,
+          "structural": 0.1666666716337204
+        },
+        "orthogonality_error": 0.8881947343760035,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.002291412710522131,
+            "rayleigh_trace": 169.89724259502748
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.051056027459733984,
+            "rayleigh_trace": 179.4800049657586
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.08249917766479108,
+            "rayleigh_trace": 189.53661622142843
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.03611730356597667,
+            "rayleigh_trace": 175.4134327394691
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.0510130577829663,
+            "rayleigh_trace": 177.50786730321687
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.07703948355699904,
+            "rayleigh_trace": 174.96713981638771
+          }
+        ],
+        "mean_laplacian_commutator": 0.003290429350310883,
+        "n_nodes": 1319,
+        "n_edges": 66661,
+        "n_components": 1,
+        "degree_min": 0.0002122669154694696,
+        "degree_mean": 0.2704300762771035,
+        "degree_max": 0.4903574468696867,
+        "algebraic_connectivity": 0.3696712640238648,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.044631239442406455,
+          "n_nodes": 1319,
+          "n_edges": 11577,
+          "n_components": 5,
+          "degree_min": 0.0,
+          "degree_mean": 5.7698550157025315,
+          "degree_max": 13.68353453689742,
+          "algebraic_connectivity": 0.0,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 270
+      }
+    ]
+  },
+  {
+    "cell": "lapeigvals_gsm8k_phi35",
+    "family": "gsm8k",
+    "domain": "math",
+    "config": "agreement_k15",
+    "config_hash": "704b760e14e5b8cb587f2209858e134cdb09a6aedd306069189ce57ca6b7a6a4",
+    "n_samples": 1319,
+    "n_features": 25,
+    "view_schema": "specrage-provenance-views-v1-2026-08-06",
+    "view_members": {
+      "entropy_level": [
+        "epr"
+      ],
+      "entropy_dynamics": [
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "sw_var_peak",
+        "hurst_exponent",
+        "cusum_max"
+      ],
+      "sampled_token_energy": [
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled"
+      ],
+      "partition_energy": [
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy"
+      ],
+      "topk_distribution": [
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "structural": [
+        "trace_length"
+      ]
+    },
+    "mean_view_weight": {
+      "entropy_level": 0.20213465140230605,
+      "entropy_dynamics": 0.15132156237947553,
+      "sampled_token_energy": 0.16342525635468072,
+      "partition_energy": 0.13024148173123654,
+      "topk_distribution": 0.2226500634833907,
+      "structural": 0.13022698464891042
+    },
+    "dominant_view_fraction": {
+      "entropy_level": 0.1516300227445034,
+      "entropy_dynamics": 0.006065200909780136,
+      "sampled_token_energy": 0.028051554207733132,
+      "partition_energy": 0.002274450341167551,
+      "topk_distribution": 0.8043972706595905,
+      "structural": 0.0075815011372251705
+    },
+    "alpha_entropy_normalized": 0.9830752573270097,
+    "alpha_seed_mad": 0.0,
+    "alpha_seed_std_mean": 0.0,
+    "graph_seed_relative_distance_mean": 0.0,
+    "score_seed_correlation_min": 1.0,
+    "base_edge_jaccard_mean": 0.02143881253414513,
+    "effective_edge_fraction": 0.600238890654923,
+    "degree_p05_over_mean": 0.3130055611633291,
+    "near_isolated_fraction": 0.0,
+    "total_affinity_vs_uniform": 1.005860297556701,
+    "graph_collapsed": false,
+    "dufs_effective_feature_count": 24.415139529188718,
+    "dufs_seed_std": 0.0,
+    "seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.0642392635345459,
+        "final_loss": 0.06639978289604187,
+        "alpha_entropy_mean": 1.7614344017566455,
+        "alpha_entropy_normalized": 0.9830752575933228,
+        "alpha_max_mean": 0.22640648226651214,
+        "dominant_view_fraction": {
+          "entropy_level": 0.1516300227445034,
+          "entropy_dynamics": 0.006065200909780136,
+          "sampled_token_energy": 0.028051554207733132,
+          "partition_energy": 0.002274450341167551,
+          "topk_distribution": 0.8043972706595905,
+          "structural": 0.0075815011372251705
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.2021346515252158,
+          "entropy_dynamics": 0.1513215624942664,
+          "sampled_token_energy": 0.16342525650451273,
+          "partition_energy": 0.1302414817849938,
+          "topk_distribution": 0.2226500636004787,
+          "structural": 0.13022698471329716
+        },
+        "orthogonality_error": 1.7941569916165662e-05,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.5911973720386476,
+            "rayleigh_trace": 367.1286035810422
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.6258662939670473,
+            "rayleigh_trace": 834.9197388006738
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.6079610880671208,
+            "rayleigh_trace": 619.8031320759585
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.6524132526222169,
+            "rayleigh_trace": 1299.3187415760526
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.561455846838596,
+            "rayleigh_trace": 368.3820869850186
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.6451732683664666,
+            "rayleigh_trace": 1188.18715676158
+          }
+        ],
+        "mean_laplacian_commutator": 0.0034644354779621274,
+        "n_nodes": 1319,
+        "n_edges": 67000,
+        "n_components": 1,
+        "degree_min": 0.005661975886289959,
+        "degree_mean": 0.2715674197614909,
+        "degree_max": 0.45458520770171856,
+        "algebraic_connectivity": 0.2796578660178664,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.051981343230069664,
+          "n_nodes": 1319,
+          "n_edges": 11757,
+          "n_components": 2,
+          "degree_min": 0.0,
+          "degree_mean": 5.818054680040536,
+          "degree_max": 13.179114143167126,
+          "algebraic_connectivity": 0.0,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 270
+      }
+    ],
+    "uniform_seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 1.779543890734203e-05,
+        "final_loss": 1.779543890734203e-05,
+        "alpha_entropy_mean": 1.7917594928243257,
+        "alpha_entropy_normalized": 1.0000000131693294,
+        "alpha_max_mean": 0.1666666716337204,
+        "dominant_view_fraction": {
+          "entropy_level": 1.0,
+          "entropy_dynamics": 0.0,
+          "sampled_token_energy": 0.0,
+          "partition_energy": 0.0,
+          "topk_distribution": 0.0,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1666666716337204,
+          "entropy_dynamics": 0.1666666716337204,
+          "sampled_token_energy": 0.1666666716337204,
+          "partition_energy": 0.1666666716337204,
+          "topk_distribution": 0.1666666716337204,
+          "structural": 0.1666666716337204
+        },
+        "orthogonality_error": 0.9929404342200936,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.0065802933143025875,
+            "rayleigh_trace": 29.816552653119917
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.011923739230679593,
+            "rayleigh_trace": 48.24079632209729
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.004989714522046625,
+            "rayleigh_trace": 54.68927974138401
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.040804188802546576,
+            "rayleigh_trace": 43.43226512036021
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.009975368226302971,
+            "rayleigh_trace": 49.312506733203506
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.02047012349067379,
+            "rayleigh_trace": 39.727256507480135
+          }
+        ],
+        "mean_laplacian_commutator": 0.0034644354779621274,
+        "n_nodes": 1319,
+        "n_edges": 67000,
+        "n_components": 1,
+        "degree_min": 0.005951480299424778,
+        "degree_mean": 0.26998524192644746,
+        "degree_max": 0.44151503199447223,
+        "algebraic_connectivity": 0.4186995911794787,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.14089284969984794,
+          "n_nodes": 1319,
+          "n_edges": 11656,
+          "n_components": 2,
+          "degree_min": 0.0,
+          "degree_mean": 5.81061970122199,
+          "degree_max": 13.442658947216641,
+          "algebraic_connectivity": 0.0,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 270
+      }
+    ]
+  },
+  {
+    "cell": "losnet_hotpotqa_mistral7b",
+    "family": "hotpotqa",
+    "domain": "QA",
+    "config": "agreement_k15",
+    "config_hash": "704b760e14e5b8cb587f2209858e134cdb09a6aedd306069189ce57ca6b7a6a4",
+    "n_samples": 500,
+    "n_features": 25,
+    "view_schema": "specrage-provenance-views-v1-2026-08-06",
+    "view_members": {
+      "entropy_level": [
+        "epr"
+      ],
+      "entropy_dynamics": [
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "sw_var_peak",
+        "hurst_exponent",
+        "cusum_max"
+      ],
+      "sampled_token_energy": [
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled"
+      ],
+      "partition_energy": [
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy"
+      ],
+      "topk_distribution": [
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "structural": [
+        "trace_length"
+      ]
+    },
+    "mean_view_weight": {
+      "entropy_level": 0.1479928517301499,
+      "entropy_dynamics": 0.13236770530345915,
+      "sampled_token_energy": 0.24681544487405715,
+      "partition_energy": 0.1365223548185167,
+      "topk_distribution": 0.25940647874188894,
+      "structural": 0.07689516453192817
+    },
+    "dominant_view_fraction": {
+      "entropy_level": 0.004,
+      "entropy_dynamics": 0.016,
+      "sampled_token_energy": 0.36,
+      "partition_energy": 0.012,
+      "topk_distribution": 0.606,
+      "structural": 0.002
+    },
+    "alpha_entropy_normalized": 0.9422202622246714,
+    "alpha_seed_mad": 0.0,
+    "alpha_seed_std_mean": 0.0,
+    "graph_seed_relative_distance_mean": 0.0,
+    "score_seed_correlation_min": 1.0,
+    "base_edge_jaccard_mean": 0.05756414617598346,
+    "effective_edge_fraction": 0.440750793928649,
+    "degree_p05_over_mean": 0.38951438008157724,
+    "near_isolated_fraction": 0.0,
+    "total_affinity_vs_uniform": 1.1720155533129395,
+    "graph_collapsed": false,
+    "dufs_effective_feature_count": 24.474597124845687,
+    "dufs_seed_std": 0.0,
+    "seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.1324000358581543,
+        "final_loss": 0.14985297620296478,
+        "alpha_entropy_mean": 1.6882320770162955,
+        "alpha_entropy_normalized": 0.9422202622674782,
+        "alpha_max_mean": 0.27698886638879777,
+        "dominant_view_fraction": {
+          "entropy_level": 0.004,
+          "entropy_dynamics": 0.016,
+          "sampled_token_energy": 0.36,
+          "partition_energy": 0.012,
+          "topk_distribution": 0.606,
+          "structural": 0.002
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1479928517639637,
+          "entropy_dynamics": 0.132367705386132,
+          "sampled_token_energy": 0.2468154447376728,
+          "partition_energy": 0.13652235488593578,
+          "topk_distribution": 0.2594064784646034,
+          "structural": 0.07689516460895539
+        },
+        "orthogonality_error": 5.702047298234961e-06,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.5628922142832835,
+            "rayleigh_trace": 183.18143415248838
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.5646914611579678,
+            "rayleigh_trace": 397.7493507220747
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.5264115002681904,
+            "rayleigh_trace": 254.12573909110563
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.4655348850983928,
+            "rayleigh_trace": 264.5899096209784
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.5016283157666175,
+            "rayleigh_trace": 205.02861229605847
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.6136092635407834,
+            "rayleigh_trace": 512.2015187787727
+          }
+        ],
+        "mean_laplacian_commutator": 0.004671374153908196,
+        "n_nodes": 500,
+        "n_edges": 22204,
+        "n_components": 1,
+        "degree_min": 0.0114612557661247,
+        "degree_mean": 0.3186775769861997,
+        "degree_max": 0.5611139600519227,
+        "algebraic_connectivity": 0.12189263296255518,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.13918701330831787,
+          "n_nodes": 500,
+          "n_edges": 4602,
+          "n_components": 1,
+          "degree_min": 1.0746492243284611e-86,
+          "degree_mean": 5.880177970529173,
+          "degree_max": 14.351354716282756,
+          "algebraic_connectivity": NaN,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 90
+      }
+    ],
+    "uniform_seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.002445861464366317,
+        "final_loss": 0.00407392205670476,
+        "alpha_entropy_mean": 1.791759492824326,
+        "alpha_entropy_normalized": 1.0000000131693296,
+        "alpha_max_mean": 0.1666666716337204,
+        "dominant_view_fraction": {
+          "entropy_level": 1.0,
+          "entropy_dynamics": 0.0,
+          "sampled_token_energy": 0.0,
+          "partition_energy": 0.0,
+          "topk_distribution": 0.0,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1666666716337204,
+          "entropy_dynamics": 0.1666666716337204,
+          "sampled_token_energy": 0.1666666716337204,
+          "partition_energy": 0.1666666716337204,
+          "topk_distribution": 0.1666666716337204,
+          "structural": 0.1666666716337204
+        },
+        "orthogonality_error": 1.788867668734772e-06,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.263191005453071,
+            "rayleigh_trace": 360.25767172557227
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.25001283462235047,
+            "rayleigh_trace": 299.1362341739813
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.13630924970451114,
+            "rayleigh_trace": 204.8378395553681
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.2875348192443025,
+            "rayleigh_trace": 425.2324773763402
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.1794278192874023,
+            "rayleigh_trace": 312.51216411943835
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.3066014356104413,
+            "rayleigh_trace": 442.3649442685664
+          }
+        ],
+        "mean_laplacian_commutator": 0.004671374153908196,
+        "n_nodes": 500,
+        "n_edges": 22204,
+        "n_components": 1,
+        "degree_min": 0.013091062524347058,
+        "degree_mean": 0.27190560362475497,
+        "degree_max": 0.4255637031687618,
+        "algebraic_connectivity": 0.29339871438061715,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.08786501356241917,
+          "n_nodes": 500,
+          "n_edges": 4555,
+          "n_components": 2,
+          "degree_min": 0.0,
+          "degree_mean": 5.859872446682008,
+          "degree_max": 14.137862791151424,
+          "algebraic_connectivity": 0.0,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 90
+      }
+    ]
+  },
+  {
+    "cell": "math500_dsmath7b",
+    "family": "math500",
+    "domain": "math",
+    "config": "agreement_k15",
+    "config_hash": "704b760e14e5b8cb587f2209858e134cdb09a6aedd306069189ce57ca6b7a6a4",
+    "n_samples": 300,
+    "n_features": 26,
+    "view_schema": "specrage-provenance-views-v1-2026-08-06",
+    "view_members": {
+      "entropy_level": [
+        "epr"
+      ],
+      "entropy_dynamics": [
+        "spectral_entropy",
+        "low_band_power",
+        "high_band_power",
+        "hl_ratio",
+        "dominant_freq",
+        "spectral_centroid",
+        "stft_max_high_power",
+        "sw_var_peak",
+        "hurst_exponent",
+        "cusum_max"
+      ],
+      "sampled_token_energy": [
+        "epr_spilled",
+        "sw_var_peak_spilled",
+        "cusum_max_spilled",
+        "min_spilled"
+      ],
+      "partition_energy": [
+        "epr_energy",
+        "min_energy",
+        "sw_var_peak_energy",
+        "cusum_max_energy"
+      ],
+      "topk_distribution": [
+        "mean_top1_logprob",
+        "logprob_margin",
+        "mean_logprob_entropy",
+        "varentropy",
+        "renyi_entropy_2",
+        "topk_tail_mass"
+      ],
+      "structural": [
+        "trace_length"
+      ]
+    },
+    "mean_view_weight": {
+      "entropy_level": 0.22547020562886663,
+      "entropy_dynamics": 0.10148458988993479,
+      "sampled_token_energy": 0.17725496229285492,
+      "partition_energy": 0.09214303404658192,
+      "topk_distribution": 0.34755127063636565,
+      "structural": 0.05609593750539614
+    },
+    "dominant_view_fraction": {
+      "entropy_level": 0.02,
+      "entropy_dynamics": 0.016666666666666666,
+      "sampled_token_energy": 0.023333333333333334,
+      "partition_energy": 0.016666666666666666,
+      "topk_distribution": 0.9233333333333333,
+      "structural": 0.0
+    },
+    "alpha_entropy_normalized": 0.8860703743090775,
+    "alpha_seed_mad": 0.0,
+    "alpha_seed_std_mean": 0.0,
+    "graph_seed_relative_distance_mean": 0.0,
+    "score_seed_correlation_min": 1.0,
+    "base_edge_jaccard_mean": 0.09964305334626339,
+    "effective_edge_fraction": 0.3025577591799725,
+    "degree_p05_over_mean": 0.2779750545335092,
+    "near_isolated_fraction": 0.0,
+    "total_affinity_vs_uniform": 1.384563997147113,
+    "graph_collapsed": false,
+    "dufs_effective_feature_count": 25.401520023208256,
+    "dufs_seed_std": 0.0,
+    "seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.15950381755828857,
+        "final_loss": 0.1751023679971695,
+        "alpha_entropy_mean": 1.587624982614998,
+        "alpha_entropy_normalized": 0.8860703737756696,
+        "alpha_max_mean": 0.3531955996155739,
+        "dominant_view_fraction": {
+          "entropy_level": 0.02,
+          "entropy_dynamics": 0.016666666666666666,
+          "sampled_token_energy": 0.023333333333333334,
+          "partition_energy": 0.016666666666666666,
+          "topk_distribution": 0.9233333333333333,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.22547020533432563,
+          "entropy_dynamics": 0.1014845896139741,
+          "sampled_token_energy": 0.17725496217608452,
+          "partition_energy": 0.0921430337180694,
+          "topk_distribution": 0.3475512703259786,
+          "structural": 0.056095937409748636
+        },
+        "orthogonality_error": 8.245724762706257e-07,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.500206150501212,
+            "rayleigh_trace": 297.6177365448628
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.29004059937852544,
+            "rayleigh_trace": 320.7329609089371
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.4625253323655303,
+            "rayleigh_trace": 291.86029200675995
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.37782809431972253,
+            "rayleigh_trace": 278.19388612066723
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.5172692456233139,
+            "rayleigh_trace": 254.3599570783261
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.37594218115329786,
+            "rayleigh_trace": 318.40486780822727
+          }
+        ],
+        "mean_laplacian_commutator": 0.007231707796525852,
+        "n_nodes": 300,
+        "n_edges": 11795,
+        "n_components": 1,
+        "degree_min": 0.02832799030106765,
+        "degree_mean": 0.366733406406683,
+        "degree_max": 0.6448822778207021,
+        "algebraic_connectivity": 0.07197530077844953,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.2571101722171521,
+          "n_nodes": 300,
+          "n_edges": 2844,
+          "n_components": 1,
+          "degree_min": 1.495758282089529e-27,
+          "degree_mean": 5.790833822430239,
+          "degree_max": 12.216404746955366,
+          "algebraic_connectivity": 7.071032018231646e-17,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 60
+      }
+    ],
+    "uniform_seed_diagnostics": [
+      {
+        "epochs": 30,
+        "best_loss": 0.0052234153263270855,
+        "final_loss": 0.006122617982327938,
+        "alpha_entropy_mean": 1.7917594928243257,
+        "alpha_entropy_normalized": 1.0000000131693294,
+        "alpha_max_mean": 0.1666666716337204,
+        "dominant_view_fraction": {
+          "entropy_level": 1.0,
+          "entropy_dynamics": 0.0,
+          "sampled_token_energy": 0.0,
+          "partition_energy": 0.0,
+          "topk_distribution": 0.0,
+          "structural": 0.0
+        },
+        "mean_view_weight": {
+          "entropy_level": 0.1666666716337204,
+          "entropy_dynamics": 0.1666666716337204,
+          "sampled_token_energy": 0.1666666716337204,
+          "partition_energy": 0.1666666716337204,
+          "topk_distribution": 0.1666666716337204,
+          "structural": 0.1666666716337204
+        },
+        "orthogonality_error": 5.564396798899778e-07,
+        "joint_diagonalization": [
+          {
+            "view": "entropy_level",
+            "off_diagonal_ratio": 0.6545642060069417,
+            "rayleigh_trace": 108.99335782644994
+          },
+          {
+            "view": "entropy_dynamics",
+            "off_diagonal_ratio": 0.5908737075439693,
+            "rayleigh_trace": 189.1050774438619
+          },
+          {
+            "view": "sampled_token_energy",
+            "off_diagonal_ratio": 0.5397490791079615,
+            "rayleigh_trace": 89.49295269020028
+          },
+          {
+            "view": "partition_energy",
+            "off_diagonal_ratio": 0.610560060364251,
+            "rayleigh_trace": 139.27937000017852
+          },
+          {
+            "view": "topk_distribution",
+            "off_diagonal_ratio": 0.6253677177371628,
+            "rayleigh_trace": 104.08080131739601
+          },
+          {
+            "view": "structural",
+            "off_diagonal_ratio": 0.6399788771574982,
+            "rayleigh_trace": 196.0917483414082
+          }
+        ],
+        "mean_laplacian_commutator": 0.007231707796525852,
+        "n_nodes": 300,
+        "n_edges": 11795,
+        "n_components": 1,
+        "degree_min": 0.03829719658496207,
+        "degree_mean": 0.264872862353053,
+        "degree_max": 0.4321628679775731,
+        "algebraic_connectivity": 0.2937989487280671,
+        "graph_symmetry_error": 0.0,
+        "embedding_graph": {
+          "n_neighbors": 15,
+          "sigma": 0.15515260528414188,
+          "n_nodes": 300,
+          "n_edges": 2761,
+          "n_components": 1,
+          "degree_min": 0.00019972628611705402,
+          "degree_mean": 5.94416824147506,
+          "degree_max": 13.049137749046624,
+          "algebraic_connectivity": 0.0017200887062160499,
+          "graph_symmetry_error": 0.0
+        },
+        "optimizer_updates": 60
+      }
+    ]
+  }
+]

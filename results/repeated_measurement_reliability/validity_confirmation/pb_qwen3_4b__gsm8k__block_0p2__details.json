@@ -1,0 +1,163 @@
+{
+  "summary": {
+    "fraction": 0.2,
+    "n_rows": 200,
+    "n_features": 28,
+    "eligible_feature_count": 17,
+    "repeats": 12,
+    "block_length_median": 54.0,
+    "median_replicate_mean_bias": 0.19096520487742108,
+    "fraction_feature_bias_le_0p5": 1.0,
+    "within_split_correlation": 0.9928086694182301,
+    "negative_signal_mass": 0.028996921553592854,
+    "top3_split_overlap": 0.977763235743367,
+    "within_trace_ratio": 0.3211669698578487,
+    "generalized_ridge": 0.018944813626207195,
+    "generalized_noise_condition": 100.00000000000051,
+    "n_generalized_eigenvalues_gt_1": 6,
+    "fixed_transform_max_error": 1.7763568394002505e-15,
+    "full_pool_diagnostics": {
+      "median_replicate_mean_bias": 0.2983137340007754,
+      "fraction_feature_bias_le_0p5": 0.6071428571428571,
+      "within_split_correlation": 0.9976772638227435,
+      "negative_signal_mass": 0.49932785844095473,
+      "top3_split_overlap": 0.9520545926175624,
+      "within_trace_ratio": 0.9984665758854845
+    },
+    "validity_checks": {
+      "replicate_mean_bias": true,
+      "feature_bias_coverage": true,
+      "within_split_stability": true,
+      "signal_psd_compatibility": true,
+      "subspace_split_stability": true,
+      "nontrivial_bounded_noise": true,
+      "enough_eligible_features": true
+    },
+    "validity_passed": true,
+    "cell": "pb_qwen3_4b__gsm8k"
+  },
+  "feature_names": [
+    "epr",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "dominant_freq",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "stft_spectral_entropy",
+    "rpdi",
+    "sw_var_peak",
+    "pe_mean",
+    "hurst_exponent",
+    "cusum_max",
+    "cusum_shift_idx",
+    "epr_spilled",
+    "sw_var_peak_spilled",
+    "cusum_max_spilled",
+    "epr_energy",
+    "min_energy",
+    "sw_var_peak_energy",
+    "cusum_max_energy",
+    "mean_top1_logprob",
+    "logprob_margin",
+    "mean_logprob_entropy",
+    "varentropy",
+    "renyi_entropy_2",
+    "topk_tail_mass"
+  ],
+  "eligible_feature_names": [
+    "epr",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "spectral_centroid",
+    "sw_var_peak",
+    "epr_spilled",
+    "epr_energy",
+    "min_energy",
+    "sw_var_peak_energy",
+    "mean_top1_logprob",
+    "logprob_margin",
+    "mean_logprob_entropy",
+    "varentropy",
+    "renyi_entropy_2",
+    "topk_tail_mass"
+  ],
+  "exclusions": {
+    "trace_length": "bootstrap fixes length, so within variance is identically zero",
+    "min_spilled": "constant"
+  },
+  "generalized_eigenvalues": [
+    22.360194448534166,
+    7.65483905162991,
+    4.529387642656249,
+    2.1004009525897915,
+    1.2698058362929805,
+    1.035886276232451,
+    0.8373915735234857,
+    0.6059896644167728,
+    0.43788268689452886,
+    0.25942662172638964,
+    0.1731199171121275,
+    0.04118464943887221,
+    0.0007479326143321662,
+    3.820852498573452e-15,
+    -1.0773546416697885e-16,
+    -3.4802944552486186e-16,
+    -1.5132616178071854e-15
+  ],
+  "convergence": [
+    {
+      "repeats": 3,
+      "correlation_to_full": 0.9989169637985319,
+      "relative_frobenius_error": 0.11237297898591854
+    },
+    {
+      "repeats": 4,
+      "correlation_to_full": 0.9992437529530714,
+      "relative_frobenius_error": 0.08963965537292333
+    },
+    {
+      "repeats": 5,
+      "correlation_to_full": 0.9994608040797148,
+      "relative_frobenius_error": 0.05905615351806748
+    },
+    {
+      "repeats": 6,
+      "correlation_to_full": 0.9994832434470511,
+      "relative_frobenius_error": 0.04418752554865584
+    },
+    {
+      "repeats": 7,
+      "correlation_to_full": 0.9994872660626968,
+      "relative_frobenius_error": 0.04637001792608255
+    },
+    {
+      "repeats": 8,
+      "correlation_to_full": 0.9995747531868259,
+      "relative_frobenius_error": 0.04112898991499513
+    },
+    {
+      "repeats": 9,
+      "correlation_to_full": 0.999850039139939,
+      "relative_frobenius_error": 0.029052282908603524
+    },
+    {
+      "repeats": 10,
+      "correlation_to_full": 0.9998961015867549,
+      "relative_frobenius_error": 0.02330537728869117
+    },
+    {
+      "repeats": 11,
+      "correlation_to_full": 0.9999563292633433,
+      "relative_frobenius_error": 0.012430736802843336
+    },
+    {
+      "repeats": 12,
+      "correlation_to_full": 1.0,
+      "relative_frobenius_error": 0.0
+    }
+  ]
+}

@@ -10361,3 +10361,524 @@ terminal.
 - `selector/a4-antigravity-unsupervised` branch — A4 selector bench results commit (not merged to master)
 
 ---
+
+> **Parallel-history note:** the infrastructure upload above and the research
+> audit below were documented on branches that both used Step 228. The labels
+> are retained to preserve existing cross-references. “Step 228 infra” means
+> the LFS upload; “Step 228 research” means the atomic-operator audit.
+
+### Step 227 — frozen 24-cell view-fusion benchmark closes local alpha and micro-views
+
+**What prompted it**: the six SpecRaGE feature families had been defined by semantic provenance,
+not by an algorithmic property of U-PCR. A read-only side diagnosis found very different family
+graphs but no relationship between family agreement and family contribution. Omri therefore asked
+for one apples-to-apples experiment comparing manual families, individual features, and
+fusion-aware groups, with complete method documentation, leakage controls, diagnostics, plots, and
+an independent review.
+
+**Registered design**: every method received the same 24 dataset/model cells, the same
+`fixed_stable_v1` feature pool, fixed confidence directions, and the same two-component IU-PCR
+anchor. The three view definitions were: six manual provenance families; one balanced atomic view
+per feature, with duplicate-group mass normalization; and leave-one-cell-out micro-views clustered
+from basis-invariant projected-roughness signatures. The benchmark included deployed U-PCR,
+IU-PCR, DUFS-LIU, the registered CA-alpha heads, adapted and CA-trained embedding graphs, uniform
+fusion, exact-prior alpha, global alpha, permuted alpha, raw-uniform graph, and the complete fixed
+lambda path. A pre-run review added the controls needed to distinguish local reliability from base
+geometry and marginal weights.
+
+**Leakage boundary**: the fitting process had no label parameter and did not read label arrays. It
+saved and hashed every score and diagnostic first. A separate reporting process verified those
+hashes, created the immutable score-freeze manifest, and only then loaded labels. The 24 cells are
+retrospective development data, not external confirmation. Registered protocol, method, and source
+files were not edited after their hashes entered the run definition.
+
+**Execution audit**: the first full attempt exposed non-finite values in secondary graph
+connectivity diagnostics. The scientific outputs were not interpreted. The failed attempt was
+preserved separately, JSON serialization was corrected to store unavailable diagnostics as `null`
+with exact paths, and a new clean output directory was run from the beginning. The completed run
+fingerprint is `f9bcfeed23f80afd952f7a60935b3b82ebf50792242403748a3e35531158662f`; all 24
+cells completed in about 75 minutes. The 135 unavailable values are only algebraic-connectivity
+estimates for secondary embedding-Y graphs and do not affect scores or headline graph health.
+
+**Result**: cell-macro AUROC is 0.7735 for deployed U-PCR, 0.7741 for IU-PCR, 0.7741 for
+DUFS-LIU, 0.7721 for manual-view CA, 0.7743 for balanced-atomic CA, and 0.7704 for micro-view CA.
+Atomic CA is +0.023pp versus IU-PCR with 11 wins, 1 tie, and 12 losses; it is a tie. Micro-view CA is
+-0.363pp with 5 wins and 19 losses, and its worst cell is -2.855pp. The micro partitions themselves
+are reproducible (bootstrap ARI 0.84–0.94), proving that stable unlabeled geometry need not be
+target-relevant. Sample-specific alpha is slightly worse than both global-alpha and permuted-alpha
+controls for all three schemas. The fixed lambda path contains no hidden rescue, and connected,
+well-conditioned headline graphs rule out collapse as the explanation.
+
+**Independent review**: a separate post-run audit classified the experiment as a valid frozen
+negative result and agreed that CA-SpecRaGE and LOCO micro-views should not be promoted. It proposed
+global atomic roughness gating as the smallest remaining DUFS-inspired possibility, but only after
+a premise test shows that a frozen label-free diagnostic predicts operator usefulness. This advice
+is recorded as a hypothesis, not as supporting evidence for the unbuilt method.
+
+**Conclusion taken**: stop sample-specific CA-SpecRaGE and do not tune the learned micro-views.
+Manual semantic families are not required fusion units, but atomic granularity alone does not
+improve the incumbent. Stable confidence-oriented U-PCR/IU-PCR remains the baseline; DUFS-LIU
+remains a required control and design source. The next step is not another learner. Phase 0 first
+tests whether a pre-frozen, label-free atomic-operator diagnostic predicts held-out operator
+usefulness across dataset families. If that premise fails, close the graph-regularization line.
+
+**Files**: `docs/experiments/FROZEN_24_CELL_BENCHMARK.md`, `docs/methods/`,
+`results/frozen_24cell_benchmark/REPORT.md`,
+`docs/research_notes/frozen_24cell_view_fusion_conclusion.md`, and
+`docs/research_notes/atomic_operator_gating_plan.md`. The failed execution audit remains in
+`results/frozen_24cell_benchmark_failed_nan_diagnostic/` and is not a scientific result.
+
+---
+
+### Step 228 — atomic-operator premise audit rejects the static label-free proxy
+
+**What prompted it**: the frozen view-fusion benchmark rejected sample-specific
+CA-SpecRaGE and stable micro-views, but balanced atomic views suggested one
+smaller DUFS-inspired possibility: learn global weights directly over atomic
+feature Laplacians inside IU-PCR. Before building another learner, Omri asked
+for a staged premise test with frozen diagnostics, tunable-parameter analysis,
+plots, and independent reviews.
+
+**Registered design**: for every feature and each of the 24 retrospective
+dataset/model cells, Phase 0 built an order-invariant unique-value quotient
+graph and its projected two-dimensional IU-PCR roughness operator. The primary
+label-free proxy combined cross-fitted smoothness agreement, operator and rank-
+change reproducibility, and bounded actuation. The complete proxy was rebuilt
+for `k={7,15,30}` and `lambda={0.3,1,3}` over 40 deterministic 80% subsamples.
+The fit used a physically stripped bundle with no correctness array. All source,
+input, environment, score, and diagnostic hashes were verified before the
+separate report opened labels.
+
+**Pre-run correction and review**: an independent reviewer blocked the first
+draft until tied feature values were handled without row-order dependence,
+absolute headroom and tail gates were added, every sensitivity path recomputed
+the full proxy, nested permutation tests failed closed, resume was bound to the
+exact run fingerprint, and the incompatible protocol was versioned as v2. The
+known-answer suite and representative debug cells then passed, and the reviewer
+approved the scientific run.
+
+**Result**: the proxy failed. Median within-cell Spearman with atomic AUROC
+change was **-0.312**; the equal-family mean was -0.032 with interval
+[-0.319,+0.249]. Feature-identity permutation p was 0.690 and exact family
+sign-flip p was 0.582. The label-free top-proxy atom lost **-0.838pp**
+cell-macro, with 7 wins, 17 losses, and a worst loss of **-3.658pp**. A
+label-only in-sample oracle showed optimistic headroom of +0.447pp cell-macro.
+Only 3 of 15 continuation gates passed.
+
+**Mechanism diagnosis**: this is not an optimization failure. The proxy ranking
+already had median 0.990 agreement with its final ranking after four
+subsamples. All nine `k,lambda` settings remained negatively associated with
+utility; lower lambda reduced damage but did not reverse selection. Stability,
+agreement with a pseudo-score derived from the same feature system, and strong
+actuation identify reproducible nuisance geometry rather than correctness.
+
+**Independent result review**: a separate reviewer reproduced the headline
+numbers from the frozen CSVs and raw scores, verified the hashes and label seam,
+and approved the audit as a valid negative result. It blocked continuation of
+AOG from this proxy.
+
+**Conclusion taken**: do not implement AOG Phase 1 and do not tune proxy
+component weights after seeing these labels. Keep U-PCR/IU-PCR as the incumbent;
+keep DUFS-LIU, uniform atomic fusion, and atomic operators as controls. The next
+premise must obtain an independent interventional self-supervised target from
+repeated generations, benign perturbations, evidence-conditioned answers, or
+semantic answer consistency. It must transfer leave-one-family-out and survive
+absolute safety gates before another fusion learner is built.
+
+**Files**: `docs/experiments/FROZEN_ATOMIC_OPERATOR_PREMISE_AUDIT.md`,
+`spectral_utils/atomic_operator_audit.py`,
+`scripts/atomic_operator_premise_{fit,report}.py`,
+`scripts/test_atomic_operator_premise.py`,
+`results/atomic_operator_premise_audit_v2/`, and
+`docs/research_notes/atomic_operator_premise_audit_conclusion.md`.
+
+---
+
+### Step 229 — graph-coupled family relevance separates a real premise from a failed router
+
+**What prompted it**: the atomic-operator audit showed that stable static
+geometry does not identify target usefulness. Omri proposed a more structured
+premise: a feature family may be informative for one sample and only noise for
+another, and known relations between families might allow a graph Laplacian to
+stabilize sample-specific relevance estimates.
+
+**Registered method**: GCFR-U-PCR starts from the fixed two-component IU-PCR
+weights. For each sample, within-family oriented-rank agreement produces six
+raw family gates. A fixed six-node family Laplacian connects entropy level,
+entropy dynamics, and structural views, and separately connects sampled-token,
+partition, and top-k energy views. The graph strength `beta` and replacement
+strength `alpha` were selected on a 20-seed synthetic independent-noise world,
+not on real labels. The real fit used a physically label-stripped input, froze
+all scores and hashes, and only then evaluated the 24 cells.
+
+**Synthetic boundary**: the registered `beta=3, alpha=1` path improved IU-PCR
+by **+0.773pp**, 20 wins in 20 seeds, when an inactive family became internally
+inconsistent. It lost **9.272pp**, 20 losses in 20 seeds, when the inactive
+family shared a coherent nuisance. Within-family agreement can detect
+inconsistency; it cannot tell useful agreement from coherent wrong agreement.
+
+**Real result**: registered GCFR scored 0.7727 AUROC and lost **0.135pp** to
+IU-PCR, with 8 wins and 16 losses. It also lost 0.243pp to its no-graph control
+and did not beat the permuted-graph, global-gate, sample-permuted-gate, or
+DUFS-LIU controls. Only 2 of 10 continuation gates passed. The gates were
+active and non-collapsed. Every tested `beta>0` path was negative; every
+`beta=0` path had a small positive mean change. Therefore cross-family
+smoothing, not numerical failure, caused the loss. The best no-graph result
+was +0.108pp, but its equal-family interval crossed zero and it is a
+post-evaluation descriptive hint, not a promoted method.
+
+**Important positive diagnosis**: conditional family relevance is real enough
+to study. A label-only diagnostic that chooses a family expert separately in
+frozen IU-PCR-rank quartiles has **+2.833pp** equal-family headroom, permutation
+`p=0.0020`, Holm `p=0.0060`. Trace-length and family-disagreement contexts did
+not pass. The result proves conditional specialization, not a runnable router:
+there is no universal family-to-quartile winner rule across cells.
+
+**Conclusion taken**: stop before a learned mixture. The semantic graph encodes
+measurement relationship, while the missing relation is shared reliability
+for hallucination correctness. Keep IU-PCR rank as a regime coordinate, but
+seek an independent interventional self-supervised reliability signal before
+another graph or gating learner is built. Repeated generations, benign
+perturbations, evidence-conditioned generations, and semantic answer
+consistency are candidates; coherent repeatable hallucinations are the main
+falsification case.
+
+**Files**: `docs/experiments/FROZEN_FAMILY_RELEVANCE_DIAGNOSTIC.md`,
+`spectral_utils/family_relevance.py`,
+`scripts/family_relevance_{synthetic,fit,report}.py`,
+`scripts/test_family_relevance.py`, `results/family_relevance_synthetic/`,
+`results/family_relevance_real_v1/`, and
+`docs/research_notes/family_relevance_diagnostic_conclusion.md`.
+
+---
+
+### Step 230 — repeated cross-view diffusion converges to a target-neutral correction
+
+**What prompted it**: GCFR-U-PCR supported conditional family specialization
+but rejected a semantic family graph as the router. Omri rejected a new
+family anchor and proposed a purely unsupervised alternative: repeatedly split
+the features, use alternating diffusion to retain relations shared by both
+halves, and test whether the result is consistent across many partitions.
+
+**Registered method**: RCV-AD-IU-PCR built complementary sample kNN Markov
+operators and composed them as `(P_A P_B + P_B P_A)/2`. Sixteen partition
+graphs were averaged before entering the existing two-dimensional LIU solve.
+The primary used dependency blocks from complete-linkage absolute Spearman
+distance 0.15, so near-duplicate features could not leak across the two views.
+Atomic-random and frozen-family blocks were controls. `T={4,8,16}`, direct
+averaging, node permutation, `k={5,7,11}`, and the complete lambda path were
+frozen before labels were opened.
+
+**Implementation validation**: the known-answer test showed that alternating
+diffusion aligns with a latent coordinate observed through two independent
+noisy views and not with a node-permuted control. It also verified block
+integrity, feature-order invariance, label-free APIs, and exact IU-PCR recovery
+at lambda zero. A physically stripped 72-array bundle contained no label or
+target key. The 24-cell fit completed in 144 seconds and every source, input,
+reference, and score hash was verified before evaluation.
+
+**Result**: the registered primary tied IU-PCR at **+0.004pp**, with 10 wins,
+14 losses, equal-family interval [-0.052,+0.029]pp, and worst loss -0.133pp.
+It did not beat atomic random (+0.018pp), family blocked (+0.019pp), or frozen
+DUFS-LIU (+0.008pp); all are control-level ties. Only 5 of 11 continuation
+gates passed. Stronger lambda did not reveal a hidden gain: dependency blocking
+fell to -0.061pp at lambda 1 and -0.127pp at lambda 3.
+
+**Mechanism diagnosis**: the method converged. Median dependency partition-to-
+consensus graph CKA was 0.536, partition-score Spearman was approximately
+1.000, and `T=8` versus `T=16` score Spearman was 1.000. Graph CKA did not
+predict AUROC change (Spearman -0.240, p=0.259). Increasing k from 7 to 11
+greatly repaired disconnected large-cell graphs but still produced only
++0.005pp. Alternating composition beat direct graph averaging by 0.037pp, so
+the operator was active, but the shared geometry was not useful enough to
+change the incumbent ranking.
+
+**Conclusion taken**: stop static repartitioning of the current feature matrix
+as a leading direction. Repeated partitions make shared confidence/style/
+length nuisance reproducible; they do not add target information. The positive
+conditional-specialization diagnosis from Step 229 remains, but the next view
+must be genuinely independent of the static matrix—generation, evidence, or
+controlled-perturbation information—before another graph or router is built.
+
+**Files**: `docs/experiments/FROZEN_REPEATED_CROSS_VIEW_DIFFUSION.md`,
+`spectral_utils/repeated_cross_view_diffusion.py`,
+`scripts/repeated_cross_view_{fit,report}.py`,
+`scripts/test_repeated_cross_view_diffusion.py`,
+`results/repeated_cross_view_diffusion_v1/`, and
+`docs/research_notes/repeated_cross_view_diffusion_conclusion.md`.
+
+---
+
+### Step 231 — per-feature transformation search refines the DUFS-LIU baseline
+
+**What prompted it**: the current DUFS-LIU benchmark was assumed to use the
+non-monotone feature transformations. Inspection showed that it still used
+`fixed_stable_v1`, which removes `pe_mean`, `stft_spectral_entropy`,
+`cusum_shift_idx`, and `rpdi`. Earlier feature-contract experiments forced the
+same operation on all four views.
+
+**Experiment**: all 256 global combinations of `drop`, `raw`, `squared`, and
+label-free KDE `mode` were evaluated under the unchanged DUFS-LIU settings
+(seeds 11/23/37, 80 epochs, k=7, lambda=0.1). Missing features remained
+missing. Every transformed column replaced its parent. The fit phase did not
+read labels; 4,932 unique applicable fits were frozen and hashed before the
+report opened labels.
+
+**Result**: the retrospective DUFS-LIU winner is `pe_mean=squared`,
+`stft_spectral_entropy=mode`, `cusum_shift_idx=raw`, `rpdi=raw`. It scores
+**0.776562**, compared with **0.774139** stable-only: +0.242pp, 17W/7L, worst
+-0.279pp. On the same contract DUFS-LIU is +0.048pp above IU-PCR. The LOFO
+contract-selection procedure is +0.123pp, but the result is fragile: without
+`math500_qwenmath7b` the LOFO mean is about +0.022pp. STFT mode and raw RPDI
+are stable in 7/8 and 8/8 folds; the PE and CUSUM decisions split across folds.
+
+**Decision**: freeze the exact mapping as
+`dufs-liu-mixed-v2-development-2026-08-07` for the next external-family run.
+Do not replace the historical stable-only headline with the selected-on-the-same-
+data score. This repairs the baseline configuration; it does not overturn the
+target-identifiability conclusions of Steps 227--230.
+
+**Files**: `scripts/dufs_liu_feature_contract_search.py`,
+`spectral_utils/dufs_liu_feature_contract.py`,
+`results/dufs_liu_feature_contract_search/`, and
+`docs/research_notes/dufs_liu_mixed_feature_contract_conclusion.md`.
+
+---
+
+### Step 232 — GL-LIU v1 replaces Mind the Gap in end-to-end ProcessBench localization
+
+**What prompted it**: the localization branch still used Mind the Gap's
+Shannon-Drop score to decide whether a trace contained an error. Omri asked
+whether our full-trace fusion and native moving-window signals could solve the
+entire task without importing that score or constructing features separately
+inside annotated reasoning steps.
+
+**Registered decomposition**: detector and locator were selected separately on
+Qwen3-4B/GSM8K and Qwen3-4B/MATH. The detector candidates were deployed U-PCR,
+IU-PCR, uniform-LIU, and DUFS-LIU under stable and mixed contracts. The locator
+candidates were token U-PCR/IU-PCR and temporal, uniform-feature, or DUFS-
+feature Laplacian IU-PCR over entropy and spilled-energy moving-window curves.
+No score constructor received correctness labels or ProcessBench step spans.
+The final decision threshold was fitted on each calibration half and evaluated
+on its untouched half over 100 repeated splits.
+
+**Frozen v1 method**: GL-LIU v1 (Global-Local Laplacian IU-PCR) uses mixed-
+contract DUFS-LIU (`k=7`, `lambda=0.1`, DUFS seeds 11/23/37) for global error
+risk and a continuous temporal-chain LIU locator (`lambda=0.3`) for token risk.
+The trace is treated as one token sequence. Step spans are used only after the
+prediction freezes to map the selected token to the benchmark annotation.
+
+**End-to-end result**: across eight cells, GL-LIU v1 scores **31.36%**
+ProcessBench F1 versus **25.71%** for the reproduced Mind the Gap control.
+Exact localization is 21.79% versus 17.84%, tolerance-one localization is
+46.76% versus 39.35%, and clean accuracy is 57.99% versus 48.63%. GL-LIU F1 is
+higher in all eight cells. Across the six cells excluded from component
+selection, F1 is 30.76% versus 24.74%.
+
+**Mechanism conclusion**: the global detector is confirmed within this
+benchmark. Mixed DUFS-LIU beats mixed IU-PCR in all eight cells by about
++0.22 AUROC percentage points on average. Global trace fusion also decisively
+beats maximum/top-5% aggregation of local token scores. The temporal locator is
+not confirmed as a universal improvement: its development gain was driven by
+GSM8K, and DUFS feature-graph IU localizes slightly better over the six non-
+selection cells. Temporal LIU remains the frozen v1 choice, while ordinary IU
+and DUFS feature-graph IU are mandatory controls for external confirmation.
+
+**Claim boundary**: this is a calibrated unsupervised scoring method, not a
+fully label-free decision system. Labels are used for declared development
+selection, split-local threshold calibration, and evaluation. Also, the two
+model sizes reuse the same examples; the run contains four independent dataset
+families, and only OlympiadBench and OmniMath are new family-level confirmation.
+The Mind the Gap control uses the same F1 threshold protocol, not the paper's
+original Neyman-Pearson operating point.
+
+**Decision**: promote GL-LIU v1 as the leading ProcessBench direction. Freeze
+the current detector. Do not tune the temporal locator further on these labels.
+The next experiment must evaluate temporal LIU, ordinary token IU, and DUFS
+feature-graph IU on a new dataset family and preferably a new model family.
+
+**Files**: `docs/methods/gl_liu_v1.md`,
+`results/ours_only_localization_v1/`,
+`scripts/gl_liu_v1/`, `scripts/build_gl_liu_report.py`, and
+`scripts/plot_ours_only_localization_v1.py`.
+
+---
+
+### Step 233 — factorial localization follow-up favors unified core DUFS-LIU and rejects the broad pool
+
+**What prompted it**: the GL-LIU v1 handoff left two direct questions open:
+whether scientific simplicity should use DUFS-LIU in both heads, and whether
+token-resolved counterparts of the global feature pool improve localization.
+
+**Controlled design**: two separate 2x2 matrices prevented graph choice and
+feature-pool expansion from being confounded. Matrix A crossed global IU-PCR or
+DUFS-LIU with temporal-core or DUFS-core localization. Matrix B crossed the
+same global heads with core-five or broad-28 local DUFS-LIU. Lambda, k, DUFS
+seeds/epochs, fit-token budget, score orientation, and the repeated threshold
+protocol were frozen from v1. Every cell was reported; no post-label candidate
+selection was performed.
+
+**Feature accounting**: the global registry has 30 names and 29 active columns
+in these caches. The local contract has 28 unique varying curves. Trace length
+was excluded because it is constant inside a trace; `cusum_max` and
+`cusum_shift_idx` share one absolute-CUSUM curve; rolling `min_spilled` was
+retained because it varies locally despite global saturation. The added curves
+cover raw entropy, spilled and partition energy, top-k distribution statistics,
+and rolling spectral/time-domain proxies.
+
+**Result**: unified DUFS-LIU with the five frozen local curves scores **31.72%
+ProcessBench F1**, compared with **31.36%** for frozen GL-LIU v1 and **25.71%**
+for Mind the Gap. It wins five of eight cells. On the six non-selection cells,
+the comparison is 31.41% versus 30.76%. Local exact localization is 26.70%
+versus 26.41% for temporal LIU, and 25.78% versus 25.14% on the six
+non-selection cells. This is a small descriptive transfer advantage, not a
+confirmed universal gain.
+
+The broad-28 local DUFS system falls to **29.03% F1**, -2.70 points against the
+core-five system, with seven losses in eight cells. Its local exact accuracy is
+24.09% versus 26.70%. All 28 curves survive, effective rank is about 9, DUFS
+keeps an effective 12--14 features, and the within-trace rank displacement is
+0.21--0.28. The graph is active and non-collapsed; it preserves a coherent
+token-state geometry that is not aligned with first-error location.
+
+**Reproduction and claim boundary**: both global score hashes and both
+five-view local curve hashes exactly equal the frozen v1 artifacts in all eight
+cells. Correctness labels are absent from score fitting and are used only for
+component evaluation and split-local threshold calibration. The run still has
+four dataset families rather than eight independent datasets.
+
+**Decision**: keep global mixed DUFS-LIU. Treat five-view local DUFS-LIU as the
+primary simplicity candidate and temporal LIU as the frozen control for the
+next external test. Reject this naive broad-28 contract and do not tune windows
+or subsets on the current labels.
+
+**Files**: `docs/experiments/GL_LIU_FACTORIAL_V2.md`,
+`spectral_utils/token_feature_views.py`, `scripts/gl_liu_factorial_v2/`,
+`results/gl_liu_factorial_v2/`, and `scripts/test_gl_liu_factorial_v2.py`.
+
+---
+
+### Step 234 — repeated-measurement reliability separates stable nuisance, but does not improve DUFS-LIU
+
+**Question**: can one saved LLM telemetry trace provide repeated measurements
+that separate target-preserving covariance from nuisance covariance before
+U-PCR? This was tested for answer-level hallucination detection, not only for
+localization. No additional LLM generation or forward pass was used.
+
+**Construction**: synchronized circular moving-block bootstraps were applied to
+entropy, spilled-energy, log-partition, and top-k log-probability traces. The
+experiment estimated `S_signal = S_total - S_within` and solved the generalized
+eigenproblem `S_signal v = lambda S_within v`. All choices were label-free;
+scores were hashed before `final_answer_correct` was accessed.
+
+**Validity result**: the full 28-view pool failed because block resampling
+strongly changes several order-sensitive features. A GSM8K-developed rule
+retaining features with replicate-mean bias at most 0.5 standard deviations and
+within variance no larger than total variance retained 17 views on GSM8K and
+18 on MATH. The frozen rule confirmed on MATH. On the full benchmark rows,
+within-covariance split correlations were 0.993/0.999, top-three generalized-
+subspace overlaps were 0.989/0.990, and negative signal eigenmass was 4.12%/
+0.76%.
+
+**Mechanism failure found**: using generalized eigenvectors directly as U-PCR
+regressors nearly diagonalizes their covariance and destroys the off-diagonal
+moments U-PCR needs. The off-diagonal covariance fraction fell from about 0.89
+to 0.03/0.07; the MATH latent score collapsed below chance. Projecting back to
+the feature axes repaired the solver mechanism. A soft Wiener filter was the
+only safe variant.
+
+**Performance**: DUFS-LIU mixed-v2 scored 0.7673 AUROC on GSM8K and 0.7188 on
+MATH. Wiener-filtered DUFS-LIU scored 0.7679 and 0.7202: differences +0.0006
+and +0.0013, with paired 95% intervals [-0.0124,+0.0138] and
+[-0.0068,+0.0095]. Candidate/baseline score correlations were 0.975/0.977.
+
+**Decision**: no promotion and no run on the six held ProcessBench cells.
+Retain DUFS-LIU mixed-v2. Keep the validity harness, but reopen the method only
+with a replicate procedure that varies a known nuisance while preserving the
+answer's semantic target. Two independent small reruns produced identical
+score hashes after the cell-seed bug in an intermediate runner was fixed.
+
+**Files**: `spectral_utils/repeated_measurement_reliability.py`,
+`scripts/repeated_measurement_reliability_{pilot,benchmark}.py`,
+`scripts/test_repeated_measurement_reliability.py`,
+`results/repeated_measurement_reliability/`, and
+`docs/research_notes/repeated_measurement_reliability_upcr_2026-08-08.md`.
+
+---
+
+### Step 235 — close the fusion cycle and pivot to application-specific use
+
+**Purpose**: consolidate the development work from Steps 225--234, state which
+claims the evidence supports, and prevent another cycle of small fusion
+variants without a new identifiable signal.
+
+**What the cycle tested**: dependency-aware SU-PCR/SDSF and DEEM comparisons;
+SpecRaGE-style view fusion; semantic, atomic, and fusion-aware micro-views;
+family relevance gates; repeated cross-view diffusion; per-feature mixed-v2
+transformations; localization heads; repeated-measurement reliability; and a
+closing test of deployed-U-PCR hard filtering before IU-PCR/DUFS-LIU. These
+experiments found stable covariance, graph, family, and replicate structure.
+However, unsupervised stability or agreement repeatedly failed to identify
+which structure was useful for the correctness target. The robust gains over
+DUFS-LIU on the current 24-cell, single-pass static-feature setting were
+negligible or absent.
+
+**Hard-filter closing result**: two feature contracts and four non-trivial
+filter levels were run on all 24 cells. Score fitting was label-free, and score
+hashes were frozen before labels were opened. Full-pool mixed-v2 DUFS-LIU
+remains the best row at 0.776562 macro AUROC. The deployed `rho_max/3` filter
+lowers it to 0.774249; the strictest filter reaches 0.764153. DUFS's matched
+increment over IU-PCR changes from +0.048 AUROC points without filtering to
+-0.025 with the deployed filter. The median Spearman agreement between
+estimated rho and the full-pool DUFS gate is 0.794. The hard filter therefore
+mostly deletes features already suppressed by DUFS, while also removing their
+covariance and complementary fusion information. Previous IU-PCR, DUFS-LIU,
+and deployed-U-PCR outputs reproduce exactly in 24/24 cells. Hard-filter and
+gating variations are closed on this development roster.
+
+**Bounded conclusion**: the current fusion-development path is saturated for
+the feature pool and protocols tested. This does not prove that U-PCR cannot be
+improved. It means that a new variant should not be opened unless it introduces
+new target-relevant information, a valid nuisance intervention, or a
+materially different measurement contract.
+
+**Frozen core**: use **DUFS-LIU mixed-v2** as the forward implementation
+standard. The mixed-v2 contract is `pe_mean=squared`,
+`stft_spectral_entropy=mode`, `cusum_shift_idx=raw`, and `rpdi=raw`.
+Stable-only historical reports remain unchanged and must be named as such when
+quoted.
+
+**Application result — localization**: frozen GL-LIU v1 combines the global
+mixed-v2 DUFS-LIU detector with a temporal LIU localizer and reaches 31.36%
+ProcessBench F1, compared with 25.71% for Mind the Gap. The factorial follow-up
+finds 31.72% for a unified global/local core-five DUFS-LIU system and 31.41%
+on the six non-selection cells. This small advantage is descriptive, not an
+external confirmation. The broad-28 local pool is rejected at 29.03%. The
+formal v1 system remains frozen; core-five local DUFS-LIU is the simpler
+candidate for the next new-data comparison.
+
+**Next application — RAG citation hallucination**: develop an
+evidence-contrast system that keeps the answer fixed and creates dependent
+views by rescoring it with full evidence, no evidence, and one retrieved chunk
+removed at a time. Here evidence sensitivity is the desired signal, not noise
+to subtract. U-PCR/DUFS-LIU can then fuse the intervention traces for global
+grounding detection and citation/span localization. This direction is planned,
+not yet validated; the old Phase-10 RAG cache is not sufficient evidence for a
+publishable grounding claim.
+
+**Execution decision**: prioritize (1) external localization validation and
+application-specific optimization, then (2) a preregistered RAG-citation
+benchmark. Pause new core-fusion variants. Labels remain outside score fitting;
+where thresholds or component choices use labels, describe the system as
+calibrated unsupervised scoring rather than fully label-free.
+
+**Documentation**: `Research_Directions.md` now contains the active application
+order; `PROGRESS.md` states the frozen project status; and
+`docs/research_notes/claude_review_application_pivot_2026-08-08.md` contains the
+independent-review package and exact claim boundaries.
+
+**Additional source artifacts**:
+`results/hard_filter_dufs_liu_24cell/REPORT.md` and
+`results/hard_filter_dufs_liu_24cell/MECHANISM_ANALYSIS.md`.
+
+---

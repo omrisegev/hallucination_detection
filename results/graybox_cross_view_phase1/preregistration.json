@@ -1,0 +1,54 @@
+{
+  "version": "graybox-cross-view-phase1-v1-2026-08-06",
+  "status": "frozen_before_smoke",
+  "worlds": ["P1-A", "P1-B", "P1-C", "P1-D", "P1-E", "P1-F"],
+  "resources": {
+    "smoke": {"seed_base": 3100000, "replicates": 2, "samples": 180},
+    "development": {"seed_base": 3200000, "replicates": 8, "samples": 360},
+    "confirmation": {"seed_base": 3800000, "replicates": 16, "samples": 500}
+  },
+  "graph": {
+    "k_values": [5, 7, 11],
+    "primary_k": 7,
+    "permutations": 199,
+    "transfer_p_max": 0.025,
+    "transfer_robust_z_min": 2.0,
+    "largest_component_fraction_min": 0.95,
+    "stability_cka_min": 0.75,
+    "decision_must_agree_across_k": true
+  },
+  "nuisance_veto": {
+    "ridge_alpha": 1.0,
+    "cross_fitted_folds": 5,
+    "alignment_p_max": 0.025,
+    "fires_if_residual_p_exceeds": 0.025,
+    "or_residual_z_fraction_max": 0.5
+  },
+  "fusion": {
+    "lambda_values": [0.0, 0.01, 0.03, 0.1, 0.3, 1.0],
+    "primary_lambda": 0.1,
+    "lambda_path_is_diagnostic_only": true,
+    "ordinary_covariance_rho_and_u2_frozen": true
+  },
+  "development_gates": {
+    "P1-A_final_accept_min": 7,
+    "P1-B_g_to_a_accept_max": 1,
+    "P1-C_raw_transfer_min": 7,
+    "P1-C_fallback_min": 7,
+    "P1-E_final_accept_max": 1,
+    "P1-F_raw_transfer_min": 7,
+    "positive_mean_delta_min": 0.005,
+    "positive_one_sided_95_lower_min": 0.0,
+    "positive_gain_retention_fraction_min": 0.8,
+    "nuisance_mean_delta_min": -0.001,
+    "nuisance_one_sided_95_lower_min": -0.005,
+    "P1-A_audit_row_permutation_non_significant_min": 14,
+    "lambda0_exact_score_error": 0.0,
+    "roughness_min_eigenvalue_min": -1e-08
+  },
+  "confirmation": {
+    "locked": true,
+    "requires_explicit_approval": true,
+    "not_authorized_by_this_run": true
+  }
+}

@@ -2,6 +2,13 @@
 
 **Status:** leading ProcessBench method, frozen on 2026-08-08.
 
+**Post-freeze note:** a controlled follow-up found that replacing the temporal
+locator with five-view local DUFS-LIU raises the eight-cell macro F1 from
+31.36% to 31.72%. The gain is small and mixed, so GL-LIU v1 remains the frozen
+reference while unified DUFS-LIU is the primary candidate for external
+confirmation. A broad 28-curve local DUFS pool lowered F1 to 29.03%. See
+`results/gl_liu_factorial_v2/REPORT.md`.
+
 **Full name:** Global-Local Laplacian IU-PCR (GL-LIU).
 
 GL-LIU is our two-stage method for deciding whether a reasoning trace contains

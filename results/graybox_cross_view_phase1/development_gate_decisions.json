@@ -1,0 +1,62 @@
+{
+  "counts": {
+    "p1a_audit_direction_tests": 16,
+    "p1a_audit_row_permutation_destroyed": 16,
+    "p1a_consensus_accept": 8,
+    "p1b_g_to_a_accept": 5,
+    "p1c_any_raw_transfer": 8,
+    "p1c_fallback": 8,
+    "p1e_consensus_accept": 0,
+    "p1f_any_raw_transfer": 8
+  },
+  "gate0_algebra_implementation": true,
+  "gate1_audit_premise": false,
+  "gate2_positive_mechanism": false,
+  "gate3_nuisance_safety": false,
+  "gate4_attribution": false,
+  "gate5_phase2_representation": null,
+  "gate6_null_missingness_safety": true,
+  "gate7_scope_discipline": true,
+  "invariants": {
+    "label_parameter_absent": true,
+    "lambda0_max_score_error": 0.0,
+    "method_called_once": true,
+    "paired_target_hash_identical": true,
+    "roughness_min_eigenvalue": 0.0
+  },
+  "overall_phase1_pass": false,
+  "p1b_safer_than_direct_g": true,
+  "p1c_safer_than_both_direct_graphs": true,
+  "positive": {
+    "better_direct_mean": 0.003946759259259219,
+    "candidate_mean": 0.003769290123456767,
+    "candidate_one_sided_95_lower": 0.0009012753693867759,
+    "required_retained_gain": 0.0031574074074073757,
+    "vs_permuted_lower": 0.0008579939919475489,
+    "vs_projected_ridge_lower": -8.490756555007645e-05
+  },
+  "pure_noise_interval": [
+    0.0,
+    0.0
+  ],
+  "safety": {
+    "P1-B": {
+      "lower_pass": false,
+      "mean": -0.013865740740740734,
+      "mean_pass": false,
+      "one_sided_95_lower": -0.021576319373505543
+    },
+    "P1-C": {
+      "lower_pass": true,
+      "mean": 0.0,
+      "mean_pass": true,
+      "one_sided_95_lower": 0.0
+    },
+    "P1-F": {
+      "lower_pass": false,
+      "mean": -0.02307098765432096,
+      "mean_pass": false,
+      "one_sided_95_lower": -0.025385568847310247
+    }
+  }
+}

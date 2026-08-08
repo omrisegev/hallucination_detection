@@ -1,0 +1,144 @@
+{
+  "version": "specrage-liu-mechanism-v2-2026-08-06",
+  "runtime_seconds": 35.59859824180603,
+  "n": 480,
+  "epochs": 60,
+  "batch_size": 128,
+  "dufs_epochs": 40,
+  "model_seeds": [
+    11,
+    23
+  ],
+  "reliability_seeds": [
+    7100,
+    7101
+  ],
+  "calibration_seeds": [
+    5000,
+    5001,
+    5002
+  ],
+  "heldout_seeds": [
+    6000,
+    6001,
+    6002,
+    6003
+  ],
+  "lambdas": [
+    0.0,
+    0.1,
+    0.3,
+    1.0,
+    3.0,
+    10.0,
+    30.0,
+    100.0
+  ],
+  "configs": {
+    "plain": {
+      "output_dim": 2,
+      "n_neighbors": 15,
+      "temperature": 90.0,
+      "learning_rate": 0.01,
+      "weight_decay": 0.0,
+      "batch_size": 128,
+      "max_epochs": 60,
+      "min_epochs": 60,
+      "patience": 61,
+      "lr_patience": 20,
+      "min_delta": 1e-06,
+      "encoder_hidden": [
+        32
+      ],
+      "fusion_hidden": [
+        50
+      ],
+      "gradient_clip": 5.0,
+      "checkpoint_mode": "final",
+      "orthogonalization": "svd_floor",
+      "orthogonal_floor": 0.001,
+      "agreement_strength": 0.0,
+      "agreement_temperature": 0.08,
+      "edge_mass_strength": 0.0,
+      "fusion_mode": "sample"
+    },
+    "agreement": {
+      "output_dim": 2,
+      "n_neighbors": 15,
+      "temperature": 1.0,
+      "learning_rate": 0.01,
+      "weight_decay": 0.0,
+      "batch_size": 128,
+      "max_epochs": 60,
+      "min_epochs": 60,
+      "patience": 61,
+      "lr_patience": 20,
+      "min_delta": 1e-06,
+      "encoder_hidden": [
+        32
+      ],
+      "fusion_hidden": [
+        50
+      ],
+      "gradient_clip": 5.0,
+      "checkpoint_mode": "final",
+      "orthogonalization": "svd_floor",
+      "orthogonal_floor": 0.001,
+      "agreement_strength": 2.0,
+      "agreement_temperature": 0.08,
+      "edge_mass_strength": 0.1,
+      "fusion_mode": "sample"
+    },
+    "uniform": {
+      "output_dim": 2,
+      "n_neighbors": 15,
+      "temperature": 90.0,
+      "learning_rate": 0.01,
+      "weight_decay": 0.0,
+      "batch_size": 128,
+      "max_epochs": 60,
+      "min_epochs": 60,
+      "patience": 61,
+      "lr_patience": 20,
+      "min_delta": 1e-06,
+      "encoder_hidden": [
+        32
+      ],
+      "fusion_hidden": [
+        50
+      ],
+      "gradient_clip": 5.0,
+      "checkpoint_mode": "final",
+      "orthogonalization": "svd_floor",
+      "orthogonal_floor": 0.001,
+      "agreement_strength": 0.0,
+      "agreement_temperature": 0.08,
+      "edge_mass_strength": 0.0,
+      "fusion_mode": "uniform"
+    }
+  },
+  "chosen": {
+    "arm": "specrage_agreement_alpha",
+    "lambda": 10.0,
+    "mean_delta_vs_iu_pp": 1.6989233016314422,
+    "worst_delta_vs_iu_pp": 1.2692955496518499,
+    "se_delta_vs_iu_pp": 0.21857777366084552,
+    "best_mean_delta_vs_iu_pp": 1.8083692562107585,
+    "one_se_threshold_pp": 1.5748745355752678
+  },
+  "provenance": {
+    "source_sha256": {
+      "SPEC_SPECRAGE_LIU_V2.md": "dd2273b76b7717c7c54853a07c565fe719265875a2aaa4c8591775b43ffd1b0b",
+      "spectral_utils/specrage_laplacian.py": "31b9ba345ee87d7b76580d6a05da89e2713954895ff86951651a18490fbc10e5",
+      "spectral_utils/laplacian_upcr.py": "885ebaa87a6e35f33edf58bd962e6b1d41bdddf387b1aa3512c1a71e1f1d877e",
+      "spectral_utils/upcr.py": "60c6ff461426d4c828ead210f04233815f45211a6f1a49a50ed37811c50c26cc",
+      "scripts/specrage_upcr_mechanism_v2.py": "ca87624814b02d2f9e4827ecb18ee0bba4a4e9d66da634a2c83bbe85648c2e03"
+    },
+    "git_head": "5f889e5e083f31df26adf7e02563bedce6a99e34",
+    "python": "3.11.9",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.0",
+    "torch": "2.13.0"
+  }
+}

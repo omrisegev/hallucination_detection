@@ -1,0 +1,96 @@
+{
+  "bundle": "results/dependency_fusion_raw/cells.npz",
+  "bundle_sha256": "693a5b634f975ea32c7f840f3ab8366dd8ad638fe41cc76a60e24b1ac5a013e1",
+  "cells": [
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "sciq_llama8b",
+    "se_nq_open_llama8b",
+    "se_squad_v2_llama8b",
+    "seiclr_triviaqa_opt30b",
+    "semenergy_triviaqa_qwen3_8b",
+    "spilled_triviaqa_llama8b",
+    "truthfulqa_llama8b",
+    "ars_gsm8k_r1distill8b",
+    "internalstates_gsm8k_qwen25_7b",
+    "lapeigvals_gsm8k_llama3b",
+    "lapeigvals_gsm8k_llama8b",
+    "lapeigvals_gsm8k_mistral24b",
+    "lapeigvals_gsm8k_nemo",
+    "lapeigvals_gsm8k_phi35",
+    "noise_gsm8k_mistral7b",
+    "noise_gsm8k_phi3mini",
+    "math500_dsmath7b",
+    "math500_qwenmath7b",
+    "math500_r1distill8b",
+    "math500_r1distill8b_mn4096",
+    "trace_gsm8k_llama8b_k10",
+    "trace_math500_qwenmath15b_k10"
+  ],
+  "contracts": [
+    "fixed_stable_v1",
+    "mixed_v2"
+  ],
+  "dufs_epochs": 80,
+  "dufs_k": 7,
+  "dufs_seeds": [
+    11,
+    23,
+    37
+  ],
+  "filter_fit": {
+    "difficulty_gate": false,
+    "exclusion": true,
+    "g2_projection_k": 1,
+    "loss": "l2",
+    "min_frac": 0.05,
+    "recompute_after_exclusion": true,
+    "scale_ratio": 0.25,
+    "simple_avg_fallback": true
+  },
+  "filters": [
+    {
+      "exclude_frac": null,
+      "min_frac": 0.05,
+      "name": "full"
+    },
+    {
+      "exclude_frac": 3.0,
+      "min_frac": 0.05,
+      "name": "rho_max_over_3"
+    },
+    {
+      "exclude_frac": 2.5,
+      "min_frac": 0.05,
+      "name": "rho_max_over_2p5"
+    },
+    {
+      "exclude_frac": 2.0,
+      "min_frac": 0.05,
+      "name": "rho_max_over_2"
+    },
+    {
+      "exclude_frac": 1.5,
+      "min_frac": 0.05,
+      "name": "rho_max_over_1p5"
+    }
+  ],
+  "iu_fit": {
+    "auto_components": false,
+    "difficulty_gate": false,
+    "exclusion": false,
+    "g2_projection_k": 1,
+    "loss": "l2",
+    "n_components": 2,
+    "recompute_after_exclusion": false,
+    "scale_ratio": 0.25,
+    "simple_avg_fallback": false
+  },
+  "labels_used_during_fit": false,
+  "liu_lambda": 0.1,
+  "mixed_contract_version": "dufs-liu-mixed-v2-development-2026-08-07",
+  "run_fingerprint": "b5b16ab8f638acbc63e2f471a94d9c53018695918b78a6eb7654d89754b8397e",
+  "scientific_run": true,
+  "source_sha256": "3db152d01b2293d9a0af7c4c76e0136349eeec4a763eec9c3f4ccd755d7a8257",
+  "version": "hard-filter-dufs-liu-24cell-v1-2026-08-08"
+}

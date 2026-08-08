@@ -3,7 +3,235 @@
 
 ---
 
-## The Thesis
+## Current research decision — August 2026 session close
+
+### Freeze the fusion core and pivot to applications
+
+The current algorithm-development cycle is complete. The bounded conclusion is:
+
+> Further fusion changes are not a justified priority for the current
+> single-pass, static answer-feature pool. Use **DUFS-LIU mixed-v2** as the
+> common scoring core and move the contribution to how that core is applied to
+> structured hallucination tasks.
+
+This is not a theorem that U-PCR can never be improved. It is a decision based
+on the completed evidence. Sparse-error recovery, condition-controlled inverse
+weights, SpecRaGE and cross-view fusion, learned micro-views, atomic operators,
+sample-local family gates, alternating diffusion, per-feature transformations,
+repeated-measurement reliability, and deployed-style hard prefiltering either
+lost to IU-PCR/DUFS-LIU or produced changes far below the uncertainty of the
+comparison. Stable graphs, factors, groups, and bootstrap covariance were
+repeatedly found. None supplied the missing label-free link from structure to
+hallucination correctness.
+
+The final 24-cell filtering check strengthens this decision. Full-pool
+mixed-v2 DUFS-LIU remains best at 0.776562 macro AUROC. Applying deployed
+U-PCR's `rho_max/3` hard filter lowers it to 0.774249, and the strictest tested
+filter lowers it to 0.764153. DUFS and estimated rho already agree strongly on
+feature importance (median Spearman 0.794), so deletion mainly removes
+features that DUFS already downweights softly while also discarding their
+covariance information. Previous IU-PCR, DUFS-LIU, and deployed-U-PCR scores
+were reproduced exactly in all 24 cells.
+
+The implementation standard going forward is the frozen `mixed-v2` feature
+contract. Historical stable-only results remain in their original reports for
+audit; they are not a reason to create more feature-contract versions.
+
+### Application priority 1: hallucination localization
+
+The strongest result of the cycle came from changing the task decomposition,
+not the covariance solver. Global full-trace fusion decides whether an error is
+present; a token-resolved head decides where it begins.
+
+Frozen GL-LIU v1 uses global mixed-v2 DUFS-LIU and a temporal LIU locator. It
+raises ProcessBench F1 from 25.71% for the reproduced Mind the Gap control to
+31.36% across eight model/dataset cells, and from 24.74% to 30.76% across the
+six cells excluded from component selection. The eight cells reuse four
+dataset families across two model sizes; they are not eight independent
+datasets.
+
+The factorial follow-up gives a simpler application candidate: use DUFS-LIU in
+both heads, with the frozen five token curves in the local head. It reaches
+31.72% F1 and 31.41% on the six non-selection cells. The +0.37-point change
+over GL-LIU v1 is descriptive and mixed, not a confirmed replacement. The
+broad 28-curve local pool falls to 29.03% and is rejected.
+
+The next localization work should optimize the **application**, not invent a
+new fusion family:
+
+1. freeze global mixed-v2 DUFS-LIU;
+2. carry both the formal temporal-LIU v1 locator and the simpler core-five
+   local DUFS-LIU candidate to a new dataset and preferably a new model family;
+3. develop localization-specific outputs such as token/window/span risk,
+   onset detection, abstention, and threshold transfer;
+4. compare with additional published localization baselines under the same
+   data and calibration protocol;
+5. keep the broad-28 pool closed unless a new token-resolved feature has an
+   explicit localization hypothesis.
+
+Canonical artifacts: `docs/methods/gl_liu_v1.md`,
+`results/ours_only_localization_v1/REPORT.md`, and
+`results/gl_liu_factorial_v2/REPORT.md`.
+
+### Application priority 2: hallucination in RAG citations
+
+RAG supplies the independent view that the core-algorithm experiments were
+missing: retrieved evidence. The proposed direction is **Evidence-Contrast
+U-PCR (EC-U-PCR)** or **EC-DUFS-LIU**. Keep one published answer fixed and
+rescore it under full context, no context, and leave-one-chunk-out context.
+Evidence sensitivity is treated as target information, not subtracted as
+generic noise.
+
+The same application decomposition applies:
+
+- a global head ranks whether a response contains an unsupported claim;
+- a local head ranks the token, span, or citation whose probability changes
+  when supporting evidence is removed;
+- U-PCR/DUFS-LIU fuses the dependent contrast traces without a supervised
+  classifier in the main method.
+
+The old Phase-10 RAG cache is engineering evidence only. Its labels use weak
+substring/citation fallbacks, only 19.2% of answers contain citations, and only
+10.4% have the gold answer in the first 15 prompted documents. Its AUROC values
+must not be presented as a publishable grounding benchmark.
+
+The next RAG experiment should use fixed RAGTruth responses and span labels,
+group splits and bootstrap intervals by `source_id`, and compare against GASP
+as the closest evidence-perturbation method. RAGTruth++ and TofuEval are
+confirmation candidates; short-answer RAGBench is an explicit failure test.
+No implementation begins until the GASP protocol, model revision, data
+manifest, label boundary, and failure tests are registered.
+
+Canonical plan:
+`docs/research_notes/evidence_contrast_upcr_rag_direction.md`.
+
+### What is paused
+
+- no broader `lambda`, `k`, factor-count, family, or feature-transformation
+  sweep on the existing 24 cells;
+- no additional hard-filter or gating sweep: the ordinary `rho_max/3` filter
+  reduces mixed-v2 DUFS-LIU from 0.776562 to 0.774249 and changes DUFS's
+  incremental contribution over IU-PCR from +0.048 to -0.025 AUROC points;
+- no new static graph, selector, local gate, or covariance decomposition built
+  from the same answer-level feature matrix;
+- no promotion of repeated-measurement Wiener filtering: it changed DUFS-LIU
+  by only +0.0006/+0.0013 AUROC on GSM8K/MATH, with both paired intervals
+  crossing zero;
+- no claim that the Laplacian is the main answer-detection gain: its global
+  effect remains small. Its value may instead be application-specific.
+
+The advisor decision is now about application scope and validation data, not
+which additional U-PCR variant to implement.
+
+### Earlier 24-cell fusion decision
+
+**Baseline update:** DUFS-LIU had still been running on `fixed_stable_v1`, so
+the four non-monotone views were removed. A complete 256-contract development
+search selected a mixed next-run contract: `pe_mean=squared`,
+`stft_spectral_entropy=mode`, `cusum_shift_idx=raw`, and `rpdi=raw`. The
+retrospective score is 0.776562 versus 0.774139 stable-only (+0.242pp). LOFO is
+only +0.123pp and falls to about +0.022pp without one MATH-500/Qwen cell.
+Therefore mixed-v2 is frozen for external confirmation but does not replace the
+historical headline or reopen static-graph fusion as the leading contribution.
+See `docs/research_notes/dufs_liu_mixed_feature_contract_conclusion.md`.
+
+The broader research junction below is unchanged.
+
+Repeated Cross-View Alternating-Diffusion IU-PCR (RCV-AD-IU-PCR) is complete
+and closes static repartitioning of the current feature matrix as the leading
+direction. The registered dependency-blocked method tied IU-PCR at +0.004pp,
+10 wins and 14 losses, with equal-family interval [-0.052,+0.029]pp. Random
+and provenance-family partitions were also control-level ties.
+
+This was a valid mechanism test, not an execution failure. Sixteen repeated
+partitions converged: median graph CKA was 0.536 and the T=8/T=16 output
+Spearman was 1.000. Increasing k largely repaired graph disconnection without
+improving AUROC. Stronger lambda made the result worse. Stable cross-partition
+geometry is therefore another static proxy that does not identify correctness.
+
+**Current decision:** retain the Step-229 finding that family expertise changes
+across IU-PCR score regimes, but do not build another graph from partitions,
+families, operators, or stability of the same matrix. A next method requires a
+genuinely independent view such as a separate generation, an evidence view, or
+a controlled perturbation. If single-pass inference is a final requirement,
+first demonstrate the mechanism with the independent view and only then test
+whether it can be distilled.
+
+Full conclusion:
+`docs/research_notes/repeated_cross_view_diffusion_conclusion.md`. Frozen
+report: `results/repeated_cross_view_diffusion_v1/REPORT.md`.
+
+### Previous junction: conditional family relevance
+
+The graph-coupled family relevance diagnostic gives a more precise research
+junction than the earlier static-geometry failures. The main scientific premise
+is now **partly supported**: different feature families are best in different
+IU-PCR score regimes. A label-only diagnostic family expert has +2.833pp
+equal-family headroom across frozen IU-PCR-rank quartiles, with Holm
+`p=0.006`. This is evidence of conditional specialization, not a deployable
+algorithm.
+
+GCFR-U-PCR, the attempted label-free router, is rejected. It used
+within-family oriented-rank agreement and a fixed semantic family Laplacian to
+make sample-local gates. The registered path lost 0.135pp to IU-PCR and
+0.243pp to the same gate without graph smoothing. Every positive graph
+strength was negative on average. The gates were active, and the registered
+semantic graph did not beat a permuted graph. Measurement relatedness is not
+the same as shared reliability for hallucination correctness.
+
+**Current decision:** do not fit a learned mixture to the 24 development-cell
+labels. Retain IU-PCR rank as a regime coordinate and require an independent
+interventional self-supervised signal before another router is built. Repeated
+generations, benign prompt or decoding perturbations, evidence-conditioned
+answers, and semantic answer consistency are candidate observations. The next
+frozen premise test must ask whether such an observation predicts which family
+expert helps inside held-out cells and feature families. Coherent repeatable
+hallucinations are the explicit failure case.
+
+Full conclusion:
+`docs/research_notes/family_relevance_diagnostic_conclusion.md`. Frozen report:
+`results/family_relevance_real_v1/REPORT.md`.
+
+### Previous junction: static atomic geometry
+
+The Phase-0 atomic-operator premise audit closes **AOG-IU-PCR for its registered
+proxy**. Median within-cell association between the label-free proxy and atomic
+usefulness was -0.312. The top-proxy atom lost -0.838pp cell-macro, with a
+-3.658pp worst cell. Only 3 of 15 continuation gates passed. Every registered
+`k` and `lambda` setting remained negatively associated with usefulness.
+
+The proxy was numerically stable, the graphs were valid, and a label-only
+oracle showed +0.447pp optimistic atomic headroom. The missing component is
+therefore not graph construction or gate optimization. It is label-free target
+identifiability: stable, self-consistent geometry in the static feature matrix
+does not identify hallucination correctness.
+
+The incumbent remains confidence-oriented U-PCR/IU-PCR, based on Tenzer et
+al.'s continuous spectral regression model. DUFS-LIU, uniform atomic fusion,
+and the atomic operator code remain required controls and diagnostics. DUFS is
+not the next learner: differentiable gates cannot repair a wrong objective.
+CA-SpecRaGE, micro-view learning, and AOG from the current proxy are closed as
+leading extensions for this feature bundle.
+
+The next research junction is to find an **independent interventional
+self-supervised target**. Repeated generations, benign prompt or decoding
+perturbations, evidence-conditioned answers, or semantic answer-consistency
+views may add information outside the static covariance. The first task is a
+literature-and-data design and a frozen premise test, not another fusion model.
+Systematically consistent hallucinations are the main falsification case.
+
+Full conclusion:
+`docs/research_notes/atomic_operator_premise_audit_conclusion.md`. Frozen
+report: `results/atomic_operator_premise_audit_v2/REPORT.md`. Historical
+SpecRaGE and AOG plans remain for audit and must not be read as live methods.
+
+---
+
+## Earlier thesis framing (historical; not the current method definition)
+
+The section below records the earlier L-SML framing. It is retained for
+history, but it must not be presented as the current leading algorithm. The
+current method definition is GL-LIU v1 above.
 
 **Claim**: Spectral features of the per-token entropy trajectory H(n) — fused via the Spectral Meta-Learner (L-SML; Jaffé–Fetaya–Nadler 2016) — detect LLM hallucinations at state-of-the-art AUROC in a single forward pass, with no ground-truth labels at inference time.
 
@@ -313,7 +541,7 @@ items replace it. Recorded in HISTORY.md Step 209.*
 |---|--------|--------|
 | 1 | **Understand why we fail where we fail** — per-cell deep dive, not another aggregate | 🔵 **ACTIVE — diagnosis only.** Nine cells pinned as "failing" (below). Repairs are pre-registered and tested in a *later* step so the diagnosis cannot be tuned to make a fix look good |
 | 2 | Consider a clustering mechanism inside U-PCR | ❌ **Already answered — do not rebuild.** Step 204 §D built it (`spectral_utils/upcr_clustered.py`): failed both pre-registered gates, **−4.46pp (9W/16L, p = 0.030)**, and the premise was a confound (2.03× same-vs-cross fit gap → 0.97–1.00× matched on \|C_ij\| decile; a random partition reproduces it). One untried variant — K-means on the (v₁,v₂) coordinates — rated **low**: `lambda2_threshold` is inert and one-component U-PCR is exactly PC1 of the survivors, so the second component has nothing to cluster on |
-| 3 | Consider adjacent applications — localization, and detection early in generation | 🟡 **Strongest publishable arm.** Early detection = Extension E, which already has a replicated effect: `lsml16` beats the best DeepConf window by **+5.6pp [+0.9, +10.6]** at the **earliest 10% of the trace**. Step 208 adopted `Online Auditing of Information Flow` (arXiv:2310.14595) for the missing stopping rule and the corrected metric, **(AUROC at budget, tokens consumed)**. Localization = Extension F, still deferred — needs step-level annotation we do not have |
+| 3 | Consider adjacent applications — localization, and detection early in generation | ✅ **Superseded by Steps 232--235.** Localization is now the first application priority: GL-LIU v1 reaches **31.36% ProcessBench F1** versus **25.71%** for Mind the Gap, and a unified core-five DUFS-LIU candidate reaches **31.72%** descriptively. Early detection remains a later application option; its prior result is `lsml16` at **+5.6pp [+0.9, +10.6]** over the best DeepConf window at the earliest 10% of the trace. |
 
 > ### ⚠ STEP 216 INVALIDATES TWO ROWS OF THE TABLE BELOW — read this first
 >
@@ -608,23 +836,26 @@ closest per-instance-router precedent), candidate designs, open questions for Of
 **Next steps**: resolve the open questions in the memo (§5) with Ofir/Bracha, then pilot D1 (lowest
 implementation risk, reuses existing L-SML/U-PCR residual code) on the 19-cell replication grid.
 
-### Extension F — Step-Level Error Localization (ProcessBench / MR-GSM8K) — DEFERRED (2026-07-10)
+### Extension F — Step-Level Error Localization (ProcessBench) — ACTIVE APPLICATION
 
-The July-2026 SOTA survey recommends a process-level benchmark as a secondary evaluation for
-reasoning-focused detectors: **ProcessBench** (arXiv 2412.06559 — 3,400 expert-annotated cases
-across GSM8K/MATH/OlympiadBench/Omni-MATH with first-error-step labels, F1 metric) or
-**MR-GSM8K** (arXiv 2312.17080). This is a different task from our sequence-level AUROC
-detection — it asks *where* the reasoning breaks, not *whether* the answer is wrong.
+This extension is no longer deferred. Steps 232--233 implemented the grading
+harness, token-to-step mapping, global/local decomposition, repeated threshold
+protocol, and two controlled ProcessBench studies.
 
-**Why it fits us structurally**: our sliding-window features (`sw_var_peak_with_window` keeps the
-window index) and CUSUM drift (`cusum_shift_idx` is literally a change-point location) are
-naturally step-localizable — a per-step L-SML score is a modest extension, not a redesign.
+Current evidence:
 
-**Why deferred (Omri, 2026-07-10)**: keeps the current benchmarking pass focused on AUROC
-head-to-heads; step-level would need a new grading harness (their provided solutions, not our
-generations), a step-alignment layer (token index → solution step), and an F1 protocol. Revisit
-after the reasoning replication grid completes, if a reviewer or committee member asks for
-error localization.
+- GL-LIU v1: 31.36% ProcessBench F1 versus 25.71% for the reproduced Mind the
+  Gap control;
+- unified global/local DUFS-LIU with the core five token curves: 31.72% F1;
+- naive broad-28 local curves: 29.03%, rejected;
+- temporal LIU is the frozen v1 locator, but core-five local DUFS-LIU transfers
+  slightly better descriptively and is the simpler next candidate.
+
+The next evidence must come from a new dataset/model family and additional
+localization baselines. Do not tune another locator on the current labels.
+Develop span/onset outputs and threshold transfer only under a new registered
+application protocol. See the current-decision section at the top of this file
+and `docs/research_notes/localization_research_handoff_2026-08-08.md`.
 
 ---
 
@@ -871,7 +1102,36 @@ ridge, DEEM architecture, or seeds after reading AUROC.
 
 ## Recommended Priority Order
 
-*(Single authoritative list — updated 2026-07-30, post advisor meeting Step 209)*
+*(Authoritative current order — updated 2026-08-08, session close Step 235)*
+
+1. **Validate and optimize hallucination localization as an application.** Keep
+   global DUFS-LIU mixed-v2 fixed. Compare the frozen temporal localizer with
+   the simpler core-five local DUFS-LIU candidate on a genuinely new
+   dataset/model family. Measure global detection, exact first-error location,
+   tolerance-one location, clean-trace accuracy, and ProcessBench F1. Do not
+   tune local views or thresholds on the eight development cells again.
+2. **Build the registered RAG-citation application.** Start with the
+   evidence-contrast design in
+   `docs/research_notes/evidence_contrast_upcr_rag_direction.md`: rescore a
+   fixed answer under full, removed, and leave-one-chunk-out evidence; then fuse
+   the resulting dependent views with the same DUFS-LIU mixed-v2 core. Freeze
+   the benchmark, label boundary, grouped split, baselines, and failure tests
+   before implementation.
+3. **Keep streaming/early detection as a later application option.** It has a
+   prior positive earliest-prefix result, but it is behind localization and RAG
+   citation grounding in the current project order.
+4. **Pause new fusion-core variants.** Reopen only when a new application
+   supplies a new identifiable signal, a valid nuisance intervention, or a
+   materially different feature pool. The current conclusion is bounded to the
+   existing single-pass static features; it is not an impossibility claim about
+   U-PCR.
+
+### Historical July-30 priority record
+
+The list below is retained as an audit trail of the decisions that led to the
+current pivot. It is no longer the active execution order. In particular, its
+statements that localization is deferred and that dependency fusion is next
+were superseded by Steps 226--235.
 
 **Now — no GPU needed**
 

@@ -1,0 +1,22 @@
+{
+  "comparison": "rm_wiener_dufs_liu minus dufs_liu_mixed_v2",
+  "bootstrap": {
+    "type": "paired stratified answer bootstrap",
+    "replicates": 5000,
+    "seed": 20260808
+  },
+  "cells": {
+    "pb_qwen3_4b__gsm8k": {
+      "auroc_delta": 0.000575,
+      "ci_95": [-0.01240063, 0.01377625],
+      "probability_delta_gt_zero": 0.5202,
+      "score_pearson_vs_baseline": 0.9752083832
+    },
+    "pb_qwen3_4b__math": {
+      "auroc_delta": 0.0013333333,
+      "ci_95": [-0.00677942, 0.00948594],
+      "probability_delta_gt_zero": 0.6384,
+      "score_pearson_vs_baseline": 0.9772309511
+    }
+  }
+}

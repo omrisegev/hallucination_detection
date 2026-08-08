@@ -6,7 +6,7 @@ The deployment of Large Language Models (LLMs) in high-stakes domains is fundame
 
 The core premise of using EPR for hallucination detection lies in the hypothesis that higher output distribution entropy correlates with a greater likelihood of factual error.4 Formally, for a question ![][image3] and a generated response ![][image4], the token-level entropy ![][image5] at each step ![][image6] is derived from the internal probability distribution ![][image7] over the vocabulary ![][image8].10 The Entropy Production Rate is calculated as:
 
-![][image9]  
+![][image9]
 While EPR serves as a robust baseline for model hesitation, it captures a generalized signal that often conflates aleatoric uncertainty (inherent linguistic ambiguity) with epistemic uncertainty (lack of knowledge).5 This conflation limits the discriminative power of the signal, particularly in cases where the model is "confidently incorrect"—a state known as high-certainty hallucination.8 To address this, the Weighted Entropy Production Rate (WEPR) incorporates learned weights to differentiate the entropic contributions of specific tokens, effectively "shifting attention" to the most semantically relevant parts of the generation.4
 
 Empirical results on the Falcon-3-10B model demonstrate the significant performance gains achievable by moving from the unsupervised EPR to the supervised WEPR, as shown in the comparative metrics below.
@@ -44,7 +44,7 @@ Research indicates that even small variations in parameters can produce useful O
 
 A more computationally intensive but theoretically robust alternative is sampling variation. Instead of a single greedy response, the model generates ![][image11] stochastic samples for a given question.11 The most prominent metric derived from this distribution is Semantic Entropy (SE), which addresses the lexical redundancy of EPR by clustering answers based on their semantic meaning rather than their surface-level tokens.28
 
-![][image12]  
+![][image12]
 In this equation, ![][image13] represents the set of semantic clusters, and ![][image14] is the probability mass assigned to each cluster.26 SE has been shown to dramatically enhance the detection of "confabulations"—arbitrary and incorrect generations—because it measures the model's inability to commit to a single meaning.17
 
 However, SE relies on post-softmax probabilities and can fail when a model is overconfident in a single incorrect cluster.13 To mitigate this, "Semantic Energy" has been proposed, which operates directly on the logits of the penultimate layer.13 By combining semantic clustering with a Boltzmann-inspired energy distribution, this method captures the inherent uncertainty of the model's latent space more effectively than probability-based measures.13
@@ -72,7 +72,7 @@ Probes trained on single mid-layers can achieve an AUROC of approximately 0.91.3
 
 A novel and highly promising direction is the investigation of spectral features derived from attention maps.36 By treating attention maps as adjacency matrices of graph structures, the LapEigvals method extracts the top\-![][image16] eigenvalues of the Laplacian matrix derived from each attention head.36
 
-![][image17]  
+![][image17]
 where ![][image18] is the attention map and ![][image19] is the diagonal degree matrix.38 The spectral properties of this matrix—specifically the dispersion of eigenvalues—coincide with hallucinations, as the coherence of the "attention graph" tends to degrade when the model is generating unsupported content.36
 
 | Internal Feature | Method | Predictive Power (AUROC) | Efficiency |
@@ -90,8 +90,8 @@ Varying the decoding parameters—temperature, top\-![][image16], top\-![][image
 
 The "Anatomy of Uncertainty" framework proposes that uncertainty can be decomposed into three semantic components:
 
-1. **Input Ambiguity:** Uncertainty arising from the phrasing of the prompt.9  
-2. **Knowledge Gaps:** Epistemic uncertainty due to insufficient training data.9  
+1. **Input Ambiguity:** Uncertainty arising from the phrasing of the prompt.9
+2. **Knowledge Gaps:** Epistemic uncertainty due to insufficient training data.9
 3. **Decoding Randomness:** Aleatoric uncertainty inherent in the generation process.9
 
 By holding two factors fixed and varying the third, one can isolate ![][image1] signals that target different "roots" of hallucination.9 Research has shown that structured decoding methods, such as Chain-of-Thought (CoT) decoding with branching, can increase semantic exploration while maintaining high accuracy.40 In a fusion framework, one signal could be derived from low-temperature greedy decoding (measuring the dominant mode), while another is derived from high-temperature sampling (measuring the fragility of that mode).9
@@ -130,9 +130,9 @@ To measure the "diversity" of a proposed ensemble, one can compute the correlati
 
 The goal for an optimal ensemble is to select signals that occupy different quadrants of the "certainty-consistency" matrix:
 
-* **High Certainty, High Consistency:** Likely correct.14  
-* **High Certainty, Low Consistency:** Likely an overconfident hallucination.14  
-* **Low Certainty, High Consistency:** Likely a knowledge gap or "tip of the tongue" state.14  
+* **High Certainty, High Consistency:** Likely correct.14
+* **High Certainty, Low Consistency:** Likely an overconfident hallucination.14
+* **Low Certainty, High Consistency:** Likely a knowledge gap or "tip of the tongue" state.14
 * **Low Certainty, Low Consistency:** Highly unreliable/unverifiable.14
 
 Prompt variation primarily generates signals within the same quadrant, whereas combining internal probes, semantic consistency, and negation checks ensures coverage across all quadrants.9
@@ -145,9 +145,9 @@ Given the constraints of a single pretrained model (Falcon-3-10B), 200 labeled q
 
 This approach focuses on architectural diversity rather than linguistic diversity, generating all ![][image1] signals from a single forward pass to minimize latency.
 
-1. **WEPR (Weighted EPR):** Using the Falcon-3-10B model's top-10 log-probabilities to compute a weighted entropic score.4 This has been shown to be the strongest single-pass baseline for this specific model architecture.4  
-2. **Mid-Layer Linear Probe:** Training a logistic regression classifier on the hidden states of layer 16\.37 This requires a pre-training phase on a subset of the data or a similar public dataset, but it is highly efficient during inference.35  
-3. **Spectral Attention Signal (LapEigvals):** Calculating the top eigenvalues of the Laplacian matrix from a mid-layer attention head.36 This captures the "structural health" of the model's reasoning process.38  
+1. **WEPR (Weighted EPR):** Using the Falcon-3-10B model's top-10 log-probabilities to compute a weighted entropic score.4 This has been shown to be the strongest single-pass baseline for this specific model architecture.4
+2. **Mid-Layer Linear Probe:** Training a logistic regression classifier on the hidden states of layer 16\.37 This requires a pre-training phase on a subset of the data or a similar public dataset, but it is highly efficient during inference.35
+3. **Spectral Attention Signal (LapEigvals):** Calculating the top eigenvalues of the Laplacian matrix from a mid-layer attention head.36 This captures the "structural health" of the model's reasoning process.38
 4. **Recurrent Attention Score (RAUQ):** A signal that combines token probabilities with attention patterns over preceding tokens to capture conditional dependencies.34
 
 This ensemble is extremely efficient, as it requires only one forward pass (![][image25] in terms of latency).4 The signals are diverse because they look at the probability distribution, the semantic vector space, and the attention graph structure simultaneously.34
@@ -156,9 +156,9 @@ This ensemble is extremely efficient, as it requires only one forward pass (![][
 
 This approach trades off some computational efficiency for a significant boost in signal diversity, requiring three forward passes per question.
 
-1. **Baseline WEPR:** The primary probability-based signal from a greedy generation pass.4  
-2. **Semantic Consistency (SelfCheckGPT Lite):** Two additional stochastic samples (![][image26]) to check for semantic agreement with the baseline answer.11 Even with small ![][image11], the presence of a contradictory second answer is a strong signal of hallucination.32  
-3. **Question Paraphrase Dispersion:** One forward pass using a semantically equivalent but differently phrased question, measuring the embedding distance between this answer and the baseline.9  
+1. **Baseline WEPR:** The primary probability-based signal from a greedy generation pass.4
+2. **Semantic Consistency (SelfCheckGPT Lite):** Two additional stochastic samples (![][image26]) to check for semantic agreement with the baseline answer.11 Even with small ![][image11], the presence of a contradictory second answer is a strong signal of hallucination.32
+3. **Question Paraphrase Dispersion:** One forward pass using a semantically equivalent but differently phrased question, measuring the embedding distance between this answer and the baseline.9
 4. **Negation Persistence:** A fourth signal derived from a challenge to the model's baseline answer, measuring whether it maintains its stance.43
 
 This hybrid approach targets the "hallucination ceiling" by combining three fundamentally different sources of variation: internal probability, stochastic behavior, and semantic stability.9 The cost is approximately 40 seconds per question, which remains within the 2-hour window for a 200-question evaluation set.
@@ -167,9 +167,9 @@ This hybrid approach targets the "hallucination ceiling" by combining three fund
 
 This approach utilizes the theoretical framework of uncertainty decomposition to generate ![][image1] signals that are decorrelated by design.
 
-1. **Input Ambiguity Signal:** Paraphrasing the question ![][image3] into ![][image27] and measuring the change in the model's EPR.9  
-2. **Knowledge Gap Signal (P(True)):** Prompting the model to verbalize its own confidence in its answer (e.g., "On a scale of 0-100, how certain are you?").11 Verbalized uncertainty often captures "hedging" cues that are unattainable from probabilities alone.11  
-3. **Decoding Randomness Signal:** The variance in EPR across a greedy pass and a high-temperature sampling pass.9  
+1. **Input Ambiguity Signal:** Paraphrasing the question ![][image3] into ![][image27] and measuring the change in the model's EPR.9
+2. **Knowledge Gap Signal (P(True)):** Prompting the model to verbalize its own confidence in its answer (e.g., "On a scale of 0-100, how certain are you?").11 Verbalized uncertainty often captures "hedging" cues that are unattainable from probabilities alone.11
+3. **Decoding Randomness Signal:** The variance in EPR across a greedy pass and a high-temperature sampling pass.9
 4. **Internal Spectral Gap:** The difference between the largest and second-largest eigenvalues of the attention Laplacian, representing the "decisiveness" of the attention focus.36
 
 By explicitly isolating different semantic components of uncertainty, this ensemble is theoretically likely to provide the most robust set of signals for spectral fusion, as it avoids the "shared error" problem of instruction-level prompt variation.9
@@ -178,9 +178,9 @@ By explicitly isolating different semantic components of uncertainty, this ensem
 
 Implementing these alternatives on a Falcon-3-10B model using Hugging Face's transformers library on a Colab A100 is highly feasible without the need for external APIs or retrieval.
 
-* **Extraction of Log-Probabilities:** The output\_scores=True parameter in the model.generate() method allows for the direct extraction of the token probability distributions needed for EPR and WEPR.10  
-* **Hooking Internal Layers:** PyTorch's register\_forward\_hook() can be used to extract hidden states and attention maps without modifying the model architecture.35  
-* **Spectral Computation:** The Laplacian eigenvalues can be computed using standard scientific libraries like scipy.sparse.linalg.eigsh on the attention matrices extracted from the hooks.36  
+* **Extraction of Log-Probabilities:** The output\_scores=True parameter in the model.generate() method allows for the direct extraction of the token probability distributions needed for EPR and WEPR.10
+* **Hooking Internal Layers:** PyTorch's register\_forward\_hook() can be used to extract hidden states and attention maps without modifying the model architecture.35
+* **Spectral Computation:** The Laplacian eigenvalues can be computed using standard scientific libraries like scipy.sparse.linalg.eigsh on the attention matrices extracted from the hooks.36
 * **NLI for Clustering:** For semantic consistency, a lightweight NLI model (e.g., deberta-v3-small) can be used locally to check for entailment between sampled responses, avoiding the need for external judge models.26
 
 The most significant hurdle is the labeled data requirement for supervised signals like WEPR and hidden-state probes. With ![][image24] questions, a 5-fold cross-validation or a 70/30 train-test split would provide sufficient data to train simple linear probes while still allowing for a statistically significant evaluation of the fusion performance.4
@@ -201,51 +201,51 @@ The shift from linguistic variation to architectural and semantic variation addr
 
 #### **Works cited**
 
-1. Hallucination Detection and Mitigation in Large Language Models \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2601.09929v1](https://arxiv.org/html/2601.09929v1)  
-2. Proceedings of the 1st Workshop on Confabulation, Hallucinations and Overgeneration in Multilingual and Practical Settings (CHOM \- ACL Anthology, accessed April 12, 2026, [https://aclanthology.org/2025.chomps-main.pdf](https://aclanthology.org/2025.chomps-main.pdf)  
-3. Large Language Models Hallucination: A Comprehensive Survey \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2510.06265v3](https://arxiv.org/html/2510.06265v3)  
-4. Learned Hallucination Detection in Black-Box LLMs using Token-level Entropy Production Rate \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2509.04492v2](https://arxiv.org/html/2509.04492v2)  
-5. Learned Hallucination Detection in Black-Box LLMs using Token-level Entropy Production Rate \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2509.04492v1](https://arxiv.org/html/2509.04492v1)  
-6. Uncertainty-Aware Fusion: An Ensemble ... \- Amazon Science, accessed April 12, 2026, [https://assets.amazon.science/9c/e0/e08ed1b84831add11b2cd2d75ee0/uncertainty-aware-fusion-an-ensemble-framework-for-mitigating-hallucinations-in-large-language-models.pdf](https://assets.amazon.science/9c/e0/e08ed1b84831add11b2cd2d75ee0/uncertainty-aware-fusion-an-ensemble-framework-for-mitigating-hallucinations-in-large-language-models.pdf)  
-7. 5 Practical Techniques to Detect and Mitigate LLM Hallucinations Beyond Prompt Engineering \- MachineLearningMastery.com, accessed April 12, 2026, [https://machinelearningmastery.com/5-practical-techniques-to-detect-and-mitigate-llm-hallucinations-beyond-prompt-engineering/](https://machinelearningmastery.com/5-practical-techniques-to-detect-and-mitigate-llm-hallucinations-beyond-prompt-engineering/)  
-8. Trust Me, I'm Wrong: High-Certainty Hallucinations in LLMs \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2502.12964v1](https://arxiv.org/html/2502.12964v1)  
-9. The Anatomy of Uncertainty in LLMs \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2603.24967v1](https://arxiv.org/html/2603.24967v1)  
-10. Learned Hallucination Detection in Black-Box LLMs using Token-level Entropy Production Rate \- ResearchGate, accessed April 12, 2026, [https://www.researchgate.net/publication/395339452\_Learned\_Hallucination\_Detection\_in\_Black-Box\_LLMs\_using\_Token-level\_Entropy\_Production\_Rate](https://www.researchgate.net/publication/395339452_Learned_Hallucination_Detection_in_Black-Box_LLMs_using_Token-level_Entropy_Production_Rate)  
-11. LLM Uncertainty Estimation Methods \- Emergent Mind, accessed April 12, 2026, [https://www.emergentmind.com/topics/llm-uncertainty-estimation-methods](https://www.emergentmind.com/topics/llm-uncertainty-estimation-methods)  
-12. Uncertainty Quantification for Hallucination Detection in Large Language Models: Foundations, Methodology, and Future Directions \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2510.12040v1](https://arxiv.org/html/2510.12040v1)  
-13. Semantic Energy: Detecting LLM Hallucination Beyond Entropy \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2508.14496v3](https://arxiv.org/html/2508.14496v3)  
-14. Fact-Checking with Large Language Models via Probabilistic Certainty and Consistency, accessed April 12, 2026, [https://arxiv.org/html/2601.02574v1](https://arxiv.org/html/2601.02574v1)  
-15. Learned Hallucination Detection in Black-Box LLMs Using Token-Level Entropy Production Rate | springerprofessional.de, accessed April 12, 2026, [https://www.springerprofessional.de/en/learned-hallucination-detection-in-black-box-llms-using-token-le/52210368](https://www.springerprofessional.de/en/learned-hallucination-detection-in-black-box-llms-using-token-le/52210368)  
-16. SHIFTING ATTENTION TO RELEVANCE: TOWARDS THE UNCERTAINTY ESTIMATION OF LARGE LANGUAGE MODELS \- OpenReview, accessed April 12, 2026, [https://openreview.net/pdf?id=yZJapMWdHZ](https://openreview.net/pdf?id=yZJapMWdHZ)  
-17. Learned Hallucination Detection in Black-Box LLMs Using Token-Level Entropy Production Rate \- ResearchGate, accessed April 12, 2026, [https://www.researchgate.net/publication/403100196\_Learned\_Hallucination\_Detection\_in\_Black-Box\_LLMs\_Using\_Token-Level\_Entropy\_Production\_Rate](https://www.researchgate.net/publication/403100196_Learned_Hallucination_Detection_in_Black-Box_LLMs_Using_Token-Level_Entropy_Production_Rate)  
-18. \[2310.07088\] Diversity of Thought Improves Reasoning Abilities of LLMs \- arXiv, accessed April 12, 2026, [https://arxiv.org/abs/2310.07088](https://arxiv.org/abs/2310.07088)  
-19. MPTE: multiperspective triple expansion for robust knowledge grounding in large language models \- SPIE Digital Library, accessed April 12, 2026, [https://www.spiedigitallibrary.org/conference-proceedings-of-spie/13793/1379323/MPTE--multiperspective-triple-expansion-for-robust-knowledge-grounding-in/10.1117/12.3077456.full](https://www.spiedigitallibrary.org/conference-proceedings-of-spie/13793/1379323/MPTE--multiperspective-triple-expansion-for-robust-knowledge-grounding-in/10.1117/12.3077456.full)  
-20. VERBALIZED SAMPLING: HOW TO MITIGATE MODE COLLAPSE AND UNLOCK LLM DIVERSITY \- OpenReview, accessed April 12, 2026, [https://openreview.net/pdf/8a33b3e21a2ac895129060085579b4ec72c433d6.pdf](https://openreview.net/pdf/8a33b3e21a2ac895129060085579b4ec72c433d6.pdf)  
-21. Verbalized Sampling: A Vibe Check for Your LLM's Creativity | by Erik Taylor | Medium, accessed April 12, 2026, [https://medium.com/digital-mind/verbalized-sampling-a-vibe-check-for-your-llms-creativity-aeda7db5d79b](https://medium.com/digital-mind/verbalized-sampling-a-vibe-check-for-your-llms-creativity-aeda7db5d79b)  
-22. Evaluating the Diversity and Quality of LLM Generated Content \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2504.12522v2](https://arxiv.org/html/2504.12522v2)  
-23. From Illusion to Insight: A Taxonomic Survey of Hallucination Mitigation Techniques in LLMs, accessed April 12, 2026, [https://www.mdpi.com/2673-2688/6/10/260](https://www.mdpi.com/2673-2688/6/10/260)  
-24. \[2503.05757\] Uncertainty-Aware Fusion: An Ensemble Framework for Mitigating Hallucinations in Large Language Models \- arXiv, accessed April 12, 2026, [https://arxiv.org/abs/2503.05757](https://arxiv.org/abs/2503.05757)  
-25. Uncertainty-Aware LLM Probing | OpenReview, accessed April 12, 2026, [https://openreview.net/forum?id=YeCwgukgnQ](https://openreview.net/forum?id=YeCwgukgnQ)  
-26. Evidential Semantic Entropy for LLM Uncertainty Quantification \- ACL Anthology, accessed April 12, 2026, [https://aclanthology.org/2026.eacl-long.334.pdf](https://aclanthology.org/2026.eacl-long.334.pdf)  
-27. Kernel Language Entropy: Fine-grained Uncertainty Quantification for LLMs from Semantic Similarities \- ResearchGate, accessed April 12, 2026, [https://www.researchgate.net/publication/397201734\_Kernel\_Language\_Entropy\_Fine-grained\_Uncertainty\_Quantification\_for\_LLMs\_from\_Semantic\_Similarities](https://www.researchgate.net/publication/397201734_Kernel_Language_Entropy_Fine-grained_Uncertainty_Quantification_for_LLMs_from_Semantic_Similarities)  
-28. Kernel Language Entropy: Fine-grained Uncertainty Quantification for LLMs from Semantic Similarities, accessed April 12, 2026, [https://proceedings.neurips.cc/paper\_files/paper/2024/hash/10c456d2160517581a234dfde15a7505-Abstract-Conference.html](https://proceedings.neurips.cc/paper_files/paper/2024/hash/10c456d2160517581a234dfde15a7505-Abstract-Conference.html)  
-29. Semantic Entropy in LLMs: A Foundation for Detecting Hallucinations and Enhancing Reliability | by MerveNur | Medium, accessed April 12, 2026, [https://medium.com/@mervenurakkilic/semantic-entropy-in-llms-a-foundation-for-detecting-hallucinations-and-enhancing-reliability-fa61d8b88946](https://medium.com/@mervenurakkilic/semantic-entropy-in-llms-a-foundation-for-detecting-hallucinations-and-enhancing-reliability-fa61d8b88946)  
-30. Evaluating LLM using semantic entropy | by Thoughtworks \- Medium, accessed April 12, 2026, [https://thoughtworks.medium.com/evaluating-llm-using-semantic-entropy-24dca41df754](https://thoughtworks.medium.com/evaluating-llm-using-semantic-entropy-24dca41df754)  
-31. Evidential Semantic Entropy for LLM Uncertainty Quantification \- ACL Anthology, accessed April 12, 2026, [https://aclanthology.org/2026.eacl-long.334/](https://aclanthology.org/2026.eacl-long.334/)  
-32. SINdex: Semantic INconsistency Index for Hallucination Detection in LLMs \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2503.05980v1](https://arxiv.org/html/2503.05980v1)  
-33. SEMANTIC ENERGY: DETECTING LLM HALLUCINA- TION BEYOND ENTROPY \- OpenReview, accessed April 12, 2026, [https://openreview.net/pdf?id=E5mL07Fbq8](https://openreview.net/pdf?id=E5mL07Fbq8)  
-34. EFFICIENT HALLUCINATION DETECTION FOR LLMS USING UNCERTAINTY-AWARE ATTENTION HEADS \- OpenReview, accessed April 12, 2026, [https://openreview.net/pdf?id=FSOoR1ZFtf](https://openreview.net/pdf?id=FSOoR1ZFtf)  
-35. Hallucination Detection with the Internal Layers of LLMs \- ResearchGate, accessed April 12, 2026, [https://www.researchgate.net/publication/395650927\_Hallucination\_Detection\_with\_the\_Internal\_Layers\_of\_LLMs](https://www.researchgate.net/publication/395650927_Hallucination_Detection_with_the_Internal_Layers_of_LLMs)  
-36. Hallucination Detection in LLMs Using Spectral Features of Attention Maps \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2502.17598v1](https://arxiv.org/html/2502.17598v1)  
-37. Hallucination Detection via Internal Representations: An Empirical ..., accessed April 12, 2026, [https://huggingface.co/blog/krogoldAI/llm-hallucination-detection](https://huggingface.co/blog/krogoldAI/llm-hallucination-detection)  
-38. Hallucination Detection in LLMs Using Spectral Features of Attention Maps \- ACL Anthology, accessed April 12, 2026, [https://aclanthology.org/2025.emnlp-main.1239.pdf](https://aclanthology.org/2025.emnlp-main.1239.pdf)  
-39. \[2502.17598\] Hallucination Detection in LLMs Using Spectral Features of Attention Maps, accessed April 12, 2026, [https://arxiv.org/abs/2502.17598](https://arxiv.org/abs/2502.17598)  
-40. Semantic uncertainty in advanced decoding methods for LLM generation \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2506.17296v1](https://arxiv.org/html/2506.17296v1)  
-41. Semantic Volume: Quantifying and Detecting Both External and Internal Uncertainty in LLMs, accessed April 12, 2026, [https://ojs.aaai.org/index.php/AAAI/article/view/40443/44404](https://ojs.aaai.org/index.php/AAAI/article/view/40443/44404)  
-42. An Information–Theoretic Model of Abduction for Detecting Hallucinations in Explanations, accessed April 12, 2026, [https://pmc.ncbi.nlm.nih.gov/articles/PMC12939550/](https://pmc.ncbi.nlm.nih.gov/articles/PMC12939550/)  
-43. Calling a Spade a Heart: Gaslighting Multimodal Large Language Models via Negation, accessed April 12, 2026, [https://arxiv.org/html/2501.19017v2](https://arxiv.org/html/2501.19017v2)  
-44. Vision-Language Models Do Not Understand Negation | Request PDF \- ResearchGate, accessed April 12, 2026, [https://www.researchgate.net/publication/394613682\_Vision-Language\_Models\_Do\_Not\_Understand\_Negation](https://www.researchgate.net/publication/394613682_Vision-Language_Models_Do_Not_Understand_Negation)  
-45. Detecting LLM Hallucinations at Generation Time with UQLM | by Dylan Bouchard \- Medium, accessed April 12, 2026, [https://medium.com/cvs-health-tech-blog/detecting-llm-hallucinations-at-generation-time-with-uqlm-cd749d2338ec](https://medium.com/cvs-health-tech-blog/detecting-llm-hallucinations-at-generation-time-with-uqlm-cd749d2338ec)  
+1. Hallucination Detection and Mitigation in Large Language Models \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2601.09929v1](https://arxiv.org/html/2601.09929v1)
+2. Proceedings of the 1st Workshop on Confabulation, Hallucinations and Overgeneration in Multilingual and Practical Settings (CHOM \- ACL Anthology, accessed April 12, 2026, [https://aclanthology.org/2025.chomps-main.pdf](https://aclanthology.org/2025.chomps-main.pdf)
+3. Large Language Models Hallucination: A Comprehensive Survey \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2510.06265v3](https://arxiv.org/html/2510.06265v3)
+4. Learned Hallucination Detection in Black-Box LLMs using Token-level Entropy Production Rate \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2509.04492v2](https://arxiv.org/html/2509.04492v2)
+5. Learned Hallucination Detection in Black-Box LLMs using Token-level Entropy Production Rate \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2509.04492v1](https://arxiv.org/html/2509.04492v1)
+6. Uncertainty-Aware Fusion: An Ensemble ... \- Amazon Science, accessed April 12, 2026, [https://assets.amazon.science/9c/e0/e08ed1b84831add11b2cd2d75ee0/uncertainty-aware-fusion-an-ensemble-framework-for-mitigating-hallucinations-in-large-language-models.pdf](https://assets.amazon.science/9c/e0/e08ed1b84831add11b2cd2d75ee0/uncertainty-aware-fusion-an-ensemble-framework-for-mitigating-hallucinations-in-large-language-models.pdf)
+7. 5 Practical Techniques to Detect and Mitigate LLM Hallucinations Beyond Prompt Engineering \- MachineLearningMastery.com, accessed April 12, 2026, [https://machinelearningmastery.com/5-practical-techniques-to-detect-and-mitigate-llm-hallucinations-beyond-prompt-engineering/](https://machinelearningmastery.com/5-practical-techniques-to-detect-and-mitigate-llm-hallucinations-beyond-prompt-engineering/)
+8. Trust Me, I'm Wrong: High-Certainty Hallucinations in LLMs \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2502.12964v1](https://arxiv.org/html/2502.12964v1)
+9. The Anatomy of Uncertainty in LLMs \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2603.24967v1](https://arxiv.org/html/2603.24967v1)
+10. Learned Hallucination Detection in Black-Box LLMs using Token-level Entropy Production Rate \- ResearchGate, accessed April 12, 2026, [https://www.researchgate.net/publication/395339452\_Learned\_Hallucination\_Detection\_in\_Black-Box\_LLMs\_using\_Token-level\_Entropy\_Production\_Rate](https://www.researchgate.net/publication/395339452_Learned_Hallucination_Detection_in_Black-Box_LLMs_using_Token-level_Entropy_Production_Rate)
+11. LLM Uncertainty Estimation Methods \- Emergent Mind, accessed April 12, 2026, [https://www.emergentmind.com/topics/llm-uncertainty-estimation-methods](https://www.emergentmind.com/topics/llm-uncertainty-estimation-methods)
+12. Uncertainty Quantification for Hallucination Detection in Large Language Models: Foundations, Methodology, and Future Directions \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2510.12040v1](https://arxiv.org/html/2510.12040v1)
+13. Semantic Energy: Detecting LLM Hallucination Beyond Entropy \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2508.14496v3](https://arxiv.org/html/2508.14496v3)
+14. Fact-Checking with Large Language Models via Probabilistic Certainty and Consistency, accessed April 12, 2026, [https://arxiv.org/html/2601.02574v1](https://arxiv.org/html/2601.02574v1)
+15. Learned Hallucination Detection in Black-Box LLMs Using Token-Level Entropy Production Rate | springerprofessional.de, accessed April 12, 2026, [https://www.springerprofessional.de/en/learned-hallucination-detection-in-black-box-llms-using-token-le/52210368](https://www.springerprofessional.de/en/learned-hallucination-detection-in-black-box-llms-using-token-le/52210368)
+16. SHIFTING ATTENTION TO RELEVANCE: TOWARDS THE UNCERTAINTY ESTIMATION OF LARGE LANGUAGE MODELS \- OpenReview, accessed April 12, 2026, [https://openreview.net/pdf?id=yZJapMWdHZ](https://openreview.net/pdf?id=yZJapMWdHZ)
+17. Learned Hallucination Detection in Black-Box LLMs Using Token-Level Entropy Production Rate \- ResearchGate, accessed April 12, 2026, [https://www.researchgate.net/publication/403100196\_Learned\_Hallucination\_Detection\_in\_Black-Box\_LLMs\_Using\_Token-Level\_Entropy\_Production\_Rate](https://www.researchgate.net/publication/403100196_Learned_Hallucination_Detection_in_Black-Box_LLMs_Using_Token-Level_Entropy_Production_Rate)
+18. \[2310.07088\] Diversity of Thought Improves Reasoning Abilities of LLMs \- arXiv, accessed April 12, 2026, [https://arxiv.org/abs/2310.07088](https://arxiv.org/abs/2310.07088)
+19. MPTE: multiperspective triple expansion for robust knowledge grounding in large language models \- SPIE Digital Library, accessed April 12, 2026, [https://www.spiedigitallibrary.org/conference-proceedings-of-spie/13793/1379323/MPTE--multiperspective-triple-expansion-for-robust-knowledge-grounding-in/10.1117/12.3077456.full](https://www.spiedigitallibrary.org/conference-proceedings-of-spie/13793/1379323/MPTE--multiperspective-triple-expansion-for-robust-knowledge-grounding-in/10.1117/12.3077456.full)
+20. VERBALIZED SAMPLING: HOW TO MITIGATE MODE COLLAPSE AND UNLOCK LLM DIVERSITY \- OpenReview, accessed April 12, 2026, [https://openreview.net/pdf/8a33b3e21a2ac895129060085579b4ec72c433d6.pdf](https://openreview.net/pdf/8a33b3e21a2ac895129060085579b4ec72c433d6.pdf)
+21. Verbalized Sampling: A Vibe Check for Your LLM's Creativity | by Erik Taylor | Medium, accessed April 12, 2026, [https://medium.com/digital-mind/verbalized-sampling-a-vibe-check-for-your-llms-creativity-aeda7db5d79b](https://medium.com/digital-mind/verbalized-sampling-a-vibe-check-for-your-llms-creativity-aeda7db5d79b)
+22. Evaluating the Diversity and Quality of LLM Generated Content \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2504.12522v2](https://arxiv.org/html/2504.12522v2)
+23. From Illusion to Insight: A Taxonomic Survey of Hallucination Mitigation Techniques in LLMs, accessed April 12, 2026, [https://www.mdpi.com/2673-2688/6/10/260](https://www.mdpi.com/2673-2688/6/10/260)
+24. \[2503.05757\] Uncertainty-Aware Fusion: An Ensemble Framework for Mitigating Hallucinations in Large Language Models \- arXiv, accessed April 12, 2026, [https://arxiv.org/abs/2503.05757](https://arxiv.org/abs/2503.05757)
+25. Uncertainty-Aware LLM Probing | OpenReview, accessed April 12, 2026, [https://openreview.net/forum?id=YeCwgukgnQ](https://openreview.net/forum?id=YeCwgukgnQ)
+26. Evidential Semantic Entropy for LLM Uncertainty Quantification \- ACL Anthology, accessed April 12, 2026, [https://aclanthology.org/2026.eacl-long.334.pdf](https://aclanthology.org/2026.eacl-long.334.pdf)
+27. Kernel Language Entropy: Fine-grained Uncertainty Quantification for LLMs from Semantic Similarities \- ResearchGate, accessed April 12, 2026, [https://www.researchgate.net/publication/397201734\_Kernel\_Language\_Entropy\_Fine-grained\_Uncertainty\_Quantification\_for\_LLMs\_from\_Semantic\_Similarities](https://www.researchgate.net/publication/397201734_Kernel_Language_Entropy_Fine-grained_Uncertainty_Quantification_for_LLMs_from_Semantic_Similarities)
+28. Kernel Language Entropy: Fine-grained Uncertainty Quantification for LLMs from Semantic Similarities, accessed April 12, 2026, [https://proceedings.neurips.cc/paper\_files/paper/2024/hash/10c456d2160517581a234dfde15a7505-Abstract-Conference.html](https://proceedings.neurips.cc/paper_files/paper/2024/hash/10c456d2160517581a234dfde15a7505-Abstract-Conference.html)
+29. Semantic Entropy in LLMs: A Foundation for Detecting Hallucinations and Enhancing Reliability | by MerveNur | Medium, accessed April 12, 2026, [https://medium.com/@mervenurakkilic/semantic-entropy-in-llms-a-foundation-for-detecting-hallucinations-and-enhancing-reliability-fa61d8b88946](https://medium.com/@mervenurakkilic/semantic-entropy-in-llms-a-foundation-for-detecting-hallucinations-and-enhancing-reliability-fa61d8b88946)
+30. Evaluating LLM using semantic entropy | by Thoughtworks \- Medium, accessed April 12, 2026, [https://thoughtworks.medium.com/evaluating-llm-using-semantic-entropy-24dca41df754](https://thoughtworks.medium.com/evaluating-llm-using-semantic-entropy-24dca41df754)
+31. Evidential Semantic Entropy for LLM Uncertainty Quantification \- ACL Anthology, accessed April 12, 2026, [https://aclanthology.org/2026.eacl-long.334/](https://aclanthology.org/2026.eacl-long.334/)
+32. SINdex: Semantic INconsistency Index for Hallucination Detection in LLMs \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2503.05980v1](https://arxiv.org/html/2503.05980v1)
+33. SEMANTIC ENERGY: DETECTING LLM HALLUCINA- TION BEYOND ENTROPY \- OpenReview, accessed April 12, 2026, [https://openreview.net/pdf?id=E5mL07Fbq8](https://openreview.net/pdf?id=E5mL07Fbq8)
+34. EFFICIENT HALLUCINATION DETECTION FOR LLMS USING UNCERTAINTY-AWARE ATTENTION HEADS \- OpenReview, accessed April 12, 2026, [https://openreview.net/pdf?id=FSOoR1ZFtf](https://openreview.net/pdf?id=FSOoR1ZFtf)
+35. Hallucination Detection with the Internal Layers of LLMs \- ResearchGate, accessed April 12, 2026, [https://www.researchgate.net/publication/395650927\_Hallucination\_Detection\_with\_the\_Internal\_Layers\_of\_LLMs](https://www.researchgate.net/publication/395650927_Hallucination_Detection_with_the_Internal_Layers_of_LLMs)
+36. Hallucination Detection in LLMs Using Spectral Features of Attention Maps \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2502.17598v1](https://arxiv.org/html/2502.17598v1)
+37. Hallucination Detection via Internal Representations: An Empirical ..., accessed April 12, 2026, [https://huggingface.co/blog/krogoldAI/llm-hallucination-detection](https://huggingface.co/blog/krogoldAI/llm-hallucination-detection)
+38. Hallucination Detection in LLMs Using Spectral Features of Attention Maps \- ACL Anthology, accessed April 12, 2026, [https://aclanthology.org/2025.emnlp-main.1239.pdf](https://aclanthology.org/2025.emnlp-main.1239.pdf)
+39. \[2502.17598\] Hallucination Detection in LLMs Using Spectral Features of Attention Maps, accessed April 12, 2026, [https://arxiv.org/abs/2502.17598](https://arxiv.org/abs/2502.17598)
+40. Semantic uncertainty in advanced decoding methods for LLM generation \- arXiv, accessed April 12, 2026, [https://arxiv.org/html/2506.17296v1](https://arxiv.org/html/2506.17296v1)
+41. Semantic Volume: Quantifying and Detecting Both External and Internal Uncertainty in LLMs, accessed April 12, 2026, [https://ojs.aaai.org/index.php/AAAI/article/view/40443/44404](https://ojs.aaai.org/index.php/AAAI/article/view/40443/44404)
+42. An Information–Theoretic Model of Abduction for Detecting Hallucinations in Explanations, accessed April 12, 2026, [https://pmc.ncbi.nlm.nih.gov/articles/PMC12939550/](https://pmc.ncbi.nlm.nih.gov/articles/PMC12939550/)
+43. Calling a Spade a Heart: Gaslighting Multimodal Large Language Models via Negation, accessed April 12, 2026, [https://arxiv.org/html/2501.19017v2](https://arxiv.org/html/2501.19017v2)
+44. Vision-Language Models Do Not Understand Negation | Request PDF \- ResearchGate, accessed April 12, 2026, [https://www.researchgate.net/publication/394613682\_Vision-Language\_Models\_Do\_Not\_Understand\_Negation](https://www.researchgate.net/publication/394613682_Vision-Language_Models_Do_Not_Understand_Negation)
+45. Detecting LLM Hallucinations at Generation Time with UQLM | by Dylan Bouchard \- Medium, accessed April 12, 2026, [https://medium.com/cvs-health-tech-blog/detecting-llm-hallucinations-at-generation-time-with-uqlm-cd749d2338ec](https://medium.com/cvs-health-tech-blog/detecting-llm-hallucinations-at-generation-time-with-uqlm-cd749d2338ec)
 46. Detecting Translation Hallucinations with Attention Misalignment \- Towards Data Science, accessed April 12, 2026, [https://towardsdatascience.com/detecting-translation-hallucinations-with-attention-misalignment/](https://towardsdatascience.com/detecting-translation-hallucinations-with-attention-misalignment/)
 
 [image1]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABIAAAAZCAYAAAA8CX6UAAAA00lEQVR4XmNgGAWkAnEg/o8FZyKpeQIVewTFIDZOEMQAUSCKLgEEjAwQuVdALIUmhwFAtr5FFwQCbiCejy6ID4BsbEUTc2KAeIVoIM0AMUgJSWwtEPch8YkC5QyIAASFx1cgfo+QJh48YIAYJAHEf6FsEAbFKEkApvEYlD8Fyt8BV0EEgIUPyCUwwAkVA2GQV4kCWxkgGlzQxBug4ifQxHGCfwwQDRxo4ixQcVgk4AUgzSCFIMOwgdMMBLyXBMS/GBA2wrAwkpp3aHKg7DEKRgHVAQCyMD0OaNhY5AAAAABJRU5ErkJggg==>

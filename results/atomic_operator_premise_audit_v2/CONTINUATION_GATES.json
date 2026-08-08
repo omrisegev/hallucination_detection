@@ -1,0 +1,116 @@
+{
+  "gates": [
+    {
+      "gate": "all primary cell associations and quartile contrasts are defined",
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "gate": "median within-cell Spearman > 0",
+      "observed": -0.31153846153846154,
+      "passed": false
+    },
+    {
+      "gate": "family-bootstrap association lower > 0",
+      "observed": -0.31884791347942393,
+      "passed": false
+    },
+    {
+      "gate": "feature-identity permutation p <= 0.05",
+      "observed": 0.6904619076184763,
+      "passed": false
+    },
+    {
+      "gate": "eight-family association sign-flip p <= 0.05",
+      "observed": 0.58203125,
+      "passed": false
+    },
+    {
+      "gate": "positive top-minus-bottom in at least 6 of 8 families",
+      "observed": 3,
+      "passed": false
+    },
+    {
+      "gate": "partial-association family-bootstrap lower > 0",
+      "observed": -0.2900208615401149,
+      "passed": false
+    },
+    {
+      "gate": "partial Freedman-Lane p <= 0.05",
+      "observed": 0.9954009198160368,
+      "passed": false
+    },
+    {
+      "gate": "eight-family partial sign-flip p <= 0.05",
+      "observed": 0.73046875,
+      "passed": false
+    },
+    {
+      "gate": "median abs(proxy, ridge-distance Spearman) < 0.8",
+      "observed": 0.3863247863247863,
+      "passed": true
+    },
+    {
+      "gate": "top-proxy atomic family-bootstrap AUROC lower > 0",
+      "observed": -2.1098518294243274,
+      "passed": false
+    },
+    {
+      "gate": "top-proxy atomic family sign-flip p <= 0.05",
+      "observed": 0.984375,
+      "passed": false
+    },
+    {
+      "gate": "top-proxy atomic improves at least 14 of 24 cells",
+      "observed": 7,
+      "passed": false
+    },
+    {
+      "gate": "top-proxy atomic worst loss no worse than -2pp",
+      "observed": -3.65767086445119,
+      "passed": false
+    },
+    {
+      "gate": "oracle atomic family-bootstrap AUROC lower > 0",
+      "observed": 0.2633252262643926,
+      "passed": true
+    }
+  ],
+  "summary": {
+    "all_gates_passed": false,
+    "association_family_signflip_p": 0.58203125,
+    "association_feature_permutation_p": 0.6904619076184763,
+    "family_association_ci": [
+      -0.31884791347942393,
+      0.24854701825276904
+    ],
+    "family_mean_partial_spearman": -0.07743121781996735,
+    "family_mean_spearman": -0.0318598773518482,
+    "family_partial_ci": [
+      -0.2900208615401149,
+      0.10989139924313093
+    ],
+    "global_partial_spearman": -0.10687870847128436,
+    "invalid_primary_operators": 0,
+    "median_abs_proxy_ridge_distance_spearman": 0.3863247863247863,
+    "median_cell_spearman": -0.31153846153846154,
+    "oracle_family_ci": [
+      0.2633252262643926,
+      0.7086732772063058
+    ],
+    "oracle_family_delta_pp": 0.4831077235827383,
+    "partial_family_signflip_p": 0.73046875,
+    "partial_freedman_lane_p": 0.9954009198160368,
+    "positive_top_bottom_families": 3,
+    "top_proxy_family_ci": [
+      -2.1098518294243274,
+      -0.3720445580916615
+    ],
+    "top_proxy_family_delta_pp": -1.177511395959071,
+    "top_proxy_family_signflip_p": 0.984375,
+    "top_proxy_wins": 7,
+    "top_proxy_worst_delta_pp": -3.65767086445119,
+    "undefined_cell_associations": 0,
+    "undefined_top_bottom": 0
+  }
+}

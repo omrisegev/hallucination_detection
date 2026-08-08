@@ -53,7 +53,7 @@ A trajectory is considered monotone if the per-step answer-distribution entropy 
 
 Beyond monotonicity, the instability of token-level entropy evolution provides a diagnostic lens on reasoning failure. Erroneous reasoning is characterized by two distinct patterns: "burst spikes" and "peak-valley rebounds".18
 
-* **Burst Spikes**: These occur when entropy rises steadily over consecutive reasoning tokens, indicating that the model is becoming progressively confused.18  
+* **Burst Spikes**: These occur when entropy rises steadily over consecutive reasoning tokens, indicating that the model is becoming progressively confused.18
 * **Peak-Valley Spikes**: These are sharp rebounds following transient confidence, suggesting the model has realized a logical inconsistency in its hallucinated path and is attempting to course-correct with new fabrications.18
 
 The Entropy Dynamics Instability Score (EDIS) quantifies these fluctuations, serving as a more effective diagnostic signal for inference-time selection than mean entropy or self-certainty.18
@@ -94,35 +94,35 @@ A high-probability terminal token can arise from relative normalization even if 
 
 The following papers provide the technical and theoretical bedrock for the multiview analysis of reasoning and agentic reliability.
 
-1. **Cheng et al. (2025). "Chain-of-Thought Prompting Obscures Hallucination Cues in Large Language Models."**  
-   * *Contribution*: Proves that reasoning-enhanced inference reshapes the landscape of hallucination detection, making signals more subtle and "masking" overconfidence.6  
-   * *Relevance*: Establishes why terminal-token metrics like EPR are insufficient and must be augmented by process-level views.  
-2. **Zhao et al. (2026). "Entropy Trajectory Shape Predicts LLM Reasoning Reliability."**  
-   * *Contribution*: Introduces entropy-trajectory monotonicity as a primary triage signal for single-chain reasoning reliability.19  
-   * *Relevance*: Provides a concrete, compute-efficient scalar signal for multiview fusion that focuses on uncertainty dynamics.  
-3. **Duan et al. (2025). "EDIS: Diagnosing LLM Reasoning via Entropy Dynamics."**  
-   * *Contribution*: Formalizes "burst" and "rebound" patterns in entropy as fundamental properties of reasoning failure.18  
-   * *Relevance*: Identifies a behaviorally grounded signal that targets "false confidence" cycles common in Falcon-3 and Phi-4 models.  
-4. **Lu et al. (2026). "Streaming Hallucination Detection in Long Chain-of-Thought Reasoning."**  
-   * *Contribution*: Models hallucination as an evolving latent state and proposes continuous tracking of prefix-level judgments.1  
-   * *Relevance*: Supports the implementation of detectors that monitor the reasoning process in real-time before the final answer is committed.  
-5. **Duan et al. (2025). "UProp: Information-Theoretic Framework for Uncertainty Propagation in Sequential Decision-Making."**  
-   * *Contribution*: Decomposes sequential uncertainty into intrinsic and extrinsic parts to analyze error inheritance in agentic chains.35  
-   * *Relevance*: Offers a principled method for aggregating step-level reliability into a final system-level confidence score.  
-6. **Ke et al. (2025). "RACE: Reasoning and Answer Consistency Evaluation."**  
-   * *Contribution*: A black-box framework that jointly captures intra-sample inconsistencies in reasoning traces and answer consistency.27  
-   * *Relevance*: Demonstrates that alignment between the logic chain and the conclusion is a critical, independent view of factuality.  
-7. **Farquhar et al. (2024). "Detecting Hallucinations in Large Language Models Using Semantic Entropy."**  
-   * *Contribution*: Groundbreaking Nature paper on clustering-based entropy for quantifying conceptual rather than lexical uncertainty.37  
-   * *Relevance*: The benchmark approach for behavioral uncertainty views in any fusion framework.  
-8. **Chen et al. (2025). "Semantic Energy: Penultimate Layer Uncertainty for Hallucination Detection."**  
-   * *Contribution*: Proposes using pen-ultimate logits to capture inherent confidence that is often lost during softmax normalization.26  
-   * *Relevance*: While technically white-box, its focus on "energy-based" uncertainty provides a theoretical bridge for more robust gray-box proxies.  
-9. **Wang et al. (2026). "AgentHallu: A Comprehensive Benchmark for Automated Hallucination Attribution."**  
-   * *Contribution*: Introduces the first large-scale benchmark for multi-step agent trajectories with a granular taxonomy of failure types.15  
-   * *Relevance*: Essential for the rigorous evaluation of agentic hallucination detectors across diverse tasks.  
-10. \*\* Cohen-Inger et al. (2025). "Token Constraint Bound (TCB) for Prediction Robustness."\*\*  
-    * *Contribution*: Mathematically quantifies how sensitive a model's prediction is to internal state perturbations.28  
+1. **Cheng et al. (2025). "Chain-of-Thought Prompting Obscures Hallucination Cues in Large Language Models."**
+   * *Contribution*: Proves that reasoning-enhanced inference reshapes the landscape of hallucination detection, making signals more subtle and "masking" overconfidence.6
+   * *Relevance*: Establishes why terminal-token metrics like EPR are insufficient and must be augmented by process-level views.
+2. **Zhao et al. (2026). "Entropy Trajectory Shape Predicts LLM Reasoning Reliability."**
+   * *Contribution*: Introduces entropy-trajectory monotonicity as a primary triage signal for single-chain reasoning reliability.19
+   * *Relevance*: Provides a concrete, compute-efficient scalar signal for multiview fusion that focuses on uncertainty dynamics.
+3. **Duan et al. (2025). "EDIS: Diagnosing LLM Reasoning via Entropy Dynamics."**
+   * *Contribution*: Formalizes "burst" and "rebound" patterns in entropy as fundamental properties of reasoning failure.18
+   * *Relevance*: Identifies a behaviorally grounded signal that targets "false confidence" cycles common in Falcon-3 and Phi-4 models.
+4. **Lu et al. (2026). "Streaming Hallucination Detection in Long Chain-of-Thought Reasoning."**
+   * *Contribution*: Models hallucination as an evolving latent state and proposes continuous tracking of prefix-level judgments.1
+   * *Relevance*: Supports the implementation of detectors that monitor the reasoning process in real-time before the final answer is committed.
+5. **Duan et al. (2025). "UProp: Information-Theoretic Framework for Uncertainty Propagation in Sequential Decision-Making."**
+   * *Contribution*: Decomposes sequential uncertainty into intrinsic and extrinsic parts to analyze error inheritance in agentic chains.35
+   * *Relevance*: Offers a principled method for aggregating step-level reliability into a final system-level confidence score.
+6. **Ke et al. (2025). "RACE: Reasoning and Answer Consistency Evaluation."**
+   * *Contribution*: A black-box framework that jointly captures intra-sample inconsistencies in reasoning traces and answer consistency.27
+   * *Relevance*: Demonstrates that alignment between the logic chain and the conclusion is a critical, independent view of factuality.
+7. **Farquhar et al. (2024). "Detecting Hallucinations in Large Language Models Using Semantic Entropy."**
+   * *Contribution*: Groundbreaking Nature paper on clustering-based entropy for quantifying conceptual rather than lexical uncertainty.37
+   * *Relevance*: The benchmark approach for behavioral uncertainty views in any fusion framework.
+8. **Chen et al. (2025). "Semantic Energy: Penultimate Layer Uncertainty for Hallucination Detection."**
+   * *Contribution*: Proposes using pen-ultimate logits to capture inherent confidence that is often lost during softmax normalization.26
+   * *Relevance*: While technically white-box, its focus on "energy-based" uncertainty provides a theoretical bridge for more robust gray-box proxies.
+9. **Wang et al. (2026). "AgentHallu: A Comprehensive Benchmark for Automated Hallucination Attribution."**
+   * *Contribution*: Introduces the first large-scale benchmark for multi-step agent trajectories with a granular taxonomy of failure types.15
+   * *Relevance*: Essential for the rigorous evaluation of agentic hallucination detectors across diverse tasks.
+10. \*\* Cohen-Inger et al. (2025). "Token Constraint Bound (TCB) for Prediction Robustness."\*\*
+    * *Contribution*: Mathematically quantifies how sensitive a model's prediction is to internal state perturbations.28
     * *Relevance*: Provides the theoretical justification for "stability" metrics that look beyond probability to ensure a model's answer is well-grounded.
 
 ## **7\. Recommended Approach for Nadler Spectral Fusion**
@@ -135,20 +135,20 @@ The SBUT signal targets the decision points *between* steps, rather than the con
 
 **Extraction Process**:
 
-1. Generate a greedy CoT trace at ![][image4] and record the log-probabilities.  
-2. Segment the trace into ![][image5] steps using delimiters (e.g., \\n\\n or explicit "Step k:" markers).20  
-3. Identify the first non-indentation token of each new step, ![][image6].  
-4. Compute the scalar Shannon entropy of the predictive distribution at each ![][image6], using the top-K log-probs:  
-   ![][image7]  
-5. Formulate the view as the **Monotonicity Violation Count** across the steps:  
-   ![][image8]  
+1. Generate a greedy CoT trace at ![][image4] and record the log-probabilities.
+2. Segment the trace into ![][image5] steps using delimiters (e.g., \\n\\n or explicit "Step k:" markers).20
+3. Identify the first non-indentation token of each new step, ![][image6].
+4. Compute the scalar Shannon entropy of the predictive distribution at each ![][image6], using the top-K log-probs:
+   ![][image7]
+5. Formulate the view as the **Monotonicity Violation Count** across the steps:
+   ![][image8]
    where ![][image9] is a noise tolerance threshold.19
 
 ### **7.2 Why it fits the Nadler Framework**
 
 This signal satisfies the two core requirements of Nadler spectral fusion:
 
-1. **Low Pairwise Correlation**: Terminal-token EPR measures the *fluency* and *surprisal* of the output, which is often low even in incorrect answers due to rationalization.7 SBUT monotonicity measures the *convergence* of the model's logic. These have been shown to have near-zero Spearman correlation (![][image10]) in pilot studies, meaning they offer genuinely independent information about the model's internal confusion.19  
+1. **Low Pairwise Correlation**: Terminal-token EPR measures the *fluency* and *surprisal* of the output, which is often low even in incorrect answers due to rationalization.7 SBUT monotonicity measures the *convergence* of the model's logic. These have been shown to have near-zero Spearman correlation (![][image10]) in pilot studies, meaning they offer genuinely independent information about the model's internal confusion.19
 2. **Common Target Correctness**: Both signals aim to identify if the model has drifted away from the facts. A high violation count in SBUT suggests the model is "guessing" its way through steps, which strongly predicts final answer incorrectness.18
 
 ## **8\. Gaps in Current Literature**
@@ -186,53 +186,53 @@ For a gray-box, unsupervised MSc setting, the integration of trajectory-based vi
 
 #### **Works cited**
 
-1. Streaming Hallucination Detection in Long Chain-of-Thought Reasoning \- arXiv, accessed April 14, 2026, [https://arxiv.org/pdf/2601.02170](https://arxiv.org/pdf/2601.02170)  
-2. Streaming Hallucination Detection in Long Chain-of-Thought Reasoning \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2601.02170v1](https://arxiv.org/html/2601.02170v1)  
-3. Agentic Uncertainty Quantification \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2601.15703v1](https://arxiv.org/html/2601.15703v1)  
-4. Streaming Hallucination Detection in Long Chain-of-Thought Reasoning \- OpenReview, accessed April 14, 2026, [https://openreview.net/pdf/d1cb22c349d7c36d56c25efeaf576a857f1d2cb3.pdf](https://openreview.net/pdf/d1cb22c349d7c36d56c25efeaf576a857f1d2cb3.pdf)  
-5. Chain-of-Thought Prompting Obscures Hallucination Cues in Large Language Models: An Empirical Evaluation \- ACL Anthology, accessed April 14, 2026, [https://aclanthology.org/2025.findings-emnlp.67/](https://aclanthology.org/2025.findings-emnlp.67/)  
-6. Chain-of-Thought Prompting Obscures Hallucination Cues in Large Language Models: An Empirical Evaluation \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2506.17088v3](https://arxiv.org/html/2506.17088v3)  
-7. Chain-of-Thought Prompting Obscures Hallucination Cues in ... \- arXiv, accessed April 14, 2026, [https://arxiv.org/abs/2506.17088](https://arxiv.org/abs/2506.17088)  
-8. Chain-of-Thought Prompting Obscures Hallucination Cues in Large Language Models: An Empirical Evaluation | Request PDF \- ResearchGate, accessed April 14, 2026, [https://www.researchgate.net/publication/397418978\_Chain-of-Thought\_Prompting\_Obscures\_Hallucination\_Cues\_in\_Large\_Language\_Models\_An\_Empirical\_Evaluation](https://www.researchgate.net/publication/397418978_Chain-of-Thought_Prompting_Obscures_Hallucination_Cues_in_Large_Language_Models_An_Empirical_Evaluation)  
-9. AGENTIC AI IN THE WILD: FROM HALLUCINATIONS TO RELIABLE AUTONOMY \- OpenReview, accessed April 14, 2026, [https://openreview.net/pdf?id=3ieIcGKqrV](https://openreview.net/pdf?id=3ieIcGKqrV)  
-10. AI Hallucinations Are Getting Smarter — Here's How to Catch Them in Real-Time (Even in Agentic AI Systems, 2026\) | by Yash Mishra | Feb, 2026 | Medium, accessed April 14, 2026, [https://medium.com/@yash.mishra0501/ai-hallucinations-are-getting-smarter-heres-how-to-catch-them-in-real-time-even-in-agentic-3d75a9fc1ab3](https://medium.com/@yash.mishra0501/ai-hallucinations-are-getting-smarter-heres-how-to-catch-them-in-real-time-even-in-agentic-3d75a9fc1ab3)  
-11. What Is Toolchaining? Solving LLM Tool Orchestration Challenges | Future AGI Blog, accessed April 14, 2026, [https://futureagi.com/blog/llm-tool-chaining-cascading-failures-production/](https://futureagi.com/blog/llm-tool-chaining-cascading-failures-production/)  
-12. Addressing one of the Biggest Misunderstandings in AI | by Devansh \- Medium, accessed April 14, 2026, [https://machine-learning-made-simple.medium.com/addressing-one-of-the-biggest-misunderstandings-in-ai-4d6278213a46](https://machine-learning-made-simple.medium.com/addressing-one-of-the-biggest-misunderstandings-in-ai-4d6278213a46)  
-13. Marshall's Monday Morning ML — Archive 001 \- Medium, accessed April 14, 2026, [https://medium.com/@jung.marshall/marshalls-monday-morning-ml-7af6a0d2b77f](https://medium.com/@jung.marshall/marshalls-monday-morning-ml-7af6a0d2b77f)  
-14. Tool Execution Hallucination in LLM-based Agents: A Unified Taxonomy with Detection, Mitigation, and Future Directions \- TechRxiv, accessed April 14, 2026, [https://www.techrxiv.org/doi/pdf/10.36227/techrxiv.177219979.94060974](https://www.techrxiv.org/doi/pdf/10.36227/techrxiv.177219979.94060974)  
-15. AgentHallu: Benchmarking Automated Hallucination Attribution of LLM-based Agents \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2601.06818v1](https://arxiv.org/html/2601.06818v1)  
-16. AI Hallucination Detection Tools: W\&B Weave & Comet \- AIMultiple, accessed April 14, 2026, [https://aimultiple.com/ai-hallucination-detection](https://aimultiple.com/ai-hallucination-detection)  
-17. Detecting and Correcting Reference Hallucinations in Commercial LLMs and Deep Research Agents \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2604.03173v1](https://arxiv.org/html/2604.03173v1)  
-18. EDIS: Diagnosing LLM Reasoning via Entropy Dynamics \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2602.01288v1](https://arxiv.org/html/2602.01288v1)  
-19. Entropy Trajectory Shape Predicts LLM Reasoning Reliability: A Diagnostic Study of Uncertainty Dynamics in Chain-of-Thought \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2603.18940v2](https://arxiv.org/html/2603.18940v2)  
-20. Entropy Trajectory Shape Predicts LLM Reasoning Reliability: A Diagnostic Study of Uncertainty Dynamics in Chain-of-Thought \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2603.18940](https://arxiv.org/html/2603.18940)  
-21. InfoDensity: Rewarding Information-Dense Traces for Efficient Reasoning \- arXiv, accessed April 14, 2026, [https://arxiv.org/pdf/2603.17310](https://arxiv.org/pdf/2603.17310)  
-22. Entropy trajectory shape predicts LLM reasoning reliability: A diagnostic study of uncertainty dynamics in chain-of-thought \- arXiv, accessed April 14, 2026, [https://arxiv.org/pdf/2603.18940](https://arxiv.org/pdf/2603.18940)  
-23. (PDF) EDIS: Diagnosing LLM Reasoning via Entropy Dynamics \- ResearchGate, accessed April 14, 2026, [https://www.researchgate.net/publication/400369693\_EDIS\_Diagnosing\_LLM\_Reasoning\_via\_Entropy\_Dynamics](https://www.researchgate.net/publication/400369693_EDIS_Diagnosing_LLM_Reasoning_via_Entropy_Dynamics)  
-24. On the Step Length Confounding in LLM Reasoning Data Selection \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2604.06834v1](https://arxiv.org/html/2604.06834v1)  
-25. The Stepwise Informativeness Assumption: Why are Entropy Dynamics and Reasoning Correlated in LLMs? \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2604.06192v1](https://arxiv.org/html/2604.06192v1)  
-26. Semantic Energy: Detecting LLM Hallucination Beyond Entropy \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2508.14496v3](https://arxiv.org/html/2508.14496v3)  
-27. Joint Evaluation of Answer and Reasoning Consistency for Hallucination Detection in Large Reasoning Models, accessed April 14, 2026, [https://ojs.aaai.org/index.php/AAAI/article/view/40624/44585](https://ojs.aaai.org/index.php/AAAI/article/view/40624/44585)  
-28. Beyond Confidence: The Rhythms of Reasoning in Generative Models \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2602.10816v1](https://arxiv.org/html/2602.10816v1)  
-29. BEYOND CONFIDENCE: THE RHYTHMS OF REASON- ING IN GENERATIVE MODELS \- OpenReview, accessed April 14, 2026, [https://openreview.net/pdf/e024b49ce71ffbef35352650495506409ef1cf14.pdf](https://openreview.net/pdf/e024b49ce71ffbef35352650495506409ef1cf14.pdf)  
-30. Reasoning-Driven Hallucination in AI Models \- Emergent Mind, accessed April 14, 2026, [https://www.emergentmind.com/topics/reasoning-driven-hallucination](https://www.emergentmind.com/topics/reasoning-driven-hallucination)  
-31. Structural Inducements for Hallucination in Large Language Models (V4.1): Cross-Ecosystem Evidence for the False-Correction Loop and the Systemic Suppression of Novel Thought Including Appendices AH: Replicated Failure Modes, Ω-Level Experiment, Identity Slot Collapse, Cross-Ecosystem Validation, and Governance Architecture An Output-Only Case Study from Extended Human-AI Dialogue Structural Preface \- ResearchGate, accessed April 14, 2026, [https://www.researchgate.net/publication/397988600\_Structural\_Inducements\_for\_Hallucination\_in\_Large\_Language\_Models\_V41\_Cross-Ecosystem\_Evidence\_for\_the\_False-Correction\_Loop\_and\_the\_Systemic\_Suppression\_of\_Novel\_Thought\_Including\_Appendices\_A-H\_Repl](https://www.researchgate.net/publication/397988600_Structural_Inducements_for_Hallucination_in_Large_Language_Models_V41_Cross-Ecosystem_Evidence_for_the_False-Correction_Loop_and_the_Systemic_Suppression_of_Novel_Thought_Including_Appendices_A-H_Repl)  
-32. Limits of Self-Correction in LLMs: An Information-Theoretic Analysis of Correlated Errors \- Preprints.org, accessed April 14, 2026, [https://www.preprints.org/frontend/manuscript/39eedf90ab65aa6c4e3d4498868bc56a/download\_pub](https://www.preprints.org/frontend/manuscript/39eedf90ab65aa6c4e3d4498868bc56a/download_pub)  
-33. Joint Evaluation of Answer and Reasoning Consistency for Hallucination Detection in Large Reasoning Models \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2506.04832v2](https://arxiv.org/html/2506.04832v2)  
-34. ICML Poster Position: LLMs Need a Bayesian Meta-Reasoning Framework for More Robust and Generalizable Reasoning \- ICML 2026, accessed April 14, 2026, [https://icml.cc/virtual/2025/poster/40142](https://icml.cc/virtual/2025/poster/40142)  
-35. UPROP: INVESTIGATING THE UNCERTAINTY PROPA- GATION OF LLMS IN MULTI-STEP DECISION-MAKING \- OpenReview, accessed April 14, 2026, [https://openreview.net/pdf?id=NnlelrGapm](https://openreview.net/pdf?id=NnlelrGapm)  
-36. Uncertainty Quantification in LLM Agents: Foundations, Emerging Challenges, and Opportunities \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2602.05073v2](https://arxiv.org/html/2602.05073v2)  
-37. Detecting hallucinations in large language models using semantic entropy \- OATML, accessed April 14, 2026, [https://oatml.cs.ox.ac.uk/blog/2024/06/19/detecting\_hallucinations\_2024.html](https://oatml.cs.ox.ac.uk/blog/2024/06/19/detecting_hallucinations_2024.html)  
-38. LLM Uncertainty Estimation Methods \- Emergent Mind, accessed April 14, 2026, [https://www.emergentmind.com/topics/llm-uncertainty-estimation-methods](https://www.emergentmind.com/topics/llm-uncertainty-estimation-methods)  
-39. Making Slow Thinking Faster: Compressing LLM Chain-of-Thought via Step Entropy, accessed April 14, 2026, [https://openreview.net/forum?id=cGLqQfS5wH](https://openreview.net/forum?id=cGLqQfS5wH)  
-40. Can LLMs Detect Their Confabulations? Estimating Reliability in Uncertainty-Aware Language Models \- AAAI Publications, accessed April 14, 2026, [https://ojs.aaai.org/index.php/AAAI/article/view/41155/45116](https://ojs.aaai.org/index.php/AAAI/article/view/41155/45116)  
-41. CoT Reasoning Models – Which One Reigns Supreme in 2025? \- Composio, accessed April 14, 2026, [https://composio.dev/content/cot-reasoning-models-which-one-reigns-supreme-in-2025](https://composio.dev/content/cot-reasoning-models-which-one-reigns-supreme-in-2025)  
-42. Video Reasoning without Training | OpenReview, accessed April 14, 2026, [https://openreview.net/forum?id=TbLryV1dyT](https://openreview.net/forum?id=TbLryV1dyT)  
-43. AI Hallucination Rates & Benchmarks in 2026 with References | Suprmind, accessed April 14, 2026, [https://suprmind.ai/hub/ai-hallucination-rates-and-benchmarks/](https://suprmind.ai/hub/ai-hallucination-rates-and-benchmarks/)  
-44. AgentHallu: Benchmarking Automated Hallucination Attribution of LLM-based Agents, accessed April 14, 2026, [https://openreview.net/forum?id=qtQkhE9zqF](https://openreview.net/forum?id=qtQkhE9zqF)  
-45. HALLUCINOGEN: Benchmarking Hallucination in Implicit Reasoning within Large Vision Language Models \- ACL Anthology, accessed April 14, 2026, [https://aclanthology.org/2025.uncertainlp-main.10.pdf](https://aclanthology.org/2025.uncertainlp-main.10.pdf)  
-46. FREAK: A Fine-grained Hallucination Evaluation Benchmark for Advanced MLLMs, accessed April 14, 2026, [https://openreview.net/forum?id=YeagC09j2K](https://openreview.net/forum?id=YeagC09j2K)  
-47. Learning to Reason for Hallucination Span Detection \- Apple Machine Learning Research, accessed April 14, 2026, [https://machinelearning.apple.com/research/hallucination-span-detection](https://machinelearning.apple.com/research/hallucination-span-detection)  
+1. Streaming Hallucination Detection in Long Chain-of-Thought Reasoning \- arXiv, accessed April 14, 2026, [https://arxiv.org/pdf/2601.02170](https://arxiv.org/pdf/2601.02170)
+2. Streaming Hallucination Detection in Long Chain-of-Thought Reasoning \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2601.02170v1](https://arxiv.org/html/2601.02170v1)
+3. Agentic Uncertainty Quantification \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2601.15703v1](https://arxiv.org/html/2601.15703v1)
+4. Streaming Hallucination Detection in Long Chain-of-Thought Reasoning \- OpenReview, accessed April 14, 2026, [https://openreview.net/pdf/d1cb22c349d7c36d56c25efeaf576a857f1d2cb3.pdf](https://openreview.net/pdf/d1cb22c349d7c36d56c25efeaf576a857f1d2cb3.pdf)
+5. Chain-of-Thought Prompting Obscures Hallucination Cues in Large Language Models: An Empirical Evaluation \- ACL Anthology, accessed April 14, 2026, [https://aclanthology.org/2025.findings-emnlp.67/](https://aclanthology.org/2025.findings-emnlp.67/)
+6. Chain-of-Thought Prompting Obscures Hallucination Cues in Large Language Models: An Empirical Evaluation \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2506.17088v3](https://arxiv.org/html/2506.17088v3)
+7. Chain-of-Thought Prompting Obscures Hallucination Cues in ... \- arXiv, accessed April 14, 2026, [https://arxiv.org/abs/2506.17088](https://arxiv.org/abs/2506.17088)
+8. Chain-of-Thought Prompting Obscures Hallucination Cues in Large Language Models: An Empirical Evaluation | Request PDF \- ResearchGate, accessed April 14, 2026, [https://www.researchgate.net/publication/397418978\_Chain-of-Thought\_Prompting\_Obscures\_Hallucination\_Cues\_in\_Large\_Language\_Models\_An\_Empirical\_Evaluation](https://www.researchgate.net/publication/397418978_Chain-of-Thought_Prompting_Obscures_Hallucination_Cues_in_Large_Language_Models_An_Empirical_Evaluation)
+9. AGENTIC AI IN THE WILD: FROM HALLUCINATIONS TO RELIABLE AUTONOMY \- OpenReview, accessed April 14, 2026, [https://openreview.net/pdf?id=3ieIcGKqrV](https://openreview.net/pdf?id=3ieIcGKqrV)
+10. AI Hallucinations Are Getting Smarter — Here's How to Catch Them in Real-Time (Even in Agentic AI Systems, 2026\) | by Yash Mishra | Feb, 2026 | Medium, accessed April 14, 2026, [https://medium.com/@yash.mishra0501/ai-hallucinations-are-getting-smarter-heres-how-to-catch-them-in-real-time-even-in-agentic-3d75a9fc1ab3](https://medium.com/@yash.mishra0501/ai-hallucinations-are-getting-smarter-heres-how-to-catch-them-in-real-time-even-in-agentic-3d75a9fc1ab3)
+11. What Is Toolchaining? Solving LLM Tool Orchestration Challenges | Future AGI Blog, accessed April 14, 2026, [https://futureagi.com/blog/llm-tool-chaining-cascading-failures-production/](https://futureagi.com/blog/llm-tool-chaining-cascading-failures-production/)
+12. Addressing one of the Biggest Misunderstandings in AI | by Devansh \- Medium, accessed April 14, 2026, [https://machine-learning-made-simple.medium.com/addressing-one-of-the-biggest-misunderstandings-in-ai-4d6278213a46](https://machine-learning-made-simple.medium.com/addressing-one-of-the-biggest-misunderstandings-in-ai-4d6278213a46)
+13. Marshall's Monday Morning ML — Archive 001 \- Medium, accessed April 14, 2026, [https://medium.com/@jung.marshall/marshalls-monday-morning-ml-7af6a0d2b77f](https://medium.com/@jung.marshall/marshalls-monday-morning-ml-7af6a0d2b77f)
+14. Tool Execution Hallucination in LLM-based Agents: A Unified Taxonomy with Detection, Mitigation, and Future Directions \- TechRxiv, accessed April 14, 2026, [https://www.techrxiv.org/doi/pdf/10.36227/techrxiv.177219979.94060974](https://www.techrxiv.org/doi/pdf/10.36227/techrxiv.177219979.94060974)
+15. AgentHallu: Benchmarking Automated Hallucination Attribution of LLM-based Agents \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2601.06818v1](https://arxiv.org/html/2601.06818v1)
+16. AI Hallucination Detection Tools: W\&B Weave & Comet \- AIMultiple, accessed April 14, 2026, [https://aimultiple.com/ai-hallucination-detection](https://aimultiple.com/ai-hallucination-detection)
+17. Detecting and Correcting Reference Hallucinations in Commercial LLMs and Deep Research Agents \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2604.03173v1](https://arxiv.org/html/2604.03173v1)
+18. EDIS: Diagnosing LLM Reasoning via Entropy Dynamics \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2602.01288v1](https://arxiv.org/html/2602.01288v1)
+19. Entropy Trajectory Shape Predicts LLM Reasoning Reliability: A Diagnostic Study of Uncertainty Dynamics in Chain-of-Thought \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2603.18940v2](https://arxiv.org/html/2603.18940v2)
+20. Entropy Trajectory Shape Predicts LLM Reasoning Reliability: A Diagnostic Study of Uncertainty Dynamics in Chain-of-Thought \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2603.18940](https://arxiv.org/html/2603.18940)
+21. InfoDensity: Rewarding Information-Dense Traces for Efficient Reasoning \- arXiv, accessed April 14, 2026, [https://arxiv.org/pdf/2603.17310](https://arxiv.org/pdf/2603.17310)
+22. Entropy trajectory shape predicts LLM reasoning reliability: A diagnostic study of uncertainty dynamics in chain-of-thought \- arXiv, accessed April 14, 2026, [https://arxiv.org/pdf/2603.18940](https://arxiv.org/pdf/2603.18940)
+23. (PDF) EDIS: Diagnosing LLM Reasoning via Entropy Dynamics \- ResearchGate, accessed April 14, 2026, [https://www.researchgate.net/publication/400369693\_EDIS\_Diagnosing\_LLM\_Reasoning\_via\_Entropy\_Dynamics](https://www.researchgate.net/publication/400369693_EDIS_Diagnosing_LLM_Reasoning_via_Entropy_Dynamics)
+24. On the Step Length Confounding in LLM Reasoning Data Selection \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2604.06834v1](https://arxiv.org/html/2604.06834v1)
+25. The Stepwise Informativeness Assumption: Why are Entropy Dynamics and Reasoning Correlated in LLMs? \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2604.06192v1](https://arxiv.org/html/2604.06192v1)
+26. Semantic Energy: Detecting LLM Hallucination Beyond Entropy \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2508.14496v3](https://arxiv.org/html/2508.14496v3)
+27. Joint Evaluation of Answer and Reasoning Consistency for Hallucination Detection in Large Reasoning Models, accessed April 14, 2026, [https://ojs.aaai.org/index.php/AAAI/article/view/40624/44585](https://ojs.aaai.org/index.php/AAAI/article/view/40624/44585)
+28. Beyond Confidence: The Rhythms of Reasoning in Generative Models \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2602.10816v1](https://arxiv.org/html/2602.10816v1)
+29. BEYOND CONFIDENCE: THE RHYTHMS OF REASON- ING IN GENERATIVE MODELS \- OpenReview, accessed April 14, 2026, [https://openreview.net/pdf/e024b49ce71ffbef35352650495506409ef1cf14.pdf](https://openreview.net/pdf/e024b49ce71ffbef35352650495506409ef1cf14.pdf)
+30. Reasoning-Driven Hallucination in AI Models \- Emergent Mind, accessed April 14, 2026, [https://www.emergentmind.com/topics/reasoning-driven-hallucination](https://www.emergentmind.com/topics/reasoning-driven-hallucination)
+31. Structural Inducements for Hallucination in Large Language Models (V4.1): Cross-Ecosystem Evidence for the False-Correction Loop and the Systemic Suppression of Novel Thought Including Appendices AH: Replicated Failure Modes, Ω-Level Experiment, Identity Slot Collapse, Cross-Ecosystem Validation, and Governance Architecture An Output-Only Case Study from Extended Human-AI Dialogue Structural Preface \- ResearchGate, accessed April 14, 2026, [https://www.researchgate.net/publication/397988600\_Structural\_Inducements\_for\_Hallucination\_in\_Large\_Language\_Models\_V41\_Cross-Ecosystem\_Evidence\_for\_the\_False-Correction\_Loop\_and\_the\_Systemic\_Suppression\_of\_Novel\_Thought\_Including\_Appendices\_A-H\_Repl](https://www.researchgate.net/publication/397988600_Structural_Inducements_for_Hallucination_in_Large_Language_Models_V41_Cross-Ecosystem_Evidence_for_the_False-Correction_Loop_and_the_Systemic_Suppression_of_Novel_Thought_Including_Appendices_A-H_Repl)
+32. Limits of Self-Correction in LLMs: An Information-Theoretic Analysis of Correlated Errors \- Preprints.org, accessed April 14, 2026, [https://www.preprints.org/frontend/manuscript/39eedf90ab65aa6c4e3d4498868bc56a/download\_pub](https://www.preprints.org/frontend/manuscript/39eedf90ab65aa6c4e3d4498868bc56a/download_pub)
+33. Joint Evaluation of Answer and Reasoning Consistency for Hallucination Detection in Large Reasoning Models \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2506.04832v2](https://arxiv.org/html/2506.04832v2)
+34. ICML Poster Position: LLMs Need a Bayesian Meta-Reasoning Framework for More Robust and Generalizable Reasoning \- ICML 2026, accessed April 14, 2026, [https://icml.cc/virtual/2025/poster/40142](https://icml.cc/virtual/2025/poster/40142)
+35. UPROP: INVESTIGATING THE UNCERTAINTY PROPA- GATION OF LLMS IN MULTI-STEP DECISION-MAKING \- OpenReview, accessed April 14, 2026, [https://openreview.net/pdf?id=NnlelrGapm](https://openreview.net/pdf?id=NnlelrGapm)
+36. Uncertainty Quantification in LLM Agents: Foundations, Emerging Challenges, and Opportunities \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2602.05073v2](https://arxiv.org/html/2602.05073v2)
+37. Detecting hallucinations in large language models using semantic entropy \- OATML, accessed April 14, 2026, [https://oatml.cs.ox.ac.uk/blog/2024/06/19/detecting\_hallucinations\_2024.html](https://oatml.cs.ox.ac.uk/blog/2024/06/19/detecting_hallucinations_2024.html)
+38. LLM Uncertainty Estimation Methods \- Emergent Mind, accessed April 14, 2026, [https://www.emergentmind.com/topics/llm-uncertainty-estimation-methods](https://www.emergentmind.com/topics/llm-uncertainty-estimation-methods)
+39. Making Slow Thinking Faster: Compressing LLM Chain-of-Thought via Step Entropy, accessed April 14, 2026, [https://openreview.net/forum?id=cGLqQfS5wH](https://openreview.net/forum?id=cGLqQfS5wH)
+40. Can LLMs Detect Their Confabulations? Estimating Reliability in Uncertainty-Aware Language Models \- AAAI Publications, accessed April 14, 2026, [https://ojs.aaai.org/index.php/AAAI/article/view/41155/45116](https://ojs.aaai.org/index.php/AAAI/article/view/41155/45116)
+41. CoT Reasoning Models – Which One Reigns Supreme in 2025? \- Composio, accessed April 14, 2026, [https://composio.dev/content/cot-reasoning-models-which-one-reigns-supreme-in-2025](https://composio.dev/content/cot-reasoning-models-which-one-reigns-supreme-in-2025)
+42. Video Reasoning without Training | OpenReview, accessed April 14, 2026, [https://openreview.net/forum?id=TbLryV1dyT](https://openreview.net/forum?id=TbLryV1dyT)
+43. AI Hallucination Rates & Benchmarks in 2026 with References | Suprmind, accessed April 14, 2026, [https://suprmind.ai/hub/ai-hallucination-rates-and-benchmarks/](https://suprmind.ai/hub/ai-hallucination-rates-and-benchmarks/)
+44. AgentHallu: Benchmarking Automated Hallucination Attribution of LLM-based Agents, accessed April 14, 2026, [https://openreview.net/forum?id=qtQkhE9zqF](https://openreview.net/forum?id=qtQkhE9zqF)
+45. HALLUCINOGEN: Benchmarking Hallucination in Implicit Reasoning within Large Vision Language Models \- ACL Anthology, accessed April 14, 2026, [https://aclanthology.org/2025.uncertainlp-main.10.pdf](https://aclanthology.org/2025.uncertainlp-main.10.pdf)
+46. FREAK: A Fine-grained Hallucination Evaluation Benchmark for Advanced MLLMs, accessed April 14, 2026, [https://openreview.net/forum?id=YeagC09j2K](https://openreview.net/forum?id=YeagC09j2K)
+47. Learning to Reason for Hallucination Span Detection \- Apple Machine Learning Research, accessed April 14, 2026, [https://machinelearning.apple.com/research/hallucination-span-detection](https://machinelearning.apple.com/research/hallucination-span-detection)
 48. ToW: Thoughts of Words Improve Reasoning in Large Language Models \- arXiv, accessed April 14, 2026, [https://arxiv.org/html/2410.16235v1](https://arxiv.org/html/2410.16235v1)
 
 [image1]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAWCAYAAAC/kK73AAABM0lEQVR4Xu2VMUvCQRjG36ghMDBCkigQ3ZocwiFICZwcWqTNr+Dk4iYufZIIl9ZoqCGcbHJqDCQCIamtQBvqeXrfPx5/UnSIg7gf/JD3OU/e8+44kUAgEAj8FzZj9fYvGWvmq7HcG1X4Cq/hFqzDJzixLAn78Bm+wREs/sz0CJu6hE34BR9gy8a4IGbncM+yXTiAd1bP43RJyzptMSqwJNrIEOacsYZo49yBiH3R3blyMq+wmVuYsHpNdCc+YCH6EqiJLqbtZF5hM2dOnYaPokcnZRkX04FjeGiZd9g4j03EEfyEF3DFsqzoBe2J3o0Ty2fB31zGrk5bHJ5r95gQHpN3eOBkvMBcDBeVkemF9caxaFMu9zL9ZyPy8AXe2Lh3+KDEHxU+NhuxjKzDHfsMBAJ/xDdNKUFJvIrvSAAAAABJRU5ErkJggg==>

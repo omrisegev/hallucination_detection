@@ -1,0 +1,188 @@
+{
+  "candidate_scores": [
+    {
+      "actual_k": 3,
+      "bootstrap_ari": 0.8945520587418887,
+      "requested_k": 3,
+      "selection_score": 0.8031738697858295,
+      "silhouette": 0.4897630944829376,
+      "singleton_fraction": 0.0,
+      "size_imbalance": 0.33085866411698595
+    },
+    {
+      "actual_k": 4,
+      "bootstrap_ari": 0.8666986543649594,
+      "requested_k": 4,
+      "selection_score": 0.7708626714805868,
+      "silhouette": 0.47784759046807157,
+      "singleton_fraction": 0.0,
+      "size_imbalance": 0.6389710663782151
+    },
+    {
+      "actual_k": 5,
+      "bootstrap_ari": 0.767332811041664,
+      "requested_k": 5,
+      "selection_score": 0.7056059619121443,
+      "silhouette": 0.4365203763791723,
+      "singleton_fraction": 0.0,
+      "size_imbalance": 0.7438107540696153
+    },
+    {
+      "actual_k": 6,
+      "bootstrap_ari": 0.7901748612501857,
+      "requested_k": 6,
+      "selection_score": 0.7367381566318033,
+      "silhouette": 0.4753885626709007,
+      "singleton_fraction": 0.0,
+      "size_imbalance": 0.5439282932202957
+    },
+    {
+      "actual_k": 7,
+      "bootstrap_ari": 0.8160564572310423,
+      "requested_k": 7,
+      "selection_score": 0.7257304158356576,
+      "silhouette": 0.4810339119504803,
+      "singleton_fraction": 0.14285714285714285,
+      "size_imbalance": 0.6225543867782417
+    },
+    {
+      "actual_k": 8,
+      "bootstrap_ari": 0.7663599891389354,
+      "requested_k": 8,
+      "selection_score": 0.6699094672498102,
+      "silhouette": 0.426550964154812,
+      "singleton_fraction": 0.25,
+      "size_imbalance": 0.6481653671672127
+    }
+  ],
+  "chosen_bootstrap_ari": 0.8945520587418887,
+  "chosen_k": 3,
+  "chosen_requested_k": 3,
+  "chosen_silhouette": 0.4897630944829376,
+  "chosen_singleton_fraction": 0.0,
+  "chosen_size_imbalance": 0.33085866411698595,
+  "feature_names": [
+    "cusum_max",
+    "cusum_max_energy",
+    "cusum_max_spilled",
+    "dominant_freq",
+    "epr",
+    "epr_energy",
+    "epr_spilled",
+    "high_band_power",
+    "hl_ratio",
+    "hurst_exponent",
+    "logprob_margin",
+    "low_band_power",
+    "mean_logprob_entropy",
+    "mean_top1_logprob",
+    "min_energy",
+    "min_spilled",
+    "renyi_entropy_2",
+    "spectral_centroid",
+    "spectral_entropy",
+    "stft_max_high_power",
+    "sw_var_peak",
+    "sw_var_peak_energy",
+    "sw_var_peak_spilled",
+    "topk_tail_mass",
+    "trace_length",
+    "varentropy"
+  ],
+  "global_partition": {
+    "micro_01": [
+      "cusum_max",
+      "cusum_max_spilled",
+      "min_energy",
+      "sw_var_peak",
+      "sw_var_peak_spilled"
+    ],
+    "micro_02": [
+      "cusum_max_energy",
+      "dominant_freq",
+      "high_band_power",
+      "hl_ratio",
+      "hurst_exponent",
+      "low_band_power",
+      "min_spilled",
+      "spectral_centroid",
+      "spectral_entropy",
+      "stft_max_high_power",
+      "sw_var_peak_energy",
+      "trace_length"
+    ],
+    "micro_03": [
+      "epr",
+      "epr_energy",
+      "epr_spilled",
+      "logprob_margin",
+      "mean_logprob_entropy",
+      "mean_top1_logprob",
+      "renyi_entropy_2",
+      "topk_tail_mass",
+      "varentropy"
+    ]
+  },
+  "held_cell": "noise_gsm8k_phi3mini",
+  "held_partition": {
+    "micro_01": [
+      "cusum_max",
+      "cusum_max_spilled",
+      "min_energy",
+      "sw_var_peak",
+      "sw_var_peak_spilled"
+    ],
+    "micro_02": [
+      "cusum_max_energy",
+      "dominant_freq",
+      "high_band_power",
+      "hl_ratio",
+      "hurst_exponent",
+      "low_band_power",
+      "spectral_centroid",
+      "spectral_entropy",
+      "stft_max_high_power",
+      "sw_var_peak_energy",
+      "trace_length"
+    ],
+    "micro_03": [
+      "epr",
+      "epr_energy",
+      "epr_spilled",
+      "logprob_margin",
+      "mean_logprob_entropy",
+      "mean_top1_logprob",
+      "renyi_entropy_2",
+      "topk_tail_mass",
+      "varentropy"
+    ]
+  },
+  "schema_version": "fusion-aware-views-v1-2026-08-07",
+  "support_median_off_diagonal": 22.0,
+  "support_min_off_diagonal": 9,
+  "training_cells": [
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "sciq_llama8b",
+    "se_nq_open_llama8b",
+    "se_squad_v2_llama8b",
+    "seiclr_triviaqa_opt30b",
+    "semenergy_triviaqa_qwen3_8b",
+    "spilled_triviaqa_llama8b",
+    "truthfulqa_llama8b",
+    "ars_gsm8k_r1distill8b",
+    "internalstates_gsm8k_qwen25_7b",
+    "lapeigvals_gsm8k_llama3b",
+    "lapeigvals_gsm8k_llama8b",
+    "lapeigvals_gsm8k_mistral24b",
+    "lapeigvals_gsm8k_nemo",
+    "lapeigvals_gsm8k_phi35",
+    "noise_gsm8k_mistral7b",
+    "math500_dsmath7b",
+    "math500_qwenmath7b",
+    "math500_r1distill8b",
+    "math500_r1distill8b_mn4096",
+    "trace_gsm8k_llama8b_k10",
+    "trace_math500_qwenmath15b_k10"
+  ]
+}

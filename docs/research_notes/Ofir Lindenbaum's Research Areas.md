@@ -91,8 +91,8 @@ The STG framework is a cornerstone of the lab's methodology for high-dimensional
 
 STG has been adapted for:
 
-* **Locally Sparse Neural Networks**: Identifying features that are relevant only to specific regions of the data space, which is critical for biomedical applications.4  
-* **Multi-modal Feature Selection**: Finding sparse, correlated features across different data views (e.g., genetic and clinical data) using L0-Sparse Canonical Correlation Analysis.4  
+* **Locally Sparse Neural Networks**: Identifying features that are relevant only to specific regions of the data space, which is critical for biomedical applications.4
+* **Multi-modal Feature Selection**: Finding sparse, correlated features across different data views (e.g., genetic and clinical data) using L0-Sparse Canonical Correlation Analysis.4
 * **Uncovering Winning Lottery Tickets**: Identifying sparse sub-networks within large, randomly initialized models that can achieve competitive accuracy without full weight training.5
 
 ### **Multi-View Clustering and Time Warping**
@@ -111,9 +111,9 @@ In geophysics, the lab has made significant contributions to the discrimination 
 
 The lab's impact on biology is extensive, with a focus on understanding cognitive conditions and disease progression.3
 
-* **HIV Research**: Studies have utilized machine learning to understand cognitive conditions and immune perturbations in HIV patients despite antiretroviral therapy (ART).3  
-* **Oncology**: Tools have been developed to improve the prediction of survival times in cancer patients by identifying key biological features in high-throughput omics datasets.3  
-* **Single-Cell Analysis**: The "DiCoLo" framework enables the detection of localized differential gene co-expression without the need for pre-defined cell clusters, solving a major bottleneck in single-cell RNA sequencing (scRNA-seq) analysis.5  
+* **HIV Research**: Studies have utilized machine learning to understand cognitive conditions and immune perturbations in HIV patients despite antiretroviral therapy (ART).3
+* **Oncology**: Tools have been developed to improve the prediction of survival times in cancer patients by identifying key biological features in high-throughput omics datasets.3
+* **Single-Cell Analysis**: The "DiCoLo" framework enables the detection of localized differential gene co-expression without the need for pre-defined cell clusters, solving a major bottleneck in single-cell RNA sequencing (scRNA-seq) analysis.5
 * **Adaptive Immune Repertoires**: The lab developed alignment-free identification of clones in B cell receptor repertoires, enhancing the study of the immune system's response to pathogens.2
 
 | Application Domain | Specific Problem Addressed | Methodological Approach |
@@ -140,7 +140,7 @@ The development of SUMO and AdaRankGrad must be viewed in the context of the his
 
 In SUMO, the critique of the Newton-Schulz method is central.7 Newton-Schulz is often used for matrix orthogonalization because it only requires matrix multiplications, which are efficient on modern GPU architectures. However, for a matrix ![][image2], the iteration:
 
-![][image3]  
+![][image3]
 only converges to the orthogonal factor of ![][image2] if the singular values of ![][image2] are within a specific range. In the ill-conditioned environments of LLM training, where singular values can span several orders of magnitude, Newton-Schulz fails to provide a stable orthogonal update.7 By replacing this iteration with an exact SVD within a dynamically adapted subspace, SUMO ensures that the optimization step ![][image4] (where ![][image5] and ![][image6] are the singular vectors) remains truly orthogonal, thereby stabilizing the training of models like Llama or Mistral even at high learning rates.4
 
 ### **Proof of Rank Decay in LLM Gradients**
@@ -177,34 +177,34 @@ The research of Ofir Lindenbaum demonstrates that the "black box" nature of mode
 
 #### **Works cited**
 
-1. ‪Tom Tirer‬ \- ‪Google Scholar‬, accessed April 13, 2026, [https://scholar.google.com/citations?user=\_6bZV20AAAAJ\&hl=en](https://scholar.google.com/citations?user=_6bZV20AAAAJ&hl=en)  
-2. Ofir Lindenbaum \- Bar-Ilan University, accessed April 13, 2026, [https://cris.biu.ac.il/en/persons/ofir-lindenbaum](https://cris.biu.ac.il/en/persons/ofir-lindenbaum)  
-3. Deep Learning for Scientific Discovery (my lab), Ofir Lindenbaum \- YouTube, accessed April 13, 2026, [https://www.youtube.com/watch?v=SelrAY-kFk0](https://www.youtube.com/watch?v=SelrAY-kFk0)  
-4. Publications | Dr. Ofir Lindenbaum, accessed April 13, 2026, [https://www.eng.biu.ac.il/lindeno/publications/](https://www.eng.biu.ac.il/lindeno/publications/)  
-5. Ofir LINDENBAUM | Professor (Assistant) | Doctor of Philosophy | Bar Ilan University, Ramat Gan | BIU | Faculty of Engineering | Research profile \- ResearchGate, accessed April 13, 2026, [https://www.researchgate.net/profile/Ofir-Lindenbaum](https://www.researchgate.net/profile/Ofir-Lindenbaum)  
-6. Papers by Ofir Lindenbaum — AI Research Profile \- AIModels.fyi, accessed April 13, 2026, [https://www.aimodels.fyi/author-profile/ofir-lindenbaum-0a2d1253-f42d-42dc-b77e-246b351c11e4](https://www.aimodels.fyi/author-profile/ofir-lindenbaum-0a2d1253-f42d-42dc-b77e-246b351c11e4)  
-7. SUMO: Subspace-Aware Moment-Orthogonalization for Accelerating Memory-Efficient LLM Training \- OpenReview, accessed April 13, 2026, [https://openreview.net/pdf?id=DIjRvEKOeG](https://openreview.net/pdf?id=DIjRvEKOeG)  
-8. ICLR Poster AdaRankGrad: Adaptive Gradient Rank and Moments for Memory-Efficient LLMs Training and Fine-Tuning, accessed April 13, 2026, [https://iclr.cc/virtual/2025/poster/29966](https://iclr.cc/virtual/2025/poster/29966)  
-9. Ofir Lindenbaum| Yale| Machine Learning \- Wix.com, accessed April 13, 2026, [https://ofirlin.wixsite.com/ofirlindenbaum](https://ofirlin.wixsite.com/ofirlindenbaum)  
-10. ‪Ofir Lindenbaum‬ \- ‪Google Scholar‬, accessed April 13, 2026, [https://scholar.google.com/citations?user=jXxk6gcAAAAJ\&hl=iw](https://scholar.google.com/citations?user=jXxk6gcAAAAJ&hl=iw)  
-11. ADARANKGRAD: ADAPTIVE GRADIENT RANK AND MOMENTS FOR MEMORY-EFFICIENT LLMS TRAINING AND FINE-TUNING \- OpenReview, accessed April 13, 2026, [https://openreview.net/pdf?id=LvNROciCne](https://openreview.net/pdf?id=LvNROciCne)  
-12. \[2410.17881\] AdaRankGrad: Adaptive Gradient-Rank and Moments for Memory-Efficient LLMs Training and Fine-Tuning \- arXiv, accessed April 13, 2026, [https://arxiv.org/abs/2410.17881](https://arxiv.org/abs/2410.17881)  
-13. Knowledge Editing in Language Models via Adapted Direct Preference Optimization, accessed April 13, 2026, [https://aclanthology.org/2024.findings-emnlp.273/](https://aclanthology.org/2024.findings-emnlp.273/)  
-14. \[Revue de papier\] Knowledge Editing in Language Models via Adapted Direct Preference Optimization, accessed April 13, 2026, [https://www.themoonlight.io/fr/review/knowledge-editing-in-language-models-via-adapted-direct-preference-optimization](https://www.themoonlight.io/fr/review/knowledge-editing-in-language-models-via-adapted-direct-preference-optimization)  
-15. Knowledge Editing in Language Models via Adapted Direct Preference Optimization \- arXiv, accessed April 13, 2026, [https://arxiv.org/html/2406.09920v1](https://arxiv.org/html/2406.09920v1)  
-16. Knowledge Editing in Language Models via Adapted Direct Preference Optimization \- ACL Anthology, accessed April 13, 2026, [https://aclanthology.org/2024.findings-emnlp.273.pdf](https://aclanthology.org/2024.findings-emnlp.273.pdf)  
-17. Knowledge Editing in Language Models via Adapted Direct Preference Optimization, accessed April 13, 2026, [https://www.semanticscholar.org/paper/Knowledge-Editing-in-Language-Models-via-Adapted-Rozner-Battash/508c85097273a26273f6c20ef96ceab629a0d691](https://www.semanticscholar.org/paper/Knowledge-Editing-in-Language-Models-via-Adapted-Rozner-Battash/508c85097273a26273f6c20ef96ceab629a0d691)  
-18. NeurIPS 2025 Posters, accessed April 13, 2026, [https://neurips.cc/virtual/2025/loc/san-diego/events/poster](https://neurips.cc/virtual/2025/loc/san-diego/events/poster)  
-19. Anomaly Detection with Variance Stabilized Density Estimation \- Tel Aviv University, accessed April 13, 2026, [https://cris.tau.ac.il/en/publications/anomaly-detection-with-variance-stabilized-density-estimation/](https://cris.tau.ac.il/en/publications/anomaly-detection-with-variance-stabilized-density-estimation/)  
-20. Transductive and Inductive Outlier Detection with Robust Autoencoders \- Proceedings of Machine Learning Research, accessed April 13, 2026, [https://proceedings.mlr.press/v244/lindenbaum24a.html](https://proceedings.mlr.press/v244/lindenbaum24a.html)  
-21. Anomaly Detection with Variance Stabilized Density Estimation | OpenReview, accessed April 13, 2026, [https://openreview.net/forum?id=oDGkq0AleM](https://openreview.net/forum?id=oDGkq0AleM)  
-22. Anomaly Detection with Variance Stabilized Density Estimation \- GitHub, accessed April 13, 2026, [https://raw.githubusercontent.com/mlresearch/v244/main/assets/rozner24a/rozner24a.pdf](https://raw.githubusercontent.com/mlresearch/v244/main/assets/rozner24a/rozner24a.pdf)  
-23. Anomaly Detection with Variance Stabilized Density Estimation, accessed April 13, 2026, [https://proceedings.mlr.press/v244/rozner24a.html](https://proceedings.mlr.press/v244/rozner24a.html)  
-24. (PDF) Anomaly Detection with Variance Stabilized Density Estimation \- ResearchGate, accessed April 13, 2026, [https://www.researchgate.net/publication/371223433\_Anomaly\_Detection\_with\_Variance\_Stabilized\_Density\_Estimation](https://www.researchgate.net/publication/371223433_Anomaly_Detection_with_Variance_Stabilized_Density_Estimation)  
-25. \[2110.00494\] Probabilistic Robust Autoencoders for Outlier Detection \- arXiv, accessed April 13, 2026, [https://arxiv.org/abs/2110.00494](https://arxiv.org/abs/2110.00494)  
-26. Probabilistic Robust Autoencoders for Anomaly Detection \- arXiv, accessed April 13, 2026, [https://arxiv.org/pdf/2110.00494](https://arxiv.org/pdf/2110.00494)  
-27. Transductive and Inductive Outlier Detection with Robust Autoencoders \- GitHub, accessed April 13, 2026, [https://raw.githubusercontent.com/mlresearch/v244/main/assets/lindenbaum24a/lindenbaum24a.pdf](https://raw.githubusercontent.com/mlresearch/v244/main/assets/lindenbaum24a/lindenbaum24a.pdf)  
-28. Transductive and Inductive Outlier Detection with Robust Autoencoders | OpenReview, accessed April 13, 2026, [https://openreview.net/forum?id=UkA5dZs5mP](https://openreview.net/forum?id=UkA5dZs5mP)  
+1. ‪Tom Tirer‬ \- ‪Google Scholar‬, accessed April 13, 2026, [https://scholar.google.com/citations?user=\_6bZV20AAAAJ\&hl=en](https://scholar.google.com/citations?user=_6bZV20AAAAJ&hl=en)
+2. Ofir Lindenbaum \- Bar-Ilan University, accessed April 13, 2026, [https://cris.biu.ac.il/en/persons/ofir-lindenbaum](https://cris.biu.ac.il/en/persons/ofir-lindenbaum)
+3. Deep Learning for Scientific Discovery (my lab), Ofir Lindenbaum \- YouTube, accessed April 13, 2026, [https://www.youtube.com/watch?v=SelrAY-kFk0](https://www.youtube.com/watch?v=SelrAY-kFk0)
+4. Publications | Dr. Ofir Lindenbaum, accessed April 13, 2026, [https://www.eng.biu.ac.il/lindeno/publications/](https://www.eng.biu.ac.il/lindeno/publications/)
+5. Ofir LINDENBAUM | Professor (Assistant) | Doctor of Philosophy | Bar Ilan University, Ramat Gan | BIU | Faculty of Engineering | Research profile \- ResearchGate, accessed April 13, 2026, [https://www.researchgate.net/profile/Ofir-Lindenbaum](https://www.researchgate.net/profile/Ofir-Lindenbaum)
+6. Papers by Ofir Lindenbaum — AI Research Profile \- AIModels.fyi, accessed April 13, 2026, [https://www.aimodels.fyi/author-profile/ofir-lindenbaum-0a2d1253-f42d-42dc-b77e-246b351c11e4](https://www.aimodels.fyi/author-profile/ofir-lindenbaum-0a2d1253-f42d-42dc-b77e-246b351c11e4)
+7. SUMO: Subspace-Aware Moment-Orthogonalization for Accelerating Memory-Efficient LLM Training \- OpenReview, accessed April 13, 2026, [https://openreview.net/pdf?id=DIjRvEKOeG](https://openreview.net/pdf?id=DIjRvEKOeG)
+8. ICLR Poster AdaRankGrad: Adaptive Gradient Rank and Moments for Memory-Efficient LLMs Training and Fine-Tuning, accessed April 13, 2026, [https://iclr.cc/virtual/2025/poster/29966](https://iclr.cc/virtual/2025/poster/29966)
+9. Ofir Lindenbaum| Yale| Machine Learning \- Wix.com, accessed April 13, 2026, [https://ofirlin.wixsite.com/ofirlindenbaum](https://ofirlin.wixsite.com/ofirlindenbaum)
+10. ‪Ofir Lindenbaum‬ \- ‪Google Scholar‬, accessed April 13, 2026, [https://scholar.google.com/citations?user=jXxk6gcAAAAJ\&hl=iw](https://scholar.google.com/citations?user=jXxk6gcAAAAJ&hl=iw)
+11. ADARANKGRAD: ADAPTIVE GRADIENT RANK AND MOMENTS FOR MEMORY-EFFICIENT LLMS TRAINING AND FINE-TUNING \- OpenReview, accessed April 13, 2026, [https://openreview.net/pdf?id=LvNROciCne](https://openreview.net/pdf?id=LvNROciCne)
+12. \[2410.17881\] AdaRankGrad: Adaptive Gradient-Rank and Moments for Memory-Efficient LLMs Training and Fine-Tuning \- arXiv, accessed April 13, 2026, [https://arxiv.org/abs/2410.17881](https://arxiv.org/abs/2410.17881)
+13. Knowledge Editing in Language Models via Adapted Direct Preference Optimization, accessed April 13, 2026, [https://aclanthology.org/2024.findings-emnlp.273/](https://aclanthology.org/2024.findings-emnlp.273/)
+14. \[Revue de papier\] Knowledge Editing in Language Models via Adapted Direct Preference Optimization, accessed April 13, 2026, [https://www.themoonlight.io/fr/review/knowledge-editing-in-language-models-via-adapted-direct-preference-optimization](https://www.themoonlight.io/fr/review/knowledge-editing-in-language-models-via-adapted-direct-preference-optimization)
+15. Knowledge Editing in Language Models via Adapted Direct Preference Optimization \- arXiv, accessed April 13, 2026, [https://arxiv.org/html/2406.09920v1](https://arxiv.org/html/2406.09920v1)
+16. Knowledge Editing in Language Models via Adapted Direct Preference Optimization \- ACL Anthology, accessed April 13, 2026, [https://aclanthology.org/2024.findings-emnlp.273.pdf](https://aclanthology.org/2024.findings-emnlp.273.pdf)
+17. Knowledge Editing in Language Models via Adapted Direct Preference Optimization, accessed April 13, 2026, [https://www.semanticscholar.org/paper/Knowledge-Editing-in-Language-Models-via-Adapted-Rozner-Battash/508c85097273a26273f6c20ef96ceab629a0d691](https://www.semanticscholar.org/paper/Knowledge-Editing-in-Language-Models-via-Adapted-Rozner-Battash/508c85097273a26273f6c20ef96ceab629a0d691)
+18. NeurIPS 2025 Posters, accessed April 13, 2026, [https://neurips.cc/virtual/2025/loc/san-diego/events/poster](https://neurips.cc/virtual/2025/loc/san-diego/events/poster)
+19. Anomaly Detection with Variance Stabilized Density Estimation \- Tel Aviv University, accessed April 13, 2026, [https://cris.tau.ac.il/en/publications/anomaly-detection-with-variance-stabilized-density-estimation/](https://cris.tau.ac.il/en/publications/anomaly-detection-with-variance-stabilized-density-estimation/)
+20. Transductive and Inductive Outlier Detection with Robust Autoencoders \- Proceedings of Machine Learning Research, accessed April 13, 2026, [https://proceedings.mlr.press/v244/lindenbaum24a.html](https://proceedings.mlr.press/v244/lindenbaum24a.html)
+21. Anomaly Detection with Variance Stabilized Density Estimation | OpenReview, accessed April 13, 2026, [https://openreview.net/forum?id=oDGkq0AleM](https://openreview.net/forum?id=oDGkq0AleM)
+22. Anomaly Detection with Variance Stabilized Density Estimation \- GitHub, accessed April 13, 2026, [https://raw.githubusercontent.com/mlresearch/v244/main/assets/rozner24a/rozner24a.pdf](https://raw.githubusercontent.com/mlresearch/v244/main/assets/rozner24a/rozner24a.pdf)
+23. Anomaly Detection with Variance Stabilized Density Estimation, accessed April 13, 2026, [https://proceedings.mlr.press/v244/rozner24a.html](https://proceedings.mlr.press/v244/rozner24a.html)
+24. (PDF) Anomaly Detection with Variance Stabilized Density Estimation \- ResearchGate, accessed April 13, 2026, [https://www.researchgate.net/publication/371223433\_Anomaly\_Detection\_with\_Variance\_Stabilized\_Density\_Estimation](https://www.researchgate.net/publication/371223433_Anomaly_Detection_with_Variance_Stabilized_Density_Estimation)
+25. \[2110.00494\] Probabilistic Robust Autoencoders for Outlier Detection \- arXiv, accessed April 13, 2026, [https://arxiv.org/abs/2110.00494](https://arxiv.org/abs/2110.00494)
+26. Probabilistic Robust Autoencoders for Anomaly Detection \- arXiv, accessed April 13, 2026, [https://arxiv.org/pdf/2110.00494](https://arxiv.org/pdf/2110.00494)
+27. Transductive and Inductive Outlier Detection with Robust Autoencoders \- GitHub, accessed April 13, 2026, [https://raw.githubusercontent.com/mlresearch/v244/main/assets/lindenbaum24a/lindenbaum24a.pdf](https://raw.githubusercontent.com/mlresearch/v244/main/assets/lindenbaum24a/lindenbaum24a.pdf)
+28. Transductive and Inductive Outlier Detection with Robust Autoencoders | OpenReview, accessed April 13, 2026, [https://openreview.net/forum?id=UkA5dZs5mP](https://openreview.net/forum?id=UkA5dZs5mP)
 29. Ran Eisenberg \- DBLP, accessed April 13, 2026, [https://dblp.org/pid/371/3978.html](https://dblp.org/pid/371/3978.html)
 
 [image1]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAWCAYAAADJqhx8AAABG0lEQVR4Xt2TsUpDMRSGj6iDWNBBnBS0dukL+ATipoM+hA7iUEFB3JzaqRQR105dBBfFTUTcBEHRBxAEJ0dn/f7mVpNcMBnFDz4uyQl/7snNNfvXTMYTuQzhFj7galTLYh2fcQX3otqvaOdDfMMqnuFSsCLBPL7iKY7gOU4EKxKo70/cMPc2m2E5zTve4RxehKU8tPtJ4W5UG8ZjbOFCVPtGAY/mAka9ebWjwDGs4S0uevU+OjQFXFr54HS4+qwD9rHnjfs77OA1VvxCge7CizfW/fjwxnaAXSsHzBbPZIAWqucnnCrmxrFprrVkwIAb7OA23ptrTTSsHKBPns20uUCh0CNs/5TzWDP3X+jtrnAmLOexjHVzl+oP8QV28S9NOVjdaAAAAABJRU5ErkJggg==>

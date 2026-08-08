@@ -1,0 +1,65 @@
+{
+  "version": "specrage-liu-synthetic-v1-2026-08-06",
+  "stage": "smoke",
+  "runtime_seconds": 4.642240047454834,
+  "n": 128,
+  "replicates": 2,
+  "model_seeds": [
+    11
+  ],
+  "dufs_seeds": [
+    11
+  ],
+  "dufs_epochs": 20,
+  "lambdas": [
+    0.0,
+    0.01,
+    0.03,
+    0.1,
+    0.3
+  ],
+  "primary_lambda": 0.1,
+  "configs": {
+    "base": {
+      "output_dim": 2,
+      "n_neighbors": 7,
+      "temperature": 10.0,
+      "learning_rate": 0.001,
+      "weight_decay": 0.0,
+      "batch_size": 128,
+      "max_epochs": 12,
+      "min_epochs": 6,
+      "patience": 5,
+      "lr_patience": 5,
+      "min_delta": 1e-06,
+      "encoder_hidden": [
+        32,
+        16
+      ],
+      "fusion_hidden": [
+        32,
+        16
+      ],
+      "gradient_clip": 5.0
+    }
+  },
+  "provenance": {
+    "source_sha256": {
+      "SPEC_SPECRAGE_LIU_V1.md": "36b71bc1a33f5b4d98a35d40d01366df8553320e41554022c4337baa98d28e4d",
+      "spectral_utils/specrage_laplacian.py": "811f8038fc5984cc10511d07eb4b9e764f8aa5f90680a76f5a46930e0ee78f99",
+      "spectral_utils/specrage_views.py": "8c1994c8bf3ed0688a9ad2456c319d4d7ef852494809ce9da479a002e9247477",
+      "spectral_utils/laplacian_upcr.py": "885ebaa87a6e35f33edf58bd962e6b1d41bdddf387b1aa3512c1a71e1f1d877e",
+      "spectral_utils/upcr.py": "60c6ff461426d4c828ead210f04233815f45211a6f1a49a50ed37811c50c26cc",
+      "spectral_utils/selectors/a2_groupfs.py": "08f97208fda9fffa34e4ff1b187aee8d2f6a776078a0e101ad7dc3edc007be67",
+      "scripts/specrage_upcr_synthetic.py": "e1cea8034f3098dbe0b55ba35f745053164a695218c95066ad6421bc0d81f795"
+    },
+    "git_head": "5f889e5e083f31df26adf7e02563bedce6a99e34",
+    "git_status_porcelain": "M PROGRESS.md\n M RESEARCH_EVIDENCE_LEDGER.md\n M Research_Directions.md\n?? SPEC_SPECRAGE_LIU_V1.md\n?? docs/research_notes/dufs_liu_leading_direction.md\n?? docs/research_notes/graybox_cross_view_manifold_proposal.md\n?? results/graybox_cross_view_phase1/\n?? scripts/graybox_cross_view_phase1.py\n?? scripts/graybox_cross_view_report.py\n?? scripts/specrage_upcr_real.py\n?? scripts/specrage_upcr_synthetic.py\n?? scripts/test_cross_view_graph.py\n?? scripts/test_specrage_laplacian.py\n?? spectral_utils/cross_view_graph.py\n?? spectral_utils/manifests/\n?? spectral_utils/specrage_laplacian.py\n?? spectral_utils/specrage_views.py",
+    "python": "3.11.9",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.0",
+    "matplotlib": "3.11.1",
+    "torch": "2.13.0"
+  }
+}

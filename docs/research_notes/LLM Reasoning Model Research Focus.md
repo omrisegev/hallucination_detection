@@ -42,8 +42,8 @@ One of the most significant recent discoveries in the manipulation of reasoning 
 
 The methodology of EM manifests in three frameworks:
 
-1. **EM-FT (Fine-tuning)**: Minimizing token-level entropy on unlabeled outputs, effectively forcing the model to commit more strongly to its own predictions during post-training.9  
-2. **EM-RL (Reinforcement Learning)**: Using negative entropy as the sole reward function. This objective has been shown to produce models (like Qwen-2.5-EM-RL) that perform as well as those trained on tens of thousands of labeled examples with traditional RL algorithms like GRPO or RLOO.8  
+1. **EM-FT (Fine-tuning)**: Minimizing token-level entropy on unlabeled outputs, effectively forcing the model to commit more strongly to its own predictions during post-training.9
+2. **EM-RL (Reinforcement Learning)**: Using negative entropy as the sole reward function. This objective has been shown to produce models (like Qwen-2.5-EM-RL) that perform as well as those trained on tens of thousands of labeled examples with traditional RL algorithms like GRPO or RLOO.8
 3. **EM-INF (Inference-time)**: Adjusting logits during the decoding process itself to minimize entropy. This process treats logits as parameters and uses gradient descent to sharpen the distribution before sampling, making the output more deterministic and concise.9
 
 | Framework | Benchmark (Math) | Gain over Base | Efficiency vs. Self-Consistency |
@@ -142,23 +142,23 @@ The research landscape for the statistical steering of LLMs is centered in sever
 
 ### **University of California, Berkeley**
 
-* **Anastasios Angelopoulos**: A pioneer in conformal prediction and risk control. His work on "Conformal Arbitrage" 23 and distribution-free guarantees 18 provides the mathematical framework for building safe, multi-model reasoning systems.  
-* **Dan Klein**: Focusing on the interpretability of model internals. His lab has produced foundational work on "Logit Lens" and "Tuned Lens" techniques for monitoring the evolution of model predictions across layers.30  
+* **Anastasios Angelopoulos**: A pioneer in conformal prediction and risk control. His work on "Conformal Arbitrage" 23 and distribution-free guarantees 18 provides the mathematical framework for building safe, multi-model reasoning systems.
+* **Dan Klein**: Focusing on the interpretability of model internals. His lab has produced foundational work on "Logit Lens" and "Tuned Lens" techniques for monitoring the evolution of model predictions across layers.30
 * **Gireeja Ranade**: Collaborates on benchmarking advanced mathematical reasoning and understanding the "reasoning illusion," where models may succeed through pattern matching rather than genuine insight.34
 
 ### **Massachusetts Institute of Technology (MIT)**
 
-* **Stephen Bates**: A central figure in the MIT Probabilistic Computing Project. His research on "Conformal Reasoning" 20 and interactive uncertainty quantification 35 focuses on ensuring that LLM agents are transparent and trustworthy in human-computer interactions.  
+* **Stephen Bates**: A central figure in the MIT Probabilistic Computing Project. His research on "Conformal Reasoning" 20 and interactive uncertainty quantification 35 focuses on ensuring that LLM agents are transparent and trustworthy in human-computer interactions.
 * **Shubhendu Trivedi**: Specializes in applied machine learning and computational mathematics. His work on conformal prediction for general deep neural networks and "Generating with Confidence" 25 is critical for the reliable deployment of LLMs in healthcare and science automation.
 
 ### **University of Illinois Urbana-Champaign (UIUC)**
 
-* **Hao Peng**: An expert in entropy management and reasoning dynamics. His discovery of the "Unreasonable Effectiveness of Entropy Minimization" 8 has redefined how researchers view the latent reasoning capabilities of pretrained models. His work on process rewards 37 and reasoning tree structures 38 focuses on data-efficient alignment.  
+* **Hao Peng**: An expert in entropy management and reasoning dynamics. His discovery of the "Unreasonable Effectiveness of Entropy Minimization" 8 has redefined how researchers view the latent reasoning capabilities of pretrained models. His work on process rewards 37 and reasoning tree structures 38 focuses on data-efficient alignment.
 * **Jiawei Han**: A world leader in data mining and knowledge discovery. His lab explores "Uncertainty Aware Knowledge-Graph Reasoning" (UAG) 39 and the integration of LLMs with structured knowledge for grounded anomaly detection.40
 
 ### **Industrial Leaders and Pioneers**
 
-* **Noam Brown (OpenAI)**: A legend in deep reinforcement learning (pioneer of Libratus and Pluribus for poker). His current work at OpenAI on Project Strawberry (o1) focuses on the "System 2" scaling of inference compute through search and self-correction.12  
+* **Noam Brown (OpenAI)**: A legend in deep reinforcement learning (pioneer of Libratus and Pluribus for poker). His current work at OpenAI on Project Strawberry (o1) focuses on the "System 2" scaling of inference compute through search and self-correction.12
 * **Eric Zelikman (Stanford/OpenAI)**: Developer of the STaR (Self-Taught Reasoner) and Quiet-STaR paradigms.15 His research focuses on how models can teach themselves to reason from unstructured text by generating unstated rationales.
 
 ## **Statistical Divergence and the "Reasoning Illusion"**
@@ -182,59 +182,59 @@ The path toward Artificial General Intelligence (AGI) is increasingly viewed thr
 
 The future of the field will likely center on the following developments:
 
-1. **Continuous Reasoning Spaces**: Moving beyond discrete tokens to "soft" thinking paths that allow for richer, differentiable optimization of reasoning trajectories.14  
-2. **Autonomous Anomaly Correction**: Systems like Token-Guard that detect and fix internal reasoning anomalies in real-time, enabling "streaming" reliability monitoring.5  
-3. **Provable Safety Guardrails**: The widespread adoption of conformal risk control to bound the frequency of harmful or incorrect model behaviors with statistical rigor.23  
+1. **Continuous Reasoning Spaces**: Moving beyond discrete tokens to "soft" thinking paths that allow for richer, differentiable optimization of reasoning trajectories.14
+2. **Autonomous Anomaly Correction**: Systems like Token-Guard that detect and fix internal reasoning anomalies in real-time, enabling "streaming" reliability monitoring.5
+3. **Provable Safety Guardrails**: The widespread adoption of conformal risk control to bound the frequency of harmful or incorrect model behaviors with statistical rigor.23
 4. **Inference Scaling Efficiency**: Algorithms like LEASH that dynamically adjust the "thinking time" to the difficulty of the problem, maximizing the utility of every flop.32
 
 In summary, the ability to calculate and manipulate the statistical nature of LLM generation is the primary lever for advancing artificial reasoning. By treating the model's output as a dynamic probability landscape that can be tilted, pruned, and calibrated, applied mathematicians are building the essential infrastructure for trustworthy, reasoning-capable AI. The ongoing research at labs in Berkeley, MIT, and UIUC remains the vanguard of this effort, ensuring that as models "think" longer, they also think more reliably.
 
 #### **Works cited**
 
-1. Token Probabilities to Mitigate Large Language Models Overconfidence in Answering Medical Questions: Quantitative Study \- PMC, accessed April 19, 2026, [https://pmc.ncbi.nlm.nih.gov/articles/PMC12396779/](https://pmc.ncbi.nlm.nih.gov/articles/PMC12396779/)  
-2. Beyond Reproducibility: Token Probabilities Expose Large Language Model Nondeterminism \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2601.06118v1](https://arxiv.org/html/2601.06118v1)  
-3. When the Chain Breaks: Interactive Diagnosis of LLM Chain-of-Thought Reasoning Errors, accessed April 19, 2026, [https://arxiv.org/html/2603.21286v2](https://arxiv.org/html/2603.21286v2)  
-4. Entropy Dynamics in LLMs: Metrics & Implications \- Emergent Mind, accessed April 19, 2026, [https://www.emergentmind.com/topics/entropy-dynamics-in-llms](https://www.emergentmind.com/topics/entropy-dynamics-in-llms)  
-5. Real-Time Detection of Hallucinated Entities in Long-Form Generation, accessed April 19, 2026, [https://www.hallucination-probes.com/](https://www.hallucination-probes.com/)  
-6. Detecting LLM Hallucinations at Generation Time with UQLM | by Dylan Bouchard \- Medium, accessed April 19, 2026, [https://medium.com/cvs-health-tech-blog/detecting-llm-hallucinations-at-generation-time-with-uqlm-cd749d2338ec](https://medium.com/cvs-health-tech-blog/detecting-llm-hallucinations-at-generation-time-with-uqlm-cd749d2338ec)  
-7. Entropy-Based Inference Scaling: A Novel Approach to Prevent Hallucinations and Enhance LLM Reasoning | by Mo Meskarian | Medium, accessed April 19, 2026, [https://medium.com/@m.a.meskarian/entropy-based-inference-scaling-a-novel-approach-to-prevent-hallucinations-and-enhance-llm-dfb108331108](https://medium.com/@m.a.meskarian/entropy-based-inference-scaling-a-novel-approach-to-prevent-hallucinations-and-enhance-llm-dfb108331108)  
-8. The Unreasonable Effectiveness of Entropy Minimization in LLM Reasoning | OpenReview, accessed April 19, 2026, [https://openreview.net/forum?id=UfFTBEsLgI\&referrer=%5Bthe%20profile%20of%20Jiawei%20Han%5D(%2Fprofile%3Fid%3D\~Jiawei\_Han1)](https://openreview.net/forum?id=UfFTBEsLgI&referrer=%5Bthe+profile+of+Jiawei+Han%5D\(/profile?id%3D~Jiawei_Han1\))  
-9. The Unreasonable Effectiveness of Entropy Minimization in LLM ..., accessed April 19, 2026, [https://openreview.net/forum?id=UfFTBEsLgI](https://openreview.net/forum?id=UfFTBEsLgI)  
-10. Neural scaling law \- Wikipedia, accessed April 19, 2026, [https://en.wikipedia.org/wiki/Neural\_scaling\_law](https://en.wikipedia.org/wiki/Neural_scaling_law)  
-11. Towards Large Reasoning Models: A Survey on Scaling LLM Reasoning Capabilities \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2501.09686v2](https://arxiv.org/html/2501.09686v2)  
-12. Noam Brown and Team on Teaching LLMs to Reason \- Sequoia Capital, accessed April 19, 2026, [https://sequoiacap.com/podcast/training-data-noam-brown/](https://sequoiacap.com/podcast/training-data-noam-brown/)  
-13. A Survey of Test-Time Compute: From Intuitive Inference to Deliberate Reasoning \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2501.02497v3](https://arxiv.org/html/2501.02497v3)  
-14. Towards Inference-time Scaling for Continuous Space Reasoning \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2510.12167v1](https://arxiv.org/html/2510.12167v1)  
-15. STaR: Bootstrapping Reasoning with Reasoning | Request PDF \- ResearchGate, accessed April 19, 2026, [https://www.researchgate.net/publication/401451990\_STaR\_Bootstrapping\_Reasoning\_with\_Reasoning](https://www.researchgate.net/publication/401451990_STaR_Bootstrapping_Reasoning_with_Reasoning)  
-16. OptScale: Probabilistic Optimality for Inference-time Scaling, accessed April 19, 2026, [https://ojs.aaai.org/index.php/AAAI/article/view/40661/44622](https://ojs.aaai.org/index.php/AAAI/article/view/40661/44622)  
-17. ConU: Conformal Uncertainty in Large Language Models with Correctness Coverage Guarantees \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2407.00499v3](https://arxiv.org/html/2407.00499v3)  
-18. Distribution-free, Risk-controlling Prediction Sets | Request PDF \- ResearchGate, accessed April 19, 2026, [https://www.researchgate.net/publication/357462027\_Distribution-free\_Risk-controlling\_Prediction\_Sets](https://www.researchgate.net/publication/357462027_Distribution-free_Risk-controlling_Prediction_Sets)  
-19. Language Models with Conformal Factuality Guarantees \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2402.10978v1](https://arxiv.org/html/2402.10978v1)  
-20. CONFORMAL REASONING: UNCERTAINTY ESTIMATION IN INTERACTIVE ENVIRONMENTS \- OpenReview, accessed April 19, 2026, [https://openreview.net/pdf/b6dc068fce2a35722d1ada14eb4c6486d4fc8604.pdf](https://openreview.net/pdf/b6dc068fce2a35722d1ada14eb4c6486d4fc8604.pdf)  
-21. Conformal Reasoning: Uncertainty Estimation in Interactive Environments \- NeurIPS 2026, accessed April 19, 2026, [https://neurips.cc/virtual/2024/107878](https://neurips.cc/virtual/2024/107878)  
-22. NeurIPS Poster Conformal Arbitrage: Risk-Controlled Balancing of Competing Objectives in Language Models, accessed April 19, 2026, [https://neurips.cc/virtual/2025/poster/117004](https://neurips.cc/virtual/2025/poster/117004)  
-23. Hao Zeng, accessed April 19, 2026, [https://zenghao-stat.github.io/](https://zenghao-stat.github.io/)  
-24. Shubhendu Trivedi, accessed April 19, 2026, [https://shubhendu-trivedi.org/](https://shubhendu-trivedi.org/)  
-25. Reasoning-based Anomaly Detection Framework: A Real-time, Scalable, and Automated Approach to Anomaly Detection Across Domains \- Apple Machine Learning Research, accessed April 19, 2026, [https://machinelearning.apple.com/research/reasoning-based-anomaly](https://machinelearning.apple.com/research/reasoning-based-anomaly)  
-26. NeurIPS Poster AnomalyCoT: A Multi-Scenario Chain-of-Thought Dataset for Multimodal Large Language Models, accessed April 19, 2026, [https://neurips.cc/virtual/2025/poster/121641](https://neurips.cc/virtual/2025/poster/121641)  
-27. Chain-of-Anomaly Thoughts with Large Vision-Language Models \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2512.20417v1](https://arxiv.org/html/2512.20417v1)  
-28. Token-Guard: Towards Token-Level Hallucination Control via ... \- arXiv, accessed April 19, 2026, [https://arxiv.org/abs/2601.21969](https://arxiv.org/abs/2601.21969)  
-29. LLM Microscope: What Model Internals Reveal About Answer Correctness and Context Utilization \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2510.04013v1](https://arxiv.org/html/2510.04013v1)  
-30. A General Framework for Inference-time Scaling and Steering of Diffusion Models, accessed April 19, 2026, [https://icml.cc/virtual/2025/poster/45673](https://icml.cc/virtual/2025/poster/45673)  
-31. Logit-Entropy Adaptive Stopping Heuristic for Efficient Chain-of-Thought Reasoning \- Reddit, accessed April 19, 2026, [https://www.reddit.com/r/singularity/comments/1orvj0h/logitentropy\_adaptive\_stopping\_heuristic\_for/](https://www.reddit.com/r/singularity/comments/1orvj0h/logitentropy_adaptive_stopping_heuristic_for/)  
-32. Daily Papers \- Hugging Face, accessed April 19, 2026, [https://huggingface.co/papers?q=thinking-token%20acknowledgment](https://huggingface.co/papers?q=thinking-token+acknowledgment)  
-33. Benchmarking LLMs on Advanced Mathematical Reasoning \- EECS, accessed April 19, 2026, [https://www2.eecs.berkeley.edu/Pubs/TechRpts/2025/EECS-2025-121.pdf](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2025/EECS-2025-121.pdf)  
-34. ICML Poster Position: Uncertainty Quantification Needs Reassessment for Large Language Model Agents, accessed April 19, 2026, [https://icml.cc/virtual/2025/poster/40147](https://icml.cc/virtual/2025/poster/40147)  
-35. Quantifying Uncertainty in Answers from any Language Model and Enhancing their Trustworthiness \- ACL Anthology, accessed April 19, 2026, [https://aclanthology.org/2024.acl-long.283.pdf](https://aclanthology.org/2024.acl-long.283.pdf)  
-36. Hao Peng \- Illinois Experts, accessed April 19, 2026, [https://experts.illinois.edu/en/persons/hao-peng/](https://experts.illinois.edu/en/persons/hao-peng/)  
-37. SCHEDULING YOUR LLM REINFORCEMENT LEARN- ING WITH REASONING TREES \- OpenReview, accessed April 19, 2026, [https://openreview.net/pdf/156efed035a3eb8f8914a33059dd680054d5e73d.pdf](https://openreview.net/pdf/156efed035a3eb8f8914a33059dd680054d5e73d.pdf)  
-38. Towards Trustworthy Knowledge Graph Reasoning: An Uncertainty Aware Perspective \- AAAI Publications, accessed April 19, 2026, [https://ojs.aaai.org/index.php/AAAI/article/view/33353/35508](https://ojs.aaai.org/index.php/AAAI/article/view/33353/35508)  
-39. LogPPO: A Log-Based Anomaly Detector Aided with Proximal Policy Optimization Algorithms \- MDPI, accessed April 19, 2026, [https://www.mdpi.com/2624-6511/9/1/5](https://www.mdpi.com/2624-6511/9/1/5)  
-40. Quiet-STaR: Language Models Can Teach Themselves to Think Before Speaking \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2403.09629v1](https://arxiv.org/html/2403.09629v1)  
-41. Can LLM Reasoning Be Trusted? A Comparative Study: Using Human Benchmarking on Statistical Tasks \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2601.14479v1](https://arxiv.org/html/2601.14479v1)  
-42. StatEval: A Comprehensive Benchmark for Large Language Models in Statistics \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2510.09517v1](https://arxiv.org/html/2510.09517v1)  
-43. The CompMath-MCQ Dataset: Are LLMs Ready for Higher-Level Math? \- arXiv.org, accessed April 19, 2026, [https://arxiv.org/html/2603.03334v1](https://arxiv.org/html/2603.03334v1)  
-44. Analyzing Uncertainty of LLM-as-a-Judge: Interval Evaluations with Conformal Prediction \- ACL Anthology, accessed April 19, 2026, [https://aclanthology.org/2025.emnlp-main.569.pdf](https://aclanthology.org/2025.emnlp-main.569.pdf)  
+1. Token Probabilities to Mitigate Large Language Models Overconfidence in Answering Medical Questions: Quantitative Study \- PMC, accessed April 19, 2026, [https://pmc.ncbi.nlm.nih.gov/articles/PMC12396779/](https://pmc.ncbi.nlm.nih.gov/articles/PMC12396779/)
+2. Beyond Reproducibility: Token Probabilities Expose Large Language Model Nondeterminism \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2601.06118v1](https://arxiv.org/html/2601.06118v1)
+3. When the Chain Breaks: Interactive Diagnosis of LLM Chain-of-Thought Reasoning Errors, accessed April 19, 2026, [https://arxiv.org/html/2603.21286v2](https://arxiv.org/html/2603.21286v2)
+4. Entropy Dynamics in LLMs: Metrics & Implications \- Emergent Mind, accessed April 19, 2026, [https://www.emergentmind.com/topics/entropy-dynamics-in-llms](https://www.emergentmind.com/topics/entropy-dynamics-in-llms)
+5. Real-Time Detection of Hallucinated Entities in Long-Form Generation, accessed April 19, 2026, [https://www.hallucination-probes.com/](https://www.hallucination-probes.com/)
+6. Detecting LLM Hallucinations at Generation Time with UQLM | by Dylan Bouchard \- Medium, accessed April 19, 2026, [https://medium.com/cvs-health-tech-blog/detecting-llm-hallucinations-at-generation-time-with-uqlm-cd749d2338ec](https://medium.com/cvs-health-tech-blog/detecting-llm-hallucinations-at-generation-time-with-uqlm-cd749d2338ec)
+7. Entropy-Based Inference Scaling: A Novel Approach to Prevent Hallucinations and Enhance LLM Reasoning | by Mo Meskarian | Medium, accessed April 19, 2026, [https://medium.com/@m.a.meskarian/entropy-based-inference-scaling-a-novel-approach-to-prevent-hallucinations-and-enhance-llm-dfb108331108](https://medium.com/@m.a.meskarian/entropy-based-inference-scaling-a-novel-approach-to-prevent-hallucinations-and-enhance-llm-dfb108331108)
+8. The Unreasonable Effectiveness of Entropy Minimization in LLM Reasoning | OpenReview, accessed April 19, 2026, [https://openreview.net/forum?id=UfFTBEsLgI\&referrer=%5Bthe%20profile%20of%20Jiawei%20Han%5D(%2Fprofile%3Fid%3D\~Jiawei\_Han1)](https://openreview.net/forum?id=UfFTBEsLgI&referrer=%5Bthe+profile+of+Jiawei+Han%5D\(/profile?id%3D~Jiawei_Han1\))
+9. The Unreasonable Effectiveness of Entropy Minimization in LLM ..., accessed April 19, 2026, [https://openreview.net/forum?id=UfFTBEsLgI](https://openreview.net/forum?id=UfFTBEsLgI)
+10. Neural scaling law \- Wikipedia, accessed April 19, 2026, [https://en.wikipedia.org/wiki/Neural\_scaling\_law](https://en.wikipedia.org/wiki/Neural_scaling_law)
+11. Towards Large Reasoning Models: A Survey on Scaling LLM Reasoning Capabilities \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2501.09686v2](https://arxiv.org/html/2501.09686v2)
+12. Noam Brown and Team on Teaching LLMs to Reason \- Sequoia Capital, accessed April 19, 2026, [https://sequoiacap.com/podcast/training-data-noam-brown/](https://sequoiacap.com/podcast/training-data-noam-brown/)
+13. A Survey of Test-Time Compute: From Intuitive Inference to Deliberate Reasoning \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2501.02497v3](https://arxiv.org/html/2501.02497v3)
+14. Towards Inference-time Scaling for Continuous Space Reasoning \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2510.12167v1](https://arxiv.org/html/2510.12167v1)
+15. STaR: Bootstrapping Reasoning with Reasoning | Request PDF \- ResearchGate, accessed April 19, 2026, [https://www.researchgate.net/publication/401451990\_STaR\_Bootstrapping\_Reasoning\_with\_Reasoning](https://www.researchgate.net/publication/401451990_STaR_Bootstrapping_Reasoning_with_Reasoning)
+16. OptScale: Probabilistic Optimality for Inference-time Scaling, accessed April 19, 2026, [https://ojs.aaai.org/index.php/AAAI/article/view/40661/44622](https://ojs.aaai.org/index.php/AAAI/article/view/40661/44622)
+17. ConU: Conformal Uncertainty in Large Language Models with Correctness Coverage Guarantees \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2407.00499v3](https://arxiv.org/html/2407.00499v3)
+18. Distribution-free, Risk-controlling Prediction Sets | Request PDF \- ResearchGate, accessed April 19, 2026, [https://www.researchgate.net/publication/357462027\_Distribution-free\_Risk-controlling\_Prediction\_Sets](https://www.researchgate.net/publication/357462027_Distribution-free_Risk-controlling_Prediction_Sets)
+19. Language Models with Conformal Factuality Guarantees \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2402.10978v1](https://arxiv.org/html/2402.10978v1)
+20. CONFORMAL REASONING: UNCERTAINTY ESTIMATION IN INTERACTIVE ENVIRONMENTS \- OpenReview, accessed April 19, 2026, [https://openreview.net/pdf/b6dc068fce2a35722d1ada14eb4c6486d4fc8604.pdf](https://openreview.net/pdf/b6dc068fce2a35722d1ada14eb4c6486d4fc8604.pdf)
+21. Conformal Reasoning: Uncertainty Estimation in Interactive Environments \- NeurIPS 2026, accessed April 19, 2026, [https://neurips.cc/virtual/2024/107878](https://neurips.cc/virtual/2024/107878)
+22. NeurIPS Poster Conformal Arbitrage: Risk-Controlled Balancing of Competing Objectives in Language Models, accessed April 19, 2026, [https://neurips.cc/virtual/2025/poster/117004](https://neurips.cc/virtual/2025/poster/117004)
+23. Hao Zeng, accessed April 19, 2026, [https://zenghao-stat.github.io/](https://zenghao-stat.github.io/)
+24. Shubhendu Trivedi, accessed April 19, 2026, [https://shubhendu-trivedi.org/](https://shubhendu-trivedi.org/)
+25. Reasoning-based Anomaly Detection Framework: A Real-time, Scalable, and Automated Approach to Anomaly Detection Across Domains \- Apple Machine Learning Research, accessed April 19, 2026, [https://machinelearning.apple.com/research/reasoning-based-anomaly](https://machinelearning.apple.com/research/reasoning-based-anomaly)
+26. NeurIPS Poster AnomalyCoT: A Multi-Scenario Chain-of-Thought Dataset for Multimodal Large Language Models, accessed April 19, 2026, [https://neurips.cc/virtual/2025/poster/121641](https://neurips.cc/virtual/2025/poster/121641)
+27. Chain-of-Anomaly Thoughts with Large Vision-Language Models \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2512.20417v1](https://arxiv.org/html/2512.20417v1)
+28. Token-Guard: Towards Token-Level Hallucination Control via ... \- arXiv, accessed April 19, 2026, [https://arxiv.org/abs/2601.21969](https://arxiv.org/abs/2601.21969)
+29. LLM Microscope: What Model Internals Reveal About Answer Correctness and Context Utilization \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2510.04013v1](https://arxiv.org/html/2510.04013v1)
+30. A General Framework for Inference-time Scaling and Steering of Diffusion Models, accessed April 19, 2026, [https://icml.cc/virtual/2025/poster/45673](https://icml.cc/virtual/2025/poster/45673)
+31. Logit-Entropy Adaptive Stopping Heuristic for Efficient Chain-of-Thought Reasoning \- Reddit, accessed April 19, 2026, [https://www.reddit.com/r/singularity/comments/1orvj0h/logitentropy\_adaptive\_stopping\_heuristic\_for/](https://www.reddit.com/r/singularity/comments/1orvj0h/logitentropy_adaptive_stopping_heuristic_for/)
+32. Daily Papers \- Hugging Face, accessed April 19, 2026, [https://huggingface.co/papers?q=thinking-token%20acknowledgment](https://huggingface.co/papers?q=thinking-token+acknowledgment)
+33. Benchmarking LLMs on Advanced Mathematical Reasoning \- EECS, accessed April 19, 2026, [https://www2.eecs.berkeley.edu/Pubs/TechRpts/2025/EECS-2025-121.pdf](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2025/EECS-2025-121.pdf)
+34. ICML Poster Position: Uncertainty Quantification Needs Reassessment for Large Language Model Agents, accessed April 19, 2026, [https://icml.cc/virtual/2025/poster/40147](https://icml.cc/virtual/2025/poster/40147)
+35. Quantifying Uncertainty in Answers from any Language Model and Enhancing their Trustworthiness \- ACL Anthology, accessed April 19, 2026, [https://aclanthology.org/2024.acl-long.283.pdf](https://aclanthology.org/2024.acl-long.283.pdf)
+36. Hao Peng \- Illinois Experts, accessed April 19, 2026, [https://experts.illinois.edu/en/persons/hao-peng/](https://experts.illinois.edu/en/persons/hao-peng/)
+37. SCHEDULING YOUR LLM REINFORCEMENT LEARN- ING WITH REASONING TREES \- OpenReview, accessed April 19, 2026, [https://openreview.net/pdf/156efed035a3eb8f8914a33059dd680054d5e73d.pdf](https://openreview.net/pdf/156efed035a3eb8f8914a33059dd680054d5e73d.pdf)
+38. Towards Trustworthy Knowledge Graph Reasoning: An Uncertainty Aware Perspective \- AAAI Publications, accessed April 19, 2026, [https://ojs.aaai.org/index.php/AAAI/article/view/33353/35508](https://ojs.aaai.org/index.php/AAAI/article/view/33353/35508)
+39. LogPPO: A Log-Based Anomaly Detector Aided with Proximal Policy Optimization Algorithms \- MDPI, accessed April 19, 2026, [https://www.mdpi.com/2624-6511/9/1/5](https://www.mdpi.com/2624-6511/9/1/5)
+40. Quiet-STaR: Language Models Can Teach Themselves to Think Before Speaking \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2403.09629v1](https://arxiv.org/html/2403.09629v1)
+41. Can LLM Reasoning Be Trusted? A Comparative Study: Using Human Benchmarking on Statistical Tasks \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2601.14479v1](https://arxiv.org/html/2601.14479v1)
+42. StatEval: A Comprehensive Benchmark for Large Language Models in Statistics \- arXiv, accessed April 19, 2026, [https://arxiv.org/html/2510.09517v1](https://arxiv.org/html/2510.09517v1)
+43. The CompMath-MCQ Dataset: Are LLMs Ready for Higher-Level Math? \- arXiv.org, accessed April 19, 2026, [https://arxiv.org/html/2603.03334v1](https://arxiv.org/html/2603.03334v1)
+44. Analyzing Uncertainty of LLM-as-a-Judge: Interval Evaluations with Conformal Prediction \- ACL Anthology, accessed April 19, 2026, [https://aclanthology.org/2025.emnlp-main.569.pdf](https://aclanthology.org/2025.emnlp-main.569.pdf)
 45. Analyzing Uncertainty of LLM-as-a-Judge: Interval Evaluations with Conformal Prediction, accessed April 19, 2026, [https://arxiv.org/html/2509.18658v1](https://arxiv.org/html/2509.18658v1)
 
 [image1]: <data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADsAAAAZCAYAAACPQVaOAAAB4klEQVR4Xu2XzSsFURiHX0mRr7IjkpKVjyRssKMs2FiyFRtryYb8A2InZWVlbUGSvY2kFCkkFooNQvn4/TozvHPMjLnjTl23eerpznnPXPe8c8685xBJ+Vd8KFdV/EnF84obOG3F6mC/FcsL9uC6FTuw2jlDJVwJcR6Wfd39kyV4ptqTsES1c5JaOOhcX6s4Z60PPot5MDZD8NG5LoILqi9nqRYzcHKhO8Cm83nqiRra5LsQ7euOJGmAr+KtkK7F6r4guFSDkj10PtnPh6IpF/Mb3bDR6kuELbhsBzMkLFl3Ridgqe5wYLLbdjAMrnt+6Q0WwBGJVr4X4YAdjEFQsnwPWYRYdI5VXMNxc8yRmIPjsBCOwQcxlTAKfu9RHHSyL2J+n3/bfRWmnL6sUgV37WAArKCjdjAm9sz2wmEx7yEnIBFY0fxKvB8d8A5e/mKUJWYny+8cOe1srR4P55LZhpzkzBLWDM5wu5jDQtbgGVPPQJNES/zKDsTEL1lyImZcaxJ9xYVyL2afcqmA76odxoyYyv1Xgg4VrMbutnKr4rHYga2wU7wHgXp90y9siEk6Dpy1Zjgr5rjIpHlc7BKzOxAWqB5YI2ZrjD3DLeqaTzHunslB6v8jMz1BpaSkpKSk5BOfbdJpKxYn9MYAAAAASUVORK5CYII=>

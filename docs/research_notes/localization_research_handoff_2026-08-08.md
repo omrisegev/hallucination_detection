@@ -26,6 +26,31 @@ No new localization method is approved after this handoff. The next action is
 to discuss the evidence and decide whether scientific simplicity requires the
 same DUFS-LIU graph construction in both heads.
 
+## Follow-up addendum: the two requested comparisons are now complete
+
+After this handoff, the unified and broad-pool questions were approved as one
+controlled factorial diagnostic. The original v1 artifacts remain frozen.
+
+- Global DUFS-LIU plus five-view local DUFS-LIU reaches **31.72% ProcessBench
+  F1**, versus **31.36%** for GL-LIU v1. It wins five of eight cells and reaches
+  31.41% versus 30.76% on the six non-selection cells. This is the simplest
+  leading candidate, but the +0.37-point gain is too small and mixed to call a
+  confirmed replacement.
+- A broad 28-curve local DUFS pool reaches **29.03%**, losing 2.70 points to the
+  five-view pool and losing in seven of eight cells. The graph was active and
+  the curves were non-degenerate; stable geometry did not imply first-error
+  relevance.
+- The global and five-view local score hashes exactly reproduce v1 in all eight
+  cells. The new comparison therefore changes only the declared factor.
+
+Items 1 and 3 in the historical “What has not been tested” list below are now
+tested. Item 2, the seven-view DUFS pool, remains untested but is not a priority
+after the broad-pool failure. The next approved evidence should come from an
+external dataset/model family, not another in-dataset variant.
+
+Full report: `results/gl_liu_factorial_v2/REPORT.md`. Advisor brief:
+`results/gl_liu_factorial_v2/ADVISOR_BRIEF.md`.
+
 ## One-page method map
 
 ### Solver family

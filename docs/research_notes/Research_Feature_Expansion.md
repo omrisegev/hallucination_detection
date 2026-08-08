@@ -1,7 +1,7 @@
 # Research Report: Advanced Features for Hallucination Detection
 
-**Author**: Gemini CLI (Omri Segev's Thesis Assistant)  
-**Date**: 2026-05-14  
+**Author**: Gemini CLI (Omri Segev's Thesis Assistant)
+**Date**: 2026-05-14
 **Context**: Expanding the spectral feature suite for thesis direction 2 (RAG) and 4 (Agentic).
 
 ---
@@ -32,7 +32,7 @@ Based on deep research into non-stationary signal analysis, we propose the follo
 *   **Implementation**: `permutation_entropy(h, order=3, delay=1)` in a sliding window.
 
 ### Feature 2: Hurst Exponent (Long-Range Dependency)
-*   **Why**: Distinguishes between a random walk (EPR mean) and a trending process. 
+*   **Why**: Distinguishes between a random walk (EPR mean) and a trending process.
 *   **Signal**: `H > 0.5` indicates a persistent trend (the model is "drifting" deeper into a hallucination). `H < 0.5` indicates mean-reverting behavior (the model is trying to stay grounded).
 *   **Implementation**: Rescaled Range (R/S) analysis or DFA.
 

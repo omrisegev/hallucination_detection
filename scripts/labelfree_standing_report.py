@@ -2,7 +2,7 @@
 """
 labelfree_standing_report.py — one page combining the QA-evaluation desk (old
 `item3_qa_evaluation.html`) and the published-benchmark desk (old
-`item4_benchmarking.html`), rescored for the two **label-free** arms.
+`item4_benchmarking.html`), rescored for four **label-free-at-fit-time** arms.
 
 WHY THIS EXISTS
 ---------------
@@ -10,10 +10,13 @@ Both source pages report `L-SML GOOD_5` — a five-view subset that was chosen w
 answer keys, on a 16-view pool, over a cell roster that still included RAG and
 GPQA. None of those three things is true of the current pipeline:
 
-  * the shortlist is now the two arms that need nothing hand-picked beyond the
-    single global anchor bit — `a2.dufs_pf` (DUFS parameter-free + L-SML) and
-    U-PCR with sign(rho) orientation;
-  * the pool is the 30-view CANONICAL_POOL from the cluster re-runs;
+  * the legacy shortlist contains `a2.dufs_pf` (DUFS parameter-free + L-SML)
+    and U-PCR with sign(rho) orientation;
+  * the current frozen benchmark contributes ordinary IU-PCR and DUFS-LIU at
+    its registered lambda=0.1. These use the fixed-stable feature contract and
+    a fixed correctness direction, but no per-cell correctness labels;
+  * the legacy arms use the up-to-30-view CANONICAL_POOL; IU-PCR and DUFS-LIU
+    use the stricter fixed-stable subset exported from that pool;
   * scope is the 24 in-scope cells (9 QA + 15 math). RAG and GPQA are OUT
     (Step 191), so no cell from either appears anywhere on this page; and
     `inside_coqa_llama7b` is REJECTED (Step 216) for a generation defect, so it
@@ -31,6 +34,10 @@ SOURCES
   results/advisor_inscope/competitors_verified.csv  published numbers + cost class
   results/repgrid/scores_lsml_upcr.csv           per-cell task accuracy / N
   results/repgrid/ubaseline_scores.csv           seq-logprob + perplexity floors
+  results/dependency_fusion_raw/cells.npz        canonical prepared cells + labels
+  results/frozen_24cell_benchmark/scores/*.npz   frozen IU-PCR / DUFS-LIU scores
+  results/frozen_24cell_benchmark/SCORE_FREEZE_MANIFEST.json
+                                                 score hashes and run identity
 
 OUTPUT
   results/action_items/labelfree_standing.html
@@ -39,7 +46,9 @@ Usage:
     python scripts/labelfree_standing_report.py
 """
 import csv
+import hashlib
 import html
+import json
 import os
 import statistics as st
 import sys
@@ -54,15 +63,26 @@ for _p in (REPO, os.path.join(REPO, "scripts")):
         sys.path.insert(0, _p)
 
 from inscope_cells import INSCOPE, QA_CELLS, MATH_CELLS              # noqa: E402
-from inscope_bench_common import (load_cells, assert_good6, good6_cols,  # noqa: E402
+from inscope_bench_common import (assert_good6, good6_cols,  # noqa: E402
                                   GOOD6_EXPECTED)
 from report_figs import FIG_CSS, _svg, _fig, _lin                    # noqa: E402
 from spectral_utils.fusion_utils import lsml_continuous, boot_auc    # noqa: E402
 from spectral_utils.streaming_utils import anchor_orient             # noqa: E402
-from spectral_utils.subset_sweep import ALL_SIGNS                    # noqa: E402
 from spectral_utils.upcr import upcr_fit                             # noqa: E402
 
 OUT = os.path.join(REPO, "results", "action_items", "labelfree_standing.html")
+FROZEN = os.path.join(REPO, "results", "frozen_24cell_benchmark")
+BUNDLE = os.path.join(REPO, "results", "dependency_fusion_raw", "cells.npz")
+DUFS_LIU_KEY = "dufs_liu__lambda_0p1"
+
+OURS = (
+    ("up", "U-PCR + sign(rho)", "arm-up"),
+    ("pf", "DUFS parameter-free + L-SML", "arm-pf"),
+    ("iu", "IU-PCR", "arm-iu"),
+    ("dliu", "DUFS-LIU (lambda=0.1)", "arm-dliu"),
+)
+OURS_KEYS = tuple(key for key, _, _ in OURS)
+OURS_LABELS = {key: label for key, label, _ in OURS}
 
 # exp06's fitted configuration, verbatim — this page must not silently re-tune it.
 FIT = dict(loss="l2", exclusion=True, difficulty_gate=False,
@@ -127,6 +147,124 @@ def flag_of(pos_rate):
 
 
 # ── scoring ───────────────────────────────────────────────────────────────────
+def sha256_file(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def load_frozen_scores():
+    """Load the immutable IU-PCR/DUFS-LIU checkpoints without refitting them.
+
+    The frozen experiment fitted every score before labels were opened. This
+    report may use labels only to evaluate those arrays, so it first verifies
+    the recorded run identity and every checkpoint hash.
+    """
+    definition_path = os.path.join(FROZEN, "RUN_DEFINITION.json")
+    complete_path = os.path.join(FROZEN, "FIT_COMPLETE.json")
+    freeze_path = os.path.join(FROZEN, "SCORE_FREEZE_MANIFEST.json")
+    with open(definition_path, encoding="utf-8") as handle:
+        definition = json.load(handle)
+    with open(complete_path, encoding="utf-8") as handle:
+        complete = json.load(handle)
+    with open(freeze_path, encoding="utf-8") as handle:
+        freeze = json.load(handle)
+
+    if definition.get("cells") != list(INSCOPE):
+        raise SystemExit("frozen benchmark roster differs from the report roster")
+    if definition.get("scientific_run") is not True:
+        raise SystemExit("frozen benchmark is not marked as a scientific run")
+    if definition.get("feature_contract") != "fixed_stable_v1":
+        raise SystemExit("unexpected frozen feature contract")
+    if float(definition.get("frozen_lambda", {}).get("dufs_liu", -1)) != 0.1:
+        raise SystemExit("DUFS-LIU headline lambda is not the registered 0.1")
+    if complete.get("labels_opened_by_fit") is not False:
+        raise SystemExit("frozen fit reports that labels were opened during fitting")
+    if complete.get("run_fingerprint") != definition.get("run_fingerprint"):
+        raise SystemExit("frozen fit and run definition fingerprints disagree")
+    if freeze.get("run_fingerprint") != definition.get("run_fingerprint"):
+        raise SystemExit("score freeze and run definition fingerprints disagree")
+    if freeze.get("score_files_verified_before_labels") is not True:
+        raise SystemExit("frozen scores were not verified before labels were opened")
+    if freeze.get("run_definition_sha256") != sha256_file(definition_path):
+        raise SystemExit("frozen run definition changed after score freeze")
+    if freeze.get("fit_complete_sha256") != sha256_file(complete_path):
+        raise SystemExit("frozen fit marker changed after score freeze")
+
+    manifest = freeze.get("score_manifest", [])
+    if [item.get("cell") for item in manifest] != list(INSCOPE):
+        raise SystemExit("frozen score manifest differs from the report roster")
+
+    scores = {}
+    for item in manifest:
+        ck = item["cell"]
+        score_path = os.path.join(FROZEN, item["score_file"])
+        diagnostic_path = os.path.join(FROZEN, item["diagnostic_file"])
+        if sha256_file(score_path) != item["score_sha256"]:
+            raise SystemExit(f"frozen score hash mismatch: {ck}")
+        if sha256_file(diagnostic_path) != item["diagnostic_sha256"]:
+            raise SystemExit(f"frozen diagnostic hash mismatch: {ck}")
+        with np.load(score_path, allow_pickle=False) as checkpoint:
+            if any("label" in key.lower() for key in checkpoint.files):
+                raise SystemExit(f"label-like array found in frozen scores: {ck}")
+            required = {"sample_index", "feature_names", "iu_pcr", DUFS_LIU_KEY}
+            missing = required - set(checkpoint.files)
+            if missing:
+                raise SystemExit(f"{ck}: frozen scores missing {sorted(missing)}")
+            scores[ck] = {
+                "sample_index": np.asarray(checkpoint["sample_index"]),
+                "feature_names": np.asarray(checkpoint["feature_names"]),
+                "iu_pcr": np.asarray(checkpoint["iu_pcr"], dtype=float),
+                DUFS_LIU_KEY: np.asarray(checkpoint[DUFS_LIU_KEY], dtype=float),
+            }
+        with open(diagnostic_path, encoding="utf-8") as handle:
+            diagnostic = json.load(handle)
+        scores[ck]["dufs_effective"] = float(
+            diagnostic["dufs"]["effective_feature_count"]
+        )
+    return scores
+
+
+def load_bundled_cells():
+    """Load the canonical exported cell matrices used by both experiment lines.
+
+    This avoids depending on private raw-cache directories when the report is
+    rebuilt from the committed experiment artifacts. The bundle contains the
+    already prepared canonical V, anchor, pool, and labels; it is hash-checked
+    against the frozen run definition before labels are exposed here.
+    """
+    definition_path = os.path.join(FROZEN, "RUN_DEFINITION.json")
+    with open(definition_path, encoding="utf-8") as handle:
+        definition = json.load(handle)
+    if sha256_file(BUNDLE) != definition.get("bundle_sha256"):
+        raise SystemExit("canonical cell bundle hash differs from the frozen run")
+
+    cells = {}
+    with np.load(BUNDLE, allow_pickle=True) as data:
+        for ck in INSCOPE:
+            required = [
+                f"{ck}__{suffix}" for suffix in ("V", "F", "labels", "anchor", "pool")
+            ]
+            missing = [key for key in required if key not in data.files]
+            if missing:
+                raise SystemExit(f"{ck}: canonical bundle missing {missing}")
+            V = np.asarray(data[f"{ck}__V"], dtype=np.float64)
+            rho_F = np.asarray(data[f"{ck}__F"], dtype=np.float64)
+            labels = np.asarray(data[f"{ck}__labels"], dtype=int)
+            anchor = np.asarray(data[f"{ck}__anchor"], dtype=np.float64)
+            pool = [str(name) for name in data[f"{ck}__pool"].tolist()]
+            if (V.shape != (len(labels), len(pool)) or rho_F.shape != V.T.shape
+                    or anchor.shape != labels.shape):
+                raise SystemExit(f"{ck}: invalid canonical bundle shapes")
+            cells[ck] = {
+                "V": V, "rho_F": rho_F, "anchor": anchor,
+                "pool": pool, "labels": labels,
+            }
+    return cells
+
+
 def lsml_oriented(cell, cols):
     V = cell["V"]
     fused, _ = lsml_continuous(*[V[:, c] for c in sorted(set(cols))])
@@ -137,22 +275,19 @@ def lsml_oriented(cell, cols):
 def upcr_rho_oriented(cell):
     """U-PCR with polarity from sign(rho-hat), global sign from the anchor.
 
-    `prepare_cell` has already applied ALL_SIGNS, so V must be multiplied by the
-    hand signs to RECOVER the unoriented feature before rho gets to derive the
-    polarity itself. Getting this backwards silently scores the incumbent arm."""
-    V, pool = cell["V"], cell["pool"]
-    hand = np.array([ALL_SIGNS.get(f, +1) for f in pool], dtype=float)
-    V_un = V * hand
-    derived = np.sign(upcr_fit(V_un.T, **FIT).rho_hat_full)
-    derived[derived == 0] = 1.0
-    F = (V_un * derived).T
+    The exported bundle stores the label-free rho polarity together with the
+    exact feature matrix consumed by the registered run. Reusing that matrix
+    prevents a later feature-sign registry edit from changing a historical arm.
+    """
+    F = cell["rho_F"]
     res = upcr_fit(F, **FIT)
     s, _ = anchor_orient(res.w @ F, cell["anchor"])
     return s, int(res.keep.sum())
 
 
 def build_rows():
-    cells = load_cells()
+    cells = load_bundled_cells()
+    frozen_scores = load_frozen_scores()
     ok, macro = assert_good6(cells, verbose=True)
     if not ok:
         raise SystemExit(f"validity check failed: GOOD_6 macro {macro:.4f} != "
@@ -164,6 +299,12 @@ def build_rows():
     pf_rec = {r["cell"]: r for r in bench if r["variant"] == "a2.dufs_pf"}
     up_rec = {r["cell"]: r for r in csv.DictReader(open(
         os.path.join(REPO, "results/upcr_study/06_orientation/per_cell.csv"), newline=""))}
+    frozen_rec = {
+        (r["cell"], r["method_key"]): float(r["auroc"])
+        for r in csv.DictReader(open(
+            os.path.join(FROZEN, "per_cell_metrics.csv"), newline=""))
+        if r["method_key"] in {"iu_pcr", DUFS_LIU_KEY}
+    }
 
     task = {}
     for r in csv.DictReader(open(
@@ -189,12 +330,24 @@ def build_rows():
         s_up, kept = upcr_rho_oriented(cell)
         a_up, lo_up, hi_up = boot_auc(y, s_up)
 
+        frozen = frozen_scores[ck]
+        if not np.array_equal(frozen["sample_index"], np.arange(len(y))):
+            raise SystemExit(f"{ck}: frozen score sample order does not match labels")
+        for score_key in ("iu_pcr", DUFS_LIU_KEY):
+            if frozen[score_key].shape != y.shape or not np.isfinite(frozen[score_key]).all():
+                raise SystemExit(f"{ck}: invalid frozen score array {score_key}")
+        a_iu, lo_iu, hi_iu = boot_auc(y, frozen["iu_pcr"])
+        a_dliu, lo_dliu, hi_dliu = boot_auc(y, frozen[DUFS_LIU_KEY])
+
         a_g6 = float(roc_auc_score(y, lsml_oriented(cell, good6_cols(cell))))
 
-        # reproduction gate: both arms must land on their recorded value.
+        # Reproduction gate: all four arms must land on their recorded value.
         for name, got, want in (("a2.dufs_pf", a_pf, float(pf_rec[ck]["auroc"])),
                                 ("upcr+sign(rho)", a_up,
-                                 float(up_rec[ck]["auroc_rho_anchor"]))):
+                                 float(up_rec[ck]["auroc_rho_anchor"])),
+                                ("iu_pcr", a_iu, frozen_rec[ck, "iu_pcr"]),
+                                (DUFS_LIU_KEY, a_dliu,
+                                 frozen_rec[ck, DUFS_LIU_KEY])):
             if abs(got - want) > 5e-4:
                 drift.append(f"{ck}/{name}: {got:.4f} vs recorded {want:.4f}")
 
@@ -210,11 +363,16 @@ def build_rows():
             pf=a_pf, pf_lo=lo_pf, pf_hi=hi_pf, pf_size=len(cols),
             pf_chosen=chosen,
             up=a_up, up_lo=lo_up, up_hi=hi_up, up_kept=kept,
+            iu=a_iu, iu_lo=lo_iu, iu_hi=hi_iu,
+            dliu=a_dliu, dliu_lo=lo_dliu, dliu_hi=hi_dliu,
+            stable_pool=int(len(frozen["feature_names"])),
+            dufs_effective=float(frozen["dufs_effective"]),
             g6=a_g6,
             seqlp=float(u["seqlp_auroc"]) if u and u.get("seqlp_auroc") else None,
             ppl=float(u["ppl_auroc"]) if u and u.get("ppl_auroc") else None,
         )
-        print(f"  {ck:34s} dufs_pf {a_pf:.4f}  upcr {a_up:.4f}  GOOD_6 {a_g6:.4f}",
+        print(f"  {ck:34s} dufs_pf {a_pf:.4f}  upcr {a_up:.4f}  "
+              f"iu {a_iu:.4f}  dufs_liu {a_dliu:.4f}  GOOD_6 {a_g6:.4f}",
               flush=True)
 
     if drift:
@@ -260,6 +418,14 @@ FOREST_LEGEND = (
     '<line x1="2" y1="7" x2="28" y2="7" class="rf-ci2"/>'
     '<rect x="10" y="2" width="10" height="10" class="rf-ours2"/></svg> '
     'DUFS parameter-free + L-SML — ours, label-free, K=1 (95% CI)</span>'
+    '<span class="rf-li"><svg width="30" height="14">'
+    '<line x1="2" y1="7" x2="28" y2="7" class="rf-ci3"/>'
+    '<path d="M 15 1 L 21 7 L 15 13 L 9 7 Z" class="rf-ours3"/></svg> '
+    'IU-PCR — fixed-stable pool, label-free fit, K=1 (95% CI)</span>'
+    '<span class="rf-li"><svg width="30" height="14">'
+    '<line x1="2" y1="7" x2="28" y2="7" class="rf-ci4"/>'
+    '<path d="M 15 1 L 21 12 L 9 12 Z" class="rf-ours4"/></svg> '
+    'DUFS-LIU (lambda=0.1) — fixed-stable pool, label-free fit, K=1 (95% CI)</span>'
     '<span class="rf-li"><svg width="10" height="14">'
     '<line x1="5" y1="1" x2="5" y2="13" class="rf-g6"/></svg> '
     'GOOD_6, the hand-picked subset (the bar to clear)</span>'
@@ -273,10 +439,19 @@ FOREST_LEGEND = (
 EXTRA_CSS = """
   .rf-ci2{stroke:#a855f7;stroke-width:2;stroke-linecap:round;}
   .rf-ours2{fill:#a855f7;stroke:#fff;stroke-width:1.5;}
+  .rf-ci3{stroke:#0f766e;stroke-width:2;stroke-linecap:round;}
+  .rf-ours3{fill:#0f766e;stroke:#fff;stroke-width:1.5;}
+  .rf-ci4{stroke:#ea580c;stroke-width:2;stroke-linecap:round;}
+  .rf-ours4{fill:#ea580c;stroke:#fff;stroke-width:1.5;}
   .rf-g6{stroke:#94a3b8;stroke-width:1.5;stroke-dasharray:2 2;}
   .arm{font-weight:700;}
   .arm-up{color:#2563eb;}
   .arm-pf{color:#7e22ce;}
+  .arm-iu{color:#0f766e;}
+  .arm-dliu{color:#c2410c;}
+  .rf-bar-pf{fill:#a855f7;}
+  .rf-bar-iu{fill:#0f766e;}
+  .rf-bar-dliu{fill:#ea580c;}
   .flagpill{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 6px;
     border-radius:10px;background:var(--amber-light);color:var(--amber-dark);
     margin-left:6px;vertical-align:middle;}
@@ -290,10 +465,10 @@ EXTRA_CSS = """
 
 
 def forest(rows, order, comp_by_cell, d0, d1, axname):
-    """One row per cell: both label-free arms with CIs, GOOD_6 tick, published marks."""
+    """One row per cell: four label-free arms, GOOD_6, and published marks."""
     # Labels are two lines (dataset, then model) because a single line at this font
     # runs off the left edge on the longest cells, e.g. MATH-500 (K=10 traces).
-    LBL, X0, X1, ROW, TOP = 200, 212, 860, 42, 16
+    LBL, X0, X1, ROW, TOP = 200, 212, 860, 60, 16
     n = len(order)
     H = TOP + n * ROW + 42          # +42 so the axis title clears the tick row
     x = lambda v: _lin(v * 100, d0, d1, X0, X1)
@@ -343,26 +518,46 @@ def forest(rows, order, comp_by_cell, d0, d1, axname):
                  f'x2="{x(r["g6"]):.1f}" y2="{cy+9:.1f}" class="rf-g6">'
                  f'<title>GOOD_6 (hand-picked subset): {r["g6"]*100:.1f}</title></line>')
 
-        yb, yt = cy + 7, cy - 7
-        s.append(f'<line x1="{x(r["pf_lo"]):.1f}" y1="{yb:.1f}" '
-                 f'x2="{x(r["pf_hi"]):.1f}" y2="{yb:.1f}" class="rf-ci2"/>')
-        s.append(f'<rect x="{x(r["pf"])-5:.1f}" y="{yb-5:.1f}" width="10" height="10" '
-                 f'class="rf-ours2"><title>DUFS parameter-free + L-SML: '
-                 f'{r["pf"]*100:.1f} [{r["pf_lo"]*100:.1f}, {r["pf_hi"]*100:.1f}], '
-                 f'{r["pf_size"]} of {r["pool"]} views kept</title></rect>')
-        s.append(f'<line x1="{x(r["up_lo"]):.1f}" y1="{yt:.1f}" '
-                 f'x2="{x(r["up_hi"]):.1f}" y2="{yt:.1f}" class="rf-ci"/>')
-        s.append(f'<circle cx="{x(r["up"]):.1f}" cy="{yt:.1f}" r="5.5" class="rf-ours">'
+        yup, ypf, yiu, ydliu = cy - 18, cy - 6, cy + 6, cy + 18
+        s.append(f'<line x1="{x(r["up_lo"]):.1f}" y1="{yup:.1f}" '
+                 f'x2="{x(r["up_hi"]):.1f}" y2="{yup:.1f}" class="rf-ci"/>')
+        s.append(f'<circle cx="{x(r["up"]):.1f}" cy="{yup:.1f}" r="5" class="rf-ours">'
                  f'<title>U-PCR + sign(rho): {r["up"]*100:.1f} '
                  f'[{r["up_lo"]*100:.1f}, {r["up_hi"]*100:.1f}], '
                  f'{r["up_kept"]} of {r["pool"]} views kept</title></circle>')
+
+        s.append(f'<line x1="{x(r["pf_lo"]):.1f}" y1="{ypf:.1f}" '
+                 f'x2="{x(r["pf_hi"]):.1f}" y2="{ypf:.1f}" class="rf-ci2"/>')
+        s.append(f'<rect x="{x(r["pf"])-4.5:.1f}" y="{ypf-4.5:.1f}" width="9" height="9" '
+                 f'class="rf-ours2"><title>DUFS parameter-free + L-SML: '
+                 f'{r["pf"]*100:.1f} [{r["pf_lo"]*100:.1f}, {r["pf_hi"]*100:.1f}], '
+                 f'{r["pf_size"]} of {r["pool"]} views kept</title></rect>')
+
+        xi = x(r["iu"])
+        s.append(f'<line x1="{x(r["iu_lo"]):.1f}" y1="{yiu:.1f}" '
+                 f'x2="{x(r["iu_hi"]):.1f}" y2="{yiu:.1f}" class="rf-ci3"/>')
+        s.append(f'<path d="M {xi:.1f} {yiu-5:.1f} L {xi+5:.1f} {yiu:.1f} '
+                 f'L {xi:.1f} {yiu+5:.1f} L {xi-5:.1f} {yiu:.1f} Z" class="rf-ours3">'
+                 f'<title>IU-PCR: {r["iu"]*100:.1f} '
+                 f'[{r["iu_lo"]*100:.1f}, {r["iu_hi"]*100:.1f}], '
+                 f'{r["stable_pool"]} fixed-stable features</title></path>')
+
+        xd = x(r["dliu"])
+        s.append(f'<line x1="{x(r["dliu_lo"]):.1f}" y1="{ydliu:.1f}" '
+                 f'x2="{x(r["dliu_hi"]):.1f}" y2="{ydliu:.1f}" class="rf-ci4"/>')
+        s.append(f'<path d="M {xd:.1f} {ydliu-5.5:.1f} L {xd+5.5:.1f} {ydliu+4.5:.1f} '
+                 f'L {xd-5.5:.1f} {ydliu+4.5:.1f} Z" class="rf-ours4">'
+                 f'<title>DUFS-LIU (lambda=0.1): {r["dliu"]*100:.1f} '
+                 f'[{r["dliu_lo"]*100:.1f}, {r["dliu_hi"]*100:.1f}], '
+                 f'DUFS effective feature count {r["dufs_effective"]:.1f} of '
+                 f'{r["stable_pool"]}</title></path>')
     s.append("</svg>")
     return "".join(s)
 
 
 def bars_fig(stats):
-    """Delta vs each cost-class bar, both arms, diverging from zero."""
-    X0, X1, ROW, TOP = 250, 850, 54, 16
+    """Delta vs each cost-class bar, all four arms, diverging from zero."""
+    X0, X1, ROW, TOP = 250, 850, 84, 16
     d0, d1 = -14.0, 14.0
     n = len(stats)
     H = TOP + n * ROW + 42          # +42 so the axis title clears the tick row
@@ -379,17 +574,21 @@ def bars_fig(stats):
              f'mean AUROC difference vs the bar (pp) &#183; positive = ours ahead</text>')
     for i, (tag, desc, ncov, per) in enumerate(stats):
         cy = TOP + i * ROW
-        s.append(f'<text x="240" y="{cy+20:.1f}" class="rf-rowlbl" text-anchor="end">'
+        s.append(f'<text x="240" y="{cy+34:.1f}" class="rf-rowlbl" text-anchor="end">'
                  f'Bar {tag}</text>')
-        s.append(f'<text x="240" y="{cy+34:.1f}" class="rf-rowsub" text-anchor="end">'
+        s.append(f'<text x="240" y="{cy+49:.1f}" class="rf-rowsub" text-anchor="end">'
                  f'{ncov} cells</text>')
-        for j, (arm, cls) in enumerate((("up", "rf-bar-ours"), ("pf", "rf-bar-pf"))):
+        classes = {
+            "up": "rf-bar-ours", "pf": "rf-bar-pf",
+            "iu": "rf-bar-iu", "dliu": "rf-bar-dliu",
+        }
+        for j, arm in enumerate(OURS_KEYS):
             v = per[arm]["mean"] * 100
-            by = cy + 10 + j * 17
+            by = cy + 6 + j * 18
             x0, x1 = min(x(0), x(v)), max(x(0), x(v))
             s.append(f'<rect x="{x0:.1f}" y="{by:.1f}" width="{max(x1-x0,1):.1f}" '
-                     f'height="13" class="{cls}"><title>'
-                     f'{"U-PCR + sign(rho)" if arm=="up" else "DUFS parameter-free + L-SML"}: '
+                     f'height="13" class="{classes[arm]}"><title>'
+                     f'{OURS_LABELS[arm]}: '
                      f'{v:+.2f}pp mean, {per[arm]["w"]}W/{per[arm]["l"]}L, '
                      f'p={per[arm]["p"]:.3f}</title></rect>')
             tx = x1 + 6 if v >= 0 else x0 - 6
@@ -413,9 +612,7 @@ def main():
         comp_by_cell.setdefault(r["cell"], []).append(r)
 
     inband = [c for c in INSCOPE if not rows[c]["flag"]]
-    arms = [("up", "U-PCR + sign(rho)", "arm-up"),
-            ("pf", "DUFS parameter-free + L-SML", "arm-pf"),
-            ("g6", "GOOD_6 (hand-picked 6-view subset)", "")]
+    arms = [*OURS, ("g6", "GOOD_6 (hand-picked 6-view subset)", "")]
 
     P = []
     A = P.append
@@ -423,8 +620,9 @@ def main():
     A('<div class="header-hero"><div class="header-content">')
     A('<h1>Label-free selection, scored on the in-scope grid</h1>')
     A('<div class="subtitle">The QA-evaluation desk and the published-benchmark desk '
-      'on one page, rescored for the two arms that need nothing hand-picked: '
-      'DUFS parameter-free + L-SML, and U-PCR with sign(rho) orientation.</div>')
+      'on one page. It now places IU-PCR and DUFS-LIU beside the two legacy '
+      'label-free arms, on the same 24 dataset/model cells and against the same '
+      'published same-model numbers.</div>')
     A('<div class="meta-pills">'
       '<span class="meta-pill">Generated by scripts/labelfree_standing_report.py</span>'
       f'<span class="meta-pill">{len(INSCOPE)} in-scope cells &#183; {len(QA_CELLS)} QA + {len(MATH_CELLS)} math</span>'
@@ -444,17 +642,23 @@ def main():
       'the current pipeline: which cells the method works on, and where it stands '
       'against published detectors, using only arms that never see a label.</p>')
     A('<div class="grid2">')
-    A('<div><h3>The two arms</h3><ul>'
+    A('<div><h3>The four arms</h3><ul>'
       '<li><b class="arm arm-up">U-PCR + sign(rho)</b> &mdash; each view\'s polarity comes '
       'from the sign of its estimated covariance with the latent target, and U-PCR\'s own '
       'exclusion step decides which views survive. No subset is supplied.</li>'
       '<li><b class="arm arm-pf">DUFS parameter-free + L-SML</b> &mdash; per-feature gates '
       'trained on the gated-Laplacian objective in its ratio form (DUFS Eq. 7), so there '
       'is no sparsity strength to tune, then continuous L-SML over the surviving views.</li>'
-      '</ul><p>Both carry exactly one hand-set prior: the global anchor bit that says '
-      'which direction means correct. Dropping it inverts every cell, and it is not '
-      'recoverable from the covariance, since flipping every view leaves the covariance '
-      'bit-identical.</p></div>')
+      '<li><b class="arm arm-iu">IU-PCR</b> &mdash; the full fixed-stable pool, two '
+      'principal components, and no post-estimation feature exclusion.</li>'
+      '<li><b class="arm arm-dliu">DUFS-LIU (lambda=0.1)</b> &mdash; the same IU-PCR '
+      'solve plus a Laplacian penalty built from a DUFS-gated sample graph. DUFS gates '
+      'change the graph metric; they do not delete features.</li>'
+      '</ul><p>All four fits are label-free. The two legacy arms use their global anchor '
+      'bit. IU-PCR and DUFS-LIU use the predeclared <code>fixed_stable_v1</code> feature '
+      'contract and fixed correctness direction. Therefore DUFS-LIU versus IU-PCR is the '
+      'clean graph-penalty ablation; comparisons to the legacy arms are useful standing '
+      'comparisons, but also change the feature/orientation contract.</p></div>')
     A(f'<div><h3>Scope</h3><p>{len(INSCOPE)} cells: {len(QA_CELLS)} short-answer QA and '
       f'{len(MATH_CELLS)} math reasoning. '
       'GPQA is out because every view sits at chance there (0.51 to 0.55, nothing to '
@@ -464,13 +668,14 @@ def main():
       'plain multi-hop QA trace on Mistral-7B, not part of the excluded retrieval '
       'battery; it is kept because the canonical roster keeps it, and it is an honest '
       'loss.</p>'
-      '<p>Every number is recomputed here through the canonical scoring path and gated '
-      'against its recorded value before the page is written; a drift above 0.0005 AUROC '
-      'aborts the build.</p></div>')
+      '<p>Every legacy number is recomputed through its canonical scoring path. IU-PCR '
+      'and DUFS-LIU are read from the immutable 24-cell score freeze after its run '
+      'fingerprint and SHA-256 hashes are verified. All four are then checked against '
+      'their recorded AUROC; a drift above 0.0005 aborts the build.</p></div>')
     A('</div>')
 
     A('<div class="kv">')
-    for key, lab, _ in arms[:2]:
+    for key, lab, _ in OURS:
         A(f'<div class="kvi"><div class="kvn">{macro_row(rows, INSCOPE, key)*100:.1f}%</div>'
           f'<div class="kvl">{esc(lab)} &#183; macro over {len(INSCOPE)} cells</div></div>')
     A(f'<div class="kvi"><div class="kvn">{macro_row(rows, INSCOPE, "g6")*100:.1f}%</div>'
@@ -483,12 +688,16 @@ def main():
 
     # ---- headline table ---------------------------------------------------
     A('<div class="section-card">')
-    A('<span class="section-badge badge-completed">Where the two arms land</span>')
+    A('<span class="section-badge badge-completed">Where the four arms land</span>')
     A('<h2>Macro standing</h2>')
-    A('<table><tr><th>Method</th><th>Prior it needs</th><th class="num">Macro (25)</th>'
-      '<th class="num">QA (10)</th><th class="num">Math (15)</th>'
-      '<th class="num">In-band only (19)</th></tr>')
+    A(f'<table><tr><th>Method</th><th>Prior it needs</th>'
+      f'<th class="num">Macro ({len(INSCOPE)})</th>'
+      f'<th class="num">QA ({len(QA_CELLS)})</th>'
+      f'<th class="num">Math ({len(MATH_CELLS)})</th>'
+      f'<th class="num">In-band only ({len(inband)})</th></tr>')
     priors = {"up": "global anchor bit only", "pf": "global anchor bit only",
+              "iu": "fixed-stable pool + correctness direction",
+              "dliu": "same as IU-PCR + frozen lambda=0.1",
               "g6": "hand-picked 6-view subset"}
     for key, lab, cls in arms:
         bold = ("<b>", "</b>") if key != "g6" else ("", "")
@@ -502,24 +711,30 @@ def main():
 
     A('<h3>Paired, cell by cell</h3>')
     A(f'<table><tr><th>Contrast</th><th>Effect over the {len(INSCOPE)} cells</th></tr>')
-    for a, b, lab in (("pf", "up", "U-PCR + sign(rho) &minus; DUFS parameter-free"),
+    for a, b, lab in (("iu", "dliu", "DUFS-LIU &minus; IU-PCR (clean LIU ablation)"),
+                      ("up", "iu", "IU-PCR &minus; U-PCR + sign(rho)"),
+                      ("pf", "dliu", "DUFS-LIU &minus; DUFS parameter-free + L-SML"),
+                      ("pf", "up", "U-PCR + sign(rho) &minus; DUFS parameter-free"),
                       ("pf", "g6", "GOOD_6 &minus; DUFS parameter-free"),
-                      ("up", "g6", "GOOD_6 &minus; U-PCR + sign(rho)")):
+                      ("up", "g6", "GOOD_6 &minus; U-PCR + sign(rho)"),
+                      ("iu", "g6", "GOOD_6 &minus; IU-PCR"),
+                      ("dliu", "g6", "GOOD_6 &minus; DUFS-LIU")):
         A(f'<tr><td>{lab}</td><td>{fmt_pair(paired(rows, INSCOPE, a, b))}</td></tr>')
     A('</table>')
-    A('<div class="takeaway-box"><b>Neither gap to the hand-picked subset is '
-      'significant.</b> The claim is not that a label-free selector wins. It is that '
-      'both reach the hand-curated bar without ever seeing an answer key, which is the '
-      'thing GOOD_6 cannot say about itself. The two arms are also statistically '
-      'indistinguishable from each other.</div>')
+    dliu_iu = paired(rows, INSCOPE, "iu", "dliu")
+    A('<div class="takeaway-box"><b>DUFS-LIU does not improve the 24-cell macro over '
+      f'IU-PCR: {dliu_iu["mean"]*100:+.3f}pp, p={dliu_iu["p"]:.3f}.</b> The value of '
+      'putting these methods on this page is the cell-level pattern: it shows where the '
+      'near-zero macro hides gains and losses. No best-per-cell choice below is a '
+      'deployable selector.</div>')
     A('</div>')
 
     # ---- QA figure + table ------------------------------------------------
     A('<div class="section-card">')
     A('<span class="section-badge badge-completed">The QA desk, rescored</span>')
-    A('<h2>Short-form QA, ten cells</h2>')
+    A(f'<h2>Short-form QA, {len(QA_CELLS)} cells</h2>')
     qa_order = sorted(QA_CELLS, key=lambda c: -rows[c]["up"])
-    A(_fig("Short-answer QA: both label-free arms against every published same-model number",
+    A(_fig("Short-answer QA: all four label-free arms against every published same-model number",
            "One row per cell, sorted by U-PCR + sign(rho). Hover any mark for its value, "
            "cost class and source.",
            FOREST_LEGEND,
@@ -533,7 +748,8 @@ def main():
     A('<h3>Per cell</h3>')
     A('<table><tr><th>Dataset</th><th>Model</th><th class="num">n</th>'
       '<th class="num">pos rate</th><th class="num">U-PCR + sign(rho)</th>'
-      '<th class="num">DUFS param-free</th><th class="num">GOOD_6</th>'
+      '<th class="num">DUFS param-free</th><th class="num">IU-PCR</th>'
+      '<th class="num">DUFS-LIU</th><th class="num">GOOD_6</th>'
       '<th>Strongest published, unsupervised single-pass (Bar B)</th></tr>')
     barB = bar_best(comp, BARS[1][2])
     for ck in qa_order:
@@ -548,6 +764,10 @@ def main():
           f'<span class="ci">[{r["up_lo"]*100:.1f}, {r["up_hi"]*100:.1f}]</span></td>'
           f'<td class="num arm arm-pf">{r["pf"]*100:.1f} '
           f'<span class="ci">[{r["pf_lo"]*100:.1f}, {r["pf_hi"]*100:.1f}]</span></td>'
+          f'<td class="num arm arm-iu">{r["iu"]*100:.1f} '
+          f'<span class="ci">[{r["iu_lo"]*100:.1f}, {r["iu_hi"]*100:.1f}]</span></td>'
+          f'<td class="num arm arm-dliu">{r["dliu"]*100:.1f} '
+          f'<span class="ci">[{r["dliu_lo"]*100:.1f}, {r["dliu_hi"]*100:.1f}]</span></td>'
           f'<td class="num">{r["g6"]*100:.1f}</td><td>{pubs}</td></tr>')
     A('</table>')
     qa_gap = macro_row(rows, QA_CELLS, "g6") - macro_row(rows, QA_CELLS, "up")
@@ -571,18 +791,19 @@ def main():
       '<code>seiclr_triviaqa_opt30b</code> is <b>REPAIRED</b> by cropping its features to '
       'the answer span its grader already reads, moving it from 0.5614 to '
       f'{rows["seiclr_triviaqa_opt30b"]["pf"]*100:.2f} / '
-      f'{rows["seiclr_triviaqa_opt30b"]["up"]*100:.2f} on the two arms. '
+      f'{rows["seiclr_triviaqa_opt30b"]["up"]*100:.2f} on the two legacy arms. '
       f'On the nine surviving QA cells the largest single contributor is now '
       f'<b>{esc(w["dataset"])} / {esc(w["model"])}</b> at '
       f'{(w["g6"] - w["up"])*100:+.2f}pp; dropping it moves the QA gap to '
       f'{qa_gap_nw*100:+.2f}pp over the remaining eight. There is no longer one cell '
       'carrying this desk.</div>')
 
-    # The Step-155 gate, re-run under the label-free arms rather than GOOD_5.
+    # The Step-155 gate, re-run under all displayed label-free arms rather than GOOD_5.
     A('<h3>The Step-155 QA decision gate, re-run</h3>')
     A('<p>The gate that opened the QA extension was: at least 3 of the 4 short-QA '
       'datasets reach AUROC 65 or better. It was written for the hand-picked subset. '
-      'Re-run against the better of the two label-free arms per cell:</p>')
+      'Re-run descriptively against the better of the four displayed label-free arms '
+      'per cell. This maximum is not a deployable selection rule:</p>')
     GATE = ["se_squad_v2_llama8b", "truthfulqa_llama8b", "sciq_llama8b",
             "se_nq_open_llama8b"]
     A('<table><tr><th>Dataset</th><th class="num">Best label-free arm</th>'
@@ -590,8 +811,8 @@ def main():
     npass = 0
     for ck in GATE:
         r = rows[ck]
-        best, which = ((r["up"], "U-PCR + sign(rho)") if r["up"] >= r["pf"]
-                       else (r["pf"], "DUFS parameter-free"))
+        which_key = max(OURS_KEYS, key=lambda key: r[key])
+        best, which = r[which_key], OURS_LABELS[which_key]
         ok_ = best >= 0.65
         npass += ok_
         A(f'<tr><td>{esc(r["dataset"])}</td><td class="num">{best*100:.1f}</td>'
@@ -599,7 +820,7 @@ def main():
           f'{"&ge; 65 &#10003;" if ok_ else "&lt; 65 &#10007;"}</td></tr>')
     A('</table>')
     A(f'<div class="takeaway-box"><b>Gate status: {npass} of 4 clear the bar</b> without '
-      'a hand-picked subset anywhere in the path, and every caveat that was attached the '
+      'per-cell label-based selection, and every caveat that was attached the '
       'first time still applies. <b>This gate is not a clean sweep of short-form QA.</b> '
       'It was written over four datasets, and <b>CoQA &mdash; the top-priority dataset of '
       'the QA extension &mdash; is deliberately not one of them</b>. That omission now '
@@ -615,9 +836,9 @@ def main():
     # ---- math figure + table ----------------------------------------------
     A('<div class="section-card">')
     A('<span class="section-badge badge-completed">The reasoning desk, rescored</span>')
-    A('<h2>Math reasoning, fifteen cells</h2>')
+    A(f'<h2>Math reasoning, {len(MATH_CELLS)} cells</h2>')
     math_order = sorted(MATH_CELLS, key=lambda c: -rows[c]["up"])
-    A(_fig("GSM8K and MATH-500: both label-free arms against every published same-model number",
+    A(_fig("GSM8K and MATH-500: all four label-free arms against every published same-model number",
            "One row per cell, sorted by U-PCR + sign(rho).",
            FOREST_LEGEND,
            forest(rows, math_order, comp_by_cell, 40, 100,
@@ -629,12 +850,17 @@ def main():
            f"{(macro_row(rows, MATH_CELLS, 'up') - macro_row(rows, MATH_CELLS, 'g6'))*100:+.2f}pp "
            "against GOOD_6 here and DUFS parameter-free is "
            f"{(macro_row(rows, MATH_CELLS, 'pf') - macro_row(rows, MATH_CELLS, 'g6'))*100:+.2f}pp, "
-           "both well inside noise."))
+           "IU-PCR is "
+           f"{(macro_row(rows, MATH_CELLS, 'iu') - macro_row(rows, MATH_CELLS, 'g6'))*100:+.2f}pp "
+           "and DUFS-LIU is "
+           f"{(macro_row(rows, MATH_CELLS, 'dliu') - macro_row(rows, MATH_CELLS, 'g6'))*100:+.2f}pp. "
+           "These are fixed-method summaries, not cell-wise selections."))
 
     A('<h3>Per cell</h3>')
     A('<table><tr><th>Dataset</th><th>Model</th><th class="num">n</th>'
       '<th class="num">pos rate</th><th class="num">U-PCR + sign(rho)</th>'
-      '<th class="num">DUFS param-free</th><th class="num">GOOD_6</th>'
+      '<th class="num">DUFS param-free</th><th class="num">IU-PCR</th>'
+      '<th class="num">DUFS-LIU</th><th class="num">GOOD_6</th>'
       '<th>Strongest published, unsupervised single-pass (Bar B)</th></tr>')
     for ck in math_order:
         r = rows[ck]
@@ -648,6 +874,10 @@ def main():
           f'<span class="ci">[{r["up_lo"]*100:.1f}, {r["up_hi"]*100:.1f}]</span></td>'
           f'<td class="num arm arm-pf">{r["pf"]*100:.1f} '
           f'<span class="ci">[{r["pf_lo"]*100:.1f}, {r["pf_hi"]*100:.1f}]</span></td>'
+          f'<td class="num arm arm-iu">{r["iu"]*100:.1f} '
+          f'<span class="ci">[{r["iu_lo"]*100:.1f}, {r["iu_hi"]*100:.1f}]</span></td>'
+          f'<td class="num arm arm-dliu">{r["dliu"]*100:.1f} '
+          f'<span class="ci">[{r["dliu_lo"]*100:.1f}, {r["dliu_hi"]*100:.1f}]</span></td>'
           f'<td class="num">{r["g6"]*100:.1f}</td><td>{pubs}</td></tr>')
     A('</table>')
     A('</div>')
@@ -667,7 +897,7 @@ def main():
         B = bar_best(comp, pred)
         cov = [c for c in INSCOPE if c in B]
         per = {}
-        for key in ("up", "pf", "g6"):
+        for key in (*OURS_KEYS, "g6"):
             dl = [rows[c][key] - B[c]["auroc"] for c in cov]
             per[key] = dict(mean=st.mean(dl), median=st.median(dl),
                             w=sum(v > 0 for v in dl), l=sum(v < 0 for v in dl),
@@ -682,7 +912,13 @@ def main():
            'U-PCR + sign(rho)</span>'
            '<span class="rf-li"><svg width="16" height="12">'
            '<rect x="0" y="1" width="16" height="10" class="rf-bar-pf"/></svg> '
-           'DUFS parameter-free + L-SML</span>',
+           'DUFS parameter-free + L-SML</span>'
+           '<span class="rf-li"><svg width="16" height="12">'
+           '<rect x="0" y="1" width="16" height="10" class="rf-bar-iu"/></svg> '
+           'IU-PCR</span>'
+           '<span class="rf-li"><svg width="16" height="12">'
+           '<rect x="0" y="1" width="16" height="10" class="rf-bar-dliu"/></svg> '
+           'DUFS-LIU (lambda=0.1)</span>',
            bars_fig(stats),
            "Bar A is our exact cost class, grey-box and single-pass, and it covers only "
            "5 cells, so its p-value cannot reach significance whatever the effect. Bar B "
@@ -695,44 +931,50 @@ def main():
            "than by accident."))
 
     A('<table><tr><th>Bar</th><th>What it contains</th><th class="num">Cells</th>'
-      '<th>U-PCR + sign(rho)</th><th>DUFS parameter-free</th></tr>')
+      '<th>U-PCR + sign(rho)</th><th>DUFS parameter-free</th>'
+      '<th>IU-PCR</th><th>DUFS-LIU</th></tr>')
     for tag, desc, ncov, per in stats:
         def cell(pp):
             cls = "win" if pp["mean"] > 0 else "loss"
             return (f'<td class="{cls}">{pp["mean"]*100:+.2f}pp mean, '
                     f'{pp["w"]}W/{pp["l"]}L, p={pp["p"]:.3f}</td>')
         A(f'<tr><td><b>{tag}</b></td><td>{esc(desc)}</td>'
-          f'<td class="num">{ncov}</td>{cell(per["up"])}{cell(per["pf"])}</tr>')
+          f'<td class="num">{ncov}</td>'
+          f'{cell(per["up"])}{cell(per["pf"])}{cell(per["iu"])}'
+          f'{cell(per["dliu"])}</tr>')
     A('</table>')
     S = {t: (n, p) for t, _, n, p in stats}
     A('<div class="takeaway-box"><b>The one-sentence version, said in the right order.</b> '
-      'Our exact class is Bar A, grey-box and single-pass, and there we are '
-      f'{S["A"][1]["up"]["mean"]*100:+.2f}pp (U-PCR) and {S["A"][1]["pf"]["mean"]*100:+.2f}pp '
-      f'(DUFS) over {S["A"][0]} cells, which is far too few to be significant '
-      f'(p={S["A"][1]["up"]["p"]:.3f}). Widen to every unsupervised single-pass method, '
-      'including ones that read internals we never touch, and both arms are around '
-      f'{S["B"][1]["up"]["mean"]*100:.1f}pp ahead on {S["B"][0]} cells at '
-      f'p={S["B"][1]["up"]["p"]:.3f}. That is the strongest defensible claim on this '
-      'page, and it is a claim about Bar B, not about our own narrower class. Against '
-      'methods that sample ten times we are level. Against supervised probes we are '
-      f'behind by {abs(S["D"][1]["up"]["mean"])*100:.1f} to '
-      f'{abs(S["D"][1]["pf"]["mean"])*100:.1f}pp.</div>')
+      'Our exact class is Bar A, grey-box and single-pass. Over its '
+      f'{S["A"][0]} covered cells, the four fixed methods range from '
+      f'{min(S["A"][1][key]["mean"] for key in OURS_KEYS)*100:+.2f}pp to '
+      f'{max(S["A"][1][key]["mean"] for key in OURS_KEYS)*100:+.2f}pp versus the '
+      'strongest published number. Widening to Bar B adds unsupervised single-pass '
+      'methods that may read internals we never touch; the table reports each method '
+      'separately. Bar C also admits multi-pass sampling, and Bar D admits supervised '
+      'probes. Do not quote the best of the four as if a label-free router had selected '
+      'it; no such router exists.</div>')
 
     A('<h3>Per cell, against the strongest unsupervised single-pass number (Bar B)</h3>')
     A('<table><tr><th>Dataset</th><th>Model</th>'
       '<th class="num">U-PCR + sign(rho)</th><th class="num">DUFS param-free</th>'
-      '<th>Published</th><th class="num">Best of ours &minus; them</th></tr>')
+      '<th class="num">IU-PCR</th><th class="num">DUFS-LIU</th>'
+      '<th>Published</th><th class="num">Best displayed &minus; them*</th></tr>')
     for ck in sorted((c for c in INSCOPE if c in barB),
-                     key=lambda c: -(max(rows[c]["up"], rows[c]["pf"]) - barB[c]["auroc"])):
+                     key=lambda c: -(max(rows[c][key] for key in OURS_KEYS)
+                                      - barB[c]["auroc"])):
         r, pub = rows[ck], barB[ck]
-        dl = max(r["up"], r["pf"]) - pub["auroc"]
+        dl = max(r[key] for key in OURS_KEYS) - pub["auroc"]
         cls = "win" if dl > 0 else "loss"
         A(f'<tr><td>{esc(r["dataset"])}</td><td>{esc(r["model"])}</td>'
           f'<td class="num">{r["up"]*100:.1f}</td><td class="num">{r["pf"]*100:.1f}</td>'
+          f'<td class="num">{r["iu"]*100:.1f}</td><td class="num">{r["dliu"]*100:.1f}</td>'
           f'<td>{pub["auroc"]*100:.1f} &#183; {esc(pub["method"])} '
           f'<span class="ci">({esc(pub["access"])})</span></td>'
           f'<td class="num {cls}">{dl*100:+.2f}pp</td></tr>')
     A('</table>')
+    A('<p class="rf-fnote">* Descriptive cell-wise maximum only. It is not the output '
+      'of a deployable, label-free method selector.</p>')
     A('</div>')
 
     # ---- appendix ----------------------------------------------------------
@@ -742,20 +984,26 @@ def main():
 
     A('<h3>What each arm actually selected</h3>')
     A('<table><tr><th>Dataset</th><th>Model</th>'
-      '<th class="num">Pool</th><th class="num">DUFS param-free kept</th>'
-      '<th class="num">U-PCR kept</th></tr>')
+      '<th class="num">Legacy pool</th><th class="num">DUFS param-free kept</th>'
+      '<th class="num">U-PCR kept</th><th class="num">Fixed-stable pool</th>'
+      '<th class="num">DUFS-LIU effective count</th></tr>')
     for ck in INSCOPE:
         r = rows[ck]
         A(f'<tr><td>{esc(r["dataset"])}</td><td>{esc(r["model"])}</td>'
           f'<td class="num">{r["pool"]}</td><td class="num">{r["pf_size"]}</td>'
-          f'<td class="num">{r["up_kept"]}</td></tr>')
+          f'<td class="num">{r["up_kept"]}</td>'
+          f'<td class="num">{r["stable_pool"]}</td>'
+          f'<td class="num">{r["dufs_effective"]:.1f}</td></tr>')
     A('</table>')
     pf_mean = st.mean(rows[c]["pf_size"] for c in INSCOPE)
     up_mean = st.mean(rows[c]["up_kept"] for c in INSCOPE)
     A(f'<p>Averaged over the grid, the DUFS gates keep {pf_mean:.1f} views and U-PCR\'s '
       f'exclusion step keeps {up_mean:.1f}, out of a pool that is 30 views where every '
       'field was captured and slightly smaller where a cell is missing one. Neither '
-      'number was chosen; both fall out of the respective objective.</p>')
+      'number was chosen; both fall out of the respective objective. IU-PCR keeps every '
+      'feature allowed by the separate fixed-stable contract. DUFS-LIU uses the same '
+      'features and continuous gates, so its effective count is a concentration '
+      'diagnostic, not a hard selected subset.</p>')
 
     A('<h3>The trivial single-number floors, on our own traces</h3>')
     A('<p>Published numbers come from other people\'s inference budgets. The tightest '
@@ -763,20 +1011,24 @@ def main():
       'mean sequence log-probability, and perplexity. This is a floor check, not a '
       'headline comparison.</p>')
     A('<table><tr><th>Dataset</th><th>Model</th><th class="num">U-PCR + sign(rho)</th>'
-      '<th class="num">DUFS param-free</th><th class="num">seq-logprob</th>'
-      '<th class="num">perplexity</th><th class="num">Best of ours &minus; seq-logprob</th></tr>')
+      '<th class="num">DUFS param-free</th><th class="num">IU-PCR</th>'
+      '<th class="num">DUFS-LIU</th><th class="num">seq-logprob</th>'
+      '<th class="num">perplexity</th>'
+      '<th class="num">Best displayed &minus; seq-logprob*</th></tr>')
     have = [c for c in INSCOPE if rows[c]["seqlp"] is not None]
-    for ck in sorted(have, key=lambda c: -(max(rows[c]["up"], rows[c]["pf"]) - rows[c]["seqlp"])):
+    for ck in sorted(have, key=lambda c: -(max(rows[c][key] for key in OURS_KEYS)
+                                           - rows[c]["seqlp"])):
         r = rows[ck]
-        dl = max(r["up"], r["pf"]) - r["seqlp"]
+        dl = max(r[key] for key in OURS_KEYS) - r["seqlp"]
         cls = "win" if dl > 0.005 else ("loss" if dl < -0.005 else "neutral")
         A(f'<tr><td>{esc(r["dataset"])}</td><td>{esc(r["model"])}</td>'
           f'<td class="num">{r["up"]*100:.1f}</td><td class="num">{r["pf"]*100:.1f}</td>'
+          f'<td class="num">{r["iu"]*100:.1f}</td><td class="num">{r["dliu"]*100:.1f}</td>'
           f'<td class="num">{r["seqlp"]*100:.1f}</td>'
           f'<td class="num">{r["ppl"]*100:.1f}</td>'
           f'<td class="num {cls}">{dl*100:+.2f}pp</td></tr>')
     A('</table>')
-    dl = [max(rows[c]["up"], rows[c]["pf"]) - rows[c]["seqlp"] for c in have]
+    dl = [max(rows[c][key] for key in OURS_KEYS) - rows[c]["seqlp"] for c in have]
     A(f'<div class="warn-box"><b>Against seq-logprob: {sum(v > 0.005 for v in dl)} wins, '
       f'{sum(abs(v) <= 0.005 for v in dl)} ties, {sum(v < -0.005 for v in dl)} losses '
       f'over {len(have)} cells ({st.mean(dl)*100:+.2f}pp mean, '
@@ -784,7 +1036,8 @@ def main():
       'cells have no scored seq-logprob row and are excluded. This baseline is close '
       'and it is meant to be reported that way: it is the honest floor for any '
       'single-pass grey-box detector, and beating the published roster while only '
-      'edging the trivial baseline is a real limitation of the current numbers.</div>')
+      'edging the trivial baseline is a real limitation of the current numbers. '
+      'The best-displayed column is descriptive and is not a deployable selector.</div>')
 
     A('<h3>Positive rate versus task accuracy</h3>')
     starred = [c for c in INSCOPE if rows[c]["task_acc"] is not None
@@ -906,7 +1159,6 @@ BASE_CSS = """
   padding:2px 6px;border-radius:4px;color:var(--gray-800);}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin:20px 0;}
   @media(max-width:820px){.grid2{grid-template-columns:1fr;}}
-  .rf-bar-pf{fill:#a855f7;}
 """
 
 

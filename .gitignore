@@ -103,6 +103,20 @@ cache/repgrid/
 results/runs/
 results/report_*.html
 
+# Research-run intermediates. Commit reports, summary tables, manifests, and
+# advisor figures; regenerate per-run score matrices and verbose diagnostics.
+results/**/*.npz
+results/**/diagnostics/
+results/**/training_history.csv
+results/frozen_24cell_benchmark_failed_nan_diagnostic/
+
+# The frozen 24-cell score bundle is the canonical exception: the standing
+# report verifies these hashes and needs the files on a clean clone.
+!results/frozen_24cell_benchmark/scores/
+!results/frozen_24cell_benchmark/scores/*.npz
+!results/frozen_24cell_benchmark/diagnostics/
+!results/frozen_24cell_benchmark/diagnostics/*.json
+
 # Phase 15+ notebooks — re-include (would otherwise match Phase1* above)
 !Spectral_Analysis_Phase15*.ipynb
 

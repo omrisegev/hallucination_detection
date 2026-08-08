@@ -1,8 +1,8 @@
 # Research Brief: Expanding Agentic Hallucination Detection Beyond RAG
 
-**For**: Gemini Deep Research  
-**From**: Omri Segev (TAU MSc Thesis)  
-**Date**: 2026-05-15  
+**For**: Gemini Deep Research
+**From**: Omri Segev (TAU MSc Thesis)
+**Date**: 2026-05-15
 **Purpose**: Identify the best agentic benchmarks and tasks to extend our hallucination detection experiments, with a focus on SOTA comparability.
 
 ---
@@ -20,7 +20,7 @@ We implement a **3-step ReAct loop** on multi-hop QA (HotpotQA, 2WikiMultiHopQA)
 ```
 Thought: <reasoning>
 Action: search("<query>") or finish("<answer>")
-Confidence: <float in [0,1]>  
+Confidence: <float in [0,1]>
 Concern: <risk description>
 ```
 
@@ -112,7 +112,7 @@ Known methods to cross-check against:
 
 ### Question 3: Code Execution Agents — Hallucination and Uncertainty
 
-Code generation is a natural extension: the model "hallucinates" by writing code that references non-existent functions, wrong APIs, or incorrect logic. The label is automatic (unit test pass/fail). 
+Code generation is a natural extension: the model "hallucinates" by writing code that references non-existent functions, wrong APIs, or incorrect logic. The label is automatic (unit test pass/fail).
 
 - What benchmarks exist for **iterative code-fix agents** (model writes code, sees error, fixes it — multi-step)?
 - Is there published uncertainty quantification or hallucination detection on these benchmarks?

@@ -57,6 +57,26 @@ The stable schema is an experimental arm, not a blanket deletion from every lega
 This is deliberate: on the real artifact it helps SU-PCR/SDSF in aggregate, but it is fractionally
 worse for plain U-PCR and does not eliminate SDSF's real-cell tails.
 
+## DUFS-LIU mixed-v2 development contract
+
+`fixed_stable_v1` remains the historical frozen baseline. The next external
+DUFS-LIU run uses a separately versioned development candidate rather than
+removing all four views:
+
+| feature | operation |
+|---|---|
+| `pe_mean` | replace with `-z^2` |
+| `stft_spectral_entropy` | replace with `-|rank(x)-mode_rank|` |
+| `cusum_shift_idx` | keep raw under its frozen confidence direction |
+| `rpdi` | keep raw under its frozen confidence direction |
+
+The code registry is
+`spectral_utils/dufs_liu_feature_contract.py` and its version is
+`dufs-liu-mixed-v2-development-2026-08-07`. The mapping was selected from 256
+contracts on the existing 24 development cells. It must not be changed after
+seeing the next external-family results. The observed +0.242pp development
+gain is selection-biased and is not a replacement for the historical headline.
+
 ## Evidence after the correction
 
 The artifact-only replay in `results/fixed_orientation_validation/` shows:

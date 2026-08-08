@@ -1,0 +1,97 @@
+{
+  "version": "specrage-liu-real-calibration-v2-2026-08-06",
+  "stage": "smoke",
+  "runtime_seconds": 49.25164437294006,
+  "bundle": "results/dependency_fusion_raw/cells.npz",
+  "cells": [
+    "ars_gsm8k_r1distill8b",
+    "epr_triviaqa_mistral24b",
+    "internalstates_gsm8k_qwen25_7b",
+    "lapeigvals_gsm8k_llama3b",
+    "lapeigvals_gsm8k_llama8b",
+    "lapeigvals_gsm8k_mistral24b",
+    "lapeigvals_gsm8k_nemo",
+    "lapeigvals_gsm8k_phi35",
+    "losnet_hotpotqa_mistral7b",
+    "math500_dsmath7b"
+  ],
+  "model_seeds": [
+    11
+  ],
+  "dufs_seeds": [
+    11
+  ],
+  "dufs_epochs": 20,
+  "view_schema": "specrage-provenance-views-v1-2026-08-06",
+  "lambdas": [
+    0.0,
+    0.1,
+    0.3,
+    1.0,
+    3.0,
+    10.0,
+    30.0,
+    100.0
+  ],
+  "configs": {
+    "agreement_k15": {
+      "output_dim": 2,
+      "n_neighbors": 15,
+      "temperature": 1.0,
+      "learning_rate": 0.01,
+      "weight_decay": 0.0,
+      "batch_size": 128,
+      "max_epochs": 30,
+      "min_epochs": 30,
+      "patience": 31,
+      "lr_patience": 20,
+      "min_delta": 1e-06,
+      "encoder_hidden": [
+        32
+      ],
+      "fusion_hidden": [
+        50
+      ],
+      "gradient_clip": 5.0,
+      "checkpoint_mode": "final",
+      "orthogonalization": "svd_floor",
+      "orthogonal_floor": 0.001,
+      "agreement_strength": 2.0,
+      "agreement_temperature": 0.08,
+      "edge_mass_strength": 0.1,
+      "fusion_mode": "sample"
+    }
+  },
+  "final_choice": {
+    "config": "agreement_k15",
+    "arm": "specrage_sample",
+    "lambda": 10.0,
+    "mean_delta": NaN,
+    "se": NaN,
+    "eligible": false,
+    "smoke_only": true
+  },
+  "selection_failed": false,
+  "provenance": {
+    "source_sha256": {
+      "SPEC_SPECRAGE_LIU_V1.md": "36b71bc1a33f5b4d98a35d40d01366df8553320e41554022c4337baa98d28e4d",
+      "SPEC_SPECRAGE_LIU_V2.md": "dd2273b76b7717c7c54853a07c565fe719265875a2aaa4c8591775b43ffd1b0b",
+      "spectral_utils/specrage_laplacian.py": "31b9ba345ee87d7b76580d6a05da89e2713954895ff86951651a18490fbc10e5",
+      "spectral_utils/specrage_views.py": "8c1994c8bf3ed0688a9ad2456c319d4d7ef852494809ce9da479a002e9247477",
+      "spectral_utils/laplacian_upcr.py": "885ebaa87a6e35f33edf58bd962e6b1d41bdddf387b1aa3512c1a71e1f1d877e",
+      "spectral_utils/upcr.py": "60c6ff461426d4c828ead210f04233815f45211a6f1a49a50ed37811c50c26cc",
+      "spectral_utils/feature_contract.py": "65ffba0bfc9bf4ded859d9ebffce9bd563a28652c47f5ed8d80ce91b64d4385d",
+      "spectral_utils/selectors/a2_groupfs.py": "08f97208fda9fffa34e4ff1b187aee8d2f6a776078a0e101ad7dc3edc007be67",
+      "scripts/specrage_upcr_real.py": "5570ff356553ea895cdc30edbc801a1ce40275dc8345de1a7a80621cde4a9174"
+    },
+    "input_sha256": "693a5b634f975ea32c7f840f3ab8366dd8ad638fe41cc76a60e24b1ac5a013e1",
+    "git_head": "5f889e5e083f31df26adf7e02563bedce6a99e34",
+    "git_status_porcelain": "M PROGRESS.md\n M RESEARCH_EVIDENCE_LEDGER.md\n M Research_Directions.md\n?? SPEC_SPECRAGE_LIU_V1.md\n?? SPEC_SPECRAGE_LIU_V2.md\n?? docs/research_notes/dufs_liu_leading_direction.md\n?? docs/research_notes/graybox_cross_view_manifold_proposal.md\n?? results/graybox_cross_view_phase1/\n?? results/specrage_upcr_mechanism_v2/\n?? results/specrage_upcr_real_v2_pilot/\n?? results/specrage_upcr_real_v2_smoke/\n?? results/specrage_upcr_synthetic/\n?? scripts/graybox_cross_view_phase1.py\n?? scripts/graybox_cross_view_report.py\n?? scripts/specrage_upcr_mechanism_v2.py\n?? scripts/specrage_upcr_real.py\n?? scripts/specrage_upcr_synthetic.py\n?? scripts/test_cross_view_graph.py\n?? scripts/test_specrage_laplacian.py\n?? scripts/test_specrage_real_selection.py\n?? spectral_utils/cross_view_graph.py\n?? spectral_utils/manifests/\n?? spectral_utils/specrage_laplacian.py\n?? spectral_utils/specrage_views.py",
+    "python": "3.11.9",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "sklearn": "1.9.0",
+    "matplotlib": "3.11.1",
+    "torch": "2.13.0"
+  }
+}

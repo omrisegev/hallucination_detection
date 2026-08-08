@@ -1,0 +1,178 @@
+{
+  "version": "gl-liu-factorial-v2-2026-08-08",
+  "purpose": "test unified DUFS-LIU and broad token-resolved feature counterparts",
+  "factorial_1": {
+    "rows": [
+      "global_iu",
+      "global_dufs"
+    ],
+    "columns": [
+      "local_temporal_core",
+      "local_dufs_core"
+    ],
+    "question": "does using DUFS-LIU in both heads help when the local feature pool is fixed?"
+  },
+  "factorial_2": {
+    "rows": [
+      "global_iu",
+      "global_dufs"
+    ],
+    "columns": [
+      "local_dufs_core",
+      "local_dufs_broad"
+    ],
+    "question": "does the broad token-resolved pool help when the local graph is fixed to DUFS-LIU?"
+  },
+  "fixed_parameters": {
+    "global_lambda": 0.1,
+    "local_lambda": 0.3,
+    "k": 7,
+    "dufs_seeds": [
+      11,
+      23,
+      37
+    ],
+    "dufs_epochs": 80,
+    "max_graph_tokens": 60000,
+    "n_threshold_splits": 100,
+    "threshold_split_seed": 0
+  },
+  "feature_contract": {
+    "core": [
+      "entropy_series",
+      "entropy_sw_var_series",
+      "entropy_cusum_abs_series",
+      "spilled_sw_var_series",
+      "spilled_cusum_abs_series"
+    ],
+    "broad": [
+      "entropy_series",
+      "entropy_rolling_spectral_entropy",
+      "entropy_rolling_low_band_power",
+      "entropy_rolling_high_band_power",
+      "entropy_rolling_hl_ratio",
+      "entropy_rolling_dominant_freq",
+      "entropy_rolling_spectral_centroid",
+      "entropy_stft_high_series",
+      "entropy_stft_frame_entropy",
+      "entropy_rolling_tail_ratio",
+      "entropy_sw_var_series",
+      "entropy_pe_series",
+      "entropy_rolling_rs_hurst",
+      "entropy_cusum_abs_series",
+      "spilled_series",
+      "spilled_sw_var_series",
+      "spilled_cusum_abs_series",
+      "spilled_rolling_min",
+      "energy_series",
+      "energy_rolling_min",
+      "energy_sw_var_series",
+      "energy_cusum_abs_series",
+      "top1_logprob_series",
+      "logprob_margin_series",
+      "topk_entropy_series",
+      "topk_varentropy_series",
+      "topk_renyi2_series",
+      "topk_tail_mass_series"
+    ],
+    "broad_count": 28,
+    "mapping": {
+      "entropy_series": [
+        "epr"
+      ],
+      "entropy_rolling_spectral_entropy": [
+        "spectral_entropy"
+      ],
+      "entropy_rolling_low_band_power": [
+        "low_band_power"
+      ],
+      "entropy_rolling_high_band_power": [
+        "high_band_power"
+      ],
+      "entropy_rolling_hl_ratio": [
+        "hl_ratio"
+      ],
+      "entropy_rolling_dominant_freq": [
+        "dominant_freq"
+      ],
+      "entropy_rolling_spectral_centroid": [
+        "spectral_centroid"
+      ],
+      "entropy_stft_high_series": [
+        "stft_max_high_power"
+      ],
+      "entropy_stft_frame_entropy": [
+        "stft_spectral_entropy"
+      ],
+      "entropy_rolling_tail_ratio": [
+        "rpdi"
+      ],
+      "entropy_sw_var_series": [
+        "sw_var_peak"
+      ],
+      "entropy_pe_series": [
+        "pe_mean"
+      ],
+      "entropy_rolling_rs_hurst": [
+        "hurst_exponent"
+      ],
+      "entropy_cusum_abs_series": [
+        "cusum_max",
+        "cusum_shift_idx"
+      ],
+      "spilled_series": [
+        "epr_spilled"
+      ],
+      "spilled_sw_var_series": [
+        "sw_var_peak_spilled"
+      ],
+      "spilled_cusum_abs_series": [
+        "cusum_max_spilled"
+      ],
+      "spilled_rolling_min": [
+        "min_spilled"
+      ],
+      "energy_series": [
+        "epr_energy"
+      ],
+      "energy_rolling_min": [
+        "min_energy"
+      ],
+      "energy_sw_var_series": [
+        "sw_var_peak_energy"
+      ],
+      "energy_cusum_abs_series": [
+        "cusum_max_energy"
+      ],
+      "top1_logprob_series": [
+        "mean_top1_logprob"
+      ],
+      "logprob_margin_series": [
+        "logprob_margin"
+      ],
+      "topk_entropy_series": [
+        "mean_logprob_entropy"
+      ],
+      "topk_varentropy_series": [
+        "varentropy"
+      ],
+      "topk_renyi2_series": [
+        "renyi_entropy_2"
+      ],
+      "topk_tail_mass_series": [
+        "topk_tail_mass"
+      ]
+    },
+    "omitted": {
+      "trace_length": "constant within each trace and cannot change a token argmax",
+      "cusum_shift_idx_duplicate": "shares the cusum_max absolute-CUSUM curve and is represented once"
+    }
+  },
+  "label_policy": {
+    "score_fit": "no labels",
+    "score_hash": "before labels are read",
+    "threshold_calibration": "labels in calibration half only",
+    "evaluation": "labels after scores freeze",
+    "candidate_selection": "none; every preregistered cell of both matrices is reported"
+  }
+}

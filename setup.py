@@ -12,6 +12,10 @@ setup(
         "scikit-learn",
     ],
     extras_require={
+        "benchmark": [
+            "torch",
+            "matplotlib",
+        ],
         "inference": [
             "torch",
             "transformers>=4.40",
