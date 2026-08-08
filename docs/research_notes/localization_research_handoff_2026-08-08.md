@@ -4,6 +4,9 @@ Date: 2026-08-08
 
 Status: stop and discuss before developing another variant.
 
+Literature and benchmark map:
+`docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md`.
+
 ## Executive summary
 
 The localization work produced one promising end-to-end result, but too many
@@ -239,6 +242,15 @@ of eight cells.
 6. Mind the Gap is the only external published method measured in this exact
    run. The result is not yet a complete state-of-the-art benchmark.
 
+The final sentence is intentionally about the **existing run**, not the whole
+field. A 2026 literature audit found a much closer missing label-free peer:
+Unsupervised Process Reward Models (uPRM), which uses next-token probabilities
+and evaluates first-error localization on ProcessBench without human step or
+final-answer labels for training. Supervised PRMs, automatically supervised
+PRMs, and critic LLMs are also required reference categories, but they do not
+share our access and supervision contract. The next benchmark expansion should
+audit uPRM first and report trained PRMs and critics as separate ceilings.
+
 ## What has not been tested
 
 The following must not be described as results:
@@ -251,6 +263,10 @@ The following must not be described as results:
 4. a fixed external threshold with no ProcessBench calibration labels;
 5. a completely new dataset and model family;
 6. comparison with more external published localization methods.
+
+Item 6 has now been researched but not executed. The registered method map is
+in `docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md`.
+No new external baseline score has been added to the frozen artifacts.
 
 The 29 scalar global features cannot be copied directly to every token. Such a
 feature is constant inside one trace and cannot directly change the within-

@@ -10882,3 +10882,49 @@ independent-review package and exact claim boundaries.
 `results/hard_filter_dufs_liu_24cell/MECHANISM_ANALYSIS.md`.
 
 ---
+
+### Step 236 — consolidate localization and RAG method/benchmark research
+
+**Prompt**: after the application pivot, Omri asked to preserve the earlier
+research on hallucination-localization methods and benchmarks beyond Mind the
+Gap, recover the related side-chat material, and do the same for RAG.
+
+**Recovery result**: no separate registered Git worktree survives. Git and
+session records show the side work used the same repository path. The source
+material is present in `master`, but was fragmented. Reasoning localization was
+spread across the July benchmarking guide, CoT/agentic notes, and the GL-LIU
+handoff. RAG research was already stored in
+`docs/research_notes/research_phase10_rag/` and the Evidence-Contrast U-PCR
+proposal.
+
+**Fact-check result — reasoning**: Mind the Gap is the only external published
+method in the existing shared-protocol artifact, not the only relevant method
+in the field. The most important missing label-free peer is the 2026
+Unsupervised Process Reward Model (uPRM), which derives a candidate first-error
+score from next-token probabilities and evaluates on ProcessBench without
+human step labels or final-answer labels for training. Human-supervised PRMs,
+automatically supervised PRMs, critic LLMs, and streaming detectors are also
+relevant, but must be separated by supervision, access, and inference cost.
+
+**Fact-check result — RAG**: GASP already keeps an answer fixed and rescores it
+under full, empty, and leave-one-chunk-out context. Evidence removal is
+therefore not the novelty of EC-U-PCR. The possible contribution is
+label-free U-PCR/DUFS-LIU fusion of many dependent evidence contrasts at both
+response and span resolution. RAGTruth remains the practical first span
+benchmark. TRIVIA+ adds a modern long-context and label-noise test; RAGBench is
+an explicit short-answer failure test; and L-CiteEval belongs only to a later
+citation-correctness or completeness claim.
+
+**Decision**: do not open a new method variant from the literature review.
+First add uPRM and transparent token rules to the reasoning benchmark. For RAG,
+preregister GASP versus EC-U-PCR/EC-DUFS-LIU on fixed RAGTruth responses, then
+test transfer and the declared failure cases. Keep supervised models and
+external verifiers as separate ceilings.
+
+**Files**:
+`docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md`,
+`docs/research_notes/rag_localization_methods_and_benchmarks_2026.md`,
+`docs/research_notes/localization_research_handoff_2026-08-08.md`, and
+`docs/research_notes/evidence_contrast_upcr_rag_direction.md`.
+
+---

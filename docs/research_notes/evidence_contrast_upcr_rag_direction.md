@@ -3,6 +3,9 @@
 **Date:** 2026-08-08
 **Status:** Possible future research direction. Not implemented or validated.
 
+Current field and benchmark map:
+`docs/research_notes/rag_localization_methods_and_benchmarks_2026.md`.
+
 ## Research question
 
 Can the same U-PCR family used for reasoning-error detection also detect and localize unsupported claims in retrieval-augmented generation (RAG), if retrieval evidence is treated as a controlled intervention?
@@ -94,6 +97,15 @@ The direct or category-level competitors should include:
 - **HALT:** a supervised top-k token-probability ceiling, reported separately from label-free methods.
 - **RT4CHART:** an external-verifier approach evaluated on RAGTruth++, reported in a separate access category.
 
+The updated field audit adds two important benchmark decisions. TRIVIA+ is a
+strong confirmation candidate because it targets long RAG contexts and
+provides controlled noisy-label sets. L-CiteEval should be added only if the
+method makes a citation-correctness or citation-completeness claim; it is not a
+substitute for a span-labeled hallucination benchmark. The audit also separates
+training-free perturbation, supervised token classifiers, mechanistic
+white-box methods, and external verifiers so their numbers are not presented as
+if they use the same information and compute.
+
 ## Future data-collection plan
 
 ### Primary benchmark: RAGTruth
@@ -118,6 +130,9 @@ If the RAGTruth experiment succeeds:
 - Use RAGTruth++ to test robustness to improved labels and compare with RT4CHART.
 - Use TofuEval as a positive transfer test.
 - Use short-answer RAGBench as an explicit falsification test, because evidence perturbation may fail when the answer is easily recovered from model memory.
+- Use TRIVIA+ as a long-context and label-noise confirmation test.
+- Use L-CiteEval only after the output contract includes explicit citation
+  correctness or completeness.
 
 ## Evaluation protocol
 
@@ -168,3 +183,5 @@ Before implementation, pin the exact GASP protocol and code revision, create a v
 - HALT: [arXiv:2602.02888](https://arxiv.org/abs/2602.02888)
 - RT4CHART: [arXiv:2603.27752](https://arxiv.org/abs/2603.27752)
 - RAGTruth out-of-distribution audit: [Findings of EMNLP 2025](https://aclanthology.org/2025.findings-emnlp.952/)
+- TRIVIA+: [arXiv:2605.11330](https://arxiv.org/abs/2605.11330)
+- L-CiteEval: [arXiv:2410.02115](https://arxiv.org/abs/2410.02115)

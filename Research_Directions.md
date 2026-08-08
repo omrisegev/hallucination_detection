@@ -73,6 +73,14 @@ Canonical artifacts: `docs/methods/gl_liu_v1.md`,
 `results/ours_only_localization_v1/REPORT.md`, and
 `results/gl_liu_factorial_v2/REPORT.md`.
 
+The published-method and benchmark map is now explicit. Mind the Gap remains
+the only external method measured in the frozen shared-protocol artifact, but
+it is not the only relevant method in the field. The first missing label-free
+peer to audit is **Unsupervised Process Reward Models (uPRM)**. Supervised PRMs,
+automatically supervised PRMs, and critic models should be reported in separate
+access categories. See
+`docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md`.
+
 ### Application priority 2: hallucination in RAG citations
 
 RAG supplies the independent view that the core-algorithm experiments were
@@ -104,6 +112,15 @@ manifest, label boundary, and failure tests are registered.
 
 Canonical plan:
 `docs/research_notes/evidence_contrast_upcr_rag_direction.md`.
+
+The consolidated RAG field map is
+`docs/research_notes/rag_localization_methods_and_benchmarks_2026.md`. It
+identifies GASP as the closest direct perturbation competitor, RAGTruth as the
+primary span benchmark, TRIVIA+ as a long-context and label-noise confirmation
+candidate, RAGBench as a planned short-answer failure test, and L-CiteEval as a
+later citation-specific benchmark. Supervised token classifiers, external
+claim verifiers, and mechanistic white-box methods must remain separate
+comparison categories.
 
 ### What is paused
 
