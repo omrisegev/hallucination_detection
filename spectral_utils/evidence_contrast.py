@@ -41,7 +41,7 @@ def _to_array(record, key):
     return np.asarray(value, dtype=float) if value is not None else None
 
 
-def _js_divergence(ids_a, lp_a, ids_b, lp_b, tail_prob=1e-6):
+def js_divergence(ids_a, lp_a, ids_b, lp_b, tail_prob=1e-6):
     """Per-token Jensen-Shannon divergence between two top-K distributions, renormalized
     over the union of their observed token ids with a shared tail bucket absorbing the
     probability mass outside each condition's own top-K (so removing evidence that shifts
@@ -102,7 +102,7 @@ def response_delta_views(records_by_condition: dict) -> dict:
         token_views["dlogsumexp_noctx"] = (z_noctx[:T] - z_full) if z_noctx is not None else None
         lp_noctx = noctx.get("top_k_logprobs")
         if lp_full and lp_noctx:
-            token_views["djs_noctx"] = _js_divergence(
+            token_views["djs_noctx"] = js_divergence(
                 np.asarray(lp_full["ids"])[:T], np.asarray(lp_full["logprobs"])[:T],
                 np.asarray(lp_noctx["ids"])[:T], np.asarray(lp_noctx["logprobs"])[:T],
             )
