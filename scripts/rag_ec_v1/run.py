@@ -252,11 +252,23 @@ def _temporal_graph(lengths):
     return coo_matrix((vals, (rows, cols)), shape=(start, start)).tocsr()
 
 
-def _fit_temporal_dufs_liu(channel_lists: dict, names, anchor_name=None):
+def _fit_temporal_dufs_liu(channel_lists: dict, names, anchor_name=None, anchor_sign=1.0):
     """One reusable fit: builds the token matrix, a temporal-chain graph, DUFS soft gates,
     and the Laplacian-IU-PCR path at the carried lambdas. Returns the arm dict needed by
-    `_apply_token_arm` plus diagnostics. `anchor_name` orients the global sign (falls back
-    to the first kept channel if the requested anchor isn't available)."""
+    `_apply_token_arm` plus diagnostics.
+
+    `anchor_name`/`anchor_sign` orient the global sign so every arm's returned risk shares
+    ONE convention — higher = more likely hallucinated (matching `response_label`'s own
+    semantics and the convention `gasp_reproduction`/`ec_upcr`/`fusion_isolation_naive_avg`
+    already use). `entropy_series` (arm 1) is ALREADY risk-oriented, mirroring
+    `scripts/gl_liu_v1/run.py`'s own anchor convention ("higher entropy -> more likely
+    wrong"), so `anchor_sign=+1`. Every channel in `TOKEN_EC_VIEWS` (arms 5/5b) is the
+    OPPOSITE convention by construction — `evidence_contrast.py`'s own docstring: "a
+    positive dnll_*/dent_* means removing evidence made the model MORE surprised ...  the
+    intended grounding-sensitivity signal" (higher = MORE grounded) — so those callers must
+    pass `anchor_sign=-1` or `anchor_orient` will orient the fused score toward
+    "higher = more grounded", the reverse of what `evaluate()` assumes when it computes
+    `roc_auc_score(response_label, scores)`."""
     F, names_kept, mu, sd, lengths = _prepare_token_matrix(channel_lists, names)
     if F is None or F.shape[0] < 3 or F.shape[1] < 3:
         return None, {"skipped": "too few features/tokens"}
@@ -266,7 +278,7 @@ def _fit_temporal_dufs_liu(channel_lists: dict, names, anchor_name=None):
         if F.shape[1] >= K + 1 else graphs["temporal"]
 
     anchor_idx = names_kept.index(anchor_name) if anchor_name in names_kept else 0
-    anchor = F[anchor_idx]
+    anchor = anchor_sign * F[anchor_idx]
 
     best_key, best_path = "temporal", laplacian_iu_path(F, LAMBDAS, graph=graphs["temporal"])
     weights = best_path[LAMBDAS[len(LAMBDAS) // 2]].w
@@ -311,8 +323,11 @@ def build_arms(by_response: dict, rows_by_id=None):
 
     response_scores, token_curves = {}, {}
 
-    # Arm 2 — likelihood-drop baseline: mean(NLL_noctx - NLL_full), no fusion.
-    response_scores["likelihood_drop"] = np.array(
+    # Arm 2 — likelihood-drop baseline: mean(NLL_noctx - NLL_full), no fusion. Negated to
+    # match every other arm's convention (higher = more likely hallucinated) — dnll_noctx
+    # itself is a GROUNDING-sensitivity feature (higher = more grounded, per
+    # evidence_contrast.py's own docstring), the opposite sign.
+    response_scores["likelihood_drop"] = -np.array(
         [delta_views[rid]["response"].get("dnll_noctx", np.nan) for rid in response_ids])
 
     # Arm 3 — GASP-threshold reproduction.
@@ -360,7 +375,7 @@ def build_arms(by_response: dict, rows_by_id=None):
         for name in TOKEN_EC_VIEWS:
             token_channels[name].append(tv.get(name, np.full(T, np.nan)))
     arm5, diag5 = _fit_temporal_dufs_liu(token_channels, list(TOKEN_EC_VIEWS),
-                                          anchor_name="dnll_noctx")
+                                          anchor_name="dnll_noctx", anchor_sign=-1.0)
     diagnostics["arm5"] = diag5
     if arm5 is not None:
         curves5 = [_apply_token_arm(arm5, token_channels, i) for i in range(len(response_ids))]
@@ -384,7 +399,7 @@ def build_arms(by_response: dict, rows_by_id=None):
                     token_channels_5b[name][i] = np.full(T, scalar)
         if any_smoothed:
             arm5b, diag5b = _fit_temporal_dufs_liu(token_channels_5b, list(TOKEN_EC_VIEWS),
-                                                     anchor_name="dnll_noctx")
+                                                     anchor_name="dnll_noctx", anchor_sign=-1.0)
             diagnostics["arm5b"] = diag5b
             if arm5b is not None:
                 curves5b = [_apply_token_arm(arm5b, token_channels_5b, i)
@@ -494,7 +509,14 @@ def _synthetic_response(rng, T, n_loo, grounded, hallucinated_span=None):
         logits = -np.abs(rng.normal(0, 1, size=(T, 6))) - shift
         return {"ids": ids, "logprobs": np.sort(logits, axis=1)[:, ::-1]}
 
-    base_ent = rng.uniform(0.3, 1.2, T)
+    # Hallucinated responses get a mildly higher baseline FULL-context entropy too (the
+    # ProcessBench convention `full_context_only_dufs_liu` anchors on: higher entropy ->
+    # more likely wrong) -- WITHOUT this, arm 1 has no signal at all in this synthetic
+    # corpus by construction, and its AUROC would land near 0.5 by chance regardless of
+    # whether its sign convention is correct, defeating the point of the sign-convention
+    # regression check in `smoke()`.
+    full_offset = 0.0 if grounded else 0.15
+    base_ent = rng.uniform(0.3, 1.2, T) + full_offset
     base_spill = rng.uniform(0.5, 1.5, T)
     base_z = rng.uniform(4.0, 6.0, T)
     full = {"token_entropies": base_ent.tolist(), "token_spilled_energies": base_spill.tolist(),
@@ -551,6 +573,20 @@ def smoke() -> None:
     result = evaluate(by_response, response_ids, response_scores, token_curves)
     assert any(row["auroc"] is not None for row in result["detector_rows"])
     assert any(row["argmax_hit_rate"] is not None for row in result["locator_rows"])
+
+    # 3b. SIGN-CONVENTION CHECK (regression test for a real bug found in the first
+    #     full-scale run: arms 5/5b's temporal-chain anchor, `dnll_noctx`, is grounding-
+    #     oriented — higher = MORE grounded — so an unadjusted `anchor_orient` flips the
+    #     fused score the WRONG way relative to `response_label` (True = hallucinated).
+    #     The synthetic corpus's grounded/hallucinated split is unambiguous by
+    #     construction, so EVERY arm with real signal must score AUROC > 0.5, not just
+    #     "some arm produces a finite number" — a silently inverted arm looks identical to
+    #     assertion 3 above but would fail this one.
+    for row in result["detector_rows"]:
+        if row["auroc"] is not None:
+            assert row["auroc"] > 0.5, (
+                f"{row['arm']}: AUROC={row['auroc']:.3f} <= 0.5 on an unambiguous synthetic "
+                f"corpus -- likely an inverted sign convention, not weak signal")
 
     # 4. A cell with zero loo/evidence-graph coverage (Summary-only) degrades gracefully:
     #    arm 5b is simply absent, not a crash.

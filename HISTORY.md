@@ -11303,3 +11303,101 @@ label-opened number — mixed rather than a clean win, and reported that way.
 F1 CSV, freeze manifest, per-cell diagnostics).
 
 ---
+
+### Step 239 — RAGTruth evaluator's first real run: a sign-convention bug, then the first honest novelty-claim test
+
+**What**: The RAGTruth test-split job (173494/173495) finished — 16,200/16,200
+items, 2,700/2,700 responses, 0 skipped/unmapped. Fetched the 1.14 GB pkl
+(plus the 448 MB dev slice) locally and ran `scripts/rag_ec_v1/run.py` for
+real for the first time, hashes frozen before `--open-labels`.
+
+**A real bug, not a finding**: the first pass produced numbers that looked
+like a clean loss for the campaign's own arms — `ec_dufs_liu_temporal`
+AUROC 0.267, `ec_dufs_liu_evidence_graph` 0.246, `likelihood_drop` 0.305 (all
+well below chance). Traced this to a sign-convention mismatch rather than
+weak signal: `anchor_orient`'s anchor for arms 5/5b was `dnll_noctx`, which
+`evidence_contrast.py`'s own docstring defines as *grounding*-sensitivity
+(higher = more grounded) — the opposite of the "higher = more likely
+hallucinated" convention every other arm (`gasp_reproduction`, `ec_upcr`,
+`fusion_isolation_naive_avg`) and `evaluate()`'s `roc_auc_score(response_label,
+scores)` call assume. Arm 1's anchor (`entropy_series`, already risk-oriented
+per the ProcessBench convention) was unaffected, which is why it alone looked
+"reasonable" in the first pass and was the tell that something was
+inconsistent rather than uniformly broken. Fixed with an explicit
+`anchor_sign` parameter (`_fit_temporal_dufs_liu`, `scripts/rag_ec_v1/run.py`)
+and negated `likelihood_drop` to match. Added a regression check to
+`run.py`'s own `smoke()`: on the synthetic corpus (unambiguous planted
+signal), every arm with real signal must score AUROC > 0.5 — the previous
+smoke test only checked "some arm produces a finite number," which the
+inverted arms also satisfied and so didn't catch this.
+
+**The real, corrected result** (N=2,700 responses, 450 distinct `source_id`s,
+mean 6.0 responses/source — `results/rag_ec_v1/full_test_split_result.json`):
+
+| Arm | Response AUROC | Locator argmax-hit-rate (n=943 w/ spans) |
+|---|---|---|
+| ec_dufs_liu_evidence_graph | **0.7536** | **0.2015** |
+| ec_upcr | 0.7341 | — |
+| ec_dufs_liu_temporal | 0.7329 | 0.1994 |
+| fusion_isolation_naive_avg | 0.7290 | — |
+| gasp_reproduction | 0.7137 | 0.1495 |
+| likelihood_drop | 0.6946 | — |
+| full_context_only_dufs_liu | 0.6424 | 0.1421 |
+
+`gasp_reproduction`'s 0.7137 essentially reproduces the paper's own
+Qwen2.5-1.5B number (0.713) to three decimal places — strong evidence the
+reproduction is implemented correctly, not just plausible-looking.
+`full_context_only_dufs_liu` (no evidence-contrast signal at all) is the
+weakest arm, as expected — the intervention design itself carries most of
+the signal, matching GASP's own framing.
+
+**The novelty-claim test, done properly** (grouped bootstrap by `source_id`,
+2,000 resamples, seed 0, per the preregistration's label-boundary section —
+`arm vs fusion_isolation_naive_avg`, the row the entire campaign's novelty
+claim rests on per `cluster/manifests/ragtruth_ec_v1.json`):
+
+| Arm | Mean Δ vs naive avg | 95% CI | P(Δ ≤ 0) |
+|---|---|---|---|
+| ec_dufs_liu_evidence_graph | +2.51pp | [−0.58pp, +5.72pp] | 0.066 |
+| ec_upcr | +0.51pp | [−2.46pp, +3.70pp] | 0.388 |
+| ec_dufs_liu_temporal | +0.44pp | [−2.59pp, +3.57pp] | 0.399 |
+| gasp_reproduction | −1.46pp | [−4.73pp, +1.68pp] | 0.824 |
+| likelihood_drop | −3.39pp | [−6.60pp, −0.15pp] | 0.981 (sig. worse) |
+| full_context_only_dufs_liu | −8.61pp | [−11.81pp, −5.66pp] | 1.000 (sig. worse) |
+
+**Honest read**: the evidence-graph arm (5b, my own operationalization of
+the preregistration's graph description — flagged in Step 237/238 as
+needing Omri's confirmation, still unconfirmed) has the largest margin over
+naive averaging and is the only one close to conventional significance, but
+its 95% CI still crosses zero and P(Δ≤0)=0.066 is just above the 0.05
+line — **promising, not confirmed**. The temporal-graph arm (5, the
+preregistration's "default" arm) and EC-U-PCR are both indistinguishable
+from naive averaging at this sample size (P(Δ≤0)≈0.39 for both). This is
+not the clean "Laplacian fusion beats naive averaging" result the campaign
+was designed to produce — it is a real, directionally consistent signal
+that stops short of the preregistered bar. Two things are worth separating
+from the null result: (1) `full_context_only_dufs_liu` and `likelihood_drop`
+are both *significantly worse* than naive averaging, so the evidence-contrast
+intervention design itself is doing real, confirmed work; (2) the arm that
+comes closest to significance is specifically the NEW exogenous-graph
+construction, not the previously-validated temporal-chain graph — worth a
+second look (more bootstrap resamples, the dev slice as an independent
+check, or the fuller preregistered failure-test battery) before either
+calling this closed or promoting it further.
+
+**Result**: Both cluster campaigns' data collection and first-pass scoring
+are done. ProcessBench external-family: mixed (Step 238). RAGTruth
+evidence-contrast: the intervention design works, the specific "our fusion
+beats naive averaging" claim is promising but not yet statistically
+confirmed, and the most promising arm is the one flagged as least certain
+in its own mechanism. Next: Omri's read on arm 5b's mechanism: check the
+dev slice as an independent replication; consider the preregistered
+failure-test battery (redundant-chunk insensitivity, retrieval-vs-generation
+conflation, etc.) before treating +2.5pp as a real effect.
+
+**Files**: `scripts/rag_ec_v1/run.py` (`anchor_sign` fix + smoke regression
+test), `results/rag_ec_v1/full_test_split_result.json`,
+`dataset_cache/ragtruth_ec_full/` (untracked, local only — the 1.14 GB/448 MB
+fetched pkls).
+
+---

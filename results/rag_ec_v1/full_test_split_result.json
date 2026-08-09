@@ -1,0 +1,164 @@
+{
+  "n_responses": 2700,
+  "n_source_ids": 450,
+  "n_boot": 2000,
+  "bootstrap_seed": 0,
+  "score_hashes_before_labels": {
+    "response": {
+      "likelihood_drop": "b34b68a239567d49c900b7630d27d9357f60dd08a518bfdbf00de8cf98726475",
+      "gasp_reproduction": "4f02e10076d6ea5f90ebc080d05538b6e1c1cc74495e5991d5c0afaa0a994295",
+      "fusion_isolation_naive_avg": "a36d367cbb86c14f1c6d083233117f443a345db2a5b84d32ad1d3c14c6ba8fde",
+      "ec_upcr": "68ccf52e568b2f03f7fa5d689ded64a8fe0ae2a74bfe0adeded4443e3c919393",
+      "full_context_only_dufs_liu": "512e8fc7cc4c2532eaf705c0b175fa7c076cb5f6c4e62b82635fbb14cc7afb88",
+      "ec_dufs_liu_temporal": "94a4c595249fbec78a553f37c2cffad6ef1876052c59238199a27c74505d18d7",
+      "ec_dufs_liu_evidence_graph": "ed30e8291d219ed928a5f2e254b4c37c191a48321792f3196a4ce683245dbced"
+    },
+    "token": {
+      "gasp_reproduction": "14a754b1dc46c8b2cb9173c8f2ec2b31fa35534caa2f86b486808b3b08064701",
+      "full_context_only_dufs_liu": "8349997b8515ee1cb84d89eb99ebcf2ea56151e7f61278ce817b9a7f3214b6fe",
+      "ec_dufs_liu_temporal": "5aad0af1554b7aee06a3e154d6a050f5fcc13b1ff8d23bf441f1b4ab5f61893b",
+      "ec_dufs_liu_evidence_graph": "396fb60ecb142ba6a694bcd1634c71ef464f1e4e7a7a2ecda72dc13879b5fa0a"
+    }
+  },
+  "detector_rows": [
+    {
+      "arm": "likelihood_drop",
+      "auroc": 0.6946219062546964,
+      "auprc": 0.4900040506898332,
+      "n_valid": 2700
+    },
+    {
+      "arm": "gasp_reproduction",
+      "auroc": 0.7137322547410722,
+      "auprc": 0.49982854423547396,
+      "n_valid": 2700
+    },
+    {
+      "arm": "fusion_isolation_naive_avg",
+      "auroc": 0.7289883037159045,
+      "auprc": 0.5168748075409746,
+      "n_valid": 2700
+    },
+    {
+      "arm": "ec_upcr",
+      "auroc": 0.7340943754145666,
+      "auprc": 0.5247350477628259,
+      "n_valid": 2700
+    },
+    {
+      "arm": "full_context_only_dufs_liu",
+      "auroc": 0.6424144355768865,
+      "auprc": 0.4398277055126536,
+      "n_valid": 2700
+    },
+    {
+      "arm": "ec_dufs_liu_temporal",
+      "auroc": 0.7329216688766823,
+      "auprc": 0.530393135192933,
+      "n_valid": 2700
+    },
+    {
+      "arm": "ec_dufs_liu_evidence_graph",
+      "auroc": 0.753642300967317,
+      "auprc": 0.5643042056097449,
+      "n_valid": 2700
+    }
+  ],
+  "locator_rows": [
+    {
+      "arm": "gasp_reproduction",
+      "argmax_hit_rate": 0.14952279957582185,
+      "n_with_spans": 943
+    },
+    {
+      "arm": "full_context_only_dufs_liu",
+      "argmax_hit_rate": 0.1420996818663839,
+      "n_with_spans": 943
+    },
+    {
+      "arm": "ec_dufs_liu_temporal",
+      "argmax_hit_rate": 0.19936373276776245,
+      "n_with_spans": 943
+    },
+    {
+      "arm": "ec_dufs_liu_evidence_graph",
+      "argmax_hit_rate": 0.2014846235418876,
+      "n_with_spans": 943
+    }
+  ],
+  "grouped_bootstrap_auroc_ci": {
+    "likelihood_drop": {
+      "point": 0.6946219062546964,
+      "ci_lo": 0.6717700143378471,
+      "ci_hi": 0.718104102543032
+    },
+    "gasp_reproduction": {
+      "point": 0.7137322547410722,
+      "ci_lo": 0.6914523923841555,
+      "ci_hi": 0.7368903143040193
+    },
+    "fusion_isolation_naive_avg": {
+      "point": 0.7289883037159045,
+      "ci_lo": 0.7053391673357293,
+      "ci_hi": 0.7518407971354849
+    },
+    "ec_upcr": {
+      "point": 0.7340943754145666,
+      "ci_lo": 0.7117809407036307,
+      "ci_hi": 0.7553145007288331
+    },
+    "full_context_only_dufs_liu": {
+      "point": 0.6424144355768865,
+      "ci_lo": 0.617945593914223,
+      "ci_hi": 0.6649879036586109
+    },
+    "ec_dufs_liu_temporal": {
+      "point": 0.7329216688766823,
+      "ci_lo": 0.712127496922157,
+      "ci_hi": 0.7549838660598335
+    },
+    "ec_dufs_liu_evidence_graph": {
+      "point": 0.753642300967317,
+      "ci_lo": 0.7318263828615867,
+      "ci_hi": 0.7752513429269329
+    }
+  },
+  "paired_diff_vs_fusion_isolation_naive_avg": {
+    "ec_dufs_liu_temporal": {
+      "mean_diff": 0.004401069615225668,
+      "ci_lo": -0.025898724132934266,
+      "ci_hi": 0.03571405405915844,
+      "p_diff_le_0": 0.399
+    },
+    "ec_dufs_liu_evidence_graph": {
+      "mean_diff": 0.025053616946872245,
+      "ci_lo": -0.005836678946813653,
+      "ci_hi": 0.05720956926960283,
+      "p_diff_le_0": 0.066
+    },
+    "ec_upcr": {
+      "mean_diff": 0.005091120507198107,
+      "ci_lo": -0.02455438687993169,
+      "ci_hi": 0.037028287043756554,
+      "p_diff_le_0": 0.3875
+    },
+    "gasp_reproduction": {
+      "mean_diff": -0.01460470410647268,
+      "ci_lo": -0.04730873273710369,
+      "ci_hi": 0.01675458993743402,
+      "p_diff_le_0": 0.824
+    },
+    "likelihood_drop": {
+      "mean_diff": -0.033880122082847436,
+      "ci_lo": -0.0660450945115348,
+      "ci_hi": -0.0014920691193413915,
+      "p_diff_le_0": 0.9805
+    },
+    "full_context_only_dufs_liu": {
+      "mean_diff": -0.0860853695286002,
+      "ci_lo": -0.11807440762315008,
+      "ci_hi": -0.05661249929740463,
+      "p_diff_le_0": 1.0
+    }
+  }
+}

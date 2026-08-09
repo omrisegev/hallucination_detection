@@ -1,11 +1,57 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-09
-**Last updated**: Step 238 — both cluster campaigns cleared Gate B, pilot,
-and full-scale submission; RAGTruth 6-arm evaluator built and validated;
-first real external-family result landed (mixed, see below).
+**Last updated**: Step 239 — both campaigns' full-scale data collection and
+first-pass scoring are done. ProcessBench external-family: mixed (Step 238).
+RAGTruth evidence-contrast: intervention design confirmed working, but the
+campaign's actual novelty claim (Laplacian fusion beats naive averaging) is
+promising, not statistically confirmed (P(Δ≤0)=0.066 for the best arm, just
+above the 0.05 line) — see below.
 
-## Current decision point — first real external-family result is in; RAGTruth full run finishing (Step 238)
+## Current decision point — RAGTruth's novelty claim is promising but not confirmed; a real sign-bug was caught and fixed first (Step 239)
+
+**RAGTruth evidence-contrast, the real result** (N=2,700 responses, 450
+`source_id`s, full test split, hashes frozen before labels —
+`results/rag_ec_v1/full_test_split_result.json`): response AUROC
+`ec_dufs_liu_evidence_graph` 0.7536 > `ec_upcr` 0.7341 > `ec_dufs_liu_temporal`
+0.7329 > `fusion_isolation_naive_avg` 0.7290 > `gasp_reproduction` 0.7137
+(essentially reproduces the paper's own 0.713 for Qwen2.5-1.5B — a fidelity
+check that passed) > `likelihood_drop` 0.6946 > `full_context_only_dufs_liu`
+0.6424.
+
+**The preregistered novelty test** (grouped bootstrap by `source_id`, arm vs
+`fusion_isolation_naive_avg` — the row the whole campaign's claim rests on):
+best margin is `ec_dufs_liu_evidence_graph` at +2.51pp, 95% CI
+[−0.58pp, +5.72pp], P(Δ≤0)=0.066 — **promising but the CI still crosses
+zero**. The preregistration's own "default" arm (`ec_dufs_liu_temporal`,
+temporal-chain graph) and `ec_upcr` are both statistically indistinguishable
+from naive averaging (P(Δ≤0)≈0.39 each). `full_context_only_dufs_liu` and
+`likelihood_drop` ARE significantly worse than naive averaging (P(Δ≤0)=1.0
+and 0.98) — so the evidence-contrast intervention design itself is doing
+real, confirmed work; it's specifically the "does OUR fusion beat naive
+averaging" claim that isn't over the bar yet. Notably, the arm closest to
+significance is arm 5b (the NEW exogenous evidence-graph construction, my
+own operationalization of the preregistration's graph description — still
+flagged as unconfirmed, not the previously-validated temporal-chain graph).
+
+**A real bug was caught first, not a finding to report as-is**: the first
+scoring pass had `ec_dufs_liu_temporal`/`ec_dufs_liu_evidence_graph`/
+`likelihood_drop` all scoring well below chance (AUROC 0.25–0.31) — traced
+to `anchor_orient`'s anchor being grounding-oriented (higher = more
+grounded) instead of risk-oriented (higher = more hallucinated) for those
+three arms specifically. Fixed (`anchor_sign` param in
+`scripts/rag_ec_v1/run.py`) and added a regression test to the module's own
+`smoke()` so a future inverted arm fails loudly instead of just looking like
+weak signal. Full account: HISTORY.md Step 239.
+
+**Next**: Omri's read on arm 5b's evidence-graph mechanism (flagged since
+Step 237 as one reading of the preregistration text, not confirmed). Then
+either a replication check (the dev slice, already scored and sitting at
+`dataset_cache/ragtruth_ec_full/dev/` locally / `ragtruth_ec_qwen25_15b_dev/`
+on the cluster — not yet run through the evaluator) or the preregistered
+failure-test battery before treating +2.5pp as a real effect.
+
+## Previous decision point — first real external-family result is in (Step 238)
 
 **ProcessBench external-family validation**: fully done end to end. Gate B,
 N=30 pilot, and the full 4-subset run (3,400 rows) all completed cleanly on

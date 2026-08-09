@@ -139,6 +139,26 @@ Summary task has zero natural paragraph structure in 100% of test rows, so
 the leave-one-chunk-out condition only has real coverage on QA and Data2txt
 this round. See HISTORY.md Step 237.
 
+**Step 239 (2026-08-09): first real result — promising, not confirmed.** Full
+test split scored (N=2,700, hashes frozen before labels). Point estimates
+favor the new evidence-graph fusion (arm 5b, response AUROC 0.7536, best of
+all 7 arms), but the preregistered novelty test (grouped bootstrap by
+`source_id`, arm vs the fusion-isolation naive-average ablation) puts it at
++2.51pp with 95% CI [−0.58pp, +5.72pp], P(Δ≤0)=0.066 — just above
+conventional significance. The temporal-chain arm (the preregistration's own
+"default") and EC-U-PCR are both statistically indistinguishable from naive
+averaging. The evidence-contrast intervention design itself IS confirmed
+useful (full-context-only and raw likelihood-drop are both significantly
+worse than naive averaging), so this is not a null campaign — it's a
+specific "does the Laplacian fusion earn its complexity over naive
+averaging" claim that hasn't cleared the bar yet, closest on the newest,
+least-validated graph construction. GASP-threshold reproduction (0.7137)
+essentially matches the paper's own Qwen2.5-1.5B number (0.713), confirming
+the reproduction's fidelity. A real sign-convention bug was found and fixed
+in the same pass (`scripts/rag_ec_v1/run.py`, `anchor_sign`) — three arms
+initially looked like they scored far below chance; they were inverted, not
+weak. See HISTORY.md Step 239 for the full table and the caught-bug account.
+
 The consolidated RAG field map is
 `docs/research_notes/rag_localization_methods_and_benchmarks_2026.md`. It
 identifies GASP as the closest direct perturbation competitor, RAGTruth as the
