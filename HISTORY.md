@@ -11198,3 +11198,108 @@ preset), `scripts/gl_liu_external_v1/`,
 `data/ragtruth_protocol/` (untracked; provenance in its own `PROVENANCE.md`).
 
 ---
+
+### Step 238 — both campaigns cleared every gate to full scale; first real external-family result lands (mixed, honestly reported)
+
+**What**: Continuation of Step 237's launch, autonomous (no new user prompt this
+step). Gate B passed for both campaigns (Llama-3.1-8B teacher-forcing:
+median|Δ|=0.00022, r=0.9996; Qwen2.5-1.5B conditional-rescore:
+median|Δ|=0.00065, r=0.9995 — both comfortably inside the 0.05/0.999
+thresholds). N=30 pilots passed every preregistered gate: ProcessBench
+alignment/unmapped-steps both zero across all 4 subsets; RAGTruth alignment
+clean, chunk counts matched the per-task rule exactly (QA→3, Data2txt→9,
+Summary→degenerate to `{full,noctx}`), and the direction-sanity check (mean
+`NLL_noctx − NLL_full` > 0 on grounded responses) passed at +179.35 with 95%
+of grounded responses positive
+(`scripts/rag_ec_v1/inspect_pilot_gate.py`, new).
+
+**Full-scale jobs submitted and (mostly) completed**: ProcessBench
+Llama-3.1-8B all 4 subsets (jobs 173491→173492, second job an idempotent
+no-op resume — checkpoint logic confirmed correct on a real multi-hundred-MB
+cell); RAGTruth dev slice, 150 seeded train `source_id`s (173496→173497,
+same idempotent-resume pattern, 5,724 items); RAGTruth test split, ~16,200
+items (173494, ~94% at last check, 173495 chained and pending). Dev-slice
+source_ids generated locally (`np.random.default_rng(0)`, 150 of 2,515
+distinct train source_ids) and pushed to the cluster with an independent
+md5sum check on both ends.
+
+**Built `scripts/rag_ec_v1/` — the RAGTruth 6-arm evaluator**, validated
+end-to-end against real N=30 pilot data (not a real result, N=30 is
+engineering validation only):
+- Read the actual GASP paper (arXiv:2607.04223, "Grounding-Aware Sensitivity
+  by Perturbation") for the first time — the manifest had cited it since
+  Step 237 but nothing had opened the PDF. Digest at
+  `papers/digests/gasp-detecting-hallucinations-in-retrieval-augmented-generat.md`.
+  Found the exact formulas (Eqs. 8–11: mean-then-max aggregation for the
+  leave-one-out features, not the max-then-mean order
+  `evidence_contrast.py`'s pre-existing `dnll_loo_max` used) and the
+  per-scorer breakdown the abstract's rounded "~0.73/~0.67" hides — for
+  Qwen2.5-1.5B specifically (our scorer), GASP-threshold reaches **0.713
+  response AUC / 0.673 span AUC** on RAGTruth. That is the number our
+  reproduction should be checked against, not the cross-scorer average.
+- `gasp.py`: faithful GASP-threshold reproduction (their own reported
+  default, training-free), fidelity level and every disclosed deviation
+  (task-type scope, no sentence segmentation, no 200-token cap) stated in
+  the docstring.
+- `run.py`: all 6 preregistered arms assembled — full-context-only DUFS-LIU,
+  likelihood-drop, GASP reproduction, EC-U-PCR, EC-DUFS-LIU (temporal
+  graph), EC-DUFS-LIU (evidence graph), fusion-isolation ablation — reusing
+  the same low-level primitives (`upcr_fit`, `build_graph_from_features`,
+  `laplacian_iu_path`, `adapted_dufs_soft_gates`) the frozen ProcessBench
+  pipeline uses, applied to RAGTruth's own Δ-view feature set rather than
+  reusing ProcessBench-coupled wrapper functions. Arm 5b's evidence-graph
+  fusion mechanism (Laplacian-smooth per-chunk deltas through the graph
+  before max/mean aggregation) is flagged explicitly in the code as one
+  reasonable reading of the preregistration's graph description, not a
+  confirmed mechanism — needs Omri's sign-off before its numbers are
+  trusted as a real test of the idea.
+
+**First real external-family result** (`scripts/gl_liu_external_v1/run.py`,
+built in Step 237, run for real for the first time this step against the
+just-completed full-scale Llama-3.1-8B ProcessBench cells — 3,400 rows, all
+4 subsets, score hashes frozen before any label was read,
+`results/gl_liu_external_v1/llama31_8b/FREEZE_MANIFEST.json`):
+
+| System | Macro F1 (4 cells) |
+|---|---|
+| gl_liu_v1_frozen (control) | 31.71% |
+| unified_core_five_dufs (candidate) | 31.62% |
+| baseline_max_entropy (transparent) | 31.50% |
+| baseline_entropy_cusum | 28.75% |
+| baseline_change_point | 26.27% |
+| mindgap_control (Mind the Gap reproduction) | 25.45% |
+| baseline_min_token_prob | 25.37% |
+| baseline_random | 20.09% |
+| baseline_last_step | 7.07% |
+
+**Honest read, not the triumphant one**: GL-LIU v1 clearly beats the Mind
+the Gap reproduction on every one of the 4 subsets (+5 to +10pp F1 each) —
+a genuine, confirmed transfer to a scorer family it was never selected on.
+But against the simplest possible transparent baseline (max token entropy),
+the margin is inconsistent per-subset: gsm8k 37.85 vs 37.99 (baseline
+slightly ahead), math 32.41 vs 30.58 (+1.83pp for v1), olympiadbench 28.08
+vs 28.93 (baseline ahead by 0.85pp), omnimath 28.50 vs 28.50 (tied to the
+third decimal). The macro average (31.71 vs 31.50) is a 0.21pp margin —
+noise-level at ~850 rows/subset. The unified core-five candidate is
+similarly a wash against frozen v1 (31.62 vs 31.71, sign flips per subset).
+**Conclusion**: GL-LIU v1's edge over Mind the Gap's own baselines survives
+the scorer-family swap; its edge over the simplest transparent baseline
+does not clearly survive it. This is worth stating plainly rather than
+leading with the "beats Mind the Gap" framing alone.
+
+**Result**: Both campaigns' infrastructure and data collection are
+essentially done (RAGTruth test split finishing momentarily). The RAGTruth
+evaluator is built and mechanically validated but has not yet been run
+against real full-scale/frozen data (next step, after the test-split job
+lands and its output is fetched/schema-validated/hash-frozen). The
+ProcessBench external-family confirmation has now produced its first real,
+label-opened number — mixed rather than a clean win, and reported that way.
+
+**Files**: `scripts/rag_ec_v1/{gasp,run,inspect_pilot_gate}.py`,
+`papers/{GASP...pdf,extracted/gasp...,digests/gasp...}`, `papers/index.md`,
+`spectral_utils/evidence_contrast.py` (`_js_divergence` → public
+`js_divergence`), `data/ragtruth_protocol/dev_slice_source_ids.txt`
+(untracked), `results/gl_liu_external_v1/llama31_8b/` (per-cell CSV, macro
+F1 CSV, freeze manifest, per-cell diagnostics).
+
+---

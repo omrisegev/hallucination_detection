@@ -1,0 +1,145 @@
+{
+  "model_tag": "llama31_8b",
+  "cells_manifest": "scripts/gl_liu_external_v1/cells_llama31_8b.json",
+  "frozen_v1_selection": {
+    "selected_detector": "answer_dufs_liu_mixed",
+    "selected_locator": "token_temporal_liu_l0p3",
+    "development_cells": [
+      [
+        "qwen3_4b",
+        "gsm8k"
+      ],
+      [
+        "qwen3_4b",
+        "math"
+      ]
+    ],
+    "lambdas": [
+      0.03,
+      0.1,
+      0.3
+    ],
+    "k": 7,
+    "dufs_seeds": [
+      11,
+      23,
+      37
+    ],
+    "labels_used": "development selection, split-local threshold calibration, and evaluation only",
+    "score_construction_uses_steps": false,
+    "step_spans_used_only_for_evaluation_mapping": true
+  },
+  "candidate_detector": "answer_dufs_liu_mixed",
+  "candidate_locator": "token_dufs_liu_l0p3",
+  "score_hashes_before_labels": {
+    "llama31_8b__gsm8k": {
+      "detectors": {
+        "answer_dufs_liu_mixed": "4be610062856b815a4f66320ee985d8daeed52d6e84cd28271c093fd3189168f"
+      },
+      "locators": {
+        "token_upcr_core": "92e316c8a068979f935f9a1cb1c5f65fdc9a75f13eb11ccdac7b71fa72c12f36",
+        "token_upcr_full": "92e316c8a068979f935f9a1cb1c5f65fdc9a75f13eb11ccdac7b71fa72c12f36",
+        "token_iu": "9b45699a1901d4bf7c87b0bd9eff8e032a4fdf74154af43625cfc86bc4b880f2",
+        "token_uniform_liu_l0p03": "2d240b662511cc00b0901fc6ab9d5edfe6b254a7fe8054676a6099b2d72a87fb",
+        "token_uniform_liu_l0p1": "f9b4337f07d78769efa56268903a0caeb14731740da46424b929897560d0e1de",
+        "token_uniform_liu_l0p3": "a9df6f68b7f7f2b92def04c2a437eaebdf16c9ecf3a5226c9beccdc485aca418",
+        "token_dufs_liu_l0p03": "2d240b662511cc00b0901fc6ab9d5edfe6b254a7fe8054676a6099b2d72a87fb",
+        "token_dufs_liu_l0p1": "a9df6f68b7f7f2b92def04c2a437eaebdf16c9ecf3a5226c9beccdc485aca418",
+        "token_dufs_liu_l0p3": "5f73d27b291e25fd24d6e737fc3caff6a8d0c6733131e7fbd24c0732d517f62f",
+        "token_temporal_liu_l0p03": "40ae9581f298d30209651bed965cd550d8381f61338069a8fe409420b1afb68b",
+        "token_temporal_liu_l0p1": "beb349d63fe941b85e330cbf6ef6ff418121897cfe1338246e72d91e89832f61",
+        "token_temporal_liu_l0p3": "ce963fe7ff49d10312f6af768701fdf789feeb4453a4cc52620032b10940e1c4",
+        "baseline_max_entropy": "671b305feb6acd1903c67f5423785e535b4b243e4026cbd3d96c5fbd77b53aaa",
+        "baseline_min_token_prob": "af604b3d306b6e83d9f0e5460476fd2f31af803d4301fb5c843aa6f9e2825349",
+        "baseline_entropy_cusum": "2fa4bf4e8548bd97f97b7df39be4da51fa9899d8a6d2f5b10ccf1200e24df207",
+        "baseline_change_point": "4049a1ef0a8eb1de8175a8c5066ab0eedb544059f7a7d26bc09077efcaf3df99",
+        "baseline_random": "a39640af7d77348ad5da2a967210a3a348cec37cd61c0b7ee6b911546d701313",
+        "baseline_last_step": "f98301308ee8704f106d3b9599b33eb1b1287b2686067d0a73d87d325f2ed39d"
+      },
+      "mindgap_detector": "9b11fde00a6141b4a96a52d14d9891082200369a7b5e527224683c6f73e18cd7",
+      "mindgap_locator": "8e3aebbbbeba61eaf94a0a9ec8d6f60b5b6de15f679d563abafd50d1eb95dd32"
+    },
+    "llama31_8b__math": {
+      "detectors": {
+        "answer_dufs_liu_mixed": "d09ea971c8df3839b5f65d291db935b1d906cd54ba9d60e3a87c9c936c9367b0"
+      },
+      "locators": {
+        "token_upcr_core": "365fddc713c5b158a15e67ba3c572594e6ffa562c57650203a41c1a0913f1748",
+        "token_upcr_full": "0644f37eb408e1abede3608d8aff657a5780334be7e74491a1c51adafe0c6f87",
+        "token_iu": "768507de166a436859e76d74b4f8933b383779fb9557ff3750af62da62eca511",
+        "token_uniform_liu_l0p03": "be1f674baf70b49f35de9af06b24e78049bfcc7ec55d6b747a13eed5a345c133",
+        "token_uniform_liu_l0p1": "e76af2cef60e9153a3057ebfcb7aef54fcd9678d057a5dde5b8a8d8d3229465a",
+        "token_uniform_liu_l0p3": "ce037f8945bcf98070467a26f7c52007b85972afe813c2d8497cd5d1779b3197",
+        "token_dufs_liu_l0p03": "be1f674baf70b49f35de9af06b24e78049bfcc7ec55d6b747a13eed5a345c133",
+        "token_dufs_liu_l0p1": "e76af2cef60e9153a3057ebfcb7aef54fcd9678d057a5dde5b8a8d8d3229465a",
+        "token_dufs_liu_l0p3": "ce037f8945bcf98070467a26f7c52007b85972afe813c2d8497cd5d1779b3197",
+        "token_temporal_liu_l0p03": "4fd4c9da10903f0f13d870be5d90f5556529a537a3472f94602f9398f94b41e8",
+        "token_temporal_liu_l0p1": "ea5f653b2777777da8c4b0cb62f93735f13e8c6c386c8873d0d2d547df1ba2d3",
+        "token_temporal_liu_l0p3": "6c034df4180544a77886b7d0429bb8d85cf96517231c40f21c5363ad913164fb",
+        "baseline_max_entropy": "039d51776f803d88622a400f0cc3dae1699be860e3204e27aa88323c9c3d09fe",
+        "baseline_min_token_prob": "27180b00707cf74b070fe829924dbb126801ebbce032b6d5b6bee1c2c9fcf291",
+        "baseline_entropy_cusum": "e5c9c5230bfb1d2c4fffc193ece0feb66983a1d0ca788255eed7dc7dce86d874",
+        "baseline_change_point": "57a6d2f7264f9e8333ee218e0a9c36313890d9078369375a76e19724624aea71",
+        "baseline_random": "85ee3a045272074d08287d3bef19cf63e627be546a17025b7df5b70a0a9505ff",
+        "baseline_last_step": "b347d1fecf3563879addffa224628d51ef5a812241fed431c5cc4b865a5ab05b"
+      },
+      "mindgap_detector": "16f48a1d110e6bf746b564bb2045758556b4c6231de0b972d7f6ffea6e11b0ec",
+      "mindgap_locator": "e42b4fa083305cebe84970c76ec34a4a1a6c9a9cc3b082f428e753c09e77b1ea"
+    },
+    "llama31_8b__olympiadbench": {
+      "detectors": {
+        "answer_dufs_liu_mixed": "f160809ade3f3c93093e19c1b862d19d86d2a3fafa05a46c5593abbc3032cfec"
+      },
+      "locators": {
+        "token_upcr_core": "c96dbc4a5920edff67e262fa3b2fb168a734512c54d6e57bf9a41931dc15fc3c",
+        "token_upcr_full": "2dd84f647224c1294fa567c061bb73db676522d1c6868a86edd6642feaeb2638",
+        "token_iu": "9411486dcfc23a4308bc2ed97df42b9ca68691337398fdf1afa38ea288376bf8",
+        "token_uniform_liu_l0p03": "9b7232a86575603af5270af483b40f14d7df35694f00390a4f07e5d53fae6e57",
+        "token_uniform_liu_l0p1": "9b7232a86575603af5270af483b40f14d7df35694f00390a4f07e5d53fae6e57",
+        "token_uniform_liu_l0p3": "9b7232a86575603af5270af483b40f14d7df35694f00390a4f07e5d53fae6e57",
+        "token_dufs_liu_l0p03": "9b7232a86575603af5270af483b40f14d7df35694f00390a4f07e5d53fae6e57",
+        "token_dufs_liu_l0p1": "9b7232a86575603af5270af483b40f14d7df35694f00390a4f07e5d53fae6e57",
+        "token_dufs_liu_l0p3": "9b7232a86575603af5270af483b40f14d7df35694f00390a4f07e5d53fae6e57",
+        "token_temporal_liu_l0p03": "3ad0d20cd956568b2e89706cfee1e36f869287a1091cf601c98b983dd05c90ed",
+        "token_temporal_liu_l0p1": "a0d3056c06370d1aad4ae954d4f78710b51e2bb74010e78c034e8ca56a753184",
+        "token_temporal_liu_l0p3": "19192b649b4aa1272cde99a9eb51ce85b2531f95d798565f38b6a3936eb319ae",
+        "baseline_max_entropy": "faae3b75e3eee9b6b8759d676445e159f0bea22af5a24fc8811959da8272391d",
+        "baseline_min_token_prob": "270d0d88cc975031b8b8f2f024bbc1dcd280cd67f7bb3a766ca9e1bcbb8e53e5",
+        "baseline_entropy_cusum": "04ae2c15863925bb27f912dad36bc402c1e31265323451d40db5a237674a26e5",
+        "baseline_change_point": "67e3fbcb8ca9e794abeec17af01688d9d23c4d47781b1c1655185ff39b03a066",
+        "baseline_random": "f51f077dc7984f2de7072f3142c0a8cdf0fd795ee82851beb1e3becd78023e34",
+        "baseline_last_step": "df576372fd1362a0cae129e6490aa95152e91d88c9b8cca90b240ee1cdc8c960"
+      },
+      "mindgap_detector": "cba162234d8f4db0e6a7bb32f9d66ef0e6f03743e361ac75a06075b30d7ea900",
+      "mindgap_locator": "8505afaa1e7783202e05124130edc5b9f37350f72d35e5d8800396f0631c5ef6"
+    },
+    "llama31_8b__omnimath": {
+      "detectors": {
+        "answer_dufs_liu_mixed": "6fae72f741e7029b5734a5ece17dcbabe3b87e050b38c5de51c93d6cb17c716d"
+      },
+      "locators": {
+        "token_upcr_core": "7c8dd0901c5f707b4f3010c073bb5b5f5e28aeaa6ae9f9a5792d73a516654a55",
+        "token_upcr_full": "ac30d75e49b8aedfcba03ebd4702fffe3ae5e20d03c946fe38853ac871c4e685",
+        "token_iu": "d913a8d51b2f3f062b8db777f495176b6fb907841e4043e4b9906f3cdb39e926",
+        "token_uniform_liu_l0p03": "d913a8d51b2f3f062b8db777f495176b6fb907841e4043e4b9906f3cdb39e926",
+        "token_uniform_liu_l0p1": "2316351612f438d1ccf5e9f33d97a879afbc0f41b15c4ab79b4633ac8977f050",
+        "token_uniform_liu_l0p3": "fbaec33380dfb9c3c0c666ab72e1b6ee95170c6215d2f87df12c92221e69167c",
+        "token_dufs_liu_l0p03": "d913a8d51b2f3f062b8db777f495176b6fb907841e4043e4b9906f3cdb39e926",
+        "token_dufs_liu_l0p1": "d913a8d51b2f3f062b8db777f495176b6fb907841e4043e4b9906f3cdb39e926",
+        "token_dufs_liu_l0p3": "2316351612f438d1ccf5e9f33d97a879afbc0f41b15c4ab79b4633ac8977f050",
+        "token_temporal_liu_l0p03": "bbc9d9b047e4f746a7e3773911a3dca26f0e9f053a6c64413174b043ccef76e3",
+        "token_temporal_liu_l0p1": "4b5c23bd11232646eed1a1e231350d86cd77bfb888332eebdb7785c874c1f111",
+        "token_temporal_liu_l0p3": "e9d57f90aefed5abe043eb6f91f15bc7cde7fd3e6f9eb606268b9c9cf3c57472",
+        "baseline_max_entropy": "00e8afa96e947830e8a40b3ef5e170e8987774a961ecde5ff66fe5268f77f600",
+        "baseline_min_token_prob": "62a1911bc5870660091e4dcb5a82ec85641734d461c3c201b186940e072a25d7",
+        "baseline_entropy_cusum": "fc734b418437567e0ec43597ff2ef466a047c2cb7f7087e6abf5c6b70acc1f2c",
+        "baseline_change_point": "bb1e80978418cde02753de1dbeaaf2ffe0059c3ee121379e913870017f707420",
+        "baseline_random": "0dcecc358e87f50e3b4848d458a3884339db278258d9391d98d54613c7347108",
+        "baseline_last_step": "91ec8efddd584bcf2cc50a62acf658d10ffa894d7d05a72d3199c7657dca7a3b"
+      },
+      "mindgap_detector": "963a30647a33ac6928c5a576095891ca5b1248ddd9b5e4fe8b98bfbf41df61b9",
+      "mindgap_locator": "18abc6dfff0cdfff7f8e9961f2018ada6ee0a7472387b91d4d567cd0fb013472"
+    }
+  },
+  "note": "Hashes recorded above were computed before any row['label'] access in this run. This file documents that the freeze happened; it is not itself a security artifact."
+}

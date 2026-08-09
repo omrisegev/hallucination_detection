@@ -1,34 +1,50 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-09
-**Last updated**: Step 237 — two parallel cluster campaigns (RAGTruth
-evidence-contrast, ProcessBench external-family validation) built and
-launched; Gate-B generation cells submitted.
+**Last updated**: Step 238 — both cluster campaigns cleared Gate B, pilot,
+and full-scale submission; RAGTruth 6-arm evaluator built and validated;
+first real external-family result landed (mixed, see below).
 
-## Current decision point — two cluster campaigns launched (Step 237)
+## Current decision point — first real external-family result is in; RAGTruth full run finishing (Step 238)
 
-Both applications from the Step 235/236 pivot are now running in parallel on
-AIRCC: **ProcessBench external-family validation** (Llama-3.1-8B-Instruct as
-a new scorer, testing frozen GL-LIU v1 against the unified core-five DUFS-LIU
-candidate with zero selection on the new family's labels) and **RAGTruth
-evidence-contrast** (Qwen2.5-1.5B-Instruct teacher-force-rescoring fixed
-published responses under full/no-context/leave-one-chunk-out conditions,
-fusing the contrasts with a new exogenous evidence graph — chunk-text
-similarity, not score covariance, the same class of independent signal the
-temporal-chain graph supplied for localization).
+**ProcessBench external-family validation**: fully done end to end. Gate B,
+N=30 pilot, and the full 4-subset run (3,400 rows) all completed cleanly on
+Llama-3.1-8B-Instruct. `scripts/gl_liu_external_v1/run.py` has now been run
+for real (not a dry run) — score hashes frozen before labels
+(`results/gl_liu_external_v1/llama31_8b/FREEZE_MANIFEST.json`). **Result,
+reported honestly**: gl_liu_v1_frozen reaches 31.71% macro F1 vs
+unified_core_five_dufs 31.62% vs baseline_max_entropy (transparent, no
+fusion) 31.50% vs mindgap_control (Mind the Gap reproduction) 25.45%.
+GL-LIU v1 clearly beats Mind the Gap's own baseline on every subset
+(+5–10pp) — genuine transfer. It does **not** clearly beat the simplest
+transparent baseline (max token entropy) — the margin flips sign per
+subset and the macro average gap (0.21pp) is noise-level at ~850
+rows/subset. Full per-subset breakdown and the "honest read" paragraph:
+HISTORY.md Step 238.
 
-**Launched**: Gate-B generation cells submitted — job **173188**
-(`gateb_gsm8k_llama31_8b`) and job **173189** (`gateb_gsm8k_qwen25_15b`).
-**Next actions, in order**: (1) Gate-B validation for both
-(`run_teacher_forced.py --validate` / `run_conditional_rescore.py
---validate`) once the generation cells complete; (2) N=30 pilots for both,
-gated on alignment/chunking/direction sanity; (3) full-scale jobs (3,400
-ProcessBench rows; 16,200 RAGTruth (response,condition) items); (4) fetch,
-freeze-hash, then `scripts/gl_liu_external_v1/run.py` (built and dry-run
-validated) and the RAGTruth evaluator (`scripts/rag_ec_v1/`, not yet built —
-next session).
+**RAGTruth evidence-contrast**: Gate B and the N=30 pilot passed every
+preregistered gate (alignment, chunk-count rule, and the direction-sanity
+check: mean `NLL_noctx − NLL_full` = +179.35, 95% positive on grounded
+responses). Full-scale jobs submitted: the 150-source_id dev slice is done
+(5,724 items); the primary test-split run (~16,200 items) was at ~94% at
+last check, its chained resume job pending. **Next action**: once it
+finishes, fetch + schema-validate + freeze-hash, then run
+`scripts/rag_ec_v1/run.py` (built and mechanically validated against the
+N=30 pilot this step — not yet run against real frozen data) for the
+actual result.
 
-**A blocking module was reconstructed this step**:
+**RAGTruth evaluator built this step**: `scripts/rag_ec_v1/{gasp,run}.py` —
+all 6 preregistered arms, including a faithful GASP-threshold reproduction
+grounded in a real read of the paper (arXiv:2607.04223; digest at
+`papers/digests/gasp-...md`). For our scorer (Qwen2.5-1.5B), GASP's own
+reported number is **0.713 response AUC / 0.673 span AUC** on RAGTruth —
+that is the number our arms should be checked against once labels open, not
+the paper's rounder cross-scorer-average abstract figure. Arm 5b's
+evidence-graph fusion mechanism is flagged in the code as one reading of
+the preregistration, not a confirmed mechanism — worth Omri's sign-off
+before trusting its numbers as a real test of the new-graph idea.
+
+**A blocking module was reconstructed in Step 237**:
 `spectral_utils/token_feature_views.py` (the `gl_liu_factorial_v2` local-head
 feature contract) was confirmed absent from every branch and stash. Rebuilt
 from the frozen `RUN_DEFINITION.json` contract plus the never-lost

@@ -87,6 +87,16 @@ frozen GL-LIU v1 against the unified core-five DUFS-LIU candidate with zero sele
 the new family's labels. `scripts/gl_liu_external_v1/run.py` is built and dry-run validated.
 See HISTORY.md Step 237 and `cluster/manifests/pb_llama31_8b_external_v1.json`.
 
+**Step 238 (2026-08-09): first real result, mixed.** Full 4-subset run completed
+(3,400 rows), scored with labels opened after hash-freeze. gl_liu_v1_frozen
+31.71% macro F1 clearly beats the Mind the Gap reproduction (25.45%, +5–10pp
+every subset — genuine transfer) but is a statistical wash against the
+simplest transparent baseline, max token entropy (31.50%, sign flips per
+subset, macro gap 0.21pp — noise at ~850 rows/subset). unified_core_five_dufs
+(31.62%) is likewise a wash against frozen v1. Read this as "beats the
+published competitor, does not clearly beat doing nothing clever" rather than
+a confirmed win — see HISTORY.md Step 238 for the per-subset table.
+
 ### Application priority 2: hallucination in RAG citations
 
 RAG supplies the independent view that the core-algorithm experiments were
