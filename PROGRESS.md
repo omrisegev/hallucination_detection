@@ -1,12 +1,39 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-09
-**Last updated**: Step 239 — both campaigns' full-scale data collection and
-first-pass scoring are done. ProcessBench external-family: mixed (Step 238).
-RAGTruth evidence-contrast: intervention design confirmed working, but the
-campaign's actual novelty claim (Laplacian fusion beats naive averaging) is
-promising, not statistically confirmed (P(Δ≤0)=0.066 for the best arm, just
-above the 0.05 line) — see below.
+**Date**: 2026-08-10
+**Last updated**: Step 241 — a separate track (external answer-level data
+collection + reasoning-localization competitor ceilings) scaled SemGrad/HLE
+to full N and added 4 new competitor numbers on the cluster; see the session
+addendum immediately below. The RAGTruth/ProcessBench GL-LIU decision point
+(Step 239, further down) is UNCHANGED by this — still open, still the
+project's main open research question.
+
+## Session addendum (2026-08-10) — external data collection scaled; 4 new reasoning-localization competitor ceilings (Steps 240-241)
+
+**SemGrad + HLE (Step 240)**: SemGrad scaled to full N — SciQ 1000/1000 rows
+(accuracy 0.648), TruthfulQA 817/817 rows (accuracy 0.308) — Qwen3-4B-
+Instruct-2507, fetched and backed up to Drive. HLE full run (N=2158,
+Qwen2.5-72B-Instruct, 3-job Slurm chain 176043→176044→176045) still in
+progress. HUB and ReDe audited and confirmed BLOCKED (no controlled
+generation protocol / no official code, respectively) — no change to their
+status in `docs/research_notes/external_data_collection_plan_2026.md`.
+
+**Reasoning-localization competitor ceilings (Step 241)**: built and piloted
+(N=30/subset) 4 new competitors named in this project's own gates but never
+executed — ProcessBench's own critic-model baseline (Qwen2.5-72B, F1
+70.4/50.0/47.1/65.9), the published Qwen2.5-Math-PRM-7B supervised ceiling
+(F1 81.4/73.3/61.8/73.0), uPRM's own no-training "LLM-as-a-Judge" control
+(our reconstruction, Qwen3-8B, F1 26.2/18.2/0.0/8.8 — **not uPRM itself**,
+which needs real RL training per a full paper read, see HISTORY Step 241),
+and a LettuceDetect ceiling on the full 2,700-row RAGTruth test split (F1
+0.759). Three real bugs caught and fixed (transformers API version skew in
+the PRM checkpoint's own code; a BPE marker-merging bug in the uPRM-baseline
+reconstruction; a `0.0`-treated-as-falsy F1 bug now fixed and consolidated
+into one shared helper). **Full N=3400 runs for the three ProcessBench
+scorers are not yet submitted** — next action is Omri's review of pilot
+health before scaling. Full account: HISTORY.md Step 241.
+
+---
 
 ## Current decision point — RAGTruth's novelty claim is promising but not confirmed; a real sign-bug was caught and fixed first (Step 239)
 

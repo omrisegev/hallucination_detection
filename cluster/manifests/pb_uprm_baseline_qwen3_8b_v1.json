@@ -1,0 +1,42 @@
+{
+  "experiment": "pb_uprm_baseline_qwen3_8b_v1",
+  "stage": "A -- protocol lock, written before the pilot submission",
+  "written_utc": "2026-08-10",
+
+  "purpose": "Reproduce the cheap, no-training 'LLM-as-a-Judge' control from the uPRM paper (Gadetsky et al., arXiv:2605.10158, Eq. 6) -- NOT uPRM itself, which requires training a new LoRA-tuned model via a bespoke RL objective (~44 GPU-hours on 8xH200, Appendix B). This is a documented SCOPE CORRECTION after actually reading the paper (papers/digests/unsupervised-process-reward-models.md): the earlier plan assumed uPRM reproduction was a cheap scoring pass; it is not. Omri confirmed (2026-08-10): build the LLM-as-a-Judge control only, not full uPRM.",
+
+  "mandatory_competitor_gate": {
+    "method": "\"LLM-as-a-Judge\" -- the uPRM paper's OWN non-joint, no-training control (their name, their Eq. 6), not an external citation and not uPRM itself",
+    "paper": "Unsupervised Process Reward Models -- Gadetsky, Kodryan, Panigrahi, Guo, Brbic (EPFL), arXiv:2605.10158",
+    "official_code": "none released as of digest (2026-08-10) -- the marker symbols, prompt framing, and tokenization handling are OUR reconstruction, documented as such in spectral_utils/uprm_baseline.py's module docstring",
+    "dataset_subset": "same Qwen/ProcessBench rows (gsm8k, math, olympiadbench, omnimath) as every other ProcessBench cell in this project",
+    "protocol": "interleave each reasoning step with a correctness marker ('+' correct / '-' incorrect, matching the paper's own notation), score every candidate first-error position j via S(j) = log p-_j + sum_{t<j} log p+_t (Eq 6, p renormalized over {+,-}), predict argmax_j S(j); ONE forward pass per row suffices (see uprm_baseline.py's module docstring for why) over the all-'+' marked sequence",
+    "supervision_access_sampling": "unsupervised, gray-box (next-token probabilities), no training -- CATEGORY = 'Unsupervised probability method' in docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md's fair-comparison table, same category the paper itself places uPRM in (this control shares the category but not the joint-scoring/training mechanism)",
+    "comparison_level": "1 -- identical rows/labels to every other ProcessBench cell in this project",
+    "the_actual_uprm_number_is_NOT_reproduced_here": "58.3/52.6/42.7/39.8 F1 (GSM8K/MATH/OlympiadBench/Omni-MATH) from Table 1 remains a QUOTED, not-rerun number -- do not present this job's output as if it were uPRM"
+  },
+
+  "model": {
+    "id": "Qwen/Qwen3-8B",
+    "selection_rationale": "matches the model already used for the other 8 teacher-forced ProcessBench cells in this project (frozen GL-LIU v1 development cells), keeping the localization benchmark's model roster consistent rather than introducing a third distinct model. The paper's own base model (Qwen2.5-14B-Instruct) was chosen because joint scoring needs 'sufficient context length and capability' (paper's own Limitations) -- irrelevant here since we reproduce only the INDEPENDENT (non-joint) control, which the paper itself evaluates with the same base model as uPRM but does not require any minimum capability threshold of its own.",
+    "attn_impl": "sdpa (no attention capture needed)"
+  },
+
+  "prompt_and_marker_design": {
+    "status": "OURS, NOT THE PAPER'S -- no official code was released",
+    "markers": "literal single characters '+' (correct) and '-' (incorrect), matching the paper's own Eq 4/5 notation exactly",
+    "framing": "a short system message explains the +/- convention (unavoidable -- a raw solution with no framing gives the model no reason to treat those characters as evaluative)",
+    "real_bug_caught_before_submission": "the marker BPE-merges with its following step separator for Qwen3-8B's tokenizer (' +\\n\\n' -> a single different token than ' +' alone; verified empirically 2026-08-10) -- spectral_utils/uprm_baseline.py handles this via context-specific (pos_id, neg_id) pairs (one for mid-chain markers followed by STEP_SEP, one for the final marker followed by the chat template's own closing sequence) derived from the ACTUAL following text, with every marker position's real token id checked against its context's expected id (raises loudly on mismatch rather than silently mis-scoring)"
+  },
+
+  "cost_profile": "single forward pass per row (no generation) -- same cost class as run_teacher_forced.py / run_processbench_prm.py; the pilot (120 rows) should take minutes",
+
+  "pilot_plan": {
+    "n_samples": 30,
+    "per_subset": true,
+    "total_rows": 120,
+    "subsets": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "health_gate": "n_failed_tokenization should be a small minority per subset (a large count means the context-specific marker assumption is breaking down for this tokenizer, not that the method is weak); both classes present per subset; error_acc/correct_acc/F1 should be plausible (roughly in the neighborhood of the paper's own 26-50 F1 range for their base model+dataset combination, though a different base model (Qwen3-8B vs their Qwen2.5-14B-Instruct) means this is NOT expected to match their number exactly -- comparison level 1 on OUR outputs, not a reproduction of THEIR reported score)",
+    "no_full_run_yet": "the full N=3400 run is NOT submitted in this pass -- report pilot health back before scaling, per CLAUDE.md's local-smoke -> N=30-pilot -> full-N gate order."
+  }
+}

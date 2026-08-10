@@ -11401,3 +11401,145 @@ test), `results/rag_ec_v1/full_test_split_result.json`,
 fetched pkls).
 
 ---
+
+### Step 240 — SemGrad and HLE scaled to full N; HUB and ReDe stay blocked after audit
+
+**What**: Scaled the SemGrad protocol pilot (Step 237) to full scale — SciQ
+N=1000 and TruthfulQA N=817 on Qwen3-4B-Instruct-2507, same protocol as the
+pilot. Submitted the HLE full run (N=2158, Qwen2.5-72B-Instruct) as a 3-job
+Slurm dependency chain, using a NEW output directory (`results/hle_full`, not
+`hle_pilot`) after finding that HLE's and SemGrad's seeded-subsample loaders
+return different row orderings between a partial-N draw and the full pool —
+reusing a pilot's output directory would have silently corrupted the first
+~200 rows via `cache.setdefault`'s index-collision (the pilot's cache entries
+at keys 0..199 would have blocked the full run from ever writing the correct
+row for those slots). Also ran feasibility audits for HUB and ReDe
+(`docs/research_notes/external_data_collection_plan_2026.md`'s priorities 2
+and 5): HUB is blocked because the only public HUB release relabels existing
+corpora (CriticBench/FAVA/HaluEval/RAGTruth) rather than one controlled
+on-policy generation protocol — no exact prompts/checkpoints/decoding to
+reproduce; ReDe stays blocked because no official code repository exists yet.
+
+**Why**: Omri approved the full-scale SemGrad/HLE runs after reviewing pilot
+health ("What is the meaning of the accuracy if we are not grading? Can you
+move to the full run then?"); the index-collision risk generalizes to any
+loader in this project using the "seeded-subsample, full-pool-if-N>=total"
+pattern, so it was flagged and designed around before submission rather than
+discovered after.
+
+**Result**: SemGrad full-scale — SciQ 1000/1000 rows, accuracy 0.648 (pilot:
+0.635); TruthfulQA 817/817 rows, accuracy 0.308 (pilot: 0.290). Both fetched,
+schema-validated (all rich-save keys present, K=1 consistent, both label
+classes represented), and backed up to Google Drive
+(`cluster_results/semgrad_full/{sciq,truthfulqa}`). HLE full run (job chain
+176043→176044→176045) still in progress as of this writing — link 1
+completed on wall-time, link 2 running. HUB and ReDe remain BLOCKED per the
+plan's own gate — no new cluster work scheduled for either until their
+respective blockers clear.
+
+**Files changed**: none new — reused existing presets (`semgrad_sciq_qwen3_4b`,
+`semgrad_truthfulqa_qwen3_4b`, `hle_qwen72b_full`) with `--n-samples`/`--out`
+overrides; only cluster-side output directories and the Drive backup are new.
+
+---
+
+### Step 241 — reasoning localization gets 4 new competitor ceilings: ProcessBench critic-model, Qwen2.5-Math-PRM-7B, uPRM's own baseline, and LettuceDetect
+
+**What**: Built and piloted (N=30/subset, 120 rows) three new ProcessBench-
+family scorers plus one RAGTruth scorer, completing competitors already named
+in this project's own gates but never executed:
+
+1. `cluster/run_processbench_critic.py` — reproduces ProcessBench's own
+   critic-model baseline (Zheng et al., arXiv:2412.06559): prompts
+   Qwen2.5-72B-Instruct with the paper's exact critique template (fetched
+   verbatim from `github.com/QwenLM/ProcessBench`) to name the first wrong
+   paragraph, `\boxed{}` extraction and F1 formula matched to their
+   `run_eval.py` exactly.
+2. `cluster/run_processbench_prm.py` + `spectral_utils/prm_scorer.py` —
+   scores the same ProcessBench rows with the published, human-label-trained
+   Qwen2.5-Math-PRM-7B checkpoint (a supervised ceiling, reported in its own
+   category, never beside our label-free score).
+3. `cluster/run_processbench_uprm_baseline.py` + `spectral_utils/uprm_baseline.py`
+   — after reading the uPRM paper (Gadetsky et al., arXiv:2605.10158) in
+   full, found that uPRM itself needs training a new LoRA-tuned model via RL
+   (~44 GPU-hours on 8×H200, an undocumented gradient estimator, no public
+   code) rather than a scoring pass — a real scope correction to the earlier
+   plan. Built only its cheap, no-training "LLM-as-a-Judge" control instead
+   (Omri's call after the correction was surfaced), reconstructing the
+   paper's undisclosed marker/prompt scheme ourselves and documenting it as
+   such.
+4. `scripts/ragtruth_lettucedetect_ceiling.py` — scores the existing RAGTruth
+   evidence-contrast response cache with the public LettuceDetect checkpoint
+   (KRLabsOrg, arXiv:2502.17125), closing item 6 of the RAGTruth competitor
+   gate's Stage-1 list (`cluster/manifests/ragtruth_ec_v1.json`).
+
+**Why**: Omri asked to "promote more hallucination localization jobs to the
+cluster," prioritizing "jobs applicable for benchmarking" and completing
+partial/named-but-unrun competitors before collecting new data. All four were
+already named as required comparisons in
+`docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md`'s
+ordered wishlist or `cluster/manifests/{pb_llama31_8b_external_v1,ragtruth_ec_v1}.json`'s
+competitor gates, just never executed.
+
+**Result**: All four pilots healthy, both label classes present in every
+cell, near-zero parse/truncation failures.
+
+| Ceiling | GSM8K | MATH | OlympiadBench | Omni-MATH |
+|---|---:|---:|---:|---:|
+| Critic-model (Qwen2.5-72B) | 70.4 | 50.0 | 47.1 | 65.9 |
+| PRM (Qwen2.5-Math-PRM-7B) | 81.4 | 73.3 | 61.8 | 73.0 |
+| uPRM's own "LLM-as-a-Judge" (our reconstruction, Qwen3-8B) | 26.2 | 18.2 | 0.0 | 8.8 |
+
+The PRM ceiling is the strongest of the three, as expected for a purpose-
+built supervised model; the uPRM-baseline reconstruction trails the paper's
+own reported number for that control (49.8/42.8/29.4/26.6), expected given a
+different, smaller base model and an undisclosed exact prompt we had to
+reconstruct. LettuceDetect ran the FULL 2,700-row RAGTruth test split (not
+just a pilot): example-level F1 0.759 (precision 0.768, recall 0.750), close
+to their own reported 0.792, 662/943 gold-hallucinated rows correctly
+span-overlapped (not just flagged).
+
+Three real bugs were caught and fixed mid-session, not shipped silently:
+
+- Qwen2.5-Math-PRM-7B's own `trust_remote_code` model calls a
+  `Cache.get_usable_length` method renamed in this cluster's transformers
+  version (`AttributeError: 'DynamicCache' object has no attribute
+  'get_usable_length'`) — fixed with a narrow compatibility alias
+  (`spectral_utils/prm_scorer.py::_patch_cache_compat`), same pattern as the
+  existing `check_torch_load_is_safe` shim used throughout `cluster/`.
+- The uPRM-baseline's marker token BPE-merges with its following step
+  separator for non-final steps (verified empirically for Qwen3-8B: `" +\n\n"`
+  tokenizes as one token, different from `" +"` alone) — fixed with
+  context-specific `(pos_id, neg_id)` pairs derived from the real following
+  text, self-verified per marker position (raises loudly on mismatch) rather
+  than assumed globally.
+- The shared ProcessBench F1 formula treated a legitimate 0.0% accuracy as
+  Python-falsy, silently reporting `f1: null` instead of `0.0` for one cell
+  (caught in production on `pb_uprm_baseline_qwen3_8b_pilot`'s olympiadbench
+  cell) — fixed and consolidated into one shared
+  `spectral_utils/processbench.py::first_error_f1`, replacing three separate
+  copies of the same buggy formula across the three new drivers, with a
+  regression test added to the module's own `smoke()`.
+
+Full N=3400 runs for all three ProcessBench-family scorers are **not yet
+submitted** — pilot health review and Omri's go-ahead needed first, per this
+project's own local-smoke → N=30-pilot → full-N gate order. All four pilots'
+raw pkls + manifests fetched and backed up to Google Drive
+(`cluster_results/{pb_critic_qwen72b_pilot,pb_prm_qwen25math7b_pilot,
+pb_uprm_baseline_qwen3_8b_pilot,ragtruth_lettucedetect_ceiling}`).
+
+**Files changed**:
+- `cluster/run_processbench_critic.py` — new driver, critic-model ceiling
+- `cluster/run_processbench_prm.py` — new driver, PRM ceiling
+- `cluster/run_processbench_uprm_baseline.py` — new driver, uPRM's LLM-as-a-Judge control
+- `spectral_utils/prm_scorer.py` — new module, Qwen2.5-Math-PRM-7B loader/scorer + cache-compat shim
+- `spectral_utils/uprm_baseline.py` — new module, marker-based scoring reconstruction
+- `spectral_utils/processbench.py` — added `critic_prompt`/`extract_critic_prediction`/`is_correct_processbench_critic`/`first_error_f1` (shared F1 helper, bug-fixed)
+- `cluster/manifests/{pb_critic_qwen72b_v1,pb_prm_qwen25math7b_v1,pb_uprm_baseline_qwen3_8b_v1}.json` — Stage-A protocol locks
+- `cluster/submit_pb_{critic,prm,uprm_baseline}.sbatch.template` — sbatch templates
+- `scripts/ragtruth_lettucedetect_ceiling.py` — new script, LettuceDetect scorer
+- `papers/{extracted,digests}/unsupervised-process-reward-models.md`, `papers/Unsupervised Process Reward Models.pdf` — new paper digest
+- `papers/index.md` — added the uPRM paper entry
+- `.gitignore` — added the three new live-sbatch entries
+
+---

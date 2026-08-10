@@ -1,0 +1,65 @@
+{
+  "experiment": "pb_critic_qwen72b_v1",
+  "stage": "A -- protocol lock, written before the pilot submission",
+  "written_utc": "2026-08-10",
+
+  "purpose": "Reproduce ProcessBench's OWN published critic-model evaluation category (general LLM prompted to critique a solution step by step) on our OWN strongest model, over the SAME 3,400 ProcessBench rows already teacher-forced for the GL-LIU study. This completes item 4 ('critic-model ceiling') of the reasoning-localization benchmark's ordered wishlist (docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md) -- not a new dataset, a new competing column on identical inputs.",
+
+  "mandatory_competitor_gate": {
+    "method": "ProcessBench critic-model baseline",
+    "paper": "ProcessBench: Identifying Process Errors in Mathematical Reasoning -- Zheng et al., arXiv:2412.06559",
+    "official_code": "github.com/QwenLM/ProcessBench, code/run_eval.py + code/templates/critique_template.txt (fetched verbatim 2026-08-10, hash-worthy quotes in spectral_utils/processbench.py's CRITIC_TEMPLATE docstring)",
+    "dataset_subset": "same Qwen/ProcessBench rows (gsm8k, math, olympiadbench, omnimath) already used by pb_llama31_8b_external_v1.json and the original 8 Qwen3-4B/8B cells",
+    "protocol": "single user-turn prompt (no system message), paragraphs tagged <paragraph_i>...</paragraph_i>, greedy decoding (temperature=0), \\boxed{} index extraction, exact-match F1 = harmonic mean of error-row accuracy and correct-row accuracy",
+    "supervision_access_sampling": "zero-shot prompted critique, no training, one extra large-model generation per row (NOT gray-box -- this is the 'critic model' access category in docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md, distinct from our own single-pass gray-box DUFS-LIU)",
+    "comparison_level": "1 for the dataset (identical rows/labels to every other ProcessBench cell in this project); the critique text itself is new model output, exactly as ProcessBench's own protocol requires -- there is no 'same outputs' notion for a critic baseline"
+  },
+
+  "model": {
+    "id": "Qwen/Qwen2.5-72B-Instruct",
+    "selection_rationale": "\"prioritize jobs applicable for benchmarking\" (Omri, 2026-08-10) -- our strongest model gives the critic-model ceiling its best shot, same rationale as the HLE preset's model choice earlier this session.",
+    "precision": "bf16, full precision",
+    "attn_impl": "sdpa -- eager's O(T^2) fp32 attention-score materialization OOM'd this exact model on long single-sequence generation during the HLE pilot this same session (job 169914/170046); this driver needs no attention capture, so sdpa is the safe default from the start, not a reactive fix."
+  },
+
+  "prompt": {
+    "source": "code/templates/critique_template.txt + code/run_eval.py::prepare_input_boxed, github.com/QwenLM/ProcessBench, fetched 2026-08-10",
+    "template_reproduced_verbatim": true,
+    "paragraph_tagging": "<paragraph_{i}>\\n{step}\\n</paragraph_{i}>\\n\\n, joined and .strip()'d -- exact code from prepare_input_boxed",
+    "chat_turn": "single user message, no system prompt (matches messages=[{'role':'user','content':prompt}])"
+  },
+
+  "decoding": {
+    "temperature": 0.0,
+    "do_sample": false,
+    "max_new_tokens": 8192,
+    "note": "run_eval.py's own default for every non-QwQ model (QwQ gets 32768; not applicable to Qwen2.5-72B-Instruct). Fixed identically between pilot and full run per project convention -- never varied to save pilot cost."
+  },
+
+  "grading": {
+    "extraction": "extract_critic_prediction -- last \\boxed{...} match, int-parsed, None on failure or non-integer payload (matches run_eval.py's extract_answer exactly, including the bare except->None)",
+    "match_rule": "exact index equality against ProcessBench's own `label` field (0-indexed paragraph, or -1 for 'all correct') -- NOT tolerance-one, matching run_eval.py's `pred == d['label']`",
+    "metric": "critic_f1() in spectral_utils/processbench.py -- error_acc (match rate on label != -1 rows), correct_acc (match rate on label == -1 rows), F1 = harmonic mean of the two, verbatim from run_eval.py's own acc1/acc2/f1 computation"
+  },
+
+  "pilot_plan": {
+    "n_samples": 30,
+    "per_subset": true,
+    "total_rows": 120,
+    "subsets": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "seed_note": "load_processbench's own seeded rng(0) draw -- same 30-row pilot population used by every other ProcessBench pilot in this project (see spectral_utils/processbench.py's own comment on why a random, not head, draw is required for class balance)",
+    "health_gate": "both classes present per subset (label==-1 and label!=-1), no systematic \\boxed{} parse failure (n_unparsed should be a small minority, not the majority -- a large n_unparsed means the model isn't following the requested output format and the whole cell would be uninformative), no wholesale truncation (n_truncated should be ~0 given max_new_tokens=8192 is generous for a short critique)",
+    "no_full_run_yet": "the full N=3400 run is NOT submitted in this pass -- report pilot health back before scaling, per this project's own local-smoke -> N=30-pilot -> full-N gate order (CLAUDE.md)."
+  },
+
+  "cost_estimate": {
+    "basis": "Qwen2.5-72B-Instruct single-sequence generation throughput observed on this same cluster during the HLE full run (2026-08-09/10): ~19-25s/problem at up to ~2048 tokens for HLE's longer explanations; ProcessBench critiques are expected to be considerably shorter on average (reviewing a handful of paragraphs then one \\boxed{} line, not an open-ended explanation) despite the higher 8192-token cap, so per-row cost should track actual critique length, not the cap.",
+    "pilot_120_rows": "expected well under 1 hour on a single B200 given the above"
+  },
+
+  "still_out_of_scope": [
+    "the full N=3400 run (separate approval after pilot health review)",
+    "voting/self-consistency mode (run_eval.py's --use_voting; not attempted here -- single greedy generation only, matching every other cell's decoding policy)",
+    "QwQ-32B or o1-mini as an additional critic model (ProcessBench's own strongest critics; would be a second, separate job)"
+  ]
+}

@@ -1,0 +1,52 @@
+#!/bin/bash
+# TEMPLATE for cluster/submit_pb_uprm_baseline.sbatch — live file gitignored (hardcoded HF_TOKEN),
+# same convention as the other submit_*.sbatch.template files in this directory.
+#
+# To regenerate the live file ON THE CLUSTER:
+#
+#   cd /shared/cycle2_tau_averbuch_prj/omrisegev1/code
+#   tok=$(grep -m1 '^export HF_TOKEN=' cluster/submit_inference.sbatch | cut -d= -f2-)
+#   sed "s|^export HF_TOKEN=.*|export HF_TOKEN=$tok|" \
+#       cluster/submit_pb_uprm_baseline.sbatch.template > cluster/submit_pb_uprm_baseline.sbatch
+#
+# NEVER commit the live file.
+#
+# WHAT THIS RUNS
+# --------------
+# `cluster/run_processbench_uprm_baseline.py`: reproduces the uPRM paper's own cheap "LLM-as-a-
+# Judge" control (Eq. 6) on existing ProcessBench rows — one forward pass per row, no generation.
+# This is NOT uPRM itself (that needs real RL training, see
+# cluster/manifests/pb_uprm_baseline_qwen3_8b_v1.json for the full scope correction). Pilot first
+# (N=30/subset), full N=3400 only after a separate approval.
+#
+# Submit:
+#
+#   sbatch -p power-gpu --qos=owner_880 cluster/submit_pb_uprm_baseline.sbatch \
+#       --n-samples 30 --out /shared/cycle2_tau_averbuch_prj/omrisegev1/results/pb_uprm_baseline_qwen3_8b_pilot
+#
+#SBATCH --job-name=spectral_pbuprm
+#SBATCH --gpus=1
+#SBATCH --time=08:00:00
+#SBATCH --requeue
+#SBATCH --signal=B:TERM@900
+#SBATCH --output=/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/%x_%j.out
+#SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
+#SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
+#SBATCH --container-workdir=/shared/cycle2_tau_averbuch_prj/omrisegev1/code
+
+set -uo pipefail
+
+SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
+export HF_HOME=$SHARED/hf_cache
+export HF_DATASETS_CACHE=$SHARED/hf_cache/datasets
+export PIP_CACHE_DIR=$SHARED/pip_cache
+export PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID}
+mkdir -p "$PYTHONUSERBASE"
+export HF_TOKEN=REPLACE_ME
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+echo "[sbatch] job $SLURM_JOB_ID on $(hostname), args: $*"
+
+pip install -q --user -r cluster/requirements.txt
+
+exec python cluster/run_processbench_uprm_baseline.py "$@"

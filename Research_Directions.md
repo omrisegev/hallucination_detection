@@ -927,6 +927,20 @@ Develop span/onset outputs and threshold transfer only under a new registered
 application protocol. See the current-decision section at the top of this file
 and `docs/research_notes/localization_research_handoff_2026-08-08.md`.
 
+**Competitor ceilings added (Step 241, 2026-08-10, N=30/subset pilots — not
+yet scored against our own method's numbers)**: ProcessBench's own critic-
+model baseline (Qwen2.5-72B, F1 70.4/50.0/47.1/65.9 on gsm8k/math/
+olympiadbench/omnimath), the published Qwen2.5-Math-PRM-7B supervised
+ceiling (F1 81.4/73.3/61.8/73.0), and a reconstruction of uPRM's own cheap
+"LLM-as-a-Judge" no-training control (Qwen3-8B, F1 26.2/18.2/0.0/8.8) —
+**not uPRM itself**, which requires training a new model via RL (~44
+GPU-hours, no public code); see `papers/digests/unsupervised-process-reward-
+models.md`. All three completed items 3 and part of item 1 of
+`docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md`'s
+"what should be added to the benchmark" ordered list. Full N=3400 runs are
+not yet submitted — pilot health review needed first. Full account: HISTORY
+Step 241.
+
 ---
 
 ### Extension H — Prior-Free L-SML: derive orientation, size, and selection from structure alone (NEW top priority, Step 199, 2026-07-25)

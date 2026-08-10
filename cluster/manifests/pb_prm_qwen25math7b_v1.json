@@ -1,0 +1,43 @@
+{
+  "experiment": "pb_prm_qwen25math7b_v1",
+  "stage": "A -- protocol lock, written before the pilot submission",
+  "written_utc": "2026-08-10",
+
+  "purpose": "Score the SAME ProcessBench rows already teacher-forced for the GL-LIU study with a PUBLISHED, human-label-trained process reward model, completing item 3 ('published supervised PRM ceilings') of the reasoning-localization benchmark's ordered wishlist (docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md). This is a supervised ceiling, never reported beside our own label-free score as if it used the same information.",
+
+  "mandatory_competitor_gate": {
+    "method": "Qwen2.5-Math-PRM-7B",
+    "paper": "Towards Effective Process Supervision in Mathematical Reasoning (Qwen team) -- model card + blog https://qwenlm.github.io/blog/qwen2.5-math-prm/, checkpoint Qwen/Qwen2.5-Math-PRM-7B",
+    "official_code": "huggingface.co/Qwen/Qwen2.5-Math-PRM-7B README.md usage example, fetched verbatim 2026-08-10 (spectral_utils/prm_scorer.py reproduces it line-for-line, including make_step_rewards' exact reduction order)",
+    "dataset_subset": "same Qwen/ProcessBench rows (gsm8k, math, olympiadbench, omnimath) as pb_llama31_8b_external_v1.json and pb_critic_qwen72b_v1.json",
+    "protocol": "AutoModel (not AutoModelForCausalLM) classification head, trust_remote_code=True; system+user+assistant chat template with the model's own published system prompt; response = steps joined by the literal token \"<extra_0>\" plus one trailing occurrence; per-<extra_0> positive-class softmax probability = step reward; first step below threshold 0.5 = predicted first error, else -1",
+    "supervision_access_sampling": "human-process-label-trained model (PRM800K-style supervision) -- CATEGORY = 'Human-supervised PRM' in docs/research_notes/reasoning_localization_methods_and_benchmarks_2026.md's fair-comparison table, not gray-box or label-free",
+    "comparison_level": "1 -- identical rows/labels to every other ProcessBench cell in this project; the PRM's own reward is a genuinely new score, but the population being scored is exactly the same"
+  },
+
+  "why_not_our_load_model": "Qwen2.5-Math-PRM-7B is architecturally a classification head over the Qwen2.5-Math-7B-Instruct backbone (custom trust_remote_code class), not a causal LM -- spectral_utils.model_utils.load_model (AutoModelForCausalLM) cannot load it. spectral_utils/prm_scorer.py is a small, separate loader mirroring the pattern already established for spectral_utils/bem_scorer.py (a different external non-causal-LM scorer added earlier this session).",
+
+  "decision_rule": {
+    "threshold": 0.5,
+    "note": "ProcessBench's own published PRM-baseline decision rule: a step is 'wrong' once its own predicted correctness probability crosses 0.5. Fixed identically between pilot and full run; a threshold search on our own labels would make this a tuned method, not a ceiling reproduction.",
+    "no_error_sentinel": -1
+  },
+
+  "cost_profile": "single forward pass per row (no generation) -- same cost class as run_teacher_forced.py, i.e. a couple of GPU-hours for the full 3,400-row corpus, not the ~8h/cell class of a generation job. The pilot (120 rows) should take minutes.",
+
+  "pilot_outcome_attempt_1": {
+    "job_id": "176541",
+    "result": "FAILED after 2m13s: `AttributeError: 'DynamicCache' object has no attribute 'get_usable_length'` inside the checkpoint's own modeling_qwen2_rm.py — a transformers-version API rename (get_usable_length -> get_seq_length) the frozen trust_remote_code checkpoint doesn't know about.",
+    "fix": "spectral_utils/prm_scorer.py::_patch_cache_compat() adds get_usable_length as a thin alias for get_seq_length on transformers.cache_utils.DynamicCache before loading the model — safe for our usage since every call here is a single, cache-free forward pass (get_seq_length on an empty cache returns 0, exactly what the old API returned in that case). Same 'targeted monkeypatch over touching pinned container package versions' convention as the existing check_torch_load_is_safe shim in every cluster driver.",
+    "resubmitted_as": "job_id TBD on retry"
+  },
+
+  "pilot_plan": {
+    "n_samples": 30,
+    "per_subset": true,
+    "total_rows": 120,
+    "subsets": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "health_gate": "both classes present per subset; no systematic reward-count mismatch (score_steps raises loudly if len(rewards) != len(steps), which would mean the <extra_0> tokenization assumption broke for this tokenizer/version)",
+    "no_full_run_yet": "the full N=3400 run is NOT submitted in this pass -- report pilot health back before scaling, per CLAUDE.md's local-smoke -> N=30-pilot -> full-N gate order."
+  }
+}

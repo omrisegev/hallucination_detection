@@ -124,6 +124,87 @@ def processbench_prompt(row: dict, thinking_suffix: str = NO_THINK_SUFFIX) -> st
     return math_prompt({"problem": row["problem"]}) + (thinking_suffix or "")
 
 
+# ── the critic-model ceiling (ProcessBench's OWN baseline category, not ours) ──────────────────
+#
+# Verbatim from github.com/QwenLM/ProcessBench, code/templates/critique_template.txt (fetched
+# 2026-08-10) and code/run_eval.py's `prepare_input_boxed` / `extract_answer` / `main`. This is
+# ProcessBench's own published evaluation of "general LLMs prompted to critique a solution step
+# by step" (paper §4, Table 2/3) — we run it ourselves on OUR model over the SAME 3,400 rows
+# already teacher-forced by run_teacher_forced.py, so it lands as a genuine competing column
+# on identical inputs, not a copied number. Do not reword any of the three strings below — a
+# paraphrase changes tokenization and is no longer the paper's protocol.
+CRITIC_TEMPLATE = (
+    "The following is a math problem and a solution (split into paragraphs, enclosed with tags "
+    "and indexed from 0):\n\n"
+    "[Math Problem]\n\n"
+    "{problem}\n\n"
+    "[Solution]\n\n"
+    "{tagged_response}\n\n"
+    "Your task is to review and critique the solution paragraph by paragraph. Once you identify "
+    "an error in a paragraph, return the index of the paragraph where the earliest error occurs. "
+    "Otherwise, return the index of -1 (which typically denotes \"not found\").\n\n"
+    "Please put your final answer (i.e., the index) in \\boxed{{}}."
+)
+
+
+def critic_prompt(row: dict) -> str:
+    """ProcessBench's own critique prompt: `prepare_input_boxed` tags each step
+    `<paragraph_i>\\n{step}\\n</paragraph_i>\\n\\n`, joins and strips them, then fills the
+    template. Single user turn, no system message — matches `messages=[{'role':'user',...}]`
+    in their `run_eval.py`, i.e. `fmt_prompt(tok, critic_prompt(row))` with no override needed."""
+    tagged = "".join(
+        f"<paragraph_{i}>\n{step}\n</paragraph_{i}>\n\n" for i, step in enumerate(row["steps"])
+    ).strip()
+    return CRITIC_TEMPLATE.format(problem=row["problem"], tagged_response=tagged)
+
+
+def extract_critic_prediction(text: str):
+    """`extract_answer` in ProcessBench's `run_eval.py`: last `\\boxed{...}` match, parsed as
+    int; `None` on no match or a non-integer payload (their own `except: pred = None`)."""
+    import re
+    matches = re.findall(r"\\boxed\{([^}]*)\}", text)
+    if not matches:
+        return None
+    try:
+        return int(matches[-1].strip())
+    except ValueError:
+        return None
+
+
+def is_correct_processbench_critic(gen: str, item: dict) -> bool:
+    """`d['match'] = (pred == d['label'])` in `run_eval.py` — exact index match, not tolerance-
+    one. `item` is a ProcessBench row (has `label`); a parse failure (`None`) never matches,
+    including against `NO_ERROR` rows, exactly as upstream."""
+    pred = extract_critic_prediction(gen)
+    return pred is not None and pred == int(item["label"])
+
+
+def first_error_f1(cache: dict) -> dict:
+    """ProcessBench's own metric (`run_eval.py`, verbatim): acc1 = match-rate on rows WITH an
+    error, acc2 = match-rate on rows WITHOUT one (`label == NO_ERROR`), F1 = their harmonic
+    mean. Shared by every ProcessBench-family scorer in this project (critic-model, PRM ceiling,
+    uPRM-baseline) — one formula, not three copies that could individually bit-rot.
+
+    `f1` is `None` only on a genuine 0/0 (a class is EMPTY, e.g. an N=1 pilot draw) — a legitimate
+    0% accuracy on a non-empty class must still produce `f1=0.0`, not `None`. Caught in production
+    (2026-08-10, pb_uprm_baseline_qwen3_8b_pilot's olympiadbench cell, error_acc=0.0): the first
+    version of this function used `if (acc1 and acc2 ...)`, and Python's `0.0` is falsy, so a
+    correctly-computed 0% accuracy silently produced `f1=None` as if the class were empty. Use
+    `is not None` checks instead of truthiness whenever a legitimate value can be exactly zero."""
+    err = [e for e in cache.values() if e["label"] != NO_ERROR]
+    ok = [e for e in cache.values() if e["label"] == NO_ERROR]
+    acc1 = float(np.mean([e["match"] for e in err])) * 100 if err else None
+    acc2 = float(np.mean([e["match"] for e in ok])) * 100 if ok else None
+    if acc1 is not None and acc2 is not None and (acc1 + acc2) > 0:
+        f1 = 2 * acc1 * acc2 / (acc1 + acc2)
+    elif acc1 is not None and acc2 is not None:
+        f1 = 0.0  # both classes present but both scored 0% — harmonic mean is legitimately 0
+    else:
+        f1 = None  # a class was empty; F1 is undefined, not zero
+    return {"n_error": len(err), "n_correct": len(ok), "error_acc": acc1,
+            "correct_acc": acc2, "f1": f1}
+
+
 # ── the alignment layer ──────────────────────────────────────────────────────
 
 def build_chain(steps, sep: str = STEP_SEP):
@@ -307,4 +388,59 @@ def smoke() -> None:
     ids1, sp1 = step_token_spans(tok, t1, c1)
     assert assert_alignment(ids1, sp1, ["only"])["token_coverage"] == 1.0
 
-    print("processbench.smoke: PASS (8 checks)")
+    # 9. critic_prompt tags paragraphs exactly like ProcessBench's own prepare_input_boxed and
+    # fills both template slots; the "not found" -1 language survives untouched.
+    row = {"problem": "What is 1+1?", "steps": ["Add the numbers.", "1+1=3."], "label": 1}
+    p = critic_prompt(row)
+    assert "<paragraph_0>\nAdd the numbers.\n</paragraph_0>" in p, p
+    assert "<paragraph_1>\n1+1=3.\n</paragraph_1>" in p, p
+    assert p.startswith("The following is a math problem and a solution"), p
+    assert p.rstrip().endswith("\\boxed{}."), p
+    assert "[Math Problem]" in p and "What is 1+1?" in p, p
+    assert not p.endswith("\n\n"), "trailing tagged-paragraph separator was not stripped"
+
+    # 10. extract_critic_prediction takes the LAST \boxed{} match (matches ProcessBench's
+    # own extract_answer, which does `matches[-1]`), and returns None on no match / bad int.
+    assert extract_critic_prediction(r"reasoning \boxed{2} more reasoning \boxed{-1}") == -1
+    assert extract_critic_prediction(r"the answer is \boxed{0}") == 0
+    assert extract_critic_prediction("no boxed answer here") is None
+    assert extract_critic_prediction(r"\boxed{not_an_int}") is None
+
+    # 11. is_correct_processbench_critic: exact match only, and a parse failure never matches
+    # NO_ERROR (mirrors run_eval.py's `pred == d['label']` with pred possibly None).
+    assert is_correct_processbench_critic(r"\boxed{1}", {"label": 1}) is True
+    assert is_correct_processbench_critic(r"\boxed{0}", {"label": 1}) is False
+    assert is_correct_processbench_critic("no box", {"label": NO_ERROR}) is False
+    assert is_correct_processbench_critic(r"\boxed{-1}", {"label": NO_ERROR}) is True
+
+    # 12. first_error_f1 reproduces run_eval.py's exact harmonic-mean formula on a hand-built cache.
+    cache = {
+        0: {"label": 1, "match": True},
+        1: {"label": 2, "match": False},
+        2: {"label": NO_ERROR, "match": True},
+        3: {"label": NO_ERROR, "match": True},
+    }
+    stats = first_error_f1(cache)
+    assert stats["n_error"] == 2 and stats["n_correct"] == 2, stats
+    assert np.isclose(stats["error_acc"], 50.0) and np.isclose(stats["correct_acc"], 100.0), stats
+    expected_f1 = 2 * 50.0 * 100.0 / (50.0 + 100.0)
+    assert np.isclose(stats["f1"], expected_f1), stats
+    # an empty class (e.g. an N=1 pilot draw) must not divide by zero -> f1 genuinely undefined
+    assert first_error_f1({0: {"label": 1, "match": True}})["f1"] is None
+    # REGRESSION (caught in production 2026-08-10, pb_uprm_baseline_qwen3_8b_pilot/olympiadbench):
+    # a legitimate 0% accuracy on a non-empty class must give f1=0.0, NOT None. The bug was
+    # `if (acc1 and acc2 ...)` treating the float 0.0 as falsy, indistinguishable from "empty".
+    zero_cache = {
+        0: {"label": 1, "match": False},
+        1: {"label": 2, "match": False},
+        2: {"label": NO_ERROR, "match": True},
+    }
+    zero_stats = first_error_f1(zero_cache)
+    assert zero_stats["error_acc"] == 0.0 and zero_stats["correct_acc"] == 100.0, zero_stats
+    assert zero_stats["f1"] == 0.0, zero_stats  # NOT None
+    both_zero = first_error_f1({
+        0: {"label": 1, "match": False}, 1: {"label": NO_ERROR, "match": False},
+    })
+    assert both_zero["f1"] == 0.0, both_zero  # harmonic mean of 0 and 0 is 0, not undefined
+
+    print("processbench.smoke: PASS (12 checks)")
