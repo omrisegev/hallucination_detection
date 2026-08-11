@@ -1,0 +1,1132 @@
+[
+  {
+    "applicable_cells": [
+      "se_squad_v2_llama8b"
+    ],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [
+      "squad_v2",
+      "trivia_qa"
+    ],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [
+      "meta-llama/Llama-3.1-8B-Instruct"
+    ],
+    "paper": "Automatic Layer Selection / Semantic Entropy",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-automatic-layer-selection-for-hallucination-detection",
+    "published_competitors": [
+      "FEPoID (ALS ceiling)",
+      "Lexical Similarity (ALS)",
+      "Pred. Entropy (ALS)",
+      "Semantic Entropy (ALS)"
+    ],
+    "published_tables": [
+      "Table 2 (w=7)"
+    ],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 2933,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "Automatic Layer Selection / Semantic Entropy"
+  },
+  {
+    "applicable_cells": [
+      "losnet_hotpotqa_mistral7b"
+    ],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [
+      "hotpotqa"
+    ],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [
+      "mistralai/Mistral-7B-Instruct-v0.2"
+    ],
+    "paper": "LOS-Net: Beyond Next-Token Probabilities",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-beyond-next-token-probabilities-learnable-fast-detection-of",
+    "published_competitors": [
+      "ATP+R-MLP",
+      "ATP+R-Transf.",
+      "Activation Probes",
+      "LOS-Net",
+      "Logits-max",
+      "Logits-mean",
+      "Logits-min",
+      "Probas-max",
+      "Probas-mean",
+      "Probas-min",
+      "p(True)"
+    ],
+    "published_tables": [
+      "Table 1 (test AUC, Mis-7b / L-3-8b)"
+    ],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 500,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "LOS-Net: Beyond Next-Token Probabilities"
+  },
+  {
+    "applicable_cells": [
+      "noise_gsm8k_mistral7b",
+      "noise_gsm8k_phi3mini"
+    ],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [
+      "gsm8k"
+    ],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [
+      "microsoft/Phi-3-mini-4k-instruct",
+      "mistralai/Mistral-7B-Instruct-v0.3"
+    ],
+    "paper": "Noise Injection",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-enhancing-hallucination-detection-through-noise-injection",
+    "published_competitors": [
+      "Noise Injection"
+    ],
+    "published_tables": [
+      "Table 4"
+    ],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 2638,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "Noise Injection"
+  },
+  {
+    "applicable_cells": [
+      "epr_triviaqa_mistral24b"
+    ],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [
+      "trivia_qa_wiki"
+    ],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [
+      "mistralai/Mistral-Small-3.1-24B-Instruct-2503"
+    ],
+    "paper": "EPR",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-epr",
+    "published_competitors": [
+      "EPR",
+      "HalluDetect",
+      "SelfCheckGPT",
+      "WEPR"
+    ],
+    "published_tables": [
+      "Table 1 (K=15)"
+    ],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 621,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "EPR"
+  },
+  {
+    "applicable_cells": [
+      "lapeigvals_gsm8k_llama3b",
+      "lapeigvals_gsm8k_llama8b",
+      "lapeigvals_gsm8k_mistral24b",
+      "lapeigvals_gsm8k_nemo",
+      "lapeigvals_gsm8k_phi35"
+    ],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [
+      "gsm8k"
+    ],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [
+      "meta-llama/Llama-3.1-8B-Instruct",
+      "microsoft/Phi-3.5-mini-instruct",
+      "mistralai/Mistral-Nemo-Instruct-2407",
+      "mistralai/Mistral-Small-24B-Instruct-2501",
+      "unsloth/Llama-3.2-3B-Instruct"
+    ],
+    "paper": "LapEigvals and AttentionScore",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-hallucination-detection-in-llms-using-spectral-features-of-a",
+    "published_competitors": [
+      "AttentionScore (LapEigvals paper)",
+      "LapEigvals"
+    ],
+    "published_tables": [
+      "Table 1 (temp=1.0, test AUROC)"
+    ],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 5776,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "LapEigvals and AttentionScore"
+  },
+  {
+    "applicable_cells": [
+      "internalstates_gsm8k_qwen25_7b"
+    ],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [
+      "gsm8k"
+    ],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [
+      "Qwen/Qwen2.5-7B-Instruct"
+    ],
+    "paper": "Internal States + Reasoning Consistency",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-hallucination-detection-via-internal-states-and-structured-r",
+    "published_competitors": [
+      "Internal-States+RC"
+    ],
+    "published_tables": [
+      "Table 1 (AUROC, temp 0.8)"
+    ],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 500,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "Internal States + Reasoning Consistency"
+  },
+  {
+    "applicable_cells": [
+      "ars_gsm8k_r1distill8b"
+    ],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [
+      "gsm8k"
+    ],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [
+      "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+    ],
+    "paper": "ARS: reasoning-trajectory detection",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-harnessing-reasoning-trajectories-for-hallucination-detectio",
+    "published_competitors": [
+      "ARS (CCS)"
+    ],
+    "published_tables": [
+      "Table 1"
+    ],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 500,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "ARS: reasoning-trajectory detection"
+  },
+  {
+    "applicable_cells": [],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [
+      "trivia_qa"
+    ],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [
+      "meta-llama/Llama-3.1-8B-Instruct"
+    ],
+    "paper": "HARP",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-harp-hallucination-detection-via-reasoning-subspace-projecti",
+    "published_competitors": [
+      "HARP"
+    ],
+    "published_tables": [
+      "main results table"
+    ],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 0,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "HARP"
+  },
+  {
+    "applicable_cells": [],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [
+      "coqa"
+    ],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [
+      "huggyllama/llama-7b"
+    ],
+    "paper": "INSIDE",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-inside-llms-internal-states-retain-the",
+    "published_competitors": [
+      "INSIDE"
+    ],
+    "published_tables": [
+      "Table 1 (AUCs = sentence-similarity correctness)"
+    ],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 0,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "INSIDE"
+  },
+  {
+    "applicable_cells": [
+      "semenergy_triviaqa_qwen3_8b"
+    ],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [
+      "trivia_qa"
+    ],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [
+      "Qwen/Qwen3-8B"
+    ],
+    "paper": "Semantic Energy",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-semantic-energy-detecting-llm-hallucination-beyond-entropy",
+    "published_competitors": [
+      "Semantic Energy"
+    ],
+    "published_tables": [
+      "Table 1"
+    ],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 4392,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "Semantic Energy"
+  },
+  {
+    "applicable_cells": [
+      ""
+    ],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [],
+    "paper": "semgrad-sciq",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-semgrad-sciq",
+    "published_competitors": [],
+    "published_tables": [],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 2000,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "Semgrad Sciq"
+  },
+  {
+    "applicable_cells": [
+      ""
+    ],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [],
+    "paper": "semgrad-truthfulqa",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-semgrad-truthfulqa",
+    "published_competitors": [],
+    "published_tables": [],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 1634,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "Semgrad Truthfulqa"
+  },
+  {
+    "applicable_cells": [
+      "sciq_llama8b",
+      "se_nq_open_llama8b",
+      "seiclr_triviaqa_opt30b",
+      "spilled_triviaqa_llama8b",
+      "truthfulqa_llama8b"
+    ],
+    "benchmark_revision": "frozen protocol cells",
+    "bootstrap_group": "not re-bootstrapped in this report",
+    "dataset": [
+      "hotpotqa",
+      "nq_open",
+      "sciq",
+      "trivia_qa",
+      "trivia_qa_rougel",
+      "truthfulqa"
+    ],
+    "decoding": "Frozen in the cell preset",
+    "feature_contract": "Deployed U-PCR=fixed_stable_v1; IU/DUFS-LIU-PCR=full-pool mixed-v2",
+    "fidelity_level": "published reference plus same-cell local score; no new reproduction",
+    "grader": "Cell-specific frozen correctness grader",
+    "limitations": [
+      "These cells were used during development and are not independent confirmation.",
+      "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete."
+    ],
+    "local_reproduction_status": "retrospective frozen-cell evaluation",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": [
+      "facebook/opt-30b",
+      "meta-llama/Llama-3.1-8B-Instruct",
+      "mistralai/Mistral-7B-Instruct-v0.2"
+    ],
+    "paper": "HCPD / TSV / zero-source detection",
+    "prediction_unit": "answer",
+    "prompt": "Frozen in the cell preset",
+    "protocol_id": "detection-zero-source-llm-hallucination-detection-with-human-like-crit",
+    "published_competitors": [
+      "HCPD",
+      "HCPD (arXiv 2606.12900)",
+      "Perplexity",
+      "SAPLMA",
+      "Semantic Entropy",
+      "Semantic Entropy (SE-ICLR'23)",
+      "TSV",
+      "TSV (arXiv 2503.01917)"
+    ],
+    "published_tables": [
+      "Table 2"
+    ],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 21547,
+    "split": "paper/cell-specific frozen split",
+    "task_family": "answer hallucination detection",
+    "title": "HCPD / TSV / zero-source detection"
+  },
+  {
+    "benchmark_revision": "six cluster-era cells",
+    "bootstrap_group": "none",
+    "dataset": [
+      "math500_dsmath7b",
+      "math500_qwenmath7b",
+      "math500_r1distill8b",
+      "math500_r1distill8b_mn4096",
+      "trace_gsm8k_llama8b_k10",
+      "trace_math500_qwenmath15b_k10"
+    ],
+    "decoding": "frozen",
+    "feature_contract": "frozen core contracts",
+    "fidelity_level": "no paper comparison",
+    "grader": "cell-specific",
+    "limitations": [
+      "No verified published comparator exists for these exact cells."
+    ],
+    "local_reproduction_status": "internal transfer only",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "AUROC"
+    ],
+    "model": "cell-specific",
+    "paper": "None",
+    "prediction_unit": "answer",
+    "prompt": "frozen",
+    "protocol_id": "internal-transfer",
+    "published_competitors": [],
+    "published_tables": [],
+    "readiness": "INTERNAL_APPENDIX",
+    "sample_count": "",
+    "split": "frozen",
+    "task_family": "answer hallucination detection",
+    "title": "Internal transfer cells without a verified paper comparator"
+  },
+  {
+    "benchmark_revision": "Own balanced 400-response protocol reproduction",
+    "bootstrap_group": "source_id",
+    "dataset": [
+      "RAGTruth balanced GASP cohort"
+    ],
+    "decoding": "Teacher-forced rescoring; no new generation",
+    "feature_contract": "task-local risk matrix; same frozen three solvers",
+    "fidelity_level": "exact reproduction, protocol reproduction, and adaptation are separated",
+    "grader": [
+      "RAGTruth annotations"
+    ],
+    "limitations": [
+      "The paper did not release its exact 400 IDs or sentence splitter.",
+      "Sentence-to-token mapping uses deterministic character-mass projection because offsets were not stored.",
+      "Published and local GASP numbers are reference and reproduction rows, not a paired subtraction."
+    ],
+    "local_reproduction_status": "see fidelity panel",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "auprc",
+      "auroc"
+    ],
+    "model": [
+      "Qwen2.5-1.5B-Instruct"
+    ],
+    "paper": "GASP: Grounding-Aware Sensitivity by Perturbation",
+    "prediction_unit": [
+      "sentence"
+    ],
+    "prompt": "Fixed response rescored under full, no-context, and leave-one-chunk-out evidence",
+    "protocol_id": "localization-gasp-ragtruth-sentence",
+    "published_competitors": [
+      "GASP (published)"
+    ],
+    "published_tables": [],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 2714,
+    "split": [
+      "400-response sample",
+      "paper sample"
+    ],
+    "task_family": "hallucination localization",
+    "title": "RAGTruth sentence localization with evidence perturbation"
+  },
+  {
+    "benchmark_revision": "RAGTruth test; locally stored 2,700 responses",
+    "bootstrap_group": "source_id",
+    "dataset": [
+      "RAGTruth"
+    ],
+    "decoding": "No new answer generation",
+    "feature_contract": "task-local risk matrix; same frozen three solvers",
+    "fidelity_level": "exact reproduction, protocol reproduction, and adaptation are separated",
+    "grader": [
+      "RAGTruth character annotations projected to scorer tokens",
+      "RAGTruth span annotations"
+    ],
+    "limitations": [
+      "Our methods are evaluated on scorer tokens; LettuceDetect is evaluated on character spans.",
+      "The supervised example-F1 ceiling is therefore shown separately, not subtracted from token AUROC.",
+      "RAGTruth labels were opened in earlier work; this is exploratory."
+    ],
+    "local_reproduction_status": "see fidelity panel",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "auprc",
+      "auroc",
+      "example_f1"
+    ],
+    "model": [
+      "ModernBERT-large token classifier",
+      "Qwen2.5-1.5B scorer"
+    ],
+    "paper": "LettuceDetect: A Hallucination Detection Framework for RAG Applications",
+    "prediction_unit": [
+      "character span",
+      "scorer token"
+    ],
+    "prompt": "Fixed published response; one teacher-forced scorer pass for our methods",
+    "protocol_id": "localization-lettucedetect-ragtruth-span",
+    "published_competitors": [
+      "LettuceDetect (local reproduction)",
+      "LettuceDetect (published)"
+    ],
+    "published_tables": [],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 430202,
+    "split": [
+      "test"
+    ],
+    "task_family": "hallucination localization",
+    "title": "RAGTruth character/token-span localization"
+  },
+  {
+    "benchmark_revision": "PRMBench Preview; 6,966 rows after registered exclusions",
+    "bootstrap_group": "PRMBench row ID",
+    "dataset": [
+      "PRMBench Preview"
+    ],
+    "decoding": "No new reasoning generation",
+    "feature_contract": "task-local risk matrix; same frozen three solvers",
+    "fidelity_level": "exact reproduction, protocol reproduction, and adaptation are separated",
+    "grader": [
+      "official step labels",
+      "official valid/invalid step labels"
+    ],
+    "limitations": [
+      "Three named alignment-defect IDs are excluded from every method.",
+      "Qwen PRM is trained with process supervision and is a ceiling, not a label-free peer."
+    ],
+    "local_reproduction_status": "see fidelity panel",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "auprc",
+      "auroc",
+      "f1_valid_step"
+    ],
+    "model": [
+      "Qwen/Qwen2.5-Math-PRM-7B",
+      "Qwen3-8B telemetry / Qwen2.5-Math-PRM comparator"
+    ],
+    "paper": "PRMBench and Qwen2.5-Math-PRM",
+    "prediction_unit": [
+      "reasoning step"
+    ],
+    "prompt": "Fixed official reasoning trace; teacher-forced Qwen3-8B telemetry",
+    "protocol_id": "localization-prmbench-every-step",
+    "published_competitors": [
+      "Qwen2.5-Math-PRM-7B"
+    ],
+    "published_tables": [],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 94112,
+    "split": [
+      "official preview",
+      "official preview rows minus 3 defects"
+    ],
+    "task_family": "hallucination localization",
+    "title": "PRMBench every-step error scoring"
+  },
+  {
+    "benchmark_revision": "All four official subsets; Qwen3-8B telemetry",
+    "bootstrap_group": "ProcessBench row within official subset",
+    "dataset": [
+      "ProcessBench"
+    ],
+    "decoding": "Threshold calibrated on one half, evaluated on the other; 100 repeated splits",
+    "feature_contract": "task-local risk matrix; same frozen three solvers",
+    "fidelity_level": "exact reproduction, protocol reproduction, and adaptation are separated",
+    "grader": [
+      "ProcessBench labels"
+    ],
+    "limitations": [
+      "Qwen2.5-Math-PRM uses human process supervision and is a ceiling.",
+      "The Qwen3 judge row is a control, not the uPRM algorithm.",
+      "The Qwen2.5-72B critic is excluded because its four-subset package is incomplete."
+    ],
+    "local_reproduction_status": "see fidelity panel",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "f1"
+    ],
+    "model": [
+      "fixed ProcessBench reasoning traces"
+    ],
+    "paper": "Mind the Gap / ProcessBench protocol",
+    "prediction_unit": [
+      "first erroneous step / no-error"
+    ],
+    "prompt": "Fixed reasoning trace; no extra answer generation for spectral methods",
+    "protocol_id": "localization-processbench-first-error",
+    "published_competitors": [
+      "Mind the Gap",
+      "Qwen2.5-Math-PRM-7B"
+    ],
+    "published_tables": [],
+    "readiness": "READY",
+    "sample_count": 3400,
+    "split": [
+      "official subset"
+    ],
+    "task_family": "hallucination localization",
+    "title": "ProcessBench first-error localization"
+  },
+  {
+    "benchmark_revision": "Official fixed Claude-2 claim triplets",
+    "bootstrap_group": "example_id",
+    "dataset": [
+      "KnowHalBench fixed claims"
+    ],
+    "decoding": "Teacher-forced claim scoring; no response generation",
+    "feature_contract": "task-local risk matrix; same frozen three solvers",
+    "fidelity_level": "exact reproduction, protocol reproduction, and adaptation are separated",
+    "grader": [
+      "human 3-way labels",
+      "human claim labels (unsupported binary collapse)"
+    ],
+    "limitations": [
+      "This page evaluates claim checking, not claim extraction.",
+      "RefChecker reports three-way macro-F1; our spectral methods report binary unsupported AUROC/AUPRC."
+    ],
+    "local_reproduction_status": "see fidelity panel",
+    "method_access": {
+      "DUFS-LIU-PCR": {
+        "access": "gray-box token probabilities; graph fit",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "Deployed U-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      },
+      "IU-PCR": {
+        "access": "gray-box token probabilities",
+        "labels_for_fit": "no",
+        "passes": 1
+      }
+    },
+    "metrics": [
+      "auprc",
+      "auroc",
+      "macro_f1_3way"
+    ],
+    "model": [
+      "Qwen3-8B telemetry",
+      "ynie/roberta-large-snli_mnli_fever_anli_R1_R2_R3-nli"
+    ],
+    "paper": "Knowledge-Centric Hallucination Detection / RefChecker",
+    "prediction_unit": [
+      "claim"
+    ],
+    "prompt": "Each fixed claim is scored with evidence and without evidence",
+    "protocol_id": "localization-refchecker-knowhalbench-claim",
+    "published_competitors": [
+      "RefChecker NLI checker"
+    ],
+    "published_tables": [],
+    "readiness": "READY_WITH_LIMITATIONS",
+    "sample_count": 10733,
+    "split": [
+      "official fixed claims"
+    ],
+    "task_family": "hallucination localization",
+    "title": "KnowHalBench fixed-claim checking"
+  }
+]
