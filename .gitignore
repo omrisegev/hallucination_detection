@@ -60,6 +60,12 @@ cluster/submit_gasp_exact.sbatch
 cluster/submit_prmbench_prm.sbatch
 cluster/submit_prmbench_tf.sbatch
 cluster/submit_refchecker.sbatch
+# Belongs to the per-layer logit-lens work on branch whitebox/per-layer-views. That branch
+# added cluster/submit_layer_views.sbatch.template, whose own header states "the live file is
+# gitignored because it carries a hardcoded HF_TOKEN" — but it never added the entry, so the
+# claim was false and a generated live file would have been committable with a real token.
+# Added here so the protection exists on master regardless of when that branch merges.
+cluster/submit_layer_views.sbatch
 
 # Generated plots (large, reproducible)
 *.png
