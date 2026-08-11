@@ -1,0 +1,69 @@
+#!/bin/bash
+# TEMPLATE for cluster/submit_lettucedetect.sbatch — the live file is gitignored because it
+# carries a hardcoded HF_TOKEN, exactly like submit_pb_critic.sbatch / submit_inference.sbatch.
+#
+# To regenerate the live file ON THE CLUSTER, lifting the token from a file that already has one:
+#
+#   cd /shared/cycle2_tau_averbuch_prj/omrisegev1/code
+#   tok=$(grep -m1 '^export HF_TOKEN=' cluster/submit_inference.sbatch | cut -d= -f2-)
+#   sed "s|^export HF_TOKEN=.*|export HF_TOKEN=$tok|" \
+#       cluster/submit_lettucedetect.sbatch.template > cluster/submit_lettucedetect.sbatch
+#
+# NEVER commit the live file.
+#
+# WHAT THIS RUNS
+# --------------
+# `cluster/run_lettucedetect_span.py`: the supervised token-classifier ceiling for Benchmark 1
+# (token / character-span localization) of the four-localization-benchmarks campaign. Forward
+# passes only through a ModernBERT-size encoder over 2,700 RAGTruth test responses — minutes,
+# not hours. See cluster/manifests/ragtruth_lettuce_large_v1.json for the protocol lock.
+#
+# Submit (partition/QoS on the command line; trailing args go to the driver):
+#
+#   # primary fidelity arm (library-default max_length=4096, the published setting)
+#   sbatch -p power-gpu --qos=owner_880 cluster/submit_lettucedetect.sbatch \
+#       --out /shared/cycle2_tau_averbuch_prj/omrisegev1/results/ragtruth_lettuce_large_span_full
+#
+#   # declared no-truncation sensitivity arm (ModernBERT's native 8192 limit)
+#   sbatch -p power-gpu --qos=owner_880 cluster/submit_lettucedetect.sbatch --max-length 8192 \
+#       --out /shared/cycle2_tau_averbuch_prj/omrisegev1/results/ragtruth_lettuce_large_span_ml8192
+#
+#SBATCH --job-name=spectral_lettuce
+#SBATCH --gpus=1
+#SBATCH --time=02:00:00
+#SBATCH --requeue
+#SBATCH --signal=B:TERM@900
+#SBATCH --output=/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/%x_%j.out
+#SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
+#SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
+#SBATCH --container-workdir=/shared/cycle2_tau_averbuch_prj/omrisegev1/code
+# No --container-name on purpose — see submit_teacher_forced.sbatch.template's note on same-node
+# enroot-rootfs races between concurrently landing jobs.
+
+set -uo pipefail
+
+SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
+export HF_HOME=$SHARED/hf_cache
+export HF_DATASETS_CACHE=$SHARED/hf_cache/datasets
+export PIP_CACHE_DIR=$SHARED/pip_cache
+export PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID}
+mkdir -p "$PYTHONUSERBASE"
+export HF_TOKEN=REPLACE_ME
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+echo "[sbatch] job $SLURM_JOB_ID on $(hostname), args: $*"
+
+pip install -q --user -r cluster/requirements.txt
+
+# --no-deps is REQUIRED, not an optimization: lettucedetect declares torch>=2.6.0 and
+# numpy>=2.2.2, and the NGC image ships torch 2.6.0a0 (a pre-release, which pip orders BELOW
+# 2.6.0). A full install would therefore "upgrade" torch and silently destroy sm_100/B200
+# support — the exact failure cluster/requirements.txt's header warns about.
+#
+# Nothing on lettucedetect's eager import chain needs its skipped deps: the package __init__
+# pulls in datasets.hallucination_dataset (torch + transformers), models.generation, and
+# ragfactchecker — and the last two only import openai / rag_fact_checker lazily inside
+# methods we never call. tqdm/scikit-learn come from cluster/requirements.txt.
+pip install -q --user --no-deps lettucedetect
+
+exec python cluster/run_lettucedetect_span.py "$@"

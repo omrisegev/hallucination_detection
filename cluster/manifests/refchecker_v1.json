@@ -1,0 +1,49 @@
+{
+  "experiment": "refchecker_knowhalbench_open_full",
+  "stage": "A -- protocol lock, written before submission",
+  "written_utc": "2026-08-11",
+
+  "purpose": "Benchmark 2b of docs/experiments/FOUR_LOCALIZATION_BENCHMARKS_CLUSTER_HANDOFF.md: unsupported-CLAIM localization. GASP (Benchmark 2a) uses a SENTENCE as the localized unit; this panel tests whether the same score still works when the unit is an explicit semantic claim, and it exposes a real limitation -- a scalar risk score separates supported from unsupported, but does not by itself distinguish a CONTRADICTION from MISSING evidence.",
+
+  "benchmark": {
+    "paper": "Knowledge-Centric Hallucination Detection / RefChecker (Hu et al., EMNLP 2024, aclanthology.org/2024.emnlp-main.395/)",
+    "official_code": "github.com/amazon-science/RefChecker",
+    "data_assembly": "cluster/prepare_refchecker_data.py reproduces benchmark/data/download_data.sh + gather_benchmark_data.py: 21 human-annotation files (3 context settings x 7 generator models) straight from the repo, plus questions/references rebuilt from databricks/databricks-dolly-15k (accurate_context), ms_marco v2.1 validation (noisy_context), and Natural Questions dev (zero_context).",
+    "nq_deviation": "The official script shells out to `gsutil -m cp -R gs://natural_questions/v1.0/dev`, which would require the Google Cloud SDK inside the NGC container. gs://natural_questions is a PUBLIC bucket, so the same five objects are streamed over https://storage.googleapis.com/natural_questions/... instead -- identical bytes, no SDK, and the ~7 GB is filtered in flight and never written to disk. The long-answer reconstruction (document_tokens[start:end] minus html_tokens) is copied line-for-line from process_nq.",
+    "three_settings": "zero_context (NQ: generator saw only a question; the reference is NQ's long answer, retrieved afterwards purely for checking), noisy_context (MS MARCO: retrieved passages, some irrelevant), accurate_context (Dolly: a given document the answer should rewrite). These are three DIFFERENT tasks, not three difficulties of one -- reported separately, never pooled."
+  },
+
+  "claim_set_is_fixed_and_why": {
+    "decision": "The claim set is fixed to the shipped, human-labelled `claude2_response_kg` triplets. Claim EXTRACTION is out of scope for this panel.",
+    "reason": "The benchmark's human labels are attached to triplets extracted by CLAUDE 2. A different extractor produces a different claim set that the shipped gold does not cover, so an 'open extractor' arm could not be scored against this gold at all without new annotation. Fixing the claim set is what makes the two arms comparable.",
+    "consequence": "This panel measures the CHECKING stage only. It is NOT an end-to-end RefChecker reproduction and must never be described as one."
+  },
+
+  "arms": {
+    "competitor": {
+      "method": "RefChecker's own NLIChecker -- the strongest FULLY OPEN checker in the official codebase",
+      "model": "ynie/roberta-large-snli_mnli_fever_anli_R1_R2_R3-nli (their default)",
+      "protocol": "verbatim from refchecker/checker/nli_checker.py: tokenizer(references, claims) as a PAIR, max_length=512, truncation on, argmax(softmax(logits)) into [Entailment, Neutral, Contradiction]; multi-passage merge from checker_base.merge_multi_psg_ret -- Entailment if ANY passage entails, else Contradiction if ANY contradicts, else Neutral",
+      "fidelity_level": 2,
+      "metric": "official three-way accuracy and macro-F1, reported separately for Zero, Noisy and Accurate Context"
+    },
+    "ours": {
+      "method": "evidence-contrast teacher-forced telemetry over the IDENTICAL fixed claim",
+      "model": "Qwen/Qwen3-8B",
+      "protocol": "each claim's deterministic rendering (spectral_utils.refchecker.triplet_text) is teacher-forced under two conditions -- reference present (`full`) and absent (`noctx`) -- saving the same per-token quantities every other arm consumes. Only the reference block differs between conditions; every other character is identical, mirroring the RAGTruth prompt-surgery contract.",
+      "fidelity_level": 3,
+      "adaptation_note": "A separately scored claim is NOT an unchanged span of the original response. This is an adaptation of the evidence-contrast design to a claim unit, not a reproduction of anything.",
+      "metric": "AUROC / AUPRC and development-thresholded macro-F1 under the BINARY collapse only (Contradiction + Neutral -> unsupported). The scalar score is never placed in the paper's three-way column."
+    }
+  },
+
+  "why_one_driver_for_both_arms": "The apples-to-apples rule requires identical example ids, identical claim text and identical gold. Running the two arms as separate jobs would make that an assertion to be verified afterwards; running them in one loop over one claim list makes it true by construction.",
+
+  "proprietary_configurations": "The paper's strongest extractor/checker pairs use GPT-4 and Claude 2. Those numbers are quoted as published context only (fidelity level 4) and are never reproduced here.",
+
+  "blocked_cell_discipline": "run_refchecker_claims.py exits 2 -- deliberately NOT the 85 used for preemption -- when the corpus is missing or empty, so a genuinely blocked panel is distinguishable in sacct from a job that merely needs resuming. If the corpus cannot be assembled, the panel cell reads BLOCKED with the specific reason; a published number from another model or split is never substituted.",
+
+  "no_pilot": "Per Omri's 2026-08-10 instruction this campaign skips N=30 GPU pilots. Offline risk was retired in spectral_utils/refchecker.py::smoke() -- 4 known-answer checks covering triplet rendering, the binary collapse, three-way metrics (including that a never-predicted class scores 0.0 rather than None), and the ranking metrics (perfect, inverted, single-class-undefined, and non-finite-score handling).",
+
+  "still_out_of_scope": "claim extraction; the AlignScore checker (an extra dependency with no clear gain over the NLI default); the RepC/repcbench variants; all proprietary configurations."
+}

@@ -1,12 +1,125 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-10
-**Last updated**: Step 241 — a separate track (external answer-level data
-collection + reasoning-localization competitor ceilings) scaled SemGrad/HLE
-to full N and added 4 new competitor numbers on the cluster; see the session
-addendum immediately below. The RAGTruth/ProcessBench GL-LIU decision point
-(Step 239, further down) is UNCHANGED by this — still open, still the
-project's main open research question.
+**Date**: 2026-08-11
+**Last updated**: Step 242 — the four-hallucination-localization-benchmark
+cluster campaign. Every competitor job the handoff asks for is now submitted
+and all but one is finished; see the session addendum immediately below. The
+RAGTruth/ProcessBench GL-LIU decision point (Step 239, further down) is
+UNCHANGED by this — still open, still the project's main open research
+question.
+
+## Session addendum (2026-08-11) — four localization panels now have competitor data (Step 242)
+
+Executed `docs/experiments/FOUR_LOCALIZATION_BENCHMARKS_CLUSTER_HANDOFF.md`
+on AIRCC. Standing instructions for this campaign (Omri, 2026-08-10): **skip
+the N=30 GPU pilots, submit at full size**, very large generation limits,
+**no QwQ-32B-Preview** (the Qwen2.5-72B critic is enough, labelled as a
+different critic model), **include RefChecker** with the strongest fully-open
+config and report a blocked cell rather than substitute a number. Because the
+GPU pilots were skipped, the risk was retired offline instead — every new
+module ships CPU-only known-answer checks, two of which reproduce published
+corpus statistics exactly.
+
+**Competitor results now in hand** (raw data fetched to
+`dataset_cache/four_localization/`, 2.3 GB, 10 job directories):
+
+| Panel | Competitor | Result |
+|---|---|---|
+| token/char span (RAGTruth) | LettuceDetect-large | example F1 **0.792899** vs published 0.7922 — **fidelity gate passed**, 0 truncated |
+| sentence (RAGTruth) | GASP-threshold, exact protocol | 2,508 items / 400 balanced responses, full-vocabulary JSD |
+| claim (RefChecker) | open NLIChecker | 3-way acc **0.6932**, macro F1 **0.5805**, 10,733 claims, **3 of 3 settings** |
+| every-step (PRMBench) | Qwen2.5-Math-PRM-7B | F1 **0.9156**, 0 reward-count mismatches |
+| first-error (ProcessBench) | Qwen2.5-72B critic | macro F1 **59.40** (74.82/60.70/50.57/51.52), 3,400/3,400 |
+| first-error (ProcessBench) | Qwen2.5-Math-PRM-7B | F1 81.77/77.23/66.69/66.05 |
+
+**Every cluster job in this campaign is finished; the queue is empty.** All raw
+data is on Drive under `cluster_results/` (rclone from the cluster) and fetched
+to `dataset_cache/four_localization/`.
+
+**The N=30 pilots from Step 241 were useless as estimates.** At full N the
+critic's omnimath F1 fell 14.4 points (65.9 → 51.52) and math rose 10.7
+(50.0 → 60.70); the PRM ceiling's omnimath fell 6.9. Treat those pilots as
+health checks only. Critic truncation at `max_new=8192` was 8/3400 (0.24%), so
+the official setting was sufficient.
+
+**Two results that change what the panels can claim.** The PRM ceiling
+over-accepts badly — `correct_step_acc` 0.954 against `wrong_step_acc` 0.305
+— and the open NLI checker is strong only on the majority supported class
+(Entailment F1 0.809, Neutral 0.277, Contradiction 0.246). Both competitors
+are much weaker on the class that matters than their headline numbers imply.
+
+**A hard constraint on the every-step panel, measured before scoring:**
+**71.0% of PRMBench steps are shorter than 32 tokens** (median 24, 3.5% under
+8 tokens). `compute_stft_features` needs 32 and `compute_spectral_features`
+needs 8, so most of the trace-level pool is structurally unavailable at
+PRMBench step granularity. This must be stated in the report, not discovered
+inside a weak number.
+
+**The LettuceDetect gate settled an old question.** The previous 0.7590 was
+assumed to be a base-vs-large checkpoint gap; it was mostly the **entry
+point**. `predict(context=[...], question="")` re-wraps an already-complete
+RAGTruth prompt in the library's own passage template. The official
+preprocessing uses the whole prompt as one string, so `predict_prompt` is the
+matching call — and with it the large checkpoint reproduces the published
+number to 0.0007.
+
+**Four infrastructure bugs fixed**: the 72B critic had no resume chain and
+would have died at its 8 h wall (it since did, and the chain caught it); two
+chains fanned out onto the same output file and would have raced;
+`sync_code.sh` was uploading **6.2 GB** per sync because `*.pkl` does not
+match the `*.pkl.part-NN` LFS chunks (now 39 MB); and the RefChecker corpus
+build hit `HTTP 403` on the Natural Questions GCS mirror.
+
+**Blocked / owed**: nothing is blocked any more. `zero_context` (Natural
+Questions) was — the GCS mirror returns `AccessDenied` to anonymous callers —
+so `build_nq` was rewritten to stream
+`google-research-datasets/natural_questions` from the Hub (id alignment
+verified first: 20/100 ids in a 1,200-row scan vs ~15 expected). Jobs 179099 →
+179100 completed and the panel is now **3 of 3 settings**. Note the three
+settings diverge sharply (zero_context macro F1 0.6923 vs 0.4616 / 0.4336),
+which is why they must never be pooled. `scripts/build_glossary.py` fails
+its own coverage gate on four pre-existing selector families
+(`a8_lscae`, `a9_dpp`, `a10_mmdufs`, `a11_rfae_scfs`); GLOSSARY.md was
+regenerated with `--allow-gaps`. The uPRM reconstruction was scaled to full N
+by another session against the handoff's own rule — left to finish, but it is
+**our no-training LLM-as-a-Judge control, never uPRM**.
+
+**Next**: Phase 2 (the scoring modules — there is still no consumer of the
+ProcessBench competitor pkls, and no span / sentence / PRMBench metric
+harness exists) and Phase 3 (the four-panel report). Nothing is committed;
+per the handoff's git rule, no commit or push until Omri reviews the final
+benchmark report. Full account: HISTORY.md Step 242.
+
+> ### ⏭ THE NEXT SESSION'S JOB — review Codex's advisor report
+>
+> **Codex is building the advisor deliverable on a different machine**, and its
+> scope is the WHOLE project, not just this campaign: hallucination
+> **detection AND localization**, in **reasoning AND RAG**, over **every
+> dataset collected on the cluster** (59 GB of results), rendered as HTML in
+> the style of our existing benchmarking pages, with an exact record of what it
+> ran per reproduction. Omri will ping with its location.
+>
+> **Read [HANDOFF_codex_localization_report_review.md](HANDOFF_codex_localization_report_review.md)
+> before touching it.** It carries the review checklist, the cluster corpus
+> inventory, and a **ground-truth number table** covering both halves — the
+> detection scoreboard (`headline_X_vs_Y.csv`), the RAG evidence-contrast
+> AUROCs with their CIs, and every localization panel — to diff each claim
+> against.
+>
+> The traps that silently produce plausible-but-wrong numbers: PRMBench label
+> polarity (1 = VALID), the LettuceDetect `predict_prompt` entry point, GASP's
+> 0.713/0.673 vs the cross-scorer 0.73/0.67, the percent-vs-fraction F1 unit
+> mismatch, and low-`valid_rate` detection cells quoted without their coverage.
+>
+> **Three claims that are NOT confirmed and must not be shown as if they were**:
+> the RAGTruth evidence-contrast novelty test (+2.51pp, CI [−0.58, +5.72],
+> P(Δ≤0)=0.066 — crosses zero), our ProcessBench margin over the plain
+> max-entropy baseline (0.21pp, noise at ~850 rows/subset), and the 24-cell
+> DUFS-LIU vs IU-PCR gap (+0.0005, uncertainty includes zero).
+>
+> Do not merge, do not commit.
+
+---
 
 ## Session addendum (2026-08-10) — external data collection scaled; 4 new reasoning-localization competitor ceilings (Steps 240-241)
 

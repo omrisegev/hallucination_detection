@@ -1,0 +1,68 @@
+{
+  "experiment": "prmbench_v1",
+  "stage": "A -- protocol lock, written before submission",
+  "written_utc": "2026-08-11",
+
+  "purpose": "Benchmark 3 of docs/experiments/FOUR_LOCALIZATION_BENCHMARKS_CLUSTER_HANDOFF.md: correctness of EVERY reasoning step. ProcessBench annotates only the FIRST wrong step and certifies nothing after it, so it structurally cannot measure an every-step classifier. PRMBench supplies the missing per-step ground truth. Two jobs over the IDENTICAL official traces so row ids align exactly.",
+
+  "benchmark": {
+    "paper": "PRMBench: A Fine-grained and Challenging Benchmark for Process-Level Reward Models (Song et al., arXiv:2501.03124, ACL 2025)",
+    "official_code": "github.com/ssmisya/PRMBench -- mr_eval task `prmtest_classified`",
+    "dataset": "hitsmy/PRMBench_Preview, split train",
+    "measured_corpus_stats": {
+      "n_raw_rows": 6216,
+      "n_raw_steps": 83456,
+      "note_on_paper_numbers": "6,216 problems / 83,456 step labels reproduce EXACTLY from the Hub download, asserted in spectral_utils.prmbench.smoke(check_corpus=True).",
+      "n_duplicate_rows_dropped_by_official_loader": 5,
+      "duplicate_rows_all_of_class": "multi_solutions (85 steps)",
+      "n_steps_actually_evaluated": 83371,
+      "n_synthetic_correct_control_rows": 758,
+      "n_meta_rows_evaluated": 6969,
+      "n_rows_with_empty_error_steps": 160,
+      "n_rows_with_out_of_range_error_steps": 100
+    }
+  },
+
+  "four_official_details_that_are_not_guessable": [
+    "The evaluated question is `modified_question`, NOT the dataset's own `question` field. `question` differs from BOTH `original_question` and `modified_question` on roughly 250-500 rows per class, so using it would silently mis-condition thousands of traces.",
+    "A synthetic `correct` class is CONSTRUCTED by the loader, not shipped: every `redundency` row seeds an extra sample from `original_question` + `original_process` with error_steps=[]. The all-steps-correct control class exists only because load_data_function creates it, and it is scored but NOT pooled into the totals.",
+    "`labels[i] == 1` means the scorer asserts step i is VALID. POSITIVE_LABEL = 1 and TP counts NON-ERROR steps the model accepted -- the positive class of the official F1 is correct steps, not errors. A risk score must be inverted before entering this metric.",
+    "100 rows annotate an error step index past the end of their own trace. The official loop only tests `idx in hallucination_steps` for idx in range(len(labels)), so those indices are inert. Rows are KEPT and the count is reported -- never silently dropped, never silently repaired."
+  ],
+
+  "jobs": {
+    "prmbench_qwen25math7b_full": {
+      "driver": "cluster/run_prmbench_prm.py",
+      "model": "Qwen/Qwen2.5-Math-PRM-7B",
+      "role": "supervised every-step ceiling",
+      "protocol": "spectral_utils/prm_scorer.py reused verbatim from the ProcessBench PRM job (AutoModel classification head, official chat template, <extra_0> separators, make_step_rewards reduction order, and the _patch_cache_compat() DynamicCache shim that fixed job 176541). label = 1 if reward >= 0.5 else 0.",
+      "threshold": 0.5,
+      "threshold_rationale": "ProcessBench's own published PRM decision boundary, reused UNCHANGED. Tuning it on PRMBench labels would convert a published ceiling into a fitted method.",
+      "supervision_access_sampling": "human-process-label-trained PRM (PRM800K-style). Supervised ceiling, never reported as a peer of a label-free score.",
+      "fidelity_level": 1,
+      "cost_profile": "one forward pass per problem, no generation -- a couple of GPU-hours."
+    },
+    "prmbench_qwen3_8b_telemetry_full": {
+      "driver": "cluster/run_prmbench_teacher_forced.py",
+      "model": "Qwen/Qwen3-8B",
+      "role": "our own arm's raw telemetry",
+      "protocol": "fork of cluster/run_teacher_forced.py in which ONLY build_items changes. forward_batch / candidate_quantities / batched / Gate B / the SIGTERM+exit-85 contract are imported unchanged, so there is one definition of each per-token quantity in the repo. Conditioning prompt = math_prompt + ' /no_think', identical to the ProcessBench cells the local head was frozen on.",
+      "saved_per_row": ["idx", "source_idx", "classification", "category", "question", "steps", "error_steps", "step_token_spans", "align_diag", "gen_token_ids", "token_entropies", "token_spilled_energies", "token_logsumexp", "top_k_logprobs"],
+      "fidelity_level": 3,
+      "cost_profile": "one teacher-forced forward pass per problem -- same class as the ProcessBench telemetry job."
+    }
+  },
+
+  "declared_adaptation": "For classes `redundency` and `circular`, the official evaluator PREFERS a model's step_level_redundancy_labels head and only falls back to step_level_validity_labels when that head is absent. Neither our score nor a plain PRM reward has a redundancy head, so both arms take the fallback path. prmbench_evaluate() records this as used_redundancy_head=false with an explicit adaptation_note. Those two subcategories are therefore NOT exact reproductions and must be labelled accordingly.",
+
+  "our_step_score_freezing": {
+    "primary_aggregation": "maximum token risk inside each official step -- the same convention as the frozen first-error locator in docs/methods/gl_liu_v1.md",
+    "sensitivity_aggregation": "95th-percentile token risk, plus correlation between step risk and step length",
+    "rule": "BOTH are frozen before any evaluation label is read. Selecting between aggregations on test labels is forbidden.",
+    "bootstrap_unit": "complete problems, never individual steps"
+  },
+
+  "no_pilot": "Per Omri's 2026-08-10 instruction this campaign skips N=30 GPU pilots and submits at full size. Offline risk was retired instead of on GPU: spectral_utils/prmbench.py::smoke(check_corpus=True) passes 9 known-answer checks including an exact reproduction of the published 6,216 / 83,456 corpus statistics, the 5-row dedup gap, the 160 empty and 100 out-of-range annotation counts, and the label-polarity convention in both directions.",
+
+  "still_out_of_scope": "prmtest_classified_subset400; the BoN evaluation path (mr_eval/bon_eval); ReasonEval and the other leaderboard PRMs."
+}

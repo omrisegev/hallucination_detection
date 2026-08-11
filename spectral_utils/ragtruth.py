@@ -218,6 +218,104 @@ def _paragraph_chunks(doc: str, min_chars=SUMMARY_MIN_CHARS, max_chunks=SUMMARY_
     return merged
 
 
+# ── sentence splitting + GASP's K=5 sentence-grouped chunking ────────────────────────
+#
+# GASP (arXiv:2607.04223) uses a DIFFERENT chunk unit from our preregistered campaign: "K=5
+# chunks (sentence-grouped)", context capped at 700 tokens and the answer at 200, over 400
+# class-balanced Summary+Data2txt responses (QA is excluded — the paper says those answers are
+# "not long enough for stable estimation"). Our own chunking is per task type (QA=3 passages,
+# Data2txt=9 JSON fields, Summary=1 document), so an exact-protocol GASP row cannot be built
+# from the existing cache and needs its own forward pass. Everything below exists only to serve
+# that reproduction; no preregistered arm's definition changes.
+#
+# The sentence splitter is a disclosed implementation detail, not a claim: the paper does not
+# publish its splitter, and no released code was located, so this is a plain regex boundary rule
+# (terminator + whitespace + capital/quote/digit) with a small abbreviation guard. It is
+# deterministic and dependency-free, which matters because it must run identically inside the
+# NGC container and in local scoring.
+
+_ABBREVIATIONS = {
+    "mr", "mrs", "ms", "dr", "prof", "sr", "jr", "st", "vs", "etc", "e.g", "i.e",
+    "inc", "ltd", "co", "corp", "no", "fig", "approx", "dept", "est", "u.s", "u.k",
+}
+_SENT_BOUNDARY = re.compile(r'(?<=[.!?])(["\')\]]*)(\s+)')
+
+
+def split_sentences(text: str):
+    """Sentence spans `[(start, end), ...]` covering `text`, excluding inter-sentence whitespace.
+
+    Shared by GASP's chunking and by sentence-level RAGTruth scoring, so both use one boundary
+    definition. Returns `[]` for empty/whitespace-only input.
+    """
+    if not text or not text.strip():
+        return []
+
+    spans, start = [], 0
+    for match in _SENT_BOUNDARY.finditer(text):
+        end = match.start() + len(match.group(1))
+        candidate = text[start:end].strip()
+        if not candidate:
+            continue
+        # Don't break after a known abbreviation ("Dr. Smith" is one sentence).
+        tail = candidate.rstrip(".!?\"')]").split()
+        if tail and tail[-1].lower().strip(".") in _ABBREVIATIONS:
+            continue
+        spans.append((start, end))
+        start = match.end()
+
+    if start < len(text) and text[start:].strip():
+        spans.append((start, len(text)))
+    return spans
+
+
+def sentence_grouped_chunks(context: str, k: int = 5):
+    """GASP's chunk unit: split `context` into sentences, then group them into `k` CONTIGUOUS
+    near-equal buckets, returned as char-offset spans into `context`.
+
+    Spans are contiguous and cover the whole string (each bucket absorbs the whitespace that
+    follows it), so `context[:s] + context[e:]` remains a clean leave-one-chunk-out deletion —
+    the same splice contract `chunk_source` guarantees.
+
+    Balancing is by CHARACTER mass, not sentence count: RAGTruth Summary documents mix one-clause
+    sentences with 300-character ones, and equal-count buckets would make some chunks carry
+    almost no evidence, which weakens the leave-one-out contrast the whole method depends on.
+    Degrades gracefully — with fewer than `k` sentences you get one chunk per sentence.
+    """
+    sentences = split_sentences(context)
+    if not sentences:
+        return [(0, len(context))] if context else []
+    if len(sentences) <= k:
+        bounds = [s for s, _ in sentences] + [len(context)]
+        return [(bounds[i], bounds[i + 1]) for i in range(len(sentences))]
+
+    lengths = [e - s for s, e in sentences]
+    total = sum(lengths)
+    target = total / k
+
+    groups, running, group_start_idx = [], 0.0, 0
+    for i, length in enumerate(lengths):
+        running += length
+        remaining_groups = k - len(groups)
+        remaining_sentences = len(lengths) - (i + 1)
+        # Close the bucket once it has its share, but never so early that the remaining
+        # sentences cannot fill the remaining buckets one-each.
+        if (running >= target and remaining_groups > 1
+                and remaining_sentences >= remaining_groups - 1):
+            groups.append((group_start_idx, i))
+            group_start_idx = i + 1
+            running = 0.0
+    groups.append((group_start_idx, len(lengths) - 1))
+
+    spans = []
+    for gi, (first, last) in enumerate(groups):
+        start = sentences[first][0] if gi else 0
+        end = sentences[last][1] if gi == len(groups) - 1 else sentences[last + 1][0]
+        if gi == len(groups) - 1:
+            end = len(context)
+        spans.append((start, end))
+    return spans
+
+
 def _field_chunks(row: dict):
     """Leave-one-top-level-JSON-field-out spans, located in `str(dict)` order.
 
@@ -241,12 +339,17 @@ def _field_chunks(row: dict):
 
 # ── condition prompts ────────────────────────────────────────────────────────────────
 
-def condition_prompt(row: dict, condition: str) -> str:
+def condition_prompt(row: dict, condition: str, spans=None) -> str:
     """`condition in {"full", "noctx", "loo_0", ..., "loo_{m-1}"}`.
 
     Every condition is `row['prompt']` with only the evidence substring edited — the
     instruction text, question, and trailing output cue are always byte-identical to the
     original, per the module docstring's prompt-surgery design.
+
+    `spans` overrides the chunk definition for `loo_*` conditions. It exists so the GASP
+    reproduction can use `sentence_grouped_chunks` without altering any preregistered arm:
+    passing `None` (the default) keeps the frozen per-task-type `chunk_source` behaviour
+    byte-for-byte.
     """
     if condition == "full":
         return row["prompt"]
@@ -256,7 +359,7 @@ def condition_prompt(row: dict, condition: str) -> str:
         new_context = ""
     elif condition.startswith("loo_"):
         j = int(condition[len("loo_"):])
-        spans = chunk_source(row)
+        spans = chunk_source(row) if spans is None else spans
         if not (0 <= j < len(spans)):
             raise ValueError(f"condition {condition!r} out of range for {len(spans)} chunks")
         start, end = spans[j]
@@ -427,8 +530,48 @@ def smoke() -> None:
     assert not (left_ids & right_ids), (left_ids, right_ids)
     assert len(left) + len(right) == 30
 
-    print("ragtruth.smoke: PASS (6 checks: QA/Summary/Data2txt prompt surgery, "
-          "degenerate-Summary fallback, group_split)")
+    # ── GASP's sentence splitting + K=5 sentence-grouped chunking ────────────────────
+    text = "One. Two! Three? Four."
+    sent = split_sentences(text)
+    assert len(sent) == 4, sent
+    assert [text[s:e] for s, e in sent] == ["One.", "Two!", "Three?", "Four."], sent
+    # An abbreviation must not open a new sentence.
+    abbr = "Dr. Smith went home. He slept."
+    assert len(split_sentences(abbr)) == 2, split_sentences(abbr)
+    # Quotes/brackets belong to the sentence they close.
+    quoted = 'He said "stop." Then he left.'
+    assert len(split_sentences(quoted)) == 2, split_sentences(quoted)
+    assert split_sentences("") == [] and split_sentences("   ") == []
+
+    long_ctx = " ".join(f"Sentence number {i} carries some evidence text here." for i in range(20))
+    chunks = sentence_grouped_chunks(long_ctx, k=5)
+    assert len(chunks) == 5, chunks
+    # Contiguous and total: the K chunks tile the whole context with no gap and no overlap,
+    # which is what makes context[:s] + context[e:] a clean single deletion.
+    assert chunks[0][0] == 0 and chunks[-1][1] == len(long_ctx), chunks
+    for a, b in zip(chunks, chunks[1:]):
+        assert a[1] == b[0], (a, b)
+    # Character-mass balancing, not sentence count: no chunk may be empty.
+    assert all(e > s for s, e in chunks), chunks
+    # Fewer sentences than k degrades to one chunk per sentence, never an empty span.
+    assert len(sentence_grouped_chunks("A. B.", k=5)) == 2
+
+    # The `spans` override changes ONLY the loo_* conditions, and leaves the frozen
+    # chunk_source path byte-identical when it is not passed.
+    gasp_row = {"task_type": "Summary", "context": long_ctx,
+                "prompt": f"Summarize:\n{long_ctx}\n\noutput:", "response": "x", "labels": []}
+    assert condition_prompt(gasp_row, "full") == gasp_row["prompt"]
+    assert condition_prompt(gasp_row, "noctx", spans=chunks) == condition_prompt(gasp_row, "noctx")
+    loo_default = condition_prompt(gasp_row, "loo_0")
+    loo_gasp = condition_prompt(gasp_row, "loo_0", spans=chunks)
+    assert loo_default != loo_gasp, "spans override had no effect on loo_0"
+    assert "Summarize:" in loo_gasp and "output:" in loo_gasp
+    removed = long_ctx[chunks[0][0]:chunks[0][1]]
+    assert removed not in loo_gasp and long_ctx[chunks[1][0]:chunks[1][1]] in loo_gasp
+
+    print("ragtruth.smoke: PASS (9 checks: QA/Summary/Data2txt prompt surgery, "
+          "degenerate-Summary fallback, group_split, sentence split, K=5 sentence-grouped "
+          "chunks, spans override)")
 
 
 if __name__ == "__main__":

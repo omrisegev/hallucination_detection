@@ -61,6 +61,43 @@ def _loo_conditions(records_by_condition: dict) -> list:
     )
 
 
+def _token_jsd(full_rec: dict, other_rec: dict, T: int):
+    """Per-token JSD(p_full || p_other), EXACT when the cell carries it, approximate otherwise.
+
+    `cluster/run_gasp_exact.py` computes Eqs. (9)/(11)'s divergence over the full vocabulary
+    online during the forward pass and stores the resulting per-token scalar as
+    `token_jsd_vs_full`. The preregistered conditional-rescore cells predate that and only have
+    top-50 log-probs, so they fall back to `evidence_contrast.js_divergence`'s top-50 + shared-
+    tail approximation.
+
+    Both paths are kept deliberately: the exact cells still save `top_k_logprobs`, so running
+    this function with and without the exact array measures how much the approximation costs
+    instead of assuming it is negligible. Returns `None` when neither source is available.
+    """
+    exact = other_rec.get("token_jsd_vs_full")
+    if exact is not None and len(exact):
+        return np.asarray(exact, dtype=float)[:T]
+
+    lp_full, lp_other = full_rec.get("top_k_logprobs"), other_rec.get("top_k_logprobs")
+    if not lp_full or not lp_other:
+        return None
+    return js_divergence(
+        np.asarray(lp_full["ids"])[:T], np.asarray(lp_full["logprobs"])[:T],
+        np.asarray(lp_other["ids"])[:T], np.asarray(lp_other["logprobs"])[:T],
+    )
+
+
+def jsd_source(records_by_condition: dict) -> str:
+    """`"full_vocabulary_exact"` or `"top50_tail_approximation"` — recorded beside every score
+    so a panel never silently mixes the two."""
+    for condition, record in records_by_condition.items():
+        if condition == "full":
+            continue
+        if record.get("token_jsd_vs_full") is not None:
+            return "full_vocabulary_exact"
+    return "top50_tail_approximation"
+
+
 def response_gasp_features(records_by_condition: dict) -> dict | None:
     """Eqs. (8)-(11), aggregated over the WHOLE response. Returns `None` if the response
     has neither a `noctx` nor any `loo_*` pass (nothing to compute a sensitivity from)."""
@@ -76,12 +113,8 @@ def response_gasp_features(records_by_condition: dict) -> dict | None:
     if noctx is not None:
         spill_noctx = np.asarray(noctx["token_spilled_energies"], dtype=float)[:T]
         gap = float(np.mean(spill_noctx - spill_full))
-        lp_noctx = noctx.get("top_k_logprobs")
-        if lp_full and lp_noctx:
-            djs = js_divergence(
-                np.asarray(lp_full["ids"])[:T], np.asarray(lp_full["logprobs"])[:T],
-                np.asarray(lp_noctx["ids"])[:T], np.asarray(lp_noctx["logprobs"])[:T],
-            )
+        djs = _token_jsd(full, noctx, T)
+        if djs is not None:
             jsd0 = float(np.mean(djs))
 
     loo = _loo_conditions(records_by_condition)
@@ -92,12 +125,8 @@ def response_gasp_features(records_by_condition: dict) -> dict | None:
             rec = records_by_condition[c]
             spill_k = np.asarray(rec["token_spilled_energies"], dtype=float)[:T]
             drop_per_k.append(float(np.mean(spill_k - spill_full)))
-            lp_k = rec.get("top_k_logprobs")
-            if lp_full and lp_k:
-                djs_k = js_divergence(
-                    np.asarray(lp_full["ids"])[:T], np.asarray(lp_full["logprobs"])[:T],
-                    np.asarray(lp_k["ids"])[:T], np.asarray(lp_k["logprobs"])[:T],
-                )
+            djs_k = _token_jsd(full, rec, T)
+            if djs_k is not None:
                 jsdloo_per_k.append(float(np.mean(djs_k)))
         drop = max(drop_per_k) if drop_per_k else None
         jsdloo = max(jsdloo_per_k) if jsdloo_per_k else None
@@ -123,12 +152,9 @@ def token_gasp_curve(records_by_condition: dict) -> dict | None:
     if noctx is not None:
         spill_noctx = np.asarray(noctx["token_spilled_energies"], dtype=float)[:T]
         curves["gasp_gap"] = spill_noctx - spill_full
-        lp_noctx = noctx.get("top_k_logprobs")
-        if lp_full and lp_noctx:
-            curves["gasp_jsd0"] = js_divergence(
-                np.asarray(lp_full["ids"])[:T], np.asarray(lp_full["logprobs"])[:T],
-                np.asarray(lp_noctx["ids"])[:T], np.asarray(lp_noctx["logprobs"])[:T],
-            )
+        djs = _token_jsd(full, noctx, T)
+        if djs is not None:
+            curves["gasp_jsd0"] = djs
 
     loo = _loo_conditions(records_by_condition)
     if loo:
@@ -137,12 +163,9 @@ def token_gasp_curve(records_by_condition: dict) -> dict | None:
             rec = records_by_condition[c]
             spill_k = np.asarray(rec["token_spilled_energies"], dtype=float)[:T]
             drop_stack.append(spill_k - spill_full)
-            lp_k = rec.get("top_k_logprobs")
-            if lp_full and lp_k:
-                jsdloo_stack.append(js_divergence(
-                    np.asarray(lp_full["ids"])[:T], np.asarray(lp_full["logprobs"])[:T],
-                    np.asarray(lp_k["ids"])[:T], np.asarray(lp_k["logprobs"])[:T],
-                ))
+            djs_k = _token_jsd(full, rec, T)
+            if djs_k is not None:
+                jsdloo_stack.append(djs_k)
         if drop_stack:
             curves["gasp_drop"] = np.stack(drop_stack).max(axis=0)
         if jsdloo_stack:

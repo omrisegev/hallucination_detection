@@ -1,0 +1,63 @@
+{
+  "experiment": "ragtruth_lettuce_large_span_full",
+  "stage": "A -- protocol lock, written before submission",
+  "written_utc": "2026-08-10",
+
+  "purpose": "Supply the supervised trained ceiling for Benchmark 1 (token / character-span localization) of docs/experiments/FOUR_LOCALIZATION_BENCHMARKS_CLUSTER_HANDOFF.md. LettuceDetect is a token classifier that emits localized character spans, which is exactly the prediction our own local head makes -- so it is the apples-to-apples ceiling for the span panel, in a strictly higher supervision category.",
+
+  "supersedes": {
+    "artifact": "results/ragtruth_lettucedetect_ceiling_full.json (example-level F1 0.758990874932904, N=2700, base checkpoint, CPU-local, 9218s)",
+    "why_insufficient": [
+      "SPAN COORDINATES DISCARDED. scripts/ragtruth_lettucedetect_ceiling.py saved only n_pred_spans (a count) and a boolean overlap_hit per row. No character-overlap precision/recall/F1, no token micro F1, and no span IoU can be reconstructed from it, so it cannot populate a span-localization panel at all.",
+      "WRONG ENTRY POINT (train/test mismatch, not a stylistic choice). It called predict(context=[row['prompt']], question=''). predict() routes through PromptUtils.format_context, which re-wraps its input in the library's own 'passage N: ...' template plus instruction text -- so an already-complete RAGTruth prompt gets double-wrapped into a string the checkpoint never saw during training.",
+      "BASE, NOT LARGE. It ran KRLabsOrg/lettucedect-base-modernbert-en-v1; the paper's reported RAGTruth result is the large checkpoint."
+    ]
+  },
+
+  "mandatory_competitor_gate": {
+    "method": "LettuceDetect (large)",
+    "paper": "LettuceDetect: A Hallucination Detection Framework for RAG Applications, arXiv:2502.17125 (KRLabsOrg)",
+    "official_code": "pip package `lettucedetect` 0.2.2; official RAGTruth preprocessing is lettucedetect/preprocess/preprocess_ragtruth.py::create_sample, which builds HallucinationSample(prompt=source_info['prompt'], answer=response['response'], labels=[{start,end,label_type}], split, task_type, 'ragtruth', 'en')",
+    "model": "KRLabsOrg/lettucedect-large-modernbert-en-v1",
+    "dataset_subset": "RAGTruth test split, all 2,700 responses, all three task types (QA / Summary / Data2txt) -- the same rows already teacher-forced into dataset_cache/ragtruth_ec_full/test/",
+    "protocol": "HallucinationDetector(method='transformer', model_path=..., max_length=4096).predict_prompt(prompt, answer, output_format='spans'). predict_prompt goes straight to _predict_single with no re-wrapping, matching how preprocess_ragtruth.py + HallucinationDataset.prepare_tokenized_input feed the model at train time. The library's own consecutive-above-threshold token merging (confidence = max over the merged run) is used verbatim; min_confidence=0.0 keeps every span, which is the paper's fixed-threshold rule.",
+    "supervision_access_sampling": "SUPERVISED token classifier, fine-tuned on RAGTruth's OWN train split -- trained on the target corpus. Strictly higher supervision than our label-free score and must never be presented as a peer method.",
+    "comparison_level": 1
+  },
+
+  "span_coordinate_semantics": "TransformerDetector._predict_single returns rel_start = token_start - answer_char_offset, i.e. character offsets into `answer`. RAGTruth gold labels index into `response`, the same string. The two are therefore directly comparable with no offset surgery -- asserted in the scorer, not assumed here.",
+
+  "arms": {
+    "primary": {
+      "out": "ragtruth_lettuce_large_span_full",
+      "max_length": 4096,
+      "rationale": "the library's own default, i.e. the published setting; this is the arm the fidelity gate applies to"
+    },
+    "sensitivity": {
+      "out": "ragtruth_lettuce_large_span_ml8192",
+      "max_length": 8192,
+      "rationale": "ModernBERT's native context limit, advertised on the model card. Declared sensitivity arm for input truncation, never the headline row. n_input_tokens is recorded per row in BOTH arms so the truncation rate is measured rather than assumed."
+    }
+  },
+
+  "fidelity_gate": {
+    "published_example_level_f1": 0.7922,
+    "source": "model card, KRLabsOrg/lettucedect-large-modernbert-en-v1, RAGTruth test split",
+    "rule": "Do not promote the run unless the primary arm reproduces 0.7922 within an explained numerical tolerance. If the model card and the paper use different splits or metrics, report both and name the discrepancy (handoff section 6). The driver computes fidelity_gate_delta into its own manifest.json.",
+    "secondary_signal": "the old base-checkpoint + double-wrapped-prompt run scored 0.7590; a large jump toward 0.7922 is corroborating evidence that the predict_prompt fix is the correct entry point"
+  },
+
+  "cost_profile": "encoder forward passes only, no generation. 2,700 rows x 2 calls (spans + token probabilities) on a ModernBERT-size classifier -- minutes on one B200, hence --time=02:00:00.",
+
+  "saved_per_row": [
+    "response_id", "source_id", "task_type", "model", "response",
+    "gold_spans", "gold_hallucinated",
+    "pred_spans (start / end / confidence / text)", "pred_hallucinated",
+    "token_probs", "token_preds", "token_strings",
+    "overlap_hit", "n_input_tokens", "truncated", "elapsed_sec"
+  ],
+
+  "no_pilot": "Per Omri's 2026-08-10 instruction this campaign skips N=30 GPU pilots and submits at full size. The risk is bounded: the driver is resumable, the corpus loader (spectral_utils.ragtruth.load_ragtruth) already has a passing integrity gate on all 2,700 test rows (0 dropped), and the whole job is minutes.",
+
+  "still_out_of_scope": "RAGBench and TofuEval transfer splits; the LLM-based and rag_fact_checker detector methods (both require proprietary API access); the taxonomy typing head."
+}

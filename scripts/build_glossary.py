@@ -35,6 +35,7 @@ from spectral_utils.glossary import (   # noqa: E402
     POOL_MODE_NOTES, BASE_VARIANT_NOTES, SUFFIX_NOTES, FEATURE_NOTES,
     METHOD_TERM_NOTES,
     GROUPING_TERM_NOTES,
+    LOCALIZATION_BENCHMARK_NOTES,
     OUT_OF_SCOPE_DERIVED_VIEWS_NOTE, resolve, role_of)
 from spectral_utils.selectors import registered  # noqa: E402
 from spectral_utils.selectors.reference_macros import MACROS  # noqa: E402
@@ -198,6 +199,18 @@ def render():
     lines.append("|---|---|---|")
     for mode, (note, step) in POOL_MODE_NOTES.items():
         lines.append(f"| `{mode}` | {note} | {step} |")
+
+    lines.append("\n## Hallucination-localization benchmarks (Step 242)\n")
+    lines.append(
+        "**These are four DIFFERENT prediction problems.** They do not share a label "
+        "space or an official metric, and their scores must never be averaged into one "
+        "leaderboard number. The report carries four separate panels; its \"macro "
+        "summary\" is a status table of each task's own primary metric, not an average. "
+        "Design: `docs/experiments/FOUR_LOCALIZATION_BENCHMARKS_CLUSTER_HANDOFF.md`.\n")
+    lines.append("| Term | Meaning | HISTORY |")
+    lines.append("|---|---|---|")
+    for term, (note, step) in LOCALIZATION_BENCHMARK_NOTES.items():
+        lines.append(f"| **{term}** | {note} | {step} |")
 
     return "\n".join(lines) + "\n"
 

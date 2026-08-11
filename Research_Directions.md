@@ -941,6 +941,72 @@ models.md`. All three completed items 3 and part of item 1 of
 not yet submitted — pilot health review needed first. Full account: HISTORY
 Step 241.
 
+**Scaled to full N (Step 242, 2026-08-11).** All three ProcessBench
+competitors were promoted to the full 3,400 rows: `pb_prm_qwen25math7b_full`
+and `pb_uprm_baseline_qwen3_8b_full` are complete, `pb_critic_qwen72b_full`
+is running through a linear 6-wall resume chain (3 of 4 subsets done). Note
+the uPRM reconstruction was scaled against this project's own rule that it
+must not be — it is cheap and the number is legitimate, but it is **our
+no-training LLM-as-a-Judge control and must never be called uPRM**. Still
+outstanding: no local scorer consumes these competitor pkls yet, so none of
+the three has been placed beside our own numbers.
+
+---
+
+### Extension L — Four hallucination-localization benchmarks (Step 242, 2026-08-11) — ACTIVE
+
+Extension F establishes first-error localization on ProcessBench. This
+extension widens the application claim to the **four different localization
+tasks** the field actually distinguishes, each with its own published
+competitor on identical rows. Design:
+`docs/experiments/FOUR_LOCALIZATION_BENCHMARKS_CLUSTER_HANDOFF.md`.
+
+**These are four different prediction problems.** They do not share a label
+space or an official metric, and their scores must never be averaged into one
+leaderboard number. The deliverable is four separate panels; its "macro
+summary" is a status table of each task's own primary metric.
+
+| # | Task | Benchmark | Competitor | Competitor status |
+|---|---|---|---|---|
+| 1 | which CHARACTERS are unsupported | RAGTruth (2,700 test) | LettuceDetect-large (supervised, trained on RAGTruth's own train split) | ✅ example F1 **0.792899** vs published 0.7922 — fidelity gate passed |
+| 2a | which SENTENCES are unsupported | RAGTruth, GASP protocol | GASP-threshold (arXiv:2607.04223) | ✅ exact protocol, full-vocabulary JSD, 400 balanced responses |
+| 2b | which CLAIMS are unsupported | RefChecker benchmark | RefChecker's own NLIChecker | ⚠️ 3-way acc 0.6751 / macro F1 0.4440 on 7,414 claims — **2 of 3 settings**; zero_context BLOCKED |
+| 3 | is EVERY step correct | PRMBench (6,216 problems) | Qwen2.5-Math-PRM-7B (supervised) | ✅ F1 **0.9156**, 0 reward-count mismatches |
+| 4 | WHICH step is first wrong | ProcessBench (3,400) | Qwen2.5-72B critic + PRM ceiling | 🔵 running (see Extension F above) |
+
+**Why panel 3 is not a duplicate of panel 4.** ProcessBench labels only the
+first wrong step and certifies nothing after it, so it structurally cannot
+measure an every-step classifier. PRMBench supplies the missing per-step
+ground truth (83,456 shipped step labels; 83,371 after the official loader's
+own dedup).
+
+**Two competitor findings that set the bar lower than their headlines
+suggest.** The supervised PRM over-accepts badly — `correct_step_acc` 0.954
+against `wrong_step_acc` 0.305 — and the open NLI checker is strong only on
+the majority supported class (Entailment F1 0.809, Neutral 0.277,
+Contradiction 0.246). On both panels the published competitor is weak
+precisely on the class that matters.
+
+**A measured constraint on panel 3 before any scoring.** 71.0% of PRMBench
+steps are shorter than 32 tokens (median 24; 3.5% under 8).
+`compute_stft_features` needs 32 tokens and `compute_spectral_features` needs
+8, so most of the trace-level feature pool is structurally unavailable at
+PRMBench step granularity. State this in the report; do not let it surface as
+an unexplained weak number.
+
+**Fidelity levels are mandatory on every competitor row**: 1 exact
+reproduction, 2 protocol reproduction, 3 adaptation, 4 published context only.
+Levels 2–4 must never be described as an exact reproduction. GASP is level 2
+(arXiv-only, no code release or response-ID list located, so our own seed and
+our own sentence splitter). The RefChecker panel is **checking-stage only** —
+its human labels are attached to Claude-2-extracted triplets, so claim
+extraction is out of scope by construction.
+
+**Decision gate for this extension**: our own IU-PCR and DUFS-LIU are not yet
+scored on any of the four panels. No claim about localization breadth can be
+made until Phase 2 (the scoring modules) exists. Full account: HISTORY
+Step 242.
+
 ---
 
 ### Extension H — Prior-Free L-SML: derive orientation, size, and selection from structure alone (NEW top priority, Step 199, 2026-07-25)
@@ -1186,7 +1252,18 @@ ridge, DEEM architecture, or seeds after reading AUROC.
 
 ## Recommended Priority Order
 
-*(Authoritative current order — updated 2026-08-08, session close Step 235)*
+*(Authoritative current order — updated 2026-08-11, session close Step 242)*
+
+0. **Score our own method on the four localization panels (Extension L).** This
+   is now the blocking item, and it is not a research question — it is missing
+   plumbing. Every competitor number for panels 1–3 is in hand and the raw
+   telemetry is fetched to `dataset_cache/four_localization/`, but **no local
+   scorer consumes any of it**: there is no consumer of the ProcessBench
+   competitor pkls, and no span, sentence, or PRMBench metric harness exists at
+   all. Until those are built, the campaign has four competitor ceilings and
+   zero numbers of our own to place beside them. Build them in the order the
+   handoff's §11 sets out — fit and freeze score hashes BEFORE any evaluation
+   label is opened, mirroring `scripts/gl_liu_external_v1/run.py`.
 
 1. **Validate and optimize hallucination localization as an application.** Keep
    global DUFS-LIU mixed-v2 fixed. Compare the frozen temporal localizer with

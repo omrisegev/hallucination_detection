@@ -1,0 +1,52 @@
+#!/bin/bash
+# TEMPLATE for cluster/submit_prmbench_prm.sbatch — the live file is gitignored because it
+# carries a hardcoded HF_TOKEN, exactly like submit_pb_prm.sbatch.
+#
+# To regenerate the live file ON THE CLUSTER:
+#
+#   cd /shared/cycle2_tau_averbuch_prj/omrisegev1/code
+#   tok=$(grep -m1 '^export HF_TOKEN=' cluster/submit_inference.sbatch | cut -d= -f2-)
+#   sed "s|^export HF_TOKEN=.*|export HF_TOKEN=$tok|" \
+#       cluster/submit_prmbench_prm.sbatch.template > cluster/submit_prmbench_prm.sbatch
+#
+# NEVER commit the live file.
+#
+# WHAT THIS RUNS
+# --------------
+# `cluster/run_prmbench_prm.py`: the supervised every-step ceiling for Benchmark 3 (PRMBench).
+# Forward passes only, one per problem over ~6,974 evaluated rows (6,211 error rows after the
+# official dedup + 758 synthetic all-correct controls). Same cost class as the ProcessBench PRM
+# job. Protocol lock: cluster/manifests/prmbench_v1.json.
+#
+# Submit:
+#
+#   sbatch -p power-gpu --qos=owner_880 cluster/submit_prmbench_prm.sbatch \
+#       --out /shared/cycle2_tau_averbuch_prj/omrisegev1/results/prmbench_qwen25math7b_full
+#
+#SBATCH --job-name=spectral_pbench_prm
+#SBATCH --gpus=1
+#SBATCH --time=08:00:00
+#SBATCH --requeue
+#SBATCH --signal=B:TERM@900
+#SBATCH --output=/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/%x_%j.out
+#SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
+#SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
+#SBATCH --container-workdir=/shared/cycle2_tau_averbuch_prj/omrisegev1/code
+# No --container-name on purpose — same-node enroot-rootfs race between concurrent jobs.
+
+set -uo pipefail
+
+SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
+export HF_HOME=$SHARED/hf_cache
+export HF_DATASETS_CACHE=$SHARED/hf_cache/datasets
+export PIP_CACHE_DIR=$SHARED/pip_cache
+export PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID}
+mkdir -p "$PYTHONUSERBASE"
+export HF_TOKEN=REPLACE_ME
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+echo "[sbatch] job $SLURM_JOB_ID on $(hostname), args: $*"
+
+pip install -q --user -r cluster/requirements.txt
+
+exec python cluster/run_prmbench_prm.py "$@"

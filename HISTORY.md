@@ -11543,3 +11543,244 @@ pb_uprm_baseline_qwen3_8b_pilot,ragtruth_lettucedetect_ceiling}`).
 - `.gitignore` — added the three new live-sbatch entries
 
 ---
+
+### Step 242 — the four-localization-benchmark cluster campaign: 6 new jobs, 4 infrastructure bugs, and 3 official-protocol details that would have silently inverted a panel
+
+**What**: Executed `docs/experiments/FOUR_LOCALIZATION_BENCHMARKS_CLUSTER_HANDOFF.md` on AIRCC —
+built five new cluster drivers, three new `spectral_utils` modules, and submitted every job the
+handoff's ordered wishlist calls for. Omri's standing instructions for this campaign: **skip the
+N=30 GPU pilots and submit at full size**, use very large generation limits to avoid saturation,
+**do not run QwQ-32B-Preview** (the Qwen2.5-72B critic is enough, labelled as a different critic
+model), and **include RefChecker** with the strongest fully-open configuration, reporting the
+panel cell as blocked rather than substituting a number if the release turns out unusable.
+
+**Why**: The handoff asks for one advisor-facing report with four separate panels — token/character
+spans, unsupported sentences and claims, every-step correctness, and first-error localization —
+each with a published competitor under its official protocol and our own IU-PCR and DUFS-LIU on
+the identical rows. Before this step, three of the four panels had no competitor data at all.
+
+Because the GPU pilots were skipped, the risk they would have caught was retired **offline
+instead**: every new module ships a `smoke()` with known-answer checks that run on CPU with no
+data, and two of them reproduce published corpus statistics exactly.
+
+#### The jobs
+
+| Panel | Job | Driver | Status |
+|---|---|---|---|
+| token/span | `ragtruth_lettuce_large_span_full` (+ `_ml8192`) | `cluster/run_lettucedetect_span.py` | **done** |
+| sentence | `gasp_ragtruth_exact_qwen15b_full` | `cluster/run_gasp_exact.py` | **done** |
+| claim | `refchecker_knowhalbench_open_full` | `cluster/run_refchecker_claims.py` | **done, 2 of 3 settings** |
+| every-step | `prmbench_qwen25math7b_full` | `cluster/run_prmbench_prm.py` | **done** |
+| every-step | `prmbench_qwen3_8b_telemetry_full` | `cluster/run_prmbench_teacher_forced.py` | **done** |
+| first-error | `pb_prm_qwen25math7b_full`, `pb_uprm_baseline_qwen3_8b_full` | existing drivers | **done** |
+| first-error | `pb_critic_qwen72b_full` | existing driver | **done, 3,400/3,400** |
+
+**Every job in this campaign is finished.** The cluster queue is empty.
+
+**Result — the Qwen2.5-72B critic at full N.** 3,400/3,400 rows across the 6-wall resume chain,
+with **8 truncated and 8 unparsed responses in total (0.24% each)** — which settles the
+`--max-new` question empirically: 8192, ProcessBench's own official setting for non-QwQ models,
+was sufficient, and raising it would have bought nothing while breaking the protocol claim.
+
+| Subset | Error acc | Correct acc | F1 | (N=30 pilot) |
+|---|---|---|---|---|
+| gsm8k | 61.35 | 95.85 | **74.82** | 70.4 |
+| math | 45.62 | 90.64 | **60.70** | 50.0 |
+| olympiadbench | 35.40 | 88.50 | **50.57** | 47.1 |
+| omnimath | 36.50 | 87.55 | **51.52** | 65.9 |
+| **macro** | | | **59.40** | |
+
+The pilot was badly misleading on two of four subsets — omnimath fell **−14.4 points** at full N
+and math rose **+10.7**. Together with the PRM ceiling's −6.9 on omnimath and the judge control's
+across-the-board drop, this is a general lesson about the N=30-per-subset pilots in Step 241:
+they were fine as health checks and useless as estimates.
+
+**Result — LettuceDetect-large passed its fidelity gate.** Example-level F1 **0.792899** against
+the model card's published **0.7922** (delta 0.0007), precision 0.8046, recall 0.7815, **0
+truncated rows** on all 2,700 test responses. Predicted character spans, confidences and
+per-token probabilities are now persisted, so character-overlap F1 and IoU are reconstructable —
+the previous run saved only a span COUNT and a boolean, which is why it could not populate a span
+panel at all.
+
+The gate also settled a question the old run left open. `scripts/ragtruth_lettucedetect_ceiling.py`
+scored 0.7590 and the gap was assumed to be the base-vs-large checkpoint. It was **mostly the
+entry point**: that script called `predict(context=[row["prompt"]], question="")`, and `predict()`
+routes through `PromptUtils.format_context`, which re-wraps whatever it is handed in the library's
+own `"passage N: ..."` template. Feeding it an already-complete RAGTruth prompt double-wraps the
+input into a string the checkpoint never saw in training. The official preprocessing
+(`lettucedetect/preprocess/preprocess_ragtruth.py::create_sample`) builds
+`HallucinationSample(prompt=source["prompt"], answer=response["response"], ...)` — the whole prompt,
+one string, no context/question split — so `predict_prompt` is the matching call. Running the
+**large** checkpoint through the **wrong** entry point is not what produced 0.7922; running it
+through the right one is.
+
+The `--max-length 8192` arm returned byte-identical output to the 4096 arm and `n_truncated = 0`
+in both, so no RAGTruth test row exceeds 4096 tokens. Truncation is retired as a concern by
+measurement rather than assumption, and the sensitivity arm can be reported as a null result.
+
+**Result — the supervised PRM ceiling on PRMBench.** 6,969 rows scored in 134 s with **0
+reward-count mismatches** (the `<extra_0>` tokenization assumption held on every row). Pooled F1
+0.9156 — but the informative part is the asymmetry: `correct_step_acc` **0.954** against
+`wrong_step_acc` **0.305**, `negative_f1` 0.394. The supervised PRM massively over-accepts. By
+category: sensitivity 0.9345, soundness 0.9267, simplicity **0.8831** — weakest exactly where the
+PRMBench paper says PRMs are weakest.
+
+**Result — the open NLI checker on RefChecker claims.** After the NQ fix below, all three settings
+completed: **10,733 claims, `n_missing_files: 0`**, overall three-way accuracy **0.6932**, macro F1
+**0.5805**.
+
+| Setting | 3-way accuracy | Macro F1 | n |
+|---|---|---|---|
+| zero_context (NQ) | 0.7337 | **0.6923** | 3,319 |
+| noisy_context (MS MARCO) | 0.7620 | 0.4616 | 3,420 |
+| accurate_context (Dolly) | 0.6007 | 0.4336 | 3,994 |
+
+The three settings behave very differently, which is exactly why the handoff forbids pooling them:
+zero_context's macro F1 is **+0.23 above** the other two. On the first (2-setting) pass the per-class
+picture was Entailment F1 0.8091 (n=6129), Neutral 0.2771 (n=804), Contradiction 0.2457 (n=481) —
+the open checker is strong on the majority supported class and close to useless on the two
+unsupported ones, which is the backdrop our own arm has to be read against. Adding zero_context
+lifts the macro because NQ's reference is a single clean long answer rather than a noisy passage
+set, not because the checker got better at contradiction.
+
+**Result — PRMBench telemetry, and a hard availability constraint.** 6,969 traces teacher-forced
+through Qwen3-8B, 94,203 step spans, **0 unmapped steps**, only 3 rows with alignment problems.
+But **71.0% of PRMBench steps are shorter than 32 tokens** and 3.5% are shorter than 8, with a
+median step of **24 tokens**. `compute_stft_features` needs 32 and `compute_spectral_features`
+needs 8, so most of the trace-level feature pool is structurally unavailable at PRMBench step
+granularity. This bounds the every-step panel before any scoring is attempted and must be stated
+in the report rather than discovered inside a weak number.
+
+#### Four infrastructure bugs, all found by looking rather than by failing
+
+1. **The 72B critic run was going to die silently.** It exits 85 on SIGTERM, and Slurm does not
+   auto-requeue a clean exit 85 — the same mechanism that ended jobs 176043/176044. Job 177759 was
+   running at ~16.8 s/row against an 8 h wall for 3,400 rows. Chained four `--dependency=afterany`
+   resume walls; 177759 duly hit its wall at 07:44:43 with exit 85 and **177760 picked up the
+   checkpoint automatically**, which is the first time this chain has been exercised end to end.
+2. **A fan-out race on the same output file.** Jobs 177760 and 177772 both carried
+   `Dependency=afterany:177759` — one chain from another session, one from this one — so both would
+   have become eligible together and written `pb_critic_qwen72b_full` concurrently. Atomic replace
+   prevents corruption but not lost rows. Fixed with `scontrol update jobid=177772
+   Dependency=afterany:177761`, making the chain linear.
+3. **`cluster/sync_code.sh` was uploading 6.2 GB on every sync.** Its `--exclude='*.pkl'` does not
+   match the `*.pkl.part-NN` chunk files created in Step 228 to work around GitHub's 2 GB LFS object
+   cap, so 5.2 GB of GPQA chunks shipped every time, plus a duplicated `.worktrees` tree and two
+   80 MB binaries. Added `*.pkl.part-*`, `dataset_cache`, `.worktrees`, `*.exe`, `*.pptx`.
+   **6.2 GB to 39 MB.**
+4. **The RefChecker corpus build failed on Natural Questions — diagnosed and fixed.** Job 177897
+   died with `HTTP 403 Forbidden` on
+   `https://storage.googleapis.com/natural_questions/v1.0/dev/nq-dev-00.jsonl.gz`. The error body
+   is specific: `<Code>AccessDenied</Code> Anonymous caller does not have storage.objects.get
+   access`. The design assumed "`gs://natural_questions` is a public bucket, therefore its objects
+   are readable over plain HTTPS" — wrong. The bucket grants read to *authenticated* Google
+   principals, not `allUsers`, which is why the official `gsutil` path works and an anonymous GET
+   does not.
+
+   Fixed by sourcing NQ from the Hub instead: `build_nq` now streams
+   `google-research-datasets/natural_questions` (split `validation`) and filters to the 100 wanted
+   example ids — no GCS credentials, no Cloud SDK in the container, nothing kept on disk. **The id
+   spaces were verified to align before the rewrite**: a 1,200-row scan of the HF validation split
+   matched 20 of the 100 wanted ids, against ~15 expected under the null that they are the same
+   space. The HF schema is columnar where the raw jsonl is a list of dicts
+   (`document["tokens"]["token"][i]` / `is_html` instead of `document_tokens[i]["token"]` /
+   `html_token`), but the long-answer reconstruction rule is otherwise identical to
+   `process_nq`'s, so the reference text matches the official pipeline. Resubmitted as
+   **179099** (prep) → **179100** (rescore) → **179101** (resume wall): the prep found **all 100
+   ids after 7,605 streamed rows in ~90 s**, and the rescore completed in 4 m 56 s with
+   `n_missing_files: 0`. The telemetry resumed rather than repeated — the cache is keyed per
+   (claim, condition), so only the 3,319 new zero_context claims were teacher-forced. **The panel
+   is now complete at 3 of 3 settings.**
+
+#### Three official-protocol details that were read from source, not guessed
+
+All three come from the official `mr_eval` implementation of PRMBench's `prmtest_classified` task,
+and each one silently changes the score if reinvented:
+
+- **The evaluated question is `modified_question`, not the dataset's own `question` field.** The
+  Hub rows carry three question fields; `question` differs from BOTH `original_question` and
+  `modified_question` on roughly 250-500 rows per class. Picking it would have mis-conditioned
+  thousands of traces with nothing visible in the output.
+- **`labels[i] == 1` means the scorer asserts step i is VALID.** `POSITIVE_LABEL = 1`, and TP counts
+  NON-error steps the model accepted — the positive class of PRMBench's official F1 is *correct*
+  steps. A risk-oriented score must be inverted before it enters this metric; getting it backwards
+  inverts the entire panel while still producing plausible numbers.
+- **The all-steps-correct control class is CONSTRUCTED by the loader, not shipped.** Every
+  `redundency` row seeds an extra sample from `original_question` + `original_process` with empty
+  `error_steps`. It is scored but deliberately NOT pooled into the totals.
+
+Two corpus facts worth pinning, both now asserted in `spectral_utils/prmbench.py::smoke`:
+the paper's headline **83,456 step labels reproduces exactly** from the Hub, but the official
+loader then drops **5 duplicate `multi_solutions` rows (85 steps)**, so **83,371** are actually
+evaluated; and **100 rows annotate an error step past the end of their own trace** (e.g. 53 steps
+with `error_steps=[52, 54]`). Upstream's loop only tests indices inside `range(len(labels))`, so
+those are inert — the rows are kept, the stray indices contribute nothing, and the count is
+reported rather than silently dropped or silently repaired.
+
+#### Two scoping decisions that are limitations, not results
+
+**GASP is a fidelity level 2 reproduction, and cannot be more.** The paper (arXiv:2607.04223) is
+arXiv-only, single-author, with no located code release and no published response-ID list, so its
+exact 400 sample IDs cannot be reused. The protocol is reproduced from the text — K=5
+sentence-grouped chunks, 700-token context and 200-token answer caps, 400 class-balanced
+Summary+Data2txt responses — with our own recorded seed and our own sentence splitter (the paper
+publishes none). The run produced 2,508 items over exactly 200 hallucinated / 200 clean responses;
+mean full-vocabulary JSD 0.0699 against the ln 2 = 0.693 ceiling. 1,119 items hit the context cap
+and 705 the answer cap, which is the paper's protocol operating as specified, not truncation
+damage.
+
+The point of the job was that the **JSD is now exact**. The existing arm approximates Eqs. (9)/(11)
+from top-50 log-probs with one shared tail bucket, because a dense `[T, V]` tensor is 122 MB per
+response per condition and was never saved. The new driver computes the full-vocabulary divergence
+online inside the forward pass and keeps only the per-token scalar. Every condition still saves
+`top_k_logprobs`, and `scripts/rag_ec_v1/gasp.py::_token_jsd` now prefers the exact array when
+present, so the cost of the approximation becomes a measurement on identical rows instead of an
+assumption. On a synthetic known-answer check the two differ by 0.4242 vs 0.1017.
+
+**The RefChecker panel measures the CHECKING stage only.** The benchmark's human labels are
+attached to triplets extracted by **Claude 2** (`claude2_response_kg`), so a different extractor
+produces claims the shipped gold does not cover and could not be scored without new annotation.
+Fixing the claim set to those triplets is what makes the two arms comparable at all — and it means
+this is **not** an end-to-end RefChecker reproduction. Both arms run in one driver over one claim
+list so their rows align by construction rather than by a later assertion.
+
+#### Files
+
+New drivers: `cluster/run_lettucedetect_span.py`, `cluster/run_gasp_exact.py`,
+`cluster/run_prmbench_prm.py`, `cluster/run_prmbench_teacher_forced.py`,
+`cluster/run_refchecker_claims.py`, `cluster/prepare_refchecker_data.py`, plus their
+`submit_*.sbatch.template` files.
+
+New package modules: `spectral_utils/prmbench.py` (loader + official metric port, 9 known-answer
+checks including the corpus reproduction), `spectral_utils/refchecker.py` (loader + three-way and
+binary metrics, 4 checks).
+
+Modified: `spectral_utils/ragtruth.py` (`split_sentences`, `sentence_grouped_chunks`, and a
+`spans` override on `condition_prompt` — smoke asserts that passing `spans=None` leaves the frozen
+preregistered `chunk_source` path byte-identical, so no existing arm's definition moved);
+`scripts/rag_ec_v1/gasp.py` (`_token_jsd` / `jsd_source`); `cluster/sync_code.sh`;
+`spectral_utils/glossary.py` + `scripts/build_glossary.py` (new localization-benchmark section);
+`.gitignore` (five new live-sbatch entries).
+
+New manifests: `cluster/manifests/{ragtruth_lettuce_large_v1,gasp_exact_v1,prmbench_v1,refchecker_v1}.json`.
+
+Fetched to `dataset_cache/four_localization/` (2.3 GB, 10 job directories).
+
+#### Known artifacts and open items
+
+- **A resume wall overwrites its predecessor's manifest timing.** `gasp_exact` reports
+  `elapsed_sec: 4` because the chained job 177895 found every row cached and rewrote the manifest.
+  The real runtime is job 177894's 2 m 39 s, from sacct. Harmless for results, misleading for cost
+  reporting — the drivers should merge rather than replace timing on resume.
+- ~~zero_context blocked~~ — **resolved in this same step** via the HF-sourced NQ fix; the
+  RefChecker panel is complete at 3 of 3 settings, 10,733 claims.
+- **`scripts/build_glossary.py` fails its own coverage gate** on four selector families that
+  predate this step (`a8_lscae`, `a9_dpp`, `a10_mmdufs`, `a11_rfae_scfs`). GLOSSARY.md was
+  regenerated with `--allow-gaps`; those four entries are still owed.
+- The uPRM-reconstruction job was scaled to full N by another session, which the handoff (sections
+  5.2 and 9) forbids. It is cheap and the number is legitimate as **our own no-training
+  LLM-as-a-Judge control**, so it was left to finish — but it must never be called uPRM.
+- Phase 2 (scoring modules — there is still no consumer of the ProcessBench competitor pkls, and no
+  span/sentence/PRMBench metric harness) and Phase 3 (the four-panel report) are not started.
+
+---

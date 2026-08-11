@@ -804,3 +804,80 @@ POOL_MODE_NOTES = {
            "check a cell's actual size, don't assume 46.",
            "Step 191 (found the 30-not-46 discrepancy)"),
 }
+
+# ---------------------------------------------------------------------------
+# The four hallucination-LOCALIZATION benchmarks (Step 242) and the published
+# competitor run against each. These are four DIFFERENT prediction problems
+# with different label spaces and different official metrics — the single most
+# important thing this section exists to prevent is someone averaging them.
+# Design: docs/experiments/FOUR_LOCALIZATION_BENCHMARKS_CLUSTER_HANDOFF.md.
+# ---------------------------------------------------------------------------
+
+LOCALIZATION_BENCHMARK_NOTES = {
+    "token/span localization (RAGTruth)": (
+        "Which CHARACTERS of a RAG answer are unsupported. Gold = RAGTruth's own "
+        "annotated character spans (2,700 test responses; `spectral_utils/ragtruth.py::"
+        "load_ragtruth` drops 0 of them on its integrity gate). Competitor = "
+        "LettuceDetect-large, a supervised token classifier trained on RAGTruth's OWN "
+        "train split — a strictly higher supervision category than our label-free score "
+        "and never a peer. Official metric: character-overlap micro P/R/F1.",
+        "Step 242"),
+    "sentence localization (GASP on RAGTruth)": (
+        "Which SENTENCES of a RAG answer are unsupported. Competitor = GASP-threshold "
+        "(arXiv:2607.04223): hold the answer fixed, remove evidence, measure how the "
+        "answer's own token distribution moves. Closest published relative of our "
+        "evidence-contrast fusion, which is why it is run under its own protocol "
+        "(K=5 sentence-grouped chunks, 700/200 token caps, 400 class-balanced "
+        "Summary+Data2txt responses) rather than approximated on our cache.",
+        "Step 242"),
+    "claim localization (RefChecker)": (
+        "Whether an explicit semantic CLAIM (a [head, relation, tail] triplet) is "
+        "supported. Competitor = RefChecker's own NLIChecker, the strongest fully open "
+        "checker in its codebase. Tests whether our score survives a change of unit from "
+        "sentence to claim, and exposes a real limitation: a scalar risk separates "
+        "supported from unsupported but does NOT distinguish contradiction from missing "
+        "evidence, which is why our arm is scored only under the binary collapse.",
+        "Step 242"),
+    "every-step scoring (PRMBench)": (
+        "Is EVERY step of a reasoning trace correct. Distinct from first-error "
+        "localization: ProcessBench labels only the first wrong step and certifies "
+        "nothing after it, so it structurally cannot measure an every-step classifier. "
+        "Competitor = Qwen2.5-Math-PRM-7B, a human-process-label-trained supervised "
+        "ceiling.",
+        "Step 242"),
+    "first-error localization (ProcessBench)": (
+        "WHICH step is the first wrong one, or -1 for a clean trace. Our existing GL-LIU "
+        "result. Competitors added in Step 241/242: Qwen2.5-Math-PRM-7B (supervised PRM "
+        "ceiling) and a Qwen2.5-72B-Instruct critic under ProcessBench's own critique "
+        "prompt.",
+        "Steps 235-242"),
+    "fidelity level": (
+        "The four-way honesty tag every competitor number carries. 1 = exact "
+        "reproduction (official data, model, prompt, parser and metric all match). "
+        "2 = protocol reproduction (official task and metric, but a declared component "
+        "differs). 3 = adaptation (a published concept applied under a different input "
+        "or score contract). 4 = published context only (the paper's number quoted, "
+        "never reproduced locally). Levels 2-4 must NEVER be described as an exact "
+        "reproduction.",
+        "Step 242"),
+    "blocked (panel cell)": (
+        "A panel field that could not be measured, shown with the specific reason "
+        "instead of a number. Deliberately distinct from 'pending'. Enforced in code: "
+        "`cluster/run_refchecker_claims.py` exits 2 when its corpus is missing, not the "
+        "85 used for preemption, so sacct distinguishes a genuinely blocked panel from a "
+        "job that merely needs resuming. A published number from another model or split "
+        "is never substituted for a blocked cell.",
+        "Step 242"),
+    "synthetic `correct` class (PRMBench)": (
+        "PRMBench's all-steps-correct control class is CONSTRUCTED by the official "
+        "loader, not shipped: every `redundency` row seeds an extra sample built from "
+        "`original_question` + `original_process` with empty `error_steps`. It is scored "
+        "but NOT pooled into the totals — it only seeds the per-row `similarity` term.",
+        "Step 242"),
+    "label polarity (PRMBench)": (
+        "`labels[i] == 1` means the scorer asserts step i is VALID. The positive class of "
+        "PRMBench's official F1 is therefore CORRECT steps, not errors, so a risk-oriented "
+        "score must be inverted before it enters the metric. Getting this backwards "
+        "silently inverts the whole panel.",
+        "Step 242"),
+}

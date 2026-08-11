@@ -1,0 +1,60 @@
+{
+  "experiment": "gasp_ragtruth_exact_qwen15b_full",
+  "stage": "A -- protocol lock, written before submission",
+  "written_utc": "2026-08-11",
+
+  "purpose": "Benchmark 2a of docs/experiments/FOUR_LOCALIZATION_BENCHMARKS_CLUSTER_HANDOFF.md: unsupported-SENTENCE localization on RAGTruth. GASP keeps the answer fixed and measures how its target-token distribution moves when evidence is removed, which makes it the closest published relative of our evidence-contrast fusion -- so it must be run under its own protocol rather than approximated on our cache.",
+
+  "mandatory_competitor_gate": {
+    "method": "GASP-threshold (the paper's own training-free DEFAULT detector, not GASP-trained or GASP+base)",
+    "paper": "Detecting Hallucinations in Retrieval-Augmented Generation through Grounding-Aware Sensitivity by Perturbation (Bouke, arXiv:2607.04223v1, submitted 5 Jul 2026)",
+    "official_code": "NONE LOCATED. arXiv-only, single author, no code release and no published response-ID list found. This is the reason the fidelity level is 2 rather than 1.",
+    "dataset_subset": "RAGTruth test split, Summary + Data2txt only, 400 responses class-balanced 200 hallucinated / 200 clean",
+    "scorer": "Qwen/Qwen2.5-1.5B-Instruct -- one of the paper's own three tested scorers, chosen so the comparison is scorer-matched",
+    "supervision_access_sampling": "training-free, gray-box (needs the scorer's own token distributions); K+2 forward passes per response, no generation",
+    "comparison_level": 2
+  },
+
+  "why_the_existing_arm_is_not_this": [
+    "THE JSD IS APPROXIMATE. scripts/rag_ec_v1/gasp.py computes Eqs. (9)/(11) through spectral_utils/evidence_contrast.py::js_divergence, which unions two top-50 id sets and lumps all remaining probability into a single shared tail bucket, because dense distributions were never saved. Eqs. (9)/(11) are full-vocabulary. A dense [T, V] tensor cannot be stored (200 tokens x ~152k vocab x 4 B = 122 MB per response per condition), so the exact value has to be computed ONLINE during the forward pass and only the per-token scalar kept.",
+    "THE CHUNK UNIT IS DIFFERENT. Preregistered chunking is per task type (QA = 3 passages, Data2txt = 9 JSON fields, Summary = 1 document). The paper uses K=5 SENTENCE-GROUPED chunks.",
+    "THE SAMPLE AND CAPS ARE DIFFERENT. Ours: full 2,700-response test split, all three task types, no caps. The paper's: 400 class-balanced responses, Summary + Data2txt only (QA excluded BY THE PAPER as 'not long enough for stable estimation'), context capped at 700 tokens and the answer at 200."
+  ],
+
+  "protocol": {
+    "k_chunks": 5,
+    "chunk_unit": "sentence-grouped, balanced by CHARACTER mass rather than sentence count -- RAGTruth Summary documents mix one-clause sentences with 300-character ones, and equal-count buckets would leave some chunks carrying almost no evidence, weakening the leave-one-out contrast the method depends on",
+    "context_cap_tokens": 700,
+    "answer_cap_tokens": 200,
+    "conditions_per_response": "full + noctx + 5 leave-one-chunk-out = 7",
+    "total_forward_passes": 2800,
+    "jsd": "EXACT full vocabulary, float32, computed inside the forward pass; no dense distribution is ever written to disk",
+    "prompt_surgery": "unchanged contract -- every condition is the ORIGINAL prompt with only the evidence substring edited. The 700-token context cap is applied by the same splice, so instruction text, question and output cue stay byte-identical."
+  },
+
+  "fidelity_declaration": {
+    "level": 2,
+    "level_meaning": "protocol reproduction: official task and metric match, declared components differ",
+    "our_own_choices_that_the_paper_does_not_publish": [
+      "the 400 sample IDs (the paper's own list was never released) -- ours are drawn by a recorded seed",
+      "the sentence splitter (spectral_utils.ragtruth.split_sentences, a dependency-free regex boundary rule with an abbreviation guard) -- the paper publishes none"
+    ],
+    "must_never_be_called": "an exact reproduction"
+  },
+
+  "fidelity_check": {
+    "target_response_auc": 0.713,
+    "target_span_auc": 0.673,
+    "scorer": "Qwen2.5-1.5B-Instruct",
+    "warning": "These are the SCORER-SPECIFIC figures. Older manifests in this repo quote ~0.73 / ~0.67, which is the paper's cross-scorer average over Qwen2.5-0.5B, Qwen2.5-1.5B and SmolLM2-1.7B -- two of which we do not run. Check against 0.713 / 0.673.",
+    "context": "the existing top-50 approximation on the FULL test split already scores 0.7137 response AUROC (results/rag_ec_v1/full_test_split_result.json), so the exact-protocol run is expected to land near the paper rather than to move it a lot; the informative quantity is the exact-vs-approximate DELTA on identical rows"
+  },
+
+  "measurement_this_run_enables": "Every condition still saves top_k_logprobs alongside the exact token_jsd_vs_full array, and scripts/rag_ec_v1/gasp.py::_token_jsd prefers the exact array when present. Running the aggregator with and without it therefore MEASURES the cost of the top-50 approximation on identical rows instead of assuming it is negligible. scripts/rag_ec_v1/gasp.py::jsd_source records which source produced any given score so a panel can never silently mix the two.",
+
+  "cost_profile": "2,800 forward passes of a 1.5B model over a 200-token answer; well under one GPU-hour. Peak memory is (7 conditions x 200 tokens x vocab) log-probs held simultaneously -- a few hundred MB in bf16, which is why every condition of one response is run as a single batch.",
+
+  "no_pilot": "Per Omri's 2026-08-10 instruction this campaign skips N=30 GPU pilots. Offline risk was retired instead in spectral_utils/ragtruth.py::smoke() -- 9 known-answer checks, including that the K=5 chunks tile the context with no gap or overlap, that no chunk is empty, that fewer sentences than K degrades to one chunk per sentence, and critically that passing spans=None leaves the FROZEN preregistered chunk_source path byte-identical.",
+
+  "still_out_of_scope": "GASP-trained and GASP+base (supervised LightGBM variants); the TofuEval and RAGBench transfer splits; the 0.5B and SmolLM2-1.7B scorers."
+}

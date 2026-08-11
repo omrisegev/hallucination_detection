@@ -216,8 +216,38 @@ Full reference: [cluster/README.md](cluster/README.md). Rules that must never be
 - Preemption: SIGTERM → 15 min → SIGKILL → auto-requeue. Every long job must use the
   `cluster/run_inference.py` checkpoint/resume pattern (atomic saves via `save_cache_atomic`,
   SIGTERM trap, idempotent restart).
+- **A clean `exit 85` is NOT auto-requeued.** `--requeue` covers preemption; a job that catches
+  SIGTERM, checkpoints, and exits 85 on its own simply ends as `FAILED 85:0` and nothing resumes
+  it. Any job that will not finish inside its wall needs an explicit chain submitted up front:
+  `sbatch --dependency=afterany:$PREV ...`, one wall per link. **Chain LINEARLY** — two jobs both
+  depending on `afterany:$SAME_JOB` become eligible together and will race on the same output
+  file (atomic replace prevents corruption, not lost rows). Fix a fan-out with
+  `scontrol update jobid=<later> Dependency=afterany:<end-of-chain>`. Cost this: jobs 176043,
+  176044 and 177759 all died this way before the pattern was written down.
 - Code reaches the cluster via `bash cluster/sync_code.sh` (tar-over-ssh) — never rely on
   Claude pushing to GitHub (credentials are not available in-session).
+- **Results reach Google Drive via `rclone` ON THE CLUSTER — never via the Drive MCP tools and
+  never through a local hop.** rclone lives at
+  `/shared/cycle2_tau_averbuch_prj/omrisegev1/bin/rclone` (not on `$PATH`, so always use the full
+  path) with its config at `~/.config/rclone/rclone.conf` and one remote, `gdrive:`. The
+  destination mirrors the cluster's own `results/` layout one directory per job:
+
+  ```bash
+  RC=/shared/cycle2_tau_averbuch_prj/omrisegev1/bin/rclone
+  R=/shared/cycle2_tau_averbuch_prj/omrisegev1/results
+  $RC copy "$R/<job_dir>" "gdrive:hallucination_detection/cluster_results/<job_dir>" \
+      --transfers 4 --checkers 8 --drive-chunk-size 64M --stats-one-line --stats 60s -v
+  ```
+
+  For a multi-GB upload, run it detached (`nohup ... > upload.log 2>&1 &`) so it survives the ssh
+  session, then poll the log. `rclone copy` is idempotent and resumable, so re-running it after a
+  job finishes more subsets is the correct way to top up a partial directory.
+
+  **Why not the Drive MCP tools**: `create_file` needs the file's bytes as a `base64Content` /
+  `textContent` parameter, i.e. through the conversation — fine for a manifest, impossible for a
+  1 GB pickle. And there is no Google Drive mount on the Windows machine (only OneDrive/BGU), so
+  a local copy is not an option either. Uploading from the cluster also avoids pulling 2+ GB down
+  the VPN just to push it back up.
 - Workflow: `/aircc-setup` (once) → `/aircc-submit` → `/aircc-status` → `/aircc-fetch`.
 - **All cluster polling / log-tailing goes through `/aircc-status` or the `cluster-ops` sub-agent — never raw `ssh aircc "squeue/sacct/tail"` loops in the main context.** Each raw ssh re-prints the login banner and dumps full logs into context; the sub-agent returns a one-line verdict. (Step-163 retro: inline ssh polling was the single biggest recurring token sink.)
 - **A new `cluster/presets.py` preset MUST pass `python scripts/smoke_preset.py <id>` (CPU-only) before it is submitted.** It runs the preset's real prompt/grader/judge helpers on fixtures — catching prompt / grader / judge-parse bugs offline instead of via a GPU round-trip (4 of the 6 Step-163 pilot bugs were this kind). Gate order: **local smoke → N=30 pilot → full N.**

@@ -13,6 +13,11 @@ echo "syncing $(pwd) -> $REMOTE:$SHARED/code"
 tar czf - \
   --exclude=.git \
   --exclude='*.pkl' \
+  --exclude='*.pkl.part-*' \
+  --exclude=dataset_cache \
+  --exclude=.worktrees \
+  --exclude='*.exe' \
+  --exclude='*.pptx' \
   --exclude='*.ipynb' \
   --exclude='*.pdf' \
   --exclude='*.docx' \
