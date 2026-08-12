@@ -408,6 +408,7 @@ def main():
     current = None
     mdl = tok = None
     reports = []
+    model_revisions = {}  # resolved HF commit hash per model, for provenance
     for spec in specs:
         if (spec.model, spec.dtype) != current:
             if mdl is not None:
@@ -417,6 +418,11 @@ def main():
                   f"dtype={spec.dtype})", flush=True)
             mdl, tok = load_model(spec.model, attn_impl=args.attn, dtype=spec.dtype)
             current = (spec.model, spec.dtype)
+            # Pin exactly which weights produced the field. `_commit_hash` is what
+            # transformers records on the resolved config; absent for a local path.
+            model_revisions[spec.model] = (
+                getattr(mdl.config, "_commit_hash", None)
+                or getattr(mdl.config, "_name_or_path", None))
         print(f"\n=== {spec.cell_id} ({len(spec.pkls)} pkl(s)) ===", flush=True)
         for temp, pkl_path in spec.pkls:
             done, rep = process_pkl(mdl, tok, spec, temp, pkl_path, args)
@@ -430,8 +436,14 @@ def main():
         path = os.path.join(spec.data_dir, name)
         with open(path + ".tmp", "w") as f:
             json.dump({"cell_id": spec.cell_id, "model": spec.model,
+                       "model_revision": model_revisions.get(spec.model),
+                       "dtype": spec.dtype, "attn_impl": args.attn,
                        "version": SIDECAR_VERSION, "git_sha": _git_sha(),
                        "job_id": os.environ.get("SLURM_JOB_ID", ""),
+                       "command": " ".join(sys.argv), "argv": list(sys.argv),
+                       "source_pkls": {str(t): p for t, p in spec.pkls},
+                       "written_utc": datetime.now(timezone.utc)
+                                      .isoformat(timespec="seconds"),
                        "pkls": [r for r in reports if r["cell_id"] == spec.cell_id]},
                       f, indent=2, default=str)
         os.replace(path + ".tmp", path)
