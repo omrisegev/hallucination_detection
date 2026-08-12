@@ -1,0 +1,48 @@
+{
+  "cache_root": "dataset_cache/repgrid/pb_llama31_8b",
+  "data_sha256": {
+    "gsm8k": "6749d1b846e29288e46536f9d9d8e63715b447576950d8e2131fe3420a16cead",
+    "math": "119c95ca5abc8d6f9e71bdd595db9b847373067d9aa8e4e9b349fa2b1f174953",
+    "olympiadbench": "ea2592de68100aeb140ce1d3a373e87d36e00685863e0dfb8c6721fa05a1812d",
+    "omnimath": "d1f9ad59eacbba64963b763e07209bdccb570f9875382f1b38c5573678ce81e4"
+  },
+  "dufs": {
+    "epochs": 80,
+    "k": 7,
+    "lambda": 0.1,
+    "seeds": [
+      11,
+      23,
+      37
+    ]
+  },
+  "labels_read_during_fit": false,
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "primary": "cardinality_balanced_contribution_subspace_iu",
+  "score_sha256": {
+    "gsm8k": "ea5a5471efadbfd845ac729236d7cc66f50eb3219c68a680253a3462ff79f05b",
+    "math": "97172691ef84fcbdf1fd1e0f06e0b611375937de04f59841d691b7b7025e0219",
+    "olympiadbench": "0c7f2c01a47382c1942ca4e4d5f1f288536214fb4c5135b841cb906cf25e37e6",
+    "omnimath": "c79825d87e122fa5c24c34978200b8c6d1cafaa25dac2752af1852d27b0ccfb0"
+  },
+  "source_sha256": {
+    "candidate_module": "dbe8745f4824a7ebac0f25759018c362dea43e6e640110e19c4a978417485d6b",
+    "candidate_spec": "6ab7b2b40427f27d5a84d9ff4874093d493eef90c0ef47e6f0e3c87386f3ec21",
+    "dufs_module": "eb2328fc88de575bec9fb335f6cad94ef148d1507858d23a7765a3dff05fb5a3",
+    "feature_contract": "c674f7b6cfd1a82dcc63cd7cc26bbd3d53ef5f4d289dbcbb7eabe933670fdf2d",
+    "feature_registry": "ab15e807f7595f0f91eec8418320fe4a419d9f2c63e81cef2726fac9325ae067",
+    "laplacian_module": "f9e63be91a95179383c92c3bc2c539ae56f5dff34a48d084ecc81770215a2aec",
+    "mixed_v2_dependency": "ac2c9843e8a819d2c7e9dfe19f6412255932f08d7c7e17a1a81eaa8f1cb45e3e",
+    "script": "edf26de9bfd661da176e579a70fcf969636452769cd77a191a8aec5f464088b2"
+  },
+  "status": "scores_frozen_before_per_row_targets",
+  "subsets": [
+    "gsm8k",
+    "math",
+    "olympiadbench",
+    "omnimath"
+  ],
+  "target": "reasoning_error_present = (row['label'] != -1)",
+  "upstream_manifest_sha256": "3341d2b2fceb7da068166352b328ccb758d26894ba808ab7d6e5de603708ba30",
+  "version": "cardinality-balanced-llama-processbench-confirmation-v1-2026-08-12"
+}

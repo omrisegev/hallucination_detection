@@ -1,0 +1,73 @@
+{
+  "by_answer_type": {
+    "exactMatch": {
+      "iu_auroc": 0.5647959387616421,
+      "n": 1645,
+      "n_correct": 31,
+      "nrm_auroc": 0.553983291361874,
+      "nrm_delta_pp": -1.0812647399768172
+    },
+    "multipleChoice": {
+      "iu_auroc": 0.5469566204860323,
+      "n": 513,
+      "n_correct": 37,
+      "nrm_auroc": 0.5484328866681808,
+      "nrm_delta_pp": 0.14762661821484668
+    }
+  },
+  "candidate_version": "neutral-residual-mode-cs-iu-v1-2026-08-13",
+  "gates": [
+    {
+      "name": "frozen score/source hashes verify",
+      "pass": true
+    },
+    {
+      "name": "telemetry-only fit payload",
+      "pass": true
+    },
+    {
+      "name": "numerical invariants",
+      "pass": true
+    },
+    {
+      "name": "positive HLE point delta",
+      "pass": true
+    },
+    {
+      "name": "positive paired 95% lower bound",
+      "pass": false
+    }
+  ],
+  "label_hashes": {
+    "judge_manifest": "9c16aeb4bc733488df684793a386b27281182aaf3f5fbf3e779a1eb17ff7edea",
+    "labels": "0b871f1c68f6e2d8e80854ad4b39cb31815b274641e65aad285497bd7e120c84"
+  },
+  "label_protocol": "interim gpt-5.6-sol xhigh Codex judge; not paper-faithful HLE",
+  "metrics": {
+    "cardinality": {
+      "auprc": 0.033402936438884284,
+      "auroc": 0.5058190261750632
+    },
+    "iu": {
+      "auprc": 0.03432522904694714,
+      "auroc": 0.5167745567126373
+    },
+    "nrm": {
+      "auprc": 0.034885924542369266,
+      "auroc": 0.5202293836194765
+    }
+  },
+  "n": 2158,
+  "n_correct": 68,
+  "nrm_vs_iu_delta_pp": 0.3454826906839181,
+  "paired_stratified_bootstrap": {
+    "draws": 20000,
+    "high_pp": 1.6275154798761504,
+    "low_pp": -0.8978504081058276,
+    "median_pp": 0.34548269068392923,
+    "probability_positive": 0.7041,
+    "seed": 4070942594
+  },
+  "status": "FAIL",
+  "version": "neutral-residual-mode-hle-confirmation-v1-2026-08-13"
+}

@@ -72,6 +72,16 @@ from .upcr import (
     upcr_fit, upcr_pipeline_faithful, UPCRResult,
     additive_design, solve_additive, moment_match,
 )
+from .contribution_subspace import (
+    CardinalityBalancedContributionScore, CardinalityBalancedIUResult,
+    LeverageBalancedContributionScore, LeverageBalancedIUResult,
+    NeutralResidualModeCalibration, NeutralResidualModeIUResult,
+    NeutralResidualModeScore,
+    cardinality_balanced_contribution_score, cardinality_balanced_iu_fit,
+    fit_neutral_residual_mode_calibration,
+    leverage_balanced_contribution_score, leverage_balanced_iu_fit,
+    neutral_residual_mode_iu_fit, neutral_residual_mode_score,
+)
 from .upcr_clustered import (
     upcr_clustered_fit, upcr_hierarchical_fit,
     discover_clusters, cross_cluster_pairs, check_identifiability,
@@ -184,6 +194,14 @@ __all__ = [
     "upcr_fuse", "upcr_pipeline",
     "upcr_fit", "upcr_pipeline_faithful", "UPCRResult",
     "additive_design", "solve_additive", "moment_match",
+    "CardinalityBalancedContributionScore", "CardinalityBalancedIUResult",
+    "LeverageBalancedContributionScore", "LeverageBalancedIUResult",
+    "NeutralResidualModeCalibration", "NeutralResidualModeIUResult",
+    "NeutralResidualModeScore",
+    "cardinality_balanced_contribution_score", "cardinality_balanced_iu_fit",
+    "fit_neutral_residual_mode_calibration",
+    "leverage_balanced_contribution_score", "leverage_balanced_iu_fit",
+    "neutral_residual_mode_iu_fit", "neutral_residual_mode_score",
     "upcr_clustered_fit", "upcr_hierarchical_fit",
     "discover_clusters", "cross_cluster_pairs", "check_identifiability",
     "SparseDecomposition", "SparseUPCRResult",

@@ -1,0 +1,174 @@
+{
+  "availability": {
+    "cusum_max": 1.0,
+    "cusum_max_energy": 1.0,
+    "cusum_max_spilled": 1.0,
+    "cusum_shift_idx": 1.0,
+    "dominant_freq": 1.0,
+    "epr": 1.0,
+    "epr_energy": 1.0,
+    "epr_spilled": 1.0,
+    "high_band_power": 1.0,
+    "hl_ratio": 1.0,
+    "hurst_exponent": 1.0,
+    "logprob_margin": 1.0,
+    "low_band_power": 1.0,
+    "mean_logprob_entropy": 1.0,
+    "mean_top1_logprob": 1.0,
+    "min_energy": 1.0,
+    "min_spilled": 1.0,
+    "pe_mean": 1.0,
+    "renyi_entropy_2": 1.0,
+    "rpdi": 1.0,
+    "spectral_centroid": 1.0,
+    "spectral_entropy": 1.0,
+    "stft_max_high_power": 1.0,
+    "stft_spectral_entropy": 1.0,
+    "sw_var_peak": 1.0,
+    "sw_var_peak_energy": 1.0,
+    "sw_var_peak_spilled": 1.0,
+    "topk_tail_mass": 1.0,
+    "trace_length": 1.0,
+    "varentropy": 1.0
+  },
+  "calibration_diagnostics": {
+    "direction_norm": 0.9999999999999999,
+    "distance_from_unit": 0.03537764518806408,
+    "n_calibration_cells": 23,
+    "n_calibration_samples": 48351,
+    "orientation_anchor_dot": 0.15928267305253502,
+    "selected_eigenvalue": 1.035377645188064,
+    "unit_distance_gap": 0.15735013832337663,
+    "uses_labels": false
+  },
+  "candidate_version": "neutral-residual-mode-cs-iu-v1-2026-08-13",
+  "cardinality_diagnostics": {
+    "baseline_correction_covariance": 1.3451453241223544e-16,
+    "baseline_effective_coefficient": 1.1413384081642028,
+    "correction_scale": 0.16666666666666663,
+    "delta_norm": 0.2108297320946686,
+    "n_families": 6,
+    "n_fit": 6966,
+    "raw_correction_scale": 1.8255159932054024,
+    "trust_ratio": 0.16666666666666666,
+    "weight_reconstruction_error": 8.881784197001252e-16,
+    "zero_correction": false
+  },
+  "decomposition_reconstruction_error": 4.440892098500626e-16,
+  "excluded_ids": [
+    "confidence_confidence_prm_train_p1_303",
+    "deception_deception_prm_test_p1_87",
+    "step_contradiction_step_contradiction_prm_test_p2_991"
+  ],
+  "families": [
+    "entropy_level",
+    "entropy_dynamics",
+    "sampled_token_energy",
+    "partition_energy",
+    "topk_distribution",
+    "structural"
+  ],
+  "feature_contract": {
+    "cusum_shift_idx": {
+      "centre": null,
+      "transform": "raw"
+    },
+    "pe_mean": {
+      "centre": 0.0,
+      "transform": "squared"
+    },
+    "rpdi": {
+      "centre": null,
+      "transform": "raw"
+    },
+    "stft_spectral_entropy": {
+      "centre": 0.38056273327591156,
+      "transform": "mode"
+    }
+  },
+  "feature_names": [
+    "epr",
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "dominant_freq",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "stft_spectral_entropy",
+    "rpdi",
+    "sw_var_peak",
+    "pe_mean",
+    "hurst_exponent",
+    "cusum_max",
+    "cusum_shift_idx",
+    "epr_spilled",
+    "sw_var_peak_spilled",
+    "cusum_max_spilled",
+    "epr_energy",
+    "min_energy",
+    "sw_var_peak_energy",
+    "cusum_max_energy",
+    "mean_top1_logprob",
+    "logprob_margin",
+    "mean_logprob_entropy",
+    "varentropy",
+    "renyi_entropy_2",
+    "topk_tail_mass"
+  ],
+  "forbidden_target_fields": [
+    "classification",
+    "category",
+    "error_steps"
+  ],
+  "hashes": {
+    "calibration": "023d20ac093f2d3238e75a8908fc11191163517057d69e91767794b2ca284277",
+    "module": "fd1f1abb8580271e760f54d8f8d7e5428803e5adc5e44ad28576e045f3adfc26",
+    "raw_prmbench": "b934afad0889ffacf0f4420f885ad52ddcf08f2124e506a21cd24f216bd170be",
+    "scores": "8945d52bf6781abad03f35f8ba104c72bbbf194b3511ccb4e6481c5fe97d0227",
+    "script": "a53cc59769b60a0991f1889e6d15c03a51ef4084315f1cd9545c6921474b7ff0",
+    "spec": "687b3de060ace31f378011ca6661472ef34b7f498324cabd628b264e8ce61baf"
+  },
+  "labels_used": false,
+  "n_features": 29,
+  "n_raw_rows": 6969,
+  "n_rows": 6966,
+  "nrm_diagnostics": {
+    "baseline_correction_covariance": 1.0812163363561674e-16,
+    "baseline_effective_coefficient": 0.9877937021612567,
+    "calibration_direction_norm": 0.9999999999999999,
+    "calibration_selected_eigenvalue": 1.035377645188064,
+    "correction_scale": 0.16666666666666666,
+    "delta_norm": 0.17239606447844283,
+    "n_families": 6,
+    "n_fit": 6966,
+    "raw_correction_scale": 0.9667660753793331,
+    "trust_ratio": 0.16666666666666666,
+    "uses_labels": false,
+    "weight_reconstruction_error": 8.881784197001252e-16,
+    "zero_correction": false
+  },
+  "phase": "telemetry_only_score_fit",
+  "score_payload_keys": [
+    "calibration_direction",
+    "cardinality_correctness_score",
+    "families",
+    "feature_names",
+    "iu_correctness_score",
+    "nrm_correctness_score",
+    "nrm_effective_weights",
+    "nrm_intercept",
+    "row_ids",
+    "row_keys",
+    "source_ids"
+  ],
+  "target_fields_received_by_fusion": [],
+  "telemetry_keys": [
+    "token_entropies",
+    "token_spilled_energies",
+    "token_logsumexp",
+    "top_k_logprobs"
+  ],
+  "version": "neutral-residual-mode-prmbench-confirmation-v1-2026-08-13"
+}

@@ -1,0 +1,64 @@
+{
+  "allowed_inputs": "same one-pass mixed-v2 feature matrix only",
+  "budget_acquisition": "label-aware prevalence-preserving diagnostic",
+  "budgets": [
+    20,
+    40,
+    80,
+    "all"
+  ],
+  "bundle": "results/dependency_fusion_raw/cells.npz",
+  "bundle_sha256": "693a5b634f975ea32c7f840f3ab8366dd8ad638fe41cc76a60e24b1ac5a013e1",
+  "cells": [
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "sciq_llama8b",
+    "se_nq_open_llama8b",
+    "se_squad_v2_llama8b",
+    "seiclr_triviaqa_opt30b",
+    "semenergy_triviaqa_qwen3_8b",
+    "truthfulqa_llama8b",
+    "ars_gsm8k_r1distill8b",
+    "internalstates_gsm8k_qwen25_7b",
+    "lapeigvals_gsm8k_llama3b",
+    "lapeigvals_gsm8k_llama8b",
+    "lapeigvals_gsm8k_mistral24b",
+    "lapeigvals_gsm8k_nemo",
+    "lapeigvals_gsm8k_phi35",
+    "noise_gsm8k_mistral7b",
+    "noise_gsm8k_phi3mini",
+    "math500_dsmath7b",
+    "math500_qwenmath7b",
+    "math500_r1distill8b",
+    "math500_r1distill8b_mn4096",
+    "trace_gsm8k_llama8b_k10",
+    "trace_math500_qwenmath15b_k10"
+  ],
+  "claim_boundary": "supervised within-cell held-out-sample feasibility only",
+  "excluded_cells": [
+    "spilled_triviaqa_llama8b"
+  ],
+  "exclusion_rule": "n_positive < 20",
+  "feature_contract": "dufs-liu-mixed-v2-development-2026-08-07",
+  "labels_used": true,
+  "n_splits": 30,
+  "primary_budget": "all",
+  "primary_prior": 0.3,
+  "prior_strengths": [
+    0.1,
+    0.3,
+    1.0,
+    3.0,
+    10.0,
+    30.0
+  ],
+  "ridge_C": 0.1,
+  "source_sha256": {
+    "module": "dbe8745f4824a7ebac0f25759018c362dea43e6e640110e19c4a978417485d6b",
+    "script": "46c7fc022d79983c68a11c875b927fa6a6f43bc0e76a5e20c23e325a790efe1b",
+    "test": "01922abab8633320e3cc3ccf6075df78af7a877e661345fda4de81a19ceb4f7b"
+  },
+  "split": "60/40 stratified within cell",
+  "status": "retrospective_supervised_proof_of_concept",
+  "version": "harp-contribution-subspace-poc-v1-2026-08-12"
+}

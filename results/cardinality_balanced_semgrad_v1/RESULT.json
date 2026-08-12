@@ -1,0 +1,78 @@
+{
+  "all_primary_gates_passed": false,
+  "claim_boundary": "CB was frozen before its SemGrad evaluation and the examples are independent, but BEM labels and prior baseline results historically existed in the repository.",
+  "gates": [
+    {
+      "name": "positive CB delta in both datasets",
+      "passed": false,
+      "value": {
+        "sciq": 0.1747692204029372,
+        "truthfulqa": -1.7080882817934628
+      }
+    },
+    {
+      "name": "positive equal-dataset hierarchical interval",
+      "passed": false,
+      "value": [
+        -1.9502940618478515,
+        0.43481739774947625
+      ]
+    },
+    {
+      "name": "tail safety",
+      "passed": false,
+      "value": -1.7080882817934628
+    },
+    {
+      "name": "CB beats reversed direction in both datasets",
+      "passed": false,
+      "value": false
+    },
+    {
+      "name": "numerical invariants",
+      "passed": true,
+      "value": 8.881784197001252e-16
+    }
+  ],
+  "invariant_max": {
+    "cardinality_weight_reconstruction": 8.881784197001252e-16,
+    "contribution_reconstruction": 4.440892098500626e-16,
+    "iu_identity": 0.0,
+    "orthogonality": 6.252776074688881e-16,
+    "trust_scale": 2.7755575615628914e-17
+  },
+  "per_dataset_primary": {
+    "sciq": {
+      "ci_high_pp": 0.7555399737214528,
+      "ci_low_pp": -0.39293595445050733,
+      "delta_pp": 0.1747692204029372,
+      "method": "cardinality",
+      "probability_nonpositive": 0.27875,
+      "reference": "iu",
+      "scope": "sciq",
+      "version": "cardinality-balanced-semgrad-confirmation-v1-2026-08-12"
+    },
+    "truthfulqa": {
+      "ci_high_pp": -1.195219123505975,
+      "ci_low_pp": -2.224751786504775,
+      "delta_pp": -1.7080882817934628,
+      "method": "cardinality",
+      "probability_nonpositive": 1.0,
+      "reference": "iu",
+      "scope": "truthfulqa",
+      "version": "cardinality-balanced-semgrad-confirmation-v1-2026-08-12"
+    }
+  },
+  "primary": {
+    "ci_high_pp": 0.43481739774947625,
+    "ci_low_pp": -1.9502940618478515,
+    "delta_pp": -0.7666595306952628,
+    "method": "cardinality",
+    "probability_nonpositive": 0.80545,
+    "reference": "iu",
+    "scope": "equal_dataset_hierarchical",
+    "version": "cardinality-balanced-semgrad-confirmation-v1-2026-08-12"
+  },
+  "status": "independent_examples_historical_labels_visible",
+  "version": "cardinality-balanced-semgrad-confirmation-v1-2026-08-12"
+}

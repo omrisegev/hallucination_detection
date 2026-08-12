@@ -1,0 +1,122 @@
+{
+  "by_error_class": {
+    "circular": {
+      "iu_auroc": 0.83571716988882,
+      "n": 1516,
+      "n_error": 758,
+      "nrm_auroc": 0.8310318780849478,
+      "nrm_delta_pp": -0.4685291803872227
+    },
+    "confidence": {
+      "iu_auroc": 0.7310888442154932,
+      "n": 1514,
+      "n_error": 756,
+      "nrm_auroc": 0.7306839915678967,
+      "nrm_delta_pp": -0.040485264759659856
+    },
+    "counterfactual": {
+      "iu_auroc": 0.7016395785335112,
+      "n": 1515,
+      "n_error": 757,
+      "nrm_auroc": 0.7069741341150145,
+      "nrm_delta_pp": 0.5334555581503309
+    },
+    "deception": {
+      "iu_auroc": 0.6290260364743141,
+      "n": 1507,
+      "n_error": 749,
+      "nrm_auroc": 0.6327689337762574,
+      "nrm_delta_pp": 0.37428973019433265
+    },
+    "domain_inconsistency": {
+      "iu_auroc": 0.8012882402763303,
+      "n": 1515,
+      "n_error": 757,
+      "nrm_auroc": 0.8046500036597736,
+      "nrm_delta_pp": 0.3361763383443295
+    },
+    "missing_condition": {
+      "iu_auroc": 0.7535407156119556,
+      "n": 1514,
+      "n_error": 756,
+      "nrm_auroc": 0.7503891471569571,
+      "nrm_delta_pp": -0.31515684549984213
+    },
+    "multi_solutions": {
+      "iu_auroc": 0.213695580474934,
+      "n": 918,
+      "n_error": 160,
+      "nrm_auroc": 0.26409960422163586,
+      "nrm_delta_pp": 5.040402374670186
+    },
+    "redundency": {
+      "iu_auroc": 0.7077766793603497,
+      "n": 1516,
+      "n_error": 758,
+      "nrm_auroc": 0.7205585452621466,
+      "nrm_delta_pp": 1.2781865901796863
+    },
+    "step_contradiction": {
+      "iu_auroc": 0.7108308382972642,
+      "n": 1515,
+      "n_error": 757,
+      "nrm_auroc": 0.7209806101713819,
+      "nrm_delta_pp": 1.0149771874117697
+    }
+  },
+  "candidate_version": "neutral-residual-mode-cs-iu-v1-2026-08-13",
+  "gates": [
+    {
+      "name": "frozen score/source hashes verify",
+      "pass": true
+    },
+    {
+      "name": "telemetry-only fit payload",
+      "pass": true
+    },
+    {
+      "name": "numerical invariants",
+      "pass": true
+    },
+    {
+      "name": "positive overall PRMBench point delta",
+      "pass": true
+    },
+    {
+      "name": "positive source-group 95% lower bound",
+      "pass": true
+    }
+  ],
+  "label_protocol": "official PRMBench response classification",
+  "metrics": {
+    "cardinality": {
+      "auprc": 0.2223823248549554,
+      "auroc": 0.7119655164499633
+    },
+    "iu": {
+      "auprc": 0.22077095919952613,
+      "auroc": 0.7206017046690967
+    },
+    "nrm": {
+      "auprc": 0.22881098801841754,
+      "auroc": 0.7252059433057695
+    }
+  },
+  "n": 6966,
+  "n_correct": 758,
+  "n_error": 6208,
+  "nrm_vs_iu_delta_pp": 0.46042386366728083,
+  "paired_source_group_bootstrap": {
+    "draws": 5000,
+    "high_pp": 0.8413169424934699,
+    "low_pp": 0.0677471046521666,
+    "median_pp": 0.4642004031872038,
+    "n_source_groups": 6208,
+    "probability_positive": 0.9892,
+    "seed": 585297152
+  },
+  "prediction_unit": "complete reasoning response",
+  "raw_hash": "b934afad0889ffacf0f4420f885ad52ddcf08f2124e506a21cd24f216bd170be",
+  "status": "PASS",
+  "version": "neutral-residual-mode-prmbench-confirmation-v1-2026-08-13"
+}

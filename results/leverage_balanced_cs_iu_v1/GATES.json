@@ -1,0 +1,60 @@
+{
+  "all_passed": true,
+  "excluded_cells": [
+    "spilled_triviaqa_llama8b"
+  ],
+  "gates": [
+    {
+      "detail": "low=+0.314pp",
+      "name": "positive equal-family interval",
+      "passed": true
+    },
+    {
+      "detail": "19/23 wins",
+      "name": "cell wins",
+      "passed": true
+    },
+    {
+      "detail": "worst=-0.606pp",
+      "name": "tail safety",
+      "passed": true
+    },
+    {
+      "detail": "87.9% of frozen teacher gain",
+      "name": "teacher recovery",
+      "passed": true
+    },
+    {
+      "detail": "vs uniform +0.090pp; vs cardinality +0.191pp",
+      "name": "specificity beyond simple balancing",
+      "passed": true
+    },
+    {
+      "detail": "primary-reverse=+1.855pp",
+      "name": "orientation falsifier",
+      "passed": true
+    },
+    {
+      "detail": "primary-permuted=+0.974pp",
+      "name": "family correspondence",
+      "passed": true
+    },
+    {
+      "detail": "scale error=2.78e-17; |cov|=5.74e-16; weight error=1.78e-15; IU mismatch=0.00e+00",
+      "name": "numerical invariants",
+      "passed": true
+    }
+  ],
+  "incumbent_score_manifest": "results/hard_filter_dufs_liu_24cell/SCORE_FREEZE_MANIFEST.json",
+  "incumbent_score_manifest_sha256": "13850e1b04ba600a18a0cf390231ddaab2c29c655c1c06e07d3d91bb6208e1e0",
+  "invariant_max": {
+    "correction_scale_error": 2.7755575615628914e-17,
+    "incumbent_iu_auroc_mismatch": 0.0,
+    "orthogonality": 5.743553780727476e-16,
+    "reconstruction_error": 8.881784197001252e-16,
+    "weight_reconstruction_error": 1.7763568394002505e-15
+  },
+  "supervised_teacher_equal_family_delta_pp": 0.7210027136680253,
+  "teacher_recovery_fraction": 0.8785094628872785,
+  "version": "leverage-balanced-cs-iu-v1-2026-08-12"
+}

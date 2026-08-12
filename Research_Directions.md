@@ -3,6 +3,42 @@
 
 ---
 
+## Confirmed bounded exception — Neutral Residual Mode (Steps 247--250)
+
+The HARP-inspired contribution-space investigation found the first justified
+exception to the generic fusion freeze below.  It does not copy HARP's hidden-
+state projection or supervised classifier.  Instead, it decomposes the existing
+IU-PCR score into six exact provenance-family contributions, removes their
+linear IU component, and uses the unit-variance null of standardized residuals
+to distinguish a neutral target-correction mode from redundant and strongly
+shared nuisance modes.
+
+The resulting **NRM-CS-IU** calibration is label-free and frozen.  It selects
+the residual-covariance eigenvector closest to eigenvalue one, orients the
+remaining global sign toward an equal-family confidence anchor, and adds the
+target residual at fixed scale `1/G`.  It requires no new model inference or
+feature and remains one affine weight vector over the mixed-v2 matrix.
+
+The frozen PRMBench/Qwen3-8B response-level confirmation passed all five
+registered gates: IU AUROC 0.720602 to NRM 0.725206, **+0.460pp**, with paired
+`source_idx` bootstrap interval **[+0.068,+0.841]pp**.  Retrospective transfer
+was also positive on original LOFO, both ProcessBench scorer families, and
+SemGrad.  HLE was directionally positive but underpowered, so it supplies no
+separate confirmation claim.
+
+**Research decision:** retain NRM-CS-IU as a confirmed, frozen response-level
+addition to IU-PCR.  Do not generalize this result to PRMBench's official
+step-level metric, claim that NRM universally replaces DUFS-LIU, or reopen
+static graph/selector sweeps.  The next useful test is native task validation:
+carry the unchanged calibration into a preregistered step/localization protocol
+or a new naturally distributed response benchmark with enough positives, and
+compare IU, DUFS-LIU, and NRM under the same label boundary.
+
+Canonical artifacts: `SPEC_NEUTRAL_RESIDUAL_MODE_CS_IU_V1.md`,
+`SPEC_NEUTRAL_RESIDUAL_MODE_PRMBENCH_CONFIRMATION_V1.md`,
+`results/neutral_residual_mode_cs_iu_v1/REPORT.md`, and
+`results/neutral_residual_mode_prmbench_v1/REPORT.md`.
+
 ## Current research decision — August 2026 session close
 
 ### Freeze the fusion core and pivot to applications
@@ -99,35 +135,87 @@ a confirmed win — see HISTORY.md Step 238 for the per-subset table.
 
 ### Application priority 2: hallucination in RAG citations
 
-RAG supplies the independent view that the core-algorithm experiments were
-missing: retrieved evidence. The proposed direction is **Evidence-Contrast
-U-PCR (EC-U-PCR)** or **EC-DUFS-LIU**. Keep one published answer fixed and
-rescore it under full context, no context, and leave-one-chunk-out context.
-Evidence sensitivity is treated as target information, not subtracted as
-generic noise.
+#### Current exploratory direction: original-30 LOO IU-PCR
 
-The same application decomposition applies:
+A follow-up experiment now answers the intended question without replacing the
+base method. It extracts the exact 30 mixed-v2 features from `full`, `noctx`,
+and every `loo_j` condition, fits the mixed-v2 coordinate system on unlabeled
+full rows, and summarizes the within-response evidence changes.
 
-- a global head ranks whether a response contains an unsupported claim;
-- a local head ranks the token, span, or citation whose probability changes
-  when supporting evidence is removed;
-- U-PCR/DUFS-LIU fuses the dependent contrast traces without a supervised
-  classifier in the main method.
+The original full-only detector is not a general RAG score: test AUROC is
+0.7698 on QA but 0.4345 on Data-to-Text. Evidence perturbation repairs this
+failure. Original-30 LOO IU-PCR reaches 0.7178 on QA and 0.7150 on
+Data-to-Text, raising task-macro AUROC from 0.6002 to 0.7164. The paired macro
+gain over full-only IU-PCR is **+0.1163 [0.0795,0.1544]**. GASP-top50 remains
+slightly higher at 0.7225 task-macro; the difference is not resolved.
+
+DUFS is not the main source of this repair. It adds **+0.0065
+[0.0047,0.0085]** task-macro in the compact no-context matrix, but essentially
+zero in the 175-column LOO matrix and Hybrid. Evidence-block permutation
+causes a large loss, while graph regularization barely changes the high-
+dimensional IU solution. The useful mechanism is paired evidence change in the
+original features; the large DUFS/Laplacian expansion is redundant.
+
+RAGTruth labels were already open, so these values are exploratory. Do not
+promote the pooled no-context score of 0.8013: it hides a Data-to-Text AUROC of
+0.5851. The next confirmation should freeze **Original-30 LOO IU-PCR** and
+compare it with GASP-top50, EC-IU-PCR, and compact no-context DUFS-LIU on a new
+benchmark or scorer. Canonical report:
+`results/ragtruth_mixed_v2_evidence_aware_v1/REPORT.html`.
+
+#### Earlier registered Evidence-Contrast result
+
+The first RAGTruth Evidence-Contrast experiment is complete. It kept every
+published answer fixed and rescored it under full context, no context, and
+leave-one-chunk-out context. Evidence sensitivity was treated as the desired
+signal rather than nuisance variation. Score fitting was label-free and
+transductive; dev and test scores were hashed before labels were opened, and
+all uncertainty grouped complete `source_id` units.
+
+The main result separates feature construction from graph fusion. On 12,958
+LOO test sentences, EC-DUFS-LIU reaches **0.7026 AUROC** versus **0.6721** for
+GASP-top50, a paired **+0.0305 [0.0237,0.0378]**. The sign is positive in both
+QA and Data-to-Text. However, ordinary EC-IU-PCR reaches **0.7031** and beats
+EC-DUFS-LIU by 0.00048 with a non-zero paired interval. Ungated and permuted
+graphs also tie IU-PCR. The Evidence-Contrast contract worked; DUFS and the
+Laplacian did not add the claimed mechanism.
+
+The leading RAG method is therefore **EC-IU-PCR**, not EC-DUFS-LIU. EC-U-PCR,
+GASP-LL and GASP-top50 remain required controls. This does not change the
+frozen DUFS-LIU mixed-v2 standard for the separate 24-cell intrinsic-detection
+benchmark. It means that RAG evidence did not rescue the graph mechanism.
+
+A separately hashed post-hoc response audit reconstructed the old intrinsic
+mixed-v2 detector. Its pooled AUROC is 0.7629, but the task slices are 0.7698 on
+QA and 0.4345 on Data-to-Text. EC-DUFS-LIU reaches 0.7056 on Data-to-Text. The
+old pooled value is therefore a task-composition artifact, not evidence that
+intrinsic mixed-v2 transfers as a general RAG detector. Because this audit was
+added after labels opened, it cannot change the registered decision.
+
+The current application risks determine the next work:
+
+1. Freeze the EC contracts and IU solver. Do not tune another graph or feature
+   contract on the opened RAGTruth test labels.
+2. Test transfer to a new benchmark or scorer. RAGTruth++, TofuEval and
+   TRIVIA+ are candidates; short-answer RAGBench is a deliberate failure test.
+3. Target **conflict** hallucinations, where sentence AUROC is only 0.6256,
+   versus 0.7438 for baseless information.
+4. Repair or narrow the response-level claim. Residualizing length, chunk count
+   and context length changes pooled response AUROC from 0.7484 to 0.6481, and
+   Data-to-Text response AUROC is below GASP-top50 despite the stronger pooled
+   result.
+5. Treat localization as sentence ranking in this version. A future citation
+   or exact-span claim requires token/claim-level outputs and the corresponding
+   benchmark metric.
 
 The old Phase-10 RAG cache is engineering evidence only. Its labels use weak
 substring/citation fallbacks, only 19.2% of answers contain citations, and only
 10.4% have the gold answer in the first 15 prompted documents. Its AUROC values
 must not be presented as a publishable grounding benchmark.
 
-The next RAG experiment should use fixed RAGTruth responses and span labels,
-group splits and bootstrap intervals by `source_id`, and compare against GASP
-as the closest evidence-perturbation method. RAGTruth++ and TofuEval are
-confirmation candidates; short-answer RAGBench is an explicit failure test.
-No implementation begins until the GASP protocol, model revision, data
-manifest, label boundary, and failure tests are registered.
-
-Canonical plan:
-`docs/research_notes/evidence_contrast_upcr_rag_direction.md`.
+Canonical result: `results/ragtruth_evidence_contrast_v1/REPORT.html`.
+Mathematical definition: `results/ragtruth_evidence_contrast_v1/METHODS.md`.
+Original plan: `docs/research_notes/evidence_contrast_upcr_rag_direction.md`.
 
 **Step 237 (2026-08-09): implementation launched.** RAGTruth vendored
 (`data/ragtruth_protocol/`), the preregistration frozen
@@ -181,7 +269,9 @@ comparison categories.
   by only +0.0006/+0.0013 AUROC on GSM8K/MATH, with both paired intervals
   crossing zero;
 - no claim that the Laplacian is the main answer-detection gain: its global
-  effect remains small. Its value may instead be application-specific.
+  effect remains small, and the RAGTruth application now also shows a
+  statistically negative EC-DUFS-LIU minus EC-IU-PCR difference;
+- no tuning of EC features, `k`, or `lambda` on the opened RAGTruth test set.
 
 The advisor decision is now about application scope and validation data, not
 which additional U-PCR variant to implement.
@@ -1252,9 +1342,15 @@ ridge, DEEM architecture, or seeds after reading AUROC.
 
 ## Recommended Priority Order
 
-*(Authoritative current order — updated 2026-08-11, session close Step 242)*
+*(Authoritative current order — updated 2026-08-13, Steps 247--250)*
 
-0. **Score our own method on the four localization panels (Extension L).** This
+0. **Validate the frozen NRM scope without retuning it.** Carry the unchanged
+   source calibration into either PRMBench's native step/localization protocol
+   or a new naturally distributed response benchmark with enough positives.
+   Pre-register the label boundary, grouping unit, and IU/DUFS-LIU/NRM
+   comparison.  The positive but underpowered HLE result is not a reason to
+   tune on HLE.
+1. **Score our own method on the remaining localization panels (Extension L).** This
    is now the blocking item, and it is not a research question — it is missing
    plumbing. Every competitor number for panels 1–3 is in hand and the raw
    telemetry is fetched to `dataset_cache/four_localization/`, but **no local
@@ -1265,23 +1361,23 @@ ridge, DEEM architecture, or seeds after reading AUROC.
    handoff's §11 sets out — fit and freeze score hashes BEFORE any evaluation
    label is opened, mirroring `scripts/gl_liu_external_v1/run.py`.
 
-1. **Validate and optimize hallucination localization as an application.** Keep
+2. **Validate and optimize hallucination localization as an application.** Keep
    global DUFS-LIU mixed-v2 fixed. Compare the frozen temporal localizer with
    the simpler core-five local DUFS-LIU candidate on a genuinely new
    dataset/model family. Measure global detection, exact first-error location,
    tolerance-one location, clean-trace accuracy, and ProcessBench F1. Do not
    tune local views or thresholds on the eight development cells again.
-2. **Build the registered RAG-citation application.** Start with the
+3. **Build the registered RAG-citation application.** Start with the
    evidence-contrast design in
    `docs/research_notes/evidence_contrast_upcr_rag_direction.md`: rescore a
    fixed answer under full, removed, and leave-one-chunk-out evidence; then fuse
    the resulting dependent views with the same DUFS-LIU mixed-v2 core. Freeze
    the benchmark, label boundary, grouped split, baselines, and failure tests
    before implementation.
-3. **Keep streaming/early detection as a later application option.** It has a
+4. **Keep streaming/early detection as a later application option.** It has a
    prior positive earliest-prefix result, but it is behind localization and RAG
    citation grounding in the current project order.
-4. **Pause new fusion-core variants.** Reopen only when a new application
+5. **Pause new fusion-core variants.** Reopen only when a new application
    supplies a new identifiable signal, a valid nuisance intervention, or a
    materially different feature pool. The current conclusion is bounded to the
    existing single-pass static features; it is not an impossibility claim about

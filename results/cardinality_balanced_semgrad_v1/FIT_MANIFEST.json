@@ -1,0 +1,61 @@
+{
+  "bem_manifest_sha256": {
+    "sciq": "53054499a4683b371b3dd50cdf34fd367889ed059ba6bdf401c15e7c29757601",
+    "truthfulqa": "ab56cf9c52936b11171171a6edc28ed53bed589cddabd315abc2a02795c612a3"
+  },
+  "bootstrap_draws": 20000,
+  "data_sha256": {
+    "sciq": "4607f2379c85baaa7369bb05605d2008b0df234c37195fdb1216855b6d33a057",
+    "truthfulqa": "b9036923f874badc0e8345d30fdb8db7c9bc226a1c710f063bb42fed94d774cc"
+  },
+  "datasets": [
+    "sciq",
+    "truthfulqa"
+  ],
+  "dufs": {
+    "epochs": 80,
+    "k": 7,
+    "lambda": 0.1,
+    "seeds": [
+      11,
+      23,
+      37
+    ]
+  },
+  "expected_rows": {
+    "sciq": 1000,
+    "truthfulqa": 817
+  },
+  "forbidden_fit_keys": [
+    "bem_correct",
+    "bem_score",
+    "label"
+  ],
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "primary": "cardinality_balanced_contribution_subspace_iu",
+  "score_sha256": {
+    "sciq": "a515ebc515a23c7d55123eb9e0d913ad7962d06da05adea73da29d38c1cfdabf",
+    "truthfulqa": "2f50f0859c396acd613899ebef1c32ac4aac20d8808d87ece58e44315417172d"
+  },
+  "source_sha256": {
+    "candidate_module": "dbe8745f4824a7ebac0f25759018c362dea43e6e640110e19c4a978417485d6b",
+    "data_readiness_registry": "07d0d5adc3fcd4700b659d7e559bd200d0772e0f8fcb21f4b5edf58712125770",
+    "dufs_module": "eb2328fc88de575bec9fb335f6cad94ef148d1507858d23a7765a3dff05fb5a3",
+    "feature_contract": "c674f7b6cfd1a82dcc63cd7cc26bbd3d53ef5f4d289dbcbb7eabe933670fdf2d",
+    "feature_extraction": "b68bc5e1647742667fc20908321485bf9229954713b5da7215bf0f2629c74362",
+    "feature_registry": "ab15e807f7595f0f91eec8418320fe4a419d9f2c63e81cef2726fac9325ae067",
+    "laplacian_module": "f9e63be91a95179383c92c3bc2c539ae56f5dff34a48d084ecc81770215a2aec",
+    "mixed_v2_dependency": "ac2c9843e8a819d2c7e9dfe19f6412255932f08d7c7e17a1a81eaa8f1cb45e3e",
+    "script": "d64ba21ce471d645fce6d161508c54ec372404df51246d36f2c13e2a6fd0fe0d",
+    "spec": "4a57cd2fab56d5aef4a29a7efee25cb53124b389670378554dbe948a32b628be"
+  },
+  "status": "scores_frozen_before_cb_bem_pairing",
+  "target": "bem_error = not candidate['bem_correct']",
+  "telemetry_key_whitelist": [
+    "token_entropies",
+    "token_spilled_energies",
+    "token_logsumexp",
+    "top_k_logprobs"
+  ],
+  "version": "cardinality-balanced-semgrad-confirmation-v1-2026-08-12"
+}

@@ -10,8 +10,6 @@ Two notebooks:
 
 Reference paper: `Learned Hallucination Detection in Black-Box LLMs using Token-level Entropy Production Rate.pdf`
 
----
-
 ## Steps
 
 ### Step 1 — Implement Nadler spectral fusion over EPR (Multiview_EPR notebook)
@@ -11782,5 +11780,289 @@ Fetched to `dataset_cache/four_localization/` (2.3 GB, 10 job directories).
   LLM-as-a-Judge control**, so it was left to finish — but it must never be called uPRM.
 - Phase 2 (scoring modules — there is still no consumer of the ProcessBench competitor pkls, and no
   span/sentence/PRMBench metric harness) and Phase 3 (the four-panel report) are not started.
+
+---
+
+### Step 243 — RAGTruth Evidence-Contrast succeeds as a feature contract, not as a DUFS/Laplacian mechanism
+
+**Question**: when one fixed RAGTruth answer is rescored with full context, no
+context, and one evidence chunk removed at a time, can U-PCR or DUFS-LIU fuse
+the dependent changes better than direct GASP-style aggregation?
+
+**Data and audit**: a canonical label-free adapter validated token identity,
+condition completeness, top-50 probability mass, LOO indexes, finite values,
+and official-response tokenization. Development used 900 responses and 5,724
+condition records. Test used 2,700 responses and 16,200 condition records. The
+LOO test cohort contains 1,800 QA/Data-to-Text responses and 12,958 sentences;
+Summary remains in the separate full/no-context cohort. Every score was fitted
+transductively without labels, written and hashed, and only then evaluated.
+All splitting and 1,000-sample paired bootstraps grouped complete `source_id`
+units. The frozen test score hash is
+`e6beb5d6a26efb07bdefc8d0e192acdd681d2643866fe82aada9e7601f22e20f`.
+
+**Methods**: two fixed Evidence-Contrast contracts combine intrinsic token
+confidence, full-versus-no-context likelihood/JSD changes, and LOO likelihood/
+JSD summaries. All inputs are oriented toward grounding, and the final score
+is negated for hallucination; there is no `sign(rho)` or label flip. The same
+contract was fused with deployed U-PCR, full-pool two-component IU-PCR, and
+DUFS-gated Laplacian IU-PCR (`seeds=11,23,37`, 80 epochs, `k=7`,
+`lambda=0.1`). Controls include an ungated graph, a sample-permuted graph, exact
+`lambda=0` IU identity, and a fixed label-free sensitivity path. GASP-top50 is
+explicitly an approximation because the cache contains top-50 rather than
+full-vocabulary distributions.
+
+**Development gate**: all four registered checks passed. Dev sentence AUROC
+was 0.7137 for EC-DUFS-LIU versus 0.6883 for GASP-top50. The graph was
+connected and well-conditioned, mean DUFS seed standard deviation was 0.023,
+and the primary score was not dominated by the registered nuisance checks.
+The test was therefore opened without changing the method.
+
+**Frozen test result**: on LOO sentences, EC-DUFS-LIU reaches **0.7026 AUROC**
+and 0.1912 AUPRC, versus **0.6721** and 0.1577 for GASP-top50. The paired AUROC
+improvement is **+0.0305 [0.0237, 0.0378]**. It is positive in QA (+0.0224) and
+Data-to-Text (+0.0197). EC-U-PCR reaches 0.6852; EC-IU-PCR reaches **0.7031**.
+
+**Mechanism failure**: EC-DUFS-LIU is **-0.00048
+[-0.00061,-0.00034]** below matched EC-IU-PCR. The permuted graph reaches
+0.70315 and the ungated graph 0.70289, both effectively control-level. DUFS
+keeps an effective 13.32 of 14 sentence features, and the frozen Laplacian
+weights have cosine almost one with IU-PCR. Therefore the 3.05-point gain over
+GASP comes from the richer Evidence-Contrast contract and IU fusion, not from
+DUFS or the Laplacian. The registered full-success rule fails exactly on the
+required DUFS-versus-IU condition.
+
+**Failure slices and confounds**: baseless-information sentence AUROC is 0.7438
+but conflict AUROC is only 0.6256. At response level the pooled AUROC is 0.7484
+versus 0.6855 for GASP-top50, but this aggregate hides task heterogeneity:
+Data-to-Text response AUROC is 0.0197 lower than GASP-top50. Residualizing
+sentence length, chunk count, and context length changes sentence AUROC from
+0.7026 to 0.6883; at response level it changes 0.7484 to 0.6481. The response
+headline is therefore strongly vulnerable to task/chunk composition and must
+not be presented without stratified results.
+
+**Decision**: promote **EC-IU-PCR / the Evidence-Contrast contract** as the
+useful result from this experiment. Do not claim that RAG evidence rescued the
+DUFS/Laplacian mechanism, and do not tune another graph on the opened RAGTruth
+test set. The next scientific test should target transfer of the frozen
+Evidence-Contrast construction, especially conflict hallucinations and
+response-level nuisance robustness. The old intrinsic mixed-v2 baseline was
+not inserted into the registered decision after labels opened. It was instead
+run as a separately hashed post-hoc response audit: pooled AUROC is 0.7629, but
+QA is 0.7698 while Data-to-Text collapses to 0.4345. EC-DUFS-LIU reaches 0.7484
+pooled and 0.7056 on Data-to-Text. The old pooled score is therefore driven by
+task composition and is not a stable RAG baseline.
+
+**Files**: `spectral_utils/ragtruth_evidence_contrast.py`,
+`scripts/ragtruth_ec_experiment.py`,
+`scripts/test_ragtruth_evidence_contrast.py`, and
+`results/ragtruth_evidence_contrast_v1/` (`METHODS.md`, `REPORT.md`,
+self-contained `REPORT.html`, manifests, signed scores, metrics, diagnostics,
+examples, and figures).
+
+---
+
+### Step 244 — original mixed-v2 features tested under RAG evidence interventions
+
+**Question**: can full-context, no-context, and leave-one-chunk-out conditions
+help IU-PCR or DUFS-LIU use the same 30 mixed-v2 features more effectively,
+rather than replacing them with a new Evidence-Contrast feature pool?
+
+**Method**: every original feature was extracted separately in every observed
+condition. All 30 were available; no feature or chunk was imputed. Fixed
+variants included full-only, full plus no-context changes, LOO summaries, and
+a hybrid with the EC contract. Each applicable input was fused by matched
+IU-PCR and DUFS-LIU. Labels were excluded from fitting, but RAGTruth labels
+had already been opened, so this was explicitly exploratory.
+
+**Result**: evidence perturbation adds real information to the original pool.
+The largest task-macro Original-30 gain over full-only is **+0.1163** with a
+source-grouped 95% interval **[+0.0795,+0.1544]**. The highest pooled AUROC is
+0.8013 for the no-context DUFS arm, but this is not the preferred summary:
+pooled AUROC partly rewards separating QA from Data-to-Text. With the two
+tasks weighted equally, GASP-top50 remains highest at 0.7225.
+
+**Mechanism**: the largest task-macro DUFS-minus-IU gain is only **+0.0065
+[+0.0047,+0.0085]**. Condition permutations remove large amounts of signal,
+so the intervention structure matters; the DUFS/Laplacian contribution above
+matched IU-PCR remains small. The experiment supports evidence-aware feature
+construction, not a strong new Laplacian claim.
+
+**Files**: `docs/experiments/RAGTRUTH_MIXED_V2_EVIDENCE_AWARE_V1.md`,
+`spectral_utils/ragtruth_mixed_v2_evidence.py`,
+`scripts/ragtruth_mixed_v2_evidence_experiment.py`, and
+`results/ragtruth_mixed_v2_evidence_aware_v1/`.
+
+---
+
+### Step 245 — coupled third-moment k-factor deflation fails on the 24 detection cells
+
+**Question**: does a low-rank, non-Gaussian higher-order structure identify
+shared nuisance factors that can be removed before IU-PCR/DUFS-LIU?
+
+**Method**: construct the distinct-index third-order tensor
+`T[a,b,c] = mean_i X[i,a] X[i,b] X[i,c]`, fit symmetric CP ranks 0 through 4
+without labels, deflate the selected factor directions in the original
+mixed-v2 matrix, and then run the unchanged IU-PCR and DUFS-LIU solvers.
+The 24-cell experiment used 19--30 available features per cell without
+imputation and included fixed-rank, permuted-moment, and second-order controls.
+
+**Result**: the label-free selector chose rank 0 in 19 of 24 cells. Every one
+of the five activated cells lost performance. CM-deflated IU-PCR reaches
+**0.7540** cell-macro AUROC versus **0.7761** for IU-PCR; CM-deflated DUFS-LIU
+reaches **0.7544** versus **0.7766**. Increasing fixed rank causes a monotonic
+collapse, from 0.7761 at rank 0 to 0.5734 at rank 4.
+
+**Conclusion**: higher-order shared structure exists, but it is not
+identifiable as nuisance from unlabeled moments alone. Stable factors can
+encode correctness together with difficulty, length, confidence, or model
+behaviour. Hard deflation deletes useful target information. Do not promote
+this branch.
+
+**Files**: `spectral_utils/coupled_moment_fusion.py`,
+`scripts/coupled_moment_24cell_experiment.py`, and
+`results/coupled_moment_kfactor_24cell_v1/`.
+
+---
+
+### Step 246 — IU-PCR-initialized HMM does not improve ProcessBench localization
+
+**Question**: can an explicit latent temporal state locate the first erroneous
+reasoning step more accurately than taking the argmax of the fused local risk
+curve?
+
+**Method**: ordinary two-component IU-PCR fused the same five local token
+features used by the frozen ProcessBench pipeline. Its scalar risk sequence
+initialized two label-free Gaussian HMMs: a reversible primary model and an
+absorbing falsification control. A log-space forward/backward implementation
+with exact-zero transitions replaced the earlier numerically unstable
+probability-domain version. All eight cells were hashed before evaluation.
+
+**Result**: the models fit stably, with no fallback and identical results
+across deterministic starts, but stable states were not better target states.
+Reversible IU-HMM reaches **30.03%** ProcessBench F1 and **25.20%** local exact
+accuracy, below DUFS-LIU at **31.72% / 26.70%** and below ordinary IU-PCR at
+**31.67% / 26.62%**. The absorbing model collapses to **12.64% / 8.73%** and
+is rejected. The mean posterior entry curve peaks near annotated error
+boundaries, but a matched non-error step-boundary control is still required;
+the peak may reflect formatting rather than error onset.
+
+**Combined diagnosis**: the central limitation of U-PCR-family development is
+not merely correlated regressor noise. The features do not all measure one
+shared target with stationary loadings. A more realistic model contains
+correctness plus shared nuisance factors and sample-dependent relevance.
+Unsupervised moments, gates, graphs, and latent states can find stable
+structure, but stability does not identify which structure is hallucination.
+This supports ending generic solver-variant development and focusing on
+application-specific interventions and native evaluation protocols.
+
+**Files**: `spectral_utils/latent_state_localizer.py`,
+`scripts/processbench_latent_state_v1/`, and
+`results/processbench_latent_state_v1/`.
+---
+
+### Step 247 — HARP-inspired IU contribution space proves a supervised target correction exists
+
+**Question**: can HARP's target-versus-nuisance subspace lesson be used inside
+IU-PCR without adding hidden states, model inference, or new features?
+
+**Method**: decompose the ordinary IU score into six exact provenance-family
+contributions. Standardize and residualize them against standardized IU, then
+fit a small correctness-supervised correction with IU coefficient fixed to one.
+The corrected score remains affine in the original mixed-v2 matrix.
+
+**Result**: the within-cell proof improved equal-family AUROC by +0.721pp. A
+single global six-family teacher trained on the original 23 cells improved
+original LOFO by +0.410pp, Qwen ProcessBench by +0.684pp, Llama ProcessBench by
++1.191pp, and both SemGrad datasets by +0.646pp. All eight LOFO fits retained
+the same sign for every family coefficient. The target direction exists and
+generalizes, but this teacher is a supervised research instrument.
+
+**Files**: `SPEC_HARP_CONTRIBUTION_SUBSPACE_IU_V1.md`,
+`SPEC_HARP_GLOBAL_CONTRIBUTION_TEACHER_V1.md`,
+`scripts/harp_contribution_subspace_poc.py`,
+`scripts/harp_global_contribution_teacher.py`, and
+`results/harp_global_contribution_teacher_v1/`.
+
+---
+
+### Step 248 — cardinality balancing transfers to scorer families but fails independent SemGrad examples
+
+**Method**: the first label-free contribution corrections used family IU
+leverage and then feature cardinality as nuisance proxies. CB-CS-IU was selected
+after the Qwen ProcessBench control and frozen before Llama and SemGrad tests.
+
+**Result**: CB improved the original 23 cells by +0.442pp equal-family, Qwen
+ProcessBench by +0.864pp, and Llama ProcessBench by +1.263pp. The independent
+SemGrad confirmation rejected it: equal-dataset delta -0.767pp, with SciQ at
++0.175pp and TruthfulQA at -1.708pp. A reverse-cardinality control helped
+TruthfulQA. Family size is not a general nuisance identifier.
+
+**Decision**: retain CB as a documented negative/result-specific proxy, not the
+final algorithm. The supervised teacher's positive transfer on the same
+SemGrad examples localizes the gap to label-free direction identification.
+
+**Files**: `SPEC_CARDINALITY_BALANCED_SEMGRAD_CONFIRMATION_V1.md` and
+`results/cardinality_balanced_semgrad_v1/`.
+
+---
+
+### Step 249 — neutral residual mode supplies the label-free HARP analogue
+
+**Observation**: the averaged covariance of standardized IU-orthogonal family
+residuals has near-zero redundancy modes, a dominant shared-dependence mode,
+and a mode at eigenvalue 1.035378. Selecting the eigenvector closest to the
+unit independent-residual null recovers all six signs of the supervised global
+teacher without labels.
+
+**Method**: NRM-CS-IU calibrates that eigenvector from unlabelled source cells,
+orients its sign toward the equal-family confidence anchor, and applies its
+target-cell residual at the fixed `1/G` trust scale. The target operation is
+exactly one effective mixed-v2 weight vector plus an intercept.
+
+**Retrospective evidence**: original leave-one-dataset-family-out +0.277pp
+[+0.016,+0.533], Qwen ProcessBench +0.557pp, Llama ProcessBench +1.580pp, and
+SemGrad +1.310pp. Numerical reconstruction, IU orthogonality, source-cell order
+invariance, and label-free API tests pass.
+
+**Files**: `SPEC_NEUTRAL_RESIDUAL_MODE_CS_IU_V1.md`,
+`spectral_utils/contribution_subspace.py`,
+`scripts/neutral_residual_mode_candidate_audit.py`,
+`scripts/test_contribution_subspace.py`, and
+`results/neutral_residual_mode_cs_iu_v1/`.
+
+---
+
+### Step 250 — frozen HLE is underpowered; frozen PRMBench confirms NRM-CS-IU
+
+**HLE**: telemetry-only scores for all 2,158 Qwen2.5-72B answers were frozen and
+all hashes verified before the interim Codex-judge sidecar was read. NRM
+improved IU from 0.516775 to 0.520229, +0.345pp, but the paired interval
+[-0.898,+1.628] crossed zero because only 68 answers were judged correct. The
+point gate passed; the pre-registered lower-bound gate did not. No HLE tuning
+was performed.
+
+**PRMBench**: the identical frozen calibration and method were then applied to
+6,966 Qwen3-8B complete reasoning responses. Exactly the three rows identified
+by the independent readiness audit were excluded before scoring. The fit
+payload contained only the four mixed-v2 telemetry arrays; code, spec, module,
+calibration, raw-data, and score hashes all verified before `classification`
+was read.
+
+**Result**: response-level correctness AUROC improved from IU 0.720602 to NRM
+0.725206, **+0.460pp**, with a 5,000-draw paired `source_idx` bootstrap interval
+**[+0.068,+0.841]** and `P(delta>0)=0.9892`. All five pre-registered gates
+passed. Six of nine error-class contrasts improved; circular, confidence, and
+missing-condition regressed slightly. CB scored 0.711966, below ordinary IU.
+
+**Decision**: NRM-CS-IU is the confirmed label-free, fusion-internal HARP
+analogue. It adds no inference or feature and uses no labels at calibration or
+target fit. Scope remains explicit: its calibration is trans-environment and
+PRMBench is evaluated at response level, not by its official step metric.
+
+**Files**: `SPEC_NEUTRAL_RESIDUAL_MODE_PRMBENCH_CONFIRMATION_V1.md`,
+`scripts/neutral_residual_mode_hle_confirmation.py`,
+`scripts/neutral_residual_mode_prmbench_confirmation.py`,
+`results/neutral_residual_mode_hle_v1/`, and
+`results/neutral_residual_mode_prmbench_v1/`.
 
 ---

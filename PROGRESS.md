@@ -1,126 +1,165 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-11
-**Last updated**: Step 242 — the four-hallucination-localization-benchmark
-cluster campaign. Every competitor job the handoff asks for is now submitted
-and all but one is finished; see the session addendum immediately below. The
-RAGTruth/ProcessBench GL-LIU decision point (Step 239, further down) is
-UNCHANGED by this — still open, still the project's main open research
-question.
+**Date**: 2026-08-13
+**Last updated**: Steps 247--250. HARP's structural lesson produced a
+contribution-space supervised teacher and then a frozen label-free IU-PCR
+addition, NRM-CS-IU. Cardinality balancing failed on independent SemGrad
+examples; NRM instead selects the standardized residual eigenmode closest to
+unit variance from unlabelled source cells. It passed a frozen PRMBench
+confirmation: +0.460pp AUROC over IU, source-grouped 95% interval
+[+0.068,+0.841]. HLE was positive but underpowered. The requested
+fusion-internal, no-extra-inference candidate is now implemented and confirmed.
 
-## Session addendum (2026-08-11) — four localization panels now have competitor data (Step 242)
+## Neutral residual mode confirmation — Steps 247--250
 
-Executed `docs/experiments/FOUR_LOCALIZATION_BENCHMARKS_CLUSTER_HANDOFF.md`
-on AIRCC. Standing instructions for this campaign (Omri, 2026-08-10): **skip
-the N=30 GPU pilots, submit at full size**, very large generation limits,
-**no QwQ-32B-Preview** (the Qwen2.5-72B critic is enough, labelled as a
-different critic model), **include RefChecker** with the strongest fully-open
-config and report a blocked cell rather than substitute a number. Because the
-GPU pilots were skipped, the risk was retired offline instead — every new
-module ships CPU-only known-answer checks, two of which reproduce published
-corpus statistics exactly.
+The HARP memory was recovered at
+`docs/research_notes/harp_subspace_inspiration_2026-08-12.md`. HARP itself is
+supervised and white-box; the reusable idea was to separate target and nuisance
+subspaces before classification rather than equating the strongest shared
+factor with hallucination.
 
-**Competitor results now in hand** (raw data fetched to
-`dataset_cache/four_localization/`, 2.3 GB, 10 job directories):
+The first contribution-space result established feasibility. Family
+contributions exactly reconstruct IU-PCR, and an IU-orthogonal supervised head
+improved 23 development cells. A single global six-family teacher then kept the
+same coefficient sign in all eight leave-one-dataset-family-out folds and
+transferred to Qwen/Llama ProcessBench and both SemGrad datasets. This proved a
+general target correction exists, but the teacher is not deployable because it
+uses correctness labels.
 
-| Panel | Competitor | Result |
-|---|---|---|
-| token/char span (RAGTruth) | LettuceDetect-large | example F1 **0.792899** vs published 0.7922 — **fidelity gate passed**, 0 truncated |
-| sentence (RAGTruth) | GASP-threshold, exact protocol | 2,508 items / 400 balanced responses, full-vocabulary JSD |
-| claim (RefChecker) | open NLIChecker | 3-way acc **0.6932**, macro F1 **0.5805**, 10,733 claims, **3 of 3 settings** |
-| every-step (PRMBench) | Qwen2.5-Math-PRM-7B | F1 **0.9156**, 0 reward-count mismatches |
-| first-error (ProcessBench) | Qwen2.5-72B critic | macro F1 **59.40** (74.82/60.70/50.57/51.52), 3,400/3,400 |
-| first-error (ProcessBench) | Qwen2.5-Math-PRM-7B | F1 81.77/77.23/66.69/66.05 |
+The first label-free proxy, CB-CS-IU, was rejected on independent SemGrad:
+equal-dataset delta -0.767pp, driven by TruthfulQA at -1.708pp. The problem was
+the proxy, not the contribution representation: the frozen supervised teacher
+improved the same SemGrad targets by +0.646pp.
 
-**Every cluster job in this campaign is finished; the queue is empty.** All raw
-data is on Drive under `cluster_results/` (rclone from the cluster) and fetched
-to `dataset_cache/four_localization/`.
+NRM-CS-IU is the replacement. Across unlabelled source cells it averages the
+six-family standardized residual covariance pairwise over present families,
+selects the eigenmode closest to eigenvalue one, and orients it toward the
+equal-family confidence anchor. The selected eigenvalue is 1.035378 and its
+direction is `[+0.094,-0.114,-0.674,+0.715,+0.112,+0.026]`, matching all six
+supervised-teacher signs. Target scoring is `standardized_IU + q/(G*sd(q))`.
+It reads no labels, adds no feature or inference pass, and maps exactly to one
+effective weight vector over the existing mixed-v2 matrix plus an intercept.
 
-**The N=30 pilots from Step 241 were useless as estimates.** At full N the
-critic's omnimath F1 fell 14.4 points (65.9 → 51.52) and math rose 10.7
-(50.0 → 60.70); the PRM ceiling's omnimath fell 6.9. Treat those pilots as
-health checks only. Critic truncation at `max_new=8192` was 8/3400 (0.24%), so
-the official setting was sufficient.
+Retrospective transfer is consistently positive: original LOFO +0.277pp
+[+0.016,+0.533], Qwen ProcessBench +0.557pp, Llama ProcessBench +1.580pp, and
+SemGrad +1.310pp. Frozen HLE/Qwen2.5-72B was directionally positive at
++0.345pp but inconclusive, CI [-0.898,+1.628], because only 68/2,158 answers
+were judged correct.
 
-**Two results that change what the panels can claim.** The PRM ceiling
-over-accepts badly — `correct_step_acc` 0.954 against `wrong_step_acc` 0.305
-— and the open NLI checker is strong only on the majority supported class
-(Entailment F1 0.809, Neutral 0.277, Contradiction 0.246). Both competitors
-are much weaker on the class that matters than their headline numbers imply.
+The higher-powered frozen PRMBench/Qwen3-8B confirmation used 6,966 complete
+reasoning responses after excluding exactly the three readiness-identified
+alignment defects. Scores and all code/data/calibration hashes were frozen and
+verified before `classification` was read. IU AUROC was 0.720602; NRM was
+0.725206: **+0.460pp [0.068,0.841]** under 5,000 paired source-group bootstrap
+draws, with `P(delta>0)=0.9892`. All five pre-registered gates passed. Six of
+nine error-class contrasts improve; three regress slightly, which remains a
+documented heterogeneity limit. This is response-level correct-versus-error
+evaluation, not PRMBench's official step-level metric.
 
-**A hard constraint on the every-step panel, measured before scoring:**
-**71.0% of PRMBench steps are shorter than 32 tokens** (median 24, 3.5% under
-8 tokens). `compute_stft_features` needs 32 and `compute_spectral_features`
-needs 8, so most of the trace-level pool is structurally unavailable at
-PRMBench step granularity. This must be stated in the report, not discovered
-inside a weak number.
+Canonical artifacts:
+`SPEC_HARP_GLOBAL_CONTRIBUTION_TEACHER_V1.md`,
+`SPEC_NEUTRAL_RESIDUAL_MODE_CS_IU_V1.md`,
+`SPEC_NEUTRAL_RESIDUAL_MODE_PRMBENCH_CONFIRMATION_V1.md`,
+`spectral_utils/contribution_subspace.py`,
+`results/harp_global_contribution_teacher_v1/REPORT.md`,
+`results/neutral_residual_mode_cs_iu_v1/REPORT.md`,
+`results/neutral_residual_mode_hle_v1/REPORT.md`, and
+`results/neutral_residual_mode_prmbench_v1/REPORT.md`.
 
-**The LettuceDetect gate settled an old question.** The previous 0.7590 was
-assumed to be a base-vs-large checkpoint gap; it was mostly the **entry
-point**. `predict(context=[...], question="")` re-wraps an already-complete
-RAGTruth prompt in the library's own passage template. The official
-preprocessing uses the whole prompt as one string, so `predict_prompt` is the
-matching call — and with it the large checkpoint reproduces the published
-number to 0.0007.
+## Latest cluster-data audit — Step 242
 
-**Four infrastructure bugs fixed**: the 72B critic had no resume chain and
-would have died at its 8 h wall (it since did, and the chain caught it); two
-chains fanned out onto the same output file and would have raced;
-`sync_code.sh` was uploading **6.2 GB** per sync because `*.pkl` does not
-match the `*.pkl.part-NN` LFS chunks (now 39 MB); and the RefChecker corpus
-build hit `HTTP 403` on the Natural Questions GCS mirror.
+About 2.3 GB of new benchmark artifacts were synchronized from Google Drive
+to `dataset_cache/four_localization/`. The RefChecker upload is now complete
+and byte-matches Drive: 10,733 fixed claims across zero-, noisy-, and
+accurate-context settings. Its open NLI checker reaches 0.6932 three-way
+accuracy and 0.5805 macro F1. The older `RUN_SUMMARY.md` was written before
+this final upload and its 2-of-3 RefChecker table is stale; the final manifest
+is authoritative.
 
-**Blocked / owed**: nothing is blocked any more. `zero_context` (Natural
-Questions) was — the GCS mirror returns `AccessDenied` to anonymous callers —
-so `build_nq` was rewritten to stream
-`google-research-datasets/natural_questions` from the Hub (id alignment
-verified first: 20/100 ids in a 1,200-row scan vs ~15 expected). Jobs 179099 →
-179100 completed and the panel is now **3 of 3 settings**. Note the three
-settings diverge sharply (zero_context macro F1 0.6923 vs 0.4616 / 0.4336),
-which is why they must never be pooled. `scripts/build_glossary.py` fails
-its own coverage gate on four pre-existing selector families
-(`a8_lscae`, `a9_dpp`, `a10_mmdufs`, `a11_rfae_scfs`); GLOSSARY.md was
-regenerated with `--allow-gaps`. The uPRM reconstruction was scaled to full N
-by another session against the handoff's own rule — left to finish, but it is
-**our no-training LLM-as-a-Judge control, never uPRM**.
+The full LettuceDetect RAGTruth ceiling, exact-JSD GASP artifacts, PRMBench
+PRM scores and Qwen3 telemetry, and all three complete four-subset ProcessBench
+comparators are present. The Qwen2.5-72B critic reaches macro F1 **0.5940**
+(0.7482/0.6070/0.5057/0.5152). HLE has all 2,158 generations and an interim
+Codex judge, but still lacks the paper-faithful GPT-4o judge; it remains
+restricted evidence rather than a paper-faithful headline result.
 
-**Next**: Phase 2 (the scoring modules — there is still no consumer of the
-ProcessBench competitor pkls, and no span / sentence / PRMBench metric
-harness exists) and Phase 3 (the four-panel report). Nothing is committed;
-per the handoff's git rule, no commit or push until Omri reviews the final
-benchmark report. Full account: HISTORY.md Step 242.
+## Original-30 evidence-aware RAGTruth result — Step 244
 
-> ### ⏭ THE NEXT SESSION'S JOB — review Codex's advisor report
->
-> **Codex is building the advisor deliverable on a different machine**, and its
-> scope is the WHOLE project, not just this campaign: hallucination
-> **detection AND localization**, in **reasoning AND RAG**, over **every
-> dataset collected on the cluster** (59 GB of results), rendered as HTML in
-> the style of our existing benchmarking pages, with an exact record of what it
-> ran per reproduction. Omri will ping with its location.
->
-> **Read [HANDOFF_codex_localization_report_review.md](HANDOFF_codex_localization_report_review.md)
-> before touching it.** It carries the review checklist, the cluster corpus
-> inventory, and a **ground-truth number table** covering both halves — the
-> detection scoreboard (`headline_X_vs_Y.csv`), the RAG evidence-contrast
-> AUROCs with their CIs, and every localization panel — to diff each claim
-> against.
->
-> The traps that silently produce plausible-but-wrong numbers: PRMBench label
-> polarity (1 = VALID), the LettuceDetect `predict_prompt` entry point, GASP's
-> 0.713/0.673 vs the cross-scorer 0.73/0.67, the percent-vs-fraction F1 unit
-> mismatch, and low-`valid_rate` detection cells quoted without their coverage.
->
-> **Three claims that are NOT confirmed and must not be shown as if they were**:
-> the RAGTruth evidence-contrast novelty test (+2.51pp, CI [−0.58, +5.72],
-> P(Δ≤0)=0.066 — crosses zero), our ProcessBench margin over the plain
-> max-entropy baseline (0.21pp, noise at ~850 rows/subset), and the 24-cell
-> DUFS-LIU vs IU-PCR gap (+0.0005, uncertainty includes zero).
->
-> Do not merge, do not commit.
+The intended RAG experiment is complete. It keeps the exact 30 mixed-v2
+features and extracts them separately from `full`, `noctx`, and every observed
+`loo_j` trace. All 30 are available in every condition on 624 development and
+1,800 test LOO responses. The full-context arm reproduces the earlier
+mixed-v2 score to `1.11e-15`; no feature was replaced or imputed.
 
----
+The main finding is cross-task repair, not a pooled leaderboard win. Full-only
+DUFS-LIU scores 0.7698 on QA but 0.4345 on Data-to-Text. LOO IU-PCR reaches
+0.7178 and 0.7150 respectively, improving task-macro AUROC from 0.6002 to
+0.7164: **+0.1163 [0.0795,0.1544]**. GASP-top50 remains slightly higher at
+0.7225 task-macro, with no significant difference. Hybrid is similar and adds
+complexity without a clear gain.
 
+The 0.8013 pooled no-context DUFS value must not be treated as the headline:
+its Data-to-Text AUROC is only 0.5851, and the aggregate rewards task
+composition. Report pooled, task-macro, task-standardized, QA and Data-to-Text
+results together.
+
+DUFS contributes only in the compact no-context matrix: +0.0065
+[0.0047,0.0085] task-macro over IU-PCR. It contributes approximately zero in
+LOO and Hybrid. Evidence-block permutation causes a 13.5-17.6 point macro
+loss, proving that within-response condition pairing matters even though the
+large Laplacian solve adds little.
+
+**Next decision**: carry Original-30 LOO IU-PCR as the simple confirmation
+hypothesis. Compare it with GASP-top50, EC-IU-PCR, and compact no-context
+DUFS-LIU on a new benchmark or scorer. Do not tune another RAGTruth variant.
+
+Canonical artifacts:
+`results/ragtruth_mixed_v2_evidence_aware_v1/REPORT.html`,
+`results/ragtruth_mixed_v2_evidence_aware_v1/METHODS.md`, and
+`docs/experiments/RAGTRUTH_MIXED_V2_EVIDENCE_AWARE_V1.md`.
+
+## RAGTruth Evidence-Contrast result — Step 243
+
+The first preregistered RAG application experiment is complete. It used fixed
+RAGTruth answers scored by Qwen2.5-1.5B under full context, no context, and
+leave-one-chunk-out context. Development contained 900 responses; test
+contained 2,700 responses. The LOO test cohort contains 1,800 QA/Data-to-Text
+responses and 12,958 sentences. Summary remains in a separate no-context
+cohort. Scores were fitted without labels and hashed before labels were opened;
+all uncertainty resampled complete `source_id` groups.
+
+On test LOO sentences, EC-DUFS-LIU reaches **0.7026 AUROC** versus **0.6721**
+for GASP-top50, a paired **+0.0305 [0.0237, 0.0378]**. The direction is positive
+in QA and Data-to-Text. However, EC-IU-PCR reaches **0.7031**, and the registered
+DUFS-LIU difference is **-0.00048 [-0.00061,-0.00034]**. Ungated and permuted
+graphs are also tied with IU-PCR. The gates keep an effective 13.32 of 14
+features, and the graph barely changes the IU weights.
+
+**Conclusion:** the Evidence-Contrast feature construction is useful, but the
+DUFS-gated Laplacian is not the reason. Treat this as a **feature-contract
+success and DUFS/Laplacian mechanism failure**. The RAG application candidate
+is now EC-IU-PCR, with EC-U-PCR and GASP-top50 as controls. Do not tune another
+graph on the opened RAGTruth test set.
+
+The main remaining risks are explicit. Conflict hallucinations score only
+0.6256 AUROC versus 0.7438 for baseless information. Response-level pooled
+performance is strongly affected by task/chunk composition: nuisance
+residualization changes AUROC from 0.7484 to 0.6481, and Data-to-Text response
+AUROC is below GASP-top50 even though the pooled response result is higher.
+The next RAG test should therefore freeze EC-IU-PCR and evaluate transfer,
+conflict handling, and response-level nuisance robustness on new data.
+
+A separately hashed post-hoc audit reconstructed the old 30-feature intrinsic
+mixed-v2 DUFS-LIU response detector. Its pooled test AUROC is 0.7629, but this
+hides a severe task reversal: 0.7698 on QA and 0.4345 on Data-to-Text. The EC
+response detector reaches 0.7056 on Data-to-Text. The old pooled value cannot
+be used as evidence of robust RAG grounding, and the post-hoc result does not
+enter the registered decision.
+
+Canonical artifacts:
+`results/ragtruth_evidence_contrast_v1/REPORT.html`,
+`results/ragtruth_evidence_contrast_v1/REPORT.md`, and
+`results/ragtruth_evidence_contrast_v1/METHODS.md`.
 ## Session addendum (2026-08-10) — external data collection scaled; 4 new reasoning-localization competitor ceilings (Steps 240-241)
 
 **SemGrad + HLE (Step 240)**: SemGrad scaled to full N — SciQ 1000/1000 rows
