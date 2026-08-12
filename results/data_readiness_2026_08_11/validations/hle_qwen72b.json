@@ -1,0 +1,88 @@
+{
+  "balance": {
+    "accuracy": 0.03151065801668211,
+    "correct": 68,
+    "incorrect": 2090
+  },
+  "blockers": [],
+  "checks": {
+    "expected_rows": true,
+    "interim_allowed_labels": true,
+    "interim_confidence_range": true,
+    "interim_deterministic_row_order": true,
+    "interim_exact_row_count": true,
+    "interim_judgment_hash": true,
+    "interim_manifest_complete": true,
+    "interim_queue_hash": true,
+    "interim_required_fields": true,
+    "interim_single_judge_model": true,
+    "interim_single_reasoning_effort": true,
+    "interim_source_alignment": true,
+    "interim_unique_row_keys": true,
+    "interim_unique_source_ids": true,
+    "labels_present": true,
+    "trace_integrity": true
+  },
+  "dataset_id": "hle_qwen72b",
+  "expected": {
+    "rows": 2158
+  },
+  "file_hashes": {
+    "dataset_cache/four_localization/hle_full/manifest.json": "87dcd72a9061d038dd0ce7f432024b4e6b4c13f03b398dc610b66cd36ce70b19",
+    "dataset_cache/four_localization/hle_full/raw_hle_T0.0.pkl": "160c9ac128960ca23d8933580dbc33648f325ee3091e37a340dcdbdb9351f3c5",
+    "local_cache/data_readiness/hle_codex_5p6_sol_xhigh.jsonl": "0b871f1c68f6e2d8e80854ad4b39cb31815b274641e65aad285497bd7e120c84",
+    "local_cache/data_readiness/hle_official_judge_queue.jsonl": "5325befc35301d3049a53c4dad29f8051818005333f594da9bc3c3939dd967a9",
+    "results/data_readiness_2026_08_11/hle_codex_5p6_sol_xhigh_manifest.json": "9c16aeb4bc733488df684793a386b27281182aaf3f5fbf3e779a1eb17ff7edea"
+  },
+  "kind": "answer-level generation telemetry",
+  "limitations": [
+    "The complete labels come from an interim gpt-5.6-sol xhigh Codex judge, not the original paper's GPT-4o judge. Preserve both label sets when paper-faithful grading becomes available."
+  ],
+  "observed": {
+    "duplicate_question_texts": 0,
+    "interim_judge": {
+      "accuracy": 0.03151065801668211,
+      "agreement_with_provisional_rouge": 0.9304911955514366,
+      "by_answer_type": {
+        "exactMatch": {
+          "accuracy": 0.01884498480243161,
+          "correct": 31,
+          "total": 1645
+        },
+        "multipleChoice": {
+          "accuracy": 0.07212475633528265,
+          "correct": 37,
+          "total": 513
+        }
+      },
+      "correct": 68,
+      "incorrect": 2090,
+      "judge_correct_rouge_incorrect": 27,
+      "judge_incorrect_rouge_correct": 123,
+      "rows": 2158
+    },
+    "interim_judge_manifest": "results/data_readiness_2026_08_11/hle_codex_5p6_sol_xhigh_manifest.json",
+    "rows": 2158,
+    "trace_failures": 0
+  },
+  "provenance": {
+    "generation_model": "Qwen/Qwen2.5-72B-Instruct",
+    "grader": "gpt-5.6-sol",
+    "grader_protocol": [
+      "official HLE JUDGE_PROMPT criteria in data/hle_protocol/PROVENANCE.md"
+    ],
+    "grader_reasoning_effort": "xhigh",
+    "grader_role": "interim independent Codex judge",
+    "paper_faithful_grader": false
+  },
+  "source_paths": [
+    "dataset_cache/four_localization/hle_full/raw_hle_T0.0.pkl",
+    "dataset_cache/four_localization/hle_full/manifest.json",
+    "local_cache/data_readiness/hle_official_judge_queue.jsonl",
+    "local_cache/data_readiness/hle_codex_5p6_sol_xhigh.jsonl",
+    "results/data_readiness_2026_08_11/hle_codex_5p6_sol_xhigh_manifest.json"
+  ],
+  "status": "READY_WITH_LIMITATIONS",
+  "title": "Humanity's Last Exam Qwen2.5-72B",
+  "warnings": []
+}

@@ -1,0 +1,53 @@
+{
+  "balance": {
+    "Contradiction": 935,
+    "Entailment": 7176,
+    "Neutral": 2622
+  },
+  "blockers": [],
+  "checks": {
+    "condition_token_identity": true,
+    "expected_claims": true,
+    "expected_conditions": true,
+    "full_noctx_complete": true,
+    "three_way_labels_complete": true,
+    "trace_integrity": true
+  },
+  "dataset_id": "refchecker_claims",
+  "expected": {
+    "claims": 10733,
+    "conditions": 21466
+  },
+  "file_hashes": {
+    "dataset_cache/four_localization/refchecker_knowhalbench_open_full/manifest.json": "29f1795d0e626a84c8957f81f9cbd7f1cae4992e99f386f8e7a4bb67349f7a49",
+    "dataset_cache/four_localization/refchecker_knowhalbench_open_full/refchecker_claim_telemetry.pkl": "aebebf71bab731000e82dcf3e1b8e67eefd510c5cc071a970deee8c05509aca5"
+  },
+  "kind": "claim-level evidence telemetry",
+  "limitations": [
+    "The gold labels cover the fixed shipped claims. This is claim checking, not claim extraction."
+  ],
+  "observed": {
+    "claims": 10733,
+    "conditions": 21466,
+    "incomplete_pairs": 0,
+    "settings": {
+      "accurate_context": 3994,
+      "noisy_context": 3420,
+      "zero_context": 3319
+    },
+    "token_mismatches_across_conditions": 0,
+    "trace_failures": 0
+  },
+  "provenance": {
+    "benchmark_data": "github.com/amazon-science/RefChecker benchmark/, assembled by cluster/prepare_refchecker_data.py",
+    "claim_set": "FIXED to the shipped, human-labelled claude2_response_kg triplets. Claim EXTRACTION is out of scope: the human labels are attached to Claude-2 extracted triplets, so a different extractor yields claims this gold does not cover. This panel measures the CHECKING stage only.",
+    "written_utc": "2026-08-11T05:26:28+00:00"
+  },
+  "source_paths": [
+    "dataset_cache/four_localization/refchecker_knowhalbench_open_full/refchecker_claim_telemetry.pkl",
+    "dataset_cache/four_localization/refchecker_knowhalbench_open_full/manifest.json"
+  ],
+  "status": "READY_WITH_LIMITATIONS",
+  "title": "RefChecker fixed human-labelled claims",
+  "warnings": []
+}

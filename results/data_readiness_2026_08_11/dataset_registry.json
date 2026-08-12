@@ -1,0 +1,769 @@
+{
+  "datasets": [
+    {
+      "balance": {
+        "negative": 26667,
+        "positive": 21940,
+        "positive_rate": 0.4513753163124653
+      },
+      "blockers": [],
+      "checks": {
+        "binary_labels": true,
+        "expected_cell_count": true,
+        "expected_row_count": true,
+        "finite_matrices": true,
+        "matrix_shapes": true
+      },
+      "dataset_id": "frozen_24cell",
+      "expected": {
+        "cells": 24,
+        "rows": 48607
+      },
+      "file_hashes": {
+        "results/dependency_fusion_raw/cells.npz": "693a5b634f975ea32c7f840f3ab8366dd8ad638fe41cc76a60e24b1ac5a013e1",
+        "results/dependency_fusion_raw/cells_manifest.csv": "fbb8cbf2cd0003ac2a2fe8515e2b4c16d80c15a964b0adb3fffa009bc7c1bd10"
+      },
+      "kind": "answer-level feature matrices",
+      "limitations": [
+        "The cells use heterogeneous datasets and graders and were repeatedly used during method development."
+      ],
+      "observed": {
+        "cells": 24,
+        "features_max": 30,
+        "features_min": 19,
+        "rows": 48607
+      },
+      "provenance": {
+        "role": "retrospective development collection"
+      },
+      "source_paths": [
+        "results/dependency_fusion_raw/cells.npz",
+        "results/dependency_fusion_raw/cells_manifest.csv"
+      ],
+      "status": "READY_WITH_LIMITATIONS",
+      "title": "Frozen 24-cell development collection",
+      "warnings": []
+    },
+    {
+      "balance": {
+        "negative": 388,
+        "positive": 612,
+        "positive_rate": 0.612
+      },
+      "blockers": [],
+      "checks": {
+        "expected_rows": true,
+        "labels_present": true,
+        "trace_integrity": true
+      },
+      "dataset_id": "semgrad_sciq",
+      "expected": {
+        "rows": 1000
+      },
+      "file_hashes": {
+        "local_cache/semgrad_bem_regraded/raw_semgrad_sciq_T0.0_bem.pkl": "4607f2379c85baaa7369bb05605d2008b0df234c37195fdb1216855b6d33a057",
+        "local_cache/semgrad_bem_regraded/raw_semgrad_sciq_T0.0_bem_manifest.json": "53054499a4683b371b3dd50cdf34fd367889ed059ba6bdf401c15e7c29757601"
+      },
+      "kind": "answer-level generation telemetry",
+      "limitations": [],
+      "observed": {
+        "duplicate_question_texts": 0,
+        "rows": 1000,
+        "trace_failures": 0
+      },
+      "provenance": {
+        "grader": "https://tfhub.dev/google/answer_equivalence/bem/1",
+        "grader_threshold": 0.8,
+        "input_sha256": "2c4dc700ab6f0c478f295ae8afe16be106daffc724a2f9b011c8447e38b6f5ac",
+        "model": "https://tfhub.dev/google/answer_equivalence/bem/1"
+      },
+      "source_paths": [
+        "local_cache/semgrad_bem_regraded/raw_semgrad_sciq_T0.0_bem.pkl",
+        "local_cache/semgrad_bem_regraded/raw_semgrad_sciq_T0.0_bem_manifest.json"
+      ],
+      "status": "READY",
+      "title": "SemGrad SciQ with BEM labels",
+      "warnings": []
+    },
+    {
+      "balance": {
+        "negative": 502,
+        "positive": 315,
+        "positive_rate": 0.38555691554467564
+      },
+      "blockers": [],
+      "checks": {
+        "expected_rows": true,
+        "labels_present": true,
+        "trace_integrity": true
+      },
+      "dataset_id": "semgrad_truthfulqa",
+      "expected": {
+        "rows": 817
+      },
+      "file_hashes": {
+        "local_cache/semgrad_bem_regraded/raw_semgrad_truthfulqa_T0.0_bem.pkl": "b9036923f874badc0e8345d30fdb8db7c9bc226a1c710f063bb42fed94d774cc",
+        "local_cache/semgrad_bem_regraded/raw_semgrad_truthfulqa_T0.0_bem_manifest.json": "ab56cf9c52936b11171171a6edc28ed53bed589cddabd315abc2a02795c612a3"
+      },
+      "kind": "answer-level generation telemetry",
+      "limitations": [],
+      "observed": {
+        "duplicate_question_texts": 0,
+        "rows": 817,
+        "trace_failures": 0
+      },
+      "provenance": {
+        "grader": "https://tfhub.dev/google/answer_equivalence/bem/1",
+        "grader_threshold": 0.8,
+        "input_sha256": "4de81f95c8778caec087096eb6be1a190d3d8be30efdbc57ccfa8ee1b8776aef",
+        "model": "https://tfhub.dev/google/answer_equivalence/bem/1"
+      },
+      "source_paths": [
+        "local_cache/semgrad_bem_regraded/raw_semgrad_truthfulqa_T0.0_bem.pkl",
+        "local_cache/semgrad_bem_regraded/raw_semgrad_truthfulqa_T0.0_bem_manifest.json"
+      ],
+      "status": "READY",
+      "title": "SemGrad TruthfulQA with BEM labels",
+      "warnings": []
+    },
+    {
+      "balance": {
+        "accuracy": 0.03151065801668211,
+        "correct": 68,
+        "incorrect": 2090
+      },
+      "blockers": [],
+      "checks": {
+        "expected_rows": true,
+        "interim_allowed_labels": true,
+        "interim_confidence_range": true,
+        "interim_deterministic_row_order": true,
+        "interim_exact_row_count": true,
+        "interim_judgment_hash": true,
+        "interim_manifest_complete": true,
+        "interim_queue_hash": true,
+        "interim_required_fields": true,
+        "interim_single_judge_model": true,
+        "interim_single_reasoning_effort": true,
+        "interim_source_alignment": true,
+        "interim_unique_row_keys": true,
+        "interim_unique_source_ids": true,
+        "labels_present": true,
+        "trace_integrity": true
+      },
+      "dataset_id": "hle_qwen72b",
+      "expected": {
+        "rows": 2158
+      },
+      "file_hashes": {
+        "dataset_cache/four_localization/hle_full/manifest.json": "87dcd72a9061d038dd0ce7f432024b4e6b4c13f03b398dc610b66cd36ce70b19",
+        "dataset_cache/four_localization/hle_full/raw_hle_T0.0.pkl": "160c9ac128960ca23d8933580dbc33648f325ee3091e37a340dcdbdb9351f3c5",
+        "local_cache/data_readiness/hle_codex_5p6_sol_xhigh.jsonl": "0b871f1c68f6e2d8e80854ad4b39cb31815b274641e65aad285497bd7e120c84",
+        "local_cache/data_readiness/hle_official_judge_queue.jsonl": "5325befc35301d3049a53c4dad29f8051818005333f594da9bc3c3939dd967a9",
+        "results/data_readiness_2026_08_11/hle_codex_5p6_sol_xhigh_manifest.json": "9c16aeb4bc733488df684793a386b27281182aaf3f5fbf3e779a1eb17ff7edea"
+      },
+      "kind": "answer-level generation telemetry",
+      "limitations": [
+        "The complete labels come from an interim gpt-5.6-sol xhigh Codex judge, not the original paper's GPT-4o judge. Preserve both label sets when paper-faithful grading becomes available."
+      ],
+      "observed": {
+        "duplicate_question_texts": 0,
+        "interim_judge": {
+          "accuracy": 0.03151065801668211,
+          "agreement_with_provisional_rouge": 0.9304911955514366,
+          "by_answer_type": {
+            "exactMatch": {
+              "accuracy": 0.01884498480243161,
+              "correct": 31,
+              "total": 1645
+            },
+            "multipleChoice": {
+              "accuracy": 0.07212475633528265,
+              "correct": 37,
+              "total": 513
+            }
+          },
+          "correct": 68,
+          "incorrect": 2090,
+          "judge_correct_rouge_incorrect": 27,
+          "judge_incorrect_rouge_correct": 123,
+          "rows": 2158
+        },
+        "interim_judge_manifest": "results/data_readiness_2026_08_11/hle_codex_5p6_sol_xhigh_manifest.json",
+        "rows": 2158,
+        "trace_failures": 0
+      },
+      "provenance": {
+        "generation_model": "Qwen/Qwen2.5-72B-Instruct",
+        "grader": "gpt-5.6-sol",
+        "grader_protocol": [
+          "official HLE JUDGE_PROMPT criteria in data/hle_protocol/PROVENANCE.md"
+        ],
+        "grader_reasoning_effort": "xhigh",
+        "grader_role": "interim independent Codex judge",
+        "paper_faithful_grader": false
+      },
+      "source_paths": [
+        "dataset_cache/four_localization/hle_full/raw_hle_T0.0.pkl",
+        "dataset_cache/four_localization/hle_full/manifest.json",
+        "local_cache/data_readiness/hle_official_judge_queue.jsonl",
+        "local_cache/data_readiness/hle_codex_5p6_sol_xhigh.jsonl",
+        "results/data_readiness_2026_08_11/hle_codex_5p6_sol_xhigh_manifest.json"
+      ],
+      "status": "READY_WITH_LIMITATIONS",
+      "title": "Humanity's Last Exam Qwen2.5-72B",
+      "warnings": []
+    },
+    {
+      "balance": {
+        "clean": 1757,
+        "hallucinated": 943,
+        "hallucinated_rate": 0.34925925925925927
+      },
+      "blockers": [],
+      "checks": {
+        "cache_keys": true,
+        "condition_token_identity": true,
+        "expected_conditions": true,
+        "expected_responses": true,
+        "full_noctx_complete": true,
+        "loo_indexes_contiguous": true,
+        "trace_integrity": true,
+        "unique_conditions": true
+      },
+      "dataset_id": "ragtruth_full_evidence",
+      "expected": {
+        "conditions": 16200,
+        "responses": 2700
+      },
+      "file_hashes": {
+        "local_cache/ragtruth_ec/test/manifest.json": "5f587bdf62da5e2eb57cd1e261b1bb762d376e1757e84d3cefd5796e9e17ec7c",
+        "local_cache/ragtruth_ec/test/ragtruth_ec_test.pkl": "4e22bc99d53587be5a1082c9e25720cb225dc04d3a5be87934fa06c9d3ca3f51"
+      },
+      "kind": "RAG evidence-condition telemetry",
+      "limitations": [
+        "RAGTruth labels have already been opened in earlier exploratory work."
+      ],
+      "observed": {
+        "conditions": 16200,
+        "duplicate_conditions": 0,
+        "key_mismatches": 0,
+        "missing_full_noctx_pairs": 0,
+        "noncontiguous_loo": 0,
+        "responses": 2700,
+        "sources": 450,
+        "task_counts": {
+          "Data2txt": 900,
+          "QA": 900,
+          "Summary": 900
+        },
+        "token_mismatches_across_conditions": 0,
+        "trace_failures": 0
+      },
+      "provenance": {
+        "fidelity_level": null,
+        "model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "paper": null,
+        "written_utc": "2026-08-09T05:59:46+00:00"
+      },
+      "source_paths": [
+        "local_cache/ragtruth_ec/test/ragtruth_ec_test.pkl",
+        "local_cache/ragtruth_ec/test/manifest.json"
+      ],
+      "status": "READY_WITH_LIMITATIONS",
+      "title": "RAGTruth full test evidence-condition cache",
+      "warnings": []
+    },
+    {
+      "balance": {
+        "clean": 200,
+        "hallucinated": 200,
+        "hallucinated_rate": 0.5
+      },
+      "blockers": [],
+      "checks": {
+        "cache_keys": true,
+        "condition_token_identity": true,
+        "expected_conditions": true,
+        "expected_responses": true,
+        "full_noctx_complete": true,
+        "loo_indexes_contiguous": true,
+        "trace_integrity": true,
+        "unique_conditions": true
+      },
+      "dataset_id": "gasp_ragtruth_400",
+      "expected": {
+        "conditions": 2508,
+        "responses": 400
+      },
+      "file_hashes": {
+        "dataset_cache/four_localization/gasp_ragtruth_exact_qwen15b_full/gasp_exact.pkl": "56cae715a76243bd68b9de19122d166666bc2a7a59f336fe8b06847366df9205",
+        "dataset_cache/four_localization/gasp_ragtruth_exact_qwen15b_full/manifest.json": "61146eb7ba3e0a7ac9ec3a5f81434af9016871aa194811bf26bd637becaebec4"
+      },
+      "kind": "RAG evidence-condition telemetry",
+      "limitations": [
+        "The paper did not publish its 400 response IDs or sentence splitter; this is a protocol-level reproduction."
+      ],
+      "observed": {
+        "conditions": 2508,
+        "duplicate_conditions": 0,
+        "key_mismatches": 0,
+        "missing_full_noctx_pairs": 0,
+        "noncontiguous_loo": 0,
+        "responses": 400,
+        "sources": 228,
+        "task_counts": {
+          "Data2txt": 214,
+          "Summary": 186
+        },
+        "token_mismatches_across_conditions": 0,
+        "trace_failures": 0
+      },
+      "provenance": {
+        "fidelity_level": 2,
+        "model": "Qwen/Qwen2.5-1.5B-Instruct",
+        "paper": "GASP \u2014 Detecting Hallucinations in Retrieval-Augmented Generation through Grounding-Aware Sensitivity by Perturbation (Bouke, arXiv:2607.04223)",
+        "written_utc": "2026-08-10T22:11:26+00:00"
+      },
+      "source_paths": [
+        "dataset_cache/four_localization/gasp_ragtruth_exact_qwen15b_full/gasp_exact.pkl",
+        "dataset_cache/four_localization/gasp_ragtruth_exact_qwen15b_full/manifest.json"
+      ],
+      "status": "READY_WITH_LIMITATIONS",
+      "title": "GASP-style balanced RAGTruth cohort",
+      "warnings": []
+    },
+    {
+      "balance": {
+        "Contradiction": 935,
+        "Entailment": 7176,
+        "Neutral": 2622
+      },
+      "blockers": [],
+      "checks": {
+        "condition_token_identity": true,
+        "expected_claims": true,
+        "expected_conditions": true,
+        "full_noctx_complete": true,
+        "three_way_labels_complete": true,
+        "trace_integrity": true
+      },
+      "dataset_id": "refchecker_claims",
+      "expected": {
+        "claims": 10733,
+        "conditions": 21466
+      },
+      "file_hashes": {
+        "dataset_cache/four_localization/refchecker_knowhalbench_open_full/manifest.json": "29f1795d0e626a84c8957f81f9cbd7f1cae4992e99f386f8e7a4bb67349f7a49",
+        "dataset_cache/four_localization/refchecker_knowhalbench_open_full/refchecker_claim_telemetry.pkl": "aebebf71bab731000e82dcf3e1b8e67eefd510c5cc071a970deee8c05509aca5"
+      },
+      "kind": "claim-level evidence telemetry",
+      "limitations": [
+        "The gold labels cover the fixed shipped claims. This is claim checking, not claim extraction."
+      ],
+      "observed": {
+        "claims": 10733,
+        "conditions": 21466,
+        "incomplete_pairs": 0,
+        "settings": {
+          "accurate_context": 3994,
+          "noisy_context": 3420,
+          "zero_context": 3319
+        },
+        "token_mismatches_across_conditions": 0,
+        "trace_failures": 0
+      },
+      "provenance": {
+        "benchmark_data": "github.com/amazon-science/RefChecker benchmark/, assembled by cluster/prepare_refchecker_data.py",
+        "claim_set": "FIXED to the shipped, human-labelled claude2_response_kg triplets. Claim EXTRACTION is out of scope: the human labels are attached to Claude-2 extracted triplets, so a different extractor yields claims this gold does not cover. This panel measures the CHECKING stage only.",
+        "written_utc": "2026-08-11T05:26:28+00:00"
+      },
+      "source_paths": [
+        "dataset_cache/four_localization/refchecker_knowhalbench_open_full/refchecker_claim_telemetry.pkl",
+        "dataset_cache/four_localization/refchecker_knowhalbench_open_full/manifest.json"
+      ],
+      "status": "READY_WITH_LIMITATIONS",
+      "title": "RefChecker fixed human-labelled claims",
+      "warnings": []
+    },
+    {
+      "balance": {
+        "error_rate": 0.653235294117647,
+        "first_error_present": 2221,
+        "fully_correct": 1179
+      },
+      "blockers": [],
+      "checks": {
+        "all_four_subsets": true,
+        "all_lfs_objects_local": true,
+        "expected_rows": true,
+        "step_alignment": true,
+        "trace_integrity": true
+      },
+      "dataset_id": "processbench_qwen3_4b",
+      "expected": {
+        "rows": 3400,
+        "subsets": 4
+      },
+      "file_hashes": {
+        "dataset_cache/repgrid/pb_qwen3_4b/processbench_gsm8k.pkl": "549843b11a99f41b60ccb13eb6a65c5583527402602e6e40d1a417699e64b02b",
+        "dataset_cache/repgrid/pb_qwen3_4b/processbench_math.pkl": "807292c490012b68c7a20cc3d093cda637866227940b9024b258b6a201657c32",
+        "dataset_cache/repgrid/pb_qwen3_4b/processbench_olympiadbench.pkl": "e5e73f044247e0fb4081fea1c3a77793aab182485daebce48cf7a3f7809eb0ae",
+        "dataset_cache/repgrid/pb_qwen3_4b/processbench_omnimath.pkl": "ec20e56553acee15c0646ad266f5d5d8d24ef22ba87289b6ffe013b0c639ba67"
+      },
+      "kind": "first-error benchmark telemetry",
+      "limitations": [],
+      "observed": {
+        "alignment_failures": 0,
+        "missing_lfs_objects": [],
+        "rows": 3400,
+        "subset_counts": {
+          "gsm8k": 400,
+          "math": 1000,
+          "olympiadbench": 1000,
+          "omnimath": 1000
+        },
+        "subsets": 4,
+        "trace_failures": 0
+      },
+      "provenance": {
+        "dataset": "Qwen/ProcessBench",
+        "labels": "official first-error labels"
+      },
+      "source_paths": [
+        "dataset_cache/repgrid/pb_qwen3_4b/processbench_gsm8k.pkl",
+        "dataset_cache/repgrid/pb_qwen3_4b/processbench_math.pkl",
+        "dataset_cache/repgrid/pb_qwen3_4b/processbench_olympiadbench.pkl",
+        "dataset_cache/repgrid/pb_qwen3_4b/processbench_omnimath.pkl"
+      ],
+      "status": "READY",
+      "title": "ProcessBench telemetry (qwen3 4b)",
+      "warnings": []
+    },
+    {
+      "balance": {
+        "error_rate": 0.653235294117647,
+        "first_error_present": 2221,
+        "fully_correct": 1179
+      },
+      "blockers": [],
+      "checks": {
+        "all_four_subsets": true,
+        "all_lfs_objects_local": true,
+        "expected_rows": true,
+        "step_alignment": true,
+        "trace_integrity": true
+      },
+      "dataset_id": "processbench_qwen3_8b",
+      "expected": {
+        "rows": 3400,
+        "subsets": 4
+      },
+      "file_hashes": {
+        "dataset_cache/repgrid/pb_qwen3_8b/processbench_gsm8k.pkl": "c258e8a37fad43216290fef2f70c88735f413f8c0ceb5cce39dfefe67d66955d",
+        "dataset_cache/repgrid/pb_qwen3_8b/processbench_math.pkl": "19cbbb2b4f90e073f2793360f142bc25334f88bbc4ec01fd78807f9f1ad2836d",
+        "dataset_cache/repgrid/pb_qwen3_8b/processbench_olympiadbench.pkl": "2083c4f9d0cc8d84657b02558d0720f726db4288e39e7557be4c55f78f4d4e60",
+        "dataset_cache/repgrid/pb_qwen3_8b/processbench_omnimath.pkl": "561b96c5e96a25256e7e51a62c7ef01bcb2fd87ea1adcfc36e2c758807f559a0"
+      },
+      "kind": "first-error benchmark telemetry",
+      "limitations": [],
+      "observed": {
+        "alignment_failures": 0,
+        "missing_lfs_objects": [],
+        "rows": 3400,
+        "subset_counts": {
+          "gsm8k": 400,
+          "math": 1000,
+          "olympiadbench": 1000,
+          "omnimath": 1000
+        },
+        "subsets": 4,
+        "trace_failures": 0
+      },
+      "provenance": {
+        "dataset": "Qwen/ProcessBench",
+        "labels": "official first-error labels"
+      },
+      "source_paths": [
+        "dataset_cache/repgrid/pb_qwen3_8b/processbench_gsm8k.pkl",
+        "dataset_cache/repgrid/pb_qwen3_8b/processbench_math.pkl",
+        "dataset_cache/repgrid/pb_qwen3_8b/processbench_olympiadbench.pkl",
+        "dataset_cache/repgrid/pb_qwen3_8b/processbench_omnimath.pkl"
+      ],
+      "status": "READY",
+      "title": "ProcessBench telemetry (qwen3 8b)",
+      "warnings": []
+    },
+    {
+      "balance": {},
+      "blockers": [],
+      "checks": {
+        "all_four_subsets": true,
+        "expected_rows": true,
+        "manifest_present": true
+      },
+      "dataset_id": "processbench_qwen25math7b_predictions",
+      "expected": {
+        "manifest": true,
+        "rows": 3400,
+        "subsets": 4
+      },
+      "file_hashes": {
+        "dataset_cache/four_localization/pb_prm_qwen25math7b_full/manifest.json": "8146bb7752e548b3b18716b4f126a77baddc7c84a945c9247ff2c8e8ea30011d",
+        "dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_gsm8k.pkl": "8b0ef348e0a31e36b0513cc4415e1f4cd7e51e4b91826c9990801719d8a0f35b",
+        "dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_math.pkl": "d7dcc604b7805cde0c44c28079d437194dbf9109699ef827127faf0872e43a35",
+        "dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_olympiadbench.pkl": "84afdd49f0f72a2692e3afd14bc494fa7c926f0131308ba007f13d722db5b682",
+        "dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_omnimath.pkl": "bf805250db2998a44c6598362b3c7a608ae1be9c067a1f806fdecbc615cf3325"
+      },
+      "kind": "competitor prediction cache",
+      "limitations": [],
+      "observed": {
+        "manifest": true,
+        "rows": 3400,
+        "subset_counts": {
+          "gsm8k": 400,
+          "math": 1000,
+          "olympiadbench": 1000,
+          "omnimath": 1000
+        },
+        "subsets": 4
+      },
+      "provenance": {},
+      "source_paths": [
+        "dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_gsm8k.pkl",
+        "dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_math.pkl",
+        "dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_olympiadbench.pkl",
+        "dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_omnimath.pkl",
+        "dataset_cache/four_localization/pb_prm_qwen25math7b_full/manifest.json"
+      ],
+      "status": "READY",
+      "title": "ProcessBench Qwen2.5-Math-PRM predictions",
+      "warnings": []
+    },
+    {
+      "balance": {},
+      "blockers": [],
+      "checks": {
+        "all_four_subsets": true,
+        "expected_rows": true,
+        "manifest_present": true
+      },
+      "dataset_id": "processbench_qwen3_8b_judge_control",
+      "expected": {
+        "manifest": true,
+        "rows": 3400,
+        "subsets": 4
+      },
+      "file_hashes": {
+        "dataset_cache/four_localization/pb_uprm_baseline_qwen3_8b_full/manifest.json": "ce7814c5a5e8c278cbf808891c2119fa0d23667f53a3081ca1e0837f32cad62a",
+        "dataset_cache/four_localization/pb_uprm_baseline_qwen3_8b_full/pb_uprm_base_gsm8k.pkl": "667e1fd986b8bd5cf2c124128dc69946c70c85e8325d33426b57371d8544834c",
+        "dataset_cache/four_localization/pb_uprm_baseline_qwen3_8b_full/pb_uprm_base_math.pkl": "4693fb8acffe17b69cdcaebb41795287f5a51fd148fb86a8d75a1c58665db59b",
+        "dataset_cache/four_localization/pb_uprm_baseline_qwen3_8b_full/pb_uprm_base_olympiadbench.pkl": "5759d20f5049cd668dd2d2304dce664d16646621559edb017f7182550d7fab52",
+        "dataset_cache/four_localization/pb_uprm_baseline_qwen3_8b_full/pb_uprm_base_omnimath.pkl": "07cee99bc1f6f896d368b5dd9513ea8256466aa162c634bdb825588dbdd97643"
+      },
+      "kind": "competitor prediction cache",
+      "limitations": [],
+      "observed": {
+        "manifest": true,
+        "rows": 3400,
+        "subset_counts": {
+          "gsm8k": 400,
+          "math": 1000,
+          "olympiadbench": 1000,
+          "omnimath": 1000
+        },
+        "subsets": 4
+      },
+      "provenance": {},
+      "source_paths": [
+        "dataset_cache/four_localization/pb_uprm_baseline_qwen3_8b_full/pb_uprm_base_gsm8k.pkl",
+        "dataset_cache/four_localization/pb_uprm_baseline_qwen3_8b_full/pb_uprm_base_math.pkl",
+        "dataset_cache/four_localization/pb_uprm_baseline_qwen3_8b_full/pb_uprm_base_olympiadbench.pkl",
+        "dataset_cache/four_localization/pb_uprm_baseline_qwen3_8b_full/pb_uprm_base_omnimath.pkl",
+        "dataset_cache/four_localization/pb_uprm_baseline_qwen3_8b_full/manifest.json"
+      ],
+      "status": "READY",
+      "title": "ProcessBench Qwen3-8B judge-control predictions",
+      "warnings": []
+    },
+    {
+      "balance": {},
+      "blockers": [],
+      "checks": {
+        "all_four_subsets": true,
+        "expected_rows": true,
+        "manifest_present": true
+      },
+      "dataset_id": "processbench_qwen72b_critic",
+      "expected": {
+        "manifest": true,
+        "rows": 3400,
+        "subsets": 4
+      },
+      "file_hashes": {
+        "dataset_cache/four_localization/pb_critic_qwen72b_full/manifest.json": "d6d186143ee13fd9cb43ac6901c40cfae993ca7e36e987fcd25e16ba5ff6e673",
+        "dataset_cache/four_localization/pb_critic_qwen72b_full/pb_critic_gsm8k.pkl": "74591574e68645dcd9e75832fa1d7c6241179500da473b37e98e2932af748a69",
+        "dataset_cache/four_localization/pb_critic_qwen72b_full/pb_critic_math.pkl": "7fe7f9836e2b5b6cdd9a362d713941386d423b6450ce9ecff93e037ad1ca71b9",
+        "dataset_cache/four_localization/pb_critic_qwen72b_full/pb_critic_olympiadbench.pkl": "732b7e027b20e1d2879d6bd2ef86c77ff67eab6e600d47e538df535b478a9fdd",
+        "dataset_cache/four_localization/pb_critic_qwen72b_full/pb_critic_omnimath.pkl": "cc8287056b381b0fab32f02d8a0302b5330fdf0591311054ad608071e3c951e1"
+      },
+      "kind": "competitor prediction cache",
+      "limitations": [],
+      "observed": {
+        "manifest": true,
+        "rows": 3400,
+        "subset_counts": {
+          "gsm8k": 400,
+          "math": 1000,
+          "olympiadbench": 1000,
+          "omnimath": 1000
+        },
+        "subsets": 4
+      },
+      "provenance": {},
+      "source_paths": [
+        "dataset_cache/four_localization/pb_critic_qwen72b_full/pb_critic_gsm8k.pkl",
+        "dataset_cache/four_localization/pb_critic_qwen72b_full/pb_critic_math.pkl",
+        "dataset_cache/four_localization/pb_critic_qwen72b_full/pb_critic_olympiadbench.pkl",
+        "dataset_cache/four_localization/pb_critic_qwen72b_full/pb_critic_omnimath.pkl",
+        "dataset_cache/four_localization/pb_critic_qwen72b_full/manifest.json"
+      ],
+      "status": "READY",
+      "title": "ProcessBench Qwen2.5-72B critic predictions",
+      "warnings": []
+    },
+    {
+      "balance": {},
+      "blockers": [],
+      "checks": {
+        "expected_rows": true,
+        "expected_span_count": true,
+        "official_loader_count_recorded": true,
+        "step_alignment": false,
+        "trace_integrity": true
+      },
+      "dataset_id": "prmbench_qwen3_8b_telemetry",
+      "expected": {
+        "official_error_class_steps": 83371,
+        "rows": 6969,
+        "step_spans": 94203
+      },
+      "file_hashes": {
+        "dataset_cache/four_localization/prmbench_qwen3_8b_telemetry_full/manifest.json": "c82955e81cf93939de950b0a567a829290e10957273d2cd0724aed2a6bf9a452",
+        "dataset_cache/four_localization/prmbench_qwen3_8b_telemetry_full/prmbench_telemetry.pkl": "b934afad0889ffacf0f4420f885ad52ddcf08f2124e506a21cd24f216bd170be"
+      },
+      "kind": "every-step benchmark telemetry",
+      "limitations": [
+        "Three rows were reported as misaligned; they must be identified and explicitly resolved or excluded before evaluation."
+      ],
+      "observed": {
+        "classes": {
+          "circular": 758,
+          "confidence": 757,
+          "correct": 758,
+          "counterfactual": 757,
+          "deception": 750,
+          "domain_inconsistency": 757,
+          "missing_condition": 756,
+          "multi_solutions": 160,
+          "redundency": 758,
+          "step_contradiction": 758
+        },
+        "misaligned_ids": [
+          "confidence_confidence_prm_train_p1_303",
+          "deception_deception_prm_test_p1_87",
+          "step_contradiction_step_contradiction_prm_test_p2_991"
+        ],
+        "misaligned_rows_or_span_sets": 3,
+        "official_error_class_steps": 83371,
+        "rows": 6969,
+        "step_spans": 94203,
+        "trace_failures": 0
+      },
+      "provenance": {},
+      "source_paths": [
+        "dataset_cache/four_localization/prmbench_qwen3_8b_telemetry_full/prmbench_telemetry.pkl",
+        "dataset_cache/four_localization/prmbench_qwen3_8b_telemetry_full/manifest.json"
+      ],
+      "status": "READY_WITH_LIMITATIONS",
+      "title": "PRMBench Qwen3-8B telemetry",
+      "warnings": []
+    },
+    {
+      "balance": {},
+      "blockers": [],
+      "checks": {
+        "expected_rows": true,
+        "label_reward_lengths": true
+      },
+      "dataset_id": "prmbench_qwen25math7b_predictions",
+      "expected": {
+        "rows": 6969
+      },
+      "file_hashes": {
+        "dataset_cache/four_localization/prmbench_qwen25math7b_full/manifest.json": "ccd5715e08fd792b9ee074304f6de15c7b7bf0df50292aa7b9ab856a084c2aa8",
+        "dataset_cache/four_localization/prmbench_qwen25math7b_full/prmbench_prm.pkl": "95be425c66d4dadc6a8e03567ad66ef2933aee27eb7967bf7200139c56518232"
+      },
+      "kind": "competitor prediction cache",
+      "limitations": [],
+      "observed": {
+        "labels": 94203,
+        "rewards": 94203,
+        "rows": 6969
+      },
+      "provenance": {},
+      "source_paths": [
+        "dataset_cache/four_localization/prmbench_qwen25math7b_full/prmbench_prm.pkl",
+        "dataset_cache/four_localization/prmbench_qwen25math7b_full/manifest.json"
+      ],
+      "status": "READY",
+      "title": "PRMBench Qwen2.5-Math-PRM predictions",
+      "warnings": []
+    },
+    {
+      "balance": {
+        "clean": 1757,
+        "hallucinated": 943,
+        "hallucinated_rate": 0.34925925925925927
+      },
+      "blockers": [],
+      "checks": {
+        "expected_rows": true,
+        "no_truncation": true,
+        "span_bounds": true,
+        "unique_response_ids": true
+      },
+      "dataset_id": "ragtruth_lettucedetect_predictions",
+      "expected": {
+        "rows": 2700
+      },
+      "file_hashes": {
+        "dataset_cache/four_localization/ragtruth_lettuce_large_span_full/lettuce_spans_test.pkl": "1937a381ffd56244411ec744aa2cdd81832fc1a8516fd3d7ac9e07c217eb4b5f",
+        "dataset_cache/four_localization/ragtruth_lettuce_large_span_full/manifest.json": "110b4658c04508e4e81cb88c24ada08b8e19d0d4a7a07b7689ebea21215f78c2"
+      },
+      "kind": "competitor span predictions",
+      "limitations": [],
+      "observed": {
+        "malformed_spans": 0,
+        "rows": 2700,
+        "truncated": 0,
+        "unique_response_ids": 2700
+      },
+      "provenance": {},
+      "source_paths": [
+        "dataset_cache/four_localization/ragtruth_lettuce_large_span_full/lettuce_spans_test.pkl",
+        "dataset_cache/four_localization/ragtruth_lettuce_large_span_full/manifest.json"
+      ],
+      "status": "READY",
+      "title": "RAGTruth LettuceDetect prediction package",
+      "warnings": []
+    }
+  ],
+  "registry_fingerprint": "a219757cacf901e88ed3a0f3e271414335fc0e9d00c6a2c6e679a87ba87a1c6e",
+  "repository": "/Users/osegev/Desktop/hallucination_detection",
+  "schema_version": "data-readiness-v1-2026-08-11",
+  "status_counts": {
+    "READY": 9,
+    "READY_WITH_LIMITATIONS": 6
+  }
+}

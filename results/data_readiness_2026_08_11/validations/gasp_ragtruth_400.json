@@ -1,0 +1,59 @@
+{
+  "balance": {
+    "clean": 200,
+    "hallucinated": 200,
+    "hallucinated_rate": 0.5
+  },
+  "blockers": [],
+  "checks": {
+    "cache_keys": true,
+    "condition_token_identity": true,
+    "expected_conditions": true,
+    "expected_responses": true,
+    "full_noctx_complete": true,
+    "loo_indexes_contiguous": true,
+    "trace_integrity": true,
+    "unique_conditions": true
+  },
+  "dataset_id": "gasp_ragtruth_400",
+  "expected": {
+    "conditions": 2508,
+    "responses": 400
+  },
+  "file_hashes": {
+    "dataset_cache/four_localization/gasp_ragtruth_exact_qwen15b_full/gasp_exact.pkl": "56cae715a76243bd68b9de19122d166666bc2a7a59f336fe8b06847366df9205",
+    "dataset_cache/four_localization/gasp_ragtruth_exact_qwen15b_full/manifest.json": "61146eb7ba3e0a7ac9ec3a5f81434af9016871aa194811bf26bd637becaebec4"
+  },
+  "kind": "RAG evidence-condition telemetry",
+  "limitations": [
+    "The paper did not publish its 400 response IDs or sentence splitter; this is a protocol-level reproduction."
+  ],
+  "observed": {
+    "conditions": 2508,
+    "duplicate_conditions": 0,
+    "key_mismatches": 0,
+    "missing_full_noctx_pairs": 0,
+    "noncontiguous_loo": 0,
+    "responses": 400,
+    "sources": 228,
+    "task_counts": {
+      "Data2txt": 214,
+      "Summary": 186
+    },
+    "token_mismatches_across_conditions": 0,
+    "trace_failures": 0
+  },
+  "provenance": {
+    "fidelity_level": 2,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "paper": "GASP \u2014 Detecting Hallucinations in Retrieval-Augmented Generation through Grounding-Aware Sensitivity by Perturbation (Bouke, arXiv:2607.04223)",
+    "written_utc": "2026-08-10T22:11:26+00:00"
+  },
+  "source_paths": [
+    "dataset_cache/four_localization/gasp_ragtruth_exact_qwen15b_full/gasp_exact.pkl",
+    "dataset_cache/four_localization/gasp_ragtruth_exact_qwen15b_full/manifest.json"
+  ],
+  "status": "READY_WITH_LIMITATIONS",
+  "title": "GASP-style balanced RAGTruth cohort",
+  "warnings": []
+}

@@ -1,81 +1,55 @@
 # Paper-Aligned Benchmark Suite — Review Guide
 
-This directory contains the generated advisor-facing benchmark suite. Each
-HTML page represents one published protocol or one explicitly marked internal
-transfer appendix. The index does not average incompatible tasks or metrics.
+This directory is generated from machine-readable inputs. Each HTML page is
+one protocol; incompatible tasks and metrics are never averaged.
 
-## Source files
+## Reproduce
 
-- `scripts/paper_aligned_benchmark_suite.py` builds task adapters, runs the
-  frozen solvers, writes machine-readable scores, and renders the HTML pages.
-- `spectral_utils/paper_benchmark_suite.py` contains shared label-free fitting,
-  protocol-signature validation, grouped bootstrap, hashing, and HTML chart
-  helpers.
-- `scripts/test_paper_aligned_benchmark_suite.py` contains the acceptance tests.
-
-The reporting work does not change the existing U-PCR, IU-PCR, or DUFS-LIU-PCR
-implementations. It calls their existing repository APIs.
-
-## Reproduction
-
-From the repository root, using the project virtual environment:
-
-```bash
-.venv/bin/python scripts/paper_aligned_benchmark_suite.py score
-.venv/bin/python scripts/paper_aligned_benchmark_suite.py report
-.venv/bin/python scripts/test_paper_aligned_benchmark_suite.py
-```
-
-The combined command is:
+Run from the repository root:
 
 ```bash
 .venv/bin/python scripts/paper_aligned_benchmark_suite.py all
+.venv/bin/python scripts/test_paper_aligned_benchmark_suite.py
 ```
 
-The scoring command checkpoints after each protocol in `score_progress.json`.
-It expects the validated local benchmark caches described in
-`results/data_readiness_2026_08_11/dataset_registry.json`. Those large caches
-are intentionally not copied into this report directory.
+The generator writes `benchmark_scores.csv`, `protocol_registry.json`, one
+self-contained page per protocol, stage diagnostics, and `suite_manifest.json`.
 
-## Generated artifacts
+## Review priorities after the 2026-08-12 audit
 
-- `index.html`: suite entry point.
-- `*.html`: one self-contained page per protocol.
-- `benchmark_scores.csv`: every plotted and tabulated value.
-- `protocol_registry.json`: paper, dataset, model, unit, grader, fidelity, and
-  limitation metadata.
-- `diagnostics/*.json`: label-free fit diagnostics, gates, graph properties,
-  score hashes, exclusions, and input hashes.
-- `suite_manifest.json`: generated-file hashes and suite-level acceptance
-  declarations.
+1. RefChecker must key claims by `(setting, generator, example_id,
+   claim_index)`. The diagnostics must report 10,733 claims, and the three
+   context settings must remain separate in both fitting and evaluation.
+2. Supervised Qwen PRM rows use `published_ceiling`; GASP reproduction uses
+   `protocol_reproduction`. Neither may be called one of our methods.
+3. PRMBench's headline excludes the constructed `correct` controls. The
+   `multi_solutions` paper class remains pooled but has no standalone binary
+   AUROC because it contains no annotated error step. The local adapter is ten
+   summaries from five token-resolved views, not the original 30-feature
+   response contract. The 71% shorter-than-32-token constraint must be visible.
+4. ProcessBench includes all four Qwen2.5-72B critic subsets and the macro,
+   labelled as a protocol reproduction with a different critic model.
+5. The ProcessBench page leads with frozen GL-LIU v1 and also shows the newer
+   exploratory solver pairings. The independent Llama-3.1-8B panel must show
+   GL-LIU beside maximum token entropy and describe the margin as noise-level.
+6. The RAGTruth response-detection page must state that evidence interventions
+   helped, while the evidence-graph fusion novelty interval crosses zero.
+7. Detection references are de-duplicated; cells supporting multiple paper
+   pages carry the same local rows to each page; the legacy INSIDE/CoQA loss is
+   visible and explicitly outside the current 24-cell full-pool suite.
+8. SemGrad is background-only and has its BEM metadata. HLE remains absent
+   from paper-faithful headlines until the original GPT-4o judge is available.
+9. `diagnostics/` and the data-readiness registry must be included when this
+   correction is eventually committed so cache hashes and score provenance
+   are reviewable.
+10. The detection pages use the frozen full-pool core methods. The older
+    repgrid used per-cell selected subsets; its values are compatibility
+    evidence, not a second estimate of the same arm.
 
-No chart value is typed into HTML. Reports are regenerated from the CSV/JSON
-artifacts.
+## Current scientific reading
 
-## Review priorities
-
-1. Check every proposed head-to-head comparison against its full protocol
-   signature: dataset, model, split, prediction unit, metric, and grader.
-2. Confirm that published references with incomplete or different signatures
-   remain visually separate from matched local comparisons.
-3. Check that the task adapters create a meaningful local feature matrix while
-   keeping the three spectral solvers unchanged.
-4. Confirm that labels enter only evaluation and grouped uncertainty, not
-   feature construction, DUFS gates, graphs, or fusion weights.
-5. Inspect the RAGTruth sentence mapping limitation: the exact GASP cache did
-   not store scorer-token character offsets, so sentence spans use a declared
-   character-mass projection and are not labelled an exact reproduction.
-6. Confirm that PRMBench gold error labels come from the official one-based
-   `error_steps` field. The cached `labels` field is the PRM's thresholded
-   prediction and is deliberately not used as gold.
-7. Confirm that the three registered PRMBench alignment defects are excluded
-   from every compared method.
-8. Confirm that HLE and the incomplete ProcessBench 72B critic do not enter the
-   publishable suite.
-
-## Current high-level result
-
-Across the new localization protocols, IU-PCR usually improves over deployed
-U-PCR. DUFS-LIU-PCR remains nearly tied with IU-PCR, so these reports do not
-support a strong additional DUFS/Laplacian contribution. Supervised task-native
-models remain substantially stronger on PRMBench and ProcessBench.
+IU-PCR often improves over deployed U-PCR. DUFS-LIU-PCR is generally tied
+with IU-PCR, so the suite does not establish a general Laplacian gain.
+Evidence interventions are useful in RAG, but the extra evidence-graph fusion
+gain over naive contrast averaging is promising rather than confirmed.
+Task-native supervised models remain much stronger for step localization.

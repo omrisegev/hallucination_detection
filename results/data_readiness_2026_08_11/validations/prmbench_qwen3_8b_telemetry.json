@@ -1,0 +1,57 @@
+{
+  "balance": {},
+  "blockers": [],
+  "checks": {
+    "expected_rows": true,
+    "expected_span_count": true,
+    "official_loader_count_recorded": true,
+    "step_alignment": false,
+    "trace_integrity": true
+  },
+  "dataset_id": "prmbench_qwen3_8b_telemetry",
+  "expected": {
+    "official_error_class_steps": 83371,
+    "rows": 6969,
+    "step_spans": 94203
+  },
+  "file_hashes": {
+    "dataset_cache/four_localization/prmbench_qwen3_8b_telemetry_full/manifest.json": "c82955e81cf93939de950b0a567a829290e10957273d2cd0724aed2a6bf9a452",
+    "dataset_cache/four_localization/prmbench_qwen3_8b_telemetry_full/prmbench_telemetry.pkl": "b934afad0889ffacf0f4420f885ad52ddcf08f2124e506a21cd24f216bd170be"
+  },
+  "kind": "every-step benchmark telemetry",
+  "limitations": [
+    "Three rows were reported as misaligned; they must be identified and explicitly resolved or excluded before evaluation."
+  ],
+  "observed": {
+    "classes": {
+      "circular": 758,
+      "confidence": 757,
+      "correct": 758,
+      "counterfactual": 757,
+      "deception": 750,
+      "domain_inconsistency": 757,
+      "missing_condition": 756,
+      "multi_solutions": 160,
+      "redundency": 758,
+      "step_contradiction": 758
+    },
+    "misaligned_ids": [
+      "confidence_confidence_prm_train_p1_303",
+      "deception_deception_prm_test_p1_87",
+      "step_contradiction_step_contradiction_prm_test_p2_991"
+    ],
+    "misaligned_rows_or_span_sets": 3,
+    "official_error_class_steps": 83371,
+    "rows": 6969,
+    "step_spans": 94203,
+    "trace_failures": 0
+  },
+  "provenance": {},
+  "source_paths": [
+    "dataset_cache/four_localization/prmbench_qwen3_8b_telemetry_full/prmbench_telemetry.pkl",
+    "dataset_cache/four_localization/prmbench_qwen3_8b_telemetry_full/manifest.json"
+  ],
+  "status": "READY_WITH_LIMITATIONS",
+  "title": "PRMBench Qwen3-8B telemetry",
+  "warnings": []
+}

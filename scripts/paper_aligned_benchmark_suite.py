@@ -56,6 +56,9 @@ METHOD_LABELS = {
     "qwen_prm": "Qwen2.5-Math-PRM-7B",
     "mind_the_gap": "Mind the Gap",
     "qwen3_judge": "Qwen3-8B judge control",
+    "qwen72b_critic": "Qwen2.5-72B critic",
+    "gl_liu_v1": "GL-LIU v1 (frozen)",
+    "max_entropy": "Maximum token entropy",
     "refchecker_nli": "RefChecker NLI checker",
 }
 
@@ -113,6 +116,7 @@ def _trace_summary(row: Mapping[str, Any]) -> tuple[list[float], list[str]]:
 def _method_rows(
     *, protocol_id: str, signature: ProtocolSignature, labels: np.ndarray,
     groups: list[str], score_map: Mapping[str, np.ndarray], role: str = "ours",
+    method_roles: Mapping[str, str] | None = None,
     subgroup: str = "all", draws: int = 400,
 ) -> list[dict[str, Any]]:
     intervals = grouped_bootstrap_binary(labels, score_map, groups, draws=draws)
@@ -126,7 +130,8 @@ def _method_rows(
                 "model": signature.model, "split": signature.split,
                 "prediction_unit": signature.prediction_unit, "grader": signature.grader,
                 "subgroup": subgroup, "method_key": method,
-                "method": METHOD_LABELS.get(method, method), "role": role,
+                "method": METHOD_LABELS.get(method, method),
+                "role": (method_roles or {}).get(method, role),
                 "metric": metric, "value": value, "ci_low": low, "ci_high": high,
                 "n": len(labels), "positive_rate": float(np.mean(labels)),
                 "status": "local", "fidelity": "task adapter",
@@ -174,17 +179,52 @@ def build_detection_rows() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
                 "feature_contract": "fixed_stable_v1" if key == "deployed_upcr" else "mixed-v2 full pool",
                 "caveat": "Retrospective development evidence; not independent confirmation.",
             })
-    # Assign every verified cell to the paper carried by its strongest provenance row.
-    cell_paper = {}
+    # A cell can support more than one paper page.  Keep one primary page, then
+    # cross-link the same local scores to every additional verified reference.
+    cell_papers: dict[str, list[str]] = defaultdict(list)
     for row in competitors:
         if row.get("cell") not in CLUSTER_CELLS and row.get("paper_slug"):
-            cell_paper.setdefault(row["cell"], row["paper_slug"])
+            if row["paper_slug"] not in cell_papers[row["cell"]]:
+                cell_papers[row["cell"]].append(row["paper_slug"])
     for row in rows:
         if row["protocol_id"] != "internal-transfer":
-            row["protocol_id"] = "detection-" + cell_paper.get(row["cell"], "unverified")
-    for row in competitors:
-        if row.get("cell") not in cell_paper or not row.get("auroc"):
+            row["protocol_id"] = "detection-" + (cell_papers.get(row["cell"]) or ["unverified"])[0]
+    extra_local = []
+    for row in rows:
+        if row.get("role") != "ours":
             continue
+        for slug in cell_papers.get(row.get("cell", ""), [])[1:]:
+            extra_local.append({**row, "protocol_id": "detection-" + slug})
+    rows.extend(extra_local)
+
+    # INSIDE/CoQA is outside the frozen 24-cell full-pool suite, but an older
+    # same-protocol U-PCR result exists.  Include it explicitly as a legacy
+    # compatibility row so the documented loss is visible instead of absent.
+    repgrid = read_csv(ROOT / "results/repgrid/headline_X_vs_Y.csv")
+    for record in repgrid:
+        if record.get("cell") == "inside_coqa_llama7b" and record.get("method") == "upcr":
+            rows.append({
+                "protocol_id": "detection-inside-llms-internal-states-retain-the",
+                "cell": record["cell"], "subgroup": record["cell"],
+                "dataset": record.get("dataset", ""), "model": record.get("model", ""),
+                "split": "legacy frozen evaluation", "prediction_unit": "answer",
+                "grader": "legacy cell-specific grader", "method_key": "legacy_upcr",
+                "method": "Legacy U-PCR compatibility arm", "role": "ours_reference",
+                "metric": "auroc", "value": _float(record.get("X")),
+                "ci_low": "", "ci_high": "", "n": record.get("n", ""),
+                "positive_rate": "", "status": "legacy local reference",
+                "fidelity": "repgrid compatibility arm", "feature_contract": record.get("best_subset", ""),
+                "caveat": "Outside the 24-cell full-pool suite; shown to retain the documented loss, not as a core-method result.",
+            })
+
+    seen_published = set()
+    for row in competitors:
+        if row.get("cell") not in cell_papers or not row.get("auroc"):
+            continue
+        identity = (row.get("paper_slug"), row.get("cell"), row.get("method"), row.get("auroc"))
+        if identity in seen_published:
+            continue
+        seen_published.add(identity)
         rows.append({
             "protocol_id": "detection-" + row["paper_slug"], "cell": row["cell"],
             "subgroup": row["cell"], "dataset": row.get("dataset", ""),
@@ -349,7 +389,8 @@ def score_gasp_sentences(out: Path) -> tuple[list[dict[str, Any]], dict[str, Any
     )
     result = _method_rows(
         protocol_id="localization-gasp-ragtruth-sentence", signature=signature,
-        labels=y, groups=groups, score_map=spectral, draws=400,
+        labels=y, groups=groups, score_map=spectral,
+        method_roles={"gasp": "protocol_reproduction"}, draws=400,
     )
     for task in sorted(set(tasks)):
         mask = np.asarray([value == task for value in tasks])
@@ -359,7 +400,7 @@ def score_gasp_sentences(out: Path) -> tuple[list[dict[str, Any]], dict[str, Any
             protocol_id="localization-gasp-ragtruth-sentence", signature=signature,
             labels=y[mask], groups=list(np.asarray(groups)[mask]),
             score_map={key: value[mask] for key, value in spectral.items()},
-            subgroup=task, draws=200,
+            method_roles={"gasp": "protocol_reproduction"}, subgroup=task, draws=200,
         ))
     manifest = json.loads(path.with_name("manifest.json").read_text())
     for metric, value in (("auroc", manifest["target_numbers"]["span_auc"]),):
@@ -385,9 +426,13 @@ def score_gasp_sentences(out: Path) -> tuple[list[dict[str, Any]], dict[str, Any
 def score_refchecker_claims(out: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     path = ROOT / "dataset_cache/four_localization/refchecker_knowhalbench_open_full/refchecker_claim_telemetry.pkl"
     cache = _load_pickle(path)
-    grouped: dict[tuple[str, int], dict[str, Mapping[str, Any]]] = defaultdict(dict)
+    grouped: dict[tuple[str, str, str, int], dict[str, Mapping[str, Any]]] = defaultdict(dict)
     for row in cache.values():
-        grouped[(str(row["example_id"]), int(row["claim_index"]))][str(row["condition"])] = row
+        key = (
+            str(row["setting"]), str(row["generator"]),
+            str(row["example_id"]), int(row["claim_index"]),
+        )
+        grouped[key][str(row["condition"])] = row
     features, labels, groups, settings, ids = [], [], [], [], []
     names = None
     for key in sorted(grouped):
@@ -402,31 +447,37 @@ def score_refchecker_claims(out: Path) -> tuple[list[dict[str, Any]], dict[str, 
         contrast = [-(other[index] - base[index]) for index in (0, 2, 3, 5, 6, 7)]
         features.append(base + contrast)
         names = base_names + ["negative_noctx_change:" + base_names[index] for index in (0, 2, 3, 5, 6, 7)]
+        # Bootstrap complete source examples: generator-specific claims from
+        # the same source remain together within each separately scored setting.
         labels.append(int(full["label_unsupported"])); groups.append(str(full["example_id"]))
-        settings.append(str(full["setting"])); ids.append(f"{key[0]}:{key[1]}")
+        settings.append(str(full["setting"])); ids.append("|".join(map(str, key)))
     matrix = np.asarray(features, dtype=float)
-    spectral, diagnostics = fit_spectral_scores(matrix, feature_names=names or [])
     y = np.asarray(labels, dtype=int)
     signature = ProtocolSignature(
         "KnowHalBench fixed claims", "Qwen3-8B telemetry", "official fixed claims",
         "claim", "auroc", "human claim labels (unsupported binary collapse)", len(y),
     )
-    result = _method_rows(
-        protocol_id="localization-refchecker-knowhalbench-claim", signature=signature,
-        labels=y, groups=groups, score_map=spectral, draws=300,
-    )
+    # The three context settings are distinct tasks in RefChecker.  Do not pool
+    # either their unsupervised fit or their evaluation.
+    result = []
+    setting_diagnostics = {}
     for setting in sorted(set(settings)):
         mask = np.asarray([value == setting for value in settings])
+        spectral, fit_diagnostics = fit_spectral_scores(matrix[mask], feature_names=names or [])
         result.extend(_method_rows(
             protocol_id="localization-refchecker-knowhalbench-claim", signature=signature,
             labels=y[mask], groups=list(np.asarray(groups)[mask]),
-            score_map={key: value[mask] for key, value in spectral.items()},
+            score_map=spectral,
             subgroup=setting, draws=150,
         ))
+        setting_ids = list(np.asarray(ids)[mask])
+        setting_diagnostics[setting] = {
+            **fit_diagnostics, "n_claims": int(mask.sum()),
+            "score_hash": score_hash(spectral, setting_ids),
+        }
     manifest = json.loads(path.with_name("manifest.json").read_text())
     nli = manifest["arms"]["competitor"]["results"]
-    for subgroup, source in (("all", nli["overall"]),
-                             ("zero_context", nli["zero_context"]),
+    for subgroup, source in (("zero_context", nli["zero_context"]),
                              ("noisy_context", nli["noisy_context"]),
                              ("accurate_context", nli["accurate_context"])):
         result.append({
@@ -439,8 +490,13 @@ def score_refchecker_claims(out: Path) -> tuple[list[dict[str, Any]], dict[str, 
             "status": "local protocol reproduction", "fidelity": "open official checker",
             "caveat": "Three-way metric; our spectral rows use binary unsupported AUROC/AUPRC and are not directly subtracted.",
         })
-    diagnostics.update({"score_hash": score_hash(spectral, ids), "input_sha256": _sha256(path),
-                        "n_claims": len(y), "claim_extraction_evaluated": False})
+    diagnostics = {
+        "labels_seen_during_fit": False, "input_sha256": _sha256(path),
+        "n_claims": len(y), "n_grouped_claims": len(grouped),
+        "group_key_fields": ["setting", "generator", "example_id", "claim_index"],
+        "settings_pooled": False, "settings_fitted_separately": True,
+        "claim_extraction_evaluated": False, "per_setting": setting_diagnostics,
+    }
     return result, diagnostics
 
 
@@ -478,7 +534,8 @@ def score_prmbench_steps(out: Path) -> tuple[list[dict[str, Any]], dict[str, Any
             ids.append(f"{idx}:step:{step_index}")
     matrix = np.asarray(features, dtype=float)
     rng = np.random.default_rng(0)
-    fit_index = rng.choice(len(matrix), size=min(60_000, len(matrix)), replace=False)
+    fit_population = np.flatnonzero(np.asarray(categories) != "correct")
+    fit_index = rng.choice(fit_population, size=min(60_000, len(fit_population)), replace=False)
     model, diagnostics = fit_spectral_model(matrix[fit_index], feature_names=feature_names)
     spectral = apply_spectral_model(matrix, model)
     spectral["qwen_prm"] = np.asarray(competitor_scores, dtype=float)
@@ -488,10 +545,8 @@ def score_prmbench_steps(out: Path) -> tuple[list[dict[str, Any]], dict[str, Any
         "official preview rows minus 3 defects", "reasoning step", "auroc",
         "official valid/invalid step labels", len(y),
     )
-    result = _method_rows(
-        protocol_id="localization-prmbench-every-step", signature=signature,
-        labels=y, groups=groups, score_map=spectral, draws=250,
-    )
+    result = []
+    paper_categories = sorted(set(categories) - {"correct"})
     for category in sorted(set(categories)):
         mask = np.asarray([value == category for value in categories])
         if len(np.unique(y[mask])) != 2:
@@ -500,8 +555,16 @@ def score_prmbench_steps(out: Path) -> tuple[list[dict[str, Any]], dict[str, Any
             protocol_id="localization-prmbench-every-step", signature=signature,
             labels=y[mask], groups=list(np.asarray(groups)[mask]),
             score_map={key: value[mask] for key, value in spectral.items()},
-            subgroup=category, draws=100,
+            method_roles={"qwen_prm": "published_ceiling"}, subgroup=category, draws=100,
         ))
+    error_mask = np.asarray([value in paper_categories for value in categories])
+    result.extend(_method_rows(
+        protocol_id="localization-prmbench-every-step", signature=signature,
+        labels=y[error_mask], groups=list(np.asarray(groups)[error_mask]),
+        score_map={key: value[error_mask] for key, value in spectral.items()},
+        method_roles={"qwen_prm": "published_ceiling"},
+        subgroup="all nine paper classes (constructed control excluded)", draws=250,
+    ))
     manifest = json.loads(prm_path.with_name("manifest.json").read_text())
     result.append({
         "protocol_id": "localization-prmbench-every-step", "dataset": "PRMBench Preview",
@@ -519,6 +582,9 @@ def score_prmbench_steps(out: Path) -> tuple[list[dict[str, Any]], dict[str, Any
         "excluded_ids": sorted(set(excluded)), "expected_excluded_ids": sorted(BAD_PRM_IDS),
         "gold_label_source": "telemetry.error_steps (one-based official human error indices)",
         "prediction_labels_field_used_as_gold": False,
+        "pooled_headline_excludes": ["correct"],
+        "multi_solutions_note": "Part of the nine paper classes; it has no annotated error steps and therefore no standalone binary AUROC.",
+        "step_adapter": "mean and max of five token-resolved views; not the 30-feature response contract",
     })
     return result, diagnostics
 
@@ -563,6 +629,13 @@ def score_processbench_first_error(out: Path) -> tuple[list[dict[str, Any]], dic
 
     prm_manifest = json.loads((ROOT / "dataset_cache/four_localization/pb_prm_qwen25math7b_full/manifest.json").read_text())
     judge_manifest = json.loads((ROOT / "dataset_cache/four_localization/pb_uprm_baseline_qwen3_8b_full/manifest.json").read_text())
+    critic_path = ROOT / "dataset_cache/four_localization/pb_critic_qwen72b_full/manifest.json"
+    critic_manifest = json.loads(critic_path.read_text())
+    frozen_rows = read_csv(ROOT / "results/ours_only_localization_v1/final_systems_per_cell.csv")
+    frozen = {
+        row["subset"]: row for row in frozen_rows
+        if row.get("model") == "qwen3_8b" and row.get("system") == "ours_only"
+    }
     rows = []
     for subset in subsets:
         for method, record in per_subset[subset].items():
@@ -571,13 +644,25 @@ def score_processbench_first_error(out: Path) -> tuple[list[dict[str, Any]], dic
                 "model": "fixed ProcessBench reasoning traces", "split": "official subset",
                 "prediction_unit": "first erroneous step / no-error", "grader": "ProcessBench labels",
                 "subgroup": subset, "method_key": method, "method": METHOD_LABELS[method],
-                "role": "published_peer" if method == "mind_the_gap" else "ours",
+                "role": "published_peer" if method == "mind_the_gap" else "ours_exploratory",
                 "metric": "f1", "value": record["f1"], "ci_low": "", "ci_high": "",
                 "uncertainty_sd": record.get("f1_sd", ""), "n": record["n"],
                 "positive_rate": "", "status": "local protocol reproduction",
                 "fidelity": "same fixed trace and official metric",
-                "caveat": "A calibration half selects only the operating threshold; score fitting is label-free.",
+                "caveat": "Exploratory matched pairing, not the frozen GL-LIU v1 system. A calibration half selects the operating threshold.",
             })
+        frozen_row = frozen[subset]
+        rows.append({
+            "protocol_id": "localization-processbench-first-error", "dataset": "ProcessBench",
+            "model": "fixed ProcessBench reasoning traces", "split": "official subset",
+            "prediction_unit": "first erroneous step / no-error", "grader": "ProcessBench labels",
+            "subgroup": subset, "method_key": "gl_liu_v1", "method": METHOD_LABELS["gl_liu_v1"],
+            "role": "ours_frozen", "metric": "f1", "value": _float(frozen_row["f1"]),
+            "ci_low": "", "ci_high": "", "uncertainty_sd": _float(frozen_row["f1_sd"]),
+            "n": int(frozen_row["n"]), "positive_rate": "", "status": "frozen confirmation system",
+            "fidelity": "preselected GL-LIU v1 pairing",
+            "caveat": "Detector and locator were selected only on the declared Qwen3-4B development cells.",
+        })
         for key, manifest, role in (
             ("qwen_prm", prm_manifest, "published_ceiling"),
             ("qwen3_judge", judge_manifest, "control"),
@@ -594,13 +679,25 @@ def score_processbench_first_error(out: Path) -> tuple[list[dict[str, Any]], dic
                 "fidelity": "official fixed traces and metric",
                 "caveat": "Supervised PRM is a ceiling; the Qwen3 judge is a control, not uPRM.",
             })
+        critic = critic_manifest["cells"][subset]
+        rows.append({
+            "protocol_id": "localization-processbench-first-error", "dataset": "ProcessBench",
+            "model": "fixed ProcessBench reasoning traces", "split": "official subset",
+            "prediction_unit": "first erroneous step / no-error", "grader": "ProcessBench labels",
+            "subgroup": subset, "method_key": "qwen72b_critic", "method": METHOD_LABELS["qwen72b_critic"],
+            "role": "published_peer", "metric": "f1", "value": float(critic["f1"]) / 100.0,
+            "ci_low": "", "ci_high": "", "n": per_subset[subset]["mind_the_gap"]["n"],
+            "positive_rate": "", "status": "local protocol reproduction",
+            "fidelity": "ProcessBench critic protocol; different critic model",
+            "caveat": "Uses ProcessBench's critic prompt with Qwen2.5-72B instead of QwQ-32B-Preview.",
+        })
     # The macro is a descriptive mean over the four official subsets, not a suite-wide macro.
     for method in (*chosen, "mind_the_gap"):
         values = [per_subset[subset][method]["f1"] for subset in subsets]
         rows.append({
             **{key: rows[0][key] for key in ("protocol_id", "dataset", "model", "split", "prediction_unit", "grader")},
             "subgroup": "four-subset macro", "method_key": method, "method": METHOD_LABELS[method],
-            "role": "published_peer" if method == "mind_the_gap" else "ours",
+            "role": "published_peer" if method == "mind_the_gap" else "ours_exploratory",
             "metric": "f1", "value": float(np.mean(values)), "ci_low": "", "ci_high": "",
             "n": 3400, "positive_rate": 2221 / 3400, "status": "local protocol reproduction",
             "fidelity": "unweighted official-subset macro", "caveat": "No cross-task averaging.",
@@ -613,12 +710,64 @@ def score_processbench_first_error(out: Path) -> tuple[list[dict[str, Any]], dic
             "subgroup": "four-subset macro", "method_key": key, "method": METHOD_LABELS[key],
             "role": role, "metric": "f1", "value": float(np.mean(values)), "ci_low": "", "ci_high": "",
             "n": 3400, "positive_rate": 2221 / 3400, "status": "exact local competitor run",
-            "fidelity": "unweighted official-subset macro", "caveat": "No critic macro: its four-subset package is incomplete.",
+            "fidelity": "unweighted official-subset macro", "caveat": "All four official subsets are present.",
+        })
+    frozen_values = [_float(frozen[subset]["f1"]) for subset in subsets]
+    critic_values = [float(critic_manifest["cells"][subset]["f1"]) / 100.0 for subset in subsets]
+    for key, values, role, fidelity, caveat in (
+        ("gl_liu_v1", frozen_values, "ours_frozen", "preselected GL-LIU v1 official-subset macro",
+         "Frozen detector/locator selection; thresholds use split-local calibration labels."),
+        ("qwen72b_critic", critic_values, "published_peer", "ProcessBench critic-protocol macro",
+         "Different critic model from the paper; all four subsets complete."),
+    ):
+        rows.append({
+            **{field: rows[0][field] for field in ("protocol_id", "dataset", "model", "split", "prediction_unit", "grader")},
+            "subgroup": "four-subset macro", "method_key": key, "method": METHOD_LABELS[key],
+            "role": role, "metric": "f1", "value": float(np.mean(values)),
+            "ci_low": "", "ci_high": "", "n": 3400, "positive_rate": 2221 / 3400,
+            "status": "local protocol reproduction", "fidelity": fidelity, "caveat": caveat,
+        })
+
+    # Independent-family confirmation: the frozen GL-LIU system is essentially
+    # tied with a transparent max-token-entropy detector.  This prevents an
+    # advisor-facing overclaim based only on the in-family Qwen3 panel.
+    external = read_csv(ROOT / "results/gl_liu_external_v1/llama31_8b/external_systems_per_cell.csv")
+    for record in external:
+        if record.get("system") not in {"gl_liu_v1_frozen", "candidate_detector__baseline_max_entropy"}:
+            continue
+        key = "gl_liu_v1" if record["system"] == "gl_liu_v1_frozen" else "max_entropy"
+        rows.append({
+            "protocol_id": "localization-processbench-first-error", "dataset": "ProcessBench",
+            "model": "Llama-3.1-8B external-family fixed traces", "split": "official subset",
+            "prediction_unit": "first erroneous step / no-error", "grader": "ProcessBench labels",
+            "subgroup": "external-family: " + record["subset"], "method_key": key,
+            "method": METHOD_LABELS[key], "role": "ours_frozen" if key == "gl_liu_v1" else "transparent_baseline",
+            "metric": "f1", "value": _float(record["f1"]), "ci_low": "", "ci_high": "",
+            "uncertainty_sd": _float(record.get("f1_sd")), "n": int(record["n"]),
+            "positive_rate": "", "status": "independent-family confirmation",
+            "fidelity": "same fixed trace and official metric",
+            "caveat": "The 0.21-point macro margin between GL-LIU and max entropy is noise-level and changes sign by subset.",
+        })
+    external_macro = read_csv(ROOT / "results/gl_liu_external_v1/llama31_8b/external_macro_f1.csv")
+    macro_by_system = {row["system"]: _float(row["macro_f1"]) for row in external_macro}
+    for key, system, role in (("gl_liu_v1", "gl_liu_v1_frozen", "ours_frozen"),
+                              ("max_entropy", "candidate_detector__baseline_max_entropy", "transparent_baseline")):
+        rows.append({
+            "protocol_id": "localization-processbench-first-error", "dataset": "ProcessBench",
+            "model": "Llama-3.1-8B external-family fixed traces", "split": "official four-subset macro",
+            "prediction_unit": "first erroneous step / no-error", "grader": "ProcessBench labels",
+            "subgroup": "external-family: four-subset macro", "method_key": key,
+            "method": METHOD_LABELS[key], "role": role, "metric": "f1",
+            "value": macro_by_system[system], "ci_low": "", "ci_high": "", "n": 3400,
+            "positive_rate": "", "status": "independent-family confirmation",
+            "fidelity": "unweighted official-subset macro",
+            "caveat": "GL-LIU 0.3171 versus max entropy 0.3150: noise-level difference, not a confirmed win.",
         })
     diagnostics.update({
         "core_method_systems": chosen, "threshold_splits": 100,
-        "critic_included": False,
-        "critic_reason": "Qwen2.5-72B critic lacks all four subsets and a final manifest",
+        "frozen_gl_liu_system": {"detector": "answer_dufs_liu_mixed", "locator": "token_temporal_liu_l0p3"},
+        "critic_included": True, "critic_manifest_sha256": _sha256(critic_path),
+        "external_family_controls": ["gl_liu_v1_frozen", "candidate_detector__baseline_max_entropy"],
     })
     return rows, diagnostics
 
@@ -653,6 +802,51 @@ def score_semgrad_detection(out: Path) -> tuple[list[dict[str, Any]], dict[str, 
             "input_sha256": _sha256(path), "n": len(samples),
             "grader_note": "BEM matches the original SemGrad automatic answer-equivalence stage; manual audit remains a limitation.",
         }
+    return rows, diagnostics
+
+
+def score_ragtruth_detection(out: Path) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Load the frozen Step-239 RAG response-detection result.
+
+    These rows were already score-hashed before labels were opened in the
+    original experiment.  This suite does not refit or retune any arm.
+    """
+
+    path = ROOT / "results/rag_ec_v1/full_test_split_result.json"
+    artifact = json.loads(path.read_text())
+    ci = artifact["grouped_bootstrap_auroc_ci"]
+    rows = []
+    labels = {
+        "likelihood_drop": "Likelihood drop",
+        "gasp_reproduction": "GASP reproduction",
+        "fusion_isolation_naive_avg": "Evidence-contrast naive average",
+        "ec_upcr": "Evidence-Contrast U-PCR",
+        "full_context_only_dufs_liu": "Full-context-only DUFS-LIU",
+        "ec_dufs_liu_temporal": "Evidence-Contrast DUFS-LIU (temporal graph)",
+        "ec_dufs_liu_evidence_graph": "Evidence-Contrast DUFS-LIU (evidence graph)",
+    }
+    for record in artifact["detector_rows"]:
+        arm = record["arm"]
+        interval = ci[arm]
+        rows.append({
+            "protocol_id": "detection-ragtruth-evidence-contrast", "dataset": "RAGTruth",
+            "model": "Qwen2.5-1.5B-Instruct scorer", "split": "full test split",
+            "prediction_unit": "answer", "grader": "RAGTruth response label",
+            "subgroup": "all responses", "method_key": arm, "method": labels.get(arm, arm),
+            "role": "ours" if arm.startswith("ec_") else "transparent_baseline",
+            "metric": "auroc", "value": record["auroc"], "ci_low": interval["ci_lo"],
+            "ci_high": interval["ci_hi"], "n": record["n_valid"], "positive_rate": "",
+            "status": "frozen exploratory result", "fidelity": "hashed before labels",
+            "caveat": "RAGTruth labels were previously opened; no arm was tuned inside this reporting suite.",
+        })
+    delta = artifact["paired_diff_vs_fusion_isolation_naive_avg"]["ec_dufs_liu_evidence_graph"]
+    diagnostics = {
+        "input_sha256": _sha256(path), "score_hashes_before_labels": artifact["score_hashes_before_labels"]["response"],
+        "n_responses": artifact["n_responses"], "n_source_ids": artifact["n_source_ids"],
+        "bootstrap_group": "source_id", "novelty_test": delta,
+        "novelty_confirmed": bool(delta["ci_lo"] > 0),
+        "scientific_conclusion": "Evidence intervention design is supported; fusion gain over naive averaging is not confirmed.",
+    }
     return rows, diagnostics
 
 
@@ -724,6 +918,9 @@ LOCALIZATION_META = {
         "limitations": [
             "Three named alignment-defect IDs are excluded from every method.",
             "Qwen PRM is trained with process supervision and is a ceiling, not a label-free peer.",
+            "The headline excludes only the constructed correct controls. The multi_solutions class remains part of the nine paper classes but has no standalone binary AUROC because it contains no annotated error step.",
+            "The adapter uses mean/max summaries of five token views; it is not the 30-feature response contract.",
+            "71.0% of steps are shorter than 32 tokens (median 24), so many long-trace spectral features are unavailable.",
         ],
     },
     "localization-processbench-first-error": {
@@ -737,9 +934,27 @@ LOCALIZATION_META = {
         "limitations": [
             "Qwen2.5-Math-PRM uses human process supervision and is a ceiling.",
             "The Qwen3 judge row is a control, not the uPRM algorithm.",
-            "The Qwen2.5-72B critic is excluded because its four-subset package is incomplete.",
+            "The Qwen2.5-72B row reproduces the ProcessBench critic protocol with a different critic model.",
+            "GL-LIU uses labels on declared development cells for component selection and on each calibration half for its threshold.",
+            "On the independent Llama-3.1-8B family, GL-LIU is essentially tied with maximum token entropy.",
         ],
     },
+}
+
+
+RAG_DETECTION_META = {
+    "title": "RAGTruth response detection with evidence contrast",
+    "paper": "RAGTruth / GASP protocol context",
+    "benchmark_revision": "RAGTruth full test; frozen Step-239 result",
+    "prompt": "Fixed answer rescored under evidence interventions",
+    "decoding": "Teacher-forced rescoring; no answer regeneration",
+    "bootstrap_group": "source_id",
+    "readiness": "EXPLORATORY",
+    "limitations": [
+        "RAGTruth labels were opened in earlier development.",
+        "The evidence-graph gain over naive averaging is +2.51 points with a 95% interval crossing zero.",
+        "The intervention design is supported; the additional fusion mechanism is not confirmed.",
+    ],
 }
 
 
@@ -754,7 +969,34 @@ def build_registry(rows: list[dict[str, Any]], competitors: list[dict[str, str]]
     for protocol_id in sorted(grouped):
         protocol_rows = grouped[protocol_id]
         first = protocol_rows[0]
-        if protocol_id.startswith("detection-"):
+        if protocol_id.startswith("detection-semgrad-"):
+            dataset = protocol_id.rsplit("-", 1)[-1]
+            entry = {
+                "protocol_id": protocol_id, "task_family": "answer hallucination detection",
+                "title": f"SemGrad {dataset.upper()} detection", "paper": "SemGrad evaluation protocol",
+                "benchmark_revision": "full cluster run", "dataset": dataset.upper(), "model": "Qwen3-8B",
+                "split": "full frozen run", "sample_count": max(int(_float(row.get("n"), 0)) for row in protocol_rows),
+                "prompt": "dataset question; one generated answer", "decoding": "temperature 0",
+                "grader": "BEM answer-equivalence model", "prediction_unit": "answer",
+                "metrics": ["AUROC", "AUPRC"], "bootstrap_group": "question ID",
+                "published_competitors": [], "published_tables": [],
+                "local_reproduction_status": "paper-faithful automatic grading stage",
+                "fidelity_level": "ready with manual-audit limitation",
+                "feature_contract": "common 8-feature trace adapter to the frozen solvers",
+                "readiness": "BACKGROUND_ONLY", "limitations": ["BEM disagreements still merit a stratified human audit."],
+            }
+        elif protocol_id == "detection-ragtruth-evidence-contrast":
+            entry = {
+                "protocol_id": protocol_id, "task_family": "RAG answer hallucination detection",
+                **RAG_DETECTION_META, "dataset": "RAGTruth", "model": "Qwen2.5-1.5B-Instruct scorer",
+                "split": "full test split", "sample_count": max(int(_float(row.get("n"), 0)) for row in protocol_rows),
+                "grader": "RAGTruth response labels", "prediction_unit": "answer",
+                "metrics": ["AUROC"], "published_competitors": [], "published_tables": [],
+                "local_reproduction_status": "frozen exploratory evaluation",
+                "fidelity_level": "scores hashed before labels; labels previously opened in this research program",
+                "feature_contract": "evidence-contrast response arms from Step 239",
+            }
+        elif protocol_id.startswith("detection-"):
             slug = protocol_id.removeprefix("detection-")
             refs = competitor_by_slug.get(slug, [])
             local_cells = sorted({row.get("cell", "") for row in protocol_rows if row.get("role") == "ours"})
@@ -777,6 +1019,7 @@ def build_registry(rows: list[dict[str, Any]], competitors: list[dict[str, str]]
                 "limitations": [
                     "These cells were used during development and are not independent confirmation.",
                     "Published values are shown as paper references; a delta is not computed where split/grader details are incomplete.",
+                    "This suite intentionally uses the frozen full-pool core methods. The older repgrid uses per-cell best-subset compatibility arms and can therefore report different values; it is not interchangeable with this table.",
                 ],
             }
         elif protocol_id == "internal-transfer":
@@ -792,22 +1035,6 @@ def build_registry(rows: list[dict[str, Any]], competitors: list[dict[str, str]]
                 "local_reproduction_status": "internal transfer only", "fidelity_level": "no paper comparison",
                 "feature_contract": "frozen core contracts", "readiness": "INTERNAL_APPENDIX",
                 "limitations": ["No verified published comparator exists for these exact cells."],
-            }
-        elif protocol_id.startswith("detection-semgrad-"):
-            dataset = protocol_id.rsplit("-", 1)[-1]
-            entry = {
-                "protocol_id": protocol_id, "task_family": "answer hallucination detection",
-                "title": f"SemGrad {dataset.upper()} detection", "paper": "SemGrad evaluation protocol",
-                "benchmark_revision": "full cluster run", "dataset": dataset.upper(), "model": "Qwen3-8B",
-                "split": "full frozen run", "sample_count": max(int(_float(row.get("n"), 0)) for row in protocol_rows),
-                "prompt": "dataset question; one generated answer", "decoding": "temperature 0",
-                "grader": "BEM answer-equivalence model", "prediction_unit": "answer",
-                "metrics": ["AUROC", "AUPRC"], "bootstrap_group": "question ID",
-                "published_competitors": [], "published_tables": [],
-                "local_reproduction_status": "paper-faithful automatic grading stage",
-                "fidelity_level": "ready with manual-audit limitation",
-                "feature_contract": "common 8-feature trace adapter to the frozen solvers",
-                "readiness": "READY", "limitations": ["BEM disagreements still merit a stratified human audit."],
             }
         else:
             meta = LOCALIZATION_META[protocol_id]
@@ -825,10 +1052,15 @@ def build_registry(rows: list[dict[str, Any]], competitors: list[dict[str, str]]
                 "fidelity_level": "exact reproduction, protocol reproduction, and adaptation are separated",
                 "feature_contract": "task-local risk matrix; same frozen three solvers",
             }
+        stored_passes: Any = 1
+        if protocol_id in {"detection-ragtruth-evidence-contrast", "localization-gasp-ragtruth-sentence"}:
+            stored_passes = "2 + number of LOO evidence chunks"
+        elif protocol_id == "localization-refchecker-knowhalbench-claim":
+            stored_passes = 2
         entry["method_access"] = {
-            "Deployed U-PCR": {"labels_for_fit": "no", "passes": 1, "access": "gray-box token probabilities"},
-            "IU-PCR": {"labels_for_fit": "no", "passes": 1, "access": "gray-box token probabilities"},
-            "DUFS-LIU-PCR": {"labels_for_fit": "no", "passes": 1, "access": "gray-box token probabilities; graph fit"},
+            "Deployed U-PCR": {"labels_for_fit": "no", "passes": stored_passes, "access": "gray-box token probabilities"},
+            "IU-PCR": {"labels_for_fit": "no", "passes": stored_passes, "access": "gray-box token probabilities"},
+            "DUFS-LIU-PCR": {"labels_for_fit": "no", "passes": stored_passes, "access": "gray-box token probabilities; graph fit"},
         }
         registry.append(entry)
     return registry
@@ -856,6 +1088,16 @@ def _fmt(value: Any) -> str:
         return "—"
     try:
         return f"{float(value):.4f}"
+    except (TypeError, ValueError):
+        return esc(value)
+
+
+def _fmt_count(value: Any) -> str:
+    if value in (None, ""):
+        return "—"
+    try:
+        number = float(value)
+        return str(int(number)) if number.is_integer() else f"{number:.4f}"
     except (TypeError, ValueError):
         return esc(value)
 
@@ -896,8 +1138,10 @@ def render_protocol(entry: Mapping[str, Any], rows: list[dict[str, Any]], regist
                     f"{bar_chart(group_rows, metric=metric, title=f'{subgroup}: {metric} ({label})')}</div>"
                 )
     table_rows = "".join(
-        "<tr>" + "".join(f"<td>{_fmt(row.get(key))}</td>" for key in (
-            "subgroup", "method", "role", "metric", "value", "ci_low", "ci_high", "n", "positive_rate", "fidelity", "caveat"
+        "<tr>" + "".join(f"<td>{formatter(row.get(key))}</td>" for key, formatter in (
+            ("subgroup", _fmt), ("method", _fmt), ("role", _fmt), ("metric", _fmt),
+            ("value", _fmt), ("ci_low", _fmt), ("ci_high", _fmt), ("n", _fmt_count),
+            ("positive_rate", _fmt), ("fidelity", _fmt), ("caveat", _fmt),
         )) + "</tr>" for row in rows
     )
     access_rows = "".join(
@@ -905,7 +1149,15 @@ def render_protocol(entry: Mapping[str, Any], rows: list[dict[str, Any]], regist
         for method, data in entry["method_access"].items()
     )
     limitations = "".join(f"<li>{esc(item)}</li>" for item in entry.get("limitations", []))
-    local = [row for row in rows if row.get("role") == "ours" and row.get("subgroup") in {"all", "four-subset macro"}]
+    local_roles = {"ours", "ours_frozen"}
+    headline_subgroups = {
+        "all", "all responses", "four-subset macro",
+        "all nine paper classes (constructed control excluded)",
+    }
+    local = [
+        row for row in rows
+        if row.get("role") in local_roles and row.get("subgroup") in headline_subgroups
+    ]
     conclusion = "No common local headline metric is available yet."
     if local:
         by_metric = defaultdict(list)
@@ -934,7 +1186,7 @@ def render_index(registry: list[dict[str, Any]], rows: list[dict[str, Any]]) -> 
     body = f"""
     <section class='card'><h2>How to read this suite</h2><p>Each row is one paper-aligned protocol. AUROC for answer detection is not averaged with span F1, claim AUROC, step AUROC, or first-error F1. Published references, exact reproductions, protocol reproductions, and adaptations are marked separately.</p><p><b>Core progression:</b> Deployed U-PCR → IU-PCR → DUFS-LIU-PCR. “IO-PCR” is normalized to IU-PCR.</p></section>
     <section class='card'><h2>Protocol index</h2><div class='table-wrap'><table><thead><tr><th>Protocol</th><th>Task family</th><th>Prediction unit</th><th>Metrics</th><th>Readiness</th><th>n</th></tr></thead><tbody>{table}</tbody></table></div></section>
-    <section class='card'><h2>Claim boundary</h2><ul><li>The frozen 24 cells are retrospective development evidence.</li><li>RAGTruth pages are exploratory because labels were already opened.</li><li>HLE is intentionally absent until the paper's GPT-4o grader is reproduced.</li><li>The incomplete ProcessBench critic is intentionally absent from the headline.</li></ul></section>
+    <section class='card'><h2>Claim boundary</h2><ul><li>The frozen 24 cells are retrospective development evidence.</li><li>RAGTruth pages are exploratory because labels were already opened.</li><li>HLE is intentionally absent until the paper's GPT-4o grader is reproduced.</li><li>The complete Qwen2.5-72B critic is a ProcessBench protocol reproduction with a different critic model.</li></ul></section>
     """
     return _page("Paper-aligned hallucination benchmark suite", body, registry)
 
@@ -961,6 +1213,7 @@ def score_all(out: Path) -> None:
 
     stages = [
         ("semgrad", score_semgrad_detection),
+        ("ragtruth_detection", score_ragtruth_detection),
         ("ragtruth_spans", score_ragtruth_spans),
         ("gasp_sentences", score_gasp_sentences),
         ("refchecker_claims", score_refchecker_claims),
@@ -984,8 +1237,9 @@ def score_all(out: Path) -> None:
         write_json(out / "score_progress.json", progress)
 
     # Acceptance checks that operate on the combined artifact.
-    if any("critic" in str(row.get("method", "")).lower() for row in all_rows):
-        raise AssertionError("incomplete ProcessBench critic entered the score table")
+    critic_rows = [row for row in all_rows if row.get("method_key") == "qwen72b_critic"]
+    if len(critic_rows) != 5:
+        raise AssertionError("complete ProcessBench critic must have four subsets plus one macro")
     forbid_cross_task_macro(all_rows)
     prm_diag = diagnostics["prmbench_steps"]
     if sorted(prm_diag["excluded_ids"]) != sorted(BAD_PRM_IDS):
@@ -1010,13 +1264,16 @@ def report_all(out: Path) -> None:
         out.joinpath(f"{entry['protocol_id']}.html").write_text(
             render_protocol(entry, rows, registry), encoding="utf-8"
         )
-    files = [out / "index.html", out / "benchmark_scores.csv", out / "protocol_registry.json"]
+    files = [out / "index.html", out / "benchmark_scores.csv", out / "protocol_registry.json", out / "score_progress.json"]
     files.extend(out / f"{entry['protocol_id']}.html" for entry in registry)
+    files.extend(sorted((out / "diagnostics").glob("*.json")))
+    if (out / "REVIEW_GUIDE.md").exists():
+        files.append(out / "REVIEW_GUIDE.md")
     manifest = {
         "version": VERSION, "generated_from_machine_readable_rows": True,
         "n_protocols": len(registry), "n_score_rows": len(rows),
         "cross_task_macro": False, "algorithms_modified": False,
-        "hles_included": False, "incomplete_processbench_critic_included": False,
+        "hles_included": False, "complete_processbench_critic_included": True,
         "method_aliases": {"IO-PCR": "IU-PCR"},
         "files": {str(path.relative_to(ROOT)): _sha256(path) for path in files},
     }

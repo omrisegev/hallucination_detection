@@ -1,0 +1,60 @@
+{
+  "balance": {
+    "clean": 1757,
+    "hallucinated": 943,
+    "hallucinated_rate": 0.34925925925925927
+  },
+  "blockers": [],
+  "checks": {
+    "cache_keys": true,
+    "condition_token_identity": true,
+    "expected_conditions": true,
+    "expected_responses": true,
+    "full_noctx_complete": true,
+    "loo_indexes_contiguous": true,
+    "trace_integrity": true,
+    "unique_conditions": true
+  },
+  "dataset_id": "ragtruth_full_evidence",
+  "expected": {
+    "conditions": 16200,
+    "responses": 2700
+  },
+  "file_hashes": {
+    "local_cache/ragtruth_ec/test/manifest.json": "5f587bdf62da5e2eb57cd1e261b1bb762d376e1757e84d3cefd5796e9e17ec7c",
+    "local_cache/ragtruth_ec/test/ragtruth_ec_test.pkl": "4e22bc99d53587be5a1082c9e25720cb225dc04d3a5be87934fa06c9d3ca3f51"
+  },
+  "kind": "RAG evidence-condition telemetry",
+  "limitations": [
+    "RAGTruth labels have already been opened in earlier exploratory work."
+  ],
+  "observed": {
+    "conditions": 16200,
+    "duplicate_conditions": 0,
+    "key_mismatches": 0,
+    "missing_full_noctx_pairs": 0,
+    "noncontiguous_loo": 0,
+    "responses": 2700,
+    "sources": 450,
+    "task_counts": {
+      "Data2txt": 900,
+      "QA": 900,
+      "Summary": 900
+    },
+    "token_mismatches_across_conditions": 0,
+    "trace_failures": 0
+  },
+  "provenance": {
+    "fidelity_level": null,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "paper": null,
+    "written_utc": "2026-08-09T05:59:46+00:00"
+  },
+  "source_paths": [
+    "local_cache/ragtruth_ec/test/ragtruth_ec_test.pkl",
+    "local_cache/ragtruth_ec/test/manifest.json"
+  ],
+  "status": "READY_WITH_LIMITATIONS",
+  "title": "RAGTruth full test evidence-condition cache",
+  "warnings": []
+}

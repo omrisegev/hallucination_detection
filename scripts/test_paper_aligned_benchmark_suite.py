@@ -16,10 +16,11 @@ if str(ROOT) not in sys.path:
 
 from scripts.paper_aligned_benchmark_suite import (
     BAD_PRM_IDS, build_detection_rows, build_registry, render_protocol,
+    score_refchecker_claims,
 )
 from spectral_utils.paper_benchmark_suite import (
     ProtocolSignature, assert_protocol_match, binary_metrics,
-    fit_spectral_scores, forbid_cross_task_macro, score_hash, write_csv,
+    fit_spectral_scores, forbid_cross_task_macro, read_csv, score_hash, write_csv,
 )
 
 
@@ -42,6 +43,14 @@ def test_no_cross_task_macro() -> None:
         pass
     else:
         raise AssertionError("suite macro was accepted")
+    try:
+        forbid_cross_task_macro([{
+            "protocol_id": "not-processbench", "subgroup": "four-subset macro",
+        }])
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("out-of-protocol four-subset macro was accepted")
 
 
 def test_lambda_zero_and_direction() -> None:
@@ -78,8 +87,25 @@ def test_generated_registry_and_no_incomplete_critic() -> None:
     registry = build_registry(rows, competitors)
     assert any(row["protocol_id"] == "internal-transfer" for row in registry)
     assert len([row for row in rows if row["protocol_id"] == "internal-transfer" and row["role"] == "ours"]) == 18
-    assert not any("critic" in str(row.get("method", "")).lower() for row in rows)
     assert len(BAD_PRM_IDS) == 3
+
+
+def test_detection_rows_are_deduplicated_and_losses_visible() -> None:
+    rows, _ = build_detection_rows()
+    published = [row for row in rows if str(row.get("role", "")).startswith("published")]
+    identities = [(row["protocol_id"], row.get("cell"), row.get("method_key"), row.get("value")) for row in published]
+    assert len(identities) == len(set(identities))
+    inside = [row for row in rows if row.get("cell") == "inside_coqa_llama7b"]
+    assert any(row.get("role") == "ours_reference" for row in inside)
+    assert any(str(row.get("role", "")).startswith("published") for row in inside)
+
+
+def test_refchecker_full_key_and_no_setting_pool() -> None:
+    rows, diagnostics = score_refchecker_claims(Path("."))
+    assert diagnostics["n_claims"] == 10_733
+    assert diagnostics["n_grouped_claims"] == 10_733
+    assert diagnostics["settings_pooled"] is False
+    assert {row["subgroup"] for row in rows} == {"zero_context", "noisy_context", "accurate_context"}
 
 
 def test_report_value_comes_from_result_row() -> None:
@@ -95,6 +121,21 @@ def test_report_value_comes_from_result_row() -> None:
         path = Path(folder) / "rows.csv"
         write_csv(path, protocol_rows)
         assert f"{sentinel}" in path.read_text()
+
+
+def test_generated_artifact_role_and_control_invariants() -> None:
+    score_path = ROOT / "results/paper_aligned_benchmark_suite_2026_08_11/benchmark_scores.csv"
+    if not score_path.exists():
+        return
+    rows = read_csv(score_path)
+    critic = [row for row in rows if row.get("method_key") == "qwen72b_critic"]
+    assert len(critic) == 5
+    assert all(row.get("role") == "published_ceiling" for row in rows if row.get("method_key") == "qwen_prm")
+    assert all(row.get("role") == "protocol_reproduction" for row in rows if row.get("method_key") == "gasp")
+    refchecker = [row for row in rows if row.get("protocol_id") == "localization-refchecker-knowhalbench-claim"]
+    assert {row["subgroup"] for row in refchecker} == {"zero_context", "noisy_context", "accurate_context"}
+    external = [row for row in rows if row.get("subgroup") == "external-family: four-subset macro"]
+    assert {row["method_key"] for row in external} == {"gl_liu_v1", "max_entropy"}
 
 
 def main() -> None:

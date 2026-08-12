@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data Readiness Report</title>
+<style>
+:root{--ink:#172033;--muted:#5d6878;--line:#dce3ec;--paper:#fff;--bg:#f4f7fb;--blue:#245ca6}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Arial,sans-serif;line-height:1.52}
+main{max-width:1180px;margin:0 auto;padding:42px 24px 80px}h1{font-size:42px;margin:0 0 8px}h2{margin-top:42px;color:#174f91}h3{margin:0}h4{margin-bottom:6px}
+.lede{font-size:18px;color:var(--muted);max-width:900px}.panel,.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 4px 18px rgba(23,32,51,.05)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:24px 0}.stat{background:white;border:1px solid var(--line);border-radius:12px;padding:16px}.stat b{display:block;font-size:28px}.stat span{color:var(--muted);font-size:13px}
+.table-wrap{overflow:auto;background:white;border:1px solid var(--line);border-radius:14px}table{border-collapse:collapse;width:100%;min-width:900px}th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#eaf1fa;color:#174f91}
+.pill{display:inline-block;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;letter-spacing:.02em}.ready{background:#d9f4e7;color:#11613f}.limited{background:#fff0bf;color:#7b5700}.incomplete{background:#ffe2c9;color:#833900}.blocked{background:#ffdadd;color:#871f2d}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}pre{white-space:pre-wrap;background:#f5f7fa;padding:12px;border-radius:8px;max-height:330px;overflow:auto}
+.checks{list-style:none;padding:0}.check{padding:4px 0}.pass{color:#176c49}.fail{color:#a52638;font-weight:700}code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}details summary{cursor:pointer;color:#245ca6}svg{width:100%;height:auto}
+.note{border-left:4px solid #386cb0;padding:10px 14px;background:#edf4fc}@media(max-width:800px){.stats,.grid{grid-template-columns:1fr 1fr}}@media(max-width:560px){.stats,.grid{grid-template-columns:1fr}h1{font-size:34px}}
+</style></head><body><main>
+<h1>Data Readiness Report</h1>
+<p class="lede">A dataset-only audit completed before any detection, localization, U-PCR, or DUFS evaluation. Raw artifacts were read but not modified.</p>
+<p><strong>Registry fingerprint:</strong> <code>a219757cacf901e88ed3a0f3e271414335fc0e9d00c6a2c6e679a87ba87a1c6e</code></p>
+<div class="stats"><div class="stat"><b>15</b><span>packages inspected</span></div><div class="stat"><b>9</b><span>ready</span></div><div class="stat"><b>6</b><span>ready with limitations</span></div><div class="stat"><b>0</b><span>incomplete or blocked</span></div></div>
+<section class="panel"><h2>Readiness distribution</h2><svg viewBox="0 0 880 80" role="img" aria-label="Dataset readiness counts"><rect x="0.0" y="15" width="528.0" height="48" fill="#1f9d68" rx="4" /><rect x="528.0" y="15" width="352.0" height="48" fill="#d99a14" rx="4" /><rect x="880.0" y="15" width="0.0" height="48" fill="#d46a1f" rx="4" /><rect x="880.0" y="15" width="0.0" height="48" fill="#c43d4b" rx="4" /><text x="264.0" y="45" text-anchor="middle" fill="white" font-size="15" font-weight="700">9</text><text x="704.0" y="45" text-anchor="middle" fill="white" font-size="15" font-weight="700">6</text></svg></section>
+<h2>Readiness matrix</h2><div class="table-wrap"><table><thead><tr><th>Package</th><th>Kind</th><th>Count</th><th>Observed balance</th><th>Status</th></tr></thead><tbody><tr><td><code>frozen_24cell</code></td><td>answer-level feature matrices</td><td>48,607</td><td>positive: 21,940, negative: 26,667, positive_rate: 45.1%</td><td><span class="pill limited">READY_WITH_LIMITATIONS</span></td></tr><tr><td><code>semgrad_sciq</code></td><td>answer-level generation telemetry</td><td>1,000</td><td>positive: 612, negative: 388, positive_rate: 61.2%</td><td><span class="pill ready">READY</span></td></tr><tr><td><code>semgrad_truthfulqa</code></td><td>answer-level generation telemetry</td><td>817</td><td>positive: 315, negative: 502, positive_rate: 38.6%</td><td><span class="pill ready">READY</span></td></tr><tr><td><code>hle_qwen72b</code></td><td>answer-level generation telemetry</td><td>2,158</td><td>correct: 68, incorrect: 2,090, accuracy: 3.2%</td><td><span class="pill limited">READY_WITH_LIMITATIONS</span></td></tr><tr><td><code>ragtruth_full_evidence</code></td><td>RAG evidence-condition telemetry</td><td>2,700</td><td>hallucinated: 943, clean: 1,757, hallucinated_rate: 34.9%</td><td><span class="pill limited">READY_WITH_LIMITATIONS</span></td></tr><tr><td><code>gasp_ragtruth_400</code></td><td>RAG evidence-condition telemetry</td><td>400</td><td>hallucinated: 200, clean: 200, hallucinated_rate: 50.0%</td><td><span class="pill limited">READY_WITH_LIMITATIONS</span></td></tr><tr><td><code>refchecker_claims</code></td><td>claim-level evidence telemetry</td><td>10,733</td><td>Contradiction: 935, Entailment: 7,176, Neutral: 2,622</td><td><span class="pill limited">READY_WITH_LIMITATIONS</span></td></tr><tr><td><code>processbench_qwen3_4b</code></td><td>first-error benchmark telemetry</td><td>3,400</td><td>first_error_present: 2,221, fully_correct: 1,179, error_rate: 65.3%</td><td><span class="pill ready">READY</span></td></tr><tr><td><code>processbench_qwen3_8b</code></td><td>first-error benchmark telemetry</td><td>3,400</td><td>first_error_present: 2,221, fully_correct: 1,179, error_rate: 65.3%</td><td><span class="pill ready">READY</span></td></tr><tr><td><code>processbench_qwen25math7b_predictions</code></td><td>competitor prediction cache</td><td>3,400</td><td>—</td><td><span class="pill ready">READY</span></td></tr><tr><td><code>processbench_qwen3_8b_judge_control</code></td><td>competitor prediction cache</td><td>3,400</td><td>—</td><td><span class="pill ready">READY</span></td></tr><tr><td><code>processbench_qwen72b_critic</code></td><td>competitor prediction cache</td><td>3,400</td><td>—</td><td><span class="pill ready">READY</span></td></tr><tr><td><code>prmbench_qwen3_8b_telemetry</code></td><td>every-step benchmark telemetry</td><td>6,969</td><td>—</td><td><span class="pill limited">READY_WITH_LIMITATIONS</span></td></tr><tr><td><code>prmbench_qwen25math7b_predictions</code></td><td>competitor prediction cache</td><td>6,969</td><td>—</td><td><span class="pill ready">READY</span></td></tr><tr><td><code>ragtruth_lettucedetect_predictions</code></td><td>competitor span predictions</td><td>2,700</td><td>hallucinated: 943, clean: 1,757, hallucinated_rate: 34.9%</td><td><span class="pill ready">READY</span></td></tr></tbody></table></div>
+<h2>Evaluation use</h2><div class="panel"><p><strong>READY_WITH_LIMITATIONS is usable.</strong> It means the evaluation and its claim must stay inside the documented scope. INCOMPLETE or BLOCKED packages are not usable yet.</p><div class="table-wrap"><table><thead><tr><th>Package</th><th>Allowed evaluation use</th></tr></thead><tbody><tr><td><code>frozen_24cell</code></td><td>Yes — development/exploratory evaluation only; not an independent confirmation set.</td></tr><tr><td><code>semgrad_sciq</code></td><td>Yes — use under its frozen benchmark protocol.</td></tr><tr><td><code>semgrad_truthfulqa</code></td><td>Yes — use under its frozen benchmark protocol.</td></tr><tr><td><code>hle_qwen72b</code></td><td>Yes — interim evaluation only; not a paper-faithful HLE score until the original GPT-4o judge is run.</td></tr><tr><td><code>ragtruth_full_evidence</code></td><td>Yes — exploratory evaluation only because these labels were already opened.</td></tr><tr><td><code>gasp_ragtruth_400</code></td><td>Yes — protocol-level comparison only; the paper&#x27;s exact 400 IDs and splitter are unavailable.</td></tr><tr><td><code>refchecker_claims</code></td><td>Yes — fixed-claim verification only; do not claim claim-extraction performance.</td></tr><tr><td><code>processbench_qwen3_4b</code></td><td>Yes — use under its frozen benchmark protocol.</td></tr><tr><td><code>processbench_qwen3_8b</code></td><td>Yes — use under its frozen benchmark protocol.</td></tr><tr><td><code>processbench_qwen25math7b_predictions</code></td><td>Yes — use under its frozen benchmark protocol.</td></tr><tr><td><code>processbench_qwen3_8b_judge_control</code></td><td>Yes — use under its frozen benchmark protocol.</td></tr><tr><td><code>processbench_qwen72b_critic</code></td><td>Yes — use under its frozen benchmark protocol.</td></tr><tr><td><code>prmbench_qwen3_8b_telemetry</code></td><td>Conditionally — first resolve or explicitly exclude the three identified alignment defects.</td></tr><tr><td><code>prmbench_qwen25math7b_predictions</code></td><td>Yes — use under its frozen benchmark protocol.</td></tr><tr><td><code>ragtruth_lettucedetect_predictions</code></td><td>Yes — use under its frozen benchmark protocol.</td></tr></tbody></table></div></div>
+<h2>Observed class balance</h2><div class="panel"><p>Bars show the recorded positive, hallucinated, or first-error rate. They describe the data; the audit did not rebalance it.</p><svg viewBox="0 0 840 271" role="img" aria-label="Observed positive or error rates"><text x="0" y="32" font-size="12">frozen_24cell</text><rect x="250" y="18" width="520" height="18" rx="3" fill="#e9eef5"/><rect x="250" y="18" width="234.7" height="18" rx="3" fill="#386cb0"/><text x="780" y="32" font-size="12">45.1%</text><text x="0" y="63" font-size="12">semgrad_sciq</text><rect x="250" y="49" width="520" height="18" rx="3" fill="#e9eef5"/><rect x="250" y="49" width="318.2" height="18" rx="3" fill="#386cb0"/><text x="780" y="63" font-size="12">61.2%</text><text x="0" y="94" font-size="12">semgrad_truthfulqa</text><rect x="250" y="80" width="520" height="18" rx="3" fill="#e9eef5"/><rect x="250" y="80" width="200.5" height="18" rx="3" fill="#386cb0"/><text x="780" y="94" font-size="12">38.6%</text><text x="0" y="125" font-size="12">ragtruth_full_evidence</text><rect x="250" y="111" width="520" height="18" rx="3" fill="#e9eef5"/><rect x="250" y="111" width="181.6" height="18" rx="3" fill="#386cb0"/><text x="780" y="125" font-size="12">34.9%</text><text x="0" y="156" font-size="12">gasp_ragtruth_400</text><rect x="250" y="142" width="520" height="18" rx="3" fill="#e9eef5"/><rect x="250" y="142" width="260.0" height="18" rx="3" fill="#386cb0"/><text x="780" y="156" font-size="12">50.0%</text><text x="0" y="187" font-size="12">processbench_qwen3_4b</text><rect x="250" y="173" width="520" height="18" rx="3" fill="#e9eef5"/><rect x="250" y="173" width="339.7" height="18" rx="3" fill="#386cb0"/><text x="780" y="187" font-size="12">65.3%</text><text x="0" y="218" font-size="12">processbench_qwen3_8b</text><rect x="250" y="204" width="520" height="18" rx="3" fill="#e9eef5"/><rect x="250" y="204" width="339.7" height="18" rx="3" fill="#386cb0"/><text x="780" y="218" font-size="12">65.3%</text><text x="0" y="249" font-size="12">ragtruth_lettucedetect_predictions</text><rect x="250" y="235" width="520" height="18" rx="3" fill="#e9eef5"/><rect x="250" y="235" width="181.6" height="18" rx="3" fill="#386cb0"/><text x="780" y="249" font-size="12">34.9%</text></svg></div>
+<h2>Package details</h2><div class="grid"><article class="card"><div class="card-head"><h3>Frozen 24-cell development collection</h3><span class="pill limited">READY_WITH_LIMITATIONS</span></div><p><code>frozen_24cell</code> · answer-level feature matrices</p><details><summary>Observed structure</summary><pre>{
+  &quot;cells&quot;: 24,
+  &quot;features_max&quot;: 30,
+  &quot;features_min&quot;: 19,
+  &quot;rows&quot;: 48607
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_cell_count</li><li class="check pass">PASS: expected_row_count</li><li class="check pass">PASS: matrix_shapes</li><li class="check pass">PASS: finite_matrices</li><li class="check pass">PASS: binary_labels</li></ul><h4>Limitations and blockers</h4><ul><li>The cells use heterogeneous datasets and graders and were repeatedly used during method development.</li></ul></article><article class="card"><div class="card-head"><h3>SemGrad SciQ with BEM labels</h3><span class="pill ready">READY</span></div><p><code>semgrad_sciq</code> · answer-level generation telemetry</p><details><summary>Observed structure</summary><pre>{
+  &quot;duplicate_question_texts&quot;: 0,
+  &quot;rows&quot;: 1000,
+  &quot;trace_failures&quot;: 0
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_rows</li><li class="check pass">PASS: trace_integrity</li><li class="check pass">PASS: labels_present</li></ul><h4>Limitations and blockers</h4><ul><li>None.</li></ul></article><article class="card"><div class="card-head"><h3>SemGrad TruthfulQA with BEM labels</h3><span class="pill ready">READY</span></div><p><code>semgrad_truthfulqa</code> · answer-level generation telemetry</p><details><summary>Observed structure</summary><pre>{
+  &quot;duplicate_question_texts&quot;: 0,
+  &quot;rows&quot;: 817,
+  &quot;trace_failures&quot;: 0
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_rows</li><li class="check pass">PASS: trace_integrity</li><li class="check pass">PASS: labels_present</li></ul><h4>Limitations and blockers</h4><ul><li>None.</li></ul></article><article class="card"><div class="card-head"><h3>Humanity&#x27;s Last Exam Qwen2.5-72B</h3><span class="pill limited">READY_WITH_LIMITATIONS</span></div><p><code>hle_qwen72b</code> · answer-level generation telemetry</p><details><summary>Observed structure</summary><pre>{
+  &quot;duplicate_question_texts&quot;: 0,
+  &quot;interim_judge&quot;: {
+    &quot;accuracy&quot;: 0.03151065801668211,
+    &quot;agreement_with_provisional_rouge&quot;: 0.9304911955514366,
+    &quot;by_answer_type&quot;: {
+      &quot;exactMatch&quot;: {
+        &quot;accuracy&quot;: 0.01884498480243161,
+        &quot;correct&quot;: 31,
+        &quot;total&quot;: 1645
+      },
+      &quot;multipleChoice&quot;: {
+        &quot;accuracy&quot;: 0.07212475633528265,
+        &quot;correct&quot;: 37,
+        &quot;total&quot;: 513
+      }
+    },
+    &quot;correct&quot;: 68,
+    &quot;incorrect&quot;: 2090,
+    &quot;judge_correct_rouge_incorrect&quot;: 27,
+    &quot;judge_incorrect_rouge_correct&quot;: 123,
+    &quot;rows&quot;: 2158
+  },
+  &quot;interim_judge_manifest&quot;: &quot;results/data_readiness_2026_08_11/hle_codex_5p6_sol_xhigh_manifest.json&quot;,
+  &quot;rows&quot;: 2158,
+  &quot;trace_failures&quot;: 0
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_rows</li><li class="check pass">PASS: trace_integrity</li><li class="check pass">PASS: labels_present</li><li class="check pass">PASS: interim_exact_row_count</li><li class="check pass">PASS: interim_source_alignment</li><li class="check pass">PASS: interim_unique_row_keys</li><li class="check pass">PASS: interim_deterministic_row_order</li><li class="check pass">PASS: interim_unique_source_ids</li><li class="check pass">PASS: interim_required_fields</li><li class="check pass">PASS: interim_allowed_labels</li><li class="check pass">PASS: interim_confidence_range</li><li class="check pass">PASS: interim_single_judge_model</li><li class="check pass">PASS: interim_single_reasoning_effort</li><li class="check pass">PASS: interim_judgment_hash</li><li class="check pass">PASS: interim_queue_hash</li><li class="check pass">PASS: interim_manifest_complete</li></ul><h4>Limitations and blockers</h4><ul><li>The complete labels come from an interim gpt-5.6-sol xhigh Codex judge, not the original paper&#x27;s GPT-4o judge. Preserve both label sets when paper-faithful grading becomes available.</li></ul></article><article class="card"><div class="card-head"><h3>RAGTruth full test evidence-condition cache</h3><span class="pill limited">READY_WITH_LIMITATIONS</span></div><p><code>ragtruth_full_evidence</code> · RAG evidence-condition telemetry</p><details><summary>Observed structure</summary><pre>{
+  &quot;conditions&quot;: 16200,
+  &quot;duplicate_conditions&quot;: 0,
+  &quot;key_mismatches&quot;: 0,
+  &quot;missing_full_noctx_pairs&quot;: 0,
+  &quot;noncontiguous_loo&quot;: 0,
+  &quot;responses&quot;: 2700,
+  &quot;sources&quot;: 450,
+  &quot;task_counts&quot;: {
+    &quot;Data2txt&quot;: 900,
+    &quot;QA&quot;: 900,
+    &quot;Summary&quot;: 900
+  },
+  &quot;token_mismatches_across_conditions&quot;: 0,
+  &quot;trace_failures&quot;: 0
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_responses</li><li class="check pass">PASS: expected_conditions</li><li class="check pass">PASS: unique_conditions</li><li class="check pass">PASS: cache_keys</li><li class="check pass">PASS: full_noctx_complete</li><li class="check pass">PASS: condition_token_identity</li><li class="check pass">PASS: loo_indexes_contiguous</li><li class="check pass">PASS: trace_integrity</li></ul><h4>Limitations and blockers</h4><ul><li>RAGTruth labels have already been opened in earlier exploratory work.</li></ul></article><article class="card"><div class="card-head"><h3>GASP-style balanced RAGTruth cohort</h3><span class="pill limited">READY_WITH_LIMITATIONS</span></div><p><code>gasp_ragtruth_400</code> · RAG evidence-condition telemetry</p><details><summary>Observed structure</summary><pre>{
+  &quot;conditions&quot;: 2508,
+  &quot;duplicate_conditions&quot;: 0,
+  &quot;key_mismatches&quot;: 0,
+  &quot;missing_full_noctx_pairs&quot;: 0,
+  &quot;noncontiguous_loo&quot;: 0,
+  &quot;responses&quot;: 400,
+  &quot;sources&quot;: 228,
+  &quot;task_counts&quot;: {
+    &quot;Data2txt&quot;: 214,
+    &quot;Summary&quot;: 186
+  },
+  &quot;token_mismatches_across_conditions&quot;: 0,
+  &quot;trace_failures&quot;: 0
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_responses</li><li class="check pass">PASS: expected_conditions</li><li class="check pass">PASS: unique_conditions</li><li class="check pass">PASS: cache_keys</li><li class="check pass">PASS: full_noctx_complete</li><li class="check pass">PASS: condition_token_identity</li><li class="check pass">PASS: loo_indexes_contiguous</li><li class="check pass">PASS: trace_integrity</li></ul><h4>Limitations and blockers</h4><ul><li>The paper did not publish its 400 response IDs or sentence splitter; this is a protocol-level reproduction.</li></ul></article><article class="card"><div class="card-head"><h3>RefChecker fixed human-labelled claims</h3><span class="pill limited">READY_WITH_LIMITATIONS</span></div><p><code>refchecker_claims</code> · claim-level evidence telemetry</p><details><summary>Observed structure</summary><pre>{
+  &quot;claims&quot;: 10733,
+  &quot;conditions&quot;: 21466,
+  &quot;incomplete_pairs&quot;: 0,
+  &quot;settings&quot;: {
+    &quot;accurate_context&quot;: 3994,
+    &quot;noisy_context&quot;: 3420,
+    &quot;zero_context&quot;: 3319
+  },
+  &quot;token_mismatches_across_conditions&quot;: 0,
+  &quot;trace_failures&quot;: 0
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_claims</li><li class="check pass">PASS: expected_conditions</li><li class="check pass">PASS: full_noctx_complete</li><li class="check pass">PASS: condition_token_identity</li><li class="check pass">PASS: trace_integrity</li><li class="check pass">PASS: three_way_labels_complete</li></ul><h4>Limitations and blockers</h4><ul><li>The gold labels cover the fixed shipped claims. This is claim checking, not claim extraction.</li></ul></article><article class="card"><div class="card-head"><h3>ProcessBench telemetry (qwen3 4b)</h3><span class="pill ready">READY</span></div><p><code>processbench_qwen3_4b</code> · first-error benchmark telemetry</p><details><summary>Observed structure</summary><pre>{
+  &quot;alignment_failures&quot;: 0,
+  &quot;missing_lfs_objects&quot;: [],
+  &quot;rows&quot;: 3400,
+  &quot;subset_counts&quot;: {
+    &quot;gsm8k&quot;: 400,
+    &quot;math&quot;: 1000,
+    &quot;olympiadbench&quot;: 1000,
+    &quot;omnimath&quot;: 1000
+  },
+  &quot;subsets&quot;: 4,
+  &quot;trace_failures&quot;: 0
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: all_lfs_objects_local</li><li class="check pass">PASS: expected_rows</li><li class="check pass">PASS: all_four_subsets</li><li class="check pass">PASS: trace_integrity</li><li class="check pass">PASS: step_alignment</li></ul><h4>Limitations and blockers</h4><ul><li>None.</li></ul></article><article class="card"><div class="card-head"><h3>ProcessBench telemetry (qwen3 8b)</h3><span class="pill ready">READY</span></div><p><code>processbench_qwen3_8b</code> · first-error benchmark telemetry</p><details><summary>Observed structure</summary><pre>{
+  &quot;alignment_failures&quot;: 0,
+  &quot;missing_lfs_objects&quot;: [],
+  &quot;rows&quot;: 3400,
+  &quot;subset_counts&quot;: {
+    &quot;gsm8k&quot;: 400,
+    &quot;math&quot;: 1000,
+    &quot;olympiadbench&quot;: 1000,
+    &quot;omnimath&quot;: 1000
+  },
+  &quot;subsets&quot;: 4,
+  &quot;trace_failures&quot;: 0
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: all_lfs_objects_local</li><li class="check pass">PASS: expected_rows</li><li class="check pass">PASS: all_four_subsets</li><li class="check pass">PASS: trace_integrity</li><li class="check pass">PASS: step_alignment</li></ul><h4>Limitations and blockers</h4><ul><li>None.</li></ul></article><article class="card"><div class="card-head"><h3>ProcessBench Qwen2.5-Math-PRM predictions</h3><span class="pill ready">READY</span></div><p><code>processbench_qwen25math7b_predictions</code> · competitor prediction cache</p><details><summary>Observed structure</summary><pre>{
+  &quot;manifest&quot;: true,
+  &quot;rows&quot;: 3400,
+  &quot;subset_counts&quot;: {
+    &quot;gsm8k&quot;: 400,
+    &quot;math&quot;: 1000,
+    &quot;olympiadbench&quot;: 1000,
+    &quot;omnimath&quot;: 1000
+  },
+  &quot;subsets&quot;: 4
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_rows</li><li class="check pass">PASS: all_four_subsets</li><li class="check pass">PASS: manifest_present</li></ul><h4>Limitations and blockers</h4><ul><li>None.</li></ul></article><article class="card"><div class="card-head"><h3>ProcessBench Qwen3-8B judge-control predictions</h3><span class="pill ready">READY</span></div><p><code>processbench_qwen3_8b_judge_control</code> · competitor prediction cache</p><details><summary>Observed structure</summary><pre>{
+  &quot;manifest&quot;: true,
+  &quot;rows&quot;: 3400,
+  &quot;subset_counts&quot;: {
+    &quot;gsm8k&quot;: 400,
+    &quot;math&quot;: 1000,
+    &quot;olympiadbench&quot;: 1000,
+    &quot;omnimath&quot;: 1000
+  },
+  &quot;subsets&quot;: 4
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_rows</li><li class="check pass">PASS: all_four_subsets</li><li class="check pass">PASS: manifest_present</li></ul><h4>Limitations and blockers</h4><ul><li>None.</li></ul></article><article class="card"><div class="card-head"><h3>ProcessBench Qwen2.5-72B critic predictions</h3><span class="pill ready">READY</span></div><p><code>processbench_qwen72b_critic</code> · competitor prediction cache</p><details><summary>Observed structure</summary><pre>{
+  &quot;manifest&quot;: true,
+  &quot;rows&quot;: 3400,
+  &quot;subset_counts&quot;: {
+    &quot;gsm8k&quot;: 400,
+    &quot;math&quot;: 1000,
+    &quot;olympiadbench&quot;: 1000,
+    &quot;omnimath&quot;: 1000
+  },
+  &quot;subsets&quot;: 4
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_rows</li><li class="check pass">PASS: all_four_subsets</li><li class="check pass">PASS: manifest_present</li></ul><h4>Limitations and blockers</h4><ul><li>None.</li></ul></article><article class="card"><div class="card-head"><h3>PRMBench Qwen3-8B telemetry</h3><span class="pill limited">READY_WITH_LIMITATIONS</span></div><p><code>prmbench_qwen3_8b_telemetry</code> · every-step benchmark telemetry</p><details><summary>Observed structure</summary><pre>{
+  &quot;classes&quot;: {
+    &quot;circular&quot;: 758,
+    &quot;confidence&quot;: 757,
+    &quot;correct&quot;: 758,
+    &quot;counterfactual&quot;: 757,
+    &quot;deception&quot;: 750,
+    &quot;domain_inconsistency&quot;: 757,
+    &quot;missing_condition&quot;: 756,
+    &quot;multi_solutions&quot;: 160,
+    &quot;redundency&quot;: 758,
+    &quot;step_contradiction&quot;: 758
+  },
+  &quot;misaligned_ids&quot;: [
+    &quot;confidence_confidence_prm_train_p1_303&quot;,
+    &quot;deception_deception_prm_test_p1_87&quot;,
+    &quot;step_contradiction_step_contradiction_prm_test_p2_991&quot;
+  ],
+  &quot;misaligned_rows_or_span_sets&quot;: 3,
+  &quot;official_error_class_steps&quot;: 83371,
+  &quot;rows&quot;: 6969,
+  &quot;step_spans&quot;: 94203,
+  &quot;trace_failures&quot;: 0
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_rows</li><li class="check pass">PASS: expected_span_count</li><li class="check pass">PASS: official_loader_count_recorded</li><li class="check pass">PASS: trace_integrity</li><li class="check fail">FAIL: step_alignment</li></ul><h4>Limitations and blockers</h4><ul><li>Three rows were reported as misaligned; they must be identified and explicitly resolved or excluded before evaluation.</li></ul></article><article class="card"><div class="card-head"><h3>PRMBench Qwen2.5-Math-PRM predictions</h3><span class="pill ready">READY</span></div><p><code>prmbench_qwen25math7b_predictions</code> · competitor prediction cache</p><details><summary>Observed structure</summary><pre>{
+  &quot;labels&quot;: 94203,
+  &quot;rewards&quot;: 94203,
+  &quot;rows&quot;: 6969
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_rows</li><li class="check pass">PASS: label_reward_lengths</li></ul><h4>Limitations and blockers</h4><ul><li>None.</li></ul></article><article class="card"><div class="card-head"><h3>RAGTruth LettuceDetect prediction package</h3><span class="pill ready">READY</span></div><p><code>ragtruth_lettucedetect_predictions</code> · competitor span predictions</p><details><summary>Observed structure</summary><pre>{
+  &quot;malformed_spans&quot;: 0,
+  &quot;rows&quot;: 2700,
+  &quot;truncated&quot;: 0,
+  &quot;unique_response_ids&quot;: 2700
+}</pre></details><h4>Checks</h4><ul class="checks"><li class="check pass">PASS: expected_rows</li><li class="check pass">PASS: unique_response_ids</li><li class="check pass">PASS: span_bounds</li><li class="check pass">PASS: no_truncation</li></ul><h4>Limitations and blockers</h4><ul><li>None.</li></ul></article></div>
+<h2>Canonical contract</h2><div class="panel"><p>Future consumers address data with stable dataset, record, source, split, task, model, condition, parent, artifact, and row-key fields. Labels remain in a separate sidecar with explicit provenance.</p></div>
+<h2>Decision</h2><p class="note">HLE has complete interim gpt-5.6-sol xhigh labels; they are not paper-faithful GPT-4o labels. READY and READY_WITH_LIMITATIONS packages may be evaluated now; limited packages must retain their stated scope in every result. Incomplete competitor caches remain unavailable until their missing files land.</p>
+<details><summary>Plain-text report source</summary><pre># Data Readiness Report
+
+**Date:** 2026-08-11
+
+**Schema:** `data-readiness-v1-2026-08-11`
+
+**Registry fingerprint:** `a219757cacf901e88ed3a0f3e271414335fc0e9d00c6a2c6e679a87ba87a1c6e`
+
+## Purpose
+
+This report validates the collected data before any hallucination method is run. It contains no U-PCR, DUFS, detection, or localization result. Raw artifacts were read but not changed.
+
+A package is **READY** when its expected files, rows, labels and structural alignment passed. **READY_WITH_LIMITATIONS** means evaluation is allowed only within the stated scope and with the caveat attached; it does not mean the package is unusable. **INCOMPLETE** means files are missing. **BLOCKED** means a required label or integrity condition is invalid.
+
+## Headline
+
+- 15 packages were inspected.
+- 15 are structurally loadable now (9 READY and 6 READY_WITH_LIMITATIONS).
+- 0 package(s) are incomplete and 0 package(s) are blocked.
+- Class balance was measured, not modified. No example was resampled or deleted.
+- Review queues were prepared under ignored `local_cache`; protected benchmark text is not copied into this report.
+
+## Readiness matrix
+
+| Dataset package | Kind | Count | Balance | Status |
+|---|---|---:|---|---|
+| `frozen_24cell` | answer-level feature matrices | 48,607 | positive: 21,940, negative: 26,667, positive_rate: 45.1% | **READY_WITH_LIMITATIONS** |
+| `semgrad_sciq` | answer-level generation telemetry | 1,000 | positive: 612, negative: 388, positive_rate: 61.2% | **READY** |
+| `semgrad_truthfulqa` | answer-level generation telemetry | 817 | positive: 315, negative: 502, positive_rate: 38.6% | **READY** |
+| `hle_qwen72b` | answer-level generation telemetry | 2,158 | correct: 68, incorrect: 2,090, accuracy: 3.2% | **READY_WITH_LIMITATIONS** |
+| `ragtruth_full_evidence` | RAG evidence-condition telemetry | 2,700 | hallucinated: 943, clean: 1,757, hallucinated_rate: 34.9% | **READY_WITH_LIMITATIONS** |
+| `gasp_ragtruth_400` | RAG evidence-condition telemetry | 400 | hallucinated: 200, clean: 200, hallucinated_rate: 50.0% | **READY_WITH_LIMITATIONS** |
+| `refchecker_claims` | claim-level evidence telemetry | 10,733 | Contradiction: 935, Entailment: 7,176, Neutral: 2,622 | **READY_WITH_LIMITATIONS** |
+| `processbench_qwen3_4b` | first-error benchmark telemetry | 3,400 | first_error_present: 2,221, fully_correct: 1,179, error_rate: 65.3% | **READY** |
+| `processbench_qwen3_8b` | first-error benchmark telemetry | 3,400 | first_error_present: 2,221, fully_correct: 1,179, error_rate: 65.3% | **READY** |
+| `processbench_qwen25math7b_predictions` | competitor prediction cache | 3,400 | — | **READY** |
+| `processbench_qwen3_8b_judge_control` | competitor prediction cache | 3,400 | — | **READY** |
+| `processbench_qwen72b_critic` | competitor prediction cache | 3,400 | — | **READY** |
+| `prmbench_qwen3_8b_telemetry` | every-step benchmark telemetry | 6,969 | — | **READY_WITH_LIMITATIONS** |
+| `prmbench_qwen25math7b_predictions` | competitor prediction cache | 6,969 | — | **READY** |
+| `ragtruth_lettucedetect_predictions` | competitor span predictions | 2,700 | hallucinated: 943, clean: 1,757, hallucinated_rate: 34.9% | **READY** |
+
+## Can these packages be used for evaluation?
+
+Yes. Both READY and READY_WITH_LIMITATIONS packages can support evaluation. The latter must be used only for the claim stated below; INCOMPLETE and BLOCKED packages cannot be used yet.
+
+| Package | Evaluation use |
+|---|---|
+| `frozen_24cell` | Yes — development/exploratory evaluation only; not an independent confirmation set. |
+| `semgrad_sciq` | Yes — use under its frozen benchmark protocol. |
+| `semgrad_truthfulqa` | Yes — use under its frozen benchmark protocol. |
+| `hle_qwen72b` | Yes — interim evaluation only; not a paper-faithful HLE score until the original GPT-4o judge is run. |
+| `ragtruth_full_evidence` | Yes — exploratory evaluation only because these labels were already opened. |
+| `gasp_ragtruth_400` | Yes — protocol-level comparison only; the paper&#x27;s exact 400 IDs and splitter are unavailable. |
+| `refchecker_claims` | Yes — fixed-claim verification only; do not claim claim-extraction performance. |
+| `processbench_qwen3_4b` | Yes — use under its frozen benchmark protocol. |
+| `processbench_qwen3_8b` | Yes — use under its frozen benchmark protocol. |
+| `processbench_qwen25math7b_predictions` | Yes — use under its frozen benchmark protocol. |
+| `processbench_qwen3_8b_judge_control` | Yes — use under its frozen benchmark protocol. |
+| `processbench_qwen72b_critic` | Yes — use under its frozen benchmark protocol. |
+| `prmbench_qwen3_8b_telemetry` | Conditionally — first resolve or explicitly exclude the three identified alignment defects. |
+| `prmbench_qwen25math7b_predictions` | Yes — use under its frozen benchmark protocol. |
+| `ragtruth_lettucedetect_predictions` | Yes — use under its frozen benchmark protocol. |
+
+## Required data work
+
+1. **PRMBench Qwen3-8B telemetry:**
+   - Failed checks: step_alignment.
+
+## Dataset details
+
+### Frozen 24-cell development collection
+
+- **Package ID:** `frozen_24cell`
+- **Status:** READY_WITH_LIMITATIONS
+- **Observed:** {&quot;cells&quot;: 24, &quot;features_max&quot;: 30, &quot;features_min&quot;: 19, &quot;rows&quot;: 48607}
+- **Balance:** positive: 21,940, negative: 26,667, positive_rate: 45.1%
+- **Checks passed:** 5/5
+- **Limitations:** The cells use heterogeneous datasets and graders and were repeatedly used during method development.
+
+### SemGrad SciQ with BEM labels
+
+- **Package ID:** `semgrad_sciq`
+- **Status:** READY
+- **Observed:** {&quot;duplicate_question_texts&quot;: 0, &quot;rows&quot;: 1000, &quot;trace_failures&quot;: 0}
+- **Balance:** positive: 612, negative: 388, positive_rate: 61.2%
+- **Checks passed:** 3/3
+
+### SemGrad TruthfulQA with BEM labels
+
+- **Package ID:** `semgrad_truthfulqa`
+- **Status:** READY
+- **Observed:** {&quot;duplicate_question_texts&quot;: 0, &quot;rows&quot;: 817, &quot;trace_failures&quot;: 0}
+- **Balance:** positive: 315, negative: 502, positive_rate: 38.6%
+- **Checks passed:** 3/3
+
+### Humanity&#x27;s Last Exam Qwen2.5-72B
+
+- **Package ID:** `hle_qwen72b`
+- **Status:** READY_WITH_LIMITATIONS
+- **Observed:** {&quot;duplicate_question_texts&quot;: 0, &quot;interim_judge&quot;: {&quot;accuracy&quot;: 0.03151065801668211, &quot;agreement_with_provisional_rouge&quot;: 0.9304911955514366, &quot;by_answer_type&quot;: {&quot;exactMatch&quot;: {&quot;accuracy&quot;: 0.01884498480243161, &quot;correct&quot;: 31, &quot;total&quot;: 1645}, &quot;multipleChoice&quot;: {&quot;accuracy&quot;: 0.07212475633528265, &quot;correct&quot;: 37, &quot;total&quot;: 513}}, &quot;correct&quot;: 68, &quot;incorrect&quot;: 2090, &quot;judge_correct_rouge_incorrect&quot;: 27, &quot;judge_incorrect_rouge_correct&quot;: 123, &quot;rows&quot;: 2158}, &quot;interim_judge_manifest&quot;: &quot;results/data_readiness_2026_08_11/hle_codex_5p6_sol_xhigh_manifest.json&quot;, &quot;rows&quot;: 2158, &quot;trace_failures&quot;: 0}
+- **Balance:** correct: 68, incorrect: 2,090, accuracy: 3.2%
+- **Checks passed:** 16/16
+- **Limitations:** The complete labels come from an interim gpt-5.6-sol xhigh Codex judge, not the original paper&#x27;s GPT-4o judge. Preserve both label sets when paper-faithful grading becomes available.
+
+### RAGTruth full test evidence-condition cache
+
+- **Package ID:** `ragtruth_full_evidence`
+- **Status:** READY_WITH_LIMITATIONS
+- **Observed:** {&quot;conditions&quot;: 16200, &quot;duplicate_conditions&quot;: 0, &quot;key_mismatches&quot;: 0, &quot;missing_full_noctx_pairs&quot;: 0, &quot;noncontiguous_loo&quot;: 0, &quot;responses&quot;: 2700, &quot;sources&quot;: 450, &quot;task_counts&quot;: {&quot;Data2txt&quot;: 900, &quot;QA&quot;: 900, &quot;Summary&quot;: 900}, &quot;token_mismatches_across_conditions&quot;: 0, &quot;trace_failures&quot;: 0}
+- **Balance:** hallucinated: 943, clean: 1,757, hallucinated_rate: 34.9%
+- **Checks passed:** 8/8
+- **Limitations:** RAGTruth labels have already been opened in earlier exploratory work.
+
+### GASP-style balanced RAGTruth cohort
+
+- **Package ID:** `gasp_ragtruth_400`
+- **Status:** READY_WITH_LIMITATIONS
+- **Observed:** {&quot;conditions&quot;: 2508, &quot;duplicate_conditions&quot;: 0, &quot;key_mismatches&quot;: 0, &quot;missing_full_noctx_pairs&quot;: 0, &quot;noncontiguous_loo&quot;: 0, &quot;responses&quot;: 400, &quot;sources&quot;: 228, &quot;task_counts&quot;: {&quot;Data2txt&quot;: 214, &quot;Summary&quot;: 186}, &quot;token_mismatches_across_conditions&quot;: 0, &quot;trace_failures&quot;: 0}
+- **Balance:** hallucinated: 200, clean: 200, hallucinated_rate: 50.0%
+- **Checks passed:** 8/8
+- **Limitations:** The paper did not publish its 400 response IDs or sentence splitter; this is a protocol-level reproduction.
+
+### RefChecker fixed human-labelled claims
+
+- **Package ID:** `refchecker_claims`
+- **Status:** READY_WITH_LIMITATIONS
+- **Observed:** {&quot;claims&quot;: 10733, &quot;conditions&quot;: 21466, &quot;incomplete_pairs&quot;: 0, &quot;settings&quot;: {&quot;accurate_context&quot;: 3994, &quot;noisy_context&quot;: 3420, &quot;zero_context&quot;: 3319}, &quot;token_mismatches_across_conditions&quot;: 0, &quot;trace_failures&quot;: 0}
+- **Balance:** Contradiction: 935, Entailment: 7,176, Neutral: 2,622
+- **Checks passed:** 6/6
+- **Limitations:** The gold labels cover the fixed shipped claims. This is claim checking, not claim extraction.
+
+### ProcessBench telemetry (qwen3 4b)
+
+- **Package ID:** `processbench_qwen3_4b`
+- **Status:** READY
+- **Observed:** {&quot;alignment_failures&quot;: 0, &quot;missing_lfs_objects&quot;: [], &quot;rows&quot;: 3400, &quot;subset_counts&quot;: {&quot;gsm8k&quot;: 400, &quot;math&quot;: 1000, &quot;olympiadbench&quot;: 1000, &quot;omnimath&quot;: 1000}, &quot;subsets&quot;: 4, &quot;trace_failures&quot;: 0}
+- **Balance:** first_error_present: 2,221, fully_correct: 1,179, error_rate: 65.3%
+- **Checks passed:** 5/5
+
+### ProcessBench telemetry (qwen3 8b)
+
+- **Package ID:** `processbench_qwen3_8b`
+- **Status:** READY
+- **Observed:** {&quot;alignment_failures&quot;: 0, &quot;missing_lfs_objects&quot;: [], &quot;rows&quot;: 3400, &quot;subset_counts&quot;: {&quot;gsm8k&quot;: 400, &quot;math&quot;: 1000, &quot;olympiadbench&quot;: 1000, &quot;omnimath&quot;: 1000}, &quot;subsets&quot;: 4, &quot;trace_failures&quot;: 0}
+- **Balance:** first_error_present: 2,221, fully_correct: 1,179, error_rate: 65.3%
+- **Checks passed:** 5/5
+
+### ProcessBench Qwen2.5-Math-PRM predictions
+
+- **Package ID:** `processbench_qwen25math7b_predictions`
+- **Status:** READY
+- **Observed:** {&quot;manifest&quot;: true, &quot;rows&quot;: 3400, &quot;subset_counts&quot;: {&quot;gsm8k&quot;: 400, &quot;math&quot;: 1000, &quot;olympiadbench&quot;: 1000, &quot;omnimath&quot;: 1000}, &quot;subsets&quot;: 4}
+- **Balance:** —
+- **Checks passed:** 3/3
+
+### ProcessBench Qwen3-8B judge-control predictions
+
+- **Package ID:** `processbench_qwen3_8b_judge_control`
+- **Status:** READY
+- **Observed:** {&quot;manifest&quot;: true, &quot;rows&quot;: 3400, &quot;subset_counts&quot;: {&quot;gsm8k&quot;: 400, &quot;math&quot;: 1000, &quot;olympiadbench&quot;: 1000, &quot;omnimath&quot;: 1000}, &quot;subsets&quot;: 4}
+- **Balance:** —
+- **Checks passed:** 3/3
+
+### ProcessBench Qwen2.5-72B critic predictions
+
+- **Package ID:** `processbench_qwen72b_critic`
+- **Status:** READY
+- **Observed:** {&quot;manifest&quot;: true, &quot;rows&quot;: 3400, &quot;subset_counts&quot;: {&quot;gsm8k&quot;: 400, &quot;math&quot;: 1000, &quot;olympiadbench&quot;: 1000, &quot;omnimath&quot;: 1000}, &quot;subsets&quot;: 4}
+- **Balance:** —
+- **Checks passed:** 3/3
+
+### PRMBench Qwen3-8B telemetry
+
+- **Package ID:** `prmbench_qwen3_8b_telemetry`
+- **Status:** READY_WITH_LIMITATIONS
+- **Observed:** {&quot;classes&quot;: {&quot;circular&quot;: 758, &quot;confidence&quot;: 757, &quot;correct&quot;: 758, &quot;counterfactual&quot;: 757, &quot;deception&quot;: 750, &quot;domain_inconsistency&quot;: 757, &quot;missing_condition&quot;: 756, &quot;multi_solutions&quot;: 160, &quot;redundency&quot;: 758, &quot;step_contradiction&quot;: 758}, &quot;misaligned_ids&quot;: [&quot;confidence_confidence_prm_train_p1_303&quot;, &quot;deception_deception_prm_test_p1_87&quot;, &quot;step_contradiction_step_contradiction_prm_test_p2_991&quot;], &quot;misaligned_rows_or_span_sets&quot;: 3, &quot;official_error_class_steps&quot;: 83371, &quot;rows&quot;: 6969, &quot;step_spans&quot;: 94203, &quot;trace_failures&quot;: 0}
+- **Balance:** —
+- **Checks passed:** 4/5
+- **Limitations:** Three rows were reported as misaligned; they must be identified and explicitly resolved or excluded before evaluation.
+
+### PRMBench Qwen2.5-Math-PRM predictions
+
+- **Package ID:** `prmbench_qwen25math7b_predictions`
+- **Status:** READY
+- **Observed:** {&quot;labels&quot;: 94203, &quot;rewards&quot;: 94203, &quot;rows&quot;: 6969}
+- **Balance:** —
+- **Checks passed:** 2/2
+
+### RAGTruth LettuceDetect prediction package
+
+- **Package ID:** `ragtruth_lettucedetect_predictions`
+- **Status:** READY
+- **Observed:** {&quot;malformed_spans&quot;: 0, &quot;rows&quot;: 2700, &quot;truncated&quot;: 0, &quot;unique_response_ids&quot;: 2700}
+- **Balance:** hallucinated: 943, clean: 1,757, hallucinated_rate: 34.9%
+- **Checks passed:** 4/4
+
+## Canonical data contract
+
+Future consumers must address records by stable `dataset_id`, `record_id`, `source_id`, split, task, model, condition and parent ID. Large token arrays remain inside the immutable source artifact and are addressed by artifact path and row key.
+
+Labels use a separate sidecar contract containing `record_id`, label space, value and provenance. This prevents a future label-free fitting program from receiving labels by accident.
+
+## Decision
+
+HLE now has a complete interim Codex-judge label sidecar, but it is not the paper-faithful GPT-4o label set. Resolve any incomplete package required by the intended experiment. Packages marked READY may be used unchanged once the benchmark protocol is frozen. Packages marked READY_WITH_LIMITATIONS may also be evaluated now, but only for the documented scope and with that limitation included in every result.
+</pre></details>
+</main></body></html>

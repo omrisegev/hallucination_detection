@@ -363,7 +363,7 @@ def bar_chart(rows: Sequence[Mapping[str, Any]], *, metric: str, title: str) -> 
         value = float(row["value"])
         bar = max(0.0, value / maximum * plot)
         role = str(row.get("role", "ours"))
-        css = "published" if "published" in role else ("ceiling" if "ceiling" in role else "ours")
+        css = "ceiling" if "ceiling" in role else ("published" if "published" in role else "ours")
         parts.extend([
             f"<text x='{left-8}' y='{y+16}' text-anchor='end'>{esc(row.get('method',''))}</text>",
             f"<rect x='{left}' y='{y}' width='{bar:.2f}' height='21' rx='4' class='bar-{css}'/>",
@@ -379,3 +379,9 @@ def forbid_cross_task_macro(rows: Sequence[Mapping[str, Any]]) -> None:
     for row in rows:
         if str(row.get("scope", "")).lower() in {"global", "all_tasks", "suite"}:
             raise ValueError("cross-task macro averaging is forbidden")
+        subgroup = str(row.get("subgroup", "")).lower()
+        protocol_id = str(row.get("protocol_id", ""))
+        if ("suite" in subgroup or "cross-task" in subgroup) and "macro" in subgroup:
+            raise ValueError("cross-task macro averaging is forbidden")
+        if subgroup == "four-subset macro" and protocol_id != "localization-processbench-first-error":
+            raise ValueError("four-subset macro is only valid inside ProcessBench")
