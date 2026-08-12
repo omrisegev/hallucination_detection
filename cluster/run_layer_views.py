@@ -77,7 +77,15 @@ def sidecar_path(spec, temp):
 
 def process_pkl(mdl, tok, spec, temp, pkl_path, args):
     """Gate + extract one raw pkl into its sidecar. Returns (completed, report)."""
-    layers, _, _ = resolve_stack(mdl)
+    try:
+        layers, _, _ = resolve_stack(mdl)
+    except RuntimeError as e:
+        # Unsupported family (OPT's decoder.layers/fc1/fc2, fused blocks, ...) —
+        # report and move on rather than failing the whole job.
+        print(f"[layers] {spec.cell_id}: UNSUPPORTED ARCHITECTURE — {e}", flush=True)
+        return True, {"pkl": os.path.basename(pkl_path), "temp": temp,
+                      "arch_check_pass": False, "arch_error": str(e),
+                      "aborted": True, "gate_b_pass": None}
     L = len(layers)
     hidden_size = mdl.config.hidden_size
     hid_proj = make_hid_proj(hidden_size, mdl.device, dim=args.proj_dim)
@@ -157,11 +165,20 @@ def process_pkl(mdl, tok, spec, temp, pkl_path, args):
                           output_hidden_states=True)
                 gen = torch.tensor(ids, dtype=torch.long, device=dev)
 
-                # Architecture guard, once per pkl, on the live model+dtype. Raises
-                # rather than writing a field measured off the wrong tensors.
+                # Architecture guard, once per pkl, on the live model+dtype. A failure
+                # aborts THIS cell only — a family whose submodules do not decompose
+                # the way MODULES assumes (OPT's fc1/fc2, any fused block) must not
+                # take down the other cells sharing the job.
                 if arch_check["done"] is False:
-                    arch_check.update(verify_residual_reconstruction(
-                        mdl, tap, out.hidden_states, out.logits, tol=args.arch_tol))
+                    try:
+                        arch_check.update(verify_residual_reconstruction(
+                            mdl, tap, out.hidden_states, out.logits, tol=args.arch_tol))
+                    except RuntimeError as e:
+                        print(f"[layers] {spec.cell_id}: ARCHITECTURE GUARD FAIL — {e}",
+                              flush=True)
+                        return True, {"pkl": os.path.basename(pkl_path), "temp": temp,
+                                      "arch_check_pass": False, "arch_error": str(e),
+                                      "aborted": True, "gate_b_pass": None}
                     arch_check["done"] = True
                     print(f"[layers] {spec.cell_id}: architecture guard OK "
                           f"(residual identity {arch_check['residual_identity_max_abs']:.2e}, "
@@ -336,9 +353,12 @@ def main():
         os.replace(path + ".tmp", path)
         print(f"[layers] report -> {path}", flush=True)
 
-    fails = [r["cell_id"] for r in reports if not r.get("gate_b_pass", True)]
-    print("\n[layers] ALL CELLS PROCESSED"
-          + (f" — GATE-B FAILED: {fails}" if fails else ""), flush=True)
+    arch = [r["cell_id"] for r in reports if r.get("arch_check_pass") is False]
+    gate = [r["cell_id"] for r in reports if r.get("gate_b_pass") is False]
+    ok = [r["cell_id"] for r in reports if r.get("gate_b_pass") is True]
+    print(f"\n[layers] ALL CELLS PROCESSED — {len(ok)} extracted"
+          + (f", GATE-B FAILED: {gate}" if gate else "")
+          + (f", UNSUPPORTED ARCHITECTURE: {arch}" if arch else ""), flush=True)
 
 
 if __name__ == "__main__":
