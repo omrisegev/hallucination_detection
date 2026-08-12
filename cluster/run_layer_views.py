@@ -207,12 +207,25 @@ def process_pkl(mdl, tok, spec, temp, pkl_path, args):
                 ok, reasons = gate_b_verdict(gate.summary(), args.tol_median,
                                              args.tol_first, args.min_frac_close)
                 if not ok:
+                    # "nothing kept" has to be true on DISK, not just in memory: the
+                    # gate verdict lands at gate_n candidates but --checkpoint-every
+                    # may already have flushed a partial sidecar, and a gate-failed
+                    # partial that survives is indistinguishable from a good one to
+                    # everything downstream. Quarantine rather than delete so the
+                    # evidence is still there to diagnose.
+                    quarantined = None
+                    if os.path.exists(side_path):
+                        quarantined = side_path + ".GATE_B_FAILED_DO_NOT_USE"
+                        os.replace(side_path, quarantined)
                     print(f"[layers] {spec.cell_id} T={temp}: GATE-B FAIL "
-                          f"({'; '.join(reasons)}) — aborting cell, nothing kept",
-                          flush=True)
+                          f"({'; '.join(reasons)}) — aborting cell"
+                          + (f", partial sidecar quarantined -> "
+                             f"{os.path.basename(quarantined)}" if quarantined
+                             else ", nothing written"), flush=True)
                     return True, {"pkl": os.path.basename(pkl_path), "temp": temp,
                                   "gate": gate.summary(), "gate_b_pass": False,
-                                  "gate_b_reasons": reasons, "aborted": True}
+                                  "gate_b_reasons": reasons, "aborted": True,
+                                  "quarantined": quarantined}
 
         since_ckpt += 1
         if since_ckpt >= args.checkpoint_every:
