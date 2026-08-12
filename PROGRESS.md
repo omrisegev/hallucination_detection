@@ -1,14 +1,64 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-13
-**Last updated**: Steps 247--250. HARP's structural lesson produced a
-contribution-space supervised teacher and then a frozen label-free IU-PCR
-addition, NRM-CS-IU. Cardinality balancing failed on independent SemGrad
-examples; NRM instead selects the standardized residual eigenmode closest to
-unit variance from unlabelled source cells. It passed a frozen PRMBench
-confirmation: +0.460pp AUROC over IU, source-grouped 95% interval
-[+0.068,+0.841]. HLE was positive but underpowered. The requested
-fusion-internal, no-extra-inference candidate is now implemented and confirmed.
+**Last updated**: Step 251. Atomic de-grouping of NRM was implemented under a
+pre-label freeze and rejected. A permutation-calibrated neutral projector fixed
+the high-dimensional single-eigenvector problem, but lost to IU and to frozen
+family NRM on original LOFO, Qwen/Llama ProcessBench, and SemGrad. Fifty
+cardinality-matched random partitions, deterministic refinements/coarsenings,
+and dependence-learned groups do not explain away the gap. A supervised atomic
+ceiling is stronger than the family ceiling, localizing the failure to
+label-free target orientation rather than missing atomic signal. NRM-CS-IU v1
+remains untouched and confirmed; its provenance grouping is now an explicit
+required inductive prior at the current evidence level.
+
+## Atomic NRM grouping audit — Step 251
+
+The six provenance families were audited as the last hand-picked prior in
+NRM-CS-IU. Before reading candidate metrics, the atomic implementation froze
+the source roster, 17 fully covered atoms, 13 exclusions, a 1,000-permutation
+null interval [0.934489,1.070026], the two-mode neutral projector, an
+inverse-absolute-dependence anchor, target scale `1/sqrt(17)`, direction, and
+all input/code/calibration hashes. It uses the same mixed-v2 features, no
+labels in fitting, no new inference, and reconstructs exactly as one affine
+feature-weight rule. Feature-order permutation error is 8.88e-16 and the
+minimum leave-one-cell direction cosine is 0.975505.
+
+The frozen Atomic Projector failed decisively: original LOFO -0.667pp versus
+family NRM +0.277pp; Llama ProcessBench -1.106 versus +1.580pp; Qwen
+ProcessBench -1.305 versus +0.557pp; SemGrad -4.216 versus +1.310pp. Direct
+atomic-minus-family intervals exclude zero in all four domains. Equal-anchor,
+single-mode, learned-group, refinement, coarsening, and 50 random
+cardinality-matched partition controls do not recover the family result.
+
+The supervised ceiling rules out the trivial explanation that grouping merely
+preserves target information. With 30 class-balanced held-out splits per cell,
+atomic residual heads beat family heads at all four fixed priors. At prior 0.3,
+atomic improves IU by +1.298pp versus +0.721pp for families; direct difference
++0.577pp [+0.102,+0.910]. Atomic target signal exists, but covariance-null
+geometry does not identify its useful direction without the provenance prior.
+
+The primary-literature audit reaches the same boundary. Marchenko--Pastur,
+Horn/Dobriban parallel analysis, spiked-covariance phase transitions, and
+Davis--Kahan perturbation theory support a null **subspace** and reject an
+arbitrary closest-to-one eigenvector in higher dimension. They do not attach
+hallucination semantics to that subspace. No untouched target labels were
+spent after the candidate failed its retrospective gate, and there was no
+post-label pivot.
+
+**Decision**: retain frozen family NRM-CS-IU v1 unchanged. State exactly that
+its `FEATURE_TO_VIEW` / `VIEW_ORDER` aggregation is an empirical measurement-
+provenance assumption. Reopen de-grouping only with a genuinely new label-free
+target-orientation principle, not another null-bulk selector.
+
+Canonical artifacts:
+`SPEC_ATOMIC_NEUTRAL_RESIDUAL_PROJECTOR_CS_IU_CANDIDATE_V1.md`,
+`docs/research_notes/atomic_nrm_grouping_audit_2026-08-13.md`,
+`docs/research_notes/atomic_nrm_null_spectrum_literature_2026-08-13.md`,
+`spectral_utils/atomic_neutral_residual.py`,
+`results/atomic_nrm_structural_audit_v1/`,
+`results/atomic_nrm_retrospective_controls_v1/`, and
+`results/atomic_contribution_supervised_ceiling_v1/`.
 
 ## Neutral residual mode confirmation — Steps 247--250
 

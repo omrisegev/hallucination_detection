@@ -12066,3 +12066,73 @@ PRMBench is evaluated at response level, not by its official step metric.
 `results/neutral_residual_mode_prmbench_v1/`.
 
 ---
+
+### Step 251 — atomic de-grouping audit rejects removal of provenance families
+
+**Question**: NRM-CS-IU v1 depends on six manually defined measurement-
+provenance families. Can those families be removed while retaining the same
+features, label-free fitting, no extra inference, and an affine IU-internal
+correction?
+
+**Pre-label structural phase**: implemented atomic IU contributions and found
+that the family rule's single `argmin |lambda-1|` mode does not generalize. Of
+30 mixed-v2 atoms, 17 are present and residual-active in every frozen source
+cell. A 1,000-draw independent-column permutation null produced simultaneous
+band [0.934489,1.070026] and retained two eigenvalues, 0.960685 and 1.025557.
+The candidate therefore freezes the full neutral projector, applies it to an
+inverse-absolute-dependence symmetric anchor, and normalizes the target
+correction to `1/sqrt(17)`. Direction, exclusions, code, covariance, bundle,
+and artifact hashes were frozen before candidate metrics. Minimum leave-one-
+cell direction cosine is 0.975505; feature-order score error is 8.88e-16;
+affine reconstruction and IU orthogonality pass below 1e-10.
+
+**Retrospective result**: the frozen Atomic Projector loses versus IU on all
+four domains: original LOFO -0.667pp, Llama ProcessBench -1.106pp, Qwen
+ProcessBench -1.305pp, and SemGrad -4.216pp. Frozen family NRM on the identical
+rows is +0.277, +1.580, +0.557, and +1.310pp respectively. Direct atomic minus
+family contrasts are -0.944pp [-1.654,-0.174], -2.686pp [-3.214,-2.159],
+-1.862pp [-2.665,-0.878], and -5.526pp [-9.005,-2.047]. Equal-anchor and
+single-nearest-one atomic controls also lose.
+
+**Grouping controls**: a five-cluster partition learned only from source
+residual dependence loses in all domains. Deterministic family refinements are
+near zero/mixed; coarsenings are mixed and usually negative. Across 50 random
+partitions matched to eligible family sizes `[6,4,3,3,1]`, only 3/50 match or
+beat family NRM on original cells, 1/50 on Llama ProcessBench, 13/50 on Qwen
+ProcessBench, and 3/50 on SemGrad. Family count/cardinality alone does not
+explain the result.
+
+**Supervised ceiling**: 30 stratified held-out splits per cell with
+class-balanced anchored loss show that atomic residuals contain more target
+information, not less. At fixed prior 0.3, the family head is +0.721pp over IU
+and the atomic head +1.298pp; atomic minus family is +0.577pp
+[+0.102,+0.910]. Atomic wins directly at all four tested priors. Per-split
+AUROCs are averaged within cell and then equally by dataset group; no global
+OOF concatenation is used.
+
+**Literature audit**: Marchenko--Pastur and spiked-covariance results explain
+why eigenvalues form a null bulk and why a bulk eigenvector is not uniquely
+recoverable. Horn/Dobriban parallel analysis justifies permutation comparison
+for covariance structure. Davis--Kahan favors a clustered eigenspace projector
+over one basis vector. None identifies hallucination semantics inside that
+subspace; noise-subspace methods such as MUSIC require a separate target model.
+
+**Decision**: the six-family provenance aggregation cannot currently be
+removed. Keep frozen NRM-CS-IU v1 untouched and name its exact assumption:
+`FEATURE_TO_VIEW` / `VIEW_ORDER` groups repeated measurements before residual
+geometry is estimated. The atomic representation has supervised headroom, but
+needs a new label-free target-orientation principle. The rejected candidate did
+not consume untouched external labels and was not pivoted after labels.
+
+**Files**:
+`SPEC_ATOMIC_NEUTRAL_RESIDUAL_PROJECTOR_CS_IU_CANDIDATE_V1.md`,
+`spectral_utils/atomic_neutral_residual.py`,
+`scripts/atomic_nrm_structural_audit.py`,
+`scripts/atomic_nrm_retrospective_controls.py`,
+`scripts/atomic_contribution_supervised_ceiling.py`,
+`scripts/test_atomic_neutral_residual.py`,
+`docs/research_notes/atomic_nrm_grouping_audit_2026-08-13.md`,
+`docs/research_notes/atomic_nrm_null_spectrum_literature_2026-08-13.md`, and
+the three `results/atomic_*_v1/` directories.
+
+---

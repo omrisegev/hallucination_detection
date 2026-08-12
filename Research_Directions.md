@@ -39,6 +39,45 @@ Canonical artifacts: `SPEC_NEUTRAL_RESIDUAL_MODE_CS_IU_V1.md`,
 `results/neutral_residual_mode_cs_iu_v1/REPORT.md`, and
 `results/neutral_residual_mode_prmbench_v1/REPORT.md`.
 
+## Provenance-family audit — Atomic NRM rejected (Step 251)
+
+The provenance partition is no longer an unnamed implementation detail. It is
+an explicit empirical inductive prior required by the current NRM evidence.
+
+The group-free audit fixed the obvious high-dimensional defect before testing:
+instead of selecting one arbitrary eigenvector closest to one, Atomic NRM used
+a 1,000-permutation simultaneous null band, retained the full two-dimensional
+neutral subspace, and projected a symmetric inverse-dependence anchor into it.
+The candidate, feature exclusions, scale `1/sqrt(17)`, direction, and hashes
+were frozen before labels. It is label-free, permutation-equivariant to feature
+order, affine in the existing mixed-v2 matrix, and adds no inference.
+
+It nevertheless lost consistently. Equal-group AUROC changes versus IU were
+-0.667pp on original LOFO, -1.106pp on Llama ProcessBench, -1.305pp on Qwen
+ProcessBench, and -4.216pp on SemGrad. Frozen family NRM was positive on the
+same four domains (+0.277, +1.580, +0.557, +1.310pp). Direct contrasts favor
+family NRM with intervals excluding zero throughout.
+
+This is not merely a dimensionality or information-loss result. Fifty random
+partitions matched to family sizes, deterministic refinements/coarsenings, and
+dependence-learned groups do not reproduce the family rule. Conversely, a
+class-balanced supervised atomic head has *more* headroom than the family head:
+at prior 0.3, +1.298pp versus +0.721pp over IU, direct +0.577pp
+[+0.102,+0.910]. The missing ingredient is label-free target orientation, not
+atomic target signal.
+
+**Research decision:** keep NRM-CS-IU v1 frozen and state its exact assumption:
+aggregate feature contributions by the fixed measurement-provenance registry
+`FEATURE_TO_VIEW` / `VIEW_ORDER` before neutral-residual calibration. Do not
+replace it with Atomic NRM, learned dependence clusters, or arbitrary matched
+partitions. Do not consume a new held-out target for a formula already rejected
+at the retrospective gate. De-grouping may reopen only with a new label-free
+analogue of a target/steering model; eigenvalue-null geometry alone is closed.
+
+Canonical audit:
+`docs/research_notes/atomic_nrm_grouping_audit_2026-08-13.md` and
+`docs/research_notes/atomic_nrm_null_spectrum_literature_2026-08-13.md`.
+
 ## Current research decision — August 2026 session close
 
 ### Freeze the fusion core and pivot to applications
