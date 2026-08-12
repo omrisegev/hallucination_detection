@@ -11664,3 +11664,87 @@ picked the work up automatically. The linear-chain rule paid for itself.
 
 ---
 
+### Step 244 — a no-op resume destroyed validation evidence on 4 completed cells; recovered, proven, and fixed
+
+**What**: Codex, reviewing the Step-243 layer-view output on another machine, found that four
+completed cells — `ars_gsm8k_r1distill8b`, `noise_gsm8k_phi3mini`, `lapeigvals_gsm8k_phi35`,
+`noise_gsm8k_mistral7b` — had **correct, complete sidecars but destroyed validation reports**
+(`n_traces=0`, `gate_b_pass=false`, `n_tokens=0`). Confirmed, root-caused, recovered with proof,
+and fixed. Full evidence file:
+[docs/experiments/LAYER_VIEWS_RECOVERED_VALIDATION.md](docs/experiments/LAYER_VIEWS_RECOVERED_VALIDATION.md).
+
+**Why it happened**: job 184777 — the `--dependency=afterany` resume link of 184776 — ran after
+184776 had already finished every cell. In `run_layer_views.py`, `gate.add()` lived inside
+`for ci, c in todo:`, and `todo` is the list of candidates still *missing* a field. On a resume
+where every field exists, `todo` is empty for every problem, the gate accumulated nothing,
+`gate_b_verdict` returned `False` for *"no comparable token_entropies traces"*, and that verdict
+was written over the real one.
+
+The failure was **camouflaged, not loud**: `n_candidates` survived (it is seeded from the
+sidecar key count) while `n_tokens` went to 0, so a corrupted report looked populated. The
+184777 log carries the fingerprint — `median|dH|=nan frac_close=nan GATE-B FAIL ... 0 tokens`.
+**The sidecars were never at risk**; only the separate report files were affected.
+
+**Result — recovered two independent ways, and both agree exactly.** The surviving 184776 log
+gave median/frac_close/verdict + arch metrics; a **validation-only replay** (job 186485, 2m18s)
+over the same fixed first-50 candidates recovered the full `GateStats` summary. The replay
+reproduces the original log **to every printed digit** on all four cells (e.g. phi3mini
+1.97e-04 / 0.944 both times) — same candidates, prompts, warpers and weights, so these are the
+*original* numbers, not a fresh measurement that happens to agree.
+
+| | r1distill8b | phi3mini | phi35 | mistral7b |
+|---|---|---|---|---|
+| gate n_traces / n_tokens | 50 / 22,893 | 50 / 14,726 | 50 / 16,725 | 50 / 17,809 |
+| n_len_mismatch | 0 | 0 | 0 | 0 |
+| median \|dH\| | 6.696e-05 | 1.975e-04 | 1.363e-05 | 2.910e-04 |
+| frac_close | 0.99284 | 0.94357 | 0.93901 | 0.98085 |
+| first_tok_median | 1.167e-02 | 2.214e-02 | 3.721e-02 | 1.526e-03 |
+| median_r | 0.999609 | 0.998936 | 0.997363 | 0.999602 |
+| **GATE-B** | **PASS** | **PASS** | **PASS** | **PASS** |
+| residual_identity / lens max\|d\| | **0.0 / 0.0** | **0.0 / 0.0** | **0.0 / 0.0** | **0.0 / 0.0** |
+
+`n_len_mismatch = 0` everywhere means every gated trace aligned exactly — no off-by-one in the
+prompt reconstruction. **All four cells were, and remain, genuine Gate-B passes.**
+
+**Proof the recovery was non-destructive**: SHA-256 of every sidecar taken before and after job
+186485 is **byte-identical** (hashes in the evidence file). Raw caches untouched. The corrupted
+reports were deliberately **left in place** — the recovery is written to a separate
+`RECOVERED_VALIDATION.json`, so the evidence of the failure survives beside the evidence of the
+fix. Provenance recorded per cell: model revision (HF commit hash), dtype, attn impl, job id,
+full argv, source pkl paths, and both sets of hashes.
+
+**The fix** (commit `38d3a37`), defence in depth:
+1. **The gate no longer keys off the has-work list.** A candidate earns a forward pass if it
+   needs its field **or** the gate is still filling; only the *field write* is skipped when the
+   field already exists. A resume now genuinely re-validates.
+2. **Validation evidence is stored in the sidecar's own `_meta`** — it cannot be orphaned from
+   the data it validates, and is never blanked; a run that gates nothing carries the prior
+   forward.
+3. **A zero-trace run reports `no_op_resume` with the prior verdict, not a gate FAILURE.**
+   Measuring nothing is not evidence of failure.
+
+**A fourth bug surfaced while testing the fix, and it mattered**: `--validate-only` was **not
+actually non-destructive**. It skipped the final `flush()` but the periodic
+`--checkpoint-every` flush inside the loop still fired, so a "validation replay" would have
+rewritten the sidecar it was meant to leave alone. `flush()` is now a no-op under
+`--validate-only`. **Without this fix the replay above would have invalidated its own SHA-256
+proof.** Also added `--report-name` so a recovery run cannot overwrite an existing report.
+
+`scripts/smoke_layer_views_resume.py` (new, CPU-only, no network) reproduces the original
+failure on a fixture — extract, then resume with nothing to do — and asserts the resume
+preserves the verdict, preserves the sidecar byte-for-byte, and that `--validate-only` does not
+touch the file. **It is what caught the checkpoint-flush bug.**
+
+**Standing lesson**: validation evidence living in a *different file* from the data it validates
+can be orphaned or overwritten while the data stays perfectly good — the same class as the
+Step-193 staleness carriers. Two rules now hold for this arm: evidence travels **inside** the
+artefact, and a run that measured nothing must never overwrite a run that measured something.
+
+**Files**
+- `cluster/run_layer_views.py` — gate decoupled from the work list; validation in `_meta`; `no_op_resume`; `flush()` no-op under `--validate-only`; `--report-name`; provenance fields
+- `scripts/smoke_layer_views_resume.py` — new CPU regression test for the whole failure mode
+- `docs/experiments/LAYER_VIEWS_RECOVERED_VALIDATION.md` — new, the full evidence record
+- Jobs: 184776 (original, log intact), 184777 (the destructive resume), 186485 (validation replay)
+
+---
+

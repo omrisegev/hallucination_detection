@@ -1,7 +1,12 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-12
-**Last updated**: Step 243 — **a NEW, SEPARATE research arm opened on branch
+**Date**: 2026-08-13
+**Last updated**: Step 244 — Codex found that a no-op resume had destroyed the
+validation reports on 4 completed layer-view cells. **Recovered with proof,
+root-caused, and fixed**; the sidecars were never at risk and all 4 cells are
+confirmed genuine Gate-B passes. Evidence:
+[docs/experiments/LAYER_VIEWS_RECOVERED_VALIDATION.md](docs/experiments/LAYER_VIEWS_RECOVERED_VALIDATION.md).
+Prior: Step 243 — **a NEW, SEPARATE research arm opened on branch
 `whitebox/per-layer-views`**: white-box depth views (per-layer logit-lens
 telemetry), extracted on 14 cells across 9 model families. See the session
 addendum immediately below. This arm is **orthogonal to the grey-box line and
@@ -39,6 +44,16 @@ untouched (output goes to per-cell sidecars).
   length is 6 tokens on `se_squad_v2` and 8 on `spilled_triviaqa` vs 243 on
   GSM8K; 32 layers × 3 modules = 96 readouts on a 6-token answer. This attacks
   the documented structural weakness of the thesis directly.
+
+**Validation status (Step 244, after Codex's review)**: all 14 cells' Gate-B
+verdicts are intact and confirmed. Four of them (`ars_gsm8k_r1distill8b`,
+`noise_gsm8k_phi3mini`, `lapeigvals_gsm8k_phi35`, `noise_gsm8k_mistral7b`) had
+their *report files* — not their data — destroyed by a no-op resume (job
+184777); recovered by validation replay (job 186485) that reproduces the
+original log to every digit, with SHA-256 proof the sidecars were untouched.
+**Read `RECOVERED_VALIDATION.json`, not `layer_views_report_<cell>.json`, for
+those four** — the corrupted reports were deliberately left in place. Fixed in
+`38d3a37`; regression test `scripts/smoke_layer_views_resume.py`.
 
 **State: data is collected and on Drive. No scoring has been run yet.**
 
