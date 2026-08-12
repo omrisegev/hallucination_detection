@@ -1,12 +1,10 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-11
-**Last updated**: Step 242 — the four-hallucination-localization-benchmark
-cluster campaign. Every competitor job the handoff asks for is now submitted
-and all but one is finished; see the session addendum immediately below. The
-RAGTruth/ProcessBench GL-LIU decision point (Step 239, further down) is
-UNCHANGED by this — still open, still the project's main open research
-question.
+**Date**: 2026-08-13
+**Last updated**: white-box layer-fusion v2 offline benchmark. See the
+2026-08-13 addendum below for the negative registered result and full report.
+The earlier localization campaign and RAGTruth/ProcessBench GL-LIU decision
+point remain unchanged.
 
 ## Session addendum (2026-08-11) — four localization panels now have competitor data (Step 242)
 
@@ -118,6 +116,39 @@ benchmark report. Full account: HISTORY.md Step 242.
 > DUFS-LIU vs IU-PCR gap (+0.0005, uncertainty includes zero).
 >
 > Do not merge, do not commit.
+
+---
+
+## Latest development — white-box layer-fusion v2 (2026-08-13)
+
+The recovered `whitebox/per-layer-views` source and all 14 available Drive
+sidecars were integrated in the isolated `codex/whitebox-layer-fusion`
+worktree. The offline benchmark covers 47,265 source candidates / 47,238
+evaluable candidates across nine captured model families (13
+protocol-eligible cells plus the rejected CoQA/Llama-1 INSIDE appendix).
+
+The registered residual-core headline is a negative result. Equal-cell macro
+AUROC/AUPRC over the 13 eligible cells is 0.6181/0.4785 for DUFS-LIU versus
+0.7298/0.5892 for final-layer NLL. The primary AUROC delta is -0.1117 with
+95% grouped-bootstrap CI [-0.1245, -0.0996]. DUFS-LIU is also slightly worse
+than matched IU-PCR: -0.00253 [-0.00325, -0.00186]. Do not promote a robust
+improvement claim and do not replace the primary post hoc.
+
+The richer `lens-96` secondary contract reaches 0.7253/0.6025 and the balanced
+grouped-CV residual/TriLens/DoLa probes reach approximately 0.77 AUROC. Thus
+the internal trajectories contain signal, but the current label-free compact
+fusion objective does not recover it robustly across architectures. Mean
+generation entropy is the strongest descriptive label-free row at
+0.7399/0.6154.
+
+The report remains **PRELIMINARY / VALIDATION BLOCKED** pending full corrected
+live Gate B and the independent two-cell architecture pilot. Covariance
+geometry is additionally omitted on Phi-3, Phi-3.5, and Qwen3 because the
+recovered capture cast large covariance eigenvalues directly to float16 and
+overflowed. Full report and documentation:
+`results/whitebox_layer_fusion_v2/REPORT.html`, `EXPERIMENT_SUMMARY.md`,
+`DATA_INVENTORY.md`, `FEATURE_MATRICES.md`, and
+`METHODS_AND_COMPARATORS.md`.
 
 ---
 

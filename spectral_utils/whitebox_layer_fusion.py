@@ -85,6 +85,43 @@ _ROW_ID = re.compile(r"^(?P<problem>[^:]+):(?P<candidate>[0-9]+)$")
 _FORBIDDEN_FIELD_NAMES = {"label", "labels", "y", "target", "targets"}
 
 
+def all_layers(n_layers: int) -> tuple[int, ...]:
+    """Return every layer for an architecture without assuming L=32."""
+
+    if int(n_layers) < 1:
+        raise ValueError("n_layers must be positive")
+    return tuple(range(int(n_layers)))
+
+
+def spaced_layers(n_layers: int, count: int = 8) -> tuple[int, ...]:
+    """Frozen architecture-relative evenly spaced layer subset."""
+
+    if int(n_layers) < 1 or int(count) < 1 or int(count) > int(n_layers):
+        raise ValueError("count must be between one and n_layers")
+    return tuple(int(value) for value in np.rint(
+        np.linspace(0, int(n_layers) - 1, int(count))
+    ).astype(int))
+
+
+def late_layers(n_layers: int, count: int = 8) -> tuple[int, ...]:
+    """Frozen architecture-relative final-layer subset."""
+
+    if int(n_layers) < 1 or int(count) < 1 or int(count) > int(n_layers):
+        raise ValueError("count must be between one and n_layers")
+    return tuple(range(int(n_layers) - int(count), int(n_layers)))
+
+
+def fixed_bands(n_layers: int, count: int = 4) -> tuple[tuple[int, ...], ...]:
+    """Split depth into fixed contiguous architecture-relative bands."""
+
+    if int(n_layers) < int(count) or int(count) < 1:
+        raise ValueError("band count must be positive and no larger than n_layers")
+    return tuple(
+        tuple(int(value) for value in band)
+        for band in np.array_split(np.arange(int(n_layers)), int(count))
+    )
+
+
 def _readonly(array: Any, *, dtype: Any | None = None) -> np.ndarray:
     out = np.array(array, dtype=dtype, copy=True)
     out.setflags(write=False)
@@ -291,6 +328,7 @@ def validate_and_join(
     require_complete: bool = True,
     final_residual_kl_tolerance: float = 1e-6,
     exclude_invalid: bool = False,
+    require_geometry_finite: bool = True,
 ) -> tuple[LayerCell, dict[str, Any]]:
     """Validate and exactly join a nested raw cache to its layer sidecar.
 
@@ -343,6 +381,7 @@ def validate_and_join(
     problem_ids: list[str] = []
     token_counts: list[int] = []
     excluded_rows: list[dict[str, str]] = []
+    nonfinite_geometry_counts = {"cov_eigs": 0, "hid_proj": 0}
     max_final_kl = 0.0
     for row_id in row_keys:
         record = sidecar[row_id]
@@ -392,8 +431,12 @@ def validate_and_join(
                 raise ValueError(
                     f"sidecar row {row_id!r} {name} has shape {array.shape}, expected {shape}"
                 )
-            if not np.isfinite(array).all():
-                raise ValueError(f"sidecar row {row_id!r} {name} contains non-finite values")
+            nonfinite_count = int(np.size(array) - np.count_nonzero(np.isfinite(array)))
+            if nonfinite_count:
+                if name in nonfinite_geometry_counts and not require_geometry_finite:
+                    nonfinite_geometry_counts[name] += nonfinite_count
+                else:
+                    raise ValueError(f"sidecar row {row_id!r} {name} contains non-finite values")
         final_kl = np.asarray(record["lens_kl_final"], dtype=float)[resid_index, -1]
         max_final_kl = max(max_final_kl, float(np.max(np.abs(final_kl))))
         sanitized = {key: value for key, value in record.items()
@@ -429,6 +472,9 @@ def validate_and_join(
         "n_source_rows": len(row_keys),
         "n_excluded_rows": len(excluded_rows),
         "excluded_rows": excluded_rows,
+        "nonfinite_geometry_counts": nonfinite_geometry_counts,
+        "core_lens_and_residual_tensors_finite": True,
+        "geometry_tensors_finite": not any(nonfinite_geometry_counts.values()),
         "n_problems": len(set(problem_ids)),
         "min_tokens": int(np.min(token_counts)),
         "max_tokens": int(np.max(token_counts)),
@@ -572,11 +618,11 @@ def _layers(layers: Sequence[int], n_layers: int) -> tuple[int, ...]:
     return output
 
 
-def _band(layer: int) -> str:
-    for index, band in enumerate(FIXED_BANDS):
+def _band(layer: int, n_layers: int = 32) -> str:
+    for index, band in enumerate(fixed_bands(n_layers)):
         if layer in band:
             return f"band_{index}_{band[0]:02d}_{band[-1]:02d}"
-    raise ValueError(f"layer {layer} is outside the frozen 32-layer bands")
+    raise ValueError(f"layer {layer} is outside the frozen {n_layers}-layer bands")
 
 
 def _metric_values(cell: LayerCell, metric: str, module: str) -> np.ndarray:
@@ -649,7 +695,7 @@ def _feature_matrix(
 
 
 def extract_resid_core(
-    cell: LayerCell, layers: Sequence[int] = ALL_LAYERS
+    cell: LayerCell, layers: Sequence[int] | None = None
 ) -> FeatureMatrix:
     """Build one residual-stream expert per selected layer.
 
@@ -659,7 +705,8 @@ def extract_resid_core(
     notably, final residual KL is expected to be identically zero.
     """
 
-    selected = _layers(layers, cell.n_layers)
+    selected = _layers(all_layers(cell.n_layers) if layers is None else layers,
+                       cell.n_layers)
     metric_matrices = {
         metric: _metric_values(cell, metric, "resid") for metric in CORE_METRICS
     }
@@ -683,7 +730,7 @@ def extract_resid_core(
         name = f"resid_core.layer_{layer:02d}"
         columns.append(np.mean(np.column_stack(components), axis=1))
         names.append(name)
-        groups.append(_band(layer))
+        groups.append(_band(layer, cell.n_layers))
         components_by_feature[name] = used
     return _feature_matrix(
         cell,
@@ -707,7 +754,7 @@ def extract_resid_core(
 
 
 def extract_lens_grid(
-    cell: LayerCell, layers: Sequence[int] = ALL_LAYERS
+    cell: LayerCell, layers: Sequence[int] | None = None
 ) -> FeatureMatrix:
     """Build the oriented 3-module x 4-metric grid for selected layers.
 
@@ -716,7 +763,8 @@ def extract_lens_grid(
     without reimplementing feature extraction inline.
     """
 
-    selected = _layers(layers, cell.n_layers)
+    selected = _layers(all_layers(cell.n_layers) if layers is None else layers,
+                       cell.n_layers)
     columns, names, groups = [], [], []
     for module in REQUIRED_MODULES:
         for metric in CORE_METRICS:
@@ -743,11 +791,114 @@ def extract_lens_grid(
 
 
 def extract_lens96(
-    cell: LayerCell, layers: Sequence[int] = SPACED_LAYERS
+    cell: LayerCell, layers: Sequence[int] | None = None
 ) -> FeatureMatrix:
     """Build the nominal 3-module x 4-metric x 8-layer lens contract."""
 
-    return extract_lens_grid(cell, layers=layers)
+    return extract_lens_grid(
+        cell, layers=spaced_layers(cell.n_layers) if layers is None else layers
+    )
+
+
+def extract_trilens_entropy(
+    cell: LayerCell, layers: Sequence[int] | None = None
+) -> FeatureMatrix:
+    """TriLens-compatible 3 x L entropy contract.
+
+    The capture contains the MHSA write, FFN write, and residual-stream
+    logit-lens entropies.  We freeze token-mean readout because the paper does
+    not specify the exact fixed-token reduction used in its released text.
+    """
+
+    selected = _layers(all_layers(cell.n_layers) if layers is None else layers,
+                       cell.n_layers)
+    columns, names, groups = [], [], []
+    for module in REQUIRED_MODULES:
+        values = _metric_values(cell, "lens_H", module)
+        for layer in selected:
+            columns.append(values[:, layer])
+            names.append(f"trilens_entropy.{module}.layer_{layer:02d}")
+            groups.append(module)
+    return _feature_matrix(
+        cell, np.column_stack(columns), names, groups,
+        contract=f"trilens-entropy-{3 * len(selected)}",
+        metadata={
+            "layers": list(selected),
+            "modules": list(REQUIRED_MODULES),
+            "readout": "mean_over_generated_tokens_frozen_approximation",
+            "fidelity": "feature-faithful; paper-exact token readout unavailable",
+        },
+    )
+
+
+def extract_dola_kl_proxy(
+    cell: LayerCell, layers: Sequence[int] | None = None
+) -> FeatureMatrix:
+    """Residual depth-wise KL-to-final proxy for the DoLa/JSD detector arm."""
+
+    selected = _layers(all_layers(cell.n_layers) if layers is None else layers,
+                       cell.n_layers)
+    matrix = _metric_values(cell, "lens_kl_final", "resid")
+    columns = [matrix[:, layer] for layer in selected]
+    names = [f"dola_kl_proxy.resid.layer_{layer:02d}" for layer in selected]
+    groups = [_band(layer, cell.n_layers) for layer in selected]
+    return _feature_matrix(
+        cell, np.column_stack(columns), names, groups,
+        contract=f"dola-kl-proxy-{len(selected)}",
+        metadata={
+            "layers": list(selected),
+            "fidelity": "proxy: saved KL-to-final, whereas the TriLens DoLa-style arm uses JSD",
+            "final_layer_degenerate_by_identity": True,
+        },
+    )
+
+
+def extract_haloscope_projection(
+    cell: LayerCell, layer: int | None = None
+) -> FeatureMatrix:
+    """Fixed-layer mean-token JL projection used by the direct HaloScope proxy."""
+
+    selected = int(cell.n_layers // 2 if layer is None else layer)
+    _layers((selected,), cell.n_layers)
+    values = np.asarray(
+        [np.asarray(record["hid_proj"], dtype=float)[selected] for record in cell.records],
+        dtype=float,
+    )
+    names = [f"haloscope_jl.layer_{selected:02d}.dim_{index:03d}"
+             for index in range(values.shape[1])]
+    groups = ["haloscope_projection"] * values.shape[1]
+    return _feature_matrix(
+        cell, values, names, groups,
+        contract=f"haloscope-direct-jl-middle-k4",
+        metadata={
+            "layer": selected,
+            "readout": "mean_over_generated_tokens_random_projection_dim_256",
+            "fidelity": "direct-membership proxy; not HaloScope pseudo-label classifier",
+        },
+    )
+
+
+def fit_haloscope_direct_proxy(
+    matrix: FeatureMatrix, *, k: int = 4
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Fit HaloScope's direct top-subspace membership score without labels."""
+
+    values = np.asarray(matrix.values, dtype=float)
+    centered = values - np.mean(values, axis=0, keepdims=True)
+    _u, singular, vt = np.linalg.svd(centered, full_matrices=False)
+    kept = min(int(k), len(singular), vt.shape[0])
+    if kept < 1:
+        raise ValueError("HaloScope proxy needs at least one singular direction")
+    projection = centered @ vt[:kept].T
+    score = np.mean(projection ** 2 * singular[:kept][None, :], axis=1)
+    score = _anchor_orient(score, matrix.risk_anchor)[0]
+    return np.asarray(score, dtype=float), {
+        "labels_seen_during_fit": False,
+        "k": kept,
+        "singular_values": singular[:kept].tolist(),
+        "orientation_anchor": "final-layer residual target-token NLL",
+        "fidelity": matrix.metadata.get("fidelity"),
+    }
 
 
 def _cosine_distance(left: np.ndarray, right: np.ndarray) -> float:
@@ -776,11 +927,12 @@ def _covariance_summaries(eigenvalues: np.ndarray) -> tuple[float, float, float]
 
 
 def extract_geometry(
-    cell: LayerCell, layers: Sequence[int] = ALL_LAYERS
+    cell: LayerCell, layers: Sequence[int] | None = None
 ) -> FeatureMatrix:
     """Extract only orthogonal-rotation-invariant representation summaries."""
 
-    selected = _layers(layers, cell.n_layers)
+    selected = _layers(all_layers(cell.n_layers) if layers is None else layers,
+                       cell.n_layers)
     n = cell.n_samples
     columns: list[np.ndarray] = []
     names: list[str] = []
@@ -1334,6 +1486,7 @@ def assert_no_label_fitting_signatures() -> None:
         fit_core_spectral,
         fit_dependency_methods,
         fit_hierarchical,
+        fit_haloscope_direct_proxy,
     )
     failures = {}
     for function in fitting_functions:
@@ -1350,6 +1503,10 @@ __all__ = [
     "SPACED_LAYERS",
     "LATE_LAYERS",
     "FIXED_BANDS",
+    "all_layers",
+    "spaced_layers",
+    "late_layers",
+    "fixed_bands",
     "CORE_METRICS",
     "DEPLOYED_UPCR_FIT",
     "DUFS_SEEDS",
@@ -1365,6 +1522,10 @@ __all__ = [
     "extract_resid_core",
     "extract_lens_grid",
     "extract_lens96",
+    "extract_trilens_entropy",
+    "extract_dola_kl_proxy",
+    "extract_haloscope_projection",
+    "fit_haloscope_direct_proxy",
     "extract_geometry",
     "residualize_token_length",
     "fit_controls",

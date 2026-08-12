@@ -11,7 +11,7 @@ documents are present.
 Usage::
 
     python scripts/whitebox_layer_fusion_report.py \
-        --results-dir results/whitebox_layer_fusion_v1
+        --results-dir results/whitebox_layer_fusion_v2
 """
 
 from __future__ import annotations
@@ -29,11 +29,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
-VERSION = "whitebox-layer-fusion-report-v1"
-DEFAULT_RESULTS = Path("results/whitebox_layer_fusion_v1")
+VERSION = "whitebox-layer-fusion-report-v2"
+DEFAULT_RESULTS = Path("results/whitebox_layer_fusion_v2")
 SOURCE_FILES = (
     "per_cell_metrics.csv",
     "headline_summary.csv",
+    "cohort_summary.csv",
+    "comparator_fidelity.csv",
     "paired_comparisons.csv",
     "data_coverage.csv",
     "layer_diagnostics.csv",
@@ -235,7 +237,7 @@ def derive_validation_status(
     )
     rows = [
         {
-            "gate": "Corrected live Gate B (all six cells)",
+            "gate": "Corrected live Gate B (all 14 cells)",
             "result": "PASS" if gate_b is True else "FAIL" if gate_b is False else "MISSING",
             "required": "yes",
         },
@@ -952,6 +954,30 @@ def _is_label_using_diagnostic(row: Mapping[str, Any]) -> bool:
     )
 
 
+def _is_curated_visual_method(row: Mapping[str, Any]) -> bool:
+    """Keep plots readable without outcome-based selection; tables retain all rows."""
+
+    method = str(_first(row, "method", default=""))
+    contract = str(_first(row, "feature_contract", default=""))
+    structure = str(_first(row, "structured", default="flat"))
+    if contract == "resid-core-L" and structure in {"flat", "dependency", "hierarchical-bands"}:
+        return method in {
+            "final_layer_nll", "equal_mean", "upcr", "iu_pcr", "dufs_liu_pcr",
+            "su_pcr", "lsml_continuous", "clustered_upcr",
+        }
+    if contract in {"resid-core-8", "lens-96", "resid-core-L-length-residualized"}:
+        return method == "dufs_liu_pcr"
+    if contract == "trilens-entropy-3L" and structure == "flat":
+        return method in {"trilens_equal_mean", "upcr", "iu_pcr", "dufs_liu_pcr"}
+    if contract == "dola-kl-proxy-L" and structure == "flat":
+        return method in {"dola_kl_equal_mean", "dufs_liu_pcr"}
+    return method in {
+        "haloscope_direct_proxy", "spilled_energy_eq8_mean_proxy",
+        "spilled_energy_eq8_min_proxy", "generation_entropy_mean",
+        "realized_token_nll_mean",
+    }
+
+
 def _weight_row_groups(
     rows: Sequence[Mapping[str, Any]],
 ) -> tuple[list[Mapping[str, Any]], list[Mapping[str, Any]], list[Mapping[str, Any]]]:
@@ -1124,24 +1150,38 @@ def render_html(
 ) -> str:
     per_cell = list(inputs["per_cell"])
     diagnostic_ceiling_rows = [row for row in per_cell if _is_label_using_diagnostic(row)]
-    eligible_per_cell = [row for row in per_cell if not _is_label_using_diagnostic(row)]
+    appendix_rows = [
+        row for row in per_cell
+        if "appendix" in str(_first(row, "status", default="")).lower()
+    ]
+    eligible_per_cell = [
+        row for row in per_cell
+        if not _is_label_using_diagnostic(row) and row not in appendix_rows
+    ]
     headline = [row for row in inputs["headline"] if not _is_label_using_diagnostic(row)]
     paired = list(inputs["paired"])
     coverage = list(inputs["coverage"])
     layer = list(inputs["layer"])
     dependence = list(inputs["dependence"])
     weights = list(inputs["weights"])
+    cohorts = list(inputs.get("cohorts", []))
+    comparator_fidelity = list(inputs.get("comparator_fidelity", []))
     figures = results_dir / "figures"
     status_class = "valid" if validation["validated"] else "blocked"
     gate_rows = validation["rows"]
     coverage_roster_columns = [
         (("cell", "cell_id"), "Cell"),
+        ("dataset", "Dataset"),
+        ("model_family", "Model family"),
+        ("n_layers", "Layers"),
         ("n_source_rows", "Source rows"),
         (("n_samples", "n"), "Joined candidates"),
         ("n_excluded_rows", "Excluded"),
         (("n_groups", "problem_groups"), "Problem groups"),
         ("prevalence", "Hallucination rate"),
         ("architecture_status", "Architecture"),
+        ("geometry_status", "Geometry"),
+        ("protocol_scope", "Scope"),
         ("status", "Status"),
         ("exclusion_reason", "Exclusion reason"),
     ]
@@ -1181,6 +1221,16 @@ def render_html(
         ("worst_cell_delta", "Worst cell"),
         ("p_raw", "p raw"),
         ("p_holm", "p Holm"),
+    ]
+    cohort_columns = [
+        ("cohort", "Cohort"), ("n_cells", "Cells"), ("method", "Method"),
+        ("feature_contract", "Contract"), ("structured", "Structure"),
+        ("macro_auroc", "Macro AUROC"), ("macro_auprc", "Macro AUPRC"),
+    ]
+    fidelity_columns = [
+        ("method", "Comparator"), ("implementation", "What was run"),
+        ("label_use", "Label use"), ("fidelity", "Fidelity"),
+        ("limitation", "Boundary"),
     ]
     provenance_rows = [
         {"artifact": name, "sha256": digest, "bytes": (results_dir / name).stat().st_size}
@@ -1237,16 +1287,16 @@ def render_html(
 <div class="validation-banner" role="{'status' if validation['validated'] else 'alert'}" aria-live="polite">
 <span>{html.escape(validation['status'])}</span><span>{'All promotion gates passed.' if validation['validated'] else 'Numerical comparisons are descriptive only; no improvement claim may be promoted.'}</span>
 </div>
-<p class="eyebrow">{VERSION} · Llama-3.1-8B · six registered cells</p>
+<p class="eyebrow">{VERSION} · nine model families · 14 cells (13 primary + one rejected appendix)</p>
 <span class="status {status_class}">{html.escape(validation['status'])}</span>
 <h1>Can label-free fusion turn internal layer trajectories into a better hallucination detector?</h1>
-<p class="lede">A frozen comparison of U-PCR, IU-PCR, DUFS-LIU-PCR, spaced-layer, and structured layer fusion. Higher scores mean greater hallucination risk. The headline is an equal-cell macro, while every cell remains visible.</p>
+<p class="lede">A frozen cross-architecture comparison of U-PCR, IU-PCR, DUFS-LIU-PCR, structured depth fusion, and fidelity-scoped TriLens, HaloScope, DoLa, Spilled Energy, and INSIDE arms. Higher scores mean greater hallucination risk. The headline is an equal-cell macro over 13 protocol-eligible cells; every cell remains visible.</p>
 {_headline_cards(headline, per_cell, paired, validation)}
 {_claim_assessment(validation, paired)}
 </header>
 
 <section aria-labelledby="validation"><h2 id="validation">1. Validation and claim boundary</h2>
-<p>The original capture branch was unavailable. Therefore numerical results cannot be promoted from preliminary evidence until both independent capture checks pass. A claimed status string is ignored: corrected live Gate B, the architecture pilot, the no-label fitting declaration, the pre-label score freeze, and every freeze record must all pass explicitly.</p>
+<p>The original <code>whitebox/per-layer-views</code> branch was recovered and its hook/capture implementation is now source-frozen. Numerical results still cannot be promoted until corrected live Gate B covers all 14 cells and the independent two-cell architecture pilot passes. A claimed status string is ignored: the validation evidence, no-label fitting declaration, pre-label score freeze, and every freeze record must all pass explicitly.</p>
 {_table(gate_rows, (("gate", "Evidence gate"), ("result", "Result"), ("required", "Required")), empty="No validation evidence was supplied.", caption="Fail-closed promotion gates")}
 <div class="callout {'warn' if validation['blockers'] else ''}"><strong>Current blockers:</strong> {html.escape(blockers)}.</div>
 </section>
@@ -1261,11 +1311,19 @@ def render_html(
 <section aria-labelledby="headline"><h2 id="headline">3. Headline method comparison</h2>
 <p>Intervals use the runner's shared grouped-bootstrap draws. The chart does not choose a winner: it preserves the registered summary row order.</p>
 {_figure(figures / 'macro_forest.svg', 'Macro AUROC forest plot', 'Equal-cell estimates with grouped-bootstrap intervals when supplied by headline_summary.csv.')}
-{_figure(figures / 'per_cell_heatmap.svg', 'Per-cell AUROC heatmap', 'The six datasets remain separate so a macro result cannot hide a concentrated gain or loss.')}
+{_figure(figures / 'per_cell_heatmap.svg', 'Per-cell AUROC heatmap', 'All protocol-eligible architecture/dataset cells remain separate so a macro result cannot hide a concentrated gain or loss.')}
 {_table(eligible_per_cell, metric_columns, empty="Eligible per-cell metric artifact unavailable.", caption="Eligible label-free methods by cell")}
+<h3>Architecture and continuity cohorts</h3>
+<p>The primary macro uses 13 protocol-eligible cells. The original six-Llama cohort preserves continuity; the seven-model GSM8K cohort isolates architecture replication; the 14-cell descriptive cohort includes the rejected CoQA cell and cannot support a claim.</p>
+{_table(cohorts, cohort_columns, empty="Cohort summary unavailable.", caption="Equal-cell macro summaries by registered cohort")}
+<h3>Comparator fidelity map</h3>
+{_table(comparator_fidelity, fidelity_columns, empty="Comparator fidelity artifact unavailable.", caption="Exact implementation and claim boundary for each literature comparator")}
 <h3>Label-using diagnostic ceilings — visually and inferentially separate</h3>
 <div class="callout warn"><strong>Not eligible for the headline or registered claim.</strong> Balanced grouped-CV logistic regression and best-single-layer curves inspect labels. They are shown only as diagnostic ceilings; their probabilities are scored fold by fold and never concatenated across independently calibrated folds.</div>
 {_table(diagnostic_ceiling_rows, metric_columns, empty="No supervised grouped-CV or best-single-layer diagnostic rows were supplied.", caption="Label-using diagnostic ceilings")}
+<h3>Protocol-rejected appendix</h3>
+<div class="callout warn"><strong>Excluded from every promoted macro.</strong> The CoQA/Llama-1 capture contains the only paper-shaped INSIDE K=10 last-token embeddings, but the project audit rejected that generation cell because of a chat-template defect.</div>
+{_table(appendix_rows, metric_columns, empty="No appendix-only rows were supplied.", caption="Rejected CoQA/INSIDE and companion scores")}
 </section>
 
 <section aria-labelledby="contrasts"><h2 id="contrasts">4. Pre-registered paired contrasts</h2>
@@ -1298,10 +1356,13 @@ def render_html(
 
 <section aria-labelledby="limitations"><h2 id="limitations">8. Limitations</h2>
 <ul>
-<li>These six cells support a cross-dataset statement for one Llama-3.1-8B model, not a cross-model statement.</li>
-<li>The layer sidecars were reconstructed without their original Git branch. Geometry results remain omitted unless hook and projection semantics are independently verified.</li>
+<li>The primary evidence covers 13 architecture/dataset cells, but seven architectures occur only on GSM8K; it is not a fully crossed model-by-dataset design.</li>
+<li>The capture source is recovered. Hidden projections are still mean-token 256-D Gaussian JL summaries, so HaloScope is a direct-score proxy rather than a full reproduction.</li>
+<li><code>cov_eigs</code> overflowed float16 on Phi-3, Phi-3.5, and Qwen3. Covariance-geometry performance is omitted rather than imputed; core lens tensors remain finite.</li>
+<li>TriLens uses the saved three-position entropies, but token-mean readout is a frozen approximation because the paper text leaves the fixed token readout unspecified. DoLa uses KL rather than JSD.</li>
+<li>Spilled Energy uses Eq. 8 only where the sampled token is present in saved raw top-K and pools the full generated answer because exact-answer spans were not captured.</li>
 <li>Label-free fitting is transductive within each cell. Labels are opened only after score hashes are frozen; this is a leakage boundary, not an unseen external test.</li>
-<li>Six cell-level pairs provide low power for rank tests. Confidence intervals and per-cell effects carry more information than a lone p-value.</li>
+<li>Thirteen primary cell-level pairs still provide modest power, and repeated GSM8K architectures are not independent datasets. Confidence intervals and per-cell effects carry more information than a lone p-value.</li>
 <li>A supervised grouped-CV ceiling and best-single-layer curves are diagnostics, never eligible headline methods.</li>
 </ul>
 </section>
@@ -1325,6 +1386,8 @@ def build_report(results_dir: str | Path) -> dict[str, Any]:
     inputs: dict[str, Any] = {
         "per_cell": _read_csv(results_dir / "per_cell_metrics.csv"),
         "headline": _read_csv(results_dir / "headline_summary.csv"),
+        "cohorts": _read_csv(results_dir / "cohort_summary.csv"),
+        "comparator_fidelity": _read_csv(results_dir / "comparator_fidelity.csv"),
         "paired": _read_csv(results_dir / "paired_comparisons.csv"),
         "coverage": _read_csv(results_dir / "data_coverage.csv"),
         "layer": _read_csv(results_dir / "layer_diagnostics.csv"),
@@ -1346,10 +1409,14 @@ def build_report(results_dir: str | Path) -> dict[str, Any]:
         row for row in inputs["headline"] if not _is_label_using_diagnostic(row)
     ]
     eligible_per_cell = [
-        row for row in inputs["per_cell"] if not _is_label_using_diagnostic(row)
+        row for row in inputs["per_cell"]
+        if not _is_label_using_diagnostic(row)
+        and "appendix" not in str(_first(row, "status", default="")).lower()
     ]
-    _plot_forest(eligible_headline, figures_dir / "macro_forest.svg")
-    _plot_heatmap(eligible_per_cell, figures_dir / "per_cell_heatmap.svg")
+    curated_headline = [row for row in eligible_headline if _is_curated_visual_method(row)]
+    curated_per_cell = [row for row in eligible_per_cell if _is_curated_visual_method(row)]
+    _plot_forest(curated_headline, figures_dir / "macro_forest.svg")
+    _plot_heatmap(curated_per_cell, figures_dir / "per_cell_heatmap.svg")
     _plot_deltas(inputs["paired"], figures_dir / "paired_deltas.svg")
     _plot_layer_curves(inputs["layer"], figures_dir / "layer_curves.svg")
     _plot_correlation_heatmap(

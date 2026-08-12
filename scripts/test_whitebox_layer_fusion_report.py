@@ -431,7 +431,7 @@ class WhiteboxLayerFusionReportTest(unittest.TestCase):
             self.assertIn('data-validation-status="blocked"', report)
             self.assertIn('role="alert"', report)
             self.assertIn("descriptive only", report)
-            self.assertIn("Corrected live Gate B (all six cells)", manifest["blockers"])
+            self.assertIn("Corrected live Gate B (all 14 cells)", manifest["blockers"])
 
             # A claimed status cannot bypass a missing explicit architecture result.
             _write_json(directory / "validation_status.json", {"status": "VALIDATED", "gate_b_all_pass": True})

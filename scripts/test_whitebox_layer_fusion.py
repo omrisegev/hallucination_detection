@@ -32,24 +32,32 @@ from spectral_utils.whitebox_layer_fusion import (  # noqa: E402
     FeatureMatrix,
     assert_no_label_fitting_signatures,
     assert_same_protocol,
+    all_layers,
     entropy_agreement_gate,
+    extract_dola_kl_proxy,
     extract_geometry,
+    extract_haloscope_projection,
     extract_lens96,
     extract_lens_grid,
     extract_resid_core,
+    extract_trilens_entropy,
     fit_controls,
     fit_core_spectral,
     fit_dependency_methods,
     fit_hierarchical,
+    fit_haloscope_direct_proxy,
+    fixed_bands,
+    late_layers,
     load_evaluation_labels,
     residualize_token_length,
+    spaced_layers,
     validate_and_join,
 )
 
 
-def synthetic_artifacts(n_problems=8, candidates_per_problem=3, seed=29):
+def synthetic_artifacts(n_problems=8, candidates_per_problem=3, seed=29, n_layers=32):
     rng = np.random.default_rng(seed)
-    n_layers, n_modules, projection_dim, covariance_rank = 32, 3, 8, 4
+    n_modules, projection_dim, covariance_rank = 3, 8, 4
     n_rows = n_problems * candidates_per_problem
     latent_risk = np.linspace(-1.8, 1.8, n_rows) + rng.normal(0.0, 0.06, n_rows)
     raw, sidecar = {}, {
@@ -83,7 +91,7 @@ def synthetic_artifacts(n_problems=8, candidates_per_problem=3, seed=29):
             target_nll = target_nll + 0.003 * token_axis + noise * 0.6
             top1_surprisal = 1.2 + 0.48 * risk + 0.003 * layer_axis + 0.004 * module_axis
             top1_surprisal = top1_surprisal + 0.002 * token_axis + noise * 0.5
-            distance = (31.0 - layer_axis) / 31.0 + (2.0 - module_axis) * 0.05
+            distance = ((n_layers - 1.0) - layer_axis) / max(n_layers - 1.0, 1.0) + (2.0 - module_axis) * 0.05
             kl = (0.7 + 0.16 * risk + noise * 0.2) * distance
             kl[2, -1, :] = 0.0
 
@@ -217,6 +225,59 @@ class WhiteboxLayerFusionTests(unittest.TestCase):
         self.assertEqual(spaced.n_features, 95)
         self.assertEqual(len(set(spaced.groups)), 12)
         self.assertIn("resid.lens_kl_final.layer_31", spaced.metadata["dropped_degenerate_features"])
+
+    def test_architecture_relative_layers_and_comparator_contracts(self):
+        self.assertEqual(spaced_layers(32), SPACED_LAYERS)
+        self.assertEqual(spaced_layers(36), (0, 5, 10, 15, 20, 25, 30, 35))
+        self.assertEqual(spaced_layers(40), (0, 6, 11, 17, 22, 28, 33, 39))
+        self.assertEqual(late_layers(40), tuple(range(32, 40)))
+        self.assertEqual(len(all_layers(36)), 36)
+        self.assertEqual(tuple(map(len, fixed_bands(40))), (10, 10, 10, 10))
+
+        raw, sidecar, _risk = synthetic_artifacts(n_layers=36)
+        cell, _audit = validate_and_join(
+            raw, sidecar, cell_id="synthetic-36",
+            expected_model="synthetic/Llama-3.1-8B-Instruct",
+            expected_n_layers=36, expected_hidden_size=16,
+            expected_projection_dim=8, expected_covariance_rank=4,
+        )
+        self.assertEqual(extract_resid_core(cell).n_features, 36)
+        trilens = extract_trilens_entropy(cell)
+        self.assertEqual(trilens.metadata["nominal_feature_count"], 108)
+        self.assertEqual(len(set(trilens.groups)), 3)
+        dola = extract_dola_kl_proxy(cell)
+        self.assertEqual(dola.metadata["nominal_feature_count"], 36)
+        self.assertNotIn("dola_kl_proxy.resid.layer_35", dola.feature_names)
+
+    def test_geometry_overflow_is_explicitly_audited_and_core_remains_valid(self):
+        sidecar = copy.deepcopy(self.sidecar)
+        sidecar["0:0"]["cov_eigs"][0, 0] = np.inf
+        with self.assertRaisesRegex(ValueError, "cov_eigs contains non-finite"):
+            validate_and_join(
+                self.raw, sidecar, cell_id="strict-geometry",
+                expected_model="synthetic/Llama-3.1-8B-Instruct",
+                expected_hidden_size=16, expected_projection_dim=8,
+                expected_covariance_rank=4,
+            )
+        cell, audit = validate_and_join(
+            self.raw, sidecar, cell_id="blocked-geometry",
+            expected_model="synthetic/Llama-3.1-8B-Instruct",
+            expected_hidden_size=16, expected_projection_dim=8,
+            expected_covariance_rank=4, require_geometry_finite=False,
+        )
+        self.assertEqual(audit["nonfinite_geometry_counts"]["cov_eigs"], 1)
+        self.assertFalse(audit["geometry_tensors_finite"])
+        self.assertTrue(np.isfinite(extract_resid_core(cell).values).all())
+
+    def test_haloscope_direct_proxy_is_rotation_invariant(self):
+        matrix = extract_haloscope_projection(self.cell)
+        score, diagnostic = fit_haloscope_direct_proxy(matrix, k=4)
+        rng = np.random.default_rng(811)
+        q, _ = np.linalg.qr(rng.normal(size=(matrix.n_features, matrix.n_features)))
+        rotated = replace(matrix, values=matrix.values @ q)
+        rotated_score, _ = fit_haloscope_direct_proxy(rotated, k=4)
+        np.testing.assert_allclose(score, rotated_score, rtol=2e-10, atol=2e-10)
+        self.assertFalse(diagnostic["labels_seen_during_fit"])
 
     def test_geometry_is_invariant_to_common_orthogonal_rotation(self):
         original = extract_geometry(self.cell, SPACED_LAYERS)
@@ -365,3 +426,9 @@ class WhiteboxLayerFusionTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+    extract_dola_kl_proxy,
+    extract_haloscope_projection,
+    fit_haloscope_direct_proxy,
+    fixed_bands,
+    late_layers,
+    spaced_layers,

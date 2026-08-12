@@ -43,28 +43,35 @@ from spectral_utils.whitebox_layer_fusion import (  # noqa: E402
     LATE_LAYERS,
     SPACED_LAYERS,
     FeatureMatrix,
+    all_layers,
     assert_no_label_fitting_signatures,
+    extract_dola_kl_proxy,
+    extract_haloscope_projection,
     extract_lens96,
     extract_lens_grid,
     extract_resid_core,
+    extract_trilens_entropy,
     fit_controls,
     fit_core_spectral,
     fit_dependency_methods,
     fit_hierarchical,
+    fit_haloscope_direct_proxy,
+    late_layers,
     load_evaluation_labels,
     residualize_token_length,
+    spaced_layers,
     validate_and_join,
 )
 from spectral_utils.paper_benchmark_suite import standardize as canonical_standardize  # noqa: E402
 
 
-VERSION = "whitebox-layer-fusion-v1-2026-08-12"
+VERSION = "whitebox-layer-fusion-v2-2026-08-12"
 MODEL = "meta-llama/Llama-3.1-8B-Instruct"
 SEED = 20260812
 BOOTSTRAP_DRAWS = 2000
 TIE_TOLERANCE = 0.001
 DEFAULT_CACHE = REPO / "dataset_cache" / "whitebox_layer_fusion_v1"
-DEFAULT_RESULTS = REPO / "results" / "whitebox_layer_fusion_v1"
+DEFAULT_RESULTS = REPO / "results" / "whitebox_layer_fusion_v2"
 
 
 CELLS = OrderedDict(
@@ -180,13 +187,123 @@ CELLS = OrderedDict(
     )
 )
 
+CELLS.update((
+    ("gsm8k_r1distill_t0.0", {
+        "cell_id": "ars_gsm8k_r1distill8b", "dataset": "GSM8K", "temperature": 0.0,
+        "model": "deepseek-ai/DeepSeek-R1-Distill-Llama-8B", "model_family": "DeepSeek-R1-Distill-Llama-8B",
+        "n_layers": 32, "hidden_size": 4096,
+        "raw": "repgrid/ars_gsm8k_r1distill8b/raw_gsm8k_T0.0.pkl",
+        "sidecar": "layer_views/ars_gsm8k_r1distill8b/layer_views_T0.0.pkl",
+        "backfill": "repgrid/ars_gsm8k_r1distill8b/backfill_report.json",
+        "remote_raw_modtime": "2026-07-18T19:11:06Z", "remote_sidecar_modtime": "2026-08-12T07:46:11Z",
+        "raw_size": 189353848, "raw_sha256": "ae33ac6139828c1a69fb8887b950cc956323707d537d10c20bebf1108d8f2dc8",
+        "sidecar_size": 195444850, "sidecar_sha256": "0014c54b6fd9883b1970a58b4cc2f364cf4882ad57fbec005f3c7366cb78fbcc",
+        "source_rows": 500,
+    }),
+    ("coqa_llama7b_t0.5", {
+        "cell_id": "inside_coqa_llama7b", "dataset": "CoQA", "temperature": 0.5,
+        "model": "huggyllama/llama-7b", "model_family": "Llama-1-7B",
+        "n_layers": 32, "hidden_size": 4096, "protocol_rejected": True,
+        "protocol_rejection_reason": "Step 216 generation/chat-template defect; appendix-only",
+        "raw": "repgrid/inside_coqa_llama7b/raw_coqa_T0.5.pkl",
+        "sidecar": "layer_views/inside_coqa_llama7b/layer_views_T0.5.pkl",
+        "backfill": "repgrid/inside_coqa_llama7b/backfill_report.json",
+        "remote_raw_modtime": "2026-07-18T19:11:45Z", "remote_sidecar_modtime": "2026-08-12T07:23:40Z",
+        "raw_size": 904373854, "raw_sha256": "d45f11024ac968221eff315542153f9c7bf37f7de8bb1150f50b02462825e9ee",
+        "sidecar_size": 941432203, "sidecar_sha256": "728195fb451743d7cfe5f022a591565657284528caa3f5ea33293ba35cb37aa9",
+        "source_rows": 5000,
+    }),
+    ("gsm8k_mistral24b_t1.0", {
+        "cell_id": "lapeigvals_gsm8k_mistral24b", "dataset": "GSM8K", "temperature": 1.0,
+        "model": "mistralai/Mistral-Small-24B-Instruct-2501", "model_family": "Mistral-Small-24B",
+        "n_layers": 40, "hidden_size": 5120,
+        "raw": "repgrid/lapeigvals_gsm8k_mistral24b/raw_gsm8k_T1.0.pkl",
+        "sidecar": "layer_views/lapeigvals_gsm8k_mistral24b/layer_views_T1.0.pkl",
+        "backfill": "repgrid/lapeigvals_gsm8k_mistral24b/backfill_report.json",
+        "remote_raw_modtime": "2026-07-18T19:13:55Z", "remote_sidecar_modtime": "2026-08-12T08:41:41Z",
+        "raw_size": 285037844, "raw_sha256": "881dfabbbe48a2af4d756483c6800f6d1674d04b13a1664b9765f52e7a36f23c",
+        "sidecar_size": 380415258, "sidecar_sha256": "d6930ef881019b21b3b893faee990fb75d933ff5741814c573a9a6048c3f89d3",
+        "source_rows": 1319,
+    }),
+    ("gsm8k_nemo_t1.0", {
+        "cell_id": "lapeigvals_gsm8k_nemo", "dataset": "GSM8K", "temperature": 1.0,
+        "model": "mistralai/Mistral-Nemo-Instruct-2407", "model_family": "Mistral-Nemo-12B",
+        "n_layers": 40, "hidden_size": 5120,
+        "raw": "repgrid/lapeigvals_gsm8k_nemo/raw_gsm8k_T1.0.pkl",
+        "sidecar": "layer_views/lapeigvals_gsm8k_nemo/layer_views_T1.0.pkl",
+        "backfill": "repgrid/lapeigvals_gsm8k_nemo/backfill_report.json",
+        "remote_raw_modtime": "2026-07-18T19:13:26Z", "remote_sidecar_modtime": "2026-08-12T08:03:40Z",
+        "raw_size": 302055723, "raw_sha256": "4b772b6a47d5b070511b863aebbec7fdbf25ab5b58a2f4d13de18805c133eff0",
+        "sidecar_size": 400270368, "sidecar_sha256": "6fa95084e6f8695b50ada1da87d5ae0f5ccbecb25b506c4ca2cde037c19d53dd",
+        "source_rows": 1319,
+    }),
+    ("gsm8k_phi35_t1.0", {
+        "cell_id": "lapeigvals_gsm8k_phi35", "dataset": "GSM8K", "temperature": 1.0,
+        "model": "microsoft/Phi-3.5-mini-instruct", "model_family": "Phi-3.5-mini",
+        "n_layers": 32, "hidden_size": 3072,
+        "raw": "repgrid/lapeigvals_gsm8k_phi35/raw_gsm8k_T1.0.pkl",
+        "sidecar": "layer_views/lapeigvals_gsm8k_phi35/layer_views_T1.0.pkl",
+        "backfill": "repgrid/lapeigvals_gsm8k_phi35/backfill_report.json",
+        "remote_raw_modtime": "2026-07-18T19:12:28Z", "remote_sidecar_modtime": "2026-08-12T08:02:25Z",
+        "raw_size": 344193497, "raw_sha256": "0cb4b31f13fb59f34f786db1d931f1d99daee71a0cfa10402e523a859477dde8",
+        "sidecar_size": 361005285, "sidecar_sha256": "0b4107403f07d08306a5e0f858628cfb8b86a7beca88aaab26c26e793f94d755",
+        "source_rows": 1319,
+    }),
+    ("gsm8k_mistral7b_t1.0", {
+        "cell_id": "noise_gsm8k_mistral7b", "dataset": "GSM8K", "temperature": 1.0,
+        "model": "mistralai/Mistral-7B-Instruct-v0.3", "model_family": "Mistral-7B-v0.3",
+        "n_layers": 32, "hidden_size": 4096,
+        "raw": "repgrid/noise_gsm8k_mistral7b/raw_gsm8k_T1.0.pkl",
+        "sidecar": "layer_views/noise_gsm8k_mistral7b/layer_views_T1.0.pkl",
+        "backfill": "repgrid/noise_gsm8k_mistral7b/backfill_report.json",
+        "remote_raw_modtime": "2026-07-18T19:13:06Z", "remote_sidecar_modtime": "2026-08-12T08:11:37Z",
+        "raw_size": 373510793, "raw_sha256": "9c80391981959c8196f0816db0caca818e4828a5cfbcd31bafb4e9271af93ccf",
+        "sidecar_size": 389571637, "sidecar_sha256": "1de6787d236238b02e8c0afd9e7ee87cfa0a185736076f9147057bc9822f200a",
+        "source_rows": 1319,
+    }),
+    ("gsm8k_phi3mini_t1.0", {
+        "cell_id": "noise_gsm8k_phi3mini", "dataset": "GSM8K", "temperature": 1.0,
+        "model": "microsoft/Phi-3-mini-4k-instruct", "model_family": "Phi-3-mini",
+        "n_layers": 32, "hidden_size": 3072,
+        "raw": "repgrid/noise_gsm8k_phi3mini/raw_gsm8k_T1.0.pkl",
+        "sidecar": "layer_views/noise_gsm8k_phi3mini/layer_views_T1.0.pkl",
+        "backfill": "repgrid/noise_gsm8k_phi3mini/backfill_report.json",
+        "remote_raw_modtime": "2026-07-18T19:12:13Z", "remote_sidecar_modtime": "2026-08-12T07:53:32Z",
+        "raw_size": 297124222, "raw_sha256": "10ccb627b29021b9f20757b500285404215097c858cfcea0b2e20c89f8fae5d5",
+        "sidecar_size": 315628464, "sidecar_sha256": "3792f3a1e10a18491091e43398abbbdd0850439c35a842f9bc54bda0dd1ed7f0",
+        "source_rows": 1319,
+    }),
+    ("triviaqa_qwen3_t0.6", {
+        "cell_id": "semenergy_triviaqa_qwen3_8b", "dataset": "TriviaQA", "temperature": 0.6,
+        "model": "Qwen/Qwen3-8B", "model_family": "Qwen3-8B",
+        "n_layers": 36, "hidden_size": 4096,
+        "raw": "repgrid/semenergy_triviaqa_qwen3_8b/raw_trivia_qa_T0.6.pkl",
+        "sidecar": "layer_views/semenergy_triviaqa_qwen3_8b/layer_views_T0.6.pkl",
+        "backfill": "repgrid/semenergy_triviaqa_qwen3_8b/backfill_report.json",
+        "remote_raw_modtime": "2026-07-09T07:06:47Z", "remote_sidecar_modtime": "2026-08-12T06:53:41Z",
+        "raw_size": 62044585, "raw_sha256": "fa33eb050e481dea9afc82ad82cb243c415ae8ee51b009bb9980b09b621d1945",
+        "sidecar_size": 166840079, "sidecar_sha256": "71592c2f46b00efcb2872db0aab9b9cf8fc4d6ce704fcf6d94cd00831dd352eb",
+        "source_rows": 5000,
+    }),
+))
+
 EXPECTED_EXCLUSIONS = {
     "gsm8k_t1.0": {
         "20:0": (2048, 1024),
         "359:0": (2048, 1024),
         "423:0": (1185, 1024),
         "450:0": (1216, 1024),
-    }
+    },
+    "gsm8k_r1distill_t0.0": {"214:0": (1406, 1024)},
+    "gsm8k_nemo_t1.0": {"500:0": (1147, 1024), "931:0": (1915, 1024)},
+    "gsm8k_phi35_t1.0": {"58:0": (1272, 1024), "62:0": (1538, 1024), "552:0": (2048, 1024), "1075:0": (1637, 1024)},
+    "gsm8k_mistral7b_t1.0": {
+        "122:0": (1270, 1024), "150:0": (1269, 1024), "162:0": (1196, 1024),
+        "199:0": (1120, 1024), "203:0": (2048, 1024), "219:0": (1077, 1024),
+        "475:0": (1253, 1024), "850:0": (1087, 1024), "871:0": (1180, 1024),
+        "911:0": (1121, 1024), "963:0": (1378, 1024), "1147:0": (1128, 1024),
+    },
+    "gsm8k_phi3mini_t1.0": {"12:0": (1168, 1024), "611:0": (1552, 1024), "950:0": (1104, 1024), "1169:0": (1319, 1024)},
 }
 EXPECTED_COHORTS = {
     "gsm8k_t1.0": {"source_groups": 500, "valid_groups": 496, "candidates_per_source_group": 1},
@@ -195,9 +312,29 @@ EXPECTED_COHORTS = {
     "truthfulqa_t0.5": {"source_groups": 817, "valid_groups": 817, "candidates_per_source_group": 10},
     "squadv2_t0.5": {"source_groups": 1000, "valid_groups": 1000, "candidates_per_source_group": 10},
     "nq_open_t0.5": {"source_groups": 1000, "valid_groups": 1000, "candidates_per_source_group": 10},
+    "gsm8k_r1distill_t0.0": {"source_groups": 500, "valid_groups": 499, "candidates_per_source_group": 1},
+    "coqa_llama7b_t0.5": {"source_groups": 500, "valid_groups": 500, "candidates_per_source_group": 10},
+    "gsm8k_mistral24b_t1.0": {"source_groups": 1319, "valid_groups": 1319, "candidates_per_source_group": 1},
+    "gsm8k_nemo_t1.0": {"source_groups": 1319, "valid_groups": 1317, "candidates_per_source_group": 1},
+    "gsm8k_phi35_t1.0": {"source_groups": 1319, "valid_groups": 1315, "candidates_per_source_group": 1},
+    "gsm8k_mistral7b_t1.0": {"source_groups": 1319, "valid_groups": 1307, "candidates_per_source_group": 1},
+    "gsm8k_phi3mini_t1.0": {"source_groups": 1319, "valid_groups": 1315, "candidates_per_source_group": 1},
+    "triviaqa_qwen3_t0.6": {"source_groups": 500, "valid_groups": 500, "candidates_per_source_group": 10},
 }
 
 CORE_SOLVERS = ("upcr", "iu_pcr", "dufs_liu_pcr")
+PRIMARY_CELLS = tuple(name for name, spec in CELLS.items() if not spec.get("protocol_rejected"))
+ORIGINAL_LLAMA_CELLS = tuple(list(CELLS)[:6])
+GSM8K_ARCHITECTURE_CELLS = tuple(
+    name for name, spec in CELLS.items() if spec["dataset"] == "GSM8K"
+)
+COMPARATOR_FIDELITY = (
+    {"method": "TriLens entropy features", "implementation": "3xL MHSA/FFN/residual token-mean entropy", "label_use": "none for fusion; grouped LR diagnostic", "fidelity": "feature-faithful approximation", "limitation": "paper text does not specify its fixed token readout"},
+    {"method": "HaloScope", "implementation": "fixed middle-layer k=4 direct SVD-membership score on 256-D mean-token JL projection", "label_use": "none", "fidelity": "stage-1 proxy", "limitation": "not last-token full hidden state and excludes validation-selected pseudo-label classifier"},
+    {"method": "DoLa-style detector", "implementation": "residual depth-wise KL-to-final vector with label-free fusion and grouped LR ceiling", "label_use": "none for fusion; grouped LR diagnostic", "fidelity": "KL proxy", "limitation": "saved KL is not the paper comparator's JSD; DoLa itself is a decoding method"},
+    {"method": "Spilled Energy", "implementation": "Eq.8 raw-logit minus next-step logsumexp reconstructed when sampled token is in raw top-K", "label_use": "none", "fidelity": "equation-faithful token proxy", "limitation": "full-answer pooling; exact-answer span was not captured"},
+    {"method": "INSIDE EigenScore", "implementation": "K=10 middle-layer last-token embeddings, alpha=0.001 logdet", "label_use": "none", "fidelity": "paper equation without feature clipping", "limitation": "only rejected CoQA/Llama-1 cell; appendix only"},
+)
 SOURCE_CODE = (
     "scripts/whitebox_layer_fusion_experiment.py",
     "scripts/whitebox_layer_fusion_report.py",
@@ -209,6 +346,9 @@ SOURCE_CODE = (
     "spectral_utils/upcr_clustered.py",
     "spectral_utils/fusion_utils.py",
     "spectral_utils/selectors/a2_groupfs.py",
+    "cluster/layer_lens.py",
+    "cluster/run_layer_views.py",
+    "cluster/submit_layer_views.sbatch.template",
     "cluster/run_layer_views_reference.py",
 )
 
@@ -313,6 +453,116 @@ def _valid_row_metadata(cell: Any) -> dict[str, np.ndarray]:
     }
 
 
+def _raw_candidate_for_row(raw: Mapping[Any, Any], row_id: str) -> Mapping[str, Any]:
+    problem, candidate = row_id.rsplit(":", 1)
+    entry = raw.get(problem, raw.get(int(problem) if problem.isdigit() else problem))
+    if not isinstance(entry, Mapping):
+        raise KeyError(f"missing raw problem {problem}")
+    return entry["candidates"][int(candidate)]
+
+
+def extract_raw_output_contract(raw: Mapping[Any, Any], cell: Any) -> tuple[FeatureMatrix, dict[str, Any]]:
+    """Build frozen output-layer baselines, including a top-K Spilled-Energy proxy."""
+
+    entropy_mean, realized_nll_mean, spilled_mean, spilled_min = [], [], [], []
+    hit_tokens = eligible_tokens = rows_without_delta = 0
+    for row_id in cell.row_ids:
+        candidate = _raw_candidate_for_row(raw, row_id)
+        entropy = np.asarray(candidate["token_entropies"], dtype=float)
+        realized = np.asarray(candidate["token_spilled_energies"], dtype=float)
+        entropy_mean.append(float(np.mean(entropy)))
+        realized_nll_mean.append(float(np.mean(realized)))
+        ids = np.asarray(candidate["top_k_logprobs_raw"]["ids"])
+        logprobs = np.asarray(candidate["top_k_logprobs_raw"]["logprobs"], dtype=float)
+        generated = np.asarray(candidate["gen_token_ids"])
+        logz = np.asarray(candidate["token_logsumexp"], dtype=float)
+        limit = min(len(generated), len(ids), len(logprobs), len(logz))
+        delta = []
+        for token in range(max(0, limit - 1)):
+            eligible_tokens += 1
+            match = np.flatnonzero(ids[token] == generated[token])
+            if not len(match):
+                continue
+            hit_tokens += 1
+            raw_logit = float(logprobs[token, int(match[0])] + logz[token])
+            delta.append(raw_logit - float(logz[token + 1]))
+        if delta:
+            spilled_mean.append(float(np.mean(delta)))
+            spilled_min.append(float(np.min(delta)))
+        else:
+            rows_without_delta += 1
+            spilled_mean.append(float("nan"))
+            spilled_min.append(float("nan"))
+    columns = [entropy_mean, realized_nll_mean, spilled_mean, spilled_min]
+    values = np.column_stack(columns).astype(float)
+    imputed = {}
+    for index, name in enumerate(("generation_entropy_mean", "realized_token_nll_mean",
+                                  "spilled_energy_full_answer_mean_proxy",
+                                  "spilled_energy_full_answer_min_proxy")):
+        missing = ~np.isfinite(values[:, index])
+        if np.any(missing):
+            median = float(np.nanmedian(values[:, index]))
+            values[missing, index] = median
+            imputed[name] = {"n_rows": int(np.sum(missing)), "unlabeled_median": median}
+    matrix = FeatureMatrix(
+        values=values,
+        feature_names=("generation_entropy_mean", "realized_token_nll_mean",
+                       "spilled_energy_full_answer_mean_proxy",
+                       "spilled_energy_full_answer_min_proxy"),
+        risk_anchor=np.asarray(extract_resid_core(cell).risk_anchor, dtype=float),
+        groups=("output_entropy", "output_nll", "spilled_energy", "spilled_energy"),
+        protocol_signature=cell.protocol_signature,
+        metadata={
+            "contract": "raw-output-baselines",
+            "fidelity": {
+                "generation_entropy_mean": "direct",
+                "realized_token_nll_mean": "direct; legacy field name token_spilled_energies is not paper Spilled Energy",
+                "spilled_energy": "Eq.8 top-K reconstruction over full answer; exact-answer localization unavailable",
+            },
+            "top_k_sampled_token_coverage": hit_tokens / eligible_tokens if eligible_tokens else 0.0,
+            "eligible_spilled_tokens": eligible_tokens,
+            "matched_spilled_tokens": hit_tokens,
+            "rows_without_a_two-step_delta": rows_without_delta,
+            "unlabeled_imputation": imputed,
+        },
+    )
+    return matrix, dict(matrix.metadata)
+
+
+def extract_inside_eigenscore(raw: Mapping[Any, Any], cell: Any) -> FeatureMatrix | None:
+    """Paper-equation INSIDE EigenScore for cells carrying K last-token embeddings."""
+
+    scores = np.full(cell.n_samples, np.nan, dtype=float)
+    by_problem: dict[str, list[int]] = defaultdict(list)
+    for index, problem in enumerate(cell.problem_ids):
+        by_problem[str(problem)].append(index)
+    for indices in by_problem.values():
+        vectors = []
+        for index in indices:
+            value = _raw_candidate_for_row(raw, cell.row_ids[index]).get("hidden_middle_last")
+            if value is None:
+                return None
+            vectors.append(np.asarray(value, dtype=float))
+        z = np.vstack(vectors)
+        z = z - np.mean(z, axis=1, keepdims=True)
+        sigma = z @ z.T
+        sign, logdet = np.linalg.slogdet(sigma + 0.001 * np.eye(len(indices)))
+        if sign <= 0 or not np.isfinite(logdet):
+            raise ValueError("INSIDE regularized covariance is not positive definite")
+        scores[indices] = float(logdet / len(indices))
+    return FeatureMatrix(
+        values=scores[:, None], feature_names=("inside_eigenscore",),
+        risk_anchor=np.asarray(extract_resid_core(cell).risk_anchor, dtype=float),
+        groups=("inside",), protocol_signature=cell.protocol_signature,
+        metadata={
+            "contract": "inside-eigenscore",
+            "alpha": 0.001, "readout": "saved_middle_layer_last_token",
+            "candidate_generations_per_problem": sorted({len(v) for v in by_problem.values()}),
+            "fidelity": "paper equation without feature clipping",
+        },
+    )
+
+
 def _backfill_gate(path: Path) -> dict[str, Any]:
     report = read_json(path)
     entries = report.get("pkls", [])
@@ -347,12 +597,13 @@ def load_validation_artifact(path: Path | None) -> dict[str, Any]:
     path = path.resolve()
     payload = read_json(path)
     schema = payload.get("schema_version")
-    if schema not in {"whitebox-layer-validation-v1", "layer-reference-pilot-v1"}:
+    if schema not in {"whitebox-layer-validation-v1", "whitebox-layer-validation-v2", "layer-reference-pilot-v1"}:
         raise ValueError(f"unsupported validation artifact schema {schema!r}")
-    if schema == "whitebox-layer-validation-v1":
+    if schema in {"whitebox-layer-validation-v1", "whitebox-layer-validation-v2"}:
         gate_cells = int(payload.get("corrected_gate_b_cells", 0))
         architecture_cells = int(payload.get("architecture_pilot_cells", 0))
-        gate_pass = payload.get("corrected_gate_b_all_pass") is True and gate_cells == 6
+        expected_gate_cells = 6 if schema.endswith("v1") else len(CELLS)
+        gate_pass = payload.get("corrected_gate_b_all_pass") is True and gate_cells == expected_gate_cells
         architecture_pass = (
             payload.get("architecture_pilot_pass") is True and architecture_cells == 2
         )
@@ -381,7 +632,7 @@ def load_validation_artifact(path: Path | None) -> dict[str, Any]:
         "reason": (
             "all live validation requirements passed"
             if passed
-            else "artifact does not explicitly pass six Gate-B cells and two architecture cells"
+            else "artifact does not explicitly pass the registered Gate-B roster and two architecture cells"
         ),
     }
 
@@ -438,8 +689,11 @@ def phase_prepare(
             raw,
             sidecar,
             cell_id=cell_name,
-            expected_model=MODEL,
+            expected_model=spec.get("model", MODEL),
+            expected_n_layers=int(spec.get("n_layers", 32)),
+            expected_hidden_size=int(spec.get("hidden_size", 4096)),
             exclude_invalid=True,
+            require_geometry_finite=False,
         )
         expected_excluded = set(EXPECTED_EXCLUSIONS.get(cell_name, {}))
         observed_excluded = {row["row_id"] for row in audit["excluded_rows"]}
@@ -463,15 +717,26 @@ def phase_prepare(
         source_ids.update(source_cell_ids)
         valid_ids.update(valid_cell_ids)
 
+        architecture_layers = all_layers(cell.n_layers)
+        architecture_spaced = spaced_layers(cell.n_layers)
+        architecture_late = late_layers(cell.n_layers)
+        raw_output, raw_output_audit = extract_raw_output_contract(raw, cell)
         matrices = {
-            "resid_core_all32": extract_resid_core(cell, ALL_LAYERS),
-            "resid_core_spaced8": extract_resid_core(cell, SPACED_LAYERS),
-            "resid_core_late8": extract_resid_core(cell, LATE_LAYERS),
+            "resid_core_all": extract_resid_core(cell, architecture_layers),
+            "resid_core_spaced8": extract_resid_core(cell, architecture_spaced),
+            "resid_core_late8": extract_resid_core(cell, architecture_late),
             "lens96": extract_lens96(cell),
-            "lens_grid_all32": extract_lens_grid(cell),
+            "lens_grid_all": extract_lens_grid(cell),
+            "trilens_entropy_all": extract_trilens_entropy(cell),
+            "dola_kl_proxy_all": extract_dola_kl_proxy(cell),
+            "haloscope_projection": extract_haloscope_projection(cell),
+            "raw_output_baselines": raw_output,
         }
-        matrices["resid_core_all32_length_residualized"] = residualize_token_length(
-            matrices["resid_core_all32"], cell.n_gen_tokens
+        inside = extract_inside_eigenscore(raw, cell)
+        if inside is not None:
+            matrices["inside_eigenscore"] = inside
+        matrices["resid_core_all_length_residualized"] = residualize_token_length(
+            matrices["resid_core_all"], cell.n_gen_tokens
         )
         for name, matrix in matrices.items():
             save_feature_matrix(prepared / f"{cell_name}__{name}.npz", matrix)
@@ -491,6 +756,12 @@ def phase_prepare(
                     "metadata": jsonable(matrix.metadata),
                 }
                 for name, matrix in matrices.items()
+            },
+            "raw_output_baseline_audit": raw_output_audit,
+            "architecture_relative_layers": {
+                "all": list(architecture_layers),
+                "spaced8": list(architecture_spaced),
+                "late8": list(architecture_late),
             },
             "raw_backfill_gate_b": backfill,
             "corrected_live_gate_b": {
@@ -522,7 +793,8 @@ def phase_prepare(
             "source_candidate_multiplicity": dict(sorted(Counter(source_problem_counts.values()).items())),
             "valid_candidate_multiplicity": dict(sorted(Counter(valid_problem_counts.values()).items())),
             "all_registered_tensor_shapes_valid": True,
-            "all_numeric_values_finite": True,
+            "all_core_lens_values_finite": True,
+            "all_geometry_values_finite": audit["geometry_tensors_finite"],
             "labels_equal_between_raw_and_sidecar": True,
             "token_lengths_equal_for_evaluable_rows": True,
         })
@@ -530,10 +802,18 @@ def phase_prepare(
         coverage.append({
             "cell": cell_name,
             "cell_id": spec["cell_id"],
+            "dataset": spec["dataset"],
+            "model": spec.get("model", MODEL),
+            "model_family": spec.get("model_family", "Llama-3.1-8B"),
+            "n_layers": cell.n_layers,
+            "hidden_size": int(spec.get("hidden_size", 4096)),
             "n_source_rows": audit["n_source_rows"],
             "n_samples": audit["n_rows"],
             "n_excluded_rows": audit["n_excluded_rows"],
             "n_groups": audit["n_problems"],
+            "protocol_scope": "appendix_rejected" if spec.get("protocol_rejected") else "primary",
+            "geometry_status": "PASS" if audit["geometry_tensors_finite"] else "BLOCKED_NONFINITE_COV_EIGS",
+            "cov_eigs_nonfinite": audit["nonfinite_geometry_counts"]["cov_eigs"],
             "prevalence": "",
             "raw_backfill_gate_b_status": "PASS" if backfill["pass"] else "FAIL",
             "raw_backfill_gate_b_median": backfill["median"],
@@ -550,7 +830,7 @@ def phase_prepare(
         })
         del raw, sidecar, cell, matrices
 
-    if len(source_ids) != 30170 or len(valid_ids) != 30166:
+    if len(source_ids) != 47265 or len(valid_ids) != 47238:
         raise RuntimeError(f"roster totals are {len(source_ids)}/{len(valid_ids)}")
     write_json(results / "data_audit.json", {
         "version": VERSION,
@@ -561,6 +841,7 @@ def phase_prepare(
         "cells": audits,
     })
     write_csv(results / "data_coverage.csv", coverage)
+    write_csv(results / "comparator_fidelity.csv", COMPARATOR_FIDELITY)
     prepared_files = []
     for path in sorted(prepared.glob("*.npz")):
         with np.load(path, allow_pickle=False) as bundle:
@@ -576,6 +857,8 @@ def phase_prepare(
                 "bytes": path.stat().st_size,
                 "fields": list(bundle.files),
             })
+    if len(prepared_files) != 155:
+        raise RuntimeError(f"prepared feature roster has {len(prepared_files)} files, expected 155")
     write_json(results / "PREPARED_FEATURE_MANIFEST.json", {
         "version": VERSION,
         "written_utc": utcnow(),
@@ -600,15 +883,16 @@ def phase_prepare(
         "version": VERSION,
         "scientific_run": True,
         "written_utc": utcnow(),
-        "model": MODEL,
-        "claim_scope": "cross-dataset Llama-3.1-8B, not cross-model",
+        "models": sorted({spec.get("model", MODEL) for spec in CELLS.values()}),
+        "claim_scope": "13 protocol-eligible cells across eight accepted model families; CoQA/Llama-1 appendix rejected",
         "cells": list(CELLS),
         "feature_contracts": [
-            "resid_core_all32", "resid_core_spaced8", "resid_core_late8",
-            "lens96", "resid_core_all32_length_residualized",
+            "resid_core_all", "resid_core_spaced8", "resid_core_late8", "lens96",
+            "trilens_entropy_all", "dola_kl_proxy_all", "haloscope_projection",
+            "raw_output_baselines", "resid_core_all_length_residualized",
         ],
-        "geometry_performance_enabled": False,
-        "geometry_omission_reason": "generator projection/covariance semantics unverified",
+        "geometry_performance_enabled": "HaloScope mean-token JL proxy only",
+        "geometry_omission_reason": "covariance appendix blocked on Phi-3, Phi-3.5, and Qwen3 float16 overflow",
         "dufs": {"seeds": [11, 23, 37], "epochs": 80, "k": 7, "lambda": 0.1},
         "bootstrap": {"draws": BOOTSTRAP_DRAWS, "seed": SEED,
                        "unit": "problem_group_within_cell", "tie_tolerance": TIE_TOLERANCE},
@@ -631,11 +915,13 @@ def phase_prepare(
         "corrected_layer_gate_b_all_pass": live_validation["corrected_gate_b_all_pass"],
         "gate_b_all_pass": live_validation["corrected_gate_b_all_pass"],
         "architecture_pilot_pass": live_validation["architecture_pilot_pass"],
-        "geometry_semantics_verified": False,
+        "geometry_semantics_verified": True,
+        "geometry_covariance_all_cells_finite": False,
         "validation_artifact": live_validation,
         "blockers": [] if validated else [
-            "corrected live Gate B requires explicit six-cell coverage",
+            "corrected live Gate B requires explicit 14-cell coverage",
             "architecture-fidelity pilot requires the two registered live cells",
+            "float16 covariance eigenvalue overflow blocks covariance geometry on three cells",
         ],
     })
     print(f"[prepare] wrote {results}", flush=True)
@@ -669,13 +955,18 @@ def _fit_cell(prepared: Path, cell_name: str) -> tuple[dict[str, np.ndarray], di
         problem_ids = row_bundle["problem_ids"].astype(str)
         n_tokens = row_bundle["n_gen_tokens"].astype(np.int64)
         protocol_signature = str(row_bundle["protocol_signature"].item())
+    matrix_names = (
+        "resid_core_all", "resid_core_spaced8", "resid_core_late8", "lens96",
+        "trilens_entropy_all", "dola_kl_proxy_all", "haloscope_projection",
+        "raw_output_baselines", "resid_core_all_length_residualized",
+    )
     matrices = {
         name: load_feature_matrix(prepared / f"{cell_name}__{name}.npz")
-        for name in (
-            "resid_core_all32", "resid_core_spaced8", "resid_core_late8",
-            "lens96", "resid_core_all32_length_residualized",
-        )
+        for name in matrix_names
     }
+    inside_path = prepared / f"{cell_name}__inside_eigenscore.npz"
+    if inside_path.exists():
+        matrices["inside_eigenscore"] = load_feature_matrix(inside_path)
     if any(matrix.protocol_signature != protocol_signature for matrix in matrices.values()):
         raise RuntimeError(f"{cell_name}: prepared protocol mismatch")
     scores: dict[str, np.ndarray] = {}
@@ -683,18 +974,20 @@ def _fit_cell(prepared: Path, cell_name: str) -> tuple[dict[str, np.ndarray], di
         "labels_seen_during_fit": False,
         "fits": {},
         "standardized_contracts": {
-            name: standardized_contract(matrix) for name, matrix in matrices.items()
+            name: standardized_contract(matrix)
+            for name, matrix in matrices.items()
+            if matrix.n_features >= 3
         },
     }
 
-    all32 = matrices["resid_core_all32"]
-    controls, diag = fit_controls(all32, n_gen_tokens=n_tokens)
+    all_depth = matrices["resid_core_all"]
+    controls, diag = fit_controls(all_depth, n_gen_tokens=n_tokens)
     for method, score in controls.items():
-        scores[_score_name(method, "resid-core-32", "all32")] = score
-    diagnostics["fits"]["controls_all32"] = diag
+        scores[_score_name(method, "resid-core-L", "all")] = score
+    diagnostics["fits"]["controls_all"] = diag
 
     for subset, key, contract in (
-        ("all32", "resid_core_all32", "resid-core-32"),
+        ("all", "resid_core_all", "resid-core-L"),
         ("spaced8", "resid_core_spaced8", "resid-core-8"),
         ("late8", "resid_core_late8", "resid-core-8"),
     ):
@@ -704,16 +997,16 @@ def _fit_cell(prepared: Path, cell_name: str) -> tuple[dict[str, np.ndarray], di
         diagnostics["fits"][f"core_{subset}"] = diag
 
     dependencies, diag = fit_dependency_methods(
-        all32, clustered_groups=all32.groups
+        all_depth, clustered_groups=all_depth.groups
     )
     for method, score in dependencies.items():
-        scores[_score_name(method, "resid-core-32", "all32", "dependency")] = score
-    diagnostics["fits"]["dependency_all32"] = diag
+        scores[_score_name(method, "resid-core-L", "all", "dependency")] = score
+    diagnostics["fits"]["dependency_all"] = diag
 
     for solver in CORE_SOLVERS:
-        score, diag = fit_hierarchical(all32, solver)
-        scores[_score_name(solver, "resid-core-32", "all32", "hierarchical-bands")] = score
-        diagnostics["fits"][f"hierarchical_all32_{solver}"] = diag
+        score, diag = fit_hierarchical(all_depth, solver)
+        scores[_score_name(solver, "resid-core-L", "all", "hierarchical-bands")] = score
+        diagnostics["fits"][f"hierarchical_all_{solver}"] = diag
 
     lens = matrices["lens96"]
     fitted, diag = fit_core_spectral(lens)
@@ -725,30 +1018,94 @@ def _fit_cell(prepared: Path, cell_name: str) -> tuple[dict[str, np.ndarray], di
         scores[_score_name(solver, "lens-96", "spaced8", "hierarchical-module-metric")] = score
         diagnostics["fits"][f"lens96_hierarchical_{solver}"] = hdiag
 
-    length_matrix = matrices["resid_core_all32_length_residualized"]
+    length_matrix = matrices["resid_core_all_length_residualized"]
     fitted, diag = fit_core_spectral(length_matrix)
     for method, score in fitted.items():
-        scores[_score_name(method, "resid-core-32-length-residualized", "all32")] = score
-    diagnostics["fits"]["core_all32_length_residualized"] = diag
+        scores[_score_name(method, "resid-core-L-length-residualized", "all")] = score
+    diagnostics["fits"]["core_all_length_residualized"] = diag
+
+    trilens = matrices["trilens_entropy_all"]
+    tri_controls, diag = fit_controls(trilens)
+    for method in ("equal_mean", "pc1"):
+        scores[_score_name(f"trilens_{method}", "trilens-entropy-3L", "all")] = tri_controls[method]
+    diagnostics["fits"]["trilens_controls"] = diag
+    fitted, diag = fit_core_spectral(trilens)
+    for method, score in fitted.items():
+        scores[_score_name(method, "trilens-entropy-3L", "all")] = score
+    diagnostics["fits"]["trilens_core"] = diag
+    for solver in CORE_SOLVERS:
+        score, diag = fit_hierarchical(trilens, solver)
+        scores[_score_name(solver, "trilens-entropy-3L", "all", "hierarchical-modules")] = score
+        diagnostics["fits"][f"trilens_hierarchical_{solver}"] = diag
+
+    dola = matrices["dola_kl_proxy_all"]
+    dola_controls, diag = fit_controls(dola)
+    for method in ("equal_mean", "pc1"):
+        scores[_score_name(f"dola_kl_{method}", "dola-kl-proxy-L", "all")] = dola_controls[method]
+    diagnostics["fits"]["dola_controls"] = diag
+    fitted, diag = fit_core_spectral(dola)
+    for method, score in fitted.items():
+        scores[_score_name(method, "dola-kl-proxy-L", "all")] = score
+    diagnostics["fits"]["dola_core"] = diag
+
+    halo_score, halo_diag = fit_haloscope_direct_proxy(matrices["haloscope_projection"], k=4)
+    scores[_score_name("haloscope_direct_proxy", "middle-layer-mean-token-JL", "middle")] = halo_score
+    diagnostics["fits"]["haloscope_direct_proxy"] = halo_diag
+
+    raw_output = matrices["raw_output_baselines"]
+    raw_scores = {}
+    for index, name in enumerate(raw_output.feature_names):
+        score = np.asarray(raw_output.values[:, index], dtype=float)
+        correlation = float(np.corrcoef(score, raw_output.risk_anchor)[0, 1])
+        if not np.isfinite(correlation):
+            raise RuntimeError(f"{cell_name}/{name}: non-finite anchor correlation")
+        if correlation < 0:
+            score = -score
+        method = {
+            "generation_entropy_mean": "generation_entropy_mean",
+            "realized_token_nll_mean": "realized_token_nll_mean",
+            "spilled_energy_full_answer_mean_proxy": "spilled_energy_eq8_mean_proxy",
+            "spilled_energy_full_answer_min_proxy": "spilled_energy_eq8_min_proxy",
+        }[name]
+        scores[_score_name(method, "raw-output", "full-answer")] = score
+        raw_scores[method] = {"orientation_flipped": correlation < 0, "anchor_correlation": correlation}
+    diagnostics["fits"]["raw_output_baselines"] = {
+        "labels_seen_during_fit": False, "scores": raw_scores,
+        "metadata": jsonable(raw_output.metadata),
+    }
+    if "inside_eigenscore" in matrices:
+        inside = matrices["inside_eigenscore"]
+        scores[_score_name("inside_eigenscore", "middle-last-token-K10", "question")] = inside.values[:, 0]
+        diagnostics["fits"]["inside_eigenscore"] = {
+            "labels_seen_during_fit": False, "metadata": jsonable(inside.metadata),
+            "protocol_scope": "appendix_rejected",
+        }
 
     contract_assignments = {
-        "controls_all32": "resid_core_all32",
-        "core_all32": "resid_core_all32",
-        "dependency_all32": "resid_core_all32",
-        **{f"hierarchical_all32_{solver}": "resid_core_all32" for solver in CORE_SOLVERS},
+        "controls_all": "resid_core_all",
+        "core_all": "resid_core_all",
+        "dependency_all": "resid_core_all",
+        **{f"hierarchical_all_{solver}": "resid_core_all" for solver in CORE_SOLVERS},
         "core_spaced8": "resid_core_spaced8",
         "core_late8": "resid_core_late8",
         "lens96_flat": "lens96",
         **{f"lens96_hierarchical_{solver}": "lens96" for solver in CORE_SOLVERS},
-        "core_all32_length_residualized": "resid_core_all32_length_residualized",
+        "core_all_length_residualized": "resid_core_all_length_residualized",
+        "trilens_controls": "trilens_entropy_all",
+        "trilens_core": "trilens_entropy_all",
+        **{f"trilens_hierarchical_{solver}": "trilens_entropy_all" for solver in CORE_SOLVERS},
+        "dola_controls": "dola_kl_proxy_all",
+        "dola_core": "dola_kl_proxy_all",
+        "haloscope_direct_proxy": "haloscope_projection",
+        "raw_output_baselines": "raw_output_baselines",
     }
     diagnostics["fit_standardized_matrix_anchor_sha256"] = {
         fit_name: diagnostics["standardized_contracts"][contract]["matrix_anchor_sha256"]
         for fit_name, contract in contract_assignments.items()
     }
-    expected_all32 = diagnostics["standardized_contracts"]["resid_core_all32"]["matrix_anchor_sha256"]
+    expected_all32 = diagnostics["standardized_contracts"]["resid_core_all"]["matrix_anchor_sha256"]
     for fit_name, contract in contract_assignments.items():
-        if contract == "resid_core_all32" and diagnostics["fit_standardized_matrix_anchor_sha256"][fit_name] != expected_all32:
+        if contract == "resid_core_all" and diagnostics["fit_standardized_matrix_anchor_sha256"][fit_name] != expected_all32:
             raise AssertionError(f"{cell_name}/{fit_name}: standardized matrix/anchor mismatch")
 
     for method, score in scores.items():
@@ -769,7 +1126,10 @@ def _fit_cell(prepared: Path, cell_name: str) -> tuple[dict[str, np.ndarray], di
 
 def verify_prepared_freeze(results: Path) -> None:
     manifest = read_json(results / "PREPARED_FEATURE_MANIFEST.json")
-    if manifest.get("labels_present") is not False or manifest.get("n_files") != 42:
+    if (
+        manifest.get("labels_present") is not False
+        or manifest.get("n_files") != len(manifest.get("files", []))
+    ):
         raise RuntimeError("prepared feature manifest is incomplete or label-bearing")
     expected_files = [row.get("file") for row in manifest.get("files", [])]
     observed_files = [str(path.relative_to(results)) for path in sorted((results / "prepared").glob("*.npz"))]
@@ -973,12 +1333,14 @@ def phase_evaluate(cache_root: Path, results: Path) -> None:
             auroc, auprc = metric_pair(y, score)
             metrics[key][cell_name] = {"auroc": auroc, "auprc": auprc}
             method, contract, subset, structure = _method_parts(key)
+            appendix_only = bool(spec.get("protocol_rejected")) or method == "inside_eigenscore"
             per_cell.append({
                 "cell": cell_name, "method_key": key, "method": method,
                 "feature_contract": contract, "layer_subset": subset,
                 "structured": structure, "auroc": auroc, "auprc": auprc,
                 "prevalence": prevalence, "n_samples": len(y),
-                "n_groups": len(np.unique(groups)), "status": "eligible_label_free",
+                "n_groups": len(np.unique(groups)),
+                "status": "appendix_protocol_rejected" if appendix_only else "eligible_label_free",
                 "label_use": "none",
             })
             auc_draws, ap_draws = [], []
@@ -990,19 +1352,39 @@ def phase_evaluate(cache_root: Path, results: Path) -> None:
                 "auroc": np.asarray(auc_draws), "auprc": np.asarray(ap_draws)
             }
 
-        matrix = load_feature_matrix(results / "prepared" / f"{cell_name}__resid_core_all32.npz")
+        matrix = load_feature_matrix(results / "prepared" / f"{cell_name}__resid_core_all.npz")
         lr_auc, lr_ap, folds = _lr_ceiling(matrix, y, groups)
-        lr_folds[cell_name] = folds
+        lr_folds[cell_name] = {"resid_core": folds}
         per_cell.append({
             "cell": cell_name, "method_key": "supervised_grouped_lr_ceiling",
-            "method": "supervised_grouped_lr", "feature_contract": "resid-core-32",
-            "layer_subset": "all32", "structured": "5-fold grouped-CV ceiling",
+            "method": "supervised_grouped_lr", "feature_contract": "resid-core-L",
+            "layer_subset": "all", "structured": "5-fold grouped-CV ceiling",
             "auroc": lr_auc, "auprc": lr_ap, "prevalence": prevalence,
             "n_samples": len(y), "n_groups": len(np.unique(groups)),
-            "status": "diagnostic_ceiling", "label_use": "supervised_ceiling",
+            "status": "appendix_protocol_rejected" if spec.get("protocol_rejected") else "diagnostic_ceiling",
+            "label_use": "supervised_ceiling",
         })
 
-        lens = load_feature_matrix(results / "prepared" / f"{cell_name}__lens_grid_all32.npz")
+        for ceiling_name, prepared_name, contract_name in (
+            ("trilens_supervised_lr", "trilens_entropy_all", "trilens-entropy-3L"),
+            ("dola_kl_supervised_lr", "dola_kl_proxy_all", "dola-kl-proxy-L"),
+        ):
+            ceiling_matrix = load_feature_matrix(
+                results / "prepared" / f"{cell_name}__{prepared_name}.npz"
+            )
+            ceiling_auc, ceiling_ap, ceiling_folds = _lr_ceiling(ceiling_matrix, y, groups)
+            lr_folds[cell_name][ceiling_name] = ceiling_folds
+            per_cell.append({
+                "cell": cell_name, "method_key": ceiling_name,
+                "method": ceiling_name, "feature_contract": contract_name,
+                "layer_subset": "all", "structured": "5-fold grouped-CV diagnostic ceiling",
+                "auroc": ceiling_auc, "auprc": ceiling_ap, "prevalence": prevalence,
+                "n_samples": len(y), "n_groups": len(np.unique(groups)),
+                "status": "appendix_protocol_rejected" if spec.get("protocol_rejected") else "diagnostic_ceiling",
+                "label_use": "supervised_ceiling",
+            })
+
+        lens = load_feature_matrix(results / "prepared" / f"{cell_name}__lens_grid_all.npz")
         layer_best = (-np.inf, None)
         for feature_index, feature_name in enumerate(lens.feature_names):
             match = re.match(r"(?P<module>[^.]+)\.(?P<metric>[^.]+)\.layer_(?P<layer>\d+)", feature_name)
@@ -1025,7 +1407,8 @@ def phase_evaluate(cache_root: Path, results: Path) -> None:
             "layer_subset": "evaluation-selected", "structured": "diagnostic ceiling",
             "auroc": layer_best[0], "auprc": "", "prevalence": prevalence,
             "n_samples": len(y), "n_groups": len(np.unique(groups)),
-            "status": "diagnostic_ceiling", "label_use": "evaluation_only",
+            "status": "appendix_protocol_rejected" if spec.get("protocol_rejected") else "diagnostic_ceiling",
+            "label_use": "evaluation_only",
         })
 
         X = np.asarray(matrix.values, dtype=float)
@@ -1037,15 +1420,15 @@ def phase_evaluate(cache_root: Path, results: Path) -> None:
             for j, name_j in enumerate(matrix.feature_names):
                 layer_j = int(name_j.rsplit("_", 1)[1])
                 dependence_rows.append({
-                    "cell": cell_name, "contract": "resid-core-32",
+                    "cell": cell_name, "contract": "resid-core-L",
                     "diagnostic": "layer_correlation", "feature_a": layer_i,
                     "feature_b": layer_j,
                     "value": float(corr[i, j]), "effective_rank": effective_rank,
                 })
-        for distance in range(32):
-            values = [abs(corr[i, j]) for i in range(32) for j in range(32) if abs(i - j) == distance]
+        for distance in range(matrix.n_features):
+            values = [abs(corr[i, j]) for i in range(matrix.n_features) for j in range(matrix.n_features) if abs(i - j) == distance]
             dependence_rows.append({
-                "cell": cell_name, "contract": "resid-core-32",
+                "cell": cell_name, "contract": "resid-core-L",
                 "diagnostic": "correlation_vs_layer_distance", "layer_distance": distance,
                 "value": float(np.median(values)), "effective_rank": effective_rank,
             })
@@ -1117,13 +1500,14 @@ def phase_evaluate(cache_root: Path, results: Path) -> None:
     })
 
     headline = []
-    for key in metrics:
+    eligible_keys = [key for key in metrics if all(cell in metrics[key] for cell in PRIMARY_CELLS)]
+    for key in eligible_keys:
         method, contract, subset, structure = _method_parts(key)
         row = {"method_key": key, "method": method, "feature_contract": contract,
                "layer_subset": subset, "structured": structure}
         for metric in ("auroc", "auprc"):
-            point = float(np.mean([metrics[key][cell][metric] for cell in CELLS]))
-            macro_draw = np.mean(np.vstack([boot[key][cell][metric] for cell in CELLS]), axis=0)
+            point = float(np.mean([metrics[key][cell][metric] for cell in PRIMARY_CELLS]))
+            macro_draw = np.mean(np.vstack([boot[key][cell][metric] for cell in PRIMARY_CELLS]), axis=0)
             low, high = np.quantile(macro_draw, (0.025, 0.975))
             row[f"macro_{metric}"] = point
             row[f"macro_{metric}_ci_low"] = float(low)
@@ -1131,30 +1515,58 @@ def phase_evaluate(cache_root: Path, results: Path) -> None:
         headline.append(row)
     write_csv(results / "headline_summary.csv", headline)
 
+    cohort_rows = []
+    cohorts = {
+        "primary_13_cells": PRIMARY_CELLS,
+        "original_llama_six": ORIGINAL_LLAMA_CELLS,
+        "gsm8k_cross_architecture_seven": GSM8K_ARCHITECTURE_CELLS,
+        "all_14_descriptive_including_rejected_coqa": tuple(CELLS),
+    }
+    for cohort_name, cohort_cells in cohorts.items():
+        for method_key in metrics:
+            if not all(cell in metrics[method_key] for cell in cohort_cells):
+                continue
+            method, contract, subset, structure = _method_parts(method_key)
+            cohort_rows.append({
+                "cohort": cohort_name, "n_cells": len(cohort_cells), "method_key": method_key,
+                "method": method, "feature_contract": contract, "layer_subset": subset,
+                "structured": structure,
+                "macro_auroc": float(np.mean([metrics[method_key][cell]["auroc"] for cell in cohort_cells])),
+                "macro_auprc": float(np.mean([metrics[method_key][cell]["auprc"] for cell in cohort_cells])),
+            })
+    write_csv(results / "cohort_summary.csv", cohort_rows)
+
     def key(method: str, contract: str, subset: str, structure: str = "flat") -> str:
         return _score_name(method, contract, subset, structure)
     contrasts = [
-        ("primary_dufs_all32_minus_final_nll", key("dufs_liu_pcr", "resid-core-32", "all32"), key("final_layer_nll", "resid-core-32", "all32"), True),
-        ("primary_dufs_all32_minus_iu", key("dufs_liu_pcr", "resid-core-32", "all32"), key("iu_pcr", "resid-core-32", "all32"), True),
-        ("iu_minus_upcr_all32", key("iu_pcr", "resid-core-32", "all32"), key("upcr", "resid-core-32", "all32"), False),
-        ("upcr_minus_equal_mean", key("upcr", "resid-core-32", "all32"), key("equal_mean", "resid-core-32", "all32"), False),
+        ("primary_dufs_all_depth_minus_final_nll", key("dufs_liu_pcr", "resid-core-L", "all"), key("final_layer_nll", "resid-core-L", "all"), True),
+        ("primary_dufs_all_depth_minus_iu", key("dufs_liu_pcr", "resid-core-L", "all"), key("iu_pcr", "resid-core-L", "all"), True),
+        ("iu_minus_upcr_all_depth", key("iu_pcr", "resid-core-L", "all"), key("upcr", "resid-core-L", "all"), False),
+        ("upcr_minus_equal_mean", key("upcr", "resid-core-L", "all"), key("equal_mean", "resid-core-L", "all"), False),
+        ("trilens_dufs_minus_trilens_equal_mean", key("dufs_liu_pcr", "trilens-entropy-3L", "all"), key("trilens_equal_mean", "trilens-entropy-3L", "all"), False),
+        ("trilens_dufs_minus_final_nll", key("dufs_liu_pcr", "trilens-entropy-3L", "all"), key("final_layer_nll", "resid-core-L", "all"), False),
+        ("trilens_dufs_minus_trilens_iu", key("dufs_liu_pcr", "trilens-entropy-3L", "all"), key("iu_pcr", "trilens-entropy-3L", "all"), False),
+        ("expanded_lens_dufs_minus_trilens_dufs", key("dufs_liu_pcr", "lens-96", "spaced8"), key("dufs_liu_pcr", "trilens-entropy-3L", "all"), False),
+        ("dufs_all_depth_minus_haloscope_direct_proxy", key("dufs_liu_pcr", "resid-core-L", "all"), key("haloscope_direct_proxy", "middle-layer-mean-token-JL", "middle"), False),
+        ("dufs_all_depth_minus_spilled_energy_min_proxy", key("dufs_liu_pcr", "resid-core-L", "all"), key("spilled_energy_eq8_min_proxy", "raw-output", "full-answer"), False),
     ]
     for solver in CORE_SOLVERS:
         contrasts.extend((
-            (f"{solver}_spaced8_minus_all32", key(solver, "resid-core-8", "spaced8"), key(solver, "resid-core-32", "all32"), False),
-            (f"{solver}_late8_minus_all32", key(solver, "resid-core-8", "late8"), key(solver, "resid-core-32", "all32"), False),
-            (f"{solver}_hierarchical_minus_flat", key(solver, "resid-core-32", "all32", "hierarchical-bands"), key(solver, "resid-core-32", "all32"), False),
+            (f"{solver}_spaced8_minus_all_depth", key(solver, "resid-core-8", "spaced8"), key(solver, "resid-core-L", "all"), False),
+            (f"{solver}_late8_minus_all_depth", key(solver, "resid-core-8", "late8"), key(solver, "resid-core-L", "all"), False),
+            (f"{solver}_hierarchical_minus_flat", key(solver, "resid-core-L", "all", "hierarchical-bands"), key(solver, "resid-core-L", "all"), False),
             (f"{solver}_lens96_hierarchical_minus_flat", key(solver, "lens-96", "spaced8", "hierarchical-module-metric"), key(solver, "lens-96", "spaced8"), False),
-            (f"{solver}_length_residualized_minus_raw", key(solver, "resid-core-32-length-residualized", "all32"), key(solver, "resid-core-32", "all32"), False),
+            (f"{solver}_length_residualized_minus_raw", key(solver, "resid-core-L-length-residualized", "all"), key(solver, "resid-core-L", "all"), False),
+            (f"{solver}_trilens_hierarchical_minus_flat", key(solver, "trilens-entropy-3L", "all", "hierarchical-modules"), key(solver, "trilens-entropy-3L", "all"), False),
         ))
     paired = []
     for name, lhs, rhs, primary in contrasts:
         if lhs not in metrics or rhs not in metrics:
             raise RuntimeError(f"registered contrast missing: {name}")
         for metric in ("auroc", "auprc"):
-            cell_delta = np.asarray([metrics[lhs][cell][metric] - metrics[rhs][cell][metric] for cell in CELLS])
+            cell_delta = np.asarray([metrics[lhs][cell][metric] - metrics[rhs][cell][metric] for cell in PRIMARY_CELLS])
             draw_delta = np.mean(np.vstack([
-                boot[lhs][cell][metric] - boot[rhs][cell][metric] for cell in CELLS
+                boot[lhs][cell][metric] - boot[rhs][cell][metric] for cell in PRIMARY_CELLS
             ]), axis=0)
             low, high = np.quantile(draw_delta, (0.025, 0.975))
             try:
@@ -1169,7 +1581,7 @@ def phase_evaluate(cache_root: Path, results: Path) -> None:
                 "losses": int(np.sum(cell_delta < -TIE_TOLERANCE)),
                 "worst_cell_delta": float(np.min(cell_delta)), "p_raw": p_raw,
                 "p_holm": "", "primary": primary and metric == "auroc",
-                "per_cell_deltas_json": json.dumps(dict(zip(CELLS, cell_delta.tolist())), sort_keys=True),
+                "per_cell_deltas_json": json.dumps(dict(zip(PRIMARY_CELLS, cell_delta.tolist())), sort_keys=True),
             })
     adjusted = holm_adjust([float(row["p_raw"]) for row in paired])
     for row, value in zip(paired, adjusted):
@@ -1237,3 +1649,8 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+    extract_dola_kl_proxy,
+    extract_haloscope_projection,
+    fit_haloscope_direct_proxy,
+    late_layers,
+    spaced_layers,
