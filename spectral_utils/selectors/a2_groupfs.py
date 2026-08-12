@@ -302,7 +302,8 @@ def _train_groupfs(X_t, L_feat_t, C, lam1, lam2, beta, epochs, batch,
     return logits.detach().numpy(), mu.detach().numpy(), loss_val
 
 
-def _train_dufs(X_t, lam2, epochs, batch, torch_seed, param_free=False):
+def _train_dufs(X_t, lam2, epochs, batch, torch_seed, param_free=False,
+                return_history=False):
     """DUFS (Lindenbaum 2021): per-feature STG gates on the Laplacian-score sample
     objective, no grouping. Returns per-feature gate means.
 
@@ -321,6 +322,7 @@ def _train_dufs(X_t, lam2, epochs, batch, torch_seed, param_free=False):
     k_samp = int(min(K_NN, B - 1))
     mu = torch.full((d,), MU_INIT, dtype=torch.float32, requires_grad=True)
     opt = torch.optim.Adam([mu], lr=GATE_LR)
+    history = []
     for _ in range(epochs):
         idx = torch.randperm(R, generator=gen)[:B]
         Xb = X_t[idx]
@@ -336,7 +338,10 @@ def _train_dufs(X_t, lam2, epochs, batch, torch_seed, param_free=False):
         opt.zero_grad()
         loss.backward()
         opt.step()
-    return mu.detach().numpy()
+        if return_history:
+            history.append(float(loss.detach()))
+    output = mu.detach().numpy()
+    return (output, np.asarray(history, dtype=float)) if return_history else output
 
 
 DUFS_PF_RNG_DISCARD = 3    # c_seed, gen0 seed, GroupFS final seed

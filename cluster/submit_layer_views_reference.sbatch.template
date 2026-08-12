@@ -1,0 +1,56 @@
+#!/bin/bash
+# TEMPLATE ONLY. The live .sbatch file is gitignored because it carries HF_TOKEN.
+# Regenerate it on AIRCC by copying this file and replacing REPLACE_ME from the
+# existing submit_inference.sbatch. Never paste or commit a token.
+#
+# This is a READ-ONLY, source-independent architecture/fidelity pilot for the
+# layer-lens-v1 sidecars written by job 183956. It teacher-forces 20 saved
+# candidates in each of two cells, verifies the 32x4096 Llama architecture and
+# attn -> mlp -> residual hook order, reproduces all four full-vocabulary lens
+# quantities, and reruns corrected Gate B on the actual nested candidates.
+#
+# Local CPU gate before submission (no model download):
+#   python cluster/run_layer_views_reference.py --dry-run-fixture --out /tmp/layer_ref.json
+#   python scripts/test_layer_views_reference.py
+#
+# Submit one job, then one idempotent chained resume. A preemption checkpoint is
+# <report>.state.pkl and the driver exits 85 after saving it:
+#   SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
+#   ARGS="--cells gsm8k,nq_open --n-candidates 20 --out \
+# $SHARED/results/whitebox_layer_reference_pilot/report.json"
+#   jid=$(sbatch -p power-gpu --qos=owner_880 \
+#     cluster/submit_layer_views_reference.sbatch $ARGS | awk '{print $4}')
+#   sbatch --dependency=afterany:$jid -p power-gpu --qos=owner_880 \
+#     cluster/submit_layer_views_reference.sbatch $ARGS
+#
+# The report is PASS only if both cells pass. Geometry projections/covariance are
+# deliberately reported as unvalidated because their missing generator semantics
+# cannot be reconstructed safely from the sidecar alone.
+
+#SBATCH --job-name=layer_ref
+#SBATCH --gpus=1
+#SBATCH --time=08:00:00
+#SBATCH --requeue
+#SBATCH --signal=B:TERM@900
+#SBATCH --output=/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/%x_%j.out
+#SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
+#SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
+#SBATCH --container-workdir=/shared/cycle2_tau_averbuch_prj/omrisegev1/code
+
+set -uo pipefail
+
+SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
+export HF_HOME=$SHARED/hf_cache
+export HF_DATASETS_CACHE=$SHARED/hf_cache/datasets
+export PIP_CACHE_DIR=$SHARED/pip_cache
+export PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID}
+mkdir -p "$PYTHONUSERBASE"
+export HF_TOKEN=REPLACE_ME
+
+echo "[sbatch] layer-reference job $SLURM_JOB_ID on $(hostname), args: $*"
+
+# Never install/upgrade torch or numpy in the B200 NGC image.
+pip install -q --user -r cluster/requirements.txt
+
+# exec ensures Slurm's SIGTERM reaches the Python checkpoint handler.
+exec python cluster/run_layer_views_reference.py "$@"

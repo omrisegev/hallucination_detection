@@ -156,3 +156,13 @@ cluster/submit_backfill.sbatch
 # policy above — see dataset_cache/README.md for what's included and why.
 !dataset_cache/**
 !dataset_cache/**/*.pkl
+
+# White-box layer-fusion inputs are large, reproducible Drive mirrors (~2.3 GB).
+# Only their SHA-256/source manifest is tracked under results/.
+dataset_cache/whitebox_layer_fusion_v1/
+
+# Keep the frozen, compact score bundles and audit SVGs for this registered run.
+!results/whitebox_layer_fusion_v1/scores/
+!results/whitebox_layer_fusion_v1/scores/*.npz
+!results/whitebox_layer_fusion_v1/figures/
+!results/whitebox_layer_fusion_v1/figures/*.svg

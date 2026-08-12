@@ -1,0 +1,56 @@
+{
+  "bootstrap": {
+    "draws": 2000,
+    "seed": 20260812,
+    "tie_tolerance": 0.001,
+    "unit": "problem_group_within_cell"
+  },
+  "cells": [
+    "gsm8k_t1.0",
+    "triviaqa_t1.0",
+    "sciq_t1.0",
+    "truthfulqa_t0.5",
+    "squadv2_t0.5",
+    "nq_open_t0.5"
+  ],
+  "claim_scope": "cross-dataset Llama-3.1-8B, not cross-model",
+  "dufs": {
+    "epochs": 80,
+    "k": 7,
+    "lambda": 0.1,
+    "seeds": [
+      11,
+      23,
+      37
+    ]
+  },
+  "feature_contracts": [
+    "resid_core_all32",
+    "resid_core_spaced8",
+    "resid_core_late8",
+    "lens96",
+    "resid_core_all32_length_residualized"
+  ],
+  "geometry_omission_reason": "generator projection/covariance semantics unverified",
+  "geometry_performance_enabled": false,
+  "label_definition": "y_hallucination = 1 - correctness label; evaluator only",
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "orientation_anchor": "final-layer residual target-token NLL; label-free",
+  "protocol_signature": "ad1dd4f13e620c314c327637bf2629c80f1ddd669e673692f50f7f04fde21412",
+  "scientific_run": true,
+  "source_sha256": {
+    "cluster/run_layer_views_reference.py": "d7f9d33374dc3441adf1cfa6eee3885f02ff12c7ec76fc94b6ca123d8300f519",
+    "scripts/whitebox_layer_fusion_experiment.py": "0d43bb474a7058c7a6ccdcd68399a96be2edc3816b010932f7991e0b7a88833e",
+    "scripts/whitebox_layer_fusion_report.py": "4b987ceac47531352181dc203d36764a71e2a16c344f8609e633217ea7d25c8b",
+    "spectral_utils/dependency_fusion.py": "85fe7f5be68e59c912948ca8e1de3eeaa7e68a26ef97403c21e1d721013dd456",
+    "spectral_utils/fusion_utils.py": "1f47ed8f1d16a41532d85dfbacb0c0d727645aaf6921223e9e8e9f6ccc6fadd7",
+    "spectral_utils/laplacian_upcr.py": "f9e63be91a95179383c92c3bc2c539ae56f5dff34a48d084ecc81770215a2aec",
+    "spectral_utils/paper_benchmark_suite.py": "cfac287003b844030e994e9bc461e82f6ad273288ee485c61db892aa5589b74c",
+    "spectral_utils/selectors/a2_groupfs.py": "5039aee811bc9f70dea8a85967497bbb0aa23875b46c0d76a76725fdec83704e",
+    "spectral_utils/upcr.py": "60c6ff461426d4c828ead210f04233815f45211a6f1a49a50ed37811c50c26cc",
+    "spectral_utils/upcr_clustered.py": "ecb54a3f72df66feb7adff3b65c6715d8609af9ed4d4d59af78ed702741feacd",
+    "spectral_utils/whitebox_layer_fusion.py": "518305fd849645402b8d9df374fd2c8883abe922842f86eb650f187ee586e28d"
+  },
+  "version": "whitebox-layer-fusion-v1-2026-08-12",
+  "written_utc": "2026-08-12T15:11:53+00:00"
+}
