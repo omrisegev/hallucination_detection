@@ -116,7 +116,15 @@ def process_pkl(mdl, tok, spec, temp, pkl_path, args):
     skips = []
 
     def flush(done):
-        side["_meta"] = {
+        # --validate-only must not write the sidecar AT ALL. Skipping only the final
+        # flush is not enough: the periodic --checkpoint-every flush inside the loop
+        # still fires, which would make a "non-destructive" validation replay rewrite
+        # the very file it is supposed to leave alone. One guard, here, covers both.
+        if args.validate_only:
+            return
+        # Read the PRIOR validation before the new _meta replaces it.
+        prior = (side.get("_meta") or {}).get("validation")
+        meta = {
             "version": SIDECAR_VERSION, "cell_id": spec.cell_id, "model": spec.model,
             "temp": temp, "n_layers": L, "hidden_size": hidden_size,
             "modules": list(MODULES), "quantities": list(QUANTITIES),
@@ -127,14 +135,41 @@ def process_pkl(mdl, tok, spec, temp, pkl_path, args):
             "complete": bool(done),
             "written_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         }
+        # Validation evidence lives WITH the data it validates. A separate report
+        # file can be orphaned or overwritten by a later run (Step 244); a copy
+        # carried in the sidecar's own _meta cannot be separated from the field.
+        # Only ever written from a run that actually collected traces.
+        fresh = gate.summary() if gate.n_traces else None
+        if fresh:
+            meta["validation"] = {
+                "gate": fresh,
+                "gate_b_pass": gate_b_verdict(fresh, args.tol_median, args.tol_first,
+                                              args.min_frac_close)[0],
+                "arch_check": dict(arch_check),
+                "tolerances": {"tol_median": args.tol_median,
+                               "tol_first": args.tol_first,
+                               "min_frac_close": args.min_frac_close,
+                               "arch_tol": args.arch_tol},
+                "job_id": os.environ.get("SLURM_JOB_ID", ""),
+                "git_sha": _git_sha(),
+                "validated_utc": meta["written_utc"],
+            }
+        elif prior:
+            meta["validation"] = prior  # preserve, never blank out
+        side["_meta"] = meta
         save_cache_atomic(side, side_path)
 
     for pi, (idx, gold_row, question, cands) in enumerate(problems):
-        todo = [(ci, c) for ci, c in enumerate(cands)
-                if f"{idx}:{ci}" not in side
-                and (get_aliased(c, "gen_token_ids") or allow_rt)]
-        gating = gate.n_traces < args.gate_n
-        if not todo and not gating:
+        # A candidate is worth a forward pass if it still needs its field OR if the
+        # gate is still filling. These are INDEPENDENT conditions: on a resume where
+        # every field already exists the first is empty for every candidate, and
+        # keying the gate off it (as this loop originally did) silently produced a
+        # zero-trace gate and a gate_b_pass=false report that overwrote the real one.
+        # See HISTORY Step 244.
+        eligible = [(ci, c) for ci, c in enumerate(cands)
+                    if (get_aliased(c, "gen_token_ids") or allow_rt)]
+        needs_field = [ci for ci, _ in eligible if f"{idx}:{ci}" not in side]
+        if not needs_field and gate.n_traces >= args.gate_n:
             continue
         if STOP["flag"]:
             flush(False)
@@ -147,7 +182,10 @@ def process_pkl(mdl, tok, spec, temp, pkl_path, args):
             skips.append({"idx": idx, "reason": f"prompt reconstruction: {e}"})
             continue
 
-        for ci, c in todo:
+        for ci, c in eligible:
+            write_field = f"{idx}:{ci}" not in side
+            if not write_field and gate.n_traces >= args.gate_n:
+                continue
             ids, source, _ = candidate_gen_ids(tok, c, allow_rt)
             if ids is None:
                 skips.append({"idx": idx, "cand": ci, "reason": source})
@@ -193,7 +231,10 @@ def process_pkl(mdl, tok, spec, temp, pkl_path, args):
                     gate.add(saved_h, q["token_entropies_recomputed"])
                     del raw
 
-                if not args.validate_only:
+                # write_field is False when this pass exists only to feed the gate on
+                # a resume — recomputing an existing field would be wasted work and
+                # would double-count n_written / n_tokens.
+                if write_field and not args.validate_only:
                     field = candidate_layer_field(
                         mdl, tap, out.hidden_states, gen, plen, tgen, hid_proj,
                         cov_eigs_r=args.cov_eigs_r, batch_index=0)
@@ -239,16 +280,40 @@ def process_pkl(mdl, tok, spec, temp, pkl_path, args):
     summ = gate.summary()
     ok, reasons = gate_b_verdict(summ, args.tol_median, args.tol_first,
                                  args.min_frac_close)
-    print(f"[gate] {spec.cell_id} T={temp}: median|dH|="
-          f"{summ.get('median_abs', float('nan')):.2e} "
-          f"frac_close={summ.get('frac_close', float('nan')):.3f} "
-          f"GATE-B {'PASS' if ok else 'FAIL'}", flush=True)
 
-    report = {"pkl": os.path.basename(pkl_path), "temp": temp, "gate": summ,
+    # A run that collected NO traces has not tested anything, and its verdict is
+    # "no comparable token_entropies traces" — i.e. False. Reporting that as a
+    # gate FAILURE, and writing it over a real prior result, is what corrupted the
+    # chain-A reports in Step 243 (job 184777, a no-op resume). A no-op resume is
+    # not evidence of anything: carry the previous verdict forward instead.
+    no_op_resume = gate.n_traces == 0
+    if no_op_resume:
+        carried = (side.get("_meta") or {}).get("validation") or {}
+        ok = carried.get("gate_b_pass")
+        reasons = ["no candidates needed work and none were re-gated; "
+                   "verdict carried from " + str(carried.get("validated_utc", "an "
+                   "earlier run")) if carried else
+                   "no traces gated and no prior validation on record"]
+        print(f"[gate] {spec.cell_id} T={temp}: NO-OP RESUME — nothing re-gated; "
+              f"prior verdict {ok!r} preserved", flush=True)
+    else:
+        print(f"[gate] {spec.cell_id} T={temp}: median|dH|="
+              f"{summ.get('median_abs', float('nan')):.2e} "
+              f"frac_close={summ.get('frac_close', float('nan')):.3f} "
+              f"GATE-B {'PASS' if ok else 'FAIL'}", flush=True)
+
+    report = {"pkl": os.path.basename(pkl_path), "temp": temp,
+              "gate": (side.get("_meta") or {}).get("validation", {}).get("gate", summ)
+                      if no_op_resume else summ,
               "gate_b_pass": ok, "gate_b_reasons": reasons,
+              "no_op_resume": no_op_resume,
               "validate_only": bool(args.validate_only),
               "n_candidates": n_written, "n_tokens": n_tokens,
-              "n_layers": L, "arch_check": arch_check,
+              "n_layers": L,
+              "arch_check": ((side.get("_meta") or {}).get("validation", {})
+                             .get("arch_check", arch_check)
+                             if no_op_resume and not arch_check.get("done")
+                             else arch_check),
               "skips": skips[:50], "n_skips": len(skips),
               "seconds": round(time.time() - t0, 1)}
     if not args.validate_only:
@@ -293,6 +358,11 @@ def main():
                     help="truncate very long generations (0 = no cap)")
     ap.add_argument("--checkpoint-every", type=int, default=25)
     ap.add_argument("--gate-n", type=int, default=50)
+    ap.add_argument("--report-name", default=None,
+                    help="write the per-cell report under this filename instead of "
+                         "layer_views_report_<cell>.json. Use with --validate-only for "
+                         "a non-destructive validation replay that must not overwrite "
+                         "an existing report (e.g. RECOVERED_VALIDATION.json)")
     ap.add_argument("--tol-median", type=float, default=2e-2)
     ap.add_argument("--tol-first", type=float, default=5e-2)
     ap.add_argument("--min-frac-close", type=float, default=0.90)
@@ -356,7 +426,8 @@ def main():
                 sys.exit(EXIT_INCOMPLETE)
             rep["cell_id"] = spec.cell_id
             reports.append(rep)
-        path = os.path.join(spec.data_dir, f"layer_views_report_{spec.cell_id}.json")
+        name = (args.report_name or f"layer_views_report_{spec.cell_id}.json")
+        path = os.path.join(spec.data_dir, name)
         with open(path + ".tmp", "w") as f:
             json.dump({"cell_id": spec.cell_id, "model": spec.model,
                        "version": SIDECAR_VERSION, "git_sha": _git_sha(),
