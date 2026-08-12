@@ -11543,3 +11543,124 @@ pb_uprm_baseline_qwen3_8b_pilot,ragtruth_lettucedetect_ceiling}`).
 - `.gitignore` — added the three new live-sbatch entries
 
 ---
+### Step 243 — white-box depth views: per-layer logit-lens telemetry extracted on 14 cells / 9 model families
+
+**What**: Built and ran a new, self-contained arm that measures what happens *inside* the
+model while it produces a generation we already have, turning **network depth into a second
+view axis** for the label-free fusion family. New branch `whitebox/per-layer-views`; new
+modules `cluster/layer_lens.py`, `cluster/run_layer_views.py`, `scripts/smoke_layer_lens.py`,
+`cluster/submit_layer_views.sbatch.template`.
+
+For every generated token, at every layer, at three readout points — the MHSA write, the FFN
+write, and the composed residual stream — one teacher-forced forward pass records four
+scalars through the model's own logit lens (`softmax(W_U · Norm_final(z))`): Shannon entropy
+over the full vocabulary, the lens log-prob of the token actually generated (a depth-resolved
+spilled energy), the top-1 lens log-prob, and `KL(layer l || final layer)`. Alongside it,
+residual-stream geometry the lens discards: per-layer token norms, the top-16 eigenvalues of
+the per-layer token covariance, and a fixed seeded Gaussian (JL) projection of the pooled
+hidden state, so the subspace family is reachable on CPU without a second GPU pass.
+
+**Nothing is generated.** The pass replays `gen_token_ids` already in the cache, so the depth
+views align row-for-row with every published number on the same cell. Output goes to a
+**sidecar** per cell — the canonical pkls stay byte-identical.
+
+**Why**: A literature check (run first, at Omri's instruction) found the gap is real and
+precisely shaped. **Everybody builds many weak per-layer estimators and combines them with
+labels; nobody combines them without labels.**
+
+| Motivating work | What we take | Supervision |
+|---|---|---|
+| **TriLens** (arXiv:2606.01033, Yang et al., May 2026) | the 3-module x all-layers lens-entropy feature | **supervised** — MLP / L2-logistic probe, 80/20 split |
+| **DoLa** (Chuang et al.) | cross-layer contrast, as a trajectory not a decoding rule | training-free |
+| **INSIDE / EigenScore** (Chen et al., ICLR 2024) | covariance eigenvalues of hidden states | label-free but needs K=10 generations |
+| **HaloScope** (NeurIPS 2024) | subspace direction from unlabeled generations | no human labels, but trains a PU classifier |
+| **Spilled Energy** (in `papers/`) | the depth-resolved analogue of our own signal | training-free |
+| **Effective Rank-based Uncertainty** | per-layer spectral rank | UNVERIFIED — digest carries no supervision statement |
+| logit lens (nostalgebraist 2020) / Tuned Lens (Belrose et al.) | the readout itself | lens trains nothing; Tuned Lens trains on model outputs, not task labels |
+
+Three facts make this the right shape for our machinery. (1) TriLens's own ablation finds
+MHSA / FFN / residual **independently informative**, so it is **3L views, not L** — 84–126 per
+model, past the **50+ threshold `Research_Directions.md` set for when the dependency machinery
+(STDR, dependent-classifier SML, SU-PCR) becomes relevant**, which is the first time that line
+has had a reason to open. (2) Its appendix shows **single-layer AUROC 0.63–0.73** — precisely
+the weak-estimator regime L-SML/U-PCR is built for. (3) Its own conclusion, *"the most
+informative depth varies across architectures and benchmarks rather than concentrating at a
+universal layer,"* is an argument against layer selection (FEPoID, ICML 2026) and **for** the
+Extension-H prior-free direction, written by a competitor.
+
+A fourth reason surfaced only from sizing the cells: median trace length is **6 tokens on
+`se_squad_v2`, 8 on `spilled_triviaqa`**, against 243 on GSM8K. The depth axis has **constant
+length regardless of how short the answer is** — 32 layers x 3 modules = 96 readouts on a
+6-token answer. Depth is not merely another view source; it is the only axis with structure in
+exactly the regime where the token axis structurally fails, which is the documented weakness of
+the whole thesis ("reduced on short factual QA traces <60 tokens").
+
+**Scope decision (Omri, this session): this arm is ORTHOGONAL to the grey-box line and is NOT
+to be combined with it for now.** Shared data source, different signal, separate arms. The
+shared cells mean a row-for-row comparison stays available later if wanted.
+
+**Result**: 14 cells extracted across **9 working model families**, **4.56 GB**, all on Drive at
+`gdrive:hallucination_detection/cluster_results/layer_views/<cell>/` (28 files, rclone from the
+cluster).
+
+| Family | Cells |
+|---|---|
+| Llama-3.1-8B | lapeigvals_gsm8k, spilled_triviaqa, se_squad_v2, se_nq_open, sciq, truthfulqa |
+| Llama-1-7B | inside_coqa |
+| Mistral-Nemo-12B / Mistral-7B-v0.3 / Mistral-Small-24B | lapeigvals_gsm8k_nemo, noise_gsm8k_mistral7b, lapeigvals_gsm8k_mistral24b |
+| Phi-3-mini-4k / Phi-3.5-mini | noise_gsm8k_phi3mini, lapeigvals_gsm8k_phi35 |
+| Qwen3-8B | semenergy_triviaqa |
+| DeepSeek-R1-Distill-Llama-8B | ars_gsm8k |
+
+The **architecture guard passed at exactly `0.00e+00`** (residual identity and lens fidelity) on
+every accepted family, from Llama-1 (2023) through Qwen3 — **including both Phi-3 variants,
+which fuse attention into `qkv_proj` and the MLP into `gate_up_proj`** and were the most likely
+to break the decomposition. The 3-module split is not Llama-specific.
+
+**Two failures, both informative and neither silenced.**
+- `epr_triviaqa_mistral24b` — Mistral-Small-3.1-24B loads as `Mistral3ForConditionalGeneration`
+  (multimodal wrapper; layers live at `.model.language_model.layers`). The guard **refused it
+  rather than guessing**. Not worth fixing — Mistral-Small-24B-2501 covers the family.
+- `lapeigvals_gsm8k_llama3b` — Gate B failed on **one** statistic by 2%: first-token median
+  |dH| **5.12e-02 vs a 5e-02 threshold**; median and frac_close both passed. The cell uses the
+  `unsloth/` mirror (the gated-403 workaround) whose chat template can differ slightly from
+  Meta's, and first-token entropy is exactly what a template difference perturbs. **The
+  threshold was NOT lowered to make it pass.** Open.
+- Also open: `internalstates_gsm8k_qwen25_7b` failed Gate B and a 5-variant warp probe (job
+  183957) **ruled out the warp** — all variants sat at median |dH| ~ 3e-3 (inside tolerance)
+  with only 65–72% of tokens close. Tiny median + fat tail = correct prompt, something else
+  inflating top-15 boundary flipping. Qwen3-8B covers the family meanwhile.
+
+**Two bugs caught before they could contaminate anything.**
+1. **`hidden_states[L]` is `Norm_final(x_L)`, not `x_L`** — HF applies the final norm before
+   appending the last entry. Reading it as the final residual applies the norm **twice**. The
+   CPU smoke test caught this before any GPU time. It is nearly invisible to a lens check
+   (RMSNorm is near-idempotent when its weights are ~1, as at random init — the deviation was
+   3.6e-4) but genuinely wrong on a trained model, and it would have corrupted the **KL
+   reference every other layer is measured against**. The residual stream is now reconstructed
+   from the taps via `x_l = x_{l-1} + a_l + m_l`, and `verify_residual_reconstruction` re-checks
+   both invariants on the live model per cell.
+2. **Gate-B "nothing kept" was only true in memory.** The verdict lands at `gate_n` candidates
+   but `--checkpoint-every` may already have flushed a partial sidecar — observed live, a 9.2 MB
+   gate-failed file for `lapeigvals_gsm8k_llama3b`, which is indistinguishable from a good one
+   downstream (the staleness-carrier failure mode of Step 193). The abort path now renames it
+   `.GATE_B_FAILED_DO_NOT_USE` (quarantine, not delete, so it stays diagnosable). Both bad files
+   were quarantined by hand on the cluster.
+
+**Deliberately NOT decided on the GPU: no pooling rule, no view definition, no layer selection.**
+Those are the three places a prior or a label could enter, and they are the research questions.
+The raw field is saved so alternatives can be compared on CPU.
+
+**Infrastructure note**: job 184778 died on `nvidia-container-cli: driver rpc error: timed out`
+— a node-level container-runtime fault, not our code. The `--dependency=afterany` resume link
+picked the work up automatically. The linear-chain rule paid for itself.
+
+**Files**
+- `cluster/layer_lens.py` — new module, the lens field + residual geometry + architecture guard
+- `cluster/run_layer_views.py` — new driver; reuses `backfill_views`' Gate B, prompt recipes and the SIGTERM/exit-85 contract
+- `scripts/smoke_layer_lens.py` — new CPU-only correctness checks (no download, no network)
+- `cluster/submit_layer_views.sbatch.template` — new sbatch template
+- Jobs: 183940 (gate), 183955/183956 (wave 1), 183957 (warp probe), 184776/184777 + 184778/184779 (cross-architecture)
+
+---
+

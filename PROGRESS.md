@@ -1,12 +1,75 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-10
-**Last updated**: Step 241 — a separate track (external answer-level data
-collection + reasoning-localization competitor ceilings) scaled SemGrad/HLE
-to full N and added 4 new competitor numbers on the cluster; see the session
-addendum immediately below. The RAGTruth/ProcessBench GL-LIU decision point
-(Step 239, further down) is UNCHANGED by this — still open, still the
-project's main open research question.
+**Date**: 2026-08-12
+**Last updated**: Step 243 — **a NEW, SEPARATE research arm opened on branch
+`whitebox/per-layer-views`**: white-box depth views (per-layer logit-lens
+telemetry), extracted on 14 cells across 9 model families. See the session
+addendum immediately below. This arm is **orthogonal to the grey-box line and
+is deliberately NOT combined with it** (Omri, 2026-08-12). The
+RAGTruth/ProcessBench GL-LIU decision point (Step 239, further down) is
+UNCHANGED by this — still open, still the grey-box line's main open question.
+
+> **Branch note**: this file on `whitebox/per-layer-views` was branched before
+> the Step-242 PROGRESS update landed on `master`; the Step 240–241 addendum
+> below is this branch's most recent grey-box state. Reconcile on merge — do
+> not treat the absence of a Step-242 entry here as evidence it did not happen.
+
+## Session addendum (2026-08-12) — white-box depth views: a second view axis, 14 cells / 9 families (Step 243)
+
+**What this arm is.** Everything the project fuses today comes from ONE
+trajectory: a scalar per generated token. This arm produces a second,
+orthogonal trajectory — a scalar per token **per layer per module** — so the
+label-free fusion family can run over *depth* instead of time. Teacher-forced
+over generations already in the cache; nothing regenerated; canonical pkls
+untouched (output goes to per-cell sidecars).
+
+**Why it is worth doing** (full reasoning + paper table in HISTORY Step 243):
+- The literature gap is real and narrow: **everyone combines per-layer features
+  with a supervised probe; nobody combines them label-free.** The closest work,
+  **TriLens** (arXiv:2606.01033, May 2026), defines exactly the 3-module ×
+  all-layers entropy feature we extract — and fits an MLP probe on an 80/20
+  split. The words "unsupervised" and "ensemble" do not appear in it. Verified
+  against the PDF, because the automated fetch summary claimed the opposite.
+- It is **3L views, not L** (84–126 per model) — the first time the project has
+  had a reason to open the **50+ view** dependency machinery (STDR,
+  dependent-classifier SML, SU-PCR) that `Research_Directions.md` parked.
+- Single-layer AUROC in TriLens is **0.63–0.73** — the weak-estimator regime
+  L-SML/U-PCR exists for.
+- **Depth has constant length no matter how short the answer is.** Median trace
+  length is 6 tokens on `se_squad_v2` and 8 on `spilled_triviaqa` vs 243 on
+  GSM8K; 32 layers × 3 modules = 96 readouts on a 6-token answer. This attacks
+  the documented structural weakness of the thesis directly.
+
+**State: data is collected and on Drive. No scoring has been run yet.**
+
+- 14 cells, 9 families, **4.56 GB**, at
+  `gdrive:hallucination_detection/cluster_results/layer_views/<cell>/`.
+- Families: Llama-3.1-8B (6 cells), Llama-1-7B, Mistral-7B-v0.3,
+  Mistral-Nemo-12B, Mistral-Small-24B, Phi-3-mini, Phi-3.5-mini, Qwen3-8B,
+  DeepSeek-R1-Distill-Llama-8B.
+- The architecture guard passed at exactly `0.00e+00` on every accepted family,
+  **including both Phi-3 variants** (fused `qkv_proj` / `gate_up_proj`) — so the
+  3-module decomposition is not Llama-specific.
+
+**Open items on this arm**
+1. **Which fusion entry point to target — BLOCKING, needs Omri.** The
+   `dufs_liu_mixed_v2` contract is frozen to the registered *token-trace*
+   feature list (`CONFIDENCE_FEATURE_SIGNS_V1`), so depth views cannot drop into
+   it; they would go through `laplacian_iu_fit` / `upcr_fit` on a plain matrix.
+   Per `feedback_ask_which_method_to_evaluate`, do not infer the arm — ask.
+2. `lapeigvals_gsm8k_llama3b` — Gate B failed on ONE statistic by 2%
+   (first-token median |dH| 5.12e-02 vs 5e-02). Suspect the `unsloth/` mirror's
+   chat template. **Threshold was not lowered.** Re-check against Meta's repo.
+3. `internalstates_gsm8k_qwen25_7b` — Gate B fail; a 5-variant warp probe
+   **ruled the warp out**. Tiny median, fat tail. Unexplained.
+4. `epr_triviaqa_mistral24b` — `Mistral3ForConditionalGeneration` (multimodal
+   wrapper, layers at `.model.language_model.layers`). Guard refused it. Low
+   priority: Mistral-Small-24B-2501 already covers the family.
+5. Nothing has been decided about pooling, view definition, or layer selection
+   — deliberately. Those are the research questions and the three places a prior
+   could enter.
+
+## Session addendum (2026-08-10) — external data collection scaled; 4 new reasoning-localization competitor ceilings (Steps 240-241)
 
 ## Session addendum (2026-08-10) — external data collection scaled; 4 new reasoning-localization competitor ceilings (Steps 240-241)
 

@@ -732,9 +732,79 @@ Model: Qwen3-7B. No new infrastructure for spectral features — same `generate_
 
 ### Extension C — Hidden State Variance (VSDE connection, Ofir alignment)
 
-Register a forward hook on a transformer layer; compute variance of hidden states across K=5 temperature-varied generations as an additional L-SML view alongside spectral features.
-- Low effort: one hook, existing fusion infrastructure
+**SUPERSEDED by Extension I (Step 243, 2026-08-12).** Extension C proposed one hook on one
+layer, variance across K=5 temperature-varied generations, as an extra view *alongside* the
+spectral features. Extension I subsumes it and is strictly better on every axis: all layers
+rather than one, K=1 rather than K=5 (so it stays in our single-pass cost class), and a
+separate arm rather than an extra view. Keep this entry only for the VSDE/PRAE connection to
+Ofir, which still holds — the residual-stream geometry saved by Extension I (per-layer norms,
+token-covariance eigenvalues) is where that connection would be tested.
+
+Original text: register a forward hook on a transformer layer; compute variance of hidden
+states across K=5 temperature-varied generations as an additional L-SML view alongside
+spectral features.
 - Direct connection to Ofir's VSDE (high-variance regions ≈ hallucination) and PRAE
+
+### Extension I — White-Box Depth Views: label-free fusion across layers (NEW, Step 243)
+
+**Status**: **Data collected, nothing scored.** Branch `whitebox/per-layer-views`. 14 cells,
+9 model families, 4.56 GB on Drive. Narrative: HISTORY.md Step 243.
+
+**Scope**: this is a **separate arm, deliberately NOT combined with the grey-box line**
+(Omri, 2026-08-12). Shared cells, different signal. It changes our access class from
+grey-box to **white-box**, so it is scored against Bar B (any-access unsupervised), never
+Bar A — see the Step 207 reporting rule.
+
+**Hypothesis**: the depth axis carries hallucination signal that (a) is distributed across
+many weak, partially redundant per-layer estimators, and (b) can be combined **without
+labels** — which is precisely what the U-PCR / IU-PCR / DUFS-LIU-PCR family is for and
+precisely what the published white-box literature does not attempt.
+
+**Why this direction and not another** — four independent reasons:
+
+1. **The gap is real and narrowly shaped.** Every published multi-layer detector combines
+   per-layer features with a *supervised* probe: **TriLens** (arXiv:2606.01033, the closest
+   work — it defines the exact 3-module × all-layers entropy feature and fits an MLP on an
+   80/20 split), MultiHaluDet, ICR Probe, SAPLMA, SEP. **Automatic Layer Selection**
+   (FEPoID, ICML 2026) picks *one* layer. **HaloScope** avoids human labels but still trains
+   a PU classifier and picks its direction heuristically. **INSIDE/EigenScore** is label-free
+   but needs K=10 generations. Nobody fuses all layers label-free.
+2. **It is the first thing that reaches the 50+ view regime.** 3 modules × 28–40 layers =
+   84–126 views. This file has parked STDR and the dependent-classifier line as "not relevant
+   at 5–16 features; revisit if the feature set expands to 50+". Depth is the only natural way
+   to get there without hand-picking anything — and the layer stack is a *chain*, i.e. exactly
+   the latent-tree structure that machinery models.
+3. **The estimators are weak, which is the right regime.** TriLens's own layer-wise analysis
+   shows single-layer AUROC 0.63–0.73.
+4. **Depth has constant length where the token axis structurally fails.** Median trace length
+   is 6 tokens on `se_squad_v2`, 8 on `spilled_triviaqa`, vs 243 on GSM8K — but every cell has
+   96 depth readouts. This attacks the thesis's documented weakness ("reduced on short factual
+   QA traces <60 tokens, MCQ formats where entropy dynamics are structurally suppressed")
+   head-on, rather than routing around it.
+
+**What is saved** (per candidate, per generated token, per layer, per module ∈ {MHSA write,
+FFN write, residual stream}): logit-lens Shannon entropy over the full vocabulary; lens
+log-prob of the generated token (depth-resolved spilled energy); top-1 lens log-prob;
+`KL(layer l || final layer)` (DoLa's contrast as a trajectory). Plus residual geometry: token
+norms, top-16 token-covariance eigenvalues, and a seeded JL projection of the pooled state
+(so INSIDE / effective-rank / HaloScope-style subspace methods are reachable on CPU).
+
+**Deliberately undecided, because these ARE the research questions** — and they are the three
+places a hand-picked prior or a label could enter, which is what Extension H forbids:
+- **pooling** over the token axis (TriLens uses an unspecified fixed readout rule);
+- **view definition** — is a view one (module, layer), a depth-band, a spectral coefficient of
+  the depth trajectory, or an eigendirection?
+- **layer selection** — the prior-free answer is not to select at all, which is testable
+  directly against FEPoID.
+
+**Decision gate (pre-registered, before any number is computed)**: the honest comparators are
+the *label-free* white-box methods — EigenScore, HaloScope, LLM-Check — not TriLens's
+supervised number. Beating a supervised probe is not the claim; matching useful accuracy with
+**zero labels** is. Record the comparator set before scoring, not after.
+
+**Next step**: choose the fusion entry point. The `dufs_liu_mixed_v2` contract is frozen to
+the registered token-trace feature list, so depth views go through `laplacian_iu_fit` /
+`upcr_fit` on a plain matrix. **Ask Omri which arm** (`feedback_ask_which_method_to_evaluate`).
 
 ### Extension D — VLM Hallucination Detection
 
@@ -1329,8 +1399,13 @@ were superseded by Steps 226--235.
 
 **Later**
 12. Extension B (Agentic): Qwen3-7B, HotpotQA multi-hop
-13. Extension C (Hidden states): one forward hook on Falcon
+13. ~~Extension C (Hidden states): one forward hook on Falcon~~ **SUPERSEDED by Extension I** (Step 243)
 14. Extension D (VLM): only if committee wants multimodal chapter
+
+**New separate arm (Step 243, 2026-08-12)**
+15. **Extension I (White-box depth views)** — data collected on 14 cells / 9 model families
+    (4.56 GB on Drive), nothing scored. **Blocked on one decision: which fusion entry point.**
+    Orthogonal to the grey-box line and not to be combined with it for now.
 
 **CLOSED — do not re-open without new evidence (Step 206, 2026-07-28)**
 - **Pool composition is not a lever, in either direction.** *Removal*: null on L-SML
