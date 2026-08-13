@@ -1,0 +1,161 @@
+{
+  "boundary_sha256": "45bd4589b325844fe98d836c5b2760dd30be49bf1520e53b0c4aea648ea37dec",
+  "candidate_auroc": 0.6236926430973275,
+  "candidate_minus_iu": -0.06456540150733325,
+  "correction_cos2_nuisance": 0.42964741075717783,
+  "correction_cos2_target": 0.04634117279581119,
+  "deletion_count": 0,
+  "description": "nuisance_dominant_prompt_shared",
+  "fallback_error": null,
+  "final_cos2_nuisance": 0.33513948609066724,
+  "final_cos2_target": 0.23818647600367687,
+  "iu_auroc": 0.6882580446046608,
+  "oracle_auroc": 0.736938503089981,
+  "oracle_minus_iu": 0.04868045848532021,
+  "seed": 521649,
+  "selected_alpha": 1.0,
+  "selected_penalty": 0.05,
+  "selection_records": [
+    {
+      "alpha": null,
+      "failure": "CLOSE_NUMERICAL_NONCONVERGENCE: first sparse/synthetic_05",
+      "mean_log_likelihood": null,
+      "penalty": 0.01,
+      "usable": false
+    },
+    {
+      "alpha": null,
+      "failure": "CLOSE_NUMERICAL_NONCONVERGENCE: first sparse/synthetic_05",
+      "mean_log_likelihood": null,
+      "penalty": 0.02,
+      "usable": false
+    },
+    {
+      "alpha": 0.0,
+      "mean_log_likelihood": -1.407507191934295,
+      "paired_standard_error_from_empirical_best": 0.0014889748179749416,
+      "penalty": 0.05,
+      "per_environment_log_likelihood": [
+        -1.4073827386136186,
+        -1.4076316452549713
+      ],
+      "usable": true
+    },
+    {
+      "alpha": 0.125,
+      "mean_log_likelihood": -1.4075125637038206,
+      "paired_standard_error_from_empirical_best": 0.001459086955133526,
+      "penalty": 0.05,
+      "per_environment_log_likelihood": [
+        -1.4073582225203027,
+        -1.4076669048873383
+      ],
+      "usable": true
+    },
+    {
+      "alpha": 0.25,
+      "mean_log_likelihood": -1.4074788770257578,
+      "paired_standard_error_from_empirical_best": 0.0014018015611640955,
+      "penalty": 0.05,
+      "per_environment_log_likelihood": [
+        -1.4072672504482706,
+        -1.407690503603245
+      ],
+      "usable": true
+    },
+    {
+      "alpha": 0.5,
+      "mean_log_likelihood": -1.4071683103847294,
+      "paired_standard_error_from_empirical_best": 0.001074427502828601,
+      "penalty": 0.05,
+      "per_environment_log_likelihood": [
+        -1.4066293097489067,
+        -1.407707311020552
+      ],
+      "usable": true
+    },
+    {
+      "alpha": 1.0,
+      "mean_log_likelihood": -1.405608369559929,
+      "paired_standard_error_from_empirical_best": 0.0,
+      "penalty": 0.05,
+      "per_environment_log_likelihood": [
+        -1.4039949414212778,
+        -1.4072217976985804
+      ],
+      "usable": true
+    },
+    {
+      "alpha": null,
+      "failure": "CLOSE_NUMERICAL_NONCONVERGENCE: graphical lasso GraphicalSupportFit(support=array([[ True,  True, False,  True, False, False, False, False, False,\n        False, False, False, False, False, False, False, False],\n       [ True,  True, False, False, False, False, False, False, False,\n        False, False, False, False, False, False, False, False],\n       [False, False,  True, False, False, False, False, False, False,\n        False, False, False, False, False, False, False, False],\n       [ True, False, False,  True,  True, False, False, False, False,\n        False, False, False, False, False, False, False, False],\n       [False, False, False,  True,  True,  True, False, False, False,\n        False, False, False, False, False, False, False, False],\n       [False, False, False, False,  True,  True, False, False, False,\n        False, False, False, False, False, False, False, False],\n       [False, False, False, False, False, False,  True,  True, False,\n        False, False, False, False, False, False, False, False],\n       [False, False, False, False, False, False,  True,  True,  True,\n        False, False, False, False, False, False, False, False],\n       [False, False, False, False, False, False, False,  True,  True,\n        False, False, False, False, False, False, False, False],\n       [False, False, False, False, False, False, False, False, False,\n         True, False, False,  True, False, False, False, False],\n       [False, False, False, False, False, False, False, False, False,\n        False,  True,  True, False, False, False, False, False],\n       [False, False, False, False, False, False, False, False, False,\n        False,  True,  True,  True, False, False, False, False],\n       [False, False, False, False, False, False, False, False, False,\n         True, False,  True,  True,  True, False, False, False],\n       [False, False, False, False, False, False, False, False, False,\n        False, False, False,  True,  True,  True, False, False],\n       [False, False, False, False, False, False, False, False, False,\n        False, False, False, False,  True,  True, False, False],\n       [False, False, False, False, False, False, False, False, False,\n        False, False, False, False, False, False,  True,  True],\n       [False, False, False, False, False, False, False, False, False,\n        False, False, False, False, False, False,  True,  True]]), partial_correlation=array([[ 1.        ,  0.03309786, -0.        ,  0.01066864, -0.        ,\n         0.        ,  0.        ,  0.        ,  0.        , -0.        ,\n        -0.        ,  0.        ,  0.        , -0.        ,  0.        ,\n        -0.        ,  0.        ],\n       [ 0.03309786,  1.        ,  0.        ,  0.        , -0.        ,\n         0.        ,  0.        ,  0.        ,  0.        , -0.        ,\n        -0.        ,  0.        ,  0.        ,  0.        ,  0.        ,\n        -0.        ,  0.        ],\n       [-0.        ,  0.        ,  1.        ,  0.        , -0.        ,\n         0.        , -0.        ,  0.        , -0.        ,  0.        ,\n         0.        ,  0.        , -0.        , -0.        , -0.        ,\n         0.        , -0.        ],\n       [ 0.01066864,  0.        ,  0.        ,  1.        , -0.01413586,\n         0.        , -0.0012104 ,  0.        , -0.        , -0.        ,\n        -0.        , -0.        , -0.        , -0.        ,  0.        ,\n        -0.        ,  0.        ],\n       [-0.        , -0.        , -0.        , -0.01413586,  1.        ,\n        -0.04234845,  0.        ,  0.        , -0.        ,  0.        ,\n         0.        ,  0.        , -0.        ,  0.        ,  0.        ,\n         0.        , -0.        ],\n       [ 0.        ,  0.        ,  0.        ,  0.        , -0.04234845,\n         1.        , -0.00855826,  0.        , -0.        , -0.        ,\n         0.        , -0.        ,  0.        , -0.        , -0.        ,\n        -0.        ,  0.        ],\n       [ 0.        ,  0.        , -0.        , -0.0012104 ,  0.        ,\n        -0.00855826,  1.        , -0.03092573,  0.        ,  0.00628837,\n        -0.        ,  0.        , -0.        , -0.        , -0.        ,\n        -0.        ,  0.        ],\n       [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,\n         0.        , -0.03092573,  1.        , -0.03116949, -0.        ,\n         0.        ,  0.        , -0.        , -0.        , -0.        ,\n         0.        ,  0.        ],\n       [ 0.        ,  0.        , -0.        , -0.        , -0.        ,\n        -0.        ,  0.        , -0.03116949,  1.        ,  0.        ,\n        -0.        , -0.        ,  0.        , -0.        , -0.        ,\n        -0.        , -0.        ],\n       [-0.        , -0.        ,  0.        , -0.        ,  0.        ,\n        -0.        ,  0.00628837, -0.        ,  0.        ,  1.        ,\n        -0.        , -0.        , -0.0556713 , -0.        , -0.        ,\n        -0.        , -0.        ],\n       [-0.        , -0.        ,  0.        , -0.        ,  0.        ,\n         0.        , -0.        ,  0.        , -0.        , -0.        ,\n         1.        ,  0.0283543 ,  0.        , -0.        , -0.        ,\n         0.        , -0.        ],\n       [ 0.        ,  0.        ,  0.        , -0.        ,  0.        ,\n        -0.        ,  0.        ,  0.        , -0.        , -0.        ,\n         0.0283543 ,  1.        ,  0.0335656 ,  0.        , -0.        ,\n         0.        ,  0.        ],\n       [ 0.        ,  0.        , -0.        , -0.        , -0.        ,\n         0.        , -0.        , -0.        ,  0.        , -0.0556713 ,\n         0.        ,  0.0335656 ,  1.        ,  0.02719972,  0.        ,\n         0.        ,  0.        ],\n       [-0.        ,  0.        , -0.        , -0.        ,  0.        ,\n        -0.        , -0.        , -0.        , -0.        , -0.        ,\n        -0.        ,  0.        ,  0.02719972,  1.        ,  0.03585623,\n         0.        , -0.        ],\n       [ 0.        ,  0.        , -0.        ,  0.        ,  0.        ,\n        -0.        , -0.        , -0.        , -0.        , -0.        ,\n        -0.        , -0.        ,  0.        ,  0.03585623,  1.        ,\n         0.        ,  0.        ],\n       [-0.        , -0.        ,  0.        , -0.        ,  0.        ,\n        -0.        , -0.        ,  0.        , -0.        , -0.        ,\n         0.        ,  0.        ,  0.        ,  0.        ,  0.        ,\n         1.        ,  0.05791644],\n       [ 0.        ,  0.        , -0.        ,  0.        , -0.        ,\n         0.        ,  0.        ,  0.        , -0.        , -0.        ,\n        -0.        ,  0.        ,  0.        , -0.        ,  0.        ,\n         0.05791644,  1.        ]]), converged=False, iterations=5000, final_cost=79.4719249423163, final_dual_gap=-0.00020452976511470267, warning_messages=('graphical_lasso: did not converge after 5000 iteration: dual gap: -2.045e-04',))",
+      "mean_log_likelihood": null,
+      "penalty": 0.1,
+      "usable": false
+    },
+    {
+      "alpha": 0.0,
+      "mean_log_likelihood": -1.4145484997629907,
+      "paired_standard_error_from_empirical_best": 0.00015984028353899227,
+      "penalty": 0.2,
+      "per_environment_log_likelihood": [
+        -1.4130949119078784,
+        -1.416002087618103
+      ],
+      "usable": true
+    },
+    {
+      "alpha": 0.125,
+      "mean_log_likelihood": -1.4145691632353352,
+      "paired_standard_error_from_empirical_best": 0.00015170667723285455,
+      "penalty": 0.2,
+      "per_environment_log_likelihood": [
+        -1.4131074417739167,
+        -1.4160308846967535
+      ],
+      "usable": true
+    },
+    {
+      "alpha": 0.25,
+      "mean_log_likelihood": -1.4145820075868238,
+      "paired_standard_error_from_empirical_best": 0.00014213834711651605,
+      "penalty": 0.2,
+      "per_environment_log_likelihood": [
+        -1.413110717795289,
+        -1.4160532973783586
+      ],
+      "usable": true
+    },
+    {
+      "alpha": 0.5,
+      "mean_log_likelihood": -1.4142674955848422,
+      "paired_standard_error_from_empirical_best": 3.887898203036588e-05,
+      "penalty": 0.2,
+      "per_environment_log_likelihood": [
+        -1.4126151884641605,
+        -1.4159198027055238
+      ],
+      "usable": true
+    },
+    {
+      "alpha": 1.0,
+      "mean_log_likelihood": -1.4124280071767994,
+      "paired_standard_error_from_empirical_best": 0.001010523371590799,
+      "penalty": 0.2,
+      "per_environment_log_likelihood": [
+        -1.4098040556665572,
+        -1.4150519586870414
+      ],
+      "usable": true
+    }
+  ],
+  "support_edges": 21,
+  "support_f1": 0.9523809523809523,
+  "target_preferred_correction": false,
+  "target_preferred_final": false,
+  "test_environment_ids": [
+    "synthetic_01",
+    "synthetic_02"
+  ],
+  "usable": true,
+  "world": 8
+}

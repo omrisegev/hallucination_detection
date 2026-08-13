@@ -3,7 +3,7 @@
 
 ---
 
-## Active program — automatic group-free IU successor (Step 262)
+## Active program — automatic group-free IU successor (Step 263)
 
 The next core-method program is now explicitly reopened under a new-evidence
 standard rather than as another static covariance sweep. The goal is an
@@ -74,12 +74,13 @@ The correct A4 conclusions are
 `CLOSE_SHARED_REPEATABLE_COMPONENT_PREMISE` and
 `CLOSE_NO_TARGET_CONTRAST`. The remaining post-held ablated correlation is not
 a registered candidate and cannot be promoted. A5 continuous weak supervision
-is now active under a frozen, adversarially audited protocol. A0--A4 artifacts
+has now also closed at its sealed nuisance hard stop. A0--A5 artifacts
 are frozen under
 `results/automatic_group_free_phase_a0_v1/` and
 `results/automatic_group_free_phase_a1_v1/`, and
 `results/automatic_group_free_phase_a2_v1/`, and
-`results/automatic_group_free_phase_a4_v1/`.
+`results/automatic_group_free_phase_a4_v1/`, and
+`results/automatic_group_free_phase_a5_v1/`.
 
 The frozen A4 protocol remains
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md`; it is not edited
@@ -104,16 +105,23 @@ large real-cache transfer. Retrospective labels may only veto one frozen score
 bundle and cannot tune or select it. Canonical protocol:
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A5_V1.md`.
 
-The A5 implementation is now complete for the first sealed decision stage.
-Numerical, target-firewall, redundancy, missingness, permutation, control, and
-provenance audits pass 53 tests and an independent no-edit review. S1a executes
-only the 100 nuisance-dominant repetitions and is a genuine hard stop before
-large raw-cache transfer. To avoid post-result flexibility, continuation is
-split into independently frozen stages: an S1a PASS may only open a new reviewed
-S1b boundary for the already specified remaining synthetics, and an S1b PASS
-may only open a new reviewed S2 boundary for the real label-free premise and
-one-way label veto. The estimator, grids, gates, and earlier interpretations
-cannot change between stages. No sealed A5 result has yet been opened.
+The A5 implementation completed its first sealed decision stage, and A5 is
+now closed. All 100 nuisance-dominant seeds ran against the committed boundary;
+98 were usable and two produced registered numerical nonconvergence, giving
+the frozen formal verdict `CLOSE_NUMERICAL_NONCONVERGENCE`. The usable-only
+adversarial analysis independently failed every semantic gate: final and
+correction target preference were only 62/98 and 25/98, while candidate minus
+IU averaged -0.038484 with 95% interval [-0.047495,-0.029659]. Alpha 1 was
+selected 46 times and lost 0.080974 AUROC on average, demonstrating that the
+likelihood selector repeatedly trusted the stronger planted nuisance.
+
+No real cache or retrospective label was accessed. S1b and the real A5 stage
+must not open; numerical repair would not address the decisive semantic
+failure. The program therefore advances to A6. Its key new resource is
+interventional asymmetry: separately verified target-changing pairs and
+nuisance-only pairs must teach an affine IU-anchored direction that transfers
+to natural hallucinations without interventions at deployment. Existing RAG
+evidence-ablation results are premise evidence, not a new confirmation result.
 
 The untouched confirmation boundary is now PopQA with Gemma-3-4B-it, with a
 pre-sealed Qwen3-4B fallback if gated checkpoint access fails before any

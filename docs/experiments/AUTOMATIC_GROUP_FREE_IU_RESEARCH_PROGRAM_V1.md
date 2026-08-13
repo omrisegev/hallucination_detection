@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-13
 
-**Status:** active research contract; A0 passed, A1/A2/A3/A4 closed, A5 protocol is active
+**Status:** active research contract; A0 passed, A1--A5 closed, A6 is active
 
 **Primary objective:** replace the hand-defined provenance quotient used by
 NRM-CS-IU with an automatically identified correction that improves IU-PCR
@@ -320,6 +320,19 @@ The one-way retrospective label gate may PASS or VETO exactly one already
 frozen primary; it may not choose among arms or tune anything. The complete
 executable protocol and gates are frozen in
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A5_V1.md`.
+
+**Execution result (Step 263): CLOSED AT S1a.** The exact 100 registered
+nuisance-dominant seeds ran against the committed boundary. Two repetitions
+had registered numerical nonconvergence, so the frozen formal verdict is
+`CLOSE_NUMERICAL_NONCONVERGENCE`. The 98 usable runs independently failed the
+semantic premise: final and correction target preference were 62/98 and
+25/98, and candidate-minus-IU AUROC averaged -0.038484 with 95% bootstrap
+interval [-0.047495,-0.029659]. Alpha 1 was selected 46 times and harmed IU by
+0.080974 AUROC on average. A5 therefore cannot be rescued as a numerical-only
+issue: the likelihood selector repeatedly follows the stronger nuisance. S1b
+and real-data A5 are forbidden; no real cache or retrospective label was
+accessed. Canonical result:
+`results/automatic_group_free_phase_a5_v1/REPORT.md`.
 
 ### A6 — self-supervised intervention route
 

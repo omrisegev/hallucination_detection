@@ -1,11 +1,42 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-13
-**Last updated**: Step 262. A1 and A2 are closed as detector bases, A3 is
-closed by premise, and A4 is closed after a frozen execution plus independent
-trace-length autopsy. A5-S1a now has a complete independently audited
-implementation and sealed nuisance-first boundary; commit that boundary, then
-run exactly world-8 seeds 521600--521699. No sealed A5 result has been opened.
+**Date**: 2026-08-14
+**Last updated**: Step 263. A1--A5 are closed. A5-S1a executed all 100 sealed
+nuisance-world seeds and closed before real-cache or label access. The formal
+verdict is `CLOSE_NUMERICAL_NONCONVERGENCE`; the 98 usable runs independently
+failed all semantic nuisance gates and lost 3.85 AUROC points versus IU on
+average. Do not open A5-S1b or the real A5 stage. A6 self-supervised
+interventions are now active; freeze their target-changing/nuisance-changing
+contract before implementation.
+
+## Automatic group-free IU Phase A5 result — Step 263
+
+The exact committed S1a boundary ran world-8 seeds `521600..521699` with no
+source change. All 100 append-only checkpoints match the aggregate and carry
+the frozen boundary hash. Ninety-eight repetitions were usable; seed 521639
+had no usable penalty arm and seed 521691 failed a held-mixture fit. There were
+zero implementation-invalid failures. The frozen all-repetitions rule gives
+the formal verdict `CLOSE_NUMERICAL_NONCONVERGENCE`.
+
+The independent adversarial audit then examined the 98 usable repetitions
+without changing the verdict. The final direction preferred target over
+nuisance in 62/98 runs and the correction did so in only 25/98, versus the
+registered 90/100 requirement. Candidate-minus-IU AUROC averaged -0.038484;
+the exact 20,000-draw bootstrap interval was [-0.047495,-0.029659], with no
+nonnegative draw. Even awarding both unusable runs success cannot reach either
+count gate. Alpha 1 was selected in 46 runs and caused -0.080974 mean harm,
+showing that likelihood systematically trusts the stronger planted nuisance.
+
+This is a substantive identifiability failure rather than a route that should
+be rescued by numerical changes. A5 is closed at S1a. Do not run S1b, transfer
+the 23 real A5 caches, or inspect retrospective labels. No real cache or label
+was accessed. Canonical artifacts:
+`results/automatic_group_free_phase_a5_v1/`.
+
+**Next action:** preregister and independently audit A6 before code. A6 must
+obtain information unavailable to marginal `P(X)` by separating verified
+target-changing interventions from nuisance-only interventions, preserve an
+affine one-pass deployment head, and test transfer to natural hallucinations.
 
 ## Automatic group-free IU Phase A5 implementation — Step 262
 

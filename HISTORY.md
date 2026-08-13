@@ -12609,3 +12609,44 @@ generate/commit `A5_BOUNDARY.json`, then execute all 100 S1a seeds without code
 changes.
 
 ---
+
+# Step 263 — 2026-08-14: execute and close A5 at the sealed nuisance hard stop
+
+**Registered result**: The exact committed S1a boundary executed all 100
+world-8 seeds `521600..521699`. Ninety-eight repetitions were usable. Seed
+521639 had no usable penalty arm and seed 521691 failed during a held-mixture
+fit; both are registered numerical closes and neither is an implementation
+error. Under the frozen complete-schedule rule, the formal verdict is
+`CLOSE_NUMERICAL_NONCONVERGENCE`.
+
+**Independent semantic audit**: The usable repetitions decisively fail the
+anti-repackaging premise even if the two numerical failures are ignored. Final
+target preference was 62/98 and correction target preference 25/98, versus
+the registered 90/100 gate. Candidate-minus-IU AUROC averaged -0.038484 with
+20,000-draw interval [-0.047495,-0.029659]; none of the draws was nonnegative.
+There were eight positive, 54 negative, and 36 zero changes. Even treating both
+unusable seeds as successes cannot reach either count threshold.
+
+**Mechanism**: The likelihood rule selected the full `alpha=1` correction in
+46/98 usable runs. Those runs lost 0.080974 AUROC on average and preferred the
+target in only 11/46 final directions and 2/46 correction directions. The
+unlabelled density objective therefore repeatedly followed the stronger
+prompt-shared nuisance despite the target-valid IU anchor—the precise
+non-identifiability failure that S1a was designed to detect.
+
+**Decision**: Close A5. Do not open S1b, transfer the 23 real A5 caches, or
+inspect retrospective labels. Numerical repair cannot rescue the route because
+the usable evidence independently fails all semantic gates. No real cache or
+label was accessed. Proceed to A6 self-supervised interventions, where verified
+target-changing and nuisance-only pairs provide information absent from
+`P(X)` alone.
+
+**Provenance**: Frozen source commit `f3bc974`; boundary commit `0ad7f98`;
+boundary SHA `45bd4589b325844fe98d836c5b2760dd30be49bf1520e53b0c4aea648ea37dec`;
+aggregate SHA `c47e2563f44bee8ae7e5ec6df332ad95661697afc999d4cf16996f7f4c1cfb29`;
+completion SHA `169e45b92fba1401b38a8ee086708edc5bb537c19454c2a3b9955996e5c93049`.
+The independent reviewer reproduced the verdict, matched all 100 checkpoints
+to the aggregate, and reported no artifact blocker. Canonical report:
+`results/automatic_group_free_phase_a5_v1/REPORT.md`.
+
+---
