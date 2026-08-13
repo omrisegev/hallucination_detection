@@ -263,9 +263,12 @@ pairs. Candidate selection, sign, and trust must be functions of the fitted
 multi-view model and a declared confidence anchor, not labels.
 
 A4 may promote a target component only with an additional target-changing
-contrast/anchor plus held-model and item-pair-shuffle falsification. Without
-that evidence it closes as a nuisance-decomposition result and cannot enter a
-detector.
+contrast/anchor plus held-model and item-pair-shuffle falsification. The
+pre-execution audit found no legal strict-S1 target-changing pair in the local
+surface: the available evidence interventions belong to A6. Therefore this A4
+execution is hard-closed in advance as `CLOSE_NO_TARGET_CONTRAST` for detector
+promotion. It may separately pass or fail a shared/scorer-sensitive structure
+premise and may pass only structural information forward to A5/A6.
 
 Premise gate: the shared source must disappear or degrade under pair shuffle;
 the individual candidate must transfer to a held-out model family and must
@@ -273,6 +276,11 @@ not reduce to model size, answer length, or dataset identity.
 
 If exact pairing is inadequate, record the coverage failure and continue to
 A5 rather than creating approximate semantic matches post hoc.
+
+The frozen implementation protocol, including item-first outer splits,
+feature-level text/length residualization, pairing-aware baselines, conditional
+shuffle nulls, and non-vacuous gates, is
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md`.
 
 ### A5 — continuous weak-supervision dependency model
 

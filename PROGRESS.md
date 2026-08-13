@@ -1,13 +1,46 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-13
-**Last updated**: Step 257. A1 and A2 are closed as detector bases after
+**Last updated**: Step 258. A1 and A2 are closed as detector bases after
 adversarially audited premise tests; A3 is closed by premise. A1's
 equal-environment interval versus PCA crossed zero and its near-duplicate test
 failed. A2's missing-aware 30-atom JBD point estimate was promising, but its
 capacity-matched interval crossed zero and its LOEO mechanism-rank stability
-failed. Phase A4 is now active under the clarified nuisance-only scope in
-`docs/experiments/AUTOMATIC_GROUP_FREE_IU_RESEARCH_PROGRAM_V1.md`.
+failed. Phase A4 now has a frozen, independently challenged nuisance-only
+protocol in `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md`.
+
+## Automatic group-free IU Phase A4 boundary — Step 258
+
+The exact 3,400 ProcessBench triples change the scorer while keeping each
+response fixed. A4 can identify repeatable/shared versus scorer-sensitive
+telemetry structure, but cannot identify hallucination. The detector outcome
+is consequently frozen before execution as `CLOSE_NO_TARGET_CONTRAST`; the
+experiment has a separate pass/fail gate for whether a shared repeatable
+component is useful enough to inform A5/A6. It does not identify the
+complementary scorer-specific residual as nuisance.
+
+Independent preregistration review caught two initially vacuous choices. First,
+fitting on Qwen views of an item and testing on Llama's view of that same item
+would be transductive. Exact-content item groups are now split before every
+transform, residualizer, or component fit. Second, scorer token lengths are
+nearly identical (Qwen4/Qwen8 are exact; Qwen/Llama correlations exceed 0.99),
+so a simple item shuffle would mostly test length matching. The primary pipeline
+now cross-fits a feature-level text/length nuisance model before CorrCA and uses
+subset-and-length-conditional derangements with full refitting.
+
+The second adversarial pass additionally prohibited concatenation of
+uncalibrated outer-fold scores, replaced an ill-posed text-prediction
+correlation gate with direct held score-confounding diagnostics, and narrowed
+the claim from a full decomposition to one shared repeatable component. It also
+forced exact 29-feature, covariance, baseline, bootstrap, and null-aggregation
+definitions.
+
+The estimator, ridge grid, nested selection, five paired baselines, raw-z
+sensitivity, held-family and leave-one-subset checks, bootstrap, two shuffle
+nulls, and material-effect gates are frozen in the Phase A4 protocol. No
+correctness or step label may be opened. The next action is to implement the
+protocol exactly, have the independent reviewer audit code and artifacts, and
+then continue to A5 regardless of the structural verdict.
 
 ## Automatic group-free IU Phase A2/A3 — Step 257
 

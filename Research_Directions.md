@@ -3,7 +3,7 @@
 
 ---
 
-## Active program — automatic group-free IU successor (Step 257)
+## Active program — automatic group-free IU successor (Step 258)
 
 The next core-method program is now explicitly reopened under a new-evidence
 standard rather than as another static covariance sweep. The goal is an
@@ -64,6 +64,17 @@ held-model and pair-shuffle falsification. A0--A2 artifacts are frozen under
 `results/automatic_group_free_phase_a0_v1/` and
 `results/automatic_group_free_phase_a1_v1/`, and
 `results/automatic_group_free_phase_a2_v1/`.
+
+The A4 preregistration audit found no strict-S1 target-changing pair, so this
+execution cannot promote a detector under any result. It instead tests whether
+a CorrCA-style shared repeatable component survives disjoint item folds, feature-level
+text/length removal, a held Llama scorer, leave-one-subset transfer, fair
+pairing-aware baselines, and conditional pair shuffles. This distinction is
+important: scorer-sensitive disagreement is not automatically nuisance, and
+scorer-invariant variation is not automatically hallucination. A structural
+pass can inform the dependency model in A5 or intervention design in A6; a
+failure closes the paired-repeat premise. The frozen protocol is
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md`.
 
 The untouched confirmation boundary is now PopQA with Gemma-3-4B-it, with a
 pre-sealed Qwen3-4B fallback if gated checkpoint access fails before any

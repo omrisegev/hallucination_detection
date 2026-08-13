@@ -12422,3 +12422,27 @@ promotion requires an additional target-changing contrast/anchor plus
 held-model and pair-shuffle falsification.
 
 ---
+# Step 258 — 2026-08-13: freeze adversarially corrected A4 protocol
+
+- Froze `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md` before
+  executing the held-Llama structural comparison.
+- Hard-separated the two A4 verdicts. Fixed-response scorer views may support
+  a shared/scorer-sensitive decomposition, but the detector verdict is
+  unconditionally `CLOSE_NO_TARGET_CONTRAST`; no correctness/step labels,
+  hallucination component, sign, trust, or detector score are allowed.
+- The independent adversarial reviewer rejected the initial same-item
+  Qwen-to-Llama evaluation as transductive and the initial simple pair shuffle
+  as length-confounded. The frozen repair splits exact-content item groups
+  before fitting, cross-fits text/length nuisance at the feature level, and
+  uses subset-and-length-conditional derangements with full pipeline refits.
+- Pre-registered the exact CorrCA matrices, nested ridge grid and tie rule,
+  algebraic sign, five fair baselines, raw-z sensitivity, held-family and
+  leave-one-subset checks, paired bootstrap, two shuffle nulls, and material
+  non-vacuous gates. A4 proceeds next under this boundary and A5 follows under
+  either structural verdict.
+- A second independent review prohibited concatenating uncalibrated
+  outer-fold scores, replaced a vacuous text-prediction correlation comparator
+  with direct held score-confounding diagnostics, and narrowed the positive
+  result name to `PASS_SHARED_REPEATABLE_COMPONENT_PREMISE`. It also forced an
+  enumerated 29-feature roster plus exact covariance, baseline, bootstrap, and
+  complete-null aggregation formulas before commit.
