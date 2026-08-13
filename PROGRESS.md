@@ -1,11 +1,45 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-13
-**Last updated**: Step 261. A1 and A2 are closed as detector bases, A3 is
+**Last updated**: Step 262. A1 and A2 are closed as detector bases, A3 is
 closed by premise, and A4 is closed after a frozen execution plus independent
-trace-length autopsy. A5 is now frozen as one bounded IU-anchored sparse latent
-mixture route; implementation and development-seed tests are next, before any
-sealed synthetic or real-data result.
+trace-length autopsy. A5-S1a now has a complete independently audited
+implementation and sealed nuisance-first boundary; commit that boundary, then
+run exactly world-8 seeds 521600--521699. No sealed A5 result has been opened.
+
+## Automatic group-free IU Phase A5 implementation — Step 262
+
+The bounded A5 estimator and target firewall are implemented. The numerical
+core uses an SPD-preserving fixed-support precision optimizer, equal-covariance
+latent mixtures, IU covariance orientation, and exact affine IU fallback. The
+17-feature source builder reproduces the frozen A0 admitted population, rejects
+target-like public payloads, globally groups repeated prompt content, keeps one
+deterministic response, excludes trace length from fitting, and verifies all 23
+raw-source hashes before unpickling.
+
+Development plus adversarial review forced important pre-seal repairs:
+confidence signs now propagate through every candidate/control fit; redundant
+coordinates use immutable-name mean/contrast coordinates; held IU remains exact
+even if a graph-training equality breaks; grouped feature deletion stays
+full-rank; alpha/penalty use a paired one-standard-error rule; and random graph
+controls are ranked at their actually selected/deployed alpha. The registered
+near-duplicate development check now preserves selected output rather than only
+a conditional fixed-alpha diagnostic.
+
+Execution is staged. S1a opens only the nuisance-dominant world-8 hard stop. A
+PASS may authorize a separately preregistered/reviewed S1b boundary, and only a
+later S1b PASS may authorize the real-data S2 boundary; earlier outcomes may not
+change the estimator, grids, gates, or their interpretation. The S1a runner is
+append-only, resumable through immutable per-seed checkpoints, verifies exactly
+100 ordered seeds, distinguishes registered numerical closure from invalid
+implementation errors, and cryptographically binds result, records, protocol,
+source closure, and numerical runtime.
+
+The independent reviewer reports `NO BLOCKERS`; all 53 relevant tests pass. A
+development-only nuisance seed (510108) selected alpha 1, preferred nuisance in
+both final/correction directions, and lost 0.0867 AUROC to IU, suggesting the
+sealed early-stop may close A5 as intended. This evidence cannot substitute for
+the sealed 100-seed gate. No real cache or retrospective label was accessed.
 
 ## Automatic group-free IU Phase A5 protocol — Step 261
 

@@ -97,6 +97,16 @@ The isolated sanitizer may inspect only:
   `top_k_logprobs`, solely to derive the frozen features;
 - token-count information solely to write the forbidden-fit length sidecar.
 
+One inherited A0 preprocessing exception is isolated before the public A5
+sanitizer. For `seiclr_triviaqa_opt30b` only, a hash-bound crop stage may read
+exactly `full_text` and `token_offsets` to reproduce the already frozen
+first-answer-line span from `spectral_utils.answer_span.answer_token_slice`; it may
+output only the four cropped telemetry streams above. It cannot expose text,
+offsets, grader output, answers, or labels to A5 fitting. The crop implementation
+and test are included in the source boundary. This exception is not described
+as label-naive: it inherits the earlier grader-alignment decision but reads no
+correctness value.
+
 It must copy none of `label`, `label_lexical`, `correct`, `is_correct`, gold
 answers, prompts/questions, generated/full text, or nested target-bearing
 objects. The sanitizer records but does not expose unexpected keys, then fails
@@ -140,6 +150,11 @@ training/adaptation split only.
 Length is never a fit input. Raw and log token count are available only to the
 post-fit confounding gate. No A4 residualizer is reused.
 
+Source SHA-256, byte size, and manifest SHA-256 are canonical. Local filesystem
+mtime is explicitly excluded because downloading identical LFS bytes changes it;
+the prepared audit writes the fixed marker
+`noncanonical-filesystem-mtime-excluded` instead of a machine timestamp.
+
 The primary structural population contains exactly one response per
 `(environment_id, content_group_id)`: choose the candidate minimizing the tuple
 `(sha256("A5-primary-response\\0" + environment_id + "\\0" +
@@ -180,7 +195,7 @@ The implementation uses the following one-way graph pipeline:
    their effective membership because their covariance is shared;
 3. fit graphical lasso on penalty grid
    `{0.01, 0.02, 0.05, 0.10, 0.20}` and define support by
-   `abs(partial_correlation) > 1e-6`;
+   `abs(partial_correlation) > 0.01`;
 4. refit each environment by EM with a shared-class covariance and a
    fixed-support Gaussian precision MLE;
 5. recompute the equal-environment residual correlation after sparse EM and
@@ -191,8 +206,15 @@ The fixed-support precision MLE minimizes
 `trace(S Omega) - logdet(Omega)` over the registered free diagonal/edge
 entries. It starts at the positive diagonal solution, rejects non-positive
 definite iterates, and must satisfy relative gradient and objective tolerances
-of `1e-7` and positive minimum eigenvalue above `1e-8`. EM uses at most 300
-iterations and stops when relative likelihood change is below `1e-7`. The
+of `1e-7` and positive minimum eigenvalue above `1e-8`. The unconstrained
+sparse EM uses at most 300 iterations; the scalar constrained-direction EM on
+the alpha path uses at most 1,000 iterations. Both stop when relative likelihood
+change is below `1e-7`. The
+graphical-lasso dual-gap tolerance is `1e-4`, two orders of magnitude below
+the edge threshold; any nonconverged penalty arm is excluded rather than
+retained, its failure is recorded, and the fold closes if no penalty arm is
+usable.
+The
 larger graphical-lasso penalty wins likelihood ties within `1e-8` nats. The
 implementation boundary will freeze initialization seeds before sealed
 synthetic execution.
@@ -226,7 +248,15 @@ density. The final deployed ranking score is exactly
 `w_e(alpha)' X`; density scale `beta` is not folded into the score.
 
 Alpha and graph penalty are selected by the explicit nested procedure in
-Section 7. Alpha zero wins every tie within `1e-8` nats. If any reliability
+Section 7. Within each validation fold, first find the empirical best
+penalty/alpha. For every arm compute paired per-environment likelihood losses
+relative to that empirical best and their ordinary sample standard error over
+validation environments. An arm is admissible when its mean loss is no greater
+than one standard error (plus `1e-12` numerical tolerance). Select the smallest
+alpha among admissible arms, then the larger graph penalty, then the larger
+likelihood. This conservative one-standard-error rule is frozen from
+development data before any sealed seed is opened and is applied identically
+to the candidate, diagonal and random-support controls. If any reliability
 gate fails, the returned weights and scores are copied from IU-PCR, not
 recomputed, and must agree below `1e-12` relative error.
 
@@ -262,12 +292,33 @@ initialization is neither claimed nor applicable. Family-NRM is never a
 selector, orienter, or tuner.
 
 The diagonal arm and every random-support arm independently select their own
-alpha by the identical inner-validation likelihood rule and tie rule. The
+alpha by the identical inner-validation likelihood and one-standard-error rule. The
 strongest random arm is chosen only after those independent selections, by its
 inner-validation likelihood. The capacity-identical sparse `alpha=0` arm
 reuses the candidate's frozen covariance and every other fit object, changing
 only alpha. The retrospective diagonal score uses the final alpha selected by
 the diagonal arm, never the sparse candidate's alpha.
+
+Random supports use deterministic degree-preserving double-edge swaps. For arm
+`d=0..31`, first order vertices lexicographically by their immutable feature
+names, then encode the exact UTF-8 payload
+`"A5-random-support\0" + decimal(split_seed) + "\0" +
+float(penalty).hex() + "\0" + decimal(d)`. Initialize NumPy PCG64 from the
+first eight SHA-256 digest bytes interpreted unsigned big-endian. Starting from
+the candidate support, repeatedly choose two distinct undirected edges uniformly;
+choose one of the two cross-rewirings by one RNG bit; reject self-loops,
+duplicate edges, unchanged edge sets, or a support already emitted in that
+split. Accept exactly `max(100,20*E)` swaps, with at most
+`1000*max(E,1)` attempts. Connectivity is neither required nor repaired;
+diagonal entries remain present. Each accepted arm must preserve the exact
+degree sequence and edge count. A nonconverged or non-unique arm is recorded as
+unusable; it is never silently replaced by a different seed. Fewer than 32
+usable unique arms closes the dependency comparison as
+`CLOSE_INADEQUATE_RANDOM_GRAPH_CONTROL` (and a zero-edge selected graph closes
+the dependency premise directly). The quotient is learned inside the same
+training fold before swaps; its mean/contrast vertices receive immutable names
+derived lexicographically from the frozen original feature names. Each arm independently refits all local
+mixtures and selects alpha.
 
 The A1 factorial prior is excluded from the primary. It may appear once as a
 separately named metadata-assisted negative control and cannot rescue a failed
@@ -283,8 +334,15 @@ duplicate behavior, deterministic ties, and exact IU fallback. Implementation
 may be debugged only on the development seed namespace `510000..519999`.
 
 Before sealed execution, hash source, tests, simulator, exact configurations,
-and the unused sealed seeds `520000..529999`. No result-changing repair is
-permitted after a sealed world is opened.
+and the unused sealed seeds `520000..529999`. The execution is divided into
+independently frozen stages: S1a is world 8 only; a PASS may open a new
+preregistered S1b boundary for the already specified remaining synthetic
+worlds, without changing the candidate estimator, grids, gates, or any S1a
+interpretation. Only a S1b PASS may open a separately preregistered real-data
+S2 implementation of Sections 7--8. Each later boundary must cite and hash all
+earlier results, and an earlier result may determine only whether the next
+stage opens—not alter its method or gates. No result-changing repair is
+permitted inside a stage after that stage's first sealed result is opened.
 
 Synthetic AUROC always treats planted `Y=+1` as positive and is computed within
 each sealed test environment before equal-environment averaging. The oracle is
@@ -298,6 +356,16 @@ test separation as the real nested algorithm, with no access to planted bits.
 Every world has exactly 100 repetitions. World index is one-based in the list below;
 repetition `r` uses seed `520000 + 200*world_index + r`, `r=0..99`.
 No data-dependent redraw is allowed.
+
+S1a opens world 8 first as the registered hard anti-repackaging stop.
+Only its candidate path is needed for that gate; density controls and the other
+worlds remain unopened until it passes. A world-8 failure writes the complete
+100-repetition closure artifact, closes A5 immediately, and prohibits both the
+remaining synthetic worlds and any real-cache transfer. A PASS permits only
+the independently reviewed S1b boundary described above; the current runner's
+remaining-world implementation is a prewritten diagnostic scaffold and is not
+authorized to execute until that boundary is separately frozen. This execution
+order is frozen before the first sealed seed is opened.
 
 The base world has `p=17`, 12 environments, and 400 adaptation plus 400
 evaluation items per environment. A seed permutation assigns eight graph-
@@ -331,8 +399,10 @@ The eleven worlds are:
 3. clipped-A0 small-n, using 23 environments with total item counts
    `(500,500,500,500,500,500,500,500,500,500,500,300,300,300,300,500,500,198,500,500,500,500,500)`
    split 17/3/3 by seeded environment permutation; within each environment,
-   `sha256(seed,item_index) mod 2` assigns adaptation/evaluation, so each item
-   is its own group and the two halves differ by at most one;
+   rank items by `sha256("A5-small-n" + seed + environment_index +
+   item_index)` and assign the first `floor(n/2)` to adaptation and the rest to
+   evaluation, so each item is its own group and the two halves differ by at
+   most one;
 4. Student-t noise `epsilon=Gaussian*sqrt(5/ChiSquare_5)`;
 5. heteroscedastic classes, multiplying `Sigma_e` by `0.65` for `Y=-1` and
    `1.35` for `Y=+1`;
@@ -354,18 +424,35 @@ The eleven worlds are:
     anchor constructed around `wZ`; swapping the semantic names of `Y,Z`
     changes no observed object.
 
-The feature-deletion stress is paired with worlds 3 and 4: on each validation
-and test environment, remove the seeded one-, two-, then three-coordinate set
-and use the induced frozen graph/support. It must not impute from held rows.
+The feature-deletion stress is paired with worlds 3 and 4. Graph-training
+environments remain byte-identical and the full graph/quotient is fitted once.
+For validation or test environment `e`, rank its original coordinates by
+`sha256("A5-feature-deletion" + seed + environment_id + coordinate_index)`;
+remove the first one, two, then three, and use the principal induced support of
+the already fitted full graph—never relearn a lower-dimensional graph and never
+impute from held rows. If the learned quotient contains a deleted coordinate,
+remove that member; drop a quotient component only if it becomes empty, and
+renormalize its mean over retained members. For diagnostic truth on retained
+coordinates `K`, recompute the marginal Bayes direction as
+`inverse(Sigma_KK) @ (Sigma @ w)_K`; do not slice `w`. Rebuild a full-rank
+canonical mean-plus-Helmert basis on retained members using only the original
+graph-training covariance restricted to those coordinates. Induce the learned
+support through this deterministic basis map and require quotient dimension,
+matrix rank, and retained raw dimension to agree; held values never define or
+repair this basis.
 Every gate that applies to deletion must pass separately at deletion counts
 one, two, and three; no averaging across counts is allowed.
+
+Graph-training environments use all 800 registered prompt units. The named
+400/400 adaptation/evaluation halves are used only when an environment serves
+as validation or sealed test; no graph-training row is discarded.
 
 For vectors `a,b`, direction recovery is
 `cos2_Sigma(a,b)=(a' Sigma b)^2/[(a' Sigma a)(b' Sigma b)]`.
 Report this for final `w(alpha)` versus planted Bayes `wY` and for correction
 `u` versus the planted IU-orthogonal residual of `wY`; a zero-norm planted
 residual is registered as not applicable, never as one. Support F1 uses
-undirected off-diagonal edges, with the same `1e-6` partial-correlation
+undirected off-diagonal edges, with the same `0.01` partial-correlation
 threshold as fitting, and is macro-averaged first over held environments and
 then repetitions.
 
@@ -398,7 +485,30 @@ For duplicate world 6, coordinates are standardized on adaptation rows. Let
 augmentation, and `a_j,a_dup` after paired augmentation. Require median
 `(|a_j|+|a_dup|)/max(|a_j_before|,1e-12) <=1.10` and median Spearman rank
 correlation between paired original and augmented evaluation scores at least
-`0.999999`, separately for exact and near duplicates.
+`0.999999` for exact duplicates. For rho-`0.999` near duplicates, gate the
+actual independently selected deployed scores and require median score
+Spearman at least `0.995`; additionally require selected alphas to differ by no
+more than one grid step (`0.125`). A same-fixed-alpha comparison is reported
+only as a mechanism diagnostic and cannot satisfy the gate. The coefficient statistic is computed on the learned correction
+only, excluding the unchanged IU anchor, so sign cancellation in IU is not
+misreported as duplicate evidence.
+
+The estimator handles this stress with an automatic, label-free
+mean-plus-contrast transform fitted only on graph-training environments.
+Standardize within each training environment; connect a coordinate pair only
+when its Pearson correlation is at least `0.998` in every graph-training
+environment; and take connected components. Order components and their members
+lexicographically by immutable frozen feature name. Each component becomes its
+mean plus deterministic Helmert contrast coordinates. Retain every contrast,
+including an empirically exact graph-training contrast: a near-zero contrast
+gets unit scale rather than being dropped, so a held departure cannot break
+the alpha-zero identity. Contrasts preserve the original IU discrepancy exactly
+in both constrained likelihood and deployment, but are masked out of the learned
+correction; only component means may receive correction mass. A learned mean
+correction is expanded equally across members. `alpha=0` therefore remains an
+exact score identity, and the density direction equals the deployed direction.
+The transform, contrast scale, and threshold are refit inside every
+null/control.
 
 If target recovery passes only in the favorable Gaussian world, the verdict is
 `CLOSE_SYNTHETIC_MISSPECIFICATION`. Any failure above closes the route and A6
@@ -429,8 +539,8 @@ For every outer held environment `e`:
    and evaluate every alpha's constrained density on evaluation only; swap the
    halves and repeat;
 5. average per-row log likelihood within swap, then equally over both swaps and
-   validation environments. Jointly select one penalty and one global alpha;
-   likelihood ties within `1e-8` choose alpha zero, then the larger penalty;
+   validation environments. Jointly select one penalty and one global alpha by
+   the frozen paired one-standard-error rule in Section 4.2;
 6. rebuild support once on all retained purged outer-training environments at
    that penalty, without reselecting it;
 7. split held `e` by

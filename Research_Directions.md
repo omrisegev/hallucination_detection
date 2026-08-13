@@ -3,7 +3,7 @@
 
 ---
 
-## Active program — automatic group-free IU successor (Step 261)
+## Active program — automatic group-free IU successor (Step 262)
 
 The next core-method program is now explicitly reopened under a new-evidence
 standard rather than as another static covariance sweep. The goal is an
@@ -103,6 +103,17 @@ null families. A sealed nuisance-dominant synthetic is an early stop before
 large real-cache transfer. Retrospective labels may only veto one frozen score
 bundle and cannot tune or select it. Canonical protocol:
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A5_V1.md`.
+
+The A5 implementation is now complete for the first sealed decision stage.
+Numerical, target-firewall, redundancy, missingness, permutation, control, and
+provenance audits pass 53 tests and an independent no-edit review. S1a executes
+only the 100 nuisance-dominant repetitions and is a genuine hard stop before
+large raw-cache transfer. To avoid post-result flexibility, continuation is
+split into independently frozen stages: an S1a PASS may only open a new reviewed
+S1b boundary for the already specified remaining synthetics, and an S1b PASS
+may only open a new reviewed S2 boundary for the real label-free premise and
+one-way label veto. The estimator, grids, gates, and earlier interpretations
+cannot change between stages. No sealed A5 result has yet been opened.
 
 The untouched confirmation boundary is now PopQA with Gemma-3-4B-it, with a
 pre-sealed Qwen3-4B fallback if gated checkpoint access fails before any

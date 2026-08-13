@@ -12572,3 +12572,40 @@ cannot select or tune.
 **Review verdict**: `NO BLOCKERS`. Canonical protocol:
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A5_V1.md`. No A5 synthetic or
 real result has been opened.
+
+---
+
+# Step 262 — 2026-08-14: implement and freeze the adversarially audited A5-S1a boundary
+
+**What**: Implemented the target-firewalled 17-feature A5 data boundary, the
+IU-anchored equal-covariance sparse latent-mixture estimator, SPD-preserving
+fixed-support precision fitting, confidence-sign-aware affine reconstruction,
+automatic redundancy handling, matched density controls, and a sealed
+nuisance-first runner. The runner opens only world 8 under seeds
+`521600..521699`; it uses immutable per-seed checkpoints, exact schedule
+validation, append-only atomic artifacts, and a completion object bound to the
+source/runtime/protocol boundary and repetition hash.
+
+**Why**: Development and repeated independent review exposed failures that a
+nominally passing unit suite missed: an unconstrained precision parameterization,
+incorrect global content grouping, short-row population drift, arbitrary
+direction scaling, alpha instability under a near duplicate, order-dependent
+Helmert coordinates and random controls, incomplete confidence-sign
+propagation, train-exact/held-nonexact IU mismatch, and unsafe overwritable
+runner artifacts. Each issue was repaired before any sealed seed was opened.
+The protocol was also split into independently frozen S1a/S1b/S2 stages so a
+world-8 PASS can only authorize a new reviewed boundary, never an adaptive
+method change.
+
+**Result**: The final independent audit reports `NO BLOCKERS`; 53 relevant
+tests pass, including numerical KKT, target firewall, permutation, grouped
+deletion, exact IU fallback, near-duplicate selected-output stability,
+append-only/tamper/resume, and exact schedule tests. Development-only world 8
+continues to show the intended danger (seed 510108 selected alpha 1, preferred
+nuisance over target in final and correction directions, and lost 8.67 AUROC
+points versus IU), but this is not a sealed result. No real cache or
+retrospective label was accessed. Next: commit this immutable source boundary,
+generate/commit `A5_BOUNDARY.json`, then execute all 100 S1a seeds without code
+changes.
+
+---
