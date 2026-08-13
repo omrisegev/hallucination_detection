@@ -11,7 +11,7 @@
 - Fully exact ProcessBench subsets: **4 / 4**
 - Simulator crossed dimensions: **5 channels x 6 operators**, 8 environments
 - Simulator duplicate error: **0**
-- Reserved confirmation: `semgrad-triviaqa-qwen3-4b-confirmation-v1` (RESERVED_REQUIRES_COLLECTION)
+- Reserved confirmation: `popqa-gemma3-4b-it-confirmation-v1` (RESERVED_OOD_REQUIRES_COLLECTION)
 
 ## Decision
 
@@ -21,9 +21,15 @@ This supports A1/A2 structural work and gives A4 an exact paired-view calibratio
 surface without semantic matching. The confirmation cell is reserved but must be
 collected only after a finalist and all target-selection rules are frozen.
 
-The feature DAG records source streams and computational operators from the
-extractor-owned registries and function signatures. It does not import or reproduce
-the manual `FEATURE_TO_VIEW` partition.
+The feature DAG records source streams from extractor-owned registries and uses
+an explicit handwritten, label-blind operator taxonomy. Function signatures
+record implementation provenance and defaults; they do not infer the taxonomy.
+The DAG does not import or reproduce the manual `FEATURE_TO_VIEW` partition.
+
+No new correctness labels are read in A0. The input is not label-naive: its
+mixed-v2 transforms and confidence signs were frozen during earlier
+label-informed development. The correct claim for subsequent phases is “no new
+labels beyond the frozen IU input contract.”
 
 Manifest observation counts describe attempted/generated candidates, whereas the
 bundle contains the valid rows admitted to the frozen mixed-v2 comparison. A1/A2

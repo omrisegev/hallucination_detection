@@ -32,6 +32,7 @@ from spectral_utils.factorial_measurement import (  # noqa: E402
     FactorialConfiguration,
     augment_correlated_duplicate,
     covariance_from_residuals,
+    environment_macro_mse,
     fit_factorial_measurement,
     masked_feature_reconstruction_rows,
     pooled_mean_reconstruction_rows,
@@ -159,9 +160,17 @@ def grouped_bootstrap_delta(
     draws = np.empty(BOOTSTRAP_DRAWS, dtype=float)
     for draw in range(BOOTSTRAP_DRAWS):
         sampled = rng.choice(unique, size=len(unique), replace=True)
-        indices = np.concatenate([np.flatnonzero(groups == group) for group in sampled])
-        draws[draw] = float(np.mean(candidate[indices] - baseline[indices]))
-    delta = candidate - baseline
+        environment_deltas = []
+        for group in sampled:
+            indices = np.flatnonzero(groups == group)
+            environment_deltas.append(float(np.mean(
+                candidate[indices] - baseline[indices]
+            )))
+        draws[draw] = float(np.mean(environment_deltas))
+    delta = [
+        float(np.mean(candidate[groups == group] - baseline[groups == group]))
+        for group in unique
+    ]
     return {
         "delta_mse": float(np.mean(delta)),
         "ci_lower": float(np.quantile(draws, 0.025)),
@@ -341,8 +350,8 @@ def simulator_check(configuration: FactorialConfiguration) -> dict:
 def summary_row(method: str, rows: list[dict], configuration=None) -> dict:
     payload = {
         "method": method,
-        "mse": reconstruction_mse(rows),
-        "rmse": float(np.sqrt(reconstruction_mse(rows))),
+        "mse": environment_macro_mse(rows),
+        "rmse": float(np.sqrt(environment_macro_mse(rows))),
         "prediction_rows": len(rows),
     }
     if configuration is not None:
@@ -375,12 +384,42 @@ def main() -> None:
         "random_partition_draws": RANDOM_PARTITION_DRAWS,
         "stability_gate": STABILITY_GATE,
         "near_duplicate_mass_gate": NEAR_DUPLICATE_MASS_GATE,
-        "selection_metric": "masked feature-by-environment covariance MSE",
+        "selection_metric": (
+            "environment-macro masked covariance MSE; every environment has equal mass"
+        ),
+        "input_label_boundary": (
+            "no new correctness labels beyond frozen mixed-v2 transforms and signs"
+        ),
         "source_bundle_sha256": sha256_file(DEFAULT_BUNDLE),
         "code_sha256": {
             "script": sha256_file(Path(__file__)),
             "factorial_measurement_module": sha256_file(
                 REPO / "spectral_utils" / "factorial_measurement.py"
+            ),
+            "group_free_research_module": sha256_file(
+                REPO / "spectral_utils" / "group_free_research.py"
+            ),
+            "contribution_subspace_module": sha256_file(
+                REPO / "spectral_utils" / "contribution_subspace.py"
+            ),
+            "feature_contract_module": sha256_file(
+                REPO / "spectral_utils" / "feature_contract.py"
+            ),
+            "mixed_v2_contract_module": sha256_file(
+                REPO / "spectral_utils" / "dufs_liu_feature_contract.py"
+            ),
+            "atomic_source_loader": sha256_file(
+                REPO / "scripts" / "atomic_nrm_structural_audit.py"
+            ),
+            "hard_filter_contract_loader": sha256_file(
+                REPO / "scripts" / "hard_filter_dufs_liu_benchmark.py"
+            ),
+            "atomic_residual_module": sha256_file(
+                REPO / "spectral_utils" / "atomic_neutral_residual.py"
+            ),
+            "upcr_module": sha256_file(REPO / "spectral_utils" / "upcr.py"),
+            "laplacian_upcr_module": sha256_file(
+                REPO / "spectral_utils" / "laplacian_upcr.py"
             ),
         },
         "labels_accessed": False,
@@ -481,7 +520,7 @@ def main() -> None:
         "beats_pooled_pca_ci": pca_delta["ci_upper"] < 0.0,
         "beats_random_partition_ci": random_delta["ci_upper"] < 0.0,
         "beats_random_partition_fifth_percentile": (
-            reconstruction_mse(primary_rows) < fifth_percentile_random
+            environment_macro_mse(primary_rows) < fifth_percentile_random
         ),
         "minimum_loo_projector_overlap": min(stability),
         "stability_pass": min(stability) >= STABILITY_GATE,
@@ -519,10 +558,10 @@ def main() -> None:
         "version": VERSION,
         "decision": decision,
         "primary_configuration": primary.payload(),
-        "primary_audit_mse": reconstruction_mse(primary_rows),
-        "pca_audit_mse": reconstruction_mse(method_rows["pca"]),
-        "hard_factorial_audit_mse": reconstruction_mse(method_rows["factorial"]),
-        "pooled_mean_audit_mse": reconstruction_mse(pooled_rows),
+        "primary_audit_mse": environment_macro_mse(primary_rows),
+        "pca_audit_mse": environment_macro_mse(method_rows["pca"]),
+        "hard_factorial_audit_mse": environment_macro_mse(method_rows["factorial"]),
+        "pooled_mean_audit_mse": environment_macro_mse(pooled_rows),
         "random_mse_fifth_percentile": fifth_percentile_random,
         "random_mse_median": float(np.median([row["mse"] for row in random_summaries])),
         "paired_delta_vs_pca": pca_delta,
@@ -536,12 +575,13 @@ def main() -> None:
     report = f"""# Automatic group-free IU — Phase A1 factorial measurement model
 
 - Version: `{VERSION}`
-- Correctness labels accessed: **no**
+- New correctness labels accessed: **no** (the frozen mixed-v2 input contract
+  inherits earlier label-informed transforms and signs)
 - Structural train / untouched structural audit environments: **{len(train_ids)} / {len(audit_ids)}**
 - Feature roster: **{len(roster)}**, with NaN-preserving incomplete coverage
 - Primary basis: **hybrid soft factorial**, selected only by training-cell LOEO reconstruction
 - Frozen configuration: `{json.dumps(primary.payload(), sort_keys=True)}`
-- Audit RMSE — hybrid / pooled PCA / hard factorial / pooled mean: **{np.sqrt(reconstruction_mse(primary_rows)):.6f} / {np.sqrt(reconstruction_mse(method_rows['pca'])):.6f} / {np.sqrt(reconstruction_mse(method_rows['factorial'])):.6f} / {np.sqrt(reconstruction_mse(pooled_rows)):.6f}**
+- Audit equal-environment RMSE — hybrid / pooled PCA / hard factorial / pooled mean: **{np.sqrt(environment_macro_mse(primary_rows)):.6f} / {np.sqrt(environment_macro_mse(method_rows['pca'])):.6f} / {np.sqrt(environment_macro_mse(method_rows['factorial'])):.6f} / {np.sqrt(environment_macro_mse(pooled_rows)):.6f}**
 - Paired MSE delta vs pooled PCA, grouped 95% CI: **{pca_delta['delta_mse']:.6g} [{pca_delta['ci_lower']:.6g}, {pca_delta['ci_upper']:.6g}]**
 - Paired MSE delta vs median random partition, grouped 95% CI: **{random_delta['delta_mse']:.6g} [{random_delta['ci_lower']:.6g}, {random_delta['ci_upper']:.6g}]**
 - Random-partition fifth-percentile MSE: **{fifth_percentile_random:.6g}**
@@ -554,7 +594,8 @@ def main() -> None:
 ## Decision
 
 **{decision}**. The route passes only if the predeclared hybrid representation
-beats pooled PCA and cardinality-matched random partitions on the hash-held-out
+beats pooled PCA and cardinality-matched random partitions under equal-environment
+weighting on the hash-held-out
 environments, remains stable under environment deletion, conserves exact-
 duplicate mass, controls a near duplicate, and beats the pooled simulator
 baseline. No detector AUROC, correctness target, Family-NRM direction, or

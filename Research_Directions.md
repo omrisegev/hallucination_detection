@@ -3,7 +3,7 @@
 
 ---
 
-## Active program — automatic group-free IU successor (Step 256)
+## Active program — automatic group-free IU successor (Step 257)
 
 The next core-method program is now explicitly reopened under a new-evidence
 standard rather than as another static covariance sweep. The goal is an
@@ -28,19 +28,19 @@ automatic method.
 Canonical contract and experiment registry:
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_RESEARCH_PROGRAM_V1.md`.
 
-Phase A0 now passes without label access. The frozen audit contains 30
-mechanically registered features and 23 source environments, including exact
+Phase A0 passes with no new labels beyond the frozen mixed-v2 IU input contract.
+The audit contains 30 code-registered features and 23 source environments, including exact
 missingness and feature-pair coverage. Seventeen features are universal. Six
 cells have fewer valid bundle rows than manifest attempts (minimum 19.8%), so
 the live structural route uses the bundle population with equal-environment
 weighting. Most importantly, 3,400 fixed ProcessBench responses have exact
 content-and-ID matches across Qwen3-4B, Qwen3-8B, and Llama3.1-8B telemetry.
-That three-view surface gives A4 a genuine response-preserving intervention on
-the scorer model, and makes the later self-supervised claim concrete rather
-than metaphorical.
+That three-view surface gives A4 a genuine response-preserving nuisance
+intervention on the scorer model. It does not change the response target and
+therefore cannot by itself justify a self-supervised hallucination claim.
 
-Phase A1 has now been executed and closed as a detector basis. Its rank-6 soft
-hybrid reduced audit covariance MSE by 8.1% relative to pooled PCA at the point
+Phase A1 has been executed and closed as a detector basis. Its rank-6 soft
+hybrid reduced equal-environment audit covariance MSE from 0.034704 to 0.032009 at the point
 estimate and decisively beat random partitions, which supports the weaker
 claim that mechanical channel/operator structure can regularize a learned
 subspace. The seven-environment grouped interval still crossed zero, however,
@@ -49,14 +49,26 @@ mass. The method therefore fails the frozen robustness premise and may not be
 promoted into A3. Hard channel, operator, and factorial bases were substantially
 worse, so no manual-like hard quotient is being retained through the back door.
 
-The active next step is A2 on raw atomic residual covariances. Its scientific
-question is distinct: whether environment-to-environment variance changes
-identify reproducible jointly diagonal or jointly block-diagonal mechanisms.
-It must improve held-out covariance reconstruction, survive leave-one-cell
-deletion, and lose its advantage after environment identities are destroyed.
-A0 and A1 artifacts are frozen under
+Phase A2 is also closed as a detector basis after a missing-aware 30-atom
+nested audit. JBD reached MSE 0.028700 versus 0.032864 for a pooled-PCA control
+with the same block sizes, mechanism count, and ridge, but the paired interval
+[-0.012164, 0.000838] crossed zero and the LOEO mechanism-rank ratio 0.618
+missed its 0.70 gate. Fold structure was unstable, including one all-singleton
+fold, and the advantage disappeared under a PSD stationary null. A3 closes by
+premise because both inputs failed.
+
+The active next step is A4, but its scope is narrowed correctly: fixed-response
+cross-model triples identify scorer nuisance, not hallucination. Promotion
+requires a predeclared target-changing contrast/anchor in addition to
+held-model and pair-shuffle falsification. A0--A2 artifacts are frozen under
 `results/automatic_group_free_phase_a0_v1/` and
-`results/automatic_group_free_phase_a1_v1/`.
+`results/automatic_group_free_phase_a1_v1/`, and
+`results/automatic_group_free_phase_a2_v1/`.
+
+The untouched confirmation boundary is now PopQA with Gemma-3-4B-it, with a
+pre-sealed Qwen3-4B fallback if gated checkpoint access fails before any
+collection. The primary correctness rule uses normalized token-boundary alias
+matching; official substring matching is a secondary diagnostic only.
 
 ---
 

@@ -1,15 +1,26 @@
 {
+  "access_requirement": "Run a no-label Hugging Face license/access smoke before any collection.",
+  "alias_hygiene": "drop empty normalized aliases; deduplicate aliases; never use raw substring containment for the primary label; freeze the normalized alias list per item",
   "bootstrap_group": "source question ID",
-  "boundary_version": "semgrad-triviaqa-qwen3-4b-confirmation-v1",
-  "collection_gate": "Pin the SemGrad dataset artifact and resolved model revision, run local smoke, then N=200 scientific pilot without opening AUROC. Full collection only if telemetry is complete and both BEM classes contain at least 30 responses.",
-  "dataset": "SemGrad official TriviaQA split",
-  "dataset_rows": 11313,
+  "boundary_version": "popqa-gemma3-4b-it-confirmation-v1",
+  "broad_model_family_note": "Gemma-2B development artifacts exist; novelty comes primarily from the unopened PopQA dataset family and secondarily from Gemma-3/this checkpoint.",
+  "broad_model_family_seen_in_development": true,
+  "collection_gate": "Pin the official PopQA artifact and resolved primary and fallback revisions; pass the primary checkpoint access smoke; run a 20-row telemetry smoke, then a deterministic 200-row scientific pilot without opening detector AUROC. Full collection only if mixed-v2 telemetry is complete and both alias-correctness classes contain at least 30 responses.",
+  "dataset": "PopQA official 14k open-domain factual QA release",
+  "dataset_family_seen_in_development": false,
+  "dataset_rows_approximate": 14000,
+  "exact_model_checkpoint_seen_in_development": false,
   "generation": "one greedy response per prompt; max_new_tokens=150",
   "labels_opened": false,
-  "model": "Qwen/Qwen3-4B-Instruct-2507",
-  "primary_label": "BEM answer equivalence at frozen threshold 0.8",
+  "literature": {
+    "dataset": "Mallen et al. (2023), arXiv:2212.10511",
+    "model": "Gemma Team (2025), arXiv:2503.19786"
+  },
+  "model": "google/gemma-3-4b-it",
+  "model_generation_seen_in_development": false,
+  "primary_label": "Unicode-NFKC lowercase, punctuation-to-space and whitespace-collapse; correct iff a normalized possible_answer occurs as a complete contiguous token sequence bounded by string edges or whitespace",
   "primary_metric": "response-level correctness AUROC",
-  "prompt": "Please directly answer the following question with one or few words:\n{query}",
+  "prompt": "Answer the following question with one short answer.\nQuestion: {question}\nAnswer:",
   "required_methods": [
     "IU-PCR",
     "frozen Family-NRM",
@@ -18,6 +29,16 @@
     "optional pre-frozen S3 finalist",
     "supervised atomic ceiling (diagnostic only)"
   ],
-  "reuse_policy": "No rank, component, sign, trust, feature, or method selection may use these labels.",
-  "status": "RESERVED_REQUIRES_COLLECTION"
+  "reuse_policy": "No rank, component, sign, trust, feature, alias rule, or method selection may use these labels.",
+  "sealed_access_fallback": {
+    "model": "Qwen/Qwen3-4B-Instruct-2507",
+    "scientific_scope": "PopQA remains an unseen dataset-family confirmation; the fallback does not support a new-model-family claim",
+    "when_used": "only if google/gemma-3-4b-it access is unavailable before any PopQA response or correctness label is collected"
+  },
+  "secondary_label_diagnostic": "official PopQA substring-membership convention, reported separately and never used for method selection",
+  "status": "RESERVED_OOD_REQUIRES_COLLECTION",
+  "supersedes_weak_boundary": {
+    "boundary": "semgrad-triviaqa-qwen3-4b-confirmation-v1",
+    "reason": "new exact response cell but not a new dataset or model family; retained only as an optional same-family transfer diagnostic"
+  }
 }

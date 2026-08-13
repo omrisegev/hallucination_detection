@@ -12345,14 +12345,18 @@ correctness labels or detector metrics were loaded. The selected configuration
 was written before the seven audit cells were evaluated.
 
 **Findings**: the selected rank-6 interaction hybrid (ridge 0.1, 25%
-mechanical / 75% learned projector) achieved audit MSE 0.029698 versus 0.032321
-for pooled PCA, 0.077539 for hard factorial axes, and 0.039623 for the pooled
+mechanical / 75% learned projector) was initially reported with feature-pair
+weighting at 0.029698 versus 0.032321 for pooled PCA, 0.077539 for hard
+factorial axes, and 0.039623 for the pooled
 mean. It strongly beat 32 cardinality-matched random partitions and the
 simulator pooled baseline. The grouped delta versus PCA was -0.002623 with 95%
 interval [-0.006112, 0.000499], so the point improvement was not established
 across environments. Projector stability, feature permutation, deterministic
 repeatability, and exact-duplicate mass all passed. The rho=0.999 stressor
 failed: combined mass was 3.009 times the original, above the frozen 1.10 gate.
+Step 257 corrected the implementation to the predeclared equal-environment
+weighting: 0.032009 versus 0.034704, delta -0.002695
+[-0.005845,0.000282]. Selection and closure were unchanged.
 
 **Decision**: close A1 as a detector basis and do not carry it into A3. Retain
 the bounded structural finding that weak factorial metadata can regularize
@@ -12365,5 +12369,56 @@ heterogeneity route.
 `scripts/automatic_group_free_phase_a1.py`,
 `scripts/test_factorial_measurement.py`, and
 `results/automatic_group_free_phase_a1_v1/`.
+
+---
+
+### Step 257 — adversarially audit and close the missing-aware JBD route
+
+**What**: Corrected and reran A0/A1, then implemented the full A2
+multi-environment JBD premise test over all 30 atomic residual features. The
+A2 evaluator completes missing covariance entries from training folds only,
+preserves held-out observed blocks exactly, scores only observed pairs, uses
+equal environment mass, compares against pooled PCA with identical recovered
+block sizes/mechanism count/ridge, and includes PSD nulls that preserve sample
+counts and missingness. A Frobenius-orthonormal covariance basis removes
+arbitrary basis-dependent ridge geometry. A3 was evaluated by its registered
+premise rule rather than built after its two inputs failed.
+
+**Why**: An independent adversarial reviewer found that the first A2 draft
+used an indefinite pairwise covariance shuffle and compared a 153-atom full
+JBD block with a 17-atom diagonal PCA model. It also exposed A1's unintended
+feature-pair weighting, A2's initial 17-feature-only scope, overclaims in A0's
+feature-DAG provenance, and an insufficiently novel confirmation cell. These
+were scientific, not cosmetic, defects and required fresh artifacts/hashes.
+
+**Result**: A1's corrected equal-environment selection is unchanged. Its audit
+MSE is 0.032009 versus PCA 0.034704; delta -0.002695
+[-0.005845,0.000282], and the rho=0.999 mass ratio remains 3.009, so A1 stays
+closed. In missing-aware A2, JBD is 0.028700 versus 0.032864 for the
+block-capacity-matched PCA control; delta -0.004164
+[-0.012164,0.000838], so improvement is not established. LOEO mechanism-rank
+ratio is 0.618 below the 0.70 gate. Fold solutions are unstable, including one
+30-singleton solution, while the final all-cell blocks are [19,3,1x8]. The
+train-only stationary null reverses the matched delta to +0.0000461
+[0.0000011,0.0001153]. The 17-feature complete-core diagnostic also fails its
+matched interval and overlap gates. The known-block simulator passes after its
+comparator is capacity-matched (0.066751 versus 0.073461), so this is a data-
+premise closure rather than a broken implementation. Decision:
+`CLOSE_MISSING_AWARE_JBD_AS_TARGET_BASIS`; A3 closes by premise.
+
+The A0 confirmation boundary is replaced before collection with
+`popqa-gemma3-4b-it-confirmation-v1`: unseen PopQA dataset family, exact
+Gemma-3 checkpoint/generation unseen but broad Gemma family acknowledged as
+seen, deterministic token-boundary alias grading, official substring grading
+as a secondary diagnostic, an access smoke, and a pre-sealed Qwen3-4B
+fallback. The precise supervision claim is “no new labels beyond the frozen
+IU input contract”; mixed-v2 inherits earlier label-informed signs/transforms,
+and its operator taxonomy is handwritten but label-blind. Final source and
+artifact hashes verify and 26 relevant module-mode unit tests pass.
+
+**Next**: A4 begins as scorer-nuisance decomposition, not target
+identification. Fixed-response cross-model triples cannot vary correctness;
+promotion requires an additional target-changing contrast/anchor plus
+held-model and pair-shuffle falsification.
 
 ---

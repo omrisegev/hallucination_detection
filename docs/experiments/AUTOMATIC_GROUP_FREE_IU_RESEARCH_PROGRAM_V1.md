@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-13
 
-**Status:** active research contract; A0 passed and is frozen, A1 is active
+**Status:** active research contract; A0 passed, A1/A2/A3 closed, A4 is active
 
 **Primary objective:** replace the hand-defined provenance quotient used by
 NRM-CS-IU with an automatically identified correction that improves IU-PCR
@@ -53,7 +53,7 @@ component as hallucination-related.
 
 - no correctness labels in fitting or selection;
 - no manual feature groups;
-- automatic structure may use environments, mechanically derived feature-DAG
+- automatic structure may use environments, code-registered feature-DAG
   metadata, and paired cached model views;
 - one-pass affine deployment;
 - on untouched confirmation, paired grouped-bootstrap improvement over IU-PCR
@@ -135,7 +135,7 @@ the available data?
 
 Deliverables:
 
-- a mechanically derived feature-DAG registry with channel, operator,
+- a code-registered feature-DAG registry with channel, operator,
   reduction, source stream, parameters, and dependencies;
 - a 23-cell environment/missingness/pair-coverage manifest;
 - an exact audit of prompt/item overlap across Qwen and Llama caches;
@@ -147,17 +147,23 @@ Deliverables:
 Gate: do not start A1 with an undocumented feature mapping or an unknown
 cross-model pairing boundary.
 
-**Frozen execution result (Step 255): PASS.** The label-blind audit recovered
+**Frozen execution result (Steps 255/257): PASS.** The no-new-label audit recovered
 30 canonical features across 23 source environments, with 17 features present
 in every environment and feature-pair coverage ranging from 8 to 23 cells. Six
 cells contain fewer valid mixed-v2 bundle rows than manifest attempts (minimum
 retention 19.8%); subsequent structural fitting must preserve the bundle
 population and equal-environment weighting. Exact content-and-ID pairing was
 verified for 3,400 fixed ProcessBench responses scored by Qwen3-4B, Qwen3-8B,
-and Llama3.1-8B. The feature DAG is derived from extractor registries and
-function signatures and has no dependency on `FEATURE_TO_VIEW`. The reserved
-confirmation cell is `semgrad-triviaqa-qwen3-4b-confirmation-v1`; its labels
-remain unopened and the cell still requires collection. Canonical artifacts:
+and Llama3.1-8B. Source streams come from extractor registries; the operator
+taxonomy is an explicit handwritten but label-blind mapping, while function
+signatures record implementation provenance only. The input also inherits
+mixed-v2 signs/transforms from earlier labelled development, so the precise
+claim is no new labels beyond the frozen IU input contract. The stronger
+reserved confirmation boundary is `popqa-gemma3-4b-it-confirmation-v1`:
+PopQA is an unseen dataset family; the exact Gemma-3 checkpoint/generation is
+unseen, though the broad Gemma family is not. A token-boundary alias rule,
+official-substring secondary diagnostic, access smoke, and Qwen3-4B fallback
+are sealed before collection. Canonical artifacts:
 `results/automatic_group_free_phase_a0_v1/`.
 
 ### A1 — factorial soft measurement model
@@ -180,13 +186,13 @@ stable under environment deletion, and avoid giving an exact duplicate extra
 total mass. Otherwise close the factorial route as a detector basis while
 retaining the audit as evidence.
 
-**Frozen execution result (Step 256): CLOSE AS DETECTOR BASIS.** A hash-defined
+**Frozen execution result (Steps 256/257): CLOSE AS DETECTOR BASIS.** A hash-defined
 16/7 structural-train/audit split was used without correctness labels. The
 training-selected rank-6 interaction hybrid (25% mechanical factorial
-projector, 75% anonymized PCA projector; ridge 0.1) improved audit MSE from
-0.032321 for pooled PCA to 0.029698 and decisively beat cardinality-matched
+projector, 75% anonymized PCA projector; ridge 0.1) improved equal-environment
+audit MSE from 0.034704 for pooled PCA to 0.032009 and decisively beat cardinality-matched
 random partitions, but the seven-environment grouped interval for its MSE
-delta versus PCA crossed zero: -0.002623 [-0.006112, 0.000499]. It was stable
+delta versus PCA crossed zero: -0.002695 [-0.005845, 0.000282]. It was stable
 (minimum leave-one-training-environment projector overlap 0.9428), exactly
 permutation-equivariant, deterministic, and exact-duplicate balanced. However,
 an automatically appended rho=0.999 duplicate received 3.009 times the
@@ -211,6 +217,26 @@ Premise gate: aligned blocks must be reproducible under leave-one-environment-
 out, improve held-out covariance reconstruction, and lose the claimed
 advantage when environment identities are shuffled.
 
+**Frozen execution result (Step 257): CLOSE MISSING-AWARE JBD AS TARGET
+BASIS.** The primary run retained all 30 atoms, completed missing covariance
+entries from training folds only, and scored only genuinely observed held-out
+pairs. JBD reached environment-macro MSE 0.028700 versus 0.032864 for pooled
+PCA with identical recovered block sizes, mechanism count, and ridge. The
+paired delta was -0.004164 with 95% interval [-0.012164, 0.000838], so the
+capacity-matched gate failed. LOEO mechanism-rank ratio also failed at 0.618
+versus the frozen 0.70 gate. Outer-fold structures ranged from a dominant
+15--19 coordinate block to one fold with 30 singletons. The advantage vanished
+under a train-only stationary PSD null preserving missingness and sample
+counts. The 17-feature complete-core diagnostic independently failed its
+matched interval/stability gates. A2 is retained as structural evidence, not
+as a detector basis; this closes the implemented missing-aware route, not all
+possible JBD algorithms.
+
+Because A2 failed before a detector score, orientation, or trust rule was
+constructed, the detector-only exact/near-duplicate, affine reconstruction,
+and zero-evidence IU-PCR fallback gates were not run. They remain mandatory
+before any future promotion and are not counted as passed.
+
 ### A3 — primary strict hybrid: factorial quotient plus JBD
 
 Use A1 to control measurement multiplicity and A2 to learn environment-stable
@@ -219,15 +245,27 @@ orientation, and trust rules are frozen. The primary selector must derive from
 A4's cross-model decomposition when pairing is adequate; a selector based
 only on the JBD spectrum is prohibited.
 
+**Execution result (Step 257): CLOSED BY PREMISE.** A1 failed duplicate
+robustness and A2 failed capacity-matched improvement/stability, so their
+hybrid is not constructed or evaluated as a detector.
+
 ### A4 — paired cross-model multi-view identification
 
-**Hypothesis:** item difficulty is primarily shared across model views while a
-response/model-specific hallucination component varies within a paired item.
+**Hypothesis:** scorer-specific nuisance varies across scorer views while the
+fixed response supplies a shared component. The 3,400 ProcessBench triples
+are a nuisance-changing intervention only: response correctness cannot vary
+across their scorer views. Invariance alone therefore cannot distinguish
+hallucination from shared difficulty, length, or style.
 
 Fit a hierarchical shared/individual source model on exact item matches. Hold
 out entire model families and environments, then repeat after shuffling item
 pairs. Candidate selection, sign, and trust must be functions of the fitted
 multi-view model and a declared confidence anchor, not labels.
+
+A4 may promote a target component only with an additional target-changing
+contrast/anchor plus held-model and item-pair-shuffle falsification. Without
+that evidence it closes as a nuisance-decomposition result and cannot enter a
+detector.
 
 Premise gate: the shared source must disappear or degrade under pair shuffle;
 the individual candidate must transfer to a held-out model family and must

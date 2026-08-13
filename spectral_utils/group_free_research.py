@@ -1,8 +1,10 @@
-"""Label-free infrastructure for the automatic group-free IU program.
+"""No-new-label infrastructure for the automatic group-free IU program.
 
 This module contains only Phase-A0 structural utilities.  It deliberately does
 not import the manual SpecRaGE provenance registry and none of its public fit or
-audit functions accepts correctness labels.
+audit functions accepts correctness labels.  The frozen mixed-v2 input contract
+does, however, include signs and transforms selected in earlier labelled work;
+callers must not describe that inherited input contract as label-naive.
 """
 
 from __future__ import annotations
@@ -189,7 +191,13 @@ def _operator_record(name: str) -> tuple[str, object]:
 
 
 def derive_feature_dag(feature_names: Sequence[str] | None = None) -> list[dict]:
-    """Derive feature metadata from extractor registries, never manual families."""
+    """Register label-blind feature metadata without manual feature families.
+
+    Source streams come from extractor-owned registries.  The operator taxonomy
+    is the explicit, handwritten mapping in ``_operator_record``; inspected
+    function signatures record implementation provenance and defaults but do
+    not infer the taxonomy.
+    """
 
     names = canonical_feature_names() if feature_names is None else tuple(feature_names)
     entropy_names = set(FEAT_NAMES[:16])
@@ -217,7 +225,17 @@ def derive_feature_dag(feature_names: Sequence[str] | None = None) -> list[dict]
             "post_transform": FEATURE_TRANSFORMS.get(name, "raw"),
             "confidence_sign": int(CONFIDENCE_FEATURE_SIGNS_V1[name]),
             "implementation": _function_record(function),
-            "derivation": "extractor_registry_and_function_signature",
+            "derivation": "extractor_registry_plus_explicit_operator_taxonomy",
+            "operator_taxonomy_source": (
+                "handwritten label-blind _operator_record mapping"
+            ),
+            "function_signature_role": (
+                "records implementation provenance and scalar defaults only"
+            ),
+            "inherited_input_contract": (
+                "mixed-v2 post-transforms and confidence signs were frozen in "
+                "earlier label-informed development"
+            ),
             "manual_provenance_registry_used": False,
         })
     return output

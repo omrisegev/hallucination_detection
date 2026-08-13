@@ -53,15 +53,49 @@ def write_csv(path: Path, rows: list[dict]) -> None:
 
 def confirmation_boundary() -> dict:
     return {
-        "boundary_version": "semgrad-triviaqa-qwen3-4b-confirmation-v1",
-        "status": "RESERVED_REQUIRES_COLLECTION",
+        "boundary_version": "popqa-gemma3-4b-it-confirmation-v1",
+        "status": "RESERVED_OOD_REQUIRES_COLLECTION",
         "labels_opened": False,
-        "dataset": "SemGrad official TriviaQA split",
-        "dataset_rows": 11313,
-        "model": "Qwen/Qwen3-4B-Instruct-2507",
+        "dataset": "PopQA official 14k open-domain factual QA release",
+        "dataset_family_seen_in_development": False,
+        "dataset_rows_approximate": 14000,
+        "model": "google/gemma-3-4b-it",
+        "exact_model_checkpoint_seen_in_development": False,
+        "model_generation_seen_in_development": False,
+        "broad_model_family_seen_in_development": True,
+        "broad_model_family_note": (
+            "Gemma-2B development artifacts exist; novelty comes primarily from "
+            "the unopened PopQA dataset family and secondarily from Gemma-3/this checkpoint."
+        ),
+        "access_requirement": (
+            "Run a no-label Hugging Face license/access smoke before any collection."
+        ),
+        "sealed_access_fallback": {
+            "model": "Qwen/Qwen3-4B-Instruct-2507",
+            "when_used": (
+                "only if google/gemma-3-4b-it access is unavailable before any "
+                "PopQA response or correctness label is collected"
+            ),
+            "scientific_scope": (
+                "PopQA remains an unseen dataset-family confirmation; the fallback "
+                "does not support a new-model-family claim"
+            ),
+        },
         "generation": "one greedy response per prompt; max_new_tokens=150",
-        "prompt": "Please directly answer the following question with one or few words:\n{query}",
-        "primary_label": "BEM answer equivalence at frozen threshold 0.8",
+        "prompt": "Answer the following question with one short answer.\nQuestion: {question}\nAnswer:",
+        "primary_label": (
+            "Unicode-NFKC lowercase, punctuation-to-space and whitespace-collapse; "
+            "correct iff a normalized possible_answer occurs as a complete contiguous "
+            "token sequence bounded by string edges or whitespace"
+        ),
+        "alias_hygiene": (
+            "drop empty normalized aliases; deduplicate aliases; never use raw substring "
+            "containment for the primary label; freeze the normalized alias list per item"
+        ),
+        "secondary_label_diagnostic": (
+            "official PopQA substring-membership convention, reported separately and "
+            "never used for method selection"
+        ),
         "primary_metric": "response-level correctness AUROC",
         "bootstrap_group": "source question ID",
         "required_methods": [
@@ -73,13 +107,27 @@ def confirmation_boundary() -> dict:
             "supervised atomic ceiling (diagnostic only)",
         ],
         "collection_gate": (
-            "Pin the SemGrad dataset artifact and resolved model revision, run local smoke, "
-            "then N=200 scientific pilot without opening AUROC. Full collection only if "
-            "telemetry is complete and both BEM classes contain at least 30 responses."
+            "Pin the official PopQA artifact and resolved primary and fallback revisions; "
+            "pass the primary checkpoint access smoke; run a 20-row "
+            "telemetry smoke, then a deterministic 200-row scientific pilot without "
+            "opening detector AUROC. Full collection only if mixed-v2 telemetry is "
+            "complete and both alias-correctness classes contain at least 30 responses."
         ),
         "reuse_policy": (
-            "No rank, component, sign, trust, feature, or method selection may use these labels."
+            "No rank, component, sign, trust, feature, alias rule, or method selection may "
+            "use these labels."
         ),
+        "literature": {
+            "dataset": "Mallen et al. (2023), arXiv:2212.10511",
+            "model": "Gemma Team (2025), arXiv:2503.19786",
+        },
+        "supersedes_weak_boundary": {
+            "boundary": "semgrad-triviaqa-qwen3-4b-confirmation-v1",
+            "reason": (
+                "new exact response cell but not a new dataset or model family; retained "
+                "only as an optional same-family transfer diagnostic"
+            ),
+        },
     }
 
 
@@ -124,9 +172,15 @@ This supports A1/A2 structural work and gives A4 an exact paired-view calibratio
 surface without semantic matching. The confirmation cell is reserved but must be
 collected only after a finalist and all target-selection rules are frozen.
 
-The feature DAG records source streams and computational operators from the
-extractor-owned registries and function signatures. It does not import or reproduce
-the manual `FEATURE_TO_VIEW` partition.
+The feature DAG records source streams from extractor-owned registries and uses
+an explicit handwritten, label-blind operator taxonomy. Function signatures
+record implementation provenance and defaults; they do not infer the taxonomy.
+The DAG does not import or reproduce the manual `FEATURE_TO_VIEW` partition.
+
+No new correctness labels are read in A0. The input is not label-naive: its
+mixed-v2 transforms and confidence signs were frozen during earlier
+label-informed development. The correct claim for subsequent phases is “no new
+labels beyond the frozen IU input contract.”
 
 Manifest observation counts describe attempted/generated candidates, whereas the
 bundle contains the valid rows admitted to the frozen mixed-v2 comparison. A1/A2
@@ -188,6 +242,31 @@ def main() -> None:
         "exact_cross_model_pairs": pairing["total_exact_pairs"],
         "confirmation_boundary": boundary["boundary_version"],
         "next_phase": "A1 factorial soft measurement model",
+        "source_code_sha256": {
+            "script": sha256_file(Path(__file__)),
+            "group_free_research_module": sha256_file(
+                REPO / "spectral_utils" / "group_free_research.py"
+            ),
+            "atomic_source_loader": sha256_file(
+                REPO / "scripts" / "atomic_nrm_structural_audit.py"
+            ),
+            "hard_filter_contract_loader": sha256_file(
+                REPO / "scripts" / "hard_filter_dufs_liu_benchmark.py"
+            ),
+            "atomic_residual_module": sha256_file(
+                REPO / "spectral_utils" / "atomic_neutral_residual.py"
+            ),
+            "upcr_module": sha256_file(REPO / "spectral_utils" / "upcr.py"),
+            "laplacian_upcr_module": sha256_file(
+                REPO / "spectral_utils" / "laplacian_upcr.py"
+            ),
+            "feature_contract_module": sha256_file(
+                REPO / "spectral_utils" / "feature_contract.py"
+            ),
+            "mixed_v2_contract_module": sha256_file(
+                REPO / "spectral_utils" / "dufs_liu_feature_contract.py"
+            ),
+        },
     })
     artifact_hashes = {
         path.name: sha256_file(path)

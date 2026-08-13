@@ -3,15 +3,22 @@
 from __future__ import annotations
 
 import inspect
+from pathlib import Path
+import sys
 import unittest
 
 import numpy as np
+
+REPO = Path(__file__).resolve().parents[1]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
 
 from spectral_utils import factorial_measurement
 from spectral_utils.factorial_measurement import (
     FactorialConfiguration,
     augment_correlated_duplicate,
     covariance_from_residuals,
+    environment_macro_mse,
     fit_factorial_measurement,
     masked_feature_reconstruction_rows,
     mechanical_design,
@@ -33,6 +40,14 @@ def _dag(names):
 
 
 class FactorialMeasurementTest(unittest.TestCase):
+    def test_environment_macro_mse_gives_cells_equal_mass(self):
+        rows = [
+            {"environment": "large", "squared_error": value}
+            for value in (0.0, 0.0, 0.0, 0.0)
+        ] + [{"environment": "small", "squared_error": 1.0}]
+        self.assertAlmostEqual(reconstruction_mse(rows), 0.2)
+        self.assertAlmostEqual(environment_macro_mse(rows), 0.5)
+
     def test_covariance_embedding_preserves_missingness(self):
         rng = np.random.default_rng(3)
         residuals = rng.normal(size=(200, 2))

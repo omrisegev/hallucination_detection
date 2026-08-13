@@ -1,18 +1,64 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-13
-**Last updated**: Step 256. Phase A1 is closed as a detector basis after its
-predeclared label-blind premise test. The soft hybrid gave a promising 8.1%
-point reduction in held-out covariance MSE versus pooled PCA and strongly beat
-random partitions, but its seven-environment grouped interval crossed zero and
-its near-duplicate mass test failed. Phase A2, multi-environment joint block
-diagonalization on the raw atomic residual covariances, is now active under
-the contract in
+**Last updated**: Step 257. A1 and A2 are closed as detector bases after
+adversarially audited premise tests; A3 is closed by premise. A1's
+equal-environment interval versus PCA crossed zero and its near-duplicate test
+failed. A2's missing-aware 30-atom JBD point estimate was promising, but its
+capacity-matched interval crossed zero and its LOEO mechanism-rank stability
+failed. Phase A4 is now active under the clarified nuisance-only scope in
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_RESEARCH_PROGRAM_V1.md`.
+
+## Automatic group-free IU Phase A2/A3 — Step 257
+
+The primary A2 run kept all 30 atoms. Missing covariance entries were completed
+from training folds only, observed held-out blocks were preserved exactly, and
+evaluation scored only feature pairs actually present in each held-out cell.
+The comparator used the same recovered block sizes, number of covariance
+mechanisms, and ridge in pooled-PCA orientation. All reconstruction summaries
+use equal environment mass.
+
+Missing-aware JBD reached MSE 0.028700 versus 0.032864 for the matched PCA
+control. The paired delta was -0.004164 with 95% interval
+[-0.012164, 0.000838], so the registered improvement gate failed. The final
+all-cell structure had blocks [19,3,1x8] and 204 mechanisms, but outer-fold
+solutions ranged from dominant 15--19 coordinate blocks to one 30-singleton
+solution. Removing `seiclr_triviaqa_opt30b` changed mechanism rank from 204 to
+330, giving the minimum ratio 0.618 below the 0.70 gate. Under a train-only PSD
+stationary null preserving missingness and sample counts, JBD was slightly
+worse than matched PCA (+0.0000461 [0.0000011,0.0001153]), so the original
+advantage disappeared cleanly.
+
+The 17-feature complete-core diagnostic also failed: JBD minus matched PCA was
+-0.001619 [-0.005369,0.001801], and minimum mechanism overlap 0.7668 missed
+the 0.80 gate. A known-block simulator still passed after its own comparator
+was corrected to equal capacity (0.066751 versus 0.073461), showing the
+implementation can recover a favorable identifiable world. A2 therefore
+closes this concrete missing-aware JBD route as a target basis, not every
+possible JBD algorithm. A3 is not built because both A1 and A2 failed their
+premises.
+
+Because A2 failed before any detector score, orientation, or trust rule was
+constructed, its detector-only exact/near-duplicate, affine reconstruction,
+and zero-evidence fallback gates were not run. They remain mandatory before
+any future promotion; they are not counted as passed.
+
+An independent adversarial reviewer found and forced correction of the
+original unmatched PCA capacity, an indefinite covariance null, nonorthogonal
+ridge geometry, A1's feature-pair weighting defect, incomplete-roster scope,
+and stale hashes. The final A0/A1/A2 artifact hashes and source hashes verify;
+the relevant 26-test module suite passes.
+
+**Next action:** execute A4 as a scorer-nuisance decomposition premise test.
+The exact 3,400 ProcessBench triples keep responses fixed, so scorer invariance
+cannot by itself identify hallucination. A4 requires a predeclared
+target-changing contrast/anchor plus held-model and item-pair-shuffle
+falsification before any detector candidate can be promoted.
 
 ## Automatic group-free IU Phase A1 — Step 256
 
-The A1 run kept all correctness labels closed and used a hash-defined split of
+The A1 run used no new correctness labels beyond the frozen mixed-v2 input
+contract and used a hash-defined split of
 16 structural-training and seven structural-audit cells. Ranks, ridge values,
 interaction form, and the mechanical/learned blend were selected only through
 leave-one-environment-out masked covariance reconstruction inside the 16
@@ -20,10 +66,10 @@ training cells. `FROZEN_SELECTION.json` was written before the audit cells
 were evaluated.
 
 The selected hybrid used rank 6, a full interaction covariance, ridge 0.1, and
-a 25% mechanical factorial / 75% anonymized PCA projector. Audit MSE was
-0.029698 versus 0.032321 for pooled PCA, 0.077539 for the best hard factorial
-basis, and 0.039623 for the pooled mean. The paired grouped MSE delta versus
-PCA was -0.002623 with 95% interval [-0.006112, 0.000499]; the improvement is
+a 25% mechanical factorial / 75% anonymized PCA projector. Equal-environment
+audit MSE was 0.032009 versus 0.034704 for pooled PCA, 0.080957 for the best
+hard factorial basis, and 0.045580 for the pooled mean. The paired grouped MSE
+delta versus PCA was -0.002695 with 95% interval [-0.005845, 0.000282]; the improvement is
 promising but not established. The hybrid decisively beat the median random
 partition and the fifth percentile of 32 cardinality-matched random controls.
 
@@ -55,8 +101,9 @@ minimum retention of 19.8% in `sciq_llama8b`. A1/A2 must therefore preserve
 the valid bundle population and equal-environment weighting rather than
 silently restoring filtered rows or weighting cells by candidate count.
 
-The feature DAG is derived from extractor-owned registries and function
-signatures. The implementation deliberately does not import
+Feature streams are taken from extractor-owned registries; the operator
+taxonomy is a handwritten, label-blind mapping, while function signatures
+record implementation provenance. The implementation deliberately does not import
 `specrage_views` or `FEATURE_TO_VIEW`. Exact ID, problem, and step-content
 matching established a three-view self-supervision surface of 3,400 fixed
 ProcessBench responses over four subsets and three scorer models, with complete
@@ -64,23 +111,22 @@ telemetry in every view. This is the preferred A4 paired surface because it
 requires no semantic matching and changes the scoring model while holding the
 response fixed.
 
-The confirmation boundary is
-`semgrad-triviaqa-qwen3-4b-confirmation-v1`, with labels unopened and
-collection still required. Do not collect it until a finalist and all target,
-sign, and trust rules are frozen. Canonical artifacts:
+The confirmation boundary is `popqa-gemma3-4b-it-confirmation-v1`, with a
+sealed Qwen3-4B access fallback and normalized token-boundary alias grading.
+PopQA is an unseen dataset family; the broad Gemma family is not new. Labels
+remain unopened and collection is still forbidden until a finalist and all
+target, sign, and trust rules are frozen. Canonical artifacts:
 `results/automatic_group_free_phase_a0_v1/`.
 
-**Next action:** implement A1 on label-blind source residual covariances. Test
-mechanical versus anonymized axes, additive versus interaction structure,
-held-out-feature/environment reconstruction, leave-one-environment stability,
-and exact-duplicate mass conservation before any detector evaluation.
+**Historical next action (completed in Steps 256--257):** A1 and A2 were
+implemented and closed; see the current Step 257 section above.
 
 ## Automatic group-free IU program — Step 254
 
 The deployment boundary is gray-box, one-pass, affine, and based on the frozen
-mixed-v2 telemetry. S1 uses no correctness labels and no `FEATURE_TO_VIEW` or
-manual equivalent; cached cross-model material, environment identity, and
-mechanically derived feature-DAG metadata are legal at calibration. Family
+mixed-v2 telemetry. S1 uses no new correctness labels and no `FEATURE_TO_VIEW`
+or manual equivalent; cached cross-model material, environment identity, and
+code-registered feature-DAG metadata are legal at calibration. Family
 NRM remains a frozen comparator and may not choose, sign, or tune a candidate.
 
 Immediate work is Phase A0: derive the feature-DAG registry, audit all source

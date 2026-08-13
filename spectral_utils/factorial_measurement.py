@@ -406,6 +406,21 @@ def reconstruction_mse(rows: Iterable[Mapping]) -> float:
     return float(np.mean(errors))
 
 
+def environment_macro_mse(rows: Iterable[Mapping]) -> float:
+    """Give every environment equal mass despite different feature coverage."""
+
+    grouped: dict[str, list[float]] = {}
+    for row in rows:
+        grouped.setdefault(str(row["environment"]), []).append(
+            float(row["squared_error"])
+        )
+    if not grouped:
+        raise ValueError("no reconstruction rows")
+    return float(np.mean([
+        np.mean(errors) for errors in grouped.values()
+    ]))
+
+
 def cross_validated_mse(
     covariances: Sequence[np.ndarray],
     environment_ids: Sequence[str],
@@ -418,17 +433,16 @@ def cross_validated_mse(
     values = np.asarray(covariances, dtype=float)
     if len(values) != len(environment_ids):
         raise ValueError("environment IDs and covariances disagree")
-    errors = []
+    rows = []
     for held_out in range(len(values)):
         train = np.delete(values, held_out, axis=0)
         fit = fit_factorial_measurement(
             train, feature_names, feature_dag, configuration
         )
-        rows = masked_feature_reconstruction_rows(
+        rows.extend(masked_feature_reconstruction_rows(
             fit, values[held_out], str(environment_ids[held_out])
-        )
-        errors.extend(float(row["squared_error"]) for row in rows)
-    return float(np.mean(errors))
+        ))
+    return environment_macro_mse(rows)
 
 
 def select_configuration(
@@ -551,6 +565,7 @@ __all__ = [
     "augment_correlated_duplicate",
     "covariance_from_residuals",
     "cross_validated_mse",
+    "environment_macro_mse",
     "exact_duplicate_classes",
     "fit_factorial_measurement",
     "masked_feature_reconstruction_rows",
