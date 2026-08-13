@@ -12292,3 +12292,39 @@ surface before A1 implementation.
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_RESEARCH_PROGRAM_V1.md`.
 
 ---
+
+### Step 255 — complete the label-blind A0 identifiability and data audit
+
+**Question**: Does the available calibration material contain enough
+documented structure to begin the automatic group-free IU program without
+quietly reintroducing the manual provenance partition or opening labels?
+
+**Implementation**: added a mechanically derived feature DAG over the exact 30
+mixed-v2 features, a 23-environment missingness and feature-pair audit, an
+exact ProcessBench cross-model pairing audit, and a crossed synthetic
+identifiability world. The structural module does not import
+`specrage_views` or `FEATURE_TO_VIEW`, and the source audit never indexes the
+bundle label array. Local Git-LFS objects are resolved read-only with SHA and
+size verification so the paired audit does not mutate the worktree.
+
+**Findings**: 17 features are present in every source environment and pair
+coverage ranges from 8 to 23 cells. Six cells contain fewer valid bundle rows
+than manifest attempts, with minimum retention 19.8%; later work must preserve
+the bundle population and equal-environment weighting. All 3,400 fixed
+ProcessBench responses across GSM8K, MATH, OlympiadBench, and OmniMath match
+exactly by ID and content across Qwen3-4B, Qwen3-8B, and Llama3.1-8B, with
+complete telemetry. This is a valid three-view, response-preserving
+self-supervision surface for A4.
+
+**Decision**: A0 passes. Reserve
+`semgrad-triviaqa-qwen3-4b-confirmation-v1` with labels unopened and collection
+deferred until a finalist is frozen. Proceed to A1, where the soft factorial
+measurement model must pass held-out reconstruction, stability, and duplicate
+mass conservation before any label-based detector evaluation.
+
+**Canonical artifacts**: `spectral_utils/group_free_research.py`,
+`scripts/automatic_group_free_phase_a0.py`,
+`scripts/test_group_free_research.py`, and
+`results/automatic_group_free_phase_a0_v1/`.
+
+---

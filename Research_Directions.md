@@ -3,7 +3,7 @@
 
 ---
 
-## Active program — automatic group-free IU successor (Step 254)
+## Active program — automatic group-free IU successor (Step 255)
 
 The next core-method program is now explicitly reopened under a new-evidence
 standard rather than as another static covariance sweep. The goal is an
@@ -27,6 +27,24 @@ automatic method.
 
 Canonical contract and experiment registry:
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_RESEARCH_PROGRAM_V1.md`.
+
+Phase A0 now passes without label access. The frozen audit contains 30
+mechanically registered features and 23 source environments, including exact
+missingness and feature-pair coverage. Seventeen features are universal. Six
+cells have fewer valid bundle rows than manifest attempts (minimum 19.8%), so
+the live structural route uses the bundle population with equal-environment
+weighting. Most importantly, 3,400 fixed ProcessBench responses have exact
+content-and-ID matches across Qwen3-4B, Qwen3-8B, and Llama3.1-8B telemetry.
+That three-view surface gives A4 a genuine response-preserving intervention on
+the scorer model, and makes the later self-supervised claim concrete rather
+than metaphorical.
+
+The active next step is A1: learn a soft factorial measurement quotient from
+label-blind residual covariance structure and compare mechanical feature-DAG
+axes with anonymized learned axes. It must pass held-out-feature and
+held-out-environment reconstruction, stability, and duplicate-mass tests
+before it can become a detector basis. A0 artifacts are frozen under
+`results/automatic_group_free_phase_a0_v1/`.
 
 ---
 

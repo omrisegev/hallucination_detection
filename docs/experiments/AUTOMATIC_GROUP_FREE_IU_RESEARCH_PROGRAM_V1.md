@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-13
 
-**Status:** active research contract, frozen before new implementation
+**Status:** active research contract; A0 passed and is frozen, A1 is active
 
 **Primary objective:** replace the hand-defined provenance quotient used by
 NRM-CS-IU with an automatically identified correction that improves IU-PCR
@@ -146,6 +146,19 @@ Deliverables:
 
 Gate: do not start A1 with an undocumented feature mapping or an unknown
 cross-model pairing boundary.
+
+**Frozen execution result (Step 255): PASS.** The label-blind audit recovered
+30 canonical features across 23 source environments, with 17 features present
+in every environment and feature-pair coverage ranging from 8 to 23 cells. Six
+cells contain fewer valid mixed-v2 bundle rows than manifest attempts (minimum
+retention 19.8%); subsequent structural fitting must preserve the bundle
+population and equal-environment weighting. Exact content-and-ID pairing was
+verified for 3,400 fixed ProcessBench responses scored by Qwen3-4B, Qwen3-8B,
+and Llama3.1-8B. The feature DAG is derived from extractor registries and
+function signatures and has no dependency on `FEATURE_TO_VIEW`. The reserved
+confirmation cell is `semgrad-triviaqa-qwen3-4b-confirmation-v1`; its labels
+remain unopened and the cell still requires collection. Canonical artifacts:
+`results/automatic_group_free_phase_a0_v1/`.
 
 ### A1 — factorial soft measurement model
 

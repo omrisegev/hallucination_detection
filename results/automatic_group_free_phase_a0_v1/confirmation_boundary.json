@@ -1,0 +1,23 @@
+{
+  "bootstrap_group": "source question ID",
+  "boundary_version": "semgrad-triviaqa-qwen3-4b-confirmation-v1",
+  "collection_gate": "Pin the SemGrad dataset artifact and resolved model revision, run local smoke, then N=200 scientific pilot without opening AUROC. Full collection only if telemetry is complete and both BEM classes contain at least 30 responses.",
+  "dataset": "SemGrad official TriviaQA split",
+  "dataset_rows": 11313,
+  "generation": "one greedy response per prompt; max_new_tokens=150",
+  "labels_opened": false,
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "primary_label": "BEM answer equivalence at frozen threshold 0.8",
+  "primary_metric": "response-level correctness AUROC",
+  "prompt": "Please directly answer the following question with one or few words:\n{query}",
+  "required_methods": [
+    "IU-PCR",
+    "frozen Family-NRM",
+    "one frozen S1 finalist",
+    "optional pre-frozen S2 finalist",
+    "optional pre-frozen S3 finalist",
+    "supervised atomic ceiling (diagnostic only)"
+  ],
+  "reuse_policy": "No rank, component, sign, trust, feature, or method selection may use these labels.",
+  "status": "RESERVED_REQUIRES_COLLECTION"
+}

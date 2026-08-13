@@ -1,16 +1,43 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-13
-**Last updated**: Step 254. The automatic group-free IU research program is
-frozen before implementation. It separates measurement structure, target
-identification, and orientation/trust; starts with a factorial feature model
-plus multi-environment joint block diagonalization; then tests paired
-cross-model identification and continuous weak supervision. If strict S1
-identification fails, the declared ladder proceeds to self-supervised
-interventions (S2) and tiny-label orientation (S3). Every route receives a
-premise test and closure/pass artifact, but only pre-frozen finalists may use
-new confirmation labels. Start with Phase A0 in
+**Last updated**: Step 255. Phase A0 of the automatic group-free IU program
+passed without correctness-label access. The audit froze a mechanically
+derived 30-feature DAG, the exact 23-environment missingness and pair-coverage
+boundary, a crossed identifiability simulator, and a reserved confirmation
+cell. It also verified 3,400 exact ProcessBench response pairs across Qwen3-4B,
+Qwen3-8B, and Llama3.1-8B. Phase A1, the factorial soft measurement model, is
+now active under the contract in
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_RESEARCH_PROGRAM_V1.md`.
+
+## Automatic group-free IU Phase A0 — Step 255
+
+The audit found 30 canonical mixed-v2 features across 23 source environments;
+17 are present everywhere and feature-pair coverage ranges from 8 to 23 cells.
+Six source cells retain fewer valid bundle rows than manifest attempts, with a
+minimum retention of 19.8% in `sciq_llama8b`. A1/A2 must therefore preserve
+the valid bundle population and equal-environment weighting rather than
+silently restoring filtered rows or weighting cells by candidate count.
+
+The feature DAG is derived from extractor-owned registries and function
+signatures. The implementation deliberately does not import
+`specrage_views` or `FEATURE_TO_VIEW`. Exact ID, problem, and step-content
+matching established a three-view self-supervision surface of 3,400 fixed
+ProcessBench responses over four subsets and three scorer models, with complete
+telemetry in every view. This is the preferred A4 paired surface because it
+requires no semantic matching and changes the scoring model while holding the
+response fixed.
+
+The confirmation boundary is
+`semgrad-triviaqa-qwen3-4b-confirmation-v1`, with labels unopened and
+collection still required. Do not collect it until a finalist and all target,
+sign, and trust rules are frozen. Canonical artifacts:
+`results/automatic_group_free_phase_a0_v1/`.
+
+**Next action:** implement A1 on label-blind source residual covariances. Test
+mechanical versus anonymized axes, additive versus interaction structure,
+held-out-feature/environment reconstruction, leave-one-environment stability,
+and exact-duplicate mass conservation before any detector evaluation.
 
 ## Automatic group-free IU program — Step 254
 

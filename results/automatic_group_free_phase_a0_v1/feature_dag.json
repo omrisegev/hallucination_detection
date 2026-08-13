@@ -1,0 +1,556 @@
+[
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 0,
+    "feature_name": "epr",
+    "implementation": {
+      "default_parameters": {
+        "allow_short": false,
+        "spilled_energies": null
+      },
+      "function": "extract_all_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 321
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "mean_level",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 1,
+    "feature_name": "trace_length",
+    "implementation": {
+      "default_parameters": {
+        "allow_short": false,
+        "spilled_energies": null
+      },
+      "function": "extract_all_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 321
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "length",
+    "post_transform": "raw",
+    "source_stream": "generated_token_ids"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 2,
+    "feature_name": "spectral_entropy",
+    "implementation": {
+      "default_parameters": {
+        "min_len": 8
+      },
+      "function": "compute_spectral_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 33
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "fft_entropy",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 3,
+    "feature_name": "low_band_power",
+    "implementation": {
+      "default_parameters": {
+        "min_len": 8
+      },
+      "function": "compute_spectral_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 33
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "fft_low_band",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": 1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 4,
+    "feature_name": "high_band_power",
+    "implementation": {
+      "default_parameters": {
+        "min_len": 8
+      },
+      "function": "compute_spectral_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 33
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "fft_high_band",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": 1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 5,
+    "feature_name": "hl_ratio",
+    "implementation": {
+      "default_parameters": {
+        "min_len": 8
+      },
+      "function": "compute_spectral_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 33
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "fft_band_ratio",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": 1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 6,
+    "feature_name": "dominant_freq",
+    "implementation": {
+      "default_parameters": {
+        "min_len": 8
+      },
+      "function": "compute_spectral_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 33
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "fft_peak_location",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": 1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 7,
+    "feature_name": "spectral_centroid",
+    "implementation": {
+      "default_parameters": {
+        "min_len": 8
+      },
+      "function": "compute_spectral_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 33
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "fft_centroid",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 8,
+    "feature_name": "stft_max_high_power",
+    "implementation": {
+      "default_parameters": {
+        "min_len": 32,
+        "noverlap": 8,
+        "nperseg": 16
+      },
+      "function": "compute_stft_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 77
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "stft_high_band_peak",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 9,
+    "feature_name": "stft_spectral_entropy",
+    "implementation": {
+      "default_parameters": {
+        "min_len": 32,
+        "noverlap": 8,
+        "nperseg": 16
+      },
+      "function": "compute_stft_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 77
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "stft_frame_entropy",
+    "post_transform": "mode",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 10,
+    "feature_name": "rpdi",
+    "implementation": {
+      "default_parameters": {
+        "sw_step": 1,
+        "sw_window": 16,
+        "tail_frac": 0.2
+      },
+      "function": "compute_time_domain",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 106
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "tail_to_global_mean_ratio",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 11,
+    "feature_name": "sw_var_peak",
+    "implementation": {
+      "default_parameters": {
+        "sw_step": 1,
+        "sw_window": 16,
+        "tail_frac": 0.2
+      },
+      "function": "compute_time_domain",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 106
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "sliding_variance_peak",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 12,
+    "feature_name": "pe_mean",
+    "implementation": {
+      "default_parameters": {
+        "delay": 1,
+        "order": 3,
+        "window_size": 10
+      },
+      "function": "compute_permutation_entropy",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 191
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "permutation_entropy_mean",
+    "post_transform": "squared",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 13,
+    "feature_name": "hurst_exponent",
+    "implementation": {
+      "default_parameters": {},
+      "function": "compute_hurst_exponent",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 209
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "rescaled_range_hurst",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 14,
+    "feature_name": "cusum_max",
+    "implementation": {
+      "default_parameters": {},
+      "function": "compute_cusum_residuals",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 256
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "cusum_magnitude",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 15,
+    "feature_name": "cusum_shift_idx",
+    "implementation": {
+      "default_parameters": {},
+      "function": "compute_cusum_residuals",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 256
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "cusum_location",
+    "post_transform": "raw",
+    "source_stream": "token_entropies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 16,
+    "feature_name": "epr_spilled",
+    "implementation": {
+      "default_parameters": {},
+      "function": "compute_spilled_energy_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 277
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "mean_level",
+    "post_transform": "raw",
+    "source_stream": "token_spilled_energies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 17,
+    "feature_name": "sw_var_peak_spilled",
+    "implementation": {
+      "default_parameters": {},
+      "function": "compute_spilled_energy_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 277
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "sliding_variance_peak",
+    "post_transform": "raw",
+    "source_stream": "token_spilled_energies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 18,
+    "feature_name": "cusum_max_spilled",
+    "implementation": {
+      "default_parameters": {},
+      "function": "compute_spilled_energy_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 277
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "cusum_magnitude",
+    "post_transform": "raw",
+    "source_stream": "token_spilled_energies"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 19,
+    "feature_name": "min_spilled",
+    "implementation": {
+      "default_parameters": {},
+      "function": "compute_spilled_energy_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 277
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "minimum",
+    "post_transform": "raw",
+    "source_stream": "token_spilled_energies"
+  },
+  {
+    "confidence_sign": 1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 20,
+    "feature_name": "epr_energy",
+    "implementation": {
+      "default_parameters": {},
+      "function": "compute_spilled_energy_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 277
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "mean_level",
+    "post_transform": "raw",
+    "source_stream": "token_logsumexp"
+  },
+  {
+    "confidence_sign": 1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 21,
+    "feature_name": "min_energy",
+    "implementation": {
+      "default_parameters": {},
+      "function": "energy_features_from_logsumexp",
+      "module": "spectral_utils.repgrid_scoring",
+      "source_file": "spectral_utils/repgrid_scoring.py",
+      "source_line": 42
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "minimum",
+    "post_transform": "raw",
+    "source_stream": "token_logsumexp"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 22,
+    "feature_name": "sw_var_peak_energy",
+    "implementation": {
+      "default_parameters": {},
+      "function": "compute_spilled_energy_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 277
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "sliding_variance_peak",
+    "post_transform": "raw",
+    "source_stream": "token_logsumexp"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 23,
+    "feature_name": "cusum_max_energy",
+    "implementation": {
+      "default_parameters": {},
+      "function": "compute_spilled_energy_features",
+      "module": "spectral_utils.feature_utils",
+      "source_file": "spectral_utils/feature_utils.py",
+      "source_line": 277
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "cusum_magnitude",
+    "post_transform": "raw",
+    "source_stream": "token_logsumexp"
+  },
+  {
+    "confidence_sign": 1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 24,
+    "feature_name": "mean_top1_logprob",
+    "implementation": {
+      "default_parameters": {},
+      "function": "logprob_features",
+      "module": "spectral_utils.repgrid_scoring",
+      "source_file": "spectral_utils/repgrid_scoring.py",
+      "source_line": 58
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "top1_mean",
+    "post_transform": "raw",
+    "source_stream": "top_k_logprobs"
+  },
+  {
+    "confidence_sign": 1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 25,
+    "feature_name": "logprob_margin",
+    "implementation": {
+      "default_parameters": {},
+      "function": "logprob_features",
+      "module": "spectral_utils.repgrid_scoring",
+      "source_file": "spectral_utils/repgrid_scoring.py",
+      "source_line": 58
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "top1_top2_margin",
+    "post_transform": "raw",
+    "source_stream": "top_k_logprobs"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 26,
+    "feature_name": "mean_logprob_entropy",
+    "implementation": {
+      "default_parameters": {},
+      "function": "logprob_features",
+      "module": "spectral_utils.repgrid_scoring",
+      "source_file": "spectral_utils/repgrid_scoring.py",
+      "source_line": 58
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "topk_shannon_entropy",
+    "post_transform": "raw",
+    "source_stream": "top_k_logprobs"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 27,
+    "feature_name": "varentropy",
+    "implementation": {
+      "default_parameters": {
+        "tail_k": 5
+      },
+      "function": "logprob_features_extended",
+      "module": "spectral_utils.repgrid_scoring",
+      "source_file": "spectral_utils/repgrid_scoring.py",
+      "source_line": 91
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "topk_varentropy",
+    "post_transform": "raw",
+    "source_stream": "top_k_logprobs"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 28,
+    "feature_name": "renyi_entropy_2",
+    "implementation": {
+      "default_parameters": {
+        "tail_k": 5
+      },
+      "function": "logprob_features_extended",
+      "module": "spectral_utils.repgrid_scoring",
+      "source_file": "spectral_utils/repgrid_scoring.py",
+      "source_line": 91
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "topk_renyi2",
+    "post_transform": "raw",
+    "source_stream": "top_k_logprobs"
+  },
+  {
+    "confidence_sign": -1,
+    "derivation": "extractor_registry_and_function_signature",
+    "feature_index": 29,
+    "feature_name": "topk_tail_mass",
+    "implementation": {
+      "default_parameters": {
+        "tail_k": 5
+      },
+      "function": "logprob_features_extended",
+      "module": "spectral_utils.repgrid_scoring",
+      "source_file": "spectral_utils/repgrid_scoring.py",
+      "source_line": 91
+    },
+    "manual_provenance_registry_used": false,
+    "operator": "topk_tail_mass",
+    "post_transform": "raw",
+    "source_stream": "top_k_logprobs"
+  }
+]
