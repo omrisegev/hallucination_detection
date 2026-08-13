@@ -282,6 +282,20 @@ feature-level text/length residualization, pairing-aware baselines, conditional
 shuffle nulls, and non-vacuous gates, is
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md`.
 
+**Execution result (Step 260): CLOSED.** CorrCA achieved 0.997881 repeatability
+on the Qwen pair and 0.955465 correlation with held Llama consensus, but the
+nested-selected `single:1 = trace_length` baseline reached 0.966908 on Llama.
+The paired delta was -0.011444 [-0.016036,-0.009034], failing the registered
+material gate. Independent post-held diagnosis found that CorrCA placed
+0.997897--0.999279 loading on trace length across folds. The frozen nuisance
+basis left a deterministic token-count residual, so the formal confound and
+coarse conditional-null passes do not support a non-length mechanism claim.
+Trace-only reproduced the strongest baseline; fixed-loading deletion of the
+trace term lowered Llama correlation to 0.866653 without refitting. The phase
+therefore closes as `CLOSE_SHARED_REPEATABLE_COMPONENT_PREMISE`, while the
+pre-frozen detector result remains `CLOSE_NO_TARGET_CONTRAST`. No A4 component
+is carried into A5 as target-identified evidence.
+
 ### A5 — continuous weak-supervision dependency model
 
 **Hypothesis:** correctness and feature dependencies can be estimated jointly

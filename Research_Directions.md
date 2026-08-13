@@ -3,7 +3,7 @@
 
 ---
 
-## Active program — automatic group-free IU successor (Step 258)
+## Active program — automatic group-free IU successor (Step 260)
 
 The next core-method program is now explicitly reopened under a new-evidence
 standard rather than as another static covariance sweep. The goal is an
@@ -57,24 +57,33 @@ missed its 0.70 gate. Fold structure was unstable, including one all-singleton
 fold, and the advantage disappeared under a PSD stationary null. A3 closes by
 premise because both inputs failed.
 
-The active next step is A4, but its scope is narrowed correctly: fixed-response
-cross-model triples identify scorer nuisance, not hallucination. Promotion
-requires a predeclared target-changing contrast/anchor in addition to
-held-model and pair-shuffle falsification. A0--A2 artifacts are frozen under
+Phase A4 is now closed. Its frozen CorrCA component reached 0.997881 Qwen
+repeatability and 0.955465 held-Llama correlation, but the nested-selected
+`single:1 = trace_length` baseline reached 0.966908. The paired CorrCA-minus-
+baseline delta was -0.011444 [-0.016036,-0.009034], failing the mandatory
+material-improvement gate. Post-held adversarial diagnosis showed that the
+CorrCA loading on trace length was 0.997897--0.999279 across folds. Because the
+nuisance design predicted standardized linear token count only from log-count
+terms and their squares under ridge shrinkage, it left a deterministic length
+residual; the two Qwen count views are exactly identical. Trace-only reproduced
+the baseline, while deleting the frozen trace term reduced held-Llama
+correlation to 0.866653. Thus neither formal confound-gate success nor coarse
+length-decile null success establishes a non-length shared mechanism.
+
+The correct A4 conclusions are
+`CLOSE_SHARED_REPEATABLE_COMPONENT_PREMISE` and
+`CLOSE_NO_TARGET_CONTRAST`. The remaining post-held ablated correlation is not
+a registered candidate and cannot be promoted. A5 continuous weak supervision
+is now active. A0--A4 artifacts are frozen under
 `results/automatic_group_free_phase_a0_v1/` and
 `results/automatic_group_free_phase_a1_v1/`, and
-`results/automatic_group_free_phase_a2_v1/`.
+`results/automatic_group_free_phase_a2_v1/`, and
+`results/automatic_group_free_phase_a4_v1/`.
 
-The A4 preregistration audit found no strict-S1 target-changing pair, so this
-execution cannot promote a detector under any result. It instead tests whether
-a CorrCA-style shared repeatable component survives disjoint item folds, feature-level
-text/length removal, a held Llama scorer, leave-one-subset transfer, fair
-pairing-aware baselines, and conditional pair shuffles. This distinction is
-important: scorer-sensitive disagreement is not automatically nuisance, and
-scorer-invariant variation is not automatically hallucination. A structural
-pass can inform the dependency model in A5 or intervention design in A6; a
-failure closes the paired-repeat premise. The frozen protocol is
-`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md`.
+The frozen A4 protocol remains
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md`; it is not edited
+retroactively. Its post-held interpretation correction is preserved in the
+result report and `POST_HELD_TRACE_LENGTH_DIAGNOSTIC.json`.
 
 The untouched confirmation boundary is now PopQA with Gemma-3-4B-it, with a
 pre-sealed Qwen3-4B fallback if gated checkpoint access fails before any

@@ -12460,3 +12460,64 @@ held-model and pair-shuffle falsification.
   model, semantic boundary assertions, and new tests. The numeric/source
   boundary must be regenerated and committed again before intentional
   structural evaluation.
+
+---
+
+# Step 259 — 2026-08-13: freeze the audited A4 implementation boundary
+
+- Implemented the target-firewalled A4 tensor builder, exact item-first folds,
+  nested CorrCA/baseline selection, feature-level nuisance residualization,
+  conditional training/held pair nulls, paired bootstrap, leave-one-subset
+  transfer, and the frozen structural gates.
+- Independent pre-held review found and corrected two result-changing bugs:
+  outer-held Qwen pairs were initially left intact in the training null, and
+  the scalar confound model initially mixed cross-fitted training residuals
+  with full-fit held coordinates. Training-derived null strata now break both
+  train and held pairs, and the confound diagnostic uses consistent full-fit
+  coordinates.
+- Persisted compact per-draw/fold stratum counts, zero-fixed-point proofs, and
+  permutation hashes; bound the implementation, tests, protocol, prior
+  artifacts, 3,400 x 3 x 29 finite tensor, and fold manifest by SHA. The
+  independent reviewer found no remaining pre-run blocker and 39 relevant
+  tests passed. Commit `ae19e20` is the immutable pre-held source boundary.
+
+---
+
+# Step 260 — 2026-08-13: execute and close A4 after trace-length autopsy
+
+**Registered result**: The frozen residualized CorrCA component was highly
+repeatable between Qwen scorers (0.997881) and correlated with the held Llama
+view (0.955465). It passed the registered positivity, conditional-pair-null,
+leave-one-subset, loading-stability, and formal confound gates. It nevertheless
+lost to the strongest paired baseline by -0.011444 with 95% interval
+[-0.016036,-0.009034], failing the mandatory material-improvement gate. The
+strongest baseline was selected inside every outer-training fold as
+`single:1`, i.e. `trace_length`, and reached 0.966908 on held Llama. The frozen
+verdict is `CLOSE_SHARED_REPEATABLE_COMPONENT_PREMISE`; the separately frozen
+detector verdict remains `CLOSE_NO_TARGET_CONTRAST`. No correctness or
+step-error target was accessed.
+
+**Adversarial autopsy**: The independent reviewer challenged the apparently
+strong structural correlations rather than accepting the formal nuisance
+gate. `trace_length` is exact generated-token count, and Qwen3-4B/Qwen3-8B
+counts are identical for all 3,400 fixed responses. The nuisance model tries
+to predict the standardized linear count from log-count terms and their
+squares with ridge shrinkage, leaving a deterministic nonlinear/shrinkage
+residual. CorrCA put 0.997897--0.999279 loading on this coordinate across the
+five folds. A deterministic post-held diagnostic, with no refit or reselection,
+found trace-only Qwen/Llama correlations 0.999999/0.966908 and fixed-loading
+trace ablation correlations 0.990032/0.866653. The formal confound gate reuses
+the restricted nuisance basis, while the coarse length-decile null destroys
+fine-grained exact length, so neither supports a non-length mechanism claim.
+
+**Interpretation**: A4 found a stable coordinate dominated by incompletely
+removed trace length and significantly worse than trace length alone. The
+post-held ablation leaves some shared variation, but it is not a registered
+candidate and cannot rescue the phase. No shared/scorer-sensitive decomposition
+or hallucination component was identified. Preserve the negative result and
+move to A5; do not retrofit an exact-length exclusion/null to A4 without a new
+preregistration.
+
+**Canonical artifacts**: `results/automatic_group_free_phase_a4_v1/`,
+`scripts/audit_automatic_group_free_phase_a4_trace_length.py`, and the frozen
+protocol `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md`.

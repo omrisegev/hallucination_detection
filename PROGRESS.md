@@ -1,13 +1,42 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-13
-**Last updated**: Step 258. A1 and A2 are closed as detector bases after
-adversarially audited premise tests; A3 is closed by premise. A1's
-equal-environment interval versus PCA crossed zero and its near-duplicate test
-failed. A2's missing-aware 30-atom JBD point estimate was promising, but its
-capacity-matched interval crossed zero and its LOEO mechanism-rank stability
-failed. Phase A4 now has a frozen, independently challenged nuisance-only
-protocol in `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md`.
+**Last updated**: Step 260. A1 and A2 are closed as detector bases, A3 is
+closed by premise, and A4 is closed after a frozen execution plus independent
+trace-length autopsy. The A4 CorrCA coordinate was stable but significantly
+worse than the nested-selected `trace_length` baseline and was itself almost
+entirely that incompletely removed coordinate. A5 continuous weak supervision
+is the active next phase.
+
+## Automatic group-free IU Phase A4 result — Step 260
+
+The intentional run verified the frozen 3,400 x 3 x 29 boundary and accessed no
+correctness or step-error target. CorrCA achieved Qwen repeatability 0.997881
+and held-Llama structural correlation 0.955465. The strongest paired baseline,
+chosen solely inside every outer-training fold, was `single:1 = trace_length`
+and reached 0.966908 on held Llama. CorrCA minus that baseline was -0.011444
+with 95% interval [-0.016036,-0.009034], so the mandatory material gate failed.
+The structural verdict is `CLOSE_SHARED_REPEATABLE_COMPONENT_PREMISE`; the
+pre-frozen detector verdict remains `CLOSE_NO_TARGET_CONTRAST`.
+
+The formal positivity, pair-null, leave-one-subset, stability, and confound
+gates passed, but independent post-held review invalidated the tempting
+non-length interpretation. `trace_length` is exact generated-token count; the
+two Qwen views have identical counts for all items. The nuisance basis used
+log-count terms, squared log-count terms, and ridge shrinkage to predict the
+standardized linear count, so a deterministic length residual remained.
+CorrCA's trace-length loading was 0.997897--0.999279 across folds. Trace-only
+reproduced the strongest baseline (Qwen/Llama 0.999999/0.966908); deleting only
+that term from each frozen loading, without refit or selection, reduced the
+metrics to 0.990032/0.866653. The formal confound gate and coarse length-decile
+null cannot exclude this mechanism because they reuse or coarsen the same
+length control.
+
+The canonical result is in `results/automatic_group_free_phase_a4_v1/`; the
+post-held diagnosis is explicitly isolated in
+`POST_HELD_TRACE_LENGTH_DIAGNOSTIC.json`. It does not change either frozen
+verdict or create a rescued candidate. Proceed to A5 and preserve A4 as a
+bounded negative result.
 
 ## Automatic group-free IU Phase A4 boundary — Step 258
 
@@ -38,11 +67,10 @@ definitions.
 The estimator, ridge grid, nested selection, five paired baselines, raw-z
 sensitivity, held-family and leave-one-subset checks, bootstrap, two shuffle
 nulls, and material-effect gates are frozen in the Phase A4 protocol. No
-correctness or step label may be opened. The next action is to implement the
-protocol exactly, have the independent reviewer audit code and artifacts, and
-then continue to A5 regardless of the structural verdict.
+correctness or step label was opened. Step 260 records the completed result;
+this section preserves the pre-run boundary rationale.
 
-The pre-run implementation audit found two blockers before an intentional
+The pre-run implementation audit found two blockers before the intentional
 structural run: the training-pair null left outer-held Qwen pairs intact, and
 the scalar confound model trained on cross-fitted residual coordinates while
 held scores used full-fit coordinates. The fixes now derive nested/outer
@@ -51,8 +79,8 @@ train the scalar diagnostic on full-fit training residuals matching held
 coordinates. The boundary verifier also binds the test source and checks fold,
 roster, shape, ID, and execution semantics. The reviewer accidentally started
 the old runner for roughly 11 seconds, but it emitted no metric and wrote no
-artifact; this is recorded in `HISTORY.md`. Regenerate and commit the repaired
-boundary before the deliberate run.
+artifact; this is recorded in `HISTORY.md`. The repaired boundary was then
+regenerated and committed as `ae19e20` before the deliberate run.
 
 ## Automatic group-free IU Phase A2/A3 — Step 257
 
