@@ -42,6 +42,18 @@ correctness or step label may be opened. The next action is to implement the
 protocol exactly, have the independent reviewer audit code and artifacts, and
 then continue to A5 regardless of the structural verdict.
 
+The pre-run implementation audit found two blockers before an intentional
+structural run: the training-pair null left outer-held Qwen pairs intact, and
+the scalar confound model trained on cross-fitted residual coordinates while
+held scores used full-fit coordinates. The fixes now derive nested/outer
+shuffle strata from training data, break both train and held Qwen8 pairs, and
+train the scalar diagnostic on full-fit training residuals matching held
+coordinates. The boundary verifier also binds the test source and checks fold,
+roster, shape, ID, and execution semantics. The reviewer accidentally started
+the old runner for roughly 11 seconds, but it emitted no metric and wrote no
+artifact; this is recorded in `HISTORY.md`. Regenerate and commit the repaired
+boundary before the deliberate run.
+
 ## Automatic group-free IU Phase A2/A3 — Step 257
 
 The primary A2 run kept all 30 atoms. Missing covariance entries were completed

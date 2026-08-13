@@ -12446,3 +12446,17 @@ held-model and pair-shuffle falsification.
   result name to `PASS_SHARED_REPEATABLE_COMPONENT_PREMISE`. It also forced an
   enumerated 29-feature roster plus exact covariance, baseline, bootstrap, and
   complete-null aggregation formulas before commit.
+- During the subsequent pre-run code audit, the reviewer accidentally invoked
+  the `run` command and terminated it after about 11 seconds. It emitted no
+  visible metric or selection and wrote no result artifact; the directory
+  still contained only the four boundary files. We nevertheless record this as
+  mechanical access to the frozen tensor rather than claiming that the runner
+  was never started. No result was available to guide the following fixes.
+- That same audit caught two result-changing implementation bugs before an
+  intentional run: the training-pair null did not yet break outer-held Qwen
+  pairs, and the scalar confound gate mixed cross-fitted training residuals
+  with full-fit held residuals. Both were corrected, with explicit train-edge
+  outer/nested derangements, full-fit residual coordinates for the confound
+  model, semantic boundary assertions, and new tests. The numeric/source
+  boundary must be regenerated and committed again before intentional
+  structural evaluation.

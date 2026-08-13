@@ -1,0 +1,210 @@
+{
+  "baseline_tie_order": {
+    "cca": 2,
+    "diagonal": 3,
+    "equal": 5,
+    "pca": 4,
+    "single": 1
+  },
+  "bootstrap_draws": 5000,
+  "correctness_or_step_targets_accessed": false,
+  "detector_verdict_frozen": "CLOSE_NO_TARGET_CONTRAST",
+  "feature_roster": [
+    "epr",
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "dominant_freq",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "stft_spectral_entropy",
+    "rpdi",
+    "sw_var_peak",
+    "pe_mean",
+    "hurst_exponent",
+    "cusum_max",
+    "cusum_shift_idx",
+    "epr_spilled",
+    "sw_var_peak_spilled",
+    "cusum_max_spilled",
+    "epr_energy",
+    "min_energy",
+    "sw_var_peak_energy",
+    "cusum_max_energy",
+    "mean_top1_logprob",
+    "logprob_margin",
+    "mean_logprob_entropy",
+    "varentropy",
+    "renyi_entropy_2",
+    "topk_tail_mass"
+  ],
+  "fold_manifest": {
+    "groups": "sha256(problem,steps)",
+    "n_splits": 5,
+    "path": "results/automatic_group_free_phase_a4_v1/outer_folds.csv",
+    "seed": 20260813,
+    "sha256": "2c3234e10d6c962c0006404822dbb899a0f57e04d1ef294ae5db438087ccb52c",
+    "splitter": "StratifiedGroupKFold"
+  },
+  "held_null_draws": 1000,
+  "input_rows": [
+    {
+      "labels_accessed": false,
+      "path": "dataset_cache/repgrid/pb_qwen3_4b/processbench_gsm8k.pkl",
+      "row_count": 400,
+      "sha256": "549843b11a99f41b60ccb13eb6a65c5583527402602e6e40d1a417699e64b02b",
+      "size": 49801034,
+      "subset": "gsm8k",
+      "view": "qwen3_4b"
+    },
+    {
+      "labels_accessed": false,
+      "path": "dataset_cache/repgrid/pb_qwen3_8b/processbench_gsm8k.pkl",
+      "row_count": 400,
+      "sha256": "c258e8a37fad43216290fef2f70c88735f413f8c0ceb5cce39dfefe67d66955d",
+      "size": 49801034,
+      "subset": "gsm8k",
+      "view": "qwen3_8b"
+    },
+    {
+      "labels_accessed": false,
+      "path": "dataset_cache/repgrid/pb_llama31_8b/processbench_gsm8k.pkl",
+      "row_count": 400,
+      "sha256": "6749d1b846e29288e46536f9d9d8e63715b447576950d8e2131fe3420a16cead",
+      "size": 46533275,
+      "subset": "gsm8k",
+      "view": "llama31_8b"
+    },
+    {
+      "labels_accessed": false,
+      "path": "dataset_cache/repgrid/pb_qwen3_4b/processbench_math.pkl",
+      "row_count": 1000,
+      "sha256": "807292c490012b68c7a20cc3d093cda637866227940b9024b258b6a201657c32",
+      "size": 227049038,
+      "subset": "math",
+      "view": "qwen3_4b"
+    },
+    {
+      "labels_accessed": false,
+      "path": "dataset_cache/repgrid/pb_qwen3_8b/processbench_math.pkl",
+      "row_count": 1000,
+      "sha256": "19cbbb2b4f90e073f2793360f142bc25334f88bbc4ec01fd78807f9f1ad2836d",
+      "size": 227049038,
+      "subset": "math",
+      "view": "qwen3_8b"
+    },
+    {
+      "labels_accessed": false,
+      "path": "dataset_cache/repgrid/pb_llama31_8b/processbench_math.pkl",
+      "row_count": 1000,
+      "sha256": "119c95ca5abc8d6f9e71bdd595db9b847373067d9aa8e4e9b349fa2b1f174953",
+      "size": 217743700,
+      "subset": "math",
+      "view": "llama31_8b"
+    },
+    {
+      "labels_accessed": false,
+      "path": "dataset_cache/repgrid/pb_qwen3_4b/processbench_olympiadbench.pkl",
+      "row_count": 1000,
+      "sha256": "e5e73f044247e0fb4081fea1c3a77793aab182485daebce48cf7a3f7809eb0ae",
+      "size": 338485050,
+      "subset": "olympiadbench",
+      "view": "qwen3_4b"
+    },
+    {
+      "labels_accessed": false,
+      "path": "dataset_cache/repgrid/pb_qwen3_8b/processbench_olympiadbench.pkl",
+      "row_count": 1000,
+      "sha256": "2083c4f9d0cc8d84657b02558d0720f726db4288e39e7557be4c55f78f4d4e60",
+      "size": 338485050,
+      "subset": "olympiadbench",
+      "view": "qwen3_8b"
+    },
+    {
+      "labels_accessed": false,
+      "path": "dataset_cache/repgrid/pb_llama31_8b/processbench_olympiadbench.pkl",
+      "row_count": 1000,
+      "sha256": "ea2592de68100aeb140ce1d3a373e87d36e00685863e0dfb8c6721fa05a1812d",
+      "size": 324953017,
+      "subset": "olympiadbench",
+      "view": "llama31_8b"
+    },
+    {
+      "labels_accessed": false,
+      "path": "dataset_cache/repgrid/pb_qwen3_4b/processbench_omnimath.pkl",
+      "row_count": 1000,
+      "sha256": "ec20e56553acee15c0646ad266f5d5d8d24ef22ba87289b6ffe013b0c639ba67",
+      "size": 335250837,
+      "subset": "omnimath",
+      "view": "qwen3_4b"
+    },
+    {
+      "labels_accessed": false,
+      "path": "dataset_cache/repgrid/pb_qwen3_8b/processbench_omnimath.pkl",
+      "row_count": 1000,
+      "sha256": "561b96c5e96a25256e7e51a62c7ef01bcb2fd87ea1adcfc36e2c758807f559a0",
+      "size": 335250837,
+      "subset": "omnimath",
+      "view": "qwen3_8b"
+    },
+    {
+      "labels_accessed": false,
+      "path": "dataset_cache/repgrid/pb_llama31_8b/processbench_omnimath.pkl",
+      "row_count": 1000,
+      "sha256": "d1f9ad59eacbba64963b763e07209bdccb570f9875382f1b38c5573678ce81e4",
+      "size": 323707679,
+      "subset": "omnimath",
+      "view": "llama31_8b"
+    }
+  ],
+  "prior_artifact_sha256": {
+    "results/automatic_group_free_phase_a0_v1/processbench_cross_model_pairing.json": "8454a71e2fcd73c7d7c3a44c77c3efdf01fdb4f6c29222cd3d50bb14cd39fa12",
+    "results/leverage_balanced_processbench_transfer_v1/FIT_MANIFEST.json": "4417902d25499782023502a53b55aaaa42409eaf0ba216ad5b47c09194f81526"
+  },
+  "protocol": "docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md",
+  "protocol_sha256": "5bf76a5b39ba651bdbbc000ded90f1025dd493f05aec26f45647a6b9b8410adf",
+  "ridge_grid": [
+    0.0001,
+    0.001,
+    0.01,
+    0.1,
+    1.0
+  ],
+  "source_sha256": {
+    "scripts/automatic_group_free_phase_a4.py": "8280c1cfe636d5bb6b18084c00dd5101d4640a4244fc135a7a649d61310980d2",
+    "scripts/test_paired_repeatability.py": "21b16d24b18811282cf1d0dbebda8bf159c0fb33bdc8c88c7ac8d6a07e96dba9",
+    "spectral_utils/dufs_liu_feature_contract.py": "c674f7b6cfd1a82dcc63cd7cc26bbd3d53ef5f4d289dbcbb7eabe933670fdf2d",
+    "spectral_utils/feature_contract.py": "65ffba0bfc9bf4ded859d9ebffce9bd563a28652c47f5ed8d80ce91b64d4385d",
+    "spectral_utils/feature_utils.py": "b68bc5e1647742667fc20908321485bf9229954713b5da7215bf0f2629c74362",
+    "spectral_utils/group_free_research.py": "099b458b72d3aaa3f76444cf2789a10cfd1ff060e0fc78ac52e653a0cd172df4",
+    "spectral_utils/paired_repeatability.py": "2770834021d4da8a9d86f462faa181b8013a448a3b4c33ed4caf95151468d422",
+    "spectral_utils/repeated_measurement_reliability.py": "9e4b975e0f890e06f7194e1bd81012253329093acdb664756fa60cdab4de0868",
+    "spectral_utils/repgrid_scoring.py": "b25e25f5c08fde40c9cb47b0f63f1915bf438362b97f2b68e482ae31c41cde79"
+  },
+  "status": "FROZEN_BEFORE_HELD_LLAMA_STRUCTURAL_EVALUATION",
+  "subset_names": [
+    "gsm8k",
+    "math",
+    "olympiadbench",
+    "omnimath"
+  ],
+  "tensor": {
+    "labels_accessed": false,
+    "path": "results/automatic_group_free_phase_a4_v1/paired_no_label_tensor.npz",
+    "sha256": "c79f53ee8112254fbba8275b11b85c01a8e6c8af756c6040b5c794502ecbfd2c",
+    "shape": [
+      3400,
+      3,
+      29
+    ]
+  },
+  "train_null_draws": 200,
+  "version": "automatic-group-free-iu-a4-v1-2026-08-13",
+  "view_names": [
+    "qwen3_4b",
+    "qwen3_8b",
+    "llama31_8b"
+  ]
+}
