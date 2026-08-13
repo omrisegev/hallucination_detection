@@ -12257,3 +12257,38 @@ or large-judge ceilings.
 `results/fixed_application_pipelines_v1/`.
 
 ---
+
+### Step 254 — freeze the automatic group-free IU research program
+
+**Question**: How should the HARP-inspired NRM result be extended after the
+atomic audit showed that the manual provenance quotient cannot be removed by
+null-spectrum geometry or dependence clustering alone?
+
+**Program**: froze a complete S1-to-S3 research ladder before new method code.
+The problem is split into measurement-structure recovery, target-component
+identification, and orientation/trust. The primary S1 route learns a soft
+channel-by-operator measurement model and combines it with multi-environment
+joint block diagonalization; exact paired cross-model views are the preferred
+target-identification source. A continuous weak-supervision dependency model
+is the second strict route. If S1 fails, automatic target/nuisance
+interventions supply S2 pairwise supervision; if S2 fails, at most 32 labels
+may select only component, sign, and trust under S3.
+
+**Evaluation discipline**: every alternative receives a premise test and a
+reproducible pass/closure artifact, but only frozen finalists may touch an
+untouched confirmation surface. Existing original, ProcessBench, SemGrad,
+PRMBench, HLE, and RAGTruth results are development evidence. Strict success
+requires a grouped-bootstrap lower bound above zero versus IU-PCR,
+non-inferiority within -0.2pp of Family-NRM, no domain-family loss above 1pp,
+no manual groups, one-pass inference, and affine reconstruction. Family-NRM
+may be compared but cannot orient or select the new method.
+
+**Next action**: execute A0 — mechanically derive the feature DAG, audit the
+23-cell environment/missingness structure and exact cross-model pairing,
+construct the identifiability simulator, and reserve a new confirmation
+surface before A1 implementation.
+
+**Canonical artifact**:
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_RESEARCH_PROGRAM_V1.md`.
+
+---

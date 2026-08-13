@@ -3,6 +3,33 @@
 
 ---
 
+## Active program — automatic group-free IU successor (Step 254)
+
+The next core-method program is now explicitly reopened under a new-evidence
+standard rather than as another static covariance sweep. The goal is an
+automatic successor to IU-PCR/NRM that removes the manual provenance quotient
+while preserving label-free fitting, one-pass inference, and an affine score.
+
+The program separates measurement-structure recovery, target-component
+identification, and orientation/trust. Its primary route is a soft factorial
+channel-by-operator measurement model followed by multi-environment joint
+block diagonalization. Paired cross-model views provide the preferred strict
+target-identification channel. Continuous weak supervision is the second S1
+route. If strict identification fails, the predeclared ladder moves to
+self-supervised interventions and then minimal-label orientation; claims from
+those routes remain separately named.
+
+All alternatives receive a premise test, but only frozen finalists may touch
+new confirmation labels. Existing original, ProcessBench, SemGrad, PRMBench,
+HLE, and RAGTruth evaluations are retrospective development surfaces. The
+current Family-NRM stays frozen as comparator and may not select or orient the
+automatic method.
+
+Canonical contract and experiment registry:
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_RESEARCH_PROGRAM_V1.md`.
+
+---
+
 ## Fixed application packages — Step 253
 
 The immediate application decision is now concrete: use one shared

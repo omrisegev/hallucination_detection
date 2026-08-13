@@ -1,17 +1,32 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-13
-**Last updated**: Step 253. One fixed RAG pipeline and one fixed reasoning
-pipeline now use the same token-resolved mixed-v2 basis. The contract has 29
-token streams covering all 30 original global features: CUSUM magnitude and
-location share one stream, 18 reductions are exact, and 11 are disclosed
-causal rolling approximations. The final heads use two-component IU-PCR because
-completed DUFS/Laplacian controls did not show a stable incremental gain. RAG
-uses full/no-context/LOO evidence blocks; reasoning fuses the uninterrupted
-token trajectory before step aggregation. The generated report separates all
-matched-protocol comparisons from broader local summaries. Step 252's atomic
-orientation diagnosis remains immediately below; its cubic-orientation claim
-still requires code-to-memo reconciliation before promotion.
+**Last updated**: Step 254. The automatic group-free IU research program is
+frozen before implementation. It separates measurement structure, target
+identification, and orientation/trust; starts with a factorial feature model
+plus multi-environment joint block diagonalization; then tests paired
+cross-model identification and continuous weak supervision. If strict S1
+identification fails, the declared ladder proceeds to self-supervised
+interventions (S2) and tiny-label orientation (S3). Every route receives a
+premise test and closure/pass artifact, but only pre-frozen finalists may use
+new confirmation labels. Start with Phase A0 in
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_RESEARCH_PROGRAM_V1.md`.
+
+## Automatic group-free IU program — Step 254
+
+The deployment boundary is gray-box, one-pass, affine, and based on the frozen
+mixed-v2 telemetry. S1 uses no correctness labels and no `FEATURE_TO_VIEW` or
+manual equivalent; cached cross-model material, environment identity, and
+mechanically derived feature-DAG metadata are legal at calibration. Family
+NRM remains a frozen comparator and may not choose, sign, or tune a candidate.
+
+Immediate work is Phase A0: derive the feature-DAG registry, audit all source
+environments and exact cross-model item pairing, build the identifiability
+simulator, and reserve an untouched confirmation surface. Do not begin a new
+eigenspace, grouping, or trust sweep before this audit is complete.
+
+Canonical contract:
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_RESEARCH_PROGRAM_V1.md`.
 
 ## Fixed application pipelines — Step 253
 
