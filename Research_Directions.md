@@ -3,7 +3,7 @@
 
 ---
 
-## Active program — automatic group-free IU successor (Step 260)
+## Active program — automatic group-free IU successor (Step 261)
 
 The next core-method program is now explicitly reopened under a new-evidence
 standard rather than as another static covariance sweep. The goal is an
@@ -74,7 +74,8 @@ The correct A4 conclusions are
 `CLOSE_SHARED_REPEATABLE_COMPONENT_PREMISE` and
 `CLOSE_NO_TARGET_CONTRAST`. The remaining post-held ablated correlation is not
 a registered candidate and cannot be promoted. A5 continuous weak supervision
-is now active. A0--A4 artifacts are frozen under
+is now active under a frozen, adversarially audited protocol. A0--A4 artifacts
+are frozen under
 `results/automatic_group_free_phase_a0_v1/` and
 `results/automatic_group_free_phase_a1_v1/`, and
 `results/automatic_group_free_phase_a2_v1/`, and
@@ -84,6 +85,24 @@ The frozen A4 protocol remains
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md`; it is not edited
 retroactively. Its post-held interpretation correction is preserved in the
 result report and `POST_HELD_TRACE_LENGTH_DIAGNOSTIC.json`.
+
+Phase A5 is restricted to one new route: an IU-anchored equal-covariance
+continuous latent mixture with a sparse within-component precision and an
+affine discriminant. It uses the automatically defined 17-feature complete
+core, excludes trace length and every A4 component from fitting, and contains
+an exact IU fallback. A required observational-equivalence audit makes the
+semantic boundary explicit: the mixture can recover density structure only;
+its target interpretation is conditional on the inherited IU anchor.
+
+The protocol was corrected through three independent adversarial passes. It
+now purges globally repeated prompt content across outer and inner environment
+folds, uses one deterministic response per prompt, rebuilds a target-free raw
+tensor, compares against capacity-identical `alpha=0`, diagonal, one-Gaussian,
+and training-selected matched-random controls, and refits three full-pipeline
+null families. A sealed nuisance-dominant synthetic is an early stop before
+large real-cache transfer. Retrospective labels may only veto one frozen score
+bundle and cannot tune or select it. Canonical protocol:
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A5_V1.md`.
 
 The untouched confirmation boundary is now PopQA with Gemma-3-4B-it, with a
 pre-sealed Qwen3-4B fallback if gated checkpoint access fails before any

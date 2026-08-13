@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-13
 
-**Status:** active research contract; A0 passed, A1/A2/A3 closed, A4 is active
+**Status:** active research contract; A0 passed, A1/A2/A3/A4 closed, A5 protocol is active
 
 **Primary objective:** replace the hand-defined provenance quotient used by
 NRM-CS-IU with an automatically identified correction that improves IU-PCR
@@ -298,23 +298,28 @@ is carried into A5 as target-identified evidence.
 
 ### A5 — continuous weak-supervision dependency model
 
-**Hypothesis:** correctness and feature dependencies can be estimated jointly
-more reliably than first clustering marginal correlations and then fusing.
+**Hypothesis:** an item-level, equal-covariance latent mixture with sparse
+within-component precision can recover an IU-orthogonal atomic correction more
+reliably than marginal dependence models, while retaining an affine score.
 
-Implement continuous latent correctness with sparse dependencies, then add
-multi-environment reliability and the optional A1 factorial prior. Compare
-against the already tested L-SML/tetrad route, independent IU-PCR, and a
-dependency-only clustering control.
+A5 is restricted to one IU-anchored primary. Its 17-feature complete core is
+automatically fixed by presence in all 23 A0 environments and excludes trace
+length. The sparse graph/penalty is shared across environments; local mixture
+parameters are adaptation-only. The mixture label switch is oriented solely by
+positive covariance inner product with frozen IU-PCR. No majority assumption,
+A1 factorial prior, A4 component, or retrospective label may select a model.
 
-Premise gate: recover latent reliability and dependencies in misspecified
-synthetics, remain duplicate-stable, and improve held-out-environment
-likelihood over the independent model. A result that depends entirely on a
-false majority-better-than-random assumption is rejected.
+Unlabelled likelihood cannot identify correctness semantics. A required
+observational-equivalence audit demonstrates this explicitly; A5's bounded
+claim is conditional on inheriting IU-PCR as target anchor. A sealed synthetic
+nuisance-dominance gate runs before large raw-cache transfer. Failure closes
+the route without a broad sweep. Only if all synthetic gates pass is the
+target-firewalled, group-aware 23-environment likelihood premise executed.
 
-At the end of A5, freeze at most one S1 finalist using the registered
-structural criteria plus retrospective development performance. Do not open
-the untouched confirmation yet if an S2 finalist will be compared on the same
-surface.
+The one-way retrospective label gate may PASS or VETO exactly one already
+frozen primary; it may not choose among arms or tune anything. The complete
+executable protocol and gates are frozen in
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A5_V1.md`.
 
 ### A6 — self-supervised intervention route
 

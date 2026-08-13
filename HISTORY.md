@@ -12521,3 +12521,54 @@ preregistration.
 **Canonical artifacts**: `results/automatic_group_free_phase_a4_v1/`,
 `scripts/audit_automatic_group_free_phase_a4_trace_length.py`, and the frozen
 protocol `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A4_V1.md`.
+
+---
+
+# Step 261 — 2026-08-13: freeze the adversarially audited A5 protocol
+
+**Prior-results audit**: The dependency-fusion history ruled out a broad new
+parameter sweep. Sparse marginal `C=L+S`, inverse sparse weighting, GMM/GLS rho
+solves, DEEM pseudo-probabilities, GMM anomaly/NLL, higher-moment deflation, and
+labelled anchored heads have already been tested and closed. The one bounded
+new S1 attempt is an item-level equal-covariance two-component likelihood with
+sparse within-component precision, oriented and trusted through frozen IU-PCR.
+
+**Semantic boundary**: Unlabelled mixture likelihood identifies components
+only up to label switch and cannot name correctness rather than difficulty,
+length, or style. The protocol therefore inherits IU as an explicit semantic
+anchor and requires a bit-identical observational-equivalence construction.
+A5 can support an IU-conditional correction, not a claim that `P(X)` alone
+identifies hallucination.
+
+**Data audit**: The old `dependency_fusion_raw/cells.npz` is inadmissible for
+A5 fitting because it contains label sidecars, whole-cell-standardized values,
+and no prompt groups. Read-only Drive inspection located the 23 A0 source raw
+caches across `cluster_results/repgrid` and `cluster_results/regen`, with sizes
+from about 13 MB to 1.28 GB. A 13 MB SciQ cache was copied only to temporary
+storage for schema inspection; its records contain labels, question/gold/text,
+and telemetry together. The frozen solution is a whitelist sanitizer that
+emits a new target-free 17-feature raw tensor, global canonical prompt groups,
+and a forbidden-fit length sidecar. No full source transfer or A5 result was
+run before the protocol freeze.
+
+**Adversarial corrections**: Three independent preregistration reviews caught
+and repaired cross-environment same-prompt leakage, ambiguous nested selection,
+missing capacity-identical controls, underspecified synthetics/nulls, weak
+length diagnostics, an undefined 23-to-24 score path, content-normalization
+collisions, K-response dependence, inconsistent fold denominators, and a
+stability statistic that would accept sign reversal. The final protocol purges
+global content components in every outer/inner fold, closes on any unusable
+fold, uses one deterministic response per prompt, gives each density control
+its own nested alpha, and refits complete pipelines under three null families.
+
+**Execution gate**: Implementation may use development seeds only. Before any
+sealed result, source/tests/simulator/configuration and unused seed namespaces
+must be hashed. The 11-world sealed suite includes prompt-shared
+nuisance-dominance as a hard anti-repackaging stop; failure closes A5 before
+the multi-gigabyte real-cache transfer. Only one structurally frozen score
+bundle can reach the retrospective label veto, where labels may PASS/VETO but
+cannot select or tune.
+
+**Review verdict**: `NO BLOCKERS`. Canonical protocol:
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A5_V1.md`. No A5 synthetic or
+real result has been opened.

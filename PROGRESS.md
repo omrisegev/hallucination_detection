@@ -1,12 +1,53 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-13
-**Last updated**: Step 260. A1 and A2 are closed as detector bases, A3 is
+**Last updated**: Step 261. A1 and A2 are closed as detector bases, A3 is
 closed by premise, and A4 is closed after a frozen execution plus independent
-trace-length autopsy. The A4 CorrCA coordinate was stable but significantly
-worse than the nested-selected `trace_length` baseline and was itself almost
-entirely that incompletely removed coordinate. A5 continuous weak supervision
-is the active next phase.
+trace-length autopsy. A5 is now frozen as one bounded IU-anchored sparse latent
+mixture route; implementation and development-seed tests are next, before any
+sealed synthetic or real-data result.
+
+## Automatic group-free IU Phase A5 protocol — Step 261
+
+The only genuinely new continuous weak-supervision route retained after the
+prior-results audit is an item-level, equal-class-covariance two-component
+mixture with sparse within-component precision. Its discriminant is affine and
+its correction is covariance-orthogonal to the frozen IU-PCR score. A fixed
+alpha path contains exact IU fallback. This differs from the already closed
+sparse marginal covariance, inverse-weighting, GMM anomaly/NLL, DEEM,
+higher-moment, and labelled-head routes.
+
+The semantic limit is explicit: `P(X)` cannot distinguish correctness from an
+equally distributed nuisance bit. A5 inherits IU-PCR as its target-semantic
+anchor and includes a bit-identical observational-equivalence audit. A result
+can therefore support an IU-conditional correction, never claim that
+unlabelled likelihood identifies hallucination by itself.
+
+Independent adversarial review required three rounds of correction before the
+protocol was accepted. The final boundary purges repeated prompts globally
+across environments by canonical item/content components, closes if any nested
+item-disjoint fold becomes unusable, and uses one deterministic response per
+prompt for structural likelihood. It rebuilds a target-free 17-feature raw
+tensor rather than opening the old label-bearing, whole-cell-standardized
+archive. `trace_length` is a forbidden-fit sidecar used only for a stronger
+environment-local nonlinear/censoring confound gate.
+
+The nested algorithm independently selects alpha for the sparse, diagonal, and
+random-support controls; includes a capacity-identical sparse `alpha=0`
+baseline; refits complete pipelines under sparse-one-Gaussian,
+diagonal-mixture, and environment-reassignment nulls; and defines a separate
+one-way 24-cell label veto after a single score bundle is frozen. Labels may
+only PASS/VETO that primary, never choose a model.
+
+Execution begins with development-only implementation tests, followed by a
+hash-frozen 11-world sealed synthetic suite. The nuisance-dominant world is an
+early hard stop: if the method recovers a stronger prompt-shared nuisance
+instead of the target despite a target-valid IU anchor, A5 closes before the
+multi-gigabyte real caches are transferred. The independent reviewer issued
+`NO BLOCKERS`; no A5 result has been run or opened.
+
+Canonical protocol:
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A5_V1.md`.
 
 ## Automatic group-free IU Phase A4 result — Step 260
 
