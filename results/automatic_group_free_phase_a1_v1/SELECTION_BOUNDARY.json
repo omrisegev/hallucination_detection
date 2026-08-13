@@ -1,0 +1,90 @@
+{
+  "audit_cells": [
+    "ars_gsm8k_r1distill8b",
+    "lapeigvals_gsm8k_llama3b",
+    "math500_r1distill8b",
+    "math500_r1distill8b_mn4096",
+    "trace_math500_qwenmath15b_k10",
+    "epr_triviaqa_mistral24b",
+    "seiclr_triviaqa_opt30b"
+  ],
+  "code_sha256": {
+    "factorial_measurement_module": "a0ee4ad43fdac3ade38e0a87abe12155f050a04f7e3fef0f10d319d0e6b9b01e",
+    "script": "24557aecaa61c4e81c4d0fe34533dd55d38afb04165416784c3a25ac397ebb65"
+  },
+  "feature_roster": [
+    "epr",
+    "trace_length",
+    "spectral_entropy",
+    "low_band_power",
+    "high_band_power",
+    "hl_ratio",
+    "dominant_freq",
+    "spectral_centroid",
+    "stft_max_high_power",
+    "stft_spectral_entropy",
+    "rpdi",
+    "sw_var_peak",
+    "pe_mean",
+    "hurst_exponent",
+    "cusum_max",
+    "cusum_shift_idx",
+    "epr_spilled",
+    "sw_var_peak_spilled",
+    "cusum_max_spilled",
+    "min_spilled",
+    "epr_energy",
+    "min_energy",
+    "sw_var_peak_energy",
+    "cusum_max_energy",
+    "mean_top1_logprob",
+    "logprob_margin",
+    "mean_logprob_entropy",
+    "varentropy",
+    "renyi_entropy_2",
+    "topk_tail_mass"
+  ],
+  "hybrid_alpha_grid": [
+    0.25,
+    0.5,
+    0.75
+  ],
+  "labels_accessed": false,
+  "near_duplicate_mass_gate": 1.1,
+  "random_partition_draws": 32,
+  "rank_grid": [
+    1,
+    2,
+    3,
+    4,
+    6
+  ],
+  "ridge_grid": [
+    0.01,
+    0.1,
+    1.0
+  ],
+  "selection_metric": "masked feature-by-environment covariance MSE",
+  "source_bundle_sha256": "693a5b634f975ea32c7f840f3ab8366dd8ad638fe41cc76a60e24b1ac5a013e1",
+  "split_rule": "sha256(cell) first 32 bits modulo 3; bucket 0 is audit",
+  "stability_gate": 0.8,
+  "structural_train_cells": [
+    "internalstates_gsm8k_qwen25_7b",
+    "lapeigvals_gsm8k_llama8b",
+    "lapeigvals_gsm8k_mistral24b",
+    "lapeigvals_gsm8k_nemo",
+    "lapeigvals_gsm8k_phi35",
+    "noise_gsm8k_mistral7b",
+    "noise_gsm8k_phi3mini",
+    "trace_gsm8k_llama8b_k10",
+    "losnet_hotpotqa_mistral7b",
+    "math500_dsmath7b",
+    "math500_qwenmath7b",
+    "se_nq_open_llama8b",
+    "sciq_llama8b",
+    "se_squad_v2_llama8b",
+    "semenergy_triviaqa_qwen3_8b",
+    "truthfulqa_llama8b"
+  ],
+  "version": "automatic-group-free-iu-a1-v1-2026-08-13"
+}

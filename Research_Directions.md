@@ -3,7 +3,7 @@
 
 ---
 
-## Active program — automatic group-free IU successor (Step 255)
+## Active program — automatic group-free IU successor (Step 256)
 
 The next core-method program is now explicitly reopened under a new-evidence
 standard rather than as another static covariance sweep. The goal is an
@@ -39,12 +39,24 @@ That three-view surface gives A4 a genuine response-preserving intervention on
 the scorer model, and makes the later self-supervised claim concrete rather
 than metaphorical.
 
-The active next step is A1: learn a soft factorial measurement quotient from
-label-blind residual covariance structure and compare mechanical feature-DAG
-axes with anonymized learned axes. It must pass held-out-feature and
-held-out-environment reconstruction, stability, and duplicate-mass tests
-before it can become a detector basis. A0 artifacts are frozen under
-`results/automatic_group_free_phase_a0_v1/`.
+Phase A1 has now been executed and closed as a detector basis. Its rank-6 soft
+hybrid reduced audit covariance MSE by 8.1% relative to pooled PCA at the point
+estimate and decisively beat random partitions, which supports the weaker
+claim that mechanical channel/operator structure can regularize a learned
+subspace. The seven-environment grouped interval still crossed zero, however,
+and a rho=0.999 duplicate received 3.009 times the original feature's combined
+mass. The method therefore fails the frozen robustness premise and may not be
+promoted into A3. Hard channel, operator, and factorial bases were substantially
+worse, so no manual-like hard quotient is being retained through the back door.
+
+The active next step is A2 on raw atomic residual covariances. Its scientific
+question is distinct: whether environment-to-environment variance changes
+identify reproducible jointly diagonal or jointly block-diagonal mechanisms.
+It must improve held-out covariance reconstruction, survive leave-one-cell
+deletion, and lose its advantage after environment identities are destroyed.
+A0 and A1 artifacts are frozen under
+`results/automatic_group_free_phase_a0_v1/` and
+`results/automatic_group_free_phase_a1_v1/`.
 
 ---
 

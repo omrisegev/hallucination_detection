@@ -180,6 +180,22 @@ stable under environment deletion, and avoid giving an exact duplicate extra
 total mass. Otherwise close the factorial route as a detector basis while
 retaining the audit as evidence.
 
+**Frozen execution result (Step 256): CLOSE AS DETECTOR BASIS.** A hash-defined
+16/7 structural-train/audit split was used without correctness labels. The
+training-selected rank-6 interaction hybrid (25% mechanical factorial
+projector, 75% anonymized PCA projector; ridge 0.1) improved audit MSE from
+0.032321 for pooled PCA to 0.029698 and decisively beat cardinality-matched
+random partitions, but the seven-environment grouped interval for its MSE
+delta versus PCA crossed zero: -0.002623 [-0.006112, 0.000499]. It was stable
+(minimum leave-one-training-environment projector overlap 0.9428), exactly
+permutation-equivariant, deterministic, and exact-duplicate balanced. However,
+an automatically appended rho=0.999 duplicate received 3.009 times the
+original feature's combined soft-quotient mass, violating the frozen 1.10
+gate. Hard channel/operator/factorial bases were materially worse. A1 is
+therefore evidence that weak factorial metadata can regularize PCA, not an
+admissible detector basis. A2 proceeds on raw atomic residual covariances.
+Canonical artifacts: `results/automatic_group_free_phase_a1_v1/`.
+
 ### A2 — multi-environment joint block diagonalization
 
 **Hypothesis:** latent mechanisms have shared loadings but distinct variance

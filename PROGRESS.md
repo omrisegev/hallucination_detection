@@ -1,14 +1,50 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-13
-**Last updated**: Step 255. Phase A0 of the automatic group-free IU program
-passed without correctness-label access. The audit froze a mechanically
-derived 30-feature DAG, the exact 23-environment missingness and pair-coverage
-boundary, a crossed identifiability simulator, and a reserved confirmation
-cell. It also verified 3,400 exact ProcessBench response pairs across Qwen3-4B,
-Qwen3-8B, and Llama3.1-8B. Phase A1, the factorial soft measurement model, is
-now active under the contract in
+**Last updated**: Step 256. Phase A1 is closed as a detector basis after its
+predeclared label-blind premise test. The soft hybrid gave a promising 8.1%
+point reduction in held-out covariance MSE versus pooled PCA and strongly beat
+random partitions, but its seven-environment grouped interval crossed zero and
+its near-duplicate mass test failed. Phase A2, multi-environment joint block
+diagonalization on the raw atomic residual covariances, is now active under
+the contract in
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_RESEARCH_PROGRAM_V1.md`.
+
+## Automatic group-free IU Phase A1 — Step 256
+
+The A1 run kept all correctness labels closed and used a hash-defined split of
+16 structural-training and seven structural-audit cells. Ranks, ridge values,
+interaction form, and the mechanical/learned blend were selected only through
+leave-one-environment-out masked covariance reconstruction inside the 16
+training cells. `FROZEN_SELECTION.json` was written before the audit cells
+were evaluated.
+
+The selected hybrid used rank 6, a full interaction covariance, ridge 0.1, and
+a 25% mechanical factorial / 75% anonymized PCA projector. Audit MSE was
+0.029698 versus 0.032321 for pooled PCA, 0.077539 for the best hard factorial
+basis, and 0.039623 for the pooled mean. The paired grouped MSE delta versus
+PCA was -0.002623 with 95% interval [-0.006112, 0.000499]; the improvement is
+promising but not established. The hybrid decisively beat the median random
+partition and the fifth percentile of 32 cardinality-matched random controls.
+
+Stability and exact invariances passed: minimum leave-one-training-cell
+projector overlap was 0.9428, feature-order permutation error was 4.83e-15,
+repeatability error was zero, and exact-duplicate mass error was zero. The
+near-duplicate gate failed: appending a rho=0.999 measurement gave the pair
+3.009 times the original measurement's combined soft-quotient mass, above the
+frozen 1.10 limit. Therefore A1 is closed as a detector basis and may not enter
+A3. Its bounded positive lesson is that weak mechanically derived factorial
+structure regularizes pooled PCA; its quotient rule is not robust enough.
+
+Canonical artifacts: `spectral_utils/factorial_measurement.py`,
+`scripts/automatic_group_free_phase_a1.py`,
+`scripts/test_factorial_measurement.py`, and
+`results/automatic_group_free_phase_a1_v1/`.
+
+**Next action:** execute A2 directly on raw 30-atom residual covariance
+matrices, comparing pooled covariance, approximate joint diagonalization, and
+joint block variants with train-only held-out-environment selection and
+environment-shuffle controls.
 
 ## Automatic group-free IU Phase A0 — Step 255
 

@@ -12328,3 +12328,42 @@ mass conservation before any label-based detector evaluation.
 `results/automatic_group_free_phase_a0_v1/`.
 
 ---
+
+### Step 256 — close the factorial soft quotient after its label-blind premise test
+
+**Question**: Can a mechanically registered channel-by-operator measurement
+model replace the hand-defined provenance quotient by reconstructing unseen
+feature/environment covariance more reliably than pooled PCA and random
+partitions, while remaining stable and duplicate balanced?
+
+**Protocol**: froze a SHA-based 16/7 structural-train/audit environment split.
+Within the training cells only, leave-one-environment-out reconstruction chose
+rank, ridge, diagonal versus interaction covariance, and the blend between
+mechanical factorial and anonymized PCA projectors. The complete 30-feature
+missingness pattern was preserved with equal environment weighting. No
+correctness labels or detector metrics were loaded. The selected configuration
+was written before the seven audit cells were evaluated.
+
+**Findings**: the selected rank-6 interaction hybrid (ridge 0.1, 25%
+mechanical / 75% learned projector) achieved audit MSE 0.029698 versus 0.032321
+for pooled PCA, 0.077539 for hard factorial axes, and 0.039623 for the pooled
+mean. It strongly beat 32 cardinality-matched random partitions and the
+simulator pooled baseline. The grouped delta versus PCA was -0.002623 with 95%
+interval [-0.006112, 0.000499], so the point improvement was not established
+across environments. Projector stability, feature permutation, deterministic
+repeatability, and exact-duplicate mass all passed. The rho=0.999 stressor
+failed: combined mass was 3.009 times the original, above the frozen 1.10 gate.
+
+**Decision**: close A1 as a detector basis and do not carry it into A3. Retain
+the bounded structural finding that weak factorial metadata can regularize
+pooled PCA, but the inferred soft quotient does not yet define a robust
+effective multiplicity. Proceed to A2 on the raw atomic residual covariance
+collection, so this closure does not block the independent environment-
+heterogeneity route.
+
+**Canonical artifacts**: `spectral_utils/factorial_measurement.py`,
+`scripts/automatic_group_free_phase_a1.py`,
+`scripts/test_factorial_measurement.py`, and
+`results/automatic_group_free_phase_a1_v1/`.
+
+---
