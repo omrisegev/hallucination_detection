@@ -130,10 +130,19 @@ def _sw_var_series(e, W=SW_WINDOW, step=SW_STEP):
         return np.zeros(0)
     if n < W:
         return np.full(n, float(np.var(e)))
-    vals = [np.var(e[i:i + W]) for i in range(0, n - W + 1, step)]
+    # Prefix sums make the native step=1 path linear in trace length.  The
+    # previous Python loop recomputed every overlapping window from scratch;
+    # that was numerically correct but made evidence-conditioned RAG tensors
+    # unnecessarily expensive (the same answer is scored under many LOO
+    # conditions).  The variance identity below is algebraically equivalent.
+    prefix = np.concatenate([[0.0], np.cumsum(e, dtype=float)])
+    prefix_sq = np.concatenate([[0.0], np.cumsum(e * e, dtype=float)])
+    positions = np.arange(0, n - W + 1, step, dtype=int)
+    sums = prefix[positions + W] - prefix[positions]
+    sums_sq = prefix_sq[positions + W] - prefix_sq[positions]
+    vals = np.maximum(sums_sq / W - (sums / W) ** 2, 0.0)
     if step != 1:
-        idx = np.arange(0, n - W + 1, step)
-        vals = np.interp(np.arange(n - W + 1), idx, vals)
+        vals = np.interp(np.arange(n - W + 1), positions, vals)
     return _causal(vals, W, n)
 
 
@@ -146,17 +155,24 @@ def _cusum_abs_series(e):
 
 
 def _rolling_min(e, W=SW_WINDOW):
-    """Trailing-window min, causal. `max` over all positions of this series recovers the
-    global min exactly: every token is inside its own window, so the series never exceeds
-    `e`, and at `argmin(e)` the window value equals the true global minimum."""
+    """Trailing-window min, causal. ``min`` over this series recovers the global min."""
     e = np.asarray(e, dtype=float)
     n = len(e)
     if n == 0:
         return np.zeros(0)
+    # A monotone deque computes the trailing minimum in O(n), while preserving
+    # the exact per-position values used by the original implementation.
+    from collections import deque
+
+    queue = deque()
     out = np.empty(n, dtype=float)
-    for i in range(n):
-        lo = max(0, i - W + 1)
-        out[i] = float(np.min(e[lo:i + 1]))
+    for i, value in enumerate(e):
+        while queue and queue[0] <= i - W:
+            queue.popleft()
+        while queue and e[queue[-1]] >= value:
+            queue.pop()
+        queue.append(i)
+        out[i] = e[queue[0]]
     return out
 
 

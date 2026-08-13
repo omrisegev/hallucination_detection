@@ -1,10 +1,53 @@
 # Evidence-Contrast U-PCR for RAG Hallucination Detection
 
-**Date:** 2026-08-08
-**Status:** Possible future research direction. Not implemented or validated.
+**Date:** 2026-08-08; executed 2026-08-10
+**Status:** Version 1 complete. Evidence-Contrast features succeeded; the
+DUFS/Laplacian mechanism did not. See
+`results/ragtruth_evidence_contrast_v1/REPORT.html`.
+
+## Version 1 result
+
+The registered experiment used 900 development responses and 2,700 test
+responses. Scores were fitted without labels and hashed before evaluation. On
+the 12,958-sentence QA/Data-to-Text LOO test cohort, EC-DUFS-LIU reached 0.7026
+AUROC versus 0.6721 for approximate GASP-top50: +0.0305 with paired grouped 95%
+interval [0.0237,0.0378].
+
+This is not evidence for the proposed graph mechanism. EC-IU-PCR reached
+0.7031; EC-DUFS-LIU minus EC-IU-PCR was -0.00048 with interval
+[-0.00061,-0.00034]. Permuted and ungated graphs were also tied with IU-PCR.
+The useful result is the Evidence-Contrast contract plus ordinary IU-PCR.
+
+Do not tune another graph on the opened RAGTruth test set. The next experiment
+should freeze EC-IU-PCR and test transfer, conflict hallucinations, and
+response-level nuisance robustness. Full mathematics, audit boundaries and
+limitations are in `results/ragtruth_evidence_contrast_v1/METHODS.md`.
+
+The old 30-feature intrinsic mixed-v2 response detector was reconstructed only
+as a separately hashed post-hoc audit. It scores 0.7629 pooled response AUROC,
+but 0.7698 on QA and 0.4345 on Data-to-Text. This task reversal confirms that
+its pooled value is not a robust RAG grounding result.
 
 Current field and benchmark map:
 `docs/research_notes/rag_localization_methods_and_benchmarks_2026.md`.
+
+## Follow-up: keep the original 30 features
+
+The next experiment corrected the scope of this direction. Instead of
+replacing mixed-v2 with 8/14 EC features, it extracted all 30 original features
+from every full, no-context and LOO trace. All 30 were available everywhere,
+and the full-only score reproduced the previous implementation exactly.
+
+Evidence removal materially improves cross-task transfer. Original-30 LOO
+IU-PCR raises task-macro AUROC from 0.6002 for full-only IU-PCR to 0.7164,
+with paired change +0.1163 [0.0795,0.1544]. It reaches 0.7178 on QA and 0.7150
+on Data-to-Text. GASP-top50 is still slightly higher at 0.7225 task-macro.
+
+DUFS adds only in the smaller no-context matrix (+0.0065 task-macro over
+IU-PCR). It adds approximately zero to LOO and Hybrid. The next external
+confirmation candidate is therefore Original-30 LOO IU-PCR, not a larger
+DUFS-LIU variant. Full details:
+`results/ragtruth_mixed_v2_evidence_aware_v1/REPORT.html`.
 
 ## Research question
 

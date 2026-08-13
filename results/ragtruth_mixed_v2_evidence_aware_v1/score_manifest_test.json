@@ -1,0 +1,118 @@
+{
+  "adapter_audit": {
+    "n_conditions": 16200,
+    "n_responses": 2700,
+    "n_sentences": 17747,
+    "response_positive_count": 943,
+    "sentence_positive_count": 1560,
+    "sidecar_manifest_sha256": "5f587bdf62da5e2eb57cd1e261b1bb762d376e1757e84d3cefd5796e9e17ec7c",
+    "sidecar_manifest_split": "test",
+    "sidecar_manifest_validated": true,
+    "task_condition_counts": {
+      "Data2txt": {
+        "full": 900,
+        "loo_0": 900,
+        "loo_1": 900,
+        "loo_2": 900,
+        "loo_3": 900,
+        "loo_4": 900,
+        "loo_5": 900,
+        "loo_6": 900,
+        "loo_7": 900,
+        "loo_8": 900,
+        "noctx": 900
+      },
+      "QA": {
+        "full": 900,
+        "loo_0": 900,
+        "loo_1": 900,
+        "loo_2": 900,
+        "noctx": 900
+      },
+      "Summary": {
+        "full": 900,
+        "noctx": 900
+      }
+    }
+  },
+  "all_original_features_available": true,
+  "cache_sha256": "4e22bc99d53587be5a1082c9e25720cb225dc04d3a5be87934fa06c9d3ca3f51",
+  "exact_full_mixed_v2_transform_error": 2.6645352591003757e-15,
+  "experiment": "ragtruth-original30-evidence-aware-v1-exploratory-2026-08-10",
+  "exploratory": true,
+  "label_free_scoring": true,
+  "labels_passed_to_fitting": false,
+  "n_original_features": 30,
+  "n_responses": 1800,
+  "python": "3.11.9",
+  "reason": "RAGTruth labels were opened by the earlier EC experiment",
+  "reference_scores": {
+    "methods": [
+      "gasp_top50",
+      "ec_iu_pcr",
+      "ec_dufs_liu"
+    ],
+    "path": "/Users/osegev/Desktop/hallucination_detection/results/ragtruth_evidence_contrast_v1_top50_correction/scores_test.npz",
+    "sha256": "ad76c383c68c9a37db2d0a2ee40f3a948da1559add68dba4b6824b8372376bfc",
+    "table": "full_response"
+  },
+  "score_sha256": "27b072439fc2405449e2f378826d24b7d8eb6349646b7c0ae622dc43a1d2f515",
+  "settings": {
+    "dufs_epochs": 80,
+    "dufs_seeds": [
+      11,
+      23,
+      37
+    ],
+    "graph_k": 7,
+    "lambda": 0.1,
+    "lambda_path": [
+      0.0,
+      0.1,
+      0.3,
+      1.0,
+      3.0,
+      10.0
+    ]
+  },
+  "split": "test",
+  "variants": {
+    "hybrid": {
+      "blocks": [
+        "ec_evidence",
+        "ec_intrinsic",
+        "full",
+        "loo_max_drop",
+        "loo_negative_std",
+        "loo_positive_mean_drop",
+        "loo_top2_mean_drop",
+        "noctx_drop"
+      ],
+      "nominal_columns": 194
+    },
+    "original30_full": {
+      "blocks": [
+        "full"
+      ],
+      "nominal_columns": 30
+    },
+    "original30_loo": {
+      "blocks": [
+        "full",
+        "loo_max_drop",
+        "loo_negative_std",
+        "loo_positive_mean_drop",
+        "loo_top2_mean_drop",
+        "noctx_drop"
+      ],
+      "nominal_columns": 180
+    },
+    "original30_noctx": {
+      "blocks": [
+        "full",
+        "noctx_drop"
+      ],
+      "nominal_columns": 60
+    }
+  }
+}

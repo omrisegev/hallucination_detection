@@ -1,0 +1,27 @@
+{
+  "checks": {
+    "dufs_not_worse_than_gasp": true,
+    "finite_and_noncollapsed_graph": true,
+    "not_primarily_length_or_chunk_count": true,
+    "stable_dufs_gates": true
+  },
+  "observed": {
+    "delta": 0.025271294291598467,
+    "dufs_mean_seed_std": 0.024986560080033162,
+    "ec_dufs_liu_auroc": 0.7135215891288659,
+    "gasp_top50_auroc": 0.6882502948372674,
+    "max_abs_confound_spearman": 0.10687373752907926,
+    "projected_condition_number": 2.2536372759294756,
+    "residualized_auroc_drop": 0.010880375279435195
+  },
+  "passed": true,
+  "rule": "All checks must pass before test labels are opened.",
+  "thresholds": {
+    "dufs_not_worse_than_gasp": 0.0,
+    "max_abs_length_or_chunk_spearman": 0.5,
+    "max_mean_dufs_seed_std": 0.15,
+    "max_projected_condition_number": 1000000000000.0,
+    "max_residualized_auroc_drop": 0.02,
+    "min_edges_per_node": 1.0
+  }
+}

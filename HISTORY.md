@@ -12193,3 +12193,67 @@ gray-box, one-pass at inference, unsupervised, built on the U-PCR family;
 families not mandatory; cached cross-model material is legal at calibration.
 
 ---
+
+### Step 253 — freeze one shared-feature RAG package and one reasoning package
+
+**Question**: Can the project stop branching across application variants and
+define one RAG pipeline and one reasoning pipeline that use the same agreed
+mixed-v2 features, while remaining competitive under paper-aligned protocols?
+
+**Shared contract**: completed the token-resolved feature audit. Twenty-nine
+token streams cover all 30 original mixed-v2 global features because the
+entropy CUSUM series maps to both CUSUM magnitude and change location. Added
+the previously missing trace-length stream. Eighteen streams reproduce their
+global counterpart exactly; eleven are explicit causal rolling analogues. The
+same fitted transformations and confidence orientations are used in both
+applications. No `sign(rho)` or label-based feature flipping is used.
+
+**RAG package**: constructed `X[i,t,c,f]` from full-context, no-context, and
+all available leave-one-chunk-out token traces. The fixed LOO matrix contains
+six blocks for each shared feature; the fixed no-context fallback contains two.
+Both use full-pool, two-component IU-PCR fitted without labels. Final token
+risk is averaged to sentence/claim and answer units only after fusion.
+RAGTruth test AUROC is 0.7276 [0.7041,0.7506] at answer level, 0.6893
+[0.6675,0.7129] at sentence level, and 0.6586 at token level. On the exact
+local GASP 400-response cohort, sentence AUROC is 0.6598 [0.6289,0.6916]
+versus 0.6556 [0.6182,0.6887] for the local GASP reproduction. The paper's
+0.673 is recorded only as a non-exact-ID reference. On QA and Data-to-Text,
+the current LOO task macro is 0.7157 versus 0.7164 for the earlier response-
+only Original-30 LOO IU experiment.
+
+**Reasoning package**: constructed `X[i,t,f]` over the uninterrupted reasoning
+trace, applied IU-PCR before step reduction, and defined step risk as maximum
+token risk. ProcessBench uses the registered global/local answer detector and
+a calibration-half operating threshold. Eight-cell macro F1 is 0.3070 versus
+0.2571 for Mind the Gap. On the matched Qwen3-8B four-subset protocol it is
+0.3035 versus 0.2496, with paired delta +0.0539 [0.0316,0.0773]; frozen GL-LIU
+is 0.3125. On PRMBench, the trajectory-first score reaches AUROC 0.6711,
+improving the old step-first IU adapter at 0.6136; supervised
+Qwen2.5-Math-PRM-7B remains higher at 0.7983.
+
+**Mechanism decision**: the final application heads use IU-PCR. DUFS/Laplacian
+is not removed from the repository, but it is not included in these fixed
+heads because completed matched controls did not show a stable incremental
+gain over IU-PCR. The useful innovation here is task structure before fusion:
+the evidence-condition axis in RAG and trajectory-first fusion in reasoning.
+
+**Reporting correction**: the first ProcessBench plot mixed an eight-cell
+local macro with four-subset published controls. It was corrected before the
+package was frozen. The comparison plot now uses Qwen3-8B and the same four
+subsets for every method; broader eight- and six-cell summaries are separate.
+The RAG report likewise separates the exact local GASP cohort from the paper
+reference. Every displayed result is loaded from CSV/JSON, and the manifest
+does not attempt to hash itself.
+
+**Decision**: freeze both application packages for advisor review. RAGTruth is
+exploratory because labels were already opened. Claims are limited to
+competitiveness with the matched label-free peers, not parity with supervised
+or large-judge ceilings.
+
+**Files**: `spectral_utils/token_feature_views.py`,
+`spectral_utils/fixed_application_pipelines.py`,
+`scripts/fixed_application_pipeline_experiment.py`,
+`scripts/test_fixed_application_pipelines.py`, and
+`results/fixed_application_pipelines_v1/`.
+
+---

@@ -1,0 +1,61 @@
+{
+  "created_utc": "2026-08-10T10:36:54Z",
+  "dev_gate": "development_gate.json",
+  "experiment": "ragtruth-evidence-contrast-v1-2026-08-10",
+  "feature_contract": "feature_contract.json",
+  "frozen_settings": {
+    "dufs_epochs": 80,
+    "dufs_seeds": [
+      11,
+      23,
+      37
+    ],
+    "graph_k": 7,
+    "lambda": 0.1,
+    "lambda_sensitivity_only": [
+      0.0,
+      0.1,
+      0.3,
+      1.0,
+      3.0,
+      10.0
+    ]
+  },
+  "grouping_unit": "source_id",
+  "intrinsic_mixed_v2_posthoc": "intrinsic_mixed_v2_posthoc_test.csv",
+  "intrinsic_mixed_v2_status": "available as a separately hashed posthoc response-level audit; excluded from the registered decision",
+  "label_policy": "score and hash each split before its labels are opened",
+  "splits": {
+    "dev": {
+      "evaluation_manifest": "evaluation_manifest_dev.json",
+      "input_cache_sha256": "78fe5a9a84a99af4a6bb89d006a1fca0cfa9fb3ac285f6f9543f272298c381f0",
+      "input_validation": "input_validation_dev.json",
+      "labels_opened": true,
+      "n_conditions": 5724,
+      "n_responses": 900,
+      "score_file": "scores_dev.npz",
+      "score_sha256": "0e2c6d66eb73f6d27f746f5d4047b7d8eb4fa563a33c122161ab087a34436f37"
+    },
+    "pilot": {
+      "evaluation_manifest": "evaluation_manifest_pilot.json",
+      "input_cache_sha256": "f7de82bba4a8a6362a75b71d3a422b21c31639fcf4dd065cbe4e0c43f46600a4",
+      "input_validation": null,
+      "labels_opened": true,
+      "n_conditions": 183,
+      "n_responses": 30,
+      "score_file": "scores_pilot.npz",
+      "score_sha256": "6d9f3d0c381559a3ca6514cce3b328cf0f09375cadfdbf39b2c78194d39b487c"
+    },
+    "test": {
+      "evaluation_manifest": "evaluation_manifest_test.json",
+      "input_cache_sha256": "4e22bc99d53587be5a1082c9e25720cb225dc04d3a5be87934fa06c9d3ca3f51",
+      "input_validation": "input_validation_test.json",
+      "labels_opened": true,
+      "n_conditions": 16200,
+      "n_responses": 2700,
+      "score_file": "scores_test.npz",
+      "score_sha256": "e6beb5d6a26efb07bdefc8d0e192acdd681d2643866fe82aada9e7601f22e20f"
+    }
+  },
+  "test_decision": "final_decision.json"
+}

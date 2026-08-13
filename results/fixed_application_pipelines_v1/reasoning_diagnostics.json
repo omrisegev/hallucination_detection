@@ -1,0 +1,943 @@
+{
+  "fixed_architecture": {
+    "answer_detector": "0.75 z(global mixed-v2 IU risk) + 0.25 z(max local step risk)",
+    "first_error": "argmax step risk after a calibration-half answer-error threshold",
+    "step_aggregation": "maximum token risk",
+    "token_streams": 29,
+    "trajectory_first": true
+  },
+  "prmbench": {
+    "n_scored_steps": 83280,
+    "positive_rate": 0.15782901056676274,
+    "token_model": {
+      "approximate_streams": 11,
+      "components": 2,
+      "contract": "shared-token-mixed-v2-applications-v1-2026-08-13",
+      "exact_streams": 18,
+      "g2_hat": 0.07441471571906356,
+      "labels_seen_during_fit": false,
+      "n_fit_tokens": 60000,
+      "n_input_streams": 29,
+      "n_kept_streams": 29,
+      "orientation_correlation": 0.9002056240643475,
+      "orientation_flipped": false,
+      "projection_residual": 0.24770538331368933,
+      "scale_ratio": 0.25,
+      "weight_norm": 0.10535247133823696
+    }
+  },
+  "processbench": {
+    "qwen3_4b/gsm8k": {
+      "detector_blend": {
+        "global": 0.75,
+        "local": 0.25
+      },
+      "global_model": {
+        "availability": {
+          "cusum_max": 1.0,
+          "cusum_max_energy": 1.0,
+          "cusum_max_spilled": 1.0,
+          "cusum_shift_idx": 1.0,
+          "dominant_freq": 1.0,
+          "epr": 1.0,
+          "epr_energy": 1.0,
+          "epr_spilled": 1.0,
+          "high_band_power": 1.0,
+          "hl_ratio": 1.0,
+          "hurst_exponent": 1.0,
+          "logprob_margin": 1.0,
+          "low_band_power": 1.0,
+          "mean_logprob_entropy": 1.0,
+          "mean_top1_logprob": 1.0,
+          "min_energy": 1.0,
+          "min_spilled": 1.0,
+          "pe_mean": 1.0,
+          "renyi_entropy_2": 1.0,
+          "rpdi": 1.0,
+          "spectral_centroid": 1.0,
+          "spectral_entropy": 1.0,
+          "stft_max_high_power": 1.0,
+          "stft_spectral_entropy": 1.0,
+          "sw_var_peak": 1.0,
+          "sw_var_peak_energy": 1.0,
+          "sw_var_peak_spilled": 1.0,
+          "topk_tail_mass": 1.0,
+          "trace_length": 1.0,
+          "varentropy": 1.0
+        },
+        "feature_names": [
+          "epr",
+          "trace_length",
+          "spectral_entropy",
+          "low_band_power",
+          "high_band_power",
+          "hl_ratio",
+          "dominant_freq",
+          "spectral_centroid",
+          "stft_max_high_power",
+          "stft_spectral_entropy",
+          "rpdi",
+          "sw_var_peak",
+          "pe_mean",
+          "hurst_exponent",
+          "cusum_max",
+          "cusum_shift_idx",
+          "epr_spilled",
+          "sw_var_peak_spilled",
+          "cusum_max_spilled",
+          "epr_energy",
+          "min_energy",
+          "sw_var_peak_energy",
+          "cusum_max_energy",
+          "mean_top1_logprob",
+          "logprob_margin",
+          "mean_logprob_entropy",
+          "varentropy",
+          "renyi_entropy_2",
+          "topk_tail_mass"
+        ],
+        "labels_seen_during_fit": false,
+        "mixed_v2_transforms": {
+          "cusum_shift_idx": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "pe_mean": {
+            "centre": 0.0,
+            "transform": "squared"
+          },
+          "rpdi": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "stft_spectral_entropy": {
+            "centre": 0.4875,
+            "transform": "mode"
+          }
+        },
+        "n_features": 29
+      },
+      "paired_vs_mindgap": {
+        "ci_high": 0.1159723865988843,
+        "ci_low": -0.015482870268375835,
+        "delta": 0.05049435309747806,
+        "positive_fraction": 0.93
+      },
+      "step_adapter": "maximum token risk after full-trajectory fusion",
+      "token_model": {
+        "approximate_streams": 11,
+        "components": 2,
+        "contract": "shared-token-mixed-v2-applications-v1-2026-08-13",
+        "exact_streams": 18,
+        "g2_hat": 0.06688963210702341,
+        "labels_seen_during_fit": false,
+        "n_fit_tokens": 60000,
+        "n_input_streams": 29,
+        "n_kept_streams": 29,
+        "orientation_correlation": 0.9075925759873656,
+        "orientation_flipped": false,
+        "projection_residual": 0.25582070325839923,
+        "scale_ratio": 0.25,
+        "weight_norm": 0.10501059209582363
+      }
+    },
+    "qwen3_4b/math": {
+      "detector_blend": {
+        "global": 0.75,
+        "local": 0.25
+      },
+      "global_model": {
+        "availability": {
+          "cusum_max": 1.0,
+          "cusum_max_energy": 1.0,
+          "cusum_max_spilled": 1.0,
+          "cusum_shift_idx": 1.0,
+          "dominant_freq": 1.0,
+          "epr": 1.0,
+          "epr_energy": 1.0,
+          "epr_spilled": 1.0,
+          "high_band_power": 1.0,
+          "hl_ratio": 1.0,
+          "hurst_exponent": 1.0,
+          "logprob_margin": 1.0,
+          "low_band_power": 1.0,
+          "mean_logprob_entropy": 1.0,
+          "mean_top1_logprob": 1.0,
+          "min_energy": 1.0,
+          "min_spilled": 1.0,
+          "pe_mean": 1.0,
+          "renyi_entropy_2": 1.0,
+          "rpdi": 1.0,
+          "spectral_centroid": 1.0,
+          "spectral_entropy": 1.0,
+          "stft_max_high_power": 1.0,
+          "stft_spectral_entropy": 1.0,
+          "sw_var_peak": 1.0,
+          "sw_var_peak_energy": 1.0,
+          "sw_var_peak_spilled": 1.0,
+          "topk_tail_mass": 1.0,
+          "trace_length": 1.0,
+          "varentropy": 1.0
+        },
+        "feature_names": [
+          "epr",
+          "trace_length",
+          "spectral_entropy",
+          "low_band_power",
+          "high_band_power",
+          "hl_ratio",
+          "dominant_freq",
+          "spectral_centroid",
+          "stft_max_high_power",
+          "stft_spectral_entropy",
+          "rpdi",
+          "sw_var_peak",
+          "pe_mean",
+          "hurst_exponent",
+          "cusum_max",
+          "cusum_shift_idx",
+          "epr_spilled",
+          "sw_var_peak_spilled",
+          "cusum_max_spilled",
+          "epr_energy",
+          "min_energy",
+          "sw_var_peak_energy",
+          "cusum_max_energy",
+          "mean_top1_logprob",
+          "logprob_margin",
+          "mean_logprob_entropy",
+          "varentropy",
+          "renyi_entropy_2",
+          "topk_tail_mass"
+        ],
+        "labels_seen_during_fit": false,
+        "mixed_v2_transforms": {
+          "cusum_shift_idx": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "pe_mean": {
+            "centre": 0.0,
+            "transform": "squared"
+          },
+          "rpdi": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "stft_spectral_entropy": {
+            "centre": 0.361,
+            "transform": "mode"
+          }
+        },
+        "n_features": 29
+      },
+      "paired_vs_mindgap": {
+        "ci_high": 0.07101951576521268,
+        "ci_low": -0.005518315757956124,
+        "delta": 0.03566471441232101,
+        "positive_fraction": 0.92
+      },
+      "step_adapter": "maximum token risk after full-trajectory fusion",
+      "token_model": {
+        "approximate_streams": 11,
+        "components": 2,
+        "contract": "shared-token-mixed-v2-applications-v1-2026-08-13",
+        "exact_streams": 18,
+        "g2_hat": 0.0903010033444816,
+        "labels_seen_during_fit": false,
+        "n_fit_tokens": 60000,
+        "n_input_streams": 29,
+        "n_kept_streams": 29,
+        "orientation_correlation": 0.9182872185822043,
+        "orientation_flipped": false,
+        "projection_residual": 0.1979875739260252,
+        "scale_ratio": 0.25,
+        "weight_norm": 0.11196121492688886
+      }
+    },
+    "qwen3_4b/olympiadbench": {
+      "detector_blend": {
+        "global": 0.75,
+        "local": 0.25
+      },
+      "global_model": {
+        "availability": {
+          "cusum_max": 1.0,
+          "cusum_max_energy": 1.0,
+          "cusum_max_spilled": 1.0,
+          "cusum_shift_idx": 1.0,
+          "dominant_freq": 1.0,
+          "epr": 1.0,
+          "epr_energy": 1.0,
+          "epr_spilled": 1.0,
+          "high_band_power": 1.0,
+          "hl_ratio": 1.0,
+          "hurst_exponent": 1.0,
+          "logprob_margin": 1.0,
+          "low_band_power": 1.0,
+          "mean_logprob_entropy": 1.0,
+          "mean_top1_logprob": 1.0,
+          "min_energy": 1.0,
+          "min_spilled": 1.0,
+          "pe_mean": 1.0,
+          "renyi_entropy_2": 1.0,
+          "rpdi": 1.0,
+          "spectral_centroid": 1.0,
+          "spectral_entropy": 1.0,
+          "stft_max_high_power": 1.0,
+          "stft_spectral_entropy": 1.0,
+          "sw_var_peak": 1.0,
+          "sw_var_peak_energy": 1.0,
+          "sw_var_peak_spilled": 1.0,
+          "topk_tail_mass": 1.0,
+          "trace_length": 1.0,
+          "varentropy": 1.0
+        },
+        "feature_names": [
+          "epr",
+          "trace_length",
+          "spectral_entropy",
+          "low_band_power",
+          "high_band_power",
+          "hl_ratio",
+          "dominant_freq",
+          "spectral_centroid",
+          "stft_max_high_power",
+          "stft_spectral_entropy",
+          "rpdi",
+          "sw_var_peak",
+          "pe_mean",
+          "hurst_exponent",
+          "cusum_max",
+          "cusum_shift_idx",
+          "epr_spilled",
+          "sw_var_peak_spilled",
+          "cusum_max_spilled",
+          "epr_energy",
+          "min_energy",
+          "sw_var_peak_energy",
+          "cusum_max_energy",
+          "mean_top1_logprob",
+          "logprob_margin",
+          "mean_logprob_entropy",
+          "varentropy",
+          "renyi_entropy_2",
+          "topk_tail_mass"
+        ],
+        "labels_seen_during_fit": false,
+        "mixed_v2_transforms": {
+          "cusum_shift_idx": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "pe_mean": {
+            "centre": 0.0,
+            "transform": "squared"
+          },
+          "rpdi": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "stft_spectral_entropy": {
+            "centre": 0.499,
+            "transform": "mode"
+          }
+        },
+        "n_features": 29
+      },
+      "paired_vs_mindgap": {
+        "ci_high": 0.09903914997026968,
+        "ci_low": 0.031170898391031727,
+        "delta": 0.06202961192642487,
+        "positive_fraction": 1.0
+      },
+      "step_adapter": "maximum token risk after full-trajectory fusion",
+      "token_model": {
+        "approximate_streams": 11,
+        "components": 2,
+        "contract": "shared-token-mixed-v2-applications-v1-2026-08-13",
+        "exact_streams": 18,
+        "g2_hat": 0.08612040133779267,
+        "labels_seen_during_fit": false,
+        "n_fit_tokens": 60000,
+        "n_input_streams": 29,
+        "n_kept_streams": 29,
+        "orientation_correlation": 0.9081883310259903,
+        "orientation_flipped": false,
+        "projection_residual": 0.19076904756792745,
+        "scale_ratio": 0.25,
+        "weight_norm": 0.10870889040863112
+      }
+    },
+    "qwen3_4b/omnimath": {
+      "detector_blend": {
+        "global": 0.75,
+        "local": 0.25
+      },
+      "global_model": {
+        "availability": {
+          "cusum_max": 1.0,
+          "cusum_max_energy": 1.0,
+          "cusum_max_spilled": 1.0,
+          "cusum_shift_idx": 1.0,
+          "dominant_freq": 1.0,
+          "epr": 1.0,
+          "epr_energy": 1.0,
+          "epr_spilled": 1.0,
+          "high_band_power": 1.0,
+          "hl_ratio": 1.0,
+          "hurst_exponent": 1.0,
+          "logprob_margin": 1.0,
+          "low_band_power": 1.0,
+          "mean_logprob_entropy": 1.0,
+          "mean_top1_logprob": 1.0,
+          "min_energy": 1.0,
+          "min_spilled": 1.0,
+          "pe_mean": 1.0,
+          "renyi_entropy_2": 1.0,
+          "rpdi": 1.0,
+          "spectral_centroid": 1.0,
+          "spectral_entropy": 1.0,
+          "stft_max_high_power": 1.0,
+          "stft_spectral_entropy": 1.0,
+          "sw_var_peak": 1.0,
+          "sw_var_peak_energy": 1.0,
+          "sw_var_peak_spilled": 1.0,
+          "topk_tail_mass": 1.0,
+          "trace_length": 1.0,
+          "varentropy": 1.0
+        },
+        "feature_names": [
+          "epr",
+          "trace_length",
+          "spectral_entropy",
+          "low_band_power",
+          "high_band_power",
+          "hl_ratio",
+          "dominant_freq",
+          "spectral_centroid",
+          "stft_max_high_power",
+          "stft_spectral_entropy",
+          "rpdi",
+          "sw_var_peak",
+          "pe_mean",
+          "hurst_exponent",
+          "cusum_max",
+          "cusum_shift_idx",
+          "epr_spilled",
+          "sw_var_peak_spilled",
+          "cusum_max_spilled",
+          "epr_energy",
+          "min_energy",
+          "sw_var_peak_energy",
+          "cusum_max_energy",
+          "mean_top1_logprob",
+          "logprob_margin",
+          "mean_logprob_entropy",
+          "varentropy",
+          "renyi_entropy_2",
+          "topk_tail_mass"
+        ],
+        "labels_seen_during_fit": false,
+        "mixed_v2_transforms": {
+          "cusum_shift_idx": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "pe_mean": {
+            "centre": 0.0,
+            "transform": "squared"
+          },
+          "rpdi": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "stft_spectral_entropy": {
+            "centre": 0.409,
+            "transform": "mode"
+          }
+        },
+        "n_features": 29
+      },
+      "paired_vs_mindgap": {
+        "ci_high": 0.07122188785551418,
+        "ci_low": 0.0018701860756164686,
+        "delta": 0.035714359265005206,
+        "positive_fraction": 0.99
+      },
+      "step_adapter": "maximum token risk after full-trajectory fusion",
+      "token_model": {
+        "approximate_streams": 11,
+        "components": 2,
+        "contract": "shared-token-mixed-v2-applications-v1-2026-08-13",
+        "exact_streams": 18,
+        "g2_hat": 0.08779264214046827,
+        "labels_seen_during_fit": false,
+        "n_fit_tokens": 60000,
+        "n_input_streams": 29,
+        "n_kept_streams": 29,
+        "orientation_correlation": 0.9126406313857521,
+        "orientation_flipped": false,
+        "projection_residual": 0.18680968074412463,
+        "scale_ratio": 0.25,
+        "weight_norm": 0.10944676133612355
+      }
+    },
+    "qwen3_8b/gsm8k": {
+      "detector_blend": {
+        "global": 0.75,
+        "local": 0.25
+      },
+      "global_model": {
+        "availability": {
+          "cusum_max": 1.0,
+          "cusum_max_energy": 1.0,
+          "cusum_max_spilled": 1.0,
+          "cusum_shift_idx": 1.0,
+          "dominant_freq": 1.0,
+          "epr": 1.0,
+          "epr_energy": 1.0,
+          "epr_spilled": 1.0,
+          "high_band_power": 1.0,
+          "hl_ratio": 1.0,
+          "hurst_exponent": 1.0,
+          "logprob_margin": 1.0,
+          "low_band_power": 1.0,
+          "mean_logprob_entropy": 1.0,
+          "mean_top1_logprob": 1.0,
+          "min_energy": 1.0,
+          "min_spilled": 1.0,
+          "pe_mean": 1.0,
+          "renyi_entropy_2": 1.0,
+          "rpdi": 1.0,
+          "spectral_centroid": 1.0,
+          "spectral_entropy": 1.0,
+          "stft_max_high_power": 1.0,
+          "stft_spectral_entropy": 1.0,
+          "sw_var_peak": 1.0,
+          "sw_var_peak_energy": 1.0,
+          "sw_var_peak_spilled": 1.0,
+          "topk_tail_mass": 1.0,
+          "trace_length": 1.0,
+          "varentropy": 1.0
+        },
+        "feature_names": [
+          "epr",
+          "trace_length",
+          "spectral_entropy",
+          "low_band_power",
+          "high_band_power",
+          "hl_ratio",
+          "dominant_freq",
+          "spectral_centroid",
+          "stft_max_high_power",
+          "stft_spectral_entropy",
+          "rpdi",
+          "sw_var_peak",
+          "pe_mean",
+          "hurst_exponent",
+          "cusum_max",
+          "cusum_shift_idx",
+          "epr_spilled",
+          "sw_var_peak_spilled",
+          "cusum_max_spilled",
+          "epr_energy",
+          "min_energy",
+          "sw_var_peak_energy",
+          "cusum_max_energy",
+          "mean_top1_logprob",
+          "logprob_margin",
+          "mean_logprob_entropy",
+          "varentropy",
+          "renyi_entropy_2",
+          "topk_tail_mass"
+        ],
+        "labels_seen_during_fit": false,
+        "mixed_v2_transforms": {
+          "cusum_shift_idx": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "pe_mean": {
+            "centre": 0.0,
+            "transform": "squared"
+          },
+          "rpdi": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "stft_spectral_entropy": {
+            "centre": 0.405,
+            "transform": "mode"
+          }
+        },
+        "n_features": 29
+      },
+      "paired_vs_mindgap": {
+        "ci_high": 0.1363293257091814,
+        "ci_low": -0.01624624090331946,
+        "delta": 0.06528828932227211,
+        "positive_fraction": 0.94
+      },
+      "step_adapter": "maximum token risk after full-trajectory fusion",
+      "token_model": {
+        "approximate_streams": 11,
+        "components": 2,
+        "contract": "shared-token-mixed-v2-applications-v1-2026-08-13",
+        "exact_streams": 18,
+        "g2_hat": 0.0710702341137124,
+        "labels_seen_during_fit": false,
+        "n_fit_tokens": 60000,
+        "n_input_streams": 29,
+        "n_kept_streams": 29,
+        "orientation_correlation": 0.9113033687427547,
+        "orientation_flipped": false,
+        "projection_residual": 0.24395462410195953,
+        "scale_ratio": 0.25,
+        "weight_norm": 0.106690282971222
+      }
+    },
+    "qwen3_8b/math": {
+      "detector_blend": {
+        "global": 0.75,
+        "local": 0.25
+      },
+      "global_model": {
+        "availability": {
+          "cusum_max": 1.0,
+          "cusum_max_energy": 1.0,
+          "cusum_max_spilled": 1.0,
+          "cusum_shift_idx": 1.0,
+          "dominant_freq": 1.0,
+          "epr": 1.0,
+          "epr_energy": 1.0,
+          "epr_spilled": 1.0,
+          "high_band_power": 1.0,
+          "hl_ratio": 1.0,
+          "hurst_exponent": 1.0,
+          "logprob_margin": 1.0,
+          "low_band_power": 1.0,
+          "mean_logprob_entropy": 1.0,
+          "mean_top1_logprob": 1.0,
+          "min_energy": 1.0,
+          "min_spilled": 1.0,
+          "pe_mean": 1.0,
+          "renyi_entropy_2": 1.0,
+          "rpdi": 1.0,
+          "spectral_centroid": 1.0,
+          "spectral_entropy": 1.0,
+          "stft_max_high_power": 1.0,
+          "stft_spectral_entropy": 1.0,
+          "sw_var_peak": 1.0,
+          "sw_var_peak_energy": 1.0,
+          "sw_var_peak_spilled": 1.0,
+          "topk_tail_mass": 1.0,
+          "trace_length": 1.0,
+          "varentropy": 1.0
+        },
+        "feature_names": [
+          "epr",
+          "trace_length",
+          "spectral_entropy",
+          "low_band_power",
+          "high_band_power",
+          "hl_ratio",
+          "dominant_freq",
+          "spectral_centroid",
+          "stft_max_high_power",
+          "stft_spectral_entropy",
+          "rpdi",
+          "sw_var_peak",
+          "pe_mean",
+          "hurst_exponent",
+          "cusum_max",
+          "cusum_shift_idx",
+          "epr_spilled",
+          "sw_var_peak_spilled",
+          "cusum_max_spilled",
+          "epr_energy",
+          "min_energy",
+          "sw_var_peak_energy",
+          "cusum_max_energy",
+          "mean_top1_logprob",
+          "logprob_margin",
+          "mean_logprob_entropy",
+          "varentropy",
+          "renyi_entropy_2",
+          "topk_tail_mass"
+        ],
+        "labels_seen_during_fit": false,
+        "mixed_v2_transforms": {
+          "cusum_shift_idx": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "pe_mean": {
+            "centre": 0.0,
+            "transform": "squared"
+          },
+          "rpdi": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "stft_spectral_entropy": {
+            "centre": 0.33,
+            "transform": "mode"
+          }
+        },
+        "n_features": 29
+      },
+      "paired_vs_mindgap": {
+        "ci_high": 0.08988959850108957,
+        "ci_low": -0.009562258825643478,
+        "delta": 0.0396354004137778,
+        "positive_fraction": 0.92
+      },
+      "step_adapter": "maximum token risk after full-trajectory fusion",
+      "token_model": {
+        "approximate_streams": 11,
+        "components": 2,
+        "contract": "shared-token-mixed-v2-applications-v1-2026-08-13",
+        "exact_streams": 18,
+        "g2_hat": 0.08695652173913042,
+        "labels_seen_during_fit": false,
+        "n_fit_tokens": 60000,
+        "n_input_streams": 29,
+        "n_kept_streams": 29,
+        "orientation_correlation": 0.9134143301134026,
+        "orientation_flipped": false,
+        "projection_residual": 0.19767554205043159,
+        "scale_ratio": 0.25,
+        "weight_norm": 0.1103287762414282
+      }
+    },
+    "qwen3_8b/olympiadbench": {
+      "detector_blend": {
+        "global": 0.75,
+        "local": 0.25
+      },
+      "global_model": {
+        "availability": {
+          "cusum_max": 1.0,
+          "cusum_max_energy": 1.0,
+          "cusum_max_spilled": 1.0,
+          "cusum_shift_idx": 1.0,
+          "dominant_freq": 1.0,
+          "epr": 1.0,
+          "epr_energy": 1.0,
+          "epr_spilled": 1.0,
+          "high_band_power": 1.0,
+          "hl_ratio": 1.0,
+          "hurst_exponent": 1.0,
+          "logprob_margin": 1.0,
+          "low_band_power": 1.0,
+          "mean_logprob_entropy": 1.0,
+          "mean_top1_logprob": 1.0,
+          "min_energy": 1.0,
+          "min_spilled": 1.0,
+          "pe_mean": 1.0,
+          "renyi_entropy_2": 1.0,
+          "rpdi": 1.0,
+          "spectral_centroid": 1.0,
+          "spectral_entropy": 1.0,
+          "stft_max_high_power": 1.0,
+          "stft_spectral_entropy": 1.0,
+          "sw_var_peak": 1.0,
+          "sw_var_peak_energy": 1.0,
+          "sw_var_peak_spilled": 1.0,
+          "topk_tail_mass": 1.0,
+          "trace_length": 1.0,
+          "varentropy": 1.0
+        },
+        "feature_names": [
+          "epr",
+          "trace_length",
+          "spectral_entropy",
+          "low_band_power",
+          "high_band_power",
+          "hl_ratio",
+          "dominant_freq",
+          "spectral_centroid",
+          "stft_max_high_power",
+          "stft_spectral_entropy",
+          "rpdi",
+          "sw_var_peak",
+          "pe_mean",
+          "hurst_exponent",
+          "cusum_max",
+          "cusum_shift_idx",
+          "epr_spilled",
+          "sw_var_peak_spilled",
+          "cusum_max_spilled",
+          "epr_energy",
+          "min_energy",
+          "sw_var_peak_energy",
+          "cusum_max_energy",
+          "mean_top1_logprob",
+          "logprob_margin",
+          "mean_logprob_entropy",
+          "varentropy",
+          "renyi_entropy_2",
+          "topk_tail_mass"
+        ],
+        "labels_seen_during_fit": false,
+        "mixed_v2_transforms": {
+          "cusum_shift_idx": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "pe_mean": {
+            "centre": 0.0,
+            "transform": "squared"
+          },
+          "rpdi": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "stft_spectral_entropy": {
+            "centre": 0.425,
+            "transform": "mode"
+          }
+        },
+        "n_features": 29
+      },
+      "paired_vs_mindgap": {
+        "ci_high": 0.10861879423701976,
+        "ci_low": 0.02842417603127324,
+        "delta": 0.06860226766831082,
+        "positive_fraction": 0.99
+      },
+      "step_adapter": "maximum token risk after full-trajectory fusion",
+      "token_model": {
+        "approximate_streams": 11,
+        "components": 2,
+        "contract": "shared-token-mixed-v2-applications-v1-2026-08-13",
+        "exact_streams": 18,
+        "g2_hat": 0.08528428093645488,
+        "labels_seen_during_fit": false,
+        "n_fit_tokens": 60000,
+        "n_input_streams": 29,
+        "n_kept_streams": 29,
+        "orientation_correlation": 0.9059343817496627,
+        "orientation_flipped": false,
+        "projection_residual": 0.18766154114581968,
+        "scale_ratio": 0.25,
+        "weight_norm": 0.10801031099577156
+      }
+    },
+    "qwen3_8b/omnimath": {
+      "detector_blend": {
+        "global": 0.75,
+        "local": 0.25
+      },
+      "global_model": {
+        "availability": {
+          "cusum_max": 1.0,
+          "cusum_max_energy": 1.0,
+          "cusum_max_spilled": 1.0,
+          "cusum_shift_idx": 1.0,
+          "dominant_freq": 1.0,
+          "epr": 1.0,
+          "epr_energy": 1.0,
+          "epr_spilled": 1.0,
+          "high_band_power": 1.0,
+          "hl_ratio": 1.0,
+          "hurst_exponent": 1.0,
+          "logprob_margin": 1.0,
+          "low_band_power": 1.0,
+          "mean_logprob_entropy": 1.0,
+          "mean_top1_logprob": 1.0,
+          "min_energy": 1.0,
+          "min_spilled": 1.0,
+          "pe_mean": 1.0,
+          "renyi_entropy_2": 1.0,
+          "rpdi": 1.0,
+          "spectral_centroid": 1.0,
+          "spectral_entropy": 1.0,
+          "stft_max_high_power": 1.0,
+          "stft_spectral_entropy": 1.0,
+          "sw_var_peak": 1.0,
+          "sw_var_peak_energy": 1.0,
+          "sw_var_peak_spilled": 1.0,
+          "topk_tail_mass": 1.0,
+          "trace_length": 1.0,
+          "varentropy": 1.0
+        },
+        "feature_names": [
+          "epr",
+          "trace_length",
+          "spectral_entropy",
+          "low_band_power",
+          "high_band_power",
+          "hl_ratio",
+          "dominant_freq",
+          "spectral_centroid",
+          "stft_max_high_power",
+          "stft_spectral_entropy",
+          "rpdi",
+          "sw_var_peak",
+          "pe_mean",
+          "hurst_exponent",
+          "cusum_max",
+          "cusum_shift_idx",
+          "epr_spilled",
+          "sw_var_peak_spilled",
+          "cusum_max_spilled",
+          "epr_energy",
+          "min_energy",
+          "sw_var_peak_energy",
+          "cusum_max_energy",
+          "mean_top1_logprob",
+          "logprob_margin",
+          "mean_logprob_entropy",
+          "varentropy",
+          "renyi_entropy_2",
+          "topk_tail_mass"
+        ],
+        "labels_seen_during_fit": false,
+        "mixed_v2_transforms": {
+          "cusum_shift_idx": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "pe_mean": {
+            "centre": 0.0,
+            "transform": "squared"
+          },
+          "rpdi": {
+            "centre": null,
+            "transform": "raw"
+          },
+          "stft_spectral_entropy": {
+            "centre": 0.406,
+            "transform": "mode"
+          }
+        },
+        "n_features": 29
+      },
+      "paired_vs_mindgap": {
+        "ci_high": 0.08080601296373714,
+        "ci_low": 0.003925088522713414,
+        "delta": 0.04195670285474955,
+        "positive_fraction": 0.98
+      },
+      "step_adapter": "maximum token risk after full-trajectory fusion",
+      "token_model": {
+        "approximate_streams": 11,
+        "components": 2,
+        "contract": "shared-token-mixed-v2-applications-v1-2026-08-13",
+        "exact_streams": 18,
+        "g2_hat": 0.08528428093645489,
+        "labels_seen_during_fit": false,
+        "n_fit_tokens": 60000,
+        "n_input_streams": 29,
+        "n_kept_streams": 29,
+        "orientation_correlation": 0.9076711875161585,
+        "orientation_flipped": false,
+        "projection_residual": 0.1865395950407247,
+        "scale_ratio": 0.25,
+        "weight_norm": 0.10798490597445556
+      }
+    }
+  }
+}

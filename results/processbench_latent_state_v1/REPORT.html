@@ -1,0 +1,73 @@
+<!doctype html><html><head><meta charset="utf-8"><title>IU-PCR latent-state localization</title>
+<style>body{font-family:Inter,Arial,sans-serif;max-width:1120px;margin:40px auto;padding:0 24px;color:#172033;line-height:1.55}h1{font-size:38px}h2{margin-top:38px;color:#174ea6}p,li{font-size:16px}img{width:100%;border:1px solid #dbe3ef;border-radius:12px;background:white}figure{margin:24px 0}.table-wrap{overflow-x:auto;margin:18px 0}table{width:100%;border-collapse:collapse}th,td{padding:10px 12px;border-bottom:1px solid #dbe3ef;text-align:left}th{background:#eef4fb;color:#174ea6}</style></head><body><h1>IU-PCR latent-state localization on ProcessBench</h1>
+<h2>Result</h2>
+<p><strong>Decision: NOT PROMOTED.</strong> The reversible IU-HMM changes all-cell ProcessBench</p>
+<p>F1 by <strong>-1.69 points</strong> and exact localization by</p>
+<p><strong>-1.49 points</strong> relative to the frozen core-five</p>
+<p>DUFS-LIU localizer. On the six cells not used by the earlier GL-LIU component</p>
+<p>selection, the differences are <strong>-1.58 F1 points</strong> and</p>
+<p><strong>-1.54 exact-localization points</strong>.</p>
+<p>The direct mechanism control is also negative: relative to the ordinary IU-PCR</p>
+<p>sequence that initializes it, the HMM changes PB-F1 by</p>
+<p><strong>-1.63 points</strong> and raw exact localization by</p>
+<p><strong>-1.42 points</strong>. The six non-selection cells are held-out</p>
+<p>method-selection cells from four dataset families and two scorer models; they</p>
+<p>are not six independent datasets.</p>
+<p>This comparison is exploratory: these ProcessBench labels were already opened</p>
+<p>in earlier project experiments. Labels were not used to fit IU-PCR, either HMM,</p>
+<p>the global detector, or any score. A separate process froze and hashed every</p>
+<p>score before the evaluation command read labels or step spans.</p>
+<h2>What the metrics mean</h2>
+<ul><li><strong>Exact localization</strong> is the percentage of erroneous traces whose predicted</li></ul>
+<p>  token maps to the annotated first erroneous reasoning step.</p>
+<ul><li><strong>Within one step</strong> also accepts the adjacent step.</li><li><strong>Clean accuracy</strong> is the percentage of fully correct traces on which the</li></ul>
+<p>  global detector abstains.</p>
+<ul><li><strong>ProcessBench F1</strong> is the harmonic mean of exact localization on erroneous</li></ul>
+<p>  traces and clean accuracy. It therefore tests both detection and placement.</p>
+<p>All headline tables are equal-cell macro averages. They do not pool every trace</p>
+<p>as though the two scorer-model views of a dataset were independent samples.</p>
+<h2>Methods</h2>
+<p>Every method except Mind the Gap uses the same frozen mixed-v2 DUFS-LIU global</p>
+<p>detector. The local input is always the same five token curves: entropy,</p>
+<p>entropy sliding variance, absolute entropy CUSUM, spilled-energy sliding</p>
+<p>variance, and absolute spilled-energy CUSUM.</p>
+<p>Ordinary two-component IU-PCR fuses these curves into one scalar token-risk</p>
+<p>sequence. The primary HMM has two reversible latent states. Its output at token</p>
+<p><code>t</code> is the posterior probability of entering the higher-IU-risk state at <code>t</code>.</p>
+<p>The absorbing HMM is a falsification control for the stronger assumption that</p>
+<p>the risk state persists after the first error. Both HMMs share one emission</p>
+<p>variance, use three deterministic starts, and select the valid start with the</p>
+<p>largest label-free likelihood. Failed state-separation or collapse guards fall</p>
+<p>back exactly to the IU-PCR argmax.</p>
+<h2>End-to-end results</h2>
+<div class="table-wrap"><table><thead><tr><th>System</th><th>All 8 PB-F1 (%)</th><th>Erroneous exact (%)</th><th>Clean accuracy (%)</th><th>Within-one SLA (%)</th><th>Non-selection 6 PB-F1 (%)</th></tr></thead><tbody><tr><td>IU-PCR core</td><td>31.67</td><td>22.00</td><td>58.66</td><td>46.29</td><td>31.41</td></tr><tr><td>Temporal LIU core</td><td>31.36</td><td>21.79</td><td>57.99</td><td>46.76</td><td>30.76</td></tr><tr><td>DUFS-LIU core</td><td>31.72</td><td>22.05</td><td>58.71</td><td>46.28</td><td>31.41</td></tr><tr><td>IU-HMM reversible</td><td>30.03</td><td>20.91</td><td>55.94</td><td>43.03</td><td>29.83</td></tr><tr><td>IU-HMM absorbing</td><td>12.64</td><td>7.62</td><td>47.99</td><td>23.49</td><td>12.44</td></tr><tr><td>Mind the Gap</td><td>25.71</td><td>17.84</td><td>48.63</td><td>39.35</td><td>24.74</td></tr></tbody></table></div>
+<figure><img src="figures/end_to_end_f1_per_cell.png" alt="End-to-end F1"></figure>
+<h2>Localizer results</h2>
+<div class="table-wrap"><table><thead><tr><th>Localizer</th><th>All 8 exact (%)</th><th>Within one step (%)</th><th>Mean signed step error</th><th>Normalized token distance (%)</th><th>Non-selection 6 exact (%)</th></tr></thead><tbody><tr><td>IU-PCR core</td><td>26.62</td><td>57.09</td><td>0.13</td><td>28.98</td><td>25.75</td></tr><tr><td>Temporal LIU core</td><td>26.41</td><td>57.18</td><td>0.07</td><td>28.56</td><td>25.14</td></tr><tr><td>DUFS-LIU core</td><td>26.70</td><td>57.10</td><td>0.14</td><td>28.95</td><td>25.78</td></tr><tr><td>IU-HMM reversible</td><td>25.20</td><td>52.26</td><td>-0.29</td><td>30.18</td><td>24.23</td></tr><tr><td>IU-HMM absorbing</td><td>8.73</td><td>28.23</td><td>2.61</td><td>55.70</td><td>8.43</td></tr><tr><td>Mind the Gap</td><td>22.25</td><td>49.68</td><td>0.78</td><td>—</td><td>21.04</td></tr></tbody></table></div>
+<figure><img src="figures/local_exact_macro.png" alt="Local exact"></figure>
+<figure><img src="figures/paired_f1_delta.png" alt="Paired F1 delta"></figure>
+<p>The 95% range across the existing repeated calibration splits is</p>
+<p>[-3.71, +0.76] F1 points.</p>
+<p>This is split variability, not an independent-data confidence interval.</p>
+<h2>Mechanism diagnostics</h2>
+<figure><img src="figures/hmm_diagnostics.png" alt="HMM diagnostics"></figure>
+<figure><img src="figures/posterior_diagnostics.png" alt="Posterior diagnostics"></figure>
+<div class="table-wrap"><table><thead><tr><th>Cell</th><th>HMM</th><th>Fallback</th><th>Separation (SD)</th><th>High occupancy (%)</th><th>Variance</th><th>P(0 to 1) (%)</th><th>P(1 to 0) (%)</th><th>Mean peak (%)</th><th>Entry entropy (%)</th><th>No credible entry (%)</th></tr></thead><tbody><tr><td>4b/gsm8k</td><td>reversible</td><td>no</td><td>2.29</td><td>31.24</td><td>0.47</td><td>1.22</td><td>2.96</td><td>68.95</td><td>42.20</td><td>4.75</td></tr><tr><td>4b/gsm8k</td><td>absorbing</td><td>no</td><td>1.56</td><td>11.36</td><td>0.80</td><td>0.05</td><td>0.00</td><td>3.96</td><td>9.17</td><td>88.50</td></tr><tr><td>4b/math</td><td>reversible</td><td>no</td><td>3.26</td><td>14.52</td><td>0.43</td><td>0.38</td><td>2.24</td><td>40.10</td><td>34.78</td><td>44.70</td></tr><tr><td>4b/math</td><td>absorbing</td><td>no</td><td>3.55</td><td>6.44</td><td>0.57</td><td>0.01</td><td>0.00</td><td>1.33</td><td>0.79</td><td>97.20</td></tr><tr><td>4b/olympiadbench</td><td>reversible</td><td>no</td><td>2.70</td><td>27.07</td><td>0.41</td><td>0.75</td><td>2.01</td><td>68.43</td><td>40.62</td><td>8.50</td></tr><tr><td>4b/olympiadbench</td><td>absorbing</td><td>no</td><td>1.18</td><td>37.90</td><td>0.75</td><td>0.08</td><td>0.00</td><td>8.04</td><td>19.13</td><td>68.00</td></tr><tr><td>4b/omnimath</td><td>reversible</td><td>no</td><td>2.89</td><td>14.89</td><td>0.48</td><td>0.33</td><td>1.86</td><td>42.27</td><td>42.74</td><td>33.70</td></tr><tr><td>4b/omnimath</td><td>absorbing</td><td>no</td><td>4.13</td><td>4.09</td><td>0.60</td><td>0.01</td><td>0.00</td><td>1.58</td><td>0.82</td><td>96.50</td></tr><tr><td>8b/gsm8k</td><td>reversible</td><td>no</td><td>2.26</td><td>37.22</td><td>0.45</td><td>1.19</td><td>2.54</td><td>81.38</td><td>37.30</td><td>3.50</td></tr><tr><td>8b/gsm8k</td><td>absorbing</td><td>no</td><td>1.61</td><td>10.38</td><td>0.80</td><td>0.04</td><td>0.00</td><td>3.54</td><td>8.10</td><td>89.25</td></tr><tr><td>8b/math</td><td>reversible</td><td>no</td><td>3.17</td><td>15.74</td><td>0.43</td><td>0.49</td><td>2.59</td><td>44.66</td><td>36.33</td><td>40.00</td></tr><tr><td>8b/math</td><td>absorbing</td><td>no</td><td>3.43</td><td>6.48</td><td>0.58</td><td>0.01</td><td>0.00</td><td>1.55</td><td>1.09</td><td>97.20</td></tr><tr><td>8b/olympiadbench</td><td>reversible</td><td>no</td><td>2.66</td><td>27.40</td><td>0.42</td><td>0.79</td><td>2.09</td><td>69.42</td><td>41.71</td><td>7.80</td></tr><tr><td>8b/olympiadbench</td><td>absorbing</td><td>no</td><td>1.23</td><td>32.82</td><td>0.75</td><td>0.07</td><td>0.00</td><td>8.57</td><td>17.63</td><td>68.60</td></tr><tr><td>8b/omnimath</td><td>reversible</td><td>no</td><td>2.74</td><td>17.48</td><td>0.48</td><td>0.44</td><td>2.07</td><td>47.90</td><td>44.15</td><td>26.00</td></tr><tr><td>8b/omnimath</td><td>absorbing</td><td>no</td><td>3.53</td><td>5.11</td><td>0.62</td><td>0.01</td><td>0.00</td><td>2.42</td><td>1.16</td><td>95.10</td></tr></tbody></table></div>
+<figure><img src="figures/error_aligned_entry.png" alt="Error-aligned entry probability"></figure>
+<p>The error-aligned plot includes only cells that produced a true posterior entry</p>
+<p>curve. A guarded fallback returns the IU-PCR risk curve and is never averaged</p>
+<p>with probabilities. Its sharp mean peak at the annotated boundary is an</p>
+<p>interesting mechanism observation, not a performance claim: every annotated</p>
+<p>error begins at a reasoning-step boundary, so a matched non-error-boundary</p>
+<p>control is still required to distinguish error onset from generic step syntax.</p>
+<figure><img src="figures/signed_step_error.png" alt="Signed step error"></figure>
+<figure><img src="figures/position_length.png" alt="Position-length diagnostic"></figure>
+<h2>Pre-declared decision panel</h2>
+<div class="table-wrap"><table><thead><tr><th>Condition</th><th>Result</th></tr></thead><tbody><tr><td>no reversible HMM fallback</td><td>PASS</td></tr><tr><td>all-cell exact localization improves</td><td>FAIL</td></tr><tr><td>non-selection exact localization improves</td><td>FAIL</td></tr><tr><td>all-cell ProcessBench F1 improves</td><td>FAIL</td></tr><tr><td>non-selection ProcessBench F1 improves</td><td>FAIL</td></tr><tr><td>no cell loses more than one F1 point</td><td>FAIL</td></tr></tbody></table></div>
+<h2>Interpretation boundary</h2>
+<p>An HMM gain would show that explicit temporal state transitions improve the</p>
+<p>same IU-PCR signal. It would not show that the hidden state is literally</p>
+<p>correctness. A likelihood gain without localization gain means the HMM found a</p>
+<p>stable temporal regime unrelated to the benchmark target. An absorbing-model</p>
+<p>failure would specifically reject persistent post-error telemetry, not the</p>
+<p>reversible onset model.</p></body></html>

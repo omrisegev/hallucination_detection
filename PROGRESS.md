@@ -1,27 +1,55 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-13
-**Last updated**: Step 252. The atomic failure is now fully *measured*, not
-just observed: the permutation band holds 3% of the target direction's mass
-(projection loss onto nuisance-set eigenvectors), positive anchors carry zero
-contrast-orientation information (band projection flips them to cos −0.17),
-and — decisive — even the supervised LOFO-transported global atomic direction
-scores ≈0 on the heterogeneous originals at any trust, so most atomic signal
-is cell-specific. Two more routes were closed by experiment with exact
-fidelity controls: γ̂3-sign-refined partitions (negative everywhere) and
-random-partition search with label-free selection (good random partitions
-exist, 3/50, but no label-free criterion finds them; lineage is the only
-label-free top-decile selection rule). A new label-free orientation
-instrument was established: the pooled cubic b-coupling γ̂3 recovers the
-supervised atomic direction at cos +0.76 (13/17 signs). Read
-`docs/research_notes/atomic_orientation_reply_2026-08-13.md` (§1–§11) before
-any new fusion-arm work. **Next decision (Omri)**: route (a) per-cell adaptive
-orientation anchored to family NRM, vs route (b) domain-conditional
-calibration (changes the deployment claim). Immediate cheap win available:
-replace family NRM's 0.065-margin all-ones sign bit with the γ̂3 sign bit
-(margin 0.56). Omri's ruling this session: gray-box, one-pass inference,
-unsupervised, built on U-PCR variants; families not mandatory; cached
-cross-model material legal at calibration.
+**Last updated**: Step 253. One fixed RAG pipeline and one fixed reasoning
+pipeline now use the same token-resolved mixed-v2 basis. The contract has 29
+token streams covering all 30 original global features: CUSUM magnitude and
+location share one stream, 18 reductions are exact, and 11 are disclosed
+causal rolling approximations. The final heads use two-component IU-PCR because
+completed DUFS/Laplacian controls did not show a stable incremental gain. RAG
+uses full/no-context/LOO evidence blocks; reasoning fuses the uninterrupted
+token trajectory before step aggregation. The generated report separates all
+matched-protocol comparisons from broader local summaries. Step 252's atomic
+orientation diagnosis remains immediately below; its cubic-orientation claim
+still requires code-to-memo reconciliation before promotion.
+
+## Fixed application pipelines — Step 253
+
+The RAG object is `X[i,t,c,f]`: response, answer token, evidence condition,
+and shared token feature. The fixed LOO head uses six blocks per feature
+(full, no-context drop, LOO maximum drop, top-two mean drop, positive mean
+drop, and negative LOO standard deviation). The no-context fallback uses full
+and full-minus-no-context blocks. Both are fitted without labels. On RAGTruth
+test, the resulting score reaches answer AUROC 0.7276 [0.7041,0.7506], sentence
+AUROC 0.6893 [0.6675,0.7129], and token AUROC 0.6586. On the exact local
+400-response GASP cohort, sentence AUROC is 0.6598 [0.6289,0.6916] versus
+0.6556 [0.6182,0.6887] for the local GASP reproduction; the published
+0.673 remains a non-exact-ID paper reference. On the two LOO tasks, the new
+task-macro answer AUROC is 0.7157, nearly identical to the earlier response-
+only Original-30 LOO IU result 0.7164.
+
+The reasoning object is `X[i,t,f]` on the full trace. IU-PCR is applied before
+reducing tokens to steps; step risk is the maximum token risk. ProcessBench
+uses a registered global/local answer gate and calibration-half operating
+threshold. Eight-cell macro F1 is 0.3070 versus 0.2571 for the Mind the Gap
+control. On the paper-aligned Qwen3-8B four-subset population, the comparison
+is 0.3035 versus 0.2496; the paired delta is +0.0539 [0.0316,0.0773]. Frozen
+GL-LIU is 0.3125, while the 72B critic and supervised PRM remain much higher.
+On PRMBench, trajectory-first IU reaches step AUROC 0.6711, improving the old
+step-first adapter at 0.6136 but remaining below Qwen2.5-Math-PRM-7B at
+0.7983.
+
+**Decision**: freeze these two application packages for advisor review. Do
+not add another fusion variant inside this experiment. The fair claims are
+that the RAG pipeline is competitive with the local GASP reproduction and the
+reasoning pipeline is competitive with the label-free Mind the Gap control;
+neither matches the supervised/large-judge ceilings. RAGTruth remains
+exploratory because labels had been opened before this run.
+
+Canonical artifacts: `spectral_utils/fixed_application_pipelines.py`,
+`scripts/fixed_application_pipeline_experiment.py`,
+`scripts/test_fixed_application_pipelines.py`, and
+`results/fixed_application_pipelines_v1/`.
 
 ## Atomic orientation diagnosis + route closures — Step 252
 
@@ -36,9 +64,11 @@ trust (in-cell ceiling +1.17pp reproduces); refined-partition NRM v0 negative
 everywhere with the family control reproducing +0.277/+0.557/+1.580 exactly;
 label-free partition selection uninformative (best pick +0.52 vs provenance
 +0.93). The transportable label-free direction is the family energy contrast,
-already captured by deployed NRM-CS-IU. The b-coupled γ̂3 channel is real as
-an orientation instrument (pooled cos +0.76, all nine within-family signs)
-and comes with reviewed assumptions and a relabeling stress-test harness.
+already captured by deployed NRM-CS-IU. The b-coupled γ̂3 channel is an
+orientation instrument under the implemented `{1,b}` residualization (pooled
+cos +0.76, all nine within-family signs), but the memo specifies the stricter
+`{1,b,φ2}` Gram–Schmidt construction. That mismatch must be resolved before
+the channel or its sign bit is promoted.
 
 ## Atomic NRM grouping audit — Step 251
 

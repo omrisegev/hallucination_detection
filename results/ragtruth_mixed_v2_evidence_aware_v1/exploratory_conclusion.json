@@ -1,0 +1,64 @@
+{
+  "confirmation_requirement": "Freeze one hypothesis and test it on a new benchmark or scorer before making a final method claim.",
+  "questions": {
+    "dufs_adds_beyond_iu_pcr": {
+      "any_variant_interval_excludes_zero": true,
+      "largest_observed_paired_gain": {
+        "challenger": "original30_noctx__dufs_liu",
+        "ci_high": 0.0041668202812601635,
+        "ci_low": 0.0016713402527984394,
+        "delta_auroc": 0.002819868916269952,
+        "probability_positive": 1.0,
+        "question": "DUFS contribution beyond IU-PCR",
+        "reference": "original30_noctx__iu_pcr",
+        "split": "test",
+        "task": "ALL"
+      },
+      "largest_task_macro_paired_gain": {
+        "challenger": "original30_noctx__dufs_liu",
+        "ci_high": 0.008474125945517743,
+        "ci_low": 0.0046660977729996445,
+        "delta_auroc": 0.006492482840450231,
+        "probability_positive": 1.0,
+        "question": "DUFS contribution beyond IU-PCR",
+        "reference": "original30_noctx__iu_pcr",
+        "split": "test",
+        "task": "MACRO_TASK"
+      }
+    },
+    "evidence_perturbation_improves_original_30": {
+      "any_registered_variant_interval_excludes_zero": true,
+      "largest_observed_paired_gain": {
+        "challenger": "original30_noctx__dufs_liu",
+        "ci_high": 0.05114015679666109,
+        "ci_low": 0.026165790985401997,
+        "delta_auroc": 0.03845785947589464,
+        "probability_positive": 1.0,
+        "question": "evidence gain over full-only",
+        "reference": "original30_full__dufs_liu",
+        "split": "test",
+        "task": "ALL"
+      },
+      "largest_task_macro_paired_gain": {
+        "challenger": "original30_loo__iu_pcr",
+        "ci_high": 0.1544407065560977,
+        "ci_low": 0.07946237064427311,
+        "delta_auroc": 0.11625747103969242,
+        "probability_positive": 1.0,
+        "question": "evidence gain over full-only",
+        "reference": "original30_full__iu_pcr",
+        "split": "test",
+        "task": "MACRO_TASK"
+      }
+    },
+    "original_30_useful_for_rag": {
+      "best_full_only_auroc": 0.7628823116038053,
+      "full_only_dufs_data2txt_auroc": 0.4344852818534481,
+      "full_only_dufs_qa_auroc": 0.7698395270270271,
+      "full_only_dufs_task_macro_auroc": 0.6021624044402376,
+      "gasp_top50_auroc": 0.6855291367323956,
+      "interpretation_rule": "Report ranking performance and comparison with GASP; do not treat test-selected superiority as confirmation."
+    }
+  },
+  "status": "exploratory comparison; not blinded confirmation"
+}

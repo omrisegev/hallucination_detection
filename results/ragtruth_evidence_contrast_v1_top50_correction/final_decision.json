@@ -1,0 +1,30 @@
+{
+  "checks": {
+    "at_least_one_auroc_point_over_gasp_top50": true,
+    "dufs_laplacian_improvement_over_iu_interval_excludes_zero": false,
+    "gasp_improvement_interval_excludes_zero": true,
+    "response_level_noninferiority": true,
+    "same_positive_sign_in_qa_and_data2txt": true
+  },
+  "classification": "feature-contract success; DUFS/Laplacian mechanism failure",
+  "interpretation": "Evidence-Contrast features plus IU-PCR outperform the approximate GASP baseline, but the registered DUFS-gated Laplacian does not add value beyond IU-PCR.",
+  "observed": {
+    "data2txt_delta_vs_gasp_top50": 0.020499980061112866,
+    "qa_delta_vs_gasp_top50": 0.022161452699291928,
+    "response_delta_vs_gasp_top50_ci": [
+      0.048643343709364135,
+      0.07493314859335327
+    ],
+    "sentence_delta_vs_ec_iu_pcr": -0.0005846956202781861,
+    "sentence_delta_vs_ec_iu_pcr_ci": [
+      -0.0007498021022349754,
+      -0.0004139053054455749
+    ],
+    "sentence_delta_vs_gasp_top50": 0.03055685123763674,
+    "sentence_delta_vs_gasp_top50_ci": [
+      0.024029941144157626,
+      0.03749174084841672
+    ]
+  },
+  "success": false
+}

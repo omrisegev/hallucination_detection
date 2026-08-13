@@ -169,7 +169,7 @@ def graph_diagnostics(graph, laplacian=None):
     }
 
 
-def dufs_soft_gates(F, *, seeds=(0, 1, 2), epochs=None):
+def dufs_soft_gates(F, *, seeds=(0, 1, 2), epochs=None, return_history=False):
     """Learn DUFS Eq.-7 gates and return continuous survival probabilities.
 
     This wraps the repository's paper-grounded DUFS implementation.  Gate
@@ -189,10 +189,17 @@ def dufs_soft_gates(F, *, seeds=(0, 1, 2), epochs=None):
     X = torch.tensor(F.T, dtype=torch.float32)
     epochs = EPOCHS_STAB if epochs is None else int(epochs)
     probabilities = []
+    histories = []
     for seed in seeds:
-        mu = _train_dufs(
-            X, 0.0, epochs, BATCH, int(seed), param_free=True
+        trained = _train_dufs(
+            X, 0.0, epochs, BATCH, int(seed), param_free=True,
+            return_history=bool(return_history),
         )
+        if return_history:
+            mu, history = trained
+            histories.append(history)
+        else:
+            mu = trained
         probabilities.append(ndtr(np.asarray(mu, dtype=float) / STG_SIGMA))
     per_seed = np.asarray(probabilities, dtype=float)
     raw = per_seed.mean(axis=0)
@@ -207,6 +214,8 @@ def dufs_soft_gates(F, *, seeds=(0, 1, 2), epochs=None):
         "effective_feature_count": float((raw.sum() ** 2) / (np.sum(raw ** 2) + _EPS)),
         "mean_seed_std": float(np.mean(per_seed.std(axis=0))),
     }
+    if return_history:
+        diagnostics["training_history"] = np.asarray(histories, dtype=float)
     return gates, diagnostics
 
 

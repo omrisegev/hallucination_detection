@@ -1,0 +1,53 @@
+{
+  "created_utc": "2026-08-10T11:00:17Z",
+  "dev_gate": "development_gate.json",
+  "experiment": "ragtruth-evidence-contrast-v1-top50-tail-protocol-correction-2026-08-10",
+  "feature_contract": "feature_contract.json",
+  "frozen_settings": {
+    "dufs_epochs": 80,
+    "dufs_seeds": [
+      11,
+      23,
+      37
+    ],
+    "graph_k": 7,
+    "lambda": 0.1,
+    "lambda_sensitivity_only": [
+      0.0,
+      0.1,
+      0.3,
+      1.0,
+      3.0,
+      10.0
+    ]
+  },
+  "grouping_unit": "source_id",
+  "intrinsic_mixed_v2_posthoc": "intrinsic_mixed_v2_posthoc_test.csv",
+  "intrinsic_mixed_v2_status": "available as a separately hashed posthoc response-level audit; excluded from the registered decision",
+  "label_policy": "score and hash each split before its labels are opened",
+  "protocol_correction": true,
+  "protocol_correction_reason": "The original blind run used saved full-vocabulary entropy where the approved contract specified top-50-plus-tail entropy. This run corrects that fixed formula after the original test labels had been opened; it is not a new blinded confirmation.",
+  "splits": {
+    "dev": {
+      "evaluation_manifest": "evaluation_manifest_dev.json",
+      "input_cache_sha256": "78fe5a9a84a99af4a6bb89d006a1fca0cfa9fb3ac285f6f9543f272298c381f0",
+      "input_validation": "input_validation_dev.json",
+      "labels_opened": true,
+      "n_conditions": 5724,
+      "n_responses": 900,
+      "score_file": "scores_dev.npz",
+      "score_sha256": "e4aa5ef969c6f16fc0a35645b43d19fad6be424069beb33cdc4416c810e9cfb2"
+    },
+    "test": {
+      "evaluation_manifest": "evaluation_manifest_test.json",
+      "input_cache_sha256": "4e22bc99d53587be5a1082c9e25720cb225dc04d3a5be87934fa06c9d3ca3f51",
+      "input_validation": "input_validation_test.json",
+      "labels_opened": true,
+      "n_conditions": 16200,
+      "n_responses": 2700,
+      "score_file": "scores_test.npz",
+      "score_sha256": "ad76c383c68c9a37db2d0a2ee40f3a948da1559add68dba4b6824b8372376bfc"
+    }
+  },
+  "test_decision": "final_decision.json"
+}

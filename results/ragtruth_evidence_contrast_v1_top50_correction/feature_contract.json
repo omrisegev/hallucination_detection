@@ -1,0 +1,98 @@
+{
+  "development_gate": {
+    "dufs_not_worse_than_gasp": 0.0,
+    "max_abs_length_or_chunk_spearman": 0.5,
+    "max_mean_dufs_seed_std": 0.15,
+    "max_projected_condition_number": 1000000000000.0,
+    "max_residualized_auroc_drop": 0.02,
+    "min_edges_per_node": 1.0
+  },
+  "dufs_epochs": 80,
+  "dufs_seeds": [
+    11,
+    23,
+    37
+  ],
+  "experiment": "ragtruth-evidence-contrast-v1-top50-tail-protocol-correction-2026-08-10",
+  "frozen_lambda": 0.1,
+  "gasp_boundary": "GASP-top50 approximates full-vocabulary JSD with top-50 union plus OTHER",
+  "graph_k": 7,
+  "hallucination_score": "negative fused grounding score; no label-based flip",
+  "lambda_sensitivity_only": [
+    0.0,
+    0.1,
+    0.3,
+    1.0,
+    3.0,
+    10.0
+  ],
+  "orientation": "every input feature is theory-oriented toward grounding",
+  "protocol_status": "fixed-formula correction after the original test labels had been opened; the formula was specified in the user-approved plan and was not selected from labels",
+  "tables": {
+    "full_response": {
+      "contract": "EC-full-v1",
+      "feature_names": [
+        "mean_full_target_logprob",
+        "negative_mean_full_top50_tail_entropy",
+        "mean_full_margin",
+        "negative_mean_full_tail_mass",
+        "mean_context_gap",
+        "q90_context_gap",
+        "mean_noctx_jsd_top50",
+        "mean_top50_tail_entropy_increase_noctx",
+        "max_loo_mean_drop",
+        "top2_loo_mean_drop",
+        "mean_positive_loo_drop",
+        "max_loo_mean_jsd_top50",
+        "top2_loo_mean_jsd_top50",
+        "fraction_tokens_positive_best_drop"
+      ]
+    },
+    "full_sentence": {
+      "contract": "EC-full-v1",
+      "feature_names": [
+        "mean_full_target_logprob",
+        "negative_mean_full_top50_tail_entropy",
+        "mean_full_margin",
+        "negative_mean_full_tail_mass",
+        "mean_context_gap",
+        "q90_context_gap",
+        "mean_noctx_jsd_top50",
+        "mean_top50_tail_entropy_increase_noctx",
+        "max_loo_mean_drop",
+        "top2_loo_mean_drop",
+        "mean_positive_loo_drop",
+        "max_loo_mean_jsd_top50",
+        "top2_loo_mean_jsd_top50",
+        "fraction_tokens_positive_best_drop"
+      ]
+    },
+    "noctx_response": {
+      "contract": "EC-noctx-v1",
+      "feature_names": [
+        "mean_full_target_logprob",
+        "negative_mean_full_top50_tail_entropy",
+        "mean_full_margin",
+        "negative_mean_full_tail_mass",
+        "mean_context_gap",
+        "q90_context_gap",
+        "mean_noctx_jsd_top50",
+        "mean_top50_tail_entropy_increase_noctx"
+      ]
+    },
+    "noctx_sentence": {
+      "contract": "EC-noctx-v1",
+      "feature_names": [
+        "mean_full_target_logprob",
+        "negative_mean_full_top50_tail_entropy",
+        "mean_full_margin",
+        "negative_mean_full_tail_mass",
+        "mean_context_gap",
+        "q90_context_gap",
+        "mean_noctx_jsd_top50",
+        "mean_top50_tail_entropy_increase_noctx"
+      ]
+    }
+  },
+  "version": "ragtruth-ec-v1-top50-tail-2026-08-10"
+}

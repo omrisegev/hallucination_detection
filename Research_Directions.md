@@ -3,6 +3,53 @@
 
 ---
 
+## Fixed application packages — Step 253
+
+The immediate application decision is now concrete: use one shared
+token-resolved mixed-v2 feature basis, but preserve the natural structure of
+each task before IU-PCR fusion.
+
+- **RAG:** represent the fixed answer under full context, no context, and each
+  available leave-one-chunk-out condition as `X[i,t,c,f]`. Build fixed evidence-
+  drop blocks from the same base feature streams, then fuse them with two-
+  component IU-PCR. Aggregate the resulting token curve only after fusion.
+- **Reasoning:** represent the uninterrupted trace as `X[i,t,f]`, fuse the
+  complete token trajectory first, and only then take the maximum risk inside
+  each reasoning step. A registered global/local gate handles ProcessBench's
+  no-error case.
+
+The shared contract contains 29 token streams and covers every one of the 30
+original mixed-v2 global features. CUSUM magnitude and location share one
+stream. Eighteen streams have an exact whole-trace reduction; eleven use
+documented causal rolling analogues. This is the agreed feature basis for both
+packages, not a replacement Evidence-Contrast feature set.
+
+The final application heads use **IU-PCR**, not DUFS-LIU-PCR. This is an
+evidence-based simplification: DUFS/Laplacian remains a useful control, but its
+increment beyond IU-PCR was approximately zero in the completed Original-30
+LOO, PRMBench, and broad-localization controls. The task axes themselves carry
+the useful structure here: evidence condition for RAG and token order for
+reasoning.
+
+Current evidence is competitive but bounded. The RAG score slightly exceeds
+the local GASP reproduction on the same 400 responses (sentence AUROC 0.6598
+versus 0.6556) and preserves the earlier Original-30 LOO response macro. The
+reasoning score beats Mind the Gap on all eight ProcessBench cells and on the
+matched Qwen3-8B four-subset macro (F1 0.3035 versus 0.2496; paired delta
++0.0539 [0.0316,0.0773]), while remaining
+close to frozen GL-LIU (0.3125). Trajectory-first fusion improves PRMBench IU
+AUROC from 0.6136 to 0.6711, but supervised PRM remains 0.7983.
+
+**Next research action:** review and freeze this package with the advisors,
+then confirm it on a benchmark whose labels were not used in prior development.
+Do not tune another RAGTruth or ProcessBench fusion variant. Any future DUFS
+claim must show an incremental gain over the corresponding IU head under the
+same feature matrix and protocol.
+
+Canonical artifact: `results/fixed_application_pipelines_v1/REPORT.html`.
+
+---
+
 ## Confirmed bounded exception — Neutral Residual Mode (Steps 247--250)
 
 The HARP-inspired contribution-space investigation found the first justified

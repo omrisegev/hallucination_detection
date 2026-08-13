@@ -1,0 +1,189 @@
+{
+  "baseline_references": [
+    {
+      "model": "qwen3_4b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/gl_liu_factorial_v2/diagnostics/qwen3_4b__gsm8k.json",
+      "sha256": "e876d5088c0b82229e0e03fec37ae34161b1e60be40844b1a399b925797c8a33",
+      "subset": "gsm8k"
+    },
+    {
+      "model": "qwen3_4b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/gl_liu_factorial_v2/diagnostics/qwen3_4b__math.json",
+      "sha256": "518efc09ea47d8f769fcc5cf154ca51e03a4351fb1013f207efa02fe9b96f735",
+      "subset": "math"
+    },
+    {
+      "model": "qwen3_4b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/gl_liu_factorial_v2/diagnostics/qwen3_4b__olympiadbench.json",
+      "sha256": "8a1a42be3bb428ed2e4915e5ba5658ec7fb964084478930be2d1817f1d1a4a8c",
+      "subset": "olympiadbench"
+    },
+    {
+      "model": "qwen3_4b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/gl_liu_factorial_v2/diagnostics/qwen3_4b__omnimath.json",
+      "sha256": "b9de374b788089343285569c909f15c315116b018807246c312c08ddf8446e38",
+      "subset": "omnimath"
+    },
+    {
+      "model": "qwen3_8b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/gl_liu_factorial_v2/diagnostics/qwen3_8b__gsm8k.json",
+      "sha256": "d901b92f836a40d507b3458239246f614c438933a0e4da28861cc265427263e4",
+      "subset": "gsm8k"
+    },
+    {
+      "model": "qwen3_8b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/gl_liu_factorial_v2/diagnostics/qwen3_8b__math.json",
+      "sha256": "2d6461b7cd4863140e234e69d70f6f4a5a12c64f6e848e57cbe04dcf17a4e931",
+      "subset": "math"
+    },
+    {
+      "model": "qwen3_8b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/gl_liu_factorial_v2/diagnostics/qwen3_8b__olympiadbench.json",
+      "sha256": "520ccafa9893fd01aaf6c13d49f01b8351054e11138ffa827841d23da9274455",
+      "subset": "olympiadbench"
+    },
+    {
+      "model": "qwen3_8b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/gl_liu_factorial_v2/diagnostics/qwen3_8b__omnimath.json",
+      "sha256": "fa756bb85fc53190109658b34fc99f8c0ba25acbc21a6407f6dc72ba443ebdb5",
+      "subset": "omnimath"
+    }
+  ],
+  "cells": [
+    {
+      "model": "qwen3_4b",
+      "subset": "gsm8k"
+    },
+    {
+      "model": "qwen3_4b",
+      "subset": "math"
+    },
+    {
+      "model": "qwen3_4b",
+      "subset": "olympiadbench"
+    },
+    {
+      "model": "qwen3_4b",
+      "subset": "omnimath"
+    },
+    {
+      "model": "qwen3_8b",
+      "subset": "gsm8k"
+    },
+    {
+      "model": "qwen3_8b",
+      "subset": "math"
+    },
+    {
+      "model": "qwen3_8b",
+      "subset": "olympiadbench"
+    },
+    {
+      "model": "qwen3_8b",
+      "subset": "omnimath"
+    }
+  ],
+  "feature_contract": [
+    "entropy_series",
+    "entropy_sw_var_series",
+    "entropy_cusum_abs_series",
+    "spilled_sw_var_series",
+    "spilled_cusum_abs_series"
+  ],
+  "global_detector": "mixed-v2 DUFS-LIU, lambda=0.1, k=7",
+  "hmm_seeds": [
+    11,
+    23,
+    37
+  ],
+  "inputs": [
+    {
+      "model": "qwen3_4b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_4b/processbench_gsm8k.pkl",
+      "sha256": "549843b11a99f41b60ccb13eb6a65c5583527402602e6e40d1a417699e64b02b",
+      "subset": "gsm8k"
+    },
+    {
+      "model": "qwen3_4b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_4b/processbench_math.pkl",
+      "sha256": "807292c490012b68c7a20cc3d093cda637866227940b9024b258b6a201657c32",
+      "subset": "math"
+    },
+    {
+      "model": "qwen3_4b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_4b/processbench_olympiadbench.pkl",
+      "sha256": "e5e73f044247e0fb4081fea1c3a77793aab182485daebce48cf7a3f7809eb0ae",
+      "subset": "olympiadbench"
+    },
+    {
+      "model": "qwen3_4b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_4b/processbench_omnimath.pkl",
+      "sha256": "ec20e56553acee15c0646ad266f5d5d8d24ef22ba87289b6ffe013b0c639ba67",
+      "subset": "omnimath"
+    },
+    {
+      "model": "qwen3_8b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_gsm8k.pkl",
+      "sha256": "c258e8a37fad43216290fef2f70c88735f413f8c0ceb5cce39dfefe67d66955d",
+      "subset": "gsm8k"
+    },
+    {
+      "model": "qwen3_8b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_math.pkl",
+      "sha256": "19cbbb2b4f90e073f2793360f142bc25334f88bbc4ec01fd78807f9f1ad2836d",
+      "subset": "math"
+    },
+    {
+      "model": "qwen3_8b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_olympiadbench.pkl",
+      "sha256": "2083c4f9d0cc8d84657b02558d0720f726db4288e39e7557be4c55f78f4d4e60",
+      "subset": "olympiadbench"
+    },
+    {
+      "model": "qwen3_8b",
+      "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_omnimath.pkl",
+      "sha256": "561b96c5e96a25256e7e51a62c7ef01bcb2fd87ea1adcfc36e2c758807f559a0",
+      "subset": "omnimath"
+    }
+  ],
+  "local_initializer": "ordinary full-pool two-component IU-PCR, lambda=0",
+  "minimum_seed_locator_agreement": 0.8,
+  "models": [
+    "qwen3_4b",
+    "qwen3_8b"
+  ],
+  "n_splits": 100,
+  "run_fingerprint": "e7fcce8f32d39cd0a673389b255d53ff78f3f7fc10487f3ec31bcc70622a32d2",
+  "source_sha256": {
+    "scripts/gl_liu_factorial_v2/run.py": "f06662789d5e6b467bd512dc6b62276bc74cac01aa011e2dcf9770a639abdd78",
+    "scripts/gl_liu_v1/evaluate_answer_level.py": "0c985ba0de68d42a52d5cf13c066ac7fdb7bf8f445573c9a487f7c255150a13a",
+    "scripts/gl_liu_v1/localization/evidence_drop.py": "d45dc7a9627864cc1ba88f5a0dc9972a90ea482c2321474f57f842a163126f38",
+    "scripts/gl_liu_v1/localization/localization_metrics.py": "34755693a75e8aff24a34a30f24ed319893a686d53c84a7440ccd4e3917f2267",
+    "scripts/gl_liu_v1/localization/positional_views.py": "f8a01d4702bc2f088659fe48849acd8de1395ddbd7947a82234950bc0b17792d",
+    "scripts/gl_liu_v1/optimize_localization.py": "707dde6333dbf735a8ae88660aa0af744b3c2b8c6c5753e5cd81c618d185d1cc",
+    "scripts/gl_liu_v1/run.py": "8bd4a40c1c7f67d0dcfa2837fa57d599748c502914d641a8f9ffab1c560eeb64",
+    "scripts/gl_liu_v1/two_stage_localization.py": "d9b1cc49e4a1dab235d85c2ed9a584a87f6c7842238afd183e066c3c5ddfd1fd",
+    "scripts/processbench_latent_state_v1/report.py": "a79b460acef8ad66bdc0e85e9ca464249948a60ce64e9d91194630de3cd8a917",
+    "scripts/processbench_latent_state_v1/run.py": "cbe55e62903253389d1647b2c0b1c0a33f68bc7043ad57577929d7bf721effaa",
+    "spectral_utils/adapted_dufs.py": "eb2328fc88de575bec9fb335f6cad94ef148d1507858d23a7765a3dff05fb5a3",
+    "spectral_utils/dufs_liu_feature_contract.py": "c674f7b6cfd1a82dcc63cd7cc26bbd3d53ef5f4d289dbcbb7eabe933670fdf2d",
+    "spectral_utils/feature_contract.py": "65ffba0bfc9bf4ded859d9ebffce9bd563a28652c47f5ed8d80ce91b64d4385d",
+    "spectral_utils/feature_utils.py": "b68bc5e1647742667fc20908321485bf9229954713b5da7215bf0f2629c74362",
+    "spectral_utils/fusion_utils.py": "1f47ed8f1d16a41532d85dfbacb0c0d727645aaf6921223e9e8e9f6ccc6fadd7",
+    "spectral_utils/laplacian_upcr.py": "f9e63be91a95179383c92c3bc2c539ae56f5dff34a48d084ecc81770215a2aec",
+    "spectral_utils/latent_state_localizer.py": "e6bcc4073c984d09330589bcef75fde44e280fe27cd6aa3ff8331a8bfed4459d",
+    "spectral_utils/repgrid_scoring.py": "b25e25f5c08fde40c9cb47b0f63f1915bf438362b97f2b68e482ae31c41cde79",
+    "spectral_utils/selectors/a2_groupfs.py": "5039aee811bc9f70dea8a85967497bbb0aa23875b46c0d76a76725fdec83704e",
+    "spectral_utils/streaming_utils.py": "03b57d452a5408a5f801db3cb13dbf2a91c3e7d809db95675c13d682d3616529",
+    "spectral_utils/token_feature_views.py": "d7c8a490fab79eba44d63e6f8707a8ae431c94032a0f5abe00c96ab86faaeda8",
+    "spectral_utils/upcr.py": "60c6ff461426d4c828ead210f04233815f45211a6f1a49a50ed37811c50c26cc"
+  },
+  "split_seed": 0,
+  "subsets": [
+    "gsm8k",
+    "math",
+    "olympiadbench",
+    "omnimath"
+  ],
+  "version": "processbench-latent-state-v1-2026-08-11"
+}

@@ -1,0 +1,130 @@
+{
+  "ambient_dimension": 6,
+  "bundle": "results/dependency_fusion_raw/cells.npz",
+  "bundle_sha256": "693a5b634f975ea32c7f840f3ab8366dd8ad638fe41cc76a60e24b1ac5a013e1",
+  "cells": [
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "sciq_llama8b",
+    "se_nq_open_llama8b",
+    "se_squad_v2_llama8b",
+    "seiclr_triviaqa_opt30b",
+    "semenergy_triviaqa_qwen3_8b",
+    "spilled_triviaqa_llama8b",
+    "truthfulqa_llama8b",
+    "ars_gsm8k_r1distill8b",
+    "internalstates_gsm8k_qwen25_7b",
+    "lapeigvals_gsm8k_llama3b",
+    "lapeigvals_gsm8k_llama8b",
+    "lapeigvals_gsm8k_mistral24b",
+    "lapeigvals_gsm8k_nemo",
+    "lapeigvals_gsm8k_phi35",
+    "noise_gsm8k_mistral7b",
+    "noise_gsm8k_phi3mini",
+    "math500_dsmath7b",
+    "math500_qwenmath7b",
+    "math500_r1distill8b",
+    "math500_r1distill8b_mn4096",
+    "trace_gsm8k_llama8b_k10",
+    "trace_math500_qwenmath15b_k10"
+  ],
+  "cp_full_seeds": [
+    11,
+    23,
+    37
+  ],
+  "cp_selection_seeds": [
+    11,
+    23,
+    37
+  ],
+  "domains": {
+    "ars_gsm8k_r1distill8b": "math",
+    "epr_triviaqa_mistral24b": "QA",
+    "internalstates_gsm8k_qwen25_7b": "math",
+    "lapeigvals_gsm8k_llama3b": "math",
+    "lapeigvals_gsm8k_llama8b": "math",
+    "lapeigvals_gsm8k_mistral24b": "math",
+    "lapeigvals_gsm8k_nemo": "math",
+    "lapeigvals_gsm8k_phi35": "math",
+    "losnet_hotpotqa_mistral7b": "QA",
+    "math500_dsmath7b": "math",
+    "math500_qwenmath7b": "math",
+    "math500_r1distill8b": "math",
+    "math500_r1distill8b_mn4096": "math",
+    "noise_gsm8k_mistral7b": "math",
+    "noise_gsm8k_phi3mini": "math",
+    "sciq_llama8b": "QA",
+    "se_nq_open_llama8b": "QA",
+    "se_squad_v2_llama8b": "QA",
+    "seiclr_triviaqa_opt30b": "QA",
+    "semenergy_triviaqa_qwen3_8b": "QA",
+    "spilled_triviaqa_llama8b": "QA",
+    "trace_gsm8k_llama8b_k10": "math",
+    "trace_math500_qwenmath15b_k10": "math",
+    "truthfulqa_llama8b": "QA"
+  },
+  "dufs": {
+    "epochs": 80,
+    "graph_k": 7,
+    "lambda": 0.1,
+    "seeds": [
+      11,
+      23,
+      37
+    ]
+  },
+  "feature_contract": "dufs-liu-mixed-v2-development-2026-08-07",
+  "labels_used_during_fit": false,
+  "nuisance_k": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "numpy": "2.4.6",
+  "python": "3.11.9",
+  "rank_guards": {
+    "full_CP_must_converge": true,
+    "maximum_loading_condition": 100.0,
+    "minimum_K3_split_stability": 0.75,
+    "minimum_full_CP_seed_agreement": 0.8,
+    "minimum_full_target_alignment": 0.2,
+    "minimum_near_best_frequency": 0.7,
+    "minimum_target_loading_stability": 0.75,
+    "minimum_target_margin": 0.05
+  },
+  "rank_rule": "smallest eligible rank within one SE of best held-out all-distinct-feature K3 loss",
+  "ranks": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "run_fingerprint": "77c302c5b2ba2df4ef0bc2f0b2b04c854cdd1306047449f83a2ad06634587803",
+  "scientific_status": "retrospective_mechanism_study",
+  "source_sha256": {
+    "scripts/coupled_moment_24cell_experiment.py": "891ca8a9a6234221431b1049700095fdfd1063ddea81e65e212a02afe0913030",
+    "scripts/hard_filter_dufs_liu_benchmark.py": "3db152d01b2293d9a0af7c4c76e0136349eeec4a763eec9c3f4ccd755d7a8257",
+    "scripts/inscope_cells.py": "d5b9c40af96ec0ee92931abb42e385e521f634b32378b30d9e6537e72b6f77e8",
+    "scripts/test_coupled_moment_fusion.py": "4f6e4b740fa567c8cfbe0d4658c86a8b8f880173a08dfbfc0404e118baa9e8f3",
+    "spectral_utils/coupled_moment_fusion.py": "7a4f5024ee69d6bf7ac72282a2c7e996ca41e860edc153a36f7c23f6e8ec46ee",
+    "spectral_utils/dependency_fusion.py": "85fe7f5be68e59c912948ca8e1de3eeaa7e68a26ef97403c21e1d721013dd456",
+    "spectral_utils/dufs_liu_feature_contract.py": "c674f7b6cfd1a82dcc63cd7cc26bbd3d53ef5f4d289dbcbb7eabe933670fdf2d",
+    "spectral_utils/feature_contract.py": "65ffba0bfc9bf4ded859d9ebffce9bd563a28652c47f5ed8d80ce91b64d4385d",
+    "spectral_utils/fusion_utils.py": "1f47ed8f1d16a41532d85dfbacb0c0d727645aaf6921223e9e8e9f6ccc6fadd7",
+    "spectral_utils/laplacian_upcr.py": "f9e63be91a95179383c92c3bc2c539ae56f5dff34a48d084ecc81770215a2aec",
+    "spectral_utils/selectors/a2_groupfs.py": "5039aee811bc9f70dea8a85967497bbb0aa23875b46c0d76a76725fdec83704e",
+    "spectral_utils/upcr.py": "60c6ff461426d4c828ead210f04233815f45211a6f1a49a50ed37811c50c26cc"
+  },
+  "split_seeds": [
+    101,
+    211,
+    307,
+    401
+  ],
+  "target_anchor": "maximum absolute cosine with IU-PCR rho_hat; orient positive; rho_hat re-estimated on each rank-selection training half",
+  "version": "cm-lff-mixed-v2-24cell-v1-2026-08-10"
+}

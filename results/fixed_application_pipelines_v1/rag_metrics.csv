@@ -1,0 +1,26 @@
+domain,benchmark,split,unit,method,auroc,auprc,n,positive_rate,auroc_ci_low,auroc_ci_high,auprc_ci_low,auprc_ci_high,bootstrap_draws,subgroup,metric_note,f1,precision,recall,reference_role,reported_metric,reported_value,reported_ci_low,reported_ci_high,example_f1,caveat
+RAG,RAGTruth,dev,answer,Fixed RAG IU-PCR,0.714295,0.6467472264414824,900,0.4444444444444444,0.6720316580140417,0.7549597940169922,0.5794020870890723,0.7145837443309984,1000,,,,,,,,,,,,
+RAG,RAGTruth,dev,answer,Fixed RAG IU-PCR,0.727254363283775,0.8418942265554268,342,0.695906432748538,,,,,,Data2txt,,,,,,,,,,,
+RAG,RAGTruth,dev,answer,Fixed RAG IU-PCR,0.7005509475086276,0.5446214365194877,282,0.29432624113475175,,,,,,QA,,,,,,,,,,,
+RAG,RAGTruth,dev,answer,Fixed RAG IU-PCR,0.6553363747349483,0.44162637977952135,276,0.286231884057971,,,,,,Summary,,,,,,,,,,,
+RAG,RAGTruth,dev,token,Fixed RAG IU-PCR,0.6962674125486561,0.09497982145254419,149285,0.05491509528753726,,,,,,,,,,,,,,,,,
+RAG,RAGTruth,dev,sentence,Fixed RAG IU-PCR,0.7029142322257775,0.2271628642218805,6230,0.11958266452648475,0.6727713846670076,0.7372890192712724,0.1721348142326583,0.3330281713595809,1000,,,,,,,,,,,,
+RAG,RAGTruth,test,answer,Fixed RAG IU-PCR,0.7275747789028706,0.5276799071091138,2700,0.34925925925925927,0.7041148436821818,0.7505657982733296,0.4886748091394483,0.5754800466670934,1000,,,,,,,,,,,,
+RAG,RAGTruth,test,answer,Fixed RAG IU-PCR,0.736057979436024,0.822920874369206,900,0.6433333333333333,,,,,,Data2txt,,,,,,,,,,,
+RAG,RAGTruth,test,answer,Fixed RAG IU-PCR,0.6953800675675674,0.3262284795575793,900,0.17777777777777778,,,,,,QA,,,,,,,,,,,
+RAG,RAGTruth,test,answer,Fixed RAG IU-PCR,0.6788229659679964,0.3772688156280625,900,0.22666666666666666,,,,,,Summary,,,,,,,,,,,
+RAG,RAGTruth,test,token,Fixed RAG IU-PCR,0.6586182644582129,0.0652916304197094,430202,0.04221040348487455,,,,,,,,,,,,,,,,,
+RAG,RAGTruth,test,sentence,Fixed RAG IU-PCR,0.6893185097886401,0.15525186461255702,17747,0.08790218065025075,0.6675011150379623,0.7128884628240234,0.13159365539174808,0.19028826341773902,1000,,,,,,,,,,,,
+RAG,RAGTruth,test,answer,Fixed RAG IU-PCR (dev threshold),,,2700,0.34925925925925927,,,,,,,example-level thresholded prediction,0.5482717520858165,0.38126813095731454,0.975609756097561,,,,,,,
+RAG,RAGTruth balanced GASP cohort,400-response sample,sentence,Fixed RAG IU-PCR,0.6597540158696661,0.15765991329608414,2714,0.10574797347089167,0.6288956344207512,0.6915893582249989,0.13003879979681882,0.2014365160128869,1000,,,,,,ours_frozen,,,,,,
+RAG,RAGTruth balanced GASP cohort,400-response sample,sentence,Fixed RAG IU-PCR,0.6364171040809572,0.17993464960870448,1712,0.13317757009345793,,,,,,Data2txt,,,,,ours_frozen,,,,,,
+RAG,RAGTruth balanced GASP cohort,400-response sample,sentence,Fixed RAG IU-PCR,0.6984380897604112,0.13702983488329454,1002,0.05888223552894212,,,,,,Summary,,,,,ours_frozen,,,,,,
+RAG,RAGTruth,test,character span,LettuceDetect (published),,,2700,,,,,,,all,,,,,published_ceiling,example_f1,0.7922,,,0.7922,"Different prediction unit from the scorer-token AUROC; shown as a ceiling, not a head-to-head row."
+RAG,RAGTruth,test,character span,LettuceDetect (local reproduction),,,2700,,,,,,,all,,,,,published_ceiling,example_f1,0.792899,,,0.792899,"Different prediction unit from the scorer-token AUROC; shown as a ceiling, not a head-to-head row."
+RAG,RAGTruth balanced GASP cohort,400-response sample,sentence,GASP-threshold,0.6555662272144529,,2714,,,,,,,all,,,,,protocol_reproduction,auroc,0.6555662272144529,0.6181674954846297,0.6887377022826654,,
+RAG,RAGTruth balanced GASP cohort,400-response sample,sentence,GASP-threshold,,0.15183375456662845,2714,,,,,,,all,,,,,protocol_reproduction,auprc,0.15183375456662845,0.12534705797765403,0.19089242177098875,,
+RAG,RAGTruth balanced GASP cohort,400-response sample,sentence,GASP-threshold,0.6112569158745922,,1712,,,,,,,Data2txt,,,,,protocol_reproduction,auroc,0.6112569158745922,0.5767846191373549,0.6443975412596117,,
+RAG,RAGTruth balanced GASP cohort,400-response sample,sentence,GASP-threshold,,0.16304438672083468,1712,,,,,,,Data2txt,,,,,protocol_reproduction,auprc,0.16304438672083468,0.1401117325097452,0.19268621388300108,,
+RAG,RAGTruth balanced GASP cohort,400-response sample,sentence,GASP-threshold,0.6907453672915507,,1002,,,,,,,Summary,,,,,protocol_reproduction,auroc,0.6907453672915507,0.5864115897843619,0.7738426754217393,,
+RAG,RAGTruth balanced GASP cohort,400-response sample,sentence,GASP-threshold,,0.12575105650804214,1002,,,,,,,Summary,,,,,protocol_reproduction,auprc,0.12575105650804214,0.0588939954453063,0.26750412384816,,
+RAG,RAGTruth balanced GASP cohort,paper sample,sentence,GASP (published),0.673,,400,,,,,,,published paper,,,,,published_peer,auroc,0.673,,,,The paper did not publish its exact IDs or splitter; do not subtract this value from local rows.

@@ -1,0 +1,1512 @@
+{
+  "dufs_liu": {
+    "dufs_gate": {
+      "effective_feature_count": 4.996178193764871,
+      "mean_probability": 0.973345484821589,
+      "mean_seed_std": 0.02826879081476047,
+      "near_one_fraction": 0.8,
+      "near_zero_fraction": 0.0,
+      "per_seed_probabilities": [
+        [
+          0.9913844060012239,
+          0.9964329957159321,
+          0.994446745944717,
+          0.9961030652991787,
+          0.883959103401343
+        ],
+        [
+          0.8135161091479546,
+          0.9945354800419799,
+          0.9951150988734282,
+          0.9964435236765588,
+          0.9921203818601121
+        ],
+        [
+          0.9784404081750023,
+          0.9793203586021121,
+          0.9959932328758554,
+          0.9966437465097904,
+          0.9957276161986449
+        ]
+      ],
+      "ranked_features": [
+        {
+          "feature": "spilled_sw_var_series",
+          "probability": 0.996396778495176
+        },
+        {
+          "feature": "entropy_cusum_abs_series",
+          "probability": 0.9951850258980003
+        },
+        {
+          "feature": "entropy_sw_var_series",
+          "probability": 0.9900962781200081
+        },
+        {
+          "feature": "spilled_cusum_abs_series",
+          "probability": 0.9572690338200333
+        },
+        {
+          "feature": "entropy_series",
+          "probability": 0.9277803077747269
+        }
+      ],
+      "raw_probabilities": [
+        0.9277803077747269,
+        0.9900962781200081,
+        0.9951850258980003,
+        0.996396778495176,
+        0.9572690338200333
+      ]
+    },
+    "feature_effective_rank": 4.041325323820911,
+    "feature_names": [
+      "entropy_series",
+      "entropy_sw_var_series",
+      "entropy_cusum_abs_series",
+      "spilled_sw_var_series",
+      "spilled_cusum_abs_series"
+    ],
+    "graph_kind": "dufs",
+    "laplacian": {
+      "algebraic_connectivity": 0.0,
+      "degree_max": 8.220888357993012,
+      "degree_mean": 4.30536459662576,
+      "degree_min": 0.01550869148709269,
+      "graph_symmetry_error": 0.0,
+      "n_components": 20,
+      "n_edges": 268268,
+      "n_nodes": 60000,
+      "projected_condition_number": 1.443248599532898,
+      "projected_roughness_scale": 73.10136838332569,
+      "projected_roughness_trace": 0.04134586163404658,
+      "roughness_effective_rank": 4.495282440397659,
+      "roughness_min_eigenvalue": 0.009025831619330437,
+      "roughness_symmetry_error": 0.0,
+      "score_laplacian_energy": 0.0011917714323578619,
+      "score_variance": 0.09116213002075996,
+      "weight_cosine_vs_iu": 0.9999832736615565,
+      "weight_norm": 0.22491213356583645,
+      "zero_equation_weight_error": 9.614531393253856e-14
+    },
+    "n_features": 5,
+    "n_fit_tokens": 60000
+  },
+  "feature_contract": [
+    "entropy_series",
+    "entropy_sw_var_series",
+    "entropy_cusum_abs_series",
+    "spilled_sw_var_series",
+    "spilled_cusum_abs_series"
+  ],
+  "feature_effective_rank": 4.041325323820911,
+  "fit_api_forbidden_keys": [
+    "final_answer_correct",
+    "gold",
+    "label",
+    "labels",
+    "problem",
+    "solution",
+    "step_token_spans",
+    "steps"
+  ],
+  "fit_chunks": [
+    [
+      459,
+      1337
+    ],
+    [
+      206,
+      1319
+    ],
+    [
+      222,
+      360
+    ],
+    [
+      162,
+      562
+    ],
+    [
+      711,
+      326
+    ],
+    [
+      814,
+      212
+    ],
+    [
+      350,
+      261
+    ],
+    [
+      890,
+      406
+    ],
+    [
+      518,
+      473
+    ],
+    [
+      264,
+      1681
+    ],
+    [
+      683,
+      175
+    ],
+    [
+      674,
+      769
+    ],
+    [
+      511,
+      362
+    ],
+    [
+      391,
+      498
+    ],
+    [
+      329,
+      1352
+    ],
+    [
+      325,
+      180
+    ],
+    [
+      81,
+      335
+    ],
+    [
+      201,
+      493
+    ],
+    [
+      582,
+      938
+    ],
+    [
+      380,
+      585
+    ],
+    [
+      945,
+      599
+    ],
+    [
+      970,
+      204
+    ],
+    [
+      813,
+      183
+    ],
+    [
+      734,
+      283
+    ],
+    [
+      652,
+      745
+    ],
+    [
+      509,
+      269
+    ],
+    [
+      25,
+      675
+    ],
+    [
+      584,
+      221
+    ],
+    [
+      36,
+      309
+    ],
+    [
+      651,
+      394
+    ],
+    [
+      583,
+      498
+    ],
+    [
+      144,
+      480
+    ],
+    [
+      209,
+      832
+    ],
+    [
+      8,
+      289
+    ],
+    [
+      467,
+      712
+    ],
+    [
+      164,
+      1154
+    ],
+    [
+      494,
+      444
+    ],
+    [
+      768,
+      705
+    ],
+    [
+      388,
+      1044
+    ],
+    [
+      158,
+      129
+    ],
+    [
+      631,
+      148
+    ],
+    [
+      926,
+      1025
+    ],
+    [
+      898,
+      653
+    ],
+    [
+      84,
+      223
+    ],
+    [
+      907,
+      154
+    ],
+    [
+      694,
+      293
+    ],
+    [
+      421,
+      144
+    ],
+    [
+      954,
+      591
+    ],
+    [
+      106,
+      828
+    ],
+    [
+      69,
+      466
+    ],
+    [
+      451,
+      957
+    ],
+    [
+      973,
+      132
+    ],
+    [
+      245,
+      801
+    ],
+    [
+      299,
+      799
+    ],
+    [
+      522,
+      738
+    ],
+    [
+      762,
+      664
+    ],
+    [
+      273,
+      391
+    ],
+    [
+      853,
+      256
+    ],
+    [
+      920,
+      181
+    ],
+    [
+      334,
+      881
+    ],
+    [
+      2,
+      480
+    ],
+    [
+      406,
+      439
+    ],
+    [
+      486,
+      765
+    ],
+    [
+      979,
+      191
+    ],
+    [
+      100,
+      431
+    ],
+    [
+      600,
+      664
+    ],
+    [
+      117,
+      357
+    ],
+    [
+      686,
+      235
+    ],
+    [
+      371,
+      734
+    ],
+    [
+      577,
+      648
+    ],
+    [
+      707,
+      292
+    ],
+    [
+      665,
+      570
+    ],
+    [
+      270,
+      262
+    ],
+    [
+      534,
+      123
+    ],
+    [
+      74,
+      227
+    ],
+    [
+      212,
+      297
+    ],
+    [
+      947,
+      235
+    ],
+    [
+      274,
+      413
+    ],
+    [
+      284,
+      828
+    ],
+    [
+      126,
+      403
+    ],
+    [
+      625,
+      141
+    ],
+    [
+      445,
+      365
+    ],
+    [
+      641,
+      607
+    ],
+    [
+      46,
+      973
+    ],
+    [
+      843,
+      546
+    ],
+    [
+      189,
+      1194
+    ],
+    [
+      958,
+      983
+    ],
+    [
+      978,
+      271
+    ],
+    [
+      12,
+      232
+    ],
+    [
+      420,
+      348
+    ],
+    [
+      53,
+      539
+    ],
+    [
+      594,
+      417
+    ],
+    [
+      498,
+      215
+    ],
+    [
+      220,
+      577
+    ],
+    [
+      567,
+      666
+    ],
+    [
+      208,
+      334
+    ],
+    [
+      555,
+      167
+    ],
+    [
+      519,
+      282
+    ],
+    [
+      269,
+      589
+    ],
+    [
+      297,
+      395
+    ],
+    [
+      679,
+      860
+    ],
+    [
+      292,
+      1275
+    ],
+    [
+      357,
+      1200
+    ],
+    [
+      374,
+      729
+    ],
+    [
+      416,
+      505
+    ],
+    [
+      865,
+      106
+    ],
+    [
+      337,
+      548
+    ],
+    [
+      870,
+      327
+    ],
+    [
+      876,
+      259
+    ],
+    [
+      821,
+      147
+    ],
+    [
+      705,
+      340
+    ],
+    [
+      530,
+      404
+    ],
+    [
+      859,
+      441
+    ],
+    [
+      928,
+      212
+    ],
+    [
+      767,
+      197
+    ],
+    [
+      447,
+      83
+    ],
+    [
+      981,
+      299
+    ],
+    [
+      912,
+      483
+    ],
+    [
+      505,
+      32
+    ]
+  ],
+  "fit_rows": [
+    459,
+    206,
+    222,
+    162,
+    711,
+    814,
+    350,
+    890,
+    518,
+    264,
+    683,
+    674,
+    511,
+    391,
+    329,
+    325,
+    81,
+    201,
+    582,
+    380,
+    945,
+    970,
+    813,
+    734,
+    652,
+    509,
+    25,
+    584,
+    36,
+    651,
+    583,
+    144,
+    209,
+    8,
+    467,
+    164,
+    494,
+    768,
+    388,
+    158,
+    631,
+    926,
+    898,
+    84,
+    907,
+    694,
+    421,
+    954,
+    106,
+    69,
+    451,
+    973,
+    245,
+    299,
+    522,
+    762,
+    273,
+    853,
+    920,
+    334,
+    2,
+    406,
+    486,
+    979,
+    100,
+    600,
+    117,
+    686,
+    371,
+    577,
+    707,
+    665,
+    270,
+    534,
+    74,
+    212,
+    947,
+    274,
+    284,
+    126,
+    625,
+    445,
+    641,
+    46,
+    843,
+    189,
+    958,
+    978,
+    12,
+    420,
+    53,
+    594,
+    498,
+    220,
+    567,
+    208,
+    555,
+    519,
+    269,
+    297,
+    679,
+    292,
+    357,
+    374,
+    416,
+    865,
+    337,
+    870,
+    876,
+    821,
+    705,
+    530,
+    859,
+    928,
+    767,
+    447,
+    981,
+    912,
+    505,
+    579,
+    786,
+    626,
+    991,
+    878,
+    199,
+    326,
+    484,
+    785,
+    194,
+    472,
+    558,
+    450,
+    365,
+    477,
+    829,
+    471,
+    105,
+    28,
+    793,
+    968,
+    635,
+    147,
+    141,
+    296,
+    925,
+    994,
+    539,
+    930,
+    68,
+    723,
+    590,
+    862,
+    49,
+    429,
+    480,
+    186,
+    972,
+    330,
+    358,
+    98,
+    389,
+    381,
+    580,
+    882,
+    714,
+    946,
+    464,
+    403,
+    611,
+    481,
+    673,
+    566,
+    720,
+    533,
+    502,
+    363,
+    903,
+    314,
+    89,
+    70,
+    94,
+    879,
+    412,
+    13,
+    901,
+    26,
+    31,
+    19,
+    922,
+    153,
+    634,
+    112,
+    676,
+    735,
+    340,
+    160,
+    812,
+    386,
+    769,
+    244,
+    54,
+    544,
+    121,
+    346,
+    344,
+    99,
+    56,
+    238,
+    401,
+    313,
+    23,
+    863,
+    990,
+    136,
+    529,
+    356,
+    181,
+    647,
+    398,
+    748,
+    803,
+    173,
+    931,
+    984,
+    672,
+    124,
+    439,
+    852,
+    629,
+    927,
+    234,
+    253,
+    953,
+    353,
+    474,
+    992,
+    508,
+    423,
+    195,
+    142,
+    905,
+    111,
+    150,
+    103,
+    628,
+    436,
+    5,
+    93,
+    538,
+    556,
+    138,
+    77,
+    323,
+    281,
+    609,
+    45,
+    989,
+    940,
+    747,
+    223,
+    964,
+    384,
+    833,
+    640,
+    376,
+    827,
+    771,
+    761,
+    697,
+    871,
+    868,
+    354,
+    744,
+    798,
+    318,
+    198,
+    512,
+    770,
+    910,
+    722,
+    817,
+    359,
+    479,
+    446,
+    422,
+    63,
+    221,
+    216,
+    888,
+    960,
+    468,
+    395,
+    956,
+    987,
+    140,
+    165,
+    291,
+    400,
+    261,
+    432,
+    290,
+    277,
+    360,
+    524,
+    462,
+    789,
+    908,
+    493,
+    818,
+    251,
+    623,
+    123,
+    781,
+    589,
+    874,
+    304,
+    869,
+    746,
+    576,
+    811,
+    433,
+    837,
+    37,
+    161,
+    58,
+    560,
+    643,
+    965,
+    163,
+    64,
+    475,
+    838,
+    168,
+    659,
+    109,
+    41,
+    756,
+    596,
+    303,
+    763,
+    101,
+    703,
+    120,
+    531,
+    366,
+    553,
+    548,
+    575,
+    731,
+    470,
+    578,
+    660,
+    551,
+    417,
+    716,
+    911,
+    227,
+    587,
+    872,
+    185,
+    513,
+    866,
+    321,
+    418,
+    760,
+    820,
+    119,
+    952,
+    24,
+    606,
+    170,
+    278,
+    514,
+    15,
+    155
+  ],
+  "frozen_baseline_reproduction": {
+    "available": true,
+    "evaluation_expected": {
+      "mindgap_locator": "327376bf081f9775a15a5fdcd6bd2f5dded05aaacd94d5a06f6d17fc0fa11f32"
+    },
+    "expected": {
+      "global_mixed_v2_dufs": "0c239f28883c10f91edb91e1780879b6975707d93a5097c20e01213073e8e8d4",
+      "local_dufs_core": "7d8f186bc2efdb7502cc4827b91807ab1699007274594dcb8297974d9311e3aa",
+      "local_temporal_core": "5558b8795c265a45967cc234a498cbb12419cf8a2f7bb5780b32a2abcc578741",
+      "mindgap_detector": "25e003e06dc2749728d6f7aff0b19776b7253cc2a8cf41b3c4d75287f9716e9f"
+    },
+    "passed": true,
+    "path": "/Users/osegev/Desktop/hallucination_detection/results/gl_liu_factorial_v2/diagnostics/qwen3_4b__math.json",
+    "path_sha256": "518efc09ea47d8f769fcc5cf154ca51e03a4351fb1013f207efa02fe9b96f735"
+  },
+  "global": {
+    "availability": {
+      "cusum_max": 1.0,
+      "cusum_max_energy": 1.0,
+      "cusum_max_spilled": 1.0,
+      "cusum_shift_idx": 1.0,
+      "dominant_freq": 1.0,
+      "epr": 1.0,
+      "epr_energy": 1.0,
+      "epr_spilled": 1.0,
+      "high_band_power": 1.0,
+      "hl_ratio": 1.0,
+      "hurst_exponent": 1.0,
+      "logprob_margin": 1.0,
+      "low_band_power": 1.0,
+      "mean_logprob_entropy": 1.0,
+      "mean_top1_logprob": 1.0,
+      "min_energy": 1.0,
+      "min_spilled": 1.0,
+      "pe_mean": 1.0,
+      "renyi_entropy_2": 1.0,
+      "rpdi": 1.0,
+      "spectral_centroid": 1.0,
+      "spectral_entropy": 1.0,
+      "stft_max_high_power": 1.0,
+      "stft_spectral_entropy": 1.0,
+      "sw_var_peak": 1.0,
+      "sw_var_peak_energy": 1.0,
+      "sw_var_peak_spilled": 1.0,
+      "topk_tail_mass": 1.0,
+      "trace_length": 1.0,
+      "varentropy": 1.0
+    },
+    "contract": {
+      "cusum_shift_idx": {
+        "centre": null,
+        "transform": "raw"
+      },
+      "pe_mean": {
+        "centre": 0.0,
+        "transform": "squared"
+      },
+      "rpdi": {
+        "centre": null,
+        "transform": "raw"
+      },
+      "stft_spectral_entropy": {
+        "centre": 0.361,
+        "transform": "mode"
+      }
+    },
+    "feature_names": [
+      "epr",
+      "trace_length",
+      "spectral_entropy",
+      "low_band_power",
+      "high_band_power",
+      "hl_ratio",
+      "dominant_freq",
+      "spectral_centroid",
+      "stft_max_high_power",
+      "stft_spectral_entropy",
+      "rpdi",
+      "sw_var_peak",
+      "pe_mean",
+      "hurst_exponent",
+      "cusum_max",
+      "cusum_shift_idx",
+      "epr_spilled",
+      "sw_var_peak_spilled",
+      "cusum_max_spilled",
+      "epr_energy",
+      "min_energy",
+      "sw_var_peak_energy",
+      "cusum_max_energy",
+      "mean_top1_logprob",
+      "logprob_margin",
+      "mean_logprob_entropy",
+      "varentropy",
+      "renyi_entropy_2",
+      "topk_tail_mass"
+    ],
+    "gate_effective_count": 18.73001271836951,
+    "n_features": 29
+  },
+  "hmm": {
+    "absorbing": {
+      "apply": {
+        "fallback_reason": null,
+        "fraction_without_entry_above_0p10": 0.972,
+        "mean_entry_mass": 2.799088488632176e-05,
+        "mean_normalized_entry_entropy": 0.007881614852294017,
+        "mean_normalized_entry_position": 0.9819923788733171,
+        "mean_peak_entry_probability": 0.013315417816115295,
+        "output_curve_kind": "posterior_state_entry_probability",
+        "selected_seed": 11,
+        "used_fallback": false
+      },
+      "candidates": [
+        {
+          "guard_failures": [],
+          "kind": "absorbing",
+          "log_likelihood": -68209.98772621948,
+          "means": [
+            -0.17251319010748797,
+            2.504263540040392
+          ],
+          "n_iter_used": 10,
+          "occupancy": [
+            0.9355668634165052,
+            0.06443313658349482
+          ],
+          "risk_mean": -1.5158245029548805e-17,
+          "risk_scale": 0.3884981093211556,
+          "seed": 11,
+          "separation": 3.551771761601143,
+          "start": [
+            1.0,
+            0.0
+          ],
+          "transition": [
+            [
+              0.9999107416341938,
+              8.925836580625233e-05
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ],
+          "valid": true,
+          "variance": 0.5679815078377606
+        },
+        {
+          "guard_failures": [],
+          "kind": "absorbing",
+          "log_likelihood": -68209.98772622936,
+          "means": [
+            -0.17251319040178004,
+            2.504263535824054
+          ],
+          "n_iter_used": 10,
+          "occupancy": [
+            0.9355668633571002,
+            0.06443313664289985
+          ],
+          "risk_mean": -1.5158245029548805e-17,
+          "risk_scale": 0.3884981093211556,
+          "seed": 23,
+          "separation": 3.551771756427093,
+          "start": [
+            1.0,
+            0.0
+          ],
+          "transition": [
+            [
+              0.999910741634174,
+              8.925836582595208e-05
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ],
+          "valid": true,
+          "variance": 0.5679815078281498
+        },
+        {
+          "guard_failures": [],
+          "kind": "absorbing",
+          "log_likelihood": -68209.98772623297,
+          "means": [
+            -0.17251319052338795,
+            2.504263534081771
+          ],
+          "n_iter_used": 10,
+          "occupancy": [
+            0.9355668633325528,
+            0.06443313666744717
+          ],
+          "risk_mean": -1.5158245029548805e-17,
+          "risk_scale": 0.3884981093211556,
+          "seed": 37,
+          "separation": 3.551771754289063,
+          "start": [
+            1.0,
+            0.0
+          ],
+          "transition": [
+            [
+              0.9999107416341659,
+              8.925836583410101e-05
+            ],
+            [
+              0.0,
+              1.0
+            ]
+          ],
+          "valid": true,
+          "variance": 0.5679815078241786
+        }
+      ],
+      "fallback": false,
+      "fallback_reason": null,
+      "fit": {
+        "candidate_guard_failures": [
+          [],
+          [],
+          []
+        ],
+        "candidate_log_likelihoods": [
+          -68209.98772621948,
+          -68209.98772622936,
+          -68209.98772623297
+        ],
+        "candidate_valid": [
+          true,
+          true,
+          true
+        ],
+        "mean_pair_exact_argmax_agreement": 1.0,
+        "mean_pair_normalized_argmax_displacement": 0.0,
+        "minimum_seed_locator_agreement": 0.8,
+        "n_fit_sequences": 119,
+        "n_fit_tokens": 60000,
+        "n_valid_candidates": 3,
+        "risk_mean": -1.5158245029548805e-17,
+        "risk_scale": 0.3884981093211556,
+        "seed_locator_agreement_guard_passed": true,
+        "selection_rule": "maximum unlabeled log likelihood among guard-valid starts"
+      },
+      "selected": {
+        "guard_failures": [],
+        "kind": "absorbing",
+        "log_likelihood": -68209.98772621948,
+        "means": [
+          -0.17251319010748797,
+          2.504263540040392
+        ],
+        "n_iter_used": 10,
+        "occupancy": [
+          0.9355668634165052,
+          0.06443313658349482
+        ],
+        "risk_mean": -1.5158245029548805e-17,
+        "risk_scale": 0.3884981093211556,
+        "seed": 11,
+        "separation": 3.551771761601143,
+        "start": [
+          1.0,
+          0.0
+        ],
+        "transition": [
+          [
+            0.9999107416341938,
+            8.925836580625233e-05
+          ],
+          [
+            0.0,
+            1.0
+          ]
+        ],
+        "valid": true,
+        "variance": 0.5679815078377606
+      }
+    },
+    "reversible": {
+      "apply": {
+        "fallback_reason": null,
+        "fraction_without_entry_above_0p10": 0.447,
+        "mean_entry_mass": 0.0026549160267561713,
+        "mean_normalized_entry_entropy": 0.3477720166949975,
+        "mean_normalized_entry_position": 0.4356337394809009,
+        "mean_peak_entry_probability": 0.4009593168083017,
+        "output_curve_kind": "posterior_state_entry_probability",
+        "selected_seed": 11,
+        "used_fallback": false
+      },
+      "candidates": [
+        {
+          "guard_failures": [],
+          "kind": "reversible",
+          "log_likelihood": -61525.91547293753,
+          "means": [
+            -0.3112768545978193,
+            1.8281126851355856
+          ],
+          "n_iter_used": 15,
+          "occupancy": [
+            0.8547552295986005,
+            0.14524477040139952
+          ],
+          "risk_mean": -1.5158245029548805e-17,
+          "risk_scale": 0.3884981093211556,
+          "seed": 11,
+          "separation": 3.2589373041190046,
+          "start": [
+            0.9999999915966388,
+            8.403361273955499e-09
+          ],
+          "transition": [
+            [
+              0.9961586612401949,
+              0.003841338759805088
+            ],
+            [
+              0.022427651077299784,
+              0.9775723489227003
+            ]
+          ],
+          "valid": true,
+          "variance": 0.43095083352062064
+        },
+        {
+          "guard_failures": [],
+          "kind": "reversible",
+          "log_likelihood": -61526.043156451655,
+          "means": [
+            -0.3116976344726018,
+            1.8257051953309964
+          ],
+          "n_iter_used": 14,
+          "occupancy": [
+            0.8545255701420605,
+            0.1454744298579395
+          ],
+          "risk_mean": -1.5158245029548805e-17,
+          "risk_scale": 0.3884981093211556,
+          "seed": 23,
+          "separation": 3.2559820562823605,
+          "start": [
+            0.9999999915966388,
+            8.403361273956333e-09
+          ],
+          "transition": [
+            [
+              0.9961526690293164,
+              0.003847330970683479
+            ],
+            [
+              0.022402111182754633,
+              0.9775978888172454
+            ]
+          ],
+          "valid": true,
+          "variance": 0.43093200937098947
+        },
+        {
+          "guard_failures": [],
+          "kind": "reversible",
+          "log_likelihood": -61525.91735085588,
+          "means": [
+            -0.3112842569338155,
+            1.828070288472166
+          ],
+          "n_iter_used": 15,
+          "occupancy": [
+            0.8547511839009063,
+            0.14524881609909365
+          ],
+          "risk_mean": -1.5158245029548805e-17,
+          "risk_scale": 0.3884981093211556,
+          "seed": 37,
+          "separation": 3.2588852634094003,
+          "start": [
+            0.9999999915966388,
+            8.40336127395551e-09
+          ],
+          "transition": [
+            [
+              0.9961585569689076,
+              0.0038414430310923955
+            ],
+            [
+              0.022427194655393345,
+              0.9775728053446067
+            ]
+          ],
+          "valid": true,
+          "variance": 0.43095049863015594
+        }
+      ],
+      "fallback": false,
+      "fallback_reason": null,
+      "fit": {
+        "candidate_guard_failures": [
+          [],
+          [],
+          []
+        ],
+        "candidate_log_likelihoods": [
+          -61525.91547293753,
+          -61526.043156451655,
+          -61525.91735085588
+        ],
+        "candidate_valid": [
+          true,
+          true,
+          true
+        ],
+        "mean_pair_exact_argmax_agreement": 1.0,
+        "mean_pair_normalized_argmax_displacement": 0.0,
+        "minimum_seed_locator_agreement": 0.8,
+        "n_fit_sequences": 119,
+        "n_fit_tokens": 60000,
+        "n_valid_candidates": 3,
+        "risk_mean": -1.5158245029548805e-17,
+        "risk_scale": 0.3884981093211556,
+        "seed_locator_agreement_guard_passed": true,
+        "selection_rule": "maximum unlabeled log likelihood among guard-valid starts"
+      },
+      "selected": {
+        "guard_failures": [],
+        "kind": "reversible",
+        "log_likelihood": -61525.91547293753,
+        "means": [
+          -0.3112768545978193,
+          1.8281126851355856
+        ],
+        "n_iter_used": 15,
+        "occupancy": [
+          0.8547552295986005,
+          0.14524477040139952
+        ],
+        "risk_mean": -1.5158245029548805e-17,
+        "risk_scale": 0.3884981093211556,
+        "seed": 11,
+        "separation": 3.2589373041190046,
+        "start": [
+          0.9999999915966388,
+          8.403361273955499e-09
+        ],
+        "transition": [
+          [
+            0.9961586612401949,
+            0.003841338759805088
+          ],
+          [
+            0.022427651077299784,
+            0.9775723489227003
+          ]
+        ],
+        "valid": true,
+        "variance": 0.43095083352062064
+      }
+    }
+  },
+  "labels_or_step_spans_read": false,
+  "model": "qwen3_4b",
+  "n_fit_sequences": 119,
+  "n_fit_tokens": 60000,
+  "n_rows": 1000,
+  "ordinary_iu": {
+    "anchor_flipped": false,
+    "derived_orientation": [
+      1.0,
+      1.0,
+      1.0,
+      -1.0,
+      1.0
+    ],
+    "n_components": 2,
+    "rho_hat": [
+      0.21398655567442967,
+      0.25452433181658707,
+      0.34101280644019183,
+      -0.0027388149002669226,
+      0.21935336752351056
+    ],
+    "weights": [
+      0.1223677470472383,
+      0.14181934356598228,
+      0.16998855547950806,
+      0.013375348030935132,
+      0.1400371152384015
+    ]
+  },
+  "score_hashes_before_evaluation": {
+    "global_mixed_v2_dufs": "0c239f28883c10f91edb91e1780879b6975707d93a5097c20e01213073e8e8d4",
+    "local_dufs_core": "7d8f186bc2efdb7502cc4827b91807ab1699007274594dcb8297974d9311e3aa",
+    "local_dufs_core__token_locator": "09755d11629a34b3d6cab53fd6142f3ac04ad9a91e9e8c1030f75dc397a278e2",
+    "local_hmm_absorbing_core_iu": "43d6c4ee5aa68337e28031150cea74194e6bc79259c1b85ad6750061889f7ac1",
+    "local_hmm_absorbing_core_iu__token_locator": "42196ccd5837d657f4f5b1edec43088cdcc94536517a244da19a51bd9385d4db",
+    "local_hmm_reversible_core_iu": "a2d44e812278c93f885e71e8d2b1a453b99f2f9bf09438e55f62f3a5a48f07e8",
+    "local_hmm_reversible_core_iu__token_locator": "95b8cbc190f990c6c7e9d6a0da29e337c2ca4570bd8c01833a30397a5a540d01",
+    "local_iu_core": "1fd024511d7468f67e5f7574207ff011cbaf8646af84e45b8911a095c40d7bf3",
+    "local_iu_core__token_locator": "da72b86688e41a090339ea922e086099ba42ab6dd641c475c2838c07b7514371",
+    "local_temporal_core": "5558b8795c265a45967cc234a498cbb12419cf8a2f7bb5780b32a2abcc578741",
+    "local_temporal_core__token_locator": "370d74c98874f75a19bff4fb7791c02ba44226f8915770d41e7e823ab354599f",
+    "mindgap_detector": "25e003e06dc2749728d6f7aff0b19776b7253cc2a8cf41b3c4d75287f9716e9f",
+    "mindgap_evidence": "d7fd3cad61ac92c3dfa35149addbd494c6181a4cabc024759858bb0777b23318",
+    "offsets": "5539c478ed76aaa3038e010451d5897056cdd4f4eb4363eaae8cec1fce5be5c9",
+    "row_ids": "1509a06c471e7bc8b744ddb6db21e853bf0737f17aa3aab31bfd7dc39388b618"
+  },
+  "subset": "math",
+  "temporal_liu": {
+    "feature_effective_rank": 4.041325323820911,
+    "feature_names": [
+      "entropy_series",
+      "entropy_sw_var_series",
+      "entropy_cusum_abs_series",
+      "spilled_sw_var_series",
+      "spilled_cusum_abs_series"
+    ],
+    "graph_kind": "temporal",
+    "laplacian": {
+      "algebraic_connectivity": 0.0,
+      "degree_max": 2.0,
+      "degree_mean": 1.9960333333333333,
+      "degree_min": 1.0,
+      "graph_symmetry_error": 0.0,
+      "n_components": 119,
+      "n_edges": 59881,
+      "n_nodes": 60000,
+      "projected_condition_number": 1.7047115907800032,
+      "projected_roughness_scale": 9.567737052392186,
+      "projected_roughness_trace": 0.3158990517701113,
+      "roughness_effective_rank": 1.2026069447423364,
+      "roughness_min_eigenvalue": 0.00018149063008860783,
+      "roughness_symmetry_error": 0.0,
+      "score_laplacian_energy": 0.004176066639093527,
+      "score_variance": 0.11999931633881111,
+      "weight_cosine_vs_iu": 0.9722165582165038,
+      "weight_norm": 0.2617728969371415,
+      "zero_equation_weight_error": 9.614531393253856e-14
+    },
+    "n_features": 5,
+    "n_fit_tokens": 60000
+  }
+}
