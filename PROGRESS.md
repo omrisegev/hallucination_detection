@@ -1,16 +1,44 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-13
-**Last updated**: Step 251. Atomic de-grouping of NRM was implemented under a
-pre-label freeze and rejected. A permutation-calibrated neutral projector fixed
-the high-dimensional single-eigenvector problem, but lost to IU and to frozen
-family NRM on original LOFO, Qwen/Llama ProcessBench, and SemGrad. Fifty
-cardinality-matched random partitions, deterministic refinements/coarsenings,
-and dependence-learned groups do not explain away the gap. A supervised atomic
-ceiling is stronger than the family ceiling, localizing the failure to
-label-free target orientation rather than missing atomic signal. NRM-CS-IU v1
-remains untouched and confirmed; its provenance grouping is now an explicit
-required inductive prior at the current evidence level.
+**Last updated**: Step 252. The atomic failure is now fully *measured*, not
+just observed: the permutation band holds 3% of the target direction's mass
+(projection loss onto nuisance-set eigenvectors), positive anchors carry zero
+contrast-orientation information (band projection flips them to cos −0.17),
+and — decisive — even the supervised LOFO-transported global atomic direction
+scores ≈0 on the heterogeneous originals at any trust, so most atomic signal
+is cell-specific. Two more routes were closed by experiment with exact
+fidelity controls: γ̂3-sign-refined partitions (negative everywhere) and
+random-partition search with label-free selection (good random partitions
+exist, 3/50, but no label-free criterion finds them; lineage is the only
+label-free top-decile selection rule). A new label-free orientation
+instrument was established: the pooled cubic b-coupling γ̂3 recovers the
+supervised atomic direction at cos +0.76 (13/17 signs). Read
+`docs/research_notes/atomic_orientation_reply_2026-08-13.md` (§1–§11) before
+any new fusion-arm work. **Next decision (Omri)**: route (a) per-cell adaptive
+orientation anchored to family NRM, vs route (b) domain-conditional
+calibration (changes the deployment claim). Immediate cheap win available:
+replace family NRM's 0.065-margin all-ones sign bit with the γ̂3 sign bit
+(margin 0.56). Omri's ruling this session: gray-box, one-pass inference,
+unsupervised, built on U-PCR variants; families not mandatory; cached
+cross-model material legal at calibration.
+
+## Atomic orientation diagnosis + route closures — Step 252
+
+An independent session reproduced the frozen Atomic Projector exactly
+(17 eigenvalues to 4 decimals, transfer deltas to the third decimal), then
+measured the failure and closed the follow-on routes. Everything is in
+`docs/research_notes/atomic_orientation_reply_2026-08-13.md` with scripts,
+logs and JSONs in `results/atomic_orientation_diag_2026-08-13/`. Headlines:
+band mass of the target 3.0% (63.6% on the rejected λ=2.04 mode); anchors
+anti-aligned after projection; supervised transport ≈0 on originals at every
+trust (in-cell ceiling +1.17pp reproduces); refined-partition NRM v0 negative
+everywhere with the family control reproducing +0.277/+0.557/+1.580 exactly;
+label-free partition selection uninformative (best pick +0.52 vs provenance
++0.93). The transportable label-free direction is the family energy contrast,
+already captured by deployed NRM-CS-IU. The b-coupled γ̂3 channel is real as
+an orientation instrument (pooled cos +0.76, all nine within-family signs)
+and comes with reviewed assumptions and a relabeling stress-test harness.
 
 ## Atomic NRM grouping audit — Step 251
 

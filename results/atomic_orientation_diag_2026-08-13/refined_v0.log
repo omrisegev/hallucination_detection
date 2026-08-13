@@ -1,0 +1,91 @@
+loading originals...
+23 cells, 48351 samples
+
+=== frozen (all-23) calibration: partition + diagnostics ===
+refined partition (10 groups):
+       entropy_dynamics+: cusum_shift_idx, dominant_freq, high_band_power, hl_ratio, hurst_exponent, low_band_power, pe_mean, rpdi, spectral_centroid, spectral_entropy, stft_max_high_power, stft_spectral_entropy, sw_var_peak
+       entropy_dynamics-: cusum_max
+           entropy_level: epr
+       partition_energy+: epr_energy, min_energy, sw_var_peak_energy
+       partition_energy-: cusum_max_energy
+   sampled_token_energy+: sw_var_peak_spilled
+   sampled_token_energy-: cusum_max_spilled, epr_spilled, min_spilled
+              structural: trace_length
+      topk_distribution+: logprob_margin, varentropy
+      topk_distribution-: mean_logprob_entropy, mean_top1_logprob, renyi_entropy_2, topk_tail_mass
+
+=== originals: leave-one-dataset-family-out ===
+  scored ars_gsm8k_r1distill8b
+  scored internalstates_gsm8k_qwen25_7b
+  scored lapeigvals_gsm8k_llama3b
+  scored lapeigvals_gsm8k_llama8b
+  scored lapeigvals_gsm8k_mistral24b
+  scored lapeigvals_gsm8k_nemo
+  scored lapeigvals_gsm8k_phi35
+  scored noise_gsm8k_mistral7b
+  scored noise_gsm8k_phi3mini
+  scored trace_gsm8k_llama8b_k10
+  scored losnet_hotpotqa_mistral7b
+  scored math500_dsmath7b
+  scored math500_qwenmath7b
+  scored math500_r1distill8b
+  scored math500_r1distill8b_mn4096
+  scored trace_math500_qwenmath15b_k10
+  scored se_nq_open_llama8b
+  scored sciq_llama8b
+  scored se_squad_v2_llama8b
+  scored epr_triviaqa_mistral24b
+  scored seiclr_triviaqa_opt30b
+  scored semenergy_triviaqa_qwen3_8b
+  scored truthfulqa_llama8b
+
+originals LOFO, equal-group delta vs IU (pp):
+          family_nrm: +0.277pp  W/L 15/8  worst -1.80
+     refined_g3_band: -0.290pp  W/L 12/11  worst -1.05
+      refined_g3_all: -0.182pp  W/L 8/15  worst -1.23
+  (published family NRM reference: +0.277pp)
+
+partition stability across LOFO folds (vs all-23 partition):
+  fold -gsm8k       : 8 atom reassignments
+  fold -hotpotqa    : 0 atom reassignments
+  fold -math500     : 0 atom reassignments
+  fold -nq_open     : 0 atom reassignments
+  fold -sciq        : 0 atom reassignments
+  fold -squad_v2    : 0 atom reassignments
+  fold -triviaqa    : 1 atom reassignments
+  fold -truthfulqa  : 1 atom reassignments
+
+=== frozen all-23 calibrations (for transfer) ===
+family_nrm: G=6  selected lambda=1.0354  band=[None, None]
+   direction: entropy_dynamics:-0.114, entropy_level:+0.094, partition_energy:+0.715, sampled_token_energy:-0.674, structural:+0.026, topk_distribution:+0.112
+refined_g3_band: G=10  selected lambda=1.0597  band=[0.9497900583212505, 1.053500348350677]
+   witness |cos|=0.011  per-mode: [0.069, 0.1, 0.089, 0.17, 0.081, 0.017, 0.011, 0.164, 0.949, 0.115]
+   direction: entropy_dynamics+:+0.281, entropy_dynamics-:-0.151, entropy_level:-0.029, partition_energy+:-0.655, partition_energy-:-0.290, sampled_token_energy+:+0.440, sampled_token_energy-:+0.195, structural:-0.345, topk_distribution+:-0.183, topk_distribution-:+0.012
+refined_g3_all: G=10  selected lambda=1.8438  band=[0.9497900583212505, 1.053500348350677]
+   witness |cos|=0.949  per-mode: [0.069, 0.1, 0.089, 0.17, 0.081, 0.017, 0.011, 0.164, 0.949, 0.115]
+   direction: entropy_dynamics+:+0.409, entropy_dynamics-:-0.434, entropy_level:-0.149, partition_energy+:+0.298, partition_energy-:-0.272, sampled_token_energy+:+0.020, sampled_token_energy-:-0.621, structural:-0.151, topk_distribution+:+0.032, topk_distribution-:-0.225
+
+=== ProcessBench transfer ===
+  scored qwen3_4b__gsm8k
+  scored qwen3_4b__math
+  scored qwen3_4b__olympiadbench
+  scored qwen3_4b__omnimath
+  scored qwen3_8b__gsm8k
+  scored qwen3_8b__math
+  scored qwen3_8b__olympiadbench
+  scored qwen3_8b__omnimath
+  scored llama31_8b__gsm8k
+  scored llama31_8b__math
+  scored llama31_8b__olympiadbench
+  scored llama31_8b__omnimath
+
+processbench_qwen equal-group delta vs IU (pp)  [published family NRM: +0.557]:
+          family_nrm: +0.557pp  W/L 7/1  worst -0.12
+     refined_g3_band: -0.896pp  W/L 0/8  worst -1.26
+      refined_g3_all: -0.291pp  W/L 0/8  worst -0.46
+processbench_llama equal-group delta vs IU (pp)  [published family NRM: +1.580]:
+          family_nrm: +1.580pp  W/L 4/0  worst +0.72
+     refined_g3_band: -1.433pp  W/L 0/4  worst -1.71
+      refined_g3_all: +0.088pp  W/L 3/1  worst -0.03
+
+done in 1191s -> C:\Users\DELL\AppData\Local\Temp\claude\C--Users-omris-TAU-hallucination-detection\3b450e72-3141-459f-9d3b-6ff3481bcc06\scratchpad\refined_partition_nrm_v0\RESULT.json

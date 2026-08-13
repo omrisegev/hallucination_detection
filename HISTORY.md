@@ -12136,3 +12136,60 @@ not consume untouched external labels and was not pivoted after labels.
 the three `results/atomic_*_v1/` directories.
 
 ---
+
+### Step 252 — measured diagnosis of the atomic failure; two more de-grouping routes closed; b-coupled orientation channel established
+
+**What**: An independent local session reproduced the frozen Atomic Projector
+exactly (all 17 eigenvalues to 4 decimals; frozen-direction transfer deltas to
+the third decimal) and then measured *why* it fails, answered the open
+target-orientation questions, and closed two further routes with new
+retrospective experiments. Full analysis:
+`docs/research_notes/atomic_orientation_reply_2026-08-13.md`; all scripts,
+logs and result JSONs: `results/atomic_orientation_diag_2026-08-13/`.
+
+**Diagnosis (three measured layers)**: (1) the permutation band holds only
+3.0% of the supervised target direction's mass — 63.6% sits on the rejected
+lambda=2.04 mode; the loss is projection onto nuisance-set eigenvectors, not a
+target spike (the plausible target eigenvalue is ~1.02, inside the band);
+(2) elementwise-positive anchors carry zero orientation information about a
+contrast — unprojected they point mildly toward the target (+0.30/+0.22),
+band projection flips them to -0.17; at family level the all-ones sign bit won
+by a 0.065 margin and the inverse-dependence anchor would have flipped it
+(cos -0.713 vs +0.713); (3) even the *supervised* LOFO-pooled global atomic
+direction scores ~0 on the heterogeneous originals at every trust scale
+(per-cell coherence median cos 0.394), while the in-cell ceiling (+1.17pp)
+reproduces — most atomic signal is cell-specific and non-transportable.
+
+**New label-free orientation channel**: the pooled cubic Hermite coupling of
+residuals to the IU score's nonlinearity (gamma3-hat) recovers the supervised
+atomic direction at cos +0.76 with 13/17 correct signs, including all nine
+within-family signs the provenance quotient cannot represent. It is an
+orientation instrument, not a corrector (scoring is capped by the transport
+wall). A 5-reviewer adversarial pass bounded its assumptions (unique-nonlinear-
+b-coupling premise, accuracy-band sign gating, sigma(b)-measurability caveat)
+and sharpened the non-identifiability theorem (binary-signature nuisances make
+R-only orientation strictly ambiguous).
+
+**Two more routes closed by experiment**: refined-partition NRM v0 (families
+split by pooled-gamma3 sign, G=10, witness-selected mode) is negative
+everywhere (-0.29/-0.90/-1.43 banded; -0.18/-0.29/+0.09 witness-selected)
+with an exact family-NRM fidelity control (+0.277/+0.557/+1.580 reproduced
+precisely); and random-partition search with label-free selection fails —
+3/50 random partitions do beat the provenance partition on 4-domain mean
+(best +1.21 vs +0.93; provenance ranks 4/51) but every label-free selection
+criterion is uninformative (Spearman -0.13..+0.27) and the best label-free
+pick scores only +0.52. Computation lineage is the only label-free
+partition-selection rule that lands top-decile.
+
+**Result**: the cross-domain-transportable label-free direction in
+IU-orthogonal residual space is the family energy contrast, which deployed
+NRM-CS-IU already captures; "a better frozen global direction" is closed as a
+route. Live candidates, pending discussion: (a) per-cell adaptive orientation
+shrunk toward family NRM (zero evidence => exactly family NRM), and (b)
+domain-conditional calibration (measured headroom on ProcessBench: supervised
++1.31pp, label-free +0.39pp on Llama), which changes the deployment claim and
+needs Omri's scope decision. Omri's ruling this session: methods must be
+gray-box, one-pass at inference, unsupervised, built on the U-PCR family;
+families not mandatory; cached cross-model material is legal at calibration.
+
+---

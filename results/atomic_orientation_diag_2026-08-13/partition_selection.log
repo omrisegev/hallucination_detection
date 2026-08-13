@@ -1,0 +1,33 @@
+loading originals...
+reproduced 50 partitions, groups ('random_0', 'random_1', 'random_2', 'random_3', 'random_4')
+fidelity: partition 36 originals LOFO through this pipeline: +0.514pp (published +0.514)
+  10/50 partitions done
+  20/50 partitions done
+  30/50 partitions done
+  40/50 partitions done
+  50/50 partitions done
+
+=== correlation of label-free criteria with labeled quality ===
+ criterion rho(mean4)  rho(orig)      top3 by criterion      their labeled means
+    C1_med     -0.107      0.105            [9, 42, 22]      [0.52, -0.74, -0.6]
+    C1_min      0.043     -0.065            [9, 25, 16]      [0.52, -0.82, 0.05]
+     C2_g3     -0.082      0.115            [32, 42, 7]      [0.32, -0.74, -0.3]
+    C3_gap     -0.074      0.003            [9, 11, 22]      [0.52, -0.66, -0.6]
+   C4_sign      0.273      0.360             [22, 9, 1]       [-0.6, 0.52, 0.99]
+    C_comb     -0.131      0.126            [42, 9, 46]     [-0.74, 0.52, -0.98]
+
+=== where do the labeled winners rank under each criterion? ===
+      C1_med: rank of #1=25, #24=23, #36=16  (of 50)
+      C1_min: rank of #1=49, #24=18, #36=22  (of 50)
+       C2_g3: rank of #1=42, #24=45, #36=41  (of 50)
+      C3_gap: rank of #1=41, #24=31, #36=22  (of 50)
+     C4_sign: rank of #1=3, #24=14, #36=20  (of 50)
+      C_comb: rank of #1=36, #24=40, #36=26  (of 50)
+
+=== the label-free choice, and what it would have scored ===
+  argmax C1_med: partition #9  labeled mean +0.520  per-domain {'original_23': 0.29, 'processbench_llama': 0.36, 'processbench_qwen': 0.81, 'semgrad': 0.62}
+  argmax C2_g3: partition #32  labeled mean +0.320  per-domain {'original_23': 0.01, 'processbench_llama': 0.62, 'processbench_qwen': 0.79, 'semgrad': -0.14}
+  argmax C_comb: partition #42  labeled mean -0.737  per-domain {'original_23': -0.13, 'processbench_llama': -0.23, 'processbench_qwen': -0.05, 'semgrad': -2.53}
+  family NRM reference mean: +0.931
+
+done in 7s

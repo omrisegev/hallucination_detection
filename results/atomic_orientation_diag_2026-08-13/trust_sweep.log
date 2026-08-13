@@ -1,0 +1,62 @@
+loading originals...
+calibrating (needed for codex direction)...
+g3 self-consistency (mean pairwise cos): +0.2694
+
+=== originals, LOFO pooling ===
+          fisher@1/p: +0.098pp  W/L 15/8
+              g3@1/p: +0.063pp  W/L 13/10
+           codex@1/p: -0.027pp  W/L 12/11
+          fisher@1/6: +0.063pp  W/L 15/8
+              g3@1/6: +0.001pp  W/L 11/12
+           codex@1/6: -0.370pp  W/L 6/17
+    fisher@1/sqrt(p): -0.052pp  W/L 13/10
+        g3@1/sqrt(p): -0.159pp  W/L 9/14
+     codex@1/sqrt(p): -0.761pp  W/L 6/17
+      fisher@selfcal: -0.110pp  W/L 13/10
+          g3@selfcal: -0.239pp  W/L 9/14
+       codex@selfcal: -0.950pp  W/L 5/18
+
+=== ProcessBench transfer, all-23 pooling ===
+  loaded+scored qwen3_4b__gsm8k
+  loaded+scored qwen3_4b__math
+  loaded+scored qwen3_4b__olympiadbench
+  loaded+scored qwen3_4b__omnimath
+  loaded+scored qwen3_8b__gsm8k
+  loaded+scored qwen3_8b__math
+  loaded+scored qwen3_8b__olympiadbench
+  loaded+scored qwen3_8b__omnimath
+  loaded+scored llama31_8b__gsm8k
+  loaded+scored llama31_8b__math
+  loaded+scored llama31_8b__olympiadbench
+  loaded+scored llama31_8b__omnimath
+
+processbench_qwen:
+          fisher@1/p: +0.285pp  W/L 8/0
+              g3@1/p: +0.005pp  W/L 3/5
+           codex@1/p: -0.074pp  W/L 2/6
+          fisher@1/6: +0.504pp  W/L 8/0
+              g3@1/6: -0.085pp  W/L 3/5
+           codex@1/6: -0.614pp  W/L 1/7
+    fisher@1/sqrt(p): +0.455pp  W/L 7/1
+        g3@1/sqrt(p): -0.217pp  W/L 2/6
+     codex@1/sqrt(p): -1.305pp  W/L 1/7
+      fisher@selfcal: +0.416pp  W/L 6/2
+          g3@selfcal: -0.260pp  W/L 2/6
+       codex@selfcal: -1.602pp  W/L 1/7
+         g3trans@1/6: -0.140pp  W/L 2/6
+processbench_llama:
+          fisher@1/p: +0.484pp  W/L 4/0
+              g3@1/p: +0.179pp  W/L 4/0
+           codex@1/p: -0.072pp  W/L 1/3
+          fisher@1/6: +1.051pp  W/L 4/0
+              g3@1/6: +0.342pp  W/L 4/0
+           codex@1/6: -0.503pp  W/L 1/3
+    fisher@1/sqrt(p): +1.306pp  W/L 4/0
+        g3@1/sqrt(p): +0.386pp  W/L 4/0
+     codex@1/sqrt(p): -1.106pp  W/L 0/4
+      fisher@selfcal: +1.345pp  W/L 4/0
+          g3@selfcal: +0.391pp  W/L 3/1
+       codex@selfcal: -1.368pp  W/L 0/4
+         g3trans@1/6: +0.357pp  W/L 4/0
+
+saved TRUST_SWEEP.json
