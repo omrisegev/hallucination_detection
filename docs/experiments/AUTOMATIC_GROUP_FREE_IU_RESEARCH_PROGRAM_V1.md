@@ -341,10 +341,10 @@ accessed. Canonical result:
 
 ### A6 — self-supervised intervention route
 
-**Status (Step 266): parent protocol and mechanically executable S0a/S0b/S1
-contract preregistered and independently audited; unsealed construction/PTNI
-development primitives implemented; no A6 telemetry, simulator result, natural
-response, correctness sidecar, sealed seed, or target opened.** The target is one
+**Status (Step 267): parent protocol and S0a/S0b/S1 contract frozen; S0a
+implemented and independently cleared at a stable source hash but not prepared
+or executed; no A6 telemetry, simulator result, natural response, correctness
+sidecar, sealed seed, or target opened.** The target is one
 mechanically parsed task-answer assertion,
 not RAG faithfulness or contextual support. Evidence removal from a fixed
 response therefore remains an ambiguous adjacent-task diagnostic rather than
@@ -389,13 +389,15 @@ received the independent verdict `NO BLOCKERS`. This freezes implementation
 choices; it does not open an execution boundary. The implemented source and
 runtime inputs must receive a fresh no-edit review before S0a execution.
 
-The Step-265 source is not an S0a/S1 boundary. Step 266 now specifies the
-jointly disjoint natural/PopQA prompt manifests, derived-answer quotas, exact
-pinned Qwen3/Llama tokenizer audit, target-manifest-bound duplicate preflight,
-named feature-permutation canonicalization, complete nested controls/nulls/LO
-selection, eight-world simulator, and append-only runner. Those items remain
-to be implemented and independently reviewed before any sealed seed or
-response telemetry may open.
+Step 267 implements the S0a-only subset: jointly disjoint quartet/natural/PopQA
+identities, derived-answer quotas, manifest/audit machinery for the exact
+pinned contextual tokenizers and EOS/pad rules, prompt-only target firewall,
+folds/null strata, and an
+append-only missing-only-resume/full-replay runner. Its five stable-hash
+adversarial rounds end in `NO BLOCKERS` with 89/89 tests passing. Exact
+tokenizer inputs and the concrete S0a boundary remain unopened. S0b and S1
+selection, controls, nulls, robustness, and simulator code remain separately
+unimplemented and forbidden until S0a passes.
 
 ### A7 — tiny-label orientation
 

@@ -12812,3 +12812,49 @@ including fail-closed offline input manifests, joint identity/fold/stratum
 audits, append-only preparation, and independent verification.
 
 ---
+
+# Step 267 — 2026-08-14: implement and clear the A6-S0a boundary code
+
+**Scope**: Implemented the complete pre-telemetry S0a construction and
+provenance-boundary code from the frozen Step-266 contract. No exact tokenizer
+snapshot was loaded, no boundary was prepared, and no response, telemetry,
+correctness sidecar, PopQA content, retrospective target, or sealed S1 seed was
+opened.
+
+**Mechanical implementation**: Added the exact 1,800 reciprocal quartet and 6,000
+prompt-only natural schedules, global semantic/prompt/source/donor/template
+collision replay, derived-answer quotas, contextual chat-prefix/response-span
+token audits, five-way inner folds, partition-specific null-stratum merges,
+opaque PopQA reservation, and the Llama future-sidecar schema. Natural rows use
+an exact recursive target firewall and bind every public identity to its frozen
+slot.
+
+**Offline provenance**: Added boundary-preparation and verification code that
+will verify all three exact Hugging Face repo/revision cache identities before
+project/Transformers import, copy only content-addressed tokenizer/config
+bytes, freeze resolved chat templates plus tokenizer/model/generation/effective
+EOS and pad IDs, and load offline only. The append-only runner uses exclusive
+canonical JSON, checkpoint-prefix resume, full semantic replay verification, immutable PASS or
+registered CLOSE artifacts, and exact output namespace allowlists.
+
+**Adversarial corrections**: Five independent stable-hash audit rounds found
+and repaired JSON tuple/list replay drift, revision-path spoofing, hash-only
+PASS authorization, nested target-key injection, unbound reports/input
+subtrees, response-dependent prefix lengths, permissive token-ID/subdomain
+coercion, incomplete EOS/pad resolution, recomputation instead of resume,
+forged ledger identities/rejections, JSON `False/0/0.0` equivalence, symlink
+escapes, and crash-left `.tmp` bricking. Resume now reconstructs and replays
+every prior attempt and compares canonical bytes against a newly regenerated
+record; authoritative verification recomputes from zero.
+
+**Verification**: All 89 relevant A6 tests pass and `git diff --check` is
+clean. The final exact-hash reviewer verdict is `NO BLOCKERS`. This approves
+the implementation for a separately frozen source/runtime/input boundary; it
+does not itself authorize response collection, telemetry, S0b, or S1.
+
+**Next**: inspect exact local availability of the three frozen tokenizer
+snapshots without downloading or opening experiment data. If available,
+prepare a new empty S0a boundary, independently verify its source/runtime/input
+artifacts, commit that boundary, and only then execute S0a.
+
+---

@@ -198,6 +198,24 @@ class ReciprocalConstruction:
     attempts: tuple[ConstructionAttempt, ...]
 
 
+@dataclass(frozen=True)
+class TaskPairCandidate:
+    """One response-free reciprocal task-pair attempt.
+
+    This type is the S0a natural-prompt firewall: it contains only typed task
+    worlds and their reversible prompt renderings.  It never constructs a
+    response AST, response text, answer sidecar, or tokenizer evidence.
+    """
+
+    attempt_seed: int
+    status: str
+    reason: str
+    task_a: TaskAST | None = None
+    task_b: TaskAST | None = None
+    prompts_a: tuple[str, ...] = ()
+    prompts_b: tuple[str, ...] = ()
+
+
 def _canonical_json(value) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
@@ -1031,6 +1049,55 @@ def _pair_is_legal(left: TaskAST, right: TaskAST, mutation: str) -> bool:
     return changed_fields(left, right) == expected
 
 
+def construct_task_pair_from_seed(
+    *, attempt_seed: int, domain: str, mutation_family: str, template_id: str,
+) -> TaskPairCandidate:
+    """Build one response-free task pair from an already frozen attempt seed.
+
+    The caller owns the seed namespace.  This matters for A6 natural prompts,
+    whose attempt-seed bytes are fixed independently from the older reciprocal
+    response constructor.  All semantic and reversible-rendering checks are
+    completed here; response rendering and tokenization are structurally
+    impossible through this API.
+    """
+    if not isinstance(attempt_seed, int) or attempt_seed < 0:
+        raise ValueError("attempt_seed must be a nonnegative integer")
+    if domain not in DOMAINS or mutation_family not in MUTATIONS:
+        raise ValueError("invalid A6 domain/mutation")
+    if not isinstance(template_id, str) or not template_id:
+        raise ValueError("template_id must be a nonempty string")
+    left, right = _pair_candidate(domain, mutation_family, attempt_seed)
+    if not _pair_is_legal(left, right, mutation_family):
+        return TaskPairCandidate(
+            attempt_seed, "REJECTED", "semantic_pair_invariant", left, right,
+        )
+    if not _selected_values(left) or not _selected_values(right):
+        return TaskPairCandidate(
+            attempt_seed, "REJECTED", "empty_certificate_selection", left, right,
+        )
+    prompts_left = tuple(
+        render_task(left, rendering, template_id) for rendering in RENDERINGS
+    )
+    prompts_right = tuple(
+        render_task(right, rendering, template_id) for rendering in RENDERINGS
+    )
+    if any(
+        parse_task(text, rendering, mutation_family, template_id) != left
+        for text, rendering in zip(prompts_left, RENDERINGS)
+    ) or any(
+        parse_task(text, rendering, mutation_family, template_id) != right
+        for text, rendering in zip(prompts_right, RENDERINGS)
+    ):
+        return TaskPairCandidate(
+            attempt_seed, "REJECTED", "prompt_roundtrip", left, right,
+            prompts_left, prompts_right,
+        )
+    return TaskPairCandidate(
+        attempt_seed, "ACCEPTED", "accepted", left, right,
+        prompts_left, prompts_right,
+    )
+
+
 def _validate_construction_inputs(
     *, population_id: str, outer_fold: int, source_record_id: str,
     donor_id: str, template_id: str,
@@ -1584,11 +1651,13 @@ __all__ = [
     "ANSWER_WRAPPERS", "DOMAINS", "MUTATIONS", "NATURAL_ANSWER_KINDS", "RENDERINGS",
     "RESPONSE_GRAMMARS", "TOKENIZER_FAMILIES", "ConstructionAttempt",
     "ReciprocalConstruction", "ReciprocalGroup", "ResponseAST", "TaskAST",
+    "TaskPairCandidate",
     "audit_reciprocal_construction", "audit_reciprocal_group",
     "build_reciprocal_group", "build_response_ast",
     "canonical_answer", "canonicalize_natural_answer_atom", "changed_fields",
     "changed_node_details", "evaluate_generator",
-    "construct_reciprocal_attempt", "construction_shortcut_sidecar",
+    "construct_reciprocal_attempt", "construct_task_pair_from_seed",
+    "construction_shortcut_sidecar",
     "contains_answer_atom", "evaluate_verifier", "parse_answer_atom", "parse_closed_answer",
     "parse_closed_natural_answer",
     "parse_response", "parse_task", "public_construction_record",

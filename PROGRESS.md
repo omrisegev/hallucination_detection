@@ -1,13 +1,38 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-14
-**Last updated**: Step 266. A1--A5 are closed. The A6 parent protocol and its
-mechanically executable S0a/S0b/S1 contract are now frozen after independent
-adversarial review. The Step-265 primitives remain unsealed development code;
-no A6 response telemetry, simulator result, natural response, correctness
-sidecar, benchmark target, or sealed S1 seed has been opened. Next implement
-S0a exactly from the frozen execution contract, then obtain a fresh no-edit
-source/runtime boundary review before executing it.
+**Last updated**: Step 267. A1--A5 are closed. The A6 parent protocol and
+S0a/S0b/S1 execution contract are frozen, and the exact S0a implementation has
+now received a stable-hash independent `NO BLOCKERS` verdict. No exact
+tokenizer snapshot has been loaded into an A6 boundary; no response telemetry,
+simulator result, natural response, correctness sidecar, benchmark target, or
+sealed S1 seed has opened. Next inspect the three exact tokenizer revisions
+read-only, prepare and review a new S0a source/runtime/input boundary only if
+all are available, then execute S0a.
+
+## Automatic group-free IU Phase A6 S0a implementation — Step 267
+
+S0a is now implemented but not prepared or executed. Its code constructs the
+frozen 1,800 reciprocal quartets and three 2,000-row prompt-only natural cohorts,
+enforces global identity/content disjointness and derived-answer quotas, audits
+the actual chat-template response span, freezes inner folds and merged null
+strata, and creates only opaque PopQA/Llama future schemas. During future
+preparation, the runner will bind the full local source closure, runtime/thread
+settings, exact repo/revision and content-addressed tokenizer/config bytes,
+resolved templates, and effective EOS/pad precedence before offline loading.
+
+Resume validates a contiguous canonical checkpoint prefix, replays every prior
+local/contextual/global decision into the restored collision registry, and
+computes only missing units. The authoritative verifier instead replays the
+entire schedule from zero. Output roots, inputs, checkpoint families/files,
+reports, and completion artifacts reject symlinks and unmanifested payloads;
+interrupted `.tmp` writes recover deterministically.
+
+Five stable-hash adversarial rounds ended in `NO BLOCKERS`. They specifically
+closed forged ledgers, JSON numeric-type equivalence, nested target payloads,
+revision spoofing, response-world prefix drift, incomplete EOS/pad manifests,
+hash-only authorization, symlink escape, and interrupted-run recovery. The
+relevant suite is 89/89 green. No real A6 input or result was opened.
 
 ## Automatic group-free IU Phase A6 S0/S1 execution contract — Step 266
 

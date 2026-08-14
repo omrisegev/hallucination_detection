@@ -3,7 +3,7 @@
 
 ---
 
-## Active program — automatic group-free IU successor (Step 266)
+## Active program — automatic group-free IU successor (Step 267)
 
 The next core-method program is now explicitly reopened under a new-evidence
 standard rather than as another static covariance sweep. The goal is an
@@ -186,10 +186,25 @@ received the independent verdict `NO BLOCKERS`.
 This is still a preregistration rather than an experimental result. The pinned
 Qwen3/Llama tokenizer artifacts have not been loaded, no S0 boundary has been
 prepared, and no telemetry, correctness sidecar, PopQA field, or sealed S1 seed
-has opened. The immediate research action is to implement S0a exactly from
-`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_S0_S1_EXECUTION_V1.md`,
-then freeze and independently review its source/runtime boundary before
-execution.
+has opened.
+
+Step 267 implements S0a exactly from that contract. The S0a implementation now
+provides the complete 1,800+6,000 schedules, contextual response-span tokenizer
+audit,
+global disjointness replay, folds/null strata, recursive target firewall,
+content-addressed offline tokenizer/config manifest machinery, effective
+EOS/pad resolution rules, append-only checkpoints, missing-only resume, and
+full-replay verification. Five stable-hash adversarial rounds closed ledger forgery,
+numeric JSON type substitution, unmanifested payloads, symlink escape, and
+interruption recovery; 89/89 relevant tests pass and the final verdict is
+`NO BLOCKERS`.
+
+This remains implementation evidence, not an S0a result. The immediate action
+is a read-only availability check for all three exact tokenizer revisions. If
+they are present, prepare a new empty source/runtime/input boundary and subject
+that concrete artifact to independent verification before executing S0a. If
+any revision is unavailable, record `BLOCKED_TOKENIZER_ACCESS` without
+substitution or download-driven drift.
 
 The untouched confirmation boundary is now PopQA with Gemma-3-4B-it, with a
 pre-sealed Qwen3-4B fallback if gated checkpoint access fails before any
