@@ -16,9 +16,8 @@ import platform
 import shutil
 import subprocess
 import sys
+import tempfile
 import unicodedata
-import urllib.error
-import urllib.request
 from typing import Any
 
 
@@ -258,29 +257,56 @@ def _official_api_url(spec: RoleSpec) -> str:
     )
 
 
-class _NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):  # noqa: D401
-        return None
-
-
 def https_get(url: str, *, accept: str) -> tuple[bytes, dict[str, str]]:
-    request = urllib.request.Request(
-        url, headers={"Accept": accept, "User-Agent": "a6-tokenizer-restore-v1"},
-        method="GET",
-    )
-    opener = urllib.request.build_opener(_NoRedirect)
-    try:
-        response = opener.open(request, timeout=60)
-    except urllib.error.HTTPError as error:
-        raise RuntimeError(f"BLOCKED_TOKENIZER_ACCESS: HTTP {error.code}: {url}") from error
-    except urllib.error.URLError as error:
-        raise RuntimeError(f"BLOCKED_TOKENIZER_ACCESS: HTTP transport failed: {url}") from error
-    with response:
-        if response.status != 200 or response.geturl() != url:
+    """Fetch with system curl so macOS system trust remains authoritative."""
+    with tempfile.TemporaryDirectory(prefix="a6-tokenizer-http-") as temporary:
+        body_path = Path(temporary) / "body"
+        header_path = Path(temporary) / "headers"
+        result = subprocess.run(
+            [
+                "curl", "--fail", "--silent", "--show-error",
+                "--proto", "=https", "--tlsv1.2", "--max-redirs", "0",
+                "--connect-timeout", "30", "--max-time", "120",
+                "--header", f"Accept: {accept}",
+                "--header", "User-Agent: a6-tokenizer-restore-v1",
+                "--output", str(body_path), "--dump-header", str(header_path),
+                "--write-out", "%{http_code}\n%{url_effective}\n", url,
+            ],
+            check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                "BLOCKED_TOKENIZER_ACCESS: HTTPS transport failed: "
+                + result.stderr.decode("utf-8", errors="replace")
+            )
+        status_lines = result.stdout.decode("utf-8").splitlines()
+        if status_lines != ["200", url]:
             raise RuntimeError("BLOCKED_TOKENIZER_ACCESS: unexpected HTTP response")
-        body = response.read()
-        headers = {key.lower(): value for key, value in response.headers.items()}
-    return body, headers
+        raw_headers = header_path.read_bytes().decode("iso-8859-1")
+        blocks = [block for block in raw_headers.split("\r\n\r\n") if block.strip()]
+        if not blocks:
+            raise RuntimeError("BLOCKED_TOKENIZER_ACCESS: HTTP headers are missing")
+        lines = blocks[-1].split("\r\n")
+        if not lines[0].startswith("HTTP/") or " 200 " not in lines[0]:
+            raise RuntimeError("BLOCKED_TOKENIZER_ACCESS: HTTP status changed")
+        headers = {}
+        for line in lines[1:]:
+            if not line:
+                continue
+            if ":" not in line:
+                raise RuntimeError("BLOCKED_TOKENIZER_ACCESS: malformed HTTP header")
+            key, value = line.split(":", 1)
+            lowered = key.strip().lower()
+            if lowered in headers:
+                if lowered in {
+                    "content-type", "content-length", "etag", "x-repo-commit",
+                } and headers[lowered] != value.strip():
+                    raise RuntimeError(
+                        "BLOCKED_TOKENIZER_ACCESS: conflicting identity header"
+                    )
+                continue
+            headers[lowered] = value.strip()
+        return body_path.read_bytes(), headers
 
 
 def validate_official_tree(spec: RoleSpec, raw: bytes) -> dict[str, Any]:
@@ -381,6 +407,26 @@ def _assert_safe_tree_root(path: Path) -> None:
 def _publish_stage(stage: Path, out: Path) -> None:
     """Serialize publication and refuse replacement of an existing tree."""
     lock = out.with_name("." + out.name + ".publish.lock")
+    if lock.exists() or lock.is_symlink():
+        if lock.is_symlink() or not lock.is_file():
+            raise RuntimeError("restore publication lock is invalid")
+        raw = lock.read_bytes()
+        try:
+            value = json.loads(raw, object_pairs_hook=_no_duplicate_object)
+        except Exception as error:
+            raise RuntimeError("restore publication lock is invalid") from error
+        if raw != canonical_json_bytes(value) or set(value) != {"pid"} \
+                or isinstance(value["pid"], bool) or not isinstance(value["pid"], int) \
+                or value["pid"] <= 0:
+            raise RuntimeError("restore publication lock is invalid")
+        try:
+            os.kill(value["pid"], 0)
+        except ProcessLookupError:
+            lock.unlink()
+        except PermissionError as error:
+            raise RuntimeError("restore publication lock owner is not inspectable") from error
+        else:
+            raise RuntimeError("restore publication is already active")
     descriptor = os.open(lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     try:
         os.write(descriptor, canonical_json_bytes({"pid": os.getpid()}))
@@ -393,14 +439,73 @@ def _publish_stage(stage: Path, out: Path) -> None:
     lock.unlink()
 
 
+def _validate_partial_stage(stage: Path) -> None:
+    _assert_safe_tree_root(stage)
+    allowed = {
+        f"evidence/official/{role}.json" for role in ROLE_ORDER
+    } | {"evidence/official/qwen3-4b-config-headers.json"}
+    for role in ROLE_ORDER:
+        allowed.update(
+            f"materialized/{role}/{row.path}" for row in ROLE_SPECS[role].selected
+        )
+    observed = set()
+    observed_directories = set()
+    for path in sorted(stage.rglob("*")):
+        if path.is_symlink():
+            raise RuntimeError("partial restore contains a symlink")
+        if path.is_dir():
+            observed_directories.add(path.relative_to(stage).as_posix())
+            continue
+        if not path.is_file():
+            raise RuntimeError("partial restore contains a non-regular file")
+        relative = path.relative_to(stage).as_posix()
+        if relative not in allowed:
+            raise RuntimeError("partial restore contains an unregistered file")
+        observed.add(relative)
+    allowed_directories = {
+        parent.as_posix()
+        for relative in allowed
+        for parent in PurePosixPath(relative).parents
+        if parent.as_posix() != "."
+    }
+    if not observed_directories <= allowed_directories:
+        raise RuntimeError(
+            "partial restore contains an unregistered directory: "
+            f"extra={sorted(observed_directories - allowed_directories)}"
+        )
+    for role in ROLE_ORDER:
+        spec = ROLE_SPECS[role]
+        official_path = stage / "evidence" / "official" / f"{role}.json"
+        if official_path.is_file():
+            validate_official_tree(spec, official_path.read_bytes())
+        for selected in spec.selected:
+            target = stage / "materialized" / role / selected.path
+            if target.is_file():
+                verify_selected_bytes(selected, target.read_bytes())
+    header_path = stage / "evidence" / "official" / "qwen3-4b-config-headers.json"
+    if header_path.is_file():
+        raw = header_path.read_bytes()
+        value = json.loads(raw, object_pairs_hook=_no_duplicate_object)
+        if raw != canonical_json_bytes(value) or set(value) != {
+            "url", "content_length", "content_type", "etag", "x_repo_commit",
+        } or value["url"] != ROLE_SPECS["qwen3-4b"].selected[0].source_url \
+                or value["content_length"] != "726" \
+                or value["content_type"].split(";", 1)[0] != "text/plain" \
+                or value["etag"] != '"e49eccdc32f36da9c09cfa0e737084f9e0105e5e"' \
+                or value["x_repo_commit"] != ROLE_SPECS["qwen3-4b"].revision:
+            raise RuntimeError("partial restore HTTP evidence changed")
+
+
 def _tree_records(root: Path) -> list[dict[str, Any]]:
     if root.is_symlink() or not root.is_dir():
         raise RuntimeError("materialized subtree is not a real directory")
     records = []
+    directories = []
     for path in sorted(root.rglob("*")):
         if path.is_symlink():
             raise RuntimeError("materialized tree contains a symlink")
         if path.is_dir():
+            directories.append(path.relative_to(root).as_posix())
             continue
         if not path.is_file():
             raise RuntimeError("materialized tree contains a non-regular file")
@@ -409,6 +514,14 @@ def _tree_records(root: Path) -> list[dict[str, Any]]:
             "path": path.relative_to(root).as_posix(), "size": len(payload),
             "sha256": sha256_bytes(payload),
         })
+    expected_directories = sorted({
+        parent.as_posix()
+        for row in records
+        for parent in PurePosixPath(row["path"]).parents
+        if parent.as_posix() != "."
+    })
+    if directories != expected_directories:
+        raise RuntimeError("materialized tree contains an unmanifested directory")
     return records
 
 
@@ -416,6 +529,8 @@ def verify_materialized(root: Path, manifest: dict[str, Any]) -> None:
     _assert_safe_tree_root(root)
     _assert_safe_tree_root(root / "materialized")
     _assert_safe_tree_root(root / "evidence")
+    if {path.name for path in (root / "materialized").iterdir()} != set(ROLE_ORDER):
+        raise RuntimeError("materialized role directory roster changed")
     if set(manifest) != {
         "schema_version", "status", "roles", "cross_role_equalities",
         "materialized_sha256", "evidence_files", "evidence_sha256",
@@ -506,23 +621,38 @@ def verify_materialized(root: Path, manifest: dict[str, Any]) -> None:
 def restore_all_three(out: str | Path, *, rclone: str = "rclone") -> dict[str, Any]:
     out = Path(out)
     stage = out.with_name("." + out.name + ".staging")
-    if out.exists() or stage.exists():
-        raise FileExistsError("restore requires absent final and staging roots")
+    if out.exists() or out.is_symlink():
+        raise FileExistsError("restore requires an absent final root")
     if out.parent.is_symlink() or not out.parent.is_dir():
         raise RuntimeError("restore parent must be a real existing directory")
-    stage.mkdir(parents=True, exist_ok=False)
+    if stage.exists() or stage.is_symlink():
+        if stage.is_symlink() or not stage.is_dir():
+            raise RuntimeError("partial restore root is invalid")
+        if (stage / "CACHE_RESTORE_PROVENANCE.json").is_file():
+            manifest = load_and_verify_restore(stage)
+            _publish_stage(stage, out)
+            return manifest
+        _validate_partial_stage(stage)
+    else:
+        stage.mkdir(parents=True, exist_ok=False)
     official = {}
     for role in ROLE_ORDER:
         spec = ROLE_SPECS[role]
-        raw, headers = https_get(_official_api_url(spec), accept="application/json")
-        if headers.get("content-type", "").split(";", 1)[0] != "application/json":
-            raise RuntimeError("BLOCKED_TOKENIZER_ACCESS: official API content type changed")
+        official_path = stage / "evidence" / "official" / f"{role}.json"
+        if official_path.is_file():
+            raw = official_path.read_bytes()
+            content_type = None
+        else:
+            raw, headers = https_get(_official_api_url(spec), accept="application/json")
+            if headers.get("content-type", "").split(";", 1)[0] != "application/json":
+                raise RuntimeError("BLOCKED_TOKENIZER_ACCESS: official API content type changed")
+            content_type = headers.get("content-type")
+            _write_exclusive(official_path, raw)
         official[role] = {
             "raw_sha256": sha256_bytes(raw),
             "projection": validate_official_tree(spec, raw),
-            "content_type": headers.get("content-type"),
+            "content_type": content_type,
         }
-        _write_exclusive(stage / "evidence" / "official" / f"{role}.json", raw)
     role_rows = {}
     payload_cache: dict[str, bytes] = {}
     for role in ROLE_ORDER:
@@ -530,7 +660,12 @@ def restore_all_three(out: str | Path, *, rclone: str = "rclone") -> dict[str, A
         files = []
         for selected in spec.selected:
             source_key = selected.source_remote or selected.source_url
-            if source_key in payload_cache:
+            target = stage / "materialized" / role / selected.path
+            if target.is_file():
+                payload = target.read_bytes()
+                verify_selected_bytes(selected, payload)
+                payload_cache[source_key] = payload
+            elif source_key in payload_cache:
                 payload = payload_cache[source_key]
             elif selected.source_remote is not None:
                 payload = rclone_cat(selected.source_remote, rclone=rclone)
@@ -556,8 +691,8 @@ def restore_all_three(out: str | Path, *, rclone: str = "rclone") -> dict[str, A
             else:
                 raise RuntimeError("selected file has no byte source")
             verify_selected_bytes(selected, payload)
-            target = stage / "materialized" / role / selected.path
-            _write_exclusive(target, payload)
+            if not target.is_file():
+                _write_exclusive(target, payload)
             files.append({
                 "path": selected.path, "size": len(payload),
                 "sha256": sha256_bytes(payload),

@@ -74,7 +74,7 @@ class A6TokenizerRestoreTests(unittest.TestCase):
             "tokenizer_config.json", "vocab.json",
         )
         payloads = {name: ("shared:" + name).encode() for name in shared_names}
-        payloads["q4-config"] = b"q4 config"
+        payloads["q4-config"] = b"q" * 726
         payloads["q8-config"] = b"q8 config"
         payloads["llama-config"] = b"llama config"
 
@@ -119,10 +119,13 @@ class A6TokenizerRestoreTests(unittest.TestCase):
             return payloads["q4-config"], {
                 "etag": '"e49eccdc32f36da9c09cfa0e737084f9e0105e5e"',
                 "x-repo-commit": real_q4.revision,
-                "content-type": "text/plain", "content-length": "9",
+                "content-type": "text/plain", "content-length": "726",
             }
 
+        remote_calls = []
+
         def fake_remote(remote: str, *, rclone: str):
+            remote_calls.append(remote)
             return payloads[remote.removeprefix("remote:")]
 
         with tempfile.TemporaryDirectory() as temporary, patch.object(
@@ -137,6 +140,19 @@ class A6TokenizerRestoreTests(unittest.TestCase):
             )
             self.assertFalse((Path(temporary) / ".restored.staging").exists())
             self.assertFalse((Path(temporary) / ".restored.publish.lock").exists())
+            stage = Path(temporary) / ".restored.staging"
+            out.rename(stage)
+            (stage / "CACHE_RESTORE_PROVENANCE.json").unlink()
+            (stage / "materialized" / "llama31-8b" / "config.json").unlink()
+            remote_calls.clear()
+            resumed = restore.restore_all_three(out)
+            self.assertEqual(resumed["materialized_sha256"], manifest["materialized_sha256"])
+            self.assertEqual(remote_calls, ["remote:llama-config"])
+            out.rename(stage)
+            remote_calls.clear()
+            completed_resume = restore.restore_all_three(out)
+            self.assertEqual(completed_resume, resumed)
+            self.assertEqual(remote_calls, [])
             with self.assertRaises(FileExistsError):
                 restore.restore_all_three(out)
             q4_config = out / "materialized" / "qwen3-4b" / "config.json"
@@ -144,6 +160,11 @@ class A6TokenizerRestoreTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "tree changed"):
                 restore.load_and_verify_restore(out)
             q4_config.write_bytes(payloads["q4-config"])
+            empty = out / "materialized" / "qwen3-4b" / "empty"
+            empty.mkdir()
+            with self.assertRaisesRegex(RuntimeError, "unmanifested directory"):
+                restore.load_and_verify_restore(out)
+            empty.rmdir()
             (out / "unexpected").write_bytes(b"x")
             with self.assertRaisesRegex(RuntimeError, "unmanifested"):
                 restore.load_and_verify_restore(out)
