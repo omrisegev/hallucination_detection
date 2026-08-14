@@ -61,6 +61,9 @@ class A6S0aRunnerTests(unittest.TestCase):
         self.assertIn("scripts/automatic_group_free_phase_a6_s0a.py", names)
         self.assertIn("scripts/test_automatic_group_free_phase_a6_s0a.py", names)
         self.assertIn("scripts/test_a6_s0a.py", names)
+        self.assertIn("scripts/test_a6_tokenizer_restore.py", names)
+        self.assertIn("scripts/automatic_group_free_phase_a6_tokenizer_restore.py", names)
+        self.assertIn("spectral_utils/a6_tokenizer_restore.py", names)
         self.assertIn("spectral_utils/a6_s0a.py", names)
         self.assertIn("spectral_utils/a6_interventions.py", names)
         self.assertEqual(len(names), len(set(names)))
@@ -71,9 +74,8 @@ class A6S0aRunnerTests(unittest.TestCase):
             with patch.object(runner, "_core", side_effect=AssertionError("imported")):
                 with self.assertRaisesRegex(RuntimeError, "BLOCKED_TOKENIZER_ACCESS"):
                     runner.prepare(
-                        out, qwen4_source=Path(temporary) / "missing-q4",
-                        qwen8_source=Path(temporary) / "missing-q8",
-                        llama_source=Path(temporary) / "missing-llama",
+                        out,
+                        tokenizer_restore_root=Path(temporary) / "missing-restore",
                     )
             self.assertTrue(out.is_dir())
             self.assertEqual(list(out.iterdir()), [])
@@ -277,6 +279,7 @@ class A6S0aRunnerTests(unittest.TestCase):
                 "parent_protocol_sha256": "0" * 64,
                 "source_sha256": {}, "runtime_versions": {}, "git_head": "x",
                 "tokenizer_snapshots": {}, "tokenizer_audits": {},
+                "tokenizer_restore_provenance": None,
                 "configuration": {},
             }
             (out / "A6_S0A_BOUNDARY.json").write_bytes(

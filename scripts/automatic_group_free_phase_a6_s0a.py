@@ -46,6 +46,8 @@ STATIC_SOURCE_FILES = (
     "scripts/test_a6_s0a.py",
     "scripts/test_a6_interventions.py",
     "scripts/test_a6_s0_population.py",
+    "scripts/test_a6_tokenizer_restore.py",
+    "scripts/automatic_group_free_phase_a6_tokenizer_restore.py",
 )
 RUNTIME_PACKAGES = (
     "transformers", "tokenizers", "numpy", "scipy", "scikit-learn", "torch",
@@ -289,6 +291,28 @@ def _prepare_snapshot_stdlib(
     }
     _verify_snapshot_stdlib(destination, manifest)
     return destination, manifest
+
+
+def _copy_restore_evidence(
+    restore_root: Path, out: Path, restore_manifest: dict[str, Any],
+) -> None:
+    destination = out / "TOKENIZER_RESTORE_EVIDENCE"
+    destination.mkdir(parents=False, exist_ok=False)
+    expected = restore_manifest.get("evidence_files")
+    if not isinstance(expected, list):
+        raise RuntimeError("tokenizer restore evidence manifest is missing")
+    for row in expected:
+        if not isinstance(row, dict) or set(row) != {"path", "size", "sha256"}:
+            raise RuntimeError("tokenizer restore evidence row is invalid")
+        relative = PurePosixPath(row["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            raise RuntimeError("tokenizer restore evidence path is invalid")
+        source = restore_root / "evidence" / relative
+        _require_real_file(source, "tokenizer restore evidence source")
+        payload = source.read_bytes()
+        if len(payload) != row["size"] or hashlib.sha256(payload).hexdigest() != row["sha256"]:
+            raise RuntimeError("tokenizer restore evidence source changed")
+        _exclusive_bytes(destination / relative, payload, root=destination)
 
 
 def _verify_snapshot_stdlib(snapshot: Path, manifest: dict[str, Any]) -> None:
@@ -558,9 +582,7 @@ def _validate_tokenizer_audits(audits: Any) -> None:
 def prepare(
     out: str | Path,
     *,
-    qwen4_source: str | Path,
-    qwen8_source: str | Path,
-    llama_source: str | Path,
+    tokenizer_restore_root: str | Path,
 ) -> dict[str, Any]:
     out = Path(out)
     if _lexists(out):
@@ -571,15 +593,16 @@ def prepare(
         _require_real_directory(out.parent, "A6-S0a output parent")
         out.mkdir(parents=True, exist_ok=False)
     _require_real_directory(out, "A6-S0a output root")
+    from spectral_utils import a6_tokenizer_restore as restore
+    restore_root = Path(tokenizer_restore_root)
+    restore_provenance = restore.load_and_verify_restore(restore_root)
     sources = {
-        "qwen3-4b": Path(qwen4_source), "qwen3-8b": Path(qwen8_source),
-        "llama31-8b": Path(llama_source),
+        scorer_id: restore_root / "materialized" / scorer_id
+        for scorer_id in IDENTITIES
     }
-    for scorer_id in IDENTITIES:
-        source = sources[scorer_id]
-        if not source.exists():
-            raise RuntimeError(f"BLOCKED_TOKENIZER_ACCESS:{scorer_id}")
-        _require_resolved_revision_directory(source, scorer_id)
+    restore_bytes = (restore_root / "CACHE_RESTORE_PROVENANCE.json").read_bytes()
+    _exclusive_bytes(out / "TOKENIZER_RESTORE_PROVENANCE.json", restore_bytes)
+    _copy_restore_evidence(restore_root, out, restore_provenance)
     snapshot_rows, tokenizer_audits = {}, {}
     for scorer_id in IDENTITIES:
         source = sources[scorer_id]
@@ -612,6 +635,13 @@ def prepare(
         "git_head": _git_head(),
         "tokenizer_snapshots": snapshot_rows,
         "tokenizer_audits": tokenizer_audits,
+        "tokenizer_restore_provenance": {
+            "manifest_sha256": sha256_file(
+                out / "TOKENIZER_RESTORE_PROVENANCE.json"
+            ),
+            "materialized_sha256": restore_provenance["materialized_sha256"],
+            "evidence_sha256": restore_provenance["evidence_sha256"],
+        },
         "configuration": {
             "quartet_slots": 1_800,
             "natural_slots": 6_000,
@@ -637,7 +667,7 @@ def load_and_verify_boundary(out: str | Path, *, load_tokenizers: bool = False):
     if set(boundary) != {
         "version", "status", "execution_contract_sha256", "parent_protocol_sha256",
         "source_sha256", "runtime_versions", "git_head", "tokenizer_snapshots",
-        "tokenizer_audits", "configuration",
+        "tokenizer_audits", "tokenizer_restore_provenance", "configuration",
     }:
         raise RuntimeError("A6-S0a boundary schema mismatch")
     if boundary.get("version") != VERSION or boundary.get("status") != STATUS:
@@ -671,6 +701,22 @@ def load_and_verify_boundary(out: str | Path, *, load_tokenizers: bool = False):
         raise RuntimeError("A6-S0a tokenizer snapshot roster mismatch")
     audits = boundary.get("tokenizer_audits", {})
     _validate_tokenizer_audits(audits)
+    restore_row = boundary.get("tokenizer_restore_provenance")
+    restore_value = None
+    restore_path = out / "TOKENIZER_RESTORE_PROVENANCE.json"
+    if not isinstance(restore_row, dict) or set(restore_row) != {
+        "manifest_sha256", "materialized_sha256", "evidence_sha256",
+    }:
+        raise RuntimeError("tokenizer restore provenance schema mismatch")
+    _require_real_file(restore_path, "tokenizer restore provenance")
+    restore_value = _load_json(restore_path)
+    if restore_path.read_bytes() != canonical_json_bytes(restore_value) \
+            or sha256_file(restore_path) != restore_row["manifest_sha256"] \
+                or restore_value.get("materialized_sha256") \
+                != restore_row["materialized_sha256"] \
+                or restore_value.get("evidence_sha256") \
+                != restore_row["evidence_sha256"]:
+            raise RuntimeError("tokenizer restore provenance changed")
     inputs = out / "inputs"
     if not inputs.is_dir() or inputs.is_symlink():
         raise RuntimeError("A6-S0a inputs root is invalid")
@@ -700,6 +746,96 @@ def load_and_verify_boundary(out: str | Path, *, load_tokenizers: bool = False):
             raise RuntimeError("A6-S0a tokenizer input path mismatch")
         snapshot = out / expected_relative
         _verify_snapshot_stdlib(snapshot, manifest_json)
+        restored_role = restore_value.get("roles", {}).get(scorer_id)
+        if not isinstance(restored_role, dict) \
+                or restored_role.get("repository") != identity_json["repository"] \
+                or restored_role.get("revision") != identity_json["revision"] \
+                or restored_role.get("files") != manifest_json["files"]:
+            raise RuntimeError("tokenizer snapshot is not bound to restore provenance")
+    # Only after the stdlib-only copy verification above do we import the
+    # restorer and replay its cryptographic object and official-tree contract.
+    from spectral_utils import a6_tokenizer_restore as restore
+    if set(restore_value) != {
+        "schema_version", "status", "roles", "cross_role_equalities",
+        "materialized_sha256", "evidence_files", "evidence_sha256",
+        "source_sha256", "runtime",
+    } or restore_value.get("schema_version") != restore.SCHEMA_VERSION \
+            or restore_value.get("status") != "AUTHENTICATED_COMPLETE_ALL_THREE" \
+            or set(restore_value.get("roles", {})) != set(restore.ROLE_ORDER):
+        raise RuntimeError("tokenizer restore provenance contract is invalid")
+    if restore_value.get("source_sha256") != restore._source_hashes():
+        raise RuntimeError("tokenizer restore source changed")
+    evidence_root = out / "TOKENIZER_RESTORE_EVIDENCE"
+    _require_real_directory(evidence_root, "tokenizer restore evidence")
+    evidence_rows = restore._tree_records(evidence_root)
+    if evidence_rows != restore_value["evidence_files"] \
+            or hashlib.sha256(canonical_json_bytes(evidence_rows)).hexdigest() \
+            != restore_value["evidence_sha256"]:
+        raise RuntimeError("tokenizer restore evidence changed")
+    aggregate = []
+    for scorer_id in restore.ROLE_ORDER:
+        spec = restore.ROLE_SPECS[scorer_id]
+        role_row = restore_value["roles"][scorer_id]
+        if set(role_row) != {
+            "repository", "revision", "official_api_url", "official_raw_sha256",
+            "official_tree_sha256", "transport", "files",
+        } or role_row["repository"] != spec.repository \
+                or role_row["revision"] != spec.revision \
+                or role_row["official_api_url"] != restore._official_api_url(spec):
+            raise RuntimeError("tokenizer restore role identity changed")
+        official_raw = (
+            evidence_root / "official" / f"{scorer_id}.json"
+        ).read_bytes()
+        projection = restore.validate_official_tree(spec, official_raw)
+        if hashlib.sha256(official_raw).hexdigest() != role_row["official_raw_sha256"] \
+                or hashlib.sha256(restore.canonical_json_bytes(projection)).hexdigest() \
+                != role_row["official_tree_sha256"]:
+            raise RuntimeError("tokenizer official-tree evidence changed")
+        snapshot_row = snapshots[scorer_id]
+        snapshot = out / snapshot_row["relative_directory"]
+        frozen_files = [
+            {"path": item.path, "size": item.size, "sha256": item.sha256}
+            for item in sorted(spec.selected, key=lambda item: item.path.encode("utf-8"))
+        ]
+        if snapshot_row["manifest"]["files"] != frozen_files:
+            raise RuntimeError("tokenizer snapshot differs from frozen official objects")
+        expected_transport = [
+            {
+                "path": item.path,
+                "kind": (
+                    "rclone_drive" if item.source_remote is not None
+                    else "official_https"
+                ),
+                "locator": item.source_remote or item.source_url,
+            }
+            for item in sorted(spec.selected, key=lambda item: item.path.encode("utf-8"))
+        ]
+        if role_row["transport"] != expected_transport or role_row["files"] != frozen_files:
+            raise RuntimeError("tokenizer restore role records changed")
+        for item in spec.selected:
+            restore.verify_selected_bytes(item, (snapshot / item.path).read_bytes())
+        aggregate.append({
+            "role": scorer_id,
+            "tree_sha256": hashlib.sha256(
+                canonical_json_bytes(frozen_files)
+            ).hexdigest(),
+        })
+    if hashlib.sha256(canonical_json_bytes(aggregate)).hexdigest() \
+            != restore_value["materialized_sha256"]:
+        raise RuntimeError("tokenizer restore aggregate changed")
+    expected_equalities = [
+        "generation_config.json", "merges.txt", "tokenizer.json",
+        "tokenizer_config.json", "vocab.json",
+    ]
+    if restore_value["cross_role_equalities"] != expected_equalities:
+        raise RuntimeError("tokenizer restore equality contract changed")
+    for relative in expected_equalities:
+        left_row = snapshots["qwen3-4b"]
+        right_row = snapshots["qwen3-8b"]
+        left = out / left_row["relative_directory"] / relative
+        right = out / right_row["relative_directory"] / relative
+        if left.read_bytes() != right.read_bytes():
+            raise RuntimeError("cross-Qwen tokenizer equality changed")
     core = _core()
     identities = _identity_by_scorer()
     for scorer_id in core.SCORER_IDS:
@@ -762,6 +898,8 @@ def _assert_known_output_paths(
         "INNER_FOLDS.json", "NULL_STRATA.json", "POPQA_RESERVATION.json",
         "LLAMA_FUTURE_SCHEMA.json", "S0A_AGGREGATE.json", "S0A_COMPLETE.json",
         "S0A_CLOSED.json",
+        "TOKENIZER_RESTORE_PROVENANCE.json",
+        "TOKENIZER_RESTORE_EVIDENCE",
     }
     allowed_temps = {name + ".tmp" for name in allowed_top if "." in name}
     unknown = sorted(
@@ -772,7 +910,7 @@ def _assert_known_output_paths(
     if unknown:
         raise RuntimeError(f"unmanifested A6-S0a output paths: {unknown}")
     for path in out.iterdir():
-        if path.name in {"inputs", "checkpoints"}:
+        if path.name in {"inputs", "checkpoints", "TOKENIZER_RESTORE_EVIDENCE"}:
             _require_real_directory(path, f"A6-S0a {path.name} root")
         else:
             _require_real_file(path, f"A6-S0a artifact {path.name}")
@@ -1041,9 +1179,7 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=("prepare", "run", "verify"))
     parser.add_argument("--out", default=str(DEFAULT_OUT))
-    parser.add_argument("--qwen4-source")
-    parser.add_argument("--qwen8-source")
-    parser.add_argument("--llama-source")
+    parser.add_argument("--tokenizer-restore-root")
     parser.add_argument("--hash-only-diagnostic", action="store_true")
     return parser
 
@@ -1051,15 +1187,10 @@ def _parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = _parser().parse_args()
     if args.command == "prepare":
-        missing = [
-            name for name in ("qwen4_source", "qwen8_source", "llama_source")
-            if getattr(args, name) is None
-        ]
-        if missing:
-            raise SystemExit(f"prepare requires: {', '.join(missing)}")
+        if args.tokenizer_restore_root is None:
+            raise SystemExit("prepare requires --tokenizer-restore-root")
         result = prepare(
-            args.out, qwen4_source=args.qwen4_source,
-            qwen8_source=args.qwen8_source, llama_source=args.llama_source,
+            args.out, tokenizer_restore_root=args.tokenizer_restore_root,
         )
     elif args.command == "run":
         result = run(args.out)
