@@ -1,13 +1,43 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-14
-**Last updated**: Step 263. A1--A5 are closed. A5-S1a executed all 100 sealed
-nuisance-world seeds and closed before real-cache or label access. The formal
-verdict is `CLOSE_NUMERICAL_NONCONVERGENCE`; the 98 usable runs independently
-failed all semantic nuisance gates and lost 3.85 AUROC points versus IU on
-average. Do not open A5-S1b or the real A5 stage. A6 self-supervised
-interventions are now active; freeze their target-changing/nuisance-changing
-contract before implementation.
+**Last updated**: Step 264. A1--A5 are closed. A6 is now fully preregistered and
+independently audited with `NO BLOCKERS`; no A6 response telemetry, simulator
+result, or natural target has been opened. The sole candidate is reciprocal
+PTNI-IU under ordinary answer correctness, not RAG groundedness. Next implement
+and review A6-S0/S1 exactly as frozen before opening any sealed result.
+
+## Automatic group-free IU Phase A6 protocol — Step 264
+
+A6 now has one explicit self-supervised route rather than a menu of adaptive
+interventions. Reciprocal 2x2 prompt-response crossovers hold each deterministic
+answer byte-identical while making every prompt and response marginal exactly
+50/50 correct/incorrect. Three semantic domains, three AST mutation families,
+three nuisance render families, and short/certificate grammars define 900
+balanced Qwen source groups plus a disjoint 900-group Llama audit. A closed
+answer parser and independent typed-AST evaluators preserve the ordinary
+answer-correctness ontology and the sealed PopQA boundary.
+
+PTNI-IU estimates factorial target, nuisance, and target-by-render moments over
+the retained atomic roster, derives one nuisance-whitened risk direction, and
+projects it covariance-orthogonal to target-local IU-PCR. The trust path always
+contains exact IU. All selection uses nested source-group folds and one unique
+full-Qwen arm; Llama is pass/close only. The protocol freezes class-specific
+matched controls, conditional sign permutation, two non-p-value placebos, a
+nonvacuously activated nuisance-as-target negative control, LO-family transfer,
+complete-block admission, and exact robustness/fallback gates.
+
+Execution is staged: S0 mechanical construction and shortcut/matching freeze;
+S1 eight-world sealed simulator; S2a Qwen quartet premise; S2b held Llama
+quartet audit; S2c untouched greedy Llama errors; S3 one-way retrospective
+answer-correctness veto; S4 sealed PopQA confirmation. Failure at any stage
+forbids rescue and advances to A7. Eight independent adversarial passes were
+required; the final reviewer verdict is `NO BLOCKERS`. Canonical protocol:
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_V1.md`.
+
+**Next action:** implement A6-S0/S1 from the frozen protocol, add fail-closed
+tests and append-only boundaries, and obtain a new independent no-edit review
+before any sealed simulator seed or response telemetry is opened.
 
 ## Automatic group-free IU Phase A5 result — Step 263
 

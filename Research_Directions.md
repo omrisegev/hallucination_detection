@@ -3,7 +3,7 @@
 
 ---
 
-## Active program — automatic group-free IU successor (Step 263)
+## Active program — automatic group-free IU successor (Step 264)
 
 The next core-method program is now explicitly reopened under a new-evidence
 standard rather than as another static covariance sweep. The goal is an
@@ -122,6 +122,32 @@ interventional asymmetry: separately verified target-changing pairs and
 nuisance-only pairs must teach an affine IU-anchored direction that transfers
 to natural hallucinations without interventions at deployment. Existing RAG
 evidence-ablation results are premise evidence, not a new confirmation result.
+
+A6 is now preregistered under one target ontology and one candidate. Ordinary
+task-answer correctness is the designated parsed answer assertion; contextual
+support and RAG faithfulness are adjacent tasks. The candidate, reciprocal
+PTNI-IU, scores a complete 2x2 crossover of two verified task worlds and their
+two deterministic answers. This balances every prompt/response marginal while
+holding answer bytes fixed across the target contrast. Three verified AST
+mutation families and three semantics-preserving rendering families provide
+factorial target, nuisance, and interaction effects without feature groups.
+
+The learned atomic error direction is nuisance-whitened, projected exactly
+IU-orthogonal in each target's unlabeled covariance, and deployed as one affine
+mixed-v2 score. The trust grid contains exact IU fallback. The protocol adds a
+sealed simulator, complete-block admission, a conditional sign-permutation
+test, two split-local placebos, a nuisance-as-target control that must first
+prove nonvacuous nuisance recovery, LO target/nuisance families, a frozen Llama
+quartet audit, and untouched greedy Llama errors before any retrospective label
+or PopQA confirmation may open.
+
+Eight adversarial review passes resolved prompt-marginal confounding,
+teacher-forced-to-natural transport, closed answer parsing, target-local
+normalization, unique final selection, missing-roster controls, alpha-zero
+fallback, null exchangeability, bootstrap grouping, and matched-control
+capacity. The final verdict is `NO BLOCKERS`; no A6 telemetry or result has
+opened. Canonical protocol:
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_V1.md`.
 
 The untouched confirmation boundary is now PopQA with Gemma-3-4B-it, with a
 pre-sealed Qwen3-4B fallback if gated checkpoint access fails before any

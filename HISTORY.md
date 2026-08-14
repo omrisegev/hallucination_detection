@@ -12650,3 +12650,53 @@ to the aggregate, and reported no artifact blocker. Canonical report:
 `results/automatic_group_free_phase_a5_v1/REPORT.md`.
 
 ---
+
+# Step 264 — 2026-08-14: freeze the adversarially audited reciprocal A6 protocol
+
+**Research decision**: A6 targets ordinary conditional task-answer correctness,
+defined as one mechanically parsed answer assertion. Evidence removal from a
+fixed response changes contextual support rather than necessarily changing that
+answer proposition, so prior RAGTruth full/no-context/LOO caches remain adjacent
+premise diagnostics and cannot fit or orient A6. ProcessBench cross-scorer
+triples remain nuisance-only. No existing local cache supplied a legal clean
+target-changing calibration surface.
+
+**Candidate**: Preregistered reciprocal Paired Target/Nuisance Intervention IU
+(`PTNI-IU`). Each source group contains two equally difficult typed-AST worlds,
+two deterministic verified answers, and their complete 2x2 prompt-response
+crossover under canonical plus three nuisance renderings. Every prompt and
+response marginal is exactly balanced across correct/incorrect conditions;
+answer bytes remain fixed within the target contrast. The source contains 900
+balanced Qwen groups and a disjoint 900-group Llama audit, plus label-free
+natural target-local calibration matrices.
+
+**Method boundary**: Factorial target, nuisance, and target-by-render moments
+produce one group-free nuisance-whitened atomic risk direction. It is projected
+covariance-orthogonal to target-local IU-PCR and deployed as one affine score;
+the trust grid contains exact `alpha=0` IU. Complete-block admission, a retained
+source roster, availability-aware controls, conditional sign permutation, two
+split-local placebos, activated nuisance-as-target falsification, LO-family
+transfer, and exact duplicate/missingness/permutation/reconstruction gates are
+frozen.
+
+**Execution order**: S0 mechanical construction/shortcut and matching freeze;
+S1 sealed eight-world simulator; S2a nested Qwen quartets; S2b frozen Llama
+quartets; S2c untouched greedy Llama errors under a closed parser; S3 one-way
+retrospective answer-correctness veto; S4 sealed PopQA. No stage may repair a
+failed predecessor or use held performance to change identity, sign, trust,
+normalization, or roster.
+
+**Independent audit**: Eight adversarial passes found and repaired target-
+ontology drift, prompt-marginal confounding, free-text truth ambiguity,
+teacher-forced/natural transport mismatch, nonunique selection, invalid null
+claims, alpha-zero infeasibility, partial-quartet admission, fold/bootstrap
+leakage, control-capacity ambiguity, missing-roster behavior, and a vacuous
+nuisance negative control. The final exact-file verdict is `NO BLOCKERS`.
+`git diff --check` passes. No A6 response telemetry, simulator result, or
+natural target was opened.
+
+**Next**: Implement and independently review A6-S0/S1 from the frozen protocol
+before opening any sealed simulator seed or response telemetry. Canonical file:
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_V1.md`.
+
+---

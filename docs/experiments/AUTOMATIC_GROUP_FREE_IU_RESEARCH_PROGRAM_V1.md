@@ -336,28 +336,42 @@ accessed. Canonical result:
 
 ### A6 — self-supervised intervention route
 
-This phase opens only if no S1 method passes the development promotion gate,
-or after the S1 finalist is frozen as a pre-registered comparison.
+**Status (Step 264): preregistered; independently audited; no A6 telemetry or
+result opened.** The target is one mechanically parsed task-answer assertion,
+not RAG faithfulness or contextual support. Evidence removal from a fixed
+response therefore remains an ambiguous adjacent-task diagnostic rather than
+a legal target-changing calibration pair.
 
-Create paired calibration changes of two types:
+The sole A6 candidate is reciprocal Paired Target/Nuisance Intervention IU
+(`PTNI-IU`). Each source group contains two equally difficult, independently
+verified task worlds and two deterministic answers. Scoring the complete 2x2
+prompt-response crossover makes every prompt and response marginal exactly
+50/50 correct/incorrect while response bytes stay fixed across the target
+contrast. Canonical prompts plus three semantics-preserving render families
+produce factorial target, nuisance, and target-by-render effects. The source
+has exactly 900 accepted Qwen groups balanced over three semantic domains,
+three AST mutation families, and short/certificate response grammars; Llama
+uses a disjoint 900-group audit.
 
-- **target-changing:** evidence removal, evidence contradiction, verified
-  entity/number substitution, or checkable reasoning-step corruption;
-- **nuisance-changing:** meaning-preserving paraphrase, formatting, evidence
-  reorder, and length/style controls that should not change correctness.
+PTNI learns one nuisance-whitened atomic error direction, projects it exactly
+orthogonal to target-local IU-PCR covariance, and selects a frozen trust on a
+path containing exact `alpha=0` IU fallback. Deployment remains one affine pass
+over the original mixed-v2 identities. Exact complete-block admission,
+availability-aware controls, conditional sign permutation, two split-local
+placebo families, an activated nuisance-as-target negative control, LO target
+and nuisance families, duplicate/missingness/permutation gates, and a sealed
+eight-world simulator are mandatory.
 
-Keep the answer tokens fixed whenever the intervention permits. Learn an
-affine atomic direction that ranks target-corrupted above target-supported
-pairs while remaining invariant to nuisance pairs, anchored to IU-PCR. At
-deployment, apply the frozen direction to the original one-pass features; no
-intervention is run.
+The stage order is irreversible: S0 mechanical construction/shortcut audit;
+S1 sealed simulator; S2a nested Qwen quartets; S2b frozen Llama quartets using
+only an unlabeled natural calibration matrix; S2c untouched greedy Llama errors
+under a closed answer parser; S3 one-way retrospective answer-correctness veto;
+and only then the sealed PopQA confirmation. Labels may never choose an arm,
+sign, feature, transform, or trust. A failure returns IU or closes invalid,
+then advances to A7 without a rescue variant.
 
-Required falsification: random pairs, style-only controls,
-leave-one-intervention-family-out, and evaluation on natural hallucinations
-not produced by the intervention generator. The existing RAG evidence-
-ablation result supplies premise evidence but is not a new confirmation.
-
-Freeze at most one S2 finalist.
+Canonical frozen protocol:
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_V1.md`.
 
 ### A7 — tiny-label orientation
 
