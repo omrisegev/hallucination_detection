@@ -12761,3 +12761,54 @@ feature-permutation canonicalization, LO structural selection, matched
 controls/nulls, the complete eight-world simulator, and append-only runner.
 
 ---
+
+# Step 266 — 2026-08-14: freeze the executable A6 S0a/S0b/S1 contract
+
+**Research decision**: Freeze every result-relevant S0a, S0b, and S1 choice
+before implementing their execution boundary or opening A6 inputs. The
+Step-265 primitives were a useful mechanical base but did not uniquely
+determine contextual tokenization, natural manifests, shortcut/matching
+statistics, nested selection, simulator geometry, random schedules, robustness
+arms, or append-only provenance. Those choices are now one preregistered
+execution contract rather than implementation-time degrees of freedom.
+
+**Frozen execution contract**: The contract pins the exact Qwen3-4B,
+Qwen3-8B, Llama-3.1-8B, and Pythia revisions; the required future
+content-addressed snapshot/hash procedure; the contextual chat-prefix and
+response-token-span rule; two balanced 900-group quartet populations; three
+disjoint 2,000-prompt natural cohorts; PopQA identity reservation; complete
+outer/inner folds and null strata; the 16-row shortcut audit; Pythia prompt
+NLL; nested candidate/control/LO/null selection; all eight synthetic worlds;
+separate pristine robustness arms; deterministic RNG byte contracts; and
+exclusive, hash-bound stage artifacts.
+
+**Scientific exactness**: Simulator target/nuisance objects are risk
+coefficients and therefore enter Gaussian feature means through covariance
+multiplication. Diagnostic target/nuisance labels are exactly joint-balanced.
+The IU anchor has registered population headroom; usable corrections are
+covariance-rescaled before final-risk gates. Held deletion touches only the
+separate diagnostic evaluation matrices, never source inner/outer/OOF or
+natural-anchor rows, so a full rerun must reproduce source selection exactly
+before target-side projection.
+
+**Independent audit**: A long-form adversarial review repeatedly blocked early
+drafts for double transformation, target/nuisance span overlap, prompt/world
+confounding, ambiguous natural chat inputs, invalid null claims, incomplete
+controls/LO suites, underdetermined RNG schedules, source/evaluation covariance
+errors, and contradictory deletion semantics. The complete pre-freeze body at
+SHA-256
+`5c869db42633d04bf4c46110d95de83891c6ca6b10fdf381653b8a618a750615`
+received `NO BLOCKERS`. The existing A6 development suite remains 55/55 green.
+
+**Boundary**: This is a preregistration, not an S0a preparation or result. No
+A6 response telemetry, simulator result, natural response, correctness
+sidecar, PopQA target, or sealed S1 seed was opened. Exact pinned tokenizer
+snapshots have not yet been loaded. Any implemented source/runtime boundary
+requires a new no-edit review before execution.
+
+**Next**: Implement only S0a from
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_S0_S1_EXECUTION_V1.md`,
+including fail-closed offline input manifests, joint identity/fold/stratum
+audits, append-only preparation, and independent verification.
+
+---

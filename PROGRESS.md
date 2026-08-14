@@ -1,14 +1,45 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-14
-**Last updated**: Step 265. A1--A5 are closed. The first A6 mechanical and
-numeric development base is implemented and tested, but it is deliberately
-unsealed and incomplete as an S0/S1 execution boundary. No A6 response
-telemetry, simulator result, natural response, or benchmark target has been
-opened. Next complete the jointly disjoint natural/PopQA manifests, real
-tokenizer boundary, manifest-bound evaluation artifact, nested selector and
-S1 stress runner, then obtain a fresh independent boundary review before any
-sealed result.
+**Last updated**: Step 266. A1--A5 are closed. The A6 parent protocol and its
+mechanically executable S0a/S0b/S1 contract are now frozen after independent
+adversarial review. The Step-265 primitives remain unsealed development code;
+no A6 response telemetry, simulator result, natural response, correctness
+sidecar, benchmark target, or sealed S1 seed has been opened. Next implement
+S0a exactly from the frozen execution contract, then obtain a fresh no-edit
+source/runtime boundary review before executing it.
+
+## Automatic group-free IU Phase A6 S0/S1 execution contract — Step 266
+
+The reviewed execution contract removes the remaining implementation-time
+degrees of freedom before A6 data or sealed seeds open. It binds exact model
+and tokenizer revisions; the required future content-addressed snapshot/hash
+procedure; the contextual chat-prefix/response-span tokenization rule; the two
+900-group quartet populations;
+three disjoint 2,000-prompt natural manifests; PopQA identity reservation;
+outer/inner folds and null strata; the 16-row S0b shortcut audit; Pythia prompt
+NLL; the nested PTNI/control/LO/null selection procedures; all eight simulator
+worlds; separated robustness arms; RNG byte contracts; and append-only stage
+provenance.
+
+Independent review iterated until the exact pre-freeze body SHA-256
+`5c869db42633d04bf4c46110d95de83891c6ca6b10fdf381653b8a618a750615`
+received `NO BLOCKERS`. The reviewer specifically verified coefficient-versus-
+mean-shift geometry, target/nuisance orthogonalization, balanced diagnostic
+labels, target-local transport, LO-family exclusion, control capacity, null
+semantics, contextual tokenizer boundaries, deterministic schedules, pristine
+held-deletion selection, and correction rescaling. The 55 existing A6
+development tests remain green.
+
+This is a preregistration, not an executed boundary. Exact pinned tokenizer
+artifacts have not yet been loaded, S0a has not been prepared, and neither S0b
+nor S1 may open. Canonical contract:
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_S0_S1_EXECUTION_V1.md`.
+
+**Next action:** implement only A6-S0a, including fail-closed tokenizer/input
+manifests, joint identity/fold/stratum audits, and append-only preparation and
+verification. Freeze and independently review the implemented source/runtime
+boundary before any response telemetry or sealed simulator seed.
 
 ## Automatic group-free IU Phase A6 development base — Step 265
 
@@ -42,13 +73,12 @@ typed certificate and isolating mutable notation atoms at token boundaries;
 the exact pinned Qwen3 and Llama tokenizers remain a mandatory S0a gate.
 
 This is a development-base commit, not permission to collect telemetry or run
-sealed seeds. Still mandatory before an S0a/S1 boundary: exact three 2,000-row
-natural-cohort and PopQA identity manifests with derived-answer quotas; pinned
-real-tokenizer revisions and hashes; a full shortcut/matching audit; a target-
-manifest-bound duplicate preflight (the current ndarray binder is unsealed);
-named feature-permutation canonicalization; LO feasibility/selection; matched
-controls/nulls; the complete eight-world simulator; append-only boundary and
-runner; and a fresh no-edit adversarial verdict.
+sealed seeds. Step 266 now freezes the exact S0a/S0b/S1 execution contract for
+the remaining manifests, tokenizer boundary, shortcut/matching audit,
+manifest-bound duplicate preflight, feature canonicalization, nested
+selection/controls/nulls/LO suites, eight-world simulator, and append-only
+stage provenance. Those components are still unimplemented; their implemented
+source/runtime boundary requires a fresh no-edit review before execution.
 
 ## Automatic group-free IU Phase A6 protocol — Step 264
 

@@ -2,7 +2,8 @@
 
 **Date:** 2026-08-13
 
-**Status:** active research contract; A0 passed, A1--A5 closed, A6 is active
+**Status:** active research contract; A0 passed, A1--A5 closed; A6 protocol and
+S0a/S0b/S1 execution contract frozen before implementation
 
 **Primary objective:** replace the hand-defined provenance quotient used by
 NRM-CS-IU with an automatically identified correction that improves IU-PCR
@@ -340,9 +341,10 @@ accessed. Canonical result:
 
 ### A6 — self-supervised intervention route
 
-**Status (Step 265): preregistered and independently audited; unsealed
-construction/PTNI development primitives implemented; no A6 telemetry,
-simulator result, natural response, or target opened.** The target is one
+**Status (Step 266): parent protocol and mechanically executable S0a/S0b/S1
+contract preregistered and independently audited; unsealed construction/PTNI
+development primitives implemented; no A6 telemetry, simulator result, natural
+response, correctness sidecar, sealed seed, or target opened.** The target is one
 mechanically parsed task-answer assertion,
 not RAG faithfulness or contextual support. Evidence removal from a fixed
 response therefore remains an ambiguous adjacent-task diagnostic rather than
@@ -379,12 +381,21 @@ then advances to A7 without a rescue variant.
 Canonical frozen protocol:
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_V1.md`.
 
-The Step-265 source is not an S0a/S1 boundary. It still requires the jointly
-disjoint natural/PopQA prompt manifests, derived-answer quotas, exact pinned
-Qwen3/Llama tokenizer audit, target-manifest-bound duplicate preflight, named
-feature-permutation canonicalization, complete nested controls/nulls/LO
-selection, the eight-world simulator, append-only runner, and a fresh no-edit
-review before any sealed seed or response telemetry may open.
+Canonical frozen S0a/S0b/S1 execution contract:
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_S0_S1_EXECUTION_V1.md`.
+Its exact pre-freeze body SHA-256
+`5c869db42633d04bf4c46110d95de83891c6ca6b10fdf381653b8a618a750615`
+received the independent verdict `NO BLOCKERS`. This freezes implementation
+choices; it does not open an execution boundary. The implemented source and
+runtime inputs must receive a fresh no-edit review before S0a execution.
+
+The Step-265 source is not an S0a/S1 boundary. Step 266 now specifies the
+jointly disjoint natural/PopQA prompt manifests, derived-answer quotas, exact
+pinned Qwen3/Llama tokenizer audit, target-manifest-bound duplicate preflight,
+named feature-permutation canonicalization, complete nested controls/nulls/LO
+selection, eight-world simulator, and append-only runner. Those items remain
+to be implemented and independently reviewed before any sealed seed or
+response telemetry may open.
 
 ### A7 — tiny-label orientation
 

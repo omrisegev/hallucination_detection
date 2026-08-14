@@ -3,7 +3,7 @@
 
 ---
 
-## Active program — automatic group-free IU successor (Step 264)
+## Active program — automatic group-free IU successor (Step 266)
 
 The next core-method program is now explicitly reopened under a new-evidence
 standard rather than as another static covariance sweep. The goal is an
@@ -170,6 +170,26 @@ worlds, and append-only execution. It requires a fresh independent no-edit
 review. The small pre-telemetry protocol clarification in Step 265 is explicit:
 “affine” means one head over the frozen mixed-v2 transformed coordinates, not
 over raw telemetry values that undergo nonlinear frozen transforms.
+
+Step 266 freezes the missing execution layer before boundary implementation.
+The adversarially reviewed S0a/S0b/S1 contract binds exact model/tokenizer
+revisions, the required future content-addressed snapshot/hash procedure,
+the contextual chat-prefix/response-span tokenization rule, all
+quartet/natural/PopQA identity schedules, folds and null strata, the S0b
+shortcut and matching
+procedures, complete nested PTNI/control/LO/null selection, eight explicit
+simulator worlds, separated robustness arms, deterministic RNG bytes, and
+append-only stage provenance. Its exact pre-freeze body SHA-256
+`5c869db42633d04bf4c46110d95de83891c6ca6b10fdf381653b8a618a750615`
+received the independent verdict `NO BLOCKERS`.
+
+This is still a preregistration rather than an experimental result. The pinned
+Qwen3/Llama tokenizer artifacts have not been loaded, no S0 boundary has been
+prepared, and no telemetry, correctness sidecar, PopQA field, or sealed S1 seed
+has opened. The immediate research action is to implement S0a exactly from
+`docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_S0_S1_EXECUTION_V1.md`,
+then freeze and independently review its source/runtime boundary before
+execution.
 
 The untouched confirmation boundary is now PopQA with Gemma-3-4B-it, with a
 pre-sealed Qwen3-4B fallback if gated checkpoint access fails before any
