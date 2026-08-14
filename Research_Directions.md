@@ -149,6 +149,28 @@ capacity. The final verdict is `NO BLOCKERS`; no A6 telemetry or result has
 opened. Canonical protocol:
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_V1.md`.
 
+Step 265 implements an explicitly **unsealed development base**, not an A6
+result boundary. The mechanical layer now constructs and independently verifies
+the reciprocal arithmetic, relational aggregation/lookup, and finite
+set/counting tasks; preserves complete rejection ledgers; and rejects semantic
+AST or raw-prompt reuse across folds and the Qwen/Llama populations. The
+numeric layer implements the exact mixed-v2 target-local transform, factorial
+PTNI moments, leave-one-nuisance moment fits, nominal-roster transport,
+duplicate quotient IU, orthogonal correction, and one fixed affine fallback.
+All 55 A6 development tests pass. A full 1,800-group proxy build also passes
+with the available Qwen2.5 tokenizer, including the compact 40--80-token
+certificate, but the pinned Qwen3/Llama tokenizers have not been frozen or run.
+
+Do not open telemetry or sealed simulator seeds from this base. The next
+boundary must jointly bind the three 2,000-prompt natural cohorts and PopQA
+identity reservation, derived-answer quotas, exact tokenizers, shortcut audit,
+manifest-bound duplicate evaluation preflight, feature-permutation
+canonicalization, nested LO selection/controls/nulls, all eight simulator
+worlds, and append-only execution. It requires a fresh independent no-edit
+review. The small pre-telemetry protocol clarification in Step 265 is explicit:
+“affine” means one head over the frozen mixed-v2 transformed coordinates, not
+over raw telemetry values that undergo nonlinear frozen transforms.
+
 The untouched confirmation boundary is now PopQA with Gemma-3-4B-it, with a
 pre-sealed Qwen3-4B fallback if gated checkpoint access fails before any
 collection. The primary correctness rule uses normalized token-boundary alias

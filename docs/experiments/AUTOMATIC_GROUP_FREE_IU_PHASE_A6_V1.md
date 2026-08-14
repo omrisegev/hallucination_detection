@@ -6,8 +6,9 @@
 label may fit, orient, select, or tune the method
 
 **Status:** preregistered and independently adversarially audited (`NO
-BLOCKERS`); no A6 response telemetry, simulator result, or natural target has
-been opened
+BLOCKERS`); Step 265 adds the pre-telemetry transformed-coordinate affine
+clarification and unsealed development primitives; no A6 response telemetry,
+simulator result, natural response, or target has been opened
 
 **Primary candidate:** reciprocal Paired Target/Nuisance Intervention IU
 (`PTNI-IU`), one frozen group-free atomic correction
@@ -64,7 +65,10 @@ The only proposed methodological contribution is the combination of:
 2. factorial target, nuisance, and target-by-render contrasts;
 3. a group-free atomic nuisance-whitened direction;
 4. exact IU-orthogonal target-local anchoring and fallback; and
-5. distillation to one original-feature affine deployment score.
+5. distillation to one affine deployment score over the target's frozen
+   present-roster subset of the nominal 30 named **mixed-v2 transformed
+   coordinates** (equivalently, a nominal 30-vector with absent coefficients
+   fixed to zero).
 
 ## 3. Reciprocal calibration construction
 
@@ -509,9 +513,16 @@ alpha in {0, 0.0625, 0.125, 0.25, 0.50, 1.0}.
 ```
 
 Thus larger scores predict correctness, the correction is IU-orthogonal in
-the target covariance geometry, and `alpha=0` is the exact IU score. The code
-must reconstruct one original-feature affine weight and intercept with maximum
-absolute error below `1e-10`.
+the target covariance geometry, and `alpha=0` is the exact IU score. Here and
+throughout A6, “original-feature affine” means the frozen mixed-v2 transformer
+object followed by one affine weight and intercept over the target's frozen
+present-roster subset of its nominal 30 named output coordinates (equivalently,
+a nominal 30-vector whose absent coefficients are zero). It does **not** mean
+affine in the raw telemetry values:
+mixed-v2 deliberately contains nonlinear squared and empirical-rank/mode
+transforms. The code must reconstruct the score in this transformed coordinate
+system with maximum absolute error below `1e-10`; no additional detector,
+feature pass, or nonlinear fitted head is permitted.
 
 On every zero-evidence condition above, the returned weights, intercept, and
 scores are copied bit-for-bit from the quotient IU fit; a rescaled approximation

@@ -16,8 +16,12 @@ The primary S1 method must:
 2. fit without correctness labels;
 3. contain no runtime or calibration dependency on `FEATURE_TO_VIEW`,
    `VIEW_ORDER`, family names, or a hand-authored equivalent;
-4. remain a fusion rule: one affine score over the original feature matrix,
-   with a numerical reconstruction check;
+4. remain a fusion rule: one affine score over the target's frozen
+   present-roster subset of the nominal named mixed-v2 coordinate matrix
+   (equivalently, a nominal vector with absent coefficients zero), with a
+   numerical reconstruction check. Because mixed-v2 contains frozen nonlinear
+   per-feature transforms, reconstruction is assessed after that transformer
+   rather than against raw telemetry values;
 5. use no extra model pass at deployment;
 6. allow cached cross-model material, feature-construction metadata, and
    environment identities during calibration, provided each is declared;
@@ -336,8 +340,10 @@ accessed. Canonical result:
 
 ### A6 — self-supervised intervention route
 
-**Status (Step 264): preregistered; independently audited; no A6 telemetry or
-result opened.** The target is one mechanically parsed task-answer assertion,
+**Status (Step 265): preregistered and independently audited; unsealed
+construction/PTNI development primitives implemented; no A6 telemetry,
+simulator result, natural response, or target opened.** The target is one
+mechanically parsed task-answer assertion,
 not RAG faithfulness or contextual support. Evidence removal from a fixed
 response therefore remains an ambiguous adjacent-task diagnostic rather than
 a legal target-changing calibration pair.
@@ -372,6 +378,13 @@ then advances to A7 without a rescue variant.
 
 Canonical frozen protocol:
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_V1.md`.
+
+The Step-265 source is not an S0a/S1 boundary. It still requires the jointly
+disjoint natural/PopQA prompt manifests, derived-answer quotas, exact pinned
+Qwen3/Llama tokenizer audit, target-manifest-bound duplicate preflight, named
+feature-permutation canonicalization, complete nested controls/nulls/LO
+selection, the eight-world simulator, append-only runner, and a fresh no-edit
+review before any sealed seed or response telemetry may open.
 
 ### A7 — tiny-label orientation
 

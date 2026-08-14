@@ -12700,3 +12700,64 @@ before opening any sealed simulator seed or response telemetry. Canonical file:
 `docs/experiments/AUTOMATIC_GROUP_FREE_IU_PHASE_A6_V1.md`.
 
 ---
+
+# Step 265 — 2026-08-14: implement the unsealed A6 construction and PTNI development base
+
+**Scope**: Implemented the first mechanical and numeric layer required by the
+frozen reciprocal A6 protocol. This is deliberately a development-base commit,
+not an S0a or S1 execution boundary. No model response telemetry, simulator
+result, natural response, retrospective label, or PopQA target was opened.
+
+**Construction**: Added typed arithmetic, relational aggregation/lookup, and
+finite set/counting task ASTs; exact integer/rational generator evaluators;
+independent stack/SQLite/exhaustive verifier paths; four reversible prompt
+renderings; deterministic short and full-certificate response ASTs; two-family
+token-ID evidence; construction shortcut sidecars; and complete local/global
+attempt ledgers. The canonical development scheduler fills 900 Qwen and 900
+Llama slots, preserves exact balance, and replays every accepted/rejected
+attempt. Global admission hashes semantic task content without mutation-family
+bookkeeping and raw prompt bytes without group metadata, preventing the
+cross-family/fold/population reuse that a first implementation missed.
+
+**Target/feature boundary**: Added a construction-independent closed natural-
+answer parser for canonical integer, rational, finite-set, entity, relation,
+and required-unit atoms under the four registered wrappers. The feature layer
+binds the exact nominal 30-name mixed-v2 roster, complete quartet tensors, the
+99% target presence rule, train-only imputation, and target-local IU. An A6
+wrapper also repairs an inherited empirical-rank fit/deploy discrepancy so the
+same natural rows transform identically during fitting and scoring.
+
+**PTNI core**: Implemented exact reciprocal target, nuisance, and interaction
+contrasts; equal-cell population moments; all-render and leave-one-nuisance
+moment fitting; trace-scaled ridge directions; nominal-30 zero expansion;
+automatic bit-exact duplicate quotients; quotient-IU transport; covariance-
+orthogonal correction; and affine scoring with exact IU fallback. A duplicate-
+aware score is unusable until one complete target matrix is bound. If any
+evaluation row breaks the frozen equality, binding returns one fixed ordinary-
+IU affine artifact for the entire target—never a row- or chunk-dependent rule.
+
+**Pre-result adversarial corrections**: Independent review caught positional
+constructor misbinding that silently disabled the duplicate fallback, a
+train-only duplicate projection that did not preserve quotient IU, omitted
+held-render effects in the moment fit, missing lookup coverage, fractional
+certificate delimiter collisions, incomplete rarity accounting, numeric
+substring answer diagnostics, and semantic/prompt dedup keys that included
+nonsemantic IDs. These were fixed before any result boundary. The protocol's
+“affine” wording was also clarified, before telemetry, to mean one affine head
+over the frozen mixed-v2 transformed coordinates rather than over raw telemetry
+values, because mixed-v2 intentionally contains nonlinear transforms.
+
+**Verification and remaining gate**: All 55 A6 development tests pass, as do
+the relevant A4/A5 regression tests and `git diff --check`. This does not yet
+satisfy S0a/S1. The compact typed certificate fits the 40--80-token band for
+360/360 proxy cases and the full 1,800-group schedule passes when the available
+local Qwen2.5 tokenizer is used for both callbacks; this is an executability
+diagnostic, not a substitute for the exact pinned Qwen3 and Llama tokenizers.
+Before any sealed seed or response collection, a new reviewed
+boundary must add the three exact 2,000-prompt natural manifests and joint
+PopQA identity reservation, derived-answer quotas, real pinned Qwen/Llama
+tokenizer evidence, manifest-bound duplicate evaluation preflight, named
+feature-permutation canonicalization, LO structural selection, matched
+controls/nulls, the complete eight-world simulator, and append-only runner.
+
+---

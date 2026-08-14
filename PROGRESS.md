@@ -1,11 +1,54 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-14
-**Last updated**: Step 264. A1--A5 are closed. A6 is now fully preregistered and
-independently audited with `NO BLOCKERS`; no A6 response telemetry, simulator
-result, or natural target has been opened. The sole candidate is reciprocal
-PTNI-IU under ordinary answer correctness, not RAG groundedness. Next implement
-and review A6-S0/S1 exactly as frozen before opening any sealed result.
+**Last updated**: Step 265. A1--A5 are closed. The first A6 mechanical and
+numeric development base is implemented and tested, but it is deliberately
+unsealed and incomplete as an S0/S1 execution boundary. No A6 response
+telemetry, simulator result, natural response, or benchmark target has been
+opened. Next complete the jointly disjoint natural/PopQA manifests, real
+tokenizer boundary, manifest-bound evaluation artifact, nested selector and
+S1 stress runner, then obtain a fresh independent boundary review before any
+sealed result.
+
+## Automatic group-free IU Phase A6 development base — Step 265
+
+The reciprocal construction now has typed arithmetic, relational aggregation
+and lookup, and finite set/counting tasks; exact integer/rational evaluators;
+four reversible prompt renderings; deterministic short/certificate responses;
+an independent verifier; a full closed natural-answer parser; and append-only
+local/global rejection ledgers. The canonical 900+900 development schedule
+replays exactly and rejects semantic-task or raw-prompt-content reuse across
+families, folds, and populations. It does not yet use the real pinned Qwen and
+Llama tokenizers, so it is not an S0a boundary.
+
+The target-local feature layer enforces the exact 30-name mixed-v2 contract,
+99% presence rule, complete quartet admission, and fit/deploy transform
+identity. The PTNI core implements factorial target/nuisance/interaction
+moments, all-render and leave-one-nuisance fits, trace-scaled ridge direction,
+nominal-roster transport, exact-duplicate quotient IU, covariance-orthogonal
+correction, and exact IU fallbacks. Duplicate-aware deployment must first bind
+one full target matrix; a failed equality preflight yields one fixed ordinary-
+IU affine artifact rather than a row- or chunk-dependent rule.
+
+Pre-telemetry adversarial review found and repaired several hidden failures:
+mutation metadata in the AST hash allowed cross-family semantic duplicates;
+group-bound prompt IDs allowed raw prompt reuse; positional score constructors
+silently disabled duplicate fallback; the inherited empirical-rank transform
+fit and deployed different coordinates; and answer-in-prompt used substring
+matching. The A6-only suite is 55/55 green and the relevant A5/A4 regression
+suite also passes. A full 1,800-group executability proxy using the available
+local Qwen2.5 tokenizer for both callbacks now passes after compacting the
+typed certificate and isolating mutable notation atoms at token boundaries;
+the exact pinned Qwen3 and Llama tokenizers remain a mandatory S0a gate.
+
+This is a development-base commit, not permission to collect telemetry or run
+sealed seeds. Still mandatory before an S0a/S1 boundary: exact three 2,000-row
+natural-cohort and PopQA identity manifests with derived-answer quotas; pinned
+real-tokenizer revisions and hashes; a full shortcut/matching audit; a target-
+manifest-bound duplicate preflight (the current ndarray binder is unsealed);
+named feature-permutation canonicalization; LO feasibility/selection; matched
+controls/nulls; the complete eight-world simulator; append-only boundary and
+runner; and a fresh no-edit adversarial verdict.
 
 ## Automatic group-free IU Phase A6 protocol — Step 264
 
