@@ -1,14 +1,44 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-14
-**Last updated**: Step 267. A1--A5 are closed. The A6 parent protocol and
-S0a/S0b/S1 execution contract are frozen, and the exact S0a implementation has
-now received a stable-hash independent `NO BLOCKERS` verdict. No exact
-tokenizer snapshot has been loaded into an A6 boundary; no response telemetry,
-simulator result, natural response, correctness sidecar, benchmark target, or
-sealed S1 seed has opened. Next inspect the three exact tokenizer revisions
-read-only, prepare and review a new S0a source/runtime/input boundary only if
-all are available, then execute S0a.
+**Last updated**: Step 268. A1--A5 are closed. A6-S0a has now completed with
+the independently reproduced verdict `PASS_S0A`. The authenticated tokenizer
+restore, frozen S0a boundary, all 7,800 checkpoints, aggregate, and completion
+artifact verify exactly. No response telemetry, simulator result, natural
+response, correctness sidecar, benchmark target, or sealed S1 seed has opened.
+The active next stage is the already frozen A6-S0b shortcut/matching audit,
+followed by the sealed S1 simulator if S0b passes.
+
+## Automatic group-free IU Phase A6 S0a result — Step 268
+
+The three frozen tokenizer/config inputs were restored and authenticated against
+the exact official Hugging Face revisions and the registered Git/LFS objects.
+The canonical restore manifest is
+`c7c1cb3bc3ba68e38207cc6b1a69bedafa963249e5fdd766d07ad08b811b56bb`;
+its materialized-byte digest is
+`e990e813fd789d4fde3ec4b145c1b6ad89c2e392c653c7ad05f462d1094136d0`.
+The self-contained S0a boundary was frozen at code commit `ba983aa` with
+boundary SHA-256
+`698261d467a3f0a394ef244dafcac67d1cf8a69a9cf2de8888f0ff54678c545e`.
+
+S0a constructed exactly 1,800 reciprocal quartet groups, 6,000 prompt-only
+natural-manifest rows, 7,200 inner-fold assignments, and 36 deterministic null
+cells. The append-only run produced 7,800 contiguous checkpoints. Authoritative
+full replay from the frozen commit returned `PASS_S0A_VERIFIED`; aggregate
+SHA-256 is
+`2a11b37c4fd649490675e8da4d826084c137a2a072c77ab2fdd5efcad8e8685a`.
+Independent review found no schedule, hash, fold, null, contamination, or
+firewall blocker. The PopQA artifact contains opaque reserved row indices only,
+and the Llama artifact is schema-only.
+
+This is a mechanical construction result, not a detector-performance result.
+The next mandatory action is A6-S0b. After the frozen A6/PTNI program reaches
+its registered outcome, the prospective
+`docs/research_notes/ptni_guided_nrm_research_proposal_2026-08-14.md` is queued
+for a mandatory trigger assessment. It will require a separate preregistration
+and may run only if PTNI first establishes a valid target direction and leaves
+a registered stability, redundancy, or nuisance-transfer limitation; otherwise
+it is closed with that reason. It may not rescue, modify, or delay A6.
 
 ## Automatic group-free IU Phase A6 S0a implementation — Step 267
 

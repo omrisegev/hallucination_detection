@@ -12858,3 +12858,42 @@ prepare a new empty S0a boundary, independently verify its source/runtime/input
 artifacts, commit that boundary, and only then execute S0a.
 
 ---
+
+# Step 268 — 2026-08-14: authenticate inputs and complete A6-S0a
+
+**Input provenance**: Restored all three frozen tokenizer/config snapshots
+through the reviewed authenticated restorer. Official revision-tree evidence,
+Git/LFS identities, Drive transport bytes, the exact selected allowlists, and
+cross-Qwen equalities verify. The canonical restore manifest is
+`c7c1cb3bc3ba68e38207cc6b1a69bedafa963249e5fdd766d07ad08b811b56bb`;
+materialized SHA-256 is
+`e990e813fd789d4fde3ec4b145c1b6ad89c2e392c653c7ad05f462d1094136d0`.
+
+**Frozen boundary**: Prepared and independently reviewed the self-contained
+S0a boundary at code commit `ba983aa`. Boundary SHA-256 is
+`698261d467a3f0a394ef244dafcac67d1cf8a69a9cf2de8888f0ff54678c545e`.
+The boundary contains only registered tokenizer/config/evidence bytes and the
+boundary/report artifacts; the independent verdict was `NO BLOCKERS`.
+
+**S0a result**: Executed from the exact frozen commit and produced 1,800
+reciprocal quartets, 6,000 prompt-only natural rows, 7,200 inner-fold
+assignments, 36 null cells, and 7,800 contiguous append-only checkpoints.
+Authoritative full replay and independent audit returned `PASS_S0A_VERIFIED`.
+Aggregate SHA-256 is
+`2a11b37c4fd649490675e8da4d826084c137a2a072c77ab2fdd5efcad8e8685a`.
+No response telemetry, natural response, correctness sidecar, PopQA content,
+classification, or sealed S1 seed was opened.
+
+**Research queue**: Read and registered
+`docs/research_notes/ptni_guided_nrm_research_proposal_2026-08-14.md` as a
+conditional successor experiment. It receives a mandatory trigger assessment
+after the frozen A6/PTNI outcome and may open experimentally only if PTNI
+establishes a valid target direction while leaving a registered stability,
+redundancy, or nuisance-transfer limitation. The hybrid must be separately
+preregistered and show incremental value beyond PTNI; it may not rescue,
+modify, or delay A6.
+
+**Next**: freeze the S0a result artifacts, then implement and run the registered
+A6-S0b shortcut/matching audit. S1 may open only after S0b passes.
+
+---

@@ -3,21 +3,33 @@
 
 ---
 
-## Active program — automatic group-free IU successor (Step 267)
+## Active program — automatic group-free IU successor (Step 268)
 
 The next core-method program is now explicitly reopened under a new-evidence
 standard rather than as another static covariance sweep. The goal is an
 automatic successor to IU-PCR/NRM that removes the manual provenance quotient
 while preserving label-free fitting, one-pass inference, and an affine score.
 
+The broader optimization goal does not require the winning method to be
+self-supervised. A fully unsupervised method is preferable when it clears the
+same target-identification, robustness, transfer, and performance gates;
+self-supervision from mechanically generated interventions is also admissible.
+Human or benchmark supervision is forbidden in fitting and selection. Natural
+labels remain restricted to the explicitly frozen veto and confirmation
+stages and may not adaptively choose a method. The deployable method remains
+gray-box and one-pass: it may use the registered internal telemetry, but not a
+second model call, an external judge, handwritten feature families, or a
+semantic/provenance grouping supplied as prior knowledge. Success requires a
+material held-data improvement over IU-PCR, not merely a structural or
+simulation PASS.
+
 The program separates measurement-structure recovery, target-component
-identification, and orientation/trust. Its primary route is a soft factorial
-channel-by-operator measurement model followed by multi-environment joint
-block diagonalization. Paired cross-model views provide the preferred strict
-target-identification channel. Continuous weak supervision is the second S1
-route. If strict identification fails, the predeclared ladder moves to
-self-supervised interventions and then minimal-label orientation; claims from
-those routes remain separately named.
+identification, and orientation/trust. Its initial soft-factorial,
+multi-environment, paired-view, and label-free continuous-structure routes were
+audited in A1--A5 and closed. The deployable ladder now ends at mechanically
+self-supervised interventions. Minimal-label orientation is outside the active
+goal: it may remain a supervised diagnostic ceiling, but it cannot fit, select,
+orient, or promote the deployable method.
 
 All alternatives receive a premise test, but only frozen finalists may touch
 new confirmation labels. Existing original, ProcessBench, SemGrad, PRMBench,
@@ -205,6 +217,41 @@ they are present, prepare a new empty source/runtime/input boundary and subject
 that concrete artifact to independent verification before executing S0a. If
 any revision is unavailable, record `BLOCKED_TOKENIZER_ACCESS` without
 substitution or download-driven drift.
+
+Step 268 completes that action. All three tokenizer/config snapshots were
+authenticated against the frozen official revisions and Git/LFS identities,
+the self-contained boundary was independently cleared, and authoritative replay
+returned `PASS_S0A`. The run contains 1,800 reciprocal quartets, 6,000
+prompt-only natural rows, 7,200 inner-fold assignments, 36 null cells, and
+7,800 contiguous checkpoints. No response telemetry, natural response,
+correctness sidecar, PopQA content, or sealed S1 seed was opened. The active
+next stage is A6-S0b, not detector evaluation.
+
+### Conditional successor after A6 — PTNI-guided Neutral Residual Mode (queued)
+
+The prospective note
+`docs/research_notes/ptni_guided_nrm_research_proposal_2026-08-14.md` is now an
+explicit roadmap task after the frozen A6/PTNI outcome. It does not modify or
+delay A6 and is not a rescue route if PTNI fails to identify or transfer a
+target direction.
+
+The preferred candidate is the note's Option C: project the nested PTNI
+steering direction into a permutation-calibrated atomic neutral-residual
+subspace, remove its target-local IU component, and retain exact `alpha=0`
+IU-PCR fallback. A new protocol must compare the hybrid directly with frozen
+PTNI-IU, Family-NRM, Atomic-NRM, cardinality-matched random projectors, and
+norm-matched PTNI shrinkage.
+
+The proposal receives a mandatory trigger assessment after the frozen A6
+outcome. Experimental execution opens only if A6 establishes a valid
+intervention-derived target direction and exposes a preregistered stability,
+redundancy, or nuisance-transfer limitation; otherwise the assessment records
+a principled closure rather than using NRM as a rescue. Its decisive question
+is incremental: whether the NRM projector adds reproducible held-family/held-
+scorer value beyond PTNI alone, not merely whether the combined method beats
+IU-PCR. Projector definition, projection order, trust path, nulls, and all
+decision thresholds require a separate preregistration and independent no-edit
+review before any result is opened.
 
 The untouched confirmation boundary is now PopQA with Gemma-3-4B-it, with a
 pre-sealed Qwen3-4B fallback if gated checkpoint access fails before any
