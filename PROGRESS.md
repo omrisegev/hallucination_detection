@@ -1,13 +1,29 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-14
-**Last updated**: Step 268. A1--A5 are closed. A6-S0a has now completed with
+**Date**: 2026-08-15
+**Last updated**: Step 269. The A6-S0b source boundary is **reviewed and
+frozen** at commit `89c414a` (56/56 tests; single independent review closed
+NO BLOCKERS after two result-changing blocker fixes — see HISTORY Step 269).
+The exact Pythia snapshot is downloaded and byte-authenticated. The sealed
+chain (prepare → run-pythia → run-analysis → verify) runs on **AIRCC via
+`cluster/a6_s0b_chain.sbatch`** — Linux-only because the sealed S0a manifests
+are Unix-keyed and Windows checkout CRLF-converts sources. Submission is
+staged and **blocked only on the TAU VPN**. Expectation from the development
+preflight: the frozen `gradient_inf <= 1e-8` gate may close S0b as
+`CLOSE_S0B_NUMERICAL_NONCONVERGENCE`; the registered verdict stands as
+produced. S1 (or the successor route) opens only on Omri's explicit go; the
+A7 successor-clause conflict has an uncommitted reconciliation draft
+(`docs/research_notes/DRAFT_a7_successor_reconciliation_2026-08-15.md`)
+awaiting Omri, and the post-A6 route survey is at
+`docs/research_notes/a0_a6_route_survey_and_next_route_2026-08-15.md`.
+
+## Step 268 state (prior)
+
+A1--A5 are closed. A6-S0a completed with
 the independently reproduced verdict `PASS_S0A`. The authenticated tokenizer
 restore, frozen S0a boundary, all 7,800 checkpoints, aggregate, and completion
 artifact verify exactly. No response telemetry, simulator result, natural
 response, correctness sidecar, benchmark target, or sealed S1 seed has opened.
-The active next stage is the already frozen A6-S0b shortcut/matching audit,
-followed by the sealed S1 simulator if S0b passes.
 
 ## Automatic group-free IU Phase A6 S0a result — Step 268
 

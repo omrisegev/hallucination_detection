@@ -12897,3 +12897,52 @@ modify, or delay A6.
 A6-S0b shortcut/matching audit. S1 may open only after S0b passes.
 
 ---
+
+### Step 269 — 2026-08-15: complete, review, and freeze the A6-S0b source boundary
+
+**What**: Executed the Codex handoff (`bbe1132`). Added the six mandated
+adversarial test groups for the runner's verify/resume/replay paths (replay
+no-repair, no hash-only-verify downgrade, bootstrap resume validation, control
+resume validation, terminal exclusivity + output namespace, exception
+routing); acquired and byte-authenticated the exact Pythia snapshot on this
+machine; benchmarked 1.58 s/prompt single-thread (~6.3 h for the 14,400 sealed
+prompts). The single independent pre-freeze review found two result-changing
+blockers and one recording defect, all fixed and confirmed (final verdict NO
+BLOCKERS with discrimination proofs): `hungarian_exact` dropped pending
+columns behind missing edges of the active row (false NO_PERFECT_MATCHING on
+160/1,000 contract-scale graphs, silent suboptimality on sparse eligibility
+graphs — the false-infeasible path would have been string-routed into the
+scientific closure CLOSE_S0B_MATCHING_PREMISE); the bootstrap upper endpoint
+was order statistic 19,500 instead of the contracted 19,501 (`method="higher"`,
+anti-conservative exactly at the registered n=20,000); `verify()` did not
+record the prior-verification mode. A fourth, structural fix was required for
+executability: the handoff's `prepare` called `s0a.verify(replay=True)`, which
+fail-closes on the current `spectral_utils` glob, git HEAD, and the recorded
+macOS runtime — unexecutable at any post-`ba983aa` commit on any machine,
+including the original Mac. Replaced by manifest-chain authentication of the
+sealed S0a tree (completion → aggregate → 7,800 checkpoints + result files),
+pinned to the sealed Step-268 SHA-256 constants.
+
+**Why**: `HANDOFF_A6_S0B_TO_CLAUDE_2026_08_15.md` §7 continuation under the
+one-review rule; the blockers were each independently capable of producing a
+wrong registered S0b verdict.
+
+**Result**: 56/56 S0b tests green (1 Windows symlink-privilege skip). Frozen
+source commit `89c414a`. Platform findings: `core.autocrlf` CRLF-converted the
+hash-sealed S0a artifacts on Windows checkout — the canonical loaders
+correctly failed closed; guarded repo-wide with `.gitattributes
+results/** -text`. The S0a manifests are Unix-keyed, so the sealed chain runs
+on Linux via `cluster/a6_s0b_chain.sbatch` (3 linear afterany links,
+git-shallow-clone sync for byte-exact LF sources with true commit SHAs,
+persistent chain-specific pip userbase so recorded package versions cannot
+drift between links). The Mac's Pythia TLS failure does not reproduce here
+(its Python trust store was the fault; nothing was compromised). The
+development preflight's gradient expectation stands: the sealed run may close
+as CLOSE_S0B_NUMERICAL_NONCONVERGENCE, and the registered verdict stands as
+produced. The handoff-requested A0–A5 survey is committed as
+`docs/research_notes/a0_a6_route_survey_and_next_route_2026-08-15.md`
+(post-A6 recommendation: A8 domain-conditional orientation; the A7
+successor-clause documentation conflict has an uncommitted reconciliation
+draft awaiting Omri).
+
+---
