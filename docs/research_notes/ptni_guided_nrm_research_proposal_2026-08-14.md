@@ -5,6 +5,7 @@
 **Date:** 2026-08-14
 **Status:** prospective research note; not a preregistration and not an experimental result
 **Scope:** a possible successor experiment after the frozen PTNI-IU/A6 program. This note does not modify A6, its estimator, its gates, or its execution order.
+**Continuation handoff:** see `HANDOFF_A6_S0B_TO_CLAUDE_2026_08_15.md`; this proposal is explicitly included in the post-A6 alternative review requested there.
 
 ## 1. Research question
 
