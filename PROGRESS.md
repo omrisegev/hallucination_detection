@@ -1,7 +1,51 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-15
-**Last updated**: Step 269. The A6-S0b source boundary is **reviewed and
+**Date**: 2026-08-16
+**Last updated**: Step 270 — **the γ̂3 orientation channel does not survive its
+own correction; the atomic (group-free) NRM plan is stopped at its first gate,
+awaiting Omri.**
+
+## Current decision point — γ̂3 failed the correction it was owed (Step 270)
+
+Step 252 established the b-coupled cubic channel with two load-bearing numbers:
+pooled `cos(γ̂3, g*) = +0.76` (atomic) and a family sign-bit margin `≈ 0.56`.
+Both used a probe orthogonalized against `{1, b}` only; that memo's own §6
+required Gram–Schmidt against `{1, b, φ2}` plus winsorized `b` for any future
+estimator. Recomputed in the corrected form, **neither number survives**:
+
+| | Step 252 (`{1,b}`) | corrected (winsor 1%) |
+|---|---:|---:|
+| atomic pooled cos(γ̂3, g\*) | +0.7617 | **+0.3350** (−0.0806 unwinsorized) |
+| family sign-bit margin, 5-family | +0.5532 | **−0.1903 — wrong sign** |
+| family sign-bit margin, 6-family | +0.4889 | **−0.1702 — wrong sign** |
+
+The fidelity control reproduces Step 252 exactly (+0.7617, 13/17, +0.5129 /
+87%), and the memo's quoted ≈0.56 is confirmed as the 5-family restriction.
+A crossed design attributes the loss to **the φ2 orthogonalization, not the
+winsorization**: winsorizing the original probe 0→10% holds +0.68…+0.76, while
+removing φ2 at zero winsorization gives −0.0806 under all three pooling
+conventions (raw / unit-RMS / direction-only), so it is not a scale artifact.
+Winsorization then restores the corrected probe only monotonically in the knob
+(+0.24 → +0.46), never reaching the original.
+
+**Consequences**: Step C (replacing the deployed family-NRM all-ones sign bit
+with `sign(⟨v_neutral, γ̂3_family⟩)`) is **closed** — at the registered primary
+setting it would have flipped the deployed method into the wrong orientation
+(the teacher says the all-ones bit is correct, cos +0.90). Step B (the
+retrospective kill-test) is **not started**: it selects and orients by γ̂3,
+which is the vector that just failed. Per the plan's own gate, work stopped
+here. Conclusion:
+`docs/research_notes/gamma3_correction_conclusion_2026-08-16.md`; artifacts in
+`results/gamma3_corrected_2026-08-15/`.
+
+**A6-S0b is still running** — the registered chain is in local Docker container
+`a6s0b`, stage 2 of 4 (Pythia prompt NLLs). No verdict artifact
+(`S0B_COMPLETE.json` / `S0B_CLOSED.json`) exists yet; the verdict entry will be
+Step 271. Do not recreate the container; `docker start a6s0b` resumes it.
+
+## Step 269 state (prior)
+
+The A6-S0b source boundary is **reviewed and
 frozen** at commit `89c414a` (56/56 tests; single independent review closed
 NO BLOCKERS after two result-changing blocker fixes — see HISTORY Step 269).
 The exact Pythia snapshot is downloaded and byte-authenticated. The sealed

@@ -12946,3 +12946,84 @@ successor-clause documentation conflict has an uncommitted reconciliation
 draft awaiting Omri).
 
 ---
+
+### Step 270 — 2026-08-16: the γ̂3 orientation channel does not survive its own correction
+
+**What**: Closed the technical debt on the γ̂3 (b-coupled cubic) orientation
+channel established in Step 252. The reported headline numbers — pooled
+cos(γ̂3, g\*) = +0.76 at atomic level, family sign-bit margin ≈ 0.56 — were
+produced with the cubic probe orthogonalized against `{1, b}` only. That
+memo's own §6 records the correction it demands of any future b-coupled
+estimator: Gram–Schmidt φ3 against `{1, b, φ2}` (the `{1,b}`-only version
+leaks a balance-dependent quadratic term that can flip its sign) and
+winsorize `b`. This step recomputes γ̂3 in the corrected form, with a
+crossed-design attribution and a pooling-convention control.
+
+**Why**: Step B of the planned atomic (group-free) NRM work orients a selected
+residual eigenvector by `sign(⟨v_j, γ̂3⟩)`, and Step C would replace the
+deployed family-NRM all-ones sign bit with `sign(⟨v_neutral, γ̂3_family⟩)`.
+Both are premised on the uncorrected numbers, so the correction had to be
+settled before either was built.
+
+**Result**: **The channel does not survive. Both load-bearing numbers fail,
+and the failure is attributable to the correction itself, not to a knob or a
+pooling artifact.**
+
+*Fidelity control* — the `{1,b}` probe reproduces Step 252 exactly: pooled cos
++0.7617 (ref +0.7617), sign agreement 13/17 (ref 13/17), per-cell median
++0.5129 at 87% positive (ref +0.5129 / 0.870).
+
+*Atomic level*, 23 source cells / 17 frozen atoms:
+
+| probe | pooled cos(γ̂3, g\*) | sign agreement | per-cell median |
+|---|---:|---:|---:|
+| `{1,b}` only (Step 252) | **+0.7617** | 13/17 | +0.5129 |
+| corrected, no winsorization | **−0.0806** | 7/17 | +0.1535 |
+| corrected, winsor 1% (registered primary) | **+0.3350** | 12/17 | +0.4470 |
+| corrected, winsor 5% | +0.4648 | 11/17 | +0.5612 |
+
+*Family level* — the sign bit Step C would have replaced. The teacher says the
+deployed bit is correct (cos(v_neutral, family g\*) = +0.90):
+
+| probe | 6-family margin | 5-family margin | sign correct? |
+|---|---:|---:|:--:|
+| all-ones (deployed) | +0.0650 | +0.0594 | yes |
+| `{1,b}` only (Step 252) | +0.4889 | **+0.5532** | yes |
+| corrected, winsor 1% | **−0.1702** | **−0.1903** | **no** |
+| corrected, winsor 2.5% | +0.1018 | +0.1058 | yes |
+
+The memo's quoted ≈0.56 is reproduced as the 5-family restriction (+0.5532);
+the deployed calibration spans all 6 families (+0.4889). The collapse holds
+identically under both bases, so it is not a basis artifact.
+
+*Attribution (crossed design, φ2-orthogonalization × winsorization, three
+pooling conventions)*: **winsorization is harmless and the φ2 orthogonalization
+is the destructive ingredient.** Winsorizing the original probe from 0% to 10%
+leaves pooled cos in +0.68…+0.76. Removing φ2 at zero winsorization takes it to
+−0.0806, and that holds across raw-moment (−0.081), unit-RMS (−0.125) and
+direction-only (−0.126) pooling, so it is not a pooling-scale artifact.
+Winsorization then partially *restores* the corrected probe monotonically in
+the knob (+0.24 → +0.34 → +0.43 → +0.46), never reaching the original — the
+signature of tail suppression, not of a recovered channel. Median cos between
+the two probes across cells is +0.56: they are only about half the same
+measurement.
+
+**Interpretation**: most of the reported +0.76 was carried by exactly the
+balance-dependent quadratic leak the Step-252 memo itself flagged. The genuine
+cubic b-nonlinearity channel is real but much weaker (~+0.34 at the registered
+winsorization), and at family level its sign is not determined by the data —
+it flips between winsor 1% (−0.17) and 2.5% (+0.10). Step C is not merely
+unsupported: at the registered primary setting the proposed replacement bit
+would have **flipped the deployed family NRM into the wrong orientation**, a
+component whose confirmation rests on a CI floor of +0.07pp.
+
+**Status**: Step B (the retrospective kill-test) is **not started** — its
+orientation premise is the number that just failed. Per the plan's own gate
+("if cos/margin do not survive, STOP — that is itself the finding"), work
+stops here pending Omri. Step C is closed by this measurement.
+
+Artifacts: `results/gamma3_corrected_2026-08-15/` (`RESULT.json`,
+`DECOMPOSITION.json`, `FAMILY_BASIS_CHECK.json`, three scripts, three logs).
+Conclusion note: `docs/research_notes/gamma3_correction_conclusion_2026-08-16.md`.
+
+---
