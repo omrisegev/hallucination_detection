@@ -86,6 +86,40 @@ def _warp(logits: torch.Tensor, cfg: DecodeConfig) -> torch.Tensor:
     return logits
 
 
+class IncrementalDetokenizer:
+    """Maintain the decoded text of a growing token list in O(window) per token.
+
+    A naive `tok.decode(all_ids)` after every token is O(T^2) — at the 16,384-token cap
+    that is ~134M token-decodes per trace and dominates the GPU time. Decoding only a
+    trailing window and splicing keeps it linear, while still going through the real
+    tokenizer so multi-byte and byte-BPE pieces resolve correctly.
+
+    Correctness rests on the anchor never moving into the middle of a multi-token
+    character: the anchor advances only past tokens that are already committed to `head`,
+    and `window` (64) is far larger than any single UTF-8 sequence's token span.
+    """
+
+    def __init__(self, tok, window: int = 64):
+        self.tok = tok
+        self.window = int(window)
+        self.ids = []
+        self.anchor = 0
+        self.head = ""
+
+    def append(self, token_id: int) -> str:
+        self.ids.append(int(token_id))
+        if len(self.ids) - self.anchor > 2 * self.window:
+            keep = len(self.ids) - self.window
+            self.head += self.tok.decode(self.ids[self.anchor:keep],
+                                         skip_special_tokens=False)
+            self.anchor = keep
+        return self.text
+
+    @property
+    def text(self) -> str:
+        return self.head + self.tok.decode(self.ids[self.anchor:], skip_special_tokens=False)
+
+
 @torch.no_grad()
 def stream_generate(mdl, tok, prompt_ids, cfg: DecodeConfig,
                     on_token=None, stop_check=None, generator=None):
@@ -115,7 +149,7 @@ def stream_generate(mdl, tok, prompt_ids, cfg: DecodeConfig,
     out_ids, raw_topk_ids, raw_topk_lps, warp_topk_ids, warp_topk_lps = [], [], [], [], []
     eos = set(int(e) for e in cfg.eos_token_ids)
     stop_reason = "length"
-    text = ""
+    detok = IncrementalDetokenizer(tok) if stop_check is not None else None
 
     for step in range(int(cfg.max_new_tokens)):
         out = mdl(input_ids=cur, past_key_values=past, use_cache=True)
@@ -170,8 +204,7 @@ def stream_generate(mdl, tok, prompt_ids, cfg: DecodeConfig,
             break
 
         if stop_check is not None:
-            text = tok.decode(out_ids, skip_special_tokens=False)
-            if stop_check(text, ch):
+            if stop_check(detok.append(nxt), ch):
                 stop_reason = "policy"
                 break
 
@@ -184,8 +217,11 @@ def stream_generate(mdl, tok, prompt_ids, cfg: DecodeConfig,
         "channels": ch.as_dict(),
         "n_tokens": len(out_ids),
         "stop_reason": stop_reason,
-        "past_key_values": past,   # lets a caller continue with a forced closure, no re-prefill
     }
+    # The KV cache is deliberately NOT returned: a driver that pickled this dict would
+    # serialise gigabytes of cache into a shard. A forced closure re-prefills instead —
+    # one forward pass over a few thousand tokens, negligible against the trace itself.
+    del past
     if cfg.keep_top_k_arrays and raw_topk_ids:
         result["raw_top_k_logprobs"] = {
             "ids": np.stack(raw_topk_ids), "logprobs": np.stack(raw_topk_lps)}

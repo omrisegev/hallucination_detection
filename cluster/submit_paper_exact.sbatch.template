@@ -1,0 +1,77 @@
+#!/bin/bash
+# TEMPLATE for cluster/submit_paper_exact.sbatch — the live file is gitignored because it
+# carries a hardcoded HF_TOKEN, same convention as every other submit_*.sbatch.template here.
+#
+# Regenerate the live file ON THE CLUSTER:
+#
+#   cd /shared/cycle2_tau_averbuch_prj/omrisegev1/code
+#   tok=$(grep -m1 '^export HF_TOKEN=' cluster/submit_inference.sbatch | cut -d= -f2-)
+#   sed "s|^export HF_TOKEN=.*|export HF_TOKEN=$tok|" \
+#       cluster/submit_paper_exact.sbatch.template > cluster/submit_paper_exact.sbatch
+#
+# NEVER commit the live file.
+#
+# WHAT THIS RUNS
+# --------------
+# One `paper_exact_acquisition_v1` stage. The first argument is the driver, everything after
+# it is passed through:
+#
+#   sbatch -p power-gpu --qos=owner_880 -J pe_l1_pilot cluster/submit_paper_exact.sbatch \
+#       run_paper_exact_uprm_judge.py --mode pilot --out $SHARED/results/paper_exact/l1_pilot
+#
+# Stage guide (see HANDOFF_paper_exact_cluster_acquisition_2026-08-16.md §4):
+#   L1  run_paper_exact_uprm_judge.py   uPRM's own Eq. 6 control, Qwen2.5-14B, ProcessBench
+#   S1  run_paper_exact_refrain.py      REFRAIN native stopping, Qwen3-8B x MATH-500
+#   S2  run_paper_exact_leash.py        LEASH native matrix, 4 models x GSM8K/AQuA
+#   M1  run_paper_exact_deepconf.py     DeepConf pilot (protocol check)
+#   M2  run_paper_exact_deepconf.py     DeepConf full pool (--mode full, sharded)
+#
+# PREEMPTION
+# ----------
+# Exit code 85 means "checkpointed, incomplete" — the driver saved atomically and can resume
+# against the same --out. Slurm's own requeue handles SIGTERM; a manual resubmit with the
+# identical --out is always safe because resume is by stable trace key and the manifest
+# refuses any pinned-field drift.
+
+#SBATCH --job-name=paper_exact
+#SBATCH --gpus=1
+#SBATCH --time=24:00:00
+#SBATCH --requeue
+#SBATCH --signal=B:TERM@900
+#SBATCH --output=/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/%x_%j.out
+#SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
+#SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
+#SBATCH --container-workdir=/shared/cycle2_tau_averbuch_prj/omrisegev1/code
+
+set -uo pipefail
+
+SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
+export HF_HOME=$SHARED/hf_cache
+export HF_DATASETS_CACHE=$SHARED/hf_cache/datasets
+export PIP_CACHE_DIR=$SHARED/pip_cache
+export PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID}
+mkdir -p "$PYTHONUSERBASE"
+export HF_TOKEN=REPLACE_ME
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+# Recorded in every RUN_MANIFEST.json so a row can be traced back to its container.
+export SLURM_CONTAINER_IMAGE=nvcr.io/nvidia/pytorch:25.01-py3
+# Python's string hash is salted per process; the drivers use sha256 for per-trace seeds,
+# but pinning this keeps every other dict-order-dependent path reproducible too.
+export PYTHONHASHSEED=0
+
+DRIVER="${1:?first argument must be the driver filename, e.g. run_paper_exact_refrain.py}"
+shift
+
+echo "[sbatch] job $SLURM_JOB_ID on $(hostname)"
+echo "[sbatch] driver=$DRIVER args: $*"
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader || true
+
+pip install -q --user -r cluster/requirements.txt
+# sentence-transformers is only needed by S1 (REFRAIN's all-MiniLM-L6-v2 redundancy scorer)
+# and is not in the shared requirements file, so it is installed here rather than pulled
+# into every other job's image.
+if [ "$DRIVER" = "run_paper_exact_refrain.py" ]; then
+    pip install -q --user "sentence-transformers>=3.0"
+fi
+
+exec python "cluster/$DRIVER" "$@"
