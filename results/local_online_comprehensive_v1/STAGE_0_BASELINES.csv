@@ -1,0 +1,13 @@
+access_tier,method,scope,status,task,value
+A,Mind the Gap,ProcessBench full four-subset macro,direct published-method reproduction,local,0.249631
+A,GL-LIU v1,Qwen ProcessBench macro,frozen incumbent,local,0.312456
+A,maximum token entropy,Llama ProcessBench macro,transparent incumbent bar,local,0.315011
+A,Step-272 two-head,12 scorer/family-cell macro,current architecture incumbent,local,0.313617
+A,broad-28 DUFS,8-cell historical macro,failure anchor,local,0.2903
+B,Qwen2.5-72B critic,"same 3,400 ProcessBench rows","critic-protocol reproduction, different model",local,0.594003
+B,Qwen2.5-Math-PRM-7B,"same 3,400 ProcessBench rows",supervised ceiling,local,0.729354
+B,Qwen3-8B judge control,"same 3,400 ProcessBench rows",not uPRM,local,0.096441
+A,IU28,historical 11-cell equal-family AUROC@64/128,registered direct bar,online,0.6533745
+A,DeepConf-w64,historical 11-cell equal-family AUROC@64/128,direct black-box bar,online,0.6342595
+A,Step-272 two-head,12 scorer/family-cell macro AUROC@64/128,current architecture incumbent,online,0.607531
+C,Streaming supervised probe,"published Qwen, different data/labels/hidden-state access",context only; no delta,online,0.811

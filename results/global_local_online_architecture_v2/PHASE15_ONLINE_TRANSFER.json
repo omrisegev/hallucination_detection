@@ -1,0 +1,68 @@
+{
+  "budgets": {
+    "128": {
+      "auprc": 0.44626689130611324,
+      "auroc": 0.555483870967742,
+      "n": 87
+    },
+    "16": {
+      "auprc": 0.3671164127563496,
+      "auroc": 0.5387096774193548,
+      "n": 87
+    },
+    "256": {
+      "auprc": 0.4451998220280081,
+      "auroc": 0.49037037037037035,
+      "n": 79
+    },
+    "32": {
+      "auprc": 0.2999785535491695,
+      "auroc": 0.45032258064516123,
+      "n": 87
+    },
+    "512": {
+      "auprc": 0.727597274210811,
+      "auroc": 0.5903890160183066,
+      "n": 42
+    },
+    "64": {
+      "auprc": 0.39938786275680627,
+      "auroc": 0.5141935483870967,
+      "n": 87
+    }
+  },
+  "declarations": [
+    {
+      "correct_ever_warning": 0.0,
+      "family": "math500",
+      "mean_first_warning_budget": 346.6666666666667,
+      "model": "phase15_qwen7b",
+      "n": 87,
+      "overall_warning_coverage": 0.034482758620689655,
+      "potential_tokens_remaining_on_caught_wrong": 1701.3333333333333,
+      "realized_savings": false,
+      "target_fpr": 0.05,
+      "threshold": -0.22403686777360682,
+      "wrong_warning_coverage": 0.12
+    },
+    {
+      "correct_ever_warning": 0.016129032258064516,
+      "family": "math500",
+      "mean_first_warning_budget": 258.6666666666667,
+      "model": "phase15_qwen7b",
+      "n": 87,
+      "overall_warning_coverage": 0.06896551724137931,
+      "potential_tokens_remaining_on_caught_wrong": 1185.4,
+      "realized_savings": false,
+      "target_fpr": 0.1,
+      "threshold": -0.25875652564702256,
+      "wrong_warning_coverage": 0.2
+    }
+  ],
+  "final_auroc": 0.8367741935483871,
+  "missing_logsumexp": true,
+  "n_calibration": 113,
+  "n_evaluation": 87,
+  "path": "/private/tmp/hallucination_phase1_audit_20260816/math500_qwen7b_T1.0_run0.pkl",
+  "status": "COMPLETE_RETROSPECTIVE_ONLINE_ONLY"
+}
