@@ -244,7 +244,23 @@ def main():
              "we_do": f"scalar channels for every token; raw top-50 on every "
                       f"{args.audit_every}th trace",
              "why": "full top-50 retention is 0.6-1.2 TB (handoff §3.2)"},
-        ],
+        ] + ([] if K >= 4096 or args.mode != "full" else [
+            # A reduced pool is a real deviation and has to read as one. `extra.K` already
+            # records it factually, but a number buried in `extra` is not a disclosure — a
+            # reader comparing us to the paper's table needs to be told, in the deviations
+            # list, that the pool is smaller and exactly what that costs.
+            {"field": "traces_per_question_K",
+             "paper_says": "4096 traces per question for the offline voting pool",
+             "we_do": f"K={K}",
+             "why": f"measured throughput put the 4096 pool at ~94 further GPU-hours "
+                    f"against a hard purchased-hour cap, which would have delivered a "
+                    f"partial pool covering roughly a third of the 30 questions. K={K} "
+                    f"covers all 30 questions and still exceeds the largest registered "
+                    f"online budget ({max(DC.BUDGETS)}), so every preregistered Alg. 2 "
+                    f"budget is runnable; a full-size offline majority vote at 4096 is "
+                    f"not. K can be raised later without rework — resume is by trace key, "
+                    f"so higher indices are purely additive."},
+        ]),
         repo_root=REPO_ROOT,
         extra={"mode": args.mode, "K": K, "n_questions": len(rows),
                "shard": args.shard, "n_shards": args.n_shards,
