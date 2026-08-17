@@ -141,6 +141,46 @@ manifest refuses any pinned-field drift.
 
 Exit code 85 means "checkpointed, incomplete" — resubmit the identical command.
 
+## 5b. Sizing M2 from measured throughput — do not guess this
+
+The plan's 75–150 GPU-hour estimate for M2 was wrong by two orders of magnitude, and the
+first M1 pilot burned an 8-hour slot discovering it. Size the run from `THROUGHPUT.json`,
+never from an estimate.
+
+Measured on Qwen3-8B / AIME24 / B200, one GPU:
+
+| batch | tok/s | note |
+|---:|---:|---|
+| 1 | 47 | first pilot; 8B at batch 1 re-reads 16 GB of weights per token |
+| 6 | 145.6 | first batched probe, before the live-tensor fix |
+| 24 | *measure it* | production settings (`--audit-every 64`) |
+
+Mean trace length measured at **9,655 tokens** (the paper implies ~15.1k), so the pool is
+
+```
+30 questions x 4,096 traces x 9,655 tokens = 1.186e9 tokens
+```
+
+Shard count follows directly:
+
+```
+gpu_hours   = 1.186e9 / tok_s_per_gpu / 3600
+n_shards    = ceil(gpu_hours / target_wall_hours)     # target_wall_hours <= 24 per job
+```
+
+At 145.6 tok/s that is 2,262 GPU-hours — 16 shards would take 141 h of wall time, which is
+too long. Do not submit M2 until the batch-24 probe shows a rate that puts the run inside a
+few days at a shard count the cluster can absorb politely. If it does not, the options in
+order of preference are: raise the batch size until memory or tok/s stops improving; raise
+the shard count; and only then reconsider the pool size with Omri, since a reduced pool
+cannot claim the paper's table.
+
+KV-cache ceiling, for choosing the batch: Qwen3-8B is 36 layers x 8 KV heads x 128 dim, i.e.
+**~147 KB per token per trace**. At the 32k cap that is ~4.8 GB per trace, so a 183 GB B200
+holds ~34 worst-case traces alongside the 16 GB of weights. Batch 24 leaves headroom; the
+driver halves the batch on OOM and logs it, per handoff §6 (reduce batch size and nothing
+else).
+
 ## 6. Offline analysis (CPU, no GPU)
 
 ```bash
