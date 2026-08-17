@@ -258,6 +258,21 @@ def main():
                "the frozen central choice is what the full run uses")
     gate.check("fidelity_is_partial", man["fidelity"] == "paper-specified-partial",
                "four constants are declared by us, not by the paper")
+    # LEASH's protocol is chat-style rationale prompting, so a checkpoint with no chat
+    # template cannot express it. Without this check the run loads the model, fails every
+    # single sample inside `apply_chat_template`, writes no shard, and then dies reporting
+    # `FileNotFoundError: no INDEX.jsonl` — the downstream symptom, which says nothing about
+    # the cause. Jobs 205369 and 205370 each burned a GPU slot that way on
+    # `mistralai/Mistral-7B-v0.1`, the one base checkpoint in an otherwise instruction-tuned
+    # roster. Fail here instead, before the model load, and name the actual problem.
+    gate.check("tokenizer_has_chat_template", bool(getattr(tok_only, "chat_template", None)),
+               f"{args.model} exposes a chat template"
+               if getattr(tok_only, "chat_template", None) else
+               f"{args.model} has tokenizer.chat_template=None — this is a BASE checkpoint. "
+               f"LEASH prompts a rationale in chat form, which a base model cannot express. "
+               f"The paper writes only 'Mistral-7B' while its other three cells are "
+               f"instruction-tuned; resolve the model identity explicitly (and record it as a "
+               f"declared deviation) rather than letting a base checkpoint stand in.")
     gate.finish(raise_on_fail=True)
     if args.dry_run:
         print(f"[s2] DRY RUN OK — manifest builds and verifies "

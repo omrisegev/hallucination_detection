@@ -221,6 +221,32 @@ python scripts/paper_exact_status.py --root $SH/results/paper_exact --squeue \
   access.
 - Python's string `hash()` is salted per process. Per-trace seeds use SHA-256, and
   `PYTHONHASHSEED=0` is pinned in the sbatch.
+- **The project has a purchased GPU-hour cap, and it is the binding constraint — not the
+  queue.** A submit filter refuses any job that would push the project past it, counting
+  completed hours *plus* running-elapsed *plus* the full time-left of everything running or
+  pending. Measured 2026-08-17: `used 4188.05 + recent 37.15 + running 41.20 + in-flight
+  1474.37 = 5740.76` against a `5760.00` cap, i.e. **19 h of headroom**. Consequences:
+  - the cap is reported **only on sbatch's stderr**. A wrapper that discards stderr turns
+    exhaustion into a blank job id and an unexplained failure;
+  - a pending job reserves its whole wall, so `scancel`-ing pending links frees quota at once;
+  - the full M2 pool (1,120 GPU-h planned) does not fit in what remains. Sizing it is a
+    budget decision, not a throughput one.
+- **Nothing auto-resumes a clean `exit 85`.** `--requeue` covers preemption only. Submit
+  continuation links up front with `bash cluster/chain_job.sh --links N --name-filter pe_m2_`,
+  which chains **linearly** (link N+1 depends on link N, never on the original job — two links
+  sharing one `afterany:` become eligible together and race on the same output). Re-running the
+  same command later extends each chain from its tail, because a link that already has a
+  successor is skipped. Two traps it handles: `scontrol` reports `Command=` as the sbatch path
+  only, so the driver arguments must be recovered from the job's `[sbatch] target=` log line;
+  and partition/QOS come from the command line, not the script's `#SBATCH` block.
+- **Provision shards uniformly.** A question reaches full K only when *every* shard reaches it,
+  so 7 shards at one wall plus 17 at three walls caps full-K questions at what one wall reaches
+  while costing more GPU-hours than giving all 24 shards two walls.
+- A **base checkpoint has no `tokenizer.chat_template`**. Any driver that prompts in chat form
+  must gate on it before the model load; otherwise every sample fails inside
+  `apply_chat_template`, no shard is written, and the job dies reporting the downstream
+  `FileNotFoundError: no INDEX.jsonl`. `mistralai/Mistral-7B-v0.1` is the base checkpoint in
+  the otherwise instruction-tuned LEASH roster and cost two GPU slots this way.
 
 ## 9. Reporting discipline
 
