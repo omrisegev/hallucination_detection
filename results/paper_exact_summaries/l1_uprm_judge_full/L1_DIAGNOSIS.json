@@ -1,0 +1,46 @@
+{
+  "written_utc": "2026-08-17T13:08:35+00:00",
+  "run": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/paper_exact/l1_uprm_judge_full",
+  "n_rows": 3400,
+  "per_subset": {
+    "gsm8k": {
+      "n": 400,
+      "mean_log_p_pos": -0.2849037867005146,
+      "implied_p_pos": 0.75208661157286,
+      "pct_predicted_clean": 73.75,
+      "mean_clean_margin": 0.6559743276238441,
+      "pct_actually_clean": 48.25,
+      "mean_n_steps": 5.205
+    },
+    "math": {
+      "n": 1000,
+      "mean_log_p_pos": -0.20311171460388083,
+      "implied_p_pos": 0.8161870563186614,
+      "pct_predicted_clean": 75.1,
+      "mean_clean_margin": 1.31262504529953,
+      "pct_actually_clean": 40.6,
+      "mean_n_steps": 6.505
+    },
+    "olympiadbench": {
+      "n": 1000,
+      "mean_log_p_pos": -0.10175500311795033,
+      "implied_p_pos": 0.9032508181971324,
+      "pct_predicted_clean": 75.1,
+      "mean_clean_margin": 1.3533753672838211,
+      "pct_actually_clean": 33.900000000000006,
+      "mean_n_steps": 8.819
+    },
+    "omnimath": {
+      "n": 1000,
+      "mean_log_p_pos": -0.10980145065564843,
+      "implied_p_pos": 0.8960120202356238,
+      "pct_predicted_clean": 74.2,
+      "mean_clean_margin": 1.1463725887537002,
+      "pct_actually_clean": 24.099999999999998,
+      "mean_n_steps": 8.291
+    }
+  },
+  "mechanism": "S(T+1) - S(T) = log p+(T) - log p-(T), so a marker distribution saturated toward '+' makes the clean candidate win by margin rather than by content. Every log p+ term is <= 0, so S(T+1) accumulates a near-zero penalty while every error candidate pays log p-(j).",
+  "conclusion": "If implied p+ is near 1 and the predicted-clean rate far exceeds the actual clean rate, the deficit is in the MARKER SURFACE FORM (which this project declares as its own \u2014 the paper publishes no prompt or code), not in the Eq. 6 arithmetic. Report it as a property of our reconstruction of their baseline. Do NOT retune the prompt against ProcessBench labels.",
+  "not_a_fix": "Changing the marker tokens, system message, or decision rule to raise F1 on these rows would be tuning on evaluation labels. Any such change must be pre-registered and evaluated on rows held out from this diagnosis."
+}

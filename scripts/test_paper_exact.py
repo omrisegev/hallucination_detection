@@ -322,6 +322,30 @@ def test_metrics():
     check("parser coverage excludes fallbacks",
           abs(E.parser_coverage(["boxed", "boxed", "fallback_number", "none"]) - 0.5) < 1e-12)
 
+    # Multiple-choice grading. The regression these lock down: AQuA-RAT's gold answer is an
+    # option letter, and grading it with the math parser compares "A" to a parsed number, so
+    # every answer scores wrong. It is silent and total — three AQuA cells came back 0.0%,
+    # 0.0% and 0.4% where guessing among five options pays 20%.
+    check("math grader cannot score a letter answer",
+          not E.grade_math("the answer is (C)", "C")["correct"])
+    check("choice grader scores the same answer correctly",
+          E.grade_choice("the answer is (C)", "C")["correct"])
+    for text, gold, want, why in [
+        ("Therefore, the final answer is (C)", "C", True, "parenthesised option"),
+        ("Answer: B", "B", True, "colon form"),
+        ("So the correct option is E", "E", True, "prose form"),
+        ("\\boxed{A}", "A", True, "boxed letter"),
+        ("Therefore, the final answer is (C)", "D", False, "wrong option is wrong"),
+        ("42", "C", False, "a number is not an option"),
+        ("", "A", False, "empty generation"),
+    ]:
+        g = E.grade_choice(text, gold)
+        check(f"choice grader: {why}", g["correct"] == want, f"{text!r} gold={gold} -> {g}")
+    # The option letters also appear where the question lists its choices, so a parse that
+    # took the FIRST match would read the menu instead of the answer.
+    g = E.grade_choice("Options: (A) 5 (B) 7 (C) 9. The answer is (C)", "C")
+    check("choice grader takes the last match, not the option list", g["correct"], f"{g}")
+
     ta = E.token_accounting([{"n_reasoning_tokens": 100, "n_closure_tokens": 10,
                               "stopped_early": True, "closure_generated": True}])
     check("token accounting sums reasoning + closure", ta["total_tokens"] == 110)

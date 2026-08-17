@@ -95,7 +95,8 @@ def load_rows(dataset: str, n=None):
         ds = load_dataset("deepmind/aqua_rat", "raw", split="test")
         rows = [{"question_id": f"aqua:{i}", "index": i,
                  "problem": r["question"] + "\nOptions: " + " ".join(r["options"]),
-                 "answer": str(r["correct"])} for i, r in enumerate(ds)]
+                 "answer": str(r["correct"]), "choice_answer": True}
+                for i, r in enumerate(ds)]
     else:
         raise ValueError(f"unknown dataset {dataset!r}")
     return rows[:n] if n else rows
@@ -114,8 +115,10 @@ def run_question(mdl, tok, row, cfg: LS.LeashConfig, arm: str, generator, tokeni
         acfg = DecodeConfig(**LS.ANSWER_DECODING, max_new_tokens=48, logprob_top_k=0,
                             eos_token_ids=tokenizer_eos, keep_top_k_arrays=False)
         direct = tok.apply_chat_template(
-            [{"role": "user", "content": row["problem"] +
-              "\n\nGive only the final numeric answer."}],
+            [{"role": "user", "content": row["problem"] + (
+                "\n\nGive only the letter of the correct option."
+                if row.get("choice_answer") else
+                "\n\nGive only the final numeric answer.")}],
             tokenize=False, add_generation_prompt=True)
         out = stream_generate(mdl, tok, torch.tensor(
             tok(direct, add_special_tokens=False).input_ids), acfg, generator=generator)
@@ -149,7 +152,12 @@ def run_question(mdl, tok, row, cfg: LS.LeashConfig, arm: str, generator, tokeni
                                  add_special_tokens=False).input_ids)
         answer = stream_generate(mdl, tok, a_ids, acfg, generator=generator)
 
-    graded = EV.grade_math(answer["full_text"], row["answer"])
+    # AQuA-RAT's gold answer is an option LETTER, so grading it with the math parser compares
+    # "A" against a parsed number and scores every answer wrong — silently and completely.
+    # Route the grader by dataset instead of assuming every benchmark is numeric.
+    graded = (EV.grade_choice(answer["full_text"], row["answer"])
+              if row.get("choice_answer") else
+              EV.grade_math(answer["full_text"], row["answer"]))
     return {
         "trace_key": f"{arm}:{cfg.setting_label}:{row['question_id']}",
         "question_id": row["question_id"], "arm": arm, "setting_label": cfg.setting_label,
