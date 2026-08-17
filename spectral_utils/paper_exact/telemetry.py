@@ -253,6 +253,212 @@ def score_continuation(mdl, tok, context_ids, answer_ids) -> dict:
     return {"score": float(np.exp(mean_lp)), "mean_logprob": mean_lp, "n": int(len(ans))}
 
 
+def _warp_batch(logits: torch.Tensor, cfg: DecodeConfig):
+    """Batched temperature -> top-k -> top-p, returning (candidate_logprobs, candidate_ids).
+
+    Same order as HF `generate`, but the top-p step runs on the k surviving columns instead of
+    the full 151k-entry vocabulary. That is exactly equivalent — top-p over an already
+    top-k-truncated distribution is what HF computes — and it turns a per-token sort over
+    B x 151,936 into one over B x 20, which is the difference between the sort being free and
+    the sort being a measurable fraction of the step.
+    """
+    if cfg.temperature and cfg.temperature > 1e-4:
+        logits = logits / cfg.temperature
+    k = int(cfg.top_k) if cfg.top_k and cfg.top_k > 0 else logits.shape[-1]
+    k = min(k, logits.shape[-1])
+    vals, idx = torch.topk(logits, k, dim=-1)              # already descending
+    lp = torch.log_softmax(vals, dim=-1)
+    if cfg.top_p is not None and 0 < cfg.top_p < 1.0:
+        probs = lp.exp()
+        cum = torch.cumsum(probs, dim=-1)
+        drop = (cum - probs) > cfg.top_p
+        # never drop the top-1 candidate, or a peaked row could end up with no mass at all
+        drop[..., 0] = False
+        lp = lp.masked_fill(drop, float("-inf"))
+        lp = torch.log_softmax(lp, dim=-1)
+    return lp, idx
+
+
+@torch.no_grad()
+def batch_generate(mdl, tok, prompts_token_ids, cfg: DecodeConfig, generator=None,
+                   pad_token_id=None, compact_finished: bool = True):
+    """Decode a batch of traces at once, capturing the same telemetry as `stream_generate`.
+
+    For acquisition without a live stopping rule — the DeepConf pool and the vanilla stopping
+    arm — this is the only affordable path. HuggingFace at batch 1 on an 8B model is bound by
+    reading 16 GB of weights per token, so the measured 47 tok/s is normal and cannot be tuned
+    away; batching amortises that read across the whole batch and scales throughput close to
+    linearly up to B ~ 32-64.
+
+    Channels are accumulated as GPU tensors and moved to host **once**, at the end, rather than
+    per token.
+
+    Left-padding lets a batch mix different prompt lengths (needed for the vanilla arm, whose
+    traces are different questions); a DeepConf batch is all one question, so no padding
+    happens at all.
+
+    Args:
+        prompts_token_ids: list of B token-id sequences.
+        compact_finished:  drop finished rows from the batch and the KV cache as they end.
+                           Without it a batch runs until its longest member, and AIME trace
+                           lengths vary by ~2x, so roughly half the compute would be spent
+                           decoding padding.
+
+    Returns a list of B dicts with the same keys `stream_generate` returns (minus the
+    incremental text), in the input order.
+    """
+    from .deepconf import conf_paper_eq2  # noqa: F401 — parity of definition with stream_generate
+
+    device = mdl.device
+    B = len(prompts_token_ids)
+    if B == 0:
+        return []
+    pad = pad_token_id
+    if pad is None:
+        pad = tok.pad_token_id if tok.pad_token_id is not None else (tok.eos_token_id or 0)
+    P = max(len(p) for p in prompts_token_ids)
+
+    input_ids = torch.full((B, P), int(pad), dtype=torch.long, device=device)
+    attn = torch.zeros((B, P), dtype=torch.long, device=device)
+    for i, p in enumerate(prompts_token_ids):
+        input_ids[i, P - len(p):] = torch.as_tensor(list(p), dtype=torch.long, device=device)
+        attn[i, P - len(p):] = 1
+
+    eos = torch.as_tensor(sorted(set(int(e) for e in cfg.eos_token_ids)) or [-1],
+                          dtype=torch.long, device=device)
+
+    # `slot` maps a current batch row back to its original index, so compaction never loses
+    # track of which trace a row belongs to.
+    slot = list(range(B))
+    finished = [False] * B
+    steps = []          # per-step dict of [b] GPU tensors, plus which rows may record
+    tokens = [[] for _ in range(B)]
+    stop_reason = ["length"] * B
+    topk_keep = [[] for _ in range(B)] if cfg.keep_top_k_arrays else None
+
+    past, cur = None, input_ids
+    for _ in range(int(cfg.max_new_tokens)):
+        out = mdl(input_ids=cur, attention_mask=attn, past_key_values=past, use_cache=True)
+        past = out.past_key_values
+        raw = out.logits[:, -1, :].float()
+
+        lse = torch.logsumexp(raw, dim=-1)
+        rlp = raw - lse.unsqueeze(-1)
+        rp = rlp.exp()
+        H = -(rp * rlp).sum(dim=-1)
+        n_keep = max(cfg.logprob_top_k, cfg.conf_topk + 1, 2)
+        tv, ti = torch.topk(rlp, min(n_keep, rlp.shape[-1]), dim=-1)
+
+        cand_lp, cand_ids = _warp_batch(raw.clone(), cfg)
+        if cfg.temperature and cfg.temperature > 1e-4:
+            pick = torch.multinomial(cand_lp.exp(), 1, generator=generator)
+        else:
+            pick = cand_lp.argmax(dim=-1, keepdim=True)
+        nxt = cand_ids.gather(-1, pick).squeeze(-1)
+
+        # A row records this step iff it had not already emitted EOS *before* this step. The
+        # EOS token itself is recorded (matching stream_generate, which appends then breaks).
+        # With compaction on, `slot` already excludes finished rows; without it, this mask is
+        # the only thing stopping a finished trace from accreting phantom tokens.
+        record = [(r, orig) for r, orig in enumerate(slot) if not finished[orig]]
+        steps.append({
+            "rows": record,
+            "raw_entropy": H,
+            "raw_logsumexp": lse,
+            "raw_logprob_sampled": rlp.gather(-1, nxt.unsqueeze(-1)).squeeze(-1),
+            "raw_pmax": rp.max(dim=-1).values,
+            "raw_margin": tv[:, 0] - tv[:, 1],
+            # DeepConf's C_t on RAW logprobs, descending top-k, sampled token not special-cased
+            # — identical arithmetic to stream_generate's conf_paper_eq2 call.
+            "deepconf_conf": -tv[:, :cfg.conf_topk].mean(dim=-1),
+            "sampled_entropy": -(cand_lp.exp() * cand_lp.nan_to_num(neginf=0.0)).sum(dim=-1),
+        })
+        if cfg.keep_top_k_arrays:
+            steps[-1]["topk_ids"] = ti[:, :cfg.logprob_top_k]
+            steps[-1]["topk_lps"] = tv[:, :cfg.logprob_top_k]
+
+        nxt_h = nxt.tolist()                     # one sync per step, unavoidable in AR decoding
+        done_now = torch.isin(nxt, eos).tolist()
+        for r, orig in record:
+            tokens[orig].append(int(nxt_h[r]))
+            if done_now[r]:
+                stop_reason[orig] = "eos"
+                finished[orig] = True
+
+        alive = [r for r in range(len(slot)) if not finished[slot[r]]]
+        if not alive:
+            break
+        if compact_finished and len(alive) < len(slot):
+            keep = torch.as_tensor(alive, dtype=torch.long, device=device)
+            attn = attn.index_select(0, keep)
+            nxt = nxt.index_select(0, keep)
+            past = _compact_cache(past, keep)
+            slot = [slot[r] for r in alive]
+
+        attn = torch.cat([attn, torch.ones((attn.shape[0], 1), dtype=torch.long,
+                                           device=device)], dim=1)
+        cur = nxt.unsqueeze(-1)
+
+    # ── single host transfer ──
+    per_row = {i: {k: [] for k in ("raw_entropy", "raw_logsumexp", "raw_logprob_sampled",
+                                   "raw_pmax", "raw_margin", "spilled_energy",
+                                   "deepconf_conf", "sampled_entropy")} for i in range(B)}
+    for st in steps:
+        host = {k: v.cpu().numpy() for k, v in st.items()
+                if k not in ("rows", "topk_ids", "topk_lps")}
+        tk_i = st["topk_ids"].cpu().numpy() if "topk_ids" in st else None
+        tk_l = st["topk_lps"].cpu().numpy() if "topk_lps" in st else None
+        for r, orig in st["rows"]:
+            d = per_row[orig]
+            for k, arr in host.items():
+                d[k].append(float(arr[r]))
+            d["spilled_energy"].append(-float(host["raw_logprob_sampled"][r]))
+            if tk_i is not None:
+                topk_keep[orig].append((tk_i[r], tk_l[r]))
+
+    results = []
+    for i in range(B):
+        ch = per_row[i]
+        rec = {
+            "gen_token_ids": tokens[i],
+            "full_text": tok.decode(tokens[i], skip_special_tokens=True),
+            "raw_text": tok.decode(tokens[i], skip_special_tokens=False),
+            "channels": ch,
+            "n_tokens": len(tokens[i]),
+            "stop_reason": stop_reason[i],
+        }
+        if topk_keep is not None and topk_keep[i]:
+            rec["raw_top_k_logprobs"] = {
+                "ids": np.stack([a for a, _ in topk_keep[i]]),
+                "logprobs": np.stack([b for _, b in topk_keep[i]]),
+            }
+        results.append(rec)
+    return results
+
+
+def _compact_cache(past, keep_idx):
+    """Drop finished rows from the KV cache.
+
+    transformers has moved this API around, so try the documented methods and fall back to
+    leaving the cache alone — a failure here costs throughput, never correctness, because the
+    caller keeps its own `slot` mapping and simply stops recording finished rows.
+    """
+    if past is None:
+        return past
+    for name in ("batch_select_indices", "index_select"):
+        fn = getattr(past, name, None)
+        if callable(fn):
+            try:
+                res = fn(keep_idx)
+                return res if res is not None else past
+            except Exception:
+                break
+    try:  # legacy tuple-of-tuples layout
+        return tuple(tuple(t.index_select(0, keep_idx) for t in layer) for layer in past)
+    except Exception:
+        return past
+
+
 def causal_prefix_channels(channels: dict, t: int) -> dict:
     """Truncate every channel to the first `t` tokens.
 

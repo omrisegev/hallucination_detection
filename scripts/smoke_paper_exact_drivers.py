@@ -245,6 +245,98 @@ def test_leash_on_stub():
     check("EOS disabled means it never stops on EOS", out["stop_reason"] != "eos")
 
 
+def test_batch_equivalence():
+    """Batched decoding must reproduce single-trace decoding exactly, under greedy sampling.
+
+    This is the load-bearing check for the whole DeepConf pool: batching is a throughput
+    optimisation, and the moment it changes a channel value by more than float noise it has
+    silently become a different experiment. Greedy removes sampling as a confound, so any
+    disagreement is a bug in the batched path.
+
+    Also covers left-padding (mixed prompt lengths) and finished-row compaction, which are
+    the two places a batched decoder usually goes wrong.
+    """
+    print("\n[batch vs single equivalence]")
+    from spectral_utils.paper_exact.telemetry import batch_generate
+    tok = StubTokenizer()
+    scripts = ["the answer is \\boxed{7}",
+               "a much longer chain of reasoning here, then \\boxed{12}",
+               "short \\boxed{3}"]
+    prompts = ["q: ", "question number two: ", "q3: "]
+
+    singles = []
+    for sc, pr in zip(scripts, prompts):
+        mdl = StubModel(tok, sc)
+        singles.append(stream_generate(mdl, tok, torch.tensor(tok.encode(pr)),
+                                       _cfg(tok, temperature=0.0)))
+
+    class StubCache:
+        """Minimal stand-in for a transformers Cache: tracks how many tokens have been emitted
+        and which original rows the current batch holds, and exposes the same
+        `batch_select_indices` method the real caches use, so `_compact_cache` exercises its
+        documented path rather than a fallback."""
+
+        def __init__(self, emitted, rows):
+            self.emitted, self.rows = emitted, list(rows)
+
+        def batch_select_indices(self, keep):
+            self.rows = [self.rows[int(i)] for i in keep.tolist()]
+            return self
+
+    class MultiStub(StubModel):
+        """One stub emitting a different script per batch row, so the batched path is really
+        decoding three distinct sequences rather than three copies of one."""
+
+        def __init__(self, tok, scripts):
+            super().__init__(tok, scripts[0])
+            self.scripts = [[tok.stoi.get(c, tok.stoi[" "]) for c in s] + [tok.eos_token_id]
+                            for s in scripts]
+
+        def forward(self, input_ids=None, attention_mask=None, past_key_values=None,
+                    use_cache=True, **kw):
+            if past_key_values is None:
+                cache = StubCache(0, range(len(self.scripts)))
+            else:
+                cache = past_key_values
+            B, L = input_ids.shape
+            assert B == len(cache.rows), f"batch {B} vs cache rows {len(cache.rows)}"
+            logits = torch.full((B, L, self.V), -4.0)
+            for r, orig in enumerate(cache.rows):
+                sc = self.scripts[orig]
+                target = sc[min(cache.emitted, len(sc) - 1)]
+                logits[r, -1, :] += torch.linspace(0, 1.5, self.V) * (0.3 + 0.02 * cache.emitted)
+                logits[r, -1, target] = 8.0
+            cache.emitted += 1
+            return type("Out", (), {"logits": logits, "past_key_values": cache})()
+
+    batched = batch_generate(MultiStub(tok, scripts), tok,
+                             [tok.encode(p) for p in prompts],
+                             _cfg(tok, temperature=0.0), pad_token_id=0,
+                             compact_finished=False)
+
+    check("batch returns one record per prompt", len(batched) == 3, f"{len(batched)}")
+    for i, (s, b) in enumerate(zip(singles, batched)):
+        check(f"row {i}: identical token ids", s["gen_token_ids"] == b["gen_token_ids"],
+              f"{len(s['gen_token_ids'])} vs {len(b['gen_token_ids'])}")
+        check(f"row {i}: identical stop reason", s["stop_reason"] == b["stop_reason"])
+        for chan in ("raw_entropy", "raw_logsumexp", "raw_pmax", "raw_margin",
+                     "spilled_energy", "deepconf_conf"):
+            ok = np.allclose(s["channels"][chan], b["channels"][chan], atol=1e-5, rtol=1e-5)
+            check(f"row {i}: {chan} matches", ok,
+                  "" if ok else f"max diff "
+                  f"{np.max(np.abs(np.asarray(s['channels'][chan]) - np.asarray(b['channels'][chan]))):.2e}")
+
+    compacted = batch_generate(MultiStub(tok, scripts), tok,
+                               [tok.encode(p) for p in prompts],
+                               _cfg(tok, temperature=0.0), pad_token_id=0,
+                               compact_finished=True)
+    check("compaction does not change any trace",
+          all(c["gen_token_ids"] == b["gen_token_ids"] for c, b in zip(compacted, batched))
+          and all(np.allclose(c["channels"]["raw_entropy"], b["channels"]["raw_entropy"],
+                              atol=1e-5) for c, b in zip(compacted, batched)),
+          "rows that finish early are dropped from the batch, not from the record")
+
+
 def test_shard_records():
     print("\n[shard records from a driver-shaped payload]")
     tok = StubTokenizer()
@@ -324,6 +416,7 @@ def main():
     test_stream_and_channels()
     test_refrain_stop_and_closure()
     test_leash_on_stub()
+    test_batch_equivalence()
     test_shard_records()
 
     n_fail = sum(1 for _, ok, _ in RESULTS if not ok)

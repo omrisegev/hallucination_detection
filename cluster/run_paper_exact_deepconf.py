@@ -64,7 +64,7 @@ from spectral_utils.paper_exact import evaluator as EV
 from spectral_utils.paper_exact.gates import Gate
 from spectral_utils.paper_exact.manifest import build_manifest, write_manifest, verify_manifest
 from spectral_utils.paper_exact.shards import ShardWriter
-from spectral_utils.paper_exact.telemetry import DecodeConfig, stream_generate
+from spectral_utils.paper_exact.telemetry import DecodeConfig, batch_generate
 
 EXIT_INCOMPLETE = 85
 STOP = {"flag": False}
@@ -123,6 +123,10 @@ def main():
                     help="retain raw top-50 arrays on every Nth trace (equality audit sample)")
     ap.add_argument("--keep-top-k-all", action="store_true")
     ap.add_argument("--i-accept-terabyte-retention", action="store_true")
+    ap.add_argument("--batch-size", type=int, default=32,
+                    help="traces decoded concurrently. All traces in a batch share one "
+                         "question's prompt, so no padding is needed; raise until the GPU's "
+                         "memory or the measured tok/s stops improving.")
     ap.add_argument("--shard", type=int, default=0)
     ap.add_argument("--n-shards", type=int, default=1)
     ap.add_argument("--out", required=True)
@@ -210,6 +214,7 @@ def main():
         repo_root=REPO_ROOT,
         extra={"mode": args.mode, "K": K, "n_questions": len(rows),
                "shard": args.shard, "n_shards": args.n_shards,
+               "batch_size": args.batch_size,
                "pinned_vllm_commit": DC.PINNED_VLLM_COMMIT,
                "n_init_warmup": DC.DEFAULT_N_INIT, "group_window": DC.DEFAULT_GROUP_WINDOW},
     )
@@ -243,63 +248,87 @@ def main():
     generator = torch.Generator(device=mdl.device)
     incomplete, n_new, t_start, tok_count = False, 0, time.time(), 0
 
-    for gi, (row, t_idx) in enumerate(units):
-        key = f"{row['question_id']}#{t_idx}"
-        if key in done:
-            continue
-        if STOP["flag"]:
-            incomplete = True
-            break
-        # Deterministic per-trace seed: a resumed shard regenerates the same trace it would
-        # have, so a preemption cannot change the pool's statistics. Python's built-in
-        # hash() is salted per process (PYTHONHASHSEED) and would silently break that.
-        seed = 42 + int(hashlib.sha256(key.encode()).hexdigest()[:8], 16) % (2 ** 31)
-        generator.manual_seed(seed)
-        keep_arrays = args.keep_top_k_all or (t_idx % max(1, args.audit_every) == 0)
-        cfg = DecodeConfig(**QWEN3_DECODING, max_new_tokens=args.max_new,
-                           logprob_top_k=50, conf_topk=args.conf_topk,
-                           eos_token_ids=eos, keep_top_k_arrays=keep_arrays)
-        t0 = time.time()
-        try:
+    # ── batch the pending traces by question ──
+    #
+    # DeepConf's online rule is replayed offline over complete traces, so acquisition needs no
+    # live stopping hook and every trace of a question can decode in one batch. That matters
+    # enormously: at batch 1 an 8B model re-reads all 16 GB of weights per token, which the M1
+    # pilot measured at 47 tok/s — 15,000 GPU-hours for the full pool. Batching amortises that
+    # read across the batch.
+    #
+    # All traces of one question share an identical prompt, so a batch needs no padding at all.
+    # Audit traces (which retain the raw top-50 arrays) are grouped separately from the rest,
+    # because retaining [T, 50] arrays for a whole batch would cost gigabytes of host memory
+    # for traces that do not need them.
+    pending = [(row, t) for row, t in units if f"{row['question_id']}#{t}" not in done]
+    groups = {}
+    for row, t_idx in pending:
+        keep_arrays = bool(args.keep_top_k_all or (t_idx % max(1, args.audit_every) == 0))
+        groups.setdefault((row["question_id"], keep_arrays), []).append((row, t_idx))
+    print(f"[m1] {len(pending)} traces pending in {len(groups)} question groups, "
+          f"batch_size={args.batch_size}", flush=True)
+
+    for (qid, keep_arrays), members in sorted(groups.items()):
+        for i in range(0, len(members), args.batch_size):
+            if STOP["flag"]:
+                incomplete = True
+                break
+            chunk = members[i:i + args.batch_size]
+            row = chunk[0][0]
+            keys = [f"{row['question_id']}#{t}" for _, t in chunk]
+            cfg = DecodeConfig(**QWEN3_DECODING, max_new_tokens=args.max_new,
+                               logprob_top_k=50, conf_topk=args.conf_topk,
+                               eos_token_ids=eos, keep_top_k_arrays=keep_arrays)
+            # One generator seed per BATCH, derived from its first trace key. A resumed shard
+            # that re-forms the same batch reproduces it exactly; re-forming a different batch
+            # yields different (still independent) traces, which is fine for a sampled pool but
+            # is why the seed is recorded per record.
+            seed = 42 + int(hashlib.sha256(keys[0].encode()).hexdigest()[:8], 16) % (2 ** 31)
+            generator.manual_seed(seed)
             prompt_text = DEEPCONF_PROMPT.format(question=row["problem"])
             chat = tok.apply_chat_template([{"role": "user", "content": prompt_text}],
                                            tokenize=False, add_generation_prompt=True,
                                            enable_thinking=True)
-            ids = torch.tensor(tok(chat, add_special_tokens=False).input_ids)
-            gen = stream_generate(mdl, tok, ids, cfg, generator=generator)
-        except Exception as e:  # noqa: BLE001
-            writer.add_failure(key, row["question_id"], repr(e))
-            print(f"[m1] FAILED {key}: {e!r}", flush=True)
-            continue
+            pids = tok(chat, add_special_tokens=False).input_ids
+            t0 = time.time()
+            try:
+                gens = batch_generate(mdl, tok, [pids] * len(chunk), cfg, generator=generator)
+            except Exception as e:  # noqa: BLE001 — one bad batch must not lose the shard
+                for k in keys:
+                    writer.add_failure(k, row["question_id"], repr(e))
+                print(f"[m1] FAILED batch {keys[0]}..(+{len(keys) - 1}): {e!r}", flush=True)
+                continue
 
-        graded = EV.grade_math(gen["full_text"], row["answer"])
-        conf = np.asarray(gen["channels"]["deepconf_conf"], dtype=np.float64)
-        rec = {
-            "trace_key": key, "question_id": row["question_id"], "trace_index": t_idx,
-            "prompt_text": prompt_text, "prompt_token_ids": ids.tolist(),
-            "gen_token_ids": gen["gen_token_ids"], "full_text": gen["full_text"],
-            "channels": gen["channels"], "n_tokens": gen["n_tokens"],
-            "stop_reason": gen["stop_reason"], "gold_answer": row["answer"],
-            "correct": graded["correct"], "pred_answer": graded["pred_answer"],
-            "parse_status": graded["parse_status"],
-            # Precomputed native statistics. The offline replay recomputes them from
-            # `channels` and asserts equality, so these are a convenience, not the source
-            # of truth for any table.
-            "trace_statistics": {name: float(fn(conf))
-                                 for name, fn in DC.TRACE_STATISTICS.items()},
-            "conf_variant": args.conf_variant, "conf_topk": args.conf_topk,
-            "retains_raw_top_k": bool(keep_arrays), "sampling_seed": seed,
-        }
-        if keep_arrays and "raw_top_k_logprobs" in gen:
-            rec["raw_top_k_logprobs"] = gen["raw_top_k_logprobs"]
-        writer.add(rec)
-        n_new += 1
-        tok_count += gen["n_tokens"]
-        if n_new % 10 == 0 or args.mode != "full":
+            for (_, t_idx), key, gen in zip(chunk, keys, gens):
+                graded = EV.grade_math(gen["full_text"], row["answer"])
+                conf = np.asarray(gen["channels"]["deepconf_conf"], dtype=np.float64)
+                rec = {
+                    "trace_key": key, "question_id": row["question_id"], "trace_index": t_idx,
+                    "prompt_text": prompt_text, "prompt_token_ids": list(pids),
+                    "gen_token_ids": gen["gen_token_ids"], "full_text": gen["full_text"],
+                    "channels": gen["channels"], "n_tokens": gen["n_tokens"],
+                    "stop_reason": gen["stop_reason"], "gold_answer": row["answer"],
+                    "correct": graded["correct"], "pred_answer": graded["pred_answer"],
+                    "parse_status": graded["parse_status"],
+                    # Precomputed native statistics. The offline replay recomputes them from
+                    # `channels` and asserts equality, so these are a convenience, not the
+                    # source of truth for any table.
+                    "trace_statistics": {name: float(fn(conf))
+                                         for name, fn in DC.TRACE_STATISTICS.items()},
+                    "conf_variant": args.conf_variant, "conf_topk": args.conf_topk,
+                    "retains_raw_top_k": bool(keep_arrays), "sampling_seed": seed,
+                    "batch_size": len(chunk),
+                }
+                if keep_arrays and "raw_top_k_logprobs" in gen:
+                    rec["raw_top_k_logprobs"] = gen["raw_top_k_logprobs"]
+                writer.add(rec)
+                n_new += 1
+                tok_count += gen["n_tokens"]
             rate = tok_count / max(1e-9, time.time() - t_start)
-            print(f"[m1] {key} tok={gen['n_tokens']} stop={gen['stop_reason']} "
-                  f"correct={graded['correct']} {time.time() - t0:.1f}s "
-                  f"| {rate:.0f} tok/s, {n_new}/{len(units) - len(done)} new", flush=True)
+            print(f"[m1] q={qid} batch of {len(chunk)} in {time.time() - t0:.1f}s "
+                  f"| {rate:.0f} tok/s cumulative, {n_new}/{len(pending)} new", flush=True)
+        if incomplete:
+            break
 
     writer.close()
     free_memory()

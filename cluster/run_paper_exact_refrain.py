@@ -64,7 +64,8 @@ from spectral_utils.paper_exact import refrain as RF
 from spectral_utils.paper_exact.gates import Gate
 from spectral_utils.paper_exact.manifest import build_manifest, write_manifest, verify_manifest
 from spectral_utils.paper_exact.shards import ShardWriter
-from spectral_utils.paper_exact.telemetry import DecodeConfig, stream_generate, score_continuation
+from spectral_utils.paper_exact.telemetry import (
+    DecodeConfig, batch_generate, score_continuation, stream_generate)
 
 EXIT_INCOMPLETE = 85
 STOP = {"flag": False}
@@ -141,19 +142,10 @@ def forced_closure(mdl, tok, chat_prompt: str, reasoning_text: str, cfg: DecodeC
     return out
 
 
-def run_question(mdl, tok, sbert, row, arm: str, tau, cfg: DecodeConfig,
-                 rcfg: RF.RefrainConfig, generator, max_closure_tokens: int) -> dict:
-    """One question, one arm. Returns a complete acquisition record."""
+def finish_record(mdl, tok, row, arm, tau, cfg, generator, max_closure_tokens,
+                  prompt_text, chat, ids, gen, stopper) -> dict:
+    """Assemble the acquisition record from a finished generation (either decode path)."""
     t0 = time.time()
-    prompt_text, chat, ids = build_prompt_ids(tok, row["problem"])
-
-    stopper = None
-    if arm == "refrain":
-        stopper = RF.StepStopper(sbert, tau, rcfg)
-    gen = stream_generate(mdl, tok, ids, cfg,
-                          stop_check=stopper if arm == "refrain" else None,
-                          generator=generator)
-
     rec = {
         "trace_key": f"{arm}:{row['question_id']}",
         "question_id": row["question_id"],
@@ -222,6 +214,40 @@ def run_question(mdl, tok, sbert, row, arm: str, tau, cfg: DecodeConfig,
     return rec
 
 
+def run_question(mdl, tok, sbert, row, arm: str, tau, cfg: DecodeConfig,
+                 rcfg: RF.RefrainConfig, generator, max_closure_tokens: int) -> dict:
+    """One question, one arm, decoded on its own — the path the refrain arm must take.
+
+    REFRAIN consults its stopping rule after every token, so it needs the incremental decoder.
+    The vanilla arm has no such hook and is batched instead (see `run_vanilla_batch`).
+    """
+    prompt_text, chat, ids = build_prompt_ids(tok, row["problem"])
+    stopper = RF.StepStopper(sbert, tau, rcfg) if arm == "refrain" else None
+    gen = stream_generate(mdl, tok, ids, cfg, stop_check=stopper, generator=generator)
+    return finish_record(mdl, tok, row, arm, tau, cfg, generator, max_closure_tokens,
+                         prompt_text, chat, ids, gen, stopper)
+
+
+def run_vanilla_batch(mdl, tok, rows, cfg: DecodeConfig, rcfg, generator,
+                      max_closure_tokens: int) -> list:
+    """Decode a batch of vanilla traces at once.
+
+    Vanilla has no stopping rule, so nothing forces it through the token-at-a-time decoder, and
+    at batch 1 an 8B model spends its whole step re-reading 16 GB of weights. Batching turns the
+    vanilla arm from ~16 GPU-hours into roughly one. Prompts differ per question here, so
+    `batch_generate` left-pads; the refrain arm still runs strictly sequentially because its
+    SW-UCB state crosses questions.
+    """
+    prepared = [build_prompt_ids(tok, r["problem"]) for r in rows]
+    gens = batch_generate(mdl, tok, [ids.tolist() for _, _, ids in prepared], cfg,
+                          generator=generator, pad_token_id=tok.pad_token_id or tok.eos_token_id)
+    out = []
+    for row, (prompt_text, chat, ids), gen in zip(rows, prepared, gens):
+        out.append(finish_record(mdl, tok, row, "vanilla", None, cfg, generator,
+                                 max_closure_tokens, prompt_text, chat, ids, gen, None))
+    return out
+
+
 # ── driver ──────────────────────────────────────────────────────────────────────
 
 def save_bandit(run_dir, bandit, reward_state):
@@ -256,6 +282,10 @@ def main():
     ap.add_argument("--fixed-tau", type=float, default=None,
                     help="ablation: disable the bandit and pin tau")
     ap.add_argument("--logprob-top-k", type=int, default=50)
+    ap.add_argument("--batch-size", type=int, default=16,
+                    help="vanilla-arm batch size. The refrain arm always runs sequentially: "
+                         "its SW-UCB state crosses questions, so order and one-at-a-time "
+                         "execution are part of the algorithm.")
     ap.add_argument("--shard", type=int, default=0)
     ap.add_argument("--n-shards", type=int, default=1)
     ap.add_argument("--out", required=True)
@@ -337,6 +367,7 @@ def main():
         ],
         repo_root=REPO_ROOT,
         extra={"refrain_config": rcfg.as_manifest(), "mode": args.mode,
+               "vanilla_batch_size": args.batch_size,
                "arms": arms, "shard": args.shard, "n_shards": args.n_shards,
                "fixed_tau": args.fixed_tau},
     )
@@ -376,10 +407,37 @@ def main():
 
     incomplete = False
     for arm in arms:
-        for row in rows:
+        pending = [r for r in rows if f"{arm}:{r['question_id']}" not in done]
+        if arm == "vanilla" and args.batch_size > 1:
+            # Batched: no stopping rule, so nothing forces token-at-a-time decoding.
+            for i in range(0, len(pending), args.batch_size):
+                if STOP["flag"]:
+                    incomplete = True
+                    break
+                chunk = pending[i:i + args.batch_size]
+                t0 = time.time()
+                try:
+                    recs = run_vanilla_batch(mdl, tok, chunk, cfg, rcfg, generator,
+                                             args.max_closure_tokens)
+                except Exception as e:  # noqa: BLE001 — one bad batch must not lose the shard
+                    for r in chunk:
+                        writer.add_failure(f"vanilla:{r['question_id']}",
+                                           r["question_id"], repr(e))
+                    print(f"[s1] FAILED vanilla batch of {len(chunk)}: {e!r}", flush=True)
+                    continue
+                for rec in recs:
+                    writer.add(rec)
+                print(f"[s1] vanilla batch of {len(chunk)} in {time.time() - t0:.1f}s "
+                      f"| tokens={sum(r['n_total_tokens'] for r in recs)} "
+                      f"correct={sum(r['correct'] for r in recs)}/{len(recs)}", flush=True)
+            if incomplete:
+                break
+            continue
+
+        # Sequential: the refrain arm's SW-UCB state couples questions, so its order and its
+        # one-at-a-time execution are part of the algorithm, not an implementation choice.
+        for row in pending:
             key = f"{arm}:{row['question_id']}"
-            if key in done:
-                continue
             if STOP["flag"]:
                 incomplete = True
                 break
