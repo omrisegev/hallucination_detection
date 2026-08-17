@@ -10,6 +10,23 @@ SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
 cd "$(dirname "$0")/.."
 echo "syncing $(pwd) -> $REMOTE:$SHARED/code"
 
+# Codex review addendum (handoff §8, "do not perturb active runs"): a sync while a job is
+# running or queued can change the code a requeue resumes from, which invalidates resume
+# provenance even when the driver itself did not change. Sync only at a clean run boundary.
+# Override with ALLOW_SYNC_DURING_RUNS=1 when the change provably cannot reach an active
+# acquisition (docs, or an offline analysis script no driver imports) — and say why.
+if [ "${ALLOW_SYNC_DURING_RUNS:-0}" != "1" ]; then
+    ACTIVE=$(ssh "$REMOTE" "squeue -u \$USER -h -t RUNNING,PENDING 2>/dev/null | wc -l" 2>/dev/null || echo 0)
+    if [ "${ACTIVE:-0}" -gt 0 ]; then
+        echo "REFUSING TO SYNC: $ACTIVE job(s) running or queued on $REMOTE." >&2
+        echo "A requeue would resume from the new tree and its manifest would record a" >&2
+        echo "different commit than the run was launched with." >&2
+        echo "Wait for a clean boundary, or re-run with ALLOW_SYNC_DURING_RUNS=1 if the" >&2
+        echo "change cannot reach an active acquisition." >&2
+        exit 1
+    fi
+fi
+
 # Stamp the commit being synced. `.git` is excluded below, so without this the cluster's
 # RUN_MANIFEST.json could only record repo_commit="unknown" — and paper_exact's rule that a
 # full run must be traceable to a commit hash would be unenforceable precisely where the
