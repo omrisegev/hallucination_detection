@@ -233,7 +233,7 @@ def read_prediction_shards(run_dir: str) -> dict:
     return {"predictions": preds, "n_unmatched": unmatched, "sources": srcs}
 
 
-def inventory(roots) -> dict:
+def inventory(roots, max_inspect_mb: float = 400.0) -> dict:
     """Report what per-row prediction artifacts exist and what schema they carry.
 
     Run this before building. Guessing an artifact's schema is how a table silently ends up
@@ -245,6 +245,17 @@ def inventory(roots) -> dict:
         for path in sorted(glob.glob(os.path.join(root, "**", "*.pkl"), recursive=True)):
             base = os.path.basename(path)
             if not any(t in base.lower() for t in ("pb_", "processbench", "uprm", "prm", "critic")):
+                continue
+            size_mb = os.path.getsize(path) / 1e6
+            if size_mb > max_inspect_mb:
+                # `_iter_pkl_entries` unpickles the whole file, so a multi-GB telemetry cell
+                # would dominate the inventory. Hash and list it, and say plainly that the
+                # schema was not read — an omitted entry would be indistinguishable from a
+                # file with no predictions in it.
+                found[path] = {**describe_source(path), "size_mb": round(size_mb, 1),
+                               "schema_not_inspected": f"{size_mb:.0f} MB exceeds "
+                                                       f"--max-inspect-mb {max_inspect_mb:.0f}",
+                               "has_prediction": None}
                 continue
             try:
                 n, keys, sample = 0, set(), None
@@ -404,6 +415,8 @@ def main():
     ap.add_argument("--roots", nargs="+",
                     default=["/shared/cycle2_tau_averbuch_prj/omrisegev1/results"])
     ap.add_argument("--inventory", action="store_true")
+    ap.add_argument("--max-inspect-mb", type=float, default=400.0,
+                    help="files larger than this are hashed and listed, schema not read")
     ap.add_argument("--out", default=os.path.join(REPO_ROOT, "results", "paper_exact", "l0"))
     ap.add_argument("--reference", default="max_entropy",
                     help="method the paired bootstrap compares against")
@@ -418,12 +431,13 @@ def main():
     os.makedirs(args.out, exist_ok=True)
 
     if args.inventory:
-        inv = inventory(args.roots)
+        inv = inventory(args.roots, args.max_inspect_mb)
         path = os.path.join(args.out, "L0_INVENTORY.json")
         with open(path, "w") as f:
             json.dump(inv, f, indent=2, default=str)
         for p, d in inv.items():
-            flag = "PRED" if d.get("has_prediction") else "    "
+            flag = "PRED" if d.get("has_prediction") else (
+                "BIG " if d.get("schema_not_inspected") else "    ")
             print(f"{flag} {d.get('size_mb', '?'):>7} MB  {p}")
             if d.get("provenance"):
                 print(f"        prov: {d['provenance']}  sha256: {d.get('sha256','?')[:16]}")
