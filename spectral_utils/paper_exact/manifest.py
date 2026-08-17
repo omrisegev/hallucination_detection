@@ -113,9 +113,15 @@ def sha256_order(ids) -> str:
     return hashlib.sha256(joined.encode("utf-8")).hexdigest()
 
 
+#: Written by `cluster/sync_code.sh` next to the synced tree. The cluster copy is a tarball
+#: with `.git` deliberately excluded, so without this file a cluster manifest could only
+#: record `repo_commit="unknown"` — and "a full run's numbers must be traceable to a commit
+#: hash" would be an empty claim exactly where it matters most.
+SYNC_STAMP = "SYNC_COMMIT.json"
+
+
 def git_info(repo_root: str) -> dict:
-    """Repository commit + dirty flag. Never raises — a manifest is still worth writing
-    from a tarball with no .git, it just records that fact."""
+    """Repository commit + dirty flag, from git if present or the sync stamp if not."""
     def _run(args):
         try:
             return subprocess.run(args, cwd=repo_root, capture_output=True, text=True,
@@ -123,9 +129,27 @@ def git_info(repo_root: str) -> dict:
         except Exception:
             return ""
 
-    commit = _run(["git", "rev-parse", "HEAD"]) or "unknown"
-    status = _run(["git", "status", "--porcelain", "--untracked-files=no"])
-    return {"repo_commit": commit, "repo_dirty": bool(status)}
+    if os.path.isdir(os.path.join(repo_root, ".git")):
+        commit = _run(["git", "rev-parse", "HEAD"])
+        if commit:
+            status = _run(["git", "status", "--porcelain", "--untracked-files=no"])
+            return {"repo_commit": commit, "repo_dirty": bool(status),
+                    "commit_source": "git"}
+
+    stamp = os.path.join(repo_root, SYNC_STAMP)
+    if os.path.exists(stamp):
+        try:
+            with open(stamp) as f:
+                d = json.load(f)
+            return {"repo_commit": d.get("commit", "unknown"),
+                    "repo_dirty": bool(d.get("dirty", True)),
+                    "commit_source": f"sync stamp written {d.get('synced_utc', '?')}"}
+        except Exception:
+            pass
+    # No git and no stamp: say so rather than implying a clean unknown tree. `repo_dirty=True`
+    # means a full run's manifest gate will refuse, which is the correct outcome — an
+    # untraceable tree must not produce a table row.
+    return {"repo_commit": "unknown", "repo_dirty": True, "commit_source": "unavailable"}
 
 
 def software_info() -> dict:
