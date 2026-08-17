@@ -314,10 +314,58 @@ class StepStopper:
         return {"n_steps": len(self.steps), "fired": self.fired, "tau": self.tau}
 
 
+class MiniLMEncoder:
+    """all-MiniLM-L6-v2 sentence embeddings on plain `transformers`.
+
+    Exposes the one method REFRAIN needs, with sentence-transformers' signature, so it is a
+    drop-in for `SentenceTransformer` and the CPU tests can still stub it.
+
+    Why not just import sentence_transformers: the AIRCC compute nodes can reach the
+    HuggingFace hub but not PyPI, so an in-job `pip install sentence-transformers` fails with
+    a DNS error and takes the whole S1 run with it. The library's contribution here is
+    exactly three lines — encode, attention-masked mean-pool, L2-normalise — which is the
+    documented pooling configuration for this checkpoint, so reproducing it removes a
+    network dependency without changing a number.
+    """
+
+    def __init__(self, model_name: str = SBERT_MODEL, device: str = None,
+                 max_length: int = 256):
+        import torch
+        from transformers import AutoModel, AutoTokenizer
+        self.torch = torch
+        self.tok = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name)
+        self.model.eval()
+        if device:
+            self.model.to(device)
+        self.device = next(self.model.parameters()).device
+        # all-MiniLM-L6-v2's own config truncates at 256 word pieces; a REFRAIN step can be
+        # longer, and silently letting it through would change the similarity.
+        self.max_length = int(max_length)
+
+    def encode(self, sentences, normalize_embeddings: bool = True, batch_size: int = 32):
+        import numpy as _np
+        torch = self.torch
+        if isinstance(sentences, str):
+            sentences = [sentences]
+        out = []
+        with torch.no_grad():
+            for i in range(0, len(sentences), batch_size):
+                batch = [str(s) for s in sentences[i:i + batch_size]]
+                enc = self.tok(batch, padding=True, truncation=True,
+                               max_length=self.max_length, return_tensors="pt").to(self.device)
+                hidden = self.model(**enc).last_hidden_state
+                mask = enc["attention_mask"].unsqueeze(-1).to(hidden.dtype)
+                pooled = (hidden * mask).sum(1) / mask.sum(1).clamp(min=1e-9)
+                if normalize_embeddings:
+                    pooled = torch.nn.functional.normalize(pooled, p=2, dim=1)
+                out.append(pooled.float().cpu().numpy())
+        return _np.concatenate(out, axis=0) if out else _np.zeros((0, 384))
+
+
 def load_sbert(model_name: str = SBERT_MODEL, device: str = None):
-    """Load all-MiniLM-L6-v2. Kept behind a function so the CPU smoke tests can stub it."""
-    from sentence_transformers import SentenceTransformer
-    return SentenceTransformer(model_name, device=device)
+    """Load the redundancy scorer. Behind a function so the CPU smoke tests can stub it."""
+    return MiniLMEncoder(model_name, device=device)
 
 
 def extract_boxed_answer_ids(tok, text: str):

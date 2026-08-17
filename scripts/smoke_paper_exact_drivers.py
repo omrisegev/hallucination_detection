@@ -283,9 +283,43 @@ def test_driver_imports():
             check(f"import {mod.split('.')[-1]}", False, repr(e))
 
 
+def test_driver_manifests():
+    """Every driver must build and verify its own manifest, locally, before submission.
+
+    This exists because it did not: three of the first four cluster jobs died at the manifest
+    gate after a Slurm allocation had already been granted — one on a self-contradictory
+    fidelity label (`paper-specified` alongside declared deviations), two on a required field
+    whose empty value was legitimate. All three were seconds of CPU work to detect and cost a
+    GPU round trip instead. `--dry-run` builds the real manifest from synthetic rows, with no
+    dataset and no model, so that never happens again.
+    """
+    print("\n[driver manifest dry-runs]")
+    import subprocess
+    tmp = tempfile.mkdtemp()
+    try:
+        for driver, tag in (("run_paper_exact_refrain.py", "s1"),
+                            ("run_paper_exact_deepconf.py", "m1"),
+                            ("run_paper_exact_leash.py", "s2"),
+                            ("run_paper_exact_uprm_judge.py", "l1")):
+            p = subprocess.run(
+                [sys.executable, os.path.join(REPO_ROOT, "cluster", driver),
+                 "--dry-run", "--out", os.path.join(tmp, tag)],
+                capture_output=True, text=True, timeout=300)
+            ok = p.returncode == 0 and "DRY RUN OK" in p.stdout
+            detail = ""
+            if not ok:
+                bad = [l for l in (p.stdout + p.stderr).splitlines()
+                       if "FAIL" in l or "Error" in l or "error" in l]
+                detail = (bad[-1] if bad else (p.stderr.strip().splitlines() or [""])[-1])[:140]
+            check(f"manifest dry-run {tag} ({driver})", ok, detail)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def main():
     print("CPU smoke gate for the paper-exact drivers (stub model, no GPU)")
     test_driver_imports()
+    test_driver_manifests()
     test_detokenizer()
     test_stream_and_channels()
     test_refrain_stop_and_closure()

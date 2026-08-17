@@ -59,19 +59,26 @@ export SLURM_CONTAINER_IMAGE=nvcr.io/nvidia/pytorch:25.01-py3
 # but pinning this keeps every other dict-order-dependent path reproducible too.
 export PYTHONHASHSEED=0
 
-DRIVER="${1:?first argument must be the driver filename, e.g. run_paper_exact_refrain.py}"
+# Accepts either a bare driver name (resolved under cluster/) or a repo-relative path, so
+# the same launcher runs the GPU drivers and the scripts/ utilities that need HF_TOKEN.
+DRIVER="${1:?first argument must be a driver, e.g. run_paper_exact_refrain.py or scripts/paper_exact_prefetch.py}"
 shift
+case "$DRIVER" in
+    */*) TARGET="$DRIVER" ;;
+    *)   TARGET="cluster/$DRIVER" ;;
+esac
 
 echo "[sbatch] job $SLURM_JOB_ID on $(hostname)"
-echo "[sbatch] driver=$DRIVER args: $*"
+echo "[sbatch] target=$TARGET args: $*"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader || true
 
-pip install -q --user -r cluster/requirements.txt
-# sentence-transformers is only needed by S1 (REFRAIN's all-MiniLM-L6-v2 redundancy scorer)
-# and is not in the shared requirements file, so it is installed here rather than pulled
-# into every other job's image.
-if [ "$DRIVER" = "run_paper_exact_refrain.py" ]; then
-    pip install -q --user "sentence-transformers>=3.0"
-fi
+# The compute nodes reach the HuggingFace hub but NOT PyPI (verified 2026-08-17: model
+# downloads succeed while pip resolves nothing — "Name or service not known"). So this
+# install is best-effort against the warm shared cache and must never abort the job; the
+# drivers deliberately depend only on what the NGC image already ships plus this cache.
+# In particular REFRAIN uses spectral_utils.paper_exact.refrain.MiniLMEncoder (plain
+# transformers) rather than sentence-transformers, for exactly this reason.
+pip install -q --user -r cluster/requirements.txt || \
+    echo "[sbatch] WARNING: pip install failed (no PyPI route from this node) — continuing"
 
-exec python "cluster/$DRIVER" "$@"
+exec python "$TARGET" "$@"

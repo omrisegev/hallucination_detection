@@ -77,6 +77,12 @@ def _on_sigterm(signum, frame):
     print("[s2] SIGTERM — will checkpoint after the current question", flush=True)
 
 
+def synthetic_rows(n=3):
+    """Placeholder rows for --dry-run: manifest gate without a dataset-hub round trip."""
+    return [{"question_id": f"dryrun-{i}", "index": i,
+             "problem": f"synthetic problem {i}", "answer": str(i)} for i in range(n)]
+
+
 def load_rows(dataset: str, n=None):
     from datasets import load_dataset
     if dataset == "gsm8k":
@@ -177,6 +183,8 @@ def main():
                     help="pilot-only: run the pre-registered sensitivity grid")
     ap.add_argument("--out", required=True)
     ap.add_argument("--attn-impl", default="sdpa")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="build and verify the manifest from synthetic rows, then exit")
     args = ap.parse_args()
 
     signal.signal(signal.SIGTERM, _on_sigterm)
@@ -187,7 +195,7 @@ def main():
     arms = [a.strip() for a in args.arms.split(",") if a.strip()]
     n = args.n_samples if args.n_samples is not None else (
         3 if args.mode == "smoke" else 30 if args.mode == "pilot" else None)
-    rows = load_rows(args.dataset, n)
+    rows = (synthetic_rows(3) if args.dry_run else load_rows(args.dataset, n))
     configs = LS.grid_points() if args.sweep else [LS.LeashConfig()]
     # The grid is swept for the leash arm only — cot/nocot do not read the constants, and
     # running them 81 times would multiply the control's cost for identical traces.
@@ -195,8 +203,11 @@ def main():
           f"configs={len(configs)}", flush=True)
 
     os.makedirs(args.out, exist_ok=True)
-    from transformers import AutoTokenizer
-    tok_only = AutoTokenizer.from_pretrained(args.model)
+    if args.dry_run:
+        tok_only = type("T", (), {"chat_template": "DRY-RUN-CHAT-TEMPLATE"})()
+    else:
+        from transformers import AutoTokenizer
+        tok_only = AutoTokenizer.from_pretrained(args.model)
     man = build_manifest(
         run_id=os.path.basename(args.out.rstrip("/")),
         paper_title="LEASH: Logit-Entropy Adaptive Stopping Heuristic",
@@ -238,7 +249,7 @@ def main():
     )
     man["expected_traces"] = len(rows) * (len(configs) if "leash" in arms else 0) + \
         len(rows) * len([a for a in arms if a != "leash"])
-    problems = verify_manifest(man)
+    problems = verify_manifest(man, require_clean_tree=(args.mode == "full"))
     write_manifest(man, args.out)
 
     gate = Gate(f"S2-leash-{args.mode}", args.out)
@@ -248,6 +259,11 @@ def main():
     gate.check("fidelity_is_partial", man["fidelity"] == "paper-specified-partial",
                "four constants are declared by us, not by the paper")
     gate.finish(raise_on_fail=True)
+    if args.dry_run:
+        print(f"[s2] DRY RUN OK — manifest builds and verifies "
+              f"(fidelity={man['fidelity']}, {len(man['declared_deviations'])} deviations)",
+              flush=True)
+        return
 
     mdl, tok = load_model(args.model, attn_impl=args.attn_impl)
     mdl.eval()

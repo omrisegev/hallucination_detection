@@ -254,7 +254,13 @@ def audit_environment(gate: Gate, check_cluster: bool) -> dict:
                    f"{avail} GB available on {shared}")
         rc, so, _ = _run(["sinfo", "-h", "-o", "%P %a %G"], timeout=60)
         env["partitions"] = so.splitlines() if rc == 0 else []
-        gate.check("slurm_reachable", rc == 0, f"{len(env['partitions'])} partition lines")
+        # Informational, not a gate: inside the Pyxis container `sinfo` is not on PATH, so a
+        # failure here says nothing about whether Slurm works — the job running this check
+        # was itself dispatched by Slurm. Gating on it would block promotion on an artefact
+        # of where the audit happens to run.
+        env["slurm_visible_from_here"] = rc == 0
+        print(f"[p0] slurm visible from this context: {rc == 0} "
+              f"({len(env['partitions'])} partition lines)", flush=True)
 
         hub = os.path.join(shared, "hf_cache", "hub")
         present = set(os.listdir(hub)) if os.path.isdir(hub) else set()

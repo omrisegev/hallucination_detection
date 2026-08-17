@@ -82,6 +82,13 @@ def _on_sigterm(signum, frame):
     print("[m1] SIGTERM — will checkpoint after the current trace", flush=True)
 
 
+def synthetic_rows(n=3):
+    """Placeholder rows for --dry-run: exercises the order hash and the manifest gate
+    without a dataset-hub round trip."""
+    return [{"question_id": f"dryrun-{i}", "index": i,
+             "problem": f"synthetic problem {i}", "answer": str(i)} for i in range(n)]
+
+
 def load_aime24():
     from datasets import load_dataset
     ds = load_dataset("Maxwell-Jia/AIME_2024", split="train")
@@ -120,6 +127,9 @@ def main():
     ap.add_argument("--n-shards", type=int, default=1)
     ap.add_argument("--out", required=True)
     ap.add_argument("--attn-impl", default="sdpa")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="build and verify the manifest from synthetic rows, then exit — "
+                         "no dataset, no model, no GPU")
     args = ap.parse_args()
 
     signal.signal(signal.SIGTERM, _on_sigterm)
@@ -130,7 +140,7 @@ def main():
                  "--i-accept-terabyte-retention only after Drive and shared quotas are "
                  "verified, or drop the flag and rely on --audit-every.")
 
-    rows = load_aime24()
+    rows = (synthetic_rows(3) if args.dry_run else load_aime24())
     if args.n_questions:
         rows = rows[:args.n_questions]
     if args.mode == "smoke":
@@ -144,16 +154,21 @@ def main():
           f"traces_this_shard={len(units)} out={args.out}", flush=True)
 
     os.makedirs(args.out, exist_ok=True)
-    from transformers import AutoTokenizer
-    tok_only = AutoTokenizer.from_pretrained(args.model)
+    if args.dry_run:
+        tok_only = type("T", (), {"chat_template": "DRY-RUN-CHAT-TEMPLATE"})()
+    else:
+        from transformers import AutoTokenizer
+        tok_only = AutoTokenizer.from_pretrained(args.model)
     man = build_manifest(
         run_id=os.path.basename(args.out.rstrip("/")),
         paper_title="Deep Think with Confidence",
         paper_pdf_path=PAPER_PDF,
-        # 'paper-specified': the official repo is runnable and pinned, but we generate with
-        # HF transformers rather than the paper's pinned vLLM commit, so this is not
-        # official-exact until the equality audit ties our confidence to their function.
-        fidelity="paper-specified",
+        # 'paper-specified-partial', not 'paper-specified': the official repo is runnable
+        # and pinned, but we generate with HF transformers rather than the paper's pinned
+        # vLLM commit, and we retain scalar channels rather than full top-50. Both are
+        # declared deviations below, and a run with declared deviations is partial by
+        # definition (handoff §1) — build_manifest refuses the stronger label.
+        fidelity="paper-specified-partial",
         dataset_source="Maxwell-Jia/AIME_2024", dataset_revision="train",
         dataset_example_ids=[f"{r['question_id']}#{t}" for r, t in units],
         model_id=args.model, model_revision=args.model_revision,
@@ -199,7 +214,7 @@ def main():
                "n_init_warmup": DC.DEFAULT_N_INIT, "group_window": DC.DEFAULT_GROUP_WINDOW},
     )
     man["expected_traces"] = len(units)
-    problems = verify_manifest(man)
+    problems = verify_manifest(man, require_clean_tree=(args.mode == "full"))
     write_manifest(man, args.out)
 
     gate = Gate(f"M-deepconf-{args.mode}", args.out)
@@ -212,6 +227,11 @@ def main():
                or args.i_accept_terabyte_retention,
                "scalar-rich retention with an audit sample")
     gate.finish(raise_on_fail=True)
+    if args.dry_run:
+        print(f"[m1] DRY RUN OK — manifest builds and verifies "
+              f"(fidelity={man['fidelity']}, {len(man['declared_deviations'])} deviations)",
+              flush=True)
+        return
 
     mdl, tok = load_model(args.model, attn_impl=args.attn_impl)
     mdl.eval()

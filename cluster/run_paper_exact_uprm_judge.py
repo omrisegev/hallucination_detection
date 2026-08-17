@@ -77,6 +77,8 @@ def main():
     ap.add_argument("--n-samples", type=int, default=None)
     ap.add_argument("--out", required=True)
     ap.add_argument("--attn-impl", default="sdpa")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="build and verify the manifest from synthetic rows, then exit")
     args = ap.parse_args()
 
     signal.signal(signal.SIGTERM, _on_sigterm)
@@ -85,15 +87,22 @@ def main():
     subsets = [s.strip() for s in args.subsets.split(",") if s.strip()]
 
     rows = []
-    for subset in subsets:
-        for r in load_processbench(subset, n):
-            rows.append({**r, "subset": subset})
+    if args.dry_run:
+        rows = [{"id": f"dryrun-{i}", "problem": "p", "steps": ["a", "b"], "label": -1,
+                 "subset": subsets[0]} for i in range(3)]
+    else:
+        for subset in subsets:
+            for r in load_processbench(subset, n):
+                rows.append({**r, "subset": subset})
     print(f"[l1] mode={args.mode} model={args.model} subsets={subsets} rows={len(rows)}",
           flush=True)
 
     os.makedirs(args.out, exist_ok=True)
-    from transformers import AutoTokenizer
-    tok_only = AutoTokenizer.from_pretrained(args.model)
+    if args.dry_run:
+        tok_only = type("T", (), {"chat_template": "DRY-RUN-CHAT-TEMPLATE"})()
+    else:
+        from transformers import AutoTokenizer
+        tok_only = AutoTokenizer.from_pretrained(args.model)
     man = build_manifest(
         run_id=os.path.basename(args.out.rstrip("/")),
         paper_title="Unsupervised Process Reward Models — Eq. 6 LLM-as-a-Judge control",
@@ -134,7 +143,7 @@ def main():
                "not_uprm": "this is the paper's own Eq. 6 control, not the trained uPRM"},
     )
     man["expected_traces"] = len(rows)
-    problems = verify_manifest(man)
+    problems = verify_manifest(man, require_clean_tree=(args.mode == "full"))
     write_manifest(man, args.out)
 
     gate = Gate(f"L1-uprm-judge-{args.mode}", args.out)
@@ -142,6 +151,11 @@ def main():
     gate.check("backbone_is_paper_backbone", "14B" in args.model,
                f"{args.model} — the control is only fair on Qwen2.5-14B-Instruct")
     gate.finish(raise_on_fail=True)
+    if args.dry_run:
+        print(f"[l1] DRY RUN OK — manifest builds and verifies "
+              f"(fidelity={man['fidelity']}, {len(man['declared_deviations'])} deviations)",
+              flush=True)
+        return
 
     mdl, tok = load_model(args.model, attn_impl=args.attn_impl)
     mdl.eval()

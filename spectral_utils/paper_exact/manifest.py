@@ -47,7 +47,7 @@ PINNED_FIELDS = (
     "logits_stage",
 )
 
-#: Fields that must be present and non-empty for the manifest gate to pass.
+#: Fields that must be present for the manifest gate to pass.
 REQUIRED_FIELDS = PINNED_FIELDS + (
     "created_utc",
     "repo_commit",
@@ -65,6 +65,18 @@ REQUIRED_FIELDS = PINNED_FIELDS + (
     "evaluator_revision",
     "declared_deviations",
 )
+
+#: Required fields whose empty value is a real, meaningful answer rather than an omission.
+#: Emptiness here is informative — "this run captured no hidden states", "this paper
+#: published no code", "we deviated from nothing" — and rejecting it would push drivers to
+#: invent placeholder text, which is strictly worse provenance than an honest empty.
+MAY_BE_EMPTY = frozenset({
+    "expected_traces",        # unknown until the driver counts its own N
+    "hidden_state_layers",    # [] = no hidden-state capture, the norm for these stages
+    "declared_deviations",    # [] = an official-exact run with nothing to declare
+    "official_code_url",      # "" = the paper published no code
+    "official_code_commit",
+})
 
 #: `logits_stage` is a closed vocabulary. Mislabelling post-warper telemetry as raw is
 #: the single failure that silently invalidates every DeepConf comparison (handoff §3.2,
@@ -249,18 +261,23 @@ def build_manifest(
     return man
 
 
-def verify_manifest(man: dict) -> list:
-    """Return a list of human-readable problems; empty list means the manifest gate passes."""
+def verify_manifest(man: dict, require_clean_tree: bool = False) -> list:
+    """Return a list of human-readable problems; empty list means the manifest gate passes.
+
+    `require_clean_tree` is off by default and turned on for `--mode full`. A smoke or pilot
+    launched from a dirty tree is normal and healthy — that is what development looks like,
+    and the manifest still records `repo_dirty=True` either way. A *full* run is different:
+    its numbers go in a table, and "which code produced this" must be answerable by a commit
+    hash alone.
+    """
     problems = []
     if man.get("schema") != SCHEMA_VERSION:
         problems.append(f"schema is {man.get('schema')!r}, expected {SCHEMA_VERSION!r}")
     for field in REQUIRED_FIELDS:
         if field not in man:
             problems.append(f"missing field: {field}")
-        elif man[field] in (None, "", [], {}):
-            # expected_traces is legitimately None until the driver knows its own N.
-            if field != "expected_traces":
-                problems.append(f"empty field: {field}")
+        elif man[field] in (None, "", [], {}) and field not in MAY_BE_EMPTY:
+            problems.append(f"empty field: {field}")
     if man.get("fidelity") not in FIDELITY_LABELS:
         problems.append(f"bad fidelity: {man.get('fidelity')!r}")
     if man.get("logits_stage") not in LOGITS_STAGES:
@@ -272,7 +289,7 @@ def verify_manifest(man: dict) -> list:
     if man.get("prompt_text") is not None:
         if man.get("prompt_sha256") != sha256_text(man["prompt_text"]):
             problems.append("prompt_sha256 does not match prompt_text")
-    if man.get("repo_dirty"):
+    if require_clean_tree and man.get("repo_dirty"):
         problems.append("repo_dirty=True — a full run must be launched from a clean tree")
     return problems
 

@@ -81,6 +81,13 @@ def _on_sigterm(signum, frame):
 
 # ── data ────────────────────────────────────────────────────────────────────────
 
+def synthetic_rows(n=3):
+    """Placeholder rows for --dry-run. Enough to exercise the order hash and the manifest
+    gate without a network round-trip to the dataset hub."""
+    return [{"question_id": f"dryrun-{i}", "index": i,
+             "problem": f"synthetic problem {i}", "answer": str(i)} for i in range(n)]
+
+
 def load_math500(n=None):
     """MATH-500 in its native dataset order. Order is pinned in the manifest because the
     bandit couples questions; a shuffle is a different algorithm, not a different seed."""
@@ -253,6 +260,9 @@ def main():
     ap.add_argument("--n-shards", type=int, default=1)
     ap.add_argument("--out", required=True)
     ap.add_argument("--attn-impl", default="sdpa")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="build and verify the manifest from synthetic rows, then exit — "
+                         "no dataset, no model, no GPU")
     args = ap.parse_args()
 
     signal.signal(signal.SIGTERM, _on_sigterm)
@@ -263,7 +273,7 @@ def main():
 
     n = args.n_samples if args.n_samples is not None else (
         5 if args.mode == "smoke" else 30 if args.mode == "pilot" else None)
-    rows = load_math500(n)
+    rows = (synthetic_rows(3) if args.dry_run else load_math500(n))
     if args.n_shards > 1:
         rows = [r for i, r in enumerate(rows) if i % args.n_shards == args.shard]
     print(f"[s1] mode={args.mode} arms={arms} n={len(rows)} out={args.out}", flush=True)
@@ -272,8 +282,11 @@ def main():
     os.makedirs(args.out, exist_ok=True)
 
     # ── manifest before anything is generated ──
-    from transformers import AutoTokenizer
-    tok_only = AutoTokenizer.from_pretrained(args.model)
+    if args.dry_run:
+        tok_only = type("T", (), {"chat_template": "DRY-RUN-CHAT-TEMPLATE"})()
+    else:
+        from transformers import AutoTokenizer
+        tok_only = AutoTokenizer.from_pretrained(args.model)
     man = build_manifest(
         run_id=os.path.basename(args.out.rstrip("/")),
         paper_title="Stop When Enough: Adaptive Early-Stopping for Chain-of-Thought Reasoning",
@@ -328,7 +341,7 @@ def main():
                "fixed_tau": args.fixed_tau},
     )
     man["expected_traces"] = len(rows) * len(arms)
-    problems = [p for p in verify_manifest(man) if not p.startswith("repo_dirty")]
+    problems = verify_manifest(man, require_clean_tree=(args.mode == "full"))
     write_manifest(man, args.out)
 
     gate = Gate(f"S1-refrain-{args.mode}", args.out)
@@ -337,6 +350,11 @@ def main():
                args.vocabulary == "base" or args.mode != "full",
                f"vocabulary={args.vocabulary}; only 'base' reproduces the headline row")
     gate.finish(raise_on_fail=True)
+    if args.dry_run:
+        print(f"[s1] DRY RUN OK — manifest builds and verifies "
+              f"(fidelity={man['fidelity']}, {len(man['declared_deviations'])} deviations)",
+              flush=True)
+        return
 
     # ── model ──
     mdl, tok = load_model(args.model, attn_impl=args.attn_impl)
