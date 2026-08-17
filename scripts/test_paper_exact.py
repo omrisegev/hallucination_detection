@@ -188,6 +188,63 @@ def _prefix_score(channels, t):
     return float(np.max(np.abs(cs)) / h.size)
 
 
+def test_parallel_parts():
+    """A sharded acquisition must reassemble from per-worker directories.
+
+    This exists because the M2 submission was one command away from running 32 workers into
+    one output directory. That would have collided three ways — duplicate shard numbers
+    overwriting each other's files, a STATUS.json describing whichever worker wrote last, and
+    orphan-quarantine moving a shard another worker was still writing — and none of it would
+    have raised. The structural answer is one directory per worker; these checks pin it.
+    """
+    print("\n[parallel part directories]")
+    from spectral_utils.paper_exact.shards import iter_run_dirs
+    tmp = tempfile.mkdtemp()
+    try:
+        n_workers, per = 4, 5
+        for w in range(n_workers):
+            d = os.path.join(tmp, f"part_{w:02d}")
+            keys = [f"k{w}_{i}" for i in range(per)]
+            wr = ShardWriter(d, expected_keys=keys, max_traces=2)
+            for i in range(per):
+                wr.add({"trace_key": f"k{w}_{i}", "question_id": f"q{w}",
+                        "prompt_text": "p", "prompt_token_ids": [1],
+                        "gen_token_ids": [2], "full_text": "t"})
+            wr.close()
+
+        check("iter_run_dirs finds every worker",
+              len(iter_run_dirs(tmp)) == n_workers, f"{len(iter_run_dirs(tmp))}")
+        check("iter_run_dirs is a no-op on a single-worker dir",
+              iter_run_dirs(os.path.join(tmp, "part_00")) == [os.path.join(tmp, "part_00")])
+        recs = list(read_shards(tmp))
+        check("read_shards reassembles all workers",
+              len(recs) == n_workers * per, f"{len(recs)}")
+        rep = verify_shards(tmp)
+        check("verify_shards spans the workers",
+              rep["ok"] and rep["n_workers"] == n_workers
+              and rep["n_traces"] == n_workers * per, json.dumps(rep["problems"]))
+
+        # A sharding bug that handed the same unit to two workers must surface, not silently
+        # double-weight that trace in the pool.
+        d = os.path.join(tmp, "part_99")
+        wr = ShardWriter(d, expected_keys=["k0_0"], max_traces=1)
+        wr.add({"trace_key": "k0_0", "question_id": "q0", "prompt_text": "p",
+                "prompt_token_ids": [1], "gen_token_ids": [2], "full_text": "t"})
+        wr.close()
+        rep2 = verify_shards(tmp)
+        check("cross-worker duplicate keys are detected",
+              not rep2["ok"] and any("duplicate" in p for p in rep2["problems"]),
+              str(rep2["problems"][:1]))
+
+        # Separate directories means separate counters — no clobbering.
+        st0 = json.load(open(os.path.join(tmp, "part_00", "STATUS.json")))
+        st1 = json.load(open(os.path.join(tmp, "part_01", "STATUS.json")))
+        check("each worker keeps its own STATUS.json",
+              st0["n_finished"] == per and st1["n_finished"] == per)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
 def test_causality():
     print("\n[causality]")
     rng = np.random.default_rng(0)
@@ -486,7 +543,8 @@ def main():
     args = ap.parse_args()
 
     tests = {
-        "manifest": test_manifest, "shards": test_shards, "causality": test_causality,
+        "manifest": test_manifest, "shards": test_shards,
+        "parts": test_parallel_parts, "causality": test_causality,
         "alarm": test_alarm_calibration, "metrics": test_metrics, "bootstrap": test_bootstrap,
         "deepconf": test_deepconf, "refrain": test_refrain, "leash": test_leash,
     }

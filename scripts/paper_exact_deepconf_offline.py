@@ -39,6 +39,7 @@ from spectral_utils.paper_exact import deepconf as DC          # noqa: E402
 from spectral_utils.paper_exact import evaluator as EV         # noqa: E402
 from spectral_utils.paper_exact.gates import Gate              # noqa: E402
 from spectral_utils.paper_exact.manifest import load_manifest   # noqa: E402
+from spectral_utils.paper_exact.shards import iter_run_dirs  # noqa: E402
 from spectral_utils.paper_exact.shards import read_shards       # noqa: E402
 
 #: Paper regression references for Qwen3-8B x AIME24 (Appendix Tables 5-10).
@@ -240,7 +241,12 @@ def main():
     args = ap.parse_args()
 
     os.makedirs(args.out, exist_ok=True)
-    man = load_manifest(args.run)
+    # A sharded acquisition keeps one directory per worker; the manifests are
+    # per-worker too, so read the first and record how many parts fed the table.
+    parts = iter_run_dirs(args.run)
+    if not parts:
+        sys.exit(f'no acquisition found under {args.run}')
+    man = load_manifest(parts[0])
     gate = Gate("M-deepconf-offline", args.out)
 
     print(f"[offline] loading pool from {args.run} ...", flush=True)
@@ -276,6 +282,7 @@ def main():
     report = {
         "written_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "run_dir": args.run, "run_id": man.get("run_id"),
+        "n_worker_parts": len(parts),
         "model": man.get("model_id"), "model_revision": man.get("model_revision"),
         "fidelity": man.get("fidelity"), "logits_stage": man.get("logits_stage"),
         "evaluator_revision": EV.EVALUATOR_REVISION,

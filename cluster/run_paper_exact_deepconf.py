@@ -184,14 +184,21 @@ def main():
     print(f"[m1] mode={args.mode} K={K} questions={len(rows)} "
           f"traces_this_shard={len(units)} out={args.out}", flush=True)
 
-    os.makedirs(args.out, exist_ok=True)
+    # One ShardWriter owns one directory exclusively (see shards.ShardWriter): two workers on
+    # one directory would collide on shard numbering, clobber each other's STATUS.json, and
+    # quarantine shards the other is still writing. So a sharded run gives each worker its own
+    # part_NN/, and iter_run_dirs/read_shards reassemble them for the offline replay.
+    run_dir = args.out if args.n_shards == 1 else os.path.join(
+        args.out, f"part_{args.shard:02d}")
+    os.makedirs(run_dir, exist_ok=True)
     if args.dry_run:
         tok_only = type("T", (), {"chat_template": "DRY-RUN-CHAT-TEMPLATE"})()
     else:
         from transformers import AutoTokenizer
         tok_only = AutoTokenizer.from_pretrained(args.model)
     man = build_manifest(
-        run_id=os.path.basename(args.out.rstrip("/")),
+        run_id=os.path.basename(args.out.rstrip("/")) +
+               ("" if args.n_shards == 1 else f"#part{args.shard:02d}"),
         paper_title="Deep Think with Confidence",
         paper_pdf_path=PAPER_PDF,
         # 'paper-specified-partial', not 'paper-specified': the official repo is runnable
@@ -247,9 +254,9 @@ def main():
     )
     man["expected_traces"] = len(units)
     problems = verify_manifest(man, require_clean_tree=(args.mode == "full"))
-    write_manifest(man, args.out)
+    write_manifest(man, run_dir)
 
-    gate = Gate(f"M-deepconf-{args.mode}", args.out)
+    gate = Gate(f"M-deepconf-{args.mode}", run_dir)
     gate.check("manifest_complete", not problems, f"{len(problems)} problems", problems)
     gate.check("pilot_is_not_a_table_row", True,
                "pilot mode is a protocol check; only --mode full may claim the paper table"
@@ -270,7 +277,7 @@ def main():
     eos = eos_ids(tok, mdl)
 
     expected = [f"{r['question_id']}#{t}" for r, t in units]
-    writer = ShardWriter(args.out, expected_keys=expected)
+    writer = ShardWriter(run_dir, expected_keys=expected)
     done = writer.done_keys()
     generator = torch.Generator(device=mdl.device)
     incomplete, n_new, t_start, tok_count = False, 0, time.time(), 0
@@ -366,7 +373,7 @@ def main():
           "mean_tokens_per_trace": round(tok_count / max(1, n_new), 1)}
     # Throughput is the number that decides whether M2 is affordable, so it is recorded
     # every run rather than estimated once.
-    with open(os.path.join(args.out, "THROUGHPUT.json"), "w") as f:
+    with open(os.path.join(run_dir, "THROUGHPUT.json"), "w") as f:
         json.dump(tp, f, indent=2)
     print(f"[m1] throughput: {json.dumps(tp)}", flush=True)
 

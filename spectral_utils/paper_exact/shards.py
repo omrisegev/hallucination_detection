@@ -41,6 +41,14 @@ REQUIRED_TRACE_KEYS = (
 class ShardWriter:
     """Append-only sharded writer with atomic shard commit and resume-by-key.
 
+    **Exactly one writer per run_dir.** This class is not concurrency-safe and must not be,
+    because making it so would trade the append-only guarantee for locking. Two writers on one
+    directory would collide three ways: both compute `_next_shard` from the same index and
+    overwrite each other's shard files; both rewrite `STATUS.json`, so the surviving counts
+    describe one worker; and `_quarantine_orphans` would move a shard the other worker is
+    still writing. A parallel run therefore gives each worker its own `part_NN/` directory,
+    and `iter_run_dirs` / `read_shards` reassemble them for analysis.
+
     Usage::
 
         w = ShardWriter(run_dir, expected_keys=all_keys)
@@ -220,50 +228,80 @@ def _read_index(index_path: str) -> list:
     return entries
 
 
+def iter_run_dirs(root: str) -> list:
+    """Resolve `root` to the list of writer directories under it.
+
+    A single-worker run is one directory holding `INDEX.jsonl`. A parallel run is a parent
+    holding `part_00/`, `part_01/`, ... — one per worker, because a ShardWriter owns its
+    directory exclusively (see the class docstring). This lets every offline consumer take a
+    single `--run` path and work either way.
+    """
+    if os.path.exists(os.path.join(root, "INDEX.jsonl")):
+        return [root]
+    parts = sorted(d for d in glob.glob(os.path.join(root, "part_*"))
+                   if os.path.exists(os.path.join(d, "INDEX.jsonl")))
+    return parts
+
+
 def read_shards(run_dir: str, verify: bool = True):
-    """Yield every committed trace record, in index order.
+    """Yield every committed trace record, in index order, across all workers.
 
     `verify=True` re-hashes each shard first. That costs a full read of the acquisition,
     which is the point: an offline analysis that silently consumed a corrupted shard would
     put a wrong number in a table with no way to notice.
     """
-    index = _read_index(os.path.join(run_dir, "INDEX.jsonl"))
-    for entry in index:
-        path = os.path.join(run_dir, entry["path"])
-        if verify:
-            got = sha256_file(path)
-            if got != entry["sha256"]:
-                raise ValueError(f"shard {entry['path']} sha256 mismatch: "
-                                 f"index={entry['sha256']} disk={got}")
-        with open(path, "rb") as f:
-            for record in pickle.load(f):
-                yield record
+    dirs = iter_run_dirs(run_dir)
+    if not dirs:
+        raise FileNotFoundError(f"no INDEX.jsonl under {run_dir} or its part_* subdirectories")
+    for d in dirs:
+        for entry in _read_index(os.path.join(d, "INDEX.jsonl")):
+            path = os.path.join(d, entry["path"])
+            if verify:
+                got = sha256_file(path)
+                if got != entry["sha256"]:
+                    raise ValueError(f"shard {d}/{entry['path']} sha256 mismatch: "
+                                     f"index={entry['sha256']} disk={got}")
+            with open(path, "rb") as f:
+                for record in pickle.load(f):
+                    yield record
 
 
 def verify_shards(run_dir: str) -> dict:
-    """Full integrity check over a run directory. Returns a report dict."""
-    index = _read_index(os.path.join(run_dir, "INDEX.jsonl"))
-    problems, keys, n = [], set(), 0
-    for entry in index:
-        path = os.path.join(run_dir, entry["path"])
-        if not os.path.exists(path):
-            problems.append(f"missing shard file {entry['path']}")
-            continue
-        if sha256_file(path) != entry["sha256"]:
-            problems.append(f"sha256 mismatch {entry['path']}")
-        if os.path.getsize(path) != entry["bytes"]:
-            problems.append(f"size mismatch {entry['path']}")
-        dup = keys & set(entry["keys"])
-        if dup:
-            problems.append(f"duplicate trace keys in {entry['path']}: {sorted(dup)[:5]}")
-        keys.update(entry["keys"])
-        n += entry["n_traces"]
+    """Full integrity check over a run directory (or a parent of `part_*` workers)."""
+    dirs = iter_run_dirs(run_dir)
+    problems, keys, n, nshards, nbytes = [], set(), 0, 0, 0
+    for d in dirs:
+        index = _read_index(os.path.join(d, "INDEX.jsonl"))
+        nshards += len(index)
+        for entry in index:
+            path = os.path.join(d, entry["path"])
+            rel = os.path.relpath(path, run_dir)
+            if not os.path.exists(path):
+                problems.append(f"missing shard file {rel}")
+                continue
+            if sha256_file(path) != entry["sha256"]:
+                problems.append(f"sha256 mismatch {rel}")
+            if os.path.getsize(path) != entry["bytes"]:
+                problems.append(f"size mismatch {rel}")
+            # Across workers this also catches a sharding bug: two parts that were handed
+            # the same (question, trace) unit would surface here as duplicate keys rather
+            # than as a silently double-weighted trace in the pool.
+            dup = keys & set(entry["keys"])
+            if dup:
+                problems.append(f"duplicate trace keys in {rel}: {sorted(dup)[:5]}")
+            keys.update(entry["keys"])
+            n += entry["n_traces"]
+            nbytes += entry.get("bytes", 0)
+    if not dirs:
+        problems.append(f"no INDEX.jsonl under {run_dir} or its part_* subdirectories")
     return {
         "run_dir": run_dir,
-        "n_shards": len(index),
+        "n_workers": len(dirs),
+        "worker_dirs": [os.path.basename(d) for d in dirs],
+        "n_shards": nshards,
         "n_traces": n,
         "n_unique_keys": len(keys),
-        "bytes_total": sum(e.get("bytes", 0) for e in index),
+        "bytes_total": nbytes,
         "problems": problems,
         "ok": not problems,
     }

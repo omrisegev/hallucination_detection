@@ -67,7 +67,8 @@ from .manifest import (  # noqa: E402,F401
     verify_manifest,
     write_manifest,
 )
-from .shards import ShardWriter, read_shards, verify_shards  # noqa: E402,F401
+from .shards import (  # noqa: E402,F401
+    ShardWriter, iter_run_dirs, read_shards, verify_shards)
 from .gates import Gate, write_gate  # noqa: E402,F401
 
 __all__ = [
@@ -79,6 +80,7 @@ __all__ = [
     "verify_manifest",
     "write_manifest",
     "ShardWriter",
+    "iter_run_dirs",
     "read_shards",
     "verify_shards",
     "Gate",
