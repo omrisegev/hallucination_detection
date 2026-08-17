@@ -358,3 +358,122 @@ Produce even if long jobs are still running:
 
 Do not update `HISTORY.md`, `PROGRESS.md`, or `Research_Directions.md` with new conclusions until
 the full result identities and report hashes are frozen. Do not commit raw cluster data.
+
+## 8. Codex review addendum — execution decisions after the 2026-08-17 interim results
+
+This addendum was requested by Omri after review of
+`STATUS_FOR_CODEX_2026-08-17.md`. Treat it as the current execution direction unless Omri
+explicitly supersedes it. It resolves Q1--Q5 from that status report. Preserve the fidelity labels
+and the rule that outcomes never determine promotion.
+
+### Immediate safety: do not perturb active runs
+
+1. Continue the already submitted S1 REFRAIN, S2 LEASH, and M2 DeepConf jobs under their original
+   manifests and stamped commit.
+2. Do **not** sync the three post-`d0d4df1` reporting/offline commits into the shared cluster code
+   while an active job or a future requeue may resume from that code tree. A changed repository
+   stamp can invalidate resume provenance even if the driver itself did not change. Analyze from an
+   isolated checkout if necessary; sync only at a clean run boundary.
+3. Keep LEASH's preregistered central constants
+   `{B: 30.0, tau_p: 0.95, w: 16, gamma: 0.10}`. The pilot sweep remains sensitivity analysis;
+   never promote a post-hoc winning cell as the reproduction. This resolves Q4.
+4. Refresh the stale P0 gate after the model prefetch state is visible, but do not let the stale
+   Slurm/P0 bookkeeping interrupt valid GPU jobs.
+
+### M2 DeepConf: mandatory balanced operational checkpoint
+
+M2 is scientifically valuable but now projects to roughly 1,120 B200 GPU-hours. Add a read-only
+operational checkpoint as soon as the pool contains a balanced milestone, preferably at least 256
+completed traces for every AIME24 question. The checkpoint must report:
+
+- expected/observed trace keys by question and shard, duplicates, missing IDs, and hash verification;
+- parser coverage, finite/aligned telemetry, raw-logit audit coverage, and answer-normalization
+  failures;
+- trace-length distribution, tokens/s, storage growth, updated GPU-hour/ETA estimate, and requeue
+  requirements;
+- an offline smoke reproduction of majority and the named DeepConf variants on the balanced
+  partial pool, clearly labelled partial and not entered into a findings table;
+- agreement of the retained DeepConf scalar with the already-passed raw-top-50 equality audit.
+
+This is a `continue` versus `repair provenance/schema/resource failure` checkpoint. Performance
+relative to the paper is **not** a stop criterion. If the operational checks pass, continue the full
+pool even when a preliminary score is disappointing. Do not open or optimize our causal method on
+these partial outcomes before its registry is frozen.
+
+### Q1 decision: preserve the uPRM reconstruction; do not tune on ProcessBench
+
+Keep L1's 0.2265 macro-F1 as the honest result of the first declared, paper-specified-partial
+reconstruction. The nearly constant predicted-clean rate is evidence about marker/prompt
+sensitivity, not permission to select a new prompt using the 3,400 evaluation labels.
+
+Do not book another uPRM GPU run for tomorrow's packet. A second reconstruction is allowed later
+only as a preregistered sensitivity analysis whose marker/prompt is chosen without ProcessBench
+labels (for example by an external label-free calibration corpus). Evaluate it once on untouched
+IDs and retain both rows. Never replace the first row or call the second one official-exact.
+
+### Q2 decision: build L0 now; separate direct competitors from ceilings
+
+Wire L0 immediately using the available artifacts:
+
+- ours, maximum entropy, shared-protocol and native Mind-the-Gap rows where available;
+- the new L1 uPRM-control row;
+- existing released-PRM and critic ceiling rows.
+
+Inventory and hash every source. Mark earlier artifacts `pre-contract provenance`; do not fabricate
+a retroactive immutable run manifest. This labelled table is acceptable for the interim advisor
+packet.
+
+For final paper-exact work, prioritize rerunning **Mind the Gap native** under the current contract,
+because it is the direct localization competitor. Do not spend scarce GPU capacity rerunning the
+PRM/critic ceilings before the advisor packet; they are different-access supervised ceilings. A
+later rerun is warranted only when missing provenance materially prevents verification of their
+metric or population. Keep Mind-the-Gap native SLA separate from the all-trace ProcessBench F1
+panel.
+
+### Q5 decision: freeze and implement the prefix-detection lane now
+
+This is the highest-priority missing implementation and is CPU/offline work over acquired
+telemetry. Before inspecting M2 outcome comparisons, create the versioned registry at
+`docs/experiments/PAPER_EXACT_CLAIM_REGISTRY_V1.yaml` and freeze:
+
+- question-grouped development/calibration/audit splits and stable IDs;
+- absolute budgets `{16,32,64,128,256,512}`;
+- `iu28_no_length` as the primary current method, with elapsed prefix length as an ablation only;
+- feature names/order/signs and code hash;
+- trace-level alarms calibrated on `max_t score(t)` over the complete registered horizon;
+- AUROC, AUPRC, prevalence-normalized AP, fraction of above-chance final discrimination recovered,
+  time-to-warning, and fixed ever-alarm-FPR metrics;
+- question-grouped paired bootstrap and the claim/non-inferiority margins already frozen by the
+  phase-1 plan.
+
+Machine-check **all ten** nulls already preregistered by the phase-1 checkpoint rather than choosing
+a favorable subset. The generated gate must at minimum make suffix invariance, tokenwise-versus-
+chunked replay, endpoint handling, label permutation, feature-order perturbation, sign/orientation,
+length-only leakage, split isolation, alarm-horizon calibration, and grouped-resampling validity
+explicit. If the canonical list uses different names, map these checks to it in the registry rather
+than silently creating an eleventh protocol. Emit a frozen JSON rendering plus hashes before opening
+comparison results.
+
+### Q3 decision: keep C1 untouched
+
+Do not submit C1 until all of the following are true:
+
+1. S1 full has landed and passed its non-outcome gates;
+2. the prefix method, budgets, feature/order hash, alarm horizon, calibration, registry, and analysis
+   script are frozen and committed;
+3. no C1 correctness labels or comparative outputs have been opened.
+
+Only then run the recommended gpt-oss-20B/CommonsenseQA confirmation once. This resolves Q3 and
+preserves the only clean transfer/generalization claim in the cycle.
+
+### W1 and tomorrow's decision-oriented packet
+
+Leave Streaming Hallucination Detection at `blocked-assets`. Do not create a substitute corpus,
+labels, prompt, split, probe, or checkpoint and present it as a reproduction.
+
+For tomorrow, prioritize artifacts that remain useful while long jobs run: the provenance-labelled
+L0 table, the fidelity/access matrix, the frozen prefix registry and driver/gates, the balanced M2
+operational audit if its milestone is available, REFRAIN/LEASH progress, and explicit ETAs. Keep
+localization, prefix detection, single-trace stopping, and multi-trace adaptive compute in four
+separate panels. Every partial number must say `preliminary`; no partial outcome may become a
+headline claim.
