@@ -153,7 +153,12 @@ Measured on Qwen3-8B / AIME24 / B200, one GPU:
 |---:|---:|---|
 | 1 | 47 | first pilot; 8B at batch 1 re-reads 16 GB of weights per token |
 | 6 | 145.6 | first batched probe, before the live-tensor fix |
-| 24 | *measure it* | production settings (`--audit-every 64`) |
+| 24 | 241.6 overall / **327 clean** | production settings; the overall figure includes two lone batch-1 tail traces, which do not occur at K=4096 |
+
+Step time grows with batch (21 ms at 1, 41 at 6, 73 at 24) because attention re-reads the whole
+KV cache each step, and that read scales with batch x context. At the ~20k contexts here the
+theoretical ceiling is `bandwidth / (T x 147 KB)` ~ 2,700 tok/s, so 327 is ~12% of roofline and
+further batching gives diminishing returns. Batch 24 is near the knee.
 
 Mean trace length measured at **9,655 tokens** (the paper implies ~15.1k), so the pool is
 
@@ -168,12 +173,17 @@ gpu_hours   = 1.186e9 / tok_s_per_gpu / 3600
 n_shards    = ceil(gpu_hours / target_wall_hours)     # target_wall_hours <= 24 per job
 ```
 
-At 145.6 tok/s that is 2,262 GPU-hours — 16 shards would take 141 h of wall time, which is
-too long. Do not submit M2 until the batch-24 probe shows a rate that puts the run inside a
-few days at a shard count the cluster can absorb politely. If it does not, the options in
-order of preference are: raise the batch size until memory or tok/s stops improving; raise
-the shard count; and only then reconsider the pool size with Omri, since a reduced pool
-cannot claim the paper's table.
+**Decision taken 2026-08-17**, from the pooled mean of both probes (10,734 tokens/trace over
+80 traces):
+
+```
+pool      = 30 x 4096 x 10,734  = 1.319e9 tokens
+GPU-hours = 1.319e9 / 327 / 3600 = 1,120
+24 shards -> 46.7 h wall, ~2 requeues per shard
+```
+
+Submitted as 24 shards at batch 24. 16 would take 70 h, 32 would take 35 h; 24 keeps the run
+inside two days without taking more than ~8% of a shared national cluster.
 
 KV-cache ceiling, for choosing the batch: Qwen3-8B is 36 layers x 8 KV heads x 128 dim, i.e.
 **~147 KB per token per trace**. At the 32k cap that is ~4.8 GB per trace, so a 183 GB B200

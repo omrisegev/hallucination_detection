@@ -273,11 +273,22 @@ def main():
     print("[offline] offline table ...", flush=True)
     off = offline_table(pool, ks, etas, stats, n_runs=args.n_runs)
     print("[offline] online replay ...", flush=True)
+    # Algorithm 2 warms up on N_init traces and then samples up to a budget B, so a budget
+    # larger than the pool is not runnable. Report which budgets were dropped rather than
+    # silently emitting nothing: an empty online table reads identically to "the online rule
+    # found no traces to abort", and those are very different facts.
+    pool_max = max(sizes.values(), default=0)
+    usable = [b for b in DC.BUDGETS if b <= pool_max]
+    dropped = [b for b in DC.BUDGETS if b > pool_max]
+    if dropped:
+        print(f"[offline] budgets {dropped} exceed the pool ({pool_max} traces/question) "
+              f"and are NOT reported", flush=True)
+    gate.check("online_budgets_runnable", bool(usable),
+               f"budgets {usable} runnable, {dropped} dropped (pool has {pool_max}/question; "
+               f"Alg. 2 needs N_init={DC.DEFAULT_N_INIT} warm-up traces before any budget)")
     on = []
     for eta in (DC.ETA_LOW, DC.ETA_HIGH):
-        on += online_replay(pool, eta=eta,
-                            budgets=[b for b in DC.BUDGETS if b <= max(sizes.values())],
-                            n_runs=min(args.n_runs, 16))
+        on += online_replay(pool, eta=eta, budgets=usable, n_runs=min(args.n_runs, 16))
 
     report = {
         "written_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -289,6 +300,7 @@ def main():
         "n_questions": len(pool), "pool_sizes": sizes,
         "equality_audit": audit,
         "offline_table": off, "online_table": on,
+        "online_budgets_dropped": dropped, "pool_max_per_question": pool_max,
         "paper_reference": PAPER_REFERENCE,
         "note": "paper_reference values are regression targets, not acceptance gates; a "
                 "deviation is diagnosed for provenance, never tuned away.",
