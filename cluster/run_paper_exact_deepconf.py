@@ -100,6 +100,33 @@ def load_aime24():
     return rows
 
 
+def _generate_with_oom_backoff(mdl, tok, pids, chunk, cfg, generator, min_batch: int = 1):
+    """Decode a batch, halving it on CUDA OOM until it fits.
+
+    The KV cache for B traces at the 32k cap is ~147 KB per token per trace, so a batch whose
+    members all run long can exceed even a B200's 183 GB late in a run that has been fine for
+    hours. Handoff §6 is explicit that the response to an OOM is to reduce batch size **only** —
+    never to change model, max length, quantization, prompt or decoding — so that is exactly
+    what this does, and it records the reduction rather than hiding it.
+    """
+    size = len(chunk)
+    while True:
+        try:
+            out = []
+            for i in range(0, len(chunk), size):
+                part = chunk[i:i + size]
+                out.extend(batch_generate(mdl, tok, [pids] * len(part), cfg,
+                                          generator=generator))
+            return out
+        except torch.cuda.OutOfMemoryError:
+            torch.cuda.empty_cache()
+            if size <= min_batch:
+                raise
+            size = max(min_batch, size // 2)
+            print(f"[m1] CUDA OOM — retrying this batch at size {size} "
+                  f"(batch size is the only thing reduced)", flush=True)
+
+
 def eos_ids(tok, mdl):
     cfg = getattr(mdl.generation_config, "eos_token_id", None) or tok.eos_token_id
     ids = list(cfg) if isinstance(cfg, (list, tuple)) else [cfg]
@@ -292,7 +319,7 @@ def main():
             pids = tok(chat, add_special_tokens=False).input_ids
             t0 = time.time()
             try:
-                gens = batch_generate(mdl, tok, [pids] * len(chunk), cfg, generator=generator)
+                gens = _generate_with_oom_backoff(mdl, tok, pids, chunk, cfg, generator)
             except Exception as e:  # noqa: BLE001 — one bad batch must not lose the shard
                 for k in keys:
                     writer.add_failure(k, row["question_id"], repr(e))

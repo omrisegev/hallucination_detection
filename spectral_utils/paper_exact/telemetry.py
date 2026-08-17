@@ -331,10 +331,33 @@ def batch_generate(mdl, tok, prompts_token_ids, cfg: DecodeConfig, generator=Non
     # track of which trace a row belongs to.
     slot = list(range(B))
     finished = [False] * B
-    steps = []          # per-step dict of [b] GPU tensors, plus which rows may record
     tokens = [[] for _ in range(B)]
     stop_reason = ["length"] * B
+
+    CHANNEL_KEYS = ("raw_entropy", "raw_logsumexp", "raw_logprob_sampled", "raw_pmax",
+                    "raw_margin", "deepconf_conf", "sampled_entropy")
+    per_row = {i: {k: [] for k in CHANNEL_KEYS + ("spilled_energy",)} for i in range(B)}
     topk_keep = [[] for _ in range(B)] if cfg.keep_top_k_arrays else None
+    # Per-step GPU tensors are buffered and drained every `flush_every` steps rather than
+    # held for the whole trace. Holding them was costing real time: a 10k-token trace kept
+    # ~100k tiny live CUDA tensors, and the allocator pressure roughly doubled step time
+    # between batch 1 and batch 6 (measured 21 ms -> 41 ms per step). Draining bounds live
+    # tensors to `flush_every` while keeping host transfers rare.
+    buf, flush_every = [], 256
+
+    def _drain():
+        for st in buf:
+            host = {k: st[k].cpu().numpy() for k in CHANNEL_KEYS}
+            tk_i = st["topk_ids"].cpu().numpy() if "topk_ids" in st else None
+            tk_l = st["topk_lps"].cpu().numpy() if "topk_lps" in st else None
+            for r, orig in st["rows"]:
+                d = per_row[orig]
+                for k in CHANNEL_KEYS:
+                    d[k].append(float(host[k][r]))
+                d["spilled_energy"].append(-float(host["raw_logprob_sampled"][r]))
+                if tk_i is not None:
+                    topk_keep[orig].append((tk_i[r], tk_l[r]))
+        buf.clear()
 
     past, cur = None, input_ids
     for _ in range(int(cfg.max_new_tokens)):
@@ -361,7 +384,7 @@ def batch_generate(mdl, tok, prompts_token_ids, cfg: DecodeConfig, generator=Non
         # With compaction on, `slot` already excludes finished rows; without it, this mask is
         # the only thing stopping a finished trace from accreting phantom tokens.
         record = [(r, orig) for r, orig in enumerate(slot) if not finished[orig]]
-        steps.append({
+        buf.append({
             "rows": record,
             "raw_entropy": H,
             "raw_logsumexp": lse,
@@ -374,8 +397,10 @@ def batch_generate(mdl, tok, prompts_token_ids, cfg: DecodeConfig, generator=Non
             "sampled_entropy": -(cand_lp.exp() * cand_lp.nan_to_num(neginf=0.0)).sum(dim=-1),
         })
         if cfg.keep_top_k_arrays:
-            steps[-1]["topk_ids"] = ti[:, :cfg.logprob_top_k]
-            steps[-1]["topk_lps"] = tv[:, :cfg.logprob_top_k]
+            buf[-1]["topk_ids"] = ti[:, :cfg.logprob_top_k]
+            buf[-1]["topk_lps"] = tv[:, :cfg.logprob_top_k]
+        if len(buf) >= flush_every:
+            _drain()
 
         nxt_h = nxt.tolist()                     # one sync per step, unavoidable in AR decoding
         done_now = torch.isin(nxt, eos).tolist()
@@ -399,22 +424,7 @@ def batch_generate(mdl, tok, prompts_token_ids, cfg: DecodeConfig, generator=Non
                                            device=device)], dim=1)
         cur = nxt.unsqueeze(-1)
 
-    # ── single host transfer ──
-    per_row = {i: {k: [] for k in ("raw_entropy", "raw_logsumexp", "raw_logprob_sampled",
-                                   "raw_pmax", "raw_margin", "spilled_energy",
-                                   "deepconf_conf", "sampled_entropy")} for i in range(B)}
-    for st in steps:
-        host = {k: v.cpu().numpy() for k, v in st.items()
-                if k not in ("rows", "topk_ids", "topk_lps")}
-        tk_i = st["topk_ids"].cpu().numpy() if "topk_ids" in st else None
-        tk_l = st["topk_lps"].cpu().numpy() if "topk_lps" in st else None
-        for r, orig in st["rows"]:
-            d = per_row[orig]
-            for k, arr in host.items():
-                d[k].append(float(arr[r]))
-            d["spilled_energy"].append(-float(host["raw_logprob_sampled"][r]))
-            if tk_i is not None:
-                topk_keep[orig].append((tk_i[r], tk_l[r]))
+    _drain()
 
     results = []
     for i in range(B):
