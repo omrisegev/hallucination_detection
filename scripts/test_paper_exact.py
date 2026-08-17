@@ -287,6 +287,42 @@ def test_alarm_calibration():
           f"repeated-monitor FPR would be {ever_naive:.2f}, not 0.05")
 
 
+def test_empty_run_detection():
+    """A run where every sample failed must not read as a usable, complete cell.
+
+    `complete` is the resume signal and counts a failure as attempted, so it is correctly
+    true here — which is precisely why it is unsafe to filter on. Both Mistral-7B-v0.1 S2
+    cells carried complete=true and a passing stage gate with zero traces.
+    """
+    import tempfile
+    from spectral_utils.paper_exact.shards import ShardWriter, verify_shards
+
+    d = tempfile.mkdtemp()
+    w = ShardWriter(d, expected_keys=[f"q#{i}" for i in range(3)])
+    for i in range(3):
+        w.add_failure(f"q#{i}", "q", "chat_template is not set")
+    w.close()
+    with open(os.path.join(d, "STATUS.json")) as f:
+        st = json.load(f)
+    check("all-failed run still reports complete (resume signal)", st["complete"] is True)
+    check("all-failed run reports usable=False", st["usable"] is False)
+    check("all-failed run reports success_rate 0", st["success_rate"] == 0.0)
+    v = verify_shards(d)
+    check("verify_shards flags a complete-but-empty run",
+          any("no usable data" in p for p in v["problems"]), f"{v['problems']}")
+
+    d2 = tempfile.mkdtemp()
+    w2 = ShardWriter(d2, expected_keys=["q#0"])
+    w2.add({"trace_key": "q#0", "question_id": "q", "prompt_text": "p",
+            "prompt_token_ids": [1], "gen_token_ids": [2], "full_text": "x"})
+    w2.close()
+    with open(os.path.join(d2, "STATUS.json")) as f:
+        st2 = json.load(f)
+    v2 = verify_shards(d2)
+    check("a healthy run reports usable=True", st2["usable"] is True)
+    check("a healthy run gains no spurious emptiness problem", v2["ok"], f"{v2['problems']}")
+
+
 def test_metrics():
     print("\n[metrics]")
     check("AUROC95 is 95% of above-chance signal",
@@ -568,6 +604,7 @@ def main():
 
     tests = {
         "manifest": test_manifest, "shards": test_shards,
+        "empty_run": test_empty_run_detection,
         "parts": test_parallel_parts, "causality": test_causality,
         "alarm": test_alarm_calibration, "metrics": test_metrics, "bootstrap": test_bootstrap,
         "deepconf": test_deepconf, "refrain": test_refrain, "leash": test_leash,

@@ -195,8 +195,19 @@ class ShardWriter:
             "elapsed_s": round(time.time() - self._t0, 1),
             "slurm_job_id": os.environ.get("SLURM_JOB_ID", ""),
             "failures": self._failed[-200:],
+            # `complete` means EVERY EXPECTED KEY WAS ATTEMPTED. It is the resume signal, so
+            # it deliberately counts a failure as attempted — otherwise a permanently failing
+            # sample would make a run resume forever.
+            #
+            # It is therefore NOT a statement that the run produced anything. Both
+            # Mistral-7B-v0.1 S2 cells reported complete=true with n_finished=0 and
+            # n_failed=900, which is exactly right by this definition and exactly wrong for
+            # anything filtering on it. The two fields below are what a consumer should read.
             "complete": (self.expected_keys is not None
                          and len(self._done) + len(self._failed) >= len(self.expected_keys)),
+            "usable": len(self._done) > 0,
+            "success_rate": (len(self._done) / (len(self._done) + len(self._failed))
+                             if (self._done or self._failed) else 0.0),
         }
         tmp = self.status_path + ".tmp"
         with open(tmp, "w") as f:
@@ -294,6 +305,30 @@ def verify_shards(run_dir: str) -> dict:
             nbytes += entry.get("bytes", 0)
     if not dirs:
         problems.append(f"no INDEX.jsonl under {run_dir} or its part_* subdirectories")
+
+    # A run that attempted everything and produced nothing is `complete` by the resume
+    # definition above, and its stage gate can legitimately pass — the manifest was fine, the
+    # protocol was fine, every sample simply failed. Nothing downstream should have to know
+    # that subtlety, so the emptiness is raised here, at the point where an offline consumer
+    # would otherwise silently score an empty cell. Cost of not having this: two Mistral S2
+    # directories carrying complete=true and GATE passed=true with zero traces.
+    # `dirs` is empty for exactly this case — an all-failed run commits no shard, so it has no
+    # INDEX.jsonl to be found by. Checking only `dirs` would skip the very directories this
+    # exists to catch, which is how the first version of this check silently did nothing.
+    for d in (dirs or []) + [run_dir] + sorted(glob.glob(os.path.join(run_dir, "part_*"))):
+        sp = os.path.join(d, "STATUS.json")
+        if not os.path.exists(sp):
+            continue
+        try:
+            with open(sp) as f:
+                st = json.load(f)
+        except Exception:  # noqa: BLE001 — a torn status must not mask the real check
+            continue
+        nf, nfail = st.get("n_finished") or 0, st.get("n_failed") or 0
+        if st.get("complete") and nf == 0 and nfail > 0:
+            problems.append(
+                f"{os.path.basename(d)}: complete=true but n_finished=0 with {nfail} "
+                f"failures — every sample failed; this directory holds no usable data")
     return {
         "run_dir": run_dir,
         "n_workers": len(dirs),
