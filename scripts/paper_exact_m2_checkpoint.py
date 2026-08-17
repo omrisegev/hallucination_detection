@@ -123,26 +123,54 @@ def account_keys(run: str) -> dict:
 
 # ── record-level checks (opens a sample of shard pickles) ───────────────────────
 
-def sample_records(run: str, per_part: int) -> list:
-    """Take the newest `per_part` records from each worker, verifying each shard's hash first.
+def sample_records(run: str, per_part: int, audit_per_part: int = 1) -> list:
+    """Take the newest `per_part` records from each worker, plus audit traces, hash-verified.
 
     Newest rather than oldest on purpose: a drift that appeared partway through the run is
     invisible in the first shard every worker wrote.
+
+    The audit traces are drawn DELIBERATELY rather than hoped for. Only one trace in
+    `--audit-every` retains the raw top-k arrays, so a tail slice of a 64-trace shard almost
+    never contains one: the first run of this checkpoint sampled 72 records and caught zero,
+    leaving `raw_logit_conf_max_abs_diff` null. A check that cannot fire is worse than no
+    check, because a null reads as "nothing wrong". The audit trace is what licenses calling
+    the confidence channel DeepConf, so it is sought explicitly.
     """
     from spectral_utils.paper_exact.manifest import sha256_file
+
+    def load_verified(d, entry):
+        path = os.path.join(d, entry["path"])
+        if not os.path.exists(path):
+            return None
+        if sha256_file(path) != entry["sha256"]:
+            raise RuntimeError(f"sha256 mismatch reading sample from {path}")
+        with open(path, "rb") as f:
+            return pickle.load(f)
+
     out = []
     for d in iter_run_dirs(run):
+        name = os.path.basename(d)
         index = read_index(os.path.join(d, "INDEX.jsonl"))
+        got_tail, n_audit, seen = False, 0, set()
         for entry in reversed(index):
-            path = os.path.join(d, entry["path"])
-            if not os.path.exists(path):
+            if got_tail and n_audit >= audit_per_part:
+                break
+            recs = load_verified(d, entry)
+            if recs is None:
                 continue
-            if sha256_file(path) != entry["sha256"]:
-                raise RuntimeError(f"sha256 mismatch reading sample from {path}")
-            with open(path, "rb") as f:
-                recs = pickle.load(f)
-            out += [{**r, "_part": os.path.basename(d)} for r in recs[-per_part:]]
-            break
+            if not got_tail:
+                for r in recs[-per_part:]:
+                    out.append({**r, "_part": name})
+                    seen.add(r.get("trace_key"))
+                got_tail = True
+            if n_audit < audit_per_part:
+                for r in recs:
+                    if n_audit >= audit_per_part:
+                        break
+                    if r.get("retains_raw_top_k") and r.get("trace_key") not in seen:
+                        out.append({**r, "_part": name})
+                        seen.add(r.get("trace_key"))
+                        n_audit += 1
     return out
 
 
@@ -224,7 +252,9 @@ def check_records(recs: list, gate: Gate, audit_every: int) -> dict:
                f"{covered}/{len(recs)} parsed ({cov:.3f}); statuses {dict(statuses)}")
 
     gate.check("raw_logit_audit_coverage", n_audit >= 1,
-               f"{n_audit} audit traces in the sample (stride --audit-every {audit_every})")
+               f"{n_audit} audit traces carrying raw top-k arrays in the sample "
+               f"(driver stride --audit-every {audit_every}); these are sought explicitly, "
+               f"so zero means the acquisition retained none, not that sampling missed them")
     gate.check("deepconf_stored_statistics_agree", stat_max_abs < 1e-9,
                f"max |recomputed - stored| over {len(DC.TRACE_STATISTICS)} statistics "
                f"= {stat_max_abs:.3e}")
@@ -246,49 +276,80 @@ def check_records(recs: list, gate: Gate, audit_every: int) -> dict:
             "stop_reasons": dict(Counter(r.get("stop_reason", "?") for r in recs))}
 
 
+def _parse_utc(s: str):
+    try:
+        return datetime.fromisoformat(str(s).replace("Z", "+00:00"))
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def throughput_and_eta(run: str, acct: dict) -> dict:
-    """Per-worker tok/s, bytes per trace, projected storage and remaining wall."""
-    rates, per_part = [], {}
+    """Realized traces/hour, bytes per trace, projected storage and remaining wall.
+
+    The rate is derived from the committed shards' own `written_utc` stamps, NOT from
+    `THROUGHPUT.json`: the driver writes that file only when a run ends, so mid-acquisition —
+    exactly when a checkpoint is useful — it does not exist and every rate would be None.
+    Shard timestamps are part of the immutable index, so this works while the jobs are live
+    and needs no access to the scheduler or the logs.
+
+    The first shard of each worker is excluded from the numerator: the interval before it also
+    contains model load and dataset setup, and charging those to the trace rate would
+    understate steady-state throughput.
+    """
+    per_part, rates = {}, []
     for d in iter_run_dirs(run):
         name = os.path.basename(d)
+        index = read_index(os.path.join(d, "INDEX.jsonl"))
         tp_path = os.path.join(d, "THROUGHPUT.json")
-        tp = {}
+        finished = {}
         if os.path.exists(tp_path):
             with open(tp_path) as f:
-                tp = json.load(f)
-        if tp.get("tokens_per_s"):
-            rates.append(float(tp["tokens_per_s"]))
-        per_part[name] = tp
+                finished = json.load(f)
+        entry = {"n_shards": len(index), "final_throughput_json": finished or None}
+        if len(index) >= 2:
+            t0, t1 = _parse_utc(index[0]["written_utc"]), _parse_utc(index[-1]["written_utc"])
+            traces_after_first = sum(e["n_traces"] for e in index[1:])
+            if t0 and t1 and t1 > t0 and traces_after_first:
+                hours = (t1 - t0).total_seconds() / 3600.0
+                rate = traces_after_first / hours
+                rates.append(rate)
+                entry.update(traces_per_hour=round(rate, 2), window_hours=round(hours, 3),
+                             traces_in_window=traces_after_first)
+            else:
+                entry["traces_per_hour"] = None
+        else:
+            entry["traces_per_hour"] = None
+            entry["note"] = "needs >= 2 committed shards to measure a rate"
+        per_part[name] = entry
+
     done = acct["n_observed"]
     expected = acct["expected_total"] or 0
     bytes_done = sum(v["bytes"] for v in acct["per_part"].values())
     per_trace = bytes_done / max(1, done)
     agg = sum(rates) if rates else None
+    eta_h = ((expected - done) / agg) if (agg and expected > done) else None
 
-    # ETA from realized bytes and the mean trace length implied by them, not from the plan's
-    # estimate: the plan's estimate is what the M1 pilot already showed can be wrong by two
-    # orders of magnitude.
-    eta_h = None
-    if agg and done:
-        mean_tok = None
-        for v in per_part.values():
-            if v.get("mean_tokens_per_trace"):
-                mean_tok = float(v["mean_tokens_per_trace"])
-                break
-        if mean_tok:
-            eta_h = (expected - done) * mean_tok / agg / 3600.0
     return {
-        "per_part_throughput": per_part,
-        "n_workers_reporting": len(rates),
-        "tokens_per_s_aggregate": round(agg, 1) if agg else None,
+        "per_part": per_part,
+        "n_workers_measured": len(rates),
+        "traces_per_hour_aggregate": round(agg, 2) if agg else None,
+        "traces_per_hour_slowest_worker": round(min(rates), 2) if rates else None,
         "bytes_per_trace": int(per_trace),
         "bytes_committed": bytes_done,
         "projected_bytes_total": int(per_trace * expected) if expected else None,
         "fraction_complete": round(done / expected, 5) if expected else None,
         "eta_hours_remaining": round(eta_h, 1) if eta_h else None,
-        "eta_note": "from realized aggregate tok/s and realized mean trace length; the "
-                    "question-major stride means later questions may have different lengths, "
-                    "so this is a projection, not a schedule.",
+        # The wall that matters is per WORKER, because a question reaches full K only when
+        # every worker reaches it. The slowest worker sets that, not the aggregate.
+        "eta_hours_slowest_worker": (
+            round((max(v["n_unique"] for v in acct["per_part"].values()) and
+                   (expected / max(1, len(acct["per_part"])) -
+                    min(v["n_unique"] for v in acct["per_part"].values())) / min(rates)), 1)
+            if rates else None),
+        "eta_note": "measured from committed-shard timestamps, not from THROUGHPUT.json "
+                    "(which the driver writes only at run end). The question-major stride "
+                    "means later questions can have very different trace lengths, so this is "
+                    "a projection from the questions seen so far, not a schedule.",
     }
 
 
@@ -301,6 +362,9 @@ def main():
     ap.add_argument("--sample-per-part", type=int, default=4,
                     help="records per worker for the deep telemetry checks")
     ap.add_argument("--audit-every", type=int, default=64)
+    ap.add_argument("--audit-per-part", type=int, default=1,
+                    help="raw-top-k audit traces to seek per worker; these are drawn "
+                         "deliberately because a tail slice almost never contains one")
     ap.add_argument("--skip-hash", action="store_true",
                     help="skip the full shard re-hash (fast; weakens the integrity check)")
     args = ap.parse_args()
@@ -360,7 +424,7 @@ def main():
                   "the rest. Mechanical checks below are still valid; anything aggregated "
                   "across questions is not."))
 
-    recs = sample_records(args.run, args.sample_per_part)
+    recs = sample_records(args.run, args.sample_per_part, args.audit_per_part)
     print(f"[m2ck] deep-checking {len(recs)} sampled records", flush=True)
     rec_report = check_records(recs, gate, args.audit_every) if recs else {}
     gate.check("sample_nonempty", bool(recs), f"{len(recs)} records sampled")
@@ -434,9 +498,14 @@ def main():
         print(f"[m2ck] blocking: {', '.join(blocking)}")
     if report["advisory_failures"]:
         print(f"[m2ck] advisory (not blocking): {', '.join(report['advisory_failures'])}")
-    print(f"[m2ck] progress {acct['n_observed']}/{acct['expected_total']} traces"
-          f"  ETA {tp.get('eta_hours_remaining')} h"
-          f"  projected {(tp.get('projected_bytes_total') or 0) / 1e9:.1f} GB")
+    print(f"[m2ck] progress {acct['n_observed']}/{acct['expected_total']} traces "
+          f"({(tp.get('fraction_complete') or 0) * 100:.2f}%)")
+    print(f"[m2ck] rate {tp.get('traces_per_hour_aggregate')} traces/h aggregate "
+          f"({tp.get('n_workers_measured')} workers measured); "
+          f"ETA {tp.get('eta_hours_remaining')} h aggregate, "
+          f"{tp.get('eta_hours_slowest_worker')} h for the slowest worker")
+    print(f"[m2ck] storage {(tp.get('bytes_committed') or 0) / 1e9:.2f} GB committed, "
+          f"projected {(tp.get('projected_bytes_total') or 0) / 1e9:.1f} GB total")
     print(f"[m2ck] -> {path}")
 
 
