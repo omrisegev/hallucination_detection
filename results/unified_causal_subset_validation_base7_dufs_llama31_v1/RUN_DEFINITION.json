@@ -1,0 +1,188 @@
+{
+  "candidates": [
+    "base7_full28",
+    "base7_full28__dufs_l0p1",
+    "base7_full28__dufs_l0p3",
+    "base7_full28__dufs_l1",
+    "base7_full28__dufs_l3",
+    "base7_full28__rw_a0p5",
+    "raw9_full36"
+  ],
+  "claim_boundary": "opened scorer-model robustness; not untouched confirmation",
+  "control": "base7_full28",
+  "data_root": "/Users/osegev/Desktop/hallucination_detection",
+  "development_groups": 128,
+  "development_models": [
+    "qwen3_8b"
+  ],
+  "development_rows": 128,
+  "dufs_epochs": 80,
+  "dufs_seeds": [
+    11,
+    23,
+    37
+  ],
+  "elapsed_seconds": 469.7128047499573,
+  "families": [
+    "gsm8k",
+    "math",
+    "olympiadbench",
+    "omnimath"
+  ],
+  "inventory": [
+    {
+      "bytes": 49801034,
+      "family": "gsm8k",
+      "first_error": 207,
+      "model": "qwen3_8b",
+      "mtime": 1785816969.0,
+      "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_gsm8k.pkl",
+      "rows": 400,
+      "sha256": "c258e8a37fad43216290fef2f70c88735f413f8c0ceb5cce39dfefe67d66955d",
+      "unique_source_questions": 400,
+      "wrong": 200
+    },
+    {
+      "bytes": 227049038,
+      "family": "math",
+      "first_error": 594,
+      "model": "qwen3_8b",
+      "mtime": 1785816978.0,
+      "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_math.pkl",
+      "rows": 1000,
+      "sha256": "19cbbb2b4f90e073f2793360f142bc25334f88bbc4ec01fd78807f9f1ad2836d",
+      "unique_source_questions": 1000,
+      "wrong": 500
+    },
+    {
+      "bytes": 338485050,
+      "family": "olympiadbench",
+      "first_error": 661,
+      "model": "qwen3_8b",
+      "mtime": 1785816991.0,
+      "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_olympiadbench.pkl",
+      "rows": 1000,
+      "sha256": "2083c4f9d0cc8d84657b02558d0720f726db4288e39e7557be4c55f78f4d4e60",
+      "unique_source_questions": 1000,
+      "wrong": 500
+    },
+    {
+      "bytes": 335250837,
+      "family": "omnimath",
+      "first_error": 759,
+      "model": "qwen3_8b",
+      "mtime": 1785817004.0,
+      "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_omnimath.pkl",
+      "rows": 1000,
+      "sha256": "561b96c5e96a25256e7e51a62c7ef01bcb2fd87ea1adcfc36e2c758807f559a0",
+      "unique_source_questions": 1000,
+      "wrong": 500
+    }
+  ],
+  "reference_names": [
+    "raw::entropy",
+    "raw::spilled",
+    "raw::neg_logsumexp",
+    "raw::neg_top1",
+    "raw::neg_margin",
+    "raw::topk_entropy",
+    "raw::topk_varentropy",
+    "raw::topk_renyi2",
+    "raw::topk_tail_mass"
+  ],
+  "run_hash": "1f9a7ab20288774b0f50b101780bf10f23894a7d49eab076334a4fe4c831ef61",
+  "run_schema": 1,
+  "selection": {
+    "families": [
+      {
+        "available": 400,
+        "family": "gsm8k",
+        "selected": 32,
+        "selected_clean": 16,
+        "selected_wrong": 16
+      },
+      {
+        "available": 1000,
+        "family": "math",
+        "selected": 32,
+        "selected_clean": 16,
+        "selected_wrong": 16
+      },
+      {
+        "available": 1000,
+        "family": "olympiadbench",
+        "selected": 32,
+        "selected_clean": 16,
+        "selected_wrong": 16
+      },
+      {
+        "available": 1000,
+        "family": "omnimath",
+        "selected": 32,
+        "selected_clean": 16,
+        "selected_wrong": 16
+      }
+    ],
+    "limited": true,
+    "questions_per_family": 32,
+    "selected_groups": 128
+  },
+  "source_run": "/private/tmp/hallucination-unified-causal-iu-v1/results/unified_causal_subset_search_base7_dufs80_v1",
+  "source_run_definition_sha256": "95ffbb0865c88fd8dc86aef5d63b536b0bd724feca07a7df12e47a5121340b26",
+  "source_variant_configs_sha256": "4e24ebb509acb0d2fa2e98551302bc3af661aa93d5c15356cfd07fd37d895fe0",
+  "validation_groups": 3400,
+  "validation_inventory": [
+    {
+      "bytes": 46533275,
+      "family": "gsm8k",
+      "first_error": 207,
+      "model": "llama31_8b",
+      "mtime": 1786254019.0,
+      "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/repgrid/pb_llama31_8b/processbench_gsm8k.pkl",
+      "rows": 400,
+      "sha256": "6749d1b846e29288e46536f9d9d8e63715b447576950d8e2131fe3420a16cead",
+      "unique_source_questions": 400,
+      "wrong": 200
+    },
+    {
+      "bytes": 217743700,
+      "family": "math",
+      "first_error": 594,
+      "model": "llama31_8b",
+      "mtime": 1786254028.0,
+      "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/repgrid/pb_llama31_8b/processbench_math.pkl",
+      "rows": 1000,
+      "sha256": "119c95ca5abc8d6f9e71bdd595db9b847373067d9aa8e4e9b349fa2b1f174953",
+      "unique_source_questions": 1000,
+      "wrong": 500
+    },
+    {
+      "bytes": 324953017,
+      "family": "olympiadbench",
+      "first_error": 661,
+      "model": "llama31_8b",
+      "mtime": 1786254042.0,
+      "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/repgrid/pb_llama31_8b/processbench_olympiadbench.pkl",
+      "rows": 1000,
+      "sha256": "ea2592de68100aeb140ce1d3a373e87d36e00685863e0dfb8c6721fa05a1812d",
+      "unique_source_questions": 1000,
+      "wrong": 500
+    },
+    {
+      "bytes": 323707679,
+      "family": "omnimath",
+      "first_error": 759,
+      "model": "llama31_8b",
+      "mtime": 1786254056.0,
+      "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/repgrid/pb_llama31_8b/processbench_omnimath.pkl",
+      "rows": 1000,
+      "sha256": "d1f9ad59eacbba64963b763e07209bdccb570f9875382f1b38c5573678ce81e4",
+      "unique_source_questions": 1000,
+      "wrong": 500
+    }
+  ],
+  "validation_models": [
+    "llama31_8b"
+  ],
+  "validation_rows": 3400
+}
