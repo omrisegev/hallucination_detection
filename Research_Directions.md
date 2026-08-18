@@ -3,50 +3,74 @@
 
 ---
 
-## Active priority — fair paper-exact comparison consolidation (Step 274)
+## Active priority — paper drafting from the accepted comparison package (Step 275)
 
-The project now concentrates its available effort on converting the completed
-cluster acquisitions into defensible apples-to-apples comparisons. This is an
-integration and evaluation priority, not another broad method-development
-cycle. The expensive model-dependent assets were collected so that our frozen
-methods and external competitors can be evaluated on identical populations;
-the common evaluation tables have not yet been assembled.
+Fair Paper-Exact Comparison Package v1 is complete. The active work is now
+claim selection and paper/table drafting from the frozen package, not another
+method-development or acquisition cycle. The canonical advisor-facing report
+is `results/fair_paper_exact_comparisons_v1/REPORT.html`; machine-readable
+records, metrics, calibration ledgers, paired intervals, registries, and
+blocked-assets appendices live beside it.
 
-The method-of-record for the unified replay is **Unified-28**, ordinary IU-PCR
-over seven causal streams crossed with `level`, `ewma16`, `positive_area`, and
-`persistence`. It is the strongest transferable single-method candidate found
-in the 1,036-coordinate causal subset cycle, but it is not promoted as a
-replacement for the task-specific heads:
+The main scientific result is the measured price of unification. Unified-28
+remains the ordinary unified method-of-record, but each eligible task-specific
+head is better on the exact common population:
 
-| frozen Llama transfer | Unified-28 | matched incumbent | delta |
+| direct lane | Unified-28 | dedicated incumbent | paired delta and 95% CI |
 |---|---:|---:|---:|
-| Global AUROC | 0.6629 | 0.6870 | -0.0241 |
-| Localization F1 | 0.2880 | 0.2419 | +0.0461 |
-| Early AUROC | 0.5587 | 0.5777 | -0.0189 |
+| Global AUROC, Llama ProcessBench 3,400 | 0.662910 | 0.687036 | -0.024125 [-0.041678,-0.007466] |
+| Localization macro-F1, ProcessBench 3,400 | 0.284832 | 0.326141 | -0.041310 [-0.063480,-0.016467] |
+| Prefix mean AUROC@64/128, four exact Llama cells | 0.578103 | 0.606721 | -0.028617 [-0.052068,-0.004390] |
 
-Localization is the one confirmed gain. Global and Early breach the frozen
-non-inferiority margins. DUFS lambda sweeps and learned task weights did not
-survive Qwen-to-Llama transfer. Consequently the scientific question is now:
-**where does one causal single-pass method stand under the same rows, models,
-metrics, and evaluators as each competitor, and what is the price of unification
-relative to the task-specific heads?**
+All three intervals exclude zero. The correct Localization-positive claim is
+narrower: Unified-28 beats the Mind-the-Gap common replay by +0.082376
+[+0.059730,+0.117390], while GL-LIU (0.319645) and the dedicated family-six
+head (0.326141) remain stronger. PRM (0.729354) and the 72B critic (0.594003)
+are high-access ceilings, not cross-tier wins. Most competitor rows are
+`adapted-common-protocol` or `paper-specified-partial`; the package title does
+not imply that every result is official-exact.
 
-The comparison program has four independent lanes: Global final-answer
-detection, ProcessBench first-error Localization, causal prefix detection, and
-accuracy-compute stopping/adaptive sampling. Results from different lanes must
-never share a numerical leaderboard. Within a lane, a primary claim requires
-identical ordered IDs, an explicit access tier, the same evaluator, frozen
-calibration, and paired source-question uncertainty. Native paper metrics such
-as Mind-the-Gap SLA and REFRAIN/LEASH token savings are preserved in separate
-native panels; they do not replace the common-protocol metric.
+The prefix warning evidence does not support a stopping claim. Unified-28's
+5% ever-warning coverage/FPR is 0.040345/0.047435, and the coverage contrast
+with Step-272 crosses zero. At 10%, Step-272 covers 0.331610 of wrong traces
+versus 0.098253 for Unified-28. Only 967 traces have the full six-budget
+horizon, including just one GSM8K trace, so warning-family aggregates are a
+secondary diagnostic.
 
-The next execution cycle is specified by
-`HANDOFF_fair_paper_exact_comparisons_2026-08-18.md`. It starts with an
-inventory of local and Drive manifests, maps every competitor to a fidelity
-status and missing prerequisite, and produces a user-approved plan before any
-new cluster job, large download, or Drive mutation. Generic feature expansion,
-another DUFS rescue, and post-hoc weighting are paused until these comparisons
-are complete.
+Stopping remains its own lane. Across six complete LEASH cells, realized
+reasoning-plus-closure tokens fall by 20.2--49.9% relative to CoT, while
+pass@1 falls in all six and the loss is interval-clear in five. This is an
+accuracy/compute frontier, not a LEASH win. Unified-28 has no stopping row
+because no frozen threshold plus real forced-closure branch exists.
+
+The strict 24-cell replay currently supports six identity-proven per-cell
+tables/3,238 rows, not a 23/24-cell headline. Its coverage-only equal-cell
+AUROCs are 0.728900 Unified-28, 0.753112 ordinary mixed-v2 IU-PCR, 0.754455
+mixed-v2 DUFS-LIU, and 0.742299 max entropy. Sixteen other requested cells fail
+exact identity; two more sources remain outside eligibility. Do not quote this
+as a complete 24-cell aggregate, and do not use ordinary-36 as a direct row.
+
+Release evidence is frozen: 2,000 paired grouped bootstrap draws, seed
+`20260818`, evaluator SHA-256
+`a73206bf8901825135017ff728e11b563eb8683fc519fe5fcdfbccaf25c238a3`,
+and package tree SHA-256
+`957cf08e94995d7b28143f1d53dd08062e80a8beab6c52650fb670ad1295260c`.
+An independent production rebuild is byte-identical across all 61
+manifest-bound files, recorded in
+`results/fair_paper_exact_comparisons_v1_REBUILD_VERIFICATION.json`.
+
+Forward priorities are therefore bounded:
+
+1. Draft the direct tables and limitations from the accepted package without
+   recomputing or selecting methods.
+2. Keep native/context and high-access ceilings visually separate from common
+   direct claims.
+3. Leave S2 Global/Prefix, REFRAIN, DeepConf M2, Mistral LEASH, full uPRM, and
+   streaming partial or blocked unless the explicit package GPU/asset gates
+   receive separate approval.
+4. Keep the feature, DUFS, and confirmation-search doors closed. New compute
+   requires a missing essential claim, exact recovered assets, a costed pilot,
+   and explicit authorization.
 
 ## Unified causal subset result — Step 274
 

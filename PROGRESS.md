@@ -1,21 +1,87 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-18
-**Last updated**: Step 274. The Unified Causal IU-PCR subset cycle is complete.
-The strongest transferable single-method candidate is ordinary **Unified-28**:
-seven causal base streams crossed with `level`, `ewma16`, `positive_area`, and
-`persistence`. On the frozen Llama transfer panel it scores 0.6629 Global
-AUROC, 0.2880 ProcessBench Localization F1, and 0.5587 Early AUROC, versus
-matched task incumbents 0.6870/0.2419/0.5777. Localization improves by +0.0461
-and is significant, but Global (-0.0241) and Early (-0.0189) breach the frozen
-regression margins. **Do not promote Unified-28 as a replacement for the
-task-specific heads.** Treat it as the method-of-record for the next unified
-paper-comparison replay only. The active priority is no longer another feature
-or DUFS rescue sweep: consolidate the completed cluster acquisitions into
-paper-exact or adapted-common-protocol apples-to-apples tables. Start from
-`HANDOFF_fair_paper_exact_comparisons_2026-08-18.md`. A6-S0a remains
-independently verified as `PASS_S0A`; its separate frozen next stage is still
-A6-S0b and is outside this pivot.
+**Date**: 2026-08-19
+**Last updated**: Step 275. Fair Paper-Exact Comparison Package v1 is complete
+and independently rebuilt byte-identically. Unified-28 remains the frozen
+ordinary unified method-of-record, but it does not replace the dedicated task
+heads: on the exact common populations it trails the Global incumbent by
+0.0241 AUROC, the Localization incumbent by 0.0413 macro-F1, and the Prefix
+incumbent by 0.0286 mean 64/128 AUROC; all three paired 95% intervals exclude
+zero. Its positive Localization result is versus Mind-the-Gap, not versus the
+dedicated family-six head. The package is accepted for paper drafting and
+claim selection. No feature, DUFS, or confirmation search is reopened; no new
+GPU or cluster work follows without the explicit gates in the package.
+
+## Fair Paper-Exact Comparison Package v1 — Step 275
+
+The CPU-only comparison package is in
+`results/fair_paper_exact_comparisons_v1/`. It contains four separate lanes,
+strict row-ID joins, frozen five-fold calibration, per-question records,
+2,000-draw paired grouped intervals with seed `20260818`, fidelity/access
+registries, native/context appendices, missing-assets declarations, and GPU
+gates. The join accepted 148,502/148,502 expected comparison records with no
+duplicates, label conflicts, source-artifact conflicts, unknown rows, or
+expectation failures.
+
+The three eligible direct detector comparisons are:
+
+| lane and exact population | Unified-28 | dedicated incumbent | paired Unified minus incumbent |
+|---|---:|---:|---:|
+| Global, Llama ProcessBench 3,400, AUROC | 0.662910 | 0.687036 mixed-v2 IU-PCR no-length | -0.024125 [-0.041678,-0.007466] |
+| Localization, official ProcessBench 3,400, macro-F1 | 0.284832 | 0.326141 family6 + level + step-top-five | -0.041310 [-0.063480,-0.016467] |
+| Prefix, four identical-trace Llama cells, mean AUROC@64/128 | 0.578103 | 0.606721 Step-272 two-head | -0.028617 [-0.052068,-0.004390] |
+
+Global's registered mixed-v2 DUFS-LIU no-length control reaches 0.687313 AUROC
+and max entropy reaches 0.671728. Localization's same-access GL-LIU replay,
+max-entropy/top-five bar, and Mind-the-Gap common replay reach 0.319645,
+0.269020, and 0.202456 macro-F1. Unified-28 beats Mind-the-Gap by +0.082376
+[+0.059730,+0.117390]. The high-access PRM and critic ceilings are kept in a
+separate table at 0.729354 and 0.594003 macro-F1; the critic's eight unparsed
+rows remain present and wrong. The Qwen2.5-14B Eq.6 control is 0.226539 and is
+labelled `paper-specified-partial`, not full uPRM.
+
+Prefix evaluation uses strict `length > budget`: 1,713 rows at 64 tokens,
+1,684 at 128, and 967 traces with a complete six-budget warning horizon.
+Unified-28's 5% warning coverage/FPR is 0.040345/0.047435 versus
+0.032023/0.036774 for Step-272, but the paired coverage interval crosses zero;
+at 10% its coverage is 0.098253 versus 0.331610. These are weak warning
+results, not a stopping claim. Only one GSM8K trace survives the complete
+six-budget gate, so equal-family warning summaries require that caveat.
+
+The stopping lane contains the six complete LEASH cells and keeps single-trace
+accuracy/compute separate from detector AUROC. LEASH reduces realized
+reasoning-plus-closure tokens by 20.2--49.9% versus CoT, but pass@1 is lower in
+all six cells and interval-clearly lower in five. Unified-28 stopping remains
+ineligible because no frozen stopping policy has real forced-closure outputs.
+
+The 24-cell Global replay proves exact identity for six cells/3,238 rows only.
+Their coverage-only equal-cell AUROCs are 0.728900 Unified-28, 0.753112
+mixed-v2 ordinary IU-PCR, 0.754455 mixed-v2 DUFS-LIU, and 0.742299 max
+entropy. Sixteen requested cells fail the identity join; the spilled-energy
+cell lacks a frozen identity ledger, and the recoverable internalstates source
+was outside the approved data-movement wave. No 23/24-cell aggregate or
+ordinary-36 direct row is claimed.
+
+The full S2 Global/Prefix transfer remains blocked because the acquisition
+lacks the exact post-warper entropy, sampled-token energy, and top-k streams
+required by the frozen methods. REFRAIN is 512/1,000 without a final summary;
+DeepConf M2 is 12,370/122,880 with a stale formal checkpoint and zero raw-logit
+audit; both Mistral LEASH cells failed before valid outputs; full uPRM and the
+streaming probe remain `blocked-assets`. None enters a headline aggregate.
+
+Reproducibility is accepted externally rather than rewritten into the frozen
+run definition. The package has 61 manifest-bound payload files, tree SHA-256
+`957cf08e94995d7b28143f1d53dd08062e80a8beab6c52650fb670ad1295260c`,
+manifest SHA-256
+`b89b7358b421634f6e5ba4b8458d98724cb06f60ad1a36c8a5774ff14ccf0620`,
+and evaluator SHA-256
+`a73206bf8901825135017ff728e11b563eb8683fc519fe5fcdfbccaf25c238a3`.
+An independent production rebuild matches all 61 files byte-for-byte; the
+sibling attestation is
+`results/fair_paper_exact_comparisons_v1_REBUILD_VERIFICATION.json`. The final
+implementation suite passed 146 tests with one expected opt-in 406 MB cache
+test skipped. No GPU job, cluster job, Drive mutation, method search, or DUFS
+search occurred.
 
 ## Unified Causal IU-PCR subset and transfer decision — Step 274
 
