@@ -20,7 +20,9 @@ from spectral_utils.fair_comparisons.evaluator import (  # noqa: E402
     localization_metrics,
 )
 from spectral_utils.fair_comparisons.global_lane import (  # noqa: E402
+    DUFS_REPLAY_CONNECTIVITY_DECIMALS,
     REGISTERED_QWEN8_GSM8K_DUFS_ANCHOR_SHA256,
+    _canonical_dufs_replay_diagnostics,
     crossfit_operating_points,
     evaluate_global_panel,
     load_classic_global_fit_ids,
@@ -47,7 +49,10 @@ from scripts.build_fair_paper_exact_comparisons_v1 import (  # noqa: E402
     _portable_unified_tree_manifest,
     _report_identity,
 )
-from spectral_utils.fair_comparisons.registry import canonical_sha256  # noqa: E402
+from spectral_utils.fair_comparisons.registry import (  # noqa: E402
+    canonical_json_bytes,
+    canonical_sha256,
+)
 from spectral_utils.fair_comparisons.reporting import write_reports  # noqa: E402
 
 
@@ -371,6 +376,70 @@ class GlobalReportRosterTests(unittest.TestCase):
 
 
 class RegisteredGlobalDUFSReplayTests(unittest.TestCase):
+    def test_observed_connectivity_jitter_has_one_audit_serialization(self):
+        rebuild_pairs = (
+            (0.23211421161713808, 0.23211421161713813),
+            (0.19197232241682044, 0.1919723224168205),
+            (0.2169869259562835, 0.2169869259562827),
+            (0.21887551844303693, 0.21887551844303643),
+        )
+        for first, second in rebuild_pairs:
+            left = {
+                "feature_names": ["f0", "f1"],
+                "other_diagnostic": {"values": [1, 2.5, "three"]},
+                "laplacian": {
+                    "algebraic_connectivity": first,
+                    "n_components": 1,
+                },
+            }
+            right = {
+                **left,
+                "laplacian": {
+                    **left["laplacian"],
+                    "algebraic_connectivity": second,
+                },
+            }
+            expected_left = json.loads(json.dumps(left))
+            expected_right = json.loads(json.dumps(right))
+            serialized_left = _canonical_dufs_replay_diagnostics(left)
+            serialized_right = _canonical_dufs_replay_diagnostics(right)
+            self.assertEqual(
+                canonical_json_bytes(serialized_left),
+                canonical_json_bytes(serialized_right),
+            )
+            self.assertEqual(left, expected_left)
+            self.assertEqual(right, expected_right)
+            self.assertEqual(
+                serialized_left["feature_names"], left["feature_names"]
+            )
+            self.assertEqual(
+                serialized_left["other_diagnostic"], left["other_diagnostic"]
+            )
+            self.assertEqual(
+                serialized_left["laplacian"]["n_components"],
+                left["laplacian"]["n_components"],
+            )
+            self.assertEqual(
+                serialized_left["laplacian"][
+                    "algebraic_connectivity_serialization"
+                ],
+                {
+                    "mode": "round_decimal_places",
+                    "decimal_places": DUFS_REPLAY_CONNECTIVITY_DECIMALS,
+                    "scope": "audit-only",
+                },
+            )
+
+    def test_connectivity_canonicalization_fails_closed(self):
+        with self.assertRaisesRegex(ValueError, "lack algebraic connectivity"):
+            _canonical_dufs_replay_diagnostics({"laplacian": {}})
+        for value in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(ValueError, "non-finite"):
+                    _canonical_dufs_replay_diagnostics(
+                        {"laplacian": {"algebraic_connectivity": value}}
+                    )
+
     def test_classic_fit_identity_adapter_reads_no_labels_or_scores(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "classic.jsonl"
@@ -447,6 +516,52 @@ class RegisteredGlobalDUFSReplayTests(unittest.TestCase):
         self.assertEqual(first.diagnostics["graph_k"], REGISTERED_DUFS_K)
         self.assertEqual(first.diagnostics["lambda"], REGISTERED_DUFS_LAMBDA)
         self.assertFalse(first.diagnostics["labels_seen_during_fit"])
+
+        def model_state_bytes(model):
+            transformer = model.transformer
+            arrays = (
+                model.weights,
+                model.training_scores,
+                transformer.raw_median,
+                transformer.oriented_mean,
+                transformer.oriented_std,
+                *transformer.sorted_oriented,
+                transformer.mode_centres,
+                transformer.output_mean,
+                transformer.output_std,
+                transformer.training_output,
+            )
+            return tuple(np.asarray(value).tobytes() for value in arrays)
+
+        state_before = model_state_bytes(first)
+        score_before = first.score(stripped[0])
+        connectivity = float(
+            first.diagnostics["laplacian"]["algebraic_connectivity"]
+        )
+        jittered = {
+            **first.diagnostics,
+            "laplacian": {
+                **first.diagnostics["laplacian"],
+                "algebraic_connectivity": float(
+                    np.nextafter(connectivity, np.inf)
+                ),
+            },
+        }
+        serialized = _canonical_dufs_replay_diagnostics(first.diagnostics)
+        serialized_jittered = _canonical_dufs_replay_diagnostics(jittered)
+        self.assertEqual(
+            canonical_sha256(serialized), canonical_sha256(serialized_jittered)
+        )
+        self.assertEqual(
+            serialized["laplacian"]["algebraic_connectivity"],
+            round(connectivity, DUFS_REPLAY_CONNECTIVITY_DECIMALS),
+        )
+        self.assertEqual(
+            first.diagnostics["laplacian"]["algebraic_connectivity"],
+            connectivity,
+        )
+        self.assertEqual(model_state_bytes(first), state_before)
+        self.assertEqual(first.score(stripped[0]), score_before)
 
     def test_provenance_gate_binds_anchor_and_both_source_ledgers(self):
         hashes = {family: (str(index + 1) * 64)[:64] for index, family in enumerate(SUBSETS)}

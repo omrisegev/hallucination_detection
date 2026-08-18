@@ -53,6 +53,13 @@ MIXED_V2_DUFS_NO_LENGTH_METHOD_ID = "mixed_v2_dufs_liu_l0p1_no_length"
 REGISTERED_QWEN8_GSM8K_DUFS_ANCHOR_SHA256 = (
     "c75d27be8492278ced261f93c3d809ca16c5e95103ef6288be3212ad2c659be5"
 )
+# ``scipy.sparse.linalg.eigsh`` may vary the last few bits of its diagnostic
+# eigenvalue across otherwise byte-identical CPU replays.  This value is not read
+# by scoring or included in the frozen model-state fingerprint.  Round only its
+# audit representation to 12 decimal places, still far finer than the precision
+# used in reports; all fitted arrays and scientific metrics retain their original
+# float64 values.  The emitted diagnostics carry this serialization contract.
+DUFS_REPLAY_CONNECTIVITY_DECIMALS = 12
 
 
 def _float_array_fingerprint(values: Any) -> dict[str, Any]:
@@ -61,6 +68,39 @@ def _float_array_fingerprint(values: Any) -> dict[str, Any]:
         "shape": list(array.shape),
         "sha256": hashlib.sha256(array.tobytes()).hexdigest(),
     }
+
+
+def _canonical_dufs_replay_diagnostics(
+    diagnostics: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Return stable audit-only DUFS diagnostics without mutating model state."""
+
+    serialized = dict(diagnostics)
+    laplacian = serialized.get("laplacian")
+    if (
+        not isinstance(laplacian, Mapping)
+        or "algebraic_connectivity" not in laplacian
+    ):
+        raise ValueError("DUFS replay diagnostics lack algebraic connectivity")
+    connectivity = float(laplacian["algebraic_connectivity"])
+    if not np.isfinite(connectivity):
+        raise ValueError("DUFS replay algebraic connectivity is non-finite")
+    canonical_connectivity = float(
+        round(connectivity, DUFS_REPLAY_CONNECTIVITY_DECIMALS)
+    )
+    # Avoid a platform-dependent signed-zero spelling in canonical JSON.
+    if canonical_connectivity == 0.0:
+        canonical_connectivity = 0.0
+    serialized["laplacian"] = {
+        **dict(laplacian),
+        "algebraic_connectivity": canonical_connectivity,
+        "algebraic_connectivity_serialization": {
+            "mode": "round_decimal_places",
+            "decimal_places": DUFS_REPLAY_CONNECTIVITY_DECIMALS,
+            "scope": "audit-only",
+        },
+    }
+    return serialized
 
 
 def verify_registered_dufs_provenance(
@@ -378,7 +418,9 @@ def replay_registered_dufs_no_length(
                 "fit_id_sha256": canonical_sha256(family_fit_ids),
                 "model_state": model_state,
                 "source_fingerprint": source_fingerprint,
-                "model_diagnostics": model.diagnostics,
+                "model_diagnostics": _canonical_dufs_replay_diagnostics(
+                    model.diagnostics
+                ),
                 "labels_read_during_score_construction": False,
             }
         )
