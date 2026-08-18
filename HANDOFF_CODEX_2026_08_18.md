@@ -268,3 +268,90 @@ not supersede the current `population_registry_v1` / `method_registry_v1` /
 `comparison_record_v1` contract on `codex/fair-paper-exact-comparisons-v1`. The final report should
 map every one of the ten nulls to a Fair Comparison test/metric or an explicit blocked/not-testable
 reason, while retaining the acquisition registry as immutable provenance.
+
+---
+
+## 8. Verification result — 2026-08-18, after the recovery
+
+The recovered snapshot verifies. Answering Question 1 unblocked the gate, and the
+replay then answered the question the gate existed to protect.
+
+### The snapshot needed one fix before it could be used
+
+`core.autocrlf=true` rewrote it on checkout: 15,685 bytes in the worktree against a
+15,321-byte blob — exactly 364 extra bytes over 364 lines, one CR each. The scorer
+hashes raw bytes, so the recovered file still failed its own gate on Windows. `grep`
+hid this by reading in text mode; the byte count did not.
+
+A frozen protocol snapshot is a hashed artifact, not editable source, so it is now
+`-text` in `.gitattributes` and checks out byte-exact everywhere. `PROTOCOL` points at
+it; `PROTOCOL_SHA256` did not move.
+
+### Two portability differences, both real, both now resolved
+
+The frozen run's `RUN_MANIFEST.json` records
+`"/Users/osegev/Desktop/hallucination_detection/..."` — it ran on a Mac. That explains
+both the uncommitted draft and the two gaps below.
+
+1. **Cell root.** The Mac held the ProcessBench cells under
+   `cache/localization/processbench/`; this checkout holds them under
+   `dataset_cache/repgrid/`. Remapping is opt-in via `LOCAL_ONLINE_CELL_ROOT`, not a
+   silent fallback — a path that quietly resolves elsewhere is how a replay scores
+   different data while still looking successful. Whether the two roots hold the same
+   acquisition was left to the output hashes to decide, not asserted.
+2. **Report encoding.** `Path.write_text` without `encoding=` uses the locale codec:
+   UTF-8 on macOS, cp1252 here. `STAGE_1_LOCAL.md`'s em-dashes came back as mojibake —
+   correct numbers, corrupt bytes. Three call sites now pass `encoding="utf-8"`;
+   `_write_csv` was already correct, which is why every CSV survived.
+
+### What reproduced
+
+| Artifact | Result |
+|---|---|
+| `STAGE_0_BASELINES.csv` / `.md` | byte-identical |
+| `STAGE_1_LOCAL.md` | byte-identical (after the encoding fix) |
+| `STAGE_1_LOCAL_AGGREGATE.csv` | byte-identical |
+| `STAGE_1_LOCAL_INTERVALS.csv` | byte-identical |
+| `STAGE_1_LOCAL_SELECTION.json` | identical in every field except `score_sha256` |
+| `STAGE_1_LOCAL_CELL_METRICS.csv` | one column drifts |
+| `STAGE_1_LOCAL_DIAGNOSTICS.json` | same drift, plus wall-clock timings |
+
+`STAGE_1_LOCAL_INTERVALS.csv` matching byte-for-byte is the load-bearing one: verdicts
+are decided by whether the paired interval excludes zero, and that file is the interval.
+`SELECTION.json` agrees to full float precision — `0.3517116681118214`,
+`0.3547582355906891`, the same 60-name rejection list, the same
+`PARITY_WITH_DIRECT_COMPETITOR`.
+
+### The residual, measured rather than dismissed
+
+`CELL_METRICS` differs in exactly one column, `threshold`, in 108 of 138 rows, at a
+maximum absolute delta of **1.377e-14**. Every metric that column feeds — `f1`,
+`primary`, `exact_error`, `within_one` — is identical, so no prediction flipped. In
+`DIAGNOSTICS`, every numeric leaf except timings sits at machine epsilon:
+
+| Leaf | Max relative delta |
+|---|---|
+| `centres` | 1.741e-16 |
+| `scales` | 4.718e-16 |
+| `orientation_correlation_before_flip` | 4.000e-15 |
+| `g2_hat` | 9.069e-15 |
+
+Last-ulp float drift between the Mac and this machine, not different data. Two
+independent replays produced the identical `CELL_METRICS` hash, so it is a platform
+difference, not run-to-run noise.
+
+### Consequence for `STAGE_1_LOCAL_PER_QUESTION.csv`
+
+Its recorded hash `83529f8d...` does not reproduce here; the replay gives
+`5628d335...`. Its columns are `prediction`, `score`, `target`, `unit` and labels, and
+since no prediction flipped, the difference is the same ulp drift in `score`. The file
+is not on disk in the frozen set, so a byte-diff is impossible — but the four derived
+artifacts above bound the difference far more tightly than the hash alone can.
+
+**The honest reading**: the local chain is confirmed. Every decision-bearing artifact is
+byte-identical, and what is not is bounded at 1e-14. The recorded per-question hash
+should be treated as machine-specific rather than as a failed check.
+
+Nothing in `results/local_online_comprehensive_v1/` was written to. The replay was
+redirected via a new `LOCAL_ONLINE_V1_OUT` for exactly that reason: a verification that
+can overwrite what it verifies is not a verification.
