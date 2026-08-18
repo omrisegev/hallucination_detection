@@ -224,3 +224,94 @@ These each cost a job or nearly cost a pool:
   calibration and claim registry frozen first (§5.1–5.2, §5.6 of the phase-1 checkpoint).
   Which of the ten pre-registered nulls should be machine-checked, and where should the
   registry live?
+
+---
+
+## 9. Codex response — current decisions after Fair Comparison v1 (2026-08-18)
+
+These answers reflect Omri's approved Fair Paper-Exact Comparison v1 direction. Where they
+conflict with the execution addendum added to
+`HANDOFF_paper_exact_cluster_acquisition_2026-08-16.md` in commit `dd7a50d`, this section
+supersedes that addendum. In particular, completed acquisitions may be uploaded and inventoried,
+but no REFRAIN/DeepConf job should be resumed and no new GPU work should be launched without a
+separate explicit approval gate. A newly uploaded result changes coverage metadata only; it does
+not enter a headline table until its manifest, hashes, exact IDs, evaluator and completeness gates
+pass.
+
+### Q1 — keep the completed Eq. 6 control; do not open a prompt search
+
+Publish the existing 3,400-row result as the honest result of the declared reconstruction, named
+**“uPRM Eq.6 Qwen2.5-14B control”** with fidelity `paper-specified-partial`. Do not build or select a
+second marker/prompt variant from ProcessBench outcomes. The current result remains useful as a
+diagnostic control, not as the full trained uPRM and not as an official-exact reproduction.
+
+### Q2 — use the existing rows with explicit provenance; do not rerun for cosmetics
+
+Wire the existing PRM, critic and Mind-the-Gap artifacts into the common 3,400-row inventory only
+after exact-ID and label joins pass. Preserve the access distinctions:
+
+- Qwen2.5-Math-PRM-7B is a released-checkpoint, high-access ceiling pending its hash audit;
+- the Qwen2.5-72B critic is an `adapted-common-protocol` single-greedy pass, not the paper's
+  multi-sample vote;
+- Mind-the-Gap common replay belongs in the all-row Localization table, while its native SLA and
+  tolerance-one SLA belong in a separate erroneous-traces-only table.
+
+Use explicit `pre-contract provenance`/fidelity metadata wherever the old runs lack the current
+acquisition manifest. Do not rerun any of them merely to improve provenance. A separately costed
+rerun is justified only if exact IDs or checkpoint hashes cannot be recovered and that row is
+essential to a final direct claim.
+
+### Q3 — C1 is outside v1 and remains unopened
+
+Do not submit the proposed confirmation cell in this comparison cycle. Fair Comparison v1 is a
+retrospective, CPU-first package over acquired data, not a new confirmation or feature-search
+cycle. A future C1 requires a separate preregistration and approval after the method, calibration
+IDs, alarm horizon, closure policy, evaluator and cost are frozen. S1 completion alone does not
+authorize C1.
+
+### Q4 — retain the registered LEASH constants and the completed cells as acquired
+
+Keep `{B: 30.0, tau_p: 0.95, w: 16, gamma: 0.10}` as the registered central reconstruction; do
+not select a replacement from completed outcomes. The six completed Llama/Phi/Qwen × AQuA/GSM8K
+cells remain `paper-specified-partial`. The two failed Mistral cells remain visible as failed and
+are not rerun without a paper-grounded chat template, a tiny parser/closure pilot, a cost estimate
+and separate approval.
+
+### Q5 — the ten nulls still exist; use the new canonical registries
+
+The original list was not lost. All ten preregistered nulls remain verbatim in
+`docs/research_notes/early_online_hallucination_detection_phase1_checkpoint_2026-08-16.md`, §5.6
+(“Frozen failure tests and success rule”). Machine-check all ten or mark a null explicitly
+`not-testable/blocked` with the missing asset; do not choose a favorable subset.
+
+The acquisition registry proposed in the earlier addendum was subsequently materialized in commit
+`80e8af4` as `docs/experiments/PAPER_EXACT_CLAIM_REGISTRY_V1.yaml`. Preserve its hash as the
+historical acquisition preregistration, but do not silently update it or treat its older
+`iu28_no_length` primary as the current method-of-record. The current canonical comparison contract
+is implemented on `codex/fair-paper-exact-comparisons-v1` (reviewed at commit `8e08c3e`) in:
+
+- `docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md` — frozen four-lane protocol;
+- `spectral_utils/fair_comparisons/registry.py` — `population_registry_v1`,
+  `method_registry_v1` and `comparison_record_v1`;
+- `spectral_utils/fair_comparisons/prefix.py` — causal Prefix joins, strict unfinished-prefix
+  budgets and trace-level warning cohorts;
+- `scripts/build_fair_paper_exact_comparisons_v1.py` — materializes
+  `POPULATION_REGISTRY.json`, `METHOD_REGISTRY.json`, per-lane `PER_QUESTION.jsonl`, calibration
+  ledgers, audits and paired intervals.
+
+The Prefix direct roster is now frozen as ordinary Unified-28 plus the selected Step-272
+0.50/0.50 Global/Local Online incumbent, retaining `iu28_no_length` as a registered control on
+identical trace realizations. This supersedes the older proposal that made `iu28_no_length` the
+primary method. The technical failure tests already cover causal `length > budget` eligibility,
+suffix/future exclusion, tokenwise/chunk replay, terminal identity, split/group isolation,
+trace-level ever-warning calibration and grouped resampling. The final package should add a
+machine-readable mapping from each of the ten §5.6 nulls to those tests/metrics or to an explicit
+blocked reason; it must not invent an eleventh post-outcome claim.
+
+### What to do with newly completed cluster work
+
+Finish the current append-only upload and publish small manifests, indexes, status/summary files,
+ordered-ID hashes and exact Drive paths. Do not start or resume computation. Codex should first
+refresh the read-only Drive inventory and compare the new completion state against the frozen
+eligibility gates. Complete, hash-verified rows can then be scored CPU-first; partial acquisitions
+remain appendices and blocked acquisitions remain visible rather than approximated.

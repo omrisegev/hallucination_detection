@@ -205,3 +205,66 @@ crossing zero, against us).
 - **Mistral model identity** is still deliberately unresolved. Picking the variant
   whose published accuracy matches ours would be tuning to the target.
 - **Offline DeepConf derivation** from the K=512 pool has not started.
+
+---
+
+## 7. Codex response — 2026-08-18
+
+### Answer 1 — the exact frozen protocol was recovered
+
+Yes. The exact pre-commit working copy is recoverable from the original Codex session's
+`apply_patch` payload. It has been materialized without modification as
+`docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md`.
+
+Its verified SHA-256 is:
+
+```
+c921b0d446eebd4611c4426168c30410741997ea2c6d23238e5d22b83e8d1e5b
+```
+
+This is an exact byte recovery, not a reconstruction from the later committed document. Keep the
+current `LOCAL_ONLINE_COMPREHENSIVE_V1.md` unchanged for audit history, keep the recovered snapshot
+immutable, and point any verification-only Stage-1 replay at the recovered snapshot explicitly.
+Do not change `PROTOCOL_SHA256`, overwrite old outputs, or create a differently labelled replay.
+The expected `STAGE_1_LOCAL_PER_QUESTION.csv` hash remains an independent output check.
+
+### Answer 2 — neither old stage is the sole current “ours” headline
+
+For the Fair Comparison v1 advisor view, the direct Localization table must show all methods on the
+same official 3,400 ProcessBench IDs and evaluator. Its mandatory same-access rows are:
+
+1. ordinary Unified-28, the frozen unified method-of-record;
+2. dedicated `family6 + level + step_top5mean`, the incumbent selected by Stage 1;
+3. maximum entropy plus the top-five-step locator, the transparent direct bar.
+
+The Stage-1 value `0.3517` is development-selection evidence for the dedicated incumbent, not a
+standalone headline transfer number. The Stage-4 value `0.3662` belongs to the rejected joint
+`finalist_global_detector_local_locator`; retain it as a clearly named historical/context row or
+appendix, not as the current method-of-record and not as an interchangeable estimate of the
+Stage-1 method. PRM and critic remain visually separated high-access ceilings. The advisor-facing
+claim must come from the Fair Comparison package's out-of-fold common-row table and paired interval,
+not by silently choosing whichever of the two historical stages looks stronger.
+
+### Completed acquisitions — ingest, do not extend
+
+The completed `s1_refrain_full` (1,000/1,000) and `m2_deepconf_k512` (15,360/15,360)
+acquisitions are relevant and should finish their append-only Drive uploads. They do not authorize
+more GPU work. After upload, refresh the read-only metadata inventory and verify indexes, shard
+hashes, exact IDs, manifests, summaries and declared deviations before CPU scoring.
+
+Treat K=512 DeepConf as a new `paper-specified-partial` declared-deviation population: it supports
+the native K≤512 frontier but does not reproduce the paper's 4,096-pool frontier and must not be
+merged with the older partial K=4096 pool. REFRAIN can move from coverage appendix to a native
+single-trace stopping candidate only after the final manifest/summary, identical-arm IDs,
+reasoning-plus-closure token accounting, parser and forced-closure gates pass. No Mistral rerun,
+confirmation cell, prompt search or resumed K=4096 acquisition is approved here.
+
+### Registry relationship
+
+`docs/experiments/PAPER_EXACT_CLAIM_REGISTRY_V1.yaml` now exists and correctly preserves all ten
+phase-1 nulls as the acquisition-time preregistration. Preserve it unchanged and cite its hash for
+the runs it governed. Its `iu28_no_length` primary predates the later Unified-28 freeze, so it does
+not supersede the current `population_registry_v1` / `method_registry_v1` /
+`comparison_record_v1` contract on `codex/fair-paper-exact-comparisons-v1`. The final report should
+map every one of the ten nulls to a Fair Comparison test/metric or an explicit blocked/not-testable
+reason, while retaining the acquisition registry as immutable provenance.
