@@ -1,18 +1,85 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-16
-**Last updated**: Step 273. The comprehensive Local/Online follow-up is
-complete. Do not promote its joint finalist: Local transfer is a numerical
-parity result (0.3662 versus 0.3614 maximum-entropy/top-five-step F1, delta
-+0.0048 [-0.0264,+0.0375]), while Online transfer regresses beyond the frozen
-margin (0.5882 versus 0.6104 IU28 AUROC@64/128, delta -0.0222
-[-0.0502,+0.0042]). Retain IU28 as the strongest S4 Online bar; treat the
-family-six Local/top-five mechanism as retrospective research evidence, not a
-confirmed replacement. Do not request a GPU/inference run to rescue the
-result. Step 272 remains the prior architecture record, but its development
-choice is superseded for forward Online decisions by this transfer audit.
-A6-S0a remains independently verified as `PASS_S0A`; its separate frozen next
-stage is still A6-S0b, and this work does not alter that boundary.
+**Date**: 2026-08-18
+**Last updated**: Step 274. The Unified Causal IU-PCR subset cycle is complete.
+The strongest transferable single-method candidate is ordinary **Unified-28**:
+seven causal base streams crossed with `level`, `ewma16`, `positive_area`, and
+`persistence`. On the frozen Llama transfer panel it scores 0.6629 Global
+AUROC, 0.2880 ProcessBench Localization F1, and 0.5587 Early AUROC, versus
+matched task incumbents 0.6870/0.2419/0.5777. Localization improves by +0.0461
+and is significant, but Global (-0.0241) and Early (-0.0189) breach the frozen
+regression margins. **Do not promote Unified-28 as a replacement for the
+task-specific heads.** Treat it as the method-of-record for the next unified
+paper-comparison replay only. The active priority is no longer another feature
+or DUFS rescue sweep: consolidate the completed cluster acquisitions into
+paper-exact or adapted-common-protocol apples-to-apples tables. Start from
+`HANDOFF_fair_paper_exact_comparisons_2026-08-18.md`. A6-S0a remains
+independently verified as `PASS_S0A`; its separate frozen next stage is still
+A6-S0b and is outside this pivot.
+
+## Unified Causal IU-PCR subset and transfer decision — Step 274
+
+The local CPU cycle tested structured subsets of the 1,036-coordinate causal
+DSP bank, ordinary IU-PCR, DUFS-LIU lambda paths through 3, and learned task
+reweighting. The full bank is not the right operating point. The best
+cross-scorer compromise is the 28-coordinate ordinary-IU roster formed by
+seven causal streams and four transforms: `level`, `ewma16`, `positive_area`,
+and `persistence`.
+
+After correcting an invalid pooling-across-folds aggregation, the Qwen
+development values are 0.6914/0.3040/0.5301 for Global/Localization/Early;
+the earlier 0.7012/0.3278/0.5435 values are withdrawn. Frozen Llama transfer is:
+
+| method | Global AUROC | Localization F1 | Early AUROC |
+|---|---:|---:|---:|
+| Unified-28 ordinary IU-PCR | 0.6629 | 0.2880 | 0.5587 |
+| matched task incumbent | 0.6870 | 0.2419 | 0.5777 |
+| delta | -0.0241 | +0.0461 | -0.0189 |
+
+Every Localization gain is significant, but the co-primary non-inferiority
+gate fails because Global and Early regress beyond their margins. Unified-28
+does beat the matched IU28 Early row by +0.0213; max entropy is nevertheless
+the stronger Early baseline in this exact panel, so this is not an Early win.
+DUFS-LIU and task reweighting improved selected Qwen development cells but did
+not transfer to Llama. The local Llama copy is bit-identical to Drive. The new
+DeepConf M2 acquisition was only 3.75% complete and carried no Localization
+labels, so it was not downloaded or treated as validation. All 39 focused and
+regression tests pass. No cluster job was launched in this cycle.
+
+The separate 24-cell Global replay remains a task-specific reference, not a
+score for Unified-28. Ordinary IU-PCR with 36 features reaches 0.7591 macro
+AUROC versus 0.7766 for the frozen mixed-v2 DUFS-LIU baseline, delta -0.0175
+with 95% CI [-0.0477,+0.0140]. Math is a practical tie (0.7869 versus 0.7862);
+QA drives the loss (0.7128 versus 0.7604). New DUFS lambda 0.3/1.0 reaches
+0.7575/0.7552 and alpha=0.5 reweighting is worse. Do not pool these values with
+the Unified-28 Llama transfer table.
+
+## Fair-comparison consolidation pivot — Step 274
+
+The cluster campaigns acquired much of the expensive model-dependent evidence:
+full ProcessBench critic/PRM/control outputs, RAGTruth/LettuceDetect, GASP,
+RefChecker, PRMBench telemetry, and other manifests. Acquisition was
+deliberately separated from CPU-local evaluation. The missing deliverable is
+the integration layer: align identical row IDs, freeze Unified-28 and the
+task-specific incumbents, score all eligible methods on the same rows, use one
+evaluator and grouped bootstrap per lane, and publish direct comparison tables.
+
+There must not be one mixed leaderboard. Produce four separate lanes:
+
+1. Global final-answer detection: AUROC/AUPRC and fixed-FPR on common traces.
+2. First-error Localization: official ProcessBench macro-F1 on the common
+   3,400 rows; Mind-the-Gap native SLA remains a separate native panel.
+3. Prefix detection: AUROC/AUPRC at common absolute token budgets and
+   ever-warning fixed-FPR behavior.
+4. Stopping/adaptive compute: accuracy-versus-total-tokens frontiers; do not
+   compare these token savings numerically to detector AUROC.
+
+Each result row must be labelled `official-exact`, `paper-specified`,
+`paper-specified-partial`, `adapted-common-protocol`,
+`published-context-only`, or `blocked-assets`. Published numbers are context,
+not substitutes for common-protocol replays. The next session begins with a
+read-only inventory and a written plan; it must not launch jobs or alter Drive
+before the user approves that plan.
 
 ## Comprehensive Local/Online transfer decision — Step 273
 

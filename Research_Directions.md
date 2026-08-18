@@ -3,6 +3,62 @@
 
 ---
 
+## Active priority — fair paper-exact comparison consolidation (Step 274)
+
+The project now concentrates its available effort on converting the completed
+cluster acquisitions into defensible apples-to-apples comparisons. This is an
+integration and evaluation priority, not another broad method-development
+cycle. The expensive model-dependent assets were collected so that our frozen
+methods and external competitors can be evaluated on identical populations;
+the common evaluation tables have not yet been assembled.
+
+The method-of-record for the unified replay is **Unified-28**, ordinary IU-PCR
+over seven causal streams crossed with `level`, `ewma16`, `positive_area`, and
+`persistence`. It is the strongest transferable single-method candidate found
+in the 1,036-coordinate causal subset cycle, but it is not promoted as a
+replacement for the task-specific heads:
+
+| frozen Llama transfer | Unified-28 | matched incumbent | delta |
+|---|---:|---:|---:|
+| Global AUROC | 0.6629 | 0.6870 | -0.0241 |
+| Localization F1 | 0.2880 | 0.2419 | +0.0461 |
+| Early AUROC | 0.5587 | 0.5777 | -0.0189 |
+
+Localization is the one confirmed gain. Global and Early breach the frozen
+non-inferiority margins. DUFS lambda sweeps and learned task weights did not
+survive Qwen-to-Llama transfer. Consequently the scientific question is now:
+**where does one causal single-pass method stand under the same rows, models,
+metrics, and evaluators as each competitor, and what is the price of unification
+relative to the task-specific heads?**
+
+The comparison program has four independent lanes: Global final-answer
+detection, ProcessBench first-error Localization, causal prefix detection, and
+accuracy-compute stopping/adaptive sampling. Results from different lanes must
+never share a numerical leaderboard. Within a lane, a primary claim requires
+identical ordered IDs, an explicit access tier, the same evaluator, frozen
+calibration, and paired source-question uncertainty. Native paper metrics such
+as Mind-the-Gap SLA and REFRAIN/LEASH token savings are preserved in separate
+native panels; they do not replace the common-protocol metric.
+
+The next execution cycle is specified by
+`HANDOFF_fair_paper_exact_comparisons_2026-08-18.md`. It starts with an
+inventory of local and Drive manifests, maps every competitor to a fidelity
+status and missing prerequisite, and produces a user-approved plan before any
+new cluster job, large download, or Drive mutation. Generic feature expansion,
+another DUFS rescue, and post-hoc weighting are paused until these comparisons
+are complete.
+
+## Unified causal subset result — Step 274
+
+The full 1,036-coordinate bank is inferior to a structured subset. Corrected
+Qwen development values for Unified-28 are 0.6914 Global, 0.3040 Localization,
+and 0.5301 Early; the previously pooled 0.7012/0.3278/0.5435 values are void.
+The separate 24-cell Global experiment also does not establish a new global
+winner: ordinary 36-feature IU-PCR reaches 0.7591 versus 0.7766 for frozen
+mixed-v2 DUFS-LIU. Its Math result ties (0.7869 versus 0.7862), while QA drives
+the aggregate loss (0.7128 versus 0.7604). These are distinct panels and must
+not be pooled with the Unified-28 transfer table.
+
 ## Comprehensive Local/Online transfer result — Step 273
 
 The broadened existing-cache cycle closes without promoting a new joint

@@ -13185,3 +13185,50 @@ No new inference, GPU/cluster work, Drive mutation, staging, commit, or push
 occurred. A6/PTNI was untouched.
 
 ---
+
+### Step 274 — Select Unified-28, reject universal promotion, and pivot to fair paper comparisons
+
+**What**: Completed the local CPU structured-subset cycle over the new
+1,036-coordinate causal DSP bank and consolidated the associated 24-cell
+Global replay. The search compared ordinary IU-PCR, DUFS-LIU lambda paths
+through 3, and learned task reweighting. It also audited the comparison story
+against the completed cluster-acquisition contract and separated direct,
+adapted replay, native-paper, and published-context results.
+
+**Result**: A structured subset is better than the full causal bank. The
+strongest cross-scorer unified candidate is ordinary **Unified-28**: seven
+causal streams crossed with `level`, `ewma16`, `positive_area`, and
+`persistence`. After fixing pooling across folds, Qwen development is
+0.6914/0.3040/0.5301 for Global/Localization/Early; the prior
+0.7012/0.3278/0.5435 values are withdrawn. Frozen Llama transfer is
+0.6629/0.2880/0.5587 versus matched incumbents 0.6870/0.2419/0.5777. The Local
+gain is +0.0461 and significant, but Global (-0.0241) and Early (-0.0189)
+breach their frozen regression margins. Unified-28 is therefore the unified
+method-of-record, not a replacement for the dedicated heads. DUFS and task
+reweighting did not generalize from Qwen to Llama. Thirty-nine focused and
+regression tests pass.
+
+**24-cell Global context**: ordinary 36-feature IU-PCR reaches 0.7591 macro
+AUROC versus 0.7766 for frozen mixed-v2 DUFS-LIU, delta -0.0175 with 95% CI
+[-0.0477,+0.0140]. Math ties at 0.7869 versus 0.7862; QA regresses at 0.7128
+versus 0.7604. DUFS lambda 0.3/1.0 reaches 0.7575/0.7552 and reweighting is
+worse. This panel is not numerically pooled with the Unified-28 transfer panel.
+
+**Why the competitor picture remained incomplete**: the cluster work mostly
+completed acquisition and native competitor scoring. The final CPU-local
+integration step—identical row joins, frozen-method replay, common evaluator,
+calibration, paired grouped intervals, and four lane-specific tables—was not
+completed before method development resumed. The data collection was useful;
+the missing object is the comparison package, not merely more data.
+
+**Decision**: Pause generic feature/DUFS rescue work. Concentrate the next
+approved cycle on paper-exact and adapted-common-protocol apples-to-apples
+comparisons for Global detection, ProcessBench Localization, causal prefix
+detection, and stopping/adaptive compute. Do not combine AUROC, F1, SLA, and
+token savings in one leaderboard. Begin the next session with a read-only
+inventory and an explicit plan; launch no jobs and mutate no Drive data until
+the user approves it.
+
+**Handoff**: `HANDOFF_fair_paper_exact_comparisons_2026-08-18.md`.
+
+---
