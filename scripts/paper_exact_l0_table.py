@@ -93,6 +93,11 @@ METHOD_TIERS = {
     "uprm_judge": dict(access_tier="one-trace logprob", labels_or_training="none",
                        model_passes=1, fidelity="paper-specified-partial",
                        provenance=PROVENANCE_CONTRACT),
+    # Distinct from `uprm_judge`: a different backbone (Qwen3-8B) run before the contract.
+    # Kept as its own row rather than merged, so the backbone is never implicit.
+    "uprm_baseline_q3_8b": dict(access_tier="one-trace logprob", labels_or_training="none",
+                                model_passes=1, fidelity="paper-specified-partial",
+                                provenance=PROVENANCE_PRE),
     "prm_qwen25math7b": dict(access_tier="supervised PRM",
                              labels_or_training="step-level PRM800K", model_passes=1,
                              fidelity="official-exact", provenance=PROVENANCE_PRE),
@@ -283,13 +288,22 @@ def inventory(roots, max_inspect_mb: float = 400.0) -> dict:
 #: matches a real file wins) rather than hardcoded, because the pre-contract artifacts predate
 #: any naming convention. Discovery applies to *where* a file is; the schema still comes from
 #: the permissive readers above, which count every prediction they cannot tie to a row_id.
+#: Patterns are anchored to the directory that actually holds each artifact rather than left
+#: as loose `**` globs. A loose `pb_*prm*.pkl` also matches `pb_uprm_base_*.pkl` — "prm" is a
+#: substring of "uprm" — which would silently fold the label-free uPRM baseline into the
+#: supervised-PRM row. Those two sit in different access tiers, so that collision would
+#: produce the one error this table is built to prevent.
 SOURCE_CANDIDATES = {
-    "uprm_judge": [("shards", "paper_exact/l1_uprm_judge_full")],
-    "ours":         [("pkl", "**/pb_*ours*.pkl"), ("pkl", "**/processbench_ours*.pkl")],
-    "max_entropy":  [("pkl", "**/pb_*max_entropy*.pkl"), ("pkl", "**/pb_*maxent*.pkl")],
-    "mind_the_gap": [("pkl", "**/pb_*mind*gap*.pkl"), ("pkl", "**/pb_*evidence*drop*.pkl")],
-    "prm_qwen25math7b": [("pkl", "**/pb_*prm*.pkl")],
-    "critic_qwen72b":   [("pkl", "**/pb_*critic*.pkl")],
+    "uprm_judge":         [("shards", "paper_exact/l1_uprm_judge_full")],
+    "prm_qwen25math7b":   [("pkl", "pb_prm_qwen25math7b_full/pb_prm_*.pkl")],
+    "critic_qwen72b":     [("pkl", "pb_critic_qwen72b_full/pb_critic_*.pkl")],
+    "uprm_baseline_q3_8b": [("pkl", "pb_uprm_baseline_qwen3_8b_full/pb_uprm_base_*.pkl")],
+    # `ours`, `max_entropy` and `mind_the_gap` are intentionally absent until the inventory
+    # says where their per-row predictions live and under which key. The telemetry cells
+    # (`pb_*/processbench_*.pkl`) hold traces, not decisions, and the Evidence-Drop control
+    # lives under `evdrop_*`, not a `pb_*` name. Wire them with --source once the inventory
+    # reports a `has_prediction` artifact; guessing a schema here is how a table ends up
+    # scoring the wrong column.
 }
 
 
