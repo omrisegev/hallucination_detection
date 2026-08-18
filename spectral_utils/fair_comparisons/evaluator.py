@@ -547,6 +547,150 @@ def localization_metrics(
     }
 
 
+def _fit_single_locator_threshold(
+    rows: Sequence[Mapping[str, Any]],
+    pairs_by_row: Sequence[Sequence[tuple[int, float]]],
+    scores: Sequence[float],
+    *,
+    subset_key: str,
+    label_key: str,
+    expected_subsets: Sequence[str] | None,
+) -> dict[str, Any]:
+    """Maximize the frozen single-locator objective by tied score blocks.
+
+    Every row in this path has one frozen detector score and one frozen locator.
+    Lowering the threshold therefore changes only two sufficient statistics per
+    subset: clean hits decrease when a clean row activates, while error hits
+    increase only when an erroneous row's locator is exact.  Accumulating those
+    integer changes once and evaluating all tied-score blocks in bulk preserves
+    the literal ``score >= threshold`` sweep without rebuilding predictions at
+    every candidate.
+    """
+
+    subsets = (
+        [str(value) for value in expected_subsets]
+        if expected_subsets is not None
+        else sorted({str(row[subset_key]) for row in rows})
+    )
+    observed = {str(row[subset_key]) for row in rows}
+    if observed != set(subsets):
+        raise ValueError(
+            f"localization subset mismatch: expected={sorted(set(subsets))}, "
+            f"observed={sorted(observed)}"
+        )
+    subset_index = {subset: index for index, subset in enumerate(subsets)}
+    n_subsets = len(subsets)
+    n_error = np.zeros(n_subsets, dtype=np.int64)
+    n_clean = np.zeros(n_subsets, dtype=np.int64)
+    packed: list[tuple[float, int, int, int]] = []
+    for row, pairs in zip(rows, pairs_by_row):
+        subset = subset_index[str(row[subset_key])]
+        label = int(row[label_key])
+        locator, score = pairs[0]
+        if label == NO_ERROR:
+            n_clean[subset] += 1
+        else:
+            n_error[subset] += 1
+        packed.append((float(score), subset, label, int(locator)))
+    if np.any(n_error == 0) or np.any(n_clean == 0):
+        raise ValueError("localization calibration requires clean and error rows per subset")
+
+    # Python's stable reverse sort and exact equality match the former literal
+    # sweep, including the representative threshold for a +0.0/-0.0 tie block.
+    packed.sort(key=lambda item: item[0], reverse=True)
+    block_thresholds: list[float] = []
+    clean_losses: list[np.ndarray] = []
+    error_gains: list[np.ndarray] = []
+    start = 0
+    while start < len(packed):
+        stop = start + 1
+        while stop < len(packed) and packed[stop][0] == packed[start][0]:
+            stop += 1
+        clean_loss = np.zeros(n_subsets, dtype=np.int64)
+        error_gain = np.zeros(n_subsets, dtype=np.int64)
+        for _, subset, label, locator in packed[start:stop]:
+            if label == NO_ERROR:
+                if locator != NO_ERROR:
+                    clean_loss[subset] += 1
+            elif locator == label:
+                error_gain[subset] += 1
+        block_thresholds.append(packed[start][0])
+        clean_losses.append(clean_loss)
+        error_gains.append(error_gain)
+        start = stop
+
+    cumulative_clean_losses = np.cumsum(
+        np.stack(clean_losses), axis=0, dtype=np.int64
+    )
+    cumulative_error_gains = np.cumsum(
+        np.stack(error_gains), axis=0, dtype=np.int64
+    )
+    candidate_clean_hits = np.vstack(
+        (n_clean, n_clean[np.newaxis, :] - cumulative_clean_losses)
+    )
+    candidate_error_hits = np.vstack(
+        (np.zeros(n_subsets, dtype=np.int64), cumulative_error_gains)
+    )
+    clean_accuracy = candidate_clean_hits / n_clean
+    error_accuracy = candidate_error_hits / n_error
+    denominator = error_accuracy + clean_accuracy
+    f1 = np.where(
+        denominator > 0.0,
+        2.0 * error_accuracy * clean_accuracy / denominator,
+        np.nan,
+    )
+    macro_f1 = np.mean(f1, axis=1)
+    macro_clean = np.mean(clean_accuracy, axis=1)
+    thresholds = [
+        float(np.nextafter(max(scores), np.inf)),
+        *block_thresholds,
+    ]
+
+    best_index = 0
+    best_objective = (
+        float(macro_f1[0]),
+        float(macro_clean[0]),
+        float(thresholds[0]),
+    )
+    for index in range(1, len(thresholds)):
+        objective = (
+            float(macro_f1[index]),
+            float(macro_clean[index]),
+            float(thresholds[index]),
+        )
+        if objective > best_objective:
+            best_index = index
+            best_objective = objective
+
+    # Recompute the selected objective with the former one-dimensional NumPy
+    # expression so returned float bytes (and calibration hashes) remain exact.
+    selected_error_accuracy = candidate_error_hits[best_index] / n_error
+    selected_clean_accuracy = candidate_clean_hits[best_index] / n_clean
+    selected_denominator = selected_error_accuracy + selected_clean_accuracy
+    selected_f1 = np.where(
+        selected_denominator > 0.0,
+        2.0
+        * selected_error_accuracy
+        * selected_clean_accuracy
+        / selected_denominator,
+        np.nan,
+    )
+    selected_macro_f1 = float(np.mean(selected_f1))
+    selected_macro_clean = float(np.mean(selected_clean_accuracy))
+    value = {
+        "threshold": float(thresholds[best_index]),
+        "equal_subset_macro_f1": selected_macro_f1,
+        "equal_subset_clean_accuracy": selected_macro_clean,
+        "n_calibration_rows": len(rows),
+        "n_threshold_candidates": len(block_thresholds) + 1,
+        "tie_break": ["macro_f1", "clean_accuracy", "higher_threshold"],
+        "threshold_sweep": "single_frozen_locator_blockwise_exact",
+    }
+    if not np.isfinite(value["equal_subset_macro_f1"]):
+        raise ValueError("localization calibration has no valid subset F1 objective")
+    return value
+
+
 def fit_localization_threshold(
     rows: Sequence[Mapping[str, Any]],
     *,
@@ -580,79 +724,14 @@ def fit_localization_threshold(
     # implementation remains below for methods whose predicted step itself changes
     # as the threshold moves.
     if all(len(pairs) == 1 for pairs in pairs_by_row):
-        subsets = (
-            [str(value) for value in expected_subsets]
-            if expected_subsets is not None
-            else sorted({str(row[subset_key]) for row in rows})
+        return _fit_single_locator_threshold(
+            rows,
+            pairs_by_row,
+            scores,
+            subset_key=subset_key,
+            label_key=label_key,
+            expected_subsets=expected_subsets,
         )
-        observed = {str(row[subset_key]) for row in rows}
-        if observed != set(subsets):
-            raise ValueError(
-                f"localization subset mismatch: expected={sorted(set(subsets))}, "
-                f"observed={sorted(observed)}"
-            )
-        subset_index = {subset: index for index, subset in enumerate(subsets)}
-        n_error = np.zeros(len(subsets), dtype=np.int64)
-        n_clean = np.zeros(len(subsets), dtype=np.int64)
-        error_hits = np.zeros(len(subsets), dtype=np.int64)
-        clean_hits = np.zeros(len(subsets), dtype=np.int64)
-        packed = []
-        for row, pairs in zip(rows, pairs_by_row):
-            subset = subset_index[str(row[subset_key])]
-            label = int(row[label_key])
-            locator, score = pairs[0]
-            if label == NO_ERROR:
-                n_clean[subset] += 1
-                clean_hits[subset] += 1  # all-inactive threshold predicts NO_ERROR
-            else:
-                n_error[subset] += 1
-            packed.append((float(score), subset, label, int(locator)))
-        if np.any(n_error == 0) or np.any(n_clean == 0):
-            raise ValueError("localization calibration requires clean and error rows per subset")
-
-        def objective_at(threshold: float) -> tuple[tuple[float, float, float], dict[str, Any]]:
-            error_accuracy = error_hits / n_error
-            clean_accuracy = clean_hits / n_clean
-            denominator = error_accuracy + clean_accuracy
-            f1 = np.where(
-                denominator > 0.0,
-                2.0 * error_accuracy * clean_accuracy / denominator,
-                np.nan,
-            )
-            macro_f1 = float(np.mean(f1))
-            macro_clean = float(np.mean(clean_accuracy))
-            value = {
-                "threshold": float(threshold),
-                "equal_subset_macro_f1": macro_f1,
-                "equal_subset_clean_accuracy": macro_clean,
-                "n_calibration_rows": len(rows),
-                "n_threshold_candidates": len(set(scores)) + 1,
-                "tie_break": ["macro_f1", "clean_accuracy", "higher_threshold"],
-                "threshold_sweep": "single_frozen_locator_blockwise_exact",
-            }
-            return (macro_f1, macro_clean, float(threshold)), value
-
-        maximum = max(scores)
-        best = objective_at(float(np.nextafter(maximum, np.inf)))
-        packed.sort(key=lambda item: item[0], reverse=True)
-        start = 0
-        while start < len(packed):
-            stop = start + 1
-            while stop < len(packed) and packed[stop][0] == packed[start][0]:
-                stop += 1
-            for _, subset, label, locator in packed[start:stop]:
-                if label == NO_ERROR:
-                    if locator != NO_ERROR:
-                        clean_hits[subset] -= 1
-                elif locator == label:
-                    error_hits[subset] += 1
-            candidate = objective_at(packed[start][0])
-            if candidate[0] > best[0]:
-                best = candidate
-            start = stop
-        if not np.isfinite(best[1]["equal_subset_macro_f1"]):
-            raise ValueError("localization calibration has no valid subset F1 objective")
-        return best[1]
 
     maximum = max(scores)
     candidates = sorted(set(scores) | {float(np.nextafter(maximum, np.inf))})

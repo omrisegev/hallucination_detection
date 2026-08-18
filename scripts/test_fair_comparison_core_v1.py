@@ -3,10 +3,15 @@
 
 from __future__ import annotations
 
+import itertools
+import json
 import os
+from pathlib import Path
 import random
 import sys
 import unittest
+
+import numpy as np
 
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -15,6 +20,156 @@ if REPO_ROOT not in sys.path:
 
 from spectral_utils.fair_comparisons import evaluator as E  # noqa: E402
 from spectral_utils.fair_comparisons import folds as F  # noqa: E402
+from spectral_utils.fair_comparisons import processbench as PB  # noqa: E402
+
+
+def _canonical_bytes(value):
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode("utf-8")
+
+
+def _reference_single_locator_fit(
+    rows,
+    *,
+    subset_key="subset",
+    label_key="first_error",
+    scores_key="step_scores",
+    indices_key="step_indices",
+    expected_subsets=None,
+):
+    """Verbatim pre-vectorization single-pair threshold sweep used as an oracle."""
+
+    rows = list(rows)
+    if not rows:
+        raise ValueError("cannot fit localization threshold on zero rows")
+    pairs_by_row = [
+        E._step_pairs(row, scores_key=scores_key, indices_key=indices_key)
+        for row in rows
+    ]
+    scores = [score for pairs in pairs_by_row for _, score in pairs]
+    if not scores:
+        raise ValueError("cannot fit localization threshold without step scores")
+    if not all(len(pairs) == 1 for pairs in pairs_by_row):
+        raise ValueError("reference helper requires exactly one score/locator pair per row")
+
+    subsets = (
+        [str(value) for value in expected_subsets]
+        if expected_subsets is not None
+        else sorted({str(row[subset_key]) for row in rows})
+    )
+    observed = {str(row[subset_key]) for row in rows}
+    if observed != set(subsets):
+        raise ValueError(
+            f"localization subset mismatch: expected={sorted(set(subsets))}, "
+            f"observed={sorted(observed)}"
+        )
+    subset_index = {subset: index for index, subset in enumerate(subsets)}
+    n_error = np.zeros(len(subsets), dtype=np.int64)
+    n_clean = np.zeros(len(subsets), dtype=np.int64)
+    error_hits = np.zeros(len(subsets), dtype=np.int64)
+    clean_hits = np.zeros(len(subsets), dtype=np.int64)
+    packed = []
+    for row, pairs in zip(rows, pairs_by_row):
+        subset = subset_index[str(row[subset_key])]
+        label = int(row[label_key])
+        locator, score = pairs[0]
+        if label == E.NO_ERROR:
+            n_clean[subset] += 1
+            clean_hits[subset] += 1
+        else:
+            n_error[subset] += 1
+        packed.append((float(score), subset, label, int(locator)))
+    if np.any(n_error == 0) or np.any(n_clean == 0):
+        raise ValueError("localization calibration requires clean and error rows per subset")
+
+    def objective_at(threshold):
+        error_accuracy = error_hits / n_error
+        clean_accuracy = clean_hits / n_clean
+        denominator = error_accuracy + clean_accuracy
+        f1 = np.where(
+            denominator > 0.0,
+            2.0 * error_accuracy * clean_accuracy / denominator,
+            np.nan,
+        )
+        macro_f1 = float(np.mean(f1))
+        macro_clean = float(np.mean(clean_accuracy))
+        value = {
+            "threshold": float(threshold),
+            "equal_subset_macro_f1": macro_f1,
+            "equal_subset_clean_accuracy": macro_clean,
+            "n_calibration_rows": len(rows),
+            "n_threshold_candidates": len(set(scores)) + 1,
+            "tie_break": ["macro_f1", "clean_accuracy", "higher_threshold"],
+            "threshold_sweep": "single_frozen_locator_blockwise_exact",
+        }
+        return (macro_f1, macro_clean, float(threshold)), value
+
+    maximum = max(scores)
+    best = objective_at(float(np.nextafter(maximum, np.inf)))
+    packed.sort(key=lambda item: item[0], reverse=True)
+    start = 0
+    while start < len(packed):
+        stop = start + 1
+        while stop < len(packed) and packed[stop][0] == packed[start][0]:
+            stop += 1
+        for _, subset, label, locator in packed[start:stop]:
+            if label == E.NO_ERROR:
+                if locator != E.NO_ERROR:
+                    clean_hits[subset] -= 1
+            elif locator == label:
+                error_hits[subset] += 1
+        candidate = objective_at(packed[start][0])
+        if candidate[0] > best[0]:
+            best = candidate
+        start = stop
+    if not np.isfinite(best[1]["equal_subset_macro_f1"]):
+        raise ValueError("localization calibration has no valid subset F1 objective")
+    return best[1]
+
+
+def _reference_single_locator_crossfit(rows, *, expected_subsets):
+    rows = list(rows)
+    observed_folds = {int(row["fold"]) for row in rows}
+    if observed_folds != set(range(5)):
+        raise ValueError("reference fixture requires folds 0..4")
+    predictions = [None] * len(rows)
+    ledgers = []
+    for held_out in range(5):
+        train = [row for row in rows if int(row["fold"]) != held_out]
+        test_indices = [
+            index for index, row in enumerate(rows) if int(row["fold"]) == held_out
+        ]
+        fit = _reference_single_locator_fit(
+            train, expected_subsets=expected_subsets
+        )
+        for index in test_indices:
+            predictions[index] = E.localization_prediction(rows[index], fit["threshold"])
+        ledger = dict(fit)
+        ledger.update(
+            {
+                "held_out_fold": held_out,
+                "train_folds": [fold for fold in range(5) if fold != held_out],
+                "n_held_out_rows": len(test_indices),
+            }
+        )
+        ledger["calibration_hash"] = F.canonical_sha256(ledger)
+        ledgers.append(ledger)
+    official = E.localization_metrics(
+        rows,
+        predictions,
+        expected_subsets=expected_subsets,
+    )
+    return {
+        "predictions": [int(prediction) for prediction in predictions],
+        "calibration_ledgers": ledgers,
+        "official_oof_metrics": official,
+        "aggregation": "concatenated_discrete_out_of_fold_predictions",
+    }
 
 
 class HashAndFoldTests(unittest.TestCase):
@@ -257,6 +412,233 @@ class LocalizationTests(unittest.TestCase):
         ]
         metrics = E.localization_metrics(rows, [-1, 4])
         self.assertEqual(metrics["within_one_error_accuracy"], 1.0)
+
+
+class LocalizationFastPathDifferentialTests(unittest.TestCase):
+    SUBSETS = ("gsm8k", "math", "olympiadbench", "omnimath")
+
+    def assert_reference_bytes(self, rows, *, expected_subsets):
+        expected = _reference_single_locator_fit(
+            rows, expected_subsets=expected_subsets
+        )
+        observed = E.fit_localization_threshold(
+            rows, expected_subsets=expected_subsets
+        )
+        self.assertEqual(_canonical_bytes(observed), _canonical_bytes(expected))
+        return observed
+
+    def test_randomized_single_pair_sweeps_are_byte_identical(self):
+        rng = np.random.default_rng(20260818)
+        for case in range(250):
+            subsets = tuple(f"subset_{index}" for index in range(1 + case % 6))
+            rows = []
+            for subset in subsets:
+                labels = [-1, int(rng.integers(0, 5))]
+                labels.extend(
+                    -1 if rng.random() < 0.35 else int(rng.integers(0, 5))
+                    for _ in range(int(rng.integers(0, 18)))
+                )
+                for label in labels:
+                    score = (
+                        float(rng.integers(-4, 6))
+                        if case % 3
+                        else float(rng.normal())
+                    )
+                    rows.append(
+                        {
+                            "subset": subset,
+                            "first_error": label,
+                            "step_scores": [score],
+                            "step_indices": [int(rng.integers(0, 5))],
+                        }
+                    )
+            rng.shuffle(rows)
+            subset_order = list(subsets)
+            rng.shuffle(subset_order)
+            self.assert_reference_bytes(rows, expected_subsets=subset_order)
+
+    def test_exhaustive_small_tied_score_grid_is_byte_identical(self):
+        labels = (-1, -1, 0, 1)
+        for scores in itertools.product((-1.0, 0.0, 1.0), repeat=4):
+            for locators in itertools.product((0, 1), repeat=4):
+                rows = [
+                    {
+                        "subset": "only",
+                        "first_error": label,
+                        "step_scores": [score],
+                        "step_indices": [locator],
+                    }
+                    for label, score, locator in zip(labels, scores, locators)
+                ]
+                self.assert_reference_bytes(rows, expected_subsets=("only",))
+
+    def test_threshold_inclusion_and_both_tie_breaks_are_exact(self):
+        clean_tie_rows = [
+            {"subset": "s", "first_error": -1, "step_scores": [1.0], "step_indices": [0]},
+            {"subset": "s", "first_error": -1, "step_scores": [0.0], "step_indices": [0]},
+            {"subset": "s", "first_error": 0, "step_scores": [2.0], "step_indices": [0]},
+            {"subset": "s", "first_error": 1, "step_scores": [1.0], "step_indices": [1]},
+        ]
+        fitted = self.assert_reference_bytes(
+            clean_tie_rows, expected_subsets=("s",)
+        )
+        self.assertEqual(fitted["threshold"], 2.0)
+        self.assertEqual(fitted["equal_subset_macro_f1"], 2.0 / 3.0)
+        self.assertEqual(fitted["equal_subset_clean_accuracy"], 1.0)
+
+        threshold_tie_rows = [
+            {"subset": "s", "first_error": -1, "step_scores": [0.0], "step_indices": [0]},
+            {"subset": "s", "first_error": 1, "step_scores": [2.0], "step_indices": [0]},
+        ]
+        fitted = self.assert_reference_bytes(
+            threshold_tie_rows, expected_subsets=("s",)
+        )
+        self.assertEqual(fitted["threshold"], float(np.nextafter(2.0, np.inf)))
+
+        for first, second in ((0.0, -0.0), (-0.0, 0.0)):
+            signed_zero_rows = [
+                {"subset": "s", "first_error": -1, "step_scores": [-1.0], "step_indices": [0]},
+                {"subset": "s", "first_error": 0, "step_scores": [first], "step_indices": [0]},
+                {"subset": "s", "first_error": 1, "step_scores": [second], "step_indices": [0]},
+            ]
+            fitted = self.assert_reference_bytes(
+                signed_zero_rows, expected_subsets=("s",)
+            )
+            self.assertEqual(np.signbit(fitted["threshold"]), np.signbit(first))
+            predictions = [
+                E.localization_prediction(row, fitted["threshold"])
+                for row in signed_zero_rows
+            ]
+            self.assertEqual(predictions, [-1, 0, 0])
+
+    def test_error_contract_matches_the_reference(self):
+        fixtures = [
+            ([], ("s",)),
+            (
+                [
+                    {"subset": "s", "first_error": -1, "step_scores": [], "step_indices": []}
+                ],
+                ("s",),
+            ),
+            (
+                [
+                    {"subset": "s", "first_error": -1, "step_scores": [0.0], "step_indices": [0]},
+                    {"subset": "s", "first_error": -1, "step_scores": [1.0], "step_indices": [0]},
+                ],
+                ("s",),
+            ),
+            (
+                [
+                    {"subset": "s", "first_error": -1, "step_scores": [0.0], "step_indices": [0]},
+                    {"subset": "s", "first_error": 0, "step_scores": [1.0], "step_indices": [0]},
+                ],
+                (),
+            ),
+            (
+                [
+                    {"subset": "s", "first_error": -1, "step_scores": [0.0], "step_indices": [0]},
+                    {"subset": "s", "first_error": 0, "step_scores": [float("nan")], "step_indices": [0]},
+                ],
+                ("s",),
+            ),
+            (
+                [
+                    {"subset": "s", "first_error": -1, "step_scores": [0.0], "step_indices": [-1]},
+                    {"subset": "s", "first_error": 0, "step_scores": [1.0], "step_indices": [0]},
+                ],
+                ("s",),
+            ),
+            (
+                [
+                    {"subset": "s", "first_error": -1, "step_scores": [0.0], "step_indices": [0]},
+                    {"subset": "s", "first_error": 0, "step_scores": [1.0], "step_indices": [0]},
+                ],
+                ("s", "s"),
+            ),
+        ]
+        for rows, expected_subsets in fixtures:
+            outcomes = []
+            for function in (_reference_single_locator_fit, E.fit_localization_threshold):
+                try:
+                    function(rows, expected_subsets=expected_subsets)
+                except Exception as exc:  # noqa: BLE001 - exact error parity is under test
+                    outcomes.append((type(exc), str(exc)))
+                else:
+                    outcomes.append(None)
+            self.assertEqual(outcomes[0], outcomes[1])
+
+    def test_full_processbench_point_and_crossfit_hash_anchors(self):
+        validation = (
+            Path(REPO_ROOT)
+            / "results"
+            / "unified_causal_subset_validation_base7_dufs_llama31_v1"
+            / "VALIDATION_RECORDS.jsonl"
+        )
+        rows = []
+        with validation.open(encoding="utf-8") as handle:
+            for line in handle:
+                source = json.loads(line)
+                if source.get("candidate") != "base7_full28":
+                    continue
+                family = str(source["family"])
+                row_id = PB.canonical_processbench_id(family, str(source["unit"]))
+                rows.append(
+                    {
+                        "group_id": row_id,
+                        "subset": family,
+                        "first_error": int(source["target_step"]),
+                        "step_scores": [float(source["localization_score"])],
+                        "step_indices": [int(source["localization_step"])],
+                    }
+                )
+        self.assertEqual(len(rows), 3400)
+        folds = F.assign_group_folds(
+            [
+                {
+                    "group_id": row["group_id"],
+                    "family": row["subset"],
+                    "stratify_label": int(row["first_error"] != -1),
+                }
+                for row in rows
+            ]
+        )
+        for row in rows:
+            row["fold"] = folds[row["group_id"]]
+
+        point = self.assert_reference_bytes(
+            rows, expected_subsets=PB.PROCESSBENCH_SUBSETS
+        )
+        self.assertEqual(
+            F.canonical_sha256(point),
+            "e8681049457de5a589025164c2b36514d6b074bab976595cadbce7df4b043a3f",
+        )
+        reference_crossfit = _reference_single_locator_crossfit(
+            rows, expected_subsets=PB.PROCESSBENCH_SUBSETS
+        )
+        observed_crossfit = E.crossfit_localization_threshold(
+            rows, expected_subsets=PB.PROCESSBENCH_SUBSETS
+        )
+        self.assertEqual(
+            _canonical_bytes(observed_crossfit),
+            _canonical_bytes(reference_crossfit),
+        )
+        self.assertEqual(
+            F.canonical_sha256(observed_crossfit),
+            "1ea38cf10ae03d3da861f3e7c93d00904e09d3e5d908e5437dd299aa618cd77b",
+        )
+        self.assertEqual(
+            [
+                ledger["calibration_hash"]
+                for ledger in observed_crossfit["calibration_ledgers"]
+            ],
+            [
+                "7c64a8415e58e187409e453031f7168475b026c8daec17b24df04e3d212da3da",
+                "baf9e77c2db3e827e86255eee8704a64b5b4f8fb41bc09f75ca8c6f2a44aa358",
+                "ca54493def8559016796d88ad4e20b20993c48298650a714ab852e02748884ff",
+                "1fe138b3b597c869005c43db521a030e73fa77a7f9aed77ac8af2b22a7102980",
+                "f19f0f4e8f2024adfc00a6aa3978adc09299fb77be2ffb3de8ebb071ba915a2e",
+            ],
+        )
 
 
 class BootstrapTests(unittest.TestCase):
