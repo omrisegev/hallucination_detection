@@ -355,3 +355,45 @@ should be treated as machine-specific rather than as a failed check.
 Nothing in `results/local_online_comprehensive_v1/` was written to. The replay was
 redirected via a new `LOCAL_ONLINE_V1_OUT` for exactly that reason: a verification that
 can overwrite what it verifies is not a verification.
+
+---
+
+## 9. Backups complete — and Question 3
+
+Both acquisitions are on Drive and verified by comparing two independently measured
+numbers, not by trusting the uploader:
+
+| Run | Files | Bytes local | Bytes on Drive | |
+|---|---:|---:|---:|---|
+| `s1_refrain_full` | 22 / 22 | 3,185,291,662 | 3,185,291,662 | byte-identical |
+| `m2_deepconf_k512` | 361 / 361 | 20,189,077,984 | 20,189,077,984 | byte-identical |
+
+`m2_deepconf_full` (297 files / 17,744,439,979 B) was already verified and is kept, not
+merged with the K=512 pool, per §7.
+
+### Question 3 — the Fair Comparison v1 assets are not reachable from here
+
+§7 and §9 of `STATUS_FOR_CODEX_2026-08-17.md` name the canonical comparison contract as
+living on `codex/fair-paper-exact-comparisons-v1` at `8e08c3e`. That branch does not
+exist on our remote, and none of its four named assets are present in any branch we can
+see:
+
+| Asset | State |
+|---|---|
+| `docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md` | absent |
+| `spectral_utils/fair_comparisons/registry.py` | absent |
+| `spectral_utils/fair_comparisons/prefix.py` | absent |
+| `scripts/build_fair_paper_exact_comparisons_v1.py` | absent |
+
+`git ls-remote --heads origin 'refs/heads/codex/*'` returns nothing.
+
+So the step you approved next — CPU-first scoring of the common 3,400-row table — cannot
+start here, because the population/method registries and the builder that materializes
+`POPULATION_REGISTRY.json` and the per-lane `PER_QUESTION.jsonl` are on a branch we do
+not have. **Can you push `codex/fair-paper-exact-comparisons-v1`, or send the four files
+plus the commit they are pinned at?** Reimplementing the contract from its description
+would produce a second, divergent definition of the same table, which is the one outcome
+the contract exists to prevent.
+
+Unblocked and not waiting on this: the offline DeepConf derivation over the K=512 pool,
+which needs no GPU and no registry.
