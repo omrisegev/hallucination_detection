@@ -52,6 +52,7 @@ from spectral_utils.fair_comparisons.twentyfour import (  # noqa: E402
     load_unified28_model,
     open_and_verify_labels,
     partial_identity_audit,
+    paired_cell_intervals,
     per_cell_metrics,
     real_identity_preflight,
     static_preflight,
@@ -389,7 +390,25 @@ class TwentyFourFixtureTests(unittest.TestCase):
     def test_real_score_checkpoint_is_bound_by_freeze_manifest(self):
         path, observed_hash = T24._verified_score_path(REPO, "sciq_llama8b")
         self.assertEqual(path.name, "sciq_llama8b.npz")
+        self.assertEqual(path.parent.parent.name, "hard_filter_dufs_liu_24cell")
         self.assertEqual(len(observed_hash), 64)
+
+    def test_direct_roster_is_only_approved_mixed_v2_rows(self):
+        self.assertEqual(
+            DIRECT_METHOD_IDS,
+            (
+                "unified28",
+                "mixed_v2_iu_pcr_24cell",
+                "mixed_v2_dufs_liu_l0p1_24cell",
+                "max_entropy_24cell",
+            ),
+        )
+        self.assertEqual(T24.PRIMARY_INCUMBENT_METHOD_ID, T24.IU_METHOD_ID)
+        self.assertNotIn("deployed_upcr", DIRECT_METHOD_IDS)
+        self.assertEqual(
+            T24.population_id_for_cell("sciq_llama8b"),
+            f"{T24.DATASET_REVISION}::sciq_llama8b::identity-proven",
+        )
 
     def test_incumbent_scores_are_reordered_and_risk_oriented(self):
         alignment = IdentityAlignment(
@@ -406,14 +425,16 @@ class TwentyFourFixtureTests(unittest.TestCase):
         )
         checkpoint = {
             "sample_index": np.arange(3),
-            "iu_pcr": np.asarray([1.0, 2.0, 3.0]),
-            "deployed_upcr": np.asarray([4.0, 5.0, 6.0]),
-            "dufs_liu__lambda_0p1": np.asarray([7.0, 8.0, 9.0]),
+            "mixed_v2__full__iu_pcr": np.asarray([1.0, 2.0, 3.0]),
+            "mixed_v2__full__dufs_liu": np.asarray([7.0, 8.0, 9.0]),
         }
         scores = incumbent_risk_scores(checkpoint, alignment)
-        np.testing.assert_array_equal(scores["mixed_v2_iu_pcr"], [-3.0, -1.0, -2.0])
-        np.testing.assert_array_equal(scores["deployed_upcr"], [-6.0, -4.0, -5.0])
-        np.testing.assert_array_equal(scores["mixed_v2_dufs_liu_l0p1"], [-9.0, -7.0, -8.0])
+        np.testing.assert_array_equal(
+            scores["mixed_v2_iu_pcr_24cell"], [-3.0, -1.0, -2.0]
+        )
+        np.testing.assert_array_equal(
+            scores["mixed_v2_dufs_liu_l0p1_24cell"], [-9.0, -7.0, -8.0]
+        )
 
     def test_per_cell_metrics_require_identical_direct_rows_and_crossfit(self):
         rows = []
@@ -440,6 +461,65 @@ class TwentyFourFixtureTests(unittest.TestCase):
         rows.pop()
         with self.assertRaisesRegex(TwentyFourError, "row IDs differ"):
             per_cell_metrics(rows)
+
+    def test_grouped_bootstrap_carries_candidate_siblings_without_overwrite(self):
+        rows = []
+        n_candidate_rows = 0
+        for group_index in range(100):
+            candidate_count = 2 if group_index % 7 == 0 else 1
+            n_candidate_rows += candidate_count
+            for candidate in range(candidate_count):
+                label = (group_index + candidate) % 2
+                for method_index, method_id in enumerate(DIRECT_METHOD_IDS):
+                    rows.append(
+                        {
+                            "cell_id": "sciq_llama8b",
+                            "population_id": T24.population_id_for_cell(
+                                "sciq_llama8b"
+                            ),
+                            "group_id": f"sciq_llama8b::q{group_index}",
+                            "row_id": (
+                                f"sciq_llama8b::q{group_index}::candidate{candidate}"
+                            ),
+                            "family": "sciq",
+                            "method_id": method_id,
+                            "label": label,
+                            "continuous_score": float(
+                                label + method_index * 1e-3 + candidate * 1e-5
+                            ),
+                            "fold": group_index % 5,
+                        }
+                    )
+        result = paired_cell_intervals(rows, n_boot=4, seed=20260818)
+        self.assertEqual(result["source_question_groups"], 100)
+        self.assertEqual(result["candidate_rows"], n_candidate_rows)
+        self.assertTrue(result["candidate_siblings_carried_together"])
+        self.assertEqual(
+            result["population_ordered_id_sha256"],
+            T24.ordered_id_sha256(
+                [
+                    row["row_id"]
+                    for row in rows
+                    if row["method_id"] == T24.U28_METHOD_ID
+                ]
+            ),
+        )
+        self.assertEqual(
+            result["primary_contrast"]["right_method_id"], T24.IU_METHOD_ID
+        )
+        self.assertEqual(result["n_boot"], 4)
+
+        split = [dict(row) for row in rows]
+        first = next(
+            row
+            for row in split
+            if row["method_id"] == T24.U28_METHOD_ID
+            and row["group_id"] == "sciq_llama8b::q0"
+            and row["row_id"].endswith("candidate0")
+        )
+        first["fold"] = 1
+        with self.assertRaisesRegex(TwentyFourError, "split across folds"):
+            paired_cell_intervals(split, n_boot=2, seed=20260818)
 
 
 def _real_main(argv: list[str]) -> int:

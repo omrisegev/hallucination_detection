@@ -135,8 +135,13 @@ from spectral_utils.fair_comparisons.stopping import (  # noqa: E402
 )
 from spectral_utils.fair_comparisons.twentyfour import (  # noqa: E402
     BLOCKED_CELL as TWENTYFOUR_BLOCKED_CELL,
-    POPULATION_ID as TWENTYFOUR_POPULATION_ID,
-    partial_identity_audit as twentyfour_partial_identity_audit,
+    DIRECT_METHOD_IDS as TWENTYFOUR_DIRECT_METHOD_IDS,
+    DUFS_METHOD_ID as TWENTYFOUR_DUFS_METHOD_ID,
+    IU_METHOD_ID as TWENTYFOUR_IU_METHOD_ID,
+    MAX_ENTROPY_METHOD_ID as TWENTYFOUR_MAX_ENTROPY_METHOD_ID,
+    ORDINARY36_CONTEXT_METHOD_ID as TWENTYFOUR_ORDINARY36_CONTEXT_METHOD_ID,
+    PRIMARY_INCUMBENT_METHOD_ID as TWENTYFOUR_PRIMARY_INCUMBENT_METHOD_ID,
+    build_identity_proven_lane as build_twentyfour_identity_proven_lane,
     static_preflight as twentyfour_static_preflight,
 )
 
@@ -330,6 +335,14 @@ def _portable_twentyfour_output(
     return normalized
 
 
+def _portable_unified_tree_manifest(path: Path) -> dict[str, Any]:
+    """Hash a Unified worktree without leaking its execution-time directory name."""
+
+    manifest = dict(tree_manifest(path))
+    manifest["root_label"] = "${UNIFIED_WORKTREE}"
+    return manifest
+
+
 def _evaluator_run_contract(n_boot: int) -> dict[str, Any]:
     """Bind the evaluator summary to this run's actual uncertainty workload."""
 
@@ -375,7 +388,13 @@ def _report_identity(
         "title": title,
         "summary": summary,
         "testing_only": bool(testing_only),
-        "publication_eligible": not bool(testing_only),
+        "publication_build_mode_eligible": not bool(testing_only),
+        "publication_acceptance_requires_independent_rebuild": True,
+        "publication_acceptance_status_at_build": (
+            "ineligible-testing-only"
+            if testing_only
+            else "pending-independent-byte-identical-rebuild"
+        ),
         "bootstrap_replicates": int(n_boot),
         "bootstrap_seed": DEFAULT_BOOTSTRAP_SEED,
         "confidence_interval_status": ci_status,
@@ -1630,6 +1649,7 @@ def build_registries(
     localization: Mapping[str, Any],
     prefix: Mapping[str, Any],
     stopping: Mapping[str, Any],
+    twentyfour: Mapping[str, Any],
     run_commit: str,
     unified_tree: Mapping[str, Any] | None,
 ) -> dict[str, Any]:
@@ -1642,6 +1662,9 @@ def build_registries(
     ) + [
         ROOT / "spectral_utils" / "paper_exact" / "evaluator.py",
         ROOT / "spectral_utils" / "unified_causal_evaluation.py",
+        ROOT / "spectral_utils" / "a5_target_free_data.py",
+        ROOT / "spectral_utils" / "feature_utils.py",
+        ROOT / "spectral_utils" / "answer_span.py",
         Path(__file__).resolve(),
     ]
     evaluator_paths = sorted(set(evaluator_paths), key=lambda path: str(path.relative_to(ROOT)))
@@ -2038,11 +2061,70 @@ def build_registries(
     ]
     twentyfour_paths = [
         ROOT / "results" / "dependency_fusion_raw" / "cells.npz",
-        ROOT / "results" / "frozen_24cell_benchmark" / "SCORE_FREEZE_MANIFEST.json",
-        ROOT / "results" / "frozen_24cell_benchmark" / "RUN_DEFINITION.json",
-        ROOT / "results" / "frozen_24cell_benchmark" / "FIT_COMPLETE.json",
+        ROOT / "results" / "hard_filter_dufs_liu_24cell" / "SCORE_FREEZE_MANIFEST.json",
+        ROOT / "results" / "hard_filter_dufs_liu_24cell" / "RUN_DEFINITION.json",
+        ROOT / "results" / "hard_filter_dufs_liu_24cell" / "FIT_COMPLETE.json",
+        ROOT / "scripts" / "hard_filter_dufs_liu_benchmark.py",
+        ROOT / "spectral_utils" / "fair_comparisons" / "twentyfour.py",
     ]
-    twentyfour_assets = [_asset(path) for path in twentyfour_paths]
+    twentyfour_protocol_assets = [_asset(path) for path in twentyfour_paths]
+    scored_audits = [
+        row
+        for row in twentyfour["identity_audit"].get("audits", [])
+        if row.get("status") == "scored-identity-proven"
+    ]
+    scored_cells = [str(row["cell_id"]) for row in scored_audits]
+    if scored_cells != sorted(scored_cells) or len(scored_cells) != len(set(scored_cells)):
+        raise ValueError("24-cell scored audit must have unique sorted cells")
+    twentyfour_score_assets = [
+        _verified_local_asset(
+            ROOT
+            / "results"
+            / "hard_filter_dufs_liu_24cell"
+            / "scores"
+            / f"{row['cell_id']}.npz",
+            expected_sha256=str(row["mixed_v2_score_sha256"]),
+        )
+        for row in scored_audits
+    ]
+    twentyfour_source_assets = [
+        _remote_asset(
+            artifact_id=f"24cell-staged-source/{row['cell_id']}",
+            uri=f"staged:{row['source']['raw_path']}",
+            size_bytes=int(row["source"]["source_size"]),
+            sha256=str(row["source"]["source_sha256"]),
+        )
+        for row in scored_audits
+    ]
+    twentyfour_u28_replay_assets = []
+    for row in scored_audits:
+        preimage = {
+            "schema": "unified28_24cell_replay_source_v1",
+            "model_artifact_sha256": str(twentyfour["model_artifact_sha256"]),
+            "raw_source_sha256": str(row["source"]["source_sha256"]),
+        }
+        twentyfour_u28_replay_assets.append(
+            _derived_asset(
+                artifact_id=f"24cell-unified28-replay/{row['cell_id']}",
+                uri=f"derived:24cell-unified28-replay/{row['cell_id']}",
+                projection={
+                    "schema": "24cell_unified28_replay_fingerprint_v1",
+                    "cell_id": str(row["cell_id"]),
+                    "ordered_id_sha256": str(row["ordered_id_sha256"]),
+                },
+                source_fingerprint_aliases=[canonical_sha256(preimage)],
+                source_fingerprint_preimages=[preimage],
+            )
+        )
+    unified_method_assets.extend(
+        [*twentyfour_source_assets, *twentyfour_u28_replay_assets]
+    )
+    twentyfour_assets = [
+        *twentyfour_protocol_assets,
+        *twentyfour_score_assets,
+        *twentyfour_source_assets,
+        *twentyfour_u28_replay_assets,
+    ]
     assets = [
         _asset(PROTOCOL),
         *[_asset(path) for path in evaluator_paths],
@@ -2103,6 +2185,92 @@ def build_registries(
                 "iu_fit": "ordinary two-component L2",
                 "accumulator": "identity",
                 "dufs": False,
+            },
+        )
+    )
+    for method_id, display_name, checkpoint, deviations in (
+        (
+            TWENTYFOUR_IU_METHOD_ID,
+            "Dedicated 24-cell incumbent: mixed-v2 ordinary IU-PCR (full pool)",
+            "hard-filter-dufs-liu-24cell/mixed_v2__full__iu_pcr",
+            ["frozen full-pool ordinary two-component L2 IU-PCR; no outcome refit"],
+        ),
+        (
+            TWENTYFOUR_DUFS_METHOD_ID,
+            "24-cell mixed-v2 DUFS-LIU (full pool, lambda=0.1)",
+            "hard-filter-dufs-liu-24cell/mixed_v2__full__dufs_liu",
+            ["frozen full-pool DUFS-LIU secondary incumbent; no outcome refit"],
+        ),
+    ):
+        methods.append(
+            _method(
+                method_id=method_id,
+                display_name=display_name,
+                fidelity="adapted-common-protocol",
+                artifacts=[*twentyfour_protocol_assets, *twentyfour_score_assets],
+                access=_access(
+                    "complete target-cell telemetry matrix plus each generated trace",
+                    "none; unsupervised transductive per-cell full-pool fit",
+                    0,
+                    1,
+                ),
+                run_commit=run_commit,
+                evaluator_hash=evaluator_hash,
+                training=(
+                    "label-free fit on each frozen 24-cell feature matrix; score files "
+                    "were hashed before correctness labels were opened"
+                ),
+                checkpoint=checkpoint,
+                deviations=deviations,
+                extra={
+                    "artifact_generation_commit": (
+                        "pre-contract source; hard-filter run definition, implementation, "
+                        "and per-cell score hashes are package-bound"
+                    ),
+                    "labels_read_during_score_construction": False,
+                    "outcome_selection_performed": False,
+                },
+            )
+        )
+    methods.append(
+        _method(
+            method_id=TWENTYFOUR_MAX_ENTROPY_METHOD_ID,
+            display_name="24-cell maximum token entropy",
+            fidelity="adapted-common-protocol",
+            artifacts=[*twentyfour_protocol_assets, *twentyfour_source_assets],
+            access=_access("single trace token entropy", "none", 0, 1),
+            run_commit=run_commit,
+            evaluator_hash=evaluator_hash,
+            training="transparent statistic; no fitted parameters or labels",
+            checkpoint="24cell-transparent-max-entropy-v1",
+            deviations=["transparent same-row baseline"],
+            extra={"artifact_generation_commit": run_commit},
+        )
+    )
+    methods.append(
+        make_method_entry(
+            method_id=TWENTYFOUR_ORDINARY36_CONTEXT_METHOD_ID,
+            display_name="Ordinary-36 historical 24-cell control (records unavailable)",
+            fidelity="blocked-assets",
+            source_artifacts=[],
+            access=_access(
+                "historical aggregate metrics; per-row inputs unavailable",
+                "pre-contract provenance unavailable",
+                None,
+                None,
+            ),
+            training_label_use="unknown; no auditable per-row artifact exists",
+            checkpoint_revision=None,
+            prompt_sha256=None,
+            decoding_sha256=None,
+            evaluator_sha256=evaluator_hash,
+            run_commit=None,
+            deviations=[
+                "named context row only; unavailable per-row scores prevent an exact join"
+            ],
+            extra={
+                "package_build_commit": run_commit,
+                "artifact_generation_commit": "not-recorded; aggregate-only historical note",
             },
         )
     )
@@ -2568,6 +2736,26 @@ def build_registries(
         _population_entry_from_pb(localization["population"], lane="localization"),
         *_prefix_population_entries(prefix),
         *_stopping_population_entries(stopping),
+        *[
+            make_population_entry(
+                population_id=str(population["population_id"]),
+                lane="global",
+                dataset_revision=str(population["dataset_revision"]),
+                ordered_ids=population["ordered_ids"],
+                group_ids=population["group_ids"],
+                cell_ids=population["cell_ids"],
+                families=population["families"],
+                label_definition=population["label_definition"],
+                eligibility_rules=population["eligibility_rules"],
+                extra={
+                    "source_dataset_revision": population["source_dataset_revision"],
+                    "included_methods": list(TWENTYFOUR_DIRECT_METHOD_IDS),
+                    "panel": "global_24cell_identity_proven",
+                    "headline_scope": "per-cell-only",
+                },
+            )
+            for population in twentyfour.get("populations", [])
+        ],
     ]
     return {
         "assets": build_asset_registry(unique_assets.values()),
@@ -2615,6 +2803,7 @@ def build_join_audit(
     localization: Mapping[str, Any],
     prefix: Mapping[str, Any],
     stopping: Mapping[str, Any],
+    twentyfour: Mapping[str, Any],
 ) -> dict[str, Any]:
     expectations = _global_join_expectations(global_pb)
     for method_id in localization["method_ids"]:
@@ -2630,6 +2819,69 @@ def build_join_audit(
     # registry.  Observed method rows are the object being audited and therefore
     # cannot define their own expected coverage.
     registered_populations = population_index(registries["populations"])
+    twentyfour_population_ids = {
+        str(row["population_id"]) for row in twentyfour.get("populations", [])
+    }
+    twentyfour_audits_by_cell = {
+        str(row["cell_id"]): row
+        for row in twentyfour["identity_audit"].get("audits", [])
+        if row.get("status") == "scored-identity-proven"
+    }
+    twentyfour_population_cells = {
+        str(population["cell_ids"][0])
+        for population in twentyfour.get("populations", [])
+    }
+    if set(twentyfour_audits_by_cell) != twentyfour_population_cells:
+        raise ValueError(
+            "24-cell successful-audit and registered-population cell sets differ"
+        )
+    for population_id in sorted(twentyfour_population_ids):
+        population = registered_populations[population_id]
+        if population.get("panel") != "global_24cell_identity_proven":
+            raise ValueError(f"24-cell population panel drift: {population_id}")
+        if tuple(population["included_methods"]) != TWENTYFOUR_DIRECT_METHOD_IDS:
+            raise ValueError(f"24-cell direct roster drift: {population_id}")
+        cell_id = str(population["cell_ids"][0])
+        if cell_id not in twentyfour_audits_by_cell:
+            raise ValueError(f"24-cell population lacks an independent source audit: {cell_id}")
+        source_audit = twentyfour_audits_by_cell[cell_id]
+        if (
+            source_audit.get("population_id") != population_id
+            or source_audit.get("ordered_id_sha256")
+            != population["ordered_id_sha256"]
+            or int(source_audit.get("rows", -1)) != len(population["ordered_ids"])
+        ):
+            raise ValueError(
+                f"24-cell source audit does not bind the registered population: {cell_id}"
+            )
+        raw_source_hash = str(source_audit["source"]["source_sha256"])
+        score_hash = str(source_audit["mixed_v2_score_sha256"])
+        unified_source_hash = canonical_sha256(
+            {
+                "schema": "unified28_24cell_replay_source_v1",
+                "model_artifact_sha256": str(twentyfour["model_artifact_sha256"]),
+                "raw_source_sha256": raw_source_hash,
+            }
+        )
+        expected_source_hashes = {
+            "unified28": unified_source_hash,
+            TWENTYFOUR_IU_METHOD_ID: score_hash,
+            TWENTYFOUR_DUFS_METHOD_ID: score_hash,
+            TWENTYFOUR_MAX_ENTROPY_METHOD_ID: raw_source_hash,
+        }
+        for method_id in TWENTYFOUR_DIRECT_METHOD_IDS:
+            expectations.append(
+                {
+                    "population_id": population_id,
+                    "method_id": method_id,
+                    "budget": "final",
+                    "eligible_row_ids": population["ordered_ids"],
+                    "eligible_ordered_id_sha256": population["ordered_id_sha256"],
+                    "expected_source_artifact_hash": expected_source_hashes[method_id],
+                    "headline": True,
+                    "table_id": f"global-24cell-{cell_id}",
+                }
+            )
     for population in sorted(
         (
             row
@@ -3341,6 +3593,100 @@ def build_report_tables(
             ],
         },
     ]
+    twentyfour_population_by_cell = {
+        str(population["cell_ids"][0]): population
+        for population in twentyfour.get("populations", [])
+    }
+    for cell_id in sorted(twentyfour_population_by_cell):
+        population = twentyfour_population_by_cell[cell_id]
+        cell_metrics = twentyfour["metrics_by_cell"][cell_id]
+        interval_key = (
+            "delta_auroc__unified28__minus__"
+            f"{TWENTYFOUR_PRIMARY_INCUMBENT_METHOD_ID}"
+        )
+        interval = twentyfour["intervals_by_cell"][cell_id]["statistics"][interval_key]
+        interval_container = twentyfour["intervals_by_cell"][cell_id]
+        if (
+            interval_container.get("population_id") != population["population_id"]
+            or interval_container.get("population_ordered_id_sha256")
+            != population["ordered_id_sha256"]
+            or int(interval_container.get("candidate_rows", -1))
+            != len(population["ordered_ids"])
+        ):
+            raise ValueError(
+                f"24-cell paired interval population binding failed: {cell_id}"
+            )
+        interval_text = (
+            f"{float(interval['point']):+.4f} "
+            f"[{float(interval['ci_low']):+.4f}, {float(interval['ci_high']):+.4f}]"
+        )
+        rows = []
+        for method_id in TWENTYFOUR_DIRECT_METHOD_IDS:
+            metric = cell_metrics[method_id]
+            point5 = metric["operating_fpr_05"]
+            point10 = metric["operating_fpr_10"]
+            rows.append(
+                _report_row(
+                    methods[method_id],
+                    {
+                        "n": metric["n"],
+                        "AUROC": metric["auroc"],
+                        "error AUPRC": metric["error_auprc"],
+                        "TPR@5%": point5["error_tpr"],
+                        "precision@5%": point5["error_precision"],
+                        "observed FPR@5%": point5["observed_fpr"],
+                        "TPR@10%": point10["error_tpr"],
+                        "precision@10%": point10["error_precision"],
+                        "observed FPR@10%": point10["observed_fpr"],
+                        "population hash": population["ordered_id_sha256"],
+                        "evaluator hash": methods[method_id]["evaluator_sha256"],
+                        "paired AUROC Δ vs incumbent (95% CI)": (
+                            interval_text if method_id == "unified28" else None
+                        ),
+                    },
+                )
+            )
+        direct.append(
+            {
+                "table_id": f"global-24cell-{cell_id}",
+                "title": f"Global — frozen 24-cell transfer: {cell_id}",
+                "lane": "global",
+                "description": (
+                    "One independently complete identity-proven cell. All four methods use "
+                    "the exact same canonical candidate rows; no cross-cell aggregate is implied."
+                ),
+                "required_method_ids": list(TWENTYFOUR_DIRECT_METHOD_IDS),
+                "direct_claim_contract": {
+                    "eligible_population_hash_fields": ["population hash"],
+                    "evaluator_hash_field": "evaluator hash",
+                    "paired_intervals": [
+                        {
+                            "left_method_id": "unified28",
+                            "right_method_id": TWENTYFOUR_PRIMARY_INCUMBENT_METHOD_ID,
+                            "field": "paired AUROC Δ vs incumbent (95% CI)",
+                        }
+                    ],
+                },
+                "rows": rows,
+                "columns": [
+                    "method",
+                    "fidelity",
+                    "access",
+                    "n",
+                    "AUROC",
+                    "error AUPRC",
+                    "TPR@5%",
+                    "precision@5%",
+                    "observed FPR@5%",
+                    "TPR@10%",
+                    "precision@10%",
+                    "observed FPR@10%",
+                    "population hash",
+                    "evaluator hash",
+                    "paired AUROC Δ vs incumbent (95% CI)",
+                ],
+            }
+        )
     context_prefix_rows = []
     context_by_method: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
     for metric in prefix["context_metrics"]["per_cell_method"]:
@@ -3383,6 +3729,55 @@ def build_report_tables(
         )
         for row in localization["prmbench_native"]["rows"]
     ]
+    twentyfour_context_rows = [
+        _report_row(
+            methods[row["method_id"]],
+            {
+                "scope": row["scope"],
+                "cells": row["n_cells"],
+                "equal proven-cell AUROC": row["equal_proven_cell_auroc"],
+                "equal proven-cell error AUPRC": row[
+                    "equal_proven_cell_error_auprc"
+                ],
+                "families": row["n_families"],
+                "equal proven-family AUROC": row["equal_proven_family_auroc"],
+                "equal proven-family error AUPRC": row[
+                    "equal_proven_family_error_auprc"
+                ],
+                "equal proven-cell operating points": row[
+                    "equal_proven_cell_operating_points"
+                ],
+                "equal proven-family operating points": row[
+                    "equal_proven_family_operating_points"
+                ],
+                "population-set hash": row["population_set_sha256"],
+                "status": "coverage only; incomplete cell set; not a 23-cell headline",
+            },
+            headline_eligible=False,
+        )
+        for row in twentyfour.get("coverage_context", [])
+    ]
+    ordinary36_context = dict(twentyfour.get("ordinary36_context", {}))
+    if ordinary36_context:
+        twentyfour_context_rows.append(
+            _report_row(
+                methods[ordinary36_context["method_id"]],
+                {
+                    "scope": "historical",
+                    "cells": None,
+                    "equal proven-cell AUROC": None,
+                    "equal proven-cell error AUPRC": None,
+                    "families": None,
+                    "equal proven-family AUROC": None,
+                    "equal proven-family error AUPRC": None,
+                    "equal proven-cell operating points": None,
+                    "equal proven-family operating points": None,
+                    "population-set hash": None,
+                    "status": ordinary36_context["reason"],
+                },
+                headline_eligible=False,
+            )
+        )
     context = [
         {
             "table_id": "global-pb-frozen-search-context",
@@ -3410,6 +3805,32 @@ def build_report_tables(
                 "population hash",
                 "evaluator hash",
                 "status",
+            ],
+        },
+        {
+            "table_id": "global-24cell-incomplete-coverage-context",
+            "title": "Global — 24-cell coverage-only context",
+            "lane": "global",
+            "description": (
+                "Math, QA, and overall summaries cover only independently proven cells and "
+                "are not eligible for a 23-cell win/tie/loss claim."
+            ),
+            "rows": twentyfour_context_rows,
+            "columns": [
+                "method",
+                "scope",
+                "cells",
+                "equal proven-cell AUROC",
+                "equal proven-cell error AUPRC",
+                "families",
+                "equal proven-family AUROC",
+                "equal proven-family error AUPRC",
+                "equal proven-cell operating points",
+                "equal proven-family operating points",
+                "population-set hash",
+                "status",
+                "fidelity",
+                "access",
             ],
         },
         {
@@ -3465,13 +3886,14 @@ def build_report_tables(
             "description": "These rows are visible but excluded from headline aggregates.",
             "rows": [
                 {
-                    "method_id": "global_24cell",
-                    "method": "24-cell Global direct panel",
+                    "method_id": "global_24cell_remaining",
+                    "method": "24-cell Global cells without proven identity",
                     "status": (
-                        f"identity gate incomplete: {twentyfour['identity_aligned_cells']}/"
-                        f"{twentyfour['headline_eligible_cells']} eligible cells aligned and "
-                        f"{twentyfour['source_file_size_ready_cells']} have size-ready local "
-                        f"sources; {TWENTYFOUR_BLOCKED_CELL} has no frozen identity ledger"
+                        f"{twentyfour['scored_cells']} identity-proven cells have independent "
+                        f"direct tables; {twentyfour['nominal_registered_identity_target_cells'] - twentyfour['scored_cells']} "
+                        "registered-source cells remain blocked from direct scoring; no incomplete "
+                        f"23-cell aggregate is reported; {TWENTYFOUR_BLOCKED_CELL} additionally "
+                        "has no frozen identity ledger"
                     ),
                     "fidelity": "blocked-assets",
                     "access": blocked_access,
@@ -3584,14 +4006,43 @@ def write_package(
 
     lanes = {
         "global": {
-            "records": global_pb["records"],
-            "metrics": global_pb["metrics"],
-            "intervals": global_pb["intervals"],
-            "calibration": {
-                row["method_id"]: row["operating_points"]
-                for row in global_pb["metrics"]["methods"]
+            "records": global_pb["records"] + twentyfour.get("records", []),
+            "metrics": {
+                **global_pb["metrics"],
+                "twentyfour_per_cell": twentyfour.get("metrics_by_cell", {}),
+                "twentyfour_coverage_context": twentyfour.get(
+                    "coverage_context", []
+                ),
             },
-            "audits": global_pb["adapter_audits"],
+            "intervals": {
+                **global_pb["intervals"],
+                "twentyfour_per_cell": twentyfour.get("intervals_by_cell", {}),
+            },
+            "calibration": {
+                "processbench": {
+                    row["method_id"]: row["operating_points"]
+                    for row in global_pb["metrics"]["methods"]
+                },
+                "twentyfour_per_cell": {
+                    cell_id: {
+                        method_id: {
+                            "fpr_05": metrics["operating_fpr_05"],
+                            "fpr_10": metrics["operating_fpr_10"],
+                        }
+                        for method_id, metrics in by_method.items()
+                    }
+                    for cell_id, by_method in twentyfour.get(
+                        "metrics_by_cell", {}
+                    ).items()
+                },
+            },
+            "audits": {
+                "processbench": global_pb["adapter_audits"],
+                "twentyfour": twentyfour.get("identity_audit", {}),
+                "processbench_transfer_anchor": twentyfour.get(
+                    "processbench_anchor", {}
+                ),
+            },
         },
         "localization": {
             "records": localization["records"],
@@ -3662,7 +4113,21 @@ def write_package(
             "metric_rows": stopping["cell_metrics"],
         },
     }
-    lanes["global"]["metric_rows"] = global_pb["metrics"]["methods"]
+    lanes["global"]["metric_rows"] = global_pb["metrics"]["methods"] + [
+        {
+            "panel": "24cell_identity_proven_per_cell",
+            "cell_id": cell_id,
+            "population_id": next(
+                population["population_id"]
+                for population in twentyfour.get("populations", [])
+                if population["cell_ids"][0] == cell_id
+            ),
+            "method_id": method_id,
+            **metrics,
+        }
+        for cell_id, by_method in twentyfour.get("metrics_by_cell", {}).items()
+        for method_id, metrics in by_method.items()
+    ]
     for lane, values in lanes.items():
         lane_dir = output / "lanes" / lane
         canonical = canonicalize_comparison_records(
@@ -3716,6 +4181,44 @@ def write_package(
     write_json(
         output / "lanes" / "global" / "TWENTYFOUR_IDENTITY_AUDIT.json",
         _json_safe(twentyfour["identity_audit"]),
+    )
+    write_json(
+        output / "lanes" / "global" / "TWENTYFOUR_PROCESSBENCH_ANCHOR.json",
+        _json_safe(twentyfour.get("processbench_anchor", {})),
+    )
+    write_json(
+        output / "lanes" / "global" / "TWENTYFOUR_PER_CELL_METRICS.json",
+        _json_safe(twentyfour.get("metrics_by_cell", {})),
+    )
+    write_long_csv(
+        output / "lanes" / "global" / "TWENTYFOUR_PER_CELL_METRICS.csv",
+        _json_safe(
+            [
+                {"cell_id": cell_id, "method_id": method_id, **metrics}
+                for cell_id, by_method in twentyfour.get(
+                    "metrics_by_cell", {}
+                ).items()
+                for method_id, metrics in by_method.items()
+            ]
+        ),
+    )
+    write_json(
+        output / "lanes" / "global" / "TWENTYFOUR_PAIRED_INTERVALS.json",
+        _json_safe(twentyfour.get("intervals_by_cell", {})),
+    )
+    write_json(
+        output / "lanes" / "global" / "TWENTYFOUR_FOLD_LEDGERS.json",
+        _json_safe(twentyfour.get("folds_by_cell", {})),
+    )
+    write_json(
+        output / "lanes" / "global" / "TWENTYFOUR_COVERAGE_CONTEXT.json",
+        _json_safe(
+            {
+                "rows": twentyfour.get("coverage_context", []),
+                "ordinary36": twentyfour.get("ordinary36_context", {}),
+                "aggregate_23cell_headline_materialized": False,
+            }
+        ),
     )
     write_json(
         output / "lanes" / "global" / "MIXED_V2_DUFS_REPLAY_AUDIT.json",
@@ -3785,17 +4288,21 @@ def write_package(
             "leash_mistral": "both cells failed at tokenizer chat-template setup",
         },
         "blocked": {
-            "global_24cell": {
+            "global_24cell_remaining_and_aggregate": {
                 "missing_or_stale_sources": twentyfour["blocked"],
                 "identity_failures": [
                     row
                     for row in twentyfour["identity_audit"].get("audits", [])
-                    if row.get("status") != "identity-proven"
+                    if row.get("status") != "scored-identity-proven"
                 ],
                 "identity_proven_cells": twentyfour["identity_aligned_cells"],
                 "identity_proven_rows": twentyfour["identity_aligned_rows"],
                 "scored_cells": twentyfour["scored_cells"],
-                "headline_eligible": False,
+                "per_cell_direct_tables_headline_eligible": bool(
+                    twentyfour["scored_cells"]
+                ),
+                "aggregate_23cell_headline_eligible": False,
+                "ordinary36": twentyfour.get("ordinary36_context", {}),
             },
             "global_s2_cot": {
                 "reason": prefix["s2_audit"]["reason"],
@@ -3836,7 +4343,7 @@ def write_package(
             ],
         },
         "excluded_from_headline": [
-            "global_24cell",
+            "global_24cell_incomplete_aggregate",
             "global_s2_cot",
             "prefix_s2_cot",
             "prefix_other_historical_cells",
@@ -3846,7 +4353,7 @@ def write_package(
             "full_uprm",
             "streaming",
         ],
-        "verified_recoverable_without_gpu_but_not_fetched": {
+        "precontract_inventory_recoverable_but_unbound_and_outside_approved_movement": {
             "internalstates_gsm8k_qwen25_7b": {
                 "uri": (
                     "gdrive:hallucination_detection/cluster_results/regen/"
@@ -3857,9 +4364,14 @@ def write_package(
                 "manifest_sha256": (
                     "0951afa2aa81c7a8f6c52f4ba6077eadc40261fca11ce231a5dee5c87a3ca4bf"
                 ),
+                "package_binding": (
+                    "not in the frozen Drive observation or asset registry; refresh and "
+                    "separate download approval are required before use"
+                ),
                 "note": (
-                    "exact frozen payload verified read-only on Drive; not fetched because "
-                    "the approved minimal-movement wave authorized only L1 and six S2 cells"
+                    "exact frozen payload was verified read-only on Drive; any local copy is "
+                    "ignored because the approved minimal-movement wave authorized only L1 "
+                    "and six S2 cells"
                 ),
             }
         },
@@ -3980,7 +4492,13 @@ def write_package(
             "runtime_paths_clean_at_build": bool(runtime_paths_clean),
             "testing_only": bool(testing_only),
             "testing_deviations": list(testing_deviations),
-            "publication_eligible": not bool(testing_only),
+            "publication_build_mode_eligible": not bool(testing_only),
+            "publication_acceptance_requires_independent_rebuild": True,
+            "publication_acceptance_status_at_build": (
+                "ineligible-testing-only"
+                if testing_only
+                else "pending-independent-byte-identical-rebuild"
+            ),
             "rclone_operational_risk": "shared Google Drive client_id is scheduled for retirement during 2026",
         },
     )
@@ -4040,7 +4558,15 @@ def write_package(
             "evaluator_sha256": registries["evaluator_hash"],
             "processbench_ordered_id_sha256": pb["population"].ordered_id_sha256,
             "testing_only": report_identity["testing_only"],
-            "publication_eligible": report_identity["publication_eligible"],
+            "publication_build_mode_eligible": report_identity[
+                "publication_build_mode_eligible"
+            ],
+            "publication_acceptance_requires_independent_rebuild": report_identity[
+                "publication_acceptance_requires_independent_rebuild"
+            ],
+            "publication_acceptance_status_at_build": report_identity[
+                "publication_acceptance_status_at_build"
+            ],
             "bootstrap_replicates": report_identity["bootstrap_replicates"],
             "bootstrap_seed": report_identity["bootstrap_seed"],
             "confidence_interval_status": report_identity[
@@ -4145,8 +4671,27 @@ def main() -> None:
         verify_raw_hashes=False,
     )
     if args.skip_twentyfour_identity_audit:
+        twentyfour_lane = {
+            "schema": "24cell_global_identity_proven_lane_v1",
+            "direct_method_ids": list(TWENTYFOUR_DIRECT_METHOD_IDS),
+            "primary_incumbent_method_id": TWENTYFOUR_PRIMARY_INCUMBENT_METHOD_ID,
+            "processbench_anchor": {},
+            "populations": [],
+            "records": [],
+            "metrics_by_cell": {},
+            "intervals_by_cell": {},
+            "folds_by_cell": {},
+            "coverage_context": [],
+            "ordinary36_context": {
+                "method_id": TWENTYFOUR_ORDINARY36_CONTEXT_METHOD_ID,
+                "status": "context-unavailable",
+                "reason": "no auditable per-row score records exist for a strict identity join",
+                "direct_table_eligible": False,
+            },
+            "aggregate_23cell_headline_materialized": False,
+        }
         identity_audit = {
-            "schema": "24cell_partial_identity_audit_v1",
+            "schema": "24cell_identity_and_scoring_audit_v1",
             "skipped_for_smoke_test": True,
             "identity_proven_cells": 0,
             "identity_proven_rows": 0,
@@ -4155,17 +4700,26 @@ def main() -> None:
             "audits": [],
             "all_ok": False,
         }
+        twentyfour_lane["identity_audit"] = identity_audit
     else:
-        identity_audit = twentyfour_partial_identity_audit(
+        twentyfour_lane = build_twentyfour_identity_proven_lane(
             ROOT,
             source_root=twentyfour_source_root,
             cells=[row["cell_id"] for row in twentyfour["sources"]],
+            n_boot=args.bootstrap,
+            seed=DEFAULT_BOOTSTRAP_SEED,
         )
+        identity_audit = twentyfour_lane["identity_audit"]
+    for key, value in twentyfour_lane.items():
+        if key != "schema":
+            twentyfour[key] = value
     twentyfour["identity_audit"] = identity_audit
     twentyfour["identity_aligned_cells"] = int(
         identity_audit["identity_proven_cells"]
     )
     twentyfour["identity_aligned_rows"] = int(identity_audit["identity_proven_rows"])
+    twentyfour["scored_cells"] = int(identity_audit.get("scored_cells", 0))
+    twentyfour["scored_rows"] = int(identity_audit.get("scored_rows", 0))
     twentyfour = _portable_twentyfour_output(
         twentyfour,
         source_root=twentyfour_source_root,
@@ -4180,13 +4734,14 @@ def main() -> None:
     print("[6/8] S2 stopping panel verified/scored", flush=True)
     unified_tree = None
     if not args.skip_unified_worktree_hash:
-        unified_tree = tree_manifest(args.hash_unified_worktree)
+        unified_tree = _portable_unified_tree_manifest(args.hash_unified_worktree)
     registries = build_registries(
         pb=pb,
         global_pb=global_pb,
         localization=localization,
         prefix=prefix,
         stopping=stopping,
+        twentyfour=twentyfour,
         run_commit=run_commit,
         unified_tree=unified_tree,
     )
@@ -4195,6 +4750,7 @@ def main() -> None:
         + localization["records"]
         + prefix["records"]
         + stopping["records"]
+        + twentyfour.get("records", [])
     )
     join_audit = build_join_audit(
         records=all_records,
@@ -4203,6 +4759,7 @@ def main() -> None:
         localization=localization,
         prefix=prefix,
         stopping=stopping,
+        twentyfour=twentyfour,
     )
     print("[7/8] Registries and strict join gate passed", flush=True)
     write_package(

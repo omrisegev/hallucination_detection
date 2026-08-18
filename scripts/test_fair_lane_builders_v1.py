@@ -44,6 +44,7 @@ from scripts.build_fair_paper_exact_comparisons_v1 import (  # noqa: E402
     _global_join_expectations,
     _partition_global_report_rows,
     _portable_twentyfour_output,
+    _portable_unified_tree_manifest,
     _report_identity,
 )
 from spectral_utils.fair_comparisons.registry import canonical_sha256  # noqa: E402
@@ -64,7 +65,11 @@ class PublicationBuilderPresentationTests(unittest.TestCase):
         self.assertTrue(identity["title"].startswith("TEST-ONLY"))
         self.assertIn("TEST-ONLY NON-PUBLICATION OUTPUT", identity["summary"])
         self.assertTrue(identity["testing_only"])
-        self.assertFalse(identity["publication_eligible"])
+        self.assertFalse(identity["publication_build_mode_eligible"])
+        self.assertEqual(
+            identity["publication_acceptance_status_at_build"],
+            "ineligible-testing-only",
+        )
         self.assertEqual(identity["bootstrap_replicates"], 7)
         self.assertEqual(identity["bootstrap_seed"], 20260818)
         self.assertIn("not publication intervals", identity["confidence_interval_status"])
@@ -84,7 +89,12 @@ class PublicationBuilderPresentationTests(unittest.TestCase):
                 partial_blocked_tables=(),
                 provenance={
                     "testing_only": identity["testing_only"],
-                    "publication_eligible": identity["publication_eligible"],
+                    "publication_build_mode_eligible": identity[
+                        "publication_build_mode_eligible"
+                    ],
+                    "publication_acceptance_status_at_build": identity[
+                        "publication_acceptance_status_at_build"
+                    ],
                     "bootstrap_replicates": identity["bootstrap_replicates"],
                     "bootstrap_seed": identity["bootstrap_seed"],
                     "confidence_interval_status": identity[
@@ -108,7 +118,12 @@ class PublicationBuilderPresentationTests(unittest.TestCase):
         self.assertEqual(identity["title"], "Fair Paper-Exact Comparison Package v1")
         self.assertNotIn("TEST-ONLY", identity["summary"])
         self.assertFalse(identity["testing_only"])
-        self.assertTrue(identity["publication_eligible"])
+        self.assertTrue(identity["publication_build_mode_eligible"])
+        self.assertTrue(identity["publication_acceptance_requires_independent_rebuild"])
+        self.assertEqual(
+            identity["publication_acceptance_status_at_build"],
+            "pending-independent-byte-identical-rebuild",
+        )
         self.assertIn("95% percentile intervals", identity["confidence_interval_status"])
 
     def test_twentyfour_runtime_roots_serialize_byte_identically(self):
@@ -148,6 +163,20 @@ class PublicationBuilderPresentationTests(unittest.TestCase):
         portable_audit = dict(first["identity_audit"])
         observed_hash = portable_audit.pop("audit_sha256")
         self.assertEqual(observed_hash, canonical_sha256(portable_audit))
+
+    def test_unified_worktree_manifest_is_directory_name_independent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            first = root / "worktree-one"
+            second = root / "renamed-worktree"
+            first.mkdir()
+            second.mkdir()
+            (first / "frozen.txt").write_text("identical\n", encoding="utf-8")
+            (second / "frozen.txt").write_text("identical\n", encoding="utf-8")
+            first_manifest = _portable_unified_tree_manifest(first)
+            second_manifest = _portable_unified_tree_manifest(second)
+        self.assertEqual(first_manifest, second_manifest)
+        self.assertEqual(first_manifest["root_label"], "${UNIFIED_WORKTREE}")
 
 
 class FastLocalizationThresholdTests(unittest.TestCase):

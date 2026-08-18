@@ -570,6 +570,36 @@ class ComparisonJoinTests(FairRegistryFixtures):
         self.assertFalse(report["ok"])
         self.assertEqual(len(report["artifact_hash_conflicts"]), 1)
 
+    def test_expectation_binds_population_method_to_one_exact_source_hash(self) -> None:
+        expectations = self.expectations()
+        expectations[0] = {
+            **expectations[0],
+            "expected_source_artifact_hash": self.unified[
+                "source_artifacts_sha256"
+            ],
+        }
+        clean = R.audit_comparison_records(
+            self.records(), self.populations, self.methods, expectations=expectations
+        )
+        self.assertTrue(clean["coverage"][0]["source_artifact_hash_matches"])
+
+        records = self.records()
+        for record in records:
+            if record["method_id"] == "unified-28":
+                # This raw asset hash belongs to the method, so the generic membership
+                # gate accepts it; the population-specific expectation must reject it.
+                record["source_artifact_hash"] = self.asset["sha256"]
+        report = R.audit_comparison_records(
+            records, self.populations, self.methods, expectations=expectations
+        )
+        self.assertEqual(report["artifact_hash_conflicts"], [])
+        unified = next(
+            row for row in report["coverage"] if row["method_id"] == "unified-28"
+        )
+        self.assertFalse(unified["source_artifact_hash_matches"])
+        self.assertFalse(unified["passes"])
+        self.assertFalse(report["headline_ok"])
+
     def test_realized_budget_expectation_uses_registered_ids_not_budget_bins(self) -> None:
         records = self.records()
         for index, record in enumerate(records):

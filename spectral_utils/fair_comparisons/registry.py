@@ -1025,7 +1025,9 @@ def audit_comparison_records(
     and ``budget``.  Each item may supply ``eligible_row_ids`` (otherwise the
     whole registered population), ``eligible_ordered_id_sha256``, ``headline``
     (default true), ``require_complete`` (default true), and ``require_order``
-    (default true).  ``match_any_budget`` is reserved for registered realized-
+    (default true), and ``expected_source_artifact_hash`` to bind one population-
+    method comparison to the exact registered source bytes rather than merely any
+    artifact owned by that method.  ``match_any_budget`` is reserved for registered realized-
     compute rows whose budget is an outcome rather than an eligibility choice;
     it still requires exactly one row per eligible ID.
     Prefix budgets should pass their strict ``final_length > budget`` ID vector
@@ -1237,13 +1239,26 @@ def audit_comparison_records(
                     "eligible_ordered_id_sha256 does not match eligible_row_ids"
                 )
 
-            observed = [
-                record["row_id"]
+            expected_source_hash = expectation.get("expected_source_artifact_hash")
+            if expected_source_hash is not None and not is_sha256(expected_source_hash):
+                raise RegistryError(
+                    "expected_source_artifact_hash must be a lowercase SHA-256"
+                )
+
+            observed_records = [
+                record
                 for record in valid_records
                 if record["population_id"] == population_id
                 and record["method_id"] == method_id
                 and (match_any_budget or record["budget"] == budget)
             ]
+            observed = [record["row_id"] for record in observed_records]
+            observed_source_hashes = sorted(
+                {record["source_artifact_hash"] for record in observed_records}
+            )
+            source_hash_matches = expected_source_hash is None or (
+                observed_source_hashes == [expected_source_hash]
+            )
             if match_any_budget:
                 # Realized budgets are outcomes and canonical record sorting places
                 # budget before row position.  Recover the only meaningful order for
@@ -1293,10 +1308,14 @@ def audit_comparison_records(
                     "extra_row_ids": extra,
                     "expected_ordered_id_sha256": eligible_hash,
                     "observed_ordered_id_sha256": ordered_id_sha256(observed_unique),
+                    "expected_source_artifact_hash": expected_source_hash,
+                    "observed_source_artifact_hashes": observed_source_hashes,
+                    "source_artifact_hash_matches": source_hash_matches,
                     "complete": complete,
                     "order_matches": order_matches,
                     "passes": (complete or not require_complete)
-                    and (order_matches or not require_order),
+                    and (order_matches or not require_order)
+                    and source_hash_matches,
                 }
             )
         except (RegistryError, TypeError) as exc:

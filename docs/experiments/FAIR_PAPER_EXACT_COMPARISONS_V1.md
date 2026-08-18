@@ -155,13 +155,34 @@ new method-selection decisions:
   raw log-sum-exp; the frozen methods require legacy post-warper entropy,
   sampled-token energy, and top-k streams. Substituting raw streams would create
   an adapted new method and is forbidden.
-- The 24-cell local source-size audit finds 22 of 23 registered cells locally.
-  Full raw-hash and label-free identity replay proves only 6 cells / 3,238 rows;
-  sixteen nominal sources fail exact feature identity. A correct 146,217,844-byte
-  `internalstates_gsm8k_qwen25_7b` source is hash-verified on Drive but was not
-  fetched under the approved minimal-movement wave. `spilled_triviaqa_llama8b`
-  still lacks the ordered identity/admission ledger needed to map its 256 bundle
-  rows. Therefore no 24-cell headline score is materialized.
+- The 24-cell local source-size audit admits 22 authorized registered cells. Full
+  raw-hash and label-free identity replay proves 6 independent cells / 3,238 rows:
+  `epr_triviaqa_mistral24b` (621), `lapeigvals_gsm8k_mistral24b` (1,319),
+  `losnet_hotpotqa_mistral7b` (500), `math500_dsmath7b` (300),
+  `math500_r1distill8b_mn4096` (300), and `sciq_llama8b` (198). Each proven
+  cell is a complete direct population with its own ordered-ID hash, evaluator,
+  paired source-question bootstrap, and table containing Unified-28, ordinary
+  full-pool mixed-v2 IU-PCR, full-pool mixed-v2 DUFS-LIU at lambda 0.1, and max
+  entropy. The incumbent rows come only from the hash-frozen
+  `hard_filter_dufs_liu_24cell` score files and exact `mixed_v2__full__*` keys;
+  the ProcessBench anchor must reproduce before Unified-28 transfer scoring.
+  The ordinary and DUFS incumbents are explicitly labeled as unsupervised,
+  transductive full-target-cell fits; they are not presented as the same access
+  tier as frozen per-trace Unified-28 or max entropy.
+  Multi-candidate questions are assigned as one fold using the preregistered
+  question-level stratum `any_candidate_error`; the row-level outcome remains the
+  metric label, and no candidate sibling may move to another fold or bootstrap draw.
+  Equal-cell and equal-family Math/QA/overall summaries over these six cells
+  include AUROC, error AUPRC, and the 5%/10% TPR, precision, and observed-FPR
+  operating points. They are coverage-only context, never
+  a 23-cell headline or win/tie/loss claim. Ordinary-36 has no auditable per-row
+  records and remains visibly unavailable as historical context.
+- Sixteen authorized sources fail exact feature identity. The
+  `internalstates_gsm8k_qwen25_7b` payload remains outside the approved
+  minimal-movement wave and is not opened or scored even if a local copy is
+  present. `spilled_triviaqa_llama8b` still lacks the ordered identity/admission
+  ledger needed to map its 256 bundle rows. These 17 registered-source cells and
+  the additional unregistered-identity cell remain blocked from direct scoring.
 - REFRAIN (512/1,000), DeepConf M2 (12,370/122,880), and both failed Mistral
   LEASH cells remain partial appendices. Unified-28 stopping remains ineligible.
 
@@ -186,4 +207,6 @@ the Unified worktree hash, and the 24-cell identity audit. Any deviation is
 available only behind an explicit `--testing-only` flag and produces a stamped,
 non-publication package. Acceptance requires two independently written builds
 from the same clean commit to have byte-identical complete-tree manifests and
-canonical JSON/CSV bytes before research-history documents are updated.
+canonical JSON/CSV bytes before research-history documents are updated. A clean
+build therefore records only build-mode eligibility and a pending independent-
+rebuild status; it never self-certifies final publication acceptance.

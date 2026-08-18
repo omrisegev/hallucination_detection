@@ -19,13 +19,17 @@ no frozen A0 source specification, ``spilled_triviaqa_llama8b``, remains an expl
 blocked asset.
 
 No fitting or method selection is performed here.  Unified-28 is deserialized from
-its frozen JSON representation, while the three historical incumbents are read from
-their immutable per-row score files.  Historical correctness-oriented incumbent
-scores are negated so every output uses the fair-package convention 1 = error/risk.
+its frozen JSON representation, while the dedicated ordinary and DUFS-LIU mixed-v2
+incumbents are read from their immutable per-row score files.  Historical
+correctness-oriented incumbent scores are negated so every output uses the
+fair-package convention 1 = error/risk.  A cell becomes a direct population only
+after its own identity proof; an incomplete set of cells is never pooled into a
+nominal 23-cell result.
 """
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass, field
 import json
 import math
@@ -58,14 +62,15 @@ from .evaluator import (
     calibrate_correct_only_threshold,
     detection_metrics,
     operating_point,
+    paired_grouped_bootstrap,
 )
-from .folds import canonical_sha256, ordered_id_sha256
+from .folds import assign_group_folds, canonical_sha256, ordered_id_sha256
 from .registry import make_comparison_record, sha256_file
 
 
-ADAPTER_REVISION = "fair_24cell_global_adapter_v1.0.0"
+ADAPTER_REVISION = "fair_24cell_global_adapter_v1.1.0"
 BUNDLE_RELATIVE_PATH = Path("results/dependency_fusion_raw/cells.npz")
-BENCHMARK_RELATIVE_ROOT = Path("results/frozen_24cell_benchmark")
+BENCHMARK_RELATIVE_ROOT = Path("results/hard_filter_dufs_liu_24cell")
 MODEL_RELATIVE_PATH = Path(
     "results/unified_causal_subset_validation_base7_dufs_llama31_v1/VALIDATION.json"
 )
@@ -80,11 +85,11 @@ BUNDLE_SHA256 = "693a5b634f975ea32c7f840f3ab8366dd8ad638fe41cc76a60e24b1ac5a013e
 MODEL_ARTIFACT_SHA256 = "49168791e0687a235793e3bc818c0d0f46875ce88202b7f1d66ff2a21485b2fa"
 MODEL_RECORDS_SHA256 = "0c2917cbfe827cefa616eb8d161e0583674c5498e0b7a14cdebb10c7dda73dc8"
 MODEL_RUN_DEFINITION_SHA256 = "deed54d9a8ed8652e8670c93e94c14847acee5a1d11cbd0a0e0fb4e69389d4ee"
-SCORE_FREEZE_MANIFEST_SHA256 = "d72f2c801ebcdc776cc8c7f2d40a6bc6d1e19f1b0d13167e33f842a3e745cc29"
-SCORE_RUN_DEFINITION_SHA256 = "8f8d5c08ddbee6a52401dbeeb1154e7fa8229db3c0004fe48d25dea606820b15"
-SCORE_FIT_COMPLETE_SHA256 = "892fc47047dc645d4c96cb61d9e48ea1abd3fb415b1ad71cf80e29ea90fce0b9"
+SCORE_FREEZE_MANIFEST_SHA256 = "13850e1b04ba600a18a0cf390231ddaab2c29c655c1c06e07d3d91bb6208e1e0"
+SCORE_RUN_DEFINITION_SHA256 = "bf81817bab7db5f29036d8ccfb53eeb8ebf2a6c7ff34baac1c357f4c5b6921bd"
+SCORE_FIT_COMPLETE_SHA256 = "f439efe2e75603c7b8d7b38abdd737840a7ce68cbcb10fb4492dbb9f1db0b357"
 DATASET_REVISION = f"frozen-24cell@{BUNDLE_SHA256[:12]}"
-POPULATION_ID = f"{DATASET_REVISION}::identity-proven-23cell"
+POPULATION_ID = f"{DATASET_REVISION}::identity-proven-per-cell"
 BLOCKED_CELL = "spilled_triviaqa_llama8b"
 EXPECTED_CELLS = 24
 ELIGIBLE_CELLS = 23
@@ -94,18 +99,20 @@ IDENTITY_SIGNATURE_DECIMALS = 12
 IDENTITY_ATOL = 1e-10
 
 U28_METHOD_ID = "unified28"
-IU_METHOD_ID = "mixed_v2_iu_pcr"
-DEPLOYED_METHOD_ID = "deployed_upcr"
-DUFS_METHOD_ID = "mixed_v2_dufs_liu_l0p1"
-MAX_ENTROPY_METHOD_ID = "max_entropy"
+IU_METHOD_ID = "mixed_v2_iu_pcr_24cell"
+DUFS_METHOD_ID = "mixed_v2_dufs_liu_l0p1_24cell"
+MAX_ENTROPY_METHOD_ID = "max_entropy_24cell"
+ORDINARY36_CONTEXT_METHOD_ID = "ordinary36_24cell_context_unavailable"
 DIRECT_METHOD_IDS = (
     U28_METHOD_ID,
     IU_METHOD_ID,
-    DEPLOYED_METHOD_ID,
     DUFS_METHOD_ID,
     MAX_ENTROPY_METHOD_ID,
 )
-DUFS_SCORE_KEY = "dufs_liu__lambda_0p1"
+PRIMARY_INCUMBENT_METHOD_ID = IU_METHOD_ID
+IU_SCORE_KEY = "mixed_v2__full__iu_pcr"
+DUFS_SCORE_KEY = "mixed_v2__full__dufs_liu"
+UNAPPROVED_SOURCE_CELLS = ("internalstates_gsm8k_qwen25_7b",)
 
 U28_BASE_STREAMS = (
     "raw::entropy",
@@ -229,6 +236,13 @@ def _source_spec(cell_id: str) -> FrozenSourceSpec:
 
 def eligible_cell_ids() -> tuple[str, ...]:
     return tuple(sorted(spec.environment_id for spec in FROZEN_A0_SOURCE_SPECS))
+
+
+def population_id_for_cell(cell_id: str) -> str:
+    """Return the non-interchangeable direct-population ID for one proven cell."""
+
+    _source_spec(cell_id)
+    return f"{DATASET_REVISION}::{cell_id}::identity-proven"
 
 
 def _source_paths(
@@ -824,7 +838,7 @@ def incumbent_risk_scores(
 ) -> dict[str, np.ndarray]:
     """Return historical incumbent scores in canonical row order and risk polarity."""
 
-    required = ("sample_index", "iu_pcr", "deployed_upcr", DUFS_SCORE_KEY)
+    required = ("sample_index", IU_SCORE_KEY, DUFS_SCORE_KEY)
     missing = [name for name in required if name not in score_checkpoint]
     if missing:
         raise TwentyFourError(f"incumbent checkpoint missing arrays: {missing}")
@@ -835,8 +849,7 @@ def incumbent_risk_scores(
     positions = np.asarray(alignment.bundle_position_by_row, dtype=int)
     output = {}
     for method, key in (
-        (IU_METHOD_ID, "iu_pcr"),
-        (DEPLOYED_METHOD_ID, "deployed_upcr"),
+        (IU_METHOD_ID, IU_SCORE_KEY),
         (DUFS_METHOD_ID, DUFS_SCORE_KEY),
     ):
         score = np.asarray(score_checkpoint[key], dtype=float)
@@ -854,21 +867,28 @@ def _verified_score_path(repo_root: str | Path, cell_id: str) -> tuple[Path, str
     freeze_path = benchmark / "SCORE_FREEZE_MANIFEST.json"
     if sha256_file(freeze_path) != SCORE_FREEZE_MANIFEST_SHA256:
         raise TwentyFourError("24-cell score-freeze manifest SHA-256 mismatch")
+    run_path = benchmark / "RUN_DEFINITION.json"
+    if sha256_file(run_path) != SCORE_RUN_DEFINITION_SHA256:
+        raise TwentyFourError("24-cell run-definition SHA-256 mismatch")
     freeze = _read_json(freeze_path)
-    if freeze.get("bundle_sha256") != BUNDLE_SHA256:
+    run = _read_json(run_path)
+    if run.get("bundle_sha256") != BUNDLE_SHA256:
         raise TwentyFourError("score-freeze manifest references another bundle")
-    manifest = freeze.get("score_manifest")
-    if not isinstance(manifest, list):
-        raise TwentyFourError("score-freeze manifest has no score roster")
-    matches = [row for row in manifest if str(row.get("cell")) == cell_id]
-    if len(matches) != 1:
-        raise TwentyFourError(f"score-freeze manifest does not uniquely bind {cell_id}")
-    expected_relative = f"scores/{cell_id}.npz"
-    if matches[0].get("score_file") != expected_relative:
-        raise TwentyFourError(f"score checkpoint path changed: {cell_id}")
-    score_path = benchmark / expected_relative
+    if run.get("run_fingerprint") != freeze.get("run_fingerprint"):
+        raise TwentyFourError("score-freeze run fingerprint mismatch")
+    source_script = Path(repo_root) / "scripts" / "hard_filter_dufs_liu_benchmark.py"
+    if sha256_file(source_script) != run.get("source_sha256"):
+        raise TwentyFourError("24-cell score implementation SHA-256 mismatch")
+    manifest = freeze.get("score_sha256")
+    if not isinstance(manifest, Mapping) or set(manifest) != set(eligible_cell_ids()) | {
+        BLOCKED_CELL
+    }:
+        raise TwentyFourError("score-freeze manifest has an incomplete score roster")
+    if cell_id not in manifest:
+        raise TwentyFourError(f"score-freeze manifest does not bind {cell_id}")
+    score_path = benchmark / "scores" / f"{cell_id}.npz"
     score_hash = sha256_file(score_path)
-    if score_hash != matches[0].get("score_sha256"):
+    if score_hash != manifest[cell_id]:
         raise TwentyFourError(f"score checkpoint SHA-256 mismatch: {cell_id}")
     return score_path, score_hash
 
@@ -938,6 +958,98 @@ def unified28_replay_source_artifact_sha256(
     )
 
 
+def assign_cell_folds(
+    identities: Sequence[TraceIdentity], labels: LabelAlignment
+) -> tuple[dict[str, int], dict[str, Any]]:
+    """Assign source-question-isolated folds for one identity-proven cell.
+
+    Some frozen sources contain multiple candidate traces for one raw question and
+    those candidates need not share a correctness label.  The registered binary
+    question-level stratum is therefore ``any candidate is wrong``; candidate rows
+    are never passed separately to :func:`assign_group_folds`.
+    """
+
+    identities = tuple(identities)
+    if tuple(row.row_id for row in identities) != labels.identity.row_ids:
+        raise TwentyFourError("fold population differs from label alignment")
+    grouped: dict[str, list[tuple[TraceIdentity, int]]] = defaultdict(list)
+    for identity, label in zip(identities, labels.error_labels, strict=True):
+        grouped[identity.group_id].append((identity, int(label)))
+    fold_rows = []
+    for group_id in sorted(grouped):
+        members = grouped[group_id]
+        families = {row.dataset_family for row, _ in members}
+        if len(families) != 1:
+            raise TwentyFourError(f"source-question family disagreement: {group_id}")
+        fold_rows.append(
+            {
+                "group_id": group_id,
+                "family": next(iter(families)),
+                "stratify_label": int(any(label for _, label in members)),
+            }
+        )
+    folds = assign_group_folds(fold_rows, n_folds=5)
+    if set(folds.values()) != set(range(5)):
+        raise TwentyFourError(
+            f"identity-proven cell cannot support five-fold calibration: {labels.identity.cell_id}"
+        )
+    ledger = {
+        "schema": "24cell_group_fold_ledger_v1",
+        "cell_id": labels.identity.cell_id,
+        "n_source_questions": len(grouped),
+        "n_candidate_rows": len(identities),
+        "stratification": "dataset_family x any_candidate_error",
+        "candidate_siblings_share_fold": True,
+        "assignments": dict(sorted(folds.items())),
+    }
+    ledger["fold_assignment_sha256"] = canonical_sha256(ledger["assignments"])
+    return folds, ledger
+
+
+def population_descriptor(
+    identities: Sequence[TraceIdentity], labels: LabelAlignment
+) -> dict[str, Any]:
+    """Describe one cell's complete direct population for registry materialization."""
+
+    identities = tuple(identities)
+    row_ids = [row.row_id for row in identities]
+    if tuple(row_ids) != labels.identity.row_ids:
+        raise TwentyFourError("population descriptor differs from label alignment")
+    families = {row.dataset_family for row in identities}
+    revisions = {row.dataset_revision for row in identities}
+    cells = {row.cell_id for row in identities}
+    if len(families) != 1 or len(revisions) != 1 or len(cells) != 1:
+        raise TwentyFourError("one 24-cell population must be homogeneous")
+    cell_id = next(iter(cells))
+    return {
+        "population_id": population_id_for_cell(cell_id),
+        "lane": "global",
+        "dataset_revision": DATASET_REVISION,
+        "source_dataset_revision": next(iter(revisions)),
+        "ordered_ids": row_ids,
+        "ordered_id_sha256": ordered_id_sha256(row_ids),
+        "group_ids": [row.group_id for row in identities],
+        "cell_ids": [row.cell_id for row in identities],
+        "families": [row.dataset_family for row in identities],
+        "label_definition": {
+            "positive_class": "error/risk",
+            "label": "1 - frozen final-answer correctness",
+        },
+        "eligibility_rules": {
+            "identity": "complete label-free feature-fingerprint join to frozen bundle",
+            "coverage": "100% of this cell's registered admitted rows",
+            "fold_stratification": (
+                "source-question family x any_candidate_error; all sibling candidates "
+                "remain in one fold"
+            ),
+            "positional_fallback_allowed": False,
+        },
+        "included_methods": list(DIRECT_METHOD_IDS),
+        "panel": "global_24cell_identity_proven",
+        "headline_scope": "per-cell-only",
+    }
+
+
 def materialize_cell_records(
     repo_root: str | Path,
     identities: Sequence[TraceIdentity],
@@ -976,6 +1088,12 @@ def materialize_cell_records(
     if set(scores) != set(DIRECT_METHOD_IDS):
         raise TwentyFourError(f"direct method roster changed: {sorted(scores)}")
 
+    group_stratify_labels: dict[str, int] = {}
+    for identity, label in zip(identities, labels.error_labels, strict=True):
+        group_stratify_labels[identity.group_id] = max(
+            group_stratify_labels.get(identity.group_id, 0), int(label)
+        )
+
     source_hashes = {
         U28_METHOD_ID: unified28_replay_source_artifact_sha256(
             model_artifact_sha256,
@@ -983,7 +1101,6 @@ def materialize_cell_records(
         ),
         MAX_ENTROPY_METHOD_ID: source_artifact_sha256,
         IU_METHOD_ID: score_hash,
-        DEPLOYED_METHOD_ID: score_hash,
         DUFS_METHOD_ID: score_hash,
     }
     records: list[dict[str, Any]] = []
@@ -991,13 +1108,15 @@ def materialize_cell_records(
         for index, identity in enumerate(identities):
             fold = None
             if folds is not None:
-                if identity.group_id not in folds and identity.row_id not in folds:
-                    raise TwentyFourError(f"fold assignment missing: {identity.row_id}")
-                fold = int(folds.get(identity.group_id, folds.get(identity.row_id)))
+                if identity.group_id not in folds:
+                    raise TwentyFourError(
+                        f"source-question fold assignment missing: {identity.group_id}"
+                    )
+                fold = int(folds[identity.group_id])
             records.append(
                 make_comparison_record(
                     lane="global",
-                    population_id=POPULATION_ID,
+                    population_id=population_id_for_cell(cell_id),
                     row_id=identity.row_id,
                     group_id=identity.group_id,
                     cell_id=identity.cell_id,
@@ -1012,7 +1131,7 @@ def materialize_cell_records(
                     extra={
                         "family": identity.dataset_family,
                         "source_question_id": identity.source_question_id,
-                        "stratify_label": int(labels.error_labels[index]),
+                        "stratify_label": group_stratify_labels[identity.group_id],
                         "positive_class": "error/risk",
                         "bundle_position": int(labels.identity.bundle_position_by_row[index]),
                     },
@@ -1092,6 +1211,139 @@ def per_cell_metrics(records: Sequence[Mapping[str, Any]]) -> dict[str, dict[str
     return output
 
 
+def paired_cell_intervals(
+    records: Sequence[Mapping[str, Any]],
+    *,
+    n_boot: int = 2_000,
+    seed: int = 20260818,
+) -> dict[str, Any]:
+    """Bootstrap one cell by source question without collapsing candidate siblings."""
+
+    rows = list(records)
+    if not rows:
+        raise TwentyFourError("cannot bootstrap zero 24-cell records")
+    cells = {str(row["cell_id"]) for row in rows}
+    if len(cells) != 1:
+        raise TwentyFourError("24-cell bootstrap may not pool heterogeneous cells")
+    population_ids = {str(row["population_id"]) for row in rows}
+    if len(population_ids) != 1:
+        raise TwentyFourError("24-cell bootstrap requires one registered population")
+    canonical_rows = [row for row in rows if row["method_id"] == U28_METHOD_ID]
+    canonical_row_ids = [str(row["row_id"]) for row in canonical_rows]
+    if len(canonical_row_ids) != len(set(canonical_row_ids)):
+        raise TwentyFourError("24-cell bootstrap population contains duplicate row IDs")
+    group_rows: dict[str, dict[str, list[Mapping[str, Any]]]] = defaultdict(
+        lambda: defaultdict(list)
+    )
+    group_families: dict[str, set[str]] = defaultdict(set)
+    for row in rows:
+        group_id = str(row["group_id"])
+        group_rows[group_id][str(row["method_id"])].append(row)
+        group_families[group_id].add(str(row["family"]))
+    groups: dict[str, dict[str, tuple[Mapping[str, Any], ...]]] = {}
+    strata: dict[str, str] = {}
+    for group_id in sorted(group_rows):
+        by_method = group_rows[group_id]
+        if set(by_method) != set(DIRECT_METHOD_IDS):
+            raise TwentyFourError(f"bootstrap group lacks direct roster: {group_id}")
+        if len(group_families[group_id]) != 1:
+            raise TwentyFourError(f"bootstrap group spans families: {group_id}")
+        ordered: dict[str, tuple[Mapping[str, Any], ...]] = {}
+        expected_ids: tuple[str, ...] | None = None
+        expected_folds: tuple[int, ...] | None = None
+        expected_labels: tuple[int, ...] | None = None
+        for method_id in DIRECT_METHOD_IDS:
+            method_rows = tuple(sorted(by_method[method_id], key=lambda row: str(row["row_id"])))
+            ids = tuple(str(row["row_id"]) for row in method_rows)
+            folds = tuple(int(row["fold"]) for row in method_rows)
+            labels = tuple(int(row["label"]) for row in method_rows)
+            if len(ids) != len(set(ids)):
+                raise TwentyFourError(f"duplicate candidate in bootstrap group: {group_id}")
+            if expected_ids is None:
+                expected_ids = ids
+                expected_folds = folds
+                expected_labels = labels
+            elif ids != expected_ids:
+                raise TwentyFourError(f"candidate siblings differ by method: {group_id}")
+            elif folds != expected_folds or labels != expected_labels:
+                raise TwentyFourError(
+                    f"candidate fold/label metadata differ by method: {group_id}"
+                )
+            if len(set(folds)) != 1:
+                raise TwentyFourError(
+                    f"candidate siblings were split across folds: {group_id}"
+                )
+            ordered[method_id] = method_rows
+        groups[group_id] = ordered
+        strata[group_id] = next(iter(group_families[group_id]))
+
+    def flatten(
+        sample: Sequence[Mapping[str, Sequence[Mapping[str, Any]]]], method_id: str
+    ) -> list[Mapping[str, Any]]:
+        return [row for payload in sample for row in payload[method_id]]
+
+    def recompute(sample: list[Any]) -> dict[str, dict[str, Any]]:
+        return {
+            method_id: {
+                "fpr_05": _crossfit_operating_point(flatten(sample, method_id), 0.05),
+                "fpr_10": _crossfit_operating_point(flatten(sample, method_id), 0.10),
+            }
+            for method_id in (U28_METHOD_ID, PRIMARY_INCUMBENT_METHOD_ID)
+        }
+
+    def statistic(sample: list[Any], refit: Mapping[str, Any]) -> dict[str, float]:
+        metrics = {}
+        for method_id in (U28_METHOD_ID, PRIMARY_INCUMBENT_METHOD_ID):
+            selected = flatten(sample, method_id)
+            metrics[method_id] = detection_metrics(
+                [row["label"] for row in selected],
+                [row["continuous_score"] for row in selected],
+            )
+        left = metrics[U28_METHOD_ID]
+        right = metrics[PRIMARY_INCUMBENT_METHOD_ID]
+        prefix = f"unified28__minus__{PRIMARY_INCUMBENT_METHOD_ID}"
+        return {
+            f"delta_auroc__{prefix}": left["auroc"] - right["auroc"],
+            f"delta_error_auprc__{prefix}": (
+                left["error_auprc"] - right["error_auprc"]
+            ),
+            f"delta_error_tpr_fpr05__{prefix}": (
+                refit[U28_METHOD_ID]["fpr_05"]["error_tpr"]
+                - refit[PRIMARY_INCUMBENT_METHOD_ID]["fpr_05"]["error_tpr"]
+            ),
+            f"delta_error_tpr_fpr10__{prefix}": (
+                refit[U28_METHOD_ID]["fpr_10"]["error_tpr"]
+                - refit[PRIMARY_INCUMBENT_METHOD_ID]["fpr_10"]["error_tpr"]
+            ),
+        }
+
+    result = paired_grouped_bootstrap(
+        groups,
+        statistic,
+        strata=strata,
+        recompute=recompute,
+        n_boot=n_boot,
+        seed=seed,
+    )
+    result.update(
+        {
+            "cell_id": next(iter(cells)),
+            "primary_contrast": {
+                "left_method_id": U28_METHOD_ID,
+                "right_method_id": PRIMARY_INCUMBENT_METHOD_ID,
+            },
+            "candidate_rows": len(
+                canonical_rows
+            ),
+            "population_id": next(iter(population_ids)),
+            "population_ordered_id_sha256": ordered_id_sha256(canonical_row_ids),
+            "source_question_groups": len(groups),
+            "candidate_siblings_carried_together": True,
+        }
+    )
+    return result
+
+
 def static_preflight(
     repo_root: str | Path,
     *,
@@ -1130,36 +1382,52 @@ def static_preflight(
         raise TwentyFourError("frozen Unified-28 validation-record SHA-256 mismatch")
     freeze = _read_json(freeze_path)
     run = _read_json(run_path)
-    if sha256_file(bundle) != BUNDLE_SHA256 or freeze.get("bundle_sha256") != BUNDLE_SHA256:
+    fit = _read_json(fit_path)
+    if sha256_file(bundle) != BUNDLE_SHA256 or run.get("bundle_sha256") != BUNDLE_SHA256:
         raise TwentyFourError("24-cell bundle SHA-256 mismatch")
-    if sha256_file(run_path) != freeze.get("run_definition_sha256"):
-        raise TwentyFourError("24-cell run-definition SHA-256 mismatch")
-    if sha256_file(fit_path) != freeze.get("fit_complete_sha256"):
-        raise TwentyFourError("24-cell fit-complete SHA-256 mismatch")
     if run.get("run_fingerprint") != freeze.get("run_fingerprint"):
         raise TwentyFourError("24-cell run fingerprint mismatch")
+    if fit.get("manifest_sha256") != SCORE_FREEZE_MANIFEST_SHA256:
+        raise TwentyFourError("24-cell fit-complete does not bind the score manifest")
+    if fit.get("cells_complete") != EXPECTED_CELLS or fit.get("labels_used") is not False:
+        raise TwentyFourError("24-cell fit-complete status is invalid")
+    if run.get("version") != "hard-filter-dufs-liu-24cell-v1-2026-08-08":
+        raise TwentyFourError("24-cell score protocol revision changed")
+    source_script = repo / "scripts" / "hard_filter_dufs_liu_benchmark.py"
+    if sha256_file(source_script) != run.get("source_sha256"):
+        raise TwentyFourError("24-cell score implementation SHA-256 mismatch")
     if freeze.get("score_files_verified_before_labels") is not True:
         raise TwentyFourError("24-cell score freeze did not preserve the label firewall")
-    frozen_lambda = run.get("frozen_lambda")
-    if not isinstance(frozen_lambda, Mapping) or frozen_lambda.get("dufs_liu") != 0.1:
+    if run.get("liu_lambda") != 0.1:
         raise TwentyFourError("registered DUFS-LIU lambda is not exactly 0.1")
-    manifest = freeze.get("score_manifest")
-    if not isinstance(manifest, list) or len(manifest) != EXPECTED_CELLS:
+    manifest = freeze.get("score_sha256")
+    if not isinstance(manifest, Mapping) or len(manifest) != EXPECTED_CELLS:
         raise TwentyFourError("24-cell score manifest is incomplete")
-    observed_cells = [str(row.get("cell")) for row in manifest]
-    if len(observed_cells) != len(set(observed_cells)):
-        raise TwentyFourError("24-cell score manifest contains duplicates")
+    observed_cells = [str(cell) for cell in manifest]
     if set(observed_cells) != set(eligible_cell_ids()) | {BLOCKED_CELL}:
         raise TwentyFourError("24-cell score manifest roster differs from frozen sources")
     if verify_score_hashes:
-        for row in manifest:
-            score_path = benchmark / str(row["score_file"])
-            if sha256_file(score_path) != row.get("score_sha256"):
-                raise TwentyFourError(f"score checkpoint SHA-256 mismatch: {row['cell']}")
+        for cell_id, expected_hash in manifest.items():
+            score_path = benchmark / "scores" / f"{cell_id}.npz"
+            if sha256_file(score_path) != expected_hash:
+                raise TwentyFourError(f"score checkpoint SHA-256 mismatch: {cell_id}")
 
     sources = []
     source_blockers = []
     for cell_id in eligible_cell_ids():
+        if cell_id in UNAPPROVED_SOURCE_CELLS:
+            source_blockers.append(
+                {
+                    "cell_id": cell_id,
+                    "rows": _source_spec(cell_id).expected_admitted_count,
+                    "fidelity": "blocked-assets",
+                    "reason": (
+                        "source is outside the approved minimal-movement acquisition wave; "
+                        "local presence is not authorization to open or score it"
+                    ),
+                }
+            )
+            continue
         try:
             sources.append(
                 verify_source_artifact(
@@ -1197,10 +1465,14 @@ def static_preflight(
         "model_run_definition_sha256": MODEL_RUN_DEFINITION_SHA256,
         "model_records_sha256": MODEL_RECORDS_SHA256,
         "score_freeze_manifest_sha256": SCORE_FREEZE_MANIFEST_SHA256,
+        "score_run_definition_sha256": SCORE_RUN_DEFINITION_SHA256,
+        "score_fit_complete_sha256": SCORE_FIT_COMPLETE_SHA256,
+        "score_protocol_version": run["version"],
+        "direct_method_ids": list(DIRECT_METHOD_IDS),
         "score_hashes_verified": bool(verify_score_hashes),
         "raw_hashes_verified": bool(verify_raw_hashes),
-        "headline_eligible_cells": ELIGIBLE_CELLS,
-        "headline_eligible_rows": ELIGIBLE_ROWS,
+        "nominal_registered_identity_target_cells": ELIGIBLE_CELLS,
+        "nominal_registered_identity_target_rows": ELIGIBLE_ROWS,
         "bundle_cells": EXPECTED_CELLS,
         "bundle_rows": EXPECTED_ROWS,
         "source_file_size_ready_cells": len(sources),
@@ -1385,6 +1657,298 @@ def partial_identity_audit(
     return finish()
 
 
+def build_identity_proven_lane(
+    repo_root: str | Path,
+    *,
+    source_root: str | Path,
+    cells: Sequence[str],
+    n_boot: int = 2_000,
+    seed: int = 20260818,
+) -> dict[str, Any]:
+    """Audit and materialize independent direct tables for every proven cell.
+
+    The ProcessBench anchor is reproduced before any transfer source is opened.
+    Failures are cell-local and remain visible; no aggregate population is created
+    from whichever cells happen to pass.
+    """
+
+    repo = Path(repo_root)
+    requested = sorted(str(cell_id) for cell_id in cells)
+    if not requested or len(requested) != len(set(requested)):
+        raise TwentyFourError("24-cell lane requires unique non-empty cell IDs")
+    model, model_hash = load_unified28_model(repo)
+    processbench_anchor = verify_processbench_anchor(
+        repo,
+        model,
+        model_artifact_sha256=model_hash,
+    )
+    bundle_path = repo / BUNDLE_RELATIVE_PATH
+    if sha256_file(bundle_path) != BUNDLE_SHA256:
+        raise TwentyFourError("24-cell bundle SHA-256 mismatch")
+
+    audits: list[dict[str, Any]] = []
+    populations: list[dict[str, Any]] = []
+    all_records: list[dict[str, Any]] = []
+    metrics_by_cell: dict[str, Any] = {}
+    intervals_by_cell: dict[str, Any] = {}
+    folds_by_cell: dict[str, Any] = {}
+
+    with np.load(bundle_path, allow_pickle=True) as bundle:
+        for cell_id in requested:
+            stage = "source_registration"
+            expected_rows: int | None = None
+            try:
+                if cell_id in UNAPPROVED_SOURCE_CELLS:
+                    raise TwentyFourError(
+                        "blocked-assets: outside approved minimal-movement acquisition wave"
+                    )
+                spec = _source_spec(cell_id)
+                expected_rows = int(spec.expected_admitted_count)
+                stage = "raw_sha256_and_admission"
+                identities, source_audit = load_admitted_cell(
+                    repo,
+                    cell_id,
+                    source_root=source_root,
+                    verify_sha256=True,
+                )
+                stage = "label_free_identity_alignment"
+                identity = freeze_identity_alignment(identities, bundle)
+                stage = "label_agreement"
+                labels = open_and_verify_labels(identities, identity, bundle)
+                stage = "group_fold_assignment"
+                folds, fold_ledger = assign_cell_folds(identities, labels)
+                stage = "direct_score_materialization"
+                records = materialize_cell_records(
+                    repo,
+                    identities,
+                    labels,
+                    model,
+                    model_artifact_sha256=model_hash,
+                    source_artifact_sha256=str(source_audit["source_sha256"]),
+                    processbench_anchor=processbench_anchor,
+                    folds=folds,
+                )
+                stage = "per_cell_evaluation"
+                cell_metrics = per_cell_metrics(records)
+                stage = "paired_grouped_bootstrap"
+                cell_intervals = paired_cell_intervals(
+                    records,
+                    n_boot=n_boot,
+                    seed=seed,
+                )
+                population = population_descriptor(identities, labels)
+                score_path, score_hash = _verified_score_path(repo, cell_id)
+                cell_audit = {
+                    "cell_id": cell_id,
+                    "status": "scored-identity-proven",
+                    "identity_proven": True,
+                    "scored": True,
+                    "rows": len(identities),
+                    "expected_rows": expected_rows,
+                    "population_id": population["population_id"],
+                    "ordered_id_sha256": population["ordered_id_sha256"],
+                    "raw_sha256_verified": True,
+                    "labels_accessed_after_identity_freeze": True,
+                    "source": source_audit,
+                    "alignment": labels.as_dict(),
+                    "fold_ledger_sha256": fold_ledger["fold_assignment_sha256"],
+                    "mixed_v2_score_path": str(score_path),
+                    "mixed_v2_score_sha256": score_hash,
+                    "direct_method_ids": list(DIRECT_METHOD_IDS),
+                    "processbench_anchor_sha256": processbench_anchor["anchor_sha256"],
+                }
+                audits.append(cell_audit)
+                populations.append(population)
+                all_records.extend(records)
+                metrics_by_cell[cell_id] = cell_metrics
+                intervals_by_cell[cell_id] = cell_intervals
+                folds_by_cell[cell_id] = fold_ledger
+            except Exception as exc:
+                audits.append(
+                    {
+                        "cell_id": cell_id,
+                        "status": "failed",
+                        "identity_proven": False,
+                        "scored": False,
+                        "expected_rows": expected_rows,
+                        "failure_stage": stage,
+                        "failure_type": type(exc).__name__,
+                        "failure_reason": str(exc),
+                    }
+                )
+
+    scored = [row for row in audits if row["status"] == "scored-identity-proven"]
+    coverage_context: list[dict[str, Any]] = []
+    family_by_cell = {
+        population["cell_ids"][0]: population["families"][0]
+        for population in populations
+    }
+    for scope, scope_cells in (
+        (
+            "Math",
+            sorted(
+                cell_id
+                for cell_id, family in family_by_cell.items()
+                if family in {"gsm8k", "math500"}
+            ),
+        ),
+        (
+            "QA",
+            sorted(
+                cell_id
+                for cell_id, family in family_by_cell.items()
+                if family not in {"gsm8k", "math500"}
+            ),
+        ),
+        ("overall", sorted(family_by_cell)),
+    ):
+        if not scope_cells:
+            continue
+        population_projection = [
+            {
+                "population_id": population_id_for_cell(cell_id),
+                "ordered_id_sha256": next(
+                    population["ordered_id_sha256"]
+                    for population in populations
+                    if population["cell_ids"][0] == cell_id
+                ),
+            }
+            for cell_id in scope_cells
+        ]
+        for method_id in DIRECT_METHOD_IDS:
+            family_cells: dict[str, list[str]] = defaultdict(list)
+            for cell_id in scope_cells:
+                family_cells[family_by_cell[cell_id]].append(cell_id)
+            family_aurocs = [
+                float(
+                    np.mean(
+                        [
+                            metrics_by_cell[cell][method_id]["auroc"]
+                            for cell in cells
+                        ]
+                    )
+                )
+                for cells in family_cells.values()
+            ]
+            family_auprcs = [
+                float(
+                    np.mean(
+                        [
+                            metrics_by_cell[cell][method_id]["error_auprc"]
+                            for cell in cells
+                        ]
+                    )
+                )
+                for cells in family_cells.values()
+            ]
+            operating_fields = ("error_tpr", "error_precision", "observed_fpr")
+            equal_cell_operating: dict[str, dict[str, float]] = {}
+            equal_family_operating: dict[str, dict[str, float]] = {}
+            for target_name, metric_key in (
+                ("fpr_05", "operating_fpr_05"),
+                ("fpr_10", "operating_fpr_10"),
+            ):
+                equal_cell_operating[target_name] = {
+                    field: float(
+                        np.mean(
+                            [
+                                metrics_by_cell[cell][method_id][metric_key][field]
+                                for cell in scope_cells
+                            ]
+                        )
+                    )
+                    for field in operating_fields
+                }
+                equal_family_operating[target_name] = {
+                    field: float(
+                        np.mean(
+                            [
+                                np.mean(
+                                    [
+                                        metrics_by_cell[cell][method_id][metric_key][field]
+                                        for cell in cells
+                                    ]
+                                )
+                                for cells in family_cells.values()
+                            ]
+                        )
+                    )
+                    for field in operating_fields
+                }
+            coverage_context.append(
+                {
+                    "scope": scope,
+                    "method_id": method_id,
+                    "equal_proven_cell_auroc": float(
+                        np.mean(
+                            [metrics_by_cell[cell][method_id]["auroc"] for cell in scope_cells]
+                        )
+                    ),
+                    "equal_proven_cell_error_auprc": float(
+                        np.mean(
+                            [
+                                metrics_by_cell[cell][method_id]["error_auprc"]
+                                for cell in scope_cells
+                            ]
+                        )
+                    ),
+                    "equal_proven_family_auroc": float(np.mean(family_aurocs)),
+                    "equal_proven_family_error_auprc": float(
+                        np.mean(family_auprcs)
+                    ),
+                    "equal_proven_cell_operating_points": equal_cell_operating,
+                    "equal_proven_family_operating_points": equal_family_operating,
+                    "n_cells": len(scope_cells),
+                    "n_families": len(family_cells),
+                    "cell_ids": scope_cells,
+                    "population_set_sha256": canonical_sha256(population_projection),
+                    "coverage_only": True,
+                    "headline_eligible": False,
+                    "not_a_23cell_aggregate": True,
+                }
+            )
+
+    identity_payload = {
+        "schema": "24cell_identity_and_scoring_audit_v1",
+        "adapter_revision": ADAPTER_REVISION,
+        "requested_cells": requested,
+        "requested_cells_sha256": canonical_sha256(requested),
+        "identity_proven_cells": len(scored),
+        "identity_proven_rows": sum(int(row["rows"]) for row in scored),
+        "scored_cells": len(scored),
+        "scored_rows": sum(int(row["rows"]) for row in scored),
+        "failed_cells": len(audits) - len(scored),
+        "scoring_performed": bool(scored),
+        "processbench_anchor_reproduced_before_transfer": True,
+        "processbench_anchor_sha256": processbench_anchor["anchor_sha256"],
+        "audits": audits,
+        "all_requested_scored": len(scored) == len(requested),
+        "all_ok": len(scored) == len(requested),
+    }
+    identity_payload["audit_sha256"] = canonical_sha256(identity_payload)
+    return {
+        "schema": "24cell_global_identity_proven_lane_v1",
+        "adapter_revision": ADAPTER_REVISION,
+        "direct_method_ids": list(DIRECT_METHOD_IDS),
+        "primary_incumbent_method_id": PRIMARY_INCUMBENT_METHOD_ID,
+        "processbench_anchor": processbench_anchor,
+        "identity_audit": identity_payload,
+        "populations": populations,
+        "records": all_records,
+        "metrics_by_cell": metrics_by_cell,
+        "intervals_by_cell": intervals_by_cell,
+        "folds_by_cell": folds_by_cell,
+        "coverage_context": coverage_context,
+        "ordinary36_context": {
+            "method_id": ORDINARY36_CONTEXT_METHOD_ID,
+            "status": "context-unavailable",
+            "reason": "no auditable per-row score records exist for a strict identity join",
+            "direct_table_eligible": False,
+        },
+        "aggregate_23cell_headline_materialized": False,
+    }
+
+
 __all__ = [
     "ADAPTER_REVISION",
     "BLOCKED_CELL",
@@ -1400,12 +1964,16 @@ __all__ = [
     "LabelAlignment",
     "MAX_ENTROPY_METHOD_ID",
     "MODEL_ARTIFACT_SHA256",
+    "ORDINARY36_CONTEXT_METHOD_ID",
     "POPULATION_ID",
+    "PRIMARY_INCUMBENT_METHOD_ID",
     "TraceIdentity",
     "TwentyFourError",
     "U28_FEATURES",
     "U28_METHOD_ID",
     "admit_source_rows",
+    "assign_cell_folds",
+    "build_identity_proven_lane",
     "eligible_cell_ids",
     "freeze_identity_alignment",
     "incumbent_risk_scores",
@@ -1413,9 +1981,12 @@ __all__ = [
     "load_unified28_model",
     "materialize_cell_records",
     "open_and_verify_labels",
+    "paired_cell_intervals",
     "per_cell_metrics",
     "partial_identity_audit",
     "real_identity_preflight",
+    "population_descriptor",
+    "population_id_for_cell",
     "static_preflight",
     "unified28_from_dict",
     "unified28_parameter_sha256",
