@@ -86,6 +86,65 @@ def grade_math(gen_text: str, gold_answer: str) -> dict:
     }
 
 
+#: Option letters used by AQuA-RAT and the other multiple-choice sets we touch.
+CHOICE_LETTERS = ("A", "B", "C", "D", "E")
+
+
+def parse_choice_answer(text: str, letters=CHOICE_LETTERS) -> dict:
+    """Parse a multiple-choice answer letter, reporting how it was obtained.
+
+    Returns {'answer': str|None, 'status': 'boxed'|'marked'|'bare_letter'|'none'}.
+
+    Needed because a multiple-choice gold answer is a LETTER, and running it through the
+    math grader compares "A" to a parsed number, which can never match. That failure is
+    silent and total: it scores every answer wrong regardless of content, so the cell reads
+    as a model that cannot do the task rather than as a grader pointed at the wrong target.
+    The tell is an accuracy far *below* chance — the three AQuA cells came back 0.0%, 0.0%
+    and 0.4% where guessing among five options pays 20%.
+
+    Later matches win: the answer is at the END of a generation, and the option letters also
+    appear earlier wherever the question lists its choices.
+    """
+    t = (text or "").strip()
+    if not t:
+        return {"answer": None, "status": "none"}
+    alt = "".join(letters)
+
+    boxed = extract_boxed(t)
+    if boxed:
+        m = re.findall(rf"\b([{alt}])\b", boxed.upper())
+        if m:
+            return {"answer": m[-1], "status": "boxed"}
+
+    # "answer is (C)", "answer: C", "option D" — the forms a chat model actually produces.
+    marked = re.findall(
+        rf"(?:answer|option|choice)\b[^A-Za-z0-9]{{0,12}}\(?\s*([{alt}])\s*\)?(?![A-Za-z])",
+        t, flags=re.IGNORECASE)
+    if marked:
+        return {"answer": marked[-1].upper(), "status": "marked"}
+
+    paren = re.findall(rf"\(\s*([{alt}])\s*\)", t.upper())
+    if paren:
+        return {"answer": paren[-1], "status": "marked"}
+
+    bare = re.findall(rf"(?:^|[\s:>*\-])([{alt}])(?:[\s.,)\]]|$)", t.upper())
+    if bare:
+        return {"answer": bare[-1], "status": "bare_letter"}
+    return {"answer": None, "status": "none"}
+
+
+def grade_choice(gen_text: str, gold_answer: str, letters=CHOICE_LETTERS) -> dict:
+    """Grade one generation against a gold option letter."""
+    p = parse_choice_answer(gen_text, letters)
+    g = str(gold_answer or "").strip().upper()
+    return {
+        "correct": bool(p["answer"] and g and p["answer"] == g),
+        "pred_answer": p["answer"],
+        "gold_answer": g,
+        "parse_status": p["status"],
+    }
+
+
 def parser_coverage(parse_statuses) -> float:
     """Fraction of traces whose answer was recovered from an actual \\boxed{} block."""
     st = list(parse_statuses)

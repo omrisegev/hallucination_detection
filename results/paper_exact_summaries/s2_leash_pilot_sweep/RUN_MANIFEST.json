@@ -1,0 +1,194 @@
+{
+  "schema": "paper_exact_acquisition_v1",
+  "run_id": "s2_leash_pilot_sweep",
+  "created_utc": "2026-08-17T13:07:55+00:00",
+  "container_image": "nvcr.io/nvidia/pytorch:25.01-py3",
+  "slurm_job_id": "205362",
+  "paper_title": "LEASH: Logit-Entropy Adaptive Stopping Heuristic",
+  "paper_pdf_path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/code/papers/LEASH Logit-Entropy Adaptive Stopping Heuristic for Efficient Chain-of-Thought Reasoning (arXiv 2511.04654v1).pdf",
+  "paper_pdf_sha256": "36f7d96bec68a33f25849c08f9846ef6157bc6697607277a048ddcbf2596a0f1",
+  "fidelity": "paper-specified-partial",
+  "official_code_url": "",
+  "official_code_commit": "none-published",
+  "dataset_source": "openai/gsm8k",
+  "dataset_revision": "test",
+  "dataset_example_ids": [
+    "gsm8k:8",
+    "gsm8k:24",
+    "gsm8k:27",
+    "gsm8k:28",
+    "gsm8k:29",
+    "gsm8k:35",
+    "gsm8k:40",
+    "gsm8k:42",
+    "gsm8k:47",
+    "gsm8k:52",
+    "gsm8k:67",
+    "gsm8k:68",
+    "gsm8k:72",
+    "gsm8k:83",
+    "gsm8k:84",
+    "gsm8k:88",
+    "gsm8k:90",
+    "gsm8k:91",
+    "gsm8k:96",
+    "gsm8k:97",
+    "gsm8k:104",
+    "gsm8k:106",
+    "gsm8k:107",
+    "gsm8k:119",
+    "gsm8k:126",
+    "gsm8k:130",
+    "gsm8k:132",
+    "gsm8k:142",
+    "gsm8k:143",
+    "gsm8k:148"
+  ],
+  "dataset_order_sha256": "1e1b7d5dd29abd0738821a0a4a5906b3ebd431b7e6f3855a67b8cdca8e4ad018",
+  "n_examples": 30,
+  "model_id": "meta-llama/Llama-3.1-8B-Instruct",
+  "model_revision": "main",
+  "chat_template_sha256": "e10ca381b1ccc5cf9db52e371f3b6651576caee0a630b452e2816b2d404d4b65",
+  "prompt_text": "{question}\n\nThink step by step and explain your reasoning.",
+  "prompt_sha256": "963473d14bbb2d7e59157c08b944c67f99e429172a9cb05ae8dbe311286f68b7",
+  "decoding": {
+    "rationale": {
+      "temperature": 0.7,
+      "top_p": 0.95,
+      "top_k": 0
+    },
+    "answer": {
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "top_k": 0
+    },
+    "eos_disabled_during_rationale": true
+  },
+  "seed_policy": {
+    "seed": 42,
+    "gsm8k_subset_seed": 42
+  },
+  "max_new_tokens": 320,
+  "stop_behavior": {
+    "rationale_cap": 320,
+    "policy": "LEASH Alg. 1 (leash arm only)",
+    "second_stage": "\n\nTherefore, the final answer is"
+  },
+  "signal_definitions": {
+    "H": "Eq. 1 full-vocabulary entropy on clipped fp32 logits",
+    "M": "Eq. 2 top-two log-probability margin",
+    "pmax": "Eq. 3 saturation indicator input"
+  },
+  "logits_stage": "raw",
+  "hidden_state_layers": [],
+  "expected_traces": 2490,
+  "shard_index": "INDEX.jsonl",
+  "software": {
+    "python": "3.12.3",
+    "platform": "Linux-6.11.0-1016-nvidia-x86_64-with-glibc2.39",
+    "torch": "2.6.0a0+ecf3bae40a.nv25.01",
+    "transformers": "4.57.6",
+    "numpy": "1.26.4",
+    "datasets": "5.0.1",
+    "vllm": null,
+    "sentence_transformers": null,
+    "cuda": "12.8",
+    "gpu": "NVIDIA B200",
+    "n_gpu": 1
+  },
+  "evaluator_revision": "paper_exact_evaluator_v1.0.0",
+  "declared_deviations": [
+    {
+      "field": "B / tau_p / w / gamma",
+      "paper_says": "claims concrete settings are reported; they are not in the PDF",
+      "we_do": "declared {'B': 30.0, 'tau_p': 0.95, 'w': 16, 'gamma': 0.1}, swept on pilot IDs",
+      "why": "the algorithm cannot run without them"
+    },
+    {
+      "field": "prompts",
+      "paper_says": "'prompts according to the task'",
+      "we_do": "'{question}\\n\\nThink step by step and explain your reasoning.' / '\\n\\nTherefore, the final answer is'",
+      "why": "no template published"
+    },
+    {
+      "field": "gsm8k_subset",
+      "paper_says": "random 300 with a fixed undisclosed seed",
+      "we_do": "numpy default_rng(42), 300 of the test split",
+      "why": "seed not disclosed"
+    }
+  ],
+  "repo_commit": "4b6b81015971fc332db603468ff69c2925cc3084",
+  "repo_dirty": false,
+  "commit_source": "sync stamp written 2026-08-17T13:05:30Z",
+  "extra": {
+    "mode": "pilot",
+    "arms": [
+      "leash",
+      "cot",
+      "nocot"
+    ],
+    "sweep": true,
+    "leash_config": {
+      "published": {
+        "k": 8,
+        "L": 5,
+        "eps_H": 0.005,
+        "delta_M": 0.05,
+        "m": 64,
+        "M": 320
+      },
+      "declared_by_us": {
+        "B": 30.0,
+        "tau_p": 0.95,
+        "w": 16,
+        "gamma": 0.1
+      },
+      "setting_label": "central",
+      "t_min": 80,
+      "fidelity": "paper-specified-partial",
+      "note": "B, tau_p, w and gamma are not numerically specified in the paper; they are declared here and swept on pilot IDs only. The best grid point is never reported as the reproduction."
+    },
+    "sensitivity_grid": {
+      "B": [
+        10.0,
+        30.0,
+        100.0
+      ],
+      "tau_p": [
+        0.9,
+        0.95,
+        0.99
+      ],
+      "w": [
+        0,
+        16,
+        32
+      ],
+      "gamma": [
+        0.05,
+        0.1,
+        0.25
+      ]
+    }
+  },
+  "resumes": [
+    {
+      "utc": "2026-08-17T15:34:11+00:00",
+      "slurm_job_id": "205549",
+      "repo_commit": "0f5951a89bd5c8020dc1ef8293bdd7dda50a4261",
+      "software": {
+        "python": "3.12.3",
+        "platform": "Linux-6.11.0-1016-nvidia-x86_64-with-glibc2.39",
+        "torch": "2.6.0a0+ecf3bae40a.nv25.01",
+        "transformers": "4.57.6",
+        "numpy": "1.26.4",
+        "datasets": "5.0.1",
+        "vllm": null,
+        "sentence_transformers": null,
+        "cuda": "12.8",
+        "gpu": "NVIDIA B200",
+        "n_gpu": 1
+      }
+    }
+  ]
+}

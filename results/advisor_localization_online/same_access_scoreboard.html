@@ -1,0 +1,620 @@
+<title>Same-Access Scoreboard</title>
+<style>
+  :root {
+    --ground:      #F5F7F8;
+    --surface:     #FFFFFF;
+    --surface-alt: #EDF1F3;
+    --ink:         #141A20;
+    --ink-soft:    #4A5561;
+    --ink-faint:   #78838F;
+    --rule:        #D6DDE2;
+    --rule-soft:   #E6EBEE;
+    --accent:      #17636B;
+    --accent-soft: #DCEBEC;
+    --sep:         #1E6B4E;
+    --sep-soft:    #DEEBE4;
+    --parity:      #5B6672;
+    --parity-soft: #E4E8EB;
+    --tier:        #514E7D;
+    --tier-soft:   #E5E4EF;
+
+    --serif: Charter, "Bitstream Charter", "Iowan Old Style", "Palatino Linotype",
+             Palatino, Georgia, serif;
+    --sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, system-ui,
+            "Helvetica Neue", Arial, sans-serif;
+    --mono: "Cascadia Code", "Cascadia Mono", ui-monospace, SFMono-Regular, Consolas,
+            "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:      #0E1317;
+      --surface:     #161D23;
+      --surface-alt: #1D262D;
+      --ink:         #E7ECF0;
+      --ink-soft:    #A9B4BF;
+      --ink-faint:   #7C8894;
+      --rule:        #2C373F;
+      --rule-soft:   #232C33;
+      --accent:      #59AEB4;
+      --accent-soft: #173236;
+      --sep:         #58AC82;
+      --sep-soft:    #162C22;
+      --parity:      #939EAA;
+      --parity-soft: #232B32;
+      --tier:        #9995CE;
+      --tier-soft:   #22213A;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:      #0E1317;
+    --surface:     #161D23;
+    --surface-alt: #1D262D;
+    --ink:         #E7ECF0;
+    --ink-soft:    #A9B4BF;
+    --ink-faint:   #7C8894;
+    --rule:        #2C373F;
+    --rule-soft:   #232C33;
+    --accent:      #59AEB4;
+    --accent-soft: #173236;
+    --sep:         #58AC82;
+    --sep-soft:    #162C22;
+    --parity:      #939EAA;
+    --parity-soft: #232B32;
+    --tier:        #9995CE;
+    --tier-soft:   #22213A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: clamp(1.75rem, 4vw, 4rem) clamp(1.1rem, 4vw, 2.5rem) 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3.25rem;
+  }
+
+  .prose { max-width: 40rem; display: flex; flex-direction: column; gap: 1rem; }
+
+  h1, h2, h3 { font-family: var(--serif); font-weight: 600; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(2rem, 5vw, 2.9rem); line-height: 1.1; letter-spacing: -0.015em; }
+  h2 { font-size: clamp(1.35rem, 3vw, 1.7rem); line-height: 1.2; }
+  h3 { font-size: 1.05rem; line-height: 1.3; }
+  p  { margin: 0; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    color: var(--accent);
+    margin: 0;
+  }
+
+  .standfirst { font-size: 1.1rem; color: var(--ink-soft); max-width: 38rem; }
+
+  .meta {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+    line-height: 1.9;
+    border-top: 1px solid var(--rule);
+    padding-top: 1rem;
+  }
+  .meta b { color: var(--ink-soft); font-weight: 600; }
+
+  /* ---- finding callouts: the two sentences an advisor should leave with ---- */
+  .findings { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+  .finding {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--accent);
+    padding: 1.25rem 1.35rem;
+    display: flex; flex-direction: column; gap: 0.6rem;
+  }
+  .finding.is-parity { border-top-color: var(--parity); }
+  .finding h3 { font-family: var(--sans); font-size: 0.72rem; text-transform: uppercase;
+                letter-spacing: 0.11em; color: var(--ink-faint); font-weight: 700; }
+  .finding .num {
+    font-family: var(--mono); font-size: 1.85rem; font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em; line-height: 1;
+  }
+  .finding p { font-size: 0.9rem; color: var(--ink-soft); }
+
+  section.lane { display: flex; flex-direction: column; gap: 1.4rem; }
+  .lane-head { display: flex; flex-direction: column; gap: 0.5rem; max-width: 44rem; }
+  .lane-note { font-size: 0.9rem; color: var(--ink-soft); }
+  .lane-note code { font-family: var(--mono); font-size: 0.84em; }
+
+  /* ---- interval strips: crossing the zero line IS the verdict ---- */
+  .chart {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    padding: 1.4rem clamp(0.9rem, 3vw, 1.6rem) 1.1rem;
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .chart-caption {
+    font-size: 0.78rem; color: var(--ink-faint); margin-bottom: 1.1rem;
+    padding-bottom: 0.9rem; border-bottom: 1px solid var(--rule-soft);
+  }
+  .strip { display: grid; grid-template-columns: minmax(6rem, 15rem) 1fr minmax(4.5rem, auto);
+           align-items: center; gap: 0.75rem; padding: 0.5rem 0;
+           border-bottom: 1px solid var(--rule-soft); }
+  .strip:last-of-type { border-bottom: 0; }
+  .strip-name { font-size: 0.83rem; color: var(--ink-soft); line-height: 1.35; }
+  .strip.is-ref .strip-name { color: var(--accent); font-weight: 600; }
+  .strip-name .tag {
+    display: inline-block; font-family: var(--mono); font-size: 0.62rem;
+    text-transform: uppercase; letter-spacing: 0.08em; padding: 0.05rem 0.3rem;
+    border: 1px solid currentColor; margin-left: 0.35rem; vertical-align: 1px;
+  }
+  .track { position: relative; height: 1.6rem; }
+  .track .zero {
+    position: absolute; top: 0; bottom: 0; width: 1px; background: var(--ink-faint);
+  }
+  .track .bar {
+    position: absolute; top: 50%; transform: translateY(-50%); height: 0.42rem;
+    background: var(--parity-soft); border: 1px solid var(--parity);
+  }
+  .track .bar.excl { background: var(--sep-soft); border-color: var(--sep); }
+  .track .dot {
+    position: absolute; top: 50%; width: 0.5rem; height: 0.5rem; border-radius: 50%;
+    transform: translate(-50%, -50%); background: var(--parity);
+  }
+  .track .dot.excl { background: var(--sep); }
+  .track .refmark {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    font-family: var(--mono); font-size: 0.68rem; color: var(--accent);
+    letter-spacing: 0.06em; white-space: nowrap;
+  }
+  .strip-val {
+    font-family: var(--mono); font-size: 0.82rem; font-variant-numeric: tabular-nums;
+    text-align: right; color: var(--ink);
+  }
+  .axis { display: grid; grid-template-columns: minmax(6rem, 15rem) 1fr minmax(4.5rem, auto);
+          gap: 0.75rem; margin-top: 0.5rem; }
+  .axis-inner { position: relative; height: 1.1rem; font-family: var(--mono);
+                font-size: 0.66rem; color: var(--ink-faint); }
+  .axis-inner span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; font-size: 0.75rem;
+            color: var(--ink-faint); margin-top: 1rem; padding-top: 0.9rem;
+            border-top: 1px solid var(--rule-soft); }
+  .legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .swatch { width: 1.4rem; height: 0.42rem; border: 1px solid; display: inline-block; }
+  .swatch.p { background: var(--parity-soft); border-color: var(--parity); }
+  .swatch.e { background: var(--sep-soft); border-color: var(--sep); }
+
+  /* ---- exact grid, house format: a column per method, a row per metric ---- */
+  .scroller { overflow-x: auto; border: 1px solid var(--rule); background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.8rem; }
+  caption {
+    text-align: left; padding: 1rem 1.1rem 0.85rem; font-size: 0.78rem;
+    color: var(--ink-faint); border-bottom: 1px solid var(--rule-soft);
+  }
+  th, td { padding: 0.6rem 0.85rem; text-align: right; vertical-align: top;
+           border-bottom: 1px solid var(--rule-soft); white-space: nowrap; }
+  thead th { font-family: var(--sans); font-size: 0.74rem; font-weight: 600;
+             color: var(--ink-soft); line-height: 1.35; white-space: normal;
+             min-width: 8.5rem; border-bottom: 1px solid var(--rule); }
+  thead th.rowlab, tbody th { text-align: left; }
+  tbody th { font-weight: 400; color: var(--ink-soft); white-space: normal;
+             min-width: 13rem; font-size: 0.78rem; }
+  thead th.ours, td.ours { background: var(--accent-soft); }
+  thead th.ours { color: var(--accent); }
+  td { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  tr:last-child th, tr:last-child td { border-bottom: 0; }
+  .best { font-weight: 700; }
+
+  .pill {
+    display: inline-block; font-family: var(--sans); font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.02em; padding: 0.12rem 0.45rem; border: 1px solid;
+    white-space: nowrap;
+  }
+  .pill.ref { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .pill.excl { color: var(--sep); border-color: var(--sep); background: var(--sep-soft); }
+  .pill.par { color: var(--parity); border-color: var(--parity); background: var(--parity-soft); }
+
+  /* ---- higher-access tier, visually quarantined ---- */
+  .tierbox { border: 1px solid var(--tier); border-left-width: 3px;
+             background: var(--tier-soft); padding: 1.25rem 1.35rem;
+             display: flex; flex-direction: column; gap: 0.9rem; }
+  .tierbox h3 { color: var(--tier); }
+  .tierbox p { font-size: 0.87rem; color: var(--ink-soft); max-width: 40rem; }
+  .tierlist { display: flex; flex-direction: column; gap: 0; }
+  .tierrow { display: grid; grid-template-columns: 1fr auto; gap: 0.75rem 1.25rem;
+             padding: 0.65rem 0; border-bottom: 1px solid var(--rule); align-items: baseline; }
+  .tierrow:last-child { border-bottom: 0; }
+  .tierrow .what { font-size: 0.74rem; color: var(--ink-faint); display: block; }
+  .tierrow .score { font-family: var(--mono); font-variant-numeric: tabular-nums;
+                    font-size: 1rem; color: var(--tier); font-weight: 600; }
+
+  ul.caveats { margin: 0; padding-left: 1.15rem; display: flex; flex-direction: column;
+               gap: 0.65rem; font-size: 0.92rem; color: var(--ink-soft); max-width: 40rem; }
+  ul.caveats strong { color: var(--ink); }
+
+  .sources { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint);
+             line-height: 1.9; border-top: 1px solid var(--rule); padding-top: 1rem; }
+
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  @media (max-width: 33rem) {
+    .strip, .axis { grid-template-columns: 1fr; }
+    .strip-val { text-align: left; }
+    .axis { display: none; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="prose">
+    <p class="eyebrow">Thesis progress · localization &amp; early detection</p>
+    <h1>Same-Access Scoreboard</h1>
+    <p class="standfirst">
+      Where our token-probability method actually stands against the published competitors,
+      when everyone is held to the same access: one generated trace, log-probabilities only,
+      one model pass.
+    </p>
+    <p class="meta">
+      Source: frozen Stage-4 scorer-transfer audit · protocol <b>c921b0d446eebd46…</b><br>
+      Scorer copies: <b>Qwen3-8B</b> and <b>Llama-3.1-8B</b>, paired by source question ·
+      four ProcessBench families · 2,000 grouped bootstrap resamples<br>
+      Pre-registered verdict of that audit: <b>REGRESSES_DIRECT_COMPETITOR</b>
+    </p>
+  </header>
+
+  <section class="findings">
+    <div class="finding">
+      <h3>Early detection — one clean separation</h3>
+      <p class="num">0.6104</p>
+      <p>
+        Our 28-stream causal prefix method leads the same-access field on AUROC at 64 and 128
+        observed tokens. The only interval in either lane that excludes zero is against maximum
+        entropy: <b>−0.0183</b>, 95% <b>[−0.0333, −0.0027]</b>, and it loses all four families.
+      </p>
+    </div>
+    <div class="finding is-parity">
+      <h3>Localization — a parity, not a win</h3>
+      <p class="num">0.3662</p>
+      <p>
+        The new global-detector architecture edges maximum entropy plus the same locator by
+        <b>+0.0048</b> macro F1, but the interval <b>[−0.0264, +0.0375]</b> crosses zero. Three
+        families won, one lost. This is parity, and we report it as parity.
+      </p>
+    </div>
+  </section>
+
+  <section class="lane">
+    <div class="lane-head">
+      <h2>Early (prefix) detection</h2>
+      <p class="lane-note">
+        AUROC at 64 and 128 observed tokens — can we tell, from the tokens available so far,
+        that this trace is heading for a wrong answer? Every paired delta is against
+        <strong>our own 28-stream causal prefix</strong>, which is this lane's direct reference.
+      </p>
+    </div>
+
+    <div class="chart" id="chart-online">
+      <p class="chart-caption">
+        Paired delta against the reference, with its grouped 95% interval. A bar that touches the
+        zero line is a parity — the point estimate's sign is not a result.
+      </p>
+    </div>
+
+    <div class="scroller">
+      <table>
+        <caption>Exact grid — a column per method, a row per metric.</caption>
+        <thead>
+          <tr>
+            <th class="rowlab">Metric (direction)</th>
+            <th class="ours">28-stream causal prefix <em>(ours)</em></th>
+            <th>Two-head trajectory (Step&nbsp;272)</th>
+            <th>Mean entropy</th>
+            <th>DeepConf lowest-group, window&nbsp;64 — our proxy</th>
+            <th>Maximum entropy</th>
+            <th>Global detector + step-top-5 locator</th>
+            <th>DeepConf lowest-group, window&nbsp;32 — our proxy</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>AUROC@64/128 — higher is better</th>
+            <td class="ours best">0.6104</td><td>0.6082</td><td>0.5926</td><td>0.5922</td>
+            <td>0.5921</td><td>0.5882</td><td>0.5853</td>
+          </tr>
+          <tr>
+            <th>Paired delta vs reference — positive beats the reference</th>
+            <td class="ours">reference</td><td>−0.0022</td><td>−0.0178</td><td>−0.0182</td>
+            <td>−0.0183</td><td>−0.0222</td><td>−0.0251</td>
+          </tr>
+          <tr>
+            <th>Grouped 95% interval on that delta</th>
+            <td class="ours">—</td><td>[−0.0180, +0.0132]</td><td>[−0.0496, +0.0144]</td>
+            <td>[−0.0508, +0.0138]</td><td>[−0.0333, −0.0027]</td><td>[−0.0502, +0.0042]</td>
+            <td>[−0.0575, +0.0063]</td>
+          </tr>
+          <tr>
+            <th>Families won / lost vs reference (of 4)</th>
+            <td class="ours">—</td><td>2 / 2</td><td>1 / 3</td><td>1 / 3</td><td>0 / 4</td>
+            <td>1 / 3</td><td>1 / 3</td>
+          </tr>
+          <tr>
+            <th>Verdict vs reference</th>
+            <td class="ours"><span class="pill ref">reference</span></td>
+            <td><span class="pill par">parity</span></td>
+            <td><span class="pill par">parity</span></td>
+            <td><span class="pill par">parity</span></td>
+            <td><span class="pill excl">loses to reference</span></td>
+            <td><span class="pill par">parity</span></td>
+            <td><span class="pill par">parity</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="lane">
+    <div class="lane-head">
+      <h2>Error localization</h2>
+      <p class="lane-note">
+        ProcessBench macro F1 over four families — given a trace that contains an error, which
+        step is the first wrong one? Here the direct reference is <strong>maximum entropy plus
+        the step-top-5 locator</strong>, and our architecture is one of the rows judged against
+        it.
+      </p>
+    </div>
+
+    <div class="chart" id="chart-local">
+      <p class="chart-caption">
+        Paired delta against the reference, with its grouped 95% interval. Our row is the one
+        above zero — and it still touches the line.
+      </p>
+    </div>
+
+    <div class="scroller">
+      <table>
+        <caption>Exact grid — a column per method, a row per metric.</caption>
+        <thead>
+          <tr>
+            <th class="rowlab">Metric (direction)</th>
+            <th class="ours">Global detector + step-top-5 locator <em>(ours)</em></th>
+            <th>Maximum entropy + step-top-5 locator</th>
+            <th>GL-LIU replay</th>
+            <th>Maximum entropy + persistent-q90 locator</th>
+            <th>Maximum entropy + peak locator</th>
+            <th>Two-head trajectory (Step&nbsp;272)</th>
+            <th>Mind the Gap / Evidence-Drop</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>ProcessBench macro F1 — higher is better</th>
+            <td class="ours best">0.3662</td><td>0.3614</td><td>0.3364</td><td>0.3280</td>
+            <td>0.3111</td><td>0.3078</td><td>0.2646</td>
+          </tr>
+          <tr>
+            <th>Paired delta vs reference — positive beats the reference</th>
+            <td class="ours">+0.0048</td><td>reference</td><td>−0.0250</td><td>−0.0335</td>
+            <td>−0.0503</td><td>−0.0536</td><td>−0.0968</td>
+          </tr>
+          <tr>
+            <th>Grouped 95% interval on that delta</th>
+            <td class="ours">[−0.0264, +0.0375]</td><td>—</td><td>[−0.0669, +0.0155]</td>
+            <td>[−0.0721, +0.0064]</td><td>[−0.0783, −0.0202]</td><td>[−0.0899, −0.0189]</td>
+            <td>[−0.1333, −0.0582]</td>
+          </tr>
+          <tr>
+            <th>Families won / lost vs reference (of 4)</th>
+            <td class="ours">3 / 1</td><td>—</td><td>1 / 3</td><td>0 / 4</td><td>1 / 3</td>
+            <td>1 / 3</td><td>0 / 4</td>
+          </tr>
+          <tr>
+            <th>Verdict vs reference</th>
+            <td class="ours"><span class="pill par">parity</span></td>
+            <td><span class="pill ref">reference</span></td>
+            <td><span class="pill par">parity</span></td>
+            <td><span class="pill par">parity</span></td>
+            <td><span class="pill excl">loses to reference</span></td>
+            <td><span class="pill excl">loses to reference</span></td>
+            <td><span class="pill excl">loses to reference</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tierbox">
+      <h3>Higher-access panel — not comparable to the grid above</h3>
+      <p>
+        These see more than we do. They are compute ceilings on the same questions, never
+        same-access deltas, so they carry no paired interval and are never ranked in one column
+        with a single pass over log-probabilities we already had.
+      </p>
+      <div class="tierlist">
+        <div class="tierrow">
+          <div>Qwen2.5-Math-PRM-7B
+            <span class="what">step-level PRM800K supervision · 1 pass</span></div>
+          <div class="score">0.7280</div>
+        </div>
+        <div class="tierrow">
+          <div>Qwen2.5-72B critic
+            <span class="what">no labels · 8 sampled passes of a 72B model</span></div>
+          <div class="score">0.5895</div>
+        </div>
+        <div class="tierrow">
+          <div>Qwen3-8B judge control
+            <span class="what">no labels · 1 pass · judge prompt</span></div>
+          <div class="score">0.0913</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2>What these numbers do not say</h2>
+    <ul class="caveats">
+      <li>
+        <strong>The DeepConf columns are our own approximate proxies</strong>, computed from
+        saved log-probabilities — not the published method. Whether the pinned official
+        confidence removes their indistinguishability from us is pre-registered null N7 of the
+        prefix-lane claim registry, and it is exactly what the DeepConf acquisition now running
+        exists to answer.
+      </li>
+      <li>
+        <strong>Parity is not a win.</strong> Five of the six same-access competitors in early
+        detection, and three of the six in localization, have intervals crossing zero. We lead
+        on the point estimate in both lanes and can claim a clean separation in only one place.
+      </li>
+      <li>
+        <strong>The pre-registered verdict of this audit was <code>REGRESSES_DIRECT_COMPETITOR</code></strong>,
+        because the new global-detector architecture scores 0.5882 on early detection against
+        0.6104 for our existing prefix method. The architecture did not beat what we already had.
+      </li>
+      <li>
+        <strong>Potential tokens remaining are not realized savings</strong>, and higher-access
+        rows are ceilings rather than competitors.
+      </li>
+    </ul>
+  </section>
+
+  <footer class="prose">
+    <h2>Sources</h2>
+    <p class="sources">
+      results/local_online_comprehensive_v1/STAGE_4_AGGREGATE.csv — c7d57e9649c00e0e…<br>
+      results/local_online_comprehensive_v1/STAGE_4_INTERVALS.csv — 18dd40d71dd3ca6f…<br>
+      results/local_online_comprehensive_v1/STAGE_4_DECISION.json — e74ab8815989e03f…<br>
+      Regenerate with <span style="color:var(--ink-soft)">scripts/localization_online_comparison_grid.py</span>
+    </p>
+  </footer>
+</div>
+
+<script>
+  // Interval strips are rendered from one data array so every figure in the chart and the
+  // table below it comes from a single place. The tables are static HTML, so if this never
+  // runs the numbers are still all on the page.
+  const LANES = {
+    "chart-online": {
+      domain: [-0.070, 0.030],
+      rows: [
+        { name: "28-stream causal prefix", ours: true, ref: true },
+        { name: "Two-head trajectory (Step 272)",        d: -0.0022, lo: -0.0180, hi: 0.0132 },
+        { name: "Mean entropy",                          d: -0.0178, lo: -0.0496, hi: 0.0144 },
+        { name: "DeepConf window 64 — our proxy",        d: -0.0182, lo: -0.0508, hi: 0.0138 },
+        { name: "Maximum entropy",                       d: -0.0183, lo: -0.0333, hi: -0.0027 },
+        { name: "Global detector + step-top-5 locator",  d: -0.0222, lo: -0.0502, hi: 0.0042 },
+        { name: "DeepConf window 32 — our proxy",        d: -0.0251, lo: -0.0575, hi: 0.0063 }
+      ]
+    },
+    "chart-local": {
+      domain: [-0.150, 0.050],
+      rows: [
+        { name: "Global detector + step-top-5 locator", ours: true,
+                                                         d:  0.0048, lo: -0.0264, hi: 0.0375 },
+        { name: "Maximum entropy + step-top-5 locator", ref: true },
+        { name: "GL-LIU replay",                         d: -0.0250, lo: -0.0669, hi: 0.0155 },
+        { name: "Maximum entropy + persistent-q90",      d: -0.0335, lo: -0.0721, hi: 0.0064 },
+        { name: "Maximum entropy + peak locator",        d: -0.0503, lo: -0.0783, hi: -0.0202 },
+        { name: "Two-head trajectory (Step 272)",        d: -0.0536, lo: -0.0899, hi: -0.0189 },
+        { name: "Mind the Gap / Evidence-Drop",          d: -0.0968, lo: -0.1333, hi: -0.0582 }
+      ]
+    }
+  };
+
+  const fmt = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(4);
+
+  for (const [id, lane] of Object.entries(LANES)) {
+    const host = document.getElementById(id);
+    if (!host) continue;
+    const [lo, hi] = lane.domain;
+    const pct = v => ((v - lo) / (hi - lo)) * 100;
+
+    for (const r of lane.rows) {
+      const strip = document.createElement("div");
+      strip.className = "strip" + (r.ref ? " is-ref" : "");
+
+      const name = document.createElement("div");
+      name.className = "strip-name";
+      name.textContent = r.name;
+      if (r.ours) {
+        const t = document.createElement("span");
+        t.className = "tag";
+        t.textContent = "ours";
+        name.appendChild(t);
+      }
+
+      const track = document.createElement("div");
+      track.className = "track";
+      const zero = document.createElement("div");
+      zero.className = "zero";
+      zero.style.left = pct(0) + "%";
+      track.appendChild(zero);
+
+      const val = document.createElement("div");
+      val.className = "strip-val";
+
+      if (r.ref) {
+        const m = document.createElement("div");
+        m.className = "refmark";
+        m.style.left = pct(0) + "%";
+        m.textContent = "reference";
+        m.style.transform = "translate(0.4rem, -50%)";
+        track.appendChild(m);
+        val.textContent = "—";
+      } else {
+        // A bar that does not touch zero is a real separation; that is the only thing the
+        // colour encodes. It deliberately says nothing about whether the result favours us.
+        const excludes = (r.lo > 0) || (r.hi < 0);
+        const bar = document.createElement("div");
+        bar.className = "bar" + (excludes ? " excl" : "");
+        bar.style.left = pct(r.lo) + "%";
+        bar.style.width = (pct(r.hi) - pct(r.lo)) + "%";
+        const dot = document.createElement("div");
+        dot.className = "dot" + (excludes ? " excl" : "");
+        dot.style.left = pct(r.d) + "%";
+        track.appendChild(bar);
+        track.appendChild(dot);
+        val.textContent = fmt(r.d);
+      }
+
+      strip.appendChild(name);
+      strip.appendChild(track);
+      strip.appendChild(val);
+      host.appendChild(strip);
+    }
+
+    const axis = document.createElement("div");
+    axis.className = "axis";
+    const pad = document.createElement("div");
+    const inner = document.createElement("div");
+    inner.className = "axis-inner";
+    for (const t of [lo, 0, hi]) {
+      const s = document.createElement("span");
+      s.style.left = pct(t) + "%";
+      s.textContent = t === 0 ? "0" : fmt(t);
+      inner.appendChild(s);
+    }
+    axis.appendChild(pad);
+    axis.appendChild(inner);
+    axis.appendChild(document.createElement("div"));
+    host.appendChild(axis);
+
+    const legend = document.createElement("div");
+    legend.className = "legend";
+    legend.innerHTML =
+      '<span><i class="swatch e"></i> interval excludes zero — a real separation</span>' +
+      '<span><i class="swatch p"></i> interval crosses zero — parity</span>' +
+      '<span>dot = point estimate</span>';
+    host.appendChild(legend);
+  }
+</script>

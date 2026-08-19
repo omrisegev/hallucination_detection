@@ -1,0 +1,167 @@
+{
+  "schema": "paper_exact_acquisition_v1",
+  "run_id": "s1_refrain_pilot",
+  "created_utc": "2026-08-17T01:47:22+00:00",
+  "container_image": "nvcr.io/nvidia/pytorch:25.01-py3",
+  "slurm_job_id": "204146",
+  "paper_title": "Stop When Enough: Adaptive Early-Stopping for Chain-of-Thought Reasoning",
+  "paper_pdf_path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/code/papers/Stop When Enough Adaptive Early-Stopping for Chain-of-Thought Reasoning (ACL 2026).pdf",
+  "paper_pdf_sha256": "e29b9a4e453e4b4561e6d278cd03bb1b361a7f6dc158609021f8920e2f775a0b",
+  "fidelity": "paper-specified-partial",
+  "official_code_url": "https://github.com/RLSNLP/Adaptive-Reasoning",
+  "official_code_commit": "release-placeholder-README (no runnable code at audit)",
+  "dataset_source": "HuggingFaceH4/MATH-500",
+  "dataset_revision": "test",
+  "dataset_example_ids": [
+    "test/precalculus/807.json",
+    "test/intermediate_algebra/1994.json",
+    "test/algebra/2584.json",
+    "test/number_theory/572.json",
+    "test/algebra/1349.json",
+    "test/prealgebra/1622.json",
+    "test/number_theory/515.json",
+    "test/precalculus/927.json",
+    "test/algebra/2036.json",
+    "test/prealgebra/1139.json",
+    "test/number_theory/1032.json",
+    "test/intermediate_algebra/1197.json",
+    "test/number_theory/737.json",
+    "test/geometry/248.json",
+    "test/precalculus/1303.json",
+    "test/precalculus/990.json",
+    "test/intermediate_algebra/134.json",
+    "test/precalculus/1199.json",
+    "test/geometry/434.json",
+    "test/intermediate_algebra/1000.json",
+    "test/algebra/1098.json",
+    "test/intermediate_algebra/607.json",
+    "test/algebra/1837.json",
+    "test/algebra/2193.json",
+    "test/algebra/2427.json",
+    "test/intermediate_algebra/1388.json",
+    "test/counting_and_probability/525.json",
+    "test/prealgebra/1840.json",
+    "test/precalculus/779.json",
+    "test/counting_and_probability/666.json"
+  ],
+  "dataset_order_sha256": "003edea04b6ea8f384066e87442cbdc1e75ad731951ea6222814338501cfbca3",
+  "n_examples": 30,
+  "model_id": "Qwen/Qwen3-8B",
+  "model_revision": "main",
+  "chat_template_sha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+  "prompt_text": "{question}\nPlease answer step by step. End your response with: Final Answer: \\boxed{{your final answer here}}. Make sure to wrap your final answer in \\boxed{{}}.",
+  "prompt_sha256": "9be45cc38bf41dbe18b8e5bef4065206cefa69942234e29a45dd5b4a0be5b586",
+  "decoding": {
+    "temperature": 0.6,
+    "top_p": 0.95,
+    "top_k": 20,
+    "logprob_top_k": 50,
+    "thinking_mode": true
+  },
+  "seed_policy": {
+    "seed": 42,
+    "torch_generator": "cuda",
+    "per_question_reseed": false
+  },
+  "max_new_tokens": 16384,
+  "stop_behavior": {
+    "eos": "generation_config + <|im_end|>",
+    "cap": 16384,
+    "policy": "REFRAIN Alg. 1 (refrain arm only)",
+    "forced_closure": "Final Answer: \\boxed{",
+    "max_closure_tokens": 256
+  },
+  "signal_definitions": {
+    "raw_entropy": "full-vocabulary Shannon entropy from raw logits",
+    "raw_logsumexp": "log-partition over the full raw-logit vocabulary",
+    "spilled_energy": "-log p(sampled token), raw",
+    "deepconf_conf": "DeepConf paper_eq2 over raw top-20 logprobs",
+    "answer_score": "REFRAIN Eq. 6 length-normalised geometric-mean likelihood"
+  },
+  "logits_stage": "both",
+  "hidden_state_layers": [],
+  "expected_traces": 60,
+  "shard_index": "INDEX.jsonl",
+  "software": {
+    "python": "3.12.3",
+    "platform": "Linux-6.11.0-1016-nvidia-x86_64-with-glibc2.39",
+    "torch": "2.6.0a0+ecf3bae40a.nv25.01",
+    "transformers": "4.57.6",
+    "numpy": "1.26.4",
+    "datasets": "5.0.1",
+    "vllm": null,
+    "sentence_transformers": null,
+    "cuda": "12.8",
+    "gpu": "NVIDIA B200",
+    "n_gpu": 1
+  },
+  "evaluator_revision": "paper_exact_evaluator_v1.0.0",
+  "declared_deviations": [
+    {
+      "field": "provisional_answer_cue_c",
+      "paper_says": "e.g. 'answer is/should be'",
+      "we_do": [
+        "answer is",
+        "answer should be"
+      ],
+      "why": "the paper gives an example, not the set"
+    },
+    {
+      "field": "reward_timing",
+      "paper_says": "R = Score - lambda*L/L_bar with L_bar a running mean",
+      "we_do": "L_bar over previous rounds, updated after the reward",
+      "why": "the paper does not say whether the current sample is included"
+    },
+    {
+      "field": "cold_start_and_tie_order",
+      "paper_says": "'arbitrary such t'; ties undefined",
+      "we_do": "ascending tau for both",
+      "why": "determinism and reproducibility"
+    },
+    {
+      "field": "official_code",
+      "paper_says": "code will be released",
+      "we_do": "PDF-based implementation",
+      "why": "repository was a release-placeholder README when audited"
+    }
+  ],
+  "repo_commit": "unknown",
+  "repo_dirty": false,
+  "extra": {
+    "refrain_config": {
+      "tau_grid": [
+        0.6,
+        0.65,
+        0.7,
+        0.75,
+        0.8
+      ],
+      "ucb_c": 1.0,
+      "window": 100,
+      "lambda": 0.2,
+      "cold_start_coef": 0.0001,
+      "vocabulary": "base",
+      "n_trigger_phrases": 19,
+      "provisional_cues": [
+        "answer is",
+        "answer should be"
+      ],
+      "sbert_model": "sentence-transformers/all-MiniLM-L6-v2",
+      "max_new_tokens": 16384,
+      "seed": 42,
+      "decoding": {
+        "temperature": 0.6,
+        "top_p": 0.95,
+        "top_k": 20
+      }
+    },
+    "mode": "pilot",
+    "arms": [
+      "vanilla",
+      "refrain"
+    ],
+    "shard": 0,
+    "n_shards": 1,
+    "fixed_tau": null
+  }
+}

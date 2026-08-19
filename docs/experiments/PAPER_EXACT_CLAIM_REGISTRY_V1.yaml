@@ -1,0 +1,218 @@
+# Prefix-detection lane — frozen claim registry, version 1
+#
+# Created 2026-08-17 in response to the Codex review addendum
+# (HANDOFF_paper_exact_cluster_acquisition_2026-08-16.md §8, Q5 decision).
+#
+# THIS FILE IS FROZEN BEFORE ANY COMPARISON RESULT IS OPENED.
+# `scripts/paper_exact_freeze_registry.py` renders it to JSON, hashes it, and records the
+# hash. Any later edit changes the hash, which is the audit trail: a registry whose hash
+# does not match the one cited by a results file did not govern that result.
+#
+# The lane's question: "From the tokens available now, will this trace's final answer be
+# wrong?" It is scored on absolute observed-token budgets only. Fractional budgets need the
+# eventual trace length and are retrospective diagnostics, never primary.
+
+registry_version: 1
+created_utc: "2026-08-17T14:00:00Z"
+lane: prefix-detection
+frozen_by: "Codex review addendum §8 Q5"
+supersedes: null
+
+# ── implementation the registry governs ────────────────────────────────────────
+implementation:
+  module: spectral_utils/online_convergence.py
+  primary_method: iu28_no_length
+  primary_rationale: >
+    The causal 28-stream no-final-length adapter. The literal historical 29-stream contract's
+    29th stream is constant FINAL response length, which leaks the future; replacing it by
+    elapsed prefix length is a deliberate semantic change, so the elapsed-length variant is
+    an ablation and never the primary.
+  ablations:
+    - iu29_elapsed_length          # declared ablation only
+  non_causal_ceiling:
+    - full_trace_iu                # explicitly non-deployable, reported as a ceiling
+  fit_entry_point: fit_frozen_prefix_iu
+  prefix_builder: causal_raw_prefix_matrix
+  truncation: truncate_telemetry
+  label_free_fit: true             # fit_frozen_prefix_iu neither accepts nor inspects labels
+
+# ── same-access controls (one trace, log-probabilities only) ───────────────────
+controls:
+  - mean_entropy
+  - max_entropy
+  - deepconf_entropy_w32
+  - deepconf_entropy_w64
+  - deepconf_pinned_lowest_group_2k   # the audited raw-logit DeepConf, once M2 lands
+higher_access_tiers_reported_separately:
+  - supervised_logistic_oracle       # development labels; never in the primary comparison
+  - released_prm                     # step-level supervision
+  - external_critic                  # 8-sample vote
+
+# ── splits ─────────────────────────────────────────────────────────────────────
+splits:
+  unit: question_id
+  rule: grouped_calibration_split
+  seed: 1729
+  development_fraction: 0.40
+  calibration_fraction: 0.20
+  evaluation_fraction: 0.40
+  stratify_by: n_correct_among_K_bin
+  notes: >
+    Split by question, never by trace: K generations of one question are not K independent
+    examples. All K traces of a question stay together. On previously opened caches the last
+    partition is called EVALUATION, not locked test — those cells already shaped the method.
+    Only C1 is confirmation.
+
+# ── budgets ────────────────────────────────────────────────────────────────────
+budgets:
+  primary_absolute_tokens: [16, 32, 64, 128, 256, 512]
+  clip_to_model_max: true
+  fractional_budgets: retrospective_diagnostic_only
+
+# ── alarm calibration ──────────────────────────────────────────────────────────
+alarm:
+  statistic: running_maximum_of_decision_scores
+  calibrated_on: max_t score(t) over the complete registered horizon
+  fpr_definition: ever_alarmed_before_natural_completion
+  target_fprs: [0.05, 0.10]
+  calibration_partition: calibration
+  notes: >
+    A repeatedly inspected monitor is a repeated test, so a fixed-time 5% threshold does not
+    give a 5% ever-alarm rate. Report exact false-alarm counts and intervals; with ~60 MATH
+    calibration questions a 5% target is coarse and its granularity is reported.
+
+# ── metrics ────────────────────────────────────────────────────────────────────
+metrics:
+  - auroc
+  - auprc
+  - prevalence
+  - normalized_ap
+  - recovered_above_chance_discrimination      # (AUROC_t - .5)/(AUROC_full - .5)
+  - earliest_budget_reaching_95pct_of_signal   # AUROC95 = .5 + .95*(AUROC_full - .5)
+  - sensitivity_and_precision_at_frozen_ever_alarm_fpr
+  - median_detection_token_among_detected_wrong
+  - false_abort_cost_on_correct_traces
+  - selective_risk_coverage
+inference:
+  bootstrap_unit: question_id
+  n_boot: 2000
+  paired: true
+  interval: 0.95
+  non_inferiority_margin_accuracy_points: 1.0
+
+# ── the ten preregistered nulls (canonical list, phase-1 checkpoint §5.6) ──────
+# Codex §8 requires ALL TEN machine-checked, not a favourable subset.
+nulls:
+  N1:
+    claim: the historical earliest-fraction edge disappears at absolute budgets
+    check: compare_fractional_vs_absolute_budgets
+  N2:
+    claim: the effect has the wrong sign on either dataset/model family
+    check: per_family_sign_agreement
+  N3:
+    claim: residualizing or matching on observed prefix length removes the effect
+    check: length_residualized_effect
+  N4:
+    claim: censoring/cap-pinning or already-finished short traces explain the result
+    check: censoring_and_finished_trace_stratification
+  N5:
+    claim: the primary fails to beat the development-selected single entropy/window control
+    check: paired_vs_best_development_control
+  N6:
+    claim: weights, orientation or selected components are unstable across development resamples or budgets
+    check: fit_stability_across_resamples_and_budgets
+  N7:
+    claim: pinned official DeepConf confidence removes the approximate-baseline advantage
+    check: pinned_deepconf_replaces_proxy
+  N8:
+    claim: no stopping policy lies on a better accuracy-versus-token frontier than vanilla/fixed budgets
+    check: accuracy_token_frontier_dominance
+  N9:
+    claim: performance collapses in the shortest preregistered response-length stratum
+    check: shortest_length_band_performance
+  N10:
+    claim: one dataset or one error subtype accounts for the pooled effect
+    check: leave_one_family_out_influence
+
+# ── structural gates ──────────────────────────────────────────────────────────
+# Codex §8 names ten structural checks. They are MAPPED here rather than renamed into an
+# eleventh protocol: each maps to the canonical null it protects, or is marked
+# `structural_only` when it guards validity rather than testing a null.
+structural_gates:
+  suffix_invariance:
+    codex_name: suffix invariance
+    protects: N3
+    assertion: identical prefixes with arbitrary different suffixes produce identical prefix scores
+  tokenwise_vs_chunked_replay:
+    codex_name: tokenwise-versus-chunked replay
+    protects: structural_only
+    assertion: decision-time scores are identical whether replayed one token or one chunk at a time
+  endpoint_handling:
+    codex_name: endpoint handling
+    protects: N4
+    assertion: >
+      traces already finished before a budget, and traces pinned at the length cap, are
+      handled by a declared rule and counted, never silently dropped
+  label_permutation:
+    codex_name: label permutation
+    protects: structural_only
+    assertion: permuting evaluation labels drives AUROC to chance within bootstrap error
+  feature_order_perturbation:
+    codex_name: feature-order perturbation
+    protects: N6
+    assertion: permuting the input stream order leaves the score unchanged
+  sign_orientation:
+    codex_name: sign/orientation
+    protects: N6
+    assertion: orientation is derived label-free and is stable across development resamples
+  length_only_leakage:
+    codex_name: length-only leakage
+    protects: N3
+    assertion: >
+      a length-only baseline is reported, and the primary carries no final response length;
+      the primary's advantage over it must survive length matching
+  split_isolation:
+    codex_name: split isolation
+    protects: structural_only
+    assertion: >
+      no evaluation question appears in development or calibration; the transform, weights
+      and orientation are fitted on development only
+  alarm_horizon_calibration:
+    codex_name: alarm-horizon calibration
+    protects: structural_only
+    assertion: the frozen threshold realizes its target ever-alarm FPR on held-out correct traces
+  grouped_resampling_validity:
+    codex_name: grouped-resampling validity
+    protects: structural_only
+    assertion: >
+      bootstrap resamples question groups, and the resulting interval is wider than the
+      trace-level interval on the same data
+
+# ── success rule ──────────────────────────────────────────────────────────────
+success_rule:
+  requires_all:
+    - paired question-bootstrap improvement over the strongest SAME-ACCESS baseline is positive with a 95% interval excluding zero on the primary protocol
+    - same sign in at least two dataset/model families
+    - provides a useful earlier warning or realized token saving
+    - uses no final response length
+    - the selected intervention has no material accuracy loss (margin 1.0 absolute point)
+  forbidden:
+    - a spectral-then-window hybrid introduced after seeing the early regime is a NEW registered method and cannot rescue this claim post hoc
+    - sweeping a threshold or orienting a score on evaluation/test labels
+    - reporting a fractional-budget result as primary
+
+# ── data sources this registry will be applied to ─────────────────────────────
+sources:
+  retrospective:
+    - id: gsm8k_llama31_8b
+      note: opened development asset; retrospective evaluation only
+    - id: math500_qwenmath15b
+      note: opened development asset; 17.63% accuracy, a stress test
+  paper_exact:
+    - id: s1_refrain_full
+      note: both arms, MATH-500 x Qwen3-8B, four frozen channels per token
+    - id: m2_deepconf_full
+      note: 30 x 4096 AIME24 pool; supplies the audited pinned DeepConf control
+  confirmation:
+    - id: c1_gptoss20b_commonsenseqa
+      note: NOT to be opened until this registry is frozen and S1 full has landed (Codex §8 Q3)

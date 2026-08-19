@@ -1,0 +1,103 @@
+{
+  "stage": "M2-operational-checkpoint",
+  "run_dir": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/paper_exact/m2_checkpoint",
+  "written_utc": "2026-08-17T14:57:02+00:00",
+  "slurm_job_id": "205554",
+  "passed": false,
+  "n_checks": 15,
+  "failures": [
+    "raw_logit_audit_coverage"
+  ],
+  "checks": [
+    {
+      "name": "workers_present",
+      "passed": true,
+      "reason": "24 worker directories with an INDEX.jsonl",
+      "detail": null
+    },
+    {
+      "name": "no_duplicate_keys_within_part",
+      "passed": true,
+      "reason": "none",
+      "detail": null
+    },
+    {
+      "name": "no_duplicate_keys_across_parts",
+      "passed": true,
+      "reason": "part_NN isolation holding: no key written by two workers",
+      "detail": null
+    },
+    {
+      "name": "no_worker_exceeds_its_expected_set",
+      "passed": true,
+      "reason": "every worker within its declared expected_traces",
+      "detail": null
+    },
+    {
+      "name": "worker_progress_even",
+      "passed": true,
+      "reason": "committed per worker min=192 max=192 spread=0",
+      "detail": null
+    },
+    {
+      "name": "shard_hashes_verify",
+      "passed": true,
+      "reason": "72 shards, 4608 traces, 4608 unique keys",
+      "detail": null
+    },
+    {
+      "name": "balanced_checkpoint_precondition",
+      "passed": true,
+      "reason": "2/2 questions have >= 256 traces (counts min=512, max=4096). balanced",
+      "detail": null
+    },
+    {
+      "name": "channels_present",
+      "passed": true,
+      "reason": "all required channels on every sampled trace",
+      "detail": null
+    },
+    {
+      "name": "telemetry_alignment",
+      "passed": true,
+      "reason": "72 sampled traces aligned",
+      "detail": null
+    },
+    {
+      "name": "telemetry_finite",
+      "passed": true,
+      "reason": "all channel values finite",
+      "detail": null
+    },
+    {
+      "name": "parser_coverage",
+      "passed": true,
+      "reason": "72/72 parsed (1.000); statuses {'boxed': 65, 'fallback_number': 7}",
+      "detail": null
+    },
+    {
+      "name": "raw_logit_audit_coverage",
+      "passed": false,
+      "reason": "0 audit traces in the sample (stride --audit-every 64)",
+      "detail": null
+    },
+    {
+      "name": "deepconf_stored_statistics_agree",
+      "passed": true,
+      "reason": "max |recomputed - stored| over 8 statistics = 0.000e+00",
+      "detail": null
+    },
+    {
+      "name": "sample_nonempty",
+      "passed": true,
+      "reason": "72 records sampled",
+      "detail": null
+    },
+    {
+      "name": "offline_smoke_reproduction_attempted",
+      "passed": true,
+      "reason": "{\"label\": \"partial\", \"runnable\": true, \"reason\": null, \"questions_ready\": [\"2024-I-1\", \"2024-I-10\"], \"largest_runnable_budget\": 512, \"note\": \"Alg. 2 replay is runnable on these questions only; it is still labelled partial because the pool is incomplete and the question set is not the paper's 30.\"}",
+      "detail": null
+    }
+  ]
+}

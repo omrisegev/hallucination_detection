@@ -1,0 +1,41 @@
+{
+  "stage": "M-deepconf-offline",
+  "run_dir": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/paper_exact/m1_offline",
+  "written_utc": "2026-08-17T13:02:45+00:00",
+  "slurm_job_id": "205327",
+  "passed": true,
+  "n_checks": 5,
+  "failures": [],
+  "checks": [
+    {
+      "name": "pool_non_empty",
+      "passed": true,
+      "reason": "2 questions",
+      "detail": null
+    },
+    {
+      "name": "pool_balanced",
+      "passed": true,
+      "reason": "per-question pool sizes 24..24",
+      "detail": null
+    },
+    {
+      "name": "parser_coverage",
+      "passed": true,
+      "reason": "1.0000 of traces produced a boxed answer",
+      "detail": null
+    },
+    {
+      "name": "deepconf_equality_audit",
+      "passed": true,
+      "reason": "2/2 audited traces reproduce the pinned function",
+      "detail": []
+    },
+    {
+      "name": "logits_stage_is_raw",
+      "passed": true,
+      "reason": "logits_stage='raw'; anything but 'raw' means every number here is a named proxy, not exact DeepConf",
+      "detail": null
+    }
+  ]
+}
