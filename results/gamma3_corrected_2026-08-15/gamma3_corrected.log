@@ -1,0 +1,41 @@
+=== load the 23 source cells ===
+loaded 23 cells (48351 samples)
+
+=== atomic calibration (frozen 17-atom set) ===
+eligible atoms (17): cusum_max, cusum_max_energy, cusum_max_spilled, epr, epr_energy, epr_spilled, logprob_margin, mean_logprob_entropy, mean_top1_logprob, min_energy, renyi_entropy_2, rpdi, sw_var_peak, sw_var_peak_energy, sw_var_peak_spilled, topk_tail_mass, varentropy
+
+=== fidelity control: the {1,b}-only probe (2026-08-13) ===
+pooled cos(g3, g*)      = +0.7617   (reference +0.7617)
+sign agreement          = 13/17   (reference 13/17)
+per-cell median cos     = +0.5129   frac>0 0.870   (reference +0.5129 / 0.870)
+FIDELITY CONTROL: PASS
+
+=== corrected probe: Gram-Schmidt vs {1, b, phi2} + winsorized b ===
+  winsor  pooled cos   signs  percell med  frac>0  within-fam
+   0.000     -0.0806    7/17      +0.1535   0.609        2/6
+   0.010     +0.3350   12/17      +0.4470   0.696        5/6
+   0.025     +0.4254   12/17      +0.4615   0.696        5/6
+   0.050     +0.4648   11/17      +0.5612   0.696        5/6
+
+=== family level: the deployed NRM sign bit ===
+families (6): entropy_level, entropy_dynamics, sampled_token_energy, partition_energy, topk_distribution, structural
+selected eigenvalue: 1.0354  (index 3)
+all-ones sign-bit margin        = +0.0650
+cos(v_neutral, family g*)       = +0.9023   -> deployed sign is CORRECT
+
+                 probe    margin  |margin|  sign ok
+   all-ones (deployed)   +0.0650    0.0650     True
+        baseline {1,b}   +0.4889    0.4889     True
+     corrected w=0.000   -0.1689    0.1689    False
+     corrected w=0.010   -0.1702    0.1702    False
+     corrected w=0.025   +0.1018    0.1018     True
+     corrected w=0.050   +0.1800    0.1800     True
+
+=== VERDICT (Step A) ===
+primary winsorization: 0.010
+  atomic pooled cos : +0.3350  (was +0.7617)
+  atomic signs      : 12/17  (was 13/17)
+  within-family     : 5/6  (was 5/6)
+  family |margin|   : 0.1702  (all-ones 0.0650)
+
+elapsed 81.3s

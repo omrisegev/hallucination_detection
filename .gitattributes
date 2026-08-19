@@ -1,5 +1,9 @@
 # Cluster scripts run on Linux — CRLF in .sh/.sbatch fails silently there.
 cluster/** text eol=lf
+# Hash-sealed experiment artifacts are byte-exact: canonical-JSON loaders and
+# SHA-256 replay checks fail closed on any EOL conversion (autocrlf on Windows
+# turned the frozen A6-S0a artifacts noncanonical). Never transform them.
+results/** -text
 dataset_cache/**/*.pkl filter=lfs diff=lfs merge=lfs -text
 dataset_cache/**/*.pkl.part-* filter=lfs diff=lfs merge=lfs -text
 *.pdf binary
