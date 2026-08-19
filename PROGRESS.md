@@ -1,18 +1,95 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-16
-**Last updated**: Step 273. The comprehensive Local/Online follow-up is
-complete. Do not promote its joint finalist: Local transfer is a numerical
-parity result (0.3662 versus 0.3614 maximum-entropy/top-five-step F1, delta
-+0.0048 [-0.0264,+0.0375]), while Online transfer regresses beyond the frozen
-margin (0.5882 versus 0.6104 IU28 AUROC@64/128, delta -0.0222
-[-0.0502,+0.0042]). Retain IU28 as the strongest S4 Online bar; treat the
-family-six Local/top-five mechanism as retrospective research evidence, not a
-confirmed replacement. Do not request a GPU/inference run to rescue the
-result. Step 272 remains the prior architecture record, but its development
-choice is superseded for forward Online decisions by this transfer audit.
-A6-S0a remains independently verified as `PASS_S0A`; its separate frozen next
-stage is still A6-S0b, and this work does not alter that boundary.
+**Date**: 2026-08-19
+**Last updated**: Steps 274-275. Two things closed and one is blocked.
+Step 273's frozen protocol was recovered by Codex and **Step 273 now
+reproduces**: every decision-bearing Stage-0/Stage-1 artifact is byte-identical,
+including `STAGE_1_LOCAL_INTERVALS.csv`, and the residue is bounded at 1e-14
+float drift plus wall-clock timings. Both paper-exact acquisitions finished clean
+and are backed up to Drive with byte-identical totals. The next approved step —
+CPU-first scoring of the shared 3,400-row ProcessBench table — **cannot start
+here**: the Fair Comparison v1 contract Codex names as canonical lives on
+`codex/fair-paper-exact-comparisons-v1`, which is not on our remote. Do not
+reimplement it from its description. No new GPU work is approved: no Mistral
+rerun, no confirmation cell, no resumed K=4096 acquisition. A6-S0a remains
+independently verified as `PASS_S0A` and A6-S0b is still its frozen next stage;
+none of this work alters that boundary.
+
+## Protocol recovery and Step-273 verification — Step 274
+
+`scripts/run_local_online_comprehensive_stage1.py` gates on the SHA-256 of the
+frozen protocol and refused to run. The committed
+`docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.md` hashes to `b5991a89...`,
+while seven frozen artifacts record `c921b0d4...`, and no version in any git ref
+matched. The frozen `RUN_MANIFEST.json` records a
+`/Users/osegev/Desktop/...` path: Step 273 ran on a Mac, and its pre-commit draft
+was never committed. `PROTOCOL_SHA256` was not touched — editing it to pass would
+have emptied the gate of the only thing it does.
+
+Codex recovered the exact pre-commit bytes as
+`docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md`. **That
+snapshot, not the editable document, is the file the gate checks.** It is marked
+`-text` in `.gitattributes` because `core.autocrlf` otherwise rewrites it on
+checkout (15,685 worktree bytes against a 15,321-byte blob) and it then fails its
+own gate.
+
+Verification result: `STAGE_0_BASELINES.csv/.md`, `STAGE_1_LOCAL.md`,
+`STAGE_1_LOCAL_AGGREGATE.csv` and `STAGE_1_LOCAL_INTERVALS.csv` are
+byte-identical; `STAGE_1_LOCAL_SELECTION.json` agrees in every field but
+`score_sha256` (same 0.3517116681118214, same 60-name rejection list, same
+`PARITY_WITH_DIRECT_COMPETITOR`). `CELL_METRICS` differs only in `threshold`,
+108/138 rows, max delta 1.377e-14, with every metric it feeds identical, so no
+prediction flipped. Diagnostics differ at machine epsilon (max relative
+9.069e-15) plus timings. `STAGE_1_LOCAL_PER_QUESTION.csv`'s recorded
+`83529f8d...` therefore does not reproduce and should be read as
+machine-specific, not as a failed check.
+
+Two portability bugs were fixed in passing: `Path.write_text` without
+`encoding=` was producing locale-encoded reports (mojibake on Windows, correct
+numbers), and the scorer wrote into the very directory it verifies —
+`LOCAL_ONLINE_V1_OUT` now redirects it. `LOCAL_ONLINE_CELL_ROOT` remaps the
+ProcessBench cell root opt-in, since this checkout holds the cells under
+`dataset_cache/repgrid/` rather than the Mac's `cache/localization/processbench/`.
+Nothing in `results/local_online_comprehensive_v1/` was written to.
+
+## Paper-exact acquisitions complete and backed up — Step 275
+
+| Run | Traces | Failed | Shards | Drive |
+|---|---:|---:|---|---|
+| `m2_deepconf_k512` | 15,360 / 15,360 | 0 | 24 / 24, gates all pass | 361 files / 20,189,077,984 B, byte-identical |
+| `s1_refrain_full` | 1,000 / 1,000 | 0 | complete | 22 files / 3,185,291,662 B, byte-identical |
+
+DeepConf ran at K=512, a declared deviation: it preserves every budget in the
+frozen register (32, 64, 128, 256, 512) at full width and loses only majority
+voting over a 4,096-deep pool. `m2_deepconf_full` (297 files /
+17,744,439,979 B, K=4096, partial) is kept and **must not be merged with the
+K=512 pool**. Both are `fidelity=paper-specified-partial`.
+
+Backups go through `cluster/upload_run_dir.sh <run> [--force] [--status]`, which
+encodes the destination `cluster_results/paper_exact/<run>`, a freshness guard,
+and a fix for a `pgrep` pattern that matched its own shell and reported uploads
+that did not exist. 243 summary artifacts are in
+`results/paper_exact_summaries/`.
+
+### What Codex decided, and what is missing
+
+Neither previously proposed row is the advisor-facing one. Stage 1's 0.3517 is
+development-selection evidence; Stage 4's 0.3662 belongs to the rejected joint
+finalist and stays a named historical row. The direct Localization table shows
+all methods on the same official 3,400 ProcessBench IDs with three same-access
+rows — ordinary Unified-28, dedicated `family6 + level + step_top5mean`, and
+maximum entropy plus the top-five-step locator — with PRM and the critic as
+visually separated high-access ceilings.
+
+Building it needs assets we do not have. `codex/fair-paper-exact-comparisons-v1`
+is not on our remote and all four of its named files are absent:
+`docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md`,
+`spectral_utils/fair_comparisons/{registry,prefix}.py`, and
+`scripts/build_fair_paper_exact_comparisons_v1.py`. Recorded as Question 3 in
+`HANDOFF_CODEX_2026_08_18.md`.
+
+**Next action, and the only approved work not waiting on Codex**: the offline
+DeepConf derivation over the K=512 pool. It needs no GPU and no registry.
 
 ## Comprehensive Local/Online transfer decision — Step 273
 
@@ -40,8 +117,10 @@ Canonical outputs are in
 `results/local_online_comprehensive_v1/REPORT.md`, `REPORT.html`,
 `DECISION.json`, `AUDIT.json`, the four stage reports, and machine-readable
 per-question/interval/warning/ablation/strata/efficiency tables. The frozen
-protocol is `docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.md` with SHA-256
-`c921b0d446eebd4611c4426168c30410741997ea2c6d23238e5d22b83e8d1e5b`.
+protocol is `docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md`
+with SHA-256 `c921b0d446eebd4611c4426168c30410741997ea2c6d23238e5d22b83e8d1e5b`
+(corrected in Step 274 — the editable `LOCAL_ONLINE_COMPREHENSIVE_V1.md` was
+revised after the run and hashes to `b5991a89...`).
 No new inference, GPU/cluster work, Drive mutation, staging, commit, or push
 occurred.
 

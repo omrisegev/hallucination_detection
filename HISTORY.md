@@ -13185,3 +13185,165 @@ No new inference, GPU/cluster work, Drive mutation, staging, commit, or push
 occurred. A6/PTNI was untouched.
 
 ---
+### Step 274 — Recover the frozen Local/Online protocol and verify Step 273 reproduces
+
+**What**: Step 273's scorer refused to run with `RuntimeError: frozen protocol
+hash mismatch`. Its gate compares the SHA-256 of
+`docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.md` against
+`c921b0d446eebd4611c4426168c30410741997ea2c6d23238e5d22b83e8d1e5b`, which seven
+frozen artifacts independently record. The committed document hashes to
+`b5991a89...` in both line-ending forms, and no version in any git ref matched;
+the file has exactly one commit. The gate was not edited: changing
+`PROTOCOL_SHA256` to make it pass would have emptied it of the only thing it
+does. Codex recovered the pre-commit working copy from the original session's
+`apply_patch` payload and committed it as
+`docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md` (`2c2f5a9`).
+Its blob hashes to `c921b0d4...` exactly.
+
+Three defects then had to be fixed before the recovered snapshot could be used,
+and a fourth was found by using it.
+
+1. `core.autocrlf=true` rewrote the snapshot on checkout: 15,685 worktree bytes
+   against a 15,321-byte blob, 364 extra bytes over exactly 364 lines, one CR
+   each. The scorer hashes raw bytes, so the recovered file still failed its own
+   gate. MSYS `grep` reported zero CRs because it reads in text mode; the byte
+   count did not. A frozen protocol snapshot is a hashed artifact rather than
+   editable source, so `docs/experiments/*.frozen-*.md` is now `-text`.
+2. `PROTOCOL` pointed at the editable document. It now points at the snapshot;
+   `PROTOCOL_SHA256` did not move.
+3. The scorer wrote into `results/local_online_comprehensive_v1/`, the 42 frozen
+   artifacts it would be verifying. A new `LOCAL_ONLINE_V1_OUT` redirects every
+   write to a scratch directory.
+4. `Path.write_text` without `encoding=` uses the locale codec — UTF-8 on macOS,
+   cp1252 here — so `STAGE_1_LOCAL.md` came back with its em-dashes as mojibake
+   and its numbers intact. Three call sites now pass `encoding="utf-8"`;
+   `_write_csv` was already correct, which is why every CSV survived.
+
+The frozen `RUN_MANIFEST.json` records
+`"/Users/osegev/Desktop/hallucination_detection/..."`, so Step 273 ran on a Mac.
+That explains both the uncommitted draft and a fifth difference: its ProcessBench
+cells sat under `cache/localization/processbench/`, while this checkout holds
+them under `dataset_cache/repgrid/`. Remapping is opt-in via
+`LOCAL_ONLINE_CELL_ROOT` rather than a silent fallback, because a path that
+quietly resolves elsewhere is how a replay scores different data and still looks
+successful. Whether the two roots hold the same acquisition was left to the
+output hashes to decide rather than asserted.
+
+**Why**: Step 273 is the basis of the current Local/Online disposition, and its
+per-question score file was never kept on disk — only its hash. Without a
+runnable protocol the study could not be re-derived, and the shared ProcessBench
+table needs our rows re-scored from telemetry through that same locator rather
+than loaded, since the inventory showed our artifacts are telemetry-only while
+the three checkpoint baselines carry one decision per row.
+
+**Result**: Step 273 reproduces. `STAGE_0_BASELINES.csv/.md`, `STAGE_1_LOCAL.md`,
+`STAGE_1_LOCAL_AGGREGATE.csv` and `STAGE_1_LOCAL_INTERVALS.csv` are
+byte-identical, and `STAGE_1_LOCAL_SELECTION.json` agrees in every field except
+`score_sha256` — same `0.3517116681118214`, same `0.3547582355906891`, same
+60-name rejection list, same `PARITY_WITH_DIRECT_COMPETITOR`. The intervals file
+matching byte-for-byte is the load-bearing result, since verdicts are decided by
+whether the paired interval excludes zero.
+
+What does not reproduce is bounded rather than dismissed.
+`STAGE_1_LOCAL_CELL_METRICS.csv` differs in one column, `threshold`, in 108 of
+138 rows at a maximum absolute delta of 1.377e-14; every metric that column
+feeds (`f1`, `primary`, `exact_error`, `within_one`) is identical, so no
+prediction flipped. In `STAGE_1_LOCAL_DIAGNOSTICS.json` every numeric leaf except
+wall-clock timings sits at machine epsilon: `centres` 1.741e-16, `scales`
+4.718e-16, `orientation_correlation_before_flip` 4.000e-15, `g2_hat` 9.069e-15.
+Two independent replays produced the identical `CELL_METRICS` hash, so this is
+platform drift between the Mac and this machine, not run-to-run noise.
+Consequently `STAGE_1_LOCAL_PER_QUESTION.csv`'s recorded `83529f8d...` does not
+reproduce (`5628d335...`); its columns are `prediction`, `score`, `target`,
+`unit` and labels, and since no prediction flipped the difference is the same ulp
+drift in `score`. That hash should be read as machine-specific, not as a failed
+check. Nothing in `results/local_online_comprehensive_v1/` was written to.
+
+A side check during path resolution: `dataset_cache/repgrid/pb_qwen3_4b` and
+`pb_qwen3_8b` report byte-identical sizes for all four pkls, which reads as a
+duplicated directory with a wrong label. They hash differently and their
+manifests carry different job ids (157578, 157576) and models. The identical
+sizes are expected — teacher-forced passes over the same ProcessBench chains give
+identical token counts and identical top-50 array shapes. No mislabelling.
+
+Commits `2981ae1` and `20d72b4`. No GPU or cluster compute was used.
+
+---
+
+### Step 275 — Complete and verify the paper-exact acquisitions and their Drive backups
+
+**What**: The two remaining `paper_exact_acquisition_v1` acquisitions finished
+and were backed up. DeepConf ran at K=512 rather than the paper's 4,096: the
+original run reached 11,520 of 122,880 traces in 9.75 h, i.e. ~94 h of work
+against ~38 h of quota. K=512 preserves every budget in the frozen register
+(32, 64, 128, 256, 512) at full width and loses only majority voting over a
+4,096-deep pool. It is emitted as a conditional declared deviation and
+`DECISION_K512.md` travels with the data. `m2_deepconf_full` was kept, not
+deleted, and must not be merged with the K=512 pool.
+
+A new output directory was used rather than resuming: units are
+`i = question_index * K + trace_index` strided `i % n_shards`, so changing K
+changes the modulus (`4096 mod 24 = 16` vs `512 mod 24 = 8`) and moves trace
+ownership between shards for every question after the first. Resuming in place
+would have had one shard regenerate keys another shard already owned.
+
+The 24 jobs were deliberately not chained. At the halfway mark they were at
+52.5% after 5.6 h with ~18 h of wall left, and a PENDING job reserves its whole
+wall against the GPU-hour quota — the binding constraint here, not the queue.
+
+`cluster/upload_run_dir.sh` replaces hand-typed rclone lines and encodes three
+failures: the destination is `cluster_results/paper_exact/<run>` and not the
+shallow path, which answers "directory not found" and invites a divergent second
+copy; a freshness guard refuses a run whose jobs are still writing; and
+`pgrep -f 'rclone copy ...'` matched the command line of the shell running it,
+reporting an upload that did not exist, declining to start the real one, and
+exiting successfully. Writing the first character as `[r]` breaks the self-match.
+
+**Why**: These acquisitions are the model-dependent half of the contract — every
+feature, calibration and table is derived offline from them — so they must be
+complete, hash-verified and backed up before any of that work can be trusted.
+
+**Result**: DeepConf K=512 finished 15,360/15,360 traces, 0 failed, 24/24 shards
+complete with per-shard counts 640/640/640 and all 24 gate files passing;
+`s1_refrain_full` finished 1,000/1,000, 0 failed. Every manifest agrees on
+`K=512`, `fidelity=paper-specified-partial`, `repo_dirty=False`. All 24 jobs
+ended `COMPLETED 0:0` inside a single wall; had they been chained, 24 jobs would
+have been cancelled. 243 summary artifacts were fetched to
+`results/paper_exact_summaries/`.
+
+Both backups verify by comparing two independently measured totals rather than
+trusting the uploader: `s1_refrain_full` at 22 files / 3,185,291,662 B and
+`m2_deepconf_k512` at 361 files / 20,189,077,984 B, identical on both sides.
+`m2_deepconf_full` was verified earlier at 297 files / 17,744,439,979 B. The
+K=512 transfer ran ~3 h with long idle gaps and instantaneous rates that read as
+0 B/s; the log carried no rate-limit or error lines, the process sat in `Sl` with
+2 min of CPU over 3 h, and object counts advanced across every observation
+window. It was left alone and completed.
+
+**Blocked**: the next approved step cannot start here. Codex names the canonical
+advisor-facing package as Fair Comparison v1 on branch
+`codex/fair-paper-exact-comparisons-v1` at `8e08c3e`, and that branch is not on
+our remote — a `git ls-remote --heads origin` query for `codex/*` returns
+nothing. All four named assets are absent from every branch we can see:
+`docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md`,
+`spectral_utils/fair_comparisons/registry.py`,
+`spectral_utils/fair_comparisons/prefix.py`, and
+`scripts/build_fair_paper_exact_comparisons_v1.py`. It was not reimplemented from
+its description, which would create a second divergent definition of the same
+table. The request is recorded as Question 3 in `HANDOFF_CODEX_2026_08_18.md`.
+
+Codex also settled which row is advisor-facing, and it is neither of the two
+candidates raised: Stage 1's 0.3517 is development-selection evidence, Stage 4's
+0.3662 belongs to the rejected joint finalist and stays a named historical row.
+The direct table must show all methods on the same official 3,400 ProcessBench
+IDs with three same-access rows — ordinary Unified-28, dedicated
+`family6 + level + step_top5mean`, and maximum entropy plus the top-five-step
+locator — with PRM and the critic kept as visually separated high-access
+ceilings. No new GPU work is approved: no Mistral rerun, no confirmation cell,
+no resumed K=4096 acquisition.
+
+The offline DeepConf derivation over the K=512 pool has not started. It needs no
+GPU and no registry, so it is the one piece of approved work not waiting on
+Codex.
+
+---

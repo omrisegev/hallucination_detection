@@ -3,6 +3,53 @@
 
 ---
 
+## Step-273 verification and the advisor-facing comparison — Steps 274-275
+
+Step 273's disposition below is now independently verified rather than merely
+recorded. Its frozen protocol had become unrunnable — the gated document was
+revised after the run and before it was committed, so the study's own hash
+matched nothing in the repository. Codex recovered the exact pre-commit bytes as
+`docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md`, and the
+replay reproduces every decision-bearing artifact byte-for-byte, including
+`STAGE_1_LOCAL_INTERVALS.csv`. Since verdicts here are decided by whether a
+paired interval excludes zero, that file matching is what makes the verification
+load-bearing. The residue is one column drifting at 1e-14 with no prediction
+changed. **Nothing in the Step-273 roadmap disposition changes.**
+
+What does change is how the result is reported. Neither number previously
+floated is the advisor-facing row: Stage 1's 0.3517 is development-selection
+evidence, and Stage 4's 0.3662 belongs to the joint finalist that Step 273
+rejected, so it stays a clearly named historical row rather than an
+interchangeable estimate. The direct Localization table puts every method on the
+same official 3,400 ProcessBench IDs and evaluator, with three mandatory
+same-access rows:
+
+1. ordinary Unified-28, the frozen unified method of record;
+2. dedicated `family6 + level + step_top5mean`, the Stage-1 incumbent;
+3. maximum entropy plus the top-five-step locator, the transparent direct bar.
+
+Qwen2.5-Math-PRM-7B and the Qwen-72B critic stay visually separated high-access
+ceilings, never inline competitors. The advisor claim comes from that
+out-of-fold common-row table and its paired interval, not from whichever
+historical stage reads strongest.
+
+**Blocking dependency**: the contract implementing this — the four-lane protocol,
+the population/method registries, the causal prefix joins and the builder — lives
+on `codex/fair-paper-exact-comparisons-v1`, which is not on our remote, and none
+of its four named files exist in any branch we can see. It is deliberately not
+being reimplemented from its description, since that would produce a second,
+divergent definition of the same table. Requested as Question 3 in
+`HANDOFF_CODEX_2026_08_18.md`.
+
+**Data status**: both paper-exact acquisitions are complete, gate-verified and
+backed up byte-identically to Drive — DeepConf at K=512 (15,360 traces, a
+declared deviation preserving every registered budget 32-512 at full width) and
+REFRAIN at 1,000. The older K=4096 partial pool is kept separately and must not
+be merged. No new GPU work is approved.
+
+**Only unblocked line of work**: the offline DeepConf derivation over the K=512
+pool. It needs no GPU and no registry.
+
 ## Comprehensive Local/Online transfer result — Step 273
 
 The broadened existing-cache cycle closes without promoting a new joint
