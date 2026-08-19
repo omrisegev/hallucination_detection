@@ -1,0 +1,41 @@
+{
+  "driver": "run_processbench_prm.py",
+  "paper": "Qwen2.5-Math-PRM-7B \u2014 Towards Effective Process Supervision in Mathematical Reasoning (Qwen team, https://qwenlm.github.io/blog/qwen2.5-math-prm/)",
+  "model": "Qwen/Qwen2.5-Math-PRM-7B",
+  "protocol": "AutoModel classification head, system+user+assistant chat template, steps joined by <extra_0> (+ trailing), positive-class softmax probability per step, first step below --threshold = predicted first error",
+  "threshold": 0.5,
+  "attn_impl": "sdpa",
+  "n_samples_per_subset": null,
+  "job_id": "177776",
+  "written_utc": "2026-08-10T20:33:39+00:00",
+  "cells": {
+    "gsm8k": {
+      "n_error": 207,
+      "n_correct": 193,
+      "error_acc": 71.01449275362319,
+      "correct_acc": 96.37305699481865,
+      "f1": 81.77291283477636
+    },
+    "math": {
+      "n_error": 594,
+      "n_correct": 406,
+      "error_acc": 67.003367003367,
+      "correct_acc": 91.13300492610837,
+      "f1": 77.22724507562249
+    },
+    "olympiadbench": {
+      "n_error": 661,
+      "n_correct": 339,
+      "error_acc": 54.76550680786687,
+      "correct_acc": 85.25073746312685,
+      "f1": 66.6894026078337
+    },
+    "omnimath": {
+      "n_error": 759,
+      "n_correct": 241,
+      "error_acc": 54.6772068511199,
+      "correct_acc": 83.40248962655602,
+      "f1": 66.05192933556106
+    }
+  }
+}

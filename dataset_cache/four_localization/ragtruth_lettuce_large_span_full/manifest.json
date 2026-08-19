@@ -1,0 +1,42 @@
+{
+  "driver": "run_lettucedetect_span.py",
+  "paper": "LettuceDetect: A Hallucination Detection Framework for RAG Applications (arXiv:2502.17125, KRLabsOrg)",
+  "benchmark": "RAGTruth (Niu et al., ACL 2024) \u2014 vendored, data/ragtruth_protocol/",
+  "model": "KRLabsOrg/lettucedect-large-modernbert-en-v1",
+  "entry_point": "HallucinationDetector.predict_prompt(prompt, answer) \u2014 the call that matches preprocess_ragtruth.py's HallucinationSample(prompt, answer); predict(context=[...], question=...) re-wraps via PromptUtils.format_context and is NOT the RAGTruth path",
+  "supervision": "supervised token classifier trained on RAGTruth's own train split",
+  "fidelity_level": 1,
+  "max_length": 4096,
+  "min_confidence": 0.0,
+  "split": "test",
+  "n_samples": null,
+  "ragtruth_diagnostics": {
+    "split": "test",
+    "task_types": [
+      "Data2txt",
+      "QA",
+      "Summary"
+    ],
+    "n_kept": 2700,
+    "n_dropped_span_mismatch": 0,
+    "n_dropped_no_source": 0
+  },
+  "published_example_f1": 0.7922,
+  "fidelity_gate_delta": 0.0006994082840235949,
+  "example_level": {
+    "n_rows": 2700,
+    "tp": 737,
+    "fp": 179,
+    "fn": 206,
+    "tn": 1578,
+    "precision": 0.8045851528384279,
+    "recall": 0.7815482502651113,
+    "f1": 0.7928994082840236,
+    "n_gold_hallucinated": 943,
+    "n_overlap_hit": 702,
+    "n_truncated": 0
+  },
+  "elapsed_sec": 175.84511756896973,
+  "job_id": "177819",
+  "written_utc": "2026-08-10T21:33:34+00:00"
+}

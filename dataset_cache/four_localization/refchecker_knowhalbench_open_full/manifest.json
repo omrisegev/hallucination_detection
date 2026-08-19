@@ -1,0 +1,151 @@
+{
+  "driver": "run_refchecker_claims.py",
+  "paper": "Knowledge-Centric Hallucination Detection / RefChecker (Hu et al., EMNLP 2024, aclanthology.org/2024.emnlp-main.395/)",
+  "benchmark_data": "github.com/amazon-science/RefChecker benchmark/, assembled by cluster/prepare_refchecker_data.py",
+  "claim_set": "FIXED to the shipped, human-labelled claude2_response_kg triplets. Claim EXTRACTION is out of scope: the human labels are attached to Claude-2 extracted triplets, so a different extractor yields claims this gold does not cover. This panel measures the CHECKING stage only.",
+  "arms": {
+    "competitor": {
+      "method": "RefChecker NLIChecker (strongest fully open checker in the official codebase)",
+      "model": "ynie/roberta-large-snli_mnli_fever_anli_R1_R2_R3-nli",
+      "protocol": "tokenizer(references, claims) pair, max_length=512, truncation, argmax softmax into [Entailment, Neutral, Contradiction]; multi-passage merge = Entailment if any, else Contradiction if any, else Neutral (checker_base.merge_multi_psg_ret)",
+      "fidelity_level": 2,
+      "results": {
+        "overall": {
+          "accuracy": 0.6931892294791764,
+          "macro_f1": 0.580474087761565,
+          "per_class": {
+            "Entailment": {
+              "precision": 0.8524744697564808,
+              "recall": 0.7561315496098104,
+              "f1": 0.8014179159589395,
+              "support": 7176
+            },
+            "Neutral": {
+              "precision": 0.4878487848784879,
+              "recall": 0.620137299771167,
+              "f1": 0.546095717884131,
+              "support": 2622
+            },
+            "Contradiction": {
+              "precision": 0.3748792270531401,
+              "recall": 0.41497326203208557,
+              "f1": 0.3939086294416243,
+              "support": 935
+            }
+          },
+          "n": 10733
+        },
+        "zero_context": {
+          "accuracy": 0.7336547152756855,
+          "macro_f1": 0.6922888894353139,
+          "per_class": {
+            "Entailment": {
+              "precision": 0.6808035714285714,
+              "recall": 0.8739255014326648,
+              "f1": 0.7653701380175659,
+              "support": 1047
+            },
+            "Neutral": {
+              "precision": 0.8636363636363636,
+              "recall": 0.6897689768976898,
+              "f1": 0.7669724770642202,
+              "support": 1818
+            },
+            "Contradiction": {
+              "precision": 0.5086042065009561,
+              "recall": 0.5859030837004405,
+              "f1": 0.5445240532241555,
+              "support": 454
+            }
+          },
+          "n": 3319
+        },
+        "noisy_context": {
+          "accuracy": 0.7619883040935672,
+          "macro_f1": 0.46159028032139154,
+          "per_class": {
+            "Entailment": {
+              "precision": 0.8714285714285714,
+              "recall": 0.8780136739834473,
+              "f1": 0.8747087291629323,
+              "support": 2779
+            },
+            "Neutral": {
+              "precision": 0.37333333333333335,
+              "recall": 0.25688073394495414,
+              "f1": 0.30434782608695654,
+              "support": 436
+            },
+            "Contradiction": {
+              "precision": 0.16875,
+              "recall": 0.2634146341463415,
+              "f1": 0.20571428571428574,
+              "support": 205
+            }
+          },
+          "n": 3420
+        },
+        "accurate_context": {
+          "accuracy": 0.600650976464697,
+          "macro_f1": 0.4336316229263278,
+          "per_class": {
+            "Entailment": {
+              "precision": 0.9324628545700135,
+              "recall": 0.6182089552238806,
+              "f1": 0.7434930892119908,
+              "support": 3350
+            },
+            "Neutral": {
+              "precision": 0.1644528779253637,
+              "recall": 0.7065217391304348,
+              "f1": 0.26680348896870193,
+              "support": 368
+            },
+            "Contradiction": {
+              "precision": 0.3541666666666667,
+              "recall": 0.2463768115942029,
+              "f1": 0.2905982905982906,
+              "support": 276
+            }
+          },
+          "n": 3994
+        }
+      }
+    },
+    "ours": {
+      "method": "evidence-contrast teacher-forced telemetry over the identical fixed claim (full vs noctx)",
+      "model": "Qwen/Qwen3-8B",
+      "fidelity_level": 3,
+      "adaptation_note": "a separately scored claim is NOT an unchanged span of the original response; scored only under the binary supported/unsupported collapse, never in the paper's three-way column",
+      "complete": true
+    }
+  },
+  "proprietary_configurations": "the paper's strongest extractor/checker pairs use GPT-4 / Claude 2 and are quoted as published context only (fidelity level 4), never reproduced here",
+  "corpus_diagnostics": {
+    "data_dir": "/shared/cycle2_tau_averbuch_prj/omrisegev1/code/data/refchecker_protocol",
+    "settings": [
+      "zero_context",
+      "noisy_context",
+      "accurate_context"
+    ],
+    "n_responses_seen": 2100,
+    "n_claims": 10733,
+    "n_dropped_no_context": 0,
+    "n_dropped_no_kg": 195,
+    "n_missing_files": 0,
+    "missing_files": [],
+    "label_counts": {
+      "Contradiction": 935,
+      "Neutral": 2622,
+      "Entailment": 7176
+    },
+    "claims_per_setting": {
+      "zero_context": 3319,
+      "noisy_context": 3420,
+      "accurate_context": 3994
+    }
+  },
+  "elapsed_sec": 201.44510459899902,
+  "job_id": "179100",
+  "written_utc": "2026-08-11T05:26:28+00:00"
+}

@@ -1,0 +1,65 @@
+{
+  "driver": "run_prmbench_teacher_forced.py",
+  "paper": "PRMBench (Song et al., arXiv:2501.03124, ACL 2025)",
+  "model": "Qwen/Qwen3-8B",
+  "dataset": "hitsmy/PRMBench_Preview",
+  "dataset_revision": null,
+  "dataset_diagnostics": {
+    "dataset_id": "hitsmy/PRMBench_Preview",
+    "split": "train",
+    "revision": null,
+    "n_raw_rows": 6216,
+    "n_meta_rows": 6969,
+    "n_raw_steps": 83456,
+    "n_duplicate_rows_dropped": 5,
+    "n_steps_total": 94203,
+    "n_steps_error_classes": 83371,
+    "n_rows_empty_error_steps": 160,
+    "n_rows_out_of_range_error_steps": 100,
+    "counts_by_classification": {
+      "confidence": 757,
+      "step_contradiction": 758,
+      "multi_solutions": 160,
+      "circular": 758,
+      "domain_inconsistency": 757,
+      "counterfactual": 757,
+      "correct": 758,
+      "redundency": 758,
+      "deception": 750,
+      "missing_condition": 756
+    }
+  },
+  "protocol": "teacher-forced single forward pass over the fixed official trace; no generation; conditioning prompt = spectral_utils.prmbench.prmbench_prompt (math_prompt + ' /no_think')",
+  "logprob_top_k": 50,
+  "gate_b_thresholds": {
+    "median_max": 0.05,
+    "min_corr": 0.999
+  },
+  "cell_stats": {
+    "n_rows": 6969,
+    "n_steps": 94203,
+    "mean_steps": 13.517434352130865,
+    "mean_tokens": 370.5259004161286,
+    "n_unmapped_steps": 0,
+    "n_rows_misaligned": 3,
+    "frac_steps_lt_8_tokens": 0.035434115686336955,
+    "frac_steps_lt_32_tokens": 0.7100941583601371,
+    "median_step_tokens": 24.0,
+    "counts_by_classification": {
+      "missing_condition": 756,
+      "step_contradiction": 758,
+      "deception": 750,
+      "correct": 758,
+      "confidence": 757,
+      "counterfactual": 757,
+      "domain_inconsistency": 757,
+      "circular": 758,
+      "redundency": 758,
+      "multi_solutions": 160
+    }
+  },
+  "n_items_misaligned": 3,
+  "elapsed_sec": 30.760389804840088,
+  "job_id": "177824",
+  "written_utc": "2026-08-10T22:40:40+00:00"
+}
