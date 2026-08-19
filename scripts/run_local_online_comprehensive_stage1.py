@@ -10,6 +10,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import os
 from pathlib import Path
 import pickle
 import sys
@@ -46,8 +47,20 @@ from spectral_utils.local_online_comprehensive import (  # noqa: E402
 )
 
 
-OUT = ROOT / "results/local_online_comprehensive_v1"
-PROTOCOL = ROOT / "docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.md"
+# A verification replay must not be able to overwrite the artifacts it exists to
+# verify.  Setting LOCAL_ONLINE_V1_OUT redirects every write to a scratch
+# directory, which turns reproducing the frozen run into a comparison instead of
+# a mutation.  Unset, the default keeps the original behaviour.
+OUT = Path(os.environ["LOCAL_ONLINE_V1_OUT"]).resolve() if os.environ.get(
+    "LOCAL_ONLINE_V1_OUT") else ROOT / "results/local_online_comprehensive_v1"
+
+# The gated document is the snapshot the run actually read, recovered byte-exact
+# and kept immutable.  The editable `LOCAL_ONLINE_COMPREHENSIVE_V1.md` was
+# revised after the run and before it was committed, so it hashes to something
+# else (b5991a89...); pointing the gate at it would either fail forever or, if
+# the constant below were "fixed" to match, stop checking anything at all.  The
+# constant is the run's recorded protocol hash and does not move.
+PROTOCOL = ROOT / "docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md"
 PROTOCOL_SHA256 = "c921b0d446eebd4611c4426168c30410741997ea2c6d23238e5d22b83e8d1e5b"
 SEED = 20260816
 BOOTSTRAP = 2000
@@ -100,7 +113,13 @@ def _write_csv(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
 
 def _write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n")
+    # `write_text` without an encoding uses the *locale* codec, so the same
+    # report is UTF-8 on macOS and cp1252 on Windows. That is how the frozen
+    # run's em-dashes came back as mojibake on a replay: the numbers were
+    # identical and the bytes were not.
+    path.write_text(
+        json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
 
 def _token_to_step(token: int, row: Mapping[str, Any]) -> int:
@@ -469,12 +488,22 @@ def _stage0() -> None:
         "",
         "Tier A is the only same-access improvement tier. Tier B uses the same ProcessBench rows but substantially different compute. Tier C is cross-protocol context only.",
     ])
-    (OUT / "STAGE_0_BASELINES.md").write_text("\n".join(lines) + "\n")
+    (OUT / "STAGE_0_BASELINES.md").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8")
 
 
 def main() -> None:
-    if _sha256(PROTOCOL) != PROTOCOL_SHA256:
-        raise RuntimeError("frozen protocol hash mismatch")
+    observed = _sha256(PROTOCOL)
+    if observed != PROTOCOL_SHA256:
+        raise RuntimeError(
+            "frozen protocol hash mismatch\n"
+            f"  file     : {PROTOCOL}\n"
+            f"  expected : {PROTOCOL_SHA256}\n"
+            f"  observed : {observed}\n"
+            "The snapshot is checked in as binary precisely so this cannot drift; "
+            "an observed hash that differs usually means the file was rewritten on "
+            "checkout (core.autocrlf) rather than edited."
+        )
     OUT.mkdir(parents=True, exist_ok=True)
     _stage0()
     roster = local_candidate_roster()
@@ -677,7 +706,8 @@ def main() -> None:
         "",
         "Tier-B critic/PRM rows are same-row compute ceilings and are not used as same-access deltas. The full report keeps every candidate; selection does not hide losing variants.",
     ])
-    (OUT / "STAGE_1_LOCAL.md").write_text("\n".join(lines) + "\n")
+    (OUT / "STAGE_1_LOCAL.md").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8")
     _write_json(OUT / "RUN_MANIFEST.json", {
         "status": "STAGE_1_COMPLETE_STAGE_2_PENDING",
         "protocol": str(PROTOCOL),
