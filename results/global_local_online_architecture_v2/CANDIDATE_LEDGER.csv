@@ -1,0 +1,17 @@
+candidate,decision,primary,reason,stage
+g_mean9,drop,0.736721718303259,delta vs best -0.0527,global head
+g_mean_q90_18,drop,0.7560201640752657,delta vs best -0.0335,global head
+g_mean_q90_max_27,drop,0.7439834411190728,delta vs best -0.0455,global head
+g_registered_mixed,select,0.7894712522016145,development winner,global head
+l_level9,select,0.3484047883279314,development winner,local head
+l_onset9,drop,0.24643457224122844,delta vs best -0.1020,local head
+l_level_onset18,drop,0.2685087191758177,delta vs best -0.0799,local head
+l_registered_core5,drop,0.33297075922823693,delta vs best -0.0154,local head
+o_level_ewma18,drop,0.6139036719328171,delta vs best -0.0457,online head
+o_level_ewma_onset27,drop,0.593994479267897,delta vs best -0.0656,online head
+o_ewma_area_persist27,select,0.6595696032482389,development winner,online head
+o_iu28_registered,drop,0.6370472489034682,delta vs best -0.0225,online head
+one shared,drop,0.6008556542632723,joint margin/cost dominated,architecture
+two Global+Local,select,0.607530837716788,fewest heads within all development margins,architecture
+three independent,drop,0.6008556542632723,joint margin/cost dominated,architecture
+DUFS/uniform/temporal Laplacians,drop,0.36725582407169666,small increments with paired intervals crossing zero and extra cost,fusion

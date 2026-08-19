@@ -3,6 +3,273 @@
 
 ---
 
+## Comprehensive Local/Online transfer result — Step 273
+
+The broadened existing-cache cycle closes without promoting a new joint
+architecture. Provenance-balanced family-six features are useful development
+mechanisms: level plus a step-top-five locator reaches 0.3517 Local F1 on the
+S1 cells, and fast/slow reaches 0.6020 Online AUROC@64/128 on S2. Ordinary IU
+remains preferable to equal, historical U-PCR compatibility, uniform/DUFS/
+temporal Laplacians, and hierarchical fusion under grouped uncertainty.
+
+The S3 two-head finalist uses the registered Global signal for error detection
+and Online scoring and retains a family-six Local head for the step locator.
+It does not survive scorer transfer as a co-primary improvement. Across
+Qwen3-8B and Llama-3.1-8B audit cells, Local is 0.3662 versus 0.3614 for the
+maximum-entropy/top-five direct bar, delta +0.0048
+[-0.0264,+0.0375]. Online is 0.5882 versus 0.6104 for IU28, delta -0.0222
+[-0.0502,+0.0042], with family wins/losses 1/3. The Online loss breaches the
+frozen 0.015 margin, so the joint finalist is rejected.
+
+Forward disposition: keep IU28 as the strongest direct S4 Online bar. Keep the
+family-six Local/top-five mechanism only as a retrospective candidate; maximum
+entropy remains the transparent Local reference until fresh evidence supports
+replacement. Do not reopen graph fusion, event-coordinate combinations,
+raw-seven post-hoc pruning, or Global-only Online scoring on these opened
+cells. A new GPU/inference run is not justified. A future cycle must add a
+materially new signal or fresh unopened evidence under a new protocol. Full
+report: `results/local_online_comprehensive_v1/REPORT.md`.
+
+## Three-output architecture result — Step 272
+
+The broader CPU-only search resolves the intended architecture question on
+existing telemetry: retain **two ordinary-IU heads**, not one universal head
+and not three independent heads.
+
+- Global keeps the historical full-trace mixed-v2 feature system.
+- Local uses a new nine-channel raw token-level risk head; onset transforms are
+  worse in the frozen development screen.
+- Online is derived from a 0.50/0.50 standardized causal prefix Global score and
+  running-maximum Local evidence. A separate sustained-state Online head wins
+  its isolated head screen but is redundant in the architecture cross.
+- The locator is the Local peak. The previously assumed 0.75/0.25 blend is not
+  retained.
+- Ordinary IU-PCR stays. Same-matrix DUFS/uniform/temporal gains are tiny,
+  uncertain, and costlier.
+
+Across twelve ProcessBench cells, two heads versus one improve Global AUROC by
++0.0271 [0.0085,0.0449] and Local F1 by +0.0740
+[0.0458,0.1013]. Online changes by +0.0067 [-0.0121,0.0260]. Three heads versus
+two change only Online, by -0.0067 [-0.0248,0.0126], so the third head does not
+earn its 27 features and 36 state scalars.
+
+The warning policy remains a limitation: at a calibration target of 10%
+trace-level false warnings it detects 25.0% of wrong traces, with 8.1% observed
+false warnings. Phase-15 early transfer is weak (0.5142/0.5555 AUROC at
+64/128), despite strong final discrimination. The selected architecture is
+therefore a retrospective candidate, not a deployment or fresh-generalization
+claim.
+
+The next useful method cycle is narrower and cheaper: preregister Local subsets
+suggested by the drop-one diagnostics and replace repeated mixed-v2 prefix
+recomputation with an exact or validated incremental implementation. Only then
+consider an explicitly approved fresh-data run. Do not spend GPU time on DUFS,
+a Laplacian, or the third Online head based on this evidence. Canonical report:
+`results/global_local_online_architecture_v2/REPORT.md`.
+
+## Scope correction and reopened architecture search — Step 271
+
+Step 270 did not complete the intended architecture optimization. It validly
+closed only current/running-maximum, persistence/area, and slope/recovery
+transforms of two already globally aggregated signals on the saved coarse
+monitor grid. The Global and Local heads, head allocation, 0.75/0.25 blend,
+IU-PCR configuration, and number of heads were frozen. Identical localization
+hashes therefore show non-interference, not a newly optimized localizer.
+
+The active protocol is now
+`docs/experiments/GLOBAL_LOCAL_ONLINE_ARCHITECTURE_V2.md`. It treats completed
+answer detection, first-error localization, and causal early prediction as
+three separate co-primary outputs. It begins from raw token telemetry and
+tests head-specific reducers: full-trace mean/tail/extreme summaries for
+Global, level/onset curves for Local, and level/EWMA/onset/persistence states
+for Online. It then compares one, two, and three-head harnesses and retests the
+fixed Global/Local mixture instead of assuming 0.75/0.25.
+
+The Laplacian is deliberately low priority. Ordinary IU-PCR is the simplicity
+baseline; uniform, DUFS, and temporal variants are admitted only as exact
+same-matrix controls after the feature and architecture choices freeze. They
+remain only if a grouped benefit pays for their runtime and memory.
+
+The cycle uses twelve complete existing ProcessBench telemetry cells (three
+scorer models by four families), with shared question identities treated as
+repeated measurements. Every cell is historically opened, so any selected
+architecture is retrospective development evidence and still needs a future
+explicitly approved fresh-confirmation/GPU gate. The Step-270 “no GPU” decision
+continues to apply only to its three coarse-grid mechanisms.
+
+## Application result override — retain IU28 and close coarse-grid dynamics (Step 270)
+
+The frozen existing-cache Global-Local-Online IU cycle is complete. The
+deployable application architecture remains the frozen Global and Local heads
+with `iu28_no_length` as the Online head. The three preregistered dynamic
+alternatives over saved CUSUM/`sw_var` monitor trajectories do not pass the
+early-panel promotion gate:
+
+| Online candidate | equal-family 64/128 AUROC delta vs IU28 | 95% grouped CI | family W/L |
+|---|---:|---:|---:|
+| current + running maximum | -0.0051 | [-0.0553,+0.0519] | 2/3 |
+| positive area + run persistence | -0.0079 | [-0.0663,+0.0639] | 2/3 |
+| slope + recovery | -0.0270 | [-0.0979,+0.0561] | 1/4 |
+
+The first two arms are also 0.993 and 0.949 Spearman-correlated with the equal
+CUSUM/`sw_var` magnitude control on the frozen endpoint. Removing `sw_var`
+costs 0.026--0.046 equal-family AUROC depending on the arm, while removing
+CUSUM is neutral or slightly positive on average. The tested temporal
+summaries therefore do not expose a new independent signal at the existing
+coarse absolute monitor grid.
+
+The localization panel is unchanged: ProcessBench and PRMBench score hashes
+are bit-identical for all Online-only candidates. The fixed trajectory-first
+anchors reproduce at 0.3070 ProcessBench macro F1 and 0.6711 PRMBench step
+AUROC; historical GL-LIU v1 remains 0.3136 versus 0.2571 for Mind the Gap.
+Same-matrix graph controls again show only tiny ordinary-to-DUFS changes
+(global +0.002193; local +0.000578), while the temporal local detector loses.
+Graph regularization is not promoted.
+
+**Research disposition**: retain the frozen Global/Local heads and IU28 Online
+head. Close current/running-maximum, persistence/area, and slope/recovery
+transforms of the saved coarse CUSUM/`sw_var` trajectories. Do not request GPU
+inference on this evidence. Reopen the application-method search only for a
+token-native causal recurrence or genuinely new telemetry/data, with a new
+frozen protocol, independent question/family grouping, and explicit approval.
+The canonical report is `results/global_local_online_iu_v1/REPORT.md` and the
+machine decision is `results/global_local_online_iu_v1/DECISION.json`. This
+result leaves the separate frozen A6/PTNI program untouched.
+
+## Historical application charter — joint reasoning localization and early detection (Step 269; completed by Step 270)
+
+The user-directed application focus is now the joint optimization of the two
+reasoning tasks on which the label-free method has shown its strongest useful
+structure:
+
+1. **reasoning hallucination localization** — decide whether a trace contains
+   an error and locate the first erroneous token/step; and
+2. **early/online final-error detection** — while the trace is still being
+   generated, estimate whether its completed answer will be wrong and decide
+   when that estimate is stable enough to declare.
+
+These are co-primary tasks. They must remain separate evaluation panels and
+must never be averaged into one headline number. They should nevertheless use
+one shared causal token-feature backbone wherever the evidence permits. Every
+proposed change must therefore run a regression check on both panels. A gain
+on one task does not justify a material loss on the other.
+
+The optimization target is the **smallest label-free causal architecture on
+the joint performance/compute Pareto frontier**, not the most elaborate
+fusion. The working decomposition is:
+
+```text
+shared confidence-aligned causal token streams
+    -> global head: is any reasoning error present?
+    -> local head: where did the first error begin?
+    -> online head: has the final error decision converged enough to declare?
+```
+
+The orientation contract is frozen. `CONFIDENCE_FEATURE_SIGNS_V1` aligns
+registered features so that larger values mean greater confidence; online risk
+uses the opposite direction. This does **not** mean every raw feature is
+intrinsically monotone. The four recurrently non-monotone raw views are either
+quarantined or replaced by the frozen mixed-v2 transforms, and raw plus
+transformed copies must not coexist. No benchmark label may re-estimate a sign
+or choose between those representations.
+
+### Evidence that motivates the joint program
+
+The first existing-cache online screen is broad enough to justify further
+method work but not a superiority claim. It covers 11 materialized
+dataset/model/generator cells and five dataset families with causal prefix
+replay and no new inference. IU28 reaches macro AUROC 0.648 at 64 tokens and
+0.694 at 128, versus 0.616 and 0.671 for the same-access DeepConf entropy-w64
+proxy. Equal-family IU-minus-DeepConf deltas are +0.024
+[-0.005,+0.056] and +0.014 [-0.031,+0.058], respectively. The intervals cross
+zero: this is promising parity, not established leadership and not a reason to
+close the comparison.
+
+The score also measurably converges toward its own completed-trace value. For
+IU28, prefix/final Spearman correlation rises from 0.417 at 64 tokens to 0.659
+at 128 and 0.817 at 512; final-decision agreement rises from 0.640 to 0.739 and
+0.880. Early declaration remains the main weakness: a calibration-constrained
+IU28 policy has 0.366 macro coverage and 0.137 held-out ever-wrong rate, with
+only 5/11 cells meeting the 10% target.
+
+A causal Global-Local follow-up improves late/completed scoring but does not
+yet create an early jump. At 64 tokens, the global, fused, `sw_var_peak`, IU28,
+and DeepConf-w64 AUROCs are 0.638, 0.635, 0.643, 0.648, and 0.616. At 128 they
+are 0.679, 0.678, 0.679, 0.694, and 0.671. At the completed trace, the simple
+fixed CUSUM/`sw_var` combination is best in that screen at 0.798, while the
+global head reaches 0.788 and IU28 0.764. At 512 tokens, fused Global-Local
+beats IU28 by an equal-family +0.066 [+0.043,+0.089]. The next online scorer
+should therefore model the causal evolution of CUSUM and `sw_var`—magnitude,
+persistence, slope, onset/change point, and stability—rather than reuse a
+frozen maximum or locator output.
+
+The existing localization evidence remains the second anchor. GL-LIU v1
+reaches 31.36% ProcessBench F1 versus 25.71% for the reproduced Mind the Gap
+control; the later fixed trajectory-first IU package reaches 30.70% across
+eight cells and 30.35% versus 24.96% on the matched Qwen3-8B four-subset
+population. PRMBench step AUROC improves from 0.6136 for the old step-first
+adapter to 0.6711 for trajectory-first IU. These are competitive label-free
+results, not a claim of leadership over supervised PRMs or large critic models.
+
+### Current architecture and ablation decision
+
+Ordinary Global-Local IU-PCR is the primary simplicity baseline. The
+Laplacian is a robustness/control arm, not the presumed contribution. On the
+existing localization component table, global mixed ordinary IU reaches
+0.791369 AUROC and global DUFS-LIU 0.793561, a gain of only 0.002193. For the
+local head, ordinary top-five IU reaches 0.723303 detection AUROC and DUFS
+0.723881, only +0.000578; the temporal Laplacian falls to 0.691528 and its
+development localization gain fails confirmation. The main reusable value is
+the Global-Local decomposition and the dynamic token features, especially
+CUSUM and `sw_var`, not Laplacian complexity.
+
+The next clean ablation must hold the feature matrix, preprocessing, IU
+subspace, reducer, split, and calibration fixed while comparing `lambda=0`, a
+uniform graph, a DUFS feature graph, and—only where temporally meaningful—a
+temporal graph. Existing IU28-versus-GL-LIU comparisons are architecturally
+confounded and cannot answer this question. A graph remains only if it provides
+a material paired gain or a documented robustness benefit that pays for its
+runtime and memory.
+
+### Permanent evaluation contract for this direction
+
+- **Localization panel:** answer-error AUROC, exact first-error localization,
+  tolerance-one localization, clean-trace abstention, and ProcessBench F1.
+- **Early panel:** equal-family AUROC/AUPRC on at-risk unfinished traces at
+  16/32/64/128/256/512 tokens; correlation with the method's own final score;
+  final-decision agreement; declaration coverage; held-out ever-wrong rate;
+  and selective error.
+- **Inference unit:** questions/response identities, not tokens. Splits,
+  bootstrap intervals, and comparisons must preserve shared-question and
+  repeated-model structure.
+- **Label boundary:** scores, orientations, components, and feature selection
+  are label-free. Labels may be used only in an explicitly declared
+  development selection, threshold calibration, and final evaluation split.
+  Consequently the current system is an unsupervised scorer with calibrated
+  decision policies, not a wholly label-free policy.
+- **Efficiency gate:** report feature count, fit cost, per-token update cost,
+  wall time, peak memory, and incremental component ablations. Within
+  statistical uncertainty, the cheaper architecture wins. No correlated
+  duplicate or graph is retained without measurable incremental value.
+- **Promotion gate:** preregister non-inferiority margins from development
+  variability before model selection; require grouped evidence of improvement
+  on at least one co-primary task, no material regression on the other, and no
+  hidden family whose collapse is masked by the macro average.
+
+The execution prompt used by Step 270 was
+`docs/research_notes/reasoning_localization_early_detection_optimization_prompt_2026-08-16.md`.
+Canonical result artifacts are
+`results/early_online_existing_data_v1/REPORT.md`,
+`results/early_online_localization_models_v1/REPORT.md`,
+`results/ours_only_localization_v1/REPORT.md`, and
+`results/fixed_application_pipelines_v1/REPORT.html`.
+
+This application charter did not edit, rescue, delay, or reinterpret the
+frozen A6/PTNI program below. If A6 work continues, it must follow its existing
+stage boundaries exactly. The joint application program began from existing
+caches; Step 270 completed that retrospective screen and did not
+justify a new GPU collection.
+
 ## Active program — automatic group-free IU successor (Step 268)
 
 The next core-method program is now explicitly reopened under a new-evidence
@@ -418,6 +685,11 @@ audit; they are not a reason to create more feature-contract versions.
 
 ### Application priority 1: hallucination localization
 
+**Step-269 scope update:** localization is now co-primary with early/online
+final-error detection under the joint program at the top of this file. Frozen
+GL-LIU remains a comparator; it is no longer an instruction to assume a
+Laplacian head in the optimized architecture.
+
 The strongest result of the cycle came from changing the task decomposition,
 not the covariance solver. Global full-trace fusion decides whether an error is
 present; a token-resolved head decides where it begins.
@@ -436,17 +708,12 @@ over GL-LIU v1 is descriptive and mixed, not a confirmed replacement. The
 broad 28-curve local pool falls to 29.03% and is rejected.
 
 The next localization work should optimize the **application**, not invent a
-new fusion family:
-
-1. freeze global mixed-v2 DUFS-LIU;
-2. carry both the formal temporal-LIU v1 locator and the simpler core-five
-   local DUFS-LIU candidate to a new dataset and preferably a new model family;
-3. develop localization-specific outputs such as token/window/span risk,
-   onset detection, abstention, and threshold transfer;
-4. compare with additional published localization baselines under the same
-   data and calibration protocol;
-5. keep the broad-28 pool closed unless a new token-resolved feature has an
-   explicit localization hypothesis.
+new fusion family. Start with the simpler ordinary-IU global/local heads,
+preserve frozen GL-LIU and the core-five DUFS head as controls, develop
+token/window/span onset outputs, and evaluate every change simultaneously on
+the causal early-detection panel. Keep the broad-28 local pool closed unless a
+new token-resolved feature has an explicit localization hypothesis and earns
+its incremental cost.
 
 Canonical artifacts: `docs/methods/gl_liu_v1.md`,
 `results/ours_only_localization_v1/REPORT.md`, and
@@ -476,7 +743,7 @@ subset, macro gap 0.21pp — noise at ~850 rows/subset). unified_core_five_dufs
 published competitor, does not clearly beat doing nothing clever" rather than
 a confirmed win — see HISTORY.md Step 238 for the per-subset table.
 
-### Application priority 2: hallucination in RAG citations
+### Queued application: hallucination in RAG citations
 
 #### Current exploratory direction: original-30 LOO IU-PCR
 
@@ -1037,7 +1304,7 @@ items replace it. Recorded in HISTORY.md Step 209.*
 |---|--------|--------|
 | 1 | **Understand why we fail where we fail** — per-cell deep dive, not another aggregate | 🔵 **ACTIVE — diagnosis only.** Nine cells pinned as "failing" (below). Repairs are pre-registered and tested in a *later* step so the diagnosis cannot be tuned to make a fix look good |
 | 2 | Consider a clustering mechanism inside U-PCR | ❌ **Already answered — do not rebuild.** Step 204 §D built it (`spectral_utils/upcr_clustered.py`): failed both pre-registered gates, **−4.46pp (9W/16L, p = 0.030)**, and the premise was a confound (2.03× same-vs-cross fit gap → 0.97–1.00× matched on \|C_ij\| decile; a random partition reproduces it). One untried variant — K-means on the (v₁,v₂) coordinates — rated **low**: `lambda2_threshold` is inert and one-component U-PCR is exactly PC1 of the survivors, so the second component has nothing to cluster on |
-| 3 | Consider adjacent applications — localization, and detection early in generation | ✅ **Superseded by Steps 232--235.** Localization is now the first application priority: GL-LIU v1 reaches **31.36% ProcessBench F1** versus **25.71%** for Mind the Gap, and a unified core-five DUFS-LIU candidate reaches **31.72%** descriptively. Early detection remains a later application option; its prior result is `lsml16` at **+5.6pp [+0.9, +10.6]** over the best DeepConf window at the earliest 10% of the trace. |
+| 3 | Consider adjacent applications — localization, and detection early in generation | ✅ **Superseded by Step 269.** Steps 232--235 established localization first; Step 269 now makes localization and early detection co-primary. GL-LIU v1 reaches **31.36% ProcessBench F1** versus **25.71%** for Mind the Gap, while the new 11-cell causal prefix screen shows IU/DeepConf parity at 64--128 tokens and motivates joint optimization rather than deferral. |
 
 > ### ⚠ STEP 216 INVALIDATES TWO ROWS OF THE TABLE BELOW — read this first
 >
@@ -1685,46 +1952,33 @@ ridge, DEEM architecture, or seeds after reading AUROC.
 
 ## Recommended Priority Order
 
-*(Authoritative current order — updated 2026-08-13, Steps 247--250)*
+*(Authoritative current order — updated 2026-08-16, Step 270)*
 
-0. **Validate the frozen NRM scope without retuning it.** Carry the unchanged
-   source calibration into either PRMBench's native step/localization protocol
-   or a new naturally distributed response benchmark with enough positives.
-   Pre-register the label boundary, grouping unit, and IU/DUFS-LIU/NRM
-   comparison.  The positive but underpowered HLE result is not a reason to
-   tune on HLE.
-1. **Score our own method on the remaining localization panels (Extension L).** This
-   is now the blocking item, and it is not a research question — it is missing
-   plumbing. Every competitor number for panels 1–3 is in hand and the raw
-   telemetry is fetched to `dataset_cache/four_localization/`, but **no local
-   scorer consumes any of it**: there is no consumer of the ProcessBench
-   competitor pkls, and no span, sentence, or PRMBench metric harness exists at
-   all. Until those are built, the campaign has four competitor ceilings and
-   zero numbers of our own to place beside them. Build them in the order the
-   handoff's §11 sets out — fit and freeze score hashes BEFORE any evaluation
-   label is opened, mirroring `scripts/gl_liu_external_v1/run.py`.
-
-2. **Validate and optimize hallucination localization as an application.** Keep
-   global DUFS-LIU mixed-v2 fixed. Compare the frozen temporal localizer with
-   the simpler core-five local DUFS-LIU candidate on a genuinely new
-   dataset/model family. Measure global detection, exact first-error location,
-   tolerance-one location, clean-trace accuracy, and ProcessBench F1. Do not
-   tune local views or thresholds on the eight development cells again.
-3. **Build the registered RAG-citation application.** Start with the
-   evidence-contrast design in
-   `docs/research_notes/evidence_contrast_upcr_rag_direction.md`: rescore a
-   fixed answer under full, removed, and leave-one-chunk-out evidence; then fuse
-   the resulting dependent views with the same DUFS-LIU mixed-v2 core. Freeze
-   the benchmark, label boundary, grouped split, baselines, and failure tests
-   before implementation.
-4. **Keep streaming/early detection as a later application option.** It has a
-   prior positive earliest-prefix result, but it is behind localization and RAG
-   citation grounding in the current project order.
-5. **Pause new fusion-core variants.** Reopen only when a new application
-   supplies a new identifiable signal, a valid nuisance intervention, or a
-   materially different feature pool. The current conclusion is bounded to the
-   existing single-pass static features; it is not an impossibility claim about
-   U-PCR.
+0. **Boundary, not an application task: preserve frozen A6.** Do not execute A6
+   as part of this joint program. If the separate core-method program is later
+   advanced by explicit instruction, run A6-S0b and every later stage exactly
+   as preregistered; the application work may not rescue, modify, reinterpret,
+   or delay it.
+1. **Retain the frozen application architecture.** The completed Step-270
+   retrospective keeps ordinary frozen Global/Local heads plus
+   `iu28_no_length`. Do not reopen running-maximum, persistence/area,
+   slope/recovery, elapsed-length, or graph variants on the same saved monitor
+   grid; none earned promotion under grouped uncertainty.
+2. **Require a genuinely new identifiable signal before more method work.** A
+   token-native causal recurrence or new telemetry/data may justify a new
+   protocol. Another transformation of the same coarse CUSUM/`sw_var`
+   trajectory does not. Any reopened candidate must preserve separate
+   localization and early panels, question/family grouping, the label boundary,
+   and the cross-task non-inferiority gate.
+3. **Treat native competitor and fresh-data work as a new approval gate.** Only
+   if a new mechanism has a credible retrospective premise should the project
+   verify exact DeepConf raw-logit conditions or collect a genuinely new
+   dataset/model family. No GPU inference follows from Step 270.
+4. **Keep RAG citation grounding queued and generic fusion-core sweeps paused.**
+   Reopen them only after this joint reasoning program reaches a stable
+   architecture or supplies a new identifiable signal. The current reasoning
+   architecture is stable but does not itself create evidence for another
+   generic fusion sweep.
 
 ### Historical July-30 priority record
 

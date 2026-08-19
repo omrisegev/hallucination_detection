@@ -1,9 +1,24 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-16
-**Last updated**: Step 270 — **the γ̂3 orientation channel does not survive its
-own correction; the atomic (group-free) NRM plan is stopped at its first gate,
-awaiting Omri.**
+**Last updated**: Step 273. The comprehensive Local/Online follow-up is
+complete. Do not promote its joint finalist: Local transfer is a numerical
+parity result (0.3662 versus 0.3614 maximum-entropy/top-five-step F1, delta
++0.0048 [-0.0264,+0.0375]), while Online transfer regresses beyond the frozen
+margin (0.5882 versus 0.6104 IU28 AUROC@64/128, delta -0.0222
+[-0.0502,+0.0042]). Retain IU28 as the strongest S4 Online bar; treat the
+family-six Local/top-five mechanism as retrospective research evidence, not a
+confirmed replacement. Do not request a GPU/inference run to rescue the
+result. Step 272 remains the prior architecture record, but its development
+choice is superseded for forward Online decisions by this transfer audit.
+A6-S0a remains independently verified as `PASS_S0A`; its separate frozen next
+stage is still A6-S0b, and this work does not alter that boundary.
+
+## Parallel line — A6/PTNI (its own Steps 269-270)
+
+Kept verbatim from the second working repository. It runs beside the
+localization sections below rather than superseding them; see "Step numbering"
+at the top of `HISTORY.md`.
 
 ## Current decision point — γ̂3 failed the correction it was owed (Step 270)
 
@@ -68,6 +83,230 @@ the independently reproduced verdict `PASS_S0A`. The authenticated tokenizer
 restore, frozen S0a boundary, all 7,800 checkpoints, aggregate, and completion
 artifact verify exactly. No response telemetry, simulator result, natural
 response, correctness sidecar, benchmark target, or sealed S1 seed has opened.
+
+## Comprehensive Local/Online transfer decision — Step 273
+
+The frozen four-stage existing-cache cycle evaluated raw-nine/raw-seven,
+broad-28, provenance-balanced family-six, historical core-five, eight causal
+state types, three locators, six same-matrix fusion paths, and 27 joint
+architectures. S1 selected family-six level plus the step top-five locator at
+0.3517 Local F1, +0.0014 versus Step-272. S2 selected family-six fast/slow at
+0.6020 Online AUROC, +0.0121 versus Step-272. Both intervals included zero.
+S3 retained ordinary IU and selected the Global signal for detection/Online
+plus the family-six Local locator; its Local/Online deltas were +0.0108/+0.0023,
+again uncertain.
+
+The decisive S4 audit used Qwen3-8B and Llama-3.1-8B over all four ProcessBench
+families, resampling scorer copies with each source question. Local wins three
+of four families but remains parity. Online loses to IU28 in three of four and
+breaches the 0.015 margin. At a 5% calibration false-warning target the
+finalist covers 11.8% of wrong traces versus 13.0% for Step-272; at 10% it
+covers 22.3% versus 21.2% but produces 10.1% audit false warnings versus 7.6%.
+All eight cells pass repeat, label-permutation, feature-order, suffix, and
+chunk-endpoint audits. PRM reaches 0.7280 Local F1; the critic reaches 0.5895
+with 1262/1270 valid scorer rows and eight explicit OmniMath abstentions.
+
+Canonical outputs are in
+`results/local_online_comprehensive_v1/REPORT.md`, `REPORT.html`,
+`DECISION.json`, `AUDIT.json`, the four stage reports, and machine-readable
+per-question/interval/warning/ablation/strata/efficiency tables. The frozen
+protocol is `docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.md` with SHA-256
+`c921b0d446eebd4611c4426168c30410741997ea2c6d23238e5d22b83e8d1e5b`.
+No new inference, GPU/cluster work, Drive mutation, staging, commit, or push
+occurred.
+
+## Token-native three-output architecture result — Step 272
+
+The v2 head screen selected different feature semantics for the three tasks.
+Global retained the historical mixed-v2 head at 0.7895 development AUROC; the
+best raw mean/tail replacement reached 0.7560, delta -0.0335 with 95% CI
+[-0.0600,-0.0065]. Local selected raw token levels at 0.3484 ProcessBench F1;
+onset-only and level+onset reached 0.2464 and 0.2685, while the registered
+core-five replay reached 0.3330. Online in isolation selected sustained
+EWMA/positive-area/persistence at 0.6596 64/128 AUROC versus 0.6370 for IU28,
+but the paired interval for the +0.0225 difference crossed zero.
+
+The one/two/three-head cross then made the independent Online head redundant.
+Across all twelve ProcessBench scorer-model/family cells, one shared head,
+two Global+Local heads, and three independent heads respectively reach:
+
+| architecture | Global AUROC | Local F1 | Online 64/128 AUROC |
+|---|---:|---:|---:|
+| one shared | 0.6892 | 0.2397 | 0.6009 |
+| two Global+Local | 0.7164 | 0.3136 | 0.6075 |
+| three independent | 0.7164 | 0.3136 | 0.6009 |
+
+Question-grouped intervals carry all scorer copies together and equal-weight
+families. Two heads beat one by +0.0271 [0.0085,0.0449] Global AUROC and
++0.0740 [0.0458,0.1013] Local F1; Online is +0.0067
+[-0.0121,0.0260]. Three heads versus two change Online by -0.0067
+[-0.0248,0.0126], with identical Global/Local outputs. The simpler two-head
+system is selected. The old 0.75/0.25 assumption is not retained; the frozen
+development choice is 0.50/0.50 with the peak locator.
+
+Same-matrix controls pass exact `lambda=0` identity. Global DUFS adds only
+0.0014 AUROC; Local uniform/DUFS/temporal paths add about 0.0059 F1, with
+paired intervals including zero. DUFS costs up to 24.9x the measured uniform
+fit path. Ordinary IU-PCR remains the supported fusion mechanism.
+
+Trace-level declaration thresholds were calibrated on the maximum over the
+entire monitor horizon. At the 5%/10% targets, observed correct-trace ever-warning
+is 3.6%/8.1% and wrong-trace warning coverage is 14.7%/25.0%. Potential
+remaining tokens are 428/414, but these are not realized savings because no
+forced-closure inference was run. Length residualization leaves AUROC
+0.5801/0.5980 at 64/128 versus raw 0.5947/0.6204. The Phase-15 T=1.0 missing-
+logsumexp transfer is weak early: 0.5142/0.5555 AUROC at 64/128 despite 0.8368
+final AUROC.
+
+The selected system's bottleneck is the historical mixed-v2 Global prefix
+recomputation: median per-cell fit and complete three-output scoring are 70.1s
+and 47.2s on local CPU. Local drop-one diagnostics suggest spilled and top-k
+entropy may be harmful, but they were outcome-opened and are not pruned
+post-hoc. A future frozen subset/streaming-implementation cycle is required
+before fresh confirmation. No GPU run is justified for DUFS or a third head.
+
+Canonical outputs are in
+`results/global_local_online_architecture_v2/REPORT.md`, `REPORT.html`,
+`DECISION.json`, and the machine-readable per-question, grouped-interval,
+declaration, length, missing-channel, fusion, and efficiency tables.
+
+## Token-native three-output architecture protocol — Step 271 (completed by Step 272)
+
+`docs/experiments/GLOBAL_LOCAL_ONLINE_ARCHITECTURE_V2.md` was frozen before any
+v2 candidate outcome was read. It makes three outputs co-primary: completed
+answer wrongness (Global), first-error detection/localization (Local), and
+causal prediction of the Global target from an unfinished prefix (Online).
+
+The audit found twelve complete ProcessBench telemetry cells: Qwen3-4B,
+Qwen3-8B, and Llama-3.1-8B scorer telemetry for the same 3,400 questions across
+GSM8K, MATH, OlympiadBench, and OmniMath. All contain token entropy, spilled
+energy, log-sum-exp, top-k log-probabilities, step-token spans, first-error
+labels, and final-answer correctness. Scorer copies share question IDs and are
+treated as repeated measurements. All cells are historically opened, so the
+cycle is retrospective development evidence, not fresh confirmation.
+
+The frozen roster starts from nine raw risk-oriented token channels and builds
+separate Global mean/tail/extreme reducers, Local level/onset trajectories, and
+Online level/EWMA/onset/persistence recurrences. The recurrences are suffix
+invariant and token-native; they do not reuse completed-trace means or Step
+270's aggregate-of-aggregate monitor inputs. After head selection on only
+Qwen3-4B GSM8K/MATH, the harness compares one shared head, a two-head
+Global-Local architecture, and three independent heads, including a frozen
+search over the historical Global/Local blend. Ordinary IU-PCR is the default;
+uniform, DUFS, and temporal Laplacians are low-priority same-matrix controls
+after feature and architecture identities freeze.
+
+No inference, GPU/cluster work, large download, Drive mutation, staging,
+commit, or push is authorized by this protocol.
+
+## Global-Local-Online IU retrospective result — Step 270
+
+The protocol was frozen before candidate scoring in
+`docs/experiments/GLOBAL_LOCAL_ONLINE_IU_V1.md`. It preserves separate
+localization and early-ranking panels, question/model grouping, causal prefix
+features, frozen confidence signs, IU28 without final length as the primary
+Online reference, and the claim boundary “unsupervised scorer with calibrated
+decision policies.” A read-only inventory classified 113 cache/artifact
+records: 41 causal-prefix-valid, one localization-only, and 71 unusable for
+this cycle. No large artifact was downloaded and Google Drive was not mutated.
+
+Three preregistered label-blind Online heads were fitted on the existing
+CUSUM/`sw_var` monitor trajectories: current plus running maximum
+(`dyn_level4_iu`), current plus positive area/run persistence
+(`dyn_persist6_iu`), and current plus slope/recovery (`dyn_change6_iu`). On the
+equal-family 64/128-token endpoint, their paired deltas versus IU28 are
+-0.0051 [-0.0553,+0.0519], -0.0079 [-0.0663,+0.0639], and
+-0.0270 [-0.0979,+0.0561]. Family wins are 2/5, 2/5, and 1/5. Every interval
+crosses zero, so none passes the frozen promotion rule. Comparisons with the
+DeepConf-w64 proxy also cross zero.
+
+The mechanism result is clearer than the ranking point estimates. The level
+and persistence heads have equal-family Spearman 0.993 and 0.949 with the
+simple equal CUSUM/`sw_var` magnitude control at 64--128 tokens. Removing the
+`sw_var` component lowers the endpoint by 0.026--0.046 depending on the arm,
+whereas removing CUSUM is neutral or slightly positive on average. The added
+dynamics therefore mostly re-express the saved magnitude signal rather than
+contribute a new independent early-warning coordinate.
+
+Localization is unchanged by construction and by bit-identical ProcessBench
+and PRMBench score hashes. The fixed anchors reproduce: trajectory-first
+ProcessBench macro F1 0.3070, matched Qwen3-8B 0.3035 versus 0.2496, and
+PRMBench step AUROC 0.6711. Historical GL-LIU v1 remains 0.3136 versus 0.2571
+for Mind the Gap. Same-matrix graph increments remain too small to justify the
+extra machinery: global ordinary/DUFS AUROC 0.791369/0.793561 and local
+ordinary/DUFS 0.723303/0.723881; the temporal local detector is worse at
+0.691528.
+
+**Decision**: retain the frozen Global/Local heads and `iu28_no_length`; close
+the current/running-maximum, persistence/area, and slope/recovery transforms
+of the existing coarse monitor grid. Do not promote graph regularization,
+elapsed length, or a declaration-only variant. Reopen only for a token-native
+causal recurrence or genuinely new telemetry/data under a separately frozen
+protocol and explicit authorization. The canonical report is
+`results/global_local_online_iu_v1/REPORT.md`; its machine-readable decision is
+`results/global_local_online_iu_v1/DECISION.json`.
+
+## Joint reasoning localization and early-detection focus — Step 269 (completed by Step 270)
+
+The current application goal is to find the smallest label-free causal
+Global-Local-Online IU architecture on the joint performance/compute Pareto
+frontier. The two co-primary panels are first-error reasoning localization and
+prediction of final answer error from an unfinished causal prefix. They remain
+separate metrics, but every method change must be run on both; a gain on one
+cannot hide a material regression on the other.
+
+The frozen feature-orientation contract remains in force. Registered streams
+are confidence-aligned by `CONFIDENCE_FEATURE_SIGNS_V1`; risk reverses that
+direction. This does not assert that every raw feature is intrinsically
+monotone: the four recurrently non-monotone raw views are either quarantined or
+replaced by frozen mixed-v2 transforms, never duplicated, and no target label
+may choose their sign or representation. Final trace length is non-causal;
+IU28 without length is the primary online adapter and elapsed prefix length is
+an explicit ablation.
+
+Two CPU-only existing-cache screens now anchor the online side. Across 11
+materialized cells and five dataset families, IU28 AUROC is 0.648 at 64 tokens
+and 0.694 at 128 versus 0.616 and 0.671 for the same-access DeepConf entropy-w64
+proxy. Equal-family deltas are +0.024 [-0.005,+0.056] and +0.014
+[-0.031,+0.058]: promising parity, not proven superiority and not a reason to
+end the comparison. IU28 prefix/final Spearman rises from 0.417 at 64 to 0.659
+at 128 and 0.817 at 512; decision agreement rises from 0.640 to 0.739 and
+0.880. Held-out declaration remains weak at 0.366 coverage and 0.137
+ever-wrong, with 5/11 cells meeting the 10% target.
+
+The causal localization-model follow-up found no early gain from simply
+inserting the frozen locator. At 64 tokens, global/fused/`sw_var_peak`/IU28/
+DeepConf-w64 AUROC is 0.638/0.635/0.643/0.648/0.616; at 128 it is
+0.679/0.678/0.679/0.694/0.671. The completed-trace CUSUM+`sw_var` combination
+reaches 0.798, and fused Global-Local beats IU28 at 512 by equal-family +0.066
+[+0.043,+0.089]. The next hypothesis is therefore a causal dynamic scorer over
+CUSUM and `sw_var` magnitude, persistence, slope, onset/change point, and
+stability—not another maximum or frozen locator.
+
+Localization remains a regression anchor: GL-LIU v1 reaches 31.36%
+ProcessBench F1 versus 25.71% for Mind the Gap; the later trajectory-first IU
+package reaches 30.70% across eight cells and 30.35% versus 24.96% on matched
+Qwen3-8B. PRMBench step AUROC is 0.6711 versus 0.6136 for the older step-first
+adapter. These are competitive label-free results, not a claim of leadership
+over supervised PRMs or large critic models.
+
+The clean existing localization component ablation makes ordinary IU-PCR the
+simplicity baseline. Global DUFS-LIU adds only 0.002193 AUROC over ordinary
+mixed IU; local DUFS adds 0.000578, while the temporal Laplacian loses on
+confirmation. Any next graph test must hold features, IU subspace, reducer,
+split, and calibration fixed at `lambda=0` versus uniform/DUFS/temporal arms.
+Within uncertainty, the cheaper model wins.
+
+**Completed application action**: Step 270 executed
+`docs/research_notes/reasoning_localization_early_detection_optimization_prompt_2026-08-16.md`.
+That prompt instructed the cycle to inventory the broader dataset/model/temperature/
+protocol archive, bind a two-panel causal regression harness, preregister
+non-inferiority and efficiency gates, and optimize on existing caches before
+requesting any GPU inference. The resulting canonical report is
+`results/global_local_online_iu_v1/REPORT.md`; prior input reports are
+`results/early_online_existing_data_v1/REPORT.md`,
+`results/early_online_localization_models_v1/REPORT.md`, and
+`results/ours_only_localization_v1/REPORT.md`.
 
 ## Automatic group-free IU Phase A6 S0a result — Step 268
 
