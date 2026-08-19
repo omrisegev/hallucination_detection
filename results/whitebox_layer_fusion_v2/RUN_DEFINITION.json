@@ -1,0 +1,81 @@
+{
+  "bootstrap": {
+    "draws": 2000,
+    "seed": 20260812,
+    "tie_tolerance": 0.001,
+    "unit": "problem_group_within_cell"
+  },
+  "cells": [
+    "gsm8k_t1.0",
+    "triviaqa_t1.0",
+    "sciq_t1.0",
+    "truthfulqa_t0.5",
+    "squadv2_t0.5",
+    "nq_open_t0.5",
+    "gsm8k_r1distill_t0.0",
+    "coqa_llama7b_t0.5",
+    "gsm8k_mistral24b_t1.0",
+    "gsm8k_nemo_t1.0",
+    "gsm8k_phi35_t1.0",
+    "gsm8k_mistral7b_t1.0",
+    "gsm8k_phi3mini_t1.0",
+    "triviaqa_qwen3_t0.6"
+  ],
+  "claim_scope": "13 protocol-eligible cells across eight accepted model families; CoQA/Llama-1 appendix rejected",
+  "dufs": {
+    "epochs": 80,
+    "k": 7,
+    "lambda": 0.1,
+    "seeds": [
+      11,
+      23,
+      37
+    ]
+  },
+  "feature_contracts": [
+    "resid_core_all",
+    "resid_core_spaced8",
+    "resid_core_late8",
+    "lens96",
+    "trilens_entropy_all",
+    "dola_kl_proxy_all",
+    "haloscope_projection",
+    "raw_output_baselines",
+    "resid_core_all_length_residualized"
+  ],
+  "geometry_omission_reason": "covariance appendix blocked on Phi-3, Phi-3.5, and Qwen3 float16 overflow",
+  "geometry_performance_enabled": "HaloScope mean-token JL proxy only",
+  "label_definition": "y_hallucination = 1 - correctness label; evaluator only",
+  "models": [
+    "Qwen/Qwen3-8B",
+    "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
+    "huggyllama/llama-7b",
+    "meta-llama/Llama-3.1-8B-Instruct",
+    "microsoft/Phi-3-mini-4k-instruct",
+    "microsoft/Phi-3.5-mini-instruct",
+    "mistralai/Mistral-7B-Instruct-v0.3",
+    "mistralai/Mistral-Nemo-Instruct-2407",
+    "mistralai/Mistral-Small-24B-Instruct-2501"
+  ],
+  "orientation_anchor": "final-layer residual target-token NLL; label-free",
+  "protocol_signature": "10acbab9c20beec5c1b9fa9e5f279f7f6daa621824f049fd7337659861e302e3",
+  "scientific_run": true,
+  "source_sha256": {
+    "cluster/layer_lens.py": "4c200edb86dd3b04cfe3427a311418da4a6211581e77542c5525e652037d5acd",
+    "cluster/run_layer_views.py": "65d4f3d5e85918c5712569f583744c49bc9db739194dc500c3f395f0a1af30ff",
+    "cluster/run_layer_views_reference.py": "d7f9d33374dc3441adf1cfa6eee3885f02ff12c7ec76fc94b6ca123d8300f519",
+    "cluster/submit_layer_views.sbatch.template": "c3abdf8327fa5ba29270dae19de0f4036471b948f5d61f78bfe2b1bcdd525dd9",
+    "scripts/whitebox_layer_fusion_experiment.py": "cbe20fdc8c3ae9e18eec6f36a7a77059c63565bae4fa0177ddeb7b30b667f8bc",
+    "scripts/whitebox_layer_fusion_report.py": "f9d010ff3829258059ec5a5dbec0d862aa455e925d249e987d9138e861025d2f",
+    "spectral_utils/dependency_fusion.py": "85fe7f5be68e59c912948ca8e1de3eeaa7e68a26ef97403c21e1d721013dd456",
+    "spectral_utils/fusion_utils.py": "1f47ed8f1d16a41532d85dfbacb0c0d727645aaf6921223e9e8e9f6ccc6fadd7",
+    "spectral_utils/laplacian_upcr.py": "f9e63be91a95179383c92c3bc2c539ae56f5dff34a48d084ecc81770215a2aec",
+    "spectral_utils/paper_benchmark_suite.py": "cfac287003b844030e994e9bc461e82f6ad273288ee485c61db892aa5589b74c",
+    "spectral_utils/selectors/a2_groupfs.py": "5039aee811bc9f70dea8a85967497bbb0aa23875b46c0d76a76725fdec83704e",
+    "spectral_utils/upcr.py": "60c6ff461426d4c828ead210f04233815f45211a6f1a49a50ed37811c50c26cc",
+    "spectral_utils/upcr_clustered.py": "ecb54a3f72df66feb7adff3b65c6715d8609af9ed4d4d59af78ed702741feacd",
+    "spectral_utils/whitebox_layer_fusion.py": "b617331bd9d800dcaebc02e4244fef64df36945fa0c4dd712b8384ed3dd03d87"
+  },
+  "version": "whitebox-layer-fusion-v2-2026-08-12",
+  "written_utc": "2026-08-12T21:03:31+00:00"
+}

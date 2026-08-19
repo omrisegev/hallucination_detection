@@ -1,0 +1,68 @@
+{
+  "analysis_role": "retrospective post-v2 addendum; no replacement of registered v2 primary",
+  "appendix_rejected_cells": [
+    "coqa_llama7b_t0.5"
+  ],
+  "base_fit_complete_sha256": "3cca6fecc27203660fea4c968ee4b7317856b7a825a4ae7080ca8894df356371",
+  "base_prepared_manifest_sha256": "1927e1098d766f7988553ff7a5a52d59951d6b41dbf147ed51fdd60d29ecbd2b",
+  "base_prepared_n_files": 155,
+  "base_result": "results/whitebox_layer_fusion_v2",
+  "base_score_freeze_sha256": "4489283fd5f01fb9fcb08c7a5d53b7fa491e7072e42fe51f6c70e7dc2d61565c",
+  "base_score_n_cells": 14,
+  "bootstrap": {
+    "draws": 2000,
+    "seed": 20260812,
+    "tie_tolerance": 0.001,
+    "unit": "problem group within cell"
+  },
+  "contracts": {
+    "depth": {
+      "family_basis": "relative-depth-quartiles",
+      "prepared": "resid_core_all"
+    },
+    "lens": {
+      "family_basis": "module-by-metric",
+      "prepared": "lens96"
+    }
+  },
+  "eligible_cells": [
+    "gsm8k_t1.0",
+    "triviaqa_t1.0",
+    "sciq_t1.0",
+    "truthfulqa_t0.5",
+    "squadv2_t0.5",
+    "nq_open_t0.5",
+    "gsm8k_r1distill_t0.0",
+    "gsm8k_mistral24b_t1.0",
+    "gsm8k_nemo_t1.0",
+    "gsm8k_phi35_t1.0",
+    "gsm8k_mistral7b_t1.0",
+    "gsm8k_phi3mini_t1.0",
+    "triviaqa_qwen3_t0.6"
+  ],
+  "labels_seen_during_fit": false,
+  "nrm_rule": {
+    "base": "anchor-oriented IU-PCR",
+    "cell_weighting": "equal covariance contribution per source cell",
+    "mode": "eigenvector with eigenvalue closest to 1",
+    "orientation": "equal-family risk direction",
+    "target_transform": "unlabeled whole-cell standardization and IU residualization",
+    "trust_ratio": "1 / number_of_families"
+  },
+  "source_sha256": {
+    "scripts/whitebox_layer_fusion_experiment.py": "cbe20fdc8c3ae9e18eec6f36a7a77059c63565bae4fa0177ddeb7b30b667f8bc",
+    "scripts/whitebox_layer_fusion_nrm_experiment.py": "ef31b544b72ee2827d442c8a205a18e7df4443170173f726ab051659e8e3d374",
+    "spectral_utils/laplacian_upcr.py": "f9e63be91a95179383c92c3bc2c539ae56f5dff34a48d084ecc81770215a2aec",
+    "spectral_utils/paper_benchmark_suite.py": "cfac287003b844030e994e9bc461e82f6ad273288ee485c61db892aa5589b74c",
+    "spectral_utils/upcr.py": "60c6ff461426d4c828ead210f04233815f45211a6f1a49a50ed37811c50c26cc",
+    "spectral_utils/whitebox_layer_fusion.py": "d86a2cff1ee73463eb6f7f37409d7fa897f5306b3580872fab5e4e3102e93823"
+  },
+  "status": "PRELIMINARY / VALIDATION BLOCKED",
+  "strategies": {
+    "loco": "exclude target cell only; sensitivity analysis",
+    "lodo": "exclude every source sharing the target dataset",
+    "lomo": "exclude every source sharing the target exact model"
+  },
+  "version": "whitebox-layer-fusion-nrm-v1-2026-08-13",
+  "written_utc": "2026-08-13T13:42:24+00:00"
+}

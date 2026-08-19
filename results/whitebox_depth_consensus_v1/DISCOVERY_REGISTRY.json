@@ -1,0 +1,35 @@
+{
+  "analysis_role": "retrospective_post_outcome_search; not preregistered",
+  "registry": {
+    "entropy_burst": {
+      "aggregation": "anchor-reliability weighted rank consensus",
+      "reliability_power": 1.0,
+      "selection_k": 5,
+      "source": "RMS token-to-token residual entropy difference per layer"
+    },
+    "max_token_entropy": {
+      "aggregation": "anchor-reliability weighted rank consensus",
+      "reliability_power": 2.0,
+      "selection_k": 3,
+      "source": "max-token entropy at every attention/MLP/residual layer"
+    },
+    "prediction_revision": {
+      "aggregation": "equal mean after per-layer standardization",
+      "reliability_power": null,
+      "selection_k": null,
+      "source": "residual entropy/NLL/top1/KL depth revisions"
+    },
+    "top1_sharpness": {
+      "aggregation": "anchor-reliability weighted rank consensus",
+      "reliability_power": 2.0,
+      "selection_k": 3,
+      "source": "mean_t[entropy + log p(top1)] per residual layer"
+    }
+  },
+  "registry_sha256": "2081a4836993bb3ae068d89e410d5f549b5f6601f4cd6583ea2413cb91a354db",
+  "selection_history": "Chosen after two negative frozen searches, geometry/frequency/readout screens, and an explicit component subset audit on these same 13 eligible cells.",
+  "success_target": "macro AUROC above both the best-single-layer oracle and TriLens grouped L2 probe",
+  "validation_status": "PRELIMINARY / VALIDATION BLOCKED",
+  "version": "whitebox-depth-consensus-v1-2026-08-13",
+  "written_utc": "2026-08-13T20:44:16.305198+00:00"
+}

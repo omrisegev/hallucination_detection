@@ -1,0 +1,65 @@
+{
+  "analysis_role": "retrospective_discovery_iteration_2",
+  "iteration_1_result": "no fusion beat its best-layer oracle",
+  "methods": [
+    "equal_mean",
+    "iu_pcr",
+    "dufs_liu_pcr"
+  ],
+  "metric_registry": {
+    "module_entropy_disagreement": {
+      "display": "Tokenwise TriLens entropy disagreement",
+      "formula": "per layer: mean_t std_module[H_attn,H_mlp,H_resid]",
+      "layer_policy": "all layers",
+      "literature_basis": "TriLens pathway complementarity at attention, MLP, and residual readouts",
+      "readout": "module dispersion before token pooling; one scalar per layer",
+      "risk_direction": "anchor-aligned from +pathway disagreement"
+    },
+    "module_target_nll_disagreement": {
+      "display": "Tokenwise target-commitment disagreement",
+      "formula": "per layer: mean_t std_module[-log p_attn,-log p_mlp,-log p_resid]",
+      "layer_policy": "all layers",
+      "literature_basis": "pathway-specific commitment and competing continuations",
+      "readout": "module dispersion before token pooling; one scalar per layer",
+      "risk_direction": "anchor-aligned from +pathway disagreement"
+    },
+    "resid_entropy_burst": {
+      "display": "Residual entropy burst trajectory",
+      "formula": "per layer: RMS_t delta H_resid(l,t)",
+      "layer_policy": "all layers",
+      "literature_basis": "trace-level entropy instability and localized entropy peaks",
+      "readout": "all generated-token positions; one scalar per layer",
+      "risk_direction": "anchor-aligned from +burst magnitude"
+    },
+    "resid_entropy_dispersion": {
+      "display": "Residual entropy dispersion trajectory",
+      "formula": "per layer: sample standard deviation_t H_resid(l,t)",
+      "layer_policy": "all layers",
+      "literature_basis": "trace-level entropy variability during erroneous generation",
+      "readout": "all generated-token positions; one scalar per layer",
+      "risk_direction": "anchor-aligned from +dispersion"
+    },
+    "resid_kl_tail": {
+      "display": "Residual KL settling-tail trajectory",
+      "formula": "per layer: q90_t log1p KL(p_l || p_final)",
+      "layer_policy": "all layers except mechanically degenerate final KL",
+      "literature_basis": "DoLa-style premature-to-final prediction contrast",
+      "readout": "all generated-token positions; one scalar per layer",
+      "risk_direction": "anchor-aligned from +unsettled tail"
+    },
+    "resid_target_nll_burst": {
+      "display": "Target-surprisal burst trajectory",
+      "formula": "per layer: RMS_t delta[-log p_l(generated_token_t)]",
+      "layer_policy": "all layers",
+      "literature_basis": "generated-token commitment dynamics across depth and time",
+      "readout": "all generated-token positions; one scalar per layer",
+      "risk_direction": "anchor-aligned from +burst magnitude"
+    }
+  },
+  "metric_registry_sha256": "c245956974de00e0eb6776417e0451cdb0426d7f5df29792bb8635508da2acd6",
+  "primary_method": "iu_pcr",
+  "success_rule": "fusion must beat its own per-cell best-layer oracle with positive paired macro-AUROC CI and exceed the local TriLens grouped-L2-probe macro AUROC; independent confirmation remains required",
+  "validation_status": "PRELIMINARY / VALIDATION BLOCKED",
+  "version": "whitebox-depth-token-search-v1-2026-08-13",
+  "written_utc": "2026-08-13T19:24:05.779060+00:00"
+}
