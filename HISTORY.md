@@ -14247,9 +14247,14 @@ reports in explicit commits. Copied 225 heavy intermediate files
 (162,152,300 bytes) non-destructively to
 `gdrive:hallucination_detection/consolidated_results/integration_2026-08-19/pre_merge_untracked/`;
 `rclone check --one-way --checksum` returned 225 matches and zero differences.
-Canonical Localization/RepGrid caches are recorded in Git LFS with a content
-inventory. No stash, branch, worktree, Drive object, or local source artifact
-was deleted.
+The 23 consolidation-only Localization/RepGrid pickle payloads were initially
+prepared for Git LFS, but GitHub rejected publication because the repository's
+LFS budget was exhausted. Every payload was then checksum-matched to its
+canonical Drive copy (zero differences across eleven mapped directories) and
+removed from the still-unpublished integration history. Their manifests,
+SHA-256 inventory, and exact Drive recovery map remain in Git; a local backup
+ref retains the pre-removal history. No stash, branch, worktree, Drive object,
+or local source artifact was deleted.
 
 **Research decision**: Established one cross-front source of truth at
 `docs/research_notes/research_status_consolidated_2026-08-19.md`. IU-PCR and

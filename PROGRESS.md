@@ -7,8 +7,11 @@ integration preserves remote master, paper-exact acquisition, corrected
 white-box capture, local white-box analysis, the previously committed local
 contextual/A6/paper evidence, and the pre-existing fair-comparison, Unified,
 and three-way ancestors. Heavy intermediates were copied non-destructively to
-Drive; canonical dataset caches are preserved through Git LFS; no stash,
-branch, worktree, or local source artifact was deleted.
+Drive. The 23 consolidation-only dataset payloads were checksum-verified
+against their canonical Drive copies and omitted from the unpublished Git
+history after GitHub's LFS budget blocked publication; their manifests and
+SHA-256 inventory remain tracked. No stash, branch, worktree, or local source
+artifact was deleted.
 
 The current order is: **(1) finish the frozen PTNI/A6-S0b gate; (2) if budget
 is justified, run one new preregistered white-box validation with corrected

@@ -13,10 +13,10 @@ following heads as ancestors:
 
 | lineage | head at integration | integration commit |
 |---|---|---|
-| remote master | `cd423ab` | `bac906f` |
-| paper-exact acquisition | `79ee28e` | `29ba158` |
-| corrected remote white-box capture | `85149a0` | `8e0549c` |
-| local white-box analysis | `7cdc39a` | `fe70497` |
+| remote master | `cd423ab` | `441a3f4` |
+| paper-exact acquisition | `79ee28e` | `f98e8d9` |
+| corrected remote white-box capture | `85149a0` | `4332b28` |
+| local white-box analysis | `7cdc39a` | `f34332c` |
 
 Fair-comparison `bc296ff`, Unified `d3ca3a4`, and three-way `ef3154e` were
 verified ancestors and were not merged again. `git merge-base --is-ancestor`
@@ -76,15 +76,20 @@ open exactly as recorded in the canonical status note.
 - Current-tree largest ordinary Git blob: 80,883,712 bytes
   (`scripts/runai-cli-amd64.exe`), below GitHub's 100-MB hard limit. The new
   manifold assets are all below 150 KiB.
-- Curated consolidation LFS audit: PASS for all 23 large pickle objects; each
-  index pointer, declared size/SHA-256, smudged local file, and source inventory
-  agrees. The 36-file inventory totals 3,351,678,118 bytes including 13 small
-  metadata files stored as ordinary Git objects.
+- Curated consolidation payload audit: PASS for all 23 pickle objects. Each
+  local payload and its canonical Drive copy matched under `rclone check
+  --one-way --checksum`; eleven mapped directories reported zero differences
+  and 35 matching payload/metadata files. The 36-file source inventory totals
+  3,351,678,118 bytes, and its 13 compact metadata files remain ordinary Git
+  objects. The unpublished history was rewritten to omit only the 23 payloads;
+  `git lfs push --dry-run` then reported no new LFS objects relative to fetched
+  GitHub refs. The prior head is retained in a local backup ref.
 - Repository-wide `git lfs fsck` cannot be fully green in this partial clone:
   numerous older LFS objects are intentionally absent from the local object
   store. The command reported them as unavailable and could not create its
   optional `.git/lfs/bad` repair directory in the sandbox. This does not affect
-  the 23 new curated objects, which passed the independent full-content audit.
+  the Drive-backed consolidation payloads or older LFS objects already present
+  on GitHub.
 - Canonical status-versus-artifact audit: PASS for the fair-comparison,
   Family-NRM, Localization/RAG, contextual decisions, white-box values,
   manifold decision, A6 gate state, and preservation manifests.
@@ -102,6 +107,12 @@ rclone's shared Google Drive client ID, which rclone says is being retired
 during 2026. It does not affect this checksum result, but a project-owned
 client ID should be configured before the shared ID stops working.
 
+Separately, all 23 consolidation-only dataset payloads were checked against
+their canonical `cluster_results` directories with zero differences before
+they were omitted from Git. Their recovery map is
+`dataset_cache/DRIVE_BACKUP_2026_08_20.json`; no Drive or local object was
+deleted.
+
 ## GitHub publication readiness
 
 GitHub CLI 2.97.0 arm64 was installed from the official release and its archive
@@ -110,6 +121,12 @@ matched the official SHA-256 checksum. Authentication is `omrisegev` with
 branch had no branch-protection rule and the repository exposed no ruleset at
 the opening check. A fresh fetch and protection check are required immediately
 before publication; no force-push is permitted.
+
+The first branch push was rejected before a remote ref was created because the
+repository's LFS budget was exhausted. After the verified Drive-backed payload
+removal, publication requires no new LFS upload. The local integration commits
+were rewritten only because the branch had never reached GitHub; all merged
+lineage heads remain direct ancestors.
 
 ## Independent review
 

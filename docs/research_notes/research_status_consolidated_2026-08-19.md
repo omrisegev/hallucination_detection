@@ -99,10 +99,13 @@ local source files were not deleted. Traceability lives in
 `results/research_consolidation_2026_08_19/pre_merge_untracked_drive_manifest.json`
 and `drive_verification.json`.
 
-Canonical localization and RepGrid caches are tracked with Git LFS. Their
-inventory is `dataset_cache/INVENTORY_2026_08_19.json`; pointer and object
-integrity are part of the final verification. Stashes, branches, and worktrees
-remain intact as recovery points until the remote commit IDs are verified.
+The 23 consolidation-only localization and RepGrid pickle payloads are retained
+in their canonical Drive directories rather than added to Git LFS: GitHub's
+exhausted LFS budget blocked the first publication attempt. The SHA-256
+inventory is `dataset_cache/INVENTORY_2026_08_19.json`, and the checksum-tested
+Drive map is `dataset_cache/DRIVE_BACKUP_2026_08_20.json`. Their compact
+manifests remain in Git. Stashes, branches, worktrees, local copies, and a
+pre-removal backup ref remain intact as recovery points.
 
 ## Canonical evidence map
 

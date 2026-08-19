@@ -157,6 +157,12 @@ cluster/submit_backfill.sbatch
 !dataset_cache/**
 !dataset_cache/**/*.pkl
 
+# 2026-08-20: these 23 consolidation-only pkls are checksum-verified against
+# their canonical Drive copies (see dataset_cache/DRIVE_BACKUP_2026_08_20.json).
+# Keep manifests/inventories in Git and retain any local payloads as ignored copies.
+dataset_cache/four_localization/**/*.pkl
+dataset_cache/repgrid/pb_llama31_8b/*.pkl
+
 # 2026-08-19 research consolidation: reproducible heavy intermediates archived
 # non-destructively at gdrive:hallucination_detection/consolidated_results/
 # integration_2026-08-19/pre_merge_untracked/. Keep compact reports, manifests,
