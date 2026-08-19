@@ -1,0 +1,237 @@
+{
+  "driver": "run_prmbench_prm.py",
+  "paper": "PRMBench: A Fine-grained and Challenging Benchmark for Process-Level Reward Models (Song et al., arXiv:2501.03124, ACL 2025)",
+  "competitor": "Qwen2.5-Math-PRM-7B \u2014 Towards Effective Process Supervision in Mathematical Reasoning (Qwen team)",
+  "model": "Qwen/Qwen2.5-Math-PRM-7B",
+  "dataset": "hitsmy/PRMBench_Preview",
+  "dataset_revision": null,
+  "dataset_diagnostics": {
+    "dataset_id": "hitsmy/PRMBench_Preview",
+    "split": "train",
+    "revision": null,
+    "n_raw_rows": 6216,
+    "n_meta_rows": 6969,
+    "n_raw_steps": 83456,
+    "n_duplicate_rows_dropped": 5,
+    "n_steps_total": 94203,
+    "n_steps_error_classes": 83371,
+    "n_rows_empty_error_steps": 160,
+    "n_rows_out_of_range_error_steps": 100,
+    "counts_by_classification": {
+      "confidence": 757,
+      "step_contradiction": 758,
+      "multi_solutions": 160,
+      "circular": 758,
+      "domain_inconsistency": 757,
+      "counterfactual": 757,
+      "correct": 758,
+      "redundency": 758,
+      "deception": 750,
+      "missing_condition": 756
+    }
+  },
+  "metric_source": "spectral_utils/prmbench.py \u2014 port of mr_eval task prmtest_classified (load_data_function + evaluate_function + eval_on_hallucination_step)",
+  "label_convention": "labels[i] == 1 means the scorer asserts step i is VALID",
+  "threshold": 0.5,
+  "supervision": "human-process-label-trained PRM (PRM800K-style) \u2014 supervised ceiling, never reported as a peer of a label-free score",
+  "fidelity_level": 1,
+  "n_reward_count_mismatch": 0,
+  "results": {
+    "total": {
+      "correct_step_acc": 0.9543447922303552,
+      "wrong_step_acc": 0.30466195147919994,
+      "total_step_acc": 0.8518789507142771,
+      "first_error_acc": 0.3768019884009942,
+      "similarity": 0.017100476969517057,
+      "precision": 0.879948528735934,
+      "recall": 0.9543447922303552,
+      "f1": 0.9156379584782177,
+      "negative_precision": 0.5554631170271769,
+      "negative_recall": 0.30466195147919994,
+      "negative_f1": 0.3934973724276804
+    },
+    "by_classification": {
+      "correct_step_acc": {
+        "circular": 0.9617823177175062,
+        "confidence": 0.9528801355357899,
+        "correct": 0.9809822747415067,
+        "counterfactual": 0.9485897893609425,
+        "deception": 0.9548387096774194,
+        "domain_inconsistency": 0.922926492580237,
+        "missing_condition": 0.9568698347107438,
+        "multi_solutions": 0.9973226238286479,
+        "redundency": 0.980349344978166,
+        "step_contradiction": 0.9450537971377834
+      },
+      "wrong_step_acc": {
+        "circular": 0.16065573770491803,
+        "confidence": 0.6035276073619632,
+        "correct": -1,
+        "counterfactual": 0.4305689488910318,
+        "deception": 0.3688235294117647,
+        "domain_inconsistency": 0.3901345291479821,
+        "missing_condition": 0.1797752808988764,
+        "multi_solutions": -1,
+        "redundency": 0.034482758620689655,
+        "step_contradiction": 0.3733221476510067
+      },
+      "total_step_acc": {
+        "circular": 0.7428644566747729,
+        "confidence": 0.9104949758094529,
+        "correct": 0.9809822747415067,
+        "counterfactual": 0.8460437148038561,
+        "deception": 0.8559086395233366,
+        "domain_inconsistency": 0.8518592363672615,
+        "missing_condition": 0.8057838343909289,
+        "multi_solutions": 0.9973226238286479,
+        "redundency": 0.8551623180917937,
+        "step_contradiction": 0.8817464003715746
+      },
+      "first_error_acc": {
+        "circular": 0.22559366754617413,
+        "confidence": 0.7034574468085106,
+        "correct": -1,
+        "counterfactual": 0.5582010582010583,
+        "deception": 0.465954606141522,
+        "domain_inconsistency": 0.42140026420079263,
+        "missing_condition": 0.17402945113788487,
+        "multi_solutions": -1,
+        "redundency": 0.0316622691292876,
+        "step_contradiction": 0.43535620052770446
+      },
+      "similarity": {
+        "circular": -1,
+        "confidence": -1,
+        "correct": -1,
+        "counterfactual": -1,
+        "deception": -1,
+        "domain_inconsistency": -1,
+        "missing_condition": -1,
+        "multi_solutions": -1,
+        "redundency": 0.017100476969517057,
+        "step_contradiction": -1
+      },
+      "precision": {
+        "circular": 0.7529298221425617,
+        "confidence": 0.9456704497688104,
+        "correct": 1.0,
+        "counterfactual": 0.8709571678321678,
+        "deception": 0.8816326530612245,
+        "domain_inconsistency": 0.9076818644643059,
+        "missing_condition": 0.8285810130828581,
+        "multi_solutions": 1.0,
+        "redundency": 0.8693891920436543,
+        "step_contradiction": 0.923728813559322
+      },
+      "recall": {
+        "circular": 0.9617823177175062,
+        "confidence": 0.9528801355357899,
+        "correct": 0.9809822747415067,
+        "counterfactual": 0.9485897893609425,
+        "deception": 0.9548387096774194,
+        "domain_inconsistency": 0.922926492580237,
+        "missing_condition": 0.9568698347107438,
+        "multi_solutions": 0.9973226238286479,
+        "redundency": 0.980349344978166,
+        "step_contradiction": 0.9450537971377834
+      },
+      "f1": {
+        "circular": 0.844636919031784,
+        "confidence": 0.9492616033755273,
+        "correct": 0.9903998508714699,
+        "counterfactual": 0.9081173454856165,
+        "deception": 0.9167765987955262,
+        "domain_inconsistency": 0.9152407027150353,
+        "missing_condition": 0.8881164978725954,
+        "multi_solutions": 0.9986595174262735,
+        "redundency": 0.9215411885437075,
+        "step_contradiction": 0.9342696339133578
+      },
+      "negative_precision": {
+        "circular": 0.6125,
+        "confidence": 0.6387987012987013,
+        "correct": 0.0,
+        "counterfactual": 0.6739622641509434,
+        "deception": 0.6238805970149254,
+        "domain_inconsistency": 0.43791946308724833,
+        "missing_condition": 0.5014925373134328,
+        "multi_solutions": 0.0,
+        "redundency": 0.21115537848605578,
+        "step_contradiction": 0.45829042224510813
+      },
+      "negative_recall": {
+        "circular": 0.16065573770491803,
+        "confidence": 0.6035276073619632,
+        "correct": -1,
+        "counterfactual": 0.4305689488910318,
+        "deception": 0.3688235294117647,
+        "domain_inconsistency": 0.3901345291479821,
+        "missing_condition": 0.1797752808988764,
+        "multi_solutions": -1,
+        "redundency": 0.034482758620689655,
+        "step_contradiction": 0.3733221476510067
+      },
+      "negative_f1": {
+        "circular": 0.2545454545454545,
+        "confidence": 0.6206624605678234,
+        "correct": 0.0,
+        "counterfactual": 0.5254486613709913,
+        "deception": 0.4635859519408503,
+        "domain_inconsistency": 0.4126482213438736,
+        "missing_condition": 0.2646711303662859,
+        "multi_solutions": 0.0,
+        "redundency": 0.0592841163310962,
+        "step_contradiction": 0.411465557096625
+      }
+    },
+    "by_category": {
+      "simplicity": {
+        "correct_step_acc": 0.9710658313478361,
+        "wrong_step_acc": 0.09756924816280385,
+        "total_step_acc": 0.7990133873832832,
+        "first_error_acc": 0.12862796833773088,
+        "f1": 0.8830890537877457,
+        "similarity": 0.017100476969517057,
+        "members": [
+          "circular",
+          "redundency"
+        ]
+      },
+      "soundness": {
+        "correct_step_acc": 0.9423625536536882,
+        "wrong_step_acc": 0.4493883082629959,
+        "total_step_acc": 0.8725360818380363,
+        "first_error_acc": 0.5296037424345165,
+        "f1": 0.9267223213723843,
+        "similarity": -1,
+        "members": [
+          "confidence",
+          "counterfactual",
+          "domain_inconsistency",
+          "step_contradiction"
+        ]
+      },
+      "sensitivity": {
+        "correct_step_acc": 0.9696770560722703,
+        "wrong_step_acc": 0.2742994051553206,
+        "total_step_acc": 0.8863383659143045,
+        "first_error_acc": 0.31999202863970344,
+        "f1": 0.9345175380314651,
+        "similarity": -1,
+        "members": [
+          "deception",
+          "missing_condition",
+          "multi_solutions"
+        ]
+      }
+    },
+    "validity_rate": 1.0,
+    "n_predictions_scored": 6969,
+    "n_meta_rows": 6969,
+    "n_correct_control_rows": 758,
+    "used_redundancy_head": false
+  },
+  "elapsed_sec": 0.19492435455322266,
+  "job_id": "177823",
+  "written_utc": "2026-08-10T22:37:58+00:00"
+}

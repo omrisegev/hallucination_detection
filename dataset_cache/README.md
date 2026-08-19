@@ -22,10 +22,15 @@ cells only have `token_entropies`).
 | RAG | `rag_2wikimultihopqa_*`, `rag_hotpotqa_*`, `rag_narrativeqa_*`, `rag_natural_questions_*` (5 models each) | out of scope for the thesis (Step 191) but archived |
 | EDIS / math-competition | `edis_amc23_*`, `edis_gsm8k_*`, `edis_math500_*` pilots, `cache/edis_aime24` → `dataset_cache/edis_aime24` | EDIS replication pilots (Steps 116-183) |
 | ProcessBench / localization | `pb_qwen3_4b`, `pb_qwen3_8b`, `ars_*`, `evdrop_*` | Extension F, Track A — step-level error localization ("Mind the Gap" reproduction), see `experiment/step-localization` branch |
+| Four-front localization/RAG validation | `four_localization/*` | Canonical raw telemetry for ProcessBench, PRMBench, HLE, RAGTruth/GASP/Lettuce, and RefChecker validation |
+| ProcessBench Llama-3.1-8B | `repgrid/pb_llama31_8b` | Canonical four-dataset localization cache used by the local/online application analyses |
 
 Not included: `cache/_backup/` (stale duplicate snapshot), `cache/_incoming/` (transient staging
 area), and `inside_coqa_llama7b*` (Step 216 — REJECTED cell, degenerate generation from a chat
 template applied to a base checkpoint; kept locally for reference, not archived here).
+
+`INVENTORY_2026_08_19.json` records the size, mtime, and SHA-256 of the 36 caches and manifests
+added during the 2026-08-19 consolidation (3,351,678,118 bytes before LFS pointer conversion).
 
 ## Loading
 

@@ -1,0 +1,55 @@
+{
+  "preset_id": "hle_qwen72b_full",
+  "paper": "HLE (arXiv:2501.14249)",
+  "model": "Qwen/Qwen2.5-72B-Instruct",
+  "dataset": "hle",
+  "split": "test",
+  "n_samples": 2158,
+  "k": 1,
+  "temps": [
+    0.0
+  ],
+  "gen_top_p": null,
+  "gen_top_k": 50,
+  "max_new": 2048,
+  "logprob_top_k": 50,
+  "capture": {
+    "logsumexp": true
+  },
+  "acc_band": [
+    0.2,
+    0.85
+  ],
+  "min_minority": 30,
+  "published": {
+    "method": "model's own stated Confidence (verbalized, from the official Explanation/Answer/Confidence format)",
+    "comparison_level": 3,
+    "model_note": "Pilot (N=200) measured 9.5% under the placeholder ROUGE-L grader (19/200) -- a floor, not the real accuracy: ROUGE-L undercounts exactMatch answers that are correct but phrased differently. Frontier models score <25% on the full HLE (paper Table 1); Qwen2.5-72B-Instruct is not evaluated there."
+  },
+  "head_to_head": null,
+  "judge": null,
+  "prompt_suffix": "",
+  "system_message": "Your response should be in the following format:\nExplanation: {your explanation for your answer choice}\nAnswer: {your chosen answer}\nConfidence: {your confidence score between 0% and 100% for your answer}",
+  "attn_impl": "sdpa",
+  "notes": "Full run -- every text-only item (2158) in the pinned revision (5a81a4c7271a2a2a312b9a690f0c2fde837e4c29), not restricted to any HLE-Verified tier. Estimated ~15 GPU-hours at the pilot's observed pace (25.6s/problem) -- submitted as a dependency chain of multiple 8h jobs (see cluster/manifests/hle_pilot_v1.json's full-run addendum), not a single sbatch call. Grading deferred, same as the pilot: inline label (is_correct_hle_provisional) is a rough ROUGE-L placeholder, not a real label. Do not compute AUROC or fit any method on this cell until a real judge regrade lands (Claude/Gemini or otherwise, per Omri).",
+  "job_id": "176045",
+  "seed": 0,
+  "written_utc": "2026-08-10T21:50:29+00:00",
+  "cells": [
+    {
+      "temp": 0.0,
+      "pkl": "raw_hle_T0.0.pkl",
+      "n_problems": 2158,
+      "k": 1,
+      "mean_trace": 525.2738646895274,
+      "accuracy": 0.07599629286376275,
+      "pos": 164,
+      "neg": 1994,
+      "minority": 164,
+      "gate_ok": false,
+      "gate_reasons": [
+        "acc 0.076 outside [0.2,0.85]"
+      ]
+    }
+  ]
+}
