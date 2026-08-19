@@ -1,8 +1,17 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-19
-**Last updated**: Step 279. **Fair Paper-Exact Comparison Package v1 is
-accepted and independently reproduced byte-for-byte.** The CPU-only package
+**Last updated**: Step 280. **The Early/Online detection record is now
+consolidated in one canonical status note.** This documentation-only step does
+not change the accepted Step-279 comparison package or reopen method search.
+It separates prefix-based final-error prediction, first-error localization,
+and realized stopping; records the Step-148 and Step-182 evidence; distinguishes
+the historical DeepConf proxy from a paper-exact reproduction; and carries
+forward the Step-269--274 transfer conclusions. Canonical note:
+`docs/research_notes/early_online_detection_canonical_status_2026-08-19.md`.
+
+**Fair Paper-Exact Comparison Package v1 remains accepted and independently
+reproduced byte-for-byte.** The CPU-only package
 joins 148,502/148,502 registered records cleanly, uses 2,000 paired grouped
 bootstrap draws (seed `20260818`), and keeps Global, Localization, Prefix, and
 stopping/adaptive compute in separate lanes. Canonical report:

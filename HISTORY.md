@@ -13459,3 +13459,35 @@ not rewrite the package's original protocol/content hashes.
 - `HISTORY.md`, `PROGRESS.md`, `Research_Directions.md`, `Experiments_Report.md`, `README.md`, `CLAUDE.md` — official Step-279 record and current navigation
 
 ---
+
+### Step 280 — Consolidate the canonical Early/Online detection record
+
+**What**: Added one canonical research note for the project's early-warning
+and online-detection work and linked it from the fair-comparison handoff and
+the official progress and research-direction documents. The note consolidates
+the Step-148 streaming pilot, the Step-182 clean-cache replication, the
+Step-269--274 Local/Online and unified-method results, the exact role of the
+DeepConf proxy, and the still-unreproduced Streaming Hallucination Detection
+protocol.
+
+**Why**: The evidence was correct but distributed across long history entries,
+progress handoffs, paper digests, and result artifacts. That made it easy to
+confuse prefix-based prediction of final-answer failure with first-error
+localization or with a realized stopping policy, and easy to overstate the
+fidelity of the historical DeepConf comparison.
+
+**Result**: Documentation-only consolidation. The historical early-prefix
+effect and clean-cache replication remain valid retrospective evidence, but
+the absolute-budget gate remains failed, the original fractional budget is not
+online-deployable, and no complete paper-exact Streaming or DeepConf
+reproduction is claimed. The Step-279 comparison package and research priority
+are unchanged.
+
+**Files changed**:
+- `docs/research_notes/early_online_detection_canonical_status_2026-08-19.md`
+- `HANDOFF_fair_paper_exact_comparisons_2026-08-18.md`
+- `HISTORY.md`
+- `PROGRESS.md`
+- `Research_Directions.md`
+
+---

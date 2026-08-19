@@ -50,6 +50,24 @@ Canonical sources:
 - `results/fair_paper_exact_comparisons_v1/REPORT.md`
 - `results/fair_paper_exact_comparisons_v1_REBUILD_VERIFICATION.json`
 
+## Canonical Early/Online detection status — Step 280
+
+The historical Early/Online work is now consolidated in
+`docs/research_notes/early_online_detection_canonical_status_2026-08-19.md`.
+The note distinguishes three estimands that must not be conflated: predicting
+final-answer failure from a causal prefix, locating the first erroneous
+reasoning step, and making a stopping decision with realized compute savings.
+It records the positive early-prefix evidence and clean-cache replication, the
+failed absolute-budget superiority gate, the noncausal limitations of the old
+fractional-prefix analysis, and the later Step-269--274 transfer results.
+
+This is a documentation consolidation, not a new experiment or a change in
+priority. IU28 remains the dedicated historical Early baseline, Unified-28 is
+not promoted for Early detection, and DeepConf results must be labelled as a
+proxy until its exact confidence statistic, window, and multi-trace protocol
+are reproduced. Streaming Hallucination Detection also remains an external
+supervised white-box reference rather than a completed local reproduction.
+
 ## Geometry/manifold literature integration — Step 278
 
 The newly added manifold papers do not justify a new detector or router on the

@@ -13,6 +13,7 @@ competitors.
 Start by reading `CLAUDE.md`, `PROGRESS.md`, `Research_Directions.md`, and this
 file completely. Also read:
 
+- `docs/research_notes/early_online_detection_canonical_status_2026-08-19.md`;
 - `HANDOFF_paper_exact_cluster_acquisition_2026-08-16.md`;
 - `papers/PAPER_EXACT_SOURCES.md` and the relevant paper digests;
 - `results/global_local_online_architecture_v2/REPORT.md`;
