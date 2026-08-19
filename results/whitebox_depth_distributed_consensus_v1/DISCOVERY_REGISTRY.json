@@ -1,0 +1,73 @@
+{
+  "analysis_role": "retrospective_post_outcome_search; not preregistered",
+  "registry": {
+    "entropy_burst": {
+      "role": "previous retrospective component",
+      "source": "whitebox-depth-consensus-v1"
+    },
+    "generation_entropy_mean": {
+      "formula": "mean token entropy over the generated answer",
+      "label_use": "none",
+      "role": "standard output-level uncertainty control",
+      "source": "raw output token_entropies"
+    },
+    "layer_organic_max_tail_consensus": {
+      "across_layer_solver": "deployed U-PCR",
+      "grouping": "one transformer layer per group",
+      "orientation": "final-layer residual target NLL anchor only",
+      "within_layer_features": "module-mean max-token target NLL; module-mean max-token top-1 surprisal; module-mean max-token entropy excess over top-1 surprisal",
+      "within_layer_solver": "deployed U-PCR (registered few-view fallback applies)"
+    },
+    "lens96_hierarchical_dufs": {
+      "grouping": "twelve module-by-metric groups",
+      "settings": "seeds 11/23/37; epochs 80; k=7; lambda=0.1",
+      "solver": "DUFS-LIU-PCR within groups and across virtual experts",
+      "source": "four token-mean lens metrics x three module positions x spaced eight layers"
+    },
+    "max_entropy_excess_over_top1_top8": {
+      "aggregation": "eight globally anchor-reliable views; |Spearman| weights",
+      "depth_rule": "not forced; selected layers are reported",
+      "formula": "max_t[H(module, layer, token) + log p_top1(module, layer, token)]"
+    },
+    "max_target_gap_spread4": {
+      "aggregation": "one anchor-reliable module/layer view from every depth quartile",
+      "formula": "max_t[log p_top1 - log p_target]"
+    },
+    "max_target_nll_organic_all": {
+      "aggregation": "equal module mean inside every layer, then all-layer anchor-reliability consensus",
+      "formula": "max_t[-log p_target(module, layer, token)]"
+    },
+    "max_target_nll_spread8": {
+      "aggregation": "two anchor-reliable views per depth quartile; |Spearman| weights",
+      "depth_rule": "four equal contiguous bands; two views per band",
+      "formula": "max_t[-log p_target(module, layer, token)]"
+    },
+    "max_token_entropy": {
+      "role": "previous retrospective component",
+      "source": "whitebox-depth-consensus-v1"
+    },
+    "max_top1_surprisal_spread8": {
+      "aggregation": "two anchor-reliable views per depth quartile; |Spearman| weights",
+      "depth_rule": "four equal contiguous bands; two views per band",
+      "formula": "max_t[-log p_top1(module, layer, token)]"
+    },
+    "mean_entropy_excess_top1_organic_top8": {
+      "aggregation": "equal module mean inside layers, then eight anchor-reliable layer experts",
+      "formula": "mean_t[H + log p_top1]"
+    },
+    "prediction_revision": {
+      "role": "previous retrospective component",
+      "source": "whitebox-depth-consensus-v1"
+    },
+    "top1_sharpness": {
+      "role": "previous retrospective component",
+      "source": "whitebox-depth-consensus-v1"
+    }
+  },
+  "registry_sha256": "25e320f12c854343aaf1f4f87c41079a6471badf957634233849a4db8015b523",
+  "selection_history": "Final retrospective candidate selected after the token-tail, layer-organic, lens-96, and compact combination screens on these same 13 cells. The atomic-view oracle was then expanded to cover every raw layer readout used by the candidate. No cell is an independent confirmation set.",
+  "success_target": "macro AUROC above both the best-single-layer oracle and TriLens grouped L2 probe",
+  "validation_status": "PRELIMINARY / VALIDATION BLOCKED",
+  "version": "whitebox-depth-distributed-hybrid-v1-2026-08-14",
+  "written_utc": "2026-08-13T21:59:08.766412+00:00"
+}

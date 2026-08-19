@@ -1,0 +1,156 @@
+{
+  "stage": "P0-assets-and-environment",
+  "run_dir": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/paper_exact/p0",
+  "written_utc": "2026-08-16T22:36:31+00:00",
+  "slurm_job_id": "203474",
+  "passed": false,
+  "n_checks": 12,
+  "failures": [
+    "slurm_reachable",
+    "models_prefetched"
+  ],
+  "checks": [
+    {
+      "name": "sources_registry_parsed",
+      "passed": true,
+      "reason": "7 pinned PDFs in PAPER_EXACT_SOURCES.md (expected 7)",
+      "detail": null
+    },
+    {
+      "name": "pdf_hashes_match",
+      "passed": true,
+      "reason": "all seven committed PDFs match the registry",
+      "detail": null
+    },
+    {
+      "name": "repo_processbench_pinned",
+      "passed": true,
+      "reason": "pinned e8024636bcab",
+      "detail": {
+        "url": "https://github.com/QwenLM/ProcessBench",
+        "expected_runnable": true,
+        "remote_head": "e8024636bcabdf8bd514440551b531d3f90dd18b",
+        "status": "pinned",
+        "pinned_commit": "e8024636bcabdf8bd514440551b531d3f90dd18b",
+        "path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/src/processbench",
+        "n_files": 8,
+        "n_python_files": 2,
+        "is_runnable": true,
+        "license": null
+      }
+    },
+    {
+      "name": "repo_mind_the_gap_pinned",
+      "passed": true,
+      "reason": "pinned ff14a7d5bd0f",
+      "detail": {
+        "url": "https://github.com/QJ0114/evidence-drop",
+        "expected_runnable": true,
+        "remote_head": "ff14a7d5bd0f3969b47555d0daa9a0c8b9dbb71f",
+        "status": "pinned",
+        "pinned_commit": "ff14a7d5bd0f3969b47555d0daa9a0c8b9dbb71f",
+        "path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/src/mind_the_gap",
+        "n_files": 14,
+        "n_python_files": 11,
+        "is_runnable": true,
+        "license": null
+      }
+    },
+    {
+      "name": "repo_deepconf_pinned",
+      "passed": true,
+      "reason": "pinned 675529d172ef",
+      "detail": {
+        "url": "https://github.com/facebookresearch/deepconf",
+        "expected_runnable": true,
+        "remote_head": "675529d172ef6d240aa1f21cb60940d427cc1ea6",
+        "status": "pinned",
+        "pinned_commit": "675529d172ef6d240aa1f21cb60940d427cc1ea6",
+        "path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/src/deepconf",
+        "n_files": 20,
+        "n_python_files": 11,
+        "is_runnable": true,
+        "license": "LICENSE"
+      }
+    },
+    {
+      "name": "repo_refrain_placeholder_confirmed",
+      "passed": true,
+      "reason": "release placeholder as documented \u2014 S1 stays paper-specified",
+      "detail": {
+        "url": "https://github.com/RLSNLP/Adaptive-Reasoning",
+        "expected_runnable": false,
+        "remote_head": "ba5c8b402431b9b18bfa55027361355fec85b7c5",
+        "status": "pinned",
+        "pinned_commit": "ba5c8b402431b9b18bfa55027361355fec85b7c5",
+        "path": "/shared/cycle2_tau_averbuch_prj/omrisegev1/src/refrain",
+        "n_files": 2,
+        "n_python_files": 0,
+        "is_runnable": false,
+        "license": "LICENSE"
+      }
+    },
+    {
+      "name": "streaming_assets_resolved",
+      "passed": true,
+      "reason": "unreachable; BLOCKED_ASSETS.json written, no compute booked",
+      "detail": {
+        "url": "https://anonymous.4open.science/r/Streaming-Hallucination-Detection-D186/",
+        "checked_utc": "2026-08-16T22:36:25+00:00",
+        "curl_rc": 0,
+        "http_code": "302",
+        "curl_stderr": "",
+        "reachable": false,
+        "blocked_assets_json": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/paper_exact/p0/BLOCKED_ASSETS.json"
+      }
+    },
+    {
+      "name": "evaluator_importable",
+      "passed": true,
+      "reason": "spectral_utils.paper_exact imports cleanly",
+      "detail": null
+    },
+    {
+      "name": "p1_regression_suite",
+      "passed": true,
+      "reason": "scripts/test_paper_exact.py passes",
+      "detail": [
+        "======================================================================",
+        "86/86 checks passed",
+        "P1 GATE PASS"
+      ]
+    },
+    {
+      "name": "shared_disk_headroom",
+      "passed": true,
+      "reason": "32220 GB available on /shared/cycle2_tau_averbuch_prj/omrisegev1",
+      "detail": null
+    },
+    {
+      "name": "slurm_reachable",
+      "passed": false,
+      "reason": "0 partition lines",
+      "detail": null
+    },
+    {
+      "name": "models_prefetched",
+      "passed": false,
+      "reason": "prefetch needed: {'L1_uprm_judge': ['Qwen/Qwen2.5-14B-Instruct'], 'S1_refrain': ['sentence-transformers/all-MiniLM-L6-v2'], 'S2_leash': ['microsoft/Phi-3-mini-128k-instruct', 'mistralai/Mistral-7B-v0.1'], 'C1_confirmation': ['openai/gpt-oss-20b']}",
+      "detail": {
+        "L1_uprm_judge": [
+          "Qwen/Qwen2.5-14B-Instruct"
+        ],
+        "S1_refrain": [
+          "sentence-transformers/all-MiniLM-L6-v2"
+        ],
+        "S2_leash": [
+          "microsoft/Phi-3-mini-128k-instruct",
+          "mistralai/Mistral-7B-v0.1"
+        ],
+        "C1_confirmation": [
+          "openai/gpt-oss-20b"
+        ]
+      }
+    }
+  ]
+}

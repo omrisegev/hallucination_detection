@@ -1,0 +1,53 @@
+{
+  "next_step": "do not open DiSC/LTSREx; seek a new target-relevant observation",
+  "not_external_confirmation": true,
+  "retrospective_premise_evidence": true,
+  "status": "STOP_CONTEXT_NOT_SUFFICIENT",
+  "task_decisions": [
+    {
+      "checks": {
+        "beats_augmented_point": false,
+        "beats_core_point": false,
+        "ci_lower_above_zero": false,
+        "family_guard": false,
+        "gain_at_least_0p005": false,
+        "permutation_does_not_reproduce": true
+      },
+      "ci": [
+        -0.15052983346932625,
+        0.004163331019386353
+      ],
+      "delta_vs_global_lr": -0.0690286103171669,
+      "family_deltas": {
+        "gsm8k": -0.1097157878547213,
+        "math": -0.028341432779612485
+      },
+      "pass": false,
+      "permuted_delta_vs_global_lr": -0.14426580520736462,
+      "task": "localization"
+    },
+    {
+      "checks": {
+        "beats_augmented_point": true,
+        "beats_core_point": true,
+        "ci_lower_above_zero": false,
+        "family_guard": false,
+        "gain_at_least_0p005": false,
+        "permutation_does_not_reproduce": true
+      },
+      "ci": [
+        -0.04851919114157267,
+        0.029708359609577573
+      ],
+      "delta_vs_global_lr": -0.008838170585307559,
+      "family_deltas": {
+        "gsm8k": 0.007262346624048788,
+        "math": -0.024938687794664127
+      },
+      "pass": false,
+      "permuted_delta_vs_global_lr": -0.00010314552654366871,
+      "task": "early"
+    }
+  ],
+  "tasks_passing": []
+}

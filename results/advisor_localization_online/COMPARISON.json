@@ -1,0 +1,286 @@
+{
+  "written_utc": "2026-08-17T15:12:46+00:00",
+  "sources": [
+    {
+      "path": "results\\local_online_comprehensive_v1\\STAGE_4_AGGREGATE.csv",
+      "sha256": "c7d57e9649c00e0e6952e615c792189e4a3a2bbba40d01253b3b0aa653603764"
+    },
+    {
+      "path": "results\\local_online_comprehensive_v1\\STAGE_4_INTERVALS.csv",
+      "sha256": "18dd40d71dd3ca6f4fdfa7eeca8aa7bcdd998d542827145a9991b8603e879ead"
+    },
+    {
+      "path": "results\\local_online_comprehensive_v1\\STAGE_4_DECISION.json",
+      "sha256": "e74ab8815989e03fbff707fee23f004fb4db7a4979744ce10d7a1d9142b5750d"
+    }
+  ],
+  "protocol_sha256": "c921b0d446eebd4611c4426168c30410741997ea2c6d23238e5d22b83e8d1e5b",
+  "preregistered_verdict": "REGRESSES_DIRECT_COMPETITOR",
+  "ours_per_lane": {
+    "local": "finalist_global_detector_local_locator",
+    "online": "iu28_registered"
+  },
+  "lanes": {
+    "online": {
+      "same_access": [
+        {
+          "candidate": "iu28_registered",
+          "label": "28-stream causal prefix (ours)",
+          "primary": 0.6103775557177156,
+          "access_tier": "A",
+          "is_ours": true,
+          "delta_vs_ours": null,
+          "ci_low": null,
+          "ci_high": null,
+          "family_wins": null,
+          "family_losses": null,
+          "delta_reference": null,
+          "verdict": "reference"
+        },
+        {
+          "candidate": "step272_twohead",
+          "label": "Two-head trajectory (Step 272)",
+          "primary": 0.6081553014784281,
+          "access_tier": "A",
+          "is_ours": false,
+          "delta_vs_ours": -0.0022222542392873745,
+          "ci_low": -0.01798676441547417,
+          "ci_high": 0.013228109940750818,
+          "family_wins": 2,
+          "family_losses": 2,
+          "delta_reference": "iu28_registered",
+          "verdict": "parity"
+        },
+        {
+          "candidate": "mean_entropy",
+          "label": "Mean entropy",
+          "primary": 0.5925648531294017,
+          "access_tier": "A",
+          "is_ours": false,
+          "delta_vs_ours": -0.017812702588313828,
+          "ci_low": -0.049639999156912314,
+          "ci_high": 0.014406703896636988,
+          "family_wins": 1,
+          "family_losses": 3,
+          "delta_reference": "iu28_registered",
+          "verdict": "parity"
+        },
+        {
+          "candidate": "deepconf_w64",
+          "label": "DeepConf lowest-group confidence, window 64 \u2014 our proxy",
+          "primary": 0.5922193039973168,
+          "access_tier": "A",
+          "is_ours": false,
+          "delta_vs_ours": -0.0181582517203987,
+          "ci_low": -0.05075246477032421,
+          "ci_high": 0.013809085515771986,
+          "family_wins": 1,
+          "family_losses": 3,
+          "delta_reference": "iu28_registered",
+          "verdict": "parity"
+        },
+        {
+          "candidate": "max_entropy",
+          "label": "Maximum entropy",
+          "primary": 0.5920785798787761,
+          "access_tier": "A",
+          "is_ours": false,
+          "delta_vs_ours": -0.01829897583893947,
+          "ci_low": -0.03330140073050412,
+          "ci_high": -0.0027402601547400615,
+          "family_wins": 0,
+          "family_losses": 4,
+          "delta_reference": "iu28_registered",
+          "verdict": "loses to reference"
+        },
+        {
+          "candidate": "finalist_global_detector_local_locator",
+          "label": "Global detector + step-top-5 locator (new architecture)",
+          "primary": 0.5881876701691064,
+          "access_tier": "A",
+          "is_ours": false,
+          "delta_vs_ours": -0.022189885548609067,
+          "ci_low": -0.05022481962691711,
+          "ci_high": 0.004170906051341523,
+          "family_wins": 1,
+          "family_losses": 3,
+          "delta_reference": "iu28_registered",
+          "verdict": "parity"
+        },
+        {
+          "candidate": "deepconf_w32",
+          "label": "DeepConf lowest-group confidence, window 32 \u2014 our proxy",
+          "primary": 0.5852621922058416,
+          "access_tier": "A",
+          "is_ours": false,
+          "delta_vs_ours": -0.025115363511873906,
+          "ci_low": -0.057521591351480994,
+          "ci_high": 0.006287399253853506,
+          "family_wins": 1,
+          "family_losses": 3,
+          "delta_reference": "iu28_registered",
+          "verdict": "parity"
+        }
+      ],
+      "higher_access": [],
+      "reference": "iu28_registered",
+      "reference_label": "28-stream causal prefix (ours)",
+      "ours": "iu28_registered"
+    },
+    "local": {
+      "same_access": [
+        {
+          "candidate": "finalist_global_detector_local_locator",
+          "label": "Global detector + step-top-5 locator (new architecture)",
+          "primary": 0.3662328341717007,
+          "access_tier": "A",
+          "is_ours": true,
+          "delta_vs_ours": 0.004811475804772508,
+          "ci_low": -0.02638710838275541,
+          "ci_high": 0.037503652325203835,
+          "family_wins": 3,
+          "family_losses": 1,
+          "delta_reference": "max_entropy__step_top5mean",
+          "verdict": "parity"
+        },
+        {
+          "candidate": "max_entropy__step_top5mean",
+          "label": "Maximum entropy + step-top-5 locator",
+          "primary": 0.3614213583669282,
+          "access_tier": "A",
+          "is_ours": false,
+          "delta_vs_ours": null,
+          "ci_low": null,
+          "ci_high": null,
+          "family_wins": null,
+          "family_losses": null,
+          "delta_reference": null,
+          "verdict": "reference"
+        },
+        {
+          "candidate": "gl_liu_v1_replay",
+          "label": "GL-LIU replay",
+          "primary": 0.3364034489983525,
+          "access_tier": "A",
+          "is_ours": false,
+          "delta_vs_ours": -0.025017909368575703,
+          "ci_low": -0.06686312612627116,
+          "ci_high": 0.015487015648453919,
+          "family_wins": 1,
+          "family_losses": 3,
+          "delta_reference": "max_entropy__step_top5mean",
+          "verdict": "parity"
+        },
+        {
+          "candidate": "max_entropy__persistent_q90_3",
+          "label": "Maximum entropy + persistent-q90 locator",
+          "primary": 0.32795751324595845,
+          "access_tier": "A",
+          "is_ours": false,
+          "delta_vs_ours": -0.03346384512096971,
+          "ci_low": -0.07211428211285978,
+          "ci_high": 0.006399303782574192,
+          "family_wins": 0,
+          "family_losses": 4,
+          "delta_reference": "max_entropy__step_top5mean",
+          "verdict": "parity"
+        },
+        {
+          "candidate": "max_entropy__peak",
+          "label": "Maximum entropy + peak locator",
+          "primary": 0.3110940034934562,
+          "access_tier": "A",
+          "is_ours": false,
+          "delta_vs_ours": -0.05032735487347196,
+          "ci_low": -0.07825563040315268,
+          "ci_high": -0.020205613112064674,
+          "family_wins": 1,
+          "family_losses": 3,
+          "delta_reference": "max_entropy__step_top5mean",
+          "verdict": "loses to reference"
+        },
+        {
+          "candidate": "step272_twohead",
+          "label": "Two-head trajectory (Step 272)",
+          "primary": 0.307830307935155,
+          "access_tier": "A",
+          "is_ours": false,
+          "delta_vs_ours": -0.05359105043177316,
+          "ci_low": -0.0899389578895481,
+          "ci_high": -0.01891932231761603,
+          "family_wins": 1,
+          "family_losses": 3,
+          "delta_reference": "max_entropy__step_top5mean",
+          "verdict": "loses to reference"
+        },
+        {
+          "candidate": "mind_the_gap",
+          "label": "Mind the Gap / Evidence-Drop",
+          "primary": 0.2645974898090595,
+          "access_tier": "A",
+          "is_ours": false,
+          "delta_vs_ours": -0.09682386855786863,
+          "ci_low": -0.13332767753959435,
+          "ci_high": -0.058189768141994384,
+          "family_wins": 0,
+          "family_losses": 4,
+          "delta_reference": "max_entropy__step_top5mean",
+          "verdict": "loses to reference"
+        }
+      ],
+      "higher_access": [
+        {
+          "candidate": "qwen_prm",
+          "label": "Qwen2.5-Math-PRM-7B (step-level supervision)",
+          "primary": 0.727976378447293,
+          "access_tier": "B",
+          "is_ours": false,
+          "delta_vs_ours": null,
+          "ci_low": null,
+          "ci_high": null,
+          "family_wins": null,
+          "family_losses": null,
+          "delta_reference": null,
+          "verdict": "reference"
+        },
+        {
+          "candidate": "qwen72b_critic",
+          "label": "Qwen2.5-72B critic (8-sample vote)",
+          "primary": 0.5895018260040863,
+          "access_tier": "B",
+          "is_ours": false,
+          "delta_vs_ours": null,
+          "ci_low": null,
+          "ci_high": null,
+          "family_wins": null,
+          "family_losses": null,
+          "delta_reference": null,
+          "verdict": "reference"
+        },
+        {
+          "candidate": "qwen3_judge_control",
+          "label": "Qwen3-8B judge control",
+          "primary": 0.09133379733024463,
+          "access_tier": "B",
+          "is_ours": false,
+          "delta_vs_ours": null,
+          "ci_low": null,
+          "ci_high": null,
+          "family_wins": null,
+          "family_losses": null,
+          "delta_reference": null,
+          "verdict": "reference"
+        }
+      ],
+      "reference": "max_entropy__step_top5mean",
+      "reference_label": "Maximum entropy + step-top-5 locator",
+      "ours": "finalist_global_detector_local_locator"
+    }
+  },
+  "caveats": [
+    "The DeepConf columns are OUR approximate proxies from saved log-probabilities, not the published method. The pinned official confidence is being acquired (M2) and is preregistered null N7 of the prefix-lane claim registry.",
+    "Tier-B rows are same-question compute ceilings, not same-access deltas.",
+    "Potential tokens remaining are not realized savings.",
+    "The localization result is a PARITY: the point estimate favours the new architecture by +0.0048 macro F1 and its grouped interval crosses zero."
+  ]
+}

@@ -346,6 +346,31 @@ Append new steps at the bottom of `## Steps`. Number sequentially from the last 
 
 For debugging sessions with multiple iterations, group under one step with sub-headers (`#### Sub-step` or `**Attempt N**`). Don't create a new step for every failed attempt — one step per logical investigation.
 
+### Two working lines share the numbering — tag, never renumber
+
+This project is worked in two repositories at once (Claude here, Codex on
+another machine), so the same step number gets claimed by two unrelated pieces of
+work. **More collisions are expected.** When one happens:
+
+- **Keep both blocks.** The log exists so that no attempt is overwritten by
+  another; a merge that drops one side has destroyed the record it was meant to
+  preserve.
+- **Mark the line in the heading**, e.g. `### Step 269 [localization] — …` and
+  `### Step 269 [A6/PTNI] — …`. Tag both sides, so neither reads as "the" 269.
+- **Do not renumber.** The numbers carry no meaning; the content does. Renumbering
+  invalidates several hundred cross-references in `PROGRESS.md`,
+  `Research_Directions.md`, `GLOSSARY.md` and commit messages that no tool checks,
+  and the file already held duplicate numbers (32, 54, 75, 142, 193, 228) long
+  before a second repository existed, so uniqueness was never there to preserve.
+
+**Merging `HISTORY.md` or `PROGRESS.md` needs care.** They are append-only prose
+logs and git's text merge does not know that: it interleaves blocks, or drops
+conflict markers *inside* a step's prose where they read as an ordinary paragraph
+instead of as breakage. Never resolve them with `--ours`/`--theirs`, which
+silently discards one side entirely. Resolve by union and then verify by counting
+blocks on both sides against the result — see the merge commit `cd423ab` for a
+worked example.
+
 ---
 
 ## Research_Directions.md — the thesis roadmap

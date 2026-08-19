@@ -1,0 +1,50 @@
+{
+  "driver": "run_processbench_critic.py",
+  "paper": "ProcessBench: Identifying Process Errors in Mathematical Reasoning (Zheng et al., arXiv:2412.06559)",
+  "model": "Qwen/Qwen2.5-72B-Instruct",
+  "protocol": "ProcessBench's own critic-model prompt (code/templates/critique_template.txt + run_eval.py's prepare_input_boxed/extract_answer), greedy decoding, single user turn, no system message",
+  "max_new_tokens": 8192,
+  "logprob_top_k": 50,
+  "attn_impl": "sdpa",
+  "n_samples_per_subset": null,
+  "job_id": "177775",
+  "written_utc": "2026-08-11T11:51:55+00:00",
+  "cells": {
+    "gsm8k": {
+      "n_error": 207,
+      "n_correct": 193,
+      "error_acc": 61.35265700483091,
+      "correct_acc": 95.85492227979275,
+      "f1": 74.81769257714231,
+      "n_truncated": 0,
+      "n_unparsed": 0
+    },
+    "math": {
+      "n_error": 594,
+      "n_correct": 406,
+      "error_acc": 45.62289562289562,
+      "correct_acc": 90.64039408866995,
+      "f1": 60.695397087195474,
+      "n_truncated": 1,
+      "n_unparsed": 1
+    },
+    "olympiadbench": {
+      "n_error": 661,
+      "n_correct": 339,
+      "error_acc": 35.400907715582456,
+      "correct_acc": 88.49557522123894,
+      "f1": 50.57163233991053,
+      "n_truncated": 1,
+      "n_unparsed": 1
+    },
+    "omnimath": {
+      "n_error": 759,
+      "n_correct": 241,
+      "error_acc": 36.49538866930172,
+      "correct_acc": 87.55186721991701,
+      "f1": 51.516487003428736,
+      "n_truncated": 6,
+      "n_unparsed": 6
+    }
+  }
+}

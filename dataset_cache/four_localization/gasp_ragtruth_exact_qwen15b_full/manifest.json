@@ -1,0 +1,65 @@
+{
+  "driver": "run_gasp_exact.py",
+  "paper": "GASP \u2014 Detecting Hallucinations in Retrieval-Augmented Generation through Grounding-Aware Sensitivity by Perturbation (Bouke, arXiv:2607.04223)",
+  "fidelity_level": 2,
+  "fidelity_note": "protocol reproduction with OUR OWN seed and sample IDs \u2014 the paper is arXiv-only, no official code release or response-ID list was located, so its exact 400 IDs cannot be reused. The sentence splitter is also ours (spectral_utils.ragtruth.split_sentences); the paper publishes none.",
+  "target_numbers": {
+    "response_auc": 0.713,
+    "span_auc": 0.673,
+    "scorer": "Qwen2.5-1.5B-Instruct",
+    "note": "the scorer-specific figures, NOT the ~0.73/~0.67 cross-scorer average quoted in older manifests here"
+  },
+  "model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "protocol": {
+    "k_chunks": 5,
+    "chunk_unit": "sentence-grouped, character-mass balanced",
+    "context_cap_tokens": 700,
+    "answer_cap_tokens": 200,
+    "task_types": [
+      "Summary",
+      "Data2txt"
+    ],
+    "qa_excluded_by": "the paper ('not long enough for stable estimation')",
+    "n_per_class": 200,
+    "seed": 0,
+    "jsd": "EXACT full-vocabulary, computed online during the forward pass; no dense distribution is ever stored"
+  },
+  "ragtruth_diagnostics": {
+    "split": "test",
+    "task_types": [
+      "Data2txt",
+      "Summary"
+    ],
+    "n_kept": 1800,
+    "n_dropped_span_mismatch": 0,
+    "n_dropped_no_source": 0
+  },
+  "sample_diagnostics": {
+    "n_hallucinated_pool": 783,
+    "n_clean_pool": 1017,
+    "n_hallucinated_taken": 200,
+    "n_clean_taken": 200
+  },
+  "cell_stats": {
+    "n_items": 2508,
+    "n_responses": 400,
+    "conditions_per_response_min": 4,
+    "conditions_per_response_max": 7,
+    "by_task_type": {
+      "Data2txt": 214,
+      "Summary": 186
+    },
+    "by_response_label": {
+      "hallucinated": 200,
+      "clean": 200
+    },
+    "n_context_truncated": 1119,
+    "n_answer_truncated": 705,
+    "mean_full_vocab_jsd": 0.06982875807791554,
+    "max_full_vocab_jsd": 0.3391658067703247,
+    "ln2_upper_bound": 0.6931471805599453
+  },
+  "elapsed_sec": 4.215550422668457,
+  "job_id": "177895",
+  "written_utc": "2026-08-10T22:11:26+00:00"
+}

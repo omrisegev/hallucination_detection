@@ -1,0 +1,48 @@
+{
+  "driver": "run_processbench_uprm_baseline.py",
+  "paper": "\"LLM-as-a-Judge\" control from Unsupervised Process Reward Models (Gadetsky et al., EPFL, arXiv:2605.10158), Eq. (6) \u2014 NOT uPRM itself",
+  "model": "Qwen/Qwen3-8B",
+  "protocol": "our marker/prompt reconstruction (paper publishes no code) \u2014 see spectral_utils/uprm_baseline.py module docstring",
+  "attn_impl": "sdpa",
+  "n_samples_per_subset": null,
+  "job_id": "177777",
+  "written_utc": "2026-08-10T20:33:40+00:00",
+  "cells": {
+    "gsm8k": {
+      "n_error": 207,
+      "n_correct": 193,
+      "error_acc": 8.695652173913043,
+      "correct_acc": 62.69430051813472,
+      "f1": 15.27295676869675,
+      "n_rows": 400,
+      "n_failed_tokenization": 0
+    },
+    "math": {
+      "n_error": 594,
+      "n_correct": 406,
+      "error_acc": 5.723905723905724,
+      "correct_acc": 55.66502463054187,
+      "f1": 10.380417162001514,
+      "n_rows": 1000,
+      "n_failed_tokenization": 0
+    },
+    "olympiadbench": {
+      "n_error": 661,
+      "n_correct": 339,
+      "error_acc": 2.723146747352496,
+      "correct_acc": 44.83775811209439,
+      "f1": 5.1344605626137705,
+      "n_rows": 1000,
+      "n_failed_tokenization": 0
+    },
+    "omnimath": {
+      "n_error": 759,
+      "n_correct": 241,
+      "error_acc": 4.216073781291173,
+      "correct_acc": 51.037344398340245,
+      "f1": 7.788738386646747,
+      "n_rows": 1000,
+      "n_failed_tokenization": 0
+    }
+  }
+}

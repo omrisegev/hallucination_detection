@@ -13,6 +13,7 @@ import csv
 from dataclasses import dataclass
 import hashlib
 import json
+import os
 from pathlib import Path
 import pickle
 import time
@@ -63,6 +64,19 @@ CELL_ROOTS = {
     "qwen3_8b": ROOT / "cache/localization/processbench/pb_qwen3_8b",
     "llama31_8b": ROOT / "dataset_cache/repgrid/pb_llama31_8b",
 }
+
+# The frozen Local/Online v1 study ran on a different machine, where these cells
+# sat under cache/localization/processbench.  This checkout holds the same
+# acquisitions under dataset_cache/repgrid.  The alternate root is opt-in rather
+# than a silent fallback: a path that quietly resolves somewhere else is exactly
+# how a replay ends up scoring different data while still looking successful.
+# Whether the two roots really hold the same acquisition is settled by the
+# replay reproducing the recorded STAGE_1_LOCAL_PER_QUESTION.csv hash, not by
+# this remapping.
+_CELL_ROOT_OVERRIDE = os.environ.get("LOCAL_ONLINE_CELL_ROOT")
+if _CELL_ROOT_OVERRIDE:
+    _alt_root = Path(_CELL_ROOT_OVERRIDE).resolve()
+    CELL_ROOTS = {name: _alt_root / path.name for name, path in CELL_ROOTS.items()}
 
 NEW_GLOBAL = tuple(GLOBAL_HEADS)
 NEW_LOCAL = tuple(LOCAL_HEADS)

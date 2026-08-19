@@ -1,0 +1,104 @@
+{
+  "bootstrap_draws": 2000,
+  "bootstrap_seed": 20260812,
+  "cells": [
+    "gsm8k_t1.0",
+    "triviaqa_t1.0",
+    "sciq_t1.0",
+    "truthfulqa_t0.5",
+    "squadv2_t0.5",
+    "nq_open_t0.5",
+    "gsm8k_r1distill_t0.0",
+    "coqa_llama7b_t0.5",
+    "gsm8k_mistral24b_t1.0",
+    "gsm8k_nemo_t1.0",
+    "gsm8k_phi35_t1.0",
+    "gsm8k_mistral7b_t1.0",
+    "gsm8k_phi3mini_t1.0",
+    "triviaqa_qwen3_t0.6"
+  ],
+  "components": [
+    "prediction_revision",
+    "entropy_burst",
+    "top1_sharpness",
+    "max_token_entropy",
+    "max_top1_surprisal_spread8",
+    "max_entropy_excess_over_top1_top8",
+    "max_target_nll_spread8",
+    "layer_organic_max_tail_consensus",
+    "generation_entropy_mean"
+  ],
+  "n_primary_cells": 13,
+  "primary_cells": [
+    "gsm8k_t1.0",
+    "triviaqa_t1.0",
+    "sciq_t1.0",
+    "truthfulqa_t0.5",
+    "squadv2_t0.5",
+    "nq_open_t0.5",
+    "gsm8k_r1distill_t0.0",
+    "gsm8k_mistral24b_t1.0",
+    "gsm8k_nemo_t1.0",
+    "gsm8k_phi35_t1.0",
+    "gsm8k_mistral7b_t1.0",
+    "gsm8k_phi3mini_t1.0",
+    "triviaqa_qwen3_t0.6"
+  ],
+  "primary_method": "deployed U-PCR, frozen repository configuration",
+  "source_code": [
+    {
+      "file": "scripts/whitebox_depth_tail_organic_consensus_experiment.py",
+      "sha256": "d3e976c337d2444d3d4ce6278c12b9cdda1548c0de76a81d5faea6470472c616"
+    },
+    {
+      "file": "scripts/whitebox_depth_tail_consensus_experiment.py",
+      "sha256": "dc2f04ae1e66a4ec725eaa73b18e8769615c806793c0ffa08b1231d85c03618d"
+    },
+    {
+      "file": "scripts/whitebox_depth_consensus_experiment.py",
+      "sha256": "ff38de4ad00ccae22f36453f8a7b5ec15d444881aa8b3724abbf364f4e2b744f"
+    },
+    {
+      "file": "spectral_utils/whitebox_depth_tail_organic_consensus.py",
+      "sha256": "449fb173a8023422ac44c9f6af34a3748235de44039f776ade1ee98a6fa89c9d"
+    },
+    {
+      "file": "spectral_utils/whitebox_depth_tail_consensus.py",
+      "sha256": "a44522828d40ab8e070e26e2beabb039e0b7d406833ce5a88c2dd319e698d4b2"
+    },
+    {
+      "file": "spectral_utils/whitebox_depth_consensus.py",
+      "sha256": "785989a1eaf77bd11686f15d07d3f93847b76b20e0dac6c4329d3f056380fca0"
+    },
+    {
+      "file": "spectral_utils/whitebox_depth_metrics.py",
+      "sha256": "e9ddd6da5aae4caef2d71a215c6276b95f5709a9722db9f069ebe6f9dffd62a7"
+    },
+    {
+      "file": "spectral_utils/whitebox_depth_token_metrics.py",
+      "sha256": "b0fdea8f7f3c043444c3ca440c3b870abb2e7f76e2b1b76fe98ffdf35329ebf3"
+    },
+    {
+      "file": "spectral_utils/whitebox_layer_fusion.py",
+      "sha256": "d86a2cff1ee73463eb6f7f37409d7fa897f5306b3580872fab5e4e3102e93823"
+    },
+    {
+      "file": "spectral_utils/paper_benchmark_suite.py",
+      "sha256": "cfac287003b844030e994e9bc461e82f6ad273288ee485c61db892aa5589b74c"
+    },
+    {
+      "file": "spectral_utils/upcr.py",
+      "sha256": "60c6ff461426d4c828ead210f04233815f45211a6f1a49a50ed37811c50c26cc"
+    },
+    {
+      "file": "spectral_utils/laplacian_upcr.py",
+      "sha256": "f9e63be91a95179383c92c3bc2c539ae56f5dff34a48d084ecc81770215a2aec"
+    },
+    {
+      "file": "spectral_utils/selectors/a2_groupfs.py",
+      "sha256": "5039aee811bc9f70dea8a85967497bbb0aa23875b46c0d76a76725fdec83704e"
+    }
+  ],
+  "version": "whitebox-depth-tail-organic-hybrid-v1-2026-08-14",
+  "written_utc": "2026-08-13T21:37:41.015360+00:00"
+}

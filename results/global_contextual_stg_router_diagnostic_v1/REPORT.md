@@ -1,0 +1,50 @@
+# Global contextual c-STG router diagnostic
+
+**Decision: `GLOBAL_ORACLE_NOT_ACCESSIBLE_BY_CSTG`.**
+
+This is a retrospective supervised mechanism diagnostic on the frozen 24-cell completed-trace hallucination-detection panel. It is not a label-free detector or external confirmation.
+
+## Premise reproduction
+
+The cell-macro reproduced IU-rank quartile-oracle headroom is +2.480pp. The registered historical equal-family value is +2.833pp; the aggregation difference is retained explicitly.
+
+## Held-out results
+
+| method | cell macro AUROC | equal-family AUROC | delta vs global LR | 95% CI | family wins |
+|---|---:|---:|---:|---:|---:|
+| iu_pcr | 0.7746 | 0.7424 | -0.0082 | [-0.0184, +0.0030] | 2/8 |
+| fixed_expert_cv | 0.7669 | 0.7361 | -0.0145 | [-0.0233, -0.0050] | 1/8 |
+| global_lr | 0.7867 | 0.7506 | +0.0000 | [+0.0000, +0.0000] | 0/8 |
+| context_only_lr | 0.7746 | 0.7424 | -0.0082 | [-0.0183, +0.0028] | 2/8 |
+| augmented_lr | 0.7894 | 0.7523 | +0.0017 | [+0.0003, +0.0032] | 6/8 |
+| context_core_only_lr | 0.7779 | 0.7440 | -0.0066 | [-0.0107, -0.0022] | 2/8 |
+| augmented_core_lr | 0.7879 | 0.7506 | +0.0000 | [-0.0072, +0.0062] | 6/8 |
+| quartile_router_cv | 0.7588 | 0.7380 | -0.0126 | [-0.0278, +0.0037] | 1/8 |
+| cstg_iu_rank | 0.7815 | 0.7464 | -0.0042 | [-0.0140, +0.0041] | 3/8 |
+| cstg_core | 0.7856 | 0.7563 | +0.0057 | [-0.0051, +0.0192] | 4/8 |
+| cstg_iu_rank_permuted | 0.7809 | 0.7452 | -0.0054 | [-0.0113, -0.0007] | 1/8 |
+| cstg_core_permuted | 0.7767 | 0.7415 | -0.0090 | [-0.0148, -0.0047] | 0/8 |
+
+## Gates
+
+| gate | observed | pass |
+|---|---:|:---:|
+| gain_at_least_0.005 | -0.004208 | no |
+| ci_lower_above_zero | -0.013983 | no |
+| five_of_eight_family_wins | +3.000000 | no |
+| beats_quartile_router | +0.008389 | yes |
+| beats_augmented_lr | -0.005883 | no |
+| permutation_does_not_reproduce_gain | +0.001196 | yes |
+
+## Exploratory extended-context result
+
+| contrast | equal-family delta | 95% CI | family wins |
+|---|---:|---:|---:|
+| cstg_core vs global_lr | +0.0057 | [-0.0051, +0.0193] | 4/8 |
+| cstg_core vs augmented_core_lr | +0.0057 | [-0.0019, +0.0141] | 6/8 |
+| cstg_core vs cstg_core_permuted | +0.0148 | [+0.0061, +0.0252] | 7/8 |
+
+## Interpretation
+
+IU-rank organizes an in-sample oracle, but the tested held-out c-STG cannot reliably turn it into additional Global detection performance beyond a supervised global combination. The headroom therefore remains descriptive rather than an accessible router signal under this design.
+The exploratory three-coordinate core is not a null result: it beats its permuted-context counterpart by +0.0148 equal-family AUROC with a positive interval. But it does not beat global LR robustly, its cell macro is slightly lower, and the equal-family gain is heterogeneous (including losses on GSM8K and MATH500). This supports a narrow context-by-family interaction diagnostic, not promotion of a router or escalation to LTSREx/LEGO.

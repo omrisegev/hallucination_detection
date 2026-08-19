@@ -156,3 +156,78 @@ cluster/submit_backfill.sbatch
 # policy above — see dataset_cache/README.md for what's included and why.
 !dataset_cache/**
 !dataset_cache/**/*.pkl
+
+# 2026-08-20: these 23 consolidation-only pkls are checksum-verified against
+# their canonical Drive copies (see dataset_cache/DRIVE_BACKUP_2026_08_20.json).
+# Keep manifests/inventories in Git and retain any local payloads as ignored copies.
+dataset_cache/four_localization/**/*.pkl
+dataset_cache/repgrid/pb_llama31_8b/*.pkl
+
+# 2026-08-19 research consolidation: reproducible heavy intermediates archived
+# non-destructively at gdrive:hallucination_detection/consolidated_results/
+# integration_2026-08-19/pre_merge_untracked/. Keep compact reports, manifests,
+# aggregate tables, and tokenizer provenance in Git; ignore only the archived payloads.
+results/automatic_group_free_phase_a6_tokenizers_v1/materialized/
+results/automatic_group_free_phase_a6_tokenizers_v2/materialized/
+results/early_online_existing_data_v1/*__*/
+results/early_online_localization_models_v1/*__*/
+results/global_local_online_iu_v1/cells/
+results/contextual_stg_router_diagnostic_v1/PER_QUESTION.csv
+results/global_local_online_architecture_v2/*PER_QUESTION.csv
+results/global_local_online_architecture_v2/*.partial.*
+results/global_local_online_iu_v1/PER_TRACE_CONVERGENCE.csv
+results/local_online_comprehensive_v1/*PER_QUESTION.csv
+results/local_online_comprehensive_v1/STAGE_*_WARNINGS.csv
+# White-box layer-fusion inputs are large, reproducible Drive mirrors (~2.3 GB).
+# Only their SHA-256/source manifest is tracked under results/.
+dataset_cache/whitebox_layer_fusion_v1/
+
+# Keep the frozen, compact score bundles and audit SVGs for this registered run.
+!results/whitebox_layer_fusion_v1/scores/
+!results/whitebox_layer_fusion_v1/scores/*.npz
+!results/whitebox_layer_fusion_v1/figures/
+!results/whitebox_layer_fusion_v1/figures/*.svg
+
+# Cross-architecture white-box v2 keeps the compact frozen scores and audit
+# figures; prepared feature bundles and verbose fit diagnostics remain local.
+!results/whitebox_layer_fusion_v2/scores/
+!results/whitebox_layer_fusion_v2/scores/*.npz
+!results/whitebox_layer_fusion_v2/figures/
+!results/whitebox_layer_fusion_v2/figures/*.svg
+
+# Retrospective white-box NRM addendum: retain the compact frozen scores,
+# label-free fit diagnostics, and audit figures referenced by its manifests.
+!results/whitebox_layer_fusion_nrm_v1/scores/
+!results/whitebox_layer_fusion_nrm_v1/scores/*.npz
+!results/whitebox_layer_fusion_nrm_v1/diagnostics/
+!results/whitebox_layer_fusion_nrm_v1/diagnostics/*.json
+!results/whitebox_layer_fusion_nrm_v1/figures/
+!results/whitebox_layer_fusion_nrm_v1/figures/*.svg
+
+# Retrospective organic-layer NRM addendum: retain frozen scores, label-free
+# diagnostics, and the separate audit figures referenced by its manifests.
+!results/whitebox_layer_organic_nrm_v1/scores/
+!results/whitebox_layer_organic_nrm_v1/scores/*.npz
+!results/whitebox_layer_organic_nrm_v1/diagnostics/
+!results/whitebox_layer_organic_nrm_v1/diagnostics/*.json
+!results/whitebox_layer_organic_nrm_v1/figures/
+!results/whitebox_layer_organic_nrm_v1/figures/*.svg
+
+# Final retrospective distributed-depth white-box candidates: retain compact
+# frozen scores and audit figures; prepared feature matrices stay reproducible
+# from the Drive-backed source freeze and remain local.
+!results/whitebox_depth_distributed_consensus_v1/scores/
+!results/whitebox_depth_distributed_consensus_v1/scores/*.npz
+!results/whitebox_depth_distributed_consensus_v1/figures/
+!results/whitebox_depth_distributed_consensus_v1/figures/*.svg
+!results/whitebox_depth_distributed_pure_v1/scores/
+!results/whitebox_depth_distributed_pure_v1/scores/*.npz
+!results/whitebox_depth_distributed_pure_v1/figures/
+!results/whitebox_depth_distributed_pure_v1/figures/*.svg
+
+# Exact-row post-hoc white/gray comparison: scores contain row IDs and frozen
+# risk values only, never labels; retain them with the report audit figure.
+!results/whitebox_vs_graybox_matched_v1/scores/
+!results/whitebox_vs_graybox_matched_v1/scores/*.npz
+!results/whitebox_vs_graybox_matched_v1/figures/
+!results/whitebox_vs_graybox_matched_v1/figures/*.svg

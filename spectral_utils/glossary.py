@@ -852,14 +852,29 @@ LOCALIZATION_BENCHMARK_NOTES = {
         "prompt.",
         "Steps 235-242"),
     "fidelity level": (
-        "The four-way honesty tag every competitor number carries. 1 = exact "
-        "reproduction (official data, model, prompt, parser and metric all match). "
-        "2 = protocol reproduction (official task and metric, but a declared component "
-        "differs). 3 = adaptation (a published concept applied under a different input "
-        "or score contract). 4 = published context only (the paper's number quoted, "
-        "never reproduced locally). Levels 2-4 must NEVER be described as an exact "
-        "reproduction.",
-        "Step 242"),
+        "The honesty tag every competitor number carries. Step 242 used four numbered "
+        "levels; the paper_exact_acquisition_v1 contract replaced them with six named "
+        "labels, which are the ones in force (`spectral_utils.paper_exact."
+        "FIDELITY_LABELS`): `official-exact` (official data, model, prompt, parser and "
+        "metric all match), `paper-specified` (the paper pins every choice and we made "
+        "none), `paper-specified-partial` (we filled in constants the paper leaves "
+        "open — each one recorded in `declared_deviations`), "
+        "`adapted-common-protocol` (a published concept under a different input or "
+        "score contract), `published-context-only` (quoted from the paper, never "
+        "reproduced here), and `blocked-assets` (could not be run; the missing asset is "
+        "named instead of substituted). Only `official-exact` may be called an exact "
+        "reproduction. `paper-specified` with any declared deviation is rejected in "
+        "code as self-contradictory.",
+        "Step 242, superseded by Steps 244-275"),
+    "provenance (separate from fidelity)": (
+        "A second, independent axis: fidelity says how close the run is to the paper, "
+        "provenance says how the run itself is governed. `paper-exact-contract` = an "
+        "immutable RUN_MANIFEST governs it; `pre-contract provenance` = it predates the "
+        "contract, so it is hashed but not manifested; `published-value-only` = never "
+        "rerun here. It is detected by walking up for a real RUN_MANIFEST.json, never "
+        "declared by hand. Two rows may share a fidelity label and differ entirely in "
+        "provenance, which is why they are never collapsed into one column.",
+        "Step 275"),
     "blocked (panel cell)": (
         "A panel field that could not be measured, shown with the specific reason "
         "instead of a number. Deliberately distinct from 'pending'. Enforced in code: "

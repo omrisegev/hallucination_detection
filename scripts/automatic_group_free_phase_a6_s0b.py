@@ -16,7 +16,7 @@ import importlib.util
 import json
 import math
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import platform
 import shutil
 import stat
@@ -64,6 +64,13 @@ BOUNDARY_REPORT_BYTES = (
     "No response telemetry, natural response, correctness sidecar, PopQA "
     "content, or sealed S1 seed was opened. S0b has not run.\n"
 ).encode("utf-8")
+# The unique sealed S0a artifact identity (HISTORY Step 268). Full prior
+# verification requires byte identity with this tree, never merely a
+# self-consistent substitute.
+S0A_SEALED_BOUNDARY_SHA256 = \
+    "698261d467a3f0a394ef244dafcac67d1cf8a69a9cf2de8888f0ff54678c545e"
+S0A_SEALED_AGGREGATE_SHA256 = \
+    "2a11b37c4fd649490675e8da4d826084c137a2a072c77ab2fdd5efcad8e8685a"
 
 
 def canonical_json_bytes(value: Any) -> bytes:
@@ -290,18 +297,77 @@ def _load_input_spec_stdlib():
 
 
 def _prior_s0a_provenance(prior: Path, *, full_verify: bool) -> dict[str, Any]:
+    """Authenticate the sealed S0a artifact tree.
+
+    ``full_verify`` authenticates every byte S0b will consume against the
+    S0a-recorded manifest chain: completion pins the boundary and aggregate
+    hashes, the aggregate pins all 7,800 checkpoints and the four result
+    files by path/size/SHA-256.  It deliberately does NOT call
+    ``s0a.verify(replay=True)``: the S0a freeze is environment-locked (exact
+    ba983aa source tree, git HEAD, and macOS runtime recorded in its
+    boundary), so its own authoritative replay can only ever pass in the
+    original frozen session — where it did pass, `PASS_S0A_VERIFIED`,
+    Step 268.  A later stage on a later commit or another machine can verify
+    exactly what the sealed artifacts themselves prove, and nothing less.
+    """
     _require_real_directory(prior, "prior A6-S0a root")
     required = ("A6_S0A_BOUNDARY.json", "S0A_AGGREGATE.json", "S0A_COMPLETE.json")
     for name in required:
         _require_real_file(prior / name, f"prior {name}")
-    if full_verify:
-        from scripts import automatic_group_free_phase_a6_s0a as s0a
-        result = s0a.verify(prior, replay=True)
-        if result.get("status") != "PASS_S0A_VERIFIED":
-            raise RuntimeError("A6-S0b requires authoritative PASS_S0A_VERIFIED")
     completion = _load_json(prior / "S0A_COMPLETE.json")
     if completion.get("verdict") != "PASS_S0A":
         raise RuntimeError("prior A6-S0a completion verdict changed")
+    if full_verify:
+        # S0a is sealed and unique, so full verification demands identity with
+        # the Step-268 artifact set, not merely a self-consistent tree.
+        if sha256_file(prior / "A6_S0A_BOUNDARY.json") != S0A_SEALED_BOUNDARY_SHA256 \
+                or sha256_file(prior / "S0A_AGGREGATE.json") != S0A_SEALED_AGGREGATE_SHA256:
+            raise RuntimeError("prior A6-S0a tree is not the sealed Step-268 artifact set")
+        if completion.get("boundary_sha256") != S0A_SEALED_BOUNDARY_SHA256 \
+                or completion.get("aggregate_sha256") != S0A_SEALED_AGGREGATE_SHA256:
+            raise RuntimeError("prior A6-S0a completion hashes changed")
+        aggregate = _load_json(prior / "S0A_AGGREGATE.json")
+        if aggregate.get("verdict") != "PASS_S0A" \
+                or aggregate.get("boundary_sha256") != completion["boundary_sha256"] \
+                or aggregate.get("n_quartets") != 1_800 \
+                or aggregate.get("n_natural_prompts") != 6_000 \
+                or aggregate.get("n_inner_fold_assignments") != 7_200 \
+                or aggregate.get("n_null_cells") != 36 \
+                or aggregate.get("response_telemetry_accessed") is not False \
+                or aggregate.get("natural_response_accessed") is not False \
+                or aggregate.get("correctness_sidecar_created") is not False \
+                or aggregate.get("popqa_content_accessed") is not False \
+                or aggregate.get("sealed_s1_seed_opened") is not False:
+            raise RuntimeError("prior A6-S0a aggregate provenance changed")
+        result_hashes = aggregate.get("result_file_sha256")
+        if not isinstance(result_hashes, dict) \
+                or {"INNER_FOLDS.json", "NULL_STRATA.json"} - set(result_hashes):
+            raise RuntimeError("prior A6-S0a result-file manifest changed")
+        for name, expected_sha in sorted(result_hashes.items()):
+            if not isinstance(name, str) or "/" in name or "\\" in name or name in {".", ".."}:
+                raise RuntimeError("prior A6-S0a result-file path invalid")
+            path = prior / name
+            _require_real_file(path, f"prior A6-S0a result file {name}")
+            if sha256_file(path) != expected_sha:
+                raise RuntimeError(f"prior A6-S0a result file changed: {name}")
+        manifest = aggregate.get("checkpoint_manifest")
+        if not isinstance(manifest, list) or len(manifest) != 7_800:
+            raise RuntimeError("prior A6-S0a checkpoint manifest changed")
+        seen_paths = set()
+        for row in manifest:
+            if not isinstance(row, dict) or not isinstance(row.get("path"), str):
+                raise RuntimeError("prior A6-S0a checkpoint manifest row invalid")
+            pure = PurePosixPath(row["path"])
+            if pure.is_absolute() or ".." in pure.parts or "\\" in row["path"] \
+                    or row["path"] in seen_paths \
+                    or pure.parts[:1] != ("checkpoints",):
+                raise RuntimeError("prior A6-S0a checkpoint path invalid")
+            seen_paths.add(row["path"])
+            path = prior.joinpath(*pure.parts)
+            _require_real_file(path, "prior A6-S0a checkpoint")
+            if path.stat().st_size != row.get("size") \
+                    or sha256_file(path) != row.get("sha256"):
+                raise RuntimeError(f"prior A6-S0a checkpoint changed: {row['path']}")
     return {
         "relative_path": os.path.relpath(prior, REPO),
         "boundary_sha256": sha256_file(prior / "A6_S0A_BOUNDARY.json"),
@@ -743,7 +809,8 @@ def _load_bootstrap_checkpoint(
         for bundle in bundles
     ]
     observed_max, selected_ridge = max(observed, key=lambda item: (item[0], item[1]))
-    upper = sorted(draws)[math.ceil(0.975 * len(draws)) - 1]
+    # Mirror of the core order statistic: method="higher" at 0.975.
+    upper = sorted(draws)[math.ceil(0.975 * (len(draws) - 1))]
     expected = {
         "observed_max_macro_auc": observed_max,
         "selected_ridge": selected_ridge,
@@ -1071,6 +1138,10 @@ def verify(out: str | Path, *, verify_prior: bool = True) -> dict[str, Any]:
         "boundary_sha256": sha256_file(out / "A6_S0B_BOUNDARY.json"),
         "pythia_replay_sha256": pythia_replay_sha,
         "terminal_sha256": sha256_file(out / expected_terminal),
+        # Record whether the prior S0a manifest chain was fully authenticated
+        # (--skip-prior-replay downgrades it); the sealed record must be able
+        # to prove which mode produced it.
+        "prior_s0a_full_verification": bool(verify_prior),
         "authorizes_s1": bool(result.get("authorizes_s1", False)),
     }
 

@@ -3,6 +3,41 @@
 
 ---
 
+## Active priority — consolidated research program (Step 281)
+
+The canonical cross-front assessment is
+`docs/research_notes/research_status_consolidated_2026-08-19.md`. It supersedes
+branch-local priority statements while preserving their historical evidence.
+
+The ordered program is now:
+
+1. finish the already-frozen PTNI/A6-S0b gate and accept its registered verdict,
+   including numerical non-convergence if that is the outcome;
+2. only if compute is justified, preregister one genuinely new white-box
+   validation with corrected live capture, architecture fidelity, untouched
+   evaluation data, and a fixed stop rule;
+3. close the paper-exact provenance and manuscript claim ledger from the
+   accepted comparison package; and
+4. package the reasoning/localization/RAG contribution with response,
+   first-error, prefix, and stopping estimands kept separate.
+
+IU-PCR and Unified-28 are frozen anchors. Family-NRM is a confirmed small,
+manual-family-dependent result; Localization and RAG are useful but bounded
+applications. Clustering, static subset search, DUFS/Laplacian discovery,
+Atomic-NRM, and the current contextual IU/c-STG routers are no longer active
+directions. White-box depth fusion remains a promising post-hoc hypothesis,
+not an independently validated superiority result. Paper-exact computation is
+complete; provenance/claim mapping and writing remain. No experiment is
+authorized by the consolidation step itself.
+
+The concurrently completed cross-dataset manifold diagnostic adds one bounded
+finding: hallucination labels define a highly transferable supervised mean
+direction across held dataset families, but nonlinear PPCA/kNN geometry does
+not improve over a balanced linear head. Its frozen decision is
+`SHARED_DIRECTION_NOT_DISTINCT_NONLINEAR_MANIFOLD`. This strengthens the
+interpretation that a target axis exists while leaving the label-free
+identifiability problem unsolved; it does not reopen DUFS/Laplacian search.
+
 ## Active priority — paper drafting from the accepted comparison package (Step 279)
 
 Fair Paper-Exact Comparison Package v1 is complete and independently
@@ -107,6 +142,59 @@ winner: ordinary 36-feature IU-PCR reaches 0.7591 versus 0.7766 for frozen
 mixed-v2 DUFS-LIU. Its Math result ties (0.7869 versus 0.7862), while QA drives
 the aggregate loss (0.7128 versus 0.7604). These are distinct panels and must
 not be pooled with the Unified-28 transfer table.
+## Paper-exact acquisition record — parallel Steps 274-275
+
+This section preserves the acquisition branch's verified facts. Its historical
+integration blocker and "only unblocked" language are superseded by Step 279,
+which completed and independently verified the fair comparison package.
+
+### Step-273 verification and the advisor-facing comparison
+
+Step 273's disposition below is now independently verified rather than merely
+recorded. Its frozen protocol had become unrunnable — the gated document was
+revised after the run and before it was committed, so the study's own hash
+matched nothing in the repository. Codex recovered the exact pre-commit bytes as
+`docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md`, and the
+replay reproduces every decision-bearing artifact byte-for-byte, including
+`STAGE_1_LOCAL_INTERVALS.csv`. Since verdicts here are decided by whether a
+paired interval excludes zero, that file matching is what makes the verification
+load-bearing. The residue is one column drifting at 1e-14 with no prediction
+changed. **Nothing in the Step-273 roadmap disposition changes.**
+
+What does change is how the result is reported. Neither number previously
+floated is the advisor-facing row: Stage 1's 0.3517 is development-selection
+evidence, and Stage 4's 0.3662 belongs to the joint finalist that Step 273
+rejected, so it stays a clearly named historical row rather than an
+interchangeable estimate. The direct Localization table puts every method on the
+same official 3,400 ProcessBench IDs and evaluator, with three mandatory
+same-access rows:
+
+1. ordinary Unified-28, the frozen unified method of record;
+2. dedicated `family6 + level + step_top5mean`, the Stage-1 incumbent;
+3. maximum entropy plus the top-five-step locator, the transparent direct bar.
+
+Qwen2.5-Math-PRM-7B and the Qwen-72B critic stay visually separated high-access
+ceilings, never inline competitors. The advisor claim comes from that
+out-of-fold common-row table and its paired interval, not from whichever
+historical stage reads strongest.
+
+**Blocking dependency**: the contract implementing this — the four-lane protocol,
+the population/method registries, the causal prefix joins and the builder — lives
+on `codex/fair-paper-exact-comparisons-v1`, which is not on our remote, and none
+of its four named files exist in any branch we can see. It is deliberately not
+being reimplemented from its description, since that would produce a second,
+divergent definition of the same table. Requested as Question 3 in
+`HANDOFF_CODEX_2026_08_18.md`.
+
+**Data status**: both paper-exact acquisitions are complete, gate-verified and
+backed up byte-identically to Drive — DeepConf at K=512 (15,360 traces, a
+declared deviation preserving every registered budget 32-512 at full width) and
+REFRAIN at 1,000. The older K=4096 partial pool is kept separately and must not
+be merged. No new GPU work is approved.
+
+**Historical next action at that branch tip**: the offline DeepConf derivation
+over the K=512 pool. It needed no GPU and no registry; later work completed the
+comparison package and superseded this operational status.
 
 ## Comprehensive Local/Online transfer result — Step 273
 
@@ -1537,9 +1625,79 @@ Model: Qwen3-7B. No new infrastructure for spectral features — same `generate_
 
 ### Extension C — Hidden State Variance (VSDE connection, Ofir alignment)
 
-Register a forward hook on a transformer layer; compute variance of hidden states across K=5 temperature-varied generations as an additional L-SML view alongside spectral features.
-- Low effort: one hook, existing fusion infrastructure
+**SUPERSEDED by Extension I (Step 243, 2026-08-12).** Extension C proposed one hook on one
+layer, variance across K=5 temperature-varied generations, as an extra view *alongside* the
+spectral features. Extension I subsumes it and is strictly better on every axis: all layers
+rather than one, K=1 rather than K=5 (so it stays in our single-pass cost class), and a
+separate arm rather than an extra view. Keep this entry only for the VSDE/PRAE connection to
+Ofir, which still holds — the residual-stream geometry saved by Extension I (per-layer norms,
+token-covariance eigenvalues) is where that connection would be tested.
+
+Original text: register a forward hook on a transformer layer; compute variance of hidden
+states across K=5 temperature-varied generations as an additional L-SML view alongside
+spectral features.
 - Direct connection to Ofir's VSDE (high-variance regions ≈ hallucination) and PRAE
+
+### Extension I — White-Box Depth Views: label-free fusion across layers (NEW, Step 243)
+
+**Status**: **Data collected, nothing scored.** Branch `whitebox/per-layer-views`. 14 cells,
+9 model families, 4.56 GB on Drive. Narrative: HISTORY.md Step 243.
+
+**Scope**: this is a **separate arm, deliberately NOT combined with the grey-box line**
+(Omri, 2026-08-12). Shared cells, different signal. It changes our access class from
+grey-box to **white-box**, so it is scored against Bar B (any-access unsupervised), never
+Bar A — see the Step 207 reporting rule.
+
+**Hypothesis**: the depth axis carries hallucination signal that (a) is distributed across
+many weak, partially redundant per-layer estimators, and (b) can be combined **without
+labels** — which is precisely what the U-PCR / IU-PCR / DUFS-LIU-PCR family is for and
+precisely what the published white-box literature does not attempt.
+
+**Why this direction and not another** — four independent reasons:
+
+1. **The gap is real and narrowly shaped.** Every published multi-layer detector combines
+   per-layer features with a *supervised* probe: **TriLens** (arXiv:2606.01033, the closest
+   work — it defines the exact 3-module × all-layers entropy feature and fits an MLP on an
+   80/20 split), MultiHaluDet, ICR Probe, SAPLMA, SEP. **Automatic Layer Selection**
+   (FEPoID, ICML 2026) picks *one* layer. **HaloScope** avoids human labels but still trains
+   a PU classifier and picks its direction heuristically. **INSIDE/EigenScore** is label-free
+   but needs K=10 generations. Nobody fuses all layers label-free.
+2. **It is the first thing that reaches the 50+ view regime.** 3 modules × 28–40 layers =
+   84–126 views. This file has parked STDR and the dependent-classifier line as "not relevant
+   at 5–16 features; revisit if the feature set expands to 50+". Depth is the only natural way
+   to get there without hand-picking anything — and the layer stack is a *chain*, i.e. exactly
+   the latent-tree structure that machinery models.
+3. **The estimators are weak, which is the right regime.** TriLens's own layer-wise analysis
+   shows single-layer AUROC 0.63–0.73.
+4. **Depth has constant length where the token axis structurally fails.** Median trace length
+   is 6 tokens on `se_squad_v2`, 8 on `spilled_triviaqa`, vs 243 on GSM8K — but every cell has
+   96 depth readouts. This attacks the thesis's documented weakness ("reduced on short factual
+   QA traces <60 tokens, MCQ formats where entropy dynamics are structurally suppressed")
+   head-on, rather than routing around it.
+
+**What is saved** (per candidate, per generated token, per layer, per module ∈ {MHSA write,
+FFN write, residual stream}): logit-lens Shannon entropy over the full vocabulary; lens
+log-prob of the generated token (depth-resolved spilled energy); top-1 lens log-prob;
+`KL(layer l || final layer)` (DoLa's contrast as a trajectory). Plus residual geometry: token
+norms, top-16 token-covariance eigenvalues, and a seeded JL projection of the pooled state
+(so INSIDE / effective-rank / HaloScope-style subspace methods are reachable on CPU).
+
+**Deliberately undecided, because these ARE the research questions** — and they are the three
+places a hand-picked prior or a label could enter, which is what Extension H forbids:
+- **pooling** over the token axis (TriLens uses an unspecified fixed readout rule);
+- **view definition** — is a view one (module, layer), a depth-band, a spectral coefficient of
+  the depth trajectory, or an eigendirection?
+- **layer selection** — the prior-free answer is not to select at all, which is testable
+  directly against FEPoID.
+
+**Decision gate (pre-registered, before any number is computed)**: the honest comparators are
+the *label-free* white-box methods — EigenScore, HaloScope, LLM-Check — not TriLens's
+supervised number. Beating a supervised probe is not the claim; matching useful accuracy with
+**zero labels** is. Record the comparator set before scoring, not after.
+
+**Next step**: choose the fusion entry point. The `dufs_liu_mixed_v2` contract is frozen to
+the registered token-trace feature list, so depth views go through `laplacian_iu_fit` /
+`upcr_fit` on a plain matrix. **Ask Omri which arm** (`feedback_ask_which_method_to_evaluate`).
 
 ### Extension D — VLM Hallucination Detection
 
@@ -2204,8 +2362,13 @@ were superseded by Steps 226--235.
 
 **Later**
 12. Extension B (Agentic): Qwen3-7B, HotpotQA multi-hop
-13. Extension C (Hidden states): one forward hook on Falcon
+13. ~~Extension C (Hidden states): one forward hook on Falcon~~ **SUPERSEDED by Extension I** (Step 243)
 14. Extension D (VLM): only if committee wants multimodal chapter
+
+**New separate arm (Step 243, 2026-08-12)**
+15. **Extension I (White-box depth views)** — data collected on 14 cells / 9 model families
+    (4.56 GB on Drive), nothing scored. **Blocked on one decision: which fusion entry point.**
+    Orthogonal to the grey-box line and not to be combined with it for now.
 
 **CLOSED — do not re-open without new evidence (Step 206, 2026-07-28)**
 - **Pool composition is not a lever, in either direction.** *Removal*: null on L-SML

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import itertools
 import json
 import math
@@ -221,6 +222,113 @@ class TestA6S0b(unittest.TestCase):
         self.assertEqual(hungarian_exact(tied), (0, 1, 2))
         with self.assertRaisesRegex(RuntimeError, "NO_PERFECT_MATCHING"):
             hungarian_exact([[None, 1], [None, 2]])
+
+    def test_hungarian_sparse_regression_and_contract_scale_oracle(self) -> None:
+        # Regression: a pending column set by an earlier tree row must stay
+        # visible to the delta scan when the active row has no edge to it.
+        reproduction = [[None, 8, 8], [2, None, None], [4, 5, None]]
+        self.assertEqual(hungarian_exact(reproduction), (2, 0, 1))
+        self.assertEqual(brute_force_assignment(reproduction), (2, 0, 1))
+        # Contract 4.1: brute-force comparison on 1,000 development graphs of
+        # sizes 2..8, including tied-primary and infeasible cases.  Support is
+        # symmetric (undirected eligibility), values asymmetric, mirroring the
+        # production caliper graphs.
+        rng = np.random.default_rng(240815)
+        densities = (0.35, 0.6, 0.85, 1.0)
+        for graph_index in range(1_000):
+            n = 2 + graph_index % 7
+            density = densities[graph_index % len(densities)]
+            high = 13 if graph_index % 5 == 0 else 10_000
+            costs: list[list[int | None]] = [[None] * n for _ in range(n)]
+            for row in range(n):
+                for column in range(row + 1, n):
+                    if rng.random() <= density:
+                        costs[row][column] = int(rng.integers(0, high))
+                        costs[column][row] = int(rng.integers(0, high))
+            best_total = None
+            argmins: list[tuple[int, ...]] = []
+            for permutation in itertools.permutations(range(n)):
+                selected = [costs[r][c] for r, c in enumerate(permutation)]
+                if any(value is None for value in selected):
+                    continue
+                total = sum(selected)
+                if best_total is None or total < best_total:
+                    best_total, argmins = total, [permutation]
+                elif total == best_total:
+                    argmins.append(permutation)
+            if best_total is None:
+                with self.assertRaisesRegex(
+                    RuntimeError, "NO_PERFECT_MATCHING", msg=f"graph {graph_index}",
+                ):
+                    hungarian_exact(costs)
+                continue
+            solved = hungarian_exact(costs)
+            if len(argmins) == 1:
+                self.assertEqual(solved, argmins[0], msg=f"graph {graph_index}")
+            else:
+                solved_total = sum(costs[r][c] for r, c in enumerate(solved))
+                self.assertEqual(solved_total, best_total, msg=f"graph {graph_index}")
+
+    def test_control3_component_decomposition_matches_global_optimum(self) -> None:
+        # The composed integer cost makes the global optimum unique, so the
+        # component-wise solve must reproduce the full-graph brute force.
+        group_ids = ("a", "b", "c", "d", "e", "f", "g")
+        half = {"a", "b", "c"}
+        edges = {
+            (left, right) for left in group_ids for right in group_ids
+            if left != right and ((left in half) == (right in half))
+        }
+        seed = (2026).to_bytes(8, "big")
+        partition = "outer:0:held"
+        mapping = control3_matching(group_ids, edges, seed, partition)
+        ordered = tuple(sorted(group_ids))
+        index = {value: position for position, value in enumerate(ordered)}
+        n = len(ordered)
+        base = (n + 1) ** n
+        costs = [[None] * n for _ in range(n)]
+        for left, right in sorted(edges):
+            row, column = index[left], index[right]
+            payload = (
+                seed + b"\0" + partition.encode("utf-8") + b"\0"
+                + left.encode("utf-8") + b"\0" + right.encode("utf-8")
+            )
+            primary = int.from_bytes(hashlib.sha256(payload).digest(), "big")
+            costs[row][column] = primary * base + column * (n + 1) ** (n - 1 - row)
+        expected = brute_force_assignment(costs)
+        expected_pairs = tuple(
+            (ordered[row], ordered[column]) for row, column in enumerate(expected)
+        )
+        self.assertEqual(mapping, expected_pairs)
+
+    def test_bootstrap_upper_endpoint_is_order_statistic_higher(self) -> None:
+        # Contract 4: two-sided 95% upper endpoint = ascending one-based order
+        # statistic ceil-at-method="higher", i.e. numpy quantile
+        # method="higher".  The conventions differ exactly when 0.975*n is an
+        # integer — including n_draws=40 here and the registered 20,000.
+        self.assertEqual(math.ceil(0.975 * (40 - 1)), 39)
+        self.assertNotEqual(math.ceil(0.975 * 40) - 1, 39)
+        rows = []
+        for fold in range(5):
+            for offset in range(20):
+                group = 20 * fold + offset
+                rows.extend((
+                    _synthetic_row(group, fold, 0, float(group)),
+                    _synthetic_row(group, fold, 1, float(group) + 0.25),
+                ))
+        scores = tuple(
+            float(row.target if int(row.group_id[1:]) % 4 else 1 - row.target)
+            for row in rows
+        )
+        bundles = tuple(OofBundle(
+            population_id="qwen-source", ridge=ridge, scores=scores,
+            fold_auc=(0.75,) * 5, fits=(),
+        ) for ridge in RIDGES)
+        result = shortcut_gate_bootstrap(rows, bundles, "overall", n_draws=40)
+        draws = np.asarray(result.bootstrap_max_macro_auc, dtype=np.float64)
+        self.assertGreater(len(set(result.bootstrap_max_macro_auc)), 4)
+        self.assertEqual(
+            result.upper_95, float(np.quantile(draws, 0.975, method="higher")),
+        )
 
     def test_control3_uses_every_row_and_column_once(self) -> None:
         group_ids = ("a", "b", "c", "d")

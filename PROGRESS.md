@@ -1,7 +1,40 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-19
-**Last updated**: Step 280. **The Early/Online detection record is now
+**Last updated**: Step 281. **All known research lineages are integrated and
+the current decision state is consolidated in one canonical matrix.** The
+integration preserves remote master, paper-exact acquisition, corrected
+white-box capture, local white-box analysis, the previously committed local
+contextual/A6/paper evidence, and the pre-existing fair-comparison, Unified,
+and three-way ancestors. Heavy intermediates were copied non-destructively to
+Drive. The 23 consolidation-only dataset payloads were checksum-verified
+against their canonical Drive copies and omitted from the unpublished Git
+history after GitHub's LFS budget blocked publication; their manifests and
+SHA-256 inventory remain tracked. No stash, branch, worktree, or local source
+artifact was deleted.
+
+The current order is: **(1) finish the frozen PTNI/A6-S0b gate; (2) if budget
+is justified, run one new preregistered white-box validation with corrected
+live capture and architecture fidelity; (3) close paper-exact provenance and
+claim mapping; (4) package the reasoning/RAG contribution.** IU-PCR and
+Unified-28 are frozen anchors. Family-NRM and the localization/RAG applications
+are accepted but bounded. Clustering, DUFS/Laplacian discovery, Atomic-NRM,
+and the current contextual routers are closed. White-box remains promising but
+post-hoc and validation-blocked. Paper-exact computation is complete; its
+documentation/provenance closure is not. Canonical status:
+`docs/research_notes/research_status_consolidated_2026-08-19.md`.
+
+A separately authorized active task completed a retrospective cross-dataset
+manifold diagnostic while integration was in progress. It finds a transferable
+supervised direction but no distinct nonlinear-manifold advantage:
+held-family AUROC is 0.7379 for balanced logistic, 0.7353 for kNN, and 0.6882
+for PPCA; decision `SHARED_DIRECTION_NOT_DISTINCT_NONLINEAR_MANIFOLD`. This
+does not make DUFS-LIU target-identifiable. Step 281 did not launch the
+experiment; it preserves and classifies the late-arriving result.
+
+## Prior update — Step 280
+
+**Step 280**: **The Early/Online detection record is now
 consolidated in one canonical status note.** This documentation-only step does
 not change the accepted Step-279 comparison package or reopen method search.
 It separates prefix-based final-error prediction, first-error localization,
@@ -9,6 +42,222 @@ and realized stopping; records the Step-148 and Step-182 evidence; distinguishes
 the historical DeepConf proxy from a paper-exact reproduction; and carries
 forward the Step-269--274 transfer conclusions. Canonical note:
 `docs/research_notes/early_online_detection_canonical_status_2026-08-19.md`.
+
+## White-box capture branch record — Steps 243-244
+
+**Historical branch date**: 2026-08-13
+
+**Branch update**: Step 244 — Codex found that a no-op resume had destroyed the
+validation reports on 4 completed layer-view cells. **Recovered with proof,
+root-caused, and fixed**; the sidecars were never at risk and all 4 cells are
+confirmed genuine Gate-B passes. Evidence:
+[docs/experiments/LAYER_VIEWS_RECOVERED_VALIDATION.md](docs/experiments/LAYER_VIEWS_RECOVERED_VALIDATION.md).
+Prior: Step 243 — **a NEW, SEPARATE research arm opened on branch
+`whitebox/per-layer-views`**: white-box depth views (per-layer logit-lens
+telemetry), extracted on 14 cells across 9 model families. See the session
+addendum immediately below. This arm is **orthogonal to the grey-box line and
+is deliberately NOT combined with it** (Omri, 2026-08-12). The
+RAGTruth/ProcessBench GL-LIU decision point (Step 239, further down) is
+UNCHANGED by this — still open, still the grey-box line's main open question.
+## White-box analysis branch record — post-hoc layer fusion
+
+**Branch update**: exact-row white-box versus gray-box comparison. See the
+2026-08-19 addendum below for the matched result and claim boundary. The earlier
+layer-organic NRM, four-band NRM, and registered white-box v2 results remain
+unchanged and auditable.
+The earlier localization campaign and RAGTruth/ProcessBench GL-LIU decision
+point remain unchanged.
+
+## Latest development — matched white-box versus gray-box comparison (2026-08-19)
+
+The final pure distributed-depth white-box U-PCR score was compared with the
+frozen 30-feature gray-box `mixed-v2` system on the exact intersection of
+31,440 candidates in the same 13 dataset/model cells. Both AUPRC values were
+recomputed with hallucination (`incorrect = 1`) as the positive class; the old
+gray-box AUPRC used correctness as positive and is therefore not reused.
+
+White-box scores **0.781690 AUROC / 0.677048 AUPRC**. The final gray-box
+DUFS-LIU scores **0.782994 / 0.687731**. White minus gray is -0.001304 AUROC
+(95% equal-cell bootstrap [-0.016931,+0.012300]) and -0.010683 AUPRC
+[-0.035363,+0.011078]. With the same deployed U-PCR solver on both contracts,
+white minus gray is +0.000750 AUROC [-0.012926,+0.013420] and -0.009188 AUPRC
+[-0.030266,+0.009897]. The correct conclusion is a practical AUROC tie with no
+evidence that white-box alone improves aggregate discrimination.
+
+White-box does offer broader row coverage: 42,238 scorable candidates versus
+31,467 under gray `mixed-v2` complete cases. Final white/gray risks have mean
+per-cell Spearman correlation 0.8677, so most signal is shared. An explicitly
+post-hoc equal-z average reaches 0.790203/0.690580 and gains +0.007209 AUROC
+[+0.000101,+0.014105] over gray DUFS-LIU, but it is an exploratory hypothesis,
+not a promoted method or independent confirmation.
+
+The comparison is **POSTHOC / PRELIMINARY / WHITE VALIDATION BLOCKED**. White
+capture still lacks corrected live Gate B and the architecture-fidelity pilot.
+Fit reconstructs row availability without labels, freezes label-free score
+bundles and hashes, and only then opens labels for exact-row evaluation.
+
+Canonical report:
+`results/whitebox_vs_graybox_matched_v1/REPORT.html`.
+
+Durable research index:
+`docs/experiments/WHITEBOX_LAYER_FUSION_RESEARCH_RECORD.md`.
+
+---
+
+## Latest development — distributed-depth white-box candidate (2026-08-14)
+
+A retrospective search found the first white-box layer-fusion candidate whose
+13-cell equal-cell macro AUROC exceeds both a strengthened best-atomic-view
+oracle and the local TriLens grouped-L2-probe approximation. The search moved
+beyond token means: maximum target NLL, maximum top-1 surprisal, target-vs-top1
+gap, entropy excess over top1, and mean KL-to-final are summarized across
+depth. Two summaries force views from every depth quartile. A separate organic
+expert makes each transformer layer one group with three tail metrics inside
+the layer, and a lens-96 hierarchical DUFS expert supplies module-by-metric
+structure.
+
+The final **pure inner-state** deployed U-PCR scores **0.784612 AUROC / 0.648128
+AUPRC**. The strengthened evaluation-only oracle, which can select any relevant
+token-mean or token-tail module/metric/layer view separately in every cell, is
+0.784186/0.648765. The AUROC point delta is +0.000426, but its 95% paired
+interval crosses zero [-0.006351,+0.006833]; this is a numerical discovery, not
+a robust oracle win. Against TriLens (0.768933/0.645543), pure U-PCR gains
++0.015710 AUROC with a positive interval [+0.004502,+0.026423].
+
+The stronger **hybrid** appends ordinary generation entropy as one transparent
+output-level control. It scores **0.785538 AUROC / 0.652755 AUPRC**. Versus the
+same strengthened atomic oracle it gains +0.001352 AUROC
+[-0.005437,+0.007992]; versus TriLens it gains +0.016579
+[+0.005661,+0.027168]. Its AUPRC advantage over TriLens is also positive with
+a paired interval [+0.002070,+0.027714]. Deployed U-PCR beats the matched equal
+mean by +0.005055 AUROC [+0.003705,+0.006440], confirming that this is not the
+old four-expert simple-average fallback.
+
+Both results are **PRELIMINARY / VALIDATION BLOCKED**. The registry was selected
+after inspecting these cells, no cell is independent confirmation, and the
+corrected live Gate B plus architecture-fidelity pilot remain open. Do not
+promote the point-estimate oracle win as robust. All fitting remains label-free;
+score hashes are frozen before evaluation labels open. The final audit verifies
+14/16 source files (hybrid/pure respectively), 28 prepared bundles, 14 frozen
+score cells, 72 report artifacts, no label arrays, self-contained reports, and
+39 focused core/distributed tests.
+
+Canonical reports:
+`results/whitebox_depth_distributed_pure_v1/REPORT.html` and
+`results/whitebox_depth_distributed_consensus_v1/REPORT.html`.
+
+---
+
+## Latest development — white-box layer-organic NRM addendum (2026-08-13)
+
+The requested organic grouping was implemented on the frozen v2 layer
+matrices: every residual transformer layer is one group, with entropy,
+target-token NLL, and top-1 surprisal retained as three separate internal
+features. KL-to-final was kept out of the primary because it is nonlocal; it
+appears only in a named sensitivity. Exact layer identity was evaluated on the
+ten protocol-eligible 32-layer cells. The 36/40-layer cells were excluded
+rather than interpolated.
+
+The structural premise did not produce a robust correction. Across ten cells,
+atomic-triad IU-PCR reaches 0.5763/0.4969 AUROC/AUPRC. Leave-dataset-out NRM
+reaches 0.5776/0.4987: +0.136pp AUROC [0.079,0.194] and +0.185pp AUPRC
+[0.091,0.284]. But LOMO is -0.049pp [-0.103,+0.007] and LOCO is -0.091pp
+[-0.147,-0.033]. More importantly, the two clean controls reverse: the same
+Llama model across six datasets is -0.075pp [-0.147,-0.002], and the same
+GSM8K dataset across five 32-layer models is -0.154pp [-0.238,-0.066]. The KL
+sensitivity is also negative.
+
+Keeping the three measurements atomic weakens the IU base by 3.925 AUROC
+points relative to the previous equal-mean one-expert-per-layer contract,
+with severe heterogeneity (5 wins / 5 losses and a large TriviaQA reversal).
+The organic relation is real, but declaring a layer group does not regularize
+the within-layer weights; the old equal-mean compression did.
+
+**Decision**: do not adopt layer-organic NRM and do not replace v2 or the
+four-band NRM addendum. A future, genuinely distinct hypothesis would fuse the
+three local measurements into one regularized layer expert before applying
+cross-layer NRM; freeze it before evaluation. The current report remains
+**PRELIMINARY / VALIDATION BLOCKED**.
+
+Canonical artifacts: `spectral_utils/whitebox_layer_organic_nrm.py`,
+`scripts/whitebox_layer_organic_nrm_experiment.py`,
+`scripts/whitebox_layer_organic_nrm_report.py`,
+`scripts/test_whitebox_layer_organic_nrm.py`, and
+`results/whitebox_layer_organic_nrm_v1/REPORT.html`.
+
+---
+
+> **Branch note**: this file on `whitebox/per-layer-views` was branched before
+> the Step-242 PROGRESS update landed on `master`; the Step 240–241 addendum
+> below is this branch's most recent grey-box state. Reconcile on merge — do
+> not treat the absence of a Step-242 entry here as evidence it did not happen.
+
+## Session addendum (2026-08-12) — white-box depth views: a second view axis, 14 cells / 9 families (Step 243)
+
+**What this arm is.** Everything the project fuses today comes from ONE
+trajectory: a scalar per generated token. This arm produces a second,
+orthogonal trajectory — a scalar per token **per layer per module** — so the
+label-free fusion family can run over *depth* instead of time. Teacher-forced
+over generations already in the cache; nothing regenerated; canonical pkls
+untouched (output goes to per-cell sidecars).
+
+**Why it is worth doing** (full reasoning + paper table in HISTORY Step 243):
+- The literature gap is real and narrow: **everyone combines per-layer features
+  with a supervised probe; nobody combines them label-free.** The closest work,
+  **TriLens** (arXiv:2606.01033, May 2026), defines exactly the 3-module ×
+  all-layers entropy feature we extract — and fits an MLP probe on an 80/20
+  split. The words "unsupervised" and "ensemble" do not appear in it. Verified
+  against the PDF, because the automated fetch summary claimed the opposite.
+- It is **3L views, not L** (84–126 per model) — the first time the project has
+  had a reason to open the **50+ view** dependency machinery (STDR,
+  dependent-classifier SML, SU-PCR) that `Research_Directions.md` parked.
+- Single-layer AUROC in TriLens is **0.63–0.73** — the weak-estimator regime
+  L-SML/U-PCR exists for.
+- **Depth has constant length no matter how short the answer is.** Median trace
+  length is 6 tokens on `se_squad_v2` and 8 on `spilled_triviaqa` vs 243 on
+  GSM8K; 32 layers × 3 modules = 96 readouts on a 6-token answer. This attacks
+  the documented structural weakness of the thesis directly.
+
+**Validation status (Step 244, after Codex's review)**: all 14 cells' Gate-B
+verdicts are intact and confirmed. Four of them (`ars_gsm8k_r1distill8b`,
+`noise_gsm8k_phi3mini`, `lapeigvals_gsm8k_phi35`, `noise_gsm8k_mistral7b`) had
+their *report files* — not their data — destroyed by a no-op resume (job
+184777); recovered by validation replay (job 186485) that reproduces the
+original log to every digit, with SHA-256 proof the sidecars were untouched.
+**Read `RECOVERED_VALIDATION.json`, not `layer_views_report_<cell>.json`, for
+those four** — the corrupted reports were deliberately left in place. Fixed in
+`38d3a37`; regression test `scripts/smoke_layer_views_resume.py`.
+
+**State: data is collected and on Drive. No scoring has been run yet.**
+
+- 14 cells, 9 families, **4.56 GB**, at
+  `gdrive:hallucination_detection/cluster_results/layer_views/<cell>/`.
+- Families: Llama-3.1-8B (6 cells), Llama-1-7B, Mistral-7B-v0.3,
+  Mistral-Nemo-12B, Mistral-Small-24B, Phi-3-mini, Phi-3.5-mini, Qwen3-8B,
+  DeepSeek-R1-Distill-Llama-8B.
+- The architecture guard passed at exactly `0.00e+00` on every accepted family,
+  **including both Phi-3 variants** (fused `qkv_proj` / `gate_up_proj`) — so the
+  3-module decomposition is not Llama-specific.
+
+**Open items on this arm**
+1. **Which fusion entry point to target — BLOCKING, needs Omri.** The
+   `dufs_liu_mixed_v2` contract is frozen to the registered *token-trace*
+   feature list (`CONFIDENCE_FEATURE_SIGNS_V1`), so depth views cannot drop into
+   it; they would go through `laplacian_iu_fit` / `upcr_fit` on a plain matrix.
+   Per `feedback_ask_which_method_to_evaluate`, do not infer the arm — ask.
+2. `lapeigvals_gsm8k_llama3b` — Gate B failed on ONE statistic by 2%
+   (first-token median |dH| 5.12e-02 vs 5e-02). Suspect the `unsloth/` mirror's
+   chat template. **Threshold was not lowered.** Re-check against Meta's repo.
+3. `internalstates_gsm8k_qwen25_7b` — Gate B fail; a 5-variant warp probe
+   **ruled the warp out**. Tiny median, fat tail. Unexplained.
+4. `epr_triviaqa_mistral24b` — `Mistral3ForConditionalGeneration` (multimodal
+   wrapper, layers at `.model.language_model.layers`). Guard refused it. Low
+   priority: Mistral-Small-24B-2501 already covers the family.
+5. Nothing has been decided about pooling, view definition, or layer selection
+   — deliberately. Those are the research questions and the three places a prior
+   could enter.
+
+## Session addendum (2026-08-10) — external data collection scaled; 4 new reasoning-localization competitor ceilings (Steps 240-241)
 
 **Fair Paper-Exact Comparison Package v1 remains accepted and independently
 reproduced byte-for-byte.** The CPU-only package
@@ -201,6 +450,172 @@ not substitutes for common-protocol replays. The next session begins with a
 read-only inventory and a written plan; it must not launch jobs or alter Drive
 before the user approves that plan.
 
+## Parallel line — A6/PTNI (its own Steps 269-270)
+
+Kept verbatim from the second working repository. It runs beside the
+localization sections below rather than superseding them; see "Step numbering"
+at the top of `HISTORY.md`.
+
+## Current decision point — γ̂3 failed the correction it was owed (Step 270)
+
+Step 252 established the b-coupled cubic channel with two load-bearing numbers:
+pooled `cos(γ̂3, g*) = +0.76` (atomic) and a family sign-bit margin `≈ 0.56`.
+Both used a probe orthogonalized against `{1, b}` only; that memo's own §6
+required Gram–Schmidt against `{1, b, φ2}` plus winsorized `b` for any future
+estimator. Recomputed in the corrected form, **neither number survives**:
+
+| | Step 252 (`{1,b}`) | corrected (winsor 1%) |
+|---|---:|---:|
+| atomic pooled cos(γ̂3, g\*) | +0.7617 | **+0.3350** (−0.0806 unwinsorized) |
+| family sign-bit margin, 5-family | +0.5532 | **−0.1903 — wrong sign** |
+| family sign-bit margin, 6-family | +0.4889 | **−0.1702 — wrong sign** |
+
+The fidelity control reproduces Step 252 exactly (+0.7617, 13/17, +0.5129 /
+87%), and the memo's quoted ≈0.56 is confirmed as the 5-family restriction.
+A crossed design attributes the loss to **the φ2 orthogonalization, not the
+winsorization**: winsorizing the original probe 0→10% holds +0.68…+0.76, while
+removing φ2 at zero winsorization gives −0.0806 under all three pooling
+conventions (raw / unit-RMS / direction-only), so it is not a scale artifact.
+Winsorization then restores the corrected probe only monotonically in the knob
+(+0.24 → +0.46), never reaching the original.
+
+**Consequences**: Step C (replacing the deployed family-NRM all-ones sign bit
+with `sign(⟨v_neutral, γ̂3_family⟩)`) is **closed** — at the registered primary
+setting it would have flipped the deployed method into the wrong orientation
+(the teacher says the all-ones bit is correct, cos +0.90). Step B (the
+retrospective kill-test) is **not started**: it selects and orients by γ̂3,
+which is the vector that just failed. Per the plan's own gate, work stopped
+here. Conclusion:
+`docs/research_notes/gamma3_correction_conclusion_2026-08-16.md`; artifacts in
+`results/gamma3_corrected_2026-08-15/`.
+
+**A6-S0b is still running** — the registered chain is in local Docker container
+`a6s0b`, stage 2 of 4 (Pythia prompt NLLs). No verdict artifact
+(`S0B_COMPLETE.json` / `S0B_CLOSED.json`) exists yet; the verdict entry will be
+Step 271. Do not recreate the container; `docker start a6s0b` resumes it.
+
+## Step 269 state (prior)
+
+The A6-S0b source boundary is **reviewed and
+frozen** at commit `89c414a` (56/56 tests; single independent review closed
+NO BLOCKERS after two result-changing blocker fixes — see HISTORY Step 269).
+The exact Pythia snapshot is downloaded and byte-authenticated. The sealed
+chain (prepare → run-pythia → run-analysis → verify) runs on **AIRCC via
+`cluster/a6_s0b_chain.sbatch`** — Linux-only because the sealed S0a manifests
+are Unix-keyed and Windows checkout CRLF-converts sources. Submission is
+staged and **blocked only on the TAU VPN**. Expectation from the development
+preflight: the frozen `gradient_inf <= 1e-8` gate may close S0b as
+`CLOSE_S0B_NUMERICAL_NONCONVERGENCE`; the registered verdict stands as
+produced. S1 (or the successor route) opens only on Omri's explicit go; the
+A7 successor-clause conflict has an uncommitted reconciliation draft
+(`docs/research_notes/DRAFT_a7_successor_reconciliation_2026-08-15.md`)
+awaiting Omri, and the post-A6 route survey is at
+`docs/research_notes/a0_a6_route_survey_and_next_route_2026-08-15.md`.
+
+## Step 268 state (prior)
+
+A1--A5 are closed. A6-S0a completed with
+the independently reproduced verdict `PASS_S0A`. The authenticated tokenizer
+restore, frozen S0a boundary, all 7,800 checkpoints, aggregate, and completion
+artifact verify exactly. No response telemetry, simulator result, natural
+response, correctness sidecar, benchmark target, or sealed S1 seed has opened.
+## Parallel paper-exact acquisition record — Steps 274-275
+
+This block preserves the acquisition branch's contemporaneous status. Its
+claim that integration was blocked is superseded by the accepted Step-279 Fair
+Paper-Exact Comparison Package; its acquisition, Drive, and provenance facts
+remain part of the record.
+
+**Parallel acquisition update**: Steps 274-275. Two things closed and one was blocked.
+Step 273's frozen protocol was recovered by Codex and **Step 273 now
+reproduces**: every decision-bearing Stage-0/Stage-1 artifact is byte-identical,
+including `STAGE_1_LOCAL_INTERVALS.csv`, and the residue is bounded at 1e-14
+float drift plus wall-clock timings. Both paper-exact acquisitions finished clean
+and are backed up to Drive with byte-identical totals. The next approved step —
+CPU-first scoring of the shared 3,400-row ProcessBench table — **cannot start
+here**: the Fair Comparison v1 contract Codex names as canonical lives on
+`codex/fair-paper-exact-comparisons-v1`, which is not on our remote. Do not
+reimplement it from its description. No new GPU work is approved: no Mistral
+rerun, no confirmation cell, no resumed K=4096 acquisition. A6-S0a remains
+independently verified as `PASS_S0A` and A6-S0b is still its frozen next stage;
+none of this work alters that boundary.
+
+## Protocol recovery and Step-273 verification — Step 274
+
+`scripts/run_local_online_comprehensive_stage1.py` gates on the SHA-256 of the
+frozen protocol and refused to run. The committed
+`docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.md` hashes to `b5991a89...`,
+while seven frozen artifacts record `c921b0d4...`, and no version in any git ref
+matched. The frozen `RUN_MANIFEST.json` records a
+`/Users/osegev/Desktop/...` path: Step 273 ran on a Mac, and its pre-commit draft
+was never committed. `PROTOCOL_SHA256` was not touched — editing it to pass would
+have emptied the gate of the only thing it does.
+
+Codex recovered the exact pre-commit bytes as
+`docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md`. **That
+snapshot, not the editable document, is the file the gate checks.** It is marked
+`-text` in `.gitattributes` because `core.autocrlf` otherwise rewrites it on
+checkout (15,685 worktree bytes against a 15,321-byte blob) and it then fails its
+own gate.
+
+Verification result: `STAGE_0_BASELINES.csv/.md`, `STAGE_1_LOCAL.md`,
+`STAGE_1_LOCAL_AGGREGATE.csv` and `STAGE_1_LOCAL_INTERVALS.csv` are
+byte-identical; `STAGE_1_LOCAL_SELECTION.json` agrees in every field but
+`score_sha256` (same 0.3517116681118214, same 60-name rejection list, same
+`PARITY_WITH_DIRECT_COMPETITOR`). `CELL_METRICS` differs only in `threshold`,
+108/138 rows, max delta 1.377e-14, with every metric it feeds identical, so no
+prediction flipped. Diagnostics differ at machine epsilon (max relative
+9.069e-15) plus timings. `STAGE_1_LOCAL_PER_QUESTION.csv`'s recorded
+`83529f8d...` therefore does not reproduce and should be read as
+machine-specific, not as a failed check.
+
+Two portability bugs were fixed in passing: `Path.write_text` without
+`encoding=` was producing locale-encoded reports (mojibake on Windows, correct
+numbers), and the scorer wrote into the very directory it verifies —
+`LOCAL_ONLINE_V1_OUT` now redirects it. `LOCAL_ONLINE_CELL_ROOT` remaps the
+ProcessBench cell root opt-in, since this checkout holds the cells under
+`dataset_cache/repgrid/` rather than the Mac's `cache/localization/processbench/`.
+Nothing in `results/local_online_comprehensive_v1/` was written to.
+
+## Paper-exact acquisitions complete and backed up — Step 275
+
+| Run | Traces | Failed | Shards | Drive |
+|---|---:|---:|---|---|
+| `m2_deepconf_k512` | 15,360 / 15,360 | 0 | 24 / 24, gates all pass | 361 files / 20,189,077,984 B, byte-identical |
+| `s1_refrain_full` | 1,000 / 1,000 | 0 | complete | 22 files / 3,185,291,662 B, byte-identical |
+
+DeepConf ran at K=512, a declared deviation: it preserves every budget in the
+frozen register (32, 64, 128, 256, 512) at full width and loses only majority
+voting over a 4,096-deep pool. `m2_deepconf_full` (297 files /
+17,744,439,979 B, K=4096, partial) is kept and **must not be merged with the
+K=512 pool**. Both are `fidelity=paper-specified-partial`.
+
+Backups go through `cluster/upload_run_dir.sh <run> [--force] [--status]`, which
+encodes the destination `cluster_results/paper_exact/<run>`, a freshness guard,
+and a fix for a `pgrep` pattern that matched its own shell and reported uploads
+that did not exist. 243 summary artifacts are in
+`results/paper_exact_summaries/`.
+
+### What Codex decided, and what is missing
+
+Neither previously proposed row is the advisor-facing one. Stage 1's 0.3517 is
+development-selection evidence; Stage 4's 0.3662 belongs to the rejected joint
+finalist and stays a named historical row. The direct Localization table shows
+all methods on the same official 3,400 ProcessBench IDs with three same-access
+rows — ordinary Unified-28, dedicated `family6 + level + step_top5mean`, and
+maximum entropy plus the top-five-step locator — with PRM and the critic as
+visually separated high-access ceilings.
+
+Building it needs assets we do not have. `codex/fair-paper-exact-comparisons-v1`
+is not on our remote and all four of its named files are absent:
+`docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md`,
+`spectral_utils/fair_comparisons/{registry,prefix}.py`, and
+`scripts/build_fair_paper_exact_comparisons_v1.py`. Recorded as Question 3 in
+`HANDOFF_CODEX_2026_08_18.md`.
+
+**Next action, and the only approved work not waiting on Codex**: the offline
+DeepConf derivation over the K=512 pool. It needs no GPU and no registry.
+
 ## Comprehensive Local/Online transfer decision — Step 273
 
 The frozen four-stage existing-cache cycle evaluated raw-nine/raw-seven,
@@ -227,8 +642,10 @@ Canonical outputs are in
 `results/local_online_comprehensive_v1/REPORT.md`, `REPORT.html`,
 `DECISION.json`, `AUDIT.json`, the four stage reports, and machine-readable
 per-question/interval/warning/ablation/strata/efficiency tables. The frozen
-protocol is `docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.md` with SHA-256
-`c921b0d446eebd4611c4426168c30410741997ea2c6d23238e5d22b83e8d1e5b`.
+protocol is `docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md`
+with SHA-256 `c921b0d446eebd4611c4426168c30410741997ea2c6d23238e5d22b83e8d1e5b`
+(corrected in Step 274 — the editable `LOCAL_ONLINE_COMPREHENSIVE_V1.md` was
+revised after the run and hashes to `b5991a89...`).
 No new inference, GPU/cluster work, Drive mutation, staging, commit, or push
 occurred.
 
@@ -1145,6 +1562,78 @@ Canonical artifacts:
 `results/ragtruth_evidence_contrast_v1/REPORT.html`,
 `results/ragtruth_evidence_contrast_v1/REPORT.md`, and
 `results/ragtruth_evidence_contrast_v1/METHODS.md`.
+## White-box analysis addendum — NRM-CS-IU and registered v2
+
+## Latest development — white-box NRM-CS-IU addendum (2026-08-13)
+
+The frozen NRM contribution-space rule was transferred to the v2 white-box
+matrices without mutating the registered v2 result. Four architecture-relative
+depth quartiles define the primary contribution families; the secondary
+`lens-96` arm uses its twelve fixed module-by-metric groups. Every target is
+calibrated from source cells only. Because the roster is not fully crossed,
+leave-dataset-out and leave-model-out are reported separately, with LOCO as a
+sensitivity analysis. Fit sees no correctness fields, the reconstructed IU
+score matches frozen v2 within `1e-10`, and NRM scores are hashed before the
+evaluator opens labels.
+
+The result is transfer-sensitive rather than a robust win. Depth NRM under
+leave-dataset-out reaches AUROC/AUPRC 0.6182/0.4769 versus 0.6206/0.4812 for
+matched IU: AUROC delta -0.244pp, CI [-0.575,+0.073]. Leave-model-out is a
+bounded positive signal at 0.6250/0.4851: AUROC delta +0.438pp
+[+0.126,+0.760], but it has only 8/1/4 cell W/T/L and does not survive the
+dataset-transfer definition. On `lens-96`, leave-dataset-out NRM is slightly
+worse than IU (AUROC -0.106pp [-0.212,+0.002], AUPRC -0.227pp
+[-0.380,-0.045]); leave-model-out and LOCO are also negative. Final-layer NLL
+remains far stronger than depth NRM.
+
+**Decision**: do not adopt NRM as the white-box method and do not replace the
+negative v2 primary. Freeze the leave-model-out observation as a new-data
+hypothesis: test the exact depth-NRM rule on a genuinely crossed model×dataset
+capture, with no retuning. The addendum remains **PRELIMINARY / VALIDATION
+BLOCKED** both because the live capture-validation gates are open and because
+the NRM hypothesis was proposed after v2 outcomes were historically visible.
+
+Canonical artifacts: `spectral_utils/whitebox_layer_fusion.py`,
+`scripts/whitebox_layer_fusion_nrm_experiment.py`,
+`scripts/whitebox_layer_fusion_nrm_report.py`,
+`scripts/test_whitebox_layer_fusion_nrm.py`, and
+`results/whitebox_layer_fusion_nrm_v1/REPORT.html`.
+
+---
+
+## Latest development — white-box layer-fusion v2 (2026-08-13)
+
+The recovered `whitebox/per-layer-views` source and all 14 available Drive
+sidecars were integrated in the isolated `codex/whitebox-layer-fusion`
+worktree. The offline benchmark covers 47,265 source candidates / 47,238
+evaluable candidates across nine captured model families (13
+protocol-eligible cells plus the rejected CoQA/Llama-1 INSIDE appendix).
+
+The registered residual-core headline is a negative result. Equal-cell macro
+AUROC/AUPRC over the 13 eligible cells is 0.6181/0.4785 for DUFS-LIU versus
+0.7298/0.5892 for final-layer NLL. The primary AUROC delta is -0.1117 with
+95% grouped-bootstrap CI [-0.1245, -0.0996]. DUFS-LIU is also slightly worse
+than matched IU-PCR: -0.00253 [-0.00325, -0.00186]. Do not promote a robust
+improvement claim and do not replace the primary post hoc.
+
+The richer `lens-96` secondary contract reaches 0.7253/0.6025 and the balanced
+grouped-CV residual/TriLens/DoLa probes reach approximately 0.77 AUROC. Thus
+the internal trajectories contain signal, but the current label-free compact
+fusion objective does not recover it robustly across architectures. Mean
+generation entropy is the strongest descriptive label-free row at
+0.7399/0.6154.
+
+The report remains **PRELIMINARY / VALIDATION BLOCKED** pending full corrected
+live Gate B and the independent two-cell architecture pilot. Covariance
+geometry is additionally omitted on Phi-3, Phi-3.5, and Qwen3 because the
+recovered capture cast large covariance eigenvalues directly to float16 and
+overflowed. Full report and documentation:
+`results/whitebox_layer_fusion_v2/REPORT.html`, `EXPERIMENT_SUMMARY.md`,
+`DATA_INVENTORY.md`, `FEATURE_MATRICES.md`, and
+`METHODS_AND_COMPARATORS.md`.
+
+---
+
 ## Session addendum (2026-08-10) — external data collection scaled; 4 new reasoning-localization competitor ceilings (Steps 240-241)
 
 **SemGrad + HLE (Step 240)**: SemGrad scaled to full N — SciQ 1000/1000 rows

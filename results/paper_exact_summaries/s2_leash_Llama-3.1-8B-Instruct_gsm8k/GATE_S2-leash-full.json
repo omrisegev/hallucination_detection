@@ -1,0 +1,29 @@
+{
+  "stage": "S2-leash-full",
+  "run_dir": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/paper_exact/s2_leash_Llama-3.1-8B-Instruct_gsm8k",
+  "written_utc": "2026-08-17T13:07:52+00:00",
+  "slurm_job_id": "205363",
+  "passed": true,
+  "n_checks": 3,
+  "failures": [],
+  "checks": [
+    {
+      "name": "manifest_complete",
+      "passed": true,
+      "reason": "0 problems",
+      "detail": []
+    },
+    {
+      "name": "sweep_is_pilot_only",
+      "passed": true,
+      "reason": "the frozen central choice is what the full run uses",
+      "detail": null
+    },
+    {
+      "name": "fidelity_is_partial",
+      "passed": true,
+      "reason": "four constants are declared by us, not by the paper",
+      "detail": null
+    }
+  ]
+}

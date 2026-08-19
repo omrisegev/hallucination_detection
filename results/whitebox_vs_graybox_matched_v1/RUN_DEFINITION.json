@@ -1,0 +1,32 @@
+{
+  "bootstrap": {
+    "draws": 20000,
+    "seed_base": 20260812,
+    "unit": "equal cells"
+  },
+  "cells": [
+    "gsm8k_t1.0",
+    "triviaqa_t1.0",
+    "sciq_t1.0",
+    "truthfulqa_t0.5",
+    "squadv2_t0.5",
+    "nq_open_t0.5",
+    "gsm8k_r1distill_t0.0",
+    "gsm8k_mistral24b_t1.0",
+    "gsm8k_nemo_t1.0",
+    "gsm8k_phi35_t1.0",
+    "gsm8k_mistral7b_t1.0",
+    "gsm8k_phi3mini_t1.0",
+    "triviaqa_qwen3_t0.6"
+  ],
+  "exploratory_hybrid": "equal mean of within-cell z-scored white and gray-final risk scores",
+  "gray_final_method": "mixed-v2 DUFS-LIU, seeds 11/23/37, epochs 80, k=7, lambda=0.1",
+  "labels_seen_during_fit": false,
+  "positive_class": "hallucination = 1 - correctness",
+  "retrospective": true,
+  "row_contract": "exact row_id intersection after reproducing gray H16 complete-case mask",
+  "same_solver_control": "mixed-v2 deployed U-PCR",
+  "status": "posthoc_preliminary_validation_blocked",
+  "version": "whitebox-vs-graybox-matched-v1-2026-08-19",
+  "white_method": "pure distributed-depth deployed U-PCR"
+}
