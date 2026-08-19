@@ -1,7 +1,37 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-19
-**Last updated**: Step 280. **The Early/Online detection record is now
+**Last updated**: Step 281. **All known research lineages are integrated and
+the current decision state is consolidated in one canonical matrix.** The
+integration preserves remote master, paper-exact acquisition, corrected
+white-box capture, local white-box analysis, the previously committed local
+contextual/A6/paper evidence, and the pre-existing fair-comparison, Unified,
+and three-way ancestors. Heavy intermediates were copied non-destructively to
+Drive; canonical dataset caches are preserved through Git LFS; no stash,
+branch, worktree, or local source artifact was deleted.
+
+The current order is: **(1) finish the frozen PTNI/A6-S0b gate; (2) if budget
+is justified, run one new preregistered white-box validation with corrected
+live capture and architecture fidelity; (3) close paper-exact provenance and
+claim mapping; (4) package the reasoning/RAG contribution.** IU-PCR and
+Unified-28 are frozen anchors. Family-NRM and the localization/RAG applications
+are accepted but bounded. Clustering, DUFS/Laplacian discovery, Atomic-NRM,
+and the current contextual routers are closed. White-box remains promising but
+post-hoc and validation-blocked. Paper-exact computation is complete; its
+documentation/provenance closure is not. Canonical status:
+`docs/research_notes/research_status_consolidated_2026-08-19.md`.
+
+A separately authorized active task completed a retrospective cross-dataset
+manifold diagnostic while integration was in progress. It finds a transferable
+supervised direction but no distinct nonlinear-manifold advantage:
+held-family AUROC is 0.7379 for balanced logistic, 0.7353 for kNN, and 0.6882
+for PPCA; decision `SHARED_DIRECTION_NOT_DISTINCT_NONLINEAR_MANIFOLD`. This
+does not make DUFS-LIU target-identifiable. Step 281 did not launch the
+experiment; it preserves and classifies the late-arriving result.
+
+## Prior update — Step 280
+
+**Step 280**: **The Early/Online detection record is now
 consolidated in one canonical status note.** This documentation-only step does
 not change the accepted Step-279 comparison package or reopen method search.
 It separates prefix-based final-error prediction, first-error localization,
@@ -9,6 +39,7 @@ and realized stopping; records the Step-148 and Step-182 evidence; distinguishes
 the historical DeepConf proxy from a paper-exact reproduction; and carries
 forward the Step-269--274 transfer conclusions. Canonical note:
 `docs/research_notes/early_online_detection_canonical_status_2026-08-19.md`.
+
 ## White-box capture branch record — Steps 243-244
 
 **Historical branch date**: 2026-08-13

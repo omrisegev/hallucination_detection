@@ -3,6 +3,41 @@
 
 ---
 
+## Active priority — consolidated research program (Step 281)
+
+The canonical cross-front assessment is
+`docs/research_notes/research_status_consolidated_2026-08-19.md`. It supersedes
+branch-local priority statements while preserving their historical evidence.
+
+The ordered program is now:
+
+1. finish the already-frozen PTNI/A6-S0b gate and accept its registered verdict,
+   including numerical non-convergence if that is the outcome;
+2. only if compute is justified, preregister one genuinely new white-box
+   validation with corrected live capture, architecture fidelity, untouched
+   evaluation data, and a fixed stop rule;
+3. close the paper-exact provenance and manuscript claim ledger from the
+   accepted comparison package; and
+4. package the reasoning/localization/RAG contribution with response,
+   first-error, prefix, and stopping estimands kept separate.
+
+IU-PCR and Unified-28 are frozen anchors. Family-NRM is a confirmed small,
+manual-family-dependent result; Localization and RAG are useful but bounded
+applications. Clustering, static subset search, DUFS/Laplacian discovery,
+Atomic-NRM, and the current contextual IU/c-STG routers are no longer active
+directions. White-box depth fusion remains a promising post-hoc hypothesis,
+not an independently validated superiority result. Paper-exact computation is
+complete; provenance/claim mapping and writing remain. No experiment is
+authorized by the consolidation step itself.
+
+The concurrently completed cross-dataset manifold diagnostic adds one bounded
+finding: hallucination labels define a highly transferable supervised mean
+direction across held dataset families, but nonlinear PPCA/kNN geometry does
+not improve over a balanced linear head. Its frozen decision is
+`SHARED_DIRECTION_NOT_DISTINCT_NONLINEAR_MANIFOLD`. This strengthens the
+interpretation that a target axis exists while leaving the label-free
+identifiability problem unsolved; it does not reopen DUFS/Laplacian search.
+
 ## Active priority — paper drafting from the accepted comparison package (Step 279)
 
 Fair Paper-Exact Comparison Package v1 is complete and independently

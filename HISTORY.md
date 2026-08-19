@@ -14225,3 +14225,51 @@ manifests, exact-row tables, frozen label-free scores, Markdown and
 self-contained HTML reports).
 
 ---
+
+### Step 281 — Full research-lineage integration and canonical status map
+
+**What**: Integrated the local `master` base and every known divergent research
+head without squashing: remote master, paper-exact acquisition, corrected
+white-box capture, local white-box layer-fusion analysis, and a cross-dataset
+manifold diagnostic completed by a separate active task while consolidation
+was in progress. Previously merged
+fair-comparison, Unified, and three-way lineages were verified as ancestors and
+were not replayed. Conflicts in `HISTORY.md`, `PROGRESS.md`, `.gitignore`, and
+white-box capture code were resolved semantically: parallel historical step
+sequences remain explicitly labelled, acquisition files lost in an earlier
+`ours` merge were restored, and the corrected remote capture implementation
+remains authoritative while all local experiments and results are retained.
+
+**Preservation**: Captured a SHA-256 opening inventory of 366 untracked and
+three modified files. Preserved intentional contextual IU/c-STG work,
+`upcr_fit_covariance`, A6 evidence, papers/digests/extractions, and compact
+reports in explicit commits. Copied 225 heavy intermediate files
+(162,152,300 bytes) non-destructively to
+`gdrive:hallucination_detection/consolidated_results/integration_2026-08-19/pre_merge_untracked/`;
+`rclone check --one-way --checksum` returned 225 matches and zero differences.
+Canonical Localization/RepGrid caches are recorded in Git LFS with a content
+inventory. No stash, branch, worktree, Drive object, or local source artifact
+was deleted.
+
+**Research decision**: Established one cross-front source of truth at
+`docs/research_notes/research_status_consolidated_2026-08-19.md`. IU-PCR and
+Unified-28 are frozen anchors. Family-NRM and the Localization/RAG applications
+are accepted with explicit limitations. Clustering, DUFS/Laplacian discovery,
+Atomic-NRM, and current contextual routers are closed. PTNI/A6 is active and
+must finish S0b first. White-box is promising but post-hoc and
+validation-blocked. Paper-exact computation is complete while provenance,
+claim mapping, and manuscript packaging remain.
+
+The late manifold diagnostic finds a transferable supervised mean direction
+(held-family cosine 0.9650, sign-flip p=9.999e-05), but not a distinct useful
+nonlinear manifold: balanced logistic reaches 0.7379 held-family AUROC, kNN
+0.7353, and PPCA 0.6882. Its decision is
+`SHARED_DIRECTION_NOT_DISTINCT_NONLINEAR_MANIFOLD`. It does not restore
+label-free target identifiability for DUFS-LIU.
+
+**Next-order rule**: A6-S0b first; then one frozen white-box validation only if
+its budget is justified; then paper-exact claim closure; finally package the
+reasoning/RAG contribution. The integration itself launched no experiment; it
+ingested the completed output of the separately authorized active task.
+
+---

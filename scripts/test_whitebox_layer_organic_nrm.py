@@ -169,6 +169,8 @@ class OrganicExperimentTests(unittest.TestCase):
             manifest["report_generator_sha256"],
             sha256_file(REPO / "scripts" / "whitebox_layer_organic_nrm_report.py"),
         )
+        for relative, expected in manifest["inputs"].items():
+            self.assertEqual(sha256_file(RESULTS / relative), expected)
         for relative, expected in manifest["generated"].items():
             self.assertEqual(sha256_file(RESULTS / relative), expected)
 
