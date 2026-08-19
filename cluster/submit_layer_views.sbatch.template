@@ -1,0 +1,62 @@
+#!/bin/bash
+# TEMPLATE for cluster/submit_layer_views.sbatch — the live file is gitignored because
+# it carries a hardcoded HF_TOKEN (same convention as submit_backfill.sbatch). To
+# regenerate: copy to cluster/submit_layer_views.sbatch and replace REPLACE_ME.
+#
+# Per-layer logit-lens telemetry — runs cluster/run_layer_views.py inside the B200 NGC
+# container. Teacher-forced over generations already in the cache; nothing is generated
+# and the canonical pkls are never written (output goes to a per-cell sidecar).
+#
+# Preemption-safe: --signal=B:TERM@900 delivers SIGTERM to the driver, which
+# checkpoints the sidecar via save_cache_atomic and exits 85. A clean exit 85 is NOT
+# auto-requeued, so anything that will not finish inside its wall needs an explicit
+# LINEAR chain submitted up front:
+#   sbatch --dependency=afterany:$PREV -p power-gpu --qos=owner_880 ...
+# Never fan two jobs out onto the same --cells: they race on one sidecar file.
+#
+# Gate-only pass (writes nothing, ~2 min, confirms prompt reconstruction per cell):
+#   sbatch -p power-gpu --qos=owner_880 cluster/submit_layer_views.sbatch \
+#       --cells lapeigvals_gsm8k_llama8b --validate-only
+#
+# Extraction (cells grouped by model to amortize the load):
+#   sbatch -p power-gpu --qos=owner_880 cluster/submit_layer_views.sbatch \
+#       --cells lapeigvals_gsm8k_llama8b,spilled_triviaqa_llama8b,sciq_llama8b
+#
+#SBATCH --job-name=layer_views
+#SBATCH --gpus=1
+#SBATCH --time=08:00:00
+#SBATCH --requeue
+#SBATCH --signal=B:TERM@900
+#SBATCH --output=/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/%x_%j.out
+#SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
+#SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
+#SBATCH --container-workdir=/shared/cycle2_tau_averbuch_prj/omrisegev1/code
+# No --container-name on purpose — named containers race on shared enroot rootfs
+# creation when two jobs land on one node (see submit_inference.sbatch.template).
+
+set -uo pipefail
+
+SHARED=/shared/cycle2_tau_averbuch_prj/omrisegev1
+export HF_HOME=$SHARED/hf_cache
+export HF_DATASETS_CACHE=$SHARED/hf_cache/datasets
+export PIP_CACHE_DIR=$SHARED/pip_cache
+export PYTHONUSERBASE=/tmp/pyuserbase_${SLURM_JOB_ID}
+mkdir -p "$PYTHONUSERBASE"
+export HF_TOKEN=REPLACE_ME
+
+echo "[sbatch] layer_views job $SLURM_JOB_ID on $(hostname), args: $*"
+
+pip install -q --user -r cluster/requirements.txt
+
+# Opt-in AWQ runtime, keyed off the --cells arg — NEVER via sbatch --export: any
+# non-default --export makes Slurm attempt user-env retrieval on the node, which
+# fails cluster-wide (jobs 123720/123721). --no-deps everywhere heavy: torch/
+# transformers/accelerate are already in the NGC image and MUST NOT be upgraded (sm_100).
+if [[ "$*" == *awq* || "$*" == *qwen72b* ]]; then
+  pip install -q --user --no-deps autoawq gptqmodel
+  pip install -q --user --no-deps device-smi tokenicer defuser
+  pip install -q --user logbar zstandard
+fi
+
+# exec replaces bash with python so SIGTERM from Slurm reaches the driver directly.
+exec python cluster/run_layer_views.py "$@"
