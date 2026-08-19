@@ -1,0 +1,15 @@
+all 6 families : entropy_level, entropy_dynamics, sampled_token_energy, partition_energy, topk_distribution, structural
+present in all : entropy_level, entropy_dynamics, sampled_token_energy, partition_energy, topk_distribution  (5)
+
+margin = <normalize(pooled gamma3), v_neutral>
+     basis                  probe    margin  sign ok
+  6-family    all-ones (deployed)   +0.0650     True
+  6-family         baseline {1,b}   +0.4889     True
+  6-family      corrected w=0.010   -0.1702    False
+  6-family      corrected w=0.025   +0.1018     True
+  6-family      corrected w=0.000   -0.1689    False
+  5-family    all-ones (deployed)   +0.0594     True
+  5-family         baseline {1,b}   +0.5532     True
+  5-family      corrected w=0.010   -0.1903    False
+  5-family      corrected w=0.025   +0.1058     True
+  5-family      corrected w=0.000   -0.1743    False

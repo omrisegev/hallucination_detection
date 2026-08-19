@@ -1,5 +1,21 @@
 # MV_EPR Project History
 
+## Step numbering — two working lines, deliberately not renumbered
+
+From Step 269 onward this project was worked in two repositories at once, so the
+same step number is claimed by two unrelated pieces of work. Both are kept. The
+line is marked in the heading -- `[localization]` or `[A6/PTNI]` -- and the number is left
+alone.
+
+This is a decision, not an oversight. Renumbering would invalidate several
+hundred cross-references in `PROGRESS.md`, `Research_Directions.md`,
+`GLOSSARY.md` and commit messages, none of which any tool checks; and the file
+already contained duplicate numbers (32, 54, 75, 142, 193, 228) long before the
+second repository existed, so uniqueness was never a property to preserve. What
+matters is that no attempt is overwritten by another and that a reader can tell
+which line a block belongs to. More collisions are expected as the two lines
+merge; tag them the same way.
+
 ## Initiative
 
 Thesis project on hallucination detection in LLMs. The core idea: wrap existing uncertainty-based hallucination detection methods (EPR, Semantic Entropy) with **Nadler spectral fusion** over multiple question views (original + formal + simple + German + French), and show that the multiview ensemble improves over the single-view baseline.
@@ -12898,7 +12914,7 @@ A6-S0b shortcut/matching audit. S1 may open only after S0b passes.
 
 ---
 
-### Step 269 — Establish a joint localization and early-detection optimization program
+### Step 269 [localization] — Establish a joint localization and early-detection optimization program
 
 **What**: Reframed the application program around two co-primary reasoning
 tasks: first-error hallucination localization and causal prediction of final
@@ -12954,7 +12970,7 @@ still A6-S0b.
 
 ---
 
-### Step 270 — Complete the Global-Local-Online IU retrospective and retain IU28
+### Step 270 [localization] — Complete the Global-Local-Online IU retrospective and retain IU28
 
 **What**: Executed the Step-269 application prompt as a bounded CPU-only
 research cycle. Read the full canonical evidence chain, inventoried local and
@@ -13185,6 +13201,10 @@ No new inference, GPU/cluster work, Drive mutation, staging, commit, or push
 occurred. A6/PTNI was untouched.
 
 ---
+## Parallel research sequence — Localization / Unified / paper-exact
+
+The following step labels are retained verbatim from the localization and
+comparison lineage; they are not renumbered during consolidation.
 
 ### Step 274 — Select Unified-28, reject universal promotion, and pivot to fair paper comparisons
 
@@ -13489,5 +13509,136 @@ are unchanged.
 - `HISTORY.md`
 - `PROGRESS.md`
 - `Research_Directions.md`
+## Parallel research sequence — A6/PTNI
+
+The following independent A6/PTNI lineage reused Step 269--270. Its labels are
+retained verbatim for auditability and are qualified by the `[A6/PTNI]` heading.
+### Step 269 [A6/PTNI] — 2026-08-15: complete, review, and freeze the A6-S0b source boundary
+
+**What**: Executed the Codex handoff (`bbe1132`). Added the six mandated
+adversarial test groups for the runner's verify/resume/replay paths (replay
+no-repair, no hash-only-verify downgrade, bootstrap resume validation, control
+resume validation, terminal exclusivity + output namespace, exception
+routing); acquired and byte-authenticated the exact Pythia snapshot on this
+machine; benchmarked 1.58 s/prompt single-thread (~6.3 h for the 14,400 sealed
+prompts). The single independent pre-freeze review found two result-changing
+blockers and one recording defect, all fixed and confirmed (final verdict NO
+BLOCKERS with discrimination proofs): `hungarian_exact` dropped pending
+columns behind missing edges of the active row (false NO_PERFECT_MATCHING on
+160/1,000 contract-scale graphs, silent suboptimality on sparse eligibility
+graphs — the false-infeasible path would have been string-routed into the
+scientific closure CLOSE_S0B_MATCHING_PREMISE); the bootstrap upper endpoint
+was order statistic 19,500 instead of the contracted 19,501 (`method="higher"`,
+anti-conservative exactly at the registered n=20,000); `verify()` did not
+record the prior-verification mode. A fourth, structural fix was required for
+executability: the handoff's `prepare` called `s0a.verify(replay=True)`, which
+fail-closes on the current `spectral_utils` glob, git HEAD, and the recorded
+macOS runtime — unexecutable at any post-`ba983aa` commit on any machine,
+including the original Mac. Replaced by manifest-chain authentication of the
+sealed S0a tree (completion → aggregate → 7,800 checkpoints + result files),
+pinned to the sealed Step-268 SHA-256 constants.
+
+**Why**: `HANDOFF_A6_S0B_TO_CLAUDE_2026_08_15.md` §7 continuation under the
+one-review rule; the blockers were each independently capable of producing a
+wrong registered S0b verdict.
+
+**Result**: 56/56 S0b tests green (1 Windows symlink-privilege skip). Frozen
+source commit `89c414a`. Platform findings: `core.autocrlf` CRLF-converted the
+hash-sealed S0a artifacts on Windows checkout — the canonical loaders
+correctly failed closed; guarded repo-wide with `.gitattributes
+results/** -text`. The S0a manifests are Unix-keyed, so the sealed chain runs
+on Linux via `cluster/a6_s0b_chain.sbatch` (3 linear afterany links,
+git-shallow-clone sync for byte-exact LF sources with true commit SHAs,
+persistent chain-specific pip userbase so recorded package versions cannot
+drift between links). The Mac's Pythia TLS failure does not reproduce here
+(its Python trust store was the fault; nothing was compromised). The
+development preflight's gradient expectation stands: the sealed run may close
+as CLOSE_S0B_NUMERICAL_NONCONVERGENCE, and the registered verdict stands as
+produced. The handoff-requested A0–A5 survey is committed as
+`docs/research_notes/a0_a6_route_survey_and_next_route_2026-08-15.md`
+(post-A6 recommendation: A8 domain-conditional orientation; the A7
+successor-clause documentation conflict has an uncommitted reconciliation
+draft awaiting Omri).
+
+---
+
+### Step 270 [A6/PTNI] — 2026-08-16: the γ̂3 orientation channel does not survive its own correction
+
+**What**: Closed the technical debt on the γ̂3 (b-coupled cubic) orientation
+channel established in Step 252. The reported headline numbers — pooled
+cos(γ̂3, g\*) = +0.76 at atomic level, family sign-bit margin ≈ 0.56 — were
+produced with the cubic probe orthogonalized against `{1, b}` only. That
+memo's own §6 records the correction it demands of any future b-coupled
+estimator: Gram–Schmidt φ3 against `{1, b, φ2}` (the `{1,b}`-only version
+leaks a balance-dependent quadratic term that can flip its sign) and
+winsorize `b`. This step recomputes γ̂3 in the corrected form, with a
+crossed-design attribution and a pooling-convention control.
+
+**Why**: Step B of the planned atomic (group-free) NRM work orients a selected
+residual eigenvector by `sign(⟨v_j, γ̂3⟩)`, and Step C would replace the
+deployed family-NRM all-ones sign bit with `sign(⟨v_neutral, γ̂3_family⟩)`.
+Both are premised on the uncorrected numbers, so the correction had to be
+settled before either was built.
+
+**Result**: **The channel does not survive. Both load-bearing numbers fail,
+and the failure is attributable to the correction itself, not to a knob or a
+pooling artifact.**
+
+*Fidelity control* — the `{1,b}` probe reproduces Step 252 exactly: pooled cos
++0.7617 (ref +0.7617), sign agreement 13/17 (ref 13/17), per-cell median
++0.5129 at 87% positive (ref +0.5129 / 0.870).
+
+*Atomic level*, 23 source cells / 17 frozen atoms:
+
+| probe | pooled cos(γ̂3, g\*) | sign agreement | per-cell median |
+|---|---:|---:|---:|
+| `{1,b}` only (Step 252) | **+0.7617** | 13/17 | +0.5129 |
+| corrected, no winsorization | **−0.0806** | 7/17 | +0.1535 |
+| corrected, winsor 1% (registered primary) | **+0.3350** | 12/17 | +0.4470 |
+| corrected, winsor 5% | +0.4648 | 11/17 | +0.5612 |
+
+*Family level* — the sign bit Step C would have replaced. The teacher says the
+deployed bit is correct (cos(v_neutral, family g\*) = +0.90):
+
+| probe | 6-family margin | 5-family margin | sign correct? |
+|---|---:|---:|:--:|
+| all-ones (deployed) | +0.0650 | +0.0594 | yes |
+| `{1,b}` only (Step 252) | +0.4889 | **+0.5532** | yes |
+| corrected, winsor 1% | **−0.1702** | **−0.1903** | **no** |
+| corrected, winsor 2.5% | +0.1018 | +0.1058 | yes |
+
+The memo's quoted ≈0.56 is reproduced as the 5-family restriction (+0.5532);
+the deployed calibration spans all 6 families (+0.4889). The collapse holds
+identically under both bases, so it is not a basis artifact.
+
+*Attribution (crossed design, φ2-orthogonalization × winsorization, three
+pooling conventions)*: **winsorization is harmless and the φ2 orthogonalization
+is the destructive ingredient.** Winsorizing the original probe from 0% to 10%
+leaves pooled cos in +0.68…+0.76. Removing φ2 at zero winsorization takes it to
+−0.0806, and that holds across raw-moment (−0.081), unit-RMS (−0.125) and
+direction-only (−0.126) pooling, so it is not a pooling-scale artifact.
+Winsorization then partially *restores* the corrected probe monotonically in
+the knob (+0.24 → +0.34 → +0.43 → +0.46), never reaching the original — the
+signature of tail suppression, not of a recovered channel. Median cos between
+the two probes across cells is +0.56: they are only about half the same
+measurement.
+
+**Interpretation**: most of the reported +0.76 was carried by exactly the
+balance-dependent quadratic leak the Step-252 memo itself flagged. The genuine
+cubic b-nonlinearity channel is real but much weaker (~+0.34 at the registered
+winsorization), and at family level its sign is not determined by the data —
+it flips between winsor 1% (−0.17) and 2.5% (+0.10). Step C is not merely
+unsupported: at the registered primary setting the proposed replacement bit
+would have **flipped the deployed family NRM into the wrong orientation**, a
+component whose confirmation rests on a CI floor of +0.07pp.
+
+**Status**: Step B (the retrospective kill-test) is **not started** — its
+orientation premise is the number that just failed. Per the plan's own gate
+("if cos/margin do not survive, STOP — that is itself the finding"), work
+stops here pending Omri. Step C is closed by this measurement.
+
+Artifacts: `results/gamma3_corrected_2026-08-15/` (`RESULT.json`,
+`DECOMPOSITION.json`, `FAMILY_BASIS_CHECK.json`, three scripts, three logs).
+Conclusion note: `docs/research_notes/gamma3_correction_conclusion_2026-08-16.md`.
 
 ---

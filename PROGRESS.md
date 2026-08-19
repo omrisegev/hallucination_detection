@@ -201,6 +201,76 @@ not substitutes for common-protocol replays. The next session begins with a
 read-only inventory and a written plan; it must not launch jobs or alter Drive
 before the user approves that plan.
 
+## Parallel line — A6/PTNI (its own Steps 269-270)
+
+Kept verbatim from the second working repository. It runs beside the
+localization sections below rather than superseding them; see "Step numbering"
+at the top of `HISTORY.md`.
+
+## Current decision point — γ̂3 failed the correction it was owed (Step 270)
+
+Step 252 established the b-coupled cubic channel with two load-bearing numbers:
+pooled `cos(γ̂3, g*) = +0.76` (atomic) and a family sign-bit margin `≈ 0.56`.
+Both used a probe orthogonalized against `{1, b}` only; that memo's own §6
+required Gram–Schmidt against `{1, b, φ2}` plus winsorized `b` for any future
+estimator. Recomputed in the corrected form, **neither number survives**:
+
+| | Step 252 (`{1,b}`) | corrected (winsor 1%) |
+|---|---:|---:|
+| atomic pooled cos(γ̂3, g\*) | +0.7617 | **+0.3350** (−0.0806 unwinsorized) |
+| family sign-bit margin, 5-family | +0.5532 | **−0.1903 — wrong sign** |
+| family sign-bit margin, 6-family | +0.4889 | **−0.1702 — wrong sign** |
+
+The fidelity control reproduces Step 252 exactly (+0.7617, 13/17, +0.5129 /
+87%), and the memo's quoted ≈0.56 is confirmed as the 5-family restriction.
+A crossed design attributes the loss to **the φ2 orthogonalization, not the
+winsorization**: winsorizing the original probe 0→10% holds +0.68…+0.76, while
+removing φ2 at zero winsorization gives −0.0806 under all three pooling
+conventions (raw / unit-RMS / direction-only), so it is not a scale artifact.
+Winsorization then restores the corrected probe only monotonically in the knob
+(+0.24 → +0.46), never reaching the original.
+
+**Consequences**: Step C (replacing the deployed family-NRM all-ones sign bit
+with `sign(⟨v_neutral, γ̂3_family⟩)`) is **closed** — at the registered primary
+setting it would have flipped the deployed method into the wrong orientation
+(the teacher says the all-ones bit is correct, cos +0.90). Step B (the
+retrospective kill-test) is **not started**: it selects and orients by γ̂3,
+which is the vector that just failed. Per the plan's own gate, work stopped
+here. Conclusion:
+`docs/research_notes/gamma3_correction_conclusion_2026-08-16.md`; artifacts in
+`results/gamma3_corrected_2026-08-15/`.
+
+**A6-S0b is still running** — the registered chain is in local Docker container
+`a6s0b`, stage 2 of 4 (Pythia prompt NLLs). No verdict artifact
+(`S0B_COMPLETE.json` / `S0B_CLOSED.json`) exists yet; the verdict entry will be
+Step 271. Do not recreate the container; `docker start a6s0b` resumes it.
+
+## Step 269 state (prior)
+
+The A6-S0b source boundary is **reviewed and
+frozen** at commit `89c414a` (56/56 tests; single independent review closed
+NO BLOCKERS after two result-changing blocker fixes — see HISTORY Step 269).
+The exact Pythia snapshot is downloaded and byte-authenticated. The sealed
+chain (prepare → run-pythia → run-analysis → verify) runs on **AIRCC via
+`cluster/a6_s0b_chain.sbatch`** — Linux-only because the sealed S0a manifests
+are Unix-keyed and Windows checkout CRLF-converts sources. Submission is
+staged and **blocked only on the TAU VPN**. Expectation from the development
+preflight: the frozen `gradient_inf <= 1e-8` gate may close S0b as
+`CLOSE_S0B_NUMERICAL_NONCONVERGENCE`; the registered verdict stands as
+produced. S1 (or the successor route) opens only on Omri's explicit go; the
+A7 successor-clause conflict has an uncommitted reconciliation draft
+(`docs/research_notes/DRAFT_a7_successor_reconciliation_2026-08-15.md`)
+awaiting Omri, and the post-A6 route survey is at
+`docs/research_notes/a0_a6_route_survey_and_next_route_2026-08-15.md`.
+
+## Step 268 state (prior)
+
+A1--A5 are closed. A6-S0a completed with
+the independently reproduced verdict `PASS_S0A`. The authenticated tokenizer
+restore, frozen S0a boundary, all 7,800 checkpoints, aggregate, and completion
+artifact verify exactly. No response telemetry, simulator result, natural
+response, correctness sidecar, benchmark target, or sealed S1 seed has opened.
+
 ## Comprehensive Local/Online transfer decision — Step 273
 
 The frozen four-stage existing-cache cycle evaluated raw-nine/raw-seven,

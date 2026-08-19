@@ -837,7 +837,12 @@ def shortcut_gate_bootstrap(
     # The artifact-name tie rule chooses the larger ridge.
     observed_max, selected_ridge = max(observed, key=lambda item: (item[0], item[1]))
     sorted_draw = np.sort(max_draw)
-    upper_index = math.ceil(0.975 * n_draws) - 1
+    # Contract: ascending order statistic 19,501 of 20,000 in one-based
+    # indexing, i.e. numpy's method="higher" at 0.975 -> zero-based
+    # ceil(0.975 * (n - 1)).  ceil(0.975 * n) - 1 lands one statistic lower
+    # exactly when 0.975 * n is an integer (including the registered 20,000),
+    # which is anti-conservative for a gate that must catch the upper tail.
+    upper_index = math.ceil(0.975 * (n_draws - 1))
     return ShortcutGateBootstrap(
         population_id=population_id, gate_name=gate_name,
         observed_max_macro_auc=float(observed_max),
@@ -1160,12 +1165,17 @@ def hungarian_exact(costs: Sequence[Sequence[int | None]]) -> tuple[int, ...]:
                 if used[candidate]:
                     continue
                 cost = costs[active_row - 1][candidate - 1]
-                if cost is None:
-                    continue
-                reduced = int(cost) - u[active_row] - v[candidate]
-                if min_value[candidate] is None or reduced < min_value[candidate]:
-                    min_value[candidate] = reduced
-                    way[candidate] = column
+                # Relaxation applies only along existing edges, but the delta
+                # scan must see every pending column: min_value[candidate] may
+                # have been set by an earlier tree row even when the active
+                # row has no edge to it.  Fusing the two behind a missing-edge
+                # `continue` produced false NO_PERFECT_MATCHING and silently
+                # suboptimal assignments on sparse eligibility graphs.
+                if cost is not None:
+                    reduced = int(cost) - u[active_row] - v[candidate]
+                    if min_value[candidate] is None or reduced < min_value[candidate]:
+                        min_value[candidate] = reduced
+                        way[candidate] = column
                 if min_value[candidate] is not None and (
                     delta is None or min_value[candidate] < delta
                 ):
