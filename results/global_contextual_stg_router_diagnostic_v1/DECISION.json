@@ -1,0 +1,92 @@
+{
+  "decision": "GLOBAL_ORACLE_NOT_ACCESSIBLE_BY_CSTG",
+  "exploratory_core_contrasts": [
+    {
+      "baseline": "global_lr",
+      "ci_high": 0.01929863506682639,
+      "ci_low": -0.005067518071724653,
+      "equal_family_delta": 0.0057143329167695395,
+      "family_deltas": {
+        "gsm8k": -0.009940911158341647,
+        "hotpotqa": -0.0013940990235984385,
+        "math500": -0.00590036373226741,
+        "nq_open": 0.009557105319462855,
+        "sciq": -0.01389436774052144,
+        "squad_v2": 0.04566411718619556,
+        "triviaqa": 0.013414582795075153,
+        "truthfulqa": 0.008208599688151685
+      },
+      "family_wins": 4,
+      "method": "cstg_core"
+    },
+    {
+      "baseline": "augmented_core_lr",
+      "ci_high": 0.014091365630039793,
+      "ci_low": -0.0019104120516457764,
+      "equal_family_delta": 0.005664763763251239,
+      "family_deltas": {
+        "gsm8k": -0.010096261355942437,
+        "hotpotqa": 0.003171309229254904,
+        "math500": -0.008761838996654702,
+        "nq_open": 0.00780991510171436,
+        "sciq": 0.00755611909458076,
+        "squad_v2": 0.030685485600948526,
+        "triviaqa": 0.00800743305959234,
+        "truthfulqa": 0.006945948372516164
+      },
+      "family_wins": 6,
+      "method": "cstg_core"
+    },
+    {
+      "baseline": "cstg_core_permuted",
+      "ci_high": 0.025232501522251493,
+      "ci_low": 0.006084625823321111,
+      "equal_family_delta": 0.014762031653829853,
+      "family_deltas": {
+        "gsm8k": 0.003534185834424408,
+        "hotpotqa": 0.0035437784340330847,
+        "math500": -0.0011046115521058386,
+        "nq_open": 0.01379041268873471,
+        "sciq": 0.012576312576312643,
+        "squad_v2": 0.046288636741868006,
+        "triviaqa": 0.022920943080903727,
+        "truthfulqa": 0.01654659542646808
+      },
+      "family_wins": 7,
+      "method": "cstg_core"
+    }
+  ],
+  "gates": [
+    {
+      "gate": "gain_at_least_0.005",
+      "observed": -0.004208381364577712,
+      "passed": false
+    },
+    {
+      "gate": "ci_lower_above_zero",
+      "observed": -0.01398276088942266,
+      "passed": false
+    },
+    {
+      "gate": "five_of_eight_family_wins",
+      "observed": 3,
+      "passed": false
+    },
+    {
+      "gate": "beats_quartile_router",
+      "observed": 0.008388556708527894,
+      "passed": true
+    },
+    {
+      "gate": "beats_augmented_lr",
+      "observed": -0.005883047017886556,
+      "passed": false
+    },
+    {
+      "gate": "permutation_does_not_reproduce_gain",
+      "observed": 0.0011955725197375644,
+      "passed": true
+    }
+  ],
+  "primary_method": "cstg_iu_rank"
+}

@@ -156,3 +156,19 @@ cluster/submit_backfill.sbatch
 # policy above — see dataset_cache/README.md for what's included and why.
 !dataset_cache/**
 !dataset_cache/**/*.pkl
+
+# 2026-08-19 research consolidation: reproducible heavy intermediates archived
+# non-destructively at gdrive:hallucination_detection/consolidated_results/
+# integration_2026-08-19/pre_merge_untracked/. Keep compact reports, manifests,
+# aggregate tables, and tokenizer provenance in Git; ignore only the archived payloads.
+results/automatic_group_free_phase_a6_tokenizers_v1/materialized/
+results/automatic_group_free_phase_a6_tokenizers_v2/materialized/
+results/early_online_existing_data_v1/*__*/
+results/early_online_localization_models_v1/*__*/
+results/global_local_online_iu_v1/cells/
+results/contextual_stg_router_diagnostic_v1/PER_QUESTION.csv
+results/global_local_online_architecture_v2/*PER_QUESTION.csv
+results/global_local_online_architecture_v2/*.partial.*
+results/global_local_online_iu_v1/PER_TRACE_CONVERGENCE.csv
+results/local_online_comprehensive_v1/*PER_QUESTION.csv
+results/local_online_comprehensive_v1/STAGE_*_WARNINGS.csv

@@ -77,7 +77,7 @@ from scipy.linalg import eigh
 from .fusion_utils import zscore
 
 __all__ = [
-    "UPCRResult", "upcr_fit", "upcr_pipeline_faithful",
+    "UPCRResult", "upcr_fit", "upcr_fit_covariance", "upcr_pipeline_faithful",
     "additive_design", "solve_additive", "moment_match",
 ]
 
@@ -236,11 +236,73 @@ def upcr_fit(
             the clustered variant.
     """
     F = np.asarray(F, dtype=float)
+    if F.ndim != 2:
+        raise ValueError("F must be a feature-by-sample matrix")
     m, n = F.shape
+    if n < 1:
+        raise ValueError("F must contain at least one sample")
+    return upcr_fit_covariance(
+        (F @ F.T) / n,
+        var_y=var_y,
+        scale_ratio=scale_ratio,
+        loss=loss,
+        n_components=n_components,
+        auto_components=auto_components,
+        lambda2_threshold=lambda2_threshold,
+        g2_projection_k=g2_projection_k,
+        exclusion=exclusion,
+        min_frac=min_frac,
+        exclude_frac=exclude_frac,
+        simple_avg_fallback=simple_avg_fallback,
+        min_experts_for_eq21=min_experts_for_eq21,
+        difficulty_gate=difficulty_gate,
+        eps_L=eps_L,
+        on_abstain=on_abstain,
+        recompute_after_exclusion=recompute_after_exclusion,
+        g2_grid=g2_grid,
+        pairs=pairs,
+    )
+
+
+def upcr_fit_covariance(
+    covariance,
+    *,
+    var_y=None,
+    scale_ratio=1.0,
+    loss="l2",
+    n_components=1,
+    auto_components=True,
+    lambda2_threshold=0.1,
+    g2_projection_k=1,
+    exclusion=True,
+    min_frac=0.05,
+    exclude_frac=3.0,
+    simple_avg_fallback=True,
+    min_experts_for_eq21=5,
+    difficulty_gate=True,
+    eps_L=0.1,
+    on_abstain="flag",
+    recompute_after_exclusion=True,
+    g2_grid=300,
+    pairs=None,
+):
+    """Fit U-PCR from an already estimated feature covariance matrix.
+
+    This is the moment-level seam used by conditional estimators.  Calling it
+    with ``F @ F.T / n`` is numerically identical to :func:`upcr_fit`; no
+    sample labels, means, or higher moments are accepted here.
+    """
+    C = np.asarray(covariance, dtype=float)
+    if C.ndim != 2 or C.shape[0] != C.shape[1]:
+        raise ValueError("covariance must be a square matrix")
+    m = C.shape[0]
     if m < 3:
         raise ValueError(f"U-PCR needs m >= 3 features (Assumption A4), got {m}")
-
-    C = (F @ F.T) / n
+    if not np.isfinite(C).all():
+        raise ValueError("covariance contains non-finite values")
+    if not np.allclose(C, C.T, atol=1e-10, rtol=1e-10):
+        raise ValueError("covariance must be symmetric")
+    C = 0.5 * (C + C.T)
     trace_C = float(np.trace(C))
     diag_mean = float(np.mean(np.diag(C)))
     if var_y is None:
@@ -253,11 +315,10 @@ def upcr_fit(
     if auto_components:
         n_components = 2 if (k_probe >= 2 and lambda2_frac > lambda2_threshold) else 1
 
-    def _fit_block(Fb, idx_pairs, var_y_b):
+    def _fit_block(Cb, idx_pairs, var_y_b):
         """One full estimation pass over a feature block: solve once, shift over
         the g2 grid, pick g2 by Eq. 20."""
-        mb = Fb.shape[0]
-        Cb = (Fb @ Fb.T) / n
+        mb = Cb.shape[0]
         A, prs = additive_design(mb, idx_pairs)
         b = np.array([Cb[i, j] for i, j in prs], dtype=float)
 
@@ -277,7 +338,7 @@ def upcr_fit(
                 best = (float(res), float(q), rho)
         return Cb, best[0], best[1], best[2]
 
-    C_full, res_full, g2_full, rho_full = _fit_block(F, pairs, var_y)
+    C_full, res_full, g2_full, rho_full = _fit_block(C, pairs, var_y)
 
     # ---- Algorithm 1: difficulty gate -------------------------------------
     g2_frac = g2_full / (var_y + 1e-12)
@@ -295,7 +356,7 @@ def upcr_fit(
         keep = np.ones(m, dtype=bool)
 
     n_keep = int(keep.sum())
-    F_k = F[keep]
+    C_k_input = C[np.ix_(keep, keep)]
 
     # ---- recompute on survivors (Algorithm 1: "Recalculate ... ") ---------
     # A restricted `pairs` set MUST be carried through the refit. Passing None
@@ -316,9 +377,9 @@ def upcr_fit(
         sub_pairs = pairs
 
     if recompute_after_exclusion and n_keep < m:
-        C_k, res_k, g2_k, rho_k = _fit_block(F_k, sub_pairs, var_y)
+        C_k, res_k, g2_k, rho_k = _fit_block(C_k_input, sub_pairs, var_y)
     else:
-        C_k = (F_k @ F_k.T) / n
+        C_k = C_k_input
         g2_k, res_k = g2_full, res_full
         if n_keep < m:
             A_k, prs_k = additive_design(n_keep, sub_pairs)

@@ -1,0 +1,46 @@
+# Supervised c-STG router diagnostic v1
+
+**Decision: `STOP_CONTEXT_NOT_SUFFICIENT`.**
+
+Retrospective premise evidence only. The router saw calibration labels; this is not a label-free method or external confirmation.
+
+## Primary results
+
+| method | Localization F1 | Early AUROC@64/128 |
+|---|---:|---:|
+| augmented_lr | 0.2915 | 0.5875 |
+| context_only_lr | 0.2991 | 0.5773 |
+| cstg_core | 0.2939 | 0.5579 |
+| cstg_dsp | 0.2812 | 0.5906 |
+| cstg_dsp_permuted | 0.2060 | 0.5994 |
+| global_lr | 0.3503 | 0.5995 |
+
+## Paired intervals
+
+| task | contrast | delta | 95% CI |
+|---|---|---:|---|
+| localization | cstg_dsp - global_lr | -0.0690 | [-0.1505, +0.0042] |
+| localization | cstg_dsp - augmented_lr | -0.0102 | [-0.0833, +0.0633] |
+| localization | cstg_dsp - cstg_core | -0.0127 | [-0.0983, +0.0747] |
+| localization | cstg_dsp - cstg_dsp_permuted | +0.0752 | [-0.0186, +0.1682] |
+| early | cstg_dsp - global_lr | -0.0088 | [-0.0485, +0.0297] |
+| early | cstg_dsp - augmented_lr | +0.0032 | [-0.0422, +0.0472] |
+| early | cstg_dsp - cstg_core | +0.0327 | [-0.0077, +0.0750] |
+| early | cstg_dsp - cstg_dsp_permuted | -0.0087 | [-0.0535, +0.0379] |
+
+## Gate decision
+
+- **localization**: FAIL; delta vs global LR -0.0690, CI [-0.1505, +0.0042].
+  Failed checks: gain_at_least_0p005, ci_lower_above_zero, family_guard, beats_augmented_point, beats_core_point.
+- **early**: FAIL; delta vs global LR -0.0088, CI [-0.0485, +0.0297].
+  Failed checks: gain_at_least_0p005, ci_lower_above_zero, family_guard.
+
+## Interpretation
+
+c-STG is used here as a supervised sufficiency test. A failure means the currently measured context did not robustly expose the known conditional-family headroom under this constrained router. It does not prove that no future intervention-derived context can route.
+
+This was not a mechanical no-actuation failure. The registered switching-family known-answer test passed, real-data gates varied substantially across samples, and DSP c-STG fit the calibration objective more aggressively than core-only c-STG. The learned actuation simply did not generalize to held-out questions: gate-versus-family-utility Spearman correlations were near zero or negative, and Early's permuted-context control matched or exceeded the real-context router.
+
+The earlier +2.833pp oracle is evidence for conditional family specialization in the completed-trace 24-cell fusion diagnostic. It is not itself an oracle ceiling for these Localization/Early constructions. This run therefore answers the narrower question: the present causal DSP summaries do not provide a robust supervised routing key for the two online tasks under the frozen construction.
+
+LTSREx/LEGO were not run. Their justified role begins only after a target-anchored routing signal survives this gate; LTSREx would then audit what locally parameterizes that signal and veto nuisance-dominated geometry.
