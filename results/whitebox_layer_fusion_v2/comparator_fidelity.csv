@@ -1,0 +1,6 @@
+method,implementation,label_use,fidelity,limitation
+TriLens entropy features,3xL MHSA/FFN/residual token-mean entropy,none for fusion; grouped LR diagnostic,feature-faithful approximation,paper text does not specify its fixed token readout
+HaloScope,fixed middle-layer k=4 direct SVD-membership score on 256-D mean-token JL projection,none,stage-1 proxy,not last-token full hidden state and excludes validation-selected pseudo-label classifier
+DoLa-style detector,residual depth-wise KL-to-final vector with label-free fusion and grouped LR ceiling,none for fusion; grouped LR diagnostic,KL proxy,saved KL is not the paper comparator's JSD; DoLa itself is a decoding method
+Spilled Energy,Eq.8 raw-logit minus next-step logsumexp reconstructed when sampled token is in raw top-K,none,equation-faithful token proxy,full-answer pooling; exact-answer span was not captured
+INSIDE EigenScore,"K=10 middle-layer last-token embeddings, alpha=0.001 logdet",none,paper equation without feature clipping,only rejected CoQA/Llama-1 cell; appendix only
