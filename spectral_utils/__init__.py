@@ -69,7 +69,7 @@ from .fusion_utils import (
 # Paper-faithful U-PCR + our dependent-feature extension. `upcr_fuse` above is the
 # legacy path and stays byte-identical so committed numbers reproduce.
 from .upcr import (
-    upcr_fit, upcr_pipeline_faithful, UPCRResult,
+    upcr_fit, upcr_fit_covariance, upcr_pipeline_faithful, UPCRResult,
     additive_design, solve_additive, moment_match,
 )
 from .contribution_subspace import (
@@ -81,6 +81,10 @@ from .contribution_subspace import (
     fit_neutral_residual_mode_calibration,
     leverage_balanced_contribution_score, leverage_balanced_iu_fit,
     neutral_residual_mode_iu_fit, neutral_residual_mode_score,
+)
+from .contextual_stg import (
+    ContextualSTGConfig, ContextualSTGModel, ContextualSTGPrediction,
+    balanced_group_weights,
 )
 from .upcr_clustered import (
     upcr_clustered_fit, upcr_hierarchical_fit,
@@ -192,7 +196,7 @@ __all__ = [
     "lsml_continuous", "lsml_continuous_pipeline", "multipass_lsml_continuous",
     "sml_unsupervised", "sml_unsupervised_compare",
     "upcr_fuse", "upcr_pipeline",
-    "upcr_fit", "upcr_pipeline_faithful", "UPCRResult",
+    "upcr_fit", "upcr_fit_covariance", "upcr_pipeline_faithful", "UPCRResult",
     "additive_design", "solve_additive", "moment_match",
     "CardinalityBalancedContributionScore", "CardinalityBalancedIUResult",
     "LeverageBalancedContributionScore", "LeverageBalancedIUResult",
@@ -202,6 +206,8 @@ __all__ = [
     "fit_neutral_residual_mode_calibration",
     "leverage_balanced_contribution_score", "leverage_balanced_iu_fit",
     "neutral_residual_mode_iu_fit", "neutral_residual_mode_score",
+    "ContextualSTGConfig", "ContextualSTGModel", "ContextualSTGPrediction",
+    "balanced_group_weights",
     "upcr_clustered_fit", "upcr_hierarchical_fit",
     "discover_clusters", "cross_cluster_pairs", "check_identifiability",
     "SparseDecomposition", "SparseUPCRResult",
