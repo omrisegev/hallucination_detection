@@ -287,6 +287,50 @@ DPP MAP selection (with a 1−1/e submodular guarantee) tied with naive disagree
 
 ---
 
+## Experiment 7 — Unified Causal IU-PCR for Three Tasks
+
+**Goal:** replace separate Global, Localization and Early detectors with one
+causal IU-PCR trajectory. The score is updated at every token; the largest
+positive update localizes the first error, prefix values support early alarms,
+and the final value is the Global score.
+
+The development cycle constructed a 1,036-coordinate causal DSP bank from
+token-risk streams and causal filters, then performed grouped supervised
+subset development. The full bank was inferior to a compact candidate. The
+selected **Unified-28** method uses seven token streams crossed with `level`,
+`ewma16`, `positive_area` and `persistence`, fused by ordinary IU-PCR.
+
+Corrected Qwen development is 0.6914 Global AUROC, 0.3040 Localization F1 and
+0.5301 Early AUROC. Earlier values obtained by pooling scores across fitted
+folds are withdrawn.
+
+Frozen Llama transfer:
+
+| task | Unified-28 | matched incumbent | delta |
+|---|---:|---:|---:|
+| Global AUROC | 0.6629 | 0.6870 | -0.0241 |
+| Localization macro-F1 | 0.2880 | 0.2419 | +0.0461 |
+| Early AUROC | 0.5587 | 0.5777 | -0.0189 |
+
+Localization improves significantly, but Global and Early exceed their
+predeclared regression margins. DUFS-LIU lambda sweeps and learned task
+weights did not transfer from Qwen to Llama. The result supports Unified-28 as
+the method of record for experiments that require one shared causal method,
+not as a replacement for the dedicated heads.
+
+Canonical documentation:
+
+- [`docs/experiments/UNIFIED_CAUSAL_IU_V1.md`](docs/experiments/UNIFIED_CAUSAL_IU_V1.md)
+- [`docs/experiments/UNIFIED_CAUSAL_SUBSET_SEARCH_V1.md`](docs/experiments/UNIFIED_CAUSAL_SUBSET_SEARCH_V1.md)
+- [`docs/reports/UNIFIED_CAUSAL_IU_V1_REPORT.md`](docs/reports/UNIFIED_CAUSAL_IU_V1_REPORT.md)
+
+The original temporary implementation and machine-readable result bundle were
+not retained in the earlier commit. The canonical report includes an explicit
+artifact ledger so the documented conclusion is not confused with a complete
+byte-for-byte replay package.
+
+---
+
 ## Open Directions
 
 1. **Hidden state probes as views** — layer-wise hidden states are architecturally decorrelated by construction (ρ near zero between early and late layers). Zero extra inference cost via forward hook. Connects to Ofir's VSDE work.
