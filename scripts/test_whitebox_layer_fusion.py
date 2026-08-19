@@ -30,6 +30,7 @@ from spectral_utils.whitebox_layer_fusion import (  # noqa: E402
     LATE_LAYERS,
     SPACED_LAYERS,
     FeatureMatrix,
+    apply_neutral_residual_calibration,
     assert_no_label_fitting_signatures,
     assert_same_protocol,
     all_layers,
@@ -46,6 +47,8 @@ from spectral_utils.whitebox_layer_fusion import (  # noqa: E402
     fit_dependency_methods,
     fit_hierarchical,
     fit_haloscope_direct_proxy,
+    fit_group_contribution_space,
+    fit_neutral_residual_calibration,
     fixed_bands,
     late_layers,
     load_evaluation_labels,
@@ -402,9 +405,60 @@ class WhiteboxLayerFusionTests(unittest.TestCase):
             diagnostic["fits"]["clustered_upcr"]["identifiability"]["ok"]
         )
 
+    def test_neutral_residual_mode_reconstructs_iu_and_is_label_free(self):
+        matrix = extract_resid_core(self.cell)
+        spaces = []
+        for index, scale in enumerate((0.0, 0.015, -0.012)):
+            layer_wave = np.sin(np.arange(matrix.n_features, dtype=float))[None, :]
+            row_wave = np.linspace(-1.0, 1.0, matrix.n_samples)[:, None]
+            shifted = replace(
+                matrix,
+                values=matrix.values + scale * row_wave * layer_wave,
+                protocol_signature=f"nrm-source-{index}",
+            )
+            space = fit_group_contribution_space(shifted)
+            np.testing.assert_allclose(
+                space.contributions.sum(axis=1),
+                space.baseline_score,
+                rtol=1e-12,
+                atol=1e-12,
+            )
+            self.assertEqual(space.families, tuple(dict.fromkeys(matrix.groups)))
+            self.assertLess(space.diagnostics["reconstruction_error"], 1e-12)
+            spaces.append(space)
+
+        calibration = fit_neutral_residual_calibration(
+            spaces[:2], source_ids=("source-a", "source-b")
+        )
+        fitted = apply_neutral_residual_calibration(spaces[2], calibration)
+        self.assertEqual(fitted.score.shape, (matrix.n_samples,))
+        self.assertTrue(np.isfinite(fitted.score).all())
+        self.assertFalse(fitted.diagnostics["labels_seen_during_fit"])
+        self.assertEqual(calibration.source_ids, ("source-a", "source-b"))
+        self.assertAlmostEqual(np.linalg.norm(calibration.direction), 1.0, places=12)
+        self.assertGreaterEqual(float(np.sum(calibration.direction)), 0.0)
+        self.assertLess(
+            abs(fitted.diagnostics["baseline_correction_covariance"]), 1e-10
+        )
+
+        iu_score, _ = fit_core_spectral(
+            matrix, methods=("iu_pcr",), dufs_gates=np.ones(matrix.n_features)
+        )
+        direct = fit_group_contribution_space(matrix)
+        np.testing.assert_allclose(
+            direct.baseline_score, iu_score["iu_pcr"], rtol=1e-12, atol=1e-12
+        )
+
     def test_protocol_and_no_label_signatures(self):
         assert_no_label_fitting_signatures()
-        fitting = (fit_controls, fit_core_spectral, fit_dependency_methods, fit_hierarchical)
+        fitting = (
+            fit_controls,
+            fit_core_spectral,
+            fit_dependency_methods,
+            fit_hierarchical,
+            fit_group_contribution_space,
+            fit_neutral_residual_calibration,
+        )
         forbidden = {"label", "labels", "y", "target", "targets"}
         for function in fitting:
             self.assertTrue(forbidden.isdisjoint(inspect.signature(function).parameters))

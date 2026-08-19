@@ -11784,3 +11784,203 @@ Fetched to `dataset_cache/four_localization/` (2.3 GB, 10 job directories).
   span/sentence/PRMBench metric harness) and Phase 3 (the four-panel report) are not started.
 
 ---
+
+### Step 243 — NRM-CS-IU exposes a bounded cross-model signal but does not repair white-box fusion robustly
+
+**What**: Applied the frozen Neutral Residual Mode contribution-space rule to
+the completed white-box layer benchmark without mutating its registered v2
+result. The residual-core arm groups IU-PCR feature contributions into four
+architecture-relative depth quartiles. A secondary `lens-96` arm uses the
+twelve fixed module-by-metric groups. The score is reconstructed exactly from
+group contributions, residualized against IU, calibrated from equal-weight
+source-cell covariance, corrected along the eigenmode closest to eigenvalue
+one, and oriented/scaled by the same label-free NRM-CS-IU rules.
+
+**Protocol**: The 13-cell roster is not fully crossed, so holding out both the
+target dataset and target model simultaneously leaves only one source for
+GSM8K/Llama. This coverage failure was detected before NRM outcomes were
+opened. The frozen addendum therefore reports leave-dataset-out (`LODO`) and
+leave-model-out (`LOMO`) separately, with LOCO as sensitivity. Fit reads only
+the v2 prepared bundles. All 14 reconstructed IU scores match frozen v2 within
+`1e-10`; NRM score/diagnostic hashes are frozen before evaluation opens raw
+correctness fields. Bootstrap uses the same 2,000 problem-group draws per cell
+for every paired method.
+
+**Result**: Depth NRM is transfer-sensitive. LODO scores 0.6182/0.4769
+AUROC/AUPRC versus residual IU at 0.6206/0.4812: AUROC delta -0.244pp
+[-0.575,+0.073], 6/1/6 W/T/L. LOMO gives a bounded positive observation at
+0.6250/0.4851: +0.438pp [+0.126,+0.760], 8/1/4, but that effect does not
+survive the dataset holdout. Lens NRM is slightly negative under every source
+definition; LODO minus lens IU is -0.106pp AUROC [-0.212,+0.002] and -0.227pp
+AUPRC [-0.380,-0.045]. Depth NRM remains about 11.2 AUROC points below
+final-layer NLL.
+
+**Decision**: Do not adopt NRM as the white-box method and do not replace the
+negative v2 primary post hoc. Freeze Depth-NRM LOMO as a new-data hypothesis
+for a genuinely crossed model-by-dataset capture. The addendum is
+`PRELIMINARY / VALIDATION BLOCKED` because capture validation is incomplete
+and the hypothesis is retrospective to v2.
+
+**Artifacts**: `spectral_utils/whitebox_layer_fusion.py`,
+`scripts/whitebox_layer_fusion_nrm_experiment.py`,
+`scripts/whitebox_layer_fusion_nrm_report.py`,
+`scripts/test_whitebox_layer_fusion_nrm.py`, and
+`results/whitebox_layer_fusion_nrm_v1/`.
+
+---
+
+### Step 244 — Organic layer groups are structurally cleaner but the NRM correction does not transfer robustly
+
+**What**: Tested the proposed grouping in a separate retrospective white-box
+addendum. Each residual transformer layer is one group, and its three local
+features are token-mean entropy, target-token NLL, and top-1 surprisal. The
+primary has 32 groups and 96 atomic features. KL-to-final is a separate
+127-feature sensitivity because it couples each layer to the final layer. The
+fit uses only frozen v2 `lens_grid_all` matrices; score bundles are label-free
+and hash-frozen before evaluation opens correctness fields.
+
+**Protocol**: Exact layer identity is restricted to ten eligible 32-layer
+cells; Qwen3-8B (36) and two Mistral models (40) are excluded without
+interpolation. The ten-cell analysis reports LODO, LOMO, and LOCO. Two cleaner
+controls isolate one transfer axis: six Llama-3.1-8B datasets with the model
+fixed, and five 32-layer GSM8K models with the dataset fixed. Bootstrap uses
+2,000 identical paired problem-group draws per cell. All 31 existing/new core
+tests pass, and the self-contained HTML passes desktop 1440×900 and mobile
+390×844 inspection with five embedded SVGs, five semantic tables, no clipping,
+no network assets, and no console errors.
+
+**Result**: Atomic-triad IU-PCR scores 0.5763/0.4969 macro AUROC/AUPRC over ten
+cells. Organic NRM LODO is 0.5776/0.4987, a small +0.136pp AUROC
+[+0.079,+0.194] and +0.185pp AUPRC [+0.091,+0.284]. It reverses under LOMO
+(-0.049pp [-0.103,+0.007]), LOCO (-0.091pp [-0.147,-0.033]), the same-model
+Llama control (-0.075pp [-0.147,-0.002]), and the same-dataset GSM8K control
+(-0.154pp [-0.238,-0.066]). KL sensitivity is -0.098pp
+[-0.153,-0.041]. Atomic triad IU is 3.925 AUROC points below the old
+one-averaged-expert-per-layer IU contract, with 5W/5L and a severe TriviaQA
+failure (0.221 versus 0.828).
+
+**Decision**: Do not adopt organic-layer NRM and do not replace the registered
+v2 or Step-243 addendum. The grouping premise is sensible, but it does not
+regularize the weights *inside* each group. If revisited, test one new frozen
+hypothesis: first construct a regularized within-layer expert from the local
+triad, then apply cross-layer NRM. Current result remains **PRELIMINARY /
+VALIDATION BLOCKED**.
+
+**Artifacts**: `spectral_utils/whitebox_layer_organic_nrm.py`,
+`scripts/whitebox_layer_organic_nrm_experiment.py`,
+`scripts/whitebox_layer_organic_nrm_report.py`,
+`scripts/test_whitebox_layer_organic_nrm.py`, and
+`results/whitebox_layer_organic_nrm_v1/`.
+
+---
+
+### Step 245 — Distributed token-tail metrics give the first numerical white-box fusion win over a strengthened single-layer oracle and TriLens
+
+**What**: Continued the white-box search after the original four-component
+consensus was shown to beat TriLens slightly but not the correctly oriented
+best atomic layer view. Screened 245 label-free depth summaries formed from
+entropy, target NLL, top-1 surprisal, target gap, entropy gaps, and KL-to-final,
+with mean/q90/max/std/tail-average token readouts. Tested flat reliability,
+forced four-band depth coverage, and organic per-layer grouping. The final
+pure contract has 13 internal-state experts: the previous depth consensus,
+three maximum-token tail summaries, a hierarchical organic layer expert, a
+lens-96 hierarchical DUFS expert, all-layer/banded complementary summaries,
+and depth-spread mean KL-to-final. A separately reported hybrid replaces the
+last role with ordinary generation entropy as a transparent output control.
+
+**Comparator correction**: Expanded the per-cell evaluation-only oracle beyond
+the old mean-token lens grid. It now includes all atomic views actually used by
+the candidate: every token-mean lens/revision/burst view plus maximum entropy,
+maximum target NLL, maximum top-1 surprisal, maximum entropy excess, maximum
+target gap, mean entropy excess, all module/layer positions, and module-mean
+layer views. Direction is fixed only by the label-free final-layer NLL anchor;
+labels select the best atomic view per cell. This stronger oracle is
+0.784186/0.648765 AUROC/AUPRC across 13 eligible cells.
+
+**Results**: Pure deployed U-PCR reaches **0.784612/0.648128**, a numerical
++0.000426 AUROC over the strengthened oracle (95% paired interval
+[-0.006351,+0.006833]) and +0.015710 over the TriLens grouped probe
+(0.768933; interval [+0.004502,+0.026423]). The hybrid reaches
+**0.785538/0.652755**, +0.001352 AUROC over the oracle
+[-0.005437,+0.007992], and +0.016579 over TriLens
+[+0.005661,+0.027168]. Hybrid U-PCR also beats its matched equal mean by
++0.005055 AUROC [+0.003705,+0.006440], IU-PCR by +0.001794
+[+0.001112,+0.002425], and DUFS-LIU-PCR by +0.001537
+[+0.000868,+0.002149]. U-PCR retains enough experts for its actual weight
+equation; this is not the four-expert simple-average fallback.
+
+**Boundary**: The requested numerical target is met, including by a pure
+inner-state fusion, but the oracle margin is not statistically robust. This is
+a retrospective search on already observed cells, not independent
+confirmation. Corrected live Gate B and the architecture pilot remain open, so
+both reports stay **PRELIMINARY / VALIDATION BLOCKED**. Do not promote a robust
+single-layer-oracle claim. TriLens AUROC superiority is the stronger result.
+
+**Verification**: Label-free prepare/fit phases freeze hashes before labels
+open; prepared and score bundles contain no labels. Registered 2,000-draw
+problem-group bootstraps are reused across methods. The final source/prepared/
+score/report hash audit passes, reports contain no network assets or `<pre>`
+bodies, and 39 focused core/distributed tests pass.
+
+**Artifacts**: `spectral_utils/whitebox_depth_distributed_consensus.py`,
+`spectral_utils/whitebox_depth_distributed_pure.py`,
+`scripts/whitebox_depth_distributed_consensus_experiment.py`,
+`scripts/whitebox_depth_distributed_pure_experiment.py`,
+`scripts/test_whitebox_depth_tail_consensus.py`,
+`results/whitebox_depth_distributed_consensus_v1/`, and
+`results/whitebox_depth_distributed_pure_v1/`.
+
+---
+
+### Step 245b — Exact-row comparison finds an aggregate tie between white-box depth fusion and gray mixed-v2
+
+**What**: Refit the frozen 30-feature gray-box `mixed-v2` DUFS-LIU system and
+its deployed-U-PCR control, then compared them with the final pure
+distributed-depth white-box U-PCR score on the exact common row set. The
+comparison covers 31,440 candidate rows in the same 13 dataset/model cells.
+Hallucination (`incorrect = 1`) is the positive class throughout. The previous
+gray-box report's AUPRC is not reused because it used correctness as positive.
+
+**Protocol**: Gray complete-case availability is reconstructed from the raw
+candidate features without reading labels. White frozen row IDs are
+intersected with those rows; label-free risk scores and source/score hashes are
+frozen before evaluation reopens correctness. Evaluation uses equal-cell macro
+metrics rather than a 31,440-row pool. Its paired uncertainty is a deterministic
+2,000-draw bootstrap over the 13 cells. Because this comparison and its hybrid
+were specified after observing both component studies, inference is descriptive
+and post-hoc.
+
+**Result**: Pure white-box U-PCR scores **0.781690 AUROC / 0.677048
+hallucination AUPRC**, while gray mixed-v2 DUFS-LIU scores **0.782994 /
+0.687731**. White minus gray is -0.001304 AUROC
+[-0.016931,+0.012300] and -0.010683 AUPRC [-0.035363,+0.011078]. Under the
+same deployed U-PCR solver, white is +0.000750 AUROC
+[-0.012926,+0.013420] and -0.009188 AUPRC [-0.030266,+0.009897]. White has
+broader coverage (42,238 scorable candidates versus 31,467 gray complete
+cases), but the final scores are strongly redundant (mean per-cell Spearman
+0.8677).
+
+**Exploratory hybrid**: Equal-z averaging the final white and gray risks gives
+0.790203/0.690580 and a +0.007209 AUROC delta over gray DUFS-LIU
+[+0.000101,+0.014105]. The lower bound is close to zero, AUPRC remains
+uncertain, and this is an after-the-fact combination; freeze it only as a
+candidate for new data, not as a promoted result.
+
+**Decision**: White-box alone is a practical AUROC tie and has no demonstrated
+aggregate performance advantage over gray `mixed-v2`; its clear current
+advantage is coverage. Preserve both modalities for a future preregistered
+hybrid test. Status remains **POSTHOC / PRELIMINARY / WHITE VALIDATION
+BLOCKED** until corrected live Gate B and the architecture-fidelity pilot pass.
+
+**Verification**: 72 white-box unit/contract tests pass, the frozen six-cell
+full-data audit passes, the matched report contains no external assets or
+`<pre>` body, score archives contain no label-like fields, and source, score,
+and report manifests hash the committed artifacts.
+
+**Artifacts**: `scripts/whitebox_graybox_matched_comparison.py`,
+`scripts/test_whitebox_graybox_matched_comparison.py`, and
+`results/whitebox_vs_graybox_matched_v1/` (run definition, source/score/report
+manifests, exact-row tables, frozen label-free scores, Markdown and
+self-contained HTML reports).
+
+---

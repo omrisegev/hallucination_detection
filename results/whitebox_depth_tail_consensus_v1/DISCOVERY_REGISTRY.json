@@ -1,0 +1,42 @@
+{
+  "analysis_role": "retrospective_post_outcome_search; not preregistered",
+  "registry": {
+    "entropy_burst": {
+      "role": "previous retrospective component",
+      "source": "whitebox-depth-consensus-v1"
+    },
+    "max_entropy_excess_over_top1_top8": {
+      "aggregation": "eight globally anchor-reliable views; |Spearman| weights",
+      "depth_rule": "not forced; selected layers are reported",
+      "formula": "max_t[H(module, layer, token) + log p_top1(module, layer, token)]"
+    },
+    "max_target_nll_spread8": {
+      "aggregation": "two anchor-reliable views per depth quartile; |Spearman| weights",
+      "depth_rule": "four equal contiguous bands; two views per band",
+      "formula": "max_t[-log p_target(module, layer, token)]"
+    },
+    "max_token_entropy": {
+      "role": "previous retrospective component",
+      "source": "whitebox-depth-consensus-v1"
+    },
+    "max_top1_surprisal_spread8": {
+      "aggregation": "two anchor-reliable views per depth quartile; |Spearman| weights",
+      "depth_rule": "four equal contiguous bands; two views per band",
+      "formula": "max_t[-log p_top1(module, layer, token)]"
+    },
+    "prediction_revision": {
+      "role": "previous retrospective component",
+      "source": "whitebox-depth-consensus-v1"
+    },
+    "top1_sharpness": {
+      "role": "previous retrospective component",
+      "source": "whitebox-depth-consensus-v1"
+    }
+  },
+  "registry_sha256": "304143a6d9598fe7b5b9ed98fda7fde7ba1e646f5ce9420b3d884eaa44bc5a0a",
+  "selection_history": "Selected retrospectively after a 245-component token-tail screen and a compact combination audit on these same 13 eligible cells. The chosen combination was preferred for performance on both the original six-cell and architecture-cell subsets; neither subset is independent confirmation because both had appeared in earlier experiment history.",
+  "success_target": "macro AUROC above both the best-single-layer oracle and TriLens grouped L2 probe",
+  "validation_status": "PRELIMINARY / VALIDATION BLOCKED",
+  "version": "whitebox-depth-tail-consensus-v1-2026-08-14",
+  "written_utc": "2026-08-13T21:17:00.219141+00:00"
+}

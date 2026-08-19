@@ -261,6 +261,84 @@ class FeatureMatrix:
         return int(self.values.shape[1])
 
 
+@dataclass(frozen=True)
+class GroupContributionSpace:
+    """One anchor-oriented IU-PCR score decomposed into fixed groups.
+
+    The feature matrix has already been standardized by the canonical
+    white-box contract.  ``contributions`` is samples by groups and sums back
+    to ``baseline_score`` to floating-point precision.  The object contains no
+    correctness field and is therefore safe to pass across the fit boundary.
+    """
+
+    families: tuple[str, ...]
+    members: tuple[np.ndarray, ...]
+    baseline_score: np.ndarray
+    contributions: np.ndarray
+    kept_feature_names: tuple[str, ...]
+    kept_feature_weights: np.ndarray
+    diagnostics: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class ContributionResidualTransform:
+    """Cell-local centering, scaling, and IU-orthogonalization parameters."""
+
+    families: tuple[str, ...]
+    baseline_mean: float
+    baseline_scale: float
+    contribution_mean: np.ndarray
+    contribution_scale: np.ndarray
+    baseline_loadings: np.ndarray
+    residual_mean: np.ndarray
+    residual_scale: np.ndarray
+
+    def apply(
+        self, baseline_score: Sequence[float], contributions: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray]:
+        baseline = np.asarray(baseline_score, dtype=float)
+        values = np.asarray(contributions, dtype=float)
+        if baseline.ndim != 1 or values.shape != (len(baseline), len(self.families)):
+            raise ValueError("baseline/contribution shapes disagree with the transform")
+        standardized_baseline = (baseline - self.baseline_mean) / self.baseline_scale
+        standardized_contributions = (
+            values - self.contribution_mean[None, :]
+        ) / self.contribution_scale[None, :]
+        residuals = (
+            standardized_contributions
+            - standardized_baseline[:, None] * self.baseline_loadings[None, :]
+        )
+        residuals = (
+            residuals - self.residual_mean[None, :]
+        ) / self.residual_scale[None, :]
+        return standardized_baseline, residuals
+
+
+@dataclass(frozen=True)
+class NeutralResidualCalibration:
+    """Cross-cell, label-free neutral residual mode in a fixed group basis."""
+
+    families: tuple[str, ...]
+    direction: np.ndarray
+    residual_covariance: np.ndarray
+    eigenvalues: np.ndarray
+    selected_index: int
+    source_ids: tuple[str, ...]
+    diagnostics: Mapping[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class NeutralResidualScore:
+    """Standardized IU-PCR plus the frozen neutral residual correction."""
+
+    score: np.ndarray
+    standardized_iu_score: np.ndarray
+    correction: np.ndarray
+    delta: np.ndarray
+    transform: ContributionResidualTransform
+    diagnostics: Mapping[str, Any] = field(default_factory=dict)
+
+
 def assert_same_protocol(*matrices: FeatureMatrix) -> None:
     """Reject comparisons that do not contain the same ordered candidate cohort."""
 
@@ -1478,6 +1556,234 @@ def fit_hierarchical(
     return score, diagnostics
 
 
+def fit_group_contribution_space(
+    matrix: FeatureMatrix,
+    *,
+    family_names: Sequence[str] | None = None,
+) -> GroupContributionSpace:
+    """Fit IU-PCR and decompose its score into fixed feature groups.
+
+    This is the white-box analogue of the frozen NRM contribution-space
+    construction.  ``family_names`` may rename architecture-specific groups
+    (for example ``band_0_00_07`` and ``band_0_00_09``) into one common
+    cross-architecture basis, but it must remain aligned to the original
+    matrix columns.  No outcome or correctness vector is accepted.
+    """
+
+    source_families = tuple(matrix.groups if family_names is None else family_names)
+    if len(source_families) != matrix.n_features:
+        raise ValueError("family_names must align to the original FeatureMatrix")
+    X, keep, standardization = _standardize(matrix)
+    kept_families = tuple(str(source_families[int(index)]) for index in keep)
+    family_order = tuple(dict.fromkeys(kept_families))
+    if len(family_order) < 3:
+        raise ValueError("neutral residual mode requires at least three groups")
+    members = tuple(
+        np.flatnonzero(np.asarray(kept_families, dtype=object) == family)
+        for family in family_order
+    )
+    if any(len(indices) == 0 for indices in members):
+        raise AssertionError("empty contribution group after standardization")
+
+    F = X.T
+    fitted = upcr_fit(F, **IU_FIT_DEFAULTS)
+    raw_weights = np.asarray(fitted.w, dtype=float)
+    raw_score = raw_weights @ F
+    baseline, flipped = _anchor_orient(raw_score, matrix.risk_anchor)
+    weights = -raw_weights if flipped else raw_weights
+    contributions = np.column_stack([
+        weights[indices] @ F[indices] for indices in members
+    ])
+    reconstruction = np.sum(contributions, axis=1)
+    error = float(np.max(np.abs(reconstruction - baseline)))
+    tolerance = (
+        64.0 * np.finfo(float).eps
+        * max(1.0, float(np.max(np.abs(baseline))))
+        * max(1, F.shape[0])
+    )
+    if error > tolerance:
+        raise RuntimeError(
+            f"group contributions do not reconstruct IU-PCR: {error:.3e}"
+        )
+    return GroupContributionSpace(
+        families=family_order,
+        members=members,
+        baseline_score=np.asarray(baseline, dtype=float),
+        contributions=np.asarray(contributions, dtype=float),
+        kept_feature_names=tuple(matrix.feature_names[int(index)] for index in keep),
+        kept_feature_weights=weights,
+        diagnostics={
+            "labels_seen_during_fit": False,
+            "protocol_signature": matrix.protocol_signature,
+            "standardization": standardization,
+            "kept_column_indices": keep.tolist(),
+            "orientation_flipped": bool(flipped),
+            "n_samples": int(matrix.n_samples),
+            "n_features": int(F.shape[0]),
+            "n_families": int(len(family_order)),
+            "families": list(family_order),
+            "reconstruction_error": error,
+        },
+    )
+
+
+def _fit_contribution_residual_transform(
+    space: GroupContributionSpace,
+) -> ContributionResidualTransform:
+    baseline = np.asarray(space.baseline_score, dtype=float)
+    values = np.asarray(space.contributions, dtype=float)
+    if baseline.ndim != 1 or values.shape != (len(baseline), len(space.families)):
+        raise ValueError("invalid contribution space")
+    baseline_mean = float(np.mean(baseline))
+    baseline_scale = float(np.std(baseline))
+    if baseline_scale <= _EPS:
+        raise ValueError("IU-PCR score is constant")
+    b = (baseline - baseline_mean) / baseline_scale
+    contribution_mean = np.mean(values, axis=0)
+    contribution_scale = np.std(values, axis=0)
+    contribution_scale = np.where(contribution_scale > _EPS, contribution_scale, 1.0)
+    standardized = (
+        values - contribution_mean[None, :]
+    ) / contribution_scale[None, :]
+    denominator = max(float(np.dot(b, b)), _EPS)
+    loadings = (b @ standardized) / denominator
+    residuals = standardized - b[:, None] * loadings[None, :]
+    residual_mean = np.mean(residuals, axis=0)
+    residual_scale = np.std(residuals, axis=0)
+    residual_scale = np.where(residual_scale > _EPS, residual_scale, 1.0)
+    return ContributionResidualTransform(
+        families=space.families,
+        baseline_mean=baseline_mean,
+        baseline_scale=baseline_scale,
+        contribution_mean=contribution_mean,
+        contribution_scale=contribution_scale,
+        baseline_loadings=loadings,
+        residual_mean=residual_mean,
+        residual_scale=residual_scale,
+    )
+
+
+def fit_neutral_residual_calibration(
+    spaces: Sequence[GroupContributionSpace],
+    *,
+    source_ids: Sequence[str],
+) -> NeutralResidualCalibration:
+    """Estimate the frozen NRM mode from equal-weighted source cells.
+
+    The residual covariance of every source cell contributes once regardless
+    of candidate count.  The eigenmode closest to eigenvalue one is selected
+    and its sign is fixed by the equal-family risk direction, matching the
+    deployed NRM-CS-IU rule.  The API deliberately has no outcome argument.
+    """
+
+    spaces = tuple(spaces)
+    ids = tuple(str(value) for value in source_ids)
+    if not spaces or len(spaces) != len(ids):
+        raise ValueError("spaces and source_ids must be nonempty and aligned")
+    if len(set(ids)) != len(ids):
+        raise ValueError("source_ids must be unique")
+    families = spaces[0].families
+    if len(families) < 3:
+        raise ValueError("neutral residual calibration needs at least three families")
+    if any(space.families != families for space in spaces):
+        raise ValueError("all contribution spaces must share one ordered family basis")
+    covariance = np.zeros((len(families), len(families)), dtype=float)
+    sample_count = 0
+    for space in spaces:
+        transform = _fit_contribution_residual_transform(space)
+        _, residuals = transform.apply(space.baseline_score, space.contributions)
+        covariance += residuals.T @ residuals / len(residuals)
+        sample_count += len(residuals)
+    covariance /= len(spaces)
+    covariance = 0.5 * (covariance + covariance.T)
+    eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+    distances = np.abs(eigenvalues - 1.0)
+    selected = int(np.argmin(distances))
+    direction = np.asarray(eigenvectors[:, selected], dtype=float)
+    anchor_dot = float(np.sum(direction))
+    if abs(anchor_dot) <= _EPS:
+        pivot = int(np.argmax(np.abs(direction)))
+        sign = 1.0 if direction[pivot] >= 0 else -1.0
+    else:
+        sign = 1.0 if anchor_dot > 0 else -1.0
+    direction *= sign
+    alternatives = np.delete(distances, selected)
+    gap = float(np.min(alternatives) - distances[selected]) if len(alternatives) else 0.0
+    return NeutralResidualCalibration(
+        families=families,
+        direction=direction,
+        residual_covariance=covariance,
+        eigenvalues=eigenvalues,
+        selected_index=selected,
+        source_ids=ids,
+        diagnostics={
+            "labels_seen_during_fit": False,
+            "uses_outcomes": False,
+            "n_source_cells": int(len(spaces)),
+            "n_source_samples": int(sample_count),
+            "equal_cell_covariance_weighting": True,
+            "selected_eigenvalue": float(eigenvalues[selected]),
+            "distance_from_unit": float(distances[selected]),
+            "unit_distance_gap": gap,
+            "orientation_anchor": "equal-family risk direction",
+            "orientation_anchor_dot": float(np.sum(direction)),
+            "direction_norm": float(np.linalg.norm(direction)),
+        },
+    )
+
+
+def apply_neutral_residual_calibration(
+    space: GroupContributionSpace,
+    calibration: NeutralResidualCalibration,
+) -> NeutralResidualScore:
+    """Apply a frozen cross-cell NRM direction to one unlabeled target cell."""
+
+    if space.families != calibration.families:
+        raise ValueError("target contribution families do not match calibration")
+    direction = np.asarray(calibration.direction, dtype=float)
+    if direction.shape != (len(space.families),) or not np.isfinite(direction).all():
+        raise ValueError("calibration direction is invalid")
+    transform = _fit_contribution_residual_transform(space)
+    baseline, residuals = transform.apply(space.baseline_score, space.contributions)
+    raw_correction = residuals @ direction
+    raw_scale = float(np.std(raw_correction))
+    trust_ratio = 1.0 / len(space.families)
+    if raw_scale <= _EPS or float(np.linalg.norm(direction)) <= _EPS:
+        delta = np.zeros(len(space.families), dtype=float)
+        correction = np.zeros(len(baseline), dtype=float)
+    else:
+        delta = trust_ratio * direction / raw_scale
+        correction = residuals @ delta
+    score = baseline + correction
+    covariance = float(np.mean(
+        (baseline - float(np.mean(baseline)))
+        * (correction - float(np.mean(correction)))
+    ))
+    if not np.isfinite(score).all():
+        raise RuntimeError("NRM produced a non-finite score")
+    return NeutralResidualScore(
+        score=np.asarray(score, dtype=float),
+        standardized_iu_score=np.asarray(baseline, dtype=float),
+        correction=np.asarray(correction, dtype=float),
+        delta=np.asarray(delta, dtype=float),
+        transform=transform,
+        diagnostics={
+            "labels_seen_during_fit": False,
+            "uses_outcomes": False,
+            "n_families": int(len(space.families)),
+            "families": list(space.families),
+            "trust_ratio": float(trust_ratio),
+            "raw_correction_scale": raw_scale,
+            "correction_scale": float(np.std(correction)),
+            "baseline_correction_covariance": covariance,
+            "selected_eigenvalue": float(
+                calibration.eigenvalues[calibration.selected_index]
+            ),
+            "source_ids": list(calibration.source_ids),
+        },
+    )
+
+
 def assert_no_label_fitting_signatures() -> None:
     """Mechanical leakage gate used by the benchmark and its unit tests."""
 
@@ -1487,6 +1793,8 @@ def assert_no_label_fitting_signatures() -> None:
         fit_dependency_methods,
         fit_hierarchical,
         fit_haloscope_direct_proxy,
+        fit_group_contribution_space,
+        fit_neutral_residual_calibration,
     )
     failures = {}
     for function in fitting_functions:
@@ -1532,5 +1840,12 @@ __all__ = [
     "fit_core_spectral",
     "fit_dependency_methods",
     "fit_hierarchical",
+    "GroupContributionSpace",
+    "ContributionResidualTransform",
+    "NeutralResidualCalibration",
+    "NeutralResidualScore",
+    "fit_group_contribution_space",
+    "fit_neutral_residual_calibration",
+    "apply_neutral_residual_calibration",
     "assert_no_label_fitting_signatures",
 ]

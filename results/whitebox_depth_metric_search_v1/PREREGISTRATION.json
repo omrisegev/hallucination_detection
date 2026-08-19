@@ -1,0 +1,54 @@
+{
+  "analysis_role": "retrospective_discovery_screen",
+  "bootstrap_draws": 2000,
+  "bootstrap_seed": 20260812,
+  "fusion_methods": [
+    "equal_mean",
+    "iu_pcr",
+    "dufs_liu_pcr",
+    "hierarchical_iu_pcr"
+  ],
+  "layer_organic_rule": "features sharing the same transformer layer form one fixed group",
+  "metric_registry": {
+    "ghost_geometry": {
+      "display": "GHOST geometric trajectory proxy",
+      "formula": "per selected layer l: 1-cos(h_l,h_{l+1}) and cos(h_l,h_final)",
+      "layer_policy": "floor(0.1L) through ceil(0.9L), transitions ending before upper bound",
+      "literature_basis": "Mao et al. (ACL 2026): adjacent-layer angular turbulence and premature similarity to the final state distinguish confused and stubborn hallucinations",
+      "readout": "fixed-seed 256-D Gaussian projection of the mean generated-token residual state; response-level proxy, not paper-exact token states",
+      "risk_direction": "+turbulence; +premature convergence"
+    },
+    "module_conflict": {
+      "display": "TriLens module-conflict trajectory",
+      "formula": "per layer, standard deviation across attention/MLP/residual token-mean entropy, target NLL, and top-1 surprisal",
+      "layer_policy": "all layers",
+      "literature_basis": "TriLens: attention, MLP, and residual logit-lens entropy pathways carry complementary evidence and may disagree while settling",
+      "readout": "mean over generated-token positions before module dispersion",
+      "risk_direction": "+cross-module disagreement"
+    },
+    "prediction_revision": {
+      "display": "Prediction-revision trajectory",
+      "formula": "per transition l-1->l: |delta entropy|, positive target-NLL regression, positive top1-surprisal regression, and KL(current||final)",
+      "layer_policy": "all transitions",
+      "literature_basis": "DoLa and Jiang et al.: factuality is reflected by prediction changes between premature and mature layers",
+      "readout": "mean over generated-token positions before depth difference",
+      "risk_direction": "+revision/instability"
+    },
+    "target_commitment": {
+      "display": "Target-token commitment trajectory",
+      "formula": "x_l = mean_t[-log p_l(generated_token_t)] on residual stream",
+      "layer_policy": "all layers",
+      "literature_basis": "Jiang et al. (NAACL 2024): generated-token probability evolves differently across depth for correct and hallucinated facts",
+      "readout": "mean over generated-token positions",
+      "risk_direction": "+target NLL"
+    }
+  },
+  "metric_registry_sha256": "ea8f99f3479647d8804db2f4de75320f810ad873148a351899b4d9f8d691dfe9",
+  "orientation": "fixed risk signs, globally oriented only by final-layer target-token NLL",
+  "primary_fusion_method": "iu_pcr",
+  "secondary_fusion_method": "dufs_liu_pcr",
+  "success_rule": "a discovery candidate must beat its evaluation-only per-cell best-layer oracle and the existing TriLens grouped-L2-probe macro AUROC; independent confirmation is still mandatory",
+  "validation_status": "PRELIMINARY / VALIDATION BLOCKED",
+  "version": "whitebox-depth-metric-search-v1-2026-08-13",
+  "written_utc": "2026-08-13T19:01:00.589852+00:00"
+}

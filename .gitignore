@@ -173,3 +173,40 @@ dataset_cache/whitebox_layer_fusion_v1/
 !results/whitebox_layer_fusion_v2/scores/*.npz
 !results/whitebox_layer_fusion_v2/figures/
 !results/whitebox_layer_fusion_v2/figures/*.svg
+
+# Retrospective white-box NRM addendum: retain the compact frozen scores,
+# label-free fit diagnostics, and audit figures referenced by its manifests.
+!results/whitebox_layer_fusion_nrm_v1/scores/
+!results/whitebox_layer_fusion_nrm_v1/scores/*.npz
+!results/whitebox_layer_fusion_nrm_v1/diagnostics/
+!results/whitebox_layer_fusion_nrm_v1/diagnostics/*.json
+!results/whitebox_layer_fusion_nrm_v1/figures/
+!results/whitebox_layer_fusion_nrm_v1/figures/*.svg
+
+# Retrospective organic-layer NRM addendum: retain frozen scores, label-free
+# diagnostics, and the separate audit figures referenced by its manifests.
+!results/whitebox_layer_organic_nrm_v1/scores/
+!results/whitebox_layer_organic_nrm_v1/scores/*.npz
+!results/whitebox_layer_organic_nrm_v1/diagnostics/
+!results/whitebox_layer_organic_nrm_v1/diagnostics/*.json
+!results/whitebox_layer_organic_nrm_v1/figures/
+!results/whitebox_layer_organic_nrm_v1/figures/*.svg
+
+# Final retrospective distributed-depth white-box candidates: retain compact
+# frozen scores and audit figures; prepared feature matrices stay reproducible
+# from the Drive-backed source freeze and remain local.
+!results/whitebox_depth_distributed_consensus_v1/scores/
+!results/whitebox_depth_distributed_consensus_v1/scores/*.npz
+!results/whitebox_depth_distributed_consensus_v1/figures/
+!results/whitebox_depth_distributed_consensus_v1/figures/*.svg
+!results/whitebox_depth_distributed_pure_v1/scores/
+!results/whitebox_depth_distributed_pure_v1/scores/*.npz
+!results/whitebox_depth_distributed_pure_v1/figures/
+!results/whitebox_depth_distributed_pure_v1/figures/*.svg
+
+# Exact-row post-hoc white/gray comparison: scores contain row IDs and frozen
+# risk values only, never labels; retain them with the report audit figure.
+!results/whitebox_vs_graybox_matched_v1/scores/
+!results/whitebox_vs_graybox_matched_v1/scores/*.npz
+!results/whitebox_vs_graybox_matched_v1/figures/
+!results/whitebox_vs_graybox_matched_v1/figures/*.svg
