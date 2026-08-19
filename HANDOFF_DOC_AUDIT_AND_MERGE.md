@@ -180,15 +180,22 @@ Question 3 in `HANDOFF_CODEX_2026_08_18.md`.
 **Unblocked and not waiting on anyone.** The offline DeepConf derivation over the
 K=512 pool. No GPU, no registry.
 
-**Cluster.** Unreachable at the time of writing — `ssh aircc` times out, which
-normally means the TAU VPN is down. Two consequences to fix when it returns:
-the final re-sync failed mid-transfer (`tar: Cannot write: Broken pipe`), and
-`repo_docs/` on Drive therefore still carries the stamp of `ca34659` rather than
-`58740ce`. It is missing exactly the LOS-Net extraction. Re-run
-`bash cluster/sync_code.sh` then `bash cluster/upload_docs.sh`; `rclone copy` is
-idempotent, so it tops up rather than re-uploads. Verify with
-`bash cluster/upload_docs.sh --status`, and treat an empty status output as "ssh
-is down", not "nothing to report".
+**Cluster.** Reachable again; the VPN outage during writing is resolved. The
+sync and publish that had failed mid-transfer (`tar: Cannot write: Broken pipe`)
+were re-run and verified: `repo_docs/` now carries the stamp of `022d995` and
+matches the filtered source at **577 objects / 64,211,939 B**, with `rclone
+check` reporting 0 differences. The queue is empty and nothing is running.
+
+One correction worth carrying forward, because it was stated wrongly first:
+`repo_docs/` was **not** missing the LOS-Net extraction while it was missing from
+git. `cluster/sync_code.sh` tars the *working tree*, not the git index, so an
+untracked file syncs and publishes like any other. Drive and git can therefore
+disagree in this direction, and only git's view is the one a fresh clone gets —
+which is exactly why the audit in Job 2 must check `git ls-files` rather than the
+filesystem or Drive.
+
+Treat an empty `bash cluster/upload_docs.sh --status` output as "ssh is down",
+not "nothing to report".
 
 ---
 
