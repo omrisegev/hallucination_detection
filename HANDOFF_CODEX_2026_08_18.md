@@ -397,3 +397,70 @@ the contract exists to prevent.
 
 Unblocked and not waiting on this: the offline DeepConf derivation over the K=512 pool,
 which needs no GPU and no registry.
+
+---
+
+## 10. Where everything is, and what is still missing — 2026-08-19
+
+### The documents are updated and published
+
+`HISTORY.md` gains Steps 274 (protocol recovery + verification) and 275
+(acquisitions + backups, including the Fair Comparison v1 blocker).
+`PROGRESS.md` gains a new head and two sections. `Research_Directions.md` records
+that the Step-273 disposition is verified and unchanged, and that the
+advisor-facing row is the three-row same-access table rather than either stage
+number. Commits `2981ae1`, `20d72b4`, `4877799`, `c730444`, all pushed to
+`paper-exact/acquisition-v1`.
+
+One factual correction was made in place rather than only superseded: PROGRESS's
+Step-273 entry attributed SHA-256 `c921b0d4...` to
+`docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.md`. That file hashes to
+`b5991a89...`; the `c921b0d4` bytes are the recovered
+`.frozen-c921b0d4.md` snapshot. That mistaken pointer is exactly what cost a
+session, so leaving it correct-only-further-down was not an option.
+
+### Drive layout
+
+| Path | Contents | Verified |
+|---|---|---|
+| `cluster_results/paper_exact/m2_deepconf_k512` | K=512 acquisition | 361 files / 20,189,077,984 B, byte-identical |
+| `cluster_results/paper_exact/m2_deepconf_full` | older K=4096 partial pool, kept separate | 297 files / 17,744,439,979 B |
+| `cluster_results/paper_exact/s1_refrain_full` | REFRAIN acquisition | 22 files / 3,185,291,662 B, byte-identical |
+| `repo_docs/` | the text record: handoffs, HISTORY/PROGRESS/roadmap/glossary, `docs/**`, papers, `results/paper_exact_summaries/**`, the 42 frozen `local_online_comprehensive_v1` artifacts | 576 objects / 64,196,478 B, `rclone check` 0 differences |
+
+`repo_docs/` is published by `cluster/upload_docs.sh` from the cluster's synced
+tree, and carries `SYNC_COMMIT.json` so the snapshot on Drive names the commit it
+came from. Its filters are include-only so the destination cannot silently
+accumulate pickles. It is a separate destination from `cluster_results/` on
+purpose: those are documents *about* the runs, and mixing them stops the
+acquisition mirror being a mirror.
+
+The cluster tree is synced and no longer pinned at `0f5951a`. It now carries the
+S2 chat-template gate, the AQuA letter grader and empty-run detection. Nothing
+was launched.
+
+### What is missing, in priority order
+
+1. **`codex/fair-paper-exact-comparisons-v1` (Question 3, §9).** The blocker. All
+   four named assets are absent and no `codex/*` branch exists on our remote.
+   Without it the approved CPU-first scoring of the 3,400-row table cannot start,
+   and it is deliberately not being reimplemented from its description.
+2. **`STAGE_1_LOCAL_PER_QUESTION.csv` from the original Mac run**, if it still
+   exists anywhere. The replay's copy differs only by ~1e-14 drift in `score`,
+   but having the original would let the recorded `83529f8d...` be confirmed
+   directly instead of inferred from the four derived artifacts.
+3. **Glossary coverage gap, pre-existing and not closed here.** `a8_lscae`,
+   `a9_dpp`, `a10_mmdufs` and `a11_rfae_scfs` shipped on 2026-08-05 with no
+   entry in `spectral_utils/glossary.py`, so `scripts/build_glossary.py` has been
+   failing its own coverage check since; `GLOSSARY.md` was last generated
+   2026-08-12 without them and this regeneration needed `--allow-gaps` too. They
+   are not described from guesswork here because the glossary duplicates
+   HISTORY's narrative deliberately, and a wrong description there propagates.
+   Whoever built them should write those four entries.
+4. **Mistral model identity** remains deliberately unresolved. Selecting the
+   variant whose published accuracy matches ours would be tuning to the target.
+
+### What is unblocked and not waiting on anyone
+
+The offline DeepConf derivation over the K=512 pool. No GPU, no registry, and the
+pool is now complete, gate-verified and backed up.
