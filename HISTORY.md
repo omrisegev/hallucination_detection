@@ -13232,3 +13232,230 @@ the user approves it.
 **Handoff**: `HANDOFF_fair_paper_exact_comparisons_2026-08-18.md`.
 
 ---
+
+### Step 275 — Implement and falsify the DSP-contextual IU router
+
+**What**: Froze and implemented a CPU-only staged pilot for a label-blind,
+source-question-balanced DSP-contextual IU router. Added covariance-entry IU,
+causal core/DSP contexts, distinct-question nearest neighbours, local covariance
+shrinkage, sign/leverage alignment, exact IU fallback, synthetic worlds,
+automatic S0--S4 gates, audit artifacts, and focused regression tests. A
+pre-run mechanics test exposed and corrected the impossible combination of a
+32-neighbour Gaussian kernel with a required effective sample size of 32 by
+adding eight deterministic neighbour questions of headroom.
+
+**Why**: The prior family-relevance analysis showed label-oracle conditional
+specialization but no deployable router. The new Local Manifold Explanations
+paper and the existing causal DSP states motivated testing whether DSP context
+could organize family reliability before investing in LPCA, LTSREx, LEGO, or
+real-data model development.
+
+**Result**: The sealed S0 gate failed before any real ProcessBench cache or
+label was opened. Across 20 seeds, the informative switching-family world fell
+from 0.8422 IU AUROC to 0.8161 contextual AUROC (delta -0.0261; 8/20 wins;
+worst -0.1019). The context-independent null was nearly inert (-0.0004), while
+coherent nuisance fell from 0.7394 to 0.6002 (delta -0.1392; 0/20 wins; worst
+-0.1650). Exact global fallback, source-question duplication invariance, and
+observational-equivalence identity passed. Verdict: `STOP_NO_ROUTING_SIGNAL`;
+S1--S4 were written as `SKIPPED_BY_S0`, and no LPCA/LTSREx/LEGO or fresh
+inference is justified. Eight focused and regression test scripts pass.
+
+**Files changed**:
+- `spectral_utils/contextual_iu.py` — contextual router, context contract, and diagnostics
+- `spectral_utils/upcr.py` — covariance-entry IU API with exact regression identity
+- `spectral_utils/__init__.py` — public covariance-entry IU export
+- `scripts/dsp_contextual_iu_synthetic.py` — frozen S0 worlds and gates
+- `scripts/run_dsp_contextual_iu_pilot.py` — stage enforcement, audit, manifest, and reports
+- `scripts/test_contextual_iu.py` — mechanics, causality, duplication, and firewall tests
+- `docs/experiments/DSP_CONTEXTUAL_IU_PILOT_V1.md` — frozen protocol and claim boundary
+- `results/dsp_contextual_iu_pilot_v1/` — canonical scores, decisions, audit, and report
+
+---
+
+### Step 276 — Test whether supervised c-STG can expose DSP routing signal
+
+**What**: Registered and ran a CPU-only supervised mechanism diagnostic based
+on Conditional Stochastic Gates. The new `ContextualSTGModel` implements the
+paper's Gaussian gate relaxation with a context hypernetwork, but freezes the
+project's risk orientation by constraining prediction weights non-negative and
+giving context no direct prediction path. The experiment used Qwen3-4B
+GSM8K/MATH calibration to fit and development to evaluate; architecture/audit
+targets were not used. Localization explanatory coordinates were six
+family-level step top-five means. Early coordinates were twelve family
+fast/slow endpoints at budgets 64 and 128. Core and 30-D causal DSP contexts
+were compared with family-only, context-only, feature-augmentation, core-only,
+and permuted-context controls. Three fixed seeds were ensembled, and intervals
+used 2,000 source-question bootstrap draws.
+
+**Why**: The unsupervised DSP-kNN/local-covariance router failed synthetically,
+but that did not answer whether the measured context itself contained an
+accessible conditional-reliability signal. c-STG is the closest router
+architecture among the Local Manifold Explanations authors' related work. A
+supervised held-question run provides a stringent sufficiency test before
+investing in DiSC, LTSREx, or LEGO.
+
+**Result**: `STOP_CONTEXT_NOT_SUFFICIENT`. Equal-family Localization F1 was
+0.2812 for DSP c-STG versus 0.3503 for global balanced LR, delta -0.0690 with
+95% CI [-0.1505,+0.0042]. Early AUROC@64/128 was 0.5906 versus 0.5995, delta
+-0.0088 [-0.0485,+0.0297]. GSM8K Early had a small +0.0073 point estimate, but
+MATH lost -0.0249 and breached the family guard. DSP c-STG was +0.0032 over
+linear feature augmentation in Early but uncertain; its permuted-context
+control scored 0.5994, above the real-context router. Gate/utility Spearman was
+near zero or negative.
+
+Mechanical collapse was rejected. The registered switching-family test passed
+above 0.90 AUROC and recovered the active gates; real gates varied strongly and
+the DSP models fit calibration objectives more aggressively than core-only
+models. The failure is alignment/generalization, not failure to actuate. The
+earlier +2.833pp completed-trace oracle is not a Local/Early oracle ceiling, so
+this result supports only the narrow conclusion that present DSP context is
+not a robust routing key for these tasks. LTSREx/LEGO remain unopened pending
+an independent target-relevant observation or verified intervention.
+
+**Files changed**:
+- `spectral_utils/contextual_stg.py` — oriented c-STG implementation
+- `spectral_utils/__init__.py` — public c-STG exports
+- `scripts/test_contextual_stg.py` — known-answer, determinism, and grouping tests
+- `scripts/run_contextual_stg_router_diagnostic.py` — frozen data construction, controls, grouped evaluation, and report
+- `docs/experiments/CONTEXTUAL_STG_ROUTER_DIAGNOSTIC_V1.md` — claim boundary and decision gate
+- `results/contextual_stg_router_diagnostic_v1/` — canonical tables, diagnostics, audit, decision, manifest, and report
+
+**Verification**: `scripts/test_contextual_stg.py`,
+`scripts/test_contextual_iu.py`, `scripts/test_local_online_comprehensive.py`,
+and `scripts/test_global_local_online.py` all pass. No new inference, GPU,
+cluster use, download, Drive mutation, staging, commit, or push occurred.
+
+---
+
+### Step 277 — Correct the c-STG test to Global hallucination detection
+
+**What**: Registered and ran the c-STG router diagnostic on the exact frozen
+24-cell completed-trace Global panel where the +2.833pp IU-rank specialization
+premise had originally been measured. The six frozen family contributions sum
+to IU-PCR within 8.9e-16 and were not re-oriented. Evaluation uses balanced
+five-fold training, within-fold AUROC/AUPRC averaging, three fixed c-STG seeds,
+equal-dataset-family aggregation, and matched global-LR, context-only,
+feature-augmentation, quartile-router, and permuted-context controls.
+
+**Why**: Step 276 answered a Local/Early DSP question, not the user's intended
+Global hallucination-detection question. The related-author c-STG architecture
+is useful only if a held-out conditional gate can turn the existing Global
+oracle specialization into performance beyond a supervised global mixture.
+
+**Result**: The registered primary fails. `cstg_iu_rank` is 0.7464
+equal-family AUROC versus 0.7506 for global LR, delta -0.0042 with 95% CI
+[-0.0140,+0.0041] and 3/8 family wins. The training-fold quartile selector is
+0.7380. Rank feature augmentation gives a small +0.0017 [0.0003,0.0032], but
+that is a direct supervised nonlinear refit rather than successful routing.
+
+The exploratory three-coordinate core c-STG is informative but not promotable:
+0.7563 equal-family AUROC, +0.0057 [-0.0051,+0.0193] versus global LR and 4/8
+wins. It beats matched augmented-core LR by +0.0057 [-0.0019,+0.0141] and the
+permuted-core c-STG by +0.0148 [0.0061,+0.0252], 7/8 wins. However, its
+ordinary cell macro (0.7856) is slightly below global LR (0.7867), and GSM8K
+and MATH500 lose. This establishes a heterogeneous context-by-family
+association, not a stable detector gain. Decision:
+`GLOBAL_ORACLE_NOT_ACCESSIBLE_BY_CSTG`; do not escalate to LTSREx/LEGO on this
+evidence.
+
+**Files added**:
+- `scripts/run_global_contextual_stg_router_diagnostic.py`
+- `docs/experiments/GLOBAL_CONTEXTUAL_STG_ROUTER_DIAGNOSTIC_V1.md`
+- `results/global_contextual_stg_router_diagnostic_v1/`
+
+**Verification**: checkpoint/resume completed; `scripts/test_contextual_stg.py`,
+`scripts/test_contextual_iu.py`, and `scripts/test_family_relevance.py` pass.
+No inference, GPU, cluster use, download, Drive mutation, staging, commit, or
+push occurred.
+
+---
+
+### Step 278 — Integrate the new manifold/geometry literature
+
+**What**: Read and indexed five newly added papers in full, alongside the
+existing Local Manifold Explanations paper, and produced extracted text,
+structured digest cards, and a cross-paper synthesis. The review explicitly
+separated geometric estimators from the observations or labels that give them
+hallucination semantics, mapped every proposal to Global, Localization, and
+Early Detection, and compared them with IU-PCR, DUFS-LIU, NRM, Atomic,
+DSP-contextual routing, family c-STG, Unified-28, and the dedicated heads. An
+independent adversarial agent reviewed the completed draft.
+
+**Result**: `DIAGNOSTIC ONLY`. None of the papers supplies a deployable,
+label-free reliability key for the existing IU router. APORIA adds repeated-
+response semantic observables, but its effective Fisher direction is
+prompt-local and labelled. PCNET and Density Ridge add white-box hidden-state
+observables, but factuality comes from supervised calibration. LTSREx/LEGO
+explain or stabilize an already selected manifold and Tiberi decomposes a
+known-environment supervised target direction; none identifies correctness.
+Running these estimators on mixed-v2 or DSP would repeat the already closed
+current-X geometry question.
+
+The adversarial review corrected three overclaims: new observables are not
+label-free target information; A6/PTNI is still only a candidate source whose
+S0a mechanics passed; and Tiberi is a post-hoc transport audit rather than a
+router or score improver. The only unresolved cheap falsifier is a future
+label-blind APORIA-style cohesion test on public repeated responses, evaluated
+on held prompts/model families against agreement, Semantic Entropy, and
+length. It is not authorized or run here. A6-S0b remains the independent
+frozen next gate; the new literature does not modify it.
+
+**Files added/updated**:
+- `papers/extracted/2026-03-23-713692v2-full.md` and four other full extracts
+- `papers/digests/2026-03-23-713692v2-full.md` and four other digest cards
+- `papers/index.md`
+- `docs/research_notes/manifold_hallucination_literature_integration_2026-08-19.md`
+- `PROGRESS.md`
+- `Research_Directions.md`
+
+No detector was implemented; no labels, LLM/embedding inference, GPU, cluster,
+Drive mutation, staging, commit, or push occurred.
+
+---
+
+### Step 279 — Publish and independently verify Fair Paper-Exact Comparison Package v1
+
+**What**: Froze ordinary Unified-28 and built four separate comparison lanes:
+Global final-answer detection, ProcessBench first-error Localization, causal
+Prefix detection, and stopping/adaptive compute. Every eligible direct table
+uses canonical identical row IDs, the same evaluator, frozen cross-fitted
+calibration, explicit fidelity/access labels, and the lane's dedicated
+incumbent; incomplete and blocked acquisitions stay outside headline
+aggregates. The package includes per-question records, registries, calibration
+ledgers, paired intervals, missing-assets and GPU-gate ledgers, an advisor HTML
+report, and a full hash manifest.
+
+**Why**: The competitor acquisition was complete enough to support precise
+CPU-local comparisons, while another feature/DUFS search would have reused
+opened evidence without answering the publication question. Earlier Unified-28
+development tables also used different task bars, so they could not substitute
+for identical-population comparisons against the dedicated incumbents.
+
+**Result**: The strict join accepted 148,502/148,502 records with no duplicate,
+label, coverage, or artifact-hash conflict. With 2,000 paired grouped bootstrap
+draws (seed `20260818`), Unified-28 is below its dedicated incumbent on Global
+ProcessBench AUROC (0.662910 vs 0.687036; delta -0.024125
+[-0.041678,-0.007466]), Localization macro-F1 (0.284832 vs 0.326141; delta
+-0.041310 [-0.063480,-0.016467]), and Prefix mean AUROC@64/128 (0.578103 vs
+0.606721; delta -0.028617 [-0.052068,-0.004390]). It does beat the
+Mind-the-Gap common Localization replay by +0.082376
+[+0.059730,+0.117390]. LEASH saves 20.2%--49.9% realized tokens across six
+complete cells but lowers pass@1 in all six; Unified-28 stopping remains
+ineligible. The 24-cell replay is coverage-only on six identity-proven cells /
+3,238 rows. The 61-file package rebuilt byte-identically (tree SHA-256
+`957cf08e94995d7b28143f1d53dd08062e80a8beab6c52650fb670ad1295260c`),
+146 focused tests passed with one expected opt-in cache test skipped, and no
+GPU, cluster job, Drive mutation, large download, or method search occurred.
+The result package remains bound to build commit `baaa4a5` and publication
+commit `bc296ff`; later clarifications to the canonical Unified narrative do
+not rewrite the package's original protocol/content hashes.
+
+**Files changed**:
+- `docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md` — frozen four-lane protocol and acceptance gates
+- `results/fair_paper_exact_comparisons_v1/` — canonical 61-file comparison package and reports
+- `results/fair_paper_exact_comparisons_v1_REBUILD_VERIFICATION.json` — independent byte-identical rebuild attestation
+- `spectral_utils/fair_comparisons/` — strict registries, adapters, evaluators, lane builders, and reporting
+- `scripts/build_fair_paper_exact_comparisons_v1.py` — deterministic CPU-first package builder
+- `HISTORY.md`, `PROGRESS.md`, `Research_Directions.md`, `Experiments_Report.md`, `README.md`, `CLAUDE.md` — official Step-279 record and current navigation
+
+---

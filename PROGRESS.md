@@ -1,21 +1,132 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-18
-**Last updated**: Step 274. The Unified Causal IU-PCR subset cycle is complete.
-The strongest transferable single-method candidate is ordinary **Unified-28**:
-seven causal base streams crossed with `level`, `ewma16`, `positive_area`, and
-`persistence`. On the frozen Llama transfer panel it scores 0.6629 Global
-AUROC, 0.2880 ProcessBench Localization F1, and 0.5587 Early AUROC, versus
-matched task incumbents 0.6870/0.2419/0.5777. Localization improves by +0.0461
-and is significant, but Global (-0.0241) and Early (-0.0189) breach the frozen
-regression margins. **Do not promote Unified-28 as a replacement for the
-task-specific heads.** Treat it as the method-of-record for the next unified
-paper-comparison replay only. The active priority is no longer another feature
-or DUFS rescue sweep: consolidate the completed cluster acquisitions into
-paper-exact or adapted-common-protocol apples-to-apples tables. Start from
-`HANDOFF_fair_paper_exact_comparisons_2026-08-18.md`. A6-S0a remains
-independently verified as `PASS_S0A`; its separate frozen next stage is still
-A6-S0b and is outside this pivot.
+**Date**: 2026-08-19
+**Last updated**: Step 279. **Fair Paper-Exact Comparison Package v1 is
+accepted and independently reproduced byte-for-byte.** The CPU-only package
+joins 148,502/148,502 registered records cleanly, uses 2,000 paired grouped
+bootstrap draws (seed `20260818`), and keeps Global, Localization, Prefix, and
+stopping/adaptive compute in separate lanes. Canonical report:
+`results/fair_paper_exact_comparisons_v1/REPORT.html`; protocol:
+`docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md`; rebuild attestation:
+`results/fair_paper_exact_comparisons_v1_REBUILD_VERIFICATION.json`.
+
+Unified-28 is below its dedicated incumbent in every eligible direct lane:
+Global ProcessBench AUROC 0.662910 versus 0.687036 (delta -0.024125
+[-0.041678,-0.007466]); official ProcessBench Localization macro-F1 0.284832
+versus 0.326141 (-0.041310 [-0.063480,-0.016467]); and four-cell causal Prefix
+mean AUROC@64/128 0.578103 versus 0.606721 (-0.028617
+[-0.052068,-0.004390]). The earlier Step-274 Localization gain was against the
+then-matched max-entropy row, not the stronger family-six dedicated incumbent.
+The surviving positive common-protocol claim is Unified-28 versus
+Mind-the-Gap Localization: +0.082376 [+0.059730,+0.117390]. High-access PRM
+and critic rows remain separate ceilings.
+
+Stopping is an accuracy--compute tradeoff, not a detector win: LEASH saves
+20.2%--49.9% realized reasoning-plus-closure tokens across six complete cells
+but lowers pass@1 in all six (interval-clear in five). Unified-28 stopping is
+ineligible because no frozen policy has real forced-closure outputs. The
+24-cell replay is coverage-only on six identity-proven cells / 3,238 rows; it
+is not a 23- or 24-cell headline. S2 Global/Prefix, REFRAIN, DeepConf M2,
+Mistral LEASH, full uPRM, and Streaming remain blocked or partial and never
+enter headline aggregates.
+
+The fair-comparison integration cycle is closed. The package tree SHA-256 is
+`957cf08e94995d7b28143f1d53dd08062e80a8beab6c52650fb670ad1295260c`;
+146 focused tests passed with one expected opt-in cache test skipped. No GPU,
+cluster job, Drive mutation, large download, or feature/DUFS search occurred.
+The next fair-comparison action is paper drafting and advisor interpretation,
+not additional retrospective method selection. Any missing-asset GPU work
+requires the separate structured approvals in `GPU_GATES.json`.
+
+Step 278 remains `DIAGNOSTIC ONLY`: the new manifold/geometry literature does
+not supply a label-free router key. Step 277 remains
+`GLOBAL_ORACLE_NOT_ACCESSIBLE_BY_CSTG`, and Step 276 remains
+`STOP_CONTEXT_NOT_SUFFICIENT`. A6-S0a remains `PASS_S0A`; A6-S0b is a separate
+frozen gate and is outside the fair-comparison package.
+
+## Fair Paper-Exact Comparison Package v1 — Step 279
+
+The package is the publication source of truth for comparisons. It freezes
+ordinary Unified-28 as seven causal streams crossed with `level`, `ewma16`,
+`positive_area`, and `persistence`, ordinary two-component L2 IU-PCR, and the
+Identity accumulator. Evaluation outcomes were not used to change the method.
+Each eligible direct table includes Unified-28 and the lane's dedicated
+incumbent on identical ordered IDs.
+
+Global, Localization, and Prefix all show interval-clear Unified-28 regressions
+against their dedicated incumbent. This is the central scientific result of
+the unification question, not a failed package: the single causal method is
+coherent and reproducible, but the price of unification is measurable on all
+three direct populations. The package also preserves the positive
+Mind-the-Gap comparison, native PRMBench and Mind-the-Gap panels, the six-cell
+LEASH frontier, exact access/fidelity labels, and all blocked/partial evidence
+without mixing estimands.
+
+Acceptance evidence is external to the build's self-report: two independent
+directories contain byte-identical complete 61-file payload trees. The
+manifest SHA-256 is
+`b89b7358b421634f6e5ba4b8458d98724cb06f60ad1a36c8a5774ff14ccf0620`,
+and evaluator SHA-256 is
+`a73206bf8901825135017ff728e11b563eb8683fc519fe5fcdfbccaf25c238a3`.
+The immutable package was built from commit `baaa4a5` and first published in
+`bc296ff`. The canonical Unified narrative documents were subsequently
+clarified in `6c44a84` and Step 279; package registries intentionally retain
+their original build-time document/content hashes and
+`UNIFIED_TEMP_WORKTREE_MANIFEST.json`. Use the historical commit for an exact
+package rebuild rather than substituting the later narrative text.
+
+## Supervised c-STG router sufficiency diagnostic — Step 276
+
+The CPU-only diagnostic implemented the c-STG Gaussian gate relaxation with a
+one-hidden-layer context hypernetwork and an intentionally constrained
+prediction head: all six family directions remain in their frozen risk
+orientation and the context can only redistribute non-negative leverage. It
+used the existing `family6__level` step summaries for Localization and
+`family6__fast_slow` endpoints at budgets 64/128 for Early. Core context was a
+label-blind IU rank, position, and family-contribution MAD; DSP added the 30
+causal innovation/short-long/positive-mean/persistence/recovery coordinates.
+Fit used only the existing calibration partition and evaluation used only
+development, grouped by source question. Architecture/audit targets were not
+used.
+
+The method was compared with family-only, context-only, and feature-plus-
+context balanced logistic controls, core-only c-STG, and independently
+permuted context. Localization DSP c-STG was 0.2812 F1 versus 0.3503 for global
+LR, while Early was 0.5906 versus 0.5995. Neither interval supported a gain;
+both task family guards failed. Early DSP c-STG was only +0.0032 over linear
+feature augmentation with an interval spanning zero, and the permuted router
+scored 0.5994. This is not mechanical collapse: a registered switching-family
+test exceeded 0.90 AUROC and recovered active gates, real gates varied across
+samples, and the real-context model fit calibration aggressively. The failure
+is held-question generalization/alignment.
+
+The earlier +2.833pp oracle belongs to the completed-trace 24-cell family
+fusion diagnostic and is not a Localization/Early ceiling. This Step therefore
+supports only the narrower conclusion that the present DSP summaries are not a
+robust routing key for these two online tasks. It remains retrospective premise
+evidence, not a final label-free method or external confirmation. No inference,
+GPU, cluster, download, or Drive mutation occurred.
+
+## DSP-contextual IU router pilot — Step 275
+
+The pilot implemented a covariance-entry IU API, a source-question-balanced
+causal context router, exact IU fallback, five family-resolved DSP context
+blocks, deterministic neighbour selection, group-effective sample size,
+shrinkage, sign/leverage alignment, and frozen S0--S4 orchestration. A pre-run
+mechanical contradiction was caught before the intentional run: a non-uniform
+Gaussian kernel on exactly 32 neighbours cannot achieve `n_eff>=32`. The
+corrected protocol uses eight extra neighbour questions of headroom while
+retaining the original effective-size gate.
+
+S0 passed exact covariance-IU identity, exact global fallback, exact source-row
+duplication invariance, the context-independent null, and observational
+equivalence. It failed both positive-world gates and both coherent-nuisance
+safety gates. The informative world averaged IU/contextual AUROC
+0.8422/0.8161, delta -0.0261 with eight wins; the coherent-nuisance world
+averaged 0.7394/0.6002, delta -0.1392 with zero wins and worst seed -0.1650.
+Therefore the frozen program wrote S1--S4 as `SKIPPED_BY_S0` and accessed no
+real cache or label. Eight focused/regression test scripts pass. No inference,
+GPU, cluster, download, or Drive mutation occurred.
 
 ## Unified Causal IU-PCR subset and transfer decision — Step 274
 
@@ -3078,6 +3189,30 @@ Current decision and review package:
 Hard-filter evidence:
 `results/hard_filter_dufs_liu_24cell/REPORT.md` and
 `results/hard_filter_dufs_liu_24cell/MECHANISM_ANALYSIS.md`.
+
+## Latest router correction — Step 277
+
+The c-STG/manifold-author follow-up has now been tested first on the intended
+**Global completed-trace hallucination-detection task**, using the exact frozen
+24-cell panel and six family contributions whose sum reproduces IU-PCR to
+machine precision.  Five-fold ranking metrics are averaged within folds;
+balanced supervised controls and three fixed c-STG seeds are used.
+
+The historical IU-rank quartile oracle remains real (+2.833pp equal-family),
+but it is not accessible to the held-out router. `cstg_iu_rank` reaches 0.7464
+equal-family AUROC versus 0.7506 for global LR (delta -0.0042, 95% CI
+[-0.0140,+0.0041], 3/8 family wins). A simple held-out quartile router is worse
+at 0.7380. The exploratory full core c-STG reaches 0.7563 and beats its
+permuted-core control by +0.0148 [0.0061,0.0252], but its advantage versus
+global LR is uncertain (+0.0057 [-0.0051,+0.0193]), its cell macro is slightly
+lower, and GSM8K/MATH500 regress. Decision:
+`GLOBAL_ORACLE_NOT_ACCESSIBLE_BY_CSTG`. This is evidence of a heterogeneous
+context-by-family association, not a robust router and not a gate to
+LTSREx/LEGO.
+
+Canonical artifacts:
+`docs/experiments/GLOBAL_CONTEXTUAL_STG_ROUTER_DIAGNOSTIC_V1.md` and
+`results/global_contextual_stg_router_diagnostic_v1/`.
 
 ---
 

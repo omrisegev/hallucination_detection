@@ -1,0 +1,35 @@
+{
+  "acceptance_status": "accepted",
+  "bootstrap_replicates": 2000,
+  "bootstrap_seed": 20260818,
+  "byte_identical": true,
+  "candidate_package": "independent-production-rebuild",
+  "directories_independent": true,
+  "evaluator_sha256": "a73206bf8901825135017ff728e11b563eb8683fc519fe5fcdfbccaf25c238a3",
+  "file_count": 61,
+  "hash_manifest_sha256": "b89b7358b421634f6e5ba4b8458d98724cb06f60ad1a36c8a5774ff14ccf0620",
+  "host_paths_absent": true,
+  "publication_build_mode_eligible": true,
+  "reference_package": "results/fair_paper_exact_comparisons_v1",
+  "run_commit": "baaa4a50781ad2c328927395a49356b553b2bef2",
+  "run_definition_sha256": "c881f2f2525d0ccde1379851008919eb5d77ef5a028fd6185295760ca08ddebb",
+  "schema": "fair_comparison_rebuild_verification_v1",
+  "scientific_payload_invariant_across_determinism_fix": {
+    "changed_files": [
+      "ASSET_REGISTRY.json",
+      "HASH_MANIFEST.json",
+      "JOIN_AUDIT.json",
+      "METHOD_REGISTRY.json",
+      "REPORT.html",
+      "REPORT.md",
+      "RUN_DEFINITION.json",
+      "lanes/global/MIXED_V2_DUFS_REPLAY_AUDIT.json"
+    ],
+    "invariant": true,
+    "scope": "All per-question records, metrics, calibration ledgers, paired intervals, population/fold artifacts, scores, and model-state/source fingerprints remained byte-identical; only provenance/report artifacts bound to the audit-only diagnostic serialization contract changed."
+  },
+  "testing_only": false,
+  "tree_sha256": "957cf08e94995d7b28143f1d53dd08062e80a8beab6c52650fb670ad1295260c",
+  "verification_command": "python scripts/verify_fair_comparison_rebuild_v1.py results/fair_paper_exact_comparisons_v1 INDEPENDENT_REBUILD",
+  "verifier_sha256": "dec386e3ecc427e40f66cb2cd797727ed1e7e150861566c28973b4c10617bc50"
+}

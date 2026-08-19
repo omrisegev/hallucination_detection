@@ -312,8 +312,8 @@ Frozen Llama transfer:
 | Localization macro-F1 | 0.2880 | 0.2419 | +0.0461 |
 | Early AUROC | 0.5587 | 0.5777 | -0.0189 |
 
-Localization improves significantly, but Global and Early exceed their
-predeclared regression margins. DUFS-LIU lambda sweeps and learned task
+Against the then-matched max-entropy row, Localization improves significantly,
+but Global and Early exceed their predeclared regression margins. DUFS-LIU lambda sweeps and learned task
 weights did not transfer from Qwen to Llama. The result supports Unified-28 as
 the method of record for experiments that require one shared causal method,
 not as a replacement for the dedicated heads.
@@ -324,14 +324,71 @@ Canonical documentation:
 - [`docs/experiments/UNIFIED_CAUSAL_SUBSET_SEARCH_V1.md`](docs/experiments/UNIFIED_CAUSAL_SUBSET_SEARCH_V1.md)
 - [`docs/reports/UNIFIED_CAUSAL_IU_V1_REPORT.md`](docs/reports/UNIFIED_CAUSAL_IU_V1_REPORT.md)
 
-The original temporary implementation and machine-readable result bundle were
-not retained in the earlier commit. The canonical report includes an explicit
-artifact ledger so the documented conclusion is not confused with a complete
-byte-for-byte replay package.
+The implementation, frozen fit records, and machine-readable comparison
+package are now retained and hash-bound by Experiment 8 below. The earlier
+three-task transfer table remains a development result; its Localization gain
+was against the earlier max-entropy row, not against the stronger dedicated
+family-six localizer used by the fair direct comparison.
 
 ---
 
-## Open Directions
+## Experiment 8 — Fair Paper-Exact Comparison Package v1
+
+**Goal:** turn the completed competitor acquisition into publishable,
+apples-to-apples comparisons without reopening feature, DUFS, architecture, or
+confirmation search. Ordinary Unified-28 is frozen and each eligible direct
+table also contains its dedicated task incumbent.
+
+The package keeps four lanes separate and joins methods only on identical
+registered IDs. It uses one evaluator closure, deterministic grouped folds,
+2,000 paired source-question bootstrap draws (seed `20260818`), explicit
+calibration ledgers, access/fidelity labels, and fail-closed missing-asset
+gates.
+
+Headline direct comparisons:
+
+| lane | Unified-28 | dedicated incumbent | paired delta (95% CI) |
+|---|---:|---:|---:|
+| Global, ProcessBench 3,400 AUROC | 0.662910 | 0.687036 | -0.024125 [-0.041678, -0.007466] |
+| Localization, ProcessBench 3,400 macro-F1 | 0.284832 | 0.326141 | -0.041310 [-0.063480, -0.016467] |
+| Prefix, four exact Llama cells, mean AUROC@64/128 | 0.578103 | 0.606721 | -0.028617 [-0.052068, -0.004390] |
+
+Unified-28 therefore does not beat its dedicated incumbent in any eligible
+direct lane. It does beat the Mind-the-Gap common Localization replay by
++0.082376 [+0.059730,+0.117390]. PRM and critic results are shown separately
+as high-access ceilings rather than cross-tier wins.
+
+Stopping remains a different estimand. Across six complete LEASH cells, LEASH
+uses 20.2%--49.9% fewer realized reasoning-plus-closure tokens than CoT but
+reduces pass@1 in all six cells (interval-clear in five). Unified-28 is
+ineligible because no frozen stopping policy has real forced-closure outputs.
+The 24-cell replay is coverage-only: exact identity is proven for six cells /
+3,238 rows, not a 23- or 24-cell headline. S2 Global/Prefix, REFRAIN, DeepConf
+M2, Mistral LEASH, full uPRM, and Streaming remain explicitly blocked or
+partial and never enter headline aggregates.
+
+The strict join accepted 148,502/148,502 records without duplicate, label, or
+artifact-hash conflicts. The 61-file result package was independently rebuilt
+byte-identically; evaluator SHA-256 is
+`a73206bf8901825135017ff728e11b563eb8683fc519fe5fcdfbccaf25c238a3` and
+tree SHA-256 is
+`957cf08e94995d7b28143f1d53dd08062e80a8beab6c52650fb670ad1295260c`.
+No GPU, cluster job, Drive mutation, large download, or method search occurred.
+
+Canonical documentation and outputs:
+
+- [`docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md`](docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md)
+- [`results/fair_paper_exact_comparisons_v1/REPORT.html`](results/fair_paper_exact_comparisons_v1/REPORT.html)
+- [`results/fair_paper_exact_comparisons_v1/REPORT.md`](results/fair_paper_exact_comparisons_v1/REPORT.md)
+- [`results/fair_paper_exact_comparisons_v1_REBUILD_VERIFICATION.json`](results/fair_paper_exact_comparisons_v1_REBUILD_VERIFICATION.json)
+
+---
+
+## Historical Open Directions
+
+The list below predates the Step-279 comparison package and is retained as
+historical context. Current priorities and GPU gates live in
+`Research_Directions.md` and the package's `GPU_GATES.json`.
 
 1. **Hidden state probes as views** — layer-wise hidden states are architecturally decorrelated by construction (ρ near zero between early and late layers). Zero extra inference cost via forward hook. Connects to Ofir's VSDE work.
 

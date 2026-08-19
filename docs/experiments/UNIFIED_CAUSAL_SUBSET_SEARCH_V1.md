@@ -118,7 +118,7 @@ reported values; it did not change the selected `base7_full28` roster.
 | entropy | ✓ | ✓ | ✓ | ✓ |
 | negative log-sum-exp | ✓ | ✓ | ✓ | ✓ |
 | negative top-1 | ✓ | ✓ | ✓ | ✓ |
-| negative top1-top2 margin | ✓ | ✓ | ✓ | ✓ |
+| top-k entropy | ✓ | ✓ | ✓ | ✓ |
 | top-k varentropy | ✓ | ✓ | ✓ | ✓ |
 | top-k Renyi-2 | ✓ | ✓ | ✓ | ✓ |
 | top-k tail mass | ✓ | ✓ | ✓ | ✓ |
@@ -134,8 +134,12 @@ feature abundance did not translate into robust three-task performance.
 | Localization macro-F1 | 0.2880 | 0.2419 | +0.0461 |
 | Early AUROC | 0.5587 | 0.5777 | -0.0189 |
 
-Localization improved significantly. Global and Early breached their frozen
-non-inferiority margins. The final decision is therefore:
+Localization improved significantly against the earlier matched
+max-entropy/top-five row. Step 279's identical-population fair comparison uses
+the stronger family-six dedicated localizer and finds Unified-28 lower by
+0.041310 [-0.063480,-0.016467]; only the Mind-the-Gap common comparison remains
+positive. Global and Early breached their frozen non-inferiority margins. The
+final unified-development decision is therefore:
 
 ```text
 DO_NOT_PROMOTE_UNIFIED_CAUSAL_V1_REGRESSES_GLOBAL_AND_EARLY_INCUMBENTS

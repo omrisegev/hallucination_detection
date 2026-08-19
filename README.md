@@ -23,6 +23,19 @@ logits, not attention maps or hidden states).
 
 ## Results summary
 
+> **Current comparison package (2026-08-19):** the accepted four-lane,
+> identical-row evaluation is
+> [`results/fair_paper_exact_comparisons_v1/REPORT.html`](results/fair_paper_exact_comparisons_v1/REPORT.html)
+> ([Markdown](results/fair_paper_exact_comparisons_v1/REPORT.md)). Its frozen
+> protocol is
+> [`docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md`](docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md),
+> and the independent byte-identical rebuild is recorded in
+> [`results/fair_paper_exact_comparisons_v1_REBUILD_VERIFICATION.json`](results/fair_paper_exact_comparisons_v1_REBUILD_VERIFICATION.json).
+> Global, first-error Localization, causal Prefix, and stopping/adaptive
+> compute are separate lanes; there is no cross-lane leaderboard. The table
+> below is an early-project historical snapshot, not the current publication
+> comparison.
+
 | Dataset / Model | Our AUC | Method | Competitor | Their AUC |
 |---|---|---|---|---|
 | MATH-500 / Qwen2.5-7B T=1.5 | **96.6%** | Spectral Nadler | RENT | TBD |

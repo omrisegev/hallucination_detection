@@ -130,12 +130,14 @@ That comparison program is specified in
 | final conclusion and corrected metrics | committed in `PROGRESS.md`, `HISTORY.md` and `Research_Directions.md` |
 | frozen comparison handoff | committed |
 | protocol and subset-search narrative | committed with this report |
-| original source implementation | missing from the surviving tree |
-| original fold checkpoints and trajectories | missing from the surviving tree |
-| original decision/bootstrap JSON bundle | missing from the surviving tree |
-| local Llama versus Drive hash audit | conclusion preserved; raw audit artifact missing |
-| 39-test pass statement | preserved; original machine-readable logs missing |
+| source implementation and focused tests | committed under `spectral_utils/unified_causal_*` and `scripts/` |
+| final per-row records and decision/bootstrap bundle | committed under `results/unified_causal_subset_*` |
+| fair identical-row replay | accepted Step-279 package under `results/fair_paper_exact_comparisons_v1/` |
+| original exploratory fold checkpoints | not all retained; no claim depends on rebuilding search selection from them |
+| local/Drive and source provenance | hash-bound by the fair package registries, source audit, and temporary-worktree manifest |
+| historical console logs | not retained; focused tests and deterministic package artifacts are retained |
 
-This ledger is intentional. It separates what is scientifically documented
-from what is presently executable and prevents a future reader from assuming
-that a missing artifact was independently reproduced.
+This ledger is intentional. The selected method and publication comparisons
+are executable and independently rebuild-verified; the ledger prevents a
+future reader from confusing that final closure with complete retention of
+every exploratory development checkpoint.

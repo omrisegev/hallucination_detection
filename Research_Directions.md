@@ -3,50 +3,81 @@
 
 ---
 
-## Active priority — fair paper-exact comparison consolidation (Step 274)
+## Active priority — paper drafting from the accepted comparison package (Step 279)
 
-The project now concentrates its available effort on converting the completed
-cluster acquisitions into defensible apples-to-apples comparisons. This is an
-integration and evaluation priority, not another broad method-development
-cycle. The expensive model-dependent assets were collected so that our frozen
-methods and external competitors can be evaluated on identical populations;
-the common evaluation tables have not yet been assembled.
+Fair Paper-Exact Comparison Package v1 is complete and independently
+reproducible. It freezes ordinary Unified-28 and evaluates four non-interchangeable
+lanes with identical registered rows, one evaluator contract per claim,
+cross-fitted calibration, paired grouped uncertainty, and orthogonal
+fidelity/access labels. The package is a comparison result, not a new method
+search.
 
-The method-of-record for the unified replay is **Unified-28**, ordinary IU-PCR
-over seven causal streams crossed with `level`, `ewma16`, `positive_area`, and
-`persistence`. It is the strongest transferable single-method candidate found
-in the 1,036-coordinate causal subset cycle, but it is not promoted as a
-replacement for the task-specific heads:
+The direct results quantify the price of one unified causal method:
 
-| frozen Llama transfer | Unified-28 | matched incumbent | delta |
+| direct population | Unified-28 | dedicated incumbent | paired delta (95% CI) |
 |---|---:|---:|---:|
-| Global AUROC | 0.6629 | 0.6870 | -0.0241 |
-| Localization F1 | 0.2880 | 0.2419 | +0.0461 |
-| Early AUROC | 0.5587 | 0.5777 | -0.0189 |
+| Global ProcessBench 3,400 AUROC | 0.662910 | 0.687036 | -0.024125 [-0.041678,-0.007466] |
+| Localization ProcessBench 3,400 macro-F1 | 0.284832 | 0.326141 | -0.041310 [-0.063480,-0.016467] |
+| Prefix four-cell mean AUROC@64/128 | 0.578103 | 0.606721 | -0.028617 [-0.052068,-0.004390] |
 
-Localization is the one confirmed gain. Global and Early breach the frozen
-non-inferiority margins. DUFS lambda sweeps and learned task weights did not
-survive Qwen-to-Llama transfer. Consequently the scientific question is now:
-**where does one causal single-pass method stand under the same rows, models,
-metrics, and evaluators as each competitor, and what is the price of unification
-relative to the task-specific heads?**
+Unified-28 does not beat the dedicated incumbent in any eligible direct lane.
+The earlier Step-274 Localization gain was against an earlier max-entropy row;
+the fair dedicated localizer is the stronger
+`family6 + level + step_top5mean`. The positive same-protocol result retained
+for the paper is Unified-28 versus Mind-the-Gap Localization, +0.082376
+[+0.059730,+0.117390]. PRM and critic are high-access ceilings and their
+differences are not wins or losses.
 
-The comparison program has four independent lanes: Global final-answer
-detection, ProcessBench first-error Localization, causal prefix detection, and
-accuracy-compute stopping/adaptive sampling. Results from different lanes must
-never share a numerical leaderboard. Within a lane, a primary claim requires
-identical ordered IDs, an explicit access tier, the same evaluator, frozen
-calibration, and paired source-question uncertainty. Native paper metrics such
-as Mind-the-Gap SLA and REFRAIN/LEASH token savings are preserved in separate
-native panels; they do not replace the common-protocol metric.
+Stopping remains separate. Six complete LEASH cells show 20.2%--49.9% fewer
+realized reasoning-plus-closure tokens but lower pass@1 in all six; this is an
+accuracy--compute frontier, not a stopping win. Unified-28 has no eligible
+stopping row. The 24-cell replay proves identity for only six cells / 3,238
+rows and remains coverage-only. S2 Global/Prefix, REFRAIN, DeepConf M2,
+Mistral LEASH, full uPRM, and Streaming remain blocked or partial.
 
-The next execution cycle is specified by
-`HANDOFF_fair_paper_exact_comparisons_2026-08-18.md`. It starts with an
-inventory of local and Drive manifests, maps every competitor to a fidelity
-status and missing prerequisite, and produces a user-approved plan before any
-new cluster job, large download, or Drive mutation. Generic feature expansion,
-another DUFS rescue, and post-hoc weighting are paused until these comparisons
-are complete.
+The package accepted 148,502/148,502 comparison records and its complete
+61-file tree rebuilt byte-identically. The next work is advisor interpretation
+and paper writing from the frozen tables, including negative direct results and
+access/fidelity caveats. Do not reopen Unified features, DUFS, confirmation
+cells, or stopping policy design inside this package. Any future GPU work must
+be a separately approved protocol satisfying the structured gates in
+`results/fair_paper_exact_comparisons_v1/GPU_GATES.json`.
+
+Canonical sources:
+
+- `docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md`
+- `results/fair_paper_exact_comparisons_v1/REPORT.html`
+- `results/fair_paper_exact_comparisons_v1/REPORT.md`
+- `results/fair_paper_exact_comparisons_v1_REBUILD_VERIFICATION.json`
+
+## Geometry/manifold literature integration — Step 278
+
+The newly added manifold papers do not justify a new detector or router on the
+current feature matrix. The consolidated decision is **`DIAGNOSTIC ONLY`**.
+APORIA contributes repeated-response semantic observables, while PCNET and
+Density Ridge contribute hidden-state observables, but their reported target
+separation depends on prompt-local or supervised correctness calibration.
+LTSREx/LEGO improve explanation or tangent estimation only after a manifold is
+selected. Tiberi–Sompolinsky provides a known-environment decomposition of
+supervised local target directions, not query routing.
+
+Consequently:
+
+- do not run a density ridge, LPCA/LEGO, PCNET analogue, or hierarchical atomic
+  router on mixed-v2/DSP;
+- keep the Global c-STG result closed: observable specialization exists, but no
+  reliable deployable key was found;
+- leave Localization and Early on their dedicated heads; none of the new papers
+  provides first-error or prefix-valid evidence;
+- continue A6/PTNI only through its existing frozen S0b gate. S0a passed
+  mechanics, not target identification, and the literature does not validate it;
+- if a separate multi-pass tier is ever approved, the cheapest unresolved
+  premise is fixed, label-blind sibling-response cohesion on held prompts and
+  held model families, against agreement/Semantic Entropy/length. A pass would
+  justify only a later inference request.
+
+Full synthesis:
+`docs/research_notes/manifold_hallucination_literature_integration_2026-08-19.md`.
 
 ## Unified causal subset result — Step 274
 

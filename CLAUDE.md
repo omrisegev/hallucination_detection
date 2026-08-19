@@ -407,6 +407,18 @@ cache hit is not.
 
 ## Which method to evaluate — ASK, never assume
 
+**Frozen exception — Fair Paper-Exact Comparison Package v1 (Step 279).** For
+`fair_paper_exact_comparisons_v1`, Omri has already fixed the method of record:
+ordinary **Unified-28**, exactly seven registered causal streams crossed with
+`{level, ewma16, positive_area, persistence}`, two-component L2 IU-PCR, and the
+Identity accumulator. Do not ask to reselect it, change its roster/signs/task
+weights/accumulator, reopen feature or DUFS search, or omit the lane's dedicated
+incumbent. The complete contract is
+`docs/experiments/FAIR_PAPER_EXACT_COMPARISONS_V1.md`; accepted outputs are in
+`results/fair_paper_exact_comparisons_v1/`, including access/fidelity labels,
+missing-assets status, and explicit gates for any future GPU work. The general
+ASK rule below still applies to every other evaluation.
+
 **Do not infer "the method we use" or "our best variant" from this file, from a results table, or from whatever a recent report happened to headline. Ask Omri explicitly which method to score, before writing any evaluation code.**
 
 The leading arm changes as the work moves, and the ranking is close enough that a stale assumption produces a plausible-looking table of the wrong thing. Two failure modes have already happened:

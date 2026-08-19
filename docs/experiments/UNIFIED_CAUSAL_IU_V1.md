@@ -178,10 +178,10 @@ The experiment contract required:
 - deterministic missing-channel handling;
 - synthetic spike, drift, persistent-error and recovery cases.
 
-The completed cycle reports 39 focused and regression tests passing. The
-historical machine-readable test outputs and source implementation were not
-included in the surviving commit; this is an artifact-retention gap, not a
-claim that those files remain reproducible from the current tree.
+The completed development cycle reported 39 focused and regression tests
+passing. Step 279 subsequently retained the implementation, focused tests,
+frozen final records, and hash-bound fair-comparison replay. Historical console
+logs and every exploratory search checkpoint are not claimed to survive.
 
 ## Frozen outcome
 
@@ -189,12 +189,12 @@ The full 1,036-coordinate bank was rejected. The strongest transferable
 single-method candidate was ordinary **Unified-28**:
 
 - seven raw streams: entropy, negative log-sum-exp, negative top-1,
-  negative margin, top-k varentropy, top-k Renyi-2 and top-k tail mass;
+  top-k entropy, top-k varentropy, top-k Renyi-2 and top-k tail mass;
 - four causal transforms per stream: `level`, `ewma16`, `positive_area` and
   `persistence`.
 
-Spilled energy and top-k entropy were therefore absent from the frozen
-seven-stream roster. This is a supervised-developed roster and must not be
+Spilled energy and negative top1--top2 margin were therefore absent from the
+frozen seven-stream roster. This is a supervised-developed roster and must not be
 described as independently confirmed.
 
 See the complete decision report in
@@ -204,13 +204,14 @@ and the subset-search record in
 
 ## Reproducibility status
 
-The scientific contract, corrected results and decision are committed. The
-original temporary worktree containing the implementation, fold checkpoints
-and detailed machine-readable result bundle was not committed and is no
-longer present. Consequently:
+The scientific contract, implementation, corrected final records, decision,
+and comparison replay are committed. The final Unified artifacts live in
+`results/unified_causal_subset_validation_base7_dufs_llama31_v1/` and
+`results/unified_causal_subset_classic30_v1/`; the accepted cross-method replay
+is `results/fair_paper_exact_comparisons_v1/`. The latter preserves the exact
+build-time protocol/content hashes and a complete temporary-worktree manifest.
 
-- the numerical conclusions are preserved in the official handoff documents;
-- the present repository does not contain a byte-for-byte replay package for
-  this cycle;
-- a future replay must reimplement this frozen contract and must not silently
-  retune the roster or quote the withdrawn pooled metrics.
+Not every exploratory subset-search checkpoint or historical console log is
+retained. A future reconstruction must use the committed frozen records and
+hash ledgers, must not retune the roster, and must never quote the withdrawn
+pooled-fold metrics.
