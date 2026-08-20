@@ -14278,3 +14278,72 @@ reasoning/RAG contribution. The integration itself launched no experiment; it
 ingested the completed output of the separately authorized active task.
 
 ---
+
+### Step 282 [A6/PTNI] — 2026-08-20: the S0b gate was never executed; the direction is closed by scope decision, not by a result
+
+**What**: Established, with five independent checks, that the frozen A6-S0b
+gate produced no result because **it never ran**, and recorded Omri's rejection
+of the PTNI/A6 direction on scope grounds. Registered verdict:
+`CLOSE_A6_S0B_DIRECTION_REJECTED`.
+
+**Why**: Step 281's consolidated status note made "complete and independently
+verify the frozen A6-S0b gate" objective 1, with the other three objectives
+explicitly sequential behind it. Codex correctly observed that no
+`S0B_COMPLETE.json` or `S0B_CLOSED.json` existed but had no visibility into
+why, so the note read the absence as unfinished work. It was not unfinished
+work. Omri had already withdrawn the direction: the thesis is not pursuing a
+self-supervised identification mechanism. With objective 1 wrong, the leading
+objective for the whole project was wrong.
+
+**Result**:
+
+*The run never started.* Slurm job `196764` (`a6s0b`) was submitted
+2026-08-15T16:19:15, was never allocated a node (`Start = None`), and was
+cancelled by the user at 2026-08-15T19:36:53. `Elapsed 00:00:00`,
+`ExitCode 0:0` — it sat PENDING for 3h17m and executed no line of the chain.
+
+*Nothing was lost.* Five checks, all negative:
+
+| where | checked | result |
+|---|---|---|
+| cluster output root | `$SHARED/code_a6_s0b/results/` | contains only the repo's checked-in HTML reports. No `automatic_group_free_phase_a6_s0b_v1`, and no `A6_S0B_BOUNDARY.json` — stage 1 `prepare` writes that file, so even an aborted partial run would have left it |
+| cluster logs | `$SHARED/logs/` | no `a6s0b_*.out`, no `a6s0b_verify_ok_*` marker |
+| local worktrees | all three | Pythia downloaded 2026-08-15 13:59 (`model.safetensors`, 911,373,632 B) under `.worktrees/a6-s0b/local_cache/a6_s0b_pythia_c4fc8d5`; no output directory anywhere |
+| Google Drive | title search on `S0B` | one hit, `HANDOFF_A6_S0B_TO_CLAUDE_2026_08_15.md`. No run artifact |
+| consolidation manifests | `opening_state_manifest.json` (366 untracked files), `pre_merge_untracked_drive_manifest.json` (225 archived files) | zero `s0b` matches in either |
+
+Preparation had completed — authenticated Pythia on disk, source boundary
+frozen at `89c414a`, 56/56 focused tests passing. Only execution never began.
+
+*This is a scope decision, not a scientific outcome.* It must not be re-filed
+as `CLOSE_S0B_NUMERICAL_NONCONVERGENCE`, the verdict the driver reserves for a
+gate that ran and failed to converge. Nothing was measured. The distinction
+matters for the writeup: a rejected direction and a falsified one are not the
+same claim.
+
+*What survives and stays citable.* (1) A6-S0a, independently reproduced
+`PASS_S0A` — 1,800 reciprocal quartets, 6,000 natural rows, 7,200 inner-fold
+assignments, 36 null cells. (2) The Step 270 [A6/PTNI] falsification of the
+gamma-3 orientation channel, which is a real negative result and stands on its
+own: under the Gram-Schmidt correction against `{1, b, phi2}` that the Step-252
+memo's own section 6 demanded, pooled cos(gamma-3, g*) falls from +0.7617 to
++0.3350, and the six-family sign-bit margin **inverts** from +0.5532 to
+-0.1702, making the bit wrong. A crossed design attributes the collapse to the
+phi2 orthogonalization, not to winsorization or to a pooling convention.
+Together these are the sharpest available evidence for why covariance geometry
+alone does not identify the target direction — the motivation PTNI existed to
+supply, now recorded as a bounded negative instead.
+
+*Consequence for the project order.* Objective 1 is withdrawn. **Objective 3
+(close paper-exact provenance and claim mapping) leads**, objective 4 (package
+the reasoning/RAG contribution) follows, and objective 2 (one frozen white-box
+validation) stays conditional on a justified budget. Neither leading objective
+needs GPU time.
+
+*Open scope question, deliberately not answered here.* The rejection is
+recorded at its narrow stated extent, PTNI/A6. Whether it also excludes other
+arms resting on pseudo-labels — notably `a6.pl_dufs`, the selector of record
+since Step 194 — is undecided and awaits Omri. Do not widen or narrow it by
+inference.
+
+---

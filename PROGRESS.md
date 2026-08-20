@@ -1,7 +1,8 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-19
-**Last updated**: Step 281. **All known research lineages are integrated and
+**Date**: 2026-08-20
+**Last updated**: Step 282 (A6/PTNI closed by scope decision; see the
+amendment two paragraphs down). Prior: Step 281. **All known research lineages are integrated and
 the current decision state is consolidated in one canonical matrix.** The
 integration preserves remote master, paper-exact acquisition, corrected
 white-box capture, local white-box analysis, the previously committed local
@@ -13,10 +14,21 @@ history after GitHub's LFS budget blocked publication; their manifests and
 SHA-256 inventory remain tracked. No stash, branch, worktree, or local source
 artifact was deleted.
 
-The current order is: **(1) finish the frozen PTNI/A6-S0b gate; (2) if budget
-is justified, run one new preregistered white-box validation with corrected
-live capture and architecture fidelity; (3) close paper-exact provenance and
-claim mapping; (4) package the reasoning/RAG contribution.** IU-PCR and
+**Amended Step 282 (2026-08-20): objective (1) is withdrawn.** The PTNI/A6
+direction is closed by scope decision, `CLOSE_A6_S0B_DIRECTION_REJECTED` —
+Omri is not pursuing a self-supervised identification mechanism. The S0b gate
+never ran: job `196764` was cancelled while PENDING, `Elapsed 00:00:00`, and
+five independent checks (cluster output root, cluster logs, all three local
+worktrees, Drive, and both consolidation manifests) find no artifact. This is
+a rejected direction, not a falsified one; do not re-file it as
+`CLOSE_S0B_NUMERICAL_NONCONVERGENCE`. A6-S0a and the Step 270 [A6/PTNI]
+gamma-3 falsification survive as citable evidence.
+
+The current order is therefore: **(1) ~~finish the frozen PTNI/A6-S0b gate~~
+WITHDRAWN; (2) if budget is justified, run one new preregistered white-box
+validation with corrected live capture and architecture fidelity; (3) close
+paper-exact provenance and claim mapping -- NOW LEADING; (4) package the
+reasoning/RAG contribution.** IU-PCR and
 Unified-28 are frozen anchors. Family-NRM and the localization/RAG applications
 are accepted but bounded. Clustering, DUFS/Laplacian discovery, Atomic-NRM,
 and the current contextual routers are closed. White-box remains promising but
