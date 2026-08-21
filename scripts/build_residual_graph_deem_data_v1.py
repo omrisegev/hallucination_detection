@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import sys
 
@@ -102,6 +103,38 @@ def build_sidecars(args) -> None:
     atomic_write_json(out / "LABEL_SIDECARS.json", aggregate)
 
 
+def finalize_bundles(args) -> None:
+    registry = load_registry(args.registry)
+    cells = [cell["cell_id"] for cell in registry["cells"]]
+    bundle_root = Path(args.bundle_dir).resolve()
+    manifests = []
+    for registered in registry["cells"]:
+        cell_id = registered["cell_id"]
+        path = bundle_root / f"{cell_id}.npz"
+        bundle = load_target_free_bundle(path)
+        if (
+            bundle.cell_id != cell_id
+            or len(bundle.row_ids) != int(registered["n_rows"])
+            or bundle.inventory_sha256 != registered["inventory_sha256"]
+            or bundle.source_sha256 != registered["source"]["source_sha256"]
+        ):
+            raise RuntimeError(f"bundle/registry mismatch during finalization: {cell_id}")
+        manifest_path = path.with_suffix(".manifest.json")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if manifest.get("bundle_sha256") != bundle.bundle_sha256:
+            raise RuntimeError(f"bundle manifest hash mismatch: {cell_id}")
+        manifests.append(manifest)
+    aggregate = {
+        "schema": "residual_graph_deem_bundle_set_v1",
+        "status": "complete", "labels_accessed": False, "cells": cells,
+        "n_rows": sum(item["n_rows"] for item in manifests),
+        "bundle_manifests": manifests,
+        "registry_content_sha256": registry["registry_content_sha256"],
+    }
+    aggregate["content_sha256"] = canonical_sha256(aggregate)
+    atomic_write_json(Path(args.out).resolve(), aggregate)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -120,6 +153,12 @@ def main() -> None:
     sidecars.add_argument("--score-freeze-manifest", type=Path, required=True)
     sidecars.add_argument("--out-dir", type=Path, required=True)
     sidecars.set_defaults(func=build_sidecars)
+
+    finalize = subparsers.add_parser("finalize-bundles")
+    finalize.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
+    finalize.add_argument("--bundle-dir", type=Path, required=True)
+    finalize.add_argument("--out", type=Path, required=True)
+    finalize.set_defaults(func=finalize_bundles)
     args = parser.parse_args()
     args.func(args)
 

@@ -749,7 +749,11 @@ def run_phase0(args, registry) -> None:
     }
     freeze["content_sha256"] = canonical_sha256(freeze)
     freeze_path = args.out_dir / "SYNTHETIC_WORLD_REGISTRY.json"
-    if not freeze_path.exists():
+    if freeze_path.exists():
+        existing_freeze = json.loads(freeze_path.read_text(encoding="utf-8"))
+        if existing_freeze != jsonable(freeze):
+            raise SystemExit("immutable synthetic-world registry mismatch on resume")
+    else:
         atomic_write_json(freeze_path, freeze, immutable=True)
     schema_fixture_results = []
     for schema_position, schema in enumerate(registry["schemas"]):
@@ -802,6 +806,21 @@ def run_phase0(args, registry) -> None:
         X_raw = -X_risk * signs[None, :]
         y = world["synthetic_target"]
         for seed in phase_seeds:
+            checkpoint_path = args.out_dir / "phase0_checkpoints" / f"{world_id}__seed{seed}.json"
+            if checkpoint_path.is_file():
+                checkpoint = json.loads(checkpoint_path.read_text(encoding="utf-8"))
+                if (
+                    checkpoint.get("schema") != "residual_graph_deem_phase0_checkpoint_v1"
+                    or checkpoint.get("world") != world_id
+                    or int(checkpoint.get("seed", -1)) != int(seed)
+                    or checkpoint.get("smoke") != bool(args.smoke)
+                    or checkpoint.get("code_sha256") != source_hash()
+                    or checkpoint.get("synthetic_registry_sha256") != sha256_file(freeze_path)
+                ):
+                    raise SystemExit(f"Phase-0 checkpoint mismatch: {checkpoint_path}")
+                results.extend(checkpoint["results"])
+                continue
+            seed_results = []
             config = ContinuousDeemConfig(epochs=epochs, anchor_tolerance=1e-12,
                                           posterior_sd_min=0.0 if args.smoke else 1e-3)
             b3 = fit_continuous_deem(X_risk, names, seed=seed, config=config)
@@ -877,7 +896,7 @@ def run_phase0(args, registry) -> None:
                         family_laplacian=(family_graph if family_graph is not None and lambda_ else None),
                         baseline_result=b3,
                     )
-                    results.append({
+                    seed_results.append({
                         "world": world_id, "seed": seed, "arm": arm,
                         "mechanism": mechanism, "control": None,
                         "lambda": lambda_, "baseline_auc": baseline_auc,
@@ -899,7 +918,7 @@ def run_phase0(args, registry) -> None:
                         baseline_result=b3,
                     )
                     auc = float(roc_auc_score(y, candidate.score))
-                    results.append({
+                    seed_results.append({
                         "world": world_id, "seed": seed, "arm": "G3_CONTROL",
                         "mechanism": "target", "control": control,
                         "lambda": lambda_, "baseline_auc": baseline_auc,
@@ -910,7 +929,7 @@ def run_phase0(args, registry) -> None:
                     })
                 if control == "family_permuted":
                     permuted_auc = float(roc_auc_score(y, b3.score[permutation]))
-                    results.append({
+                    seed_results.append({
                         "world": world_id, "seed": seed, "arm": "G3_CONTROL",
                         "mechanism": "target", "control": "posterior_permuted",
                         "lambda": None, "baseline_auc": baseline_auc,
@@ -918,6 +937,16 @@ def run_phase0(args, registry) -> None:
                         "healthy": True, "graph_healthy": True,
                         "gate_effective_count": residual_gate_diag["effective_feature_count"],
                     })
+            checkpoint = {
+                "schema": "residual_graph_deem_phase0_checkpoint_v1",
+                "world": world_id, "seed": seed, "smoke": bool(args.smoke),
+                "code_sha256": source_hash(),
+                "synthetic_registry_sha256": sha256_file(freeze_path),
+                "results": seed_results,
+            }
+            checkpoint["content_sha256"] = canonical_sha256(checkpoint)
+            atomic_write_json(checkpoint_path, checkpoint)
+            results.extend(seed_results)
     atomic_write_json(args.out_dir / "PHASE0_RESULTS.json", results)
     nominations = {}
     mechanism_arm = {"target": "G3", "nuisance": "G4", "family": "G5"}
@@ -953,7 +982,7 @@ def run_phase0(args, registry) -> None:
             se = float(np.std(positive, ddof=1) / np.sqrt(max(len(positive), 1)))
             control_bad = []
             for world in sorted(required_negative[mechanism]):
-                for control in sorted(controls):
+                for control in ("family_permuted", "length_only", "node_permuted", "random_gate"):
                     values = [
                         row["delta"] for row in results
                         if row["arm"] == "G3_CONTROL" and row["lambda"] == lambda_
