@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 from pathlib import Path
 import subprocess
@@ -59,12 +60,25 @@ def semantic_npz_hash(path: Path) -> str:
 
 
 def compare_evaluations(reference: Path, candidate: Path) -> dict:
+    def normalized(path: Path, name: str) -> bytes:
+        if name == "PER_FIT.csv":
+            with path.open(newline="", encoding="utf-8") as handle:
+                content = list(csv.DictReader(handle))
+            for row in content:
+                row.pop("runtime_seconds", None)
+            return canonical_sha256(content).encode("ascii")
+        if name == "EVALUATION_COMPLETE.json":
+            value = json.loads(path.read_text(encoding="utf-8"))
+            value.pop("score_freeze_sha256", None)
+            return canonical_sha256(value).encode("ascii")
+        return path.read_bytes()
+
     rows = {}
     all_match = True
     for name in COMPACT:
         left, right = reference / name, candidate / name
         present = left.is_file() and right.is_file()
-        match = bool(present and left.read_bytes() == right.read_bytes())
+        match = bool(present and normalized(left, name) == normalized(right, name))
         rows[name] = {
             "present": present,
             "reference_sha256": sha256_file(left) if left.is_file() else None,
@@ -119,6 +133,9 @@ def main() -> None:
     fresh_run = args.fresh_run_dir.resolve()
     fresh_eval = args.fresh_evaluation_dir.resolve()
     try:
+        original_decision = json.loads(
+            (original_eval / "DECISION.json").read_text(encoding="utf-8")
+        ).get("primary_decision")
         if not args.use_existing:
             require_empty(resume_eval); require_empty(fresh_run); require_empty(fresh_eval)
             # Resume path: re-evaluate only after the existing checkpoint/freeze is
@@ -145,6 +162,9 @@ def main() -> None:
         value = {
             "schema": "residual_graph_deem_rebuild_verification_v1",
             "status": "pass" if passed else "REBUILD_VERIFICATION_FAILURE",
+            "primary_decision": (
+                original_decision if passed else "REBUILD_VERIFICATION_FAILURE"
+            ),
             "resume": resume,
             "fresh": fresh,
             "fresh_score_semantic_hashes": scores,
@@ -155,6 +175,7 @@ def main() -> None:
         value = {
             "schema": "residual_graph_deem_rebuild_verification_v1",
             "status": "REBUILD_VERIFICATION_FAILURE",
+            "primary_decision": "REBUILD_VERIFICATION_FAILURE",
             "error_type": type(exc).__name__, "error": str(exc),
         }
     value["content_sha256"] = canonical_sha256(value)

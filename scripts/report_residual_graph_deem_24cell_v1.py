@@ -42,13 +42,19 @@ def main() -> None:
     out = args.out_dir.resolve()
     out.mkdir(parents=True, exist_ok=True)
     decision = json.loads((evaluation / "DECISION.json").read_text(encoding="utf-8"))
+    rebuild_path = args.run_dir.resolve().parent / "rebuild" / "REBUILD_VERIFICATION.json"
+    rebuild = json.loads(rebuild_path.read_text(encoding="utf-8")) if rebuild_path.is_file() else None
+    primary_decision = (
+        rebuild.get("primary_decision", decision["primary_decision"])
+        if rebuild is not None else decision["primary_decision"]
+    )
     summaries = read_csv(evaluation / "FAMILY_SUMMARY.csv")
     comparisons = read_csv(evaluation / "PAIRWISE_COMPARISONS.csv")
     null = json.loads((evaluation / "WHOLE_SEARCH_NULL.json").read_text(encoding="utf-8"))
     lookup = {(row["method"], row["metric"]): row for row in summaries}
     lines = [
         "# Residual-Graph DEEM — 24-cell Phase 1 report", "",
-        f"**Primary decision:** `{decision['primary_decision']}`", "",
+        f"**Primary decision:** `{primary_decision}`", "",
         f"- `ADVANCE_CORE={str(decision['advance_core']).lower()}`",
         f"- `ADVANCE_GRAPH={str(decision['advance_graph']).lower()}`",
         f"- whole-search null draws: `{null['B']}`", "",
@@ -76,6 +82,12 @@ def main() -> None:
     ])
     for name, value in null["p_values"].items():
         lines.append(f"- `{name}` max-statistic p-value: {fmt(value, 5)}")
+    if rebuild is not None:
+        lines.extend([
+            "", "## Rebuild verification", "",
+            f"- status: `{rebuild['status']}`",
+            f"- evidence: `{rebuild_path}`", "",
+        ])
     lines.extend([
         "", "## Historical context", "",
         "The historical variable-inventory study reported full IU-PCR AUROC "
@@ -137,6 +149,9 @@ Natural labels exist only in `{args.sidecar_dir.resolve()}` and are opened by th
     manifest = {
         "schema": "residual_graph_deem_report_complete_v1",
         "decision_sha256": sha256_file(evaluation / "DECISION.json"),
+        "rebuild_verification_sha256": (
+            sha256_file(rebuild_path) if rebuild_path.is_file() else None
+        ),
         "report_sha256": sha256_file(out / "REPORT.md"),
         "reviewer_guide_sha256": sha256_file(out / "REVIEWER_GUIDE.md"),
         "pairwise_rows": len(comparisons),

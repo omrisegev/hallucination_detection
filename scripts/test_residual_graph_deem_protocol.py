@@ -7,6 +7,7 @@ import ast
 import json
 from pathlib import Path
 import sys
+import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,7 +16,11 @@ if str(ROOT) not in sys.path:
 
 from spectral_utils.residual_graph_deem import ARM_SPECS, LAMBDA_GRID, SEEDS, canonical_sha256  # noqa: E402
 from spectral_utils.residual_graph_deem_data import load_registry  # noqa: E402
-from scripts.run_residual_graph_deem_24cell_v1 import expected_stems, source_hash  # noqa: E402
+from scripts.run_residual_graph_deem_24cell_v1 import (  # noqa: E402
+    expected_stems,
+    source_hash,
+    write_cell_checkpoint,
+)
 
 
 def require(condition, message):
@@ -48,8 +53,24 @@ def main():
     require(registry["graph"]["claim_min_healthy_cells"] == 22, "22/24 graph-health claim threshold")
     require(len(registry["synthetic"]["worlds"]) == 10, "ten synthetic worlds frozen")
     phase0_fixture = {"nominated_lambdas": {"target": .1, "nuisance": .3, "family": .03}}
-    require(len(expected_stems(phase0_fixture)) == 255,
+    required_stems = expected_stems(phase0_fixture)
+    require(len(required_stems) == 255,
             "all core, lambda, control, k, and stable-inventory artifacts required per cell")
+    records = [
+        {
+            "stem": stem, "status": "complete", "array_sha256": "a" * 64,
+            "health": {"healthy": stem != sorted(required_stems)[0]},
+        }
+        for stem in sorted(required_stems)
+    ]
+    with tempfile.TemporaryDirectory() as temporary:
+        write_cell_checkpoint(
+            Path(temporary), "fixture_cell", phase0_fixture, "b" * 64, records
+        )
+        require(
+            not (Path(temporary) / "fits/fixture_cell/CELL_COMPLETE.json").exists(),
+            "unhealthy fit cannot produce a cell-complete checkpoint",
+        )
     require(all(cell["inventory_sha256"] == canonical_sha256({
         "feature_names": cell["feature_names"], "confidence_signs": cell["confidence_signs"]
     }) for cell in registry["cells"]), "every inventory hash recomputes")

@@ -59,7 +59,14 @@ def write_csv(path: Path, rows: list[dict]) -> None:
 def verify_score_freeze(run_dir: Path) -> dict:
     path = run_dir / "SCORE_FREEZE_MANIFEST.json"
     value = json.loads(path.read_text(encoding="utf-8"))
-    if value.get("status") != "complete" or value.get("debug"):
+    if (
+        value.get("status") != "complete"
+        or value.get("debug")
+        or bool(value.get("incomplete_fits"))
+        or bool(value.get("unhealthy_fits"))
+        or bool(value.get("missing_seeds"))
+        or bool(value.get("missing_artifacts"))
+    ):
         raise ResidualGraphDeemError("evaluator refuses incomplete/debug score freeze")
     unhashed = dict(value)
     expected = unhashed.pop("content_sha256", None)
@@ -275,6 +282,19 @@ def graph_catalog(run_dir: Path, cells, nominations: dict) -> dict:
                 load_csr(run_dir / "fits" / cell / f"{arm}__lambda{token}__seed{seed}.npz")
                 for seed in SEEDS
             ]
+        for k in (5, 10, 15):
+            current[f"G3_K{k}"] = [
+                load_csr(
+                    run_dir / "fits" / cell
+                    / f"SENSITIVITY__k{k}__G3__lambda{lambda_token(nominations['target'])}__seed{seed}.npz"
+                ) for seed in SEEDS
+            ]
+        current["G3_STABLE_INVENTORY"] = [
+            load_csr(
+                run_dir / "fits" / cell
+                / f"SENSITIVITY__stable_inventory_minus4__G3__seed{seed}.npz"
+            ) for seed in SEEDS
+        ]
         output[cell] = current
     return output
 
@@ -333,25 +353,35 @@ def geometry_rows(targets, bundles, graphs, draws) -> list[dict]:
 def whole_search_null(
     targets, bundles, scores_by_cell, graphs, draws, *, B: int,
 ) -> dict:
-    candidate_methods = ("G0", "G1", "G2", "G3", "G4", "G5")
+    candidate_methods = sorted(
+        set.intersection(*(set(values) for values in scores_by_cell.values()))
+        - {"B0", "B1", "B2", "B3"}
+    )
 
     def statistic(target_map):
         rows = []
         for cell, y in target_map.items():
-            for method in ("B3",) + candidate_methods:
+            for method in ("B3", *candidate_methods):
                 try:
                     auc = float(roc_auc_score(y, scores_by_cell[cell][method]))
+                    ap = float(average_precision_score(y, scores_by_cell[cell][method]))
                 except ValueError:
                     auc = 0.5
+                    ap = float(np.mean(y))
                 rows.append({
                     "cell_id": cell, "dataset_family": bundles[cell].dataset_family,
-                    "task_type": bundles[cell].task_type, "method": method, "auroc": auc,
+                    "task_type": bundles[cell].task_type, "method": method,
+                    "auroc": auc, "auprc": ap,
                 })
-        base = aggregate(rows, "B3")["equal_family_macro"]
-        components = {
-            f"auroc::{method}": aggregate(rows, method)["equal_family_macro"] - base
-            for method in candidate_methods
-        }
+        components = {}
+        for metric_name in ("auroc", "auprc"):
+            base = aggregate(rows, "B3", metric_name)
+            for method in candidate_methods:
+                candidate = aggregate(rows, method, metric_name)
+                for summary_name in ("equal_family_macro", "qa_macro", "math_macro"):
+                    components[f"{metric_name}::{summary_name}::{method}"] = (
+                        candidate[summary_name] - base[summary_name]
+                    )
         graph_values = defaultdict(lambda: defaultdict(list))
         for cell, roles in graphs.items():
             for role, members in roles.items():
@@ -518,7 +548,7 @@ def nuisance_diagnostics(run_dir: Path, cells, nominations: dict) -> list[dict]:
     return output
 
 
-def evaluate_controls(run_dir, cells, targets, bundles, nominations, per_cell):
+def evaluate_controls(run_dir, cells, targets, bundles, nominations, per_cell, scores_by_cell):
     headline = float(nominations["target"])
     controls = ("length_only", "node_permuted", "random_gate", "family_permuted", "posterior_permuted")
     control_rows = []
@@ -543,6 +573,7 @@ def evaluate_controls(run_dir, cells, targets, bundles, nominations, per_cell):
                 ) for seed in SEEDS
             ]
             score_value = np.mean(members, axis=0)
+            scores_by_cell[cell][f"CONTROL::{control}"] = score_value
             auc, ap = metrics(targets[cell], score_value)
             control_rows.append({
                 "cell_id": cell, "dataset_family": bundles[cell].dataset_family,
@@ -780,6 +811,7 @@ def main() -> None:
             ],
         ):
             value = np.mean([load_seed_score(run_dir, cell, stem) for stem in stems], axis=0)
+            scores_by_cell[cell][f"SENSITIVITY::{sensitivity}::{arm}"] = value
             auroc, auprc = metrics(targets[cell], value)
             sensitivity_rows.append({
                 "cell_id": cell, "dataset_family": bundles[cell].dataset_family,
@@ -810,11 +842,12 @@ def main() -> None:
     draws, conditional_diagnostics = conditional_draws(targets, bundles, B=args.B)
     graphs = graph_catalog(run_dir, cells, phase0["nominated_lambdas"])
     geometry = geometry_rows(targets, bundles, graphs, draws)
+    controls = evaluate_controls(
+        run_dir, cells, targets, bundles, phase0["nominated_lambdas"], per_cell,
+        scores_by_cell,
+    )
     null = whole_search_null(targets, bundles, scores_by_cell, graphs, draws, B=args.B)
     null["conditional_diagnostics"] = conditional_diagnostics
-    controls = evaluate_controls(
-        run_dir, cells, targets, bundles, phase0["nominated_lambdas"], per_cell
-    )
     decision = decide(
         per_cell, summaries, comparisons, null, stability, graph_rows,
         controls, geometry, nuisance_rows,

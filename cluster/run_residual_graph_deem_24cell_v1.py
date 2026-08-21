@@ -265,6 +265,17 @@ def finalize_rebuild(args, *, B: int) -> int:
         "--out", output, "--B", str(B), "--use-existing",
     ], check=False)
     upload(args, output, "rebuild/REBUILD_VERIFICATION.json")
+    # The final report must reflect rebuild failure as the primary decision.
+    report_path = args.run_root / f"report/B{B}"
+    command([
+        args.python, ROOT / "scripts/report_residual_graph_deem_24cell_v1.py",
+        "--run-dir", args.run_root / "stage_a", "--evaluation-dir", original,
+        "--bundle-dir", args.run_root / "data/bundles",
+        "--sidecar-dir", args.run_root / "evaluation/label_sidecars",
+        "--phase0-complete", args.run_root / "phase0/PHASE0_COMPLETE.json",
+        "--out-dir", report_path,
+    ])
+    upload(args, report_path, f"report/B{B}")
     return completed.returncode
 
 

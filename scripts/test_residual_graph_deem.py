@@ -34,6 +34,7 @@ from spectral_utils.residual_graph_deem import (  # noqa: E402
     atomic_save_npz,
     build_inventory_graph,
     cross_view_dufs,
+    crossfit_continuous_deem,
     donor_risk_matrix,
     fit_continuous_deem,
     fit_standardization,
@@ -139,6 +140,20 @@ def test_transforms_and_folds():
     folds = assign_grouped_length_folds(group_ids, np.arange(10) + 1)
     check("siblings never split", all(len(set(folds[group_ids == group])) == 1 for group in set(group_ids)))
     check("folding deterministic", np.array_equal(folds, assign_grouped_length_folds(group_ids, np.arange(10) + 1)))
+    rng = np.random.default_rng(22)
+    raw = rng.normal(size=(80, len(NAMES)))
+    grouped = np.asarray([f"g{i // 4}" for i in range(80)])
+    crossfit = crossfit_continuous_deem(
+        raw, NAMES, np.array([-1, -1, -1, -1, 1, 1, -1]),
+        grouped, np.arange(80) % 17 + 1, seed=0,
+        config=ContinuousDeemConfig(epochs=1, posterior_sd_min=0.0, anchor_tolerance=1e-12),
+    )
+    check("residualizer donors use the held fold's donor-only DEEM model",
+          all(record["donor_model_shared_with_held_transform"]
+              for record in crossfit.residualizer_records))
+    check("every residualizer donor/held split is disjoint",
+          all(not set(record["donor_indices"]).intersection(record["held_indices"])
+              for record in crossfit.residualizer_records))
 
 
 def test_continuous_model():

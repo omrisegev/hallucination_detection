@@ -857,6 +857,61 @@ def residualize_oof_contributions(
     return output, tuple(records)
 
 
+def donor_residualize_contributions(
+    donor_contributions: np.ndarray,
+    held_contributions: np.ndarray,
+    donor_logit: np.ndarray,
+    held_logit: np.ndarray,
+    donor_lengths: np.ndarray,
+    held_lengths: np.ndarray,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Fit and apply the frozen residualizer without cross-fold model leakage."""
+
+    donor_values = np.asarray(donor_contributions, dtype=float)
+    held_values = np.asarray(held_contributions, dtype=float)
+    donor_predictors_raw = np.column_stack([
+        np.asarray(donor_logit, dtype=float),
+        np.log1p(np.maximum(np.asarray(donor_lengths, dtype=float), 0.0)),
+    ])
+    held_predictors_raw = np.column_stack([
+        np.asarray(held_logit, dtype=float),
+        np.log1p(np.maximum(np.asarray(held_lengths, dtype=float), 0.0)),
+    ])
+    if (
+        donor_values.ndim != 2 or held_values.ndim != 2
+        or donor_values.shape[1] != held_values.shape[1]
+        or len(donor_values) != len(donor_predictors_raw)
+        or len(held_values) != len(held_predictors_raw)
+    ):
+        raise ValueError("donor/held residualizer arrays disagree")
+    predictor_transform = fit_standardization(donor_predictors_raw)
+    donor_predictors = apply_standardization(donor_predictors_raw, predictor_transform)
+    held_predictors = apply_standardization(held_predictors_raw, predictor_transform)
+    polynomial = PolynomialFeatures(degree=3, include_bias=False)
+    donor_design = polynomial.fit_transform(donor_predictors)
+    held_design = polynomial.transform(held_predictors)
+    estimator = Ridge(alpha=1.0, fit_intercept=True)
+    estimator.fit(donor_design, donor_values)
+    donor_residual = donor_values - estimator.predict(donor_design)
+    held_residual = held_values - estimator.predict(held_design)
+    residual_transform = fit_standardization(donor_residual)
+    output = apply_standardization(held_residual, residual_transform)
+    if not np.isfinite(output).all():
+        raise ResidualGraphDeemError("non-finite donor-only held residual")
+    return output, {
+        "predictor_mean": predictor_transform.mean,
+        "predictor_scale": predictor_transform.scale,
+        "predictor_constant_mask": predictor_transform.constant_mask,
+        "residual_mean": residual_transform.mean,
+        "residual_scale": residual_transform.scale,
+        "residual_constant_mask": residual_transform.constant_mask,
+        "polynomial_powers": polynomial.powers_,
+        "ridge_coef": estimator.coef_,
+        "ridge_intercept": estimator.intercept_,
+        "donor_model_shared_with_held_transform": True,
+    }
+
+
 def crossfit_continuous_deem(
     X_raw: np.ndarray,
     feature_names: Sequence[str],
@@ -879,8 +934,10 @@ def crossfit_continuous_deem(
     oof_logit = np.empty(len(X), dtype=float)
     oof_posterior = np.empty((len(X), 2), dtype=float)
     oof_contribution = np.empty_like(X)
+    oof_residual = np.empty_like(X)
     manifests = []
     fits = []
+    residualizer_records = []
     config = config or ContinuousDeemConfig()
     for fold in range(5):
         held = np.flatnonzero(folds == fold)
@@ -894,9 +951,16 @@ def crossfit_continuous_deem(
         )
         fit = fit_continuous_deem(donor_risk, feature_names, seed=seed, config=config)
         prediction = predict_continuous_deem(fit, held_risk)
+        donor_prediction = predict_continuous_deem(fit, donor_risk)
         oof_logit[held] = prediction["logit"]
         oof_posterior[held] = prediction["posterior"]
         oof_contribution[held] = prediction["contributions"]
+        held_residual, residualizer_record = donor_residualize_contributions(
+            donor_prediction["contributions"], prediction["contributions"],
+            donor_prediction["logit"], prediction["logit"],
+            lengths[donor], lengths[held],
+        )
+        oof_residual[held] = held_residual
         record = {
             "mean": transform.mean,
             "scale": transform.scale,
@@ -910,28 +974,23 @@ def crossfit_continuous_deem(
                 donor_group_sha256=_id_hash(sorted(set(groups[donor].tolist()))),
                 held_group_sha256=_id_hash(sorted(set(groups[held].tolist()))),
                 standardization_sha256=canonical_sha256(record),
+                residualizer_sha256=canonical_sha256(residualizer_record),
             )
         )
         fits.append(fit)
-    residuals, residualizer_records = residualize_oof_contributions(
-        oof_contribution, oof_logit, lengths, folds
-    )
-    manifests = tuple(
-        replace(
-            manifest,
-            residualizer_sha256=canonical_sha256(residualizer_records[manifest.fold]),
-        )
-        for manifest in manifests
-    )
+        residualizer_records.append({
+            "fold": int(fold), "donor_indices": donor.tolist(),
+            "held_indices": held.tolist(), **residualizer_record,
+        })
     return CrossFitResult(
         logit=oof_logit,
         posterior=oof_posterior,
         contributions=oof_contribution,
-        residuals=residuals,
+        residuals=oof_residual,
         folds=folds,
         fold_manifests=manifests,
         fit_results=tuple(fits),
-        residualizer_records=residualizer_records,
+        residualizer_records=tuple(residualizer_records),
     )
 
 
@@ -1262,7 +1321,8 @@ __all__ = [
     "GraphDeemConfig", "LAMBDA_GRID", "ResidualGraphDeemError", "SCHEMA_VERSION",
     "SEEDS", "Standardization", "apply_standardization", "assign_grouped_length_folds",
     "atomic_save_npz", "atomic_write_json", "build_inventory_graph", "canonical_sha256",
-    "cross_view_dufs", "crossfit_continuous_deem", "donor_risk_matrix",
+    "cross_view_dufs", "crossfit_continuous_deem", "donor_residualize_contributions",
+    "donor_risk_matrix",
     "ensemble_seed_scores", "environment_fingerprint", "equal_family_risk_anchor", "family_index_map",
     "fit_continuous_deem", "fit_standardization", "fold_artifact_diagnostics",
     "graph_health", "jsonable", "metric_weights", "normalized_rayleigh",

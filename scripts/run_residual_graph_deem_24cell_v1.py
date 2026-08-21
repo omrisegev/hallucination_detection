@@ -74,6 +74,14 @@ CORE_SOURCES = (
     ROOT / "spectral_utils/residual_graph_deem_data.py",
     ROOT / "spectral_utils/residual_graph_deem_labels.py",
     ROOT / "spectral_utils/deem_adapter.py",
+    ROOT / "spectral_utils/feature_contract.py",
+    ROOT / "spectral_utils/feature_utils.py",
+    ROOT / "spectral_utils/fusion_utils.py",
+    ROOT / "spectral_utils/graph_topology.py",
+    ROOT / "spectral_utils/laplacian_upcr.py",
+    ROOT / "spectral_utils/specrage_views.py",
+    ROOT / "spectral_utils/a5_target_free_data.py",
+    ROOT / "spectral_utils/fair_comparisons/twentyfour.py",
     ROOT / "scripts/run_residual_graph_deem_24cell_v1.py",
     ROOT / "scripts/residual_graph_deem_adapter_worker_v1.py",
     ROOT / "scripts/build_residual_graph_deem_data_v1.py",
@@ -302,7 +310,12 @@ def write_cell_checkpoint(
     }
     missing = sorted(required - set(complete))
     failures = [record for record in records if record.get("status") != "complete"]
-    if missing or failures:
+    unhealthy = [
+        record for record in records
+        if record.get("status") == "complete"
+        and not bool(record.get("health", {}).get("healthy", record.get("healthy", False)))
+    ]
+    if missing or failures or unhealthy:
         return
     marker = {
         "schema": "residual_graph_deem_cell_complete_v1",
@@ -1125,6 +1138,10 @@ def run_stage_a(args, registry) -> None:
         expected = unhashed.pop("content_sha256", None)
         if (
             frozen.get("status") != "complete"
+            or bool(frozen.get("incomplete_fits"))
+            or bool(frozen.get("unhealthy_fits"))
+            or bool(frozen.get("missing_seeds"))
+            or bool(frozen.get("missing_artifacts"))
             or frozen.get("run_definition_sha256") != run_hash
             or canonical_sha256(unhashed) != expected
         ):
@@ -1147,6 +1164,11 @@ def run_stage_a(args, registry) -> None:
         records.extend(current)
         write_cell_checkpoint(args.out_dir, cell_id, phase0, run_hash, current)
     failures = [record for record in records if record.get("status") != "complete"]
+    unhealthy = [
+        record for record in records
+        if record.get("status") == "complete"
+        and not bool(record.get("health", {}).get("healthy", record.get("healthy", False)))
+    ]
     missing_seeds = []
     required = {"B0", "B1", "B2", "B3"}
     for cell_id in cells:
@@ -1169,10 +1191,11 @@ def run_stage_a(args, registry) -> None:
             missing_artifacts.append({"cell": cell_id, "stem": stem})
     fit_complete = {
         "schema": "residual_graph_deem_fit_complete_v1",
-        "status": "complete" if not failures and not missing_seeds and not missing_artifacts and len(cells) == 24 else "incomplete",
+        "status": "complete" if not failures and not unhealthy and not missing_seeds and not missing_artifacts and len(cells) == 24 else "incomplete",
         "cells": cells,
         "n_records": len(records),
         "incomplete_fits": failures,
+        "unhealthy_fits": unhealthy,
         "missing_seeds": missing_seeds,
         "missing_artifacts": missing_artifacts,
         "run_definition_sha256": run_hash,
@@ -1180,7 +1203,10 @@ def run_stage_a(args, registry) -> None:
     atomic_write_json(args.out_dir / "FIT_COMPLETE.json", fit_complete)
     if fit_complete["status"] != "complete":
         raise SystemExit("Stage A incomplete; score freeze not written")
-    score_files = sorted((args.out_dir / "fits").glob("*/*.npz"))
+    score_files = sorted(
+        path for path in (args.out_dir / "fits").glob("*/*")
+        if path.suffix in {".npz", ".json"}
+    )
     freeze = {
         "schema": "residual_graph_deem_score_freeze_v1",
         "status": "complete",
@@ -1188,6 +1214,7 @@ def run_stage_a(args, registry) -> None:
         "cells": cells,
         "missing_seeds": [],
         "incomplete_fits": [],
+        "unhealthy_fits": [],
         "missing_artifacts": [],
         "run_definition_sha256": sha256_file(definition_path),
         "fit_complete_sha256": sha256_file(args.out_dir / "FIT_COMPLETE.json"),
