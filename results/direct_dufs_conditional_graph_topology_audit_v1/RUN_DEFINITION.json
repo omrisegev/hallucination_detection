@@ -1,0 +1,548 @@
+{
+  "bootstraps": 5000,
+  "candidate_graphs": [
+    "union_knn_k7_self_safe",
+    "radius_edge_matched_k7",
+    "adaptive_knn_mean7_k3_25",
+    "diffusion_edge_matched_base25_t2",
+    "diffusion_edge_matched_base25_t4"
+  ],
+  "conditional_nulls": {
+    "adjacent_pair_sensitivity": {
+      "discordant_pairs_min": 10,
+      "max_log_gap_max": 0.6931471805599453,
+      "movable_fraction_min": 0.2,
+      "p95_log_gap_max": 0.22314355131420976
+    },
+    "cross_fitted_propensity_crt": {
+      "brier_tolerance": 0.01,
+      "calibration_mae_max": 0.1,
+      "overlap_fraction_min": 0.2
+    },
+    "exact_length": {
+      "mixed_strata_min": 5,
+      "movable_fraction_min": 0.2,
+      "movable_rows_min": 20
+    }
+  },
+  "control_graphs": [
+    "deployed_union_knn_k7",
+    "mutual_knn_k7",
+    "length_only_knn_k7",
+    "permuted_self_safe_union_knn_k7"
+  ],
+  "decision_graphs": [
+    "union_knn_k7_self_safe",
+    "radius_edge_matched_k7",
+    "adaptive_knn_mean7_k3_25",
+    "diffusion_edge_matched_base25_t2"
+  ],
+  "dufs_epochs": 80,
+  "dufs_seeds": [
+    11,
+    23,
+    37
+  ],
+  "eligible_cell_fraction_min": 0.6666666666666666,
+  "health": {
+    "isolated_fraction_max": 0.05,
+    "largest_component_min": 0.9
+  },
+  "inputs": [
+    {
+      "bytes": 49801034,
+      "path": "cache/localization/processbench/pb_qwen3_4b/processbench_gsm8k.pkl",
+      "sha256": "549843b11a99f41b60ccb13eb6a65c5583527402602e6e40d1a417699e64b02b"
+    },
+    {
+      "bytes": 227049038,
+      "path": "cache/localization/processbench/pb_qwen3_4b/processbench_math.pkl",
+      "sha256": "807292c490012b68c7a20cc3d093cda637866227940b9024b258b6a201657c32"
+    },
+    {
+      "bytes": 338485050,
+      "path": "cache/localization/processbench/pb_qwen3_4b/processbench_olympiadbench.pkl",
+      "sha256": "e5e73f044247e0fb4081fea1c3a77793aab182485daebce48cf7a3f7809eb0ae"
+    },
+    {
+      "bytes": 335250837,
+      "path": "cache/localization/processbench/pb_qwen3_4b/processbench_omnimath.pkl",
+      "sha256": "ec20e56553acee15c0646ad266f5d5d8d24ef22ba87289b6ffe013b0c639ba67"
+    },
+    {
+      "bytes": 49801034,
+      "path": "cache/localization/processbench/pb_qwen3_8b/processbench_gsm8k.pkl",
+      "sha256": "c258e8a37fad43216290fef2f70c88735f413f8c0ceb5cce39dfefe67d66955d"
+    },
+    {
+      "bytes": 227049038,
+      "path": "cache/localization/processbench/pb_qwen3_8b/processbench_math.pkl",
+      "sha256": "19cbbb2b4f90e073f2793360f142bc25334f88bbc4ec01fd78807f9f1ad2836d"
+    },
+    {
+      "bytes": 338485050,
+      "path": "cache/localization/processbench/pb_qwen3_8b/processbench_olympiadbench.pkl",
+      "sha256": "2083c4f9d0cc8d84657b02558d0720f726db4288e39e7557be4c55f78f4d4e60"
+    },
+    {
+      "bytes": 335250837,
+      "path": "cache/localization/processbench/pb_qwen3_8b/processbench_omnimath.pkl",
+      "sha256": "561b96c5e96a25256e7e51a62c7ef01bcb2fd87ea1adcfc36e2c758807f559a0"
+    },
+    {
+      "bytes": 21458735,
+      "path": "local_cache/RAGTruth_official/dataset/response.jsonl",
+      "sha256": "e4c2e4ac24fff676d8984cc61c35d791612fadc58015335d97dd632375e18073"
+    },
+    {
+      "bytes": 663,
+      "path": "local_cache/qwen25_15b_tokenizer/config.json",
+      "sha256": "7463bb0ea78315365e6c6b74de4e73bbcc8359dfb0c5a737584e077d42c0b03c"
+    },
+    {
+      "bytes": 1671839,
+      "path": "local_cache/qwen25_15b_tokenizer/merges.txt",
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3"
+    },
+    {
+      "bytes": 7031645,
+      "path": "local_cache/qwen25_15b_tokenizer/tokenizer.json",
+      "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539"
+    },
+    {
+      "bytes": 7305,
+      "path": "local_cache/qwen25_15b_tokenizer/tokenizer_config.json",
+      "sha256": "5b5d4f65d0acd3b2d56a35b56d374a36cbc1c8fa5cf3b3febbbfabf22f359583"
+    },
+    {
+      "bytes": 2776833,
+      "path": "local_cache/qwen25_15b_tokenizer/vocab.json",
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+    },
+    {
+      "bytes": 447690000,
+      "path": "local_cache/ragtruth_ec/dev/ragtruth_ec_train.pkl",
+      "sha256": "78fe5a9a84a99af4a6bb89d006a1fca0cfa9fb3ac285f6f9543f272298c381f0"
+    },
+    {
+      "bytes": 1227625730,
+      "path": "local_cache/ragtruth_ec/test/ragtruth_ec_test.pkl",
+      "sha256": "4e22bc99d53587be5a1082c9e25720cb225dc04d3a5be87934fa06c9d3ca3f51"
+    },
+    {
+      "bytes": 16217054,
+      "path": "results/dependency_fusion_raw/cells.npz",
+      "sha256": "693a5b634f975ea32c7f840f3ab8366dd8ad638fe41cc76a60e24b1ac5a013e1"
+    },
+    {
+      "bytes": 2535833,
+      "path": "results/frozen_24cell_benchmark/diagnostics/ars_gsm8k_r1distill8b.json",
+      "sha256": "c8461791c37a8eb83d95055bc6ee2a10b756e68cc1f763770f9e1ca84f54e844"
+    },
+    {
+      "bytes": 2534764,
+      "path": "results/frozen_24cell_benchmark/diagnostics/epr_triviaqa_mistral24b.json",
+      "sha256": "4372ec7252c12498977a83c022c9e2161e0482b0200b626cbca78ed63a3c5c94"
+    },
+    {
+      "bytes": 2535116,
+      "path": "results/frozen_24cell_benchmark/diagnostics/internalstates_gsm8k_qwen25_7b.json",
+      "sha256": "e21c732c24992b561d70c82dc6cd8621ac875e7b577d1405664851f0feaae2a7"
+    },
+    {
+      "bytes": 2546331,
+      "path": "results/frozen_24cell_benchmark/diagnostics/lapeigvals_gsm8k_llama3b.json",
+      "sha256": "339b8e0fb8ac414f5650b89588151ca168f85bae1609b7906ab2144eab48b1a3"
+    },
+    {
+      "bytes": 2535675,
+      "path": "results/frozen_24cell_benchmark/diagnostics/lapeigvals_gsm8k_llama8b.json",
+      "sha256": "ffdc423e018a44ba49cd58dcab469fa5c199e8f51055a2e9db07c6ec130aaa73"
+    },
+    {
+      "bytes": 2547481,
+      "path": "results/frozen_24cell_benchmark/diagnostics/lapeigvals_gsm8k_mistral24b.json",
+      "sha256": "73f2e289e18f6653b58da493b6ba394aaca59b4270addda7667771f9dd6a4e4a"
+    },
+    {
+      "bytes": 2542509,
+      "path": "results/frozen_24cell_benchmark/diagnostics/lapeigvals_gsm8k_nemo.json",
+      "sha256": "14ad4d9c5fbbdfe7adfaf998509bae98534dc79f8a5fab8ffd32b195383b3179"
+    },
+    {
+      "bytes": 2543513,
+      "path": "results/frozen_24cell_benchmark/diagnostics/lapeigvals_gsm8k_phi35.json",
+      "sha256": "b10e02ac9ca9fba45158260d288eaca0746ee229bbfd7619effdda937e170f6e"
+    },
+    {
+      "bytes": 2534132,
+      "path": "results/frozen_24cell_benchmark/diagnostics/losnet_hotpotqa_mistral7b.json",
+      "sha256": "0ac183e8024f1f29852141eb48e490277a7c669754d9cdb1cd5169c6a72aff22"
+    },
+    {
+      "bytes": 2531996,
+      "path": "results/frozen_24cell_benchmark/diagnostics/math500_dsmath7b.json",
+      "sha256": "4b1e01e1752b116f8c5329b0d4d799f99cc7a449a46f975f106a5bea4133d97c"
+    },
+    {
+      "bytes": 2528852,
+      "path": "results/frozen_24cell_benchmark/diagnostics/math500_qwenmath7b.json",
+      "sha256": "d257698796ec9da9bf1ddb63d8c715d8658995ba1e313e7e8899199fe3edb1d9"
+    },
+    {
+      "bytes": 2527738,
+      "path": "results/frozen_24cell_benchmark/diagnostics/math500_r1distill8b.json",
+      "sha256": "c6fa5043a1ed3aefdf98957d11f1a0e4c3923852bc96f566308f78bc57d199fa"
+    },
+    {
+      "bytes": 2531292,
+      "path": "results/frozen_24cell_benchmark/diagnostics/math500_r1distill8b_mn4096.json",
+      "sha256": "ec5196bb812e671003dae6ddad62c53854ba63954ea965ab4425fdea6d76f03e"
+    },
+    {
+      "bytes": 2542500,
+      "path": "results/frozen_24cell_benchmark/diagnostics/noise_gsm8k_mistral7b.json",
+      "sha256": "c170264b67d108340366dbbd7fa783ca986e9d316c250b962ce132bd886df8d2"
+    },
+    {
+      "bytes": 2541509,
+      "path": "results/frozen_24cell_benchmark/diagnostics/noise_gsm8k_phi3mini.json",
+      "sha256": "bef6127008f87be64144c375a7629ce743fb3a6a8d7877baf50658aa4b9a2129"
+    },
+    {
+      "bytes": 2528949,
+      "path": "results/frozen_24cell_benchmark/diagnostics/sciq_llama8b.json",
+      "sha256": "a38d5c495f29f082ec78239483b648fad9077c04e98513fd2c4724153e6b64d7"
+    },
+    {
+      "bytes": 2535520,
+      "path": "results/frozen_24cell_benchmark/diagnostics/se_nq_open_llama8b.json",
+      "sha256": "7be01e50681e86d18ac7565c623e332eb5c86f586a6b21995712ee1b1f4f3300"
+    },
+    {
+      "bytes": 2533831,
+      "path": "results/frozen_24cell_benchmark/diagnostics/se_squad_v2_llama8b.json",
+      "sha256": "a2b596fa9a5c2054b64f4c01882952231a2c0849477c257a00fd598c9860a9a5"
+    },
+    {
+      "bytes": 2527067,
+      "path": "results/frozen_24cell_benchmark/diagnostics/seiclr_triviaqa_opt30b.json",
+      "sha256": "cdfbd12f631a01658e5a07d2b40af626ad8f7d2830c8f545b75ee89dd4cd6356"
+    },
+    {
+      "bytes": 2535918,
+      "path": "results/frozen_24cell_benchmark/diagnostics/semenergy_triviaqa_qwen3_8b.json",
+      "sha256": "d741c50592de1c4672707540b6ddf1cfbea2f1c1bec418573aa7ba03fdff0b33"
+    },
+    {
+      "bytes": 2529072,
+      "path": "results/frozen_24cell_benchmark/diagnostics/spilled_triviaqa_llama8b.json",
+      "sha256": "f620e6d567c089b567a1502678d17ccb6f1d0156c32eddbbc252cc6b64360725"
+    },
+    {
+      "bytes": 2542656,
+      "path": "results/frozen_24cell_benchmark/diagnostics/trace_gsm8k_llama8b_k10.json",
+      "sha256": "bb7f8a5eed94485fece043fafbffe7385d6a612a124028e86f4eda0356e77ac6"
+    },
+    {
+      "bytes": 2541202,
+      "path": "results/frozen_24cell_benchmark/diagnostics/trace_math500_qwenmath15b_k10.json",
+      "sha256": "bf1e1c4a0ac842e264b75980933f4c956f0099e582219398ae843ebc73b29dd7"
+    },
+    {
+      "bytes": 2538646,
+      "path": "results/frozen_24cell_benchmark/diagnostics/truthfulqa_llama8b.json",
+      "sha256": "895597f19db5448837f4edc863a65e0b02ef448d3fd35bc37ec404f7956e294a"
+    },
+    {
+      "bytes": 767606,
+      "path": "results/frozen_24cell_benchmark/scores/ars_gsm8k_r1distill8b.npz",
+      "sha256": "7b7e7cc59a524117859aa296c58b801ab96a23bda5fef711e7b1c14b3ad60b3a"
+    },
+    {
+      "bytes": 938782,
+      "path": "results/frozen_24cell_benchmark/scores/epr_triviaqa_mistral24b.npz",
+      "sha256": "b3d094d8e8cf24b91f2db18eaa45219a47960b478c6edc0dfbf3dab0fbd97660"
+    },
+    {
+      "bytes": 767692,
+      "path": "results/frozen_24cell_benchmark/scores/internalstates_gsm8k_qwen25_7b.npz",
+      "sha256": "e36983ed58d0af621474b07a46b53b22ad85d30874239a0d25de10b8ad6546be"
+    },
+    {
+      "bytes": 1932244,
+      "path": "results/frozen_24cell_benchmark/scores/lapeigvals_gsm8k_llama3b.npz",
+      "sha256": "bf2f49af04c9abbd99c4a649ce02fcf56c24b559b59fa190ad60542b65118cef"
+    },
+    {
+      "bytes": 767596,
+      "path": "results/frozen_24cell_benchmark/scores/lapeigvals_gsm8k_llama8b.npz",
+      "sha256": "477064dc63ac93f117084d260e24b6e4a9374e6c58be4a12aeb85b911684113d"
+    },
+    {
+      "bytes": 1930289,
+      "path": "results/frozen_24cell_benchmark/scores/lapeigvals_gsm8k_mistral24b.npz",
+      "sha256": "5c36bb55c1e66fea0fad1f7726d3001784b6d67b7c98bae91d0fe3f5af7fc00e"
+    },
+    {
+      "bytes": 1932462,
+      "path": "results/frozen_24cell_benchmark/scores/lapeigvals_gsm8k_nemo.npz",
+      "sha256": "e5baab63e6e15751dec40ba444c839ddb310360dc3554b05f2f8c1005fc8028d"
+    },
+    {
+      "bytes": 1933106,
+      "path": "results/frozen_24cell_benchmark/scores/lapeigvals_gsm8k_phi35.npz",
+      "sha256": "0762c3d9e151fd0ef038e5b2931265f95f0c2b9e1b04e8d79d432c8a3bfee3b2"
+    },
+    {
+      "bytes": 767531,
+      "path": "results/frozen_24cell_benchmark/scores/losnet_hotpotqa_mistral7b.npz",
+      "sha256": "1c39b63c64abb19c08bc4d95508511ff17a30f77e7b46f6aaef74526e1ae53b0"
+    },
+    {
+      "bytes": 483814,
+      "path": "results/frozen_24cell_benchmark/scores/math500_dsmath7b.npz",
+      "sha256": "819aa24ed58208ba8ea8457fbc0f4a4cd8b58bb3f3c5125553568339d91221bf"
+    },
+    {
+      "bytes": 480657,
+      "path": "results/frozen_24cell_benchmark/scores/math500_qwenmath7b.npz",
+      "sha256": "534cce85e32a9089d17f6912f08533fd87968918abf6c5a56ee762f23873bac5"
+    },
+    {
+      "bytes": 483326,
+      "path": "results/frozen_24cell_benchmark/scores/math500_r1distill8b.npz",
+      "sha256": "f0235502d775e6918e11757fdb89e70040da8f668862462c79df719f8faf9710"
+    },
+    {
+      "bytes": 482756,
+      "path": "results/frozen_24cell_benchmark/scores/math500_r1distill8b_mn4096.npz",
+      "sha256": "5a3fd7ac7de877ac522bf0d8acabae3c851165ee6443dc5b29f3b480dec1ac3d"
+    },
+    {
+      "bytes": 1932293,
+      "path": "results/frozen_24cell_benchmark/scores/noise_gsm8k_mistral7b.npz",
+      "sha256": "52e8b696c46cb0ddb5efb834463d76e5a94f1a08d846a61dc112fe914ac18bda"
+    },
+    {
+      "bytes": 1932601,
+      "path": "results/frozen_24cell_benchmark/scores/noise_gsm8k_phi3mini.npz",
+      "sha256": "8d121a3d036c500791a349acc357d270851d391bd5a4ff694dd324fca19479b4"
+    },
+    {
+      "bytes": 339693,
+      "path": "results/frozen_24cell_benchmark/scores/sciq_llama8b.npz",
+      "sha256": "9ef615eb98c2aaaf416f641d0f84c2341b7a0fbf93b57bb2b71684ea288afb94"
+    },
+    {
+      "bytes": 9473779,
+      "path": "results/frozen_24cell_benchmark/scores/se_nq_open_llama8b.npz",
+      "sha256": "155f7beaaebaa7c0396dcc5eb83695c1c6eb4754b9b6f9f0682004164a3c0783"
+    },
+    {
+      "bytes": 2296894,
+      "path": "results/frozen_24cell_benchmark/scores/se_squad_v2_llama8b.npz",
+      "sha256": "43ae1bfd0d6cb5295bf8691285db934810ff45e842ac0587b6d83d70b815abd8"
+    },
+    {
+      "bytes": 2871350,
+      "path": "results/frozen_24cell_benchmark/scores/seiclr_triviaqa_opt30b.npz",
+      "sha256": "07949b08d9ae1b17c496d69702af0d7ac358a393edf3d8766da939e711d1c2b7"
+    },
+    {
+      "bytes": 2112810,
+      "path": "results/frozen_24cell_benchmark/scores/semenergy_triviaqa_qwen3_8b.npz",
+      "sha256": "c76039209505eee3f09b285a484a09bb47229029f877dfef3523dc19236f8a3e"
+    },
+    {
+      "bytes": 420776,
+      "path": "results/frozen_24cell_benchmark/scores/spilled_triviaqa_llama8b.npz",
+      "sha256": "0b143be9eff092f0f4e2cafec6e9508149cd83f7b1db68d9eb0568738ed495a4"
+    },
+    {
+      "bytes": 7183881,
+      "path": "results/frozen_24cell_benchmark/scores/trace_gsm8k_llama8b_k10.npz",
+      "sha256": "2abe1828c31237bbde6fc024a2d3fb166ebf79d8ef3664b3b804752fe290021a"
+    },
+    {
+      "bytes": 4330707,
+      "path": "results/frozen_24cell_benchmark/scores/trace_math500_qwenmath15b_k10.npz",
+      "sha256": "269ed35aed4c4917723271b3ae3bd03c250d16005b6ebb6c1d090ccb5d03ffc7"
+    },
+    {
+      "bytes": 10283902,
+      "path": "results/frozen_24cell_benchmark/scores/truthfulqa_llama8b.npz",
+      "sha256": "851a685b2b63496eda828efb87867aa3298cea3b2b32b9ade2aa688646b6963b"
+    },
+    {
+      "bytes": 5290215,
+      "path": "results/processbench_latent_state_v1/label_free_scores/qwen3_4b__gsm8k.npz",
+      "sha256": "1d0e02fe5de504a6338b9b3c673045382c4fa3ef8ce1ff582af1a880272acae8"
+    },
+    {
+      "bytes": 20931455,
+      "path": "results/processbench_latent_state_v1/label_free_scores/qwen3_4b__math.npz",
+      "sha256": "69412f7062406a760468ab3be6278ba57c1026a4bdb2835fd4f16c62dfa5e2cb"
+    },
+    {
+      "bytes": 35257958,
+      "path": "results/processbench_latent_state_v1/label_free_scores/qwen3_4b__olympiadbench.npz",
+      "sha256": "7a562868a3f4fb257e98946abcc4ae56cb65a69acb5ccea061c627b77713d9ad"
+    },
+    {
+      "bytes": 30275494,
+      "path": "results/processbench_latent_state_v1/label_free_scores/qwen3_4b__omnimath.npz",
+      "sha256": "833386e0fb8b730dd363de6dd7db27c12a80b3c720ea61a33f36f94ad755f17f"
+    },
+    {
+      "bytes": 5287238,
+      "path": "results/processbench_latent_state_v1/label_free_scores/qwen3_8b__gsm8k.npz",
+      "sha256": "0f316cba89bd5423749f258fba49202f9ef905ac9e7c580a318d11f133f542c5"
+    },
+    {
+      "bytes": 20997361,
+      "path": "results/processbench_latent_state_v1/label_free_scores/qwen3_8b__math.npz",
+      "sha256": "d506424da33949b395970da7dc8eae8b4002bf459adea3737625289203fa68f5"
+    },
+    {
+      "bytes": 35158132,
+      "path": "results/processbench_latent_state_v1/label_free_scores/qwen3_8b__olympiadbench.npz",
+      "sha256": "818df355ffe9ef9da102da7e9c223dc6d8cf3caf62622d1db9e1c7eb29777ffb"
+    },
+    {
+      "bytes": 30547466,
+      "path": "results/processbench_latent_state_v1/label_free_scores/qwen3_8b__omnimath.npz",
+      "sha256": "4c2223b732b4b8200437ee316788bc1ae8b5df77279890a5eb9c90897819ba9e"
+    },
+    {
+      "bytes": 297538,
+      "path": "results/ragtruth_mixed_v2_evidence_aware_v1/diagnostics/fit_dev.json",
+      "sha256": "b657f15d10f404899a0be7d68fbd0176ff980148b959d899f894ee5525e97bdf"
+    },
+    {
+      "bytes": 296998,
+      "path": "results/ragtruth_mixed_v2_evidence_aware_v1/diagnostics/fit_test.json",
+      "sha256": "1c95b77ea920c0af3cc5edeb06ea7402c5f6d3919ea7de77d31f300e0f0f6802"
+    },
+    {
+      "bytes": 4357808,
+      "path": "results/ragtruth_mixed_v2_evidence_aware_v1/scores_dev.npz",
+      "sha256": "28728820d73cbf453170956cb78656ce6c9ae0bd05f8590909b9f82f5ddc4e3b"
+    },
+    {
+      "bytes": 12282757,
+      "path": "results/ragtruth_mixed_v2_evidence_aware_v1/scores_test.npz",
+      "sha256": "27b072439fc2405449e2f378826d24b7d8eb6349646b7c0ae622dc43a1d2f515"
+    }
+  ],
+  "k": 7,
+  "lambda": 0.1,
+  "no_cross_task_pooling": true,
+  "no_target_labels_in_fit": true,
+  "permutations": 199,
+  "protocol_sha256": "d3959f51ee8894fddedb66a4f2fd4a0d5d5d9ecc5ce688d865b2df3f6b68c82b",
+  "representations": [
+    "original",
+    "drop_length",
+    "train_residualized"
+  ],
+  "run_fingerprint": "9dfdd11d9943925fc8a62d96a13e599b66e84e858096ff1e90342b47ca5297e0",
+  "sources": [
+    {
+      "bytes": 10670,
+      "path": "docs/experiments/DIRECT_DUFS_CONDITIONAL_GRAPH_TOPOLOGY_AUDIT_V1.md",
+      "sha256": "d3959f51ee8894fddedb66a4f2fd4a0d5d5d9ecc5ce688d865b2df3f6b68c82b"
+    },
+    {
+      "bytes": 56859,
+      "path": "scripts/direct_dufs_conditional_graph_topology_audit_v1.py",
+      "sha256": "b5cb0a0290f7937a2765651377db68b5b0344866bc5a209b07edf375c955d963"
+    },
+    {
+      "bytes": 29835,
+      "path": "scripts/direct_dufs_graph_semantics_audit_v1.py",
+      "sha256": "ecdda6991cfa20852042b77b65c5c343a4274c30fe69de419b7be1010dc027ef"
+    },
+    {
+      "bytes": 13780,
+      "path": "scripts/direct_dufs_length_drop_ablation_v1.py",
+      "sha256": "adbe447c8542b9b17a2ce865858c822bb9cac1b3ebe654d17dd1321061391ad8"
+    },
+    {
+      "bytes": 21332,
+      "path": "scripts/direct_dufs_length_residualization_v1.py",
+      "sha256": "fd582f6d7c66ce7bb0ad4b1e317bc1b09f1988705521ac7856806296ef706acd"
+    },
+    {
+      "bytes": 17255,
+      "path": "scripts/gl_liu_v1/run.py",
+      "sha256": "8bd4a40c1c7f67d0dcfa2837fa57d599748c502914d641a8f9ffab1c560eeb64"
+    },
+    {
+      "bytes": 6856,
+      "path": "scripts/plot_direct_dufs_conditional_graph_topology_v1.py",
+      "sha256": "f08e129da47a1cf3d55d053c2d3739b8ef4defb2942e6865b19acc9622aa1a45"
+    },
+    {
+      "bytes": 21069,
+      "path": "scripts/test_direct_dufs_conditional_graph_topology_v1.py",
+      "sha256": "329d657b96b767a7cd97f815bfb51145f1fd8407d973244e313df9069f39c3a9"
+    },
+    {
+      "bytes": 2936,
+      "path": "scripts/verify_direct_dufs_conditional_graph_topology_v1.py",
+      "sha256": "30f3680302dfa02e8a6b3ce39752f165c92bcf7cd2d664ee0f2728cb5c970f93"
+    },
+    {
+      "bytes": 4210,
+      "path": "spectral_utils/adapted_dufs.py",
+      "sha256": "eb2328fc88de575bec9fb335f6cad94ef148d1507858d23a7765a3dff05fb5a3"
+    },
+    {
+      "bytes": 5252,
+      "path": "spectral_utils/dufs_liu_feature_contract.py",
+      "sha256": "c674f7b6cfd1a82dcc63cd7cc26bbd3d53ef5f4d289dbcbb7eabe933670fdf2d"
+    },
+    {
+      "bytes": 5702,
+      "path": "spectral_utils/feature_contract.py",
+      "sha256": "65ffba0bfc9bf4ded859d9ebffce9bd563a28652c47f5ed8d80ce91b64d4385d"
+    },
+    {
+      "bytes": 39868,
+      "path": "spectral_utils/graph_topology.py",
+      "sha256": "c97a08d46f190cdb7fba80ee478fb676cff6688d245d5ad8b987d2803d9b5984"
+    },
+    {
+      "bytes": 13835,
+      "path": "spectral_utils/laplacian_upcr.py",
+      "sha256": "ecf2c387bbba48906dcb2e0a7d56561101cffcd24fb9bd2d32033d471347953a"
+    },
+    {
+      "bytes": 27172,
+      "path": "spectral_utils/ragtruth_evidence_contrast.py",
+      "sha256": "6cb4ada69e0e6c3984327e2b3ea2c6ea7061df7114fdb5b0af7f53cfbfe6c434"
+    },
+    {
+      "bytes": 33577,
+      "path": "spectral_utils/selectors/a2_groupfs.py",
+      "sha256": "5039aee811bc9f70dea8a85967497bbb0aa23875b46c0d76a76725fdec83704e"
+    },
+    {
+      "bytes": 5919,
+      "path": "spectral_utils/specrage_views.py",
+      "sha256": "ab15e807f7595f0f91eec8418320fe4a419d9f2c63e81cef2726fac9325ae067"
+    },
+    {
+      "bytes": 21739,
+      "path": "spectral_utils/upcr.py",
+      "sha256": "587d4b4699e8cd49d28315f70ffdabb4eb7ef9fd48e4df5436e121a71536c071"
+    }
+  ],
+  "tie_seeds": [
+    101,
+    211,
+    307
+  ],
+  "version": "direct-dufs-conditional-graph-topology-v1-reviewed-2026-08-20"
+}

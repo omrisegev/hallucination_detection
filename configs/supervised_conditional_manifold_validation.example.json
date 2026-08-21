@@ -1,0 +1,31 @@
+{
+  "version": "supervised-conditional-manifold-validation-manifest-v1",
+  "validation_name": "replace-with-sealed-validation-name",
+  "standardization_contract": "registered_per_cell_unlabeled",
+  "discovery_dataset_families": [
+    "triviaqa",
+    "hotpotqa",
+    "sciq",
+    "nq_open",
+    "squad_v2",
+    "truthfulqa",
+    "gsm8k",
+    "math500"
+  ],
+  "cells": [
+    {
+      "cell": "new_dataset__new_model",
+      "lane": "global_final_answer_error",
+      "dataset_family": "new_dataset_family",
+      "model_family": "new_model_family",
+      "dataset_new": true,
+      "model_new": true,
+      "npz": "absolute/or/repository-relative/path/to/cell.npz",
+      "matrix_key": "X",
+      "feature_names_key": "feature_names",
+      "length_key": "trace_length",
+      "target_key": "hallucination_target",
+      "independent_rows": true
+    }
+  ]
+}

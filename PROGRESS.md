@@ -1,8 +1,10 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
-**Date**: 2026-08-19
-**Last updated**: Step 281. **All known research lineages are integrated and
-the current decision state is consolidated in one canonical matrix.** The
+**Date**: 2026-08-21
+**Last updated**: Step 282. **The user-authorized hallucination-geometry audit
+is now implemented, independently reviewed, externally stress-tested, and
+documented without an overclaim.** All known research lineages remain integrated and
+the current decision state is consolidated in one canonical matrix. The
 integration preserves remote master, paper-exact acquisition, corrected
 white-box capture, local white-box analysis, the previously committed local
 contextual/A6/paper evidence, and the pre-existing fair-comparison, Unified,
@@ -31,6 +33,49 @@ held-family AUROC is 0.7379 for balanced logistic, 0.7353 for kNN, and 0.6882
 for PPCA; decision `SHARED_DIRECTION_NOT_DISTINCT_NONLINEAR_MANIFOLD`. This
 does not make DUFS-LIU target-identifiable. Step 281 did not launch the
 experiment; it preserves and classifies the late-arriving result.
+
+Step 282 followed this with three increasingly strict checks.  First, the
+reviewed conditional topology audit retained recurrent length-conditional
+geometry in Global, ProcessBench, and RAGTruth, but its registered decision is
+`CONTROL_FAILURE_INVALIDATES_GEOMETRY_AUDIT`: the ProcessBench length-only
+exact-null false-positive rate was 16.67% versus the frozen 15% limit, Global
+graph health failed, and LIU utility was negligible.  Union-kNN, adaptive-k,
+and diffusion were similar; radius was weaker/unhealthy, so topology was not
+the bottleneck.
+
+Second, nested leave-dataset-family-out supervised metric discovery on the 16
+common non-length features produced stable conditional geometry (all four
+supports passed geometry; weight cosine 0.999), but no candidate passed the
+distinct-manifold or utility gates.  The frozen all-feature candidate's
+metric-vs-linear maxT p-values were 0.155 exact and 0.080 CRT, and LIU-IU was
++0.00180 AUROC; decision `TRANSFERABLE_SUPERVISED_DIRECTION_ONLY`.  The equal-
+weight graph was at least as geometrically strong, reinforcing a shared
+confidence direction rather than a newly discovered nonlinear manifold.
+The discovery package passed deterministic verification before a later
+whitespace-only source cleanup.  After that cleanup, the canonical rebuild and
+checkpoint-resume rerun reproduced the same decision; Omri stopped the third
+isolated fresh rebuild at 150/199 whole-search null draws to proceed with the
+mentor update.  Therefore the post-cleanup snapshot does not claim a completed
+fresh-rebuild attestation.
+
+Third, the frozen candidate was audited on five external-to-discovery cells
+from three new dataset families (AQuA, HLE, CoQA), using 999 exact and 999 CRT
+draws, learned-metric, linear-score, equal-weight, and linear-residual graphs.
+Coverage passed, but exact-length swaps were ineligible in all five cells and
+the HLE CRT was also ineligible.  The correct decision is therefore
+`CONDITIONAL_NULL_INELIGIBILITY_INVALIDATES_EXTERNAL_AUDIT`, **not** transfer
+failure and not validation.  Descriptively, family metric effects were +0.055
+(AQuA), +0.084 (CoQA), and +0.003 (HLE); equal-family LIU-IU was +0.00027 with
+95% interval [-0.00100,+0.00261].  The run and figures rebuild byte-for-byte.
+
+For any later manifold work, do not search more weights, subsets, or graph
+topologies on the same 16/28 global-feature matrix.  The scientifically
+distinct follow-up proposed by Omri is a separate, pre-registered DSP
+representation audit across Global, ProcessBench, and RAG, keeping their three
+targets and nulls separate and comparing DSP against linear-on-DSP,
+equal-weight DSP, the current global features, and DSP residualized against
+length/confidence.  This note records the next representation hypothesis; it
+does not reorder the canonical A6/PTNI priority above.
 
 ## Prior update — Step 280
 

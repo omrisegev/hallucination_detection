@@ -151,7 +151,19 @@ def graph_diagnostics(graph, laplacian=None):
     # member of that repeated eigenspace with k=2 and report a positive value.
     if n_components == 1 and W.shape[0] > 2:
         try:
-            values = eigsh(L, k=2, which="SM", return_eigenvectors=False, tol=1e-7)
+            # ARPACK otherwise samples a random initial vector.  Algebraic
+            # connectivity is diagnostic-only, but it must remain byte-stable
+            # across isolated rebuilds just like every other registered field.
+            v0 = np.linspace(1.0, 2.0, W.shape[0], dtype=float)
+            v0 /= np.linalg.norm(v0)
+            values = eigsh(
+                L,
+                k=2,
+                which="SM",
+                return_eigenvectors=False,
+                tol=1e-7,
+                v0=v0,
+            )
             algebraic = float(np.sort(values)[1])
         except Exception:
             algebraic = float("nan")

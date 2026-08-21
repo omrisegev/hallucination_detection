@@ -1,0 +1,139 @@
+{
+  "bundle": "results/dependency_fusion_raw/cells.npz",
+  "bundle_sha256": "693a5b634f975ea32c7f840f3ab8366dd8ad638fe41cc76a60e24b1ac5a013e1",
+  "cells": [
+    "ars_gsm8k_r1distill8b",
+    "epr_triviaqa_mistral24b",
+    "internalstates_gsm8k_qwen25_7b",
+    "lapeigvals_gsm8k_llama3b",
+    "lapeigvals_gsm8k_llama8b",
+    "lapeigvals_gsm8k_mistral24b",
+    "lapeigvals_gsm8k_nemo",
+    "lapeigvals_gsm8k_phi35",
+    "losnet_hotpotqa_mistral7b",
+    "math500_dsmath7b",
+    "noise_gsm8k_mistral7b",
+    "noise_gsm8k_phi3mini",
+    "sciq_llama8b",
+    "se_nq_open_llama8b",
+    "se_squad_v2_llama8b",
+    "seiclr_triviaqa_opt30b",
+    "semenergy_triviaqa_qwen3_8b",
+    "spilled_triviaqa_llama8b",
+    "trace_gsm8k_llama8b_k10",
+    "trace_math500_qwenmath15b_k10",
+    "truthfulqa_llama8b"
+  ],
+  "claim_boundary": "supervised internal discovery; external validation unopened",
+  "conditional_permutations": 199,
+  "environment": {
+    "numpy": "2.4.6",
+    "platform": "macOS-26.6-arm64-arm-64bit",
+    "python": "3.11.9",
+    "scikit_learn": "1.9.0",
+    "scipy": "1.17.1"
+  },
+  "families": [
+    "triviaqa",
+    "hotpotqa",
+    "sciq",
+    "nq_open",
+    "squad_v2",
+    "truthfulqa",
+    "gsm8k",
+    "math500"
+  ],
+  "features": [
+    "cusum_max",
+    "cusum_max_energy",
+    "cusum_max_spilled",
+    "epr",
+    "epr_energy",
+    "epr_spilled",
+    "logprob_margin",
+    "mean_logprob_entropy",
+    "mean_top1_logprob",
+    "min_energy",
+    "renyi_entropy_2",
+    "sw_var_peak",
+    "sw_var_peak_energy",
+    "sw_var_peak_spilled",
+    "topk_tail_mass",
+    "varentropy"
+  ],
+  "fit_seeds": [
+    17,
+    29,
+    43
+  ],
+  "protocol": "docs/experiments/SUPERVISED_CONDITIONAL_MANIFOLD_DISCOVERY_V1.md",
+  "run_fingerprint": "079c3b270e9205cc4d3a67b4db597590c39bfda8885beb3f27f3c9a0f87bd1ff",
+  "sources": [
+    {
+      "path": "scripts/supervised_conditional_manifold_discovery_v1.py",
+      "sha256": "7f81342893d7c0da21e2f6ee67e87d0d3c3d935b446204f0d24a8c16c0f7bfbc"
+    },
+    {
+      "path": "scripts/cross_dataset_hallucination_manifold_v1.py",
+      "sha256": "16df066b2dbae44e1fdeaff87593c1e589a0bd6a6c6517feb84a55fa1b07e32b"
+    },
+    {
+      "path": "scripts/inscope_cells.py",
+      "sha256": "d5b9c40af96ec0ee92931abb42e385e521f634b32378b30d9e6537e72b6f77e8"
+    },
+    {
+      "path": "scripts/verify_supervised_conditional_manifold_discovery_v1.py",
+      "sha256": "a3d5eef7091b3442fc8befc84a3a1b02bafd18b05253c7d9cd81f3e6f3663132"
+    },
+    {
+      "path": "spectral_utils/supervised_manifold_discovery.py",
+      "sha256": "196a49a4027650ae52a622129d640e52a230f17ddd447f1cb8b8ded2ff444e47"
+    },
+    {
+      "path": "spectral_utils/graph_topology.py",
+      "sha256": "c97a08d46f190cdb7fba80ee478fb676cff6688d245d5ad8b987d2803d9b5984"
+    },
+    {
+      "path": "spectral_utils/laplacian_upcr.py",
+      "sha256": "ecf2c387bbba48906dcb2e0a7d56561101cffcd24fb9bd2d32033d471347953a"
+    },
+    {
+      "path": "spectral_utils/specrage_views.py",
+      "sha256": "ab15e807f7595f0f91eec8418320fe4a419d9f2c63e81cef2726fac9325ae067"
+    },
+    {
+      "path": "spectral_utils/upcr.py",
+      "sha256": "587d4b4699e8cd49d28315f70ffdabb4eb7ef9fd48e4df5436e121a71536c071"
+    },
+    {
+      "path": "scripts/validate_supervised_conditional_manifold_v1.py",
+      "sha256": "e02828a07736cae86876f8a80e29834e396ef97eab203b16146c6c4d2a92790d"
+    },
+    {
+      "path": "scripts/test_supervised_conditional_manifold_discovery_v1.py",
+      "sha256": "4174369bea1cececdebb7d1ef12e9173d0d1ddb048610c7f3050e7ca5997f277"
+    },
+    {
+      "path": "configs/supervised_conditional_manifold_validation.example.json",
+      "sha256": "e98c41c7240b5012591de8da85b2c9d726beb96a6f77ede5e39891a11896fd44"
+    },
+    {
+      "path": "docs/experiments/SUPERVISED_CONDITIONAL_MANIFOLD_DISCOVERY_V1.md",
+      "sha256": "7891c3a6470a3e67cb8ac0957a99919adb6903126e3c8f805b99ce4cf24eb17b"
+    }
+  ],
+  "support_sizes": [
+    5,
+    10,
+    15,
+    "all"
+  ],
+  "tie_seeds": [
+    101,
+    211,
+    307
+  ],
+  "version": "supervised-conditional-manifold-discovery-v1-2026-08-20",
+  "whole_search_null_reruns": 199,
+  "whole_search_subsample_max_rows": 384
+}

@@ -1,0 +1,129 @@
+{
+  "conditions": [
+    "original",
+    "drop_length_refit_gates",
+    "train_residualized_refit_gates"
+  ],
+  "decision": "TRAIN_FITTED_RESIDUALIZATION_DOES_NOT_REMOVE_LENGTH_GEOMETRY",
+  "k": 7,
+  "lanes": [
+    {
+      "cells": 21,
+      "condition": "original",
+      "fraction_target_smoother_than_length": 0.0,
+      "lane": "global24",
+      "median_abs_feature_length_spearman": 0.388750908583013,
+      "median_dufs_liu_auroc": 0.7835162712846429,
+      "median_iu_auroc": 0.783711701437906,
+      "median_length_smoothness_effect": 0.8099395883494357,
+      "median_target_smoothness_effect": 0.18152131667578394
+    },
+    {
+      "cells": 21,
+      "condition": "drop_length_refit_gates",
+      "fraction_target_smoother_than_length": 0.09523809523809523,
+      "lane": "global24",
+      "median_abs_feature_length_spearman": 0.3416978437662611,
+      "median_dufs_liu_auroc": 0.7786282182747886,
+      "median_iu_auroc": 0.7786719026619886,
+      "median_length_smoothness_effect": 0.6547542484821997,
+      "median_target_smoothness_effect": 0.18287350790208692
+    },
+    {
+      "cells": 21,
+      "condition": "train_residualized_refit_gates",
+      "fraction_target_smoother_than_length": 0.047619047619047616,
+      "lane": "global24",
+      "median_abs_feature_length_spearman": 0.2174062189879363,
+      "median_dufs_liu_auroc": 0.7210003761758993,
+      "median_iu_auroc": 0.7188304705275272,
+      "median_length_smoothness_effect": 0.5364156990368505,
+      "median_target_smoothness_effect": 0.1600746585479134
+    },
+    {
+      "cells": 4,
+      "condition": "original",
+      "fraction_target_smoother_than_length": 0.0,
+      "lane": "processbench",
+      "median_abs_feature_length_spearman": 0.22356022086680044,
+      "median_dufs_liu_auroc": 0.7893987493387936,
+      "median_iu_auroc": 0.7879694465246727,
+      "median_length_smoothness_effect": 0.6297110341669692,
+      "median_target_smoothness_effect": 0.2621635534233071
+    },
+    {
+      "cells": 4,
+      "condition": "drop_length_refit_gates",
+      "fraction_target_smoother_than_length": 0.0,
+      "lane": "processbench",
+      "median_abs_feature_length_spearman": 0.21752856866034265,
+      "median_dufs_liu_auroc": 0.7861970508672733,
+      "median_iu_auroc": 0.7853950997838367,
+      "median_length_smoothness_effect": 0.5347494576915223,
+      "median_target_smoothness_effect": 0.2572410253080454
+    },
+    {
+      "cells": 4,
+      "condition": "train_residualized_refit_gates",
+      "fraction_target_smoother_than_length": 0.0,
+      "lane": "processbench",
+      "median_abs_feature_length_spearman": 0.09870155369533268,
+      "median_dufs_liu_auroc": 0.7370011602678733,
+      "median_iu_auroc": 0.734405174299638,
+      "median_length_smoothness_effect": 0.3718110421196268,
+      "median_target_smoothness_effect": 0.2229292911063192
+    },
+    {
+      "cells": 1,
+      "condition": "original",
+      "fraction_target_smoother_than_length": 0.0,
+      "lane": "ragtruth",
+      "median_abs_feature_length_spearman": 0.2975972488758279,
+      "median_dufs_liu_auroc": 0.7628823116038053,
+      "median_iu_auroc": 0.7605228554775729,
+      "median_length_smoothness_effect": 0.9394824841202101,
+      "median_target_smoothness_effect": 0.3144561961066252
+    },
+    {
+      "cells": 1,
+      "condition": "drop_length_refit_gates",
+      "fraction_target_smoother_than_length": 0.0,
+      "lane": "ragtruth",
+      "median_abs_feature_length_spearman": 0.29431572643491755,
+      "median_dufs_liu_auroc": 0.7625328570207849,
+      "median_iu_auroc": 0.7605241308592628,
+      "median_length_smoothness_effect": 0.8075948207805556,
+      "median_target_smoothness_effect": 0.3059799542252278
+    },
+    {
+      "cells": 1,
+      "condition": "train_residualized_refit_gates",
+      "fraction_target_smoother_than_length": 0.0,
+      "lane": "ragtruth",
+      "median_abs_feature_length_spearman": 0.07086753945979861,
+      "median_dufs_liu_auroc": 0.6984831885562551,
+      "median_iu_auroc": 0.6949720627640836,
+      "median_length_smoothness_effect": 0.3367121220525005,
+      "median_target_smoothness_effect": 0.2541280005430686
+    }
+  ],
+  "length_reductions": [
+    {
+      "lane": "global24",
+      "relative_length_smoothness_reduction": 0.18073735255582132
+    },
+    {
+      "lane": "processbench",
+      "relative_length_smoothness_reduction": 0.30470047837970654
+    },
+    {
+      "lane": "ragtruth",
+      "relative_length_smoothness_reduction": 0.5830680021857224
+    }
+  ],
+  "no_cross_task_pooling": true,
+  "no_target_labels_in_fit": true,
+  "ridge_alpha": 0.001,
+  "training_only_residualizer": true,
+  "version": "direct-dufs-train-length-residualization-v1-2026-08-20"
+}

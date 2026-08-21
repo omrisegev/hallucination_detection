@@ -14278,3 +14278,59 @@ reasoning/RAG contribution. The integration itself launched no experiment; it
 ingested the completed output of the separately authorized active task.
 
 ---
+
+### Step 282 — Audit conditional hallucination geometry and freeze the DSP follow-up
+
+**What**: Implemented the complete DUFS length/topology audit, a nested
+leave-dataset-family-out supervised metric discovery, and one frozen
+external-to-discovery audit on AQuA, HLE, and CoQA.  The external validator
+compares the learned metric with a frozen linear-score graph, equal-weight
+features, and a representation residualized against the linear score; it uses
+exactly 999 exact-length and 999 CRT draws, three target-blind tie seeds,
+fail-closed coverage/eligibility gates, static figures, and deterministic
+rebuild verification.  Two independent agents argued for and against
+continuation; their common recommendation was one frozen external stress test
+and no additional tuning on the same feature matrix.
+
+**Why**: The original DUFS-LIU graph could be smooth because of response length
+or another nuisance rather than hallucination.  Omri requested a visual,
+empirical test of whether a typical hallucination manifold transfers across
+datasets/models, plus a rigorous comparison of local graph alternatives and a
+reviewed decision gate that does not convert an ineligible null into a negative
+scientific conclusion.
+
+**Result**: The reviewed topology run remains
+`CONTROL_FAILURE_INVALIDATES_GEOMETRY_AUDIT`: ProcessBench's length-only
+exact-null false-positive rate was 16.67% against a frozen 15% limit, Global
+graph health failed, and no topology delivered useful LIU gains.  Supervised
+discovery found stable conditional geometry in all four supports (weight
+cosine 0.999) but no distinct-manifold or utility pass; the frozen all-feature
+candidate had metric-vs-linear maxT `p=0.155` exact and `p=0.080` CRT, with
+LIU-IU `+0.00180` AUROC, yielding
+`TRANSFERABLE_SUPERVISED_DIRECTION_ONLY`.  External coverage reached five
+cells/three new dataset families, but exact-length swaps were ineligible in all
+five and HLE's CRT was also ineligible, so the final decision is
+`CONDITIONAL_NULL_INELIGIBILITY_INVALIDATES_EXTERNAL_AUDIT` rather than a
+transfer failure.  Descriptive family effects were +0.055 AQuA, +0.084 CoQA,
+and +0.003 HLE; equal-family LIU-IU was +0.00027
+[-0.00100,+0.00261].  Fifty-three focused tests passed.  The conditional-topology
+and external audits passed deterministic rebuild verification.  Discovery had
+already passed deterministic verification before a whitespace-only source
+cleanup; its canonical rebuild and checkpoint-resume rerun reproduced the same
+decision, while Omri explicitly stopped a third isolated fresh rebuild at
+150/199 whole-search null draws so the mentor update would not be delayed.  No
+fresh-rebuild attestation is claimed for that post-cleanup discovery snapshot.
+The next distinct hypothesis is a separately frozen DSP
+representation audit across the three non-pooled tasks, not another topology
+or weighting search on the same global features.
+
+**Files changed**:
+- `docs/experiments/DIRECT_DUFS_*.md` — length, graph-semantics, residualization, and conditional-topology protocols.
+- `docs/experiments/SUPERVISED_CONDITIONAL_MANIFOLD_*.md` — supervised discovery and external-audit claim boundaries/gates.
+- `spectral_utils/graph_topology.py`, `spectral_utils/supervised_manifold_discovery.py`, `spectral_utils/laplacian_upcr.py` — self-safe graphs, conditional nulls, supervised metric primitives, and deterministic diagnostics.
+- `scripts/direct_dufs_*`, `scripts/supervised_conditional_manifold_*`, `scripts/validate_supervised_conditional_manifold_*`, `scripts/build_supervised_conditional_manifold_external_cells_v1.py`, and matching plot/test/verification scripts — executable and reviewed audits.
+- `configs/supervised_conditional_manifold_*.json` — external input schema and sealed five-cell manifest.
+- `results/direct_dufs_*`, `results/supervised_conditional_manifold_discovery_v1/`, and `results/supervised_conditional_manifold_external_validation_v1/` — compact canonical reports, metrics, figures, decisions, and rebuild attestations.
+- `PROGRESS.md`, `HISTORY.md` — canonical status, limitations, and DSP follow-up boundary.
+
+---
