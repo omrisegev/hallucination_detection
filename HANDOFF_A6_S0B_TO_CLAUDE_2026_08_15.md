@@ -1,5 +1,15 @@
 # Handoff: A6-S0b from Codex to Claude
 
+> **CLOSED 2026-08-20 — DO NOT EXECUTE.**
+> The PTNI/A6 direction was rejected by Omri on scope grounds (the thesis is
+> not pursuing a self-supervised identification mechanism). Registered verdict
+> `CLOSE_A6_S0B_DIRECTION_REJECTED`. The gate never ran: Slurm job `196764`
+> was cancelled while PENDING, `Elapsed 00:00:00`, and no artifact exists on
+> the cluster, on Drive, or on disk. This document is retained as a record of
+> the frozen design only. See HISTORY.md Step 282 [A6/PTNI] and the amendment
+> at the top of
+> `docs/research_notes/research_status_consolidated_2026-08-19.md`.
+
 **Date:** 2026-08-15
 
 **Repository:** `/Users/osegev/Desktop/hallucination_detection`

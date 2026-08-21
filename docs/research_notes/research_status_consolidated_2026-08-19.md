@@ -14,6 +14,37 @@ manifold diagnostic while integration was in progress; its finished artifacts
 and bounded conclusion are included below so that the late research channel is
 not lost.
 
+## Amendment — 2026-08-20: A6-S0b closed by scope decision
+
+Omri rejected the PTNI/A6 direction on 2026-08-20 on scope grounds: the thesis
+is not pursuing a self-supervised identification mechanism. The gate was never
+executed, so this is **not** a numerical outcome. Registered verdict:
+`CLOSE_A6_S0B_DIRECTION_REJECTED`.
+
+The record above stated that no `S0B_COMPLETE.json` or `S0B_CLOSED.json` exists.
+That is correct, and the reason is now established: **the run never started.**
+Slurm job `196764` (`a6s0b`) was submitted 2026-08-15T16:19:15, was never
+allocated a node (`Start = None`), and was cancelled by the user at
+2026-08-15T19:36:53 with `Elapsed 00:00:00`, `ExitCode 0:0`. Five independent
+checks agree that no S0b artifact exists anywhere:
+
+| where | checked | result |
+|---|---|---|
+| cluster output root | `$SHARED/code_a6_s0b/results/` | no `automatic_group_free_phase_a6_s0b_v1`; no `A6_S0B_BOUNDARY.json`, which stage 1 `prepare` would have written even on a partial run |
+| cluster logs | `$SHARED/logs/` | no `a6s0b_*.out`; no `a6s0b_verify_ok_*` marker |
+| local worktrees | all three | Pythia downloaded 2026-08-15 13:59 (`model.safetensors`, 911,373,632 B) under `.worktrees/a6-s0b/local_cache/a6_s0b_pythia_c4fc8d5`, but no output directory |
+| Google Drive | title search on `S0B` | one hit: `HANDOFF_A6_S0B_TO_CLAUDE_2026_08_15.md`. No run artifact |
+| consolidation manifests | `opening_state_manifest.json` (366 untracked), `pre_merge_untracked_drive_manifest.json` (225 archived) | zero `s0b` matches in either |
+
+Preparation reached the point of a downloaded, authenticated Pythia and a frozen
+source boundary; execution never began. **Do not resume the chain**, and do not
+re-file this as `CLOSE_S0B_NUMERICAL_NONCONVERGENCE` — nothing was measured.
+
+**Open scope question for the next session.** The rejection is recorded here at
+its narrow, stated extent: PTNI/A6. Whether it also excludes other arms that
+lean on pseudo-labels — notably `a6.pl_dufs`, the selector of record since
+Step 194 — has not been decided. Do not widen or narrow it by inference.
+
 ## Executive state
 
 The thesis has two frozen methodological anchors: ordinary IU-PCR for
@@ -47,7 +78,7 @@ and writing remain.
 | **Unified-28** | Accepted 61-file fair-comparison package, 148,502/148,502 records, byte-identical rebuild, tree SHA-256 `957cf08e94995d7b28143f1d53dd08062e80a8beab6c52650fb670ad1295260c`. It loses each eligible direct lane to its dedicated incumbent: Global 0.662910 vs 0.687036, delta -0.024125 [-0.041678,-0.007466]; Localization 0.284832 vs 0.326141, delta -0.041310 [-0.063480,-0.016467]; Prefix 0.578103 vs 0.606721, delta -0.028617 [-0.052068,-0.004390]. It remains above Mind-the-Gap Localization by +0.082376 [+0.059730,+0.117390]. | **Frozen anchor / accepted negative comparison** | Interpretation and paper narrative, not method selection. | Keep as the unified causal method of record. State the price of unification explicitly; never substitute it for a dedicated incumbent in a superiority claim. | Advisor interpretation and paper drafting from frozen tables. | Do not reopen its features, DUFS choice, confirmation cells, or stopping policy inside this package. |
 | **Family-NRM** | PRMBench response-level AUROC improves from 0.720602 to 0.725206: **+0.460pp**, paired source-group 95% interval [+0.068,+0.841]pp, with the manual six-family provenance fixed in advance. Supporting transfers are positive but small/heterogeneous. | **Confirmed, limited achievement** | The manual family partition is an identification prior; the gain is not a general theorem about neutral covariance modes. | Retain as a bounded positive result and as motivation for PTNI. | Package the exact claim and contrast it with Atomic-NRM. | Stop expanding NRM variants unless a new mechanism identifies target versus nuisance independently of labels. |
 | **Atomic-NRM / neutral geometry alone** | Atomic features contain supervised headroom, but the frozen label-free candidate loses to IU/Family-NRM and retrospective controls show that stability is not target identification. White-box organic NRM likewise reverses under LOMO/LOCO and same-model/same-dataset controls. | **Exhausted / falsified in tested form** | None for covariance-only selection. | Close. Preserve as a useful negative result explaining why PTNI is needed. | No next experiment in this family. | Reopen only if a non-label target-identification signal is specified before evaluation. |
-| **PTNI / A6** | A6-S0a independently reproduced `PASS_S0A`: 1,800 reciprocal quartets, 6,000 natural rows, 7,200 inner-fold assignments, 36 null cells. S0b code is frozen at `89c414a`; 56/56 focused tests passed. No `S0B_COMPLETE.json` or `S0B_CLOSED.json` exists in the integrated repository, so there is no detector verdict yet. | **Active, highest priority** | Complete the already-frozen S0b numerical gate and produce one authoritative verdict artifact. | Finish S0b before opening another research direction. Treat numerical non-convergence as a registered scientific outcome, not an invitation to retune. | Resume/complete the frozen S0b execution and independently verify hashes and verdict. | Stop at the registered verdict, including `CLOSE_S0B_NUMERICAL_NONCONVERGENCE`; do not change thresholds after seeing the result. |
+| **PTNI / A6** | A6-S0a independently reproduced `PASS_S0A`: 1,800 reciprocal quartets, 6,000 natural rows, 7,200 inner-fold assignments, 36 null cells. S0b code is frozen at `89c414a`; 56/56 focused tests passed. The S0b gate was **never executed**: job `196764` was cancelled while pending, `Elapsed 00:00:00`, and no artifact exists on cluster, Drive, or disk. Step 270 [A6/PTNI] separately falsified the gamma-3 orientation channel that Steps B and C were premised on: pooled cos(gamma-3, g*) falls +0.7617 -> +0.3350 under the correction the source memo itself required, and the family sign-bit margin inverts, +0.5532 -> -0.1702 (bit wrong). | **Closed by scope decision** | None. The direction is rejected, not exhausted. | `CLOSE_A6_S0B_DIRECTION_REJECTED` (Omri, 2026-08-20): the thesis is not pursuing a self-supervised identification mechanism. Retain S0a, the frozen S0b source, and the Step-270 negative result as citable evidence for why covariance geometry alone does not identify the target direction. | None. Do not resume the chain. | Already stopped. Reopening requires a new scope decision by Omri, not a technical trigger. |
 | **Localization / reasoning application** | Frozen GL-LIU v1 reaches 31.36% ProcessBench F1 versus 25.71% for reproduced Mind-the-Gap. The unified global/local core-five variant reaches 31.72%, but the +0.37-point change is descriptive and mixed; broad-28 falls to 29.03%. In the fair package the stronger dedicated family-six localizer is 0.326141 versus Unified-28 at 0.284832. | **Confirmed application, bounded claim** | Publication framing and clear separation of response detection, first-error localization, and stopping. | Keep GL-LIU v1 as frozen localization anchor; treat 31.72% as descriptive, not an externally confirmed replacement. | Package the reasoning/localization contribution with exact estimands and access labels. | No more local feature-pool search without new preregistered data. |
 | **RAG application** | Fixed IU-PCR pipelines reach RAGTruth answer/sentence/token AUROC **0.7276 / 0.6893 / 0.6586**. Evidence-contrast work supports a useful feature contract, but labels were opened during this development and the mechanism is not a new DUFS/Laplacian result. | **Confirmed engineering/application result; exploratory research claim** | Convert the evidence into a precise, non-inflated claim and package it alongside reasoning. | Retain the frozen pipeline and disclose development access. Do not present the feature contrast as independent confirmation. | Assemble the reasoning/RAG application package after the paper-exact claim map is closed. | Stop feature search on the observed RAGTruth labels; require new frozen data for a stronger claim. |
 | **Clustering and static feature-selection families** | Extensive clustering, subsets, SU-PCR, Laplacian, DUFS, and DUFS-LIU searches established useful diagnostics and the mixed-v2 incumbent, but did not yield a stable new universal mechanism. Gains are heterogeneous and repeated searches consume the same observed cells. | **Exhausted as discovery programs** | Maintenance of frozen comparators only. | Close clustering/DUFS/Laplacian as active research directions. Keep exact implementations for baselines and reproducibility. | None beyond packaging and regression tests. | Reopen only for a materially new data regime and a frozen hypothesis, not another selector sweep. |
@@ -60,8 +91,9 @@ and writing remain.
 
 ## Ordered objectives
 
-1. **PTNI/A6 first.** Complete and independently verify the frozen A6-S0b
-   gate. Do not alter the protocol after observing numerical behavior.
+1. ~~**PTNI/A6 first.**~~ **Withdrawn 2026-08-20** by scope decision
+   (`CLOSE_A6_S0B_DIRECTION_REJECTED`); see the amendment at the top of this
+   note. Objectives 3 and 4 are now the leading work, and neither needs GPU.
 2. **One new frozen white-box validation only if its cost is justified.** It
    must include corrected live capture, architecture fidelity, untouched
    evaluation data, and a preregistered claim/stop rule. The post-hoc equal-z
@@ -73,8 +105,10 @@ and writing remain.
    first-error localization, prefix prediction, stopping, and RAG granularity
    as distinct estimands with their real access and validation boundaries.
 
-These objectives are sequential. The consolidation itself authorizes no new
-experiment.
+These objectives were written as sequential behind objective 1. With objective 1
+withdrawn, **objective 3 (paper-exact provenance and claim mapping) leads**, with
+objective 4 (packaging reasoning/RAG) next; objective 2 stays conditional on a
+justified budget. The consolidation itself authorizes no new experiment.
 
 ## Integration and provenance ledger
 

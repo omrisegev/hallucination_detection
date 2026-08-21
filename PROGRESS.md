@@ -1,10 +1,12 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **Date**: 2026-08-21
-**Last updated**: Step 282. **The user-authorized hallucination-geometry audit
-is now implemented, independently reviewed, externally stress-tested, and
-documented without an overclaim.** All known research lineages remain integrated and
-the current decision state is consolidated in one canonical matrix. The
+**Last updated**: Step 282 has two concurrent amendments. **The
+hallucination-geometry audit is implemented, independently reviewed,
+externally stress-tested, and documented without an overclaim; A6/PTNI is
+separately closed by scope decision because S0b never ran.** All known research
+lineages are integrated and the current decision state is consolidated in one
+canonical matrix. The
 integration preserves remote master, paper-exact acquisition, corrected
 white-box capture, local white-box analysis, the previously committed local
 contextual/A6/paper evidence, and the pre-existing fair-comparison, Unified,
@@ -15,10 +17,21 @@ history after GitHub's LFS budget blocked publication; their manifests and
 SHA-256 inventory remain tracked. No stash, branch, worktree, or local source
 artifact was deleted.
 
-The current order is: **(1) finish the frozen PTNI/A6-S0b gate; (2) if budget
-is justified, run one new preregistered white-box validation with corrected
-live capture and architecture fidelity; (3) close paper-exact provenance and
-claim mapping; (4) package the reasoning/RAG contribution.** IU-PCR and
+**Amended Step 282 (2026-08-20): objective (1) is withdrawn.** The PTNI/A6
+direction is closed by scope decision, `CLOSE_A6_S0B_DIRECTION_REJECTED` —
+Omri is not pursuing a self-supervised identification mechanism. The S0b gate
+never ran: job `196764` was cancelled while PENDING, `Elapsed 00:00:00`, and
+five independent checks (cluster output root, cluster logs, all three local
+worktrees, Drive, and both consolidation manifests) find no artifact. This is
+a rejected direction, not a falsified one; do not re-file it as
+`CLOSE_S0B_NUMERICAL_NONCONVERGENCE`. A6-S0a and the Step 270 [A6/PTNI]
+gamma-3 falsification survive as citable evidence.
+
+The current order is therefore: **(1) ~~finish the frozen PTNI/A6-S0b gate~~
+WITHDRAWN; (2) if budget is justified, run one new preregistered white-box
+validation with corrected live capture and architecture fidelity; (3) close
+paper-exact provenance and claim mapping -- NOW LEADING; (4) package the
+reasoning/RAG contribution.** IU-PCR and
 Unified-28 are frozen anchors. Family-NRM and the localization/RAG applications
 are accepted but bounded. Clustering, DUFS/Laplacian discovery, Atomic-NRM,
 and the current contextual routers are closed. White-box remains promising but
@@ -75,7 +88,7 @@ representation audit across Global, ProcessBench, and RAG, keeping their three
 targets and nulls separate and comparing DSP against linear-on-DSP,
 equal-weight DSP, the current global features, and DSP residualized against
 length/confidence.  This note records the next representation hypothesis; it
-does not reorder the canonical A6/PTNI priority above.
+does not reorder the paper-exact documentation priority above.
 
 ## Prior update — Step 280
 
