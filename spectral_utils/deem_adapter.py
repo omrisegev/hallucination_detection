@@ -14,10 +14,9 @@ registered adaptations are therefore:
     transform simply preserves ordering and more within-view information than
     the median split.
 
-Both receive feature-relative signs from the incumbent U-PCR ``sign(rho)``
-orientation before entering this module.  DEEM's label permutation is aligned
-to majority vote, never to correctness labels, and the final continuous class-1
-probability is returned for AUROC evaluation.
+Both receive already risk-oriented inventory coordinates.  The package's
+majority-vote permutation is retained as a diagnostic, while the frozen v1
+experiment aligns the public class to an external target-free risk consensus.
 
 The API was verified against the pinned ``deem==0.2.0`` wheel.  In particular,
 ``predict(return_probs=True)`` returns *unaligned* probabilities, so this adapter
@@ -42,6 +41,9 @@ __all__ = [
     "DeemRunResult",
     "continuous_to_deem_hard",
     "continuous_to_deem_soft",
+    "hard_adapter020_config",
+    "repaired_soft_adapter020_config",
+    "risk_consensus_align",
     "fit_deem_score",
 ]
 
@@ -103,6 +105,8 @@ class DeemConfig:
     init_method: str = "mv_rand"
     device: str = "auto"
     strict_version: bool = True
+    alignment: str = "majority_vote"
+    anchor_tolerance: float = 1e-6
 
 
 @dataclass
@@ -113,6 +117,8 @@ class DeemRunResult:
     seed: int
     package_version: str
     config: dict
+    package_class_map: dict = field(default_factory=dict)
+    alignment: str = "majority_vote"
     history: dict = field(default_factory=dict)
 
 
@@ -150,7 +156,48 @@ def _aligned_probabilities(model, predictions):
     return aligned, {int(k): int(v) for k, v in mapping.items()}
 
 
-def fit_deem_score(X, *, seed=0, config=None, verbose=False):
+def hard_adapter020_config(**overrides):
+    """Frozen packaged 0.2.0 hard-control configuration."""
+    values = dict(input_mode="hard", learning_rate=1e-3, epochs=100,
+                  use_preprocessing=True, preprocessing_layers=1,
+                  preprocessing_activation="sparsemax", preprocessing_init="identity",
+                  hidden_dim=1, sampler_steps=5, batch_size=1024, momentum=0.9,
+                  use_weighted=True, init_method="mv_rand", alignment="risk_consensus")
+    values.update(overrides)
+    return DeemConfig(**values)
+
+
+def repaired_soft_adapter020_config(**overrides):
+    """Frozen packaged 0.2.0 repaired soft-rank control configuration."""
+    values = asdict(hard_adapter020_config())
+    values.update(input_mode="soft", learning_rate=1e-4)
+    values.update(overrides)
+    return DeemConfig(**values)
+
+
+def risk_consensus_align(probabilities, X_risk, *, feature_names=None, tolerance=1e-6):
+    """Align a binary latent posterior to the external equal-family risk anchor."""
+    raw = np.asarray(probabilities, dtype=float)
+    X = _validate_continuous(X_risk)
+    if raw.shape != (len(X), 2):
+        raise ValueError("probabilities must have shape (N,2)")
+    if feature_names is None:
+        anchor = X.mean(axis=1)
+    else:
+        from .residual_graph_deem import equal_family_risk_anchor
+        anchor = equal_family_risk_anchor(X, feature_names)
+    q = raw[:, 1]
+    high = float(np.sum(q * anchor) / max(np.sum(q), 1e-12))
+    low = float(np.sum((1.0 - q) * anchor) / max(np.sum(1.0 - q), 1e-12))
+    difference = high - low
+    if abs(difference) <= float(tolerance):
+        raise ValueError("risk-consensus alignment is ambiguous")
+    if difference < 0:
+        return raw[:, ::-1].copy(), {0: 1, 1: 0}, float(-difference)
+    return raw.copy(), {0: 0, 1: 1}, float(difference)
+
+
+def fit_deem_score(X, *, seed=0, config=None, feature_names=None, verbose=False):
     """Fit DEEM without labels and return its aligned continuous class-1 score."""
     X = _validate_continuous(X)
     config = config or DeemConfig()
@@ -176,6 +223,15 @@ def fit_deem_score(X, *, seed=0, config=None, verbose=False):
     seed = int(seed)
     random.seed(seed)
     np.random.seed(seed)
+    try:
+        import torch
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+        torch.use_deterministic_algorithms(True)
+        torch.set_num_threads(1)
+    except ImportError:
+        pass
 
     model = DEEM(
         n_classes=2,
@@ -198,12 +254,30 @@ def fit_deem_score(X, *, seed=0, config=None, verbose=False):
         use_weighted=bool(config.use_weighted),
         init_method=config.init_method,
     )
-    model.fit(predictions, verbose=bool(verbose))
-    aligned, mapping = _aligned_probabilities(model, predictions)
+    try:
+        model.fit(predictions, verbose=bool(verbose))
+    except Exception as exc:
+        setattr(exc, "deem_history", _jsonable(getattr(model, "history_", {})))
+        setattr(exc, "deem_config", asdict(config))
+        raise
+    package_aligned, package_mapping = _aligned_probabilities(model, predictions)
+    if config.alignment == "majority_vote":
+        aligned, mapping = package_aligned, package_mapping
+    elif config.alignment == "risk_consensus":
+        raw = np.asarray(model.predict(predictions, return_probs=True), dtype=float)
+        if raw.ndim == 1:
+            raw = np.column_stack([1.0 - raw, raw])
+        aligned, mapping, _ = risk_consensus_align(
+            raw, X, feature_names=feature_names, tolerance=config.anchor_tolerance
+        )
+    else:
+        raise ValueError("alignment must be 'majority_vote' or 'risk_consensus'")
     return DeemRunResult(
         score=aligned[:, 1].copy(),
         aligned_probabilities=aligned,
         class_map=mapping,
+        package_class_map=package_mapping,
+        alignment=config.alignment,
         seed=seed,
         package_version=package_version,
         config=asdict(config),

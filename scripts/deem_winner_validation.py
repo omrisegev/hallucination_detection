@@ -59,13 +59,13 @@ def main():
     cells = load_cells(os.path.abspath(args.data_dir))
     cfg = replace(DEEM_BASE, input_mode="soft", use_preprocessing=True, device=args.device,
                   learning_rate=float(winner["learning_rate"]), epochs=int(winner["epochs"]))
+    artifact_dir = os.path.join(args.out_dir, "winner_validation_artifacts")
 
     rows = []
     for ck in pilot:
         F, _, _ = derive_oriented_matrix(cells[ck])
         for seed in SEEDS:
-            rec = one_fit(F, seed, cfg)
-            rec.update({"cell": ck, "family": dataset_family(ck), "stage": "winner_validation"})
+            rec = one_fit(F, ck, "winner_validation", seed, cfg, artifact_dir)
             rows.append(rec)
             print(f"  {ck:28s} seed={seed} sd={rec['score_sd']:.3e} {rec['health']}", flush=True)
 

@@ -98,6 +98,7 @@ from .dependency_fusion import (
 from .deem_adapter import (
     DEEM_PINNED_VERSION, DeemConfig, DeemRunResult,
     continuous_to_deem_hard, continuous_to_deem_soft, fit_deem_score,
+    hard_adapter020_config, repaired_soft_adapter020_config, risk_consensus_align,
 )
 from .diagnostics import (
     decompose_auroc, threshold_sensitivity, derive_consensus_signs,
