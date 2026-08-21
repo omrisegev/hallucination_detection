@@ -1146,8 +1146,22 @@ def run_stage_a(args, registry) -> None:
             or canonical_sha256(unhashed) != expected
         ):
             raise SystemExit("existing score-freeze manifest is invalid or mismatched")
-        for artifact in frozen.get("artifacts", []):
-            path = args.out_dir / artifact["path"]
+        fit_complete_path = args.out_dir / "FIT_COMPLETE.json"
+        if (
+            not fit_complete_path.is_file()
+            or sha256_file(fit_complete_path) != frozen.get("fit_complete_sha256")
+        ):
+            raise SystemExit("existing FIT_COMPLETE hash does not match score freeze")
+        artifacts = frozen.get("artifacts")
+        if not isinstance(artifacts, list) or not artifacts:
+            raise SystemExit("existing score freeze has no artifact inventory")
+        run_root = args.out_dir.resolve()
+        for artifact in artifacts:
+            path = (run_root / str(artifact["path"])).resolve()
+            try:
+                path.relative_to(run_root)
+            except ValueError as exc:
+                raise SystemExit("score-freeze artifact escaped run root") from exc
             if not path.is_file() or sha256_file(path) != artifact["sha256"]:
                 raise SystemExit(f"existing score-freeze artifact mismatch: {path}")
         print("[Stage A] verified immutable complete freeze; nothing to resume", flush=True)

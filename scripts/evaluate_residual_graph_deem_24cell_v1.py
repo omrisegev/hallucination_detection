@@ -72,8 +72,23 @@ def verify_score_freeze(run_dir: Path) -> dict:
     expected = unhashed.pop("content_sha256", None)
     if canonical_sha256(unhashed) != expected:
         raise ResidualGraphDeemError("score-freeze content hash mismatch")
-    for artifact in value.get("artifacts", []):
-        candidate = run_dir / artifact["path"]
+    for filename, field in (
+        ("RUN_DEFINITION.json", "run_definition_sha256"),
+        ("FIT_COMPLETE.json", "fit_complete_sha256"),
+    ):
+        candidate = run_dir / filename
+        if not candidate.is_file() or sha256_file(candidate) != value.get(field):
+            raise ResidualGraphDeemError(f"score-freeze prerequisite mismatch: {filename}")
+    artifacts = value.get("artifacts")
+    if not isinstance(artifacts, list) or not artifacts:
+        raise ResidualGraphDeemError("score freeze has no artifact inventory")
+    resolved_root = run_dir.resolve()
+    for artifact in artifacts:
+        candidate = (resolved_root / str(artifact["path"])).resolve()
+        try:
+            candidate.relative_to(resolved_root)
+        except ValueError as exc:
+            raise ResidualGraphDeemError("score-freeze artifact escaped run root") from exc
         if not candidate.is_file() or sha256_file(candidate) != artifact["sha256"]:
             raise ResidualGraphDeemError(f"score artifact hash mismatch: {candidate}")
     return value

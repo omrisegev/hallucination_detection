@@ -14,8 +14,15 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from spectral_utils.residual_graph_deem import ARM_SPECS, LAMBDA_GRID, SEEDS, canonical_sha256  # noqa: E402
+from spectral_utils.residual_graph_deem import (  # noqa: E402
+    ARM_SPECS,
+    LAMBDA_GRID,
+    SEEDS,
+    ResidualGraphDeemError,
+    canonical_sha256,
+)
 from spectral_utils.residual_graph_deem_data import load_registry  # noqa: E402
+from spectral_utils.residual_graph_deem_labels import require_complete_score_freeze  # noqa: E402
 from scripts.run_residual_graph_deem_24cell_v1 import (  # noqa: E402
     expected_stems,
     source_hash,
@@ -71,6 +78,22 @@ def main():
             not (Path(temporary) / "fits/fixture_cell/CELL_COMPLETE.json").exists(),
             "unhealthy fit cannot produce a cell-complete checkpoint",
         )
+        invalid_freeze = {
+            "status": "complete", "debug": False, "cells": ["fixture_cell"],
+            "missing_seeds": [], "incomplete_fits": [],
+            "unhealthy_fits": [records[0]], "missing_artifacts": [],
+            "artifacts": [],
+        }
+        invalid_freeze["content_sha256"] = canonical_sha256(invalid_freeze)
+        freeze_path = Path(temporary) / "SCORE_FREEZE_MANIFEST.json"
+        freeze_path.write_text(json.dumps(invalid_freeze), encoding="utf-8")
+        try:
+            require_complete_score_freeze(freeze_path, ["fixture_cell"])
+        except ResidualGraphDeemError:
+            rejected = True
+        else:
+            rejected = False
+        require(rejected, "label-sidecar gate rejects unhealthy score freeze")
     require(all(cell["inventory_sha256"] == canonical_sha256({
         "feature_names": cell["feature_names"], "confidence_signs": cell["confidence_signs"]
     }) for cell in registry["cells"]), "every inventory hash recomputes")

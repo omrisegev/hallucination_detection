@@ -36,13 +36,42 @@ class LabelSidecar:
 
 
 def require_complete_score_freeze(path: str | Path, expected_cells: Sequence[str]) -> dict:
-    value = json.loads(Path(path).read_text(encoding="utf-8"))
-    if value.get("status") != "complete" or value.get("debug"):
+    freeze_path = Path(path).resolve()
+    value = json.loads(freeze_path.read_text(encoding="utf-8"))
+    if (
+        value.get("status") != "complete"
+        or value.get("debug")
+        or bool(value.get("missing_seeds"))
+        or bool(value.get("incomplete_fits"))
+        or bool(value.get("unhealthy_fits"))
+        or bool(value.get("missing_artifacts"))
+    ):
         raise ResidualGraphDeemError("label sidecar requires a complete non-debug score freeze")
     if sorted(value.get("cells", [])) != sorted(str(cell) for cell in expected_cells):
         raise ResidualGraphDeemError("score freeze cell roster mismatch")
-    if value.get("missing_seeds") or value.get("incomplete_fits"):
-        raise ResidualGraphDeemError("score freeze is incomplete")
+    unhashed = dict(value)
+    expected_hash = unhashed.pop("content_sha256", None)
+    if canonical_sha256(unhashed) != expected_hash:
+        raise ResidualGraphDeemError("score-freeze content hash mismatch")
+    run_root = freeze_path.parent
+    for filename, field in (
+        ("RUN_DEFINITION.json", "run_definition_sha256"),
+        ("FIT_COMPLETE.json", "fit_complete_sha256"),
+    ):
+        candidate = run_root / filename
+        if not candidate.is_file() or sha256_file(candidate) != value.get(field):
+            raise ResidualGraphDeemError(f"score-freeze prerequisite mismatch: {filename}")
+    artifacts = value.get("artifacts")
+    if not isinstance(artifacts, list) or not artifacts:
+        raise ResidualGraphDeemError("score freeze has no artifact inventory")
+    for artifact in artifacts:
+        candidate = (run_root / str(artifact["path"])).resolve()
+        try:
+            candidate.relative_to(run_root)
+        except ValueError as exc:
+            raise ResidualGraphDeemError("score-freeze artifact escaped run root") from exc
+        if not candidate.is_file() or sha256_file(candidate) != artifact.get("sha256"):
+            raise ResidualGraphDeemError(f"score-freeze artifact mismatch: {candidate}")
     return value
 
 
