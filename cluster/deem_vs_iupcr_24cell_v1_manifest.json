@@ -1,0 +1,28 @@
+{
+  "schema": "deem_vs_iupcr_aircc_run_manifest_v1",
+  "experiment_id": "deem_vs_iupcr_24cell_v1",
+  "required_base": "0a631b28c61496cffb06b32972506cbadfc2cec1",
+  "protocol": "docs/experiments/DEEM_VS_IUPCR_24CELL_V1.md",
+  "config": "configs/deem_vs_iupcr_24cell_v1.json",
+  "registry": "configs/residual_graph_deem_24cell_v1_registry.json",
+  "registry_content_sha256": "84fa79e396672d9d7f930d385202c0270facb0a32da6b7e78b42926133d5b776",
+  "source_default": "gdrive:hallucination_detection/cluster_results/repgrid/{cell_id}",
+  "source_overrides": {
+    "math500_dsmath7b": "gdrive:hallucination_detection/cluster_results/regen/math500_dsmath7b",
+    "math500_qwenmath7b": "gdrive:hallucination_detection/cluster_results/regen/math500_qwenmath7b",
+    "math500_r1distill8b": "gdrive:hallucination_detection/cluster_results/regen/math500_r1distill8b",
+    "math500_r1distill8b_mn4096": "gdrive:hallucination_detection/cluster_results/regen/math500_r1distill8b_mn4096",
+    "trace_gsm8k_llama8b_k10": "gdrive:hallucination_detection/cluster_results/regen/trace_gsm8k_llama8b_k10",
+    "trace_math500_qwenmath15b_k10": "gdrive:hallucination_detection/cluster_results/regen/trace_math500_qwenmath15b_k10"
+  },
+  "output_remote": "gdrive:hallucination_detection/cluster_results/deem_vs_iupcr_24cell_v1",
+  "shared_run_root": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/deem_vs_iupcr_24cell_v1",
+  "container": "nvcr.io/nvidia/pytorch:25.01-py3",
+  "partition": "power-gpu",
+  "qos": "owner_880",
+  "seeds": [0, 1, 2, 3, 4],
+  "arms": ["B0", "B1", "B2", "B3"],
+  "whole_search_B": 199,
+  "promotion_B": 999,
+  "large_artifacts_local_fetch_forbidden": true
+}

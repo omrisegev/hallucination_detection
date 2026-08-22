@@ -1,5 +1,11 @@
 # Claude handoff — Residual-Graph DEEM 24-cell v1
 
+> **ARCHIVED / DO NOT SUBMIT:** Phase 0 closed this graph-extension hypothesis
+> on specificity.  The active successor is
+> `DEEM_VS_IUPCR_24CELL_V1_CLAUDE_HANDOFF.md`, using the separate
+> `deem_vs_iupcr_24cell_v1` storage prefix and B0–B3-only chain.  This file is
+> retained solely as execution-history evidence.
+
 ## Purpose and authority
 
 This is an execution handoff for the frozen experiment in

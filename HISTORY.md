@@ -14401,3 +14401,29 @@ since Step 194 — is undecided and awaits Omri. Do not widen or narrow it by
 inference.
 
 ---
+
+### Step 283 [DEEM benchmark] — freeze graph-free B0/B1/B2/B3 successor
+
+**What**: Preserved the completed Residual-Graph work and added a separate,
+frozen 24-cell experiment comparing matched-inventory IU-PCR (B0), pinned
+hard-DEEM 0.2.0 (B1), repaired soft/rank DEEM (B2), and continuous additive
+DEEM (B3). The successor has an independent protocol, config, label-free
+runner, target-access evaluator, report/verifier, Slurm chain, remote identity,
+storage prefix, and Claude handoff. Its active roster is exactly 20 stems per
+cell (480 fits); no G arm or graph object is constructed.
+
+**Why**: The repaired graph Phase 0 completed 3,050 fits without numerical
+failure but no target mechanism survived the frozen specificity gate. That
+closes the current graph-extension hypothesis, not the graph-free B3 baseline.
+The old hard-DEEM/IU-PCR comparison was effectively tied and predates repaired
+B2, continuous B3, and the present-inventory/firewall discipline.
+
+**Result**: Registered decision
+`CLOSE_RESIDUAL_GRAPH_EXTENSION_SPECIFICITY_FAILURE` remains archived. The
+new scientific question is frozen around contrasts B3−B0, B3−B1, and B3−B2.
+The seven-schema label-free smoke preflight passed, including exact B3 replay
+and contribution reconstruction; the focused successor tests and both existing
+Residual-Graph regression suites passed. Natural targets were not opened and
+no AIRCC chain was submitted by Codex.
+
+---

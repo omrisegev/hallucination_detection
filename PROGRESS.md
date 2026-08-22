@@ -1,5 +1,15 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**Branch addendum (2026-08-22 — DEEM benchmark pivot):** Residual-Graph DEEM
+Phase 0 completed after the numerical repair (3,050 fits; 50/50 checkpoints
+healthy) but closed the current G0–G5 extension because no target-graph lambda
+survived the frozen specificity gate.  This is not a failure of graph-free B3.
+The next frozen experiment is `deem_vs_iupcr_24cell_v1`: B0 IU-PCR versus B1
+hard DEEM, repaired B2 soft/rank DEEM, and continuous additive B3 on the same
+24-cell present-inventory contract.  Use
+`docs/experiments/DEEM_VS_IUPCR_24CELL_V1_CLAUDE_HANDOFF.md`; do not submit the
+archived residual-graph chain.
+
 **Date**: 2026-08-21
 **Last updated**: Step 282 has two concurrent amendments. **The
 hallucination-geometry audit is implemented, independently reviewed,

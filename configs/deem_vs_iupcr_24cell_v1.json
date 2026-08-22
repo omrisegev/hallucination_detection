@@ -1,0 +1,53 @@
+{
+  "schema": "deem_vs_iupcr_24cell_v1_config",
+  "experiment_id": "deem_vs_iupcr_24cell_v1",
+  "required_base": "0a631b28c61496cffb06b32972506cbadfc2cec1",
+  "source_registry": "configs/residual_graph_deem_24cell_v1_registry.json",
+  "source_registry_content_sha256": "84fa79e396672d9d7f930d385202c0270facb0a32da6b7e78b42926133d5b776",
+  "graph_direction": {
+    "status": "closed",
+    "decision": "CLOSE_RESIDUAL_GRAPH_EXTENSION_SPECIFICITY_FAILURE",
+    "evidence": "PHASE0_FAILURE_REPORT.md",
+    "evidence_commit": "4a7d2fa21111d285536edb6b8197b7f91aee5f0b"
+  },
+  "arms": [
+    {"id": "B0", "name": "iu_pcr_inventory"},
+    {"id": "B1", "name": "deem_inventory_hard_adapter020"},
+    {"id": "B2", "name": "deem_inventory_soft_rank_adapter020_repaired"},
+    {"id": "B3", "name": "deem_inventory_continuous_additive"}
+  ],
+  "seeds": [0, 1, 2, 3, 4],
+  "expected_cells": 24,
+  "expected_rows": 48607,
+  "expected_stems_per_cell": 20,
+  "preflight": {
+    "full_b3_epochs": 100,
+    "smoke_b3_epochs": 3,
+    "boundary_adapter_feature_counts": [19, 30],
+    "fixture_rows": 128
+  },
+  "health": {
+    "orientation_tolerance": 1e-6,
+    "minimum_score_sd": 1e-3,
+    "contribution_reconstruction_max_abs": 1e-8,
+    "minimum_median_seed_spearman": 0.90
+  },
+  "evaluation": {
+    "base_seed": 20260821,
+    "bootstrap_draws": 10000,
+    "null_draws_initial": 199,
+    "null_draws_promoted": 999,
+    "tie_tolerance": 0.0005,
+    "primary_delta": 0.005,
+    "adapter_delta": 0.0025,
+    "noninferiority_margin": 0.0025,
+    "task_degradation_margin": 0.005,
+    "worst_cell_delta": -0.02,
+    "minimum_wins_or_ties": 14,
+    "alpha": 0.05
+  },
+  "storage": {
+    "shared_root": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/deem_vs_iupcr_24cell_v1",
+    "drive_root": "gdrive:hallucination_detection/cluster_results/deem_vs_iupcr_24cell_v1"
+  }
+}
