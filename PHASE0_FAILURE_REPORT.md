@@ -188,3 +188,88 @@ guarantee that lambda = 1.0 trains sensibly.
 The full local Phase 0 (all ten worlds, five seeds, lambda up to 1.0,
 100 epochs) should therefore be checked for sane convergence, not merely for
 absence of NaN.
+
+---
+
+# Phase 0 re-run outcome (AIRCC job 218512)
+
+Run of the fixed code (commit 645a405) as a standalone phase0 gate, before any
+chain submission.
+
+## The numerical fix is confirmed
+
+    checkpoints   50 / 50   (all ten worlds, all five seeds)
+    fits          3050
+    unhealthy     0
+    NaN / LinAlgError / FloatingPointError   none
+    dependency check ok: deem=0.2.0          (wheelhouse, no outbound DNS)
+
+G4/nuisance at lambda = 1.0 -- the exact arm, mechanism and lambda that
+produced the NaN on job 217597 -- is healthy on all ten worlds.  The
+nuisance_whitening health gate passes throughout, so the covariance does grow
+above the ridge during training and the init-scale/ridge mismatch is a
+transient at initialisation rather than a persistent defect.
+
+## Phase 0's verdict is nonetheless STOP
+
+No admissible lambda exists for the **target** mechanism:
+
+| mechanism | surviving lambdas | nomination |
+|-----------|-------------------|------------|
+| target (G3)   | **none**  | **None** |
+| nuisance (G4) | 0.01      | 0.01 |
+| family (G5)   | 0.01      | 0.01 |
+
+`passed` therefore evaluates False and the correct status is
+`stop_before_natural_targets`.  The chain was not submitted.
+
+### Why target fails: effect without specificity
+
+At every lambda the target graph also improves worlds where it is required not
+to (`length_target`, `class_permutation`, `pure_noise`, and others).  The
+violation grows monotonically with lambda:
+
+| lambda | mean delta (positive worlds) | violations | worst violation |
+|--------|------------------------------|------------|-----------------|
+| 0.01   | +0.00020 | 2 | +0.0033 |
+| 0.03   | +0.00059 | 3 | +0.0098 |
+| 0.1    | +0.00202 | 7 | +0.0339 |
+| 0.3    | +0.00648 | 7 | +0.1069 |
+| 1.0    | +0.02567 | 7 | +0.2670 |
+
+### And the converse for the other two: specificity without effect
+
+`nuisance` mean delta on its positive worlds is **negative** (-0.00006 at the
+nominated lambda = 0.01).  `family` mean delta is **0.00000** at every lambda.
+Both survive the admissibility filter largely by doing nothing.
+
+No mechanism shows a positive and specific effect simultaneously.  This is a
+result about the method, not a defect, and is left for review.
+
+## Two further defects found (fixed here, not yet exercised)
+
+1. **A scientific stop was recorded as a crash.**  `arm_auc[arm]` is set to NaN
+   when an arm's mechanism nominated no lambda -- an expected outcome, and the
+   winner logic already filters it with `np.isfinite`.  But the raw dict was
+   still serialised, and `atomic_write_json` uses `allow_nan=False` by design,
+   so the run died with `ValueError: Out of range float values are not JSON
+   compliant: nan` at `PHASE0_COMPLETE.json`.  The verdict was computed
+   correctly and then lost.  NaN is now carried to JSON as `null`; no decision
+   logic changed.
+
+2. **`source_hash()` was platform-dependent.**  It keyed on
+   `str(path.relative_to(ROOT))`, which yields backslashes on Windows, so
+   identical code hashed to `398ddf74...` locally and `ca8e1188...` on Linux.
+   That value is recorded in `RUN_IDENTITY.json`, so cross-platform replay
+   checks would fail spuriously.  Now uses `as_posix()`.
+
+## Cost note for the restart
+
+Phase-0 checkpoints validate `code_sha256` and `raise SystemExit` on mismatch
+rather than recomputing.  Both fixes above change `source_hash()`, so the 50
+existing checkpoints are invalidated and the next phase0 re-runs all fits
+(~6 h at the observed 8.65 checkpoints/hour).  Re-running purely to emit
+`PHASE0_COMPLETE.json` was therefore not worth it; `PHASE0_RESULTS.json`
+(3050 rows) is the authoritative artifact and every number above derives from
+it.  The next Phase 0 -- needed anyway if the target mechanism is revised --
+will write the completion manifest properly.

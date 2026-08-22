@@ -97,7 +97,12 @@ def source_hash() -> str:
     missing = [str(path) for path in CORE_SOURCES if not path.is_file()]
     if missing:
         raise FileNotFoundError("missing output-generating source: " + ", ".join(missing))
-    return canonical_sha256({str(path.relative_to(ROOT)): sha256_file(path) for path in CORE_SOURCES})
+    # as_posix(), not str(): str() of a relative Path yields backslashes on
+    # Windows, so identical code hashed differently per platform and the
+    # code_sha256 recorded in RUN_IDENTITY.json was not portable.
+    return canonical_sha256(
+        {path.relative_to(ROOT).as_posix(): sha256_file(path) for path in CORE_SOURCES}
+    )
 
 
 def arm_name(arm_id: str) -> str:
@@ -1069,7 +1074,19 @@ def run_phase0(args, registry) -> None:
             gate = bool(graph_gain <= 1e-3)
         world_gates.append({
             "world": world_id, "expected": expected, "winner": winner,
-            "arm_auc": arm_auc, "pass": gate,
+            # An arm whose mechanism nominated no admissible lambda has no rows
+            # to average, which is a real and expected outcome (it is exactly
+            # the "stop_before_natural_targets" case).  Carry it to JSON as
+            # null: atomic_write_json uses allow_nan=False on purpose, so
+            # leaving NaN here turned a correctly-computed scientific stop into
+            # an opaque serialisation crash and lost PHASE0_COMPLETE.json
+            # entirely (AIRCC job 218512).  The decision logic above already
+            # filters these with np.isfinite and is unaffected.
+            "arm_auc": {
+                arm: (value if np.isfinite(value) else None)
+                for arm, value in arm_auc.items()
+            },
+            "pass": gate,
         })
     expected_winners_pass = all(row["pass"] for row in world_gates)
     passed = (
