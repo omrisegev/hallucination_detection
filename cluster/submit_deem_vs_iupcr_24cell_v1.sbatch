@@ -18,6 +18,15 @@ export PYTHONUSERBASE=/tmp/deemcmp_pyuserbase_${SLURM_JOB_ID}
 export MPLCONFIGDIR=/tmp/deemcmp_matplotlib_${SLURM_JOB_ID}
 export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
+# Required for the determinism the frozen adapter config already asks for.
+# The B1/B2 adapter runs on CUDA with deterministic=True, and on CUDA >= 10.2
+# torch.use_deterministic_algorithms(True) raises on any cuBLAS op unless a
+# fixed cuBLAS workspace is reserved -- and it must be set before the process
+# starts, so it cannot be done from inside Python.  Without it all 20 adapter
+# boundary fits fail and preflight closes Stage A (AIRCC job 219646).  This
+# reserves the workspace that makes the requested determinism achievable; it
+# does not alter any model, seed, threshold, or hyperparameter.
+export CUBLAS_WORKSPACE_CONFIG=:4096:8
 mkdir -p "$PYTHONUSERBASE" "$MPLCONFIGDIR"
 
 # Compute nodes have no DNS. These pinned pure-Python wheels are staged once on
