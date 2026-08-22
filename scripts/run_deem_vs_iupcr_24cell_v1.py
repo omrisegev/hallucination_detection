@@ -253,10 +253,28 @@ def adapter_jobs(out: Path, cell_id: str, X_risk: np.ndarray, names, *, seeds,
     return records
 
 
+def _fit_acceptable(record: dict) -> bool:
+    """Amendment A1: B2 health is recorded, not blocking.
+
+    B0/B1/B3 fits must be fully healthy.  A B2 fit is acceptable once it is
+    complete with finite scores -- its collapse on wide inventories is a
+    documented property of the packaged soft/rank adapter (job 219682;
+    scripts/deem_soft_collapse_probe.py), and this benchmark records that
+    instead of letting it veto the run.  Interpretation of the B3-B2 contrast
+    must cite the recorded health tables.
+    """
+    if record.get("status") != "complete":
+        return False
+    health = record.get("health", {})
+    if str(record.get("stem", "")).startswith("B2__"):
+        return bool(health.get("score_finite", health.get("healthy")))
+    return bool(health.get("healthy"))
+
+
 def _valid_record(path: Path, *, expected_code: str) -> dict | None:
     try:
         record = json.loads(path.read_text(encoding="utf-8"))
-        if record.get("status") != "complete" or not record.get("health", {}).get("healthy"):
+        if not _fit_acceptable(record):
             return None
         if record.get("code_sha256") != expected_code:
             return None
@@ -323,9 +341,31 @@ def run_preflight(args, config: dict, registry: dict) -> None:
                 provenance={"preflight": "true", "inventory_sha256": canonical_sha256(names)},
                 prefix="preflight_adapters",
             ))
-    adapter_pass = args.smoke or all(
-        row.get("status") == "complete" and row.get("health", {}).get("healthy")
-        and row.get("package_version") == "0.2.0" for row in adapter_records
+    # Amendment A1 (protocol, pre-label): every boundary fit must complete with
+    # finite scores under the pinned package.  Full health (score_sd >= 1e-3)
+    # remains required for B1 on both fixtures and for B2 on the narrow fixture.
+    # B2 on the wide fixture is recorded, not gated: job 219682 showed the
+    # soft/rank adapter deterministically collapsing at 30 features (score_sd
+    # 1.1e-6 to 1.3e-4 on all five seeds), the same mode documented by
+    # scripts/deem_soft_collapse_probe.py.  Blocking there would let a known
+    # comparator limitation close a benchmark whose primary contrast (B3-B0)
+    # does not involve it.
+    narrow_fixture = "schema_p%d" % min(
+        int(v) for v in config["preflight"]["boundary_adapter_feature_counts"]
+    )
+
+    def _boundary_ok(row):
+        health = row.get("health", {})
+        if not (row.get("status") == "complete"
+                and row.get("package_version") == "0.2.0"
+                and health.get("score_finite")):
+            return False
+        if row.get("arm_id") == "B2" and row.get("cell_id") != narrow_fixture:
+            return True
+        return bool(health.get("healthy"))
+
+    adapter_pass = args.smoke or (
+        bool(adapter_records) and all(_boundary_ok(row) for row in adapter_records)
     )
     schema_pass = all(
         row["b0_healthy"] and all(item["healthy"] and item["posterior_sd"] >= 1e-3
@@ -345,6 +385,13 @@ def run_preflight(args, config: dict, registry: dict) -> None:
         "deterministic_replay_exact": replay_exact,
         "adapter_boundary_fits": len(adapter_records),
         "adapter_boundary_pass": bool(adapter_pass),
+        "adapter_unhealthy_recorded": [
+            {"cell_id": row.get("cell_id"), "stem": row.get("stem"),
+             "score_sd": row.get("health", {}).get("score_sd"),
+             "score_n_unique": row.get("health", {}).get("score_n_unique")}
+            for row in adapter_records
+            if not row.get("health", {}).get("healthy")
+        ],
         "code_sha256": source_hash(),
         "config_sha256": sha256_file(args.config),
         "registry_content_sha256": registry["registry_content_sha256"],
@@ -413,8 +460,7 @@ def _cell_checkpoint(out: Path, cell_id: str, config: dict, run_hash: str) -> li
 
 def _write_cell_checkpoint(out: Path, cell_id: str, config: dict, run_hash: str,
                            records: list[dict]) -> None:
-    complete = {row.get("stem"): row for row in records if row.get("status") == "complete"
-                and row.get("health", {}).get("healthy")}
+    complete = {row.get("stem"): row for row in records if _fit_acceptable(row)}
     if set(complete) != expected_stems(config):
         return
     value = {"schema": "deem_vs_iupcr_cell_complete_v1", "cell_id": cell_id,
@@ -496,18 +542,26 @@ def run_stage_a(args, config: dict, registry: dict) -> None:
         records.extend(current)
         _write_cell_checkpoint(args.out_dir, cell_id, config, run_hash, current)
     expected = expected_stems(config)
-    invalid = [row for row in records if row.get("status") != "complete"
-               or not row.get("health", {}).get("healthy")]
+    invalid = [row for row in records if not _fit_acceptable(row)]
     missing = []
     for cell_id in cells:
         observed = {row.get("stem") for row in records if row.get("cell_id") == cell_id
-                    and row.get("status") == "complete" and row.get("health", {}).get("healthy")}
+                    and _fit_acceptable(row)}
         missing.extend({"cell": cell_id, "stem": stem} for stem in sorted(expected - observed))
     fit_complete = {
         "schema": "deem_vs_iupcr_fit_complete_v1",
         "status": "complete" if not invalid and not missing and len(records) == 480 else "incomplete",
         "cells": cells, "n_records": len(records), "invalid_fits": invalid,
-        "missing_artifacts": missing, "run_definition_sha256": run_hash,
+        "missing_artifacts": missing,
+        "b2_unhealthy_recorded": [
+            {"cell": row.get("cell_id"), "stem": row.get("stem"),
+             "score_sd": row.get("health", {}).get("score_sd"),
+             "score_n_unique": row.get("health", {}).get("score_n_unique")}
+            for row in records if str(row.get("stem", "")).startswith("B2__")
+            and row.get("status") == "complete"
+            and not row.get("health", {}).get("healthy")
+        ],
+        "run_definition_sha256": run_hash,
     }
     atomic_write_json(args.out_dir / "FIT_COMPLETE.json", fit_complete)
     if fit_complete["status"] != "complete":

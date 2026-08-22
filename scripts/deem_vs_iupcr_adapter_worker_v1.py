@@ -65,7 +65,8 @@ def main() -> None:
             posterior=np.asarray(result.aligned_probabilities, dtype=np.float64),
             feature_names=np.asarray(names, dtype=str),
         )
-        healthy = bool(np.isfinite(result.score).all() and np.std(result.score) >= 1e-3)
+        score_finite = bool(np.isfinite(result.score).all())
+        healthy = bool(score_finite and np.std(result.score) >= 1e-3)
         record.update({
             "status": "complete",
             "array_path": str(array_path.resolve()),
@@ -77,6 +78,7 @@ def main() -> None:
             "history": result.history,
             "health": {
                 "healthy": healthy,
+                "score_finite": score_finite,
                 "score_sd": float(np.std(result.score)),
                 "score_n_unique": int(len(np.unique(result.score))),
             },
@@ -90,7 +92,11 @@ def main() -> None:
         })
     record["content_sha256"] = canonical_sha256(record)
     atomic_write_json(args.output.with_suffix(".json"), record)
-    if record["status"] != "complete" or not record.get("health", {}).get("healthy"):
+    # Amendment A1: a complete fit with finite scores is a valid measurement
+    # even when the score has collapsed (healthy=False).  Health stays recorded
+    # in the JSON; whether to block on it is the caller's per-arm policy, not
+    # the worker's.  A failed fit or a non-finite score still exits 2.
+    if record["status"] != "complete" or not record.get("health", {}).get("score_finite"):
         raise SystemExit(2)
 
 

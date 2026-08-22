@@ -153,3 +153,36 @@ changed here.
   `code_sha256` is unchanged, that prefix holds an identical `RUN_IDENTITY.json`
   and satisfies the handoff's precondition; it will need clearing or archiving
   before any resubmission that changes code.
+
+---
+
+# Decision: Amendment A1 (2026-08-23)
+
+Omri delegated the B2 decision explicitly after the job-219682 stop.  The
+decision taken: **a pre-label amendment that makes B2 health recorded
+diagnostic data instead of a mechanical blocker.**  Full text in the protocol
+("Amendment A1"); enforcement changes in the worker exit semantics, the
+preflight gate, cell checkpoints, FIT_COMPLETE and the score-freeze path.
+
+Summary of the amended gate:
+
+| arm | requirement |
+|-----|-------------|
+| B0, B1, B3 | unchanged -- complete AND fully healthy everywhere |
+| B2 (narrow 19-feature fixture) | complete AND fully healthy (sanity anchor) |
+| B2 (elsewhere) | complete AND finite; health recorded, never blocking |
+
+Rejected alternatives: lowering the 1e-3 floor (hides collapse for every arm),
+re-tuning the B2 config (outcome-dependent tuning of a control on the fixtures
+that exposed it), dropping the arm (discards the cells where soft/rank works,
+changes the frozen run shape).
+
+Interpretation rule now in the protocol: any reading of B3-B2 must carry the
+recorded health tables; on collapsed cells it is "candidate versus degenerate
+comparator", with no mechanism-control force.
+
+Local gates before resubmission: all three test suites pass, smoke preflight
+passes, and the focused test now locks the amended semantics
+(collapsed-but-finite B2 acceptable; unhealthy B1 fatal).  code_sha256 changes,
+so this is a fresh run identity; the attempt-2 prefix is archived before
+resubmission.

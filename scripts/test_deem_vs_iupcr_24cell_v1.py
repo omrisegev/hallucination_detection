@@ -45,6 +45,7 @@ def main() -> None:
     protocol = (ROOT / "docs/experiments/DEEM_VS_IUPCR_24CELL_V1.md").read_text(encoding="utf-8")
     assert "CLOSE_RESIDUAL_GRAPH_EXTENSION_SPECIFICITY_FAILURE" in protocol
     assert "It does not\nfalsify B3" in protocol
+    assert "Amendment A1" in protocol
 
     names = tuple(registry["schemas"][0]["feature_names"])
     rng = np.random.Generator(np.random.PCG64(20260821))
@@ -77,6 +78,21 @@ def main() -> None:
     assert all("p_by_statistic" in null[name] for name in null_arrays)
     assert holm({"a": .01, "b": .04, "c": .03}) == {"a": .03, "c": .06, "b": .06}
     assert len(source_hash()) == 64
+
+    # Amendment A1: B2 health is recorded, not blocking; B0/B1/B3 stay gated.
+    from scripts.run_deem_vs_iupcr_24cell_v1 import _fit_acceptable
+    collapsed_b2 = {"status": "complete", "stem": "B2__seed0",
+                    "health": {"healthy": False, "score_finite": True, "score_sd": 1e-6}}
+    assert _fit_acceptable(collapsed_b2)
+    assert not _fit_acceptable({**collapsed_b2,
+                                "health": {"healthy": False, "score_finite": False}})
+    assert not _fit_acceptable({"status": "failed", "stem": "B2__seed0", "health": {}})
+    assert not _fit_acceptable({"status": "complete", "stem": "B1__seed0",
+                                "health": {"healthy": False, "score_finite": True}})
+    assert _fit_acceptable({"status": "complete", "stem": "B1__seed0",
+                            "health": {"healthy": True, "score_finite": True}})
+    assert _fit_acceptable({"status": "complete", "stem": "B3__seed0",
+                            "health": {"healthy": True}})
     print("deem-vs-iupcr focused tests: PASS")
 
 

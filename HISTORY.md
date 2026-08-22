@@ -14427,3 +14427,29 @@ Residual-Graph regression suites passed. Natural targets were not opened and
 no AIRCC chain was submitted by Codex.
 
 ---
+
+### Step 284 [DEEM benchmark] — preflight stops twice; Amendment A1 makes B2 collapse a recorded finding
+
+**What**: Two chain submissions for `deem_vs_iupcr_24cell_v1` stopped at the
+label-free preflight.  Job 219646: all 20 adapter boundary fits raised because
+the frozen config requests `cuda`+`deterministic` and CUDA >= 10.2 requires
+`CUBLAS_WORKSPACE_CONFIG` before process start (fixed, sbatch-only, code_sha256
+unchanged).  Job 219682: with the environment fixed, B1 was healthy on both
+boundary fixtures but B2 (soft/rank adapter) collapsed on the 30-feature
+fixture on all five seeds -- `score_sd` 1.1e-6 to 1.3e-4 vs the 1e-3 floor,
+finite, deterministic; the same mode `deem_soft_collapse_probe.py` documented
+(27/30 constant-score failures).  Decision (Omri, delegated): pre-label
+Amendment A1 -- B2 health becomes recorded diagnostic data at every enforcement
+site (worker exit, preflight gate, cell checkpoints, FIT_COMPLETE, freeze);
+B0/B1/B3 gates unchanged; B2 must still be fully healthy on the 19-feature
+fixture; `B3-B2` interpretation must cite the recorded health tables.
+**Why**: the primary contrast B3-B0 does not involve B2; letting a documented
+comparator degeneracy veto the whole benchmark converts a finding into a
+blocker.  Lowering the health floor or re-tuning the control would hide the
+same information.  No natural label was ever opened, so the amendment is
+outcome-dependent only on label-free synthetic fixtures.
+**Result**: amendment implemented + protocol section appended + focused test
+locks the new semantics; fresh run identity (code_sha256 changes); chain to be
+resubmitted after local tests and smoke preflight.
+
+---

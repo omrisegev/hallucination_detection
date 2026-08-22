@@ -222,3 +222,58 @@ Conditional B=999 command:
 ```bash
 bash cluster/submit_deem_vs_iupcr_promotion_v1.sh
 ```
+
+---
+
+## Amendment A1 — B2 health is recorded, not blocking (pre-label, 2026-08-23)
+
+**Trigger.** Preflight job 219682 (the first run in which the adapter boundary
+executed at all -- job 219646 died earlier on a cuBLAS environment defect)
+stopped Stage A on `adapter_boundary_pass`.  All 20 boundary fits completed
+under pinned `deem==0.2.0` with exact deterministic replay, and B1 was healthy
+on both fixtures, but B2 collapsed on the 30-feature fixture on every seed:
+`score_sd` between 1.1e-6 and 1.3e-4 against the 1e-3 health floor, finite
+throughout.  `scripts/deem_soft_collapse_probe.py` documents the same
+degeneracy for the soft path (27/30 constant-score failures in the registered
+sweep).  This is a property of the packaged comparator, not of this benchmark's
+infrastructure.
+
+**Change.** B2's health becomes recorded diagnostic data instead of a
+mechanical blocker, at every enforcement site:
+
+- the adapter worker exits nonzero only on a failed fit or non-finite scores,
+  and additionally records `score_finite`;
+- the preflight adapter gate requires all 20 fits complete/finite/pinned,
+  full health for every B1 fit, and full health for B2 on the **narrow**
+  (19-feature) fixture -- a sanity anchor that the arm still works where it is
+  known to work.  B2 health on the wide fixture is recorded in
+  `PREFLIGHT_COMPLETE.json` under `adapter_unhealthy_recorded`;
+- Stage A cell checkpoints, `FIT_COMPLETE.json`, and the score freeze accept a
+  B2 fit that is complete with finite scores; B0/B1/B3 still require full
+  health.  Collapsed B2 fits are listed in `FIT_COMPLETE.json` under
+  `b2_unhealthy_recorded`.
+
+**Unchanged.** Arms, seeds, inventories, the 1e-3 health definition itself,
+every B0/B1/B3 gate, the B3 stability gate, all evaluation statistics,
+multiplicity, and the decision list.  The primary contrast `B3-B0` does not
+involve B2 at all.
+
+**Interpretation rule.** Any reading of the `B3-B2` contrast MUST be
+accompanied by the recorded B2 health tables.  On cells where B2 is collapsed,
+`B3-B2` measures "continuous additive DEEM versus a degenerate comparator" and
+must be described as such; it carries no mechanism-control force there.  The
+narrow-inventory cells where B2 is healthy carry that force.
+
+**Why not the alternatives.**  Lowering the 1e-3 floor would hide collapse for
+every arm everywhere.  Re-tuning the B2 configuration on the very fixtures
+that exposed the collapse would be outcome-dependent tuning of a control.
+Dropping the arm would discard the cells where the soft/rank adapter does
+function and change the frozen run shape.  Recording the collapse keeps the
+comparison honest and the evidence reviewable.
+
+**Legitimacy.**  No natural label has ever been opened in this experiment
+(`natural_targets_opened = False` in both preflight attempts); the only data
+observed before this amendment were label-free synthetic fixtures, which is
+precisely what a preflight exists to expose.  Decision taken by Omri
+(delegated explicitly after review of the job-219682 stop); implementation on
+a reviewed commit with a fresh `code_sha256` and run identity.
