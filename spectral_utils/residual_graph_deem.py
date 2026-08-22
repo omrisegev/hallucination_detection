@@ -434,10 +434,18 @@ class _FamilyAdditiveEnergy:
         return 0.5 * ((X - self.a) ** 2).sum(dim=1) - torch.nn.functional.softplus(ell)
 
     def state_dict_numpy(self) -> dict[str, np.ndarray]:
-        output = {"a": self.a.detach().cpu().numpy(), "b": self.b.detach().cpu().numpy()}
+        # .copy() is required, not cosmetic.  On CPU ``Tensor.numpy()`` shares
+        # storage with the tensor, and the optimizer mutates parameters in
+        # place -- so without it this "snapshot" aliases the live parameters
+        # and a state captured while finite silently becomes NaN at a later
+        # step, which is exactly when the failure artifact needs to be read.
+        output = {
+            "a": self.a.detach().cpu().numpy().copy(),
+            "b": self.b.detach().cpu().numpy().copy(),
+        }
         for label, collection in (("w", self.w), ("W", self.W), ("d", self.d), ("V", self.V), ("e", self.e)):
             for family, parameter in collection.items():
-                output[f"{label}::{family}"] = parameter.detach().cpu().numpy()
+                output[f"{label}::{family}"] = parameter.detach().cpu().numpy().copy()
         return output
 
     def load_state_numpy(self, state: Mapping[str, np.ndarray]) -> None:
@@ -530,11 +538,23 @@ class _NuisanceEncoder:
         raw = torch.tanh(X @ self.W1.T + self.d1) @ self.W2.T + self.d2
         centered = raw - raw.mean(dim=0, keepdim=True)
         covariance = centered.T @ centered / max(len(X) - 1, 1)
-        eigenvalues, eigenvectors = torch.linalg.eigh(
-            covariance + self.ridge * torch.eye(covariance.shape[0], dtype=X.dtype)
-        )
-        inverse_root = eigenvectors @ torch.diag(eigenvalues.clamp_min(self.ridge).rsqrt()) @ eigenvectors.T
-        return centered @ inverse_root
+        # Ridge-Cholesky whitening via triangular solve.  This is the same full
+        # whitening as the symmetric (ZCA) inverse square root up to an
+        # orthogonal rotation of the whitened coordinates, and every penalty
+        # built on U is invariant to that rotation -- ||U||_F^2, trace(U^T L U)
+        # and ||U^T e||^2 all are -- so the objective and its gradients are
+        # unchanged (verified identical to 10 decimal places).
+        #
+        # The eigendecomposition form is not usable here: its backward carries
+        # 1/(lambda_i - lambda_j) terms, and adding ridge*I shifts every
+        # eigenvalue equally without separating them.  A collapsing nuisance
+        # head drives those gaps to zero, the gradient becomes NaN, and the
+        # next forward pass then hands an all-NaN covariance to eigh.  That is
+        # the AIRCC job 217597 failure.  Cholesky's backward is a triangular
+        # solve and stays finite on the same input.
+        gram = covariance + self.ridge * torch.eye(covariance.shape[0], dtype=X.dtype)
+        factor = torch.linalg.cholesky(gram)
+        return torch.linalg.solve_triangular(factor, centered.T, upper=False).T
 
 
 def _family_parameter_penalty(model: _FamilyAdditiveEnergy, family_laplacian: csr_matrix):
@@ -640,14 +660,28 @@ def fit_continuous_deem(
                 raise FloatingPointError(f"non-finite objective at epoch {epoch}")
             optimizer.zero_grad()
             loss.backward()
+            # Catch non-finite gradients before they are written into the
+            # parameters.  The objective is checked above, but a NaN can enter
+            # through a backward pass while the forward value is still finite,
+            # which is precisely how the nuisance head used to die.
+            for index, parameter in enumerate(parameters):
+                if parameter.grad is not None and not bool(torch.isfinite(parameter.grad).all()):
+                    raise FloatingPointError(
+                        f"non-finite gradient for parameter {index} at epoch {epoch}"
+                    )
             optimizer.step()
+            for index, parameter in enumerate(parameters):
+                if not bool(torch.isfinite(parameter).all()):
+                    raise FloatingPointError(
+                        f"non-finite parameter {index} after step at epoch {epoch}"
+                    )
             last_finite_state = model.state_dict_numpy()
             if nuisance is not None:
                 last_finite_state.update({
-                    "nuisance::W1": nuisance.W1.detach().cpu().numpy(),
-                    "nuisance::d1": nuisance.d1.detach().cpu().numpy(),
-                    "nuisance::W2": nuisance.W2.detach().cpu().numpy(),
-                    "nuisance::d2": nuisance.d2.detach().cpu().numpy(),
+                    "nuisance::W1": nuisance.W1.detach().cpu().numpy().copy(),
+                    "nuisance::d1": nuisance.d1.detach().cpu().numpy().copy(),
+                    "nuisance::W2": nuisance.W2.detach().cpu().numpy().copy(),
+                    "nuisance::d2": nuisance.d2.detach().cpu().numpy().copy(),
                 })
             history.append(
                 {
@@ -690,10 +724,10 @@ def fit_continuous_deem(
                 "logit_nuisance_dependence": dependence,
             }
             state.update({
-                "nuisance::W1": nuisance.W1.detach().cpu().numpy(),
-                "nuisance::d1": nuisance.d1.detach().cpu().numpy(),
-                "nuisance::W2": nuisance.W2.detach().cpu().numpy(),
-                "nuisance::d2": nuisance.d2.detach().cpu().numpy(),
+                "nuisance::W1": nuisance.W1.detach().cpu().numpy().copy(),
+                "nuisance::d1": nuisance.d1.detach().cpu().numpy().copy(),
+                "nuisance::W2": nuisance.W2.detach().cpu().numpy().copy(),
+                "nuisance::d2": nuisance.d2.detach().cpu().numpy().copy(),
                 "nuisance::U": U,
             })
     reconstruction = float(np.max(np.abs(model.b.detach().item() + contributions.sum(axis=1) - ell)))
