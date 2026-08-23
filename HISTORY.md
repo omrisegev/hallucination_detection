@@ -14527,3 +14527,33 @@ label-firewalled test, continuous additive DEEM does not demonstrably beat
 IU-PCR, and noninferiority is established.
 
 ---
+
+### Step 288 [DEEM benchmark] — execution record + max-null gate critique + v2 variant menu
+
+**What**: Wrote `docs/experiments/DEEM_VS_IUPCR_24CELL_V1_EXECUTION_AND_CRITIQUE.md`:
+the complete execution record of the v1 run (phase0 archive, five chain
+attempts, Amendments A1/A1.1/A1.2, LFS data restoration, final chain
+220244-220274), the registered results incl. the per-family AUROC table
+(B3 wins 7/8 families), and a post-hoc critique of the conditional max-null
+gate using the frozen WHOLE_SEARCH_NULL.json numbers.
+**Why**: Omri challenged the "the null generates 10x the observed gain"
+reading — correctly.  The gate is a single-step unstudentized max over 18
+heterogeneous statistics; its exact/crt null scale (0.058-0.087) is math-scope
+AUPRC noise, not a distribution of realistic AUROC gains.  The
+structure-preserving family_group null has max scale 0.0072 (q95 0.0124),
+the global whole-search test passed at the empirical floor (p=0.005) in all
+three nulls, and B1|B3 / B2|B3 pass every family_group statistic at 0.005 —
+the primary contrast fails specifically because the quietest statistic is
+charged against the loudest one's noise.  Against the project's own
+matched-comparison history (Step 206 view moves ~0.5pp; adapters -4 to -7pp),
++0.57pp with CI [+0.13,+0.98] and 17W/1T/6L is a rare, genuine observation.
+**Result**: The registered NONINFERIOR decision stands (no post-hoc gate
+change); the doc fixes the public sentence ("strong evidence of a small real
+advantage that did not clear a conservative preregistered gate"), and lays
+out the v2 comparison menu for Codex + Claude + Omri: gate variants G-A..G-D
+(studentized max / Westfall-Young / AUROC-only family / marginal blocked
+null) and B3 ablations M-A..M-E (linear-only and ensemble-size first).
+Discussion first, no runs authorized; Omri's own variant list takes
+precedence and should be recorded in §4.2 before any protocol draft.
+
+---
