@@ -108,6 +108,34 @@ def main() -> None:
         flat, X_flat, feature_names=names, ambiguous="identity")
     assert mapping == {0: 0, 1: 1} and abs(margin) <= 1e-6
     assert np.array_equal(aligned, flat)
+
+    # Amendment A1.2: the evaluator loads recorded-degenerate B2 scores only
+    # under the explicit policy, and constant scores yield 0.0 spearman.
+    import tempfile, json as _json
+    from scripts.evaluate_residual_graph_deem_24cell_v1 import ensemble, load_seed_score
+    from spectral_utils.residual_graph_deem import atomic_save_npz, canonical_sha256 as _csha
+    with tempfile.TemporaryDirectory() as tmp:
+        run = Path(tmp)
+        cell_dir = run / "fits" / "cell_x"
+        cell_dir.mkdir(parents=True)
+        for seed in range(5):
+            stem = f"B2__seed{seed}"
+            arr = np.zeros(32)
+            digest = atomic_save_npz(cell_dir / f"{stem}.npz", score=arr)
+            (cell_dir / f"{stem}.json").write_text(_json.dumps({
+                "status": "complete", "array_sha256": digest,
+                "health": {"healthy": False, "score_finite": True, "score_sd": 0.0},
+            }), encoding="utf-8")
+        try:
+            load_seed_score(run, "cell_x", "B2__seed0")
+            raise AssertionError("degenerate B2 must be rejected by default")
+        except Exception:
+            pass
+        score = load_seed_score(run, "cell_x", "B2__seed0", allow_recorded_degenerate=True)
+        assert np.array_equal(score, np.zeros(32))
+        mean_score, stability = ensemble(run, "cell_x", "B2", allow_recorded_degenerate=True)
+        assert stability["median_abs_spearman"] == 0.0
+        assert np.isfinite(mean_score).all()
     print("deem-vs-iupcr focused tests: PASS")
 
 

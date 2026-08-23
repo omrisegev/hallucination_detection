@@ -14477,3 +14477,26 @@ health tables are becoming a substantive finding about the packaged soft/rank
 adapter's inventory-width limit.
 
 ---
+
+### Step 286 [DEEM benchmark] — full Stage A + score freeze; evaluator was the fifth health-gate site
+
+**What**: The A1.1 chain ran clean end-to-end through Stage A: 24/24 bundles,
+24/24 cells, all 480 fits, immutable SCORE_FREEZE_MANIFEST written -- the
+first complete label-free acquisition of the benchmark.  evaluate-199 then
+verified the freeze, built the 24 label sidecars, and crashed loading
+`lapeigvals_gsm8k_llama3b/B2__seed0`: `load_seed_score` in the shared
+evaluator still enforced the pre-amendment hard health gate -- the fifth
+enforcement site (worker exit, preflight gate, cell checkpoint, FIT_COMPLETE
+were the other four), missed by A1.  Amendment A1.2: the loader accepts
+`allow_recorded_degenerate`, passed by the deem-vs-iupcr evaluator for B2
+only; constant-score seed Spearman records 0.0 instead of NaN (which would
+have crashed the allow_nan=False writers exactly like phase0's arm_auc).
+**Why**: consuming B2's recorded-degenerate frozen scores is what A1 declared
+before any label access; the evaluator omission was implementation, not
+policy.  Disclosed: found post-label-open.  Stage-A scores are frozen and
+deterministic, and the rerun restarts from the pre-label boundary under a
+fresh identity, so the frozen scores must reproduce before labels reopen.
+**Result**: fix + tests + protocol A1.2; superseded run archived; chain
+resubmitted for the full clean pass.
+
+---

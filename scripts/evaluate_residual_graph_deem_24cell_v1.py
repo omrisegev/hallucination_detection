@@ -98,7 +98,17 @@ def lambda_token(value: float) -> str:
     return str(float(value)).replace(".", "p")
 
 
-def load_seed_score(run_dir: Path, cell: str, stem: str) -> np.ndarray:
+def load_seed_score(run_dir: Path, cell: str, stem: str, *,
+                    allow_recorded_degenerate: bool = False) -> np.ndarray:
+    """Load one frozen seed score.
+
+    ``allow_recorded_degenerate`` is the deem-vs-iupcr Amendment A1/A1.2
+    policy: a B2 fit that completed with finite scores is a valid frozen
+    measurement even when its health record says collapsed -- that collapse
+    is exactly what the amendment records instead of blocking on.  The
+    default (False) preserves the archived residual-graph semantics, where
+    any unhealthy fit is a hard stop.
+    """
     metadata_path = run_dir / "fits" / cell / f"{stem}.json"
     array_path = run_dir / "fits" / cell / f"{stem}.npz"
     if not metadata_path.is_file() or not array_path.is_file():
@@ -106,6 +116,8 @@ def load_seed_score(run_dir: Path, cell: str, stem: str) -> np.ndarray:
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     health = metadata.get("health", {})
     healthy = health.get("healthy", metadata.get("healthy", False))
+    if allow_recorded_degenerate and str(stem).startswith("B2__"):
+        healthy = bool(health.get("score_finite", healthy))
     if metadata.get("status") != "complete" or not healthy:
         raise ResidualGraphDeemError(f"unhealthy/incomplete fit: {cell}/{stem}")
     if sha256_file(array_path) != metadata.get("array_sha256"):
@@ -136,20 +148,28 @@ def fit_metadata(run_dir: Path, cell: str, stem: str) -> dict:
     return value
 
 
-def ensemble(run_dir: Path, cell: str, arm: str, lambda_: float | None = None) -> tuple[np.ndarray, dict]:
+def ensemble(run_dir: Path, cell: str, arm: str, lambda_: float | None = None, *,
+             allow_recorded_degenerate: bool = False) -> tuple[np.ndarray, dict]:
     scores = []
     for seed in SEEDS:
         stem = arm
         if lambda_ is not None:
             stem += f"__lambda{lambda_token(lambda_)}"
         stem += f"__seed{seed}"
-        scores.append(load_seed_score(run_dir, cell, stem))
+        scores.append(load_seed_score(run_dir, cell, stem,
+                                      allow_recorded_degenerate=allow_recorded_degenerate))
     matrix = np.asarray(scores, dtype=float)
     correlations = []
     from scipy.stats import spearmanr
     for left in range(5):
         for right in range(left + 1, 5):
-            correlations.append(abs(float(spearmanr(matrix[left], matrix[right]).statistic)))
+            value = float(spearmanr(matrix[left], matrix[right]).statistic)
+            # A constant score has no rank information and spearmanr returns
+            # NaN for it.  Record 0.0 -- "no reproducible ranking" -- instead
+            # of letting NaN poison the medians and crash the allow_nan=False
+            # JSON writers downstream.  Unreachable for healthy-gated arms
+            # (their score_sd floor guarantees variation).
+            correlations.append(abs(value) if np.isfinite(value) else 0.0)
     return matrix.mean(axis=0), {
         "seed_score_sd_mean": float(np.mean(matrix.std(axis=0))),
         "median_abs_spearman": float(np.median(correlations)),

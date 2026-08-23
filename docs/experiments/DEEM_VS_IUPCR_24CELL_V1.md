@@ -303,3 +303,27 @@ Orientation of a zero-signal posterior carries no information in either
 direction, so this changes no measurable quantity; it converts an adapter
 crash into the same recorded degeneracy that A1 already governs.  No natural
 label had been opened (`stage_a` stopped before any score freeze).
+
+### A1.2 — the evaluator loads recorded-degenerate B2 scores (2026-08-23)
+
+Evaluation job 220153 verified the score freeze, built the label sidecars, and
+then crashed in `load_seed_score` on `lapeigvals_gsm8k_llama3b/B2__seed0` --
+the evaluator-side loader still enforced the pre-amendment hard health gate,
+so the 36 collapsed B2 fits that Amendment A1 deliberately recorded were
+unloadable.  A fifth enforcement site of the same gate, missed when A1 amended
+the other four.
+
+Change: `load_seed_score`/`ensemble` accept `allow_recorded_degenerate`
+(default False, preserving the archived residual-graph semantics); the
+deem-vs-iupcr evaluator passes it for the B2 arm only.  Additionally, the seed
+Spearman of a constant score is recorded as 0.0 ("no reproducible ranking")
+instead of NaN, which would have crashed the `allow_nan=False` writers exactly
+as phase0's `arm_auc` NaN did.
+
+Timing disclosure: this defect was discovered after the label sidecars were
+built, because the crash site sits beyond the freeze gate.  The fix implements
+the policy A1 declared *before* any label access, touches no statistic, and
+Stage-A scores are frozen and deterministic.  The rerun uses a fresh run
+identity with a full restart from the pre-label boundary: bundles and all 480
+fits are rebuilt from scratch and must reproduce byte-identical frozen scores
+before labels are opened again.

@@ -193,7 +193,12 @@ def main() -> None:
         y = join_labels_by_id(bundle, sidecar)
         bundles[cell], targets[cell], scores[cell] = bundle, y, {}
         for arm in ARMS:
-            ensemble_score, stability = ensemble(args.run_dir, cell, arm)
+            # Amendment A1.2: B2 loads its recorded-degenerate frozen scores;
+            # every other arm keeps the hard health gate.
+            ensemble_score, stability = ensemble(
+                args.run_dir, cell, arm,
+                allow_recorded_degenerate=(arm == "B2"),
+            )
             scores[cell][arm] = ensemble_score
             values = metrics(y, ensemble_score)
             per_cell.append({"cell_id": cell, "dataset_family": bundle.dataset_family,
