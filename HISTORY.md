@@ -14453,3 +14453,27 @@ locks the new semantics; fresh run identity (code_sha256 changes); chain to be
 resubmitted after local tests and smoke preflight.
 
 ---
+
+### Step 285 [DEEM benchmark] — Stage A first pass: 20/24 cells, A1.1 closes the B2 alignment crash
+
+**What**: First real Stage A (job 220081) after source restoration (the Drive
+copy of `internalstates_gsm8k_qwen25_7b` was pre-Z_n-backfill, 75 MB vs the
+registered 146 MB; restored byte-exact from Git LFS, stale files archived, all
+24 canonical manifests deployed to the cluster).  24/24 bundles verified;
+Stage A completed 20/24 cells in under an hour, with 36 collapsed B2 fits
+correctly recorded by Amendment A1.  Four cells failed: 17 B2 fits crashed
+with `risk-consensus alignment is ambiguous` -- the same degeneracy surfacing
+as an aligner exception instead of a collapsed score, so A1 had nothing to
+record.  Amendment A1.1: `risk_consensus_align` gains an `ambiguous` policy
+("raise" default everywhere; "identity" only in the deem-vs-iupcr worker),
+recording `risk_consensus_identity_fallback` and letting the near-constant
+score flow through A1's per-arm policy.
+**Why**: orientation of a zero-signal posterior is uninformative in either
+direction; a deterministic convention converts an adapter crash into the same
+recorded degeneracy A1 already governs, without touching B0/B1/B3 gates.
+**Result**: fresh run identity (code_sha256 changes), incomplete run archived,
+chain resubmitted.  B2 is now degenerate on 8+ of 24 cells -- the recorded
+health tables are becoming a substantive finding about the packaged soft/rank
+adapter's inventory-width limit.
+
+---

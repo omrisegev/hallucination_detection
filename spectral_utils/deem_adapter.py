@@ -107,6 +107,15 @@ class DeemConfig:
     strict_version: bool = True
     alignment: str = "majority_vote"
     anchor_tolerance: float = 1e-6
+    # Amendment A1.1: what to do when the risk-consensus orientation is
+    # ambiguous (|high-low| <= tolerance, i.e. a degenerate posterior).
+    # "raise" preserves the historical fail-closed behavior and stays the
+    # default for every caller; "identity" adopts the identity class map
+    # deterministically -- orientation of a zero-signal posterior carries
+    # no information in either direction, and the produced score then
+    # surfaces through the health record as collapsed rather than as a
+    # worker crash.  Only the deem-vs-iupcr adapter worker opts in.
+    alignment_ambiguous: str = "raise"
 
 
 @dataclass
@@ -175,8 +184,14 @@ def repaired_soft_adapter020_config(**overrides):
     return DeemConfig(**values)
 
 
-def risk_consensus_align(probabilities, X_risk, *, feature_names=None, tolerance=1e-6):
-    """Align a binary latent posterior to the external equal-family risk anchor."""
+def risk_consensus_align(probabilities, X_risk, *, feature_names=None, tolerance=1e-6,
+                         ambiguous="raise"):
+    """Align a binary latent posterior to the external equal-family risk anchor.
+
+    ``ambiguous`` selects the Amendment A1.1 policy for a degenerate
+    posterior: "raise" (default, historical) or "identity" (deterministic
+    identity class map, margin reported as the sub-tolerance difference).
+    """
     raw = np.asarray(probabilities, dtype=float)
     X = _validate_continuous(X_risk)
     if raw.shape != (len(X), 2):
@@ -191,6 +206,8 @@ def risk_consensus_align(probabilities, X_risk, *, feature_names=None, tolerance
     low = float(np.sum((1.0 - q) * anchor) / max(np.sum(1.0 - q), 1e-12))
     difference = high - low
     if abs(difference) <= float(tolerance):
+        if ambiguous == "identity":
+            return raw.copy(), {0: 0, 1: 1}, float(difference)
         raise ValueError("risk-consensus alignment is ambiguous")
     if difference < 0:
         return raw[:, ::-1].copy(), {0: 1, 1: 0}, float(-difference)
@@ -261,14 +278,16 @@ def fit_deem_score(X, *, seed=0, config=None, feature_names=None, verbose=False)
         setattr(exc, "deem_config", asdict(config))
         raise
     package_aligned, package_mapping = _aligned_probabilities(model, predictions)
+    margin = float("inf")
     if config.alignment == "majority_vote":
         aligned, mapping = package_aligned, package_mapping
     elif config.alignment == "risk_consensus":
         raw = np.asarray(model.predict(predictions, return_probs=True), dtype=float)
         if raw.ndim == 1:
             raw = np.column_stack([1.0 - raw, raw])
-        aligned, mapping, _ = risk_consensus_align(
-            raw, X, feature_names=feature_names, tolerance=config.anchor_tolerance
+        aligned, mapping, margin = risk_consensus_align(
+            raw, X, feature_names=feature_names, tolerance=config.anchor_tolerance,
+            ambiguous=config.alignment_ambiguous,
         )
     else:
         raise ValueError("alignment must be 'majority_vote' or 'risk_consensus'")
@@ -277,7 +296,12 @@ def fit_deem_score(X, *, seed=0, config=None, feature_names=None, verbose=False)
         aligned_probabilities=aligned,
         class_map=mapping,
         package_class_map=package_mapping,
-        alignment=config.alignment,
+        alignment=(
+            "risk_consensus_identity_fallback"
+            if (config.alignment == "risk_consensus"
+                and abs(margin) <= float(config.anchor_tolerance))
+            else config.alignment
+        ),
         seed=seed,
         package_version=package_version,
         config=asdict(config),

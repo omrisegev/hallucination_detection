@@ -93,6 +93,21 @@ def main() -> None:
                             "health": {"healthy": True, "score_finite": True}})
     assert _fit_acceptable({"status": "complete", "stem": "B3__seed0",
                             "health": {"healthy": True}})
+
+    # Amendment A1.1: ambiguous risk-consensus raises by default, and falls
+    # back to the identity class map only when explicitly requested.
+    from spectral_utils.deem_adapter import risk_consensus_align
+    flat = np.full((16, 2), 0.5)
+    X_flat = rng.normal(size=(16, len(names)))
+    try:
+        risk_consensus_align(flat, X_flat, feature_names=names)
+        raise AssertionError("ambiguous alignment must raise by default")
+    except ValueError:
+        pass
+    aligned, mapping, margin = risk_consensus_align(
+        flat, X_flat, feature_names=names, ambiguous="identity")
+    assert mapping == {0: 0, 1: 1} and abs(margin) <= 1e-6
+    assert np.array_equal(aligned, flat)
     print("deem-vs-iupcr focused tests: PASS")
 
 

@@ -277,3 +277,29 @@ observed before this amendment were label-free synthetic fixtures, which is
 precisely what a preflight exists to expose.  Decision taken by Omri
 (delegated explicitly after review of the job-219682 stop); implementation on
 a reviewed commit with a fresh `code_sha256` and run identity.
+
+### A1.1 — deterministic identity fallback on ambiguous risk-consensus (pre-label, 2026-08-23)
+
+Stage A (job 220081) exposed a second manifestation of the same B2 degeneracy:
+on four cells (`se_nq_open_llama8b`, `semenergy_triviaqa_qwen3_8b`,
+`trace_math500_qwenmath15b_k10`, `truthfulqa_llama8b`) 17 B2 fits crashed with
+`risk-consensus alignment is ambiguous` instead of producing a collapsed score.
+The mechanism is identical: a degenerate posterior makes the risk-consensus
+orientation difference fall inside `anchor_tolerance`, and the aligner raised.
+Amendment A1 could not record what the worker never emitted; 20/24 cells
+completed (36 collapsed B2 fits correctly recorded) and 4 could not.
+
+Change: `risk_consensus_align` accepts an `ambiguous` policy.  The default
+`"raise"` preserves the historical fail-closed behavior for every existing
+caller (including `deem_soft_collapse_probe`).  The deem-vs-iupcr adapter
+worker alone opts into `"identity"`: the identity class map is adopted
+deterministically, the run result records
+`alignment = "risk_consensus_identity_fallback"`, and the produced
+near-constant score then flows through the ordinary Amendment A1 policy --
+recorded for B2, still blocking for B0/B1/B3 (a degenerate B1 remains a
+mechanical stop through its health gate, unchanged).
+
+Orientation of a zero-signal posterior carries no information in either
+direction, so this changes no measurable quantity; it converts an adapter
+crash into the same recorded degeneracy that A1 already governs.  No natural
+label had been opened (`stage_a` stopped before any score freeze).

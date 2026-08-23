@@ -40,8 +40,15 @@ def main() -> None:
         X = np.asarray(data["X_risk"], dtype=np.float64)
         names = tuple(str(value) for value in data["feature_names"].tolist())
         context = {key: str(data[key].item()) for key in data.files if key != "X_risk" and key != "feature_names"}
-    config = (hard_adapter020_config(device=args.device) if args.mode == "hard"
-              else repaired_soft_adapter020_config(device=args.device))
+    # Amendment A1.1: this worker adopts the deterministic identity class map
+    # when risk-consensus orientation is ambiguous (degenerate posterior).
+    # The resulting near-constant score then surfaces as healthy=False and is
+    # handled by the per-arm Amendment A1 policy instead of crashing the fit;
+    # job 220081: 17 B2 fits on four cells failed exactly here.
+    config = (hard_adapter020_config(device=args.device, alignment_ambiguous="identity")
+              if args.mode == "hard"
+              else repaired_soft_adapter020_config(device=args.device,
+                                                   alignment_ambiguous="identity"))
     record = {
         "schema": "deem_vs_iupcr_adapter020_fit_v1",
         "status": "failed",
