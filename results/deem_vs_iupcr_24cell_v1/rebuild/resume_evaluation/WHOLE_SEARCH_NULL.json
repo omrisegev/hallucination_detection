@@ -1,0 +1,629 @@
+{
+  "B": 199,
+  "crt": {
+    "null_max_mean": 0.05753054996327589,
+    "null_max_q95": 0.06369911210558897,
+    "p_by_statistic": {
+      "B0|B3|auprc|QA": 1.0,
+      "B0|B3|auprc|equal_family": 1.0,
+      "B0|B3|auprc|math": 1.0,
+      "B0|B3|auroc|QA": 1.0,
+      "B0|B3|auroc|equal_family": 1.0,
+      "B0|B3|auroc|math": 1.0,
+      "B1|B3|auprc|QA": 0.975,
+      "B1|B3|auprc|equal_family": 0.36,
+      "B1|B3|auprc|math": 0.005,
+      "B1|B3|auroc|QA": 1.0,
+      "B1|B3|auroc|equal_family": 1.0,
+      "B1|B3|auroc|math": 0.995,
+      "B2|B3|auprc|QA": 0.905,
+      "B2|B3|auprc|equal_family": 0.195,
+      "B2|B3|auprc|math": 0.995,
+      "B2|B3|auroc|QA": 0.335,
+      "B2|B3|auroc|equal_family": 0.005,
+      "B2|B3|auroc|math": 1.0
+    },
+    "p_value": 0.005
+  },
+  "diagnostics": {
+    "ars_gsm8k_r1distill8b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.20598614178665217,
+        "calibration_mae": 0.10971806805973892,
+        "constant_brier": 0.19801600000000003,
+        "folds": 5,
+        "min_samples_leaf": 10,
+        "overlap_fraction": 0.93,
+        "propensity_auroc": 0.5884776987718164,
+        "propensity_max": 0.7361133386052605,
+        "propensity_min": 0.020019769873952074
+      },
+      "exact": {
+        "max_stratum_size": 7,
+        "min_stratum_size": 1,
+        "mixed_strata": 57,
+        "movable_fraction": 0.296,
+        "movable_rows": 148,
+        "strata": 316
+      }
+    },
+    "epr_triviaqa_mistral24b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.1872449335859452,
+        "calibration_mae": 0.04904784224886999,
+        "constant_brier": 0.1848558633547782,
+        "folds": 5,
+        "min_samples_leaf": 12,
+        "overlap_fraction": 0.9388083735909822,
+        "propensity_auroc": 0.5805395017394233,
+        "propensity_max": 0.6785969201862536,
+        "propensity_min": 0.014117983917480044
+      },
+      "exact": {
+        "max_stratum_size": 60,
+        "min_stratum_size": 1,
+        "mixed_strata": 44,
+        "movable_fraction": 0.9259259259259259,
+        "movable_rows": 575,
+        "strata": 54
+      }
+    },
+    "internalstates_gsm8k_qwen25_7b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.20046960458537155,
+        "calibration_mae": 0.06289418563451764,
+        "constant_brier": 0.207564,
+        "folds": 5,
+        "min_samples_leaf": 10,
+        "overlap_fraction": 0.936,
+        "propensity_auroc": 0.6683625291476364,
+        "propensity_max": 0.9762607950427492,
+        "propensity_min": 0.22127370244146663
+      },
+      "exact": {
+        "max_stratum_size": 7,
+        "min_stratum_size": 1,
+        "mixed_strata": 76,
+        "movable_fraction": 0.42,
+        "movable_rows": 210,
+        "strata": 280
+      }
+    },
+    "lapeigvals_gsm8k_llama3b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.24307554591447617,
+        "calibration_mae": 0.0451097738730712,
+        "constant_brier": 0.24697875167910996,
+        "folds": 5,
+        "min_samples_leaf": 26,
+        "overlap_fraction": 1.0,
+        "propensity_auroc": 0.5989448059504194,
+        "propensity_max": 0.8706906855140623,
+        "propensity_min": 0.247473102890197
+      },
+      "exact": {
+        "max_stratum_size": 14,
+        "min_stratum_size": 1,
+        "mixed_strata": 197,
+        "movable_fraction": 0.824109173616376,
+        "movable_rows": 1087,
+        "strata": 341
+      }
+    },
+    "lapeigvals_gsm8k_llama8b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.18878538234336986,
+        "calibration_mae": 0.0919137238877289,
+        "constant_brier": 0.19982399999999997,
+        "folds": 5,
+        "min_samples_leaf": 10,
+        "overlap_fraction": 0.942,
+        "propensity_auroc": 0.6553266874849868,
+        "propensity_max": 0.9609162247225567,
+        "propensity_min": 0.016056016637156483
+      },
+      "exact": {
+        "max_stratum_size": 6,
+        "min_stratum_size": 1,
+        "mixed_strata": 65,
+        "movable_fraction": 0.426,
+        "movable_rows": 213,
+        "strata": 254
+      }
+    },
+    "lapeigvals_gsm8k_mistral24b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.07231204462871002,
+        "calibration_mae": 0.023802008243470566,
+        "constant_brier": 0.07580926345630233,
+        "folds": 5,
+        "min_samples_leaf": 26,
+        "overlap_fraction": 0.5049279757391963,
+        "propensity_auroc": 0.6990825688073394,
+        "propensity_max": 0.4595044939785489,
+        "propensity_min": 0.01
+      },
+      "exact": {
+        "max_stratum_size": 12,
+        "min_stratum_size": 1,
+        "mixed_strata": 72,
+        "movable_fraction": 0.29037149355572406,
+        "movable_rows": 383,
+        "strata": 350
+      }
+    },
+    "lapeigvals_gsm8k_nemo": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.13657775955502952,
+        "calibration_mae": 0.05737275383422073,
+        "constant_brier": 0.14148495109385711,
+        "folds": 5,
+        "min_samples_leaf": 26,
+        "overlap_fraction": 0.909021986353298,
+        "propensity_auroc": 0.6145439772496446,
+        "propensity_max": 0.7271861368957732,
+        "propensity_min": 0.01692510750770248
+      },
+      "exact": {
+        "max_stratum_size": 12,
+        "min_stratum_size": 1,
+        "mixed_strata": 139,
+        "movable_fraction": 0.5276724791508719,
+        "movable_rows": 696,
+        "strata": 370
+      }
+    },
+    "lapeigvals_gsm8k_phi35": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.12369269999741893,
+        "calibration_mae": 0.04172821625726021,
+        "constant_brier": 0.12916601763115737,
+        "folds": 5,
+        "min_samples_leaf": 26,
+        "overlap_fraction": 0.7983320697498104,
+        "propensity_auroc": 0.6575441219661977,
+        "propensity_max": 0.554723528789999,
+        "propensity_min": 0.01
+      },
+      "exact": {
+        "max_stratum_size": 12,
+        "min_stratum_size": 1,
+        "mixed_strata": 122,
+        "movable_fraction": 0.46019711902956784,
+        "movable_rows": 607,
+        "strata": 366
+      }
+    },
+    "losnet_hotpotqa_mistral7b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.23254924518185147,
+        "calibration_mae": 0.08366756572329213,
+        "constant_brier": 0.22375599999999998,
+        "folds": 5,
+        "min_samples_leaf": 10,
+        "overlap_fraction": 1.0,
+        "propensity_auroc": 0.5582598902375803,
+        "propensity_max": 0.949812487707024,
+        "propensity_min": 0.24317134312321653
+      },
+      "exact": {
+        "max_stratum_size": 7,
+        "min_stratum_size": 1,
+        "mixed_strata": 81,
+        "movable_fraction": 0.508,
+        "movable_rows": 254,
+        "strata": 243
+      }
+    },
+    "math500_dsmath7b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.14829350340301353,
+        "calibration_mae": 0.09604482406084033,
+        "constant_brier": 0.1539,
+        "folds": 5,
+        "min_samples_leaf": 10,
+        "overlap_fraction": 0.6166666666666667,
+        "propensity_auroc": 0.7208504801097394,
+        "propensity_max": 0.99,
+        "propensity_min": 0.19953797272453644
+      },
+      "exact": {
+        "max_stratum_size": 9,
+        "min_stratum_size": 1,
+        "mixed_strata": 19,
+        "movable_fraction": 0.13666666666666666,
+        "movable_rows": 41,
+        "strata": 245
+      }
+    },
+    "math500_qwenmath7b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.07306596021731143,
+        "calibration_mae": 0.03954835548051182,
+        "constant_brier": 0.17528888888888883,
+        "folds": 5,
+        "min_samples_leaf": 10,
+        "overlap_fraction": 0.27,
+        "propensity_auroc": 0.9088805780933064,
+        "propensity_max": 0.9715004397827968,
+        "propensity_min": 0.030102360284792448
+      },
+      "exact": {
+        "max_stratum_size": 216,
+        "min_stratum_size": 1,
+        "mixed_strata": 4,
+        "movable_fraction": 0.74,
+        "movable_rows": 222,
+        "strata": 72
+      }
+    },
+    "math500_r1distill8b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.13508872068156214,
+        "calibration_mae": 0.08535471907185516,
+        "constant_brier": 0.2044888888888889,
+        "folds": 5,
+        "min_samples_leaf": 10,
+        "overlap_fraction": 1.0,
+        "propensity_auroc": 0.8069984785916103,
+        "propensity_max": 0.9493853246764068,
+        "propensity_min": 0.11575655266187874
+      },
+      "exact": {
+        "max_stratum_size": 190,
+        "min_stratum_size": 1,
+        "mixed_strata": 3,
+        "movable_fraction": 0.6466666666666666,
+        "movable_rows": 194,
+        "strata": 107
+      }
+    },
+    "math500_r1distill8b_mn4096": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.1351488238484704,
+        "calibration_mae": 0.09200978093364,
+        "constant_brier": 0.23790000000000003,
+        "folds": 5,
+        "min_samples_leaf": 10,
+        "overlap_fraction": 1.0,
+        "propensity_auroc": 0.8372331978889356,
+        "propensity_max": 0.9446271847267693,
+        "propensity_min": 0.06403741340561389
+      },
+      "exact": {
+        "max_stratum_size": 153,
+        "min_stratum_size": 1,
+        "mixed_strata": 5,
+        "movable_fraction": 0.5366666666666666,
+        "movable_rows": 161,
+        "strata": 137
+      }
+    },
+    "noise_gsm8k_mistral7b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.20312492038094987,
+        "calibration_mae": 0.035076040379807084,
+        "constant_brier": 0.24999870671891133,
+        "folds": 5,
+        "min_samples_leaf": 26,
+        "overlap_fraction": 0.9772554965883244,
+        "propensity_auroc": 0.7442187162308191,
+        "propensity_max": 0.9779247169330427,
+        "propensity_min": 0.12597718538584993
+      },
+      "exact": {
+        "max_stratum_size": 10,
+        "min_stratum_size": 1,
+        "mixed_strata": 195,
+        "movable_fraction": 0.6391205458680819,
+        "movable_rows": 843,
+        "strata": 481
+      }
+    },
+    "noise_gsm8k_phi3mini": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.20904003919570566,
+        "calibration_mae": 0.069742385806878,
+        "constant_brier": 0.2060558892859422,
+        "folds": 5,
+        "min_samples_leaf": 26,
+        "overlap_fraction": 1.0,
+        "propensity_auroc": 0.543384994755752,
+        "propensity_max": 0.6288753160071323,
+        "propensity_min": 0.08139786621337049
+      },
+      "exact": {
+        "max_stratum_size": 14,
+        "min_stratum_size": 1,
+        "mixed_strata": 189,
+        "movable_fraction": 0.7187263078089462,
+        "movable_rows": 948,
+        "strata": 372
+      }
+    },
+    "sciq_llama8b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.23061647278782077,
+        "calibration_mae": 0.13509420494303806,
+        "constant_brier": 0.22388021630445867,
+        "folds": 5,
+        "min_samples_leaf": 10,
+        "overlap_fraction": 0.9242424242424242,
+        "propensity_auroc": 0.6281189472484904,
+        "propensity_max": 0.8232276071156572,
+        "propensity_min": 0.031609675727265994
+      },
+      "exact": {
+        "max_stratum_size": 13,
+        "min_stratum_size": 1,
+        "mixed_strata": 29,
+        "movable_fraction": 0.5656565656565656,
+        "movable_rows": 112,
+        "strata": 84
+      }
+    },
+    "se_nq_open_llama8b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.23822813907614093,
+        "calibration_mae": 0.008151937515676217,
+        "constant_brier": 0.24978168714965154,
+        "folds": 5,
+        "min_samples_leaf": 50,
+        "overlap_fraction": 1.0,
+        "propensity_auroc": 0.622014736585973,
+        "propensity_max": 0.840666293134587,
+        "propensity_min": 0.24517316900390793
+      },
+      "exact": {
+        "max_stratum_size": 358,
+        "min_stratum_size": 2,
+        "mixed_strata": 113,
+        "movable_fraction": 0.9968085106382979,
+        "movable_rows": 8433,
+        "strata": 121
+      }
+    },
+    "se_squad_v2_llama8b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.16039079216679872,
+        "calibration_mae": 0.0068645094480447215,
+        "constant_brier": 0.20141380012226695,
+        "folds": 5,
+        "min_samples_leaf": 50,
+        "overlap_fraction": 0.9301056938288442,
+        "propensity_auroc": 0.7797897452471922,
+        "propensity_max": 0.969980586522918,
+        "propensity_min": 0.36434228818794356
+      },
+      "exact": {
+        "max_stratum_size": 418,
+        "min_stratum_size": 1,
+        "mixed_strata": 40,
+        "movable_fraction": 0.9485168769178316,
+        "movable_rows": 2782,
+        "strata": 72
+      }
+    },
+    "seiclr_triviaqa_opt30b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.24667556771221352,
+        "calibration_mae": 0.0017514361883367682,
+        "constant_brier": 0.24876096000000006,
+        "folds": 5,
+        "min_samples_leaf": 50,
+        "overlap_fraction": 1.0,
+        "propensity_auroc": 0.5350145778501579,
+        "propensity_max": 0.8181430459512876,
+        "propensity_min": 0.4869372300859663
+      },
+      "exact": {
+        "max_stratum_size": 1483,
+        "min_stratum_size": 1,
+        "mixed_strata": 13,
+        "movable_fraction": 0.9934,
+        "movable_rows": 4967,
+        "strata": 28
+      }
+    },
+    "semenergy_triviaqa_qwen3_8b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.23627922255038908,
+        "calibration_mae": 0.008890208565527306,
+        "constant_brier": 0.2494606437934844,
+        "folds": 5,
+        "min_samples_leaf": 50,
+        "overlap_fraction": 1.0,
+        "propensity_auroc": 0.6193362568505648,
+        "propensity_max": 0.915880806961711,
+        "propensity_min": 0.3448603246067987
+      },
+      "exact": {
+        "max_stratum_size": 804,
+        "min_stratum_size": 1,
+        "mixed_strata": 35,
+        "movable_fraction": 0.98224043715847,
+        "movable_rows": 4314,
+        "strata": 54
+      }
+    },
+    "spilled_triviaqa_llama8b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.022636862509601275,
+        "calibration_mae": 0.0101557863186542,
+        "constant_brier": 0.02288818359375,
+        "folds": 5,
+        "min_samples_leaf": 10,
+        "overlap_fraction": 0.1328125,
+        "propensity_auroc": 0.8376666666666667,
+        "propensity_max": 0.99,
+        "propensity_min": 0.7150654740777235
+      },
+      "exact": {
+        "max_stratum_size": 15,
+        "min_stratum_size": 1,
+        "mixed_strata": 3,
+        "movable_fraction": 0.12109375,
+        "movable_rows": 31,
+        "strata": 65
+      }
+    },
+    "trace_gsm8k_llama8b_k10": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.16140206053752687,
+        "calibration_mae": 0.014786302601252223,
+        "constant_brier": 0.19430399999999995,
+        "folds": 5,
+        "min_samples_leaf": 50,
+        "overlap_fraction": 0.9842,
+        "propensity_auroc": 0.7123130764163372,
+        "propensity_max": 0.9840164308684877,
+        "propensity_min": 0.05551941453711481
+      },
+      "exact": {
+        "max_stratum_size": 44,
+        "min_stratum_size": 1,
+        "mixed_strata": 321,
+        "movable_fraction": 0.9106,
+        "movable_rows": 4553,
+        "strata": 562
+      }
+    },
+    "trace_math500_qwenmath15b_k10": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.13908448676287577,
+        "calibration_mae": 0.015353925450009763,
+        "constant_brier": 0.14523988888888886,
+        "folds": 5,
+        "min_samples_leaf": 50,
+        "overlap_fraction": 0.9373333333333334,
+        "propensity_auroc": 0.6588739395895985,
+        "propensity_max": 0.9879861740109054,
+        "propensity_min": 0.5263217653059689
+      },
+      "exact": {
+        "max_stratum_size": 53,
+        "min_stratum_size": 1,
+        "mixed_strata": 289,
+        "movable_fraction": 0.6103333333333333,
+        "movable_rows": 1831,
+        "strata": 702
+      }
+    },
+    "truthfulqa_llama8b": {
+      "crt": {
+        "all_draws_binary": true,
+        "brier": 0.09045027309689745,
+        "calibration_mae": 0.011675761427562445,
+        "constant_brier": 0.0947538827121419,
+        "folds": 5,
+        "min_samples_leaf": 50,
+        "overlap_fraction": 0.6860998296868859,
+        "propensity_auroc": 0.6727828017742947,
+        "propensity_max": 0.9874115498873794,
+        "propensity_min": 0.6385689026840808
+      },
+      "exact": {
+        "max_stratum_size": 1723,
+        "min_stratum_size": 7,
+        "mixed_strata": 102,
+        "movable_fraction": 0.9593868727892048,
+        "movable_rows": 7323,
+        "strata": 121
+      }
+    }
+  },
+  "exact": {
+    "null_max_mean": 0.08679135898212802,
+    "null_max_q95": 0.09152554729646287,
+    "p_by_statistic": {
+      "B0|B3|auprc|QA": 1.0,
+      "B0|B3|auprc|equal_family": 1.0,
+      "B0|B3|auprc|math": 1.0,
+      "B0|B3|auroc|QA": 1.0,
+      "B0|B3|auroc|equal_family": 1.0,
+      "B0|B3|auroc|math": 1.0,
+      "B1|B3|auprc|QA": 1.0,
+      "B1|B3|auprc|equal_family": 1.0,
+      "B1|B3|auprc|math": 0.005,
+      "B1|B3|auroc|QA": 1.0,
+      "B1|B3|auroc|equal_family": 1.0,
+      "B1|B3|auroc|math": 1.0,
+      "B2|B3|auprc|QA": 1.0,
+      "B2|B3|auprc|equal_family": 1.0,
+      "B2|B3|auprc|math": 1.0,
+      "B2|B3|auroc|QA": 1.0,
+      "B2|B3|auroc|equal_family": 1.0,
+      "B2|B3|auroc|math": 1.0
+    },
+    "p_value": 0.005
+  },
+  "family_group": {
+    "null_max_mean": 0.007228760805958732,
+    "null_max_q95": 0.012411500143456265,
+    "p_by_statistic": {
+      "B0|B3|auprc|QA": 1.0,
+      "B0|B3|auprc|equal_family": 0.87,
+      "B0|B3|auprc|math": 0.105,
+      "B0|B3|auroc|QA": 0.735,
+      "B0|B3|auroc|equal_family": 0.67,
+      "B0|B3|auroc|math": 0.35,
+      "B1|B3|auprc|QA": 0.005,
+      "B1|B3|auprc|equal_family": 0.005,
+      "B1|B3|auprc|math": 0.005,
+      "B1|B3|auroc|QA": 0.005,
+      "B1|B3|auroc|equal_family": 0.005,
+      "B1|B3|auroc|math": 0.005,
+      "B2|B3|auprc|QA": 0.005,
+      "B2|B3|auprc|equal_family": 0.005,
+      "B2|B3|auprc|math": 0.005,
+      "B2|B3|auroc|QA": 0.005,
+      "B2|B3|auroc|equal_family": 0.005,
+      "B2|B3|auroc|math": 0.005
+    },
+    "p_value": 0.005
+  },
+  "observed": {
+    "B0|B3|auprc|QA": -0.0011981325453559763,
+    "B0|B3|auprc|equal_family": 0.0031281855768639797,
+    "B0|B3|auprc|math": 0.011453267184143238,
+    "B0|B3|auroc|QA": 0.004954292233976217,
+    "B0|B3|auroc|equal_family": 0.005691266304316879,
+    "B0|B3|auroc|math": 0.00816624006572287,
+    "B1|B3|auprc|QA": 0.05093422825133549,
+    "B1|B3|auprc|equal_family": 0.05854709209624398,
+    "B1|B3|auprc|math": 0.12414564422942695,
+    "B1|B3|auroc|QA": 0.041061569416519964,
+    "B1|B3|auroc|equal_family": 0.04026084329454015,
+    "B1|B3|auroc|math": 0.04911390163833499,
+    "B2|B3|auprc|QA": 0.05295381852303858,
+    "B2|B3|auprc|equal_family": 0.06107460395422688,
+    "B2|B3|auprc|math": 0.047570744726580655,
+    "B2|B3|auroc|QA": 0.058743241288903625,
+    "B2|B3|auroc|equal_family": 0.0705262794219578,
+    "B2|B3|auroc|math": 0.03798827186612031
+  },
+  "observed_max": 0.12414564422942695
+}

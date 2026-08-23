@@ -14500,3 +14500,30 @@ fresh identity, so the frozen scores must reproduce before labels reopen.
 resubmitted for the full clean pass.
 
 ---
+
+### Step 287 [DEEM benchmark] — final: CONTINUOUS_DEEM_NONINFERIOR_TO_IUPCR, rebuild verification pass
+
+**What**: The full frozen chain (jobs 220244-220274, commit 43e87f8) ran end
+to end: preflight, 24 verified bundles, 480 fits, immutable score freeze,
+label sidecars only after the freeze, B=199 evaluation, report, resume
+re-evaluation, a genuinely fresh Stage-A rebuild, fresh evaluation, and
+deterministic rebuild verification.
+**Result**: `CONTINUOUS_DEEM_NONINFERIOR_TO_IUPCR`; `eligible_for_B999=False`
+so the promotion lane is closed.  Primary B3-B0: equal-family AUROC
++0.005691, CI [+0.001258, +0.009752], Holm p=0.0061, 17W/1T/6L, worst cell
+-0.0095, b3_stability_pass=True -- every bootstrap gate passed; the sole
+blocker was the conditional max-null family (exact p=1.0, crt p=1.0,
+family-group p=0.67; the crt null generates max deltas averaging 0.0575,
+an order of magnitude above the observed advantage).  Arm table
+(equal-family AUROC): B0 0.7428, B1 0.7082, B2 0.6780, B3 0.7485.  B3-B1
++0.0403 (24/0/0), B3-B2 +0.0705 (21/1/2) -- both blocked from a superiority
+claim by the same max-null gate.  REBUILD_VERIFICATION: status=pass, fresh
+rebuild byte-identical evaluation outputs including DECISION.json.  Compact
+evidence committed under results/deem_vs_iupcr_24cell_v1/; large artifacts
+uploaded from AIRCC to
+gdrive:hallucination_detection/cluster_results/deem_vs_iupcr_24cell_v1.
+The incumbent survives: under a matched-inventory, preregistered,
+label-firewalled test, continuous additive DEEM does not demonstrably beat
+IU-PCR, and noninferiority is established.
+
+---
