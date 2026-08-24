@@ -34,6 +34,7 @@ from spectral_utils.reconstruction_benchmark.edis_bootstrap import (
 from spectral_utils.reconstruction_benchmark.edis_evaluation import (
     _common,
     _metric_rows,
+    _prediction_row,
     _validate_partial_status_roster,
     evaluate,
     load_postfreeze_registry,
@@ -65,6 +66,12 @@ from spectral_utils.reconstruction_benchmark.external_evaluation import (
     population_grouped_paired_bootstrap,
 )
 from spectral_utils.reconstruction_reporting.schemas import validate_records
+from spectral_utils.reconstruction_reporting.io import (
+    read_parquet,
+    read_tidy_csv,
+    write_parquet,
+    write_tidy_csv,
+)
 from scripts.reconstruction_benchmark.run_edis_methods import (
     EDIS_RUNTIME_READ_FILES,
     FIT_CAPSULE_MODULES,
@@ -861,6 +868,200 @@ class EdisPreparationTests(unittest.TestCase):
 
 
 class EdisFitAndReportingTests(unittest.TestCase):
+    @staticmethod
+    def _evaluation_kwargs(root: Path) -> dict:
+        return {
+            "release_id": "r-evaluation",
+            "build_id": "A",
+            "release_root": root / "releases",
+            "private_control_root": root / "private",
+            "source_root": root,
+            "preparation_registry_path": root / "registry.json",
+            "postfreeze_registry_path": root / "postfreeze.json",
+            "identity": SharedEdisIdentityController(bytes(range(32))),
+            "repo": root,
+        }
+
+    def test_partial_prediction_rows_round_trip_csv_and_parquet_as_booleans(self):
+        base = _common(
+            release_id="r", run_id="r::edis::A::postfreeze", spec=None,
+            dataset_id="amc23", population_id="edis_amc23_full_v1",
+            cell_id="edis_amc23_t0p2", slice_id="temperature_0p2",
+            cohort_id="cohort::synthetic", method_id="iu_pcr",
+            method_version_id="iu-pcr-v1", comparison_group_id="comparison::synthetic",
+        )
+        labels = np.asarray([0, 1, 1, 0], dtype=np.int8)
+        rows = [
+            _prediction_row(
+                base=base,
+                row_id=f"xridv2_{index}",
+                group_id=f"xgidv2_{index // 2}",
+                score=0.1 * index,
+                label=label,
+                fallback_used=False,
+                score_hash="a" * 64,
+            )
+            for index, label in enumerate(labels)
+        ]
+        validated = validate_records("predictions", rows)
+        self.assertEqual([row["label"] for row in validated], [False, True, True, False])
+        self.assertTrue(all(type(row["label"]) is bool for row in validated))
+        with self.assertRaisesRegex(ValueError, "must be binary"):
+            _prediction_row(
+                base=base, row_id="xridv2_bad", group_id="xgidv2_bad",
+                score=0.0, label=np.int8(2), fallback_used=False,
+                score_hash="a" * 64,
+            )
+        for invalid in (0.9, 1.9, "1", np.float64(1.0)):
+            with self.subTest(invalid=invalid), self.assertRaisesRegex(
+                TypeError, "bool/integer"
+            ):
+                _prediction_row(
+                    base=base, row_id="xridv2_bad", group_id="xgidv2_bad",
+                    score=0.0, label=invalid, fallback_used=False,
+                    score_hash="a" * 64,
+                )
+
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            csv_path = root / "predictions.csv"
+            parquet_path = root / "predictions.parquet"
+            write_tidy_csv(csv_path, "predictions", rows)
+            write_parquet(parquet_path, "predictions", rows)
+            csv_rows = read_tidy_csv(csv_path, "predictions")
+            parquet_rows = read_parquet(parquet_path, "predictions")
+            self.assertEqual(csv_rows, parquet_rows)
+            self.assertEqual(
+                [row["label"] for row in parquet_rows],
+                [False, True, True, False],
+            )
+
+    def test_evaluation_failure_discards_only_unpublished_stage(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source_labels = root / "sealed-source-labels.bin"
+            label_bytes = b"synthetic source labels remain recoverable"
+            source_labels.write_bytes(label_bytes)
+
+            def fail_after_partial_writes(**kwargs):
+                output = kwargs["output"]
+                labels = output / "labels"
+                labels.mkdir()
+                (labels / "ready-cell.npz").write_bytes(source_labels.read_bytes())
+                (output / "predictions.csv").write_text(
+                    "synthetic unpublished predictions\n", encoding="utf-8"
+                )
+                raise RuntimeError("synthetic Parquet failure")
+
+            with mock.patch(
+                "spectral_utils.reconstruction_benchmark.edis_evaluation._evaluate_in_stage",
+                side_effect=fail_after_partial_writes,
+            ):
+                with self.assertRaisesRegex(RuntimeError, "synthetic Parquet failure"):
+                    evaluate(**self._evaluation_kwargs(root))
+
+            final = root / "releases/r-evaluation/build_A/edis/evaluation"
+            self.assertFalse(final.exists())
+            self.assertEqual(source_labels.read_bytes(), label_bytes)
+            self.assertEqual(
+                list(final.parent.glob(".evaluation.staging-*")),
+                [],
+            )
+
+    def test_evaluation_no_clobber_preserves_material_partial_tree(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            final = root / "releases/r-evaluation/build_A/edis/evaluation"
+            labels = final / "labels"
+            labels.mkdir(parents=True)
+            expected: dict[Path, bytes] = {}
+            for index in range(4):
+                path = labels / f"ready-{index}.npz"
+                expected[path] = f"label-bytes-{index}".encode("ascii")
+                path.write_bytes(expected[path])
+            predictions = final / "predictions.csv"
+            expected[predictions] = b"partial predictions\n"
+            predictions.write_bytes(expected[predictions])
+
+            with mock.patch(
+                "spectral_utils.reconstruction_benchmark.edis_evaluation._evaluate_in_stage"
+            ) as core:
+                with self.assertRaisesRegex(FileExistsError, "material output"):
+                    evaluate(**self._evaluation_kwargs(root))
+                core.assert_not_called()
+
+            self.assertEqual(
+                {path: path.read_bytes() for path in expected},
+                expected,
+            )
+            self.assertEqual(
+                list(final.parent.glob(".evaluation.staging-*")),
+                [],
+            )
+
+    def test_evaluation_commits_complete_stage_over_empty_retry_scaffold(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            final = root / "releases/r-evaluation/build_A/edis/evaluation"
+            (final / "labels").mkdir(parents=True)
+            label_bytes = b"complete staged labels"
+
+            def succeed(**kwargs):
+                output = kwargs["output"]
+                labels = output / "labels"
+                labels.mkdir()
+                (labels / "ready-cell.npz").write_bytes(label_bytes)
+                atomic_write_json(output / "MANIFEST.json", {"status": "complete"})
+                return {"status": "complete"}
+
+            with mock.patch(
+                "spectral_utils.reconstruction_benchmark.edis_evaluation._evaluate_in_stage",
+                side_effect=succeed,
+            ):
+                result = evaluate(**self._evaluation_kwargs(root))
+
+            self.assertEqual(result, {"status": "complete"})
+            self.assertEqual((final / "labels/ready-cell.npz").read_bytes(), label_bytes)
+            self.assertTrue((final / "MANIFEST.json").is_file())
+            self.assertEqual(
+                list(final.parent.glob(".evaluation.staging-*")),
+                [],
+            )
+
+    def test_evaluation_commit_race_preserves_published_winner(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            final = root / "releases/r-evaluation/build_A/edis/evaluation"
+            winner_bytes = b"complete competing evaluation"
+
+            def finish_stage(**kwargs):
+                (kwargs["output"] / "MANIFEST.json").write_text(
+                    '{"status":"complete"}\n', encoding="utf-8"
+                )
+                return {"status": "complete"}
+
+            def competing_publish(_source, target):
+                target = Path(target)
+                target.mkdir()
+                (target / "winner.bin").write_bytes(winner_bytes)
+                raise OSError("synthetic nonempty target race")
+
+            with mock.patch(
+                "spectral_utils.reconstruction_benchmark.edis_evaluation._evaluate_in_stage",
+                side_effect=finish_stage,
+            ), mock.patch(
+                "spectral_utils.reconstruction_benchmark.edis_evaluation.os.replace",
+                side_effect=competing_publish,
+            ):
+                with self.assertRaisesRegex(FileExistsError, "already exists"):
+                    evaluate(**self._evaluation_kwargs(root))
+
+            self.assertEqual((final / "winner.bin").read_bytes(), winner_bytes)
+            self.assertEqual(
+                list(final.parent.glob(".evaluation.staging-*")),
+                [],
+            )
+
     def test_partial_status_roster_accepts_exact_4_8_and_rejects_drift(self):
         preparation_registry = load_preparation_registry(TARGET_FREE)
         expected = preparation_registry.expected_status_by_cell

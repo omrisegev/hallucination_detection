@@ -439,8 +439,16 @@ def validate_prediction_record(row: Mapping[str, Any]) -> dict[str, Any]:
         raise SchemaError("rankable eligible prediction must have continuous_score")
     for field in ("discrete_prediction", "label"):
         value = row[field]
-        if value is not None and type(value) not in (bool, int):
-            raise SchemaError(f"prediction.{field} must be bool/int or None")
+        if value is None:
+            continue
+        if type(value) is bool:
+            normalized[field] = value
+        elif type(value) is int and value in (0, 1):
+            normalized[field] = bool(value)
+        else:
+            raise SchemaError(
+                f"prediction.{field} must be bool, binary int, or None"
+            )
     if row["score_hash"] != "not_applicable":
         _sha256(row["score_hash"], field="prediction.score_hash")
     return normalized
