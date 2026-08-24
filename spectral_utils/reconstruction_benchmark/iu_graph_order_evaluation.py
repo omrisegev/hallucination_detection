@@ -176,7 +176,9 @@ def verify_ab(
     )
 
 
-def _open_signed_snapshot(verified: VerifiedAblation) -> tuple[dict, dict[str, np.ndarray]]:
+def _open_signed_snapshot(
+    verified: VerifiedAblation,
+) -> tuple[dict, dict[str, np.ndarray], dict[str, np.ndarray]]:
     manifest_path = verified.source_release / "evaluation/EVALUATION_MANIFEST.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     _require_payload(manifest)
@@ -186,7 +188,16 @@ def _open_signed_snapshot(verified: VerifiedAblation) -> tuple[dict, dict[str, n
         sha256_file(snapshot_path) == manifest["prediction_snapshot_sha256"],
         "signed prediction snapshot drifted",
     )
-    return manifest, load_npz_no_pickle(snapshot_path)
+    bootstrap_path = verified.source_release / "evaluation" / str(manifest["bootstrap_path"])
+    _require(
+        sha256_file(bootstrap_path) == manifest["bootstrap_sha256"],
+        "signed bootstrap archive drifted",
+    )
+    return (
+        manifest,
+        load_npz_no_pickle(snapshot_path),
+        load_npz_no_pickle(bootstrap_path),
+    )
 
 
 def _point_metrics(y: np.ndarray, score: np.ndarray) -> dict[str, float]:
@@ -247,13 +258,13 @@ def evaluate(
     verified: VerifiedAblation,
     *,
     draws: int = 20000,
-    chunk_size: int = 250,
+    chunk_size: int = 1000,
 ) -> tuple[dict, list[dict], list[dict]]:
     """Open the signed labels only after A/B PASS and evaluate all arms."""
 
     _require(verified.ab_record.get("pass") is True, "label gate requires A/B PASS")
     _require(len(verified.cell_ids) == 24, "label gate requires 24 cells")
-    source_manifest, snapshot = _open_signed_snapshot(verified)
+    source_manifest, snapshot, source_bootstrap = _open_signed_snapshot(verified)
     signed_ids = tuple(f"signed_{method}" for method in REFERENCE_METHODS)
     evaluation_ids = tuple(verified.arm_ids) + signed_ids
     macro_draws = {
@@ -288,15 +299,34 @@ def evaluate(
             arm: {metric: np.empty(draws, dtype=np.float64) for metric in ("auroc", "auprc")}
             for arm in evaluation_ids
         }
+        # The signed reconstruction evaluator used this exact cell-keyed draw
+        # schedule.  Reuse its already verified anchor/reference metric draws;
+        # new arms are evaluated against the same multiplicities below.
+        source_draw_methods = {
+            "iu_pcr": "iu_pcr",
+            "equal_family_mean": "equal_family_mean",
+            "signed_deem_b3": "deem_b3",
+            "signed_family_nrm_a": "family_nrm_a",
+            "signed_pgrd_a": "pgrd_a",
+        }
+        for arm, method in source_draw_methods.items():
+            for metric in ("auroc", "auprc"):
+                key = f"cell__{cell_id}__{method}__{metric}"
+                values = np.asarray(source_bootstrap[key], dtype=np.float64)
+                _require(values.shape == (draws,), f"signed draw shape drift: {key}")
+                cell_draws[arm][metric][:] = values
         ordered_groups, group_columns, _, iterator = grouped_bootstrap_multiplicity_chunks(
             groups,
-            cell_id=f"iu_graph_order_ablation_v1|{cell_id}",
+            cell_id=cell_id,
             draws=draws,
             chunk_size=chunk_size,
         )
+        computed_arms = tuple(
+            arm for arm in evaluation_ids if arm not in source_draw_methods
+        )
         for offset, multiplicities, _ in iterator:
             count = len(multiplicities)
-            for arm in evaluation_ids:
+            for arm in computed_arms:
                 auc, ap = _weighted_binary_metric_draws(
                     y,
                     scores[arm],
@@ -305,6 +335,8 @@ def evaluate(
                 )
                 cell_draws[arm]["auroc"][offset:offset + count] = auc
                 cell_draws[arm]["auprc"][offset:offset + count] = ap
+
+        print(f"EVAL {len(point_by_cell):02d}/24 {cell_id}", flush=True)
 
         for arm in evaluation_ids:
             for metric in ("auroc", "auprc"):
