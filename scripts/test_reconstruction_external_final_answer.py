@@ -90,6 +90,9 @@ from scripts.reconstruction_benchmark.evaluate_external_final_answer import (
     _remove_verified_empty_directory_tree,
     _restore_validated_score_freeze,
 )
+from scripts.reconstruction_benchmark import (
+    evaluate_external_final_answer as external_evaluation_cli,
+)
 from spectral_utils.reconstruction_benchmark.methods import PRIMARY_METHOD_IDS
 from spectral_utils.reconstruction_benchmark.methods import run_method
 from spectral_utils.reconstruction_benchmark.serialization import write_score_result
@@ -1206,6 +1209,88 @@ print(json.dumps({"probes": probes, "results": results, "violations": module.fit
         with self.assertRaisesRegex(FileExistsError, "not a directory"):
             _remove_verified_empty_directory_tree(broken_link)
         self.assertTrue(broken_link.is_symlink())
+
+    def test_evaluator_preflight_failure_opens_no_labels_or_output(self) -> None:
+        fit_manifest = {"payload_sha256": "fit-safe-manifest"}
+        valid_signed_freeze = self._freeze()
+        failure_cases = {
+            "wrong_verifier_attachment": (
+                {
+                    **valid_signed_freeze,
+                    "_validated_fit_manifest": {"payload_sha256": "wrong"},
+                },
+                "another fit manifest",
+            ),
+            "signed_payload_tamper": (
+                {
+                    **valid_signed_freeze,
+                    "build_id": "tampered-after-signing",
+                    "_validated_fit_manifest": fit_manifest,
+                },
+                "payload hash failed",
+            ),
+        }
+        for case_id, (validated_freeze, message) in failure_cases.items():
+            with self.subTest(case_id=case_id):
+                release_root = self.root / case_id / "releases"
+                final_root = (
+                    release_root / "synthetic_release/build_A"
+                    / "external_final_answer/evaluation"
+                )
+                external_evaluation_cli._ACTIVE_EVALUATION_STAGE = None
+                argv = [
+                    "evaluate_external_final_answer.py",
+                    "--release-id", "synthetic_release",
+                    "--build", "A",
+                    "--release-root", str(release_root),
+                    "--identity-key", str(self.root / "sealed.key"),
+                ]
+                with (
+                    mock.patch.object(sys, "argv", argv),
+                    mock.patch.object(
+                        external_evaluation_cli, "load_external_registry",
+                        return_value=self.registry,
+                    ),
+                    mock.patch.object(
+                        external_evaluation_cli, "load_identity_key",
+                        return_value=self.identity_key,
+                    ),
+                    mock.patch.object(
+                        external_evaluation_cli, "assert_external_ab_certificate",
+                        return_value={},
+                    ),
+                    mock.patch.object(
+                        external_evaluation_cli, "validate_fit_safe_input_manifest",
+                        return_value=fit_manifest,
+                    ),
+                    mock.patch.object(
+                        external_evaluation_cli, "validate_scientific_input_manifest",
+                        return_value={"cells": []},
+                    ),
+                    mock.patch.object(
+                        external_evaluation_cli, "assert_fit_safe_matches_preparation",
+                    ),
+                    mock.patch.object(
+                        external_evaluation_cli, "validate_scientific_score_freeze",
+                        return_value=validated_freeze,
+                    ),
+                    mock.patch.object(
+                        external_evaluation_cli, "load_labels_after_score_freeze",
+                    ) as label_loader,
+                    mock.patch.object(
+                        external_evaluation_cli, "_AtomicEvaluationStage",
+                    ) as stage_constructor,
+                ):
+                    with self.assertRaisesRegex(
+                        (RuntimeError, ExternalContractError), message,
+                    ):
+                        external_evaluation_cli.main()
+                label_loader.assert_not_called()
+                stage_constructor.assert_not_called()
+                self.assertFalse(final_root.exists())
+                self.assertEqual(
+                    list(final_root.parent.glob(".evaluation.staging-*")), []
+                )
 
     def test_ab_certificate_is_required_and_tree_tamper_is_refused(self) -> None:
         release_id = "synthetic_release"
