@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Optional, Sequence
 
@@ -241,6 +242,7 @@ def build_duckdb(
     database_path: Optional[os.PathLike[str] | str] = None,
     overwrite: bool = False,
     atomic: bool = True,
+    source_sha256: Optional[Mapping[str, str]] = None,
 ) -> dict[str, Any]:
     """Build a portable analytical database from validated release artifacts.
 
@@ -279,17 +281,37 @@ def build_duckdb(
         "graph_diagnostics": layout.graph_diagnostics_csv,
         "graph_examples": layout.graph_examples_csv,
     }
-    source_sha256 = {
-        name: sha256_file(path)
-        for name, path in sorted(source_paths.items())
-        if path.exists()
+    expected_source_names = {
+        name for name, path in source_paths.items() if path.exists()
     }
+    if source_sha256 is None:
+        source_hashes = {
+            name: sha256_file(path)
+            for name, path in sorted(source_paths.items())
+            if path.exists()
+        }
+    else:
+        source_hashes = dict(source_sha256)
+        if set(source_hashes) != expected_source_names:
+            raise SchemaError(
+                "precomputed DuckDB source hashes must exactly cover existing sources: "
+                f"expected={sorted(expected_source_names)}, observed={sorted(source_hashes)}"
+            )
+        invalid_hashes = {
+            name: value
+            for name, value in source_hashes.items()
+            if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None
+        }
+        if invalid_hashes:
+            raise SchemaError(
+                f"precomputed DuckDB source hashes are not lowercase SHA-256: {invalid_hashes}"
+            )
     logical_sha256 = canonical_sha256(
         {
             "schema": "reconstruction_duckdb_logical_v1",
             "release_id": registry["release_id"],
             "registry_sha256": registry["registry_sha256"],
-            "source_sha256": source_sha256,
+            "source_sha256": source_hashes,
             "view_sql": query_view_sql(),
         }
     )
@@ -394,7 +416,7 @@ def build_duckdb(
             "release_id": registry["release_id"],
             "registry_sha256": registry["registry_sha256"],
             "logical_sha256": logical_sha256,
-            "source_sha256": json.dumps(source_sha256, sort_keys=True, separators=(",", ":")),
+            "source_sha256": json.dumps(source_hashes, sort_keys=True, separators=(",", ":")),
             "view_names": json.dumps(VIEW_NAMES, separators=(",", ":")),
         }
         connection.executemany(
@@ -418,7 +440,7 @@ def build_duckdb(
         "path": target.as_posix(),
         "release_id": registry["release_id"],
         "logical_sha256": logical_sha256,
-        "source_sha256": source_sha256,
+        "source_sha256": source_hashes,
         "physical_bytes_canonical": False,
         "views": list(VIEW_NAMES),
     }

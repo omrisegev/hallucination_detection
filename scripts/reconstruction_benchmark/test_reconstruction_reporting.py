@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 import re
 import sys
@@ -23,6 +24,7 @@ from spectral_utils.reconstruction_reporting.io import (  # noqa: E402
     read_tidy_csv,
     validate_plot_data_sources,
     write_canonical_json,
+    write_parquet,
     write_tidy_csv,
 )
 from spectral_utils.reconstruction_reporting.query import (  # noqa: E402
@@ -632,6 +634,39 @@ class IOAndReportTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 write_tidy_csv(staged, "metrics", self.rows["metrics"], atomic=False)
 
+    @unittest.skipUnless(
+        importlib.util.find_spec("pyarrow") is not None,
+        "PyArrow is required for the staged hash test",
+    )
+    def test_staged_csv_and_parquet_hash_without_reopening_output(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            csv_path = Path(temporary) / "metrics.csv"
+            parquet_path = Path(temporary) / "metrics.parquet"
+            with mock.patch(
+                "spectral_utils.reconstruction_reporting.io.sha256_file",
+                side_effect=AssertionError("output was reopened for hashing"),
+            ):
+                csv_record = write_tidy_csv(
+                    csv_path,
+                    "metrics",
+                    self.rows["metrics"],
+                    atomic=False,
+                )
+                parquet_record = write_parquet(
+                    parquet_path,
+                    "metrics",
+                    self.rows["metrics"],
+                    atomic=False,
+                )
+            self.assertEqual(
+                csv_record["file_sha256"],
+                hashlib.sha256(csv_path.read_bytes()).hexdigest(),
+            )
+            self.assertEqual(
+                parquet_record["file_sha256"],
+                hashlib.sha256(parquet_path.read_bytes()).hexdigest(),
+            )
+
     def test_report_starts_with_method_guide_and_is_self_contained(self) -> None:
         manifest = default_plot_manifest(self.registry["release_id"], self.rows)
         rendered = render_report(
@@ -983,6 +1018,78 @@ class FullReleaseTests(unittest.TestCase):
                 list(parent.glob(f".{registry['release_id']}.building-*")),
                 [],
             )
+
+    @unittest.skipUnless(
+        importlib.util.find_spec("duckdb") is not None
+        and importlib.util.find_spec("pyarrow") is not None,
+        "DuckDB and PyArrow are required for the complete release test",
+    )
+    def test_full_staged_release_never_reopens_large_outputs_for_hashing(self) -> None:
+        script = REPO_ROOT / "scripts" / "reconstruction_benchmark" / "build_reporting_release.py"
+        spec = importlib.util.spec_from_file_location("single_descriptor_reporting_builder", script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        registry = fixture_registry()
+        rows = fixture_rows(registry)
+        plots = default_plot_manifest(registry["release_id"], rows)
+        bridge_manifest = {
+            "schema": "reconstruction-reporting-bridge-v3",
+            "release_id": registry["release_id"],
+            "scientific_publication_eligible": True,
+            "graph_diagnostics_status": "VERIFIED_SIGNED_SOURCE_CONVERTED",
+        }
+        bridge_manifest["payload_sha256"] = canonical_sha256(bridge_manifest)
+        real_builder_hash = module.sha256_file
+
+        def reject_large_output_reopen(path: object) -> str:
+            suffix = Path(path).suffix.lower()
+            if suffix in {".csv", ".parquet", ".html"}:
+                raise AssertionError(f"large staged output was reopened for hashing: {path}")
+            return real_builder_hash(path)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "reporting" / registry["release_id"]
+            with mock.patch.object(
+                module,
+                "sha256_file",
+                side_effect=reject_large_output_reopen,
+            ), mock.patch(
+                "spectral_utils.reconstruction_reporting.query.sha256_file",
+                side_effect=AssertionError("DuckDB reopened a staged source only to hash it"),
+            ):
+                module.build_release(
+                    root,
+                    registry=registry,
+                    rows=rows,
+                    plot_manifest=plots,
+                    title="Synthetic single-descriptor release",
+                    bridge_manifest=bridge_manifest,
+                )
+
+            manifest = json.loads((root / "REPORTING_MANIFEST.json").read_text())
+            database_artifact = next(
+                artifact for artifact in manifest["artifacts"]
+                if artifact.get("kind") == "duckdb"
+            )
+            expected_sources = {}
+            for artifact in manifest["artifacts"]:
+                kind = artifact.get("kind")
+                if kind == "registry":
+                    expected_sources["registry"] = artifact["file_sha256"]
+                elif kind == "predictions":
+                    expected_sources["predictions"] = artifact["file_sha256"]
+                elif kind == "tidy_csv" and artifact.get("table") in {
+                    "metrics",
+                    "contrasts",
+                    "coverage",
+                    "graph_diagnostics",
+                    "graph_examples",
+                }:
+                    expected_sources[artifact["table"]] = artifact["file_sha256"]
+            self.assertEqual(database_artifact["source_sha256"], expected_sources)
 
     @unittest.skipUnless(
         importlib.util.find_spec("duckdb") is not None

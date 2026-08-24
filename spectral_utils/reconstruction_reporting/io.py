@@ -153,8 +153,13 @@ def write_tidy_csv(
         if atomic
         else target
     )
+    file_digest = hashlib.sha256()
     try:
-        with destination.open("w", encoding="utf-8", newline="") as handle:
+        # Hash through the already-open descriptor.  On some macOS filesystems
+        # a large newly-created file can be temporarily denied on a second
+        # open while background policy/indexing inspects it.  Reusing this
+        # descriptor makes the staged write both deterministic and robust.
+        with destination.open("w+", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(
                 handle,
                 fieldnames=list(fields),
@@ -164,6 +169,10 @@ def write_tidy_csv(
             writer.writeheader()
             for row in ordered:
                 writer.writerow({field: _encode_csv_value(field, row.get(field)) for field in fields})
+            handle.flush()
+            handle.seek(0)
+            for block in iter(lambda: handle.read(1 << 20), ""):
+                file_digest.update(block.encode("utf-8"))
         if atomic:
             os.replace(destination, target)
     finally:
@@ -175,7 +184,7 @@ def write_tidy_csv(
         "path": target.name,
         "row_count": len(ordered),
         "logical_sha256": table_sha256(table, ordered),
-        "file_sha256": sha256_file(target),
+        "file_sha256": file_digest.hexdigest(),
     }
 
 
@@ -308,15 +317,23 @@ def write_parquet(
         if atomic
         else target
     )
+    file_digest = hashlib.sha256()
     try:
-        pq.write_table(
-            arrow_table,
-            destination,
-            compression="zstd",
-            use_dictionary=True,
-            write_statistics=True,
-            data_page_version="1.0",
-        )
+        # As with CSV, retain one descriptor from creation through hashing so
+        # large staged Parquet files never require an immediate second open.
+        with destination.open("w+b") as handle:
+            pq.write_table(
+                arrow_table,
+                handle,
+                compression="zstd",
+                use_dictionary=True,
+                write_statistics=True,
+                data_page_version="1.0",
+            )
+            handle.flush()
+            handle.seek(0)
+            for block in iter(lambda: handle.read(1 << 20), b""):
+                file_digest.update(block)
         if atomic:
             os.replace(destination, target)
     finally:
@@ -328,7 +345,7 @@ def write_parquet(
         "path": target.name,
         "row_count": len(ordered),
         "logical_sha256": table_sha256(table, ordered),
-        "file_sha256": sha256_file(target),
+        "file_sha256": file_digest.hexdigest(),
     }
 
 

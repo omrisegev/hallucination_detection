@@ -230,10 +230,13 @@ def build_release(
     staging = Path(tempfile.mkdtemp(prefix=f".{release_root.name}.building-", dir=release_root.parent))
     layout = ReleaseLayout.from_root(staging)
     artifacts: list[dict[str, Any]] = []
+    duckdb_source_sha256: dict[str, str] = {}
     try:
         layout.create_directories()
         write_canonical_json(layout.registry_json, registry, atomic=False)
-        artifacts.append(_artifact_record(layout, layout.registry_json, kind="registry"))
+        registry_record = _artifact_record(layout, layout.registry_json, kind="registry")
+        artifacts.append(registry_record)
+        duckdb_source_sha256["registry"] = registry_record["file_sha256"]
         write_canonical_json(
             layout.bridge_manifest,
             bridge_manifest,
@@ -258,18 +261,18 @@ def build_release(
             "relative_path": bridge_record["relative_path"],
         }
 
-        artifacts.append(
-            {
-                **write_parquet(
-                    layout.predictions_parquet,
-                    "predictions",
-                    rows["predictions"],
-                    atomic=False,
-                ),
-                "relative_path": layout.predictions_parquet.relative_to(layout.root).as_posix(),
-                "kind": "predictions",
-            }
-        )
+        predictions_record = {
+            **write_parquet(
+                layout.predictions_parquet,
+                "predictions",
+                rows["predictions"],
+                atomic=False,
+            ),
+            "relative_path": layout.predictions_parquet.relative_to(layout.root).as_posix(),
+            "kind": "predictions",
+        }
+        artifacts.append(predictions_record)
+        duckdb_source_sha256["predictions"] = predictions_record["file_sha256"]
         table_targets = {
             "metrics": (layout.metrics_csv, layout.metrics_parquet),
             "contrasts": (layout.contrasts_csv, layout.contrasts_parquet),
@@ -289,6 +292,7 @@ def build_release(
                 kind="tidy_csv",
             )
             artifacts.append(csv_record)
+            duckdb_source_sha256[table] = csv_record["file_sha256"]
             parquet_record = write_parquet(
                 parquet_path,
                 table,
@@ -321,12 +325,15 @@ def build_release(
         )
         report_record.update(
             relative_path=layout.report_html.relative_to(layout.root).as_posix(),
-            file_sha256=sha256_file(layout.report_html),
             kind="self_contained_html",
         )
         artifacts.append(report_record)
 
-        database_record = build_duckdb(layout.root, atomic=False)
+        database_record = build_duckdb(
+            layout.root,
+            atomic=False,
+            source_sha256=duckdb_source_sha256,
+        )
         database_record.update(
             path=layout.database.name,
             relative_path=layout.database.relative_to(layout.root).as_posix(),

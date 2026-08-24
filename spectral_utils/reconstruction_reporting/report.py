@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import html
 import json
 import os
@@ -851,5 +852,6 @@ def write_report(
         "path": target.name,
         "size_bytes": len(payload),
         "sha256": canonical_sha256({"html_utf8": rendered}),
+        "file_sha256": hashlib.sha256(payload).hexdigest(),
         "self_contained": True,
     }
