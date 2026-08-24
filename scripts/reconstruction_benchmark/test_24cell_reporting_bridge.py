@@ -764,7 +764,7 @@ def _publish_graph_fixture(
         plot_arrays[field] = _text(values)
     plot_arrays.update({
         "x_index": np.asarray([row["x_index"] for row in ok], dtype="<i8"),
-        "seed": np.asarray([row["seed"] if row["seed"] is not None else -1 for row in ok], dtype="<i8"),
+        "seed": _text([str(row["seed"] if row["seed"] is not None else -1) for row in ok]),
         "draw_index": np.asarray([row["draw_index"] if row["draw_index"] is not None else -1 for row in ok], dtype="<i8"),
         "x_value": np.asarray([row["x_value"] for row in ok], dtype="<f8"),
         "y_value": np.asarray([row["value"] for row in ok], dtype="<f8"),

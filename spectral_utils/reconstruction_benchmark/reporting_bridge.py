@@ -71,7 +71,7 @@ BRIDGE_SCHEMA = "reconstruction-24cell-reporting-bridge-v1"
 GRAPH_MANIFEST_SCHEMA = "reconstruction-graph-diagnostics-manifest-v2"
 GRAPH_PAYLOAD_SCHEMA = "reconstruction-graph-assumption-diagnostics-v2"
 GRAPH_DIAGNOSTIC_VERSION = "frozen24-graph-assumption-diagnostics-v2"
-GRAPH_PLOT_SCHEMA = "reconstruction-graph-diagnostic-plot-data-v2"
+GRAPH_PLOT_SCHEMA = "reconstruction-graph-diagnostic-plot-data-v3"
 GRAPH_EXAMPLE_SCHEMA = "reconstruction-example-graph-data-v2"
 GRAPH_EXAMPLE_RULE = "nuisance_available_then_connected_then_no_isolates_then_max_gap_then_min_degree_cv_then_cell_id_v2"
 GRAPH_NODE_PERMUTATIONS = 32
@@ -654,9 +654,9 @@ def _verify_graph_plot_projection(path: Path, records: Sequence[Mapping[str, Any
         "compared_method_id", "compared_method_version_id", "panel_id", "metric_id",
         "series_id", "null_id", "feature_matrix_sha256", "graph_sha256",
         "operator_sha256", "compared_graph_sha256", "compared_operator_sha256",
-        "source_binding_id",
+        "source_binding_id", "seed",
     )
-    integer_fields = ("x_index", "seed", "draw_index")
+    integer_fields = ("x_index", "draw_index")
     float_fields = ("x_value", "y_value")
     expected_members = set(text_fields + integer_fields + float_fields + ("schema_version", "diagnostic_version"))
     _require(set(arrays) == expected_members, "graph plot projection member roster drift")
@@ -675,6 +675,8 @@ def _verify_graph_plot_projection(path: Path, records: Sequence[Mapping[str, Any
                 value = value or "not_applicable"
             elif field == "null_id":
                 value = value or "observed"
+            elif field == "seed":
+                value = int(value) if value is not None else -1
             expected_text[field].append(str(value))
     for field, expected in expected_text.items():
         _require([str(value) for value in arrays[field].tolist()] == expected, f"graph plot projection drift: {field}")

@@ -45,7 +45,7 @@ from .io import (
 DIAGNOSTIC_VERSION = "frozen24-graph-assumption-diagnostics-v2"
 DIAGNOSTICS_SCHEMA_VERSION = "reconstruction-graph-assumption-diagnostics-v2"
 MANIFEST_SCHEMA_VERSION = "reconstruction-graph-diagnostics-manifest-v2"
-PLOT_DATA_SCHEMA_VERSION = "reconstruction-graph-diagnostic-plot-data-v2"
+PLOT_DATA_SCHEMA_VERSION = "reconstruction-graph-diagnostic-plot-data-v3"
 EXAMPLE_DATA_SCHEMA_VERSION = "reconstruction-example-graph-data-v2"
 NODE_PERMUTATION_COUNT = 32
 GRAPH_BOOTSTRAP_COUNT = 32
@@ -2745,7 +2745,12 @@ def _plot_arrays(rows: Sequence[Mapping[str, Any]]) -> dict[str, np.ndarray]:
         field: _text_array([str(row[field]) for row in ordered])
         for field in text_fields
     }
-    for field in ("x_index", "seed", "draw_index"):
+    # Diagnostic seeds use the full unsigned 64-bit SHA-256 prefix accepted by
+    # NumPy's PCG64.  Store their decimal representation losslessly: coercing a
+    # seed above 2**63 - 1 to signed int64 either overflows or changes the seed.
+    # ``-1`` remains the explicit no-seed sentinel in this auxiliary projection.
+    arrays["seed"] = _text_array([str(int(row["seed"])) for row in ordered])
+    for field in ("x_index", "draw_index"):
         arrays[field] = np.asarray([int(row[field]) for row in ordered], dtype="<i8")
     for field in ("x_value", "y_value"):
         arrays[field] = np.asarray([float(row[field]) for row in ordered], dtype="<f8")

@@ -34,6 +34,7 @@ from spectral_utils.reconstruction_benchmark.graph_diagnostics import (  # noqa:
     _csr_from_flat,
     _has_complete_csr,
     _optional_trace_length_coordinate,
+    _plot_arrays,
     _strict_json,
     _su_upper_offdiag_relative_residual,
     _validate_artifact_index,
@@ -311,6 +312,38 @@ class SelectionTests(unittest.TestCase):
 
 
 class DeterminismTests(unittest.TestCase):
+    def test_plot_projection_preserves_full_unsigned_seed(self) -> None:
+        seed = 2**64 - 2
+        row = {
+            "diagnostic_id": "diag-max-seed",
+            "scope_type": "cell",
+            "scope_value": "cell-a",
+            "cell_id": "cell-a",
+            "method_id": "dufs_liu",
+            "method_version_id": "dufs-v1",
+            "stage": "target_free",
+            "compared_method_id": "not_applicable",
+            "compared_method_version_id": "not_applicable",
+            "panel_id": "node_permutation_null",
+            "metric_id": "target_roughness",
+            "series_id": "draw_0",
+            "null_id": "node_permutation_fixed_signal_v1",
+            "feature_matrix_sha256": "1" * 64,
+            "graph_sha256": "2" * 64,
+            "operator_sha256": "3" * 64,
+            "compared_graph_sha256": "not_applicable",
+            "compared_operator_sha256": "not_applicable",
+            "source_binding_id": "binding-a",
+            "x_index": 0,
+            "seed": seed,
+            "draw_index": 0,
+            "x_value": 0.0,
+            "y_value": 0.25,
+        }
+        arrays = _plot_arrays([row])
+        self.assertEqual(arrays["seed"].dtype.kind, "U")
+        self.assertEqual(arrays["seed"].tolist(), [str(seed)])
+
     def test_exact_ca_control_roster(self) -> None:
         self.assertEqual(
             CA_CONTROL_SERIES,
