@@ -659,7 +659,7 @@ def _publish_graph_fixture(
             "x_index": draw,
             "x_value": float(draw),
             "null_id": "node_permutation_fixed_signal_v1",
-            "seed": 10_000 + draw,
+            "seed": (2**64 - 2) if draw == 0 else 10_000 + draw,
             "draw_index": draw,
             "graph_sha256": _hash(f"permuted-graph::{first_cell_id}::{draw}"),
             "operator_sha256": _hash(f"permuted-operator::{first_cell_id}::{draw}"),
@@ -975,6 +975,10 @@ class BridgeTests(unittest.TestCase):
 
     def test_signed_graph_package_is_converted_and_auxiliary_sources_are_preserved(self):
         graph_dir = _publish_graph_fixture(self.root, self.paths)
+        with np.load(graph_dir / "PLOT_DATA.npz", allow_pickle=False) as plot_bundle:
+            projected_seeds = {str(value) for value in plot_bundle["seed"].tolist()}
+        self.assertIn(str(2**64 - 2), projected_seeds)
+        self.assertIn("-1", projected_seeds)
         inputs = self.build_with_graph(graph_dir)
         self.assertEqual(
             {row["method_id"] for row in inputs.rows["graph_diagnostics"]},
@@ -1023,6 +1027,28 @@ class BridgeTests(unittest.TestCase):
         with (graph_dir / "PLOT_DATA.npz").open("ab") as handle:
             handle.write(b"tamper")
         with self.assertRaisesRegex(ReportingBridgeError, "plot data file hash drift|graph tree (hash|size) drift"):
+            self.build_with_graph(graph_dir)
+
+    def test_rehashed_graph_seed_semantic_tamper_is_rejected(self):
+        graph_dir = _publish_graph_fixture(self.root, self.paths)
+        plot_path = graph_dir / "PLOT_DATA.npz"
+        with np.load(plot_path, allow_pickle=False) as plot_bundle:
+            arrays = {name: np.asarray(plot_bundle[name]) for name in plot_bundle.files}
+        seeds = [str(value) for value in arrays["seed"].tolist()]
+        index = seeds.index(str(2**64 - 2))
+        seeds[index] = str(2**64 - 3)
+        arrays["seed"] = _text(seeds)
+        plot_sha = atomic_write_npz(plot_path, arrays)
+
+        manifest_path = graph_dir / "GRAPH_DIAGNOSTICS_MANIFEST.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["plot_data_sha256"] = plot_sha
+        atomic_write_json(manifest_path, _with_payload(manifest))
+        tree_path = graph_dir / "TREE_MANIFEST.json"
+        tree_path.unlink()
+        atomic_write_json(tree_path, canonical_tree_manifest(graph_dir))
+
+        with self.assertRaisesRegex(ReportingBridgeError, "graph plot projection drift: seed"):
             self.build_with_graph(graph_dir)
 
     def test_verified_graph_visuals_have_deterministic_browser_structure(self):
