@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from collections import defaultdict
 import json
+import os
 from pathlib import Path
 import pickle
+import shutil
+import tempfile
 from typing import Any, Mapping, Sequence
 
 import numpy as np
@@ -237,6 +240,45 @@ def _common(
     }
 
 
+def _prediction_row(
+    *,
+    base: Mapping[str, Any],
+    row_id: str,
+    group_id: str,
+    score: float,
+    label: bool | int | np.bool_ | np.integer,
+    fallback_used: bool,
+    score_hash: str,
+) -> dict[str, Any]:
+    """Build one schema-exact binary EDIS prediction record.
+
+    EDIS metric computation intentionally retains its signed ``int8`` label
+    vectors.  The reporting prediction contract is different: ``label`` is a
+    nullable Boolean column.  Validate the binary value before representing it
+    as ``bool`` so CSV and Parquet serialize the same scientific value.
+    """
+
+    if (
+        type(label) not in (bool, int, np.bool_)
+        and not isinstance(label, np.integer)
+    ):
+        raise TypeError("EDIS prediction label must be a bool/integer binary value")
+    integer_label = int(label)
+    if integer_label not in (0, 1):
+        raise ValueError("EDIS prediction label must be binary")
+    return {
+        **dict(base),
+        "row_id": row_id,
+        "group_id": group_id,
+        "continuous_score": float(score),
+        "discrete_prediction": None,
+        "label": bool(integer_label),
+        "eligible": True,
+        "fallback_used": bool(fallback_used),
+        "score_hash": score_hash,
+    }
+
+
 def _metric_rows(
     *, interval: Mapping[str, Any], base_by_method: Mapping[str, Mapping[str, Any]],
     aggregation_id: str, aggregation_level: str, component_ids: Sequence[str],
@@ -352,6 +394,66 @@ def _validate_partial_status_roster(
     ):
         raise RuntimeError("descriptive partial EDIS 4-ready/8-blocked roster drifted")
     return observed
+
+
+def _remove_verified_empty_directory_tree(path: Path) -> None:
+    """Remove only a file-free retry scaffold; preserve every material tree."""
+
+    if path.is_symlink():
+        raise FileExistsError(f"EDIS evaluation target is not a directory: {path}")
+    if not path.exists():
+        return
+    if not path.is_dir():
+        raise FileExistsError(f"EDIS evaluation target is not a directory: {path}")
+    descendants = sorted(
+        path.rglob("*"), key=lambda item: len(item.parts), reverse=True,
+    )
+    unexpected = [
+        item for item in descendants if item.is_symlink() or not item.is_dir()
+    ]
+    if unexpected:
+        raise FileExistsError(
+            "EDIS evaluation directory contains material output: "
+            + ", ".join(str(item) for item in unexpected[:5])
+        )
+    for directory in descendants:
+        directory.rmdir()
+    path.rmdir()
+
+
+class _AtomicEvaluationStage:
+    """Same-filesystem unpublished tree committed by one atomic rename."""
+
+    def __init__(self, final_path: Path) -> None:
+        self.final_path = final_path
+        self.path = Path(tempfile.mkdtemp(
+            prefix=f".{final_path.name}.staging-",
+            dir=final_path.parent,
+        ))
+        self.committed = False
+
+    def commit(self) -> None:
+        if self.committed:
+            raise RuntimeError("EDIS evaluation stage was already committed")
+        if self.final_path.exists() or self.final_path.is_symlink():
+            raise FileExistsError(
+                f"EDIS evaluation directory already exists: {self.final_path}"
+            )
+        try:
+            os.replace(self.path, self.final_path)
+        except OSError as error:
+            # Close the check/rename race with another evaluator while keeping
+            # the already-published winner and this unpublished stage intact.
+            if self.final_path.exists() or self.final_path.is_symlink():
+                raise FileExistsError(
+                    f"EDIS evaluation directory already exists: {self.final_path}"
+                ) from error
+            raise
+        self.committed = True
+
+    def cleanup(self) -> None:
+        if not self.committed and self.path.exists():
+            shutil.rmtree(self.path)
 
 
 def _persist_evaluation(
@@ -470,7 +572,7 @@ def _persist_evaluation(
     return manifest
 
 
-def evaluate(
+def _evaluate_in_stage(
     *,
     release_id: str,
     build_id: str,
@@ -481,6 +583,7 @@ def evaluate(
     postfreeze_registry_path: str | Path,
     identity: KeyedIdentityController,
     repo: str | Path,
+    output: Path,
     certificate_path: str | Path | None = None,
     allow_descriptive_partial: bool = False,
 ) -> Mapping[str, Any]:
@@ -511,10 +614,9 @@ def evaluate(
     if dict(identity.public_binding) != certificate.get("identity_contract"):
         raise RuntimeError("post-freeze identity key does not match the A/B certificate")
     lane = release / f"build_{build_id}" / "edis"
-    inputs, fit, output = lane / "inputs", lane / "fit", lane / "evaluation"
-    if output.exists() and any(output.iterdir()):
-        raise FileExistsError(f"EDIS evaluation directory is not empty: {output}")
-    output.mkdir(parents=True, exist_ok=False)
+    inputs, fit = lane / "inputs", lane / "fit"
+    if not output.is_dir() or any(output.iterdir()):
+        raise RuntimeError(f"EDIS evaluation staging directory is not empty: {output}")
     private_path = Path(private_control_root) / release_id / "edis" / f"build_{build_id}" / "PREPARATION_PROVENANCE.json"
     private_policy_path = private_path.parent / "FIT_AUDIT_POLICY.json"
     fit_registry, freeze = validate_score_freeze(
@@ -669,17 +771,15 @@ def evaluate(
         for method_id in PRIMARY_METHOD_IDS:
             base = base_by_method[method_id]
             for row_id, group_id, score, label in zip(rows, groups, scores[method_id], labels):
-                predictions.append({
-                    **base,
-                    "row_id": row_id,
-                    "group_id": group_id,
-                    "continuous_score": float(score),
-                    "discrete_prediction": None,
-                    "label": int(label),
-                    "eligible": True,
-                    "fallback_used": statuses[method_id] == "OK_FALLBACK",
-                    "score_hash": score_hashes[method_id],
-                })
+                predictions.append(_prediction_row(
+                    base=base,
+                    row_id=row_id,
+                    group_id=group_id,
+                    score=float(score),
+                    label=label,
+                    fallback_used=statuses[method_id] == "OK_FALLBACK",
+                    score_hash=score_hashes[method_id],
+                ))
             coverage.append({
                 **base,
                 "expected_n": len(labels),
@@ -841,6 +941,49 @@ def evaluate(
         coverage=coverage, label_artifacts=label_artifacts,
         postfreeze=postfreeze, descriptive_partial=False,
     )
+
+
+def evaluate(
+    *,
+    release_id: str,
+    build_id: str,
+    release_root: str | Path,
+    private_control_root: str | Path,
+    source_root: str | Path,
+    preparation_registry_path: str | Path,
+    postfreeze_registry_path: str | Path,
+    identity: KeyedIdentityController,
+    repo: str | Path,
+    certificate_path: str | Path | None = None,
+    allow_descriptive_partial: bool = False,
+) -> Mapping[str, Any]:
+    """Build an EDIS evaluation privately, then publish the complete tree once."""
+
+    final_output = (
+        Path(release_root) / release_id / f"build_{build_id}" / "edis" / "evaluation"
+    )
+    final_output.parent.mkdir(parents=True, exist_ok=True)
+    _remove_verified_empty_directory_tree(final_output)
+    stage = _AtomicEvaluationStage(final_output)
+    try:
+        manifest = _evaluate_in_stage(
+            release_id=release_id,
+            build_id=build_id,
+            release_root=release_root,
+            private_control_root=private_control_root,
+            source_root=source_root,
+            preparation_registry_path=preparation_registry_path,
+            postfreeze_registry_path=postfreeze_registry_path,
+            identity=identity,
+            repo=repo,
+            output=stage.path,
+            certificate_path=certificate_path,
+            allow_descriptive_partial=allow_descriptive_partial,
+        )
+        stage.commit()
+        return manifest
+    finally:
+        stage.cleanup()
 
 
 __all__ = [

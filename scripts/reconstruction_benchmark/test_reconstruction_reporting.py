@@ -22,6 +22,7 @@ if str(REPO_ROOT) not in sys.path:
 from spectral_utils.reconstruction_reporting.io import (  # noqa: E402
     ReleaseLayout,
     materialize_plot_data,
+    read_parquet,
     read_tidy_csv,
     validate_plot_data_sources,
     write_canonical_json,
@@ -73,6 +74,7 @@ from spectral_utils.reconstruction_reporting.schemas import (  # noqa: E402
     validate_expected_coverage,
     validate_metric_record,
     validate_plot_manifest,
+    validate_records,
 )
 
 
@@ -469,6 +471,26 @@ class RegistryAndSchemaTests(unittest.TestCase):
         with self.assertRaisesRegex(SchemaError, "not derived from its full row/group"):
             validate_result_references(self.registry, bad)
 
+    def test_prediction_boolean_fields_normalize_only_binary_integers(self) -> None:
+        rows = json.loads(json.dumps(self.rows["predictions"]))
+        rows[0]["label"] = 1
+        rows[0]["discrete_prediction"] = 0
+
+        normalized = validate_records("predictions", rows)
+        self.assertIs(normalized[0]["label"], True)
+        self.assertIs(normalized[0]["discrete_prediction"], False)
+
+        for field in ("label", "discrete_prediction"):
+            for invalid in (-1, 2, 0.0, 1.0, "0", "1"):
+                bad = dict(rows[0])
+                bad[field] = invalid
+                with self.subTest(field=field, invalid=invalid):
+                    with self.assertRaisesRegex(
+                        SchemaError,
+                        rf"prediction\.{field} must be bool, binary int, or None",
+                    ):
+                        validate_records("predictions", [bad])
+
     def test_contrast_must_resolve_both_metric_sides_and_numeric_delta(self) -> None:
         missing_side = json.loads(json.dumps(self.rows))
         missing_side["metrics"] = missing_side["metrics"][1:]
@@ -643,6 +665,33 @@ class IOAndReportTests(unittest.TestCase):
             self.assertEqual(read_tidy_csv(first, "metrics"), self.rows["metrics"])
             with self.assertRaises(FileExistsError):
                 write_tidy_csv(staged, "metrics", self.rows["metrics"], atomic=False)
+
+    @unittest.skipUnless(
+        importlib.util.find_spec("pyarrow") is not None,
+        "PyArrow is required for the prediction-format parity test",
+    )
+    def test_prediction_binary_integers_round_trip_identically_across_formats(self) -> None:
+        rows = json.loads(json.dumps(self.rows["predictions"]))
+        rows[0]["label"] = 1
+        rows[0]["discrete_prediction"] = 0
+        expected = sorted(
+            validate_records("predictions", rows),
+            key=lambda row: record_sort_key("predictions", row),
+        )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            csv_path = Path(temporary) / "predictions.csv"
+            parquet_path = Path(temporary) / "predictions.parquet"
+            write_tidy_csv(csv_path, "predictions", rows)
+            write_parquet(parquet_path, "predictions", rows)
+
+            csv_rows = read_tidy_csv(csv_path, "predictions")
+            parquet_rows = read_parquet(parquet_path, "predictions")
+
+        self.assertEqual(csv_rows, expected)
+        self.assertEqual(parquet_rows, expected)
+        self.assertIs(csv_rows[0]["label"], True)
+        self.assertIs(csv_rows[0]["discrete_prediction"], False)
 
     @unittest.skipUnless(
         importlib.util.find_spec("pyarrow") is not None,
