@@ -34,6 +34,7 @@ from spectral_utils.reconstruction_benchmark.external_final_answer import (
     SourceFile,
     apply_mixed_v2_once,
     apply_external_id_contract,
+    assert_score_freeze,
     canonicalize_external_identity_order,
     external_id_contract_binding,
     fit_safe_external_cell_record,
@@ -83,6 +84,11 @@ from scripts.reconstruction_benchmark.run_external_final_answer_methods import (
     _copy_fit_capsule,
     _launch_worker,
     _worker_policy,
+)
+from scripts.reconstruction_benchmark.evaluate_external_final_answer import (
+    _AtomicEvaluationStage,
+    _remove_verified_empty_directory_tree,
+    _restore_validated_score_freeze,
 )
 from spectral_utils.reconstruction_benchmark.methods import PRIMARY_METHOD_IDS
 from spectral_utils.reconstruction_benchmark.methods import run_method
@@ -1079,6 +1085,127 @@ print(json.dumps({"probes": probes, "results": results, "violations": module.fit
                 input_root=self.root,
                 fit_root=self.root,
             )
+
+    def test_real_v3_verified_freeze_remains_canonical_for_label_gate(self) -> None:
+        science_repo = REPO.parent / "reconstruction-science-run-v1"
+        release_id = "2026-08-24_external_final_answer_v3_opaque"
+        lane = (
+            science_repo / "results/reconstruction_benchmark_v1/releases"
+            / release_id / "build_A/external_final_answer"
+        )
+        freeze_path = lane / "fit/SCORE_FREEZE_MANIFEST.json"
+        key_path = (
+            science_repo / "results/reconstruction_benchmark_v1/private_control"
+            / release_id / "external_final_answer/external-id-v2.key"
+        )
+        if not freeze_path.is_file() or not key_path.is_file():
+            self.skipTest("real v3 external scientific freeze is not materialized")
+        registry = load_external_registry(
+            repo=science_repo,
+            registry_path=(
+                science_repo
+                / "configs/reconstruction_benchmark_v1/external_final_answer.json"
+            ),
+            population_registry_path=(
+                science_repo / "configs/reconstruction_benchmark_v1/populations.json"
+            ),
+        )
+        input_root = lane / "inputs"
+        fit_manifest = validate_fit_safe_input_manifest(
+            input_root / "MANIFEST.json",
+            repo=science_repo,
+            input_root=input_root,
+        )
+        raw_freeze = json.loads(freeze_path.read_text(encoding="utf-8"))
+        validated = validate_scientific_score_freeze(
+            freeze_path,
+            registry=registry,
+            repo=science_repo,
+            input_root=input_root,
+            fit_root=lane / "fit",
+            input_manifest=fit_manifest,
+        )
+        self.assertEqual(
+            set(validated) - set(raw_freeze), {"_validated_fit_manifest"}
+        )
+        restored = _restore_validated_score_freeze(
+            validated, fit_manifest=fit_manifest,
+        )
+        self.assertEqual(restored, raw_freeze)
+        identity_key = load_identity_key(key_path, create=False)
+        assert_score_freeze(
+            restored, registry=registry, identity_key=identity_key,
+        )
+
+        missing_augmentation = dict(raw_freeze)
+        with self.assertRaisesRegex(RuntimeError, "derived-field roster"):
+            _restore_validated_score_freeze(
+                missing_augmentation, fit_manifest=fit_manifest,
+            )
+
+        extra_augmentation = {
+            **validated,
+            "_unexpected_validator_state": True,
+        }
+        with self.assertRaisesRegex(RuntimeError, "derived-field roster"):
+            _restore_validated_score_freeze(
+                extra_augmentation, fit_manifest=fit_manifest,
+            )
+
+        wrong_manifest = dict(fit_manifest)
+        wrong_manifest["release_id"] = "wrong_release"
+        wrong_attachment = {
+            **validated,
+            "_validated_fit_manifest": wrong_manifest,
+        }
+        with self.assertRaisesRegex(RuntimeError, "another fit manifest"):
+            _restore_validated_score_freeze(
+                wrong_attachment, fit_manifest=fit_manifest,
+            )
+
+        signed_field_tamper = {**restored, "build_id": "B"}
+        with self.assertRaisesRegex(ExternalContractError, "payload hash failed"):
+            assert_score_freeze(
+                signed_field_tamper, registry=registry,
+                identity_key=identity_key,
+            )
+
+    def test_atomic_evaluation_stage_cleans_failure_and_supports_retry(self) -> None:
+        final_root = self.root / "external_final_answer/evaluation"
+        (final_root / "labels").mkdir(parents=True)
+        _remove_verified_empty_directory_tree(final_root)
+        self.assertFalse(final_root.exists())
+
+        failed = _AtomicEvaluationStage(final_root)
+        (failed.path / "labels").mkdir()
+        (failed.path / "labels/partial.npz").write_bytes(b"partial label output")
+        failed.cleanup()
+        self.assertFalse(failed.path.exists())
+        self.assertFalse(final_root.exists())
+
+        retry = _AtomicEvaluationStage(final_root)
+        (retry.path / "labels").mkdir()
+        (retry.path / "MANIFEST.json").write_text("{}\n", encoding="utf-8")
+        retry.commit()
+        retry.cleanup()
+        self.assertTrue(retry.committed)
+        self.assertEqual(
+            (final_root / "MANIFEST.json").read_text(encoding="utf-8"), "{}\n"
+        )
+
+        protected = self.root / "protected_evaluation"
+        protected.mkdir()
+        sentinel = protected / "MANIFEST.json"
+        sentinel.write_text("do not overwrite\n", encoding="utf-8")
+        with self.assertRaisesRegex(FileExistsError, "material output"):
+            _remove_verified_empty_directory_tree(protected)
+        self.assertEqual(sentinel.read_text(encoding="utf-8"), "do not overwrite\n")
+
+        broken_link = self.root / "broken_evaluation_link"
+        broken_link.symlink_to(self.root / "missing_evaluation_target")
+        with self.assertRaisesRegex(FileExistsError, "not a directory"):
+            _remove_verified_empty_directory_tree(broken_link)
+        self.assertTrue(broken_link.is_symlink())
 
     def test_ab_certificate_is_required_and_tree_tamper_is_refused(self) -> None:
         release_id = "synthetic_release"

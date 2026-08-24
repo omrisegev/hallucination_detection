@@ -6,8 +6,12 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 from pathlib import Path
+import shutil
 import sys
+import tempfile
+from typing import Any, Mapping
 
 import numpy as np
 
@@ -18,6 +22,7 @@ if str(REPO) not in sys.path:
 
 from spectral_utils.reconstruction_benchmark.external_final_answer import (  # noqa: E402
     ID_CONTRACT_VERSION,
+    assert_score_freeze,
     external_id_contract_binding,
     fit_safe_external_cell_record,
     load_identity_key,
@@ -104,7 +109,94 @@ def _write_contrasts_csv(path: Path, rows: list[dict]) -> None:
         writer.writerows(rows)
 
 
-def main() -> None:
+def _restore_validated_score_freeze(
+    validated_freeze: Mapping[str, Any],
+    *,
+    fit_manifest: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Remove exactly the verifier's known derived manifest augmentation.
+
+    The scientific verifier validates the signed on-disk freeze, then attaches
+    its already-validated fit manifest for controller callers.  The label gate
+    must receive the original signed payload.  Accepting any other derived key,
+    or an attachment that differs from the independently validated manifest,
+    fails closed; all remaining fields are still checked by ``assert_score_freeze``.
+    """
+
+    derived_keys = {
+        str(key) for key in validated_freeze if str(key).startswith("_")
+    }
+    if derived_keys != {"_validated_fit_manifest"}:
+        raise RuntimeError(
+            "scientific score verifier returned an unexpected derived-field roster"
+        )
+    embedded = validated_freeze.get("_validated_fit_manifest")
+    if not isinstance(embedded, Mapping) or dict(embedded) != dict(fit_manifest):
+        raise RuntimeError(
+            "scientific score verifier attached another fit manifest"
+        )
+    restored = dict(validated_freeze)
+    restored.pop("_validated_fit_manifest")
+    return restored
+
+
+def _remove_verified_empty_directory_tree(path: Path) -> None:
+    """Remove only a verified file-free retry scaffold using ``rmdir``."""
+
+    if path.is_symlink():
+        raise FileExistsError(f"external evaluation target is not a directory: {path}")
+    if not path.exists():
+        return
+    if not path.is_dir():
+        raise FileExistsError(f"external evaluation target is not a directory: {path}")
+    descendants = sorted(
+        path.rglob("*"), key=lambda item: len(item.parts), reverse=True,
+    )
+    unexpected = [
+        item for item in descendants if item.is_symlink() or not item.is_dir()
+    ]
+    if unexpected:
+        raise FileExistsError(
+            "external evaluation directory contains material output: "
+            + ", ".join(str(item) for item in unexpected[:5])
+        )
+    for directory in descendants:
+        directory.rmdir()
+    path.rmdir()
+
+
+class _AtomicEvaluationStage:
+    """Same-filesystem staging directory committed by one atomic rename."""
+
+    def __init__(self, final_path: Path) -> None:
+        self.final_path = final_path
+        self.path = Path(tempfile.mkdtemp(
+            prefix=f".{final_path.name}.staging-",
+            dir=final_path.parent,
+        ))
+        self.committed = False
+
+    def commit(self) -> None:
+        if self.committed:
+            raise RuntimeError("external evaluation stage was already committed")
+        if self.final_path.exists() or self.final_path.is_symlink():
+            raise FileExistsError(
+                f"external evaluation directory already exists: {self.final_path}"
+            )
+        os.replace(self.path, self.final_path)
+        self.committed = True
+
+    def cleanup(self) -> None:
+        if not self.committed and self.path.exists():
+            shutil.rmtree(self.path)
+
+
+_ACTIVE_EVALUATION_STAGE: _AtomicEvaluationStage | None = None
+
+
+def _main() -> None:
+    global _ACTIVE_EVALUATION_STAGE
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--release-id", required=True)
     parser.add_argument("--build", required=True, choices=("A", "B"))
@@ -132,7 +224,8 @@ def main() -> None:
         population_registry_path=args.populations,
     )
     root = args.release_root / args.release_id / f"build_{args.build}" / "external_final_answer"
-    input_root, fit_root, evaluation_root = root / "inputs", root / "fit", root / "evaluation"
+    input_root, fit_root = root / "inputs", root / "fit"
+    final_evaluation_root = root / "evaluation"
     controller_root = (
         args.release_root.parent / "private_control" / args.release_id
         / "external_final_answer"
@@ -140,8 +233,6 @@ def main() -> None:
     identity_key = load_identity_key(
         args.identity_key or (controller_root / "external-id-v2.key")
     )
-    if evaluation_root.exists() and any(evaluation_root.iterdir()):
-        raise FileExistsError(f"external evaluation directory is not empty: {evaluation_root}")
     certificate_path = args.ab_certificate or (
         args.release_root / args.release_id / "external_final_answer" / "AB_VERIFICATION.json"
     )
@@ -174,13 +265,21 @@ def main() -> None:
         preparation_manifest_path=preparation_manifest_path,
     )
     freeze_path = fit_root / "SCORE_FREEZE_MANIFEST.json"
-    freeze = validate_scientific_score_freeze(
+    validated_freeze = validate_scientific_score_freeze(
         freeze_path,
         registry=registry,
         repo=REPO,
         input_root=input_root,
         fit_root=fit_root,
         input_manifest=fit_manifest,
+    )
+    freeze = _restore_validated_score_freeze(
+        validated_freeze, fit_manifest=fit_manifest,
+    )
+    # Recheck the exact restored signed payload before creating output or
+    # allowing any label adapter to run.  No hash fields are ignored here.
+    assert_score_freeze(
+        freeze, registry=registry, identity_key=identity_key,
     )
     if certificate.get("cell_ids") != freeze.get("cell_ids"):
         raise RuntimeError("A/B certificate and selected scientific freeze have different cell rosters")
@@ -205,9 +304,6 @@ def main() -> None:
         canonical_json_bytes(evaluation_source_snapshot)
     )
 
-    evaluation_root.mkdir(parents=True, exist_ok=False)
-    label_root = evaluation_root / "labels"
-    label_root.mkdir()
     prepared = {
         item["cell_id"]: item for item in input_manifest["cells"]
         if item.get("status") == "ELIGIBLE"
@@ -217,6 +313,17 @@ def main() -> None:
         fit_records.setdefault(record["cell_id"], []).append(record)
     if set(fit_records) != set(freeze["cell_ids"]) or set(fit_records) != set(prepared):
         raise RuntimeError("score-freeze and prepared eligible cell rosters differ")
+
+    # All certificate, manifest, freeze, source, and roster checks above are
+    # complete before touching the final output path.  A previous failed
+    # preflight may have left directory-only scaffolding; remove only that
+    # verified-empty tree.  Material output always blocks overwrite.
+    _remove_verified_empty_directory_tree(final_evaluation_root)
+    stage = _AtomicEvaluationStage(final_evaluation_root)
+    _ACTIVE_EVALUATION_STAGE = stage
+    evaluation_root = stage.path
+    label_root = evaluation_root / "labels"
+    label_root.mkdir()
 
     metrics: list[dict] = []
     contrasts: list[dict] = []
@@ -646,12 +753,28 @@ def main() -> None:
     }
     manifest["payload_sha256"] = sha256_bytes(canonical_json_bytes(manifest))
     atomic_write_json(evaluation_root / "MANIFEST.json", manifest)
+    stage.commit()
+    _ACTIVE_EVALUATION_STAGE = None
     print(json.dumps({
         "n_metric_rows": len(metrics),
         "n_contrast_rows": len(contrasts),
-        "metrics": str(metrics_path),
+        "metrics": str(final_evaluation_root / metrics_path.name),
         "population_checks": population_checks,
     }, indent=2, sort_keys=True))
+
+
+def main() -> None:
+    """Run evaluation and clean any uncommitted label-bearing stage on error."""
+
+    global _ACTIVE_EVALUATION_STAGE
+
+    try:
+        _main()
+    finally:
+        stage = _ACTIVE_EVALUATION_STAGE
+        _ACTIVE_EVALUATION_STAGE = None
+        if stage is not None:
+            stage.cleanup()
 
 
 if __name__ == "__main__":
