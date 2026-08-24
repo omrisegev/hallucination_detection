@@ -37,8 +37,18 @@ def sha256_file(path: os.PathLike[str] | str, *, chunk_size: int = 1 << 20) -> s
     return digest.hexdigest()
 
 
-def _atomic_write_bytes(path: Path, payload: bytes) -> None:
+def _atomic_write_bytes(
+    path: Path,
+    payload: bytes,
+    *,
+    atomic: bool = True,
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
+    if not atomic:
+        if path.exists():
+            raise FileExistsError(f"staged target already exists: {path}")
+        path.write_bytes(payload)
+        return
     temporary = path.with_name(f".{path.name}.tmp-{os.getpid()}")
     try:
         temporary.write_bytes(payload)
@@ -48,8 +58,17 @@ def _atomic_write_bytes(path: Path, payload: bytes) -> None:
             temporary.unlink()
 
 
-def write_canonical_json(path: os.PathLike[str] | str, value: Any) -> None:
-    _atomic_write_bytes(Path(path), canonical_json_bytes(value) + b"\n")
+def write_canonical_json(
+    path: os.PathLike[str] | str,
+    value: Any,
+    *,
+    atomic: bool = True,
+) -> None:
+    _atomic_write_bytes(
+        Path(path),
+        canonical_json_bytes(value) + b"\n",
+        atomic=atomic,
+    )
 
 
 def read_canonical_json(path: os.PathLike[str] | str) -> Any:
@@ -271,6 +290,8 @@ def write_parquet(
     path: os.PathLike[str] | str,
     table: str,
     rows: Iterable[Mapping[str, Any]],
+    *,
+    atomic: bool = True,
 ) -> dict[str, Any]:
     pa, pq = _pyarrow_modules()
     normalized = validate_records(table, rows)
@@ -280,20 +301,27 @@ def write_parquet(
     arrow_table = pa.Table.from_pydict(arrays, schema=_arrow_schema(table))
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    temporary = target.with_name(f".{target.name}.tmp-{os.getpid()}")
+    if not atomic and target.exists():
+        raise FileExistsError(f"staged Parquet target already exists: {target}")
+    destination = (
+        target.with_name(f".{target.name}.tmp-{os.getpid()}")
+        if atomic
+        else target
+    )
     try:
         pq.write_table(
             arrow_table,
-            temporary,
+            destination,
             compression="zstd",
             use_dictionary=True,
             write_statistics=True,
             data_page_version="1.0",
         )
-        os.replace(temporary, target)
+        if atomic:
+            os.replace(destination, target)
     finally:
-        if temporary.exists():
-            temporary.unlink()
+        if atomic and destination.exists():
+            destination.unlink()
     return {
         "table": table,
         "schema": SCHEMA_REVISION,
@@ -433,6 +461,8 @@ def materialize_plot_data(
     layout: ReleaseLayout,
     plot_manifest: Mapping[str, Any],
     rows_by_table: Mapping[str, Sequence[Mapping[str, Any]]],
+    *,
+    atomic: bool = True,
 ) -> list[dict[str, Any]]:
     """Write the exact CSV behind each static plot contract."""
 
@@ -442,7 +472,7 @@ def materialize_plot_data(
         table = plot["source_table"]
         selected = selected_by_plot[plot["plot_id"]]
         target = layout.plot_data / f"{plot['plot_id']}.csv"
-        record = write_tidy_csv(target, table, selected)
+        record = write_tidy_csv(target, table, selected, atomic=atomic)
         record["plot_id"] = plot["plot_id"]
         record["relative_path"] = target.relative_to(layout.root).as_posix()
         outputs.append(record)

@@ -215,7 +215,7 @@ def build_release(
     rows: Mapping[str, list[dict[str, Any]]],
     plot_manifest: Mapping[str, Any],
     title: str,
-    bridge_manifest: Mapping[str, Any] | None = None,
+    bridge_manifest: Mapping[str, Any],
 ) -> Path:
     release_root = release_root.resolve()
     if release_root.exists():
@@ -232,33 +232,40 @@ def build_release(
     artifacts: list[dict[str, Any]] = []
     try:
         layout.create_directories()
-        write_canonical_json(layout.registry_json, registry)
+        write_canonical_json(layout.registry_json, registry, atomic=False)
         artifacts.append(_artifact_record(layout, layout.registry_json, kind="registry"))
-        bridge_attestation = None
-        if bridge_manifest is not None:
-            write_canonical_json(layout.bridge_manifest, bridge_manifest)
-            bridge_record = _artifact_record(
-                layout,
-                layout.bridge_manifest,
-                kind="scientific_bridge_attestation",
-            )
-            artifacts.append(bridge_record)
-            bridge_attestation = {
-                "schema": str(bridge_manifest["schema"]),
-                "payload_sha256": str(bridge_manifest["payload_sha256"]),
-                "file_sha256": bridge_record["file_sha256"],
-                "scientific_publication_eligible": bool(
-                    bridge_manifest["scientific_publication_eligible"]
-                ),
-                "graph_diagnostics_status": str(
-                    bridge_manifest["graph_diagnostics_status"]
-                ),
-                "relative_path": bridge_record["relative_path"],
-            }
+        write_canonical_json(
+            layout.bridge_manifest,
+            bridge_manifest,
+            atomic=False,
+        )
+        bridge_record = _artifact_record(
+            layout,
+            layout.bridge_manifest,
+            kind="scientific_bridge_attestation",
+        )
+        artifacts.append(bridge_record)
+        bridge_attestation = {
+            "schema": str(bridge_manifest["schema"]),
+            "payload_sha256": str(bridge_manifest["payload_sha256"]),
+            "file_sha256": bridge_record["file_sha256"],
+            "scientific_publication_eligible": bool(
+                bridge_manifest["scientific_publication_eligible"]
+            ),
+            "graph_diagnostics_status": str(
+                bridge_manifest["graph_diagnostics_status"]
+            ),
+            "relative_path": bridge_record["relative_path"],
+        }
 
         artifacts.append(
             {
-                **write_parquet(layout.predictions_parquet, "predictions", rows["predictions"]),
+                **write_parquet(
+                    layout.predictions_parquet,
+                    "predictions",
+                    rows["predictions"],
+                    atomic=False,
+                ),
                 "relative_path": layout.predictions_parquet.relative_to(layout.root).as_posix(),
                 "kind": "predictions",
             }
@@ -271,28 +278,46 @@ def build_release(
             "graph_examples": (layout.graph_examples_csv, layout.graph_examples_parquet),
         }
         for table, (csv_path, parquet_path) in table_targets.items():
-            csv_record = write_tidy_csv(csv_path, table, rows[table])
+            csv_record = write_tidy_csv(
+                csv_path,
+                table,
+                rows[table],
+                atomic=False,
+            )
             csv_record.update(
                 relative_path=csv_path.relative_to(layout.root).as_posix(),
                 kind="tidy_csv",
             )
             artifacts.append(csv_record)
-            parquet_record = write_parquet(parquet_path, table, rows[table])
+            parquet_record = write_parquet(
+                parquet_path,
+                table,
+                rows[table],
+                atomic=False,
+            )
             parquet_record.update(
                 relative_path=parquet_path.relative_to(layout.root).as_posix(),
                 kind="tidy_parquet",
             )
             artifacts.append(parquet_record)
 
-        write_canonical_json(layout.plot_manifest, plot_manifest)
+        write_canonical_json(layout.plot_manifest, plot_manifest, atomic=False)
         artifacts.append(_artifact_record(layout, layout.plot_manifest, kind="plot_manifest"))
-        artifacts.extend(materialize_plot_data(layout, plot_manifest, rows))
+        artifacts.extend(
+            materialize_plot_data(
+                layout,
+                plot_manifest,
+                rows,
+                atomic=False,
+            )
+        )
         report_record = write_report(
             layout.report_html,
             registry=registry,
             rows_by_table=rows,
             plot_manifest=plot_manifest,
             title=title,
+            atomic=False,
         )
         report_record.update(
             relative_path=layout.report_html.relative_to(layout.root).as_posix(),
@@ -301,7 +326,7 @@ def build_release(
         )
         artifacts.append(report_record)
 
-        database_record = build_duckdb(layout.root)
+        database_record = build_duckdb(layout.root, atomic=False)
         database_record.update(
             path=layout.database.name,
             relative_path=layout.database.relative_to(layout.root).as_posix(),
@@ -317,7 +342,7 @@ def build_release(
             optional_dependencies=_dependency_versions(),
             bridge_attestation=bridge_attestation,
         )
-        write_canonical_json(layout.reporting_manifest, manifest)
+        write_canonical_json(layout.reporting_manifest, manifest, atomic=False)
         os.replace(staging, release_root)
     except Exception:
         shutil.rmtree(staging, ignore_errors=True)

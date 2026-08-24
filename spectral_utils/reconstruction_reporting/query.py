@@ -240,8 +240,13 @@ def build_duckdb(
     *,
     database_path: Optional[os.PathLike[str] | str] = None,
     overwrite: bool = False,
+    atomic: bool = True,
 ) -> dict[str, Any]:
-    """Build a portable analytical database from validated release artifacts."""
+    """Build a portable analytical database from validated release artifacts.
+
+    ``atomic=False`` is reserved for a unique unpublished staging tree whose
+    directory rename is the publication boundary.
+    """
 
     duckdb = _duckdb_module()
     layout = ReleaseLayout.from_root(release_root)
@@ -249,9 +254,13 @@ def build_duckdb(
     if target.exists() and not overwrite:
         raise FileExistsError(f"refusing to overwrite existing DuckDB file: {target}")
     target.parent.mkdir(parents=True, exist_ok=True)
-    temporary = target.with_name(f".{target.name}.tmp-{os.getpid()}")
-    if temporary.exists():
-        temporary.unlink()
+    destination = (
+        target.with_name(f".{target.name}.tmp-{os.getpid()}")
+        if atomic
+        else target
+    )
+    if destination.exists():
+        destination.unlink()
 
     registry = validate_registry(json.loads(layout.registry_json.read_text(encoding="utf-8")))
     table_rows = {
@@ -284,7 +293,7 @@ def build_duckdb(
             "view_sql": query_view_sql(),
         }
     )
-    connection = duckdb.connect(str(temporary))
+    connection = duckdb.connect(str(destination))
     try:
         connection.execute("BEGIN TRANSACTION")
         if layout.predictions_parquet.exists():
@@ -402,7 +411,8 @@ def build_duckdb(
         raise
     finally:
         connection.close()
-    os.replace(temporary, target)
+    if atomic:
+        os.replace(destination, target)
     return {
         "schema": "reconstruction_duckdb_v1",
         "path": target.as_posix(),

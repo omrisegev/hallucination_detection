@@ -10,6 +10,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -937,6 +938,52 @@ class QueryLayerTests(unittest.TestCase):
 
 
 class FullReleaseTests(unittest.TestCase):
+    @unittest.skipUnless(
+        importlib.util.find_spec("duckdb") is not None
+        and importlib.util.find_spec("pyarrow") is not None,
+        "DuckDB and PyArrow are required for the complete release test",
+    )
+    def test_failed_staged_release_is_never_published(self) -> None:
+        script = REPO_ROOT / "scripts" / "reconstruction_benchmark" / "build_reporting_release.py"
+        spec = importlib.util.spec_from_file_location("failing_reporting_builder", script)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        registry = fixture_registry()
+        rows = fixture_rows(registry)
+        plots = default_plot_manifest(registry["release_id"], rows)
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary) / "reporting"
+            root = parent / registry["release_id"]
+            with mock.patch.object(
+                module,
+                "write_report",
+                side_effect=RuntimeError("synthetic publication failure"),
+            ):
+                bridge_manifest = {
+                    "schema": "reconstruction-reporting-bridge-v3",
+                    "release_id": registry["release_id"],
+                    "scientific_publication_eligible": True,
+                    "graph_diagnostics_status": "VERIFIED_SIGNED_SOURCE_CONVERTED",
+                }
+                bridge_manifest["payload_sha256"] = canonical_sha256(bridge_manifest)
+                with self.assertRaisesRegex(RuntimeError, "synthetic publication failure"):
+                    module.build_release(
+                        root,
+                        registry=registry,
+                        rows=rows,
+                        plot_manifest=plots,
+                        title="Synthetic failed release",
+                        bridge_manifest=bridge_manifest,
+                    )
+            self.assertFalse(root.exists())
+            self.assertEqual(
+                list(parent.glob(f".{registry['release_id']}.building-*")),
+                [],
+            )
+
     @unittest.skipUnless(
         importlib.util.find_spec("duckdb") is not None
         and importlib.util.find_spec("pyarrow") is not None,

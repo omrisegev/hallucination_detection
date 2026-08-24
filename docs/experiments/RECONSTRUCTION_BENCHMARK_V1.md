@@ -465,6 +465,7 @@ evaluator hash-binds them before opening labels.
   REPORTING_MANIFEST.json
   01_registries/
     research_registry.json
+    BRIDGE_MANIFEST.json
   05_evaluation/
     predictions.parquet
     metrics_long.csv
@@ -477,6 +478,8 @@ evaluator hash-binds them before opening labels.
   06_diagnostics/
     graph_diagnostics_long.csv
     graph_diagnostics_long.parquet
+    graph_examples_long.csv
+    graph_examples_long.parquet
   07_reports/
     REPORT.html
     plot_manifest.json

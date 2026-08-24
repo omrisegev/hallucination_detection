@@ -835,6 +835,7 @@ def write_report(
     rows_by_table: Mapping[str, Iterable[Mapping[str, Any]]],
     plot_manifest: Optional[Mapping[str, Any]] = None,
     title: str = "Reconstruction benchmark explorer",
+    atomic: bool = True,
 ) -> dict[str, Any]:
     rendered = render_report(
         registry=registry,
@@ -844,7 +845,7 @@ def write_report(
     )
     target = Path(path)
     payload = rendered.encode("utf-8")
-    _atomic_write_bytes(target, payload)
+    _atomic_write_bytes(target, payload, atomic=atomic)
     return {
         "schema": REPORT_SCHEMA,
         "path": target.name,
