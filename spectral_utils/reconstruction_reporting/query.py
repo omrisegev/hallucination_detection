@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import os
 import re
@@ -28,12 +29,21 @@ VIEW_NAMES = (
     "v_atomic_leaderboard",
     "v_dataset_leaderboard",
     "v_task_leaderboard",
+    "v_slice_leaderboard",
     "v_release_leaderboard",
     "v_processbench_localization",
     "v_prmbench_error_class",
     "v_prefix_by_budget",
     "v_graph_assumption_checks",
     "v_graph_examples",
+)
+
+LEADERBOARD_EXPORT_SPECS = (
+    ("release", "v_release_leaderboard", "release_leaderboard.csv"),
+    ("task", "v_task_leaderboard", "task_leaderboard.csv"),
+    ("slice", "v_slice_leaderboard", "slice_leaderboard.csv"),
+    ("dataset", "v_dataset_leaderboard", "dataset_leaderboard.csv"),
+    ("cell", "v_atomic_leaderboard", "cell_leaderboard.csv"),
 )
 
 QUERY_FILTER_COLUMNS = frozenset(
@@ -61,6 +71,51 @@ QUERY_FILTER_COLUMNS = frozenset(
         "evaluator_id",
     )
 )
+
+_LEADERBOARD_QUERY_ORDER = (
+    "task_id",
+    "dataset_id",
+    "cell_id",
+    "slice_id",
+    "comparison_group_id",
+    "metric_id",
+    "point_rank",
+    "system_id",
+)
+
+_GRAPH_QUERY_ORDERS = {
+    "v_graph_assumption_checks": (
+        "task_id",
+        "dataset_id",
+        "cell_id",
+        "slice_id",
+        "comparison_group_id",
+        "diagnostic_id",
+        "graph_id",
+        "graph_variant",
+        "label_stage",
+        "graph_hash",
+        "matrix_hash",
+        "system_id",
+    ),
+    "v_graph_examples": (
+        "task_id",
+        "dataset_id",
+        "cell_id",
+        "slice_id",
+        "comparison_group_id",
+        "example_id",
+        "row_kind",
+        "source_row_id",
+        "node_index",
+        "edge_source_index",
+        "edge_target_index",
+        "graph_hash",
+        "matrix_hash",
+        "operator_hash",
+        "system_id",
+    ),
+}
 
 
 def _duckdb_module() -> Any:
@@ -134,17 +189,54 @@ def _create_dimension_table(
         )
 
 
-def _leader_view_sql(view_name: str, level: str) -> str:
+def _leader_view_sql(
+    view_name: str,
+    level: str,
+    *,
+    slice_dimension: Optional[str | Sequence[str]] = None,
+    slice_value: Optional[str] = None,
+) -> str:
     """SQL for a point leaderboard with a clearly labelled CI-overlap set."""
+
+    if slice_dimension is None and slice_value is not None:
+        raise SchemaError(
+            "leaderboard slice_value requires a slice_dimension"
+        )
+    if slice_dimension is None:
+        base_select = "metrics.*"
+        base_from = "metrics"
+        slice_filter = ""
+    else:
+        dimensions = (
+            (slice_dimension,)
+            if isinstance(slice_dimension, str)
+            else tuple(slice_dimension)
+        )
+        if not dimensions or any(
+            not isinstance(value, str)
+            or re.fullmatch(r"[A-Za-z0-9_]+", value) is None
+            for value in dimensions
+        ):
+            raise SchemaError("leaderboard slice dimensions are invalid")
+        base_select = "metrics.*, slices.slice_dimension, slices.slice_value"
+        base_from = "metrics JOIN slices USING (slice_id)"
+        dimension_values = ", ".join(f"'{value}'" for value in dimensions)
+        slice_filter = (
+            f"\n      AND slices.slice_dimension IN ({dimension_values})"
+        )
+        if slice_value is not None:
+            if re.fullmatch(r"[A-Za-z0-9_]+", slice_value) is None:
+                raise SchemaError("leaderboard slice value is invalid")
+            slice_filter += f"\n      AND slices.slice_value = '{slice_value}'"
 
     return f"""
 CREATE VIEW {view_name} AS
 WITH base AS (
-    SELECT *
-    FROM metrics
-    WHERE aggregation_level = '{level}'
-      AND status IN ('OK', 'OK_FALLBACK')
-      AND value IS NOT NULL
+    SELECT {base_select}
+    FROM {base_from}
+    WHERE metrics.aggregation_level = '{level}'{slice_filter}
+      AND metrics.status IN ('OK', 'OK_FALLBACK')
+      AND metrics.value IS NOT NULL
 ), ranked AS (
     SELECT
         base.*,
@@ -186,7 +278,17 @@ def query_view_sql() -> list[str]:
     return [
         _leader_view_sql("v_atomic_leaderboard", "cell"),
         _leader_view_sql("v_dataset_leaderboard", "dataset"),
-        _leader_view_sql("v_task_leaderboard", "task"),
+        _leader_view_sql(
+            "v_task_leaderboard",
+            "task",
+            slice_dimension="macro24",
+            slice_value="all_24_cells",
+        ),
+        _leader_view_sql(
+            "v_slice_leaderboard",
+            "task",
+            slice_dimension=("domain", "model_family"),
+        ),
         _leader_view_sql("v_release_leaderboard", "release"),
         """
 CREATE VIEW v_processbench_localization AS
@@ -474,21 +576,38 @@ def query_results(
     for field in sorted(filters):
         clauses.append(f"{_quote_identifier(field)} = ?")
         parameters.append(filters[field])
-    query = f"SELECT * FROM {_quote_identifier(view)}"
-    if clauses:
-        query += " WHERE " + " AND ".join(clauses)
-    order = ["task_id", "dataset_id", "cell_id", "slice_id"]
-    if view not in {"v_graph_assumption_checks", "v_graph_examples"}:
-        order.append("point_rank")
-    order.append("system_id")
-    query += " ORDER BY " + ", ".join(_quote_identifier(field) for field in order)
+    order = _GRAPH_QUERY_ORDERS.get(view, _LEADERBOARD_QUERY_ORDER)
     if limit is not None:
         if type(limit) is bool or not isinstance(limit, int) or limit <= 0:
             raise SchemaError("query limit must be a positive integer")
-        query += " LIMIT ?"
-        parameters.append(limit)
     connection = duckdb.connect(str(Path(database_path).resolve()), read_only=True)
     try:
+        schema_cursor = connection.execute(
+            f"SELECT * FROM {_quote_identifier(view)} LIMIT 0"
+        )
+        available_columns = {item[0] for item in schema_cursor.description}
+        missing_order_columns = [field for field in order if field not in available_columns]
+        if missing_order_columns:
+            raise SchemaError(
+                f"query view {view!r} is missing required order fields: "
+                f"{missing_order_columns}"
+            )
+        missing_filter_columns = sorted(set(filters) - available_columns)
+        if missing_filter_columns:
+            raise SchemaError(
+                f"query view {view!r} does not expose filter fields: "
+                f"{missing_filter_columns}"
+            )
+
+        query = f"SELECT * FROM {_quote_identifier(view)}"
+        if clauses:
+            query += " WHERE " + " AND ".join(clauses)
+        query += " ORDER BY " + ", ".join(
+            _quote_identifier(field) for field in order
+        )
+        if limit is not None:
+            query += " LIMIT ?"
+            parameters.append(limit)
         cursor = connection.execute(query, parameters)
         columns = [item[0] for item in cursor.description]
         rows = cursor.fetchall()
@@ -501,10 +620,159 @@ def write_query_csv(
     path: os.PathLike[str] | str,
     columns: Sequence[str],
     rows: Iterable[Sequence[Any]],
-) -> None:
+    *,
+    atomic: bool = True,
+) -> dict[str, Any]:
+    """Write query results as a deterministic, standalone CSV artifact."""
+
+    if not columns or any(not isinstance(column, str) or not column for column in columns):
+        raise SchemaError("query CSV columns must be non-empty strings")
+    if len(set(columns)) != len(columns):
+        raise SchemaError("query CSV columns must be unique")
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    with target.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.writer(handle, lineterminator="\n")
-        writer.writerow(columns)
-        writer.writerows(rows)
+    if not atomic and target.exists():
+        raise FileExistsError(f"staged query CSV target already exists: {target}")
+    destination = (
+        target.with_name(f".{target.name}.tmp-{os.getpid()}")
+        if atomic
+        else target
+    )
+    row_count = 0
+    file_digest = hashlib.sha256()
+    try:
+        with destination.open("w+", encoding="utf-8", newline="") as handle:
+            writer = csv.writer(handle, lineterminator="\n")
+            writer.writerow(columns)
+            for row in rows:
+                values = tuple(row)
+                if len(values) != len(columns):
+                    raise SchemaError(
+                        "query CSV row width does not match its declared columns"
+                    )
+                writer.writerow(
+                    "" if value is None
+                    else "true" if value is True
+                    else "false" if value is False
+                    else format(value, ".17g") if isinstance(value, float)
+                    else str(value)
+                    for value in values
+                )
+                row_count += 1
+            handle.flush()
+            handle.seek(0)
+            for block in iter(lambda: handle.read(1 << 20), ""):
+                file_digest.update(block.encode("utf-8"))
+        if atomic:
+            os.replace(destination, target)
+    finally:
+        if atomic and destination.exists():
+            destination.unlink()
+    return {
+        "path": target.name,
+        "row_count": row_count,
+        "column_count": len(columns),
+        "file_sha256": file_digest.hexdigest(),
+        "size_bytes": target.stat().st_size,
+    }
+
+
+def export_leaderboard_csvs(
+    release_root: os.PathLike[str] | str,
+    *,
+    atomic: bool = True,
+) -> list[dict[str, Any]]:
+    """Export validated leaderboard and named-slice views deterministically."""
+
+    layout = ReleaseLayout.from_root(release_root)
+    if not layout.database.is_file():
+        raise FileNotFoundError(
+            f"leaderboard export requires an existing query database: {layout.database}"
+        )
+    outputs: list[dict[str, Any]] = []
+    for level, view, filename in LEADERBOARD_EXPORT_SPECS:
+        columns, rows = query_results(layout.database, view=view)
+        source_level = "task" if level == "slice" else level
+        try:
+            status_index = columns.index("status")
+            value_index = columns.index("value")
+            aggregation_index = columns.index("aggregation_level")
+            aggregation_id_index = columns.index("aggregation_id")
+        except ValueError as exc:
+            raise SchemaError(f"leaderboard view {view!r} is missing required fields") from exc
+        if any(
+            row[status_index] not in {"OK", "OK_FALLBACK"}
+            or row[value_index] is None
+            or row[aggregation_index] != source_level
+            or not row[aggregation_id_index]
+            for row in rows
+        ):
+            raise SchemaError(
+                f"leaderboard view {view!r} exposed a non-rankable or wrong-level row"
+            )
+        if level == "task":
+            try:
+                slice_dimension_index = columns.index("slice_dimension")
+                slice_value_index = columns.index("slice_value")
+                task_id_index = columns.index("task_id")
+            except ValueError as exc:
+                raise SchemaError(
+                    "task leaderboard must expose its registered slice semantics"
+                ) from exc
+            if any(
+                row[slice_dimension_index] != "macro24"
+                or row[slice_value_index] != "all_24_cells"
+                for row in rows
+            ):
+                raise SchemaError(
+                    "task leaderboard may contain only the registered Macro-24 slice"
+                )
+            aggregation_ids_by_task: dict[str, set[str]] = {}
+            for row in rows:
+                aggregation_ids_by_task.setdefault(row[task_id_index], set()).add(
+                    row[aggregation_id_index]
+                )
+            ambiguous_tasks = {
+                task_id: sorted(aggregation_ids)
+                for task_id, aggregation_ids in aggregation_ids_by_task.items()
+                if len(aggregation_ids) != 1
+            }
+            if ambiguous_tasks:
+                raise SchemaError(
+                    "task leaderboard resolved more than one Macro-24 aggregation_id "
+                    f"for a task: {ambiguous_tasks}"
+                )
+        if level == "slice":
+            try:
+                slice_dimension_index = columns.index("slice_dimension")
+                slice_value_index = columns.index("slice_value")
+            except ValueError as exc:
+                raise SchemaError(
+                    "slice leaderboard must expose its registered slice semantics"
+                ) from exc
+            if any(
+                row[slice_dimension_index] not in {"domain", "model_family"}
+                or not row[slice_value_index]
+                for row in rows
+            ):
+                raise SchemaError(
+                    "slice leaderboard may contain only registered domain/model-family task slices"
+                )
+        target = layout.leaderboards / filename
+        record = write_query_csv(target, columns, rows, atomic=atomic)
+        record.update(
+            kind="leaderboard_csv",
+            leaderboard_level=level,
+            selection_semantics=(
+                "aggregation_level=task; slice_dimension=macro24; "
+                "slice_value=all_24_cells"
+                if level == "task"
+                else "aggregation_level=task; slice_dimension in (domain, model_family)"
+                if level == "slice"
+                else f"aggregation_level={source_level}"
+            ),
+            source_view=view,
+            relative_path=target.relative_to(layout.root).as_posix(),
+        )
+        outputs.append(record)
+    return outputs

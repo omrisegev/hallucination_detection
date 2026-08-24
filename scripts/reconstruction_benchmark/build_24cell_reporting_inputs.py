@@ -22,6 +22,12 @@ from spectral_utils.reconstruction_benchmark.reporting_bridge import (  # noqa: 
 DEFAULT_CELL_REGISTRY = REPO / "configs" / "reconstruction_benchmark_v1" / "frozen24_cells.json"
 DEFAULT_METHOD_REGISTRY = REPO / "configs" / "reconstruction_benchmark_v1" / "methods.json"
 DEFAULT_FEATURE_REGISTRY = REPO / "configs" / "reconstruction_benchmark_v1" / "feature_contract.json"
+DEFAULT_PUBLISHED_COMPARATOR_REGISTRY = (
+    REPO
+    / "configs"
+    / "reconstruction_benchmark_v1"
+    / "frozen24_published_comparator_registry_v1.json"
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -32,6 +38,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cell-registry", type=Path, default=DEFAULT_CELL_REGISTRY)
     parser.add_argument("--method-registry", type=Path, default=DEFAULT_METHOD_REGISTRY)
     parser.add_argument("--feature-registry", type=Path, default=DEFAULT_FEATURE_REGISTRY)
+    parser.add_argument(
+        "--published-comparator-registry",
+        type=Path,
+        default=DEFAULT_PUBLISHED_COMPARATOR_REGISTRY,
+        help="Frozen 24-cell paper-context registry; projected into a signed report-only artifact.",
+    )
     graph = parser.add_mutually_exclusive_group(required=True)
     graph.add_argument(
         "--graph-diagnostics-dir",
@@ -54,6 +66,7 @@ def main() -> None:
         cell_registry_path=args.cell_registry,
         method_registry_path=args.method_registry,
         feature_registry_path=args.feature_registry,
+        published_comparator_registry_path=args.published_comparator_registry,
         graph_diagnostics_dir=args.graph_diagnostics_dir,
         allow_empty_graph_diagnostics=args.allow_empty_graph_diagnostics,
     )

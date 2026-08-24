@@ -17,13 +17,19 @@ if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
 from spectral_utils.reconstruction_benchmark.external_final_answer import (  # noqa: E402
+    ID_CONTRACT_VERSION,
+    external_id_contract_binding,
+    fit_safe_external_cell_record,
+    load_identity_key,
     load_external_registry,
     load_labels_after_score_freeze,
     load_prepared_external_cell,
     write_label_vector,
 )
 from spectral_utils.reconstruction_benchmark.external_ab import (  # noqa: E402
+    assert_fit_safe_matches_preparation,
     assert_external_ab_certificate,
+    validate_fit_safe_input_manifest,
     validate_scientific_input_manifest,
     validate_scientific_score_freeze,
 )
@@ -105,6 +111,10 @@ def main() -> None:
     parser.add_argument("--release-root", type=Path, default=DEFAULT_RELEASE_ROOT)
     parser.add_argument("--registry", type=Path, default=DEFAULT_REGISTRY)
     parser.add_argument("--populations", type=Path, default=DEFAULT_POPULATIONS)
+    parser.add_argument(
+        "--identity-key", type=Path,
+        help="Controller-only sealed release key; defaults outside releases/.",
+    )
     parser.add_argument("--bootstrap-draws", type=int, default=20_000)
     parser.add_argument(
         "--ab-certificate", type=Path,
@@ -123,6 +133,13 @@ def main() -> None:
     )
     root = args.release_root / args.release_id / f"build_{args.build}" / "external_final_answer"
     input_root, fit_root, evaluation_root = root / "inputs", root / "fit", root / "evaluation"
+    controller_root = (
+        args.release_root.parent / "private_control" / args.release_id
+        / "external_final_answer"
+    )
+    identity_key = load_identity_key(
+        args.identity_key or (controller_root / "external-id-v2.key")
+    )
     if evaluation_root.exists() and any(evaluation_root.iterdir()):
         raise FileExistsError(f"external evaluation directory is not empty: {evaluation_root}")
     certificate_path = args.ab_certificate or (
@@ -136,11 +153,25 @@ def main() -> None:
         registry=registry,
         repo=REPO,
     )
-    input_manifest = validate_scientific_input_manifest(
+    fit_manifest = validate_fit_safe_input_manifest(
         input_root / "MANIFEST.json",
+        repo=REPO,
+        input_root=input_root,
+    )
+    preparation_manifest_path = (
+        controller_root / f"build_{args.build}" / "preparation_provenance"
+        / "MANIFEST.json"
+    )
+    input_manifest = validate_scientific_input_manifest(
+        preparation_manifest_path,
         registry=registry,
         repo=REPO,
         input_root=input_root,
+    )
+    assert_fit_safe_matches_preparation(
+        fit_manifest,
+        input_manifest,
+        preparation_manifest_path=preparation_manifest_path,
     )
     freeze_path = fit_root / "SCORE_FREEZE_MANIFEST.json"
     freeze = validate_scientific_score_freeze(
@@ -149,14 +180,14 @@ def main() -> None:
         repo=REPO,
         input_root=input_root,
         fit_root=fit_root,
-        input_manifest=input_manifest,
+        input_manifest=fit_manifest,
     )
     if certificate.get("cell_ids") != freeze.get("cell_ids"):
         raise RuntimeError("A/B certificate and selected scientific freeze have different cell rosters")
     certified_build = certificate["builds"][args.build]
     if certified_build.get("score_freeze_payload_sha256") != freeze.get("payload_sha256"):
         raise RuntimeError("A/B certificate and selected score-freeze payload disagree")
-    if certified_build.get("input_manifest_payload_sha256") != input_manifest.get("payload_sha256"):
+    if certified_build.get("input_manifest_payload_sha256") != fit_manifest.get("payload_sha256"):
         raise RuntimeError("A/B certificate and selected input-manifest payload disagree")
     if args.bootstrap_draws <= 0:
         raise ValueError("--bootstrap-draws must be positive")
@@ -194,9 +225,11 @@ def main() -> None:
     for cell_id in freeze["cell_ids"]:
         spec = registry.by_cell[cell_id]
         input_record = prepared[cell_id]
-        prepared_cell, group_ids = load_prepared_external_cell(
+        fit_input_record = fit_safe_external_cell_record(input_record)
+        prepared_cell = load_prepared_external_cell(
             artifact_path=input_root / input_record["artifact_path"],
-            record=input_record,
+            record=fit_input_record,
+            identity_contract=fit_manifest["identity_contract"],
         )
         labels = load_labels_after_score_freeze(
             registry=registry,
@@ -204,13 +237,17 @@ def main() -> None:
             repo=args.source_root,
             score_freeze=freeze,
             expected_row_ids=prepared_cell.row_ids,
-            expected_group_ids=group_ids,
+            expected_group_roster_commitment_sha256=input_record[
+                "sealed_group_roster_commitment_sha256"
+            ],
+            identity_key=identity_key,
         )
+        group_ids = labels.group_ids
         label_path = label_root / f"{cell_id}.npz"
         label_record = write_label_vector(label_path, labels)
         label_records.append({**label_record, "artifact_path": label_path.relative_to(evaluation_root).as_posix()})
         label_sha = str(labels.provenance["row_label_sha256"])
-        cohort_id = str(input_record["row_signature_sha256"])
+        cohort_id = str(input_record["sealed_group_roster_commitment_sha256"])
         scores_by_method: dict[str, np.ndarray] = {}
         record_by_method: dict[str, dict] = {}
         for record in sorted(fit_records[cell_id], key=lambda item: item["method_id"]):
@@ -223,8 +260,31 @@ def main() -> None:
             if sha256_file(score_path) != record["score_sha256"]:
                 raise RuntimeError(f"frozen score hash mismatch: {score_path}")
             bundle = load_npz_no_pickle(score_path)
-            if set(bundle) != {"row_ids", "score"}:
+            if set(bundle) != {
+                "row_ids", "score", "id_contract_version", "id_contract_sha256",
+                "identity_key_id", "row_namespace_sha256", "row_roster_sha256",
+            }:
                 raise RuntimeError(f"unexpected score arrays: {score_path}")
+            score_identity = {}
+            for key in (
+                "id_contract_version", "id_contract_sha256",
+                "identity_key_id", "row_namespace_sha256", "row_roster_sha256",
+            ):
+                scalar = bundle[key]
+                if scalar.shape != (1,):
+                    raise RuntimeError(f"score identity member is not scalar: {score_path}/{key}")
+                score_identity[key] = str(scalar.tolist()[0])
+            expected_score_identity = {
+                "id_contract_version": ID_CONTRACT_VERSION,
+                "id_contract_sha256": fit_input_record["id_contract_sha256"],
+                "identity_key_id": fit_input_record["identity_key_id"],
+                "row_namespace_sha256": fit_input_record["row_namespace_sha256"],
+                "row_roster_sha256": fit_input_record["row_roster_sha256"],
+            }
+            if score_identity != expected_score_identity:
+                raise RuntimeError(
+                    f"score identity contract mismatch: {cell_id}/{record['method_id']}"
+                )
             row_ids = tuple(map(str, bundle["row_ids"].tolist()))
             if row_ids != labels.row_ids:
                 raise RuntimeError(f"score/label row order mismatch: {cell_id}/{record['method_id']}")
@@ -548,7 +608,7 @@ def main() -> None:
     _write_csv(metrics_path, metrics)
     _write_contrasts_csv(contrasts_path, contrasts)
     manifest = {
-        "schema_version": "reconstruction-external-evaluation-v1",
+        "schema_version": "reconstruction-external-evaluation-v2",
         "release_id": args.release_id,
         "build_id": args.build,
         "scientific_full": freeze["scientific_full"],
@@ -559,6 +619,10 @@ def main() -> None:
         "score_freeze_sha256": sha256_file(freeze_path),
         "score_freeze_payload_sha256": freeze["payload_sha256"],
         "external_registry_sha256": registry.sha256,
+        "identity_contract": external_id_contract_binding(
+            registry, identity_key=identity_key
+        ),
+        "id_contract_version": ID_CONTRACT_VERSION,
         "evaluation_source_snapshot": evaluation_source_snapshot,
         "evaluation_source_snapshot_sha256": evaluation_source_snapshot["snapshot_sha256"],
         "source_root": str(args.source_root.resolve()),

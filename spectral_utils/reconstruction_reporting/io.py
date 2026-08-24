@@ -396,6 +396,10 @@ class ReleaseLayout:
         return self.registries / "BRIDGE_MANIFEST.json"
 
     @property
+    def published_comparators_json(self) -> Path:
+        return self.registries / "published_comparators.json"
+
+    @property
     def predictions_parquet(self) -> Path:
         return self.evaluation / "predictions.parquet"
 
@@ -444,6 +448,30 @@ class ReleaseLayout:
         return self.evaluation / "benchmark.duckdb"
 
     @property
+    def leaderboards(self) -> Path:
+        return self.evaluation / "leaderboards"
+
+    @property
+    def cell_leaderboard_csv(self) -> Path:
+        return self.leaderboards / "cell_leaderboard.csv"
+
+    @property
+    def dataset_leaderboard_csv(self) -> Path:
+        return self.leaderboards / "dataset_leaderboard.csv"
+
+    @property
+    def task_leaderboard_csv(self) -> Path:
+        return self.leaderboards / "task_leaderboard.csv"
+
+    @property
+    def slice_leaderboard_csv(self) -> Path:
+        return self.leaderboards / "slice_leaderboard.csv"
+
+    @property
+    def release_leaderboard_csv(self) -> Path:
+        return self.leaderboards / "release_leaderboard.csv"
+
+    @property
     def report_html(self) -> Path:
         return self.reports / "REPORT.html"
 
@@ -460,7 +488,14 @@ class ReleaseLayout:
         return self.root / "REPORTING_MANIFEST.json"
 
     def create_directories(self) -> None:
-        for directory in (self.registries, self.evaluation, self.diagnostics, self.reports, self.plot_data):
+        for directory in (
+            self.registries,
+            self.evaluation,
+            self.leaderboards,
+            self.diagnostics,
+            self.reports,
+            self.plot_data,
+        ):
             directory.mkdir(parents=True, exist_ok=True)
 
 

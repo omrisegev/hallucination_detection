@@ -26,6 +26,14 @@ This document freezes the human-readable protocol. Exact IDs, hashes, formulas, 
 - `configs/reconstruction_benchmark_v1/comparators.json`
 - `configs/reconstruction_benchmark_v1/external_final_answer.json`
 
+For external final-answer populations, that registry also freezes opaque
+identity contract `reconstruction-external-opaque-id-v1`. Raw telemetry IDs are
+never fit inputs: row IDs are cell-namespaced hashes, group IDs use the exact
+registered cross-cell linkage scope, and rows are canonically ordered by the
+opaque row hash before mixed-v2 is applied once. The label loader independently
+reconstructs and checks the same order only after score freeze. Exclusions are
+stored as domain-separated raw-ID fingerprints, never as semantic raw strings.
+
 If this document and an executable contract disagree, stop the release. Do not choose the version that gives the better result.
 
 ## 2. Claims boundary
@@ -264,7 +272,7 @@ The ProcessBench response and localization populations use the same 3,400 traces
 |---|---|---|
 | `edis_aime24_full_v1` | 5,760 traces = 30 questions × 64 samples × 3 temperatures (0.2, 0.6, 1.0); 60 correct, 5,700 incorrect | Complete on Drive, but `PROTOCOL_GATE_FAILED`: every stored balance gate fails. Problem IDs are only integers 0–29 and dataset revision is not frozen. Descriptive/mechanics use only. |
 | `edis_amc23_full_v1` | 3,840 traces = 40 questions × 32 samples × 3 temperatures; 447 correct, 3,393 incorrect | Complete on Drive, but `PROTOCOL_GATE_FAILED`: every stored balance gate fails. Problem IDs are only integers 0–39. |
-| `edis_pilot3_v1` | 2,160 traces: GSM8K, MATH-500, and AMC23 each have 30 questions × 8 samples × 3 temperatures = 720 | `PROTOCOL_GATE_FAILED` for all three grids; local raw files are absent or LFS pointers. GSM8K also used a known unboxed-answer grading deviation. |
+| `edis_pilot3_v1` | 1,440 materialized traces: GSM8K and MATH-500 each have 30 questions × 8 samples × 3 temperatures = 720 | `PROTOCOL_GATE_FAILED` for both materialized grids. GSM8K also used a known unboxed-answer grading deviation. Historical AMC23 pilot references are not substituted for the separate 3,840-row full acquisition. |
 | `edis_aime24_legacy_demo_v0` | 720 traces; exact class audit unavailable | `QUARANTINED`; superseded by the 5,760-row full grid |
 | `deepconf_aime24_k512_v1` | 15,360 traces = 30 AIME-2024 questions × 512; 0 generation failures; 24 shards; Qwen3-8B, T=0.6, top-p=0.95, top-k=20, max-new-tokens=32,768 | `READY_AFTER_DRIVE_MATERIALIZATION`; 361 objects, 20,189,077,984 bytes. Raw acquisition is complete, but correctness counts and offline evaluation are not frozen. Supports budgets only through 512, not the paper's 4,096. |
 | `deepconf_aime24_k4096_partial_v1` | 12,370 of intended 122,880 traces; only four questions have rows and only two reach 4,096 | `INCOMPLETE`; 297 objects, 17,744,439,979 bytes. Acquisition appendix only. Never merge with K=512. |
@@ -272,7 +280,12 @@ The ProcessBench response and localization populations use the same 3,400 traces
 | `math500_phase15_same_temperature_k5_v1` | 1,000 traces = 200 questions × 5 T=1 samples | `RETROSPECTIVE_ONLY`; raw cache absent here; per-trace correctness counts not frozen |
 | `math500_phase15_multi_temperature_k5_v1` | 1,000 traces = 200 questions × five temperatures | `RETROSPECTIVE_ONLY`; raw cache absent here |
 
-The EDIS full grids and DeepConf K=512 do not require new model generation for an offline reconstruction. They require read-only Drive materialization, a frozen grader/evaluator, and a new output manifest. Their current readiness does not permit a headline performance claim.
+The four registered EDIS sources were materialized read-only and hash-verified on
+2026-08-24 under `local_cache/reconstruction_edis_stage`. They do not require
+new model generation. Their reconstruction uses a frozen evaluator and a new
+output manifest, but their failed acquisition gates still forbid a headline
+performance claim. DeepConf K=512 remains a separate asset that requires Drive
+materialization and offline derivation.
 
 ### 8.4 Stopping
 
@@ -307,7 +320,9 @@ As audited on 2026-08-24:
 
 - the frozen 24-cell matrix is fully materialized in this worktree;
 - many ProcessBench, PRMBench, SemGrad, HLE, RAG, negative-stress, and Phase-15 lanes have local score ledgers but their raw caches are absent or Git-LFS pointers;
-- EDIS AIME full, EDIS AMC full, and DeepConf K=512 are complete on Drive only;
+- EDIS AIME full, EDIS AMC full, GSM8K pilot3, and MATH-500 pilot3 are locally
+  materialized and hash-matched to their registered Drive objects; DeepConf
+  K=512 remains complete on Drive only;
 - the exact white-box source set is available outside this worktree under `/Users/osegev/Desktop/hallucination_detection_whitebox_layer_fusion/`; its prepared NPZ files are absent but can be rebuilt;
 - readiness of a score ledger does not authorize a raw-feature rerun without restoring and verifying its source cache.
 
@@ -447,6 +462,7 @@ There are currently two separate release builders.
     EXAMPLE_GRAPH_DATA.npz
   reporting_inputs/
     research_registry.json
+    published_comparators.json
     predictions.jsonl
     metrics_long.csv
     contrasts_long.csv
@@ -466,6 +482,7 @@ evaluator hash-binds them before opening labels.
   01_registries/
     research_registry.json
     BRIDGE_MANIFEST.json
+    published_comparators.json
   05_evaluation/
     predictions.parquet
     metrics_long.csv
@@ -475,6 +492,12 @@ evaluator hash-binds them before opening labels.
     coverage_long.csv
     coverage_long.parquet
     benchmark.duckdb
+    leaderboards/
+      cell_leaderboard.csv
+      dataset_leaderboard.csv
+      task_leaderboard.csv
+      slice_leaderboard.csv
+      release_leaderboard.csv
   06_diagnostics/
     graph_diagnostics_long.csv
     graph_diagnostics_long.parquet

@@ -10,7 +10,13 @@ from .io import (
     write_parquet,
     write_tidy_csv,
 )
-from .query import VIEW_NAMES, build_duckdb, query_results
+from .query import (
+    LEADERBOARD_EXPORT_SPECS,
+    VIEW_NAMES,
+    build_duckdb,
+    export_leaderboard_csvs,
+    query_results,
+)
 from .registry import (
     REGISTRY_SCHEMA,
     build_registry,
@@ -43,6 +49,7 @@ __all__ = [
     "SCHEMA_REVISION",
     "STATUS_VALUES",
     "MissingOptionalDependency",
+    "LEADERBOARD_EXPORT_SPECS",
     "ReleaseLayout",
     "SchemaError",
     "VIEW_NAMES",
@@ -53,6 +60,7 @@ __all__ = [
     "derive_cohort_id",
     "derive_comparison_group_id",
     "expected_coverage_rows",
+    "export_leaderboard_csvs",
     "load_records",
     "make_system_id",
     "materialize_plot_data",

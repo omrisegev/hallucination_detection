@@ -39,6 +39,12 @@ from ..reconstruction_reporting.io import (
     write_canonical_json,
     write_tidy_csv,
 )
+from ..reconstruction_reporting.published_context import (
+    frozen24_cell_auroc_logical_sha256,
+    load_published_comparator_registry,
+    validate_and_project_published_comparators,
+    validate_published_context_projection,
+)
 from ..reconstruction_reporting.registry import (
     build_registry,
     expected_coverage_rows,
@@ -67,7 +73,7 @@ PREDICTION_SNAPSHOT_SCHEMA = "reconstruction-prediction-snapshot-v1"
 CELL_REGISTRY_SCHEMA = "reconstruction-frozen24-cell-registry-v1"
 METHOD_REGISTRY_SCHEMA = "reconstruction-method-registry-v1"
 FEATURE_REGISTRY_SCHEMA = "reconstruction-feature-contract-v1"
-BRIDGE_SCHEMA = "reconstruction-24cell-reporting-bridge-v1"
+BRIDGE_SCHEMA = "reconstruction-24cell-reporting-bridge-v2"
 GRAPH_MANIFEST_SCHEMA = "reconstruction-graph-diagnostics-manifest-v2"
 GRAPH_PAYLOAD_SCHEMA = "reconstruction-graph-assumption-diagnostics-v2"
 GRAPH_DIAGNOSTIC_VERSION = "frozen24-graph-assumption-diagnostics-v2"
@@ -162,6 +168,7 @@ class BridgeInputs:
     registry: Mapping[str, Any]
     rows: Mapping[str, tuple[dict[str, Any], ...]]
     source_provenance: Mapping[str, Any]
+    published_context: Mapping[str, Any] | None = None
     auxiliary_artifacts: tuple[AuxiliaryArtifact, ...] = ()
 
 
@@ -1759,6 +1766,7 @@ def build_bridge_inputs(
     cell_registry_path: str | Path,
     method_registry_path: str | Path,
     feature_registry_path: str | Path,
+    published_comparator_registry_path: str | Path | None = None,
     graph_diagnostics_dir: str | Path | None = None,
     allow_empty_graph_diagnostics: bool = False,
 ) -> BridgeInputs:
@@ -1941,8 +1949,18 @@ def build_bridge_inputs(
         pseudo_cell = f"aggregate::{suffix}"
         population_id = f"{SOURCE_POPULATION_ID}::aggregate::{suffix}"
         slice_id = f"aggregate::{suffix}::all"
+        aggregate_dataset_id = (
+            scope_value
+            if scope_type == "dataset_family"
+            else SUITE_DATASET_ID
+        )
         aggregation_id_by_scope[key] = aggregation_id
-        aggregate_context_by_scope[key] = {"cell_id": pseudo_cell, "population_id": population_id, "slice_id": slice_id, "dataset_id": SUITE_DATASET_ID}
+        aggregate_context_by_scope[key] = {
+            "cell_id": pseudo_cell,
+            "population_id": population_id,
+            "slice_id": slice_id,
+            "dataset_id": aggregate_dataset_id,
+        }
         aggregation_records.append({
             "aggregation_id": aggregation_id,
             "display_name": f"Equal-cell {scope_type}: {scope_value}",
@@ -1955,7 +1973,7 @@ def build_bridge_inputs(
         populations.append({
             "population_id": population_id,
             "task_id": TASK_ID,
-            "dataset_id": SUITE_DATASET_ID,
+            "dataset_id": aggregate_dataset_id,
             "display_name": f"Virtual {scope_type} aggregate: {scope_value}",
             "population_sha256": canonical_sha256({"schema": "frozen24-virtual-aggregate-v1", "scope_type": scope_type, "scope_value": scope_value, "component_ids": list(scope["cell_ids"])}),
             "expected_n": 0,
@@ -1966,7 +1984,7 @@ def build_bridge_inputs(
             "cell_id": pseudo_cell,
             "population_id": population_id,
             "task_id": TASK_ID,
-            "dataset_id": SUITE_DATASET_ID,
+            "dataset_id": aggregate_dataset_id,
             "generation_model_id": "multiple registered generation models",
             "scorer_model_id": "not applicable; aggregate only",
             "split_id": "virtual equal-cell aggregate",
@@ -2073,7 +2091,10 @@ def build_bridge_inputs(
         else:
             context = aggregate_context_by_scope[(scope_type, scope_value)]
             aggregation_id = aggregation_id_by_scope[(scope_type, scope_value)]
-            aggregation_level = "release" if scope_type == "macro24" else ("dataset" if scope_type == "dataset_family" else "task")
+            # Macro-24 is the complete aggregate for this task, not a release
+            # aggregate across tasks.  Keeping it at task level prevents a
+            # one-task benchmark from being mislabeled as a cross-task result.
+            aggregation_level = "task" if scope_type == "macro24" else ("dataset" if scope_type == "dataset_family" else "task")
         for method_id in method_ids:
             system_id = system_by_method[method_id]
             fallback_components = [cell_id for cell_id in component_ids if fit[(cell_id, method_id)]["fallback_used"]]
@@ -2318,6 +2339,52 @@ def build_bridge_inputs(
     validate_expected_coverage(expected_coverage_rows(registry), rows["coverage"])
     validate_equal_unit_aggregates(rows["metrics"], registry["aggregations"])
 
+    if published_comparator_registry_path is None:
+        _require(
+            allow_empty_graph_diagnostics,
+            "scientific reporting requires the frozen published-comparator registry; omission is allowed only in explicit non-publication bridge checks",
+        )
+        published_context: Mapping[str, Any] | None = None
+        published_context_hashes: dict[str, str] = {}
+    else:
+        published_comparator_registry_path = Path(
+            published_comparator_registry_path
+        ).resolve()
+        _require(
+            published_comparator_registry_path.is_file(),
+            f"published-comparator registry is missing: {published_comparator_registry_path}",
+        )
+        published_registry_file_sha256 = sha256_file(
+            published_comparator_registry_path
+        )
+        published_registry = load_published_comparator_registry(
+            published_comparator_registry_path
+        )
+        published_context = validate_and_project_published_comparators(
+            published_registry,
+            release_id=release_id,
+            expected_cell_ids=cell_ids,
+            expected_method_ids=method_ids,
+            metrics_rows=rows["metrics"],
+            source_registry_file_sha256=published_registry_file_sha256,
+            expected_method_display_names={
+                str(row["method_id"]): str(row["display_name"])
+                for row in method_cards
+            },
+        )
+        published_context_hashes = {
+            "published_comparator_registry_file_sha256": published_registry_file_sha256,
+            "published_comparator_registry_content_sha256": str(
+                published_context["source_registry_content_sha256"]
+            ),
+            "published_context_logical_sha256": canonical_sha256(
+                published_context
+            ),
+            "published_context_expected_cell_auroc_logical_sha256": str(
+                published_context["metrics_cell_auroc_logical_sha256"]
+            ),
+        }
+
     source_provenance = {
         "schema": BRIDGE_SCHEMA,
         "release_id": release_id,
@@ -2328,7 +2395,11 @@ def build_bridge_inputs(
         "positive_class": "incorrect",
         "fidelity": FIDELITY,
         "evidence_grade": EVIDENCE_GRADE,
-        "source_hashes": {**publication_hashes, **registry_hashes},
+        "source_hashes": {
+            **publication_hashes,
+            **registry_hashes,
+            **published_context_hashes,
+        },
         "evaluation_manifest_payload_sha256": manifest["payload_sha256"],
         "evaluation_payload_sha256": evaluation["payload_sha256"],
         "registry_sha256": registry["registry_sha256"],
@@ -2339,6 +2410,16 @@ def build_bridge_inputs(
             else "EXPLICIT_OPT_OUT_EMPTY_NON_PUBLICATION"
         ),
         "scientific_publication_eligible": graph_package is not None,
+        "published_context_status": (
+            "VERIFIED_SEPARATE_REPORT_ONLY_ARTIFACT"
+            if published_context is not None
+            else "EXPLICIT_OPT_OUT_NON_PUBLICATION"
+        ),
+        "published_context_status_counts": (
+            dict(published_context["status_counts"])
+            if published_context is not None
+            else {}
+        ),
         "graph_source_hashes": (
             {
                 "manifest_file_sha256": sha256_file(graph_package.root / "GRAPH_DIAGNOSTICS_MANIFEST.json"),
@@ -2362,6 +2443,11 @@ def build_bridge_inputs(
             "EVALUATION.json",
             "PREDICTION_SNAPSHOT.npz",
             *(
+                ["frozen24_published_comparator_registry_v1.json"]
+                if published_context is not None
+                else []
+            ),
+            *(
                 [
                     "graph_diagnostics/GRAPH_DIAGNOSTICS.json",
                     "graph_diagnostics/PLOT_DATA.npz",
@@ -2382,6 +2468,7 @@ def build_bridge_inputs(
         registry=registry,
         rows=rows,
         source_provenance=source_provenance,
+        published_context=published_context,
         auxiliary_artifacts=graph_package.auxiliary_artifacts if graph_package is not None else (),
     )
 
@@ -2400,16 +2487,21 @@ def _write_jsonl(path: Path, table: str, rows: Iterable[Mapping[str, Any]]) -> d
     ordered = sorted(normalized, key=lambda row: record_sort_key(table, row))
     if path.exists():
         raise FileExistsError(f"staged JSONL target already exists: {path}")
+    file_digest = hashlib.sha256()
     with path.open("wb") as handle:
         for row in ordered:
-            handle.write(reporting_json_bytes(row))
-            handle.write(b"\n")
+            payload = reporting_json_bytes(row) + b"\n"
+            handle.write(payload)
+            file_digest.update(payload)
     return {
         "table": table,
         "path": path.name,
         "row_count": len(ordered),
         "logical_sha256": table_sha256(table, ordered),
-        "file_sha256": sha256_file(path),
+        # Hash the exact bytes through the descriptor that wrote them.  On some
+        # macOS volumes an immediate second open of a newly created multi-GB
+        # file can fail with EPERM even though the original write succeeded.
+        "file_sha256": file_digest.hexdigest(),
     }
 
 
@@ -2431,6 +2523,20 @@ def publish_bridge_inputs(output_dir: str | Path, inputs: BridgeInputs) -> Path:
             "file_sha256": sha256_file(registry_path),
             "logical_sha256": inputs.registry["registry_sha256"],
         }]
+        if inputs.published_context is not None:
+            published_context_path = staging / "published_comparators.json"
+            write_canonical_json(
+                published_context_path,
+                inputs.published_context,
+                atomic=False,
+            )
+            artifacts.append({
+                "path": published_context_path.name,
+                "row_count": len(inputs.published_context["rows"]),
+                "file_sha256": sha256_file(published_context_path),
+                "logical_sha256": canonical_sha256(inputs.published_context),
+                "kind": "published_context_report_only",
+            })
         artifacts.append(_write_jsonl(predictions_path, "predictions", inputs.rows["predictions"]))
         filenames = {
             "metrics": "metrics_long.csv",
@@ -2448,6 +2554,26 @@ def publish_bridge_inputs(output_dir: str | Path, inputs: BridgeInputs) -> Path:
             )
             record["path"] = filename
             artifacts.append(record)
+            if table == "metrics" and inputs.published_context is not None:
+                method_ids = [
+                    str(row["method_id"]) for row in inputs.registry["methods"]
+                ]
+                expected_cell_ids = [
+                    str(row["cell_id"])
+                    for row in inputs.published_context["rows"]
+                ]
+                validate_published_context_projection(
+                    inputs.published_context,
+                    release_id=str(inputs.registry["release_id"]),
+                    expected_cell_ids=expected_cell_ids,
+                    metrics_cell_auroc_logical_sha256=(
+                        frozen24_cell_auroc_logical_sha256(
+                            inputs.rows["metrics"],
+                            expected_cell_ids=expected_cell_ids,
+                            expected_method_ids=method_ids,
+                        )
+                    ),
+                )
         occupied = {record["path"] for record in artifacts}
         for auxiliary in inputs.auxiliary_artifacts:
             relative = Path(auxiliary.relative_path)

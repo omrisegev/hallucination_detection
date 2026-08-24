@@ -13,6 +13,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import numpy as np
 
@@ -47,6 +48,11 @@ from spectral_utils.reconstruction_benchmark.reporting_bridge import (  # noqa: 
     publish_bridge_inputs,
 )
 from spectral_utils.reconstruction_reporting.io import read_tidy_csv  # noqa: E402
+from spectral_utils.reconstruction_reporting.published_context import (  # noqa: E402
+    EXPECTED_STATUS_COUNTS,
+    PUBLISHED_CONTEXT_SCHEMA,
+    frozen24_cell_auroc_logical_sha256,
+)
 from spectral_utils.reconstruction_reporting.report import default_plot_manifest, render_report  # noqa: E402
 from spectral_utils.reconstruction_reporting.registry import (  # noqa: E402
     expected_coverage_rows,
@@ -54,6 +60,8 @@ from spectral_utils.reconstruction_reporting.registry import (  # noqa: E402
 )
 from spectral_utils.reconstruction_reporting.schemas import (  # noqa: E402
     SchemaError,
+    derive_comparison_group_id,
+    validate_comparison_groups,
     validate_equal_unit_aggregates,
     validate_expected_coverage,
 )
@@ -62,6 +70,7 @@ from spectral_utils.reconstruction_reporting.schemas import (  # noqa: E402
 CELL_REGISTRY = REPO / "configs" / "reconstruction_benchmark_v1" / "frozen24_cells.json"
 METHOD_REGISTRY = REPO / "configs" / "reconstruction_benchmark_v1" / "methods.json"
 FEATURE_REGISTRY = REPO / "configs" / "reconstruction_benchmark_v1" / "feature_contract.json"
+PUBLISHED_COMPARATOR_REGISTRY = REPO / "configs" / "reconstruction_benchmark_v1" / "frozen24_published_comparator_registry_v1.json"
 
 
 class _ReportStructure(HTMLParser):
@@ -99,6 +108,51 @@ def _with_payload(value: dict) -> dict:
     output.pop("payload_sha256", None)
     output["payload_sha256"] = sha256_bytes(canonical_json_bytes(output))
     return output
+
+
+def _publish_published_comparator_fixture(root: Path, inputs) -> Path:
+    source = json.loads(PUBLISHED_COMPARATOR_REGISTRY.read_text(encoding="utf-8"))
+    source["release_id"] = inputs.registry["release_id"]
+    cell_ids = [row["cell_id"] for row in source["cells"]]
+    method_names = {
+        row["method_id"]: row["display_name"] for row in inputs.registry["methods"]
+    }
+    method_ids = sorted(method_names, key=lambda value: value.encode("utf-8"))
+    by_cell = {
+        cell_id: [
+            row
+            for row in inputs.rows["metrics"]
+            if row["aggregation_level"] == "cell"
+            and row["metric_id"] == "auroc"
+            and row["cell_id"] == cell_id
+        ]
+        for cell_id in cell_ids
+    }
+    for cell in source["cells"]:
+        rows = by_cell[cell["cell_id"]]
+        maximum = max(float(row["value"]) for row in rows)
+        leader = min(
+            (row for row in rows if float(row["value"]) == maximum),
+            key=lambda row: str(row["method_id"]).encode("utf-8"),
+        )
+        cell["v2_point_estimate_leader"] = {
+            "method_id": leader["method_id"],
+            "display_name": method_names[leader["method_id"]],
+            "auroc": leader["value"],
+            "ci95": [leader["ci_low"], leader["ci_high"]],
+        }
+    source["v2_metrics_source"]["path"] = "synthetic signed bridge metrics"
+    source["v2_metrics_source"]["sha256"] = _hash("synthetic-full-metrics")
+    source["v2_metrics_source"]["cell_auroc_logical_sha256"] = (
+        frozen24_cell_auroc_logical_sha256(
+            inputs.rows["metrics"],
+            expected_cell_ids=cell_ids,
+            expected_method_ids=method_ids,
+        )
+    )
+    target = root / "synthetic_published_comparator_registry.json"
+    atomic_write_json(target, source)
+    return target
 
 
 def _publish_fixture(root: Path) -> dict[str, Path]:
@@ -835,6 +889,17 @@ class BridgeTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.root = Path(self.temporary.name)
         self.paths = _publish_fixture(self.root)
+        probe = build_bridge_inputs(
+            evaluation_dir=self.paths["evaluation_dir"],
+            release_id="synthetic-frozen24-reporting-v1",
+            cell_registry_path=CELL_REGISTRY,
+            method_registry_path=METHOD_REGISTRY,
+            feature_registry_path=FEATURE_REGISTRY,
+            allow_empty_graph_diagnostics=True,
+        )
+        self.published_comparator_registry = _publish_published_comparator_fixture(
+            self.root, probe
+        )
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
@@ -846,16 +911,29 @@ class BridgeTests(unittest.TestCase):
             cell_registry_path=CELL_REGISTRY,
             method_registry_path=METHOD_REGISTRY,
             feature_registry_path=FEATURE_REGISTRY,
+            published_comparator_registry_path=self.published_comparator_registry,
             allow_empty_graph_diagnostics=True,
         )
 
     def build_with_graph(self, graph_dir: Path):
+        probe = build_bridge_inputs(
+            evaluation_dir=self.paths["evaluation_dir"],
+            release_id="synthetic-frozen24-reporting-v1",
+            cell_registry_path=CELL_REGISTRY,
+            method_registry_path=METHOD_REGISTRY,
+            feature_registry_path=FEATURE_REGISTRY,
+            allow_empty_graph_diagnostics=True,
+        )
+        self.published_comparator_registry = _publish_published_comparator_fixture(
+            self.root, probe
+        )
         return build_bridge_inputs(
             evaluation_dir=self.paths["evaluation_dir"],
             release_id="synthetic-frozen24-reporting-v1",
             cell_registry_path=CELL_REGISTRY,
             method_registry_path=METHOD_REGISTRY,
             feature_registry_path=FEATURE_REGISTRY,
+            published_comparator_registry_path=self.published_comparator_registry,
             graph_diagnostics_dir=graph_dir,
         )
 
@@ -865,6 +943,17 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(len(inputs.rows["predictions"]), 24 * 13 * 4 * 2)
         self.assertEqual(inputs.rows["graph_diagnostics"], ())
         self.assertEqual(inputs.rows["graph_examples"], ())
+        self.assertIsNotNone(inputs.published_context)
+        self.assertEqual(inputs.published_context["schema_version"], PUBLISHED_CONTEXT_SCHEMA)
+        self.assertEqual(inputs.published_context["status_counts"], EXPECTED_STATUS_COUNTS)
+        self.assertEqual(len(inputs.published_context["rows"]), 24)
+        self.assertTrue(
+            all(
+                row["delta_eligible"] is False
+                and row["paper_to_v2_delta"] is None
+                for row in inputs.published_context["rows"]
+            )
+        )
         first_cell = json.loads(CELL_REGISTRY.read_text())["cells"][0]["cell_id"]
         first_system = next(row for row in inputs.registry["systems"] if row["method_version_id"].startswith("equal-feature"))["system_id"]
         groups = {
@@ -876,6 +965,55 @@ class BridgeTests(unittest.TestCase):
         validate_result_references(inputs.registry, inputs.rows)
         validate_expected_coverage(expected_coverage_rows(inputs.registry), inputs.rows["coverage"])
         validate_equal_unit_aggregates(inputs.rows["metrics"], inputs.registry["aggregations"])
+
+    def test_dataset_family_aggregates_use_real_dataset_ids_and_valid_hashes(self):
+        inputs = self.build()
+        dataset_slice_values = {
+            row["slice_id"]: row["slice_value"]
+            for row in inputs.registry["slices"]
+            if row["slice_dimension"] == "dataset_family"
+        }
+        other_aggregate_slices = {
+            row["slice_id"]
+            for row in inputs.registry["slices"]
+            if row["slice_dimension"] in {"domain", "macro24", "model_family"}
+        }
+        self.assertTrue(dataset_slice_values)
+        for table in ("metrics", "contrasts", "coverage"):
+            dataset_rows = [
+                row for row in inputs.rows[table]
+                if row["slice_id"] in dataset_slice_values
+            ]
+            self.assertTrue(dataset_rows, table)
+            self.assertTrue(all(
+                row["dataset_id"] == dataset_slice_values[row["slice_id"]]
+                for row in dataset_rows
+            ))
+            other_rows = [
+                row for row in inputs.rows[table]
+                if row["slice_id"] in other_aggregate_slices
+            ]
+            self.assertTrue(other_rows, table)
+            self.assertTrue(all(row["dataset_id"] == "frozen24_suite" for row in other_rows))
+
+        dataset_metrics = [
+            row for row in inputs.rows["metrics"]
+            if row["aggregation_level"] == "dataset"
+        ]
+        self.assertTrue(dataset_metrics)
+        self.assertTrue(all(
+            row["comparison_group_id"] == derive_comparison_group_id(row)
+            for row in dataset_metrics
+        ))
+        self.assertTrue(all(
+            f"::{row['dataset_id']}::{row['metric_id']}::" in row["comparison_group_id"]
+            for row in dataset_metrics
+        ))
+        validate_comparison_groups(inputs.rows["metrics"])
+        validate_equal_unit_aggregates(
+            inputs.rows["metrics"],
+            inputs.registry["aggregations"],
+        )
 
     def test_fit_fallback_is_preserved_in_predictions_and_coverage(self):
         inputs = self.build()
@@ -891,9 +1029,75 @@ class BridgeTests(unittest.TestCase):
         output = publish_bridge_inputs(self.root / "bridge", inputs)
         graph_rows = read_tidy_csv(output / "graph_diagnostics_long.csv", "graph_diagnostics")
         self.assertEqual(graph_rows, [])
+        published = json.loads((output / "published_comparators.json").read_text())
+        self.assertEqual(published, inputs.published_context)
+        manifest = json.loads((output / "BRIDGE_MANIFEST.json").read_text())
+        artifact = next(
+            row
+            for row in manifest["artifacts"]
+            if row["path"] == "published_comparators.json"
+        )
+        self.assertEqual(
+            artifact["file_sha256"], sha256_file(output / "published_comparators.json")
+        )
         self.assertTrue((output / "BRIDGE_MANIFEST.json").is_file())
         with self.assertRaises(FileExistsError):
             publish_bridge_inputs(output, inputs)
+
+    def test_large_jsonl_is_hashed_during_write_without_reopening(self):
+        inputs = self.build()
+        real_sha256_file = sha256_file
+
+        def refuse_jsonl_reopen(path):
+            path = Path(path)
+            if path.suffix == ".jsonl":
+                raise PermissionError("simulated macOS EPERM on JSONL reopen")
+            return real_sha256_file(path)
+
+        with mock.patch(
+            "spectral_utils.reconstruction_benchmark.reporting_bridge.sha256_file",
+            side_effect=refuse_jsonl_reopen,
+        ):
+            output = publish_bridge_inputs(self.root / "bridge-no-jsonl-reopen", inputs)
+
+        manifest = json.loads((output / "BRIDGE_MANIFEST.json").read_text())
+        predictions = next(
+            row for row in manifest["artifacts"] if row["path"] == "predictions.jsonl"
+        )
+        self.assertEqual(
+            predictions["file_sha256"], real_sha256_file(output / "predictions.jsonl")
+        )
+
+    def test_published_comparator_contract_fails_closed_before_publication(self):
+        original = json.loads(
+            self.published_comparator_registry.read_text(encoding="utf-8")
+        )
+        cases = []
+        missing_cell = copy.deepcopy(original)
+        missing_cell["cells"].pop()
+        cases.append(("missing cell", missing_cell, "24 unique cell|cell coverage"))
+        delta_enabled = copy.deepcopy(original)
+        delta_enabled["cells"][0]["delta_eligible"] = True
+        cases.append(("delta enabled", delta_enabled, "delta_eligible"))
+        stale_metrics = copy.deepcopy(original)
+        stale_metrics["v2_metrics_source"]["cell_auroc_logical_sha256"] = "0" * 64
+        cases.append(("stale metrics", stale_metrics, "logical hash mismatch"))
+        wrong_display = copy.deepcopy(original)
+        related = next(
+            row
+            for row in wrong_display["cells"]
+            if row["comparison_status"] == "RELATED_PUBLISHED_CONTEXT_ONLY"
+        )
+        related["allowed_display"] = "EXPLICIT_NO_ELIGIBLE_COMPARATOR"
+        cases.append(("wrong display", wrong_display, "allowed_display"))
+        try:
+            for label, value, pattern in cases:
+                with self.subTest(label=label):
+                    atomic_write_json(self.published_comparator_registry, value)
+                    with self.assertRaisesRegex(SchemaError, pattern):
+                        self.build()
+        finally:
+            atomic_write_json(self.published_comparator_registry, original)
 
     def test_manifest_hash_drift_is_rejected_before_semantic_read(self):
         with self.paths["evaluation"].open("ab") as handle:
@@ -923,6 +1127,20 @@ class BridgeTests(unittest.TestCase):
                 cell_registry_path=CELL_REGISTRY,
                 method_registry_path=METHOD_REGISTRY,
                 feature_registry_path=FEATURE_REGISTRY,
+            )
+
+    def test_scientific_graph_bridge_rejects_missing_published_context(self):
+        graph_dir = _publish_graph_fixture(self.root, self.paths)
+        with self.assertRaisesRegex(
+            ReportingBridgeError, "published-comparator registry"
+        ):
+            build_bridge_inputs(
+                evaluation_dir=self.paths["evaluation_dir"],
+                release_id="synthetic-frozen24-reporting-v1",
+                cell_registry_path=CELL_REGISTRY,
+                method_registry_path=METHOD_REGISTRY,
+                feature_registry_path=FEATURE_REGISTRY,
+                graph_diagnostics_dir=graph_dir,
             )
 
     def test_final_report_builder_requires_the_signed_scientific_bridge(self):
@@ -964,11 +1182,59 @@ class BridgeTests(unittest.TestCase):
             graph_examples=scientific_dir / "graph_examples_long.csv",
             plot_manifest=None,
         )
-        registry, rows, plots, verified_bridge = module.load_and_validate(scientific_args)
+        registry, rows, plots, verified_bridge, published_context = module.load_and_validate(scientific_args)
         self.assertEqual(registry["release_id"], "synthetic-frozen24-reporting-v1")
         self.assertTrue(rows["graph_diagnostics"] and rows["graph_examples"])
         self.assertTrue(plots["plots"])
         self.assertTrue(verified_bridge["scientific_publication_eligible"])
+        self.assertEqual(published_context["status_counts"], EXPECTED_STATUS_COUNTS)
+        self.assertTrue(
+            all(row["paper_to_v2_delta"] is None for row in published_context["rows"])
+        )
+        if (
+            importlib.util.find_spec("duckdb") is not None
+            and importlib.util.find_spec("pyarrow") is not None
+        ):
+            release_root = (
+                self.root
+                / "synthetic-report-release"
+                / "synthetic-frozen24-reporting-v1"
+            )
+            built = module.build_release(
+                release_root,
+                registry=registry,
+                rows=rows,
+                plot_manifest=plots,
+                title="Synthetic scientific report",
+                bridge_manifest=verified_bridge,
+                published_context=published_context,
+            )
+            context_copy = built / "01_registries" / "published_comparators.json"
+            self.assertTrue(context_copy.is_file())
+            report_html = (built / "07_reports" / "REPORT.html").read_text()
+            self.assertEqual(report_html.count('class="published-context-card"'), 24)
+            reporting_manifest = json.loads(
+                (built / "REPORTING_MANIFEST.json").read_text()
+            )
+            context_artifact = next(
+                row
+                for row in reporting_manifest["artifacts"]
+                if row["relative_path"]
+                == "01_registries/published_comparators.json"
+            )
+            self.assertEqual(
+                context_artifact["file_sha256"], sha256_file(context_copy)
+            )
+            for leaderboard in (built / "05_evaluation" / "leaderboards").glob(
+                "*.csv"
+            ):
+                with leaderboard.open(newline="", encoding="utf-8") as handle:
+                    methods = {
+                        row["method_id"]
+                        for row in csv.DictReader(handle)
+                        if row.get("method_id")
+                    }
+                self.assertLessEqual(methods, set(method["method_id"] for method in registry["methods"]))
         with scientific_args.metrics.open("ab") as handle:
             handle.write(b"tamper")
         with self.assertRaisesRegex(SchemaError, "bridge artifact hash mismatch"):
@@ -1056,9 +1322,15 @@ class BridgeTests(unittest.TestCase):
         graph_dir = _publish_graph_fixture(self.root, self.paths)
         inputs = self.build_with_graph(graph_dir)
         manifest = default_plot_manifest(inputs.registry["release_id"], inputs.rows)
-        first = render_report(registry=inputs.registry, rows_by_table=inputs.rows, plot_manifest=manifest)
-        second = render_report(registry=inputs.registry, rows_by_table=inputs.rows, plot_manifest=manifest)
+        first = render_report(registry=inputs.registry, rows_by_table=inputs.rows, plot_manifest=manifest, published_context=inputs.published_context)
+        second = render_report(registry=inputs.registry, rows_by_table=inputs.rows, plot_manifest=manifest, published_context=inputs.published_context)
         self.assertEqual(first, second)
+        without_context = render_report(
+            registry=inputs.registry,
+            rows_by_table=inputs.rows,
+            plot_manifest=manifest,
+        )
+        self.assertNotEqual(first, without_context)
         structure = _ReportStructure()
         structure.feed(first)
         self.assertIn("alignment-scatter-svg", structure.ids)
@@ -1067,6 +1339,73 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(structure.class_counts.get("example-graph-svg"), 6)
         self.assertEqual(sum(plot["kind"] == "graph_embedding_pair" for plot in manifest["plots"]), 3)
         self.assertEqual(sum(plot["kind"] == "diagnostic_scatter" for plot in manifest["plots"]), 1)
+        selector_plots = [
+            plot for plot in manifest["plots"]
+            if plot["plot_id"].startswith("diagnostic_selector_")
+        ]
+        self.assertGreater(len(selector_plots), 1)
+        self.assertEqual(
+            len({plot["plot_id"] for plot in selector_plots}),
+            len(selector_plots),
+        )
+        self.assertGreater(
+            len({plot["data_sha256"] for plot in selector_plots}), 1
+        )
+        self.assertIn(
+            "exactPlotContract('diagnostic_summary',diagnosticRows)", first
+        )
+        self.assertEqual(structure.class_counts.get("published-context-card"), 24)
+        self.assertEqual(structure.class_counts.get("related"), 4)
+        self.assertEqual(structure.class_counts.get("context-none"), 3)
+        self.assertIn("Published comparator context for the selected cell", first)
+        self.assertIn('id="view-preset"', first)
+        self.assertIn('value="headline_24cell_auroc"', first)
+        self.assertIn("Macro-24 AUROC forest", first)
+        self.assertIn('id="filter-generation_model_id"', first)
+        self.assertIn('id="filter-scorer_model_id"', first)
+        self.assertIn('id="heatmap-colorbar"', first)
+        self.assertIn("function headlineViews()", first)
+        self.assertIn("unique(cells,'cell_id').length!==24", first)
+        atomic_cell_datasets = {
+            row["dataset_id"]
+            for row in inputs.rows["metrics"]
+            if row["aggregation_level"] == "cell"
+        }
+        self.assertGreater(len(atomic_cell_datasets), 1)
+        self.assertNotIn("r.dataset_id===anchor.dataset_id", first)
+        self.assertIn(
+            "r.aggregation_id===macroAggregation.aggregation_id", first
+        )
+        self.assertIn("cells.length!==24*macroSystems.length", first)
+        self.assertIn("macros.length", first)
+        self.assertNotIn(
+            "macroAggregation.aggregation_id&&OK.has(r.status)", first
+        )
+        for prefix in ("forest", "heatmap", "contrast", "diagnostic"):
+            self.assertIn(f'id="{prefix}-source-link"', first)
+            self.assertIn(f'id="{prefix}-source-hash"', first)
+        self.assertIn("Paper → v2 delta", first)
+        self.assertIn("Not computed", first)
+        self.assertIn("Protocol match axes", first)
+        self.assertIn("Supervision", first)
+        self.assertIn("Passes", first)
+        for table_rows in inputs.rows.values():
+            self.assertTrue(
+                all(
+                    "published_auroc" not in row
+                    and "paper_to_v2_delta" not in row
+                    for row in table_rows
+                )
+            )
+        stale_context = copy.deepcopy(inputs.published_context)
+        stale_context["metrics_cell_auroc_logical_sha256"] = "0" * 64
+        with self.assertRaisesRegex(SchemaError, "logical hash mismatch"):
+            render_report(
+                registry=inputs.registry,
+                rows_by_table=inputs.rows,
+                plot_manifest=manifest,
+                published_context=stale_context,
+            )
         self.assertIn("Both panels use the identical frozen two-dimensional spectral embedding", first)
         self.assertIn("does not refit edges", first)
 

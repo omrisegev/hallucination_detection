@@ -132,6 +132,10 @@ results/report_*.html
 # products.  Keep the protocol, registries, and generators in Git; regenerate
 # or archive complete releases separately because they contain per-row scores.
 results/reconstruction_benchmark_v1/releases/
+# Local, content-verified source overlays and readiness audits used to build
+# the immutable releases. Their source hashes are recorded in release manifests.
+results/reconstruction_benchmark_v1/source_overlays/
+results/reconstruction_benchmark_v1/external_audits/
 
 # Research-run intermediates. Commit reports, summary tables, manifests, and
 # advisor figures; regenerate per-run score matrices and verbose diagnostics.
@@ -236,3 +240,6 @@ dataset_cache/whitebox_layer_fusion_v1/
 !results/whitebox_vs_graybox_matched_v1/scores/*.npz
 !results/whitebox_vs_graybox_matched_v1/figures/
 !results/whitebox_vs_graybox_matched_v1/figures/*.svg
+
+# Controller-only reconstruction secrets/provenance must never be staged.
+results/reconstruction_benchmark_v1/private_control/

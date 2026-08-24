@@ -65,6 +65,61 @@ The external evaluator opens labels only after independently rechecking the
 full A/B certificate. Population-level estimates use the registry's linked
 source groups and aggregation rule; per-cell rows remain available separately.
 
+External fitting never receives historical source IDs. A controller-only,
+gitignored key derives row IDs with a domain-separated HMAC; the fit-visible
+contract contains only the row binding and a keyed commitment to private group
+metadata. Rows are sorted by opaque row ID before the single mixed-v2 pass, so
+a semantic raw-key order cannot become a graph tie breaker. Group membership,
+class counts, raw paths, labels, and the key are reconstructed only after the
+scores are frozen. The worker runs from an exact fit-only code capsule and can
+read only the prepared matrices, fit-safe registries, trusted runtime, and its
+output directory. This audit-hook tier protects the frozen first-party worker
+from accidental target access; it is not described as a sandbox for hostile
+native code. Any input tree made under the former raw-ID contract is audit-only
+and is actively refused; create a new release ID after a contract change.
+
+## EDIS/AIME multi-sample sequence
+
+EDIS is a separate multi-pass cost tier and never enters the one-pass response
+leaderboard. The registered sources are AIME24 full (5,760 traces), AMC23 full
+(3,840), GSM8K pilot3 (720), and MATH-500 pilot3 (720). Every stored acquisition
+cell failed at least one registered gate, so the resulting metrics are
+descriptive stress evidence only.
+
+```bash
+python scripts/reconstruction_benchmark/prepare_edis.py \
+  --release-id <edis_release_id> --build A \
+  --source-root local_cache/reconstruction_edis_stage
+python scripts/reconstruction_benchmark/prepare_edis.py \
+  --release-id <edis_release_id> --build B \
+  --source-root local_cache/reconstruction_edis_stage
+
+python scripts/reconstruction_benchmark/run_edis_methods.py \
+  --release-id <edis_release_id> --build A \
+  --source-root local_cache/reconstruction_edis_stage
+python scripts/reconstruction_benchmark/run_edis_methods.py \
+  --release-id <edis_release_id> --build B \
+  --source-root local_cache/reconstruction_edis_stage
+
+python scripts/reconstruction_benchmark/verify_edis_ab.py \
+  --release-id <edis_release_id>
+
+python scripts/reconstruction_benchmark/evaluate_edis.py \
+  --release-id <edis_release_id> --build A \
+  --source-root local_cache/reconstruction_edis_stage
+python scripts/reconstruction_benchmark/evaluate_edis.py \
+  --release-id <edis_release_id> --build B \
+  --source-root local_cache/reconstruction_edis_stage
+
+python scripts/reconstruction_benchmark/verify_edis_evaluation_ab.py \
+  --release-id <edis_release_id>
+```
+
+The two evaluations use the same 20,000 paired source-question bootstrap draws.
+Question-content commitments prove the cross-temperature linkage before any
+linked resampling, and the final verifier compares the post-label A/B tables as
+well as the prepared matrices and score artifacts.
+
 ## Reporting layer
 
 This directory contains only the final, data-facing layer of the reconstruction
@@ -106,6 +161,7 @@ python scripts/reconstruction_benchmark/build_24cell_reporting_inputs.py \
   --release-id <release_id> \
   --evaluation-dir results/reconstruction_benchmark_v1/releases/<release_id>/evaluation \
   --graph-diagnostics-dir results/reconstruction_benchmark_v1/releases/<release_id>/graph_diagnostics \
+  --published-comparator-registry configs/reconstruction_benchmark_v1/frozen24_published_comparator_registry_v1.json \
   --output-dir results/reconstruction_benchmark_v1/releases/<release_id>/reporting_inputs
 
 python scripts/reconstruction_benchmark/build_reporting_release.py \
@@ -124,8 +180,14 @@ python scripts/reconstruction_benchmark/build_reporting_release.py \
 Remove `--validate-only` to publish an immutable release directory. The command
 refuses to overwrite an existing release. It writes deterministic CSV/JSON,
 schema-tagged Parquet, `benchmark.duckdb`, a content-addressed plot manifest,
-one CSV per static plot, and a self-contained `REPORT.html` that opens through
-`file://` without network resources.
+one CSV per static plot, five ready-to-use leaderboard CSVs under
+`05_evaluation/leaderboards/`, and a self-contained `REPORT.html` that opens
+through `file://` without network resources. The leaderboard files correspond
+exactly to the validated cell, dataset, domain/model-family slice, task, and
+release views; they contain only rankable `OK`/`OK_FALLBACK` rows with non-null
+metric values. Published paper values are copied separately as
+`01_registries/published_comparators.json`; they never enter a leaderboard,
+plot-data table, or delta.
 
 ## Query
 
@@ -145,6 +207,7 @@ The database exposes:
 - `v_atomic_leaderboard`;
 - `v_dataset_leaderboard`;
 - `v_task_leaderboard`;
+- `v_slice_leaderboard`;
 - `v_release_leaderboard`;
 - `v_processbench_localization`;
 - `v_prmbench_error_class`;

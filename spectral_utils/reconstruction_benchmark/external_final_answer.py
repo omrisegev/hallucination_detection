@@ -17,14 +17,26 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+import hashlib
+import hmac
 import json
+import os
 from pathlib import Path
 import pickle
+import re
+import secrets
+import stat
 from typing import Any, Iterable, Mapping, Sequence
 
 import numpy as np
 
 from .contracts import CONTRACT_VERSION, PreparedCell, prepared_matrix_sha256
+from .external_fit_contract import (
+    build_fit_row_identity_contract,
+    fit_row_roster_sha256,
+    load_prepared_external_cell as load_fit_prepared_external_cell,
+    row_namespace_sha256 as fit_row_namespace_sha256,
+)
 from .io import (
     atomic_write_json,
     atomic_write_npz,
@@ -39,11 +51,24 @@ from ..repgrid_scoring import _candidate_features, logprob_features_extended
 from ..specrage_views import FEATURE_TO_VIEW
 
 
-SCHEMA_VERSION = "reconstruction-external-final-answer-registry-v1"
-PREPARED_SCHEMA_VERSION = "reconstruction-external-target-free-input-v1"
-AUDIT_SCHEMA_VERSION = "reconstruction-external-applicability-v1"
-LABEL_SCHEMA_VERSION = "reconstruction-external-label-vector-v1"
-SCORE_FREEZE_SCHEMA_VERSION = "reconstruction-external-score-freeze-v1"
+SCHEMA_VERSION = "reconstruction-external-final-answer-registry-v2"
+PREPARED_SCHEMA_VERSION = "reconstruction-external-target-free-input-v2"
+AUDIT_SCHEMA_VERSION = "reconstruction-external-applicability-v2"
+LABEL_SCHEMA_VERSION = "reconstruction-external-label-vector-v2"
+SCORE_FREEZE_SCHEMA_VERSION = "reconstruction-external-score-freeze-v2"
+ID_CONTRACT_VERSION = "reconstruction-external-keyed-hmac-id-v1"
+IDENTITY_KEY_CONTRACT_VERSION = "reconstruction-external-identity-key-v1"
+IDENTITY_KEY_BYTES = 32
+RAW_ID_FINGERPRINT_VERSION = "reconstruction-external-raw-id-fingerprint-v1"
+ID_DIGEST_ALGORITHM = "hmac-sha256-canonical-json-v1"
+IDENTITY_KEY_ID_PREFIX = "xkidv1_"
+OPAQUE_ROW_ID_PREFIX = "xridv2_"
+OPAQUE_GROUP_ID_PREFIX = "xgidv2_"
+RAW_ID_FINGERPRINT_PREFIX = "xrfpv1_"
+_IDENTITY_KEY_ID_RE = re.compile(r"^xkidv1_[0-9a-f]{64}$")
+_OPAQUE_ROW_ID_RE = re.compile(r"^xridv2_[0-9a-f]{64}$")
+_OPAQUE_GROUP_ID_RE = re.compile(r"^xgidv2_[0-9a-f]{64}$")
+_RAW_ID_FINGERPRINT_RE = re.compile(r"^xrfpv1_[0-9a-f]{64}$")
 CANONICAL_FEATURE_NAMES = tuple(FEATURE_TO_VIEW)
 
 LFS_MARKER = b"version https://git-lfs.github.com/spec/v1\n"
@@ -103,7 +128,7 @@ class ExternalCellSpec:
     expected_incorrect: int | None = None
     expected_correct: int | None = None
     expected_group_count: int | None = None
-    excluded_row_ids: tuple[str, ...] = ()
+    excluded_raw_id_fingerprints: tuple[str, ...] = ()
     configured_status: str | None = None
     status_reason: str | None = None
     known_contract_risk: str | None = None
@@ -138,7 +163,9 @@ class ExternalCellSpec:
             expected_incorrect=_optional_int(value.get("expected_incorrect")),
             expected_correct=_optional_int(value.get("expected_correct")),
             expected_group_count=_optional_int(value.get("expected_group_count")),
-            excluded_row_ids=tuple(map(str, value.get("excluded_row_ids", ()))),
+            excluded_raw_id_fingerprints=tuple(
+                map(str, value.get("excluded_raw_id_fingerprints", ()))
+            ),
             configured_status=(
                 None if value.get("configured_status") is None
                 else str(value["configured_status"])
@@ -166,6 +193,17 @@ class ExternalRegistry:
     @property
     def by_cell(self) -> dict[str, ExternalCellSpec]:
         return {cell.cell_id: cell for cell in self.cells}
+
+
+@dataclass(frozen=True)
+class OpaqueIdentityRoster:
+    """Opaque, namespace-bound identities that are safe to expose to fitting."""
+
+    row_ids: tuple[str, ...]
+    group_ids: tuple[str, ...]
+    contract_binding: Mapping[str, Any]
+    row_namespace_sha256: str
+    group_namespace_sha256: str
 
 
 @dataclass(frozen=True)
@@ -295,6 +333,383 @@ def _payload_hash(value: Any) -> str:
     return sha256_bytes(canonical_json_bytes(value))
 
 
+def raw_id_fingerprint(value: Any) -> str:
+    """Return a one-way fingerprint for a raw source identifier.
+
+    These fingerprints are used only to register source-row exclusions.  They
+    deliberately use a domain that differs from both prepared row IDs and
+    prepared group IDs, so a fingerprint can never be substituted for either.
+    """
+
+    raw = str(value)
+    if not raw:
+        raise ValueError("raw source identity must be nonempty")
+    digest = _payload_hash({
+        "contract_version": RAW_ID_FINGERPRINT_VERSION,
+        "domain": "external_raw_row_identity_exclusion",
+        "raw_identity": raw,
+    })
+    return RAW_ID_FINGERPRINT_PREFIX + digest
+
+
+def _external_id_contract_template(registry: ExternalRegistry) -> dict[str, Any]:
+    """Validate the registry's public keyed-identity template."""
+
+    configured = registry.raw.get("identity_contract")
+    if not isinstance(configured, Mapping):
+        raise ValueError("external registry lacks its opaque identity contract")
+    rules = configured.get("group_namespace_by_population")
+    if not isinstance(rules, Mapping):
+        raise ValueError("external identity contract lacks group namespace rules")
+    normalized_rules = {str(key): str(value) for key, value in rules.items()}
+    populations = {
+        cell.population_id
+        for cell in registry.cells
+        if cell.fit_policy == "run_if_compatible"
+    }
+    if set(normalized_rules) != populations:
+        raise ValueError(
+            "external group namespace rules must cover the exact population roster"
+        )
+    expected = {
+        "version": ID_CONTRACT_VERSION,
+        "digest_algorithm": ID_DIGEST_ALGORITHM,
+        "identity_key_contract_version": IDENTITY_KEY_CONTRACT_VERSION,
+        "identity_key_bytes": IDENTITY_KEY_BYTES,
+        "opaque_row_id_prefix": OPAQUE_ROW_ID_PREFIX,
+        "opaque_group_id_prefix": OPAQUE_GROUP_ID_PREFIX,
+        "row_namespace_scope": "cell",
+        "canonical_row_order": "lexicographic_opaque_row_id",
+        "group_namespace_by_population": normalized_rules,
+    }
+    observed = {
+        key: configured.get(key)
+        for key in expected
+        if key != "group_namespace_by_population"
+    }
+    observed["group_namespace_by_population"] = normalized_rules
+    if observed != expected:
+        raise ValueError("external opaque identity contract disagrees with executable v1")
+
+    aggregates = registry.raw.get("population_aggregates", {})
+    scope_for_link = {
+        "none": "cell",
+        "slice_id": "population_slice",
+        "all": "population",
+    }
+    for population_id in sorted(populations):
+        aggregate = aggregates.get(population_id, {})
+        link_rule = str(aggregate.get("link_cells_by", "none"))
+        expected_scope = scope_for_link.get(link_rule)
+        if expected_scope is None:
+            raise ValueError(
+                f"{population_id}: unsupported aggregate linkage for opaque IDs"
+            )
+        if normalized_rules[population_id] != expected_scope:
+            raise ValueError(
+                f"{population_id}: opaque group namespace does not match "
+                f"link_cells_by={link_rule!r}"
+            )
+    return expected
+
+
+def identity_key_id(identity_key: bytes) -> str:
+    """Return a public, domain-separated commitment to a sealed release key."""
+
+    key = bytes(identity_key)
+    if len(key) != IDENTITY_KEY_BYTES:
+        raise ValueError(f"external identity key must be exactly {IDENTITY_KEY_BYTES} bytes")
+    digest = hashlib.sha256(
+        IDENTITY_KEY_CONTRACT_VERSION.encode("utf-8")
+        + b"\0external_identity_key_id\0"
+        + key
+    ).hexdigest()
+    return IDENTITY_KEY_ID_PREFIX + digest
+
+
+def load_identity_key(path: str | Path, *, create: bool = False) -> bytes:
+    """Load (or exclusively create) the controller-only release identity key.
+
+    The raw 32-byte key must live outside every fit-mounted release tree.  Only
+    preparation and post-freeze label joining call this function.  Fitting sees
+    the public ``key_id`` commitment, never this path or its bytes.
+    """
+
+    target = Path(path)
+    if create:
+        target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        try:
+            descriptor = os.open(
+                target,
+                os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                0o600,
+            )
+        except FileExistsError:
+            descriptor = None
+        if descriptor is not None:
+            key = secrets.token_bytes(IDENTITY_KEY_BYTES)
+            try:
+                written = os.write(descriptor, key)
+                if written != len(key):  # pragma: no cover - defensive short write
+                    raise OSError("short write while creating external identity key")
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
+    try:
+        metadata = target.lstat()
+    except FileNotFoundError as error:
+        raise FileNotFoundError(
+            f"sealed external identity key is absent: {target}"
+        ) from error
+    if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+        raise RuntimeError("external identity key must be a regular non-symlink file")
+    if stat.S_IMODE(metadata.st_mode) & 0o077:
+        raise PermissionError("external identity key must not be group/world accessible")
+    key = target.read_bytes()
+    if len(key) != IDENTITY_KEY_BYTES:
+        raise RuntimeError(
+            f"external identity key must contain exactly {IDENTITY_KEY_BYTES} raw bytes"
+        )
+    return key
+
+
+def external_id_contract_binding(
+    registry: ExternalRegistry,
+    *,
+    identity_key: bytes | None = None,
+    key_id: str | None = None,
+) -> dict[str, Any]:
+    """Return the registry and sealed-release-key-bound public ID contract."""
+
+    if (identity_key is None) == (key_id is None):
+        raise ValueError("provide exactly one of identity_key or key_id")
+    resolved_key_id = identity_key_id(identity_key) if identity_key is not None else str(key_id)
+    if _IDENTITY_KEY_ID_RE.fullmatch(resolved_key_id) is None:
+        raise ValueError("external identity key_id is malformed")
+    binding = _external_id_contract_template(registry)
+    binding["key_id"] = resolved_key_id
+    binding["contract_sha256"] = _payload_hash(binding)
+    return binding
+
+
+def validate_public_identity_contract(binding: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate a fit-safe public binding without opening the full registry."""
+
+    value = dict(binding)
+    rules = value.get("group_namespace_by_population")
+    if not isinstance(rules, Mapping) or not rules:
+        raise RuntimeError("fit-safe identity contract lacks group namespace rules")
+    normalized_rules = {str(key): str(scope) for key, scope in rules.items()}
+    if any(scope not in {"cell", "population_slice", "population"} for scope in normalized_rules.values()):
+        raise RuntimeError("fit-safe identity contract has an invalid group namespace")
+    expected = {
+        "version": ID_CONTRACT_VERSION,
+        "digest_algorithm": ID_DIGEST_ALGORITHM,
+        "identity_key_contract_version": IDENTITY_KEY_CONTRACT_VERSION,
+        "identity_key_bytes": IDENTITY_KEY_BYTES,
+        "opaque_row_id_prefix": OPAQUE_ROW_ID_PREFIX,
+        "opaque_group_id_prefix": OPAQUE_GROUP_ID_PREFIX,
+        "row_namespace_scope": "cell",
+        "canonical_row_order": "lexicographic_opaque_row_id",
+        "group_namespace_by_population": normalized_rules,
+        "key_id": value.get("key_id"),
+    }
+    if _IDENTITY_KEY_ID_RE.fullmatch(str(expected["key_id"])) is None:
+        raise RuntimeError("fit-safe identity contract key_id is malformed")
+    observed = {key: value.get(key) for key in expected}
+    if observed != expected or set(value) != {*expected, "contract_sha256"}:
+        raise RuntimeError("fit-safe opaque identity contract disagrees with executable v1")
+    if value.get("contract_sha256") != _payload_hash(expected):
+        raise RuntimeError("fit-safe opaque identity contract hash failed")
+    return value
+
+
+def _identity_namespace(
+    binding: Mapping[str, Any],
+    *,
+    kind: str,
+    cell_id: str,
+    population_id: str,
+    slice_id: str,
+) -> dict[str, str]:
+    binding = validate_public_identity_contract(binding)
+    if kind == "row":
+        return {
+            "contract_version": ID_CONTRACT_VERSION,
+            "identity_kind": "row",
+            "scope": "cell",
+            "cell_id": cell_id,
+        }
+    if kind != "group":
+        raise ValueError(f"unknown external identity kind: {kind!r}")
+    try:
+        scope = str(binding["group_namespace_by_population"][population_id])
+    except KeyError as error:
+        raise RuntimeError(
+            f"fit-safe identity contract omits population {population_id!r}"
+        ) from error
+    namespace = {
+        "contract_version": ID_CONTRACT_VERSION,
+        "identity_kind": "group",
+        "scope": scope,
+        "population_id": population_id,
+    }
+    if scope == "cell":
+        namespace["cell_id"] = cell_id
+    elif scope == "population_slice":
+        namespace["slice_id"] = slice_id
+    elif scope != "population":  # pragma: no cover - validated above
+        raise AssertionError(f"unvalidated identity namespace scope: {scope}")
+    return namespace
+
+
+def keyed_opaque_external_id(
+    *,
+    identity_key: bytes,
+    kind: str,
+    namespace: Mapping[str, str],
+    raw: Any,
+) -> str:
+    value = str(raw)
+    if not value:
+        raise ExternalContractError(
+            ReadinessStatus.ROW_CONTRACT_MISMATCH,
+            f"external {kind} source identity must be nonempty",
+        )
+    prefix = OPAQUE_ROW_ID_PREFIX if kind == "row" else OPAQUE_GROUP_ID_PREFIX
+    payload = {
+        "contract_version": ID_CONTRACT_VERSION,
+        "domain": f"external_prepared_{kind}_identity",
+        "namespace": dict(namespace),
+        "raw_identity": value,
+    }
+    digest = hmac.new(
+        bytes(identity_key), canonical_json_bytes(payload), hashlib.sha256
+    ).hexdigest()
+    return prefix + digest
+
+
+def assert_opaque_external_ids(
+    row_ids: Sequence[str],
+    group_ids: Sequence[str],
+) -> None:
+    rows = tuple(map(str, row_ids))
+    groups = tuple(map(str, group_ids))
+    if len(rows) != len(groups) or not rows:
+        raise ExternalContractError(
+            ReadinessStatus.ROW_CONTRACT_MISMATCH,
+            "opaque row/group rosters must be equal-length and nonempty",
+        )
+    if len(set(rows)) != len(rows) or any(_OPAQUE_ROW_ID_RE.fullmatch(x) is None for x in rows):
+        raise ExternalContractError(
+            ReadinessStatus.ROW_CONTRACT_MISMATCH,
+            "prepared row identities are not unique keyed opaque v2 identifiers",
+        )
+    if any(_OPAQUE_GROUP_ID_RE.fullmatch(x) is None for x in groups):
+        raise ExternalContractError(
+            ReadinessStatus.ROW_CONTRACT_MISMATCH,
+            "prepared group identities are not keyed opaque v2 identifiers",
+        )
+
+
+def apply_external_id_contract(
+    registry: ExternalRegistry,
+    spec: ExternalCellSpec,
+    raw_row_ids: Sequence[str],
+    raw_group_ids: Sequence[str],
+    *,
+    identity_key: bytes,
+) -> OpaqueIdentityRoster:
+    """HMAC every raw identity behind explicit row/group namespaces."""
+
+    raw_rows = tuple(map(str, raw_row_ids))
+    raw_groups = tuple(map(str, raw_group_ids))
+    if len(raw_rows) != len(raw_groups) or len(set(raw_rows)) != len(raw_rows):
+        raise ExternalContractError(
+            ReadinessStatus.ROW_CONTRACT_MISMATCH,
+            f"{spec.cell_id}: raw identity roster is misaligned or duplicates rows",
+        )
+    contract_binding = external_id_contract_binding(
+        registry, identity_key=identity_key
+    )
+    namespace_fields = {
+        "cell_id": spec.cell_id,
+        "population_id": spec.population_id,
+        "slice_id": spec.slice_id,
+    }
+    row_namespace = _identity_namespace(
+        contract_binding, kind="row", **namespace_fields
+    )
+    group_namespace = _identity_namespace(
+        contract_binding, kind="group", **namespace_fields
+    )
+    rows = tuple(
+        keyed_opaque_external_id(
+            identity_key=identity_key, kind="row", namespace=row_namespace, raw=value
+        )
+        for value in raw_rows
+    )
+    groups = tuple(
+        keyed_opaque_external_id(
+            identity_key=identity_key, kind="group", namespace=group_namespace, raw=value
+        )
+        for value in raw_groups
+    )
+    assert_opaque_external_ids(rows, groups)
+    return OpaqueIdentityRoster(
+        row_ids=rows,
+        group_ids=groups,
+        contract_binding=contract_binding,
+        row_namespace_sha256=_payload_hash(row_namespace),
+        group_namespace_sha256=_payload_hash(group_namespace),
+    )
+
+
+def canonicalize_external_identity_order(
+    matrix: np.ndarray,
+    identity: OpaqueIdentityRoster,
+) -> tuple[np.ndarray, OpaqueIdentityRoster]:
+    """Order a fit cohort only by opaque row identity.
+
+    Historical adapters often sort raw source keys, and some of those keys
+    encode an error family.  Even after hashing the values, retaining that raw
+    order would expose a label-correlated positional tie breaker to graph
+    methods.  Sorting the rows by their opaque cryptographic IDs removes that
+    channel while remaining deterministic and independent of source iteration
+    order.
+    """
+
+    values = np.asarray(matrix, dtype=np.float64)
+    if values.ndim != 2 or values.shape[0] != len(identity.row_ids):
+        raise ExternalContractError(
+            ReadinessStatus.ROW_CONTRACT_MISMATCH,
+            "matrix and opaque identity roster disagree before canonical ordering",
+        )
+    order = _opaque_order_indices(identity.row_ids)
+    rows = tuple(identity.row_ids[index] for index in order.tolist())
+    groups = tuple(identity.group_ids[index] for index in order.tolist())
+    assert_opaque_external_ids(rows, groups)
+    if rows != tuple(sorted(rows)):
+        raise AssertionError("opaque row canonicalization did not produce sorted IDs")
+    ordered = np.array(values[order], dtype=np.float64, order="C", copy=True)
+    ordered.setflags(write=False)
+    return ordered, OpaqueIdentityRoster(
+        row_ids=rows,
+        group_ids=groups,
+        contract_binding=identity.contract_binding,
+        row_namespace_sha256=identity.row_namespace_sha256,
+        group_namespace_sha256=identity.group_namespace_sha256,
+    )
+
+
+def _opaque_order_indices(row_ids: Sequence[str]) -> np.ndarray:
+    rows = tuple(map(str, row_ids))
+    return np.asarray(
+        sorted(range(len(rows)), key=lambda index: rows[index]),
+        dtype=np.int64,
+    )
+
+
 def load_external_registry(
     *,
     repo: str | Path,
@@ -312,6 +727,19 @@ def load_external_registry(
     cells = tuple(ExternalCellSpec.from_mapping(item) for item in raw.get("cells", ()))
     if not cells or len({item.cell_id for item in cells}) != len(cells):
         raise ValueError("external cell registry is empty or contains duplicate IDs")
+    for source_row, item in zip(raw.get("cells", ()), cells):
+        if "excluded_row_ids" in source_row:
+            raise ValueError(
+                f"{item.cell_id}: raw exclusion IDs are forbidden in the v2 registry"
+            )
+        fingerprints = item.excluded_raw_id_fingerprints
+        if len(set(fingerprints)) != len(fingerprints) or any(
+            _RAW_ID_FINGERPRINT_RE.fullmatch(value) is None
+            for value in fingerprints
+        ):
+            raise ValueError(
+                f"{item.cell_id}: exclusion fingerprints are malformed or duplicated"
+            )
     populations = _read_json(population_file)
     population_rows = {
         str(item["population_id"]): item
@@ -382,7 +810,7 @@ def load_external_registry(
                 raise ValueError(f"{population_id}: unsupported aggregate weighting")
             if aggregate.get("link_cells_by") not in {"none", "slice_id", "all"}:
                 raise ValueError(f"{population_id}: unsupported cross-cell linkage rule")
-    return ExternalRegistry(
+    registry = ExternalRegistry(
         path=registry_file,
         sha256=sha256_file(registry_file),
         population_registry_path=population_file,
@@ -390,6 +818,15 @@ def load_external_registry(
         raw=raw,
         cells=cells,
     )
+    _external_id_contract_template(registry)
+    if raw.get("exclusion_fingerprint_contract") != {
+        "version": RAW_ID_FINGERPRINT_VERSION,
+        "digest_algorithm": "sha256-canonical-json-v1",
+        "prefix": RAW_ID_FINGERPRINT_PREFIX,
+        "controller_only": True,
+    }:
+        raise ValueError("external exclusion-fingerprint contract is stale")
+    return registry
 
 
 def _resolve_under(root: Path, path: str | Path) -> Path:
@@ -732,6 +1169,7 @@ def _processbench_raw(spec: ExternalCellSpec, sources: ResolvedSources) -> RawFe
     row_ids: list[str] = []
     for key in sorted(cache, key=_stable_key):
         row = cache[key]
+        key_fingerprint = raw_id_fingerprint(key)
         if not isinstance(row, Mapping):
             raise ExternalContractError(ReadinessStatus.ROW_CONTRACT_MISMATCH, "ProcessBench row is not a mapping")
         alignment = row.get("align_diag", {})
@@ -739,13 +1177,14 @@ def _processbench_raw(spec: ExternalCellSpec, sources: ResolvedSources) -> RawFe
         if problems or alignment.get("ok") is False:
             raise ExternalContractError(
                 ReadinessStatus.ROW_CONTRACT_MISMATCH,
-                f"{spec.cell_id}: registered population contains alignment problems at {key}: {problems}",
+                f"{spec.cell_id}: registered population contains alignment problems at "
+                f"source fingerprint {key_fingerprint}: {problems}",
             )
         official_id = row.get("id")
         if not isinstance(official_id, str) or not official_id:
             raise ExternalContractError(
                 ReadinessStatus.ROW_CONTRACT_MISMATCH,
-                f"ProcessBench source row {key} lacks its official string ID",
+                f"ProcessBench source fingerprint {key_fingerprint} lacks its official string ID",
             )
         row_id = official_id
         feature_rows.append(_telemetry_features(row, allow_short=True))
@@ -763,28 +1202,31 @@ def _prmbench_raw(spec: ExternalCellSpec, sources: ResolvedSources) -> RawFeatur
     cache = _load_pickle(sources.feature_files[0].path)
     if not isinstance(cache, Mapping):
         raise ExternalContractError(ReadinessStatus.ROW_CONTRACT_MISMATCH, "PRMBench cache is not a mapping")
-    excluded = set(spec.excluded_row_ids)
+    excluded = set(spec.excluded_raw_id_fingerprints)
     seen_excluded: set[str] = set()
     feature_rows: list[Mapping[str, float]] = []
     row_ids: list[str] = []
     groups: list[str] = []
     for key in sorted(cache, key=_stable_key):
         row = cache[key]
+        key_fingerprint = raw_id_fingerprint(key)
         row_id = str(row.get("idx", ""))
         if not row_id:
             raise ExternalContractError(
                 ReadinessStatus.ROW_CONTRACT_MISMATCH,
-                f"PRMBench source row {key} lacks idx",
+                f"PRMBench source fingerprint {key_fingerprint} lacks idx",
             )
-        if row_id in excluded:
-            seen_excluded.add(row_id)
+        fingerprint = raw_id_fingerprint(row_id)
+        if fingerprint in excluded:
+            seen_excluded.add(fingerprint)
             continue
         alignment = row.get("align_diag", {})
         problems = alignment.get("problems")
         if problems or alignment.get("ok") is False:
             raise ExternalContractError(
                 ReadinessStatus.ROW_CONTRACT_MISMATCH,
-                f"{spec.cell_id}: unexpected non-preregistered alignment exclusion {row_id}",
+                f"{spec.cell_id}: unexpected non-preregistered alignment exclusion "
+                f"{fingerprint}",
             )
         feature_rows.append(_telemetry_features(row, allow_short=True))
         row_ids.append(row_id)
@@ -792,13 +1234,14 @@ def _prmbench_raw(spec: ExternalCellSpec, sources: ResolvedSources) -> RawFeatur
         if not source_group:
             raise ExternalContractError(
                 ReadinessStatus.ROW_CONTRACT_MISMATCH,
-                f"PRMBench row {row_id} lacks source_idx",
+                f"PRMBench row fingerprint {fingerprint} lacks source_idx",
             )
         groups.append(source_group)
     if seen_excluded != excluded:
         raise ExternalContractError(
             ReadinessStatus.ROW_CONTRACT_MISMATCH,
-            f"{spec.cell_id}: preregistered exclusions missing from source: {sorted(excluded - seen_excluded)}",
+            f"{spec.cell_id}: preregistered exclusion fingerprints missing from source: "
+            f"{sorted(excluded - seen_excluded)}",
         )
     matrix, names = _matrix_from_feature_rows(spec, feature_rows)
     return RawFeatureCell(
@@ -818,11 +1261,12 @@ def _repgrid_raw(spec: ExternalCellSpec, sources: ResolvedSources) -> RawFeature
     groups: list[str] = []
     for key in sorted(data, key=_stable_key):
         entry = data[key]
+        key_fingerprint = raw_id_fingerprint(key)
         candidates = entry.get("candidates") if isinstance(entry, Mapping) else None
         if not isinstance(candidates, Sequence) or isinstance(candidates, (str, bytes)):
             raise ExternalContractError(
                 ReadinessStatus.ROW_CONTRACT_MISMATCH,
-                f"{spec.cell_id}: source group {key} lacks a candidate sequence",
+                f"{spec.cell_id}: source-group fingerprint {key_fingerprint} lacks a candidate sequence",
             )
         for index, candidate in enumerate(candidates):
             if not isinstance(candidate, Mapping):
@@ -940,8 +1384,44 @@ def apply_mixed_v2_once(raw: RawFeatureCell) -> tuple[np.ndarray, Mapping[str, A
     return np.asarray(transformed, dtype=np.float64), details
 
 
-def _row_signature(row_ids: Sequence[str], group_ids: Sequence[str]) -> str:
-    return _payload_hash({"row_ids": list(row_ids), "group_ids": list(group_ids)})
+def _row_roster_signature(
+    row_ids: Sequence[str],
+    *,
+    contract_binding: Mapping[str, Any],
+    row_namespace_sha256: str,
+) -> str:
+    rows = tuple(map(str, row_ids))
+    if not rows or len(set(rows)) != len(rows) or any(
+        _OPAQUE_ROW_ID_RE.fullmatch(value) is None for value in rows
+    ):
+        raise ExternalContractError(
+            ReadinessStatus.ROW_CONTRACT_MISMATCH,
+            "opaque row roster is empty, duplicated, or malformed",
+        )
+    return _payload_hash({
+        "schema_version": "reconstruction-external-fit-row-roster-v2",
+        "id_contract_version": ID_CONTRACT_VERSION,
+        "id_contract_sha256": contract_binding["contract_sha256"],
+        "key_id": contract_binding["key_id"],
+        "row_namespace_sha256": row_namespace_sha256,
+        "row_ids": list(rows),
+    })
+
+
+def sealed_group_roster_commitment(identity: OpaqueIdentityRoster) -> str:
+    """Commit to post-freeze resampling groups without exposing membership."""
+
+    assert_opaque_external_ids(identity.row_ids, identity.group_ids)
+    return _payload_hash({
+        "schema_version": "reconstruction-external-sealed-group-roster-v1",
+        "id_contract_version": ID_CONTRACT_VERSION,
+        "id_contract_sha256": identity.contract_binding["contract_sha256"],
+        "key_id": identity.contract_binding["key_id"],
+        "row_namespace_sha256": identity.row_namespace_sha256,
+        "group_namespace_sha256": identity.group_namespace_sha256,
+        "row_ids": list(identity.row_ids),
+        "group_ids": list(identity.group_ids),
+    })
 
 
 def prepare_external_cell(
@@ -950,12 +1430,43 @@ def prepare_external_cell(
     spec: ExternalCellSpec,
     repo: str | Path,
     output_path: str | Path,
+    identity_key: bytes,
 ) -> Mapping[str, Any]:
     sources = resolve_sources(registry, spec, repo=repo)
     verified = verify_sources(sources, include_labels=False)
     raw = load_raw_feature_cell(spec, sources)
-    matrix, transform_details = apply_mixed_v2_once(raw)
-    matrix_hash = prepared_matrix_sha256(matrix, raw.feature_names, raw.row_ids)
+    identity = apply_external_id_contract(
+        registry, spec, raw.row_ids, raw.group_ids, identity_key=identity_key
+    )
+    ordered_raw_matrix, identity = canonicalize_external_identity_order(
+        raw.raw_matrix, identity
+    )
+    ordered_raw = RawFeatureCell(
+        spec=raw.spec,
+        raw_matrix=ordered_raw_matrix,
+        row_ids=identity.row_ids,
+        group_ids=identity.group_ids,
+        source_files=raw.source_files,
+        feature_names=raw.feature_names,
+        preprocessing_steps=raw.preprocessing_steps,
+    )
+    matrix, transform_details = apply_mixed_v2_once(ordered_raw)
+    matrix_hash = prepared_matrix_sha256(matrix, raw.feature_names, identity.row_ids)
+    fit_identity_contract = build_fit_row_identity_contract(
+        identity.contract_binding,
+        identity_key=identity_key,
+    )
+    fit_row_namespace = fit_row_namespace_sha256(
+        contract=fit_identity_contract,
+        cell_id=spec.cell_id,
+    )
+    if fit_row_namespace != identity.row_namespace_sha256:
+        raise RuntimeError("controller and fit row namespaces disagree")
+    fit_row_roster = fit_row_roster_sha256(
+        identity.row_ids,
+        contract=fit_identity_contract,
+        row_namespace_sha256_value=fit_row_namespace,
+    )
     # PreparedCell validation is the executable gate shared by all 13 methods.
     PreparedCell(
         population_id=spec.population_id,
@@ -963,7 +1474,7 @@ def prepare_external_cell(
         domain=spec.domain,
         matrix=matrix,
         feature_names=raw.feature_names,
-        row_ids=raw.row_ids,
+        row_ids=identity.row_ids,
         feature_contract=CONTRACT_VERSION,
         preprocessing_steps=(CONTRACT_VERSION,),
         preprocessed=True,
@@ -974,9 +1485,18 @@ def prepare_external_cell(
         "X_confidence": matrix.astype("<f8", copy=False),
         "feature_names": np.asarray(raw.feature_names, dtype="<U64"),
         "family_ids": np.asarray([FEATURE_TO_VIEW[name] for name in raw.feature_names], dtype="<U32"),
-        "row_ids": np.asarray(raw.row_ids, dtype="<U256"),
-        "group_ids": np.asarray(raw.group_ids, dtype="<U256"),
-        "row_index": np.arange(len(raw.row_ids), dtype="<i8"),
+        "row_ids": np.asarray(identity.row_ids, dtype="<U80"),
+        "row_index": np.arange(len(identity.row_ids), dtype="<i8"),
+        "id_contract_version": np.asarray([ID_CONTRACT_VERSION], dtype="<U64"),
+        "id_contract_sha256": np.asarray(
+            [fit_identity_contract["contract_sha256"]], dtype="<U64"
+        ),
+        "row_namespace_sha256": np.asarray(
+            [identity.row_namespace_sha256], dtype="<U64"
+        ),
+        "identity_key_id": np.asarray(
+            [identity.contract_binding["key_id"]], dtype="<U80"
+        ),
     }
     forbidden = [
         name for name in arrays
@@ -997,7 +1517,7 @@ def prepare_external_cell(
         "comparison_group_id": spec.comparison_group_id,
         "panel_role": spec.panel_role,
         "adapter_id": spec.adapter_id,
-        "n_rows": len(raw.row_ids),
+        "n_rows": len(identity.row_ids),
         "n_features": len(raw.feature_names),
         "feature_names": list(raw.feature_names),
         "present_feature_roster_sha256": _payload_hash(list(raw.feature_names)),
@@ -1011,8 +1531,17 @@ def prepare_external_cell(
         "mixed_v2_applied_count": 1,
         "matrix_semantics": "higher_is_confidence",
         "prepared_matrix_sha256": matrix_hash,
-        "row_signature_sha256": _row_signature(raw.row_ids, raw.group_ids),
-        "group_count": len(set(raw.group_ids)),
+        "identity_contract": dict(identity.contract_binding),
+        "fit_row_identity_contract": dict(fit_identity_contract),
+        "id_contract_version": ID_CONTRACT_VERSION,
+        "id_contract_sha256": identity.contract_binding["contract_sha256"],
+        "fit_row_id_contract_sha256": fit_identity_contract["contract_sha256"],
+        "identity_key_id": identity.contract_binding["key_id"],
+        "row_namespace_sha256": identity.row_namespace_sha256,
+        "group_namespace_sha256": identity.group_namespace_sha256,
+        "row_roster_sha256": fit_row_roster,
+        "sealed_group_roster_commitment_sha256": sealed_group_roster_commitment(identity),
+        "group_count": len(set(identity.group_ids)),
         "artifact_path": target.name,
         "artifact_sha256": artifact_sha,
         "source_files": verified,
@@ -1023,16 +1552,75 @@ def prepare_external_cell(
     }
 
 
+_FIT_SAFE_PUBLIC_CELL_FIELDS = (
+    "cell_id", "population_id", "dataset_id", "model_id", "slice_id", "domain",
+    "comparison_group_id", "panel_role", "status", "prepared",
+)
+_FIT_SAFE_ELIGIBLE_FIELDS = (
+    "schema_version", "n_rows", "n_features", "feature_names",
+    "present_feature_roster_sha256", "nominal_feature_count",
+    "nominal_feature_roster_sha256", "absent_feature_names",
+    "feature_contract_id", "preprocessing_steps", "mixed_v2_applied_count",
+    "matrix_semantics", "prepared_matrix_sha256",
+    "id_contract_version", "identity_key_id",
+    "row_namespace_sha256", "row_roster_sha256", "artifact_path",
+    "artifact_sha256",
+)
+
+
+def fit_safe_external_cell_record(record: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the only per-cell metadata allowed inside the fit mount."""
+
+    safe = {
+        key: record[key]
+        for key in _FIT_SAFE_PUBLIC_CELL_FIELDS
+        if key in record
+    }
+    if record.get("status") == ReadinessStatus.ELIGIBLE.value:
+        controller_required = {
+            *_FIT_SAFE_ELIGIBLE_FIELDS,
+            "fit_row_identity_contract", "fit_row_id_contract_sha256",
+        }
+        missing = sorted(controller_required - set(record))
+        if missing:
+            raise RuntimeError(f"eligible external record lacks fit-safe fields: {missing}")
+        safe.update({key: record[key] for key in _FIT_SAFE_ELIGIBLE_FIELDS})
+        safe.update({
+            "identity_contract": record["fit_row_identity_contract"],
+            "id_contract_sha256": record["fit_row_id_contract_sha256"],
+        })
+    elif record.get("prepared") is not False:
+        safe["prepared"] = False
+    forbidden = {
+        "expected_rows", "expected_correct", "expected_incorrect",
+        "expected_group_count", "group_count", "group_ids",
+        "group_namespace_sha256", "sealed_group_roster_commitment_sha256",
+        "fit_row_identity_contract", "fit_row_id_contract_sha256",
+        "source", "source_root", "source_files", "source_inventory_bindings",
+        "reason", "excluded_row_ids", "excluded_raw_id_fingerprints",
+        "transform_details", "verified_source_files", "label_rule",
+    }
+    leaked = sorted(forbidden & set(safe))
+    if leaked:
+        raise RuntimeError(f"controller-only metadata crossed fit boundary: {leaked}")
+    return safe
+
+
 def load_prepared_external_cell(
     *,
     artifact_path: str | Path,
     record: Mapping[str, Any],
-) -> tuple[PreparedCell, tuple[str, ...]]:
+    identity_contract: Mapping[str, Any],
+) -> PreparedCell:
     path = Path(artifact_path)
     if sha256_file(path) != str(record["artifact_sha256"]):
         raise RuntimeError(f"prepared artifact hash mismatch: {path}")
     arrays = load_npz_no_pickle(path)
-    allowed = {"X_confidence", "feature_names", "family_ids", "row_ids", "group_ids", "row_index"}
+    allowed = {
+        "X_confidence", "feature_names", "family_ids", "row_ids",
+        "row_index", "id_contract_version", "id_contract_sha256",
+        "row_namespace_sha256", "identity_key_id",
+    }
     if set(arrays) != allowed:
         raise RuntimeError(f"unexpected prepared arrays: {sorted(set(arrays) ^ allowed)}")
     if any(
@@ -1046,14 +1634,63 @@ def load_prepared_external_cell(
         raise RuntimeError("prepared external present-feature roster/order drifted")
     if _payload_hash(list(names)) != record.get("present_feature_roster_sha256"):
         raise RuntimeError("prepared external present-feature roster hash drifted")
+    family_ids = tuple(map(str, arrays["family_ids"].tolist()))
+    expected_family_ids = tuple(FEATURE_TO_VIEW[name] for name in names)
+    if family_ids != expected_family_ids:
+        raise RuntimeError("prepared external family roster/order drifted")
     rows = tuple(map(str, arrays["row_ids"].tolist()))
-    groups = tuple(map(str, arrays["group_ids"].tolist()))
+    if not rows or len(set(rows)) != len(rows) or any(
+        _OPAQUE_ROW_ID_RE.fullmatch(value) is None for value in rows
+    ):
+        raise RuntimeError("prepared external row IDs are not keyed opaque v2 IDs")
+    if rows != tuple(sorted(rows)):
+        raise RuntimeError("prepared external row IDs are not in canonical opaque order")
+    if not np.array_equal(
+        np.asarray(arrays["row_index"], dtype=np.int64),
+        np.arange(len(rows), dtype=np.int64),
+    ):
+        raise RuntimeError("prepared external row_index is not canonical")
+    expected_contract = validate_public_identity_contract(identity_contract)
+    row_namespace = _identity_namespace(
+        expected_contract,
+        kind="row",
+        cell_id=str(record.get("cell_id", "")),
+        population_id=str(record.get("population_id", "")),
+        slice_id=str(record.get("slice_id", "")),
+    )
+    row_namespace_sha256 = _payload_hash(row_namespace)
+    identity_exact = {
+        "identity_contract": expected_contract,
+        "id_contract_version": ID_CONTRACT_VERSION,
+        "id_contract_sha256": expected_contract["contract_sha256"],
+        "identity_key_id": expected_contract["key_id"],
+        "row_namespace_sha256": row_namespace_sha256,
+    }
+    for key, value in identity_exact.items():
+        if record.get(key) != value:
+            raise RuntimeError(f"prepared external identity binding drifted: {key}")
+    artifact_identity = {}
+    for key in (
+        "id_contract_version", "id_contract_sha256",
+        "row_namespace_sha256", "identity_key_id",
+    ):
+        scalar = np.asarray(arrays[key])
+        if scalar.shape != (1,):
+            raise RuntimeError(f"prepared artifact {key} is not a scalar binding")
+        artifact_identity[key] = str(scalar.tolist()[0])
+    for key in artifact_identity:
+        if artifact_identity[key] != identity_exact[key]:
+            raise RuntimeError(f"prepared artifact identity binding drifted: {key}")
     matrix = np.asarray(arrays["X_confidence"], dtype=np.float64)
     observed = prepared_matrix_sha256(matrix, names, rows)
     if observed != record.get("prepared_matrix_sha256"):
         raise RuntimeError("prepared matrix/row hash mismatch")
-    if _row_signature(rows, groups) != record.get("row_signature_sha256"):
-        raise RuntimeError("prepared row/group signature mismatch")
+    if _row_roster_signature(
+        rows,
+        contract_binding=expected_contract,
+        row_namespace_sha256=row_namespace_sha256,
+    ) != record.get("row_roster_sha256"):
+        raise RuntimeError("prepared opaque row-roster signature mismatch")
     cell = PreparedCell(
         population_id=str(record["population_id"]),
         cell_id=str(record["cell_id"]),
@@ -1066,7 +1703,7 @@ def load_prepared_external_cell(
         preprocessed=True,
         declared_matrix_sha256=observed,
     )
-    return cell, groups
+    return cell
 
 
 def audit_external_registry(
@@ -1074,7 +1711,10 @@ def audit_external_registry(
     registry: ExternalRegistry,
     repo: str | Path,
     deep: bool = False,
+    identity_key: bytes | None = None,
 ) -> Mapping[str, Any]:
+    if deep and identity_key is None:
+        raise ValueError("deep external audit requires the sealed release identity key")
     rows: list[Mapping[str, Any]] = []
     for spec in registry.cells:
         base = {
@@ -1118,13 +1758,42 @@ def audit_external_registry(
             }
             if deep:
                 raw = load_raw_feature_cell(spec, sources)
-                matrix, _ = apply_mixed_v2_once(raw)
+                identity = apply_external_id_contract(
+                    registry,
+                    spec,
+                    raw.row_ids,
+                    raw.group_ids,
+                    identity_key=identity_key,
+                )
+                ordered_matrix, identity = canonicalize_external_identity_order(
+                    raw.raw_matrix, identity
+                )
+                ordered_raw = RawFeatureCell(
+                    spec=raw.spec,
+                    raw_matrix=ordered_matrix,
+                    row_ids=identity.row_ids,
+                    group_ids=identity.group_ids,
+                    source_files=raw.source_files,
+                    feature_names=raw.feature_names,
+                    preprocessing_steps=raw.preprocessing_steps,
+                )
+                matrix, _ = apply_mixed_v2_once(ordered_raw)
                 result.update({
                     "status": ReadinessStatus.ELIGIBLE.value,
                     "feature_contract_verified": True,
-                    "n_rows": len(raw.row_ids),
+                    "identity_contract_verified": True,
+                    "id_contract_version": ID_CONTRACT_VERSION,
+                    "id_contract_sha256": identity.contract_binding["contract_sha256"],
+                    "row_namespace_sha256": identity.row_namespace_sha256,
+                    "group_namespace_sha256": identity.group_namespace_sha256,
+                    "n_rows": len(identity.row_ids),
                     "n_features": matrix.shape[1],
-                    "row_signature_sha256": _row_signature(raw.row_ids, raw.group_ids),
+                    "row_roster_sha256": _row_roster_signature(
+                        identity.row_ids,
+                        contract_binding=identity.contract_binding,
+                        row_namespace_sha256=identity.row_namespace_sha256,
+                    ),
+                    "sealed_group_roster_commitment_sha256": sealed_group_roster_commitment(identity),
                 })
             rows.append(result)
         except ExternalContractError as error:
@@ -1150,6 +1819,12 @@ def audit_external_registry(
         "population_registry_sha256": registry.population_registry_sha256,
         "source_root": str(Path(repo).resolve()),
         "feature_contract_id": CONTRACT_VERSION,
+        "identity_contract": (
+            None
+            if identity_key is None
+            else external_id_contract_binding(registry, identity_key=identity_key)
+        ),
+        "id_contract_version": ID_CONTRACT_VERSION,
         "row_dropping_or_imputation_forbidden": True,
         "partial_feature_availability_forbidden": True,
         "uniformly_unavailable_nominal_views_may_remain_absent": True,
@@ -1191,7 +1866,7 @@ def _label_rows_processbench(spec: ExternalCellSpec, sources: ResolvedSources):
 
 def _label_rows_prmbench(spec: ExternalCellSpec, sources: ResolvedSources):
     cache = _load_pickle(sources.feature_files[0].path)
-    excluded = set(spec.excluded_row_ids)
+    excluded = set(spec.excluded_raw_id_fingerprints)
     rows, groups, labels = [], [], []
     for key in sorted(cache, key=_stable_key):
         row = cache[key]
@@ -1201,21 +1876,29 @@ def _label_rows_prmbench(spec: ExternalCellSpec, sources: ResolvedSources):
                 ReadinessStatus.ROW_CONTRACT_MISMATCH,
                 f"PRMBench label source row {key} lacks idx",
             )
-        if row_id in excluded:
+        fingerprint = raw_id_fingerprint(row_id)
+        if fingerprint in excluded:
             continue
         classification = str(row.get("classification", ""))
         if not classification:
-            raise ExternalContractError(ReadinessStatus.LABEL_PROVENANCE_BLOCKED, f"{row_id}: classification is absent")
+            raise ExternalContractError(
+                ReadinessStatus.LABEL_PROVENANCE_BLOCKED,
+                f"PRMBench row fingerprint {fingerprint}: classification is absent",
+            )
         rows.append(row_id)
         source_group = str(row.get("source_idx", ""))
         if not source_group:
             raise ExternalContractError(
                 ReadinessStatus.ROW_CONTRACT_MISMATCH,
-                f"PRMBench label row {row_id} lacks source_idx",
+                f"PRMBench label row fingerprint {fingerprint} lacks source_idx",
             )
         groups.append(source_group)
         labels.append(int(classification != "correct"))
-    return rows, groups, labels, {"label_rule": "classification != correct", "excluded_row_ids": sorted(excluded)}
+    return rows, groups, labels, {
+        "label_rule": "classification != correct",
+        "excluded_raw_id_fingerprints": sorted(excluded),
+        "raw_id_fingerprint_version": RAW_ID_FINGERPRINT_VERSION,
+    }
 
 
 def _label_rows_repgrid(spec: ExternalCellSpec, sources: ResolvedSources):
@@ -1296,7 +1979,12 @@ def assert_score_freeze(
     freeze: Mapping[str, Any],
     *,
     registry: ExternalRegistry,
+    identity_key: bytes,
 ) -> None:
+    expected_fit_identity = build_fit_row_identity_contract(
+        external_id_contract_binding(registry, identity_key=identity_key),
+        identity_key=identity_key,
+    )
     if freeze.get("schema_version") != SCORE_FREEZE_SCHEMA_VERSION:
         raise ExternalContractError(ReadinessStatus.LABEL_PROVENANCE_BLOCKED, "external score freeze schema is missing")
     if freeze.get("all_expected_scores_present") is not True:
@@ -1305,6 +1993,14 @@ def assert_score_freeze(
         raise ExternalContractError(ReadinessStatus.LABEL_PROVENANCE_BLOCKED, "fit freeze does not prove label isolation")
     if freeze.get("external_registry_sha256") != registry.sha256:
         raise ExternalContractError(ReadinessStatus.LABEL_PROVENANCE_BLOCKED, "score freeze binds another external registry")
+    if (
+        freeze.get("id_contract_version") != ID_CONTRACT_VERSION
+        or freeze.get("identity_contract") != expected_fit_identity
+    ):
+        raise ExternalContractError(
+            ReadinessStatus.LABEL_PROVENANCE_BLOCKED,
+            "score freeze binds another opaque identity contract",
+        )
     payload = dict(freeze)
     recorded = payload.pop("payload_sha256", None)
     if recorded != _payload_hash(payload):
@@ -1318,9 +2014,12 @@ def load_labels_after_score_freeze(
     repo: str | Path,
     score_freeze: Mapping[str, Any],
     expected_row_ids: Sequence[str],
-    expected_group_ids: Sequence[str],
+    expected_group_roster_commitment_sha256: str,
+    identity_key: bytes,
 ) -> LabelVector:
-    assert_score_freeze(score_freeze, registry=registry)
+    assert_score_freeze(
+        score_freeze, registry=registry, identity_key=identity_key
+    )
     sources = resolve_sources(registry, spec, repo=repo)
     verified = verify_sources(sources, include_labels=True)
     adapter = LABEL_ADAPTERS.get(spec.adapter_id)
@@ -1335,12 +2034,43 @@ def load_labels_after_score_freeze(
             ReadinessStatus.LABEL_PROVENANCE_BLOCKED,
             f"{spec.cell_id}: label adapter failed closed: {type(error).__name__}: {error}",
         ) from error
-    rows = tuple(map(str, rows))
-    groups = tuple(map(str, groups))
-    if rows != tuple(map(str, expected_row_ids)) or groups != tuple(map(str, expected_group_ids)):
+    raw_rows = tuple(map(str, rows))
+    raw_groups = tuple(map(str, groups))
+    identity = apply_external_id_contract(
+        registry,
+        spec,
+        raw_rows,
+        raw_groups,
+        identity_key=identity_key,
+    )
+    raw_values = np.asarray(labels)
+    if raw_values.shape != (len(identity.row_ids),):
+        raise ExternalContractError(
+            ReadinessStatus.ROW_CONTRACT_MISMATCH,
+            f"{spec.cell_id}: label and raw identity rosters disagree",
+        )
+    order = _opaque_order_indices(identity.row_ids)
+    rows = tuple(identity.row_ids[index] for index in order.tolist())
+    groups = tuple(identity.group_ids[index] for index in order.tolist())
+    labels = raw_values[order]
+    identity = OpaqueIdentityRoster(
+        row_ids=rows,
+        group_ids=groups,
+        contract_binding=identity.contract_binding,
+        row_namespace_sha256=identity.row_namespace_sha256,
+        group_namespace_sha256=identity.group_namespace_sha256,
+    )
+    if rows != tuple(map(str, expected_row_ids)):
         raise ExternalContractError(
             ReadinessStatus.ROW_CONTRACT_MISMATCH,
             f"{spec.cell_id}: post-freeze label roster/order differs from the frozen score cohort",
+        )
+    if sealed_group_roster_commitment(identity) != str(
+        expected_group_roster_commitment_sha256
+    ):
+        raise ExternalContractError(
+            ReadinessStatus.ROW_CONTRACT_MISMATCH,
+            f"{spec.cell_id}: post-freeze group roster differs from sealed preparation",
         )
     values = np.asarray(labels, dtype=np.int8)
     incorrect = int(values.sum())
@@ -1357,6 +2087,18 @@ def load_labels_after_score_freeze(
         "n_incorrect": incorrect,
         "n_correct": correct,
         "score_freeze_payload_sha256": score_freeze["payload_sha256"],
+        "identity_contract": dict(identity.contract_binding),
+        "id_contract_version": ID_CONTRACT_VERSION,
+        "id_contract_sha256": identity.contract_binding["contract_sha256"],
+        "identity_key_id": identity.contract_binding["key_id"],
+        "row_namespace_sha256": identity.row_namespace_sha256,
+        "group_namespace_sha256": identity.group_namespace_sha256,
+        "row_roster_sha256": _row_roster_signature(
+            rows,
+            contract_binding=identity.contract_binding,
+            row_namespace_sha256=identity.row_namespace_sha256,
+        ),
+        "sealed_group_roster_commitment_sha256": sealed_group_roster_commitment(identity),
     }
     return LabelVector(spec.cell_id, rows, groups, values, label_provenance)
 
@@ -1364,9 +2106,24 @@ def load_labels_after_score_freeze(
 def write_label_vector(path: str | Path, value: LabelVector) -> Mapping[str, Any]:
     target = Path(path)
     artifact_sha = atomic_write_npz(target, {
-        "row_ids": np.asarray(value.row_ids, dtype="<U256"),
-        "group_ids": np.asarray(value.group_ids, dtype="<U256"),
+        "row_ids": np.asarray(value.row_ids, dtype="<U80"),
+        "group_ids": np.asarray(value.group_ids, dtype="<U80"),
         "incorrect": np.asarray(value.incorrect, dtype="i1"),
+        "id_contract_version": np.asarray(
+            [value.provenance["id_contract_version"]], dtype="<U64"
+        ),
+        "id_contract_sha256": np.asarray(
+            [value.provenance["id_contract_sha256"]], dtype="<U64"
+        ),
+        "identity_key_id": np.asarray(
+            [value.provenance["identity_key_id"]], dtype="<U80"
+        ),
+        "row_namespace_sha256": np.asarray(
+            [value.provenance["row_namespace_sha256"]], dtype="<U64"
+        ),
+        "group_namespace_sha256": np.asarray(
+            [value.provenance["group_namespace_sha256"]], dtype="<U64"
+        ),
     })
     return {
         "schema_version": LABEL_SCHEMA_VERSION,
@@ -1374,8 +2131,24 @@ def write_label_vector(path: str | Path, value: LabelVector) -> Mapping[str, Any
         "n_rows": len(value.row_ids),
         "artifact_path": target.name,
         "artifact_sha256": artifact_sha,
+        "identity_contract": dict(value.provenance["identity_contract"]),
+        "id_contract_version": value.provenance["id_contract_version"],
+        "id_contract_sha256": value.provenance["id_contract_sha256"],
+        "identity_key_id": value.provenance["identity_key_id"],
+        "row_namespace_sha256": value.provenance["row_namespace_sha256"],
+        "group_namespace_sha256": value.provenance["group_namespace_sha256"],
+        "row_roster_sha256": value.provenance["row_roster_sha256"],
+        "sealed_group_roster_commitment_sha256": value.provenance[
+            "sealed_group_roster_commitment_sha256"
+        ],
         "provenance": dict(value.provenance),
     }
+
+
+# Public callers and tests use the same fit-only loader that is copied into the
+# restricted capsule.  The controller module retains preparation/evaluation
+# code, but none of it is in that loader's import closure.
+load_prepared_external_cell = load_fit_prepared_external_cell
 
 
 __all__ = [
@@ -1384,23 +2157,43 @@ __all__ = [
     "ExternalCellSpec",
     "ExternalContractError",
     "ExternalRegistry",
+    "ID_CONTRACT_VERSION",
+    "ID_DIGEST_ALGORITHM",
+    "IDENTITY_KEY_BYTES",
+    "IDENTITY_KEY_CONTRACT_VERSION",
     "LABEL_SCHEMA_VERSION",
     "LabelVector",
+    "OpaqueIdentityRoster",
+    "OPAQUE_GROUP_ID_PREFIX",
+    "OPAQUE_ROW_ID_PREFIX",
     "PREPARED_SCHEMA_VERSION",
     "RAW_ADAPTERS",
     "ReadinessStatus",
     "ResolvedSources",
     "SCORE_FREEZE_SCHEMA_VERSION",
+    "RAW_ID_FINGERPRINT_PREFIX",
+    "RAW_ID_FINGERPRINT_VERSION",
     "SourceFile",
     "apply_mixed_v2_once",
+    "apply_external_id_contract",
+    "assert_opaque_external_ids",
     "assert_score_freeze",
     "audit_external_registry",
+    "canonicalize_external_identity_order",
+    "external_id_contract_binding",
+    "fit_safe_external_cell_record",
+    "identity_key_id",
+    "keyed_opaque_external_id",
     "load_external_registry",
+    "load_identity_key",
     "load_labels_after_score_freeze",
     "load_prepared_external_cell",
     "load_raw_feature_cell",
     "prepare_external_cell",
+    "raw_id_fingerprint",
     "resolve_sources",
+    "sealed_group_roster_commitment",
+    "validate_public_identity_contract",
     "verify_source_file",
     "verify_sources",
     "write_label_vector",

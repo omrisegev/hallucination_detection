@@ -14,10 +14,14 @@ from typing import Any, Mapping, Sequence
 
 from .external_final_answer import (
     CANONICAL_FEATURE_NAMES,
+    ID_CONTRACT_VERSION,
     PREPARED_SCHEMA_VERSION,
     SCORE_FREEZE_SCHEMA_VERSION,
     ExternalRegistry,
+    external_id_contract_binding,
+    fit_safe_external_cell_record,
     load_prepared_external_cell,
+    validate_public_identity_contract,
 )
 from .io import (
     atomic_write_json,
@@ -27,15 +31,21 @@ from .io import (
     sha256_bytes,
     sha256_file,
 )
+from .external_fit_contract import validate_fit_row_identity_contract
+from .external_fit_safe import (
+    validate_fit_safe_input_manifest as validate_capsule_fit_safe_input_manifest,
+)
 from .methods import PRIMARY_METHOD_IDS, PRIMARY_METHOD_SPECS
+from .fit_firewall import validate_fit_audit_policy
 from ..dufs_liu_feature_contract import CONTRACT_VERSION
 
 
-AB_CERTIFICATE_SCHEMA_VERSION = "reconstruction-external-ab-certificate-v1"
-INPUT_MANIFEST_SCHEMA_VERSION = "reconstruction-external-target-free-build-v1"
+AB_CERTIFICATE_SCHEMA_VERSION = "reconstruction-external-ab-certificate-v2"
+INPUT_MANIFEST_SCHEMA_VERSION = "reconstruction-external-target-free-build-v2"
+FIT_SAFE_INPUT_MANIFEST_SCHEMA_VERSION = "reconstruction-external-fit-safe-build-v1"
 SUCCESS = {"OK", "OK_FALLBACK"}
 
-FEATURE_CONFIG_PATH = "configs/reconstruction_benchmark_v1/feature_contract.json"
+FEATURE_CONFIG_PATH = "configs/reconstruction_benchmark_v1/fit_safe_feature_contract.json"
 METHOD_CONFIG_PATH = "configs/reconstruction_benchmark_v1/methods.json"
 TRANSFORM_SOURCE_PATH = "spectral_utils/dufs_liu_feature_contract.py"
 ORIENTATION_SOURCE_PATH = "spectral_utils/feature_contract.py"
@@ -44,6 +54,7 @@ FEATURE_ROSTER_SOURCE_PATH = "spectral_utils/specrage_views.py"
 REQUIRED_PREPARATION_SOURCES = (
     "configs/reconstruction_benchmark_v1/external_final_answer.json",
     FEATURE_CONFIG_PATH,
+    "configs/reconstruction_benchmark_v1/fit_safe_feature_roster.json",
     "configs/reconstruction_benchmark_v1/populations.json",
     "scripts/reconstruction_benchmark/prepare_external_final_answer.py",
     TRANSFORM_SOURCE_PATH,
@@ -53,18 +64,27 @@ REQUIRED_PREPARATION_SOURCES = (
     FEATURE_ROSTER_SOURCE_PATH,
     "spectral_utils/reconstruction_benchmark/contracts.py",
     "spectral_utils/reconstruction_benchmark/external_final_answer.py",
+    "spectral_utils/reconstruction_benchmark/external_fit_contract.py",
+    "spectral_utils/reconstruction_benchmark/external_fit_safe.py",
     "spectral_utils/reconstruction_benchmark/io.py",
 )
 AB_VERIFICATION_SOURCES = (
     "configs/reconstruction_benchmark_v1/external_final_answer.json",
     FEATURE_CONFIG_PATH,
+    "configs/reconstruction_benchmark_v1/fit_safe_feature_roster.json",
     METHOD_CONFIG_PATH,
     "configs/reconstruction_benchmark_v1/populations.json",
     "scripts/reconstruction_benchmark/verify_external_final_answer_ab.py",
     "spectral_utils/reconstruction_benchmark/external_ab.py",
     "spectral_utils/reconstruction_benchmark/external_final_answer.py",
+    "spectral_utils/reconstruction_benchmark/external_fit_contract.py",
+    "spectral_utils/reconstruction_benchmark/external_fit_safe.py",
+    "spectral_utils/reconstruction_benchmark/fit_firewall.py",
     "spectral_utils/reconstruction_benchmark/io.py",
     "spectral_utils/reconstruction_benchmark/methods.py",
+    "spectral_utils/reconstruction_benchmark/serialization.py",
+    "scripts/reconstruction_benchmark/external_fit_worker.py",
+    "scripts/reconstruction_benchmark/run_external_final_answer_methods.py",
 )
 
 
@@ -177,6 +197,117 @@ def _verify_target_free_source_records(record: Mapping[str, Any], *, source_root
             raise RuntimeError(f"{record.get('cell_id')}: source hash changed: {relative}")
 
 
+def validate_fit_safe_input_manifest(
+    path: str | Path,
+    *,
+    repo: str | Path,
+    input_root: str | Path | None = None,
+    require_scientific: bool = True,
+) -> dict[str, Any]:
+    """Validate the redacted manifest that is the fit process's only registry.
+
+    This function intentionally accepts no full registry or source root.  It
+    opens only the fit-safe manifest, prepared NPZ artifacts, and the frozen
+    feature-contract sources.
+    """
+
+    manifest_path = Path(path)
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    _verify_payload(manifest, field="payload_sha256", name="fit-safe external manifest")
+    if manifest.get("schema_version") != FIT_SAFE_INPUT_MANIFEST_SCHEMA_VERSION:
+        raise RuntimeError("unexpected fit-safe external manifest schema")
+    if require_scientific and manifest.get("scientific_full_build") is not True:
+        raise RuntimeError("partial fit-safe external input cannot be scientific")
+    if require_scientific and (
+        manifest.get("applicability_complete") is not True
+        or manifest.get("complete_eligible_roster") is not True
+    ):
+        raise RuntimeError("fit-safe external applicability roster is incomplete")
+    if manifest.get("target_data_opened") is not False:
+        raise RuntimeError("fit-safe external manifest does not prove target isolation")
+    if manifest.get("historical_scores_opened") is not False:
+        raise RuntimeError("fit-safe external manifest opened historical scores")
+    if manifest.get("feature_contract_id") != CONTRACT_VERSION:
+        raise RuntimeError("fit-safe external manifest binds another feature contract")
+    if manifest.get("mixed_v2_applied_exactly_once") is not True:
+        raise RuntimeError("fit-safe external manifest does not attest one mixed-v2 pass")
+    for key in (
+        "external_registry_sha256", "population_registry_sha256",
+        "preparation_manifest_sha256", "preparation_manifest_payload_sha256",
+        "preparation_attestation_sha256",
+    ):
+        value = str(manifest.get(key, ""))
+        if len(value) != 64 or any(character not in "0123456789abcdef" for character in value):
+            raise RuntimeError(f"fit-safe external manifest has malformed {key}")
+    identity_binding = validate_public_identity_contract(
+        manifest.get("identity_contract", {})
+    )
+    if manifest.get("id_contract_version") != ID_CONTRACT_VERSION:
+        raise RuntimeError("fit-safe external manifest identity version is stale")
+
+    rows = manifest.get("cells", ())
+    if not isinstance(rows, list) or not rows:
+        raise RuntimeError("fit-safe external manifest has no cells")
+    identifiers = [str(row.get("cell_id", "")) for row in rows]
+    if any(not value for value in identifiers) or len(set(identifiers)) != len(identifiers):
+        raise RuntimeError("fit-safe external manifest has empty or duplicate cells")
+    registered_count = int(manifest.get("n_registered_cells", -1))
+    if (
+        (require_scientific and registered_count != len(rows))
+        or (not require_scientific and registered_count < len(rows))
+    ):
+        raise RuntimeError("fit-safe external registered-cell count drifted")
+    artifact_root = Path(input_root) if input_root is not None else manifest_path.parent
+    eligible: list[str] = []
+    for row in rows:
+        if fit_safe_external_cell_record(row) != row:
+            raise RuntimeError(
+                f"{row.get('cell_id')}: controller-only metadata crossed fit boundary"
+            )
+        status = str(row.get("status", ""))
+        if status != "ELIGIBLE":
+            if row.get("prepared") is not False:
+                raise RuntimeError(f"{row.get('cell_id')}: noneligible fit row is not closed")
+            continue
+        eligible.append(str(row["cell_id"]))
+        exact = {
+            "schema_version": PREPARED_SCHEMA_VERSION,
+            "feature_contract_id": CONTRACT_VERSION,
+            "preprocessing_steps": [CONTRACT_VERSION],
+            "mixed_v2_applied_count": 1,
+            "identity_contract": identity_binding,
+            "fit_row_identity_contract": fit_identity,
+            "id_contract_version": ID_CONTRACT_VERSION,
+            "id_contract_sha256": identity_binding["contract_sha256"],
+            "fit_row_id_contract_sha256": fit_identity["contract_sha256"],
+            "identity_key_id": identity_binding["key_id"],
+        }
+        for key, value in exact.items():
+            if row.get(key) != value:
+                raise RuntimeError(f"{row.get('cell_id')}: fit-safe field {key} drifted")
+        names = tuple(map(str, row.get("feature_names", ())))
+        canonical_subset = tuple(
+            name for name in CANONICAL_FEATURE_NAMES if name in set(names)
+        )
+        if names != canonical_subset or len(names) < 3:
+            raise RuntimeError(f"{row.get('cell_id')}: fit-safe feature roster is invalid")
+        relative = str(row.get("artifact_path", ""))
+        if not relative:
+            raise RuntimeError(f"{row.get('cell_id')}: fit-safe artifact path is absent")
+        load_prepared_external_cell(
+            artifact_path=_safe_child(
+                artifact_root, relative, description="fit-safe prepared artifact"
+            ),
+            record=row,
+            identity_contract=identity_binding,
+        )
+    if int(manifest.get("n_prepared_cells", -1)) != len(eligible):
+        raise RuntimeError("fit-safe external prepared-cell count drifted")
+    manifest["_eligible_cell_ids"] = eligible
+    manifest["_validated_feature_contract_bindings"] = current_feature_contract_bindings(repo)
+    return manifest
+
+
 def validate_scientific_input_manifest(
     path: str | Path,
     *,
@@ -201,6 +332,22 @@ def validate_scientific_input_manifest(
         raise RuntimeError("external input manifest binds another population registry")
     if manifest.get("feature_contract_id") != CONTRACT_VERSION:
         raise RuntimeError("external input manifest binds another feature contract")
+    public_identity = validate_public_identity_contract(
+        manifest.get("identity_contract", {})
+    )
+    identity_binding = external_id_contract_binding(
+        registry, key_id=str(public_identity["key_id"])
+    )
+    if (
+        manifest.get("id_contract_version") != ID_CONTRACT_VERSION
+        or manifest.get("identity_contract") != identity_binding
+    ):
+        raise RuntimeError("external input manifest binds another opaque identity contract")
+    fit_identity = validate_fit_row_identity_contract(
+        manifest.get("fit_row_identity_contract", {})
+    )
+    if fit_identity.get("key_id") != identity_binding.get("key_id"):
+        raise RuntimeError("external full/fit identity key commitments disagree")
     if manifest.get("mixed_v2_applied_exactly_once") is not True:
         raise RuntimeError("external input manifest does not attest one mixed-v2 pass")
     if manifest.get("labels_opened") is not False or manifest.get("historical_scores_opened") is not False:
@@ -261,6 +408,10 @@ def validate_scientific_input_manifest(
             "feature_contract_id": CONTRACT_VERSION,
             "preprocessing_steps": [CONTRACT_VERSION],
             "mixed_v2_applied_count": 1,
+            "identity_contract": identity_binding,
+            "id_contract_version": ID_CONTRACT_VERSION,
+            "id_contract_sha256": identity_binding["contract_sha256"],
+            "identity_key_id": identity_binding["key_id"],
             "labels_opened": False,
             "historical_scores_opened": False,
         }
@@ -284,15 +435,59 @@ def validate_scientific_input_manifest(
         artifact_relative = str(row.get("artifact_path", ""))
         if not artifact_relative:
             raise RuntimeError(f"{spec.cell_id}: eligible input lacks an artifact")
+        fit_record = fit_safe_external_cell_record(row)
         load_prepared_external_cell(
             artifact_path=_safe_child(artifact_root, artifact_relative, description="prepared artifact"),
-            record=row,
+            record=fit_record,
+            identity_contract=fit_identity,
         )
     if int(manifest.get("n_prepared_cells", -1)) != len(eligible):
         raise RuntimeError("external input prepared-cell count drifted")
     manifest["_validated_feature_contract_bindings"] = bindings
     manifest["_eligible_cell_ids"] = eligible
     return manifest
+
+
+def assert_fit_safe_matches_preparation(
+    fit_manifest: Mapping[str, Any],
+    preparation_manifest: Mapping[str, Any],
+    *,
+    preparation_manifest_path: str | Path,
+) -> None:
+    """Bind the fit-mounted redaction to controller-only preparation evidence."""
+
+    if fit_manifest.get("preparation_manifest_sha256") != sha256_file(
+        preparation_manifest_path
+    ):
+        raise RuntimeError("fit-safe manifest/preparation file binding failed")
+    if fit_manifest.get("preparation_manifest_payload_sha256") != preparation_manifest.get(
+        "payload_sha256"
+    ):
+        raise RuntimeError("fit-safe manifest/preparation payload binding failed")
+    if fit_manifest.get("preparation_attestation_sha256") != preparation_manifest.get(
+        "preparation_source_snapshot_sha256"
+    ):
+        raise RuntimeError("fit-safe manifest/preparation attestation binding failed")
+    for key in (
+        "release_id", "build_id", "scientific_full_build",
+        "applicability_complete", "complete_eligible_roster",
+        "external_registry_sha256", "population_registry_sha256",
+        "feature_contract_id", "mixed_v2_applied_exactly_once",
+        "id_contract_version", "n_registered_cells",
+        "n_runnable_cells", "n_prepared_cells",
+    ):
+        if fit_manifest.get(key) != preparation_manifest.get(key):
+            raise RuntimeError(f"fit-safe/preparation field {key} differs")
+    if fit_manifest.get("identity_contract") != preparation_manifest.get(
+        "fit_row_identity_contract"
+    ):
+        raise RuntimeError("fit-safe manifest exposes or changes private identity rules")
+    expected_cells = [
+        fit_safe_external_cell_record(row)
+        for row in preparation_manifest.get("cells", ())
+    ]
+    if fit_manifest.get("cells") != expected_cells:
+        raise RuntimeError("fit-safe cell registry is not the exact redaction")
 
 
 def _load_current_method_contract(repo: Path) -> tuple[str, dict[str, Mapping[str, Any]]]:
@@ -344,10 +539,32 @@ def validate_scientific_score_freeze(
     for key, value in isolation.items():
         if freeze.get(key) != value:
             raise RuntimeError(f"external score freeze violates {key}")
+    if freeze.get("fit_isolation_tier") != "trusted_first_party_python_audit_hook_v1":
+        raise RuntimeError("external score freeze lacks the controller/worker isolation tier")
+    audit_policy = validate_fit_audit_policy(freeze.get("audit_policy", {}))
+    if audit_policy.get("policy_sha256") != freeze.get("audit_policy_sha256"):
+        raise RuntimeError("external score freeze audit-policy binding failed")
+    if freeze.get("firewall_violations") != []:
+        raise RuntimeError("external score freeze records a fit-firewall violation")
+    denial_probes = freeze.get("denial_probes")
+    if (
+        not isinstance(denial_probes, list)
+        or not denial_probes
+        or any(row.get("read_denied") is not True for row in denial_probes)
+    ):
+        raise RuntimeError("external score freeze lacks passing forbidden-read probes")
     if freeze.get("external_registry_sha256") != registry.sha256:
         raise RuntimeError("external score freeze binds another registry")
     if freeze.get("population_registry_sha256") != registry.population_registry_sha256:
         raise RuntimeError("external score freeze binds another population registry")
+    identity_binding = validate_fit_row_identity_contract(
+        freeze.get("identity_contract", {})
+    )
+    if (
+        freeze.get("id_contract_version") != ID_CONTRACT_VERSION
+        or freeze.get("identity_contract") != identity_binding
+    ):
+        raise RuntimeError("external score freeze identity contract is stale")
     if tuple(freeze.get("method_ids", ())) != PRIMARY_METHOD_IDS:
         raise RuntimeError("external score freeze is not the exact primary 13-method roster")
     current_method_sha, method_rows = _load_current_method_contract(root)
@@ -357,18 +574,26 @@ def validate_scientific_score_freeze(
     if freeze.get("feature_contract_bindings") != bindings:
         raise RuntimeError("external score freeze feature-contract bindings are stale")
     manifest_path = Path(input_root) / "MANIFEST.json"
-    manifest = dict(input_manifest) if input_manifest is not None else validate_scientific_input_manifest(
-        manifest_path, registry=registry, repo=root, input_root=input_root,
+    manifest = (
+        dict(input_manifest)
+        if input_manifest is not None
+        else validate_fit_safe_input_manifest(
+            manifest_path, repo=root, input_root=input_root
+        )
     )
     if freeze.get("input_manifest_sha256") != sha256_file(manifest_path):
         raise RuntimeError("external score freeze/input manifest file binding failed")
     if freeze.get("input_manifest_payload_sha256") != manifest.get("payload_sha256"):
         raise RuntimeError("external score freeze/input manifest payload binding failed")
-    if freeze.get("preparation_source_snapshot_sha256") != manifest.get("preparation_source_snapshot_sha256"):
-        raise RuntimeError("external score freeze/preparation snapshot binding failed")
+    if freeze.get("preparation_attestation_sha256") != manifest.get("preparation_attestation_sha256"):
+        raise RuntimeError("external score freeze/preparation attestation binding failed")
+    if freeze.get("preparation_manifest_sha256") != manifest.get("preparation_manifest_sha256"):
+        raise RuntimeError("external score freeze/preparation manifest binding failed")
     prefit_path = fit / "FIT_SOURCE_SNAPSHOT.json"
     prefit = json.loads(prefit_path.read_text(encoding="utf-8"))
     _verify_payload(prefit, field="payload_sha256", name="external prefit manifest")
+    if prefit.get("schema_version") != "reconstruction-external-prefit-snapshot-v3-controller-worker":
+        raise RuntimeError("unexpected external prefit schema")
     if freeze.get("prefit_snapshot_sha256") != sha256_file(prefit_path):
         raise RuntimeError("external score freeze/prefit file binding failed")
     if prefit.get("scientific_full") is not True:
@@ -380,7 +605,18 @@ def validate_scientific_score_freeze(
         "input_manifest_payload_sha256": freeze.get("input_manifest_payload_sha256"),
         "external_registry_sha256": registry.sha256,
         "population_registry_sha256": registry.population_registry_sha256,
-        "preparation_source_snapshot_sha256": manifest.get("preparation_source_snapshot_sha256"),
+        "preparation_attestation_sha256": manifest.get("preparation_attestation_sha256"),
+        "preparation_manifest_sha256": manifest.get("preparation_manifest_sha256"),
+        "identity_contract": identity_binding,
+        "id_contract_version": ID_CONTRACT_VERSION,
+        "fit_isolation_tier": "trusted_first_party_python_audit_hook_v1",
+        "audit_policy": audit_policy,
+        "audit_policy_sha256": freeze.get("audit_policy_sha256"),
+        "denial_probes": denial_probes,
+        "firewall_violations": [],
+        "worker_result_sha256": freeze.get("worker_result_sha256"),
+        "worker_result_payload_sha256": freeze.get("worker_result_payload_sha256"),
+        "capsule_tree_sha256": freeze.get("capsule_tree_sha256"),
         "method_ids": list(PRIMARY_METHOD_IDS),
         "cell_ids": list(manifest.get("_eligible_cell_ids", ())),
     }
@@ -395,6 +631,31 @@ def validate_scientific_score_freeze(
     verify_current_source_snapshot(snapshot, repo=root, name="external fitting")
     if freeze.get("source_snapshot_sha256") != snapshot.get("snapshot_sha256"):
         raise RuntimeError("external score freeze/fitting snapshot binding failed")
+    worker_result_path = fit / "WORKER_RESULT_MANIFEST.json"
+    if freeze.get("worker_result_sha256") != sha256_file(worker_result_path):
+        raise RuntimeError("external score freeze/worker-result file binding failed")
+    worker_result = json.loads(worker_result_path.read_text(encoding="utf-8"))
+    _verify_payload(
+        worker_result, field="payload_sha256", name="external fit worker result"
+    )
+    if (
+        worker_result.get("schema_version")
+        != "reconstruction-external-fit-worker-result-v1"
+        or worker_result.get("payload_sha256")
+        != freeze.get("worker_result_payload_sha256")
+        or worker_result.get("audit_policy_sha256")
+        != freeze.get("audit_policy_sha256")
+        or worker_result.get("denial_probes") != denial_probes
+        or worker_result.get("firewall_violations") != []
+        or worker_result.get("target_data_opened") is not False
+        or worker_result.get("all_candidate_scores_present") is not True
+    ):
+        raise RuntimeError("external fit worker attestation failed")
+    capsule = Path(input_root).parent / "fit_capsule"
+    if canonical_tree_manifest(capsule).get("tree_sha256") != freeze.get(
+        "capsule_tree_sha256"
+    ):
+        raise RuntimeError("external fit code capsule changed after worker execution")
 
     eligible = tuple(manifest.get("_eligible_cell_ids", ()))
     if tuple(freeze.get("cell_ids", ())) != eligible:
@@ -409,6 +670,8 @@ def validate_scientific_score_freeze(
     if int(freeze.get("expected_records", -1)) != expected_n or int(freeze.get("n_records", -1)) != expected_n:
         raise RuntimeError("external score freeze record count failed")
     records = freeze.get("records", ())
+    if worker_result.get("records") != records:
+        raise RuntimeError("controller freeze records differ from worker candidates")
     pairs = [(str(item.get("cell_id")), str(item.get("method_id"))) for item in records]
     expected_pairs = [(cell_id, method_id) for cell_id in eligible for method_id in PRIMARY_METHOD_IDS]
     if pairs != expected_pairs:
@@ -423,6 +686,12 @@ def validate_scientific_score_freeze(
             "config_sha256": method["config_sha256"],
             "status": record.get("status"),
             "prepared_matrix_sha256": prepared_by_cell[cell_id]["prepared_matrix_sha256"],
+            "identity_contract": identity_binding,
+            "id_contract_version": ID_CONTRACT_VERSION,
+            "id_contract_sha256": identity_binding["contract_sha256"],
+            "identity_key_id": identity_binding["key_id"],
+            "row_namespace_sha256": prepared_by_cell[cell_id]["row_namespace_sha256"],
+            "row_roster_sha256": prepared_by_cell[cell_id]["row_roster_sha256"],
         }
         if record.get("status") not in SUCCESS:
             raise RuntimeError(f"{cell_id}/{method_id}: frozen fit was not successful")
@@ -452,18 +721,35 @@ def validate_scientific_score_freeze(
         for key in (
             "method_id", "method_version_id", "config_sha256", "status", "population_id",
             "cell_id", "prepared_matrix_sha256", "score_sha256", "artifacts_sha256",
-            "artifact_index_sha256",
+            "artifact_index_sha256", "identity_contract", "id_contract_version",
+            "id_contract_sha256", "identity_key_id", "row_namespace_sha256",
+            "row_roster_sha256",
         ):
             if disk_record.get(key) != record.get(key):
                 raise RuntimeError(f"{cell_id}/{method_id}: freeze/RECORD {key} mismatch")
         bundle = load_npz_no_pickle(score_path)
-        if set(bundle) != {"row_ids", "score"}:
+        if set(bundle) != {
+            "row_ids", "score", "id_contract_version", "id_contract_sha256",
+            "identity_key_id", "row_namespace_sha256", "row_roster_sha256",
+        }:
             raise RuntimeError(f"{cell_id}/{method_id}: unexpected score members")
+        scalar_bindings = {}
+        for key in (
+            "id_contract_version", "id_contract_sha256",
+            "identity_key_id", "row_namespace_sha256", "row_roster_sha256",
+        ):
+            scalar = bundle[key]
+            if scalar.shape != (1,):
+                raise RuntimeError(f"{cell_id}/{method_id}: score {key} is not scalar")
+            scalar_bindings[key] = str(scalar.tolist()[0])
+        for key, value in scalar_bindings.items():
+            if value != record.get(key):
+                raise RuntimeError(f"{cell_id}/{method_id}: score {key} binding failed")
         prepared_path = _safe_child(Path(input_root), str(prepared_by_cell[cell_id]["artifact_path"]), description="prepared input")
         prepared = load_npz_no_pickle(prepared_path)
         if tuple(map(str, bundle["row_ids"].tolist())) != tuple(map(str, prepared["row_ids"].tolist())):
             raise RuntimeError(f"{cell_id}/{method_id}: score/prepared row roster mismatch")
-    freeze["_validated_input_manifest"] = manifest
+    freeze["_validated_fit_manifest"] = manifest
     return freeze
 
 
@@ -488,7 +774,10 @@ def _public_manifest_view(manifest: Mapping[str, Any]) -> dict[str, Any]:
     return {
         key: value
         for key, value in manifest.items()
-        if not key.startswith("_") and key not in {"build_id", "payload_sha256"}
+        if not key.startswith("_") and key not in {
+            "build_id", "payload_sha256", "preparation_manifest_sha256",
+            "preparation_manifest_payload_sha256",
+        }
     }
 
 
@@ -503,13 +792,32 @@ def verify_external_ab(
     """Verify both independent builds and issue an exact content certificate."""
 
     release = Path(release_root) / release_id
+    controller = (
+        Path(release_root).parent / "private_control" / release_id
+        / "external_final_answer"
+    )
     audits: dict[str, dict[str, Any]] = {}
     for build_id in ("A", "B"):
         root = release / f"build_{build_id}" / "external_final_answer"
         inputs, fit = root / "inputs", root / "fit"
-        manifest_path = inputs / "MANIFEST.json"
-        manifest = validate_scientific_input_manifest(
-            manifest_path, registry=registry, repo=repo, input_root=inputs,
+        fit_manifest_path = inputs / "MANIFEST.json"
+        fit_manifest = validate_fit_safe_input_manifest(
+            fit_manifest_path, repo=repo, input_root=inputs,
+        )
+        preparation_manifest_path = (
+            controller / f"build_{build_id}" / "preparation_provenance"
+            / "MANIFEST.json"
+        )
+        preparation_manifest = validate_scientific_input_manifest(
+            preparation_manifest_path,
+            registry=registry,
+            repo=repo,
+            input_root=inputs,
+        )
+        assert_fit_safe_matches_preparation(
+            fit_manifest,
+            preparation_manifest,
+            preparation_manifest_path=preparation_manifest_path,
         )
         freeze_path = fit / "SCORE_FREEZE_MANIFEST.json"
         freeze = validate_scientific_score_freeze(
@@ -518,25 +826,31 @@ def verify_external_ab(
             repo=repo,
             input_root=inputs,
             fit_root=fit,
-            input_manifest=manifest,
+            input_manifest=fit_manifest,
         )
-        if manifest.get("release_id") != release_id or freeze.get("release_id") != release_id:
+        if fit_manifest.get("release_id") != release_id or freeze.get("release_id") != release_id:
             raise RuntimeError(f"build {build_id}: release ID binding failed")
-        if manifest.get("build_id") != build_id or freeze.get("build_id") != build_id:
+        if fit_manifest.get("build_id") != build_id or freeze.get("build_id") != build_id:
             raise RuntimeError(f"build {build_id}: build ID binding failed")
         audits[build_id] = {
-            "manifest": manifest,
+            "fit_manifest": fit_manifest,
+            "preparation_manifest": preparation_manifest,
             "freeze": freeze,
-            "input_manifest_sha256": sha256_file(manifest_path),
-            "input_manifest_payload_sha256": manifest["payload_sha256"],
+            "input_manifest_sha256": sha256_file(fit_manifest_path),
+            "input_manifest_payload_sha256": fit_manifest["payload_sha256"],
+            "preparation_manifest_sha256": sha256_file(preparation_manifest_path),
+            "preparation_manifest_payload_sha256": preparation_manifest["payload_sha256"],
             "score_freeze_sha256": sha256_file(freeze_path),
             "score_freeze_payload_sha256": freeze["payload_sha256"],
             "input_tree": _tree_binding(inputs),
             "fit_tree": _tree_binding(fit),
+            "capsule_tree": _tree_binding(root / "fit_capsule"),
+            "preparation_provenance_tree": _tree_binding(preparation_manifest_path.parent),
         }
     left, right = audits["A"], audits["B"]
-    if _public_manifest_view(left["manifest"]) != _public_manifest_view(right["manifest"]):
-        raise RuntimeError("A/B input manifests differ beyond build identity")
+    for manifest_key in ("fit_manifest", "preparation_manifest"):
+        if _public_manifest_view(left[manifest_key]) != _public_manifest_view(right[manifest_key]):
+            raise RuntimeError(f"A/B {manifest_key} differs beyond build identity")
     left_freeze, right_freeze = left["freeze"], right["freeze"]
     if left_freeze["cell_ids"] != right_freeze["cell_ids"] or left_freeze["method_ids"] != right_freeze["method_ids"]:
         raise RuntimeError("A/B fitted rosters differ")
@@ -548,6 +862,8 @@ def verify_external_ab(
         exact_fields = (
             "method_version_id", "config_sha256", "status", "prepared_matrix_sha256",
             "score_sha256", "record_sha256", "artifacts_sha256", "artifact_index_sha256",
+            "id_contract_version", "id_contract_sha256", "identity_key_id",
+            "row_namespace_sha256", "row_roster_sha256",
         )
         unequal = [key for key in exact_fields if left_record.get(key) != right_record.get(key)]
         if unequal:
@@ -557,13 +873,17 @@ def verify_external_ab(
             "method_id": identity[1],
             **{key: left_record.get(key) for key in exact_fields},
         })
-    input_left = {item["cell_id"]: item for item in left["manifest"]["cells"] if item.get("status") == "ELIGIBLE"}
-    input_right = {item["cell_id"]: item for item in right["manifest"]["cells"] if item.get("status") == "ELIGIBLE"}
+    input_left = {item["cell_id"]: item for item in left["preparation_manifest"]["cells"] if item.get("status") == "ELIGIBLE"}
+    input_right = {item["cell_id"]: item for item in right["preparation_manifest"]["cells"] if item.get("status") == "ELIGIBLE"}
     for cell_id in left_freeze["cell_ids"]:
         for key in (
-            "artifact_sha256", "prepared_matrix_sha256", "row_signature_sha256",
+            "artifact_sha256", "prepared_matrix_sha256", "row_roster_sha256",
+            "sealed_group_roster_commitment_sha256",
             "present_feature_roster_sha256", "nominal_feature_roster_sha256", "source_files",
-            "source_inventory_bindings", "transform_details",
+            "source_inventory_bindings", "transform_details", "identity_contract",
+            "id_contract_version", "id_contract_sha256", "identity_key_id",
+            "row_namespace_sha256",
+            "group_namespace_sha256",
         ):
             if input_left[cell_id].get(key) != input_right[cell_id].get(key):
                 raise RuntimeError(f"A/B prepared inputs differ for {cell_id}: {key}")
@@ -579,6 +899,8 @@ def verify_external_ab(
         "population_registry_sha256": registry.population_registry_sha256,
         "method_registry_sha256": sha256_file(Path(repo) / METHOD_CONFIG_PATH),
         "feature_contract_bindings": bindings,
+        "identity_contract": left["fit_manifest"]["identity_contract"],
+        "id_contract_version": ID_CONTRACT_VERSION,
         "verification_source_snapshot": _verification_source_snapshot(repo),
         "method_ids": list(PRIMARY_METHOD_IDS),
         "cell_ids": list(left_freeze["cell_ids"]),
@@ -589,7 +911,7 @@ def verify_external_ab(
             build_id: {
                 key: value
                 for key, value in audits[build_id].items()
-                if key not in {"manifest", "freeze"}
+                if key not in {"fit_manifest", "preparation_manifest", "freeze"}
             }
             for build_id in ("A", "B")
         },
@@ -625,6 +947,14 @@ def assert_external_ab_certificate(
         raise RuntimeError("external A/B certificate population registry is stale")
     if certificate.get("feature_contract_bindings") != current_feature_contract_bindings(repo):
         raise RuntimeError("external A/B certificate feature contract is stale")
+    certificate_identity = validate_fit_row_identity_contract(
+        certificate.get("identity_contract", {})
+    )
+    if (
+        certificate.get("id_contract_version") != ID_CONTRACT_VERSION
+        or certificate.get("identity_contract") != certificate_identity
+    ):
+        raise RuntimeError("external A/B certificate identity contract is stale")
     verification_snapshot = certificate.get("verification_source_snapshot", {})
     verify_current_source_snapshot(
         verification_snapshot,
@@ -651,22 +981,50 @@ def assert_external_ab_certificate(
     ):
         raise RuntimeError("external A/B certificate lacks its comparison-record digest")
     release = Path(release_root) / release_id
+    controller = (
+        Path(release_root).parent / "private_control" / release_id
+        / "external_final_answer"
+    )
     for build_id in ("A", "B"):
         root = release / f"build_{build_id}" / "external_final_answer"
         expected = certificate.get("builds", {}).get(build_id, {})
         input_manifest = root / "inputs" / "MANIFEST.json"
         score_freeze = root / "fit" / "SCORE_FREEZE_MANIFEST.json"
+        preparation_manifest = (
+            controller / f"build_{build_id}" / "preparation_provenance"
+            / "MANIFEST.json"
+        )
         if expected.get("input_manifest_sha256") != sha256_file(input_manifest):
             raise RuntimeError(f"build {build_id}: input manifest changed after A/B certification")
         if expected.get("score_freeze_sha256") != sha256_file(score_freeze):
             raise RuntimeError(f"build {build_id}: score freeze changed after A/B certification")
+        if expected.get("preparation_manifest_sha256") != sha256_file(preparation_manifest):
+            raise RuntimeError(
+                f"build {build_id}: preparation provenance changed after A/B certification"
+            )
         current_input_tree = canonical_tree_manifest(root / "inputs")
         current_fit_tree = canonical_tree_manifest(root / "fit")
+        current_capsule_tree = canonical_tree_manifest(root / "fit_capsule")
+        current_provenance_tree = canonical_tree_manifest(preparation_manifest.parent)
         if expected.get("input_tree", {}).get("tree_sha256") != current_input_tree["tree_sha256"]:
             raise RuntimeError(f"build {build_id}: input tree changed after A/B certification")
         if expected.get("fit_tree", {}).get("tree_sha256") != current_fit_tree["tree_sha256"]:
             raise RuntimeError(f"build {build_id}: fit tree changed after A/B certification")
+        if expected.get("capsule_tree", {}).get("tree_sha256") != current_capsule_tree["tree_sha256"]:
+            raise RuntimeError(f"build {build_id}: fit capsule changed after A/B certification")
+        if (
+            expected.get("preparation_provenance_tree", {}).get("tree_sha256")
+            != current_provenance_tree["tree_sha256"]
+        ):
+            raise RuntimeError(
+                f"build {build_id}: controller preparation tree changed after certification"
+            )
     return certificate
+
+
+# Keep one executable fit-safe validator: the capsule-owned implementation has
+# no import edge to preparation or post-freeze modules.
+validate_fit_safe_input_manifest = validate_capsule_fit_safe_input_manifest
 
 
 __all__ = [
@@ -679,6 +1037,7 @@ __all__ = [
     "TRANSFORM_SOURCE_PATH",
     "assert_external_ab_certificate",
     "current_feature_contract_bindings",
+    "validate_fit_safe_input_manifest",
     "validate_scientific_input_manifest",
     "validate_scientific_score_freeze",
     "verify_current_source_snapshot",

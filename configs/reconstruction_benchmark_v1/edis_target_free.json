@@ -1,0 +1,84 @@
+{
+  "schema_version": "reconstruction-edis-target-free-registry-v1",
+  "lane_id": "edis_aime_reconstruction_v1",
+  "track": "multi_sample_inference",
+  "feature_contract_id": "dufs-liu-mixed-v2-development-2026-08-07",
+  "nominal_feature_count": 30,
+  "feature_rule": "Audit all nominal 30 telemetry views. Keep a view only when finite on every row in the dataset-by-temperature cell; allow it to be absent only when unavailable on every row. Partial availability, imputation, substitution, row dropping, and a second orientation pass are forbidden.",
+  "fit_contract": {
+    "method_roster": "all_13_primary_methods",
+    "labels_available_to_fit": false,
+    "class_counts_available_to_fit": false,
+    "raw_source_paths_available_to_fit": false,
+    "historical_scores_available_to_fit": false,
+    "donors_available_to_fit": false,
+    "score_semantics": "higher_is_incorrect",
+    "mixed_v2_application_count": 1,
+    "score_freeze_required_before_labels": true
+  },
+  "identity_contract": {
+    "required": "keyed_hmac_with_release_sealed_key",
+    "raw_identifiers_in_fit_artifacts": false,
+    "canonical_row_order": "lexicographic_opaque_row_id",
+    "row_scope": "dataset_temperature_cell",
+    "fit_visible_identity_metadata": "row_only_plus_commitment_to_controller_contract"
+  },
+  "datasets": [
+    {
+      "dataset_id": "aime24",
+      "population_id": "edis_aime24_full_v1",
+      "population_kind": "full",
+      "model_id": "qwen25_math_1p5b_base",
+      "questions": 30,
+      "samples_per_question_temperature": 64,
+      "manifest": {"path": "local_cache/reconstruction_edis_stage/edis_aime24_qwenmath15b_full/manifest.json", "sha256": "e9d140b73382cbb1d4b2336abaf663d94083683721912a37be7a2c6b3dcc4162", "size_bytes": 3076},
+      "cells": [
+        {"cell_id": "edis_aime24_t0p2", "temperature": 0.2, "expected_rows": 1920, "source": {"path": "local_cache/reconstruction_edis_stage/edis_aime24_qwenmath15b_full/raw_aime24_T0.2.pkl", "sha256": "c4a43b327ea8290981c7fea741de2d8887c6156a03597f8e33baf393c8f985b6", "size_bytes": 2068275873}},
+        {"cell_id": "edis_aime24_t0p6", "temperature": 0.6, "expected_rows": 1920, "source": {"path": "local_cache/reconstruction_edis_stage/edis_aime24_qwenmath15b_full/raw_aime24_T0.6.pkl", "sha256": "ffcdf7fb4f76dc607b6b05c30bffff7e2ad04000e9fd8830a012413c17015239", "size_bytes": 1682774830}},
+        {"cell_id": "edis_aime24_t1p0", "temperature": 1.0, "expected_rows": 1920, "source": {"path": "local_cache/reconstruction_edis_stage/edis_aime24_qwenmath15b_full/raw_aime24_T1.0.pkl", "sha256": "6818a21bf0c8d9e3a6e2706c8c147e89fb80cc403f05d613af999dbca6bf6abe", "size_bytes": 944313126}}
+      ]
+    },
+    {
+      "dataset_id": "amc23",
+      "population_id": "edis_amc23_full_v1",
+      "population_kind": "full",
+      "model_id": "qwen25_math_1p5b_base",
+      "questions": 40,
+      "samples_per_question_temperature": 32,
+      "manifest": {"path": "local_cache/reconstruction_edis_stage/edis_amc23_qwenmath15b_full/manifest.json", "sha256": "95eeb2bcf6dda050632870eb5a1e5226bb4992b4fc4c104b610038a39639eea4", "size_bytes": 2446},
+      "cells": [
+        {"cell_id": "edis_amc23_t0p2", "temperature": 0.2, "expected_rows": 1280, "source": {"path": "local_cache/reconstruction_edis_stage/edis_amc23_qwenmath15b_full/raw_amc23_T0.2.pkl", "sha256": "909e3215e44091134d4727fa3a72480b336e6641f411dfbdbbeee9758a5f6a37", "size_bytes": 912434796}},
+        {"cell_id": "edis_amc23_t0p6", "temperature": 0.6, "expected_rows": 1280, "source": {"path": "local_cache/reconstruction_edis_stage/edis_amc23_qwenmath15b_full/raw_amc23_T0.6.pkl", "sha256": "4cb5c508db1e8511ecd4313efeb7b481833f3fc6912674deba8606e06571458d", "size_bytes": 828783028}},
+        {"cell_id": "edis_amc23_t1p0", "temperature": 1.0, "expected_rows": 1280, "source": {"path": "local_cache/reconstruction_edis_stage/edis_amc23_qwenmath15b_full/raw_amc23_T1.0.pkl", "sha256": "5f74f24b04d476317c511deb5bf5e6b8c58645a6b33b2191062c6bec2c2dc112", "size_bytes": 563293063}}
+      ]
+    },
+    {
+      "dataset_id": "gsm8k",
+      "population_id": "edis_pilot3_v1",
+      "population_kind": "pilot3",
+      "model_id": "qwen25_math_1p5b_base",
+      "questions": 30,
+      "samples_per_question_temperature": 8,
+      "manifest": {"path": "local_cache/reconstruction_edis_stage/edis_gsm8k_qwenmath15b_pilot3/manifest.json", "sha256": "a79acf2ac40f05d1f7e52e6007906361cfa09899bca88d0a746ab5a4f3ebc053", "size_bytes": 2727},
+      "cells": [
+        {"cell_id": "edis_gsm8k_t0p2", "temperature": 0.2, "expected_rows": 240, "source": {"path": "local_cache/reconstruction_edis_stage/edis_gsm8k_qwenmath15b_pilot3/raw_gsm8k_T0.2.pkl", "sha256": "42f9a43ce7aa230d60d63a58a915c85c83c96fbe323c32e8b8e38b6919b79a53", "size_bytes": 109684353}},
+        {"cell_id": "edis_gsm8k_t0p6", "temperature": 0.6, "expected_rows": 240, "source": {"path": "local_cache/reconstruction_edis_stage/edis_gsm8k_qwenmath15b_pilot3/raw_gsm8k_T0.6.pkl", "sha256": "ee65b9af18239ec763566d848810f11fe8248dbd38ff7830be1f0e2a5f575c17", "size_bytes": 117836698}},
+        {"cell_id": "edis_gsm8k_t1p0", "temperature": 1.0, "expected_rows": 240, "source": {"path": "local_cache/reconstruction_edis_stage/edis_gsm8k_qwenmath15b_pilot3/raw_gsm8k_T1.0.pkl", "sha256": "d388d002c1f2088d3462ec6713f2d715ed76d1a6332836ad98f05182f794fe13", "size_bytes": 80957054}}
+      ]
+    },
+    {
+      "dataset_id": "math500",
+      "population_id": "edis_pilot3_v1",
+      "population_kind": "pilot3",
+      "model_id": "qwen25_math_1p5b_base",
+      "questions": 30,
+      "samples_per_question_temperature": 8,
+      "manifest": {"path": "local_cache/reconstruction_edis_stage/edis_math500_qwenmath15b_pilot3/manifest.json", "sha256": "f394aaea6e714a17d98aedd9bcec6ee0e97f7c4634d43d47ed763c2498a7fb31", "size_bytes": 2178},
+      "cells": [
+        {"cell_id": "edis_math500_t0p2", "temperature": 0.2, "expected_rows": 240, "source": {"path": "local_cache/reconstruction_edis_stage/edis_math500_qwenmath15b_pilot3/raw_math500_T0.2.pkl", "sha256": "bf4bb20afd23ca34b5b7caeee6c6b8bf518e8ea9894e433d5383ff5a5e895037", "size_bytes": 149236416}},
+        {"cell_id": "edis_math500_t0p6", "temperature": 0.6, "expected_rows": 240, "source": {"path": "local_cache/reconstruction_edis_stage/edis_math500_qwenmath15b_pilot3/raw_math500_T0.6.pkl", "sha256": "3403a8e75b0ecaf6b41590a4ed34c5c01f2f9c90fa4c62f01ea99e330e51b892", "size_bytes": 133010720}},
+        {"cell_id": "edis_math500_t1p0", "temperature": 1.0, "expected_rows": 240, "source": {"path": "local_cache/reconstruction_edis_stage/edis_math500_qwenmath15b_pilot3/raw_math500_T1.0.pkl", "sha256": "3062da553dcdb9b161c8acf647d957f7796864dd0e231413c3a27a27e2dabc20", "size_bytes": 88454538}}
+      ]
+    }
+  ]
+}

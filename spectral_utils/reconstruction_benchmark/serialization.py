@@ -100,6 +100,8 @@ def write_score_result(
     result: ScoreResult,
     row_ids: tuple[str, ...],
     out_dir: str | Path,
+    *,
+    identity_contract: Mapping[str, Any] | None = None,
 ) -> dict:
     target = Path(out_dir)
     if target.exists() and any(target.iterdir()):
@@ -129,6 +131,25 @@ def write_score_result(
     )
     record["nonfinite_diagnostic_paths"] = nonfinite_paths
 
+    identity_arrays: dict[str, np.ndarray] = {}
+    if identity_contract is not None:
+        required = {
+            "identity_contract", "id_contract_version", "id_contract_sha256",
+            "identity_key_id", "row_namespace_sha256", "row_roster_sha256",
+        }
+        if set(identity_contract) != required:
+            raise ValueError(
+                "external identity binding must contain the exact registered fields"
+            )
+        record.update({
+            key: jsonable(identity_contract[key])
+            for key in sorted(required)
+        })
+        identity_arrays = {
+            key: np.asarray([str(identity_contract[key])], dtype="<U96")
+            for key in sorted(required - {"identity_contract"})
+        }
+
     if result.score is not None:
         score_path = target / "score.npz"
         score_sha = atomic_write_npz(
@@ -136,6 +157,7 @@ def write_score_result(
             {
                 "row_ids": np.asarray(row_ids, dtype="<U128"),
                 "score": np.asarray(result.score, dtype="<f8"),
+                **identity_arrays,
             },
         )
         record["score_path"] = score_path.name

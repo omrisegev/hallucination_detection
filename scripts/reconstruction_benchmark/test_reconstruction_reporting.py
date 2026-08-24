@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import csv
 import importlib.util
 import hashlib
 import json
@@ -28,8 +29,10 @@ from spectral_utils.reconstruction_reporting.io import (  # noqa: E402
     write_tidy_csv,
 )
 from spectral_utils.reconstruction_reporting.query import (  # noqa: E402
+    LEADERBOARD_EXPORT_SPECS,
     VIEW_NAMES,
     build_duckdb,
+    export_leaderboard_csvs,
     query_results,
     query_view_sql,
 )
@@ -42,9 +45,16 @@ from spectral_utils.reconstruction_reporting.registry import (  # noqa: E402
 )
 from spectral_utils.reconstruction_reporting.report import (  # noqa: E402
     GRAPH_DISPLAY_EDGE_LIMIT,
+    _alignment_scatter,
+    _continuous_lsml_panel,
     _display_edges,
+    _diagnostic_summary_panels,
+    _diagnostic_selector_key,
     _embedded_diagnostics,
+    _family_nrm_panel,
     _marker_svg,
+    _pgrd_panel,
+    _su_pcr_panel,
     default_plot_manifest,
     render_report,
 )
@@ -683,6 +693,23 @@ class IOAndReportTests(unittest.TestCase):
         self.assertIn('aria-label="Complete method legend"', rendered)
         self.assertIn('id="status-guide"', rendered)
         self.assertIn('id="diagnostic-plot"', rendered)
+        self.assertIn('id="diagnostic-unit"', rendered)
+        self.assertIn('id="diagnostic-direction"', rendered)
+        self.assertIn('id="diagnostic-null"', rendered)
+        self.assertIn('id="diagnostic-stage"', rendered)
+        self.assertIn('id="view-preset"', rendered)
+        self.assertIn('value="headline_24cell_auroc"', rendered)
+        self.assertIn('id="filter-generation_model_id"', rendered)
+        self.assertIn('id="filter-scorer_model_id"', rendered)
+        self.assertIn('id="heatmap-colorbar"', rendered)
+        self.assertIn('id="heatmap-scale-values"', rendered)
+        for prefix in ("forest", "heatmap", "contrast", "diagnostic"):
+            self.assertIn(f'id="{prefix}-source-link"', rendered)
+            self.assertIn(f'id="{prefix}-source-hash"', rendered)
+        self.assertIn("node-permutation median is a descriptive reference", rendered)
+        self.assertIn("weight-sensitivity checks, not graph-refit stability", rendered)
+        self.assertIn("arbitrary two-dimensional spectral coordinates", rendered)
+        self.assertIn("Method-specific mechanism panels", rendered)
         for status in ("BLOCKED_ASSET", "METRIC_UNDEFINED_SINGLE_CLASS", "CONTEXT_ONLY"):
             self.assertIn(status, rendered)
         self.assertNotIn("<script src=", rendered)
@@ -736,10 +763,12 @@ class IOAndReportTests(unittest.TestCase):
                 "system_id",
                 "graph_variant",
                 "diagnostic_label",
+                "diagnostic_unit",
                 "value",
                 "null_value",
                 "effect",
                 "p_value",
+                "permutation_count",
                 "label_stage",
                 "status",
             },
@@ -747,10 +776,259 @@ class IOAndReportTests(unittest.TestCase):
         self.assertEqual(
             projected[0]["diagnostic_label"], source["diagnostic_label"]
         )
+
+    def test_generic_diagnostic_selector_excludes_dense_dedicated_sweeps(self) -> None:
+        source = dict(self.rows["graph_diagnostics"][0])
+        curated = []
+        for method_index in range(2):
+            row = dict(source)
+            row["method_id"] = source["method_id"]
+            row["system_id"] = source["system_id"]
+            row["diagnostic_label"] = (
+                "Correctness and trace-length smoothness — error label roughness"
+            )
+            row["graph_variant"] = (
+                f"panel=target_vs_nuisance_roughness;series=observed;x={method_index}"
+            )
+            curated.append(row)
+        dense = []
+        for index in range(4_000):
+            row = dict(source)
+            row["diagnostic_label"] = "Random feature-family graph control"
+            row["graph_variant"] = (
+                f"panel=random_family_graph_control;series=family;x={index}"
+            )
+            dense.append(row)
+        projected = _embedded_diagnostics([*dense, *curated])
+        keys = {
+            (row["diagnostic_label"], row["graph_variant"])
+            for row in projected
+        }
+        self.assertEqual(len(projected), 2)
+        self.assertLessEqual(len(keys), 64)
         self.assertEqual(
             projected[0]["comparison_group_id"],
             source["comparison_group_id"],
         )
+
+    def test_each_bounded_diagnostic_key_has_its_own_exact_plot_contract(self) -> None:
+        manifest = default_plot_manifest(self.registry["release_id"], self.rows)
+        projected = _embedded_diagnostics(self.rows["graph_diagnostics"])
+        keys = {_diagnostic_selector_key(row) for row in projected}
+        selector_plots = [
+            plot for plot in manifest["plots"]
+            if plot["plot_id"].startswith("diagnostic_selector_")
+        ]
+        self.assertEqual(len(selector_plots), len(keys))
+        for plot in selector_plots:
+            matching = [
+                row
+                for row in self.rows["graph_diagnostics"]
+                if all(
+                    row[field] in expected
+                    if isinstance(expected, list)
+                    else row[field] == expected
+                    for field, expected in plot["filters"].items()
+                )
+            ]
+            self.assertEqual(len(matching), plot["n_source_rows"])
+            self.assertEqual(
+                len({_diagnostic_selector_key(row) for row in matching}), 1
+            )
+
+    def test_alignment_scatter_prints_signed_descriptive_associations(self) -> None:
+        method_id = "graph-fusion"
+        point_notes = {
+            "source_panel_id": "alignment_vs_improvement",
+            "source_metric_id": "published_cell_auroc_delta_vs_iu_pcr",
+        }
+        rows = []
+        for cell_id, alignment, delta in (("cell-a", 0.2, 0.01), ("cell-b", 0.4, -0.02)):
+            rows.append(
+                {
+                    "method_id": method_id,
+                    "cell_id": cell_id,
+                    "value": delta,
+                    "notes": json.dumps({**point_notes, "x_value": alignment}),
+                    "status": "OK",
+                    "graph_variant": "panel=alignment_vs_improvement;series=cell_relation;x=0",
+                    "diagnostic_label": "Cell alignment versus AUROC change",
+                }
+            )
+        for label, value, x_index in (
+            ("Across-cell association — spearman", 0.25, 0),
+            ("Across-cell association — pearson", -0.5, 1),
+        ):
+            rows.append(
+                {
+                    "method_id": method_id,
+                    "cell_id": "aggregate::all",
+                    "value": value,
+                    "notes": "{}",
+                    "status": "OK",
+                    "graph_variant": f"panel=alignment_vs_improvement_summary;series=descriptive_relation;x={x_index}",
+                    "diagnostic_label": label,
+                }
+            )
+        rendered = _alignment_scatter(
+            rows,
+            self.registry,
+            {
+                "plots": [
+                    {
+                        "plot_id": "alignment-fixture",
+                        "kind": "diagnostic_scatter",
+                        "filters": {},
+                    }
+                ]
+            },
+        )
+        self.assertIn("Spearman ρ=0.250", rendered)
+        self.assertIn("Pearson r=-0.500", rendered)
+        self.assertIn("no reporting-layer confidence interval or p-value", rendered)
+
+    def test_method_specific_mechanism_panels_are_visible_and_claim_bounded(self) -> None:
+        def row(
+            method_id: str,
+            panel: str,
+            label: str,
+            value: float,
+            *,
+            series: str = "observed",
+            x_index: int = 0,
+            source_note: str | None = None,
+        ) -> dict:
+            return {
+                "method_id": method_id,
+                "cell_id": "fixture-cell",
+                "value": value,
+                "status": "OK",
+                "graph_variant": f"panel={panel};series={series};x={x_index}",
+                "diagnostic_label": label,
+                "notes": json.dumps(
+                    {
+                        "source_note": source_note,
+                        "x_index": x_index,
+                    }
+                ),
+            }
+
+        diagnostics = [
+            row("continuous_lsml", "continuous_lsml_cluster_boundaries", "Continuous L-SML cluster boundaries — cluster id", 0, series="a"),
+            row("continuous_lsml", "continuous_lsml_cluster_boundaries", "Continuous L-SML cluster boundaries — cluster id", 0, series="b", x_index=1),
+            row("continuous_lsml", "continuous_lsml_cluster_boundaries", "Continuous L-SML cluster boundaries — cluster id", 1, series="c", x_index=2),
+            row("continuous_lsml", "continuous_lsml_correlation_clusters", "Continuous L-SML feature-correlation clusters — feature correlation", 0.8, series="a", source_note="column_feature=b;same_cluster=true"),
+            row("continuous_lsml", "continuous_lsml_correlation_clusters", "Continuous L-SML feature-correlation clusters — feature correlation", 0.2, series="a", x_index=2, source_note="column_feature=c;same_cluster=false"),
+            row("family_nrm_a", "family_nrm_residual_covariance", "Family-NRM residual covariance — residual covariance", 1.0, series="family_a", source_note="column_family=family_a"),
+            row("family_nrm_a", "family_nrm_residual_covariance", "Family-NRM residual covariance — residual covariance", -0.4, series="family_a", x_index=1, source_note="column_family=family_b"),
+            row("family_nrm_a", "family_nrm_residual_covariance", "Family-NRM residual covariance — residual covariance", -0.4, series="family_b", source_note="column_family=family_a"),
+            row("family_nrm_a", "family_nrm_residual_covariance", "Family-NRM residual covariance — residual covariance", 0.8, series="family_b", x_index=1, source_note="column_family=family_b"),
+            row("family_nrm_a", "family_nrm_residual_eigenspectrum", "Family-NRM residual eigenspectrum — residual eigenvalue", 1.5, series="eigenspectrum"),
+            row("family_nrm_a", "family_nrm_residual_eigenspectrum", "Family-NRM residual eigenspectrum — residual eigenvalue", 0.5, series="eigenspectrum", x_index=1),
+            row("su_pcr", "su_pcr_decomposition", "SU-PCR low-rank plus sparse decomposition — sparse support fraction off diagonal", 0.05),
+            row("su_pcr", "su_pcr_low_rank_eigenspectrum", "SU-PCR low-rank eigenspectrum — low rank eigenvalue", -0.2, series="eigenspectrum"),
+            row("su_pcr", "su_pcr_low_rank_eigenspectrum", "SU-PCR low-rank eigenspectrum — low rank eigenvalue", 1.2, series="eigenspectrum", x_index=1),
+            row("pgrd_a", "pgrd_cross_gradient", "PGRD residual-gradient decomposition — cross term at registered direction", -0.4),
+            row("pgrd_a", "pgrd_cross_gradient", "PGRD residual-gradient decomposition — quadratic term at registered direction", 0.1, x_index=1),
+            row("pgrd_a", "pgrd_cross_gradient", "PGRD residual-gradient decomposition — predicted energy change at unit step", -0.3, x_index=2),
+        ]
+        plot_manifest = {
+            "plots": [
+                {"plot_id": plot_id, "kind": "diagnostic_summary", "filters": {}}
+                for plot_id in (
+                    "continuous_lsml_correlation_clusters",
+                    "family_nrm_residual_structure",
+                    "su_pcr_support_and_eigenspectrum",
+                    "pgrd_energy_decomposition",
+                )
+            ]
+        }
+        lsml = _continuous_lsml_panel(diagnostics, plot_manifest)
+        family = _family_nrm_panel(diagnostics, plot_manifest)
+        su_pcr = _su_pcr_panel(diagnostics, plot_manifest)
+        pgrd = _pgrd_panel(diagnostics, plot_manifest)
+        self.assertIn("Mean absolute Pearson correlation", lsml)
+        self.assertIn("does not show that those blocks track correctness", lsml)
+        self.assertIn("Median residual covariance", family)
+        self.assertIn("does not identify its correctness orientation", family)
+        self.assertIn("0 = empty support", su_pcr)
+        self.assertIn("does not establish that it caused any performance change", su_pcr)
+        self.assertIn("1/1 cells have negative predicted unit-step change", pgrd)
+        self.assertIn("does not mean that the direction follows correctness", pgrd)
+
+    def test_bounded_assumption_summaries_cover_every_promised_control(self) -> None:
+        def row(
+            panel: str,
+            label: str,
+            value: float,
+            *,
+            method_id: str = "graph-fusion",
+            series: str = "observed",
+            effect: float | None = None,
+            cell_id: str = "fixture-cell",
+        ) -> dict:
+            return {
+                "method_id": method_id,
+                "cell_id": cell_id,
+                "value": value,
+                "effect": value if effect is None else effect,
+                "status": "OK",
+                "graph_variant": f"panel={panel};series={series};x=0",
+                "diagnostic_label": label,
+            }
+
+        diagnostics = [
+            row("random_family_graph_control", "Random feature-family graph control — error label roughness", 0.8, series="entropy_level"),
+            row("ca_alpha_controls", "CA-SpecRaGE registered controls — error label roughness", 0.7, series="equal_view", effect=0.1),
+            row("ca_view_weights", "CA-SpecRaGE view weights — mean learned alpha", 0.3, series="epr"),
+            row("ca_view_weights", "CA-SpecRaGE view weights — frozen view prior", 0.2, series="epr"),
+            row("dufs_gate_weights", "DUFS feature weights — rms normalized gate weight", 1.2, series="epr"),
+            row("dufs_gate_weights_per_seed", "DUFS feature weights by seed — gate survival probability", 0.9, series="epr"),
+            row("fixed_graph_group_bootstrap_stability", "Fixed fitted-graph weight sensitivity under source-group resampling — edge support jaccard", 0.6),
+            row("family_nrm_family_contributions", "Family-NRM family contributions — absolute direction share", 0.4, method_id="family_nrm_a", series="entropy_level"),
+            row("family_nrm_family_contributions", "Family-NRM family contributions — direction coefficient", -0.2, method_id="family_nrm_a", series="entropy_level"),
+            row("su_pcr_sparse_support_stability", "SU-PCR support stability — support jaccard vs frozen", 0.75, method_id="su_pcr"),
+        ]
+        plot_ids = (
+            "random_family_graph_control_summary",
+            "ca_registered_control_summary",
+            "ca_view_weight_summary",
+            "dufs_gate_weight_summary",
+            "fixed_graph_weight_sensitivity_summary",
+            "family_nrm_family_contribution_summary",
+            "su_pcr_support_stability_summary",
+        )
+        manifest = {
+            "plots": [
+                {
+                    "plot_id": plot_id,
+                    "kind": "diagnostic_summary",
+                    "filters": {},
+                    "data_sha256": _hash(plot_id),
+                }
+                for plot_id in plot_ids
+            ]
+        }
+        rendered = _diagnostic_summary_panels(
+            diagnostics,
+            self.registry,
+            manifest,
+        )
+        for figure_id in (
+            "random-family-control-panel",
+            "ca-control-panel",
+            "ca-view-weight-panel",
+            "dufs-gate-weight-panel",
+            "fixed-graph-bootstrap-panel",
+            "family-nrm-contribution-panel",
+            "su-pcr-support-stability-panel",
+        ):
+            self.assertIn(f'id="{figure_id}"', rendered)
+        for plot_id in plot_ids:
+            self.assertIn(f'plot_data/{plot_id}.csv', rendered)
+            self.assertIn(f'data_sha256={_hash(plot_id)}', rendered)
+        self.assertIn("Dot = median", rendered)
+        self.assertIn("Line = full", rendered)
 
     def test_all_registered_marker_shapes_have_explicit_svg_legends(self) -> None:
         for marker in (
@@ -891,6 +1169,11 @@ class IOAndReportTests(unittest.TestCase):
 
     def test_every_plot_materializes_exact_data_csv(self) -> None:
         manifest = default_plot_manifest(self.registry["release_id"], self.rows)
+        rendered = render_report(
+            registry=self.registry,
+            rows_by_table=self.rows,
+            plot_manifest=manifest,
+        )
         with tempfile.TemporaryDirectory() as temporary:
             layout = ReleaseLayout.from_root(Path(temporary) / "release")
             layout.create_directories()
@@ -900,6 +1183,10 @@ class IOAndReportTests(unittest.TestCase):
                 self.assertTrue(plot["legend"])
                 self.assertTrue(plot["caption"])
                 self.assertTrue((layout.plot_data / f"{plot['plot_id']}.csv").exists())
+                self.assertIn(
+                    f'href="plot_data/{plot["plot_id"]}.csv"', rendered
+                )
+                self.assertIn(f'data_sha256={plot["data_sha256"]}', rendered)
 
     def test_plot_hash_mismatch_fails_before_materialization(self) -> None:
         manifest = default_plot_manifest(self.registry["release_id"], self.rows)
@@ -936,6 +1223,108 @@ class QueryLayerTests(unittest.TestCase):
             build_duckdb("/path/that/is/not/opened-before-import")
 
     @unittest.skipUnless(importlib.util.find_spec("duckdb") is not None, "DuckDB not installed")
+    def test_query_results_has_a_total_order_across_metric_ties_and_graph_rows(self) -> None:
+        import duckdb
+
+        leaderboard_rows = [
+            ("group-b", "metric-a", 1, "system-a", "group-b"),
+            ("group-a", "metric-b", 1, "system-a", "metric-b"),
+            ("group-a", "metric-a", 2, "system-b", "rank-2"),
+            ("group-a", "metric-a", 1, "system-z", "system-z"),
+            ("group-a", "metric-a", 1, "system-a", "system-a"),
+        ]
+        graph_rows = [
+            ("group-b", "diagnostic-a", "graph-a", "system-a", "group-b"),
+            ("group-a", "diagnostic-b", "graph-a", "system-a", "diagnostic-b"),
+            ("group-a", "diagnostic-a", "graph-b", "system-a", "graph-b"),
+            ("group-a", "diagnostic-a", "graph-a", "system-z", "system-z"),
+            ("group-a", "diagnostic-a", "graph-a", "system-a", "system-a"),
+        ]
+
+        with tempfile.TemporaryDirectory() as temporary:
+            outputs = []
+            graph_outputs = []
+            for name, physical_order in (
+                ("forward", leaderboard_rows),
+                ("reverse", list(reversed(leaderboard_rows))),
+            ):
+                database = Path(temporary) / f"{name}.duckdb"
+                connection = duckdb.connect(str(database))
+                connection.execute(
+                    """
+                    CREATE TABLE v_atomic_leaderboard (
+                        task_id VARCHAR,
+                        dataset_id VARCHAR,
+                        cell_id VARCHAR,
+                        slice_id VARCHAR,
+                        comparison_group_id VARCHAR,
+                        metric_id VARCHAR,
+                        point_rank BIGINT,
+                        system_id VARCHAR,
+                        payload VARCHAR
+                    )
+                    """
+                )
+                connection.executemany(
+                    "INSERT INTO v_atomic_leaderboard VALUES "
+                    "('task', 'dataset', 'cell', 'slice', ?, ?, ?, ?, ?)",
+                    physical_order,
+                )
+                connection.execute(
+                    """
+                    CREATE TABLE v_graph_assumption_checks (
+                        task_id VARCHAR,
+                        dataset_id VARCHAR,
+                        cell_id VARCHAR,
+                        slice_id VARCHAR,
+                        comparison_group_id VARCHAR,
+                        diagnostic_id VARCHAR,
+                        graph_id VARCHAR,
+                        graph_variant VARCHAR,
+                        label_stage VARCHAR,
+                        graph_hash VARCHAR,
+                        matrix_hash VARCHAR,
+                        system_id VARCHAR,
+                        payload VARCHAR
+                    )
+                    """
+                )
+                ordered_graph_rows = (
+                    graph_rows if name == "forward" else list(reversed(graph_rows))
+                )
+                connection.executemany(
+                    "INSERT INTO v_graph_assumption_checks VALUES "
+                    "('task', 'dataset', 'cell', 'slice', ?, ?, ?, 'real', "
+                    "'post_freeze_labels', 'graph-hash', 'matrix-hash', ?, ?)",
+                    ordered_graph_rows,
+                )
+                connection.close()
+
+                columns, rows = query_results(database, view="v_atomic_leaderboard")
+                outputs.append([row[columns.index("payload")] for row in rows])
+                graph_columns, queried_graph_rows = query_results(
+                    database,
+                    view="v_graph_assumption_checks",
+                )
+                graph_outputs.append(
+                    [
+                        row[graph_columns.index("payload")]
+                        for row in queried_graph_rows
+                    ]
+                )
+
+            expected = ["system-a", "system-z", "rank-2", "metric-b", "group-b"]
+            self.assertEqual(outputs, [expected, expected])
+            expected_graph = [
+                "system-a",
+                "system-z",
+                "graph-b",
+                "diagnostic-b",
+                "group-b",
+            ]
+            self.assertEqual(graph_outputs, [expected_graph, expected_graph])
+
+    @unittest.skipUnless(importlib.util.find_spec("duckdb") is not None, "DuckDB not installed")
     def test_duckdb_drilldown_returns_all_compatible_systems(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             layout = ReleaseLayout.from_root(Path(temporary) / "release")
@@ -970,6 +1359,265 @@ class QueryLayerTests(unittest.TestCase):
             )
             self.assertIn("row_kind", example_columns)
             self.assertEqual(len(example_rows), len(self.rows["graph_examples"]))
+
+    @unittest.skipUnless(importlib.util.find_spec("duckdb") is not None, "DuckDB not installed")
+    def test_leaderboard_exports_are_deterministic_and_rankable_only(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            roots = []
+            records_by_root = []
+            for independent_run in ("a", "b"):
+                layout = ReleaseLayout.from_root(Path(temporary) / independent_run)
+                layout.create_directories()
+                write_canonical_json(layout.registry_json, self.registry)
+                write_tidy_csv(layout.metrics_csv, "metrics", self.rows["metrics"])
+                write_tidy_csv(layout.contrasts_csv, "contrasts", self.rows["contrasts"])
+                write_tidy_csv(layout.coverage_csv, "coverage", self.rows["coverage"])
+                write_tidy_csv(
+                    layout.graph_diagnostics_csv,
+                    "graph_diagnostics",
+                    self.rows["graph_diagnostics"],
+                )
+                write_tidy_csv(
+                    layout.graph_examples_csv,
+                    "graph_examples",
+                    self.rows["graph_examples"],
+                )
+                build_duckdb(layout.root)
+                records_by_root.append(export_leaderboard_csvs(layout.root))
+                roots.append(layout.root)
+
+            expected_levels = [spec[0] for spec in LEADERBOARD_EXPORT_SPECS]
+            self.assertEqual(
+                [record["leaderboard_level"] for record in records_by_root[0]],
+                expected_levels,
+            )
+            for level, view, filename in LEADERBOARD_EXPORT_SPECS:
+                relative = Path("05_evaluation") / "leaderboards" / filename
+                first = roots[0] / relative
+                second = roots[1] / relative
+                self.assertEqual(first.read_bytes(), second.read_bytes())
+                columns, query_rows = query_results(
+                    roots[0] / "05_evaluation" / "benchmark.duckdb",
+                    view=view,
+                )
+                with first.open("r", encoding="utf-8", newline="") as handle:
+                    reader = csv.DictReader(handle)
+                    self.assertEqual(reader.fieldnames, columns)
+                    exported = list(reader)
+                self.assertEqual(len(exported), len(query_rows))
+                expected_source_level = "task" if level == "slice" else level
+                self.assertTrue(
+                    all(
+                        row["aggregation_level"] == expected_source_level
+                        for row in exported
+                    )
+                )
+                self.assertTrue(all(row["status"] in {"OK", "OK_FALLBACK"} for row in exported))
+                self.assertTrue(all(row["value"] != "" for row in exported))
+                self.assertTrue(all(row["aggregation_id"] != "" for row in exported))
+                if level == "task":
+                    self.assertTrue(
+                        all(row["slice_dimension"] == "macro24" for row in exported)
+                    )
+                    self.assertTrue(
+                        all(row["slice_value"] == "all_24_cells" for row in exported)
+                    )
+                if level == "slice":
+                    self.assertTrue(
+                        all(
+                            row["slice_dimension"] in {"domain", "model_family"}
+                            for row in exported
+                        )
+                    )
+
+    @unittest.skipUnless(importlib.util.find_spec("duckdb") is not None, "DuckDB not installed")
+    def test_task_leaderboard_selects_only_registered_macro24_aggregation(self) -> None:
+        registry = json.loads(json.dumps(self.registry))
+        rows = json.loads(json.dumps(self.rows))
+        slice_specs = (
+            (
+                "task-macro24-all",
+                "macro24",
+                "all_24_cells",
+                "frozen24::equal-cell::macro24-all-24-cells",
+                "task",
+            ),
+            (
+                "task-domain-math",
+                "domain",
+                "math",
+                "frozen24::equal-cell::domain-math",
+                "task",
+            ),
+            (
+                "task-model-family-fixture",
+                "model_family",
+                "fixture-model",
+                "frozen24::equal-cell::model-family-fixture-model",
+                "task",
+            ),
+            (
+                "task-macro24-partial",
+                "macro24",
+                "not_all_24_cells",
+                "frozen24::equal-cell::macro24-not-all-24-cells",
+                "task",
+            ),
+            (
+                "release-all-tasks",
+                "across_task",
+                "all_tasks",
+                "release::all-tasks",
+                "release",
+            ),
+        )
+        for slice_id, dimension, value, aggregation_id, _level in slice_specs:
+            registry["slices"].append(
+                {
+                    "slice_id": slice_id,
+                    "population_id": "processbench-fixture-population",
+                    "cell_id": "processbench-gsm8k-llama-fixture",
+                    "slice_dimension": dimension,
+                    "slice_value": value,
+                    "display_name": f"Synthetic {dimension}={value} slice",
+                    "expected_n": 4,
+                }
+            )
+            registry["aggregations"].append(
+                {
+                    "aggregation_id": aggregation_id,
+                    "display_name": f"Synthetic aggregate for {slice_id}",
+                    "rule": "equal_unit_mean",
+                    "unit_field": "cell_id",
+                    "component_ids": ["processbench-gsm8k-llama-fixture"],
+                    "bootstrap_unit": "source question",
+                    "weighting": "synthetic equal-cell fixture",
+                }
+            )
+            for source in self.rows["metrics"]:
+                metric = dict(source)
+                metric.update(
+                    slice_id=slice_id,
+                    aggregation_id=aggregation_id,
+                    aggregation_level=_level,
+                )
+                metric["comparison_group_id"] = derive_comparison_group_id(metric)
+                rows["metrics"].append(metric)
+
+        registry.pop("registry_sha256")
+        registry = validate_registry(registry)
+        with tempfile.TemporaryDirectory() as temporary:
+            layout = ReleaseLayout.from_root(Path(temporary) / "release")
+            layout.create_directories()
+            write_canonical_json(layout.registry_json, registry)
+            write_tidy_csv(layout.metrics_csv, "metrics", rows["metrics"])
+            write_tidy_csv(layout.contrasts_csv, "contrasts", rows["contrasts"])
+            write_tidy_csv(layout.coverage_csv, "coverage", rows["coverage"])
+            write_tidy_csv(
+                layout.graph_diagnostics_csv,
+                "graph_diagnostics",
+                rows["graph_diagnostics"],
+            )
+            write_tidy_csv(layout.graph_examples_csv, "graph_examples", rows["graph_examples"])
+            build_duckdb(layout.root)
+
+            task_columns, task_rows = query_results(
+                layout.database,
+                view="v_task_leaderboard",
+            )
+            self.assertEqual(len(task_rows), len(self.registry["systems"]))
+            task_records = [dict(zip(task_columns, row)) for row in task_rows]
+            self.assertEqual(
+                {row["aggregation_id"] for row in task_records},
+                {"frozen24::equal-cell::macro24-all-24-cells"},
+            )
+            self.assertEqual({row["aggregation_level"] for row in task_records}, {"task"})
+            self.assertEqual({row["slice_dimension"] for row in task_records}, {"macro24"})
+            self.assertEqual({row["slice_value"] for row in task_records}, {"all_24_cells"})
+
+            slice_columns, slice_rows = query_results(
+                layout.database,
+                view="v_slice_leaderboard",
+            )
+            slice_records = [dict(zip(slice_columns, row)) for row in slice_rows]
+            self.assertEqual(
+                {row["aggregation_id"] for row in slice_records},
+                {
+                    "frozen24::equal-cell::domain-math",
+                    "frozen24::equal-cell::model-family-fixture-model",
+                },
+            )
+            self.assertEqual(
+                {row["slice_dimension"] for row in slice_records},
+                {"domain", "model_family"},
+            )
+            self.assertEqual(
+                {row["aggregation_level"] for row in slice_records}, {"task"}
+            )
+
+            release_columns, release_rows = query_results(
+                layout.database,
+                view="v_release_leaderboard",
+            )
+            release_records = [dict(zip(release_columns, row)) for row in release_rows]
+            self.assertEqual(
+                {row["aggregation_id"] for row in release_records},
+                {"release::all-tasks"},
+            )
+            self.assertEqual(
+                {row["aggregation_level"] for row in release_records},
+                {"release"},
+            )
+
+            artifacts = export_leaderboard_csvs(layout.root)
+            task_artifact = next(
+                artifact for artifact in artifacts if artifact["leaderboard_level"] == "task"
+            )
+            self.assertEqual(
+                task_artifact["selection_semantics"],
+                "aggregation_level=task; slice_dimension=macro24; "
+                "slice_value=all_24_cells",
+            )
+            task_csv = layout.root / task_artifact["relative_path"]
+            with task_csv.open("r", encoding="utf-8", newline="") as handle:
+                exported_task = list(csv.DictReader(handle))
+            self.assertEqual(
+                {row["aggregation_id"] for row in exported_task},
+                {"frozen24::equal-cell::macro24-all-24-cells"},
+            )
+            self.assertEqual({row["slice_dimension"] for row in exported_task}, {"macro24"})
+            self.assertEqual({row["slice_value"] for row in exported_task}, {"all_24_cells"})
+
+            slice_artifact = next(
+                artifact
+                for artifact in artifacts
+                if artifact["leaderboard_level"] == "slice"
+            )
+            self.assertEqual(
+                slice_artifact["selection_semantics"],
+                "aggregation_level=task; slice_dimension in (domain, model_family)",
+            )
+            slice_csv = layout.root / slice_artifact["relative_path"]
+            with slice_csv.open("r", encoding="utf-8", newline="") as handle:
+                exported_slices = list(csv.DictReader(handle))
+            self.assertEqual(
+                {row["aggregation_id"] for row in exported_slices},
+                {
+                    "frozen24::equal-cell::domain-math",
+                    "frozen24::equal-cell::model-family-fixture-model",
+                },
+            )
+
+            release_artifact = next(
+                artifact for artifact in artifacts if artifact["leaderboard_level"] == "release"
+            )
+            release_csv = layout.root / release_artifact["relative_path"]
+            with release_csv.open("r", encoding="utf-8", newline="") as handle:
+                exported_release = list(csv.DictReader(handle))
+            self.assertEqual(
+                {row["aggregation_id"] for row in exported_release},
+                {"release::all-tasks"},
+            )
 
 
 class FullReleaseTests(unittest.TestCase):
@@ -1162,6 +1810,26 @@ class FullReleaseTests(unittest.TestCase):
             )
             self.assertTrue(manifest["source_bridge"]["scientific_publication_eligible"])
             self.assertTrue((roots[0] / "01_registries" / "BRIDGE_MANIFEST.json").exists())
+            leaderboard_artifacts = {
+                artifact["leaderboard_level"]: artifact
+                for artifact in manifest["artifacts"]
+                if artifact.get("kind") == "leaderboard_csv"
+            }
+            self.assertEqual(
+                set(leaderboard_artifacts),
+                {"cell", "dataset", "task", "slice", "release"},
+            )
+            for level, view, filename in LEADERBOARD_EXPORT_SPECS:
+                artifact = leaderboard_artifacts[level]
+                self.assertEqual(artifact["source_view"], view)
+                self.assertEqual(
+                    artifact["relative_path"],
+                    f"05_evaluation/leaderboards/{filename}",
+                )
+                self.assertEqual(
+                    artifact["source_database_logical_sha256"],
+                    database_artifact["logical_sha256"],
+                )
 
             logical_queries = [
                 query_results(root / "05_evaluation" / "benchmark.duckdb")

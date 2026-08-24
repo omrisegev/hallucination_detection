@@ -35,7 +35,15 @@ from spectral_utils.reconstruction_reporting.io import (  # noqa: E402
     write_tidy_csv,
     validate_plot_data_sources,
 )
-from spectral_utils.reconstruction_reporting.query import build_duckdb  # noqa: E402
+from spectral_utils.reconstruction_reporting.query import (  # noqa: E402
+    build_duckdb,
+    export_leaderboard_csvs,
+)
+from spectral_utils.reconstruction_reporting.published_context import (  # noqa: E402
+    frozen24_cell_auroc_logical_sha256,
+    load_published_context_projection,
+    validate_published_context_projection,
+)
 from spectral_utils.reconstruction_reporting.registry import (  # noqa: E402
     expected_coverage_rows,
     validate_registry,
@@ -115,9 +123,13 @@ def _verify_scientific_bridge(args: argparse.Namespace) -> dict[str, Any]:
         raise SchemaError("bridge manifest is explicitly ineligible for scientific publication")
     if manifest.get("graph_diagnostics_status") != "VERIFIED_SIGNED_SOURCE_CONVERTED":
         raise SchemaError("bridge manifest lacks a verified signed graph package")
+    if manifest.get("published_context_status") != "VERIFIED_SEPARATE_REPORT_ONLY_ARTIFACT":
+        raise SchemaError("bridge manifest lacks a verified published-context artifact")
 
+    bridge_root = manifest_path.parent.resolve()
     input_paths = {
         "research_registry.json": args.registry,
+        "published_comparators.json": bridge_root / "published_comparators.json",
         "predictions.jsonl": args.predictions,
         "metrics_long.csv": args.metrics,
         "contrasts_long.csv": args.contrasts,
@@ -125,15 +137,19 @@ def _verify_scientific_bridge(args: argparse.Namespace) -> dict[str, Any]:
         "graph_diagnostics_long.csv": args.graph_diagnostics,
         "graph_examples_long.csv": args.graph_examples,
     }
-    bridge_root = manifest_path.parent.resolve()
     artifacts = manifest.get("artifacts")
     if not isinstance(artifacts, list):
         raise SchemaError("bridge manifest artifacts are missing")
-    by_path = {
-        str(record.get("path")): record
-        for record in artifacts
-        if isinstance(record, dict) and isinstance(record.get("path"), str)
-    }
+    by_path: dict[str, dict[str, Any]] = {}
+    for record in artifacts:
+        if not isinstance(record, dict) or not isinstance(record.get("path"), str):
+            raise SchemaError("bridge manifest contains an invalid artifact record")
+        relative_path = str(record["path"])
+        if relative_path in by_path:
+            raise SchemaError(
+                f"bridge manifest contains duplicate artifact path: {relative_path}"
+            )
+        by_path[relative_path] = record
     for relative_path, supplied_path in input_paths.items():
         resolved = supplied_path.resolve()
         if resolved != bridge_root / relative_path:
@@ -155,6 +171,7 @@ def load_and_validate(
     dict[str, list[dict[str, Any]]],
     dict[str, Any],
     dict[str, Any],
+    dict[str, Any],
 ]:
     bridge_manifest = _verify_scientific_bridge(args)
     registry = _read_registry(args.registry)
@@ -166,6 +183,39 @@ def load_and_validate(
         "graph_diagnostics": load_records(args.graph_diagnostics, "graph_diagnostics"),
         "graph_examples": load_records(args.graph_examples, "graph_examples"),
     }
+    cell_ids = sorted(
+        {
+            str(row["cell_id"])
+            for row in rows["metrics"]
+            if row.get("aggregation_level") == "cell"
+        },
+        key=lambda value: value.encode("utf-8"),
+    )
+    published_context = validate_published_context_projection(
+        load_published_context_projection(
+            args.bridge_manifest.resolve().parent / "published_comparators.json"
+        ),
+        release_id=str(registry["release_id"]),
+        expected_cell_ids=cell_ids,
+        metrics_cell_auroc_logical_sha256=frozen24_cell_auroc_logical_sha256(
+            rows["metrics"],
+            expected_cell_ids=cell_ids,
+            expected_method_ids=[
+                str(method["method_id"]) for method in registry["methods"]
+            ],
+        ),
+    )
+    if bridge_manifest.get("published_context_status_counts") != published_context[
+        "status_counts"
+    ]:
+        raise SchemaError("bridge manifest published-context counts drift")
+    source_hashes = bridge_manifest.get("source_hashes")
+    if not isinstance(source_hashes, dict):
+        raise SchemaError("bridge manifest source hashes are missing")
+    if source_hashes.get("published_context_logical_sha256") != canonical_sha256(
+        published_context
+    ):
+        raise SchemaError("bridge manifest published-context logical hash mismatch")
     if bridge_manifest.get("release_id") != registry["release_id"]:
         raise SchemaError("bridge manifest release_id does not match registry")
     expected_counts = bridge_manifest.get("row_counts")
@@ -186,7 +236,7 @@ def load_and_validate(
     if plot_manifest["release_id"] != registry["release_id"]:
         raise SchemaError("plot manifest release_id does not match registry")
     validate_plot_data_sources(plot_manifest, rows)
-    return registry, rows, plot_manifest, bridge_manifest
+    return registry, rows, plot_manifest, bridge_manifest, published_context
 
 
 def _dependency_versions() -> dict[str, str]:
@@ -216,6 +266,7 @@ def build_release(
     plot_manifest: Mapping[str, Any],
     title: str,
     bridge_manifest: Mapping[str, Any],
+    published_context: Mapping[str, Any] | None = None,
 ) -> Path:
     release_root = release_root.resolve()
     if release_root.exists():
@@ -260,6 +311,60 @@ def build_release(
             ),
             "relative_path": bridge_record["relative_path"],
         }
+
+        if published_context is not None:
+            cell_ids = sorted(
+                {
+                    str(row["cell_id"])
+                    for row in rows["metrics"]
+                    if row.get("aggregation_level") == "cell"
+                },
+                key=lambda value: value.encode("utf-8"),
+            )
+            published_context = validate_published_context_projection(
+                published_context,
+                release_id=str(registry["release_id"]),
+                expected_cell_ids=cell_ids,
+                metrics_cell_auroc_logical_sha256=(
+                    frozen24_cell_auroc_logical_sha256(
+                        rows["metrics"],
+                        expected_cell_ids=cell_ids,
+                        expected_method_ids=[
+                            str(method["method_id"])
+                            for method in registry["methods"]
+                        ],
+                    )
+                ),
+            )
+            write_canonical_json(
+                layout.published_comparators_json,
+                published_context,
+                atomic=False,
+            )
+            published_record = _artifact_record(
+                layout,
+                layout.published_comparators_json,
+                kind="published_context_report_only",
+                logical_sha256=canonical_sha256(published_context),
+                row_count=len(published_context["rows"]),
+            )
+            artifacts.append(published_record)
+            bridge_attestation.update(
+                {
+                    "published_context_relative_path": published_record[
+                        "relative_path"
+                    ],
+                    "published_context_file_sha256": published_record[
+                        "file_sha256"
+                    ],
+                    "published_context_logical_sha256": published_record[
+                        "logical_sha256"
+                    ],
+                    "published_context_status_counts": dict(
+                        published_context["status_counts"]
+                    ),
+                }
+            )
 
         predictions_record = {
             **write_parquet(
@@ -321,6 +426,7 @@ def build_release(
             rows_by_table=rows,
             plot_manifest=plot_manifest,
             title=title,
+            published_context=published_context,
             atomic=False,
         )
         report_record.update(
@@ -340,6 +446,13 @@ def build_release(
             kind="duckdb",
         )
         artifacts.append(database_record)
+        leaderboard_records = export_leaderboard_csvs(
+            layout.root,
+            atomic=False,
+        )
+        for record in leaderboard_records:
+            record["source_database_logical_sha256"] = database_record["logical_sha256"]
+        artifacts.extend(leaderboard_records)
 
         manifest = build_reporting_manifest(
             layout,
@@ -359,7 +472,13 @@ def build_release(
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _arguments(argv)
-    registry, rows, plot_manifest, bridge_manifest = load_and_validate(args)
+    (
+        registry,
+        rows,
+        plot_manifest,
+        bridge_manifest,
+        published_context,
+    ) = load_and_validate(args)
     summary = {
         "release_id": registry["release_id"],
         "registry_sha256": registry["registry_sha256"],
@@ -376,6 +495,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         plot_manifest=plot_manifest,
         title=args.title,
         bridge_manifest=bridge_manifest,
+        published_context=published_context,
     )
     print(json.dumps({"status": "BUILT", "release_root": str(output), **summary}, sort_keys=True))
     return 0

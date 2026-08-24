@@ -1,5 +1,5 @@
 {
-  "schema_version": "reconstruction-external-final-answer-registry-v1",
+  "schema_version": "reconstruction-external-final-answer-registry-v2",
   "feature_contract_id": "dufs-liu-mixed-v2-development-2026-08-07",
   "feature_contract_rule": "Evaluate the nominal frozen 30-feature roster. A view is present only when it is finite on 100% of the registered rows; a view that is unavailable on 100% of rows may remain absent. Partial availability is invalid. Apply mixed-v2 exactly once to the ordered present-feature subset. No row dropping, convenience feature selection, imputation, pre-oriented matrices, or raw/pre-warper substitutions are allowed.",
   "fit_contract": {
@@ -10,6 +10,32 @@
     "family_nrm_pgrd_regime": "A_within_cell_fully_unsupervised",
     "score_semantics": "higher_is_incorrect",
     "score_freeze_required_before_labels": true
+  },
+  "identity_contract": {
+    "version": "reconstruction-external-keyed-hmac-id-v1",
+    "digest_algorithm": "hmac-sha256-canonical-json-v1",
+    "identity_key_contract_version": "reconstruction-external-identity-key-v1",
+    "identity_key_bytes": 32,
+    "opaque_row_id_prefix": "xridv2_",
+    "opaque_group_id_prefix": "xgidv2_",
+    "row_namespace_scope": "cell",
+    "canonical_row_order": "lexicographic_opaque_row_id",
+    "group_namespace_by_population": {
+      "processbench_llama31_response_v1": "cell",
+      "processbench_qwen3_response_v1": "population_slice",
+      "prmbench_qwen3_response_v1": "cell",
+      "semgrad_bem_v1": "cell",
+      "hle_qwen72b_interim_v1": "cell",
+      "evidence_drop_primary_v1": "cell",
+      "aqua_cot_central_three_models_v1": "population",
+      "gpqa_k10_negative_stress_v1": "population"
+    }
+  },
+  "exclusion_fingerprint_contract": {
+    "version": "reconstruction-external-raw-id-fingerprint-v1",
+    "digest_algorithm": "sha256-canonical-json-v1",
+    "prefix": "xrfpv1_",
+    "controller_only": true
   },
   "model_id_aliases": {
     "meta-llama/Llama-3.1-8B-Instruct": "llama31_8b",
@@ -105,7 +131,7 @@
       "cell_id": "processbench_omnimath_llama31_8b", "population_id": "processbench_llama31_response_v1", "dataset_id": "processbench", "model_id": "llama31_8b", "slice_id": "omnimath", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 1000, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/pb_llama31_8b/processbench_omnimath.pkl", "sha256": "d1f9ad59eacbba64963b763e07209bdccb570f9875382f1b38c5573678ce81e4"}]}, "fit_policy": "run_if_compatible", "panel_role": "application"
     },
     {
-      "cell_id": "prmbench_response_qwen3_8b", "population_id": "prmbench_qwen3_response_v1", "dataset_id": "prmbench", "model_id": "qwen3_8b", "slice_id": "overall", "domain": "reasoning_response_detection", "comparison_group_id": "prmbench_response", "expected_rows": 6966, "expected_incorrect": 6208, "expected_correct": 758, "expected_group_count": 6208, "adapter_id": "prmbench_teacher_forced_v1", "source": {"kind": "data_readiness", "dataset_id": "prmbench_qwen3_8b_telemetry", "path_suffix": "prmbench_telemetry.pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application", "excluded_row_ids": ["confidence_confidence_prm_train_p1_303", "deception_deception_prm_test_p1_87", "step_contradiction_step_contradiction_prm_test_p2_991"]
+      "cell_id": "prmbench_response_qwen3_8b", "population_id": "prmbench_qwen3_response_v1", "dataset_id": "prmbench", "model_id": "qwen3_8b", "slice_id": "overall", "domain": "reasoning_response_detection", "comparison_group_id": "prmbench_response", "expected_rows": 6966, "expected_incorrect": 6208, "expected_correct": 758, "expected_group_count": 6208, "adapter_id": "prmbench_teacher_forced_v1", "source": {"kind": "data_readiness", "dataset_id": "prmbench_qwen3_8b_telemetry", "path_suffix": "prmbench_telemetry.pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application", "excluded_raw_id_fingerprints": ["xrfpv1_27f1de83625bedc50d49ce75a881f281e13ef35517523b5884eb87f91272a23e", "xrfpv1_7103c37cef0bf60f028fc4957aa0f84acd9ec450d80a80946d57a9249e8ebd62", "xrfpv1_0f3f1e2ee8142fd1d8df7a561ec47944c6c4d6309020fbb5ab9fa489b85b313a"]
     },
     {
       "cell_id": "semgrad_sciq_bem", "population_id": "semgrad_bem_v1", "dataset_id": "sciq", "model_id": "qwen3_4b_instruct_2507", "slice_id": "bem", "domain": "qa_response_detection", "comparison_group_id": "semgrad_bem_2cell", "expected_rows": 1000, "expected_incorrect": 388, "expected_correct": 612, "adapter_id": "repgrid_embedded_label_v1", "source": {"kind": "data_readiness", "dataset_id": "semgrad_sciq", "path_suffix": ".pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application"

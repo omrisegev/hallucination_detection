@@ -1,0 +1,42 @@
+{
+  "schema_version": "reconstruction-edis-postfreeze-registry-v1",
+  "lane_id": "edis_aime_reconstruction_v1",
+  "positive_class": "incorrect",
+  "group_identity_contract": {
+    "unit": "source_question",
+    "scope": "dataset_across_temperatures",
+    "raw_identity": "dataset_id_plus_sha256_of_saved_question_text",
+    "require_identical_ordered_question_roster_across_temperatures": true
+  },
+  "metrics": ["auroc", "auprc"],
+  "bootstrap": {"draws": 20000, "unit": "source_question", "paired": true, "reference_method_id": "iu_pcr"},
+  "aggregation": {
+    "dataset": "equal_temperature",
+    "all_datasets": "equal_dataset_after_equal_temperature",
+    "link_source_questions_across_temperatures": true,
+    "pool_rows": false,
+    "require_complete_method_cell_roster": true
+  },
+  "evidence_boundary": {
+    "headline_eligible": false,
+    "status": "DESCRIPTIVE_GATE_FAILED",
+    "reason": "Every materialized dataset-by-temperature acquisition cell failed at least one preregistered balance or accuracy gate. Metrics remain useful descriptive diagnostics but cannot become headline evidence.",
+    "one_pass_leaderboard_comparison": "forbidden",
+    "track": "multi_sample_inference",
+    "published_edis_number_use": "context_only"
+  },
+  "cells": [
+    {"cell_id": "edis_aime24_t0p2", "expected_correct": 29, "expected_incorrect": 1891, "class_status": "TWO_CLASS", "gate_status": "FAILED", "gate_reasons": ["accuracy below registered band", "minority class below 100"]},
+    {"cell_id": "edis_aime24_t0p6", "expected_correct": 24, "expected_incorrect": 1896, "class_status": "TWO_CLASS", "gate_status": "FAILED", "gate_reasons": ["accuracy below registered band", "minority class below 100"]},
+    {"cell_id": "edis_aime24_t1p0", "expected_correct": 7, "expected_incorrect": 1913, "class_status": "TWO_CLASS", "gate_status": "FAILED", "gate_reasons": ["accuracy below registered band", "minority class below 100"]},
+    {"cell_id": "edis_amc23_t0p2", "expected_correct": 198, "expected_incorrect": 1082, "class_status": "TWO_CLASS", "gate_status": "FAILED", "gate_reasons": ["accuracy below registered band"]},
+    {"cell_id": "edis_amc23_t0p6", "expected_correct": 153, "expected_incorrect": 1127, "class_status": "TWO_CLASS", "gate_status": "FAILED", "gate_reasons": ["accuracy below registered band"]},
+    {"cell_id": "edis_amc23_t1p0", "expected_correct": 96, "expected_incorrect": 1184, "class_status": "TWO_CLASS", "gate_status": "FAILED", "gate_reasons": ["accuracy below registered band", "minority class below 100"]},
+    {"cell_id": "edis_gsm8k_t0p2", "expected_correct": 79, "expected_incorrect": 161, "class_status": "TWO_CLASS", "gate_status": "FAILED", "gate_reasons": ["minority class below 100"]},
+    {"cell_id": "edis_gsm8k_t0p6", "expected_correct": 56, "expected_incorrect": 184, "class_status": "TWO_CLASS", "gate_status": "FAILED", "gate_reasons": ["minority class below 100"]},
+    {"cell_id": "edis_gsm8k_t1p0", "expected_correct": 27, "expected_incorrect": 213, "class_status": "TWO_CLASS", "gate_status": "FAILED", "gate_reasons": ["accuracy below registered band", "minority class below 100"]},
+    {"cell_id": "edis_math500_t0p2", "expected_correct": 68, "expected_incorrect": 172, "class_status": "TWO_CLASS", "gate_status": "FAILED", "gate_reasons": ["minority class below 100"]},
+    {"cell_id": "edis_math500_t0p6", "expected_correct": 55, "expected_incorrect": 185, "class_status": "TWO_CLASS", "gate_status": "FAILED", "gate_reasons": ["minority class below 100"]},
+    {"cell_id": "edis_math500_t1p0", "expected_correct": 40, "expected_incorrect": 200, "class_status": "TWO_CLASS", "gate_status": "FAILED", "gate_reasons": ["accuracy below registered band", "minority class below 100"]}
+  ]
+}
