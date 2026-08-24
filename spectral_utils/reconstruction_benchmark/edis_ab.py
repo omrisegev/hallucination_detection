@@ -20,7 +20,13 @@ from .edis_fit import (
     load_prepared_cell,
 )
 from .fit_firewall import validate_fit_audit_policy
-from .edis_preparation import PREPARATION_SOURCE_PATHS, PRIVATE_PROVENANCE_SCHEMA
+from .edis_preparation import (
+    PREPARATION_SOURCE_PATHS,
+    PRIVATE_PROVENANCE_SCHEMA,
+    assert_expected_preparation_status_roster,
+    load_preparation_registry,
+    load_preparation_status,
+)
 from .io import (
     atomic_write_json,
     canonical_json_bytes,
@@ -155,6 +161,14 @@ def load_private_provenance(path: str | Path) -> dict[str, Any]:
         raise RuntimeError("unexpected EDIS private preparation schema")
     if raw.get("labels_opened") is not False or raw.get("historical_scores_opened") is not False:
         raise RuntimeError("EDIS private preparation did not attest target isolation")
+    scientific_full = raw.get("scientific_full_build") is True
+    descriptive_partial = raw.get("partial_descriptive_build") is True
+    status_only = raw.get("status_only_build") is True
+    if (
+        sum((scientific_full, descriptive_partial, status_only)) != 1
+        or raw.get("headline_eligible") is not False
+    ):
+        raise RuntimeError("EDIS private preparation full/partial status drifted")
     rows = raw.get("cells")
     if not isinstance(rows, list) or len(rows) != 12:
         raise RuntimeError("EDIS private preparation roster is incomplete")
@@ -162,14 +176,33 @@ def load_private_provenance(path: str | Path) -> dict[str, Any]:
     if any(not value for value in ids) or len(set(ids)) != 12:
         raise RuntimeError("EDIS private preparation roster is invalid")
     for row in rows:
+        if row.get("status") not in {
+            "READY",
+            "BLOCKED_TRACE_BELOW_FROZEN_MIN",
+            "BLOCKED_MALFORMED_TELEMETRY",
+            "BLOCKED_PARTIAL_FEATURE_AVAILABILITY",
+            "BLOCKED_ASSET",
+        }:
+            raise RuntimeError(f"{row.get('cell_id')}: unknown private cell status")
         for key in ("source", "source_manifest"):
             item = row.get(key, {})
             if not item.get("path") or not item.get("sha256") or int(item.get("size_bytes", -1)) <= 0:
                 raise RuntimeError(f"{row.get('cell_id')}: private source binding is incomplete")
-        if len(str(row.get("group_membership_commitment_sha256", ""))) != 64:
-            raise RuntimeError(f"{row.get('cell_id')}: group commitment is malformed")
-        if len(str(row.get("question_roster_commitment_sha256", ""))) != 64:
-            raise RuntimeError(f"{row.get('cell_id')}: question-roster commitment is malformed")
+        if row.get("status") != "BLOCKED_ASSET":
+            if len(str(row.get("group_membership_commitment_sha256", ""))) != 64:
+                raise RuntimeError(f"{row.get('cell_id')}: group commitment is malformed")
+            if len(str(row.get("question_roster_commitment_sha256", ""))) != 64:
+                raise RuntimeError(f"{row.get('cell_id')}: question-roster commitment is malformed")
+    ready_count = sum(row.get("status") == "READY" for row in rows)
+    if (
+        (scientific_full and ready_count != 12)
+        or (descriptive_partial and not 0 <= ready_count < 12)
+        or raw.get("fit_registry_available") is not (not status_only)
+        or (not status_only and raw.get("status_roster_contract_match") is not True)
+        or raw.get("aggregate_metrics_allowed") is not scientific_full
+        or len(str(raw.get("preparation_status_commitment_sha256", ""))) != 64
+    ):
+        raise RuntimeError("EDIS private cell-status accounting failed")
     private_binding = raw.get("private_identity_contract")
     private_commitment = raw.get("private_identity_contract_commitment_sha256")
     if (
@@ -203,8 +236,33 @@ def validate_score_freeze(
         raise RuntimeError("EDIS build binding failed")
     if freeze.get("release_id") != registry.get("release_id"):
         raise RuntimeError("EDIS release binding failed")
+    expected_full = registry["scientific_full_build"] is True
+    expected_partial = registry["partial_descriptive_build"] is True
+    preparation_status_path = inputs.parent / "PREPARATION_STATUS.json"
+    preparation_status = load_preparation_status(preparation_status_path)
+    ready_status_ids = [
+        row["cell_id"]
+        for row in preparation_status["cells"]
+        if row["status"] == "READY"
+    ]
+    if (
+        preparation_status["status_commitment_sha256"]
+        != registry["preparation_status_commitment_sha256"]
+        or preparation_status.get("release_id") != freeze.get("release_id")
+        or preparation_status.get("build_id") != expected_build
+        or ready_status_ids != [row["cell_id"] for row in registry["cells"]]
+        or preparation_status["scientific_full_build"] is not expected_full
+        or preparation_status["partial_descriptive_build"] is not expected_partial
+    ):
+        raise RuntimeError("EDIS preparation status is not bound to the score freeze")
     attestations = {
-        "scientific_full": True,
+        "scientific_full": expected_full,
+        "descriptive_partial": expected_partial,
+        "headline_eligible": False,
+        "aggregate_metrics_allowed": registry["aggregate_metrics_allowed"],
+        "preparation_status_commitment_sha256": registry[
+            "preparation_status_commitment_sha256"
+        ],
         "all_expected_scores_present": True,
         "labels_opened_by_fit": False,
         "runtime_labels_used": False,
@@ -228,7 +286,13 @@ def validate_score_freeze(
         prefit.get("schema_version") != PREFIT_SCHEMA
         or prefit.get("release_id") != freeze.get("release_id")
         or prefit.get("build_id") != expected_build
-        or prefit.get("scientific_full") is not True
+        or prefit.get("scientific_full") is not expected_full
+        or prefit.get("descriptive_partial") is not expected_partial
+        or prefit.get("headline_eligible") is not False
+        or prefit.get("aggregate_metrics_allowed")
+        != registry["aggregate_metrics_allowed"]
+        or prefit.get("preparation_status_commitment_sha256")
+        != registry["preparation_status_commitment_sha256"]
         or prefit.get("fit_registry_sha256") != freeze.get("fit_registry_sha256")
         or prefit.get("fit_registry_payload_sha256")
         != freeze.get("fit_registry_payload_sha256")
@@ -291,6 +355,13 @@ def validate_score_freeze(
         or worker.get("denial_probes") != denial_probes
         or worker.get("firewall_violations") != []
         or worker.get("all_candidate_scores_present") is not True
+        or worker.get("scientific_full_build") is not expected_full
+        or worker.get("partial_descriptive_build") is not expected_partial
+        or worker.get("headline_eligible") is not False
+        or worker.get("aggregate_metrics_allowed")
+        != registry["aggregate_metrics_allowed"]
+        or worker.get("preparation_status_commitment_sha256")
+        != registry["preparation_status_commitment_sha256"]
     ):
         raise RuntimeError("EDIS score freeze worker isolation attestation drifted")
     if tuple(freeze.get("method_ids", ())) != PRIMARY_METHOD_IDS:
@@ -370,6 +441,16 @@ def _private_view(value: Mapping[str, Any]) -> dict[str, Any]:
             "private_identity_contract_commitment_sha256"
         ),
         "preparation_source_snapshot": value.get("preparation_source_snapshot"),
+        "scientific_full_build": value.get("scientific_full_build"),
+        "partial_descriptive_build": value.get("partial_descriptive_build"),
+        "status_only_build": value.get("status_only_build"),
+        "status_roster_contract_match": value.get("status_roster_contract_match"),
+        "headline_eligible": value.get("headline_eligible"),
+        "aggregate_metrics_allowed": value.get("aggregate_metrics_allowed"),
+        "preparation_status_commitment_sha256": value.get(
+            "preparation_status_commitment_sha256"
+        ),
+        "trace_status_contract_id": value.get("trace_status_contract_id"),
         "cells": value.get("cells"),
     }
 
@@ -384,6 +465,7 @@ def verify_ab(
 ) -> Mapping[str, Any]:
     release = Path(release_root) / release_id
     expected_registry_sha = sha256_file(preparation_registry_path)
+    preparation_registry = load_preparation_registry(preparation_registry_path)
     audits: dict[str, dict[str, Any]] = {}
     for build in ("A", "B"):
         lane = release / f"build_{build}" / "edis"
@@ -398,6 +480,11 @@ def verify_ab(
             private_audit_policy_path=private_policy_path,
         )
         private = load_private_provenance(private_path)
+        preparation_status_path = lane / "PREPARATION_STATUS.json"
+        preparation_status = load_preparation_status(preparation_status_path)
+        assert_expected_preparation_status_roster(
+            registry=preparation_registry, status=preparation_status
+        )
         verify_current_source_snapshot(
             private.get("preparation_source_snapshot", {}),
             repo=Path(repo),
@@ -417,6 +504,15 @@ def verify_ab(
             raise RuntimeError(
                 f"build {build}: private identity-contract commitment differs"
             )
+        if (
+            preparation_status["status_commitment_sha256"]
+            != registry["preparation_status_commitment_sha256"]
+            or private.get("preparation_status_commitment_sha256")
+            != registry["preparation_status_commitment_sha256"]
+        ):
+            raise RuntimeError(
+                f"build {build}: preparation-status commitment differs"
+            )
         audits[build] = {
             "registry": registry,
             "freeze": freeze,
@@ -427,6 +523,8 @@ def verify_ab(
             "score_freeze_payload_sha256": freeze["payload_sha256"],
             "private_provenance_sha256": sha256_file(private_path),
             "private_audit_policy_sha256": sha256_file(private_policy_path),
+            "preparation_status": preparation_status,
+            "preparation_status_file_sha256": sha256_file(preparation_status_path),
             "input_tree": canonical_tree_manifest(inputs),
             "fit_tree": canonical_tree_manifest(fit),
         }
@@ -435,6 +533,18 @@ def verify_ab(
         raise RuntimeError("EDIS A/B fit-safe registries differ beyond build identity")
     if _private_view(left["private"]) != _private_view(right["private"]):
         raise RuntimeError("EDIS A/B source or controller-only group commitments differ")
+    left_status = {
+        key: value
+        for key, value in left["preparation_status"].items()
+        if key not in {"build_id", "payload_sha256"}
+    }
+    right_status = {
+        key: value
+        for key, value in right["preparation_status"].items()
+        if key not in {"build_id", "payload_sha256"}
+    }
+    if left_status != right_status:
+        raise RuntimeError("EDIS A/B preparation cell-status rosters differ")
     comparisons: list[dict[str, Any]] = []
     for left_row, right_row in zip(left["freeze"]["records"], right["freeze"]["records"]):
         identity = (left_row["cell_id"], left_row["method_id"])
@@ -458,11 +568,26 @@ def verify_ab(
         "release_id": release_id,
         "lane_id": left["registry"]["lane_id"],
         "status": "PASS",
-        "scientific_full": True,
+        "scientific_full": left["registry"]["scientific_full_build"],
+        "descriptive_partial": left["registry"]["partial_descriptive_build"],
+        "headline_eligible": False,
+        "aggregate_metrics_allowed": left["registry"]["aggregate_metrics_allowed"],
+        "certificate_scope": (
+            "FULL_READY_CELL_ROSTER"
+            if left["registry"]["scientific_full_build"]
+            else "DESCRIPTIVE_PARTIAL_READY_CELLS_ONLY"
+        ),
         "identity_contract": left["registry"]["identity_contract"],
         "preparation_registry_sha256": expected_registry_sha,
+        "preparation_status_commitment_sha256": left["registry"][
+            "preparation_status_commitment_sha256"
+        ],
         "method_ids": list(PRIMARY_METHOD_IDS),
         "cell_ids": list(left["freeze"]["cell_ids"]),
+        "registered_cell_statuses": left["preparation_status"]["cells"],
+        "registered_cell_count": left["preparation_status"]["registered_cell_count"],
+        "ready_cell_count": left["preparation_status"]["ready_cell_count"],
+        "blocked_cell_count": left["preparation_status"]["blocked_cell_count"],
         "n_method_comparisons": len(comparisons),
         "comparison_records": comparisons,
         "comparison_records_sha256": _payload_sha256(comparisons),
@@ -472,7 +597,7 @@ def verify_ab(
             build: {
                 key: value
                 for key, value in audits[build].items()
-                if key not in {"registry", "freeze", "private"}
+                if key not in {"registry", "freeze", "private", "preparation_status"}
             }
             for build in ("A", "B")
         },
@@ -492,6 +617,7 @@ def assert_ab_certificate(
     preparation_registry_path: str | Path,
     private_control_root: str | Path,
     repo: str | Path,
+    allow_descriptive_partial: bool = False,
 ) -> dict[str, Any]:
     if selected_build not in {"A", "B"}:
         raise ValueError("selected_build must be A or B")
@@ -499,11 +625,52 @@ def assert_ab_certificate(
     _verify_payload(certificate, field="certificate_sha256", name="EDIS A/B certificate")
     if certificate.get("schema_version") != CERTIFICATE_SCHEMA or certificate.get("status") != "PASS":
         raise RuntimeError("a passing EDIS A/B certificate is required")
-    if certificate.get("release_id") != release_id or certificate.get("scientific_full") is not True:
-        raise RuntimeError("EDIS A/B certificate belongs to another or partial release")
+    scientific_full = certificate.get("scientific_full") is True
+    descriptive_partial = certificate.get("descriptive_partial") is True
+    if (
+        certificate.get("release_id") != release_id
+        or scientific_full == descriptive_partial
+        or certificate.get("headline_eligible") is not False
+        or certificate.get("aggregate_metrics_allowed") is not scientific_full
+        or certificate.get("certificate_scope")
+        != (
+            "FULL_READY_CELL_ROSTER"
+            if scientific_full
+            else "DESCRIPTIVE_PARTIAL_READY_CELLS_ONLY"
+        )
+    ):
+        raise RuntimeError("EDIS A/B certificate full/partial contract failed")
+    if descriptive_partial and not allow_descriptive_partial:
+        raise RuntimeError(
+            "the current EDIS post-freeze evaluator is full-roster only; a "
+            "descriptive partial certificate must not open blocked-cell labels"
+        )
     if certificate.get("preparation_registry_sha256") != sha256_file(preparation_registry_path):
         raise RuntimeError("EDIS A/B certificate target-free registry is stale")
+    preparation_registry = load_preparation_registry(preparation_registry_path)
+    assert_expected_preparation_status_roster(
+        registry=preparation_registry,
+        status={"cells": certificate.get("registered_cell_statuses")},
+    )
     cell_ids = tuple(map(str, certificate.get("cell_ids", ())))
+    status_rows = certificate.get("registered_cell_statuses")
+    if not isinstance(status_rows, list) or len(status_rows) != 12:
+        raise RuntimeError("EDIS A/B certificate does not expose all 12 cell statuses")
+    ready_ids = tuple(
+        str(row.get("cell_id", ""))
+        for row in status_rows
+        if row.get("status") == "READY"
+    )
+    blocked = len(status_rows) - len(ready_ids)
+    if (
+        ready_ids != cell_ids
+        or int(certificate.get("registered_cell_count", -1)) != 12
+        or int(certificate.get("ready_cell_count", -1)) != len(ready_ids)
+        or int(certificate.get("blocked_cell_count", -1)) != blocked
+        or (scientific_full and blocked != 0)
+        or (descriptive_partial and not 0 < len(ready_ids) < 12)
+    ):
+        raise RuntimeError("EDIS A/B certificate cell-status accounting failed")
     if tuple(certificate.get("method_ids", ())) != PRIMARY_METHOD_IDS:
         raise RuntimeError("EDIS A/B certificate method roster drifted")
     if int(certificate.get("n_method_comparisons", -1)) != len(cell_ids) * len(PRIMARY_METHOD_IDS):
@@ -528,6 +695,20 @@ def assert_ab_certificate(
             raise RuntimeError(f"build {build}: EDIS private provenance changed after certification")
         if expected["private_audit_policy_sha256"] != sha256_file(private_policy_path):
             raise RuntimeError(f"build {build}: EDIS private audit policy changed after certification")
+        preparation_status_path = lane / "PREPARATION_STATUS.json"
+        if expected["preparation_status_file_sha256"] != sha256_file(
+            preparation_status_path
+        ):
+            raise RuntimeError(
+                f"build {build}: EDIS preparation status changed after certification"
+            )
+        preparation_status = load_preparation_status(preparation_status_path)
+        if preparation_status["status_commitment_sha256"] != certificate.get(
+            "preparation_status_commitment_sha256"
+        ):
+            raise RuntimeError(
+                f"build {build}: EDIS preparation status commitment drifted"
+            )
         validate_score_freeze(
             fit_root=lane / "fit",
             input_root=lane / "inputs",
@@ -564,6 +745,7 @@ def _verify_evaluation_build(
     _verify_payload(
         manifest, field="payload_sha256", name=f"EDIS evaluation build {build_id}"
     )
+    descriptive_partial = score_certificate.get("descriptive_partial") is True
     required = {
         "schema_version": EVALUATION_SCHEMA,
         "release_id": release_id,
@@ -576,14 +758,36 @@ def _verify_evaluation_build(
         "bootstrap_unit": "source_question",
         "positive_class": "incorrect",
         "metrics": ["auroc", "auprc"],
+        "preparation_status_commitment_sha256": score_certificate[
+            "preparation_status_commitment_sha256"
+        ],
+        "scientific_full": not descriptive_partial,
+        "descriptive_partial": descriptive_partial,
+        "partial_evaluation_mode": descriptive_partial,
+        "registered_cell_count": 12,
+        "ready_cell_count": len(score_certificate["cell_ids"]),
+        "blocked_cell_count": 12 - len(score_certificate["cell_ids"]),
+        "registered_cell_statuses": score_certificate["registered_cell_statuses"],
+        "raw_row_labels_opened_cell_ids": score_certificate["cell_ids"],
+        "blocked_raw_row_label_artifacts_opened": False,
+        "postfreeze_target_summary_registry_loaded": True,
         "aggregation": (
-            "per_temperature; equal_temperature_per_dataset; "
-            "equal_dataset_after_equal_temperature"
+            "per_temperature_only; dataset_and_task_aggregates_forbidden_in_partial_release"
+            if descriptive_partial
+            else (
+                "per_temperature; equal_temperature_per_dataset; "
+                "equal_dataset_after_equal_temperature"
+            )
         ),
+        "dataset_task_aggregates_emitted": not descriptive_partial,
         "track": "multi_sample_inference",
         "access_contract_id": "gray_box_multi_pass",
         "headline_eligible": False,
-        "evidence_status": "DESCRIPTIVE_GATE_FAILED",
+        "publication_eligible": False,
+        "evidence_status": (
+            "DESCRIPTIVE_PARTIAL_GATE_FAILED"
+            if descriptive_partial else "DESCRIPTIVE_GATE_FAILED"
+        ),
         "one_pass_leaderboard_combination_forbidden": True,
         "evaluation_ab_certificate_required_for_release": True,
     }
@@ -606,6 +810,7 @@ def _verify_evaluation_build(
     ):
         raise RuntimeError(f"EDIS evaluation build {build_id} table roster drifted")
     table_audits: dict[str, Any] = {}
+    table_rows: dict[str, list[dict[str, Any]]] = {}
     for table in table_names:
         records = artifacts[table]
         if set(records or {}) != {"csv", "parquet"}:
@@ -653,6 +858,12 @@ def _verify_evaluation_build(
             "csv_file_sha256": csv_record["file_sha256"],
             "parquet_file_sha256": parquet_record["file_sha256"],
         }
+        table_rows[table] = csv_rows
+    _validate_evaluation_table_rosters(
+        table_rows=table_rows,
+        score_certificate=score_certificate,
+        descriptive_partial=descriptive_partial,
+    )
     label_rows = manifest.get("label_artifacts")
     if not isinstance(label_rows, list) or len(label_rows) != len(
         score_certificate["cell_ids"]
@@ -664,6 +875,11 @@ def _verify_evaluation_build(
             f"EDIS evaluation build {build_id} label cell order drifted"
         )
     label_audits: list[dict[str, str]] = []
+    label_bindings: dict[str, dict[str, tuple[str, int]]] = {}
+    expected_rows_by_cell = {
+        str(row["cell_id"]): int(row["expected_rows"])
+        for row in score_certificate["registered_cell_statuses"]
+    }
     for row in label_rows:
         path = _safe_child(output, str(row.get("artifact_path", "")))
         if sha256_file(path) != row.get("artifact_sha256"):
@@ -680,6 +896,7 @@ def _verify_evaluation_build(
         labels = np.asarray(arrays["incorrect"], dtype=np.int8)
         if (
             not row_ids
+            or len(row_ids) != expected_rows_by_cell[str(row["cell_id"])]
             or len(set(row_ids)) != len(row_ids)
             or row_ids != tuple(sorted(row_ids))
             or len(group_ids) != len(row_ids)
@@ -695,6 +912,15 @@ def _verify_evaluation_build(
                 "artifact_sha256": str(row["artifact_sha256"]),
             }
         )
+        label_bindings[str(row["cell_id"])] = {
+            row_id: (group_id, int(label))
+            for row_id, group_id, label in zip(row_ids, group_ids, labels.tolist())
+        }
+    _validate_prediction_label_bindings(
+        predictions=table_rows["predictions"],
+        label_bindings=label_bindings,
+        ready_cell_ids=list(map(str, score_certificate["cell_ids"])),
+    )
     return {
         "manifest": manifest,
         "manifest_sha256": sha256_file(manifest_path),
@@ -703,6 +929,160 @@ def _verify_evaluation_build(
         "label_audits": label_audits,
         "output_tree": canonical_tree_manifest(output),
     }
+
+
+def _validate_evaluation_table_rosters(
+    *,
+    table_rows: Mapping[str, list[Mapping[str, Any]]],
+    score_certificate: Mapping[str, Any],
+    descriptive_partial: bool,
+) -> None:
+    """Reject A/B-identical but incomplete EDIS reporting tables."""
+
+    registered = [
+        str(row["cell_id"])
+        for row in score_certificate["registered_cell_statuses"]
+    ]
+    status_by_cell = {
+        str(row["cell_id"]): row
+        for row in score_certificate["registered_cell_statuses"]
+    }
+    if any(int(status_by_cell[cell].get("expected_rows", -1)) <= 0 for cell in registered):
+        raise RuntimeError("EDIS certificate cell status lacks expected_rows")
+    ready = list(map(str, score_certificate["cell_ids"]))
+    blocked = [cell for cell in registered if cell not in set(ready)]
+    methods = list(PRIMARY_METHOD_IDS)
+    expected_coverage = {(cell, method) for cell in registered for method in methods}
+    coverage_rows = table_rows["coverage"]
+    coverage_pairs = [
+        (str(row["cell_id"]), str(row["method_id"]))
+        for row in coverage_rows
+    ]
+    if len(coverage_pairs) != len(expected_coverage) or set(coverage_pairs) != expected_coverage:
+        raise RuntimeError("EDIS evaluation coverage is not the unique complete 12x13 roster")
+    coverage_by_pair = {
+        (str(row["cell_id"]), str(row["method_id"])): row
+        for row in coverage_rows
+    }
+    for cell in blocked:
+        for method in methods:
+            row = coverage_by_pair[(cell, method)]
+            expected_n = int(status_by_cell[cell]["expected_rows"])
+            if (
+                row["status"] != "INPUT_INVALID"
+                or int(row["expected_n"]) != expected_n
+                or int(row["eligible_n"]) != 0
+                or int(row["scored_n"]) != 0
+                or int(row["failed_n"]) != expected_n
+                or float(row["coverage_fraction"]) != 0.0
+            ):
+                raise RuntimeError("EDIS blocked-cell coverage contract drifted")
+    for cell in ready:
+        expected_n = int(status_by_cell[cell]["expected_rows"])
+        for method in methods:
+            row = coverage_by_pair[(cell, method)]
+            if (
+                int(row["expected_n"]) != expected_n
+                or int(row["eligible_n"]) != expected_n
+                or int(row["scored_n"]) != expected_n
+                or int(row["excluded_n"]) != 0
+                or int(row["failed_n"]) != 0
+                or float(row["coverage_fraction"]) != 1.0
+            ):
+                raise RuntimeError("EDIS ready-cell coverage differs from expected_rows")
+
+    expected_ready_pairs = {(cell, method) for cell in ready for method in methods}
+    prediction_pairs = [
+        (str(row["cell_id"]), str(row["method_id"]))
+        for row in table_rows["predictions"]
+    ]
+    if set(prediction_pairs) != expected_ready_pairs:
+        raise RuntimeError("EDIS predictions do not cover every ready cell/method")
+    prediction_counts: dict[tuple[str, str], int] = {}
+    for pair in prediction_pairs:
+        prediction_counts[pair] = prediction_counts.get(pair, 0) + 1
+    if any(
+        prediction_counts[pair] != int(coverage_by_pair[pair]["scored_n"])
+        for pair in expected_ready_pairs
+    ):
+        raise RuntimeError("EDIS prediction counts differ from ready-cell coverage")
+    for pair in expected_ready_pairs:
+        row_ids = [
+            str(row.get("row_id", ""))
+            for row in table_rows["predictions"]
+            if (str(row["cell_id"]), str(row["method_id"])) == pair
+        ]
+        if any(not row_id for row_id in row_ids) or len(row_ids) != len(set(row_ids)):
+            raise RuntimeError("EDIS prediction row IDs are empty or duplicated")
+
+    if descriptive_partial:
+        expected_metrics = {
+            (cell, method, metric)
+            for cell in ready for method in methods for metric in ("auroc", "auprc")
+        }
+        observed_metrics = [
+            (str(row["cell_id"]), str(row["method_id"]), str(row["metric_id"]))
+            for row in table_rows["metrics"]
+        ]
+        if (
+            len(observed_metrics) != len(expected_metrics)
+            or set(observed_metrics) != expected_metrics
+            or any(row["aggregation_level"] != "cell" for row in table_rows["metrics"])
+        ):
+            raise RuntimeError("EDIS partial metrics Cartesian roster is incomplete")
+        candidate_methods = [method for method in methods if method != "iu_pcr"]
+        expected_contrasts = {
+            (cell, method, metric)
+            for cell in ready
+            for method in candidate_methods
+            for metric in ("auroc", "auprc")
+        }
+        observed_contrasts = [
+            (str(row["cell_id"]), str(row["method_id"]), str(row["metric_id"]))
+            for row in table_rows["contrasts"]
+        ]
+        if (
+            len(observed_contrasts) != len(expected_contrasts)
+            or set(observed_contrasts) != expected_contrasts
+            or any(row["aggregation_level"] != "cell" for row in table_rows["contrasts"])
+        ):
+            raise RuntimeError("EDIS partial contrasts Cartesian roster is incomplete")
+
+
+def _validate_prediction_label_bindings(
+    *,
+    predictions: list[Mapping[str, Any]],
+    label_bindings: Mapping[str, Mapping[str, tuple[str, int]]],
+    ready_cell_ids: list[str],
+) -> None:
+    """Bind predictions to label rows independent of persisted sort order."""
+
+    for cell_id in ready_cell_ids:
+        expected = label_bindings.get(cell_id)
+        if not expected:
+            raise RuntimeError(f"{cell_id}: EDIS label binding is absent")
+        expected_rows = set(expected)
+        for method_id in PRIMARY_METHOD_IDS:
+            rows = [
+                row for row in predictions
+                if str(row["cell_id"]) == cell_id
+                and str(row["method_id"]) == method_id
+            ]
+            observed_ids = [str(row["row_id"]) for row in rows]
+            if len(observed_ids) != len(set(observed_ids)) or set(observed_ids) != expected_rows:
+                raise RuntimeError(
+                    f"{cell_id}/{method_id}: prediction/label row roster differs"
+                )
+            for row in rows:
+                row_id = str(row["row_id"])
+                expected_group, expected_label = expected[row_id]
+                if (
+                    str(row["group_id"]) != expected_group
+                    or int(row["label"]) != expected_label
+                ):
+                    raise RuntimeError(
+                        f"{cell_id}/{method_id}: prediction group/label binding differs"
+                    )
 
 
 def verify_evaluation_ab(
@@ -730,6 +1110,7 @@ def verify_evaluation_ab(
         preparation_registry_path=preparation_registry_path,
         private_control_root=private_control_root,
         repo=repo,
+        allow_descriptive_partial=True,
     )
     audits = {
         build: _verify_evaluation_build(
@@ -773,6 +1154,19 @@ def verify_evaluation_ab(
         "track",
         "access_contract_id",
         "headline_eligible",
+        "publication_eligible",
+        "scientific_full",
+        "descriptive_partial",
+        "partial_evaluation_mode",
+        "registered_cell_count",
+        "ready_cell_count",
+        "blocked_cell_count",
+        "registered_cell_statuses",
+        "raw_row_labels_opened_cell_ids",
+        "blocked_raw_row_label_artifacts_opened",
+        "postfreeze_target_summary_registry_loaded",
+        "dataset_task_aggregates_emitted",
+        "preparation_status_commitment_sha256",
         "evidence_status",
         "gate_audit",
         "one_pass_leaderboard_combination_forbidden",
@@ -796,7 +1190,11 @@ def verify_evaluation_ab(
         "bootstrap_unit": "source_question",
         "gate_audit": left["manifest"]["gate_audit"],
         "headline_eligible": False,
-        "evidence_status": "DESCRIPTIVE_GATE_FAILED",
+        "publication_eligible": False,
+        "scientific_full": score_certificate["scientific_full"],
+        "descriptive_partial": score_certificate["descriptive_partial"],
+        "partial_evaluation_mode": score_certificate["descriptive_partial"],
+        "evidence_status": left["manifest"]["evidence_status"],
         "builds": {
             build: {
                 "manifest_sha256": audits[build]["manifest_sha256"],

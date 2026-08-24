@@ -34,6 +34,14 @@ def main() -> None:
     parser.add_argument("--postfreeze-registry", type=Path, default=DEFAULT_POSTFREEZE)
     parser.add_argument("--ab-certificate", type=Path)
     parser.add_argument("--bootstrap-draws", type=int, default=20_000)
+    parser.add_argument(
+        "--allow-descriptive-partial",
+        action="store_true",
+        help=(
+            "Evaluate only the exact signed 4-ready/8-blocked roster; blocked "
+            "labels remain sealed and dataset/task aggregates are forbidden."
+        ),
+    )
     args = parser.parse_args()
     if args.bootstrap_draws != 20_000:
         raise RuntimeError("scientific EDIS evaluation requires exactly 20,000 draws")
@@ -55,12 +63,14 @@ def main() -> None:
         identity=identity,
         repo=REPO,
         certificate_path=args.ab_certificate,
+        allow_descriptive_partial=args.allow_descriptive_partial,
     )
     print(json.dumps({
         "release_id": args.release_id,
         "build_id": args.build,
         "evidence_status": manifest["evidence_status"],
         "bootstrap_draws": manifest["bootstrap_draws"],
+        "descriptive_partial": manifest["descriptive_partial"],
         "artifacts": manifest["artifacts"],
     }, indent=2, sort_keys=True))
 

@@ -65,10 +65,22 @@ def main() -> None:
     print(json.dumps({
         "release_id": args.release_id,
         "build_id": args.build,
-        "n_cells": len(manifest["cells"]),
-        "fit_registry": str(
+        "registered_cells": int(manifest["registered_cell_count"]),
+        "ready_cells": int(manifest["ready_cell_count"]),
+        "blocked_cells": int(manifest["blocked_cell_count"]),
+        "scientific_full_build": bool(manifest["scientific_full_build"]),
+        "partial_descriptive_build": bool(manifest["partial_descriptive_build"]),
+        "preparation_status": str(
             args.release_root / args.release_id / f"build_{args.build}"
-            / "edis/inputs/FIT_REGISTRY.json"
+            / "edis/PREPARATION_STATUS.json"
+        ),
+        "fit_registry": (
+            str(
+                args.release_root / args.release_id / f"build_{args.build}"
+                / "edis/inputs/FIT_REGISTRY.json"
+            )
+            if manifest["fit_registry_available"]
+            else None
         ),
         "labels_opened": False,
         "group_structure_fit_visible": False,

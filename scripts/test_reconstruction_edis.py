@@ -21,6 +21,8 @@ if str(REPO) not in sys.path:
 from spectral_utils.dufs_liu_feature_contract import CONTRACT_VERSION, dufs_liu_mixed_v2_matrix
 from spectral_utils.reconstruction_benchmark import edis_preparation as preparation
 from spectral_utils.reconstruction_benchmark.edis_ab import (
+    _validate_evaluation_table_rosters,
+    _validate_prediction_label_bindings,
     assert_ab_certificate,
     canonical_evaluation_table_sha256,
     verify_current_source_snapshot,
@@ -32,6 +34,7 @@ from spectral_utils.reconstruction_benchmark.edis_bootstrap import (
 from spectral_utils.reconstruction_benchmark.edis_evaluation import (
     _common,
     _metric_rows,
+    _validate_partial_status_roster,
     evaluate,
     load_postfreeze_registry,
 )
@@ -44,6 +47,7 @@ from spectral_utils.reconstruction_benchmark.edis_preparation import (
     EdisCellSpec,
     NOMINAL_FEATURE_NAMES,
     audit_nominal_matrix,
+    assert_expected_preparation_status_roster,
     extract_target_free_cell,
     load_preparation_registry,
     prepare_build,
@@ -99,6 +103,12 @@ def _raw_fixture(*, reverse: bool = False):
             "candidates": [
                 {
                     "telemetry_id": 10 * question + candidate,
+                    "token_entropies": [0.1 + 0.01 * index for index in range(8)],
+                    "token_spilled_energies": [
+                        0.2 + 0.01 * index for index in range(8)
+                    ],
+                    "token_logsumexp": None,
+                    "top_k_logprobs": None,
                     "label": bool((question + candidate) % 2),
                     "label_lexical": False,
                 }
@@ -141,6 +151,13 @@ class EdisRegistryTests(unittest.TestCase):
         self.assertNotIn("expected_incorrect", target_free_text)
         self.assertFalse(post["evidence_boundary"]["headline_eligible"])
         self.assertEqual(post["evidence_boundary"]["status"], "DESCRIPTIVE_GATE_FAILED")
+        expected = registry.expected_status_by_cell
+        self.assertIsNotNone(expected)
+        self.assertEqual(sum(status == "READY" for status in expected.values()), 4)
+        self.assertEqual(
+            sum(status == "BLOCKED_TRACE_BELOW_FROZEN_MIN" for status in expected.values()),
+            8,
+        )
 
     def test_nominal_feature_audit_allows_only_whole_view_absence(self):
         rows = [
@@ -313,6 +330,9 @@ class EdisPreparationTests(unittest.TestCase):
             "feature_contract_id": CONTRACT_VERSION,
             "nominal_feature_count": 30,
             "feature_rule": "synthetic",
+            "trace_status_contract": json.loads(
+                TARGET_FREE.read_text(encoding="utf-8")
+            )["trace_status_contract"],
             "fit_contract": {
                 "method_roster": "all_13_primary_methods",
                 "labels_available_to_fit": False,
@@ -574,7 +594,7 @@ class EdisPreparationTests(unittest.TestCase):
             )
             self.assertEqual(set(score), {"row_ids", "score"})
 
-    def test_source_tamper_fails_before_preparation(self):
+    def test_source_tamper_becomes_visible_blocked_asset_without_substitution(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             registry = load_preparation_registry(self._synthetic_registry(root))
@@ -582,18 +602,442 @@ class EdisPreparationTests(unittest.TestCase):
             source.write_bytes(source.read_bytes() + b"tamper")
             snapshot = {"files": []}
             snapshot["snapshot_sha256"] = _payload_sha(snapshot)
-            with self.assertRaisesRegex(RuntimeError, "size mismatch"):
-                prepare_build(
+            with mock.patch.object(
+                preparation, "_telemetry_features", side_effect=_fake_features
+            ):
+                manifest = prepare_build(
                     release_id="r2", build_id="A", registry=registry,
                     identity=SharedEdisIdentityController(bytes(range(32))),
                     source_root=root, release_root=root / "releases",
                     private_control_root=root / "private", preparation_source_snapshot=snapshot,
                 )
-            self.assertFalse((root / "releases/r2").exists())
-            self.assertFalse((root / "private/r2").exists())
+            self.assertTrue(manifest["partial_descriptive_build"])
+            self.assertFalse(manifest["scientific_full_build"])
+            self.assertFalse(manifest["aggregate_metrics_allowed"])
+            self.assertEqual(manifest["ready_cell_count"], 11)
+            status = preparation.load_preparation_status(
+                root / "releases/r2/build_A/edis/PREPARATION_STATUS.json"
+            )
+            blocked = [row for row in status["cells"] if row["status"] == "BLOCKED_ASSET"]
+            self.assertEqual([row["cell_id"] for row in blocked], [registry.cells[0].cell_id])
+            self.assertNotIn(registry.cells[0].source_path, json.dumps(status))
+            self.assertEqual(status["dataset_aggregate_status"], "BLOCKED_INCOMPLETE_CELL_ROSTER")
+
+    def test_materialized_roster_asset_drift_publishes_status_only(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            registry_path = self._synthetic_registry(root)
+            raw_registry = json.loads(registry_path.read_text(encoding="utf-8"))
+            flat_cells = [
+                cell
+                for dataset in raw_registry["datasets"]
+                for cell in dataset["cells"]
+            ]
+            ready_indexes = {3, 6, 9, 10}
+            blocked_rows = []
+            ready_ids = []
+            for index, cell in enumerate(flat_cells):
+                if index in ready_indexes:
+                    ready_ids.append(cell["cell_id"])
+                    continue
+                source = root / cell["source"]["path"]
+                with source.open("rb") as handle:
+                    payload = pickle.load(handle)
+                candidate = payload[0]["candidates"][0]
+                candidate["token_entropies"] = candidate["token_entropies"][:7]
+                candidate["token_spilled_energies"] = candidate[
+                    "token_spilled_energies"
+                ][:7]
+                with source.open("wb") as handle:
+                    pickle.dump(payload, handle)
+                cell["source"]["sha256"] = sha256_file(source)
+                cell["source"]["size_bytes"] = source.stat().st_size
+                blocked_rows.append({
+                    "cell_id": cell["cell_id"],
+                    "status": "BLOCKED_TRACE_BELOW_FROZEN_MIN",
+                })
+            raw_registry["target_free_status_roster_contract"] = {
+                "contract_id": "edis-materialized-status-roster-v1-2026-08-24",
+                "registered_stage": (
+                    "after_target_free_telemetry_audit_before_any_scores_or_labels"
+                ),
+                "labels_used": False,
+                "ready_cell_ids": ready_ids,
+                "blocked_cells": blocked_rows,
+                "blocked_labels_may_be_opened": False,
+                "dataset_or_task_aggregates_allowed": False,
+                "headline_or_publication_eligible": False,
+            }
+            registry_path.write_text(json.dumps(raw_registry), encoding="utf-8")
+            registry = load_preparation_registry(registry_path)
+            # Tamper one preregistered READY asset after pinning it.
+            ready_spec = registry.by_cell[ready_ids[0]]
+            ready_source = root / ready_spec.source_path
+            ready_source.write_bytes(ready_source.read_bytes() + b"tamper")
+            snapshot = {"files": []}
+            snapshot["snapshot_sha256"] = _payload_sha(snapshot)
+            with mock.patch.object(
+                preparation, "_telemetry_features", side_effect=_fake_features
+            ):
+                manifest = prepare_build(
+                    release_id="rstatusonly", build_id="A", registry=registry,
+                    identity=SharedEdisIdentityController(bytes(range(32))),
+                    source_root=root, release_root=root / "releases",
+                    private_control_root=root / "private",
+                    preparation_source_snapshot=snapshot,
+                )
+            lane = root / "releases/rstatusonly/build_A/edis"
+            status = preparation.load_preparation_status(
+                lane / "PREPARATION_STATUS.json"
+            )
+            self.assertTrue(manifest["status_only_build"])
+            self.assertFalse(manifest["fit_registry_available"])
+            self.assertFalse(status["status_roster_contract_match"])
+            self.assertEqual(
+                [row["cell_id"] for row in status["cells"] if row["status"] == "BLOCKED_ASSET"],
+                [ready_spec.cell_id],
+            )
+            self.assertFalse((lane / "inputs/FIT_REGISTRY.json").exists())
+            self.assertTrue((lane / "FIT_UNAVAILABLE.json").is_file())
+
+    def test_short_trace_blocks_whole_cell_and_has_ab_stable_public_status(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            registry_path = self._synthetic_registry(root)
+            raw_registry = json.loads(registry_path.read_text(encoding="utf-8"))
+            source_row = raw_registry["datasets"][0]["cells"][0]["source"]
+            source = root / source_row["path"]
+            with source.open("rb") as handle:
+                raw = pickle.load(handle)
+            candidate = raw[0]["candidates"][0]
+            candidate["token_entropies"] = candidate["token_entropies"][:7]
+            candidate["token_spilled_energies"] = candidate[
+                "token_spilled_energies"
+            ][:7]
+            with source.open("wb") as handle:
+                pickle.dump(raw, handle)
+            source_row["sha256"] = sha256_file(source)
+            source_row["size_bytes"] = source.stat().st_size
+            registry_path.write_text(json.dumps(raw_registry), encoding="utf-8")
+            registry = load_preparation_registry(registry_path)
+            snapshot = {"files": []}
+            snapshot["snapshot_sha256"] = _payload_sha(snapshot)
+            identity = SharedEdisIdentityController(bytes(range(32)))
+            with mock.patch.object(
+                preparation, "_telemetry_features", side_effect=_fake_features
+            ):
+                for build in ("A", "B"):
+                    prepare_build(
+                        release_id="rshort", build_id=build, registry=registry,
+                        identity=identity, source_root=root,
+                        release_root=root / "releases",
+                        private_control_root=root / "private",
+                        preparation_source_snapshot=snapshot,
+                    )
+            statuses = [
+                preparation.load_preparation_status(
+                    root / f"releases/rshort/build_{build}/edis/PREPARATION_STATUS.json"
+                )
+                for build in ("A", "B")
+            ]
+            self.assertEqual(
+                statuses[0]["status_commitment_sha256"],
+                statuses[1]["status_commitment_sha256"],
+            )
+            self.assertNotEqual(statuses[0]["payload_sha256"], statuses[1]["payload_sha256"])
+            blocked = [
+                row for row in statuses[0]["cells"]
+                if row["status"] == "BLOCKED_TRACE_BELOW_FROZEN_MIN"
+            ]
+            self.assertEqual(len(blocked), 1)
+            self.assertEqual(blocked[0]["blocking_row_count"], 1)
+            self.assertEqual(blocked[0]["frozen_minimum_trace_tokens"], 8)
+            self.assertEqual(len(blocked[0]["opaque_blocking_row_ids"]), 1)
+            self.assertRegex(blocked[0]["opaque_blocking_row_ids"][0], r"^xridv2_[0-9a-f]{64}$")
+            self.assertEqual(set(blocked[0]["nominal_feature_finite_counts"]), set(NOMINAL_FEATURE_NAMES))
+            rendered = json.dumps(statuses[0])
+            for forbidden in ("source_question", "candidate_index", "question_fingerprint"):
+                self.assertNotIn(forbidden, rendered)
+            fit_registry = load_fit_registry(
+                root / "releases/rshort/build_A/edis/inputs/FIT_REGISTRY.json"
+            )
+            self.assertEqual(fit_registry["ready_cell_count"], 11)
+            self.assertTrue(fit_registry["partial_descriptive_build"])
+            self.assertFalse(fit_registry["aggregate_metrics_allowed"])
+
+    def test_malformed_feature_channels_block_cell_before_reduction(self):
+        mutations = {
+            "logsumexp_length": lambda candidate: candidate.update({
+                "token_logsumexp": [0.1] * 7,
+            }),
+            "topk_time": lambda candidate: candidate.update({
+                "top_k_logprobs": {
+                    "ids": np.zeros((7, 2), dtype=np.int32),
+                    "logprobs": np.zeros((7, 2), dtype=np.float32),
+                },
+            }),
+            "topk_shape": lambda candidate: candidate.update({
+                "top_k_logprobs": {
+                    "ids": np.zeros((8, 3), dtype=np.int32),
+                    "logprobs": np.zeros((8, 2), dtype=np.float32),
+                },
+            }),
+            "topk_nonfinite": lambda candidate: candidate.update({
+                "top_k_logprobs": {
+                    "ids": np.zeros((8, 2), dtype=np.int32),
+                    "logprobs": np.asarray([[0.0, -1.0]] * 7 + [[np.nan, -1.0]]),
+                },
+            }),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temp:
+                path = Path(temp) / "raw.pkl"
+                raw = _raw_fixture()
+                mutate(raw[0]["candidates"][0])
+                with path.open("wb") as handle:
+                    pickle.dump(raw, handle)
+                with mock.patch.object(
+                    preparation, "_telemetry_features", side_effect=_fake_features
+                ), self.assertRaises(preparation.EdisCellBlocked) as caught:
+                    extract_target_free_cell(
+                        spec=self._spec(path), source_path=path,
+                        identity=SharedEdisIdentityController(bytes(range(32))),
+                    )
+                self.assertEqual(caught.exception.status, "BLOCKED_MALFORMED_TELEMETRY")
+
+    def test_failed_stage_is_clean_and_exact_empty_legacy_tree_is_recoverable(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            registry = load_preparation_registry(self._synthetic_registry(root))
+            snapshot = {"files": []}
+            snapshot["snapshot_sha256"] = _payload_sha(snapshot)
+            stale = root / "releases/rretry/build_A/edis/inputs/cells"
+            stale.mkdir(parents=True)
+            with mock.patch.object(
+                preparation, "_telemetry_features", side_effect=RuntimeError("synthetic failure")
+            ), self.assertRaisesRegex(RuntimeError, "synthetic failure"):
+                prepare_build(
+                    release_id="rretry", build_id="A", registry=registry,
+                    identity=SharedEdisIdentityController(bytes(range(32))),
+                    source_root=root, release_root=root / "releases",
+                    private_control_root=root / "private",
+                    preparation_source_snapshot=snapshot,
+                )
+            self.assertFalse((root / "releases/rretry/build_A/edis").exists())
+            self.assertTrue(
+                (root / "private/rretry/edis/recovery/public_build_A_zero_file_residue").is_dir()
+            )
+            self.assertEqual(
+                list((root / "releases/rretry/build_A").glob(".edis_build_A_preparing_*")),
+                [],
+            )
+            with mock.patch.object(
+                preparation, "_telemetry_features", side_effect=_fake_features
+            ):
+                result = prepare_build(
+                    release_id="rretry", build_id="A", registry=registry,
+                    identity=SharedEdisIdentityController(bytes(range(32))),
+                    source_root=root, release_root=root / "releases",
+                    private_control_root=root / "private",
+                    preparation_source_snapshot=snapshot,
+                )
+            self.assertEqual(result["ready_cell_count"], 12)
+            self.assertTrue(
+                (root / "releases/rretry/build_A/edis/inputs/FIT_REGISTRY.json").is_file()
+            )
 
 
 class EdisFitAndReportingTests(unittest.TestCase):
+    def test_partial_status_roster_accepts_exact_4_8_and_rejects_drift(self):
+        preparation_registry = load_preparation_registry(TARGET_FREE)
+        expected = preparation_registry.expected_status_by_cell
+        rows = [
+            {
+                "cell_id": cell.cell_id,
+                "status": expected[cell.cell_id],
+                "status_detail": "synthetic target-free status",
+            }
+            for cell in preparation_registry.cells
+        ]
+        ready = [row["cell_id"] for row in rows if row["status"] == "READY"]
+        certificate = {
+            "scientific_full": False,
+            "descriptive_partial": True,
+            "headline_eligible": False,
+            "aggregate_metrics_allowed": False,
+            "cell_ids": ready,
+            "registered_cell_statuses": rows,
+            "registered_cell_count": 12,
+            "ready_cell_count": 4,
+            "blocked_cell_count": 8,
+        }
+        self.assertEqual(
+            _validate_partial_status_roster(
+                certificate=certificate, preparation=preparation_registry
+            ),
+            expected,
+        )
+        assert_expected_preparation_status_roster(
+            registry=preparation_registry, status={"cells": rows}
+        )
+        eleven_ready = [dict(row) for row in rows]
+        eleven_ready[0]["status"] = "READY"
+        with self.assertRaisesRegex(RuntimeError, "preregistered 4-ready/8-blocked"):
+            assert_expected_preparation_status_roster(
+                registry=preparation_registry, status={"cells": eleven_ready}
+            )
+        drifted = {**certificate, "registered_cell_statuses": [dict(row) for row in rows]}
+        drifted["registered_cell_statuses"][0]["status"] = "READY"
+        with self.assertRaisesRegex(RuntimeError, "roster drifted"):
+            _validate_partial_status_roster(
+                certificate=drifted, preparation=preparation_registry
+            )
+
+    def test_partial_table_verifier_rejects_any_cartesian_omission(self):
+        preparation_registry = load_preparation_registry(TARGET_FREE)
+        expected = preparation_registry.expected_status_by_cell
+        status_rows = [
+            {
+                "cell_id": cell.cell_id,
+                "status": expected[cell.cell_id],
+                "expected_rows": 1,
+            }
+            for cell in preparation_registry.cells
+        ]
+        ready = [row["cell_id"] for row in status_rows if row["status"] == "READY"]
+        methods = list(__import__(
+            "spectral_utils.reconstruction_benchmark.methods",
+            fromlist=["PRIMARY_METHOD_IDS"],
+        ).PRIMARY_METHOD_IDS)
+        certificate = {
+            "registered_cell_statuses": status_rows,
+            "cell_ids": ready,
+        }
+        coverage = []
+        predictions = []
+        metrics = []
+        contrasts = []
+        for row in status_rows:
+            cell = row["cell_id"]
+            is_ready = row["status"] == "READY"
+            for method in methods:
+                coverage.append({
+                    "cell_id": cell, "method_id": method,
+                    "status": "CONTEXT_ONLY" if is_ready else "INPUT_INVALID",
+                    "expected_n": 1,
+                    "eligible_n": 1 if is_ready else 0,
+                    "scored_n": 1 if is_ready else 0,
+                    "excluded_n": 0,
+                    "failed_n": 0 if is_ready else 1,
+                    "coverage_fraction": 1.0 if is_ready else 0.0,
+                })
+                if is_ready:
+                    predictions.append({
+                        "cell_id": cell, "method_id": method,
+                        "row_id": f"xridv2_{_payload_sha([cell, method])}",
+                    })
+                    for metric in ("auroc", "auprc"):
+                        metrics.append({
+                            "cell_id": cell, "method_id": method,
+                            "metric_id": metric, "aggregation_level": "cell",
+                        })
+                        if method != "iu_pcr":
+                            contrasts.append({
+                                "cell_id": cell, "method_id": method,
+                                "metric_id": metric, "aggregation_level": "cell",
+                            })
+        tables = {
+            "coverage": coverage, "predictions": predictions,
+            "metrics": metrics, "contrasts": contrasts,
+        }
+        _validate_evaluation_table_rosters(
+            table_rows=tables, score_certificate=certificate,
+            descriptive_partial=True,
+        )
+        for table in ("coverage", "metrics", "contrasts", "predictions"):
+            omitted = {key: list(value) for key, value in tables.items()}
+            omitted[table] = omitted[table][1:]
+            with self.subTest(table=table), self.assertRaises(RuntimeError):
+                _validate_evaluation_table_rosters(
+                    table_rows=omitted, score_certificate=certificate,
+                    descriptive_partial=True,
+                )
+        truncated = {key: list(value) for key, value in tables.items()}
+        first_prediction = truncated["predictions"].pop(0)
+        pair = (first_prediction["cell_id"], first_prediction["method_id"])
+        truncated["coverage"] = [dict(row) for row in truncated["coverage"]]
+        for row in truncated["coverage"]:
+            if (row["cell_id"], row["method_id"]) == pair:
+                row.update({
+                    "expected_n": 0, "eligible_n": 0, "scored_n": 0,
+                    "coverage_fraction": 0.0,
+                })
+        with self.assertRaisesRegex(RuntimeError, "expected_rows"):
+            _validate_evaluation_table_rosters(
+                table_rows=truncated, score_certificate=certificate,
+                descriptive_partial=True,
+            )
+
+    def test_prediction_label_binding_is_independent_of_group_sort_order(self):
+        methods = list(__import__(
+            "spectral_utils.reconstruction_benchmark.methods",
+            fromlist=["PRIMARY_METHOD_IDS"],
+        ).PRIMARY_METHOD_IDS)
+        label_bindings = {
+            "cell": {
+                "xridv2_a": ("xgidv2_z", 0),
+                "xridv2_b": ("xgidv2_a", 1),
+            }
+        }
+        predictions = []
+        for method in methods:
+            # Persisted prediction order follows group_id, opposite row_id here.
+            predictions.extend([
+                {
+                    "cell_id": "cell", "method_id": method,
+                    "row_id": "xridv2_b", "group_id": "xgidv2_a", "label": 1,
+                },
+                {
+                    "cell_id": "cell", "method_id": method,
+                    "row_id": "xridv2_a", "group_id": "xgidv2_z", "label": 0,
+                },
+            ])
+        _validate_prediction_label_bindings(
+            predictions=predictions, label_bindings=label_bindings,
+            ready_cell_ids=["cell"],
+        )
+        tampered = [dict(row) for row in predictions]
+        tampered[0]["group_id"] = "xgidv2_wrong"
+        with self.assertRaisesRegex(RuntimeError, "group/label binding"):
+            _validate_prediction_label_bindings(
+                predictions=tampered, label_bindings=label_bindings,
+                ready_cell_ids=["cell"],
+            )
+
+    def test_partial_ab_certificate_cannot_open_current_full_only_evaluator(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            certificate = {
+                "schema_version": "reconstruction-edis-ab-certificate-v1",
+                "release_id": "rpartial",
+                "status": "PASS",
+                "scientific_full": False,
+                "descriptive_partial": True,
+                "headline_eligible": False,
+                "aggregate_metrics_allowed": False,
+                "certificate_scope": "DESCRIPTIVE_PARTIAL_READY_CELLS_ONLY",
+            }
+            certificate["certificate_sha256"] = _payload_sha(certificate)
+            path = root / "certificate.json"
+            path.write_text(json.dumps(certificate), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "full-roster only"):
+                assert_ab_certificate(
+                    path=path, release_id="rpartial",
+                    release_root=root / "releases", selected_build="A",
+                    preparation_registry_path=root / "registry.json",
+                    private_control_root=root / "private", repo=root,
+                )
+
     def test_current_source_snapshot_rejects_stale_preparation_or_fit_code(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

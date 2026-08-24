@@ -5,6 +5,46 @@
   "feature_contract_id": "dufs-liu-mixed-v2-development-2026-08-07",
   "nominal_feature_count": 30,
   "feature_rule": "Audit all nominal 30 telemetry views. Keep a view only when finite on every row in the dataset-by-temperature cell; allow it to be absent only when unavailable on every row. Partial availability, imputation, substitution, row dropping, and a second orientation pass are forbidden.",
+  "trace_status_contract": {
+    "contract_id": "edis-frozen-min-trace-status-v1-2026-08-24",
+    "registered_stage": "target_free_preparation_remediation_before_any_scores_or_labels",
+    "minimum_entropy_tokens": 8,
+    "short_trace_status": "BLOCKED_TRACE_BELOW_FROZEN_MIN",
+    "short_trace_action": "block_entire_dataset_temperature_cell",
+    "malformed_trace_status": "BLOCKED_MALFORMED_TELEMETRY",
+    "partial_feature_status": "BLOCKED_PARTIAL_FEATURE_AVAILABILITY",
+    "asset_status": "BLOCKED_ASSET",
+    "row_exclusion_allowed": false,
+    "imputation_allowed": false,
+    "feature_substitution_allowed": false,
+    "allow_short_override_allowed": false,
+    "partial_release_policy": "ready_cells_may_run_descriptive_only; every blocked cell remains an explicit status row; incomplete dataset and task aggregates are status-only",
+    "labels_used": false
+  },
+  "target_free_status_roster_contract": {
+    "contract_id": "edis-materialized-status-roster-v1-2026-08-24",
+    "registered_stage": "after_target_free_telemetry_audit_before_any_scores_or_labels",
+    "labels_used": false,
+    "ready_cell_ids": [
+      "edis_amc23_t0p2",
+      "edis_gsm8k_t0p2",
+      "edis_math500_t0p2",
+      "edis_math500_t0p6"
+    ],
+    "blocked_cells": [
+      {"cell_id": "edis_aime24_t0p2", "status": "BLOCKED_TRACE_BELOW_FROZEN_MIN"},
+      {"cell_id": "edis_aime24_t0p6", "status": "BLOCKED_TRACE_BELOW_FROZEN_MIN"},
+      {"cell_id": "edis_aime24_t1p0", "status": "BLOCKED_TRACE_BELOW_FROZEN_MIN"},
+      {"cell_id": "edis_amc23_t0p6", "status": "BLOCKED_TRACE_BELOW_FROZEN_MIN"},
+      {"cell_id": "edis_amc23_t1p0", "status": "BLOCKED_TRACE_BELOW_FROZEN_MIN"},
+      {"cell_id": "edis_gsm8k_t0p6", "status": "BLOCKED_TRACE_BELOW_FROZEN_MIN"},
+      {"cell_id": "edis_gsm8k_t1p0", "status": "BLOCKED_TRACE_BELOW_FROZEN_MIN"},
+      {"cell_id": "edis_math500_t1p0", "status": "BLOCKED_TRACE_BELOW_FROZEN_MIN"}
+    ],
+    "blocked_labels_may_be_opened": false,
+    "dataset_or_task_aggregates_allowed": false,
+    "headline_or_publication_eligible": false
+  },
   "fit_contract": {
     "method_roster": "all_13_primary_methods",
     "labels_available_to_fit": false,

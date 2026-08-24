@@ -40,6 +40,9 @@ from spectral_utils.reconstruction_benchmark.edis_identity import (  # noqa: E40
 )
 from spectral_utils.reconstruction_benchmark.edis_preparation import (  # noqa: E402
     PREPARATION_SOURCE_PATHS,
+    assert_expected_preparation_status_roster,
+    load_preparation_registry,
+    load_preparation_status,
 )
 from spectral_utils.reconstruction_benchmark.fit_firewall import (  # noqa: E402
     build_fit_audit_policy,
@@ -372,6 +375,15 @@ def _load_worker_result(
         result.get("method_ids") != list(PRIMARY_METHOD_IDS)
         or result.get("cell_ids") != expected_cells
         or result.get("all_candidate_scores_present") is not True
+        or result.get("scientific_full_build")
+        != fit_registry["scientific_full_build"]
+        or result.get("partial_descriptive_build")
+        != fit_registry["partial_descriptive_build"]
+        or result.get("headline_eligible") is not False
+        or result.get("aggregate_metrics_allowed")
+        != fit_registry["aggregate_metrics_allowed"]
+        or result.get("preparation_status_commitment_sha256")
+        != fit_registry["preparation_status_commitment_sha256"]
     ):
         raise RuntimeError("EDIS fit worker roster is incomplete or reordered")
     return result
@@ -406,6 +418,29 @@ def main() -> None:
         raise RuntimeError("EDIS fit registry release/build binding failed")
     if fit_registry.get("preparation_registry_sha256") != sha256_file(args.target_free_registry):
         raise RuntimeError("EDIS fit registry is stale against the target-free registry")
+    preparation_status_path = lane_root / "PREPARATION_STATUS.json"
+    preparation_status = load_preparation_status(preparation_status_path)
+    preparation_registry = load_preparation_registry(args.target_free_registry)
+    assert_expected_preparation_status_roster(
+        registry=preparation_registry, status=preparation_status
+    )
+    ready_status_ids = [
+        row["cell_id"]
+        for row in preparation_status["cells"]
+        if row["status"] == "READY"
+    ]
+    if (
+        preparation_status["status_commitment_sha256"]
+        != fit_registry["preparation_status_commitment_sha256"]
+        or preparation_status.get("release_id") != args.release_id
+        or preparation_status.get("build_id") != args.build
+        or ready_status_ids != [row["cell_id"] for row in fit_registry["cells"]]
+        or preparation_status["scientific_full_build"]
+        != fit_registry["scientific_full_build"]
+        or preparation_status["partial_descriptive_build"]
+        != fit_registry["partial_descriptive_build"]
+    ):
+        raise RuntimeError("EDIS preparation status differs from the fit registry")
     private_path = (
         args.private_control_root / args.release_id / "edis"
         / f"build_{args.build}" / "PREPARATION_PROVENANCE.json"
@@ -437,7 +472,13 @@ def main() -> None:
     validate_method_registry(REPO)
     fit_safe_feature_contract_sha = validate_fit_safe_feature_contract(REPO)
     before = _source_snapshot(allow_dirty_debug=args.allow_dirty_debug)
-    scientific_full = bool(before["git_clean"] and not args.allow_dirty_debug)
+    clean_release = bool(before["git_clean"] and not args.allow_dirty_debug)
+    scientific_full = bool(
+        clean_release and fit_registry["scientific_full_build"]
+    )
+    descriptive_partial = bool(
+        clean_release and fit_registry["partial_descriptive_build"]
+    )
     code_root = _copy_fit_capsule(capsule_root)
     capsule_tree = canonical_tree_manifest(capsule_root)
     sentinel = (
@@ -454,6 +495,7 @@ def main() -> None:
         ("controller_preparation_provenance", private_path),
         ("controller_sentinel", sentinel),
         ("raw_telemetry_source", args.source_root / first_source),
+        ("preparation_status", preparation_status_path),
     )
     policy = _worker_policy(
         code_root=code_root,
@@ -491,6 +533,12 @@ def main() -> None:
         "release_id": args.release_id,
         "build_id": args.build,
         "scientific_full": scientific_full,
+        "descriptive_partial": descriptive_partial,
+        "headline_eligible": False,
+        "aggregate_metrics_allowed": fit_registry["aggregate_metrics_allowed"],
+        "preparation_status_commitment_sha256": fit_registry[
+            "preparation_status_commitment_sha256"
+        ],
         "fit_registry_sha256": sha256_file(fit_registry_path),
         "fit_registry_payload_sha256": fit_registry["payload_sha256"],
         "preparation_registry_sha256": fit_registry["preparation_registry_sha256"],
@@ -524,6 +572,12 @@ def main() -> None:
         "release_id": args.release_id,
         "build_id": args.build,
         "scientific_full": scientific_full,
+        "descriptive_partial": descriptive_partial,
+        "headline_eligible": False,
+        "aggregate_metrics_allowed": fit_registry["aggregate_metrics_allowed"],
+        "preparation_status_commitment_sha256": fit_registry[
+            "preparation_status_commitment_sha256"
+        ],
         "all_expected_scores_present": bool(complete),
         "fit_registry_sha256": sha256_file(fit_registry_path),
         "fit_registry_payload_sha256": fit_registry["payload_sha256"],
@@ -564,18 +618,20 @@ def main() -> None:
         "records": records,
     }
     freeze["payload_sha256"] = _payload_sha256(freeze)
-    if complete and scientific_full:
+    if complete and (scientific_full or descriptive_partial):
         atomic_write_json(fit_root / "SCORE_FREEZE_MANIFEST.json", freeze)
     else:
         atomic_write_json(fit_root / "FIT_INCOMPLETE_OR_DEBUG.json", freeze)
         raise RuntimeError(
-            "EDIS fit is incomplete or debug-only; no scientific score freeze was issued"
+            "EDIS fit is incomplete or debug-only; no score freeze was issued"
         )
     print(json.dumps({
         "release_id": args.release_id,
         "build_id": args.build,
         "n_records": len(records),
         "scientific_full": scientific_full,
+        "descriptive_partial": descriptive_partial,
+        "headline_eligible": False,
         "labels_opened_by_fit": False,
         "fit_isolation_tier": freeze["fit_isolation_tier"],
     }, indent=2, sort_keys=True))

@@ -57,8 +57,11 @@ def load_fit_registry(path: str | Path) -> dict[str, Any]:
     _verify_payload(raw, name="EDIS fit registry")
     if raw.get("schema_version") != FIT_REGISTRY_SCHEMA:
         raise RuntimeError("unexpected EDIS fit-registry schema")
+    scientific_full = raw.get("scientific_full_build") is True
+    descriptive_partial = raw.get("partial_descriptive_build") is True
+    if scientific_full == descriptive_partial:
+        raise RuntimeError("EDIS fit registry must be exactly one of full or partial")
     required = {
-        "scientific_full_build": True,
         "feature_contract_id": CONTRACT_VERSION,
         "nominal_feature_count": len(FEATURE_TO_VIEW),
         "method_roster": "all_13_primary_methods",
@@ -67,13 +70,33 @@ def load_fit_registry(path: str | Path) -> dict[str, Any]:
         "labels_opened": False,
         "historical_scores_opened": False,
         "raw_sources_serialized": False,
+        "headline_eligible": False,
+        "aggregate_metrics_allowed": scientific_full,
+        "fit_registry_available": True,
+        "status_only_build": False,
+        "status_roster_contract_match": True,
+        "trace_status_contract_id": "edis-frozen-min-trace-status-v1-2026-08-24",
     }
     for key, expected in required.items():
         if raw.get(key) != expected:
             raise RuntimeError(f"EDIS fit-registry {key} attestation failed")
     cells = raw.get("cells")
-    if not isinstance(cells, list) or len(cells) != 12:
-        raise RuntimeError("EDIS fit registry must contain exactly 12 cells")
+    if not isinstance(cells, list) or not cells:
+        raise RuntimeError("EDIS fit registry contains no runnable cells")
+    registered = int(raw.get("registered_cell_count", -1))
+    ready = int(raw.get("ready_cell_count", -1))
+    blocked = int(raw.get("blocked_cell_count", -1))
+    if (
+        registered != 12
+        or ready != len(cells)
+        or ready + blocked != registered
+        or (scientific_full and (ready != 12 or blocked != 0))
+        or (descriptive_partial and not (0 < ready < 12 and blocked > 0))
+        or not re.fullmatch(
+            r"[0-9a-f]{64}", str(raw.get("preparation_status_commitment_sha256", ""))
+        )
+    ):
+        raise RuntimeError("EDIS fit registry cell-status accounting drifted")
     ids = [str(item.get("cell_id", "")) for item in cells]
     if any(not value for value in ids) or len(set(ids)) != len(ids):
         raise RuntimeError("EDIS fit registry has empty or duplicate cell IDs")
@@ -331,6 +354,13 @@ def run_fit_worker(
         "release_id": release_id,
         "build_id": build_id,
         "all_candidate_scores_present": bool(complete),
+        "scientific_full_build": fit_registry["scientific_full_build"],
+        "partial_descriptive_build": fit_registry["partial_descriptive_build"],
+        "headline_eligible": False,
+        "aggregate_metrics_allowed": fit_registry["aggregate_metrics_allowed"],
+        "preparation_status_commitment_sha256": fit_registry[
+            "preparation_status_commitment_sha256"
+        ],
         "fit_registry_sha256": sha256_file(fit_registry_path),
         "fit_registry_payload_sha256": fit_registry["payload_sha256"],
         "method_registry_sha256": method_registry_sha,

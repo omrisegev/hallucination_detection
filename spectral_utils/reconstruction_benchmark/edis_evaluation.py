@@ -32,7 +32,7 @@ from .edis_preparation import (
     verify_pinned_file,
 )
 from .io import atomic_write_json, atomic_write_npz, canonical_json_bytes, load_npz_no_pickle, sha256_bytes, sha256_file
-from .methods import PRIMARY_METHOD_IDS
+from .methods import PRIMARY_METHOD_IDS, PRIMARY_METHOD_SPECS
 
 
 POSTFREEZE_SCHEMA = "reconstruction-edis-postfreeze-registry-v1"
@@ -64,6 +64,19 @@ def load_postfreeze_registry(path: str | Path, preparation: EdisPreparationRegis
         "require_identical_ordered_question_roster_across_temperatures": True,
     }:
         raise RuntimeError("EDIS post-freeze group identity contract drifted")
+    if raw.get("partial_preparation_evaluation") != {
+        "required_status_roster_contract_id": (
+            "edis-materialized-status-roster-v1-2026-08-24"
+        ),
+        "explicit_cli_opt_in_required": True,
+        "open_labels_for_ready_cells_only": True,
+        "blocked_cell_output": "coverage_status_row_per_method",
+        "dataset_aggregates_allowed": False,
+        "task_aggregates_allowed": False,
+        "headline_eligible": False,
+        "publication_eligible": False,
+    }:
+        raise RuntimeError("EDIS partial post-freeze evaluation contract drifted")
     bootstrap = raw.get("bootstrap", {})
     if bootstrap != {
         "draws": 20_000,
@@ -307,6 +320,156 @@ def _contrast_rows(
     return output
 
 
+def _validate_partial_status_roster(
+    *, certificate: Mapping[str, Any], preparation: EdisPreparationRegistry
+) -> dict[str, str]:
+    """Require the signed, preregistered 4-ready/8-short-cell roster."""
+
+    expected = preparation.expected_status_by_cell
+    contract = preparation.raw.get("target_free_status_roster_contract")
+    if expected is None or not isinstance(contract, Mapping):
+        raise RuntimeError("descriptive partial EDIS evaluation lacks a frozen status roster")
+    rows = certificate.get("registered_cell_statuses")
+    if not isinstance(rows, list):
+        raise RuntimeError("descriptive partial EDIS certificate lacks cell statuses")
+    observed_ids = [str(row.get("cell_id", "")) for row in rows]
+    observed = {str(row.get("cell_id", "")): str(row.get("status", "")) for row in rows}
+    ready = [cell_id for cell_id in observed_ids if observed[cell_id] == "READY"]
+    blocked = [cell_id for cell_id in observed_ids if observed[cell_id] != "READY"]
+    if (
+        certificate.get("scientific_full") is not False
+        or certificate.get("descriptive_partial") is not True
+        or certificate.get("headline_eligible") is not False
+        or certificate.get("aggregate_metrics_allowed") is not False
+        or certificate.get("cell_ids") != ready
+        or observed_ids != [cell.cell_id for cell in preparation.cells]
+        or observed != expected
+        or ready != list(contract["ready_cell_ids"])
+        or blocked != [str(row["cell_id"]) for row in contract["blocked_cells"]]
+        or int(certificate.get("registered_cell_count", -1)) != 12
+        or int(certificate.get("ready_cell_count", -1)) != 4
+        or int(certificate.get("blocked_cell_count", -1)) != 8
+    ):
+        raise RuntimeError("descriptive partial EDIS 4-ready/8-blocked roster drifted")
+    return observed
+
+
+def _persist_evaluation(
+    *,
+    release_id: str,
+    build_id: str,
+    output: Path,
+    fit: Path,
+    preparation: EdisPreparationRegistry,
+    postfreeze_registry_path: str | Path,
+    identity: KeyedIdentityController,
+    certificate: Mapping[str, Any],
+    predictions: list[dict[str, Any]],
+    metrics: list[dict[str, Any]],
+    contrasts: list[dict[str, Any]],
+    coverage: list[dict[str, Any]],
+    label_artifacts: list[dict[str, Any]],
+    postfreeze: Mapping[str, Any],
+    descriptive_partial: bool,
+) -> Mapping[str, Any]:
+    from spectral_utils.reconstruction_reporting.io import write_parquet, write_tidy_csv
+
+    artifacts: dict[str, Mapping[str, Any]] = {}
+    canonical_table_hashes: dict[str, str] = {}
+    for table, rows in (
+        ("predictions", predictions),
+        ("metrics", metrics),
+        ("contrasts", contrasts),
+        ("coverage", coverage),
+    ):
+        csv_name = "metrics_long.csv" if table == "metrics" else (
+            "contrasts_long.csv" if table == "contrasts" else (
+                "coverage_long.csv" if table == "coverage" else "predictions.csv"
+            )
+        )
+        parquet_name = "metrics_long.parquet" if table == "metrics" else (
+            "contrasts_long.parquet" if table == "contrasts" else (
+                "coverage_long.parquet" if table == "coverage" else "predictions.parquet"
+            )
+        )
+        csv_record = write_tidy_csv(output / csv_name, table, rows)
+        parquet_record = write_parquet(output / parquet_name, table, rows)
+        artifacts[table] = {"csv": csv_record, "parquet": parquet_record}
+        canonical_table_hashes[table] = canonical_evaluation_table_sha256(
+            table=table, rows=rows, release_id=release_id, build_id=build_id,
+        )
+    status_rows = list(certificate["registered_cell_statuses"])
+    ready_ids = set(map(str, certificate["cell_ids"]))
+    gate_audit = [
+        dict(item)
+        if not descriptive_partial or str(item["cell_id"]) in ready_ids
+        else {
+            "cell_id": str(item["cell_id"]),
+            "status": "NOT_EVALUATED_PREPARATION_BLOCKED",
+            "target_summary_source": (
+                "frozen_postfreeze_registry; raw row-label artifact not opened"
+            ),
+        }
+        for item in postfreeze["cells"]
+    ]
+    manifest = {
+        "schema_version": EVALUATION_SCHEMA,
+        "release_id": release_id,
+        "build_id": build_id,
+        "lane_id": preparation.lane_id,
+        "ab_certificate_sha256": certificate["certificate_sha256"],
+        "score_freeze_sha256": sha256_file(fit / "SCORE_FREEZE_MANIFEST.json"),
+        "preparation_registry_sha256": preparation.sha256,
+        "preparation_status_commitment_sha256": certificate[
+            "preparation_status_commitment_sha256"
+        ],
+        "postfreeze_registry_sha256": sha256_file(postfreeze_registry_path),
+        "identity_contract": dict(identity.public_binding),
+        "scientific_full": not descriptive_partial,
+        "descriptive_partial": descriptive_partial,
+        "partial_evaluation_mode": descriptive_partial,
+        "registered_cell_count": 12,
+        "ready_cell_count": len(certificate["cell_ids"]),
+        "blocked_cell_count": 12 - len(certificate["cell_ids"]),
+        "registered_cell_statuses": status_rows,
+        "raw_row_labels_opened_cell_ids": list(certificate["cell_ids"]),
+        "blocked_raw_row_label_artifacts_opened": False,
+        "postfreeze_target_summary_registry_loaded": True,
+        "labels_opened_only_after_score_freeze_and_ab_pass": True,
+        "historical_scores_copied": False,
+        "bootstrap_draws": 20_000,
+        "bootstrap_unit": "source_question",
+        "positive_class": "incorrect",
+        "metrics": ["auroc", "auprc"],
+        "aggregation": (
+            "per_temperature_only; dataset_and_task_aggregates_forbidden_in_partial_release"
+            if descriptive_partial
+            else (
+                "per_temperature; equal_temperature_per_dataset; "
+                "equal_dataset_after_equal_temperature"
+            )
+        ),
+        "dataset_task_aggregates_emitted": not descriptive_partial,
+        "track": "multi_sample_inference",
+        "access_contract_id": ACCESS_CONTRACT_ID,
+        "headline_eligible": False,
+        "publication_eligible": False,
+        "evidence_status": (
+            "DESCRIPTIVE_PARTIAL_GATE_FAILED"
+            if descriptive_partial else "DESCRIPTIVE_GATE_FAILED"
+        ),
+        "gate_audit": gate_audit,
+        "one_pass_leaderboard_combination_forbidden": True,
+        "evaluation_ab_certificate_required_for_release": True,
+        "artifacts": artifacts,
+        "canonical_table_sha256": canonical_table_hashes,
+        "label_artifacts": label_artifacts,
+    }
+    manifest["payload_sha256"] = _payload_sha256(manifest)
+    atomic_write_json(output / "MANIFEST.json", manifest)
+    return manifest
+
+
 def evaluate(
     *,
     release_id: str,
@@ -319,6 +482,7 @@ def evaluate(
     identity: KeyedIdentityController,
     repo: str | Path,
     certificate_path: str | Path | None = None,
+    allow_descriptive_partial: bool = False,
 ) -> Mapping[str, Any]:
     preparation = load_preparation_registry(preparation_registry_path)
     release = Path(release_root) / release_id
@@ -331,6 +495,15 @@ def evaluate(
         preparation_registry_path=preparation_registry_path,
         private_control_root=private_control_root,
         repo=repo,
+        allow_descriptive_partial=allow_descriptive_partial,
+    )
+    descriptive_partial = certificate.get("descriptive_partial") is True
+    status_by_cell = (
+        _validate_partial_status_roster(
+            certificate=certificate, preparation=preparation
+        )
+        if descriptive_partial
+        else {cell.cell_id: "READY" for cell in preparation.cells}
     )
     # The post-freeze registry contains target-derived class counts and gate
     # outcomes.  Do not even parse it until the exact A/B certificate passes.
@@ -371,7 +544,49 @@ def evaluate(
     label_artifacts: list[dict[str, Any]] = []
     run_id = f"{release_id}::edis::{build_id}::postfreeze"
     root = Path(source_root).resolve()
+    certificate_status_by_cell = {
+        str(row["cell_id"]): row
+        for row in certificate["registered_cell_statuses"]
+    }
     for spec in preparation.cells:
+        if status_by_cell[spec.cell_id] != "READY":
+            status_row = certificate_status_by_cell[spec.cell_id]
+            cohort = "cohort::" + _payload_sha256({
+                "cell_id": spec.cell_id,
+                "preparation_status": status_by_cell[spec.cell_id],
+                "preparation_status_commitment_sha256": certificate[
+                    "preparation_status_commitment_sha256"
+                ],
+            })
+            slice_id = "temperature_" + str(spec.temperature).replace(".", "p")
+            detail = (
+                f"{status_by_cell[spec.cell_id]}: "
+                f"{status_row.get('status_detail', 'target-free preparation blocked')}; "
+                "raw labels were not opened and no row was dropped or imputed"
+            )
+            comparison = f"edis_partial_blocked::{spec.cell_id}::{cohort}"
+            for method_id in PRIMARY_METHOD_IDS:
+                base = _common(
+                    release_id=release_id, run_id=run_id, spec=spec,
+                    dataset_id=spec.dataset_id, population_id=spec.population_id,
+                    cell_id=spec.cell_id, slice_id=slice_id, cohort_id=cohort,
+                    method_id=method_id,
+                    method_version_id=PRIMARY_METHOD_SPECS[method_id].method_version_id,
+                    comparison_group_id=comparison, status_detail=detail,
+                )
+                coverage.append({
+                    **base,
+                    "status": "INPUT_INVALID",
+                    "status_detail": detail,
+                    "expected_n": spec.expected_rows,
+                    "eligible_n": 0,
+                    "scored_n": 0,
+                    "fallback_n": 0,
+                    "excluded_n": 0,
+                    "failed_n": spec.expected_rows,
+                    "coverage_fraction": 0.0,
+                })
+            continue
         verify_pinned_file(
             root=root, relative=spec.source_path,
             expected_sha256=spec.source_sha256,
@@ -498,6 +713,24 @@ def evaluate(
             "cohort_id": cohort,
         }
 
+    if descriptive_partial:
+        if (
+            list(evaluation_cells) != list(certificate["cell_ids"])
+            or [row["cell_id"] for row in label_artifacts]
+            != list(certificate["cell_ids"])
+            or len(coverage) != 12 * len(PRIMARY_METHOD_IDS)
+        ):
+            raise RuntimeError("descriptive partial EDIS evaluation roster drifted")
+        return _persist_evaluation(
+            release_id=release_id, build_id=build_id, output=output, fit=fit,
+            preparation=preparation,
+            postfreeze_registry_path=postfreeze_registry_path,
+            identity=identity, certificate=certificate,
+            predictions=predictions, metrics=metrics, contrasts=contrasts,
+            coverage=coverage, label_artifacts=label_artifacts,
+            postfreeze=postfreeze, descriptive_partial=True,
+        )
+
     # Equal-temperature dataset aggregates.  Source-question draws are linked
     # across all three temperatures, and rows are never pooled.
     dataset_components: list[tuple[str, str]] = []
@@ -599,68 +832,15 @@ def evaluate(
         aggregation_level="task", n_pairs=len(preparation.cells),
     ))
 
-    # Import only at reporting time; the fit process never imports reporting or
-    # post-freeze schemas.
-    from spectral_utils.reconstruction_reporting.io import write_parquet, write_tidy_csv
-
-    artifacts: dict[str, Mapping[str, Any]] = {}
-    canonical_table_hashes: dict[str, str] = {}
-    for table, rows in (
-        ("predictions", predictions),
-        ("metrics", metrics),
-        ("contrasts", contrasts),
-        ("coverage", coverage),
-    ):
-        csv_name = "metrics_long.csv" if table == "metrics" else (
-            "contrasts_long.csv" if table == "contrasts" else (
-                "coverage_long.csv" if table == "coverage" else "predictions.csv"
-            )
-        )
-        parquet_name = "metrics_long.parquet" if table == "metrics" else (
-            "contrasts_long.parquet" if table == "contrasts" else (
-                "coverage_long.parquet" if table == "coverage" else "predictions.parquet"
-            )
-        )
-        csv_record = write_tidy_csv(output / csv_name, table, rows)
-        parquet_record = write_parquet(output / parquet_name, table, rows)
-        artifacts[table] = {"csv": csv_record, "parquet": parquet_record}
-        canonical_table_hashes[table] = canonical_evaluation_table_sha256(
-            table=table,
-            rows=rows,
-            release_id=release_id,
-            build_id=build_id,
-        )
-    manifest = {
-        "schema_version": EVALUATION_SCHEMA,
-        "release_id": release_id,
-        "build_id": build_id,
-        "lane_id": preparation.lane_id,
-        "ab_certificate_sha256": certificate["certificate_sha256"],
-        "score_freeze_sha256": sha256_file(fit / "SCORE_FREEZE_MANIFEST.json"),
-        "preparation_registry_sha256": preparation.sha256,
-        "postfreeze_registry_sha256": sha256_file(postfreeze_registry_path),
-        "identity_contract": dict(identity.public_binding),
-        "labels_opened_only_after_score_freeze_and_ab_pass": True,
-        "historical_scores_copied": False,
-        "bootstrap_draws": 20_000,
-        "bootstrap_unit": "source_question",
-        "positive_class": "incorrect",
-        "metrics": ["auroc", "auprc"],
-        "aggregation": "per_temperature; equal_temperature_per_dataset; equal_dataset_after_equal_temperature",
-        "track": "multi_sample_inference",
-        "access_contract_id": ACCESS_CONTRACT_ID,
-        "headline_eligible": False,
-        "evidence_status": "DESCRIPTIVE_GATE_FAILED",
-        "gate_audit": [dict(item) for item in postfreeze["cells"]],
-        "one_pass_leaderboard_combination_forbidden": True,
-        "evaluation_ab_certificate_required_for_release": True,
-        "artifacts": artifacts,
-        "canonical_table_sha256": canonical_table_hashes,
-        "label_artifacts": label_artifacts,
-    }
-    manifest["payload_sha256"] = _payload_sha256(manifest)
-    atomic_write_json(output / "MANIFEST.json", manifest)
-    return manifest
+    return _persist_evaluation(
+        release_id=release_id, build_id=build_id, output=output, fit=fit,
+        preparation=preparation,
+        postfreeze_registry_path=postfreeze_registry_path,
+        identity=identity, certificate=certificate,
+        predictions=predictions, metrics=metrics, contrasts=contrasts,
+        coverage=coverage, label_artifacts=label_artifacts,
+        postfreeze=postfreeze, descriptive_partial=False,
+    )
 
 
 __all__ = [
