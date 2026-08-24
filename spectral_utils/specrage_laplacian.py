@@ -195,22 +195,26 @@ def prepare_views(views: Mapping[str, np.ndarray]):
     return names, tuple(matrices)
 
 
-def gaussian_knn_affinity(samples: np.ndarray, *, n_neighbors: int = 7):
+def gaussian_knn_affinity(
+    samples: np.ndarray,
+    *,
+    n_neighbors: int = 7,
+    tie_keys: np.ndarray | None = None,
+):
     """Paper Eq. 5 with a global median k-NN scale and max symmetrization."""
-    from sklearn.neighbors import NearestNeighbors
+    from .graph_topology import _knn_table
 
     samples = _standardize_columns(np.asarray(samples, dtype=float))
     n = samples.shape[0]
     k = int(max(1, min(int(n_neighbors), n - 1)))
-    model = NearestNeighbors(n_neighbors=k + 1, metric="euclidean")
-    model.fit(samples)
-    distances, indices = model.kneighbors(samples, return_distance=True)
-    neighbour_distances = distances[:, 1:]
+    neighbour_distances, indices, tie_diagnostics = _knn_table(
+        samples, k, tie_keys=tie_keys
+    )
     positive = neighbour_distances[neighbour_distances > EPS]
     sigma = float(np.median(positive)) if positive.size else 1.0
     sigma = max(sigma, 1e-8)
     rows = np.repeat(np.arange(n), k)
-    cols = indices[:, 1:].reshape(-1)
+    cols = indices.reshape(-1)
     values = np.exp(
         -(neighbour_distances.reshape(-1) ** 2) / (2.0 * sigma * sigma)
     )
@@ -218,10 +222,19 @@ def gaussian_knn_affinity(samples: np.ndarray, *, n_neighbors: int = 7):
     graph = directed.maximum(directed.T).tocsr()
     graph.setdiag(0.0)
     graph.eliminate_zeros()
-    return graph, {"n_neighbors": k, "sigma": sigma}
+    return graph, {
+        "n_neighbors": k,
+        "sigma": sigma,
+        **tie_diagnostics,
+    }
 
 
-def embedding_knn_affinity(embedding: np.ndarray, *, n_neighbors: int = 7):
+def embedding_knn_affinity(
+    embedding: np.ndarray,
+    *,
+    n_neighbors: int = 7,
+    tie_keys: np.ndarray | None = None,
+):
     """Build a rotation-invariant graph from SpecRaGE's fused embedding.
 
     SpecRaGE's scientific output is a joint spectral representation.  Its
@@ -231,7 +244,7 @@ def embedding_knn_affinity(embedding: np.ndarray, *, n_neighbors: int = 7):
     one scalar scale rather than column-wise standardization, preserving those
     Euclidean distances under orthogonal rotations.
     """
-    from sklearn.neighbors import NearestNeighbors
+    from .graph_topology import _knn_table
 
     values = np.asarray(embedding, dtype=float)
     if values.ndim != 2 or values.shape[0] < 4 or values.shape[1] < 1:
@@ -244,26 +257,37 @@ def embedding_knn_affinity(embedding: np.ndarray, *, n_neighbors: int = 7):
         values = values / scalar
     n = values.shape[0]
     k = int(max(1, min(int(n_neighbors), n - 1)))
-    model = NearestNeighbors(n_neighbors=k + 1, metric="euclidean").fit(values)
-    distances, indices = model.kneighbors(values, return_distance=True)
-    neighbour_distances = distances[:, 1:]
+    neighbour_distances, indices, tie_diagnostics = _knn_table(
+        values, k, tie_keys=tie_keys
+    )
     positive = neighbour_distances[neighbour_distances > EPS]
     sigma = float(np.median(positive)) if positive.size else 1.0
     sigma = max(sigma, 1e-8)
     rows = np.repeat(np.arange(n), k)
-    cols = indices[:, 1:].reshape(-1)
+    cols = indices.reshape(-1)
     weights = np.exp(-(neighbour_distances.reshape(-1) ** 2) / (sigma * sigma))
     directed = coo_matrix((weights, (rows, cols)), shape=(n, n)).tocsr()
     graph = ((directed + directed.T) * 0.5).tocsr()
     graph.setdiag(0.0)
     graph.eliminate_zeros()
-    return graph, {"n_neighbors": k, "sigma": sigma}
+    return graph, {
+        "n_neighbors": k,
+        "sigma": sigma,
+        **tie_diagnostics,
+    }
 
 
-def base_view_graphs(views: Sequence[np.ndarray], *, n_neighbors: int):
+def base_view_graphs(
+    views: Sequence[np.ndarray],
+    *,
+    n_neighbors: int,
+    tie_keys: np.ndarray | None = None,
+):
     graphs, metadata = [], []
     for view in views:
-        graph, details = gaussian_knn_affinity(view, n_neighbors=n_neighbors)
+        graph, details = gaussian_knn_affinity(
+            view, n_neighbors=n_neighbors, tie_keys=tie_keys
+        )
         graphs.append(graph)
         metadata.append(details)
     return tuple(graphs), tuple(metadata)
@@ -668,6 +692,7 @@ def _paired_training_batches(rng, indices, batch_size, minimum_batch):
 
 def _fit_one_seed(
     names, matrices, base_graph_tuple, config, seed, view_prior=None,
+    tie_keys=None,
 ):
     try:
         import torch
@@ -713,6 +738,7 @@ def _fit_one_seed(
         pool_graphs, _ = base_view_graphs(
             tuple(matrix[fit_pool] for matrix in matrices),
             n_neighbors=config.n_neighbors,
+            tie_keys=None if tie_keys is None else np.asarray(tie_keys)[fit_pool],
         )
         agreement_targets, agreement_scores = cross_view_agreement_targets(
             pool_graphs,
@@ -868,7 +894,7 @@ def _fit_one_seed(
         mass_normalize=config.view_mass_normalization,
     )
     embedding_graph, embedding_graph_metadata = embedding_knn_affinity(
-        embedding, n_neighbors=config.n_neighbors
+        embedding, n_neighbors=config.n_neighbors, tie_keys=tie_keys
     )
     diagnostics = _seed_diagnostics(
         names, base_graph_tuple, alpha, embedding, graph, history
@@ -1024,6 +1050,7 @@ def fit_specrage_graph(
     config: SpecRaGEConfig | None = None,
     seeds: Sequence[int] = (11, 23, 37),
     view_prior: Mapping[str, float] | Sequence[float] | None = None,
+    tie_keys: np.ndarray | None = None,
 ):
     """Fit and seed-ensemble a label-free SpecRaGE reliability graph."""
     config = SpecRaGEConfig() if config is None else config
@@ -1045,18 +1072,24 @@ def fit_specrage_graph(
     prior = prior / prior.sum()
     if matrices[0].shape[0] <= config.output_dim:
         raise ValueError("sample count must exceed SpecRaGE output_dim")
+    if tie_keys is not None:
+        tie_keys = np.asarray(tie_keys, dtype=float)
+        if tie_keys.shape != (matrices[0].shape[0],) or not np.isfinite(tie_keys).all():
+            raise ValueError("tie_keys must be one finite value per sample")
+        if len(np.unique(tie_keys)) != len(tie_keys):
+            raise ValueError("tie_keys must be unique")
     seeds = tuple(int(seed) for seed in seeds)
     if not seeds:
         raise ValueError("at least one seed is required")
     if len(set(seeds)) != len(seeds):
         raise ValueError("SpecRaGE seeds must be unique")
     base_graph_tuple, affinity_metadata = base_view_graphs(
-        matrices, n_neighbors=config.n_neighbors
+        matrices, n_neighbors=config.n_neighbors, tie_keys=tie_keys
     )
     seed_results = tuple(
         _fit_one_seed(
             names, matrices, base_graph_tuple, config, seed,
-            view_prior=prior,
+            view_prior=prior, tie_keys=tie_keys,
         )
         for seed in seeds
     )

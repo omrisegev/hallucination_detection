@@ -14557,3 +14557,46 @@ Discussion first, no runs authorized; Omri's own variant list takes
 precedence and should be recorded in §4.2 before any protocol draft.
 
 ---
+
+### Step 289 [reconstruction benchmark] — one frozen contract, strict A/B pipeline, and reporting layer ready before labels
+
+**What**: Implemented `reconstruction_benchmark_v1` on branch
+`codex/reconstruction-benchmark-v1`, based on the completed DEEM-B3 lineage.
+The primary static roster is exactly 13 methods, all consuming the same
+mixed-v2 confidence matrix after one frozen transform/orientation pass.  The
+old U-PCR estimated-sign arm is excluded because the input contract already
+orients features.  Family-NRM-A and PGRD-A are new within-cell, donor-free
+ablations; their historical donor variants remain separate evidence.
+
+The scientific pipeline now has two independent preparations and fits,
+content-bound source snapshots, a physical label firewall, an exact 24x13 A/B
+certificate, verified source-question group sidecars, and a post-freeze
+evaluator with 20,000 shared grouped paired bootstrap draws.  A signed graph
+diagnostic package covers L-SML, DUFS-LIU, CA-SpecRaGE, SU-PCR, Family-NRM-A,
+and PGRD-A with registered nulls and controls.  The reporting bridge produces
+strict long tables, DuckDB drill-down views, and a self-contained `file://`
+HTML whose Method Guide precedes results and whose figures carry visible
+legends and source hashes.
+
+An external final-answer runner was also added for the registered ProcessBench,
+PRMBench, SemGrad, HLE, Evidence-Drop, AQuA, and GPQA populations.  It allows
+only uniformly absent views, never partial-row imputation, requires its own
+full A/B certificate before labels, and keeps LCiteEval and CoQA as explicit
+protocol-failed/quarantined rows.  Other task adapters (localization, prefix,
+stopping, RAG, multi-sample, and white-box) remain separate follow-up work.
+
+**Audit**: adversarial reviewers found and closed mismatched aggregate graph
+hashes, a debug-to-publication escape, an invalid graph query sort, misleading
+fixed-graph “stability” wording, and five external-runner integrity/statistical
+gaps.  Final local acceptance is 146 passing tests, one expected optional
+dependency skip, plus the SpecRaGE executable check; JSON, compile, and diff
+checks pass.
+
+**Result / boundary**: this step creates no scientific score and opens no
+labels.  The current worktree's external shallow audit reports 27
+`BLOCKED_ASSET` cells, one LCiteEval `PROTOCOL_GATE_FAILED`, and one CoQA
+`QUARANTINED`.  The next action is to commit the clean source snapshot, create
+a new immutable frozen-24 release, run A/B, verify group identity and score
+equality, and only then evaluate.
+
+---

@@ -128,6 +128,11 @@ cache/repgrid/
 results/runs/
 results/report_*.html
 
+# Reconstruction benchmark releases are immutable, locally queryable build
+# products.  Keep the protocol, registries, and generators in Git; regenerate
+# or archive complete releases separately because they contain per-row scores.
+results/reconstruction_benchmark_v1/releases/
+
 # Research-run intermediates. Commit reports, summary tables, manifests, and
 # advisor figures; regenerate per-run score matrices and verbose diagnostics.
 results/**/*.npz

@@ -1,5 +1,21 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**Reconstruction addendum (2026-08-24 — Step 289):** The requested
+`reconstruction_benchmark_v1` implementation is prelaunch-complete on
+`codex/reconstruction-benchmark-v1`.  It freezes the mixed-v2 nominal
+30-feature contract, the exact 13-method primary roster, two independent
+preparation/fit builds, source-question group recovery, the label firewall,
+20,000-draw grouped evaluation, graph-assumption diagnostics, and the
+self-contained searchable reporting package.  The external final-answer A/B
+runner and its 29-cell applicability registry are also implemented; currently
+27 local cells are `BLOCKED_ASSET`, LCiteEval is protocol-failed, and CoQA is
+quarantined.  Final adversarial review found no remaining P0/P1 code blocker;
+146 tests pass, with one expected optional-dependency skip, plus the SpecRaGE
+check.  **No scientific fit or label evaluation has run yet.**  Next: commit
+the clean source snapshot, build immutable release
+`2026-08-24_frozen24_v1`, run both 24x13 fits, issue the A/B certificate, then
+evaluate, diagnose, and publish the report.
+
 **Branch addendum (2026-08-22 — DEEM benchmark pivot):** Residual-Graph DEEM
 Phase 0 completed after the numerical repair (3,050 fits; 50/50 checkpoints
 healthy) but closed the current G0–G5 extension because no target-graph lambda

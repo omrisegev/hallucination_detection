@@ -1,0 +1,159 @@
+{
+  "schema_version": "reconstruction-external-final-answer-registry-v1",
+  "feature_contract_id": "dufs-liu-mixed-v2-development-2026-08-07",
+  "feature_contract_rule": "Evaluate the nominal frozen 30-feature roster. A view is present only when it is finite on 100% of the registered rows; a view that is unavailable on 100% of rows may remain absent. Partial availability is invalid. Apply mixed-v2 exactly once to the ordered present-feature subset. No row dropping, convenience feature selection, imputation, pre-oriented matrices, or raw/pre-warper substitutions are allowed.",
+  "fit_contract": {
+    "method_registry": "configs/reconstruction_benchmark_v1/methods.json",
+    "method_roster": "all_13_primary_methods",
+    "labels_available_to_fit": false,
+    "donors_available_to_fit": false,
+    "family_nrm_pgrd_regime": "A_within_cell_fully_unsupervised",
+    "score_semantics": "higher_is_incorrect",
+    "score_freeze_required_before_labels": true
+  },
+  "model_id_aliases": {
+    "meta-llama/Llama-3.1-8B-Instruct": "llama31_8b",
+    "Qwen/Qwen3-4B": "qwen3_4b",
+    "Qwen/Qwen3-8B": "qwen3_8b",
+    "Qwen/Qwen3-8B teacher-forced telemetry": "qwen3_8b",
+    "Qwen/Qwen3-4B-Instruct-2507": "qwen3_4b_instruct_2507",
+    "Qwen/Qwen2.5-72B-Instruct": "qwen25_72b",
+    "Qwen/Qwen2.5-7B-Instruct": "qwen25_7b",
+    "microsoft/Phi-3-mini-128k-instruct": "phi3mini",
+    "Llama-3.1-70B-Instruct": "llama70b",
+    "Llama-3.1-8B-Instruct": "llama8b",
+    "Mistral-7B": "mistral7b",
+    "Qwen2.5-72B-Instruct": "qwen72b",
+    "huggyllama/llama-7b base": "llama7b_base"
+  },
+  "source_inventories": {
+    "data_readiness": {
+      "path": "results/data_readiness_2026_08_11/dataset_registry.json",
+      "sha256": "07d0d5adc3fcd4700b659d7e559bd200d0772e0f8fcb21f4b5edf58712125770"
+    },
+    "aqua_external": {
+      "path": "configs/supervised_conditional_manifold_external_validation_v1.json",
+      "sha256": "ff94dbb9f9d18722fbe9556de4b74e011696460f7e744747d59e03cdbf290684"
+    }
+  },
+  "explicit_source_manifests": {
+    "dataset_cache/repgrid/pb_llama31_8b/manifest.json": "3341d2b2fceb7da068166352b328ccb758d26894ba808ab7d6e5de603708ba30",
+    "dataset_cache/repgrid/evdrop_gsm8k_qwen3_4b/manifest.json": "f1790f6c8a9e0f3e4f8e553007a77c53c5c8a1ea7a32e08f823f5cf56432520b",
+    "dataset_cache/repgrid/evdrop_gsm8k_qwen3_8b/manifest.json": "afacefff3c27b0ae80678249730692d8a1fe9239d0d7e7278405ef83fa0fa295",
+    "dataset_cache/repgrid/evdrop_math_qwen3_4b/manifest.json": "1f9fa7b23cb005e3c8ac092bf131dd5a602089da6b9dda0257eaf3e188927057",
+    "dataset_cache/repgrid/evdrop_math_qwen3_8b/manifest.json": "c299ea1085552cd17e7cff4d0d82664e5908d755665fe9368bca1256d9774653",
+    "dataset_cache/repgrid/gpqa_llama70b/manifest.json": "0a06dbcd5386efe9e6ab3dedbd025dae38d35379ed4e8c5a3434de1d19046a52",
+    "dataset_cache/repgrid/gpqa_llama8b/manifest.json": "766ad40c5c8caeda4ea8b135b302a4af6959c813a2c01b5e0c0d02620eef9a31",
+    "dataset_cache/repgrid/gpqa_mistral7b/manifest.json": "08b6a55263945318c31026aa65059794d6ad72e874c5f6e8db280bb1a933cfe4",
+    "dataset_cache/repgrid/gpqa_qwen72b/manifest.json": "9a668d85ec5201f5e85df24dd8ef7712f4fab2866e8ac06a5c6724f185c9db59"
+  },
+  "population_expectations": {
+    "processbench_llama31_response_v1": {"rows": 3400, "incorrect": 1700, "correct": 1700, "cells": 4},
+    "processbench_qwen3_response_v1": {"rows": 6800, "incorrect": 3400, "correct": 3400, "cells": 8},
+    "prmbench_qwen3_response_v1": {"rows": 6966, "incorrect": 6208, "correct": 758, "cells": 1},
+    "semgrad_bem_v1": {"rows": 1817, "incorrect": 890, "correct": 927, "cells": 2},
+    "hle_qwen72b_interim_v1": {"rows": 2158, "incorrect": 2090, "correct": 68, "cells": 1},
+    "evidence_drop_primary_v1": {"rows": 5638, "incorrect": 825, "correct": 4813, "cells": 4},
+    "aqua_cot_central_three_models_v1": {"rows": 762, "incorrect": 520, "correct": 242, "cells": 3},
+    "gpqa_k10_negative_stress_v1": {"rows": 7920, "incorrect": 5113, "correct": 2807, "cells": 4}
+  },
+  "population_aggregates": {
+    "processbench_llama31_response_v1": {"enabled": true, "weighting": "equal_cell", "interpretation": "equal_subset", "link_cells_by": "none", "bootstrap": "source_group"},
+    "processbench_qwen3_response_v1": {"enabled": true, "weighting": "equal_cell", "interpretation": "equal_model_then_equal_subset", "link_cells_by": "slice_id", "bootstrap": "source_group"},
+    "prmbench_qwen3_response_v1": {"enabled": true, "weighting": "single_cell", "interpretation": "overall", "link_cells_by": "none", "bootstrap": "source_group"},
+    "semgrad_bem_v1": {"enabled": true, "weighting": "equal_cell", "interpretation": "equal_dataset", "link_cells_by": "none", "bootstrap": "source_group"},
+    "hle_qwen72b_interim_v1": {"enabled": true, "weighting": "single_cell", "interpretation": "overall", "link_cells_by": "none", "bootstrap": "source_group_stratified_by_label", "seed": 4070942594},
+    "evidence_drop_primary_v1": {"enabled": false, "reason": "The population registry keeps model cells separate and freezes no population macro."},
+    "aqua_cot_central_three_models_v1": {"enabled": true, "weighting": "equal_cell", "interpretation": "equal_model", "link_cells_by": "all", "bootstrap": "linked_question_id"},
+    "gpqa_k10_negative_stress_v1": {"enabled": true, "weighting": "equal_cell", "interpretation": "equal_model_stress_context", "link_cells_by": "all", "bootstrap": "linked_source_question"}
+  },
+  "cells": [
+    {
+      "cell_id": "processbench_gsm8k_qwen3_4b", "population_id": "processbench_qwen3_response_v1", "dataset_id": "processbench", "model_id": "qwen3_4b", "slice_id": "gsm8k", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 400, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "data_readiness", "dataset_id": "processbench_qwen3_4b", "path_suffix": "processbench_gsm8k.pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "processbench_math_qwen3_4b", "population_id": "processbench_qwen3_response_v1", "dataset_id": "processbench", "model_id": "qwen3_4b", "slice_id": "math", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 1000, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "data_readiness", "dataset_id": "processbench_qwen3_4b", "path_suffix": "processbench_math.pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "processbench_olympiadbench_qwen3_4b", "population_id": "processbench_qwen3_response_v1", "dataset_id": "processbench", "model_id": "qwen3_4b", "slice_id": "olympiadbench", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 1000, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "data_readiness", "dataset_id": "processbench_qwen3_4b", "path_suffix": "processbench_olympiadbench.pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "processbench_omnimath_qwen3_4b", "population_id": "processbench_qwen3_response_v1", "dataset_id": "processbench", "model_id": "qwen3_4b", "slice_id": "omnimath", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 1000, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "data_readiness", "dataset_id": "processbench_qwen3_4b", "path_suffix": "processbench_omnimath.pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "processbench_gsm8k_qwen3_8b", "population_id": "processbench_qwen3_response_v1", "dataset_id": "processbench", "model_id": "qwen3_8b", "slice_id": "gsm8k", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 400, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "data_readiness", "dataset_id": "processbench_qwen3_8b", "path_suffix": "processbench_gsm8k.pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "processbench_math_qwen3_8b", "population_id": "processbench_qwen3_response_v1", "dataset_id": "processbench", "model_id": "qwen3_8b", "slice_id": "math", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 1000, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "data_readiness", "dataset_id": "processbench_qwen3_8b", "path_suffix": "processbench_math.pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "processbench_olympiadbench_qwen3_8b", "population_id": "processbench_qwen3_response_v1", "dataset_id": "processbench", "model_id": "qwen3_8b", "slice_id": "olympiadbench", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 1000, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "data_readiness", "dataset_id": "processbench_qwen3_8b", "path_suffix": "processbench_olympiadbench.pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "processbench_omnimath_qwen3_8b", "population_id": "processbench_qwen3_response_v1", "dataset_id": "processbench", "model_id": "qwen3_8b", "slice_id": "omnimath", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 1000, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "data_readiness", "dataset_id": "processbench_qwen3_8b", "path_suffix": "processbench_omnimath.pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "processbench_gsm8k_llama31_8b", "population_id": "processbench_llama31_response_v1", "dataset_id": "processbench", "model_id": "llama31_8b", "slice_id": "gsm8k", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 400, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/pb_llama31_8b/processbench_gsm8k.pkl", "sha256": "6749d1b846e29288e46536f9d9d8e63715b447576950d8e2131fe3420a16cead"}]}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "processbench_math_llama31_8b", "population_id": "processbench_llama31_response_v1", "dataset_id": "processbench", "model_id": "llama31_8b", "slice_id": "math", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 1000, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/pb_llama31_8b/processbench_math.pkl", "sha256": "119c95ca5abc8d6f9e71bdd595db9b847373067d9aa8e4e9b349fa2b1f174953"}]}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "processbench_olympiadbench_llama31_8b", "population_id": "processbench_llama31_response_v1", "dataset_id": "processbench", "model_id": "llama31_8b", "slice_id": "olympiadbench", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 1000, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/pb_llama31_8b/processbench_olympiadbench.pkl", "sha256": "ea2592de68100aeb140ce1d3a373e87d36e00685863e0dfb8c6721fa05a1812d"}]}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "processbench_omnimath_llama31_8b", "population_id": "processbench_llama31_response_v1", "dataset_id": "processbench", "model_id": "llama31_8b", "slice_id": "omnimath", "domain": "reasoning_response_detection", "comparison_group_id": "processbench_response_12cell", "expected_rows": 1000, "adapter_id": "processbench_teacher_forced_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/pb_llama31_8b/processbench_omnimath.pkl", "sha256": "d1f9ad59eacbba64963b763e07209bdccb570f9875382f1b38c5573678ce81e4"}]}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "prmbench_response_qwen3_8b", "population_id": "prmbench_qwen3_response_v1", "dataset_id": "prmbench", "model_id": "qwen3_8b", "slice_id": "overall", "domain": "reasoning_response_detection", "comparison_group_id": "prmbench_response", "expected_rows": 6966, "expected_incorrect": 6208, "expected_correct": 758, "expected_group_count": 6208, "adapter_id": "prmbench_teacher_forced_v1", "source": {"kind": "data_readiness", "dataset_id": "prmbench_qwen3_8b_telemetry", "path_suffix": "prmbench_telemetry.pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application", "excluded_row_ids": ["confidence_confidence_prm_train_p1_303", "deception_deception_prm_test_p1_87", "step_contradiction_step_contradiction_prm_test_p2_991"]
+    },
+    {
+      "cell_id": "semgrad_sciq_bem", "population_id": "semgrad_bem_v1", "dataset_id": "sciq", "model_id": "qwen3_4b_instruct_2507", "slice_id": "bem", "domain": "qa_response_detection", "comparison_group_id": "semgrad_bem_2cell", "expected_rows": 1000, "expected_incorrect": 388, "expected_correct": 612, "adapter_id": "repgrid_embedded_label_v1", "source": {"kind": "data_readiness", "dataset_id": "semgrad_sciq", "path_suffix": ".pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "semgrad_truthfulqa_bem", "population_id": "semgrad_bem_v1", "dataset_id": "truthfulqa", "model_id": "qwen3_4b_instruct_2507", "slice_id": "bem", "domain": "qa_response_detection", "comparison_group_id": "semgrad_bem_2cell", "expected_rows": 817, "expected_incorrect": 502, "expected_correct": 315, "adapter_id": "repgrid_embedded_label_v1", "source": {"kind": "data_readiness", "dataset_id": "semgrad_truthfulqa", "path_suffix": ".pkl"}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "hle_qwen25_72b_interim", "population_id": "hle_qwen72b_interim_v1", "dataset_id": "hle", "model_id": "qwen25_72b", "slice_id": "interim_codex_judge", "domain": "qa_response_detection", "comparison_group_id": "hle_interim", "expected_rows": 2158, "expected_incorrect": 2090, "expected_correct": 68, "adapter_id": "hle_separate_judge_v1", "source": {"kind": "data_readiness", "dataset_id": "hle_qwen72b", "path_suffix": "raw_hle_T0.0.pkl", "label_path_suffix": "hle_codex_5p6_sol_xhigh.jsonl"}, "fit_policy": "run_if_compatible", "panel_role": "limited_application"
+    },
+    {
+      "cell_id": "evidence_drop_gsm8k_qwen3_4b", "population_id": "evidence_drop_primary_v1", "dataset_id": "gsm8k", "model_id": "qwen3_4b", "slice_id": "evidence_drop", "domain": "reasoning_response_detection", "comparison_group_id": "evidence_drop_4cell", "expected_rows": 1319, "expected_incorrect": 116, "expected_correct": 1203, "adapter_id": "repgrid_embedded_label_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/evdrop_gsm8k_qwen3_4b/raw_gsm8k_T0.0.pkl", "sha256": "acea92597e5708af2bf95b8f73734e64e699bf78d561d2e5d18f5f40629b708b", "size_bytes": 344274737}]}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "evidence_drop_gsm8k_qwen3_8b", "population_id": "evidence_drop_primary_v1", "dataset_id": "gsm8k", "model_id": "qwen3_8b", "slice_id": "evidence_drop", "domain": "reasoning_response_detection", "comparison_group_id": "evidence_drop_4cell", "expected_rows": 1319, "expected_incorrect": 81, "expected_correct": 1238, "adapter_id": "repgrid_embedded_label_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/evdrop_gsm8k_qwen3_8b/raw_gsm8k_T0.0.pkl", "sha256": "e8281691b7eeabe7e940de749dec3965fbe6cef932ba0bd4e966ce69e91895ce", "size_bytes": 357120060}]}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "evidence_drop_math_qwen3_4b", "population_id": "evidence_drop_primary_v1", "dataset_id": "math", "model_id": "qwen3_4b", "slice_id": "evidence_drop", "domain": "reasoning_response_detection", "comparison_group_id": "evidence_drop_4cell", "expected_rows": 1500, "expected_incorrect": 319, "expected_correct": 1181, "adapter_id": "repgrid_embedded_label_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/evdrop_math_qwen3_4b/raw_math_T0.0.pkl", "sha256": "d37ffc35de0113cf49b6e07d01b364ceba5ccb3da9f75b09d9c862d758295a13", "size_bytes": 977464110}]}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "evidence_drop_math_qwen3_8b", "population_id": "evidence_drop_primary_v1", "dataset_id": "math", "model_id": "qwen3_8b", "slice_id": "evidence_drop", "domain": "reasoning_response_detection", "comparison_group_id": "evidence_drop_4cell", "expected_rows": 1500, "expected_incorrect": 309, "expected_correct": 1191, "adapter_id": "repgrid_embedded_label_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/evdrop_math_qwen3_8b/raw_math_T0.0.pkl", "sha256": "87a2e939ac4604571e3f6cd5bf1a91d5697017ee416bb082e950e101507a2ab3", "size_bytes": 993385829}]}, "fit_policy": "run_if_compatible", "panel_role": "application"
+    },
+    {
+      "cell_id": "aqua_qwen25_7b_cot_central", "population_id": "aqua_cot_central_three_models_v1", "dataset_id": "aqua", "model_id": "qwen25_7b", "slice_id": "cot_central", "domain": "reasoning_response_detection", "comparison_group_id": "aqua_cot_central_3cell", "expected_rows": 254, "expected_incorrect": 182, "expected_correct": 72, "adapter_id": "aqua_paper_exact_cot_v1", "source": {"kind": "aqua_external", "cell": "aqua_qwen25_7b"}, "fit_policy": "run_if_compatible", "panel_role": "application", "known_contract_risk": "Current shards expose raw/pre-warper top-k streams; recomputing post-warper entropy is forbidden."
+    },
+    {
+      "cell_id": "aqua_llama31_8b_cot_central", "population_id": "aqua_cot_central_three_models_v1", "dataset_id": "aqua", "model_id": "llama31_8b", "slice_id": "cot_central", "domain": "reasoning_response_detection", "comparison_group_id": "aqua_cot_central_3cell", "expected_rows": 254, "expected_incorrect": 187, "expected_correct": 67, "adapter_id": "aqua_paper_exact_cot_v1", "source": {"kind": "aqua_external", "cell": "aqua_llama31_8b"}, "fit_policy": "run_if_compatible", "panel_role": "application", "known_contract_risk": "Current shards expose raw/pre-warper top-k streams; recomputing post-warper entropy is forbidden."
+    },
+    {
+      "cell_id": "aqua_phi3mini_cot_central", "population_id": "aqua_cot_central_three_models_v1", "dataset_id": "aqua", "model_id": "phi3mini", "slice_id": "cot_central", "domain": "reasoning_response_detection", "comparison_group_id": "aqua_cot_central_3cell", "expected_rows": 254, "expected_incorrect": 151, "expected_correct": 103, "adapter_id": "aqua_paper_exact_cot_v1", "source": {"kind": "aqua_external", "cell": "aqua_phi3mini"}, "fit_policy": "run_if_compatible", "panel_role": "application", "known_contract_risk": "Current shards expose raw/pre-warper top-k streams; recomputing post-warper entropy is forbidden."
+    },
+    {
+      "cell_id": "gpqa_llama70b_k10", "population_id": "gpqa_k10_negative_stress_v1", "dataset_id": "gpqa", "model_id": "llama70b", "slice_id": "k10", "domain": "negative_stress", "comparison_group_id": "gpqa_k10_stress_4cell", "expected_rows": 1980, "expected_incorrect": 1075, "expected_correct": 905, "expected_group_count": 198, "adapter_id": "repgrid_embedded_label_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/gpqa_llama70b/raw_gpqa_T1.0.pkl", "sha256": "7e933f06e215c1b81f0c8bec4a6b99b1975af0e84174315e47b96b6f5fd3bd05", "size_bytes": 1285496270}]}, "fit_policy": "run_if_compatible", "panel_role": "negative_stress"
+    },
+    {
+      "cell_id": "gpqa_llama8b_k10", "population_id": "gpqa_k10_negative_stress_v1", "dataset_id": "gpqa", "model_id": "llama8b", "slice_id": "k10", "domain": "negative_stress", "comparison_group_id": "gpqa_k10_stress_4cell", "expected_rows": 1980, "expected_incorrect": 1394, "expected_correct": 586, "expected_group_count": 198, "adapter_id": "repgrid_embedded_label_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/gpqa_llama8b/raw_gpqa_T1.0.pkl", "sha256": "73e8dd9e58280e7f1486fbc04506286120793066aebb92bdf80d911e655fd680", "size_bytes": 1071784735}]}, "fit_policy": "run_if_compatible", "panel_role": "negative_stress"
+    },
+    {
+      "cell_id": "gpqa_mistral7b_k10", "population_id": "gpqa_k10_negative_stress_v1", "dataset_id": "gpqa", "model_id": "mistral7b", "slice_id": "k10", "domain": "negative_stress", "comparison_group_id": "gpqa_k10_stress_4cell", "expected_rows": 1980, "expected_incorrect": 1443, "expected_correct": 537, "expected_group_count": 198, "adapter_id": "repgrid_embedded_label_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/gpqa_mistral7b/raw_gpqa_T1.0.pkl", "sha256": "ca60a2a3ecc82427b77ccfb6b40348b74dd065ec58f03133c3ae7b9ec34890d8", "size_bytes": 841311724}]}, "fit_policy": "run_if_compatible", "panel_role": "negative_stress"
+    },
+    {
+      "cell_id": "gpqa_qwen72b_k10", "population_id": "gpqa_k10_negative_stress_v1", "dataset_id": "gpqa", "model_id": "qwen72b", "slice_id": "k10", "domain": "negative_stress", "comparison_group_id": "gpqa_k10_stress_4cell", "expected_rows": 1980, "expected_incorrect": 1101, "expected_correct": 879, "expected_group_count": 198, "adapter_id": "repgrid_embedded_label_v1", "source": {"kind": "explicit", "files": [{"path": "dataset_cache/repgrid/gpqa_qwen72b/raw_gpqa_T1.0.pkl", "sha256": "8c2ecb531c77152ae13900f80bd34ea9d53b7eb1905872a647a093ed8cb244fd", "size_bytes": 1229739392}]}, "fit_policy": "run_if_compatible", "panel_role": "negative_stress"
+    },
+    {
+      "cell_id": "lciteeval_20cell_protocol_gate", "population_id": "lciteeval_negative_stress_v1", "dataset_id": "lciteeval", "model_id": "five_models", "slice_id": "twenty_cells", "domain": "negative_stress", "comparison_group_id": "lciteeval_protocol_failed", "expected_rows": 4400, "adapter_id": "none", "fit_policy": "forbidden", "configured_status": "PROTOCOL_GATE_FAILED", "panel_role": "negative_stress", "status_reason": "19 of 20 cells fail the balance gate and the saved response-level grounded flag is not the canonical LCiteEval statement/citation target."
+    },
+    {
+      "cell_id": "coqa_llama7b_quarantined", "population_id": "coqa_llama7b_protocol_rejected_v1", "dataset_id": "coqa", "model_id": "llama7b_base", "slice_id": "historical", "domain": "quarantine", "comparison_group_id": "coqa_quarantine", "expected_rows": 5000, "adapter_id": "none", "fit_policy": "forbidden", "configured_status": "QUARANTINED", "panel_role": "quarantine", "status_reason": "A Mistral-style instruct wrapper was sent to a base LLaMA model, producing echoed markers and invalid answer/feature alignment."
+    }
+  ]
+}

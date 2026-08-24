@@ -1,0 +1,41 @@
+{
+  "schema_version": "reconstruction-feature-contract-v1",
+  "contract_id": "dufs-liu-mixed-v2-development-2026-08-07",
+  "input_artifact": "results/dependency_fusion_raw/cells.npz",
+  "input_sha256": "693a5b634f975ea32c7f840f3ab8366dd8ad638fe41cc76a60e24b1ac5a013e1",
+  "input_manifest": "results/dependency_fusion_raw/cells_manifest.csv",
+  "input_manifest_sha256": "fbb8cbf2cd0003ac2a2fe8515e2b4c16d80c15a964b0adb3fffa009bc7c1bd10",
+  "transform_source": "spectral_utils/dufs_liu_feature_contract.py",
+  "transform_source_sha256": "c674f7b6cfd1a82dcc63cd7cc26bbd3d53ef5f4d289dbcbb7eabe933670fdf2d",
+  "orientation_source": "spectral_utils/feature_contract.py",
+  "orientation_source_sha256": "65ffba0bfc9bf4ded859d9ebffce9bd563a28652c47f5ed8d80ce91b64d4385d",
+  "roster_source": "scripts/inscope_cells.py",
+  "roster_source_sha256": "d5b9c40af96ec0ee92931abb42e385e521f634b32378b30d9e6537e72b6f77e8",
+  "nominal_feature_count": 30,
+  "missing_feature_policy": "keep_missing; never impute and never reduce every cell to an easier common subset",
+  "matrix_semantics": "higher values are confidence-oriented after the frozen transform",
+  "score_semantics": "every system output is converted once to higher_is_incorrect",
+  "global_fused_score_orientation": {
+    "anchor": "equal-family mean of the prepared confidence-oriented coordinates",
+    "rule": "when a method's fused confidence score has an unresolved global sign, multiply it by the sign of its Pearson correlation with the anchor; require absolute correlation above 1e-6",
+    "scope": "one whole-score sign only; this never changes any prepared feature coordinate",
+    "final_conversion": "negate the globally aligned confidence score once to obtain higher_is_incorrect risk"
+  },
+  "preprocessing_count": 1,
+  "preprocessing_rules": {
+    "ordinary_features": "registered confidence sign, population z-score, final population z-score",
+    "pe_mean": "registered confidence sign, population z-score, negative square, final population z-score",
+    "stft_spectral_entropy": "registered confidence sign, population z-score, negative absolute distance between percentile rank and label-free KDE-mode percentile, final population z-score",
+    "cusum_shift_idx": "registered confidence sign, population z-score, unchanged, final population z-score",
+    "rpdi": "registered confidence sign, population z-score, unchanged, final population z-score"
+  },
+  "forbidden_operations": [
+    "a second feature orientation",
+    "estimated sign(rho) as a headline arm",
+    "dropping rows or features based on labels",
+    "loading correctness labels during transformation or fitting",
+    "silently substituting a different feature contract"
+  ],
+  "evidence_status": "D0 retrospective development contract; runtime fitting is label-free but the transform choices were selected after outcomes on these cells were inspected",
+  "reconstruction_scope": "matrix-level reconstruction from saved telemetry; not model re-generation and not a complete raw-feature rebuild"
+}

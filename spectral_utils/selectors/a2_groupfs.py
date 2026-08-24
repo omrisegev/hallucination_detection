@@ -119,7 +119,6 @@ import numpy as np
 import torch
 
 from . import register
-from ..subset_sweep import GOOD_5
 
 # ---- paper hyperparameters (App. B.1) --------------------------------------
 K_NN = 7                       # self-tuning kernel neighbor (Eq. 1)
@@ -385,6 +384,107 @@ def dufs_pf_gates(V, rng):
                     for s in seeds], axis=0)
 
 
+def dufs_stability_selection(V, rng):
+    """Return the exact historical ``a2.dufs`` readout without other arms.
+
+    The original family runner also materializes a hand-picked GOOD_5 control.
+    That control does not influence ``a2.dufs``, but executing both inside one
+    fitting process weakens the physical label-prior firewall.  This isolated
+    adapter reproduces the same row subsample, feature graph, lambda center,
+    consumed RNG draws, five stability seeds, tie rule, and final gate average,
+    while never importing or constructing GOOD_5.
+
+    The returned mapping has ``cols``, ``fallback`` and ``diag`` fields so the
+    reconstruction wrapper can compare it byte-for-byte with the legacy arm in
+    a regression test.
+    """
+
+    torch.set_num_threads(1)
+    V = np.asarray(V, dtype=np.float64)
+    if V.ndim != 2 or V.shape[0] < 3 or V.shape[1] < 3:
+        raise ValueError("DUFS stability input must have shape (n>=3,p>=3)")
+    if not np.isfinite(V).all():
+        raise ValueError("DUFS stability input contains non-finite values")
+    n, p = V.shape
+    R = int(min(n, R_MAX))
+    Xr = V[np.sort(rng.choice(n, size=R, replace=False))] if R < n else V
+    X_t = torch.tensor(Xr, dtype=torch.float32)
+
+    Wf = _self_tuning_affinity(X_t.t().contiguous(), min(K_NN, p - 1))
+    L_feat_t = _normalized_laplacian(Wf)
+    L_feat_np = L_feat_t.numpy()
+    c_seed = int(rng.integers(2 ** 31))
+    C, C_dists = _choose_C(L_feat_np, p, c_seed)
+    C = int(max(2, min(C, p - 1)))
+    labels = _kmeans_labels(_spectral_embed(L_feat_np, C), C, c_seed)
+    warm = _warm_logits(labels, C)
+    cluster_sizes = [int((labels == j).sum()) for j in range(C)]
+
+    gen0 = torch.Generator().manual_seed(int(rng.integers(2 ** 31)))
+    aLs, aLf, aLreg = _init_magnitudes(
+        X_t, L_feat_t, C, warm, cluster_sizes, gen0
+    )
+    lam1 = _snap_lambda1(aLs / max(aLf, _EPS))
+    lam0 = float(np.clip(aLs / max(aLreg, _EPS), 1e-3, 1e4))
+
+    # The legacy family consumed this seed before its unused group-refinement
+    # branch.  Consume it here so the following five DUFS seeds remain exact.
+    rng.integers(2 ** 31)
+    seeds = [int(rng.integers(2 ** 31)) for _ in range(N_SEEDS_STABILITY)]
+    stability = {}
+    for multiplier in (0.5, 1.0, 2.0):
+        lambda_value = lam0 * multiplier
+        gates = [
+            _train_dufs(X_t, lambda_value, EPOCHS_STAB, BATCH, seed)
+            for seed in seeds
+        ]
+        selections = [np.flatnonzero(gate > 0.0) for gate in gates]
+        sizes = [int(len(selection)) for selection in selections]
+        median_size = int(np.median(sizes))
+        stability[lambda_value] = {
+            "jaccard": _mean_pairwise_jaccard(selections),
+            "median_size": median_size,
+            "admissible": bool(3 <= median_size < p),
+            "sizes": sizes,
+            "mean_gates": np.mean(gates, axis=0),
+        }
+    admissible = [
+        (row["jaccard"], lambda_value)
+        for lambda_value, row in stability.items()
+        if row["admissible"]
+    ]
+    lambda_star = max(admissible)[1] if admissible else lam0
+    mean_gates = np.asarray(stability[lambda_star]["mean_gates"], dtype=float)
+    selected = np.flatnonzero(mean_gates > 0.0).astype(np.int64)
+    fallback = len(selected) < 3
+    if fallback:
+        selected = np.arange(p, dtype=np.int64)
+    return {
+        "cols": selected,
+        "fallback": bool(fallback),
+        "diag": {
+            "lambda1": round(float(lam1), 4),
+            "lambda0": round(float(lam0), 6),
+            "lambda_dufs": round(float(lambda_star), 6),
+            "lambda_stability": {
+                round(float(key), 6): round(float(value["jaccard"]), 3)
+                for key, value in stability.items()
+            },
+            "stability": round(float(stability[lambda_star]["jaccard"]), 3),
+            "sizes": {
+                round(float(key), 6): list(value["sizes"])
+                for key, value in stability.items()
+            },
+            "n_selected": int(len(selected)),
+            "feat_gate_means": [round(float(value), 3) for value in mean_gates],
+            "C": int(C),
+            "C_distortion": C_dists,
+            "subsampled_rows": int(R),
+            "good5_imported_or_materialized": False,
+        },
+    }
+
+
 def _init_magnitudes(X_t, L_feat_t, C, warm, cluster_sizes, gen):
     """Epoch-1 |L_s|, |L_f_core|, |L_reg| under the warm start (no gate/gumbel noise)
     for the lambda1 snap + lambda0 center (deviations 4,5)."""
@@ -553,7 +653,10 @@ def a2_groupfs(cell, rng, cache=None):
                         'groups': grp, 'diag': d2})
 
         # -- a2.groups@good5 : GOOD_5 cols fixed, discovered groups restricted -----
-        g5 = [cell.pool.index(f) for f in GOOD_5 if f in cell.pool]
+        # The label-informed control is imported only inside the legacy omnibus
+        # family.  The standalone reconstruction adapter above never imports it.
+        from ..subset_sweep import GOOD_5 as _GOOD_5
+        g5 = [cell.pool.index(f) for f in _GOOD_5 if f in cell.pool]
         if len(g5) < 3:
             out.append(_fallback('a2.groups@good5', p,
                                  f'<3 of GOOD_5 present ({len(g5)})', base_diag))
