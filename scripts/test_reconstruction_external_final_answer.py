@@ -62,6 +62,7 @@ from spectral_utils.reconstruction_benchmark.external_ab import (
     AB_VERIFICATION_SOURCES,
     FIT_SAFE_INPUT_MANIFEST_SCHEMA_VERSION,
     assert_external_ab_certificate,
+    _assert_input_population_count_binding,
     current_feature_contract_bindings,
     validate_fit_safe_input_manifest,
     validate_scientific_score_freeze,
@@ -451,6 +452,65 @@ class ExternalFinalAnswerContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "fit-safe external manifest schema"):
             validate_fit_safe_input_manifest(
                 path, repo=REPO, input_root=self.root,
+            )
+
+    def test_real_prepared_provenance_uses_strict_n_rows_count_binding(self) -> None:
+        manifest_path = (
+            REPO / "results/reconstruction_benchmark_v1/private_control"
+            / "2026-08-24_external_final_answer_v2_opaque"
+            / "external_final_answer/build_A/preparation_provenance/MANIFEST.json"
+        )
+        if not manifest_path.is_file():
+            self.skipTest("real external preparation manifest is not materialized")
+        registry = load_external_registry(
+            repo=REPO,
+            registry_path=(
+                REPO / "configs/reconstruction_benchmark_v1/external_final_answer.json"
+            ),
+            population_registry_path=(
+                REPO / "configs/reconstruction_benchmark_v1/populations.json"
+            ),
+        )
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        row = next(
+            item for item in manifest["cells"]
+            if item["cell_id"] == "processbench_gsm8k_qwen3_4b"
+        )
+        spec = next(
+            item for item in registry.cells
+            if item.cell_id == "processbench_gsm8k_qwen3_4b"
+        )
+        self.assertEqual(row["status"], "ELIGIBLE")
+        self.assertNotIn("expected_rows", row)
+        self.assertEqual(row["n_rows"], spec.expected_rows)
+        _assert_input_population_count_binding(row, spec)
+
+        wrong_actual_count = {**row, "n_rows": spec.expected_rows - 1}
+        with self.assertRaisesRegex(RuntimeError, "population/count binding"):
+            _assert_input_population_count_binding(wrong_actual_count, spec)
+
+        wrong_population = {**row, "population_id": "wrong_population"}
+        with self.assertRaisesRegex(RuntimeError, "population/count binding"):
+            _assert_input_population_count_binding(wrong_population, spec)
+
+        ambiguous_prepared = {**row, "expected_rows": spec.expected_rows}
+        with self.assertRaisesRegex(RuntimeError, "population/count binding"):
+            _assert_input_population_count_binding(ambiguous_prepared, spec)
+
+        terminal = {
+            "cell_id": spec.cell_id,
+            "population_id": spec.population_id,
+            "status": "INCOMPATIBLE_FEATURE_CONTRACT",
+            "expected_rows": spec.expected_rows,
+        }
+        _assert_input_population_count_binding(terminal, spec)
+        with self.assertRaisesRegex(RuntimeError, "population/count binding"):
+            _assert_input_population_count_binding(
+                {**terminal, "expected_rows": spec.expected_rows - 1}, spec,
+            )
+        with self.assertRaisesRegex(RuntimeError, "population/count binding"):
+            _assert_input_population_count_binding(
+                {**terminal, "n_rows": spec.expected_rows}, spec,
             )
 
     def test_restricted_external_worker_exact_closure_runs_all_thirteen(self) -> None:

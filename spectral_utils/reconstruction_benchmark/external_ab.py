@@ -17,6 +17,7 @@ from .external_final_answer import (
     ID_CONTRACT_VERSION,
     PREPARED_SCHEMA_VERSION,
     SCORE_FREEZE_SCHEMA_VERSION,
+    ExternalCellSpec,
     ExternalRegistry,
     external_id_contract_binding,
     fit_safe_external_cell_record,
@@ -379,8 +380,7 @@ def validate_scientific_input_manifest(
     artifact_root = Path(input_root) if input_root is not None else manifest_path.parent
     eligible: list[str] = []
     for row, spec in zip(rows, registry.cells):
-        if row.get("population_id") != spec.population_id or int(row.get("expected_rows", -1)) != spec.expected_rows:
-            raise RuntimeError(f"{spec.cell_id}: input population/count binding changed")
+        _assert_input_population_count_binding(row, spec)
         status = str(row.get("status", ""))
         if spec.fit_policy == "forbidden":
             if status != spec.configured_status or row.get("prepared") is not False:
@@ -446,6 +446,34 @@ def validate_scientific_input_manifest(
     manifest["_validated_feature_contract_bindings"] = bindings
     manifest["_eligible_cell_ids"] = eligible
     return manifest
+
+
+def _assert_input_population_count_binding(
+    row: Mapping[str, Any],
+    spec: ExternalCellSpec,
+) -> None:
+    """Bind declared counts for terminal rows and actual counts for prepared rows.
+
+    A prepared provenance record canonically stores its exact observed count as
+    ``n_rows``; ``expected_rows`` belongs to the pre-preparation/terminal record
+    schema.  Both are compared to the same frozen registry value, so this is a
+    field-schema correction, not a relaxed population gate.
+    """
+
+    status = str(row.get("status", ""))
+    count_field = "n_rows" if status == "ELIGIBLE" else "expected_rows"
+    other_count_field = "expected_rows" if status == "ELIGIBLE" else "n_rows"
+    try:
+        observed_count = int(row.get(count_field, -1))
+    except (TypeError, ValueError):
+        observed_count = -1
+    if (
+        row.get("population_id") != spec.population_id
+        or count_field not in row
+        or other_count_field in row
+        or observed_count != spec.expected_rows
+    ):
+        raise RuntimeError(f"{spec.cell_id}: input population/count binding changed")
 
 
 def assert_fit_safe_matches_preparation(
