@@ -23,6 +23,9 @@ from spectral_utils.reconstruction_benchmark import localization_fit as LF  # no
 from spectral_utils.reconstruction_benchmark import localization_evaluation as LE  # noqa: E402
 from spectral_utils.reconstruction_benchmark import localization_postfreeze as LP  # noqa: E402
 from spectral_utils.reconstruction_benchmark import (  # noqa: E402
+    localization_evaluation_ab_verifier as LEAV,
+)
+from spectral_utils.reconstruction_benchmark import (  # noqa: E402
     localization_postfreeze_amendment as LPA,
 )
 from spectral_utils.reconstruction_benchmark.localization_ab import (  # noqa: E402
@@ -90,6 +93,10 @@ from spectral_utils.reconstruction_benchmark.localization_postfreeze_amendment i
     apply_localization_postfreeze_amendment,
     load_localization_postfreeze_amendment,
     validate_observed_prmbench_oob_audit,
+)
+from spectral_utils.reconstruction_benchmark.localization_evaluation_ab_verifier import (  # noqa: E402
+    EVALUATION_AB_RELEASE_SCHEMA_VERSION,
+    verify_localization_evaluation_ab_release,
 )
 from spectral_utils.reconstruction_benchmark.io import sha256_file  # noqa: E402
 from spectral_utils.reconstruction_benchmark.methods import PRIMARY_METHOD_IDS  # noqa: E402
@@ -922,6 +929,326 @@ class EvaluationArtifactTests(unittest.TestCase):
                         evaluation_repo=REPO,
                         output_path=root / "different-certificate.json",
                     )
+
+    def test_release_verifier_accepts_only_legitimate_build_specific_freezes(self) -> None:
+        def manifest_core(freeze_hash: str) -> dict:
+            return {
+                "score_ab_certificate_sha256": "a" * 64,
+                "score_ab_certificate_file_sha256": "b" * 64,
+                "score_freeze_payload_sha256": freeze_hash,
+                "postfreeze_amendment": {"amendment_id": "amendment"},
+                "score_verifier_repo_snapshot": {
+                    "git_head": EXPECTED_SCORE_VERIFIER_GIT_HEAD,
+                },
+                "evaluation_source_snapshot": {"git_head": "6" * 40},
+                "completeness": {"completeness_sha256": "c" * 64},
+            }
+
+        freeze_a = "1" * 64
+        freeze_b = "2" * 64
+        derived_a = DerivedLocalizationEvaluation(
+            files={"artifact": b"same"}, manifest_core=manifest_core(freeze_a),
+        )
+        derived_b = DerivedLocalizationEvaluation(
+            files={"artifact": b"same"}, manifest_core=manifest_core(freeze_b),
+        )
+        validated = {
+            "manifest_file_sha256": "d" * 64,
+            "tree_sha256": "f" * 64,
+            "artifact_sha256": {"artifact": "9" * 64},
+        }
+        boundary = {
+            "evaluation_producer_snapshot": {"git_head": "6" * 40},
+            "evaluation_ab_verifier_source_snapshot": {"git_head": "7" * 40},
+        }
+        bindings = {
+            "A": {
+                "score_freeze_file_sha256": "3" * 64,
+                "score_freeze_payload_sha256": freeze_a,
+            },
+            "B": {
+                "score_freeze_file_sha256": "4" * 64,
+                "score_freeze_payload_sha256": freeze_b,
+            },
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            output = root / "certificate.json"
+            with (
+                mock.patch.object(
+                    LEAV, "_recorded_producer_snapshot",
+                    return_value=boundary["evaluation_producer_snapshot"],
+                ),
+                mock.patch.object(
+                    LEAV, "_attest_repository_boundary",
+                    side_effect=[boundary, boundary],
+                ),
+                mock.patch.object(
+                    LEAV, "derive_localization_evaluation",
+                    side_effect=[derived_a, derived_b],
+                ),
+                mock.patch.object(
+                    LEAV, "_validate_evaluation_build_against_derivation",
+                    return_value=validated,
+                ),
+                mock.patch.object(
+                    LEAV, "_verify_score_freeze_payload_bindings",
+                    return_value=bindings,
+                ),
+            ):
+                certificate = verify_localization_evaluation_ab_release(
+                    release_id="r",
+                    release_root=root,
+                    output_path=output,
+                    score_verifier_repo=REPO,
+                    evaluation_producer_repo=root / "producer",
+                    verification_repo=REPO,
+                    localization_registry_path=REPO / "registry.json",
+                    external_registry_path=REPO / "external.json",
+                    population_registry_path=REPO / "populations.json",
+                    source_root=REPO,
+                    localization_postfreeze_amendment_path=REPO / "amendment.json",
+                )
+            self.assertEqual(
+                certificate["schema_version"], EVALUATION_AB_RELEASE_SCHEMA_VERSION
+            )
+            self.assertEqual(
+                certificate["build_specific_manifest_core_fields"],
+                ["score_freeze_payload_sha256"],
+            )
+            self.assertEqual(
+                certificate["builds"]["A"]["score_freeze_payload_sha256"],
+                freeze_a,
+            )
+            self.assertEqual(
+                certificate["builds"]["B"]["score_freeze_payload_sha256"],
+                freeze_b,
+            )
+            payload = dict(certificate)
+            claimed = payload.pop("certificate_sha256")
+            self.assertEqual(claimed, payload_sha256(payload))
+
+    def test_release_verifier_normalizes_exactly_one_required_field(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "lacks the sole build-specific"):
+            LEAV._split_manifest_core({"shared": "same"})
+        shared, build_specific = LEAV._split_manifest_core({
+            "score_freeze_payload_sha256": "1" * 64,
+            "shared": "same",
+            "unexpected_build_field": "still-shared",
+        })
+        self.assertEqual(
+            build_specific, {"score_freeze_payload_sha256": "1" * 64}
+        )
+        self.assertEqual(shared, {
+            "shared": "same", "unexpected_build_field": "still-shared",
+        })
+
+    def test_release_verifier_rejects_unanchored_producer_or_dirty_verifier(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            release_id = "r"
+            snapshot = {
+                "repo_role": "postfreeze_evaluator",
+                "git_head": "0" * 40,
+                "git_clean": True,
+                "git_status_sha256": "e3b0" + "0" * 60,
+                "files": [],
+            }
+            snapshot["snapshot_sha256"] = payload_sha256(snapshot)
+            for build_id in ("A", "B"):
+                path = (
+                    root / release_id / f"build_{build_id}"
+                    / "localization/evaluation/MANIFEST.json"
+                )
+                path.parent.mkdir(parents=True)
+                manifest = {
+                    "release_id": release_id,
+                    "build_id": build_id,
+                    "status": "PASS",
+                    "scientific_full": True,
+                    "bootstrap_draws": 20000,
+                    "evaluation_source_snapshot": snapshot,
+                }
+                manifest["payload_sha256"] = payload_sha256(manifest)
+                path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "snapshot anchor is invalid"):
+                LEAV._recorded_producer_snapshot(
+                    release_root=root, release_id=release_id,
+                )
+
+        dirty = {
+            "git_head": "1" * 40,
+            "git_clean": False,
+            "git_status_sha256": "2" * 64,
+            "snapshot_sha256": "3" * 64,
+        }
+        with mock.patch.object(LEAV, "_repo_state", return_value=dirty):
+            with self.assertRaisesRegex(RuntimeError, "verifier repo must be clean"):
+                LEAV._verifier_source_snapshot(REPO)
+
+    def test_release_verifier_rejects_extra_build_specific_divergence(self) -> None:
+        base = {
+            "score_ab_certificate_sha256": "a" * 64,
+            "score_ab_certificate_file_sha256": "b" * 64,
+            "score_freeze_payload_sha256": "1" * 64,
+            "postfreeze_amendment": {"amendment_id": "amendment"},
+            "score_verifier_repo_snapshot": {"git_head": "d" * 40},
+            "evaluation_source_snapshot": {"git_head": "6" * 40},
+            "completeness": {"completeness_sha256": "c" * 64},
+            "unexpected_build_field": "A",
+        }
+        derived_a = DerivedLocalizationEvaluation(
+            files={"artifact": b"same"}, manifest_core=base,
+        )
+        derived_b = DerivedLocalizationEvaluation(
+            files={"artifact": b"same"},
+            manifest_core={**base, "unexpected_build_field": "B"},
+        )
+        validated = {
+            "manifest_file_sha256": "d" * 64,
+            "tree_sha256": "f" * 64,
+            "artifact_sha256": {"artifact": "9" * 64},
+        }
+        boundary = {
+            "evaluation_producer_snapshot": {"git_head": "6" * 40},
+            "evaluation_ab_verifier_source_snapshot": {"git_head": "7" * 40},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            with (
+                mock.patch.object(
+                    LEAV, "_recorded_producer_snapshot",
+                    return_value=boundary["evaluation_producer_snapshot"],
+                ),
+                mock.patch.object(
+                    LEAV, "_attest_repository_boundary", return_value=boundary,
+                ),
+                mock.patch.object(
+                    LEAV, "derive_localization_evaluation",
+                    side_effect=[derived_a, derived_b],
+                ),
+                mock.patch.object(
+                    LEAV, "_validate_evaluation_build_against_derivation",
+                    return_value=validated,
+                ),
+            ):
+                with self.assertRaisesRegex(
+                    RuntimeError, "shared manifest cores differ"
+                ):
+                    verify_localization_evaluation_ab_release(
+                        release_id="r",
+                        release_root=directory,
+                        score_verifier_repo=REPO,
+                        evaluation_producer_repo=Path(directory) / "producer",
+                        verification_repo=REPO,
+                        localization_registry_path=REPO / "registry.json",
+                        external_registry_path=REPO / "external.json",
+                        population_registry_path=REPO / "populations.json",
+                        source_root=REPO,
+                        localization_postfreeze_amendment_path=(
+                            REPO / "amendment.json"
+                        ),
+                    )
+
+    def test_release_verifier_rejects_score_freeze_tamper_and_missing_build(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            release_id = "r"
+            release = root / release_id
+            freeze_payloads = {}
+            freeze_paths = {}
+            for build_id in ("A", "B"):
+                freeze_path = (
+                    release / f"build_{build_id}"
+                    / "localization/fit/SCORE_FREEZE_MANIFEST.json"
+                )
+                freeze_path.parent.mkdir(parents=True)
+                value = {"release_id": release_id, "build_id": build_id}
+                value["payload_sha256"] = payload_sha256(value)
+                freeze_path.write_text(json.dumps(value), encoding="utf-8")
+                freeze_payloads[build_id] = value["payload_sha256"]
+                freeze_paths[build_id] = freeze_path
+
+            def write_certificate(path: Path, builds: dict) -> None:
+                value = {
+                    "release_id": release_id, "status": "PASS", "builds": builds,
+                }
+                value["certificate_sha256"] = payload_sha256(value)
+                path.write_text(json.dumps(value), encoding="utf-8")
+
+            builds = {
+                build_id: {
+                    "score_freeze_sha256": sha256_file(freeze_paths[build_id]),
+                }
+                for build_id in ("A", "B")
+            }
+            certificate_path = release / "score.json"
+            write_certificate(certificate_path, builds)
+            score_certificate = json.loads(certificate_path.read_text())
+            derived = {
+                build_id: DerivedLocalizationEvaluation(
+                    files={}, manifest_core={
+                        "score_freeze_payload_sha256": freeze_payloads[build_id],
+                        "score_ab_certificate_sha256": score_certificate[
+                            "certificate_sha256"
+                        ],
+                        "score_ab_certificate_file_sha256": sha256_file(
+                            certificate_path
+                        ),
+                    },
+                )
+                for build_id in ("A", "B")
+            }
+            bindings = LEAV._verify_score_freeze_payload_bindings(
+                release_root=root,
+                release_id=release_id,
+                score_ab_certificate_path=certificate_path,
+                derived=derived,
+            )
+            self.assertNotEqual(
+                bindings["A"]["score_freeze_payload_sha256"],
+                bindings["B"]["score_freeze_payload_sha256"],
+            )
+
+            tampered = {"release_id": release_id, "build_id": "A", "tamper": True}
+            tampered["payload_sha256"] = payload_sha256(tampered)
+            freeze_paths["A"].write_text(json.dumps(tampered), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "not certificate-bound"):
+                LEAV._verify_score_freeze_payload_bindings(
+                    release_root=root,
+                    release_id=release_id,
+                    score_ab_certificate_path=certificate_path,
+                    derived=derived,
+                )
+
+            freeze_paths["A"].write_text(json.dumps({
+                "release_id": release_id,
+                "build_id": "A",
+                "payload_sha256": freeze_payloads["A"],
+            }), encoding="utf-8")
+            missing_path = release / "score-missing.json"
+            write_certificate(missing_path, {"A": builds["A"]})
+            missing_certificate = json.loads(missing_path.read_text())
+            missing_derived = {
+                build_id: DerivedLocalizationEvaluation(
+                    files={}, manifest_core={
+                        "score_freeze_payload_sha256": freeze_payloads[build_id],
+                        "score_ab_certificate_sha256": missing_certificate[
+                            "certificate_sha256"
+                        ],
+                        "score_ab_certificate_file_sha256": sha256_file(
+                            missing_path
+                        ),
+                    },
+                )
+                for build_id in ("A", "B")
+            }
+            with self.assertRaisesRegex(RuntimeError, "lacks build B"):
+                LEAV._verify_score_freeze_payload_bindings(
+                    release_root=root,
+                    release_id=release_id,
+                    score_ab_certificate_path=missing_path,
+                    derived=missing_derived,
+                )
 
     def test_evaluation_ab_certificate_is_immutable_no_clobber(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
