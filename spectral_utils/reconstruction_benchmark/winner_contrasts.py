@@ -24,6 +24,7 @@ import math
 import os
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 import tempfile
 from typing import Any, Iterable, Mapping, Sequence
@@ -57,6 +58,14 @@ NUMERICAL_ZERO_ATOL = {
     "aurc_x1000": 2e-10,
 }
 SUCCESS_STATUSES = frozenset({"OK", "OK_FALLBACK"})
+
+WINNER_CONTRAST_CODE_PATHS = (
+    "spectral_utils/reconstruction_benchmark/winner_contrasts.py",
+    "scripts/reconstruction_benchmark/build_winner_contrasts.py",
+    "scripts/reconstruction_benchmark/verify_winner_contrasts_ab.py",
+    "scripts/reconstruction_benchmark/test_winner_contrasts.py",
+)
+_WINNER_CONTRAST_REPO = Path(__file__).resolve().parents[2]
 
 ALL_PAIRS_FIELDS = (
     "comparison_group_id", "source_comparison_group_id", "lane_id",
@@ -132,6 +141,143 @@ def _validate_hashed_payload(value: Mapping[str, Any], *, name: str,
 def _require_plain_file(path: Path, *, name: str) -> None:
     _require(path.exists(), f"{name}: missing file {path}")
     _require(path.is_file() and not path.is_symlink(), f"{name}: not a plain file {path}")
+
+
+def _git_stdout(repo_root: Path, *arguments: str) -> bytes:
+    try:
+        completed = subprocess.run(
+            ("git", "-C", os.fspath(repo_root), *arguments),
+            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            env={**os.environ, "LC_ALL": "C", "LANG": "C"},
+        )
+    except (OSError, subprocess.CalledProcessError) as error:
+        raise WinnerContrastError(
+            "cannot capture the winner-contrast git repository snapshot"
+        ) from error
+    return completed.stdout
+
+
+def _validate_repo_snapshot(
+    snapshot: Mapping[str, Any], *, name: str,
+) -> None:
+    expected_fields = {
+        "git_head", "git_clean", "git_status_sha256", "code_files",
+        "snapshot_sha256",
+    }
+    _require(set(snapshot) == expected_fields,
+             f"{name}: repository snapshot field roster drifted")
+    head = snapshot.get("git_head")
+    _require(
+        isinstance(head, str) and len(head) in {40, 64}
+        and all(character in "0123456789abcdef" for character in head),
+        f"{name}: invalid git HEAD",
+    )
+    _require(snapshot.get("git_clean") is True,
+             f"{name}: repository snapshot is not clean")
+    status_hash = snapshot.get("git_status_sha256")
+    _require(
+        status_hash == sha256_bytes(b""),
+        f"{name}: clean git status digest mismatch",
+    )
+    code_files = snapshot.get("code_files")
+    _require(
+        isinstance(code_files, Mapping)
+        and set(code_files) == set(WINNER_CONTRAST_CODE_PATHS),
+        f"{name}: exact winner-contrast code roster drifted",
+    )
+    for relative_path in WINNER_CONTRAST_CODE_PATHS:
+        binding = code_files[relative_path]
+        _require(
+            isinstance(binding, Mapping)
+            and set(binding) == {"sha256", "bytes"}
+            and isinstance(binding.get("sha256"), str)
+            and len(str(binding["sha256"])) == 64
+            and all(
+                character in "0123456789abcdef"
+                for character in str(binding["sha256"])
+            )
+            and isinstance(binding.get("bytes"), int)
+            and int(binding["bytes"]) >= 0,
+            f"{name}: invalid code binding for {relative_path}",
+        )
+    payload = dict(snapshot)
+    recorded = payload.pop("snapshot_sha256")
+    _require(
+        recorded == sha256_bytes(canonical_json_bytes(payload)),
+        f"{name}: repository snapshot payload hash mismatch",
+    )
+
+
+def _capture_repo_snapshot(
+    repo_root: str | Path,
+    *,
+    code_paths: Sequence[str] = WINNER_CONTRAST_CODE_PATHS,
+) -> dict[str, Any]:
+    """Capture a clean committed checkout and the exact producer code roster."""
+
+    root = Path(repo_root).resolve()
+    _require(tuple(code_paths) == WINNER_CONTRAST_CODE_PATHS,
+             "winner-contrast code snapshot must use the exact frozen roster")
+    top_level = Path(
+        os.fsdecode(_git_stdout(root, "rev-parse", "--show-toplevel")).strip()
+    ).resolve()
+    _require(top_level == root,
+             "winner-contrast repository root differs from git top level")
+    head = os.fsdecode(
+        _git_stdout(root, "rev-parse", "--verify", "HEAD")
+    ).strip()
+    status = _git_stdout(
+        root, "status", "--porcelain=v1", "--untracked-files=normal",
+    )
+    _require(status == b"",
+             "winner-contrast publication/verification requires a clean git checkout")
+    tracked = {
+        line for line in os.fsdecode(
+            _git_stdout(root, "ls-files", "--", *WINNER_CONTRAST_CODE_PATHS)
+        ).splitlines() if line
+    }
+    _require(
+        tracked == set(WINNER_CONTRAST_CODE_PATHS),
+        "winner-contrast code snapshot contains an untracked or missing source file",
+    )
+    code_files: dict[str, dict[str, Any]] = {}
+    for relative_path in WINNER_CONTRAST_CODE_PATHS:
+        path = root / relative_path
+        _require_plain_file(path, name=f"winner-contrast code file {relative_path}")
+        payload = path.read_bytes()
+        code_files[relative_path] = {
+            "sha256": sha256_bytes(payload), "bytes": len(payload),
+        }
+    snapshot: dict[str, Any] = {
+        "git_head": head,
+        "git_clean": True,
+        "git_status_sha256": sha256_bytes(status),
+        "code_files": code_files,
+    }
+    snapshot["snapshot_sha256"] = sha256_bytes(canonical_json_bytes(snapshot))
+    _validate_repo_snapshot(snapshot, name="captured winner-contrast repo snapshot")
+    return snapshot
+
+
+def _current_repo_snapshot() -> dict[str, Any]:
+    return _capture_repo_snapshot(_WINNER_CONTRAST_REPO)
+
+
+def _require_repo_snapshot_match(
+    expected: Mapping[str, Any], observed: Mapping[str, Any], *, context: str,
+) -> None:
+    _validate_repo_snapshot(expected, name=f"{context} expected snapshot")
+    _validate_repo_snapshot(observed, name=f"{context} observed snapshot")
+    _require(expected.get("git_head") == observed.get("git_head"),
+             f"{context}: git HEAD mismatch")
+    _require(
+        expected.get("git_status_sha256") == observed.get("git_status_sha256"),
+        f"{context}: git clean-status digest mismatch",
+    )
+    _require(expected.get("code_files") == observed.get("code_files"),
+             f"{context}: winner-contrast code roster/hash mismatch")
+    _require(expected == observed,
+             f"{context}: repository snapshot mismatch")
 
 
 def _rename_directory_noreplace(source: Path, target: Path) -> None:
@@ -1783,7 +1929,9 @@ def _derived_artifact_payloads(
 def _expected_artifact_manifest(
     source: LoadedSource, *, replica_id: str,
     derived: Mapping[str, Any], payloads: Mapping[str, bytes],
+    repo_snapshot: Mapping[str, Any],
 ) -> dict[str, Any]:
+    _validate_repo_snapshot(repo_snapshot, name="winner-contrast manifest snapshot")
     files = {
         name: {"sha256": sha256_bytes(payload), "bytes": len(payload)}
         for name, payload in payloads.items()
@@ -1822,9 +1970,7 @@ def _expected_artifact_manifest(
         },
         "n_comparison_scopes": len(source.scopes),
         "files": files,
-        "code_snapshot": {
-            "winner_contrasts_module_sha256": sha256_file(Path(__file__)),
-        },
+        "code_snapshot": dict(repo_snapshot),
     }
     manifest["payload_sha256"] = sha256_bytes(canonical_json_bytes(manifest))
     return manifest
@@ -1841,9 +1987,15 @@ def publish_winner_contrasts(
     _require(not target.exists() and not target.is_symlink(),
              f"winner-contrast output already exists: {target}")
     target.parent.mkdir(parents=True, exist_ok=True)
+    repo_snapshot = _current_repo_snapshot()
     derived, payloads = _derived_artifact_payloads(source)
+    _require_repo_snapshot_match(
+        repo_snapshot, _current_repo_snapshot(),
+        context="winner-contrast publication derivation",
+    )
     manifest = _expected_artifact_manifest(
         source, replica_id=replica_id, derived=derived, payloads=payloads,
+        repo_snapshot=repo_snapshot,
     )
 
     staging = Path(tempfile.mkdtemp(prefix=f".{target.name}.stage.", dir=target.parent))
@@ -1851,6 +2003,10 @@ def publish_winner_contrasts(
         for name, payload in payloads.items():
             atomic_write_bytes(staging / name, payload)
         atomic_write_json(staging / "MANIFEST.json", manifest)
+        _require_repo_snapshot_match(
+            repo_snapshot, _current_repo_snapshot(),
+            context="winner-contrast publication commit",
+        )
         _rename_directory_noreplace(staging, target)
     except Exception:
         if staging.exists():
@@ -1877,6 +2033,14 @@ def verify_winner_contrast_artifact(
     _require(isinstance(manifest.get("replica_id"), str)
              and bool(manifest["replica_id"].strip()),
              "winner-contrast manifest has an invalid replica ID")
+    current_snapshot = _current_repo_snapshot()
+    manifest_snapshot = manifest.get("code_snapshot")
+    _require(isinstance(manifest_snapshot, Mapping),
+             "winner-contrast manifest lacks a repository code snapshot")
+    _require_repo_snapshot_match(
+        manifest_snapshot, current_snapshot,
+        context="winner-contrast artifact verification",
+    )
     files = manifest.get("files")
     expected_names = {
         "all_pairs_contrasts.csv", "winner_reference_contrasts.csv",
@@ -1903,6 +2067,10 @@ def verify_winner_contrast_artifact(
         raw_files[name] = payload
 
     expected_derived, expected_payloads = _derived_artifact_payloads(source)
+    _require_repo_snapshot_match(
+        current_snapshot, _current_repo_snapshot(),
+        context="winner-contrast verification derivation",
+    )
     for name in sorted(expected_names, key=_utf8_key):
         _require(
             raw_files[name] == expected_payloads[name],
@@ -1913,6 +2081,7 @@ def verify_winner_contrast_artifact(
         replica_id=str(manifest.get("replica_id", "")),
         derived=expected_derived,
         payloads=expected_payloads,
+        repo_snapshot=current_snapshot,
     )
     _require(
         manifest == expected_manifest,
@@ -2078,6 +2247,11 @@ def verify_winner_contrasts_ab(
         == "external_v3_signed_score_label_recomputation"
         else []
     )
+    run_repo_snapshot = _current_repo_snapshot()
+    _require_repo_snapshot_match(
+        left_manifest["code_snapshot"], run_repo_snapshot,
+        context="winner-contrast A/B certification",
+    )
     certificate: dict[str, Any] = {
         "schema_version": AB_VERIFICATION_SCHEMA_VERSION,
         "status": "PASS", "lane_id": left_manifest["lane_id"],
@@ -2098,6 +2272,7 @@ def verify_winner_contrasts_ab(
                 canonical_json_bytes(source_b.source_binding)
             ),
         },
+        "run_repo_snapshot": run_repo_snapshot,
         "normalized_manifest_sha256": sha256_bytes(normalized_left),
         "byte_identity": {
             name: sha256_bytes(left["raw_files"][name])
@@ -2130,7 +2305,8 @@ def verify_winner_contrasts_ab(
 __all__ = [
     "AB_VERIFICATION_SCHEMA_VERSION", "ALL_PAIRS_FIELDS", "CANONICAL_DRAWS",
     "DRAW_AUDIT_SCHEMA_VERSION", "EvaluatedScopeMetric", "LoadedSource",
-    "SCHEMA_VERSION", "WINNER_CONTRAST_FIELDS", "WINNER_SET_FIELDS",
+    "SCHEMA_VERSION", "WINNER_CONTRAST_CODE_PATHS", "WINNER_CONTRAST_FIELDS",
+    "WINNER_SET_FIELDS",
     "WinnerContrastError", "derive_winner_contrasts", "load_external_source",
     "load_frozen24_source", "publish_winner_contrasts",
     "verify_winner_contrast_artifact", "verify_winner_contrasts_ab",

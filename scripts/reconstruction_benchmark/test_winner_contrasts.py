@@ -3,13 +3,16 @@
 
 from __future__ import annotations
 
+import copy
 import csv
 import io
 import json
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import numpy as np
 
@@ -29,7 +32,9 @@ from spectral_utils.reconstruction_benchmark.io import (  # noqa: E402
 from spectral_utils.reconstruction_benchmark.winner_contrasts import (  # noqa: E402
     EvaluatedScopeMetric,
     LoadedSource,
+    WINNER_CONTRAST_CODE_PATHS,
     WinnerContrastError,
+    _capture_repo_snapshot,
     _external_cell_draws,
     _external_population_draws,
     _rename_directory_noreplace,
@@ -80,6 +85,29 @@ def _source(
 
 def _csv_rows(payload: bytes) -> list[dict[str, str]]:
     return list(csv.DictReader(io.StringIO(payload.decode("utf-8"))))
+
+
+def _fixture_repo_snapshot() -> dict[str, object]:
+    snapshot: dict[str, object] = {
+        "git_head": "a" * 40,
+        "git_clean": True,
+        "git_status_sha256": sha256_bytes(b""),
+        "code_files": {
+            relative_path: {
+                "sha256": f"{index + 1:x}" * 64,
+                "bytes": 100 + index,
+            }
+            for index, relative_path in enumerate(WINNER_CONTRAST_CODE_PATHS)
+        },
+    }
+    snapshot["snapshot_sha256"] = sha256_bytes(canonical_json_bytes(snapshot))
+    return snapshot
+
+
+def _rehash_repo_snapshot(snapshot: dict[str, object]) -> dict[str, object]:
+    snapshot.pop("snapshot_sha256", None)
+    snapshot["snapshot_sha256"] = sha256_bytes(canonical_json_bytes(snapshot))
+    return snapshot
 
 
 class DerivationTests(unittest.TestCase):
@@ -219,7 +247,49 @@ class ExactBootstrapCounterpartTests(unittest.TestCase):
                 self.assertEqual(float(np.quantile(values, 0.975)), expected["metrics"][method_id][metric]["ci_high"])
 
 
+class RepoSnapshotTests(unittest.TestCase):
+    def test_capture_requires_clean_checkout_and_exact_tracked_roster(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            subprocess.run(("git", "init", "-q", str(root)), check=True)
+            subprocess.run(
+                ("git", "-C", str(root), "config", "user.email", "test@example.com"),
+                check=True,
+            )
+            subprocess.run(
+                ("git", "-C", str(root), "config", "user.name", "Test"),
+                check=True,
+            )
+            for index, relative_path in enumerate(WINNER_CONTRAST_CODE_PATHS):
+                path = root / relative_path
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(f"fixture {index}\n", encoding="utf-8")
+            subprocess.run(("git", "-C", str(root), "add", "."), check=True)
+            subprocess.run(
+                ("git", "-C", str(root), "commit", "-qm", "fixture"), check=True,
+            )
+            snapshot = _capture_repo_snapshot(root)
+            self.assertTrue(snapshot["git_clean"])
+            self.assertEqual(
+                tuple(snapshot["code_files"]), WINNER_CONTRAST_CODE_PATHS,
+            )
+            (root / WINNER_CONTRAST_CODE_PATHS[0]).write_text(
+                "dirty\n", encoding="utf-8",
+            )
+            with self.assertRaisesRegex(WinnerContrastError, "clean git checkout"):
+                _capture_repo_snapshot(root)
+
+
 class ArtifactTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.repo_snapshot = _fixture_repo_snapshot()
+        patcher = mock.patch(
+            "spectral_utils.reconstruction_benchmark.winner_contrasts._current_repo_snapshot",
+            return_value=self.repo_snapshot,
+        )
+        self.snapshot_mock = patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_publish_verify_ab_and_mutation_rejection(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -275,6 +345,41 @@ class ArtifactTests(unittest.TestCase):
             manifest_path.write_bytes(canonical_json_bytes(manifest) + b"\n")
             with self.assertRaisesRegex(WinnerContrastError, "exact source rederivation"):
                 verify_winner_contrast_artifact(artifact, source=source)
+
+    def test_verifier_rejects_git_head_and_code_roster_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = _source()
+            artifact = root / "artifact"
+            publish_winner_contrasts(source, output_dir=artifact, replica_id="A")
+
+            wrong_head = copy.deepcopy(self.repo_snapshot)
+            wrong_head["git_head"] = "b" * 40
+            self.snapshot_mock.return_value = _rehash_repo_snapshot(wrong_head)
+            with self.assertRaisesRegex(WinnerContrastError, "git HEAD mismatch"):
+                verify_winner_contrast_artifact(artifact, source=source)
+
+            wrong_code = copy.deepcopy(self.repo_snapshot)
+            code_files = wrong_code["code_files"]
+            self.assertIsInstance(code_files, dict)
+            code_files[WINNER_CONTRAST_CODE_PATHS[0]]["sha256"] = "f" * 64
+            self.snapshot_mock.return_value = _rehash_repo_snapshot(wrong_code)
+            with self.assertRaisesRegex(WinnerContrastError, "code roster/hash mismatch"):
+                verify_winner_contrast_artifact(artifact, source=source)
+
+    def test_publication_rejects_mid_derivation_repo_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary) / "artifact"
+            drifted = copy.deepcopy(self.repo_snapshot)
+            drifted["git_head"] = "c" * 40
+            self.snapshot_mock.side_effect = [
+                self.repo_snapshot, _rehash_repo_snapshot(drifted),
+            ]
+            with self.assertRaisesRegex(WinnerContrastError, "git HEAD mismatch"):
+                publish_winner_contrasts(
+                    _source(), output_dir=target, replica_id="A",
+                )
+            self.assertFalse(target.exists())
 
     def test_directory_publish_primitive_does_not_replace_raced_target(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
