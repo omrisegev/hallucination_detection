@@ -184,12 +184,21 @@ def main() -> None:
             for record in input_manifest["cells"]
         ]
         fitted: dict[str, dict] = {}
-        with ProcessPoolExecutor(max_workers=args.workers) as pool:
-            futures = {pool.submit(_fit_one, payload): payload["record"]["cell_id"] for payload in payloads}
-            for future in as_completed(futures):
-                cell_id = str(futures[future])
-                fitted[cell_id] = future.result()
+        if args.workers == 1:
+            for payload in payloads:
+                cell_id = str(payload["record"]["cell_id"])
+                fitted[cell_id] = _fit_one(payload)
                 print(f"FIT {args.build_id} {len(fitted):02d}/24 {cell_id}", flush=True)
+        else:
+            with ProcessPoolExecutor(max_workers=args.workers) as pool:
+                futures = {
+                    pool.submit(_fit_one, payload): payload["record"]["cell_id"]
+                    for payload in payloads
+                }
+                for future in as_completed(futures):
+                    cell_id = str(futures[future])
+                    fitted[cell_id] = future.result()
+                    print(f"FIT {args.build_id} {len(fitted):02d}/24 {cell_id}", flush=True)
 
         for source_record in input_manifest["cells"]:
             cell_id = str(source_record["cell_id"])
