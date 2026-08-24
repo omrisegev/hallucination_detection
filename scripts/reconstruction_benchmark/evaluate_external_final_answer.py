@@ -109,6 +109,89 @@ def _write_contrasts_csv(path: Path, rows: list[dict]) -> None:
         writer.writerows(rows)
 
 
+def _gate_population_expectations(
+    *,
+    population_id: str,
+    population_cells: list[Any],
+    registered_summary: Mapping[str, Any],
+    observed: Mapping[str, Any],
+) -> dict[str, Any] | None:
+    """Validate atomic totals before deciding whether a macro may be emitted.
+
+    Per-cell class expectations are the more specific frozen contract.  When
+    every cell carries them, an observed aggregate that exactly matches their
+    sum is valid atomic evidence even if the separately copied population
+    summary contains a class-total typo.  Such a registry conflict blocks only
+    the population aggregate; it must not discard already-computed cell rows.
+
+    Populations without a complete per-cell class-total contract retain the
+    older fail-closed population-summary check because there is no independent
+    frozen atomic class total with which to distinguish a registry typo from a
+    label change.
+    """
+
+    keys = ("rows", "incorrect", "correct", "cells")
+    try:
+        registered = {key: int(registered_summary[key]) for key in keys}
+        observed_core = {key: int(observed[key]) for key in keys}
+    except (KeyError, TypeError, ValueError) as error:
+        raise RuntimeError(
+            f"population expectation contract is malformed for {population_id}"
+        ) from error
+
+    class_contract_complete = all(
+        cell.expected_incorrect is not None and cell.expected_correct is not None
+        for cell in population_cells
+    )
+    if not class_contract_complete:
+        if observed_core != registered:
+            raise RuntimeError(
+                f"population label totals failed for {population_id}: "
+                f"{observed_core} != {registered}"
+            )
+        return None
+
+    for cell in population_cells:
+        if int(cell.expected_incorrect) + int(cell.expected_correct) != int(
+            cell.expected_rows
+        ):
+            raise RuntimeError(
+                f"atomic expectation contract is internally inconsistent for "
+                f"{population_id}/{cell.cell_id}"
+            )
+    atomic_expected = {
+        "rows": sum(int(cell.expected_rows) for cell in population_cells),
+        "incorrect": sum(int(cell.expected_incorrect) for cell in population_cells),
+        "correct": sum(int(cell.expected_correct) for cell in population_cells),
+        "cells": len(population_cells),
+    }
+    if observed_core != atomic_expected:
+        raise RuntimeError(
+            f"population atomic label totals failed for {population_id}: "
+            f"{observed_core} != {atomic_expected}"
+        )
+    if registered == atomic_expected:
+        return None
+
+    structural_keys = ("rows", "cells")
+    structural_mismatches = [
+        key for key in structural_keys
+        if registered[key] != atomic_expected[key]
+    ]
+    if structural_mismatches:
+        raise RuntimeError(
+            f"population registry structural totals failed for {population_id}: "
+            f"{registered} != {atomic_expected}"
+        )
+    return {
+        "population_id": population_id,
+        "status": "AGGREGATE_BLOCKED_REGISTRY_CLASS_TOTAL_MISMATCH",
+        "registered_summary": registered,
+        "atomic_expected": atomic_expected,
+        "observed": observed_core,
+    }
+
+
 def _restore_validated_score_freeze(
     validated_freeze: Mapping[str, Any],
     *,
@@ -542,9 +625,15 @@ def _main() -> None:
             "correct": int(len(labels) - labels.sum()),
             "cells": len(selected),
         }
-        expected_core = {key: int(expected[key]) for key in observed}
-        if observed != expected_core:
-            raise RuntimeError(f"population label totals failed for {population_id}: {observed} != {expected_core}")
+        registry_conflict = _gate_population_expectations(
+            population_id=population_id,
+            population_cells=population_cells,
+            registered_summary=expected,
+            observed=observed,
+        )
+        if registry_conflict is not None:
+            population_checks.append(registry_conflict)
+            continue
         aggregate_rule = registry.raw["population_aggregates"][population_id]
         if aggregate_rule.get("enabled") is not True:
             population_checks.append({

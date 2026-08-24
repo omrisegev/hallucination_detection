@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import base64
+import csv
 import hashlib
 import importlib.util
 import json
@@ -87,6 +88,7 @@ from scripts.reconstruction_benchmark.run_external_final_answer_methods import (
 )
 from scripts.reconstruction_benchmark.evaluate_external_final_answer import (
     _AtomicEvaluationStage,
+    _gate_population_expectations,
     _remove_verified_empty_directory_tree,
     _restore_validated_score_freeze,
 )
@@ -1033,6 +1035,334 @@ print(json.dumps({"probes": probes, "results": results, "violations": module.fit
                 link_keys={"model_a": "same_questions", "model_b": "same_questions"},
                 draws=10,
             )
+
+    def test_gpqa_atomic_expectation_wins_only_to_block_the_bad_macro(self) -> None:
+        registry = load_external_registry(
+            repo=REPO,
+            registry_path=(
+                REPO / "configs/reconstruction_benchmark_v1/external_final_answer.json"
+            ),
+            population_registry_path=(
+                REPO / "configs/reconstruction_benchmark_v1/populations.json"
+            ),
+        )
+        population_id = "gpqa_k10_negative_stress_v1"
+        cells = [
+            cell for cell in registry.cells
+            if cell.population_id == population_id
+        ]
+        registered = registry.raw["population_expectations"][population_id]
+        observed = {
+            "rows": 7920,
+            "incorrect": 5013,
+            "correct": 2907,
+            "cells": 4,
+        }
+        blocked = _gate_population_expectations(
+            population_id=population_id,
+            population_cells=cells,
+            registered_summary=registered,
+            observed=observed,
+        )
+        self.assertEqual(
+            blocked,
+            {
+                "population_id": population_id,
+                "status": "AGGREGATE_BLOCKED_REGISTRY_CLASS_TOTAL_MISMATCH",
+                "registered_summary": {
+                    "rows": 7920, "incorrect": 5113,
+                    "correct": 2807, "cells": 4,
+                },
+                "atomic_expected": observed,
+                "observed": observed,
+            },
+        )
+
+        tampered = {
+            "row": {
+                "rows": 7919, "incorrect": 5013,
+                "correct": 2906, "cells": 4,
+            },
+            "label": {
+                "rows": 7920, "incorrect": 5014,
+                "correct": 2906, "cells": 4,
+            },
+        }
+        for tamper_kind, changed in tampered.items():
+            with self.subTest(tamper_kind=tamper_kind):
+                with self.assertRaisesRegex(
+                    RuntimeError, "population atomic label totals failed",
+                ):
+                    _gate_population_expectations(
+                        population_id=population_id,
+                        population_cells=cells,
+                        registered_summary=registered,
+                        observed=changed,
+                    )
+
+    def test_gpqa_registry_typo_preserves_cells_and_emits_no_population_rows(self) -> None:
+        registry = load_external_registry(
+            repo=REPO,
+            registry_path=(
+                REPO / "configs/reconstruction_benchmark_v1/external_final_answer.json"
+            ),
+            population_registry_path=(
+                REPO / "configs/reconstruction_benchmark_v1/populations.json"
+            ),
+        )
+        population_id = "gpqa_k10_negative_stress_v1"
+        specs = [
+            cell for cell in registry.cells
+            if cell.population_id == population_id
+        ]
+        self.assertEqual(len(specs), 4)
+
+        release_id = "gpqa_registry_conflict"
+        release_root = self.root / "releases"
+        lane = (
+            release_root / release_id / "build_A/external_final_answer"
+        )
+        input_root = lane / "inputs"
+        fit_root = lane / "fit"
+        input_root.mkdir(parents=True)
+        fit_root.mkdir()
+        input_manifest_path = input_root / "MANIFEST.json"
+        input_manifest_path.write_text("synthetic input manifest\n", encoding="utf-8")
+        freeze_path = fit_root / "SCORE_FREEZE_MANIFEST.json"
+        freeze_path.write_text("synthetic score freeze\n", encoding="utf-8")
+        certificate_path = self.root / "AB_VERIFICATION.json"
+        certificate_path.write_text("synthetic certificate\n", encoding="utf-8")
+
+        input_cells = []
+        labels_by_cell = {}
+        prepared_by_cell = {}
+        fit_records = []
+        for spec in specs:
+            row_ids = tuple(
+                f"{spec.cell_id}-row-{index:04d}"
+                for index in range(spec.expected_rows)
+            )
+            group_ids = tuple(
+                f"shared-question-{index // 10:03d}"
+                for index in range(spec.expected_rows)
+            )
+            incorrect = np.concatenate((
+                np.ones(spec.expected_incorrect, dtype=np.int8),
+                np.zeros(spec.expected_correct, dtype=np.int8),
+            ))
+            self.assertEqual(len(incorrect), spec.expected_rows)
+            labels_by_cell[spec.cell_id] = mock.Mock(
+                cell_id=spec.cell_id,
+                row_ids=row_ids,
+                group_ids=group_ids,
+                incorrect=incorrect,
+                provenance={
+                    "row_label_sha256": f"label-{spec.cell_id}",
+                },
+            )
+            prepared_by_cell[spec.cell_id] = mock.Mock(row_ids=row_ids)
+            input_cells.append({
+                "cell_id": spec.cell_id,
+                "status": "ELIGIBLE",
+                "artifact_path": f"{spec.cell_id}.prepared.npz",
+                "sealed_group_roster_commitment_sha256": f"cohort-{spec.cell_id}",
+            })
+
+            record_path = fit_root / f"{spec.cell_id}.record.json"
+            score_path = fit_root / f"{spec.cell_id}.score.npz"
+            record_path.write_text("{}\n", encoding="utf-8")
+            atomic_write_npz(score_path, {
+                "row_ids": np.asarray(row_ids, dtype="<U80"),
+                "score": np.linspace(0.0, 1.0, spec.expected_rows),
+                "id_contract_version": np.asarray([ID_CONTRACT_VERSION]),
+                "id_contract_sha256": np.asarray(["id-contract"]),
+                "identity_key_id": np.asarray(["identity-key"]),
+                "row_namespace_sha256": np.asarray([f"namespace-{spec.cell_id}"]),
+                "row_roster_sha256": np.asarray([f"roster-{spec.cell_id}"]),
+            })
+            fit_records.append({
+                "cell_id": spec.cell_id,
+                "method_id": "iu_pcr",
+                "status": "OK",
+                "record_path": record_path.relative_to(fit_root).as_posix(),
+                "record_sha256": sha256_file(record_path),
+                "score_path": score_path.relative_to(fit_root).as_posix(),
+                "score_sha256": sha256_file(score_path),
+            })
+
+        fit_manifest = {
+            "payload_sha256": "fit-manifest-payload",
+            "identity_contract": {"schema_version": "synthetic"},
+        }
+        input_manifest = {"cells": input_cells}
+        freeze = {
+            "cell_ids": [spec.cell_id for spec in specs],
+            "records": fit_records,
+            "scientific_full": True,
+            "input_manifest_sha256": sha256_file(input_manifest_path),
+            "payload_sha256": "score-freeze-payload",
+        }
+        certificate = {
+            "status": "PASS",
+            "certificate_sha256": "certificate-payload",
+            "cell_ids": freeze["cell_ids"],
+            "builds": {
+                "A": {
+                    "score_freeze_payload_sha256": freeze["payload_sha256"],
+                    "input_manifest_payload_sha256": fit_manifest["payload_sha256"],
+                }
+            },
+        }
+
+        def fit_safe_record(record):
+            cell_id = record["cell_id"]
+            return {
+                "cell_id": cell_id,
+                "id_contract_sha256": "id-contract",
+                "identity_key_id": "identity-key",
+                "row_namespace_sha256": f"namespace-{cell_id}",
+                "row_roster_sha256": f"roster-{cell_id}",
+            }
+
+        def write_labels(path, labels):
+            artifact_sha = atomic_write_npz(path, {
+                "incorrect": labels.incorrect,
+            })
+            return {
+                "cell_id": labels.cell_id,
+                "artifact_path": Path(path).name,
+                "artifact_sha256": artifact_sha,
+            }
+
+        cell_interval = {
+            "metrics": {
+                "iu_pcr": {
+                    "auroc": {
+                        "value": 0.5, "ci_low": 0.4, "ci_high": 0.6,
+                        "valid_draws": 20_000,
+                    }
+                }
+            },
+            "contrasts": {},
+            "n_groups": 198,
+            "bootstrap_unit": "source_group",
+            "draws_requested": 20_000,
+        }
+        argv = [
+            "evaluate_external_final_answer.py",
+            "--release-id", release_id,
+            "--build", "A",
+            "--release-root", str(release_root),
+            "--ab-certificate", str(certificate_path),
+            "--identity-key", str(self.root / "external-id.key"),
+        ]
+        external_evaluation_cli._ACTIVE_EVALUATION_STAGE = None
+        with (
+            mock.patch.object(sys, "argv", argv),
+            mock.patch.object(
+                external_evaluation_cli, "load_external_registry",
+                return_value=registry,
+            ),
+            mock.patch.object(
+                external_evaluation_cli, "load_identity_key",
+                return_value=b"\x23" * 32,
+            ),
+            mock.patch.object(
+                external_evaluation_cli, "assert_external_ab_certificate",
+                return_value=certificate,
+            ),
+            mock.patch.object(
+                external_evaluation_cli, "validate_fit_safe_input_manifest",
+                return_value=fit_manifest,
+            ),
+            mock.patch.object(
+                external_evaluation_cli, "validate_scientific_input_manifest",
+                return_value=input_manifest,
+            ),
+            mock.patch.object(
+                external_evaluation_cli, "assert_fit_safe_matches_preparation",
+            ),
+            mock.patch.object(
+                external_evaluation_cli, "validate_scientific_score_freeze",
+                return_value={
+                    **freeze,
+                    "_validated_fit_manifest": fit_manifest,
+                },
+            ),
+            mock.patch.object(external_evaluation_cli, "assert_score_freeze"),
+            mock.patch.object(
+                external_evaluation_cli, "fit_safe_external_cell_record",
+                side_effect=fit_safe_record,
+            ),
+            mock.patch.object(
+                external_evaluation_cli, "load_prepared_external_cell",
+                side_effect=lambda **kwargs: prepared_by_cell[
+                    kwargs["record"]["cell_id"]
+                ],
+            ),
+            mock.patch.object(
+                external_evaluation_cli, "load_labels_after_score_freeze",
+                side_effect=lambda **kwargs: labels_by_cell[
+                    kwargs["spec"].cell_id
+                ],
+            ),
+            mock.patch.object(
+                external_evaluation_cli, "write_label_vector",
+                side_effect=write_labels,
+            ),
+            mock.patch.object(
+                external_evaluation_cli, "grouped_paired_bootstrap",
+                return_value=cell_interval,
+            ),
+            mock.patch.object(
+                external_evaluation_cli, "population_grouped_paired_bootstrap",
+            ) as population_bootstrap,
+        ):
+            external_evaluation_cli.main()
+
+        population_bootstrap.assert_not_called()
+        evaluation_root = lane / "evaluation"
+        with (evaluation_root / "metrics_long.csv").open(
+            encoding="utf-8", newline="",
+        ) as handle:
+            metric_rows = list(csv.DictReader(handle))
+        with (evaluation_root / "contrasts_long.csv").open(
+            encoding="utf-8", newline="",
+        ) as handle:
+            contrast_rows = list(csv.DictReader(handle))
+        gpqa_metrics = [
+            row for row in metric_rows if row["population_id"] == population_id
+        ]
+        self.assertEqual(len(gpqa_metrics), 4)
+        self.assertEqual(
+            {row["cell_id"] for row in gpqa_metrics},
+            {spec.cell_id for spec in specs},
+        )
+        self.assertTrue(all(row["record_level"] == "cell" for row in gpqa_metrics))
+        self.assertFalse(any(
+            row["population_id"] == population_id
+            and row["record_level"] == "population"
+            for row in metric_rows
+        ))
+        self.assertFalse(any(
+            row["population_id"] == population_id
+            and row["record_level"] == "population"
+            for row in contrast_rows
+        ))
+        manifest = json.loads(
+            (evaluation_root / "MANIFEST.json").read_text(encoding="utf-8")
+        )
+        check = next(
+            item for item in manifest["population_checks"]
+            if item["population_id"] == population_id
+        )
+        self.assertEqual(
+            check["status"],
+            "AGGREGATE_BLOCKED_REGISTRY_CLASS_TOTAL_MISMATCH",
+        )
+        self.assertEqual(check["registered_summary"]["incorrect"], 5113)
+        self.assertEqual(check["atomic_expected"]["incorrect"], 5013)
+        self.assertEqual(check["observed"]["correct"], 2907)
 
     def test_hle_style_bootstrap_is_stratified_at_the_source_group(self) -> None:
         interval = population_grouped_paired_bootstrap(
