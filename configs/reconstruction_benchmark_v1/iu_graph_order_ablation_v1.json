@@ -1,0 +1,45 @@
+{
+  "schema_version": "iu-graph-order-ablation-config-v1",
+  "experiment_id": "iu_graph_order_ablation_v1",
+  "population_id": "frozen24_response_v1",
+  "feature_contract_id": "dufs-liu-mixed-v2-development-2026-08-07",
+  "evidence_status": "D0_reused_development",
+  "runtime_labels_used": false,
+  "graph_k": 7,
+  "graph_constructor": "duplicate-safe symmetric union self-tuning kNN",
+  "laplacian": "symmetric_normalized",
+  "lambda_grid": [0.03, 0.1, 0.3, 1.0, 3.0, 10.0],
+  "primary_lambda": 1.0,
+  "historical_mechanism_lambda": 0.03,
+  "feature_smoothing": {
+    "operator": "Z=(I+lambda*L)^-1 X",
+    "post_operator_standardization": "population zscore per nonconstant column",
+    "iu_refit": "canonical full-pool two-component IU-PCR",
+    "orientation": "one global alignment to the original equal-family confidence anchor"
+  },
+  "residual_correction": {
+    "score_family": "s=b+R*delta",
+    "objective": "0.5*||delta||^2 + lambda/(2*n)*(b+R*delta)^T*L*(b+R*delta)",
+    "closed_form": "delta=-lambda*(I+lambda*R^T*L*R/n)^-1*(R^T*L*b/n)",
+    "family_residuals": "canonical standardized IU family-contribution residuals",
+    "extra_rescaling": "none"
+  },
+  "arms": [
+    "iu_pcr",
+    "equal_family_mean",
+    "feature_smooth_residual_graph",
+    "feature_smooth_raw_graph",
+    "score_smooth_residual_graph",
+    "residual_ridge_correction"
+  ],
+  "signed_context_methods": [
+    "deem_b3",
+    "family_nrm_a",
+    "pgrd_a"
+  ],
+  "bootstrap_draws": 20000,
+  "bootstrap_unit": "source_group_within_cell",
+  "aggregation": "equal_cell_macro_over_exact_24_cell_roster",
+  "selection_rule": "no lambda is selected by labels; report the full frozen response curve",
+  "claim_boundary": "mechanism ablation on the retrospectively developed frozen 24-cell panel, not independent validation"
+}
