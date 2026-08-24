@@ -12,6 +12,18 @@ from sklearn.metrics import average_precision_score, roc_auc_score
 
 METRIC_IDS = ("auroc", "auprc", "aurc_x1000")
 
+# Keep the largest temporary draw-by-row matrix bounded.  In particular, HLE
+# and PRMBench have thousands of mostly unique score values, so a dense
+# group-by-score-block representation would be unacceptably large.  The fast
+# path below is O(batch * rows) memory and processes methods one at a time.
+_BOOTSTRAP_TARGET_ROW_WEIGHTS = 1_000_000
+_BOOTSTRAP_MAX_BATCH_DRAWS = 4_096
+_CONTRAST_NUMERICAL_ZERO_ATOL = {
+    "auroc": 1e-14,
+    "auprc": 1e-14,
+    "aurc_x1000": 2e-10,
+}
+
 
 def _binary_labels(labels: Sequence[int]) -> np.ndarray:
     """Validate before casting so fractional or missing labels cannot truncate."""
@@ -161,6 +173,188 @@ def _sample_group_roster(
     return tuple(sampled)
 
 
+def _sample_group_counts(
+    *,
+    roster: Sequence[str],
+    rng: np.random.Generator,
+    group_labels: Mapping[str, int] | None,
+) -> np.ndarray:
+    """Sample the original group roster and return multiplicities.
+
+    The calls to ``rng.integers`` deliberately match
+    :func:`_sample_group_roster`: one call per ordinary draw, or label-0 then
+    label-1 calls for a stratified draw.  Keeping this helper draw-at-a-time is
+    important because population evaluation interleaves RNG calls across
+    linked resampling blocks.
+    """
+
+    n_groups = len(roster)
+    if group_labels is None:
+        selected = rng.integers(0, n_groups, size=n_groups)
+        return np.bincount(selected, minlength=n_groups).astype(np.int64, copy=False)
+
+    counts = np.zeros(n_groups, dtype=np.int64)
+    for label in (0, 1):
+        positions = np.asarray(
+            [position for position, group in enumerate(roster)
+             if group_labels[group] == label],
+            dtype=np.int64,
+        )
+        selected = rng.integers(0, len(positions), size=len(positions))
+        counts += np.bincount(positions[selected], minlength=n_groups)
+    return counts
+
+
+def _row_group_positions(
+    *,
+    n_rows: int,
+    roster: Sequence[str],
+    members: Mapping[str, np.ndarray],
+) -> np.ndarray:
+    """Map each row to its position in ``roster`` without a dense G-by-N map."""
+
+    result = np.empty(int(n_rows), dtype=np.int64)
+    assigned = np.zeros(int(n_rows), dtype=bool)
+    for position, group in enumerate(roster):
+        indices = members[group]
+        result[indices] = int(position)
+        assigned[indices] = True
+    if not assigned.all():  # pragma: no cover - guarded by _group_members
+        raise AssertionError("source-group membership does not cover every row")
+    return result
+
+
+def _metric_plan(
+    *,
+    labels: np.ndarray,
+    score: np.ndarray,
+    row_group_positions: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Freeze a method's stable ascending score order and exact tie blocks."""
+
+    order = np.argsort(score, kind="mergesort")
+    sorted_score = score[order]
+    block_starts = np.flatnonzero(
+        np.r_[True, sorted_score[1:] != sorted_score[:-1]]
+    ).astype(np.int64, copy=False)
+    return (
+        row_group_positions[order],
+        labels[order].astype(np.int64, copy=False),
+        block_starts,
+    )
+
+
+def _bootstrap_batch_size(*, n_rows: int, n_groups: int, remaining: int) -> int:
+    width = max(1, int(n_rows) + int(n_groups))
+    bounded = max(1, _BOOTSTRAP_TARGET_ROW_WEIGHTS // width)
+    return min(int(remaining), _BOOTSTRAP_MAX_BATCH_DRAWS, bounded)
+
+
+def _weighted_binary_metric_batch(
+    *,
+    group_counts: np.ndarray,
+    plan: tuple[np.ndarray, np.ndarray, np.ndarray],
+) -> dict[str, np.ndarray]:
+    """Evaluate duplicated-row bootstrap samples from integer row weights.
+
+    A sampled group appearing ``k`` times is exactly equivalent to giving each
+    of its rows integer weight ``k``.  AUROC and average precision are computed
+    from fixed score-tie blocks.  AURC uses the same expected-random-order tie
+    estimand as :func:`aurc_x1000`; the harmonic identity merely sums a whole
+    duplicated tie block at once.
+    """
+
+    if group_counts.ndim != 2 or len(group_counts) == 0:
+        raise ValueError("group_counts must be a nonempty draw-by-group matrix")
+    ordered_group_positions, sorted_labels, block_starts = plan
+    row_weights = group_counts[:, ordered_group_positions]
+    block_rows = np.add.reduceat(row_weights, block_starts, axis=1)
+    block_positive = np.add.reduceat(
+        row_weights * sorted_labels[np.newaxis, :],
+        block_starts,
+        axis=1,
+    )
+    block_negative = block_rows - block_positive
+
+    total_positive = np.sum(block_positive, axis=1, dtype=np.int64)
+    total_negative = np.sum(block_negative, axis=1, dtype=np.int64)
+    if np.any(total_positive <= 0) or np.any(total_negative <= 0):
+        raise ValueError("weighted binary metrics require both classes in every draw")
+
+    negatives_before = (
+        np.cumsum(block_negative, axis=1, dtype=np.int64) - block_negative
+    )
+    auc_numerator = np.sum(
+        block_positive
+        * (negatives_before + 0.5 * block_negative),
+        axis=1,
+        dtype=float,
+    )
+    auroc = auc_numerator / (total_positive * total_negative)
+
+    positive_at_or_above = np.cumsum(
+        block_positive[:, ::-1], axis=1, dtype=np.int64
+    )[:, ::-1]
+    rows_at_or_above = np.cumsum(
+        block_rows[:, ::-1], axis=1, dtype=np.int64
+    )[:, ::-1]
+    precision = np.divide(
+        positive_at_or_above,
+        rows_at_or_above,
+        out=np.zeros_like(positive_at_or_above, dtype=float),
+        where=rows_at_or_above > 0,
+    )
+    auprc = (
+        np.sum(precision * block_positive, axis=1, dtype=float)
+        / total_positive
+    )
+
+    accepted = np.cumsum(block_rows, axis=1, dtype=np.int64)
+    accepted_before = accepted - block_rows
+    errors = np.cumsum(block_positive, axis=1, dtype=np.int64)
+    errors_before = errors - block_positive
+    max_rows = int(np.max(accepted[:, -1]))
+    harmonic = np.zeros(max_rows + 1, dtype=float)
+    if max_rows:
+        harmonic[1:] = np.cumsum(
+            1.0 / np.arange(1, max_rows + 1, dtype=float)
+        )
+    harmonic_delta = harmonic[accepted] - harmonic[accepted_before]
+    error_fraction = np.divide(
+        block_positive,
+        block_rows,
+        out=np.zeros_like(block_positive, dtype=float),
+        where=block_rows > 0,
+    )
+    risk_sum = np.sum(
+        errors_before * harmonic_delta
+        + error_fraction
+        * (block_rows - accepted_before * harmonic_delta),
+        axis=1,
+        dtype=float,
+    )
+    aurc = 1000.0 * risk_sum / accepted[:, -1]
+    return {
+        "auroc": auroc.astype(float, copy=False),
+        "auprc": auprc.astype(float, copy=False),
+        "aurc_x1000": aurc.astype(float, copy=False),
+    }
+
+
+def _probability_delta_le_zero(delta_draws: np.ndarray, *, metric: str) -> float:
+    """Return the weak-tail probability with mathematical ties counted once.
+
+    The scalar sklearn path and the integer-weight fast path can differ by an
+    IEEE-754 rounding unit even when a draw's two estimands are mathematically
+    identical.  A weak inequality must count that equality as ``<= 0`` rather
+    than let an implementation-specific ULP choose a side.  The frozen bounds
+    are far below report precision and cover the larger ``x1000`` AURC scale.
+    """
+
+    tolerance = _CONTRAST_NUMERICAL_ZERO_ATOL[metric]
+    return float(np.mean(delta_draws <= tolerance))
+
+
 def _canonical_sha256(value: object) -> str:
     payload = json.dumps(
         value,
@@ -202,6 +396,9 @@ def grouped_paired_bootstrap(
     Every occurrence of a sampled group brings all of its rows.  Thus sibling
     generations, scorer copies, or PRMBench variants never split across a draw.
     Deltas are paired because all methods use the exact same resampled indices.
+    For ``probability_delta_le_zero``, differences within the frozen numerical
+    zero bounds (AUROC/AUPRC 1e-14; AURC x1000 2e-10) count as mathematical
+    ties, so an IEEE-754 rounding unit cannot choose a tail.
     """
 
     if int(draws) <= 0:
@@ -219,36 +416,78 @@ def grouped_paired_bootstrap(
         else None
     )
 
+    row_group_positions = _row_group_positions(
+        n_rows=len(y), roster=roster, members=members,
+    )
+    group_positive = np.bincount(
+        row_group_positions, weights=y, minlength=len(roster),
+    ).astype(np.int64, copy=False)
+    group_rows = np.bincount(
+        row_group_positions, minlength=len(roster),
+    ).astype(np.int64, copy=False)
+    group_negative = group_rows - group_positive
+    metric_plans = {
+        method_id: _metric_plan(
+            labels=y,
+            score=scores[method_id],
+            row_group_positions=row_group_positions,
+        )
+        for method_id in methods
+    }
+
     rng = np.random.default_rng(int(seed))
-    bootstrap_values = {
+    bootstrap_chunks: dict[str, dict[str, list[np.ndarray]]] = {
         method_id: {metric: [] for metric in METRIC_IDS}
         for method_id in methods
     }
     valid_draws = 0
-    for _ in range(int(draws)):
-        sampled_groups = _sample_group_roster(
-            roster=roster,
-            rng=rng,
-            group_labels=group_labels,
+    generated_draws = 0
+    while generated_draws < int(draws):
+        batch_draws = _bootstrap_batch_size(
+            n_rows=len(y),
+            n_groups=len(roster),
+            remaining=int(draws) - generated_draws,
         )
-        indices = np.concatenate([members[group] for group in sampled_groups])
-        sampled_y = y[indices]
-        if len(np.unique(sampled_y)) != 2:
+        group_counts = np.empty((batch_draws, len(roster)), dtype=np.int64)
+        for draw_index in range(batch_draws):
+            group_counts[draw_index] = _sample_group_counts(
+                roster=roster,
+                rng=rng,
+                group_labels=group_labels,
+            )
+        generated_draws += batch_draws
+
+        total_positive = group_counts @ group_positive
+        total_negative = group_counts @ group_negative
+        valid = (total_positive > 0) & (total_negative > 0)
+        if not np.any(valid):
             continue
-        valid_draws += 1
+        valid_counts = group_counts[valid]
+        valid_draws += int(np.sum(valid))
         for method_id in methods:
-            observed = binary_metric_values(sampled_y, scores[method_id][indices])
+            observed = _weighted_binary_metric_batch(
+                group_counts=valid_counts,
+                plan=metric_plans[method_id],
+            )
             for metric in METRIC_IDS:
-                bootstrap_values[method_id][metric].append(observed[metric])
+                bootstrap_chunks[method_id][metric].append(observed[metric])
     if valid_draws == 0:
         raise RuntimeError("every grouped bootstrap draw was single-class")
+
+    bootstrap_values = {
+        method_id: {
+            metric: np.concatenate(bootstrap_chunks[method_id][metric])
+            for metric in METRIC_IDS
+        }
+        for method_id in methods
+    }
 
     metrics: dict[str, dict[str, dict[str, float | int]]] = {}
     for method_id in methods:
         point = binary_metric_values(y, scores[method_id])
         metrics[method_id] = {}
         for metric in METRIC_IDS:
-            values = np.asarray(bootstrap_values[method_id][metric], dtype=float)
+            values = bootstrap_values[method_id][metric]
             metrics[method_id][metric] = {
                 "value": point[metric],
                 "ci_low": float(np.quantile(values, 0.025)),
@@ -262,8 +501,8 @@ def grouped_paired_bootstrap(
             continue
         contrasts[method_id] = {}
         for metric in METRIC_IDS:
-            left = np.asarray(bootstrap_values[method_id][metric], dtype=float)
-            right = np.asarray(bootstrap_values[reference_method][metric], dtype=float)
+            left = bootstrap_values[method_id][metric]
+            right = bootstrap_values[reference_method][metric]
             if left.shape != right.shape:
                 raise AssertionError("paired bootstrap draw arrays diverged")
             delta_draws = left - right
@@ -273,7 +512,9 @@ def grouped_paired_bootstrap(
                 "delta": float(delta),
                 "ci_low": float(np.quantile(delta_draws, 0.025)),
                 "ci_high": float(np.quantile(delta_draws, 0.975)),
-                "probability_delta_le_zero": float(np.mean(delta_draws <= 0.0)),
+                "probability_delta_le_zero": _probability_delta_le_zero(
+                    delta_draws, metric=metric,
+                ),
                 "valid_draws": int(len(delta_draws)),
                 "higher_is_better": metric != "aurc_x1000",
             }
@@ -321,6 +562,9 @@ def population_grouped_paired_bootstrap(
     for registered imbalanced panels such as HLE and therefore refuses a group
     containing both labels.  Linked cells must also agree on every group label.
     All methods share every accepted draw, so all reported contrasts are paired.
+    For ``probability_delta_le_zero``, differences within the frozen numerical
+    zero bounds (AUROC/AUPRC 1e-14; AURC x1000 2e-10) count as mathematical
+    ties, so an IEEE-754 rounding unit cannot choose a tail.
     """
 
     if int(draws) <= 0:
@@ -385,12 +629,31 @@ def population_grouped_paired_bootstrap(
             if bool(stratify_by_label)
             else None
         )
+        row_group_positions = _row_group_positions(
+            n_rows=len(y), roster=roster, members=members,
+        )
+        group_positive = np.bincount(
+            row_group_positions, weights=y, minlength=len(roster),
+        ).astype(np.int64, copy=False)
+        group_rows = np.bincount(
+            row_group_positions, minlength=len(roster),
+        ).astype(np.int64, copy=False)
         state[cell_id] = {
             "labels": y,
             "scores": scores,
             "roster": roster,
             "members": members,
             "group_labels": group_labels,
+            "group_positive": group_positive,
+            "group_negative": group_rows - group_positive,
+            "metric_plans": {
+                method_id: _metric_plan(
+                    labels=y,
+                    score=scores[method_id],
+                    row_group_positions=row_group_positions,
+                )
+                for method_id in methods
+            },
         }
     if method_roster is None:  # pragma: no cover - guarded by nonempty cells
         raise AssertionError("method roster was not initialized")
@@ -488,65 +751,107 @@ def population_grouped_paired_bootstrap(
         for method_id in method_roster
     }
 
-    bootstrap_values = {
+    bootstrap_chunks: dict[str, dict[str, list[np.ndarray]]] = {
         method_id: {metric: [] for metric in METRIC_IDS}
         for method_id in method_roster
     }
     rng = np.random.default_rng(int(seed))
     valid_draws = 0
-    for _ in range(int(draws)):
-        sampled_by_block: dict[str, tuple[str, ...]] = {}
-        for link_key in sorted(block_state):
+    generated_draws = 0
+    block_keys = tuple(sorted(block_state))
+    max_cell_rows = max(len(state[cell_id]["labels"]) for cell_id in cell_ids)
+    total_block_groups = sum(
+        len(block_state[link_key]["roster"]) for link_key in block_keys
+    )
+    while generated_draws < int(draws):
+        batch_draws = _bootstrap_batch_size(
+            n_rows=int(max_cell_rows),
+            n_groups=int(total_block_groups),
+            remaining=int(draws) - generated_draws,
+        )
+        counts_by_block: dict[str, np.ndarray] = {}
+        for link_key in block_keys:
             roster = block_state[link_key]["roster"]
-            group_labels = block_state[link_key]["group_labels"]
             if not isinstance(roster, tuple):
                 raise AssertionError("internal link-block state is invalid")
-            sampled_by_block[link_key] = _sample_group_roster(
-                roster=roster,
-                rng=rng,
-                group_labels=group_labels if isinstance(group_labels, dict) else None,
+            counts_by_block[link_key] = np.empty(
+                (batch_draws, len(roster)), dtype=np.int64,
             )
+        # Preserve the original RNG nesting exactly: draw, then sorted link
+        # block, then label-0/label-1 strata when requested.
+        for draw_index in range(batch_draws):
+            for link_key in block_keys:
+                roster = block_state[link_key]["roster"]
+                group_labels = block_state[link_key]["group_labels"]
+                if not isinstance(roster, tuple):
+                    raise AssertionError("internal link-block state is invalid")
+                counts_by_block[link_key][draw_index] = _sample_group_counts(
+                    roster=roster,
+                    rng=rng,
+                    group_labels=(
+                        group_labels if isinstance(group_labels, dict) else None
+                    ),
+                )
+        generated_draws += batch_draws
 
-        sampled_indices: dict[str, np.ndarray] = {}
-        draw_is_valid = True
+        valid = np.ones(batch_draws, dtype=bool)
         for cell_id in cell_ids:
-            members = state[cell_id]["members"]
-            y = state[cell_id]["labels"]
-            if not isinstance(members, dict) or not isinstance(y, np.ndarray):
+            group_positive = state[cell_id]["group_positive"]
+            group_negative = state[cell_id]["group_negative"]
+            if (
+                not isinstance(group_positive, np.ndarray)
+                or not isinstance(group_negative, np.ndarray)
+            ):
                 raise AssertionError("internal cell state is invalid")
-            sampled_groups = sampled_by_block[effective_link_keys[cell_id]]
-            indices = np.concatenate([members[group] for group in sampled_groups])
-            if len(np.unique(y[indices])) != 2:
-                draw_is_valid = False
-                break
-            sampled_indices[cell_id] = indices
-        if not draw_is_valid:
+            group_counts = counts_by_block[effective_link_keys[cell_id]]
+            valid &= (
+                (group_counts @ group_positive > 0)
+                & (group_counts @ group_negative > 0)
+            )
+        if not np.any(valid):
             continue
 
-        valid_draws += 1
-        for method_id in method_roster:
-            cell_draw_metrics: list[dict[str, float]] = []
-            for cell_id in cell_ids:
-                y = state[cell_id]["labels"]
-                scores = state[cell_id]["scores"]
-                if not isinstance(y, np.ndarray) or not isinstance(scores, dict):
-                    raise AssertionError("internal cell state is invalid")
-                indices = sampled_indices[cell_id]
-                cell_draw_metrics.append(
-                    binary_metric_values(y[indices], scores[method_id][indices])
+        valid_draws += int(np.sum(valid))
+        cell_metric_chunks = {
+            method_id: {metric: [] for metric in METRIC_IDS}
+            for method_id in method_roster
+        }
+        for cell_id in cell_ids:
+            metric_plans = state[cell_id]["metric_plans"]
+            if not isinstance(metric_plans, dict):
+                raise AssertionError("internal cell metric plan is invalid")
+            valid_counts = counts_by_block[effective_link_keys[cell_id]][valid]
+            for method_id in method_roster:
+                observed = _weighted_binary_metric_batch(
+                    group_counts=valid_counts,
+                    plan=metric_plans[method_id],
                 )
+                for metric in METRIC_IDS:
+                    cell_metric_chunks[method_id][metric].append(observed[metric])
+        for method_id in method_roster:
             for metric in METRIC_IDS:
-                bootstrap_values[method_id][metric].append(float(np.mean([
-                    observed[metric] for observed in cell_draw_metrics
-                ])))
+                bootstrap_chunks[method_id][metric].append(
+                    np.mean(
+                        np.stack(cell_metric_chunks[method_id][metric], axis=0),
+                        axis=0,
+                    )
+                )
     if valid_draws == 0:
         raise RuntimeError("every population bootstrap draw was invalid")
+
+    bootstrap_values = {
+        method_id: {
+            metric: np.concatenate(bootstrap_chunks[method_id][metric])
+            for metric in METRIC_IDS
+        }
+        for method_id in method_roster
+    }
 
     metrics: dict[str, dict[str, dict[str, float | int]]] = {}
     for method_id in method_roster:
         metrics[method_id] = {}
         for metric in METRIC_IDS:
-            values = np.asarray(bootstrap_values[method_id][metric], dtype=float)
+            values = bootstrap_values[method_id][metric]
             metrics[method_id][metric] = {
                 "value": point_metrics[method_id][metric],
                 "ci_low": float(np.quantile(values, 0.025)),
@@ -560,8 +865,8 @@ def population_grouped_paired_bootstrap(
             continue
         contrasts[method_id] = {}
         for metric in METRIC_IDS:
-            left = np.asarray(bootstrap_values[method_id][metric], dtype=float)
-            right = np.asarray(bootstrap_values[reference_method][metric], dtype=float)
+            left = bootstrap_values[method_id][metric]
+            right = bootstrap_values[reference_method][metric]
             if left.shape != right.shape:
                 raise AssertionError("paired population bootstrap draw arrays diverged")
             delta_draws = left - right
@@ -574,7 +879,9 @@ def population_grouped_paired_bootstrap(
                 "delta": float(delta),
                 "ci_low": float(np.quantile(delta_draws, 0.025)),
                 "ci_high": float(np.quantile(delta_draws, 0.975)),
-                "probability_delta_le_zero": float(np.mean(delta_draws <= 0.0)),
+                "probability_delta_le_zero": _probability_delta_le_zero(
+                    delta_draws, metric=metric,
+                ),
                 "valid_draws": int(len(delta_draws)),
                 "higher_is_better": metric != "aurc_x1000",
             }
