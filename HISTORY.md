@@ -14557,3 +14557,23 @@ Discussion first, no runs authorized; Omri's own variant list takes
 precedence and should be recorded in §4.2 before any protocol draft.
 
 ---
+
+### Step 289 [DEEM benchmark] — exploratory: graph arms measure zero on the real 24 cells
+
+**What**: Ran the archived G2/G3/G4 on the real 24 cells at Omri's request
+(exploratory, outside the frozen protocol): AIRCC job 225501, 1,800 fits,
+zero failures, frozen v1 bundles/sidecars reused, reference recomputation
+matched v1 exactly.  New scripts: `scripts/explore_graph_arms_24cell_v1.py`,
+`cluster/submit_graph_arms_explore_v1.sbatch`.
+**Why**: After the max-null critique (Step 288), Omri asked how the graph
+arms would actually have performed against B3 — phase0 stopped them before
+any real-data measurement existed.
+**Result**: Nothing, everywhere.  G2/G3/G4 tie B3 in all 24 cells for every
+lambda <= 0.3; at lambda=1.0 the best arm (G3) gains +0.05pp equal-family
+macro — a tenth of B3's edge over B0.  Median per-cell |delta| 0.00005, max
+single-cell gain +0.46pp.  B3's advantage over IU-PCR owes nothing to the
+graph; phase0's stop saved a full 24-cell chain that would have measured
+zeros; the graph closure now rests on mechanism AND performance evidence.
+Full table: EXECUTION_AND_CRITIQUE doc §5.
+
+---

@@ -230,3 +230,46 @@ precedence; record it here before any protocol is drafted.**
   is retained, replaced, or dropped rather than re-imposing A1 mid-run.
 - Label firewall, score freeze, rebuild verification, and the linear
   `afterok` chain pattern are non-negotiable inheritances.
+
+---
+
+## 5. Exploratory addendum: the graph arms on the real 24 cells (2026-08-24)
+
+At Omri's request, the archived graph arms G2/G3/G4 were run on the real 24
+cells (AIRCC job 225501, commit `c84c852`): 3 arms x 5 lambdas x 24 cells x
+5 seeds = 1,800 fits, zero failures, reusing the frozen v1 bundles/sidecars
+and compared against the frozen B0/B3 reference (recomputed reference matched
+v1 exactly: B0 0.7428 / B3 0.7485).  EXPLORATORY: open labels, no registered
+lambda, full grid reported; the graph closure and the v1 decision are
+unchanged (section header of this document).
+
+Equal-family AUROC by arm and lambda (delta vs B3, wins/ties/losses vs B3 at
+the 0.0005 tie threshold):
+
+| arm | 0.01 | 0.03 | 0.1 | 0.3 | 1.0 |
+|---|---|---|---|---|---|
+| G2 (residual uniform, target) | +0.0000 (0/24/0) | +0.0000 (0/24/0) | +0.0000 (0/24/0) | +0.0001 (5/16/3) | +0.0004 (10/10/4) |
+| G3 (residual DUFS, target) | +0.0000 (0/24/0) | +0.0000 (0/24/0) | +0.0000 (0/24/0) | +0.0001 (6/15/3) | +0.0005 (10/10/4) |
+| G4 (residual DUFS, nuisance) | -0.0000 (0/24/0) | +0.0000 (0/24/0) | +0.0000 (0/24/0) | +0.0000 (0/24/0) | +0.0000 (2/20/2) |
+
+Per-cell, across all 1,800 fits: median |delta vs B3| = 0.00005, maximum
+gain anywhere +0.0046 (one cell, lambda=1.0), maximum loss -0.0026.
+
+**Reading.**  The graph term does nothing on real data.  Below lambda=0.3 the
+graph arms are B3 to within the tie threshold in every cell; at lambda=1.0 --
+the setting with the worst phase0 specificity violations -- the best arm gains
++0.05pp macro, a tenth of B3's own +0.57pp edge over B0 and far inside the
+noise floor.  Three consequences:
+
+1. **B3's edge over IU-PCR owes nothing to graphs.**  The continuous additive
+   part is the entire story, which sharpens the M-A/M-E ablation questions.
+2. **Phase0's stop cost nothing.**  The chain it blocked would have burned the
+   full 24-cell budget to measure zeros.  The synthetic gate called it
+   correctly: "effect without specificity" on synthetic worlds, no effect at
+   all on real cells at any admissible-magnitude lambda.
+3. **The graph closure stands on two independent legs now** -- mechanism
+   (phase0) and performance (this addendum).
+
+Evidence: `results/graph_arms_exploratory_v1/` (SUMMARY.json, PER_CELL.csv,
+FIT_SUMMARY.json); large fit artifacts remain on AIRCC under
+`results/graph_arms_exploratory_v1/`.
