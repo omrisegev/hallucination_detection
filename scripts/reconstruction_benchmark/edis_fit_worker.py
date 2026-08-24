@@ -66,7 +66,8 @@ def main() -> None:
     violations = boot_firewall.fit_firewall_violations()
     if violations:
         raise RuntimeError(
-            f"EDIS boot firewall recorded {len(violations)} sticky violation(s)"
+            "EDIS boot firewall recorded sticky violation(s): "
+            + json.dumps(violations, sort_keys=True, separators=(",", ":"))
         )
 
 

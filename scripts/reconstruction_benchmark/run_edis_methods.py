@@ -65,6 +65,11 @@ DEFAULT_PRIVATE_CONTROL = REPO / "results/reconstruction_benchmark_v1/private_co
 DEFAULT_TARGET_FREE_REGISTRY = REPO / "configs/reconstruction_benchmark_v1/edis_target_free.json"
 DEFAULT_POSTFREEZE_REGISTRY = REPO / "configs/reconstruction_benchmark_v1/edis_postfreeze.json"
 SUCCESS = {"OK", "OK_FALLBACK"}
+# PyTorch performs this best-effort, process-local read while loading its
+# native dependencies.  On macOS the file does not exist, but the attempted
+# open still emits a Python audit event before PyTorch catches FileNotFoundError.
+# Permit this one runtime file, never a /proc directory or subtree.
+EDIS_RUNTIME_READ_FILES = (Path("/proc/self/maps"),)
 FIT_CAPSULE_MODULES = (
     "dufs_liu_feature_contract.py",
     "feature_contract.py",
@@ -268,7 +273,10 @@ def _worker_policy(
     temp_root.mkdir(parents=True, exist_ok=False)
     return build_fit_audit_policy(
         allowed_read_roots=[code_root.resolve(), input_root.resolve(), *runtime_roots],
-        allowed_read_files=[input_root / "FIT_REGISTRY.json"],
+        allowed_read_files=[
+            input_root / "FIT_REGISTRY.json",
+            *EDIS_RUNTIME_READ_FILES,
+        ],
         allowed_write_roots=[fit_root.resolve(), temp_root.resolve()],
         allowed_native_roots=[
             Path(sys.prefix).resolve(), Path(sys.base_prefix).resolve(),

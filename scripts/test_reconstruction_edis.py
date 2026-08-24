@@ -66,6 +66,7 @@ from spectral_utils.reconstruction_benchmark.external_evaluation import (
 )
 from spectral_utils.reconstruction_reporting.schemas import validate_records
 from scripts.reconstruction_benchmark.run_edis_methods import (
+    EDIS_RUNTIME_READ_FILES,
     FIT_CAPSULE_MODULES,
     FIT_CAPSULE_RECONSTRUCTION_MODULES,
     _copy_fit_capsule,
@@ -565,6 +566,13 @@ class EdisPreparationTests(unittest.TestCase):
                     ("raw_telemetry_source", raw_source),
                 ),
             )
+            self.assertEqual(
+                [str(path.resolve()) for path in EDIS_RUNTIME_READ_FILES],
+                ["/proc/self/maps"],
+            )
+            self.assertIn("/proc/self/maps", policy["allowed_read_files"])
+            self.assertNotIn("/proc", policy["allowed_read_roots"])
+            self.assertNotIn("/proc/self", policy["allowed_read_roots"])
             selected_cell = registry.cells[0].cell_id
             _launch_worker(
                 code_root=code_root,
@@ -574,7 +582,9 @@ class EdisPreparationTests(unittest.TestCase):
                 build_id="A",
                 policy=policy,
                 cells=(selected_cell,),
-                methods=("equal_feature_mean",),
+                # dufs_pf_lsml exercises the real restricted PyTorch import
+                # that performs a best-effort open('/proc/self/maps').
+                methods=("equal_feature_mean", "dufs_pf_lsml"),
             )
             worker = json.loads(
                 (fit_root / "WORKER_RESULT_MANIFEST.json").read_text(encoding="utf-8")
@@ -584,15 +594,18 @@ class EdisPreparationTests(unittest.TestCase):
                 {"probe_id": "controller_identity_key", "read_denied": True},
                 {"probe_id": "raw_telemetry_source", "read_denied": True},
             ])
-            self.assertEqual(worker["method_ids"], ["equal_feature_mean"])
+            self.assertEqual(
+                worker["method_ids"],
+                ["equal_feature_mean", "dufs_pf_lsml"],
+            )
             self.assertEqual(worker["cell_ids"], [selected_cell])
             rendered = json.dumps(worker).lower()
             self.assertNotIn("group_id", rendered)
             self.assertNotIn("label", rendered)
-            score = load_npz_no_pickle(
-                fit_root / worker["records"][0]["score_path"]
-            )
-            self.assertEqual(set(score), {"row_ids", "score"})
+            self.assertEqual(len(worker["records"]), 2)
+            for record in worker["records"]:
+                score = load_npz_no_pickle(fit_root / record["score_path"])
+                self.assertEqual(set(score), {"row_ids", "score"})
 
     def test_source_tamper_becomes_visible_blocked_asset_without_substitution(self):
         with tempfile.TemporaryDirectory() as temp:
