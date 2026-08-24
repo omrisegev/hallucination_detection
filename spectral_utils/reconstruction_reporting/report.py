@@ -24,6 +24,24 @@ from .schemas import (
 
 
 REPORT_SCHEMA = "reconstruction_static_report_v1"
+GRAPH_DISPLAY_EDGE_LIMIT = 2_000
+_EMBEDDED_DIAGNOSTIC_FIELDS = (
+    "task_id",
+    "dataset_id",
+    "cell_id",
+    "slice_id",
+    "comparison_group_id",
+    "method_id",
+    "system_id",
+    "graph_variant",
+    "diagnostic_label",
+    "value",
+    "null_value",
+    "effect",
+    "p_value",
+    "label_stage",
+    "status",
+)
 
 
 def _e(value: Any) -> str:
@@ -38,6 +56,23 @@ def _json_for_script(value: Any) -> str:
         ensure_ascii=False,
         allow_nan=False,
     ).replace("</", "<\\/").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
+
+
+def _embedded_diagnostics(
+    rows: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Project verified diagnostics to the fields used by the browser UI.
+
+    Validation, plot hashing, generated report identity, downloadable CSV and
+    the Parquet/DuckDB release all continue to use the complete signed rows.
+    This projection only avoids repeating unused provenance strings inside the
+    self-contained HTML file.
+    """
+
+    return [
+        {field: row[field] for field in _EMBEDDED_DIAGNOSTIC_FIELDS}
+        for row in rows
+    ]
 
 
 def _marker_svg(marker: str, color: str, *, size: int = 22) -> str:
@@ -238,6 +273,41 @@ def _example_svg(
     )
 
 
+def _display_edges(
+    edges: Sequence[Mapping[str, Any]],
+    *,
+    graph_hash: str,
+) -> list[Mapping[str, Any]]:
+    """Choose a fixed label-free edge sample for an intelligible SVG.
+
+    The signed graph table and downloadable plot CSV retain every edge.  A
+    dense graph can contain hundreds of thousands of edges, which is both
+    visually opaque and needlessly makes the self-contained report hundreds
+    of megabytes.  Hash sampling is independent of labels, node colors, and
+    performance, and the same sampled edge set is used in both color panels.
+    """
+
+    if len(edges) <= GRAPH_DISPLAY_EDGE_LIMIT:
+        return list(edges)
+    ranked = sorted(
+        edges,
+        key=lambda row: (
+            canonical_sha256(
+                {
+                    "rule": "label-free-hash-edge-sample-v1",
+                    "graph_hash": graph_hash,
+                    "source": int(row["edge_source_index"]),
+                    "target": int(row["edge_target_index"]),
+                    "weight": float(row["edge_weight"]),
+                }
+            ),
+            int(row["edge_source_index"]),
+            int(row["edge_target_index"]),
+        ),
+    )
+    return ranked[:GRAPH_DISPLAY_EDGE_LIMIT]
+
+
 def _graph_example_cards(
     examples: Sequence[Mapping[str, Any]],
     registry: Mapping[str, Any],
@@ -263,9 +333,10 @@ def _graph_example_cards(
             raise SchemaError(f"graph example {example_id!r} mixes identities")
         method = methods[str(nodes[0]["method_id"])]
         nuisance_available = bool(nodes[0]["nuisance_available"])
-        left = _example_svg(nodes, edges, color_mode="error")
+        displayed_edges = _display_edges(edges, graph_hash=str(nodes[0]["graph_hash"]))
+        left = _example_svg(nodes, displayed_edges, color_mode="error")
         if nuisance_available:
-            right = _example_svg(nodes, edges, color_mode="nuisance")
+            right = _example_svg(nodes, displayed_edges, color_mode="nuisance")
             nuisance_legend = '<span><i class="legend-gradient"></i>Blue → orange = low → high frozen trace-length coordinate</span>'
         else:
             right = '<div class="unavailable-panel" role="img" aria-label="Trace-length nuisance unavailable">Trace-length nuisance coordinate unavailable for this selected cell. No substitute feature was used.</div>'
@@ -277,7 +348,7 @@ def _graph_example_cards(
  <p class="plot-subtitle">One embedding and one edge set, shown with two different color keys.</p>
  <div class="embedding-pair"><div><h4>Correctness (opened after freeze)</h4>{left}</div><div><h4>Trace-length nuisance</h4>{right}</div></div>
  <div class="legend"><span><i class="legend-swatch correct"></i>Blue = correct</span><span><i class="legend-swatch error"></i>Red = incorrect</span>{nuisance_legend}</div>
- <figcaption>Selection rule: <code>{_e(nodes[0]['selection_rule_id'])}</code> (label-free). Cohort: <code>{_e(nodes[0]['cohort_id'])}</code>. Stage: {_e(nodes[0]['label_stage'])}. Nodes={len(nodes)}, edges={len(edges)}. <a href="{csv_link}" download>Source CSV</a>.</figcaption>
+ <figcaption>Selection rule: <code>{_e(nodes[0]['selection_rule_id'])}</code> (label-free). Cohort: <code>{_e(nodes[0]['cohort_id'])}</code>. Stage: {_e(nodes[0]['label_stage'])}. Nodes={len(nodes)}; displayed edges={len(displayed_edges)} of {len(edges)}, selected by <code>label-free-hash-edge-sample-v1</code>. The linked CSV retains the complete graph. <a href="{csv_link}" download>Source CSV</a>.</figcaption>
 </article>'''.strip())
     return "".join(cards)
 
@@ -552,7 +623,7 @@ _CSS = r"""
 
 _JS = r"""
 const parseData=id=>JSON.parse(document.getElementById(id).textContent);
-const DATA={metrics:parseData('metrics-data'),contrasts:parseData('contrasts-data'),coverage:parseData('coverage-data'),diagnostics:parseData('diagnostics-data'),examples:parseData('graph-examples-data')};
+const DATA={metrics:parseData('metrics-data'),contrasts:parseData('contrasts-data'),coverage:parseData('coverage-data'),diagnostics:parseData('diagnostics-data')};
 const REG=parseData('registry-data'), PLOTS=parseData('plot-manifest-data');
 const METHODS=Object.fromEntries(REG.methods.map(x=>[x.method_id,x]));
 const SYSTEMS=Object.fromEntries(REG.systems.map(x=>[x.system_id,x]));
@@ -665,9 +736,10 @@ def render_report(
         raise SchemaError(
             f"static report has no renderer for plot kinds: {unsupported!r}"
         )
-    # The renderer embeds the complete source tables, but every declared plot
-    # must still match the exact registered subset and hash before any HTML is
-    # emitted.  This closes the gap between a valid manifest and stale inputs.
+    # Every declared plot must match the exact registered subset and hash
+    # before any HTML is emitted.  Interactive result/diagnostic tables are
+    # embedded.  Full graph-example rows stay in their signed CSV/Parquet;
+    # static SVGs embed a fixed label-free edge sample for usability.
     plot_manifest, _ = validate_plot_data_sources(plot_manifest, rows)
     graph_example_html = _graph_example_cards(rows["graph_examples"], registry, plot_manifest)
     alignment_scatter_html = _alignment_scatter(rows["graph_diagnostics"], registry, plot_manifest)
@@ -688,7 +760,7 @@ def render_report(
 <header class="hero"><div class="eyebrow">{_e(registry['release_id'])} · deterministic report {_e(generated_id[:12])}</div>
 <h1>{_e(title)}</h1>
 <p>This report starts by explaining every method and dataset. Results are then searchable as task → dataset → cell → slice → method. A point leader is not automatically a statistically distinct winner.</p>
-<p>All plots are rendered from the embedded copies of the same tidy rows used by CSV, Parquet, and DuckDB. No score is typed into this page.</p>
+<p>All numeric result plots are rendered from embedded copies of the same tidy rows used by CSV, Parquet, and DuckDB. Graph examples are rendered from a fixed label-free edge sample while the complete signed graph remains in the linked CSV. No score is typed into this page.</p>
 <nav class="toc"><a href="#method-guide">Method guide</a><a href="#status-guide">Status guide</a><a href="#dataset-guide">Dataset guide</a><a href="#results">Results</a><a href="#graph-checks">Graph assumption checks</a><a href="#provenance">Provenance</a></nav></header>
 
 <section class="section" id="method-guide"><h2>Method guide</h2>
@@ -750,8 +822,7 @@ def render_report(
 <script type="application/json" id="metrics-data">{_json_for_script(rows['metrics'])}</script>
 <script type="application/json" id="contrasts-data">{_json_for_script(rows['contrasts'])}</script>
 <script type="application/json" id="coverage-data">{_json_for_script(rows['coverage'])}</script>
-<script type="application/json" id="diagnostics-data">{_json_for_script(rows['graph_diagnostics'])}</script>
-<script type="application/json" id="graph-examples-data">{_json_for_script(rows['graph_examples'])}</script>
+<script type="application/json" id="diagnostics-data">{_json_for_script(_embedded_diagnostics(rows['graph_diagnostics']))}</script>
 <script type="application/json" id="plot-manifest-data">{_json_for_script(plot_manifest)}</script>
 <script>{_JS}</script></body></html>
 """

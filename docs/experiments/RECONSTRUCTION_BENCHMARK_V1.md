@@ -562,7 +562,11 @@ A release passes only if all gates relevant to its scope pass.
 - Every expected coverage row exists.
 - Comparison groups share one exact estimand.
 - Registered equal-unit means and plot source hashes reproduce.
-- A second clean reporting build is byte-identical.
+- A second clean reporting build is byte-identical for every canonical
+  artifact. DuckDB's physical container bytes are excluded because the engine
+  may choose a different file layout; its registered source hashes, view SQL,
+  schemas, constraints, row counts, and bidirectional `EXCEPT ALL` results must
+  instead be logically identical.
 
 ## 15. Current implementation gaps
 

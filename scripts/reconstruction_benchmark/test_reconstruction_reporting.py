@@ -38,6 +38,9 @@ from spectral_utils.reconstruction_reporting.registry import (  # noqa: E402
     validate_result_references,
 )
 from spectral_utils.reconstruction_reporting.report import (  # noqa: E402
+    GRAPH_DISPLAY_EDGE_LIMIT,
+    _display_edges,
+    _embedded_diagnostics,
     _marker_svg,
     default_plot_manifest,
     render_report,
@@ -648,6 +651,7 @@ class IOAndReportTests(unittest.TestCase):
             self.assertIn(status, rendered)
         self.assertNotIn("<script src=", rendered)
         self.assertNotIn("<link rel=", rendered)
+        self.assertNotIn('id="graph-examples-data"', rendered)
         self.assertIn("Synthetic &lt;unsafe&gt; report", rendered)
         embedded_payloads = re.findall(
             r'<script type="application/json" id="[^"]+">(.*?)</script>',
@@ -662,6 +666,55 @@ class IOAndReportTests(unittest.TestCase):
                     ValueError(f"non-finite JSON number: {value}")
                 ),
             )
+
+    def test_dense_graph_display_uses_deterministic_label_free_edge_sample(self) -> None:
+        edges = [
+            {
+                "edge_source_index": index % 131,
+                "edge_target_index": (index * 17 + 3) % 131,
+                "edge_weight": 1.0 + index / 10000.0,
+            }
+            for index in range(GRAPH_DISPLAY_EDGE_LIMIT + 137)
+        ]
+        selected_a = _display_edges(edges, graph_hash=_hash("dense-graph"))
+        selected_b = _display_edges(list(reversed(edges)), graph_hash=_hash("dense-graph"))
+        self.assertEqual(len(selected_a), GRAPH_DISPLAY_EDGE_LIMIT)
+        self.assertEqual(selected_a, selected_b)
+        self.assertTrue(all("y_error" not in row for row in selected_a))
+
+    def test_embedded_diagnostics_keep_only_browser_fields(self) -> None:
+        source = dict(self.rows["graph_diagnostics"][0])
+        source["notes"] = "large signed provenance payload"
+        projected = _embedded_diagnostics([source])
+        self.assertEqual(len(projected), 1)
+        self.assertNotIn("notes", projected[0])
+        self.assertEqual(
+            set(projected[0]),
+            {
+                "task_id",
+                "dataset_id",
+                "cell_id",
+                "slice_id",
+                "comparison_group_id",
+                "method_id",
+                "system_id",
+                "graph_variant",
+                "diagnostic_label",
+                "value",
+                "null_value",
+                "effect",
+                "p_value",
+                "label_stage",
+                "status",
+            },
+        )
+        self.assertEqual(
+            projected[0]["diagnostic_label"], source["diagnostic_label"]
+        )
+        self.assertEqual(
+            projected[0]["comparison_group_id"],
+            source["comparison_group_id"],
+        )
 
     def test_all_registered_marker_shapes_have_explicit_svg_legends(self) -> None:
         for marker in (
@@ -900,6 +953,13 @@ class FullReleaseTests(unittest.TestCase):
         registry = fixture_registry()
         rows = fixture_rows(registry)
         plots = default_plot_manifest(registry["release_id"], rows)
+        bridge_manifest = {
+            "schema": "reconstruction-reporting-bridge-v3",
+            "release_id": registry["release_id"],
+            "scientific_publication_eligible": True,
+            "graph_diagnostics_status": "VERIFIED_SIGNED_SOURCE_CONVERTED",
+        }
+        bridge_manifest["payload_sha256"] = canonical_sha256(bridge_manifest)
         with tempfile.TemporaryDirectory() as temporary:
             roots = []
             for independent_run in ("a", "b"):
@@ -910,6 +970,7 @@ class FullReleaseTests(unittest.TestCase):
                     rows=rows,
                     plot_manifest=plots,
                     title="Synthetic deterministic release",
+                    bridge_manifest=bridge_manifest,
                 )
                 roots.append(root)
 
@@ -940,6 +1001,13 @@ class FullReleaseTests(unittest.TestCase):
             self.assertFalse(database_artifact["physical_bytes_canonical"])
             self.assertEqual(len(database_artifact["logical_sha256"]), 64)
             self.assertNotIn("file_sha256", database_artifact)
+            self.assertNotIn("size_bytes", database_artifact)
+            self.assertEqual(
+                manifest["source_bridge"]["payload_sha256"],
+                bridge_manifest["payload_sha256"],
+            )
+            self.assertTrue(manifest["source_bridge"]["scientific_publication_eligible"])
+            self.assertTrue((roots[0] / "01_registries" / "BRIDGE_MANIFEST.json").exists())
 
             logical_queries = [
                 query_results(root / "05_evaluation" / "benchmark.duckdb")

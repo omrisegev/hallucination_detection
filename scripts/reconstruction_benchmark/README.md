@@ -144,6 +144,8 @@ The database exposes:
 
 - `v_atomic_leaderboard`;
 - `v_dataset_leaderboard`;
+- `v_task_leaderboard`;
+- `v_release_leaderboard`;
 - `v_processbench_localization`;
 - `v_prmbench_error_class`;
 - `v_prefix_by_budget`;

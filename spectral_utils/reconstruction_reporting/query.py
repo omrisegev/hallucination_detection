@@ -26,6 +26,8 @@ from .schemas import (
 VIEW_NAMES = (
     "v_atomic_leaderboard",
     "v_dataset_leaderboard",
+    "v_task_leaderboard",
+    "v_release_leaderboard",
     "v_processbench_localization",
     "v_prmbench_error_class",
     "v_prefix_by_budget",
@@ -183,6 +185,8 @@ def query_view_sql() -> list[str]:
     return [
         _leader_view_sql("v_atomic_leaderboard", "cell"),
         _leader_view_sql("v_dataset_leaderboard", "dataset"),
+        _leader_view_sql("v_task_leaderboard", "task"),
+        _leader_view_sql("v_release_leaderboard", "release"),
         """
 CREATE VIEW v_processbench_localization AS
 SELECT leaderboard.*, cells.generation_model_id, cells.scorer_model_id,

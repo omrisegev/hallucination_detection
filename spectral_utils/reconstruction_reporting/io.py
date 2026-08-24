@@ -347,6 +347,10 @@ class ReleaseLayout:
         return self.registries / "research_registry.json"
 
     @property
+    def bridge_manifest(self) -> Path:
+        return self.registries / "BRIDGE_MANIFEST.json"
+
+    @property
     def predictions_parquet(self) -> Path:
         return self.evaluation / "predictions.parquet"
 
@@ -503,6 +507,7 @@ def build_reporting_manifest(
     registry: Mapping[str, Any],
     artifact_records: Iterable[Mapping[str, Any]],
     optional_dependencies: Mapping[str, str],
+    bridge_attestation: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     validated_registry = validate_registry(registry)
     if validated_registry["release_id"] != release_id:
@@ -512,11 +517,13 @@ def build_reporting_manifest(
         key=lambda record: (str(record.get("relative_path", "")), str(record.get("path", ""))),
     )
     value = {
-        "schema": "reconstruction_reporting_manifest_v1",
+        "schema": "reconstruction_reporting_manifest_v2",
         "release_id": release_id,
         "registry_sha256": validated_registry["registry_sha256"],
         "artifacts": records,
         "optional_dependencies": dict(sorted(optional_dependencies.items())),
     }
+    if bridge_attestation is not None:
+        value["source_bridge"] = dict(bridge_attestation)
     value["manifest_sha256"] = hashlib.sha256(canonical_json_bytes(value)).hexdigest()
     return value

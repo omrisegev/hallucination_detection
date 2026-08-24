@@ -964,10 +964,11 @@ class BridgeTests(unittest.TestCase):
             graph_examples=scientific_dir / "graph_examples_long.csv",
             plot_manifest=None,
         )
-        registry, rows, plots = module.load_and_validate(scientific_args)
+        registry, rows, plots, verified_bridge = module.load_and_validate(scientific_args)
         self.assertEqual(registry["release_id"], "synthetic-frozen24-reporting-v1")
         self.assertTrue(rows["graph_diagnostics"] and rows["graph_examples"])
         self.assertTrue(plots["plots"])
+        self.assertTrue(verified_bridge["scientific_publication_eligible"])
         with scientific_args.metrics.open("ab") as handle:
             handle.write(b"tamper")
         with self.assertRaisesRegex(SchemaError, "bridge artifact hash mismatch"):

@@ -148,7 +148,14 @@ def _verify_scientific_bridge(args: argparse.Namespace) -> dict[str, Any]:
     return manifest
 
 
-def load_and_validate(args: argparse.Namespace) -> tuple[dict[str, Any], dict[str, list[dict[str, Any]]], dict[str, Any]]:
+def load_and_validate(
+    args: argparse.Namespace,
+) -> tuple[
+    dict[str, Any],
+    dict[str, list[dict[str, Any]]],
+    dict[str, Any],
+    dict[str, Any],
+]:
     bridge_manifest = _verify_scientific_bridge(args)
     registry = _read_registry(args.registry)
     rows = {
@@ -179,7 +186,7 @@ def load_and_validate(args: argparse.Namespace) -> tuple[dict[str, Any], dict[st
     if plot_manifest["release_id"] != registry["release_id"]:
         raise SchemaError("plot manifest release_id does not match registry")
     validate_plot_data_sources(plot_manifest, rows)
-    return registry, rows, plot_manifest
+    return registry, rows, plot_manifest, bridge_manifest
 
 
 def _dependency_versions() -> dict[str, str]:
@@ -208,6 +215,7 @@ def build_release(
     rows: Mapping[str, list[dict[str, Any]]],
     plot_manifest: Mapping[str, Any],
     title: str,
+    bridge_manifest: Mapping[str, Any] | None = None,
 ) -> Path:
     release_root = release_root.resolve()
     if release_root.exists():
@@ -226,6 +234,27 @@ def build_release(
         layout.create_directories()
         write_canonical_json(layout.registry_json, registry)
         artifacts.append(_artifact_record(layout, layout.registry_json, kind="registry"))
+        bridge_attestation = None
+        if bridge_manifest is not None:
+            write_canonical_json(layout.bridge_manifest, bridge_manifest)
+            bridge_record = _artifact_record(
+                layout,
+                layout.bridge_manifest,
+                kind="scientific_bridge_attestation",
+            )
+            artifacts.append(bridge_record)
+            bridge_attestation = {
+                "schema": str(bridge_manifest["schema"]),
+                "payload_sha256": str(bridge_manifest["payload_sha256"]),
+                "file_sha256": bridge_record["file_sha256"],
+                "scientific_publication_eligible": bool(
+                    bridge_manifest["scientific_publication_eligible"]
+                ),
+                "graph_diagnostics_status": str(
+                    bridge_manifest["graph_diagnostics_status"]
+                ),
+                "relative_path": bridge_record["relative_path"],
+            }
 
         artifacts.append(
             {
@@ -276,7 +305,6 @@ def build_release(
         database_record.update(
             path=layout.database.name,
             relative_path=layout.database.relative_to(layout.root).as_posix(),
-            size_bytes=layout.database.stat().st_size,
             kind="duckdb",
         )
         artifacts.append(database_record)
@@ -287,6 +315,7 @@ def build_release(
             registry=registry,
             artifact_records=artifacts,
             optional_dependencies=_dependency_versions(),
+            bridge_attestation=bridge_attestation,
         )
         write_canonical_json(layout.reporting_manifest, manifest)
         os.replace(staging, release_root)
@@ -298,7 +327,7 @@ def build_release(
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _arguments(argv)
-    registry, rows, plot_manifest = load_and_validate(args)
+    registry, rows, plot_manifest, bridge_manifest = load_and_validate(args)
     summary = {
         "release_id": registry["release_id"],
         "registry_sha256": registry["registry_sha256"],
@@ -314,6 +343,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         rows=rows,
         plot_manifest=plot_manifest,
         title=args.title,
+        bridge_manifest=bridge_manifest,
     )
     print(json.dumps({"status": "BUILT", "release_root": str(output), **summary}, sort_keys=True))
     return 0
