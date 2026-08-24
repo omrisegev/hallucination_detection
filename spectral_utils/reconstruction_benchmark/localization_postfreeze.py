@@ -9,14 +9,21 @@ bytes, so two identical fabricated tables cannot pass.
 
 from __future__ import annotations
 
+import ctypes
 from dataclasses import dataclass
 import csv
+import errno
 from io import StringIO
 import json
+import os
 import pickle
 from pathlib import Path
 import platform
+import shutil
+import stat
 import subprocess
+import sys
+import tempfile
 from typing import Any, Mapping, Sequence
 
 import numpy as np
@@ -71,11 +78,18 @@ from .localization_evaluation import (
     processbench_panel_metrics,
 )
 from .localization_fit import load_localization_score_bundle
+from .localization_postfreeze_amendment import (
+    DEFAULT_LOCALIZATION_POSTFREEZE_AMENDMENT,
+    EXPECTED_SCORE_VERIFIER_GIT_HEAD,
+    apply_localization_postfreeze_amendment,
+    load_localization_postfreeze_amendment,
+    validate_observed_prmbench_oob_audit,
+)
 from .methods import PRIMARY_METHOD_IDS
 
 
-EVALUATION_MANIFEST_SCHEMA_VERSION = "reconstruction-localization-evaluation-manifest-v2"
-EVALUATION_AB_SCHEMA_VERSION = "reconstruction-localization-evaluation-ab-v2"
+EVALUATION_MANIFEST_SCHEMA_VERSION = "reconstruction-localization-evaluation-manifest-v3"
+EVALUATION_AB_SCHEMA_VERSION = "reconstruction-localization-evaluation-ab-v3"
 PB_METRICS = (
     "official_macro_f1", "first_error_exact", "first_error_within_one",
     "clean_abstention_accuracy", "overall_decision_accuracy",
@@ -102,12 +116,14 @@ COVERAGE_FIELDS = (
 )
 EVALUATION_SOURCE_FILES = (
     "configs/reconstruction_benchmark_v1/localization.json",
+    "configs/reconstruction_benchmark_v1/localization_postfreeze_amendment_v1.json",
     "configs/reconstruction_benchmark_v1/external_final_answer.json",
     "configs/reconstruction_benchmark_v1/populations.json",
     "spectral_utils/reconstruction_benchmark/localization_ab.py",
     "spectral_utils/reconstruction_benchmark/localization_contract.py",
     "spectral_utils/reconstruction_benchmark/localization_evaluation.py",
     "spectral_utils/reconstruction_benchmark/localization_postfreeze.py",
+    "spectral_utils/reconstruction_benchmark/localization_postfreeze_amendment.py",
     "scripts/reconstruction_benchmark/evaluate_localization.py",
     "scripts/reconstruction_benchmark/verify_localization_evaluation_ab.py",
 )
@@ -154,6 +170,7 @@ class PRMPanel:
     system_scores: np.ndarray
     run_hashes: Mapping[str, str]
     source_records: tuple[Mapping[str, Any], ...]
+    postfreeze_amendment_audit: Mapping[str, Any] | None = None
 
 
 @dataclass(frozen=True)
@@ -202,7 +219,9 @@ def _run_hash(values: Sequence[str]) -> str:
     return "runv1_" + payload_sha256(list(map(str, values)))
 
 
-def _source_snapshot(repo: Path) -> dict[str, Any]:
+def _repo_state(repo: Path) -> dict[str, Any]:
+    """Bind repository identity without opening any label-bearing source file."""
+
     head = subprocess.run(
         ["git", "rev-parse", "HEAD"], cwd=repo, check=True,
         capture_output=True, text=True,
@@ -211,11 +230,41 @@ def _source_snapshot(repo: Path) -> dict[str, Any]:
         ["git", "status", "--porcelain", "--untracked-files=normal"],
         cwd=repo, check=True, capture_output=True, text=True,
     ).stdout
+    value = {
+        "git_head": head,
+        "git_clean": not bool(status.strip()),
+        "git_status_sha256": sha256_bytes(status.encode("utf-8")),
+    }
+    value["snapshot_sha256"] = payload_sha256(value)
+    return value
+
+
+def _score_verifier_repo_snapshot(repo: Path, *, required_git_head: str) -> dict[str, Any]:
+    state = _repo_state(repo)
+    if state["git_clean"] is not True:
+        raise RuntimeError("score verifier repository must be clean")
+    if state["git_head"] != required_git_head:
+        raise RuntimeError("score verifier repository is not at the amended frozen HEAD")
+    value = {
+        "repo_role": "score_ab_verifier",
+        "required_git_head": required_git_head,
+        **{key: state[key] for key in ("git_head", "git_clean", "git_status_sha256")},
+    }
+    value["snapshot_sha256"] = payload_sha256(value)
+    return value
+
+
+def _source_snapshot(repo: Path) -> dict[str, Any]:
+    state = _repo_state(repo)
     files = [
         {"path": relative, "sha256": sha256_file(repo / relative)}
         for relative in EVALUATION_SOURCE_FILES
     ]
-    value = {"git_head": head, "git_clean": not bool(status.strip()), "files": files}
+    value = {
+        "repo_role": "postfreeze_evaluator",
+        **{key: state[key] for key in ("git_head", "git_clean", "git_status_sha256")},
+        "files": files,
+    }
     value["snapshot_sha256"] = payload_sha256(value)
     return value
 
@@ -495,9 +544,34 @@ def _load_processbench_cells(
     return cells
 
 
+def _partition_prmbench_error_steps(
+    error_steps: Any, *, n_steps: int,
+) -> tuple[tuple[int, ...], tuple[int, ...]]:
+    """Apply the official one-based membership semantics without repair."""
+
+    if type(n_steps) is not int or n_steps < 1:
+        raise RuntimeError("PRMBench realized step count is malformed")
+    if (
+        not isinstance(error_steps, Sequence)
+        or isinstance(error_steps, (str, bytes))
+        or any(type(value) is not int for value in error_steps)
+    ):
+        raise RuntimeError("PRMBench error_steps must contain exact one-based integers")
+    values = tuple(error_steps)
+    if len(values) != len(set(values)):
+        raise RuntimeError("PRMBench error_steps contain duplicate annotations")
+    if any(value < 1 for value in values):
+        raise RuntimeError("PRMBench error_steps contain zero/negative annotations")
+    return (
+        tuple(value for value in values if value <= n_steps),
+        tuple(value for value in values if value > n_steps),
+    )
+
+
 def _load_prmbench_panel(
     *,
     config: Mapping[str, Any],
+    amendment: Mapping[str, Any],
     registry: Any,
     source_root: Path,
     identity_key: bytes,
@@ -530,6 +604,11 @@ def _load_prmbench_panel(
     score_parts = []
     step_labels = []
     step_offsets = [0]
+    oob_records: list[dict[str, Any]] = []
+    all_annotations: list[int] = []
+    zero_count = 0
+    negative_count = 0
+    duplicate_annotation_rows = 0
     for index in selected:
         lo, hi = map(int, full_offsets[index:index + 2])
         row = rows[index]
@@ -548,12 +627,37 @@ def _load_prmbench_panel(
             or isinstance(error_steps, (str, bytes))
         ):
             raise RuntimeError("PRMBench step target/span roster is malformed")
-        errors = {int(value) for value in error_steps}
-        if any(value < 1 or value > n_steps for value in errors):
-            raise RuntimeError("PRMBench error_steps are not valid one-based indices")
+        if isinstance(error_steps, Sequence) and not isinstance(error_steps, (str, bytes)):
+            exact_values = list(error_steps)
+            if all(type(value) is int for value in exact_values):
+                all_annotations.extend(exact_values)
+                zero_count += sum(value == 0 for value in exact_values)
+                negative_count += sum(value < 0 for value in exact_values)
+                duplicate_annotation_rows += int(len(exact_values) != len(set(exact_values)))
+        valid_errors, invalid_errors = _partition_prmbench_error_steps(
+            error_steps, n_steps=n_steps,
+        )
+        errors = set(valid_errors)
+        if invalid_errors:
+            oob_records.append({
+                "idx": str(row.get("idx")),
+                "family": str(row.get("classification")),
+                "n_steps": n_steps,
+                "error_steps": list(error_steps),
+                "invalid": list(invalid_errors),
+            })
         step_labels.extend(int(step_index + 1 in errors) for step_index in range(n_steps))
         score_parts.append(full_core_scores[:, lo:hi])
         step_offsets.append(step_offsets[-1] + n_steps)
+    amendment_audit = validate_observed_prmbench_oob_audit(
+        oob_records,
+        amendment,
+        all_annotation_count=len(all_annotations),
+        minimum_annotation=min(all_annotations) if all_annotations else 0,
+        zero_count=zero_count,
+        negative_count=negative_count,
+        duplicate_annotation_rows=duplicate_annotation_rows,
+    )
     matrix_parts = [np.concatenate(score_parts, axis=1)]
     system_ids = list(core_system_ids)
     run_hashes = {
@@ -631,6 +735,7 @@ def _load_prmbench_panel(
         system_scores=system_scores,
         run_hashes=run_hashes,
         source_records=verified,
+        postfreeze_amendment_audit=amendment_audit,
     )
 
 
@@ -1754,6 +1859,7 @@ def _source_provenance_bytes(
     *, cells: Mapping[str, PBCell], panel: PRMPanel,
     localization_registry_path: Path, external_registry_path: Path,
     population_registry_path: Path,
+    amendment: Mapping[str, Any],
 ) -> bytes:
     records: dict[tuple[str, str, str], dict[str, Any]] = {}
     for item in [
@@ -1766,12 +1872,24 @@ def _source_provenance_bytes(
         if previous != row:
             raise RuntimeError("post-freeze source provenance differs for one artifact")
     value = {
-        "schema_version": "reconstruction-localization-label-source-provenance-v1",
+        "schema_version": "reconstruction-localization-label-source-provenance-v2",
         "stage": "post_score_ab_freeze_only",
         "source_root_contract": "registered relative paths beneath verified source overlay",
         "localization_registry_sha256": sha256_file(localization_registry_path),
         "external_registry_sha256": sha256_file(external_registry_path),
         "population_registry_sha256": sha256_file(population_registry_path),
+        "postfreeze_amendment": {
+            "schema_version": amendment["schema_version"],
+            "amendment_id": amendment["amendment_id"],
+            "file_sha256": amendment["file_sha256"],
+            "payload_sha256": amendment["payload_sha256"],
+            "score_verifier_required_git_head": amendment["score_verifier_repo"][
+                "required_git_head"
+            ],
+            "semantics": amendment["semantics"],
+            "observed_oob_audit": panel.postfreeze_amendment_audit,
+            "disclosure": amendment["disclosure"],
+        },
         "records": [records[key] for key in sorted(records)],
     }
     value["payload_sha256"] = payload_sha256(value)
@@ -1786,7 +1904,11 @@ def derive_localization_evaluation(
     external_registry_path: str | Path = DEFAULT_EXTERNAL_REGISTRY,
     population_registry_path: str | Path = DEFAULT_POPULATION_REGISTRY,
     source_root: str | Path = DEFAULT_SOURCE_ROOT,
-    repo: str | Path = REPO_ROOT,
+    score_verifier_repo: str | Path,
+    evaluation_repo: str | Path = REPO_ROOT,
+    localization_postfreeze_amendment_path: str | Path = (
+        DEFAULT_LOCALIZATION_POSTFREEZE_AMENDMENT
+    ),
     bootstrap_draws: int = DEFAULT_BOOTSTRAP_DRAWS,
 ) -> DerivedLocalizationEvaluation:
     """Rederive every post-label output from one exact frozen score build."""
@@ -1796,31 +1918,73 @@ def derive_localization_evaluation(
     if int(bootstrap_draws) != bootstrap_draws or int(bootstrap_draws) < 1:
         raise ValueError("localization evaluation bootstrap draws must be positive integer")
     draws = int(bootstrap_draws)
-    repo_path = Path(repo).resolve()
+    score_verifier_repo_path = Path(score_verifier_repo).resolve()
+    evaluation_repo_path = Path(evaluation_repo).resolve()
     release_root_path = Path(release_root).resolve()
     source_root_path = Path(source_root).resolve()
     localization_registry_file = Path(localization_registry_path).resolve()
     external_registry_file = Path(external_registry_path).resolve()
     population_registry_file = Path(population_registry_path).resolve()
+    amendment_path = Path(localization_postfreeze_amendment_path).resolve()
     certificate_path = (
         Path(localization_ab_certificate_path).resolve()
         if localization_ab_certificate_path is not None
         else release_root_path / release_id / "localization/AB_VERIFICATION.json"
     )
 
-    # This full recomputation is intentionally the first operation capable of
-    # being followed by label access.  If it fails, no raw target container is
-    # opened by this module.
+    # Repository state is target-free.  Require the dedicated verifier checkout
+    # to be exactly the score-frozen commit before revalidating the certificate.
+    score_verifier_snapshot = _score_verifier_repo_snapshot(
+        score_verifier_repo_path,
+        required_git_head=EXPECTED_SCORE_VERIFIER_GIT_HEAD,
+    )
+    score_registry_files = {
+        "localization": score_verifier_repo_path
+        / "configs/reconstruction_benchmark_v1/localization.json",
+        "external": score_verifier_repo_path
+        / "configs/reconstruction_benchmark_v1/external_final_answer.json",
+        "populations": score_verifier_repo_path
+        / "configs/reconstruction_benchmark_v1/populations.json",
+    }
+    evaluation_registry_files = {
+        "localization": localization_registry_file,
+        "external": external_registry_file,
+        "populations": population_registry_file,
+    }
+    if any(
+        sha256_file(score_registry_files[key])
+        != sha256_file(evaluation_registry_files[key])
+        for key in score_registry_files
+    ):
+        raise RuntimeError("score-verifier and evaluation registry bytes differ")
+    score_source_root = score_verifier_repo_path / (
+        "results/reconstruction_benchmark_v1/source_overlays/external_final_answer_v1"
+    )
+
+    # This full recomputation is intentionally the last gate before any
+    # label-bearing amendment or raw target container is opened.
     certificate = assert_localization_ab_certificate(
         certificate_path,
         release_id=release_id,
         release_root=release_root_path,
-        localization_registry_path=localization_registry_file,
-        external_registry_path=external_registry_file,
-        population_registry_path=population_registry_file,
-        source_root=source_root_path,
-        repo=repo_path,
+        localization_registry_path=score_registry_files["localization"],
+        external_registry_path=score_registry_files["external"],
+        population_registry_path=score_registry_files["populations"],
+        source_root=score_source_root,
+        repo=score_verifier_repo_path,
     )
+    amendment = load_localization_postfreeze_amendment(
+        amendment_path,
+        release_id=release_id,
+        localization_registry_path=localization_registry_file,
+        score_ab_certificate_path=certificate_path,
+        score_ab_certificate=certificate,
+        source_root=source_root_path,
+    )
+    if amendment["score_verifier_repo"]["required_git_head"] != (
+        score_verifier_snapshot["git_head"]
+    ):
+        raise RuntimeError("score verifier snapshot differs from post-freeze amendment")
     external_release_id = str(certificate["external_release_id"])
     key_path = (
         Path(identity_key_path).resolve()
@@ -1833,9 +1997,10 @@ def derive_localization_evaluation(
     if identity_key_id(identity_key) != identity_binding.get("key_id"):
         raise RuntimeError("post-freeze identity key differs from signed localization inputs")
 
-    config = load_localization_registry(localization_registry_file)
+    score_bound_config = load_localization_registry(localization_registry_file)
+    config = apply_localization_postfreeze_amendment(score_bound_config, amendment)
     registry = load_external_registry(
-        repo=repo_path,
+        repo=evaluation_repo_path,
         registry_path=external_registry_file,
         population_registry_path=population_registry_file,
     )
@@ -1854,7 +2019,7 @@ def derive_localization_evaluation(
         identity_key=identity_key, core=core, projections=projections,
     )
     panel = _load_prmbench_panel(
-        config=config, registry=registry, source_root=source_root_path,
+        config=config, amendment=amendment, registry=registry, source_root=source_root_path,
         identity_key=identity_key, core=core, projections=projections,
     )
     pb_decisions, pb_metrics, pb_contrasts, pb_coverage, calibration, pb_executions = (
@@ -1909,6 +2074,7 @@ def derive_localization_evaluation(
             localization_registry_path=localization_registry_file,
             external_registry_path=external_registry_file,
             population_registry_path=population_registry_file,
+            amendment=amendment,
         ),
     }
     if tuple(sorted(files)) != tuple(sorted(EXPECTED_ARTIFACTS)):
@@ -1921,6 +2087,15 @@ def derive_localization_evaluation(
         "score_ab_certificate_sha256": certificate["certificate_sha256"],
         "score_ab_certificate_file_sha256": sha256_file(certificate_path),
         "score_freeze_payload_sha256": freeze["payload_sha256"],
+        "postfreeze_amendment": {
+            "schema_version": amendment["schema_version"],
+            "amendment_id": amendment["amendment_id"],
+            "file_sha256": amendment["file_sha256"],
+            "payload_sha256": amendment["payload_sha256"],
+            "semantics": amendment["semantics"],
+            "observed_oob_audit": panel.postfreeze_amendment_audit,
+            "effective_prmbench_counts": amendment["effective_prmbench_counts"],
+        },
         "identity_key_id": identity_key_id(identity_key),
         "target_data_opened_only_after_score_ab_pass": True,
         "response_scores_refit": False,
@@ -1930,13 +2105,173 @@ def derive_localization_evaluation(
         "completeness": completeness,
         "artifacts": artifact_rows,
         "artifacts_sha256": payload_sha256(artifact_rows),
-        "evaluation_source_snapshot": _source_snapshot(repo_path),
+        "score_verifier_repo_snapshot": score_verifier_snapshot,
+        "evaluation_source_snapshot": _source_snapshot(evaluation_repo_path),
         "runtime": {
             "python": platform.python_version(),
             "numpy": np.__version__,
         },
     }
     return DerivedLocalizationEvaluation(files=files, manifest_core=manifest_core)
+
+
+def _fsync_directory(path: Path) -> None:
+    descriptor = os.open(path, os.O_RDONLY)
+    try:
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
+def _rename_directory_noreplace(source: Path, target: Path) -> None:
+    """Atomically publish a directory without replacing a raced target."""
+
+    libc = ctypes.CDLL(None, use_errno=True)
+    source_bytes = os.fsencode(source)
+    target_bytes = os.fsencode(target)
+    if sys.platform == "darwin":
+        operation = getattr(libc, "renamex_np", None)
+        if operation is None:
+            raise RuntimeError(
+                "atomic no-replace localization publication is unavailable"
+            )
+        operation.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.c_uint]
+        operation.restype = ctypes.c_int
+        result = operation(source_bytes, target_bytes, 0x00000004)  # RENAME_EXCL
+    elif sys.platform.startswith("linux"):
+        operation = getattr(libc, "renameat2", None)
+        if operation is None:
+            raise RuntimeError(
+                "atomic no-replace localization publication is unavailable"
+            )
+        operation.argtypes = [
+            ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_char_p,
+            ctypes.c_uint,
+        ]
+        operation.restype = ctypes.c_int
+        result = operation(-100, source_bytes, -100, target_bytes, 1)  # RENAME_NOREPLACE
+    else:
+        raise RuntimeError(
+            f"atomic no-replace localization publication is unsupported on {sys.platform}"
+        )
+    if result == 0:
+        return
+    error_number = ctypes.get_errno()
+    if error_number in {errno.EEXIST, errno.ENOTEMPTY}:
+        raise FileExistsError(
+            f"localization evaluation output already exists: {target}"
+        )
+    raise OSError(error_number, os.strerror(error_number), os.fspath(target))
+
+
+class _AtomicEvaluationStage:
+    """Build an unpublished sibling tree and expose it by one rename."""
+
+    def __init__(self, final_path: Path) -> None:
+        requested = Path(os.path.abspath(os.fspath(final_path)))
+        try:
+            parent = requested.parent.resolve(strict=True)
+        except FileNotFoundError as error:
+            raise RuntimeError("localization evaluation parent is absent") from error
+        if not parent.is_dir():
+            raise RuntimeError("localization evaluation parent must be a directory")
+        self.final_path = parent / requested.name
+        if os.path.lexists(self.final_path):
+            raise FileExistsError(
+                f"localization evaluation output already exists: {self.final_path}"
+            )
+        self.path = Path(tempfile.mkdtemp(
+            prefix=f".{self.final_path.name}.staging-", dir=parent,
+        ))
+        self.committed = False
+
+    def commit(self) -> None:
+        if self.committed:
+            raise RuntimeError("localization evaluation stage was already committed")
+        if os.path.lexists(self.final_path):
+            raise FileExistsError(
+                f"localization evaluation output already exists: {self.final_path}"
+            )
+        _fsync_directory(self.path)
+        _rename_directory_noreplace(self.path, self.final_path)
+        _fsync_directory(self.final_path.parent)
+        self.committed = True
+
+    def cleanup(self) -> None:
+        if not self.committed and self.path.exists():
+            shutil.rmtree(self.path)
+
+
+def _read_regular_file_nofollow(path: Path) -> bytes:
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(path, flags)
+    try:
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            raise FileExistsError("localization evaluation certificate is not regular")
+        chunks: list[bytes] = []
+        while True:
+            chunk = os.read(descriptor, 1024 * 1024)
+            if not chunk:
+                break
+            chunks.append(chunk)
+        return b"".join(chunks)
+    finally:
+        os.close(descriptor)
+
+
+def _write_immutable_certificate(path: Path, payload: bytes) -> None:
+    """Atomically publish a no-clobber certificate; allow identical reruns."""
+
+    requested = Path(os.path.abspath(os.fspath(path)))
+    try:
+        parent = requested.parent.resolve(strict=True)
+    except FileNotFoundError as error:
+        raise RuntimeError("localization evaluation certificate parent is absent") from error
+    if not parent.is_dir():
+        raise RuntimeError("localization evaluation certificate parent must be a directory")
+    target = parent / requested.name
+    try:
+        existing = _read_regular_file_nofollow(target)
+    except FileNotFoundError:
+        existing = None
+    except OSError as error:
+        raise FileExistsError("localization evaluation certificate target is unsafe") from error
+    if existing is not None:
+        if existing != payload:
+            raise FileExistsError("localization evaluation certificate already differs")
+        return
+
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{target.name}.", suffix=".tmp", dir=parent,
+    )
+    temporary = Path(temporary_name)
+    try:
+        offset = 0
+        while offset < len(payload):
+            offset += os.write(descriptor, payload[offset:])
+        os.fchmod(descriptor, 0o644)
+        os.fsync(descriptor)
+        os.close(descriptor)
+        descriptor = -1
+        try:
+            os.link(temporary, target, follow_symlinks=False)
+        except FileExistsError:
+            try:
+                raced = _read_regular_file_nofollow(target)
+            except OSError as error:
+                raise FileExistsError(
+                    "localization evaluation certificate was claimed unsafely"
+                ) from error
+            if raced != payload:
+                raise FileExistsError("localization evaluation certificate already differs")
+        _fsync_directory(parent)
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        try:
+            temporary.unlink()
+        except FileNotFoundError:
+            pass
 
 
 def write_localization_evaluation_build(
@@ -1947,23 +2282,20 @@ def write_localization_evaluation_build(
     draws = int(derive_kwargs.get("bootstrap_draws", DEFAULT_BOOTSTRAP_DRAWS))
     if scientific_full and draws != DEFAULT_BOOTSTRAP_DRAWS:
         raise RuntimeError("scientific localization evaluation requires exactly 20,000 draws")
-    repo_path = Path(derive_kwargs.get("repo", REPO_ROOT)).resolve()
-    if scientific_full and _source_snapshot(repo_path)["git_clean"] is not True:
+    evaluation_repo_path = Path(
+        derive_kwargs.get("evaluation_repo", REPO_ROOT)
+    ).resolve()
+    if scientific_full and _repo_state(evaluation_repo_path)["git_clean"] is not True:
         raise RuntimeError("scientific localization evaluation requires a clean worktree")
     derived = derive_localization_evaluation(
         release_id=release_id, build_id=build_id, release_root=release_root,
         **derive_kwargs,
     )
-    root = (
-        Path(output_root).resolve() if output_root is not None
+    requested_root = (
+        Path(output_root) if output_root is not None
         else Path(release_root).resolve() / release_id / f"build_{build_id}"
         / "localization/evaluation"
     )
-    if root.exists() and any(root.iterdir()):
-        raise FileExistsError(f"localization evaluation output is not empty: {root}")
-    root.mkdir(parents=True, exist_ok=False)
-    for path, payload in derived.files.items():
-        atomic_write_bytes(root / path, payload)
     manifest = {
         "schema_version": EVALUATION_MANIFEST_SCHEMA_VERSION,
         "release_id": release_id,
@@ -1973,7 +2305,14 @@ def write_localization_evaluation_build(
         **derived.manifest_core,
     }
     manifest["payload_sha256"] = payload_sha256(manifest)
-    atomic_write_json(root / "MANIFEST.json", manifest)
+    stage = _AtomicEvaluationStage(requested_root)
+    try:
+        for path, payload in derived.files.items():
+            atomic_write_bytes(stage.path / path, payload)
+        atomic_write_json(stage.path / "MANIFEST.json", manifest)
+        stage.commit()
+    finally:
+        stage.cleanup()
     return manifest
 
 
@@ -1981,6 +2320,10 @@ def _validate_evaluation_build_against_derivation(
     *, root: Path, release_id: str, build_id: str,
     derived: DerivedLocalizationEvaluation,
 ) -> dict[str, Any]:
+    if root.is_symlink() or not root.is_dir():
+        raise RuntimeError("evaluation build root must be a real directory")
+    if any(path.is_symlink() for path in root.rglob("*")):
+        raise RuntimeError("evaluation build contains a symlink")
     actual_files = {
         path.relative_to(root).as_posix()
         for path in root.rglob("*") if path.is_file()
@@ -2031,12 +2374,16 @@ def verify_localization_evaluation_ab(
     external_registry_path: str | Path = DEFAULT_EXTERNAL_REGISTRY,
     population_registry_path: str | Path = DEFAULT_POPULATION_REGISTRY,
     source_root: str | Path = DEFAULT_SOURCE_ROOT,
-    repo: str | Path = REPO_ROOT,
+    score_verifier_repo: str | Path,
+    evaluation_repo: str | Path = REPO_ROOT,
+    localization_postfreeze_amendment_path: str | Path = (
+        DEFAULT_LOCALIZATION_POSTFREEZE_AMENDMENT
+    ),
 ) -> dict[str, Any]:
     """Rederive both builds, prove completeness, then require byte identity."""
 
     release_root_path = Path(release_root).resolve()
-    if _source_snapshot(Path(repo).resolve())["git_clean"] is not True:
+    if _repo_state(Path(evaluation_repo).resolve())["git_clean"] is not True:
         raise RuntimeError("scientific localization evaluation verification requires clean git")
     derived = {}
     validated = {}
@@ -2048,7 +2395,12 @@ def verify_localization_evaluation_ab(
             localization_registry_path=localization_registry_path,
             external_registry_path=external_registry_path,
             population_registry_path=population_registry_path,
-            source_root=source_root, repo=repo,
+            source_root=source_root,
+            score_verifier_repo=score_verifier_repo,
+            evaluation_repo=evaluation_repo,
+            localization_postfreeze_amendment_path=(
+                localization_postfreeze_amendment_path
+            ),
             bootstrap_draws=DEFAULT_BOOTSTRAP_DRAWS,
         )
         root = release_root_path / release_id / f"build_{build_id}"
@@ -2059,6 +2411,8 @@ def verify_localization_evaluation_ab(
         )
     if derived["A"].files != derived["B"].files:
         raise RuntimeError("independent localization evaluation derivations differ")
+    if derived["A"].manifest_core != derived["B"].manifest_core:
+        raise RuntimeError("independent localization evaluation manifests differ")
     if validated["A"]["artifact_sha256"] != validated["B"]["artifact_sha256"]:
         raise RuntimeError("localization evaluation A/B artifacts are not byte-identical")
     completeness = derived["A"].manifest_core["completeness"]
@@ -2073,6 +2427,18 @@ def verify_localization_evaluation_ab(
         "score_ab_certificate_sha256": derived["A"].manifest_core[
             "score_ab_certificate_sha256"
         ],
+        "score_ab_certificate_file_sha256": derived["A"].manifest_core[
+            "score_ab_certificate_file_sha256"
+        ],
+        "postfreeze_amendment": derived["A"].manifest_core[
+            "postfreeze_amendment"
+        ],
+        "score_verifier_repo_snapshot": derived["A"].manifest_core[
+            "score_verifier_repo_snapshot"
+        ],
+        "evaluation_source_snapshot": derived["A"].manifest_core[
+            "evaluation_source_snapshot"
+        ],
         "completeness": completeness,
         "artifact_sha256": validated["A"]["artifact_sha256"],
         "builds": {
@@ -2085,10 +2451,10 @@ def verify_localization_evaluation_ab(
     }
     certificate["certificate_sha256"] = payload_sha256(certificate)
     target = (
-        Path(output_path).resolve() if output_path is not None
+        Path(output_path) if output_path is not None
         else release_root_path / release_id / "localization/EVALUATION_AB_VERIFICATION.json"
     )
-    atomic_write_json(target, certificate)
+    _write_immutable_certificate(target, _json_bytes(certificate))
     return certificate
 
 

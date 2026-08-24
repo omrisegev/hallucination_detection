@@ -3,9 +3,12 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 import inspect
+import json
 from pathlib import Path
 import sys
+import tempfile
 import unittest
 from unittest import mock
 
@@ -18,6 +21,10 @@ if str(REPO) not in sys.path:
 
 from spectral_utils.reconstruction_benchmark import localization_fit as LF  # noqa: E402
 from spectral_utils.reconstruction_benchmark import localization_evaluation as LE  # noqa: E402
+from spectral_utils.reconstruction_benchmark import localization_postfreeze as LP  # noqa: E402
+from spectral_utils.reconstruction_benchmark import (  # noqa: E402
+    localization_postfreeze_amendment as LPA,
+)
 from spectral_utils.reconstruction_benchmark.localization_ab import (  # noqa: E402
     _external_response_bindings,
 )
@@ -51,8 +58,11 @@ from spectral_utils.reconstruction_benchmark.localization_evaluation import (  #
     processbench_trace_metrics,
 )
 from spectral_utils.reconstruction_benchmark.localization_postfreeze import (  # noqa: E402
+    DerivedLocalizationEvaluation,
     PBCell,
     PRMPanel,
+    _partition_prmbench_error_steps,
+    _score_verifier_repo_snapshot,
     _evaluate_prmbench,
     _evaluate_processbench,
     _paired_contrast,
@@ -64,6 +74,22 @@ from spectral_utils.reconstruction_benchmark.localization_postfreeze import (  #
     verify_localization_evaluation_ab,
     write_localization_evaluation_build,
 )
+from spectral_utils.reconstruction_benchmark.localization_postfreeze_amendment import (  # noqa: E402
+    EXPECTED_AMENDMENT_FILE_SHA256,
+    EXPECTED_AMENDMENT_PAYLOAD_SHA256,
+    EXPECTED_LOCALIZATION_REGISTRY_SHA256,
+    EXPECTED_OOB_RECORDS_SHA256,
+    EXPECTED_RELEASE_ID,
+    EXPECTED_SCORE_AB_CERTIFICATE_FILE_SHA256,
+    EXPECTED_SCORE_AB_CERTIFICATE_SHA256,
+    EXPECTED_SCORE_VERIFIER_GIT_HEAD,
+    EXPECTED_TELEMETRY_MANIFEST_SHA256,
+    EXPECTED_TELEMETRY_SHA256,
+    apply_localization_postfreeze_amendment,
+    load_localization_postfreeze_amendment,
+    validate_observed_prmbench_oob_audit,
+)
+from spectral_utils.reconstruction_benchmark.io import sha256_file  # noqa: E402
 from spectral_utils.reconstruction_benchmark.methods import PRIMARY_METHOD_IDS  # noqa: E402
 
 
@@ -275,6 +301,187 @@ class ProcessBenchEvaluationTests(unittest.TestCase):
                 ), metric_id)
 
 
+class PostFreezeAmendmentTests(unittest.TestCase):
+    amendment_path = (
+        REPO
+        / "configs/reconstruction_benchmark_v1/localization_postfreeze_amendment_v1.json"
+    )
+
+    def _amendment_document(self) -> dict:
+        return json.loads(self.amendment_path.read_text(encoding="utf-8"))
+
+    def test_amendment_is_exactly_100_rows_151_inert_and_13144_effective(self) -> None:
+        value = self._amendment_document()
+        payload = dict(value)
+        recorded = payload.pop("payload_sha256")
+        self.assertEqual(sha256_file(self.amendment_path), EXPECTED_AMENDMENT_FILE_SHA256)
+        self.assertEqual(recorded, EXPECTED_AMENDMENT_PAYLOAD_SHA256)
+        self.assertEqual(recorded, payload_sha256(payload))
+        records = value["oob_audit"]["records"]
+        self.assertEqual(len(records), 100)
+        self.assertEqual(sum(len(row["invalid"]) for row in records), 151)
+        self.assertEqual(payload_sha256(records), EXPECTED_OOB_RECORDS_SHA256)
+        self.assertEqual(
+            value["effective_prmbench_counts"]["expected_positive_steps"], 13_144
+        )
+        self.assertEqual(
+            value["original_prmbench_counts"]["expected_positive_steps"] - 151,
+            value["effective_prmbench_counts"]["expected_positive_steps"],
+        )
+
+    def test_real_shaped_oob_is_inert_without_shift_clamp_or_row_drop(self) -> None:
+        valid, invalid = _partition_prmbench_error_steps([52, 54], n_steps=53)
+        self.assertEqual(valid, (52,))
+        self.assertEqual(invalid, (54,))
+        labels = np.asarray([
+            int(step_index + 1 in set(valid)) for step_index in range(53)
+        ])
+        self.assertEqual(int(labels.sum()), 1)
+        self.assertEqual(int(labels[51]), 1)
+        self.assertEqual(int(labels[52]), 0)
+        with self.assertRaisesRegex(RuntimeError, "zero/negative"):
+            _partition_prmbench_error_steps([0, 1], n_steps=3)
+        with self.assertRaisesRegex(RuntimeError, "exact one-based integers"):
+            _partition_prmbench_error_steps([True, 1], n_steps=3)
+        with self.assertRaisesRegex(RuntimeError, "duplicate"):
+            _partition_prmbench_error_steps([1, 1], n_steps=3)
+
+    def test_amendment_application_changes_only_disclosed_prm_counts(self) -> None:
+        config = load_localization_registry(
+            REPO / "configs/reconstruction_benchmark_v1/localization.json"
+        )
+        original = deepcopy(config)
+        amendment = self._amendment_document()
+        effective = apply_localization_postfreeze_amendment(config, amendment)
+        self.assertEqual(config, original)
+        expected = deepcopy(original)
+        for field in (
+            "expected_error_responses", "expected_steps", "expected_positive_steps",
+            "expected_by_family",
+        ):
+            expected["prmbench"][field] = deepcopy(
+                amendment["effective_prmbench_counts"][field]
+            )
+        self.assertEqual(effective, expected)
+
+    def test_observed_audit_must_match_all_100_records_byte_semantically(self) -> None:
+        amendment = self._amendment_document()
+        amendment["file_sha256"] = EXPECTED_AMENDMENT_FILE_SHA256
+        audit = validate_observed_prmbench_oob_audit(
+            amendment["oob_audit"]["records"], amendment,
+            all_annotation_count=13_295,
+            minimum_annotation=1,
+            zero_count=0,
+            negative_count=0,
+            duplicate_annotation_rows=0,
+        )
+        self.assertEqual(audit["row_count"], 100)
+        self.assertEqual(audit["annotation_count"], 151)
+        tampered = deepcopy(amendment["oob_audit"]["records"])
+        tampered[0]["invalid"][0] += 1
+        with self.assertRaisesRegex(RuntimeError, "differs from amendment"):
+            validate_observed_prmbench_oob_audit(
+                tampered, amendment,
+                all_annotation_count=13_295,
+                minimum_annotation=1,
+                zero_count=0,
+                negative_count=0,
+                duplicate_annotation_rows=0,
+            )
+
+    def test_wrong_tampered_and_malformed_amendments_fail_closed(self) -> None:
+        exact = self._amendment_document()
+        certificate = {
+            "schema_version": "reconstruction-localization-ab-certificate-v2",
+            "certificate_sha256": EXPECTED_SCORE_AB_CERTIFICATE_SHA256,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            amendment_path = root / "amendment.json"
+            amendment_path.write_bytes(self.amendment_path.read_bytes())
+            certificate_path = (
+                root / EXPECTED_RELEASE_ID / "localization/AB_VERIFICATION.json"
+            )
+            certificate_path.parent.mkdir(parents=True)
+            certificate_path.write_text("{}\n", encoding="utf-8")
+            source_root = root / "source"
+            source_root.mkdir()
+
+            def fixed_sha(path: str | Path) -> str:
+                candidate = Path(path).resolve()
+                if candidate == amendment_path.resolve():
+                    return EXPECTED_AMENDMENT_FILE_SHA256
+                if candidate == (
+                    REPO / "configs/reconstruction_benchmark_v1/localization.json"
+                ).resolve():
+                    return EXPECTED_LOCALIZATION_REGISTRY_SHA256
+                if candidate == certificate_path.resolve():
+                    return EXPECTED_SCORE_AB_CERTIFICATE_FILE_SHA256
+                if candidate.name == "prmbench_telemetry.pkl":
+                    return EXPECTED_TELEMETRY_SHA256
+                if candidate.name == "manifest.json":
+                    return EXPECTED_TELEMETRY_MANIFEST_SHA256
+                raise AssertionError(f"unexpected hash target: {candidate}")
+
+            kwargs = {
+                "release_id": EXPECTED_RELEASE_ID,
+                "localization_registry_path": (
+                    REPO / "configs/reconstruction_benchmark_v1/localization.json"
+                ),
+                "score_ab_certificate_path": certificate_path,
+                "score_ab_certificate": certificate,
+                "source_root": source_root,
+            }
+            with mock.patch.object(LPA, "sha256_file", side_effect=fixed_sha):
+                loaded = load_localization_postfreeze_amendment(amendment_path, **kwargs)
+                self.assertEqual(loaded["amendment_id"], exact["amendment_id"])
+                with self.assertRaisesRegex(RuntimeError, "does not apply"):
+                    load_localization_postfreeze_amendment(
+                        amendment_path, **{**kwargs, "release_id": "wrong_release"}
+                    )
+
+                tampered = deepcopy(exact)
+                tampered["reason"] += " tampered"
+                payload = dict(tampered)
+                payload.pop("payload_sha256")
+                tampered["payload_sha256"] = payload_sha256(payload)
+                amendment_path.write_text(json.dumps(tampered), encoding="utf-8")
+                with self.assertRaisesRegex(RuntimeError, "payload hash"):
+                    load_localization_postfreeze_amendment(amendment_path, **kwargs)
+
+                malformed = deepcopy(exact)
+                malformed["oob_audit"] = []
+                payload = dict(malformed)
+                payload.pop("payload_sha256")
+                malformed["payload_sha256"] = payload_sha256(payload)
+                amendment_path.write_text(json.dumps(malformed), encoding="utf-8")
+                with mock.patch.object(
+                    LPA, "EXPECTED_AMENDMENT_PAYLOAD_SHA256",
+                    malformed["payload_sha256"],
+                ):
+                    with self.assertRaisesRegex(RuntimeError, "OOB audit is malformed"):
+                        load_localization_postfreeze_amendment(amendment_path, **kwargs)
+
+    def test_score_verifier_repo_head_is_enforced_not_decorative(self) -> None:
+        clean = {
+            "git_head": EXPECTED_SCORE_VERIFIER_GIT_HEAD,
+            "git_clean": True,
+            "git_status_sha256": "0" * 64,
+            "snapshot_sha256": "1" * 64,
+        }
+        with mock.patch.object(LP, "_repo_state", return_value=clean):
+            snapshot = _score_verifier_repo_snapshot(
+                REPO, required_git_head=EXPECTED_SCORE_VERIFIER_GIT_HEAD,
+            )
+        self.assertEqual(snapshot["git_head"], EXPECTED_SCORE_VERIFIER_GIT_HEAD)
+        wrong = {**clean, "git_head": "f" * 40}
+        with mock.patch.object(LP, "_repo_state", return_value=wrong):
+            with self.assertRaisesRegex(RuntimeError, "frozen HEAD"):
+                _score_verifier_repo_snapshot(
+                    REPO, required_git_head=EXPECTED_SCORE_VERIFIER_GIT_HEAD,
+                )
+
+
 class PRMBenchEvaluationTests(unittest.TestCase):
     def _panel_rows(self) -> list[dict]:
         rows = []
@@ -438,6 +645,167 @@ class EvaluationArtifactTests(unittest.TestCase):
                 release_id="r", build_id="A", release_root=REPO,
                 scientific_full=True, bootstrap_draws=19_999,
             )
+
+    def test_score_ab_failure_precedes_amendment_or_target_access(self) -> None:
+        score_repo = REPO
+        snapshot = {
+            "repo_role": "score_ab_verifier",
+            "required_git_head": EXPECTED_SCORE_VERIFIER_GIT_HEAD,
+            "git_head": EXPECTED_SCORE_VERIFIER_GIT_HEAD,
+            "git_clean": True,
+            "git_status_sha256": "0" * 64,
+            "snapshot_sha256": "1" * 64,
+        }
+        with (
+            mock.patch.object(LP, "_score_verifier_repo_snapshot", return_value=snapshot),
+            mock.patch.object(
+                LP, "assert_localization_ab_certificate",
+                side_effect=RuntimeError("score certificate rejected"),
+            ) as score_gate,
+            mock.patch.object(LP, "load_localization_postfreeze_amendment") as amendment,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "score certificate rejected"):
+                LP.derive_localization_evaluation(
+                    release_id=EXPECTED_RELEASE_ID,
+                    build_id="A",
+                    release_root=REPO,
+                    score_verifier_repo=score_repo,
+                    bootstrap_draws=1,
+                )
+        amendment.assert_not_called()
+        self.assertEqual(score_gate.call_args.kwargs["repo"], score_repo.resolve())
+
+    def test_evaluation_writer_is_atomic_cleans_failure_and_never_clobbers(self) -> None:
+        derived = DerivedLocalizationEvaluation(
+            files={"first.bin": b"first", "second.bin": b"second"},
+            manifest_core={"bootstrap_draws": 3},
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            parent = Path(directory)
+            output = parent / "evaluation"
+            with mock.patch.object(LP, "derive_localization_evaluation", return_value=derived):
+                manifest = write_localization_evaluation_build(
+                    release_id="r", build_id="A", release_root=parent,
+                    output_root=output, scientific_full=False,
+                    score_verifier_repo=REPO, bootstrap_draws=3,
+                )
+            self.assertEqual(manifest["status"], "PASS")
+            self.assertEqual((output / "first.bin").read_bytes(), b"first")
+            self.assertTrue((output / "MANIFEST.json").is_file())
+            with mock.patch.object(LP, "derive_localization_evaluation", return_value=derived):
+                with self.assertRaisesRegex(FileExistsError, "already exists"):
+                    write_localization_evaluation_build(
+                        release_id="r", build_id="A", release_root=parent,
+                        output_root=output, scientific_full=False,
+                        score_verifier_repo=REPO, bootstrap_draws=3,
+                    )
+
+            failed = parent / "failed_evaluation"
+            with (
+                mock.patch.object(LP, "derive_localization_evaluation", return_value=derived),
+                mock.patch.object(
+                    LP, "atomic_write_bytes",
+                    side_effect=[None, RuntimeError("serialization failed")],
+                ),
+            ):
+                with self.assertRaisesRegex(RuntimeError, "serialization failed"):
+                    write_localization_evaluation_build(
+                        release_id="r", build_id="A", release_root=parent,
+                        output_root=failed, scientific_full=False,
+                        score_verifier_repo=REPO, bootstrap_draws=3,
+                    )
+            self.assertFalse(failed.exists())
+            self.assertEqual(list(parent.glob(".failed_evaluation.staging-*")), [])
+
+    def test_directory_publish_primitive_preserves_raced_target(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            staging = root / "staging"
+            target = root / "target"
+            staging.mkdir()
+            target.mkdir()
+            (staging / "new").write_bytes(b"new")
+            (target / "incumbent").write_bytes(b"incumbent")
+            with self.assertRaisesRegex(FileExistsError, "already exists"):
+                LP._rename_directory_noreplace(staging, target)
+            self.assertEqual((staging / "new").read_bytes(), b"new")
+            self.assertEqual((target / "incumbent").read_bytes(), b"incumbent")
+
+    def test_evaluation_ab_requires_byte_identity_and_binds_both_repos(self) -> None:
+        manifest_core = {
+            "score_ab_certificate_sha256": "a" * 64,
+            "score_ab_certificate_file_sha256": "b" * 64,
+            "postfreeze_amendment": {"amendment_id": "amendment"},
+            "score_verifier_repo_snapshot": {"git_head": EXPECTED_SCORE_VERIFIER_GIT_HEAD},
+            "evaluation_source_snapshot": {"git_head": "e" * 40},
+            "completeness": {"completeness_sha256": "c" * 64},
+        }
+        same = DerivedLocalizationEvaluation(files={"artifact": b"same"}, manifest_core=manifest_core)
+        different = DerivedLocalizationEvaluation(
+            files={"artifact": b"different"}, manifest_core=manifest_core,
+        )
+        clean = {
+            "git_head": "e" * 40, "git_clean": True,
+            "git_status_sha256": "0" * 64, "snapshot_sha256": "1" * 64,
+        }
+        validated = {
+            "manifest_file_sha256": "d" * 64,
+            "tree_sha256": "f" * 64,
+            "artifact_sha256": {"artifact": "9" * 64},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            certificate_path = root / "EVALUATION_AB_VERIFICATION.json"
+            with (
+                mock.patch.object(LP, "_repo_state", return_value=clean),
+                mock.patch.object(LP, "derive_localization_evaluation", return_value=same),
+                mock.patch.object(
+                    LP, "_validate_evaluation_build_against_derivation",
+                    return_value=validated,
+                ),
+            ):
+                certificate = verify_localization_evaluation_ab(
+                    release_id="r", release_root=root,
+                    score_verifier_repo=REPO,
+                    evaluation_repo=REPO,
+                    output_path=certificate_path,
+                )
+            self.assertEqual(certificate["schema_version"], LP.EVALUATION_AB_SCHEMA_VERSION)
+            self.assertEqual(
+                certificate["score_verifier_repo_snapshot"]["git_head"],
+                EXPECTED_SCORE_VERIFIER_GIT_HEAD,
+            )
+            self.assertEqual(
+                certificate["evaluation_source_snapshot"]["git_head"], "e" * 40
+            )
+            self.assertTrue(certificate_path.is_file())
+
+            with (
+                mock.patch.object(LP, "_repo_state", return_value=clean),
+                mock.patch.object(
+                    LP, "derive_localization_evaluation", side_effect=[same, different],
+                ),
+                mock.patch.object(
+                    LP, "_validate_evaluation_build_against_derivation",
+                    return_value=validated,
+                ),
+            ):
+                with self.assertRaisesRegex(RuntimeError, "derivations differ"):
+                    verify_localization_evaluation_ab(
+                        release_id="r", release_root=root,
+                        score_verifier_repo=REPO,
+                        evaluation_repo=REPO,
+                        output_path=root / "different-certificate.json",
+                    )
+
+    def test_evaluation_ab_certificate_is_immutable_no_clobber(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "certificate.json"
+            LP._write_immutable_certificate(path, b"one\n")
+            LP._write_immutable_certificate(path, b"one\n")
+            with self.assertRaisesRegex(FileExistsError, "already differs"):
+                LP._write_immutable_certificate(path, b"two\n")
+            self.assertEqual(path.read_bytes(), b"one\n")
 
 
 class StrictPostFreezeDerivationTests(unittest.TestCase):

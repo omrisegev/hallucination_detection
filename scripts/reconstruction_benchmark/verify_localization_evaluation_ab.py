@@ -23,6 +23,9 @@ from spectral_utils.reconstruction_benchmark.localization_ab import (  # noqa: E
 from spectral_utils.reconstruction_benchmark.localization_postfreeze import (  # noqa: E402
     verify_localization_evaluation_ab,
 )
+from spectral_utils.reconstruction_benchmark.localization_postfreeze_amendment import (  # noqa: E402
+    DEFAULT_LOCALIZATION_POSTFREEZE_AMENDMENT,
+)
 
 
 def main() -> None:
@@ -39,6 +42,14 @@ def main() -> None:
     parser.add_argument("--external-registry", type=Path, default=DEFAULT_EXTERNAL_REGISTRY)
     parser.add_argument("--populations", type=Path, default=DEFAULT_POPULATION_REGISTRY)
     parser.add_argument("--source-root", type=Path, default=DEFAULT_SOURCE_ROOT)
+    parser.add_argument(
+        "--score-verifier-repo", type=Path, required=True,
+        help="Clean checkout at the exact score-frozen commit used to reverify score A/B.",
+    )
+    parser.add_argument(
+        "--postfreeze-amendment", type=Path,
+        default=DEFAULT_LOCALIZATION_POSTFREEZE_AMENDMENT,
+    )
     args = parser.parse_args()
     status = subprocess.run(
         ["git", "status", "--porcelain", "--untracked-files=normal"],
@@ -56,7 +67,9 @@ def main() -> None:
         external_registry_path=args.external_registry,
         population_registry_path=args.populations,
         source_root=args.source_root,
-        repo=REPO,
+        score_verifier_repo=args.score_verifier_repo,
+        evaluation_repo=REPO,
+        localization_postfreeze_amendment_path=args.postfreeze_amendment,
     )
     print(json.dumps({
         "release_id": args.release_id,
