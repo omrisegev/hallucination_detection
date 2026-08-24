@@ -2387,16 +2387,23 @@ def build_bridge_inputs(
 
 
 def _write_jsonl(path: Path, table: str, rows: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
+    """Write one deterministic JSONL file inside an unpublished staging tree.
+
+    ``publish_bridge_inputs`` owns the atomic boundary: the entire unique staging
+    directory is removed on any exception and renamed into place only after its
+    signed manifest is complete.  Writing this potentially multi-gigabyte table
+    directly inside that staging tree avoids both a second full payload copy and
+    a redundant large-file rename before the actual publication boundary.
+    """
+
     normalized = validate_records(table, rows)
     ordered = sorted(normalized, key=lambda row: record_sort_key(table, row))
-    payload = b"".join(reporting_json_bytes(row) + b"\n" for row in ordered)
-    temporary = path.with_name(f".{path.name}.tmp-{os.getpid()}")
-    try:
-        temporary.write_bytes(payload)
-        os.replace(temporary, path)
-    finally:
-        if temporary.exists():
-            temporary.unlink()
+    if path.exists():
+        raise FileExistsError(f"staged JSONL target already exists: {path}")
+    with path.open("wb") as handle:
+        for row in ordered:
+            handle.write(reporting_json_bytes(row))
+            handle.write(b"\n")
     return {
         "table": table,
         "path": path.name,
