@@ -88,28 +88,22 @@ descriptive stress evidence only.
 
 ```bash
 python scripts/reconstruction_benchmark/prepare_edis.py \
-  --release-id <edis_release_id> --build A \
-  --source-root local_cache/reconstruction_edis_stage
+  --release-id <edis_release_id> --build A
 python scripts/reconstruction_benchmark/prepare_edis.py \
-  --release-id <edis_release_id> --build B \
-  --source-root local_cache/reconstruction_edis_stage
+  --release-id <edis_release_id> --build B
 
 python scripts/reconstruction_benchmark/run_edis_methods.py \
-  --release-id <edis_release_id> --build A \
-  --source-root local_cache/reconstruction_edis_stage
+  --release-id <edis_release_id> --build A
 python scripts/reconstruction_benchmark/run_edis_methods.py \
-  --release-id <edis_release_id> --build B \
-  --source-root local_cache/reconstruction_edis_stage
+  --release-id <edis_release_id> --build B
 
 python scripts/reconstruction_benchmark/verify_edis_ab.py \
   --release-id <edis_release_id>
 
 python scripts/reconstruction_benchmark/evaluate_edis.py \
-  --release-id <edis_release_id> --build A \
-  --source-root local_cache/reconstruction_edis_stage
+  --release-id <edis_release_id> --build A
 python scripts/reconstruction_benchmark/evaluate_edis.py \
-  --release-id <edis_release_id> --build B \
-  --source-root local_cache/reconstruction_edis_stage
+  --release-id <edis_release_id> --build B
 
 python scripts/reconstruction_benchmark/verify_edis_evaluation_ab.py \
   --release-id <edis_release_id>
