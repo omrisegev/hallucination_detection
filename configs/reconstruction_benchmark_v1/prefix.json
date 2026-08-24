@@ -1,0 +1,226 @@
+{
+  "schema_version": "reconstruction-prefix-registry-v1",
+  "lane_id": "processbench_llama31_prefix_v1",
+  "task_id": "causal_early_final_answer_error_detection",
+  "dataset_revision": "processbench@e8024636bcab",
+  "model_id": "meta-llama/Llama-3.1-8B-Instruct",
+  "claim_boundary": {
+    "allowed": "retrospective causal early scoring of an unfinished fixed trace",
+    "forbidden": [
+      "adaptive stopping",
+      "token savings",
+      "latency savings",
+      "cross-task or cross-access macro",
+      "application of the final-answer 13-method roster"
+    ]
+  },
+  "population": {
+    "population_id": "processbench_llama31_prefix_v1",
+    "subsets": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "budgets": [16, 32, 64, 128, 256, 512],
+    "strict_eligibility": "final_length > budget",
+    "expected_source_rows": 3400,
+    "expected_evaluation_traces": 1717,
+    "expected_incorrect": 850,
+    "expected_correct": 867,
+    "expected_prefix_observations": 9277,
+    "expected_complete_all_budgets": 967,
+    "expected_evaluation_traces_by_subset": {
+      "gsm8k": 177,
+      "math": 514,
+      "olympiadbench": 509,
+      "omnimath": 517
+    },
+    "expected_prefix_observations_by_budget": {
+      "16": 1717,
+      "32": 1717,
+      "64": 1713,
+      "128": 1684,
+      "256": 1479,
+      "512": 967
+    }
+  },
+  "method_roster": [
+    {
+      "method_id": "unified28",
+      "execution_mode": "CPU_RECOMPUTE_FROZEN_MODEL",
+      "frozen_candidate": "base7_full28",
+      "causal_rule": "score only telemetry truncated to the registered budget"
+    },
+    {
+      "method_id": "iu28_no_length",
+      "execution_mode": "CPU_RECOMPUTE_RECONSTRUCTED_FROZEN_FIT",
+      "causal_rule": "elapsed prefix length is excluded; score only telemetry truncated to the registered budget"
+    },
+    {
+      "method_id": "step272_two_head_global_local_w0p50_peak",
+      "execution_mode": "CPU_REFIT_FROZEN_LABEL_FREE_ARCHITECTURE",
+      "frozen_architecture": "a_two_global_local__w0.50__peak",
+      "frozen_heads": {
+        "global": "g_registered_mixed",
+        "local": "l_level9",
+        "online": "o_ewma_area_persist27"
+      },
+      "causal_rule": "global-prefix and local-prefix maximum are each computed from telemetry truncated to the registered budget"
+    }
+  ],
+  "fit_visibility": {
+    "allowed_fields": [
+      "row_id",
+      "source_question_id",
+      "family",
+      "partition",
+      "token_entropies",
+      "token_spilled_energies",
+      "token_logsumexp",
+      "top_k_logprobs"
+    ],
+    "forbidden_fields": [
+      "label",
+      "correct",
+      "final_answer_correct",
+      "target",
+      "first_error",
+      "steps",
+      "response",
+      "problem",
+      "answer"
+    ],
+    "historical_anchor_visibility": "scores and registered row-budget keys only; no labels or bootstrap groups"
+  },
+  "source_contract": {
+    "raw_root": "dataset_cache/repgrid/pb_llama31_8b",
+    "raw_manifest": {
+      "path": "dataset_cache/repgrid/pb_llama31_8b/manifest.json",
+      "sha256": "3341d2b2fceb7da068166352b328ccb758d26894ba808ab7d6e5de603708ba30"
+    },
+    "raw_files": {
+      "gsm8k": {
+        "path": "dataset_cache/repgrid/pb_llama31_8b/processbench_gsm8k.pkl",
+        "sha256": "6749d1b846e29288e46536f9d9d8e63715b447576950d8e2131fe3420a16cead"
+      },
+      "math": {
+        "path": "dataset_cache/repgrid/pb_llama31_8b/processbench_math.pkl",
+        "sha256": "119c95ca5abc8d6f9e71bdd595db9b847373067d9aa8e4e9b349fa2b1f174953"
+      },
+      "olympiadbench": {
+        "path": "dataset_cache/repgrid/pb_llama31_8b/processbench_olympiadbench.pkl",
+        "sha256": "ea2592de68100aeb140ce1d3a373e87d36e00685863e0dfb8c6721fa05a1812d"
+      },
+      "omnimath": {
+        "path": "dataset_cache/repgrid/pb_llama31_8b/processbench_omnimath.pkl",
+        "sha256": "d1f9ad59eacbba64963b763e07209bdccb570f9875382f1b38c5573678ce81e4"
+      }
+    },
+    "unified28": {
+      "model": {
+        "path": "results/unified_causal_subset_validation_base7_dufs_llama31_v1/VALIDATION.json",
+        "sha256": "49168791e0687a235793e3bc818c0d0f46875ce88202b7f1d66ff2a21485b2fa"
+      },
+      "run_definition": {
+        "path": "results/unified_causal_subset_validation_base7_dufs_llama31_v1/RUN_DEFINITION.json",
+        "sha256": "deed54d9a8ed8652e8670c93e94c14847acee5a1d11cbd0a0e0fb4e69389d4ee"
+      },
+      "score_anchor": {
+        "path": "results/unified_causal_subset_validation_base7_dufs_llama31_v1/VALIDATION_RECORDS.jsonl",
+        "sha256": "0c2917cbfe827cefa616eb8d161e0583674c5498e0b7a14cdebb10c7dda73dc8"
+      }
+    },
+    "step272": {
+      "head_selection": {
+        "path": "results/global_local_online_architecture_v2/HEAD_SELECTION.json",
+        "sha256": "88d8dda4bbc23562b1848cfa600e3aca104699cb0bf9daf78c379dd3a70d715b"
+      },
+      "architecture_selection": {
+        "path": "results/global_local_online_architecture_v2/ARCHITECTURE_SELECTION.json",
+        "sha256": "b2039847a0c6ec7f4348f67fddcd603eeafaa67be06d7865d6c9260dd4832c67"
+      },
+      "score_anchor": {
+        "path": "results/global_local_online_architecture_v2/ARCHITECTURE_PER_QUESTION.csv",
+        "sha256": "232ece295cd0476ade2b49ca2ae017771f1396be1a6bf2e736473351e6bbb18f"
+      },
+      "cache_inventory": {
+        "path": "results/global_local_online_architecture_v2/CACHE_INVENTORY.csv",
+        "sha256": "5f1504360e46620d266cc8df629a7cc1862bee6a3a3785326ef05293d8f6bf26"
+      }
+    },
+    "iu28": {
+      "historical_results_root": "results/early_online_localization_models_v1",
+      "fit_source_files": {
+        "gsm8k": {
+          "path": "cache/localization/processbench/pb_qwen3_4b/processbench_gsm8k.pkl",
+          "sha256": "549843b11a99f41b60ccb13eb6a65c5583527402602e6e40d1a417699e64b02b"
+        },
+        "math": {
+          "path": "cache/localization/processbench/pb_qwen3_4b/processbench_math.pkl",
+          "sha256": "807292c490012b68c7a20cc3d093cda637866227940b9024b258b6a201657c32"
+        },
+        "olympiadbench": {
+          "path": "cache/localization/processbench/pb_qwen3_4b/processbench_olympiadbench.pkl",
+          "sha256": "e5e73f044247e0fb4081fea1c3a77793aab182485daebce48cf7a3f7809eb0ae"
+        },
+        "omnimath": {
+          "path": "cache/localization/processbench/pb_qwen3_4b/processbench_omnimath.pkl",
+          "sha256": "ec20e56553acee15c0646ad266f5d5d8d24ef22ba87289b6ffe013b0c639ba67"
+        }
+      },
+      "anchor_files": {
+        "gsm8k": {
+          "result.json": "07998ab1d843f77eea1ae09768a197c8e5468963de5f7ccf3139bd4636f5b339",
+          "scores_calibration.csv": "5208fb1698e04b6759277129298ff18f21af1bcee2debe64890b39cef0595eec",
+          "scores_evaluation.csv": "e7bb9608e27d1470f2a1e3b07a4c487a01b026274658bc4ccf64d950c6988427"
+        },
+        "math": {
+          "result.json": "dae316dea6f40d845a2bfaa6bf7c563de4c23d1b70d0ee5e9f23c30af92308a0",
+          "scores_calibration.csv": "b5ac7e8b5b32aa9d37f1874fa0715fd4ba4a43dd674c199babd7e000d6ce060e",
+          "scores_evaluation.csv": "671acf5f237a969133e0fcf9ebecc45b2b7aa61c21d8364e77331b08b1a99207"
+        },
+        "olympiadbench": {
+          "result.json": "8bdb95c3350f2b77e5e2878d7d95f8d69876a8c5437a517ea14daa038c998140",
+          "scores_calibration.csv": "0598ff23769da73ac16df48e2eb7df62b6a4bdee58b387ec0f73b2449270a609",
+          "scores_evaluation.csv": "7df8c7d9dd1625427ba2a964fd58534346f8e238c98c5918866c2647b2b86e30"
+        },
+        "omnimath": {
+          "result.json": "84e91b73f3f094397638d7048060ecdc54e223299da5d37164baccde2724187e",
+          "scores_calibration.csv": "7b9f669addb1f1e01297fb5a29e7bdd42432c457cf61d037180312cb8632e4a3",
+          "scores_evaluation.csv": "a6b41a5fe76f4a9af4fc1c0772b0c87bcdc2449f57d470679ed028cf1592e3e9"
+        }
+      }
+    },
+    "signed_prefix_package": {
+      "manifest": {
+        "path": "results/fair_paper_exact_comparisons_v1/HASH_MANIFEST.json",
+        "sha256": "b89b7358b421634f6e5ba4b8458d98724cb06f60ad1a36c8a5774ff14ccf0620"
+      },
+      "score_ledger": {
+        "path": "results/fair_paper_exact_comparisons_v1/lanes/prefix/PER_QUESTION_LONG.csv",
+        "sha256": "7d0dd95ac5470b60af6af6dea3dd6ab039dfaafd8a82806e85a590ccf0914834"
+      },
+      "use": "post-recomputation exact score anchor only; never a substitute for method execution"
+    }
+  },
+  "score_anchor": {
+    "absolute_tolerance": 2e-12,
+    "required_status": "CPU_RECOMPUTED_AND_ANCHOR_VERIFIED",
+    "signed_historical_score_rebind_status": "FORBIDDEN_AS_RERUN"
+  },
+  "evaluation": {
+    "positive_class": "completed trace has an incorrect final answer",
+    "metrics": ["auroc", "auprc"],
+    "aggregation": "equal-subset macro separately at each budget",
+    "missing_subset_policy": "MACRO_UNDEFINED_IF_ANY_REGISTERED_SUBSET_METRIC_UNDEFINED",
+    "cross_budget_macro": "FORBIDDEN",
+    "contrasts": [
+      ["unified28", "step272_two_head_global_local_w0p50_peak"],
+      ["unified28", "iu28_no_length"],
+      ["iu28_no_length", "step272_two_head_global_local_w0p50_peak"]
+    ],
+    "bootstrap": {
+      "draws": 2000,
+      "seed": 2026082405,
+      "unit": "source question",
+      "stratification": "within subset",
+      "paired_across_methods_and_budgets": true
+    }
+  }
+}
