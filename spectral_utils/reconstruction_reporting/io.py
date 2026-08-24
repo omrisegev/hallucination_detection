@@ -105,8 +105,16 @@ def write_tidy_csv(
     path: os.PathLike[str] | str,
     table: str,
     rows: Iterable[Mapping[str, Any]],
+    *,
+    atomic: bool = True,
 ) -> dict[str, Any]:
-    """Validate, sort, and atomically write one long-form CSV."""
+    """Validate, sort, and write one long-form CSV deterministically.
+
+    The default is a standalone atomic file replacement.  A caller that already
+    owns a unique unpublished staging tree may set ``atomic=False``: the outer
+    directory rename then remains the sole atomic publication boundary, and an
+    exception still discards the entire staging tree.
+    """
 
     if table not in TABLE_FIELDS:
         raise SchemaError(f"unknown table {table!r}")
@@ -119,9 +127,15 @@ def write_tidy_csv(
     ordered = sorted(normalized, key=lambda row: record_sort_key(table, row))
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    temporary = target.with_name(f".{target.name}.tmp-{os.getpid()}")
+    if not atomic and target.exists():
+        raise FileExistsError(f"staged CSV target already exists: {target}")
+    destination = (
+        target.with_name(f".{target.name}.tmp-{os.getpid()}")
+        if atomic
+        else target
+    )
     try:
-        with temporary.open("w", encoding="utf-8", newline="") as handle:
+        with destination.open("w", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(
                 handle,
                 fieldnames=list(fields),
@@ -131,10 +145,11 @@ def write_tidy_csv(
             writer.writeheader()
             for row in ordered:
                 writer.writerow({field: _encode_csv_value(field, row.get(field)) for field in fields})
-        os.replace(temporary, target)
+        if atomic:
+            os.replace(destination, target)
     finally:
-        if temporary.exists():
-            temporary.unlink()
+        if atomic and destination.exists():
+            destination.unlink()
     return {
         "table": table,
         "schema": SCHEMA_REVISION,

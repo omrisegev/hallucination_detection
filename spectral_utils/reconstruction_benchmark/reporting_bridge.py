@@ -2440,7 +2440,12 @@ def publish_bridge_inputs(output_dir: str | Path, inputs: BridgeInputs) -> Path:
             "graph_examples": "graph_examples_long.csv",
         }
         for table, filename in filenames.items():
-            record = write_tidy_csv(staging / filename, table, inputs.rows[table])
+            record = write_tidy_csv(
+                staging / filename,
+                table,
+                inputs.rows[table],
+                atomic=False,
+            )
             record["path"] = filename
             artifacts.append(record)
         occupied = {record["path"] for record in artifacts}

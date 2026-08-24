@@ -618,10 +618,15 @@ class IOAndReportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             first = Path(temporary) / "first.csv"
             second = Path(temporary) / "second.csv"
+            staged = Path(temporary) / "staged.csv"
             write_tidy_csv(first, "metrics", reversed(self.rows["metrics"]))
             write_tidy_csv(second, "metrics", self.rows["metrics"])
+            write_tidy_csv(staged, "metrics", self.rows["metrics"], atomic=False)
             self.assertEqual(first.read_bytes(), second.read_bytes())
+            self.assertEqual(first.read_bytes(), staged.read_bytes())
             self.assertEqual(read_tidy_csv(first, "metrics"), self.rows["metrics"])
+            with self.assertRaises(FileExistsError):
+                write_tidy_csv(staged, "metrics", self.rows["metrics"], atomic=False)
 
     def test_report_starts_with_method_guide_and_is_self_contained(self) -> None:
         manifest = default_plot_manifest(self.registry["release_id"], self.rows)
