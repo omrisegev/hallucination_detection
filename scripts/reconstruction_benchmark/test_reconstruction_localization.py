@@ -52,8 +52,10 @@ from spectral_utils.reconstruction_benchmark.localization_evaluation import (  #
     assign_processbench_folds,
     bootstrap_prmbench_steps,
     crossfit_processbench_threshold,
+    fit_processbench_threshold,
     grouped_bootstrap_metric_map,
     prmbench_panel_metrics,
+    processbench_panel_metrics,
     processbench_prediction,
     processbench_trace_metrics,
 )
@@ -108,6 +110,49 @@ def _identity_contract() -> dict:
     }
     value["contract_sha256"] = payload_sha256(value)
     return value
+
+
+def _literal_fit_processbench_threshold(
+    rows: list[dict], *, expected_subsets=PROCESSBENCH_SUBSETS,
+) -> dict:
+    """Frozen O(n^2) oracle used only to prove optimized sweep equivalence."""
+
+    rows = list(rows)
+    if not rows:
+        raise ValueError("cannot fit a ProcessBench threshold on zero rows")
+    maxima = [float(np.max(LE._finite_step_scores(row))) for row in rows]
+    below_minimum = float(np.nextafter(min(maxima), -np.inf))
+    if not np.isfinite(below_minimum):
+        raise ValueError("ProcessBench score range cannot form a finite threshold sweep")
+    candidates = sorted(set(maxima) | {below_minimum})
+    best = None
+    for threshold in candidates:
+        predictions = [
+            processbench_prediction(row["step_scores"], threshold) for row in rows
+        ]
+        metrics = processbench_panel_metrics(
+            rows, predictions, expected_subsets=expected_subsets
+        )
+        objective = metrics["aggregate"]["official_macro_f1"]
+        candidate = {
+            "threshold": float(threshold),
+            "objective_equal_subset_official_macro_f1": float(objective),
+            "n_calibration_rows": len(rows),
+            "n_threshold_candidates": len(candidates),
+            "decision_rule": "argmax_if_max_strictly_greater_than_threshold",
+            "tie_break": "largest_numeric_threshold",
+        }
+        order = (
+            float(objective) if np.isfinite(objective) else -float("inf"),
+            float(threshold),
+        )
+        if best is None or order > best[0]:
+            best = (order, candidate)
+    assert best is not None
+    if not np.isfinite(best[1]["objective_equal_subset_official_macro_f1"]):
+        raise ValueError("ProcessBench calibration lacks clean/error support in every subset")
+    best[1]["calibration_sha256"] = payload_sha256(best[1])
+    return best[1]
 
 
 class LocalizationContractTests(unittest.TestCase):
@@ -245,6 +290,86 @@ class ProcessBenchEvaluationTests(unittest.TestCase):
         self.assertEqual(result["metrics"]["aggregate"]["clean_abstention_accuracy"], 1.0)
         self.assertEqual(len(result["calibration_ledgers"]), 5)
         self.assertTrue(all(row["threshold_fit_stage"] == "post_score_freeze" for row in [result]))
+
+    def test_incremental_threshold_fit_matches_literal_randomized_tied_sweeps(self) -> None:
+        for seed in range(20):
+            rng = np.random.default_rng(seed)
+            rows = []
+            for subset in PROCESSBENCH_SUBSETS:
+                for label_kind in ("clean", "error"):
+                    for index in range(7):
+                        n_steps = int(rng.integers(1, 7))
+                        # A small discrete support deliberately creates both
+                        # within-row argmax ties and across-row maximum ties.
+                        scores = (
+                            rng.integers(-4, 5, size=n_steps).astype(np.float64) / 4.0
+                        )
+                        label = (
+                            -1 if label_kind == "clean"
+                            else int(rng.integers(0, n_steps))
+                        )
+                        rows.append({
+                            "row_id": f"{seed}:{subset}:{label_kind}:{index}",
+                            "group_id": f"{seed}:{subset}:{label_kind}:{index}",
+                            "slice_id": subset,
+                            "first_error": label,
+                            "step_scores": scores,
+                        })
+            self.assertEqual(
+                fit_processbench_threshold(rows),
+                _literal_fit_processbench_threshold(rows),
+            )
+
+    def test_incremental_threshold_fit_preserves_strict_rule_and_tie_break_edges(self) -> None:
+        rows = []
+        for subset in PROCESSBENCH_SUBSETS:
+            rows.extend((
+                {
+                    "row_id": f"{subset}:clean", "group_id": f"{subset}:clean",
+                    "slice_id": subset, "first_error": -1,
+                    "step_scores": [0.8, 0.8],
+                },
+                {
+                    "row_id": f"{subset}:error", "group_id": f"{subset}:error",
+                    "slice_id": subset, "first_error": 0,
+                    "step_scores": [0.8, 0.8],
+                },
+            ))
+        observed = fit_processbench_threshold(rows)
+        self.assertEqual(observed, _literal_fit_processbench_threshold(rows))
+        self.assertEqual(observed["threshold"], 0.8)
+        self.assertEqual(observed["objective_equal_subset_official_macro_f1"], 0.0)
+        self.assertEqual(observed["tie_break"], "largest_numeric_threshold")
+
+        unsupported = [row for row in rows if row["first_error"] == -1]
+        with self.assertRaisesRegex(ValueError, "exact registered subsets"):
+            fit_processbench_threshold(unsupported[:-1])
+        with self.assertRaisesRegex(ValueError, "lacks clean/error support"):
+            fit_processbench_threshold(unsupported)
+
+        extreme = deepcopy(rows)
+        for row in extreme:
+            row["step_scores"] = [-np.finfo(np.float64).max]
+        with np.errstate(over="ignore"):
+            with self.assertRaisesRegex(ValueError, "finite threshold sweep"):
+                fit_processbench_threshold(extreme)
+
+    def test_crossfit_output_is_byte_semantic_equal_to_literal_threshold_oracle(self) -> None:
+        rng = np.random.default_rng(991)
+        rows = self._rows()
+        for row in rows:
+            row["step_scores"] = (
+                rng.integers(-8, 9, size=5).astype(np.float64) / 8.0
+            )
+            if row["first_error"] != -1:
+                row["first_error"] = int(rng.integers(0, 5))
+        optimized = crossfit_processbench_threshold(rows)
+        with mock.patch.object(
+            LE, "fit_processbench_threshold",
+            side_effect=_literal_fit_processbench_threshold,
+        ):
+            literal = crossfit_processbench_threshold(rows)
+        self.assertEqual(optimized, literal)
 
     def test_abstention_is_not_a_within_one_localization_for_step_zero(self) -> None:
         metrics = processbench_trace_metrics([0, -1], [-1, -1])

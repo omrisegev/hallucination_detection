@@ -251,32 +251,102 @@ def fit_processbench_threshold(
     *,
     expected_subsets: Sequence[str] = PROCESSBENCH_SUBSETS,
 ) -> dict[str, Any]:
+    """Fit the exact registered threshold with one sorted incremental sweep.
+
+    For a candidate threshold equal to one or more row maxima, the strict
+    ``max_score > threshold`` rule changes exactly those tied rows from their
+    earliest argmax step to ``NO_ERROR``.  Maintaining the two sufficient
+    counts used by the official objective therefore reproduces the literal
+    candidate-by-row sweep in O(n log n) time without changing its decisions,
+    floating-point expression order, or largest-threshold tie break.
+    """
+
     rows = list(rows)
     if not rows:
         raise ValueError("cannot fit a ProcessBench threshold on zero rows")
-    maxima = [float(np.max(_finite_step_scores(row))) for row in rows]
+    subsets = tuple(map(str, expected_subsets))
+    observed_subsets = {str(row["slice_id"]) for row in rows}
+    if len(subsets) != len(set(subsets)) or observed_subsets != set(subsets):
+        raise ValueError("ProcessBench panel does not contain the exact registered subsets")
+
+    maxima: list[float] = []
+    argmax_steps: list[int] = []
+    labels: list[int] = []
+    slice_ids: list[str] = []
+    for row in rows:
+        scores = _finite_step_scores(row)
+        maxima.append(float(np.max(scores)))
+        argmax_steps.append(int(np.argmax(scores)))
+        labels.append(_integer_step(row["first_error"], name="true_first_error"))
+        slice_ids.append(str(row["slice_id"]))
+
     below_minimum = float(np.nextafter(min(maxima), -np.inf))
     if not np.isfinite(below_minimum):
         raise ValueError("ProcessBench score range cannot form a finite threshold sweep")
-    candidates = sorted(set(maxima) | {below_minimum})
+    unique_maxima = sorted(set(maxima))
+    n_candidates = len(unique_maxima) + 1
+
+    n_error = {subset: 0 for subset in subsets}
+    n_clean = {subset: 0 for subset in subsets}
+    exact_error = {subset: 0 for subset in subsets}
+    clean_abstention = {subset: 0 for subset in subsets}
+    rows_by_maximum: dict[float, list[int]] = defaultdict(list)
+    for index, (maximum, argmax_step, label, subset) in enumerate(zip(
+        maxima, argmax_steps, labels, slice_ids
+    )):
+        rows_by_maximum[maximum].append(index)
+        if label == NO_ERROR:
+            n_clean[subset] += 1
+        else:
+            n_error[subset] += 1
+            exact_error[subset] += int(argmax_step == label)
+
+    def objective() -> float:
+        values: list[float] = []
+        for subset in subsets:
+            if n_error[subset] == 0 or n_clean[subset] == 0:
+                values.append(float("nan"))
+                continue
+            exact = exact_error[subset] / n_error[subset]
+            abstention = clean_abstention[subset] / n_clean[subset]
+            values.append(
+                2.0 * exact * abstention / (exact + abstention)
+                if exact + abstention > 0.0 else 0.0
+            )
+        return float(np.mean(values)) if np.isfinite(values).all() else float("nan")
+
     best: tuple[tuple[float, float], dict[str, Any]] | None = None
-    for threshold in candidates:
-        predictions = [processbench_prediction(row["step_scores"], threshold) for row in rows]
-        metrics = processbench_panel_metrics(
-            rows, predictions, expected_subsets=expected_subsets
-        )
-        objective = metrics["aggregate"]["official_macro_f1"]
+
+    def consider(threshold: float) -> None:
+        nonlocal best
+        observed_objective = objective()
         candidate = {
             "threshold": float(threshold),
-            "objective_equal_subset_official_macro_f1": float(objective),
+            "objective_equal_subset_official_macro_f1": float(observed_objective),
             "n_calibration_rows": len(rows),
-            "n_threshold_candidates": len(candidates),
+            "n_threshold_candidates": n_candidates,
             "decision_rule": "argmax_if_max_strictly_greater_than_threshold",
             "tie_break": "largest_numeric_threshold",
         }
-        order = (float(objective) if np.isfinite(objective) else -math.inf, float(threshold))
+        order = (
+            float(observed_objective)
+            if np.isfinite(observed_objective) else -math.inf,
+            float(threshold),
+        )
         if best is None or order > best[0]:
             best = (order, candidate)
+
+    consider(below_minimum)
+    for threshold in unique_maxima:
+        for index in rows_by_maximum[threshold]:
+            subset = slice_ids[index]
+            label = labels[index]
+            if label == NO_ERROR:
+                clean_abstention[subset] += 1
+            elif argmax_steps[index] == label:
+                exact_error[subset] -= 1
+        consider(threshold)
+
     assert best is not None
     if not np.isfinite(best[1]["objective_equal_subset_official_macro_f1"]):
         raise ValueError("ProcessBench calibration lacks clean/error support in every subset")
