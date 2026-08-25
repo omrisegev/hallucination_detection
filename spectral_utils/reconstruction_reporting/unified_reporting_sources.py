@@ -343,7 +343,9 @@ def _verify_chain(source_id: str, record: Mapping[str, Any], certificate: Mappin
         )
         expected_comparisons = {
             *comparison_files,
-            "source_snapshot_identity", "bootstrap_identity", "panel_status_identity",
+            "source_snapshot_identity", "evaluation_repo_snapshot_identity",
+            "score_verifier_repo_snapshot_identity", "bootstrap_identity",
+            "panel_status_identity",
             "independent_panel_status_matches_A",
             "independent_panel_status_matches_B",
             *{
