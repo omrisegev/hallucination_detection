@@ -1,0 +1,36 @@
+{
+  "schema": "deem_b3_feature_contract_v2_config",
+  "experiment_id": "deem_b3_feature_contract_v2",
+  "feature_contract_schema": "feature_contract_v2_2026_08_25",
+  "arm_id": "B3_V2",
+  "seeds": [0, 1, 2, 3, 4],
+  "expected_cells": 24,
+  "expected_rows": 48607,
+  "blocks": [
+    "predictive_distribution",
+    "entropy_dynamics",
+    "realized_token_surprisal",
+    "raw_logit_partition"
+  ],
+  "continuous_deem": {
+    "family_width": 8,
+    "epochs": 100,
+    "learning_rate": 0.001,
+    "momentum": 0.0,
+    "mala_delta": 0.1,
+    "mala_steps": 5,
+    "replay_refresh": 0.05,
+    "dtype": "float64",
+    "device": "cpu",
+    "anchor_tolerance": 1e-6,
+    "posterior_sd_min": 0.001,
+    "init_sd": 0.005,
+    "deterministic": true
+  },
+  "evaluation": {
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 20260825,
+    "tie_tolerance": 0.0005,
+    "promotion_delta": 0.0025
+  }
+}
