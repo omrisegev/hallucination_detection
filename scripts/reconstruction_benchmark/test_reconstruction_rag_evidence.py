@@ -9,9 +9,17 @@ import os
 from pathlib import Path
 import pickle
 import shutil
+import time
 
 import numpy as np
 import pytest
+from sklearn.metrics import (
+    average_precision_score,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
 
 import spectral_utils.reconstruction_benchmark.rag_evidence_ab as ab_module
 import spectral_utils.reconstruction_benchmark.rag_evidence_contract as contract_module
@@ -426,7 +434,9 @@ def test_target_free_synthetic_fit_scores_every_panel_deterministically() -> Non
     assert len(left["refchecker_unit_id"]) == 9
 
 
-def test_postfreeze_evaluator_regenerates_exact_tables_from_private_rosters() -> None:
+def test_postfreeze_evaluator_regenerates_exact_tables_from_private_rosters(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     fit_input = _fit_input()
     scores, _ = compute_rag_evidence_scores(fit_input)
     ragtruth_splits = {}
@@ -490,6 +500,25 @@ def test_postfreeze_evaluator_regenerates_exact_tables_from_private_rosters() ->
     )
     assert [row["panel_id"] for row in left["panel_status"]] == list(PANEL_IDS)
     assert all(row["status"] == "PASS" for row in left["panel_status"])
+
+    original_interval = evaluation_module.grouped_interval
+    original_paired = evaluation_module.grouped_paired_delta
+
+    def slow_interval(*args: object, **kwargs: object) -> dict:
+        kwargs.pop("metric_name", None)
+        return original_interval(*args, **kwargs)  # type: ignore[arg-type]
+
+    def slow_paired(*args: object, **kwargs: object) -> dict:
+        kwargs.pop("metric_name", None)
+        return original_paired(*args, **kwargs)  # type: ignore[arg-type]
+
+    with monkeypatch.context() as context:
+        context.setattr(evaluation_module, "grouped_interval", slow_interval)
+        context.setattr(evaluation_module, "grouped_paired_delta", slow_paired)
+        slow_reference = compute_rag_evidence_evaluation_tables(
+            registry=registry, private=private, scores=scores, draws=5, seed=17
+        )
+    assert left["file_payloads"] == slow_reference["file_payloads"]
 
     duplicate_token = {
         name: np.asarray(values).copy() for name, values in scores.items()
@@ -774,6 +803,292 @@ def test_grouped_bootstrap_is_deterministic_and_resamples_whole_groups() -> None
     assert left == right
     assert left["value"] == 1.0
     assert left["draws"] == 50
+
+
+def _slow_grouped_samples(
+    target: np.ndarray,
+    value: np.ndarray,
+    groups: np.ndarray,
+    metric: object,
+    *,
+    draws: int,
+    seed: int,
+    require_two_classes: bool,
+) -> np.ndarray:
+    """Literal pre-acceleration bootstrap retained as the test oracle."""
+
+    target = np.asarray(target)
+    value = np.asarray(value)
+    group_values = np.asarray(groups).astype(str)
+    unique_groups = np.unique(group_values)
+    lookup = {
+        group: np.flatnonzero(group_values == group) for group in unique_groups
+    }
+    rng = np.random.default_rng(seed)
+    samples: list[float] = []
+    for _ in range(int(draws)):
+        selected = rng.choice(
+            unique_groups, size=len(unique_groups), replace=True
+        )
+        indexes = np.concatenate([lookup[group] for group in selected])
+        if require_two_classes and len(np.unique(target[indexes])) < 2:
+            continue
+        result = float(metric(target[indexes], value[indexes]))  # type: ignore[operator]
+        if np.isfinite(result):
+            samples.append(result)
+    return np.asarray(samples, dtype=np.float64)
+
+
+def _slow_grouped_paired_samples(
+    target: np.ndarray,
+    left: np.ndarray,
+    right: np.ndarray,
+    groups: np.ndarray,
+    metric: object,
+    *,
+    draws: int,
+    seed: int,
+) -> np.ndarray:
+    target = np.asarray(target)
+    left, right = np.asarray(left), np.asarray(right)
+    group_values = np.asarray(groups).astype(str)
+    unique_groups = np.unique(group_values)
+    lookup = {
+        group: np.flatnonzero(group_values == group) for group in unique_groups
+    }
+    rng = np.random.default_rng(seed)
+    samples: list[float] = []
+    for _ in range(int(draws)):
+        selected = rng.choice(
+            unique_groups, size=len(unique_groups), replace=True
+        )
+        indexes = np.concatenate([lookup[group] for group in selected])
+        if len(np.unique(target[indexes])) < 2:
+            continue
+        samples.append(
+            float(metric(target[indexes], left[indexes]))  # type: ignore[operator]
+            - float(metric(target[indexes], right[indexes]))  # type: ignore[operator]
+        )
+    return np.asarray(samples, dtype=np.float64)
+
+
+def _unequal_binary_bootstrap_fixture() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    sizes = np.asarray([1, 3, 8, 2, 11, 5, 4])
+    classes = np.asarray([0, 0, 1, 1, 1, 1, 1])
+    groups = np.concatenate([
+        np.repeat(f"group-{index}", int(size))
+        for index, size in enumerate(sizes)
+    ])
+    target = np.concatenate([
+        np.repeat(int(label), int(size))
+        for label, size in zip(classes, sizes, strict=True)
+    ])
+    rng = np.random.default_rng(2468)
+    score = np.round(rng.normal(size=len(groups)), 1)
+    order = rng.permutation(len(groups))
+    return target[order], score[order], groups[order]
+
+
+@pytest.mark.parametrize("draws", [63, 64, 65])
+@pytest.mark.parametrize("metric_name", ["auroc", "auprc"])
+def test_fast_grouped_ranking_matches_slow_reference_bytes_across_batches(
+    draws: int, metric_name: str,
+) -> None:
+    target, score, groups = _unequal_binary_bootstrap_fixture()
+    metric = {
+        "auroc": lambda y, s: float(roc_auc_score(y, s)),
+        "auprc": lambda y, s: float(average_precision_score(y, s)),
+    }[metric_name]
+    slow_samples = _slow_grouped_samples(
+        target, score, groups, metric, draws=draws, seed=991,
+        require_two_classes=True,
+    )
+    fast_samples = np.asarray(evaluation_module._fast_grouped_samples(
+        target, score, groups.astype(str), draws=draws, seed=991,
+        require_two_classes=True, metric_name=metric_name,
+    ))
+    assert fast_samples.tobytes() == slow_samples.tobytes()
+    assert len(fast_samples) < draws  # pure-class group resamples are rejected
+    slow_summary = grouped_interval(
+        target, score, groups, metric, draws=draws, seed=991,
+        require_two_classes=True,
+    )
+    fast_summary = grouped_interval(
+        target, score, groups, metric, draws=draws, seed=991,
+        require_two_classes=True, metric_name=metric_name,
+    )
+    assert canonical_json_bytes(fast_summary) == canonical_json_bytes(slow_summary)
+
+
+@pytest.mark.parametrize("metric_name", ["f1", "precision", "recall"])
+def test_fast_binary_hard_metrics_match_slow_reference_with_zero_division(
+    metric_name: str,
+) -> None:
+    target, score, groups = _unequal_binary_bootstrap_fixture()
+    prediction = (score > 0.8).astype(np.uint8)
+    functions = {
+        "f1": lambda y, p: float(f1_score(y, p, zero_division=0)),
+        "precision": lambda y, p: float(precision_score(y, p, zero_division=0)),
+        "recall": lambda y, p: float(recall_score(y, p, zero_division=0)),
+    }
+    metric = functions[metric_name]
+    slow_samples = _slow_grouped_samples(
+        target, prediction, groups, metric, draws=65, seed=313,
+        require_two_classes=False,
+    )
+    fast_samples = np.asarray(evaluation_module._fast_grouped_samples(
+        target, prediction, groups.astype(str), draws=65, seed=313,
+        require_two_classes=False, metric_name=metric_name,
+    ))
+    assert fast_samples.tobytes() == slow_samples.tobytes()
+    slow_summary = grouped_interval(
+        target, prediction, groups, metric, draws=65, seed=313,
+        require_two_classes=False,
+    )
+    fast_summary = grouped_interval(
+        target, prediction, groups, metric, draws=65, seed=313,
+        require_two_classes=False, metric_name=metric_name,
+    )
+    assert canonical_json_bytes(fast_summary) == canonical_json_bytes(slow_summary)
+
+
+@pytest.mark.parametrize("metric_name", ["accuracy", "macro_f1"])
+def test_fast_threeway_metrics_match_slow_reference_when_classes_disappear(
+    metric_name: str,
+) -> None:
+    labels = np.asarray(["Entailment", "Neutral", "Contradiction"])
+    sizes = np.asarray([1, 7, 2, 9, 3])
+    groups = np.concatenate([
+        np.repeat(f"claim-group-{index}", int(size))
+        for index, size in enumerate(sizes)
+    ])
+    target = np.concatenate([
+        np.repeat(labels[index % 3], int(size))
+        for index, size in enumerate(sizes)
+    ])
+    prediction = np.roll(target, 3)
+    metric = evaluation_module._threeway_metric(metric_name)
+    slow_samples = _slow_grouped_samples(
+        target, prediction, groups, metric, draws=65, seed=712,
+        require_two_classes=False,
+    )
+    fast_samples = np.asarray(evaluation_module._fast_grouped_samples(
+        target, prediction, groups.astype(str), draws=65, seed=712,
+        require_two_classes=False, metric_name=metric_name,
+    ))
+    assert fast_samples.tobytes() == slow_samples.tobytes()
+    slow_summary = grouped_interval(
+        target, prediction, groups, metric, draws=65, seed=712,
+        require_two_classes=False,
+    )
+    fast_summary = grouped_interval(
+        target, prediction, groups, metric, draws=65, seed=712,
+        require_two_classes=False, metric_name=metric_name,
+    )
+    assert canonical_json_bytes(fast_summary) == canonical_json_bytes(slow_summary)
+
+
+@pytest.mark.parametrize("metric_name", ["auroc", "auprc"])
+def test_fast_paired_delta_matches_slow_reference_bytes(metric_name: str) -> None:
+    target, left, groups = _unequal_binary_bootstrap_fixture()
+    right = np.round(np.cos(np.arange(len(left), dtype=float)), 1)
+    metric = {
+        "auroc": lambda y, s: float(roc_auc_score(y, s)),
+        "auprc": lambda y, s: float(average_precision_score(y, s)),
+    }[metric_name]
+    slow_samples = _slow_grouped_paired_samples(
+        target, left, right, groups, metric, draws=65, seed=411,
+    )
+    fast_samples = np.asarray(evaluation_module._fast_grouped_paired_samples(
+        target, left, right, groups.astype(str), draws=65, seed=411,
+        metric_name=metric_name,
+    ))
+    assert fast_samples.tobytes() == slow_samples.tobytes()
+    slow_summary = grouped_paired_delta(
+        target, left, right, groups, metric, draws=65, seed=411,
+    )
+    fast_summary = grouped_paired_delta(
+        target, left, right, groups, metric, draws=65, seed=411,
+        metric_name=metric_name,
+    )
+    assert canonical_json_bytes(fast_summary) == canonical_json_bytes(slow_summary)
+
+
+def test_fast_grouped_single_class_status_matches_reference() -> None:
+    target = np.zeros(9, dtype=np.uint8)
+    score = np.linspace(0.0, 1.0, len(target))
+    groups = np.asarray(["a"] * 2 + ["b"] * 3 + ["c"] * 4)
+    metric = lambda y, s: float(roc_auc_score(y, s))
+    slow = grouped_interval(
+        target, score, groups, metric, draws=65, seed=1,
+        require_two_classes=True,
+    )
+    fast = grouped_interval(
+        target, score, groups, metric, draws=65, seed=1,
+        require_two_classes=True, metric_name="auroc",
+    )
+    assert fast == slow == {
+        "value": "", "ci_low": "", "ci_high": "", "draws": 0,
+        "status": "METRIC_UNDEFINED_SINGLE_CLASS",
+    }
+    assert grouped_paired_delta(
+        target, score, score[::-1], groups, metric, draws=65, seed=1,
+        metric_name="auroc",
+    ) == {
+        "delta": "", "ci_low": "", "ci_high": "", "draws": 0,
+        "status": "METRIC_UNDEFINED_SINGLE_CLASS",
+    }
+
+
+def test_multiplicity_batches_keep_one_literal_choice_call_per_draw() -> None:
+    unique = np.asarray(["a", "b", "c"])
+
+    class RecordingRng:
+        def __init__(self) -> None:
+            self.calls: list[tuple[np.ndarray, int, bool]] = []
+
+        def choice(
+            self, values: np.ndarray, *, size: int, replace: bool
+        ) -> np.ndarray:
+            self.calls.append((values.copy(), size, replace))
+            offset = len(self.calls) % len(values)
+            return np.roll(values, offset)
+
+    rng = RecordingRng()
+    batches = list(evaluation_module._iter_group_multiplicity_batches(
+        rng, unique, draws=65,
+    ))
+    assert [len(batch) for batch in batches] == [64, 1]
+    assert len(rng.calls) == 65
+    assert all(
+        np.array_equal(values, unique) and size == 3 and replace is True
+        for values, size, replace in rng.calls
+    )
+    assert all(np.array_equal(row, np.ones(3, dtype=np.int64)) for batch in batches for row in batch)
+
+
+def test_real_scale_token_bootstrap_uses_fast_metric_kernel() -> None:
+    n_rows, n_groups, draws = 430_202, 450, 64
+    index = np.arange(n_rows, dtype=np.int64)
+    groups = index % n_groups
+    target = ((index * 17 + 3) % 11 < 3).astype(np.uint8)
+    score = ((index * 104_729) % 1_000_003).astype(np.float64)
+    metric_calls = 0
+
+    def counted_auc(y: np.ndarray, s: np.ndarray) -> float:
+        nonlocal metric_calls
+        metric_calls += 1
+        return float(roc_auc_score(y, s))
+
+    started = time.perf_counter()
+    result = grouped_interval(
+        target, score, groups, counted_auc, draws=draws, seed=2026082407,
+        require_two_classes=True, metric_name="auroc",
+    )
+    elapsed = time.perf_counter() - started
+    assert result["draws"] == draws
+    assert metric_calls == 1  # point estimate only; no per-draw sklearn sort
+    assert elapsed < 15.0
 
 
 def test_only_within_gasp_panel_gets_a_paired_contrast() -> None:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 import csv
 from io import StringIO
 import json
@@ -57,6 +57,14 @@ CONTRAST_COLUMNS = (
     "delta", "ci_low", "ci_high", "n", "n_groups", "bootstrap_draws", "status",
 )
 
+_FAST_METRIC_NAMES = frozenset({
+    "auroc", "auprc", "f1", "precision", "recall", "accuracy", "macro_f1",
+})
+_RANKING_METRIC_NAMES = frozenset({"auroc", "auprc"})
+_BINARY_HARD_METRIC_NAMES = frozenset({"f1", "precision", "recall"})
+_THREEWAY_LABELS = ("Entailment", "Neutral", "Contradiction")
+_BOOTSTRAP_MULTIPLICITY_BATCH_SIZE = 64
+
 
 def _csv_bytes(rows: Sequence[Mapping[str, Any]], columns: Sequence[str]) -> bytes:
     stream = StringIO(newline="")
@@ -76,12 +84,280 @@ def _binary_metric(name: str) -> Callable[[np.ndarray, np.ndarray], float]:
 
 
 def _threeway_metric(name: str) -> Callable[[np.ndarray, np.ndarray], float]:
-    labels = ("Entailment", "Neutral", "Contradiction")
     if name == "accuracy":
         return lambda y, p: float(np.mean(y == p))
     if name == "macro_f1":
-        return lambda y, p: float(f1_score(y, p, labels=labels, average="macro", zero_division=0))
+        return lambda y, p: float(f1_score(
+            y, p, labels=_THREEWAY_LABELS, average="macro", zero_division=0
+        ))
     raise KeyError(name)
+
+
+def _group_count(mask: np.ndarray, group_codes: np.ndarray, n_groups: int) -> np.ndarray:
+    """Return exact integer row counts per group for a boolean row mask."""
+
+    return np.bincount(group_codes[mask], minlength=n_groups).astype(np.int64, copy=False)
+
+
+def _prepare_fast_metric(
+    target: np.ndarray,
+    value: np.ndarray,
+    group_codes: np.ndarray,
+    *,
+    n_groups: int,
+    metric_name: str,
+) -> dict[str, Any]:
+    """Precompute label/score-order state without changing metric semantics.
+
+    The slow reference materializes every selected group, then sklearn sorts
+    the resulting rows for every bootstrap draw.  A group selected ``k``
+    times is exactly equivalent to assigning integer sample weight ``k`` to
+    each of its rows.  We retain sklearn's stable descending score order and
+    threshold arithmetic, but compute that order once per metric call.
+    """
+
+    target = np.asarray(target)
+    value = np.asarray(value)
+    group_codes = np.asarray(group_codes, dtype=np.int64)
+    group_sizes = np.bincount(group_codes, minlength=n_groups).astype(
+        np.int64, copy=False
+    )
+    positive_by_group = _group_count(target == 1, group_codes, n_groups)
+    state: dict[str, Any] = {
+        "metric_name": metric_name,
+        "group_sizes": group_sizes,
+        "positive_by_group": positive_by_group,
+    }
+    if metric_name in _RANKING_METRIC_NAMES:
+        score = np.asarray(value, dtype=np.float64)
+        # sklearn 1.9's confusion_matrix_at_thresholds uses a stable
+        # descending sort.  Tied-row order does not change threshold totals,
+        # while retaining the same order keeps the floating path literal.
+        order = np.argsort(score, kind="stable")[::-1]
+        state.update({
+            "sorted_positive": np.asarray(target[order] == 1, dtype=np.float64),
+            "sorted_score": score[order],
+            "sorted_group_codes": group_codes[order],
+        })
+        return state
+    if metric_name in _BINARY_HARD_METRIC_NAMES:
+        prediction = np.asarray(value)
+        state.update({
+            "true_positive_by_group": _group_count(
+                (target == 1) & (prediction == 1), group_codes, n_groups
+            ),
+            "false_positive_by_group": _group_count(
+                (target != 1) & (prediction == 1), group_codes, n_groups
+            ),
+            "false_negative_by_group": _group_count(
+                (target == 1) & (prediction != 1), group_codes, n_groups
+            ),
+        })
+        return state
+    if metric_name == "accuracy":
+        state["correct_by_group"] = _group_count(
+            target == value, group_codes, n_groups
+        )
+        return state
+    if metric_name == "macro_f1":
+        prediction = np.asarray(value)
+        statistics = np.empty((n_groups, len(_THREEWAY_LABELS), 3), dtype=np.int64)
+        for label_index, label in enumerate(_THREEWAY_LABELS):
+            statistics[:, label_index, 0] = _group_count(
+                (target == label) & (prediction == label), group_codes, n_groups
+            )
+            statistics[:, label_index, 1] = _group_count(
+                (target != label) & (prediction == label), group_codes, n_groups
+            )
+            statistics[:, label_index, 2] = _group_count(
+                (target == label) & (prediction != label), group_codes, n_groups
+            )
+        state["threeway_f1_statistics"] = statistics
+        return state
+    raise RagEvidenceContractError(f"unsupported fast RAG metric: {metric_name}")
+
+
+def _resample_has_two_classes(
+    state: Mapping[str, Any], multiplicities: np.ndarray
+) -> bool:
+    positives = int(np.dot(multiplicities, state["positive_by_group"]))
+    total = int(np.dot(multiplicities, state["group_sizes"]))
+    return 0 < positives < total
+
+
+def _fast_ranking_metric(
+    state: Mapping[str, Any], multiplicities: np.ndarray
+) -> float:
+    """Reproduce sklearn AUROC/AP on integer-weighted, presorted rows."""
+
+    row_weights = multiplicities[state["sorted_group_codes"]]
+    active = row_weights != 0
+    positive = state["sorted_positive"][active]
+    score = state["sorted_score"][active]
+    weight = row_weights[active]
+    threshold_indexes = np.concatenate((
+        np.flatnonzero(np.diff(score)), np.asarray([len(score) - 1], dtype=np.int64)
+    ))
+    true_positive = np.cumsum(positive * weight, dtype=np.float64)[threshold_indexes]
+    false_positive = np.cumsum(
+        (1.0 - positive) * weight, dtype=np.float64
+    )[threshold_indexes]
+    if state["metric_name"] == "auroc":
+        # Match roc_curve(drop_intermediate=True) before trapezoidal AUC.
+        if len(false_positive) > 2:
+            keep = np.where(np.concatenate((
+                np.asarray([True]),
+                np.logical_or(
+                    np.diff(false_positive, 2), np.diff(true_positive, 2)
+                ),
+                np.asarray([True]),
+            )))[0]
+            false_positive = false_positive[keep]
+            true_positive = true_positive[keep]
+        fpr = np.concatenate((np.asarray([0.0]), false_positive)) / false_positive[-1]
+        tpr = np.concatenate((np.asarray([0.0]), true_positive)) / true_positive[-1]
+        return float(np.trapezoid(tpr, fpr))
+    precision = true_positive / (true_positive + false_positive)
+    recall = true_positive / true_positive[-1]
+    # Match average_precision_score's non-interpolated step integral.
+    precision = np.concatenate((precision[::-1], np.asarray([1.0])))
+    recall = np.concatenate((recall[::-1], np.asarray([0.0])))
+    return float(max(0.0, -np.sum(np.diff(recall) * precision[:-1])))
+
+
+def _fast_metric_value(
+    state: Mapping[str, Any], multiplicities: np.ndarray
+) -> float:
+    metric_name = str(state["metric_name"])
+    if metric_name in _RANKING_METRIC_NAMES:
+        return _fast_ranking_metric(state, multiplicities)
+    if metric_name in _BINARY_HARD_METRIC_NAMES:
+        true_positive = int(np.dot(
+            multiplicities, state["true_positive_by_group"]
+        ))
+        false_positive = int(np.dot(
+            multiplicities, state["false_positive_by_group"]
+        ))
+        false_negative = int(np.dot(
+            multiplicities, state["false_negative_by_group"]
+        ))
+        if metric_name == "precision":
+            denominator = true_positive + false_positive
+            return float(true_positive / denominator) if denominator else 0.0
+        if metric_name == "recall":
+            denominator = true_positive + false_negative
+            return float(true_positive / denominator) if denominator else 0.0
+        denominator = 2 * true_positive + false_positive + false_negative
+        return float(2 * true_positive / denominator) if denominator else 0.0
+    if metric_name == "accuracy":
+        correct = int(np.dot(multiplicities, state["correct_by_group"]))
+        total = int(np.dot(multiplicities, state["group_sizes"]))
+        return float(correct / total)
+    if metric_name == "macro_f1":
+        statistics = np.tensordot(
+            multiplicities, state["threeway_f1_statistics"], axes=(0, 0)
+        )
+        true_positive = statistics[:, 0]
+        false_positive = statistics[:, 1]
+        false_negative = statistics[:, 2]
+        denominator = 2 * true_positive + false_positive + false_negative
+        per_class = np.divide(
+            2 * true_positive,
+            denominator,
+            out=np.zeros(len(_THREEWAY_LABELS), dtype=np.float64),
+            where=denominator != 0,
+        )
+        return float(np.mean(per_class))
+    raise RagEvidenceContractError(f"unsupported fast RAG metric: {metric_name}")
+
+
+def _iter_group_multiplicity_batches(
+    rng: np.random.Generator,
+    unique_groups: np.ndarray,
+    *,
+    draws: int,
+) -> Iterator[np.ndarray]:
+    """Yield small count batches while retaining one literal choice per draw."""
+
+    n_groups = len(unique_groups)
+    remaining = int(draws)
+    while remaining:
+        batch_rows = min(_BOOTSTRAP_MULTIPLICITY_BATCH_SIZE, remaining)
+        batch = np.empty((batch_rows, n_groups), dtype=np.int64)
+        for row_index in range(batch_rows):
+            selected = rng.choice(unique_groups, size=n_groups, replace=True)
+            batch[row_index] = np.bincount(
+                np.searchsorted(unique_groups, selected), minlength=n_groups
+            )
+        yield batch
+        remaining -= batch_rows
+
+
+def _fast_grouped_samples(
+    target: np.ndarray,
+    value: np.ndarray,
+    group_values: np.ndarray,
+    *,
+    draws: int,
+    seed: int,
+    require_two_classes: bool,
+    metric_name: str,
+) -> list[float]:
+    unique_groups = np.unique(group_values)
+    group_codes = np.searchsorted(unique_groups, group_values)
+    state = _prepare_fast_metric(
+        target, value, group_codes,
+        n_groups=len(unique_groups), metric_name=metric_name,
+    )
+    rng = np.random.default_rng(seed)
+    samples: list[float] = []
+    for batch in _iter_group_multiplicity_batches(
+        rng, unique_groups, draws=int(draws)
+    ):
+        for multiplicities in batch:
+            if require_two_classes and not _resample_has_two_classes(
+                state, multiplicities
+            ):
+                continue
+            result = _fast_metric_value(state, multiplicities)
+            if np.isfinite(result):
+                samples.append(result)
+    return samples
+
+
+def _fast_grouped_paired_samples(
+    target: np.ndarray,
+    left: np.ndarray,
+    right: np.ndarray,
+    group_values: np.ndarray,
+    *,
+    draws: int,
+    seed: int,
+    metric_name: str,
+) -> list[float]:
+    unique_groups = np.unique(group_values)
+    group_codes = np.searchsorted(unique_groups, group_values)
+    left_state = _prepare_fast_metric(
+        target, left, group_codes,
+        n_groups=len(unique_groups), metric_name=metric_name,
+    )
+    right_state = _prepare_fast_metric(
+        target, right, group_codes,
+        n_groups=len(unique_groups), metric_name=metric_name,
+    )
+    rng = np.random.default_rng(seed)
+    samples: list[float] = []
+    for batch in _iter_group_multiplicity_batches(
+        rng, unique_groups, draws=int(draws)
+    ):
+        for multiplicities in batch:
+            if not _resample_has_two_classes(left_state, multiplicities):
+                continue
+            samples.append(
+                _fast_metric_value(left_state, multiplicities)
+                - _fast_metric_value(right_state, multiplicities)
+            )
+    return samples
 
 
 def grouped_interval(
@@ -93,14 +369,13 @@ def grouped_interval(
     draws: int,
     seed: int,
     require_two_classes: bool,
+    metric_name: str | None = None,
 ) -> dict[str, Any]:
     target = np.asarray(target)
     value = np.asarray(value)
     group_values = np.asarray(groups).astype(str)
     if len(target) != len(value) or len(target) != len(group_values) or not len(target):
         raise RagEvidenceContractError("grouped bootstrap input alignment failed")
-    unique = np.unique(group_values)
-    lookup = {group: np.flatnonzero(group_values == group) for group in unique}
     point_status = "OK"
     if require_two_classes and len(np.unique(target)) < 2:
         return {
@@ -108,16 +383,30 @@ def grouped_interval(
             "status": "METRIC_UNDEFINED_SINGLE_CLASS",
         }
     point = metric(target, value)
-    rng = np.random.default_rng(seed)
-    samples: list[float] = []
-    for _ in range(int(draws)):
-        selected = rng.choice(unique, size=len(unique), replace=True)
-        indexes = np.concatenate([lookup[group] for group in selected])
-        if require_two_classes and len(np.unique(target[indexes])) < 2:
-            continue
-        result = float(metric(target[indexes], value[indexes]))
-        if np.isfinite(result):
-            samples.append(result)
+    if metric_name is not None:
+        if metric_name not in _FAST_METRIC_NAMES:
+            raise RagEvidenceContractError(
+                f"unsupported fast RAG metric: {metric_name}"
+            )
+        samples = _fast_grouped_samples(
+            target, value, group_values, draws=draws, seed=seed,
+            require_two_classes=require_two_classes, metric_name=metric_name,
+        )
+    else:
+        # Compatibility/reference path for arbitrary metrics.  Production RAG
+        # metrics always use the explicit, audited fast dispatch above.
+        unique = np.unique(group_values)
+        lookup = {group: np.flatnonzero(group_values == group) for group in unique}
+        rng = np.random.default_rng(seed)
+        samples = []
+        for _ in range(int(draws)):
+            selected = rng.choice(unique, size=len(unique), replace=True)
+            indexes = np.concatenate([lookup[group] for group in selected])
+            if require_two_classes and len(np.unique(target[indexes])) < 2:
+                continue
+            result = float(metric(target[indexes], value[indexes]))
+            if np.isfinite(result):
+                samples.append(result)
     if not samples:
         return {
             "value": point, "ci_low": "", "ci_high": "", "draws": 0,
@@ -139,7 +428,7 @@ def grouped_paired_delta(
     right: np.ndarray,
     groups: Sequence[str],
     metric: Callable[[np.ndarray, np.ndarray], float],
-    *, draws: int, seed: int,
+    *, draws: int, seed: int, metric_name: str | None = None,
 ) -> dict[str, Any]:
     target = np.asarray(target)
     left, right = np.asarray(left, float), np.asarray(right, float)
@@ -148,16 +437,29 @@ def grouped_paired_delta(
         raise RagEvidenceContractError("paired RAG contrast alignment failed")
     if len(np.unique(target)) < 2:
         return {"delta": "", "ci_low": "", "ci_high": "", "draws": 0, "status": "METRIC_UNDEFINED_SINGLE_CLASS"}
-    unique = np.unique(group_values)
-    lookup = {group: np.flatnonzero(group_values == group) for group in unique}
-    rng = np.random.default_rng(seed)
-    samples = []
-    for _ in range(int(draws)):
-        selected = rng.choice(unique, size=len(unique), replace=True)
-        indexes = np.concatenate([lookup[group] for group in selected])
-        if len(np.unique(target[indexes])) < 2:
-            continue
-        samples.append(metric(target[indexes], left[indexes]) - metric(target[indexes], right[indexes]))
+    if metric_name is not None:
+        if metric_name not in _RANKING_METRIC_NAMES:
+            raise RagEvidenceContractError(
+                f"unsupported fast paired RAG metric: {metric_name}"
+            )
+        samples = _fast_grouped_paired_samples(
+            target, left, right, group_values,
+            draws=draws, seed=seed, metric_name=metric_name,
+        )
+    else:
+        unique = np.unique(group_values)
+        lookup = {group: np.flatnonzero(group_values == group) for group in unique}
+        rng = np.random.default_rng(seed)
+        samples = []
+        for _ in range(int(draws)):
+            selected = rng.choice(unique, size=len(unique), replace=True)
+            indexes = np.concatenate([lookup[group] for group in selected])
+            if len(np.unique(target[indexes])) < 2:
+                continue
+            samples.append(
+                metric(target[indexes], left[indexes])
+                - metric(target[indexes], right[indexes])
+            )
     array = np.asarray(samples, dtype=float)
     return {
         "delta": float(metric(target, left) - metric(target, right)),
@@ -214,6 +516,7 @@ def _binary_panel(
         summary = grouped_interval(
             labels, scores, groups, _binary_metric(metric_name), draws=draws,
             seed=seed + offset, require_two_classes=True,
+            metric_name=metric_name,
         )
         metrics.append(_metric_row(
             registry=registry, panel_id=panel_id, split=split, subgroup=subgroup,
@@ -364,6 +667,7 @@ def _evaluate_gasp(
                 methods["fixed_rag_iu_pcr_matched"][mask], groups[mask],
                 _binary_metric(metric_name), draws=draws,
                 seed=seed + 100 + subgroup_index * 10 + metric_index,
+                metric_name=metric_name,
             )
             contrasts.append({
                 "panel_id": "gasp_protocol_sentence",
@@ -401,6 +705,7 @@ def _evaluate_lettuce(
             summary = grouped_interval(
                 target[mask], prediction[mask], groups[mask], function, draws=draws,
                 seed=seed + subgroup_index * 10 + metric_index, require_two_classes=False,
+                metric_name=metric_name,
             )
             metrics.append(_metric_row(
                 registry=registry, panel_id="lettucedetect_example", split="test",
@@ -448,6 +753,7 @@ def _evaluate_refchecker(
                 gold_threeway[mask], nli[mask], groups[mask], _threeway_metric(metric_name),
                 draws=draws, seed=seed + setting_index * 20 + metric_index,
                 require_two_classes=False,
+                metric_name=metric_name,
             )
             metrics.append(_metric_row(
                 registry=registry, panel_id="refchecker_threeway",
