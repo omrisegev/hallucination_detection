@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import copy
 from dataclasses import replace
+import errno
 import hashlib
 import importlib.util
 from io import BytesIO, StringIO
@@ -1521,6 +1522,83 @@ class CertifiedContextLaneTests(unittest.TestCase):
 
 @unittest.skipUnless(HAS_ARROW, "PyArrow is required")
 class PublicationTests(unittest.TestCase):
+    def test_darwin_inventory_open_retries_without_nonblock_on_eperm(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            payload_path = root / "large-table.csv"
+            payload_path.write_bytes(b"payload")
+            root_fd = os.open(root, unified_publish._directory_flags())
+            real_open = os.open
+            attempted_flags: list[int] = []
+
+            def apfs_open(name: str, flags: int, *args: object, **kwargs: object) -> int:
+                if name == payload_path.name:
+                    attempted_flags.append(flags)
+                    if flags & os.O_NONBLOCK:
+                        raise PermissionError(errno.EPERM, "APFS nonblocking open rejected")
+                return real_open(name, flags, *args, **kwargs)
+
+            descriptor: int | None = None
+            try:
+                with (
+                    patch.object(unified_publish.os, "open", side_effect=apfs_open),
+                    patch.object(unified_publish.sys, "platform", "darwin"),
+                ):
+                    descriptor = unified_publish._open_inventory_file(
+                        root_fd, payload_path.name,
+                    )
+                self.assertEqual(os.fstat(descriptor).st_size, len(b"payload"))
+                self.assertEqual(len(attempted_flags), 2)
+                self.assertTrue(attempted_flags[0] & os.O_NONBLOCK)
+                self.assertFalse(attempted_flags[1] & os.O_NONBLOCK)
+                self.assertTrue(all(flags & os.O_NOFOLLOW for flags in attempted_flags))
+            finally:
+                if descriptor is not None:
+                    os.close(descriptor)
+                os.close(root_fd)
+
+    def test_inventory_binding_rebases_apfs_first_open_ctime(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            release = root / "release"
+            build_unified_release(
+                release_id="fixture-release", build_id="A", output_root=release,
+                contract_path=contract, source_lock_path=lock,
+                source_roots={"fixture": source},
+            )
+
+            root_fd = os.open(release, unified_publish._directory_flags())
+            tables_fd = os.open(
+                "tables", unified_publish._directory_flags(), dir_fd=root_fd,
+            )
+            file_fds: dict[str, int] = {}
+            try:
+                initial = unified_publish._inventory_state(root_fd, tables_fd)
+                simulated_apfs_initial = dict(initial)
+                advisor_state = initial["ADVISOR_INPUTS.json"]
+                simulated_apfs_initial["ADVISOR_INPUTS.json"] = (
+                    *advisor_state[:-1], advisor_state[-1] - 1,
+                )
+                file_fds, rebound = unified_publish._open_inventory_files(
+                    root_fd, tables_fd, simulated_apfs_initial,
+                )
+                self.assertEqual(rebound, initial)
+                self.assertEqual(
+                    rebound["ADVISOR_INPUTS.json"][:-1],
+                    simulated_apfs_initial["ADVISOR_INPUTS.json"][:-1],
+                )
+                self.assertNotEqual(
+                    rebound["ADVISOR_INPUTS.json"][-1],
+                    simulated_apfs_initial["ADVISOR_INPUTS.json"][-1],
+                )
+                unified_publish._assert_held_file_states(file_fds, rebound)
+            finally:
+                for descriptor in file_fds.values():
+                    os.close(descriptor)
+                os.close(tables_fd)
+                os.close(root_fd)
+
     def test_no_clobber_completion_ab_and_status_only_placeholders(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary).resolve()

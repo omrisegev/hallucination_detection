@@ -108,6 +108,19 @@ def _file_read_flags() -> int:
     return os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK
 
 
+def _open_inventory_file(directory_fd: int, name: str) -> int:
+    """Open an inventory file, tolerating APFS rejection of nonblocking large-file opens."""
+
+    try:
+        return os.open(name, _file_read_flags(), dir_fd=directory_fd)
+    except PermissionError as exc:
+        if sys.platform != "darwin" or exc.errno != errno.EPERM:
+            raise
+        return os.open(
+            name, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=directory_fd,
+        )
+
+
 def _exclusive_write_flags() -> int:
     if not hasattr(os, "O_NOFOLLOW"):
         raise UnifiedReportingError("descriptor-safe regular-file creation is unsupported")
@@ -849,7 +862,9 @@ def build_unified_release(
         os.fsync(table_fd)
         os.fsync(stage_fd)
         stage_inventory = _inventory_state(stage_fd, table_fd)
-        stage_file_fds = _open_inventory_files(stage_fd, table_fd, stage_inventory)
+        stage_file_fds, stage_inventory = _open_inventory_files(
+            stage_fd, table_fd, stage_inventory,
+        )
         if set(release_payloads) != set(stage_file_fds):
             raise UnifiedReportingError("generated payload roster differs from the staging inventory")
         for relative, payload in release_payloads.items():
@@ -1062,32 +1077,40 @@ def _assert_held_release_unchanged(held: _HeldVerifiedRelease) -> None:
 
 def _open_inventory_files(
     root_fd: int, tables_fd: int, inventory: Mapping[str, tuple[int, ...]],
-) -> dict[str, int]:
+) -> tuple[dict[str, int], dict[str, tuple[int, ...]]]:
     """Open every expected release file once and bind it to the initial inventory."""
 
     relative_paths = set(ROOT_FILES) | {
         f"tables/{table}.{suffix}" for table in TABLE_SCHEMAS for suffix in ("csv", "parquet")
     }
     opened: dict[str, int] = {}
+    bound_inventory = dict(inventory)
     descriptor: int | None = None
     try:
         for relative in sorted(relative_paths):
             parts = _safe_parts(relative)
             directory_fd = tables_fd if parts[0] == "tables" else root_fd
             name = parts[-1]
-            descriptor = os.open(name, _file_read_flags(), dir_fd=directory_fd)
+            descriptor = _open_inventory_file(directory_fd, name)
             info = os.fstat(descriptor)
+            observed = _stable_stat(info)
             if (
                 not stat.S_ISREG(info.st_mode)
                 or info.st_nlink != 1
-                or _stable_stat(info) != inventory[relative]
+                # On APFS, the first read-only open can materialize access
+                # metadata and advance ctime.  Bind that descriptor-observed
+                # ctime only after every identity/content field still matches
+                # the initial path inventory; subsequent checks use the full
+                # rebound state, including ctime.
+                or observed[:-1] != inventory[relative][:-1]
             ):
                 raise UnifiedReportingError(
                     f"release file does not match the initial inventory: {relative}"
                 )
+            bound_inventory[relative] = observed
             opened[relative] = descriptor
             descriptor = None
-        return opened
+        return opened, bound_inventory
     except OSError as exc:
         if descriptor is not None:
             os.close(descriptor)
@@ -1117,7 +1140,7 @@ def _open_held_release(
         tables_fd = os.open("tables", _directory_flags(), dir_fd=root_fd)
         tables_info = os.fstat(tables_fd)
         inventory = _inventory_state(root_fd, tables_fd)
-        file_fds = _open_inventory_files(root_fd, tables_fd, inventory)
+        file_fds, inventory = _open_inventory_files(root_fd, tables_fd, inventory)
         if _inventory_state(root_fd, tables_fd) != inventory:
             raise UnifiedReportingError("release inventory changed while binding file descriptors")
         return release_root, root_fd, tables_fd, file_fds, root_info, tables_info, inventory
