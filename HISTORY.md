@@ -14626,3 +14626,26 @@ bridge stored that macro at release level.  No scientific score, bootstrap or
 certificate was recomputed, and the frozen reporting release was not mutated.
 
 ---
+
+### Step 292 [CIW-DEEM applications] — run the official challenger across compatible benchmark lanes
+
+**What**: Added target-free CIW runners for the external completed-response,
+localization, causal-prefix, and RAGTruth response lanes. Scores are frozen and
+hash-checked before evaluation labels are opened. Added one compact coverage
+matrix that records both completed runs and incompatible prediction units.
+
+**Result**: RAGTruth response-level CIW reaches AUROC/AUPRC
+`0.771222/0.635797` on 1,800 test responses, ahead of Original-30 IU-PCR and
+DUFS-LIU on that same cohort. External response transfer is mixed;
+localization does not improve; causal-prefix performance is close to IU28.
+The registered 24-cell score remains cell-macro AUROC `0.7820255514493354`
+and equal-family AUROC `0.7492330051057238`.
+
+**Boundary**: EDIS lacks the partition-energy features required by exact CIW.
+Sentence/token/span/claim RAG tasks, stopping policies, and hidden-state
+white-box tasks require new method contracts and are not reported as CIW v1.
+
+Canonical artifacts: `docs/experiments/CIW_DEEM_MULTI_APPLICATION_V1.md` and
+`results/ciw_deem_multi_application_v1/`.
+
+---

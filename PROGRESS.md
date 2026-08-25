@@ -3867,6 +3867,27 @@ Canonical artifacts:
 `docs/experiments/GLOBAL_CONTEXTUAL_STG_ROUTER_DIAGNOSTIC_V1.md` and
 `results/global_contextual_stg_router_diagnostic_v1/`.
 
+## CIW-DEEM multi-application transfer — Step 292
+
+The official CIW-DEEM challenger was added to the reconstruction benchmark's
+compatible application lanes. Exact five-seed CIW was run on 22 external
+completed-response cells and on RAGTruth's full original-30 response input. A
+frozen response-plus-token adapter was evaluated for ProcessBench/PRMBench
+localization, and a separate causal-prefix fit was evaluated at token budgets
+16--512.
+
+The strongest new transfer is RAGTruth response detection: test AUROC/AUPRC
+`0.771222/0.635797`, versus `0.760523/0.596613` for Original-30 IU-PCR and
+`0.762882/0.598308` for Original-30 DUFS-LIU. External response transfer is
+heterogeneous, localization does not improve, and early detection is close to
+IU28 rather than uniformly better.
+
+The coverage audit rejects silent substitutions. EDIS lacks the partition
+energy source required by CIW's 3-by-3 core; RAG sentence/token/span/claim,
+stopping, and white-box hidden-state lanes require new unit-specific methods.
+See `docs/experiments/CIW_DEEM_MULTI_APPLICATION_V1.md` and
+`results/ciw_deem_multi_application_v1/`.
+
 ---
 
 ## Deferred

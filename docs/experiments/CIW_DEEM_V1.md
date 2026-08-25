@@ -98,20 +98,18 @@ remains substantially higher than DUFS-LIU on CIW input (`0.782026` versus
 `0.774388` cell-macro AUROC). The CIW input layer is not promoted as a generic
 replacement feature contract for IU-PCR or DUFS-LIU.
 
-## Task boundary
+## Application adapters
 
-The registered score is completed-response hallucination detection. It is not
-a first-error localization or causal early-detection score. Those tasks require
-separate adapters:
+The registered score remains completed-response hallucination detection.
+Separate frozen adapters now document external response transfer, response-plus-token
+localization, causal-prefix early detection, and RAGTruth response detection.
+They are not inferred from the 24-cell result and they retain their own task
+units and comparators. See `docs/experiments/CIW_DEEM_MULTI_APPLICATION_V1.md`
+and `results/ciw_deem_multi_application_v1/REPORT.md`.
 
-- localization: construct the same source/operator core over causal moving
-  windows, fit a window-level CIW-DEEM score, then freeze a token locator;
-- early detection: recompute the same feature contract from each causal prefix,
-  fit only on calibration prefixes, and evaluate at absolute token budgets.
-
-Neither result may be inferred from the completed-response experiment. Existing
-GL-LIU localization and IU28 early-detection numbers belong to different
-methods and cannot be relabeled as CIW-DEEM.
+Sentence/token/span/claim RAG tasks, EDIS with its incomplete feature roster,
+stopping policies, and hidden-state white-box models are not relabeled as CIW.
+Their exact compatibility status is recorded in the multi-application report.
 
 ## Canonical files
 
