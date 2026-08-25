@@ -6,7 +6,10 @@ from collections.abc import Callable, Iterator, Mapping, Sequence
 import csv
 from io import StringIO
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 from typing import Any
 
 import numpy as np
@@ -21,6 +24,7 @@ from .rag_evidence_contract import (
     PREPARATION_MANIFEST_FILENAME,
     PRIVATE_LABEL_FILENAME,
     REFCHECKER_SETTINGS,
+    SCORE_AB_SCHEMA,
     SCORE_MANIFEST_FILENAME,
     RagEvidenceContractError,
     add_payload_sha256,
@@ -32,17 +36,47 @@ from .rag_evidence_contract import (
     validate_source_binding,
     verify_payload,
 )
-from .rag_evidence_fit import load_scores, validate_score_arrays
+from .rag_evidence_score_reader import load_scores, validate_score_arrays
 
 
 EVALUATION_SOURCE_FILES = (
     "configs/reconstruction_benchmark_v1/rag_evidence.json",
     "spectral_utils/reconstruction_benchmark/io.py",
     "spectral_utils/reconstruction_benchmark/rag_evidence_contract.py",
-    "spectral_utils/reconstruction_benchmark/rag_evidence_fit.py",
-    "spectral_utils/reconstruction_benchmark/rag_evidence_ab.py",
+    "spectral_utils/reconstruction_benchmark/rag_evidence_score_reader.py",
     "spectral_utils/reconstruction_benchmark/rag_evidence_evaluation.py",
+    "spectral_utils/reconstruction_benchmark/rag_evidence_evaluation_ab.py",
+    "scripts/reconstruction_benchmark/evaluate_rag_evidence.py",
+    "scripts/reconstruction_benchmark/verify_rag_evidence_evaluation_ab.py",
 )
+MINIMUM_EVALUATION_GIT_HEAD = "4a8e29452c06b706777f9b50ad7feda87ac67ba3"
+SCORE_VERIFIER_GIT_HEAD = "409900332854c0586c4abc7dbc33f10b565b59af"
+SCORE_CERTIFICATE_FILENAME = "SCORE_AB_VERIFICATION.json"
+SCORE_VERIFIER_SOURCE_SHA256 = {
+    "configs/reconstruction_benchmark_v1/rag_evidence.json": "a835ef223fe0c84ce3729277ffb0c90bd5681b705b40eaa3d4d47cdc038379af",
+    "spectral_utils/__init__.py": "8b2dd0c1eb39fc0832a6d25167ca628da71366dccdc0f58907b2f5adb5d42e19",
+    "spectral_utils/reconstruction_benchmark/__init__.py": "2c4fc6447df74b9952b2481adb3eec7570149ad03dc0959935f4e77cae596582",
+    "spectral_utils/dufs_liu_feature_contract.py": "c674f7b6cfd1a82dcc63cd7cc26bbd3d53ef5f4d289dbcbb7eabe933670fdf2d",
+    "spectral_utils/feature_contract.py": "65ffba0bfc9bf4ded859d9ebffce9bd563a28652c47f5ed8d80ce91b64d4385d",
+    "spectral_utils/feature_utils.py": "b68bc5e1647742667fc20908321485bf9229954713b5da7215bf0f2629c74362",
+    "spectral_utils/fixed_application_pipelines.py": "0d2c6dae58530654f3d4ee18d4c5fa278ef41a61634c3e11caf1c86ca8816203",
+    "spectral_utils/fusion_utils.py": "1f47ed8f1d16a41532d85dfbacb0c0d727645aaf6921223e9e8e9f6ccc6fadd7",
+    "spectral_utils/repeated_measurement_reliability.py": "9e4b975e0f890e06f7194e1bd81012253329093acdb664756fa60cdab4de0868",
+    "spectral_utils/token_feature_views.py": "3e86166ef75cd222ffbeedfa394b829739e05e4efd56b80eb6fe8f237b0752e7",
+    "spectral_utils/upcr.py": "587d4b4699e8cd49d28315f70ffdabb4eb7ef9fd48e4df5436e121a71536c071",
+    "spectral_utils/reconstruction_benchmark/fit_firewall.py": "fd472073bc972f4d45b9a4cd09f89d9fa831c0e542093cb6df0d316602d13770",
+    "spectral_utils/reconstruction_benchmark/io.py": "97eccfe07463a5e5ff3470e2155f0d9c5a506631687c941e2841046efb57142b",
+    "spectral_utils/reconstruction_benchmark/rag_evidence_contract.py": "db761f5330688c95bfc94057a96433a326baa59df3dfbea3339261f9465877b7",
+    "spectral_utils/reconstruction_benchmark/rag_evidence_fit.py": "65352d1b85c72af389b924bb9d8cb81ae70f63e9922e667927ac5d830b1b54f1",
+    "spectral_utils/reconstruction_benchmark/rag_evidence_ab.py": "9b6a3f0ebb0ba02fbe0704802b1ecccbefb967819b83d49e4427c69cc96a629a",
+    "spectral_utils/reconstruction_benchmark/rag_evidence_runner.py": "c7e79a7c2d36de85c6782409c1b9a2ce09082d555645bd76ace11957b4b1fa2b",
+    "scripts/reconstruction_benchmark/rag_evidence_fit_worker.py": "cb68c861e0d52c5602cad29844fef07ebbc2635a3dd4768aa6ccf8f0a774c186",
+    "spectral_utils/ragtruth_evidence_contrast.py": "1b0c67010825062da832302d7efcca3cc7db3b667f5edcaac749f689905b4b3c",
+    "spectral_utils/reconstruction_benchmark/rag_evidence_preparation.py": "8743b5dfd242a6f2d421e5ff0bdf938727f6d8fc5a6e64cecf1cabdfdcc9c140",
+    "spectral_utils/repgrid_scoring.py": "b25e25f5c08fde40c9cb47b0f63f1915bf438362b97f2b68e482ae31c41cde79",
+    "spectral_utils/streaming_utils.py": "03b57d452a5408a5f801db3cb13dbf2a91c3e7d809db95675c13d682d3616529",
+    "spectral_utils/reconstruction_benchmark/rag_evidence_evaluation.py": "56a5a146e8f85a99d6288231ee83a32d88fe35203e35dfc4ea6439391dc7426d",
+}
 PREDICTION_COLUMNS = (
     "panel_id", "split", "subgroup", "method_id", "unit_id", "parent_id",
     "score", "prediction", "label", "bootstrap_group",
@@ -64,6 +98,200 @@ _RANKING_METRIC_NAMES = frozenset({"auroc", "auprc"})
 _BINARY_HARD_METRIC_NAMES = frozenset({"f1", "precision", "recall"})
 _THREEWAY_LABELS = ("Entailment", "Neutral", "Contradiction")
 _BOOTSTRAP_MULTIPLICITY_BATCH_SIZE = 64
+
+_SCORE_AUTHENTICATOR_CODE = r'''import sys
+from pathlib import Path
+
+repo = Path(sys.argv[1]).resolve(strict=True)
+sys.path.insert(0, str(repo))
+from spectral_utils.reconstruction_benchmark.io import canonical_json_bytes
+from spectral_utils.reconstruction_benchmark.rag_evidence_ab import (
+    authenticate_rag_evidence_score_certificate,
+)
+
+certificate = authenticate_rag_evidence_score_certificate(
+    repo=repo,
+    registry_path=Path(sys.argv[2]),
+    source_root=Path(sys.argv[3]),
+    release_root=Path(sys.argv[4]),
+    private_root=Path(sys.argv[5]),
+    release_id=sys.argv[6],
+    require_scientific_full=sys.argv[7] == "1",
+)
+sys.stdout.buffer.write(canonical_json_bytes(certificate) + b"\n")
+'''
+
+
+def _git(
+    repo: Path, *arguments: str, check: bool = True,
+) -> subprocess.CompletedProcess[bytes]:
+    return subprocess.run(
+        ["git", *arguments], cwd=repo, capture_output=True, check=check,
+    )
+
+
+def _repository_snapshot(
+    repo: str | Path,
+    source_files: Sequence[str],
+    *,
+    expected_head: str | None = None,
+    expected_hashes: Mapping[str, str] | None = None,
+    require_clean: bool,
+    minimum_head: str | None = None,
+) -> dict[str, Any]:
+    repo_path = Path(repo).resolve(strict=True)
+    head = _git(repo_path, "rev-parse", "HEAD").stdout.decode("ascii").strip()
+    status = _git(
+        repo_path, "status", "--porcelain=v1", "--untracked-files=all",
+    ).stdout
+    if expected_head is not None and head != expected_head:
+        raise RagEvidenceContractError(
+            f"RAG repository HEAD {head} differs from required {expected_head}"
+        )
+    if require_clean and status:
+        raise RagEvidenceContractError("RAG repository must be clean")
+    if minimum_head is not None and _git(
+        repo_path, "merge-base", "--is-ancestor", minimum_head, head,
+        check=False,
+    ).returncode != 0:
+        raise RagEvidenceContractError(
+            "RAG evaluator does not descend from the optimized release"
+        )
+    rows = []
+    for relative in source_files:
+        digest = sha256_bytes(read_bound_file_bytes(
+            repo_path / relative, name=f"RAG repository source {relative}",
+        ))
+        if expected_hashes is not None and expected_hashes.get(relative) != digest:
+            raise RagEvidenceContractError(
+                f"RAG repository source hash differs: {relative}"
+            )
+        rows.append({"path": relative, "sha256": digest})
+    value = {
+        "git_head": head,
+        "git_clean": not bool(status),
+        "git_status_sha256": sha256_bytes(status),
+        "source_files": rows,
+    }
+    value["snapshot_sha256"] = payload_sha256(value)
+    return value
+
+
+def capture_evaluation_repository_snapshot(
+    repo: str | Path, *, require_scientific_full: bool,
+) -> dict[str, Any]:
+    return _repository_snapshot(
+        repo, EVALUATION_SOURCE_FILES,
+        require_clean=require_scientific_full,
+        minimum_head=MINIMUM_EVALUATION_GIT_HEAD if require_scientific_full else None,
+    )
+
+
+def capture_score_verifier_repository_snapshot(
+    score_verifier_repo: str | Path,
+) -> dict[str, Any]:
+    return _repository_snapshot(
+        score_verifier_repo, tuple(SCORE_VERIFIER_SOURCE_SHA256),
+        expected_head=SCORE_VERIFIER_GIT_HEAD,
+        expected_hashes=SCORE_VERIFIER_SOURCE_SHA256,
+        require_clean=True,
+    )
+
+
+def authenticate_rag_evidence_score_certificate_from_repo(
+    *, evaluation_repo: str | Path, score_verifier_repo: str | Path,
+    registry_path: str | Path, source_root: str | Path,
+    release_root: str | Path, private_root: str | Path, release_id: str,
+    require_scientific_full: bool,
+) -> dict[str, Any]:
+    """Run the exact frozen score authenticator before any private-label open."""
+
+    release_id = validate_artifact_identifier(release_id, name="RAG release ID")
+    evaluation_repo_path = Path(evaluation_repo).resolve(strict=True)
+    score_repo_path = Path(score_verifier_repo).resolve(strict=True)
+    if evaluation_repo_path == score_repo_path:
+        raise RagEvidenceContractError(
+            "RAG evaluation and score-verifier repositories must be distinct"
+        )
+    evaluation_snapshot = capture_evaluation_repository_snapshot(
+        evaluation_repo_path,
+        require_scientific_full=require_scientific_full,
+    )
+    score_snapshot = capture_score_verifier_repository_snapshot(score_repo_path)
+    evaluation_registry = read_bound_file_bytes(
+        Path(registry_path).resolve(strict=True), name="RAG evaluation registry",
+    )
+    score_registry_path = (
+        score_repo_path / "configs/reconstruction_benchmark_v1/rag_evidence.json"
+    )
+    score_registry = read_bound_file_bytes(
+        score_registry_path, name="RAG score-verifier registry",
+    )
+    if evaluation_registry != score_registry:
+        raise RagEvidenceContractError(
+            "RAG evaluation and score-verifier registries differ"
+        )
+    lane_root = Path(release_root) / release_id / "rag_evidence"
+    certificate_path = lane_root / SCORE_CERTIFICATE_FILENAME
+    frozen_payload = read_bound_file_bytes(
+        certificate_path, name="RAG frozen score A/B certificate",
+    )
+    environment = dict(os.environ)
+    for variable in (
+        "PYTHONHOME", "PYTHONPATH", "PYTHONSTARTUP", "PYTHONUSERBASE",
+    ):
+        environment.pop(variable, None)
+    environment["PYTHONDONTWRITEBYTECODE"] = "1"
+    completed = subprocess.run(
+        [
+            sys.executable, "-I", "-B", "-c", _SCORE_AUTHENTICATOR_CODE,
+            str(score_repo_path), str(score_registry_path),
+            str(Path(source_root).resolve(strict=True)),
+            str(Path(release_root).resolve(strict=True)),
+            str(Path(private_root).resolve(strict=True)), release_id,
+            # Scores remain bound to the frozen scientific/full certificate
+            # even when current reporting uses debug bootstrap draws.
+            "1",
+        ],
+        cwd=score_repo_path, env=environment, capture_output=True, check=False,
+    )
+    if (
+        completed.returncode != 0
+        or completed.stderr
+        or completed.stdout != frozen_payload
+    ):
+        raise RagEvidenceContractError(
+            "old-checkout RAG score authentication did not reproduce the frozen certificate"
+        )
+    try:
+        certificate = json.loads(frozen_payload.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise RagEvidenceContractError(
+            "RAG frozen score certificate is not JSON"
+        ) from error
+    verify_payload(certificate, name="RAG frozen score A/B certificate")
+    if (
+        certificate.get("schema_version") != SCORE_AB_SCHEMA
+        or certificate.get("status") != "PASS"
+    ):
+        raise RagEvidenceContractError("RAG frozen score certificate does not pass")
+    if capture_score_verifier_repository_snapshot(score_repo_path) != score_snapshot:
+        raise RagEvidenceContractError(
+            "RAG score-verifier repository changed during authentication"
+        )
+    if capture_evaluation_repository_snapshot(
+        evaluation_repo_path,
+        require_scientific_full=require_scientific_full,
+    ) != evaluation_snapshot:
+        raise RagEvidenceContractError(
+            "RAG evaluation repository changed during score authentication"
+        )
+    return {
+        "certificate": certificate,
+        "certificate_payload": frozen_payload,
+        "evaluation_repo_snapshot": evaluation_snapshot,
+        "score_verifier_repo_snapshot": score_snapshot,
+    }
 
 
 def _csv_bytes(rows: Sequence[Mapping[str, Any]], columns: Sequence[str]) -> bytes:
@@ -862,9 +1090,10 @@ def compute_rag_evidence_evaluation_tables(
 
 
 def evaluate_rag_evidence_build(
-    *, repo: str | Path, registry_path: str | Path, source_root: str | Path,
-    release_root: str | Path, private_root: str | Path, release_id: str,
-    build_id: str, draws_override: int | None = None,
+    *, repo: str | Path, score_verifier_repo: str | Path,
+    registry_path: str | Path, source_root: str | Path,
+    release_root: str | Path, private_root: str | Path,
+    release_id: str, build_id: str, draws_override: int | None = None,
 ) -> dict[str, Any]:
     release_id = validate_artifact_identifier(release_id, name="RAG release ID")
     if build_id not in {"A", "B"}:
@@ -885,28 +1114,21 @@ def evaluate_rag_evidence_build(
     score_manifest = json.loads(score_manifest_payload.decode("utf-8"))
     verify_payload(preparation, name="RAG preparation manifest")
     verify_payload(score_manifest, name="RAG score freeze")
-    from .rag_evidence_ab import authenticate_rag_evidence_score_certificate
-
     # This gate must complete before the first private-label file open.
-    score_certificate = authenticate_rag_evidence_score_certificate(
-        repo=repo_path, registry_path=registry_path, source_root=source_root,
-        release_root=release_root, private_root=private_root,
-        release_id=release_id, require_scientific_full=draws_override is None,
+    score_authentication = authenticate_rag_evidence_score_certificate_from_repo(
+        evaluation_repo=repo_path, score_verifier_repo=score_verifier_repo,
+        registry_path=registry_path, source_root=source_root,
+        release_root=release_root, private_root=private_root, release_id=release_id,
+        require_scientific_full=draws_override is None,
     )
+    score_certificate = score_authentication["certificate"]
     if (
         score_certificate["score_sha256"] != score_manifest["scores"]["sha256"]
         or score_certificate["private_label_sha256"]
         != preparation["private_labels"]["sha256"]
     ):
         raise RagEvidenceContractError("RAG evaluation is underbound to score A/B")
-    score_certificate_path = lane_root / "SCORE_AB_VERIFICATION.json"
-    score_certificate_payload = read_bound_file_bytes(
-        score_certificate_path, name="RAG authenticated score certificate"
-    )
-    if json.loads(score_certificate_payload.decode("utf-8")) != score_certificate:
-        raise RagEvidenceContractError(
-            "RAG score certificate changed after authentication"
-        )
+    score_certificate_payload = score_authentication["certificate_payload"]
     validate_source_binding(
         preparation["source_binding"], source_root=source_root, registry=registry
     )
@@ -937,19 +1159,14 @@ def evaluate_rag_evidence_build(
         for name, payload in derived["file_payloads"].items():
             digest = stage.write_bytes(name, payload)
             files.append({"path": name, "sha256": digest, "size_bytes": len(payload)})
+        evaluation_repo_snapshot = score_authentication[
+            "evaluation_repo_snapshot"
+        ]
+        score_verifier_repo_snapshot = score_authentication[
+            "score_verifier_repo_snapshot"
+        ]
         source_snapshot = {
-            "files": [
-                {
-                    "path": relative,
-                    "sha256": sha256_bytes(
-                        read_bound_file_bytes(
-                            repo_path / relative,
-                            name=f"RAG evaluation source {relative}",
-                        )
-                    ),
-                }
-                for relative in EVALUATION_SOURCE_FILES
-            ]
+            "files": evaluation_repo_snapshot["source_files"],
         }
         source_snapshot["snapshot_sha256"] = payload_sha256(source_snapshot)
         manifest = add_payload_sha256({
@@ -964,6 +1181,8 @@ def evaluate_rag_evidence_build(
             "private_label_sha256": preparation["private_labels"]["sha256"],
             "source_binding_sha256": preparation["source_binding_sha256"],
             "source_snapshot": source_snapshot,
+            "evaluation_repo_snapshot": evaluation_repo_snapshot,
+            "score_verifier_repo_snapshot": score_verifier_repo_snapshot,
             "bootstrap": {
                 "draws_requested": draws,
                 "group": "panel-registered source group",
@@ -977,6 +1196,18 @@ def evaluate_rag_evidence_build(
             "historical_scores_copied": False,
         })
         stage.write_json(EVALUATION_MANIFEST_FILENAME, manifest)
+        if capture_evaluation_repository_snapshot(
+            repo_path, require_scientific_full=draws_override is None,
+        ) != evaluation_repo_snapshot:
+            raise RagEvidenceContractError(
+                "RAG evaluation repository changed before publication"
+            )
+        if capture_score_verifier_repository_snapshot(
+            score_verifier_repo
+        ) != score_verifier_repo_snapshot:
+            raise RagEvidenceContractError(
+                "RAG score-verifier repository changed before publication"
+            )
         stage.commit()
         return manifest
     finally:
@@ -986,5 +1217,9 @@ def evaluate_rag_evidence_build(
 __all__ = [
     "CONTRAST_COLUMNS", "EVALUATION_SOURCE_FILES", "METRIC_COLUMNS",
     "PREDICTION_COLUMNS", "compute_rag_evidence_evaluation_tables",
-    "evaluate_rag_evidence_build", "grouped_interval", "grouped_paired_delta",
+    "SCORE_VERIFIER_GIT_HEAD", "SCORE_VERIFIER_SOURCE_SHA256",
+    "authenticate_rag_evidence_score_certificate_from_repo",
+    "capture_evaluation_repository_snapshot",
+    "capture_score_verifier_repository_snapshot", "evaluate_rag_evidence_build",
+    "grouped_interval", "grouped_paired_delta",
 ]

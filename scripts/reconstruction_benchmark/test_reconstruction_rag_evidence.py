@@ -9,6 +9,8 @@ import os
 from pathlib import Path
 import pickle
 import shutil
+import subprocess
+import sys
 import time
 
 import numpy as np
@@ -24,12 +26,16 @@ from sklearn.metrics import (
 import spectral_utils.reconstruction_benchmark.rag_evidence_ab as ab_module
 import spectral_utils.reconstruction_benchmark.rag_evidence_contract as contract_module
 import spectral_utils.reconstruction_benchmark.rag_evidence_evaluation as evaluation_module
+import spectral_utils.reconstruction_benchmark.rag_evidence_evaluation_ab as evaluation_ab_module
+import spectral_utils.reconstruction_benchmark.rag_evidence_score_reader as score_reader_module
 import spectral_utils.reconstruction_benchmark.rag_evidence_preparation as preparation_module
 import spectral_utils.reconstruction_benchmark.rag_evidence_runner as runner_module
 from spectral_utils.reconstruction_benchmark.rag_evidence_ab import (
-    _assert_independent_evaluation_match,
     _assert_independent_score_match,
     _independently_reexecute_score_worker,
+)
+from spectral_utils.reconstruction_benchmark.rag_evidence_evaluation_ab import (
+    _assert_independent_evaluation_match,
 )
 from spectral_utils.reconstruction_benchmark.rag_evidence_contract import (
     AtomicRagDirectory,
@@ -425,8 +431,12 @@ def test_target_free_synthetic_fit_scores_every_panel_deterministically() -> Non
     right, right_diagnostics = compute_rag_evidence_scores(fit_input)
     assert tuple(left) == SCORE_ARRAY_NAMES
     validate_score_arrays(left)
+    postfreeze = score_reader_module.load_scores_bytes(
+        deterministic_npz_bytes(left)
+    )
     for name in SCORE_ARRAY_NAMES:
         assert np.array_equal(left[name], right[name])
+        assert np.array_equal(left[name], postfreeze[name])
     assert left_diagnostics == right_diagnostics
     assert left_diagnostics["labels_seen_during_fit"] is False
     assert left_diagnostics["historical_scores_opened"] is False
@@ -2099,208 +2109,38 @@ def test_independent_evaluation_rejects_coordinated_allowed_csv_rewrite() -> Non
         _assert_independent_evaluation_match(**fixture)
 
 
-def test_full_evaluation_certificate_rejects_private_post_hash_swap_before_compute(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+def test_evaluation_ab_authenticates_score_before_private_tree(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
 ) -> None:
-    """Exercise the former cert forgery window through the complete A/B gate."""
+    events: list[str] = []
 
-    release_id = "private-cert-race"
-    release_root = tmp_path / "release"
-    private_root = tmp_path / "private"
-    lane_root = release_root / release_id / "rag_evidence"
-    private_lane_root = private_root / release_id / "rag_evidence"
-    registry = {
-        "lane_id": "rag_evidence_benchmark_v1",
-        "evaluation": {"bootstrap": {"draws": 3, "seed": 17}},
-        "panels": [
-            {
-                "panel_id": panel_id,
-                "dataset": "synthetic",
-                "unit": "claim",
-                "access": "synthetic",
-                "estimand": "synthetic",
-                "metrics": ["metric"],
-                "methods": ["method"],
-            }
-            for panel_id in PANEL_IDS
-        ],
-    }
-    monkeypatch.setattr(ab_module, "load_registry", lambda _path: registry)
+    def fail_score_authentication(**_kwargs: object) -> dict:
+        events.append("score_authentication")
+        raise RagEvidenceContractError("score authentication sentinel")
 
-    original_private = _synthetic_private_payload(marker="ORIGINAL")
-    attacker_private = _synthetic_private_payload(marker="ATTACKER")
-    private_sha = sha256_bytes(original_private)
-    score_payload = b"synthetic-score-archive"
-    score_sha = sha256_bytes(score_payload)
-    score_certificate = add_payload_sha256({
-        "schema_version": contract_module.SCORE_AB_SCHEMA,
-        "status": "PASS",
-        "score_sha256": score_sha,
-        "private_label_sha256": private_sha,
-        "source_binding_sha256": "b" * 64,
-    })
-    lane_root.mkdir(parents=True)
-    (lane_root / ab_module.SCORE_CERTIFICATE).write_bytes(
-        canonical_json_bytes(score_certificate) + b"\n"
-    )
-    monkeypatch.setattr(
-        ab_module,
-        "authenticate_rag_evidence_score_certificate",
-        lambda **_kwargs: score_certificate,
-    )
-
-    snapshot = {
-        "files": [
-            {"path": relative, "sha256": sha256_file(REPO / relative)}
-            for relative in evaluation_module.EVALUATION_SOURCE_FILES
-        ]
-    }
-    snapshot["snapshot_sha256"] = contract_module.payload_sha256(snapshot)
-    panel_status = [
-        {"panel_id": panel_id, "status": "PASS"}
-        for panel_id in PANEL_IDS
-    ]
-    metrics = "panel_id,metric,method_id,subgroup\n" + "".join(
-        f"{panel_id},metric,method,"
-        f"{'accurate_context' if panel_id.startswith('refchecker_') else 'all'}\n"
-        for panel_id in PANEL_IDS
-    )
-    reporting_payloads = {
-        "metrics.csv": metrics.encode("utf-8"),
-        "predictions.csv": (
-            f"panel_id,subgroup\n{PANEL_IDS[0]},all\n"
-        ).encode("utf-8"),
-        "contrasts.csv": (
-            "panel_id,left_method,right_method\n"
-            "gasp_protocol_sentence,gasp_threshold,fixed_rag_iu_pcr_matched\n"
-        ).encode("utf-8"),
-        "panel_status.csv": (
-            "panel_id,status\n"
-            + "".join(f"{row['panel_id']},PASS\n" for row in panel_status)
-        ).encode("utf-8"),
-    }
-
-    private_paths: dict[str, Path] = {}
-    for build_id in ("A", "B"):
-        build_root = lane_root / build_id
-        fit_root = build_root / "fit"
-        evaluation_root = build_root / "evaluation"
-        private_build = private_lane_root / build_id
-        (fit_root / "candidate").mkdir(parents=True)
-        evaluation_root.mkdir()
-        private_build.mkdir(parents=True)
-        private_path = private_build / PRIVATE_LABEL_FILENAME
-        private_path.write_bytes(original_private)
-        private_paths[build_id] = private_path
-        preparation = add_payload_sha256({
-            "schema_version": contract_module.PREPARATION_SCHEMA,
-            "private_labels": {
-                "path": str(private_path.absolute()),
-                "sha256": private_sha,
-                "size_bytes": len(original_private),
-            },
-        })
-        (build_root / PREPARATION_MANIFEST_FILENAME).write_bytes(
-            canonical_json_bytes(preparation) + b"\n"
-        )
-        (fit_root / "candidate" / contract_module.SCORES_FILENAME).write_bytes(
-            score_payload
-        )
-        score_manifest = add_payload_sha256({
-            "schema_version": contract_module.SCORE_FREEZE_SCHEMA,
-            "scores": {
-                "path": f"candidate/{contract_module.SCORES_FILENAME}",
-                "sha256": score_sha,
-                "size_bytes": len(score_payload),
-            },
-        })
-        score_manifest_payload = canonical_json_bytes(score_manifest) + b"\n"
-        (fit_root / SCORE_MANIFEST_FILENAME).write_bytes(score_manifest_payload)
-        declared_files = []
-        for name, payload in reporting_payloads.items():
-            (evaluation_root / name).write_bytes(payload)
-            declared_files.append({
-                "path": name,
-                "sha256": sha256_bytes(payload),
-                "size_bytes": len(payload),
-            })
-        evaluation_manifest = add_payload_sha256({
-            "schema_version": contract_module.EVALUATION_SCHEMA,
-            "release_id": release_id,
-            "build_id": build_id,
-            "lane_id": registry["lane_id"],
-            "scientific_full": False,
-            "score_sha256": score_sha,
-            "score_manifest_sha256": sha256_bytes(score_manifest_payload),
-            "private_label_sha256": private_sha,
-            "source_binding_sha256": "b" * 64,
-            "score_ab_certificate_sha256": sha256_file(
-                lane_root / ab_module.SCORE_CERTIFICATE
-            ),
-            "source_snapshot": snapshot,
-            "bootstrap": {
-                "draws_requested": 3,
-                "group": "panel-registered source group",
-                "paired_contrasts": True,
-                "seed": 17,
-            },
-            "files": declared_files,
-            "panel_status": panel_status,
-            "cross_panel_macro_computed": False,
-            "refchecker_settings_pooled": False,
-            "historical_scores_copied": False,
-        })
-        (evaluation_root / contract_module.EVALUATION_MANIFEST_FILENAME).write_bytes(
-            canonical_json_bytes(evaluation_manifest) + b"\n"
-        )
-
-    monkeypatch.setattr(ab_module, "load_scores_bytes", lambda _payload: {})
-    compute_called = False
-
-    def forbidden_compute(**_kwargs: object) -> dict:
-        nonlocal compute_called
-        compute_called = True
-        raise AssertionError("evaluation ran after private inode substitution")
+    class ForbiddenPrivateTree:
+        def __init__(self, *_args: object, **_kwargs: object) -> None:
+            events.append("private_tree")
+            raise AssertionError("private tree opened before score authentication")
 
     monkeypatch.setattr(
-        evaluation_module,
-        "compute_rag_evidence_evaluation_tables",
-        forbidden_compute,
+        evaluation_ab_module,
+        "authenticate_rag_evidence_score_certificate_from_repo",
+        fail_score_authentication,
     )
-    attacker_path = tmp_path / "attacker-private.pkl"
-    attacker_path.write_bytes(attacker_private)
-    backup_path = tmp_path / "original-private.pkl"
-    original_rebind = contract_module.BoundRagFile._assert_rebound
-    swapped = False
-
-    def swap_a_private_after_hash(
-        binding: contract_module.BoundRagFile,
-    ) -> None:
-        nonlocal swapped
-        if binding.path == private_paths["A"].absolute() and not swapped:
-            private_paths["A"].rename(backup_path)
-            attacker_path.rename(private_paths["A"])
-            swapped = True
-        original_rebind(binding)
-
-    monkeypatch.setattr(
-        contract_module.BoundRagFile,
-        "_assert_rebound",
-        swap_a_private_after_hash,
-    )
-    with pytest.raises(RagEvidenceContractError):
-        ab_module._derive_evaluation_certificate(
+    monkeypatch.setattr(evaluation_ab_module, "BoundRagTree", ForbiddenPrivateTree)
+    with pytest.raises(RagEvidenceContractError, match="score authentication sentinel"):
+        evaluation_ab_module._derive_evaluation_certificate(
             repo=REPO,
+            score_verifier_repo=tmp_path / "score-verifier",
             registry_path=REGISTRY_PATH,
             source_root=tmp_path,
-            release_root=release_root,
-            private_root=private_root,
-            release_id=release_id,
+            release_root=tmp_path / "release",
+            private_root=tmp_path / "private",
+            release_id="auth-before-private-tree",
             require_scientific_full=False,
         )
-    assert swapped
-    assert not compute_called
-    assert private_paths["A"].read_bytes() == attacker_private
+    assert events == ["score_authentication"]
 
 
 def test_evaluation_authenticates_score_before_private_open_or_compute(
@@ -2332,8 +2172,8 @@ def test_evaluation_authenticates_score_before_private_open_or_compute(
         raise AssertionError("evaluation computed before score authentication")
 
     monkeypatch.setattr(
-        ab_module,
-        "authenticate_rag_evidence_score_certificate",
+        evaluation_module,
+        "authenticate_rag_evidence_score_certificate_from_repo",
         fail_score_authentication,
     )
     monkeypatch.setattr(evaluation_module, "load_private_labels", forbidden_private_open)
@@ -2345,6 +2185,7 @@ def test_evaluation_authenticates_score_before_private_open_or_compute(
     with pytest.raises(RagEvidenceContractError, match="score authentication sentinel"):
         evaluation_module.evaluate_rag_evidence_build(
             repo=REPO,
+            score_verifier_repo=tmp_path / "score-verifier",
             registry_path=REGISTRY_PATH,
             source_root=tmp_path,
             release_root=tmp_path / "release",
@@ -2354,3 +2195,157 @@ def test_evaluation_authenticates_score_before_private_open_or_compute(
             draws_override=5,
         )
     assert events == ["score_authentication"]
+
+
+def test_score_authenticator_subprocess_must_match_frozen_certificate_bytes(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    evaluation_repo = tmp_path / "evaluation-repo"
+    score_repo = tmp_path / "score-repo"
+    source_root = tmp_path / "source-root"
+    release_root = tmp_path / "release-root"
+    private_root = tmp_path / "private-root"
+    for path in (
+        evaluation_repo, score_repo, source_root, release_root, private_root,
+    ):
+        path.mkdir()
+    registry_payload = REGISTRY_PATH.read_bytes()
+    evaluation_registry = evaluation_repo / "configs/rag.json"
+    score_registry = (
+        score_repo / "configs/reconstruction_benchmark_v1/rag_evidence.json"
+    )
+    evaluation_registry.parent.mkdir(parents=True)
+    score_registry.parent.mkdir(parents=True)
+    evaluation_registry.write_bytes(registry_payload)
+    score_registry.write_bytes(registry_payload)
+    release_id = "subprocess-auth"
+    lane_root = release_root / release_id / "rag_evidence"
+    lane_root.mkdir(parents=True)
+    certificate = add_payload_sha256({
+        "schema_version": contract_module.SCORE_AB_SCHEMA,
+        "status": "PASS",
+        "score_sha256": "a" * 64,
+        "private_label_sha256": "b" * 64,
+        "source_binding_sha256": "c" * 64,
+    })
+    certificate_payload = canonical_json_bytes(certificate) + b"\n"
+    (lane_root / evaluation_module.SCORE_CERTIFICATE_FILENAME).write_bytes(
+        certificate_payload
+    )
+    evaluation_snapshot = {
+        "git_head": "e" * 40, "git_clean": True,
+        "source_files": [], "snapshot_sha256": "1" * 64,
+    }
+    score_snapshot = {
+        "git_head": evaluation_module.SCORE_VERIFIER_GIT_HEAD,
+        "git_clean": True, "source_files": [], "snapshot_sha256": "2" * 64,
+    }
+    monkeypatch.setattr(
+        evaluation_module, "capture_evaluation_repository_snapshot",
+        lambda *_args, **_kwargs: evaluation_snapshot,
+    )
+    monkeypatch.setattr(
+        evaluation_module, "capture_score_verifier_repository_snapshot",
+        lambda *_args, **_kwargs: score_snapshot,
+    )
+    invoked: dict[str, object] = {}
+
+    def completed(command: list[str], **kwargs: object) -> object:
+        invoked["command"] = command
+        invoked.update(kwargs)
+        return subprocess.CompletedProcess(
+            command, 0, stdout=certificate_payload, stderr=b"",
+        )
+
+    monkeypatch.setattr(evaluation_module.subprocess, "run", completed)
+    result = evaluation_module.authenticate_rag_evidence_score_certificate_from_repo(
+        evaluation_repo=evaluation_repo,
+        score_verifier_repo=score_repo,
+        registry_path=evaluation_registry,
+        source_root=source_root,
+        release_root=release_root,
+        private_root=private_root,
+        release_id=release_id,
+        require_scientific_full=True,
+    )
+    assert result["certificate"] == certificate
+    assert result["certificate_payload"] == certificate_payload
+    assert result["evaluation_repo_snapshot"] == evaluation_snapshot
+    assert result["score_verifier_repo_snapshot"] == score_snapshot
+    command = invoked["command"]
+    assert command[1:3] == ["-I", "-B"]
+    assert invoked["cwd"] == score_repo
+
+
+def test_evaluation_source_closure_excludes_current_fit_and_score_ab() -> None:
+    assert (
+        "spectral_utils/reconstruction_benchmark/rag_evidence_fit.py"
+        not in evaluation_module.EVALUATION_SOURCE_FILES
+    )
+    assert (
+        "spectral_utils/reconstruction_benchmark/rag_evidence_ab.py"
+        not in evaluation_module.EVALUATION_SOURCE_FILES
+    )
+    assert evaluation_module.SCORE_VERIFIER_GIT_HEAD == (
+        "409900332854c0586c4abc7dbc33f10b565b59af"
+    )
+    assert evaluation_module.SCORE_VERIFIER_SOURCE_SHA256[
+        "spectral_utils/reconstruction_benchmark/rag_evidence_ab.py"
+    ] == "9b6a3f0ebb0ba02fbe0704802b1ecccbefb967819b83d49e4427c69cc96a629a"
+
+
+@pytest.mark.parametrize(
+    "script,extra",
+    (
+        ("evaluate_rag_evidence.py", ("--build", "A")),
+        ("verify_rag_evidence_evaluation_ab.py", ()),
+    ),
+)
+def test_evaluation_clis_require_explicit_score_verifier_repo(
+    tmp_path: Path, script: str, extra: tuple[str, ...],
+) -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(REPO / "scripts/reconstruction_benchmark" / script),
+            "--release-id", "cli-score-repo", "--source-root", str(tmp_path),
+            *extra,
+        ],
+        cwd=REPO, capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 2
+    assert "--score-verifier-repo" in result.stderr
+
+
+@pytest.mark.parametrize(
+    "script,removed",
+    (
+        ("evaluate_rag_evidence.py", "--debug-draws"),
+        ("verify_rag_evidence_evaluation_ab.py", "--allow-debug"),
+    ),
+)
+def test_canonical_evaluation_clis_reject_debug_publication_modes(
+    tmp_path: Path, script: str, removed: str,
+) -> None:
+    script_path = REPO / "scripts/reconstruction_benchmark" / script
+    help_result = subprocess.run(
+        [sys.executable, str(script_path), "--help"],
+        cwd=REPO, capture_output=True, text=True, check=False,
+    )
+    assert help_result.returncode == 0
+    assert removed not in help_result.stdout
+    arguments = [
+        sys.executable, str(script_path),
+        "--release-id", "no-debug-publication",
+        "--source-root", str(tmp_path),
+        "--score-verifier-repo", str(tmp_path / "score-repo"),
+    ]
+    if script == "evaluate_rag_evidence.py":
+        arguments.extend(("--build", "A", removed, "5"))
+    else:
+        arguments.append(removed)
+    result = subprocess.run(
+        arguments, cwd=REPO, capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 2
+    assert "unrecognized arguments" in result.stderr

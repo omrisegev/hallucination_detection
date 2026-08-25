@@ -122,7 +122,7 @@ release ID and use the main repository as `SOURCE_ROOT`; the worktree does not
 contain the large ignored caches.
 
 ```bash
-PY=.venv/bin/python
+PY=/Users/osegev/Desktop/hallucination_detection/.venv/bin/python
 SOURCE_ROOT=/Users/osegev/Desktop/hallucination_detection
 RELEASE_ID=<approved-release-id>
 
@@ -134,14 +134,29 @@ $PY scripts/reconstruction_benchmark/run_rag_evidence_methods.py --release-id "$
 $PY scripts/reconstruction_benchmark/run_rag_evidence_methods.py --release-id "$RELEASE_ID" --build B --source-root "$SOURCE_ROOT"
 $PY scripts/reconstruction_benchmark/verify_rag_evidence_ab.py --release-id "$RELEASE_ID" --source-root "$SOURCE_ROOT"
 
-$PY scripts/reconstruction_benchmark/evaluate_rag_evidence.py --release-id "$RELEASE_ID" --build A --source-root "$SOURCE_ROOT"
-$PY scripts/reconstruction_benchmark/evaluate_rag_evidence.py --release-id "$RELEASE_ID" --build B --source-root "$SOURCE_ROOT"
-$PY scripts/reconstruction_benchmark/verify_rag_evidence_evaluation_ab.py --release-id "$RELEASE_ID" --source-root "$SOURCE_ROOT"
+# Post-freeze evaluation runs from a separate clean checkout at the approved
+# evaluator commit.  Its trusted, stable interpreter and site-packages
+# environment, plus its frozen release trees, are external to that checkout;
+# score verification is delegated to the exact clean 4099003 checkout that
+# produced the existing score certificate.
+EVALUATION_REPO=<clean-evaluator-checkout-at-approved-commit>
+SCORE_VERIFIER_REPO=/Users/osegev/Desktop/hallucination_detection/.worktrees/reconstruction-rag-run-v1
+RELEASE_ROOT=/Users/osegev/Desktop/hallucination_detection/.worktrees/reconstruction-science-run-v1/results/reconstruction_benchmark_v1/releases
+PRIVATE_ROOT=/Users/osegev/Desktop/hallucination_detection/.worktrees/reconstruction-science-run-v1/results/reconstruction_benchmark_v1/private_control
+
+test "$(/usr/bin/git -C "$SCORE_VERIFIER_REPO" rev-parse HEAD)" = 409900332854c0586c4abc7dbc33f10b565b59af
+test -z "$(/usr/bin/git -C "$SCORE_VERIFIER_REPO" status --porcelain=v1 --untracked-files=all)"
+cd "$EVALUATION_REPO"
+
+$PY scripts/reconstruction_benchmark/evaluate_rag_evidence.py --release-id "$RELEASE_ID" --build A --source-root "$SOURCE_ROOT" --score-verifier-repo "$SCORE_VERIFIER_REPO" --release-root "$RELEASE_ROOT" --private-root "$PRIVATE_ROOT"
+$PY scripts/reconstruction_benchmark/evaluate_rag_evidence.py --release-id "$RELEASE_ID" --build B --source-root "$SOURCE_ROOT" --score-verifier-repo "$SCORE_VERIFIER_REPO" --release-root "$RELEASE_ROOT" --private-root "$PRIVATE_ROOT"
+$PY scripts/reconstruction_benchmark/verify_rag_evidence_evaluation_ab.py --release-id "$RELEASE_ID" --source-root "$SOURCE_ROOT" --score-verifier-repo "$SCORE_VERIFIER_REPO" --release-root "$RELEASE_ROOT" --private-root "$PRIVATE_ROOT"
 ```
 
-Debug flags make an artifact non-scientific. A scientific certificate rejects
-debug preparation, fit, or evaluation. No command accesses Google Drive, and
-none downloads a model or dataset.
+Debug preparation/fit flags make those artifacts non-scientific. The three
+post-freeze evaluation CLIs above are science-only and expose no debug mode.
+A scientific certificate rejects debug preparation or fit artifacts. No
+command accesses Google Drive, and none downloads a model or dataset.
 
 ## Review gates before execution
 
