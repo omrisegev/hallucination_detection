@@ -1,0 +1,138 @@
+{
+  "access_partitions": {
+    "external_final_answer": {
+      "application": "primary",
+      "limited_application": "context",
+      "negative_stress": "context"
+    },
+    "localization": {
+      "gray_box_judge_control": "context",
+      "high_access_large_critic": "context",
+      "high_access_supervised_prm": "context",
+      "saved_output_probability_telemetry_one_pass": "primary"
+    }
+  },
+  "claim_boundaries": {
+    "edis_context": {
+      "allowed": [
+        "diagnostic context only"
+      ],
+      "forbidden": [
+        "primary leaderboard",
+        "cross-task macro"
+      ]
+    },
+    "leash_stopping": {
+      "allowed": [
+        "actual policy execution after certification"
+      ],
+      "forbidden": [
+        "paper-exact claim",
+        "matched-accuracy claim",
+        "cross-task macro"
+      ]
+    },
+    "prefix": {
+      "allowed": [
+        "retrospective causal early scoring of an unfinished fixed trace"
+      ],
+      "forbidden": [
+        "adaptive stopping",
+        "token savings",
+        "latency savings",
+        "cross-budget macro",
+        "cross-task macro"
+      ]
+    },
+    "winner_reference": {
+      "allowed": [
+        "direct paired 95% interval non-separation from the observed point winner"
+      ],
+      "forbidden": [
+        "equivalence",
+        "tie",
+        "simultaneous coverage",
+        "familywise coverage",
+        "winner-selection-adjusted inference"
+      ]
+    }
+  },
+  "lanes": {
+    "edis_v2": {
+      "adapter": "edis_v2",
+      "default_estimand_id": "multi_sample_trace_final_answer_diagnostic",
+      "default_prediction_unit": "multi_sample_trace",
+      "lane_id": "edis_context",
+      "report_partition": "context",
+      "task_id": "final_answer_detection_on_multi_sample_traces"
+    },
+    "external_v3": {
+      "adapter": "external_v3",
+      "default_estimand_id": "response_error_ranking",
+      "default_prediction_unit": "response",
+      "lane_id": "external_final_answer",
+      "report_partition": "primary",
+      "task_id": "final_answer_error_detection"
+    },
+    "frozen24": {
+      "adapter": "frozen24_v1",
+      "default_estimand_id": "response_error_ranking",
+      "default_prediction_unit": "response",
+      "lane_id": "frozen24_response",
+      "report_partition": "primary",
+      "task_id": "final_answer_error_detection"
+    },
+    "leash_stopping": {
+      "adapter": "not_certified",
+      "default_estimand_id": "accuracy_vs_realized_compute",
+      "default_prediction_unit": "source_question",
+      "lane_id": "leash_actual_stopping",
+      "report_partition": "context",
+      "task_id": "adaptive_stopping"
+    },
+    "localization_v1": {
+      "adapter": "localization_v1",
+      "default_estimand_id": "first_error_localization",
+      "default_prediction_unit": "trace_first_error_index",
+      "lane_id": "localization",
+      "report_partition": "primary",
+      "task_id": "first_error_localization"
+    },
+    "prefix_v1": {
+      "adapter": "prefix_v1",
+      "default_estimand_id": "causal_early_final_answer_error_ranking",
+      "default_prediction_unit": "unfinished_fixed_trace",
+      "lane_id": "prefix_early_detection",
+      "report_partition": "primary",
+      "task_id": "causal_early_final_answer_error_detection"
+    },
+    "rag_evidence": {
+      "adapter": "not_certified",
+      "default_estimand_id": "panel_registered_rag_evidence",
+      "default_prediction_unit": "panel_registered_unit",
+      "lane_id": "rag_evidence",
+      "report_partition": "context",
+      "task_id": "rag_evidence_evaluation"
+    },
+    "winner_external_v3": {
+      "adapter": "winner_reference_v1",
+      "base_source": "external_v3",
+      "default_estimand_id": "response_error_ranking",
+      "default_prediction_unit": "response",
+      "lane_id": "external_final_answer",
+      "report_partition": "primary",
+      "task_id": "final_answer_error_detection"
+    },
+    "winner_frozen24": {
+      "adapter": "winner_reference_v1",
+      "base_source": "frozen24",
+      "default_estimand_id": "response_error_ranking",
+      "default_prediction_unit": "response",
+      "lane_id": "frozen24_response",
+      "report_partition": "primary",
+      "task_id": "final_answer_error_detection"
+    }
+  },
+  "namespace_contract": "all producer dataset/population/cell/slice/system identifiers are lane-qualified; source identifiers remain separate",
+  "schema_version": "reconstruction-unified-reporting-contract-v1"
+}

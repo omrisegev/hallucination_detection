@@ -1,0 +1,1105 @@
+#!/usr/bin/env python3
+"""Focused adversarial tests for the certified unified reporting bridge."""
+
+from __future__ import annotations
+
+import csv
+import hashlib
+import importlib.util
+from io import BytesIO, StringIO
+import json
+import os
+from pathlib import Path
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+
+REPO = Path(__file__).resolve().parents[2]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+from spectral_utils.reconstruction_reporting.unified_reporting_publish import (  # noqa: E402
+    build_unified_release,
+    verify_completed_release,
+    verify_unified_release_ab,
+)
+import spectral_utils.reconstruction_reporting.unified_reporting_publish as unified_publish  # noqa: E402
+from spectral_utils.reconstruction_reporting.unified_reporting_schemas import (  # noqa: E402
+    COMPARISON_SIGNATURE_FIELDS,
+    UnifiedReportingError,
+    assert_csv_parquet_parity,
+    canonical_json_bytes,
+    canonical_sha256,
+    csv_bytes,
+    derive_comparison_group_id,
+    parquet_bytes,
+    read_csv_bytes,
+    validate_row,
+)
+from spectral_utils.reconstruction_reporting.unified_reporting_sources import (  # noqa: E402
+    authenticate_sources,
+    load_source_lock,
+    read_locked_file,
+)
+
+
+HAS_ARROW = importlib.util.find_spec("pyarrow") is not None
+
+
+def _sha(payload: bytes) -> str:
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _csv_payload(fieldnames: list[str], rows: list[dict[str, object]]) -> bytes:
+    stream = StringIO(newline="")
+    writer = csv.DictWriter(stream, fieldnames=fieldnames, lineterminator="\n")
+    writer.writeheader()
+    writer.writerows(rows)
+    return stream.getvalue().encode("utf-8")
+
+
+def _write_json(path: Path, value: object) -> None:
+    path.write_bytes(canonical_json_bytes(value) + b"\n")
+
+
+def _fixture(root: Path) -> tuple[Path, Path, Path]:
+    source = root / "source"
+    source.mkdir()
+    metric_fields = [
+        "task_id", "dataset_id", "population_id", "cell_id", "slice_id",
+        "access_contract_id", "fidelity", "aggregation_level", "aggregation_id",
+        "system_id", "method_id", "metric_id", "metric_unit", "positive_class",
+        "better_direction", "comparison_group_id", "value", "ci_low", "ci_high",
+        "n_rows", "n_groups", "n_positive", "n_negative", "bootstrap_unit",
+        "bootstrap_draws", "status", "status_detail", "cohort_id",
+    ]
+    metrics = _csv_payload(metric_fields, [{
+        "task_id": "final_answer_detection", "dataset_id": "fixture_dataset",
+        "population_id": "fixture_population", "cell_id": "fixture_cell",
+        "slice_id": "fixture_slice", "access_contract_id": "saved_telemetry",
+        "fidelity": "fixture_certified", "aggregation_level": "cell",
+        "aggregation_id": "fixture_cell_native", "system_id": "system_v1",
+        "method_id": "method", "metric_id": "auroc", "metric_unit": "fraction",
+        "positive_class": "incorrect final answer", "better_direction": "higher",
+        "comparison_group_id": "producer_group", "value": 0.75, "ci_low": 0.6,
+        "ci_high": 0.9, "n_rows": 4, "n_groups": 4, "n_positive": 2,
+        "n_negative": 2, "bootstrap_unit": "source_group", "bootstrap_draws": 20,
+        "status": "OK", "status_detail": "fixture", "cohort_id": "fixture_cohort",
+    }])
+    contrasts = _csv_payload(["left_system_id", "right_system_id"], [])
+    coverage_fields = [
+        "task_id", "dataset_id", "population_id", "cell_id", "slice_id",
+        "access_contract_id", "system_id", "method_id", "expected_n", "eligible_n",
+        "scored_n", "fallback_n", "excluded_n", "failed_n", "coverage_fraction",
+        "cohort_id", "status", "status_detail",
+    ]
+    coverage = _csv_payload(coverage_fields, [{
+        "task_id": "final_answer_detection", "dataset_id": "fixture_dataset",
+        "population_id": "fixture_population", "cell_id": "fixture_cell",
+        "slice_id": "fixture_slice", "access_contract_id": "saved_telemetry",
+        "system_id": "system_v1", "method_id": "method", "expected_n": 4,
+        "eligible_n": 4, "scored_n": 4, "fallback_n": 0, "excluded_n": 0,
+        "failed_n": 0, "coverage_fraction": 1, "cohort_id": "fixture_cohort",
+        "status": "OK", "status_detail": "fixture",
+    }])
+    payloads = {"metrics": metrics, "contrasts": contrasts, "coverage": coverage}
+    filenames = {
+        "metrics": "metrics_long.csv", "contrasts": "contrasts_long.csv",
+        "coverage": "coverage_long.csv",
+    }
+    for name, payload in payloads.items():
+        (source / filenames[name]).write_bytes(payload)
+    certificate_body = {
+        "schema_version": "reconstruction-24cell-reporting-bridge-v1",
+        "scientific_publication_eligible": True,
+        "artifacts": [
+            {"path": filenames[name], "file_sha256": _sha(payload)}
+            for name, payload in payloads.items()
+        ],
+    }
+    certificate = dict(certificate_body)
+    certificate["payload_sha256"] = canonical_sha256(certificate_body)
+    certificate_payload = canonical_json_bytes(certificate) + b"\n"
+    (source / "BRIDGE_MANIFEST.json").write_bytes(certificate_payload)
+    source_lock = {
+        "schema_version": "reconstruction-unified-reporting-source-lock-v1",
+        "sources": [
+            {
+                "source_id": "frozen24", "source_release_id": "fixture_frozen24",
+                "source_root_id": "fixture", "certified": True,
+                "certificate": {
+                    "path": "BRIDGE_MANIFEST.json", "file_sha256": _sha(certificate_payload),
+                    "schema_version": certificate["schema_version"],
+                    "self_hash_field": "payload_sha256",
+                    "self_hash": certificate["payload_sha256"],
+                    "status_field": "scientific_publication_eligible", "status_value": True,
+                },
+                "files": {
+                    name: {
+                        "path": filenames[name], "format": "csv",
+                        "file_sha256": _sha(payload),
+                    }
+                    for name, payload in payloads.items()
+                },
+            },
+            {
+                "source_id": "rag_evidence", "source_release_id": "NOT_CERTIFIED",
+                "certified": False, "status": "NOT_CERTIFIED",
+            },
+            {
+                "source_id": "leash_stopping", "source_release_id": "NOT_CERTIFIED",
+                "certified": False, "status": "NOT_CERTIFIED",
+            },
+        ],
+    }
+    contract = {
+        "schema_version": "reconstruction-unified-reporting-contract-v1",
+        "access_partitions": {}, "claim_boundaries": {},
+        "lanes": {
+            "frozen24": {
+                "adapter": "frozen24_v1", "lane_id": "frozen24_response",
+                "task_id": "final_answer_detection", "default_prediction_unit": "response",
+                "default_estimand_id": "response_error_ranking", "report_partition": "primary",
+            },
+            "rag_evidence": {
+                "adapter": "not_certified", "lane_id": "rag_evidence",
+                "task_id": "rag_evidence_evaluation",
+                "default_prediction_unit": "panel_registered_unit",
+                "default_estimand_id": "panel_registered_rag_evidence",
+                "report_partition": "context",
+            },
+            "leash_stopping": {
+                "adapter": "not_certified", "lane_id": "leash_actual_stopping",
+                "task_id": "adaptive_stopping", "default_prediction_unit": "source_question",
+                "default_estimand_id": "accuracy_vs_realized_compute",
+                "report_partition": "context",
+            },
+        },
+    }
+    contract_path, lock_path = root / "contract.json", root / "source_lock.json"
+    _write_json(contract_path, contract)
+    _write_json(lock_path, source_lock)
+    return source, contract_path, lock_path
+
+
+def _forge_metric_value(build: Path, value: float) -> None:
+    """Coordinate a self-consistent output-only forgery without changing sources."""
+
+    rows = read_csv_bytes("metrics", (build / "tables/metrics.csv").read_bytes())
+    rows[0]["value"] = value
+    csv_payload, normalized = csv_bytes("metrics", rows)
+    parquet_payload, _ = parquet_bytes("metrics", normalized)
+    logical = assert_csv_parquet_parity("metrics", csv_payload, parquet_payload)
+    (build / "tables/metrics.csv").write_bytes(csv_payload)
+    (build / "tables/metrics.parquet").write_bytes(parquet_payload)
+
+    manifest_path = build / "BRIDGE_MANIFEST.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    content = manifest["content"]
+    for relative, payload in (
+        ("tables/metrics.csv", csv_payload),
+        ("tables/metrics.parquet", parquet_payload),
+    ):
+        content["files"][relative] = {"file_sha256": _sha(payload), "bytes": len(payload)}
+    record = content["tables"]["metrics"]
+    record["logical_sha256"] = logical
+    record["csv_file_sha256"] = _sha(csv_payload)
+    record["parquet_file_sha256"] = _sha(parquet_payload)
+    release_hash = canonical_sha256(content)
+    manifest["release_content_sha256"] = release_hash
+    manifest.pop("payload_sha256")
+    manifest["payload_sha256"] = canonical_sha256(manifest)
+    manifest_payload = canonical_json_bytes(manifest) + b"\n"
+    manifest_path.write_bytes(manifest_payload)
+
+    completion_path = build / "RELEASE_COMPLETE.json"
+    completion = json.loads(completion_path.read_text(encoding="utf-8"))
+    completion["manifest_file_sha256"] = _sha(manifest_payload)
+    completion["manifest_payload_sha256"] = manifest["payload_sha256"]
+    completion["release_content_sha256"] = release_hash
+    completion.pop("completion_sha256")
+    completion["completion_sha256"] = canonical_sha256(completion)
+    completion_path.write_bytes(canonical_json_bytes(completion) + b"\n")
+
+
+def _decision() -> dict[str, object]:
+    return {
+        "release_id": "release", "lane_id": "localization",
+        "task_id": "first_error_localization", "source_dataset_id": "dataset",
+        "dataset_id": "localization::dataset::dataset",
+        "population_id": "localization::population::population",
+        "cell_id": "localization::cell::cell", "slice_id": "localization::slice::slice",
+        "prediction_unit": "trace_first_error_index",
+        "estimand_id": "first_error_index_decision",
+        "access_level": "saved_output_probability_telemetry_one_pass",
+        "supervision": "unsupervised", "fidelity": "saved_telemetry",
+        "report_partition": "primary", "model_id": "model",
+        "system_id": "localization::system::method", "row_id": "row",
+        "cohort_id": "cohort", "group_id": "group", "fold": 0,
+        "predicted_first_error": -1, "true_first_error": 3,
+        "comparison_group_id": "decisionv1_fixture",
+        "source_comparison_group_id": "producer_group", "source_status": "OK",
+        "source_binding_id": "sourcev1_fixture", "source_table": "localization_decisions",
+        "source_row_locator": "row:2", "source_row_sha256": "0" * 64,
+    }
+
+
+def _winner_set() -> dict[str, object]:
+    scope = {key: _decision()[key] for key in (
+        "release_id", "lane_id", "task_id", "source_dataset_id", "dataset_id",
+        "population_id", "cell_id", "slice_id", "prediction_unit", "estimand_id",
+        "access_level", "supervision", "fidelity", "report_partition",
+    )}
+    return {
+        **scope, "comparison_group_id": "cmpv1_fixture",
+        "source_comparison_group_id": "producer_group", "aggregation_id": "native",
+        "aggregation_level": "cell", "metric_id": "auroc", "better_direction": "higher",
+        "winner_reference_method_id": "winner", "method_id": "candidate",
+        "method_value": 0.7, "membership_status": "NOT_SEPARATED_FROM_POINT_WINNER_95CI",
+        "in_winner_reference_set": True,
+        "interpretation_code": "DIRECT_PAIRED_NONSEPARATION_95",
+        "equivalence_claim": False, "simultaneous_coverage": False,
+        "winner_selection_adjusted": False, "multiplicity_adjustment": "NONE",
+        "source_binding_id": "sourcev1_fixture", "source_table": "winner_reference_sets",
+        "source_row_locator": "row:2", "source_row_sha256": "0" * 64,
+    }
+
+
+class SchemaTests(unittest.TestCase):
+    def test_comparison_group_separates_every_scientific_boundary(self) -> None:
+        signature = {field: f"value::{field}" for field in COMPARISON_SIGNATURE_FIELDS}
+        baseline = derive_comparison_group_id(signature)
+        for field in ("task_id", "prediction_unit", "access_level", "fidelity", "slice_id"):
+            changed = dict(signature)
+            changed[field] = f"different::{field}"
+            self.assertNotEqual(baseline, derive_comparison_group_id(changed), field)
+
+    @unittest.skipUnless(HAS_ARROW, "PyArrow is required")
+    def test_localization_int64_abstention_and_csv_parquet_parity(self) -> None:
+        row = _decision()
+        csv_payload, _ = csv_bytes("localization_decisions", [row])
+        parquet_payload, _ = parquet_bytes("localization_decisions", [row])
+        assert_csv_parquet_parity("localization_decisions", csv_payload, parquet_payload)
+        self.assertEqual(read_csv_bytes("localization_decisions", csv_payload)[0]["predicted_first_error"], -1)
+        import pyarrow.parquet as pq
+        self.assertEqual(str(pq.read_schema(BytesIO(parquet_payload)).field("predicted_first_error").type), "int64")
+        invalid = dict(row); invalid["predicted_first_error"] = False
+        with self.assertRaises(UnifiedReportingError):
+            validate_row("localization_decisions", invalid)
+        invalid = dict(row); invalid["predicted_first_error"] = -2
+        with self.assertRaises(UnifiedReportingError):
+            validate_row("localization_decisions", invalid)
+        invalid = dict(row); invalid["report_partition"] = "context"
+        with self.assertRaises(UnifiedReportingError):
+            validate_row("localization_decisions", invalid)
+
+    def test_winner_reference_cannot_be_upgraded_to_equivalence(self) -> None:
+        row = _winner_set()
+        validate_row("winner_reference_sets", row)
+        invalid = dict(row); invalid["equivalence_claim"] = True
+        with self.assertRaises(UnifiedReportingError):
+            validate_row("winner_reference_sets", invalid)
+        invalid = dict(row); invalid["multiplicity_adjustment"] = "BONFERRONI"
+        with self.assertRaises(UnifiedReportingError):
+            validate_row("winner_reference_sets", invalid)
+        invalid = dict(row); invalid["membership_status"] = "TIE"
+        with self.assertRaises(UnifiedReportingError):
+            validate_row("winner_reference_sets", invalid)
+
+
+class SourceAuthenticationTests(unittest.TestCase):
+    def test_locked_file_rejects_tamper_traversal_and_symlink(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            payload = b"reviewed\n"
+            (root / "reviewed.txt").write_bytes(payload)
+            self.assertEqual(read_locked_file(root, "reviewed.txt", _sha(payload)), payload)
+            (root / "reviewed.txt").write_bytes(b"tampered\n")
+            with self.assertRaises(UnifiedReportingError):
+                read_locked_file(root, "reviewed.txt", _sha(payload))
+            with self.assertRaises(UnifiedReportingError):
+                read_locked_file(root, "../reviewed.txt", _sha(payload))
+            (root / "target.txt").write_bytes(payload)
+            (root / "link.txt").symlink_to(root / "target.txt")
+            with self.assertRaises(UnifiedReportingError):
+                read_locked_file(root, "link.txt", _sha(payload))
+
+    def test_locked_file_detects_change_during_open_descriptor_read(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            target = root / "reviewed.bin"
+            payload = b"a" * (2 << 20)
+            target.write_bytes(payload)
+            real_read = __import__("os").read
+            changed = False
+
+            def racing_read(descriptor: int, size: int) -> bytes:
+                nonlocal changed
+                block = real_read(descriptor, size)
+                if block and not changed:
+                    changed = True
+                    with target.open("ab") as stream:
+                        stream.write(b"changed")
+                return block
+
+            with patch(
+                "spectral_utils.reconstruction_reporting.unified_reporting_sources.os.read",
+                side_effect=racing_read,
+            ):
+                with self.assertRaisesRegex(UnifiedReportingError, "changed while being read"):
+                    read_locked_file(root, "reviewed.bin", _sha(payload))
+
+    def test_reviewed_certificate_chain_authenticates_then_tamper_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, _, lock_path = _fixture(root)
+            lock = load_source_lock(lock_path)
+            authenticated = authenticate_sources(lock, source_roots={"fixture": source})
+            self.assertEqual([item.source_status for item in authenticated], [
+                "CERTIFIED", "NOT_CERTIFIED", "NOT_CERTIFIED",
+            ])
+            (source / "metrics_long.csv").write_bytes(b"tampered\n")
+            with self.assertRaises(UnifiedReportingError):
+                authenticate_sources(lock, source_roots={"fixture": source})
+
+
+@unittest.skipUnless(HAS_ARROW, "PyArrow is required")
+class PublicationTests(unittest.TestCase):
+    def test_no_clobber_completion_ab_and_status_only_placeholders(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            build_a, build_b = root / "build_A", root / "build_B"
+            result_a = build_unified_release(
+                release_id="fixture-release", build_id="A", output_root=build_a,
+                contract_path=contract, source_lock_path=lock,
+                source_roots={"fixture": source},
+            )
+            result_b = build_unified_release(
+                release_id="fixture-release", build_id="B", output_root=build_b,
+                contract_path=contract, source_lock_path=lock,
+                source_roots={"fixture": source},
+            )
+            self.assertEqual(result_a["release_content_sha256"], result_b["release_content_sha256"])
+            verified = verify_completed_release(build_a)
+            self.assertEqual(verified.completion["status"], "COMPLETE")
+            statuses = read_csv_bytes("status", (build_a / "tables/status.csv").read_bytes())
+            placeholders = [row for row in statuses if row["status_class"] == "NOT_CERTIFIED"]
+            self.assertEqual(len(placeholders), 2)
+            self.assertTrue(all(row["status_scope"] == "lane" and not row["rankable"] for row in placeholders))
+            for table in (
+                "metrics", "context_metrics", "contrasts", "context_contrasts",
+                "coverage", "context_coverage", "localization_decisions",
+                "context_localization_decisions", "winner_reference_sets",
+                "context_winner_reference_sets", "winner_reference_contrasts",
+                "context_winner_reference_contrasts",
+            ):
+                rows = read_csv_bytes(table, (build_a / f"tables/{table}.csv").read_bytes())
+                self.assertFalse(any(row["source_binding_id"] in {
+                    placeholder["source_binding_id"] for placeholder in placeholders
+                } for row in rows), table)
+            rendered = "\n".join(
+                path.read_text(encoding="utf-8")
+                for path in (
+                    build_a / "REPORT_CONTRACT.json", build_a / "SOURCE_LOCK.json",
+                    build_a / "BRIDGE_MANIFEST.json", build_a / "RELEASE_COMPLETE.json",
+                    build_a / "tables/source_artifacts.csv",
+                )
+            )
+            self.assertNotIn(str(source.resolve()), rendered)
+            with self.assertRaises(UnifiedReportingError):
+                build_unified_release(
+                    release_id="fixture-release", build_id="A2", output_root=build_a,
+                    contract_path=contract, source_lock_path=lock,
+                    source_roots={"fixture": source},
+                )
+            certificate = root / "AB_VERIFICATION.json"
+            issued = verify_unified_release_ab(
+                build_a=build_a, build_b=build_b, certificate_path=certificate,
+                contract_path=contract, source_lock_path=lock,
+                source_roots={"fixture": source},
+            )
+            self.assertEqual(issued["status"], "PASS")
+            with self.assertRaises(UnifiedReportingError):
+                verify_unified_release_ab(
+                    build_a=build_a, build_b=build_b, certificate_path=certificate,
+                    contract_path=contract, source_lock_path=lock,
+                    source_roots={"fixture": source},
+                )
+            with (build_b / "tables/metrics.csv").open("ab") as stream:
+                stream.write(b"\n")
+            with self.assertRaises(UnifiedReportingError):
+                verify_completed_release(build_b)
+
+    def test_missing_completion_and_extra_file_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            incomplete = root / "incomplete"
+            incomplete.mkdir()
+            with self.assertRaises(UnifiedReportingError):
+                verify_completed_release(incomplete)
+            source, contract, lock = _fixture(root)
+            release = root / "release"
+            build_unified_release(
+                release_id="fixture-release", build_id="A", output_root=release,
+                contract_path=contract, source_lock_path=lock,
+                source_roots={"fixture": source},
+            )
+            (release / "UNREVIEWED.txt").write_text("unexpected", encoding="utf-8")
+            with self.assertRaises(UnifiedReportingError):
+                verify_completed_release(release)
+
+    def test_ab_rejects_coordinated_fabrication_by_source_rederivation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            build_a, build_b = root / "build_A", root / "build_B"
+            for build_id, output in (("A", build_a), ("B", build_b)):
+                build_unified_release(
+                    release_id="fixture-release", build_id=build_id, output_root=output,
+                    contract_path=contract, source_lock_path=lock,
+                    source_roots={"fixture": source},
+                )
+            _forge_metric_value(build_a, 0.123456789)
+            _forge_metric_value(build_b, 0.123456789)
+            # Output-only verification sees a self-consistent forged tree.  The
+            # A/B trust path must independently reopen the authenticated source.
+            self.assertEqual(
+                read_csv_bytes("metrics", (build_a / "tables/metrics.csv").read_bytes())[0]["value"],
+                0.123456789,
+            )
+            verify_completed_release(build_a)
+            certificate = root / "AB_FORGED.json"
+            with self.assertRaisesRegex(UnifiedReportingError, "independent authenticated-source rederivation"):
+                verify_unified_release_ab(
+                    build_a=build_a, build_b=build_b, certificate_path=certificate,
+                    contract_path=contract, source_lock_path=lock,
+                    source_roots={"fixture": source},
+                )
+            self.assertFalse(certificate.exists())
+
+    def test_late_inventory_injection_fails_end_rescan(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            release = root / "release"
+            build_unified_release(
+                release_id="fixture-release", build_id="A", output_root=release,
+                contract_path=contract, source_lock_path=lock,
+                source_roots={"fixture": source},
+            )
+            real_read = unified_publish._read_held_regular_fd
+            injected = False
+
+            def inject_then_read(
+                descriptor: int, expected: tuple[int, ...], relative: str,
+            ) -> bytes:
+                nonlocal injected
+                if not injected:
+                    injected = True
+                    (release / "LATE_UNREVIEWED.txt").write_text("late", encoding="utf-8")
+                return real_read(descriptor, expected, relative)
+
+            with patch.object(
+                unified_publish, "_read_held_regular_fd", side_effect=inject_then_read,
+            ):
+                with self.assertRaisesRegex(UnifiedReportingError, "inventory drift"):
+                    verify_completed_release(release)
+
+    def test_parent_and_stage_swaps_fail_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            real_assert = unified_publish._assert_directory_path_identity
+            moved = root.with_name(f"{root.name}.moved")
+            swapped = False
+
+            def swap_parent(path: Path, expected: os.stat_result, *, where: str) -> None:
+                nonlocal swapped
+                if where == "publication parent" and not swapped:
+                    swapped = True
+                    path.rename(moved)
+                    path.mkdir()
+                real_assert(path, expected, where=where)
+
+            try:
+                with patch.object(
+                    unified_publish, "_assert_directory_path_identity", side_effect=swap_parent,
+                ):
+                    with self.assertRaisesRegex(UnifiedReportingError, "publication parent changed identity"):
+                        build_unified_release(
+                            release_id="fixture-release", build_id="A", output_root=root / "release",
+                            contract_path=contract, source_lock_path=lock,
+                            source_roots={"fixture": source},
+                        )
+            finally:
+                if swapped:
+                    root.rmdir()
+                    moved.rename(root)
+            self.assertFalse((root / "release").exists())
+            self.assertFalse(any(path.name.startswith(".release.staging-") for path in root.iterdir()))
+
+            real_rename = unified_publish._rename_noreplace
+            stage_swapped = False
+            displaced_stage: str | None = None
+
+            def swap_stage(parent_fd: int, source_name: str, target_name: str) -> None:
+                nonlocal displaced_stage, stage_swapped
+                if target_name == "release" and ".staging-" in source_name and not stage_swapped:
+                    stage_swapped = True
+                    held_name = f"{source_name}.held"
+                    displaced_stage = held_name
+                    os.rename(
+                        source_name, held_name, src_dir_fd=parent_fd, dst_dir_fd=parent_fd,
+                    )
+                    os.mkdir(source_name, mode=0o755, dir_fd=parent_fd)
+                real_rename(parent_fd, source_name, target_name)
+
+            with patch.object(unified_publish, "_rename_noreplace", side_effect=swap_stage):
+                with self.assertRaisesRegex(UnifiedReportingError, "published release changed identity"):
+                    build_unified_release(
+                        release_id="fixture-release", build_id="A", output_root=root / "release",
+                        contract_path=contract, source_lock_path=lock,
+                        source_roots={"fixture": source},
+                    )
+            self.assertTrue(stage_swapped)
+            self.assertFalse((root / "release").exists())
+            quarantined = list(root.glob(".release.invalid-*"))
+            self.assertEqual(len(quarantined), 1)
+            self.assertTrue(quarantined[0].is_dir())
+            self.assertEqual(list(quarantined[0].iterdir()), [])
+            self.assertIsNotNone(displaced_stage)
+            genuine_evidence = root / str(displaced_stage)
+            self.assertTrue(genuine_evidence.is_dir())
+            verify_completed_release(genuine_evidence)
+
+    def test_release_postrename_injection_evacuates_canonical_tree(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            release = root / "release"
+            real_rename = unified_publish._rename_noreplace
+            injected = False
+
+            def inject_after_release_rename(
+                parent_fd: int, source_name: str, target_name: str,
+            ) -> None:
+                nonlocal injected
+                real_rename(parent_fd, source_name, target_name)
+                if target_name == release.name and ".staging-" in source_name and not injected:
+                    injected = True
+                    (release / "late.bin").write_bytes(b"preserve late evidence")
+
+            with patch.object(
+                unified_publish, "_rename_noreplace", side_effect=inject_after_release_rename,
+            ):
+                with self.assertRaisesRegex(UnifiedReportingError, "inventory drift"):
+                    build_unified_release(
+                        release_id="fixture-release", build_id="A", output_root=release,
+                        contract_path=contract, source_lock_path=lock,
+                        source_roots={"fixture": source},
+                    )
+            self.assertTrue(injected)
+            self.assertFalse(release.exists())
+            quarantined = list(root.glob(".release.invalid-*"))
+            self.assertEqual(len(quarantined), 1)
+            self.assertTrue(quarantined[0].is_dir())
+            self.assertEqual(
+                (quarantined[0] / "late.bin").read_bytes(), b"preserve late evidence",
+            )
+            self.assertTrue((quarantined[0] / "RELEASE_COMPLETE.json").is_file())
+
+    def test_release_rename_commit_uncertainty_quarantines_canonical(self) -> None:
+        for replace_after_commit in (False, True):
+            with self.subTest(replace_after_commit=replace_after_commit):
+                with tempfile.TemporaryDirectory() as temporary:
+                    root = Path(temporary).resolve()
+                    source, contract, lock = _fixture(root)
+                    release = root / "release"
+                    displaced = root / "DISPLACED_COMMITTED_RELEASE"
+                    real_rename = unified_publish._rename_noreplace
+                    committed = False
+
+                    def commit_then_raise(
+                        parent_fd: int, source_name: str, target_name: str,
+                    ) -> None:
+                        nonlocal committed
+                        if target_name == release.name and ".staging-" in source_name and not committed:
+                            real_rename(parent_fd, source_name, target_name)
+                            committed = True
+                            if replace_after_commit:
+                                os.rename(
+                                    target_name, displaced.name,
+                                    src_dir_fd=parent_fd, dst_dir_fd=parent_fd,
+                                )
+                                with open(release, "wb") as stream:
+                                    stream.write(b"preserve commit-window replacement")
+                            raise UnifiedReportingError("injected exception after kernel rename commit")
+                        real_rename(parent_fd, source_name, target_name)
+
+                    with patch.object(
+                        unified_publish, "_rename_noreplace", side_effect=commit_then_raise,
+                    ):
+                        with self.assertRaisesRegex(
+                            UnifiedReportingError, "injected exception after kernel rename commit",
+                        ):
+                            build_unified_release(
+                                release_id="fixture-release", build_id="A", output_root=release,
+                                contract_path=contract, source_lock_path=lock,
+                                source_roots={"fixture": source},
+                            )
+                    self.assertTrue(committed)
+                    self.assertFalse(release.exists())
+                    quarantined = list(root.glob(".release.invalid-*"))
+                    self.assertEqual(len(quarantined), 1)
+                    if replace_after_commit:
+                        self.assertTrue(quarantined[0].is_file())
+                        self.assertEqual(
+                            quarantined[0].read_bytes(), b"preserve commit-window replacement",
+                        )
+                        verify_completed_release(displaced)
+                    else:
+                        self.assertTrue(quarantined[0].is_dir())
+                        verify_completed_release(quarantined[0])
+
+    def test_release_commit_uncertainty_with_restored_stage_is_detected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            release = root / "release"
+            real_rename = unified_publish._rename_noreplace
+            committed = False
+
+            def commit_restore_stage_replace_then_raise(
+                parent_fd: int, source_name: str, target_name: str,
+            ) -> None:
+                nonlocal committed
+                if target_name == release.name and ".staging-" in source_name and not committed:
+                    real_rename(parent_fd, source_name, target_name)
+                    os.rename(
+                        target_name, source_name,
+                        src_dir_fd=parent_fd, dst_dir_fd=parent_fd,
+                    )
+                    release.write_bytes(b"preserve restored-stage replacement")
+                    committed = True
+                    raise UnifiedReportingError(
+                        "injected exception after release commit and stage restoration"
+                    )
+                real_rename(parent_fd, source_name, target_name)
+
+            with patch.object(
+                unified_publish, "_rename_noreplace",
+                side_effect=commit_restore_stage_replace_then_raise,
+            ):
+                with self.assertRaisesRegex(
+                    UnifiedReportingError,
+                    "injected exception after release commit and stage restoration",
+                ):
+                    build_unified_release(
+                        release_id="fixture-release", build_id="A", output_root=release,
+                        contract_path=contract, source_lock_path=lock,
+                        source_roots={"fixture": source},
+                    )
+            self.assertTrue(committed)
+            self.assertFalse(release.exists())
+            quarantined = list(root.glob(".release.invalid-*"))
+            self.assertEqual(len(quarantined), 1)
+            self.assertEqual(
+                quarantined[0].read_bytes(), b"preserve restored-stage replacement",
+            )
+            staging_evidence = list(root.glob(".release.staging-*"))
+            self.assertEqual(len(staging_evidence), 1)
+            verify_completed_release(staging_evidence[0])
+
+    def test_release_final_replacement_after_publish_is_quarantined(self) -> None:
+        for replacement_kind in ("directory", "file"):
+            with self.subTest(replacement_kind=replacement_kind):
+                with tempfile.TemporaryDirectory() as temporary:
+                    root = Path(temporary).resolve()
+                    source, contract, lock = _fixture(root)
+                    release = root / "release"
+                    displaced = root / f"DISPLACED_GENUINE_RELEASE_{replacement_kind}"
+                    real_assert = unified_publish._assert_held_file_states
+                    replaced = False
+
+                    def replace_during_first_postpublish_check(
+                        file_fds: dict[str, int], inventory: dict[str, tuple[int, ...]],
+                    ) -> None:
+                        nonlocal replaced
+                        if release.exists() and not replaced:
+                            os.rename(release, displaced)
+                            if replacement_kind == "directory":
+                                release.mkdir()
+                                (release / "unrelated.txt").write_text(
+                                    "preserve replacement directory", encoding="utf-8",
+                                )
+                            else:
+                                release.write_text("preserve replacement file", encoding="utf-8")
+                            replaced = True
+                        real_assert(file_fds, inventory)
+
+                    with patch.object(
+                        unified_publish, "_assert_held_file_states",
+                        side_effect=replace_during_first_postpublish_check,
+                    ):
+                        with self.assertRaisesRegex(
+                            UnifiedReportingError, "published release before success changed identity",
+                        ):
+                            build_unified_release(
+                                release_id="fixture-release", build_id="A", output_root=release,
+                                contract_path=contract, source_lock_path=lock,
+                                source_roots={"fixture": source},
+                            )
+                    self.assertTrue(replaced)
+                    self.assertFalse(release.exists())
+                    verify_completed_release(displaced)
+                    quarantined = list(root.glob(".release.invalid-*"))
+                    self.assertEqual(len(quarantined), 1)
+                    if replacement_kind == "directory":
+                        self.assertTrue(quarantined[0].is_dir())
+                        self.assertEqual(
+                            (quarantined[0] / "unrelated.txt").read_text(encoding="utf-8"),
+                            "preserve replacement directory",
+                        )
+                    else:
+                        self.assertTrue(quarantined[0].is_file())
+                        self.assertEqual(
+                            quarantined[0].read_text(encoding="utf-8"),
+                            "preserve replacement file",
+                        )
+
+    def test_certificate_inside_build_is_rejected_without_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            build_a, build_b = root / "build_A", root / "build_B"
+            for build_id, output in (("A", build_a), ("B", build_b)):
+                build_unified_release(
+                    release_id="fixture-release", build_id=build_id, output_root=output,
+                    contract_path=contract, source_lock_path=lock,
+                    source_roots={"fixture": source},
+                )
+            inside = build_a / "AB_VERIFICATION.json"
+            with self.assertRaisesRegex(UnifiedReportingError, "inside an authenticated build tree"):
+                verify_unified_release_ab(
+                    build_a=build_a, build_b=build_b, certificate_path=inside,
+                    contract_path=contract, source_lock_path=lock,
+                    source_roots={"fixture": source},
+                )
+            self.assertFalse(inside.exists())
+            verify_completed_release(build_a)
+            verify_completed_release(build_b)
+
+    def test_certificate_commit_window_rescans_builds_and_rolls_back_pass(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            build_a, build_b = root / "build_A", root / "build_B"
+            for build_id, output in (("A", build_a), ("B", build_b)):
+                build_unified_release(
+                    release_id="fixture-release", build_id=build_id, output_root=output,
+                    contract_path=contract, source_lock_path=lock,
+                    source_roots={"fixture": source},
+                )
+            certificate = root / "AB_LATE_FILE.json"
+            real_rename = unified_publish._rename_noreplace
+            injected = False
+
+            def inject_inside_certificate_rename(
+                parent_fd: int, source_name: str, target_name: str,
+            ) -> None:
+                nonlocal injected
+                if target_name == certificate.name and not injected:
+                    injected = True
+                    (build_a / "LATE_UNREVIEWED.txt").write_text(
+                        "late unreviewed payload", encoding="utf-8",
+                    )
+                real_rename(parent_fd, source_name, target_name)
+
+            with patch.object(
+                unified_publish, "_rename_noreplace",
+                side_effect=inject_inside_certificate_rename,
+            ):
+                with self.assertRaisesRegex(UnifiedReportingError, "inventory drift"):
+                    verify_unified_release_ab(
+                        build_a=build_a, build_b=build_b,
+                        certificate_path=certificate, contract_path=contract,
+                        source_lock_path=lock, source_roots={"fixture": source},
+                    )
+            self.assertTrue(injected)
+            self.assertFalse(certificate.exists())
+            quarantined = list(root.glob(f".{certificate.name}.invalid-*"))
+            self.assertEqual(len(quarantined), 1)
+            quarantined_payload = json.loads(quarantined[0].read_text(encoding="utf-8"))
+            self.assertEqual(quarantined_payload["status"], "PASS")
+            self.assertTrue((build_a / "LATE_UNREVIEWED.txt").is_file())
+
+    def test_certificate_rename_commit_uncertainty_quarantines_replacement(self) -> None:
+        for replacement_kind in ("file", "directory"):
+            with self.subTest(replacement_kind=replacement_kind):
+                with tempfile.TemporaryDirectory() as temporary:
+                    root = Path(temporary).resolve()
+                    source, contract, lock = _fixture(root)
+                    build_a, build_b = root / "build_A", root / "build_B"
+                    for build_id, output in (("A", build_a), ("B", build_b)):
+                        build_unified_release(
+                            release_id="fixture-release", build_id=build_id, output_root=output,
+                            contract_path=contract, source_lock_path=lock,
+                            source_roots={"fixture": source},
+                        )
+                    certificate = root / f"AB_COMMIT_UNCERTAIN_{replacement_kind}.json"
+                    real_rename = unified_publish._rename_noreplace
+                    committed = False
+
+                    def commit_unlink_replace_then_raise(
+                        parent_fd: int, source_name: str, target_name: str,
+                    ) -> None:
+                        nonlocal committed
+                        if target_name == certificate.name and not committed:
+                            real_rename(parent_fd, source_name, target_name)
+                            os.unlink(target_name, dir_fd=parent_fd)
+                            if replacement_kind == "file":
+                                certificate.write_bytes(b"preserve attacker certificate file")
+                            else:
+                                os.mkdir(target_name, mode=0o755, dir_fd=parent_fd)
+                                (certificate / "attacker.txt").write_text(
+                                    "preserve attacker certificate directory", encoding="utf-8",
+                                )
+                            committed = True
+                            raise UnifiedReportingError(
+                                "injected certificate exception after kernel rename commit"
+                            )
+                        real_rename(parent_fd, source_name, target_name)
+
+                    with patch.object(
+                        unified_publish, "_rename_noreplace",
+                        side_effect=commit_unlink_replace_then_raise,
+                    ):
+                        with self.assertRaisesRegex(
+                            UnifiedReportingError,
+                            "injected certificate exception after kernel rename commit",
+                        ):
+                            verify_unified_release_ab(
+                                build_a=build_a, build_b=build_b,
+                                certificate_path=certificate, contract_path=contract,
+                                source_lock_path=lock, source_roots={"fixture": source},
+                            )
+                    self.assertTrue(committed)
+                    self.assertFalse(certificate.exists())
+                    quarantined = list(root.glob(f".{certificate.name}.invalid-*"))
+                    self.assertEqual(len(quarantined), 1)
+                    if replacement_kind == "file":
+                        self.assertTrue(quarantined[0].is_file())
+                        self.assertEqual(
+                            quarantined[0].read_bytes(), b"preserve attacker certificate file",
+                        )
+                    else:
+                        self.assertTrue(quarantined[0].is_dir())
+                        self.assertEqual(
+                            (quarantined[0] / "attacker.txt").read_text(encoding="utf-8"),
+                            "preserve attacker certificate directory",
+                        )
+                    self.assertFalse(any(
+                        path.name.startswith(f".{certificate.name}.staging-")
+                        for path in root.iterdir()
+                    ))
+
+    def test_certificate_commit_uncertainty_with_restored_stage_is_detected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            build_a, build_b = root / "build_A", root / "build_B"
+            for build_id, output in (("A", build_a), ("B", build_b)):
+                build_unified_release(
+                    release_id="fixture-release", build_id=build_id, output_root=output,
+                    contract_path=contract, source_lock_path=lock,
+                    source_roots={"fixture": source},
+                )
+            certificate = root / "AB_RESTORED_STAGE.json"
+            real_rename = unified_publish._rename_noreplace
+            committed = False
+
+            def commit_restore_stage_replace_then_raise(
+                parent_fd: int, source_name: str, target_name: str,
+            ) -> None:
+                nonlocal committed
+                if target_name == certificate.name and not committed:
+                    real_rename(parent_fd, source_name, target_name)
+                    os.rename(
+                        target_name, source_name,
+                        src_dir_fd=parent_fd, dst_dir_fd=parent_fd,
+                    )
+                    os.mkdir(target_name, mode=0o755, dir_fd=parent_fd)
+                    (certificate / "attacker.txt").write_text(
+                        "preserve restored-stage certificate replacement", encoding="utf-8",
+                    )
+                    committed = True
+                    raise UnifiedReportingError(
+                        "injected exception after certificate commit and stage restoration"
+                    )
+                real_rename(parent_fd, source_name, target_name)
+
+            with patch.object(
+                unified_publish, "_rename_noreplace",
+                side_effect=commit_restore_stage_replace_then_raise,
+            ):
+                with self.assertRaisesRegex(
+                    UnifiedReportingError,
+                    "injected exception after certificate commit and stage restoration",
+                ):
+                    verify_unified_release_ab(
+                        build_a=build_a, build_b=build_b,
+                        certificate_path=certificate, contract_path=contract,
+                        source_lock_path=lock, source_roots={"fixture": source},
+                    )
+            self.assertTrue(committed)
+            self.assertFalse(certificate.exists())
+            quarantined = list(root.glob(f".{certificate.name}.invalid-*"))
+            self.assertEqual(len(quarantined), 1)
+            self.assertEqual(
+                (quarantined[0] / "attacker.txt").read_text(encoding="utf-8"),
+                "preserve restored-stage certificate replacement",
+            )
+            staging_evidence = list(root.glob(f".{certificate.name}.staging-*"))
+            self.assertEqual(len(staging_evidence), 1)
+            staged_payload = json.loads(staging_evidence[0].read_text(encoding="utf-8"))
+            self.assertEqual(staged_payload["status"], "PASS")
+
+    def test_replaced_certificate_target_is_type_agnostically_quarantined(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            build_a, build_b = root / "build_A", root / "build_B"
+            for build_id, output in (("A", build_a), ("B", build_b)):
+                build_unified_release(
+                    release_id="fixture-release", build_id=build_id, output_root=output,
+                    contract_path=contract, source_lock_path=lock,
+                    source_roots={"fixture": source},
+                )
+            certificate = root / "AB_REPLACED.json"
+            displaced = root / "DISPLACED_GENUINE_CERT.json"
+            real_rename = unified_publish._rename_noreplace
+            replaced = False
+
+            def replace_after_certificate_rename(
+                parent_fd: int, source_name: str, target_name: str,
+            ) -> None:
+                nonlocal replaced
+                if target_name == certificate.name and not replaced:
+                    real_rename(parent_fd, source_name, target_name)
+                    os.rename(
+                        target_name, displaced.name,
+                        src_dir_fd=parent_fd, dst_dir_fd=parent_fd,
+                    )
+                    os.mkdir(target_name, mode=0o755, dir_fd=parent_fd)
+                    (certificate / "unrelated.txt").write_text(
+                        "preserve me", encoding="utf-8",
+                    )
+                    replaced = True
+                    return
+                real_rename(parent_fd, source_name, target_name)
+
+            with patch.object(
+                unified_publish, "_rename_noreplace",
+                side_effect=replace_after_certificate_rename,
+            ):
+                with self.assertRaisesRegex(
+                    UnifiedReportingError, "published certificate changed identity",
+                ):
+                    verify_unified_release_ab(
+                        build_a=build_a, build_b=build_b,
+                        certificate_path=certificate, contract_path=contract,
+                        source_lock_path=lock, source_roots={"fixture": source},
+                    )
+            self.assertTrue(replaced)
+            self.assertFalse(certificate.exists())
+            displaced_payload = json.loads(displaced.read_text(encoding="utf-8"))
+            self.assertEqual(displaced_payload["status"], "PASS")
+            quarantined = list(root.glob(f".{certificate.name}.invalid-*"))
+            self.assertEqual(len(quarantined), 1)
+            self.assertTrue(quarantined[0].is_dir())
+            self.assertEqual(
+                (quarantined[0] / "unrelated.txt").read_text(encoding="utf-8"),
+                "preserve me",
+            )
+
+    def test_release_hardlinks_fail_at_capture_and_certificate_end_rescan(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            build_a, build_b = root / "build_A", root / "build_B"
+            for build_id, output in (("A", build_a), ("B", build_b)):
+                build_unified_release(
+                    release_id="fixture-release", build_id=build_id, output_root=output,
+                    contract_path=contract, source_lock_path=lock,
+                    source_roots={"fixture": source},
+                )
+
+            capture_link = root / "OUTSIDE_CAPTURE_HARDLINK.json"
+            capture_source = build_a / "REPORT_CONTRACT.json"
+            os.link(capture_source, capture_link)
+            with self.assertRaisesRegex(UnifiedReportingError, "exactly one hard link"):
+                verify_completed_release(build_a)
+            self.assertTrue(capture_link.samefile(capture_source))
+            capture_link.unlink()
+            verify_completed_release(build_a)
+
+            certificate = root / "AB_LATE_HARDLINK.json"
+            late_link = root / "OUTSIDE_LATE_HARDLINK.csv"
+            late_source = build_b / "tables/metrics.csv"
+            real_rename = unified_publish._rename_noreplace
+            injected = False
+
+            def hardlink_inside_certificate_rename(
+                parent_fd: int, source_name: str, target_name: str,
+            ) -> None:
+                nonlocal injected
+                if target_name == certificate.name and not injected:
+                    injected = True
+                    os.link(late_source, late_link)
+                real_rename(parent_fd, source_name, target_name)
+
+            with patch.object(
+                unified_publish, "_rename_noreplace",
+                side_effect=hardlink_inside_certificate_rename,
+            ):
+                with self.assertRaisesRegex(
+                    UnifiedReportingError, "held release file inode changed",
+                ):
+                    verify_unified_release_ab(
+                        build_a=build_a, build_b=build_b,
+                        certificate_path=certificate, contract_path=contract,
+                        source_lock_path=lock, source_roots={"fixture": source},
+                    )
+            self.assertTrue(injected)
+            self.assertFalse(certificate.exists())
+            self.assertTrue(late_link.samefile(late_source))
+            quarantined = list(root.glob(f".{certificate.name}.invalid-*"))
+            self.assertEqual(len(quarantined), 1)
+            late_link.unlink()
+            verify_completed_release(build_a)
+            verify_completed_release(build_b)
+
+    def test_atomic_publish_failure_leaves_no_final_or_stage(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source, contract, lock = _fixture(root)
+            final = root / "release"
+            with patch.object(
+                unified_publish, "_rename_noreplace",
+                side_effect=UnifiedReportingError("injected no-replace failure"),
+            ):
+                with self.assertRaisesRegex(UnifiedReportingError, "injected no-replace failure"):
+                    build_unified_release(
+                        release_id="fixture-release", build_id="A", output_root=final,
+                        contract_path=contract, source_lock_path=lock,
+                        source_roots={"fixture": source},
+                    )
+            self.assertFalse(final.exists())
+            self.assertFalse(any(path.name.startswith(".release.staging-") for path in root.iterdir()))
+
+
+if __name__ == "__main__":
+    unittest.main()
