@@ -28,6 +28,7 @@ from spectral_utils.reconstruction_reporting.unified_reporting_publish import ( 
     verify_unified_release_ab,
 )
 import spectral_utils.reconstruction_reporting.unified_reporting_publish as unified_publish  # noqa: E402
+import spectral_utils.reconstruction_reporting.unified_reporting_sources as unified_sources  # noqa: E402
 from spectral_utils.reconstruction_reporting.unified_reporting_bridge import (  # noqa: E402
     advisor_inputs,
     build_unified_rows,
@@ -55,6 +56,50 @@ from spectral_utils.reconstruction_reporting.unified_reporting_sources import ( 
 
 
 HAS_ARROW = importlib.util.find_spec("pyarrow") is not None
+
+LEASH_RELEASE_RELATIVE = Path(
+    "results/reconstruction_benchmark_v1/releases/2026-08-25_leash_v1/leash"
+)
+SCIENCE_REPO = next(
+    (
+        candidate
+        for candidate in (REPO.parent / "reconstruction-science-run-v1", REPO)
+        if (candidate / LEASH_RELEASE_RELATIVE / "EVALUATION_AB_VERIFICATION.json").is_file()
+    ),
+    REPO.parent / "reconstruction-science-run-v1",
+)
+REAL_SOURCE_LOCK_AVAILABLE = (
+    (REPO / "results/reconstruction_benchmark_v1/releases/2026-08-24_frozen24_v1"
+     / "reporting_inputs/BRIDGE_MANIFEST.json").is_file()
+    and (SCIENCE_REPO / LEASH_RELEASE_RELATIVE / "EVALUATION_AB_VERIFICATION.json").is_file()
+)
+
+LEASH_LOCKED_FILES = {
+    "aggregate_metrics": (
+        "aggregate_metrics.csv",
+        "6f6c2dceadd64e75136d80fbc6e8a1ddc6a038a4b94e100c9f9a6547e1b2134d",
+    ),
+    "bootstrap_intervals": (
+        "bootstrap_intervals.csv",
+        "59b04949b36072a6157e5b8ce403a749f11b8887ad5e2a9ce4ce267c4326707e",
+    ),
+    "cell_metrics": (
+        "cell_metrics.csv",
+        "7c51844e722ffef2746c417686912eef6965482caa45486336cb113ffee9d9f6",
+    ),
+    "contrasts": (
+        "contrasts.csv",
+        "c9cd49dcbfd4a88202c02a843f007a1a4a8f170dd425e2e3b3dc148fb2f16e51",
+    ),
+    "coverage": (
+        "coverage.csv",
+        "9171c217fc25268e4320bd053d3517a429dc5bc0f6598a11a64723fdc82a1438",
+    ),
+    "frontier": (
+        "frontier.csv",
+        "a3c97e038d07627c6fd091a180ddc974715ee7762655a914e131b8788af2f583",
+    ),
+}
 
 
 def _sha(payload: bytes) -> str:
@@ -907,6 +952,208 @@ class SourceAuthenticationTests(unittest.TestCase):
         parsed = parse_contract_bytes(canonical_json_bytes(contract))
         with self.assertRaisesRegex(UnifiedReportingError, "certification/adapter mismatch"):
             validate_contract_source_lock(parsed, source_lock)
+
+    def test_leash_chain_rejects_self_consistent_ab_and_claim_tamper(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source_root, _, lock, _ = _certified_lane_fixture(root, "leash")
+            certificate_path = source_root / "CERTIFICATE.json"
+            certificate = json.loads(certificate_path.read_text(encoding="utf-8"))
+            certificate.pop("payload_sha256")
+            certificate["evaluation_tree_sha256"]["B"] = "5" * 64
+            certificate["payload_sha256"] = canonical_sha256(certificate)
+            payload = canonical_json_bytes(certificate) + b"\n"
+            certificate_path.write_bytes(payload)
+            ab_tampered_lock = copy.deepcopy(lock)
+            binding = ab_tampered_lock["sources"][0]["certificate"]
+            binding["file_sha256"] = _sha(payload)
+            binding["self_hash"] = certificate["payload_sha256"]
+            with self.assertRaisesRegex(UnifiedReportingError, "passing rederivation"):
+                authenticate_sources(
+                    ab_tampered_lock, source_roots={"fixture": source_root},
+                )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            source_root, _, lock, _ = _certified_lane_fixture(root, "leash")
+            manifest_path = source_root / "MANIFEST.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest.pop("payload_sha256")
+            manifest["paper_exact_claim"] = True
+            manifest["payload_sha256"] = canonical_sha256(manifest)
+            payload = canonical_json_bytes(manifest) + b"\n"
+            manifest_path.write_bytes(payload)
+            claim_tampered_lock = copy.deepcopy(lock)
+            binding = claim_tampered_lock["sources"][0]["manifest"]
+            binding["file_sha256"] = _sha(payload)
+            binding["self_hash"] = manifest["payload_sha256"]
+            with self.assertRaisesRegex(UnifiedReportingError, "claim boundary drift"):
+                authenticate_sources(
+                    claim_tampered_lock, source_roots={"fixture": source_root},
+                )
+
+
+@unittest.skipUnless(
+    REAL_SOURCE_LOCK_AVAILABLE,
+    "immutable canonical science/frozen source releases are unavailable",
+)
+class CanonicalLeashSourceLockTests(unittest.TestCase):
+    def test_real_lock_authenticates_leash_and_keeps_rag_source_closed(self) -> None:
+        contract = parse_contract_bytes(
+            (REPO / "configs/reconstruction_benchmark_v1/unified_reporting_v1.json")
+            .read_bytes()
+        )
+        source_lock = load_source_lock(
+            REPO / "configs/reconstruction_benchmark_v1/unified_reporting_source_lock_v1.json"
+        )
+        validate_contract_source_lock(contract, source_lock)
+        records = {record["source_id"]: record for record in source_lock["sources"]}
+        self.assertEqual(len(records), 9)
+        self.assertEqual(records["rag_evidence"], {
+            "certified": False,
+            "source_id": "rag_evidence",
+            "source_release_id": "NOT_CERTIFIED",
+            "status": "NOT_CERTIFIED",
+        })
+        leash = records["leash_stopping"]
+        self.assertEqual(
+            {
+                "certified": leash["certified"],
+                "source_release_id": leash["source_release_id"],
+                "source_root_id": leash["source_root_id"],
+            },
+            {
+                "certified": True,
+                "source_release_id": "2026-08-25_leash_v1",
+                "source_root_id": "science",
+            },
+        )
+        self.assertEqual(leash["certificate"], {
+            "file_sha256": "a98c4084e93d62b88227e1a78a16f86fdab071e39664440a6b609bf911ec3b88",
+            "path": str(LEASH_RELEASE_RELATIVE / "EVALUATION_AB_VERIFICATION.json"),
+            "schema_version": "reconstruction-leash-stopping-evaluation-ab-v1",
+            "self_hash": "3ce4fb378ea308bfdb132d5758fab967567209be3743fef8b6639a723b90af15",
+            "self_hash_field": "payload_sha256",
+            "status_field": "status", "status_value": "PASS",
+        })
+        self.assertEqual(leash["manifest"], {
+            "file_sha256": "7cd65d462793f9f60f6b5698b4f308b9565899e55dab3576264e7789e99f87c2",
+            "path": str(LEASH_RELEASE_RELATIVE / "A/evaluation/EVALUATION_MANIFEST.json"),
+            "schema_version": "reconstruction-leash-stopping-evaluation-v1",
+            "self_hash": "3b4de40d3c1387c9d85fef23dacc0ba1143204ed4f6a440b18532484f72950c9",
+            "self_hash_field": "payload_sha256",
+        })
+        self.assertEqual(set(leash["files"]), set(LEASH_LOCKED_FILES))
+        for role, (filename, digest) in LEASH_LOCKED_FILES.items():
+            self.assertEqual(leash["files"][role], {
+                "file_sha256": digest, "format": "csv",
+                "path": str(LEASH_RELEASE_RELATIVE / "A/evaluation" / filename),
+            })
+
+        with tempfile.TemporaryDirectory() as temporary:
+            poison_root = Path(temporary).resolve()
+            poison = b"PRIVATE_RAG_PREDICTION_LABEL_SENTINEL"
+            (poison_root / "predictions.csv").write_bytes(poison)
+            reads: list[tuple[Path, str]] = []
+            real_read = unified_sources.read_locked_file
+
+            def audited_read(root: str | Path, relative: str, digest: str) -> bytes:
+                reads.append((Path(root).resolve(), relative))
+                return real_read(root, relative, digest)
+
+            with patch(
+                "spectral_utils.reconstruction_reporting.unified_reporting_sources.read_locked_file",
+                side_effect=audited_read,
+            ):
+                sources = authenticate_sources(
+                    source_lock,
+                    source_roots={
+                        "frozen24": REPO,
+                        "science": SCIENCE_REPO,
+                        "rag_evidence": poison_root,
+                    },
+                )
+            self.assertFalse(any(root == poison_root for root, _ in reads))
+            self.assertFalse(any("predictions" in relative for _, relative in reads))
+            self.assertFalse(any("per_question" in relative for _, relative in reads))
+            self.assertEqual(
+                [source.source_status for source in sources].count("CERTIFIED"), 8,
+            )
+            self.assertEqual(
+                [source.source_status for source in sources].count("NOT_CERTIFIED"), 1,
+            )
+            rag_source = next(source for source in sources if source.source_id == "rag_evidence")
+            self.assertEqual(rag_source.files, {})
+            self.assertIsNone(rag_source.certificate)
+            self.assertIsNone(rag_source.manifest)
+            leash_source = next(
+                source for source in sources if source.source_id == "leash_stopping"
+            )
+            certificate = leash_source.certificate or {}
+            manifest = leash_source.manifest or {}
+            self.assertEqual({
+                certificate["evaluation_tree_sha256"]["A"],
+                certificate["evaluation_tree_sha256"]["B"],
+                certificate["rederived_evaluation_tree_sha256"],
+            }, {
+                "256cfd7cdf07339d78752d3887d25becaf929ee111f4f58b9361a9a93a644496",
+            })
+            self.assertTrue(all(certificate[field] is True for field in (
+                "byte_identical", "transitive_rederivation",
+                "grouped_bootstrap_rederived", "private_outcomes_reparsed",
+                "searchable_output_contract_verified",
+            )))
+            self.assertTrue(all(certificate[field] is False for field in (
+                "paper_exact_claim", "conceptual_objective_reproduced_as_equation",
+                "matched_accuracy_claim",
+            )))
+            self.assertEqual(certificate["rows_by_table"], {
+                "aggregate_metrics": 72, "bootstrap_intervals": 378,
+                "cell_metrics": 18, "contrasts": 12, "coverage": 8,
+                "frontier": 18, "per_question": 4986,
+            })
+            self.assertEqual(manifest["fidelity"], "paper-specified-partial")
+            self.assertTrue(manifest["policy_execution_evaluated"])
+            self.assertTrue(manifest["all_policy_stops_have_realized_closure"])
+            self.assertFalse(manifest["cross_task_or_access_macro"])
+            self.assertFalse(manifest["proxy_stopping"])
+            self.assertFalse(manifest["paper_exact_claim"])
+            self.assertFalse(manifest["matched_accuracy_claim"])
+
+        tables = build_unified_rows(
+            release_id="canonical-real-lock-check", contract=contract, sources=sources,
+        )
+        self.assertEqual(len(tables["source_bindings"]), 9)
+        self.assertEqual(sum(
+            row["lane_id"] == "leash_actual_stopping"
+            for row in tables["context_metrics"]
+        ), 306)
+        self.assertEqual(sum(
+            row["lane_id"] == "leash_actual_stopping"
+            for row in tables["context_contrasts"]
+        ), 162)
+        self.assertEqual(sum(
+            row["lane_id"] == "leash_actual_stopping"
+            for row in tables["context_coverage"]
+        ), 8)
+        leash_artifacts = {
+            row["logical_name"]
+            for row in tables["source_artifacts"]
+            if row["source_id"] == "leash_stopping"
+        }
+        self.assertEqual(leash_artifacts, {
+            "certificate", "manifest", *LEASH_LOCKED_FILES,
+        })
+        self.assertNotIn("per_question", leash_artifacts)
+        self.assertFalse(any(
+            row["source_id"] == "rag_evidence"
+            for row in tables["source_artifacts"]
+        ))
+        rag_statuses = [
+            row for row in tables["status"] if row["lane_id"] == "rag_evidence"
+        ]
+        self.assertEqual(len(rag_statuses), 1)
+        self.assertEqual(rag_statuses[0]["status_class"], "NOT_CERTIFIED")
 
 
 class CertifiedContextLaneTests(unittest.TestCase):
