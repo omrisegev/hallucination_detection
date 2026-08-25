@@ -1,0 +1,49 @@
+{
+  "schema": "ciw_deem_v1",
+  "method_id": "CIW_DEEM_V1",
+  "display_name": "CIW-DEEM",
+  "long_name": "Cross-fitted Innovation-Weighted DEEM",
+  "status": "official_challenger_not_promoted_champion",
+  "base_method": "continuous_B3",
+  "base_representation": "D1_TRANSFORM_ONLY",
+  "frozen_arm": "M1_ROOK_STATIC_R2",
+  "seeds": [0, 1, 2, 3, 4],
+  "input_model": {
+    "core_shape": [3, 3],
+    "source_axis": ["entropy", "sampled_surprisal", "raw_partition"],
+    "operator_axis": ["mean", "sliding_variance", "cusum"],
+    "peer_support": "same_source_or_same_operator",
+    "ridge": 1.0,
+    "group_length_crossfit_folds": 5,
+    "reliability": "clipped_out_of_fold_R2",
+    "gate": "0.5_times_reliability",
+    "sample_conditional_gate": false
+  },
+  "b3_training": {
+    "epochs": 100,
+    "family_width": 8,
+    "learning_rate": 0.001,
+    "mala_delta": 0.1,
+    "mala_steps": 5,
+    "replay_refresh": 0.05
+  },
+  "canonical_artifacts": {
+    "fit_root": "local_cache/deem_b3_moe_v1/unsupervised_input_gate_full",
+    "evaluation_root": "local_cache/deem_b3_moe_v1/unsupervised_input_gate_full_eval"
+  },
+  "registered_24cell_results": {
+    "equal_family_auroc": 0.7492330051057238,
+    "cell_macro_auroc": 0.7820255514493354,
+    "equal_family_auprc": 0.7791317276773182,
+    "cell_macro_auprc": 0.7517170841581265,
+    "equal_family_auroc_delta_vs_frozen_b3": 0.0007316506044068283,
+    "exact_family_signflip_one_sided_p": 0.13671875,
+    "promotion_threshold": 0.0025,
+    "promoted": false
+  },
+  "task_scope": {
+    "completed_response_detection": "evaluated",
+    "first_error_localization": "not_evaluated_requires_token_window_adapter",
+    "early_detection": "not_evaluated_requires_causal_prefix_adapter"
+  }
+}
