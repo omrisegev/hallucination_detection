@@ -226,6 +226,225 @@ def _verify_chain(source_id: str, record: Mapping[str, Any], certificate: Mappin
         if certificate.get("stopping_claim_allowed") is not False:
             raise UnifiedReportingError("prefix stopping boundary drift")
         return
+    if source_id == "leash_stopping":
+        required_files = {
+            "aggregate_metrics": "aggregate_metrics.csv",
+            "bootstrap_intervals": "bootstrap_intervals.csv",
+            "cell_metrics": "cell_metrics.csv",
+            "contrasts": "contrasts.csv",
+            "coverage": "coverage.csv",
+            "frontier": "frontier.csv",
+        }
+        if set(expected) != set(required_files):
+            raise UnifiedReportingError(
+                "LEASH source lock must contain only certified aggregate reporting tables"
+            )
+        if (
+            certificate.get("schema_version")
+            != "reconstruction-leash-stopping-evaluation-ab-v1"
+            or manifest.get("schema_version")
+            != "reconstruction-leash-stopping-evaluation-v1"
+        ):
+            raise UnifiedReportingError("LEASH certificate/manifest schema drift")
+        if manifest.get("lane_id") != "leash_actual_stopping_v1":
+            raise UnifiedReportingError("LEASH manifest lane drift")
+        if certificate.get("lane_id") != manifest.get("lane_id"):
+            raise UnifiedReportingError("LEASH certificate/manifest lane mismatch")
+        tree_hashes = certificate.get("evaluation_tree_sha256", {})
+        if (
+            not isinstance(tree_hashes, Mapping)
+            or tree_hashes.get("A") != tree_hashes.get("B")
+            or tree_hashes.get("A") != certificate.get("rederived_evaluation_tree_sha256")
+            or certificate.get("status") != "PASS"
+            or certificate.get("byte_identical") is not True
+            or certificate.get("transitive_rederivation") is not True
+            or certificate.get("grouped_bootstrap_rederived") is not True
+            or certificate.get("private_outcomes_reparsed") is not True
+            or certificate.get("searchable_output_contract_verified") is not True
+        ):
+            raise UnifiedReportingError("LEASH evaluation certificate is not a passing rederivation")
+        if (
+            certificate.get("paper_exact_claim") is not False
+            or certificate.get("conceptual_objective_reproduced_as_equation") is not False
+            or certificate.get("matched_accuracy_claim") is not False
+            or manifest.get("paper_exact_claim") is not False
+            or manifest.get("conceptual_objective_reproduced_as_equation") is not False
+            or manifest.get("matched_accuracy_claim") is not False
+            or manifest.get("cross_task_or_access_macro") is not False
+            or manifest.get("proxy_stopping") is not False
+            or manifest.get("policy_execution_evaluated") is not True
+            or manifest.get("all_policy_stops_have_realized_closure") is not True
+            or manifest.get("fidelity") != "paper-specified-partial"
+        ):
+            raise UnifiedReportingError("LEASH scientific claim boundary drift")
+        if manifest.get("bootstrap") != {
+            "draws": 2000,
+            "paired_across_arms_and_model_copies": True,
+            "seed": 2026082406,
+            "stratification": "within dataset",
+            "unit": "source question",
+        }:
+            raise UnifiedReportingError("LEASH grouped-bootstrap manifest drift")
+        for field in (
+            "registry_sha256", "preparation_ab_certificate_sha256",
+            "fit_ab_certificate_sha256",
+        ):
+            if certificate.get(field) != manifest.get(field):
+                raise UnifiedReportingError(f"LEASH certificate/manifest {field} mismatch")
+        manifest_tables = manifest.get("tables")
+        row_counts = certificate.get("rows_by_table")
+        if not isinstance(manifest_tables, Mapping) or not isinstance(row_counts, Mapping):
+            raise UnifiedReportingError("LEASH table contracts are missing")
+        expected_roster = {
+            "aggregate_metrics", "bootstrap_intervals", "cell_metrics", "contrasts",
+            "coverage", "frontier", "per_question",
+        }
+        if set(manifest_tables) != expected_roster or set(row_counts) != expected_roster:
+            raise UnifiedReportingError("LEASH certified table roster drift")
+        for role, filename in required_files.items():
+            table = manifest_tables.get(role)
+            if not isinstance(table, Mapping):
+                raise UnifiedReportingError(f"LEASH manifest omits {role}")
+            if (
+                table.get("files", {}).get(filename) != expected[role]
+                or table.get("row_count") != row_counts.get(role)
+            ):
+                raise UnifiedReportingError(f"LEASH chain does not bind {filename}")
+        return
+    if source_id == "rag_evidence":
+        required_files = {
+            "metrics": "metrics.csv",
+            "contrasts": "contrasts.csv",
+            "panel_status": "panel_status.csv",
+        }
+        if set(expected) != set(required_files):
+            raise UnifiedReportingError(
+                "RAG source lock must contain only aggregate/status reporting tables"
+            )
+        if (
+            certificate.get("schema_version")
+            != "reconstruction-rag-evidence-evaluation-ab-v1"
+            or manifest.get("schema_version")
+            != "reconstruction-rag-evidence-evaluation-v1"
+        ):
+            raise UnifiedReportingError("RAG certificate/manifest schema drift")
+        if (
+            certificate.get("status") != "PASS"
+            or certificate.get("scientific_full_required") is not True
+            or certificate.get("transitive_source_rederivation") is not True
+            or certificate.get("independent_postfreeze_reevaluation") is not True
+            or certificate.get("cross_panel_macro_computed") is not False
+            or certificate.get("refchecker_settings_pooled") is not False
+        ):
+            raise UnifiedReportingError("RAG evaluation certificate is not a passing rederivation")
+        comparisons = certificate.get("comparisons")
+        comparison_files = (
+            "metrics.csv", "predictions.csv", "contrasts.csv", "panel_status.csv",
+        )
+        expected_comparisons = {
+            *comparison_files,
+            "source_snapshot_identity", "bootstrap_identity", "panel_status_identity",
+            "independent_panel_status_matches_A",
+            "independent_panel_status_matches_B",
+            *{
+                f"independent_{name}_matches_{build_id}"
+                for name in comparison_files
+                for build_id in ("A", "B")
+            },
+        }
+        if (
+            not isinstance(comparisons, Mapping)
+            or set(comparisons) != expected_comparisons
+            or not all(value is True for value in comparisons.values())
+        ):
+            raise UnifiedReportingError("RAG evaluation A/B comparison gate failed")
+        build_a = certificate.get("builds", {}).get("A", {})
+        if (
+            build_a.get("evaluation_manifest_sha256") != manifest_sha
+            or build_a.get("evaluation_manifest_payload_sha256")
+            != record["manifest"].get("self_hash")
+        ):
+            raise UnifiedReportingError("RAG certificate does not bind Build A manifest")
+        if (
+            manifest.get("build_id") != "A"
+            or manifest.get("lane_id") != "rag_evidence_benchmark_v1"
+            or certificate.get("score_ab_sha256")
+            != manifest.get("score_ab_certificate_sha256")
+            or any(
+                certificate.get(field) != manifest.get(field)
+                for field in (
+                    "score_sha256", "private_label_sha256",
+                    "source_binding_sha256", "evaluation_repo_snapshot",
+                    "score_verifier_repo_snapshot", "isolated_score_authentication",
+                    "shared_repository_contract",
+                )
+            )
+        ):
+            raise UnifiedReportingError("RAG certificate/manifest provenance mismatch")
+        for field in (
+            "score_ab_sha256", "score_sha256", "private_label_sha256",
+            "source_binding_sha256",
+        ):
+            _validate_sha(certificate.get(field), where=f"RAG certificate {field}")
+        if (
+            manifest.get("scientific_full") is not True
+            or manifest.get("cross_panel_macro_computed") is not False
+            or manifest.get("refchecker_settings_pooled") is not False
+            or manifest.get("historical_scores_copied") is not False
+        ):
+            raise UnifiedReportingError("RAG manifest scientific boundary drift")
+        bootstrap = manifest.get("bootstrap", {})
+        if bootstrap != {
+            "draws_requested": 20000,
+            "group": "panel-registered source group",
+            "paired_contrasts": True,
+            "seed": 2026082407,
+        }:
+            raise UnifiedReportingError("RAG grouped-bootstrap contract drift")
+        reporting = certificate.get("reporting_files")
+        descriptors = manifest.get("files")
+        if not isinstance(reporting, Mapping) or set(reporting) != {
+            "metrics.csv", "predictions.csv", "contrasts.csv", "panel_status.csv",
+        }:
+            raise UnifiedReportingError("RAG certificate reporting-file roster drift")
+        if not isinstance(descriptors, list) or len(descriptors) != 4:
+            raise UnifiedReportingError("RAG manifest reporting-file roster drift")
+        by_path = {
+            item.get("path"): item
+            for item in descriptors
+            if isinstance(item, Mapping)
+        }
+        if set(by_path) != set(reporting):
+            raise UnifiedReportingError("RAG manifest reporting-file descriptors drift")
+        for path, digest in reporting.items():
+            if by_path[path].get("sha256") != digest:
+                raise UnifiedReportingError(f"RAG manifest/certificate mismatch for {path}")
+        for role, filename in required_files.items():
+            if reporting.get(filename) != expected[role]:
+                raise UnifiedReportingError(f"RAG chain does not bind {filename}")
+        panel_status = manifest.get("panel_status")
+        expected_panels = (
+            "ragtruth_evidence_contrast_answer",
+            "ragtruth_evidence_contrast_sentence",
+            "ragtruth_evidence_contrast_token",
+            "gasp_protocol_sentence",
+            "lettucedetect_example",
+            "refchecker_threeway",
+            "refchecker_binary_claim",
+        )
+        if (
+            not isinstance(panel_status, list)
+            or tuple(row.get("panel_id") for row in panel_status if isinstance(row, Mapping))
+            != expected_panels
+            or any(
+                not isinstance(row, Mapping)
+                or row.get("status") != "PASS"
+                or row.get("cross_panel_macro_contribution") != "FORBIDDEN"
+                for row in panel_status
+            )
+        ):
+            raise UnifiedReportingError("RAG manifest panel-status boundary drift")
+        return
     if source_id in {"winner_frozen24", "winner_external_v3"}:
         build = certificate.get("builds", {}).get("A", {})
         if build.get("manifest_file_sha256") != manifest_sha:
@@ -263,7 +482,8 @@ def parse_contract_bytes(payload: bytes, *, where: str = "unified reporting cont
         raise UnifiedReportingError("unified reporting contract lanes are missing")
     allowed_adapters = {
         "frozen24_v1", "external_v3", "edis_v2", "localization_v1",
-        "prefix_v1", "winner_reference_v1", "not_certified",
+        "prefix_v1", "winner_reference_v1", "leash_v1", "rag_evidence_v1",
+        "not_certified",
     }
     required = {
         "adapter", "lane_id", "task_id", "default_prediction_unit",
@@ -279,6 +499,42 @@ def parse_contract_bytes(payload: bytes, *, where: str = "unified reporting cont
             raise UnifiedReportingError(f"contract lane {source_id} has an unsupported adapter")
         if lane["report_partition"] not in {"primary", "context"}:
             raise UnifiedReportingError(f"contract lane {source_id} has an invalid partition")
+        if lane["adapter"] == "leash_v1":
+            if (
+                source_id != "leash_stopping"
+                or lane["lane_id"] != "leash_actual_stopping"
+                or lane["task_id"] != "adaptive_stopping"
+                or lane["default_prediction_unit"] != "source_question"
+                or lane["default_estimand_id"] != "accuracy_vs_realized_compute"
+                or lane["report_partition"] != "context"
+                or lane.get("allowed_arms") != ["cot", "leash", "nocot"]
+                or lane.get("reference_arm") != "cot"
+                or lane.get("bootstrap_draws") != 2000
+            ):
+                raise UnifiedReportingError("LEASH unified-reporting contract drift")
+        if lane["adapter"] == "rag_evidence_v1":
+            expected_panels = [
+                "ragtruth_evidence_contrast_answer",
+                "ragtruth_evidence_contrast_sentence",
+                "ragtruth_evidence_contrast_token",
+                "gasp_protocol_sentence",
+                "lettucedetect_example",
+                "refchecker_threeway",
+                "refchecker_binary_claim",
+            ]
+            if (
+                source_id != "rag_evidence"
+                or lane["lane_id"] != "rag_evidence"
+                or lane["task_id"] != "rag_evidence_evaluation"
+                or lane["default_prediction_unit"] != "panel_registered_unit"
+                or lane["default_estimand_id"] != "panel_registered_rag_evidence"
+                or lane["report_partition"] != "context"
+                or lane.get("panel_ids") != expected_panels
+                or lane.get("refchecker_subgroups")
+                != ["accurate_context", "noisy_context", "zero_context"]
+                or lane.get("bootstrap_draws") != 20000
+            ):
+                raise UnifiedReportingError("RAG unified-reporting contract drift")
         if lane["adapter"] == "winner_reference_v1":
             base = lane.get("base_source")
             if not isinstance(base, str) or base not in lanes or base == source_id:
@@ -392,8 +648,17 @@ def validate_contract_source_lock(
         )
     for source_id, lane in lanes.items():
         certified = records[source_id].get("certified") is True
-        if (lane["adapter"] == "not_certified") is certified:
+        if certified and lane["adapter"] == "not_certified":
             raise UnifiedReportingError(f"source certification/adapter mismatch for {source_id}")
+        if not certified and lane["adapter"] != "not_certified":
+            future_placeholders = {
+                "leash_stopping": "leash_v1",
+                "rag_evidence": "rag_evidence_v1",
+            }
+            if future_placeholders.get(source_id) != lane["adapter"]:
+                raise UnifiedReportingError(
+                    f"source certification/adapter mismatch for {source_id}"
+                )
         if lane["adapter"] == "winner_reference_v1":
             base = lane["base_source"]
             if records[base].get("certified") is not True:

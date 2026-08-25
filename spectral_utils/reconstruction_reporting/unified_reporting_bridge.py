@@ -21,12 +21,149 @@ from .unified_reporting_sources import AuthenticatedSource
 BRIDGE_SCHEMA = "reconstruction-unified-reporting-bridge-v1"
 NO_VALUE = "__all__"
 
+LEASH_AGGREGATE_COLUMNS = (
+    "arm", "dataset", "fidelity", "metric", "scope", "value",
+)
+LEASH_BOOTSTRAP_COLUMNS = (
+    "arm", "dataset", "grouping", "hi", "lo", "metric", "model",
+    "n_boot", "n_groups", "point", "reference_arm", "scope", "seed",
+)
+LEASH_CELL_COLUMNS = (
+    "actual_stopping_claim_eligible", "arm", "cell_id", "closure_tokens",
+    "dataset", "dataset_revision", "early_stop_rate", "fidelity",
+    "forced_closure_rate", "mean_closure_tokens", "mean_reasoning_tokens",
+    "mean_tokens_per_question", "mean_total_tokens", "mean_wall_s", "method_id",
+    "model", "n_forced_closure", "n_parser_failures", "n_questions",
+    "n_stopped_early", "n_stopped_without_closure", "parser_failure_rate",
+    "parser_revision", "pass_at_1", "realized_savings_valid", "reasoning_tokens",
+    "schema", "total_tokens", "total_wall_s",
+)
+LEASH_CONTRAST_COLUMNS = (
+    "arm", "cell_id", "contrast_direction", "dataset",
+    "early_stop_rate_delta_vs_cot", "forced_closure_rate_delta_vs_cot",
+    "matched_accuracy_claim", "mean_closure_tokens_delta_vs_cot",
+    "mean_reasoning_tokens_delta_vs_cot", "mean_total_tokens_delta_vs_cot",
+    "mean_wall_s_delta_vs_cot", "model", "parser_failure_rate_delta_vs_cot",
+    "pass_at_1_delta_vs_cot", "reference_arm", "token_reduction_vs_cot",
+)
+LEASH_COVERAGE_COLUMNS = (
+    "actual_policy_execution_observed", "actual_stopping_claim_eligible",
+    "coverage_status", "dataset", "fidelity", "model", "n_expected",
+    "n_failed", "n_finished", "n_leash_policy_stops", "n_leash_rows_replayed",
+    "n_policy_replay_mismatches", "reason", "run_id", "usable_for_evaluation",
+)
+LEASH_FRONTIER_COLUMNS = (
+    "accuracy_delta_vs_cot", "arm", "cell_id", "dataset", "dataset_revision",
+    "dominated_by", "mean_tokens_per_question", "mean_wall_s", "model",
+    "pareto_efficient_within_cell", "pass_at_1", "schema",
+    "token_reduction_vs_cot",
+)
+LEASH_BASE_METRICS = (
+    "early_stop_rate", "forced_closure_rate", "mean_closure_tokens",
+    "mean_reasoning_tokens", "mean_total_tokens", "mean_wall_s",
+    "parser_failure_rate", "pass_at_1",
+)
+LEASH_DELTA_METRICS = tuple(f"{name}_delta_vs_cot" for name in LEASH_BASE_METRICS)
+
+RAG_METRIC_COLUMNS = (
+    "panel_id", "dataset", "unit", "access", "estimand", "split", "subgroup",
+    "method_id", "metric", "value", "ci_low", "ci_high", "n", "n_groups",
+    "positive_rate", "bootstrap_draws", "status",
+)
+RAG_CONTRAST_COLUMNS = (
+    "panel_id", "split", "subgroup", "left_method", "right_method", "metric",
+    "delta", "ci_low", "ci_high", "n", "n_groups", "bootstrap_draws", "status",
+)
+RAG_STATUS_COLUMNS = (
+    "panel_id", "status", "metric_rows", "prediction_rows",
+    "cross_panel_macro_contribution",
+)
+RAG_REFCHECKER_SUBGROUPS = (
+    "accurate_context", "noisy_context", "zero_context",
+)
+RAG_PANEL_CONTRACTS: Mapping[str, Mapping[str, Any]] = {
+    "ragtruth_evidence_contrast_answer": {
+        "dataset": "RAGTruth", "unit": "answer",
+        "access": "teacher_forced_full_noctx_loo_where_available",
+        "estimand": "response_hallucination_ranking", "methods": ("fixed_rag_iu_pcr",),
+        "metrics": ("auroc", "auprc"), "splits": ("dev", "test"),
+        "bootstrap_unit": "source_id", "supervision": "unsupervised",
+        "fidelity": "registered_ragtruth_evidence_contrast",
+    },
+    "ragtruth_evidence_contrast_sentence": {
+        "dataset": "RAGTruth", "unit": "sentence",
+        "access": "teacher_forced_full_noctx_loo_where_available",
+        "estimand": "sentence_hallucination_ranking", "methods": ("fixed_rag_iu_pcr",),
+        "metrics": ("auroc", "auprc"), "splits": ("dev", "test"),
+        "bootstrap_unit": "source_id", "supervision": "unsupervised",
+        "fidelity": "registered_ragtruth_evidence_contrast",
+    },
+    "ragtruth_evidence_contrast_token": {
+        "dataset": "RAGTruth", "unit": "scorer_token",
+        "access": "teacher_forced_full_noctx_loo_where_available",
+        "estimand": "token_overlap_hallucination_ranking", "methods": ("fixed_rag_iu_pcr",),
+        "metrics": ("auroc", "auprc"), "splits": ("dev", "test"),
+        "bootstrap_unit": "source_id", "supervision": "unsupervised",
+        "fidelity": "registered_ragtruth_evidence_contrast",
+    },
+    "gasp_protocol_sentence": {
+        "dataset": "RAGTruth balanced GASP cohort", "unit": "sentence",
+        "access": "teacher_forced_full_noctx_loo_exact_full_vocab_jsd",
+        "estimand": "sentence_hallucination_ranking_on_local_protocol_sample",
+        "methods": ("gasp_threshold", "fixed_rag_iu_pcr_matched"),
+        "metrics": ("auroc", "auprc"), "splits": ("local_400_response_sample",),
+        "bootstrap_unit": "source_id", "supervision": "unsupervised",
+        "fidelity": "protocol_reproduction_own_ids_and_splitter",
+    },
+    "lettucedetect_example": {
+        "dataset": "RAGTruth", "unit": "example",
+        "access": "supervised_ragtruth_token_classifier",
+        "estimand": "any_predicted_span_vs_any_gold_span",
+        "methods": ("lettucedetect_large_modernbert",),
+        "metrics": ("f1", "precision", "recall"), "splits": ("test",),
+        "bootstrap_unit": "source_id", "supervision": "supervised",
+        "fidelity": "exact_local_reproduction",
+    },
+    "refchecker_threeway": {
+        "dataset": "KnowHalBench fixed claims", "unit": "fixed_claim",
+        "access": "supervised_nli_checker", "estimand": "three_way_claim_checking",
+        "methods": ("refchecker_nli",), "metrics": ("accuracy", "macro_f1"),
+        "splits": ("official_fixed_claims",), "bootstrap_unit": "example_id",
+        "supervision": "supervised", "fidelity": "fixed_claim_reference_execution",
+    },
+    "refchecker_binary_claim": {
+        "dataset": "KnowHalBench fixed claims", "unit": "fixed_claim",
+        "access": "teacher_forced_full_noctx",
+        "estimand": "unsupported_claim_ranking_binary_collapse",
+        "methods": ("fixed_rag_iu_pcr_transfer",), "metrics": ("auroc", "auprc"),
+        "splits": ("official_fixed_claims",), "bootstrap_unit": "example_id",
+        "supervision": "unsupervised", "fidelity": "registered_binary_transfer",
+    },
+}
+
 
 def _csv(payload: bytes) -> list[dict[str, str]]:
     try:
         return list(csv.DictReader(StringIO(payload.decode("utf-8"), newline="")))
     except (UnicodeDecodeError, csv.Error) as exc:
         raise UnifiedReportingError(f"invalid certified CSV: {exc}") from exc
+
+
+def _csv_exact(
+    payload: bytes, columns: Sequence[str], *, where: str,
+) -> list[dict[str, str]]:
+    try:
+        reader = csv.DictReader(StringIO(payload.decode("utf-8"), newline=""))
+        if tuple(reader.fieldnames or ()) != tuple(columns):
+            raise UnifiedReportingError(
+                f"{where} header drift: expected={list(columns)}, observed={reader.fieldnames}"
+            )
+        rows = list(reader)
+    except (UnicodeDecodeError, csv.Error) as exc:
+        raise UnifiedReportingError(f"invalid certified CSV in {where}: {exc}") from exc
+    if any(None in row for row in rows):
+        raise UnifiedReportingError(f"{where} contains fields outside its typed header")
+    return rows
 
 
 def _payload_json(payload: bytes, *, where: str) -> dict[str, Any]:
@@ -674,6 +811,612 @@ def _normalize_prefix(
     return metrics, contrasts
 
 
+def _same_number(left: Any, right: Any, *, where: str) -> None:
+    left_value, right_value = _float(left), _float(right)
+    if left_value is None or right_value is None or abs(left_value - right_value) > 1e-12:
+        raise UnifiedReportingError(f"{where} point estimate drift")
+
+
+def _leash_scope(
+    release_id: str, lane: Mapping[str, Any], *, dataset: str, model: str,
+    scope_name: str,
+) -> tuple[dict[str, Any], str, str, str, str]:
+    if scope_name == "cell":
+        if not dataset or not model:
+            raise UnifiedReportingError("LEASH cell scope requires dataset and model")
+        population, cell, level = dataset, f"{dataset}::{model}", "cell"
+        aggregation_id, aggregation_unit = "leash_cell", "source_question"
+        source_dataset = dataset
+    elif scope_name == "equal_model_within_dataset":
+        if not dataset or model:
+            raise UnifiedReportingError("LEASH equal-model scope identity drift")
+        population, cell, level = dataset, NO_VALUE, "dataset"
+        aggregation_id, aggregation_unit = "leash_equal_model_within_dataset", "model"
+        source_dataset = dataset
+    elif scope_name == "equal_dataset_after_equal_model":
+        if dataset or model:
+            raise UnifiedReportingError("LEASH equal-dataset scope identity drift")
+        population, cell, level = NO_VALUE, NO_VALUE, "task"
+        aggregation_id, aggregation_unit = "leash_equal_dataset_after_equal_model", "dataset"
+        source_dataset = "all_registered_datasets"
+    else:
+        raise UnifiedReportingError(f"unknown LEASH aggregation scope: {scope_name!r}")
+    scope = _scope(
+        release_id=release_id, lane_id=str(lane["lane_id"]), task_id=str(lane["task_id"]),
+        source_dataset_id=source_dataset, population_id=population, cell_id=cell,
+        slice_id=NO_VALUE, prediction_unit=str(lane["default_prediction_unit"]),
+        estimand_id=str(lane["default_estimand_id"]),
+        access_level="actual_callback_execution_with_cot_nocot_references",
+        supervision="unsupervised", fidelity="paper-specified-partial",
+        report_partition="context",
+    )
+    return scope, aggregation_id, level, "producer_declared", aggregation_unit
+
+
+def _leash_metric_metadata(metric_id: str) -> tuple[str, str, str]:
+    if metric_id in {"mean_closure_tokens", "mean_reasoning_tokens", "mean_total_tokens"}:
+        return "tokens", NO_VALUE, "lower"
+    if metric_id == "mean_wall_s":
+        return "seconds", NO_VALUE, "lower"
+    if metric_id == "pass_at_1":
+        return "unit_interval", "correct_final_answer", "higher"
+    if metric_id == "parser_failure_rate":
+        return "unit_interval", "parser_failure", "lower"
+    if metric_id in {"early_stop_rate", "forced_closure_rate"}:
+        return "unit_interval", "policy_stop", "higher"
+    if metric_id == "token_reduction":
+        return "unit_interval", NO_VALUE, "higher"
+    raise UnifiedReportingError(f"unregistered LEASH metric: {metric_id}")
+
+
+def _normalize_leash(
+    release_id: str, source: AuthenticatedSource, contract: Mapping[str, Any],
+) -> tuple[
+    list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]],
+    list[dict[str, Any]],
+]:
+    lane = _lane(contract, source.source_id)
+    if lane["report_partition"] != "context":
+        raise UnifiedReportingError("LEASH may only enter the context partition")
+    allowed_arms = tuple(lane["allowed_arms"])
+    reference_arm = str(lane["reference_arm"])
+    draws = int(lane["bootstrap_draws"])
+    aggregate_rows = _csv_exact(
+        source.files["aggregate_metrics"], LEASH_AGGREGATE_COLUMNS,
+        where="LEASH aggregate_metrics",
+    )
+    bootstrap_rows = _csv_exact(
+        source.files["bootstrap_intervals"], LEASH_BOOTSTRAP_COLUMNS,
+        where="LEASH bootstrap_intervals",
+    )
+    cell_rows = _csv_exact(
+        source.files["cell_metrics"], LEASH_CELL_COLUMNS, where="LEASH cell_metrics",
+    )
+    contrast_rows = _csv_exact(
+        source.files["contrasts"], LEASH_CONTRAST_COLUMNS, where="LEASH contrasts",
+    )
+    coverage_rows = _csv_exact(
+        source.files["coverage"], LEASH_COVERAGE_COLUMNS, where="LEASH coverage",
+    )
+    frontier_rows = _csv_exact(
+        source.files["frontier"], LEASH_FRONTIER_COLUMNS, where="LEASH frontier",
+    )
+
+    cell_points: dict[tuple[str, str, str, str], str] = {}
+    cell_methods: dict[tuple[str, str, str], str] = {}
+    cell_n: dict[tuple[str, str, str], int] = {}
+    for raw in cell_rows:
+        arm, dataset, model = raw["arm"], raw["dataset"], raw["model"]
+        if (
+            arm not in allowed_arms
+            or raw["fidelity"] != "paper-specified-partial"
+            or raw["dataset_revision"] != "test"
+            or raw["schema"] != "s2_stopping_cell_metric_v1"
+            or raw["cell_id"] != f"s2::{dataset}::{model}"
+            or raw["method_id"] != f"{arm}|central"
+            or not _bool(raw["realized_savings_valid"])
+            or _bool(raw["actual_stopping_claim_eligible"]) is not (arm == "leash")
+        ):
+            raise UnifiedReportingError("LEASH cell metric contract drift")
+        identity = (arm, dataset, model)
+        if identity in cell_methods:
+            raise UnifiedReportingError(f"duplicate LEASH cell arm: {identity}")
+        cell_methods[identity] = raw["method_id"]
+        cell_n[identity] = int(_int(raw["n_questions"]) or 0)
+        for metric in LEASH_BASE_METRICS:
+            cell_points[(*identity, metric)] = raw[metric]
+    expected_cells = {(dataset, model) for _, dataset, model in cell_methods}
+    if len(cell_rows) != 18 or any(
+        {arm for arm, observed_dataset, observed_model in cell_methods if (observed_dataset, observed_model) == cell}
+        != set(allowed_arms)
+        for cell in expected_cells
+    ):
+        raise UnifiedReportingError("LEASH cell/arm coverage drift")
+
+    aggregate_points: dict[tuple[str, str, str, str], str] = {}
+    for raw in aggregate_rows:
+        key = (raw["scope"], raw["arm"], raw["dataset"], raw["metric"])
+        if (
+            raw["arm"] not in allowed_arms
+            or raw["metric"] not in LEASH_BASE_METRICS
+            or raw["fidelity"] != "paper-specified-partial"
+            or raw["scope"] not in {
+                "equal_model_within_dataset", "equal_dataset_after_equal_model",
+            }
+            or key in aggregate_points
+        ):
+            raise UnifiedReportingError("LEASH aggregate metric contract drift")
+        aggregate_points[key] = raw["value"]
+    if len(aggregate_rows) != 72:
+        raise UnifiedReportingError("LEASH aggregate metric row-count drift")
+
+    cell_contrasts: dict[tuple[str, str, str, str], str] = {}
+    for raw in contrast_rows:
+        if (
+            raw["arm"] not in {"leash", "nocot"}
+            or raw["cell_id"] != f"s2::{raw['dataset']}::{raw['model']}"
+            or raw["reference_arm"] != reference_arm
+            or raw["contrast_direction"] != "arm_minus_cot"
+            or _bool(raw["matched_accuracy_claim"])
+        ):
+            raise UnifiedReportingError("LEASH unregistered comparison escaped")
+        for metric in (*LEASH_DELTA_METRICS, "token_reduction_vs_cot"):
+            cell_contrasts[(raw["arm"], raw["dataset"], raw["model"], metric)] = raw[metric]
+    if len(contrast_rows) != 12 or len(cell_contrasts) != 108:
+        raise UnifiedReportingError("LEASH contrast coverage drift")
+
+    metrics: list[dict[str, Any]] = []
+    contrasts: list[dict[str, Any]] = []
+    for index, raw in enumerate(bootstrap_rows):
+        arm, dataset, model = raw["arm"], raw["dataset"], raw["model"]
+        scope_name, metric_name = raw["scope"], raw["metric"]
+        if (
+            arm not in allowed_arms
+            or _int(raw["n_boot"]) != draws
+            or _int(raw["seed"]) != 2026082406
+            or raw["grouping"]
+            != "source_question_stratified_within_dataset_shared_across_arms_and_models"
+            or (_int(raw["n_groups"]) or 0) <= 0
+        ):
+            raise UnifiedReportingError("LEASH bootstrap contract drift")
+        scope, aggregation_id, level, rule, unit = _leash_scope(
+            release_id, lane, dataset=dataset, model=model, scope_name=scope_name,
+        )
+        method_id = f"{arm}|central"
+        cohort = f"leash::{scope_name}::{dataset or 'all'}::{model or 'all'}"
+        provenance = _provenance(source, "bootstrap_intervals", f"row:{index + 2}", raw)
+        if raw["reference_arm"] == "":
+            if metric_name not in LEASH_BASE_METRICS:
+                raise UnifiedReportingError("LEASH point interval uses an unregistered metric")
+            if scope_name == "cell":
+                _same_number(
+                    raw["point"], cell_points.get((arm, dataset, model, metric_name)),
+                    where="LEASH cell/bootstrap",
+                )
+                n_rows = cell_n[(arm, dataset, model)]
+            else:
+                _same_number(
+                    raw["point"], aggregate_points.get((scope_name, arm, dataset, metric_name)),
+                    where="LEASH aggregate/bootstrap",
+                )
+                n_rows = None
+            metric_unit, positive_class, direction = _leash_metric_metadata(metric_name)
+            metrics.append(_metric_row(
+                scope=scope, system_id=arm, method_id=method_id, metric_id=metric_name,
+                metric_unit=metric_unit, positive_class=positive_class,
+                better_direction=direction, aggregation_id=aggregation_id,
+                aggregation_level=level, aggregation_rule=rule, aggregation_unit=unit,
+                cohort_id=cohort, source_comparison_group_id=f"leash::{scope_name}",
+                value=_float(raw["point"]), ci_low=_float(raw["lo"]), ci_high=_float(raw["hi"]),
+                n_rows=n_rows, n_groups=_int(raw["n_groups"]), n_positive=None,
+                n_negative=None, bootstrap_unit="source_question_within_dataset",
+                bootstrap_draws=draws, source_status="READY", status_detail=None,
+                provenance=provenance,
+            ))
+            continue
+        if (
+            raw["reference_arm"] != reference_arm
+            or arm not in {"leash", "nocot"}
+            or metric_name not in {*LEASH_DELTA_METRICS, "token_reduction_vs_cot"}
+        ):
+            raise UnifiedReportingError("LEASH interval contains an unregistered comparison")
+        if scope_name == "cell":
+            _same_number(
+                raw["point"], cell_contrasts.get((arm, dataset, model, metric_name)),
+                where="LEASH contrast/bootstrap",
+            )
+        base_metric = (
+            "token_reduction" if metric_name == "token_reduction_vs_cot"
+            else metric_name.removesuffix("_delta_vs_cot")
+        )
+        metric_unit, positive_class, direction = _leash_metric_metadata(base_metric)
+        contrasts.append(_contrast_row(
+            scope=scope, left_system=arm, right_system=reference_arm,
+            left_method=method_id, right_method=f"{reference_arm}|central",
+            metric_id=base_metric, metric_unit=metric_unit, positive_class=positive_class,
+            better_direction=direction, aggregation_id=aggregation_id,
+            aggregation_level=level, aggregation_rule=rule, aggregation_unit=unit,
+            cohort_id=cohort, source_comparison_group_id=f"leash::{scope_name}",
+            delta=_float(raw["point"]), ci_low=_float(raw["lo"]), ci_high=_float(raw["hi"]),
+            n_pairs=_int(raw["n_groups"]), bootstrap_unit="source_question_within_dataset",
+            bootstrap_draws=draws, paired=True, source_status="READY",
+            status_detail="registered arm-minus-CoT reference contrast",
+            provenance=provenance,
+        ))
+    if len(bootstrap_rows) != 378 or len(metrics) != 216 or len(contrasts) != 162:
+        raise UnifiedReportingError("LEASH bootstrap reporting roster drift")
+
+    frontier_metrics: list[dict[str, Any]] = []
+    frontier_specs = (
+        ("frontier_pass_at_1", "pass_at_1", "pass_at_1"),
+        ("frontier_mean_total_tokens", "mean_tokens_per_question", "mean_total_tokens"),
+        ("frontier_mean_wall_s", "mean_wall_s", "mean_wall_s"),
+        ("frontier_token_reduction", "token_reduction_vs_cot", "token_reduction"),
+        ("frontier_accuracy_delta", "accuracy_delta_vs_cot", "pass_at_1"),
+    )
+    for index, raw in enumerate(frontier_rows):
+        arm, dataset, model = raw["arm"], raw["dataset"], raw["model"]
+        if (
+            arm not in allowed_arms
+            or raw["schema"] != "s2_accuracy_compute_frontier_point_v1"
+            or raw["dataset_revision"] != "test"
+            or raw["cell_id"] != f"s2::{dataset}::{model}"
+        ):
+            raise UnifiedReportingError("LEASH frontier contract drift")
+        _same_number(raw["pass_at_1"], cell_points[(arm, dataset, model, "pass_at_1")], where="LEASH frontier/pass@1")
+        _same_number(raw["mean_tokens_per_question"], cell_points[(arm, dataset, model, "mean_total_tokens")], where="LEASH frontier/tokens")
+        _same_number(raw["mean_wall_s"], cell_points[(arm, dataset, model, "mean_wall_s")], where="LEASH frontier/wall")
+        if arm == reference_arm:
+            _same_number(raw["accuracy_delta_vs_cot"], 0.0, where="LEASH frontier/reference accuracy")
+            _same_number(raw["token_reduction_vs_cot"], 0.0, where="LEASH frontier/reference tokens")
+        else:
+            _same_number(raw["accuracy_delta_vs_cot"], cell_contrasts[(arm, dataset, model, "pass_at_1_delta_vs_cot")], where="LEASH frontier/accuracy")
+            _same_number(raw["token_reduction_vs_cot"], cell_contrasts[(arm, dataset, model, "token_reduction_vs_cot")], where="LEASH frontier/reduction")
+        scope, _, level, _, unit = _leash_scope(
+            release_id, lane, dataset=dataset, model=model, scope_name="cell",
+        )
+        detail = json.dumps({
+            "pareto_efficient_within_cell": _bool(raw["pareto_efficient_within_cell"]),
+            "dominated_by": raw["dominated_by"],
+            "frontier_interpretation": "accuracy versus realized total-token compute",
+            "inferential_status": "descriptive_only_no_interval",
+            "matched_accuracy_claim": False,
+        }, sort_keys=True, separators=(",", ":"))
+        for output_metric, field, semantic_metric in frontier_specs:
+            metric_unit, positive_class, direction = _leash_metric_metadata(semantic_metric)
+            frontier_metrics.append(_metric_row(
+                scope=scope, system_id=arm, method_id=f"{arm}|central",
+                metric_id=output_metric, metric_unit=metric_unit,
+                positive_class=positive_class, better_direction=direction,
+                aggregation_id="leash_accuracy_compute_frontier_cell",
+                aggregation_level=level, aggregation_rule="producer_frontier_point",
+                aggregation_unit=unit, cohort_id=f"leash_frontier::{dataset}::{model}",
+                source_comparison_group_id="leash::accuracy_compute_frontier",
+                value=_float(raw[field]), ci_low=None, ci_high=None,
+                n_rows=cell_n[(arm, dataset, model)], n_groups=cell_n[(arm, dataset, model)],
+                n_positive=None, n_negative=None, bootstrap_unit=None, bootstrap_draws=None,
+                source_status="READY", status_detail=detail,
+                provenance=_provenance(source, "frontier", f"row:{index + 2}:{field}", raw),
+            ))
+    if len(frontier_rows) != 18:
+        raise UnifiedReportingError("LEASH frontier row-count drift")
+    metrics.extend(frontier_metrics)
+
+    coverage: list[dict[str, Any]] = []
+    for index, raw in enumerate(coverage_rows):
+        dataset, model = raw["dataset"], raw["model"]
+        source_status = raw["coverage_status"]
+        ready = source_status == "READY"
+        if (
+            source_status not in {"READY", "PROTOCOL_GATE_FAILED"}
+            or raw["fidelity"] != "paper-specified-partial"
+            or _bool(raw["usable_for_evaluation"]) is not ready
+            or _bool(raw["actual_policy_execution_observed"]) is not ready
+            or _bool(raw["actual_stopping_claim_eligible"]) is not ready
+        ):
+            raise UnifiedReportingError("LEASH coverage/status contract drift")
+        scope, _, _, _, _ = _leash_scope(
+            release_id, lane, dataset=dataset, model=model, scope_name="cell",
+        )
+        expected, finished = _int(raw["n_expected"]), _int(raw["n_finished"])
+        detail = json.dumps({
+            "run_id": raw["run_id"], "reason": raw["reason"] or None,
+            "actual_callback_execution": _bool(raw["actual_policy_execution_observed"]),
+            "actual_stopping_claim_eligible": _bool(raw["actual_stopping_claim_eligible"]),
+            "policy_replay_mismatches": _int(raw["n_policy_replay_mismatches"]),
+        }, sort_keys=True, separators=(",", ":"))
+        coverage.append({
+            **scope, "system_id": _ns(str(lane["lane_id"]), "system", "leash_stopping_bundle"),
+            "method_id": "leash|central", "expected_n": expected, "eligible_n": finished,
+            "scored_n": finished, "fallback_n": 0, "excluded_n": 0,
+            "failed_n": _int(raw["n_failed"]),
+            "coverage_fraction": (
+                None if expected in (None, 0) or finished is None else finished / expected
+            ),
+            "cohort_id": f"leash_coverage::{dataset}::{model}",
+            "status_class": _status_class(source_status, context=True),
+            "source_status": source_status, "status_detail": detail,
+            **_provenance(source, "coverage", f"row:{index + 2}", raw),
+        })
+    if len(coverage) != 8:
+        raise UnifiedReportingError("LEASH coverage row-count drift")
+
+    manifest = source.manifest or {}
+    manifest_scope, _, _, _, _ = _leash_scope(
+        release_id, lane, dataset="", model="",
+        scope_name="equal_dataset_after_equal_model",
+    )
+    ready_count = sum(row["coverage_status"] == "READY" for row in coverage_rows)
+    manifest_identity = {
+        "source_binding_id": source.source_binding_id,
+        "claim_status": manifest.get("claim_status"),
+    }
+    explicit_status = [{
+        **manifest_scope,
+        "status_id": f"statusv1_{canonical_sha256(manifest_identity)[:24]}",
+        "status_scope": "task", "system_id": NO_VALUE, "method_id": NO_VALUE,
+        "metric_id": NO_VALUE, "aggregation_level": "task",
+        "status_class": "CONTEXT", "source_status": _text(manifest.get("claim_status")),
+        "status_detail": json.dumps({
+            "claim_scope": manifest.get("claim_scope"),
+            "fidelity": manifest.get("fidelity"),
+            "paper_exact_claim": False, "matched_accuracy_claim": False,
+            "cross_task_or_access_macro": False,
+        }, sort_keys=True, separators=(",", ":")),
+        "expected_n": len(coverage_rows), "observed_n": ready_count, "rankable": False,
+        **_provenance(source, "manifest", "/claim_status", manifest_identity),
+    }]
+    return metrics, contrasts, coverage, explicit_status
+
+
+def _rag_scope(
+    release_id: str, lane: Mapping[str, Any], panel_id: str, *, split: str,
+    subgroup: str,
+) -> tuple[dict[str, Any], Mapping[str, Any]]:
+    try:
+        panel = RAG_PANEL_CONTRACTS[panel_id]
+    except KeyError as exc:
+        raise UnifiedReportingError(f"unregistered RAG evidence panel: {panel_id}") from exc
+    scope = _scope(
+        release_id=release_id, lane_id=str(lane["lane_id"]), task_id=str(lane["task_id"]),
+        source_dataset_id=str(panel["dataset"]), population_id=panel_id,
+        cell_id=f"{panel_id}::{split}", slice_id=subgroup,
+        prediction_unit=str(panel["unit"]), estimand_id=str(panel["estimand"]),
+        access_level=str(panel["access"]), supervision=str(panel["supervision"]),
+        fidelity=str(panel["fidelity"]), report_partition="context",
+    )
+    return scope, panel
+
+
+def _rag_positive_class(panel_id: str) -> str:
+    if panel_id == "refchecker_threeway":
+        return "three_way_claim_label"
+    if panel_id == "refchecker_binary_claim":
+        return "unsupported_claim"
+    if panel_id == "lettucedetect_example":
+        return "any_gold_hallucination_span"
+    return "hallucinated"
+
+
+def _normalize_rag(
+    release_id: str, source: AuthenticatedSource, contract: Mapping[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    lane = _lane(contract, source.source_id)
+    if lane["report_partition"] != "context":
+        raise UnifiedReportingError("RAG evidence may only enter the context partition")
+    panel_ids = tuple(lane["panel_ids"])
+    if panel_ids != tuple(RAG_PANEL_CONTRACTS):
+        raise UnifiedReportingError("RAG panel roster drift")
+    draws = int(lane["bootstrap_draws"])
+    raw_metrics = _csv_exact(source.files["metrics"], RAG_METRIC_COLUMNS, where="RAG metrics")
+    raw_contrasts = _csv_exact(
+        source.files["contrasts"], RAG_CONTRAST_COLUMNS, where="RAG contrasts",
+    )
+    raw_status = _csv_exact(
+        source.files["panel_status"], RAG_STATUS_COLUMNS, where="RAG panel_status",
+    )
+    metric_groups: MutableMapping[tuple[str, str, str], set[tuple[str, str]]] = defaultdict(set)
+    group_counts: dict[tuple[str, str, str], tuple[int, int]] = {}
+    metrics: list[dict[str, Any]] = []
+    seen_metric_keys: set[tuple[str, str, str, str, str]] = set()
+    for index, raw in enumerate(raw_metrics):
+        panel_id, split, subgroup = raw["panel_id"], raw["split"], raw["subgroup"]
+        scope, panel = _rag_scope(
+            release_id, lane, panel_id, split=split, subgroup=subgroup,
+        )
+        key = (panel_id, split, subgroup, raw["method_id"], raw["metric"])
+        if (
+            raw["dataset"] != panel["dataset"]
+            or raw["unit"] != panel["unit"]
+            or raw["access"] != panel["access"]
+            or raw["estimand"] != panel["estimand"]
+            or split not in panel["splits"]
+            or raw["method_id"] not in panel["methods"]
+            or raw["metric"] not in panel["metrics"]
+            or key in seen_metric_keys
+            or _int(raw["bootstrap_draws"]) != draws
+            or (_int(raw["n"]) or 0) <= 0
+            or (_int(raw["n_groups"]) or 0) <= 0
+        ):
+            raise UnifiedReportingError("RAG metric panel contract drift")
+        seen_metric_keys.add(key)
+        if panel_id.startswith("refchecker_"):
+            if subgroup not in RAG_REFCHECKER_SUBGROUPS:
+                raise UnifiedReportingError("RefChecker setting pooling/roster drift")
+        elif not subgroup or subgroup.lower() in {"pooled", "macro", "cross_panel"}:
+            raise UnifiedReportingError("RAG task subgroup is invalid")
+        source_status = raw["status"]
+        if source_status not in {"OK", "METRIC_UNDEFINED_SINGLE_CLASS"}:
+            raise UnifiedReportingError("RAG metric status drift")
+        value, ci_low, ci_high = _float(raw["value"]), _float(raw["ci_low"]), _float(raw["ci_high"])
+        if (source_status == "OK") is not (value is not None and ci_low is not None and ci_high is not None):
+            raise UnifiedReportingError("RAG metric value/status mismatch")
+        group = (panel_id, split, subgroup)
+        counts = (_int(raw["n"]) or 0, _int(raw["n_groups"]) or 0)
+        if group in group_counts and group_counts[group] != counts:
+            raise UnifiedReportingError("RAG within-panel subgroup count drift")
+        group_counts[group] = counts
+        metric_groups[group].add((raw["method_id"], raw["metric"]))
+        positive_rate = _float(raw["positive_rate"])
+        n_positive = None
+        if positive_rate is not None:
+            candidate = round(positive_rate * counts[0])
+            if abs(candidate - positive_rate * counts[0]) <= 1e-8:
+                n_positive = int(candidate)
+        detail = json.dumps(
+            {"positive_rate": positive_rate, "panel_id": panel_id, "split": split,
+             "subgroup": subgroup, "bootstrap_seed": 2026082407,
+             "interval_interpretation": "nominal_grouped_95_ci"},
+            sort_keys=True, separators=(",", ":"),
+        )
+        metrics.append(_metric_row(
+            scope=scope, system_id=raw["method_id"], method_id=raw["method_id"],
+            metric_id=raw["metric"], metric_unit="unit_interval",
+            positive_class=_rag_positive_class(panel_id), better_direction="higher",
+            aggregation_id=f"rag_panel::{panel_id}::{split}::{subgroup}",
+            aggregation_level="cell", aggregation_rule="grouped_bootstrap_metric",
+            aggregation_unit=str(panel["unit"]),
+            cohort_id=f"rag::{panel_id}::{split}::{subgroup}",
+            source_comparison_group_id=f"rag::{panel_id}::{split}::{subgroup}",
+            value=value, ci_low=ci_low, ci_high=ci_high, n_rows=counts[0],
+            n_groups=counts[1], n_positive=n_positive,
+            n_negative=(None if n_positive is None else counts[0] - n_positive),
+            bootstrap_unit=str(panel["bootstrap_unit"]), bootstrap_draws=draws,
+            source_status=source_status, status_detail=detail,
+            provenance=_provenance(source, "metrics", f"row:{index + 2}", raw),
+        ))
+    observed_splits: MutableMapping[str, set[str]] = defaultdict(set)
+    observed_subgroups: MutableMapping[tuple[str, str], set[str]] = defaultdict(set)
+    for panel_id, split, subgroup in metric_groups:
+        observed_splits[panel_id].add(split)
+        observed_subgroups[(panel_id, split)].add(subgroup)
+        expected_pairs = {
+            (method, metric)
+            for method in RAG_PANEL_CONTRACTS[panel_id]["methods"]
+            for metric in RAG_PANEL_CONTRACTS[panel_id]["metrics"]
+        }
+        if metric_groups[(panel_id, split, subgroup)] != expected_pairs:
+            raise UnifiedReportingError("RAG within-panel method/metric matrix is incomplete")
+    if set(observed_splits) != set(panel_ids) or any(
+        observed_splits[panel_id] != set(RAG_PANEL_CONTRACTS[panel_id]["splits"])
+        for panel_id in panel_ids
+    ):
+        raise UnifiedReportingError("RAG panel/split coverage drift")
+    for panel_id in panel_ids:
+        for split in RAG_PANEL_CONTRACTS[panel_id]["splits"]:
+            subgroups = observed_subgroups[(panel_id, split)]
+            if panel_id.startswith("refchecker_"):
+                if subgroups != set(RAG_REFCHECKER_SUBGROUPS):
+                    raise UnifiedReportingError("RefChecker required setting coverage drift")
+            elif "all" not in subgroups:
+                raise UnifiedReportingError("RAG non-RefChecker panel omits its all subgroup")
+    for split in ("dev", "test"):
+        ragtruth_sets = {
+            tuple(sorted(observed_subgroups[(panel_id, split)]))
+            for panel_id in panel_ids[:3]
+        }
+        if len(ragtruth_sets) != 1:
+            raise UnifiedReportingError("RAGTruth unit panels disagree on task subgroups")
+
+    contrasts: list[dict[str, Any]] = []
+    seen_contrasts: set[tuple[str, str]] = set()
+    gasp_groups = {
+        subgroup for panel_id, split, subgroup in metric_groups
+        if panel_id == "gasp_protocol_sentence" and split == "local_400_response_sample"
+    }
+    for index, raw in enumerate(raw_contrasts):
+        if (
+            raw["panel_id"] != "gasp_protocol_sentence"
+            or raw["split"] != "local_400_response_sample"
+            or raw["subgroup"] not in gasp_groups
+            or raw["left_method"] != "gasp_threshold"
+            or raw["right_method"] != "fixed_rag_iu_pcr_matched"
+            or raw["metric"] not in {"auroc", "auprc"}
+            or (raw["subgroup"], raw["metric"]) in seen_contrasts
+            or _int(raw["bootstrap_draws"]) != draws
+            or raw["status"] not in {"OK", "METRIC_UNDEFINED_SINGLE_CLASS"}
+        ):
+            raise UnifiedReportingError("RAG unregistered/cross-panel contrast escaped")
+        seen_contrasts.add((raw["subgroup"], raw["metric"]))
+        counts = group_counts[(raw["panel_id"], raw["split"], raw["subgroup"])]
+        if counts != (_int(raw["n"]), _int(raw["n_groups"])):
+            raise UnifiedReportingError("RAG contrast/metric population mismatch")
+        delta, ci_low, ci_high = _float(raw["delta"]), _float(raw["ci_low"]), _float(raw["ci_high"])
+        if (raw["status"] == "OK") is not (
+            delta is not None and ci_low is not None and ci_high is not None
+        ):
+            raise UnifiedReportingError("RAG contrast value/status mismatch")
+        scope, panel = _rag_scope(
+            release_id, lane, raw["panel_id"], split=raw["split"], subgroup=raw["subgroup"],
+        )
+        contrasts.append(_contrast_row(
+            scope=scope, left_system=raw["left_method"], right_system=raw["right_method"],
+            left_method=raw["left_method"], right_method=raw["right_method"],
+            metric_id=raw["metric"], metric_unit="unit_interval",
+            positive_class=_rag_positive_class(raw["panel_id"]), better_direction="higher",
+            aggregation_id=f"rag_panel::{raw['panel_id']}::{raw['split']}::{raw['subgroup']}",
+            aggregation_level="cell", aggregation_rule="paired_grouped_bootstrap_delta",
+            aggregation_unit=str(panel["unit"]),
+            cohort_id=f"rag::{raw['panel_id']}::{raw['split']}::{raw['subgroup']}",
+            source_comparison_group_id=f"rag::{raw['panel_id']}::{raw['split']}::{raw['subgroup']}",
+            delta=delta, ci_low=ci_low, ci_high=ci_high, n_pairs=counts[0],
+            bootstrap_unit=str(panel["bootstrap_unit"]), bootstrap_draws=draws,
+            paired=True, source_status=raw["status"],
+            status_detail=(
+                "registered within-GASP paired reference contrast; "
+                "nominal grouped 95% CI; seed=2026082407"
+            ),
+            provenance=_provenance(source, "contrasts", f"row:{index + 2}", raw),
+        ))
+    if seen_contrasts != {(subgroup, metric) for subgroup in gasp_groups for metric in ("auroc", "auprc")}:
+        raise UnifiedReportingError("RAG GASP paired contrast coverage drift")
+
+    statuses: list[dict[str, Any]] = []
+    if tuple(raw["panel_id"] for raw in raw_status) != panel_ids:
+        raise UnifiedReportingError("RAG panel-status order/roster drift")
+    manifest_status = (source.manifest or {}).get("panel_status")
+    for index, raw in enumerate(raw_status):
+        panel_id = raw["panel_id"]
+        metric_count = sum(row["panel_id"] == panel_id for row in raw_metrics)
+        if (
+            raw["status"] != "PASS"
+            or raw["cross_panel_macro_contribution"] != "FORBIDDEN"
+            or _int(raw["metric_rows"]) != metric_count
+            or (_int(raw["prediction_rows"]) or 0) <= 0
+        ):
+            raise UnifiedReportingError("RAG panel-status content drift")
+        manifest_row = manifest_status[index] if isinstance(manifest_status, list) else None
+        if not isinstance(manifest_row, Mapping) or {
+            "panel_id": raw["panel_id"], "status": raw["status"],
+            "metric_rows": _int(raw["metric_rows"]),
+            "prediction_rows": _int(raw["prediction_rows"]),
+            "cross_panel_macro_contribution": raw["cross_panel_macro_contribution"],
+        } != dict(manifest_row):
+            raise UnifiedReportingError("RAG panel-status table/manifest mismatch")
+        panel = RAG_PANEL_CONTRACTS[panel_id]
+        scope, _ = _rag_scope(
+            release_id, lane, panel_id, split=NO_VALUE, subgroup=NO_VALUE,
+        )
+        identity = {"binding": source.source_binding_id, "panel": panel_id, "status": "PASS"}
+        statuses.append({
+            **scope, "status_id": f"statusv1_{canonical_sha256(identity)[:24]}",
+            "status_scope": "cell", "system_id": NO_VALUE, "method_id": NO_VALUE,
+            "metric_id": NO_VALUE, "aggregation_level": "cell",
+            "status_class": "CONTEXT", "source_status": "PASS",
+            "status_detail": json.dumps({
+                "metric_rows": _int(raw["metric_rows"]),
+                "prediction_rows": _int(raw["prediction_rows"]),
+                "cross_panel_macro_contribution": "FORBIDDEN",
+                "unit": panel["unit"], "access": panel["access"],
+                "estimand": panel["estimand"],
+            }, sort_keys=True, separators=(",", ":")),
+            "expected_n": _int(raw["prediction_rows"]),
+            "observed_n": _int(raw["prediction_rows"]), "rankable": False,
+            **_provenance(source, "panel_status", f"row:{index + 2}", raw),
+        })
+    return metrics, contrasts, statuses
+
+
 def _status_from_result(row: Mapping[str, Any], *, status_scope: str) -> dict[str, Any]:
     source = {
         "binding": row["source_binding_id"], "table": row["source_table"],
@@ -1041,8 +1784,15 @@ def build_unified_rows(
     for source in sources:
         lane = _lane(contract, source.source_id)
         adapter = lane["adapter"]
-        if adapter == "not_certified":
+        # Certification state is controlled only by the source lock.  A lane may
+        # declare its future typed adapter while remaining a source-closed
+        # placeholder; no artifact bytes exist on this branch.
+        if not source.certified:
             statuses.append(_placeholder_status(release_id, source, contract))
+        elif adapter == "not_certified":
+            raise UnifiedReportingError(
+                f"certified source {source.source_id} has no typed adapter"
+            )
         elif adapter in {"frozen24_v1", "edis_v2"}:
             lane_metrics, lane_contrasts, lane_coverage = _normalize_generic(release_id, source, lane)
             metrics.extend(lane_metrics); contrasts.extend(lane_contrasts); coverage.extend(lane_coverage)
@@ -1056,6 +1806,18 @@ def build_unified_rows(
         elif adapter == "prefix_v1":
             lane_metrics, lane_contrasts = _normalize_prefix(release_id, source, contract)
             metrics.extend(lane_metrics); contrasts.extend(lane_contrasts)
+        elif adapter == "leash_v1":
+            lane_metrics, lane_contrasts, lane_coverage, lane_statuses = _normalize_leash(
+                release_id, source, contract,
+            )
+            metrics.extend(lane_metrics); contrasts.extend(lane_contrasts)
+            coverage.extend(lane_coverage); statuses.extend(lane_statuses)
+        elif adapter == "rag_evidence_v1":
+            lane_metrics, lane_contrasts, lane_statuses = _normalize_rag(
+                release_id, source, contract,
+            )
+            metrics.extend(lane_metrics); contrasts.extend(lane_contrasts)
+            statuses.extend(lane_statuses)
         elif adapter == "winner_reference_v1":
             winner_sources.append(source)
         else:

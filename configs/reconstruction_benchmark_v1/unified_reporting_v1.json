@@ -24,12 +24,16 @@
     },
     "leash_stopping": {
       "allowed": [
-        "actual policy execution after certification"
+        "actual callback policy execution after certification",
+        "paper-specified-partial accuracy versus realized compute within the stopping task",
+        "producer-certified contrasts against the registered CoT reference"
       ],
       "forbidden": [
         "paper-exact claim",
         "matched-accuracy claim",
-        "cross-task macro"
+        "cross-task macro",
+        "primary headline",
+        "unregistered pairwise comparison"
       ]
     },
     "prefix": {
@@ -41,6 +45,19 @@
         "token savings",
         "latency savings",
         "cross-budget macro",
+        "cross-task macro"
+      ]
+    },
+    "rag_evidence": {
+      "allowed": [
+        "seven separately registered evidence panels after certification",
+        "producer-certified paired GASP reference contrasts within panel and subgroup"
+      ],
+      "forbidden": [
+        "cross-panel macro",
+        "cross-panel contrast",
+        "RefChecker setting pooling",
+        "primary headline",
         "cross-task macro"
       ]
     },
@@ -83,10 +100,17 @@
       "task_id": "final_answer_error_detection"
     },
     "leash_stopping": {
-      "adapter": "not_certified",
+      "adapter": "leash_v1",
+      "allowed_arms": [
+        "cot",
+        "leash",
+        "nocot"
+      ],
+      "bootstrap_draws": 2000,
       "default_estimand_id": "accuracy_vs_realized_compute",
       "default_prediction_unit": "source_question",
       "lane_id": "leash_actual_stopping",
+      "reference_arm": "cot",
       "report_partition": "context",
       "task_id": "adaptive_stopping"
     },
@@ -107,10 +131,25 @@
       "task_id": "causal_early_final_answer_error_detection"
     },
     "rag_evidence": {
-      "adapter": "not_certified",
+      "adapter": "rag_evidence_v1",
+      "bootstrap_draws": 20000,
       "default_estimand_id": "panel_registered_rag_evidence",
       "default_prediction_unit": "panel_registered_unit",
       "lane_id": "rag_evidence",
+      "panel_ids": [
+        "ragtruth_evidence_contrast_answer",
+        "ragtruth_evidence_contrast_sentence",
+        "ragtruth_evidence_contrast_token",
+        "gasp_protocol_sentence",
+        "lettucedetect_example",
+        "refchecker_threeway",
+        "refchecker_binary_claim"
+      ],
+      "refchecker_subgroups": [
+        "accurate_context",
+        "noisy_context",
+        "zero_context"
+      ],
       "report_partition": "context",
       "task_id": "rag_evidence_evaluation"
     },
