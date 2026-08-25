@@ -1,5 +1,53 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**Reconstruction completion addendum (2026-08-25 — Step 290):** The requested
+full reconstruction and benchmarking program is complete on
+`codex/reconstruction-benchmark-v1`.  The implementation chain now includes
+the frozen 24-cell benchmark and external final-answer evaluation, certified
+winner-reference contrasts, causal prefix and localization lanes, the LEASH
+realized-stopping lane, the seven-panel RAG evidence lane, and one
+source-locked unified reporting bridge.  Each scientific lane was built as
+independent A/B outputs with grouped bootstrap evaluation and a final
+certificate; no mixed-estimand or cross-task leaderboard was introduced.
+
+The final application releases are
+`2026-08-25_leash_v1` and `2026-08-25_rag_evidence_v1`.  LEASH has six
+actual-callback `READY` cells and two explicit Mistral protocol-gate failures;
+its result is an accuracy--compute tradeoff, not a detector win.  RAG contains
+seven separate panels, 84 metric rows and six registered within-GASP
+contrasts, each with 20,000 source-group bootstrap draws.  RAGTruth shows
+strong task heterogeneity, the GASP local-minus-fixed interval includes zero,
+Lettuce is retained as a supervised ceiling, and the three RefChecker settings
+remain separate.  These are retrospective/application results with their
+historical-label and out-of-scope claim-extraction boundaries intact.
+
+The certified unified release is
+`results/reconstruction_benchmark_v1/derived/unified_reporting_v1_certified`
+(release id `2026-08-25_unified_reporting_v1`).  Its A/B certificate is
+`PASS`, authenticates nine certified source bindings, and contains 15 typed
+logical tables.  RAG and LEASH enter only as non-rankable context rows; the
+bridge preserves localization integer/sentinel semantics and winner-reference
+direct paired non-separation without converting it to equivalence or a tie.
+The certified release content SHA-256 is
+`593f5fcfd00928466ba0db98f01f4a77d0c5ef69183fc577fbfdc8b4ba86c29a`.
+
+The advisor packet is committed in `bc22f16`.  Its builder, email, four HTML
+briefs, claim ledger, and README reproduce byte-for-byte; the full builder
+`--check` passes in the canonical data checkout.  Independent scientific and
+functional reviews confirmed the exact LEASH, RAG, and unified certificate
+bindings and the claim wording.  Key later implementation milestones include
+`fa81b01` (LEASH), `4099003`/`658dc03` (RAG score/evaluation),
+`441e938`/`f9aa18d`/`c7b69fa`/`ebd00c1` (unified bridge and certified
+adapters), `7d8c194` (workspace-filesystem compatibility), and `bc22f16`
+(advisor packet).
+
+**Decision:** the reconstruction plan has no remaining required experiment or
+integration step.  Do not rerun or pool the certified lanes merely to create a
+new headline.  The next action is advisor/paper interpretation or an explicitly
+requested new study.  Keep the untracked science trees outside Git; their
+certificates, manifests, hashes, and committed source closures are the audit
+boundary.
+
 **Reconstruction addendum (2026-08-24 — Step 289):** The requested
 `reconstruction_benchmark_v1` implementation is prelaunch-complete on
 `codex/reconstruction-benchmark-v1`.  It freezes the mixed-v2 nominal
