@@ -14557,3 +14557,47 @@ Discussion first, no runs authorized; Omri's own variant list takes
 precedence and should be recorded in §4.2 before any protocol draft.
 
 ---
+
+### Step 290 [CIW-DEEM] — revised input statistics yield a B3-specific challenger, not a generic PCR contract
+
+**What**: Audited the historical six-family feature partition, replaced the
+near-duplicate H15/H-saved entropy pair with common/support-difference
+coordinates, and tested structured source-by-operator input models. The final
+registered method, **CIW-DEEM (Cross-fitted Innovation-Weighted DEEM)**,
+ridge-predicts each universal 3-by-3 core coordinate from the four coordinates
+sharing its source or operator, estimates out-of-fold R-squared without
+targets, and uses `alpha_j=0.5*clip(R2_oof_j,0,1)` to blend the original
+coordinate with its standardized innovation before unchanged continuous B3.
+
+**Registered result**: Across five B3 seeds and 24 cells, CIW-DEEM reaches
+`0.7820255514493354` cell-macro AUROC and `0.7492330051057238`
+equal-dataset-family AUROC. Equal-family delta versus frozen B3 is
+`+0.0007316506044068`; exact eight-family sign-flip `p=0.13671875`. The
+registered `+0.0025` promotion threshold is not met. CIW-DEEM is an official
+challenger and the best point estimate among directly comparable five-seed B3
+input variants, not a promoted champion. The two macro values are permanent
+named summaries of the same results and must not be reported interchangeably.
+
+**Supervised diagnostic**: Five-fold `StratifiedGroupKFold` L2 logistic
+regression on exact CIW input reaches `0.742708` equal-family and `0.782776`
+cell-macro AUROC. The same LR before CIW reaches `0.743357/0.783409`; balanced
+class weights do not change the conclusion. This is a stricter supervised OOF
+generalization diagnostic, not the transductive CIW fit. It shows that CIW does
+not generally improve linear separability.
+
+**IU/DUFS transfer diagnostic**: With inherited DUFS-LIU settings (seeds
+11/23/37, 80 epochs, `k=7`, `lambda=0.1`) and a pre-label score freeze, IU-PCR
+on CIW input scores `0.773952/0.741106` cell-macro/equal-family AUROC and
+DUFS-LIU scores `0.774388/0.741901`. DUFS adds a small
+`+0.000436/+0.000795`, but CIW input reduces DUFS-LIU by
+`-0.001053/-0.000911` versus pre-CIW D1; 15/24 cells lose beyond tolerance.
+Thus the input transformation's small gain is B3-specific and does not justify
+replacing the IU-PCR/DUFS-LIU feature contract.
+
+**Decision**: Keep frozen B3 as the benchmark baseline and CIW-DEEM as a named
+research challenger. Do not claim localization or early-detection results;
+those require causal window/prefix adapters. Do not reuse CIW input as the
+default IU/DUFS contract. Canonical documentation and compact evidence are in
+`docs/experiments/CIW_DEEM_V1.md` and `results/ciw_deem_v1/`.
+
+---

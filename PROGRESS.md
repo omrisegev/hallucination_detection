@@ -1,5 +1,26 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**Branch addendum (2026-08-26 — Step 290, CIW-DEEM):** The revised B3 input
+line is complete and documented. **CIW-DEEM (Cross-fitted
+Innovation-Weighted DEEM)** keeps continuous B3 but transforms the duplicated
+entropy pair and blends each universal source-by-operator core coordinate with
+its standardized innovation using the frozen label-free gate
+`alpha_j=0.5*clip(R2_oof_j,0,1)`. Its stable 24-cell scores are **0.782026
+cell-macro AUROC** and **0.749233 equal-dataset-family AUROC**; these are two
+weightings of the same cell results, not changing estimates. CIW-DEEM improves
+the registered equal-family B3 score by `+0.000732`, but misses the `+0.0025`
+promotion threshold and remains an official challenger rather than champion.
+
+The closing diagnostics show that this is not a generic improved feature
+contract. Five-fold group-OOF supervised LR scores `0.742708` equal-family
+AUROC on exact CIW input versus `0.743357` before CIW. Label-free IU-PCR scores
+`0.773952/0.741106` cell-macro/equal-family AUROC on CIW; DUFS-LIU scores
+`0.774388/0.741901`. DUFS adds a small `+0.000436/+0.000795`, but CIW input
+reduces DUFS-LIU by `-0.001053/-0.000911` versus the pre-CIW D1 input. **Decision:
+keep CIW-DEEM as a B3-specific research challenger; do not replace the
+IU-PCR/DUFS-LIU feature contract with CIW.** Canonical record:
+`docs/experiments/CIW_DEEM_V1.md` and `results/ciw_deem_v1/`.
+
 **Branch addendum (2026-08-22 — DEEM benchmark pivot):** Residual-Graph DEEM
 Phase 0 completed after the numerical repair (3,050 fits; 50/50 checkpoints
 healthy) but closed the current G0–G5 extension because no target-graph lambda
