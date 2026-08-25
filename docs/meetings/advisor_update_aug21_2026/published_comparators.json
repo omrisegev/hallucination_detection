@@ -1,0 +1,410 @@
+{
+  "schema_version": "reconstruction-frozen24-published-comparator-registry-v1",
+  "release_id": "2026-08-24_frozen24_v1",
+  "scope": "One external published-comparator context record for each frozen 24-cell final-answer population, paired with the highest point estimate among the 13 primary reconstruction methods.",
+  "supersedes_for_scope": "For frozen24 reporting only, this registry replaces legacy paper-to-cell mappings in results/advisor_inscope/competitors_verified.csv and the generic Semantic Entropy/TSV notes in configs/reconstruction_benchmark_v1/comparators.json.",
+  "v2_metrics_source": {
+    "path": "results/reconstruction_benchmark_v1/releases/2026-08-24_frozen24_v1/reporting_v2/2026-08-24_frozen24_v1/05_evaluation/metrics_long.csv",
+    "sha256": "a7a8b574cb7100ebf8bdac14a981e15f16b6bf6404124544b2ef58b4e5494707",
+    "cell_auroc_logical_sha256": "6f398b761336c851a6507f79045028fda5efeadb409215348b2e9255717782a0",
+    "metric_id": "auroc",
+    "comparison_scope": "13 primary methods on the same v2 cell cohort",
+    "leader_semantics": "highest point estimate only; not a claim of statistical separation"
+  },
+  "comparison_policy": {
+    "direct_v2_methods": "The 13 primary v2 methods are direct common-cohort comparisons within each cell.",
+    "published_values": "Every published number in this registry is from a different generated population. It may appear only in a separate context card.",
+    "identity_boundary": "A local audit proving that a v2 cell matches its stored raw source establishes local provenance only; it does not establish identity with the rows generated in a paper.",
+    "delta_rule": "A paper-to-v2 delta is forbidden unless the comparator is rerun on the exact v2 cohort with the same labels, prediction unit, metric, and evaluator and emits row-level scores plus a matching cohort hash.",
+    "legacy_local_aggregates": "Legacy aggregate-only files are BLOCKED_PENDING_COMMON_ROW_RERUN; n_rows or n_overlap alone does not prove row identity.",
+    "legacy_replay_sources": [
+      "results/repgrid/scores_lsml_upcr.csv",
+      "results/repgrid/edis_scores.csv",
+      "results/repgrid/ubaseline_scores.csv",
+      "results/reasoning_benchmark.csv"
+    ],
+    "allowed_context_statuses": [
+      "PUBLISHED_CONTEXT_ONLY",
+      "RELATED_PUBLISHED_CONTEXT_ONLY",
+      "NO_PUBLISHED_COMPARATOR"
+    ]
+  },
+  "report_contract": {
+    "direct_panel": "Plot only the 13 v2 methods on their identical cell cohort, with AUROC confidence intervals. Call the recorded method the highest point estimate, not the winner, and show the uncertainty-equivalent top set when available.",
+    "published_context_panel": "Render the published method/value in a separate gray context card titled 'Published context — different generated population'. Include paper title, table, model, dataset, supervision, access, passes, and visible match-axis badges.",
+    "related_context_panel": "Use the same separate card with an additional 'related, not the cell's primary anchor' badge.",
+    "no_comparator_panel": "Show 'No eligible published comparator found' explicitly; do not leave an empty chart region.",
+    "visual_encoding": "Use solid project colors for direct v2 results and a hollow gray marker or card for paper context. Never connect the two with a delta line or aligned difference axis.",
+    "export_rule": "Context rows must export delta_eligible=false and a null delta. A future exact/common-row replay must be a new comparator record with row-level predictions, the v2 cohort hash, and matched evaluator metadata.",
+    "legend_rule": "A visible legend must explain direct versus context markers, confidence intervals, better direction, cohort, access, supervision, and pass count; hover text is supplementary only."
+  },
+  "match_axis_statuses": {
+    "EXACT": "The audited sources establish that the named axis matches.",
+    "PARTIAL": "Some protocol details match, but identity is incomplete or an important detail differs.",
+    "DIFFERENT": "The axis is known to differ.",
+    "UNKNOWN": "The available primary source does not establish a match.",
+    "NOT_APPLICABLE": "There is no published comparator for this cell."
+  },
+  "source_catalog": {
+    "ars_2601_17467": {
+      "title": "Harnessing Reasoning Trajectories for Hallucination Detection via Answer-agreement Representation Shaping",
+      "url": "https://arxiv.org/abs/2601.17467",
+      "local_sources": [
+        "papers/extracted/harnessing-reasoning-trajectories-for-hallucination-detectio.md"
+      ]
+    },
+    "epr_2509_04492": {
+      "title": "Learned Hallucination Detection in Black-Box LLMs using Token-level Entropy Production Rate",
+      "url": "https://arxiv.org/abs/2509.04492",
+      "local_sources": [
+        "papers/extracted/epr.md"
+      ]
+    },
+    "internal_states_2510_11529": {
+      "title": "Hallucination Detection via Internal States and Structured Reasoning Consistency in Large Language Models",
+      "url": "https://arxiv.org/abs/2510.11529",
+      "local_sources": [
+        "papers/extracted/hallucination-detection-via-internal-states-and-structured-r.md"
+      ]
+    },
+    "attention_spectral_2502_17598": {
+      "title": "Hallucination Detection in LLMs Using Spectral Features of Attention Maps",
+      "url": "https://arxiv.org/abs/2502.17598",
+      "local_sources": [
+        "papers/extracted/hallucination-detection-in-llms-using-spectral-features-of-a.md"
+      ]
+    },
+    "losnet_2503_14043": {
+      "title": "Beyond Next Token Probabilities: Learnable, Fast Detection of Hallucinations and Data Contamination on LLM Output Distributions",
+      "url": "https://arxiv.org/abs/2503.14043",
+      "local_sources": [
+        "papers/extracted/beyond-next-token-probabilities-learnable-fast-detection-of.md"
+      ]
+    },
+    "noise_injection_2502_03799": {
+      "title": "Enhancing Hallucination Detection through Noise Injection",
+      "url": "https://arxiv.org/abs/2502.03799",
+      "local_sources": [
+        "papers/extracted/enhancing-hallucination-detection-through-noise-injection.md"
+      ]
+    },
+    "hcpd_2606_12900": {
+      "title": "Zero-source LLM Hallucination Detection with Human-like Criteria Probing",
+      "url": "https://arxiv.org/abs/2606.12900",
+      "local_sources": [
+        "papers/extracted/zero-source-llm-hallucination-detection-with-human-like-crit.md"
+      ]
+    },
+    "semantic_uncertainty_2302_09664": {
+      "title": "Semantic Uncertainty: Linguistic Invariances for Uncertainty Estimation in Natural Language Generation",
+      "url": "https://arxiv.org/abs/2302.09664",
+      "local_sources": [],
+      "primary_evidence": {"url": "https://arxiv.org/html/2302.09664v3", "locator": "Table 2, OPT-30B TriviaQA, Semantic Entropy AUROC 0.83", "verified_on": "2026-08-24"},
+      "mapping_note": "Correct primary source for the OPT-30B TriviaQA Semantic Entropy value; the legacy registry incorrectly cited HCPD Table 2."
+    },
+    "semantic_energy_2508_14496": {
+      "title": "Semantic Energy: Detecting LLM Hallucination Beyond Entropy",
+      "url": "https://arxiv.org/abs/2508.14496",
+      "local_sources": [
+        "papers/extracted/semantic-energy-detecting-llm-hallucination-beyond-entropy.md"
+      ]
+    },
+    "tsv_2503_01917": {
+      "title": "Steer LLM Latents for Hallucination Detection",
+      "url": "https://arxiv.org/abs/2503.01917",
+      "local_sources": [],
+      "primary_evidence": {"url": "https://arxiv.org/html/2503.01917v2", "locator": "Table 1, Llama-3.1-8B TruthfulQA, TSV AUROC 84.2 +/- 0.2; method text specifies 32 labeled examples plus pseudo-labeling", "verified_on": "2026-08-24"},
+      "mapping_note": "Correct primary source for the Llama-3.1-8B TruthfulQA TSV value; the legacy registry incorrectly cited HCPD Table 2."
+    },
+    "als_2605_26366": {
+      "title": "Automatic Layer Selection for Hallucination Detection",
+      "url": "https://arxiv.org/abs/2605.26366",
+      "local_sources": [
+        "papers/extracted/automatic-layer-selection-for-hallucination-detection.md"
+      ]
+    }
+  },
+  "legacy_mapping_corrections": [
+    {
+      "cell_id": "seiclr_triviaqa_opt30b",
+      "legacy_error": "Semantic Entropy 0.83 was mapped to HCPD Table 2 / Llama-3.1-8B.",
+      "correction": "Kuhn, Gal, and Farquhar, arXiv:2302.09664, Table 2, OPT-30B TriviaQA."
+    },
+    {
+      "cell_id": "truthfulqa_llama8b",
+      "legacy_error": "TSV 0.842 was mapped to HCPD Table 2, which has no TruthfulQA result.",
+      "correction": "Park et al., arXiv:2503.01917, Table 1, Llama-3.1-8B TruthfulQA; the method is label-informed/semi-supervised."
+    },
+    {
+      "cell_id": "noise_gsm8k_mistral7b,noise_gsm8k_phi3mini",
+      "legacy_error": "Noise Injection GSM8K values were cited as Table 4.",
+      "correction": "The 78.50 and 72.51 GSM8K values are in Table 3; Table 4 is a TriviaQA ablation."
+    }
+  ],
+  "cells": [
+    {
+      "cell_id": "ars_gsm8k_r1distill8b",
+      "v2_point_estimate_leader": {"method_id": "equal_family_mean", "display_name": "Equal-family mean", "auroc": 0.781472, "ci95": [0.735666, 0.824666]},
+      "published_comparator": {"anchor_role": "primary", "method": "ARS (CCS)", "auroc": 0.7472, "source_id": "ars_2601_17467", "table": "Table 1", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "unsupervised", "access": "white-box", "passes": "single sampling"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "PARTIAL", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "PARTIAL", "labels_grader": "DIFFERENT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "PARTIAL"},
+      "mismatch_reasons": ["The ARS paper uses the 7,473-example GSM8K train split, while the frozen v2 preset uses the GSM8K test split and independently generated traces.", "The ARS paper obtains answer correctness from Qwen3-32B, while v2 uses the local exact-answer/boxed-answer evaluator."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "epr_triviaqa_mistral24b",
+      "v2_point_estimate_leader": {"method_id": "upcr", "display_name": "U-PCR", "auroc": 0.745750, "ci95": [0.701458, 0.789180]},
+      "published_comparator": {"anchor_role": "primary", "method": "EPR", "auroc": 0.746, "source_id": "epr_2509_04492", "table": "Table 1 (K=15)", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "unsupervised", "access": "gray-box", "passes": "one scored response"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "PARTIAL", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "PARTIAL", "labels_grader": "DIFFERENT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["The paper and v2 use different generated answers and row populations.", "The local cell uses a Qwen2.5 judge, while the paper describes a Gemma-3-12B judge and a different admitted population."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "internalstates_gsm8k_qwen25_7b",
+      "v2_point_estimate_leader": {"method_id": "equal_family_mean", "display_name": "Equal-family mean", "auroc": 0.727872, "ci95": [0.679618, 0.774822]},
+      "published_comparator": {"anchor_role": "primary", "method": "Internal-States+RC", "auroc": 0.7915, "source_id": "internal_states_2510_11529", "table": "Table 1", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "supervised", "access": "white-box", "passes": "three reasoning paths"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "PARTIAL", "labels_grader": "DIFFERENT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["The paper uses independently generated rows and a supervised three-path classifier.", "Paper labels use GPT-4.1, Gemini, and manual adjudication with a shorter output cap; v2 uses the local exact-answer evaluator and different traces."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "lapeigvals_gsm8k_llama3b",
+      "v2_point_estimate_leader": {"method_id": "dufs_pf_lsml", "display_name": "Parameter-free DUFS to L-SML", "auroc": 0.708735, "ci95": [0.681072, 0.735991]},
+      "published_comparator": {"anchor_role": "primary", "method": "AttentionScore", "auroc": 0.717, "source_id": "attention_spectral_2502_17598", "table": "Table 1", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "unsupervised", "access": "white-box", "passes": "one"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "PARTIAL", "labels_grader": "EXACT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "PARTIAL"},
+      "mismatch_reasons": ["The paper and v2 use different sampled model outputs and no shared row IDs.", "The paper reports an 80/20 paper split, while v2 reports the frozen cell cohort."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "lapeigvals_gsm8k_llama8b",
+      "v2_point_estimate_leader": {"method_id": "family_nrm_a", "display_name": "Family-NRM-A", "auroc": 0.819801, "ci95": [0.774949, 0.861660]},
+      "published_comparator": {"anchor_role": "primary", "method": "AttentionScore", "auroc": 0.720, "source_id": "attention_spectral_2502_17598", "table": "Table 1", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "unsupervised", "access": "white-box", "passes": "one"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "PARTIAL", "labels_grader": "EXACT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "PARTIAL"},
+      "mismatch_reasons": ["The paper and v2 use different sampled model outputs and no shared row IDs.", "The paper reports an 80/20 paper split, while v2 reports the frozen cell cohort."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "lapeigvals_gsm8k_mistral24b",
+      "v2_point_estimate_leader": {"method_id": "deem_b3", "display_name": "DEEM-B3", "auroc": 0.852908, "ci95": [0.811338, 0.891088]},
+      "published_comparator": {"anchor_role": "primary", "method": "AttentionScore", "auroc": 0.576, "source_id": "attention_spectral_2502_17598", "table": "Table 1", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "unsupervised", "access": "white-box", "passes": "one"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "PARTIAL", "labels_grader": "EXACT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "PARTIAL"},
+      "mismatch_reasons": ["The paper and v2 use different sampled model outputs and no shared row IDs.", "The paper reports an 80/20 paper split, while v2 reports the frozen cell cohort."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "lapeigvals_gsm8k_nemo",
+      "v2_point_estimate_leader": {"method_id": "equal_family_mean", "display_name": "Equal-family mean", "auroc": 0.811270, "ci95": [0.777967, 0.842872]},
+      "published_comparator": {"anchor_role": "primary", "method": "AttentionScore", "auroc": 0.630, "source_id": "attention_spectral_2502_17598", "table": "Table 1", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "unsupervised", "access": "white-box", "passes": "one"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "PARTIAL", "labels_grader": "EXACT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "PARTIAL"},
+      "mismatch_reasons": ["The paper and v2 use different sampled model outputs and no shared row IDs.", "The paper reports an 80/20 paper split, while v2 reports the frozen cell cohort."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "lapeigvals_gsm8k_phi35",
+      "v2_point_estimate_leader": {"method_id": "deem_b3", "display_name": "DEEM-B3", "auroc": 0.816713, "ci95": [0.784804, 0.847559]},
+      "published_comparator": {"anchor_role": "primary", "method": "AttentionScore", "auroc": 0.666, "source_id": "attention_spectral_2502_17598", "table": "Table 1", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "unsupervised", "access": "white-box", "passes": "one"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "PARTIAL", "labels_grader": "EXACT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "PARTIAL"},
+      "mismatch_reasons": ["The paper and v2 use different sampled model outputs and no shared row IDs.", "The paper reports an 80/20 paper split, while v2 reports the frozen cell cohort."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "losnet_hotpotqa_mistral7b",
+      "v2_point_estimate_leader": {"method_id": "equal_family_mean", "display_name": "Equal-family mean", "auroc": 0.582009, "ci95": [0.528093, 0.635016]},
+      "published_comparator": {"anchor_role": "primary", "method": "LOS-Net", "auroc": 0.7292, "source_id": "losnet_2503_14043", "table": "Table 1", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "supervised", "access": "gray-box", "passes": "one"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "PARTIAL", "labels_grader": "UNKNOWN", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["LOS-Net is trained and tested on the paper's generated split; the v2 rows are independently generated.", "No paper row IDs, trained checkpoint, or common-row replay is available."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "math500_dsmath7b",
+      "v2_point_estimate_leader": {"method_id": "deem_b3", "display_name": "DEEM-B3", "auroc": 0.812938, "ci95": [0.751984, 0.868105]},
+      "published_comparator": {"anchor_role": "none", "method": null, "auroc": null, "source_id": null, "table": null, "mapping_status": "NOT_AVAILABLE", "supervision": null, "access": null, "passes": null},
+      "comparison_status": "NO_PUBLISHED_COMPARATOR",
+      "match_axes": {"dataset_revision": "NOT_APPLICABLE", "model": "NOT_APPLICABLE", "row_ids": "NOT_APPLICABLE", "generation": "NOT_APPLICABLE", "labels_grader": "NOT_APPLICABLE", "prediction_unit": "NOT_APPLICABLE", "metric": "NOT_APPLICABLE", "evaluation_protocol": "NOT_APPLICABLE"},
+      "mismatch_reasons": ["No cell-specific published method/protocol anchor was found in the audited primary sources."],
+      "common_replay_status": "NOT_APPLICABLE_NO_COMPARATOR",
+      "allowed_display": "EXPLICIT_NO_ELIGIBLE_COMPARATOR",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "math500_qwenmath7b",
+      "v2_point_estimate_leader": {"method_id": "iu_pcr", "display_name": "IU-PCR", "auroc": 0.930781, "ci95": [0.890094, 0.965190]},
+      "published_comparator": {"anchor_role": "none", "method": null, "auroc": null, "source_id": null, "table": null, "mapping_status": "NOT_AVAILABLE", "supervision": null, "access": null, "passes": null},
+      "comparison_status": "NO_PUBLISHED_COMPARATOR",
+      "match_axes": {"dataset_revision": "NOT_APPLICABLE", "model": "NOT_APPLICABLE", "row_ids": "NOT_APPLICABLE", "generation": "NOT_APPLICABLE", "labels_grader": "NOT_APPLICABLE", "prediction_unit": "NOT_APPLICABLE", "metric": "NOT_APPLICABLE", "evaluation_protocol": "NOT_APPLICABLE"},
+      "mismatch_reasons": ["No verified cell-specific paper table is registered; old Semantic Entropy/Self-Consistency cache summaries are not citable and are not on the v2 cohort."],
+      "common_replay_status": "NOT_APPLICABLE_NO_COMPARATOR",
+      "allowed_display": "EXPLICIT_NO_ELIGIBLE_COMPARATOR",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "math500_r1distill8b",
+      "v2_point_estimate_leader": {"method_id": "continuous_lsml", "display_name": "Continuous L-SML", "auroc": 0.845794, "ci95": [0.795077, 0.893447]},
+      "published_comparator": {"anchor_role": "related", "method": "ARS (CCS)", "auroc": 0.8638, "source_id": "ars_2601_17467", "table": "Table 1", "mapping_status": "VERIFIED_PRIMARY_SOURCE_RELATED_CONTEXT", "supervision": "unsupervised", "access": "white-box", "passes": "single sampling"},
+      "comparison_status": "RELATED_PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "DIFFERENT", "labels_grader": "DIFFERENT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["The ARS paper uses greedy decoding on its own paper split; this v2 cell uses temperature 1.5 and independent rows.", "The paper uses Qwen3-32B correctness judgments, while v2 uses the local boxed-answer evaluator.", "This is a related same-model/dataset paper result, not the original protocol anchor of the frozen cell."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_RELATED_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "math500_r1distill8b_mn4096",
+      "v2_point_estimate_leader": {"method_id": "ca_specrage_atomic", "display_name": "CA-SpecRaGE atomic", "auroc": 0.837654, "ci95": [0.789910, 0.882150]},
+      "published_comparator": {"anchor_role": "related", "method": "ARS (CCS)", "auroc": 0.8638, "source_id": "ars_2601_17467", "table": "Table 1", "mapping_status": "VERIFIED_PRIMARY_SOURCE_RELATED_CONTEXT", "supervision": "unsupervised", "access": "white-box", "passes": "single sampling"},
+      "comparison_status": "RELATED_PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "DIFFERENT", "labels_grader": "DIFFERENT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["The ARS paper uses greedy decoding on its own paper split; this v2 cell uses temperature 1.5, a 4096-token cap, and independent rows.", "The paper uses Qwen3-32B correctness judgments, while v2 uses the local boxed-answer evaluator.", "This is a related same-model/dataset paper result, not the original protocol anchor of the frozen cell."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_RELATED_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "noise_gsm8k_mistral7b",
+      "v2_point_estimate_leader": {"method_id": "equal_family_mean", "display_name": "Equal-family mean", "auroc": 0.793635, "ci95": [0.769077, 0.817619]},
+      "published_comparator": {"anchor_role": "primary", "method": "Noise Injection", "auroc": 0.7850, "source_id": "noise_injection_2502_03799", "table": "Table 3", "mapping_status": "VERIFIED_PRIMARY_SOURCE_TABLE_CORRECTED", "supervision": "label-free scoring without fine-tuning, but label-informed validation selection of noise strength", "access": "white-box", "passes": "K=10 noise-perturbed samples"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "DIFFERENT", "labels_grader": "PARTIAL", "prediction_unit": "DIFFERENT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["The paper score is question-level uncertainty from K=10 noise-perturbed samples; v2 scores ordinary saved answer rows one at a time.", "The generated populations and prediction units differ; the published value is from Table 3, not Table 4."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "noise_gsm8k_phi3mini",
+      "v2_point_estimate_leader": {"method_id": "upcr", "display_name": "U-PCR", "auroc": 0.683409, "ci95": [0.650844, 0.714865]},
+      "published_comparator": {"anchor_role": "primary", "method": "Noise Injection", "auroc": 0.7251, "source_id": "noise_injection_2502_03799", "table": "Table 3", "mapping_status": "VERIFIED_PRIMARY_SOURCE_TABLE_CORRECTED", "supervision": "label-free scoring without fine-tuning, but label-informed validation selection of noise strength", "access": "white-box", "passes": "K=10 noise-perturbed samples"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "DIFFERENT", "labels_grader": "PARTIAL", "prediction_unit": "DIFFERENT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["The paper score is question-level uncertainty from K=10 noise-perturbed samples; v2 scores ordinary saved answer rows one at a time.", "The generated populations and prediction units differ; the published value is from Table 3, not Table 4."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "sciq_llama8b",
+      "v2_point_estimate_leader": {"method_id": "pgrd_a", "display_name": "PGRD-A", "auroc": 0.746269, "ci95": [0.673489, 0.814063]},
+      "published_comparator": {"anchor_role": "primary", "method": "HCPD", "auroc": 0.8604, "source_id": "hcpd_2606_12900", "table": "Table 2", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "target-dataset proxy-label supervised (gold-reference/BLEURT labels plus GRPO; no manual hallucination labels)", "access": "black-box at inference; target references are used offline for training labels", "passes": "K=5 scoring-agent samples per target response"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "DIFFERENT", "labels_grader": "DIFFERENT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["HCPD uses the paper's independently generated/test population and multiple criterion probes.", "The paper uses BLEURT-based correctness; v2 uses the local cell evaluator and different answers."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "se_nq_open_llama8b",
+      "v2_point_estimate_leader": {"method_id": "dufs_pf_lsml", "display_name": "Parameter-free DUFS to L-SML", "auroc": 0.754783, "ci95": [0.729952, 0.778606]},
+      "published_comparator": {"anchor_role": "primary", "method": "HCPD", "auroc": 0.9038, "source_id": "hcpd_2606_12900", "table": "Table 2", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "target-dataset proxy-label supervised (gold-reference/BLEURT labels plus GRPO; no manual hallucination labels)", "access": "black-box at inference; target references are used offline for training labels", "passes": "K=5 scoring-agent samples per target response"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "DIFFERENT", "labels_grader": "DIFFERENT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["HCPD uses the paper's independently generated/test population and multiple criterion probes.", "The paper uses BLEURT-based correctness; v2 evaluates candidate rows with the local cell labels."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "se_squad_v2_llama8b",
+      "v2_point_estimate_leader": {"method_id": "pgrd_a", "display_name": "PGRD-A", "auroc": 0.826250, "ci95": [0.785336, 0.862560]},
+      "published_comparator": {"anchor_role": "related", "method": "Lexical Similarity", "auroc": 0.5988, "source_id": "als_2605_26366", "table": "Table 2", "mapping_status": "VERIFIED_PRIMARY_SOURCE_RELATED_CONTEXT", "supervision": "unsupervised", "access": "black-box", "passes": "multiple samples"},
+      "comparison_status": "RELATED_PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "DIFFERENT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "DIFFERENT", "labels_grader": "DIFFERENT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["The ALS paper reports SQuAD v1 answerable examples, while this cell is SQuAD v2 and includes unanswerable questions.", "Rows, generation, and label semantics differ; this is related context, not a direct cell anchor."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_RELATED_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "seiclr_triviaqa_opt30b",
+      "v2_point_estimate_leader": {"method_id": "ca_specrage_atomic", "display_name": "CA-SpecRaGE atomic", "auroc": 0.830063, "ci95": [0.799716, 0.858488]},
+      "published_comparator": {"anchor_role": "primary", "method": "Semantic Entropy", "auroc": 0.830, "source_id": "semantic_uncertainty_2302_09664", "table": "Table 2", "mapping_status": "CORRECTED_PRIMARY_SOURCE", "supervision": "unsupervised", "access": "black-box", "passes": "K sampled answers per question"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "PARTIAL", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "DIFFERENT", "labels_grader": "EXACT", "prediction_unit": "DIFFERENT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["The paper reports question-level Semantic Entropy on an 8,000-question OPT-30B TriviaQA subset; v2 evaluates 5,000 candidate-answer rows.", "The local preset reproduces the paper's ROUGE-L greater-than-0.3 correctness rule, but the sample groups, generated answers, and prediction unit are not shared.", "The legacy HCPD source mapping was wrong; the verified source is arXiv:2302.09664 Table 2."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "semenergy_triviaqa_qwen3_8b",
+      "v2_point_estimate_leader": {"method_id": "upcr", "display_name": "U-PCR", "auroc": 0.813097, "ci95": [0.776296, 0.847669]},
+      "published_comparator": {"anchor_role": "primary", "method": "Semantic Energy", "auroc": 0.748, "source_id": "semantic_energy_2508_14496", "table": "Table 1", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "unsupervised", "access": "gray-box", "passes": "K sampled answers per question"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "DIFFERENT", "labels_grader": "DIFFERENT", "prediction_unit": "DIFFERENT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["The paper aggregates K answers into one question-level energy score, while v2 scores individual candidate rows.", "The paper and v2 use independent generations and different answer-verification procedures."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "spilled_triviaqa_llama8b",
+      "v2_point_estimate_leader": {"method_id": "equal_feature_mean", "display_name": "Equal-feature mean", "auroc": 0.951333, "ci95": [0.883927, 0.996032]},
+      "published_comparator": {"anchor_role": "primary", "method": "HCPD", "auroc": 0.8625, "source_id": "hcpd_2606_12900", "table": "Table 2", "mapping_status": "VERIFIED_PRIMARY_SOURCE", "supervision": "target-dataset proxy-label supervised (gold-reference/BLEURT labels plus GRPO; no manual hallucination labels)", "access": "black-box at inference; target references are used offline for training labels", "passes": "K=5 scoring-agent samples per target response"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "DIFFERENT", "labels_grader": "DIFFERENT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["HCPD uses the paper's independently generated/test population and BLEURT-based correctness.", "The spilled cell is a separate local generated cohort with its own evaluator and only 256 admitted v2 rows."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "trace_gsm8k_llama8b_k10",
+      "v2_point_estimate_leader": {"method_id": "ca_specrage_atomic", "display_name": "CA-SpecRaGE atomic", "auroc": 0.815029, "ci95": [0.791082, 0.837429]},
+      "published_comparator": {"anchor_role": "related", "method": "AttentionScore", "auroc": 0.720, "source_id": "attention_spectral_2502_17598", "table": "Table 1", "mapping_status": "VERIFIED_PRIMARY_SOURCE_RELATED_CONTEXT", "supervision": "unsupervised", "access": "white-box", "passes": "one response"},
+      "comparison_status": "RELATED_PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "DIFFERENT", "labels_grader": "EXACT", "prediction_unit": "DIFFERENT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["The AttentionScore paper reports one independently generated response per GSM8K question, while this trace cell contains K=10 candidate traces per source problem.", "The prediction population and unit differ; this is related same-model/dataset context, not the trace cell's primary protocol anchor."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_RELATED_CONTEXT_CARD",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "trace_math500_qwenmath15b_k10",
+      "v2_point_estimate_leader": {"method_id": "equal_family_mean", "display_name": "Equal-family mean", "auroc": 0.701489, "ci95": [0.656131, 0.743460]},
+      "published_comparator": {"anchor_role": "none", "method": null, "auroc": null, "source_id": null, "table": null, "mapping_status": "NOT_AVAILABLE", "supervision": null, "access": null, "passes": null},
+      "comparison_status": "NO_PUBLISHED_COMPARATOR",
+      "match_axes": {"dataset_revision": "NOT_APPLICABLE", "model": "NOT_APPLICABLE", "row_ids": "NOT_APPLICABLE", "generation": "NOT_APPLICABLE", "labels_grader": "NOT_APPLICABLE", "prediction_unit": "NOT_APPLICABLE", "metric": "NOT_APPLICABLE", "evaluation_protocol": "NOT_APPLICABLE"},
+      "mismatch_reasons": ["No verified published result matches this Qwen2.5-Math-1.5B MATH-500 K=10 trace-candidate cell."],
+      "common_replay_status": "NOT_APPLICABLE_NO_COMPARATOR",
+      "allowed_display": "EXPLICIT_NO_ELIGIBLE_COMPARATOR",
+      "delta_eligible": false
+    },
+    {
+      "cell_id": "truthfulqa_llama8b",
+      "v2_point_estimate_leader": {"method_id": "pgrd_a", "display_name": "PGRD-A", "auroc": 0.676009, "ci95": [0.634304, 0.715207]},
+      "published_comparator": {"anchor_role": "primary", "method": "TSV", "auroc": 0.842, "source_id": "tsv_2503_01917", "table": "Table 1", "mapping_status": "CORRECTED_PRIMARY_SOURCE", "supervision": "semi-supervised label-informed (32 labeled examples plus pseudo-labeling)", "access": "white-box", "passes": "one scored response after training"},
+      "comparison_status": "PUBLISHED_CONTEXT_ONLY",
+      "match_axes": {"dataset_revision": "EXACT", "model": "EXACT", "row_ids": "DIFFERENT", "generation": "DIFFERENT", "labels_grader": "DIFFERENT", "prediction_unit": "EXACT", "metric": "EXACT", "evaluation_protocol": "DIFFERENT"},
+      "mismatch_reasons": ["TSV is trained with 32 labeled examples and pseudo-labeling, then evaluated on the paper's independently generated TruthfulQA rows.", "The v2 candidate rows and local labels are different, and no TSV common-row replay exists.", "The legacy HCPD source mapping was wrong; the verified source is arXiv:2503.01917 Table 1."],
+      "common_replay_status": "BLOCKED_PENDING_COMMON_ROW_RERUN",
+      "allowed_display": "SEPARATE_CONTEXT_CARD",
+      "delta_eligible": false
+    }
+  ]
+}

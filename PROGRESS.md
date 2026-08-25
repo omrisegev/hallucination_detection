@@ -1,5 +1,28 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**Advisor visualization addendum (2026-08-25 — Step 291):** The originally
+promised exhaustive reporting layer is now exposed from one advisor-facing
+entry point instead of being hidden inside the untracked frozen science tree.
+Open
+`docs/meetings/advisor_update_aug21_2026/00_results_map.html` first.  It links
+to the self-contained 13-method, 24-cell interactive `REPORT.html`, the four
+discussion briefs, the DuckDB/tidy tables, the exact plot manifest and all
+leaderboard exports.  The full report contains 175 bound plot-data files: 84
+metric forests, 84 paired-contrast forests, two heatmaps, three graph examples
+and two graph-diagnostic summaries/scatters.
+
+The advisor application brief now has nine visible result figures.  In
+addition to localization and causal-prefix plots, it shows the LEASH
+pass@1--token tradeoff and separate RAGTruth, GASP, Lettuce and RefChecker
+panels.  RefChecker settings and RAG estimands remain visually and
+scientifically separate; no pooled RAG or cross-task ranking was introduced.
+Five convenience leaderboard CSVs and an exact published-comparator registry
+copy accompany the packet.  The historical single-task macro was stored at
+release level, so the task and release exports are exact aliases and this is
+documented beside the files.  Static verification confirms 13/13 method names,
+175/175 plot records, 23/23 local navigation targets, nine application figures
+and nonempty rankable rows in all five leaderboard exports.
+
 **Reconstruction completion addendum (2026-08-25 — Step 290):** The requested
 full reconstruction and benchmarking program is complete on
 `codex/reconstruction-benchmark-v1`.  The implementation chain now includes

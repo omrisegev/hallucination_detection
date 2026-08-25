@@ -14600,3 +14600,29 @@ a new immutable frozen-24 release, run A/B, verify group identity and score
 equality, and only then evaluate.
 
 ---
+
+### Step 291 [advisor visualization] — expose the complete result contract and add the missing application graphs
+
+**What**: Added `00_results_map.html` as the advisor-facing entry point for the
+full frozen-24 report, all four narrative briefs, machine-readable tables,
+plot manifest/data, five convenience leaderboard CSVs, and the published
+comparator context registry.  Expanded Brief 4 with actual LEASH pass@1 and
+token-reduction charts plus separate RAGTruth, GASP, Lettuce, RefChecker NLI,
+and fixed-binary-transfer charts.
+
+**Why**: The exhaustive self-contained 13-method report already existed under
+the frozen science release, but the advisor packet did not point to it and its
+LEASH/RAG sections were text-only.  That made the delivered packet look much
+narrower than the original reconstruction/reporting contract.
+
+**Result**: Static validation finds all 13 registered method names in the full
+report; 175 exact plot records (84 metric forests, 84 contrast forests, two
+heatmaps, three graph examples, one diagnostic scatter and one diagnostic
+summary); 23 working links from the new map; and nine figures in Brief 4.  The
+five leaderboard exports contain 624 cell, 208 dataset, 26 task, 234 slice and
+26 release rows, all rankable `OK`/`OK_FALLBACK` rows with non-null values.
+The one-task and release files are exact aliases because the historical v2
+bridge stored that macro at release level.  No scientific score, bootstrap or
+certificate was recomputed, and the frozen reporting release was not mutated.
+
+---

@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reconstruction benchmark: complete results map</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --ink: #17243b;
+  --muted: #5f6c80;
+  --paper: #fbfcfe;
+  --panel: #f3f6fb;
+  --line: #d8e0eb;
+  --blue: #2764c5;
+  --blue-soft: #dce9ff;
+  --teal: #177b77;
+  --teal-soft: #d8f2ef;
+  --amber: #aa6b00;
+  --amber-soft: #fff0c9;
+  --red: #a23b42;
+  --red-soft: #f8dfe1;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.58 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+main { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 46px 0 64px; }
+h1 { font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.05; margin: .35rem 0 1rem; letter-spacing: -.035em; }
+h2 { font-size: 1.45rem; line-height: 1.2; margin: 2.1rem 0 .75rem; }
+h3 { font-size: 1.08rem; line-height: 1.3; margin: 0 0 .45rem; }
+p { margin: .45rem 0 .9rem; }
+.eyebrow { color: var(--blue); font-size: .78rem; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+.lead { max-width: 780px; font-size: 1.13rem; color: var(--muted); }
+.guide {
+  border-left: 4px solid var(--blue);
+  background: var(--panel);
+  padding: 14px 18px;
+  margin: 1.4rem 0 2rem;
+}
+.guide strong { color: var(--ink); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.card {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 18px;
+}
+.card p:last-child { margin-bottom: 0; }
+.tag {
+  display: inline-block;
+  color: var(--blue);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: .55rem;
+}
+.equation {
+  overflow-x: auto;
+  border-left: 3px solid var(--teal);
+  background: var(--teal-soft);
+  color: #123a3a;
+  font: 1rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 12px 15px;
+  margin: 1rem 0;
+}
+.equation small { display: block; font: .86rem/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin-top: 6px; }
+.plot { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 18px 0 14px; margin: 1rem 0; }
+.plot-title { font-weight: 700; margin-bottom: 2px; }
+.plot-note { color: var(--muted); font-size: .88rem; margin-bottom: 13px; }
+.bar-row { display: grid; grid-template-columns: minmax(145px, 1.5fr) minmax(170px, 3fr) 74px; gap: 10px; align-items: center; margin: 9px 0; }
+.bar-label { font-size: .92rem; }
+.bar-track { height: 18px; background: var(--blue-soft); position: relative; }
+.bar-fill { height: 100%; background: var(--blue); min-width: 2px; }
+.bar-fill.teal { background: var(--teal); }
+.bar-fill.amber { background: var(--amber); }
+.bar-value { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+.axis { display: flex; justify-content: space-between; margin: 7px 84px 0 calc(1.5 / 4.5 * 100%); color: var(--muted); font-size: .75rem; }
+.delta-row { display: grid; grid-template-columns: minmax(165px, 1.6fr) minmax(180px, 3fr) 76px; gap: 10px; align-items: center; margin: 10px 0; }
+.delta-track { height: 20px; background: var(--panel); position: relative; border: 1px solid var(--line); }
+.delta-zero { position: absolute; left: 75%; top: -2px; bottom: -2px; width: 1px; background: var(--ink); }
+.delta-neg, .delta-pos { position: absolute; top: 3px; bottom: 3px; }
+.delta-neg { right: 25%; background: var(--red); }
+.delta-pos { left: 75%; background: var(--teal); }
+.interval-row { display: grid; grid-template-columns: minmax(185px, 1.7fr) minmax(210px, 3fr) 92px; gap: 10px; align-items: center; margin: 12px 0; }
+.interval-track { height: 24px; background: var(--panel); position: relative; border: 1px solid var(--line); }
+.interval-zero { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--ink); }
+.interval-whisker { position: absolute; top: 11px; height: 2px; background: var(--teal); }
+.interval-point { position: absolute; top: 6px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--teal); }
+.interval-value { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+.result { color: var(--muted); font-size: .92rem; }
+.callout { background: var(--amber-soft); color: #4c3507; padding: 13px 16px; margin: 1rem 0; }
+.questions { border-top: 3px solid var(--blue); margin-top: 2.25rem; padding-top: 1rem; }
+ul { padding-left: 1.2rem; }
+li { margin: .4rem 0; }
+details { margin-top: 2rem; color: var(--muted); font-size: .86rem; }
+summary { cursor: pointer; color: var(--ink); font-weight: 700; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+@media (max-width: 690px) {
+  main { width: min(100% - 22px, 980px); padding-top: 28px; }
+  .grid { grid-template-columns: 1fr; }
+  .bar-row, .delta-row { grid-template-columns: 1fr 62px; gap: 5px 8px; }
+  .interval-row { grid-template-columns: 1fr 82px; gap: 5px 8px; }
+  .bar-track, .delta-track { grid-row: 2; grid-column: 1 / -1; }
+  .interval-track { grid-row: 2; grid-column: 1 / -1; }
+  .bar-value { grid-column: 2; grid-row: 1; }
+  .interval-value { grid-column: 2; grid-row: 1; }
+  .axis { display: none; }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #edf3ff;
+    --muted: #b4bfd0;
+    --paper: #111723;
+    --panel: #1a2332;
+    --line: #344157;
+    --blue: #78a9ff;
+    --blue-soft: #243b61;
+    --teal: #57c8c1;
+    --teal-soft: #153b3a;
+    --amber: #efbd5b;
+    --amber-soft: #493816;
+    --red: #ef8990;
+    --red-soft: #4a2529;
+  }
+  .equation { color: #daf9f5; }
+  .callout { color: #fff0c9; }
+}
+@media print {
+  body { background: white; color: #17243b; }
+  main { width: 100%; padding: 0; }
+  .card, .guide, .plot { break-inside: avoid; }
+  details { display: block; }
+  details > * { display: block; }
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Advisor results index · August 2026</div>
+  <h1>Reconstruction benchmark: complete results map</h1>
+  <p class="lead">One entry point for the full 13-method response benchmark, the four discussion briefs and the separate application lanes.</p>
+  <div class="guide">
+  <strong>Start here.</strong> The four short briefs are a narrative advisor packet. The
+  <a href="../../../results/reconstruction_benchmark_v1/releases/2026-08-24_frozen24_v1/reporting_v2/2026-08-24_frozen24_v1/07_reports/REPORT.html">full interactive benchmark report</a> is the exhaustive visual result browser:
+  all 13 methods, all 24 frozen cells, exact rows, intervals, paired contrasts, heatmaps and graph diagnostics.
+</div>
+
+<h2>1. What was promised, and where it lives</h2>
+<div class="grid">
+  <div class="card"><span class="tag">FULL BENCHMARK</span><h3><a href="../../../results/reconstruction_benchmark_v1/releases/2026-08-24_frozen24_v1/reporting_v2/2026-08-24_frozen24_v1/07_reports/REPORT.html">Interactive 13-method report</a></h3><p>Method guide, dataset guide, results explorer, metric forests, cell × method heatmaps, paired contrasts, exact rows and graph checks.</p></div>
+  <div class="card"><span class="tag">ADVISOR STORY</span><h3>Four presentation briefs</h3><p><a href="01_basic_fusion_methods.html">Fusion</a> · <a href="02_graphs_and_nuisance.html">graphs and nuisance</a> · <a href="03_whitebox_depth.html">white-box depth</a> · <a href="04_localization_and_early.html">applications</a>.</p></div>
+  <div class="card"><span class="tag">MACHINE READABLE</span><h3><a href="../../../results/reconstruction_benchmark_v1/releases/2026-08-24_frozen24_v1/reporting_v2/2026-08-24_frozen24_v1/07_reports/../05_evaluation/benchmark.duckdb">DuckDB and tidy tables</a></h3><p>Predictions, metrics, contrasts and coverage are also available as CSV/Parquet beside the database.</p></div>
+  <div class="card"><span class="tag">PLOT CONTRACT</span><h3><a href="../../../results/reconstruction_benchmark_v1/releases/2026-08-24_frozen24_v1/reporting_v2/2026-08-24_frozen24_v1/07_reports/plot_manifest.json">Plot manifest and exact plot data</a></h3><p>The manifest binds 175 plot-data CSVs under <a href="../../../results/reconstruction_benchmark_v1/releases/2026-08-24_frozen24_v1/reporting_v2/2026-08-24_frozen24_v1/07_reports/plot_data/">plot_data/</a>.</p></div>
+</div>
+<p><strong>Ready-to-open exports:</strong>
+<a href="leaderboards/cell_leaderboard.csv">cell</a> ·
+<a href="leaderboards/dataset_leaderboard.csv">dataset</a> ·
+<a href="leaderboards/task_leaderboard.csv">task</a> ·
+<a href="leaderboards/slice_leaderboard.csv">slice</a> ·
+<a href="leaderboards/release_leaderboard.csv">release</a> leaderboards, plus the separate
+<a href="published_comparators.json">published-comparator context registry</a>. Published values never enter a
+common-cohort ranking or delta.</p>
+
+<div class="equation">benchmark = 24 frozen dataset–model cells × 13 registered methods
+  <small>Response-level ranking stays separate from localization, prefix, stopping, RAG and white-box estimands.</small>
+</div>
+<figure class="plot">
+  <figcaption class="plot-title">Frozen response benchmark coverage</figcaption>
+  <div class="plot-note">The interactive report exposes the complete aligned response-level benchmark, not only the four methods discussed most often in meetings.</div>
+  <div class="bar-row">
+  <div class="bar-label">Dataset–model cells</div>
+  <div class="bar-track"><div class="bar-fill teal" style="width:100.00%" role="img" aria-label="Dataset–model cells: 24 rows"></div></div>
+  <div class="bar-value">24</div>
+</div><div class="bar-row">
+  <div class="bar-label">Registered methods</div>
+  <div class="bar-track"><div class="bar-fill " style="width:54.17%" role="img" aria-label="Registered methods: 13 rows"></div></div>
+  <div class="bar-value">13</div>
+</div>
+</figure>
+<figure class="plot">
+  <figcaption class="plot-title">Visual evidence in the full report</figcaption>
+  <div class="plot-note">There are 175 exact plot-data files in total; every plotted result can be traced back to its CSV.</div>
+  <div class="bar-row">
+  <div class="bar-label">Metric forest panels</div>
+  <div class="bar-track"><div class="bar-fill teal" style="width:100.00%" role="img" aria-label="Metric forest panels: 84 rows"></div></div>
+  <div class="bar-value">84</div>
+</div><div class="bar-row">
+  <div class="bar-label">Paired-contrast panels</div>
+  <div class="bar-track"><div class="bar-fill teal" style="width:100.00%" role="img" aria-label="Paired-contrast panels: 84 rows"></div></div>
+  <div class="bar-value">84</div>
+</div><div class="bar-row">
+  <div class="bar-label">Faceted heatmaps</div>
+  <div class="bar-track"><div class="bar-fill amber" style="width:2.38%" role="img" aria-label="Faceted heatmaps: 2 rows"></div></div>
+  <div class="bar-value">2</div>
+</div><div class="bar-row">
+  <div class="bar-label">Graph diagnostic/example panels</div>
+  <div class="bar-track"><div class="bar-fill amber" style="width:5.95%" role="img" aria-label="Graph diagnostic/example panels: 5 rows"></div></div>
+  <div class="bar-value">5</div>
+</div>
+</figure>
+
+<h2>2. Complete method roster</h2>
+<div class="grid">
+  <div class="card"><h3>Transparent references</h3><p>Equal-feature mean<br>Equal-family mean</p></div>
+  <div class="card"><h3>Spectral / PCR core</h3><p>Continuous L-SML<br>IU-PCR<br>U-PCR<br>SU-PCR</p></div>
+  <div class="card"><h3>Graph and feature-selection arms</h3><p>DUFS-LIU<br>Parameter-free DUFS→L-SML<br>Stability-selected DUFS→L-SML<br>CA-SpecRaGE atomic</p></div>
+  <div class="card"><h3>Reconstructed extensions</h3><p>DEEM-B3<br>Family-NRM-A<br>PGRD-A</p></div>
+</div>
+<p class="result">All thirteen appear by name in the interactive report. The report keeps the method-level result rows
+and direct paired uncertainty visible; it does not manufacture one cross-task winner.</p>
+
+<h2>3. Application and access lanes</h2>
+<div class="grid">
+  <div class="card"><h3>Localization and prefix</h3><p>ProcessBench first-error localization, PRMBench step scoring and causal prefix prediction are visualized in <a href="04_localization_and_early.html">Brief 4</a>.</p></div>
+  <div class="card"><h3>Stopping and RAG</h3><p>LEASH pass@1/token tradeoffs and all seven unpooled RAG panels now have dedicated charts in <a href="04_localization_and_early.html">Brief 4</a>.</p></div>
+  <div class="card"><h3>White-box depth</h3><p>Matched white/gray discrimination and the coverage benefit are visualized in <a href="03_whitebox_depth.html">Brief 3</a>.</p></div>
+  <div class="card"><h3>Graph mechanism checks</h3><p>Family-NRM, nuisance structure and residual-graph controls are summarized in <a href="02_graphs_and_nuisance.html">Brief 2</a> and expanded in the full report.</p></div>
+</div>
+
+<section class="questions">
+  <h2>What I would like to discuss</h2>
+  <ul>
+    <li>Which two or three result panels should lead the advisor meeting?</li>
+    <li>Should the full interactive report be shared as background, with the four briefs used as the spoken narrative?</li>
+  </ul>
+</section>
+<details><summary>Sources and exact artifacts</summary><ul>
+  <li><strong>Original protocol:</strong> <a href="../../experiments/RECONSTRUCTION_BENCHMARK_V1.md"><code>docs/experiments/RECONSTRUCTION_BENCHMARK_V1.md</code></a>.</li>
+  <li><strong>Reporting contract:</strong> <a href="../../../scripts/reconstruction_benchmark/README.md"><code>scripts/reconstruction_benchmark/README.md</code></a>.</li>
+  <li><strong>Full report:</strong> <a href="../../../results/reconstruction_benchmark_v1/releases/2026-08-24_frozen24_v1/reporting_v2/2026-08-24_frozen24_v1/07_reports/REPORT.html"><code>07_reports/REPORT.html</code></a>.</li>
+  <li><strong>Exact visual manifest:</strong> <a href="../../../results/reconstruction_benchmark_v1/releases/2026-08-24_frozen24_v1/reporting_v2/2026-08-24_frozen24_v1/07_reports/plot_manifest.json"><code>07_reports/plot_manifest.json</code></a>.</li>
+</ul></details>
+
+</main>
+</body>
+</html>

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the short advisor email and four self-contained research briefs."""
+"""Build the short advisor email, results map and four research briefs."""
 
 from __future__ import annotations
 
@@ -194,6 +194,16 @@ APPLICATION_RECONSTRUCTION = {
             "settings": ("accurate_context", "noisy_context", "zero_context"),
             "settings_pooled": False,
             "claim_extraction": "OUT_OF_SCOPE",
+            "nli_accuracy": {
+                "accurate_context": 0.600650976464697,
+                "noisy_context": 0.7619883040935672,
+                "zero_context": 0.7336547152756855,
+            },
+            "fixed_binary_transfer_auroc": {
+                "accurate_context": 0.6644595346250115,
+                "noisy_context": 0.6401515938291364,
+                "zero_context": 0.7505681474232213,
+            },
         },
     },
     "unified_reporting": {
@@ -990,6 +1000,92 @@ score is only a hypothesis because I chose it after seeing these results.</div>
     )
 
 
+def render_results_map(c: dict) -> str:
+    report = (
+        "../../../results/reconstruction_benchmark_v1/releases/2026-08-24_frozen24_v1/"
+        "reporting_v2/2026-08-24_frozen24_v1/07_reports"
+    )
+    body = f"""<div class="guide">
+  <strong>Start here.</strong> The four short briefs are a narrative advisor packet. The
+  <a href="{report}/REPORT.html">full interactive benchmark report</a> is the exhaustive visual result browser:
+  all 13 methods, all 24 frozen cells, exact rows, intervals, paired contrasts, heatmaps and graph diagnostics.
+</div>
+
+<h2>1. What was promised, and where it lives</h2>
+<div class="grid">
+  <div class="card"><span class="tag">FULL BENCHMARK</span><h3><a href="{report}/REPORT.html">Interactive 13-method report</a></h3><p>Method guide, dataset guide, results explorer, metric forests, cell × method heatmaps, paired contrasts, exact rows and graph checks.</p></div>
+  <div class="card"><span class="tag">ADVISOR STORY</span><h3>Four presentation briefs</h3><p><a href="01_basic_fusion_methods.html">Fusion</a> · <a href="02_graphs_and_nuisance.html">graphs and nuisance</a> · <a href="03_whitebox_depth.html">white-box depth</a> · <a href="04_localization_and_early.html">applications</a>.</p></div>
+  <div class="card"><span class="tag">MACHINE READABLE</span><h3><a href="{report}/../05_evaluation/benchmark.duckdb">DuckDB and tidy tables</a></h3><p>Predictions, metrics, contrasts and coverage are also available as CSV/Parquet beside the database.</p></div>
+  <div class="card"><span class="tag">PLOT CONTRACT</span><h3><a href="{report}/plot_manifest.json">Plot manifest and exact plot data</a></h3><p>The manifest binds 175 plot-data CSVs under <a href="{report}/plot_data/">plot_data/</a>.</p></div>
+</div>
+<p><strong>Ready-to-open exports:</strong>
+<a href="leaderboards/cell_leaderboard.csv">cell</a> ·
+<a href="leaderboards/dataset_leaderboard.csv">dataset</a> ·
+<a href="leaderboards/task_leaderboard.csv">task</a> ·
+<a href="leaderboards/slice_leaderboard.csv">slice</a> ·
+<a href="leaderboards/release_leaderboard.csv">release</a> leaderboards, plus the separate
+<a href="published_comparators.json">published-comparator context registry</a>. Published values never enter a
+common-cohort ranking or delta.</p>
+
+<div class="equation">benchmark = 24 frozen dataset–model cells × 13 registered methods
+  <small>Response-level ranking stays separate from localization, prefix, stopping, RAG and white-box estimands.</small>
+</div>
+{count_plot(
+    "Frozen response benchmark coverage",
+    [("Dataset–model cells", 24, "teal"), ("Registered methods", 13, "")],
+    "The interactive report exposes the complete aligned response-level benchmark, not only the four methods discussed most often in meetings.",
+)}
+{count_plot(
+    "Visual evidence in the full report",
+    [
+        ("Metric forest panels", 84, "teal"),
+        ("Paired-contrast panels", 84, "teal"),
+        ("Faceted heatmaps", 2, "amber"),
+        ("Graph diagnostic/example panels", 5, "amber"),
+    ],
+    "There are 175 exact plot-data files in total; every plotted result can be traced back to its CSV.",
+)}
+
+<h2>2. Complete method roster</h2>
+<div class="grid">
+  <div class="card"><h3>Transparent references</h3><p>Equal-feature mean<br>Equal-family mean</p></div>
+  <div class="card"><h3>Spectral / PCR core</h3><p>Continuous L-SML<br>IU-PCR<br>U-PCR<br>SU-PCR</p></div>
+  <div class="card"><h3>Graph and feature-selection arms</h3><p>DUFS-LIU<br>Parameter-free DUFS→L-SML<br>Stability-selected DUFS→L-SML<br>CA-SpecRaGE atomic</p></div>
+  <div class="card"><h3>Reconstructed extensions</h3><p>DEEM-B3<br>Family-NRM-A<br>PGRD-A</p></div>
+</div>
+<p class="result">All thirteen appear by name in the interactive report. The report keeps the method-level result rows
+and direct paired uncertainty visible; it does not manufacture one cross-task winner.</p>
+
+<h2>3. Application and access lanes</h2>
+<div class="grid">
+  <div class="card"><h3>Localization and prefix</h3><p>ProcessBench first-error localization, PRMBench step scoring and causal prefix prediction are visualized in <a href="04_localization_and_early.html">Brief 4</a>.</p></div>
+  <div class="card"><h3>Stopping and RAG</h3><p>LEASH pass@1/token tradeoffs and all seven unpooled RAG panels now have dedicated charts in <a href="04_localization_and_early.html">Brief 4</a>.</p></div>
+  <div class="card"><h3>White-box depth</h3><p>Matched white/gray discrimination and the coverage benefit are visualized in <a href="03_whitebox_depth.html">Brief 3</a>.</p></div>
+  <div class="card"><h3>Graph mechanism checks</h3><p>Family-NRM, nuisance structure and residual-graph controls are summarized in <a href="02_graphs_and_nuisance.html">Brief 2</a> and expanded in the full report.</p></div>
+</div>
+
+<section class="questions">
+  <h2>What I would like to discuss</h2>
+  <ul>
+    <li>Which two or three result panels should lead the advisor meeting?</li>
+    <li>Should the full interactive report be shared as background, with the four briefs used as the spoken narrative?</li>
+  </ul>
+</section>
+<details><summary>Sources and exact artifacts</summary><ul>
+  <li><strong>Original protocol:</strong> <a href="../../experiments/RECONSTRUCTION_BENCHMARK_V1.md"><code>docs/experiments/RECONSTRUCTION_BENCHMARK_V1.md</code></a>.</li>
+  <li><strong>Reporting contract:</strong> <a href="../../../scripts/reconstruction_benchmark/README.md"><code>scripts/reconstruction_benchmark/README.md</code></a>.</li>
+  <li><strong>Full report:</strong> <a href="{report}/REPORT.html"><code>07_reports/REPORT.html</code></a>.</li>
+  <li><strong>Exact visual manifest:</strong> <a href="{report}/plot_manifest.json"><code>07_reports/plot_manifest.json</code></a>.</li>
+</ul></details>
+"""
+    return page(
+        "Reconstruction benchmark: complete results map",
+        "Advisor results index · August 2026",
+        "One entry point for the full 13-method response benchmark, the four discussion briefs and the separate application lanes.",
+        body,
+    )
+
+
 def render_applications(c: dict) -> str:
     applications = c["applications"]
     localization = applications["localization"]
@@ -1008,6 +1104,7 @@ def render_applications(c: dict) -> str:
     ragtruth = rag["ragtruth_test_auroc"]
     gasp = rag["gasp"]
     lettuce = rag["lettuce"]
+    refchecker = rag["refchecker"]
     unified = applications["unified_reporting"]
 
     body = f"""
@@ -1108,6 +1205,31 @@ with reduction {leash_gsm8k['token_reduction']:.6f}
 [{leash_overall['pass_at_1_delta_ci_low']:+.6f},{leash_overall['pass_at_1_delta_ci_high']:+.6f}] and reduction
 {leash_overall['token_reduction']:.6f} [{leash_overall['token_reduction_ci_low']:.6f},{leash_overall['token_reduction_ci_high']:.6f}].
 Pass@1 fell in all six ready cells. This supports no matched-accuracy claim, theorem or cross-task headline.</p>
+{score_plot(
+    "LEASH trades pass@1 for shorter generations",
+    [
+        ("AQuA / full CoT", leash_aqua["cot_pass_at_1"], ""),
+        ("AQuA / LEASH", leash_aqua["leash_pass_at_1"], "teal"),
+        ("GSM8K / full CoT", leash_gsm8k["cot_pass_at_1"], ""),
+        ("GSM8K / LEASH", leash_gsm8k["leash_pass_at_1"], "teal"),
+    ],
+    0.0,
+    0.70,
+    "Equal-model within-dataset pass@1. The callback stopped generation, but accuracy fell in every ready cell.",
+    "pass@1",
+)}
+{score_plot(
+    "Observed token reduction from actual callback stopping",
+    [
+        ("AQuA", leash_aqua["token_reduction"], "teal"),
+        ("GSM8K", leash_gsm8k["token_reduction"], "teal"),
+        ("Equal-dataset summary", leash_overall["token_reduction"], "amber"),
+    ],
+    0.0,
+    0.50,
+    "Descriptive grouped-bootstrap estimates. The summary combines datasets only after equal-model aggregation.",
+    "Fraction fewer tokens",
+)}
 </details>
 
 <details>
@@ -1119,6 +1241,61 @@ Pass@1 fell in all six ready cells. This supports no matched-accuracy claim, the
   {gasp['delta']:+.4f} [{gasp['ci_low']:+.4f},{gasp['ci_high']:+.4f}]: no superiority. Lettuce is a supervised ceiling
   at F1 {lettuce['f1']:.4f}. RefChecker accurate-, noisy- and zero-context settings stay separate; fixed claims only,
   with claim extraction out of scope. The seven panels have no pooled macro or cross-task headline.</p>
+  {score_plot(
+      "RAGTruth test: the estimand changes with localization granularity",
+      [
+          ("Answer-level", ragtruth["answer"], "teal"),
+          ("Sentence-level", ragtruth["sentence"], "teal"),
+          ("Token-level", ragtruth["token"], "teal"),
+      ],
+      0.50,
+      0.80,
+      "Separate answer, sentence and token panels; they are not interchangeable rows of one pooled leaderboard.",
+      "AUROC",
+  )}
+  {score_plot(
+      "Local GASP comparison",
+      [
+          ("Evidence-contrast score", gasp["auroc"], "teal"),
+          ("Matched IU-PCR", gasp["matched_iu_pcr_auroc"], ""),
+      ],
+      0.62,
+      0.70,
+      "The point difference is +0.0111, but its paired interval crosses zero: no superiority claim.",
+      "AUROC",
+  )}
+  {score_plot(
+      "Lettuce supervised ceiling",
+      [("Supervised example classifier", lettuce["f1"], "amber")],
+      0.0,
+      1.0,
+      "A separate supervised example-level ceiling, not a common-access comparison with RAGTruth or GASP.",
+      "F1",
+  )}
+  {score_plot(
+      "RefChecker NLI detector by context setting",
+      [
+          ("Accurate context", refchecker["nli_accuracy"]["accurate_context"], "teal"),
+          ("Noisy context", refchecker["nli_accuracy"]["noisy_context"], "teal"),
+          ("Zero context", refchecker["nli_accuracy"]["zero_context"], "teal"),
+      ],
+      0.40,
+      0.80,
+      "Three-way claim accuracy. Settings remain separate because both task conditions and class balance differ.",
+      "Accuracy",
+  )}
+  {score_plot(
+      "Fixed binary IU transfer by RefChecker setting",
+      [
+          ("Accurate context", refchecker["fixed_binary_transfer_auroc"]["accurate_context"], ""),
+          ("Noisy context", refchecker["fixed_binary_transfer_auroc"]["noisy_context"], ""),
+          ("Zero context", refchecker["fixed_binary_transfer_auroc"]["zero_context"], ""),
+      ],
+      0.55,
+      0.80,
+      "Binary fixed-claim AUROC. This is a separate estimand from the three-way NLI accuracy above.",
+      "AUROC",
+  )}
 </details>
 
 <div class="callout"><strong>My current reading:</strong> the certified localization gains are small and unresolved,
@@ -1218,6 +1395,7 @@ def render_readme() -> str:
 
 Suggested attachment order:
 
+0. 00_results_map.html — the complete navigation page and the link to the exhaustive 13-method visual report
 1. 01_basic_fusion_methods.html
 2. 02_graphs_and_nuisance.html
 3. 03_whitebox_depth.html
@@ -1225,7 +1403,8 @@ Suggested attachment order:
 
 The short email is ../Advisor_Update_Aug21_2026.md.
 
-Each brief stands alone. It explains the task, gives the smallest useful method equation, shows performance visually,
+The results map separates the exhaustive benchmark browser from the shorter advisor story. Each brief stands alone.
+It explains the task, gives the smallest useful method equation, shows performance visually,
 states the evidence boundary, and ends with questions for the advisors. CLAIM_LEDGER.md is an internal accuracy check
 and is not intended as an attachment.
 
@@ -1235,6 +1414,19 @@ The order follows the previous advisor emails:
 - Brief 2: clustering, dependence and nuisance, including the latest Family-NRM graph test.
 - Brief 3: Amir's feature-pool question and Bracha's internal-feature access suggestion.
 - Brief 4: certified ProcessBench localization, prefix detection, paper-specified-partial LEASH callback stopping and seven separate retrospective RAG evidence panels.
+
+The exhaustive visual result browser is:
+
+    ../../../results/reconstruction_benchmark_v1/releases/2026-08-24_frozen24_v1/reporting_v2/2026-08-24_frozen24_v1/07_reports/REPORT.html
+
+It contains all 13 registered methods across the frozen 24 cells, 84 metric-forest panels, 84 paired-contrast
+panels, heatmaps, exact rows, graph diagnostics, a plot manifest and 175 exact plot-data CSVs. It is the place to
+inspect every method; the four briefs intentionally emphasize the scientific narrative rather than repeat every row.
+
+For spreadsheet review, `leaderboards/` contains cell, dataset, task, slice and release CSV exports. The historical
+single-task macro is stored at release level, so the task and release files are exact aliases; see
+`leaderboards/README.md`. `published_comparators.json` is a separate context registry and is never mixed into those
+common-cohort rankings.
 
 Conformal calibration remains unstarted and is left as a meeting decision rather than presented as a result.
 
@@ -1258,6 +1450,7 @@ Verify without changing files:
 def artifacts(c: dict) -> dict[Path, str]:
     return {
         EMAIL: render_email(),
+        OUT / "00_results_map.html": render_results_map(c),
         OUT / "01_basic_fusion_methods.html": render_fusion(c),
         OUT / "02_graphs_and_nuisance.html": render_graphs(c),
         OUT / "03_whitebox_depth.html": render_whitebox(c),
@@ -1305,9 +1498,44 @@ def validate(bundle: dict[Path, str]) -> None:
             raise ValueError(f"{path.name} is not self-contained")
         if content.count('<figure class="plot">') < 2:
             raise ValueError(f"{path.name} needs at least two result figures")
+        if path.name == "00_results_map.html":
+            method_names = (
+                "Equal-feature mean",
+                "Equal-family mean",
+                "Continuous L-SML",
+                "IU-PCR",
+                "U-PCR",
+                "SU-PCR",
+                "DUFS-LIU",
+                "Parameter-free DUFS→L-SML",
+                "Stability-selected DUFS→L-SML",
+                "CA-SpecRaGE atomic",
+                "DEEM-B3",
+                "Family-NRM-A",
+                "PGRD-A",
+            )
+            missing_methods = [name for name in method_names if name not in content]
+            if missing_methods:
+                raise ValueError(f"results map is missing methods: {missing_methods}")
+            if "07_reports/REPORT.html" not in content or "plot_manifest.json" not in content:
+                raise ValueError("results map is missing the exhaustive report contract")
+        if path.name == "04_localization_and_early.html":
+            if content.count('<figure class="plot">') < 9:
+                raise ValueError("application brief needs all nine registered result figures")
+            for required_panel in (
+                "LEASH trades pass@1",
+                "RAGTruth test",
+                "Local GASP comparison",
+                "Lettuce supervised ceiling",
+                "RefChecker NLI detector",
+                "Fixed binary IU transfer",
+            ):
+                if required_panel not in content:
+                    raise ValueError(f"application brief is missing {required_panel}")
         if visible_words(content) > 650:
             raise ValueError(f"{path.name} is too long: {visible_words(content)} initially visible words")
-        if expanded_words(content) > 1000:
+        expanded_limit = 1250 if path.name in {"00_results_map.html", "04_localization_and_early.html"} else 1000
+        if expanded_words(content) > expanded_limit:
             raise ValueError(f"{path.name} is too long when expanded: {expanded_words(content)} words")
 
 
