@@ -97,6 +97,13 @@ def load_npz_no_pickle(path: str | Path) -> dict[str, np.ndarray]:
         return {name: np.asarray(bundle[name]) for name in bundle.files}
 
 
+def load_npz_no_pickle_bytes(payload: bytes) -> dict[str, np.ndarray]:
+    """Parse an NPZ from bytes already authenticated by a held file handle."""
+
+    with np.load(BytesIO(payload), allow_pickle=False) as bundle:
+        return {name: np.asarray(bundle[name]) for name in bundle.files}
+
+
 def canonical_tree_manifest(root: str | Path) -> dict:
     base = Path(root)
     files = []
@@ -121,6 +128,7 @@ __all__ = [
     "canonical_tree_manifest",
     "deterministic_npz_bytes",
     "load_npz_no_pickle",
+    "load_npz_no_pickle_bytes",
     "sha256_bytes",
     "sha256_file",
 ]
