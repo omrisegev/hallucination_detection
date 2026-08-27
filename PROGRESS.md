@@ -1,5 +1,29 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**CIW cross-scale localization addendum (2026-08-27 — Step 293):** A new
+target-free token/response input layer was implemented and evaluated on all 12
+ProcessBench cells plus PRMBench.  For each of the 29 token streams it predicts
+the token coordinate from its complete-answer mean and frozen CIW-DEEM answer
+risk; five row-held-out folds set a bounded `0.5 * clipped-R2` innovation gate
+before the unchanged token IU-PCR head.  The zero-gate path reproduces the
+frozen token-IU score to `2.2e-16` on the real smoke cell.  The fitted mean gate
+is only about 4.2%, confirming that most token variation is local.
+
+The primary CIW-response arm scores ProcessBench macro F1 `0.308301` and
+PRMBench step AUROC/AUPRC `0.582489/0.196327`, versus the previous CIW adapter
+`0.309136/0.581138`.  A fixed SU-PCR token-head ablation is worse on
+ProcessBench (`0.306202`) and essentially identical on PRMBench (`0.582516`).
+After primary opening, the already frozen corrected token score improved
+PRMBench AUROC by roughly `+0.0013` with each of B3, IU-PCR, and DUFS-LIU
+response heads, but reduced ProcessBench macro F1 with all three.  Preserving
+the original per-answer token mean/scale removes the ProcessBench loss and the
+PRMBench gain together.  Decision: this is a supported PRMBench ranking
+ablation, not a promoted cross-task localization method.  The unresolved issue
+is an unlabeled readout/reliability signal separating absolute answer
+calibration from relative step evidence, not another covariance solver.  See
+`docs/experiments/CIW_CROSS_SCALE_LOCALIZATION_V1.md` and
+`results/ciw_cross_scale_localization_v1/REPORT.md`.
+
 **Advisor visualization addendum (2026-08-25 — Step 291):** The originally
 promised exhaustive reporting layer is now exposed from one advisor-facing
 entry point instead of being hidden inside the untracked frozen science tree.

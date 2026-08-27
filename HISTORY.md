@@ -14649,3 +14649,34 @@ Canonical artifacts: `docs/experiments/CIW_DEEM_MULTI_APPLICATION_V1.md` and
 `results/ciw_deem_multi_application_v1/`.
 
 ---
+
+### Step 293 [CIW localization] — add a cross-scale token/response innovation input layer
+
+**What**: Added a target-free input layer that predicts each of the 29 token
+coordinates from its whole-answer coordinate mean and frozen CIW-DEEM answer
+risk.  Five row-held-out folds estimate coordinate reliability; a bounded
+CIW-style gate mixes the standardized token coordinate with its standardized
+innovation before the unchanged token IU-PCR head.  Added one fixed SU-PCR
+token-head ablation, mechanical zero-gate/determinism tests, score freezes, and
+the existing post-freeze ProcessBench/PRMBench evaluator.
+
+**Why**: The original CIW localization adapter changed only the response head
+and reused the old token-IU29 score.  It therefore did not test the requested
+joint input model or learn how much complete-answer structure should be removed
+from token features.
+
+**Result**: The primary arm scores ProcessBench macro F1 `0.308301` and
+PRMBench step AUROC `0.582489`, compared with `0.309136/0.581138` for the
+previous CIW adapter.  SU-PCR gives `0.306202/0.582516` and does not provide a
+distinct ranking.  A post-opening response-head diagnostic finds a consistent
+PRMBench gain of about `+0.0013` when the corrected token score is paired with
+B3, IU-PCR, or DUFS-LIU, but the same correction hurts ProcessBench with every
+head.  The method is not promoted.  It identifies a task-readout problem:
+absolute answer calibration and relative step evidence need separate unlabeled
+reliability estimates.
+
+Canonical artifacts: `docs/experiments/CIW_CROSS_SCALE_LOCALIZATION_V1.md`,
+`results/ciw_cross_scale_localization_v1/`, and the hash-bound large artifacts
+under `local_cache/ciw_cross_scale*_localization_v1/`.
+
+---
