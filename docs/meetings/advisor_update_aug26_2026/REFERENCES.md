@@ -38,4 +38,4 @@
 - **LettuceDetect.** 2025 preprint. Supervised example-level ceiling.
 - Hu et al. **RefChecker: Reference-based Fine-grained Hallucination Checker and Benchmark for Large Language Models.** EMNLP 2024.
 
-For exact local PDFs, digests and artifact provenance, see the project `papers/` index and the [algorithm chronology packet](/Users/osegev/Documents/Codex/2026-08-25/referenced-chatgpt-conversation-this-is-an/outputs/post_july30_upcr_dufs_evidence_packet.md).
+For exact local PDFs, digests and artifact provenance, see the project `papers/` index.
