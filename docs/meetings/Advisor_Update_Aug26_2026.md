@@ -16,14 +16,14 @@ The algorithmic direction grew directly from our discussion about using DUFS mor
 
 I then did another literature review, this time focusing specifically on papers that continued the early U-PCR and unsupervised ensemble-regression work. I found two papers that became important for the rest of this direction:
 
-1. *Crowdsourcing Regression: A Spectral Approach* (AISTATS 2022) studies how to recover an unknown continuous target from several noisy regressors without observing the target labels. IU-PCR estimates the common target direction from the regressors' covariance under an independence assumption. SU-PCR extends it by separating the covariance into a low-rank shared component and a sparse component representing correlated errors between regressors. This was directly relevant to us because our 30 hallucination measurements are also noisy regressors of an unknown correctness score and are not fully independent.
-2. *Unsupervised Ensemble Learning Through Deep Energy-based Models* (AISTATS 2026) replaces the linear, covariance-based spectral model with a learned energy-based model over the ensemble outputs and the latent class. This allows the model to represent nonlinear dependencies between predictors while still training without correctness labels. The original method expects categorical classifier predictions, whereas our measurements are continuous scores, so applying it required a new continuous adaptation rather than simply running the published algorithm.
+1. [*Crowdsourcing Regression: A Spectral Approach*](https://proceedings.mlr.press/v151/tenzer22a.html) (AISTATS 2022) studies how to recover an unknown continuous target from several noisy regressors without observing the target labels. IU-PCR estimates the common target direction from the regressors' covariance under an independence assumption. SU-PCR extends it by separating the covariance into a low-rank shared component and a sparse component representing correlated errors between regressors. This was directly relevant to us because our 30 hallucination measurements are also noisy regressors of an unknown correctness score and are not fully independent.
+2. [*Unsupervised Ensemble Learning Through Deep Energy-based Models*](https://arxiv.org/abs/2601.20556) (AISTATS 2026) replaces the linear, covariance-based spectral model with a learned energy-based model over the ensemble outputs and the latent class. This allows the model to represent nonlinear dependencies between predictors while still training without correctness labels. The original method expects categorical classifier predictions, whereas our measurements are continuous scores, so applying it required a new continuous adaptation rather than simply running the published algorithm.
 
 I started by implementing IU-PCR and SU-PCR. SU-PCR's sparse-error correction was positive but statistically inconclusive. IU-PCR performed well and gave us a cleaner baseline to develop: it retains the full stable measurement set and estimates the final score through a low-dimensional projected covariance solve.
 
-I then integrated the DUFS mechanism into this PCR fusion stage. In the earlier experiments, DUFS selected features and the fusion algorithm then ran unchanged. In DUFS-LIU-PCR, no feature is simply selected or deleted. The continuous DUFS gates define a similarity graph between answers, and the graph Laplacian enters the final IU-PCR weight problem as a regularizer. I tested many variants of this basic idea. They often found stable geometry, but that geometry mainly followed shared confidence and response length rather than correctness. On the aligned 24-cell answer benchmark, IU-PCR and DUFS-LIU-PCR were essentially tied.
+I then integrated the [DUFS](https://proceedings.neurips.cc/paper/2021/hash/0bc10d8a74dbafbf242e30433e83aa56-Abstract.html) mechanism into this PCR fusion stage. In the earlier experiments, DUFS selected features and the fusion algorithm then ran unchanged. In DUFS-LIU-PCR, no feature is simply selected or deleted. The continuous DUFS gates define a similarity graph between answers, and the graph Laplacian enters the final IU-PCR weight problem as a regularizer. I tested many variants of this basic idea. They often found stable geometry, but that geometry mainly followed shared confidence and response length rather than correctness. On the aligned 24-cell answer benchmark, IU-PCR and DUFS-LIU-PCR were essentially tied.
 
-The most useful change in direction came from *Hallucination Detection via Reasoning Subspace Projection* (HARP). I did not reproduce HARP's supervised white-box classifier; I reused its architectural idea of removing the dominant shared component and then examining what remains. In our case, I grouped the 30 measurements into six families according to the raw signal from which they were calculated: entropy level, entropy change, two energy families, top-probability shape and trace structure.
+The most useful change in direction came from [*Hallucination Detection via Reasoning Subspace Projection*](https://arxiv.org/abs/2509.11536) (HARP). I did not reproduce HARP's supervised white-box classifier; I reused its architectural idea of removing the dominant shared component and then examining what remains. In our case, I grouped the 30 measurements into six families according to the raw signal from which they were calculated: entropy level, entropy change, two energy families, top-probability shape and trace structure.
 
 For every answer, I summed the weighted measurements within each family, producing six partial scores that add up exactly to the IU-PCR score. Most of these partial scores rise and fall together with the overall confidence score. I therefore regressed each family contribution on the total IU-PCR score and kept the residual: how much more or less that family contributed than expected for an answer with the same overall score. Family-NRM searches for a residual disagreement pattern that repeats across calibration environments and adds it as a small correction to IU-PCR. Treating every individual feature as its own residual direction was unstable and performed worse; the useful representation was the six provenance families. On the separate PRMBench response test, this improved AUROC from 0.7206 to 0.7252, approximately +0.46 percentage points, with a positive interval.
 
@@ -57,11 +57,32 @@ In this direction, I tested whether the same uncertainty measurements and fusion
 
 ### A. First-error localization — a consistent improvement over Mind the Gap
 
-The main result is positive: our uncertainty-based localization framework consistently outperforms the reproduced [*Mind the Gap*](https://openreview.net/pdf?id=gllCfOG1Gt) control on ProcessBench. Across the eight evaluated combinations of Qwen3-4B/Qwen3-8B and GSM8K, MATH, OlympiadBench and OmniMath, the selected end-to-end pipeline improves macro F1 from 25.71% to 31.36%, and it is better in every cell. Exact first-step localization improves from 17.84% to 21.79%, and localization within one step improves from 39.35% to 46.76%.
+[ProcessBench](https://arxiv.org/abs/2412.06559) differs from final-answer detection: the system must identify the first erroneous reasoning step, or return **no error**. Our **GL-LIU** pipeline uses a global IU/DUFS-LIU head to detect an error and a local token-level head to locate it. We compare it with our reproduction of [*Mind the Gap*](https://openreview.net/pdf?id=gllCfOG1Gt) under the same protocol.
 
-To turn our completed-answer detector into a localizer, I split it into two linked decisions. A **global head** fuses full-trace uncertainty measurements with the U-PCR/IU-PCR machinery and decides whether the reasoning trace contains an error at all. A **local head** applies the same fusion principle to token-by-token uncertainty curves—such as entropy changes, local variance and accumulated risk—to assign an error score to every generated token. If the global head predicts an error, we select the highest-risk token and only then map it to the corresponding ProcessBench reasoning step. DUFS-LIU variants change the regularization inside these heads, but not this global-then-local structure.
+More generally, I reconstructed all 13 answer-level fusion methods as alternative **response heads** and paired each of them with the same **token head**. The response head summarizes whether the complete trace looks unreliable. The token head fuses 29 uncertainty streams along the generated trajectory using IU-PCR, assigns a risk to every token and reduces each reasoning step to its maximum token risk. On ProcessBench, the ranked response and step risks are combined before deciding between the highest-risk step and **no error**. On PRMBench, which labels every step independently, the token score can be used directly.
 
-The important point is therefore not that one internally named graph variant obtained the highest score. Nearly all of our main configurations outperform Mind the Gap at the aggregate point estimate. Differences between our own IU- and DUFS-based variants are much smaller: in the later matched reconstruction, the leading adapters improve over matched IU by only 0.33-0.58 F1 points, with intervals crossing zero. The contribution is the transfer of our uncertainty-fusion framework from answer ranking to error localization, not a confirmed advantage from one particular graph. On PRMBench the same conclusion appears in another form: the simpler token-only score reaches 0.6712 AUROC, compared with 0.5988 for response-token fusion and 0.7983 for the supervised PRM ceiling.
+![Response-level and token-level localization architecture](advisor_update_aug26_2026/figures/localization-fusion-summary.svg)
+
+| ProcessBench result across four datasets and two Qwen3 sizes | Reproduced Mind the Gap | Our GL-LIU | Change |
+|---|---:|---:|---:|
+| Macro F1: correct first-error decision, including clean traces | 25.71% | **31.36%** | **+5.65 points** |
+| Exact first erroneous step, among erroneous traces | 17.84% | **21.79%** | **+3.95 points** |
+| Predicted within one step of the first error | 39.35% | **46.76%** | **+7.41 points** |
+
+GL-LIU wins all eight cells, and almost all our global-local variants beat Mind the Gap in aggregate. However, graph-based variants add only 0.33-0.58 F1 points over plain IU, with intervals crossing zero. The result supports the global-local design, not graph superiority.
+
+The component ablation also shows where the result comes from:
+
+| Same-access localization reconstruction | Response head only | Token head only | Best response + token |
+|---|---:|---:|---:|
+| ProcessBench first-error macro F1 | 17.36%-19.20% across the 13 methods | **29.44%** | **31.07%** |
+| PRMBench every-step AUROC | at most 0.5739 | **0.6712** | 0.6493 |
+
+Most of the localization ability therefore comes from token-level fusion. The response head adds a smaller but useful ProcessBench improvement because that task also requires deciding when the whole trace is clean. On PRMBench, adding a global response score hurts because the target is the correctness of each individual step.
+
+**Separate PRMBench experiment.** [PRMBench](https://arxiv.org/abs/2501.03124) labels every step, not only the first error. The token-only trajectory-first IU-PCR reaches 0.6712 AUROC; supervised [Qwen2.5-Math-PRM-7B](https://arxiv.org/abs/2501.07301) reaches 0.7983 and remains a higher-access ceiling.
+
+I also transferred CIW-DEEM to both tasks after the main reconstruction. In that experiment CIW replaced only the response head; the token-IU29 locator stayed fixed. It reached 30.91% ProcessBench macro F1 versus 31.02% for B3 with the same token head, and 0.5811 versus 0.5842 on PRMBench. CIW therefore did not improve localization in this form. The more informative next experiment is to adapt its innovation decomposition directly to the token trajectories, rather than replacing only the global score.
 
 ### B. Fixed-prefix prediction — a clear gain at both tested budgets
 
@@ -91,7 +112,7 @@ I evaluated this transfer in seven separate panels because the prediction units 
 
 My current view is that the three directions form a coherent thesis story rather than three unrelated projects. The algorithmic work explains why stable dependence is not necessarily target-aligned; the white-box work tests whether new internal measurements provide missing information; and the applications show where the same uncertainty machinery becomes more useful when the target is localization or early prediction rather than only completed-answer ranking.
 
-For the next stage, I would like to discuss which prospective confirmation should come first: the CIW/innovation direction, independent white-box validation, or new-data localization and prefix prediction. My current preference is to prioritize the application result that already separates—prefix prediction—while keeping CIW-DEEM and the white+gray combination as frozen challengers for confirmation.
+For the next stage, I would like to discuss which prospective confirmation should come first: token-native CIW/innovation, independent white-box validation, or new-data localization and prefix prediction. My current preference is to prioritize the two application directions that already show positive evidence—first-error localization and fixed-prefix prediction—while developing token-native innovation fusion as their algorithmic follow-up. CIW-DEEM at answer level and the white+gray combination remain frozen challengers for independent confirmation.
 
 I prepared a results index and three deep dives. They contain the equations, complete method chronology, negative experiments, confidence intervals, paper references and links to the full interactive benchmark and all existing plots:
 
@@ -111,13 +132,15 @@ Omri
 
 - Jaffe, Fetaya, Nadler, Jiang and Kluger, *Unsupervised Ensemble Learning with Dependent Classifiers* (AISTATS 2016).
 - Dror, Nadler, Bilal and Kluger, *Unsupervised Ensemble Regression* (2017).
-- Tenzer, Dror, Nadler, Bilal and Kluger, *Crowdsourcing Regression: A Spectral Approach* (AISTATS 2022).
-- Ofir Lindenbaum, Uri Shaham, Jonathan Svirsky, Erez Peterfreund and Yuval Kluger, *Differentiable Unsupervised Feature Selection based on a Gated Laplacian* (NeurIPS 2021).
-- Hu et al., *HARP: Hallucination Detection via Reasoning Subspace Projection* (2025 preprint).
-- Maymon, Buznah and Shaham, *Unsupervised Ensemble Learning Through Deep Energy-based Models* (AISTATS 2026).
+- Tenzer, Dror, Nadler, Bilal and Kluger, [*Crowdsourcing Regression: A Spectral Approach*](https://proceedings.mlr.press/v151/tenzer22a.html) (AISTATS 2022).
+- Ofir Lindenbaum, Uri Shaham, Jonathan Svirsky, Erez Peterfreund and Yuval Kluger, [*Differentiable Unsupervised Feature Selection based on a Gated Laplacian*](https://proceedings.neurips.cc/paper/2021/hash/0bc10d8a74dbafbf242e30433e83aa56-Abstract.html) (NeurIPS 2021).
+- Hu et al., [*HARP: Hallucination Detection via Reasoning Subspace Projection*](https://arxiv.org/abs/2509.11536) (2025 preprint).
+- Maymon, Buznah and Shaham, [*Unsupervised Ensemble Learning Through Deep Energy-based Models*](https://arxiv.org/abs/2601.20556) (AISTATS 2026).
 - Yang et al., *TriLens: Per-Layer Logit-Lens Entropy for White-Box Hallucination Detection* (2026 preprint).
 - Zheng et al., *ProcessBench: Identifying Process Errors in Mathematical Reasoning*.
-- *Mind the Gap: Catching Hallucinations via Evidence Drop* (ICML 2026).
+- Chen et al., *Mind the Gap: Catching Hallucinations via Evidence Drop on the Reasoning Manifold* (ICML 2026).
+- Song et al., *PRMBench: A Fine-grained and Challenging Benchmark for Process-Level Reward Models* (ACL 2025).
+- Zhang et al., *The Lessons of Developing Process Reward Models in Mathematical Reasoning*.
 - Fu et al., *Deep Think with Confidence*.
 - *LEASH: Logit-Entropy Adaptive Stopping Heuristic for Efficient Chain-of-Thought Reasoning*.
 - Niu et al., *RAGTruth* (ACL 2024); GASP (2026 preprint); LettuceDetect (2025 preprint); and RefChecker (EMNLP 2024).

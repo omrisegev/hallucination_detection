@@ -10,16 +10,18 @@ The goal is to predict whether a reasoning trace contains an error and, if so, l
 
 ### Method
 
-The response-level global score and token-level local score are fitted from uncertainty trajectories. Token risk is reduced to a step prediction only after scoring; step boundaries do not construct the token score. The decision threshold is calibrated, so this is an unsupervised scoring method with a calibrated policy rather than a completely label-free decision rule.
+The reconstruction crosses all 13 frozen answer-level methods with one shared local head. The response head estimates whether the complete reasoning trace is unreliable. The local head fuses 29 token-level uncertainty trajectories with two-component L2 IU-PCR, and each step receives the maximum token risk inside its span. ProcessBench combines empirical response and step ranks by their geometric mean, then calibrates a threshold that chooses between the highest-risk step and **no error**. PRMBench uses the step risk directly because it labels every step rather than asking for one first-error decision. Step boundaries reduce token scores after fusion; they do not construct the token representation.
 
 ### Results
 
 - GL-LIU: 31.36% ProcessBench macro F1.
 - Reproduced Mind-the-Gap control: 25.71%.
 - Later aligned three-scorer adapters: +0.33 to +0.58 F1 points versus matched IU, with intervals crossing zero.
-- PRMBench: token-only head 0.6712 AUROC versus 0.5988 for response-token fusion; supervised PRM ceiling 0.7983.
+- ProcessBench component audit: 13 response-only heads span 17.36%-19.20% macro F1; token-only reaches 29.44%; the best response-token combination reaches 31.07%.
+- PRMBench component audit: token-only reaches 0.6712 AUROC, above the best response-token combination at 0.6493; the supervised Qwen2.5-Math-PRM-7B ceiling is 0.7983.
+- Later CIW transfer: CIW response + frozen token-IU29 reaches 30.91% ProcessBench macro F1 versus 31.02% for B3, and 0.5811 PRMBench AUROC versus 0.5842 for B3. This did not test a token-level CIW model.
 
-The stable contribution is the localization framework and token-first construction, not a robust graph increment.
+The stable contribution is the localization framework and token-first construction, not a robust graph increment. The direct follow-up is to adapt the innovation idea to token trajectories and validate the resulting localizer on new data.
 
 ## B. Causal prefix prediction
 
@@ -65,6 +67,7 @@ The settings and prediction units are not pooled. RAGTruth also shows substantia
 
 ## Visuals and reports
 
+- [Response/token fusion architecture and component result](figures/localization-fusion-summary.svg)
 - [Applications advisor brief](../advisor_update_aug21_2026/04_localization_and_early.html)
 - [Fair paper-exact comparison report](../../../results/fair_paper_exact_comparisons_v1/REPORT.html)
 - [ProcessBench localization report](../../../results/ours_only_localization_v1/REPORT.html)

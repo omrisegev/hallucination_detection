@@ -67,6 +67,7 @@ This index makes the existing work reusable without forcing every figure into th
 ## Application plots and reports
 
 - [Application summary plot](figures/applications-summary.svg).
+- [Localization response/token architecture and component ablation](figures/localization-fusion-summary.svg) — explains the shared 13-response-head/token-IU29 design, the different ProcessBench/PRMBench decisions and where the measured gain comes from.
 - [Applications visual brief](../advisor_update_aug21_2026/04_localization_and_early.html) — ProcessBench, prefix prediction, LEASH and seven separate RAG panels.
 - [Fair paper-aligned comparison report](../../../results/fair_paper_exact_comparisons_v1/REPORT.html) — access/protocol boundaries for comparators.
 - [Paper-aligned benchmark suite](../../../results/paper_aligned_benchmark_suite_2026_08_11/index.html) — method-by-paper reports for detection and localization.
@@ -78,6 +79,7 @@ This index makes the existing work reusable without forcing every figure into th
 - [ProcessBench latent-state report](../../../results/processbench_latent_state_v1/REPORT.html).
 - [Fixed application pipelines](../../../results/fixed_application_pipelines_v1/REPORT.html).
 - [Global/local/online architecture](../../../results/global_local_online_architecture_v2/REPORT.html).
+- [CIW-DEEM multi-application transfer](../../../../../local_cache/worktrees/ciw_multipop_benchmark_v1/results/ciw_deem_multi_application_v1/REPORT.md) — later response-head transfer; no token-level CIW was fitted.
 - [Local/online comprehensive report](../../../results/local_online_comprehensive_v1/REPORT.html).
 - [Early-online existing-data report](../../../results/early_online_existing_data_v1/REPORT.md) and [localization-model follow-up](../../../results/early_online_localization_models_v1/REPORT.md).
 - [Same-access application scoreboard](../../../results/advisor_localization_online/same_access_scoreboard.html).

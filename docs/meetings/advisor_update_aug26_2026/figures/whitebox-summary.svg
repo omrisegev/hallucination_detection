@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" viewBox="0 0 1100 520" role="img" aria-labelledby="title desc">
+  <title id="title">White-box results summary</title>
+  <desc id="desc">Exact matched AUROC comparison, coverage, and exploratory hybrid result.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfaff"/><stop offset="1" stop-color="#f2efff"/></linearGradient>
+    <style>.title{font:700 26px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}.sub{font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#536079}.panel{fill:#fff;stroke:#e2dcf2;stroke-width:1.5}.h{font:700 17px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#27334d}.label{font:14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#45516a}.value{font:700 21px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}.note{font:13px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#68748a}.white{fill:#7c62c9}.gray{fill:#8794a8}.hybrid{fill:#2d9d78}.coverage{fill:#b09ae4}.axis{stroke:#d5cfea}.tag{font:700 12px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#fff}</style>
+  </defs>
+  <rect width="1100" height="520" rx="24" fill="url(#bg)"/>
+  <text x="42" y="50" class="title">White-box direction: complementary signal, broader coverage, no validated win yet</text>
+  <text x="42" y="78" class="sub">Exact-match comparison separates discrimination from the coverage advantage of internal-model access.</text>
+  <rect x="35" y="108" width="655" height="352" rx="18" class="panel"/>
+  <text x="62" y="144" class="h">Exact 31,440-answer comparison · macro AUROC</text>
+  <line x1="226" y1="181" x2="646" y2="181" class="axis"/>
+  <text x="226" y="201" class="note">0.775</text><text x="614" y="201" class="note">0.792</text>
+  <text x="62" y="246" class="label">White pure U-PCR</text><rect x="226" y="224" width="165" height="30" rx="8" class="white"/><text x="405" y="247" class="value">0.7817</text>
+  <text x="62" y="306" class="label">Gray DUFS-LIU</text><rect x="226" y="284" width="197" height="30" rx="8" class="gray"/><text x="437" y="307" class="value">0.7830</text>
+  <text x="62" y="366" class="label">White + gray</text><rect x="226" y="344" width="375" height="30" rx="8" class="hybrid"/><text x="615" y="367" class="value">0.7902</text>
+  <text x="62" y="408" class="note">White minus gray: -0.0013 · 95% interval [-0.0169, +0.0123]</text>
+  <rect x="62" y="421" width="205" height="26" rx="13" class="hybrid"/><text x="79" y="439" class="tag">HYBRID: EXPLORATORY</text>
+
+  <rect x="714" y="108" width="351" height="352" rx="18" class="panel"/>
+  <text x="740" y="144" class="h">Scorable-answer coverage</text>
+  <text x="740" y="198" class="label">White-box</text><text x="956" y="198" class="value">42,238</text>
+  <rect x="740" y="214" width="282" height="34" rx="8" class="coverage"/>
+  <text x="740" y="294" class="label">Gray-box complete case</text><text x="956" y="294" class="value">31,467</text>
+  <rect x="740" y="310" width="210" height="34" rx="8" class="gray"/>
+  <text x="740" y="382" class="note">Internal features retain rows that the</text>
+  <text x="740" y="402" class="note">complete gray feature contract cannot score.</text>
+  <text x="740" y="432" class="note">Next gate: frozen prospective cells.</text>
+  <text x="42" y="493" class="note">Interpretation: useful information and coverage are present, but promotion requires an independent preregistered validation.</text>
+</svg>
