@@ -1,0 +1,142 @@
+{
+  "schema": "deem_b3_pair_router_v1_config",
+  "experiment_id": "deem_b3_pair_router_v1",
+  "status": "retrospective_pairwise_residual_router_development",
+  "baseline": {
+    "arm_id": "B3",
+    "experiment_id": "deem_vs_iupcr_24cell_v1",
+    "fit_warm_start": "same_cell_same_seed_frozen_state",
+    "available_fit_seeds": [0, 1, 2, 3, 4],
+    "development_score_seeds": [0],
+    "residual_graph_ensemble_seeds": [0, 1, 2, 3, 4]
+  },
+  "graph": {
+    "coordinate_source": "true_grouped_fold_loo_b3_family_contribution_residuals",
+    "topology": "self_safe_self_tuning_union_knn",
+    "k": 7,
+    "tie_break": "lexical_row_id_rank",
+    "laplacian": "symmetric_normalized",
+    "fixed_during_router_fit": true
+  },
+  "scientific_boundary": {
+    "fit_is_label_free": true,
+    "baseline_is_frozen": true,
+    "nongraph_router_arms_are_strictly_self_free_for_each_routed_pair": true,
+    "graph_arms_are_functional_inference_loo2_not_end_to_end_strict_loo2": true,
+    "graph_laplacian_uses_all_present_family_loo_residual_coordinates": true,
+    "graph_is_built_only_for_graph_weighted_variants": true,
+    "natural_24cell_targets_previously_opened": true,
+    "variant_search_is_exploratory": true,
+    "confirmation_requires_new_unopened_families": true
+  },
+  "frozen_screen_rule": {
+    "mechanistic_primary": "A4_PAIR_RESIDUAL_CD_A50",
+    "primary_survives_only_if": {
+      "equal_family_auroc_delta_min": 0.0025,
+      "descriptive_family_bootstrap_lower_min": 0.0,
+      "exact_family_signflip_one_sided_p_max": 0.05,
+      "wins_plus_ties_min_of_8": 6,
+      "worst_cell_delta_min": -0.02
+    },
+    "A1_PAIR_RESIDUAL_CD_A25_is_safe_strength_control": true,
+    "A2_PAIR_RESIDUAL_CD_GEO_A25_and_A5_PAIR_RESIDUAL_CD_GEO_A50_are_secondary_graph_ablations": true,
+    "secondary_variants_are_mechanism_ablations_not_substitute_primaries": true
+  },
+  "variants": [
+    {
+      "id": "A0_B3_EXACT_ALIAS",
+      "role": "mechanical exact B3 control through the pair-router path",
+      "config": {
+        "rho": 0.0,
+        "epochs": 0,
+        "deem_weight": 1.0,
+        "graph_weight": 0.0
+      }
+    },
+    {
+      "id": "A1_PAIR_RESIDUAL_CD_A25",
+      "role": "mechanistic primary: strict self-free pair residual router trained by frozen-B3 contrastive energy",
+      "config": {
+        "rho": 0.25,
+        "epochs": 100,
+        "learning_rate": 0.002,
+        "deem_weight": 1.0,
+        "graph_weight": 0.0,
+        "trust_weight": 0.1,
+        "open_weight": 0.01,
+        "l2_weight": 0.0001,
+        "open_warmup_epochs": 10
+      }
+    },
+    {
+      "id": "A2_PAIR_RESIDUAL_CD_GEO_A25",
+      "role": "secondary ablation: A1 plus a fixed true-LOO residual-graph roughness objective",
+      "config": {
+        "rho": 0.25,
+        "epochs": 100,
+        "learning_rate": 0.002,
+        "deem_weight": 1.0,
+        "graph_weight": 0.1,
+        "trust_weight": 0.1,
+        "open_weight": 0.01,
+        "l2_weight": 0.0001,
+        "open_warmup_epochs": 10
+      }
+    },
+    {
+      "id": "A3_PAIR_RESIDUAL_GEO_ONLY_A25",
+      "role": "mechanism control: graph roughness without the DEEM contrastive objective",
+      "config": {
+        "rho": 0.25,
+        "epochs": 100,
+        "learning_rate": 0.002,
+        "deem_weight": 0.0,
+        "graph_weight": 1.0,
+        "trust_weight": 0.1,
+        "open_weight": 0.01,
+        "l2_weight": 0.0001,
+        "open_warmup_epochs": 10
+      }
+    },
+    {
+      "id": "A4_PAIR_RESIDUAL_CD_A50",
+      "role": "mechanistic primary: stronger bounded strict self-free pair residual router",
+      "config": {
+        "rho": 0.5,
+        "epochs": 100,
+        "learning_rate": 0.002,
+        "deem_weight": 1.0,
+        "graph_weight": 0.0,
+        "trust_weight": 0.01,
+        "open_weight": 0.001,
+        "l2_weight": 0.0001,
+        "open_warmup_epochs": 10
+      }
+    },
+    {
+      "id": "A5_PAIR_RESIDUAL_CD_GEO_A50",
+      "role": "secondary graph ablation at the stronger bounded A4 actuation scale",
+      "config": {
+        "rho": 0.5,
+        "epochs": 100,
+        "learning_rate": 0.002,
+        "deem_weight": 1.0,
+        "graph_weight": 0.1,
+        "trust_weight": 0.01,
+        "open_weight": 0.001,
+        "l2_weight": 0.0001,
+        "open_warmup_epochs": 10
+      }
+    }
+  ],
+  "screen_cells": [
+    "lapeigvals_gsm8k_llama3b",
+    "math500_r1distill8b",
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "se_nq_open_llama8b",
+    "sciq_llama8b",
+    "se_squad_v2_llama8b",
+    "truthfulqa_llama8b"
+  ]
+}

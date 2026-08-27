@@ -1,0 +1,127 @@
+{
+  "schema": "deem_b3_iupgrd_boost_v1_config",
+  "experiment_id": "deem_b3_iupgrd_boost_v1",
+  "status": "retrospective_frozen_eight_cell_mechanism_screen",
+  "baseline": {
+    "arm_id": "B3",
+    "experiment_id": "deem_vs_iupcr_24cell_v1",
+    "score_ensemble": "mean_of_seed_posteriors",
+    "seeds": [0, 1, 2, 3, 4]
+  },
+  "iu_coordinate_system": {
+    "fit": "IU_FIT_DEFAULTS",
+    "family_residual_definition": "standardized IU family contribution residualized linearly against standardized IU score, then centered and scaled",
+    "b3_orientation_anchor": "sign of within-cell covariance between standardized B3 logit and standardized IU score",
+    "orientation_applied_to": ["iu_score", "iu_family_residuals"]
+  },
+  "graph": {
+    "coordinates": "B3-oriented IU family residuals",
+    "topology": "self_safe_self_tuning_union_knn",
+    "k": 7,
+    "tie_break": "lexical_row_id_rank",
+    "laplacian": "symmetric_normalized",
+    "moment": "trace_normalized_RtLR_and_RtLu",
+    "direction": "cross_only_negative_pooled_c"
+  },
+  "calibration": {
+    "pooling": "equal_within_dataset_family_then_equal_across_dataset_families",
+    "heldout_unit": "entire_dataset_family",
+    "target_moment_used_for_direction": false,
+    "iterations": 1
+  },
+  "scientific_boundary": {
+    "fit_is_label_free": true,
+    "baseline_is_frozen_mean_of_five_b3": true,
+    "iu_is_coordinate_generator_not_baseline": true,
+    "pooled_calibration_excludes_entire_target_dataset_family": true,
+    "one_stage_only": true,
+    "natural_24cell_targets_previously_opened": true,
+    "screen_is_exploratory_not_confirmation": true,
+    "confirmation_requires_new_unopened_dataset_families": true
+  },
+  "frozen_screen_rule": {
+    "mechanistic_primary": "E1_B3_ORTH_IUPGRD_FULL",
+    "primary_survives_only_if": {
+      "equal_family_auroc_delta_min": 0.0025,
+      "descriptive_family_bootstrap_lower_min": 0.0,
+      "exact_family_signflip_one_sided_p_max": 0.05,
+      "wins_plus_ties_min_of_8": 6,
+      "worst_cell_delta_min": -0.02
+    },
+    "secondary_variants_are_mechanism_controls_not_substitute_primaries": true
+  },
+  "family_axis_permutation": [2, 5, 1, 4, 0, 3],
+  "row_permutation_salt": "deem_b3_iupgrd_boost_v1_row_null",
+  "variants": [
+    {
+      "id": "E0_B3_EXACT_ALIAS",
+      "role": "mechanical exact mean-of-five B3 alias through the boost path",
+      "config": {
+        "trust_factor": 0.0,
+        "project_against_b3": true,
+        "family_axis_permuted": false,
+        "row_permuted": false
+      }
+    },
+    {
+      "id": "E1_B3_ORTH_IUPGRD_FULL",
+      "role": "mechanistic primary: one full 1/G B3-orthogonal IU-PGRD residual boost",
+      "config": {
+        "trust_factor": 1.0,
+        "project_against_b3": true,
+        "family_axis_permuted": false,
+        "row_permuted": false
+      }
+    },
+    {
+      "id": "E2_B3_ORTH_IUPGRD_HALF",
+      "role": "historical half-trust sensitivity with the identical projected weak learner",
+      "config": {
+        "trust_factor": 0.5,
+        "project_against_b3": true,
+        "family_axis_permuted": false,
+        "row_permuted": false
+      }
+    },
+    {
+      "id": "E3_B3_UNPROJECTED_IUPGRD_FULL",
+      "role": "projection ablation at full trust",
+      "config": {
+        "trust_factor": 1.0,
+        "project_against_b3": false,
+        "family_axis_permuted": false,
+        "row_permuted": false
+      }
+    },
+    {
+      "id": "E4_B3_ORTH_FAMILY_PERMUTED_FULL",
+      "role": "family-semantic alignment mechanism control",
+      "config": {
+        "trust_factor": 1.0,
+        "project_against_b3": true,
+        "family_axis_permuted": true,
+        "row_permuted": false
+      }
+    },
+    {
+      "id": "E5_B3_ORTH_ROW_PERMUTED_FULL",
+      "role": "sample-alignment mechanism control",
+      "config": {
+        "trust_factor": 1.0,
+        "project_against_b3": true,
+        "family_axis_permuted": false,
+        "row_permuted": true
+      }
+    }
+  ],
+  "screen_cells": [
+    "lapeigvals_gsm8k_llama3b",
+    "math500_r1distill8b",
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "se_nq_open_llama8b",
+    "sciq_llama8b",
+    "se_squad_v2_llama8b",
+    "truthfulqa_llama8b"
+  ]
+}

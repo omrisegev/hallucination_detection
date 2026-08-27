@@ -1,0 +1,113 @@
+{
+  "schema": "deem_b3_crossed_rook_v1_config",
+  "experiment_id": "deem_b3_crossed_rook_v1",
+  "status": "retrospective_target_free_architecture_development",
+  "baseline": {
+    "arm_id": "B3",
+    "experiment_id": "deem_vs_iupcr_24cell_v1",
+    "fit_warm_start": "same_cell_same_seed_frozen_state",
+    "score_ensemble": "mean_of_seed_posteriors",
+    "available_fit_seeds": [0, 1, 2, 3, 4],
+    "development_score_seeds": [0, 1, 2, 3, 4]
+  },
+  "representation": {
+    "grid": "3_sources_x_3_operators",
+    "coordinate": "frozen_b3_atomic_contribution",
+    "normalization": "same_cell_donor_center_scale_then_tanh",
+    "edge_coordinate": "donor_centered_pair_product",
+    "length_residualization": "none_unconditional_ebm_v1",
+    "correction": "0.5_tanh_theta_phi_over_sqrt_edges",
+    "orientation": "fixed_same_seed_frozen_b3"
+  },
+  "scientific_boundary": {
+    "fit_is_label_free": true,
+    "baseline_is_frozen": true,
+    "only_edge_theta_is_trainable": true,
+    "natural_24cell_targets_previously_opened": true,
+    "variant_search_is_exploratory": true,
+    "confirmation_requires_new_unopened_families": true,
+    "structural_evidence_was_length_conditioned_but_v1_fit_is_unconditional": true
+  },
+  "variants": [
+    {
+      "id": "A0_B3_EXACT_ALIAS",
+      "role": "verbatim same-seed frozen B3 score control",
+      "config": {
+        "mode": "alias",
+        "strength": 0.0,
+        "correction_cap": 0.5,
+        "epochs": 0
+      }
+    },
+    {
+      "id": "A1_ROW_9",
+      "role": "nine same-source different-operator quadratic edges",
+      "config": {
+        "mode": "row_only",
+        "strength": 1.0,
+        "correction_cap": 0.5,
+        "epochs": 100,
+        "learning_rate": 0.002,
+        "optimizer": "adam",
+        "gradient_clip": 5.0,
+        "trust_weight": 0.0,
+        "l2_weight": 0.0001
+      }
+    },
+    {
+      "id": "A2_COLUMN_9",
+      "role": "nine same-operator different-source quadratic edges",
+      "config": {
+        "mode": "column_only",
+        "strength": 1.0,
+        "correction_cap": 0.5,
+        "epochs": 100,
+        "learning_rate": 0.002,
+        "optimizer": "adam",
+        "gradient_clip": 5.0,
+        "trust_weight": 0.0,
+        "l2_weight": 0.0001
+      }
+    },
+    {
+      "id": "A3_CROSSED_ROOK_18",
+      "role": "primary union of the nine source and nine operator edges",
+      "config": {
+        "mode": "crossed",
+        "strength": 1.0,
+        "correction_cap": 0.5,
+        "epochs": 100,
+        "learning_rate": 0.002,
+        "optimizer": "adam",
+        "gradient_clip": 5.0,
+        "trust_weight": 0.0,
+        "l2_weight": 0.0001
+      }
+    },
+    {
+      "id": "A4_NONROOK_18_CONTROL",
+      "role": "cardinality-matched F3-permuted complement topology control",
+      "config": {
+        "mode": "nonrook_18",
+        "strength": 1.0,
+        "correction_cap": 0.5,
+        "epochs": 100,
+        "learning_rate": 0.002,
+        "optimizer": "adam",
+        "gradient_clip": 5.0,
+        "trust_weight": 0.0,
+        "l2_weight": 0.0001
+      }
+    }
+  ],
+  "screen_cells": [
+    "lapeigvals_gsm8k_llama3b",
+    "math500_r1distill8b",
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "se_nq_open_llama8b",
+    "sciq_llama8b",
+    "se_squad_v2_llama8b",
+    "truthfulqa_llama8b"
+  ]
+}

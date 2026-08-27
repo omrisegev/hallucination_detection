@@ -1,0 +1,171 @@
+{
+  "schema": "deem_b3_moe_v1_config",
+  "experiment_id": "deem_b3_moe_v1_round2",
+  "status": "retrospective_architecture_development_round2",
+  "baseline": {
+    "arm_id": "B3",
+    "experiment_id": "deem_vs_iupcr_24cell_v1",
+    "score_ensemble": "mean_of_seed_posteriors",
+    "seeds": [0, 1, 2, 3, 4]
+  },
+  "scientific_boundary": {
+    "fit_is_label_free": true,
+    "natural_24cell_targets_previously_opened": true,
+    "variant_search_is_exploratory": true,
+    "confirmation_requires_new_unopened_families": true
+  },
+  "development_screen_seed": [0],
+  "dataset_family_outer_folds": [
+    "gsm8k", "math500", "triviaqa", "hotpotqa",
+    "nq_open", "sciq", "squad_v2", "truthfulqa"
+  ],
+  "variants": [
+    {
+      "id": "C2_B3_CONTINUE_200",
+      "role": "continued-training control",
+      "config": {
+        "router": "uniform", "router_strength": 0.0,
+        "epochs": 200, "learning_rate": 0.001,
+        "router_l2": 0.0, "train_experts": true
+      }
+    },
+    {
+      "id": "C3_B3_CONTINUE_300",
+      "role": "continued-training control",
+      "config": {
+        "router": "uniform", "router_strength": 0.0,
+        "epochs": 300, "learning_rate": 0.001,
+        "router_l2": 0.0, "train_experts": true
+      }
+    },
+    {
+      "id": "R1_SHARED_SOFT_A50",
+      "role": "bias-free shared LOO router",
+      "config": {
+        "router": "loo_shared", "normalizer": "softmax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.1, "router_l2": 0.0,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "R1_SHARED_SPARSE_A25",
+      "role": "bias-free shared sparse LOO router",
+      "config": {
+        "router": "loo_shared", "normalizer": "sparsemax",
+        "router_strength": 0.25, "epochs": 100,
+        "learning_rate": 0.05, "router_l2": 0.0,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "R1_NOBIAS_SPARSE_A25",
+      "role": "bias-free family-specific sparse LOO router",
+      "config": {
+        "router": "loo_scalar", "normalizer": "sparsemax",
+        "router_strength": 0.25, "epochs": 100,
+        "learning_rate": 0.05, "router_l2": 0.0,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "R1_BALANCE_1",
+      "role": "strongly load-balanced sparse LOO router",
+      "config": {
+        "router": "loo_scalar", "normalizer": "sparsemax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.05, "balance_penalty": 1.0,
+        "router_l2": 0.0
+      }
+    },
+    {
+      "id": "R1_BALANCE_10",
+      "role": "strongly load-balanced sparse LOO router",
+      "config": {
+        "router": "loo_scalar", "normalizer": "sparsemax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.05, "balance_penalty": 10.0,
+        "router_l2": 0.0
+      }
+    },
+    {
+      "id": "R1_JOINT_SPLIT_SOFT_A50",
+      "role": "joint fine-tuning with faster bias-free router",
+      "config": {
+        "router": "loo_scalar", "normalizer": "softmax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.02, "expert_learning_rate": 0.001,
+        "router_l2": 0.0, "train_experts": true,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "R1_JOINT_SPLIT_SPARSE_A10",
+      "role": "joint fine-tuning with low-amplitude sparse router",
+      "config": {
+        "router": "loo_scalar", "normalizer": "sparsemax",
+        "router_strength": 0.1, "epochs": 100,
+        "learning_rate": 0.02, "expert_learning_rate": 0.001,
+        "router_l2": 0.0, "train_experts": true,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "R1_JOINT_SPLIT_SPARSE_A25",
+      "role": "joint fine-tuning with low-amplitude sparse router",
+      "config": {
+        "router": "loo_scalar", "normalizer": "sparsemax",
+        "router_strength": 0.25, "epochs": 100,
+        "learning_rate": 0.02, "expert_learning_rate": 0.001,
+        "router_l2": 0.0, "train_experts": true,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "X1_GLOBAL_RESIDUAL_A50",
+      "role": "bounded rank-one cross-family residual",
+      "config": {
+        "router": "global_residual", "router_strength": 0.5,
+        "epochs": 100, "learning_rate": 0.05,
+        "router_l2": 0.0001
+      }
+    },
+    {
+      "id": "X1_GLOBAL_RESIDUAL_A100",
+      "role": "bounded rank-one cross-family residual",
+      "config": {
+        "router": "global_residual", "router_strength": 1.0,
+        "epochs": 100, "learning_rate": 0.05,
+        "router_l2": 0.0001
+      }
+    },
+    {
+      "id": "X2_PAIRWISE_RESIDUAL_A50_L02",
+      "role": "bounded pairwise cross-family residual",
+      "config": {
+        "router": "pairwise_residual", "router_strength": 0.5,
+        "epochs": 100, "learning_rate": 0.02,
+        "router_l2": 0.0001
+      }
+    },
+    {
+      "id": "X2_PAIRWISE_RESIDUAL_A50_L05",
+      "role": "bounded pairwise cross-family residual",
+      "config": {
+        "router": "pairwise_residual", "router_strength": 0.5,
+        "epochs": 100, "learning_rate": 0.05,
+        "router_l2": 0.0001
+      }
+    }
+  ],
+  "screen_cells": [
+    "lapeigvals_gsm8k_llama3b",
+    "math500_r1distill8b",
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "se_nq_open_llama8b",
+    "sciq_llama8b",
+    "se_squad_v2_llama8b",
+    "truthfulqa_llama8b"
+  ]
+}

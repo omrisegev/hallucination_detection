@@ -1,0 +1,125 @@
+{
+  "schema": "deem_b3_local_descent_pgrd_v1_config",
+  "experiment_id": "deem_b3_local_descent_pgrd_v1",
+  "status": "retrospective_target_free_screen_fit_only",
+  "baseline": {
+    "arm_id": "B3",
+    "experiment_id": "deem_vs_iupcr_24cell_v1",
+    "score_ensemble": "exact_mean_of_seed_posteriors",
+    "seeds": [0, 1, 2, 3, 4]
+  },
+  "scientific_boundary": {
+    "fit_is_label_free": true,
+    "baseline_is_frozen": true,
+    "target_dataset_family_is_excluded_from_direction_calibration": true,
+    "target_cell_rows_enter_only_target_free_transductive_geometry": true,
+    "method_is_not_per_row_or_end_to_end_self_free_inference": true,
+    "gates_and_direction_are_frozen_at_the_b3_base": true,
+    "one_additive_stage_only": true,
+    "natural_24cell_targets_previously_opened": true,
+    "screen_is_exploratory": true,
+    "evaluation_is_a_separate_explicit_process": true
+  },
+  "residual": {
+    "source": "true_grouped_fold_leave_one_family_out_b3_contribution_residuals",
+    "grouped_folds": "group_id_and_raw_trace_length",
+    "ridge_alpha": 1.0
+  },
+  "graph": {
+    "coordinate_source": "all_present_true_loo_residual_families",
+    "topology": "self_safe_self_tuning_union_knn",
+    "k": 7,
+    "tie_break": "lexical_row_id_rank",
+    "laplacian": "symmetric_normalized",
+    "one_common_graph_for_gate_and_line_step": true,
+    "fixed_at_b3_base": true
+  },
+  "direction": {
+    "moment_pooling": "equal_cell_within_dataset_family_then_equal_dataset_family",
+    "target_dataset_family_exclusion": "strict",
+    "signed_expert": "t_ig_equals_pooled_direction_g_times_loo_residual_ig",
+    "family_stability": "positive_part_of_donor_dataset_family_sign_agreement"
+  },
+  "gate": {
+    "primary": "pi_ig_proportional_to_stability_g_times_positive_part_of_minus_t_ig_times_Lz_i",
+    "all_zero_row": "abstain",
+    "static_control": "repeat_exact_row_mean_of_primary_gate_preserving_average_abstention_mass",
+    "row_permuted_control": "content_addressed_deterministic_row_permutation_of_primary_gate"
+  },
+  "line_step": {
+    "direction_centering": "mean",
+    "direction_scaling": "unit_sd",
+    "alpha": "clip(-dTLz/dTLd,0,tau)",
+    "tau": "0.5/G_present",
+    "reject_non_descent": true,
+    "roughness_must_not_increase": true
+  },
+  "variants": [
+    {
+      "id": "L0_B3_EXACT_ALIAS",
+      "role": "mechanical exact mean-five B3 alias through the local-descent artifact path",
+      "config": {
+        "gate_mode": "alias",
+        "graph_k": 7,
+        "tau_numerator": 0.5,
+        "residual_source": "loo",
+        "laplacian_kind": "symmetric_normalized",
+        "direction_pooling": "equal_dataset_family",
+        "correction_centering": "mean",
+        "correction_scaling": "unit_sd"
+      }
+    },
+    {
+      "id": "L1_LOCAL_DESCENT_PRIMARY",
+      "role": "primary sparse sample-local negative-roughness-derivative gate",
+      "config": {
+        "gate_mode": "local",
+        "graph_k": 7,
+        "tau_numerator": 0.5,
+        "residual_source": "loo",
+        "laplacian_kind": "symmetric_normalized",
+        "direction_pooling": "equal_dataset_family",
+        "correction_centering": "mean",
+        "correction_scaling": "unit_sd"
+      }
+    },
+    {
+      "id": "L2_STATIC_GATE_CONTROL",
+      "role": "same average family and abstention mass as the primary gate but no sample-local routing",
+      "config": {
+        "gate_mode": "static",
+        "graph_k": 7,
+        "tau_numerator": 0.5,
+        "residual_source": "loo",
+        "laplacian_kind": "symmetric_normalized",
+        "direction_pooling": "equal_dataset_family",
+        "correction_centering": "mean",
+        "correction_scaling": "unit_sd"
+      }
+    },
+    {
+      "id": "L3_ROW_PERMUTED_GATE_CONTROL",
+      "role": "preserve the exact primary gate rows and destroy only their row alignment",
+      "config": {
+        "gate_mode": "row_permuted",
+        "graph_k": 7,
+        "tau_numerator": 0.5,
+        "residual_source": "loo",
+        "laplacian_kind": "symmetric_normalized",
+        "direction_pooling": "equal_dataset_family",
+        "correction_centering": "mean",
+        "correction_scaling": "unit_sd"
+      }
+    }
+  ],
+  "screen_cells": [
+    "lapeigvals_gsm8k_llama3b",
+    "math500_r1distill8b",
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "se_nq_open_llama8b",
+    "sciq_llama8b",
+    "se_squad_v2_llama8b",
+    "truthfulqa_llama8b"
+  ]
+}

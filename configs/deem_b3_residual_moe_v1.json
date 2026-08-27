@@ -1,0 +1,161 @@
+{
+  "schema": "deem_b3_residual_moe_v1_config",
+  "experiment_id": "deem_b3_residual_moe_v1",
+  "status": "retrospective_residual_family_gate_development",
+  "baseline": {
+    "arm_id": "B3",
+    "experiment_id": "deem_vs_iupcr_24cell_v1",
+    "score_ensemble": "mean_of_seed_posteriors",
+    "seeds": [0, 1, 2, 3, 4]
+  },
+  "scientific_boundary": {
+    "fit_is_label_free": true,
+    "entire_dataset_family_is_excluded_from_calibration": true,
+    "natural_24cell_targets_previously_opened": true,
+    "variant_search_is_exploratory": true,
+    "confirmation_requires_new_unopened_families": true
+  },
+  "variants": [
+    {
+      "id": "H0_B3_EXACT_ALIAS",
+      "role": "mechanical exact-identity control",
+      "config": {
+        "iterations": 1,
+        "trust": 0.0,
+        "survival": "uniform",
+        "gate_strength": 0.0
+      }
+    },
+    {
+      "id": "H1_NRM_B3_HALF",
+      "role": "B3 analogue of the previously successful neutral residual mode",
+      "config": {
+        "iterations": 1,
+        "trust": 0.08333333333333333,
+        "survival": "uniform",
+        "gate_strength": 0.0
+      }
+    },
+    {
+      "id": "H1_NRM_B3_FULL",
+      "role": "historical one-over-family-count trust scale",
+      "config": {
+        "iterations": 1,
+        "trust": 0.16666666666666666,
+        "survival": "uniform",
+        "gate_strength": 0.0
+      }
+    },
+    {
+      "id": "H2_NRM_B3_ITER2_HALF",
+      "role": "two small residual boosting steps from exact B3",
+      "config": {
+        "iterations": 2,
+        "trust": 0.08333333333333333,
+        "survival": "uniform",
+        "gate_strength": 0.0
+      }
+    },
+    {
+      "id": "H3_STABLE_RESIDUAL_GATE_R25",
+      "role": "sample residual experts with donor jackknife survival and seed stability",
+      "config": {
+        "iterations": 1,
+        "trust": 0.08333333333333333,
+        "survival": "jackknife",
+        "gate_strength": 0.25,
+        "novelty_strength": 1.0,
+        "stability_strength": 1.0,
+        "temperature": 1.0
+      }
+    },
+    {
+      "id": "H4_DUFS_PRIOR_GATE_R25",
+      "role": "DUFS survival as a gate prior rather than a standalone selector",
+      "config": {
+        "iterations": 1,
+        "trust": 0.08333333333333333,
+        "survival": "dufs",
+        "gate_strength": 0.25,
+        "novelty_strength": 1.0,
+        "stability_strength": 1.0,
+        "temperature": 1.0
+      }
+    },
+    {
+      "id": "H5_HYBRID_RESIDUAL_GATE_R25",
+      "role": "jackknife-STG and DUFS priors combined with residual novelty",
+      "config": {
+        "iterations": 1,
+        "trust": 0.08333333333333333,
+        "survival": "hybrid",
+        "gate_strength": 0.25,
+        "novelty_strength": 1.0,
+        "stability_strength": 1.0,
+        "temperature": 1.0
+      }
+    },
+    {
+      "id": "H5_HYBRID_RESIDUAL_GATE_R50",
+      "role": "stronger bounded hybrid family competition",
+      "config": {
+        "iterations": 1,
+        "trust": 0.08333333333333333,
+        "survival": "hybrid",
+        "gate_strength": 0.5,
+        "novelty_strength": 1.0,
+        "stability_strength": 1.0,
+        "temperature": 1.0
+      }
+    },
+    {
+      "id": "H6_HYBRID_ITER2_R25",
+      "role": "two residual boosting steps with bounded hybrid gates",
+      "config": {
+        "iterations": 2,
+        "trust": 0.08333333333333333,
+        "survival": "hybrid",
+        "gate_strength": 0.25,
+        "novelty_strength": 1.0,
+        "stability_strength": 1.0,
+        "temperature": 1.0
+      }
+    },
+    {
+      "id": "C1_HYBRID_NO_SEED_STABILITY",
+      "role": "ablation of the five-seed reliability signal",
+      "config": {
+        "iterations": 1,
+        "trust": 0.08333333333333333,
+        "survival": "hybrid",
+        "gate_strength": 0.25,
+        "novelty_strength": 1.0,
+        "stability_strength": 0.0,
+        "temperature": 1.0
+      }
+    },
+    {
+      "id": "C2_HYBRID_NO_NOVELTY",
+      "role": "ablation of sample-specific residual novelty",
+      "config": {
+        "iterations": 1,
+        "trust": 0.08333333333333333,
+        "survival": "hybrid",
+        "gate_strength": 0.25,
+        "novelty_strength": 0.0,
+        "stability_strength": 1.0,
+        "temperature": 1.0
+      }
+    }
+  ],
+  "screen_cells": [
+    "lapeigvals_gsm8k_llama3b",
+    "math500_r1distill8b",
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "se_nq_open_llama8b",
+    "sciq_llama8b",
+    "se_squad_v2_llama8b",
+    "truthfulqa_llama8b"
+  ]
+}

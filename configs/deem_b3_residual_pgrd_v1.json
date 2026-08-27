@@ -1,0 +1,143 @@
+{
+  "schema": "deem_b3_residual_pgrd_v1_config",
+  "experiment_id": "deem_b3_residual_pgrd_v1",
+  "status": "retrospective_true_loo_residual_and_pgrd_development",
+  "baseline": {
+    "arm_id": "B3",
+    "experiment_id": "deem_vs_iupcr_24cell_v1",
+    "score_ensemble": "mean_of_seed_posteriors",
+    "seeds": [0, 1, 2, 3, 4]
+  },
+  "scientific_boundary": {
+    "fit_is_label_free": true,
+    "pooled_calibration_excludes_entire_target_dataset_family": true,
+    "within_cell_variants_use_no_donor_cells": true,
+    "natural_24cell_targets_previously_opened": true,
+    "variant_search_is_exploratory": true,
+    "confirmation_requires_new_unopened_families": true
+  },
+  "frozen_screen_rule": {
+    "mechanistic_primary": "P3_WITHIN_LOO_FULL",
+    "primary_survives_only_if": {
+      "equal_family_auroc_delta_min": 0.0025,
+      "descriptive_family_bootstrap_lower_min": 0.0,
+      "exact_family_signflip_one_sided_p_max": 0.05,
+      "wins_plus_ties_min_of_8": 6,
+      "worst_cell_delta_min": -0.02
+    },
+    "secondary_variants_are_mechanism_ablations_not_substitute_primaries": true
+  },
+  "variants": [
+    {
+      "id": "P0_B3_EXACT_ALIAS",
+      "role": "mechanical exact B3 control through the PGRD path",
+      "config": {
+        "pooling": "donor_family",
+        "residual_source": "baseline",
+        "iterations": 1,
+        "trust": 0.0,
+        "gate_strength": 0.0
+      }
+    },
+    {
+      "id": "P1_WITHIN_BASE_FULL",
+      "role": "clean within-cell PGRD-A adaptation on B3-orthogonal residuals",
+      "config": {
+        "pooling": "within_cell",
+        "residual_source": "baseline",
+        "iterations": 1,
+        "trust_factor": 1.0,
+        "gate_strength": 0.0
+      }
+    },
+    {
+      "id": "P2_POOLED_BASE_HIST_HALF",
+      "role": "donor-family pooled PGRD with the historical transferred half-trust",
+      "config": {
+        "pooling": "donor_family",
+        "residual_source": "baseline",
+        "iterations": 1,
+        "trust_factor": 0.5,
+        "gate_strength": 0.0
+      }
+    },
+    {
+      "id": "P2_POOLED_BASE_FULL",
+      "role": "full one-over-present-family trust sensitivity",
+      "config": {
+        "pooling": "donor_family",
+        "residual_source": "baseline",
+        "iterations": 1,
+        "trust_factor": 1.0,
+        "gate_strength": 0.0
+      }
+    },
+    {
+      "id": "P3_WITHIN_LOO_FULL",
+      "role": "primary clean within-cell PGRD on true leave-one-family-out residuals",
+      "config": {
+        "pooling": "within_cell",
+        "residual_source": "loo",
+        "iterations": 1,
+        "trust_factor": 1.0,
+        "gate_strength": 0.0
+      }
+    },
+    {
+      "id": "P4_POOLED_LOO_HIST_HALF",
+      "role": "pooled PGRD direction on true novelty residuals with transferred half-trust",
+      "config": {
+        "pooling": "donor_family",
+        "residual_source": "loo",
+        "iterations": 1,
+        "trust_factor": 0.5,
+        "gate_strength": 0.0
+      }
+    },
+    {
+      "id": "P5_POOLED_BASE_LOO_GATE_R25",
+      "role": "PGRD correction direction with LOO novelty and seed-stability gate",
+      "config": {
+        "pooling": "donor_family",
+        "residual_source": "baseline",
+        "iterations": 1,
+        "trust_factor": 0.5,
+        "gate_strength": 0.25,
+        "temperature": 1.0
+      }
+    },
+    {
+      "id": "P6_POOLED_LOO_GATE_R25",
+      "role": "true LOO residual experts, pooled graph direction, bounded family gate",
+      "config": {
+        "pooling": "donor_family",
+        "residual_source": "loo",
+        "iterations": 1,
+        "trust_factor": 0.5,
+        "gate_strength": 0.25,
+        "temperature": 1.0
+      }
+    },
+    {
+      "id": "P7_POOLED_LOO_ITER2",
+      "role": "two small PGRD residual boosting updates from B3",
+      "config": {
+        "pooling": "donor_family",
+        "residual_source": "loo",
+        "iterations": 2,
+        "trust_factor": 0.5,
+        "gate_strength": 0.0
+      }
+    }
+  ],
+  "screen_cells": [
+    "lapeigvals_gsm8k_llama3b",
+    "math500_r1distill8b",
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "se_nq_open_llama8b",
+    "sciq_llama8b",
+    "se_squad_v2_llama8b",
+    "truthfulqa_llama8b"
+  ]
+}

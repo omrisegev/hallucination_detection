@@ -1,0 +1,184 @@
+{
+  "schema": "deem_b3_moe_v1_config",
+  "experiment_id": "deem_b3_moe_v1_round3",
+  "status": "retrospective_deem_like_cross_family_development",
+  "baseline": {
+    "arm_id": "B3",
+    "experiment_id": "deem_vs_iupcr_24cell_v1",
+    "score_ensemble": "mean_of_seed_posteriors",
+    "seeds": [0, 1, 2, 3, 4]
+  },
+  "scientific_boundary": {
+    "fit_is_label_free": true,
+    "natural_24cell_targets_previously_opened": true,
+    "variant_search_is_exploratory": true,
+    "confirmation_requires_new_unopened_families": true
+  },
+  "development_screen_seed": [0],
+  "dataset_family_outer_folds": [
+    "gsm8k", "math500", "triviaqa", "hotpotqa",
+    "nq_open", "sciq", "squad_v2", "truthfulqa"
+  ],
+  "variants": [
+    {
+      "id": "M0_DIAG_SPARSE_A50_L02",
+      "role": "within-family multinomial matched control",
+      "config": {
+        "router": "multinomial_diagonal", "normalizer": "sparsemax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.02, "router_l2": 0.0001,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "M1_OFFDIAG_SPARSE_A25_L01",
+      "role": "DEEM-like off-diagonal family-state mixing",
+      "config": {
+        "router": "multinomial_offdiag", "normalizer": "sparsemax",
+        "router_strength": 0.25, "epochs": 100,
+        "learning_rate": 0.01, "router_l2": 0.0001,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "M1_OFFDIAG_SPARSE_A50_L02",
+      "role": "DEEM-like off-diagonal family-state mixing",
+      "config": {
+        "router": "multinomial_offdiag", "normalizer": "sparsemax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.02, "router_l2": 0.0001,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "M1_OFFDIAG_SPARSE_A100_L02",
+      "role": "DEEM-like off-diagonal family-state mixing",
+      "config": {
+        "router": "multinomial_offdiag", "normalizer": "sparsemax",
+        "router_strength": 1.0, "epochs": 100,
+        "learning_rate": 0.02, "router_l2": 0.0001,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "M2_FULL_SPARSE_A25_L01",
+      "role": "DEEM-like full family-state mixing",
+      "config": {
+        "router": "multinomial_full", "normalizer": "sparsemax",
+        "router_strength": 0.25, "epochs": 100,
+        "learning_rate": 0.01, "router_l2": 0.0001,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "M2_FULL_SPARSE_A50_L02",
+      "role": "DEEM-like full family-state mixing",
+      "config": {
+        "router": "multinomial_full", "normalizer": "sparsemax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.02, "router_l2": 0.0001,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "M2_FULL_SPARSE_A100_L02",
+      "role": "DEEM-like full family-state mixing",
+      "config": {
+        "router": "multinomial_full", "normalizer": "sparsemax",
+        "router_strength": 1.0, "epochs": 100,
+        "learning_rate": 0.02, "router_l2": 0.0001,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "M2_FULL_SOFT_A50_L02",
+      "role": "smooth matched control for full family-state mixing",
+      "config": {
+        "router": "multinomial_full", "normalizer": "softmax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.02, "router_l2": 0.0001,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "M2_FULL_SPARSE_A50_L05",
+      "role": "higher-learning-rate full family-state mixing",
+      "config": {
+        "router": "multinomial_full", "normalizer": "sparsemax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.05, "router_l2": 0.0001,
+        "train_router_bias": false
+      }
+    },
+    {
+      "id": "M2_FULL_SPARSE_A50_BIAS",
+      "role": "full family-state mixing with static state bias",
+      "config": {
+        "router": "multinomial_full", "normalizer": "sparsemax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.02, "router_l2": 0.0001,
+        "train_router_bias": true
+      }
+    },
+    {
+      "id": "M1_OFFDIAG_SPARSE_A50_NOISE005",
+      "role": "identity-plus-small-noise off-diagonal mixing",
+      "config": {
+        "router": "multinomial_offdiag", "normalizer": "sparsemax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.02, "router_l2": 0.0001,
+        "router_init_sd": 0.005, "train_router_bias": false
+      }
+    },
+    {
+      "id": "M1_OFFDIAG_SPARSE_A100_NOISE005",
+      "role": "identity-plus-small-noise off-diagonal mixing",
+      "config": {
+        "router": "multinomial_offdiag", "normalizer": "sparsemax",
+        "router_strength": 1.0, "epochs": 100,
+        "learning_rate": 0.02, "router_l2": 0.0001,
+        "router_init_sd": 0.005, "train_router_bias": false
+      }
+    },
+    {
+      "id": "M2_FULL_SPARSE_A50_NOISE005",
+      "role": "paper-faithful identity-plus-small-noise full mixing",
+      "config": {
+        "router": "multinomial_full", "normalizer": "sparsemax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.02, "router_l2": 0.0001,
+        "router_init_sd": 0.005, "train_router_bias": false
+      }
+    },
+    {
+      "id": "M2_FULL_SPARSE_A100_NOISE005",
+      "role": "paper-faithful identity-plus-small-noise full mixing",
+      "config": {
+        "router": "multinomial_full", "normalizer": "sparsemax",
+        "router_strength": 1.0, "epochs": 100,
+        "learning_rate": 0.02, "router_l2": 0.0001,
+        "router_init_sd": 0.005, "train_router_bias": false
+      }
+    },
+    {
+      "id": "M2_FULL_SPARSE_A50_NOISE020",
+      "role": "larger symmetry-breaking full mixing ablation",
+      "config": {
+        "router": "multinomial_full", "normalizer": "sparsemax",
+        "router_strength": 0.5, "epochs": 100,
+        "learning_rate": 0.02, "router_l2": 0.0001,
+        "router_init_sd": 0.02, "train_router_bias": false
+      }
+    }
+  ],
+  "screen_cells": [
+    "lapeigvals_gsm8k_llama3b",
+    "math500_r1distill8b",
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "se_nq_open_llama8b",
+    "sciq_llama8b",
+    "se_squad_v2_llama8b",
+    "truthfulqa_llama8b"
+  ]
+}
