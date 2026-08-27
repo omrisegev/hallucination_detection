@@ -25,4 +25,4 @@ This packet keeps the main letter readable while preserving the complete researc
   - [White-box depth](../advisor_update_aug21_2026/03_whitebox_depth.html)
   - [Localization, prefix, LEASH and RAG](../advisor_update_aug21_2026/04_localization_and_early.html)
 
-The three SVGs in `figures/` are summary plots for the letter. They do not replace the existing detailed figures; the asset index links the full figure/report inventory and labels exploratory artifacts separately from certified or frozen results.
+The four SVGs in `figures/` are summary plots for the letter and deep dives. They do not replace the existing detailed figures; the asset index links the full figure/report inventory and labels exploratory artifacts separately from certified or frozen results.

@@ -19,7 +19,7 @@ The reconstruction crosses all 13 frozen answer-level methods with one shared lo
 - Later aligned three-scorer adapters: +0.33 to +0.58 F1 points versus matched IU, with intervals crossing zero.
 - ProcessBench component audit: 13 response-only heads span 17.36%-19.20% macro F1; token-only reaches 29.44%; the best response-token combination reaches 31.07%.
 - PRMBench component audit: token-only reaches 0.6712 AUROC, above the best response-token combination at 0.6493; the supervised Qwen2.5-Math-PRM-7B ceiling is 0.7983.
-- Later CIW transfer: CIW response + frozen token-IU29 reaches 30.91% ProcessBench macro F1 versus 31.02% for B3, and 0.5811 PRMBench AUROC versus 0.5842 for B3. This did not test a token-level CIW model.
+- Later CIW transfer: CIW response + frozen token-IU29 reaches 30.91% ProcessBench macro F1 versus 31.02% for CA-DEEM (internal B3), and 0.5811 PRMBench AUROC versus 0.5842 for CA-DEEM. This did not test a token-level CIW model.
 
 The stable contribution is the localization framework and token-first construction, not a robust graph increment. The direct follow-up is to adapt the innovation idea to token trajectories and validate the resulting localizer on new data.
 

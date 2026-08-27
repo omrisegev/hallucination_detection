@@ -14,7 +14,7 @@ DUFS-LIU then used DUFS in a structurally different way. It did not select a sub
 
 HARP motivated the move from sample geometry to residual contribution geometry. Family-NRM decomposes the IU score into six provenance families defined by the raw origin of each measurement—entropy level, entropy change, two energy families, top-probability shape and trace structure—removes the shared score direction and searches for a neutral residual covariance mode. Atomic label-free variants that treated every feature as its own direction lost to IU-PCR and transferred poorly; learned and refined partitions did not recover the family result. The positive result therefore uses a meaningful but manually supplied provenance prior and unlabeled donor environments.
 
-DEEM supplied a nonlinear energy-model direction. Residual-graph DEEM failed synthetic specificity. Graph-free continuous B3 was positive but registered as noninferior rather than superior. CIW-DEEM is the current structured-input challenger: it separates common source/operator structure from innovation residuals before applying unchanged B3. Its point estimate improved slightly, but the registered promotion threshold was not met.
+DEEM supplied a nonlinear energy-model direction. Residual-graph DEEM failed synthetic specificity. Our **Continuous Additive DEEM (CA-DEEM)** adapter—internally registered as B3—was positive but registered as noninferior rather than superior. CIW-DEEM is the current structured-input challenger: it separates common source/operator structure from innovation residuals before applying unchanged CA-DEEM. Its point estimate improved slightly, but the registered promotion threshold was not met.
 
 ## Core equations
 
@@ -74,16 +74,16 @@ h_g(x)=\sum_{i\in g}w_{0i}F_i(x),
 
 After residualizing each contribution against `b`, Family-NRM averages residual covariances across source environments, chooses the eigenmode closest to the neutral eigenvalue one, orients it toward the equal-family anchor, and adds the standardized residual coordinate back to `b`.
 
-### DEEM-B3 and CIW-DEEM
+### Continuous Additive DEEM (internal arm B3) and CIW-DEEM
 
-Continuous B3 uses a family-wise additive energy correction:
+CA-DEEM uses a family-wise additive energy correction:
 
 \[
 c_g=w_g\odot x_g+\frac{2}{|g|}\tanh\!\left(V_g\tanh(W_gx_g+d_g)+e_g\right),
 \qquad \ell=b+\sum_g\mathbf1^\top c_g.
 \]
 
-CIW-DEEM leaves B3 unchanged and transforms each structured input coordinate using cross-fitted innovation:
+CIW-DEEM leaves CA-DEEM unchanged and transforms each structured input coordinate using cross-fitted innovation:
 
 \[
 \alpha_j=0.5\,\mathrm{clip}(R^2_{\mathrm{OOF},j},0,1),
@@ -95,7 +95,7 @@ CIW-DEEM leaves B3 unchanged and transforms each structured input coordinate usi
 x'_j=(1-\alpha_j)x_j+\alpha_j\mathrm{innovation}_j.
 \]
 
-No correctness labels enter the transform or B3 fit.
+No correctness labels enter the transform or CA-DEEM fit.
 
 ## Result interpretation
 
@@ -104,9 +104,10 @@ No correctness labels enter the transform or B3 fit.
 - SU-PCR: +1.26 points with a wide crossing interval; inconclusive.
 - DUFS-LIU on the frozen 24 cells: 0.77414 versus IU-PCR 0.77406; effectively tied.
 - Family-NRM on reserved PRMBench responses: 0.72521 versus 0.72060; +0.460 points with a positive interval.
-- Graph-free B3: small positive result, registered as noninferiority.
-- CIW-DEEM: 0.78203 cell-macro / 0.74923 equal-family AUROC; equal-family delta over B3 +0.073 points, below the +0.25-point promotion threshold.
-- Crossed-Rook and confidence-envelope B3 follow-ups remain retrospective exploratory artifacts and did not pass promotion.
+- CA-DEEM (internal B3): small positive result, registered as noninferiority.
+- CIW-DEEM: 0.78203 cell-macro AUROC. Its registered equal-family delta over CA-DEEM was +0.073 points, below the +0.25-point promotion threshold.
+- Supervised group-OOF logistic regression reaches 0.78278 cell-macro AUROC on the CIW inputs versus 0.78341 before CIW, so the transform does not reveal additional linear separability.
+- Crossed-Rook and confidence-envelope CA-DEEM follow-ups remain retrospective exploratory artifacts and did not pass promotion.
 
 ## Detailed visual evidence
 

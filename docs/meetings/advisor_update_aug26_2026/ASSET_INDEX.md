@@ -47,9 +47,9 @@ This index makes the existing work reusable without forcing every figure into th
 - [Family-NRM reserved PRMBench](../../../results/neutral_residual_mode_prmbench_v1/REPORT.md).
 - [Family-NRM HLE](../../../results/neutral_residual_mode_hle_v1/REPORT.md) and [CS/IU](../../../results/neutral_residual_mode_cs_iu_v1/REPORT.md).
 - [DEEM versus IU-PCR frozen adapter](../../../results/deem_vs_iupcr_24cell_v1/report/B199/REPORT.md).
-- [CIW-DEEM official challenger](../../../../../local_cache/worktrees/deem_b3_moe_v1/results/ciw_deem_v1/REPORT.md) — **not promoted**; equal-family gain below the registered threshold.
+- [CIW-DEEM official challenger](../../../../../local_cache/worktrees/deem_b3_moe_v1/results/ciw_deem_v1/REPORT.md) — structured-input challenger to Continuous Additive DEEM (internal B3); **not promoted**.
 - [Crossed-Rook explainer](../../../../../local_cache/worktrees/deem_b3_moe_v1/local_cache/deem_b3_moe_v1/crossed_rook_v1_eval_final/crossed_rook_explainer.png) and [report](../../../../../local_cache/worktrees/deem_b3_moe_v1/local_cache/deem_b3_moe_v1/crossed_rook_v1_eval_final/REPORT.md) — **exploratory/not promoted**.
-- [Confidence-envelope B3 follow-up](../../../../../local_cache/worktrees/deem_b3_moe_v1/local_cache/deem_b3_moe_v1/confidence_envelope_8dev_16held_v1/REPORT.md) — **exploratory/not promoted**.
+- [Confidence-envelope CA-DEEM follow-up](../../../../../local_cache/worktrees/deem_b3_moe_v1/local_cache/deem_b3_moe_v1/confidence_envelope_8dev_16held_v1/REPORT.md) — internal B3 artifact; **exploratory/not promoted**.
 
 ## White-box plots and reports
 

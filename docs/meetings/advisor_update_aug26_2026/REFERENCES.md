@@ -14,7 +14,7 @@
 - Junchen Yang, Ofir Lindenbaum, Yuval Kluger and Ariel Jaffe. **Multi-modal Differentiable Unsupervised Feature Selection.** Inspired the shared-operator graph control.
 - Amitai Yacobi, Ofir Lindenbaum and Uri Shaham. **Generalizable and Robust Spectral Method for Multi-view Representation Learning (SpecRaGE).** Inspired multi-view graph constructions; the repository methods are adaptations.
 - Junjie Hu et al. [**HARP: Hallucination Detection via Reasoning Subspace Projection.**](https://arxiv.org/abs/2509.11536) 2025 preprint. Inspired the target-versus-nuisance subspace architecture used in contribution space. We did not reproduce HARP's supervised hidden-state detector.
-- Ariel Maymon, Yanir Buznah and Uri Shaham. [**Unsupervised Ensemble Learning Through Deep Energy-based Models.**](https://arxiv.org/abs/2601.20556) AISTATS 2026. Inspired the official-package adapter and the later continuous B3/CIW adaptations; those are not paper-exact reproductions.
+- Ariel Maymon, Yanir Buznah and Uri Shaham. [**Unsupervised Ensemble Learning Through Deep Energy-based Models.**](https://arxiv.org/abs/2601.20556) AISTATS 2026. Inspired the official-package adapter and the later Continuous Additive DEEM/CIW-DEEM adaptations; those are not paper-exact reproductions.
 
 ## White-box detection
 

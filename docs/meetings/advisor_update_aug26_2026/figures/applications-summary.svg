@@ -1,37 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="620" viewBox="0 0 1100 620" role="img" aria-labelledby="title desc">
-  <title id="title">Application results summary</title>
-  <desc id="desc">Localization, prefix prediction, stopping, and RAG results kept as separate tasks.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="410" viewBox="0 0 1100 410" role="img" aria-labelledby="title desc">
+  <title id="title">Application results worth taking forward</title>
+  <desc id="desc">First-error localization and fixed-prefix prediction are the two positive application results.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8fffc"/><stop offset="1" stop-color="#edf8f4"/></linearGradient>
-    <style>.title{font:700 26px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}.sub{font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#536079}.panel{fill:#fff;stroke:#d8e9e2;stroke-width:1.5}.h{font:700 17px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#27334d}.label{font:14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#45516a}.value{font:700 22px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}.note{font:13px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#68748a}.good{fill:#2d9d78}.base{fill:#9aa8b9}.warn{fill:#e19a35}.bad{fill:#d85c5c}.blue{fill:#4f7cac}.tag{font:700 12px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#fff}</style>
+    <style>.title{font:700 26px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}.sub{font:15px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#536079}.panel{fill:#fff;stroke:#d8e9e2;stroke-width:1.5}.h{font:700 17px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#27334d}.label{font:14px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#45516a}.value{font:700 21px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#172033}.note{font:13px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#68748a}.good{fill:#2d9d78}.base{fill:#9aa8b9}.tag{font:700 12px -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;fill:#fff}</style>
   </defs>
-  <rect width="1100" height="620" rx="24" fill="url(#bg)"/>
-  <text x="42" y="50" class="title">Applications: four different questions, four separate result contracts</text>
-  <text x="42" y="78" class="sub">No pooled application score: first-error F1, prefix AUROC, stopping frontier and RAG panels answer different questions.</text>
+  <rect width="1100" height="410" rx="24" fill="url(#bg)"/>
+  <text x="42" y="50" class="title">Applications worth taking forward</text>
+  <text x="42" y="78" class="sub">The clearest results are first-error localization and prediction from incomplete reasoning prefixes.</text>
 
-  <rect x="35" y="108" width="500" height="204" rx="18" class="panel"/>
+  <rect x="35" y="108" width="500" height="226" rx="18" class="panel"/>
   <text x="62" y="143" class="h">First-error localization · ProcessBench macro F1</text>
   <text x="62" y="190" class="label">Mind-the-Gap control</text><rect x="228" y="169" width="154" height="28" rx="7" class="base"/><text x="393" y="190" class="value">25.71%</text>
-  <text x="62" y="242" class="label">GL-LIU</text><rect x="228" y="221" width="188" height="28" rx="7" class="good"/><text x="427" y="242" class="value">31.36%</text>
-  <text x="62" y="283" class="note">Later matched graph increments: +0.33–0.58 pt, intervals cross zero.</text>
+  <text x="62" y="242" class="label">Our GL-LIU</text><rect x="228" y="221" width="188" height="28" rx="7" class="good"/><text x="427" y="242" class="value">31.36%</text>
+  <rect x="62" y="275" width="116" height="28" rx="14" class="good"/><text x="80" y="294" class="tag">8 / 8 CELLS</text>
+  <text x="192" y="294" class="note">Token-level fusion supplies most of the gain.</text>
 
-  <rect x="558" y="108" width="507" height="204" rx="18" class="panel"/>
-  <text x="584" y="143" class="h">Causal prefix prediction · AUROC</text>
-  <text x="584" y="190" class="label">64 tokens</text><text x="697" y="190" class="value">0.5955</text><rect x="804" y="168" width="218" height="28" rx="7" class="good"/>
-  <text x="584" y="238" class="label">256 tokens</text><text x="697" y="238" class="value">0.6572</text><rect x="804" y="216" width="241" height="28" rx="7" class="good"/>
-  <text x="584" y="283" class="note">Step272 beats Unified-28 by +3.26 and +4.58 AUROC points.</text>
+  <rect x="558" y="108" width="507" height="226" rx="18" class="panel"/>
+  <text x="584" y="143" class="h">Fixed-prefix prediction · ProcessBench AUROC</text>
+  <text x="584" y="188" class="label">64 tokens</text><text x="688" y="188" class="note">0.5629</text><rect x="753" y="169" width="116" height="24" rx="6" class="base"/><text x="885" y="188" class="value">0.5955</text>
+  <text x="584" y="238" class="label">256 tokens</text><text x="688" y="238" class="note">0.6114</text><rect x="753" y="219" width="152" height="24" rx="6" class="base"/><text x="921" y="238" class="value">0.6572</text>
+  <text x="584" y="278" class="note">Gray bar/value = Unified-28; bold value = selected two-head model.</text>
+  <text x="584" y="306" class="note">Both paired intervals are above zero.</text>
 
-  <rect x="35" y="334" width="500" height="213" rx="18" class="panel"/>
-  <text x="62" y="369" class="h">Actual LEASH stopping · six eligible cells</text>
-  <text x="62" y="420" class="label">Generated tokens</text><text x="251" y="420" class="value">−38.8%</text><rect x="364" y="397" width="132" height="30" rx="8" class="good"/>
-  <text x="62" y="472" class="label">Pass@1</text><text x="251" y="472" class="value">−18.3 pp</text><rect x="364" y="449" width="132" height="30" rx="8" class="bad"/>
-  <text x="62" y="517" class="note">Real savings, real accuracy loss; two Mistral protocol blocks.</text>
-
-  <rect x="558" y="334" width="507" height="213" rx="18" class="panel"/>
-  <text x="584" y="369" class="h">RAGTruth · label-free AUROC by unit</text>
-  <text x="584" y="420" class="label">Answer</text><text x="687" y="420" class="value">0.7274</text><rect x="797" y="398" width="225" height="28" rx="7" class="blue"/>
-  <text x="584" y="464" class="label">Sentence</text><text x="687" y="464" class="value">0.6892</text><rect x="797" y="442" width="213" height="28" rx="7" class="blue"/>
-  <text x="584" y="508" class="label">Token</text><text x="687" y="508" class="value">0.6587</text><rect x="797" y="486" width="204" height="28" rx="7" class="blue"/>
-  <text x="584" y="535" class="note">GASP, Lettuce and RefChecker remain separate panels.</text>
-  <text x="42" y="584" class="note">Positive directions: first-error localization and fixed-prefix prediction. Token-level fusion is the main localization driver.</text>
+  <text x="42" y="375" class="note">Stopping and RAG were also tested, but neither currently supports a central positive claim; full results remain in the deep dive.</text>
 </svg>
