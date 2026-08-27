@@ -725,6 +725,8 @@ def extended_graph_diagnostics(graph: csr_matrix) -> dict:
     n_components, labels = connected_components(graph, directed=False)
     sizes = np.bincount(labels, minlength=n_components)
     base.update({
+        "all_edge_weights_finite": bool(np.isfinite(graph.data).all()),
+        "minimum_edge_weight": float(np.min(graph.data)) if graph.nnz else 0.0,
         "isolated_fraction": float(np.mean(binary_degree == 0)),
         "largest_component_fraction": float(np.max(sizes) / len(labels)),
         "binary_degree_median": float(np.median(binary_degree)),

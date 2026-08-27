@@ -1,0 +1,337 @@
+{
+  "canonical_frozen_selection_hash": "dcba9bd390bec6d16af02d1845b797737999c74a7b70d3c06707db9b670718b8",
+  "canonical_frozen_selection_sha256": "ff0b6e824d0140b7e5fbdab0d10f97b7a32ff80217d6b740915436c5ce8d1aa3",
+  "development_outcomes_opened_for_supervised_entries": true,
+  "entries": {
+    "canonical": {
+      "actuator": "full",
+      "calibration_key": "g=residual_union_k7__a=full__exclude=none__l=0.03",
+      "direction": [
+        0.001692325000827774,
+        0.00027956399005032073,
+        -0.002730373984985923,
+        0.0024271455145171757,
+        -0.0017197369807337114,
+        0.004675242384337353
+      ],
+      "direction_families": [
+        "entropy_level",
+        "entropy_dynamics",
+        "sampled_token_energy",
+        "partition_energy",
+        "topk_distribution",
+        "structural"
+      ],
+      "geometry_id": "residual_union_k7",
+      "lambda": 0.03,
+      "selection_diagnostics": null,
+      "selector_type": "frozen_canonical",
+      "trust_factor": 0.5
+    },
+    "canonical_cross": {
+      "actuator": "cross",
+      "calibration_key": "g=residual_union_k7__a=cross__exclude=none__l=direction_only",
+      "direction": [
+        0.055806920329547954,
+        0.010451271583469222,
+        -0.09516198021912403,
+        0.08432391848303665,
+        -0.059312053632000844,
+        0.16186619107272154
+      ],
+      "direction_families": [
+        "entropy_level",
+        "entropy_dynamics",
+        "sampled_token_energy",
+        "partition_energy",
+        "topk_distribution",
+        "structural"
+      ],
+      "geometry_id": "residual_union_k7",
+      "lambda": null,
+      "selection_diagnostics": {
+        "actuator_was_selected": false,
+        "lambda_absent_because_sd_normalization_identifies_direction_only": true,
+        "trust_matched_to_full_entry": "canonical"
+      },
+      "selector_type": "frozen_canonical_matched_cross_actuator",
+      "trust_factor": 0.5
+    },
+    "label_free": {
+      "actuator": "full",
+      "calibration_key": "g=residual_adaptive_k7__a=full__exclude=none__l=0.03",
+      "direction": [
+        0.002322867917873579,
+        0.0004515280046752097,
+        -0.00309979475966102,
+        0.001579082354420866,
+        -0.00120297608423976,
+        0.0033451102896371637
+      ],
+      "direction_families": [
+        "entropy_level",
+        "entropy_dynamics",
+        "sampled_token_energy",
+        "partition_energy",
+        "topk_distribution",
+        "structural"
+      ],
+      "geometry_id": "residual_adaptive_k7",
+      "lambda": 0.03,
+      "selection_diagnostics": {
+        "fallback_to_invalid_pool": false,
+        "hard_validity": {
+          "all_weights_finite": true,
+          "maximum_isolated_fraction": 0.0,
+          "median_length_energy_ratio": 0.5,
+          "minimum_largest_component_fraction": 0.5,
+          "minimum_length_energy_ratio": 0.1
+        },
+        "lexicographic_order": [
+          "max_minimum_perturbation_stability",
+          "max_minimum_direction_cosine",
+          "min_moment_dispersion",
+          "max_predicted_roughness_decrease",
+          "frozen_geometry_priority"
+        ],
+        "rule_version": "hard-validity-then-stability-v1-2026-08-23",
+        "selected_geometry": "residual_adaptive_k7",
+        "selected_summary": {
+          "direction": [
+            0.002322867917873579,
+            0.0004515280046752097,
+            -0.00309979475966102,
+            0.001579082354420866,
+            -0.00120297608423976,
+            0.0033451102896371637
+          ],
+          "excluded_groups": [],
+          "geometry_id": "residual_adaptive_k7",
+          "health": {
+            "maximum_isolated_fraction": 0.0,
+            "median_degree_p90": 25.0,
+            "minimum_largest_component_fraction": 0.54
+          },
+          "length_energy_ratio_available_cells": 20,
+          "length_energy_ratio_median": 1.0333085380169549,
+          "length_energy_ratio_min": 0.9800636152033709,
+          "length_energy_ratio_missing_cells": 3,
+          "mean_direction_cosine": 0.9863435630656078,
+          "median_perturbation_stability": 0.40916919151650455,
+          "minimum_direction_cosine": 0.9654315304657342,
+          "minimum_perturbation_stability": 0.3446863384662065,
+          "moment_dispersion": 0.21798101873906467,
+          "predicted_roughness_decrease": 0.0010456756482279924,
+          "valid": true
+        },
+        "valid_count": 5
+      },
+      "selector_type": "intrinsic_label_free_geometry",
+      "trust_factor": 0.5
+    },
+    "label_free_cross": {
+      "actuator": "cross",
+      "calibration_key": "g=residual_adaptive_k7__a=cross__exclude=none__l=direction_only",
+      "direction": [
+        0.07789199502004446,
+        0.016082884648450327,
+        -0.10805072261388053,
+        0.05488871018552068,
+        -0.040945391947632234,
+        0.1155763908890928
+      ],
+      "direction_families": [
+        "entropy_level",
+        "entropy_dynamics",
+        "sampled_token_energy",
+        "partition_energy",
+        "topk_distribution",
+        "structural"
+      ],
+      "geometry_id": "residual_adaptive_k7",
+      "lambda": null,
+      "selection_diagnostics": {
+        "actuator_was_selected": false,
+        "lambda_absent_because_sd_normalization_identifies_direction_only": true,
+        "trust_matched_to_full_entry": "label_free"
+      },
+      "selector_type": "intrinsic_label_free_geometry_matched_cross_actuator",
+      "trust_factor": 0.5
+    },
+    "supervised_max_mean": {
+      "actuator": "full",
+      "calibration_key": "g=contribution_union_k7__a=full__exclude=none__l=3",
+      "direction": [
+        0.07353941941571704,
+        -0.013446807894217472,
+        0.0055625794535152815,
+        0.03360673470547141,
+        -0.030319310656481177,
+        0.042842389334138434
+      ],
+      "direction_families": [
+        "entropy_level",
+        "entropy_dynamics",
+        "sampled_token_energy",
+        "partition_energy",
+        "topk_distribution",
+        "structural"
+      ],
+      "geometry_id": "contribution_union_k7",
+      "lambda": 3.0,
+      "selection_diagnostics": {
+        "policy": "max_inner_family_mean",
+        "selected": {
+          "geometry_id": "contribution_union_k7",
+          "lambda": 3.0,
+          "mean": 0.006065644560640074,
+          "se": 0.0014580855702048027,
+          "trust_factor": 1.0,
+          "values": {
+            "gsm8k": 0.005663116994735451,
+            "hotpotqa": 0.0028245052646633795,
+            "math500": 0.0075725735496621205,
+            "nq_open": 0.004274868513238217,
+            "sciq": 0.010481941437848974,
+            "squad_v2": 0.009401151985963807,
+            "triviaqa": -0.0015460683824864985,
+            "truthfulqa": 0.00985306712149514
+          },
+          "worst": -0.0015460683824864985
+        }
+      },
+      "selector_type": "supervised_donor_label_sensitivity",
+      "trust_factor": 1.0
+    },
+    "supervised_max_mean_cross": {
+      "actuator": "cross",
+      "calibration_key": "g=contribution_union_k7__a=cross__exclude=none__l=direction_only",
+      "direction": [
+        0.060973676673811414,
+        -0.044403627043507164,
+        0.0013143902774450673,
+        0.04926469214152958,
+        0.004125724121627099,
+        0.040911065114970606
+      ],
+      "direction_families": [
+        "entropy_level",
+        "entropy_dynamics",
+        "sampled_token_energy",
+        "partition_energy",
+        "topk_distribution",
+        "structural"
+      ],
+      "geometry_id": "contribution_union_k7",
+      "lambda": null,
+      "selection_diagnostics": {
+        "actuator_was_selected": false,
+        "lambda_absent_because_sd_normalization_identifies_direction_only": true,
+        "trust_matched_to_full_entry": "supervised_max_mean"
+      },
+      "selector_type": "supervised_donor_label_sensitivity_matched_cross_actuator",
+      "trust_factor": 1.0
+    },
+    "supervised_one_se": {
+      "actuator": "full",
+      "calibration_key": "g=contribution_union_k7__a=full__exclude=none__l=0.1",
+      "direction": [
+        0.005576482112408191,
+        -0.0037245212169819773,
+        0.0001557913931544383,
+        0.004382428486325391,
+        5.863029902642159e-06,
+        0.003892713039351778
+      ],
+      "direction_families": [
+        "entropy_level",
+        "entropy_dynamics",
+        "sampled_token_energy",
+        "partition_energy",
+        "topk_distribution",
+        "structural"
+      ],
+      "geometry_id": "contribution_union_k7",
+      "lambda": 0.1,
+      "selection_diagnostics": {
+        "best": {
+          "geometry_id": "contribution_union_k7",
+          "lambda": 3.0,
+          "mean": 0.006065644560640074,
+          "se": 0.0014580855702048027,
+          "trust_factor": 1.0,
+          "values": {
+            "gsm8k": 0.005663116994735451,
+            "hotpotqa": 0.0028245052646633795,
+            "math500": 0.0075725735496621205,
+            "nq_open": 0.004274868513238217,
+            "sciq": 0.010481941437848974,
+            "squad_v2": 0.009401151985963807,
+            "triviaqa": -0.0015460683824864985,
+            "truthfulqa": 0.00985306712149514
+          },
+          "worst": -0.0015460683824864985
+        },
+        "eligible_count": 18,
+        "policy": "one_se_then_tail_then_min_trust_lambda_then_mean_geometry_priority",
+        "selected": {
+          "geometry_id": "contribution_union_k7",
+          "lambda": 0.1,
+          "mean": 0.004875173560791442,
+          "se": 0.0009324660535702369,
+          "trust_factor": 1.0,
+          "values": {
+            "gsm8k": 0.004899505330497244,
+            "hotpotqa": 0.00309265449865026,
+            "math500": 0.007351128288148767,
+            "nq_open": 0.007651949192480467,
+            "sciq": 0.00581064144924226,
+            "squad_v2": 0.00706716840003252,
+            "triviaqa": 0.00013809531125563712,
+            "truthfulqa": 0.0029902460160243782
+          },
+          "worst": 0.00013809531125563712
+        },
+        "tail_safe_count": 14,
+        "threshold": 0.0046075589904352714
+      },
+      "selector_type": "supervised_donor_label",
+      "trust_factor": 1.0
+    },
+    "supervised_one_se_cross": {
+      "actuator": "cross",
+      "calibration_key": "g=contribution_union_k7__a=cross__exclude=none__l=direction_only",
+      "direction": [
+        0.060973676673811414,
+        -0.044403627043507164,
+        0.0013143902774450673,
+        0.04926469214152958,
+        0.004125724121627099,
+        0.040911065114970606
+      ],
+      "direction_families": [
+        "entropy_level",
+        "entropy_dynamics",
+        "sampled_token_energy",
+        "partition_energy",
+        "topk_distribution",
+        "structural"
+      ],
+      "geometry_id": "contribution_union_k7",
+      "lambda": null,
+      "selection_diagnostics": {
+        "actuator_was_selected": false,
+        "lambda_absent_because_sd_normalization_identifies_direction_only": true,
+        "trust_matched_to_full_entry": "supervised_one_se"
+      },
+      "selector_type": "supervised_donor_label_matched_cross_actuator",
+      "trust_factor": 1.0
+    }
+  },
+  "fit_label_free_selection_sha256": "a5068f9787fb26bb06c663eb94ce50972127b705ac647277f6ba36cad92ebb7a",
+  "fit_manifest_hash": "08f7d41081b12ea0a17da9074edffb7277705b08bde2e260f1ba51f47ba11652",
+  "held_family_oracle_exported": false,
+  "retrospective_transfer_only": true,
+  "selection_hash": "3a1a6bfbd49eaaad334be5f82c74d1aab196476ebc7c8ffca57b6a7dbb413b34",
+  "version": "graph-geometry-selection-research-v1-2026-08-23"
+}

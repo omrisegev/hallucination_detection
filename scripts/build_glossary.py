@@ -16,12 +16,11 @@ Usage:
     python scripts/build_glossary.py --allow-gaps   # write anyway, warn only
 """
 import argparse
+import csv
 import datetime as _dt
 import glob
 import os
 import sys
-
-import pandas as pd
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if REPO not in sys.path:
@@ -52,7 +51,11 @@ def live_variants():
     for f in glob.glob(os.path.join(BENCH, "*__c46.csv")) + \
              glob.glob(os.path.join(BENCH, "*__h16.csv")):
         try:
-            variants |= set(pd.read_csv(f, usecols=["variant"])["variant"])
+            with open(f, newline="", encoding="utf-8") as handle:
+                variants |= {
+                    row["variant"] for row in csv.DictReader(handle)
+                    if row.get("variant")
+                }
         except Exception:
             continue
     return variants
@@ -67,7 +70,11 @@ def check_coverage(allow_gaps):
                         f"{sorted(missing_families)}")
 
     if os.path.exists(ORIENTATION_SUMMARY):
-        live_feats = set(pd.read_csv(ORIENTATION_SUMMARY)["feature"])
+        with open(ORIENTATION_SUMMARY, newline="", encoding="utf-8") as handle:
+            live_feats = {
+                row["feature"] for row in csv.DictReader(handle)
+                if row.get("feature")
+            }
         missing_feats = live_feats - set(FEATURE_NOTES)
         if missing_feats:
             problems.append(f"features scored in the bench with no "
@@ -133,10 +140,16 @@ def render():
     lines.append("|---|---|---|---|")
     dom_lookup = {}
     if os.path.exists(ORIENTATION_SUMMARY):
-        odf = pd.read_csv(ORIENTATION_SUMMARY).set_index("feature")
-        for feat, row in odf.iterrows():
-            better = "QA" if row["QA_mean"] >= row["math_mean"] else "math"
-            dom_lookup[feat] = f"{better} ({row[f'{better}_mean']:.3f})"
+        with open(ORIENTATION_SUMMARY, newline="", encoding="utf-8") as handle:
+            for row in csv.DictReader(handle):
+                feat = row.get("feature")
+                if not feat:
+                    continue
+                qa_mean = float(row["QA_mean"])
+                math_mean = float(row["math_mean"])
+                better = "QA" if qa_mean >= math_mean else "math"
+                value = qa_mean if better == "QA" else math_mean
+                dom_lookup[feat] = f"{better} ({value:.3f})"
     for feat, (note, step) in FEATURE_NOTES.items():
         dom = dom_lookup.get(feat, "(not in current bench)")
         lines.append(f"| `{feat}` | {note} | {dom} | {step} |")
@@ -182,7 +195,7 @@ def render():
     for role, note in ROLE_NOTES.items():
         lines.append(f"| `{role}` | {note} |")
 
-    lines.append("\n## Method terminology (Step 203 trimming study)\n")
+    lines.append("\n## Method / study terminology\n")
     lines.append("| Term | Meaning |")
     lines.append("|---|---|")
     for term, meaning in METHOD_TERM_NOTES.items():

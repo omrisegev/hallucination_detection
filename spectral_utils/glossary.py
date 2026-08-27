@@ -657,13 +657,140 @@ OUT_OF_SCOPE_DERIVED_VIEWS_NOTE = (
 # ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
-# Method / study terminology (Step 203, the trimming study under
-# results/pruning_study/). These are words that appear in the write-ups and
-# mean something specific here — kept in the generator so they survive a
-# GLOSSARY.md rebuild.
+# Method / study terminology (Step 203 onward). These are words that appear in
+# the write-ups and mean something specific here — kept in the generator so
+# they survive a GLOSSARY.md rebuild.
 # ---------------------------------------------------------------------------
 
 METHOD_TERM_NOTES = {
+    "Family-NRM / PGRD regime A (within-cell unsupervised)":
+        "Construct the family residual representation, direction, graph (for "
+        "PGRD), normalization, and correction from the target dataset-model "
+        "cell only. No donor dataset and no hallucination label is used. These "
+        "are new primary 24-cell benchmark ablations, not the completed "
+        "canonical cross-dataset results. (Step 287 design)",
+    "Family-NRM / PGRD regime B (donor-unsupervised)":
+        "Use target-free donor cells to stabilize a family direction, graph "
+        "geometry, or fixed setting without donor or target labels. This is a "
+        "secondary ablation. Donor data are a regime choice, not a requirement "
+        "of either method family. (Step 287 design)",
+    "Family-NRM / PGRD regime C (donor-label selection)":
+        "Hold out the target dataset family while donor labels select a mode, "
+        "direction, sign, graph, actuator, correction strength, or donor "
+        "eligibility. This is "
+        "supervised model selection and appears only as a secondary ceiling, "
+        "never in the unsupervised leaderboard. A nominally label-free selector "
+        "that inherits a label-selected setting is also legacy C, not clean B. "
+        "(Steps 287-288 design)",
+    "Family-NRM within-cell (Family-NRM-A)":
+        "A new, unrun target-cell-only ablation. Decompose IU-PCR into six "
+        "fixed provenance-family contributions, remove the component explained "
+        "by the IU score, select the residual-covariance eigenspace nearest "
+        "unit variance with a fixed equal-family orientation, and add a "
+        "bounded correction. It tests the historical neutral-mode rule without "
+        "donor data or labels. (Step 287 design)",
+    "PGRD within-cell cross-gradient (PGRD-A)":
+        "A new, unrun target-cell-only ablation. Build the fixed union-k7 graph "
+        "on the six IU family residuals, trace-normalize the graph moments, use "
+        "the local graph cross-gradient d=-c, and add a fixed-SD correction to "
+        "IU-PCR. It has no donor "
+        "pooling, label-selected lambda, or target label. (Step 287 design)",
+    "DEEM-B3 (continuous additive DEEM)":
+        "The graph-free continuous energy-based ensemble with a bounded "
+        "nonlinear network inside each measurement family. On branch f7f7801 "
+        "it completed all 24 cells and received the registered decision "
+        "noninferior to matched IU-PCR. Its existing result uses a different "
+        "feature/macro contract from the older IU/DUFS/CA table and must be "
+        "rerun before a common ranking. Residual-Graph DEEM is separate. "
+        "(Step 287 design)",
+    "IU-PCR (graph-geometry baseline)":
+        "The ordinary full-pool, two-component L2 U-PCR fit with feature "
+        "exclusion and difficulty gates disabled. In Graph Geometry Selection "
+        "V1 it supplies the standardized baseline `b`; its fixed feature "
+        "weights are also decomposed into six provenance-family contributions. "
+        "It is the exact zero-correction comparator, not a graph method and not "
+        "DUFS-LIU. (Step 286)",
+    "Pooled Graph-Roughness Direction (PGRD)":
+        "The canonical Step-285 cross-dataset correction layered on IU-PCR: construct "
+        "sample geometry from six standardized family-contribution residuals, "
+        "pool graph-roughness moments equally across donor dataset families, "
+        "then apply one source-derived family direction to target residual "
+        "coordinates. Donor pooling is this historical regime, not a requirement "
+        "of the PGRD method family. Step 286 shows its conservative arm is more accurately "
+        "described as a pooled graph cross-gradient, not a quadratic graph solve "
+        "and not DUFS-LIU-PCR. Transfer remains domain-dependent. (Steps 285-286)",
+    "fixed residual union-k7 geometry":
+        "The canonical duplicate-safe symmetric union-kNN graph (`k=7`) built "
+        "on standardized IU family-residual coordinates. Holding this graph "
+        "fixed reproduces both anchors: +0.251477pp with one-SE/tail guard and "
+        "+0.449629pp with max-mean. (Step 286)",
+    "geometry bank / graph search":
+        "A prespecified, target-free bank varying residual neighbourhood scale, "
+        "adaptive or mutual topology, contribution representation, and cosine "
+        "or shrinkage-Mahalanobis metric at matched capacity. `graph search` "
+        "means allowing a selector to choose among those geometries; it does not "
+        "include SU-rho/covariance cleaning or unrestricted geometry expansion. "
+        "The DUFS-coordinate entry is control-only. (Step 286)",
+    "pooled graph cross-gradient (cross-only actuator)":
+        "Use `d = -c_bar`, where `c_bar` is the donor-family-pooled graph "
+        "cross-roughness between IU score `b` and family residuals `R`. Because "
+        "the target correction `R d` is normalized to a fixed requested SD, "
+        "cross-only has no lambda and identifies direction only. It retains "
+        "+0.245123pp of the canonical +0.251477pp result. (Step 286)",
+    "full quadratic actuator":
+        "Use `d = -lambda (I + lambda A_bar)^-1 c_bar`; `A_bar` is the pooled "
+        "residual curvature/preconditioner and `c_bar` is the cross-gradient. "
+        "It is reported as a separate arm for every geometry, never selected "
+        "against cross-only. Under canonical one-SE, full minus cross is only "
+        "+0.006354pp. (Step 286)",
+    "one-SE / tail-guard selection":
+        "The conservative donor-label rule: retain candidates within one "
+        "standard error of the best inner-family mean, prefer those whose "
+        "worst inner-family delta is at least -0.005 AUROC, then deterministically "
+        "prefer smaller trust and lambda. It is the canonical +0.251477pp policy, "
+        "not an outcome-free selector. (Steps 285-286)",
+    "max-mean selection":
+        "Choose the candidate with the largest mean AUROC gain across inner "
+        "donor families, with deterministic ties. It is a more aggressive "
+        "supervised sensitivity policy: fixed union-k7 reaches +0.449629pp, so "
+        "the historical ~+0.450pp value is chiefly correction-strength/selector "
+        "sensitivity rather than graph-search gain. (Step 286)",
+    "intrinsic label-free geometry selector":
+        "A fit-time, outcome-blind hard-validity filter followed "
+        "lexicographically by perturbation stability, leave-source direction "
+        "stability, moment dispersion, predicted roughness decrease, and frozen "
+        "geometry priority. Lambda=.03 and trust=.5 stay fixed, but those values "
+        "were inherited from donor-label selection. It selected adaptive-k7, "
+        "scored +0.219821pp, and did not beat canonical union-k7. Under the "
+        "strict Step-288 axis this completed arm is legacy C, not clean B. "
+        "(Steps 286-288)",
+    "supervised donor-label geometry selector":
+        "Strict outer-LOFO meta-selection in which only labels from donor/inner "
+        "families choose geometry and correction strength before scoring the "
+        "held family. It is statistically held-family honest but supervised, "
+        "not label-free; neither its one-SE nor max-mean arm beat matched fixed "
+        "union-k7. (Step 286)",
+    "held-family geometry oracle (policy-matched)":
+        "A diagnostic that uses the held family's labels to choose geometry "
+        "while keeping correction-strength selection matched to the stated "
+        "fixed-strength, one-SE, or max-mean policy. It measures geometry "
+        "headroom and selector regret, never a deployable method. (Step 286)",
+    "held-label full-tuple ceiling":
+        "The held family's labels choose both geometry and correction strength "
+        "(`lambda`, trust). Its +1.040837pp is an optimism ceiling, not the "
+        "policy-matched geometry oracle, not a selector result, and not eligible "
+        "for promotion. (Step 286)",
+    "DUFS-coordinate geometry control (not DUFS-LIU)":
+        "`dufs_union_k7` builds a union-k7 graph from prefit target-free DUFS "
+        "coordinates while retaining the PGRD residual readout. It is excluded "
+        "from the selector-eligible geometry bank and exists only to test graph "
+        "attribution. DUFS-LIU-PCR is a separate method that regularizes the "
+        "ordinary IU-PCR solve with a DUFS-derived sample graph. (Step 286)",
+    "selection optimism (Graph Geometry Selection V1)":
+        "The enlarged geometry/strength bank looks better under inner-family "
+        "selection than on held outer families. Neither deployable selector "
+        "beats fixed union-k7 despite held-label geometry headroom; the final "
+        "bounded decision is `GEOMETRY_SEARCH_SELECTION_OPTIMISM`. (Step 286)",
     "misfit (a.k.a. fit score, residual)":
         "The Eq.(14) L-SML residual `_residual_lsml(R, c)` — how far the "
         "observed covariance sits from what a one-shared-cause model predicts "

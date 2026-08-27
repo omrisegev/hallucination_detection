@@ -14401,3 +14401,259 @@ since Step 194 — is undecided and awaits Omri. Do not widen or narrow it by
 inference.
 
 ---
+
+### Step 283 [Family-residual graph] — Rebuild graph LIU and close the topology route
+
+**What**: Reframed Family-NRM's six IU contribution residuals as answer-level
+graph coordinates and evaluated them without the unsupported eigenvalue-near-one
+selector. Implemented union-kNN and adaptive-k HPO, historical U2 and
+contribution-space Laplacian actuation, nested leave-dataset-family-out
+selection, matched graph/readout controls, permutation/random-family controls,
+and frozen retrospective PRMBench/HLE stress tests. Two independent agents
+audited mechanism isolation and artifact integrity before and after execution.
+
+**Why**: Test whether Family-NRM's empirical gain could improve the DUFS graph
+used by Laplacian roughness -> LIU-PCR, while avoiding the unexplained semantic
+choice of the eigenvector whose eigenvalue is closest to one.
+
+**Result**: V1 was withdrawn after duplicate-coordinate self/bandwidth bugs
+were found; V2 repaired the constructor but stopped label-free under an empty
+connectivity eligibility set. Canonical V3 used numerical validity for HPO and
+connectivity as a separate diagnostic. Across eight held-out dataset families,
+the union-kNN primary gained only +0.018pp AUROC over IU-PCR (95% family
+bootstrap [-0.041,+0.080]), 4/8 positive, recovering 6.6% of Family-NRM's
++0.277pp reference gain. Adaptive-k was +0.015pp [-0.005,+0.050]. PRMBench was
+-0.0068pp [-0.0100,-0.0037]; HLE was -0.0190pp [-0.0471,+0.0084]. Fixed
+permutation/random/topology controls were all on the same microscopic scale as
+the selected graph. Decision:
+`CLOSE_FAMILY_RESIDUAL_GRAPH_LIU_NO_INCREMENTAL_VALUE_V3`. The corrected graph
+is numerically valid but adds no stable value over IU-PCR, does not recover
+Family-NRM, and does not generalize. Canonical synthesis:
+`results/family_residual_graph_liu_v3/SYNTHESIS.md`.
+
+---
+
+### Step 284 [SU/pooled-graph sidecar] — Test covariance cleaning and SU-rho without changing the frozen baseline
+
+**What**: Ran an isolated factorial around the pooled family-residual graph
+direction. Compared the observed IU covariance/correlation construction with
+all-sparse, cross-family-sparse, shared-cross-family, and geometric-median
+covariance variants; crossed those with IU-rho and SU-rho; preserved matched
+no-graph controls; and froze the prespecified cross-family-cleaned arm for
+retrospective ProcessBench/SemGrad transfer. Repaired an optimistic V1 that
+did not reproduce the canonical graph selector by fixing union-kNN `k=7` and
+the canonical one-SE/tail-guard rule in conservative V2.
+
+**Why**: Determine whether SU-PCR contributes complementary dependency
+cleaning to the new pooled graph mechanism, and separate covariance/subspace
+cleaning from replacement of the IU estimate of rho.
+
+**Result**: Conservative V2 exactly reproduced the current pooled-graph gain
+over IU-PCR: +0.251pp AUROC, 95% family-bootstrap CI [+0.027,+0.458], 6/8
+positive families. Prespecified cross-family cleaning reached +0.260pp, but
+its paired increment over current was only +0.009pp [-0.012,+0.037], 4/8.
+SU-rho was harmful (-0.198pp with observed covariance and -0.077pp with
+cross-family cleaning). Frozen retrospective transfer also favored current:
+cross-clean minus current was -0.028pp on ProcessBench Llama, -0.015pp on
+ProcessBench Qwen, and -0.006pp on SemGrad, and was worse in 12/14 external
+cells. Decision: `CLOSE_SU_ADAPTATION_NO_INCREMENTAL_VALUE`. Retain the
+observed-IU pooled graph candidate; do not promote SU-rho or covariance-cleaned
+variants. The graph itself remains discovery-level and its mechanism controls
+must accompany any causal interpretation. Canonical conclusion:
+`docs/research_notes/su_pooled_graph_adaptation_conclusion_2026-08-23.md`.
+
+---
+
+### Step 285 [Pooled graph-roughness direction] — Recover Family-NRM without the unit-eigenvalue rule
+
+**What**: Replaced per-cell Laplacian actuation with a donor-pooled graph
+roughness gradient in the aligned six-family coordinate system. For every cell,
+the method forms `A=R'LR/n` and `c=R'Lb/n`, pools trace-normalized moments
+equal-cell within dataset family and equal-family across donors, and applies
+`d=-lambda(I+lambda A)^-1 c` to target family residuals. Ran strict double LOFO
+HPO, 20 node-permutation controls, matched DUFS/contribution/pooling/cross-only
+controls, and score-frozen retrospective ProcessBench, SemGrad, PRMBench, and
+HLE evaluations. No eigenvalue selector is used.
+
+**Why**: The direct family-residual graph LIU experiment closed at +0.018pp, but
+its graph discarded the shared signed family-axis orientation that made
+Family-NRM useful. Pooling graph-roughness moments across donor dataset families
+tests whether the graph can estimate that orientation without invoking the
+unjustified eigenvalue-near-one semantics.
+
+**Result**: The conservative nested procedure reaches +0.251pp AUROC over
+IU-PCR [+.027,+.458], 6/8 positive, recovering 90.8% of Family-NRM's +0.277pp;
+the max-mean HPO sensitivity reaches +0.450pp. Outer directions are stable
+(minimum cosine .929). Real graph alignment beats the mean of 20 node
+permutations by +.411pp [+.185,+.618], p=1/21, but the full mechanism gate fails
+because real-minus-DUFS is unresolved. Cross-only retains +.245pp, showing that
+the pooled `c` orientation, not the `A` preconditioner, supplies nearly all of
+the gain; contribution graphs also work, so residual specificity is not
+established.
+
+Frozen retrospective transfer is positive on ProcessBench/Llama (+.588pp),
+ProcessBench/Qwen (+.137pp), SemGrad (+.257pp), and HLE (+.912pp
+[+.248,+1.512]), but significantly negative on PRMBench (-.420pp
+[-.621,-.226]) where Family-NRM remains positive (+.460pp). Decision:
+`RETROSPECTIVE_RECOVERY_WITH_DOMAIN_DEPENDENT_TRANSFER`. This reconstructs the
+historical success and finds a plausible source-graph-derived orientation
+mechanism, but it does not establish universal generalization or replace the
+frozen Family-NRM rule. Canonical synthesis:
+`results/pooled_graph_roughness_direction_v2/SYNTHESIS.md`.
+
+---
+
+### Step 286 [Graph geometry selection] — Geometry headroom exists, but the selectors do not identify it
+
+**What**: Implemented and ran the registered graph-geometry selection research
+instead of stopping at a plan. First reproduced the canonical pooled-graph
+artifacts and the +0.251pp/+0.450pp anchors. Then built an exact-whitelist,
+physically target-free development archive and froze a common bank spanning
+fixed union-k7 versus graph search, one-SE/tail guard versus max-mean, canonical
+versus V1 versus expanded trust grids, eight selector-eligible geometries plus
+one DUFS coordinate control, and separate full/cross actuators. Froze and
+independently reconstructed 75,348 scores before opening labels. Added strict
+nested held-family reporting, policy-matched held-label oracles, 20 deterministic
+node controls per geometry, contribution/DUFS/cross/pooling/family-axis
+controls, seven plots, and a physically isolated score-frozen transfer across
+ProcessBench, SemGrad, PRMBench, and HLE. Independent mechanism and
+leakage/provenance agents audited the completed artifacts.
+
+**Why**: The previous +0.450pp max-mean sensitivity and legacy geometry search
+had not separated graph capacity from selection rule and trust-grid capacity.
+Step 285 also showed that almost all canonical gain survived cross-only. The
+study therefore had to answer four different questions: whether another graph
+helps, whether either label-free or supervised donors can select it, how much
+held-label geometry headroom exists, and whether the quadratic curvature term
+contributes beyond the pooled graph cross-gradient.
+
+**Result**: Both required anchors reproduce exactly: fixed union-k7 plus
+canonical one-SE is +0.251476794pp and fixed union-k7 plus canonical max-mean is
++0.449629197pp. Their +0.198152402pp difference is the selector/correction-
+strength component. Matched graph search contributes only +0.015634pp under
+canonical one-SE and +0.001977pp under max-mean. The exact legacy searched/V1
+five-lambda result is +0.451605835pp and equals its common-eight-lambda matched
+arm; trust/lambda expansion adds no max-mean gain. Under guarded one-SE, the V1
+trust grid instead reduces the fixed result by -0.091677pp.
+
+The frozen intrinsic selector chooses adaptive-k7 but reaches only +0.219821pp,
+below canonical by -0.031656pp. Supervised donor selection reaches +0.223622pp
+under one-SE and +0.436682pp under max-mean, also below the matched fixed graph.
+Policy-matched held-family geometry oracles are +0.452021pp at fixed strength,
++0.537100pp under one-SE, and +0.722839pp under max-mean, proving diagnostic
+headroom but not a deployable selector. Corresponding label-free/supervised
+regrets are +0.232201pp, +0.313478pp, and +0.286157pp. The separately named
+full-tuple held-label ceiling is +1.040837pp and is not used as geometry regret.
+Matched Phase-B selection optimism is +0.163612pp under max-mean and +0.251355pp
+under one-SE; enlarged-bank inner gains do not transfer to outer families.
+
+The actuator factor sharpens the mechanism. Canonical cross-only is
++0.245123pp, and full minus cross is merely +0.006354pp
+[+.001848,+.011735]; adaptive-k7 full minus cross is +0.000328pp
+[-.003725,+.003833]. At lambda=.03 the full and -cbar directions have cosine
+.999911 and .999903. Leave-source cbar cosine minima are .973/.965, and real
+cbar separates from its node-permutation null by ratios 22.62/16.83. Because
+the correction is standardized to a requested SD, cross has no lambda and
+identifies direction only. The mechanism is a **pooled graph cross-gradient**,
+not primarily a quadratic graph solve. Node controls support adaptive and
+contribution alignment, but the inherited full graph-attribution gate still
+fails against the DUFS control.
+
+Frozen transfer rebuilt every canonical IU/full/cross score exactly in all 16
+cells. Label-free adaptive-k7 is +.711pp on ProcessBench/Llama, +.277pp on
+ProcessBench/Qwen, +.404pp on SemGrad, -.374pp on PRMBench, and +.625pp on HLE;
+supervised arms are heterogeneous. All panels were historically opened, so
+this is a stress test rather than independent confirmation. The final decision
+is `GEOMETRY_SEARCH_SELECTION_OPTIMISM`: useful per-family geometries exist,
+but neither available selector identifies them robustly and graph-search gains
+are dominated by selection capacity. No SU-rho or SU covariance cleaning was
+used. Canonical synthesis and closure manifest:
+`results/graph_geometry_selection_research_v1/FINAL_REPORT.md` and
+`results/graph_geometry_selection_research_v1/REPORT_COMPLETE.json`.
+
+---
+
+### Step 287 [Benchmark design] — Separate method family from donor/label selection
+
+**What**: Defined the next inclusive 24-cell method benchmark without running
+it. Family-NRM and PGRD now share three explicit regimes: A is target-cell-only
+and fully unsupervised; B may use target-free donor cells without donor labels;
+C may use donor labels for model selection while holding out the target dataset
+family. Added the two new A variants to the main roster beside IU-PCR, U-PCR,
+DUFS-LIU, SU-PCR, balanced-atomic CA-SpecRaGE, and continuous additive DEEM-B3.
+Kept cross-dataset variants as secondary ablations/ceilings and target-label
+oracles outside A/B/C.
+
+**Why**: The completed Family-NRM and PGRD implementations used cross-dataset
+calibration, but donor data are not mathematically required to construct the
+family residual or graph-cross-gradient correction. The factorial is needed to
+separate information in the residual/graph signal from information introduced
+by the selection procedure.
+
+**Result**: No new method score exists. Family-NRM-A and PGRD-A are unrun
+within-cell ablations; the historical methods keep their canonical status and
+map to B*/C evidence. The design also records the completed DEEM-B3 branch
+`f7f7801`: 0.781815 cell-macro versus 0.774854 for matched IU-PCR, with a
+byte-identical rebuild and registered noninferiority. This number is not ranked
+against the older IU/DUFS/CA table because feature and macro contracts differ.
+Residual-Graph DEEM remains a separate synthetic specificity-gate closure.
+Canonical planning artifacts:
+`docs/research_notes/global_24cell_benchmark_working_synthesis_2026-08-23.md`,
+`docs/experiments/GLOBAL_24CELL_METHOD_BENCHMARK_V2.md`, and
+`configs/global_24cell_method_benchmark_v2_registry.csv`.
+
+---
+
+### Step 288 [Benchmark documentation] — Tighten regime and metric provenance
+
+**What**: Corrected the Step-287 design before execution. Clean regime B now
+means end-to-end donor-unsupervised selection. Historical Family-NRM donor
+eligibility used label counts, and the Step-286 intrinsic PGRD selector
+inherited label-selected strength, so both are retained as legacy C evidence
+rather than called `B*`. Added a separate clean-B rerun row and separated a
+supervised residual teacher from the matched Family-NRM-C mode selector.
+
+**Why**: The A/B/C comparison is useful only if label access is explicit and
+matched slices do not change the candidate bank, graph/actuator, and strength
+at the same time. AUPRC also needed a common positive class because the DEEM
+package and older response package used opposite conventions.
+
+**Result**: No experiment ran and no completed score changed. The draft now
+fixes correctness-positive AUPRC, zero-variance family handling,
+trace-normalized PGRD moments, separate A/B and C fitting stages, and a required
+per-arm provenance schema. Raw A/B/C differences are described as diagnostic,
+not causal. Canonical files:
+`docs/experiments/GLOBAL_24CELL_METHOD_BENCHMARK_V2.md`,
+`configs/global_24cell_method_benchmark_v2_registry.csv`, and
+`configs/global_24cell_method_benchmark_v2_run_registry_schema.csv`.
+
+---
+
+### Step 289 [Benchmark design] — Register all collected populations without mixing tasks
+
+**What**: Expanded the 24-cell method plan into one inclusive method registry
+and separate response, published-comparison, localization, prefix, stopping,
+RAG, white-box, repeated-generation, and negative-scope leaderboards. Added 34
+population panels, a group-by-lane compatibility scaffold, and the schema for
+the executable method-population registry. Restored the older
+continuous L-SML, DUFS/GroupFS selector, pseudo-label, Unified-28,
+application-native, and mechanism-control methods to the soft roster. No
+uncertain candidate was removed.
+
+**Why**: The project has accumulated valid data beyond the 24 cells, but the
+units and access contracts differ. Complete-answer AUROC cannot be averaged
+with first-error F1, causal-prefix AUROC, claim/token metrics, or realized
+stopping cost. A response method also needs a frozen adapter before it can be
+called a localizer, prefix detector, RAG method, or stopping policy.
+
+**Result**: No inference or evaluation ran. Existing external outcomes are
+classified as retrospective transfer/stress because their labels have already
+been inspected; the sealed-confirmation lane is currently empty. The inventory
+also records four Evidence-Drop cells (5,638 responses) needing LFS retrieval,
+seven frozen-24 cells needing source-question IDs for grouped row uncertainty,
+and GPQA/old LCiteEval RAG as negative-scope panels. Canonical files:
+`docs/experiments/MULTI_POPULATION_METHOD_BENCHMARK_V1.md`,
+`docs/research_notes/multi_population_benchmark_working_synthesis_2026-08-23.md`,
+and `configs/multi_population_benchmark_v1_{method_registry,population_registry,compatibility}.csv`.
+
+---

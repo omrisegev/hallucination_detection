@@ -5,6 +5,21 @@ features from mechanisms demonstrated only in synthetic data.  A method is
 marked **retained** only when its supported component remains part of the next
 experiment; synthetic success alone is never recorded as a real-data win.
 
+## Multi-population benchmark inventory (Step 289; design only)
+
+No result is added by this step. It records where existing and proposed
+methods may be compared without mixing prediction units or access contracts.
+
+| design claim | evidence | status | consequence |
+|---|---|---|---|
+| all collected data can enter one overall leaderboard | response AUROC, first-error F1, prefix AUROC, stopping pass@1/tokens, and RAG unit metrics estimate different targets | **rejected** | use one method registry and separate task leaderboards |
+| current external panels establish new confirmation | their labels were opened during earlier method or application work | **false** | label them retrospective transfer/stress; reserve a future sealed population |
+| every response method can be copied directly to localization, prefix, RAG, or stopping | each lane needs a token/step, causal-prefix, evidence-condition, or live-policy adapter | **false** | record `ADAPTER_NEEDED` or `INELIGIBLE` rather than a blank or loss |
+| all 24-cell rows are independent | seven cells contain ten generations per source question and the consolidated matrix lacks parent IDs | **false for row uncertainty** | recover raw IDs and group by question before per-cell intervals |
+| the inventory covers the acquired data | 34 registered population panels include core, transfer, applications, calibration, white-box, repeated-generation, and negative-scope data | **supported as a soft roster** | pre-run review may reclassify but should not silently drop a panel |
+
+Protocol: `docs/experiments/MULTI_POPULATION_METHOD_BENCHMARK_V1.md`.
+
 ## Repeated-measurement reliability U-PCR (Step 234)
 
 The experiment used synchronized moving-block bootstraps of one saved token
@@ -158,6 +173,27 @@ confirmatory decision is **STOP_AND_REVISE**.
 | hierarchical-active combined method improves U-PCR | -0.19pp, CI [-0.41, +0.02], 8W/16L | **rejected on real cells** | do not promote the v2 candidate |
 | shared correction is learnable when truly shared | +47.63pp in the sealed shared-correction meta-world | **mechanism only** | harness is capable of detecting the intended effect; real transfer failure is informative |
 | a selector over U-PCR and v2 can yield a major gain | perfect cell-level switch ceiling +0.12pp | **closed as headline** | safety gating cannot reach the contribution bar on these candidates |
+
+## Pending aligned v2 benchmark: method family versus selection regime
+
+This is a registered design distinction, not a new result. Family-NRM and PGRD
+will each be compared under three regimes: A, target-cell only with no donors
+or labels; B, donor-unsupervised; and C, donor-label selection. Only A enters
+the main unsupervised 24-cell leaderboard. Target-label oracles remain separate
+diagnostics.
+
+| component or claim | current evidence | status | consequence |
+|---|---|---|---|
+| Family-NRM or PGRD inherently needs donor data | both corrections can be constructed from target-cell family residuals alone | **false as a method definition** | run new within-cell A variants in the main leaderboard |
+| existing Family-NRM result measures regime A or clean B | direction was calibrated across 23 source cells; donor eligibility used a label-derived minimum-positive rule | **false; legacy C under the strict axis** | do not relabel the old result as within-cell or donor-unsupervised |
+| existing PGRD result measures regime A | graph moments were donor-pooled and donor labels selected strength/policy | **false; historical C** | keep as a secondary supervised-selection result |
+| Step-286 intrinsic selector is clean end-to-end B | geometry was label-free but inherited donor-label-selected lambda/trust | **false; legacy C** | rerun cross-only with structurally fixed strength for clean B |
+| DEEM-B3 is currently comparable to the old graph table | DEEM used the full present inventory and registered equal-family primary; old graph scores use `fixed_stable_v1` and cell-macro | **not yet comparable** | rerun all main methods under one feature and macro contract |
+| Residual-Graph DEEM falsifies graph-free DEEM | graph arms stopped at a synthetic specificity gate; B3 later completed natural-data evaluation | **false** | keep the two experiments separate |
+
+The pending roster and protocol are
+`configs/global_24cell_method_benchmark_v2_registry.csv` and
+`docs/experiments/GLOBAL_24CELL_METHOD_BENCHMARK_V2.md`.
 
 ## Frozen 24-cell view-fusion cycle
 

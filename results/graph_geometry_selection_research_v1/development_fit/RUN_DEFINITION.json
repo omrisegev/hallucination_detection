@@ -1,0 +1,287 @@
+{
+  "actuators": {
+    "cross": "-cbar; lambda absent because score scaling identifies direction only",
+    "full": "-lambda*(I+lambda*Abar)^-1*cbar",
+    "selector_can_choose_actuator": false
+  },
+  "control_only_geometry_ids": [
+    "dufs_union_k7"
+  ],
+  "dataset_families": {
+    "ars_gsm8k_r1distill8b": "gsm8k",
+    "epr_triviaqa_mistral24b": "triviaqa",
+    "internalstates_gsm8k_qwen25_7b": "gsm8k",
+    "lapeigvals_gsm8k_llama3b": "gsm8k",
+    "lapeigvals_gsm8k_llama8b": "gsm8k",
+    "lapeigvals_gsm8k_mistral24b": "gsm8k",
+    "lapeigvals_gsm8k_nemo": "gsm8k",
+    "lapeigvals_gsm8k_phi35": "gsm8k",
+    "losnet_hotpotqa_mistral7b": "hotpotqa",
+    "math500_dsmath7b": "math500",
+    "math500_qwenmath7b": "math500",
+    "math500_r1distill8b": "math500",
+    "math500_r1distill8b_mn4096": "math500",
+    "noise_gsm8k_mistral7b": "gsm8k",
+    "noise_gsm8k_phi3mini": "gsm8k",
+    "sciq_llama8b": "sciq",
+    "se_nq_open_llama8b": "nq_open",
+    "se_squad_v2_llama8b": "squad_v2",
+    "seiclr_triviaqa_opt30b": "triviaqa",
+    "semenergy_triviaqa_qwen3_8b": "triviaqa",
+    "trace_gsm8k_llama8b_k10": "gsm8k",
+    "trace_math500_qwenmath15b_k10": "math500",
+    "truthfulqa_llama8b": "truthfulqa"
+  },
+  "deduplication_thresholds": {
+    "mean_edge_jaccard": 0.995,
+    "mean_operator_cosine": 0.999
+  },
+  "definition_hash": "bb292790ca675c0b121b7b1ba0c48709636cf5a28ae6899126eabb158555f217",
+  "duplicate_handling": "distance_then_literal_row_index",
+  "eligible_cells": [
+    "epr_triviaqa_mistral24b",
+    "losnet_hotpotqa_mistral7b",
+    "sciq_llama8b",
+    "se_nq_open_llama8b",
+    "se_squad_v2_llama8b",
+    "seiclr_triviaqa_opt30b",
+    "semenergy_triviaqa_qwen3_8b",
+    "truthfulqa_llama8b",
+    "ars_gsm8k_r1distill8b",
+    "internalstates_gsm8k_qwen25_7b",
+    "lapeigvals_gsm8k_llama3b",
+    "lapeigvals_gsm8k_llama8b",
+    "lapeigvals_gsm8k_mistral24b",
+    "lapeigvals_gsm8k_nemo",
+    "lapeigvals_gsm8k_phi35",
+    "noise_gsm8k_mistral7b",
+    "noise_gsm8k_phi3mini",
+    "math500_dsmath7b",
+    "math500_qwenmath7b",
+    "math500_r1distill8b",
+    "math500_r1distill8b_mn4096",
+    "trace_gsm8k_llama8b_k10",
+    "trace_math500_qwenmath15b_k10"
+  ],
+  "excluded_historical_min_positive_cell": "spilled_triviaqa_llama8b",
+  "geometries": [
+    {
+      "geometry_id": "residual_union_k7",
+      "k": 7,
+      "metric": "euclidean",
+      "phase_a": true,
+      "rationale": "canonical duplicate-safe residual union-kNN anchor",
+      "representation": "residual",
+      "topology": "union"
+    },
+    {
+      "geometry_id": "residual_union_k5",
+      "k": 5,
+      "metric": "euclidean",
+      "phase_a": true,
+      "rationale": "smaller residual neighbourhood scale",
+      "representation": "residual",
+      "topology": "union"
+    },
+    {
+      "geometry_id": "residual_union_k15",
+      "k": 15,
+      "metric": "euclidean",
+      "phase_a": true,
+      "rationale": "larger residual neighbourhood scale",
+      "representation": "residual",
+      "topology": "union"
+    },
+    {
+      "geometry_id": "residual_adaptive_k7",
+      "k": 7,
+      "metric": "euclidean",
+      "phase_a": true,
+      "rationale": "reviewed density-adaptive residual topology at mean k=7",
+      "representation": "residual",
+      "topology": "adaptive"
+    },
+    {
+      "geometry_id": "residual_mutual_k7",
+      "k": 7,
+      "metric": "euclidean",
+      "phase_a": false,
+      "rationale": "mutual-neighbour topology control",
+      "representation": "residual",
+      "topology": "mutual"
+    },
+    {
+      "geometry_id": "contribution_union_k7",
+      "k": 7,
+      "metric": "euclidean",
+      "phase_a": false,
+      "rationale": "unresidualized standardized family-contribution control",
+      "representation": "contribution",
+      "topology": "union"
+    },
+    {
+      "geometry_id": "dufs_union_k7",
+      "k": 7,
+      "metric": "euclidean",
+      "phase_a": false,
+      "rationale": "historical target-free DUFS-coordinate control",
+      "representation": "dufs",
+      "topology": "union"
+    },
+    {
+      "geometry_id": "residual_cosine_union_k7",
+      "k": 7,
+      "metric": "cosine",
+      "phase_a": false,
+      "rationale": "angular residual metric without expanding topology or scale",
+      "representation": "residual",
+      "topology": "union"
+    },
+    {
+      "geometry_id": "residual_shrinkage_mahalanobis_union_k7",
+      "k": 7,
+      "metric": "shrinkage_mahalanobis",
+      "phase_a": false,
+      "rationale": "label-free Ledoit-Wolf residual metric at canonical capacity",
+      "representation": "residual",
+      "topology": "union"
+    }
+  ],
+  "intrinsic_fixed_calibration": {
+    "lambda": 0.03,
+    "trust": 0.5
+  },
+  "intrinsic_rule_version": "hard-validity-then-stability-v1-2026-08-23",
+  "isolation_manifest_sha256": "3dc50f501d03d399183b3c944e18ca5cdea88bdb801813e95dc084ac0b7ad4e5",
+  "labels_accessed_by_fit": false,
+  "lambda_grid": [
+    0.03,
+    0.1,
+    0.3,
+    1.0,
+    3.0,
+    10.0,
+    30.0,
+    100.0
+  ],
+  "launch_hash_audit": {
+    "family_module_at_launch": {
+      "path": "/Users/osegev/Desktop/hallucination_detection/spectral_utils/family_residual_graph.py",
+      "sha256": "f07f05e41fe8de275045fe6ae018e9a1254398c2c615a5cefb9bb060f9f38ba9"
+    },
+    "pooled_controls_report": {
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/pooled_graph_roughness_direction_v2/controls/REPORT.md",
+      "sha256": "8f4263a73017a0179995acdaaadb7fb3852011af406336f139b285c6d5e5982a"
+    },
+    "pooled_module_at_launch": {
+      "path": "/Users/osegev/Desktop/hallucination_detection/spectral_utils/pooled_graph_roughness.py",
+      "sha256": "d33dd89e61fb44d56f4c6e26b89a4e4835e542c17d8f7c8d7deefa99d6c1eb61"
+    },
+    "pooled_report": {
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/pooled_graph_roughness_direction_v2/REPORT.md",
+      "sha256": "ad15df53a5f399d5727665a02aa6dd13230ffdb14064c6810a7cb50f2da05185"
+    },
+    "pooled_result": {
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/pooled_graph_roughness_direction_v2/RESULT.json",
+      "sha256": "afd81cf5f3bf50fce2d7e4e312c194604928aa06300c922ea8014c960000484b"
+    },
+    "pooled_selection": {
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/pooled_graph_roughness_direction_v2/FROZEN_SELECTION.json",
+      "sha256": "ff0b6e824d0140b7e5fbdab0d10f97b7a32ff80217d6b740915436c5ce8d1aa3"
+    },
+    "pooled_spec": {
+      "path": "/Users/osegev/Desktop/hallucination_detection/docs/experiments/POOLED_GRAPH_ROUGHNESS_DIRECTION_V1.md",
+      "sha256": "56d0f90ade36a7e5f2df31b286a64e0cfd4dce14c58a009b339147d735f93af8"
+    },
+    "su_v1_report": {
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/su_pooled_graph_adaptation_sidecar_v1/REPORT.md",
+      "sha256": "f48f57864141b31abe2809d8b1a26d45ae05485533940b5e4dae56f2f981a77a"
+    },
+    "su_v1_spec": {
+      "path": "/Users/osegev/Desktop/hallucination_detection/docs/experiments/SU_POOLED_GRAPH_ADAPTATION_SIDECAR_V1.md",
+      "sha256": "814ab6a0e9d7babd21cc17dfafe547d1c5eaac403142b8a16c3f9e857bf51ef9"
+    },
+    "su_v2_report": {
+      "path": "/Users/osegev/Desktop/hallucination_detection/results/su_pooled_graph_adaptation_conservative_v2/REPORT.md",
+      "sha256": "7d213a47d06a7b2fedbfbfb833b8579f9450438bca2de4f88548346e503af6d8"
+    },
+    "su_v2_spec": {
+      "path": "/Users/osegev/Desktop/hallucination_detection/docs/experiments/SU_POOLED_GRAPH_ADAPTATION_CONSERVATIVE_V2.md",
+      "sha256": "ca8d80dc92466016ce1623710eed1680aca3ebe173efc55c9493abf0dad8e365"
+    }
+  },
+  "node_permutations_per_geometry": 20,
+  "original_bundle_sha256": "693a5b634f975ea32c7f840f3ab8366dd8ad638fe41cc76a60e24b1ac5a013e1",
+  "phase_a_geometry_ids": [
+    "residual_union_k7",
+    "residual_union_k5",
+    "residual_union_k15",
+    "residual_adaptive_k7"
+  ],
+  "phase_b_selector_geometry_ids": [
+    "residual_union_k7",
+    "residual_union_k5",
+    "residual_union_k15",
+    "residual_adaptive_k7",
+    "residual_mutual_k7",
+    "contribution_union_k7",
+    "residual_cosine_union_k7",
+    "residual_shrinkage_mahalanobis_union_k7"
+  ],
+  "physically_label_free_bundle": "/Users/osegev/Desktop/hallucination_detection/results/graph_geometry_selection_research_v1/label_free_input/cells_target_free.npz",
+  "physically_label_free_bundle_sha256": "135bf044a04e88324469e2b94c00589b0d1611cf74592e5b5fce208442bf12b9",
+  "pooling": "equal_cell_within_dataset_family_then_equal_family",
+  "selector_tail_floor_auroc": -0.005,
+  "source_hashes": {
+    "base_feature_contract_module": "65ffba0bfc9bf4ded859d9ebffce9bd563a28652c47f5ed8d80ce91b64d4385d",
+    "contract_loader": "3db152d01b2293d9a0af7c4c76e0136349eeec4a763eec9c3f4ccd755d7a8257",
+    "contribution_module": "fd1f1abb8580271e760f54d8f8d7e5428803e5adc5e44ad28576e045f3adfc26",
+    "core_module": "f69aed9fc0636dc1b89b864beaccb8daa1802b7605568b8d23d536d96757d57d",
+    "dufs_trainer_module": "5039aee811bc9f70dea8a85967497bbb0aa23875b46c0d76a76725fdec83704e",
+    "family_graph_module": "f07f05e41fe8de275045fe6ae018e9a1254398c2c615a5cefb9bb060f9f38ba9",
+    "family_nrm_reference": "0c4f836ac2ae046c228b943c3afcf26a6abe20f84dc138d4ada9dc6a3d96c278",
+    "family_registry_module": "ab15e807f7595f0f91eec8418320fe4a419d9f2c63e81cef2726fac9325ae067",
+    "fit_script": "6e917500c4c78f96ed4615ac4570b42d3b331da2f32f1fb0b7c93eeb9fe8f9fb",
+    "fusion_utils_module": "1f47ed8f1d16a41532d85dfbacb0c0d727645aaf6921223e9e8e9f6ccc6fadd7",
+    "graph_topology_module": "06af6648aaf7bf2854705eec82c4ce1f6ba3f62ff47759057fdd87ca969e673d",
+    "isolation_script": "790bbab5b0e1291af0e4138e612407e95afb8193f7c8dd119f72a38d9b5cd417",
+    "laplacian_module": "ecf2c387bbba48906dcb2e0a7d56561101cffcd24fb9bd2d32033d471347953a",
+    "mixed_feature_contract_module": "c674f7b6cfd1a82dcc63cd7cc26bbd3d53ef5f4d289dbcbb7eabe933670fdf2d",
+    "pooled_module": "d33dd89e61fb44d56f4c6e26b89a4e4835e542c17d8f7c8d7deefa99d6c1eb61",
+    "report_script": "bf79d65308924c94410d5c8efb8dbf6c54e1de5c4f1397dc12893fb07680ccc6",
+    "roster": "d5b9c40af96ec0ee92931abb42e385e521f634b32378b30d9e6537e72b6f77e8",
+    "spec": "3fdf743276ef0ab272bac93bfa38cf8f3143d349c7a6a96cf9f8dbb818efe06a",
+    "test_script": "a060ab6e5301fb24e61c2bacffc6924326b7465c4bbddbecfa06681d7d1cdc91",
+    "upcr_module": "587d4b4699e8cd49d28315f70ffdabb4eb7ef9fd48e4df5436e121a71536c071"
+  },
+  "spec": "/Users/osegev/Desktop/hallucination_detection/docs/experiments/GRAPH_GEOMETRY_SELECTION_RESEARCH_V1.md",
+  "status": "retrospective_opened-development_geometry_identification",
+  "su_covariance_or_rho_arms": [],
+  "target_fields_physically_present_in_fit_input": false,
+  "target_fields_received_by_fit": [],
+  "trust_classes": {
+    "canonical": [
+      0.5,
+      1.0,
+      2.0
+    ],
+    "expanded": [
+      0.25,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "v1": [
+      0.25,
+      0.5,
+      1.0
+    ]
+  },
+  "trust_grid_union": [
+    0.25,
+    0.5,
+    1.0,
+    2.0
+  ],
+  "version": "graph-geometry-selection-research-v1-2026-08-23"
+}

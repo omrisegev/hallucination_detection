@@ -1,0 +1,43 @@
+method_id,display_name,family,section,regime,main_24cell,donor_data,label_use,current_status,required_next_action
+floor_equal_family,Equal-family mean,reference,main,A,yes,none,none,existing_reference; rerun aligned,Rerun on chosen feature contract
+floor_best_single,Best single measurement,reference,reference,reference,no,none,evaluation labels choose which measurement is best,label-informed diagnostic ceiling,Report outside the unsupervised rank order
+lsml_good6,Continuous L-SML GOOD_6,lsml,reference,reference,no,none,feature subset historically label-informed,existing_unaligned_reference,Decide whether reference-only or formal arm
+lsml_continuous_all,Continuous L-SML full aligned pool,lsml,main,A,yes,none,none,existing unaligned candidate; rerun aligned,Use the exact same full matrix as the other methods
+dufs_pf_lsml,Parameter-free DUFS selector plus continuous L-SML,feature_selector,main,A,yes,none,none,existing unaligned candidate; rerun aligned,Freeze selector objective and downstream L-SML implementation
+dufs_lsml,DUFS selector plus continuous L-SML,feature_selector,main,A,yes,none,none,existing unaligned candidate; rerun aligned,Freeze selector settings and downstream L-SML implementation
+groupfs_lsml,GroupFS selector plus continuous L-SML,feature_selector,main,A,yes,none,none,corrected implementation exists but is unaligned; rerun aligned,Use actual GroupFS implementation and record seeds and selected groups
+loco5,LOCO_5 continuous L-SML,lsml,ceiling,supervised,no,none,labels selected subset under leave-one-cell-out development,existing label-selected reference,Report outside the label-free rank order
+deployed_upcr,Deployed U-PCR,upcr,main,A,yes,none,none,existing_fixed-stable result; rerun aligned,Use same matrix and orientation as all arms
+upcr_signrho,U-PCR + sign(rho),upcr,main,A,yes,none,none,historical label-free polarity candidate; rerun aligned,Freeze the global anchor bit and distinguish it from fixed orientation
+iu_pcr,IU-PCR,upcr,main,A,yes,none,none,existing results differ by contract; exact matched reference,Freeze one solver and feature contract
+dufs_liu,DUFS-LIU,graph_liu,main,A,yes,none,none,existing fixed-stable tie; rerun aligned,Freeze graph and lambda before labels
+su_pcr,SU-PCR,upcr_dependence,main,A,yes,none,none,existing unaligned result; rerun aligned,Freeze sparse decomposition and rho path
+ca_specrage_atomic,Balanced-atomic CA-SpecRaGE,graph_liu,main,A,yes,none,none,existing fixed-stable tie; rerun aligned,Use same feature contract and macro as all arms
+deem_b3,Continuous additive DEEM (B3),deem,main,A,yes,none,none,completed on full-present inventory; registered noninferiority,Rerun on chosen common contract and report cell-macro primary
+family_nrm.A.within_cell_neutral_v1,Family-NRM within-cell,family_nrm,main,A,yes,none,none,new unrun ablation,Implement present-family local calibration and freeze tie/fallback rules
+pgrd.A.within_cell_cross_unionk7_v1,PGRD within-cell cross-gradient,pgrd,main,A,yes,none,none,new unrun ablation,Implement target-cell wrapper and freeze graph/trust/fallback rules
+family_nrm.B.donor_unsup_neutral_lofo_v1,Family-NRM donor-unsupervised,family_nrm,secondary,B,no,unlabeled donors,none,new clean B unrun,Rerun on availability-only donor roster with fixed mode/orientation/strength
+family_nrm.C.donor_label_mode_select_lofo_v1,Family-NRM donor-label mode selection,family_nrm,ceiling,C,no,donors,donor labels for mode/sign/strength,new unrun matched supervised selector,Freeze candidate modes and outer-LOFO selector
+family_nrm.C.legacy_label_filtered_roster_v1,Family-NRM historical label-filtered donor roster,family_nrm,legacy,C,no,donors,donor labels affected roster eligibility,completed canonical historical calibration; not clean B,Retain only as legacy evidence and rerun clean B
+family_nrm.supervised_residual_teacher_lofo_v1,Supervised residual-family teacher,family_nrm,ceiling,supervised,no,donors,donor labels fit a different residual estimator,existing diagnostic; not Family-NRM C,Report outside the A/B/C selector factorial
+pgrd.B.donor_unsup_cross_unionk7_lofo_v1,PGRD donor-unsupervised cross-gradient,pgrd,secondary,B,no,unlabeled donors,none,clean end-to-end B unrun,Freeze direction-only and structural strength rule
+pgrd.B.donor_unsup_intrinsic_geometry_lofo_v1,PGRD donor-unsupervised intrinsic geometry,pgrd,secondary,B,no,unlabeled donors,none,new clean B rerun needed,Rerun with a structurally fixed strength
+pgrd.C.legacy_intrinsic_geometry_strength_v1,PGRD historical label-free geometry with label-selected strength,pgrd,legacy,C,no,donors,donor labels selected inherited strength,completed legacy mixed-provenance result,Retain only as legacy evidence
+pgrd.C.donor_label_one_se_lofo_v1,PGRD donor-label one-SE,pgrd,ceiling,C,no,donors,donor labels for graph/sign/strength,historical evidence on 23 cells,Recompute on aligned 24-cell contract
+pgrd.C.donor_label_maxmean_lofo_v1,PGRD donor-label max-mean,pgrd,ceiling,C,no,donors,donor labels for graph/sign/strength,historical sensitivity on 23 cells,Recompute on aligned 24-cell contract
+pgrd.A.within_cell_full_unionk7_v1,PGRD within-cell full quadratic,pgrd,mechanism,A,no,none,none,new unrun sensitivity,Choose lambda without importing historical donor-label tuning
+family_nrm.A.within_cell_equal_residual_v1,Family-NRM within-cell equal residual direction,family_nrm,mechanism,A,no,none,none,new unrun mechanism control,Freeze equal-family direction and matched trust
+pgrd.A.within_cell_cross_dufsgraph_v1,PGRD within-cell cross-gradient on DUFS graph,pgrd,mechanism,A,no,none,none,new unrun graph control,Reuse exact DUFS graph without graph selection
+pgrd.A.within_cell_cross_nodeperm_v1,PGRD within-cell cross-gradient on node-permuted graph,pgrd,mechanism,A,no,none,none,new unrun null control,Freeze deterministic permutations before labels
+pgrd.A.within_cell_cross_permgate_v1,PGRD within-cell permutation-gated cross-gradient,pgrd,secondary,A,no,none,none,new unrun conservative candidate,Freeze permutation count threshold and exact-IU fallback
+deem_b1,Packaged hard-DEEM adapter,deem,mechanism,A,no,none,none,completed adapter control,Retain with fidelity label
+deem_b2,Packaged repaired soft/rank DEEM adapter,deem,mechanism,A,no,none,none,completed but collapses on wide inventories,Retain only with per-cell health table
+family_residual_graph_liu,Family-residual Graph-LIU,graph_liu,mechanism,C,no,donors,donor labels selected graph historically,closed at near-zero,Optional rerun control only
+residual_graph_deem,Residual-Graph DEEM,deem_graph,synthetic,not_applicable,no,none,synthetic targets only,closed at synthetic specificity gate,Do not add to natural-label leaderboard
+cs_iu_leverage,Leverage-balanced contribution IU,contribution_iu,secondary,A,no,none,none,retrospective positive then transfer failure,Optional aligned diagnostic
+cs_iu_cardinality,Cardinality-balanced contribution IU,contribution_iu,secondary,A,no,none,none,retrospective positive then transfer failure,Optional aligned diagnostic
+atomic_nrm,Atomic-NRM,neutral_residual,mechanism,A,no,none,none,closed negative,Retain as group-prior diagnostic
+su_pgrd,SU-aware PGRD sidecar,pgrd_dependence,legacy,C,no,donors,donor labels inherited historically,closed no incremental value,Retain as historical mechanism control
+mixed_v2_iu,IU-PCR mixed-v2 feature contract,feature_contract,sensitivity,A,no,none,contract selected after labels opened,retrospective sensitivity only,Run only as separately labeled contract lane
+mixed_v2_dufs,DUFS-LIU mixed-v2 feature contract,feature_contract,sensitivity,A,no,none,contract selected after labels opened,retrospective sensitivity only,Run only as separately labeled contract lane
+unified28,Unified-28 ordinary IU-PCR,cross_task,sensitivity,A,no,none,method and 28-summary representation selected during retrospective development,existing cross-task reference,Rerun only when its 28-summary contract is available and do not treat as universal winner

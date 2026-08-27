@@ -1,0 +1,276 @@
+{
+  "version": "graph-geometry-selection-mechanism-final-v1-2026-08-23",
+  "status": "PASS_WITH_CAVEATS",
+  "bounded_finding": "GEOMETRY_SEARCH_SELECTION_OPTIMISM",
+  "audit_canonicalization": "json.dumps(sort_keys=True,separators=(',',':'),allow_nan=False); omit audit_hash",
+  "audit_hash_algorithm": "sha256",
+  "audit_hash": "4945e7a76f9ca828e9be7e1e3c83a5fb142d72e423f4f1f1286ebf96fd96cd01",
+  "audit_scope": {
+    "mode": "independent_read_only_post_transfer_mechanism_audit",
+    "frozen_sources_or_artifacts_modified": false,
+    "audit_outputs_created": [
+      "results/graph_geometry_selection_research_v1/audits/MECHANISM_FINAL.json",
+      "results/graph_geometry_selection_research_v1/audits/MECHANISM_FINAL.md"
+    ],
+    "blockers": []
+  },
+  "anchor_and_factorial": {
+    "required_anchors": {
+      "fixed_union_k7_one_se_canonical": {
+        "mean_pp": 0.25147679442711046,
+        "bootstrap_ci_pp": [0.027372046023322976, 0.4584870048518398],
+        "positive_groups": 6,
+        "held_group_count": 8,
+        "exactly_reproduced": true
+      },
+      "fixed_union_k7_max_mean_canonical": {
+        "mean_pp": 0.449629196668661,
+        "bootstrap_ci_pp": [-0.0018748594028006169, 0.8955066042413282],
+        "positive_groups": 6,
+        "held_group_count": 8,
+        "exactly_reproduced": true
+      }
+    },
+    "exact_decomposition_pp": {
+      "canonical_one_se_anchor": 0.25147679442711046,
+      "max_mean_minus_one_se_fixed_canonical": 0.19815240224155053,
+      "fixed_max_mean_sum": 0.449629196668661,
+      "searched_minus_fixed_max_mean_v1": 0.001976638455165327,
+      "v1_minus_canonical_fixed_max_mean": 0.0,
+      "legacy_five_minus_common_eight_lambda": 0.0,
+      "effect_terms_sum": 0.20012904069671586,
+      "legacy_searched_max_mean_v1_sum": 0.4516058351238263,
+      "equation": "0.25147679442711046 + 0.19815240224155053 + 0.001976638455165327 + 0 + 0 = 0.4516058351238263"
+    },
+    "design": {
+      "capacity_levels": ["fixed", "searched"],
+      "selector_levels": ["one_se", "max_mean"],
+      "trust_classes": {
+        "canonical": [0.5, 1.0, 2.0],
+        "v1": [0.25, 0.5, 1.0],
+        "expanded": [0.25, 0.5, 1.0, 2.0]
+      },
+      "common_lambda_grid": [0.03, 0.1, 0.3, 1.0, 3.0, 10.0, 30.0, 100.0],
+      "phase_a_geometry_ids": [
+        "residual_union_k7",
+        "residual_union_k5",
+        "residual_union_k15",
+        "residual_adaptive_k7"
+      ],
+      "arm_count": 12
+    },
+    "cell_means_pp": [
+      {"capacity": "fixed", "selector": "one_se", "trust_class": "canonical", "mean_pp": 0.25147679442711046},
+      {"capacity": "fixed", "selector": "one_se", "trust_class": "v1", "mean_pp": 0.15980002490265938},
+      {"capacity": "fixed", "selector": "one_se", "trust_class": "expanded", "mean_pp": 0.15980002490265938},
+      {"capacity": "fixed", "selector": "max_mean", "trust_class": "canonical", "mean_pp": 0.449629196668661},
+      {"capacity": "fixed", "selector": "max_mean", "trust_class": "v1", "mean_pp": 0.449629196668661},
+      {"capacity": "fixed", "selector": "max_mean", "trust_class": "expanded", "mean_pp": 0.449629196668661},
+      {"capacity": "searched", "selector": "one_se", "trust_class": "canonical", "mean_pp": 0.26711097583645865},
+      {"capacity": "searched", "selector": "one_se", "trust_class": "v1", "mean_pp": 0.18755890381497078},
+      {"capacity": "searched", "selector": "one_se", "trust_class": "expanded", "mean_pp": 0.18755890381497078},
+      {"capacity": "searched", "selector": "max_mean", "trust_class": "canonical", "mean_pp": 0.4516058351238263},
+      {"capacity": "searched", "selector": "max_mean", "trust_class": "v1", "mean_pp": 0.4516058351238263},
+      {"capacity": "searched", "selector": "max_mean", "trust_class": "expanded", "mean_pp": 0.4516058351238263}
+    ],
+    "matched_geometry_contrasts": {
+      "searched_minus_fixed_one_se_canonical": {
+        "mean_pp": 0.01563418140934821,
+        "ci_pp": [-0.014471604368362461, 0.05255744335336959],
+        "positive_groups": 2
+      },
+      "searched_minus_fixed_max_mean_canonical": {
+        "mean_pp": 0.001976638455165327,
+        "ci_pp": [-0.01843234991433961, 0.02746056207814596],
+        "positive_groups": 1
+      }
+    },
+    "trust_contrasts": {
+      "fixed_one_se_v1_minus_canonical_pp": -0.09167676952445108,
+      "searched_one_se_v1_minus_canonical_pp": -0.0795520720214879,
+      "fixed_max_mean_v1_minus_canonical_pp": 0.0,
+      "searched_max_mean_v1_minus_canonical_pp": 0.0,
+      "v1_and_expanded_point_results_identical": true
+    }
+  },
+  "policy_matched_oracle_and_regret": {
+    "rows": [
+      {"policy": "intrinsic_fixed_strength", "method": "canonical_fixed_strength", "mean_delta_pp": 0.25147679442711046, "mean_regret_pp": 0.20054449902643495, "oracle_agreement": 2, "held_groups": 8},
+      {"policy": "intrinsic_fixed_strength", "method": "intrinsic_label_free", "mean_delta_pp": 0.2198206243981681, "mean_regret_pp": 0.23220066905537728, "oracle_agreement": 1, "held_groups": 8},
+      {"policy": "intrinsic_fixed_strength", "method": "held_family_geometry_oracle", "mean_delta_pp": 0.4520212934535454, "mean_regret_pp": 0.0, "oracle_agreement": 8, "held_groups": 8},
+      {"policy": "one_se", "method": "fixed_residual_union_k7", "mean_delta_pp": 0.25147679442711046, "mean_regret_pp": 0.28562334658008326, "oracle_agreement": 1, "held_groups": 8},
+      {"policy": "one_se", "method": "supervised_geometry_selector", "mean_delta_pp": 0.2236220956665607, "mean_regret_pp": 0.313478045340633, "oracle_agreement": 3, "held_groups": 8},
+      {"policy": "one_se", "method": "held_family_geometry_oracle", "mean_delta_pp": 0.5371001410071937, "mean_regret_pp": 0.0, "oracle_agreement": 8, "held_groups": 8},
+      {"policy": "max_mean", "method": "fixed_residual_union_k7", "mean_delta_pp": 0.44962919666866097, "mean_regret_pp": 0.27321025600484505, "oracle_agreement": 1, "held_groups": 8},
+      {"policy": "max_mean", "method": "supervised_geometry_selector", "mean_delta_pp": 0.4366823332333055, "mean_regret_pp": 0.28615711944020056, "oracle_agreement": 3, "held_groups": 8},
+      {"policy": "max_mean", "method": "held_family_geometry_oracle", "mean_delta_pp": 0.7228394526735061, "mean_regret_pp": 0.0, "oracle_agreement": 8, "held_groups": 8}
+    ],
+    "selector_minus_matched_fixed_pp": {
+      "intrinsic_label_free_fixed_strength": -0.03165617002894236,
+      "supervised_one_se": -0.027854698760549773,
+      "supervised_max_mean": -0.012946863435355449
+    },
+    "rank_correlations": {
+      "donor_label_spearman_mean": 0.6785714285714286,
+      "donor_label_spearman_median": 0.8095238095238096,
+      "intrinsic_spearman_mean": 0.020833333333333332,
+      "intrinsic_spearman_median": -0.04761904761904763
+    },
+    "full_tuple_ceiling_pp": 1.0408366486045157,
+    "full_tuple_ceiling_is_policy_matched_geometry_oracle": false
+  },
+  "matched_did_selection_optimism": {
+    "estimand": "(searched_inner-fixed_inner)-(searched_outer-fixed_outer)",
+    "rows": [
+      {"bank": "phase_a_four_geometry", "policy": "one_se", "mean_pp": -0.008103651286726497, "positive_groups": 3, "worst_group_pp": -0.09407880369011017, "best_group_pp": 0.051448798569844356, "exact_one_sided_sign_flip_p": 0.6875},
+      {"bank": "phase_a_four_geometry", "policy": "max_mean", "mean_pp": 0.003494878878908622, "positive_groups": 2, "worst_group_pp": -0.042928389751059746, "best_group_pp": 0.05087557347042155, "exact_one_sided_sign_flip_p": 0.375},
+      {"bank": "phase_b_selector_bank", "policy": "one_se", "mean_pp": 0.251355086772973, "positive_groups": 6, "worst_group_pp": -0.2980278938068914, "best_group_pp": 0.9082175566294312, "exact_one_sided_sign_flip_p": 0.04296875},
+      {"bank": "phase_b_selector_bank", "policy": "max_mean", "mean_pp": 0.16361220879177343, "positive_groups": 5, "worst_group_pp": -0.9322669963489648, "best_group_pp": 0.7677139604407079, "exact_one_sided_sign_flip_p": 0.265625}
+    ],
+    "interpretation": "Expanded-bank selection optimism is supported under one-SE. Max-mean has a positive but noisy point estimate. Phase A does not show optimism."
+  },
+  "actuator_factor": {
+    "selector_can_choose_actuator": false,
+    "cross_lambda_parameter": null,
+    "cross_identifies_direction_only": true,
+    "transfer_cross_entries_actuator_was_selected": false,
+    "legacy_field_correction": "lambda_is_a_cross_parameter was verified on all 108 rows to mean lambda_is_full_parameter",
+    "canonical_trust_full_minus_cross": [
+      {"geometry": "residual_union_k7", "policy": "one_se", "mean_pp": 0.006353800631174789, "ci_pp": [0.001847687078223304, 0.011734739499410504], "positive_groups": 7, "p": 0.0078125},
+      {"geometry": "residual_union_k7", "policy": "max_mean", "mean_pp": 0.13023639449395155, "ci_pp": [-0.010016015981074522, 0.2815480795279471], "positive_groups": 5, "p": 0.08203125},
+      {"geometry": "residual_union_k5", "policy": "one_se", "mean_pp": 0.0033775901358149003, "ci_pp": [0.0007937281176123578, 0.006343408685557939], "positive_groups": 6, "p": 0.02734375},
+      {"geometry": "residual_union_k5", "policy": "max_mean", "mean_pp": 0.15899561880377874, "ci_pp": [0.03886326951555996, 0.29914443901811943], "positive_groups": 5, "p": 0.03125},
+      {"geometry": "residual_union_k15", "policy": "one_se", "mean_pp": 0.006735240763699796, "ci_pp": [0.003044386714295738, 0.011907363271414381], "positive_groups": 7, "p": 0.0078125},
+      {"geometry": "residual_union_k15", "policy": "max_mean", "mean_pp": 0.11775686437537213, "ci_pp": [0.0006152060743808575, 0.24207237196613587], "positive_groups": 5, "p": 0.06640625},
+      {"geometry": "residual_adaptive_k7", "policy": "one_se", "mean_pp": 0.00032767703752304865, "ci_pp": [-0.0037252930981349075, 0.0038328723065906645], "positive_groups": 4, "p": 0.4609375},
+      {"geometry": "residual_adaptive_k7", "policy": "max_mean", "mean_pp": 0.06129930153332774, "ci_pp": [-0.013515054470562653, 0.13270699235675532], "positive_groups": 5, "p": 0.0859375},
+      {"geometry": "residual_mutual_k7", "policy": "one_se", "mean_pp": 0.015498010036535021, "ci_pp": [-0.015390602576339322, 0.05043945436752202], "positive_groups": 5, "p": 0.21875},
+      {"geometry": "residual_mutual_k7", "policy": "max_mean", "mean_pp": 0.06944973361385114, "ci_pp": [-0.0233011954116107, 0.1776522098755507], "positive_groups": 5, "p": 0.1328125},
+      {"geometry": "contribution_union_k7", "policy": "one_se", "mean_pp": -0.023301316755736188, "ci_pp": [-0.0641746880917828, 0.013458487302470313], "positive_groups": 4, "p": 0.8359375},
+      {"geometry": "contribution_union_k7", "policy": "max_mean", "mean_pp": 0.13262305887446724, "ci_pp": [-0.06341374113815638, 0.3291515437450182], "positive_groups": 5, "p": 0.1171875},
+      {"geometry": "dufs_union_k7", "policy": "one_se", "mean_pp": 0.013648544982522529, "ci_pp": [-0.0006550512709321826, 0.037007537264247915], "positive_groups": 6, "p": 0.12890625},
+      {"geometry": "dufs_union_k7", "policy": "max_mean", "mean_pp": 0.04563784732618614, "ci_pp": [0.020077833733234265, 0.07329290001633251], "positive_groups": 7, "p": 0.0078125},
+      {"geometry": "residual_cosine_union_k7", "policy": "one_se", "mean_pp": 0.006142431382046058, "ci_pp": [-0.008438971941755004, 0.01947332935080287], "positive_groups": 5, "p": 0.2265625},
+      {"geometry": "residual_cosine_union_k7", "policy": "max_mean", "mean_pp": -0.006383266759216603, "ci_pp": [-0.04998197826226042, 0.030458092228096572], "positive_groups": 5, "p": 0.61328125},
+      {"geometry": "residual_shrinkage_mahalanobis_union_k7", "policy": "one_se", "mean_pp": 0.04983508802292452, "ci_pp": [0.011427785752962931, 0.09550652586028328], "positive_groups": 6, "p": 0.0234375},
+      {"geometry": "residual_shrinkage_mahalanobis_union_k7", "policy": "max_mean", "mean_pp": 0.06594493055398522, "ci_pp": [-0.04185671924121901, 0.19633804184347314], "positive_groups": 5, "p": 0.20703125}
+    ],
+    "interpretation": "At conservative strength, canonical and adaptive full directions add only 0.00635pp and 0.00033pp over cross. Larger max-mean increments are aggressive-policy contrasts, not actuator-selection gains."
+  },
+  "cbar_diagnostics": [
+    {"geometry": "residual_union_k7", "cbar_norm": 0.2216044915166993, "cos_full_vs_negative_cbar_lambda_0_03": 0.9999110182310786, "group_c_dispersion_relative": 1.0708365150581918, "leave_one_source_cosine_mean": 0.9903798945212381, "leave_one_source_cosine_min": 0.972736205928804, "node_permutation_null_spread_mean": 0.009692730937253341, "node_permuted_c_norm_mean": 0.009958675893395812, "real_c_distance_to_permutations_mean": 0.219434044658615, "real_minus_permuted_mean_separation_ratio": 22.619523045222703},
+    {"geometry": "residual_adaptive_k7", "cbar_norm": 0.18986305191564637, "cos_full_vs_negative_cbar_lambda_0_03": 0.9999028272380154, "group_c_dispersion_relative": 1.217445148078669, "leave_one_source_cosine_mean": 0.9861924082465494, "leave_one_source_cosine_min": 0.9651396977859005, "node_permutation_null_spread_mean": 0.011188597452744113, "node_permuted_c_norm_mean": 0.011415092537320226, "real_c_distance_to_permutations_mean": 0.18860111313139521, "real_minus_permuted_mean_separation_ratio": 16.82759562267225},
+    {"geometry": "contribution_union_k7", "cbar_norm": 0.09904012168667628, "cos_full_vs_negative_cbar_lambda_0_03": 0.9998276517690032, "group_c_dispersion_relative": 0.8764881893859336, "leave_one_source_cosine_mean": 0.9921936893188168, "leave_one_source_cosine_min": 0.9825448920339058, "node_permutation_null_spread_mean": 0.008054955096654466, "node_permuted_c_norm_mean": 0.008368600300129895, "real_c_distance_to_permutations_mean": 0.09964748803375513, "real_minus_permuted_mean_separation_ratio": 12.332140117835674}
+  ],
+  "node_outcome_controls_fixed_strength": [
+    {"geometry": "residual_union_k7", "actuator": "full", "lambda": 0.03, "trust": 0.5, "real_delta_pp": 0.25147679442711046, "permutation_mean_pp": -0.00733084728992022, "real_minus_permutation_mean_pp": 0.2588076417170307, "ci_pp": [0.06619790720935374, 0.431254066017714], "rank_p": 0.14285714285714285},
+    {"geometry": "residual_union_k7", "actuator": "cross", "lambda": null, "trust": 0.5, "real_delta_pp": 0.24512299379593566, "permutation_mean_pp": -0.011331568072011243, "real_minus_permutation_mean_pp": 0.2564545618679469, "ci_pp": [0.06520084333077426, 0.4289740426819361], "rank_p": 0.14285714285714285},
+    {"geometry": "residual_adaptive_k7", "actuator": "full", "lambda": 0.03, "trust": 0.5, "real_delta_pp": 0.21982062439816807, "permutation_mean_pp": -0.019953075549238284, "real_minus_permutation_mean_pp": 0.23977369994740635, "ci_pp": [0.06163409439523533, 0.4247616597850962], "rank_p": 0.047619047619047616},
+    {"geometry": "residual_adaptive_k7", "actuator": "cross", "lambda": null, "trust": 0.5, "real_delta_pp": 0.21949294736064504, "permutation_mean_pp": -0.023138492904811004, "real_minus_permutation_mean_pp": 0.24263144026545605, "ci_pp": [0.06235576445983557, 0.43053010189020924], "rank_p": 0.047619047619047616},
+    {"geometry": "contribution_union_k7", "actuator": "full", "lambda": 0.03, "trust": 0.5, "real_delta_pp": 0.29943389144470406, "permutation_mean_pp": -0.06951635649058142, "real_minus_permutation_mean_pp": 0.3689502479352855, "ci_pp": [0.1707139352776266, 0.5598038904488821], "rank_p": 0.047619047619047616},
+    {"geometry": "contribution_union_k7", "actuator": "cross", "lambda": null, "trust": 0.5, "real_delta_pp": 0.2969718551987022, "permutation_mean_pp": -0.07154408971884704, "real_minus_permutation_mean_pp": 0.36851594491754924, "ci_pp": [0.16800204339330155, 0.5635363410435442], "rank_p": 0.047619047619047616}
+  ],
+  "control_scope": {
+    "new_per_geometry_node_permutations": 20,
+    "canonical_new_rank_p": 0.14285714285714285,
+    "inherited_canonical_rank_p": 0.047619047619047616,
+    "protocols_are_exchangeable": false,
+    "inherited_control_audit_status": "FAIL",
+    "failure_reason": "exact canonical union-k7 did not pass the contribution/DUFS attribution gate",
+    "scope_note": "Inherited controls apply only to exact fixed residual union-k7 canonical and must not be generalized to a selected geometry."
+  },
+  "claim_assessment": {
+    "useful_geometry_gain": {"supported": false, "reason": "Matched Phase A search effects are tiny and their intervals cross zero."},
+    "max_mean_point_gain_over_one_se": {"point_estimate_supported": true, "mean_pp": 0.19815240224155053, "family_level_statistical_support": false, "ci_pp": [-0.03694792822153444, 0.45588039031974126]},
+    "label_free_geometry_selector_gain": {"supported": false, "matched_difference_pp": -0.03165617002894236},
+    "supervised_geometry_selector_gain": {"supported": false, "one_se_difference_pp": -0.027854698760549773, "max_mean_difference_pp": -0.012946863435355449},
+    "held_label_geometry_headroom": {"supported_descriptively": true, "oracle_means_pp": {"fixed_strength": 0.4520212934535454, "one_se": 0.5371001410071937, "max_mean": 0.7228394526735061}},
+    "geometry_headroom_identified_without_labels": {"supported": false, "intrinsic_oracle_agreement": "1/8", "intrinsic_mean_rank_spearman": 0.020833333333333332, "intrinsic_regret_pp": 0.23220066905537728},
+    "selection_optimism": {"supported": true, "scope": "expanded Phase B one-SE selector bank", "mean_pp": 0.251355086772973, "exact_one_sided_sign_flip_p": 0.04296875, "max_mean_note": "positive point estimate +0.163612pp but p=0.265625"}
+  },
+  "external_transfer": {
+    "scope": "retrospective_stress_test_not_confirmation",
+    "target_score_fit_physically_outcome_free": true,
+    "scores_verified_before_outcome_access": true,
+    "canonical_scores_exactly_reproduced": true,
+    "panel_means_pp": [
+      {"panel": "processbench_llama", "canonical": 0.5879929777481585, "label_free": 0.7114365605969397, "supervised_one_se": 1.3300236125750402, "supervised_max_mean": 1.4834873158963895},
+      {"panel": "processbench_qwen", "canonical": 0.13665027464765667, "label_free": 0.27737053816972307, "supervised_one_se": 0.8000829809506254, "supervised_max_mean": 0.6304969751288845},
+      {"panel": "semgrad", "canonical": 0.2565540872500993, "label_free": 0.40353843992382843, "supervised_one_se": 0.5369250183610119, "supervised_max_mean": -0.24489169238704478},
+      {"panel": "prmbench", "canonical": -0.41974947637570814, "label_free": -0.37365608764247105, "supervised_one_se": -0.12045058890732818, "supervised_max_mean": -0.5346960598971884},
+      {"panel": "hle", "canonical": 0.9119054320292697, "label_free": 0.6248240923163451, "supervised_one_se": -0.4186602870813516, "supervised_max_mean": 0.5312412046158177}
+    ],
+    "interpretation": "Label-free beats canonical on four of five opened panels but loses on HLE and is worse under the matched development policy. Supervised results are mixed. No confirmatory selector or geometry claim follows."
+  },
+  "exclusion_verification": {
+    "actuator_selection_absent": true,
+    "evidence_actuator": [
+      "RUN_DEFINITION.actuators.selector_can_choose_actuator=false",
+      "RESULT.actuator_factor.selector_can_choose_actuator=false",
+      "all four transfer cross controls have actuator_was_selected=false",
+      "test_actuator_keys_are_disjoint and test_cross_selector_has_no_lambda pass"
+    ],
+    "su_covariance_or_rho_absent": true,
+    "evidence_su": [
+      "RUN_DEFINITION.su_covariance_or_rho_arms=[]",
+      "PROVENANCE_AUDIT.su_arms_present=false",
+      "static no-SU test passes",
+      "phase-B selector roster contains no SU geometry"
+    ],
+    "dufs_role": "control_only"
+  },
+  "plot05": {
+    "status": "FIXED_DURING_FINAL_AUDIT",
+    "blocking": false,
+    "png_sha256": "bcf746feb928e750d3645c7d3d7ff82117aa1fce769e1f67e8cfbebed8268e8d",
+    "pdf_sha256": "95e8683ecf1f0afa0738d56db8f5dd7e5bccb67b6e30494c65acc122015d7f9a",
+    "plot_manifest_sha256": "3bc841386542e0430af48932f5b56483eab1d0b2ed31957188bac3b5f807a7a6",
+    "plot_manifest_embedded_hash": "6d9c237a4d4333cc65ba6c7b221a781ca4b584edb2f08bd69f0e1744894e8b13",
+    "verification": "Current panels use fully policy-matched fixed-strength, one-SE, and max-mean comparators and oracles and explicitly separate the +1.040837pp full-tuple ceiling.",
+    "note": "The prior mixed-reference Plot05 was replaced; no unmatched label-free diagnostic remains in the one-SE panel."
+  },
+  "tests": [
+    {"command": ".venv/bin/python scripts/test_graph_geometry_selection.py", "status": "PASS", "passed": 14, "failed": 0},
+    {"command": ".venv/bin/python scripts/test_graph_geometry_selection_postreport_audit.py", "status": "PASS", "passed": 4, "failed": 0},
+    {"command": ".venv/bin/python scripts/test_graph_geometry_selection_transfer.py", "status": "PASS", "passed": 1, "failed": 0}
+  ],
+  "input_hashes": {
+    "anchor_reproduction/RESULT.json": "afd81cf5f3bf50fce2d7e4e312c194604928aa06300c922ea8014c960000484b",
+    "development_fit/RUN_DEFINITION.json": "2df7edfd24b82b53e1346345bbe1001fd601b9f681886f740279eae96695a668",
+    "development_fit/FIT_COMPLETE.json": "6130ea9585ae6cc7ba85272320be13a9912dcf1570b47209cd350293d4f8307e",
+    "development_fit/RESULT.json": "a14f178a0cf068c5e1ccb326d9c00d294f38a1961e46e8284c8ccbe98483d15d",
+    "development_fit/REPORT.md": "60494a1edc5ed4108f2dca6169a8e6059b5ef989b691d8185d2166ded1c5590c",
+    "development_fit/phase_a_factorial.csv": "6e80a24c0178bc2706ad2c903e1553cce9aff2bcd8e8056323574e02c19dc07e",
+    "development_fit/phase_a_contrasts.csv": "d78a70d8c5d4ed99fe5d3f85bfc9e6513089d4fe9bc3e927e586cf3f6e9b084e",
+    "development_fit/selector_results.csv": "7465dcdbfe6877449b88c02dd1a22a331a714bc49b4f70a13e986ee8fde0fc07",
+    "development_fit/actuator_paired_summaries.csv": "ba6696e937daa6628b33f09533fc60b2703f2cc1d6a2d1bad9386d070656af2f",
+    "development_fit/actuator_diagnostics.csv": "5760dc1e5ccdd6f9a3c5a35e43b115185cb7de98b96259ee0f9020d0a36f48ce",
+    "development_fit/node_permutation_outcome_summaries.csv": "798c1e4298b50035e87c2fdc70b867c8af99ecc569d905b7b8857926ae8c9cea",
+    "development_fit/CONTROL_AUDIT.json": "564ea49a7e0f2c89ec0b3a6d389d02f80346986558d3f65a7d96e85a847344d7",
+    "development_fit/PROVENANCE_AUDIT.json": "096939c9fea8468297767004c4b3a45673dcfa75bf13778febdb32facb142823",
+    "development_fit/FROZEN_TRANSFER_SELECTIONS.json": "555fe730c884f32cc37f98a2221b6c8ec311a8accbef8306a64ec1c9bf171b51",
+    "postreport_audit/RESULT.json": "f54d0072839af4c5e4d5851842dcd5b09912c1fe38ca464a2118434fec45e2b0",
+    "postreport_audit/MANIFEST.json": "7962cb5c7a4038ede89c6e7b2e01c80390edc29d841ee8957497cdf242e89d1f",
+    "postreport_audit/policy_matched_oracle_summaries.csv": "86a7c82da9a035f5e3791279489c826f25ee65096db7a2347c2e4d4b36b4eef5",
+    "postreport_audit/selection_optimism_did_summaries.csv": "24c716fe408c016320c4c9518f2b59c53ca489fb7dedd6f36f735bce0825ea53",
+    "postreport_audit/actuator_arms_semantic_correction.csv": "5df5dd2931b834993dd2f26f13f7a44f44e81dc942299d28be7bfd3af320b82b",
+    "plots/PLOT_MANIFEST.json": "3bc841386542e0430af48932f5b56483eab1d0b2ed31957188bac3b5f807a7a6",
+    "external_transfer/FIT_MANIFEST.json": "16de115656422a474369bf2588d8332e0ceb95578edf00083da47990f58afaaf",
+    "external_transfer/FROZEN_TRANSFER_SELECTIONS.json": "555fe730c884f32cc37f98a2221b6c8ec311a8accbef8306a64ec1c9bf171b51",
+    "external_transfer/RESULT.json": "d1c64ada9d1f92d0371d30261262856effe8c244fc067a98db6f8d9c3aad184d",
+    "external_transfer/REPORT.md": "63cc188a96fdc2ff37766952ad770577d38ae0381bd9e76bbe97d5f3f0479881",
+    "audits/PROVENANCE_FINAL.json": "bf85c1fc410b8a50b913744c08b2be432b7775d06607ef128c45bb3d1c5c666b",
+    "audits/PROVENANCE_FINAL.md": "aea78f382d2eee8a26c88b964290ba27204f9370a01bd6d4bbb5b0615e978f95"
+  },
+  "report": {
+    "path": "results/graph_geometry_selection_research_v1/audits/MECHANISM_FINAL.md",
+    "sha256": "b355bc8cf5cab744442826c0439f94987ecde6f131fb1c94811114e1f9a9009a",
+    "embedded_prefix_self_sha256": "501e6f6244ad8bb4bae885b38f2b45b7a5c98ad767dc0de3fb901a802d6460a2"
+  },
+  "limitations": [
+    "All development and external outcomes were historically opened; external transfer is retrospective stress testing, not confirmation.",
+    "The frozen mixed-v2/confidence-orientation representation predates this study and was outcome-informed; strict outer isolation applies only to the new geometry and selector stage conditional on that representation.",
+    "Twenty deterministic node permutations give coarse rank p-values; the inherited and new canonical permutation protocols are not exchangeable.",
+    "The full-tuple +1.040837pp ceiling is an optimism ceiling, not a policy-matched geometry oracle."
+  ]
+}

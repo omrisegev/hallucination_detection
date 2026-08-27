@@ -1,0 +1,205 @@
+{
+  "version": "graph-geometry-selection-provenance-final-v1-2026-08-23",
+  "status": "PASS",
+  "blockers": [],
+  "audit_scope": {
+    "mode": "independent_read_only_post_transfer_replay",
+    "development_sources_or_artifacts_modified": false,
+    "transfer_sources_or_artifacts_modified": false,
+    "audit_outputs_created": [
+      "results/graph_geometry_selection_research_v1/audits/PROVENANCE_FINAL.json",
+      "results/graph_geometry_selection_research_v1/audits/PROVENANCE_FINAL.md"
+    ]
+  },
+  "development_lineage": {
+    "spec_sha256": "3fdf743276ef0ab272bac93bfa38cf8f3143d349c7a6a96cf9f8dbb818efe06a",
+    "development_fit_complete_sha256": "6130ea9585ae6cc7ba85272320be13a9912dcf1570b47209cd350293d4f8307e",
+    "development_fit_manifest_hash": "08f7d41081b12ea0a17da9074edffb7277705b08bde2e260f1ba51f47ba11652",
+    "development_label_free_selection_sha256": "a5068f9787fb26bb06c663eb94ce50972127b705ac647277f6ba36cad92ebb7a",
+    "development_label_free_selection_hash": "8b3ead086e8b05250306eb4e999286faf6e3ba3d4add3d9966a6e74904c9da62",
+    "development_transfer_selection_sha256": "555fe730c884f32cc37f98a2221b6c8ec311a8accbef8306a64ec1c9bf171b51",
+    "development_transfer_selection_hash": "3a1a6bfbd49eaaad334be5f82c74d1aab196476ebc7c8ffca57b6a7dbb413b34",
+    "canonical_selection_sha256": "ff0b6e824d0140b7e5fbdab0d10f97b7a32ff80217d6b740915436c5ce8d1aa3",
+    "canonical_selection_hash": "dcba9bd390bec6d16af02d1845b797737999c74a7b70d3c06707db9b670718b8",
+    "physically_isolated_development_bundle_sha256": "135bf044a04e88324469e2b94c00589b0d1611cf74592e5b5fce208442bf12b9",
+    "physical_isolation_manifest_sha256": "3dc50f501d03d399183b3c944e18ca5cdea88bdb801813e95dc084ac0b7ad4e5",
+    "historical_label_bearing_bundle_sha256": "693a5b634f975ea32c7f840f3ab8366dd8ad638fe41cc76a60e24b1ac5a013e1",
+    "development_to_transfer_chain_verified": true
+  },
+  "external_isolation_audit": {
+    "manifest_path": "results/graph_geometry_selection_research_v1/external_transfer/isolated/ISOLATION_MANIFEST.json",
+    "manifest_sha256": "e8e7a86adcf54748cf8af2758e949588a1caa88141c3827ddd13a8c77c788c60",
+    "manifest_hash": "3478fac1579c12c0f92847bf9f30a162d86a92f22bc44e11f8b9453e82c10d76",
+    "self_hash_valid": true,
+    "roster_cells": 16,
+    "samples": 21141,
+    "panels": [
+      "hle",
+      "prmbench",
+      "process_semgrad"
+    ],
+    "exact_member_registry_files_verified": 16,
+    "isolated_members_verified": 50,
+    "expected_member_registries": {
+      "process_semgrad": [
+        "F",
+        "feature_names",
+        "row_ids"
+      ],
+      "prmbench": [
+        "F",
+        "feature_names",
+        "row_keys",
+        "row_ids",
+        "source_ids"
+      ],
+      "hle": [
+        "F",
+        "feature_names",
+        "row_keys"
+      ]
+    },
+    "isolated_file_hashes_verified": 16,
+    "raw_source_file_hashes_verified_without_indexing_outcomes": 16,
+    "source_code_hashes_verified": 15,
+    "outcome_fields_indexed_by_isolation": [],
+    "target_fields_physically_present_in_score_fit_inputs": false,
+    "isolation_boundary": "The isolation process necessarily unpickled historically opened raw caches and therefore could materialize records that also contain outcomes. It indexed only the frozen telemetry, identifier, and non-target eligibility whitelist. The subsequent score-fit process consumed only the exact-registry isolated NPZ files, which physically contain no outcome member."
+  },
+  "transfer_fit_audit": {
+    "fit_manifest_path": "results/graph_geometry_selection_research_v1/external_transfer/FIT_MANIFEST.json",
+    "fit_manifest_sha256": "16de115656422a474369bf2588d8332e0ceb95578edf00083da47990f58afaaf",
+    "fit_manifest_hash": "f08f757d5295baafbb5e8a76272c3038ac00c2928dceace148f02a97724ced35",
+    "self_hash_valid": true,
+    "isolation_manifest_chain_valid": true,
+    "development_selection_chain_valid": true,
+    "source_hash_registry_exactly_matches_current_sources": true,
+    "source_hashes": {
+      "contribution_module": "fd1f1abb8580271e760f54d8f8d7e5428803e5adc5e44ad28576e045f3adfc26",
+      "dufs_contract": "c674f7b6cfd1a82dcc63cd7cc26bbd3d53ef5f4d289dbcbb7eabe933670fdf2d",
+      "family_graph_module": "f07f05e41fe8de275045fe6ae018e9a1254398c2c615a5cefb9bb060f9f38ba9",
+      "family_registry": "ab15e807f7595f0f91eec8418320fe4a419d9f2c63e81cef2726fac9325ae067",
+      "feature_contract": "65ffba0bfc9bf4ded859d9ebffce9bd563a28652c47f5ed8d80ce91b64d4385d",
+      "feature_utils": "b68bc5e1647742667fc20908321485bf9229954713b5da7215bf0f2629c74362",
+      "hle_loader": "50e78b0f6627fb786ed90a40585f92fe4e2b2cc1f8ee9294af4639d588f5f12c",
+      "legacy_external_script": "0329e1bcdb604f9f5b956baa1dec7dc71078cbd3638c7958baf27148c5d58dc6",
+      "mixed_v2_builder": "ac2c9843e8a819d2c7e9dfe19f6412255932f08d7c7e17a1a81eaa8f1cb45e3e",
+      "prmbench_loader": "a53cc59769b60a0991f1889e6d15c03a51ef4084315f1cd9545c6921474b7ff0",
+      "process_semgrad_loader": "c316096b2f8a203d06a8aeef2b885d6875bc79aef9e77ef36f71c8ff0b4eaed0",
+      "repgrid_scoring": "b25e25f5c08fde40c9cb47b0f63f1915bf438362b97f2b68e482ae31c41cde79",
+      "transfer_script": "5f043fdc52b49393b79c07f6cde1a20344f234747eec312469dbfa3ea7b9c172",
+      "transfer_test": "bc42598887ea5fe583a386065ff713d5676070e21bc7b76fce0d18fdd13d9a33",
+      "upcr_module": "587d4b4699e8cd49d28315f70ffdabb4eb7ef9fd48e4df5436e121a71536c071"
+    },
+    "labels_accessed_by_fit": false,
+    "target_fields_received_by_fit": [],
+    "target_fields_physically_present_in_fit_input": false,
+    "raw_target_caches_accessed_by_fit": false
+  },
+  "external_score_audit": {
+    "methods": [
+      "iu",
+      "canonical",
+      "label_free",
+      "supervised_one_se",
+      "supervised_max_mean",
+      "canonical_cross",
+      "label_free_cross",
+      "supervised_one_se_cross",
+      "supervised_max_mean_cross"
+    ],
+    "score_hash_registry_sha256": "d467cf04e75d27aa63d1e293a98271be0b400c3e072a7d0c987331b274e6fb51",
+    "score_files_verified": 16,
+    "score_arrays_hash_verified": 144,
+    "score_arrays_independently_reconstructed_from_isolated_features": 144,
+    "all_reconstructed_arrays_exactly_equal": true,
+    "feature_registries_verified": 16,
+    "family_registries_verified": 16,
+    "identity_fields_verified_by_panel": {
+      "process_semgrad": [
+        "row_ids"
+      ],
+      "prmbench": [
+        "row_keys",
+        "row_ids",
+        "source_ids"
+      ],
+      "hle": [
+        "row_keys"
+      ]
+    },
+    "canonical_reproduction_sha256": "63e428a01f3295470d19a3b43e8d6dbdabca21a89f42ba70917c598b941597a2",
+    "canonical_cells_exact": 16,
+    "canonical_arrays_exact": 48,
+    "canonical_method_mapping": {
+      "iu": "iu",
+      "canonical": "primary_one_se",
+      "canonical_cross": "cross_only"
+    }
+  },
+  "outcome_report_alignment_audit": {
+    "independent_audit_verified_fit_and_reconstructed_all_scores_before_calling_label_loader": true,
+    "frozen_report_source_sha256": "5f043fdc52b49393b79c07f6cde1a20344f234747eec312469dbfa3ea7b9c172",
+    "report_verify_fit_call_line": 1203,
+    "report_first_label_loader_call_line": 1206,
+    "fit_manifest_mtime_ns": 1787445783451532356,
+    "outcome_result_mtime_ns": 1787445836773358404,
+    "fit_manifest_precedes_outcome_result": true,
+    "label_source_hashes_verified": 18,
+    "label_vectors_identity_aligned_to_isolated_rows": 16,
+    "outcome_metric_rows_expected": 144,
+    "outcome_metric_rows_observed": 144,
+    "unique_cell_method_rows": 144,
+    "auroc_rows_recomputed_exactly": 144,
+    "auprc_rows_recomputed_exactly": 144,
+    "delta_rows_recomputed_within_1e-13": 144,
+    "family_nrm_source_hashes_verified": {
+      "hle_nrm_scores": "e74afa0d46002cad493fbcd691e2076f3d8daf941992213e66c4f8cad39e687d",
+      "prmbench_nrm_scores": "8945d52bf6781abad03f35f8ba104c72bbbf194b3511ccb4e6481c5fe97d0227",
+      "process_semgrad_nrm_cells": "0c4f836ac2ae046c228b943c3afcf26a6abe20f84dc138d4ada9dc6a3d96c278"
+    },
+    "result_fit_manifest_hash_matches": true,
+    "result_transfer_selection_hash_matches": true,
+    "result_scope": "historically_opened_external_data_not_confirmation"
+  },
+  "external_outcome_artifact_manifest": {
+    "version": "graph-geometry-selection-external-outcome-artifact-manifest-v1-2026-08-23",
+    "root": "results/graph_geometry_selection_research_v1/external_transfer",
+    "artifact_count": 5,
+    "artifacts": {
+      "REPORT.md": {
+        "sha256": "63cc188a96fdc2ff37766952ad770577d38ae0381bd9e76bbe97d5f3f0479881",
+        "size_bytes": 1256
+      },
+      "RESULT.json": {
+        "sha256": "d1c64ada9d1f92d0371d30261262856effe8c244fc067a98db6f8d9c3aad184d",
+        "size_bytes": 25495
+      },
+      "cell_metrics.csv": {
+        "sha256": "32e1ac1b4703a7aeb1bc24fc2b66662a17c5b47cac1fb42385cee8f34ca224ad",
+        "size_bytes": 29915
+      },
+      "plot_07_frozen_transfer.pdf": {
+        "sha256": "83106d839103d35ba63f8cb0e7fba0948d4c36365d09945b8f4e17119b6046cc",
+        "size_bytes": 23757
+      },
+      "plot_07_frozen_transfer.png": {
+        "sha256": "d41868b090477eda24884c73d4fa60f4fca3e14c0d9f4ba5cfec50f715215937",
+        "size_bytes": 252022
+      }
+    },
+    "hash_algorithm": "sha256",
+    "canonicalization": "json.dumps(sort_keys=True,separators=(',',':'),allow_nan=False); omit manifest_hash",
+    "manifest_hash": "05478e5e8799d525eb25dcdec98b7e24d2056e8c53d44f26287736ccf2056f35"
+  },
+  "canonical_historical_boundary_correction": "The canonical fit never indexed, decoded, or passed any __labels array into graph construction, calibration, or scoring, and its emitted state/score artifacts contain no target fields and verify against their frozen hashes. However, the fit received the full results/dependency_fusion_raw/cells.npz, which physically contains 24 __labels.npy members, and its provenance SHA read the archive bytes. Therefore target_fields_received_by_fit=[] and any unqualified claim that labels or the label-bearing archive were 'unopened' are too strong. The historical boundary was logical member whitelisting, not physical input isolation. The present study repairs this by fitting only from the exact-whitelist sanitized archive; the label-bearing source is opened only by the outcome-report process after all candidate hashes verify.",
+  "retrospective_claim_boundary": "The original eight-family LOFO analysis and all five external domains are retrospective analyses of historically opened outcomes. Outer LOFO is strict only for the new graph and selector stage conditional on the frozen mixed-v2 and confidence-orientation representation, which was previously outcome-informed. External transfer is a frozen stress test, not independent confirmation; confirmatory claims require a new sealed dataset family and preferably a new model family.",
+  "audit_limitations": [
+    "This audit independently replayed code-level verification and reconstruction; it is not an operating-system syscall trace.",
+    "The external isolation process was logically field-whitelisted but necessarily unpickled raw caches. Physical outcome isolation begins at the score-fit input files, not at raw-cache ingestion.",
+    "The artifact manifest authenticates the current report, result, table, and plots; it does not make historically opened external outcomes confirmatory."
+  ],
+  "audit_hash_algorithm": "sha256",
+  "audit_canonicalization": "json.dumps(sort_keys=True,separators=(',',':'),allow_nan=False); omit audit_hash",
+  "audit_hash": "d11ee4b0734d99e98ffb14117adb98bab0212d0d7f8989b694c31f33895e29fd"
+}

@@ -14,6 +14,66 @@ manifold diagnostic while integration was in progress; its finished artifacts
 and bounded conclusion are included below so that the late research channel is
 not lost.
 
+## Amendment — 2026-08-23: multi-population benchmark scope
+
+The aligned 24-cell comparison is now one lane in a wider benchmark plan. One
+inclusive method registry covers the static fusion methods, historical
+selectors, cross-task representations, and application-native methods. Results
+remain separated by prediction unit: complete-answer response detection,
+first-error localization, causal prefix prediction, live stopping, RAG
+answer/sentence/token/claim detection, and white-box access.
+
+The registered populations include the frozen 24 cells; ProcessBench;
+PRMBench; SemGrad; HLE; Evidence-Drop; AQuA/S2; RAGTruth; RefChecker;
+white-box exact-common rows; repeated generations; and negative-scope panels.
+Existing outcome labels have all been opened during earlier work, so these are
+development or retrospective transfer/stress data, not sealed confirmation.
+No cross-task macro is allowed. A future confirmation population must be
+acquired or reserved with method, adapter, rows, and scores frozen before its
+labels are opened.
+
+The protocol is
+`docs/experiments/MULTI_POPULATION_METHOD_BENCHMARK_V1.md`; its method,
+population, and compatibility registries are under
+`configs/multi_population_benchmark_v1_*`. This amendment is planning only and
+does not authorize evaluation or inference.
+
+## Amendment — 2026-08-23: Family-NRM/PGRD benchmark regimes
+
+Family-NRM and PGRD must no longer be described as methods that inherently
+require donor datasets. The next 24-cell benchmark treats data scope and
+selection supervision as separate factors:
+
+- **A:** target-cell-only construction, no donors and no hallucination labels;
+- **B:** target-free donor cells may stabilize geometry, direction, or fixed
+  settings without donor labels;
+- **C:** donor labels may select direction, sign, graph, or strength, with the
+  target dataset family held out.
+
+The new A variants are primary benchmark arms and have not yet been run. The
+completed cross-dataset Family-NRM and PGRD artifacts remain the canonical
+historical methods, not results for A. Clean B means end-to-end donor selection
+without labels. Historical Family-NRM is therefore legacy C because its
+23-cell donor roster used a label-derived minimum-positive filter, although
+the direction fit itself did not read labels. Historical PGRD is C, and the
+Step-286 label-free geometry selector is legacy C because it inherited
+correction strength selected with donor labels.
+
+The aligned main roster also includes IU-PCR, deployed U-PCR, DUFS-LIU,
+SU-PCR, continuous additive DEEM-B3, and balanced-atomic CA-SpecRaGE. DEEM-B3
+has a completed byte-identical 24-cell run on branch `f7f7801`; its registered
+decision is noninferiority. Its current 0.781815 cell-macro score must not be
+ranked against the older fixed-stable graph table until the feature contract,
+IU comparator, and macro are aligned. Residual-Graph DEEM remains a separate
+synthetic-gate closure.
+
+Raw A/B/C differences are diagnostic rather than causal because the source
+population also changes. Matched slices must hold the candidate bank,
+graph/actuator, normalization, and strength fixed while changing one selection
+factor. This amendment controls the upcoming benchmark and advisor language.
+It does not change any completed result or authorize a run. The working protocol is
+`docs/experiments/GLOBAL_24CELL_METHOD_BENCHMARK_V2.md`.
+
 ## Amendment — 2026-08-20: A6-S0b closed by scope decision
 
 Omri rejected the PTNI/A6 direction on 2026-08-20 on scope grounds: the thesis

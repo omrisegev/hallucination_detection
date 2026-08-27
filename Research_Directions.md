@@ -3,6 +3,128 @@
 
 ---
 
+## Multi-population benchmark map — Step 289 design decision
+
+The next benchmark uses one inclusive method registry and separate
+leaderboards for response detection, first-error localization, causal prefix
+detection, stopping, RAG, and white-box access. These tasks estimate different
+targets and their AUROC, F1, and token-saving results must not be averaged.
+
+The population registry includes the 24-cell core; ProcessBench global,
+localization, and prefix views; PRMBench response and step views; SemGrad; HLE;
+Evidence-Drop; AQuA/S2; RAGTruth; RefChecker; white-box exact-common rows;
+repeated generations; and negative panels such as GPQA and old LCiteEval RAG.
+Every method-population pair must be marked direct, rebuildable, adapter-needed,
+separate-access, context-only, quarantined, or ineligible.
+
+All existing external labels have already been inspected, so these are
+retrospective transfer/stress tests rather than sealed confirmation. A future
+confirmation requires freezing the method, adapter, rows, and scores before
+opening a genuinely new label set. No run is authorized by this inventory.
+
+Planning sources:
+`docs/experiments/MULTI_POPULATION_METHOD_BENCHMARK_V1.md`,
+`docs/research_notes/multi_population_benchmark_working_synthesis_2026-08-23.md`,
+and `configs/multi_population_benchmark_v1_*`.
+
+## Controlled 24-cell benchmark reopening — Step 287 design decision
+
+The next comparison separates a **method family** from the data used to choose
+its direction and strength. Family-NRM and PGRD are not inherently
+cross-dataset algorithms. Their primary new benchmark variants construct the
+family residuals and correction inside each target cell, without donor cells
+or hallucination labels. These within-cell variants are new, unrun ablations;
+they do not replace or rename the completed canonical Family-NRM and PGRD
+experiments.
+
+Use one axis for both families:
+
+- **A — within-cell fully unsupervised:** target cell only; main 24-cell
+  leaderboard;
+- **B — donor-unsupervised:** donor cells may stabilize the direction,
+  geometry, or fixed settings without donor labels; secondary ablation;
+- **C — donor-label selection:** donor labels may choose direction, sign,
+  graph, or strength while the target family remains held out; supervised
+  model-selection ceiling.
+
+Held-target-label oracles remain outside A/B/C. The comparison is diagnostic,
+but a raw A/B/C difference is not causal because the source population also
+changes. Matched slices must hold the residual representation, candidate bank,
+graph/actuator, normalization, and strength fixed while changing one selection
+factor at a time.
+
+The inclusive main roster is IU-PCR, deployed U-PCR, DUFS-LIU, SU-PCR,
+balanced-atomic CA-SpecRaGE, continuous additive DEEM-B3, Family-NRM-A, and
+PGRD-A. Simple averages and continuous L-SML/GOOD_6 remain references. No
+existing score may be ranked across packages until all methods use the same 24
+cells, rows, feature contract, orientation, and cell-macro definition.
+
+DEEM-B3 is the strongest completed candidate under its own full-present
+inventory: 0.781815 cell-macro versus 0.774854 for its matched IU-PCR on branch
+`f7f7801`, with a byte-identical rebuild. Its registered primary decision is
+noninferiority, not superiority. The historical CA-SpecRaGE atomic result is a
+tie under `fixed_stable_v1` and needs the same aligned rerun. Residual-Graph
+DEEM is separate and remains closed at its synthetic specificity gate.
+
+Planning sources:
+`docs/research_notes/global_24cell_benchmark_working_synthesis_2026-08-23.md`,
+`docs/experiments/GLOBAL_24CELL_METHOD_BENCHMARK_V2.md`, and
+`configs/global_24cell_method_benchmark_v2_registry.csv`. The required frozen
+run-manifest fields are defined in
+`configs/global_24cell_method_benchmark_v2_run_registry_schema.csv`.
+
+This is a controlled benchmarking decision, not a reopening of unrestricted
+graph search and not authorization to run before the remaining contract choices
+are frozen.
+
+## Completed graph-geometry selection closure — Step 286
+
+**Pooled Graph-Roughness Direction over IU-PCR is closed as a bounded
+retrospective reconstruction, with final decision
+`GEOMETRY_SEARCH_SELECTION_OPTIMISM`.** The controlled factorial compared
+fixed residual union-`k=7` with capacity-matched graph search, the canonical
+one-SE/tail-guard policy with max-mean, and the canonical trust grid with the
+V1/expanded grids. It then evaluated, as separate estimands, an intrinsic
+label-free adaptive-`k=7` selector, a supervised donor-label selector, and a
+held-family label oracle. The oracle is diagnostic headroom, never a deployable
+variant.
+
+The two required fixed-geometry anchors reproduced exactly: **+0.251476794pp**
+for canonical one-SE and **+0.449629197pp** for max-mean. Their
+**+0.198152402pp** difference is primarily correction-strength/selection-policy
+aggressiveness. Matched graph search adds only **+0.015634181pp** under
+canonical one-SE and **+0.001976638pp** under max-mean; the expanded trust grid
+adds no max-mean gain and harms the guarded arm. The label-free selector reaches
+**+0.219820624pp** at fixed strength, while the supervised donor-label selector
+reaches **+0.223622096pp** under one-SE and **+0.436682333pp** under max-mean;
+all are below their matched fixed-union-`k=7` comparator. Policy-matched
+held-family oracles nevertheless reach **+0.452021293pp** at fixed strength,
+**+0.537100141pp** under one-SE, and **+0.722839453pp** under max-mean. Thus
+geometry headroom exists retrospectively, but neither deployable selector
+identifies it.
+
+The actuator was an explicit non-selectable factor for every geometry:
+`full = -lambda (I + lambda Abar)^-1 cbar` versus `cross = -cbar`; no selector
+could choose between them. Canonical cross-only retains **+0.245122994pp**, and
+full minus cross is only **+0.006353801pp** under one-SE (adaptive-`k=7`:
+**+0.000327677pp**). Because correction scores normalize `R d` to a fixed SD,
+cross-only has no lambda and identifies direction only. The conservative
+mechanism is therefore accurately described as a **pooled graph cross-gradient**,
+not a quadratic graph solve. The expanded Phase-B bank shows matched selection
+optimism of **+0.251355087pp** under one-SE and **+0.163612209pp** under
+max-mean; Phase A does not show such optimism.
+
+No SU-rho or SU covariance-cleaning variant was included; DUFS appears only as
+a control. The development representation and all external outcome panels were
+historically opened, so strict outer-family isolation applies only to the new
+geometry/selector stage conditional on the frozen representation. The
+ProcessBench, SemGrad, PRMBench, and HLE results are retrospective stress tests,
+not confirmation, and must not be tuned further. The only valid confirmatory
+next action is to freeze scores and policies before opening genuinely new,
+sealed dataset/model families. Canonical synthesis and audit:
+`results/graph_geometry_selection_research_v1/FINAL_REPORT.md` and
+`results/graph_geometry_selection_research_v1/audits/MECHANISM_FINAL.md`.
+
 ## Active priority — consolidated research program (Step 281)
 
 The canonical cross-front assessment is
