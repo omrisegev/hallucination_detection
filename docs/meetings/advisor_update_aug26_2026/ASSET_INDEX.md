@@ -18,7 +18,7 @@ This index makes the existing work reusable without forcing every figure into th
 
 ### Main presentation material
 
-- [Algorithmic summary plot](figures/algorithmic-summary.svg) — aligned IU/DUFS results, Family-NRM and CIW-DEEM promotion status.
+- [Algorithmic summary plot](figures/algorithmic-summary.svg) — frozen 24-cell IU/DUFS results, the original 23-cell Family-NRM LOFO result and CIW-DEEM promotion status; the distinct contracts are labeled explicitly.
 - [Basic fusion visual brief](../advisor_update_aug21_2026/01_basic_fusion_methods.html) — Continuous L-SML, U-PCR, DUFS and Family-NRM.
 - [Graphs and nuisance visual brief](../advisor_update_aug21_2026/02_graphs_and_nuisance.html) — the graph cycle and why stable geometry was not target-aligned.
 - [Frozen 24-cell benchmark](../../../results/frozen_24cell_benchmark/REPORT.md) and its [figure directory](../../../results/frozen_24cell_benchmark/figures/) — headline AUROC, paired deltas, per-cell heatmap, lambda paths, training/runtime diagnostics and mechanism plots.

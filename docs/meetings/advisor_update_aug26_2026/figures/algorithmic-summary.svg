@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560" role="img" aria-labelledby="title desc">
   <title id="title">Algorithmic results summary</title>
-  <desc id="desc">Frozen aligned answer benchmark, Family-NRM reserved PRMBench gain, and continuous-DEEM result on the cell-macro scale.</desc>
+  <desc id="desc">Frozen aligned answer benchmark, Family-NRM original 23-cell leave-one-family-out transfer, and continuous-DEEM result on the 24-cell macro scale.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8fbff"/><stop offset="1" stop-color="#eef4ff"/></linearGradient>
     <style>
@@ -22,12 +22,12 @@
   <text x="239" y="415" class="note">Adding a Laplacian did not create a meaningful gain.</text>
 
   <rect x="558" y="108" width="507" height="180" rx="18" class="panel"/>
-  <text x="584" y="143" class="h">Family-NRM · reserved PRMBench responses</text>
-  <text x="584" y="184" class="label">IU baseline</text><text x="735" y="184" class="value">0.7206</text>
-  <text x="584" y="220" class="label">Family-NRM</text><text x="735" y="220" class="value">0.7252</text>
-  <rect x="864" y="164" width="164" height="48" rx="12" class="good"/>
-  <text x="884" y="194" class="tag">+0.46 AUROC pt</text>
-  <text x="584" y="256" class="note">Positive grouped interval · bounded to manual families and donor calibration.</text>
+  <text x="584" y="143" class="h">Family-NRM · original 23-cell LOFO transfer</text>
+  <text x="584" y="184" class="label">Mean change vs IU-PCR</text><text x="792" y="184" class="value">+0.277 pt</text>
+  <text x="584" y="220" class="label">95% grouped interval</text><text x="792" y="220" class="value">[+0.016,+0.533]</text>
+  <rect x="927" y="164" width="101" height="48" rx="12" class="good"/>
+  <text x="946" y="194" class="tag">15 W / 8 L</text>
+  <text x="584" y="256" class="note">Multi-cell result with leave-one-family-out donor calibration; PRMBench was a later confirmation.</text>
 
   <rect x="558" y="309" width="507" height="187" rx="18" class="panel"/>
   <text x="584" y="344" class="h">Continuous-DEEM line · 24-cell macro AUROC</text>

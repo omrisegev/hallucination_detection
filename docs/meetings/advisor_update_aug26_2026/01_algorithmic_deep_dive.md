@@ -103,7 +103,8 @@ No correctness labels enter the transform or CA-DEEM fit.
 - Direct DUFS ranking and published keep rules: negative.
 - SU-PCR: +1.26 points with a wide crossing interval; inconclusive.
 - DUFS-LIU on the frozen 24 cells: 0.77414 versus IU-PCR 0.77406; effectively tied.
-- Family-NRM on reserved PRMBench responses: 0.72521 versus 0.72060; +0.460 points with a positive interval.
+- Family-NRM on the original 23 cells with leave-one-family-out calibration: +0.277 AUROC points over IU-PCR, grouped interval [+0.016,+0.533], with 15 wins and 8 losses.
+- Family-NRM on reserved PRMBench responses: 0.72521 versus 0.72060; +0.460 points with a positive interval. This is a separate confirmation contract, not part of the 23/24-cell leaderboard.
 - CA-DEEM (internal B3): small positive result, registered as noninferiority.
 - CIW-DEEM: 0.78203 cell-macro AUROC. Its registered equal-family delta over CA-DEEM was +0.073 points, below the +0.25-point promotion threshold.
 - Supervised group-OOF logistic regression reaches 0.78278 cell-macro AUROC on the CIW inputs versus 0.78341 before CIW, so the transform does not reveal additional linear separability.
