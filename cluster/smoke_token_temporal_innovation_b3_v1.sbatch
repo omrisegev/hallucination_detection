@@ -4,7 +4,10 @@
 #SBATCH --job-name=tokb3smoke
 #SBATCH --gpus=1
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=32G
+# 96G, not 32G: pyxis unsquashfs of pytorch:25.01-py3 needs tens of GB of
+# page cache inside the memory cgroup on a cold node; job 232712 died OOM
+# during container extraction before any test ran.
+#SBATCH --mem=96G
 #SBATCH --time=00:30:00
 #SBATCH --output=/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/%x_%j.out
 #SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3

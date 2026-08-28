@@ -105,9 +105,16 @@ class TokenLocalFusionTests(unittest.TestCase):
     def test_equal_and_incumbent_aliases_are_exact(self) -> None:
         equal = fit_local_equal29(self.preparation)
         expected_equal = -self.preparation.standardized_fit.mean(axis=1)
+        # atol covers the BLAS-vs-pairwise-mean accumulation gap: the deployed
+        # path computes -(S @ uniform_weights) via dgemv while this reference
+        # uses S.mean(axis=1). Measured max gap is 3.34e-16 (1.5 ULP, 1 of
+        # 1200 fit tokens) on both the AIRCC pytorch:25.01 container
+        # (numpy 1.26.4) and Windows numpy 2.2.4; 3e-16 was one ULP too tight
+        # on every available platform. 1e-15 still fails for any real weight
+        # or standardization regression, which moves scores by >=1e-2.
         self.assertTrue(np.allclose(
             equal.token_risk[self.preparation.fit_indices], expected_equal,
-            rtol=0.0, atol=3e-16,
+            rtol=0.0, atol=1e-15,
         ))
 
         incumbent, _ = _fit_token_iu(
