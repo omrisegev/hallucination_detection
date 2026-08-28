@@ -92,9 +92,26 @@ def atomic_write_npz(path: str | Path, arrays: dict[str, np.ndarray]) -> str:
     return atomic_write_bytes(path, payload)
 
 
-def load_npz_no_pickle(path: str | Path) -> dict[str, np.ndarray]:
+def load_npz_no_pickle(
+    path: str | Path,
+    *,
+    members: tuple[str, ...] | list[str] | None = None,
+) -> dict[str, np.ndarray]:
+    """Load NPZ members without pickle, optionally materializing a subset.
+
+    The optional subset is important at target-free fit boundaries: an input
+    archive may be a shared container that also carries response-risk arrays,
+    but a fit worker must not materialize those arrays merely to validate or
+    consume token telemetry.  Archive member names are still inspected, while
+    only the requested ``members`` are read into memory.
+    """
+
     with np.load(path, allow_pickle=False) as bundle:
-        return {name: np.asarray(bundle[name]) for name in bundle.files}
+        names = tuple(bundle.files) if members is None else tuple(members)
+        unknown = sorted(set(names) - set(bundle.files))
+        if unknown:
+            raise KeyError(f"NPZ archive is missing requested members: {unknown}")
+        return {name: np.asarray(bundle[name]) for name in names}
 
 
 def load_npz_no_pickle_bytes(payload: bytes) -> dict[str, np.ndarray]:

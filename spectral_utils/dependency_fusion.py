@@ -160,6 +160,7 @@ def projected_sparse_decomposition(
     inner_completion_iter=40,
     tol=1e-8,
     max_sparse_fraction=None,
+    fixed_support=None,
 ):
     """Decompose the *off-diagonal* covariance as ``C = L + S + R``.
 
@@ -178,6 +179,12 @@ def projected_sparse_decomposition(
     max_sparse_fraction:
         Optional planted-world safety cap.  It is ``None`` in the registered
         real-data experiment and must not be tuned with correctness labels.
+    fixed_support:
+        Optional symmetric boolean off-diagonal support.  When supplied, the
+        sparse-error topology is held fixed and only its values and the
+        complementary rank-two completion are estimated.  This is used by
+        separately preregistered, target-free support learners; the default
+        ``None`` preserves the published SU-PCR reproduction exactly.
     """
     C = _symmetrize(C)
     if C.ndim != 2 or C.shape[0] != C.shape[1]:
@@ -187,6 +194,22 @@ def projected_sparse_decomposition(
     m = C.shape[0]
     if m < 3:
         raise ValueError("low-rank+sparse U-PCR needs at least 3 features")
+
+    prescribed_support = None
+    if fixed_support is not None:
+        prescribed_support = np.asarray(fixed_support, dtype=bool)
+        if (
+            prescribed_support.shape != C.shape
+            or not np.array_equal(prescribed_support, prescribed_support.T)
+            or np.any(np.diag(prescribed_support))
+        ):
+            raise ValueError(
+                "fixed_support must be a symmetric zero-diagonal boolean mask"
+            )
+        if max_sparse_fraction is not None:
+            raise ValueError(
+                "max_sparse_fraction cannot be combined with fixed_support"
+            )
 
     observed = C.copy()
     np.fill_diagonal(observed, 0.0)
@@ -211,11 +234,15 @@ def projected_sparse_decomposition(
     n_done = 0
     for it in range(1, max(1, int(max_iter)) + 1):
         work = observed - sparse
-        threshold = (float(threshold_multiplier) * mu
-                     * float(np.linalg.norm(work, ord=2)) / m)
         residual = observed - low
         np.fill_diagonal(residual, 0.0)
-        support_new = (np.abs(residual) >= threshold) & mask
+        if prescribed_support is None:
+            threshold = (float(threshold_multiplier) * mu
+                         * float(np.linalg.norm(work, ord=2)) / m)
+            support_new = (np.abs(residual) >= threshold) & mask
+        else:
+            threshold = float("nan")
+            support_new = prescribed_support
 
         # Once an entry is classified as corrupted it becomes missing for the
         # low-rank completion step.  Merely subtracting the current residual and
@@ -277,7 +304,8 @@ def projected_sparse_decomposition(
         theorem_support_ok=bool(m >= 5 and nnz < (m - 1) / 2),
         meta={"rank": int(rank), "nnz_pairs": nnz, "n_pairs": n_pairs,
               "threshold_multiplier": float(threshold_multiplier),
-              "max_sparse_fraction": max_sparse_fraction},
+              "max_sparse_fraction": max_sparse_fraction,
+              "fixed_support": prescribed_support is not None},
     )
 
 
@@ -394,6 +422,7 @@ def sparse_upcr_fit(
     decomposition_tol=1e-8,
     max_sparse_fraction=None,
     target_condition=100.0,
+    fixed_support=None,
 ):
     """Fit sparse-error U-PCR and dependency-weighted SDSF in one pass.
 
@@ -424,6 +453,7 @@ def sparse_upcr_fit(
         inner_completion_iter=inner_completion_iter,
         tol=decomposition_tol,
         max_sparse_fraction=max_sparse_fraction,
+        fixed_support=fixed_support,
     )
     g2, rho, proj_res = _estimate_g2_and_rho(
         C,

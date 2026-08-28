@@ -319,6 +319,92 @@ class PreparedLocalizationCell:
         object.__setattr__(self, "response_scores", response)
 
 
+@dataclass(frozen=True)
+class PreparedLocalizationTokenCell:
+    """Fit-safe token view of a prepared localization archive.
+
+    The source NPZ is allowed to be a shared container that also includes
+    response-level risk arrays.  This view deliberately has no
+    ``response_scores`` field, and its loader requests only token, span, row,
+    and provenance members.  A Phase-2 fit can therefore validate the archive
+    and fit temporal nuisance maps without ever materializing response risk.
+    """
+
+    cell_id: str
+    population_id: str
+    dataset_id: str
+    model_id: str
+    slice_id: str
+    row_ids: tuple[str, ...]
+    token_confidence: np.ndarray
+    token_offsets: np.ndarray
+    segment_offsets: np.ndarray
+    segment_starts: np.ndarray
+    segment_ends: np.ndarray
+    method_ids: tuple[str, ...]
+    identity_contract: Mapping[str, Any]
+    external_certificate_sha256: str
+    external_score_bindings_sha256: str
+    token_transform_sha256: str
+    artifact_sha256: str
+
+    def __post_init__(self) -> None:
+        rows = tuple(map(str, self.row_ids))
+        if not rows or rows != tuple(sorted(rows)) or len(set(rows)) != len(rows):
+            raise RuntimeError("localization prepared token rows are not canonical and unique")
+        if any(_OPAQUE_ROW_RE.fullmatch(value) is None for value in rows):
+            raise RuntimeError("localization prepared token rows are not keyed opaque IDs")
+        methods = tuple(map(str, self.method_ids))
+        if len(methods) != 13 or len(set(methods)) != 13:
+            raise RuntimeError("localization prepared token response roster is not 13 methods")
+        token = np.asarray(self.token_confidence, dtype=np.float64)
+        if token.ndim != 2 or token.shape[1] != TOKEN_STREAM_COUNT:
+            raise RuntimeError("localization token matrix is not tokens x 29")
+        if not len(token) or not np.isfinite(token).all():
+            raise RuntimeError("localization token matrix is empty or non-finite")
+        token_offsets = np.asarray(self.token_offsets, dtype=np.int64)
+        segment_offsets = np.asarray(self.segment_offsets, dtype=np.int64)
+        starts = np.asarray(self.segment_starts, dtype=np.int64)
+        ends = np.asarray(self.segment_ends, dtype=np.int64)
+        if (
+            token_offsets.shape != (len(rows) + 1,)
+            or segment_offsets.shape != (len(rows) + 1,)
+            or token_offsets[0] != 0
+            or token_offsets[-1] != len(token)
+            or segment_offsets[0] != 0
+            or segment_offsets[-1] != len(starts)
+            or starts.shape != ends.shape
+            or np.any(np.diff(token_offsets) <= 0)
+            or np.any(np.diff(segment_offsets) <= 0)
+        ):
+            raise RuntimeError("localization token/segment offsets are malformed")
+        for row_index in range(len(rows)):
+            token_lo, token_hi = token_offsets[row_index:row_index + 2]
+            seg_lo, seg_hi = segment_offsets[row_index:row_index + 2]
+            if np.any(starts[seg_lo:seg_hi] < token_lo) or np.any(ends[seg_lo:seg_hi] > token_hi):
+                raise RuntimeError("a localization segment escapes its response token range")
+        if np.any(ends <= starts):
+            raise RuntimeError("localization segments must be nonempty half-open spans")
+        validate_fit_row_identity_contract(self.identity_contract)
+        for value in (
+            self.external_certificate_sha256,
+            self.external_score_bindings_sha256,
+            self.token_transform_sha256,
+            self.artifact_sha256,
+        ):
+            if len(str(value)) != 64:
+                raise RuntimeError("localization prepared token hash binding is malformed")
+        for array in (token, token_offsets, segment_offsets, starts, ends):
+            array.setflags(write=False)
+        object.__setattr__(self, "row_ids", rows)
+        object.__setattr__(self, "method_ids", methods)
+        object.__setattr__(self, "token_confidence", token)
+        object.__setattr__(self, "token_offsets", token_offsets)
+        object.__setattr__(self, "segment_offsets", segment_offsets)
+        object.__setattr__(self, "segment_starts", starts)
+        object.__setattr__(self, "segment_ends", ends)
+
+
 FIT_SAFE_CELL_FIELDS = frozenset({
     "schema_version", "cell_id", "population_id", "dataset_id", "model_id",
     "slice_id", "status", "n_rows", "n_tokens", "n_segments",
@@ -400,11 +486,87 @@ def load_prepared_localization_cell(
     return value
 
 
+_TOKEN_FIT_ARRAYS = frozenset({
+    "token_confidence", "token_offsets", "segment_offsets", "segment_starts",
+    "segment_ends", "row_ids", "method_ids", "id_contract_version",
+    "id_contract_sha256", "identity_key_id", "row_namespace_sha256",
+    "external_certificate_sha256", "external_score_bindings_sha256",
+    "token_transform_sha256",
+})
+
+
+def load_prepared_localization_token_cell(
+    artifact_path: str | Path,
+    record: Mapping[str, Any],
+) -> PreparedLocalizationTokenCell:
+    """Validate and load only the target-free token members of an input archive.
+
+    ``np.load`` exposes the archive roster without reading member payloads.  We
+    then request exactly ``_TOKEN_FIT_ARRAYS``; in particular, the shared
+    ``response_scores`` member is never indexed and therefore never
+    materialized on the Phase-2 runner path.
+    """
+
+    if set(record) != FIT_SAFE_CELL_FIELDS:
+        raise RuntimeError("fit-safe localization record contains controller-only fields")
+    if record.get("schema_version") != PREPARED_SCHEMA_VERSION or record.get("status") != "ELIGIBLE":
+        raise RuntimeError("localization fit cell is not eligible")
+    path = Path(artifact_path)
+    if sha256_file(path) != record.get("artifact_sha256"):
+        raise RuntimeError("localization prepared artifact hash mismatch")
+    with np.load(path, allow_pickle=False) as bundle:
+        if set(bundle.files) != {
+            *(_TOKEN_FIT_ARRAYS), "response_scores",
+        }:
+            raise RuntimeError("localization prepared artifact contains unknown arrays")
+        arrays = {name: np.asarray(bundle[name]) for name in sorted(_TOKEN_FIT_ARRAYS)}
+    exact_scalars = {
+        "id_contract_version": ID_CONTRACT_VERSION,
+        "id_contract_sha256": str(record["id_contract_sha256"]),
+        "identity_key_id": str(record["identity_key_id"]),
+        "row_namespace_sha256": str(record["row_namespace_sha256"]),
+        "external_certificate_sha256": str(record["external_certificate_sha256"]),
+        "external_score_bindings_sha256": str(record["external_score_bindings_sha256"]),
+        "token_transform_sha256": str(record["token_transform_sha256"]),
+    }
+    for name, expected in exact_scalars.items():
+        if _scalar(arrays, name) != expected:
+            raise RuntimeError(f"localization prepared scalar drifted: {name}")
+    value = PreparedLocalizationTokenCell(
+        cell_id=str(record["cell_id"]),
+        population_id=str(record["population_id"]),
+        dataset_id=str(record["dataset_id"]),
+        model_id=str(record["model_id"]),
+        slice_id=str(record["slice_id"]),
+        row_ids=tuple(map(str, arrays["row_ids"].tolist())),
+        token_confidence=np.asarray(arrays["token_confidence"], dtype=np.float64),
+        token_offsets=np.asarray(arrays["token_offsets"], dtype=np.int64),
+        segment_offsets=np.asarray(arrays["segment_offsets"], dtype=np.int64),
+        segment_starts=np.asarray(arrays["segment_starts"], dtype=np.int64),
+        segment_ends=np.asarray(arrays["segment_ends"], dtype=np.int64),
+        method_ids=tuple(map(str, arrays["method_ids"].tolist())),
+        identity_contract=record["identity_contract"],
+        external_certificate_sha256=str(record["external_certificate_sha256"]),
+        external_score_bindings_sha256=str(record["external_score_bindings_sha256"]),
+        token_transform_sha256=str(record["token_transform_sha256"]),
+        artifact_sha256=str(record["artifact_sha256"]),
+    )
+    if len(value.row_ids) != int(record["n_rows"]):
+        raise RuntimeError("localization prepared row count drifted")
+    if len(value.token_confidence) != int(record["n_tokens"]):
+        raise RuntimeError("localization prepared token count drifted")
+    if len(value.segment_starts) != int(record["n_segments"]):
+        raise RuntimeError("localization prepared segment count drifted")
+    return value
+
+
 def validate_fit_manifest(
     path: str | Path,
     *,
     input_root: str | Path | None = None,
     require_scientific: bool = True,
+    token_only: bool = False,
+    only_cells: Sequence[str] | None = None,
 ) -> dict[str, Any]:
     manifest_path = Path(path)
     value = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -441,6 +603,9 @@ def validate_fit_manifest(
     if not isinstance(cells, list) or len(cells) != int(value.get("n_cells", -1)):
         raise RuntimeError("localization fit cell roster is malformed")
     root = Path(input_root) if input_root is not None else manifest_path.parent
+    requested = None if only_cells is None else {str(cell_id) for cell_id in only_cells}
+    if requested is not None and not requested:
+        raise RuntimeError("localization fit validation cell subset is empty")
     seen: set[str] = set()
     for record in cells:
         cell_id = str(record.get("cell_id", ""))
@@ -449,7 +614,18 @@ def validate_fit_manifest(
         seen.add(cell_id)
         if record.get("identity_contract") != identity:
             raise RuntimeError("localization fit cells disagree on identity contract")
-        load_prepared_localization_cell(root / str(record["artifact_path"]), record)
+        if requested is not None and cell_id not in requested:
+            continue
+        loader = (
+            load_prepared_localization_token_cell
+            if token_only else load_prepared_localization_cell
+        )
+        loader(root / str(record["artifact_path"]), record)
+    if requested is not None and not requested.issubset(seen):
+        raise RuntimeError(
+            "localization fit validation requested unknown cells: "
+            f"{sorted(requested - seen)}"
+        )
     return value
 
 
@@ -465,12 +641,13 @@ def assert_no_target_named_members(names: Sequence[str]) -> None:
 __all__ = [
     "COMBINED_ADAPTER_ID", "FIT_MANIFEST_SCHEMA_VERSION", "FIT_SAFE_CELL_FIELDS",
     "FIT_TOKEN_CAP", "NO_ERROR", "PREPARED_SCHEMA_VERSION",
-    "PreparedLocalizationCell", "REGISTRY_SCHEMA_VERSION",
+    "PreparedLocalizationCell", "PreparedLocalizationTokenCell", "REGISTRY_SCHEMA_VERSION",
     "RESPONSE_ONLY_ADAPTER_ID", "SCORE_FREEZE_SCHEMA_VERSION",
     "SCORE_SCHEMA_VERSION", "TOKEN_CONTRACT_ID", "TOKEN_ONLY_ADAPTER_ID",
     "TOKEN_STREAM_COUNT",
     "assert_no_target_named_members", "empirical_midrank",
     "load_localization_registry", "load_prepared_localization_cell",
+    "load_prepared_localization_token_cell",
     "payload_sha256", "primary_system_roster", "validate_fit_manifest",
     "validate_fit_row_identity_contract",
 ]
