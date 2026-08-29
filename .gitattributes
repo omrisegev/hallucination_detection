@@ -4,6 +4,10 @@ cluster/** text eol=lf
 # SHA-256 replay checks fail closed on any EOL conversion (autocrlf on Windows
 # turned the frozen A6-S0a artifacts noncanonical). Never transform them.
 results/** -text
+# Generated CSV artifacts may intentionally preserve source CRLF bytes for
+# checksum-equivalent replay. Treat them as data in diffs so whitespace checks
+# do not reinterpret their record terminators as editable-source whitespace.
+results/**/*.csv -diff
 dataset_cache/**/*.pkl filter=lfs diff=lfs merge=lfs -text
 dataset_cache/**/*.pkl.part-* filter=lfs diff=lfs merge=lfs -text
 *.pdf binary

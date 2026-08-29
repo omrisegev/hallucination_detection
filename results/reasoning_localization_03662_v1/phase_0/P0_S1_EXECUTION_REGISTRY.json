@@ -1,0 +1,96 @@
+{
+  "schema": "reasoning_localization_p0_s1_execution_registry_v1",
+  "state_id": "P0_S1_REDUCER_BRIDGE",
+  "status": "FROZEN_BEFORE_RUN",
+  "purpose": "One-factor retrospective bridge from the checksum-equivalent Stage-4 anchor: retain its exact rows, roles, representation, transform and detector while replacing only step_top5mean with token argmax mapped to step.",
+  "source_commit": "59359001e5398a6df1783239326cdb1b2215bb07",
+  "runner": "scripts/reasoning_localization/run_phase0_reducer_bridge.py",
+  "runner_sha256": "8dab5e1d07a44ccd651da99f3578f58233df6bd07be30841036dd8b383b9d870",
+  "protocol": "docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md",
+  "protocol_sha256": "c921b0d446eebd4611c4426168c30410741997ea2c6d23238e5d22b83e8d1e5b",
+  "variant_id": "P0_S1_FAMILY6_STEP_MAX",
+  "parent_variant_id": "R2_HISTORICAL_FAMILY6_BRIDGE",
+  "single_changed_factor": {
+    "factor": "step_reducer",
+    "from": "step_top5mean",
+    "to": "step_max_token_argmax"
+  },
+  "fixed_factors": {
+    "models": ["qwen3_8b", "llama31_8b"],
+    "families": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "representation": "family6",
+    "transform": "level",
+    "answer_detector": "RegisteredGlobal mixed-v2 ordinary IU",
+    "calibration_role": "historical deterministic 40 percent per family",
+    "evaluation_role": "historical deterministic 20 percent audit per family",
+    "scorer_copy_grouping": "same source-question draw carries both scorer copies",
+    "access_tier": "A",
+    "supervision": "historical fixed calibration/audit roles"
+  },
+  "bootstrap_draws": 20000,
+  "bootstrap_seed": 2026082901,
+  "bootstrap_contract": "Paired source-question bootstrap. A family-unit draw carries both scorer copies and both reducers; family estimates are averaged before the four-family macro contrast.",
+  "raw_sources": [
+    {"model": "qwen3_8b", "family": "gsm8k", "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_gsm8k.pkl", "bytes": 49801034, "sha256": "c258e8a37fad43216290fef2f70c88735f413f8c0ceb5cce39dfefe67d66955d"},
+    {"model": "qwen3_8b", "family": "math", "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_math.pkl", "bytes": 227049038, "sha256": "19cbbb2b4f90e073f2793360f142bc25334f88bbc4ec01fd78807f9f1ad2836d"},
+    {"model": "qwen3_8b", "family": "olympiadbench", "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_olympiadbench.pkl", "bytes": 338485050, "sha256": "2083c4f9d0cc8d84657b02558d0720f726db4288e39e7557be4c55f78f4d4e60"},
+    {"model": "qwen3_8b", "family": "omnimath", "path": "/Users/osegev/Desktop/hallucination_detection/cache/localization/processbench/pb_qwen3_8b/processbench_omnimath.pkl", "bytes": 335250837, "sha256": "561b96c5e96a25256e7e51a62c7ef01bcb2fd87ea1adcfc36e2c758807f559a0"},
+    {"model": "llama31_8b", "family": "gsm8k", "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/repgrid/pb_llama31_8b/processbench_gsm8k.pkl", "bytes": 46533275, "sha256": "6749d1b846e29288e46536f9d9d8e63715b447576950d8e2131fe3420a16cead"},
+    {"model": "llama31_8b", "family": "math", "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/repgrid/pb_llama31_8b/processbench_math.pkl", "bytes": 217743700, "sha256": "119c95ca5abc8d6f9e71bdd595db9b847373067d9aa8e4e9b349fa2b1f174953"},
+    {"model": "llama31_8b", "family": "olympiadbench", "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/repgrid/pb_llama31_8b/processbench_olympiadbench.pkl", "bytes": 324953017, "sha256": "ea2592de68100aeb140ce1d3a373e87d36e00685863e0dfb8c6721fa05a1812d"},
+    {"model": "llama31_8b", "family": "omnimath", "path": "/Users/osegev/Desktop/hallucination_detection/dataset_cache/repgrid/pb_llama31_8b/processbench_omnimath.pkl", "bytes": 323707679, "sha256": "d1f9ad59eacbba64963b763e07209bdccb570f9875382f1b38c5573678ce81e4"}
+  ],
+  "checkpoints": [
+    {"model": "llama31_8b", "family": "gsm8k", "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/llama31_8b__gsm8k.pkl", "bytes": 793049, "sha256": "394febebbbc67ee3d07ba5474ee9775f0259c9b6e9fe69d34f28506207a78594"},
+    {"model": "llama31_8b", "family": "math", "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/llama31_8b__math.pkl", "bytes": 2145137, "sha256": "4774ad55f0dad42ea7b8e30027f20f5a65cf6be13cd615842083d2ee9da3663d"},
+    {"model": "llama31_8b", "family": "olympiadbench", "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/llama31_8b__olympiadbench.pkl", "bytes": 2371622, "sha256": "43ef3477447edc8ff91224d9e40248226fde3c49878e70db188c4785593140f0"},
+    {"model": "llama31_8b", "family": "omnimath", "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/llama31_8b__omnimath.pkl", "bytes": 2355252, "sha256": "c5f82f83c55b566553745075195b0dbae024c162f7b4bc932620bdbb0dc8927b"},
+    {"model": "qwen3_8b", "family": "gsm8k", "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/qwen3_8b__gsm8k.pkl", "bytes": 805739, "sha256": "b02ec0cf94591c8bce11d910368b51a7c4b1ab25f425a2df4477da94bf4c25b8"},
+    {"model": "qwen3_8b", "family": "math", "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/qwen3_8b__math.pkl", "bytes": 2170684, "sha256": "741c0ee3031355bcde51661ee0ae209a6f53dd46cb43063163e92d5d58a11444"},
+    {"model": "qwen3_8b", "family": "olympiadbench", "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/qwen3_8b__olympiadbench.pkl", "bytes": 2376986, "sha256": "cb7f7b559283681d42271d33cd67b259010932bfd24f4bdf5f71e497a75214a7"},
+    {"model": "qwen3_8b", "family": "omnimath", "path": "/Users/osegev/Desktop/hallucination_detection/results/local_online_comprehensive_v1/stage4_checkpoints/qwen3_8b__omnimath.pkl", "bytes": 2363405, "sha256": "4c4b7dbe2c0df7f8c94730971835a5a301e654b23518f60b8eb84107face01f1"}
+  ],
+  "s0_artifacts": [
+    {"path": "results/reasoning_localization_03662_v1/phase_0/p0_s0_historical_replay/P0_S0_LOCAL_PER_QUESTION.csv", "sha256": "161c598f5e4d6fbddc52f66da55b8cc485a0c20111346b7fb5dd1f87e5ea0c77"},
+    {"path": "results/reasoning_localization_03662_v1/phase_0/p0_s0_historical_replay/P0_S0_POPULATION.json", "sha256": "909f2fae0380132f0e85a35bfabcf3ba85a99a2284f28e04a8dd69819af7532a"},
+    {"path": "results/reasoning_localization_03662_v1/phase_0/p0_s0_historical_replay/P0_S0_VERIFICATION.json", "sha256": "8b59fc2352e27633966b1ef0cc7117dec9e4d7a637515ef5c10f254cfe0bae5a"},
+    {"path": "results/reasoning_localization_03662_v1/phase_0/p0_s0_historical_replay/RUN_MANIFEST.json", "sha256": "aa8a0fa6d3634b4a8fd45c2e66d6a4e253ee4bde600872a1322cf8e463424f47"}
+  ],
+  "code_dependencies": [
+    {"path": "scripts/run_local_online_comprehensive_stage4.py", "sha256": "69e8a897a5b6dec5ec367d87a62968682d0314d27c6a58d0173429e2ac15619b"},
+    {"path": "scripts/run_local_online_comprehensive_stage1.py", "sha256": "86da57c3a1a857dcd449e5d75eaa8594cdfa016a365af460cc635c09b97855d0"},
+    {"path": "scripts/run_global_local_online_architecture_v2.py", "sha256": "1cca6a1eb396be37630abc2de8836118d82633f08e9ad5a787091b6cae964285"},
+    {"path": "spectral_utils/local_online_comprehensive.py", "sha256": "ce36f50d9052f6a02fa4407831dc5e057d9b19ced0fd02e92ffe62678cb8c9d7"},
+    {"path": "spectral_utils/feature_contract.py", "sha256": "65ffba0bfc9bf4ded859d9ebffce9bd563a28652c47f5ed8d80ce91b64d4385d"},
+    {"path": "spectral_utils/multitask_trajectory.py", "sha256": "6b618dac0964cbb09325b52dfbb772305c9e1fb037242d38bfa9edc9fd6b2383"},
+    {"path": "spectral_utils/online_convergence.py", "sha256": "b11d857c003283cc40227f1286638b3b94b24892362c79497bb9160d78ae8d80"},
+    {"path": "spectral_utils/online_localization_fusion.py", "sha256": "867b6337e9471fbb6e654eb026b5f0af8e810f35f9dde1a2dbe5090b2c123687"},
+    {"path": "spectral_utils/repeated_measurement_reliability.py", "sha256": "9e4b975e0f890e06f7194e1bd81012253329093acdb664756fa60cdab4de0868"},
+    {"path": "spectral_utils/streaming_utils.py", "sha256": "03b57d452a5408a5f801db3cb13dbf2a91c3e7d809db95675c13d682d3616529"},
+    {"path": "spectral_utils/token_feature_views.py", "sha256": "3e86166ef75cd222ffbeedfa394b829739e05e4efd56b80eb6fe8f237b0752e7"},
+    {"path": "spectral_utils/upcr.py", "sha256": "587d4b4699e8cd49d28315f70ffdabb4eb7ef9fd48e4df5436e121a71536c071"}
+  ],
+  "expected_population": {
+    "n_cells": 8,
+    "n_scorer_rows": 1270,
+    "n_source_question_groups": 635,
+    "source_question_group_sha256": "d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05"
+  },
+  "expected_parent": {
+    "macro_f1": 0.3662328341717007,
+    "reconstruction_tolerance": 1e-12
+  },
+  "hard_fail_conditions": [
+    "any registered source, checkpoint, S0 artifact, code dependency, runner or protocol hash differs",
+    "any S0 unit, target, locator, prediction, score, fitted diagnostic, threshold or metric fails exact reconstruction within 1e-12",
+    "the 1270-row, 635-source-question population or its grouping hash changes",
+    "any factor besides the step reducer changes"
+  ],
+  "mutation_boundary": {
+    "new_inference": false,
+    "gpu": false,
+    "source_mutation": false,
+    "allowed_write_root": "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge"
+  },
+  "promotion": "AUDIT_ONLY_NO_PROMOTION"
+}

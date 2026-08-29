@@ -3,11 +3,53 @@
 
 ---
 
+## Active priority — 0.3662-anchored reasoning localization program (Step 298)
+
+The new primary research line is
+`REASONING_LOCALIZATION_03662_ANCHOR_V1`, documented in
+`docs/experiments/REASONING_LOCALIZATION_03662_ANCHOR_V1.md`. It reopens the
+historical Stage-4 Local score of 0.3662 as an audit anchor, not as a promoted
+current result. Phase 0 must recover why the shared raw-entropy reference was
+already 0.3614 and attribute the gap from the modern regime one factor at a
+time: population, fixed split versus five-fold cross-fit, answer detector,
+family6 versus IU29 representation, and top-five versus maximum step pooling.
+
+The ordered task hierarchy is:
+
+1. ProcessBench first-error localization, with Mind the Gap recomputed under
+   the exact same rows, access, step spans, threshold code, and official F1;
+2. PRMBench every-step localization as a mandatory, separately reported
+   transfer task; and
+3. causal early detection only after a ProcessBench-frozen scorer survives the
+   PRMBench guard.
+
+ProcessBench and PRMBench have different populations and evaluator semantics
+and must never be averaged. A gain on one with harm on the other is explicitly
+a task specialist. The compact primary roster is entropy level, one trailing
+sliding-variance form, a causal donor-centered CUSUM ablation, sampled-token
+surprisal, partition energy, and a maximum 12-coordinate DSP block. EDIS onset,
+self-innovation, and B3 are conditional diagnostics. Rook innovation,
+SU/STG-SU-PCR, DUFS, transform hierarchy, broad graph selection, and the
+1,036-feature bank remain negative controls unless a new candidate first passes
+their exact premise gates.
+
+This step is design and registration only. No full experiment, commit, or push
+is authorized. The prior Step-279 paper package remains frozen evidence; this
+new line does not rewrite its verdicts.
+
+Step 299 completed the reporting foundation and froze the R0-R4/C1-C8
+presentation roster, but did not promote a method or authorize a batch run.
+Phase 0 remains the next research action: discuss and freeze its executable
+bridge, then run and review one state at a time. The live report and immutable
+snapshot contract must be updated before any later variant proceeds.
+
 ## Active priority — consolidated research program (Step 281)
 
 The canonical cross-front assessment is
 `docs/research_notes/research_status_consolidated_2026-08-19.md`. It supersedes
-branch-local priority statements while preserving their historical evidence.
+branch-local priority statements through its 2026-08-19 boundary while
+preserving their historical evidence. Its active ordering is now superseded by
+the Step-298 localization program above; its evidence verdicts remain intact.
 
 The ordered program is now:
 

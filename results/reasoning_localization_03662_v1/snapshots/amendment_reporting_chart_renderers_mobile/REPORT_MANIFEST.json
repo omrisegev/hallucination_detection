@@ -1,0 +1,276 @@
+{
+  "embedded_data_sha256": "d58f6fb2c0de8906700b2b704a59a5505378e32dcfaa2eabb09a90320a7fe199",
+  "inputs": [
+    {
+      "bytes": 867,
+      "path": "results/local_online_comprehensive_v1/STAGE_4_AGGREGATE.csv",
+      "role": "historical_source_artifact",
+      "sha256": "8072dd180ece6a992221a87684fee196b0dbf4c502cb376a2a3e9c071637e3eb"
+    },
+    {
+      "bytes": 1461,
+      "path": "results/local_online_comprehensive_v1/STAGE_4_INTERVALS.csv",
+      "role": "historical_source_artifact",
+      "sha256": "53d156184490df98ea8c709489ebb00f244ebee2610945b42ecf4386925247e5"
+    },
+    {
+      "bytes": 1598,
+      "path": "results/reasoning_localization_03662_v1/CLAIMS.json",
+      "role": "report_input",
+      "sha256": "91b0fb169a6eba9863c9017f77935934b8659be4b42e37be6a01a6df098bcd74"
+    },
+    {
+      "bytes": 1689,
+      "path": "results/reasoning_localization_03662_v1/CONTRASTS_LONG.csv",
+      "role": "report_input",
+      "sha256": "6e5eab2941e4347c1863e253d3c4c756447435419bdc216b3b214c610f061269"
+    },
+    {
+      "bytes": 510,
+      "path": "results/reasoning_localization_03662_v1/EXAMPLES.json",
+      "role": "report_input",
+      "sha256": "3ecbb4db2b3899fee178f48bf8fb3efadf37a1aedbbf3100a578a0b2f34f3f2d"
+    },
+    {
+      "bytes": 7010,
+      "path": "results/reasoning_localization_03662_v1/EXPERIMENT_REGISTRY.json",
+      "role": "report_input",
+      "sha256": "c25eed4a5896e217ed742c45db98f9b4a4a21e2bfcc18fd2d81c0c6ef1ce651a"
+    },
+    {
+      "bytes": 152,
+      "path": "results/reasoning_localization_03662_v1/GATES_LONG.csv",
+      "role": "report_input",
+      "sha256": "be79fbcd2d2df0011eb80cb20e8072f305f0398e1153c23431468f0ec3264b9f"
+    },
+    {
+      "bytes": 10732,
+      "path": "results/reasoning_localization_03662_v1/METHOD_REGISTRY.json",
+      "role": "report_input",
+      "sha256": "17ecad7623bceaf381087e32327f09363c3a805d792a224bba842c5747ac8000"
+    },
+    {
+      "bytes": 2078,
+      "path": "results/reasoning_localization_03662_v1/METRICS_LONG.csv",
+      "role": "report_input",
+      "sha256": "7d0d52df5276d2ab93cce43f10275683b16308af46e4099eab8b008fb9358f36"
+    },
+    {
+      "bytes": 15266,
+      "path": "results/reasoning_localization_03662_v1/PLOT_MANIFEST.json",
+      "role": "report_input",
+      "sha256": "ab96fe36f5168f58afabf8d583841deb41c1984d0eee964622fc4c2a73be0353"
+    },
+    {
+      "bytes": 32503,
+      "path": "results/reasoning_localization_03662_v1/VARIANT_REGISTRY.json",
+      "role": "report_input",
+      "sha256": "fec1e9f22f014b65df10a865b9d801fddf0dfd3277f99a2d6cf95fbbbb8b2a58"
+    },
+    {
+      "bytes": 80862,
+      "path": "spectral_utils/reasoning_localization_reporting.py",
+      "role": "report_generator",
+      "sha256": "df6a146cee99dd33815a1aa1d2138dbbbf3b0c8543d4cae3a30230131f5bb1b9"
+    }
+  ],
+  "output": {
+    "bytes": 203241,
+    "path": "results/reasoning_localization_03662_v1/snapshots/amendment_reporting_chart_renderers_mobile/REPORT.html",
+    "sha256": "e39d3b65cc9f34cfb70689b6db2b0e56042e27bc6e8dc839aaaea1275e2fe538"
+  },
+  "plots": [
+    {
+      "plot_id": "PLOT_HISTORICAL_ANCHOR",
+      "render_status": "RENDERED",
+      "selection": {
+        "metric_id": "macro_f1",
+        "population_id": "historical_stage4_eight_cell_audit"
+      },
+      "source_sha256": "7d0d52df5276d2ab93cce43f10275683b16308af46e4099eab8b008fb9358f36",
+      "source_table": "METRICS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_LINEAGE",
+      "render_status": "RENDERED",
+      "selection": {},
+      "source_sha256": "fec1e9f22f014b65df10a865b9d801fddf0dfd3277f99a2d6cf95fbbbb8b2a58",
+      "source_table": "VARIANT_REGISTRY.json"
+    },
+    {
+      "plot_id": "PLOT_P0_WATERFALL",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P0_BRIDGE",
+        "status": "COMPLETE"
+      },
+      "source_sha256": "7d0d52df5276d2ab93cce43f10275683b16308af46e4099eab8b008fb9358f36",
+      "source_table": "METRICS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P0_BRIDGE_FOREST",
+      "render_status": "RENDERED",
+      "selection": {
+        "experiment_id": "P0_BRIDGE"
+      },
+      "source_sha256": "6e5eab2941e4347c1863e253d3c4c756447435419bdc216b3b214c610f061269",
+      "source_table": "CONTRASTS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P1_PB_FOREST",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P1_BASELINES",
+        "status": "COMPLETE",
+        "task_id": "processbench_first_error"
+      },
+      "source_sha256": "7d0d52df5276d2ab93cce43f10275683b16308af46e4099eab8b008fb9358f36",
+      "source_table": "METRICS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P1_PRM_FOREST",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P1_BASELINES",
+        "status": "COMPLETE",
+        "task_id": "prmbench_step_error"
+      },
+      "source_sha256": "7d0d52df5276d2ab93cce43f10275683b16308af46e4099eab8b008fb9358f36",
+      "source_table": "METRICS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P1_CELL_HEATMAP",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P1_BASELINES",
+        "metric_id": "macro_f1",
+        "status": "COMPLETE",
+        "task_id": "processbench_first_error"
+      },
+      "source_sha256": "7d0d52df5276d2ab93cce43f10275683b16308af46e4099eab8b008fb9358f36",
+      "source_table": "METRICS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P2_DELTA_FOREST",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P2_ATOMIC",
+        "status": "COMPLETE",
+        "task_id": "processbench_first_error"
+      },
+      "source_sha256": "6e5eab2941e4347c1863e253d3c4c756447435419bdc216b3b214c610f061269",
+      "source_table": "CONTRASTS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P2_GATE_MATRIX",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P2_ATOMIC"
+      },
+      "source_sha256": "be79fbcd2d2df0011eb80cb20e8072f305f0398e1153c23431468f0ec3264b9f",
+      "source_table": "GATES_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P2_EXACT_CLEAN",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P2_ATOMIC",
+        "status": "COMPLETE",
+        "task_id": "processbench_first_error"
+      },
+      "source_sha256": "7d0d52df5276d2ab93cce43f10275683b16308af46e4099eab8b008fb9358f36",
+      "source_table": "METRICS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P3_PARENT_FUSION",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P3_FUSION",
+        "status": "COMPLETE"
+      },
+      "source_sha256": "6e5eab2941e4347c1863e253d3c4c756447435419bdc216b3b214c610f061269",
+      "source_table": "CONTRASTS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P3_COMPLEXITY",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P3_FUSION",
+        "status": "COMPLETE"
+      },
+      "source_sha256": "7d0d52df5276d2ab93cce43f10275683b16308af46e4099eab8b008fb9358f36",
+      "source_table": "METRICS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P4_CROSS_TASK",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P4_PRMBENCH_TRANSFER",
+        "status": "COMPLETE"
+      },
+      "source_sha256": "6e5eab2941e4347c1863e253d3c4c756447435419bdc216b3b214c610f061269",
+      "source_table": "CONTRASTS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P4_FAMILY_FOREST",
+      "render_status": "PENDING",
+      "selection": {
+        "dataset_id": "prmbench",
+        "experiment_id": "P4_PRMBENCH_TRANSFER",
+        "status": "COMPLETE"
+      },
+      "source_sha256": "6e5eab2941e4347c1863e253d3c4c756447435419bdc216b3b214c610f061269",
+      "source_table": "CONTRASTS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P4_SOURCE_FOREST",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P4_PRMBENCH_TRANSFER",
+        "slice_id": [
+          "prm_train",
+          "prm_test"
+        ],
+        "status": "COMPLETE"
+      },
+      "source_sha256": "6e5eab2941e4347c1863e253d3c4c756447435419bdc216b3b214c610f061269",
+      "source_table": "CONTRASTS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P5_BUDGET_CURVES",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P5_EARLY_TRANSFER",
+        "status": "COMPLETE"
+      },
+      "source_sha256": "7d0d52df5276d2ab93cce43f10275683b16308af46e4099eab8b008fb9358f36",
+      "source_table": "METRICS_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_P5_CAUSAL_CHECKS",
+      "render_status": "PENDING",
+      "selection": {
+        "experiment_id": "P5_EARLY_TRANSFER"
+      },
+      "source_sha256": "be79fbcd2d2df0011eb80cb20e8072f305f0398e1153c23431468f0ec3264b9f",
+      "source_table": "GATES_LONG.csv"
+    },
+    {
+      "plot_id": "PLOT_ROBUSTNESS_WORST_UNIT",
+      "render_status": "PENDING",
+      "selection": {
+        "status": "COMPLETE"
+      },
+      "source_sha256": "6e5eab2941e4347c1863e253d3c4c756447435419bdc216b3b214c610f061269",
+      "source_table": "CONTRASTS_LONG.csv"
+    }
+  ],
+  "report_id": "REASONING_LOCALIZATION_03662_ANCHOR_V1",
+  "report_manifest_sha256": "27ce1390008383bb09f9333ad2c4fa43541097c3b210e58f75101b2364fc2018",
+  "schema": "reasoning_localization_report_manifest_v1",
+  "snapshot": {
+    "immutable": true,
+    "label": "amendment_reporting_chart_renderers_mobile"
+  },
+  "source_commit": "59359001e5398a6df1783239326cdb1b2215bb07"
+}

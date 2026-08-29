@@ -1,0 +1,46 @@
+{
+  "schema": "reasoning_localization_claims_v1",
+  "allowed_verdicts": ["SUPPORTED", "NOT_SUPPORTED", "NONINFERIOR_ONLY", "PB_SPECIALIST", "PRM_SPECIALIST", "DESCRIPTIVE", "BLOCKED"],
+  "claims": [
+    {
+      "claim_id": "CLAIM_HISTORICAL_ANCHOR",
+      "text": "The historical 0.3662 absolute score is a valid audit anchor, but the finalist did not show statistically supported superiority over its 0.3614 entropy reference.",
+      "verdict": "DESCRIPTIVE",
+      "task_scope": "Historical eight-cell ProcessBench Stage-4 audit only.",
+      "evidence_refs": ["TABLE_VARIANTS", "PLOT_HISTORICAL_ANCHOR", "CONTRAST:H_STAGE4_FINALIST:H_STAGE4_ENTROPY"],
+      "worst_case_behavior": "One of four source families lost and the grouped interval crossed zero.",
+      "claim_boundary": "Retrospective, outcome-opened, and not interchangeable with current common-population scores.",
+      "fresh_confirmation_required": true
+    },
+    {
+      "claim_id": "CLAIM_REPORTING_READY",
+      "text": "The reporting contract represents planned, blocked, completed, and context-only variants without assigning missing results a numeric value.",
+      "verdict": "SUPPORTED",
+      "task_scope": "Reporting mechanics only; no scientific performance claim.",
+      "evidence_refs": ["TABLE_VARIANTS", "PLOT_LINEAGE", "MANIFEST:REPORT_MANIFEST.json"],
+      "worst_case_behavior": "Scientific plots remain explicitly pending until registered rows exist.",
+      "claim_boundary": "Does not authorize or imply completion of Phase 0 or later experiments.",
+      "fresh_confirmation_required": false
+    },
+    {
+      "claim_id": "CLAIM_P0_S0_REPLAY",
+      "text": "P0-S0 reproduces the frozen Stage-4 historical anchor without new model inference: the per-question artifact is byte-identical and the cell, aggregate, and interval tables are semantically exact.",
+      "verdict": "SUPPORTED",
+      "task_scope": "Historical eight-cell ProcessBench Stage-4 checksum audit only.",
+      "evidence_refs": ["PLOT_P0_WATERFALL", "TABLE_GATES", "MANIFEST:REPORT_MANIFEST.json"],
+      "worst_case_behavior": "The finalist-versus-entropy method delta remains uncertain and loses on one of four source families.",
+      "claim_boundary": "Establishes reproducibility and population identity only; it does not promote the finalist or explain any bridge factor.",
+      "fresh_confirmation_required": true
+    },
+    {
+      "claim_id": "CLAIM_P0_S1_REDUCER_BRIDGE",
+      "text": "On the exact historical Stage-4 population and fitted heads, replacing only step top-five mean with token argmax mapped to step lowers macro F1 by 0.0362; the paired interval excludes zero.",
+      "verdict": "SUPPORTED",
+      "task_scope": "Historical eight-cell ProcessBench Stage-4 audit population only.",
+      "evidence_refs": ["PLOT_P0_WATERFALL", "PLOT_P0_BRIDGE_FOREST", "PLOT_P0_PREDICTION_FLIPS", "CONTRAST:P0_S1_FAMILY6_STEP_MAX:R2_HISTORICAL_FAMILY6_BRIDGE", "TABLE_GATES"],
+      "worst_case_behavior": "Macro F1 fell in all four source families; the worst scorer cell delta was -0.0921. Clean abstention rose by 0.0518 while exact-error localization fell by 0.0489.",
+      "claim_boundary": "This isolates reducer choice retrospectively; it does not establish that top-five pooling will win under the current common-population detector and split.",
+      "fresh_confirmation_required": true
+    }
+  ]
+}

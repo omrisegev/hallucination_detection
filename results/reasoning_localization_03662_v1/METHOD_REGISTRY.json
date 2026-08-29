@@ -1,0 +1,196 @@
+{
+  "schema": "reasoning_localization_method_registry_v1",
+  "report_id": "REASONING_LOCALIZATION_03662_ANCHOR_V1",
+  "methods": [
+    {
+      "method_id": "entropy_level",
+      "display_name": "Entropy level",
+      "problem": "Use the model's local uncertainty as a transparent first-error signal.",
+      "plain_summary": "Maps token entropy to step risk without learning a semantic verifier.",
+      "input_operation_output": "token entropy -> optional causal transform -> step reducer -> one risk per step",
+      "novelty": "Not a new primitive; it is the transparent anchor that isolates gains from later machinery.",
+      "assumptions": ["A reasoning error creates a local increase or instability in predictive uncertainty."],
+      "limitations": ["Absolute entropy can be high on difficult but correct steps and low on confidently wrong steps."],
+      "references": ["results/local_online_comprehensive_v1/REPORT.md:5-16,69-80"]
+    },
+    {
+      "method_id": "family6",
+      "display_name": "Family6 provenance compression",
+      "problem": "Balance heterogeneous token signals without allowing large feature families to dominate.",
+      "plain_summary": "Averages broad token views inside six provenance families before localization.",
+      "input_operation_output": "28 token views -> six provenance-family means -> level curve -> step risk",
+      "novelty": "Provenance balancing, coupled to a dedicated local step reducer.",
+      "assumptions": ["Signal provenance is more stable than individual reconstructed coordinates."],
+      "limitations": ["The historical 0.3662 system also used a separate complete-answer detector."],
+      "references": ["docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md:131-176"]
+    },
+    {
+      "method_id": "iu29",
+      "display_name": "Token IU29",
+      "problem": "Fuse the modern 29-stream token representation without target labels.",
+      "plain_summary": "Fits the registered ordinary IU covariance fusion and reduces token risk within each step.",
+      "input_operation_output": "29 standardized token streams -> ordinary IU weights -> token risk -> step maximum",
+      "novelty": "Modern common-protocol incumbent used as a reference, not a new claim in this program.",
+      "assumptions": ["A shared low-rank correctness direction is identifiable from target-free dependence."],
+      "limitations": ["The 29-stream contract contains both exact and best-effort reconstructed coordinates."],
+      "references": ["docs/experiments/REASONING_LOCALIZATION_03662_ANCHOR_V1.md:265-286"]
+    },
+    {
+      "method_id": "evidence_drop",
+      "display_name": "Mind the Gap evidence drop",
+      "problem": "Detect sudden local deterioration rather than high absolute uncertainty.",
+      "plain_summary": "EMA-smooths a token evidence proxy and aggregates its strongest negative first differences.",
+      "input_operation_output": "top-k entropy evidence -> EMA span 5 -> local drops -> step risk",
+      "novelty": "A direct same-contract adaptation of temporal evidence drop to ProcessBench first-error F1.",
+      "assumptions": ["The first reasoning failure appears as an abrupt evidence loss."],
+      "limitations": ["The paper leaves token-to-step aggregation and clean handling underspecified."],
+      "references": ["papers/digests/mind-the-gap-catching-hallucinations-via-evidence-drop.md:20-28,63-72,142-155"]
+    },
+    {
+      "method_id": "sliding_variance",
+      "display_name": "Sliding-window variance",
+      "problem": "Capture local uncertainty bursts that absolute entropy averages can hide.",
+      "plain_summary": "Computes causal variance over either a fixed trailing window or one length-adaptive window.",
+      "input_operation_output": "entropy history up to token t -> trailing variance -> token/step risk",
+      "novelty": "Reintroduces an early robust signal as a minimal causal localizer rather than a response scalar.",
+      "assumptions": ["Error onset increases short-range entropy volatility."],
+      "limitations": ["Fixed and adaptive windows are separate sensitivity arms and may not be combined post hoc."],
+      "references": ["spectral_utils/feature_utils.py:118-164", "HISTORY.md:3300-3325"]
+    },
+    {
+      "method_id": "causal_cusum",
+      "display_name": "Causal donor-centered CUSUM",
+      "problem": "Locate a sustained change in entropy without using the completed trace mean.",
+      "plain_summary": "Accumulates deviations from a label-blind donor center using prefix-only information.",
+      "input_operation_output": "entropy prefix + donor center -> absolute cumulative deviation -> step risk",
+      "novelty": "Repairs the historical full-trace-mean CUSUM for a valid causal lane.",
+      "assumptions": ["Error onset induces a persistent mean shift relative to calibration donors."],
+      "limitations": ["CUSUM was weak in prior early-prefix ablations and therefore remains targeted rather than core."],
+      "references": ["spectral_utils/feature_utils.py:256-274", "PROGRESS.md:1050-1054,1102-1109"]
+    },
+    {
+      "method_id": "sampled_surprisal",
+      "display_name": "Sampled-token surprisal",
+      "problem": "Measure whether the actually sampled token is unexpectedly unlikely.",
+      "plain_summary": "Uses negative sampled-token log probability as a compact complement to distribution entropy.",
+      "input_operation_output": "sampled-token log probability -> oriented surprisal curve -> step risk",
+      "novelty": "Tests sampled-token energy atomically before allowing it into a DSP block.",
+      "assumptions": ["Some errors manifest in the chosen token even when aggregate entropy is modest."],
+      "limitations": ["Existing evidence supports the family more than this source as an independent winner."],
+      "references": ["docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md:131-176"]
+    },
+    {
+      "method_id": "partition_energy",
+      "display_name": "Partition energy",
+      "problem": "Add a distribution-scale energy view complementary to entropy and sampled-token surprisal.",
+      "plain_summary": "Tracks the registered partition-energy token curve as one atomic source.",
+      "input_operation_output": "token logit distribution -> partition-energy curve -> step risk",
+      "novelty": "Tests partition energy separately before any fusion can obscure its contribution.",
+      "assumptions": ["A correctness-relevant energy shift is not fully represented by entropy."],
+      "limitations": ["Historical removal was not harmful on average, so evidence is weak."],
+      "references": ["results/local_online_comprehensive_v1/REPORT.md:65-80"]
+    },
+    {
+      "method_id": "dsp12",
+      "display_name": "Compact DSP12",
+      "problem": "Represent level, smoothing, accumulated positive evidence, and persistence without a feature soup.",
+      "plain_summary": "Crosses three uncertainty sources with four causal transforms for at most 12 coordinates.",
+      "input_operation_output": "entropy/surprisal/partition energy x level/ewma16/positive area/persistence -> compact fusion -> step risk",
+      "novelty": "A constrained localization-specific descendant of the successful seven-by-four Unified28 grammar.",
+      "assumptions": ["The useful information lies in a small transform grammar shared across a few sources."],
+      "limitations": ["Unified28 previously regressed on other tasks; DSP12 is not presumed universal."],
+      "references": ["PROGRESS.md:680-715"]
+    },
+    {
+      "method_id": "edis_onset",
+      "display_name": "EDIS onset morphology",
+      "problem": "Localize entropy bursts and rebound events rather than score the whole response.",
+      "plain_summary": "Converts EDIS burst/rebound morphology into one exploratory onset curve.",
+      "input_operation_output": "entropy history -> burst/rebound event strength -> onset step risk",
+      "novelty": "Adapts EDIS from a redundant response scalar into a local temporal diagnostic.",
+      "assumptions": ["Reasoning failures produce identifiable burst or rebound onsets."],
+      "limitations": ["The original window is underspecified and local replications were fragile."],
+      "references": ["papers/digests/edis-paper.md:15-47"]
+    },
+    {
+      "method_id": "self_innovation",
+      "display_name": "Self-basis token innovation",
+      "problem": "Remove predictable self-history and test whether residual direction localizes errors.",
+      "plain_summary": "Predicts each token stream from its own lag and fuses the standardized residuals.",
+      "input_operation_output": "token stream + self lag -> innovation residual -> IU fusion -> step risk",
+      "novelty": "Retains only the least harmful innovation form after cross-stream rook innovation failed.",
+      "assumptions": ["Unexpected within-stream changes contain complementary error information."],
+      "limitations": ["Prior ProcessBench gain was small and uncertain and PRMBench regressed."],
+      "references": ["local_cache/worktrees/token_local_fusion_optimization_v1/results/token_local_linear_innovation_v1/RESULTS_REPORT.md:27-45"]
+    },
+    {
+      "method_id": "fusion_selection",
+      "display_name": "Fusion and selection mechanisms",
+      "problem": "Combine surviving evidence blocks or select coordinates without outcome labels.",
+      "plain_summary": "Covers equal-family, ordinary IU, SU/STG-SU, DUFS, and transform-hierarchy controls.",
+      "input_operation_output": "registered evidence blocks -> target-free fusion/selection -> one risk curve",
+      "novelty": "In the new program fusion is conditional on atomic survival and bounded to three blocks.",
+      "assumptions": ["Surviving sources are complementary and target-free structure identifies useful weights."],
+      "limitations": ["Recent SU/STG/DUFS and hierarchy experiments did not show supported localization gains."],
+      "references": ["PROGRESS.md:2343-2387"]
+    },
+    {
+      "method_id": "step_scoring_reducer",
+      "display_name": "Step scoring and reducer study",
+      "problem": "A strong token-risk curve still needs a step score, and the historical top-five mean was selected from a narrow development roster rather than established as optimal.",
+      "plain_summary": "Holds the token representation, detector, threshold, spans, split, and population fixed; first compares compact within-step aggregators on the identity curve, then permits at most one preregistered causal transform before the selected aggregator.",
+      "input_operation_output": "frozen token risk r[1:T] -> optional explicit temporal transform T -> registered aggregation A over I_s -> R_s -> argmax_s R_s",
+      "novelty": "Factorizes temporal transformation from within-step aggregation and tests fixed-k tail means against length-normalized fractions and robust controls without a filter-by-reducer factorial.",
+      "assumptions": [
+        "The frozen reference token curve contains localized evidence whose step readout can be improved without changing detection.",
+        "Step-length sensitivity explains part of the difference between fixed-k and length-normalized reducers.",
+        "Any useful curve transform survives a matching atomic premise gate before Stage B."
+      ],
+      "limitations": [
+        "Planned retrospective development study; no new result or fresh confirmation.",
+        "P0-S1 rejects historical step max versus top-five but does not support any other aggregator ordering.",
+        "Stage-B templates are non-rankable until Stage A freezes an exact parent and transform parameters."
+      ],
+      "references": [
+        "docs/experiments/LOCAL_ONLINE_COMPREHENSIVE_V1.frozen-c921b0d4.md:221-227",
+        "scripts/run_local_online_comprehensive_stage1.py:68-68",
+        "scripts/run_local_online_comprehensive_stage1.py:149-178",
+        "results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/P0_S1_CONTRASTS.csv"
+      ]
+    },
+    {
+      "method_id": "hierarchical_family_experts",
+      "display_name": "Survivor-only hierarchical family experts",
+      "problem": "Fixed within-family means can dilute a useful member view when a surviving provenance family contains several correlated token curves.",
+      "plain_summary": "Passes singleton entropy through unchanged, compresses each surviving multi-view provenance family with one preregistered calibration-only expert, then combines at most six family scores with one frozen outer U-PCR or IU-PCR rule.",
+      "input_operation_output": "Phase-2 surviving frozen broad views -> per-family U-PCR/IU-PCR (conditional SU-PCR only after a premise gate; no fusion for singleton entropy) -> one score per surviving family -> one frozen outer U-PCR/IU-PCR -> token risk",
+      "novelty": "Replaces only the multi-view equal averages in family6 while preserving provenance balance, explicit singleton handling, and a nested no-test-label selection boundary.",
+      "assumptions": [
+        "At least one Phase-2-surviving multi-view family contains complementary member information that an equal mean suppresses.",
+        "Calibration-only stability or nested calibration can choose an expert without audit/test F1.",
+        "The outer family scores remain sufficiently complementary for a single frozen U-PCR/IU-PCR rule."
+      ],
+      "limitations": [
+        "Design proposal only; no completed ProcessBench or PRMBench result.",
+        "Prior transform-hierarchy and token SU-PCR variants failed, so this branch is survivor-gated and may not expand beyond the frozen 28-view provenance inventory.",
+        "Full-trace CUSUM and STFT-style members are not Phase-5 causal transfers."
+      ],
+      "references": [
+        "spectral_utils/local_online_comprehensive.py:41-83",
+        "docs/experiments/REASONING_LOCALIZATION_03662_ANCHOR_V1.md:315-325",
+        "docs/experiments/REASONING_LOCALIZATION_03662_ANCHOR_V1.md#registered-survivor-only-hierarchical-family-expert-branch"
+      ]
+    },
+    {
+      "method_id": "ciw_cross_scale",
+      "display_name": "CIW cross-scale localization",
+      "problem": "Separate complete-answer calibration from relative token-level evidence.",
+      "plain_summary": "Uses answer-level means and CIW risk to form a bounded token innovation gate.",
+      "input_operation_output": "token coordinates + answer summaries -> bounded CIW correction -> token fusion",
+      "novelty": "Cross-scale target-free reliability correction.",
+      "assumptions": ["Answer-level calibration can improve local evidence after reliability gating."],
+      "limitations": ["It helped PRMBench slightly while hurting ProcessBench, so it is context only here."],
+      "references": ["results/ciw_cross_scale_localization_v1/REPORT.md:1-21"]
+    }
+  ]
+}

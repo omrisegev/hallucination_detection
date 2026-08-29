@@ -14680,3 +14680,204 @@ Canonical artifacts: `docs/experiments/CIW_CROSS_SCALE_LOCALIZATION_V1.md`,
 under `local_cache/ciw_cross_scale*_localization_v1/`.
 
 ---
+
+### Step 298 [reasoning localization] — register a compact 0.3662-anchored cross-task program
+
+**What**: Audited the frozen joint Local/Online history, the current
+ProcessBench and PRMBench localization contracts, early temporal signals,
+DSP, token-local fusion and innovation results, DUFS/graph/feature-selection
+work, older EDIS evidence, and the repository paper cache. Read the official
+arXiv:2603.09906 PDF and added a source-bounded digest. Registered the new
+design-only protocol
+`docs/experiments/REASONING_LOCALIZATION_03662_ANCHOR_V1.md` on an isolated
+branch based on the latest committed token-local-fusion source.
+
+**Historical reconstruction**: Stage 4's `0.3662328342` was produced by a
+hybrid system: family6 level with `step_top5mean` localized the step, while a
+separate RegisteredGlobal mixed-v2/IU complete-answer system decided whether
+the answer was erroneous. It used a fixed 40% calibration / 20% audit split
+and eight Qwen3-8B/Llama cells. The same-regime raw-entropy/top5 reference was
+`0.3614213584`; delta `+0.0048114758`, grouped interval
+`[-0.0263871,+0.0375037]`. The raw absolute score is therefore an audit anchor,
+not statistically supported superiority. The exact historical protocol must
+come from the recovered frozen snapshot because the later live protocol had a
+hash mismatch.
+
+**Evaluator finding**: ProcessBench and PRMBench are not interchangeable.
+ProcessBench is thresholded trace-level first-error localization with clean
+abstention and five source-question-grouped folds. PRMBench is error-only,
+every-step ranking for one scorer model, with no clean sentinel or first-error
+threshold. Its frozen source IDs span original `prm_train` and `prm_test`, and
+151 one-based out-of-bounds annotation memberships remain inert. The program
+therefore forbids averaging the tasks and assigns explicit universal versus
+task-specialist verdicts.
+
+**Program**: Phase 0 performs a one-factor bridge over population, split,
+detector, representation, and step reducer. Phase 1 rebuilds compact common-row
+references including a direct same-contract Mind the Gap row. Phase 2 tests
+entropy-centered atomic arms: trailing sw_var, causal donor-centered CUSUM,
+sampled-token surprisal, partition energy, and a maximum 12-coordinate DSP
+block. Phase 3 permits equal-family or ordinary-IU fusion only after atomic
+survival. Phase 4 freezes the ProcessBench scorer before PRMBench transfer.
+Phase 5 is causal early detection only. Paired grouped bootstrap intervals,
+simultaneous selection-aware inference, worst-cell/family guards, and separate
+raw-best versus supported-improvement labels are mandatory.
+
+**Evidence disposition**: Entropy level/dynamics, family6/top5 as the anchor,
+sw_var, and compact DSP are primary evidence-backed candidates. CUSUM,
+evidence-drop, EDIS onset, self-innovation, and B3 are bounded diagnostics.
+Rook/non-rook innovation, SU/STG-SU-PCR, DUFS, transform hierarchy, broad graph
+selection, residual soups, and the 1,036-feature bank are excluded from the
+primary roster by existing negative evidence. arXiv:2603.09906 contributes
+within-question/factual-claim diagnostics and a separately access-labelled
+external-verifier ceiling, not a new same-access feature.
+
+**Boundary**: No scorer, fit, label evaluation, or full experiment ran. The
+pre-existing token-local worktree had modified and untracked Steps 294-297;
+it was read only and its artifacts were cited by path/hash but not imported.
+No commit or push was performed.
+
+---
+
+### Step 299 [reasoning localization] — implement the deterministic reporting phase
+
+**What**: Implemented the complete pre-experiment reporting layer for
+`REASONING_LOCALIZATION_03662_ANCHOR_V1`. Added method, variant, experiment,
+metric, contrast, gate, claim, example, and plot registries under
+`results/reasoning_localization_03662_v1/`; a standard-library deterministic
+renderer; a build/check/snapshot CLI; and sixteen fail-closed reporting tests.
+
+**Roster and provenance**: Registered thirteen method families, all R0-R4 and
+C1-C8 arms, fifteen historical context methods, seven phase contracts, and
+eighteen plot contracts. Bound the historical `0.3662328342` finalist,
+`0.3614213584` entropy reference, GL-LIU and Mind-the-Gap points plus three
+paired contrasts back to the exact Stage-4 aggregate/interval artifacts by
+SHA and unique source-row selector. A copied value or source-hash mismatch now
+fails the build.
+
+**Report**: Generated one English self-contained interactive HTML containing
+method/novelty cards, the filterable/sortable master roster, a lineage SVG,
+the historical forest, all P0-P5 evidence panels, the claim ledger,
+deterministic trace-case placeholders, limitations, provenance, raw appendices,
+and embedded-data CSV downloads. Forest, contrast-forest, waterfall, heatmap,
+gate-matrix, scatter, line, and lineage renderers are implemented. Missing and
+unrun data remain explicit states, never zeros; ProcessBench, PRMBench, Early,
+and historical context cannot share a leaderboard or comparison group.
+
+**Validation**: Sixteen tests pass. They cover byte-identical rebuilds,
+manifest/output hashes, historical non-rankability, task/population/metric
+isolation, source-value validation, complete card/table coverage, semantic
+HTML and internal anchors, embedded data, all registered chart kinds, stale
+output, and immutable snapshot tamper detection. Browser QA passed at 1440px
+and 390px with 28 method cards, 18 figures, no document-level overflow, and no
+console warnings/errors.
+
+**Snapshot discipline**: Signed `snapshots/reporting/` first. Later QA found a
+mobile table-containment defect and that non-forest future plot kinds needed
+executable renderers. The original snapshot was not changed. The corrected
+live report, SHA256
+`e39d3b65cc9f34cfb70689b6db2b0e56042e27bc6e8dc839aaaea1275e2fe538`,
+was signed under
+`snapshots/amendment_reporting_chart_renderers_mobile/`. Re-requesting an
+existing label with different bytes fails closed. A final manifest-only
+contract extension bound every plot's selection rule, comparison group, and
+bootstrap definition into `REPORT_MANIFEST.json`; it is signed separately as
+`snapshots/amendment_reporting_manifest_plot_contract/`. The final live-report
+SHA256 is
+`3f6a21e8fb61e07898df4d3ad80be850c64d4c50e25cc436fb1f1fabe36d4087`.
+
+**Boundary**: This is reporting infrastructure, not a scientific result. P0-P5
+remain planned, no new variant has a metric, and no scorer/evaluation ran. No
+commit or push was performed.
+
+---
+
+### Step 300 [reasoning localization] — checksum-equivalent Phase 0 S0 replay
+
+**What**: Froze a read-only Stage-4 replay registry covering the recovered
+protocol, runner, eight checkpoint payloads, five historical result artifacts,
+seed, bootstrap count, population, and mutation boundary. Replayed the
+historical Local Stage-4 calculation from the checkpoint payloads without new
+model inference or source-tree mutation.
+
+**Result**: The per-question replay is byte-identical to the frozen source
+(SHA256 `161c598f5e4d6fbddc52f66da55b8cc485a0c20111346b7fb5dd1f87e5ea0c77`),
+and the cell, aggregate, and interval outputs are semantically exact. Finalist
+F1 is `0.3662328341717007`; entropy/top5 F1 is `0.3614213583669282`; delta is
+`+0.004811475804772508`, interval
+`[-0.02638710838275541,+0.037503652325203835]`, with 3/0/1 family W/T/L.
+
+**Population correction**: The actual replay population is eight scorer cells,
+1,270 scorer-row observations, and 635 source-question groups shared across the
+two scorer copies. The earlier reporting-only count of 3,400/four was corrected
+in the context rows. Population SHA256:
+`d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05`.
+
+**Reporting**: Registered R2 as `COMPLETE / NO_PROMOTION / RETROSPECTIVE`,
+bound one metric and three gates to exact Phase-0 artifacts, and rebuilt the
+living self-contained report. The P0 waterfall now renders its first state;
+Phase 0 remains `RUNNING`. Twenty-two tests and deterministic rebuild/check
+pass. Browser QA at 1440px and 390px found and fixed a waterfall-label
+truncation and a 15px mobile overflow caused by the unbreakable deterministic
+case placeholder. Final report SHA256:
+`9eec64236621aead0c28192f003bfdd6ea2523899cddf5d57e57ae7318b2da6b`.
+
+**Decision boundary**: S0 proves reproducibility and population identity only.
+It does not support finalist superiority, explain a bridge factor, or promote a
+method. No phase snapshot is created before Phase 0 closes. S1 has not started.
+No commit or push was performed.
+
+---
+
+### Step 301 [reasoning localization] — execute the P0-S1 reducer bridge
+
+**Frozen boundary**: Registered one retrospective bridge state before opening
+its result. The execution registry binds the exact Stage-4 raw sources and
+checkpoints, S0 artifacts, protocol and code dependencies, the 635-group
+population, the `2026082901` seed, and 20,000 paired bootstrap draws. Every
+factor except the step reducer remained fixed; `step_top5mean` was replaced by
+token argmax mapped to step. The run was CPU-only and performed no new model
+inference or source mutation.
+
+**Reconstruction gate**: Because checkpoints omit token curves, the runner
+refit the historical family6 level and RegisteredGlobal heads from the frozen
+raw sources. It reproduced all S0 units, targets, locators, predictions,
+scores, thresholds, metrics, and reference/local/global diagnostics within
+`1e-12` in all eight cells. The population remained 1,270 scorer rows grouped
+into 635 source questions with SHA256
+`d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05`.
+
+**Result**: Step max scored `0.33007771561392063` macro F1 versus the S0
+top-five value `0.3662328341717007`. The paired delta is
+`-0.03615511855778009`, 95% CI
+`[-0.06666876234842496,-0.006984802202460412]`, 0/0/4 family W/T/L, and worst
+scorer-cell delta `-0.09208456432490503`. Clean abstention increased
+`+0.05180805805805805` with CI
+`[0.027614535282538023,0.07775861615966252]`, while exact-error localization
+fell `-0.04886162153449389` and within-one fell
+`-0.05475208646751201`; both negative intervals exclude zero. The exact flip
+audit records 978 unchanged rows, 59 exact-to-nonexact changes, and 26
+error-to-exact changes.
+
+**Interpretation and decision**: The historical top-five reducer explains a
+statistically supported 3.62-point portion of the 0.3662 regime on this exact
+retrospective population. The gain is localization-specific rather than a
+generic clean-detection improvement. This does not establish top-five pooling
+under the modern split or detector. P0-S1 is
+`COMPLETE / NO_PROMOTION / RETROSPECTIVE`; Phase 0 remains open and P0-S2 was
+not started.
+
+**Reporting and validation**: Registered four aggregate metrics, four paired
+contrasts, six gates, all prediction-flip categories, a supported bounded
+claim, and a nineteenth plot contract. The living HTML now has 29 cards and
+the P0 waterfall, macro-F1 bridge forest, and deterministic flip panel. All 28
+Phase-0/reporting tests pass; two builds are byte-identical. Report SHA256:
+`e92e533dd2c277b5be2fdfb43f7a99f6b379fed28c65eb0193986b2d847be6d8`.
+No Phase-0 snapshot, commit, or push was made.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_0/P0_S1_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/`, and
+`results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
