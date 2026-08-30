@@ -1,0 +1,8 @@
+gate_id,status,observed,required,detail
+P2C_SCORE_FREEZE,PASS,4,4 Llama cells,all arms froze before labels
+P2C_LABEL_FIREWALL,PASS,labels opened after score freeze,no fit-side labels,fixed transfer scorers
+P2C_FAMILY6_ALIAS,PASS,0.0,<=1e-12,frozen Phase-1 family6 comparator
+P2C_TOP5_ALIAS,PASS,0.0,<=1e-12,recomputed top-five aliases frozen Phase-1 local and combined scores
+P2C_C7_EDIS_LLAMA4_SUFFIX_INVARIANCE,PASS,0.0,<=1e-12,fixed-map causal replay
+P2C_C7_EDIS_LLAMA4_WORST_CELL_HARD,PASS,-0.015327379055662893,>=-0.03,required-reference worst cell
+P2C_C7_EDIS_LLAMA4_PROMOTION,FAIL,false,all transfer promotion gates,eligibility for PRMBench and Phase 3

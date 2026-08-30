@@ -42,6 +42,52 @@ Reference paper: `Learned Hallucination Detection in Black-Box LLMs using Token-
 
 ---
 
+## Step 330 — C7/C8 transfer does not clear the top-ten gate
+
+The exact C7 EDIS-onset and C8 self-innovation scorers were transferred without
+retuning from the completed Qwen-eight atomic screen to the four Llama-3.1
+ProcessBench scorer cells.  Both remain stronger than top-five and family6 on
+this panel, and C8 is directionally stronger than its matched IU29/top-ten
+parent.  Neither improves the stronger entropy/top-ten reference: C7 delta is
+`-0.004056 [-0.021370,+0.012994]`; C8 is
+`-0.003511 [-0.017028,+0.010138]` under the frozen simultaneous family.
+
+Decision overlap with family6 leaves a nontrivial descriptive oracle ceiling,
+but step-score rank correlations are `0.963--0.983` and no accessible router or
+fusion was evaluated.  The transfer branch closes `NO_TRANSFER_PROMOTION`; the
+family6 fusion proposed from these candidates remains `NOT_RUN_BY_GATE`.
+Because the Llama source questions and labels were opened in Phase 1, this is
+transfer evidence rather than independent fresh confirmation.
+
+---
+
+## Step 332 [localization] — Phase-2C removal audit identifies two load-bearing families
+
+The exact current R2 implementation was first corrected: despite the historical
+`family6` lineage name, it gives nonzero local weight to five non-structural
+families, while the retained structural context stream has zero local weight.
+An exact five-family/top-ten parent (`F1=0.354261`) and thirteen conditional
+contrasts were frozen before the first candidate result.
+
+All nine planned removals then completed on the common eight-Qwen ProcessBench
+population with 20,000 paired whole-question bootstrap draws. Entropy level
+contributes `+0.024646 [0.007506,0.042031]` macro F1 and top-k distribution
+contributes `+0.022669 [0.004708,0.040473]`; both clear the registered aggregate
+conditional-contribution boundary. Each also has a material exact-versus-clean
+tradeoff, so neither passes the complete promotion gate. Partition energy is
+promising but unconfirmed at `+0.010633 [-0.000676,0.022323]`. Entropy dynamics,
+sampled energy, SWVar16, CUSUM, sampled level and partition level remain
+inconclusive; no interval crossing zero is interpreted as rejection.
+
+The corrected `STG_SU_STABLE` final-answer side-worktree evidence was also
+verified. It recovers canonical SU-PCR to near IU/DUFS-LIU parity but does not
+show supported superiority or localization value. A later survivor-gated
+feature/temporal graph branch was registered with zero-strength alias, grouped
+fold stability, random-support, time-permutation and feature-permutation
+controls. The next Phase-2C state is the structural insertion control.
+
+---
+
 ### Step 2 — Debug Mistral-Small-3.1-24B loading failure
 **What**: `AutoModelForCausalLM.from_pretrained()` raised `ValueError: Unrecognized configuration class Mistral3Config`. The fallback code then crashed with `TypeError: _LazyAutoMapping.get() missing 1 required positional argument: 'default'`.
 
@@ -14879,5 +14925,1072 @@ Canonical artifacts:
 `results/reasoning_localization_03662_v1/phase_0/P0_S1_EXECUTION_REGISTRY.json`,
 `results/reasoning_localization_03662_v1/phase_0/p0_s1_reducer_bridge/`, and
 `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 302 [reasoning localization] — execute the P0-S2A modern-detector bridge
+
+**Commit boundary**: Before opening a new result, committed the completed
+Reasoning Localization 0.3662 program through P0-S1 as `e212316` on the
+isolated branch `codex/reasoning-localization-03662-v1`. The commit includes
+the protocol, source-bounded paper digest, deterministic self-contained report,
+immutable reporting snapshots, S0/S1 artifacts, runners and tests. It was not
+pushed.
+
+**Frozen factor**: Registered S2A before execution. The parent is
+`P0_S1_FAMILY6_STEP_MAX`; historical rows, 40-percent calibration and
+20-percent audit roles, family6-level local representation and fit, step-max
+locator, threshold objective, access tier, population and grouped bootstrap
+are fixed. Only the answer detector changes from RegisteredGlobal mixed-v2
+ordinary IU to calibration-only `answer_dufs_liu_mixed`: `k=7`,
+`lambda=0.1`, seeds 11/23/37 and 80 epochs. The local-maximum detector is a
+separate P0-S2B state and was not opened.
+
+**Integrity**: The runner reconstructed every S1 unit, target, locator,
+prediction, detector score, threshold and metric within `1e-12`. The run kept
+1,270 scorer rows grouped into 635 source questions, population SHA
+`d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05`.
+All registered hashes were stable. The DUFS-LIU fit was label-free and
+calibration-only; no new model inference, GPU work or source mutation occurred.
+
+**Result**: S2A macro F1 is `0.32859546976358334` versus
+`0.33007771561392063` for S1. Paired delta is
+`-0.001482245850337259`, CI
+`[-0.00871467835648367,0.00525866350827324]`, family W/T/L 1/1/2 and worst
+cell `-0.013490784822629609`. Exact-error rises `+0.0032013396375098514`
+with a crossing interval. Within-one rises `+0.012837148076509777`, CI
+`[0.005292749484365179,0.02127993059645836]`; clean abstention falls
+`-0.04244661327994661`, CI
+`[-0.06541774191302986,-0.02171650406760252]`. Of 1,270 decisions, 1,224 are
+unchanged; 20 clean traces become false positives and 18 erroneous traces move
+from abstention to a localized prediction.
+
+**Verdict**: `COMPLETE / NO_PROMOTION / RETROSPECTIVE`. The modern detector
+does not provide a statistically supported macro-F1 improvement and does not
+explain the 0.3662 anchor. It shifts the operating point toward more error
+declarations, producing a supported within-one gain and a larger supported
+clean-abstention loss. This does not evaluate P0-S2B or a modern five-fold
+population.
+
+**Reporting boundary**: Registered the result, contrasts, six integrity gates,
+claim boundary and an S2A flip panel in the living report. Phase 0 remains open
+and no phase snapshot is created. Stop for discussion before S2B. No second
+commit or push was made.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_0/P0_S2A_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge/`, and
+`results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 303 [reasoning localization] — close the reducer-by-detector interaction cell
+
+**Design amendment**: S2A's detector-only estimate was valid only conditional
+on step max. Inserted a bounded P0-S2I branch before the original P0-S2B so
+the historical top-five and step-max reducers are both observed under
+RegisteredGlobal and calibration-only DUFS-LIU. The mainline waterfall is
+unchanged; S2I is an interaction control, not a false sequential bridge edge.
+
+**Integrity and failed attempt**: The first attempt stopped at the frozen-edge
+reconstruction gate because the S0 artifact contains multiple historical
+candidates. No scientific outputs were written. The corrected runner freezes
+the exact `finalist_global_detector_local_locator` selector, passed a second
+preflight, reconstructed S2A within `1e-12`, and reproduced both existing
+bootstrap edges to `2.78e-17`. The exact 1,270-row/635-group population and all
+source hashes stayed fixed. No inference, GPU work or source mutation ran.
+
+**Result**: DUFS-LIU plus top-five reaches macro F1
+`0.3632846791052713`. Relative to DUFS-LIU plus step max, the adjacent pooling
+delta is `+0.03468920934168793`, CI
+`[0.006021442571549963,0.06502150221851657]`, W/T/L 4/0/0. Relative to the
+0.3662328342 RegisteredGlobal/top-five anchor, the same-reducer detector delta
+is `-0.0029481550664294254`, CI
+`[-0.008574230907836676,0.0021306149918468758]`. The S2A cumulative anchor
+gap is `-0.03763736440811735`, but it combines pooling and detector changes.
+The macro-F1 difference-in-differences is `+0.0014659092160921872`, CI
+`[-0.006818578872870391,0.009486362221551274]`.
+
+**Verdict**: `COMPLETE / NO_PROMOTION / RETROSPECTIVE`. Top-five pooling
+recovers most of the historical absolute score under both tested detectors;
+neither detector contrast supports improvement. Absence of a supported
+macro-F1 interaction is not proof of exact additivity, especially because
+clean-abstention and within-one interactions point in opposite directions.
+P0-S2B remains unopened. No commit, push or phase snapshot was created.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_0/P0_S2I_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_0/p0_s2i_interaction_control/`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 304 [reasoning localization] — execute the purely-local detector bridge
+
+**What**: Froze and ran P0-S2B from the S2A mainline parent. Family6 level,
+the fitted local head, step-max locator, historical population and roles,
+threshold objective, access tier and paired bootstrap remained fixed. The only
+changed factor was the answer detector: calibration-only mixed-v2 DUFS-LIU was
+replaced by the maximum of the same family6 local curve used for localization.
+
+**Integrity**: The first attempt stopped before output creation because the
+wrapper wired S2A artifacts into the inner S1 reconstruction slot. After
+correcting the chain to S1 -> S2A -> S2B and updating the frozen runner hash,
+preflight passed. The successful run reconstructed every S2A unit, score,
+locator, prediction, threshold and metric within `1e-12`; S2B locators are
+identical to S2A on all 1,270 scorer rows. Population SHA remains
+`d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05`.
+No inference, GPU work, source mutation or label-seeing curve fit occurred.
+
+**Result**: S2B macro F1 is `0.3065027012935364`. S2B minus S2A is
+`-0.0220927684700469`, CI
+`[-0.044614445807279905,-0.00039874276031798663]`, family W/T/L 0/0/4 and
+worst cell `-0.08180147058823528`. Exact-error falls by
+`-0.020620433053943694`, CI
+`[-0.04024650299367711,-0.0017378509755708066]`; clean-abstention and
+within-one intervals cross zero. The raw cumulative gap from S0 is
+`-0.0597301328781643`, but it includes the prior pooling and detector changes.
+
+**Verdict**: `COMPLETE / NO_PROMOTION / RETROSPECTIVE`. Under step max in the
+historical audit, the separate DUFS-LIU answer detector is supported over the
+pure local-maximum alternative. This does not test the local detector under
+top-five or the modern five-fold population. The representation bridge remains
+unopened; no commit, push or phase snapshot was created.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_0/P0_S2B_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_0/p0_s2b_pure_local_detector_bridge/`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 305 [reasoning localization] — execute the raw-entropy representation bridge
+
+**What**: Froze and ran P0-S3A from the S2B mainline parent. The historical
+population and roles, purely-local detector construction, step-max reducer,
+threshold objective, access tier and paired bootstrap remained fixed. The only
+changed factor was the local-risk representation: fitted family6 level became
+raw token entropy, used identically by detector and locator.
+
+**Integrity**: The run reconstructed every S2B unit, target, score, locator,
+prediction, threshold and metric within `1e-12`. All raw curves are finite and
+label-free; the population SHA remains
+`d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05`.
+The representation change moves 559/1,270 token locators. No inference, GPU
+work, source mutation or label-seeing representation fit occurred.
+
+**Result**: S3A macro F1 is `0.3110940034934562`. S3A minus S2B is
+`+0.004591302199919791`, CI
+`[-0.030495488290424935,0.03921200441794944]`, family W/T/L 2/0/2 and worst
+cell `-0.04639371496084849`. Exact-error and within-one point estimates rise;
+clean abstention falls; every paired interval crosses zero. The raw cumulative
+gap from S0 is `-0.0551388306782445`, but it includes earlier reducer and
+detector changes and is not a representation-only effect.
+
+**Verdict**: `COMPLETE / NO_PROMOTION / RETROSPECTIVE`; statistical status is
+`PROMISING_UNCONFIRMED`. Raw entropy does not show a statistically supported
+improvement over family6 on the fixed S2B parent, but the interval crossing
+zero is not a rejection and the branch remains eligible for independently
+preregistered confirmation. It does not recreate the historical approximately
+0.3614 entropy baseline contract. IU29 remains unopened; no commit, push or
+phase snapshot was created.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_0/P0_S3A_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_0/p0_s3a_raw_entropy_representation_bridge/`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 306 [reasoning localization] — separate uncertainty from rejection
+
+**What**: Amended the frozen reporting and evaluation semantics without
+rerunning any experiment. Added a fourth variant axis, `statistical_status`,
+beside execution, decision and evidence. Added structured point delta, CI,
+benefit/harm bounds and multiplicity basis to scientific claim rows and exposed
+them in the self-contained report.
+
+**Rule**: `SUPPORTED_IMPROVEMENT` requires the multiplicity-valid lower bound
+to exceed the preregistered minimal benefit. `SUPPORTED_HARM` requires the
+upper bound below the registered harm delta; leakage, hard gates and causal
+violations remain `HARD_FAILURE`. `NONINFERIOR_ONLY` and
+`COMPATIBLE_WITH_PARITY` require their own preregistered margins. A positive
+point estimate with CI crossing zero is `PROMISING_UNCONFIRMED`; a directionally
+unresolved interval is `INCONCLUSIVE`. Neither is rejection or equality.
+
+**Applied interpretation**: S3A is `PROMISING_UNCONFIRMED`; S2A's and S2I's
+detector contrasts and the interaction residual are `INCONCLUSIVE`; S1 and S2B
+are directional `SUPPORTED_HARM`; S2I's pooling edge is directional
+`SUPPORTED_IMPROVEMENT`. All remain retrospective and non-promotable. Future
+Phase-2 ProcessBench benefit/harm bounds are `+0.005/-0.005` with multiplicity
+control, and Phase-3 atomic-parent benefit is `+0.003`. No scientific artifact,
+score, prediction, commit, push or snapshot changed.
+
+---
+
+### Step 307 [reasoning localization] — execute the IU29 representation bridge
+
+**What**: Froze and ran P0-S3B from the S3A mainline parent. The historical
+population and roles, purely-local detector construction, step-max reducer,
+threshold objective, access tier and paired bootstrap remained fixed. The only
+changed factor was the local-risk representation: raw token entropy became the
+registered calibration-only `LOCAL_IU29` curve from 29 mixed-v2 token views and
+a two-component IU-PCR fusion with `scale_ratio=0.25`.
+
+**Integrity**: The run reconstructed every S3A unit, target, score, locator,
+prediction, threshold and metric within `1e-12`. Every one of eight cells kept
+all 29 finite streams; IU29 transforms, scale, orientation and components were
+fit only on calibration rows without labels; repeated construction was
+deterministic within `1e-12`; and the population SHA stayed
+`d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05`.
+The representation change moves 501/1,270 token locators. No inference, GPU
+work, source mutation or split bridge occurred.
+
+**Result**: S3B macro F1 is `0.2996587594711835`. S3B minus S3A is
+`-0.011435244022272775`, CI
+`[-0.04461391138148266,0.022121445421450597]`, family W/T/L 2/0/2 and worst
+cell `-0.20003988831272437`. Exact-error and clean-abstention point estimates
+fall by `-0.00191` and `-0.01225`; within-one rises by `+0.01707`; all paired
+intervals cross zero. The cumulative S0 gap is `-0.0665740747005172`, not the
+single-factor IU29 effect.
+
+**Verdict**: `COMPLETE / NO_PROMOTION / RETROSPECTIVE / INCONCLUSIVE`. The
+negative point estimate does not establish supported harm or rejection, and
+does not imply parity. The worst-cell point loss is retained as a warning. The
+historical 40/20 pure-local step-max result is not the modern approximately
+0.307 IU29 result because population, detector and split differ. The split
+bridge remains unopened; no commit, push or phase snapshot was created.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_0/P0_S3B_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_0/p0_s3b_iu29_representation_bridge/`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 308 [reasoning localization] — execute the five-fold split bridge
+
+**What**: Froze P0-S4 and replaced only the historical 40/20 threshold roles
+with deterministic five-fold source-question cross-fit. IU29 scores, locators,
+detector, reducer, rows and population hash remained exact.
+
+**Result**: Macro F1 `0.29401957271717755`; adjacent delta
+`-0.005639186754005907`, CI `[-0.02022305591272321,0.009502877546169077]`,
+W/T/L 1/0/3, worst cell `-0.06735524934618886`. Aggregate verdict is
+`INCONCLUSIVE`. Clean abstention delta `-0.04343093093093093`, CI
+`[-0.07775322652501392,-0.009152817979158545]`, is supported component harm.
+
+---
+
+### Step 309 [reasoning localization] — execute the registered population bridges
+
+**What**: Imported the dual-build-identical frozen token-only IU29 adapter.
+S5A is the eight-Qwen current panel; S5B adds four Llama-3.1 cells. No score,
+threshold, representation or model inference was rerun.
+
+**Result**: S5A `0.2931182814184147`, CI
+`[0.278524366896694,0.30625044155576914]`; S5B `0.2943961703375378`, CI
+`[0.2822583006109942,0.30491459952679506]`. The composition delta is
+`+0.0012778889191231158`, CI `[-0.006708916091292374,0.00920811521404516]`,
+W/T/L 2/0/2: `INCONCLUSIVE`. Different generated traces make S4-to-S5A
+nonpaired; no causal population effect or flip table is claimed there.
+
+---
+
+### Step 310 [reasoning localization] — close Phase 0
+
+**Verdict**: Phase 0 is complete and audit-only. The historical anchor remains
+`0.3662328341717007`. The largest supported adjacent loss is the reducer change
+to step max (`-0.0361551`); detector-under-max and representation edges are
+uncertain; purely-local detection is harmful under the tested family6/max
+parent; the split edge is aggregate-inconclusive with a clean-abstention
+warning. Current pure-local IU29 raw scores are about `0.293–0.294`, not the
+historical `0.3662`; no single population edge is inferred across nonshared
+rows. Phase 1 was not opened. No commit or push was performed.
+
+**Acceptance**: 62 Phase-0/reporting tests passed, followed by deterministic
+rebuild verification and `git diff --check`. The immutable `phase_0` snapshot
+was created and successfully re-verified without overwrite. Its report is
+byte-identical to the living report at SHA
+`827d060b97b9d968a46cae2b94995015ee93c853b6c6de92a14c212a13ef9fb4`.
+
+---
+
+### Step 311 [reasoning localization] — register trajectory tensor direction and close Phase 1
+
+**Design amendment**: Registered a later survivor-only trajectory-feature
+tensor branch without delaying or changing Phase 1. T0 is the exact frozen
+parent; T1 adds one fixed DSP-first transform; T2 adds at most one predeclared
+causal alternative after its atomic premise survives; T3 is an additive
+donor-only feature-by-time projection with an exact zero-strength parent alias.
+The branch keeps response groups intact, masks variable lengths, prohibits
+target-label selection and hard nuisance-factor deflation, and transfers to
+PRMBench only after a ProcessBench survivor. CIW's prior small PRMBench gain
+with ProcessBench loss is retained as retrospective task-conflict motivation,
+not causal support.
+
+**Execution**: Five checksum-frozen registries were created before results.
+R0--R4 used the exact same 12 ProcessBench cells plus the sealed PRMBench cell,
+step spans, empirical-rank local/response combination, `equal_feature_mean`
+response detector, model-specific five-fold threshold evaluator, and grouped
+bootstrap contracts. All variants completed with zero missing scores and a
+verified fit/evaluation label firewall. R3 exactly aliases the strict IU29
+release within `1e-12`. R4 is a same-access repository adaptation because raw
+paper top-20 log probabilities are not present in the sealed input.
+
+**ProcessBench result**: Qwen-eight macro F1 is R0 `0.2957374`, R1
+`0.3452267`, R2 `0.3334337`, R3 `0.3070518`, and R4 `0.2770527`. R1 minus R3
+is `+0.0381749`, familywise paired interval
+`[+0.0199314,+0.0569137]`, W/T/L `8/0/0`, worst cell `+0.0233714`.
+R2 minus R3 is `+0.0263819`, interval `[+0.0074656,+0.0451541]`, also
+`8/0/0`. R4 minus R3 is supported harm at `-0.0299991`, interval
+`[-0.0520000,-0.0088198]`. The current top-five reducer improves R1 over R0
+by `+0.0494894`, interval `[+0.0348536,+0.0639961]`, across all eight cells.
+
+**Separate PRMBench result**: AUROC/AUPRC is R0 `0.5865332/0.2005528`, R1
+`0.6039724/0.2153515`, R2 `0.5899824/0.2068499`, R3
+`0.5932363/0.2047919`, and R4 `0.5592871/0.1845201`. R1 beats R3 AUROC by
+`+0.0107360`, familywise interval `[+0.0081972,+0.0133041]`. R2 is a task
+tradeoff: it improves ProcessBench but loses PRMBench AUROC by `-0.0032539`,
+interval `[-0.0060062,-0.0006081]`. The tasks are never averaged.
+
+**Verdict**: R1 is `COMPLETE / PROMOTED / DEVELOPMENT /
+SUPPORTED_IMPROVEMENT` and becomes the selection-opened Phase-2 reference.
+R2 is supported versus IU29 and classified `PROCESSBENCH_SPECIALIST` because
+its PRMBench AUROC interval is negative; it is not a task-general promotion.
+R0 is inconclusive; R4 is rejected for supported harm. R1's clean-abstention
+point delta versus R3 is `-0.0111395`, interval
+`[-0.0237799,+0.0011321]`; this uncertain tradeoff remains explicit. PRMBench
+source-stratum reporting is blocked because the sealed evaluator lacks
+`prm_train`/`prm_test` membership. Phase 2 did not start. No commit or push was
+performed.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_1/`,
+`results/reasoning_localization_03662_v1/REPORT.html`, and the immutable
+`results/reasoning_localization_03662_v1/snapshots/phase_1/` plus the
+score-free specialist-semantics amendment snapshot.
+
+---
+
+### Step 312 [reasoning localization] — freeze the Phase-2R top-five reference
+
+**What**: Started Phase 2 only through the first preregistered reducer row.
+`P2R_A_TOPK5_REFERENCE` reconstructs the R1 entropy token-risk curve, top-five
+within-step reducer, empirical-rank local/response combination, exact eight
+Qwen rows and spans, and the same five-fold evaluator. The execution registry
+was frozen before results; every later Stage-A reducer remains planned.
+
+**Alias and leakage gates**: Local and combined scores match R1 with maximum
+absolute error `0.0`. Fold and prediction mismatches are `0`; all five per-cell
+metric errors and all 20,000 bootstrap-sample errors are `0.0`. Labels open
+only after the eight-cell score freeze. All scores are finite and no row or
+step is dropped.
+
+**Frozen operating point**: The run exports five held-fold thresholds for each
+of Qwen-3 4B and 8B, together with their calibration ledgers. This is the sole
+threshold reconstruction allowed in Phase 2R. Later candidates must apply
+these reference thresholds without refitting. Ten model-fold short/medium/long
+cut-point pairs are also frozen from erroneous calibration rows using NumPy's
+linear 1/3 and 2/3 quantiles. Clean traces retain the unchanged abstention
+panel and receive no fictitious true-error length.
+
+**Result and verdict**: The alias score is exactly
+`0.3452267398806099`, interval
+`[0.3270292900715335,0.36207566678753716]`. Status is
+`COMPLETE / PROMOTED / DEVELOPMENT / DESCRIPTIVE`: promoted only as the frozen
+reducer reference, not as a new scientific improvement. Eight of eight gates
+pass. The live report contains 34 reference metric/audit rows, including the
+descriptive length-stratum and selected-step-length panels. No contrast exists
+until a challenger runs.
+
+Phase 2R remains open. The next registered row is `P2R_A_MAX_K1`, but it was
+not frozen or executed. No C1--C8, PRMBench transfer, snapshot, commit, or push
+occurred.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_2/P2R_A_TOPK5_REFERENCE_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_2/p2r_a_topk5_reference/`, and
+`results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 313 [reasoning localization] — execute the Phase-2R max/k=1 control
+
+**What**: Froze and ran exactly the next registered Stage-A reducer,
+`P2R_A_MAX_K1`. A new checksum-frozen candidate runner preserves the already
+signed reference runner. The only scientific change is top-five mean to the
+maximum inside each known step span. The entropy curve, response-detector
+construction, eight Qwen cells, rows, spans, folds, ten reference thresholds,
+length cutpoints, and paired bootstrap stream remain fixed. There is no
+candidate-specific rethresholding.
+
+**Result**: Frozen-threshold macro F1 is `0.2953486126694177`, marginal
+interval `[0.277955026133502,0.31128939938482164]`. The paired delta from
+`P2R_A_TOPK5_REFERENCE` is `-0.049878127211192225`; at the current
+one-contrast multiplicity family, the simultaneous interval is
+`[-0.063891277326654,-0.035862667968481685]`. Cell W/T/L is `0/0/8`; family
+W/T/L is `0/0/4`. The worst cell is GSM8K/Qwen-3 8B at
+`-0.08682706890611058`; the worst family is GSM8K at
+`-0.07217595815927216`. Exact-error delta is
+`-0.05419328178405336`, interval
+`[-0.07044855897949436,-0.038169638241617065]`; within-one delta is
+`-0.01687542120762542`, interval
+`[-0.03334840352950604,-0.00043504154587673113]`. Clean abstention changes
+`-0.00610838377851286`, interval
+`[-0.015591295279493328,0.00312137003672684]`, so its direction is
+inconclusive. The exact flip ledger contains 2,280 changed predictions.
+
+**Gates and interpretation**: Score freeze, label firewall, threshold hash,
+zero rethresholding, fold alias, exact 6,800-row population, and 20,000-draw
+alignment all pass. The worst-cell point delta breaches the preregistered
+`-0.030` hard bound, while the primary interval is wholly below the `-0.005`
+practical-harm boundary. Status is `HARD_FAIL / REJECTED / DEVELOPMENT /
+HARD_FAILURE`, with independently supported directional harm. This is a
+scientific robustness failure rather than an execution failure. The max arm
+stops; the independent mean arm remains planned.
+
+The score is slightly below Phase-1 R0 (`0.2957374`) because R0 fitted its own
+thresholds, whereas this control applies the frozen top-five operating point.
+The one-factor Phase-2 contrast is therefore max versus top-five under one
+common threshold contract. It is not a direct factor attribution against the
+historical `0.3662` regime.
+
+Phase 2R remains open. `P2R_A_MEAN_ALL` is next but was not frozen or run. No
+snapshot, PRMBench transfer, C1--C8 execution, commit, or push occurred.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_2/P2R_A_MAX_K1_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_2/p2r_a_max_k1/`,
+`results/reasoning_localization_03662_v1/phase_2/reducer_interim/P2R_CONTRASTS.csv`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 314 [reasoning localization] — execute the Phase-2R full-step mean
+
+**What**: Froze and executed exactly `P2R_A_MEAN_ALL`, the next independent
+Stage-A row. It replaces only the within-step top-five tail mean with the mean
+of all token risks. The candidate uses the same checksum-frozen runner as the
+max control and preserves the entropy curve, empirical-rank detector
+combination, eight Qwen cells, rows, spans, folds, ten reference thresholds,
+length cutpoints, and paired bootstrap stream. No rethresholding occurred.
+
+**Result**: Macro F1 is `0.2731562609201911`, marginal interval
+`[0.2542193527657983,0.29067711294773024]`. Delta from top-five is
+`-0.07207047896041885`; the Bonferroni simultaneous interval across both
+opened reducer contrasts is
+`[-0.09212185757173004,-0.05226351064571611]`. Cell W/T/L is `0/0/8`, family
+W/T/L is `0/0/4`, worst cell is GSM8K/Qwen-3 8B at
+`-0.09884542817835773`, and worst family is Math at
+`-0.0869622178885095`. Exact-error delta is
+`-0.07514858953719705`, interval
+`[-0.09384727489580041,-0.05636562172427741]`; within-one delta is
+`-0.05010252938293458`, interval
+`[-0.07057214573277983,-0.03001802090982172]`. Clean abstention is
+`+0.0006039548990113275`, interval
+`[-0.010528173321108353,0.011722121859102305]`, and remains inconclusive.
+The exact flip ledger records 2,838 changed predictions.
+
+**Length diagnostic**: Short/medium/long descriptive F1 is
+`0.28075/0.26048/0.28690`, versus `0.24493/0.34457/0.44825` for top-five.
+The mean arm is descriptively better only on short true-error steps and loses
+the medium/long localized signal. Its selected steps average `80.82` tokens,
+versus `123.89` for top-five. These opened diagnostics are not a tuning rule;
+they only reinforce the preregistered reason to test fixed small k and
+length-normalized top fractions.
+
+**Verdict**: The primary interval is wholly below the `-0.005` harm bound and
+the worst-cell value breaches the `-0.030` hard bound. Status is `HARD_FAIL /
+REJECTED / DEVELOPMENT / HARD_FAILURE`, with independently supported harm.
+All score-freeze, label, threshold, fold, population, and bootstrap gates pass.
+The mean arm stops. Updating the multiplicity family widens the earlier max
+interval to `[-0.06615091863351291,-0.03388117032208545]` without changing
+its verdict.
+
+`P2R_A_TOPK2` remains the next unopened row. No Phase-2 snapshot, PRMBench
+transfer, C1--C8 run, commit, or push occurred.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_2/P2R_A_MEAN_ALL_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_2/p2r_a_mean_all/`,
+`results/reasoning_localization_03662_v1/phase_2/reducer_interim/P2R_CONTRASTS.csv`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 315 [reasoning localization] — execute the Phase-2R top-two reducer
+
+**What**: Froze and executed exactly `P2R_A_TOPK2`, changing only the
+within-step tail width from five token risks to two. It preserves the signed
+token-score builder, empirical-rank detector, eight Qwen cells, all 6,800 rows
+/ 3,400 source groups, spans, folds, ten top-five thresholds, length cutpoints,
+and the 20,000-draw paired bootstrap stream. No rethresholding occurred.
+
+**Result**: Macro F1 is `0.3206520589072424`, marginal interval
+`[0.30264194740120864,0.33737661546824227]`. Delta from top-five is
+`-0.024574680973367513`; the Bonferroni simultaneous interval across three
+opened reducer contrasts is
+`[-0.03775863484018135,-0.011775217017749999]`. Cell W/T/L is `0/0/8`, family
+W/T/L is `0/0/4`, worst cell is GSM8K/Qwen-3 8B at
+`-0.062465615815852915`, and worst family is GSM8K at
+`-0.054034541952463655`. The exact flip ledger records 1,373 changed
+predictions.
+
+**Mechanism diagnostic**: Exact-error localization declines
+`-0.031913723833081886`, interval
+`[-0.043930622865086734,-0.02004342983147544]`, whereas clean abstention
+improves `+0.007619551589805429`, interval
+`[0.0008681924064067067,0.014649758533087375]`. Within-one changes
+`-0.00787476931165676`, interval
+`[-0.019917749064226824,0.004337713300272927]`, and is inconclusive. Top-two
+therefore buys fewer clean false alarms at the cost of materially worse exact
+first-error localization; the net macro-F1 effect is supported harm.
+
+**Length diagnostic**: Top-two short/medium/long F1 is
+`0.24322/0.31736/0.41186`, compared with
+`0.24493/0.34457/0.44825` for top-five. It nearly matches the short slice but
+falls increasingly behind on medium and long steps, consistent with useful
+evidence being distributed across several high-risk tokens. Selected steps
+average `118.24` tokens versus `123.89` for the reference. These opened
+diagnostics do not select the next reducer.
+
+**Verdict**: The primary interval is wholly below the `-0.005` practical-harm
+boundary and the worst-cell delta breaches `-0.030`. Status is `HARD_FAIL /
+REJECTED / DEVELOPMENT / HARD_FAILURE`, with an independently supported-harm
+claim. All technical and provenance gates pass, so this is a scientific
+robustness failure. Recomputing multiplicity across three contrasts leaves
+max, mean, and top-two as supported harms.
+
+`P2R_A_TOPK3` remains next and unopened. No Phase-2 snapshot, PRMBench
+transfer, C1--C8 execution, commit, or push occurred.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_2/P2R_A_TOPK2_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_2/p2r_a_topk2/`,
+`results/reasoning_localization_03662_v1/phase_2/reducer_interim/P2R_CONTRASTS.csv`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 316 [reasoning localization] — execute the Phase-2R top-three reducer
+
+**What**: Froze and executed exactly `P2R_A_TOPK3`, changing only the
+within-step tail width from five token risks to three. Token-risk construction,
+detector, eight Qwen cells, all 6,800 rows / 3,400 source groups, spans, folds,
+ten top-five thresholds, length cutpoints, and the 20,000-draw paired stream
+remain fixed. No candidate-specific rethresholding occurred.
+
+**Result**: Macro F1 is `0.33338386192086655`, marginal interval
+`[0.31516152241228323,0.3502586859228561]`. Delta from top-five is
+`-0.01184287795974337`; the Bonferroni simultaneous interval across four
+opened reducer contrasts is
+`[-0.021739354150665868,-0.002250461455371104]`. Cell W/T/L is `1/0/7`, family
+W/T/L is `0/0/4`, worst cell is GSM8K/Qwen-3 8B at
+`-0.025059218319582355`, and worst family is GSM8K at
+`-0.018637637998141332`. There are 821 exact prediction flips.
+
+**Mechanism diagnostic**: Exact-error localization declines
+`-0.01603603732295439`, interval
+`[-0.024847856774751365,-0.0074578810504534795]`, while clean abstention
+improves `+0.006893048868810148`, interval
+`[0.001701863811718038,0.012402992925695206]`. Within-one changes
+`-0.004559520637761771`, interval
+`[-0.013327265911688879,0.004172042864985972]`, and remains inconclusive.
+Top-three repeats the small-k tradeoff with less damage than top-two.
+
+**Length diagnostic**: Short/medium/long F1 is
+`0.23978/0.33697/0.43092`, compared with
+`0.24493/0.34457/0.44825` for top-five. The gap grows with true-error step
+length, consistent with evidence accumulating across several high-risk tokens.
+Selected steps average `121.06` tokens versus `123.89` for top-five.
+
+**Verdict**: The simultaneous interval is below zero but crosses the
+preregistered `-0.005` practical-harm boundary. A positive-improvement claim
+is unsupported, but supported practical harm is also not established at the
+planned level. The worst-cell hard gate passes. Status is `COMPLETE /
+NO_PROMOTION / DEVELOPMENT / INCONCLUSIVE`, not rejection. After the
+four-contrast update, max, mean, and top-two remain supported harms.
+
+`P2R_A_TOPK8` remains next and unopened. No Phase-2 snapshot, PRMBench
+transfer, C1--C8 execution, commit, or push occurred.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_2/P2R_A_TOPK3_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_2/p2r_a_topk3/`,
+`results/reasoning_localization_03662_v1/phase_2/reducer_interim/P2R_CONTRASTS.csv`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 317 [reasoning localization] — execute the Phase-2R top-eight reducer
+
+**What**: Froze and executed `P2R_A_TOPK8`, changing only the within-step tail
+width from five token risks to eight. Token scores, detector, eight Qwen cells,
+all 6,800 rows / 3,400 source groups, spans, folds, reference thresholds,
+length cutpoints, and 20,000 paired draws remain fixed. No rethresholding
+occurred.
+
+**Result**: Macro F1 is `0.3544258115519002`, marginal interval
+`[0.3361090230798102,0.37143626059360485]`. Delta from top-five is
+`+0.009199071671290304`; the Bonferroni simultaneous interval across five
+opened contrasts is `[+0.0006298228035607323,+0.018131629210238576]`. Cell
+W/T/L is `7/0/1`, family W/T/L is `3/0/1`, worst cell is Math/Qwen-3 8B at
+`-0.0030603574140507517`, and worst family is Math at
+`-0.0010530788600555396`. There are 669 prediction flips.
+
+**Mechanism diagnostic**: Exact-error improves
+`+0.013202789698382678`, interval
+`[+0.0053996581480495595,+0.02137803009481023]`. Within-one and clean
+abstention remain inconclusive at `+0.005709488048500133` and
+`-0.002705749459947504`, respectively. The gain is associated with more exact
+error locations rather than a supported change in clean behavior.
+
+**Length diagnostic**: Short/medium/long F1 is
+`0.24749/0.34906/0.46003`, versus `0.24493/0.34457/0.44825` for top-five. The
+advantage grows with true-error step length. Selected steps average `125.84`
+tokens versus `123.89` for top-five.
+
+**Verdict**: The simultaneous interval is above zero but its lower bound does
+not exceed the preregistered `+0.005` minimal practical benefit. Status is
+`COMPLETE / NO_PROMOTION / DEVELOPMENT / INCONCLUSIVE`: the directional gain
+is supported, while practical improvement is not. The candidate remains
+eligible for independent confirmation; it is not promoted from this opened
+development population.
+
+At this checkpoint `P2R_A_TOPK10` remained unopened. No snapshot, PRMBench
+transfer, C1--C8 execution, commit, or push occurred.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_2/P2R_A_TOPK8_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_2/p2r_a_topk8/`,
+`results/reasoning_localization_03662_v1/phase_2/reducer_interim/P2R_CONTRASTS.csv`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 318 [reasoning localization] — execute the Phase-2R top-ten reducer
+
+**What**: After completing the top-eight checkpoint, froze and executed
+`P2R_A_TOPK10`, changing only the within-step tail width from five token risks
+to ten. Token scores, detector, all 6,800 rows / 3,400 source groups, spans,
+folds, reference thresholds, length cutpoints, and 20,000 paired draws remain
+fixed. No rethresholding occurred.
+
+**Result**: Macro F1 is `0.3581627690347784`, marginal interval
+`[0.33988094512220596,0.3750167586992808]`. Delta from top-five is
+`+0.012936029154168471`; the Bonferroni simultaneous interval across six
+opened contrasts is `[+0.0022677722876254937,+0.02434841872258895]`. Cell
+W/T/L is `6/0/2`, family W/T/L is `3/0/1`, worst cell is Math/Qwen-3 4B at
+`-0.0017168298967323303`, and worst family is Math at
+`-0.0005954226189631429`. There are 911 prediction flips.
+
+**Mechanism diagnostic**: Exact-error improves
+`+0.01627408953265691`, interval
+`[+0.006296861210834302,+0.026509252025967427]`. Within-one and clean
+abstention remain inconclusive at `+0.008432886717600285` and
+`-0.0036403551859929273`, respectively. Exact localization again drives the
+gain without a supported clean-trace penalty.
+
+**Length diagnostic**: Short/medium/long F1 is
+`0.24426/0.35821/0.46407`, versus `0.24493/0.34457/0.44825` for top-five.
+Top-ten is flat on short steps and gains on medium and long steps. Selected
+steps average `127.11` tokens versus `123.89` for top-five.
+
+**Verdict**: The simultaneous interval is above zero but its lower bound does
+not exceed the preregistered `+0.005` minimal practical benefit. Status is
+`COMPLETE / NO_PROMOTION / DEVELOPMENT / INCONCLUSIVE`: top-ten is the current
+raw best with a supported directional gain, but practical improvement is not
+supported. It remains a fresh-confirmation candidate, not a promoted winner.
+
+`P2R_A_TOPQ25` remains next and unopened. No Phase-2 snapshot, PRMBench
+transfer, C1--C8 execution, commit, or push occurred.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_2/P2R_A_TOPK10_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_2/p2r_a_topk10/`,
+`results/reasoning_localization_03662_v1/phase_2/reducer_interim/P2R_CONTRASTS.csv`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 319 [reasoning localization] — execute the Phase-2R top-quarter reducer
+
+**What**: Froze and executed `P2R_A_TOPQ25`, averaging the largest
+`ceil(0.25 |I_s|)` token risks per step. This changes only aggregation; token
+scores, detector, all 6,800 rows / 3,400 groups, spans, folds, reference
+thresholds, length cutpoints, and 20,000 paired draws remain fixed. No
+rethresholding occurred.
+
+**Result**: Macro F1 is `0.2777731912009317`, marginal interval
+`[0.2585103116168444,0.29542584859839494]`. Delta from top-five is
+`-0.06745354867967823`; the seven-contrast simultaneous interval is
+`[-0.09007822431644956,-0.04577551185266464]`. Cell W/T/L is `0/0/8`, family
+W/T/L is `0/0/4`, worst cell is GSM8K/Qwen-3 4B at
+`-0.09295958736931953`, and worst family is GSM8K at
+`-0.08779840176697665`. There are 2,491 prediction flips.
+
+**Mechanism diagnostic**: Exact-error and within-one fall by
+`-0.07187892208940688` and `-0.04755285982675317`, with both intervals below
+zero. Clean abstention changes `+0.0037060040587443277`, interval crossing
+zero. The failure is localization dilution rather than supported clean-trace
+improvement.
+
+**Length diagnostic**: Short/medium/long F1 is
+`0.26861/0.28183/0.30004`, versus `0.24493/0.34457/0.44825` for top-five. A
+descriptive short-step gain is overwhelmed by medium/long collapse. Selected
+steps average `84.90` tokens versus `123.89`, consistent with the proportional
+tail admitting too many weak tokens in long spans and changing the argmax.
+
+**Verdict**: The simultaneous interval is wholly below the practical-harm
+bound and the worst-cell delta breaches `-0.030`. Status is `HARD_FAIL /
+REJECTED / DEVELOPMENT / HARD_FAILURE`, with supported harm. All technical and
+provenance gates pass, so this is a scientific failure.
+
+`P2R_A_TOPQ50` remains next and unopened. No Phase-2 snapshot, PRMBench
+transfer, C1--C8 execution, commit, or push occurred.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_2/P2R_A_TOPQ25_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_2/p2r_a_topq25/`,
+`results/reasoning_localization_03662_v1/phase_2/reducer_interim/P2R_CONTRASTS.csv`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 320 [reasoning localization] — execute the Phase-2R top-half reducer
+
+**What**: Froze and executed `P2R_A_TOPQ50`, averaging the largest
+`ceil(0.50 |I_s|)` token risks per step. This changes only aggregation; token
+scores, detector, all 6,800 rows / 3,400 groups, spans, folds, thresholds,
+length cutpoints, and 20,000 paired draws remain fixed. No rethresholding.
+
+**Result**: Macro F1 is `0.2711074781371915`, marginal interval
+`[0.25193681934575884,0.2888037215609885]`. Delta from top-five is
+`-0.07411926174341843`; the eight-contrast simultaneous interval is
+`[-0.09859538496309983,-0.05016154717906007]`. Cell W/T/L is `0/0/8`, family
+W/T/L is `0/0/4`, worst cell is GSM8K/Qwen-3 8B at
+`-0.10197748134215262`, and worst family is GSM8K at
+`-0.08595502954631112`. There are 2,774 flips.
+
+**Mechanism diagnostic**: Exact-error and within-one fall by
+`-0.0770579072312283` and `-0.05125547279234055`, with both intervals below
+zero. Clean abstention changes `+0.0019202361277120827`, interval crossing
+zero. This is localization dilution, not a clean-trace benefit.
+
+**Length diagnostic**: Short/medium/long F1 is
+`0.27291/0.26229/0.28800`, versus `0.24493/0.34457/0.44825` for top-five.
+Medium and long localization collapse further than under top-quarter. Selected
+steps average `81.77` tokens versus `123.89` for the reference.
+
+**Verdict**: The simultaneous interval is wholly below the practical-harm
+bound and the worst-cell delta breaches `-0.030`. Status is `HARD_FAIL /
+REJECTED / DEVELOPMENT / HARD_FAILURE`, with supported harm. Both registered
+fixed-fraction arms are now closed as negative evidence.
+
+`P2R_A_QUANTILE75` remains next and unopened. No Phase-2 snapshot, PRMBench
+transfer, C1--C8 execution, commit, or push occurred.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_2/P2R_A_TOPQ50_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_2/p2r_a_topq50/`,
+`results/reasoning_localization_03662_v1/phase_2/reducer_interim/P2R_CONTRASTS.csv`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 321 [reasoning localization] — execute the Phase-2R 0.75 quantile
+
+**What**: Froze and executed `P2R_A_QUANTILE75`, replacing top-five mean with
+the single empirical 0.75 quantile of step token risks. All upstream scores,
+detector, 6,800 rows / 3,400 groups, spans, folds, thresholds, length cutpoints,
+and 20,000 draws remain fixed. No rethresholding occurred.
+
+**Result**: Macro F1 is `0.27027639253640545`, marginal interval
+`[0.25093578455446003,0.28766160540409935]`. Delta is
+`-0.07495034734420447`; the nine-contrast simultaneous interval is
+`[-0.10125692313621162,-0.05012743474485039]`. Cell W/T/L is `0/0/8`, family
+W/T/L is `0/0/4`, worst cell is GSM8K/Qwen-3 4B at
+`-0.10491563750863309`, and worst family is GSM8K at
+`-0.10344655942539285`. There are 2,973 flips.
+
+**Mechanism/length diagnostic**: Exact-error and within-one fall
+`-0.07870161358370925` and `-0.05278938555676693`, with intervals below zero;
+clean abstention is inconclusive. Short/medium/long F1 is
+`0.27654/0.25830/0.28096`, versus `0.24493/0.34457/0.44825`. A single interior
+quantile raises only the short slice descriptively and does not aggregate the
+upper-tail evidence needed for medium/long localization.
+
+**Verdict**: `HARD_FAIL / REJECTED / DEVELOPMENT / HARD_FAILURE`, with
+supported harm and a worst-cell breach. All technical gates pass.
+
+At this checkpoint `P2R_A_QUANTILE90` remained unopened. No snapshot,
+PRMBench transfer, C1--C8 execution, commit, or push occurred.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_2/P2R_A_QUANTILE75_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_2/p2r_a_quantile75/`,
+`results/reasoning_localization_03662_v1/phase_2/reducer_interim/P2R_CONTRASTS.csv`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 322 [reasoning localization] — execute the Phase-2R 0.90 quantile
+
+**What**: After integrating 0.75, froze and executed `P2R_A_QUANTILE90`,
+replacing top-five mean with the single empirical 0.90 quantile. All upstream
+scores, detector, 6,800 rows / 3,400 groups, spans, folds, thresholds, length
+cutpoints, and 20,000 draws remain fixed. No rethresholding occurred.
+
+**Result**: Macro F1 is `0.2759396801681213`, marginal interval
+`[0.25736058961003183,0.29305102694647384]`. Delta is
+`-0.06928705971248861`; the ten-contrast simultaneous interval is
+`[-0.09216456414588237,-0.04777617901623373]`. Cell W/T/L is `0/0/8`, family
+W/T/L is `0/0/4`, worst cell is Math/Qwen-3 8B at
+`-0.09236129048604769`, and worst family is Math at
+`-0.08937895201763082`. There are 2,592 flips.
+
+**Mechanism/length diagnostic**: Exact-error and within-one fall
+`-0.0723397035761372` and `-0.04801650657731693`, with intervals below zero;
+clean abstention is inconclusive. Short/medium/long F1 is
+`0.27244/0.27838/0.29552`, versus `0.24493/0.34457/0.44825`. Quantile 0.90
+recovers some performance relative to 0.75 but still fails because one upper
+quantile does not aggregate the multi-token tail evidence.
+
+**Verdict**: `HARD_FAIL / REJECTED / DEVELOPMENT / HARD_FAILURE`, with
+supported harm and a worst-cell breach. Both single-quantile controls are now
+closed as negative evidence.
+
+`P2R_A_MEDIAN` remains next and unopened. No Phase-2 snapshot, PRMBench
+transfer, C1--C8 execution, commit, or push occurred.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_2/P2R_A_QUANTILE90_EXECUTION_REGISTRY.json`,
+`results/reasoning_localization_03662_v1/phase_2/p2r_a_quantile90/`,
+`results/reasoning_localization_03662_v1/phase_2/reducer_interim/P2R_CONTRASTS.csv`,
+and `results/reasoning_localization_03662_v1/REPORT.html`.
+
+---
+
+### Step 323 [reasoning localization] — execute the Phase-2R median control
+
+**What**: Froze and executed the last originally preregistered Stage-A row,
+`P2R_A_MEDIAN`. It changes only within-step aggregation; token scores,
+detector, 6,800 rows / 3,400 groups, spans, folds, ten top-five thresholds,
+length cutpoints, and 20,000 paired draws remain fixed.
+
+**Result**: Macro F1 is `0.26898093491578023`, marginal interval
+`[0.25002349332047513,0.28651028486264585]`. Delta versus top-five is
+`-0.07624580496482969`; the closed eleven-contrast simultaneous interval is
+`[-0.1038968516280433,-0.04856378253714272]`. Cell W/T/L is `0/0/8`, family
+W/T/L is `0/0/4`, worst cell is GSM8K/Qwen-3 8B at
+`-0.12185761302296211`, and worst family is GSM8K at
+`-0.08874923642377605`. There are 3,226 flips.
+
+**Verdict**: `HARD_FAIL / REJECTED / DEVELOPMENT / HARD_FAILURE`. A full-step
+central statistic dilutes the sparse upper-tail evidence.
+
+### Step 324 [reasoning localization] — register the post-hoc upper-tail means
+
+**What**: After the original Stage-A family closed, registered two bounded
+user-requested diagnostics: `P2R_A_TOPQ10_EXPLORATORY` averages the largest
+`max(1,ceil(0.10 n))` token risks, and `P2R_A_TOPQ05_EXPLORATORY` averages the
+largest `max(1,ceil(0.05 n))`. These differ from the failed q90/q75 arms,
+which return one interpolated order statistic rather than an upper-tail mean.
+
+**Inference boundary**: Both additions are post-hoc after ProcessBench
+outcomes opened. They form a separate descriptive two-contrast Bonferroni
+family, cannot promote on this population, and require fresh confirmation.
+No run had opened at the registration checkpoint.
+
+No snapshot, transfer, commit, or push occurred.
+
+---
+
+### Step 325 [reasoning localization] — execute top-10%-mean exploratory
+
+**What**: Froze and ran `P2R_A_TOPQ10_EXPLORATORY`, the mean of the largest
+`max(1,ceil(0.10 n))` token risks. The top-five thresholds and all upstream
+scores, rows, folds, spans, and bootstrap groups stayed fixed.
+
+**Result**: Macro F1 is `0.2755016413673608`; delta versus top-five is
+`-0.06972509851324915`, interval
+`[-0.0845742047637569,-0.055774484288490314]`. Cell W/T/L is `0/0/8`, family
+W/T/L `0/0/4`, worst cell delta `-0.09207400382778269`, and there are 2,051
+flips. Exact-error falls `-0.07577709277209377`; clean abstention rises
+`+0.011813875130009865`.
+
+**Mechanism**: Short/medium/long F1 is `0.24557/0.28712/0.31298`, versus
+`0.24493/0.34457/0.44825` for top-five. Length-proportional tail cardinality
+nearly preserves short steps but dilutes medium/long evidence.
+
+**Verdict**: `HARD_FAIL / NO_PROMOTION / DEVELOPMENT / DESCRIPTIVE`. The arm
+is post-hoc and confirmation-ineligible on this population regardless of its
+observed loss. No snapshot, transfer, commit, or push.
+
+---
+
+### Step 326 [reasoning localization] — execute top-5%-mean and close Stage A
+
+**What**: Froze and ran `P2R_A_TOPQ05_EXPLORATORY`, averaging the largest
+`max(1,ceil(0.05 n))` token risks. Effective tail cardinality across all
+scorer-step records is median 4, mean 4.74, IQR 3--6.
+
+**Result**: Macro F1 is `0.2739996862119836`; delta versus top-five is
+`-0.0712270536686263`, with separate two-arm descriptive Bonferroni interval
+`[-0.08814277154091034,-0.05540668829243298]`. Cell/family W/T/L is `0/0/8`
+and `0/0/4`; worst cell delta is `-0.0878825819163705`. Exact-error and
+within-one fall `-0.0775673013101481` and `-0.04785848796899245`; clean
+abstention rises `+0.011956791634416208`. Short/medium/long F1 is
+`0.24250/0.26911/0.31972`.
+
+**Stage-A conclusion**: Fixed top-ten remains raw best at F1
+`0.3581627690347784`, delta `+0.012936029154168471`, closed eleven-contrast CI
+`[+0.0014438677363772625,+0.02522463975302794]`. It passes every gate except
+the practical-benefit CI lower-bound requirement (`> +0.005`). It is eligible
+only as a selection-opened development parent, with top-five retained as the
+confirmatory reference and fresh confirmation required.
+
+No snapshot, transfer, commit, or push occurred.
+
+---
+
+### Step 327 [reasoning localization] — execute atomic C1 entropy + SWVar16
+
+**What**: After Phase-2R Stage A selected top-ten as the development parent,
+registered an explicit atomic top-ten calibration reference and froze C1
+before opening labels. C1 adds one causal channel: population variance over
+the available trailing 16 entropy-risk tokens, reset at every response. Both
+entropy and SWVar use top-ten step reduction; their within-cell empirical
+midranks are averaged, then combined with the unchanged response detector.
+Each arm receives its own grouped five-fold threshold after score freeze.
+
+**Result**: C1 F1 is `0.3465740275549045`. Versus atomic top-ten
+(`0.3572009873016382`), paired delta is `-0.010626959746733666`, simultaneous
+interval `[-0.02169207425332418,+0.0006160538626303111]`, cell W/T/L `1/0/7`,
+and worst cell GSM8K/Qwen-3 4B at `-0.0312492627344505`. Versus top-five,
+delta is `+0.001347287674294595`, interval
+`[-0.009004425943849636,+0.011687537978165049]`, W/T/L `5/0/3`.
+
+**Mechanism**: Against top-ten, exact-error changes
+`-0.008948398896106546`, but clean abstention changes
+`-0.016826993656108846` with interval
+`[-0.025578440797116096,-0.008486695608571931]`. C1 changed 1,128 of 6,800
+predictions: 198 gains, 264 losses, and 666 lateral flips. Descriptive
+short/medium/long F1 is `0.25197/0.33760/0.44937`; this does not rescue the
+cross-cell robustness failure.
+
+**Validity and verdict**: Top-ten local alias error, combined-score alias
+error, and suffix-invariance error are all exactly zero. The average top-ten
+CI crosses zero and is not labeled supported harm. The `HARD_FAIL` comes only
+from the preregistered worst-cell bound: `-0.031249 < -0.030`. Verdict is
+`HARD_FAIL / REJECTED / DEVELOPMENT / HARD_FAILURE`; C1 cannot open the
+Phase-2R-B SWVar transform template. C2 and later atoms remain unopened.
+Living report SHA after integration:
+`5cc69a419a5d8150d2324ce3fc3054f074b988fa8a2231c7a4b53345d01d3820`.
+No snapshot, PRMBench transfer, commit, or push.
+
+---
+
+### Step 328 [reasoning localization] — execute adaptive SWVar C2
+
+**What**: Ran the preregistered C2 sensitivity arm after C1. C2 replaces only
+the fixed 16-token variance window with a prefix-causal adaptive window:
+`clip(floor(0.10 * observed_prefix_length),3,32)`. Response reset, population
+variance, top-ten channel reducers, equal empirical-rank fusion, response
+detector, score-first label firewall, and per-arm grouped five-fold threshold
+contract remain unchanged.
+
+**Result**: C2 F1 is `0.3362936976995669`. Versus atomic top-ten, delta is
+`-0.020907289602071277`, four-contrast simultaneous interval
+`[-0.0354606780712074,-0.006430318889436698]`, cell W/T/L `0/0/8`, family
+W/T/L `0/0/4`, and worst cell GSM8K/Qwen-3 4B at
+`-0.053385448454684015`. Versus top-five, delta is
+`-0.008933042181043016`, interval
+`[-0.02328641556968838,+0.00525124157735012]`, W/T/L `2/0/6`, and worst cell
+`-0.033950950597556206`.
+
+**Mechanism**: Relative to top-ten, exact first-error accuracy falls
+`-0.021620298115891057` with interval
+`[-0.034904442850114785,-0.008496693799361476]`; clean abstention falls
+`-0.015260016652750119` with interval
+`[-0.02432856787436479,-0.00631449420353928]`. Of 6,800 predictions, 1,411
+change: 251 gains, 354 losses, and 806 lateral flips. Short/medium/long F1 is
+`0.23483/0.32632/0.44800`.
+
+**Verdict**: Exact top-ten score alias and suffix invariance are zero-error.
+The top-ten interval lies below the practical-harm bound and all eight cells
+lose; the worst cell also breaches the hard bound. Status is therefore
+`HARD_FAIL / REJECTED / DEVELOPMENT / HARD_FAILURE`. Expanding from the two
+C1 contrasts to the complete four-contrast family changes C1's top-ten
+interval to `[-0.022748864517279793,+0.0016971852329821873]` and its top-five
+interval to `[-0.010068555046340905,+0.013024726456716679]`, without changing
+its verdict.
+
+The SWVar family is closed. C3 is not executed because its exact parent is the
+hard-failed C1 entropy+SWVar16 block; it is recorded `NOT_RUN_BY_GATE` rather
+than assigned a score. C4 sampled-token surprisal is the next independent
+planned atom. Living report SHA:
+`3a7881c54fac7a16243ddd26cbaaa367b04f5c1da7343710999824193957f543`.
+No snapshot, PRMBench transfer, commit, or push.
+
+---
+
+### Step 329 [reasoning localization] — complete C3--C8 and close the atomic family
+
+**What**: The user explicitly requested all remaining registered atomic runs.
+Before opening C3 results, froze exact C3--C8 contracts and one shared runner.
+C3 was allowed only as a diagnostic amendment after C1's parent failure; C7
+remained an exploratory standardized EDIS adaptation; C8 remained diagnostic.
+C6's exact DSP12 grammar was fixed in advance, and its promotion eligibility
+was frozen false after neither C4 nor C5 passed its atomic-parent premise.
+
+Every arm uses the same eight Qwen ProcessBench cells, 6,800 scorer rows / 3,400
+source-question groups, step spans, top-ten channel reducer, response detector,
+grouped five-fold per-arm threshold, and 20,000 paired bootstrap draws. The
+closed primary family contains sixteen contrasts: C1--C8 versus both atomic
+top-ten and retained top-five.
+
+**Results versus atomic top-ten**:
+
+| arm | F1 | delta | simultaneous CI | cell W/T/L | worst cell |
+|---|---:|---:|---:|---:|---:|
+| C1 | 0.346574 | -0.010627 | [-0.025113,+0.004229] | 1/0/7 | -0.031249 |
+| C2 | 0.336294 | -0.020907 | [-0.038585,-0.003823] | 0/0/8 | -0.053385 |
+| C3 | 0.325014 | -0.032187 | [-0.052254,-0.012884] | 0/0/8 | -0.054243 |
+| C4 | 0.353944 | -0.003257 | [-0.029578,+0.022973] | 3/0/5 | -0.025389 |
+| C5 | 0.349919 | -0.007282 | [-0.022162,+0.007121] | 2/0/6 | -0.019773 |
+| C6 | 0.310139 | -0.047062 | [-0.073376,-0.021141] | 0/0/8 | -0.081659 |
+| C7 | 0.359679 | +0.002478 | [-0.011582,+0.016926] | 5/0/3 | -0.019566 |
+| C8 | 0.358897 | +0.001696 | [-0.009378,+0.012747] | 5/0/3 | -0.007686 |
+
+**Interpretation**: C3 and C6 support material harm and also breach the hard
+worst-cell bound. C1 and C2 retain hard robustness failures after the larger
+multiplicity family; neither should be described as a generic CI rejection.
+C4 and C5 are inconclusive and do not establish independent complementarity.
+C7 is the raw best and gains `+0.014452` versus top-five with 7/8 cell wins,
+but its interval `[-0.001538,+0.030819]` crosses zero. C8 gains `+0.013671`
+versus top-five with interval `[+0.001197,+0.026416]`, which is positive versus
+zero but does not clear the registered `+0.005` practical-benefit lower bound.
+Against the matched IU29/top-ten parent, C8 gains `+0.008661` with diagnostic
+interval `[-0.000562,+0.017948]`. C7 and C8 are therefore
+`PROMISING_UNCONFIRMED`, not promoted.
+
+**Validity and decision**: All top-ten aliases and causal prefix replays pass.
+C8's original-only IU29 step-max reconstruction differs from frozen R3 by at
+most `2.22e-16`. C7 is explicitly not paper-exact EDIS because the sealed
+artifact contains standardized affine entropy rather than raw nats. No arm
+passes the full promotion hierarchy; PRMBench stays unopened and no task
+metrics are averaged. Phase-2R-B has no eligible transform and `P2_ATOMIC`
+closes `NO_ATOMIC_PROMOTION`.
+
+Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_2/atomic/`,
+`results/reasoning_localization_03662_v1/phase_2/atomic/P2A_CONTRASTS.csv`,
+`results/reasoning_localization_03662_v1/phase_2/atomic/P2A_GATES.csv`, and
+`results/reasoning_localization_03662_v1/REPORT.html` (SHA256
+`8fbe870dd964b4bd48f6bb10555a15b9b38285594f66b3e26748c9170dc1d054`).
+Eighty-six focused tests pass; two report rebuilds are byte-identical and
+`git diff --check` passes. No commit or push.
 
 ---

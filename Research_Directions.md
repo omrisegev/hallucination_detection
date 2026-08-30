@@ -43,6 +43,18 @@ Phase 0 remains the next research action: discuss and freeze its executable
 bridge, then run and review one state at a time. The live report and immutable
 snapshot contract must be updated before any later variant proceeds.
 
+Step 330 closes the bounded C7/C8 scorer-family transfer without promotion.
+Both exact candidates remain stronger than top-five and family6 on the four
+Llama cells, but both are slightly below the stronger entropy/top-ten reference
+with simultaneous intervals spanning practical gain and harm. Their decision
+errors are partially distinct from family6, while their step-score ranks remain
+highly correlated (`0.963--0.983`). Therefore a family6 fusion remains a
+plausible new hypothesis, not an eligible continuation on the opened labels.
+The next admissible action is either an independently registered fresh
+population for C7/C8 confirmation or a separately preregistered calibration-
+only fusion evaluated on untouched questions; no oracle/router selection from
+the current Llama panel is allowed.
+
 ## Active priority — consolidated research program (Step 281)
 
 The canonical cross-front assessment is
@@ -2437,3 +2449,19 @@ were superseded by Steps 226--235.
 ## Thesis Narrative Thread
 
 > *The per-token entropy trajectory H(n) is a signal, not a scalar. Collapsing it to its mean (EPR) discards temporal structure that predicts hallucination. Spectral features of H(n) recover that structure. L-SML fuses those features without labels, in a single forward pass. This gives a detector that is cheap (K=1), interpretable (spectral signal processing on an information-theoretic signal), and formally calibratable (the L-SML score is a continuous input to LTT). The thesis validates this on math reasoning, extends it to RAG and QA, and closes with a conformal chapter that turns the AUROC result into a deployment-ready detector with a formal false-negative-rate guarantee.*
+# Reasoning-localization STG feature/temporal graph transfer (planned, 2026-08-30)
+
+The corrected `STG_SU_STABLE` side-worktree result establishes a narrow
+mechanism premise: fold-stable stochastic-gate support can recover canonical
+SU-PCR to near IU/DUFS-LIU parity on final-answer detection, but its small
+gains over IU and cardinality-matched random support were not statistically
+supported. It does not establish localization value.
+
+After the Phase-2C compact roster freezes, a bounded Phase-3 branch may test
+(1) fold-stable sparse support/Laplacian among surviving feature/family blocks
+and (2) a donor-only masked graph over tokens/bins/steps before a separately
+frozen reducer. Required controls are exact zero-strength alias,
+cardinality-matched random support/graph, time permutation and feature
+permutation. Whole questions remain fold/bootstrap units; early variants must
+be prefix-only and suffix-invariant. See
+`docs/experiments/REASONING_LOCALIZATION_03662_STG_GRAPH_TRANSFER_V1.md`.

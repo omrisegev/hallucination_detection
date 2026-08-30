@@ -191,6 +191,32 @@
       "assumptions": ["Answer-level calibration can improve local evidence after reliability gating."],
       "limitations": ["It helped PRMBench slightly while hurting ProcessBench, so it is context only here."],
       "references": ["results/ciw_cross_scale_localization_v1/REPORT.md:1-21"]
+    },
+    {
+      "method_id": "trajectory_tensor",
+      "display_name": "Two-axis trajectory-feature encoder",
+      "problem": "Test whether temporal transformation before feature fusion preserves local onset evidence that is lost by response-first or feature-first averaging.",
+      "plain_summary": "Uses a survivor-gated response-by-time-by-feature object, one frozen within-trace temporal encoder, and one donor-only structured projection before the already frozen step reducer.",
+      "input_operation_output": "primitive token streams -> within-trace DSP/temporal encoder -> donor-only feature x time projection -> token-risk curve -> frozen reducer -> separate ProcessBench and PRMBench evaluators",
+      "novelty": "Orders temporal encoding before feature fusion and exposes a compact two-axis low-rank scorer with an exact zero-strength parent alias, rather than adding more scalar features.",
+      "assumptions": [
+        "A Phase-2-surviving temporal premise retains information that feature-first averaging suppresses.",
+        "Donor responses contain stable feature-by-time structure that transfers by projection to held responses.",
+        "The useful component is additive and does not require hard nuisance-factor deflation."
+      ],
+      "limitations": [
+        "Design proposal only; the motivating CIW result is a retrospective task conflict, not evidence that operation order helps.",
+        "Cannot run before Phase 2 freezes atomic survivors and the reducer parent.",
+        "Full-trace transforms and total-answer-relative coordinates are ineligible for early detection."
+      ],
+      "references": [
+        "docs/experiments/CIW_CROSS_SCALE_LOCALIZATION_V1.md:34-64",
+        "results/ciw_cross_scale_localization_v1/REPORT.md:5-18",
+        "PROGRESS.md:435-455",
+        "HISTORY.md:11918-11939",
+        "results/coupled_moment_kfactor_24cell_v1/INDEPENDENT_REVIEW.md:44-70",
+        "docs/experiments/REASONING_LOCALIZATION_03662_ANCHOR_V1.md#registered-survivor-only-trajectory-feature-tensor-branch"
+      ]
     }
   ]
 }

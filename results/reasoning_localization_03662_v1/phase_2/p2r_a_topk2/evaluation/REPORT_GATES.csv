@@ -1,0 +1,15 @@
+gate_id,observed,threshold,direction,passed,status,evidence_status,notes
+P2R_SCORE_FREEZE_COMPLETE,8,8 cells,contract,true,COMPLETE,DEVELOPMENT,all registered candidate scores were frozen before labels opened; raw gate status=PASS
+P2R_LABEL_FIREWALL,labels opened after score-freeze manifest,no fit-side labels or targets,contract,true,COMPLETE,DEVELOPMENT,the reducer and score combination are label-free; raw gate status=PASS
+P2R_REFERENCE_THRESHOLD_HASH,5166229e5ad8f812b2b7ee57449cd945612cb986c2ffcdbad98ea00653a72be3,5166229e5ad8f812b2b7ee57449cd945612cb986c2ffcdbad98ea00653a72be3,contract,true,COMPLETE,DEVELOPMENT,candidate uses the immutable top-five threshold artifact; raw gate status=PASS
+P2R_NO_CANDIDATE_RETHRESHOLD,0 threshold fits,0,contract,true,COMPLETE,DEVELOPMENT,all 6800 decisions apply the ten frozen reference thresholds; raw gate status=PASS
+P2R_FOLD_ALIAS,0,0,contract,true,COMPLETE,DEVELOPMENT,source-group fold assignments match the reference; raw gate status=PASS
+P2R_POPULATION_COMPLETE,6800,6800 rows,contract,true,COMPLETE,DEVELOPMENT,same eight Qwen cells and rows as the reference; raw gate status=PASS
+P2R_BOOTSTRAP_ALIGNMENT,20000,20000,contract,true,COMPLETE,DEVELOPMENT,paired samples reuse the frozen seed and source-question groups; raw gate status=PASS
+P2R_WORST_CELL_HARD_BOUND,-0.062465615815852915,>= -0.03,contract,false,COMPLETE,DEVELOPMENT,worst cell is processbench_gsm8k_qwen3_8b; raw gate status=HARD_FAIL
+P2R_POINT_BENEFIT,-0.024574680973367513,>= 0.005,ge,false,COMPLETE,DEVELOPMENT,candidate macro-F1 point delta versus top-five
+P2R_SIMULTANEOUS_CI_BENEFIT,-0.0404415211616117,> 0.005,gt,false,COMPLETE,DEVELOPMENT,multiplicity-aware lower bound
+P2R_NONNEGATIVE_CELLS,0/0,>= 6/8 nonnegative,ge,false,COMPLETE,DEVELOPMENT,cell W/T/L excludes no registered cell
+P2R_WORST_CELL_PROMOTION,-0.062465615815852915,>= -0.020,ge,false,COMPLETE,DEVELOPMENT,worst cell processbench_gsm8k_qwen3_8b
+P2R_EXACT_ERROR_COMPONENT,-0.031913723833081886,>= -0.010,ge,false,COMPLETE,DEVELOPMENT,paired exact-error point delta
+P2R_CLEAN_ABSTENTION_COMPONENT,0.007619551589805429,>= -0.010,ge,true,COMPLETE,DEVELOPMENT,paired clean-abstention point delta

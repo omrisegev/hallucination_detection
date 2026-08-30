@@ -1,0 +1,133 @@
+{
+  "schema": "reasoning_localization_p0_s3b_execution_registry_v1",
+  "state_id": "P0_S3B_IU29_REPRESENTATION_BRIDGE",
+  "status": "FROZEN_BEFORE_RUN",
+  "purpose": "Second representation-only retrospective bridge from P0-S3A. Keep the exact historical rows, 40/20 roles, purely-local detector construction, step-max reducer, threshold objective, access tier and grouped bootstrap while replacing only raw token entropy with the calibration-only LOCAL_IU29 token-risk curve. The split and population bridges remain unopened.",
+  "source_commit": "e2123168ddd0a0c07ebee7e904c94a4610615eed",
+  "runner": "scripts/reasoning_localization/run_phase0_iu29_representation_bridge.py",
+  "runner_sha256": "df0ca018aeb0134a861b350175edadf7ce9248c3b94a9b035449857a88ae6cc5",
+  "variant_id": "P0_S3B_IU29_STEP_MAX_LOCAL_DETECTOR",
+  "parent_variant_id": "P0_S3A_RAW_ENTROPY_STEP_MAX_LOCAL_DETECTOR",
+  "single_changed_factor": {
+    "factor": "local_risk_representation",
+    "from": "raw token entropy",
+    "to": "calibration-only LOCAL_IU29 token risk"
+  },
+  "fixed_factors": {
+    "models": ["qwen3_8b", "llama31_8b"],
+    "families": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "population": "historical_stage4_eight_cell_audit",
+    "calibration_role": "historical deterministic 40 percent per family",
+    "evaluation_role": "historical deterministic 20 percent audit per family",
+    "answer_detector_construction": "maximum of the same token-risk curve used by the locator",
+    "step_reducer": "step_max_token_argmax",
+    "threshold_objective": "historical calibration-role ProcessBench macro F1 within each scorer cell",
+    "threshold_tie_break": "first maximum in stable descending risk sweep",
+    "scorer_copy_grouping": "same source-question draw carries both scorer copies",
+    "access_tier": "A",
+    "supervision": "representation and fusion fit are label-free on calibration rows; labels enter only the unchanged historical threshold and metrics"
+  },
+  "iu29_contract": {
+    "raw_stream_count": 29,
+    "raw_stream_order": "SHARED_TOKEN_VIEWS",
+    "token_transform": "shared-token-mixed-v2-applications-v1-2026-08-13",
+    "fusion": "LOCAL_IU29 two-component iu_pcr",
+    "components": 2,
+    "scale_ratio": 0.25,
+    "fit_rows": "historical calibration role only",
+    "fit_token_cap": 60000,
+    "orientation": "label-free equal-mean confidence anchor",
+    "answer_detector": "max_t fitted token risk",
+    "step_locator": "token-risk argmax mapped to known step span",
+    "labels_seen_during_representation_fit": false
+  },
+  "bootstrap_draws": 20000,
+  "bootstrap_seed": 2026082901,
+  "bootstrap_contract": "Paired source-question bootstrap. A family-unit draw carries both scorer copies and both S3A/S3B predictions; family estimates are averaged before the four-family macro contrast.",
+  "s3a_execution_registry": {
+    "path": "results/reasoning_localization_03662_v1/phase_0/P0_S3A_EXECUTION_REGISTRY.json",
+    "sha256": "b6d6775a0c09122279b15353d338137dafa75956e869796c5f5cf478d1f95e00"
+  },
+  "s3a_artifacts": [
+    {
+      "role": "per_question",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s3a_raw_entropy_representation_bridge/P0_S3A_LOCAL_PER_QUESTION.csv",
+      "sha256": "21564eaff2ea9676f2b1e9fdea58d1b5012949bf6b7058234281e934d4bf4388"
+    },
+    {
+      "role": "cell_metrics",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s3a_raw_entropy_representation_bridge/P0_S3A_LOCAL_CELL_METRICS.csv",
+      "sha256": "c4354f7bbbbf25cd36584ef39a12515d84009d7e58f68440c5f6c1680c83b759"
+    },
+    {
+      "role": "population",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s3a_raw_entropy_representation_bridge/P0_S3A_POPULATION.json",
+      "sha256": "feea6ff7dcc6734acbaaffae3bdb5b3006f68ea0e94b6b416112eabe98c47d16"
+    },
+    {
+      "role": "verification",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s3a_raw_entropy_representation_bridge/P0_S3A_VERIFICATION.json",
+      "sha256": "84b016e41c5d1b3a8f6d52d6f370cfe2ad05bdd8694847d7b7c0923870005363"
+    },
+    {
+      "role": "run_manifest",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s3a_raw_entropy_representation_bridge/RUN_MANIFEST.json",
+      "sha256": "c0880160f032a0f384ce3d5b54d252558d1681ddd83dfd36f1ad6127c5c79e96"
+    }
+  ],
+  "code_dependencies": [
+    {
+      "path": "scripts/reasoning_localization/run_phase0_raw_entropy_representation_bridge.py",
+      "sha256": "fc741d3389e1eff7d3202c4cd7b765afa5b2b3bc70d48642dfa8804c026c53c1"
+    },
+    {
+      "path": "spectral_utils/fixed_application_pipelines.py",
+      "sha256": "0d2c6dae58530654f3d4ee18d4c5fa278ef41a61634c3e11caf1c86ca8816203"
+    },
+    {
+      "path": "spectral_utils/token_local_fusion.py",
+      "sha256": "f582360f11e0ca2266f47654fd013162fab19bb612fc9752a8a2f0b4b189206a"
+    },
+    {
+      "path": "spectral_utils/repeated_measurement_reliability.py",
+      "sha256": "9e4b975e0f890e06f7194e1bd81012253329093acdb664756fa60cdab4de0868"
+    },
+    {
+      "path": "spectral_utils/token_feature_views.py",
+      "sha256": "3e86166ef75cd222ffbeedfa394b829739e05e4efd56b80eb6fe8f237b0752e7"
+    },
+    {
+      "path": "spectral_utils/upcr.py",
+      "sha256": "587d4b4699e8cd49d28315f70ffdabb4eb7ef9fd48e4df5436e121a71536c071"
+    }
+  ],
+  "expected_population": {
+    "n_cells": 8,
+    "n_scorer_rows": 1270,
+    "n_source_question_groups": 635,
+    "source_question_group_sha256": "d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05"
+  },
+  "expected_parent": {
+    "macro_f1": 0.3110940034934562,
+    "reconstruction_tolerance": 1e-12
+  },
+  "hard_fail_conditions": [
+    "any registered S3A source, artifact, dependency, runner or registry hash differs",
+    "any S3A unit, target, locator, prediction, score, threshold or metric fails reconstruction within 1e-12",
+    "the 1270-row, 635-source-question population or its grouping hash changes",
+    "any factor besides the local-risk representation changes",
+    "the IU29 transform or fusion reads any audit row during fitting",
+    "a label enters representation construction, orientation or fusion fitting",
+    "any input matrix differs from the frozen 29-stream SHARED_TOKEN_VIEWS order",
+    "the fitted token-risk curve is not used identically by the max detector and step-max locator",
+    "the split or population bridge is opened in the same run"
+  ],
+  "mutation_boundary": {
+    "new_model_inference": false,
+    "gpu": false,
+    "source_mutation": false,
+    "method_fit": "label-free mixed-v2 and LOCAL_IU29 fit on historical calibration rows only; historical labels remain confined to threshold selection and metrics",
+    "allowed_write_root": "results/reasoning_localization_03662_v1/phase_0/p0_s3b_iu29_representation_bridge"
+  },
+  "promotion": "AUDIT_ONLY_NO_PROMOTION"
+}

@@ -37,6 +37,7 @@ REGISTRY_FILES = (
 EXPECTED_NEW_VARIANTS = (
     "R0_ENTROPY_MAX",
     "R1_ENTROPY_TOP5",
+    "R2_FAMILY6_TOP5_CURRENT",
     "R2_HISTORICAL_FAMILY6_BRIDGE",
     "R3_IU29",
     "R4_MIND_GAP",
@@ -48,6 +49,10 @@ EXPECTED_NEW_VARIANTS = (
     "C6_DSP12",
     "C7_EDIS_ONSET",
     "C8_SELF_INNOV",
+    "P3T_T0_FROZEN_PARENT",
+    "P3T_T1_DSP_FIRST",
+    "P3T_T2_CAUSAL_TEMPORAL",
+    "P3T_T3_TWO_AXIS_LOWRANK",
 )
 TASK_LABELS = {
     "processbench_first_error": "ProcessBench",
@@ -227,11 +232,12 @@ def validate_bundle(bundle: Mapping[str, Any], report_dir: Path, repo_root: Path
     allowed_execution = set(variant_registry.get("allowed_execution_statuses", []))
     allowed_decisions = set(variant_registry.get("allowed_decision_statuses", []))
     allowed_evidence = set(variant_registry.get("allowed_evidence_statuses", []))
+    allowed_statistics = set(variant_registry.get("allowed_statistical_statuses", []))
     required_variant_fields = {
         "variant_id", "display_name", "method_id", "phase", "role", "parent_variant_ids",
         "signals", "transforms", "detector", "step_reducer", "fusion", "novelty",
         "access_tier", "supervision", "causal_validity", "prior_evidence", "limitations",
-        "failure_hypothesis", "execution_status", "decision_status", "evidence_status",
+        "failure_hypothesis", "execution_status", "decision_status", "evidence_status", "statistical_status",
         "rankable", "display_order",
     }
     variant_map = {row.get("variant_id"): row for row in variants}
@@ -242,6 +248,7 @@ def validate_bundle(bundle: Mapping[str, Any], report_dir: Path, repo_root: Path
         require(row.get("execution_status") in allowed_execution, f"variant {vid} has invalid execution status")
         require(row.get("decision_status") in allowed_decisions, f"variant {vid} has invalid decision status")
         require(row.get("evidence_status") in allowed_evidence, f"variant {vid} has invalid evidence status")
+        require(row.get("statistical_status") in allowed_statistics, f"variant {vid} has invalid statistical status")
         require(isinstance(row.get("rankable"), bool), f"variant {vid} rankable must be boolean")
         for parent in row.get("parent_variant_ids", []):
             require(parent in variant_map, f"variant {vid} has unknown parent {parent}")
@@ -403,6 +410,13 @@ def validate_bundle(bundle: Mapping[str, Any], report_dir: Path, repo_root: Path
     allowed_verdicts = set(claims_registry.get("allowed_verdicts", []))
     for claim in claims_registry.get("claims", []):
         require(claim.get("verdict") in allowed_verdicts, f"claim {claim.get('claim_id')} has invalid verdict")
+        summary = claim.get("statistical_summary")
+        if summary is not None:
+            required_summary = {"metric", "point_delta", "ci_low", "ci_high", "benefit_bound", "harm_bound", "bound_basis", "multiplicity"}
+            require(required_summary <= set(summary), f"claim {claim.get('claim_id')} has incomplete statistical summary")
+            if required_summary <= set(summary):
+                require(summary["ci_low"] <= summary["point_delta"] <= summary["ci_high"], f"claim {claim.get('claim_id')} point delta lies outside interval")
+                require(summary["harm_bound"] <= summary["benefit_bound"], f"claim {claim.get('claim_id')} has inverted practical bounds")
         for reference in claim.get("evidence_refs", []):
             if reference in CLAIM_REF_IDS:
                 continue
@@ -781,6 +795,63 @@ def _lineage_svg(plot: Mapping[str, Any], variants: Sequence[Mapping[str, Any]])
     return "".join(parts)
 
 
+def _pipeline_svg(plot: Mapping[str, Any]) -> str:
+    """Render a small design-contract flow without inventing result values."""
+
+    selection = plot.get("selection", {})
+    nodes = selection.get("nodes", [])
+    transfer = selection.get("transfer_node", "")
+    transfer_from = int(selection.get("transfer_from", max(0, len(nodes) - 2)))
+    if not isinstance(nodes, list) or len(nodes) < 2 or not all(isinstance(x, str) and x for x in nodes):
+        raise ReportingValidationError(f"{plot['plot_id']}: pipeline nodes are malformed")
+    if transfer and not (0 <= transfer_from < len(nodes)):
+        raise ReportingValidationError(f"{plot['plot_id']}: pipeline transfer index is invalid")
+    width, height = 1420, 360
+    margin, gap = 36, 22
+    box_width = (width - 2 * margin - gap * (len(nodes) - 1)) / len(nodes)
+    box_height, y = 92, 76
+    parts = _svg_start(plot, width, height)
+    for index, label in enumerate(nodes):
+        x = margin + index * (box_width + gap)
+        if index:
+            previous_right = x - gap
+            parts.append(
+                f'<line x1="{previous_right:.2f}" y1="{y+box_height/2:.2f}" '
+                f'x2="{x-6:.2f}" y2="{y+box_height/2:.2f}" class="pipeline-arrow"/>'
+                f'<path d="M {x-13:.2f} {y+box_height/2-6:.2f} L {x-6:.2f} {y+box_height/2:.2f} '
+                f'L {x-13:.2f} {y+box_height/2+6:.2f}" class="pipeline-head"/>'
+            )
+        words = label.split()
+        lines: list[str] = []
+        current: list[str] = []
+        for word in words:
+            if len(" ".join(current + [word])) > 24 and current:
+                lines.append(" ".join(current)); current = [word]
+            else:
+                current.append(word)
+        if current:
+            lines.append(" ".join(current))
+        parts.append(f'<rect x="{x:.2f}" y="{y}" width="{box_width:.2f}" height="{box_height}" rx="12" class="pipeline-node"/>')
+        for line_index, line in enumerate(lines[:3]):
+            line_y = y + box_height / 2 - (len(lines[:3]) - 1) * 9 + line_index * 18
+            parts.append(f'<text x="{x+box_width/2:.2f}" y="{line_y:.2f}" text-anchor="middle" class="pipeline-text">{_esc(line)}</text>')
+    if transfer:
+        source_x = margin + transfer_from * (box_width + gap) + box_width / 2
+        branch_y = 242
+        transfer_width = min(350.0, box_width * 1.7)
+        transfer_x = min(width - margin - transfer_width, max(margin, source_x - transfer_width / 2))
+        parts.append(
+            f'<path d="M {source_x:.2f} {y+box_height:.2f} C {source_x:.2f} 205, '
+            f'{transfer_x+transfer_width/2:.2f} 205, {transfer_x+transfer_width/2:.2f} {branch_y:.2f}" '
+            f'class="pipeline-transfer"/>'
+            f'<rect x="{transfer_x:.2f}" y="{branch_y:.2f}" width="{transfer_width:.2f}" height="70" rx="12" class="pipeline-transfer-node"/>'
+            f'<text x="{transfer_x+transfer_width/2:.2f}" y="{branch_y+32:.2f}" text-anchor="middle" class="pipeline-text">{_esc(transfer)}</text>'
+            f'<text x="{transfer_x+transfer_width/2:.2f}" y="{branch_y+52:.2f}" text-anchor="middle" class="pipeline-note">separate evaluator; no task average</text>'
+        )
+    parts.append('</svg>')
+    return "".join(parts)
+
+
 def _pending_plot(plot: Mapping[str, Any]) -> str:
     return (
         '<div class="pending-plot" role="status">'
@@ -806,6 +877,8 @@ def _plot_rows(plot: Mapping[str, Any], bundle: Mapping[str, Any]) -> Sequence[M
 def _render_plot(plot: Mapping[str, Any], bundle: Mapping[str, Any], variant_map: Mapping[str, Mapping[str, Any]]) -> tuple[str, str]:
     if plot["kind"] == "lineage":
         return _lineage_svg(plot, bundle["variant_registry"]["variants"]), "RENDERED"
+    if plot["kind"] == "pipeline":
+        return _pipeline_svg(plot), "RENDERED"
     rows = _plot_rows(plot, bundle)
     if plot["kind"] in {"forest", "contrast_forest"}:
         rendered = _forest_svg(plot, rows, variant_map)
@@ -854,7 +927,7 @@ def _method_cards(bundle: Mapping[str, Any]) -> str:
             <dt>Limits / failure hypothesis</dt><dd>{_esc(variant['limitations'])} {_esc(variant['failure_hypothesis'])}</dd>
           </dl>
           <details><summary>Repository evidence</summary><ul>{refs}</ul></details>
-          <footer>{_status_badge(variant['execution_status'], 'execution')} {_status_badge(variant['decision_status'], 'decision')} {_status_badge(variant['evidence_status'], 'evidence')}</footer>
+          <footer>{_status_badge(variant['execution_status'], 'execution')} {_status_badge(variant['decision_status'], 'decision')} {_status_badge(variant['evidence_status'], 'evidence')} {_status_badge(variant['statistical_status'], 'statistical')}</footer>
         </article>'''
 
     new_cards = "".join(card(row, False) for row in variants if row["execution_status"] != "CONTEXT_ONLY")
@@ -879,13 +952,14 @@ def _variant_table(bundle: Mapping[str, Any]) -> str:
     for variant in variants:
         task = _task_for_variant(variant, experiments)
         parents = ", ".join(variant["parent_variant_ids"]) or "—"
-        row_classes = f'<span class="sr-only">{_esc(variant["phase"])} {_esc(task)} {_esc(variant["execution_status"])} {_esc(variant["evidence_status"])}</span>'
+        row_classes = f'<span class="sr-only">{_esc(variant["phase"])} {_esc(task)} {_esc(variant["execution_status"])} {_esc(variant["evidence_status"])} {_esc(variant["statistical_status"])}</span>'
         rows.append([
             row_classes + f'<a href="#method-{_esc(variant["variant_id"].lower())}"><code>{_esc(variant["variant_id"])}</code></a><br><span class="muted">{_esc(variant["display_name"])}</span>',
             _esc(variant["phase"]), _esc(task), _esc(variant["method_id"]), _esc(parents),
             _status_badge(variant["execution_status"], "execution"),
             _status_badge(variant["decision_status"], "decision"),
             _status_badge(variant["evidence_status"], "evidence"),
+            _status_badge(variant["statistical_status"], "statistical"),
             _best_task_metric(variant["variant_id"], "processbench_first_error", bundle["metrics"]),
             _best_task_metric(variant["variant_id"], "prmbench_step_error", bundle["metrics"]),
             _best_task_metric(variant["variant_id"], "early_detection", bundle["metrics"]),
@@ -893,7 +967,7 @@ def _variant_table(bundle: Mapping[str, Any]) -> str:
     headers = (
         ("variant", "Variant"), ("phase", "Phase"), ("task", "Task"), ("family", "Family"),
         ("parent", "Parent"), ("execution", "Execution"), ("decision", "Decision"),
-        ("evidence", "Evidence"), ("pb", "ProcessBench"), ("prm", "PRMBench"), ("early", "Early"),
+        ("evidence", "Evidence"), ("statistical", "Statistical status"), ("pb", "ProcessBench"), ("prm", "PRMBench"), ("early", "Early"),
     )
     return _semantic_table("table-variants", "Master variant roster. Task columns are separate; no overall score exists.", headers, rows, "sortable master-table")
 
@@ -960,14 +1034,30 @@ def _claim_ledger(bundle: Mapping[str, Any]) -> str:
             else:
                 target = "part-provenance"
             refs.append(f'<a href="#{_esc(target)}"><code>{_esc(ref)}</code></a>')
+        summary = claim.get("statistical_summary")
+        if summary is None:
+            estimate = "—"
+        else:
+            estimate = (
+                f'<strong>{_esc(summary["metric"])}</strong><br>'
+                f'Δ {_fmt(summary["point_delta"])}; CI [{_fmt(summary["ci_low"])}, {_fmt(summary["ci_high"])}]<br>'
+                f'benefit &gt; {_fmt(summary["benefit_bound"])}; harm &lt; {_fmt(summary["harm_bound"])}<br>'
+                f'<span class="muted">{_esc(summary["bound_basis"])} {_esc(summary["multiplicity"])}</span>'
+            )
         rows.append([
             f'<code>{_esc(claim["claim_id"])}</code><br>{_esc(claim["text"])}',
-            _status_badge(claim["verdict"], "claim"), _esc(claim["task_scope"]), "<br>".join(refs),
+            _status_badge(claim["verdict"], "claim"), estimate, _esc(claim["task_scope"]), "<br>".join(refs),
             _esc(claim["worst_case_behavior"]), _esc(claim["claim_boundary"]),
             "Yes" if claim["fresh_confirmation_required"] else "No",
         ])
-    headers = (("claim", "Claim"), ("verdict", "Verdict"), ("scope", "Task / population"), ("evidence", "Evidence"), ("worst", "Worst case"), ("boundary", "Boundary"), ("fresh", "Fresh confirmation"))
-    return _semantic_table("table-claims", "Claim–evidence ledger. Failed gates cannot be overridden by prose.", headers, rows, "claim-table")
+    headers = (("claim", "Claim"), ("verdict", "Statistical verdict"), ("estimate", "Delta / CI / bounds"), ("scope", "Task / population"), ("evidence", "Evidence"), ("worst", "Worst case"), ("boundary", "Boundary"), ("fresh", "Fresh confirmation"))
+    policy = bundle["experiment_registry"]["statistical_status_contract"]
+    policy_panel = (
+        '<div class="section-intro"><p><strong>Statistical status is separate from execution, decision, and evidence.</strong> '
+        'An interval crossing zero means the directional improvement claim is unsupported; it is not equality, generic failure, or rejection. '
+        f'{_esc(policy["continuation_rule"])} {_esc(policy["display_rule"])}</p></div>'
+    )
+    return policy_panel + _semantic_table("table-claims", "Claim–evidence ledger with raw deltas, intervals, practical bounds, and multiplicity status. Failed gates cannot be overridden by prose.", headers, rows, "claim-table")
 
 
 def _examples_section(bundle: Mapping[str, Any]) -> str:
@@ -992,8 +1082,9 @@ def _manifest_input_rows(manifest: Mapping[str, Any]) -> str:
 def _css() -> str:
     return r'''
 :root{--ink:#142133;--muted:#617085;--line:#d7dee8;--paper:#f5f7fb;--card:#fff;--navy:#172f55;--blue:#2463eb;--teal:#008b86;--green:#15805d;--amber:#ad6800;--red:#b52a38;--gray:#788494;--context:#eef0f3;--shadow:0 8px 28px rgba(23,47,85,.08)}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--blue)}code{font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}header.hero{background:linear-gradient(135deg,#0d1d37,#193e68 63%,#126b70);color:#fff;padding:64px max(24px,calc((100vw - 1260px)/2)) 48px}.hero h1{font-size:clamp(34px,5vw,64px);line-height:1.02;margin:.2em 0}.hero .kicker{text-transform:uppercase;letter-spacing:.18em;font-size:12px;color:#9fdce0}.hero p{max-width:850px;font-size:18px;color:#d9e6f2}.hero-status{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}.shell{max-width:1340px;margin:auto;padding:0 24px 80px}.shell,section,.appendix,.plots-grid,.plot-card,.experiment-block,.method-card{min-width:0}.toc{position:sticky;top:0;z-index:10;margin:0 -24px 28px;padding:10px 24px;background:rgba(245,247,251,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;gap:8px;overflow:auto}.toc a{white-space:nowrap;text-decoration:none;color:var(--navy);font-weight:700;padding:8px 12px;border-radius:99px}.toc a:hover,.toc a:focus{background:#e4ebf8}section.part{scroll-margin-top:72px;margin:38px 0 64px}.part>header{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start;margin-bottom:24px}.part-number{font-size:12px;letter-spacing:.12em;font-weight:800;color:var(--blue);border:1px solid #a9c2f7;border-radius:99px;padding:6px 10px}.part h2{font-size:clamp(27px,3vw,42px);line-height:1.1;margin:0}.part>header p{grid-column:2;margin:0;color:var(--muted);max-width:850px}.subheading{margin:34px 0 14px}.section-intro,.context-note{color:var(--muted);max-width:900px}.card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card-grid>*,.case-grid>*,.experiment-contract>*,.provenance-summary>*{min-width:0}.method-card{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--blue);border-radius:14px;padding:20px;box-shadow:var(--shadow);scroll-margin-top:80px}.method-card.context-card{background:var(--context);border-top-color:var(--gray);box-shadow:none}.method-card h3{margin:4px 0 2px;font-size:20px}.method-card header code{color:var(--muted)}.method-summary{font-size:16px}.method-card dl,.caption-meta{display:grid;grid-template-columns:minmax(110px,.38fr) 1fr;gap:7px 12px}.method-card dt,.caption-meta dt{font-weight:800;color:var(--navy)}.method-card dd,.caption-meta dd{margin:0}.method-card footer{border-top:1px solid var(--line);margin-top:16px;padding-top:12px;display:flex;flex-wrap:wrap;gap:5px}.eyebrow{font-size:11px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)}.badge{display:inline-block;border:1px solid currentColor;border-radius:99px;padding:3px 7px;font-size:10px;font-weight:850;letter-spacing:.04em;white-space:nowrap}.execution-complete,.decision-promoted,.claim-supported{color:var(--green);background:#e8f7f1}.execution-planned,.decision-pending{color:var(--blue);background:#edf3ff}.execution-context-only,.evidence-context-only,.claim-descriptive{color:var(--gray);background:#eef0f3}.execution-hard-fail,.decision-rejected,.claim-not-supported,.claim-blocked{color:var(--red);background:#fff0f1}.execution-blocked,.execution-not-run-by-gate,.decision-no-promotion,.claim-noninferior-only{color:var(--amber);background:#fff7e8}.decision-processbench-specialist,.decision-prmbench-specialist,.claim-pb-specialist,.claim-prm-specialist{color:#7a3bc2;background:#f5edff}.evidence-retrospective{color:var(--amber);background:#fff7e8}.evidence-development{color:var(--blue);background:#edf3ff}.evidence-transfer,.evidence-fresh-confirmation{color:var(--green);background:#e8f7f1}.controls{display:flex;flex-wrap:wrap;gap:10px;background:#fff;border:1px solid var(--line);padding:14px;border-radius:12px;margin-bottom:12px}.controls label{font-size:12px;font-weight:800;color:var(--navy)}.controls select,.controls input{display:block;margin-top:4px;border:1px solid #aeb9c8;border-radius:7px;padding:8px;background:#fff;min-width:150px}.controls button,.download-btn{border:0;border-radius:8px;padding:9px 12px;background:var(--navy);color:#fff;font-weight:800;cursor:pointer}.table-wrap{overflow:auto;max-width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;margin:12px 0 24px}table{border-collapse:collapse;width:100%;min-width:940px}caption{text-align:left;font-weight:800;padding:13px 15px;background:#edf2f8;color:var(--navy)}th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}th{background:#f7f9fc;color:var(--navy);font-size:12px;position:sticky;top:0}th[data-key]{cursor:pointer}tbody tr:hover{background:#f8fbff}.muted,.empty{color:var(--muted)}.empty{text-align:center;padding:30px}.plot-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin:16px 0;box-shadow:var(--shadow);scroll-margin-top:80px}.plot-card h4{font-size:20px;margin:3px 0 12px}.plot-frame{overflow:auto;max-width:100%;border:1px solid #e3e8ef;border-radius:9px;background:#fbfcfe;padding:8px}.plot-frame svg{min-width:760px;width:100%;height:auto}.pending-plot{min-height:190px;display:grid;place-items:center;text-align:center;color:var(--muted);padding:28px}.pending-plot strong{color:var(--blue)}.pending-icon{font-size:34px;color:#a8b7cd}.plot-card figcaption{margin-top:12px;color:var(--muted)}.caption-meta{margin-top:12px;font-size:13px}.plots-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}.experiment-block{margin:30px 0 48px;padding-top:20px;border-top:2px solid var(--line);scroll-margin-top:75px}.experiment-header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:start}.experiment-header h3{margin:0;font-size:25px}.experiment-header p{margin:.3em 0;color:var(--muted)}.phase-pill{display:grid;place-items:center;background:var(--navy);color:#fff;border-radius:10px;min-width:56px;height:42px;font-weight:850}.experiment-contract{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(0,1.8fr);gap:12px;margin:16px 0}.experiment-contract>div{background:#eaf0f7;border-radius:9px;padding:12px}.experiment-contract p,.experiment-contract ul{margin:5px 0}.case-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.case-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;min-height:130px}.provenance-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.stat{background:var(--navy);color:#fff;padding:17px;border-radius:12px}.stat span{display:block;color:#b9d2ea;font-size:12px}.stat strong{font-size:20px}.axis{stroke:#677489}.zero{stroke:#8a96a8;stroke-dasharray:5 4}.interval{stroke:#2463eb;stroke-width:3}.point{fill:#2463eb}.context-point{fill:#788494}.tick,.value,.label{fill:#394a61;font-size:12px}.phase-bg{fill:#f8faff;stroke:#dfe5ed}.context-bg{fill:#eef0f3}.phase-label{fill:#172f55;font-weight:800;font-size:14px}.edge{fill:none;stroke:#98a8bc;stroke-width:1.5}.node rect{stroke:#2463eb;stroke-width:2;fill:#edf3ff}.node text{font-size:10px;font-weight:800;fill:#172f55}.node .node-status{font-size:8px;font-weight:600}.node.evidence-context-only rect{stroke:#788494;fill:#eef0f3}.node.evidence-retrospective rect{stroke:#ad6800;stroke-dasharray:5 3}.node.evidence-transfer rect{stroke:#15805d}.node.decision-promoted rect{fill:#e8f7f1}.node.decision-rejected rect{fill:#fff0f1}.node.decision-processbench-specialist rect,.node.decision-prmbench-specialist rect{fill:#f5edff}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.appendix details{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin:10px 0;min-width:0;max-width:100%;overflow:hidden}.appendix summary{font-weight:800;cursor:pointer}.no-print{display:block}
+*{box-sizing:border-box}html{scroll-behavior:smooth;max-width:100%;overflow-x:hidden}body{margin:0;max-width:100%;overflow-x:hidden;background:var(--paper);color:var(--ink);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--blue)}code{font:12px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}header.hero{background:linear-gradient(135deg,#0d1d37,#193e68 63%,#126b70);color:#fff;padding:64px max(24px,calc((100vw - 1260px)/2)) 48px}.hero h1{font-size:clamp(34px,5vw,64px);line-height:1.02;margin:.2em 0}.hero .kicker{text-transform:uppercase;letter-spacing:.18em;font-size:12px;color:#9fdce0}.hero p{max-width:850px;font-size:18px;color:#d9e6f2}.hero-status{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}.shell{max-width:1340px;margin:auto;padding:0 24px 80px}.shell,section,.appendix,.plots-grid,.plot-card,.experiment-block,.method-card{min-width:0}.toc{position:sticky;top:0;z-index:10;margin:0 -24px 28px;padding:10px 24px;background:rgba(245,247,251,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;gap:8px;overflow:auto}.toc a{white-space:nowrap;text-decoration:none;color:var(--navy);font-weight:700;padding:8px 12px;border-radius:99px}.toc a:hover,.toc a:focus{background:#e4ebf8}section.part{scroll-margin-top:72px;margin:38px 0 64px}.part>header{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start;margin-bottom:24px}.part-number{font-size:12px;letter-spacing:.12em;font-weight:800;color:var(--blue);border:1px solid #a9c2f7;border-radius:99px;padding:6px 10px}.part h2{font-size:clamp(27px,3vw,42px);line-height:1.1;margin:0}.part>header p{grid-column:2;margin:0;color:var(--muted);max-width:850px}.subheading{margin:34px 0 14px}.section-intro,.context-note{color:var(--muted);max-width:900px}.card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card-grid>*,.case-grid>*,.experiment-contract>*,.provenance-summary>*{min-width:0}.method-card{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--blue);border-radius:14px;padding:20px;box-shadow:var(--shadow);scroll-margin-top:80px}.method-card.context-card{background:var(--context);border-top-color:var(--gray);box-shadow:none}.method-card h3{margin:4px 0 2px;font-size:20px}.method-card header code{color:var(--muted)}.method-summary{font-size:16px}.method-card dl,.caption-meta{display:grid;grid-template-columns:minmax(110px,.38fr) 1fr;gap:7px 12px}.method-card dt,.caption-meta dt{font-weight:800;color:var(--navy)}.method-card dd,.caption-meta dd{margin:0}.method-card footer{border-top:1px solid var(--line);margin-top:16px;padding-top:12px;display:flex;flex-wrap:wrap;gap:5px}.eyebrow{font-size:11px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)}.badge{display:inline-block;border:1px solid currentColor;border-radius:99px;padding:3px 7px;font-size:10px;font-weight:850;letter-spacing:.04em;white-space:nowrap}.execution-complete,.decision-promoted,.claim-supported{color:var(--green);background:#e8f7f1}.execution-planned,.decision-pending{color:var(--blue);background:#edf3ff}.execution-context-only,.evidence-context-only,.claim-descriptive{color:var(--gray);background:#eef0f3}.execution-hard-fail,.decision-rejected,.claim-not-supported,.claim-blocked{color:var(--red);background:#fff0f1}.execution-blocked,.execution-not-run-by-gate,.decision-no-promotion,.claim-noninferior-only{color:var(--amber);background:#fff7e8}.decision-processbench-specialist,.decision-prmbench-specialist,.claim-pb-specialist,.claim-prm-specialist{color:#7a3bc2;background:#f5edff}.evidence-retrospective{color:var(--amber);background:#fff7e8}.evidence-development{color:var(--blue);background:#edf3ff}.evidence-transfer,.evidence-fresh-confirmation{color:var(--green);background:#e8f7f1}.controls{display:flex;flex-wrap:wrap;gap:10px;background:#fff;border:1px solid var(--line);padding:14px;border-radius:12px;margin-bottom:12px}.controls label{font-size:12px;font-weight:800;color:var(--navy)}.controls select,.controls input{display:block;margin-top:4px;border:1px solid #aeb9c8;border-radius:7px;padding:8px;background:#fff;min-width:150px}.controls button,.download-btn{border:0;border-radius:8px;padding:9px 12px;background:var(--navy);color:#fff;font-weight:800;cursor:pointer}.table-wrap{overflow:auto;max-width:100%;background:#fff;border:1px solid var(--line);border-radius:12px;margin:12px 0 24px}table{border-collapse:collapse;width:100%;min-width:940px}caption{text-align:left;font-weight:800;padding:13px 15px;background:#edf2f8;color:var(--navy)}th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}th{background:#f7f9fc;color:var(--navy);font-size:12px;position:sticky;top:0}th[data-key]{cursor:pointer}tbody tr:hover{background:#f8fbff}.muted,.empty{color:var(--muted)}.empty{text-align:center;padding:30px}.plot-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin:16px 0;box-shadow:var(--shadow);scroll-margin-top:80px}.plot-card h4{font-size:20px;margin:3px 0 12px}.plot-frame{overflow:auto;max-width:100%;border:1px solid #e3e8ef;border-radius:9px;background:#fbfcfe;padding:8px}.plot-frame svg{min-width:760px;width:100%;height:auto}.pending-plot{min-height:190px;display:grid;place-items:center;text-align:center;color:var(--muted);padding:28px}.pending-plot strong{color:var(--blue)}.pending-icon{font-size:34px;color:#a8b7cd}.plot-card figcaption{margin-top:12px;color:var(--muted)}.caption-meta{margin-top:12px;font-size:13px}.plots-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}.experiment-block{margin:30px 0 48px;padding-top:20px;border-top:2px solid var(--line);scroll-margin-top:75px}.experiment-header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:start}.experiment-header h3{margin:0;font-size:25px}.experiment-header p{margin:.3em 0;color:var(--muted)}.phase-pill{display:grid;place-items:center;background:var(--navy);color:#fff;border-radius:10px;min-width:56px;height:42px;font-weight:850}.experiment-contract{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) minmax(0,1.8fr);gap:12px;margin:16px 0}.experiment-contract>div{background:#eaf0f7;border-radius:9px;padding:12px}.experiment-contract p,.experiment-contract ul{margin:5px 0}.case-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.case-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px;min-height:130px}.provenance-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.stat{background:var(--navy);color:#fff;padding:17px;border-radius:12px}.stat span{display:block;color:#b9d2ea;font-size:12px}.stat strong{font-size:20px}.axis{stroke:#677489}.zero{stroke:#8a96a8;stroke-dasharray:5 4}.interval{stroke:#2463eb;stroke-width:3}.point{fill:#2463eb}.context-point{fill:#788494}.tick,.value,.label{fill:#394a61;font-size:12px}.phase-bg{fill:#f8faff;stroke:#dfe5ed}.context-bg{fill:#eef0f3}.phase-label{fill:#172f55;font-weight:800;font-size:14px}.edge{fill:none;stroke:#98a8bc;stroke-width:1.5}.node rect{stroke:#2463eb;stroke-width:2;fill:#edf3ff}.node text{font-size:10px;font-weight:800;fill:#172f55}.node .node-status{font-size:8px;font-weight:600}.node.evidence-context-only rect{stroke:#788494;fill:#eef0f3}.node.evidence-retrospective rect{stroke:#ad6800;stroke-dasharray:5 3}.node.evidence-transfer rect{stroke:#15805d}.node.decision-promoted rect{fill:#e8f7f1}.node.decision-rejected rect{fill:#fff0f1}.node.decision-processbench-specialist rect,.node.decision-prmbench-specialist rect{fill:#f5edff}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.appendix details{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin:10px 0;min-width:0;max-width:100%;overflow:hidden}.appendix summary{font-weight:800;cursor:pointer}.no-print{display:block}
 .execution-running{color:var(--teal);background:#e6f7f6}.case-card{overflow-wrap:anywhere}.waterfall-up{fill:#2463eb}.waterfall-down{fill:#b52a38}.waterfall-link{stroke:#98a8bc;stroke-width:1.5;stroke-dasharray:4 3}.heat-missing{fill:#e5e8ed}.heat-value{fill:#12233b;font-size:11px;font-weight:700}.gate-pass{fill:#b9ead8}.gate-fail{fill:#ffc9cf}.gate-pending{fill:#e4e8ee}.gate-text{fill:#24364e;font-size:10px;font-weight:850}.scatter-point{fill:#2463eb;stroke:#fff;stroke-width:2}
+.pipeline-node{fill:#edf3ff;stroke:#2463eb;stroke-width:2}.pipeline-transfer-node{fill:#e8f7f1;stroke:#15805d;stroke-width:2}.pipeline-arrow{stroke:#65758a;stroke-width:2.5}.pipeline-head{fill:none;stroke:#65758a;stroke-width:2.5}.pipeline-transfer{fill:none;stroke:#15805d;stroke-width:2.5;stroke-dasharray:7 5}.pipeline-text{fill:#172f55;font-size:12px;font-weight:800}.pipeline-note{fill:#617085;font-size:10px}
 @media(max-width:760px){header.hero{padding:42px 20px}.shell{padding:0 14px 60px}.toc{margin:0 -14px;padding:8px 14px}.card-grid,.case-grid,.provenance-summary,.experiment-contract{grid-template-columns:1fr}.part>header{grid-template-columns:1fr}.part>header p{grid-column:1}.method-card{padding:16px}.method-card dl,.caption-meta{grid-template-columns:1fr}.method-card dd,.caption-meta dd{margin-bottom:8px}.experiment-header{grid-template-columns:auto 1fr}.experiment-header>.badge{grid-column:2}.controls label{width:100%}.controls select,.controls input{width:100%;min-width:0}.plot-frame svg{min-width:680px}}
 @media print{body{background:#fff;font-size:10pt}.hero{background:#fff!important;color:#111!important;padding:0!important}.hero p,.hero .kicker{color:#333!important}.shell{max-width:none;padding:0}.toc,.controls,.download-btn,.no-print{display:none!important}.method-card,.plot-card,.case-card,.table-wrap{box-shadow:none;break-inside:avoid}.card-grid{grid-template-columns:1fr 1fr}section.part{page-break-before:always}.table-wrap{overflow:visible}table{min-width:0;font-size:8pt}.plot-frame svg{min-width:0}.pending-plot{min-height:90px}}
 '''
