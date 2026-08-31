@@ -1,7 +1,8 @@
 # Reasoning Localization 0.3662 — Conditional Contribution Ablation V1
 
-Status: `PLANNED`; design amendment only; no result has been opened under this
-contract.
+Status: `COMPLETE`; all thirteen registered rows finished. The later H2/H3
+role-separated combination is a separate outcome-selected development
+experiment, not part of this closed contrast family.
 
 ## 1. Scientific question
 
@@ -139,8 +140,12 @@ interchangeable scalars:
   not described or counted as a single primitive family6 feature.
 
 Neither row changes the top-ten reducer, answer detector, population, folds,
-or threshold contract. No C7+C8 pair is opened in Phase 2C. Such a pair is
-eligible for Phase 3 only if both individual insertion premises survive.
+or threshold contract. No C7+C8 pair was opened inside the original Phase 2C
+family. The later user-requested combination—remove sampled-token energy,
+remove the partition-level `energy_series` view, insert C7 inside
+`entropy_dynamics`, and add C8 only for H0-positive reranking—is documented in
+`REASONING_LOCALIZATION_03662_H3_RELIABILITY_V1.md`. It is explicitly posthoc,
+development-only, and cannot be interpreted as the sum of individual deltas.
 
 ## 5. Contrasts and interpretation
 

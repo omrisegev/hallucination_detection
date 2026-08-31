@@ -59,7 +59,20 @@ TASK_LABELS = {
     "prmbench_step_error": "PRMBench",
     "early_detection": "Early",
 }
-PHASE_ORDER = {"CONTEXT": 0, "REPORTING": 1, "P0": 2, "P1": 3, "P2": 4, "P3": 5, "P4": 6, "P5": 7}
+PHASE_ORDER = {
+    "CONTEXT": 0,
+    "REPORTING": 1,
+    "P0": 2,
+    "P1": 3,
+    "P2": 4,
+    "P2C": 5,
+    "P2D": 6,
+    "P2E": 7,
+    "P2F": 8,
+    "P3": 9,
+    "P4": 10,
+    "P5": 11,
+}
 NUMERIC_METRIC_FIELDS = ("value", "ci_low", "ci_high")
 NUMERIC_CONTRAST_FIELDS = ("delta", "ci_low", "ci_high", "p_adjusted", "worst_unit_delta")
 CLAIM_REF_IDS = {"TABLE_VARIANTS", "TABLE_METRICS", "TABLE_CONTRASTS", "TABLE_GATES"}
@@ -589,7 +602,10 @@ def _heatmap_svg(plot: Mapping[str, Any], rows: Sequence[Mapping[str, str]], var
         return _pending_plot(plot)
     x_field, y_field = plot["x_field"], plot["y_field"]
     x_values = sorted({row.get(x_field, "") for row in usable})
-    y_values = sorted({row.get(y_field, "") for row in usable}, key=lambda value: variant_map.get(value, {}).get("display_order", 9999))
+    y_values = sorted(
+        {row.get(y_field, "") for row in usable},
+        key=lambda value: (variant_map.get(value, {}).get("display_order", 9999), value),
+    )
     numeric = [float(row["value"]) for row in usable]
     low, high = min(numeric), max(numeric)
     cell_w, cell_h = 92, 34
@@ -1121,7 +1137,10 @@ def render_report(bundle: Mapping[str, Any], manifest_shell: Mapping[str, Any], 
         "plots": resolved_plots,
     }
     payload_text = json.dumps(data_payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).replace("</", "<\\/")
-    filter_phases = sorted({row["phase"] for row in variants}, key=lambda phase: PHASE_ORDER.get(phase, 99))
+    filter_phases = sorted(
+        {row["phase"] for row in variants},
+        key=lambda phase: (PHASE_ORDER.get(phase, 99), phase),
+    )
     filter_tasks = ["ProcessBench", "PRMBench", "Early", "Audit / context"]
     execution = bundle["variant_registry"]["allowed_execution_statuses"]
     evidence = bundle["variant_registry"]["allowed_evidence_statuses"]

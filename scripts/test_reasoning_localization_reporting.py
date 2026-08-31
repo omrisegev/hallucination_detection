@@ -75,7 +75,7 @@ class ReportingContractTests(unittest.TestCase):
         registry = self.bundle["variant_registry"]
         variants = registry["variants"]
         ids = {row["variant_id"] for row in variants}
-        self.assertEqual(88, len(variants))
+        self.assertEqual(106, len(variants))
         self.assertEqual(set(REPORTING.EXPECTED_NEW_VARIANTS), set(REPORTING.EXPECTED_NEW_VARIANTS) & ids)
         self.assertEqual(7, len(registry["allowed_execution_statuses"]))
         self.assertIn("PROMISING_UNCONFIRMED", registry["allowed_statistical_statuses"])
@@ -465,7 +465,7 @@ class ReportingContractTests(unittest.TestCase):
             REPORTING.sha256_bytes(REPORTING.canonical_json_bytes(manifest_projection)),
             self.build.manifest["report_manifest_sha256"],
         )
-        self.assertEqual(38, len(self.build.manifest["plots"]))
+        self.assertEqual(45, len(self.build.manifest["plots"]))
         self.assertTrue(all(row["source_sha256"] for row in self.build.manifest["plots"]))
         self.assertTrue(all(row["selection_rule"] for row in self.build.manifest["plots"]))
         self.assertTrue(all("comparison_group" in row and "bootstrap_definition" in row for row in self.build.manifest["plots"]))
@@ -533,7 +533,7 @@ class ReportingContractTests(unittest.TestCase):
         marker = '<script id="report-data" type="application/json">'
         payload = self.report.split(marker, 1)[1].split("</script>", 1)[0].replace("<\\/", "</")
         embedded = json.loads(payload)
-        self.assertEqual(88, len(embedded["variants"]))
+        self.assertEqual(106, len(embedded["variants"]))
         self.assertEqual(self.bundle["metrics"], embedded["metrics"])
         self.assertEqual(self.bundle["contrasts"], embedded["contrasts"])
         self.assertEqual(self.bundle["gates"], embedded["gates"])

@@ -1,5 +1,179 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**Reasoning-localization historical H3 head-to-head complete (2026-08-31 —
+Step 339):** Replayed the exact Stage-4 regime before opening candidate audit
+results. The historical aliases are exact: entropy/top-five `0.3614213584`
+and finalist `0.3662328342`. H0/H2/H3 locators were hash-frozen for the same
+eight cells, 40% calibration and 20% fixed audit roles, 1,270 scorer rows and
+635 paired source questions; the manifest records `labels_selected=false`.
+
+On the matched audit, H0 reaches F1 `0.374099`, H2 is raw best at `0.374793`,
+and H3 reaches `0.372663`. Their paired deltas versus the historical finalist
+are respectively `+0.007866 [-0.023593,+0.040751]`,
+`+0.008560 [-0.024610,+0.040869]`, and
+`+0.006431 [-0.026891,+0.039473]`. H3 wins 5/8 cells, with worst-cell delta
+`-0.034609`. Thus H3 is numerically above 0.3662 on the exact matched regime,
+but its improvement is unresolved, not rejected or promoted.
+
+The 2x2 diagnostic points to detector/abstention rather than a demonstrated
+H3-localizer gain: historical-detector+H3-localizer minus the full historical
+system is `-0.003070 [-0.028453,+0.020618]`; H0-detector+historical-localizer
+is `+0.013119 [-0.005697,+0.034240]`; the interaction is
+`-0.003619 [-0.012159,+0.004363]`. H3 retains its separate supported PRMBench
+advantage, but the matched ProcessBench CI does not satisfy the preregistered
+dual-task promotion rule. H2 and H3 both remain for independent confirmation.
+Living report SHA is
+`5b4b3b27cc8a470df353d4cf086b1eb39b1c9cd60b0e7bd8faba9d1749cf2dea`.
+No commit or push occurred.
+
+**Reasoning-localization H3 PRMBench diagnostic complete (2026-08-31 — Step
+338):** With no fresh local ProcessBench questions available, froze a bounded
+cross-task diagnostic of the existing H0→H2→H3 ladder on PRMBench. The first
+attempt correctly hard-failed before labels: it had required top-ten H0 to
+alias the Phase-1 top-five R2 score (`max error=0.231258`). Amendment V2 added
+a non-rankable top-five control, which aliases R2 exactly; all imported Qwen
+H0/H2/H3 scores also reproduce exactly before label import.
+
+On 83,280 annotated steps in 6,208 paired source groups, H0 reaches AUROC
+`0.592057` / AUPRC `0.209760`; H2 reaches `0.597871` / `0.210778`; H3 reaches
+`0.619469` / `0.225194`. Bonferroni-simultaneous AUROC deltas are H2−H0
+`+0.005814 [+0.004710,+0.006973]`, H3−H0
+`+0.027412 [+0.023675,+0.031091]`, and H3−H2
+`+0.021598 [+0.017653,+0.025457]`. H3 improves all eight evaluable families;
+its worst H3−H0 family delta is `+0.021655`. `multi_solutions` is single-class
+and remains visibly undefined.
+
+Verdict: H3 is a supported `PRMBENCH_SPECIALIST`, not a universal winner.
+ProcessBench first-error improvement remains unconfirmed, the PRMBench labels
+were historically opened, and source-stratum membership is unavailable.
+There is no Phase-4 promotion and no ProcessBench/PRMBench aggregate. Living
+report SHA is `54a26029575755b34b39e9718c5f15ab1c0816d1450ad8fd2b09cc7de05e51c4`.
+No commit or push occurred.
+
+**Reasoning-localization H3 Llama scorer transfer complete (2026-08-31 —
+Step 337):** Audited all locally sealed ProcessBench rows before opening the
+next result. Qwen3-4B, Qwen3-8B and Llama-3.1-8B each contain the exact same
+3,400 source-question groups (pairwise intersection 3,400; zero model-unique
+groups), so no local fresh-question confirmation exists. The next run was
+therefore explicitly frozen as scorer-family `TRANSFER`, never
+`FRESH_CONFIRMATION`.
+
+The executable first reconstructed the imported eight-Qwen H0-combined, H2
+and H3 scores with maximum absolute error `0`, then froze four Llama cell
+scores before label import. H0 F1 is `0.348909`; H2 is raw best at `0.355583`,
+delta `+0.006674 [-0.007091,+0.020943]`; H3 reaches `0.353281`, delta versus H0
+`+0.004372 [-0.009677,+0.018452]`. H3 versus H2 is
+`-0.002303 [-0.011662,+0.007001]`. These are three-contrast
+Bonferroni-simultaneous intervals. H2 and H3 each split 2/0/2 family W/T/L
+versus H0, and preserve clean abstention exactly.
+
+The primary intervals cross zero, so both candidates are
+`PROMISING_UNCONFIRMED`, not rejected. H3 has positive within-one transfer
+`+0.013804 [+0.000811,+0.027030]` in all four families, but that is an
+unadjusted secondary diagnostic. Its worst macro-F1 family delta is
+`-0.021595`, slightly outside the `-0.020` robustness boundary but above the
+`-0.030` hard-stop bound. Verdict:
+`POSITIVE_POINTS_UNCONFIRMED__H2_RAW_BEST__NO_FRESH_CONFIRMATION`. A future
+fresh-question run must retain the full H0→H2→H3 ladder and test C8's
+incremental value over H2; Phase 3 and PRMBench remain unopened. Living report
+SHA is `941e3ac1830e4f432eaf535a34fe5550ef5d1578dfe8d6fb5a92d3432b940c1e`.
+No commit or push occurred.
+
+**Reasoning-localization H2/H3 role-separated reranking complete (2026-08-31
+— Step 336):** Imported and hash-verified the isolated side experiment that
+combines the individually positive Phase-2C edits without allowing them to
+change the frozen H0 clean/error decision. H2 removes the sampled-token-energy
+family and partition `energy_series`, then inserts frozen C7 inside
+`entropy_dynamics`. H3 adds frozen C8 step ranks only on H0 non-abstentions.
+
+H2 reaches macro F1 `0.364090`, delta `+0.009829` with four-contrast
+Bonferroni-simultaneous interval `[-0.000714,+0.020697]`. H3 equal is raw best
+at `0.366653`, delta `+0.012392 [+0.001769,+0.022807]`, 6/0/2 cell W/T/L,
+worst cell `-0.002764`, exact-error delta `+0.012941
+[+0.003093,+0.022888]`, and within-one gains in all eight cells. Clean
+abstention is exactly unchanged for every candidate by construction.
+
+The donor-only reliability arm reaches `0.364369`; versus equal weighting its
+delta is `-0.002285 [-0.007659,+0.003087]`. Its learned C8 weights are almost
+equal (`0.4813–0.5000`, median `0.4968`), so the reliability proxy adds no
+evidence beyond the simpler 50/50 rule.
+
+H3 equal has a directional simultaneous interval above zero, but its lower
+bound does not exceed the existing `+0.003` practical-benefit boundary. The
+roster was also selected after individual outcomes opened. Verdict:
+`DEVELOPMENT / NO_PROMOTION`; H3 equal is the priority frozen candidate for
+fresh-question confirmation, while reliability weighting is not carried
+forward. Its raw `0.366653` must not be paired directly with the historical
+`~0.3662` because population, split and detector contracts differ. Living
+report SHA is
+`cec38ee89a59b6427e0809398eb179090d760322e3c06262f600dffae2c42e41`.
+No commit or push occurred.
+
+**Reasoning-localization STEP-CUT premise audit incorporated (2026-08-30 —
+Step 335):** Recorded the development-only temporal-graph screen before any
+Phase-3 execution. The full chain-plus-mutual-2NN graph has a positive Qwen
+late-error Hit@1 delta versus length-matched chance (`+0.02328
+[+0.00445,+0.04230]`), but the required content controls reverse the claim:
+full graph loses to chain-only (`-0.02329 [-0.04004,-0.00689]`), step-permuted
+features (`-0.02230 [-0.04419,-0.00024]`), and random edges (`-0.02297
+[-0.03541,-0.01043]`). Its MRR is below chance (`-0.01475
+[-0.02652,-0.00268]`).
+
+Equal-rank entropy-plus-graph fusion harms Qwen all-error Hit@1 by `-0.03342
+[-0.05499,-0.01309]` and repeats the harm on Llama (`-0.02793
+[-0.05136,-0.00493]`). The graph-content premise is therefore `NOT_PASSED`:
+the apparent chance lift is topology/position bias. The exact planned
+`P3G_T1_TEMPORAL_GRAPH` remains unexecuted and is now `NOT_RUN_BY_GATE /
+NO_PROMOTION`; no combined feature-by-time graph may open. The separate STG
+feature/family-support branch remains planned. Chain-only is diagnostic and
+requires a new frozen premise because its MRR lift is inconclusive. Source
+artifact SHA-256 is
+`b40b7791b55c8d3d2405b15eba5b603564dfae3c921f15deb74dbfbd68cf1bd2`.
+No new experiment was run, committed, or pushed in this registration update.
+
+**Reasoning-localization Phase 2C complete (2026-08-30 — Step 334):** Finished
+the remaining registered conditional states after the structural control. The
+exact C1 SWVar16 formulation swap is effectively neutral: F1 `0.354113`, delta
+`-0.000148`, simultaneous interval `[-0.001961,+0.001477]`. Inserting frozen
+C7 EDIS onset inside `entropy_dynamics` gives F1 `0.356377`, delta `+0.002116`
+`[-0.002537,+0.006754]`, with small positive exact and clean point deltas.
+
+The raw-best conditional candidate is the equal donor-rank C8 outer expert:
+F1 `0.364997`, delta `+0.010735`, simultaneous interval
+`[-0.002481,+0.024255]`, 5/0/3 cell W/T/L, and worst cell `-0.009192`. It gains
+`+0.014429` exact-error accuracy but loses `-0.022491` clean abstention. The
+positive point estimate remains `PROMISING_UNCONFIRMED`; the zero-crossing
+interval is not rejection, but the clean gate and inferential gate prevent
+promotion.
+
+All thirteen planned candidates are complete. Verdict:
+`NO_FULL_CONDITIONAL_PROMOTION`. Entropy level and top-k distribution retain
+supported aggregate contribution claims with operating-point tradeoffs;
+partition energy and C8 remain prioritized for fresh confirmation. No Phase-3
+fusion is opened from current development evidence alone. The complete plot
+and table are under `phase_2/conditional/final_summary/`; living report SHA is
+`c16d5adabb4ba6c3023a2623e22bd53d679671437a4ee3393f1eab4e1a9f6171`.
+The immutable completion snapshot is
+`snapshots/amendment_phase2c_completion/`.
+No post-`ff8cd0d` commit or push occurred.
+
+**Reasoning-localization Phase 2C structural insertion control (2026-08-30 —
+Step 333):** After committing the complete Phase-0--2C-removal evidence at
+`ff8cd0d`, executed the next frozen conditional row. The exact current parent
+continues to exclude structural from local family averaging; the candidate
+adds the retained structural context stream as a sixth equal-mass family and
+changes no reducer, detector, population, folds, spans, or bootstrap groups.
+
+The candidate scores `0.349697` versus parent `0.354261`: delta
+`-0.004564`, thirteen-contrast simultaneous interval
+`[-0.010259,+0.000784]`, with `0/0/8` cell W/T/L and worst-cell delta
+`-0.008633`. Exact-error changes only `-0.000381`, while clean abstention falls
+`-0.016863`. Because the interval crosses zero, the result is
+`INCONCLUSIVE / NO_PROMOTION`, not rejection or proof of universal structural
+harm. The next frozen row is `P2C_F6_SWAP_C1_SWVAR16`. The living report SHA is
+`64d747c60db275244b62d1389d616904449ba6d0b38568504a15993493cd064f`.
+No post-experiment commit or push occurred.
+
 **Reasoning-localization Phase 2C complete removal substage (2026-08-30 —
 Step 332):** Completed all nine frozen removal tests against the exact current
 five-family/top-ten parent (`F1=0.354261`): five whole-family LOO rows and four

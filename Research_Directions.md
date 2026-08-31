@@ -2449,7 +2449,7 @@ were superseded by Steps 226--235.
 ## Thesis Narrative Thread
 
 > *The per-token entropy trajectory H(n) is a signal, not a scalar. Collapsing it to its mean (EPR) discards temporal structure that predicts hallucination. Spectral features of H(n) recover that structure. L-SML fuses those features without labels, in a single forward pass. This gives a detector that is cheap (K=1), interpretable (spectral signal processing on an information-theoretic signal), and formally calibratable (the L-SML score is a continuous input to LTT). The thesis validates this on math reasoning, extends it to RAG and QA, and closes with a conformal chapter that turns the AUROC result into a deployment-ready detector with a formal false-negative-rate guarantee.*
-# Reasoning-localization STG feature/temporal graph transfer (planned, 2026-08-30)
+# Reasoning-localization STG feature support; temporal graph closed by premise (updated 2026-08-30)
 
 The corrected `STG_SU_STABLE` side-worktree result establishes a narrow
 mechanism premise: fold-stable stochastic-gate support can recover canonical
@@ -2457,11 +2457,95 @@ SU-PCR to near IU/DUFS-LIU parity on final-answer detection, but its small
 gains over IU and cardinality-matched random support were not statistically
 supported. It does not establish localization value.
 
-After the Phase-2C compact roster freezes, a bounded Phase-3 branch may test
-(1) fold-stable sparse support/Laplacian among surviving feature/family blocks
-and (2) a donor-only masked graph over tokens/bins/steps before a separately
-frozen reducer. Required controls are exact zero-strength alias,
-cardinality-matched random support/graph, time permutation and feature
-permutation. Whole questions remain fold/bootstrap units; early variants must
-be prefix-only and suffix-invariant. See
+The STEP-CUT development-only premise screen closes the second of those two
+ideas. Its full chain-plus-mutual-2NN graph beat length-matched uniform chance
+in Qwen late-error Hit@1 by `+0.02328 [+0.00445,+0.04230]`, but it lost to
+chain-only, step-permuted, and random-edge controls with intervals excluding
+zero. Entropy-plus-graph fusion also harmed Qwen Hit@1 by `-0.03342
+[-0.05499,-0.01309]` and repeated the harm on Llama. The apparent chance lift
+is therefore topology/position bias, not evidence that learned graph content
+localizes error. `P3G_T1_TEMPORAL_GRAPH` and any combined feature-by-time graph
+are `NOT_RUN_BY_GATE`; this is a premise failure supported by the controls,
+not rejection because an interval crossed zero.
+
+The feature-axis idea remains distinct and planned: after an independently
+eligible compact roster freezes, a bounded Phase-3 branch may still test
+fold-stable sparse support/Laplacian among surviving feature/family blocks.
+Required controls are exact zero-strength alias, cardinality-matched random
+support, and feature permutation. Whole questions remain fold/bootstrap units.
+A simpler chain-edge change score is diagnostic only and requires a new frozen
+premise; it is not automatically opened. See
 `docs/experiments/REASONING_LOCALIZATION_03662_STG_GRAPH_TRANSFER_V1.md`.
+
+# Reasoning-localization H3 role separation (priority confirmation direction, 2026-08-31)
+
+The strongest current development candidate is no longer a generic graph or
+reliability-weighted fusion. It is the simpler H3-equal role-separated
+reranker: H0 keeps exclusive clean/error authority; H2 removes sampled-token
+energy and the partition-level view and adds C7 inside entropy dynamics; C8
+gets an equal step-rank vote only after H0 declares an error.
+
+On the opened eight-Qwen population H3 equal reaches macro F1 `0.366653`,
+delta `+0.012392 [+0.001769,+0.022807]`, while preserving clean abstention
+exactly. This is directional but not practically supported under the existing
+`+0.003` lower-bound gate, and the roster was selected after outcomes opened.
+It is therefore the first priority for a frozen fresh-question confirmation,
+not a Phase-3 promotion.
+
+Do not carry the perturbation-reliability weight forward by default: its C8
+weights collapse near 0.5 and it loses `-0.002285
+[-0.007659,+0.003087]` versus equal fusion. Do not reopen the failed temporal
+graph premise. Hierarchical family experts, STG feature support, SU-PCR gates,
+and tensor fusion remain later survivor-gated studies; they should not delay
+the simpler H3-equal confirmation.
+
+The frozen four-Llama scorer-family transfer now refines this priority. No
+fresh local questions exist: Qwen3-4B, Qwen3-8B and Llama-3.1-8B share the
+same 3,400 source groups. On Llama, H2 is raw best at `0.355583`, improving H0
+by `+0.006674 [-0.007091,+0.020943]`; H3 reaches `0.353281`, improving H0 by
+`+0.004372 [-0.009677,+0.018452]` but trailing H2 by
+`-0.002303 [-0.011662,+0.007001]`. Thus the cross-scorer point direction
+remains interesting, but C8's incremental premise is not confirmed.
+
+The next fresh-question contract must therefore carry all three frozen arms:
+H0, H2, and H3. H2 is the required parent and H3 must beat both H0 and H2;
+selecting only H3 would hide the scorer-family interaction. Until that data
+exists, neither candidate is a Phase-3 survivor and the later hierarchical,
+STG, SU-PCR-gating and tensor branches remain closed by prerequisite rather
+than scientifically rejected.
+
+The frozen PRMBench diagnostic adds a clear task-specific result. On 83,280
+steps, H3 improves H0 AUROC by `+0.027412
+[+0.023675,+0.031091]` and H2 by `+0.021598
+[+0.017653,+0.025457]`; both AUPRC contrasts are also positive with
+simultaneous intervals above zero, and all eight evaluable families improve.
+H2 itself improves H0 AUROC by `+0.005814
+[+0.004710,+0.006973]`.
+
+Therefore H3 is now a supported **PRMBench specialist**, while remaining
+unconfirmed for ProcessBench first-error F1. This favors preserving distinct
+roles or task-specific output heads in a future independently frozen study:
+H0/H2 for the ProcessBench clean/error and first-error contract, and C8 as a
+dense-step ranking expert. It does not authorize choosing that architecture
+from opened labels, averaging tasks, or bypassing Phase-3 prerequisites. Full
+contract and result:
+`docs/experiments/REASONING_LOCALIZATION_03662_H3_PRMBENCH_DIAGNOSTIC_V1.md`,
+`docs/experiments/REASONING_LOCALIZATION_03662_H3_PRMBENCH_DIAGNOSTIC_AMENDMENT_V2.md`,
+and
+`docs/experiments/REASONING_LOCALIZATION_03662_H3_PRMBENCH_DIAGNOSTIC_RESULTS_V2.md`.
+
+The matched historical bridge now resolves the previously invalid comparison
+between current H3 `0.366653` and historical `0.366233`. On the exact Stage-4
+audit, H3 reaches `0.372663`, a paired delta of
+`+0.006431 [-0.026891,+0.039473]`; H2 is raw best at `0.374793`, delta
+`+0.008560 [-0.024610,+0.040869]`. These are favorable but unresolved point
+effects, not failures and not supported improvements.
+
+The 2x2 cross also narrows the scientific target: the current detector with
+the historical localizer has the larger favorable point change
+(`+0.013119 [-0.005697,+0.034240]`), while H3 localization under the
+historical detector is `-0.003070 [-0.028453,+0.020618]`; their interaction
+crosses zero. Therefore the next independent confirmation must retain H0, H2,
+H3 and the historical finalist, decompose clean abstention from exact
+localization, and treat H2/H3 as distinct task-role candidates. H3 remains a
+supported PRMBench specialist; it is not yet a dual-task winner.

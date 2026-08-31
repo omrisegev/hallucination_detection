@@ -1423,6 +1423,110 @@ sampled energy, SWVar16, CUSUM, sampled level and partition level remain
 inconclusive. No interval crossing zero is interpreted as rejection. The next
 unopened state is the structural insertion control.
 
+Phase 2C is now complete. Structural insertion and the exact C1-SWVar swap do
+not improve the parent. C7 gives a small uncertain gain. C8 as an equal
+donor-rank outer expert is the raw best at F1 `0.364997`, delta `+0.010735`,
+with simultaneous interval `[-0.002481,+0.024255]`; exact-error rises
+`+0.014429` while clean abstention falls `-0.022491`. It is
+`PROMISING_UNCONFIRMED`, not rejected, but it fails the inferential and clean
+promotion gates. The closed verdict is `NO_FULL_CONDITIONAL_PROMOTION`.
+
+#### Post-Phase-2C H2/H3 role-separation diagnostic
+
+The subsequently requested combination is complete under a separate,
+outcome-selected development contract. H0 preserves its exact clean/error
+decision. H2 removes sampled-token energy and the partition-level
+`energy_series` view and inserts C7 inside entropy dynamics. H3 equal adds C8
+step ranks only on H0 non-abstentions. H3 equal reaches F1 `0.366653`, delta
+`+0.012392` with four-contrast simultaneous interval
+`[+0.001769,+0.022807]`; exact error and within-one improve, while clean
+abstention is identical by construction.
+
+The donor-reliability alternative does not improve equal fusion and learns
+weights close to 0.5. H3 equal is the frozen priority for fresh-question
+confirmation, but it is not a Phase-3 survivor: its lower interval bound does
+not exceed the existing `+0.003` practical-benefit threshold and its roster was
+selected after the component outcomes opened. The raw `0.366653` is not a
+direct comparison with historical `0.3662` because their populations, splits,
+and detector contracts differ. Full method and evidence boundary:
+`REASONING_LOCALIZATION_03662_H3_RELIABILITY_V1.md`.
+
+#### Frozen Llama scorer-family transfer
+
+The sealed local inventory contains no new ProcessBench questions: Qwen3-4B,
+Qwen3-8B and Llama-3.1-8B cover the exact same 3,400 source groups. The first
+follow-up therefore tested scorer-family transfer only. It reconstructed the
+frozen Qwen H0/H2/H3 scores exactly before importing Llama labels, then reused
+H0's clean/error decisions for both candidate rerankers.
+
+On the four Llama cells, H0 reaches F1 `0.348909`, H2 reaches `0.355583`, and
+H3 reaches `0.353281`. The frozen simultaneous deltas are H2−H0
+`+0.006674 [-0.007091,+0.020943]`, H3−H0
+`+0.004372 [-0.009677,+0.018452]`, and H3−H2
+`-0.002303 [-0.011662,+0.007001]`. Both candidates are
+`PROMISING_UNCONFIRMED`, not rejected. H2 is raw-best, while H3's secondary
+within-one gain does not establish primary incremental value over H2.
+
+Consequently, a future fresh-question confirmation must retain the full
+H0→H2→H3 ladder. H3 must beat both the original H0 reference and its H2 parent
+before any Phase-3 fusion eligibility. Frozen contract:
+`REASONING_LOCALIZATION_03662_H3_LLAMA_TRANSFER_V1.md`; result note:
+`REASONING_LOCALIZATION_03662_H3_LLAMA_TRANSFER_RESULTS_V1.md`.
+
+#### Frozen PRMBench H2/H3 mechanism diagnostic
+
+Because no local fresh ProcessBench source questions exist, the next bounded
+study transferred the already frozen H0→H2→H3 scores to PRMBench every-step
+ranking without PRMBench tuning. Its first executable attempt hard-failed
+before labels because it incorrectly compared top-ten H0 to the Phase-1
+top-five R2 artifact. Amendment V2 introduced a non-rankable top-five control,
+which reproduced R2 exactly; all Qwen H0/H2/H3 source scores also reproduced
+exactly before label import.
+
+On 83,280 steps in 6,208 paired source groups, H0/H2/H3 AUROC is respectively
+`0.592057`, `0.597871`, and `0.619469`. H3−H0 is
+`+0.027412 [+0.023675,+0.031091]`; H3−H2 is
+`+0.021598 [+0.017653,+0.025457]`; H2−H0 is
+`+0.005814 [+0.004710,+0.006973]`. The intervals are
+Bonferroni-simultaneous within the three frozen AUROC contrasts. H3 also
+improves AUPRC against both parents and improves AUROC in all eight evaluable
+families. The ninth family, `multi_solutions`, is single-class and remains
+undefined rather than zero-filled.
+
+This is a supported `PRMBENCH_SPECIALIST` result, not a universal winner or a
+Phase-4 promotion. ProcessBench first-error value remains unconfirmed; the
+PRMBench labels were historically opened, the H2/H3 ancestry was
+outcome-selected, and source-stratum membership is unavailable. Detailed
+result note:
+`REASONING_LOCALIZATION_03662_H3_PRMBENCH_DIAGNOSTIC_RESULTS_V2.md`.
+
+#### Matched historical-regime H3 head-to-head
+
+The direct bridge requested before further fusion is complete. The executable
+first reproduced the exact Stage-4 entropy and finalist scores at
+`0.3614213584` and `0.3662328342`, then froze H0/H2/H3 locators before opening
+the same 1,270-row, 635-group historical audit. H0/H2/H3 reach F1
+`0.374099`, `0.374793`, and `0.372663` respectively. H3 minus historical is
+`+0.006431 [-0.026891,+0.039473]`; H2 minus historical is
+`+0.008560 [-0.024610,+0.040869]`. H3 is numerically above 0.3662, but the
+improvement claim is unresolved rather than supported or rejected.
+
+The 2x2 mechanism cross finds no supported isolated H3-localizer or
+interaction effect. Historical-detector plus H3-localizer changes F1 by
+`-0.003070 [-0.028453,+0.020618]` relative to the historical localizer;
+H0-detector plus historical-localizer changes it by
+`+0.013119 [-0.005697,+0.034240]`; interaction is
+`-0.003619 [-0.012159,+0.004363]`. The favorable end-to-end point estimate is
+therefore descriptively associated with the current detector's improved clean
+abstention, not with a demonstrated H3-localizer gain.
+
+H3 retains its separate supported PRMBench advantage but does not satisfy the
+preregistered dual-task promotion condition. H2 remains the ProcessBench
+raw-best candidate and H3 the PRMBench-enhanced candidate; both require an
+independent confirmation roster. Frozen contract:
+`REASONING_LOCALIZATION_03662_H3_HISTORICAL_HEADTOHEAD_V1.md`; result note:
+`REASONING_LOCALIZATION_03662_H3_HISTORICAL_HEADTOHEAD_RESULTS_V1.md`.
+
 ### Phase 3 — principled fusion and selection
 
 Only Phase 2 survivors may enter fusion. Freeze at most three evidence blocks and at most twelve scalar coordinates unless an explicit dimension amendment is approved.
@@ -1441,6 +1545,14 @@ feature/temporal graph branch in
 `REASONING_LOCALIZATION_03662_STG_GRAPH_TRANSFER_V1.md`, with exact-parent and
 random/permutation controls. A method may be rerun only when the new survivor
 set establishes the exact premise the older experiment lacked.
+
+The subsequent development-only STEP-CUT audit failed the within-answer graph
+premise: the full graph lost to chain-only, step-permuted, and random-edge
+controls, and entropy-plus-graph fusion caused CI-supported Hit@1 harm on both
+Qwen and Llama panels. Consequently `P3G_T1_TEMPORAL_GRAPH` and any combined
+feature-by-time graph are `NOT_RUN_BY_GATE`. This does not close the separate
+STG feature/family-support arm, and it does not authorize the diagnostically
+interesting chain-only score without a new frozen premise protocol.
 
 Phase 3 uses the same ProcessBench promotion gate as Phase 2 and must also beat the best atomic parent with a multiplicity-valid paired interval lower bound above the preregistered +0.003 parent-benefit delta. This prevents a complex fusion from being promoted merely for matching a compact source.
 
