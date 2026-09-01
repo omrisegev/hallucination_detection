@@ -22,6 +22,15 @@ if SPEC is None or SPEC.loader is None:  # pragma: no cover
 REPORTING = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = REPORTING
 SPEC.loader.exec_module(REPORTING)
+FINALIZER_PATH = REPO / "scripts/reasoning_localization/finalize_phase3_development.py"
+FINALIZER_SPEC = importlib.util.spec_from_file_location(
+    "reasoning_localization_phase3_finalizer_test", FINALIZER_PATH
+)
+if FINALIZER_SPEC is None or FINALIZER_SPEC.loader is None:  # pragma: no cover
+    raise RuntimeError(f"cannot load {FINALIZER_PATH}")
+FINALIZER = importlib.util.module_from_spec(FINALIZER_SPEC)
+sys.modules[FINALIZER_SPEC.name] = FINALIZER
+FINALIZER_SPEC.loader.exec_module(FINALIZER)
 
 
 class SemanticAudit(HTMLParser):
@@ -75,7 +84,7 @@ class ReportingContractTests(unittest.TestCase):
         registry = self.bundle["variant_registry"]
         variants = registry["variants"]
         ids = {row["variant_id"] for row in variants}
-        self.assertEqual(106, len(variants))
+        self.assertEqual(135, len(variants))
         self.assertEqual(set(REPORTING.EXPECTED_NEW_VARIANTS), set(REPORTING.EXPECTED_NEW_VARIANTS) & ids)
         self.assertEqual(7, len(registry["allowed_execution_statuses"]))
         self.assertIn("PROMISING_UNCONFIRMED", registry["allowed_statistical_statuses"])
@@ -109,8 +118,9 @@ class ReportingContractTests(unittest.TestCase):
     def test_hierarchical_family_expert_template_is_bounded_and_unexecuted(self) -> None:
         variants = {row["variant_id"]: row for row in self.bundle["variant_registry"]["variants"]}
         branch = variants["P3_HIER_FAMILY_EXPERTS"]
-        self.assertEqual("PLANNED", branch["execution_status"])
-        self.assertEqual("PENDING", branch["decision_status"])
+        self.assertEqual("NOT_RUN_BY_GATE", branch["execution_status"])
+        self.assertEqual("NO_PROMOTION", branch["decision_status"])
+        self.assertEqual("NOT_EVALUATED", branch["statistical_status"])
         self.assertFalse(branch["rankable"])
         self.assertEqual(["P3_EQUAL_FAMILY_OUTER_REFERENCE"], branch["parent_variant_ids"])
         contract = branch["family_expert_contract"]
@@ -247,7 +257,8 @@ class ReportingContractTests(unittest.TestCase):
             variants["P3T_T2_CAUSAL_TEMPORAL"],
             variants["P3T_T3_TWO_AXIS_LOWRANK"],
         ]
-        self.assertTrue(all(row["execution_status"] == "PLANNED" for row in ladder))
+        self.assertTrue(all(row["execution_status"] == "NOT_RUN_BY_GATE" for row in ladder))
+        self.assertTrue(all(row["statistical_status"] == "NOT_EVALUATED" for row in ladder))
         self.assertTrue(all(not row["rankable"] for row in ladder))
         self.assertEqual(["P2R_A_TOPK5_REFERENCE"], ladder[0]["parent_variant_ids"])
         contract = ladder[-1]["tensor_contract"]
@@ -257,11 +268,102 @@ class ReportingContractTests(unittest.TestCase):
         self.assertTrue(any("hard factor deflation" in item for item in contract["negative_controls"]))
         experiments = {row["experiment_id"]: row for row in self.bundle["experiment_registry"]["experiments"]}
         branch = experiments["P3_TRAJECTORY_TENSOR"]["trajectory_tensor_contract"]
-        self.assertEqual(4, len(branch["ordered_ladder"]))
+        self.assertEqual(6, len(branch["ordered_ladder"]))
         self.assertIn("never averaged", experiments["P3_TRAJECTORY_TENSOR"]["promotion_gates"][-2])
+        self.assertEqual("COMPLETE", experiments["P3_TRAJECTORY_TENSOR"]["execution_status"])
+        self.assertIsNone(experiments["P3_TRAJECTORY_TENSOR"]["next_variant"])
         pipeline = next(row for row in self.bundle["plot_manifest"]["plots"] if row["plot_id"] == "PLOT_P3_TENSOR_PIPELINE")
         self.assertEqual("pipeline", pipeline["kind"])
         self.assertEqual(6, len(pipeline["selection"]["nodes"]))
+
+    def test_phase3_all_38_variants_and_all_experiments_are_closed(self) -> None:
+        groups = {
+            ("NOT_RUN_BY_GATE", "NO_PROMOTION", "NOT_EVALUATED"): {
+                "P3_EQUAL_FAMILY_OUTER_REFERENCE", "P3_HIER_FAMILY_EXPERTS",
+                "P3T_T0_FROZEN_PARENT", "P3T_T1_DSP_FIRST", "P3T_T2_CAUSAL_TEMPORAL",
+                "P3T_T3_TWO_AXIS_LOWRANK", "P3G_T0_PARENT", "P3G_F1_STG_FEATURE_SUPPORT",
+                "P3T_Q2_LEARNED_COORD", "P3T_Q3_CAUSAL_NEIGHBOR", "P3T_Q4_ONE_LAYER",
+            },
+            ("NOT_RUN_BY_GATE", "NO_PROMOTION", "DESCRIPTIVE"): {"P3G_T1_TEMPORAL_GRAPH"},
+            ("COMPLETE", "NO_PROMOTION", "PROMISING_UNCONFIRMED"): {
+                "P3A_H2_EQUAL_OUTER_REFERENCE", "P3D1_H2_VIEW_DEPLOYED_UPCR",
+                "P3E1_DYNAMICS_IU_ONLY", "P3E3_TOPK_IU_ONLY",
+                "P3F1_DYNAMICS_LOCAL_DUFS_LIU", "P3S1_DYNAMICS_CANONICAL_SU",
+            },
+            ("COMPLETE", "REJECTED", "SUPPORTED_HARM"): {"P3B_H2_OUTER_IU"},
+            ("COMPLETE", "NO_PROMOTION", "INCONCLUSIVE"): {
+                "P3C_H2_INNER_IU_EQUAL_OUTER", "P3T_Q1_POINT_QUERY",
+                "P3D0_H2_VIEW_FULLPOOL_IU", "P3D2_H2_VIEW_MASK_EQUAL_CONTROL",
+                "P3D3_H2_VIEW_RANDOM_MASK_CONTROL", "P3E0_H2_XFIT_EQUAL_REFERENCE",
+                "P3E2_PARTITION_IU_ONLY", "P3E4_ALL_MULTI_IU_CONTROL",
+                "P3F0_DYNAMICS_IU_PARENT", "P3F2_DYNAMICS_CONTEXT_DUFS_LIU",
+                "P3F3_DYNAMICS_CONTEXT_PERM_CONTROL", "P3K0_TOPK_IU_PARENT",
+                "P3K1_TOPK_LOCAL_DUFS_LIU", "P3S0_DYNAMICS_IU_PARENT",
+                "P3S2_DYNAMICS_STG_SU", "P3S3_DYNAMICS_STG_PERMUTED_SUPPORT",
+                "P3S4_DYNAMICS_RANDOM_SUPPORT_CONTROL", "P3T_Q1_QUERY_PERMUTED",
+                "P3T_Q1_NO_BOUNDARY",
+            },
+        }
+        expected = {
+            variant_id: status
+            for status, variant_ids in groups.items()
+            for variant_id in variant_ids
+        }
+        self.assertEqual(38, len(expected))
+        observed = {
+            row["variant_id"]: (
+                row["execution_status"], row["decision_status"], row["statistical_status"]
+            )
+            for row in self.bundle["variant_registry"]["variants"]
+            if row["phase"] == "P3"
+        }
+        self.assertEqual(expected, observed)
+        metrics = {row["variant_id"] for row in self.bundle["metrics"] if row["value"] != ""}
+        gated = {variant_id for variant_id, status in expected.items() if status[0] == "NOT_RUN_BY_GATE"}
+        self.assertFalse(gated & metrics)
+        experiments = self.bundle["experiment_registry"]["experiments"]
+        phase3 = [row for row in experiments if row["phase"] == "P3"]
+        self.assertEqual(11, len(phase3))
+        self.assertTrue(all(row["execution_status"] == "COMPLETE" for row in phase3))
+        self.assertTrue(all(row["next_variant"] is None for row in phase3))
+        self.assertTrue(all(row["phase3_closure"] == FINALIZER.VERDICT for row in phase3))
+        experiment_map = {row["experiment_id"]: row for row in experiments}
+        self.assertEqual("BLOCKED", experiment_map["P4_PRMBENCH_TRANSFER"]["execution_status"])
+        self.assertEqual("BLOCKED", experiment_map["P5_EARLY_TRANSFER"]["execution_status"])
+
+    def test_phase3_evidence_and_freeze_inventory_fail_closed(self) -> None:
+        FINALIZER.audit_evidence()
+        self.assertEqual(8, len(FINALIZER.ACTIVE_RUNNER_CONTRACTS))
+        self.assertEqual(2, len(FINALIZER.FROZEN_PROTOCOL_CONTRACTS))
+        for frozen_relative, registry_relatives in FINALIZER.FROZEN_PROTOCOL_CONTRACTS:
+            frozen_path = REPO / frozen_relative
+            frozen_sha = REPORTING.sha256_file(frozen_path)
+            self.assertIn(frozen_sha, frozen_path.name)
+            for registry_relative in registry_relatives:
+                registry = json.loads((REPO / registry_relative).read_text(encoding="utf-8"))
+                self.assertEqual(frozen_sha, registry["protocol_sha256"])
+        for nonfinite in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(nonfinite=nonfinite):
+                with self.assertRaises(FINALIZER.Phase3FreezeError):
+                    FINALIZER._assert_close(nonfinite, 0.0, "synthetic non-finite")
+        outcome = FINALIZER.finalize(check=True)
+        self.assertEqual("CHECKED", outcome["status"])
+        self.assertEqual(38, outcome["phase3_variants"])
+        self.assertEqual(157, outcome["phase3_files"])
+        freeze_path = "results/reasoning_localization_03662_v1/phase_3/PHASE3_DEVELOPMENT_FREEZE.json"
+        manifest_input = next(
+            row for row in self.build.manifest["inputs"] if row["path"] == freeze_path
+        )
+        self.assertEqual("registered_result_artifact", manifest_input["role"])
+        freeze = json.loads((REPO / freeze_path).read_text(encoding="utf-8"))
+        self.assertEqual(outcome["phase3_tree_sha256"], freeze["phase3_tree_sha256"])
+        self.assertIn("two-block", freeze["excluded_scopes"])
+        self.assertIn("Q2-Q4", freeze["excluded_scopes"])
+        frozen_paths = {row["path"] for row in freeze["files"]}
+        self.assertTrue(any("/score_freeze/" in path for path in frozen_paths))
+        self.assertTrue(any(path.endswith("/INVALIDATION.json") for path in frozen_paths))
+        self.assertTrue(any(path.endswith("/EVALUATION_REPAIR.json") for path in frozen_paths))
+        self.assertFalse(any("HANDOFF" in path or "/cache" in path.lower() for path in frozen_paths))
 
     def test_comparison_group_cannot_mix_task_population_or_metric(self) -> None:
         mutated = copy.deepcopy(self.bundle)
@@ -465,7 +567,7 @@ class ReportingContractTests(unittest.TestCase):
             REPORTING.sha256_bytes(REPORTING.canonical_json_bytes(manifest_projection)),
             self.build.manifest["report_manifest_sha256"],
         )
-        self.assertEqual(45, len(self.build.manifest["plots"]))
+        self.assertEqual(55, len(self.build.manifest["plots"]))
         self.assertTrue(all(row["source_sha256"] for row in self.build.manifest["plots"]))
         self.assertTrue(all(row["selection_rule"] for row in self.build.manifest["plots"]))
         self.assertTrue(all("comparison_group" in row and "bootstrap_definition" in row for row in self.build.manifest["plots"]))
@@ -533,7 +635,7 @@ class ReportingContractTests(unittest.TestCase):
         marker = '<script id="report-data" type="application/json">'
         payload = self.report.split(marker, 1)[1].split("</script>", 1)[0].replace("<\\/", "</")
         embedded = json.loads(payload)
-        self.assertEqual(106, len(embedded["variants"]))
+        self.assertEqual(135, len(embedded["variants"]))
         self.assertEqual(self.bundle["metrics"], embedded["metrics"])
         self.assertEqual(self.bundle["contrasts"], embedded["contrasts"])
         self.assertEqual(self.bundle["gates"], embedded["gates"])

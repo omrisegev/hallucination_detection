@@ -16128,3 +16128,278 @@ Eighty-six focused tests pass; two report rebuilds are byte-identical and
 `git diff --check` passes. No commit or push.
 
 ---
+
+## Phase-3 compact fusion begins — detector/top-ten carry-forward amendment
+
+The user explicitly retained the H0 detector and top-ten reducer as
+development parents despite unresolved intervals. The program records this as
+`PROMISING_UNCONFIRMED`; it does not rewrite Phase-2 gates or claim statistical
+improvement.
+
+The first ordinary outer-IU implementation was invalidated because candidate
+local scores also changed the clean/error decision. It remains preserved as a
+non-rankable `HARD_FAIL`. The corrected run copies H0 abstention exactly and
+changes only localization. It shows supported harm versus equal H2:
+`-0.014069 [-0.023926,-0.004635]`, with losses in seven of eight cells and
+worst-cell delta `-0.026018`. Ordinary outer IU is therefore closed.
+
+The matched hierarchical diagnostic then applied ordinary IU only inside the
+three multi-view H2 families, passed entropy level through unchanged, and kept
+the equal outer mean. Its delta is `-0.003924
+[-0.012614,+0.004539]`, 3/0/5, worst `-0.015683`. This is `INCONCLUSIVE`, not
+rejection. It does not decide the preregistered per-family selector, DUFS/LIU,
+L-SML, STG/SU, or tensor branches.
+
+### ASTGI-inspired separated-head program amendment
+
+Registered `P3_ASTGI_QUERY_HEADS` as a design-only trajectory subladder. The
+amendment responds to the detector/onset/state conflict by freezing D0=H0,
+O0=H2, and S0=H3 and by evaluating onset and state heads only against their
+own task parents. No cross-task aggregate exists.
+
+Q1 has query-conditioned point pooling and no graph. Q2 can learn one
+task-blind donor coordinate system only after Q1. Q3 can add one causal
+neighborhood only after Q2 and must beat chain, time-only, random, and
+permutation controls. Q4 can add exactly one propagation layer only after Q3.
+The failed STEP-CUT conductance branch remains closed. The registration is not
+execution-ready until the query function/objective, dimensions, K, seeds,
+controls, and noninferiority margins are frozen.
+
+---
+
+### Step 340 [reasoning localization] — register deployed U-PCR prune/refit correction
+
+**What**: Corrected the Phase-3 fusion roster after distinguishing ordinary
+full-pool IU-PCR from the repository's deployed U-PCR policy. Deployed U-PCR
+fits the additive covariance model on all fit-side views, estimates
+`rho_hat_i`, excludes weak experts with frozen absolute and relative
+thresholds, then recomputes the estimator and PCR weights on the survivors.
+The removal signal is model-estimated response covariance, not an observed
+task-label correlation.
+
+**Design consequence**: The exact deployed policy cannot be meaningfully
+tested on the four outer H2 family scores: fewer than five experts invokes its
+simple-average fallback. Registered a dimension-eligible compact member-view
+ladder instead: same-matrix full-pool ordinary IU, exact deployed U-PCR,
+survivor-mask equal control, and cardinality-matched random masks. H0
+clean/error decisions and top-ten remain fixed.
+
+**Extension rule**: Later IU, SU/STG, DUFS-LIU, L-SML/B3, and tensor/query
+survivors may each receive at most one method-native prune/refit contrast.
+Every contrast requires an exact unpruned parent, no-prune alias, donor-fold
+mask stability, and matched controls. A failed unpruned method is not reopened
+automatically, and ProcessBench/PRMBench labels cannot choose masks or
+thresholds.
+
+**State**: Design and living registries only. No execution registry was frozen,
+no score or label was opened, and no commit or push occurred. Canonical
+protocol:
+`docs/experiments/REASONING_LOCALIZATION_03662_PHASE3_DEPLOYED_UPCR_PRUNE_REFIT_V1.md`.
+
+### Step 341 [reasoning localization] — execute compact-view deployed U-PCR ladder
+
+**Frozen contract**: Enumerated 24 confidence-oriented H2 member views before
+labels, including C7 inside entropy dynamics and excluding sampled energy,
+structural views, and `energy_series`. Froze five grouped cross-fit folds,
+twenty cardinality-matched random-mask seeds, six macro-F1 contrasts with
+Bonferroni-simultaneous intervals, the `+0.003` practical-benefit bound, and
+the exact/clean/worst-cell/mask-stability gates. Every held response was
+projection-only.
+
+**Execution checks**: The no-exclusion alias to P3D0 is exact; the frozen H2
+source aliases the rebuilt H2 parent exactly; all candidate and random-control
+arms copy H0 abstention with zero mismatches. All forty deployed fits keep
+12--14 of 24 views, use two components, and avoid the `<5` simple-mean
+fallback. The minimum cell mean pairwise five-fold mask Jaccard is `0.9571`.
+
+**Results**: H2 `0.364090`; P3D0 full-pool IU `0.354240`; P3D1 deployed U-PCR
+`0.356740`; P3D2 rho-mask equal `0.353551`; P3D3 random-mask mean `0.354007`.
+P3D1 minus P3D0 is `+0.002499 [-0.008683,+0.013781]`, 5/1/2, so it is
+`PROMISING_UNCONFIRMED`, not rejected. P3D1 minus H2 is
+`-0.007350 [-0.017885,+0.003263]`. P3D1 minus P3D2 is
+`+0.003189 [-0.006005,+0.012580]`; P3D2 minus P3D3 is
+`-0.000457 [-0.009545,+0.008547]`.
+
+**Verdict**: `NO_PROMOTION`. The masks are descriptively stable, but neither
+the system-parent gate nor the equal-mask/random-mask mechanism gates pass.
+No PRMBench transfer opens. The method-native wrapper remains available only
+for another independently surviving unpruned method; it does not reopen a
+failed parent. No commit or push occurred.
+
+### Step 342 [reasoning localization] — atomic family-expert attribution
+
+**Design**: Froze five donor-cross-fitted arms before label import: equal H2,
+dynamics+C7 IU only, partition IU only, top-k IU only, and all multi-view IU.
+The compact family widths are 1/14/3/6; entropy level passes through. H0
+abstention and the top-ten reducer remain exact.
+
+**Results**: Matched equal H2 `0.364284`; dynamics-only `0.366876`
+(`+0.002592 [-0.001839,+0.007194]`, 6/0/2); partition-only `0.359376`
+(`-0.004908 [-0.013100,+0.003050]`, 3/0/5); top-k-only `0.365603`
+(`+0.001319 [-0.001433,+0.004355]`, 4/1/3); all-family IU `0.359577`
+(`-0.004708 [-0.013846,+0.004211]`, 3/0/5). Clean abstention is exactly
+unchanged. Dynamics exact-error delta is `+0.003236
+[-0.000807,+0.007364]`.
+
+**Verdict**: Dynamics and top-k are `PROMISING_UNCONFIRMED`; partition and the
+joint arm are `INCONCLUSIVE`. None is promoted. The decomposition shows that
+ordinary IU is family-dependent and that partition compression drives much of
+the aggregate loss. A later method-specific study may target dynamics first,
+with top-k as a single secondary control; no multi-method or multi-family
+factorial is authorized. No commit or push occurred.
+
+### Step 343 [reasoning localization] — DUFS family and contextual controls
+
+**Design**: Froze a dynamics-IU parent, dynamics-local DUFS-LIU, the requested
+context-conditioned arm in which all 24 compact H2 views define the DUFS graph
+but only fourteen dynamics views receive LIU weights, and a deterministic
+within-response circular-shift control for every outside-family view.  After
+that ladder met the loose no-harm eligibility rule, froze the only permitted
+secondary arm: top-k family-local DUFS-LIU versus its exact six-view IU parent.
+
+**Execution validity**: Five grouped donor folds, DUFS seeds 11/23/37, 80
+epochs, k=7, lambda=0.1, top-ten and H0 were fixed before labels. All P3E
+parent and lambda-zero aliases have maximum error zero; held responses are
+projection-only and all H0 abstention aliases are exact. The first dynamics
+evaluation invocation stopped after score freeze because the flip table used
+the nonexistent decision key `first_error`; an evaluation-only repair used
+the actual `true_first_error` key, reverified every frozen hash, and changed no
+score.
+
+**Results**: Dynamics local DUFS minus IU is
+`+0.000168 [-0.001466,+0.001818]`. All-H2 context minus IU is
+`-0.000006 [-0.001577,+0.001586]`; context minus local is
+`-0.000174 [-0.000726,0]`, and aligned context minus its permutation control
+is `+0.000020 [-0.000986,+0.001021]`. Top-k local DUFS minus IU is
+`-0.000065 [-0.001657,+0.001623]`, W/T/L `3/1/4`, worst `-0.003210`.
+
+**Verdict**: No DUFS arm is promoted or materially harmful. The contextual
+mechanism is not supported by its local and permutation controls, and the
+top-k replication is effectively tied. Keep ordinary IU as the simpler
+family-specific option; do not open another DUFS family, contextual graph,
+prune/refit, or PRMBench transfer from these results. No commit or push.
+
+### Step 344 [reasoning localization] — dynamics SU/STG-SU family ladder
+
+**Contract repair before labels**: the first execution attempt stopped during
+score freeze because canonical SU on the fourteen-view dynamics family
+selected twelve sparse pairs, so the sufficient SU sparse-support theorem was
+false for that diagnostic control. No score or label had been opened. A
+pre-label V2 registry amendment therefore preserved the canonical arm as a
+reported method control, while retaining theorem-validity and convergence
+requirements for STG-SU, feature-permuted support, and random-support refits.
+
+**Execution**: five outer grouped donor folds, nested five-fold STG covariance
+selection, seeds 11/23/37, 120 epochs, frozen penalty roster, and twenty
+cardinality-matched random supports. H0 clean/error decisions and top-ten
+step reducer were copied exactly; all held responses were projection-only.
+P3E1 parent alias error was 0, all H0 abstention mismatches were 0, and the
+minimum cell mean support Jaccard was 0.65143. Canonical theorem validity is
+retained in the per-fold diagnostics rather than hidden.
+
+**Results** (20,000 paired whole-question draws; Bonferroni family size 5):
+canonical SU minus dynamics IU was `+0.000216 [-0.004205,+0.004742]`,
+5/1/2, `PROMISING_UNCONFIRMED`; STG-SU minus IU was
+`-0.000114 [-0.002964,+0.002697]`, 3/2/3, `INCONCLUSIVE`; STG-SU minus
+canonical SU was `-0.000331 [-0.003703,+0.002991]`, 2/1/5,
+`INCONCLUSIVE`; STG-SU minus permuted support was
+`+0.000884 [-0.002316,+0.004156]`, 3/3/2,
+`PROMISING_UNCONFIRMED`; and STG-SU minus random support was
+`-0.000288 [-0.002896,+0.002180]`, 2/3/3, `INCONCLUSIVE`.
+
+**Verdict**: the STG support mechanism is not supported and no arm is
+promoted or transferred to PRMBench. The result is not a supported harm
+claim: the STG-vs-IU interval crosses zero and remains inside the practical
+bounds. The branch closes as `STG_PREMISE_INCONCLUSIVE__NO_PROMOTION`; a
+fresh confirmation would be needed before reopening. Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_3/dynamics_stg_su/` and
+`scripts/reasoning_localization/integrate_phase3_dynamics_stg_su.py`.
+
+### Step 345 [reasoning localization] — ASTGI-Q1 point-query premise
+
+**Contract**: Froze the first executable ASTGI-inspired rung before importing
+ProcessBench labels. Q1 applies one fixed analytic query to the four compact
+H2 family-risk views (`q_onset=[0.20,0.40,0.20,0.20]`, temperature 1.0) and a
+fixed within-step boundary coefficient `gamma=0.05`, then retains the H2
+top-ten reducer and H0 detector. Reverse-query and no-boundary controls were
+score-frozen in the same pass; the equal-mean control is the exact H2 parent.
+
+The first implementation attempt stopped at the pre-label position audit
+because the input intentionally carries masked prefix/suffix tokens outside
+scored step spans. An immutable V2 registry amendment assigns those masked
+tokens neutral `u=1` position and leaves the reducer's explicit spans
+unchanged; no scores or labels were exposed by the failed attempt.
+
+**Execution**: All eight current-common Qwen cells were projected from the
+same fit-safe input. The H2 parent alias error was zero, labels were imported
+only after hash verification, and every arm copied H0 abstention exactly.
+
+**Results** (20,000 paired whole-question draws; Bonferroni family size 3):
+Q1 macro F1 was `0.354584`, versus H2 `0.364090`, delta
+`-0.009507 [-0.019618,+0.000516]`, W/T/L `2/0/6`, worst cell
+`-0.028438` (OlympiadBench/Qwen3-4B). Exact-error delta was
+`-0.010644 [-0.020123,-0.001210]`; clean abstention remained exactly equal.
+Q1 versus the reverse-query control was `+0.000603
+[-0.000931,+0.002323]`, and versus no-boundary was `-0.001890
+[-0.003974,+0.000021]`.
+
+**Verdict**: `INCONCLUSIVE__NO_PROMOTION`. The Q1 point estimate is below the
+H2 parent, but its primary interval does not clear the preregistered harm
+bound; this is not a generic rejection. The control contrasts do not establish
+a query or boundary mechanism, so Q2 learned coordinates remain unopened.
+No PRMBench transfer or early-detection claim opens. Canonical artifacts:
+`results/reasoning_localization_03662_v1/phase_3/astgi_query_heads/` and
+`scripts/reasoning_localization/integrate_phase3_astgi_q1.py`.
+
+### Step 346 [reasoning localization] — Phase-3 audit and immutable freeze
+
+**Scope**: Audited the complete Steps 340--345 worktree record without running
+a new experiment or regenerating scores, bootstrap draws, or evaluation
+results. Added an idempotent fail-closed finalizer that verifies all published
+Phase-3 values and intervals, exact parent/abstention aliases, the H2 24-view
+roster (`1/14/3/6`), P3S runner constants and hashes, and a 157-file
+commit-visible Phase-3 artifact inventory. The inventory tree SHA is
+`1271d1e43effa26c014208953d280873b0ed8b7e6c8b8c8f1a9bf48117263da0`;
+ignored NPZ/SVG caches are intentionally excluded.
+
+**Registry closure**: All eleven Phase-3 experiments are `COMPLETE`, have no
+next variant, and carry
+`PHASE3_DEVELOPMENT_CLOSED__NO_PROMOTION`. Unexecuted hierarchy/two-block,
+tensor, residual STG, and Q2--Q4 variants are
+`NOT_RUN_BY_GATE / NO_PROMOTION / NOT_EVALUATED`; they are not encoded as
+scientific failures and have no metrics. PRMBench transfer and early detection
+are blocked by the absence of a promoted ProcessBench survivor. Existing P4H
+diagnostics are unchanged.
+
+**Claim boundary**: The canonical fair 3,400-row ProcessBench record remains
+dedicated family6+level+top-five F1 `0.326141`. Historical
+`0.3662328342` remains a rejected Local/Online finalist and audit anchor; no
+direct delta or rank is valid across those protocols. H2 `0.364090` is
+opened-development evidence, while P3E0 `0.364284` is a matched cross-fit
+control rather than an exact alias. Dynamics-IU `0.366876` remains
+`PROMISING_UNCONFIRMED`. DUFS `0.367045`, STG-SU `0.366762`, and Q1
+`0.354584` establish no promotion or mechanism. Q1's macro-F1 result is
+inconclusive, but its exact-error secondary is explicitly negative:
+`-0.010644 [-0.020123,-0.001210]`.
+
+**Verdict**: The later confidence families were opened adaptively after
+earlier outcomes on the same population and are retrospective development
+diagnostics, not one global confirmatory family. Phase-3 method search is
+closed on these questions. Reopening requires a separately registered branch
+on fresh questions or population. Two-block, Q2--Q4, PRMBench, and early were
+not run. The living report and immutable `phase_3` snapshot are rebuilt by the
+registered builder; no fetch, pull, merge, push, or Drive mutation is part of
+this freeze. Final report SHA is
+`5b45bffe4132bef4d31902538bdb3014e4bc3117cde76019d6d287cb10aedae1`;
+snapshot manifest SHA is
+`f5a42773f164040c0aa65f4303bb0db773e8e33e527bb1599656f42267dab1b1`.
+Independent Bugbot review found and closed two pre-commit blockers: the P3E
+runner is preserved byte-exactly at its frozen SHA
+`faa8d8d47c5090a206c3b2c5cf038bdfad107a7ae6b0b7fb3f92934542efe3a0`,
+and numeric freeze assertions now reject NaN/infinity. The finalizer also binds
+all eight active Phase-3 runner/registry/score-manifest lineages. A follow-up
+review found that the living compact-fusion protocol had continued to accrue
+post-result amendments after P3B/P3C registration. The exact pre-run protocol
+bytes are therefore preserved as content-addressed P3B (`c5b59c...`) and P3C
+(`cf87a9...`) copies; the finalizer verifies those copies against all three
+historical execution registries without rewriting their frozen hashes.

@@ -3,6 +3,9 @@
 
 from __future__ import annotations
 
+import hashlib
+import inspect
+import json
 from pathlib import Path
 import sys
 from types import SimpleNamespace
@@ -29,6 +32,9 @@ from spectral_utils.token_local_fusion import (  # noqa: E402
     LOCAL_EQUAL_FAMILY,
     LOCAL_IU29,
     PRIMARY_METHOD_IDS,
+    STG_EPOCHS,
+    STG_PENALTIES,
+    STG_SEEDS,
     SU_CONFIG,
     fit_local_equal29,
     fit_local_equal_family,
@@ -38,6 +44,7 @@ from spectral_utils.token_local_fusion import (  # noqa: E402
     prepare_token_fusion,
     step_maxima,
 )
+from scripts.reasoning_localization import run_phase3_dynamics_stg_su as p3s  # noqa: E402
 
 
 def fixture(
@@ -177,6 +184,58 @@ class TokenLocalFusionTests(unittest.TestCase):
         recovered = sum(bool(first.support[i, j]) for i, j in planted)
         self.assertGreaterEqual(recovered, 2)
         self.assertTrue(first.diagnostics["labels_seen_during_fit"] is False)
+
+        custom_first = learn_stg_sparse_support(
+            planted_preparation,
+            probability_threshold=0.70,
+            minimum_fold_fraction=0.80,
+        )
+        custom_second = learn_stg_sparse_support(
+            planted_preparation,
+            probability_threshold=0.70,
+            minimum_fold_fraction=0.80,
+        )
+        self.assertTrue(np.array_equal(custom_first.support, custom_second.support))
+        self.assertTrue(np.array_equal(
+            custom_first.pair_probability, custom_second.pair_probability
+        ))
+        self.assertEqual(0.70, custom_first.diagnostics["probability_threshold"])
+        self.assertEqual(0.80, custom_first.diagnostics["minimum_fold_fraction"])
+
+    def test_stg_threshold_validation_and_phase3_registry_contract(self) -> None:
+        parameters = inspect.signature(learn_stg_sparse_support).parameters
+        self.assertEqual(inspect.Parameter.KEYWORD_ONLY, parameters["probability_threshold"].kind)
+        self.assertEqual(inspect.Parameter.KEYWORD_ONLY, parameters["minimum_fold_fraction"].kind)
+        for keyword in ("probability_threshold", "minimum_fold_fraction"):
+            for invalid in (0.0, -0.1, 1.000001):
+                with self.subTest(keyword=keyword, invalid=invalid):
+                    with self.assertRaisesRegex(ValueError, r"must lie in \(0, 1\]"):
+                        learn_stg_sparse_support(
+                            self.preparation,
+                            **{keyword: invalid},
+                        )
+
+        registry_path = (
+            ROOT / "results/reasoning_localization_03662_v1/phase_3/"
+            "dynamics_stg_su/P3S_EXECUTION_REGISTRY_AMENDMENT_V2.json"
+        )
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        runner_path = Path(p3s.__file__).resolve()
+        token_path = ROOT / "spectral_utils/token_local_fusion.py"
+        self.assertEqual(p3s.MIN_FOLD_FRACTION, registry["minimum_fold_fraction"])
+        self.assertEqual(p3s.PROBABILITY_THRESHOLD, registry["probability_threshold"])
+        self.assertEqual(p3s.FEATURE_PERMUTATION_SEED, registry["feature_permutation_seed"])
+        self.assertEqual(list(p3s.RANDOM_SUPPORT_SEEDS), registry["random_support_seeds"])
+        self.assertEqual(STG_EPOCHS, registry["stg_epochs"])
+        self.assertEqual(list(STG_PENALTIES), registry["stg_penalties"])
+        self.assertEqual(list(STG_SEEDS), registry["stg_seeds"])
+        self.assertEqual(dict(SU_CONFIG), registry["su_config"])
+        self.assertEqual(
+            hashlib.sha256(runner_path.read_bytes()).hexdigest(), registry["runner_sha256"]
+        )
+        self.assertEqual(
+            hashlib.sha256(token_path.read_bytes()).hexdigest(), registry["token_fusion_sha256"]
+        )
 
     def test_complete_ladder_is_deterministic_and_reconstructable(self) -> None:
         first = fit_phase1_ladder(self.preparation)

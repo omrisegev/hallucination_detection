@@ -18,4 +18,9 @@ dataset_cache/**/*.pkl.part-* filter=lfs diff=lfs merge=lfs -text
 # (core.autocrlf=true) the LF blob lands as CRLF and hashes to something the
 # gate cannot recognise. Marking it binary makes the checkout byte-exact
 # everywhere, which is the only form in which the hash means anything.
-docs/experiments/*.frozen-*.md -text
+docs/experiments/*.frozen-*.md -text whitespace=-blank-at-eof
+
+# This executed Phase-3 runner is SHA-sealed with one historical blank line at
+# EOF. Preserve the byte identity while keeping `git diff --check` meaningful
+# for every other source file.
+scripts/reasoning_localization/run_phase3_family_expert_attribution.py whitespace=-blank-at-eof

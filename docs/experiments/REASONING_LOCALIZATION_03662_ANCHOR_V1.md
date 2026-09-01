@@ -1535,7 +1535,31 @@ Fusion order:
 
 1. Equal provenance-family average.
 2. Ordinary label-blind IU covariance fusion.
-3. One conditional mechanism only if its premise audit passes: self-basis innovation for residual complementarity, or B3 weighting for reliability heterogeneity.
+3. Exact deployed U-PCR weak-expert exclusion plus survivor refit on an
+   eligible compact member-view pool, with a matched full-pool IU parent.
+4. One conditional mechanism only if its premise audit passes: self-basis innovation for residual complementarity, or B3 weighting for reliability heterogeneity.
+
+The third rung is not an alias of ordinary IU-PCR.  Deployed U-PCR estimates
+fit-side `rho_hat`, removes views below frozen relative-reliability thresholds,
+and recomputes its spectral weights on the survivors.  It is dimension-
+ineligible on the four outer H2 family scores because the exact project policy
+falls back to a simple average below five experts.  The registered P3D test
+therefore uses the compact H2 member-view pool, a same-matrix full-pool IU
+control, a mask-only equal control, and a cardinality-matched random-mask
+control.  Full details are in
+`REASONING_LOCALIZATION_03662_PHASE3_DEPLOYED_UPCR_PRUNE_REFIT_V1.md`.
+
+The completed P3D ladder does not promote.  On the common eight-Qwen panel,
+P3D0 full-pool IU scores `0.354240`, P3D1 deployed U-PCR `0.356740`, the
+rho-mask equal control `0.353551`, and the predeclared mean over twenty random
+masks `0.354007`, versus `0.364090` for equal-family H2.  P3D1 improves its
+same-matrix P3D0 parent by `+0.002499 [-0.008683,+0.013781]`, which is
+`PROMISING_UNCONFIRMED`; against H2 it is
+`-0.007350 [-0.017885,+0.003263]`.  Five-fold masks are highly stable (minimum
+cell mean Jaccard `0.9571`) and no fallback occurs, but the equal-mask and
+random-mask controls do not support a useful pruning mechanism.  Thus deployed
+U-PCR remains a bounded idea for independently surviving methods, not the next
+default fusion parent and not a PRMBench-transfer candidate from this run.
 
 SU-PCR, DUFS, graph hierarchy, and transform clustering are not default
 escalation paths. The corrected final-answer `STG_SU_STABLE` result provides a
@@ -1556,7 +1580,7 @@ interesting chain-only score without a new frozen premise protocol.
 
 Phase 3 uses the same ProcessBench promotion gate as Phase 2 and must also beat the best atomic parent with a multiplicity-valid paired interval lower bound above the preregistered +0.003 parent-benefit delta. This prevents a complex fusion from being promoted merely for matching a compact source.
 
-#### Registered survivor-only trajectory-feature tensor branch
+#### Historical unexecuted trajectory-feature tensor registration
 
 `P3_TRAJECTORY_TENSOR` is a bounded later-stage branch. It does not alter or
 delay Phase 1 and cannot open until Phase 2 has frozen both a compact atomic
@@ -1642,7 +1666,30 @@ arm recorded as `NOT_RUN_BY_GATE`, not silently omitted. The tensor branch
 inherits the reducer-study result as its parent and cannot choose top-k or a
 temporal transform after either task's labels are opened.
 
-#### Registered survivor-only hierarchical family-expert branch
+#### ASTGI-inspired task-query amendment — Q1 complete, later rungs closed
+
+The trajectory branch now contains a bounded `P3_ASTGI_QUERY_HEADS` subladder,
+defined fully in
+`docs/experiments/REASONING_LOCALIZATION_03662_ASTGI_QUERY_HEADS_V1.md`.
+It is an ASTGI-inspired adaptation, not a paper-exact reproduction, and the
+paper citation/component-fidelity map remains a prerequisite for any
+paper-derived claim.
+
+The amendment freezes three distinct repository parents: H0/D0 for response
+detection, H2/O0 for ProcessBench onset, and H3/S0 for PRMBench state-error
+ranking. Q1 adds query-conditioned point pooling without a graph; Q2 may add
+one donor-learned coordinate system; Q3 may add one causal neighborhood only
+after Q2; Q4 may add exactly one propagation layer only after Q3. Each rung
+must beat its exact parent and registered null/topology controls. The failed
+STEP-CUT conductance graph remains closed and is not a parent or premise.
+
+No cross-task score is defined. A dual-head architecture advances only when
+the onset head separately passes its H2 gate, the state head separately passes
+its H3 gate, and H0 abstention is unchanged. Hierarchical family fusion, DSP,
+and tensor rank are held fixed throughout Q1--Q4 and may enter later only by a
+separate one-factor contrast.
+
+#### Historical unexecuted hierarchical family-expert registration
 
 `P3_HIER_FAMILY_EXPERTS` is a bounded design branch, not an executed result
 and not permission for an unconstrained fusion search. It may be instantiated
@@ -1698,6 +1745,78 @@ the grouping is the frozen provenance family contract, singleton handling is
 explicit, selection is nested/calibration-only, and atomic survival is a hard
 prerequisite. Those differences justify a bounded rerun, but provide no
 positive evidence until the registered comparisons are executed.
+
+The one-family-at-a-time P3E attribution is now complete. A matched donor-
+cross-fitted equal H2 parent scores `0.364284`. Replacing only dynamics+C7 by
+ordinary IU reaches `0.366876`, delta
+`+0.002592 [-0.001839,+0.007194]`, 6/0/2; replacing only top-k reaches
+`0.365603`, delta `+0.001319 [-0.001433,+0.004355]`. Both are
+`PROMISING_UNCONFIRMED`, not promoted. Partition-only IU is
+`-0.004908 [-0.013100,+0.003050]`, and the all-family closure is
+`-0.004708 [-0.013846,+0.004211]`. This establishes family heterogeneity as a
+useful development observation: a later method-specific variant may target
+dynamics first and top-k only as a control, while partition remains equal.
+
+That bounded DUFS follow-up is complete. Dynamics-local DUFS-LIU is only
+`+0.000168 [-0.001466,+0.001818]` above its exact IU parent. The requested
+context-conditioned arm lets all 24 compact H2 member views define the donor
+graph while only dynamics receives output weights; it is
+`-0.000006 [-0.001577,+0.001586]` versus the IU parent, does not beat the
+family-local graph, and differs from the within-response context-permutation
+control by `+0.000020 [-0.000986,+0.001021]`. The single permitted top-k
+local-DUFS control is `-0.000065 [-0.001657,+0.001623]` versus top-k IU. These
+are inconclusive/tied rather than supported harms, but neither DUFS geometry
+nor outside-family context earns promotion. Ordinary IU remains the compact
+family-expert default.
+
+#### Registered method-native prune/refit wrapper
+
+The two-pass deployed-U-PCR mechanism may also be tested as a bounded wrapper
+around later fusion survivors.  It is not a shared universal definition of
+"feature importance": ordinary IU uses additive-model `rho_hat`; SU uses its
+sparse-error-corrected estimate; STG uses fold-stable support; DUFS-LIU uses
+donor-stable gates; and L-SML/B3 or tensor/query methods are eligible only if
+their own label-free reliability quantity and exact no-pruning alias are
+frozen first.
+
+Every method receives at most one full-pool/prune-refit pair and must include
+the exact unpruned parent, no-pruning alias, cardinality-matched random mask,
+and mask-only equal control when defined.  Mask thresholds and member counts
+cannot be selected from ProcessBench or PRMBench outcomes.  A method that did
+not survive in full-pool form is not reopened automatically by this wrapper.
+
+#### Phase-3 development freeze — Step 346
+
+Phase 3 is closed on the current opened population with verdict
+`PHASE3_DEVELOPMENT_CLOSED__NO_PROMOTION`.  Steps 340--345 remain frozen
+development evidence; no score, bootstrap draw, or raw result was regenerated
+during the audit.  All Phase-3 experiments are `COMPLETE` with no next
+variant.  The unexecuted hierarchy/two-block, tensor, residual feature/temporal
+STG, and Q2--Q4 templates are `NOT_RUN_BY_GATE / NO_PROMOTION /
+NOT_EVALUATED`: they were never evaluated and are not scientific failures.
+Phase-4 PRMBench transfer and Phase-5 early detection remain blocked by the
+absence of a promoted ProcessBench survivor; already completed P4H diagnostics
+are unchanged.
+
+The numerical claim boundary is immutable.  The canonical fair 3,400-row
+ProcessBench record is dedicated `family6 + level + step_top5mean`, F1
+`0.326141`.  The historical Local/Online finalist `0.3662328342` is a rejected
+historical-regime audit anchor; the two values have unmatched protocols and
+must not receive a direct delta or rank.  H2 `0.364090` is opened-development
+evidence.  P3E0 `0.364284` is a matched donor-cross-fitted equal control, not
+an exact H2 alias.  Dynamics-IU `0.366876` remains
+`PROMISING_UNCONFIRMED`.  Dynamics DUFS `0.367045` and STG-SU `0.366762` do
+not establish their proposed mechanisms.
+
+ASTGI-Q1 scores `0.354584` versus H2 `0.364090`, with primary macro-F1 delta
+`-0.009507 [-0.019618,+0.000516]`; that interval yields
+`INCONCLUSIVE__NO_PROMOTION`.  Its separately reported exact-error delta is a
+degradation, `-0.010644 [-0.020123,-0.001210]`, and must not be erased by the
+primary verdict.  Later Phase-3 confidence families were frozen adaptively
+after earlier outcomes on the same population.  They are retrospective
+development diagnostics, not one joint confirmatory family, and cannot support
+promotion across the adaptive ladder.  Any reopening requires a separate
+protocol and branch on independently fresh questions or population.
 
 ### Phase 4 — PRMBench localization transfer
 

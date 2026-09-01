@@ -1201,13 +1201,30 @@ def prepare_build(report_dir: Path, repo_root: Path, generator_path: Path | None
     repo_root = repo_root.resolve()
     bundle = load_bundle(report_dir)
     source_artifacts = validate_bundle(bundle, report_dir, repo_root)
+    registered_artifacts = set(source_artifacts)
+    for rows in (
+        bundle["experiment_registry"]["experiments"],
+        bundle["variant_registry"]["variants"],
+    ):
+        for row in rows:
+            for field in ("result_artifact", "execution_artifact"):
+                relative = row.get(field)
+                if not relative:
+                    continue
+                path = (repo_root / relative).resolve()
+                _repo_relative(path, repo_root)
+                if not path.is_file():
+                    raise ReportingValidationError(
+                        f"registered {field} does not exist: {relative}"
+                    )
+                registered_artifacts.add(relative)
     generator = (generator_path or Path(__file__)).resolve()
-    input_paths = [report_dir / name for name in REGISTRY_FILES] + [repo_root / path for path in source_artifacts] + [generator]
+    input_paths = [report_dir / name for name in REGISTRY_FILES] + [repo_root / path for path in registered_artifacts] + [generator]
     unique_paths = sorted({path.resolve() for path in input_paths}, key=lambda path: _repo_relative(path, repo_root))
     inputs = []
     for path in unique_paths:
         relative = _repo_relative(path, repo_root)
-        if relative in source_artifacts:
+        if relative in registered_artifacts:
             role = "registered_result_artifact" if "/phase_" in relative else "historical_source_artifact"
         elif path == generator:
             role = "report_generator"
