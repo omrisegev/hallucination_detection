@@ -1,5 +1,32 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**Joint L-SML ProcessBench coverage amendment closed negative (2026-09-04 —
+Step 348):** After the parent all-eight structural gate returned
+`STRUCTURAL_NO_SCORE`, the user explicitly authorized one versioned PB-only
+retrospective evaluation. The amendment froze a single disclosed coverage
+policy: exact parent Joint L-SML weights on seven admissible cells and the
+existing `G=[]` flat-SML alias on the sole blocked
+`processbench_math_qwen3_4b` cell. The same active-23 orientation,
+preprocessing, detector=max, fixed top-`min(10,step_length)` locator, and three
+controls were retained. ProcessBench labels remained closed through an
+eight-cell bit-exact score audit and a separate evaluation-registry audit.
+
+On 3,400 source questions / 6,800 paired model rows with 2,000 threshold-refit
+paired bootstrap draws, Joint-or-flat macro-F1 is `0.269290`, versus IU-PCR
+`0.340378`, equal-family `0.285986`, and fixed-family continuous L-SML
+`0.342940`. Candidate-minus-IU is
+`-0.071087 [-0.084721,-0.054335]`; candidate-minus-fixed is
+`-0.073650 [-0.091279,-0.061706]`; candidate-minus-equal is
+`-0.016696 [-0.033615,-0.000629]`. Verdict `HARM`. The fallback cell is poor
+(`0.068258` F1), but it is not the whole explanation: pure-Joint
+GSM8K/Qwen3-8B is `0.143111`, and the selection-conditioned seven fitted-cell
+mean remains `0.298009` versus IU `0.341730` and fixed L-SML `0.341834`. The
+independent audit reproduced all points, 32 cell metrics, and 2,000 intervals
+with maximum error `0`. This second policy was defined after PRMBench was open;
+it is development evidence only and cannot promote or support generalization.
+Canonical report:
+`results/joint_lsml_existing_localization_v1/processbench_amendment_v1/REPORT.md`.
+
 **Joint L-SML existing-data localization closed negative (2026-09-04 — Step
 347):** Built and structurally validated the active-23 Joint L-SML head in an
 isolated worktree, incorporating Claude review commit `45f8b572` before score

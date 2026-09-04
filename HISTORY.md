@@ -16457,3 +16457,51 @@ future candidate must address weight concentration and the small-group
 cardinality failure under a new frozen protocol, without tuning on these
 opened labels. Canonical artifacts are under
 `results/joint_lsml_existing_localization_v1/`.
+
+### Step 348 [reasoning localization] — ProcessBench comparison confirms Joint-head harm
+
+**Authority and frozen policy**: The Step-347 all-eight rule correctly closed
+ProcessBench before labels because Qwen3-4B/MATH had no admissible learned
+partition. The user then explicitly required a ProcessBench comparison. A
+versioned prior-order audit limits that override to one retrospective PB-only
+coverage policy: reuse the exact frozen Joint L-SML weights in the seven
+admissible cells, and use the already-tested `G=[]` exact flat-SML alias (up to
+the global confidence sign gauge) only in the blocked cell. The candidate is
+therefore named Joint-or-flat and is not represented as pure Joint across all
+eight cells. IU-PCR, equal-family and fixed-family continuous L-SML are the
+same three active-23 controls. No feature, group, K, reducer, threshold or
+fallback was selected from PB labels.
+
+**Pre-label discipline**: All eight ProcessBench score artifacts were frozen
+before the PB CSV was parsed. An independent audit reconstructed 27,200
+detector scores and every locator bit-exactly from target-free raw telemetry
+and the policy ledger. A second audit verified the evaluation registry before
+label parsing. The fixed adapter is detector=max token risk and locator=argmax
+of fixed top-`min(10,step_length)` mean risk, not top-5 and not top-10-percent.
+The evaluation uses five grouped folds and 2,000 paired source-question
+bootstrap draws stratified by subset x frozen fold, with threshold refit in
+every draw. A third independent implementation reproduced the complete result
+with maximum numeric error `0`.
+
+**ProcessBench result**: On 3,400 source questions / 6,800 paired model rows,
+Joint-or-flat macro-F1 is `0.269290`, IU-PCR `0.340378`, equal-family
+`0.285986`, and fixed-family continuous L-SML `0.342940`. Paired descriptive
+95% contrasts are candidate-minus-IU
+`-0.071087 [-0.084721,-0.054335]`, candidate-minus-fixed
+`-0.073650 [-0.091279,-0.061706]`, and candidate-minus-equal
+`-0.016696 [-0.033615,-0.000629]`; all are wholly negative. The flat fallback
+cell scores `0.068258`, but pure-Joint GSM8K/Qwen3-8B also collapses to
+`0.143111`. The selection-conditioned seven admissible-cell diagnostic is
+Joint `0.298009`, IU `0.341730`, fixed L-SML `0.341834`, equal-family
+`0.280040`; it reuses all-eight calibrated thresholds, has no interval, and is
+not fallback-independent or complete-panel efficacy.
+
+**Verdict**: `HARM__NO_PROMOTION`. Together with Step 347, the result rejects
+the current hierarchical Joint weight map as a replacement localization head
+on both opened tasks. Better covariance misfit did not predict better ranking,
+and the failure is not solely a cardinality/fallback artifact. The historical
+`0.3662328342` remains an unmatched H2/H3 audit anchor rather than the control
+for this active-23 policy. No new variant may be tuned and promoted from these
+labels; any redesign must be frozen separately and generalization still
+requires fresh data. Canonical artifacts are under
+`results/joint_lsml_existing_localization_v1/processbench_amendment_v1/`.
