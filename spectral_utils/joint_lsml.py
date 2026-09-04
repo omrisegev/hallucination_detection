@@ -275,8 +275,15 @@ def discover_loao_consensus_groups(
     k_range: Sequence[int] = DEFAULT_K_RANGE,
     seed: int = 2026090401,
     minimum_group_size: int = 3,
+    pairwise_diagnostic_cap: int = 32768,
+    minimum_held_admissible_fraction: float = 1.0,
+    use_minimum_ari_tiebreak: bool = False,
 ) -> dict[str, Any]:
     values = np.asarray(donor_values, dtype=np.float64)
+    if not 0.0 < float(minimum_held_admissible_fraction) <= 1.0:
+        raise ValueError("minimum_held_admissible_fraction must be in (0, 1]")
+    if int(pairwise_diagnostic_cap) != pairwise_diagnostic_cap or int(pairwise_diagnostic_cap) < 1:
+        raise ValueError("pairwise_diagnostic_cap must be a positive integer")
     unique, stats = _owner_sufficient_statistics(values, answer_owners)
     valid_k = tuple(sorted({int(k) for k in k_range if 3 <= int(k) < values.shape[1]}))
     if not valid_k:
@@ -308,29 +315,61 @@ def discover_loao_consensus_groups(
         ari_to_consensus = np.asarray(
             [adjusted_rand_score(consensus, labels) for labels in held_labels], dtype=np.float64
         )
+        # Pairwise LOAO ARI is diagnostic only; K selection uses ARI to the
+        # consensus.  Materializing all O(n_answers^2) pairs is intractable for
+        # the full PRMBench population, so large cells use a deterministic,
+        # seed-bound pair sample.  Small-cell behavior remains byte-for-byte
+        # identical to the original implementation.
+        pair_count = len(held_labels) * (len(held_labels) - 1) // 2
+        if pair_count <= int(pairwise_diagnostic_cap):
+            diagnostic_pairs = list(combinations(range(len(held_labels)), 2))
+            pairwise_sampling = "all_pairs"
+        else:
+            rng = np.random.default_rng(int(seed) + 10_000_000 + k)
+            chosen: set[tuple[int, int]] = set()
+            while len(chosen) < int(pairwise_diagnostic_cap):
+                pair = np.sort(rng.choice(len(held_labels), size=2, replace=False))
+                chosen.add((int(pair[0]), int(pair[1])))
+            diagnostic_pairs = sorted(chosen)
+            pairwise_sampling = "deterministic_uniform_pair_sample"
         pairwise = np.asarray(
-            [adjusted_rand_score(left, right) for left, right in combinations(held_labels, 2)],
+            [adjusted_rand_score(held_labels[left], held_labels[right]) for left, right in diagnostic_pairs],
             dtype=np.float64,
         )
-        all_held_admissible = bool(
-            all(len(row) == k and min(row) >= int(minimum_group_size) for row in held_group_sizes)
-        )
+        held_admissible = np.asarray([
+            len(row) == k and min(row) >= int(minimum_group_size)
+            for row in held_group_sizes
+        ], dtype=bool)
+        held_admissible_fraction = float(np.mean(held_admissible))
+        all_held_admissible = bool(np.all(held_admissible))
         admissible = bool(
             len(sizes) == k and min(sizes) >= int(minimum_group_size)
-            and all_held_admissible
+            and held_admissible_fraction >= float(minimum_held_admissible_fraction)
         )
+        rejection_reason = None
+        if not admissible:
+            rejection_reason = (
+                "GROUP_SIZE_LT3_IN_CONSENSUS_OR_LOAO"
+                if float(minimum_held_admissible_fraction) == 1.0 else
+                "GROUP_SIZE_LT3_IN_CONSENSUS_OR_TOO_MANY_LOAO_FOLDS"
+            )
         candidates.append({
             "K": k,
             "labels": consensus,
             "group_sizes": sizes,
             "admissible": admissible,
-            "rejection_reason": None if admissible else "GROUP_SIZE_LT3_IN_CONSENSUS_OR_LOAO",
+            "rejection_reason": rejection_reason,
             "held_answer_group_sizes": tuple(held_group_sizes),
+            "held_admissible_fraction": held_admissible_fraction,
+            "all_held_admissible": all_held_admissible,
             "consensus_coassignment": coassignment_from_labels(consensus),
             "mean_loao_coassignment": consensus_affinity,
             "held_answer_labels": tuple(held_labels),
             "ari_to_consensus": ari_to_consensus,
             "pairwise_ari": pairwise,
+            "pairwise_ari_population_count": int(pair_count),
+            "pairwise_ari_sampling": pairwise_sampling,
+            "pairwise_ari_sample_count": int(len(pairwise)),
             "median_ari": float(np.median(ari_to_consensus)),
             "mean_ari": float(np.mean(ari_to_consensus)),
             "minimum_ari": float(np.min(ari_to_consensus)),
@@ -338,13 +377,27 @@ def discover_loao_consensus_groups(
         })
     eligible = [row for row in candidates if row["admissible"]]
     if not eligible:
+        blocked_rule = (
+            "max median LOAO-to-consensus ARI; mean ARI; minimum ARI; smaller K"
+            if use_minimum_ari_tiebreak else
+            "max median LOAO-to-consensus ARI; mean ARI; smaller K"
+        )
         return {
             "status": "BLOCKED_NO_ADMISSIBLE_PARTITION",
             "candidates": candidates,
-            "selection_rule": "max median LOAO-to-consensus ARI; mean ARI; smaller K; K>=3; all groups>=3",
+            "selection_rule": blocked_rule,
+            "minimum_held_admissible_fraction": float(minimum_held_admissible_fraction),
             "n_answers": int(len(unique)),
         }
-    selected = sorted(eligible, key=lambda row: (-row["median_ari"], -row["mean_ari"], row["K"]))[0]
+    if use_minimum_ari_tiebreak:
+        selected = sorted(
+            eligible,
+            key=lambda row: (-row["median_ari"], -row["mean_ari"], -row["minimum_ari"], row["K"]),
+        )[0]
+        selection_rule = "max median LOAO-to-consensus ARI; mean ARI; minimum ARI; smaller K"
+    else:
+        selected = sorted(eligible, key=lambda row: (-row["median_ari"], -row["mean_ari"], row["K"]))[0]
+        selection_rule = "max median LOAO-to-consensus ARI; mean ARI; smaller K"
     return {
         "status": "SELECTED",
         "K": int(selected["K"]),
@@ -355,6 +408,7 @@ def discover_loao_consensus_groups(
         "median_ari": float(selected["median_ari"]),
         "mean_ari": float(selected["mean_ari"]),
         "minimum_ari": float(selected["minimum_ari"]),
+        "held_admissible_fraction": float(selected["held_admissible_fraction"]),
         "exact_fraction": float(selected["exact_fraction"]),
         "pairwise_ari_summary": {
             "count": int(len(selected["pairwise_ari"])),
@@ -366,7 +420,8 @@ def discover_loao_consensus_groups(
             "maximum": float(np.max(selected["pairwise_ari"])),
         },
         "candidates": candidates,
-        "selection_rule": "max median LOAO-to-consensus ARI; mean ARI; smaller K; K>=3; all groups>=3",
+        "selection_rule": selection_rule,
+        "minimum_held_admissible_fraction": float(minimum_held_admissible_fraction),
         "n_answers": int(len(unique)),
     }
 

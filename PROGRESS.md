@@ -1,5 +1,31 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**Joint L-SML existing-data localization closed negative (2026-09-04 — Step
+347):** Built and structurally validated the active-23 Joint L-SML head in an
+isolated worktree, incorporating Claude review commit `45f8b572` before score
+freeze. The candidate learns one K>=3 residual partition by exact LOAO
+consensus and jointly fits global and group factors; all four efficacy arms
+share absolute raw-domain orientation, the same 23 streams, preprocessing and
+reducers. Seven of eight ProcessBench cells fit, but
+`processbench_math_qwen3_4b` had no admissible minimum-three partition, so the
+frozen all-eight rule produced `STRUCTURAL_NO_SCORE` and no ProcessBench label
+file was opened. PRMBench selected K=3 with groups 13/7/3 and reduced
+off-diagonal misfit from hard L-SML `0.245183` to `0.203177`.
+
+The independently audited retrospective PRMBench result is nevertheless
+negative: Joint AUROC `0.669063`, IU-PCR `0.671539`, equal-family `0.668774`,
+fixed-family continuous L-SML `0.672619`. Joint-minus-IU is
+`-0.002476 [-0.004103,-0.000908]`; Joint-minus-fixed is
+`-0.003556 [-0.004572,-0.002578]`; Joint-minus-equal is
+`+0.000289 [-0.001620,+0.002271]`. Joint AUPRC `0.251757` is below all three
+controls. Verdict `HARM`: a better covariance fit did not transfer to better
+step ranking, so this head is not promoted and no fresh generalization run is
+justified. The 6,966-score/6,208-label subset-join and the single-class
+`multi_solutions` serialization required two evaluation-only amendments; both
+were independently hash-audited, changed no score or method, and the final
+2,000-draw reconstruction matched to `1.11e-16`. Canonical report:
+`results/joint_lsml_existing_localization_v1/REPORT.md`.
+
 **Reasoning-localization Phase 3 audited and frozen (2026-08-31 — Step
 346):** Preserved the complete Steps 340--345 development record without
 rerunning scores, bootstrap draws, ProcessBench, or PRMBench.  The idempotent

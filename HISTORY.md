@@ -16403,3 +16403,57 @@ post-result amendments after P3B/P3C registration. The exact pre-run protocol
 bytes are therefore preserved as content-addressed P3B (`c5b59c...`) and P3C
 (`cf87a9...`) copies; the finalizer verifies those copies against all three
 historical execution registries without rewriting their frozen hashes.
+
+### Step 347 [reasoning localization] — Joint L-SML structural success does not transfer to localization
+
+**Question and scope**: Tested one frozen active-23 Joint L-SML candidate on
+the already opened Qwen ProcessBench/PRMBench development populations. This is
+explicitly `RETROSPECTIVE_OPENED_DEVELOPMENT`: no promotion, new-leader, or
+generalization claim is permitted. Claude review commit `45f8b572` was read
+before registration; its minimum-ARI tie-break, 95% held-fold admissibility,
+and 0.50 map-agreement catastrophe guard were incorporated into v1.1 without
+adding efficacy arms. All candidate/control scores use identical absolute
+raw-domain orientation, active-23 inputs, imputation, z-scoring, and reducers.
+
+**Pre-label structure**: Seven of eight ProcessBench cells and the PRMBench
+cell passed. `processbench_math_qwen3_4b` was blocked because every K candidate
+contained a consensus group smaller than three; the all-eight PB panel was
+therefore `STRUCTURAL_NO_SCORE`, no PB score artifacts were written, and PB
+labels were never opened. Every fitted lane chose K=3. PRMBench groups were
+13/7/3, held-fold admissibility was 1.0, minimum score-map Spearman was 0.8725,
+and Joint relative off-diagonal misfit `0.203177` improved on hard L-SML
+`0.245183`. An independent audit reconstructed all 94,112 x 4 frozen span
+scores bit-exactly before labels.
+
+**Evaluation adapter lineage**: The initial evaluator stopped before metrics
+because it incorrectly required equality between the full 6,966-response
+score roster and the official 6,208 error-response label roster. R1 froze the
+canonical opaque-ID subset join (758 score-only `correct` responses; 83,280
+labeled steps), with an independent audit. Its 2,000 draws then completed in
+memory but strict JSON rejected undefined metrics for the all-negative
+`multi_solutions` family. R2 retained the exact seed, draw-major stratified RNG
+order and tie-aware metrics, used the established vectorized tie-block form,
+and encoded those family metrics as `null / SINGLE_CLASS_NO_POSITIVE`. R2
+matched the generic evaluator to `1.915e-15` on registered real-data probe
+draws. A separate final audit reconstructed all 2,000 intervals to `1.11e-16`.
+Neither amendment changed fusion, weights, scores, reducers or decisions.
+
+**PRMBench result**: Joint L-SML AUROC is `0.669063`, versus IU-PCR
+`0.671539`, equal-family `0.668774`, and fixed-family continuous L-SML
+`0.672619`. Paired descriptive 95% contrasts are Joint-minus-IU
+`-0.002476 [-0.004103,-0.000908]`, Joint-minus-fixed
+`-0.003556 [-0.004572,-0.002578]`, and Joint-minus-equal
+`+0.000289 [-0.001620,+0.002271]`. Joint AUPRC `0.251757` is below all three
+controls (`0.255249`, `0.256271`, `0.256716`). Some family point estimates are
+positive, especially counterfactual/deception against equal-family, but these
+are unadjusted descriptive slices and do not reverse the aggregate result.
+
+**Verdict**: `HARM__NO_PROMOTION`. The added factor structure consistently
+improves covariance reconstruction, but the current hierarchical Joint weight
+map worsens localization ranking versus the matched incumbent and fixed-family
+L-SML. Do not run the planned fresh generalization experiment for this
+candidate. Preserve orientation/pruning and the structural diagnostics; any
+future candidate must address weight concentration and the small-group
+cardinality failure under a new frozen protocol, without tuning on these
+opened labels. Canonical artifacts are under
+`results/joint_lsml_existing_localization_v1/`.
