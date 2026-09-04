@@ -24,3 +24,13 @@ docs/experiments/*.frozen-*.md -text whitespace=-blank-at-eof
 # EOF. Preserve the byte identity while keeping `git diff --check` meaningful
 # for every other source file.
 scripts/reasoning_localization/run_phase3_family_expert_attribution.py whitespace=-blank-at-eof
+
+# Agent-B research records and their source are content-addressed by the frozen
+# T0/Joint manifests. Preserve their historical bytes while preventing
+# `git diff --check` from treating intentional trailing/EOF whitespace as an
+# editable defect.
+docs/experiments/OG_SML_AGENT_B_T0_V1.md whitespace=-blank-at-eol,-blank-at-eof
+docs/experiments/PRIOR_ORDER_AUDIT_JOINT_LSML_V1.md whitespace=-blank-at-eol,-blank-at-eof
+docs/experiments/PRIOR_ORDER_AUDIT_OG_SML_AGENT_B_V1.md whitespace=-blank-at-eol,-blank-at-eof
+results/og_sml_agent_b_v1/*.md whitespace=-blank-at-eol,-blank-at-eof
+spectral_utils/og_sml_graph.py whitespace=-blank-at-eof
