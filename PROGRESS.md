@@ -1,5 +1,11 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**Claude Code entry point for the complete Joint L-SML study:**
+`docs/experiments/JOINT_LSML_CLAUDE_HANDOFF.md` binds the structural lineage,
+PRMBench and ProcessBench results, exact artifact map, reducer/history boundary,
+and the allowed continuation scope on branch
+`codex/joint-lsml-localization-eval-v1`.
+
 **Joint L-SML ProcessBench coverage amendment closed negative (2026-09-04 —
 Step 348):** After the parent all-eight structural gate returned
 `STRUCTURAL_NO_SCORE`, the user explicitly authorized one versioned PB-only
