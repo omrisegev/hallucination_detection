@@ -16505,3 +16505,61 @@ for this active-23 policy. No new variant may be tuned and promoted from these
 labels; any redesign must be frozen separately and generalization still
 requires fresh data. Canonical artifacts are under
 `results/joint_lsml_existing_localization_v1/processbench_amendment_v1/`.
+
+### Step 349 [reasoning localization] — localize the Joint L-SML failure and bound the successor study
+
+**Scope**: Ran a post-hoc forensic diagnostic over the frozen Joint, IU,
+equal-family and fixed-family score arrays and the already-opened evaluation
+outcomes. No new fusion candidate, score array, threshold policy or efficacy
+arm was created. The result is `POSTHOC_RETROSPECTIVE_FAILURE_DIAGNOSTIC`, not
+confirmation or promotion evidence.
+
+**ProcessBench mechanism**: q4/MATH and pure-Joint q8/GSM8K explain `89.4%` of
+the net eight-cell Joint-minus-IU loss. Their candidate F1 deltas are `-0.263`
+and `-0.246`, even though candidate-versus-fixed detector Spearman is
+`0.989/0.980` and the fixed locator agrees `91.8%/88.8%`. Their out-of-fold
+error activation rates collapse to `9.6%/14.5%`, versus `67.0%/53.8%` for
+fixed-family continuous L-SML. The code-level cause is that
+`hierarchical_joint_weights` multiplies the global loading by cross-group SML
+weights and orients the vector but applies no final norm or donor-score-scale
+normalization. The amendment then mixes a unit-norm flat-SML fallback with
+larger Joint heads under one model-level absolute threshold. This is a scale-
+transfer failure, not primarily a sign, preprocessing, reducer or threshold-
+implementation error.
+
+**Cross-task mechanism**: scale is not the complete explanation. On PRMBench,
+where AUROC has no pooled threshold, Joint reduces relative off-diagonal
+misfit by `17.1%` but loses `0.248` AUROC percentage points to IU and `0.356`
+to fixed L-SML. Its frozen step-score Spearman remains `0.948` to IU and
+`0.980` to fixed. The structural fit estimates global `v` and group-specific
+`u`, while the deployed hierarchical head uses `v` plus a second SML over
+virtual groups and never directly uses `u`. Better covariance reconstruction
+is therefore not an aligned scorer objective.
+
+**What remains unidentified**: Every fitted cell chose K=3, but the frozen run
+did not score ordinary continuous L-SML with exactly those INTERNAL groups.
+The data do not yet causally separate group discovery from the hierarchical
+map. The next method study must first cross INTERNAL versus provenance/fixed
+groups with ordinary continuous L-SML versus hierarchical Joint.
+
+**Bounded successor plan**: Treat donor fused-score SD=1 as an engineering
+invariant before any cross-cell threshold. Then compare the two explicit
+orders token-fuse-then-step-reduce and per-feature-step-reduce-then-fuse under
+five outer/five inner source-group folds and equal maximum eight-configuration
+budgets for IU and Joint. ProcessBench and PRMBench select and report
+separately. Equal-all23 and equal-family are simple controls; at most two Joint
+successors may advance. Outcomes on these opened Qwen populations remain
+retrospective; fresh data is required for confirmation.
+
+**DUFS decision**: DUFS cannot choose K because its output is a per-feature
+gate, not a dependence partition count. Historical matched localization DUFS
+contrasts were effectively tied with IU, and hard selection has previously
+removed complementary covariance. A single fold-contained parameter-free soft
+gate may reweight the residual affinity as a new heuristic, but it consumes one
+successor slot and K must still be chosen by held-source stability plus a
+nondegenerate-affinity/null gate. No post-hoc group repair or DUFS sweep is
+authorized.
+
+Canonical artifacts are
+`results/joint_lsml_existing_localization_v1/failure_diagnostic_v1/` and
+`docs/experiments/JOINT_LSML_OPTIMIZATION_PLAN_V1.md`.

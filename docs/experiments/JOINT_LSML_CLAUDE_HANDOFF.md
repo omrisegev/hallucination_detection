@@ -149,6 +149,52 @@ all 32 per-cell F1 values, the seven-cell diagnostic, and every one of the 2,000
 paired bootstrap intervals with maximum absolute error zero. The PRMBench audit
 reproduced point estimates and intervals independently to numerical precision.
 
+## Post-hoc failure localization
+
+The versioned forensic package is under
+`results/joint_lsml_existing_localization_v1/failure_diagnostic_v1/`; start with
+its `REPORT.md`, `DIAGNOSTIC_SUMMARY.json`, and `INDEPENDENT_AUDIT.json`. It
+reuses only the frozen scores, weights and opened evaluation outcomes. It fits
+no new fusion candidate and is explicitly
+`POSTHOC_RETROSPECTIVE_FAILURE_DIAGNOSTIC`.
+
+The strongest supported diagnosis is:
+
+1. ProcessBench is dominated by a score-scale transfer failure. The final Joint
+   weight-vector L2 norm varies from roughly 1.30 to 1.78 across pure-Joint
+   cells, while fixed-family continuous L-SML is unit norm in every cell. The
+   q4/MATH fallback is also unit-norm flat SML, mixed under the same model-level
+   threshold with larger-norm Joint cells.
+2. q4/MATH and pure-Joint q8/GSM8K account for 89.4% of the net candidate-minus-IU
+   panel loss. Their detector Spearman against fixed L-SML is 0.989/0.980 and
+   locator agreement is 91.8%/88.8%, but the threshold activates only 9.6%/14.5%
+   of responses, versus 67.0%/53.8% for fixed L-SML.
+3. PRMBench rules out threshold scale as the complete explanation. Joint reduces
+   off-diagonal misfit by 17.1% but loses 0.248 AUROC percentage points to IU
+   and 0.356 percentage points to fixed L-SML. The deployed hierarchical head
+   uses the fitted global loading and a second SML across virtual groups, but
+   does not directly use the fitted
+   group-factor loadings. The covariance objective and deployed head are
+   therefore not aligned.
+
+This does not prove INTERNAL K=3 grouping is wrong. The original frozen study
+did not score ordinary continuous L-SML with the same INTERNAL groups, so group
+discovery and map construction must be separated in the next experiment.
+
+The proposed bounded successor study is
+`docs/experiments/JOINT_LSML_OPTIMIZATION_PLAN_V1.md`. Its first invariant is
+donor-frozen fused-score standard deviation one before cross-cell thresholding.
+It then crosses INTERNAL/provenance grouping with ordinary continuous-LSML/the
+hierarchical map, compares token-fuse-then-step-reduce with per-feature
+step-reduce-then-fuse, and gives IU and Joint the same maximum eight-config inner
+budget. ProcessBench and PRMBench remain separate objectives.
+
+DUFS is not a K selector: its output is a per-feature gate, not a partition
+count. A single parameter-free soft-affinity DUFS route is allowed only as a
+separate, fold-contained successor candidate. Prior project DUFS localization
+comparisons were effectively tied with IU, so it is secondary to fixing scale
+and the objective/head mismatch.
+
 ## Claude Code continuation boundary
 
 Claude may inspect, reproduce, or critique this branch directly. Before any new

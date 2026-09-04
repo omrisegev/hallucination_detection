@@ -2661,3 +2661,38 @@ and neither control establishes a query or boundary mechanism. Q2 learned
 coordinates remain closed, and there is no PRMBench transfer. Full protocol
 and artifacts: `docs/experiments/REASONING_LOCALIZATION_03662_ASTGI_Q1_EXECUTION_V1.md`
 and `results/reasoning_localization_03662_v1/phase_3/astgi_query_heads/`.
+
+### Joint L-SML successor direction after the localization autopsy (2026-09-04)
+
+The first active-23 Joint L-SML localization head is closed negative on both
+opened tasks. The post-hoc autopsy changes the most useful next question. The
+urgent issue is not another residual-covariance model: ProcessBench exposes a
+missing cross-cell score-scale convention, while PRMBench exposes a mismatch
+between the fitted covariance factors and the deployed hierarchical weight
+map.
+
+The next bounded development study should therefore proceed in this order:
+
+1. Normalize every fitted head to donor fused-score standard deviation one
+   before any cross-cell threshold. This is an engineering invariant, not a
+   label-tuned option.
+2. Cross INTERNAL versus provenance/fixed grouping with ordinary continuous
+   L-SML versus hierarchical Joint mapping. This is the minimum design that can
+   identify whether grouping or map construction is the failing branch.
+3. Compare token-fuse-then-step-reduce with per-feature-step-reduce-then-fuse,
+   using exact fixed reducers and training-fold-only fitting.
+4. Give IU and Joint equal maximum eight-configuration inner budgets under
+   five-by-five nested source-group CV, with PB and PRM selected and reported
+   separately.
+
+DUFS is not an adaptive-K rule. A DUFS output is a feature gate and cannot be
+substituted for a partition count. If DUFS returns, the only first-line role is
+one parameter-free, fold-contained soft reweighting of the INTERNAL residual
+affinity; K remains selected by held-source co-assignment stability and a
+nondegenerate-affinity/null gate. It consumes one of at most two Joint successor
+slots. Hard prefiltering and DUFS-driven group repair remain out of scope.
+
+The current Qwen data may estimate only retrospective development performance.
+A supported nested-CV result would authorize a fresh frozen confirmation test,
+not promotion. Exact plan:
+`docs/experiments/JOINT_LSML_OPTIMIZATION_PLAN_V1.md`.

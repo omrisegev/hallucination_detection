@@ -6,6 +6,31 @@ PRMBench and ProcessBench results, exact artifact map, reducer/history boundary,
 and the allowed continuation scope on branch
 `codex/joint-lsml-localization-eval-v1`.
 
+**Joint L-SML failure localized and bounded optimization plan drafted
+(2026-09-04 — Step 349):** A reproducible post-hoc diagnostic reuses only the
+frozen weights/scores and already-opened outcomes; it fits no new fusion arm.
+On ProcessBench, q4/MATH and pure-Joint q8/GSM8K account for 89.4% of the net
+candidate-minus-IU loss. Candidate-versus-fixed detector Spearman is
+0.989/0.980 and locator agreement 91.8%/88.8%, yet activation is only
+9.6%/14.5% versus fixed L-SML 67.0%/53.8%. The hierarchical head has no final
+common scale, and the coverage policy mixes a unit-norm flat fallback with
+Joint heads whose L2 norms vary materially. PRMBench independently shows the
+deeper objective/head mismatch: covariance misfit improves 17.1%, while Joint
+loses 0.248 AUROC percentage points to IU and 0.356 percentage points to fixed
+L-SML. The deployed map uses global `v` plus a second SML and does not directly
+use fitted group loadings `u`.
+
+The next plan freezes donor fused-score SD=1 as an engineering invariant,
+separates grouping from map in a 2x2 INTERNAL/provenance x continuous-LSML/
+hierarchical-Joint diagnostic, compares token-fuse-then-step-reduce with
+per-feature-step-reduce-then-fuse, and gives IU and Joint equal maximum
+eight-configuration nested-CV budgets. PB and PRM remain separate retrospective
+objectives; any confirmation still needs fresh data. DUFS is not a K selector.
+At most one parameter-free soft-affinity DUFS successor may use one of the two
+Joint candidate slots under a new registry. Canonical diagnostic:
+`results/joint_lsml_existing_localization_v1/failure_diagnostic_v1/REPORT.md`;
+plan: `docs/experiments/JOINT_LSML_OPTIMIZATION_PLAN_V1.md`.
+
 **Joint L-SML ProcessBench coverage amendment closed negative (2026-09-04 —
 Step 348):** After the parent all-eight structural gate returned
 `STRUCTURAL_NO_SCORE`, the user explicitly authorized one versioned PB-only
