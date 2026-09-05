@@ -15,6 +15,10 @@ set -euo pipefail
 TASK_ROOT=${1:?task directory required}
 CAPSULE=${2:?capsule directory required}
 CELLS=${3:?label-free cell bundle directory required}
+ROWS=${4:-30}
+OUTPUT_NAME=${5:-feasibility_pilot}
+[[ "$ROWS" =~ ^[0-9]+$ ]] || { echo 'Rows must be nonnegative' >&2; exit 2; }
+[[ "$OUTPUT_NAME" =~ ^[a-zA-Z0-9_]+$ ]] || { echo 'Invalid output name' >&2; exit 2; }
 case "$TASK_ROOT" in
   /shared/cycle3_tau_averbuch_prj/omrisegev1/*) ;;
   *) echo 'Task root is outside the verified non-home project directory' >&2; exit 2 ;;
@@ -28,7 +32,7 @@ python3 -m venv "$TASK_ROOT/venv"
 
 "$TASK_ROOT/venv/bin/python" -u "$CAPSULE/scripts/per_answer_localization/feasibility.py" \
   --cells-dir "$CELLS" --schema "$CAPSULE/stream_schema.json" \
-  --output "$TASK_ROOT/feasibility_pilot" --rows-per-cell 30 \
+  --output "$TASK_ROOT/$OUTPUT_NAME" --rows-per-cell "$ROWS" \
   --workers "${SLURM_CPUS_PER_TASK:-8}" &
 worker_pid=$!
 trap 'kill -TERM "$worker_pid" 2>/dev/null || true; wait "$worker_pid" || true; exit 85' TERM INT
