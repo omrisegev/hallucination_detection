@@ -470,6 +470,36 @@ def fit_v2_arms(
     except Exception as error:
         failures[EQUAL_FAMILY_METHOD] = f"{type(error).__name__}: {error}"
 
+    # ── permutation negative controls (protocol Section 6.2/6.3; diagnostics,
+    #    never selectable) ─────────────────────────────────────────────────────
+    if gates is not None:
+        perm_rng = np.random.default_rng(int(seed) + 424242)
+        try:
+            permuted_q = gates[perm_rng.permutation(len(gates))]
+            q_eff = effective_gates(permuted_q, 1.0, values.shape[1])
+            weight, meta = _cont_weight(values, prov_labels, gates=q_eff)
+            _admit("permctl_gate_prov5_cont", weight, {
+                **meta, "grouping": "provenance", "hook": "hook2_permutation_control",
+            })
+        except Exception as error:
+            failures["permctl_gate_prov5_cont"] = f"{type(error).__name__}: {error}"
+        try:
+            from .laplacian_upcr import build_graph_from_features, permute_graph
+
+            fit, labels, source = _internal_joint_fit()
+            graph = build_graph_from_features(values.T, gates=gates, k=7)
+            node_perm = perm_rng.permutation(graph.shape[0])
+            weight, meta = regularized_joint_map_weights(
+                values, fit.model_covariance, fit.global_loading,
+                mode="liu", lam=0.1, gates=gates,
+                graph=permute_graph(graph, node_perm),
+            )
+            _admit("permctl_graph_internal_joint_liu010", weight, {
+                **meta, "grouping": source, "hook": "hook3a_permutation_control",
+            })
+        except Exception as error:
+            failures["permctl_graph_internal_joint_liu010"] = f"{type(error).__name__}: {error}"
+
     # deployed IU_CONFIG sanity: the named deployed row must equal the grid row
     deployed_matches_grid = None
     if include_iu and DEPLOYED_IU_ROW in weights:
