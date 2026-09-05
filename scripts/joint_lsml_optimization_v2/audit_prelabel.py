@@ -10,6 +10,8 @@ Every check here is label-free.  Any failure is a study-level abort
 from __future__ import annotations
 
 import ast
+import argparse
+from datetime import datetime, timezone
 import hashlib
 import json
 import sys
@@ -19,6 +21,7 @@ import numpy as np
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
+from spectral_utils.joint_lsml_integrity import file_sha256  # noqa: E402
 
 from spectral_utils.feature_contract import confidence_sign_vector  # noqa: E402
 from spectral_utils.fixed_application_pipelines import (  # noqa: E402
@@ -71,7 +74,15 @@ def _synthetic(seed=1, n_rows=50, tokens=70):
     return raw, offsets, [f"r{i}" for i in range(n_rows)]
 
 
-def main() -> None:
+def main(argv=None) -> None:
+    global OUT
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--results-root", type=Path, default=OUT)
+    args = parser.parse_args(argv)
+    OUT = args.results_root.resolve()
+    if (OUT / "evaluation").exists() or (OUT / "AUDIT_PRELABEL_RECEIPT.json").exists():
+        raise RuntimeError("late audit requires an unopened run without an existing receipt")
+    CHECKS.clear()
     raw, offsets, rows = _synthetic()
     prep = prepare_active23(
         raw, offsets, rows, retained_indices=list(RETAINED_23),
@@ -174,8 +185,7 @@ def main() -> None:
         if golden.exists():
             check("fold hash matches golden", golden.read_text().strip() == digest, digest[:16])
         else:
-            golden.write_text(digest, encoding="utf-8")
-            check("fold hash golden recorded", True, digest[:16])
+            check("pre-existing fold hash golden required", False)
         folds = json.loads(payload)
         pb = folds["processbench"]["outer"]
         counts = np.bincount(list(pb.values()))
@@ -207,10 +217,13 @@ def main() -> None:
     # 10. immutability scan: frozen namespaces untouched on this branch
     import subprocess
 
-    diff = subprocess.run(
+    diff_result = subprocess.run(
         ["git", "diff", "--name-only", "origin/codex/joint-lsml-localization-eval-v1...HEAD"],
         capture_output=True, text=True, cwd=REPO,
-    ).stdout.splitlines()
+    )
+    check("immutability git comparison succeeded", diff_result.returncode == 0,
+          diff_result.stderr[:120])
+    diff = diff_result.stdout.splitlines()
     immutable_prefixes = (
         "results/joint_lsml_existing_localization_v1/", "results/joint_lsml_v1",
         "spectral_utils/joint_lsml_processbench_amendment.py",
@@ -223,6 +236,17 @@ def main() -> None:
     print(f"\n{'ABORT' if failed else 'ALL CLEAR'}: {len(CHECKS) - len(failed)}/{len(CHECKS)} checks passed")
     if failed:
         raise SystemExit(1)
+    OUT.mkdir(parents=True, exist_ok=True)
+    receipt = {
+        "created_utc": datetime.now(timezone.utc).isoformat(),
+        "status": "PASS", "audit_source_sha256": file_sha256(Path(__file__)),
+        "checks": [{"name": name, "passed": passed, "detail": detail} for name, passed, detail in CHECKS],
+        "labels_decoded": False,
+    }
+    receipt_path = OUT / "AUDIT_PRELABEL_RECEIPT.json"
+    with receipt_path.open("x", encoding="utf-8") as handle:
+        json.dump(receipt, handle, indent=2)
+        handle.write("\n")
 
 
 if __name__ == "__main__":

@@ -32,6 +32,19 @@ POSITION_BINS = 5
 _EPS = 1e-12
 
 
+def center_within_answers(matrix: np.ndarray, answer_ids: np.ndarray) -> np.ndarray:
+    """Remove each answer's per-slot mean on the exact supplied fit population."""
+    values = np.asarray(matrix, dtype=np.float64)
+    owners = np.asarray(answer_ids)
+    if values.ndim != 2 or owners.shape != (len(values),) or not np.isfinite(values).all():
+        raise ValueError("malformed within-answer centering inputs")
+    centered = values.copy()
+    for owner in np.unique(owners):
+        rows = owners == owner
+        centered[rows] -= values[rows].mean(axis=0, keepdims=True)
+    return centered
+
+
 def step_order_statistics(
     token_risk: np.ndarray,
     starts: Sequence[int],
