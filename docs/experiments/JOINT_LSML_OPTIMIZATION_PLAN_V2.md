@@ -102,10 +102,15 @@ Registered fallback when |corr| < 0.02: entropy_series Spearman. Both undefined 
 ### 3.3 Small-m degeneracy guard (Steps 203/205)
 Any SML eigen-stage over m=3 units (within-group or cross-group) is replaced by equal weights
 over SD-standardized units; m=4 is retained but flagged `small_m_flag`. m<=2 unchanged.
-Registration-time assertion: the guard is a no-op on the provenance-family CONT arms per cell
-(provenance family sizes are validated then; a size-3 family would be registered as an explicit
-exemption, never silently absorbed). Interpretation limit: under K=3 the INTERNAL "grouping
-effect" includes the guarded (equal) cross stage; the map axis remains cleanly isolated.
+**Registered disclosure (2026-09-05, pre-structure)**: the active-23 provenance families
+contain size-3 groups (family sizes 1/3/8/2/3/6), so the guard is NOT a no-op on
+provenance CONT arms — it applies uniformly to every arm. Consequence, disclosed rather than
+silently absorbed: the v2 fixed-family continuous L-SML arm (R1/control) is the Step-205-guarded
+variant and is not bit-identical to the Step-347 fixed-family control (which ran raw SML on its
+size-3 families). The uniform guard is preferred over a provenance exemption because two guard
+regimes would confound the grouping axis. Interpretation limit: under K=3 the INTERNAL
+"grouping effect" includes the guarded (equal) cross stage; the map axis remains cleanly
+isolated.
 
 ### 3.4 Blocked-cell policy
 INTERNAL grouping with no admissible partition on a (cell x fold) lane → provenance groups with
