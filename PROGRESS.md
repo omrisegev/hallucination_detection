@@ -8,11 +8,19 @@ The user allows pooled fitting across answers as a fallback; compare fit scopes
 using the same feature representation. Canonical arm choice is pending the
 explicit user question required by CLAUDE.md. Do not infer it from recent tables.
 Plan: `docs/experiments/PER_ANSWER_LOCALIZATION_V1.md`.
-The live Claude worktree remains untouched. AIRCC is reachable on cycle3;
-an 8-CPU, zero-GPU feasibility pilot is prepared after an 18-test local pass
-and a three-answer real-telemetry smoke test. Current cluster details are in
-CLAUDE.md. New integrity repairs are prepared separately and have not been
-applied to Claude's incomplete artifacts.
+The live Claude worktree remains untouched (28/45 outer folds at the last
+read-only check). AIRCC job 247840 completed the corrected full 400-answer
+GSM8K/Qwen3-4B feature audit: eight CPUs, zero GPUs, 10.8 seconds computation,
+21 seconds job wall time, no extraction errors. Width 32 gives a median eight
+fitting windows and 29 varying features; 220/400 answers meet the exploratory
+eight-window floor. This establishes neither stable fitting nor accuracy.
+27 targeted tests passed across the window, reader, integrity and existing
+trajectory modules. The corrected diagnostics agree on the 30 shared local/
+cluster answers. Evidence: `docs/reviews/window_feasibility_2026-09-06.json`.
+The user-facing HTML in the main checkout has the new `window-results` section.
+New integrity repairs are committed separately and have not been applied to
+Claude's incomplete artifacts. Handoff:
+`docs/experiments/JOINT_LSML_V2_LATE_INTEGRITY_AMENDMENT_20260906.md`.
 
 **Claude Code entry point for the complete Joint L-SML study:**
 `docs/experiments/JOINT_LSML_CLAUDE_HANDOFF.md` binds the structural lineage,

@@ -1,6 +1,6 @@
 # Window-localization feasibility and fit-scope study
 
-Status: IMPLEMENTATION / METHOD SELECTION PENDING. Started September 6, 2026.
+Status: WINDOW EXTRACTION AND GSM8K FEASIBILITY COMPLETE; FUSION METHOD SELECTION PENDING. Started September 6, 2026.
 Branch: `codex/per-answer-localization-v1`, sparse worktree `C:/Users/omris/TAU/hd_per_answer_wt`, base `ff800082468ecceca4ef15217c5b045314b5fea6`.
 
 ## Authorized purpose
@@ -33,7 +33,7 @@ PB source lengths (Qwen scorer copies share these lengths): GSM8K median269.5, M
 4. Map window scores to token/official-step scores with explicit boundary and final-window handling. Separate localization from no-error calibration.
 5. Implement reusable read-only integrity validation, collision-free additive manifests, honestly dated execution record and evaluator preflight; correct the misleading global-centering diagnostic in the isolated branch. Preserve old science artifacts.
 6. Validate locally on fixtures and a small label-free real-telemetry sample; run a short CPU-only cluster timing pilot before scaling.
-7. Complete registered evaluation only after the method choice and integrity checks. Report coverage, accuracy, stability, runtime and fit scope separately.
+7. Complete registered evaluation only after the method choice and integrity checks. Report coverage, accuracy, stability, runtime and fit scope separately. A width-32 starting comparison with widths 48 and 64 as larger-window checks is supported by GSM8K count coverage, but remains subject to feature/fuser stability. Do not call it an accuracy optimum.
 8. Update the HTML review and handoff with concrete outcomes and remaining limitations.
 
 ## Worktree and cluster observations
@@ -46,7 +46,7 @@ AIRCC became reachable after the user enabled VPN. Slurm requires a login shell:
 
 Existing PB and PRMB raw telemetry remains readable under `/shared/cycle2_tau_averbuch_prj/omrisegev1/results/`. New runs must use an isolated non-home cycle3 directory, not overwrite old code/results. Native dependency readiness is unverified; check inside a compute job. Keep BLAS threads1 per worker, checkpoint atomically, and follow preemption rules.
 
-## Initial implementation verification
+## Initial implementation verification (before the full cluster audit)
 
 18 targeted tests passed, including trace isolation, official-span mapping,
 rank-deficient/constant inputs, a reader that refuses label members, resume
@@ -61,3 +61,49 @@ Among all 400 GSM8K answers, 220 have at least eight full 32-token windows;
 66 do at width 48, 13 at width 64, and 2 at either 96 or 128. Eight is an
 engineering floor to explore, not a proven requirement. This motivates testing
 the pooled fallback without declaring that low-rank single-answer fusion fails.
+
+## Completed AIRCC feasibility check
+
+The final run is job 247840, exact scientific capsule from commit `6dea2f79`,
+under `/shared/cycle3_tau_averbuch_prj/omrisegev1/window_feasibility_20260906_v1/feasibility_gsm8k_full_v3/`.
+All 400 Qwen3-4B/GSM8K answers completed with zero extraction errors and zero
+rank-cap violations. Computation took 10.815 seconds on eight CPUs; total job
+wall time was 21 seconds. Python 3.12.3, NumPy 2.2.4, SciPy 1.17.1; no GPU.
+Memory accounting was unavailable. Source/input/config hashes and aggregate
+diagnostics are in `docs/reviews/window_feasibility_2026-09-06.json`.
+
+Width 32 has median N=8, active P=29, rank=7 and participation rank=3.651.
+The length feature is constant in all 400 matrices; `min_spilled` is constant
+in 166. Wider windows have fewer fitting rows and more constant minima.
+The full feature check has not yet been repeated on the other cells.
+
+Jobs 247835 (30-answer pilot) and 247838 (first 400-answer check) are retained
+as earlier diagnostics. Comparing the shared 30 answers locally and remotely
+exposed floating-point residual centering: three two-window matrices could
+be reported as rank two despite the rank-one centered-data bound. The fixed
+diagnostic recenters after scaling and enforces the N-1 bound. The corrected
+local/cluster comparison agrees on all categorical diagnostics, with maximum
+participation-rank difference 3.56e-15. No feature definition changed.
+
+The initial 30-answer compute timing was 22.723 seconds with one local worker
+versus 1.229 seconds with eight AIRCC workers. This is a practical comparison
+including platform/startup and competing local-work effects, not a general
+parallel speedup measurement. The first job also spent time installing its
+environment; later jobs reused it.
+
+27 targeted tests pass across the new window/reader/integrity tests and the
+existing trajectory-reducer tests. The HTML has 212 valid local/anchor links,
+no duplicate IDs, working paper filters and no horizontal overflow at width
+430. Prepared v2 repairs are committed but not applied to the running study.
+
+## Outstanding work requiring the named fusion arm
+
+Implement and test the explicitly chosen canonical fuser on both fitting
+scopes, keeping the same feature representation and grouped split. Check
+boundary perturbations, held-block stability, admissible regularization and
+short-answer coverage. Freeze a label-free width/fallback rule before scoring.
+Keep absolute no-error calibration separate from relative within-answer risk;
+state any use of shared training data or labels. Then evaluate PB first-error/
+all-correct and PRMB step ranking under their separate contracts. A pooled
+fallback can help insufficient fitting data but cannot restore features that
+are not computable on an extremely short trace.

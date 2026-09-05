@@ -16563,3 +16563,36 @@ authorized.
 Canonical artifacts are
 `results/joint_lsml_existing_localization_v1/failure_diagnostic_v1/` and
 `docs/experiments/JOINT_LSML_OPTIMIZATION_PLAN_V1.md`.
+
+### Step 350 [per-answer windows] — Feasibility measured; pooled fitting retained as fallback
+
+**What**: Implemented full response-feature extraction inside token windows,
+explicit nonoverlapping fit support, token/official-step mapping and a streaming
+label-free audit. Work is isolated on `codex/per-answer-localization-v1`.
+Prepared separate v2 integrity and centering repairs without changing Claude's
+live code, scores or manifests.
+
+**Why**: Omri clarified that the intended N-by-P matrix uses windows from one
+answer, whereas current v2 pools training tokens and step order statistics.
+He also authorized retaining multiple-answer fitting if needed. The comparison
+must preserve the window representation while changing fitting scope.
+
+**Result**: AIRCC job 247840 completed all 400 GSM8K/Qwen3-4B answers with no
+extraction errors in 10.815 seconds of computation on eight CPUs, zero GPUs.
+At width 32, 220/400 answers have at least eight full windows; median N=8,
+active P=29, rank=7. Eight is only an exploratory floor. Widths 48/64/96/128
+meet that floor on 66/13/2/2 answers. Trace length is constant throughout;
+min_spilled is constant in 166 width-32 matrices. This is feature feasibility,
+not an accuracy or stability result. A cross-platform numerical rank issue
+was corrected; the final 30-answer comparison agrees within floating-point
+precision. Earlier diagnostic artifacts are retained.
+
+27 targeted tests passed. The main-checkout HTML review includes results and
+fallback guidance, with verified local links and mobile layout. Fusion-arm
+selection is still pending the explicit user question required by CLAUDE.md;
+no new fuser, no-error calibration or label evaluation has been run. Claude
+remained active at 28/45 folds with no evaluation directory at the last check.
+
+Artifacts: `docs/experiments/PER_ANSWER_LOCALIZATION_V1.md`,
+`docs/reviews/window_feasibility_2026-09-06.json`, and
+`docs/experiments/JOINT_LSML_V2_LATE_INTEGRITY_AMENDMENT_20260906.md`.
