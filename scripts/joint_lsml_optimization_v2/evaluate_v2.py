@@ -77,7 +77,13 @@ def _scores(cell_id: str, outer: int, inner: int | None = None) -> dict[str, np.
     base = OUT / "structure" / cell_id / f"outer{outer}"
     path = base / "scores_outer.npz" if inner is None else base / f"inner{inner}" / "scores_inner.npz"
     bundle = np.load(path, allow_pickle=False)
-    return {key: bundle[key] for key in bundle.files}
+    scores = {key: bundle[key] for key in bundle.files}
+    if inner is None:
+        continuity = base / "scores_continuity.npz"
+        if continuity.exists():
+            extra = np.load(continuity, allow_pickle=False)
+            scores.update({key: extra[key] for key in extra.files})
+    return scores
 
 
 def _folds() -> dict:
@@ -432,6 +438,7 @@ def main() -> None:
     }
     for arm in (SUCCESSOR_S1, SUCCESSOR_S2, DEPLOYED_IU_ROW, DEPLOYED_UPCR_PORT_ROW,
                 EQUAL_ALL23_METHOD, EQUAL_FAMILY_METHOD, "prov5_cont",
+                "fixed_family_cont_unguarded",
                 "permctl_gate_prov5_cont", "permctl_graph_internal_joint_liu010"):
         prm_panels[arm] = PRMPanel(folds, cells[PRM_CELL], labels[PRM_CELL], arm=arm)
     for name, panel in prm_panels.items():
@@ -457,7 +464,8 @@ def main() -> None:
         for name, by_fold in pb_named.items()
     }
     for arm in (SUCCESSOR_S1, SUCCESSOR_S2, DEPLOYED_IU_ROW, DEPLOYED_UPCR_PORT_ROW,
-                EQUAL_ALL23_METHOD, EQUAL_FAMILY_METHOD, "prov5_cont"):
+                EQUAL_ALL23_METHOD, EQUAL_FAMILY_METHOD, "prov5_cont",
+                "fixed_family_cont_unguarded"):
         pb_panels[arm] = PBPanel(arm, folds, cells, labels)
     for name, panel in pb_panels.items():
         f1, extras = panel.crossfit_macro_f1()
@@ -549,10 +557,81 @@ def main() -> None:
         moduleb.setdefault("auroc", {})[name] = panel.auroc()
     for name in ("b1", "b2a", "b2b", "b3"):
         mean, ci = _prm_paired_bootstrap(panels_b[name], panels_b["b0"], n_boot=PRM_BOOT, seed=BOOT_SEED + 7)
-        moduleb.setdefault("vs_b0", {})[name] = {"delta": mean, "ci95": ci}
+        moduleb.setdefault("vs_b0_descriptive", {})[name] = {"delta": mean, "ci95": ci}
+
+    # ── Amendment R1: the 3x3 substrate x trajectory-fuser grid ──────────────
+    # Primary Module-B contrast: inner-CV-selected best of the 9 combos vs the
+    # frozen top-10-mean control on the SAME substrate (PRMB primary).
+    grid_combos = [f"{s}__{f}" for s in ("iu_c2_s25_l2_exoff", "internal_cont", "internal_joint")
+                   for f in ("sml", "iu", "joint")]
+    grid_fold_scores: dict[str, dict[int, np.ndarray]] = {}
+    b0_fold_scores: dict[str, dict[int, np.ndarray]] = {}
+    grid_status: dict[str, dict[int, str]] = {}
+    for k in range(N_OUTER):
+        path = OUT / "structure" / PRM_CELL / f"outer{k}" / "moduleb_grid.npz"
+        if not path.exists():
+            continue
+        bundle = np.load(path, allow_pickle=False)
+        for combo in grid_combos:
+            key = f"{combo}__scores"
+            if key in bundle.files:
+                grid_fold_scores.setdefault(combo, {})[k] = np.asarray(bundle[key], float)
+                grid_status.setdefault(combo, {})[k] = "OK"
+            else:
+                grid_status.setdefault(combo, {})[k] = "MISSING_OR_BLOCKED"
+            substrate = combo.rsplit("__", 1)[0]
+            b0_key = f"{substrate}__b0"
+            if b0_key in bundle.files:
+                b0_fold_scores.setdefault(substrate, {})[k] = np.asarray(bundle[b0_key], float)
+    inner_maps = folds["prmbench"]["inner"]
+    combo_selection: dict[str, str] = {}
+    for k in range(N_OUTER):
+        candidate_means = {}
+        for combo in grid_combos:
+            if k not in grid_fold_scores.get(combo, {}):
+                continue
+            scores = grid_fold_scores[combo][k]
+            values = []
+            for j in range(N_INNER):
+                groups = [str(g) for g in cell["group_ids"]]
+                val_rows = np.asarray([
+                    fold_map.get(g, -1) != k and inner_maps[str(k)].get(g, -1) == j
+                    for g in groups
+                ], dtype=bool)
+                val_steps = val_rows[step_rows]
+                values.append(_auroc(flags[val_steps], scores[val_steps]))
+            candidate_means[combo] = float(np.nanmean(values))
+        if candidate_means:
+            combo_selection[str(k)] = max(
+                candidate_means, key=lambda c: (candidate_means[c], -grid_combos.index(c))
+            )
+    if len(combo_selection) == N_OUTER:
+        winner_scores = {k: grid_fold_scores[combo_selection[str(k)]][k] for k in range(N_OUTER)}
+        winner_b0 = {
+            k: b0_fold_scores[combo_selection[str(k)].rsplit("__", 1)[0]][k]
+            for k in range(N_OUTER)
+        }
+        panel_winner = _assemble(winner_scores)
+        panel_b0_same = _assemble(winner_b0)
+        mean, ci = _prm_paired_bootstrap(panel_winner, panel_b0_same, n_boot=PRM_BOOT, seed=BOOT_SEED + 11)
+        moduleb["grid_primary"] = {
+            "selected_by_fold": combo_selection,
+            "winner_auroc": panel_winner.auroc(),
+            "b0_same_substrate_auroc": panel_b0_same.auroc(),
+            "delta": mean, "ci95": ci,
+            "gate": "SUPPORT" if ci[0] > 0 else ("HARM" if ci[1] < 0 else "NULL"),
+        }
+    grid_descriptive = {}
+    for combo in grid_combos:
+        by_fold = grid_fold_scores.get(combo, {})
+        if len(by_fold) == N_OUTER:
+            grid_descriptive[combo] = _assemble(by_fold).auroc()
+    moduleb["grid_descriptive_auroc"] = grid_descriptive
+    moduleb["grid_status"] = {combo: status for combo, status in grid_status.items()}
+
     moduleb["profiles"] = profiles
     (EVAL / "moduleb.json").write_text(json.dumps(moduleb, indent=1), encoding="utf-8")
-    print("module B:", json.dumps(moduleb.get("vs_b0", {}), indent=1))
+    print("module B primary:", json.dumps(moduleb.get("grid_primary", {}), indent=1)[:400])
 
 
 if __name__ == "__main__":
