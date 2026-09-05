@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from spectral_utils.window_localization import (
-    WINDOW_FEATURE_NAMES, build_window_matrix, feasible_widths, make_window_plan,
+    WINDOW_FEATURE_NAMES, WindowMatrix, build_window_matrix, feasible_widths, make_window_plan,
     matrix_diagnostics, tokens_to_official_steps, windows_to_tokens,
 )
 
@@ -82,3 +82,13 @@ def test_constant_trace_is_flagged_without_inventing_localization_signal():
     names = ("entropy_series", "spilled_series", "energy_series")
     matrix = build_window_matrix(raw, names, make_window_plan(256, 32))
     assert matrix_diagnostics(matrix)["status"] == "INSUFFICIENT_VARIATION"
+
+
+def test_two_window_rank_respects_centering_even_with_large_feature_offsets():
+    x = np.asarray([[1e9 + .1, 1e8 + .2, 1e7 + .3],
+                    [1e9 + .7, 1e8 + .9, 1e7 + .5]])
+    matrix = WindowMatrix(make_window_plan(64, 32), x, ("a", "b", "c"),
+                          np.ones(3, dtype=bool), (None, None, None))
+    result = matrix_diagnostics(matrix)
+    assert result["rank"] == result["rank_cap"] == 1
+    assert result["participation_rank"] == pytest.approx(1)

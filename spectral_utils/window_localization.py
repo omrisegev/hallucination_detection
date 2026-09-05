@@ -173,10 +173,13 @@ def matrix_diagnostics(matrix: WindowMatrix) -> dict:
     if n < 2 or p == 0:
         return {**result, "status": "INSUFFICIENT_VARIATION", "rank": 0, "participation_rank": 0.0}
     z = (x - x.mean(axis=0)) / x.std(axis=0)
+    # Large offsets and small variation can leave roundoff in the first
+    # centering pass. Remove it after scaling; centered N rows have rank <= N-1.
+    z -= z.mean(axis=0)
     singular = np.linalg.svd(z, compute_uv=False)
     eigen = singular * singular / n
     participation = float(eigen.sum() ** 2 / np.square(eigen).sum())
-    result.update(rank=int(np.linalg.matrix_rank(z)), participation_rank=participation,
+    result.update(rank=min(n - 1, int(np.linalg.matrix_rank(z))), participation_rank=participation,
                   rank_cap=min(p, n - 1), raw_n_over_p=float(n / p))
     return result
 
