@@ -773,6 +773,7 @@ def hierarchical_joint_weights(
     global_loading: Sequence[float],
     *,
     anchor_index: int,
+    small_m_guard: bool = False,
 ) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
     matrix = np.asarray(values, dtype=np.float64)
     groups = canonicalize_labels(labels)
@@ -784,7 +785,10 @@ def hierarchical_joint_weights(
         indices.append(index)
         virtual.append(matrix[:, index] @ loading[index])
     virtual_matrix = np.column_stack(virtual)
-    _, cross_weight = sml_fuse_signed(*[virtual_matrix[:, i] for i in range(virtual_matrix.shape[1])])
+    _, cross_weight = sml_fuse_signed(
+        *[virtual_matrix[:, i] for i in range(virtual_matrix.shape[1])],
+        small_m_guard=small_m_guard,
+    )
     weight = np.zeros(matrix.shape[1], dtype=np.float64)
     for position, index in enumerate(indices):
         weight[index] = loading[index] * float(cross_weight[position])
@@ -795,6 +799,7 @@ def hierarchical_joint_weights(
         "anchor_spearman": anchor_rho,
         "anchor_flipped": flipped,
         "uses_covariance_inverse": False,
+        "cross_small_m_guarded": bool(small_m_guard and virtual_matrix.shape[1] == 3),
     }
 
 
@@ -886,11 +891,131 @@ def dispatch_alias(
     raise ValueError("unsupported alias request")
 
 
+# ── Joint L-SML optimization v2 wrappers ─────────────────────────────────────
+# New entry points for the v2 study (docs/experiments/JOINT_LSML_OPTIMIZATION_PLAN_V2.md).
+# They compose the frozen estimators above; fit_joint_lsml internals are untouched.
+
+
+def _validated_gates(gates: Sequence[float], size: int) -> np.ndarray:
+    vector = np.asarray(gates, dtype=np.float64)
+    if vector.shape != (int(size),) or not np.isfinite(vector).all() or np.any(vector < 0.0):
+        raise ValueError("gates must be a finite nonnegative vector matching the stream count")
+    return vector
+
+
+def effective_gates(gates: Sequence[float], lam: float, size: int) -> np.ndarray:
+    """q_lambda = (1-lambda)*1 + lambda*q — lambda=0 is exactly all-ones."""
+    lam = float(lam)
+    if not 0.0 <= lam <= 1.0:
+        raise ValueError("lambda must lie in [0, 1]")
+    q = _validated_gates(gates, size)
+    return (1.0 - lam) * np.ones(int(size), dtype=np.float64) + lam * q
+
+
+def gated_joint_hierarchical_fit(
+    values: np.ndarray,
+    labels: Sequence[int],
+    gates_effective: Sequence[float],
+    *,
+    anchor_index: int,
+    seed: int,
+    small_m_guard: bool = False,
+) -> tuple[np.ndarray, JointFitResult, dict[str, Any]]:
+    """Hook-2 congruence on the Joint derivation (v2 rows R8/R9).
+
+    The joint factor model is fitted on the congruence-transformed covariance
+    of the gated coordinates X·diag(q), the hierarchical head (virtual group
+    classifiers + cross-group SML) runs entirely in those coordinates, and the
+    final weight is pulled back through diag(q) so that
+    values @ w == (values·diag(q)) @ w_gated. All-ones gates reproduce the
+    ungated path verbatim (the lambda=0 exact-identity contract).
+    """
+    matrix = np.asarray(values, dtype=np.float64)
+    q = _validated_gates(gates_effective, matrix.shape[1])
+    gated = matrix * q[None, :]
+    covariance = covariance_matrix(gated)
+    fit = fit_joint_lsml(covariance, labels, anchor_index=int(anchor_index), seed=int(seed))
+    _, weight_gated, meta = hierarchical_joint_weights(
+        gated, labels, fit.global_loading, anchor_index=int(anchor_index),
+        small_m_guard=small_m_guard,
+    )
+    weight = q * np.asarray(weight_gated, dtype=np.float64)
+    return weight, fit, {**dict(meta), "gates_applied": bool(not np.array_equal(q, np.ones(len(q))))}
+
+
+def regularized_joint_map_weights(
+    fit_values: np.ndarray,
+    model_covariance: np.ndarray,
+    global_loading: np.ndarray,
+    *,
+    mode: str,
+    lam: float,
+    gates: Sequence[float] | None = None,
+    graph: Any | None = None,
+    graph_k: int = 7,
+    target_condition: float = 1e3,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Hook-3a ('liu') / Hook-3b ('diag') regularized joint model-inverse maps.
+
+    'liu' reproduces the DUFS-LIU mechanism verbatim on the joint model
+    covariance: DUFS-gated sample kNN graph -> symmetric normalized Laplacian
+    -> feature-space roughness R = Z^T L Z / n, trace-matched to the model
+    covariance, added before the analytic-ridge solve. 'diag' adds a
+    trace-matched per-feature Tikhonov prior diag(1/q^2) — a distinct, cheaper
+    mechanism (labeled as such, never as a LIU port). lambda=0 is an exact
+    identity to the ungated model-inverse map for both modes.
+    """
+    from .dependency_fusion import regularized_covariance_weights
+    from .laplacian_upcr import build_graph_from_features, symmetric_normalized_laplacian
+
+    lam = float(lam)
+    if lam < 0.0 or not np.isfinite(lam):
+        raise ValueError("lambda must be finite and nonnegative")
+    covariance = np.asarray(model_covariance, dtype=np.float64)
+    extra: dict[str, Any] = {"mode": str(mode), "lambda": lam}
+    if lam == 0.0:
+        system = covariance
+    elif mode == "liu":
+        matrix = np.asarray(fit_values, dtype=np.float64)
+        if graph is None:
+            graph = build_graph_from_features(
+                matrix.T, gates=None if gates is None else _validated_gates(gates, matrix.shape[1]),
+                k=int(graph_k),
+            )
+        laplacian = symmetric_normalized_laplacian(graph)
+        roughness = np.asarray(matrix.T @ (laplacian @ matrix), dtype=np.float64) / len(matrix)
+        roughness = 0.5 * (roughness + roughness.T)
+        trace_r = float(np.trace(roughness))
+        scale = float(np.trace(covariance)) / trace_r if trace_r > EPS else 0.0
+        system = covariance + lam * scale * roughness
+        extra.update({
+            "roughness_trace": trace_r,
+            "trace_match_scale": scale,
+            "graph_k": int(graph_k),
+        })
+    elif mode == "diag":
+        q = _validated_gates(gates, covariance.shape[0])
+        floored = np.maximum(q, 1e-6)
+        prior = np.diag(1.0 / floored**2)
+        trace_d = float(np.trace(prior))
+        scale = float(np.trace(covariance)) / trace_d if trace_d > EPS else 0.0
+        system = covariance + lam * scale * prior
+        extra.update({"prior_trace": trace_d, "trace_match_scale": scale})
+    else:
+        raise ValueError("mode must be 'liu' or 'diag'")
+    weight, diagnostics = regularized_covariance_weights(
+        system, np.asarray(global_loading, dtype=np.float64),
+        target_condition=float(target_condition),
+    )
+    return np.asarray(weight, dtype=np.float64), {**dict(diagnostics), **extra}
+
+
 __all__ = [
     "JointFitResult", "JointStartResult", "absolute_cosine", "canonicalize_labels",
     "coassignment_from_labels", "consensus_orientation_and_roster", "covariance_matrix",
-    "discover_loao_consensus_groups", "dispatch_alias", "fit_joint_lsml",
-    "global_degree_roster", "hard_lsml_misfit", "hierarchical_joint_weights",
-    "leading_offdiag_loading", "offdiag_relative_misfit", "pairwise_score_spearman",
-    "raw_orientation_cell", "score_spearman", "weight_maps",
+    "discover_loao_consensus_groups", "dispatch_alias", "effective_gates", "fit_joint_lsml",
+    "gated_joint_hierarchical_fit", "global_degree_roster", "hard_lsml_misfit",
+    "hierarchical_joint_weights", "leading_offdiag_loading", "offdiag_relative_misfit",
+    "pairwise_score_spearman", "raw_orientation_cell", "regularized_joint_map_weights",
+    "score_spearman", "weight_maps",
 ]

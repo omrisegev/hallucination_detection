@@ -92,6 +92,7 @@ def prepare_active23(
     stream_names_29: Sequence[str],
     raw_feature_names_29: Sequence[str],
     fit_token_cap: int = FIT_TOKEN_CAP,
+    fit_row_mask: Sequence[bool] | None = None,
 ) -> Active23Preparation:
     values = np.asarray(raw, dtype=np.float64)
     offsets = np.asarray(token_offsets, dtype=np.int64)
@@ -115,10 +116,27 @@ def prepare_active23(
     if len(stream_names) != 29 or len(raw_names) != 29:
         raise ValueError("feature schema must contain 29 ordered names")
     selected = values[:, retained] * all_signs[retained][None, :]
-    if len(values) > int(fit_token_cap):
-        fit_indices = np.linspace(0, len(values) - 1, int(fit_token_cap), dtype=np.int64)
+    if fit_row_mask is None:
+        eligible = np.arange(len(values), dtype=np.int64)
+        mask_sha = None
+        n_fit_rows = len(rows)
     else:
-        fit_indices = np.arange(len(values), dtype=np.int64)
+        mask = np.asarray(fit_row_mask, dtype=bool)
+        if mask.shape != (len(rows),):
+            raise ValueError("fit_row_mask must contain one flag per row")
+        if not mask.any():
+            raise ValueError("fit_row_mask selects no rows")
+        eligible = np.concatenate([
+            np.arange(int(offsets[index]), int(offsets[index + 1]), dtype=np.int64)
+            for index in np.flatnonzero(mask)
+        ])
+        mask_sha = payload_sha256(mask.astype(int).tolist())
+        n_fit_rows = int(mask.sum())
+    if len(eligible) > int(fit_token_cap):
+        positions = np.linspace(0, len(eligible) - 1, int(fit_token_cap), dtype=np.int64)
+        fit_indices = eligible[positions]
+    else:
+        fit_indices = eligible
     fit = selected[fit_indices]
     medians = np.nanmedian(fit, axis=0)
     clean = np.where(np.isfinite(fit), fit, medians[None, :])
@@ -147,6 +165,11 @@ def prepare_active23(
         "orientation": "absolute raw-domain signs before population z-score",
         "labels_accessed": False,
     }
+    if fit_row_mask is not None:
+        # Added only on the fold-scoped path so the default diagnostics payload
+        # (and its self-hash) stays byte-identical to the frozen v1 behavior.
+        diagnostics["fit_row_mask_sha256"] = mask_sha
+        diagnostics["n_fit_rows"] = n_fit_rows
     diagnostics["payload_sha256"] = payload_sha256(diagnostics)
     return Active23Preparation(
         raw=_readonly(values), token_offsets=_readonly(offsets), row_ids=rows,
