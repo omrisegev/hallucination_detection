@@ -1,5 +1,19 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**September 6, 2026 — per-answer window feasibility, separate Codex branch.**
+`codex/per-answer-localization-v1` recomputes the full 30 response feature
+definitions inside token windows, with separate nonoverlapping fit windows and
+overlapping scoring support. No fusion arm or labels have been evaluated.
+The user allows pooled fitting across answers as a fallback; compare fit scopes
+using the same feature representation. Canonical arm choice is pending the
+explicit user question required by CLAUDE.md. Do not infer it from recent tables.
+Plan: `docs/experiments/PER_ANSWER_LOCALIZATION_V1.md`.
+The live Claude worktree remains untouched. AIRCC is reachable on cycle3;
+an 8-CPU, zero-GPU feasibility pilot is prepared after an 18-test local pass
+and a three-answer real-telemetry smoke test. Current cluster details are in
+CLAUDE.md. New integrity repairs are prepared separately and have not been
+applied to Claude's incomplete artifacts.
+
 **Claude Code entry point for the complete Joint L-SML study:**
 `docs/experiments/JOINT_LSML_CLAUDE_HANDOFF.md` binds the structural lineage,
 PRMBench and ProcessBench results, exact artifact map, reducer/history boundary,
