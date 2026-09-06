@@ -326,10 +326,56 @@ def _prm_paired_bootstrap(panel_a: PRMPanel, panel_b: PRMPanel, *, n_boot: int, 
 
 # ── inner selection ──────────────────────────────────────────────────────────
 
+def _complete_coverage_rows(panel: str, candidates: list[str]) -> tuple[list[str], dict[str, int]]:
+    """Amendment R2: a row may be SELECTED only with complete lane coverage.
+
+    A row that fails closed on any (cell x fold) lane — outer or inner — cannot
+    produce a panel-level metric, and substituting a fallback would recreate the
+    Step-348 spliced coverage policy. Such rows are excluded from selection and
+    reported descriptively instead.
+    """
+    cell_ids = [PRM_CELL] if panel == "prmbench" else [
+        f"pb_{s}_{t}" for s in PB_SUBSETS for t in PB_MODELS
+    ]
+    suffix = "spanmax" if panel == "prmbench" else "detector"
+    present = {row: 0 for row in candidates}
+    lanes = 0
+    for cell_id in cell_ids:
+        for k in range(N_OUTER):
+            base = OUT / "structure" / cell_id / f"outer{k}"
+            paths = [base / "scores_outer.npz"] + [
+                base / f"inner{j}" / "scores_inner.npz" for j in range(N_INNER)
+            ]
+            for path in paths:
+                if not path.exists():
+                    continue
+                lanes += 1
+                keys = set(np.load(path, allow_pickle=False).files)
+                for row in candidates:
+                    if f"{row}__{suffix}" in keys:
+                        present[row] += 1
+    eligible = [row for row in candidates if present[row] == lanes]
+    incomplete = {row: present[row] for row in candidates if present[row] < lanes}
+    return eligible, {"lanes": lanes, **incomplete}
+
+
 def _inner_select(folds, cells, labels) -> dict:
     """Per panel x outer fold x family: argmax of 5-inner-fold mean metric."""
-    selection = {"processbench": {}, "prmbench": {}}
-    families = {"lsml": list(LSML_ROSTER), "iu": list(IU_IDS)}
+    selection = {"processbench": {}, "prmbench": {}, "coverage": {}}
+    families_by_panel = {}
+    for panel in ("prmbench", "processbench"):
+        lsml_ok, lsml_bad = _complete_coverage_rows(panel, list(LSML_ROSTER))
+        iu_ok, iu_bad = _complete_coverage_rows(panel, list(IU_IDS))
+        families_by_panel[panel] = {"lsml": lsml_ok, "iu": iu_ok}
+        selection["coverage"][panel] = {
+            "lsml_excluded": {k: v for k, v in lsml_bad.items() if k != "lanes"},
+            "iu_excluded": {k: v for k, v in iu_bad.items() if k != "lanes"},
+            "lanes": lsml_bad.get("lanes"),
+        }
+        excluded = selection["coverage"][panel]["lsml_excluded"] | selection["coverage"][panel]["iu_excluded"]
+        if excluded:
+            print(f"COVERAGE_INCOMPLETE ({panel}), excluded from selection: {excluded}")
+    families = families_by_panel["prmbench"]
 
     # PRMBench: step AUROC on inner-val steps
     cell = cells[PRM_CELL]
@@ -363,6 +409,7 @@ def _inner_select(folds, cells, labels) -> dict:
         }
 
     # ProcessBench: inner-cross-fitted macro-F1 over the 8 cells
+    families = families_by_panel["processbench"]
     pb_outer = folds["processbench"]["outer"]
     for k in range(N_OUTER):
         inner_map = folds["processbench"]["inner"][str(k)]

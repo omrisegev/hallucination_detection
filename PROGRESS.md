@@ -1,5 +1,20 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**September 6, 2026, 09:03 Israel time — repair reconciliation and disk cleanup.**
+Merged Claude's `7803cd55` into this separate repair worktree. R2's complete
+outer/inner coverage exclusions and the runner's `--outer` scheduling now
+coexist with the manifest, pre-label guard, late-record and centering repairs.
+29 targeted tests pass, including both panels' missing-inner-arm exclusions.
+Nothing was installed into Claude's live checkout or applied to its artifacts;
+its two PRMBench workers were still active at the check. Apply the documented
+repair/audit/freeze sequence after structure and R1 finish, before evaluation.
+Removed 11,747,202,886 bytes (10.94 GiB) of pip HTTP download caches and our
+four inactive HTML-test browser profiles. Free C: space after cleanup was
+27,406,266,368 bytes (25.52 GiB). Installed packages, locally built wheel cache,
+experiment inputs/results, worktrees, history, papers and the report remain.
+Exact paths and before/after measurements:
+`docs/reviews/disk_cleanup_2026-09-06.json`.
+
 **September 6, 2026 — per-answer window feasibility, separate Codex branch.**
 `codex/per-answer-localization-v1` recomputes the full 30 response feature
 definitions inside token windows, with separate nonoverlapping fit windows and

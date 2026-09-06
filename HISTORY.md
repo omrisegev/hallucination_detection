@@ -16596,3 +16596,22 @@ remained active at 28/45 folds with no evaluation directory at the last check.
 Artifacts: `docs/experiments/PER_ANSWER_LOCALIZATION_V1.md`,
 `docs/reviews/window_feasibility_2026-09-06.json`, and
 `docs/experiments/JOINT_LSML_V2_LATE_INTEGRITY_AMENDMENT_20260906.md`.
+
+
+### Step 351 [per-answer windows] — reconcile v2 repairs and reclaim disk space
+
+**What**: Merged Claude's fold scheduling and R2 coverage rule through
+`7803cd55` into the isolated Codex repair branch. Preserved the pre-label
+integrity guard, exact-path manifests, late snapshot and within-answer
+centering correction. Added regression coverage for missing inner-fold arms
+on both benchmark panels. Updated the HTML review and repair handoff.
+
+**Why**: Omri asked whether the promised fixes were done and requested more
+disk space while Claude's structure experiment was still running.
+
+**Result**: 29 targeted tests passed. The repaired code remains separate;
+Claude's live source and artifacts were not changed and no labels were read.
+Removed 10.94 GiB of pip HTTP download caches and four inactive browser-test
+profiles, leaving 25.52 GiB free immediately afterward. Preserved installed
+packages, wheel cache, all experiment data/results and worktrees. Exact paths
+and measurements: `docs/reviews/disk_cleanup_2026-09-06.json`.

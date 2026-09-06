@@ -354,7 +354,7 @@ def _module_b(cell_id: str, cell, prep, deployed_weight, mask_train, out_dir: Pa
     }, indent=1), encoding="utf-8")
 
 
-def _run_cell(cell_id: str) -> str:
+def _run_cell(cell_id: str, outers: tuple[int, ...] | None = None) -> str:
     import torch
 
     torch.set_num_threads(1)
@@ -363,7 +363,9 @@ def _run_cell(cell_id: str) -> str:
     folds = json.loads((OUT / "folds" / "folds.json").read_text(encoding="utf-8"))
     panel = "prmbench" if cell_id == PRM_CELL else "processbench"
     outer_map = folds[panel]["outer"]
-    for k in range(N_OUTER):
+    # `outers` lets one process own a subset of folds, so a single large cell
+    # (PRMBench) can be spread across processes instead of running serially.
+    for k in (tuple(outers) if outers is not None else tuple(range(N_OUTER))):
         out_dir = OUT / "structure" / cell_id / f"outer{k}"
         out_dir.mkdir(parents=True, exist_ok=True)
         if (out_dir / "COMPLETE.json").exists():
@@ -398,14 +400,14 @@ def _run_cell(cell_id: str) -> str:
     return cell_id
 
 
-def stage_structure(cells: list[str], workers: int) -> None:
+def stage_structure(cells: list[str], workers: int, outers: list[int] | None = None) -> None:
     (OUT / "structure").mkdir(parents=True, exist_ok=True)
     if workers <= 1:
         for cell_id in cells:
-            _run_cell(cell_id)
+            _run_cell(cell_id, outers)
     else:
         with ProcessPoolExecutor(max_workers=workers) as pool:
-            futures = {pool.submit(_run_cell, cell_id): cell_id for cell_id in cells}
+            futures = {pool.submit(_run_cell, cell_id, outers): cell_id for cell_id in cells}
             for future in as_completed(futures):
                 print("cell complete:", future.result(), flush=True)
 
@@ -422,6 +424,7 @@ def main() -> None:
     parser.add_argument("stage", choices=("load", "folds", "structure", "check"))
     parser.add_argument("--cells", nargs="*", default=None)
     parser.add_argument("--workers", type=int, default=3)
+    parser.add_argument("--outer", nargs="*", type=int, default=None)
     args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     if args.stage == "load":
@@ -429,7 +432,7 @@ def main() -> None:
     elif args.stage == "folds":
         stage_folds()
     elif args.stage == "structure":
-        stage_structure(args.cells or cell_roster(), args.workers)
+        stage_structure(args.cells or cell_roster(), args.workers, args.outer)
     else:
         stage_check()
 

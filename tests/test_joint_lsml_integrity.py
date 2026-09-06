@@ -163,3 +163,26 @@ def test_additive_centering_uses_only_training_answers_and_preserves_saved_score
     assert path.read_bytes() == before
     with pytest.raises(RuntimeError, match="existing correction"):
         repair.repair_fold(root, cell, 0)
+
+
+@pytest.mark.parametrize("panel,suffix", [("prmbench", "spanmax"), ("processbench", "detector")])
+def test_r2_excludes_an_arm_missing_from_one_inner_lane(tmp_path, monkeypatch, panel, suffix):
+    from scripts.joint_lsml_optimization_v2 import evaluate_v2 as evaluator
+
+    monkeypatch.setattr(evaluator, "OUT", tmp_path)
+    monkeypatch.setattr(evaluator, "N_OUTER", 1)
+    monkeypatch.setattr(evaluator, "N_INNER", 2)
+    monkeypatch.setattr(evaluator, "PB_SUBSETS", ("gsm8k",))
+    monkeypatch.setattr(evaluator, "PB_MODELS", ("q4",))
+    cell = evaluator.PRM_CELL if panel == "prmbench" else "pb_gsm8k_q4"
+    base = tmp_path / "structure" / cell / "outer0"
+    for lane, relative in enumerate(("scores_outer.npz", "inner0/scores_inner.npz", "inner1/scores_inner.npz")):
+        path = base / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        arrays = {f"complete__{suffix}": np.ones(2)}
+        if lane != 1:
+            arrays[f"incomplete__{suffix}"] = np.ones(2)
+        np.savez(path, **arrays)
+    assert evaluator._complete_coverage_rows(panel, ["complete", "incomplete"]) == (
+        ["complete"], {"lanes": 3, "incomplete": 2},
+    )
