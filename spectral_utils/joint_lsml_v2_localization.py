@@ -81,6 +81,9 @@ IU_ROSTER: tuple[tuple[str, dict[str, Any]], ...] = tuple(
 
 DEPLOYED_IU_ROW = "iu_c2_s25_l2_exoff"       # == IU_CONFIG
 DEPLOYED_UPCR_PORT_ROW = "iu_c2_s25_l2_exon"  # Step-341 P3D1 recipe at token level
+# Amendment R3: descriptive lambda=0 model-inverse reference for the Hook 3a/3b inertness
+# guard (Section 7.4). Not a roster row, never selectable, excluded from coverage.
+HOOK3_LAMBDA0_REFERENCE_ROW = "internal_joint_modelinv_lam0"
 
 # ── L-SML family: the 16 registered rows (Section 4.2) ───────────────────────
 
@@ -284,7 +287,7 @@ def fit_v2_arms(
     values = np.asarray(preparation.standardized_fit, dtype=np.float64)
     entropy_index = preparation.feature_names.index("entropy_series")
     requested = tuple(rows) if rows is not None else LSML_ROSTER
-    unknown = set(requested) - set(LSML_ROSTER)
+    unknown = set(requested) - set(LSML_ROSTER) - {HOOK3_LAMBDA0_REFERENCE_ROW}
     if unknown:
         raise ValueError(f"unknown roster rows: {sorted(unknown)}")
 
@@ -412,6 +415,15 @@ def fit_v2_arms(
                 )
                 _admit(row_id, weight, {**meta, "grouping": source,
                                         "hook": f"hook3{'a' if mode == 'liu' else 'b'}"})
+            elif row_id == HOOK3_LAMBDA0_REFERENCE_ROW:
+                # Amendment R3: exact lambda=0 identity branch of the Hook 3 map
+                fit, labels, source = _internal_joint_fit()
+                weight, meta = regularized_joint_map_weights(
+                    values, fit.model_covariance, fit.global_loading,
+                    mode="liu", lam=0.0, gates=gates,
+                )
+                _admit(row_id, weight, {**meta, "grouping": source,
+                                        "hook": "hook3_lambda0_reference"})
             elif row_id in ("internal_gaff_cont", "internal_gaff_joint"):
                 joint_map = row_id.endswith("joint")
                 labels, source = _resolve_labels(gaff, joint_map=joint_map, row_id=row_id)
@@ -529,7 +541,8 @@ def fit_v2_arms(
 __all__ = [
     "DEPLOYED_IU_ROW", "DEPLOYED_UPCR_PORT_ROW", "DUFS_MIN_SURVIVORS",
     "EQUAL_ALL23_METHOD", "EQUAL_FAMILY_METHOD", "FIXED_FAMILY_METHOD",
-    "GATE_SEED_STD_CAP", "IU_ROSTER", "LSML_ROSTER", "ORIENTATION_PEARSON_FLOOR",
+    "GATE_SEED_STD_CAP", "HOOK3_LAMBDA0_REFERENCE_ROW", "IU_ROSTER", "LSML_ROSTER",
+    "ORIENTATION_PEARSON_FLOOR",
     "SD_FLOOR", "SUCCESSOR_S1", "SUCCESSOR_S2", "compute_soft_gates",
     "donor_scale_orient", "dufs_hard_survivors", "fit_v2_arms",
     "provenance_labels", "provenance_merged_labels",
