@@ -16615,3 +16615,21 @@ Removed 10.94 GiB of pip HTTP download caches and four inactive browser-test
 profiles, leaving 25.52 GiB free immediately afterward. Preserved installed
 packages, wheel cache, all experiment data/results and worktrees. Exact paths
 and measurements: `docs/reviews/disk_cleanup_2026-09-06.json`.
+
+### Step 352 [per-answer windows] — visual guide to Joint and selected extensions
+
+**What**: Created `docs/reviews/joint_lsml_visual_guide_2026-09-06.html`, a
+self-contained English explanation with covariance diagrams, three graph
+types, interactive family selection and a gate/penalty illustration. Covers
+Omri's selected six gate/LIU/diagonal configurations and two reference methods.
+
+**Why**: Omri requested a visual explanation of Joint L-SML and the different
+roles of graph structure in each selected extension.
+
+**Result**: Checked explanations against producer source through `720bacc3`.
+Distinguished joint model fitting from hierarchical/model-inverse heads,
+included the R3 lambda=0 reference, and documented the single-answer LOAO and
+small-N kNN gaps. All 19 links resolve; all five variant buttons and both
+sliders work in Chrome; no JavaScript exceptions or page overflow at widths
+1360, 430 and 320. Reviewed desktop/mobile screenshots. No fitting, labels or
+live source changes. A byte-identical guide is provided in the main checkout.

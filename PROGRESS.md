@@ -1,5 +1,18 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**September 6, 2026 — visual explanation of the selected Joint variants.**
+Omri selected `internal_joint_diag010/050`, `internal_joint_liu010/050`, and
+`internal_joint_gate050/100`, with `internal_joint` and `internal_cont` as
+references, and requested a visual HTML explanation. Created
+`docs/reviews/joint_lsml_visual_guide_2026-09-06.html` in simple English,
+checked against Claude's source through `720bacc3`. It distinguishes feature
+grouping, DUFS diffusion and LIU sample graphs; explains gated refitting versus
+model-inverse regularization; includes the R3 lambda=0 comparison and the
+one-answer LOAO/kNN adaptation gaps. Synthetic diagrams are explicitly labeled.
+This is documentation, not execution or a frozen window-study contract.
+R3's new output files still need to be added to our late-integrity requirements
+before the amended live run can be frozen; no live artifacts were changed.
+
 **September 6, 2026, 09:03 Israel time — repair reconciliation and disk cleanup.**
 Merged Claude's `7803cd55` into this separate repair worktree. R2's complete
 outer/inner coverage exclusions and the runner's `--outer` scheduling now
