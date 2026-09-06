@@ -16563,3 +16563,84 @@ authorized.
 Canonical artifacts are
 `results/joint_lsml_existing_localization_v1/failure_diagnostic_v1/` and
 `docs/experiments/JOINT_LSML_OPTIMIZATION_PLAN_V1.md`.
+
+### Step 350 [per-answer windows] — Feasibility measured; pooled fitting retained as fallback
+
+**What**: Implemented full response-feature extraction inside token windows,
+explicit nonoverlapping fit support, token/official-step mapping and a streaming
+label-free audit. Work is isolated on `codex/per-answer-localization-v1`.
+Prepared separate v2 integrity and centering repairs without changing Claude's
+live code, scores or manifests.
+
+**Why**: Omri clarified that the intended N-by-P matrix uses windows from one
+answer, whereas current v2 pools training tokens and step order statistics.
+He also authorized retaining multiple-answer fitting if needed. The comparison
+must preserve the window representation while changing fitting scope.
+
+**Result**: AIRCC job 247840 completed all 400 GSM8K/Qwen3-4B answers with no
+extraction errors in 10.815 seconds of computation on eight CPUs, zero GPUs.
+At width 32, 220/400 answers have at least eight full windows; median N=8,
+active P=29, rank=7. Eight is only an exploratory floor. Widths 48/64/96/128
+meet that floor on 66/13/2/2 answers. Trace length is constant throughout;
+min_spilled is constant in 166 width-32 matrices. This is feature feasibility,
+not an accuracy or stability result. A cross-platform numerical rank issue
+was corrected; the final 30-answer comparison agrees within floating-point
+precision. Earlier diagnostic artifacts are retained.
+
+27 targeted tests passed. The main-checkout HTML review includes results and
+fallback guidance, with verified local links and mobile layout. Fusion-arm
+selection is still pending the explicit user question required by CLAUDE.md;
+no new fuser, no-error calibration or label evaluation has been run. Claude
+remained active at 28/45 folds with no evaluation directory at the last check.
+
+Artifacts: `docs/experiments/PER_ANSWER_LOCALIZATION_V1.md`,
+`docs/reviews/window_feasibility_2026-09-06.json`, and
+`docs/experiments/JOINT_LSML_V2_LATE_INTEGRITY_AMENDMENT_20260906.md`.
+
+
+### Step 351 [per-answer windows] — reconcile v2 repairs and reclaim disk space
+
+**What**: Merged Claude's fold scheduling and R2 coverage rule through
+`7803cd55` into the isolated Codex repair branch. Preserved the pre-label
+integrity guard, exact-path manifests, late snapshot and within-answer
+centering correction. Added regression coverage for missing inner-fold arms
+on both benchmark panels. Updated the HTML review and repair handoff.
+
+**Why**: Omri asked whether the promised fixes were done and requested more
+disk space while Claude's structure experiment was still running.
+
+**Result**: 29 targeted tests passed. The repaired code remains separate;
+Claude's live source and artifacts were not changed and no labels were read.
+Removed 10.94 GiB of pip HTTP download caches and four inactive browser-test
+profiles, leaving 25.52 GiB free immediately afterward. Preserved installed
+packages, wheel cache, all experiment data/results and worktrees. Exact paths
+and measurements: `docs/reviews/disk_cleanup_2026-09-06.json`.
+
+### Step 352 [per-answer windows] — visual guide to Joint and selected extensions
+
+**What**: Created `docs/reviews/joint_lsml_visual_guide_2026-09-06.html`, a
+self-contained English explanation with covariance diagrams, three graph
+types, interactive family selection and a gate/penalty illustration. Covers
+Omri's selected six gate/LIU/diagonal configurations and two reference methods.
+
+**Why**: Omri requested a visual explanation of Joint L-SML and the different
+roles of graph structure in each selected extension.
+
+**Result**: Checked explanations against producer source through `720bacc3`.
+Distinguished joint model fitting from hierarchical/model-inverse heads,
+included the R3 lambda=0 reference, and documented the single-answer LOAO and
+small-N kNN gaps. All 19 links resolve; all five variant buttons and both
+sliders work in Chrome; no JavaScript exceptions or page overflow at widths
+1360, 430 and 320. Reviewed desktop/mobile screenshots. No fitting, labels or
+live source changes. A byte-identical guide is provided in the main checkout.
+
+**Undergraduate explanation follow-up:** Omri requested the L-SML versus
+Joint distinction before the extensions. Reworked the guide's opening into
+five sequential teaching sections, with a study-group analogy, staged-fusion
+diagram, constructed covariance example and a direct comparison. Explained
+that groups are fixed before Joint fitting and that the existing Joint head
+remains hierarchical. Moved formulas and variant details to the optional
+technical walkthrough. Verified 20 links, section order, responsive diagram
+visibility and existing interactions in Chrome at 1360/430/320 widths; no
+JavaScript exceptions or page overflow. Updated the main copy after checking
+it had no intervening user edits. This remains documentation-only work.

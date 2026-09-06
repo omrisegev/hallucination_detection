@@ -25,6 +25,7 @@ import numpy as np
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
+from spectral_utils.joint_lsml_integrity import IntegrityError, verify_prelabel_record  # noqa: E402
 
 from spectral_utils.joint_lsml_v2_localization import (  # noqa: E402
     DEPLOYED_IU_ROW,
@@ -44,6 +45,7 @@ from spectral_utils.trajectory_reducer import (  # noqa: E402
 
 OUT = REPO / "results" / "joint_lsml_optimization_v2"
 EVAL = OUT / "evaluation"
+_PRELABEL_VERIFIED = False
 N_OUTER = 5
 N_INNER = 5
 PB_SUBSETS = ("gsm8k", "math", "olympiadbench", "omnimath")
@@ -69,6 +71,8 @@ def _cell(cell_id: str) -> dict[str, np.ndarray]:
 
 
 def _labels(cell_id: str) -> dict[str, np.ndarray]:
+    if not _PRELABEL_VERIFIED:
+        raise IntegrityError("label loading is barred until the full pre-label check passes")
     bundle = np.load(OUT / "labels" / f"{cell_id}_labels.npz", allow_pickle=False)
     return {key: bundle[key] for key in bundle.files}
 
@@ -197,7 +201,7 @@ class PBPanel:
             for cell_index in np.unique(self.cell):
                 err = test & (self.cell == cell_index) & ~self.clean
                 if err.any():
-                    activation[(int(cell_index), k)] = float(np.mean(self.detector[err] >= tau))
+                    activation[f"cell{int(cell_index)}_outer{k}"] = float(np.mean(self.detector[err] >= tau))
         f1 = _pb_f1(hit_all, self.clean, clean_pred, self.cell, weights)
         return f1, {"activation": activation}
 
@@ -461,7 +465,18 @@ def _inner_select(folds, cells, labels) -> dict:
 
 # ── main ─────────────────────────────────────────────────────────────────────
 
-def main() -> None:
+def main(argv=None) -> None:
+    import argparse
+    global _PRELABEL_VERIFIED, OUT, EVAL
+    _PRELABEL_VERIFIED = False
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--results-root", type=Path, default=OUT)
+    args = parser.parse_args(argv)
+    OUT = args.results_root.resolve()
+    EVAL = OUT / "evaluation"
+    cell_ids = [f"pb_{s}_{t}" for s in PB_SUBSETS for t in PB_MODELS] + [PRM_CELL]
+    verify_prelabel_record(OUT, cell_ids, n_outer=N_OUTER, n_inner=N_INNER)
+    _PRELABEL_VERIFIED = True
     EVAL.mkdir(parents=True, exist_ok=True)
     folds = _folds()
     cells = {cell_id: _cell(cell_id) for cell_id in

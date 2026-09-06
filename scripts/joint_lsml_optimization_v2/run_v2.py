@@ -46,6 +46,7 @@ from spectral_utils.joint_lsml_v2_localization import (  # noqa: E402
     fit_v2_arms,
 )
 from spectral_utils.trajectory_reducer import (  # noqa: E402
+    center_within_answers,
     ORDERSTAT_K,
     fit_orderstat_weights,
     fit_position_bin_weights,
@@ -53,6 +54,7 @@ from spectral_utils.trajectory_reducer import (  # noqa: E402
     step_order_statistics,
     step_position_bins,
 )
+from spectral_utils.joint_lsml_integrity import relative_manifest, verify_prelabel_record  # noqa: E402
 
 # The main checkout holds the telemetry caches; the sparse worktree holds code.
 DATA_ROOT = Path(r"C:\Users\omris\TAU\hallucination_detection")
@@ -329,11 +331,14 @@ def _module_b(cell_id: str, cell, prep, deployed_weight, mask_train, out_dir: Pa
     b1_scores = reduce_with_weights(matrix, lengths, b1_weights)
     b2b_weights, b2b_meta = fit_position_bin_weights(bins[train_steps])
     b2b_scores = bins @ b2b_weights
-    centered = matrix[train_steps] - matrix[train_steps].mean(axis=0, keepdims=True)
+    full_train = train_steps & (lengths >= ORDERSTAT_K)
+    centered = center_within_answers(matrix[full_train], step_rows[full_train])
     try:
-        centered_weights, _ = fit_orderstat_weights(centered + matrix[train_steps].mean(), lengths[train_steps])
-    except Exception:
+        centered_weights, centered_meta = fit_orderstat_weights(centered, lengths[full_train])
+        centered_meta["status"] = "FITTED"
+    except (ValueError, RuntimeError, np.linalg.LinAlgError) as error:
         centered_weights = np.full(ORDERSTAT_K, np.nan)
+        centered_meta = {"status": "UNAVAILABLE", "reason": str(error)}
     np.savez_compressed(
         out_dir / "moduleb.npz",
         orderstats=matrix.astype(np.float32), lengths=lengths,
@@ -344,6 +349,7 @@ def _module_b(cell_id: str, cell, prep, deployed_weight, mask_train, out_dir: Pa
     )
     (out_dir / "moduleb_meta.json").write_text(json.dumps({
         "b1": b1_meta, "b2b": b2b_meta, "substrate": DEPLOYED_IU_ROW,
+        "within_answer_centered": centered_meta,
         "labels_accessed": False,
     }, indent=1), encoding="utf-8")
 
@@ -385,11 +391,7 @@ def _run_cell(cell_id: str, outers: tuple[int, ...] | None = None) -> str:
                 cell_id, cell, inner_train,
                 seed=SEED + 100 * k + 10 * j + 1, tag="inner", out_dir=inner_dir,
             )
-        manifest = {
-            path.name: _sha(path)
-            for path in sorted(out_dir.rglob("*"))
-            if path.is_file() and path.name != "MANIFEST.json"
-        }
+        manifest = relative_manifest(out_dir)
         (out_dir / "MANIFEST.json").write_text(json.dumps(manifest, indent=1), encoding="utf-8")
         (out_dir / "COMPLETE.json").write_text(json.dumps({
             "cell": cell_id, "outer": k, "elapsed_s": round(time.time() - started, 1),
@@ -413,25 +415,7 @@ def stage_structure(cells: list[str], workers: int, outers: list[int] | None = N
 # ── stage: check ─────────────────────────────────────────────────────────────
 
 def stage_check() -> None:
-    problems = []
-    for cell_id in cell_roster():
-        for k in range(N_OUTER):
-            out_dir = OUT / "structure" / cell_id / f"outer{k}"
-            if not (out_dir / "COMPLETE.json").exists():
-                problems.append(f"{cell_id}/outer{k}: incomplete")
-                continue
-            manifest = json.loads((out_dir / "MANIFEST.json").read_text(encoding="utf-8"))
-            for name, expected in manifest.items():
-                matches = list(out_dir.rglob(name))
-                if not matches:
-                    problems.append(f"{cell_id}/outer{k}/{name}: missing")
-                elif _sha(matches[0]) != expected:
-                    problems.append(f"{cell_id}/outer{k}/{name}: hash drift")
-    if problems:
-        print("CHECK FAILED")
-        for problem in problems[:40]:
-            print(" -", problem)
-        raise SystemExit(1)
+    verify_prelabel_record(OUT, cell_roster(), n_outer=N_OUTER, n_inner=N_INNER)
     print(f"CHECK PASSED: {len(cell_roster())} cells x {N_OUTER} outer folds frozen and hash-stable")
 
 

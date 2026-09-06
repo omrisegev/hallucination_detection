@@ -210,7 +210,18 @@ Second GPU backend besides Colab: national AIRCC cluster, 8× NVIDIA B200, ssh a
 (omrisegev1@slurm-login.iucc.ac.il, **TAU VPN required** — a hanging ssh means VPN is down).
 Full reference: [cluster/README.md](cluster/README.md). Rules that must never be violated:
 
-- Work only under `/shared/cycle2_tau_averbuch_prj/omrisegev1`, never `$HOME`.
+- Work under a verified project directory, never `$HOME`. As verified by
+  `ssh aircc sdata` on 2026-09-06, new work uses
+  `/shared/cycle3_tau_averbuch_prj/omrisegev1/<task>`, account
+  `cycle3_tau_averbuch_prj`, partition `power-gpu`, QoS `owner_940`.
+  The old `/shared/cycle2_tau_averbuch_prj/omrisegev1` remains readable for
+  existing data. Use `bash -lc` for remote Slurm commands: the login profile
+  exports `SLURM_CONF_SERVER=controller-primary`. Older examples below retain
+  their historical paths; do not submit them with stale account/QoS settings.
+- The window-feasibility task is CPU-only and uses an isolated native Python
+  environment on a compute node. Its exact-source capsule is transferred to
+  an unused task directory; it does not sync into the shared inference tree.
+  This is an authorized specialization of the ordinary code-sync workflow.
 - B200 = sm_100: jobs run inside `nvcr.io/nvidia/pytorch:25.01-py3` (rootless Docker).
   Never pip-upgrade torch inside it; `cluster/requirements.txt` deliberately omits torch/numpy.
 - Preemption: SIGTERM → 15 min → SIGKILL → auto-requeue. Every long job must use the

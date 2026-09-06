@@ -1,5 +1,74 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**September 6, 2026 — visual explanation of the selected Joint variants.**
+Revised on Omri's follow-up to begin at undergraduate level: why combine
+scores, staged continuous L-SML, coupled Joint covariance fitting, then the
+extensions. Added a study-group analogy, a constructed 0.60/0.20 covariance
+example, and desktop/mobile L-SML diagrams; technical equations now follow
+as an optional walkthrough. Twenty links and the reading order were verified;
+the existing interactions still pass browser checks at three viewport widths.
+Omri selected `internal_joint_diag010/050`, `internal_joint_liu010/050`, and
+`internal_joint_gate050/100`, with `internal_joint` and `internal_cont` as
+references, and requested a visual HTML explanation. Created
+`docs/reviews/joint_lsml_visual_guide_2026-09-06.html` in simple English,
+checked against Claude's source through `720bacc3`. It distinguishes feature
+grouping, DUFS diffusion and LIU sample graphs; explains gated refitting versus
+model-inverse regularization; includes the R3 lambda=0 comparison and the
+one-answer LOAO/kNN adaptation gaps. Synthetic diagrams are explicitly labeled.
+This is documentation, not execution or a frozen window-study contract.
+R3's new output files still need to be added to our late-integrity requirements
+before the amended live run can be frozen; no live artifacts were changed.
+
+**September 6, 2026, 09:03 Israel time — repair reconciliation and disk cleanup.**
+Merged Claude's `7803cd55` into this separate repair worktree. R2's complete
+outer/inner coverage exclusions and the runner's `--outer` scheduling now
+coexist with the manifest, pre-label guard, late-record and centering repairs.
+29 targeted tests pass, including both panels' missing-inner-arm exclusions.
+Nothing was installed into Claude's live checkout or applied to its artifacts;
+its two PRMBench workers were still active at the check. Apply the documented
+repair/audit/freeze sequence after structure and R1 finish, before evaluation.
+Removed 11,747,202,886 bytes (10.94 GiB) of pip HTTP download caches and our
+four inactive HTML-test browser profiles. Free C: space after cleanup was
+27,406,266,368 bytes (25.52 GiB). Installed packages, locally built wheel cache,
+experiment inputs/results, worktrees, history, papers and the report remain.
+Exact paths and before/after measurements:
+`docs/reviews/disk_cleanup_2026-09-06.json`.
+
+**September 6, 2026 — per-answer window feasibility, separate Codex branch.**
+`codex/per-answer-localization-v1` recomputes the full 30 response feature
+definitions inside token windows, with separate nonoverlapping fit windows and
+overlapping scoring support. No fusion arm or labels have been evaluated.
+The user allows pooled fitting across answers as a fallback; compare fit scopes
+using the same feature representation. On September 6 Omri clarified that
+Joint L-SML is the intended advanced candidate and the two-method shortlist
+was too narrow. The plan now centers the current Joint/L-SML development
+family, with matched IU controls; the window-specific contract is not yet
+implemented or evaluated. Do not treat the earlier shortlist as approved.
+Plan: `docs/experiments/PER_ANSWER_LOCALIZATION_V1.md`.
+The user has supplied the actual August 28 advisor email/HTML and replies
+through September 5. They supersede the August 27 draft. The attachment's
+matched ablation loses only 0.15 F1 points by averaging the response head but
+4.41 points by averaging the token head. Preserve the existing token localizer
+and test window signal/boundary resolution, not just fitting geometry.
+Source reconciliation: `docs/reviews/advisor_thread_reconciliation_2026-09-06.md`.
+The September method supersedes the email's algorithm roster: see
+`docs/reviews/post_email_method_lineage_2026-09-06.md`. Anchor window adaptation
+to Joint v2/R1/R2 (`7803cd55`), keeping fitted-factor and weight-map variants
+distinct. The original v1 hierarchical head is not the entire current method.
+The live Claude worktree remains untouched (28/45 folds at the original
+feasibility check; 41/45 at the later R2 check). AIRCC job 247840 completed the corrected full 400-answer
+GSM8K/Qwen3-4B feature audit: eight CPUs, zero GPUs, 10.8 seconds computation,
+21 seconds job wall time, no extraction errors. Width 32 gives a median eight
+fitting windows and 29 varying features; 220/400 answers meet the exploratory
+eight-window floor. This establishes neither stable fitting nor accuracy.
+27 targeted tests passed across the window, reader, integrity and existing
+trajectory modules. The corrected diagnostics agree on the 30 shared local/
+cluster answers. Evidence: `docs/reviews/window_feasibility_2026-09-06.json`.
+The user-facing HTML in the main checkout has the new `window-results` section.
+New integrity repairs are committed separately and have not been applied to
+Claude's incomplete artifacts. Handoff:
+`docs/experiments/JOINT_LSML_V2_LATE_INTEGRITY_AMENDMENT_20260906.md`.
+
 **Claude Code entry point for the complete Joint L-SML study:**
 `docs/experiments/JOINT_LSML_CLAUDE_HANDOFF.md` binds the structural lineage,
 PRMBench and ProcessBench results, exact artifact map, reducer/history boundary,
