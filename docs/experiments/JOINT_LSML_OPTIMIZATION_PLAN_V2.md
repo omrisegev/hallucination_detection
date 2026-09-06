@@ -103,7 +103,7 @@ Registered fallback when |corr| < 0.02: entropy_series Spearman. Both undefined 
 Any SML eigen-stage over m=3 units (within-group or cross-group) is replaced by equal weights
 over SD-standardized units; m=4 is retained but flagged `small_m_flag`. m<=2 unchanged.
 **Registered disclosure (2026-09-05, pre-structure)**: the active-23 provenance families
-contain size-3 groups (family sizes 1/3/8/2/3/6), so the guard is NOT a no-op on
+contain size-3 groups (verified sizes 1/11/2/3/6; corrected in Amendment R2 from the stale figure first written here), so the guard is NOT a no-op on
 provenance CONT arms — it applies uniformly to every arm. Consequence, disclosed rather than
 silently absorbed: the v2 fixed-family continuous L-SML arm (R1/control) is the Step-205-guarded
 variant and is not bit-identical to the Step-347 fixed-family control (which ran raw SML on its
