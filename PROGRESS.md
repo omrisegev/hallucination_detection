@@ -1,5 +1,19 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+**September 7, 2026 — Joint L-SML optimization v2 EVALUATED (Step 353).**
+Full run on the opened Qwen populations, 45/45 folds, all pre-label amendments (R1/R2/R3) and
+Codex's late-integrity repair sequence applied before the gated evaluator opened labels.
+Report: `results/joint_lsml_optimization_v2/REPORT.md` (worktree `hd_jlsml_v2_wt`, branch
+`claude/joint-lsml-optimization-v2`). PRMBench tuned Joint vs tuned IU +0.0059 [+0.0027, +0.0091]
+SUPPORT, but MECHANISM_UNATTRIBUTED to DUFS: the ungated lambda=0 model-inverse map is the best
+row (0.6734 vs deployed IU 0.6665) and every DUFS hook is monotone-harmful. ProcessBench NULL;
+every INTERNAL-grouping row collapses (0.13-0.28 vs 0.34) — grouping, not map, is the PB failure,
+and K=3 is forced by the min-group-size-3 rule (K=4/5/6 are perfectly stable but contain pairs).
+S1/S2 HARM + CATASTROPHE, not promoted. Step-205 guard costs -1.5pp AUROC on PRMBench. Module B
+label-free reducer HARM; max/mean blend and LR +0.006. **Next: register Step 354 before running**
+— `target_condition` dose for the model-inverse map (INTERNAL + provenance) and min group size 2
+with K in {3..8}; development only. Fresh-data (Phi-4) experiment still deferred.
+
 **September 6, 2026 — visual explanation of the selected Joint variants.**
 Revised on Omri's follow-up to begin at undergraduate level: why combine
 scores, staged continuous L-SML, coupled Joint covariance fitting, then the

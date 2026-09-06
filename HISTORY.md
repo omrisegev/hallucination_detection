@@ -16644,3 +16644,74 @@ technical walkthrough. Verified 20 links, section order, responsive diagram
 visibility and existing interactions in Chrome at 1360/430/320 widths; no
 JavaScript exceptions or page overflow. Updated the main copy after checking
 it had no intervening user edits. This remains documentation-only work.
+
+---
+
+### Step 353 [joint-lsml-v2] — Joint L-SML optimization v2: tuned 16-vs-16 heads, all four DUFS coefficient hooks, Module B, executed and evaluated
+
+**What**: Ran the registered v2 protocol (`docs/experiments/JOINT_LSML_OPTIMIZATION_PLAN_V2.md`
++ pre-label amendments R1/R2/R3 + Codex's 2026-09-06 late integrity amendment) end to end on the
+opened Qwen populations: 8 ProcessBench cells (Qwen3-4B/8B x gsm8k/math/olympiadbench/omnimath) and
+PRMBench Qwen3-8B, nested 5-outer/5-inner label-free grouped folds, 45 structure folds, 16 Joint/L-SML
+rows vs 16 IU rows plus named controls, SD=1 + unified orientation + Step-205 guard invariants.
+Pre-label sequence (all before any label decode): structure freeze (45/45), R1 second pass
+(continuity row + 3x3 trajectory grid), R3 third pass (Hook 3a/3b lambda=0 model-inverse reference
+row, registered because the inertness guard was otherwise undecidable for four roster rows),
+label-free structural review (`prelabel_structure_review.py`: admission, fallback caps, seed
+stability, cross-fold map cosine, inertness, map agreement, fidelity — zero aborts), then Codex's
+repairs in order: centered-diagnostic repair (45/45), patched pre-label audit (22/22), late
+integrity record (876 exact paths, `LATE_PRELABEL_SNAPSHOT_NOT_LAUNCH_PROOF`), R3 outputs chained
+by `AMENDMENT_R3_FREEZE.json`. Labels were opened only by the gated evaluator
+(`evaluate_v2.py --results-root`), then `report_v2.py` (per-arm tables, extra contrasts, report).
+
+**Why**: Steps 347-349 closed the hierarchical Joint head as HARM with two diagnosed mechanisms
+(no score-scale convention; head never uses the fitted `u_g`) and one unresolved causal cell
+(grouping vs map). Omri asked for symmetric hyperparameter tuning of both heads, all four
+DUFS-in-the-coefficients hooks, both U-PCR controls, a learned trajectory-axis reducer with an LR
+competitor, and a pre-fixed label-free row to carry to fresh data.
+
+**Result** (`results/joint_lsml_optimization_v2/REPORT.md`; paired grouped bootstrap, PB 2000 with
+threshold refit, PRMB 10000):
+- **Tuned-vs-tuned.** PRMBench: tuned Joint (`internal_joint_liu010`, selected 5/5) 0.6724 vs tuned
+  IU (deployed config, 5/5) 0.6665, delta +0.0059 [+0.0027, +0.0091] -> SUPPORT (floor +0.005).
+  ProcessBench: 0.3437 vs 0.3493, delta -0.0056 [-0.0137, +0.0029] -> NULL; IU selection
+  UNSTABLE (2/5); PB Joint winner `prov5_cont_gate100` (3/5) fails the non-inferiority floor vs
+  deployed IU (+0.0030 [-0.0084, +0.0143]).
+- **Attribution: MECHANISM_UNATTRIBUTED to DUFS.** The node-relabeled-graph control passes the same
+  gate (+0.0067 [+0.0036, +0.0097]); the ungated lambda=0 model-inverse reference is the best row
+  in the family (0.6734; vs tuned IU +0.0069 [+0.0037, +0.0100]); Hook 3a at lambda=0.1 is a small
+  significant harm vs its own lambda=0 map (-0.0010 [-0.0015, -0.0005]); dose-response is monotone
+  against every hook (lambda 0 > 0.1 > 0.5; Hook 2 on the joint fit 0.6110 > 0.6109 > 0.6009).
+  The PRMB win belongs to the regularized model-covariance inverse `(C_model + gamma I)^-1 v`
+  that uses the fitted `u_g` — the repair of the Step-349 objective/head mismatch — not to DUFS.
+- **Label-free successors HARM on both panels.** S1 `internal_joint` 0.6110 / 0.1289, S2
+  `internal_cont` 0.5885 / 0.1343; both CATASTROPHE under the PB activation guard; NOT_PROMOTED.
+- **Grouping, not map, is the ProcessBench failure.** Every INTERNAL-grouping row scores 0.13-0.28
+  macro-F1, every provenance-grouping row 0.34-0.35, including the model-inverse rows (activation
+  normal at 0.79, detector ranking weaker). INTERNAL selected K=3 on all 35 admissible PB lanes.
+- **K=3 is forced by the minimum-group-size-3 rule, not by instability** (label-free LOAO re-fit
+  on two frozen folds): K=4/5/6 partitions have median ARI 1.000 but always contain a size-2 group
+  and are rejected; K=8 is never admissible with 23 features (needs 24). Pairs are safe for the
+  model-inverse head (uses `u_g` directly) and exactly determined within-group; only singletons
+  must stay forbidden.
+- **Guard cost (Omri's requested side-by-side):** the Step-205 guard costs the fixed-family CONT
+  row -0.0154 [-0.0165, -0.0144] AUROC on PRMBench and is NULL on PB (-0.0044 [-0.0122, +0.0036]);
+  the historical unguarded estimator ties deployed IU on PRMBench (-0.0005 [-0.0018, +0.0008]).
+  Deployed U-PCR port (exclusion+refit) is below deployed IU on PRMBench (-0.0142).
+- **Module B (PRMB primary):** label-free SML reducer over 10 order statistics vs frozen span-max
+  on the deployed IU substrate: HARM (-0.0034 [-0.0043, -0.0026]); B2a max-vs-mean blend
+  (alpha=0.5 on every fold) +0.0063 and supervised LR +0.0060 descriptively; B2b positional bins
+  -0.0100. Trajectory-IU did not beat trajectory-SML (pre-registered prediction not confirmed);
+  Joint fuser BLOCKED on all folds over 10 units.
+- Pre-label structural review: INTERNAL blocked 5/40 PB, 0/5 PRMB (under cap); Hook 1 grouping
+  blocked 24/40 PB (STRUCTURALLY_FRAGILE); gate seed std max 0.081; all arms pass map agreement;
+  `dufs_pf_lsml` fails closed on 197/240 PB and 25/30 PRMB lanes (R2 exclusion).
+- Integrity: evaluator crashed once on a JSON tuple-key write after all bootstraps (fixed as
+  `88fdba9e`, re-run identical by seed). Late-freeze limitation retained verbatim in the report.
+- Next (registered before running, Step 354): `target_condition` dose {30..1e4} for the ungated
+  model-inverse map on INTERNAL and provenance groups; grouping with minimum size 2, K in {3..8}.
+  Development, not confirmation — both axes chosen after seeing these results.
+
+Branch `claude/joint-lsml-optimization-v2` (merged with `codex/per-answer-localization-v1`).
+
+---
