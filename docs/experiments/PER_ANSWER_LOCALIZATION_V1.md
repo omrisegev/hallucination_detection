@@ -1,6 +1,47 @@
 # Window-localization feasibility and fit-scope study
 
 Status: WINDOW EXTRACTION AND GSM8K FEASIBILITY COMPLETE; FUSION METHOD SELECTION PENDING. Started September 6, 2026.
+
+## September 6 correction: preserve the Joint development line
+
+Omri challenged the recommendation to start with only IU-PCR and continuous
+L-SML, pointing to the advisor update and Claude's current study. Joint is
+the intended advanced candidate and should be central in the window study;
+the earlier two-method shortlist was too narrow. No new scoring has run.
+
+The latest locally saved advisor update is August 27: it documents 13 aligned
+methods, plus the CIW-DEEM challenger, rather than a two-method history.
+Gmail access on September 6 returned reauthentication required, so the saved
+document was reviewed without claiming it is the latest actually sent email.
+
+Claude's current HEAD is `7803cd55`, with R1 and R2 amendments. The registered
+comparison has 16 IU settings and 16 Joint/L-SML settings. Joint/L-SML crosses
+learned versus provenance groups and continuous versus Joint readouts, and
+tests soft gates, gated grouping, a graph-regularized model-covariance inverse,
+a graph-free diagonal-regularized inverse, and a historical DUFS hard-selector
+control. R1 also adds a 3x3 trajectory-fusion comparison. Joint model-inverse
+rows matter because they use fitted group factors through the model covariance;
+the original hierarchical readout did not directly use those fitted factors.
+
+Revised recommendation: carry the Joint/L-SML development family and matched
+IU tuning budget into the window representation, preserving the fixed S1/S2
+rows and simple controls. The exact 23-to-30 feature mapping, grouping rules,
+fit-scope eligibility and any regularization changes need explicit registration;
+do not paste token-specific constants onto window features. Evaluate each
+admissible recipe under both single-answer and pooled training-window fitting.
+Small N is a stability question, not a reason to omit Joint in advance.
+If current-run results guide selection, keep selection inside development/
+training boundaries and label it as such. A token-level winner is not already
+a proven window-level winner. Preserve label-free fixed rows alongside tuning.
+
+R2 excludes configurations with incomplete panel coverage from tuned selection,
+while reporting their available lanes descriptively. At its pre-label snapshot,
+the hard-selector row covered 32/40 PB lanes; ordinary INTERNAL grouping used
+same-map provenance fallback in 5/40 lanes and gated-affinity grouping in 24/40.
+These are structural diagnostics, not accuracy results. All 40 PB folds and
+one PRMB fold were complete at the new check; PRMB outer1/outer2 processes were
+active. No evaluation outcomes were read. The prepared repair handoff must
+preserve the newer R2 evaluator changes before integration.
 Branch: `codex/per-answer-localization-v1`, sparse worktree `C:/Users/omris/TAU/hd_per_answer_wt`, base `ff800082468ecceca4ef15217c5b045314b5fea6`.
 
 ## Authorized purpose

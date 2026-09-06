@@ -5,8 +5,11 @@
 definitions inside token windows, with separate nonoverlapping fit windows and
 overlapping scoring support. No fusion arm or labels have been evaluated.
 The user allows pooled fitting across answers as a fallback; compare fit scopes
-using the same feature representation. Canonical arm choice is pending the
-explicit user question required by CLAUDE.md. Do not infer it from recent tables.
+using the same feature representation. On September 6 Omri clarified that
+Joint L-SML is the intended advanced candidate and the two-method shortlist
+was too narrow. The plan now centers the current Joint/L-SML development
+family, with matched IU controls; the window-specific contract is not yet
+implemented or evaluated. Do not treat the earlier shortlist as approved.
 Plan: `docs/experiments/PER_ANSWER_LOCALIZATION_V1.md`.
 The live Claude worktree remains untouched (28/45 outer folds at the last
 read-only check). AIRCC job 247840 completed the corrected full 400-answer

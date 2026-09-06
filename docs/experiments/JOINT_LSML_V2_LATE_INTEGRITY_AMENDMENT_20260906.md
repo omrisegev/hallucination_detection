@@ -2,6 +2,13 @@
 
 Date: September 6, 2026. Status: PREPARED IN A SEPARATE WORKTREE; NOT APPLIED.
 
+**Integration update, September 6:** Claude has advanced from `ff800082` to
+`7803cd55`, adding fold-level scheduling and the R2 complete-coverage selection
+rule. The repair branch was built from the older source. Reconcile those
+changes before applying this handoff; in particular preserve
+`evaluate_v2._complete_coverage_rows` and the R2 exclusions. Do not replace
+Claude's newer evaluator wholesale with the older repaired copy.
+
 ## Why this amendment exists
 
 The original recursive manifest used basenames. All inner folds reuse
