@@ -201,7 +201,7 @@ class PBPanel:
             for cell_index in np.unique(self.cell):
                 err = test & (self.cell == cell_index) & ~self.clean
                 if err.any():
-                    activation[(int(cell_index), k)] = float(np.mean(self.detector[err] >= tau))
+                    activation[f"cell{int(cell_index)}_outer{k}"] = float(np.mean(self.detector[err] >= tau))
         f1 = _pb_f1(hit_all, self.clean, clean_pred, self.cell, weights)
         return f1, {"activation": activation}
 
