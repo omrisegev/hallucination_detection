@@ -9,10 +9,14 @@ L-SML, pointing to the advisor update and Claude's current study. Joint is
 the intended advanced candidate and should be central in the window study;
 the earlier two-method shortlist was too narrow. No new scoring has run.
 
-The latest locally saved advisor update is August 27: it documents 13 aligned
-methods, plus the CIW-DEEM challenger, rather than a two-method history.
-Gmail access on September 6 returned reauthentication required, so the saved
-document was reviewed without claiming it is the latest actually sent email.
+Omri subsequently supplied the actual August 28 outgoing email, its HTML
+attachment and the thread through September 5. These supersede the August 27
+draft. The crucial matched ablation found almost no loss from equal averaging
+in the response head (-0.15 F1 points), but -4.41 points in the token head.
+The advisor-supported focus is local fusion. See
+`docs/reviews/advisor_thread_reconciliation_2026-09-06.md` and its archived
+attachment for dates, figures and protocol boundaries. Joint is the later
+project candidate, not a method already endorsed by that August email.
 
 Claude's current HEAD is `7803cd55`, with R1 and R2 amendments. The registered
 comparison has 16 IU settings and 16 Joint/L-SML settings. Joint/L-SML crosses
@@ -63,6 +67,12 @@ a legacy U-PCR entry point or equate plain Joint with every Joint extension.
 - A numerical fit, structural stability and localization accuracy are separate questions. Any optimum is relative to stated constraints and an explicit objective, not guaranteed best error localization.
 - Short/degenerate inputs must return a typed unsupported/unstable status or a disclosed pooled fallback. Never silently convert failure into all-correct.
 - PB first-error/all-correct and PRMB every-step ranking retain separate evaluation contracts. Offline full-answer fitting does not establish causal streaming.
+- The August 28 local-head ablation makes preservation of brief signals and
+  official-step boundary resolution explicit checks. Compare against the
+  existing token localizer, holding the response head/calibration and primary
+  panel reducer fixed. Mean-to-step mapping is an available utility, not an
+  approved replacement for the incumbent reducer. Feature feasibility alone
+  does not establish that windowing preserves useful peaks.
 
 ## Initial measured geometry (labels not inspected)
 

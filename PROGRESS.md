@@ -11,6 +11,12 @@ was too narrow. The plan now centers the current Joint/L-SML development
 family, with matched IU controls; the window-specific contract is not yet
 implemented or evaluated. Do not treat the earlier shortlist as approved.
 Plan: `docs/experiments/PER_ANSWER_LOCALIZATION_V1.md`.
+The user has supplied the actual August 28 advisor email/HTML and replies
+through September 5. They supersede the August 27 draft. The attachment's
+matched ablation loses only 0.15 F1 points by averaging the response head but
+4.41 points by averaging the token head. Preserve the existing token localizer
+and test window signal/boundary resolution, not just fitting geometry.
+Source reconciliation: `docs/reviews/advisor_thread_reconciliation_2026-09-06.md`.
 The live Claude worktree remains untouched (28/45 outer folds at the last
 read-only check). AIRCC job 247840 completed the corrected full 400-answer
 GSM8K/Qwen3-4B feature audit: eight CPUs, zero GPUs, 10.8 seconds computation,
