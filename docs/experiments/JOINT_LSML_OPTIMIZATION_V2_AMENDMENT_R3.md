@@ -41,7 +41,17 @@ The module edit adding the row branch is applied only after every structure/R1 p
 ended (the 2026-09-06 late integrity amendment forbids replacing files or reloading modules
 mid-run). The third pass therefore runs after the R1 second pass on all 45 folds and before
 `repair_centered_diagnostic.py` / `audit_prelabel.py` / `freeze_integrity.py`, so the late
-integrity snapshot binds the R3 source and outputs as well.
+integrity snapshot binds the R3 source (the producer `spectral_utils` + script snapshot).
+The late integrity record binds an explicit artifact set that predates R3 and is left
+untouched (Codex's contract is not edited); the R3 outputs and the structural-review outputs
+are bound instead by `AMENDMENT_R3_FREEZE.json` at the results root — sha256 of every
+`scores_amend_r3.npz` / `meta_amend_r3.json` / `MANIFEST_AMEND_R3.json`,
+`prelabel_structure_review.{json,md}`, and the sha256 of the late integrity record itself,
+written after `freeze_integrity.py` and before the evaluator.
+
+Module patch applied 2026-09-06 16:20 after confirming zero live structure/R1 processes
+(commit `7c7207ef`, 15 additive lines). Smoke fold `pb_gsm8k_q4/outer0`: reference row
+reproduces the frozen R4 grouping (`internal`), lambda = 0, condition-matched ridge only.
 
 ## 4. Other pre-label findings recorded at registration (label-free, 43/45 folds)
 
