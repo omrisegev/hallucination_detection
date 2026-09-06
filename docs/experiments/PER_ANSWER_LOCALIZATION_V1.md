@@ -4,6 +4,13 @@ Status: WINDOW EXTRACTION AND GSM8K FEASIBILITY COMPLETE; JOINT-CENTERED WINDOW 
 
 ## September 6 correction: preserve the Joint development line
 
+Read the August 28 correspondence together with the later code, not as the
+current method roster. The post-email implementation lineage is documented in
+`docs/reviews/post_email_method_lineage_2026-09-06.md`. The starting point for
+window adaptation is current Joint optimization v2/R1/R2 at `7803cd55`, with
+explicit estimator versus readout variants. The email's thirteen-method
+answer-level table supplies historical motivation and controls.
+
 Omri challenged the recommendation to start with only IU-PCR and continuous
 L-SML, pointing to the advisor update and Claude's current study. Joint is
 the intended advanced candidate and should be central in the window study;

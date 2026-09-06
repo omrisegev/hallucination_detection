@@ -17,8 +17,12 @@ matched ablation loses only 0.15 F1 points by averaging the response head but
 4.41 points by averaging the token head. Preserve the existing token localizer
 and test window signal/boundary resolution, not just fitting geometry.
 Source reconciliation: `docs/reviews/advisor_thread_reconciliation_2026-09-06.md`.
-The live Claude worktree remains untouched (28/45 outer folds at the last
-read-only check). AIRCC job 247840 completed the corrected full 400-answer
+The September method supersedes the email's algorithm roster: see
+`docs/reviews/post_email_method_lineage_2026-09-06.md`. Anchor window adaptation
+to Joint v2/R1/R2 (`7803cd55`), keeping fitted-factor and weight-map variants
+distinct. The original v1 hierarchical head is not the entire current method.
+The live Claude worktree remains untouched (28/45 folds at the original
+feasibility check; 41/45 at the later R2 check). AIRCC job 247840 completed the corrected full 400-answer
 GSM8K/Qwen3-4B feature audit: eight CPUs, zero GPUs, 10.8 seconds computation,
 21 seconds job wall time, no extraction errors. Width 32 gives a median eight
 fitting windows and 29 varying features; 220/400 answers meet the exploratory
