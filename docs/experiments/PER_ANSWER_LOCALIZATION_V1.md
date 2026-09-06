@@ -1,6 +1,6 @@
 # Window-localization feasibility and fit-scope study
 
-Status: WINDOW EXTRACTION AND GSM8K FEASIBILITY COMPLETE; FUSION METHOD SELECTION PENDING. Started September 6, 2026.
+Status: WINDOW EXTRACTION AND GSM8K FEASIBILITY COMPLETE; JOINT-CENTERED WINDOW CONTRACT IN PREPARATION. Started September 6, 2026.
 
 ## September 6 correction: preserve the Joint development line
 
@@ -48,7 +48,11 @@ Branch: `codex/per-answer-localization-v1`, sparse worktree `C:/Users/omris/TAU/
 
 Omri requests implementation of the window-size/observation-count tradeoff, feature validity, stable fitting, mapping back to official steps and a no-error decision, plus isolated audit repairs and cluster assessment. The intended new matrix retains P feature definitions; rows are windows from one answer. Omri subsequently allows the multiple-answer fit as fallback if the one-answer fit is not viable. Do not force one-answer fitting or declare it impossible from covariance rank alone.
 
-An asynchronous question explicitly requests which fusion arms to implement/evaluate: deployed IU-PCR; IU-PCR plus maintained L-SML; or those plus Joint. Until answered, feature/window feasibility and integrity engineering can proceed; outcome evaluation and arm-dependent decisions remain pending. Do not silently choose a legacy U-PCR entry point.
+The earlier asynchronous method question offered an overly narrow shortlist.
+Omri's subsequent clarification centers the Joint development line and the
+current broader study. The remaining work is to define and implement that
+family's window-specific contract and matched controls. Do not silently use
+a legacy U-PCR entry point or equate plain Joint with every Joint extension.
 
 ## Boundaries
 
@@ -137,9 +141,9 @@ existing trajectory-reducer tests. The HTML has 212 valid local/anchor links,
 no duplicate IDs, working paper filters and no horizontal overflow at width
 430. Prepared v2 repairs are committed but not applied to the running study.
 
-## Outstanding work requiring the named fusion arm
+## Outstanding implementation for the Joint-centered comparison
 
-Implement and test the explicitly chosen canonical fuser on both fitting
+Implement and test the canonical recipes in the registered window contract on both fitting
 scopes, keeping the same feature representation and grouped split. Check
 boundary perturbations, held-block stability, admissible regularization and
 short-answer coverage. Freeze a label-free width/fallback rule before scoring.
