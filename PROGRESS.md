@@ -1,6 +1,12 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 **September 6, 2026 — visual explanation of the selected Joint variants.**
+Revised on Omri's follow-up to begin at undergraduate level: why combine
+scores, staged continuous L-SML, coupled Joint covariance fitting, then the
+extensions. Added a study-group analogy, a constructed 0.60/0.20 covariance
+example, and desktop/mobile L-SML diagrams; technical equations now follow
+as an optional walkthrough. Twenty links and the reading order were verified;
+the existing interactions still pass browser checks at three viewport widths.
 Omri selected `internal_joint_diag010/050`, `internal_joint_liu010/050`, and
 `internal_joint_gate050/100`, with `internal_joint` and `internal_cont` as
 references, and requested a visual HTML explanation. Created

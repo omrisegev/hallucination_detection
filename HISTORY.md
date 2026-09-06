@@ -16633,3 +16633,14 @@ small-N kNN gaps. All 19 links resolve; all five variant buttons and both
 sliders work in Chrome; no JavaScript exceptions or page overflow at widths
 1360, 430 and 320. Reviewed desktop/mobile screenshots. No fitting, labels or
 live source changes. A byte-identical guide is provided in the main checkout.
+
+**Undergraduate explanation follow-up:** Omri requested the L-SML versus
+Joint distinction before the extensions. Reworked the guide's opening into
+five sequential teaching sections, with a study-group analogy, staged-fusion
+diagram, constructed covariance example and a direct comparison. Explained
+that groups are fixed before Joint fitting and that the existing Joint head
+remains hierarchical. Moved formulas and variant details to the optional
+technical walkthrough. Verified 20 links, section order, responsive diagram
+visibility and existing interactions in Chrome at 1360/430/320 widths; no
+JavaScript exceptions or page overflow. Updated the main copy after checking
+it had no intervening user edits. This remains documentation-only work.
