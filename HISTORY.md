@@ -17827,3 +17827,90 @@ IU versus equal as isolated learned-weight superiority. Original scores retained
 Chosen powers carry15.53% absolute standardized coefficient share in cubic IU,
 not causal attribution. See PROGRESS.md and results/surprisal_power_fusion_v1/.
 User requested chat-first explanation; no HTML was generated.
+
+
+### Step341 [Codex] - binary contribution fusion (2026-09-10)
+
+What: User requested binary SML/L-SML and adding entropy's15 contributions.
+Two18/33-view banks, eight frozen arms, full matched localization benchmark.
+Why: isolate entropy-contribution expansion and learned voting, retaining
+Varentropy references and answer-local fitting. Common entropy-based signs,
+local median thresholds and explicit duplicate removal; no label threshold fit.
+Code a41ff51a, protocol docs/experiments/BINARY_MOMENT_FUSION_V1.md.
+Six tests plus27-answer feasibility smoke pass. Full run launched4 workers.
+Results pending; user receives chat results before HTML.
+
+#### Step341 steering - B3 request retained (2026-09-11)
+
+User reiterated B3 on direct probabilities and -log(p) moment/contribution
+inputs. Canonical energy implementation and existing input/innovation adapters
+reviewed. Recorded two open lanes in Research_Directions.md, including
+answer-local versus donor fitting, new-coordinate group definitions and matched
+controls. Not part of the already frozen eight-arm binary run.
+
+#### Step341 steering - native DEEM before assuming B3
+
+### DEEM clarification from Omri (2026-09-11)
+
+B3 adapted DEEM to the previous continuous feature contract. Do NOT assume
+B3 adaptations remain necessary for new inputs. Check native DEEM first as
+an explicit alternative, retaining B3 as a comparison rather than the only
+implementation. Official README confirms soft input (N,classes,learners).
+The existing deem_adapter.py pins0.2.0 and already supplies hard and soft-rank
+adapters. Soft ranks are pseudo-probabilities, not calibrated hallucination
+probabilities. Raw ranked token probability is not automatically a learner's
+probability of the correctness class: distinguish accepted tensor shape from
+valid target semantics. Do not confuse Top-K alternatives with classifier axis.
+Native model plus explicit input mapping is possible; no automatic need to
+modify model architecture. Preserve class-permutation alignment checks.
+User request and native probability support acknowledged in chat; no DEEM/B3
+fit launched yet, current binary benchmark remains unchanged.
+
+
+#### Step341 completion [Codex] - binary votes lose localization resolution (2026-09-11)
+
+COMPLETE: all13769 model-answer rows/145597 steps, all8 arms valid, zero failures.
+Scoring1215.2s on4 CPU workers;10000 source-group bootstrap draws completed.
+Nine frozen references replay. Independent arithmetic implementation PASS on
+17 methods/references, PB8 full denominators, within/pooled AUC and PRMScore,
+held-group thresholds and fixed gate decisions. Six mechanism tests PASS.
+
+var18__continuous_equal: PB 35.6891%, within 0.7466371, PRMScore 0.6129330
+var18__binary_equal: PB 26.4017%, within 0.7003429, PRMScore 0.5184771
+var18__sml: PB 23.5852%, within 0.7019670, PRMScore 0.5338107
+var18__lsml: PB 21.6046%, within 0.6738234, PRMScore 0.5275814
+both33__continuous_equal: PB 35.2725%, within 0.7421036, PRMScore 0.6155018
+both33__binary_equal: PB 26.6025%, within 0.7012232, PRMScore 0.5190881
+both33__sml: PB 24.0368%, within 0.7011130, PRMScore 0.5330434
+both33__lsml: PB 21.8430%, within 0.6738387, PRMScore 0.5215161
+
+Primary33 SML minus binary equal: PB-2.5657pp,97.5% CI[-3.6839,-1.4409];
+within-.0001102[-.0026967,.0024352]. L-SML minus SML: PB-2.1938pp,
+97.5% CI[-3.0963,-1.3123]; within-.0272744[-.0307292,-.0237228].
+Entropy contributions18->33 give SML PB+.4516pp (exploratory95% CI
+[.0392,.8684]), not a gain over continuous/incumbent methods. Continuous
+18->33 PB-.4165pp (CI includes0); within-.0045335 (95% interval below0).
+
+Frozen gate is identical: every arm has clean accuracy.50084818. Location
+changes dominate. On all6800 PB answers, exact maximum-step ties: continuous33
+0, binary equal6405, SML6554, L-SML6763. First-step selections1496/5550/5856/6344.
+Missed true steps that are also tied at max:0/3078/3424/3707 (diagnostic only,
+not an oracle candidate). Binary top10 readout saturates heavily; the fixed
+first-tie rule selects early. This documents a failure of THIS thresholded
+vote/readout combination, not a rejection of all spectral or continuous fusion.
+Continuous-vs-binary also changes duplicate removal; not a pure single-factor
+binarization effect. All solvers share entropy15-based column orientation.
+
+Current leaders remain rawVar15 PB35.9610%, normalized Var15 equal within
+.7469804, rawVar50 PRMScore.6327769. No new winner, no untouched confirmation.
+Do not change thresholds/tie rules post-hoc or extend graph/threshold grids.
+Native soft-input DEEM and B3 on probability/moment inputs remain explicit
+requested follow-ups; neither was tested in this run. DEEM accepts probabilities
+(N,classes,learners), but raw token probabilities need explicit target mapping.
+Results and per-cell CSV under results/binary_moment_fusion_v1/. No new HTML.
+
+Final diagnostics: median distinct votes17 in var18 and25 in both33. L-SML
+33-bank most often selects5 groups (5624 answers), not a proof of conditional
+independence. All13769 archived threshold/fit IDs align with coefficient arrays.
+Diagnostic export fixed NumPy-int JSON serialization and repeated lazy NPZ
+decompression; frozen fitting and metric code/results were not changed.

@@ -57,5 +57,23 @@ class Tests(unittest.TestCase):
         fits,failures,_=fit_all(self.lp[:2],self.a[:2])
         self.assertFalse(fits);self.assertEqual(len(failures),8)
 
+    def test_reconstruct_each_solver_without_fusion_calls(self):
+        banks,H=representation(self.lp,self.a)
+        fits,failures,_=fit_all(self.lp,self.a)
+        self.assertFalse(failures)
+        for bank,X in banks.items():
+            Z,B,indices,retained,signs,thresholds=prepare(X,H)
+            np.testing.assert_allclose(fits[bank+'__continuous_equal']['score'],Z.mean(axis=1))
+            np.testing.assert_allclose(fits[bank+'__binary_equal']['score'],B.mean(axis=1))
+            f=fits[bank+'__sml'];w=f['weights'][indices[retained]]
+            np.testing.assert_allclose(f['score'],B@w);self.assertAlmostEqual(float(np.abs(w).sum()),1.)
+            f=fits[bank+'__lsml'];d=f['diagnostics'];virtual=[]
+            for g in d['within_weights']:
+                lookup=[int(np.flatnonzero(indices[retained]==col)[0]) for col in g['columns']]
+                raw=B[:,lookup]@np.array(g['weights'])
+                virtual.append(np.where(raw>=0,1.,-1.))
+            reconstructed=np.column_stack(virtual)@np.array(d['cross_weights'])
+            np.testing.assert_allclose(f['score'],reconstructed,atol=1e-12)
+
 
 if __name__=='__main__':unittest.main()

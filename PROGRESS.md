@@ -1,5 +1,82 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+
+## Step341 completion [Codex] - binary votes lose localization resolution (2026-09-11)
+
+COMPLETE: all13769 model-answer rows/145597 steps, all8 arms valid, zero failures.
+Scoring1215.2s on4 CPU workers;10000 source-group bootstrap draws completed.
+Nine frozen references replay. Independent arithmetic implementation PASS on
+17 methods/references, PB8 full denominators, within/pooled AUC and PRMScore,
+held-group thresholds and fixed gate decisions. Six mechanism tests PASS.
+
+var18__continuous_equal: PB 35.6891%, within 0.7466371, PRMScore 0.6129330
+var18__binary_equal: PB 26.4017%, within 0.7003429, PRMScore 0.5184771
+var18__sml: PB 23.5852%, within 0.7019670, PRMScore 0.5338107
+var18__lsml: PB 21.6046%, within 0.6738234, PRMScore 0.5275814
+both33__continuous_equal: PB 35.2725%, within 0.7421036, PRMScore 0.6155018
+both33__binary_equal: PB 26.6025%, within 0.7012232, PRMScore 0.5190881
+both33__sml: PB 24.0368%, within 0.7011130, PRMScore 0.5330434
+both33__lsml: PB 21.8430%, within 0.6738387, PRMScore 0.5215161
+
+Primary33 SML minus binary equal: PB-2.5657pp,97.5% CI[-3.6839,-1.4409];
+within-.0001102[-.0026967,.0024352]. L-SML minus SML: PB-2.1938pp,
+97.5% CI[-3.0963,-1.3123]; within-.0272744[-.0307292,-.0237228].
+Entropy contributions18->33 give SML PB+.4516pp (exploratory95% CI
+[.0392,.8684]), not a gain over continuous/incumbent methods. Continuous
+18->33 PB-.4165pp (CI includes0); within-.0045335 (95% interval below0).
+
+Frozen gate is identical: every arm has clean accuracy.50084818. Location
+changes dominate. On all6800 PB answers, exact maximum-step ties: continuous33
+0, binary equal6405, SML6554, L-SML6763. First-step selections1496/5550/5856/6344.
+Missed true steps that are also tied at max:0/3078/3424/3707 (diagnostic only,
+not an oracle candidate). Binary top10 readout saturates heavily; the fixed
+first-tie rule selects early. This documents a failure of THIS thresholded
+vote/readout combination, not a rejection of all spectral or continuous fusion.
+Continuous-vs-binary also changes duplicate removal; not a pure single-factor
+binarization effect. All solvers share entropy15-based column orientation.
+
+Current leaders remain rawVar15 PB35.9610%, normalized Var15 equal within
+.7469804, rawVar50 PRMScore.6327769. No new winner, no untouched confirmation.
+Do not change thresholds/tie rules post-hoc or extend graph/threshold grids.
+Native soft-input DEEM and B3 on probability/moment inputs remain explicit
+requested follow-ups; neither was tested in this run. DEEM accepts probabilities
+(N,classes,learners), but raw token probabilities need explicit target mapping.
+Results and per-cell CSV under results/binary_moment_fusion_v1/. No new HTML.
+
+DEEM clarification: Omri requests checking native soft-input DEEM before
+assuming B3 is necessary. Official soft tensor support verified; input meaning
+and class alignment still need explicit mapping. See Research_Directions.md.
+
+B3 reminder (2026-09-11): user requests both direct probability and -log(p)
+moment/contribution input lanes. OPEN; see Research_Directions.md. Do not treat
+SML/L-SML results as B3 results or change the current frozen run.
+
+## Step341 [Codex] - binary entropy/varentropy contribution fusion RUNNING (2026-09-10)
+
+User added15 entropy contributions to the18-view varentropy bank and authorized
+full execution. Isolated branch codex/binary-moment-fusion-v1 from b7bf10bd;
+scoring code/protocol frozen a41ff51a. Two banks18/33, four solvers each:
+continuous normalized mean, equal median votes, signed SML, binary L-SML.
+Same-answer H15 covariance signs common to all solvers; local median thresholds,
+no label-based threshold search. This entropy prior is explicit. Remove exact
+binary duplicates/constants. No powers, third moment, Joint or new graph.
+Both bank sizes refer to15 ranked alternatives at EACH token, not15 time rows.
+
+Six mechanism/reconstruction tests PASS;27-answer feasibility smoke PASS,
+all8 arms valid. Distinct binary views ranged5..18/33 in smoke; no quality
+claim from that subset. Full13769-row scoring started with4 CPU workers,
+checkpoint in results/binary_moment_fusion_v1/CHECKPOINT.sqlite, live progress
+RUN.log/RUN_STATE.json (check actual process before resuming). Same source
+hashes, spans/top10 readout, labels/folds, external PB entropy gate and PRMScore
+calibration. Nine references must replay. Bootstrap10000, two primary contrasts:
+33 SML-equal binary and33 L-SML-SML,97.5% intervals. Others exploratory95%.
+
+User prefers chat before reports. No HTML. Need completion, independent metric
+replay, per-answer threshold/weight archive and tie-resolution diagnostics,
+then concise results vs current leaders. Do not select a new threshold/sign
+using this evaluation or repair a frozen result silently.
+
+
 ## Step340 completion [Codex] - powers help new IU baseline, not prior leaders (2026-09-10)
 
 COMPLETE:13769 answers/145597 steps, all6 arms valid, no fallback or failure.

@@ -1,5 +1,50 @@
 # Research Directions — Thesis Roadmap
 
+## Binary contribution benchmark conclusion (2026-09-11)
+
+Step341 full benchmark complete and independently replayed.18/33-bank binary
+SML/L-SML do not beat continuous means or the established Varentropy references.
+33-bank PB: continuous35.27%, binary equal26.60%, SML24.04%, L-SML21.84%.
+PRMB within:.7421/.7012/.7011/.6738. More entropy-contribution columns give only
+small changes inside the weak binary pipelines. PB maximum-step ties occur
+in6554/6800 SML and6763/6800 L-SML answers; frozen first-tie readout selects early.
+Preserve this result; no automatic threshold or graph sweep. Consider retaining
+continuous/soft information in the explicitly requested native DEEM/B3 follow-up.
+Distinguish solver weakness from lost information due to median voting and
+saturating top10 readout; no counterfactual readout or soft-DEEM result exists.
+See PROGRESS.md Step341 and results/binary_moment_fusion_v1/ for all8 arms,
+paired intervals, references, coverage and independent arithmetic review.
+
+
+## Persistent request - B3 on probability and moment inputs (2026-09-11)
+
+Omri explicitly reiterated B3 in both direct-probability and newer -log(p)
+moment/contribution representations. This is OPEN continuing work, not tested
+by the current SML/L-SML run or by prior diagonal/Joint-inspired shrinkage.
+Canonical B3 entry: spectral_utils/residual_graph_deem.py, arm B3, continuous
+family-additive DEEM energy model. Generic contract adapter exists in
+spectral_utils/deem_b3_contract_ablation.py. Temporal innovations exist in
+spectral_utils/token_temporal_innovation_b3.py and crossed innovation modules.
+Do not describe B3 as another name for SML or a single static weight vector.
+
+Two requested lanes: (1) existing direct Top-15 probability + selected-token
+representation (declare retained tail and transforms exactly as its frozen
+reference); (2) existing -log(p) powers / probability-weighted moment or
+entropy-varentropy contribution representations, against their matched controls.
+Freeze one exact input bank per initial comparison; do not conflate powers,
+moments and centered contributions. Keep current binary run unchanged.
+
+Before implementation choose explicit groups appropriate to new coordinates;
+old entropy/spectral feature families cannot be silently inherited. Preserve
+B3 energy/fitting semantics, state any adaptation. Audit fit scope: historical
+token B3/innovation implementations may use donor answers, which is NOT an
+answer-only fit. Primary localization lane fits this answer alone, or openly
+reports inability to do so; no silent pooling. Measure runtime/stability in a
+feasibility-only smoke before full matched evaluation. Compare same inputs,
+groups/folds/labels/gate/readout, equal and existing best fusion, plus incumbent.
+Temporal/graph B3 extensions remain later variants requiring a distinct causal
+question; no automatic multivariant sweep or claim of completed B3 evidence.
+
 ## 2026-09-10 - polynomial result: useful expansion within a weak baseline, no incumbent gain
 
 Full6-arm polynomial run completed/reviewed. Cubic-IU PB33.0050% versus
@@ -3487,3 +3532,19 @@ No partial output is promoted. The next decisions depend on the matched full
 report, followed by corrected historical refits and the token/window sampling
 shortlist. Feature-contract changes must remain a separate, label-free Joint
 diagnostic so that they do not contaminate this frozen comparison.
+
+### DEEM clarification from Omri (2026-09-11)
+
+B3 adapted DEEM to the previous continuous feature contract. Do NOT assume
+B3 adaptations remain necessary for new inputs. Check native DEEM first as
+an explicit alternative, retaining B3 as a comparison rather than the only
+implementation. Official README confirms soft input (N,classes,learners).
+The existing deem_adapter.py pins0.2.0 and already supplies hard and soft-rank
+adapters. Soft ranks are pseudo-probabilities, not calibrated hallucination
+probabilities. Raw ranked token probability is not automatically a learner's
+probability of the correctness class: distinguish accepted tensor shape from
+valid target semantics. Do not confuse Top-K alternatives with classifier axis.
+Native model plus explicit input mapping is possible; no automatic need to
+modify model architecture. Preserve class-permutation alignment checks.
+User request and native probability support acknowledged in chat; no DEEM/B3
+fit launched yet, current binary benchmark remains unchanged.
