@@ -1,49 +1,916 @@
 # Research Directions — Thesis Roadmap
+
+## 2026-09-10 - close direct rank-only probability fusion v1; isolate the missing inputs
+
+Direct fusion of the sorted top-15 probability ranks does not replace token
+entropy for localization. On the full frozen contract, all three direct arms
+(equal, IU-PCR and Joint shrinkage) are below entropy on ProcessBench and
+PRMScore. The small positive PRMB within-answer differences for IU-PCR and Joint shrinkage
+include zero in their predeclared 97.5% intervals; Equal had no predeclared
+primary interval. In the historical 24 cells, direct IU is below
+Historical IU-PCR and its primary hierarchical interval also includes zero.
+Equal has a post-hoc +0.001085 macro point difference but does not transfer to
+the localization endpoints. Do not promote a v1 arm and do not open a K,
+readout or shrinkage sweep from this result.
+
+The experiment nevertheless identifies a narrow representation question. The
+v1 matrix contains `T_answer x 15` sorted probabilities. It does not identify
+the sampled token as a separate coordinate and has no explicit residual-tail
+coordinate. Existing caches contain the sampled token negative log-probability
+(`token_spilled_energies`) and enough top-K probabilities to calculate residual
+mass. If direct probability work continues, test one frozen augmentation that
+adds these two semantically distinct signals while keeping fusion, benchmarks,
+splits, gate and readout fixed. This is the smallest justified follow-up; it must
+not be described as part of v1 or as a LOS-Net reproduction.
+
+Keep Token Entropy as the ProcessBench localization anchor and Historical
+IU-PCR as the 24-cell anchor. Evidence:
+`results/direct_probability_fusion_v1/REPORT.html` and stage-specific run
+manifests in the same directory.
+
+## 2026-09-09 - shrinkage evidence and the required simple control
+
+Claude's full/joint/LW gives a small positive two-task comparison versus IU on the
+complete development population, reproduced independently with10000 grouped draws
+and positive97.5% intervals for the primary comparison. This is a candidate within
+fusion, not an established winner or proof of Joint's mathematical assumptions.
+
+Keep solve/diag/1.0 as a mandatory existing control: its31.68% PB is close to31.77%
+for the primary candidate, and direct paired intervals include zero on both tasks.
+The claim that only the Joint structure helps is not established. Re-estimating
+rho helps PRMB in the matched full/subspace LW contrast; PB does not establish that
+mechanism separately. Entropy remains a strong PB control. Secondary alpha=1 peaks
+must not silently replace the declared candidate after seeing the table.
+
+No additional search is authorized by this review. Complete the sampling/reflection
+obligation, then decide the next bounded comparison. Freeze the final recipe and
+confirm on untouched data before promotion. Evidence and qualifications:
+results/fusion_shrinkage_iu_codex_review_v1/REPORT.md.
+
+
+## 2026-09-09 - preserve the full comparison after the storage failure
+
+The disk incident interrupted execution, not the experimental design. Omri
+asked Codex to resume the frozen full sampling comparison while Claude handles
+shrinkage-IU independently. The3036 committed sampling records passed identity,
+manifest and array-hash checks; the remaining10733 retain all56 original arms.
+There is no new selector, gate, graph or feature search in this recovery.
+
+Reason: the full matched benchmark must settle the earlier pilot claims; storage
+failure is not evidence for dropping an arm or deciding from a subset. Historical
+Joint and gate reviews are already complete. Complete sampling/evaluation, then
+return the Hebrew reflection and ledger before the next improvement trial.
+Recovery evidence: results/research_consolidation_v1/storage_recovery_20260909/.
+
+
+## User-approved consolidation — Step332, 2026-09-08
+
+Stop expanding the search. Complete the frozen historical Joint and full
+sampling obligations, independently review Claude's gate, then return one
+evidence-backed reflection before the next improvement experiment.
+Protocol: `docs/experiments/RESEARCH_CONSOLIDATION_20260908.md`.
+
+ProcessBench is first priority, with PRMB pooled and within-answer ranking
+always visible. Freeze raw mean entropy q0.3 as the simple gate candidate.
+It keeps fusion weights answer-local but estimates its gate on other answers;
+the detector/q were chosen on exposed development outcomes. Step331 now has
+independent support: IU20.0040 ->31.1580%, +11.1540pp CI[9.2911,13.0157].
+This repair recovers much of the historical gap, not the remaining location
+errors or proof of fusion superiority. Raw entropy is a mandatory comparator.
+
+Historical Joint completion now reviewed (245 fits,13769 records): internal
+hierarchical Joint16.02% PB all8, model-inverse lambda0 28.11%, LIU01028.65%.
+Much of the gap to hierarchical Joint already exists without a graph. LIU
+has positive exploratory PRMB-within intervals versus model-inverse0, but PB
+intervals and the LIU010/permutation comparison include zero. Do not promote
+a graph winner. Internal CONT15.22% uses different grouping from fixed-family
+CONT34.60%; the name alone does not define a comparable method. Frozen full
+sampling has resumed; its native GMM results must not be presented as results
+under the newly proposed entropy gate.
+
+After reflection, separate stages test (1) existing fusion curves under exactly
+the same gate, then (2) max versus top10-mean step readout for IU/entropy only.
+No new features, window sizes, graph strengths or model families in this scope.
+Retain negative, incomplete and pilot evidence honestly. LOCA/Flows/KalmanNet,
+new sampling mechanisms and historical24 remain deferred, not silently dropped.
+
+
+## Full-data decision update - Step330, 2026-09-08
+
+Pass2a is complete on all13,769 records. The original subset optimism did
+not become a large full-population gain. Joint100 graph has PRMB pooled
+.669238 and PB-Q8 21.2245%, versus IU .668225/20.3828%, without clear paired
+gains. IU+Joint graph mean improves PRMB within-answer AUC by .002289
+(exploratory95% CI[.000397,.004164]) but not PB clearly. IMM reaches21.8666%
+PB-Q8 while losing PRMB ranking. Do not promote a two-task winner.
+
+Continue the full registered sampling panel already launched: all eight
+existing selectors, seven fusion cores, same labels/groups/readout. Preserve
+the full-grid, uniform, equal-fusion, shuffled-selection and permuted-graph
+controls. Test all prior sampling ideas on the full population; do not choose
+which ones survive from the old pilot ranking. The exact ARI acceleration
+is validated as execution engineering, not an algorithmic improvement.
+The historical Joint comparison resumed from238/245 after its time cap.
+
+Full error accounting gives two concrete bottlenecks. For answer-only IU
+on PB-Q8,253 of591 correct raw peaks are suppressed by the gate, but1,008
+of2,221 error answers peak too late and622 too early. There are719 false
+alarms among1,179 clean answers. Thus gating alone cannot solve localization,
+and simply increasing graph strength has no established benefit. Next
+algorithmic development should serve fusion's local ranking and first-error/
+no-error readout, using the completed full comparison and pending full sampling
+to choose a controlled intervention. Do not adopt a label-using oracle or
+infer that all later steps are correct/incorrect from the first-error target.
+
+Historical PB reads top10-mean per step; its saved PRMB ranking scores use
+spanmax. Compare each task's actual readout. A diagnostic that equated these
+was stopped by an assertion and corrected before reporting. Evidence:
+results/localization_full_error_modes_v3/REPORT.html. The historical lead
+also changes fitting access and features, so this is not a causal gate-only
+or fusion-only explanation. Fusion stays central; remaining historical
+contracts/localizers, untouched confirmation and historical24 remain open.
+
+## Full historical benchmark update - Step329, 2026-09-07
+
+First five historical controls now have corrected full-population fits and
+review: results/historical_fusion_refit_v3/REPORT.html. The PB-Q8 historical
+level survives: IU34.2940%, U-PCR port34.2558%, equal active23 33.9237%,
+fixed-family CONT34.8656%, guarded CONT34.3717%. These fit other answers and
+use nested training-label PB calibration; the primary answer-only IU remains
+20.3828%. Different access, representation and readout prevent attributing
+this gap to the fusion formula alone. This is a matched end-to-end comparison
+with explicit access panels, not proof of a new answer-only improvement.
+
+On PRMB, historical IU has fold-mean AUC .680803 and within-answer .699245;
+answer-only IU .668280/.707230. Historical IU/CONT outperform the equal
+control's PRMB rankings, but neither establishes a paired PB gain over equal.
+Therefore preserve both the fusion and readout questions. In PB GSM8K-Q8,
+answer-only/historical IU raw peak accuracy is .3816/.3913 while final exact
+error accuracy is .1111/.2947: gate suppression is material there. Other
+cells also show raw location differences. This descriptive evidence is not a
+causal decomposition, and PRMB within-answer AUC is a different target.
+
+The next historical block is executing the ten original Joint/CONT, gate,
+LIU, diagonal and model-inverse/permutation controls on the same full folds.
+The original and accelerated adapters replay all40 historical arrays exactly;
+the acceleration changes ARI arithmetic implementation only. Keep full
+sampling and all other historical/dedicated-localizer contracts in the
+registry. Choose the next algorithmic change from the full comparison and
+full error analysis, not from the old pilot ranking. No two-task winner or
+publication confirmation has been established.
+
+## Active evidence policy - Omri, 2026-09-07 (Step328)
+
+Small runs are feasibility/implementation checks only. Do not use pilot
+scores to claim improvement or select the research direction. The full matched
+development benchmark, historical refits, per-cell failure analysis and paired
+uncertainty come before algorithm selection. Full cached data are already
+exposed; an untouched confirmation still follows a frozen method. This
+supersedes earlier short-cycle recommendations elsewhere in this roadmap.
+
+Complete the running full Joint/graph/trajectory comparison and corrected
+historical fusion/localizer refits, then the registered full sampling
+comparison. Use those findings to locate the next algorithmic bottleneck.
+The primary fit remains one answer's windows by features; evaluating the
+whole dataset means repeating that procedure for every answer, not pooling
+the answers. Pooled fitting and label calibration remain explicit comparators.
+
+The first full corrected historical panel is now executing: deployed IU,
+U-PCR exclusion port, equal active23, historical fixed-family CONT and v2
+guarded CONT. Canonical source folds plus nested training-only PB calibration
+replace the old overlapping source/calibration construction. This is a
+separately labelled pooled/calibrated panel, not a replacement for the primary
+answer-only method. See docs/experiments/HISTORICAL_FUSION_REFIT_V3.md.
+Corrected Joint/LIU/DUFS and remaining dedicated-localizer refits stay pending;
+do not interpret these first five controls as the complete historical roster.
+
+
+**Step325 COMPLETE: full19-anchor evaluation and supplemental review PASS.**
+Scoring exec50440 ended after19425.09s (5h23m45s), at19:57:17 Israel time.
+The evaluation adapter had not been connected then; it was implemented in
+this status follow-up. Eval exec65524 is now terminal, exit0,454.13s including
+verification/joins/metrics/intervals. Supplemental review exec56541 also exit0.
+No active scorer/evaluator remains from these three handles.
+
+Full report: results/localization_full_benchmark_v3/evaluation/REPORT.html.
+All13769 rows /19 original anchors; all27538 frozen score-file hashes checked.
+110 pilot answers and19 metric bundles replay exactly (float tolerance only
+for aggregate arithmetic).1000 joint draws across3483 canonical groups keep
+repeated scorers/answers and66 cross-task links together;19 absolute interval
+bundles and26 fixed paired contrasts. All are development/exploratory evidence.
+Supplement verifies joined provenance,nine label hashes,261611 method-validity
+records,363 per-cell source/validity groups,47 report rows and five links.
+Code/contract independently inspected by a read-only second agent; no external
+scientific or browser validation. Scientific scoring files stayed frozen.
+
+Full routed anchors (PRMB pooled / within-answer / PB-Q8 four-cell macro):
+IU .668225/.707230/20.3828%; equal .665479/.702973/20.7035%;
+Joint0 .668519/.706393/21.0893%; graph .667464/.706779/21.4172%;
+permuted graph .669289/.707787/21.3452%.
+PRMB coverage6952/6969, mixed6021;17 short PRMB scores unsupported. PB keeps
+all3400 answers per scorer including two short unsupported MATH answers.
+IU PB-Q4 is19.6252%, eight-cell macro20.0040%. These Joint arms retain the
+ORIGINAL condition1000, not the current condition100 candidate. Full Q8 graph
+minus IU difference+1.0344pp has95% CI[-1.0591,+3.0487]pp; no clear advantage.
+Graph pooled PRMB is slightly lower than lambda0 and node-permuted controls;
+no demonstrated graph mechanism benefit. Pilot PB points were more favorable
+than the full population, not a refitting bug: matched pilot outputs replay.
+
+Next still required: full fixed condition100/graph/equal/sampling/trajectory
+shortlist, corrected-fold historical fusion/localizer refits and declared
+access panels. No new shortlist run was silently launched in this diagnostic
+stage. The historical benchmark is NOT complete and no method is promoted.
+The method registry marks only stage1 FULL_EVALUATION_REVIEWED.
+
+**Step324 metric-gap diagnosis:** frozen-score inspection, no new fit.
+Quantile IU vs full loses six correct PB decisions and gains none: four
+correct peaks move to wrong steps, one correct peak is suppressed by its gate,
+and one clean answer becomes a false alarm. Raw exact peaks20/53 ->16/53;
+final correct error decisions12/53 ->7/53; clean decisions18/33 ->17/33.
+With original full-IU gate and new peaks, PB is22.24% vs30.16% baseline
+(native quantile20.77%). This is a post-hoc output swap, not a new candidate.
+PRMB uses different answers; its within-answer gain does not imply better PB
+ranking. PB-only first-error-versus-correct-prefix ranking falls .7094 ->.6911
+on44 eligible erroneous answers (nine step-zero errors excluded; post-error
+steps remain unlabeled). Do not dismiss PRMB gain as only calibration, and do
+not attribute the whole PB loss to the gate. Continue full benchmark first.
+See results/fusion_entropy_sampling_v1/METRIC_GAP_DIAGNOSTIC.html and JSON.
+
+**Step324 COMPLETE - entropy sampling comparison; review PASS.**
+`results/fusion_entropy_sampling_v1/REPORT.html` contains the matched35-row
+comparison and31 registered paired intervals. Same110 development answers:
+24 PRMBench/86 PB-Qwen3-8B;72 sampling eligible,38 exact full-window replays.
+All176 prior entries remain unchanged;14 additions,190 displayed entries.
+Run handle24353 is terminal, exit0. Scoring453.83s; no new inference.
+
+IU pooled PRMB / within-answer PRMB / PB score:
+full .68131 / .76881 /30.16%; uniform .67643 / .77697 /28.34%;
+high-only .75835 / .77892 /28.35%; low/high .72746 / .77174 /26.27%;
+entropy quantiles .71523 / .79198 /20.77%.
+Joint condition100 graph0.1: full .65545 /30.22% (pooled/PB),
+high-only .74133 /28.20%, low/high .71439 /26.36%, quantiles .67024 /24.37%.
+All14 new outputs have24/24 PRMB and86/86 PB coverage INCLUDING IU fallback;
+Joint fallback20/110 tails,19/110 quantiles (18/72 and17/72 among new fits).
+
+Interpretation: neither new selector dominates the existing references.
+Quantile IU improves within-answer AUC vs full by .02316 (exploratory paired
+95% CI [.00213,.05232]), but PB drops9.38 percentage points
+(CI [-17.51,-2.56] points). Its within-answer gain over high-only is uncertain.
+Low/high tails do not beat high-only on either primary point metric for IU
+or Joint graph. This does not prove high entropy identifies errors or resolve
+normalization-versus-weight attribution. Keep fusion central and full matched
+benchmark/refits first; no automatic new sweep or promoted publication winner.
+
+Review:220 selections,1008 linear scores,1540 dense readouts,six representative
+shared-kernel bank refits and14 metric bundles PASS. Additional explicit-pair
+within-answer arithmetic for14 methods,35 HTML/CSV metric rows,31 interval rows
+and six local links PASS. Same-session review, not external/browser validation.
+Scientific driver/core/protocol stayed frozen. The priority HANDLE workaround
+remains an operational launcher only. Full scoring handle50440 and evaluation handle65524 are terminal;
+full anchor evaluation passed and historical comparisons remain pending.
+
+**Sampling follow-up from Omri:** compare high/low-entropy fitting windows
+(e.g.25+25) with high-only and full-range entropy-quantile selection, retaining
+full/uniform controls and the same budget. These are unlabeled regions, not
+hallucinated/correct classes. Two tails still omit the middle. This bounded comparison is now completed
+in Step324; do not mutate or delay the running full benchmark for a new sweep.
+See the decision note for normalization-versus-weight attribution.
+
+**Parallel evidence inventory implemented:**
+`results/localization_evidence_ledger_v1/CURRENT110.csv` and `CURRENT110.json`:
+176 displayed current110 entries,167 saved-output fingerprints, nine identical-
+output groups. Valid coverage and both PRMB metrics/PB outcomes preserved.
+No new fitting, paired uncertainty or winner claimed. This is the first ledger
+layer; earlier58 and historical/full comparisons remain unfinished.
+
+## Omri decision update - 2026-09-07: reasoning benchmark first
+
+The full matched REASONING benchmark and corrected historical-leader refits
+are priority1 and a research-method requirement, not an optional final report.
+Analyze existing experiments in parallel to identify real algorithmic gains
+and application gains (local ranking, first-error/no-error decisions, coverage
+and runtime). Do not open another sweep merely because a pooled AUC improved.
+LOCA, Diverging Flows, KalmanNet and Shlezinger-inspired extensions are LOW
+priority supporting backlog. Fusion remains central; answer-only fit is primary.
+
+ProcessBench and PRMBench are the active core in separate metric panels.
+RAG/grounding, claim/span and agent tasks are outside the active claim; preserve
+historical artifacts. MR-GSM8K is the first external candidate to audit after
+method lock, including GSM8K source overlap; ReTraceQA/GR-Ben are later transfer
+candidates pending executable data contracts. A new scorer on previously seen
+PB answers is not untouched confirmation. Preserve historical24 as a separate
+later transfer with predeclared reasoning strata and its unchanged full macro.
+
+Risk selection means highest mean-entropy8-token fitting windows, not known
+errors: m=min(N,max(32,ceil(N/2))). Refit on selected rows and score ALL rows.
+TOKENS and TRAJECTORY refer to the same observation axis: distinguish row
+selection, chronological processing and combination of multiple fusion curves.
+
+Reasoning, source conversation and initial gain analysis are recorded in
+`docs/research_notes/reasoning_benchmark_decisions_2026-09-07.md`.
+This amendment does not modify the frozen Step321 scoring protocol or run.
+
+## Active priority update from Omri - 2026-09-07
+
+Full matched localization benchmarking now takes priority over additional
+small development sweeps. See `docs/experiments/LOCALIZATION_FULL_BENCHMARK_V3.md`
+and `results/localization_full_benchmark_v3/METHOD_REGISTRY.json`. The unchanged
+answer-only anchor pass has started on13769 model-answer rows; this is not
+the completed shortlist/historical comparison. Keep IU/LIU/L-SML/Joint and
+historical dedicated localizers in the continuing registry. Corrected-label
+and source-fold refits, coverage and within-answer evidence are required.
+See PROGRESS.md for live handles. Full cached data remain development data.
+
 *Omri Segev | Supervised by Bracha Laufer-Goldshtein & Ofir Lindenbaum*
 
 ---
 
-## Active priority — frozen Phase-3 retrospective and fresh-population boundary (Step 346)
+## Current priority — continuing localization benchmark (2026-09-06)
 
-`REASONING_LOCALIZATION_03662_ANCHOR_V1` has completed its opened-population
-Phase-3 development ladder.  Steps 340--345 are preserved in the immutable
-`phase_3` snapshot and hash inventory; no score, bootstrap draw, or raw result
-was recomputed.  All Phase-3 experiments are closed with
-`PHASE3_DEVELOPMENT_CLOSED__NO_PROMOTION`.  Q2--Q4, the original tensor and
-hierarchy templates, residual feature/temporal STG, two-block fusion,
-PRMBench transfer, and early detection were not run by gate.  Their status is
-`NOT_RUN_BY_GATE`, not a scientific failure.
+**Step319 completed: controlled mixture-gate mechanism check.**
+`results/fusion_gate_null_v1/REPORT.html`; scientific and artifact review PASS.
+768 synthetic trials: N16/64/256, AR rho0/.6/.9,64 replicates per cell,
+plus rho0/+3SD mean-jump controls. Raw, ordinary Kalman cold/warm and IMM
+cold/warm;3840 valid outputs, no failures. Warm processes256 preceding
+synthetic points and is a startup diagnostic, not a free-data candidate.
+No current110 score/prediction/metric changed; all176 anchors remain current.
 
-The active evidence boundary is:
+One stationary Gaussian source can trigger the gate after filtering:
+N256/rho0 raw0/64, IMM cold26/64, warm26/64; N64/rho0 raw0, cold11, warm12.
+The effect survives this startup control. N16/rho0 raw already opens15/64,
+so short-sample behavior also matters. At N64 with the fixed mean jump,
+raw opens21/64 while both IMM variants open64/64: preserve sensitivity in
+any correction. These are simulation frequencies, not real-answer false-
+positive rates. BIC has no declared5% alarm guarantee; nonlinear filtering
+need not preserve a Gaussian marginal. No numerical GMM bug is claimed.
 
-- the canonical fair 3,400-row ProcessBench localization record remains
-  `0.326141` for dedicated `family6 + level + step_top5mean`;
-- `0.3662328342` is the rejected historical Local/Online finalist and an audit
-  anchor only, so it must not be directly ranked against `0.326141`;
-- H2 `0.364090` and dynamics-IU `0.366876` are opened-population development
-  parents, with dynamics-IU only `PROMISING_UNCONFIRMED`;
-- P3E0 `0.364284` is a matched donor-cross-fitted control, not an exact H2
-  alias; DUFS `0.367045` and STG-SU `0.366762` do not establish mechanisms;
-- Q1 macro-F1 is inconclusive, while its exact-error secondary is negative,
-  `-0.010644 [-0.020123,-0.001210]`; and
-- the later confidence families were registered adaptively after earlier
-  outcomes and therefore form retrospective development diagnostics, not one
-  global confirmatory family.
+Three tests;768 source paths,1536 independent scalar Kalman trajectories,
+3840 normalization/mixture-algebra checks,48 direct vector IMM trajectories
+and120 actual GMM refits pass. Simulation106.04s, review12.06s. Artifact
+validation1551 hashes,11 local links/images,137 static rows,five ASTs. Both
+PNG plots inspected; no browser rendering or external review claimed.
 
-No further method search is admissible on the opened 3,400 questions.  A
-scientific continuation requires an independently registered protocol and
-branch on fresh questions or a fresh population, carrying H0/H2/H3 and the
-historical finalist as appropriate.  Otherwise the next action is advisor
-interpretation and paper writing from the accepted comparison package.  The
-Step-279 paper package and its canonical `0.326141` record are unchanged.
+Next bounded stage: verify one fixed calibration procedure on independent
+synthetic calibration/evaluation replicates, carrying the source through the
+SAME filtering/normalization/GMM procedure. Include mean-jump sensitivity
+and nuisance-parameter uncertainty; do not treat an AR Gaussian source as a
+proven model of correct reasoning. Then a gate-only current110 comparison
+must keep frozen fusion curves/peaks and all176 anchors. A synthetic fix
+alone is not an achieved localization improvement. The full research scope
+remains active: Joint/feature/IU, named supporting methods, corrected multi-
+answer refits, full comparators, sparse/short-error sampling, untouched
+confirmation and historical24 transfer are still open.
+
+**Step318 completed: full-trajectory fusion and supporting IMM.**
+`results/fusion_trajectory_imm_v1/REPORT.html`; scientific review PASS.
+Same110/v3 labels/v2 groups, original banks/fits/windows and149 unchanged
+anchors;27 additions,176 total,50 contrasts. All final outputs valid110;
+three inherited Joint fallbacks collapse to one IU observation in paired
+families. No new inference, feature refit or causal-online claim.
+
+Primary mean/GLS/IMM PRMB/PB: .669437/31.98298%, .683384/30.34837%,
+.693254/16.69023%. Original IU .681306/30.15985%, Joint graph100
+.655451/30.22293%; strong risk equal-permuted .768422/33.92003% retained.
+GLS vsIU intervals[-.02612,+.02882] AUC/[-8.7608,+9.3277]pp include0.
+No winner. Static mean/GLS are feature-weight combinations; IMM introduces
+chronological state evolution, not semantic correct/error states.
+
+Primary IMM vs static hold gains4 PB successes/loses13. Raw exact peaks
+18->17, final exact errors12->7, clean successes15->11. Post-evaluation
+fixed-component exchange: hold peak/hold gate30.34837%; hold peak/IMM gate
+23.27899%; IMM peak/hold gate27.43170%; IMM peak/IMM gate16.69023%.
+These are diagnostics, not new candidates or causal mediation. Clean median
+lag1 rises .28649->.63670, median BIC1-BIC2 .95381->6.44959; false alarms
+18->22. This motivates checking the mixture gate under dependence, but does
+not establish a semantic-error null or prove an effective-N correction.
+
+Seven tests,880 independent R/GLS and990 direct vector-IMM replays,2970
+outputs,176 metric bundles,50 paired comparisons and five explicit1000-draw
+bootstraps pass. Post-evaluation audit adds48 metric/component checks and1376
+lag replays. Scoring52.80s; review113.13s. Same-session/shared-kernel scope
+is disclosed. Full HTML, all comparisons and two inspected PNG/SVG plots
+are saved; no browser rendering or external review claimed.
+
+Artifact validation PASS:719 hashes,14 links/images,198 static rows,12 Node-DOM cases/256 numeric rows, seven ASTs and44 guide IDs. All handles terminal.
+
+Next bounded priority: audit existing no-error methods and use controlled
+unimodal serially dependent trajectories to check whether smoothing alone
+can trigger this mixture gate. Then decide one gate-only comparison with
+unchanged fusion trajectories/peaks. No broader temporal/graph sweep from
+these point estimates. Full comparators, corrected multi-answer refits,
+actual KalmanNet/LOCA/Flows, sparse/short-error sampling, untouched confirmation
+and historical24 transfer remain open; full research goal active.
+
+**Step317 completed:** `results/fusion_sampling_replication_v1/REPORT.html`.
+Fixed current110, original banks/routes,72 sampling-eligible/38 exact replays;
+six selectors/seven cores,149 entries with107 anchors,93 contrasts. Review PASS.
+Risk IU .758352/28.34853% vs full .681306/30.15985%; risk Joint graph
+.741328/28.20441% vs .655451/30.22293%. All sampled IU/Joint-graph PB points
+are lower than full. Native fit coverage also falls. No consistent winner.
+Risk equal+permuted graph .768422/33.92003% is a strong control, with a PB
+improvement interval including0; retain it in future comparisons.
+
+The pooled-AUC jump is largely consistent with answer location/scale:
+preserving original IU ranks and matching sampled mean/SD gives .748761;
+preserving sampled ranks but matching full mean/SD gives .689378. This is
+a post-evaluation diagnostic, not a new method or causal decomposition.
+Within-answer IU moves .768813->.778923; PB gains one success/loses two.
+There are no <=32-token first errors among38 eligible PB error answers;
+sparse end-to-end scoring and short-error retention remain untested.
+
+Next bounded priority: audit prior whole-trajectory fusion implementations
+and fitting scope, then one current-answer IU/Joint trajectory combination
+with matched simple controls, unchanged IDs and separate location/no-error
+evidence. Combining trajectories before peak selection can create different
+peaks; choosing among the old peaks alone is limited by Step314's overlap.
+Avoid another sampling/graph-dose sweep motivated mainly by pooled-AUC shifts.
+Keep149 anchors, both axes, named supporting tracks, corrected multi-answer
+refits, all relevant comparators, untouched confirmation and historical24.
+
+**Step316 completed:** `results/localization_history_bridge_v3/REPORT.html`.
+Five earlier58 lanes now have v3 labels/v2 groups:131 primary entries and
+199 original contrasts;25 corrected fallback references and seven gate
+diagnostics retained. Current110/107 entries stay separate. No fit, score,
+failure, prediction or PB metric changed; review passes raw/source/metric
+and explicit-bootstrap checks. No new winner emerged from the repair.
+
+The useful remaining sampling lead is modest: entropy-risk IU .668498/
+19.05242% versus full .647527/17.70833%; both intervals include0, within-answer
+ranking weakens, and PB loses one success/gains one across subsets. Joint+DUFS
+.763333 has only4 valid PRMB answers; its matched original Joint baseline
+is .750000. Offset-restored IU .692399 pooled AUC leaves local ordering and
+decisions unchanged. Do not mistake either for a strong localization gain.
+
+Next: a bounded observation-selection replication on the fixed current110,
+starting with target-free budget feasibility. Keep original banks/routes,
+full/uniform/risk/graph/permutation controls and IU/Joint/equal comparisons,
+and measure short-error retention and failures. Preserve107 current anchors;
+do not broaden this weak lead into a tuning sweep. Full comparator coverage,
+other historical formats, corrected multi-answer refits, named supporting
+tracks, untouched confirmation and historical24 remain open.
+
+**Step315 completed:** `results/fusion_token_gap_v1/REPORT.html`.
+Provided-token preference gap replaces only the three surprisal coordinates
+inside the same P27/width8 IU/Joint architecture. All110 answers retain the
+original bank route and graph seeds, v3 labels/v2 groups;107 total comparison
+rows,25 paired contrasts and review complete. Gap-IU .680187/28.82295% versus
+.681306/30.15985%; gap-Joint graph .649936/30.22293% versus .655451/30.22293%.
+No consistent gain; native Joint coverage drops107->100, explicit IU fallback
+preserves final coverage. Scalar gap/surprisal GMM controls flag all33 clean
+answers. No candidate promoted; keep original permuted equal-graph reference.
+Original top50 arrays confirm71,057 retained provided-token probabilities
+exactly;328 omitted probabilities cannot be independently recovered there.
+
+Next bounded priority: bridge unique earlier trajectory/readout, sampling,
+regularization and representation outputs to v3 targets/v2 groups, preserving
+their own cohort and score contracts. The98/25 common-anchor bridges are not
+a complete repair of all older methods. Use corrected evidence before choosing
+the next supporting component. Multi-answer refits, full comparators, named
+tracks, untouched confirmation and historical24 transfer remain required.
+
+**Step314 completed:** `results/fusion_localization_forensics_v3/REPORT.html`.
+All110 downstream token/span/raw-label joins and1760 score maps pass on v3.
+IU has20/53 raw exact first-error peaks,12 after gating; eight good peaks
+are hidden and15/33 clean answers trigger false alarms. Graph100 has18 raw
+peaks,13 after gating, five hidden and16 clean false alarms. Shared-window
+top plateaus occur in16/86 PB answers for each core, but label-perfect
+tie-breaking with the original gate only raises IU30.16->31.77% and graph
+30.22->32.32%. These are oracles, not candidate scores. Both tied peak sets
+together still miss28/53 first errors. AR graph changes16 gates/13 peaks;
+only2 changed peaks had old margin<=0.1SD. Alignment and near ties are not
+a sufficient explanation for the observed degradation.
+
+Next inspect realized-token versus distribution-confidence information in
+the existing one-pass cache and its earlier implementations, then freeze one
+supporting feature/readout change with IU/Joint and simple controls. Keep
+feature/trajectory fusion central and retain the corrected historical anchors.
+The report exposes all110 texts,16 trajectories and98 metric rows. Review
+passed; original model logit-position/full top-K fidelity remains outside
+this downstream audit's scope. All broader research requirements stay open.
+
+**Step313 critical correction, completed September7:** New label release
+`results/localization_prm_label_audit_v1/RELEASE_V3.json` fixes one-based raw
+PRMB annotations that Claude v2 wrote at zero-based index `step` instead of
+`step-1`. Codex's inherited PRMB metrics below are superseded. All6969 rows
+reviewed;6035 answer targets and15147 step labels change. V2 source groups,
+folds, telemetry and all8 PB label files remain unchanged. Full98 current110
+and25 original58 score bridges,207 comparisons and review complete:
+`results/localization_prm_label_audit_v1/REPORT.html`.
+
+Corrected current110: routed IU .68131/30.16%, graph100 Joint .65545/30.22%;
+not a PRMB point tie, and paired intervals establish no winner. Permuted
+equal-graph control .69226/31.32% exceeds IU on both points; preserve it and
+do not misattribute that result to learned Joint or meaningful graph geometry.
+20/21 augmented recipes trail IU on both points,9/21 trail graph100; all21
+remain lower on PB. The old blanket regression claim and AR-IU significant
+PRMB drop are withdrawn. Fit-validity/group-count evidence is unchanged.
+
+Next: resume raw-text/window/step forensics with v3 targets; its direct label
+assertion exposed this defect before the full audit finished. Keep original
+frozen files. Finish other historical bridges and corrected-label/group-fold
+multi-answer refits before historical comparisons. Full comparator coverage,
+named auxiliary tracks, untouched confirmation and24-cell transfer stay open.
+
+**Update, Omri 2026-09-07:** Execute the expanded research mandate in
+`docs/experiments/LOCALIZATION_RESEARCH_MANDATE_20260907.md`, with canonical
+standing instructions in `CLAUDE.md`. Reopen Joint/graph development around
+representation and label-free hyperparameter selection; improve IU in
+parallel research tracks, and preserve chronological HMM/BOCPD and
+DUFS-inspired token/window sampling. Investigate Shlezinger's task-based
+sampling work as inspiration with an explicit access audit. The earlier
+stop-Joint recommendation and discussion-before-every-stage wording below
+are historical, not the current direction. Require matched historical
+comparisons and evidence on BOTH localization benchmarks before promotion.
+
+**Fusion-centered scope, Omri September 7:** Keep IU-PCR / Joint L-SML at
+the core. IMM, LOCA, Diverging Flows and KalmanNet are supporting components
+for representation, sampling, fusion reliability or the fused-score readout.
+Their old precursor tests do not close their use in the new architecture;
+see `docs/reviews/temporal_geometry_revisit_2026-09-07.md`. Each experiment
+must compare the same fusion core with/without the addition and a matched
+simple-aggregation control. An auxiliary standalone detector is a control,
+not the advisor-facing method or a replacement research direction.
+
+**Latest stage - prediction-view quality inside fusion, Step312:**
+`results/fusion_prediction_quality_v1/REPORT.html`. All98 arms/74 registered
+comparisons and review complete. Original bank routing remains81moment/
+29context. All330 augmented Joint fits pass without fallback, with AR K>3
+in76/110 answers. On corrected v3 labels, all21 augmented recipes trail
+both references on PB;20/21 trail IU on both points and9/21 trail graph100
+on both points. AR+IU .66220/23.50%, AR+Joint graph .64714/18.01%, versus
+IU .68131/30.16% and graph .65545/30.22%. The AR-IU PRMB interval includes
+zero after correction; the AR-graph PB regression interval excludes zero;
+matched graph/equal controls establish no two-task contribution. Fixed-IU
+PB and within-answer ranking also weaken. Do not promote this augmentation
+or infer that Joint/graphs or the named supporting methods are closed.
+Next inspect actual first-error spans/text, near-tied peaks and clean-decision
+changes with frozen scores. A concrete failure mechanism should guide the
+next fusion/readout addition. Better prediction/fit health was insufficient.
+
+**Previous stage - prediction-view feasibility/history audit, Step 311:**
+`results/fusion_prediction_view_audit_v1/REPORT.html`. The audit found earlier
+token B3, Local/Online IU and CIW innovation implementations using donor or
+calibration-answer fitting. The new small AR(1) prototype learns preceding
+pairs inside one answer and appends nine measurements to the original 27;
+it supports IU/Joint. All 110 answers, three tests and batch-algebra review
+pass. No localization heads were fitted or quality endpoints evaluated.
+Residuals remain substantially correlated with original columns (median
+closest-column |rho| .87072 moment / .83750 context). 40 answers have N<36;
+31 original matrices already saturate centered rank N-1. These are support
+and redundancy diagnostics, not proof of failure or improvement.
+The quality follow-up above tested the same IU/Joint cores, equal
+aggregation, AR/last-value/EMA residual controls and graph-zero/permutation
+controls. Preserve original routing, explicit fallback, common comparisons
+and both benchmarks. Prediction MSE cannot select correctness features.
+
+**Previous quality stage - graph/conditioning interaction, Step 310:**
+`results/fusion_graph_conditioning_v1/REPORT.html`. All 77 arms, 101
+registered comparisons and review complete. Reuse original fits/routes;
+test all three caps with real/permuted graph0.1 plus matched graph-smoothed
+equal controls. No new Joint fit, group selection or inference.
+
+Dual graph100 gives PRMB 0.63847 / PB 30.22%, barely above dual IU
+0.63797 / 30.16%. Delta CIs [-0.03409,+0.02323] AUC and [-7.75,+8.18]
+PB points include zero. No optimal cap or consistent winner. Graph300
+has a positive exploratory PB interval versus permutation, but PRMB's
+includes zero. Joint-versus-equal-graph intervals do not establish a
+two-task contribution; keep the graph direction and all controls visible.
+
+An explicitly post-evaluation overlap diagnostic finds 31/53 erroneous
+PB answers missed by both IU and every tested Joint graph peak. A chooser
+restricted to existing peak locations can hit only 22/53; this is not a
+ceiling for combining trajectories, reranking or adding views. The expanded
+innovation-history audit is complete above; next test one complementary
+same-answer prediction-residual view inside our IU/Joint matrix, with
+unchanged-core and equal controls. Do not label a simple predictor as
+actual KalmanNet/Flows or infer that old scalar results settle this use.
+Wider supporting ideas, corrected-fold refits, full comparator coverage,
+untouched confirmation and historical24 remain open. No wider dose chase.
+
+**Previous stage - original Joint inverse conditioning, Step 309:**
+`results/fusion_native_conditioning_v1/REPORT.html`. All 45 arms, 69 paired
+comparisons and review complete on the same 110 answers. Reproduced all
+180 valid original fits and condition-1000 scores/decisions, saved C/v/u,
+then tested native caps 30/100/300 at graph lambda zero. Original groups,
+validity, bank routes and all 33 preceding anchors remain unchanged.
+
+Dual condition30 gives PRMB 0.63639 / PB 28.43%, versus original Joint0
+0.62884 / 25.33%. Paired delta intervals [-0.00062,+0.01777] AUC and
+[-2.58,+9.74] PB points include zero. Dual IU is still 0.63797 / 30.16%.
+Matched equal/IU comparisons do not establish a winner or optimal cap.
+Native PB gains coexist with unchanged total peak hits and lower fixed-IU
+PB; within-answer AUC gains also have an interval including zero. Pure
+context condition30 remains below equal on the 21 COMMON valid PRMB IDs.
+
+The follow-up, completed in Step 310 above, tests these SAME caps with graph0.1 and its
+permutation control, retaining saved original fits and routes. This
+distinguishes graph structure from generic diagonal regularization. Do
+not choose a best cap from these labels or widen K/graph doses. IU/Joint
+fusion remains central; broader supporting tracks, corrected-fold refits,
+full comparator coverage, untouched confirmation and historical24 remain open.
+
+**Previous stage - checked-pair localization quality, Step 308:**
+`results/fusion_pair_quality_v1/REPORT.html`. All 33 arms, 63 paired
+comparisons and independent review are complete on the same 110 answers.
+The new pair extension improves fit coverage but does not improve the
+tested localization pipeline. Old/new dual Joint graph is PRMB AUC
+0.63350 -> 0.58974 and PB F1 29.94% -> 19.29%; exploratory paired
+intervals are negative on both primary endpoints. No pair recipe is promoted.
+
+Fit-based routing changes the bank on 31 answers, mainly context -> moment.
+The routing-only IU control falls 0.63797/30.16% -> 0.59222/26.10% with
+unchanged per-bank maps. Fit validity is not a bank-quality selector.
+Joint weights can also change, so routing alone does not explain its
+whole regression. On 20 common valid PRMB answers, pure context Joint0
+has AUC delta +0.00109 and within-answer delta zero; its unmatched full
+AUC drop largely reflects changed coverage. Preserve those distinctions.
+
+The follow-up, completed in Step 309 above, tests native conditioning with ORIGINAL
+minimum-three fits, groups and bank routing fixed. Start with lambda zero;
+retain existing graph, IU and equal anchors. A post-evaluation unlabeled
+diagnostic finds most pair maps at condition 1000, also the old/new common
+median. That motivates this question without identifying the cause of
+errors. Preserve the pair covariance repair and negative quality evidence;
+do not mix routing/K/graph-dose changes into the first conditioning test.
+Both fusion cores stay central. Corrected-fold multi-answer replay, wider
+supporting ideas, full comparators, untouched confirmation and historical24
+remain open. The full research objective has not been achieved.
+
+**Previous stage - pair groups inside Joint fusion, Step 307:**
+`results/joint_pair_identifiability_audit_v1/REPORT.html`. The mathematical
+and unlabeled structural audit is complete. A pair identifies its residual
+product, not its two latent loadings. Naive pair admission can change native
+weights through clipped diagonal noise. The implemented feasible pair
+covariance preserves its product/observed variances and checks native-map
+agreement; minimum-three behavior remains unchanged.
+
+On the same 110 answers, moment Joint valid coverage rises 78 -> 106
+(31 rescued, three lost), context 102 -> 108 (seven rescued, one lost),
+and their union 107 -> 110. Moment selects K=6/8 in 60 answers, whereas
+the old admissible partitions were all K=3/4. Context still selects 3/4.
+One infeasible pair and five convergence/multistart failures remain visible.
+This is structural evidence, not an AUC/F1 improvement. No labels decoded.
+
+A post-fit review amendment fixes the zero-pair-product Jacobian edge case
+by profiling direct residual-product coordinates. It changes no existing
+eligibility result in this audit. Future experiments must use
+`spectral_utils.joint_pair_jacobian.fit_joint_pairs_checked`. Eleven tests,
+all 219 native-map reconstructions, 117 unchanged-partition parent replays,
+69 independent product-profile checks and nine representative refits pass.
+The HTML report and all run/review handles are complete.
+
+The follow-up, completed in Step 308 above, measures pair-enabled Joint with zero/0.1/
+permuted graphs and the existing IU, equal and minimum-three anchors.
+Retain matched routing controls and native versus fixed-IU diagnostics;
+do not add a wider K/condition sweep simultaneously. Fusion remains the
+method. Broader supporting tracks, corrected-fold multi-answer refits,
+full comparator coverage, untouched confirmation and historical24 stay open.
+
+**Previous stage - fixed fusion replication, Step 306:**
+`results/fusion_replication_v1/REPORT.html`. Nineteen fixed recipes and 38
+registered comparisons are complete on 110 distinct corrected source groups
+(24 PRMB, 86 PB), disjoint from the documented Codex exclusion inventory.
+This is development replication; the whole cache was previously evaluated.
+Scoring used one-answer fits and the old graph-permutation namespace.
+
+The earlier Joint0 -> IU advantage did not recur: new PRMB/PB is
+0.59733/21.45% versus moment IU 0.60140/26.38%. Dual IU gives
+0.63797/30.16%, dual Joint graph0.1 0.63350/29.94%, dual Joint0
+0.62884/25.33%, and dual equal 0.62649/25.55%. Dual IU improves pooled
+PRMB against moment IU (exploratory CI [0.00764,0.06898]), but its PB
+and within-answer intervals include zero, as do matched equal-control
+intervals. Graph versus its permuted control has a positive PB interval
+[+0.17,+9.58] points, but not a two-task advantage or established benefit
+over lambda zero/IU. No winner is promoted. Old/new cohorts have separate
+panels; cross-cohort score changes are not algorithmic improvements.
+
+Moment/context Joint coverage is 78/102 of 110; dual routes 78/29/3
+moment-Joint/context-Joint/IU. All composites retain full coverage. Four
+pre-freeze scientific tests and independent raw-input, fit-weight, gate,
+metric, routing and five explicit-bootstrap checks pass. The scorer and
+review processes are terminal; all reports are complete.
+
+The minimum-FEATURE-group-size-two audit proposed here is complete above.
+Keep both fusion cores central and preserve matched simple controls. A corrected-fold
+multi-answer replay still needs actual refits; the source-question correction
+below does not repair Claude's trained models. Broader fusion/supporting
+ideas, full comparator registry, untouched confirmation and 24-cell transfer
+remain open. Do not tune recipes on the completed replication's labels.
+
+**Completed benchmark prerequisite - source-question grouping v2:**
+`results/localization_source_group_audit_v1/REPORT.html`. PRMB's 6,211
+perturbation-level groups collapse to 707 source-question components, all
+crossing old Claude outer folds. PB has 430 repeated-question groups, 363
+crossing old folds. The v2 release/folds fix metadata and isolation; the
+multi-answer methods still need to be refitted before corrected-fold claims.
+
+The 25 answer-only fallback metric bundles are unchanged; 32 corrected
+uncertainty bridges are complete and independent review passes. The pilot's
+12 PRMB answers are 11 source groups, two overlapping earlier short cycles.
+The corrected Joint0 -> IU minus IU intervals still include zero on both
+benchmarks. Earlier v1 source-group intervals are historical, not repaired
+by this one bridge. No winner is promoted.
+
+The fixed-recipe development replication proposed here is complete above,
+using v2 source components, the documented 94-component Codex exclusion
+inventory and the old scoring identity namespace. Current source caches
+were already evaluated by v2; reserve truly untouched confirmation separately.
+Both localization caches use one teacher-forced pass on fixed official answers.
+
+Claude's minimum-feature-group-size-two proposal has now received the
+independent audit and quality test described above; do not
+confuse that with the source-question groups repaired here. Keep the broader
+fusion mandate and corrected-fold replay of relevant historical contenders.
+
+**Previous stage - explicit fallback:**
+`results/fusion_explicit_fallback_pilot_v1/REPORT.html`. Eight composites,
+17 unchanged anchors and 30 registered contrasts complete; five tests and
+independent review pass. Original Joint -> IU gives PRMB 0.63663 / PB 27.22%
+versus IU 0.62261 / 17.71%, but both paired intervals include zero. Always-
+context equal gives 0.66087 / 27.67% and must remain in the comparator panel.
+Its omitted paired comparison was added transparently during review, not
+retroactively inserted into the frozen roster. No winner is established.
+
+Both policies cover all 58; trying context Joint between original Joint and
+IU changes 13 routes but no PB exact-success indicator. Its pooled PRMB is
+lower, within-answer mean higher. Graph0.1 -> IU PB is only 14.94%. Single
+Joint improves two PB subsets, ties one and worsens one; clean hits decrease
+12 -> 8 while exact-error hits increase 4 -> 6. A macro increase is not
+uniform improvement. Keep explicit fallbacks and pure failures distinct.
+
+The source-group audit proposed here is complete above. Its correction is
+required before the planned fixed-recipe replication.
+
+**Previous stage - context bank / Joint-K:**
+`results/fusion_context_bank_pilot_v1/REPORT.html`. All 17 arms and 31 paired
+contrasts completed on the existing 58 answers; six tests and independent
+review pass. The level/EMA8/EMA32 bank improves Joint coverage from 43/58 to
+50/58, with 13 rescued and six lost fits. PB Joint lambda-zero rises 12.50%
+-> 27.43%, graph 8.33% -> 20.19%, but context equal is 27.67% and IU 16.97%.
+Only four PRMB answers are valid under both Joint banks; context is worse
+there (0.66823 vs 0.72613). No consistent two-task winner is established.
+Expanding K permits five groups in several answers but leaves PB unchanged.
+The report keeps native and common-IU-gate diagnostics separate and includes
+matched simple-control PRMB points. All original parent endpoints replay.
+
+The explicit fallback proposed here has now been implemented and reviewed
+above. Keep the representation/grouping evidence and broader hypotheses open.
+
+**Previous stage - normalization/no-error interface audit:**
+`results/fusion_gate_interface_audit_v1/REPORT.html`. Seven cores on the same
+58 development answers; all 14 task endpoints replay and independent review
+passes. IU's perfect-gate/current-peak diagnostic is only PB 41.89%, versus
+actual 17.71%; a gate-only repair does not solve localization. The raw peak
+hits the first error in 7/25 error answers for IU and 9/25 for Joint lambda
+zero (Joint has four invalid error fits). These small counts do not select
+a winner. Five identity tests pass; no scoring candidate was changed.
+
+The audit also proves that pooled PRMB ranking and within-answer localization
+must be reported separately: 89.33% of IU's positive-negative pairs cross
+answers. Removing an arbitrary centering offset raises pooled IU AUC from
+0.62261 to 0.68174 while all within-answer pairs stay unchanged. Retain the
+registered endpoint and add the already reported within-answer view; do not
+attribute an offset-only gain to a better error location. A free-mean GMM is
+translation-invariant, so that offset does not fix its correctness decision.
+Absolute entropy probes are inconsistent across PB subsets; not a common gate.
+
+The following next-work note is now executed by the context-bank pilot above:
+freeze one small local multiscale feature-bank/Joint-grouping comparison,
+with IU/equal controls and separate fixed-parent/native gate diagnostics.
+Audit the existing causal DSP mechanisms before adapting them: the historical
+Unified causal pipeline and subset search explicitly used supervised
+development. Reuse mechanisms with answer-local fitting, not silently borrowed
+rosters, signs or normalization. Any future pooled gate remains hybrid.
+Full comparator coverage, untouched confirmation, temporal/geometry/sampling
+support and the historical transfer remain part of the active goal.
+
+**Previous stage - sensitivity regularization:** The 23-arm pilot
+and all 38 paired contrasts are complete on the same 58 answers. Larger Joint
+graph lambdas and a within-answer label-free selection rule are now tested.
+No consistent two-task gain emerged. The full sensitivity penalty reduces
+fresh-perturbation score variability but reduces localization accuracy;
+optimizing this robustness criterion is not enough. Keep the unchanged fusion
+references and inspect the normalization/no-error interface next, with any
+pooled gate explicitly separated from the strict answer-only scope.
+`results/fusion_reliability_regularization_v1/REPORT.html`.
+
+The current run changed the weight solve, not the feature bank or Joint
+groups. Those directions remain active. Feature-bank follow-up can consider
+reasoning-specific information beyond repeated telemetry transforms, but
+its access, coverage and incremental fusion value need a bounded audit.
+The graph-compression paper is now fully cached; its proposed fusion-serving
+sampling connection and source caveats are recorded in the digest.
+
+**Previous completed stage - fitting-window sampling:** All scoring, 57 paired
+contrasts and independent review are complete on the same 58 development
+answers. IU and Joint
+remain the core; selectors change their fitting data, while dense scoring is
+retained. Transposed DUFS has no consistent two-task improvement; its shuffled
+control has the highest observed IU PB score, which does not establish a
+learned graph benefit. Joint graph coverage ranges 35-46/58 (full 43), and
+all reduced variants give PB 4.17% versus full 8.33%. Retain the full-grid
+reference; the paired report establishes no consistent two-task advantage. This pilot cannot
+test short-error retention because the eligible PB sample has no <=32-token
+first-error steps. The next fusion-centered direction is full-row feature
+reliability and label-free Joint regularization/stability, with gating effects
+isolated. Sparse scoring and task-aware sampling remain open.
+`results/fusion_window_sampling_pilot_v1/REPORT.html`.
+
+**Previous completed stage — supporting readouts:** The fixed 58-answer pilot
+now compares seven readouts of six frozen fusion/control cores. Raw peak
+repairs part of the first-crossing failure (IU PB 17.71% vs zero, unchanged
+PRMB 0.62261), but equal is 17.76% and entropy 19.85%. The paired interval
+does not exclude zero for IU's gain. HMM, IMM and BOCPD do not establish an
+improvement over the simple readout on both tasks. Full report and review:
+`results/fused_trajectory_readout_pilot_v1/REPORT.html`. Next return to fusion
+representation, reliability/regularization and token/window sampling, with
+the clean/error gate isolated in a new version. All remain within-answer,
+gray-box and one-pass. No publication winner is established.
+
+LOCA has now received a full local-paper digest:
+`papers/digests/loca-local-conformal-autoencoder.md`. Its local measurement
+geometry is a possible supporting idea, not a ready replacement for fusion.
+First test whether within-window uncertainty estimates are stable enough
+to help grouping/regularization; token adjacency is not latent-isotropic
+burst sampling. The BOCPD source-convention correction is documented in
+`docs/reviews/bocpd_boundary_audit_2026-09-07.md`.
+
+**Previous completed stage:** The fixed 58-answer, two-benchmark representation
+pilot has run and passed its numerical/source review. Width-8 moment features
+improve fitting coverage (IU 58/58; Joint 43/58); Joint can select four feature
+groups. An accuracy advantage is not established. The fixed PB
+mixture/first-crossing readout failed (all fusion macro-F1 values zero).
+Next isolate the chronological interpretation of frozen fused scores.
+`results/answer_localization_representation_pilot_v1/REPORT.md` contains
+matched historical anchors, paired uncertainty and limitations. This is
+development evidence; the full comparator benchmark and confirmation remain
+open. Joint feature/hyperparameter work remains active.
+
+**Historical short-cycle planning snapshot (superseded above).** Omri requests one bounded investigation,
+findings, then a new discussion of the next step. The broad program below is
+a backlog. The first cycle has now run and been reviewed; its report is
+`results/localization_short_cycle01/REPORT.md`. It evaluates answer-only Joint
+model-inverse lambda-zero fitting on 30 long traces, with matched IU/equal
+references and a fixed trajectory readout. IU is the strongest of the three
+on the common strict subset (AUROC 0.7207 versus 0.6915 for Joint and 0.7013
+for equal), while Joint is unavailable or non-converged for 6/30 answers.
+This is an encouraging answer-only IU result, but it is a small retrospective
+pilot and does not establish a final localization winner.
+
+Omri's current direction is localization, including Joint L-SML and a new
+window representation. The standing requirement is comparison with all
+relevant historical and current leading candidates under a stable benchmark.
+It is recorded in `CLAUDE.md`; the consolidated plan, completed-work inventory,
+candidate family and decision dependencies are in
+`docs/experiments/LOCALIZATION_BENCHMARK_CONTINUITY_PLAN_20260906.md`.
+
+Prepare the comparator registry and historical protocol map now. Close and
+independently audit Claude's optimization-v2 evaluation before interpreting
+its winner. Module B arrived at 22:43 on September 6; the complete report and
+additional contrasts were still in progress at the later check. Its 3x3
+feature/trajectory grid does not establish a winning learned composition.
+Then freeze a continuing localization contract, reproduce old anchors with an
+explicit bridge where needed, and compare the agreed Joint variants on
+single-answer and pooled-window fits. **The primary goal is fitting from the
+current answer alone on both axes**; pooling or borrowed groups/calibration
+are explicitly secondary or hybrid comparisons. Feature feasibility on 400 GSM8K answers
+is complete; window-fusion accuracy is not. Larger-lambda and focused sequence
+readouts follow only if the matched comparison leaves a concrete question.
+Two follow-up diagnostics are now complete. Fixed provenance groups improve
+Joint coverage but not ranking. The requested answer-only Joint-LIU lambda-0.1
+graph reaches 0.69188 on the common strict 24 answers versus 0.69148 for lambda
+zero, 0.69578 for a node-permuted graph and 0.72072 for IU. The meaningful
+graph has no attributable gain. Stop this Joint graph/lambda line. The next
+short cycle should confirm IU/equal on a fresh long-answer cohort and then,
+only if confirmed, test a small frozen trajectory/readout roster. Do not launch
+the historical transfer before a localization recipe is frozen.
+Omri also requests a separate transfer test: freeze the localization-leading
+fusion recipe and evaluate it on the historical 24 final-answer cells with
+the existing contract and comparators. Distinguish fusion-rule transfer from
+transfer of the complete feature-plus-trajectory pipeline. See plan Section 5A.
+
+**Backlog idea — DUFS-style token/window sampling.** Apply a parameter-free
+DUFS graph to candidate token or non-overlapping window observations within one
+answer, and use the selected points as the sampling support for feature and/or
+trajectory fusion. This is a proposal only. A bounded future test must compare
+uniform sampling, risk/top-score sampling, and full-window evaluation while
+measuring coverage, boundary recall, selected-point stability under block
+perturbations, runtime, and localization accuracy. Graph similarity must be
+kept separate from chronological adjacency, and the method must remain
+answer-only and label-free; otherwise an isolated short error peak could be
+discarded. See the detailed continuation-plan entry for the registration.
+
+This user-directed continuation supersedes older "next priority" statements
+for current localization work. It does not reopen or alter the completed
+Fair Paper-Exact, frozen-24 or other historical releases. The plan is not a
+frozen evaluation protocol or a record of a newly launched run. Preserve the
+negative results and evidence boundaries in the historical roadmap below.
 
 ## Active priority — consolidated research program (Step 281)
 
 The canonical cross-front assessment is
 `docs/research_notes/research_status_consolidated_2026-08-19.md`. It supersedes
-branch-local priority statements through its 2026-08-19 boundary while
-preserving their historical evidence. Its active ordering is now superseded by
-the Step-298 localization program above; its evidence verdicts remain intact.
+branch-local priority statements while preserving their historical evidence.
 
 The ordered program is now:
 
@@ -2431,268 +3298,33 @@ were superseded by Steps 226--235.
 ## Thesis Narrative Thread
 
 > *The per-token entropy trajectory H(n) is a signal, not a scalar. Collapsing it to its mean (EPR) discards temporal structure that predicts hallucination. Spectral features of H(n) recover that structure. L-SML fuses those features without labels, in a single forward pass. This gives a detector that is cheap (K=1), interpretable (spectral signal processing on an information-theoretic signal), and formally calibratable (the L-SML score is a continuous input to LTT). The thesis validates this on math reasoning, extends it to RAG and QA, and closes with a conformal chapter that turns the AUROC result into a deployment-ready detector with a formal false-negative-rate guarantee.*
-# Reasoning-localization STG feature support; temporal graph closed by premise (updated 2026-08-30)
 
-The corrected `STG_SU_STABLE` side-worktree result establishes a narrow
-mechanism premise: fold-stable stochastic-gate support can recover canonical
-SU-PCR to near IU/DUFS-LIU parity on final-answer detection, but its small
-gains over IU and cardinality-matched random support were not statistically
-supported. It does not establish localization value.
+## Step 327 - regression decision after full single-answer evaluation
 
-The STEP-CUT development-only premise screen closes the second of those two
-ideas. Its full chain-plus-mutual-2NN graph beat length-matched uniform chance
-in Qwen late-error Hit@1 by `+0.02328 [+0.00445,+0.04230]`, but it lost to
-chain-only, step-permuted, and random-edge controls with intervals excluding
-zero. Entropy-plus-graph fusion also harmed Qwen Hit@1 by `-0.03342
-[-0.05499,-0.01309]` and repeated the harm on Llama. The apparent chance lift
-is therefore topology/position bias, not evidence that learned graph content
-localizes error. `P3G_T1_TEMPORAL_GRAPH` and any combined feature-by-time graph
-are `NOT_RUN_BY_GATE`; this is a premise failure supported by the controls,
-not rejection because an interval crossed zero.
+The same answer-only IU recipe falls from 30.16% in the 86-answer PB-Q8 pilot
+to 20.38% on all 3,400 answers; the other 3,314 score 20.12%. All pilot scores
+and decisions replay. OmniMath accounts for 73% of the macro drop (49.38% on
+24 pilot answers versus 20.81% on 1,000). This is a population-expansion gap;
+do not attribute it to switching from pooled fitting or infer a causal reason
+from the descriptive decomposition. Both raw peak correctness and clean/error
+decisions are worse in the larger OmniMath population.
 
-The feature-axis idea remains distinct and planned: after an independently
-eligible compact roster freezes, a bounded Phase-3 branch may still test
-fold-stable sparse support/Laplacian among surviving feature/family blocks.
-Required controls are exact zero-strength alias, cardinality-matched random
-support, and feature permutation. Whole questions remain fold/bootstrap units.
-A simpler chain-edge change score is diagnostic only and requires a new frozen
-premise; it is not automatically opened. See
-`docs/experiments/REASONING_LOCALIZATION_03662_STG_GRAPH_TRANSFER_V1.md`.
+Decision: retain full matched benchmarking as priority. Complete the registered
+shortlist and corrected historical refits before another feature/parameter
+pilot. Report original condition1000 separately from condition100 and the
+newer mean/GLS/sampling contenders. The 31.98% trajectory-mean and 33.92%
+risk equal/permuted-graph points remain pilot-only; the latter is a simple
+control, not established graph-fusion progress. No current candidate promoted.
+Evidence: results/localization_full_regression_audit_v3/REPORT.html.
 
-# Reasoning-localization H3 role separation (priority confirmation direction, 2026-08-31)
+## Step 326 - current localization benchmark status (2026-09-07)
 
-The strongest current development candidate is no longer a generic graph or
-reliability-weighted fusion. It is the simpler H3-equal role-separated
-reranker: H0 keeps exclusive clean/error authority; H2 removes sampled-token
-energy and the partition-level view and adds C7 inside entropy dynamics; C8
-gets an equal step-rank vote only after H0 declares an error.
-
-On the opened eight-Qwen population H3 equal reaches macro F1 `0.366653`,
-delta `+0.012392 [+0.001769,+0.022807]`, while preserving clean abstention
-exactly. This is directional but not practically supported under the existing
-`+0.003` lower-bound gate, and the roster was selected after outcomes opened.
-It is therefore the first priority for a frozen fresh-question confirmation,
-not a Phase-3 promotion.
-
-Do not carry the perturbation-reliability weight forward by default: its C8
-weights collapse near 0.5 and it loses `-0.002285
-[-0.007659,+0.003087]` versus equal fusion. Do not reopen the failed temporal
-graph premise. Hierarchical family experts, STG feature support, SU-PCR gates,
-and tensor fusion remain later survivor-gated studies; they should not delay
-the simpler H3-equal confirmation.
-
-The frozen four-Llama scorer-family transfer now refines this priority. No
-fresh local questions exist: Qwen3-4B, Qwen3-8B and Llama-3.1-8B share the
-same 3,400 source groups. On Llama, H2 is raw best at `0.355583`, improving H0
-by `+0.006674 [-0.007091,+0.020943]`; H3 reaches `0.353281`, improving H0 by
-`+0.004372 [-0.009677,+0.018452]` but trailing H2 by
-`-0.002303 [-0.011662,+0.007001]`. Thus the cross-scorer point direction
-remains interesting, but C8's incremental premise is not confirmed.
-
-The next fresh-question contract must therefore carry all three frozen arms:
-H0, H2, and H3. H2 is the required parent and H3 must beat both H0 and H2;
-selecting only H3 would hide the scorer-family interaction. Until that data
-exists, neither candidate is a Phase-3 survivor and the later hierarchical,
-STG, SU-PCR-gating and tensor branches remain closed by prerequisite rather
-than scientifically rejected.
-
-The frozen PRMBench diagnostic adds a clear task-specific result. On 83,280
-steps, H3 improves H0 AUROC by `+0.027412
-[+0.023675,+0.031091]` and H2 by `+0.021598
-[+0.017653,+0.025457]`; both AUPRC contrasts are also positive with
-simultaneous intervals above zero, and all eight evaluable families improve.
-H2 itself improves H0 AUROC by `+0.005814
-[+0.004710,+0.006973]`.
-
-Therefore H3 is now a supported **PRMBench specialist**, while remaining
-unconfirmed for ProcessBench first-error F1. This favors preserving distinct
-roles or task-specific output heads in a future independently frozen study:
-H0/H2 for the ProcessBench clean/error and first-error contract, and C8 as a
-dense-step ranking expert. It does not authorize choosing that architecture
-from opened labels, averaging tasks, or bypassing Phase-3 prerequisites. Full
-contract and result:
-`docs/experiments/REASONING_LOCALIZATION_03662_H3_PRMBENCH_DIAGNOSTIC_V1.md`,
-`docs/experiments/REASONING_LOCALIZATION_03662_H3_PRMBENCH_DIAGNOSTIC_AMENDMENT_V2.md`,
-and
-`docs/experiments/REASONING_LOCALIZATION_03662_H3_PRMBENCH_DIAGNOSTIC_RESULTS_V2.md`.
-
-The matched historical bridge now resolves the previously invalid comparison
-between current H3 `0.366653` and historical `0.366233`. On the exact Stage-4
-audit, H3 reaches `0.372663`, a paired delta of
-`+0.006431 [-0.026891,+0.039473]`; H2 is raw best at `0.374793`, delta
-`+0.008560 [-0.024610,+0.040869]`. These are favorable but unresolved point
-effects, not failures and not supported improvements.
-
-The 2x2 cross also narrows the scientific target: the current detector with
-the historical localizer has the larger favorable point change
-(`+0.013119 [-0.005697,+0.034240]`), while H3 localization under the
-historical detector is `-0.003070 [-0.028453,+0.020618]`; their interaction
-crosses zero. Therefore the next independent confirmation must retain H0, H2,
-H3 and the historical finalist, decompose clean abstention from exact
-localization, and treat H2/H3 as distinct task-role candidates. H3 remains a
-supported PRMBench specialist; it is not yet a dual-task winner.
-
-### Phase-3 fusion update
-
-Ordinary IU-PCR across the four compact H2 family scores is now closed for
-ProcessBench localization: detector-preserving delta `-0.014069` with CI
-`[-0.023926,-0.004635]`. Uniform IU inside every multi-view family is only
-inconclusive (`-0.003924 [-0.012614,+0.004539]`) and is not rejected.
-
-The active bounded direction is therefore a genuinely conditional family
-expert: a predeclared label-free selector may choose among an exact small
-roster per family, while entropy level remains a singleton passthrough and the
-outer mean stays fixed initially. Audit F1 cannot choose flavours. More complex
-DUFS/LIU, L-SML, STG/SU and tensor mechanisms remain later, separately gated
-branches rather than consequences of the two IU results.
-
-### ASTGI-inspired shared representation with separate queries
-
-The trajectory/tensor direction now contains a higher-priority query ladder:
-shared compact H2/C8 observations feed a frozen H0 detection head, an H2-parent
-onset query, and an H3-parent state-error query. Q1 tests query pooling without
-a graph; only survivors may add donor-learned coordinates, past-only
-neighborhoods, and finally one propagation layer.
-
-This does not reopen STEP-CUT or authorize a full GNN. It also does not combine
-with hierarchical family fusion in its first contrast. Advancement requires
-separate noninferiority-or-improvement against H2 on ProcessBench and H3 on
-PRMBench, zero H0 abstention mismatch, and no combined task score. The exact
-ASTGI paper citation and fidelity map must be recorded before any paper-derived
-claim or executable freeze.
-
-### Deployed U-PCR prune/refit correction — completed base test
-
-Add exact deployed U-PCR to the Phase-3 roster as a distinct method. Unlike
-the completed ordinary-IU arms, it performs a full-pool fit, removes weak
-views using label-free estimated `rho_hat`, and recomputes the spectral fit on
-the survivors. Do not describe this as removal by observed task correlation.
-
-The four outer H2 family scores are not dimension-eligible for an informative
-exact deployed-U-PCR test because the frozen `<5` policy returns a simple
-average. The primary planned branch therefore operates on the enumerated
-compact H2 member-view pool and includes: same-matrix full-pool IU, exact
-deployed U-PCR, mask-only equal weighting, and cardinality-matched random
-masks. Keep-set identities and five-fold donor stability are first-class
-outputs, not hidden diagnostics.
-
-The prune/refit idea may later be applied once to another independently
-surviving fusion family, but only with that method's own label-free relevance
-quantity and an exact no-prune alias. IU may use additive-model `rho_hat`;
-SU/STG uses sparse-error-corrected reliability or stable support; DUFS-LIU
-uses donor-stable gates; L-SML/B3 and tensor/query methods require a separately
-frozen native criterion. This is not permission for a feature-selection soup
-or for reopening every failed fusion method.
-
-The compact-view base test is now complete and does not promote. Deployed
-U-PCR improves the exact full-pool IU control by a small unconfirmed
-`+0.002499 [-0.008683,+0.013781]`, but remains
-`-0.007350 [-0.017885,+0.003263]` below equal-family H2. The fold masks are
-highly stable, yet equal-mask and cardinality-matched random-mask controls do
-not support the pruning mechanism. Consequently this is not the next default
-fusion parent and does not transfer to PRMBench. The wrapper stays registered
-only for an independently surviving method whose native no-prune parent and
-relevance quantity are already justified.
-
-### Family-specific fusion attribution — ordinary IU retained after DUFS controls
-
-The completed P3E decomposition shows that within-family fusion is
-heterogeneous. Ordinary IU only in dynamics+C7 gives a positive unconfirmed
-`+0.002592 [-0.001839,+0.007194]` with 6/8 cell wins; top-k-only gives a smaller
-`+0.001319 [-0.001433,+0.004355]`. Partition-only is negative and explains
-most of the joint all-family loss.
-
-The bounded DUFS follow-up is now complete. Dynamics-local DUFS changes its IU
-parent by only `+0.000168 [-0.001466,+0.001818]`. Allowing all 24 compact H2
-views to define the graph while retaining dynamics-only output weights changes
-the parent by `-0.000006 [-0.001577,+0.001586]` and does not beat either the
-family-local graph or the aligned-context permutation control. The permitted
-top-k local control is also effectively tied:
-`-0.000065 [-0.001657,+0.001623]`.
-
-Therefore retain ordinary IU—not DUFS-LIU—as the simpler current
-family-specific expert. The context-conditioned idea was tested directly and
-its mechanism premise did not pass. Do not open another DUFS family,
-contextual graph, DUFS prune/refit, or a DUFS-by-STG-by-B3 search. Any next
-fusion method must be a distinct preregistered mechanism and must retain the
-exact dynamics/top-k IU parents and controls.
-
-### Dynamics-family STG-SU result and next direction (2026-08-31)
-
-The dynamics-only SU/STG-SU ladder is complete on the opened eight-Qwen
-ProcessBench population. Canonical SU is a useful diagnostic control but can
-exceed the sufficient sparse-support theorem on 14 views; a pre-label registry
-amendment records this explicitly rather than treating the control condition as
-a failure of STG. STG-SU is `-0.000114 [-0.002964,+0.002697]` versus its
-IU parent, while its learned-support contrast is `+0.000884
-[-0.002316,+0.004156]` against a feature-permuted support and
-`-0.000288 [-0.002896,+0.002180]` against cardinality-matched random
-support. Thus the support mechanism is not supported and no PRMBench transfer
-opens; the intervals crossing zero are `INCONCLUSIVE`/`PROMISING_UNCONFIRMED`,
-not generic rejection. Keep ordinary dynamics IU as the simpler family expert
-and do not open STG-by-DUFS or STG pruning.
-
-The next bounded mechanism is the ASTGI-inspired Q1 point-query head, once its
-executable donor-only objective, dimensions, seeds, query controls, and
-noninferiority margins are frozen. It must retain separate H0 detection, H2
-ProcessBench onset, and H3 PRMBench state-error roles; no task metrics are
-averaged.
-
-### ASTGI-Q1 point-query result (2026-08-31)
-
-The first executable ASTGI-inspired rung was frozen before labels. It applies
-one fixed analytic point query to the four H2 family-risk views
-(`q_onset=[0.20,0.40,0.20,0.20]`, temperature 1.0, boundary gamma 0.05), with
-the H2 top-ten reducer and H0 detector unchanged. The reverse-query and
-no-boundary controls were frozen in the same pass; equal mean is the exact H2
-alias.
-
-On the opened eight-Qwen ProcessBench development population, Q1 reaches
-`0.354584` versus H2 `0.364090`, delta
-`-0.009507 [-0.019618,+0.000516]`, W/T/L `2/0/6`, with worst cell
-`-0.028438` (OlympiadBench/Qwen3-4B). Exact-error delta is
-`-0.010644 [-0.020123,-0.001210]`; clean abstention is unchanged. Q1 versus
-the reversed query is `+0.000603 [-0.000931,+0.002323]`, and Q1 versus the
-no-boundary control is `-0.001890 [-0.003974,+0.000021]`.
-
-This is `INCONCLUSIVE__NO_PROMOTION`, not a supported-harm rejection: the
-primary interval crosses zero while the point estimate is below the parent,
-and neither control establishes a query or boundary mechanism. Q2 learned
-coordinates remain closed, and there is no PRMBench transfer. Full protocol
-and artifacts: `docs/experiments/REASONING_LOCALIZATION_03662_ASTGI_Q1_EXECUTION_V1.md`
-and `results/reasoning_localization_03662_v1/phase_3/astgi_query_heads/`.
-
-### Joint L-SML successor direction after the localization autopsy (2026-09-04)
-
-The first active-23 Joint L-SML localization head is closed negative on both
-opened tasks. The post-hoc autopsy changes the most useful next question. The
-urgent issue is not another residual-covariance model: ProcessBench exposes a
-missing cross-cell score-scale convention, while PRMBench exposes a mismatch
-between the fitted covariance factors and the deployed hierarchical weight
-map.
-
-The next bounded development study should therefore proceed in this order:
-
-1. Normalize every fitted head to donor fused-score standard deviation one
-   before any cross-cell threshold. This is an engineering invariant, not a
-   label-tuned option.
-2. Cross INTERNAL versus provenance/fixed grouping with ordinary continuous
-   L-SML versus hierarchical Joint mapping. This is the minimum design that can
-   identify whether grouping or map construction is the failing branch.
-3. Compare token-fuse-then-step-reduce with per-feature-step-reduce-then-fuse,
-   using exact fixed reducers and training-fold-only fitting.
-4. Give IU and Joint equal maximum eight-configuration inner budgets under
-   five-by-five nested source-group CV, with PB and PRM selected and reported
-   separately.
-
-DUFS is not an adaptive-K rule. A DUFS output is a feature gate and cannot be
-substituted for a partition count. If DUFS returns, the only first-line role is
-one parameter-free, fold-contained soft reweighting of the INTERNAL residual
-affinity; K remains selected by held-source co-assignment stability and a
-nondegenerate-affinity/null gate. It consumes one of at most two Joint successor
-slots. Hard prefiltering and DUFS-driven group repair remain out of scope.
-
-The current Qwen data may estimate only retrospective development performance.
-A supported nested-CV result would authorize a fresh frozen confirmation test,
-not promotion. Exact plan:
-`docs/experiments/JOINT_LSML_OPTIMIZATION_PLAN_V1.md`.
+The 19-anchor full evaluation is complete and review PASS, but it is only the
+baseline layer. A registered pass2a run is now scoring all 13,769 answers for
+the newer condition100 Joint, graph/permutation controls, equal-graph controls
+and IU/Joint trajectory readouts. Its preflight passed; the production scorer
+was at 700/13,769 rows at the latest check and has no terminal metrics yet.
+No partial output is promoted. The next decisions depend on the matched full
+report, followed by corrected historical refits and the token/window sampling
+shortlist. Feature-contract changes must remain a separate, label-free Joint
+diagnostic so that they do not contaminate this frozen comparison.

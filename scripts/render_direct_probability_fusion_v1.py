@@ -361,7 +361,7 @@ table{{border-collapse:collapse;width:100%;font-size:13px}} th,td{{border-bottom
 <p>The fixed mean-entropy q=0.3 gate isolates location quality and prevents the old GMM gate from hiding valid peaks. Joint Shrinkage transfers Claude's useful Joint covariance idea into a closed-form IU fit. It is a supporting method because the direct probability ranks do not have the original feature-stream grouping. BOCPD is excluded because it did not improve the frozen localization task.</p>
 
 <h2>5. Limits</h2>
-<p>This is development evidence on previously studied datasets. K=15 and the top-10 token readout were frozen before scoring. The historical IU-PCR reference is exactly <code>mixed_v2 / full / iu_pcr</code>; the similarly named U-PCR plus sign heuristic is not used. DEEM and white-box signals are outside this run.</p>
+<p>This is development evidence on previously studied datasets. K=15 and the top-10 token readout were frozen before scoring. The matrix contains the sorted top-15 probabilities, not a separate probability for the sampled token. It also has no explicit residual-tail column; the top-15 values are left unnormalized, so missing mass remains implicit. The caches contain sampled-token negative log-probability, but v1 did not use it. The historical IU-PCR reference is exactly <code>mixed_v2 / full / iu_pcr</code>; the similarly named U-PCR plus sign heuristic is not used. DEEM and white-box signals are outside this run.</p>
 </main></body></html>'''
 
 
