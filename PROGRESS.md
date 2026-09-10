@@ -1,5 +1,30 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## DEEM/B3 preflight stopped: input semantics correction (2026-09-11)
+
+Isolated worktree .worktrees/deem-b3-probability-moments-v1, branch
+codex/deem-b3-probability-moments-v1, frozen code a09fb334 from490f4b6c.
+Three mechanical tests passed; only3 real-answer smoke records were persisted.
+Full13769 benchmark was NOT started. The smoke process was interrupted.
+
+User correctly challenged native DEEM input semantics: vocabulary probabilities
+are not soft classifier decisions over a common hallucination target. The
+[1-p,p] mapping satisfies tensor shape only; selected1-p and empirical moment
+ranks also remain uncalibrated proxies. The protocol had disclosed proxies,
+but this does not establish native DEEM applicability. Do not infer a failure
+of DEEM from this pilot. Direct-probability DEEM was nearly constant in3 saved
+answers; this is an engineering diagnostic only, not a benchmark finding.
+
+B3 can accept continuous covariates through the existing adapted energy model;
+its latent output is still a risk proxy requiring evaluation, not automatically
+a calibrated hallucination probability. Preserve original smoke and protocol.
+Next design should keep B3 continuous-input and native DEEM soft-detector paths
+explicitly distinct. No replacement mapper, new threshold or full run launched.
+User considers residual tail unnecessary: omit it from the next minimal direct
+bank unless an explicit ablation justifies the redundant representation. Tail
+is deterministic from retained probabilities; no claim that redundancy alone
+proves it can never help a restricted learner. No new HTML.
+
 
 ## Step341 completion [Codex] - binary votes lose localization resolution (2026-09-11)
 
