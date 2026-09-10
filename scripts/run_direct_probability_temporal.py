@@ -241,7 +241,7 @@ def evaluate_arrays(records, joined, scores):
     return metrics,per
 
 
-def paired_bootstrap(records, joined, per, *, draws=10000, pairs=None, primary_pairs=None):
+def paired_bootstrap(records, joined, per, *, draws=10000, pairs=None, primary_pairs=None, primary_ci=.975):
     cells=np.array([r['cell'] for r in records]);target=joined['target']
     groups,inv=np.unique([r['group_id'] for r in records],return_inverse=True);ng=len(groups)
     base='current__iu'
@@ -284,9 +284,9 @@ def paired_bootstrap(records, joined, per, *, draws=10000, pairs=None, primary_p
             pb_draws[j].extend((f1[:,names.index(a)]-f1[:,names.index(b)]).tolist())
             within_draws[j].extend(wa[:,j].tolist())
     for j,(a,b) in enumerate(pairs):
-        o=out[a+'_minus_'+b];q=[1.25,98.75] if o['primary'] else [2.5,97.5]
+        o=out[a+'_minus_'+b];q=[(1-primary_ci)*50,100-(1-primary_ci)*50] if o['primary'] else [2.5,97.5]
         wd=np.asarray(within_draws[j]);wd=wd[np.isfinite(wd)]
-        o.update(ci_level=.975 if o['primary'] else .95,pb_ci=np.nanpercentile(pb_draws[j],q).tolist(),
+        o.update(ci_level=primary_ci if o['primary'] else .95,pb_ci=np.nanpercentile(pb_draws[j],q).tolist(),
             prm_within_ci=np.percentile(wd,q).tolist() if len(wd) else None,bootstrap_draws=draws,
             prm_valid_bootstrap_draws=len(wd))
     return out
