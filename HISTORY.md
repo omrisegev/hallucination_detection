@@ -17974,3 +17974,17 @@ Original run continues. No attempt to bypass that rejection. Pending action:
 obtain explicit stop authorization, verify original PID/time again, stop it,
 then launch staged driver with the same four source-root arguments and workers4.
 Preserve original checkpoint/logs; staged output results/moment_rbm_fusion_v1_staged/.
+
+## Moment RBM staged resume authorized (2026-09-11)
+
+Omri explicitly approved interrupting the combined run and switching to fast-first.
+At execution PID27400 had already exited: OperationalError database is locked
+at commit, after336 answers. The live checkpoint roundtrip audit held a read
+transaction during decoding and likely caused the writer timeout. This was
+an infrastructure failure, not an algorithm failure. Original SQLite integrity
+check returns ok,336 committed rows retained; original FAILED log is preserved.
+Staged checkpoint connections now use WAL and60s busy timeout. New regression
+test keeps a reader open while writer commits; passing. No frozen core, labels,
+gate/readout or optimizer settings changed. Stage runner will reuse all336
+answers for both fast and B3 lanes. New results under moment_rbm_fusion_v1_staged.
+Earlier pending-approval note is superseded.

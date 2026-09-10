@@ -207,6 +207,11 @@ def verify(args):
     base.atomic_json(OUT/'RUN_STATE.json',state)
 
 
+def configure_checkpoint(con):
+    con.execute('PRAGMA journal_mode=WAL')
+    con.execute('PRAGMA busy_timeout=60000')
+
+
 def main():
     global OUT,METHODS
     import sqlite3
@@ -243,6 +248,9 @@ def main():
             manifest['phase']=phase
             manifest['original_manifest_sha256']=base.old.sha256_file(PARENT_OUT/'MANIFEST.json')
             con=base.connect(OUT/'CHECKPOINT.sqlite',manifest);connections[phase]=con
+            # Reader diagnostics must not block scoring commits. This affects
+            # checkpoint concurrency only, not any frozen fit or evaluation.
+            configure_checkpoint(con)
             base.atomic_json(OUT/'MANIFEST.json',manifest)
             base.atomic_json(STAGED_OUT/'RUN_STATE.json',dict(status='RUNNING',phase=phase))
             if phase!='combined':

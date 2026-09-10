@@ -1,5 +1,19 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Moment RBM staged resume authorized (2026-09-11)
+
+Omri explicitly approved interrupting the combined run and switching to fast-first.
+At execution PID27400 had already exited: OperationalError database is locked
+at commit, after336 answers. The live checkpoint roundtrip audit held a read
+transaction during decoding and likely caused the writer timeout. This was
+an infrastructure failure, not an algorithm failure. Original SQLite integrity
+check returns ok,336 committed rows retained; original FAILED log is preserved.
+Staged checkpoint connections now use WAL and60s busy timeout. New regression
+test keeps a reader open while writer commits; passing. No frozen core, labels,
+gate/readout or optimizer settings changed. Stage runner will reuse all336
+answers for both fast and B3 lanes. New results under moment_rbm_fusion_v1_staged.
+Earlier pending-approval note is superseded.
+
 ## Moment RBM scheduling update (2026-09-11)
 
 User requests full-population fast-method results first, then B3 separately.

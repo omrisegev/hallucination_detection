@@ -8,6 +8,20 @@ from scripts import run_moment_rbm_staged as staged
 from spectral_utils import moment_rbm_fusion as core
 
 class Tests(unittest.TestCase):
+    def test_reader_does_not_block_checkpoint(self):
+        import sqlite3,tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp)/'checkpoint.sqlite'
+            writer=sqlite3.connect(p);staged.configure_checkpoint(writer)
+            writer.execute('CREATE TABLE rows (i INTEGER)')
+            writer.executemany('INSERT INTO rows VALUES (?)',[(1,),(2,)]);writer.commit()
+            reader=sqlite3.connect(p.as_uri()+'?mode=ro',uri=True)
+            cursor=reader.execute('SELECT i FROM rows');self.assertEqual(cursor.fetchone(),(1,))
+            writer.execute('INSERT INTO rows VALUES (3)');writer.commit()
+            self.assertEqual(cursor.fetchall(),[(2,)])
+            reader.close();self.assertEqual(writer.execute('SELECT count(*) FROM rows').fetchone()[0],3)
+            writer.close()
+
     def test_fit_selection_preserves_scores(self):
         import torch
         torch.set_num_threads(1)
