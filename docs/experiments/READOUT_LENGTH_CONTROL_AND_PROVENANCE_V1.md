@@ -102,6 +102,11 @@ it beat the shuffled control? No promotion threshold; no historical24 run.
 
 Tokenizer round-trip: for every answer, `decode(gen_token_ids[span])` must
 match the saved step text after whitespace normalization; mismatches abort.
+**Amendment 2026-09-11 (after the first full pass, before any metric)**: the
+first full pass found 10/145,597 steps whose saved text is empty and whose
+decoded span is `.`; a step-splitting artefact with no digits. The abort rule
+now applies only to mismatches in which either side contains a digit; other
+mismatches are counted and reported in `MANIFEST.json` / `METRICS.json`.
 Numeral extraction is unit-tested on synthetic token lists (digit runs,
 decimals, commas, given-exclusion, origin, single-digit exclusion). A 27-answer
 smoke (shortest / median / 95th-percentile trace per cell) runs all arms and

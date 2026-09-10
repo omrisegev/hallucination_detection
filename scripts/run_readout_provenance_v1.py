@@ -117,9 +117,13 @@ def score_answer(v, dec: Decoder, tok_name: str, rng_random, rng_shuffle, roundt
         got, want = pr.normalize_ws(dec.decode(tok_name, v["ids"][u:w])), pr.normalize_ws(v["steps"][k])
         roundtrip_stats["steps"] += 1
         if got != want:
-            roundtrip_stats["mismatch"] += 1
-            if len(roundtrip_stats["examples"]) < 5:
-                roundtrip_stats["examples"].append(dict(got=got[:120], want=want[:120]))
+            # Amendment 2026-09-11 (first full run): 10/145,597 steps have empty saved
+            # text and decode to '.', a step-splitting artefact with no digits. A mismatch
+            # is fatal only when either side contains a digit; others are counted.
+            key = "mismatch" if any(ch.isdigit() for ch in got + want) else "nonnumeric_mismatch"
+            roundtrip_stats[key] = roundtrip_stats.get(key, 0) + 1
+            if len(roundtrip_stats["examples"]) < 10:
+                roundtrip_stats["examples"].append(dict(kind=key, got=got[:120], want=want[:120]))
     given = pr.given_literals(v["problem"])
     nums = pr.build_numerals(texts, starts, ends, given)
     memberships = {m: pr.reassign(nums, starts, ends, T, m, rng=rng_shuffle if m == "shuffled" else None)
@@ -203,7 +207,7 @@ def main():
     todo = smoke_ids(records) if args.smoke else range(len(records))
     names = list(STAGE0) + [f"{st}_{a}" for st in STREAMS for a in ("top10",) + STAGE1]
     flat = {n: np.full(int(offsets[-1]), np.nan) for n in names}
-    roundtrip = dict(steps=0, mismatch=0, examples=[]); prov = {}; per_answer = []
+    roundtrip = dict(steps=0, mismatch=0, nonnumeric_mismatch=0, examples=[]); prov = {}; per_answer = []
     t0 = time.time()
     for n_done, i in enumerate(todo, 1):
         rec = records[i]; v = answer_view(rec, tele, index, cache)
@@ -219,7 +223,7 @@ def main():
             per_answer.append(dict(uid=rec["uid"], tokens=v["T"], steps=v["K"], **stats))
         if n_done % 1000 == 0:
             print(f"[score] {n_done}/{len(todo)} {time.time()-t0:.0f}s", flush=True)
-    print(f"[score] done {len(todo)} answers in {time.time()-t0:.0f}s; step round-trip mismatches {roundtrip['mismatch']}/{roundtrip['steps']}", flush=True)
+    print(f"[score] done {len(todo)} answers in {time.time()-t0:.0f}s; step round-trip digit mismatches {roundtrip['mismatch']}/{roundtrip['steps']} (non-numeric {roundtrip['nonnumeric_mismatch']})", flush=True)
     manifest = dict(protocol="docs/experiments/READOUT_LENGTH_CONTROL_AND_PROVENANCE_V1.md",
                     code={p: sha(ROOT / p) for p in ("spectral_utils/provenance_readout.py", "scripts/run_readout_provenance_v1.py")},
                     inputs={str(p.relative_to(source)): sha(p) for p in [old.BENCH / "evaluation/JOINED.json", old.BENCH / "evaluation/JOINED.npz", old.FOLDS,
