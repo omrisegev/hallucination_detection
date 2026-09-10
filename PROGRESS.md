@@ -1,5 +1,79 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Step339 completion [Codex] - six Varentropy arms complete and verified (2026-09-10)
+
+All13,769 answers /145,597 steps completed in227.6 seconds of scoring, followed
+by evaluation and10,000 paired canonical-source bootstrap draws. All6 arms have
+full coverage and zero failures. RAW50 token replay equals the frozen raw.npy
+Varentropy at EVERY token (maximum absolute error0); all historical RAW50
+headline metrics reproduce. Independent arithmetic code in the same session
+replays9 methods/references, PB8 full denominators and gate decisions, PRMB
+direct-pair and pooled AUC, fold thresholds and PRMScore: PASS.
+
+Method                 PB macro F1   PRMB within AUC  pooled AUC  PRMScore
+K15 original sum        35.96099%     .73778630        .71013778  .62578123
+K15 normalized equal    35.59804%     .74698035        .69998790  .61281182
+K15 IU-PCR              35.34984%     .74682374        .71026131  .62268859
+K50 original sum        35.67552%     .74246455        .71578339  .63277687
+K50 normalized equal    34.87403%     .74632281        .71728226  .62729015
+K50 IU-PCR              34.41389%     .74583243        .72055460  .62840925
+
+Primary97.5% CIs: IU15-RAW15 PB-0.61115pp[-1.65689,+0.41549],
+within+.00903744[+.00547132,+.01254320]. IU50-RAW50 PB-1.26163pp
+[-2.38500,-0.12537], within+.00336789[-.00082859,+.00742300].
+Exploratory IU-EQUAL within intervals include0 at both K; EQUAL alone already
+improves within ranking over RAW. Learned weighting adds no demonstrated
+within-answer benefit over normalization. IU50 additionally hurts PB vs EQUAL
+(95% CI[-.84404,-.09810]pp). No overall fusion leader is established.
+
+K50-RAW vs K15-RAW: within+.00467825[+.00277849,+.00662443], PB-0.28546pp
+[-.98314,+.38706], exploratory95%. More retained ranks help this within-AUC
+comparison, but do not explain away RAW15's stronger PB point. RAW15 is the
+highest PB point among these arms; RAW50 leads PRMScore; EQUAL15 leads within
+AUC. Different endpoints still prefer different methods. Not untouched testing.
+
+IU15 gains211/loses235 PB hits vs RAW15 (lost78 early,157 late).
+IU50 gains196/loses250 vs RAW50 (lost76 early,174 late); zero losses from a
+changed no-error gate. All15/50 columns remain active in every answer.
+Mean absolute standardized IU coefficient share: K15 ranks6-15 receive83.6%
+(equal66.7%); K50 ranks16-50 receive84.2% (equal70%). Negative coefficient mass
+averages5.1%/8.9%. These describe weights, not probability mass or causal blame.
+
+Decision: retain RAW15 and RAW50 as core references, normalized-EQUAL15 as the
+ranking control. Do not claim IU improves Varentropy; this implementation
+improves PRMB ranking largely via normalization while sacrificing first-error
+performance. The generic family of probability/contribution fusion remains
+open; no further solver sweep was launched. Full B3/Joint and historical24
+transfer are not included in these six localization arms.
+
+Output in `results/varentropy_contribution_fusion_v1/`: METRICS.json,
+SUMMARY.csv (clear names and all8 PB cells), SCORES.npz, COEFFICIENTS.npz
+(UIDs, standardized/effective weights and intercepts), DIAGNOSTICS.json,
+ERROR_CASES.json, RESULT_REVIEW.json, source/code manifests. No HTML created.
+
+## Step339 launch [Codex] - Varentropy contribution fusion (2026-09-10)
+
+User explicitly approved six arms: K15/K50 crossed with original Varentropy,
+mean standardized contributions, and answer-local IU-PCR on those contributions.
+The learned fusion algorithm IS IU-PCR; "Varentropy Contribution Fusion" names
+its new input representation, not a different solver. Source branch is the
+completed temporal comparison, bab8b402. New worktree and branch:
+`.worktrees/varentropy-contribution-fusion-v1`, `codex/varentropy-contribution-fusion-v1`.
+Experiment/protocol commit4bac838d. Five mechanism tests plus three existing
+checkpoint/evaluator/bootstrap tests pass. All27 short/median/long smoke rows
+across9 cells pass all6 methods; recomputed50-rank token Varentropy matches the
+frozen benchmark input. Smoke gives feasibility only. Full13769-row run started;
+read actual RUN_STATE/checkpoint before claiming completion.
+
+Important comparison correction: saved token Varentropy used50 retained ranks;
+previous direct probability fusion used15 plus selected surprisal/tail channels.
+Same evaluation contract does not imply identical input support. The new15/50
+contrast isolates support for Varentropy; IU vs normalized equal isolates
+learned weights from normalization. No new graphs, lags, selected/tail channels
+or historical24 transfer. Full cached development, answer-local offline fusion,
+external frozen mean-entropy gate and held-group PRMScore calibration.
+Output: `results/varentropy_contribution_fusion_v1/`; no new HTML.
+
 ## Step338 completion [Codex] - full temporal comparison verified (2026-09-10)
 
 COMPLETE: all 13,769 answers / 145,597 steps, 18 new arms plus saved references.

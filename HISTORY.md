@@ -17733,3 +17733,62 @@ previously discussed mechanism. User requested chat-first reporting, so no
 new HTML. Outputs: METRICS.json, SCORES.npz, SUMMARY_READABLE.csv (clear names
 and PB8 cells), ERROR_ANALYSIS.json, RESULT_REVIEW.json, frozen manifests and
 replay evidence under results/direct_probability_temporal_v3/.
+
+
+### Step339 [Codex] - Varentropy contribution fusion launch (2026-09-10)
+
+User approved six arms after explanation:15/50 probability ranks, each with
+raw Varentropy sum, equal standardized contributions or IU-PCR learned fusion.
+The fusion algorithm remains IU-PCR; only its input changes. Varentropy's
+probability-weighted squared-surprisal deviations become separate coordinates.
+A source review found the historical Varentropy used50 ranks whereas direct
+fusion used15, an omitted input-support distinction in the prior table.
+The paired support contrast now isolates that factor for Varentropy itself.
+
+Created isolated sparse worktree/branch varentropy-contribution-fusion-v1 from
+bab8b402; committed code/protocol as4bac838d. Five mechanism tests and three
+existing driver/checkpoint/bootstrap tests passed;27 mechanical smoke answers
+cover all9 cells with zero fit failures and exact frozen Varentropy50 token
+replay. Full13769-answer run started on CPU4 workers, checkpoints every32 rows.
+Fixed top10 readout, mean-entropy q.3 gate, canonical labels/groups/folds and
+PRMScore q.8 calibration. Answer-local normalization/fusion, external calibration
+explicit. No automatic quality thresholds or new HTML. Final metrics pending.
+
+
+### Step339 completion [Codex] - Varentropy normalization and IU separated (2026-09-10)
+
+All13769 answers and145597 steps scored for6 arms, zero failures. Scoring
+227.6seconds, followed by full evaluation and10000 paired canonical-source
+bootstrap draws. Five mechanism tests and three evaluator/resume/bootstrap
+tests pass, including explicit custom-pair CI parity. RAW50 exactly reproduces
+every frozen token value (max difference0), and its full metrics reproduce
+Step334. Separate arithmetic code replays all9 arms/references, PB gate and
+full-cell denominators, PRMB pairwise/pooled AUC, fold thresholds and PRMScore.
+
+Results PB F1 /within-answer AUC /PRMScore:
+RAW15 35.96099%/.73778630/.62578123; EQUAL15 35.59804%/.74698035/.61281182;
+IU15 35.34984%/.74682374/.62268859; RAW50 35.67552%/.74246455/.63277687;
+EQUAL50 34.87403%/.74632281/.62729015; IU50 34.41389%/.74583243/.62840925.
+Primary97.5% CIs: IU15-RAW15 PB-0.61115pp[-1.65689,.41549],
+within+.00903744[.00547132,.01254320]; IU50-RAW50 PB-1.26163pp
+[-2.38500,-.12537],within+.00336789[-.00082859,.00742300].
+IU does not establish added within-AUC benefit over normalized-EQUAL at
+ either K. Normalization already gives that ranking gain; PB does not improve.
+RAW50-RAW15 within+.00467825[.00277849,.00662443],PB-.28546pp
+[-.98314,.38706], exploratory95%. Full cached development, not confirmation.
+
+IU15 gains211/loses235 exact PB successes; IU50 gains196/loses250.
+Losses late/early are157/78 and174/76, none due to a changed gate.
+All15/50 columns remain active. IU absolute standardized-weight shares favor
+ranks6-15 at K15 (83.6% vs66.7% equal) and16-50 at K50 (84.2% vs70% equal).
+Negative shares average5.1%/8.9%; coefficient description is not causal proof.
+
+Retain RAW15/RAW50 and EQUAL15 as matched references; no new overall leader,
+no claim that IU learned a better Varentropy. Fusion remains the core research
+question, but this tested transformation did not establish learned weighting
+superiority. No expanded solver sweep or historical24 experiment launched.
+Chat-first results, no new HTML. Saved full scores, per-answer coefficients
+(standardized and equivalent raw-space weights/intercepts with UIDs), per-cell
+CSV, paired intervals, error cases, diagnostics, manifests and review under
+results/varentropy_contribution_fusion_v1/. Working code remains isolated from
+Claude and prior frozen results.

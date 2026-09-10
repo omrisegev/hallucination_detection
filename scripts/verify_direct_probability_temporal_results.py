@@ -12,7 +12,8 @@ ROOT=Path(__file__).resolve().parents[1]
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--source-root',type=Path,required=True)
-    args=parser.parse_args();out=ROOT/'results/direct_probability_temporal_v3'
+    parser.add_argument('--result-dir',type=Path,default=ROOT/'results/direct_probability_temporal_v3')
+    args=parser.parse_args();out=args.result_dir
     result=json.loads((out/'METRICS.json').read_text(encoding='utf8'))
     manifest=json.loads((out/'MANIFEST.json').read_text(encoding='utf8'))
     # Recheck small contract/code artifacts. Raw cache hashes were checked at
@@ -29,6 +30,11 @@ def main():
     assert len(records)==13769 and result['n_answers']==13769
     folds=json.loads((args.source_root/'results/localization_source_group_audit_v1/FOLDS_V2.json').read_text(encoding='utf8'))['outer']
     outer=np.array([int(folds[r['group_id']]) for r in records])
+    gate_dir=args.source_root/'results/fusion_fixed_gate_v1'
+    detector=np.load(gate_dir/'DETECTORS.npz')['entropy_mean']
+    gate=json.loads((gate_dir/'METRICS.json').read_text(encoding='utf8'))
+    thresholds=gate['arms']['dual__iu']['rows']['entropy_mean|quantile_0.3']['thresholds']
+    gate_threshold=np.array([thresholds[str(f)] for f in outer])
     with (args.source_root/'dataset_cache/four_localization/prmbench_qwen25math7b_full/prmbench_prm.pkl').open('rb') as f:
         meta={str(r['idx']):r for r in pickle.load(f).values()}
     checked={}
@@ -36,6 +42,10 @@ def main():
         flat=scores['steps__'+name];valid=scores['valid__'+name];pred=scores['prediction__'+name]
         actual_valid=np.array([np.isfinite(flat[offsets[i]:offsets[i+1]]).all() and offsets[i]<offsets[i+1] for i in range(len(records))])
         np.testing.assert_array_equal(valid,actual_valid)
+        for i in np.flatnonzero(pb & valid):
+            s=flat[offsets[i]:offsets[i+1]]
+            expected=int(np.argmax(s)) if detector[i]>=gate_threshold[i] else -1
+            assert int(pred[i])==expected,(name,records[i]['uid'],'gate/readout mismatch')
         f1cells={}
         for cell in sorted(set(cells[pb])):
             clean=(cells==cell)&(target<0);error=(cells==cell)&(target>=0)

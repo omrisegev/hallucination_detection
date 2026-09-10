@@ -79,6 +79,10 @@ class DriverTests(unittest.TestCase):
                 v.append(run.pb_metrics(target[pb],per[m]['prediction'][pb],per[m]['decision_valid'][pb],cells[pb],weights[pb])['macros']['all'])
             values.append(v[0]-v[1])
         np.testing.assert_allclose(out[a+'_minus_'+b]['pb_ci'],np.nanpercentile(values,[1.25,98.75]),atol=1e-14)
+        custom=run.paired_bootstrap(records,dict(target=target),{'k50__iu':per[a],'k50__raw':per[b]},
+            draws=30,pairs=[('k50__iu','k50__raw')],primary_pairs={('k50__iu','k50__raw')})
+        np.testing.assert_allclose(custom['k50__iu_minus_k50__raw']['pb_ci'],out[a+'_minus_'+b]['pb_ci'],atol=1e-14)
+        self.assertEqual(custom['k50__iu_minus_k50__raw']['ci_level'],.975)
 
 
 if __name__=='__main__':

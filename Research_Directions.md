@@ -1,5 +1,45 @@
 # Research Directions — Thesis Roadmap
 
+## 2026-09-10 - completed Varentropy contribution comparison: normalization helps ranking, IU does not add a demonstrated gain
+
+All six arms completed with full coverage. RAW15 leads PB point estimates
+(35.9610%); RAW50 leads PRMScore(.63278); normalized-EQUAL15 leads within-answer
+AUC(.74698). IU15=.74682/35.3498%, IU50=.74583/34.4139% (within/PB).
+IU15 improves within AUC over RAW15, but EQUAL15 gives the same improvement;
+IU-EQUAL within contrasts include0 at both K. IU50 decreases PB relative to
+RAW50 by1.2616pp,97.5% CI[-2.3850,-.1254]. Do not promote learned contribution
+fusion or describe its ranking increase as better first-error localization.
+
+Support comparison is now measured: RAW50 improves within AUC over RAW15 by
+.00468,95% CI[.00278,.00662]; PB difference is inconclusive. Thus the earlier
+15-versus50 input distinction matters for ranking, but is not a blanket
+explanation for raw Varentropy's strength. Every RAW50 token replays exactly
+from the frozen50-rank cached inputs. Labels, spans, source groups and gates
+remain unchanged. Five core tests, three evaluator/bootstrap/resume tests and
+separate full arithmetic result replay pass. This is development evidence.
+
+Keep both raw references and normalized-EQUAL15. Any next fusion change must
+demonstrate benefit over BOTH RAW and matched normalized-EQUAL controls, with
+the fixed ProcessBench readout. The present IU shifts absolute standardized
+weight toward low-probability ranks; most lost exact hits move late. This is
+descriptive evidence for error analysis, not proof that those weights cause
+the loss. No new constraints, solver families or parameter sweep were run.
+The previous temporal/full-family/historical24 backlog remains open.
+
+## 2026-09-10 - authorized question: learn Varentropy rank contributions
+
+Omri requested a focused full comparison of original Varentropy, normalized
+equal contributions and IU-PCR contribution fusion at K15 and K50. The historical
+token Varentropy reference uses50 retained ranks, not the15 of direct fusion.
+First attribute support, normalization and learned-weight effects separately.
+Six arms only, same top10 step readout, benchmark labels/groups and gates.
+Contribution C[t,k]=q[t,k]*(-log(q[t,k])-H[t])^2. All normalization and IU fitting
+use this answer's tokens only. RAW sum recovers Varentropy; signed IU output
+is a fused score, not a mathematical variance. No solver change is claimed.
+The full roster/temporal-control/historical24 backlog stays open; this request
+takes precedence as the next bounded experiment. Protocol:
+`docs/experiments/VARENTROPY_CONTRIBUTION_FUSION_V1.md`.
+
 ## 2026-09-10 - completed temporal evidence: prioritize level plus change
 
 The full18-arm/13,769-answer comparison is complete and independently replayed
