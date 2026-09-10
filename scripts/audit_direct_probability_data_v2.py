@@ -57,6 +57,11 @@ def audit_selected_tail(path: Path, k: int) -> dict[str, Any]:
         "matched_logprob_consistent_rows": 0,
     }
     token_total = 0
+    tail_sum = 0.0
+    tail_sum_of_squares = 0.0
+    tail_threshold_counts = {"gt_0": 0, "gt_1e_6": 0, "gt_1e_3": 0, "gt_1e_2": 0}
+    within_row_tail_std: list[float] = []
+    answer_top10_tail: list[float] = []
     max_head_mass = 0.0
     min_tail_mass = 1.0
     max_tail_mass = 0.0
@@ -91,6 +96,15 @@ def audit_selected_tail(path: Path, k: int) -> dict[str, Any]:
 
         head_mass = np.exp(logprobs[:, :k]).sum(axis=1)
         tail = np.clip(1.0 - head_mass, 0.0, 1.0)
+        tail_sum += float(tail.sum())
+        tail_sum_of_squares += float(tail @ tail)
+        tail_threshold_counts["gt_0"] += int(np.sum(tail > 0.0))
+        tail_threshold_counts["gt_1e_6"] += int(np.sum(tail > 1e-6))
+        tail_threshold_counts["gt_1e_3"] += int(np.sum(tail > 1e-3))
+        tail_threshold_counts["gt_1e_2"] += int(np.sum(tail > 1e-2))
+        within_row_tail_std.append(float(np.std(tail)))
+        n_top = min(10, len(tail))
+        answer_top10_tail.append(float(np.partition(tail, len(tail) - n_top)[-n_top:].mean()))
         max_head_mass = max(max_head_mass, float(np.max(head_mass)))
         min_tail_mass = min(min_tail_mass, float(np.min(tail)))
         max_tail_mass = max(max_tail_mass, float(np.max(tail)))
@@ -129,6 +143,10 @@ def audit_selected_tail(path: Path, k: int) -> dict[str, Any]:
         and counts["matched_logprob_rows"] == counts["matched_logprob_consistent_rows"]
     )
     denominator = max(token_total, 1)
+    tail_mean = tail_sum / denominator
+    tail_sd = max(0.0, tail_sum_of_squares / denominator - tail_mean**2) ** 0.5
+    row_std = np.asarray(within_row_tail_std, dtype=float)
+    answer_tail = np.asarray(answer_top10_tail, dtype=float)
     return {
         "ready": ready,
         "counts": counts,
@@ -144,6 +162,21 @@ def audit_selected_tail(path: Path, k: int) -> dict[str, Any]:
             "minimum_residual_tail": min_tail_mass,
             "maximum_residual_tail": max_tail_mass,
         },
+        "tail_signal": {
+            "mean": tail_mean,
+            "standard_deviation": tail_sd,
+            "token_rates": {
+                key: value / denominator for key, value in tail_threshold_counts.items()
+            },
+            "within_row_standard_deviation": {
+                "minimum": float(np.min(row_std)),
+                "p01": float(np.quantile(row_std, 0.01)),
+                "p05": float(np.quantile(row_std, 0.05)),
+                "median": float(np.median(row_std)),
+            },
+            "top10_answer_tail_standard_deviation_across_rows": float(np.std(answer_tail)),
+            "float_noise_guard": MASS_TOL,
+        },
         "max_selected_logprob_abs_error_when_saved": max_matched_abs_error,
         "match_tolerance": MATCH_ATOL,
         "example_failures": failures[:10],
@@ -158,6 +191,22 @@ def build_audit(source_root: Path, k: int) -> dict[str, Any]:
         extension = audit_selected_tail(source_root / row["artifact"], k)
         row["selected_tail"] = extension
         row["ready"] = bool(row["ready"] and extension["ready"])
+    # Localization fits each answer separately, so its tail must vary within
+    # every answer by more than the measured float32 clipping guard. Historical
+    # fusion first aggregates each answer, so the aggregated tail must vary
+    # across answers in every cell.
+    for row in inherited["localization"]:
+        signal = row["selected_tail"]["tail_signal"]
+        signal["fit_scale_ready"] = bool(
+            signal["within_row_standard_deviation"]["minimum"] > MASS_TOL
+        )
+        row["ready"] = bool(row["ready"] and signal["fit_scale_ready"])
+    for row in inherited["historical_24"]:
+        signal = row["selected_tail"]["tail_signal"]
+        signal["fit_scale_ready"] = bool(
+            signal["top10_answer_tail_standard_deviation_across_rows"] > MASS_TOL
+        )
+        row["ready"] = bool(row["ready"] and signal["fit_scale_ready"])
     localization = inherited["localization"]
     historical = inherited["historical_24"]
     inherited.update(
@@ -191,16 +240,19 @@ def render(audit: dict[str, Any]) -> str:
         "- PB/PRMB tokens are teacher-forced scored answer tokens; historical tokens are generated/sampled outputs.",
         "- A selected token outside saved Top-50 is valid because its probability is stored separately.",
         "",
-        "| artifact/cell | tokens | selected in Top-1 | Top-15 | Top-50 | max ATP error | status |",
-        "|---|---:|---:|---:|---:|---:|---|",
+        "| artifact/cell | tokens | selected Top-15 | tail >1e-6 | tail >1e-3 | tail >1e-2 | min within-row tail SD | status |",
+        "|---|---:|---:|---:|---:|---:|---:|---|",
     ]
     for row in [*audit["localization"], *audit["historical_24"]]:
         ext = row["selected_tail"]
         rates = ext["membership_rates"]
+        tail = ext["tail_signal"]
         label = row.get("cell", row["artifact"])
         lines.append(
-            f"| `{label}` | {ext['tokens']} | {rates['top1']:.1%} | {rates['top15']:.1%} | "
-            f"{rates['top50']:.1%} | {ext['max_selected_logprob_abs_error_when_saved']:.2e} | "
+            f"| `{label}` | {ext['tokens']} | {rates['top15']:.1%} | "
+            f"{tail['token_rates']['gt_1e_6']:.1%} | {tail['token_rates']['gt_1e_3']:.1%} | "
+            f"{tail['token_rates']['gt_1e_2']:.1%} | "
+            f"{tail['within_row_standard_deviation']['minimum']:.2e} | "
             f"{'READY' if row['ready'] else 'STOP'} |"
         )
     return "\n".join(lines) + "\n"

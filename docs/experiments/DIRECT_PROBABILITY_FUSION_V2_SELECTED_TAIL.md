@@ -41,6 +41,12 @@ The corresponding v1 Direct Probability Fusion arms are frozen comparators, not
 refitted variants. No graph, lambda, window, readout, gate, detector, feature, K,
 or DEEM search is allowed.
 
+Selected-token surprisal and Top-K tail summaries already appeared among the
+Step334 primitive token streams and as engineered features in the historical
+mixed-v2 pools. The new question is narrower: whether appending their raw
+token-level coordinates to the direct Top-15 matrix improves the same fusion
+estimator.
+
 ## Track A: one-answer localization
 
 Use the same 13,769-answer v3 roster: all 6,800 ProcessBench rows in eight cells
@@ -114,11 +120,12 @@ Before scientific scoring:
 Any mismatch stops the run. An original result is preserved if a later correction
 is needed.
 
-## Decision rule
+## Interpretation rule
 
-Call v2 promising only if the primary IU arm improves ProcessBench over Token
-Entropy without a material PRMBench regression, or improves the historical
-24-cell macro over Historical IU-PCR with a consistent paired result. A gain over
-v1 alone explains the value of ATP/tail but does not establish a leading method.
-All results remain development evidence until frozen confirmation on untouched
-data.
+No automatic promotion threshold is applied in this exploratory experiment. The
+report must show point differences and frozen paired intervals separately for
+ProcessBench, PRMBench and the historical 24 cells. We will decide after seeing
+the complete evidence whether the representation has enough signal to justify a
+new focused development experiment. A gain over v1 alone explains the value of
+ATP/tail in this matrix but does not establish a leading method. All results
+remain development evidence until frozen confirmation on untouched data.

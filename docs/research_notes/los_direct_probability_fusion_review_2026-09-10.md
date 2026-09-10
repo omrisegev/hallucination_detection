@@ -83,6 +83,12 @@ This isolates the available ATP contribution. An exact LOS-style rank encoding a
 standardization still require a future capture. They must not be reconstructed from unavailable
 fields or described as present in the cached run.
 
+This is a new matrix-level combination, not the first use of either quantity in the project.
+Step334's nine primitive token streams already included `spilled_series` and
+`topk_tail_mass_series`; the historical mixed-v2 feature pools also contain engineered summaries
+derived from spilled probability and tail mass. V2 asks whether their raw token-level coordinates
+help specifically when appended to the direct Top-15 rank matrix under the same fusion estimator.
+
 ## Other conclusions from LOS-Net that matter here
 
 - **LOS has two necessary parts in the paper's definition.** TDS records the sorted output

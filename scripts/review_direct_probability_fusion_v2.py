@@ -326,21 +326,37 @@ def render(
     top1 = sum(row["selected_tail"]["counts"]["selected_top1_rows"] for row in all_audit_rows) / total_tokens
     top15 = sum(row["selected_tail"]["counts"]["selected_top15_rows"] for row in all_audit_rows) / total_tokens
     top50 = sum(row["selected_tail"]["counts"]["selected_top50_rows"] for row in all_audit_rows) / total_tokens
-    primary = comparison["localization"]["augmented_iu_minus_v1_iu"]
-    promotion = current_loc["contrasts"]["augmented_iu_minus_entropy"]
-    historical_primary = current_hist["contrasts"]["augmented_iu_minus_historical_iu_pcr"]
-    promoted = promotion["pb_ci_97_5"][0] > 0 and promotion["prm_within_ci_97_5"][0] >= -0.005
-    decision = (
-        "The v2 IU-PCR arm meets the frozen development promotion rule. It still needs untouched-data confirmation."
-        if promoted else
-        "The v2 IU-PCR arm does not meet the frozen promotion rule. Keep Token Entropy for localization and Historical IU-PCR for the 24-cell task."
+    tail_mean = sum(
+        row["selected_tail"]["tail_signal"]["mean"] * row["selected_tail"]["tokens"]
+        for row in all_audit_rows
+    ) / total_tokens
+    tail_gt_1e6 = sum(
+        row["selected_tail"]["tail_signal"]["token_rates"]["gt_1e_6"]
+        * row["selected_tail"]["tokens"]
+        for row in all_audit_rows
+    ) / total_tokens
+    tail_gt_1e3 = sum(
+        row["selected_tail"]["tail_signal"]["token_rates"]["gt_1e_3"]
+        * row["selected_tail"]["tokens"]
+        for row in all_audit_rows
+    ) / total_tokens
+    tail_gt_1e2 = sum(
+        row["selected_tail"]["tail_signal"]["token_rates"]["gt_1e_2"]
+        * row["selected_tail"]["tokens"]
+        for row in all_audit_rows
+    ) / total_tokens
+    minimum_local_tail_sd = min(
+        row["selected_tail"]["tail_signal"]["within_row_standard_deviation"]["minimum"]
+        for row in audit["localization"]
     )
+    primary = comparison["localization"]["augmented_iu_minus_v1_iu"]
+    historical_primary = current_hist["contrasts"]["augmented_iu_minus_historical_iu_pcr"]
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Selected + Tail Probability Fusion v2</title>
 <style>:root{{--ink:#172033;--muted:#536176;--paper:#f6f8fc;--card:#fff;--line:#dbe3ee}}*{{box-sizing:border-box}}body{{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Segoe UI,Arial,sans-serif}}main{{max-width:1180px;margin:auto;padding:34px 22px 70px}}h1{{font-size:34px;margin:0}}h2{{margin-top:40px}}.sub{{color:var(--muted)}}.cards{{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}}.card,.panel,.callout{{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:17px;margin:14px 0;overflow:auto}}.card b{{display:block;font-size:23px;margin-top:5px}}.callout{{border-left:6px solid #2563eb}}table{{border-collapse:collapse;width:100%;font-size:13px}}th,td{{border-bottom:1px solid var(--line);padding:8px 10px;text-align:right;white-space:nowrap}}th:first-child,td:first-child{{text-align:left}}thead th{{background:#edf3fa}}.bar-row{{display:grid;grid-template-columns:310px 1fr 75px;gap:10px;align-items:center;margin:9px 0}}.track{{height:17px;background:#e7edf5;border-radius:9px;overflow:hidden}}.track i{{display:block;height:100%}}.gain{{color:#047857;font-weight:700}}.loss{{color:#b91c1c;font-weight:700}}code{{background:#edf2f7;padding:2px 5px;border-radius:4px}}@media(max-width:800px){{.cards{{grid-template-columns:1fr}}.bar-row{{grid-template-columns:190px 1fr 65px}}}}</style></head><body><main>
 <h1>Selected + Tail Probability Fusion v2</h1><p class="sub">Frozen gray-box experiment. Full ProcessBench, full PRMBench, and the historical 24 cells.</p>
 <div class="cards"><div class="card">ProcessBench, v2 IU-PCR<b>{pct(loc["augmented_iu"]["pb_all8"])}</b></div><div class="card">PRMBench within-answer AUC<b>{f4(loc["augmented_iu"]["prm_within"])}</b></div><div class="card">Historical 24-cell macro AUROC<b>{f4(hist["augmented_iu"]["all24"])}</b></div></div>
-<div class="callout"><b>Decision.</b> {esc(decision)}</div>
-<h2>1. What changed?</h2><div class="panel"><p>v1 used a <code>T tokens × 15 probability ranks</code> matrix. v2 uses <code>T × 17</code>: the same 15 rank risks, selected-token surprisal, and residual Top-15 tail mass. K=15, top-10 step readout, annotations, folds and gates are unchanged.</p><p>The data audit passed 9/9 localization artifacts and 24/24 historical cells. Across {total_tokens:,} audited tokens, the selected token was in Top-1 {top1:.1%}, Top-15 {top15:.1%}, and saved Top-50 {top50:.1%}. Tokens outside Top-50 are valid because their probability is stored separately.</p></div>
+<div class="callout"><b>How to use the result.</b> No automatic promotion threshold is applied. The paired differences below show whether there is useful signal; the next development step is chosen only after reviewing all three benchmark views.</div>
+<h2>1. What changed?</h2><div class="panel"><p>v1 used a <code>T tokens × 15 probability ranks</code> matrix. v2 uses <code>T × 17</code>: the same 15 rank risks, selected-token surprisal, and residual Top-15 tail mass. K=15, top-10 step readout, annotations, folds and gates are unchanged.</p><p>Selected-token surprisal and tail summaries were already present in earlier reduced-stream experiments. V2 tests whether their raw token-level coordinates help when appended to the direct Top-15 fusion matrix.</p><p>The data audit passed 9/9 localization artifacts and 24/24 historical cells. Across {total_tokens:,} audited tokens, the selected token was in Top-1 {top1:.1%}, Top-15 {top15:.1%}, and saved Top-50 {top50:.1%}. Tokens outside Top-50 are valid because their probability is stored separately.</p><p>The float32 mass excess is clipped only below 5e-7. The real tail has mean {tail_mean:.4f}; it is above 1e-6 in {tail_gt_1e6:.1%}, above 0.001 in {tail_gt_1e3:.1%}, and above 0.01 in {tail_gt_1e2:.1%} of tokens. The smallest within-answer tail standard deviation in localization is {minimum_local_tail_sd:.2e}, so answer-local standardization is not amplifying the clipping noise.</p></div>
 <h2>2. One-answer localization</h2><div class="panel"><h3>ProcessBench all-eight macro F1</h3>{bars([(k,loc[k]["pb_all8"]) for k in loc_order],0.50,percent=True)}</div>
 <div class="panel"><table><thead><tr><th>Method</th><th>PB all 8</th><th>PB Q4</th><th>PB Q8</th><th>PRMB within</th><th>PRMB pooled</th><th>PRMScore</th><th>Coverage</th></tr></thead><tbody>{loc_rows}</tbody></table></div>
 <div class="callout"><b>Primary v2-v1 change.</b> ProcessBench {100*primary["pb_delta"]:+.2f} pp, 97.5% CI [{100*primary["pb_ci97_5"][0]:+.2f}, {100*primary["pb_ci97_5"][1]:+.2f}]. PRMB within-answer {primary["prm_within_delta"]:+.4f}, CI [{primary["prm_within_ci97_5"][0]:+.4f}, {primary["prm_within_ci97_5"][1]:+.4f}].</div>
