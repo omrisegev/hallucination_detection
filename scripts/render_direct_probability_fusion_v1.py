@@ -30,6 +30,12 @@ COLORS = {
     "varentropy": "#14b8a6",
     "historical_iu_pcr": "#dc2626",
 }
+CONTRAST_NAMES = {
+    "rank_joint_lw_minus_entropy": "Direct Probability Joint Shrinkage minus Token Entropy",
+    "rank_iu_minus_entropy": "Direct Probability IU-PCR minus Token Entropy",
+    "rank_iu_minus_mindgap_paper_locator_common_gate": "Direct Probability IU-PCR minus Mind the Gap Locator",
+    "rank_joint_lw_minus_mindgap_paper_locator_common_gate": "Direct Probability Joint Shrinkage minus Mind the Gap Locator",
+}
 
 
 def read_json(path: Path):
@@ -212,7 +218,7 @@ def render(localization: dict, historical: dict) -> str:
             f'{prm_delta:+.4f} [{row["prm_within_ci_97_5"][0]:+.4f}, {row["prm_within_ci_97_5"][1]:+.4f}]'
         )
         contrast_rows.append(
-            f'<tr><th>{esc(key)}</th><td>{100*row["pb_delta"]:+.2f} pp [{100*row["pb_ci_97_5"][0]:+.2f}, {100*row["pb_ci_97_5"][1]:+.2f}]</td><td>{prm_text}</td></tr>'
+            f'<tr><th>{esc(CONTRAST_NAMES.get(key, key.replace("_", " ")))}</th><td>{100*row["pb_delta"]:+.2f} pp [{100*row["pb_ci_97_5"][0]:+.2f}, {100*row["pb_ci_97_5"][1]:+.2f}]</td><td>{prm_text}</td></tr>'
         )
     reference_names = {
         "token_varentropy": "Token Varentropy (frozen)",
@@ -267,7 +273,7 @@ table{{border-collapse:collapse;width:100%;font-size:13px}} th,td{{border-bottom
 <div class="panel"><h3>PRMBench: step ranking</h3>{legend(prm_keys)}{prm_chart}</div>
 <div class="panel"><h3>ProcessBench by cell</h3><table><thead><tr><th>Cell</th>{''.join(f'<th>{esc(NAMES[key])}</th>' for key in loc_keys)}</tr></thead><tbody>{pb_cell_rows}</tbody></table></div>
 <div class="panel"><h3>Location diagnostics, failures and measured fit time</h3><table><thead><tr><th>Method</th><th>Raw exact peak</th><th>Within one step</th><th>Early peaks</th><th>Late peaks</th><th>Clean accuracy</th><th>Fallbacks</th><th>Fit time</th></tr></thead><tbody>{''.join(diagnostic_rows)}</tbody></table></div>
-<div class="panel"><h3>Pre-declared paired contrasts (97.5% confidence intervals)</h3><table><thead><tr><th>Contrast ID</th><th>ProcessBench difference</th><th>PRMB within-answer difference</th></tr></thead><tbody>{''.join(contrast_rows)}</tbody></table></div>
+<div class="panel"><h3>Pre-declared paired contrasts (97.5% confidence intervals)</h3><table><thead><tr><th>Comparison</th><th>ProcessBench difference</th><th>PRMB within-answer difference</th></tr></thead><tbody>{''.join(contrast_rows)}</tbody></table></div>
 <div class="panel"><h3>Frozen continuity and supervised references</h3><table><thead><tr><th>Reference</th><th>PB all 8</th><th>PRMB within</th><th>PRMB pooled</th><th>PRMScore</th></tr></thead><tbody>{''.join(reference_rows)}</tbody></table></div>
 
 <h2>2. Complete-answer hallucination detection</h2>

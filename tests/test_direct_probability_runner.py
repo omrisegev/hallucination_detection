@@ -30,3 +30,22 @@ def test_group_bootstrap_is_paired_and_reproducible():
     assert np.array_equal(first, second)
     assert np.isfinite(first).all()
     assert first.mean() > 0
+
+
+def test_group_bootstrap_replaces_single_class_draws_to_keep_frozen_count():
+    labels = np.zeros(256, dtype=bool)
+    labels[:6] = True
+    left = np.linspace(0.0, 1.0, len(labels))
+    right = left[::-1]
+    groups = np.arange(len(labels)).astype(str)
+    values = _paired_group_auc_bootstrap(
+        labels,
+        left,
+        right,
+        groups,
+        draws=1_000,
+        seed=2026091123,
+        batch_size=73,
+    )
+    assert values.shape == (1_000,)
+    assert np.isfinite(values).all()

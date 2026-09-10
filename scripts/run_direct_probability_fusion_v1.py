@@ -886,19 +886,32 @@ def _paired_group_auc_bootstrap(
         raise ValueError("historical grouped bootstrap needs at least two problem groups")
     rng = np.random.default_rng(seed)
     output: list[np.ndarray] = []
-    for start in range(0, int(draws), int(batch_size)):
-        size = min(int(batch_size), int(draws) - start)
+    accepted = 0
+    attempted = 0
+    max_attempts = max(int(draws) * 20, int(draws) + 10_000)
+    while accepted < int(draws):
+        size = min(int(batch_size), int(draws) - accepted)
         counts = rng.multinomial(
             n_groups, np.full(n_groups, 1.0 / n_groups), size=size
         )
-        output.append(
+        values = (
             _weighted_auc_batch(labels, left, group_index, counts)
             - _weighted_auc_batch(labels, right, group_index, counts)
         )
-    values = np.concatenate(output)
-    if np.isfinite(values).sum() < 0.99 * int(draws):
-        raise ValueError("too many single-class historical bootstrap draws")
-    return values[np.isfinite(values)]
+        valid = values[np.isfinite(values)]
+        if len(valid):
+            output.append(valid[: int(draws) - accepted])
+            accepted += min(len(valid), int(draws) - accepted)
+        attempted += size
+        if attempted > max_attempts:
+            raise ValueError(
+                "could not obtain the requested number of two-class historical "
+                "bootstrap draws"
+            )
+    result = np.concatenate(output)
+    if result.shape != (int(draws),):
+        raise AssertionError("historical bootstrap did not return its frozen draw count")
+    return result
 
 
 def run_historical(k: int, bootstrap: int) -> dict[str, Any]:
