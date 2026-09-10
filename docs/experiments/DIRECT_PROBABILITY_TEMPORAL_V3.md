@@ -81,3 +81,14 @@ one clean-context preflight reviewer reports findings before any corrections.
 EDIS context: local digest papers/digests/edis-paper.md describes burst/rebound
 spikes and answer-level discrimination. It motivates temporal inputs, not a
 guarantee that each entropy spike identifies the annotated first erroneous step.
+
+## Equivalent execution optimization (before full evaluation)
+
+The original solver checkpoint is preserved under the sibling
+direct_probability_temporal_v3_original_solver directory, with no benchmark
+ranking computed. For unrestricted all-pair L2 fits with >=64 coordinates,
+solve Eq.15 analytically using A.T A = (P-2) I + 11.T. The g2 grid, projections,
+and covariance solve remain unchanged. Small-bank and restricted-pair paths
+stay byte-identical. Sixty synthetic covariance cases match the frozen v2
+weights to 1.2e-13 and choose identical g2 values. A replay of all 27 real smoke
+answers must match every arm before restarting the complete run from scratch.
