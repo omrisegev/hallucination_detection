@@ -68,7 +68,15 @@ def initial_b3(X,names,groups,config,seed):
 
 
 def fit_all(logprobs,chosen,uid,*,epochs=100,maxiter=100):
-    X=representation(logprobs,chosen);Z,keep,mean,scale=zscore_columns(X)
+    return fit_matrix(representation(logprobs,chosen),uid,epochs=epochs,maxiter=maxiter)
+
+
+def fit_matrix(X,uid,*,epochs=100,maxiter=100):
+    """Same frozen estimators; caller explicitly defines the observation axis."""
+    X=np.asarray(X,dtype=float)
+    if X.ndim!=2 or X.shape[1]!=len(FEATURES) or not np.isfinite(X).all():
+        raise ValueError('expected finite N x 6 moment matrix')
+    Z,keep,mean,scale=zscore_columns(X)
     fits,failures,seconds={},{},{}
     seed=int.from_bytes(hashlib.sha256(('moment-rbm-v1:'+uid).encode()).digest()[:4],'little')%(2**31-1)
     for method in METHODS:

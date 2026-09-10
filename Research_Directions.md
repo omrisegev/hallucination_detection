@@ -1,5 +1,28 @@
 # Research Directions — Thesis Roadmap
 
+## Step343 [Codex global24] - frozen moment fusion transfer (2026-09-11)
+
+User authorized a background24-cell global hallucination comparison of current
+methods. Separate branch/worktree codex/global-moment-fusion-24-v1 from75fdcb35.
+All24 source artifacts are local (8.4GB), with prior SHA256 data audits.
+Historical complete-case/crop/order/label contract retained: top10 mean for each
+token feature, then N answers x6 pooled cell-local unsupervised fitting. This
+is different from primary localization's within-answer fitting; explicitly
+stated in chat before launch. No labels enter fit. QA9/math15 are the original
+strata; not a new benchmark population.
+
+Compare mean/IU/RBM/B3 on H15,V15,m3,a,a^2,a^3; initial energy controls,
+Varentropy15/50 and15-contribution mean/IU. Five saved direct/entropy/historical
+references replay; historical IU refit must match its saved AUC.
+Four estimator tests plus three aggregation/refactor/group-AUC tests passed.
+The new fit_matrix entrypoint exactly replays the frozen same-answer code
+on identical matrices. No tail in the new bank. No new candidate/grid selection.
+Full-cell outputs/CSV and all24/QA9/math15 macros,10000 grouped bootstrap
+exploratory intervals, automatic separate arithmetic and parameter replay.
+Check results/global_moment_fusion_24_v1/LAUNCH.json and RUN_STATE.json for
+actual runtime state. Single CPU thread/BelowNormal priority; localization
+continues in its own worktree. No new HTML.
+
 ## Step342 [Codex] - moment RBM fusion ready for full execution (2026-09-11)
 
 User authorized the discussed compact six-column bank: H15,V15,m3_15,a,a^2,a^3.
