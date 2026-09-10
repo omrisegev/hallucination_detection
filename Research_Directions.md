@@ -1,5 +1,39 @@
 # Research Directions — Thesis Roadmap
 
+## 2026-09-10 - polynomial result: useful expansion within a weak baseline, no incumbent gain
+
+Full6-arm polynomial run completed/reviewed. Cubic-IU PB33.0050% versus
+linear-surprisal-IU27.4646%: +5.5405pp,97.5% CI[3.6159,7.4839]. PRMB within
+.7341053 vs .7346211, no gain. Quadratic-only expansion decreases within AUC.
+Prior RAW15 PB35.9610%, normalized-EQUAL Varentropy15 within .7469804 and
+RAW50 PRMScore .6327769 remain stronger on their respective endpoints;
+cubic-IU PRMScore .5911668. These are matched full-development comparisons.
+
+The EQUAL raw-surprisal baseline has an orientation limitation: higher surprisal
+at rank1/chosen and at lower-ranked alternatives need not share a risk direction.
+Positive equal weights were frozen; IU alone has entropy-based global sign.
+Post-hoc label-free score/entropy correlations support this concern. Preserve
+those results and do not call IU vs this mean a clean weighting-only gain.
+The degree2/3 versus degree1 IU comparisons retain the same orientation rule.
+Before opening SU-PCR/L-SML on this representation, discuss consistent sign
+treatment; no extra arm or post-hoc score flip has been run. Do not infer all
+raw-power methods fail. Also do not infer the selected-token powers caused the
+gain: their inclusion is joint with the rank powers. Selected powers receive
+15.53% of cubic-IU absolute standardized coefficients; that is descriptive.
+
+## 2026-09-10 - authorized experiment: polynomial surprisal with chosen token
+
+Before changing solvers to SU-PCR/L-SML, Omri proposed s,s^2,s^3 with s=-log(p),
+then explicitly included a,a^2,a^3 for actual chosen-token surprisal a. Test
+six arms: three nested degrees, each equal and unchanged IU-PCR. K15 and all
+benchmark/readout/gate contracts fixed. Original logprobs, not renormalized
+Top-K Varentropy probabilities; standardize each polynomial column afterwards.
+This expands the linear fusion's function class without adding information or
+observations, and jointly changes ranked/selected powers. It does not isolate
+chosen-token effects or exactly contain Varentropy's weighted centered formula.
+Keep existing per-task leaders and normalized controls. Protocol:
+`docs/experiments/SURPRISAL_POWER_FUSION_V1.md`. Full results pending.
+
 ## 2026-09-10 - completed Varentropy contribution comparison: normalization helps ranking, IU does not add a demonstrated gain
 
 All six arms completed with full coverage. RAW15 leads PB point estimates

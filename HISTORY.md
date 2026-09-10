@@ -17792,3 +17792,38 @@ Chat-first results, no new HTML. Saved full scores, per-answer coefficients
 CSV, paired intervals, error cases, diagnostics, manifests and review under
 results/varentropy_contribution_fusion_v1/. Working code remains isolated from
 Claude and prior frozen results.
+
+
+### Step340 [Codex] - selected-token and ranked surprisal powers launched (2026-09-10)
+
+User proposed powers1,2,3 of surprisal before fusion, then explicitly requested
+powers of the selected-token surprisal as well. Approved6 arms: degree1/2/3,
+equal or IU-PCR. K15 fixed;16/32/48 columns; each degree block contains15 ranks
+and chosen token. No probability weighting/Top-K renormalization or temporal
+windowing. The purpose is to test nonlinear input expansion before solver
+replacement. The chosen token remains in every arm. No isolated attribution
+to its powers, no claim of new information or exact Varentropy generalization.
+
+New isolated branch/worktree surprisal-power-fusion-v1 from5c0f673d; frozen
+code/protocol committed b4d2e80d. Five mechanism tests and three inherited
+checkpoint/metric/bootstrap tests pass.27-answer feasibility smoke includes
+short/median/long traces in all9 cells; all6 arms valid, exact frozen raw
+Varentropy50 token replay verifies source alignment. Full13769-row run started
+on4 CPU workers, same folds/labels/gates/top10 readout. Primary paired10000-draw
+97.5% CIs compare degree2/3 IU with degree1 IU. Nine frozen reference score
+arrays are rescored and must match old metrics. No HTML, no historical24 run.
+
+
+#### Step340 completion [Codex] - full powers benchmark reviewed
+
+All13769 answers/145597 steps complete, six arms without failures. Nine frozen
+references reproduce; independent arithmetic replay passes. Degree3 IU gives
+PB33.0050%, within AUC.7341053, PRMScore.5911668. Degree1 IU27.4646%,
+.7346211,.5887272. Primary PB gain5.5405pp,97.5% CI[3.6159,7.4839],
+no within-answer gain. RAW Varentropy15 remains PB35.9610%; normalized equal
+Varentropy15 within.7469804; RAW50 PRMScore.6327769. No new leader.
+Equal positive raw-surprisal powers have orientation concerns; do not interpret
+IU versus equal as isolated learned-weight superiority. Original scores retained.
+Chosen powers carry15.53% absolute standardized coefficient share in cubic IU,
+not causal attribution. See PROGRESS.md and results/surprisal_power_fusion_v1/.
+User requested chat-first explanation; no HTML was generated.

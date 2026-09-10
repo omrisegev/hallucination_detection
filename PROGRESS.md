@@ -1,5 +1,76 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Step340 completion [Codex] - powers help new IU baseline, not prior leaders (2026-09-10)
+
+COMPLETE:13769 answers/145597 steps, all6 arms valid, no fallback or failure.
+Scoring208.1seconds, then full metrics and10000 paired source-group bootstrap.
+All9 prior references reproduce; separate arithmetic verification of15 methods
+passes PB8 denominators/gates, PRMB within/pooled AUC and PRMScore/fold thresholds.
+Raw Varentropy50 source-join replay matches every saved token exactly.
+
+Powers/method       PB macro F1  PRMB within  PRMB pooled  PRMScore
+1, equal           20.5127%     .4316816     .4493077     .4643318
+1, IU-PCR          27.4646%     .7346211     .6739345     .5887272
+1+2, equal         20.3514%     .4301423     .4470088     .4637313
+1+2, IU-PCR        27.6367%     .7281751     .6670800     .5841504
+1+2+3, equal       20.2992%     .4293378     .4456382     .4637259
+1+2+3, IU-PCR      33.0050%     .7341053     .6716344     .5911668
+
+Primary degree3-IU minus degree1-IU: PB+5.5405pp,97.5% CI[3.6159,7.4839];
+within-.0005158[-.0043165,.0031933]. Gains585/loses322 exact PB successes.
+Degree2-IU: PB+.1722pp[-.9267,1.2301], within-.0064461[-.0084835,-.0044655].
+Thus cubic expansion helps PB relative to this NEW weaker log-input baseline;
+it does not improve within-answer ranking. Do not confuse it with prior gains.
+
+Prior leaders remain stronger: RAW Varentropy15 PB35.9610%, EQUAL normalized
+Varentropy15 within .7469804, RAW Varentropy50 PRMScore .6327769. Cubic-IU vs
+RAW15 PB-2.9559pp,95% CI[-4.3381,-1.6133]; vs EQUAL15 within-.0128750,
+95% CI[-.0163590,-.0094305]. All new arms have lower PB, within and PRMScore
+points than those respective leaders. No new overall leader or confirmation.
+
+Review limitation: frozen EQUAL uses positive weights on raw surprisal powers,
+without per-rank risk alignment or a global sign fit. These columns need not
+point toward hallucination in the same direction. In a post-hoc LABEL-FREE
+step-score diagnostic, EQUAL degree1 opposes entropy in79.7% of6966 eligible
+PRMB answers (median Pearson-.3346), but only42.9% of6744 PB answers. This
+supports an orientation concern, not proof of the full loss mechanism. Do not
+use IU's large gap over EQUAL as an isolated learned-weighting success. Original
+scores are preserved, no post-hoc flip/new candidate. IU primary degree contrasts
+use the same entropy-based global orientation at every degree.
+
+Cubic-IU absolute standardized weight: powers1/2/3=51.46/31.03/17.51%.
+Chosen-token powers total15.53%, vs6.25% equal; degree1-IU chosen41.18%.
+These are coefficient shares, not measured causal contribution. IU still uses
+two PCs, so the expanded basis is not an unconstrained polynomial regression.
+All16/32/48 columns were active for every answer. No selected-only ablation.
+
+Keep prior raw/normalized Varentropy references. Next discussion should resolve
+risk orientation in the raw-surprisal representation before a solver sweep;
+do not reject polynomial fusion generally or silently correct this frozen run.
+No SU-PCR/L-SML/24-cell transfer launched. Outputs under
+`results/surprisal_power_fusion_v1/`: full CSV, COMPARISON.png, metrics/paired
+intervals, raw scores, coefficients, errors, diagnostics and RESULT_REVIEW.json.
+New worktree branch is codex/surprisal-power-fusion-v1. Code commit b4d2e80d.
+
+## Step340 launch [Codex] - surprisal powers including chosen token (2026-09-10)
+
+User authorized the discussed six arms: degree1/2/3 with normalized equal and
+IU-PCR, including chosen-token powers in EACH degree block. K15 fixed, original
+saved logprobs; T x16/32/48, one answer per fit. No tail, q reweighting or new
+time windows. Same full13769-row benchmark, top10 step readout, entropy gate,
+canonical groups/folds and PRMScore calibration. New isolated worktree/branch
+surprisal-power-fusion-v1 from5c0f673d. Code/protocol committed b4d2e80d.
+
+Five polynomial mechanism tests and three inherited driver/metric/bootstrap
+tests passed.27 shortest/median/95th-percentile smoke rows across9 cells all
+six arms valid, exact Varentropy50 raw-input join replay. Full run started
+on four CPU workers; RUN_STATE/checkpoints are current evidence of progress.
+Primary97.5% intervals: degree2/3-IU vs degree1-IU,10000 source-group draws.
+Nine frozen references are rescored without refitting and must replay prior
+metrics. Compare all new arms with RAW15, EQUAL15 contributions and RAW50;
+retain historical/access-separated references. No HTML or historical24 run.
+Outputs: `results/surprisal_power_fusion_v1/`.
+
 ## Step339 completion [Codex] - six Varentropy arms complete and verified (2026-09-10)
 
 All13,769 answers /145,597 steps completed in227.6 seconds of scoring, followed
