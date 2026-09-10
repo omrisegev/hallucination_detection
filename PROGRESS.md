@@ -1,5 +1,25 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Step342 [Codex] - moment RBM fusion ready for full execution (2026-09-11)
+
+User authorized the discussed compact six-column bank: H15,V15,m3_15,a,a^2,a^3.
+Worktree .worktrees/moment-rbm-fusion-v1, branch codex/moment-rbm-fusion-v1,
+parent d92f88f8; fitting/evaluation protocol frozen in5075f024. Same-answer
+mean, IU-PCR, one-hidden-unit Gaussian RBM, B3; initial-model controls.
+RBM uses exact normalized likelihood, analytic gradient and L-BFGS-B; fixed
+unit visible variance. B3 retains its existing continuous one-group energy.
+No native DEEM or tail in this experiment; no target-class semantics claimed
+for raw features. Latent posterior uses explicit mean-risk orientation.
+
+Four tests PASS: independent likelihood/gradient, representation, score/state
+replay and deterministic fitting. All27 full-budget feasibility answers PASS,
+zero failures,74.2s scoring. No quality inference from this subset. Full13769
+benchmark is the next authorized operation, with unchanged labels/groups,
+external gate/calibration,top10 readout,nine saved references and bootstrap.
+The runner automatically invokes the separate arithmetic metric verifier.
+Check actual LAUNCH.json PID plus RUN_STATE.json/RUN.log, not this prose, for
+liveness and completion. Results: results/moment_rbm_fusion_v1/. No HTML.
+
 ## DEEM/B3 preflight stopped: input semantics correction (2026-09-11)
 
 Isolated worktree .worktrees/deem-b3-probability-moments-v1, branch
