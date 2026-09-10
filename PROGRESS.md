@@ -1,6 +1,27 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 
+## Step 355 [Claude readout] — step-mass attribution: NULL, mechanism ceiling 14% (2026-09-11)
+
+Same branch/worktree as Step 354. Full run COMPLETE, references reproduce,
+z-score identity holds; `results/step_mass_attribution_v1/`.
+
+- Conserving one-hop transfer of standardised step surprise to numeric
+  parents (α=0.5): entropy −0.32pp [−1.40, +0.78] PB, within **−0.0067
+  [−0.0094, −0.0042]**; varentropy −0.02pp, within −0.0038 [−0.0064, −0.0012].
+  Versus the shuffled-parent control: +0.15 / −0.15pp, within ≈0. α=1 harms.
+- Dependency-free uniform-earlier control is the best of the family on
+  varentropy (36.24% PB, CI includes 0): any earliness preference helps PB a
+  little; the numeric structure adds nothing.
+- Ceiling: only 14% of late misses have the true step as a numeric parent of
+  the peak step (32% have any parent). Numeral provenance cannot be the
+  mechanism of the late bias. CLOSED for numeric dependencies.
+- Open: non-numeric (logical/textual) dependencies; attention-based
+  attribution from the teacher-forced pass (cluster job prepared in Step 335);
+  untouched-cohort check of `first_near_max`. Mandatory `length`/`random_step`
+  rows and stratified panel apply to all tables.
+
+
 ## Step 354 [Claude readout] — length control + provenance rollback (2026-09-11)
 
 Branch `claude/readout-provenance-v1` (worktree `.worktrees/readout-provenance-v1`,

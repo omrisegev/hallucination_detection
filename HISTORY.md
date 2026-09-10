@@ -17979,3 +17979,55 @@ stratified panels and contrasts, SUMMARY.csv, MANIFEST.json with input/code
 hashes; SCORES.npz kept on disk, git-ignored). No HTML (chat-first).
 
 ---
+
+
+### Step 355 [Claude readout] — step-mass attribution along numeral dependencies (2026-09-11)
+
+**What**: Omri asked for the design left unrun in Step 354: move STEP-level
+surprise, not digit tokens. Per answer, `n_kj` = inherited non-given numerals
+in step `k` whose earliest appearance is step `j < k`; `A(k→j) = n_kj / n_k`.
+With `z` the within-answer standardised top-10 step score,
+`score'_j = (1 − α·[j has parents]) z_j + α Σ_k A(k→j) z_k` (mass conserved,
+one hop). Arms per stream: reference, `zscore_only` (identity check),
+`attr_a05` (α=0.5, primary), `attr_a10` (declared secondary),
+`attr_shuffled_a05` (parents replaced by random earlier steps, seed
+2026091103), `attr_uniform_a05` (α sent uniformly to all earlier steps).
+Protocol `docs/experiments/STEP_MASS_ATTRIBUTION_V1.md`, code in
+`spectral_utils/provenance_readout.py`, runner
+`scripts/run_step_mass_attribution_v1.py`; same inputs, gate, tie rule,
+folds, labels and evaluator as Step 354; ten mechanism tests and a 27-answer
+smoke pass; both references reproduce and z-scoring changes no decision.
+Dependency coverage: 58–92% of answers have at least one edge; 19–44% of
+steps have a numeric parent.
+
+**Result** (PB all-8 / PRMB within; 10,000-draw paired bootstrap, 97.5%
+primary): `entropy_attr_a05` 35.124 / 0.7234, vs reference −0.321pp
+[−1.398, +0.781], within **−0.0067 [−0.0094, −0.0042]**; vs shuffled
++0.153pp [−0.753, +1.037], within −0.0002 [−0.0026, +0.0021].
+`varentropy_attr_a05` 35.657 / 0.7387, vs reference −0.019pp
+[−1.161, +1.145], within −0.0038 [−0.0064, −0.0012]; vs shuffled −0.147pp
+[−1.010, +0.713], within +0.0006 [−0.0016, +0.0028]. α=1 harms both
+(−1.84 / −1.43pp, within −0.050 / −0.046). The dependency-free
+`varentropy_attr_uniform_a05` is the best of the family (36.241% PB,
++0.566 [−0.268, +1.437]; within +0.0009 [−0.0007, +0.0025]). Late/early
+falls (1.71→1.12, 1.86→1.22) but exact does not rise: moved predictions
+overshoot to early as often as they land.
+
+**Mechanism ceiling (label-using diagnostic, reported separately)**: of the
+1,917 entropy late misses, only 614 (32%) have a frozen-argmax step with any
+numeric parent and only **269 (14.0%)** have the true step among its parents
+(varentropy 279/1,960, 14.2%). Numeral dependencies bound the fixable share
+of the late bias at ~14% before any scoring; the observed null follows.
+
+**Reading**: dependency-targeted attribution is indistinguishable from
+random-earlier-target attribution and harms PRMB ranking; the late bias is
+not explained by "the peak step consumes a value computed at the true step".
+Together with Step 354 (`first_near_max`) and the uniform control here, the
+only consistent PB effect is a structure-free earliness preference, small and
+development-selected. Numeric-provenance attribution is closed as a
+mechanism for the late bias; non-numeric dependencies (logical/textual) or
+attention-based attribution remain untested. Outputs
+`results/step_mass_attribution_v1/` (METRICS.json incl. dependency and
+ceiling panels, SUMMARY.csv, MANIFEST.json; SCORES.npz on disk, ignored).
+
+---

@@ -1,5 +1,17 @@
 # Research Directions — Thesis Roadmap
 
+## Step-mass attribution along numeral dependencies (2026-09-11, Step 355)
+
+Transferring standardised step surprise to numeric parent steps (α=0.5, one
+hop, conserving) does not beat the reference or a shuffled-parent control on
+either benchmark and lowers PRMB within-answer AUC (−0.0067 / −0.0038, CIs
+below 0); α=1 clearly harms. A dependency-free uniform-earlier transfer does
+as well or better. Only 14% of late misses have the true step as a numeric
+parent of the peak step, so numeral provenance is not the mechanism of the
+late bias. Closed for numeric dependencies; logical/textual dependencies and
+attention-based attribution remain open. HISTORY Step 355,
+results/step_mass_attribution_v1/.
+
 ## Readout controls and late bias (2026-09-11, Step 354)
 
 Length is a strong localization prior on ProcessBench: `argmax(step length)`
