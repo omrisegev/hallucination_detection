@@ -62,9 +62,11 @@ They do not test the current hypothesis. Entropy and varentropy are many-to-one 
 ## Frozen cached-data representation
 
 The current caches do not contain the complete vocabulary vector, its mean and standard deviation,
-or the chosen token's exact full-vocabulary rank. They do contain sorted top-50 log-probabilities
-and the existing top-15 entropy at every aligned generated token. Therefore the current gray-box
-experiment forms:
+or the chosen token's exact full-vocabulary rank. They do contain sorted top-50 log-probabilities,
+the existing top-15 entropy, the scored token ID, and its negative log-probability in
+`token_spilled_energies`. The earlier statement that the selected-token probability was unavailable
+was incorrect; the v2 audit corrected it by matching this field exactly against the saved Top-50
+entry whenever the selected token appears there. Therefore v1 formed:
 
 1. `rank_1 ... rank_15`: the 15 largest saved log-probabilities, sorted descending;
 2. direct probabilities `exp(log p)`, without top-K renormalization;
@@ -76,8 +78,46 @@ This produces a matrix with tokens as rows and 15 direct distribution coordinate
 uses the probability values directly and does not collapse each row to entropy. It is inspired by
 LOS-Net's sorted-distribution representation, but it is not an exact LOS-Net input reproduction.
 
-An exact LOS-style ATP/rank ablation and full-vocabulary standardization require a future capture.
-They must not be reconstructed from unavailable fields or described as present in the cached run.
+V2 adds `selected-token surprisal = -log p(selected token)` and an explicit residual Top-15 mass.
+This isolates the available ATP contribution. An exact LOS-style rank encoding and full-vocabulary
+standardization still require a future capture. They must not be reconstructed from unavailable
+fields or described as present in the cached run.
+
+## Other conclusions from LOS-Net that matter here
+
+- **LOS has two necessary parts in the paper's definition.** TDS records the sorted output
+  distribution at every sequence position; ATP records the probability of the token that actually
+  appears. Sorting the TDS removes token identity, so ATP must be supplied separately. The paper
+  further encodes the ATP's exact rank to distinguish, for example, a probability of 0.1 at rank 1
+  from the same probability at rank 50.
+- **Distribution shape added signal beyond ATP and rank.** Across hallucination detection and data
+  contamination detection, the full LOS-Net generally beat learned MLP and Transformer baselines
+  that received only ATP plus rank. This supports keeping the 15 direct rank coordinates in our
+  fusion rather than replacing them with selected-token surprisal.
+- **A compact head can work, but K=10 was not the paper's default.** Main experiments used
+  K=1000. In the K ablation over 10, 50, 100, 500 and 1000, performance improved weakly or stayed
+  close as K grew, with diminishing returns after about K=100 in the highlighted case. Across all
+  reported hallucination-detection model/dataset combinations, even K=10 captured more than 91%
+  of probability mass. This justifies testing a compact head; it does not identify K=15 as optimal
+  for our benchmarks.
+- **Hallucination transfer needed adaptation.** Zero-shot transfer across an unseen HD model or
+  dataset did not beat the simple probability baselines. Fine-tuning then beat those baselines in
+  15/18 cross-model cases and 15/18 cross-dataset cases. We should therefore treat the paper as
+  evidence for the representation, not as evidence that an unsupervised answer-local estimator will
+  transfer automatically.
+- **The target and supervision differ from ours.** LOS-Net learns a response-level binary label from
+  many labeled examples and uses an encoder Transformer across sequence positions. It does not
+  identify the first erroneous reasoning step and does not learn only from the answer being scored.
+- **The theorem is about expressive capacity.** The paper proves that the architecture can
+  approximate a broad class of LOS scoring functions, including common aggregation rules. This does
+  not prove that the full distribution always improves accuracy, or that IU-PCR is the best way to
+  fuse it.
+- **Its speed claim begins after the output signature exists.** The reported detector forward pass is
+  around 1e-5 seconds and the model has about one million parameters. This comparison does not
+  include the cost of producing or transferring the LLM logits.
+- **The authors identify extensions rather than tested localization gains.** They mention generated-
+  text detection, exact-token flags and multiple prompting as future uses. These do not enter our
+  frozen gray-box v2 experiment.
 
 ## Frozen pipeline
 
@@ -96,8 +136,9 @@ The primary cached-data comparison contains:
 5. direct top-15 probability fusion with IU-PCR, the primary candidate;
 6. direct top-15 probability fusion with Joint/Ledoit-Wolf shrinkage, a supporting candidate.
 
-The cached run tests whether retaining the sorted head helps our estimator. It cannot isolate the
-paper's chosen-token/rank contribution because those fields were not saved.
+The completed v1 cached run tested whether retaining the sorted head helps our estimator. The v2
+experiment isolates the saved selected-token probability plus an explicit tail-mass summary. It still
+cannot test the paper's exact selected-token rank because that field was not saved.
 
 Use the complete matched ProcessBench and PRMBench development population. Report ProcessBench all-eight macro F1, Q4/Q8, every cell, exact/early/late localization, clean-answer accuracy, coverage and paired uncertainty. Report PRMBench within-answer AUC and PRMScore; pooled AUC may remain descriptive. A small subset may be used only to smoke-test alignment and finite values.
 
