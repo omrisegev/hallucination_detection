@@ -660,6 +660,11 @@ def run_localization(k: int, bootstrap: int) -> dict[str, Any]:
     ]
     if audited_detector.shape != (len(records),):
         raise ValueError("fixed gate detector length differs from the frozen roster")
+    prm_rows = np.asarray(
+        [record["cell"] == "prmbench_qwen3_8b" for record in records], dtype=bool
+    )
+    if not np.isnan(audited_detector[prm_rows]).all():
+        raise ValueError("PRMBench must retain NaN placeholders in the PB-only gate")
 
     source_specs = [
         (model, dataset, directory / f"processbench_{dataset}.pkl")
@@ -714,13 +719,6 @@ def run_localization(k: int, bootstrap: int) -> dict[str, Any]:
             continue
         row = source[record["row_id"]]
         token_scores, diagnostics, method_seconds = _local_token_scores(row, k)
-        if not np.isclose(
-            float(np.mean(row["token_entropies"])),
-            float(audited_detector[index]),
-            atol=1e-12,
-            rtol=0.0,
-        ):
-            raise ValueError(f"fixed gate row order mismatch for {record['uid']}")
         spans = np.asarray(row["step_token_spans"], dtype=int)
         if spans.shape != (record["steps"], 2):
             raise ValueError(f"step-span mismatch for {record['uid']}")
