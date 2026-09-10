@@ -241,12 +241,15 @@ def evaluate_arrays(records, joined, scores):
     return metrics,per
 
 
-def paired_bootstrap(records, joined, per, *, draws=10000):
+def paired_bootstrap(records, joined, per, *, draws=10000, pairs=None, primary_pairs=None):
     cells=np.array([r['cell'] for r in records]);target=joined['target']
     groups,inv=np.unique([r['group_id'] for r in records],return_inverse=True);ng=len(groups)
     base='current__iu'
-    pairs=[(m,base) for m in METHODS if m!=base]+[
-        ('lag8__iu','shuffled_lag8__iu'),('current__chain_liu','current__permuted_chain_liu')]
+    if pairs is None:
+        pairs=[(m,base) for m in METHODS if m!=base]+[
+            ('lag8__iu','shuffled_lag8__iu'),('current__chain_liu','current__permuted_chain_liu')]
+    if primary_pairs is None:
+        primary_pairs={('lag8__iu',base),('delta__iu',base)}
     names=sorted({m for pair in pairs for m in pair});pb_cells=sorted(set(cells[np.char.startswith(cells,'pb_')]))
     counts=np.zeros((ng,8,2));success=np.zeros((ng,len(names),8,2))
     for c,cell in enumerate(pb_cells):
@@ -262,7 +265,7 @@ def paired_bootstrap(records, joined, per, *, draws=10000):
         difference=per[a]['within'][mask]-per[b]['within'][mask]
         within_num[:,j]=np.bincount(inv[mask],weights=difference,minlength=ng)
         within_den[:,j]=np.bincount(inv[mask],minlength=ng)
-        out[a+'_minus_'+b]=dict(primary=(a in ('lag8__iu','delta__iu') and b==base),
+        out[a+'_minus_'+b]=dict(primary=((a,b) in primary_pairs),
             common_prm_answers=int(mask.sum()),prm_within_delta_common=float(difference.mean()) if len(difference) else None)
     pb_draws=[[] for _ in pairs];within_draws=[[] for _ in pairs]
     rng=np.random.default_rng(20260910136)
