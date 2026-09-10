@@ -17988,3 +17988,26 @@ test keeps a reader open while writer commits; passing. No frozen core, labels,
 gate/readout or optimizer settings changed. Stage runner will reuse all336
 answers for both fast and B3 lanes. New results under moment_rbm_fusion_v1_staged.
 Earlier pending-approval note is superseded.
+
+## Step344 [Codex RBM] - m3 ablation and raw rank powers (2026-09-11)
+
+User explicitly authorized (1) isolate distribution m3 in compact RBM, and
+(2) test raw degree1/2/3 rank powers with RBM, previously tested only mean/IU.
+Separate codex/rbm-m3-powers-v1 from47eb162f; frozen code/protocol943ad2aa.
+Primary localization only, same13769 rows, frozen benchmark/gate/readout.
+Remove ONLY m3: H,V,a,a^2,a^3 retained. Both compared RBMs use common mean5
+direction; preserve original6/mean6 output as exact per-answer bridge.
+Raw-power48 RBM uses frozen T x48 representation and old entropy orientation,
+plus initial RBM control. Reuse all prior power/moment/Varentropy references.
+No higher-order sweep or new global24 fitting in this experiment.
+
+Three tests PASS: column semantics, original scorer and parameter replay,
+changing removed m3 cannot affect reduced score. All27 real-answer preflight
+rows produce finite scores and exact original6 step replay. No collapsed
+outputs; one reduced5 fit reports nonconvergence and remains explicitly
+flagged (not silently retried/removed). Scoring22.3s, no quality ranking.
+Full run uses2 CPU workers, WAL checkpoints, Windows JSON replacement retry,
+10000 grouped draws, two primary97.5% contrasts. Separate metric verification
+automatically follows. Check results/rbm_m3_powers_v1/LAUNCH.json and live
+RUN_STATE.json for actual status. No HTML. Existing B3 localization untouched;
+global24 experiment has separately reached COMPLETE/PASS.
