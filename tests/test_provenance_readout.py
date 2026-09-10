@@ -79,5 +79,43 @@ class ReadoutTests(unittest.TestCase):
         self.assertEqual(r.shape, (4,))
 
 
+
+class AttributionTests(unittest.TestCase):
+    def _nums(self):
+        # steps: 0 given "50"; 1 computes "10"; 2 uses "10" (from 1) and computes "40"; 3 uses "40" (from 2) and "10" (from 1)
+        N = pr.Numeral
+        return [N(0, 2, "50", 0, 0, True), N(4, 6, "10", 1, 1), N(8, 10, "10", 2, 1), N(12, 14, "40", 2, 2),
+                N(16, 18, "40", 3, 2), N(20, 22, "10", 3, 1)]
+
+    def test_dependency_counts(self):
+        c = pr.dependency_counts(self._nums())
+        self.assertEqual(c, {(2, 1): 1, (3, 2): 1, (3, 1): 1})
+
+    def test_attribution_conservation_and_weights(self):
+        z = np.array([0.0, -1.0, 0.5, 2.0])
+        c = pr.dependency_counts(self._nums())
+        out = pr.attribute_step_mass(z, c, alpha=0.5)
+        # step2 sends 0.25 to step1; step3 sends 1.0 split 0.5/0.5 to steps 1 and 2
+        np.testing.assert_allclose(out, [0.0, -1.0 + 0.25 + 0.5, 0.5 - 0.25 + 0.5, 2.0 - 1.0])
+        self.assertAlmostEqual(out.sum(), z.sum())            # mass conserved
+        full = pr.attribute_step_mass(z, c, alpha=1.0)
+        np.testing.assert_allclose(full, [0.0, -1.0 + 0.5 + 1.0, 0.5 - 0.5 + 1.0, 0.0])
+        self.assertEqual(int(np.argmax(full)), 2)            # attribution can move the argmax earlier
+        uni = pr.attribute_step_mass(z, c, alpha=0.5, mode="uniform")
+        self.assertAlmostEqual(uni.sum(), z.sum())
+        np.testing.assert_allclose(uni, [0.0 + 0.125 + 1/3, -1.0 + 0.125 + 1/3, 0.5 - 0.25 + 1/3, 1.0])
+        sh = pr.attribute_step_mass(z, c, alpha=0.5, mode="shuffled", rng=np.random.default_rng(3))
+        self.assertAlmostEqual(sh.sum(), z.sum())
+        self.assertAlmostEqual(sh[3], 1.0)                    # sender keeps (1-alpha) of its mass
+        with self.assertRaises(ValueError):
+            pr.attribute_step_mass(z, c, alpha=0.5, mode="shuffled")
+
+    def test_zscore_argmax_identity(self):
+        s = np.random.default_rng(5).normal(size=9)
+        self.assertEqual(int(np.argmax(pr.zscore_steps(s))), int(np.argmax(s)))
+        np.testing.assert_array_equal(pr.zscore_steps(np.ones(4)), np.zeros(4))
+        out = pr.attribute_step_mass(pr.zscore_steps(s), {}, alpha=0.5)
+        self.assertEqual(int(np.argmax(out)), int(np.argmax(s)))  # no parents -> unchanged
+
 if __name__ == "__main__":
     unittest.main()

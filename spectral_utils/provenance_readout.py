@@ -204,3 +204,59 @@ def step_scores_from_pairs(tokens: np.ndarray, pairs: list[tuple[int, int]], n_s
 
 def normalize_ws(text: str) -> str:
     return " ".join((text or "").split())
+
+
+# ---------------------------------------------------------------------------
+# Step-mass attribution along numeral dependencies
+# (docs/experiments/STEP_MASS_ATTRIBUTION_V1.md)
+# ---------------------------------------------------------------------------
+
+def dependency_counts(nums: list[Numeral]) -> dict[tuple[int, int], int]:
+    """n_kj: inherited non-given numerals in step k whose origin is step j < k."""
+    counts: dict[tuple[int, int], int] = {}
+    for x in nums:
+        if x.given or x.origin >= x.step:
+            continue
+        key = (x.step, x.origin)
+        counts[key] = counts.get(key, 0) + 1
+    return counts
+
+
+def zscore_steps(s: np.ndarray) -> np.ndarray:
+    s = np.asarray(s, float)
+    sd = s.std()
+    return (s - s.mean()) / sd if sd > 0 else np.zeros_like(s)
+
+
+def attribute_step_mass(z: np.ndarray, counts: dict[tuple[int, int], int], alpha: float,
+                        mode: str = "dependency", rng: np.random.Generator | None = None) -> np.ndarray:
+    """score'_j = (1 - alpha*[j has parents]) z_j + alpha * sum_k A(k->j) z_k.
+
+    mode 'dependency': A(k->j) = n_kj / n_k.
+    mode 'shuffled'  : each (k, j) parent edge is redirected to a uniform random
+                       earlier step of k (weights kept), rng required.
+    mode 'uniform'   : each step with parents sends alpha uniformly to all earlier steps.
+    """
+    if mode not in ("dependency", "shuffled", "uniform"):
+        raise ValueError(mode)
+    z = np.asarray(z, float); K = len(z)
+    out = z.copy()
+    senders: dict[int, dict[int, float]] = {}
+    for (k, j), n in counts.items():
+        senders.setdefault(k, {})[j] = senders.get(k, {}).get(j, 0.0) + float(n)
+    for k, parents in senders.items():
+        total = sum(parents.values())
+        if total <= 0 or k <= 0:
+            continue
+        out[k] -= alpha * z[k]  # conservation: sender keeps (1 - alpha) of its own mass
+        if mode == "uniform":
+            share = alpha * z[k] / k
+            out[:k] += share
+            continue
+        if mode == "shuffled" and rng is None:
+            raise ValueError("shuffled mode needs rng")
+        for j, n in parents.items():
+            w = n / total
+            dest = int(rng.integers(0, k)) if mode == "shuffled" else j
+            out[dest] += alpha * w * z[k]
+    return out
