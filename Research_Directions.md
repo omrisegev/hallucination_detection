@@ -1,5 +1,43 @@
 # Research Directions — Thesis Roadmap
 
+## 2026-09-10 - direct selected-token/tail fusion: keep the answer-level signal, narrow the next question
+
+The frozen v2 augmentation is complete. It adds selected-token surprisal and
+residual Top-15 tail mass to the direct probability matrix while leaving fusion,
+K=15, readout, gates, splits and labels unchanged. The experiment has full
+coverage and no fallbacks, and an independent replay verified every reported
+localization summary and all 24 historical cells.
+
+For one-answer localization, the augmentation does not solve the current
+bottleneck. Selected+Tail IU-PCR scores 34.5021% on ProcessBench versus 35.4444%
+for Token Entropy; its -0.9423pp paired interval includes zero at the upper edge.
+PRMB within-answer is 0.732757 versus 0.730111, but that interval also includes
+zero, and PRMScore remains lower. Token Entropy stays the localization anchor.
+Do not open a K, readout, gate or Joint sweep from this result.
+
+For complete-answer detection, a small signal is present. Selected+Tail IU-PCR
+improves its direct Top-15 v1 counterpart by +0.005718 with a positive
+hierarchical 97.5% interval and 20/24 cell wins. The simpler Equal Weights route
+has the highest point estimate, 0.778108, but its exploratory +0.002022 over
+Historical IU-PCR has paired-cell CI[-0.0031,+0.0073]. This does not establish a
+new overall leader. It says that the two raw inputs can add answer-level
+information and that the current learned covariance weights are not the best
+way to use it. Joint shrinkage remains uncompetitive.
+
+The next justified question is attribution, not a wider method search: compare
+the frozen Top-15 Equal Weights matrix with selected-token only, tail only, and
+both, first on the existing 24 cells. This one ablation will identify whether
+the gain comes from Actual Token Probability, residual distribution shape, or
+their combination. If one coordinate survives, carry only that coordinate into
+the one-answer localization route and analyze why it changes late versus exact
+peaks. DEEM stays outside this primary sequence; it becomes relevant only if a
+nonlinear adapter is later justified by the ablation.
+
+No automatic continuation threshold was applied. Evidence:
+`results/direct_probability_fusion_v2_selected_tail/REPORT.html`,
+`RESULT_REVIEW.json`, and
+`docs/research_notes/los_direct_probability_fusion_review_2026-09-10.md`.
+
 ## 2026-09-10 - close direct rank-only probability fusion v1; isolate the missing inputs
 
 Direct fusion of the sorted top-15 probability ranks does not replace token

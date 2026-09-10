@@ -17591,3 +17591,67 @@ mass. Existing caches contain `token_spilled_energies` (sampled-token negative
 log-probability) and enough top-K values to calculate the residual. Preserve one
 frozen two-coordinate augmentation as a possible bounded follow-up; do not
 reinterpret v1 as having tested it.
+
+---
+
+### Step 337 [localization] — selected-token surprisal and residual-tail fusion v2 (2026-09-10)
+
+**Question**: Does the missing LOS-style Actual Token Probability coordinate,
+together with explicit residual Top-15 mass, add useful signal to our direct
+probability fusion? The experiment was exploratory evidence collection; no
+automatic result threshold was used.
+
+**Frozen change**: In isolated branch `codex/direct-probability-fusion-v2`, v1's
+`T x 15` direct matrix became `T x 17`: `[1-p1,p2,...,p15]`, selected-token
+surprisal `-log p(scored token)`, and `1-sum(top15 probabilities)`. K remained
+15. Localization still fits inside each single answer and uses the same top-10
+step readout and entropy-q0.3 gate. Historical detection aggregates each column
+with top-10 mean and fits inside the same exact 24 cells. The preflight reviewer
+approved the exact populations and report contract before scoring.
+
+**Data audit**: The selected-token log-probability matches the saved Top-50
+entry exactly whenever the token is present. The maximum impossible Top-15 mass
+excess is 3.35e-7 and is clipped; this is not the observed tail size. On the
+exact scored rows, tail variation clears the 5e-7 guard in all 9 localization
+artifacts and all 24 historical cells. Columns are z-scored within the relevant
+fit population before fusion.
+
+**Localization result (full 13,769 answers)**: Token Entropy is 35.4444%
+ProcessBench all-eight, 0.730111 PRMB within-answer and 0.625426 PRMScore.
+Selected+Tail Equal is 34.5631% / 0.733919 / 0.620685; IU-PCR 34.5021% /
+0.732757 / 0.620544; Joint shrinkage 34.5948% / 0.729682 / 0.619755. IU versus
+entropy is -0.9423pp PB, 97.5% CI[-1.9397,+0.0265], and +0.002645 PRMB within,
+CI[-0.001196,+0.006501]. Against direct IU v1, PB changes -0.2492pp and PRMB
+within changes +0.000027; both intervals include zero. Exact error peaks fall
+from 1,350 to 1,335 and late misses rise from 2,010 to 2,030. The augmentation
+does not improve first-error localization.
+
+**Historical result (exact 24 cells)**: Selected+Tail Equal 0.778108,
+Historical IU-PCR 0.776087, entropy 0.771739, Selected+Tail IU 0.768831, Joint
+0.728539. The two inputs improve direct IU v1 by +0.005718 with hierarchical
+97.5% CI[+0.001544,+0.011752], 20W/0T/4L. Equal improves equal v1 by +0.000936,
+paired-cell CI[+0.000216,+0.001684], 16W/0T/8L. After viewing the table, an
+exploratory comparison found Equal versus Historical IU-PCR +0.002022 with
+paired-cell CI[-0.0031,+0.0073], 14W/0T/10L. Thus there is a small
+complete-answer signal but no clear replacement for the historical anchor.
+
+**Weights and interpretation**: In IU-PCR, mean selected-token weight is
++0.00533 inside one answer and +0.02229 across the historical cells; residual
+tail weight is +0.04929 and +0.05615. Coefficients are on standardized columns,
+are unconstrained, and do not sum to one. Their magnitudes cannot prove which
+new coordinate caused the gain because the two were added together and are
+correlated with the rank columns. Equal weights outperform IU and Joint on the
+historical macro, so the current learned weighting is the unresolved part.
+
+**Review**: `verify_direct_probability_fusion_v2_results.py` replayed 4/4
+localization methods and 5 scores in 24/24 historical cells from the saved NPZ
+files. Coverage is complete, no fitting fallback occurred, all weight vectors
+have 17 finite entries, intervals are present, and the report has clean UTF-8.
+LOS-Net supports keeping both sorted distribution shape and Actual Token
+Probability, but its supervised Transformer and complete-answer target do not
+establish our answer-local localization result. The next narrow experiment is
+selected-only versus tail-only versus both under Equal Weights on the frozen
+24-cell panel. Evidence:
+`results/direct_probability_fusion_v2_selected_tail/REPORT.html`,
+`RESULT_REVIEW.md`, and the frozen protocol
+`docs/experiments/DIRECT_PROBABILITY_FUSION_V2_SELECTED_TAIL.md`.

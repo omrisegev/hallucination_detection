@@ -1,5 +1,51 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Step337 [Codex] - selected-token and tail probability fusion v2 completed (2026-09-10)
+
+The bounded gray-box v2 experiment is complete in worktree
+`.worktrees/direct-probability-fusion-v2`, branch
+`codex/direct-probability-fusion-v2`. A clean-context preflight review passed
+before scoring. The frozen design appends two coordinates to the direct Top-15
+probability matrix: selected-token surprisal and residual probability mass
+outside Top-15. K=15, top-10 token-to-step readout, benchmark populations,
+annotations, folds and gates stayed fixed. The localization fit remains inside
+one answer (`T tokens x 17`); the historical route fits within each of the exact
+24 complete-answer cells (`N answers x 17`).
+
+The residual is not float noise. Only an impossible Top-15 mass excess up to
+3.35e-7 is clipped. On the exact scored populations, every localization answer
+and every historical cell has tail variation above the 5e-7 computation guard.
+Each column is standardized before fusion: across tokens inside one answer for
+localization, and across answer summaries inside one historical cell.
+
+Full localization result: Token Entropy 35.4444% ProcessBench / 0.730111 PRMB
+within / 0.625426 PRMScore. Selected+Tail Equal gives 34.5631% / 0.733919 /
+0.620685; IU-PCR 34.5021% / 0.732757 / 0.620544; Joint shrinkage 34.5948% /
+0.729682 / 0.619755. IU minus entropy is -0.9423pp PB, 97.5% CI
+[-1.9397,+0.0265], and +0.002645 PRMB within, CI[-0.001196,+0.006501].
+The new inputs do not improve the frozen one-answer localization route.
+
+Historical all-24 macro AUROC: Selected+Tail Equal 0.778108, Historical IU-PCR
+0.776087, entropy 0.771739, Selected+Tail IU 0.768831, Joint 0.728539. Adding
+the two coordinates improves the same direct-matrix IU v1 by +0.005718,
+hierarchical 97.5% CI[+0.001544,+0.011752], in 20/24 cells. Equal improves its
+v1 form by +0.000936, paired-cell CI[+0.000216,+0.001684]. Equal's exploratory
+lead over Historical IU-PCR is only +0.002022, paired-cell CI
+[-0.0031,+0.0073]; it is not a clear new overall winner. The answer-level signal
+is real enough to isolate, but current covariance-based weighting does not use
+it as well as equal weights and Joint remains weak.
+
+An independent result replay passed: 4/4 localization methods, five scores in
+24/24 historical cells, complete coverage, no fallbacks, finite 17-coordinate
+weights, valid intervals and clean HTML. The combined experiment cannot assign
+the historical gain separately to selected-token surprisal or tail mass. The
+next bounded experiment, if approved, is a two-coordinate ablation under equal
+weights on the frozen 24-cell panel; only its useful coordinate would then be
+tested in localization. There is no K, window, gate, graph, lambda, DEEM or
+model sweep, and no automatic result threshold. Main evidence:
+`results/direct_probability_fusion_v2_selected_tail/REPORT.html` and
+`RESULT_REVIEW.md`.
+
 ## Step336 [Codex] - direct probability-rank fusion v1 completed and not promoted (2026-09-10)
 
 The frozen gray-box experiment is complete in the isolated worktree

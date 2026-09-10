@@ -234,6 +234,46 @@ def historical_contrasts(
     return output
 
 
+def exploratory_historical_contrasts(current: dict, draws: int) -> dict:
+    """Describe post-table anchor comparisons without changing the frozen run."""
+
+    pairs = (
+        ("augmented_equal", "historical_iu_pcr"),
+        ("augmented_equal", "entropy"),
+    )
+    rng = np.random.default_rng(BOOT_SEED + 35)
+    sampled_cells = rng.integers(0, len(INSCOPE), size=(draws, len(INSCOPE)))
+    output = {}
+    for left, right in pairs:
+        delta = []
+        for cell in INSCOPE:
+            row = current["cells"][cell]
+            left_value = row["auroc"][left]
+            right_value = (
+                row["historical_iu_pcr"]
+                if right == "historical_iu_pcr"
+                else row["auroc"][right]
+            )
+            delta.append(left_value - right_value)
+        delta = np.asarray(delta, dtype=float)
+        cell_draw = delta[sampled_cells].mean(axis=1)
+        output[f"{left}_minus_{right}"] = {
+            "left": left,
+            "right": right,
+            "delta": float(delta.mean()),
+            "paired_cell_ci97_5": np.percentile(
+                cell_draw, [1.25, 98.75]
+            ).tolist(),
+            "wins": int(np.sum(delta > 0)),
+            "ties": int(np.sum(np.isclose(delta, 0.0, atol=1e-12))),
+            "losses": int(np.sum(delta < 0)),
+            "draws": draws,
+            "status": "exploratory_after_table_review",
+            "bootstrap_unit": "paired historical cell",
+        }
+    return output
+
+
 def esc(value) -> str:
     return html.escape(str(value))
 
@@ -358,12 +398,20 @@ def render(
     )
     primary = comparison["localization"]["augmented_iu_minus_v1_iu"]
     historical_primary = current_hist["contrasts"]["augmented_iu_minus_historical_iu_pcr"]
+    exploratory_rows = "".join(
+        f'<tr><th>{esc(NAMES[row["left"]])} minus {esc(NAMES[row["right"]])}</th>'
+        f'<td>{row["delta"]:+.4f}</td>'
+        f'<td>[{row["paired_cell_ci97_5"][0]:+.4f}, {row["paired_cell_ci97_5"][1]:+.4f}]</td>'
+        f'<td>{row["wins"]} / {row["ties"]} / {row["losses"]}</td></tr>'
+        for row in comparison["historical_exploratory"].values()
+    )
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Selected + Tail Probability Fusion v2</title>
 <style>:root{{--ink:#172033;--muted:#536176;--paper:#f6f8fc;--card:#fff;--line:#dbe3ee}}*{{box-sizing:border-box}}body{{margin:0;background:var(--paper);color:var(--ink);font:15px/1.5 Segoe UI,Arial,sans-serif}}main{{max-width:1180px;margin:auto;padding:34px 22px 70px}}h1{{font-size:34px;margin:0}}h2{{margin-top:40px}}.sub{{color:var(--muted)}}.cards{{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}}.card,.panel,.callout{{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:17px;margin:14px 0;overflow:auto}}.card b{{display:block;font-size:23px;margin-top:5px}}.callout{{border-left:6px solid #2563eb}}table{{border-collapse:collapse;width:100%;font-size:13px}}th,td{{border-bottom:1px solid var(--line);padding:8px 10px;text-align:right;white-space:nowrap}}th:first-child,td:first-child{{text-align:left}}thead th{{background:#edf3fa}}.bar-row{{display:grid;grid-template-columns:310px 1fr 75px;gap:10px;align-items:center;margin:9px 0}}.track{{height:17px;background:#e7edf5;border-radius:9px;overflow:hidden}}.track i{{display:block;height:100%}}.gain{{color:#047857;font-weight:700}}.loss{{color:#b91c1c;font-weight:700}}code{{background:#edf2f7;padding:2px 5px;border-radius:4px}}@media(max-width:800px){{.cards{{grid-template-columns:1fr}}.bar-row{{grid-template-columns:190px 1fr 65px}}}}</style></head><body><main>
 <h1>Selected + Tail Probability Fusion v2</h1><p class="sub">Frozen gray-box experiment. Full ProcessBench, full PRMBench, and the historical 24 cells.</p>
-<div class="cards"><div class="card">ProcessBench, v2 IU-PCR<b>{pct(loc["augmented_iu"]["pb_all8"])}</b></div><div class="card">PRMBench within-answer AUC<b>{f4(loc["augmented_iu"]["prm_within"])}</b></div><div class="card">Historical 24-cell macro AUROC<b>{f4(hist["augmented_iu"]["all24"])}</b></div></div>
+<div class="cards"><div class="card">ProcessBench leader: Token Entropy<b>{pct(loc["entropy"]["pb_all8"])}</b></div><div class="card">Best v2 PRMBench within-answer AUC<b>{f4(loc["augmented_equal"]["prm_within"])}</b><span>Equal Weights</span></div><div class="card">Best v2 historical macro AUROC<b>{f4(hist["augmented_equal"]["all24"])}</b><span>Equal Weights</span></div></div>
 <div class="callout"><b>How to use the result.</b> No automatic promotion threshold is applied. The paired differences below show whether there is useful signal; the next development step is chosen only after reviewing all three benchmark views.</div>
-<h2>1. What changed?</h2><div class="panel"><p>v1 used a <code>T tokens × 15 probability ranks</code> matrix. v2 uses <code>T × 17</code>: the same 15 rank risks, selected-token surprisal, and residual Top-15 tail mass. K=15, top-10 step readout, annotations, folds and gates are unchanged.</p><p>Selected-token surprisal and tail summaries were already present in earlier reduced-stream experiments. V2 tests whether their raw token-level coordinates help when appended to the direct Top-15 fusion matrix.</p><p>The data audit passed 9/9 localization artifacts and 24/24 historical cells. Across {total_tokens:,} audited tokens, the selected token was in Top-1 {top1:.1%}, Top-15 {top15:.1%}, and saved Top-50 {top50:.1%}. Tokens outside Top-50 are valid because their probability is stored separately.</p><p>The float32 mass excess is clipped only below 5e-7. The real tail has mean {tail_mean:.4f}; it is above 1e-6 in {tail_gt_1e6:.1%}, above 0.001 in {tail_gt_1e3:.1%}, and above 0.01 in {tail_gt_1e2:.1%} of tokens. The smallest within-answer tail standard deviation in localization is {minimum_local_tail_sd:.2e}, so answer-local standardization is not amplifying the clipping noise.</p></div>
+<h2>1. What changed?</h2><div class="panel"><p>v1 used a <code>T tokens x 15 probability ranks</code> matrix. v2 uses <code>T x 17</code>: the same 15 rank risks, selected-token surprisal, and residual Top-15 tail mass. K=15, top-10 step readout, annotations, folds and gates are unchanged.</p><p>Selected-token surprisal and tail summaries were already present elsewhere in the project. Within the direct probability matrix, v1 used only the sorted ranks; v2 appends the two raw token-level coordinates.</p><p>The data audit passed 9/9 localization artifacts and 24/24 historical cells. Across {total_tokens:,} audited tokens, the selected token was in Top-1 {top1:.1%}, Top-15 {top15:.1%}, and saved Top-50 {top50:.1%}. Tokens outside Top-50 are valid because their probability is stored separately.</p><p>The float32 mass excess is clipped only below 5e-7. The real tail has mean {tail_mean:.4f}; it is above 1e-6 in {tail_gt_1e6:.1%}, above 0.001 in {tail_gt_1e3:.1%}, and above 0.01 in {tail_gt_1e2:.1%} of tokens. The smallest within-answer tail standard deviation in localization is {minimum_local_tail_sd:.2e}, so answer-local standardization is not amplifying the clipping noise.</p></div>
+<div class="panel"><h3>What the complete run says</h3><table><thead><tr><th>Question</th><th>Observed result</th><th>Meaning</th></tr></thead><tbody><tr><th>Does v2 improve one-answer localization?</th><td>IU-PCR is {100*entropy_route["pb_delta"]:+.2f} pp versus Token Entropy; PRMB within-answer is {entropy_route["prm_within_delta"]:+.4f}.</td><td>No reliable localization gain in this formulation.</td></tr><tr><th>Do the two added inputs carry answer-level signal?</th><td>Equal Weights reaches {f4(hist["augmented_equal"]["all24"])} on 24 cells. IU-PCR improves {comparison["historical"]["augmented_iu_minus_v1_iu"]["delta"]:+.4f} over its v1 matrix.</td><td>A small signal appears in complete-answer detection.</td></tr><tr><th>Did learned fusion beat the simple version?</th><td>Equal Weights is above IU-PCR and Joint Shrinkage on the 24-cell macro.</td><td>The current covariance-based weighting does not use the added signal reliably.</td></tr></tbody></table></div>
 <h2>2. One-answer localization</h2><div class="panel"><h3>ProcessBench all-eight macro F1</h3>{bars([(k,loc[k]["pb_all8"]) for k in loc_order],0.50,percent=True)}</div>
 <div class="panel"><table><thead><tr><th>Method</th><th>PB all 8</th><th>PB Q4</th><th>PB Q8</th><th>PRMB within</th><th>PRMB pooled</th><th>PRMScore</th><th>Coverage</th></tr></thead><tbody>{loc_rows}</tbody></table></div>
 <div class="callout"><b>Primary v2-v1 change.</b> ProcessBench {100*primary["pb_delta"]:+.2f} pp, 97.5% CI [{100*primary["pb_ci97_5"][0]:+.2f}, {100*primary["pb_ci97_5"][1]:+.2f}]. PRMB within-answer {primary["prm_within_delta"]:+.4f}, CI [{primary["prm_within_ci97_5"][0]:+.4f}, {primary["prm_within_ci97_5"][1]:+.4f}].</div>
@@ -374,9 +422,10 @@ def render(
 <div class="panel"><table><thead><tr><th>Method</th><th>All 24</th><th>QA 9</th><th>Math 15</th></tr></thead><tbody>{hist_rows}</tbody></table></div>
 <div class="callout"><b>Against Historical IU-PCR.</b> Selected + Tail IU-PCR difference {historical_primary["delta"]:+.4f}; hierarchical 97.5% CI [{historical_primary["hierarchical_group_ci97_5"][0]:+.4f}, {historical_primary["hierarchical_group_ci97_5"][1]:+.4f}].</div>
 <div class="panel"><h3>v2 versus v1</h3><table><thead><tr><th>Comparison</th><th>Macro difference</th><th>97.5% interval</th><th>Wins / ties / losses</th></tr></thead><tbody>{hist_contrast_rows}</tbody></table></div>
+<div class="panel"><h3>Exploratory anchor comparisons</h3><p>These two comparisons were added after seeing the complete table. They describe the result and were not used to tune the method.</p><table><thead><tr><th>Comparison</th><th>Macro difference</th><th>Paired-cell 97.5% interval</th><th>Wins / ties / losses</th></tr></thead><tbody>{exploratory_rows}</tbody></table></div>
 <div class="panel"><h3>All 24 cells</h3><table><thead><tr><th>Cell</th><th>Domain</th><th>Historical IU-PCR</th><th>Top-15 IU-PCR v1</th><th>Selected + Tail IU-PCR v2</th><th>v2-v1</th></tr></thead><tbody>{''.join(cell_rows)}</tbody></table></div>
 <h2>4. Learned IU-PCR coefficients</h2><p>Columns are standardized before fitting, so coefficients compare standardized inputs. They are unconstrained and do not need to sum to one.</p><div class="panel"><table><thead><tr><th>Input</th><th>Mean inside one answer</th><th>Mean across 24 cells</th></tr></thead><tbody>{weight_rows}</tbody></table></div>
-<h2>5. What LOS-Net teaches us</h2><div class="panel"><ul><li>LOS is the union of the sorted Token Distribution Sequence and Actual Token Probability. v1 tested only the first part; v2 adds the probability of the actual token.</li><li>LOS-Net's ATP-only learned baselines were weaker than the full LOS model. Distribution shape carried extra information beyond selected-token probability and rank.</li><li>The paper used K=1000 by default, but K=10 already captured more than 91% probability mass in every reported HD model/dataset combination. Larger K gave small or diminishing improvements.</li><li>Zero-shot transfer for hallucination detection did not beat simple probability baselines. Fine-tuning was needed. This warns us not to infer localization gains from the paper's supervised response-level AUC.</li><li>LOS-Net is a supervised answer classifier with a Transformer across token positions. It does not test answer-local, label-free first-error localization.</li><li>The paper's function-approximation result says LOS-Net can represent a broad family of probability scoring rules. It does not prove that every direct-distribution fusion improves accuracy.</li><li>The reported low detector latency starts after probability distributions are available; it does not include obtaining model logits.</li></ul></div>
+<h2>5. What LOS-Net teaches us</h2><div class="panel"><ul><li>LOS is the union of the sorted Token Distribution Sequence and Actual Token Probability. Within this direct-matrix test, v1 used the first part and v2 adds the probability of the actual token.</li><li>LOS-Net's ATP-only learned baselines were weaker than the full LOS model. Distribution shape carried extra information beyond selected-token probability and rank.</li><li>The paper used K=1000 by default, but K=10 already captured more than 91% probability mass in every reported HD model/dataset combination. Larger K gave small or diminishing improvements.</li><li>Zero-shot transfer for hallucination detection did not beat simple probability baselines. Fine-tuning was needed. This warns us not to infer localization gains from the paper's supervised response-level AUC.</li><li>LOS-Net is a supervised answer classifier with a Transformer across token positions. It does not test answer-local, label-free first-error localization.</li><li>The paper's function-approximation result says LOS-Net can represent a broad family of probability scoring rules. It does not prove that every direct-distribution fusion improves accuracy.</li><li>The reported low detector latency starts after probability distributions are available; it does not include obtaining model logits.</li></ul></div>
 <h2>6. Interpretation limits</h2><p>For PB and PRMB, probabilities score the provided answer tokens by teacher forcing. Historical cells contain generated or sampled outputs, and their saved distributions can include the generation warpers used by each original cell. The exact full-vocabulary selected-token rank is unavailable, so this is not an exact LOS-Net reproduction. Residual tail mass is our feature, not a component claimed by LOS-Net.</p>
 </main></body></html>'''
 
@@ -425,6 +474,9 @@ def main() -> None:
         "bootstrap": args.bootstrap,
         "localization": localization_contrasts(out, v1, source, args.bootstrap),
         "historical": historical_contrasts(out, v1, source, args.bootstrap),
+        "historical_exploratory": exploratory_historical_contrasts(
+            hist, args.bootstrap
+        ),
     }
     write_json(out / "V2_V1_COMPARISON.json", comparison)
     audit = read_json(out / "DATA_AUDIT.json")
