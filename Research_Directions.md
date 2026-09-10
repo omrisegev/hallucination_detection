@@ -1,5 +1,19 @@
 # Research Directions — Thesis Roadmap
 
+## Readout controls and late bias (2026-09-11, Step 354)
+
+Length is a strong localization prior on ProcessBench: `argmax(step length)`
+alone reaches 33.69% PB all-8 under the frozen gate (entropy top-10 35.44%;
+random 20.28%). Every step readout that sums or takes top-k over tokens
+inherits it; sum-type / mixture readouts gain only where the true step is the
+longest. Misses are late (late/early 1.7-1.9). Numeral-provenance token
+reassignment does not reduce the late bias (null vs shuffled control).
+"Earliest near-max step" on varentropy is the only readout change that moved
+both benchmarks together (+0.76pp PB, +0.0014 within; label-selected threshold,
+development only). Report `length`/`random_step` rows and the stratified panel
+in all localization tables; do not read top-k gains as entropy signal without
+the split. Details: HISTORY Step 354, results/readout_length_control_and_provenance_v1/.
+
 ## Binary contribution benchmark conclusion (2026-09-11)
 
 Step341 full benchmark complete and independently replayed.18/33-bank binary

@@ -17914,3 +17914,68 @@ Final diagnostics: median distinct votes17 in var18 and25 in both33. L-SML
 independence. All13769 archived threshold/fit IDs align with coefficient arrays.
 Diagnostic export fixed NumPy-int JSON serialization and repeated lazy NPZ
 decompression; frozen fitting and metric code/results were not changed.
+
+
+### Step 354 [Claude readout] — length control, late-bias panel and numeral-provenance rollback (2026-09-11)
+
+**What**: Scratchpad diagnostics on the frozen v3 telemetry (4,442 erroneous
+ProcessBench answers) found two facts absent from every localization table:
+`argmax(step length)` alone gives 29.7% raw exact peaks (entropy top-10 31.5%,
+random step 15.5%; error steps median 107 tokens vs 72), and misses are LATE
+(predicted after the true step 43%, before 25%). The peak inside the first
+decile of a step is a boundary artefact (42.6% of ALL steps vs 29% of error
+steps). Sum-type and GMM-responsibility readouts (up to 35.8% raw exact) gain
+ONLY in the true-step-is-longest stratum (0.809 vs 0.531) and lose elsewhere
+(0.168 vs 0.224); late fusion of per-stream order statistics and 3-D mixture
+readouts sit at 31-33%. Omri authorized two bounded stages with the simple
+streams: Stage 0 adds `length`, `random_step`, `position_first` controls and
+length-stratified / early-late panels to the frozen benchmark; Stage 1 tests a
+fixed label-free numeral-provenance reassignment of token surprise (inherited
+non-given numerals move to their earliest step; duplicate and shuffled-target
+controls) plus two onset-style readouts (`rise_vs_history`, `first_near_max`
+0.25 SD). Protocol `docs/experiments/READOUT_LENGTH_CONTROL_AND_PROVENANCE_V1.md`,
+code `spectral_utils/provenance_readout.py`, runner
+`scripts/run_readout_provenance_v1.py`; evaluation imported unchanged
+(`evaluate_arrays`, `paired_bootstrap`), same gate/tie/folds/labels; branch
+`claude/readout-provenance-v1` from 490f4b6c. Seven mechanism tests, 27-answer
+smoke, tokenizer round-trip 0 digit mismatches / 145,597 steps (10 empty-step
+'.' artefacts, documented amendment), both references reproduce to 1e-6.
+
+**Result** (PB all-8 / PRMB within / PRMScore; 10,000-draw paired bootstrap):
+- Controls: `length` **33.694% / 0.6181 / 0.5279**, only -1.750pp
+  [-3.418, -0.094] below entropy top-10 (35.444 / 0.7301 / 0.6254);
+  `random_step` 20.275 / 0.4985; `position_first` 18.756 / 0.3383; analytic
+  chance exact 0.1555. Stratified: entropy top-10 exact 0.531 when the true
+  step is the longest (n=1,318) vs 0.224 otherwise (n=3,124); late/early
+  1.71 (entropy) and 1.86 (varentropy).
+- Provenance rollback: NULL. entropy reassign 35.428 / 0.7288, vs reference
+  -0.017pp [-0.157, +0.077], within -0.0013 [-0.0022, -0.0005] (97.5%); vs
+  shuffled +0.017pp [0, +0.067], within +0.0005 [-0.0001, +0.0011].
+  Varentropy reassign 35.729 / 0.7411: +0.053pp [0, +0.136], within -0.0014
+  [-0.0023, -0.0005]; vs shuffled +0.015pp [0, +0.056]. Late/early unchanged
+  (1.70 / 1.86). Coverage was not the limit: 58-92% of answers had inherited
+  numerals moved (4.4k-18.5k tokens per cell). Mechanism: 2-3 digit tokens
+  are a negligible share of a ~100-token step's top-10, so token reassignment
+  cannot move the argmax; attribution would have to carry step-level surprise
+  mass, a different design not frozen here.
+- Onset readouts (exploratory 95%): `varentropy_first_near_max`
+  **36.437% / 0.7438 / 0.6329**, +0.761pp [+0.117, +1.415] and within +0.0014
+  [+0.0006, +0.0021] over varentropy top-10; late/early 1.86 -> 1.29; wins
+  6/8 cells. `entropy_first_near_max` 36.190 / 0.7306, +0.746pp
+  [-0.017, +1.503], within +0.0005 [-0.0005, +0.0014]. `rise_vs_history`
+  36.42 / 36.44 PB with intervals crossing zero and over-corrects to early
+  (late/early 0.94 / 1.08). The 0.25-SD threshold was chosen in the scratchpad
+  diagnostics with labels on this same population (0.25 / 0.5 / 1.0 tried), so
+  this is development-selected evidence, not confirmation.
+
+**Reading**: every PB localization table needs the `length` and `random_step`
+rows; the entropy-specific increment over the length prior on the full macro
+F1 is ~1.75pp. Numeral provenance does not explain the late bias. The only
+readout change that moved both benchmarks in the same direction is
+"earliest near-max step" on varentropy; freeze it as a candidate readout and
+evaluate on an untouched cohort before any claim. Outputs in
+`results/readout_length_control_and_provenance_v1/` (METRICS.json with
+stratified panels and contrasts, SUMMARY.csv, MANIFEST.json with input/code
+hashes; SCORES.npz kept on disk, git-ignored). No HTML (chat-first).
+
+---

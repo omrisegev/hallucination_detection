@@ -1,6 +1,37 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 
+## Step 354 [Claude readout] — length control + provenance rollback (2026-09-11)
+
+Branch `claude/readout-provenance-v1` (worktree `.worktrees/readout-provenance-v1`,
+from 490f4b6c). Full 13,769-answer run COMPLETE, references reproduce to 1e-6,
+zero failures; `results/readout_length_control_and_provenance_v1/`.
+
+- NEW MANDATORY CONTROL: `length` (argmax step token count) scores PB all-8
+  **33.694%** / within 0.6181 / PRMScore 0.5279 under the frozen gate — only
+  -1.750pp [-3.418, -0.094] below entropy top-10 (35.444). `random_step`
+  20.275%, `position_first` 18.756%, chance exact 0.1555. Every PB table from
+  now on carries these rows plus the length-stratified exact split (entropy
+  top-10: 0.531 when the true step is longest, 0.224 otherwise) and
+  early/late counts (late/early 1.71 entropy, 1.86 varentropy).
+- Numeral-provenance rollback: NULL on both streams and both controls
+  (entropy reassign -0.017pp [-0.157, +0.077]; vs shuffled +0.017pp
+  [0, +0.067]; late/early unchanged). Token-level reassignment cannot move a
+  top-10 argmax over ~100-token steps; a step-mass attribution is a different,
+  unfrozen design.
+- Exploratory positive: `varentropy_first_near_max` (earliest step within
+  0.25 SD of the max) **36.437% / 0.7438 / 0.6329**, +0.761pp [+0.117, +1.415]
+  and within +0.0014 [+0.0006, +0.0021] over varentropy top-10, late/early
+  1.86 -> 1.29. Threshold was label-selected on this population in the
+  diagnostics: development evidence only; freeze and test on an untouched
+  cohort before any claim. `rise_vs_history` over-corrects to early.
+- Next: (1) add the length/random rows and stratified panel to the existing
+  comparator tables (Steps 334-341) — reporting fix, no refits needed where
+  SCORES exist; (2) untouched-cohort check of `first_near_max`; (3) if the
+  late bias is pursued, attribute step-level surprise mass (not digit
+  tokens) — needs a new frozen protocol.
+
+
 ## Step341 completion [Codex] - binary votes lose localization resolution (2026-09-11)
 
 COMPLETE: all13769 model-answer rows/145597 steps, all8 arms valid, zero failures.
