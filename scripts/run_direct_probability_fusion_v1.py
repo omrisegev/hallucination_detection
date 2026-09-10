@@ -1034,9 +1034,12 @@ def run_historical(k: int, bootstrap: int) -> dict[str, Any]:
         safe_cell = cell.replace("-", "_")
         score_arrays[f"{safe_cell}__label"] = label_array.astype(np.int8)
         for name, score in method_scores.items():
-            score_arrays[f"{safe_cell}__{name}"] = np.asarray(score, dtype=np.float32)
+            # Keep the evaluated float64 values.  Casting these scores to float32
+            # changed tie handling in one historical cell, so the score artifact
+            # no longer reproduced the AUROC written to HISTORICAL_24.json.
+            score_arrays[f"{safe_cell}__{name}"] = np.asarray(score, dtype=np.float64)
         score_arrays[f"{safe_cell}__historical_iu_pcr"] = historical_iu_score.astype(
-            np.float32
+            np.float64
         )
         del payload, candidates
 
@@ -1190,9 +1193,15 @@ def render_report(localization: dict[str, Any], historical: dict[str, Any]) -> s
         )
     lines.extend(["", "Paired cell-level contrasts:", ""])
     for name, row in historical["contrasts"].items():
+        interval = row.get("hierarchical_group_ci97_5", row["cell_bootstrap_ci95"])
+        interval_name = (
+            "hierarchical group CI 97.5%"
+            if "hierarchical_group_ci97_5" in row
+            else "paired-cell CI 95%"
+        )
         lines.append(
             f"- `{name}`: {row['delta']:+.4f} "
-            f"[{row['cell_bootstrap_ci95'][0]:+.4f}, {row['cell_bootstrap_ci95'][1]:+.4f}], "
+            f"[{interval[0]:+.4f}, {interval[1]:+.4f}] ({interval_name}), "
             f"{row['wins']}W/{row['ties']}T/{row['losses']}L."
         )
     lines.extend(
@@ -1258,6 +1267,9 @@ def main() -> None:
             "protocol": sha256_file(ROOT / "docs" / "experiments" / "DIRECT_PROBABILITY_FUSION_V1.md"),
         },
     }
+    # Preserve the provenance of each independently executed track.  The generic
+    # filename remains as a pointer to the most recently completed stage.
+    write_json(OUT / f"RUN_MANIFEST_{args.stage.upper()}.json", manifest)
     write_json(OUT / "RUN_MANIFEST.json", manifest)
     print(f"[complete] {OUT} ({manifest['elapsed_seconds']:.1f}s)", flush=True)
 

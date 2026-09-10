@@ -97,6 +97,39 @@ def grouped_bars(
     return "".join(parts)
 
 
+def coefficient_profile(series: list[tuple[str, list[float]]], *, title: str) -> str:
+    """Draw signed mean fusion coefficients for probability ranks 1..15."""
+
+    width, height = 900, 350
+    left, right, top, bottom = 70, 20, 42, 60
+    plot_w, plot_h = width - left - right, height - top - bottom
+    lo, hi = -0.18, 0.10
+
+    def xpos(index: int) -> float:
+        return left + index * plot_w / 14
+
+    def ypos(value: float) -> float:
+        return top + (hi - value) * plot_h / (hi - lo)
+
+    parts = [f'<svg viewBox="0 0 {width} {height}" role="img" aria-label="{esc(title)}">']
+    for value in (-0.15, -0.10, -0.05, 0.0, 0.05, 0.10):
+        y = ypos(value)
+        css = "zero" if value == 0.0 else "grid"
+        parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{width-right}" y2="{y:.1f}" class="{css}"/>')
+        parts.append(f'<text x="{left-10}" y="{y+4:.1f}" text-anchor="end" class="tick">{value:+.2f}</text>')
+    for index in range(15):
+        x = xpos(index)
+        parts.append(f'<text x="{x:.1f}" y="{height-30}" text-anchor="middle" class="axis-label">{index+1}</text>')
+    for key, values in series:
+        points = " ".join(f"{xpos(i):.1f},{ypos(float(value)):.1f}" for i, value in enumerate(values))
+        parts.append(f'<polyline points="{points}" fill="none" stroke="{COLORS[key]}" stroke-width="3"/>')
+        for index, value in enumerate(values):
+            parts.append(f'<circle cx="{xpos(index):.1f}" cy="{ypos(float(value)):.1f}" r="3" fill="{COLORS[key]}"><title>{esc(NAMES[key])}, rank {index+1}: {float(value):+.5f}</title></circle>')
+    parts.append(f'<text x="{left + plot_w/2:.1f}" y="{height-6}" text-anchor="middle" class="axis-label">Probability rank</text>')
+    parts.append("</svg>")
+    return "".join(parts)
+
+
 def historical_dumbbell(historical: dict) -> str:
     cells = list(historical["cells"])
     width = 1000
@@ -172,6 +205,36 @@ def render(localization: dict, historical: dict) -> str:
         maximum=0.90,
         percent=False,
         title="Historical 24-cell AUROC",
+    )
+
+    weight_keys = ["rank_equal", "rank_iu", "rank_joint_lw"]
+    localization_weights = {
+        key: [float(value) for value in localization["methods"][key]["mean_weights"]]
+        for key in weight_keys
+    }
+    historical_weights = {
+        key: [
+            sum(float(row["diagnostics"][key]["weights"][rank]) for row in historical["cells"].values())
+            / len(historical["cells"])
+            for rank in range(15)
+        ]
+        for key in weight_keys
+    }
+    localization_weight_chart = coefficient_profile(
+        [(key, localization_weights[key]) for key in weight_keys],
+        title="Mean one-answer fusion coefficients by probability rank",
+    )
+    historical_weight_chart = coefficient_profile(
+        [(key, historical_weights[key]) for key in weight_keys],
+        title="Mean 24-cell fusion coefficients by probability rank",
+    )
+    weight_rows = "".join(
+        "<tr><th>" + str(rank + 1) + "</th>" + "".join(
+            f'<td>{localization_weights[key][rank]:+.5f}</td>' for key in weight_keys
+        ) + "".join(
+            f'<td>{historical_weights[key][rank]:+.5f}</td>' for key in weight_keys
+        ) + "</tr>"
+        for rank in range(15)
     )
 
     best_pb_key = max(loc_keys, key=lambda key: all_loc[key]["pb_all8"])
@@ -252,7 +315,7 @@ main{{max-width:1180px;margin:auto;padding:34px 22px 70px}} h1{{font-size:34px;m
 .subtitle,.note{{color:var(--muted)}} .cards{{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0}}
 .card,.panel{{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 5px 18px #17324d0b}}
 .card strong{{display:block;font-size:22px;margin-top:6px}} .panel{{margin:16px 0;overflow:auto}} svg{{width:100%;min-width:720px;height:auto}}
-.grid{{stroke:#dbe3ee;stroke-width:1}} .connector{{stroke:#94a3b8;stroke-width:2}} .tick,.axis-label,.cell-label{{fill:#526173;font-size:11px}}
+.grid{{stroke:#dbe3ee;stroke-width:1}} .zero{{stroke:#64748b;stroke-width:1.5}} .connector{{stroke:#94a3b8;stroke-width:2}} .tick,.axis-label,.cell-label{{fill:#526173;font-size:11px}}
 .legend{{display:flex;gap:16px;flex-wrap:wrap;margin:8px 0 14px}} .legend-item{{display:inline-flex;align-items:center;gap:7px}} .legend-item i{{width:13px;height:13px;border-radius:3px}}
 table{{border-collapse:collapse;width:100%;font-size:13px}} th,td{{border-bottom:1px solid var(--line);padding:9px 10px;text-align:right;white-space:nowrap}} th:first-child,td:first-child{{text-align:left}} thead th{{background:#edf3fa;position:sticky;top:0}} .gain{{color:#047857;font-weight:700}} .loss{{color:#b91c1c;font-weight:700}}
 .boundary{{border-left:5px solid #f59e0b;background:#fffbeb;padding:14px 18px;border-radius:8px}} code{{background:#eef2f7;padding:2px 5px;border-radius:4px}} @media(max-width:800px){{.cards{{grid-template-columns:1fr}}}}
@@ -260,10 +323,11 @@ table{{border-collapse:collapse;width:100%;font-size:13px}} th,td{{border-bottom
 <h1>Direct Probability Fusion v1</h1>
 <p class="subtitle">Gray-box experiment. Direct top-15 next-token probabilities are fused without first reducing them to entropy. Generated from the frozen benchmark outputs.</p>
 <div class="cards">
- <div class="card">Best ProcessBench score<strong>{esc(NAMES[best_pb_key])}: {pct(all_loc[best_pb_key]["pb_all8"])}</strong></div>
- <div class="card">Best PRMBench within-answer AUC<strong>{esc(NAMES[best_prm_key])}: {f4(all_loc[best_prm_key]["prm_within"])}</strong></div>
- <div class="card">Best historical 24-cell macro<strong>{esc(NAMES[best_24_key])}: {f4(historical["macro"][best_24_key]["all24"])}</strong></div>
+ <div class="card">Best ProcessBench score among current v1 arms<strong>{esc(NAMES[best_pb_key])}: {pct(all_loc[best_pb_key]["pb_all8"])}</strong></div>
+ <div class="card">Best PRMBench within-answer AUC among current v1 arms<strong>{esc(NAMES[best_prm_key])}: {f4(all_loc[best_prm_key]["prm_within"])}</strong></div>
+ <div class="card">Best historical 24-cell macro among displayed methods<strong>{esc(NAMES[best_24_key])}: {f4(historical["macro"][best_24_key]["all24"])}</strong></div>
 </div>
+<div class="boundary"><strong>Decision.</strong> Do not promote Direct Probability Fusion v1. Token Entropy remains the current ProcessBench anchor, and Historical IU-PCR remains the 24-cell anchor. The small gains in PRMBench ranking and the +0.0011 post-hoc 24-cell result for Equal Weights do not transfer to ProcessBench or PRMScore.</div>
 <div class="boundary"><strong>How to read this report.</strong> All ProcessBench methods use the same frozen mean-entropy q=0.3 gate. The gate decides whether an answer contains an error. The fused token scores and top-10 step readout decide where the first error is. PRMBench has no no-error gate; its PRMScore uses the separately frozen q=0.8 cross-fold readout. Mind the Gap is replayed as a locator with the common ProcessBench gate, so this row is not its native paper protocol.</div>
 
 <h2>1. One-answer localization</h2>
@@ -276,7 +340,15 @@ table{{border-collapse:collapse;width:100%;font-size:13px}} th,td{{border-bottom
 <div class="panel"><h3>Pre-declared paired contrasts (97.5% confidence intervals)</h3><table><thead><tr><th>Comparison</th><th>ProcessBench difference</th><th>PRMB within-answer difference</th></tr></thead><tbody>{''.join(contrast_rows)}</tbody></table></div>
 <div class="panel"><h3>Frozen continuity and supervised references</h3><table><thead><tr><th>Reference</th><th>PB all 8</th><th>PRMB within</th><th>PRMB pooled</th><th>PRMScore</th></tr></thead><tbody>{''.join(reference_rows)}</tbody></table></div>
 
-<h2>2. Complete-answer hallucination detection</h2>
+<h2>2. What coefficients were learned?</h2>
+<p>K=15 means fifteen sorted vocabulary probabilities per token. It was frozen to match the existing top-15 entropy input; it was not selected by a result sweep. There is no token window in this experiment. Each token is one observation. The separate top-10 readout averages the ten highest token risks inside each reasoning step, or inside the whole answer in the 24-cell task.</p>
+<p>Each localization answer learns its own coefficient vector; the first plot shows their mean. Each historical cell learns one vector; the second plot shows the mean over 24 cells. Columns are standardized before fusion, and IU coefficients are not constrained to sum to one. Rank 1 is <code>1-p1</code>; ranks 2 to 15 are <code>p2...p15</code>.</p>
+<div class="panel"><h3>Mean coefficients: one-answer localization</h3>{legend(weight_keys)}{localization_weight_chart}</div>
+<div class="panel"><h3>Mean coefficients: complete-answer detection</h3>{legend(weight_keys)}{historical_weight_chart}</div>
+<div class="panel"><table><thead><tr><th>Probability rank</th><th>One-answer Equal</th><th>One-answer IU-PCR</th><th>One-answer Joint</th><th>24-cell Equal</th><th>24-cell IU-PCR</th><th>24-cell Joint</th></tr></thead><tbody>{weight_rows}</tbody></table></div>
+<p class="note">The strongest pattern is a reduced or negative coefficient for rank 2 and broad positive weight on the tail ranks. These are unsupervised covariance directions, so a negative coefficient is not a causal claim. The changed weights did not improve the primary localization metric.</p>
+
+<h2>3. Complete-answer hallucination detection</h2>
 <p>For every historical cell, each answer becomes one row. The same top-15 probability ranks become the fusion columns. The fixed primary comparison is Direct Probability Fusion - IU-PCR versus Historical IU-PCR.</p>
 <div class="panel"><h3>Macro AUROC</h3>{legend(hist_keys)}{hist_chart}</div>
 <div class="panel"><table><thead><tr><th>Method</th><th>All 24</th><th>QA 9</th><th>Math 15</th></tr></thead><tbody>{macro_rows}</tbody></table></div>
@@ -285,10 +357,10 @@ table{{border-collapse:collapse;width:100%;font-size:13px}} th,td{{border-bottom
 <div class="panel"><h3>All 24 cells: fixed primary pair</h3>{legend(["historical_iu_pcr","rank_iu"])}{historical_dumbbell(historical)}</div>
 <div class="panel"><table><thead><tr><th>Cell</th><th>Domain</th><th>Answers</th><th>Historical IU-PCR</th><th>Direct Probability Fusion - IU-PCR</th><th>Difference</th><th>Difference CI 97.5%</th><th>Direct Probability Fusion - Joint Shrinkage</th></tr></thead><tbody>{''.join(cell_rows)}</tbody></table></div>
 
-<h2>3. What came from Claude's work</h2>
+<h2>4. What came from Claude's work</h2>
 <p>The fixed mean-entropy q=0.3 gate isolates location quality and prevents the old GMM gate from hiding valid peaks. Joint Shrinkage transfers Claude's useful Joint covariance idea into a closed-form IU fit. It is a supporting method because the direct probability ranks do not have the original feature-stream grouping. BOCPD is excluded because it did not improve the frozen localization task.</p>
 
-<h2>4. Limits</h2>
+<h2>5. Limits</h2>
 <p>This is development evidence on previously studied datasets. K=15 and the top-10 token readout were frozen before scoring. The historical IU-PCR reference is exactly <code>mixed_v2 / full / iu_pcr</code>; the similarly named U-PCR plus sign heuristic is not used. DEEM and white-box signals are outside this run.</p>
 </main></body></html>'''
 
