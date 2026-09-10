@@ -1,5 +1,20 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Moment RBM scheduling update (2026-09-11)
+
+User requests full-population fast-method results first, then B3 separately.
+Prepared scripts/run_moment_rbm_staged.py: preserve frozen core/evaluator,
+project original committed checkpoints, run fast methods, evaluate/review,
+then B3, then combine and review. Two split-fit/checkpoint tests PASS.
+No source scoring file was changed. Staged runner refuses to start while
+original PID remains active. Scheduling change has NOT been launched: automatic
+approval review rejected stopping original PID27400 and its worker tree,
+requesting explicit user confirmation to interrupt the active benchmark.
+Original run continues. No attempt to bypass that rejection. Pending action:
+obtain explicit stop authorization, verify original PID/time again, stop it,
+then launch staged driver with the same four source-root arguments and workers4.
+Preserve original checkpoint/logs; staged output results/moment_rbm_fusion_v1_staged/.
+
 ## Step342 [Codex] - moment RBM fusion ready for full execution (2026-09-11)
 
 User authorized the discussed compact six-column bank: H15,V15,m3_15,a,a^2,a^3.
