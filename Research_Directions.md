@@ -1,5 +1,19 @@
 # Research Directions — Thesis Roadmap
 
+## Step345 [Codex RBM shrinkage] - fixed regularization follow-up (2026-09-11)
+
+User requested a separate agent to execute the proposed bounded weight-shrinkage
+experiment. Parent295011d4, branch codex/rbm-weight-shrinkage-v1. Prior m3/powers
+full13769 run and arithmetic review COMPLETE/PASS verified. Preserve original
+six moment columns, original mean6 anchor and shared gate/top10 readout. Test
+ONLY lambda0.1 toward w0=2/P against original trained and initial RBM; coefficient
+fixed as engineering choice, no grid. Reuse entropy/Varentropy and matched Claude
+length/random controls. Four mechanism tests PASS;27-answer full-budget mechanical preflight PASS
+with zero failures and exact original RBM step replay. Full run pending freeze. Full protocol docs/experiments/RBM_WEIGHT_SHRINKAGE_V1.md.
+No HTML; checkpoint/results results/rbm_weight_shrinkage_v1. Other runs untouched.
+
+
+
 ## Step344 [Codex RBM] - m3 ablation and raw rank powers (2026-09-11)
 
 User explicitly authorized (1) isolate distribution m3 in compact RBM, and

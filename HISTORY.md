@@ -18011,3 +18011,18 @@ Full run uses2 CPU workers, WAL checkpoints, Windows JSON replacement retry,
 automatically follows. Check results/rbm_m3_powers_v1/LAUNCH.json and live
 RUN_STATE.json for actual status. No HTML. Existing B3 localization untouched;
 global24 experiment has separately reached COMPLETE/PASS.
+
+### Step345 [Codex RBM shrinkage] ? fixed six-moment regularization
+
+**What**: User requested a separate agent to execute the proposed bounded weight-shrinkage
+experiment. Parent295011d4, branch codex/rbm-weight-shrinkage-v1. Prior m3/powers
+full13769 run and arithmetic review COMPLETE/PASS verified. Preserve original
+six moment columns, original mean6 anchor and shared gate/top10 readout. Test
+ONLY lambda0.1 toward w0=2/P against original trained and initial RBM; coefficient
+fixed as engineering choice, no grid. Reuse entropy/Varentropy and matched Claude
+length/random controls. Four mechanism tests PASS;27-answer full-budget mechanical preflight PASS
+with zero failures and exact original RBM step replay. Full run pending freeze. Full protocol docs/experiments/RBM_WEIGHT_SHRINKAGE_V1.md.
+No HTML; checkpoint/results results/rbm_weight_shrinkage_v1. Other runs untouched.
+
+**Why**: Test restrained weight learning without expanding feature/graph search.
+**Result**: Implementation and four tests ready; full outcome pending.
