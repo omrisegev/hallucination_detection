@@ -1,5 +1,31 @@
 # Research Directions — Thesis Roadmap
 
+## Step345 [Codex RBM shrinkage] completion - 2026-09-11
+
+COMPLETE: all13769 answers/145597 steps. Frozen124ead81d, two below-normal
+workers,408.2s scoring. All24 method/reference metric bundles replay and
+separate arithmetic review PASS. State audit41307 model records PASS.
+No fit failures/collapse. Original RBM13768 converged/1 flagged finite;
+regularized RBM13769 converged. Fixed lambda0.1 shrinks raw weight distance
+on every answer: median3.10452->1.18637. Median iterations25->16. This is
+weight restraint, not evidence of temporal stability or hallucination semantics.
+
+PB / within-answer PRMB / PRMScore:
+- Original RBM:36.2017% / .735982 / .630749.
+- Shrinkage RBM:35.8711% / .738630 / .629544.
+- Initial RBM:35.9662% / .744068 / .613085.
+Primary shrinkage-minus-original: PB-.3305pp,97.5%CI[-.8852,+.1966];
+within+.0026483[+.0007774,+.0045989]. Gains58 PB successes, loses65;
+only2/8 PB cell points improve. Gate clean accuracy identical. Against initial,
+within-.0054373,95%CI[-.0070236,-.0038670], PB difference uncertain.
+Varentropy50:35.6755%/.742465/.632777; Var15raw35.9610%/.737786/.625781.
+No overall winner and no clear added PB value from this regularizer. Retain
+as negative/mixed development evidence; no lambda sweep, DUFS or new graph
+was launched. Existing B3 and other worktrees untouched. Return to discussion
+before another candidate. Full tables/errors/weights in results/rbm_weight_shrinkage_v1;
+REPORT.md, METRICS.json, SUMMARY.csv, RESULT_REVIEW.json and STATE_REVIEW.json.
+
+
 ## Step345 [Codex RBM shrinkage] - fixed regularization follow-up (2026-09-11)
 
 User requested a separate agent to execute the proposed bounded weight-shrinkage
