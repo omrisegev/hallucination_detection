@@ -2,7 +2,7 @@
 
 - Localization artifacts ready: 9/9.
 - Historical cells ready: 24/24.
-- Audited tokens: 6,968,779 localization and 8,949,580 historical.
+- Audited tokens: 6,968,779 localization and 8,592,865 historical.
 - PB/PRMB tokens are teacher-forced scored answer tokens; historical tokens are generated/sampled outputs.
 - A selected token outside saved Top-50 is valid because its probability is stored separately.
 
@@ -17,15 +17,15 @@
 | `dataset_cache/repgrid/pb_qwen3_8b/processbench_olympiadbench.pkl` | 781284 | 99.2% | 46.5% | 10.7% | 4.1% | 1.44e-04 | READY |
 | `dataset_cache/repgrid/pb_qwen3_8b/processbench_omnimath.pkl` | 773607 | 99.0% | 53.4% | 14.6% | 6.2% | 1.15e-04 | READY |
 | `dataset_cache/four_localization/prmbench_qwen3_8b_telemetry_full/prmbench_telemetry.pkl` | 2582195 | 95.9% | 62.4% | 19.0% | 7.9% | 4.25e-05 | READY |
-| `epr_triviaqa_mistral24b` | 18768 | 99.2% | 93.8% | 37.1% | 13.6% | 7.20e-05 | READY |
+| `epr_triviaqa_mistral24b` | 17215 | 99.2% | 93.3% | 36.2% | 14.1% | 1.14e-04 | READY |
 | `losnet_hotpotqa_mistral7b` | 111538 | 100.0% | 56.3% | 13.7% | 4.7% | 6.50e-04 | READY |
-| `sciq_llama8b` | 14503 | 99.4% | 78.6% | 26.1% | 11.0% | 7.73e-07 | READY |
-| `se_nq_open_llama8b` | 291965 | 99.9% | 24.3% | 4.1% | 0.9% | 0.00e+00 | READY |
-| `se_squad_v2_llama8b` | 87710 | 100.0% | 11.0% | 0.6% | 0.0% | 0.00e+00 | READY |
-| `seiclr_triviaqa_opt30b` | 319305 | 99.5% | 47.2% | 15.1% | 8.4% | 3.86e-06 | READY |
-| `semenergy_triviaqa_qwen3_8b` | 72078 | 100.0% | 5.9% | 1.6% | 0.5% | 0.00e+00 | READY |
-| `spilled_triviaqa_llama8b` | 8904 | 96.9% | 89.3% | 51.0% | 34.2% | 1.84e-06 | READY |
-| `truthfulqa_llama8b` | 514520 | 100.0% | 26.5% | 3.7% | 0.7% | 0.00e+00 | READY |
+| `sciq_llama8b` | 10743 | 99.2% | 83.1% | 35.1% | 14.8% | 2.92e-06 | READY |
+| `se_nq_open_llama8b` | 284799 | 99.9% | 24.3% | 4.1% | 0.9% | 1.06e-09 | READY |
+| `se_squad_v2_llama8b` | 55014 | 100.0% | 13.1% | 0.8% | 0.1% | 0.00e+00 | READY |
+| `seiclr_triviaqa_opt30b` | 15585 | 99.3% | 50.2% | 21.4% | 10.7% | 0.00e+00 | READY |
+| `semenergy_triviaqa_qwen3_8b` | 67943 | 100.0% | 6.0% | 1.5% | 0.5% | 0.00e+00 | READY |
+| `spilled_triviaqa_llama8b` | 7783 | 96.6% | 90.3% | 54.5% | 37.4% | 1.18e-05 | READY |
+| `truthfulqa_llama8b` | 511956 | 100.0% | 26.4% | 3.7% | 0.7% | 8.82e-10 | READY |
 | `ars_gsm8k_r1distill8b` | 224633 | 100.0% | 69.3% | 6.1% | 0.7% | 2.58e-04 | READY |
 | `internalstates_gsm8k_qwen25_7b` | 173459 | 100.0% | 22.3% | 2.5% | 0.6% | 9.13e-07 | READY |
 | `lapeigvals_gsm8k_llama3b` | 309209 | 99.7% | 76.0% | 13.8% | 4.9% | 7.03e-05 | READY |

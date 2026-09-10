@@ -17,6 +17,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts import audit_direct_probability_data_v1 as base  # noqa: E402
+from scripts.build_repgrid_featcache import H16, candidate_feats  # noqa: E402
+from scripts.inscope_cells import CROPPED_CELLS  # noqa: E402
+from spectral_utils.answer_span import crop_candidate  # noqa: E402
 
 
 DEFAULT_K = 15
@@ -39,7 +42,36 @@ def _topk(row: dict[str, Any]) -> dict[str, Any] | None:
     return None
 
 
-def audit_selected_tail(path: Path, k: int) -> dict[str, Any]:
+def _matched_historical_candidates(
+    payload: dict[Any, Any], cell: str, expected_n: int
+) -> list[dict[str, Any]]:
+    """Replay the exact complete-case population used by Track B."""
+
+    raw: list[dict[str, Any]] = []
+    crop = cell in CROPPED_CELLS
+    for problem_id in sorted(payload, key=lambda value: int(value)):
+        for candidate in payload[problem_id]["candidates"]:
+            raw.append(crop_candidate(candidate) if crop else candidate)
+    if len(raw) == int(expected_n) or crop:
+        return raw
+    output = []
+    for candidate in raw:
+        features = candidate_feats(candidate, allow_short=False)
+        if all(np.isfinite(features.get(feature, np.nan)) for feature in H16):
+            output.append(candidate)
+    if len(output) != int(expected_n):
+        raise ValueError(
+            f"{cell}: exact audit population {len(output)} != frozen {expected_n}"
+        )
+    return output
+
+
+def audit_selected_tail(
+    path: Path,
+    k: int,
+    *,
+    rows_override: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Audit alignment and semantics of ATP/tail fields in one artifact."""
 
     counts = {
@@ -67,7 +99,8 @@ def audit_selected_tail(path: Path, k: int) -> dict[str, Any]:
     max_tail_mass = 0.0
     max_matched_abs_error = 0.0
     failures: list[dict[str, Any]] = []
-    for row_index, row in enumerate(base._rows(_load(path))):
+    rows = base._rows(_load(path)) if rows_override is None else iter(rows_override)
+    for row_index, row in enumerate(rows):
         counts["rows"] += 1
         payload = _topk(row)
         if payload is None:
@@ -186,11 +219,31 @@ def audit_selected_tail(path: Path, k: int) -> dict[str, Any]:
 def build_audit(source_root: Path, k: int) -> dict[str, Any]:
     base.configure_source_root(source_root)
     inherited = base.build_audit(k)
-    rows = [*inherited["localization"], *inherited["historical_24"]]
-    for row in rows:
+    for row in inherited["localization"]:
         extension = audit_selected_tail(source_root / row["artifact"], k)
+        extension["population"] = "complete frozen localization artifact"
         row["selected_tail"] = extension
         row["ready"] = bool(row["ready"] and extension["ready"])
+    historical_bundle = np.load(
+        source_root / "results" / "dependency_fusion_raw" / "cells.npz",
+        allow_pickle=True,
+    )
+    for row in inherited["historical_24"]:
+        cell = row["cell"]
+        payload = _load(source_root / row["artifact"])
+        expected_n = len(historical_bundle[f"{cell}__labels"])
+        matched = _matched_historical_candidates(payload, cell, expected_n)
+        extension = audit_selected_tail(
+            source_root / row["artifact"], k, rows_override=matched
+        )
+        extension["population"] = (
+            "exact complete-case rows used by historical mixed_v2/full/iu_pcr"
+        )
+        extension["expected_rows"] = expected_n
+        row["selected_tail"] = extension
+        row["ready"] = bool(
+            row["ready"] and extension["ready"] and extension["counts"]["rows"] == expected_n
+        )
     # Localization fits each answer separately, so its tail must vary within
     # every answer by more than the measured float32 clipping guard. Historical
     # fusion first aggregates each answer, so the aggregated tail must vary

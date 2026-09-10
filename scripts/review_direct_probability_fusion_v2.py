@@ -299,7 +299,14 @@ def render(
         cell_rows.append(
             f'<tr><th>{esc(cell)}</th><td>{esc(GROUP[cell])}</td><td>{f4(anchor)}</td><td>{f4(old)}</td><td>{f4(new)}</td><td class="{("gain" if new>=old else "loss")}">{new-old:+.4f}</td></tr>'
         )
-    loc_contrast_rows = "".join(
+    entropy_route = current_loc["contrasts"]["augmented_iu_minus_entropy"]
+    loc_contrast_rows = (
+        f'<tr><th>{esc(NAMES["augmented_iu"])} minus {esc(NAMES["entropy"])}</th>'
+        f'<td>{100*entropy_route["pb_delta"]:+.2f} pp '
+        f'[{100*entropy_route["pb_ci_97_5"][0]:+.2f}, {100*entropy_route["pb_ci_97_5"][1]:+.2f}]</td>'
+        f'<td>{entropy_route["prm_within_delta"]:+.4f} '
+        f'[{entropy_route["prm_within_ci_97_5"][0]:+.4f}, {entropy_route["prm_within_ci_97_5"][1]:+.4f}]</td></tr>'
+    ) + "".join(
         f'<tr><th>{esc(NAMES[row["left"]])} minus {esc(NAMES[row["right"]])}</th><td>{100*row["pb_delta"]:+.2f} pp [{100*row["pb_ci97_5"][0]:+.2f}, {100*row["pb_ci97_5"][1]:+.2f}]</td><td>{row["prm_within_delta"]:+.4f} [{row["prm_within_ci97_5"][0]:+.4f}, {row["prm_within_ci97_5"][1]:+.4f}]</td></tr>'
         for row in comparison["localization"].values()
     )
