@@ -1,5 +1,86 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Step338 completion [Codex] - full temporal comparison verified (2026-09-10)
+
+COMPLETE: all 13,769 answers / 145,597 steps, 18 new arms plus saved references.
+All arms have full coverage and zero fit failures. Fusion is fitted within the
+current answer; mean-entropy q=.3 gate and PRMScore cross-fold calibration remain
+external and frozen. This is cached development evidence, not untouched test data.
+
+Current-IU: ProcessBench macro F1 34.5021%, PRMB within-answer AUC .73275655,
+PRMScore .62054412. Delta-IU (current17 plus signed first differences):
+34.8085%, .73693101, .62394486. Primary paired 97.5% CIs (10,000 canonical-group
+bootstrap draws): PB change +0.3064 percentage points [-0.2271,+0.8386];
+within-answer AUC change +.00417446 [+.00208918,+.00629451]. There is evidence
+of better within-answer ranking, but no clear PB improvement in this comparison.
+
+Lag8-IU (136 inputs) loses: PB 32.3665%, AUC .71149969, PRMScore .59786990.
+PB difference -2.1356 points, 97.5% CI [-3.3146,-0.9778]. Hierarchical fusion
+and shrinkage do not rescue this representation. Chronological-chain LIU gives
+34.5863% PB: four extra hits and no lost hits, a small exploratory effect;
+PRMB AUC change is inconclusive. Delta-Equal gives 34.9202%, .73872061,
+.62365012; this point estimate does not establish learned IU superiority.
+Entropy remains higher on PB (35.4444%); saved varentropy is 35.6755% PB,
+.74246455 within AUC, .63277687 PRMScore. No new overall leader is established.
+
+Error review: Lag8-IU gains175/loses283 PB successes; 157 lost cases move late,
+126 early, none due to gate changes. Delta-IU gains72/loses56 (32 late/24 early).
+Lag degradation also occurs for traces >512 tokens, so insufficient row count
+alone does not explain it. Coefficient shares concentrate on lag3/lag4 (~15%
+each) versus current token (~9.7%); this is descriptive, not causal proof.
+
+Separate arithmetic replay PASS: source/code hashes, PB8 full denominators,
+PRMB direct-pair AUC and pooled AUC, source-group fold thresholds and PRMScore.
+Within-answer AUC uses 6,030 of 6,969 PRMB answers with both label classes;
+all answers remain in the other applicable metrics. Original1072-row solver
+checkpoint replay agrees to2.3e-15. No numerical drift from the speed change.
+
+Next direction: retain Current17 as anchor and investigate level-plus-change;
+do not expand the lag window or sweep graphs to rescue this result. Before
+claiming chronological information caused the Delta gain, a matched shuffled-
+change control should isolate temporal alignment from simply adding coordinates.
+That follow-up is not run. Full B3/CONT/Joint graph roster, positional encoding
+and temporal historical24 transfer are also not yet run. Tail/selected ablation
+is still open. No new HTML: results are in chat and machine-readable artifacts:
+`results/direct_probability_temporal_v3/{METRICS,RESULT_REVIEW,ERROR_ANALYSIS}.json`,
+`SUMMARY_READABLE.csv`, `SCORES.npz`. Both original and optimized checkpoints
+are retained locally; large checkpoint databases are ignored by Git.
+
+## Step338 launch record [Codex] - temporal probability fusion (2026-09-10)
+
+User authorized execution after discussing EDIS spikes, lagged probability
+coordinates, level-plus-change, two-axis fusion and chronological graphs.
+Chat-first communication; no new HTML report and no performance thresholds.
+The prior work was committed as 438b03a54. New sparse worktree:
+`.worktrees/direct-probability-temporal-v3`, branch
+`codex/direct-probability-temporal-v3`; raw caches are read in place from root.
+
+The first full stage scores all 13,769 localization rows with 18 arms: Current17,
+Lag8x17 and Delta34 crossed with Equal/IU/diagonal-LW/Joint-inspired-LW; shuffled
+history Equal/IU controls; two hierarchical IU fusion orders; chronological and
+permuted chain LIU. K15, top10 step readout, labels/folds and gates stay frozen.
+One-answer fusion fitting; external calibration remains explicitly declared.
+
+Clean-context preflight found issues and they were fixed before launch. Nine
+core tests and three driver tests pass. Full-reference replay smoke: 27 short/
+median/long answers across all nine cells, 20-1454 tokens, all18 arms succeed.
+No scientific ranking is drawn from the smoke. Source manifest, code and
+protocol bind resumable SQLite checkpoints. Code commits: ad9a9bb8, 2d4d1c36.
+
+Wide-input IU's complete pair L2 system now uses its exact analytic inverse,
+leaving the g2 grid and estimator unchanged. Sixty covariance fixtures match
+the frozen solver (max weight difference 1.2e-13). All27 real smoke answers
+match across all18 arms (step-score difference <=1.4e-15), 2.56x faster. The
+original 1,072-row partial run is preserved in the sibling `_original_solver`
+directory. The optimized full run restarts from zero; no mixed-code result.
+
+Primary contrasts: Lag8-IU vs Current-IU; Delta-IU vs Current-IU. Full results
+and 10,000 canonical-group bootstrap draws are pending. Read current liveness
+from actual processes/checkpoint, not this entry. Output:
+`results/direct_probability_temporal_v3/`. Do not claim B3, full Joint graph
+roster, positional encoding or historical24 temporal transfer has been run;
+these remain the explicit continuing scope after the first comparison.
+
 ## Step337 [Codex] - selected-token and tail probability fusion v2 completed (2026-09-10)
 
 The bounded gray-box v2 experiment is complete in worktree

@@ -16,7 +16,9 @@ def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--source-root',type=Path,required=True)
     args=p.parse_args();out=ROOT/'results/direct_probability_temporal_v3'
     result=json.loads((out/'METRICS.json').read_text())
-    scores=np.load(out/'SCORES.npz',allow_pickle=False)
+    # Inflate each saved array once, not once per answer inside the peak loop.
+    with np.load(out/'SCORES.npz',allow_pickle=False) as archive:
+        scores={key:archive[key] for key in archive.files}
     bench=args.source_root/'results/localization_full_benchmark_v3/evaluation'
     records=json.loads((bench/'JOINED.json').read_text())['records'];joined=np.load(bench/'JOINED.npz')
     target,offsets=joined['target'],joined['offsets'];pb=np.array([r['cell'].startswith('pb_') for r in records])
@@ -42,6 +44,21 @@ def main():
             peak_shift_median_on_changed_errors=float(np.median((peak-oldpeak)[pb & (target>=0) & valid & oldvalid & (peak!=oldpeak)]))
                 if np.any(pb & (target>=0) & valid & oldvalid & (peak!=oldpeak)) else None)
     con=sqlite3.connect(out/'CHECKPOINT.sqlite')
+    lengths=np.zeros(len(records),int)
+    for i,info in con.execute('SELECT idx,info FROM answers'):
+        lengths[i]=json.loads(info)['n_tokens']
+    for m,c in contrasts.items():
+        valid=scores['valid__'+m]
+        peak=np.array([np.argmax(scores['steps__'+m][offsets[i]:offsets[i+1]]) if valid[i] else -1 for i in range(len(records))])
+        strata={}
+        for label,mask in [('up_to_136_tokens',lengths<=136),('137_to_512_tokens',(lengths>136)&(lengths<=512)),('over_512_tokens',lengths>512)]:
+            error=mask & pb & (target>=0)
+            n=int(error.sum())
+            strata[label]=dict(pb_error_answers=n,
+                baseline_raw_exact=float(np.sum(error & oldvalid & (oldpeak==target))/n) if n else None,
+                new_raw_exact=float(np.sum(error & valid & (peak==target))/n) if n else None,
+                scope='Descriptive length stratum, full error denominator; not a new selection population.')
+        c['by_trace_length']=strata
     lag_weights={m:[] for m in METHODS if m.startswith('lag8__')}
     negative={m:[] for m in lag_weights};counts={m:0 for m in lag_weights}
     for _,blob in con.execute('SELECT idx,payload FROM answers ORDER BY idx'):

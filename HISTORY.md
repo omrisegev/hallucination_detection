@@ -17655,3 +17655,81 @@ selected-only versus tail-only versus both under Equal Weights on the frozen
 `results/direct_probability_fusion_v2_selected_tail/REPORT.html`,
 `RESULT_REVIEW.md`, and the frozen protocol
 `docs/experiments/DIRECT_PROBABILITY_FUSION_V2_SELECTED_TAIL.md`.
+
+### Step 338 [localization] — ordered direct-probability fusion started (2026-09-10)
+
+The user proposed temporal position within the input: eight 17-coordinate
+token vectors instead of one, motivated by EDIS burst/rebound spikes. Approved
+fixed-setting comparison of all existing fusion mechanisms, chat-first results,
+and no automatic performance threshold. The first isolated stage has18 arms
+on the full13,769 localization rows: current/lag8/delta with four simple fusion
+solvers, two shuffled-history controls, two hierarchical IU orders and a
+chronological/permuted chain comparison. K, labels, canonical groups, step
+readout, and entropy gate are frozen. This is not yet the full B3/Joint graph
+family study or historical24 temporal transfer.
+
+Code and original results were committed before work. New sparse worktree and
+branch: `.worktrees/direct-probability-temporal-v3` /
+`codex/direct-probability-temporal-v3`. The initial full checkout began copying
+large tracked caches; it was stopped, redundant copies only in the new worktree
+were removed, and the new checkout was made sparse. Original caches and prior
+results were untouched. Current raw data are read from the original checkout.
+
+Clean-context preflight identified frozen-input binding, graph-diagnostic
+runtime, fallback-reference distinction, failure accounting and resume-test
+gaps; these were addressed. Nine core and three driver tests pass. A27-answer
+mechanical smoke passed all18 arms with no fallback/failure; no subset ranking.
+
+Profiling found the wide-input IU all-pair least-squares solve dominated time.
+Use its exact complete-graph inverse for P>=64 L2 systems, retaining restricted
+pairs, the g2 grid and small-bank paths. Sixty synthetic covariance cases match
+the original solver to1.2e-13 in weights; all27 real smoke answers match18 arms
+to1.4e-15 in step scores. Runtime improved2.56x in that replay. Preserve the
+original1,072-row partial checkpoint separately; restart the entire full run
+with the optimized committed code (2d4d1c36). Final scores and paired inference
+are pending at this log entry; PROGRESS/RUN_STATE identify the current stage.
+
+
+### Step 338 completion [localization] - full temporal evidence reviewed (2026-09-10)
+
+Completed all13,769 answers and145,597 steps for18 temporal/fusion arms;
+zero fit failures, full benchmark coverage. The optimized run scored all rows
+in1,310 seconds, followed by evaluation and10,000 paired canonical-group
+bootstrap draws. Separate arithmetic replay checks hashes, all PB cells,
+PRMB within and pooled AUC, held-group thresholds and PRMScore: PASS.
+The6,030 mixed-label PRMB answers define within-answer AUC; all6,969 PRMB
+answers remain available for the other metrics. Frozen v2 anchors reproduce.
+Original1,072-row checkpoint and optimized replay match to2.3e-15; preserved
+original outputs remain separate. Nine core, three driver and60 solver
+fixtures passed. Postprocessing was sped up by loading NPZ arrays once;
+this changes no experiment inputs, fitting code or saved scores.
+
+Primary results (PB F1 / PRMB within AUC / PRMScore):
+Current-IU34.5021%/.73275655/.62054412;
+Delta-IU34.8085%/.73693101/.62394486;
+Lag8-IU32.3665%/.71149969/.59786990.
+Delta-IU minus Current-IU97.5% CIs: PB percentage points
++0.3064[-0.2271,+0.8386]; within-AUC+.00417446[+.00208918,+.00629451].
+Lag8-IU PB difference-2.1356 points[-3.3146,-0.9778]. Hierarchical time/rank
+and tested shrinkage arms do not rescue lag8. Chain LIU adds four PB hits,
+no lost hits; PRMB improvement inconclusive. Delta-Equal34.9202%/.73872061/
+.62365012 remains competitive; learned weights are not established superior.
+Entropy PB35.4444%, saved varentropy35.6755%/.74246455/.63277687 remain
+stronger references. No new overall winner or untouched-test claim.
+
+Lag8 loses283 and gains175 successes:157 lost cases now too late,126 too
+early. Delta loses56/gains72:32 losses late,24 early. These are localization
+changes with the same gate, not clean/error calibration changes. Lag8 also
+loses on >512-token traces. Its normalized absolute coefficients emphasize
+lags3/4 (~15% each), current token~9.7%; this supports investigating temporal
+smearing but is not causal attribution. Detailed UID cases saved.
+
+Decision: retain Current17 anchor, focus the next question on level-plus-change.
+Do not expand lag/lambda sweeps. A matched shuffled-change control is proposed
+but not run, to isolate chronological alignment from extra coordinates. The
+full B3/CONT/full Joint graph roster, positional encoding and historical24
+temporal transfer remain outstanding. This stage did not implement every
+previously discussed mechanism. User requested chat-first reporting, so no
+new HTML. Outputs: METRICS.json, SCORES.npz, SUMMARY_READABLE.csv (clear names
+and PB8 cells), ERROR_ANALYSIS.json, RESULT_REVIEW.json, frozen manifests and
+replay evidence under results/direct_probability_temporal_v3/.

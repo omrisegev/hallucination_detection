@@ -1,5 +1,52 @@
 # Research Directions — Thesis Roadmap
 
+## 2026-09-10 - completed temporal evidence: prioritize level plus change
+
+The full18-arm/13,769-answer comparison is complete and independently replayed
+arithmetically within the same Codex session. Current17-IU versus Delta34-IU:
+PB34.5021% ->34.8085% (primary97.5% CI of difference includes zero), PRMB
+within-answer AUC .73275655 ->.73693101 (CI of difference wholly positive).
+Lag8-IU falls to32.3665% PB and .71149969 AUC. Hierarchical time/rank fusion
+and tested shrinkage solvers do not repair that loss. Keep this negative result
+specific to this representation/fit/readout, not a rejection of temporal fusion.
+
+Recommendation: keep the17-input anchor; retain level-plus-signed-change as
+the narrow direction. A matched shuffled-change control can next distinguish
+temporal alignment from changed feature count/normalization. It is not yet run.
+The current lag-shuffle control addresses lag inputs, not this Delta question.
+Do not start extra window/lambda sweeps on the losing136-input representation.
+The chain graph produces only four additional PB successes and no clear PRMB
+gain. Equal-weight Delta is competitive with learned weights. Neither result
+demonstrates full Joint or graph superiority; no new overall leader is claimed.
+
+Entropy PB35.4444% and saved varentropy PB35.6755% remain above the new arms;
+varentropy also has higher PRMB within-AUC (.74246455) and PRMScore (.63277687).
+Full mechanism roster (B3/CONT/full Joint graphs), positional encoding and
+historical24 temporal transfer remain outstanding. Avoid calling singleton-group
+Joint-inspired shrinkage the full Joint L-SML mechanism. Historical24 transfer
+needs an explicit temporal aggregation order; this localization result is not
+a result on whole-answer detection. EDIS burst/rebound findings motivate changes
+but do not establish exact first-error localization on these benchmarks.
+
+## 2026-09-10 - user-authorized temporal probability fusion comparison
+
+The user now wants to revisit every developed fusion mechanism on the changed
+probability space, with fixed settings rather than all old parameter sweeps.
+He proposed eight ordered 17-coordinate token vectors (136 columns), motivated
+by entropy spikes and EDIS. The first isolated full comparison tests that
+representation, level-plus-change, two-axis IU and chronological-graph controls
+against the same Current17 anchor. Preserve the existing gate/readout and all
+benchmark rows so a new gain can be attributed to temporal representation.
+
+This supersedes the earlier prohibition on reopening fusion experiments below.
+The full B3/LIU/CONT/Joint graph roster remains authorized continuing work; it
+must not be silently equated with the18 first-stage arms. Positional encoding
+alone is lower priority because it does not supply past observations to a
+linear fuse. Final-answer historical24 transfer remains separate and has a
+different fitting scope. Keep tail fixed for this comparison; selected-only/
+tail-only ablation remains uncompleted, not rejected. No automatic promotion
+threshold; judge paired complete-population evidence and return results in chat.
+
 ## 2026-09-10 - direct selected-token/tail fusion: keep the answer-level signal, narrow the next question
 
 The frozen v2 augmentation is complete. It adds selected-token surprisal and

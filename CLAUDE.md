@@ -1,5 +1,17 @@
 # CLAUDE.md — MV_EPR Spectral Hallucination Detection
 
+## Omri update - 2026-09-10: temporal probability fusion authorized
+
+In this isolated worktree the active stage is
+`docs/experiments/DIRECT_PROBABILITY_TEMPORAL_V3.md`. The user approved revisiting
+all fusion mechanisms on direct probabilities, fixed settings, and adding
+ordered lagged inputs, level/change and two-axis fusion. First complete the
+18-arm temporal representation comparison on all13,769 localization rows;
+do not claim that its shrinkage arms are full Joint or B3. Those mechanisms and
+historical24 transfer remain explicit continuing work. Chat-first results;
+no new HTML reports or performance pass/fail thresholds. Preserve old outputs.
+This current authorization supersedes older no-new-grid restrictions below.
+
 ## Omri decision update - 2026-09-08: consolidate before new experiments
 
 User approved `docs/experiments/RESEARCH_CONSOLIDATION_20260908.md` after the
