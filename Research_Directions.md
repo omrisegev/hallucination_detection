@@ -3702,3 +3702,37 @@ continuous Gaussian likelihood and spectral fitting are not that equivalence.
 Official paper https://proceedings.mlr.press/v48/shaham16.pdf; local
 papers/A Deep Learning Approach to Unsupervised Ensemble Learning.pdf.
 
+
+
+## RBM conditional diagonal variance [Codex] - COMPLETE 2026-09-11
+
+Full13769 answers/four arms; scoring271.16s,4 workers. Source freeze57f0f7edf,
+branch codex/rbm-diagonal-variance-v1.28 metric/reference bundles arithmetic
+reviewPASS;55076 model states and108 independent Gaussian-mixture/token/step
+replays across27 real answers PASS (maxerror3.33e-16). No failed/collapsed
+outputs.25 diagonal fits nonconverged at100 extra iterations, retained/flagged;
+all continued fixed-D fits converge. No floor hits; minimumD.09064>.05.
+
+Original and continued fixed-D RBM: PB36.2017%,within.735982,PRMScore.630749.
+Learned-D: PB35.8069%,within.733045,PRMScore.625301. Primary diagonal-minus-
+continued PB-.3947pp,97.5%CI[-1.0278,+.2255]; within-.002937,
+CI[-.004973,-.000890].84 PB gains,105 losses. No PB benefit; ranking regresses.
+Both covariance and variance fit improve on every answer, but this does not
+improve task accuracy. Median varianceRMSE.44161->.10068; covariance relative
+error.60196->.53832; offdiagonalerror.68665->.68704 (essentially unchanged).
+Conditionalvariance median.7310. New bounds/penalty tested as one frozen recipe,
+not optimized hyperparameters; no automatic follow-up. Keep original references.
+This clarifies that generative moment-fit gains do not prove useful fusion.
+
+Artifacts results/rbm_diagonal_variance_v1/{REPORT.md,SUMMARY.csv,METRICS.json,
+RESULT_REVIEW.json,STATE_REVIEW.json,ASSUMPTIONS_SUMMARY.json}. Full no-label
+assumption audit in results/rbm_covariance_assumptions_v1/AUDIT.json.
+
+Paper requested during execution found in HISTORY Step141: Shaham et al.,
+A Deep Learning Approach to Unsupervised Ensemble Learning, ICML2016,
+https://proceedings.mlr.press/v48/shaham16.html. Lemma4.1 (PDFpage3) concerns
+binary Dawid-Skene and one-hidden-unit binary RBM. Historical phrase 'our
+L-SML IS already an RBM' is too broad: model-distribution equivalence is not
+optimizer equivalence and does not establish the continuous Gaussian case.
+No old entries edited; clarification preserved here and in experiment protocol.
+
