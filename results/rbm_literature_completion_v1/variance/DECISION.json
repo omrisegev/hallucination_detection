@@ -59,5 +59,17 @@
     }
   },
   "review_file": "RESULT_REVIEW.json",
-  "development_evidence": true
+  "development_evidence": true,
+  "post_fit_diagnostics": {
+    "fits": 55076,
+    "source": "MODEL_MECHANISM_SUMMARY.csv",
+    "finding": "Separate variance fits density better, without resolving off-diagonal covariance mismatch or improving localization."
+  },
+  "loss_decomposition": {
+    "source": "VARIANCE_LOSS_DECOMPOSITION.json",
+    "changed_answers": 1217,
+    "lost": 934,
+    "linear_truth_preference_reversed_by_quadratic": 922,
+    "limitation": "Pairwise explanation under fitted coefficients; not a new model or a count of recoverable errors."
+  }
 }

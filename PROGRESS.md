@@ -1,5 +1,30 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Variance forensics complete; dependency queue adopted - 2026-09-12
+
+Full saved-model density/covariance diagnostics cover55076 model-answer fits.
+For bank12, mean data-NLL gain versus the original RBM is4.574 for separate
+variance versus1.371 shared, yet mean off-diagonal covariance relative error
+is essentially unchanged (.7199 versus .7189). Better density fit did not
+improve localization. These are descriptive fit diagnostics, not new metrics.
+
+All1217 changed PB answers in the primary bank12 contrast were decomposed.
+Among934 losses,922 have the fitted linear component prefer the truth over
+the chosen wrong step, with the quadratic component reversing that pairwise
+preference. This does NOT claim that removing quadratic terms would recover
+922 successes: another wrong step could still win, and refitting would change
+the coefficients. All selected Top10 sets remain high on the mean6 anchor;
+the loss is not explained by selecting its low tail. Forensic JSON/CSV and
+coefficient tables are under the variance result directory; no model refit.
+
+Execution-only amendment: tested queue controller29404 now adopts unchanged
+capacity scorer17352; old waiting controller2748 retired. DUFS18724 untouched.
+Four scheduler/process-identity tests PASS. One suite runs until DUFS finishes
+both reviews; then up to two independent suites, two workers each. Stability
+and depth require completed reviewed capacity; temporal is independent.
+QUEUE_STATE.json tracks native process handles, creation identity and failures.
+No scientific definition, seed, data, threshold or active scorer was changed.
+
 ## Variance COMPLETE REVIEWED; capacity running - 2026-09-12
 
 Full variance review PASS:13769 answers,110152 step vectors,21 metric bundles;

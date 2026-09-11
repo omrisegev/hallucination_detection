@@ -18481,3 +18481,14 @@ shared variance;925/934 lost successes are early. Bank6 has no clear gain over
 original RBM. No replacement promoted. Program advances to capacity.
 Another55 verified duplicate shrinkage-cache files removed (8.1393GiB),
 combined159 files/19.2099GiB logical bytes; root originals retained.
+
+**Step352 mechanism follow-up:**55076 saved-model density/covariance diagnoses
+completed. Separate variance fits density better but does not resolve the
+off-diagonal mismatch. Full decomposition of1217 changed PB answers finds
+922/934 losses where quadratic terms reverse the fitted linear preference
+for truth over the chosen wrong step. This is not a repaired-model result.
+The tested execution-only queue adopted scorer17352 unchanged as controller
+29404; old waiting controller2748 retired. DUFS18724 remains unchanged.
+After DUFS finishes, two independent suites may run with two workers each;
+capacity is a prerequisite for stability/depth. Amendment and four passing
+scheduler/Windows-handle tests are committed as28b15d646.

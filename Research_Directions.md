@@ -1,5 +1,19 @@
 # Research Directions — Thesis Roadmap
 
+## Mechanism interpretation after the variance result - 2026-09-12
+
+Separate state variance improves fitted density more than shared variance,
+while leaving approximately the same off-diagonal covariance mismatch. It
+also adds quadratic terms to token Logit. In922/934 lost bank12 PB decisions,
+these terms reverse a linear preference for the true step over the selected
+wrong step. This is exact score decomposition, not a repaired-model result.
+It narrows the explanation beyond generic optimizer failure or the gate.
+
+Complete the existing capacity and chronology contrasts to test different
+mechanisms: multiple common latent factors versus context from adjacent
+tokens. Do not promote covariance fit, density fit or a coefficient ablation
+as task improvement without the matched full benchmark.
+
 ## Full variance result - 2026-09-12
 
 State-specific diagonal variance does not justify promotion: bank6 Posterior
