@@ -1,5 +1,16 @@
 # Research Directions — Thesis Roadmap
 
+## Full variance result - 2026-09-12
+
+State-specific diagonal variance does not justify promotion: bank6 Posterior
+beats the newly fitted shared-variance control on within-answer AUC but has
+no clear gain over the original RBM. Bank12 Logit degrades strongly: -15.09 PB
+points versus shared variance, with925/934 lost successes moving earlier.
+Shared bank12 Logit gives a small descriptive within-AUC gain but no PB gain;
+shared Posterior has a higher PB point estimate with an interval crossing zero.
+Retain existing bases, disclose both readouts, and complete the registered
+capacity/CD and temporal mechanisms. Density fit alone is not task improvement.
+
 ## Evidence status, 2026-09-12
 
 Corrected literature residual diagnostics retain serial dependence after

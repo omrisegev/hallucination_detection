@@ -18473,3 +18473,11 @@ See results/rbm_literature_completion_v1/REVIEW_UNIT_AMENDMENT.json.
 in its original pipeline (PID18724), last checked10880/13769. Remaining registered
 capacity/CD, restarts, depth and temporal full runs follow variance review.
 Previously completed stability/depth worker tests add2 checks to the11 core tests.
+
+**Step352 completion update:** Full variance replay PASS (13769 answers,110152
+step vectors,21 metric bundles). Original predictions/metrics/checkpoint hashes
+remain identical. Separate variance bank12 Logit loses15.0897 PB points versus
+shared variance;925/934 lost successes are early. Bank6 has no clear gain over
+original RBM. No replacement promoted. Program advances to capacity.
+Another55 verified duplicate shrinkage-cache files removed (8.1393GiB),
+combined159 files/19.2099GiB logical bytes; root originals retained.

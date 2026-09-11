@@ -1,5 +1,27 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Variance COMPLETE REVIEWED; capacity running - 2026-09-12
+
+Full variance review PASS:13769 answers,110152 step vectors,21 metric bundles;
+all frozen scientific output hashes unchanged by reviewer-unit correction.
+Bank6 retained Posterior: original36.2017%, shared35.8081%, separate36.0834%;
+within .735982/.732299/.737466. Separate versus shared improves within AUC,
+but is not clearly better than the original RBM. Bank12 retained Logit:
+original36.2712%, shared36.1817%, separate21.0920%; within .745204/.747256/.698596.
+Separate versus shared PB -15.0897pp,97.5%CI[-17.4746,-12.7660];283 gained,
+934 lost,925 losses early and9 late,none due to gate. No overall promotion.
+Bank12 shared Posterior36.8106% is descriptive; its PB interval versus the
+original Posterior includes zero. All methods have full coverage;26 bank6
+and1 bank12 separate-variance fits hit optimizer nonconvergence, retained
+as finite improving fits and explicitly recorded. No silent fallback.
+
+Program PID2748 advanced to capacity; scoring child17352 observed32/13769.
+Corrected model-mechanism analysis is running separately without new fits.
+Another55 SHA256-identical inactive shrinkage-cache copies were removed,
+8.1393GiB. Combined cleanup159 files,19.2099GiB logical bytes;27.57GiB free
+at last check. Audits: source scratch/cleanup_20260912/. All root originals,
+unique files, code and result artifacts preserved.
+
 ## Literature program checkpoint - 2026-09-12
 
 Variance scoring completed all13769 answers, with full metrics and10000 paired
