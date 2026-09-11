@@ -18330,3 +18330,40 @@ PASS; no data/label/gate changes. The one single-step answer uses explicit d=0.
 Results: results/rbm_position_fusion_v1_overlap_fix/REPORT.md,COMPARISON.csv,
 PB_CELLS.csv,NEXT_STEPS.json. Full development evidence, no untouched test.
 No HTML; prior worktrees and DUFS unchanged.
+
+
+## Step348 [Codex] - Supervised position diagnostic, 2026-09-11
+
+User authorized the three-way supervised diagnostic. Isolated branch
+codex/rbm-supervised-position-diagnostic-v1, base ce008fb1d, freeze90e56eca8.
+All13769 answers,135 converged fits,40 configurations including35 unchanged
+references. Saved bank12 STEP MEANS, per-cell source-group outer folds;
+PB first-error listwise objective, PRMB class-balanced step BCE. No token-label
+invention. This is supervised diagnostic access, not the answer-only method.
+
+PB static32.6198 -> +position-prior35.3807 -> conditional35.9587 percent.
+PRMB within .715057 -> .724419 -> .731300. Primary conditional-minus-prior:
+PB+.5779pp,97.5%CI[-.2671,1.4332]pp; within+.006881,[.003997,.009723].
+PRMScore .585182/.600745/.596820.135 objective/gradient/model replays and
+40-method independent arithmetic PASS;10000 paired-group draws reviewed.
+
+Interpretation: joint conditional signal exists for PRMB in this fixed
+step-mean diagnostic. Most PB gain was the position prior. Original RBM12
+Logit/Top10 remains36.2712%/.745204 within/.622215 PRMScore. The input
+aggregation differs: this diagnostic is not a ceiling for RBM or a test of
+supervision alone. Do not call it a new answer-only winner. No q/ridge search.
+Supervised pooled OOF AUC omitted; report mean fold AUC. q.8 calibration uses
+training scores from the SAME held-out-fold model, without held-out groups.
+
+Next proposed (NOT launched): bridge the useful conditional interaction to
+the original token Top10 representation before a new unlabeled model. Token
+adjacency across step boundaries is distinct from two-half position context;
+real versus shuffled adjacency is a future diagnostic, not the old shuffled
+half-assignment control. Separate diagonal variances per latent state remain
+untested; shared diagonal variance was tested. DUFS existing feature-selection
+run remains active and unchanged, not merely backlog. Last observed7484/13769;
+refresh live state before quoting progress. No token selection claim for DUFS.
+
+Results: results/rbm_supervised_position_diagnostic_v1/REPORT.md,
+COMPARISON.csv,PB_CELLS.csv,METRICS.json,NEXT_STEPS.json. Stop for discussion;
+no new variance/temporal/CD/capacity model, no HTML or deletion.

@@ -1,5 +1,26 @@
 # Research Directions — Thesis Roadmap
 
+## 2026-09-11: joint supervised position diagnostic narrows the next question
+
+The fixed12-feature step-mean diagnostic is complete (135 fits,13769 answers).
+Conditional weights versus a position-only prior improve PRMB within-answer
+AUC by .006881 (97.5%CI .003997 to .009723), but PB +.5779pp remains uncertain
+(CI -.2671 to +1.4332pp). Most PB gain over static comes from the prior.
+The supervised conditional head still trails the original answer-local RBM
+on within AUC, and uses a different token aggregation. Do not claim a ceiling
+or add unlabeled capacity on this evidence alone. Next proposed: retain the
+original token Top10 signal in a matched diagnostic before the next model.
+
+Keep cross-step TOKEN adjacency separate from early/late weight modulation.
+A future neighbor-information test needs a shuffled-adjacency control and
+must preserve first-error sharpness. Do not call temporal smoothing proven.
+Separate latent-state diagonal variance is an untested candidate, restrained
+toward shared variance with a positive floor; its latent states need not be
+correct/error classes. Existing DUFS selection of6 from12 columns is ACTIVE,
+not just backlog, and does not test token selection or chronological coupling.
+No automatic next experiment. RBM first_near_max remains closed.
+See results/rbm_supervised_position_diagnostic_v1/NEXT_STEPS.json and REPORT.md.
+
 ## RBM position fusion COMPLETE - 2026-09-11
 
 Branch codex/rbm-position-fusion-v1, base a9cda144e; corrected scoring freeze

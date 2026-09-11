@@ -6,7 +6,7 @@ Use original argmax for the active RBM research path. The first_near_max
 isolation experiment is closed; do not tune or adopt it for RBM. Historical
 near-max scores for other methods remain archived references. The tested
 position-conditioned correction is not adopted after full-data regression;
-see PROGRESS.md for the next diagnostic proposal, which has not been run.
+see PROGRESS.md for the completed supervised position diagnostic and its limits.
 
 
 ## Omri update - 2026-09-10: temporal probability fusion authorized
