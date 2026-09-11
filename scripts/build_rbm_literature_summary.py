@@ -84,6 +84,8 @@ def main():
     base.atomic_json(PROGRAM/'EXPERIMENT_LEDGER.json',evidence)
     base.atomic_json(PROGRAM/'CONTRASTS.json',contrasts)
     csv_write(PROGRAM/'COMPARISON.csv',rows)
+    from scripts.build_rbm_fusion_comparison import main as build_fusion_comparison
+    build_fusion_comparison()
     print('[summary]',[(e['suite'],e['status']) for e in evidence],flush=True)
 
 

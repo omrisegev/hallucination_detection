@@ -1,5 +1,21 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## One readable RBM comparison across experiments - 2026-09-12
+
+The current-suite COMPARISON.csv alone omitted prior completed RBM families.
+RBM_FUSION_COMPARISON.csv now joins62 declared historical rows/controls and
+the8 completed variance candidates, with70 unique display names, exact source
+paths/hashes, fitting access, readout and explicit PB percentage units. All
+source metric files match their indexed hashes; no scores were recomputed.
+The raw317-row prior ledger remains available, including repeated aliases.
+Near-max and other-answer/supervised diagnostics have explicit separate panels.
+This is not a ranking or a claim that all published baselines were refitted.
+
+The summary builder refreshes this table after each reviewed full suite and
+includes DUFS only when its full run, pipeline and both reviews are complete.
+Current live scoring continues unchanged: queue29404, capacity17352, DUFS18724/
+20464. No new model, fit, scientific threshold or active process was changed.
+
 ## H1 numerical provenance check - 2026-09-12
 
 The27 frozen capacity smoke answers were checked for H1 provenance (both

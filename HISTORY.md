@@ -18500,3 +18500,13 @@ fit_rbm on F-contiguous copies reproduces saved parameters exactly. Maximum
 NLL difference1.19e-10; no peak changes among these mechanics cases. This
 identifies numerical memory-layout provenance, not a changed model. Retain
 full reference contrasts and do not rank from smoke results. No scorer changed.
+
+**Step352 comparison presentation follow-up:** Omri pointed out that the
+displayed table omitted relevant unsupervised RBMs. Added a cross-experiment
+CSV builder:62 declared prior rows/controls plus8 completed variance candidates
+at this checkpoint. All70 display names are unique; each value is read directly
+from a reviewed source METRICS with verified hash and explicit fraction/percent
+units. The317-row raw alias ledger is preserved. Near-max and supervised/other-
+answer corrections are marked as diagnostics. New full suites and DUFS enter
+only after required completion/reviews. This repairs presentation, not models
+or results; live capacity and DUFS scorers were untouched.

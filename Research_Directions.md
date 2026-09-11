@@ -1,5 +1,18 @@
 # Research Directions — Thesis Roadmap
 
+## Comparison presentation repair - 2026-09-12
+
+Use results/rbm_literature_completion_v1/RBM_FUSION_COMPARISON.csv for the
+cross-experiment RBM table. It includes moment orders3-6 and their IU/equal/
+initial controls, the m3/raw-power tests, B3, shrinkage, diagonal and separate
+variance, score/readout ablations, and position adaptation. Other-answer
+corrections are retained with their access explicitly marked. The original
+PRIOR_METHODS.csv remains the full source-alias inventory. Newly completed
+suites and DUFS enter only after full review, never from partial checkpoints.
+Compare the stated access/readout and paired source contrasts before claiming
+an improvement. Unlabeled answer-local RBM fitting is eligible for comparison;
+its use of externally calibrated gate/PRMScore thresholds must remain visible.
+
 ## Mechanism interpretation after the variance result - 2026-09-12
 
 Separate state variance improves fitted density more than shared variance,
