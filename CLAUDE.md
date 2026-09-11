@@ -1,5 +1,14 @@
 # CLAUDE.md — MV_EPR Spectral Hallucination Detection
 
+## Omri RBM readout clarification - 2026-09-11
+
+Use original argmax for the active RBM research path. The first_near_max
+isolation experiment is closed; do not tune or adopt it for RBM. Historical
+near-max scores for other methods remain archived references. The tested
+position-conditioned correction is not adopted after full-data regression;
+see PROGRESS.md for the next diagnostic proposal, which has not been run.
+
+
 ## Omri update - 2026-09-10: temporal probability fusion authorized
 
 In this isolated worktree the active stage is

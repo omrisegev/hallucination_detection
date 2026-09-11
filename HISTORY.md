@@ -18301,3 +18301,32 @@ and Varentropy controls. CD/capacity/variance extensions remain deferred.
 See results/rbm_logit_readout_v1/REPORT.md,COMPARISON.csv,PB_CELLS.csv,
 NEXT_STEPS.json. No next model started; DUFS and prior results unchanged.
 Full cached development, not untouched confirmation. No HTML.
+
+### Step 347 [Codex RBM position fusion] - completed 2026-09-11
+
+Branch codex/rbm-position-fusion-v1, base a9cda144e; corrected scoring freeze
+258393249. One bank12 chronological weight-correction candidate plus shared
+and shuffled controls. Exact answer-local conditional likelihood, same gate,
+top10/argmax, no first_near_max.35 total configurations,13769 answers.
+Candidate PB35.5837 vs fixed36.2712; within AUC .742490 vs .745204.
+Paired97.5%CI: PB delta[-1.2541,-.1256]pp; within[-.003756,-.001684].
+Shared update retains baseline task metrics. Shuffled PB35.6343/.743963 within.
+65 PB successes gained,104 lost. All models converge, all outputs valid;
+median relative correction4.747%. Better density fit did not improve the task.
+
+Decision: do not adopt this correction. Preserve fixed RBM and IU/Varentropy
+references; no RBM near-max tuning. Prior marginal reliability reversal still
+exists, but joint predictive value and label-free learnability remain unproved.
+Next proposed diagnostic (NOT launched): static vs position-dependent joint
+predictive value, potentially using labels under source-group-disjoint folds
+as a clearly separated diagnostic, never as the claimed answer-only method.
+No automatic lambda sweep, CD, new moments, units or layers.
+
+A guard exposed3 PRMB source records sharing boundary tokens; first run stopped
+at8112 committed rows, preserved in results/rbm_position_fusion_v1. Corrected
+run restarted from zero with latest-step context ownership and unchanged spans.
+All8112 prior rows replay bit-exactly. Full metric35-arm and41307-state audits
+PASS; no data/label/gate changes. The one single-step answer uses explicit d=0.
+Results: results/rbm_position_fusion_v1_overlap_fix/REPORT.md,COMPARISON.csv,
+PB_CELLS.csv,NEXT_STEPS.json. Full development evidence, no untouched test.
+No HTML; prior worktrees and DUFS unchanged.
