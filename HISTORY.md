@@ -18098,3 +18098,27 @@ Files: results/higher_moment_fusion_v1/{REPORT.md,SUMMARY.csv,METRICS.json,
 RESULT_REVIEW.json,STATE_REVIEW.json}. No new HTML. Original file line endings
 preserved in final documentation; no historical content rewritten.
 
+
+
+## RBM diagonal conditional variance [Codex] - prepared 2026-09-11
+
+User authorized full assumption audit, then one bounded variance extension.
+Branch codex/rbm-diagonal-variance-v1 from50d9ef17a. Audit complete13769,
+no labels/refits: model predicted feature variance median1.36154 vs observed1;
+median covariance relative error.60196, offdiagonal error.68665, varianceRMSE
+.44161. This is model mismatch, not proof of the cause of localization errors.
+
+Candidate original6 bank only, shared diagonal D learned, D>=.05, penalty
+.1*sum(log D)^2. Fixed coefficients, not tuned. Exact partition/gradients;
+100extra iterations from original100 fit, with matched continued-D=I control.
+Same anchor/gate/readout/v3 benchmark. Primary diagonal-vs-continued;10000
+source-group draws,97.5% intervals. Five mathematical tests PASS. Full run
+awaits27-answer smoke and code freeze; see protocol RBM_DIAGONAL_VARIANCE_V1.
+
+User paper lookup found Shaham et al., ICML2016, Lemma4.1. DS binary
+conditional-independence model is bijective to single-hidden-node BINARY RBM.
+Historical Step141 saying our L-SML already IS an RBM overstates the theorem:
+continuous Gaussian likelihood and spectral fitting are not that equivalence.
+Official paper https://proceedings.mlr.press/v48/shaham16.pdf; local
+papers/A Deep Learning Approach to Unsupervised Ensemble Learning.pdf.
+
