@@ -1,5 +1,33 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## RBM data diagnostics COMPLETE - 2026-09-11
+
+Dedicated codex/rbm-data-diagnostics-v1 from44f9bced8; scoring freeze13e75a8fd.
+All13769 answers, both banks6/12, no refit. Full metric review24 arms PASS;
+diagnostic review27538 bank-answer records PASS;8860 direct-pair reliability
+checks PASS. Four synthetic draws per bank-answer;10000 source-group bootstrap.
+PB old -> near: RBM6 36.2017 ->31.0950; RBM12 36.3750 ->27.5159.
+Var15/IU 35.3498 ->36.6546; Var50 35.6755 ->36.4366. Gate unchanged.
+Do not adopt near-max universally: every lost RBM success shifted earlier.
+Readout interface is next; matched feature-reliability reversal supports later
+conditional fusion. Class variance and residual/serial mismatch do not prove
+task gain from more units/CD. See results/rbm_data_diagnostics_v1/REPORT.md,
+NEXT_STEPS.json and EVIDENCE.json. Stop before another model experiment.
+DUFS unchanged. No HTML. Earlier RUNNING entries below are historical.
+
+
+## RBM data diagnostics in progress - 2026-09-11
+
+Dedicated branch codex/rbm-data-diagnostics-v1 from 44f9bced8; protocol/code
+frozen in 13e75a8fd. Full readout comparison (24 arms) and independent metrics
+review PASS. Full saved-state data scan continues; no RBM refit or DUFS change.
+Important: first_near_max lowers PB for RBM6 36.2017 -> 31.0950 and RBM12
+36.3750 -> 27.5159, while Varentropy15/IU rises 35.3498 -> 36.6546.
+Do not treat Claude readout adoption as automatic RBM improvement.
+Current outputs: results/rbm_data_diagnostics_v1; see RUN_STATE and live PID.
+Data-diagnostic conclusions pending full scan and review. No HTML.
+
+
 ## Reference audit / preferred readout - 2026-09-11
 
 first_near_max is Omri's preferred follow-up; preserve Claude's full score

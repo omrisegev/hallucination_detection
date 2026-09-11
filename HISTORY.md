@@ -18236,3 +18236,42 @@ Model (NeurIPS2023). Related sequential/networked ensemble classification
 (Traganitis/Giannakis,TKDE2022) is relevant to trajectory fusion; not claimed
 here as a verified direct citation. The2025 signal-processing crowdsourcing
 review (arxiv2407.06902v2) is already present locally. No new sweep launched.
+
+
+### Step 346 [Codex RBM data diagnostics] - completed 2026-09-11
+
+**What**: Implemented the user-approved saved-data diagnosis in a dedicated
+worktree/branch from44f9bced8, frozen13e75a8fd. No model refit, restarts or CD.
+All13769 answers/145597 steps; original6 and order6/all12 banks;24 old/new
+readout/reference arms. Exact same-input Claude first_near_max replay; original
+independently saved float reductions differ by<1e-15 with identical metrics.
+Failed empty preflight preserved separately; full run unchanged thereafter.
+
+**Why**: Test whether Claude's development-selected readout gain transfers to
+RBM before adding model capacity, and link proposed extensions to measured
+failures. User asked to analyze both banks equally and leave DUFS untouched.
+
+**Result**: Near-max harms RBM6 PB by5.1066pp (97.5%CI[-7.113,-3.154]) and
+RBM12 by8.8591pp[-11.211,-6.522]. Old/new PB36.2017/31.0950 and36.3750/27.5159.
+No gate changes. Gains/losses456/732 and448/882; all losses select too early.
+Var15/IU improves35.3498->36.6546; Var50 reproduces Claude35.6755->36.4366.
+All13k fits replay; metric review24 arms and diagnostic review27538 states PASS;
+8860 direct-pair feature AUC spot checks PASS. Audit RAM caching changes I/O only.
+
+PRMB4030 answers support within-answer class-variance comparison: error-step
+entropy variance is often lower (mean log-ratio-.8046), including length/position
+strata. Label unit remains STEP, not token; no post-first-error PB relabeling.
+Residual correlations greatly exceed four same-model samples but also occur in
+successes; bank6 PB excess.34677 on hits vs.34652 on misses. Serial lag1 excess
+.1571/.1366 exists but does not by itself establish useful error-onset information.
+Matched feature reliability reverses: selected-surprisal minus entropy early
+-.1061, late+.04236 on1672 same answers; reversalCI[.12459,.17245]. No adaptive
+model trained; shared bank coordinates are not independent replications.
+
+**Decision/reasoning**: Recommend original RBM readout rather than automatic
+near-max adoption. Next smallest proposal is a saved-weight pre-sigmoid readout
+ablation, then discuss conditional fusion. Separate variances, sequential
+fusion, four units and CD remain conditional proposals, not launched jobs.
+Convergence flags alone cannot exclude alternate optima; there is no multistart
+evidence from these single saved fits. Full cached development, no untouched
+confirmation. CSV/JSON/conciseMD in results/rbm_data_diagnostics_v1; no HTML.

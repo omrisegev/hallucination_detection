@@ -1,5 +1,21 @@
 # Research Directions — Thesis Roadmap
 
+## RBM data diagnostics COMPLETE - 2026-09-11
+
+Dedicated codex/rbm-data-diagnostics-v1 from44f9bced8; scoring freeze13e75a8fd.
+All13769 answers, both banks6/12, no refit. Full metric review24 arms PASS;
+diagnostic review27538 bank-answer records PASS;8860 direct-pair reliability
+checks PASS. Four synthetic draws per bank-answer;10000 source-group bootstrap.
+PB old -> near: RBM6 36.2017 ->31.0950; RBM12 36.3750 ->27.5159.
+Var15/IU 35.3498 ->36.6546; Var50 35.6755 ->36.4366. Gate unchanged.
+Do not adopt near-max universally: every lost RBM success shifted earlier.
+Readout interface is next; matched feature-reliability reversal supports later
+conditional fusion. Class variance and residual/serial mismatch do not prove
+task gain from more units/CD. See results/rbm_data_diagnostics_v1/REPORT.md,
+NEXT_STEPS.json and EVIDENCE.json. Stop before another model experiment.
+DUFS unchanged. No HTML. Original readout references remain available.
+
+
 ## Step345 [Codex RBM shrinkage] completion - 2026-09-11
 
 COMPLETE: all13769 answers/145597 steps. Frozen124ead81d, two below-normal
