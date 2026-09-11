@@ -1,5 +1,41 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Matched RBM supervision COMPLETE - 2026-09-11
+
+User requested two alternatives differing only in coefficient learning after
+the step-mean diagnostic changed too many factors. Branch
+codex/rbm-supervision-matched-v1, base f7203a8a6, freeze afb852591.
+Same answer-specific frozen bank12 RBM, same13-parameter correction, same
+training source groups, initialization, penalty and optimizer. Only exact
+unlabeled density loss versus supervised STEP BCE differs. Original token
+Logit/Top10/argmax and entropy gate unchanged; no step-feature averaging.
+Both corrections use other training answers; neither updated arm is purely
+answer-only. This tests updates above an identical RBM, not training entirely
+from scratch or a supervised per-answer oracle. No held-out-label fitting.
+
+All13769 answers,90 fits, all optimizers report convergence. All45 unlabeled
+updates remain exactly zero (max gradient4.76e-7), reproducing original metrics.
+Supervised: PB37.2042 vs36.2712 percent; within AUC .747301 vs .745204.
+Primary paired97.5%CI: PB+.9330pp[-.2162,2.0836]pp; within+.002096
+[-.000251,.004439]. Both include zero. Seven PB cells rise,one falls.
+Mean-fold PRMB AUC falls .706205->.689485; PRMScore .622215->.599189.
+318 gated successes gained,271 lost;193 losses late,78 early. No winner.
+
+Independent90-model/loss replay, three-row arithmetic metric review, all
+13769 zero-update peak checks and10000-draw contrast review PASS. Full coverage.
+Held-out balanced BCE improves in all45 folds but remains worse than constant
+probability .5; do not call the scores calibrated correctness probabilities.
+The largest supervised gradient is8.70e-4; optimizer success is not a global
+optimum certificate for the piecewise Top10 objective.
+
+Next proposed, NOT launched: keep the identical correction/Top10 family and
+isolate PB first-error listwise loss versus step BCE. Late losses motivate
+this objective-alignment question, not a new graph/capacity sweep and not
+proof of its answer. No automatic experiment follows. Preserve PRMB as its
+own task. Previous step-mean outputs are preserved, not silently replaced.
+Results: results/rbm_supervision_matched_v1/REPORT.md,COMPARISON.csv,
+PB_CELLS.csv,COEFFICIENTS.csv,DECISION.json. No HTML; DUFS untouched.
+
 ## Supervised position diagnostic COMPLETE - 2026-09-11
 
 User authorized the three-way supervised diagnostic. Isolated branch

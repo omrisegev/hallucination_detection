@@ -1,5 +1,15 @@
 # CLAUDE.md — MV_EPR Spectral Hallucination Detection
 
+## Matched supervision clarification - 2026-09-11
+
+The matched token-Top10 coefficient-update experiment is complete in this
+worktree. Both arms share the same frozen answer-local RBM and externally
+fitted13-coefficient correction family; only the training loss/label access
+differs. Neither corrected arm is strictly answer-only. Do not describe the
+experiment as from-scratch supervised versus unsupervised training, or a
+performance ceiling. See PROGRESS.md for outcomes and the next unlaunched
+objective-alignment proposal. First_near_max remains closed for this RBM path.
+
 ## Omri RBM readout clarification - 2026-09-11
 
 Use original argmax for the active RBM research path. The first_near_max

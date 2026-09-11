@@ -1,5 +1,25 @@
 # Research Directions — Thesis Roadmap
 
+## 2026-09-11: matched token-Top10 supervision completed
+
+Corrected the prior diagnostic's input/readout confounding. Two identical
+13-coefficient updates above saved answer-local RBM12 differ only in loss:
+exact density without labels versus step BCE with training labels. Both use
+identical other-fold answers and preserve the original token Top10 and gate.
+Unlabeled update stays zero. Supervised PB36.27->37.20%, within.74520->.74730,
+but both primary97.5% CIs include zero; mean-fold AUC and PRMScore decline.
+No verified winner or broad supervised performance ceiling. Full13769,
+90 model/loss replays and metrics reviewed. This is a constrained correction
+comparison, not an entirely supervised-from-scratch RBM.
+
+Next proposed only: isolate first-error versus step-classification learning
+objectives inside this same PB scoring family.193/271 lost successes are
+late; this suggests a test, not a proven cause. Do not automatically add
+position terms, new features, CD, hidden units, graphs or variance models.
+Held-out BCE improves but remains above the .5 constant baseline: do not
+mistake improved latent-score loss for well-calibrated error probabilities.
+See results/rbm_supervision_matched_v1/DECISION.json. Stop for discussion.
+
 ## 2026-09-11: joint supervised position diagnostic narrows the next question
 
 The fixed12-feature step-mean diagnostic is complete (135 fits,13769 answers).
