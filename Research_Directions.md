@@ -1,5 +1,24 @@
 # Research Directions — Thesis Roadmap
 
+## 2026-09-12: authorized completion of the remaining literature tests
+
+The latest user request explicitly authorizes the previously deferred tests.
+Use measured covariance/variance and serial mismatch as hypotheses, not proof
+of task gain. V shared versus state-specific variance; C exact/CD with1/4 units;
+S three exact starts and NLL-only selection; D continuous second fusion layer;
+T original-RBM evidence with actual token chronology versus step resets and
+shuffled tokens. Both banks6/12, full matched benchmark, fixed gate/Top10/argmax.
+Do not adopt first_near_max or introduce new q, moment order or lambda sweeps.
+The existing DUFS6-of12 run remains separate and is resumed unchanged.
+
+Scope and primary contrasts: docs/experiments/RBM_LITERATURE_COMPLETION_V1.md.
+Fusion stays answer-local and unlabeled; gates are externally calibrated.
+Exact/CD comparisons preserve the model; multi-unit mean versus second-layer
+comparisons preserve the hidden representation. The temporal experiment keeps
+the saved feature-fusion model and directly tests cross-step token adjacency.
+All are Gaussian adaptations, not reproductions of the cited binary models.
+
+
 ## 2026-09-11: first-error objective closed under Top10
 
 The matched correction experiment tested categorical first-error training

@@ -1,5 +1,29 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Authorized literature completion - 2026-09-12, IN PROGRESS
+
+Omri explicitly requested completion of DUFS and the remaining variance,
+multi-unit/CD/depth and token-temporal fusion plans. This supersedes prior
+stop-after-discussion notes below. Dedicated code-only worktree/branch
+codex/rbm-literature-completion-v1, base de237a3622. No copied dataset cache.
+Plan: docs/experiments/RBM_LITERATURE_COMPLETION_V1.md. Both banks6/12,
+unchanged full13769 contract, Top10/argmax and entropy gate; no near-max adoption.
+Ten algebra/sampling tests PASS. Variance smoke27 answers and216 step-vector
+replays PASS, no method failures. These checks are feasibility, not results.
+
+Storage:104 SHA256-identical failed-checkout copies removed,11.0705GiB logical
+bytes. Root originals and unique artifacts preserved. Audit in source
+scratch/cleanup_20260912/verified_duplicates.jsonl. DUFS original pipeline
+resumed as PID18724 after SQLite integrity,9848 contiguous rows and manifest
+identity checks; actual scoring progressed beyond10284. Check live handle and
+current RUN_STATE; this number is not a completion claim.
+
+Remaining: full reviewed V/C/S/D/T suites; complete and review DUFS; correct the
+last literature diagnostic's bootstrap/source-readout attribution; consolidate
+all relevant RBM/B3/IU/Varentropy comparisons. Program artifacts live in
+results/rbm_literature_completion_v1. No general winner or untouched test yet.
+
+
 ## First-error objective COMPLETE - 2026-09-11
 
 User authorized the next bounded test after the matched coefficient study.
