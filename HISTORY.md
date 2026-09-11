@@ -18070,3 +18070,31 @@ Protocol docs/experiments/HIGHER_MOMENT_FUSION_V1.md. Mechanical tests pass;
 27-answer smoke pending, full run not yet launched. Verify RUN_STATE/LAUNCH
 rather than inferring activity from this note. Full review follows evaluation.
 
+
+
+## Higher compact moments through degree6 [Codex] - COMPLETE 2026-09-11
+
+Full13769 rows,16 arms,zero failures/collapsed outputs. Scoring493.95s on4
+workers. All37 method/reference metric bundles pass separate arithmetic
+review. Saved-state auditPASS on220304 model records;432 model/step replays
+on27 real answers pass. Original4 degree3 arms replay exactly. Source freeze
+e17ada312, branch codex/higher-moment-fusion-v1; parent9e3d452ab.
+
+Order: RBM PB / within / PRMScore; IU PB / within / PRMScore
+3:36.2017%/.735982/.630749;22.3788%/.708585/.581905
+4:36.1734%/.734940/.628874;21.6282%/.704043/.583652
+5:36.1553%/.734705/.628851;20.7651%/.698812/.579859
+6:36.3750%/.738702/.629276;20.2046%/.690603/.570694
+Primary6-vs3 RBM PB+.1734pp,97.5%CI[-.6183,+1.0193]; within+.002720,
+CI[-.000118,+.005683]: inconclusive. IU PB-2.1742pp[-3.1026,-1.3234],
+within-.017981[-.020235,-.015709]: regression. Degree6 initialRBM36.2946%,
+within.746325,PRMScore.605313; trainedwithin-.007623,exploratory95%CI
+[-.009755,-.005421]. No learned-fusion win. Allhigher-orderRBM fits converge;
+one finite degree3 nonconverged fit retained. Keep degree3 compact reference,
+no new optimum, no further sweep launched. Both distribution and selected
+powers expanded together, so no separate family attribution. Sameanswerfit,
+original6mean orientation, gate/readout/v3 contract preserved; no global24 run.
+Files: results/higher_moment_fusion_v1/{REPORT.md,SUMMARY.csv,METRICS.json,
+RESULT_REVIEW.json,STATE_REVIEW.json}. No new HTML. Original file line endings
+preserved in final documentation; no historical content rewritten.
+

@@ -3666,3 +3666,15 @@ bank; wide48 RBM learning failed, so retain compact probability-weighted
 moments rather than adding rank-level powers. No claim that degree6 is optimal.
 Keep frozen gate/readout, exact d3 bridge, failures and full development cohort.
 See docs/experiments/HIGHER_MOMENT_FUSION_V1.md.
+
+
+### Higher-moment result (2026-09-11)
+
+Orders3..6 complete/PASS on full13769. Degree6 RBM modest point increase does
+not establish improvement with predeclared97.5% intervals; IU regresses. The
+untrained same-bank RBM still ranks better, reinforcing the need to separate
+representation/readout benefits from learning. Retain original compact bank;
+no expansion beyond6, no automatic DUFS/covariance test. See local result
+REPORT.md and HISTORY for exact matched evidence. This does not reject all
+higher-moment or spectral fusion models, only supplies evidence for this
+fixed bank/fit/readout recipe.
