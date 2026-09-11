@@ -23,9 +23,12 @@ def main():
         if existing.exists() and json.loads(existing.read_text()).get('status')=='COMPLETE':
             print('[program] already complete',suite,flush=True);continue
         tasks=[('smoke','run_rbm_literature_completion.py',['--smoke','--workers',str(args.workers)]),
-               ('smoke_review','review_rbm_literature_completion.py',['--smoke']),
+               ('smoke_review','review_rbm_literature_completion_v2.py',['--smoke']),
                ('full','run_rbm_literature_completion.py',['--workers',str(args.workers)]),
-               ('full_review','review_rbm_literature_completion.py',[])]
+               ('full_review','review_rbm_literature_completion_v2.py',[])]
+        if existing.exists() and json.loads(existing.read_text()).get('status')=='SCORED_AWAITING_REVIEW':
+            # Completed scores/metrics are immutable; resume at the failed audit.
+            tasks=tasks[-1:]
         for stage,script,options in tasks:
             state('RUNNING',suite,stage)
             print('[program]',suite,stage,datetime.now(timezone.utc).isoformat(),flush=True)

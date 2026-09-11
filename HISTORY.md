@@ -18447,3 +18447,29 @@ literature diagnostic's answer-bootstrap and old-readout attribution, and
 consolidate all relevant RBM/B3/IU/Varentropy comparisons. Plan:
 docs/experiments/RBM_LITERATURE_COMPLETION_V1.md. Program status and per-stage
 results live under results/rbm_literature_completion_v1. No HTML.
+
+## Step352 [Codex literature audit] - corrected units and restored RBM comparison coverage, 2026-09-12
+
+**What:** Completed the full residual-diagnostic correction, using canonical
+source-group bootstrap and the retained RBM6 Posterior/RBM12 Logit readouts.
+Both banks retain serial dependence; this is an association, not a demonstrated
+temporal benchmark gain. Indexed317 prior result rows, including RBM/B3 variants
+and repeated controls, with fitting scope and review status.
+
+**Why:** Omri asked for clear latest results, disk recovery and all unsupervised
+RBM variants in the comparison. Answer-local RBM variants belong in the primary
+unlabeled comparison; supervised corrections remain separately identified.
+
+**Review correction:** Variance completed13769 records and10000 paired bootstrap
+draws. Independent review caught a percent/fraction mismatch in its own PB
+assertion. Original scientific code, manifests, predictions, METRICS and reviewer
+are preserved. New reviewer v2 fixes that assertion; all21 full metric bundles
+pass independent arithmetic and fold checks. A matching percent-display bug was
+fixed before the first successful summary. Two unit-regression tests PASS.
+The full saved-state replay is still running; no new variance winner is declared.
+See results/rbm_literature_completion_v1/REVIEW_UNIT_AMENDMENT.json.
+
+**Status:** Program resumed at review (PID2748), not at fitting. DUFS remains live
+in its original pipeline (PID18724), last checked10880/13769. Remaining registered
+capacity/CD, restarts, depth and temporal full runs follow variance review.
+Previously completed stability/depth worker tests add2 checks to the11 core tests.

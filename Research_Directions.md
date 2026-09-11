@@ -1,5 +1,20 @@
 # Research Directions — Thesis Roadmap
 
+## Evidence status, 2026-09-12
+
+Corrected literature residual diagnostics retain serial dependence after
+source-group bootstrap and the retained RBM readouts. This motivates the
+registered temporal comparison; it does not demonstrate localization gain.
+Full variance scores and paired intervals exist; independent arithmetic
+checks pass for21 metric bundles. Saved-state review must finish before
+interpreting or promoting these new rows. Reviewer v2 fixes percent/fraction
+units, preserving frozen predictions and original manifests.
+
+The evidence registry explicitly retains answer-local RBM6/8/10/12,
+initial controls, Logit/Posterior, shrinkage, shared variance, position
+correction and moment B3. They are valid unsupervised comparisons. External
+entropy/PRMScore calibration is disclosed separately from fusion fitting.
+
 ## 2026-09-12: authorized completion of the remaining literature tests
 
 The latest user request explicitly authorizes the previously deferred tests.

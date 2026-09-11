@@ -1,5 +1,31 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Literature program checkpoint - 2026-09-12
+
+Variance scoring completed all13769 answers, with full metrics and10000 paired
+source-group bootstrap draws. Full review stopped at a reviewer-only PB units
+error (percent versus the stored fraction). The original reviewer, scientific
+code, checkpoint, predictions and METRICS are preserved. Separate reviewer v2
+corrects the units; REVIEW_UNIT_AMENDMENT.json binds unchanged result hashes.
+Do not promote the variance rows until RESULT_REVIEW is PASS.
+
+The earlier literature diagnostic correction is COMPLETE REVIEWED: both banks,
+all13769 answers, group bootstrap, correct retained readouts. Serial residual
+dependence remains, but this is not evidence of benchmark gain from temporal
+fusion. Results: results/rbm_literature_completion_v1/diagnostic_correction/.
+
+PRIOR_METHODS.csv and PRIOR_EXPERIMENTS.json index317 prior rows (including
+repeated controls), with scope and review status. Unlabeled answer-local RBM,
+B3, higher moments, shrinkage, diagonal variance and position correction all
+belong in comparisons. Native DEEM on vocabulary probabilities was stopped
+for input semantics, not shown to fail in a full experiment. The old direct
+probability B3 lane still has no full result; six-moment B3 is complete.
+
+Additional stability/depth end-to-end worker tests PASS (2 tests); core tests
+PASS (11). Capacity and temporal27-answer smokes each passed saved-state replay.
+These are implementation checks only. Inspect live program/DUFS handles for
+current status; neither the full remaining suites nor DUFS is declared done.
+
 ## Authorized literature completion - 2026-09-12, IN PROGRESS
 
 Omri explicitly requested completion of DUFS and the remaining variance,

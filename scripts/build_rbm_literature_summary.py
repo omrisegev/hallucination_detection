@@ -35,10 +35,10 @@ def main():
                 '|---|---:|---:|---:|---:|']
             for m,v in data['metrics'].items():
                 fmt=lambda x:'NA' if x is None else f'{x:.6f}'
-                text.append(f"| {m} | {fmt(v['pb_all8'])} | {fmt(v['prm_within'])} | {fmt(v['prmscore_q08'])} | {v['valid_answers']} |")
+                text.append(f"| {m} | {fmt(100*v['pb_all8'])} | {fmt(v['prm_within'])} | {fmt(v['prmscore_q08'])} | {v['valid_answers']} |")
             text+=['','Primary planned contrasts (97.5% source-group intervals; 10,000 draws):']
             for key,c in data['contrasts'].items():
-                if c['primary']:text.append(f"- {key}: PB {c['pb_delta']:+.6f} pp, CI {c['pb_ci']}; within {c['prm_within_delta_common']}, CI {c['prm_within_ci']}; gained/lost {c['gained']}/{c['lost']}.")
+                if c['primary']:text.append(f"- {key}: PB {100*c['pb_delta']:+.6f} pp, CI {[100*x for x in c['pb_ci']]}; within {c['prm_within_delta_common']}, CI {c['prm_within_ci']}; gained/lost {c['gained']}/{c['lost']}.")
             text+=['','No automatic promotion. Other comparisons are descriptive95%; intervals do not cover all prior research choices.',
                     'See FIT_HEALTH.json for convergence, failures and method details; PB_CELLS.csv and CHANGED_SUCCESSES.csv preserve case-level differences.']
             (out/'REPORT.md').write_text('\n'.join(text)+'\n',encoding='utf8')
