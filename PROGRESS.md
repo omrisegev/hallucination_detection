@@ -1,5 +1,27 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## First-error objective COMPLETE - 2026-09-11
+
+User authorized the next bounded test after the matched coefficient study.
+Branch codex/rbm-first-error-objective-v1, base f9d984266. The same bank12
+answer-local RBM correction, token Logit/Top10 readout, gate, folds and
+optimizer were retained. Only the PB training objective changed: previous
+step BCE versus categorical first-error loss over all steps in erroneous
+training answers. Clean answers had no first-error target and contributed
+zero location loss. PRMB scores were copied unchanged as an integrity control.
+
+All6,800 PB answers and40 group-disjoint fits completed and independently
+replayed. First-error PB35.6451% versus step BCE37.2042%; primary delta
+-1.5591pp,97.5%CI[-3.1739,+.0887]pp. All eight PB cells declined;481
+gated successes gained,556 lost,412 losses late. The PRMB row is identical
+by construction and is not new evidence. Result review PASS; no fit failures.
+
+Decision: close this full-answer first-error objective as negative under the
+frozen Top10 contract. Keep step BCE as the supervised correction reference.
+This does not close every onset/local objective; it closes this categorical
+competition over all steps. No automatic next experiment. See
+results/rbm_first_error_objective_v1/REPORT.md and DECISION.json.
+
 ## Matched RBM supervision COMPLETE - 2026-09-11
 
 User requested two alternatives differing only in coefficient learning after

@@ -1,5 +1,22 @@
 # MV_EPR Project History
 
+## Step350 [Codex] - First-error objective versus step BCE, 2026-09-11
+
+The next bounded test kept the saved answer-local bank12 RBM, the same
+13-coefficient correction, token Logit/Top10/argmax, entropy gate, folds,
+penalty and optimizer. On ProcessBench only, step BCE was compared with a
+categorical first-error loss over erroneous training answers; clean answers
+have no first-error target and were excluded from that objective. PRMBench
+scores were copied from the preceding supervised arm as an identity control.
+
+Full6,800 PB answers,40 group-disjoint fits and independent score/metric
+replay passed. First-error35.6451% versus BCE37.2042%; primary delta
+-1.5591pp,97.5%CI[-3.1739,+.0887]pp. Every PB cell declined;481 successes
+gained,556 lost,412 late losses. No optimizer failures. The result closes
+this full-answer categorical objective under the frozen Top10 contract;
+step BCE remains the supervised correction diagnostic. It does not close
+all local/onset objectives. Results: results/rbm_first_error_objective_v1.
+
 ## Step numbering — two working lines, deliberately not renumbered
 
 From Step 269 onward this project was worked in two repositories at once, so the

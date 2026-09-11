@@ -1,5 +1,20 @@
 # Research Directions — Thesis Roadmap
 
+## 2026-09-11: first-error objective closed under Top10
+
+The matched correction experiment tested categorical first-error training
+against step BCE with the same saved answer-local RBM, token matrices,
+Top10 readout, gate and source-group folds. The first-error loss excludes
+clean training answers because they have no first-error target. It loses in
+all eight PB cells:35.6451% versus37.2042%, delta -1.5591pp,
+97.5%CI[-3.1739,+.0887]pp. Late losses dominate (412 of556).
+
+This rejects the full-answer softmax competition as the next correction
+objective under the frozen contract. It does not prove every first-error or
+local objective is unhelpful. Keep step BCE as the supervised diagnostic
+reference; do not expand graphs, positions or capacity from this result.
+PRMB rows were inherited unchanged and are not new transfer evidence.
+
 ## 2026-09-11: matched token-Top10 supervision completed
 
 Corrected the prior diagnostic's input/readout confounding. Two identical
