@@ -187,7 +187,7 @@ def load_scored(con, records, offsets):
     return scores,telemetry
 
 
-def evaluate_arrays(records, joined, scores):
+def evaluate_arrays(records, joined, scores, *, calibration_thresholds=None, fold_auc=False):
     offsets,labels,target=joined['offsets'],joined['labels'],joined['target']
     cells=np.array([r['cell'] for r in records]);pb=np.char.startswith(cells,'pb_')
     detector,thresholds=old._gate_contract(records)
@@ -219,15 +219,20 @@ def evaluate_arrays(records, joined, scores):
             pb_invalid=int(np.sum(pb & ~decision_valid)),
             pb_correct_peaks_suppressed=int(np.sum(error & valid & (diff==0) & (pred==-1))),
             prm_within=float(np.nanmean(within)) if np.isfinite(within).any() else None,
-            prm_within_n=int(np.isfinite(within).sum()),prm_pooled=old.auc(labels[pooled]==1,flat[pooled]) if pooled.any() else None,
+            prm_within_n=int(np.isfinite(within).sum()),prm_pooled=old.auc(labels[pooled]==1,flat[pooled]) if pooled.any() and not fold_auc else None,
             prm_pooled_steps=int(pooled.sum()))
+        if fold_auc:
+            step_fold=np.repeat(outer,np.diff(offsets))
+            fa={str(f):old.auc(labels[pooled&(step_fold==f)]==1,flat[pooled&(step_fold==f)]) for f in sorted(set(outer[~pb]))}
+            m.update(prm_fold_auc=float(np.mean(list(fa.values()))),prm_fold_aucs=fa)
         # Invalid answers are never relabeled clean. A partial PRMScore is
         # explicitly conditional and the headline full PRMScore is unavailable.
         predicted={};q_by_fold={}
         for f in sorted(set(outer[~pb])):
             train=np.flatnonzero(~pb & valid & (outer!=f));test=np.flatnonzero(~pb & valid & (outer==f))
             if not len(train):continue
-            q=float(np.quantile(np.concatenate([flat[offsets[i]:offsets[i+1]] for i in train]),.8))
+            q=(float(calibration_thresholds[name][str(f)]) if calibration_thresholds is not None else
+               float(np.quantile(np.concatenate([flat[offsets[i]:offsets[i+1]] for i in train]),.8)))
             q_by_fold[str(f)]=q
             assert not set(records[i]['group_id'] for i in train)&set(records[i]['group_id'] for i in test)
             for i in test:predicted[i]=(~(flat[offsets[i]:offsets[i+1]]>=q)).astype(int).tolist()
