@@ -3656,3 +3656,13 @@ Native model plus explicit input mapping is possible; no automatic need to
 modify model architecture. Preserve class-permutation alignment checks.
 User request and native probability support acknowledged in chat; no DEEM/B3
 fit launched yet, current binary benchmark remains unchanged.
+
+
+## User-authorized compact higher moments (2026-09-11)
+
+Evaluate fixed orders3..6 with IU and original RBM plus matched controls.
+Rationale: m3 ablation established ranking contribution within the compact
+bank; wide48 RBM learning failed, so retain compact probability-weighted
+moments rather than adding rank-level powers. No claim that degree6 is optimal.
+Keep frozen gate/readout, exact d3 bridge, failures and full development cohort.
+See docs/experiments/HIGHER_MOMENT_FUSION_V1.md.

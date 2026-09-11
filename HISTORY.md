@@ -18052,3 +18052,21 @@ was launched. Existing B3 and other worktrees untouched. Return to discussion
 before another candidate. Full tables/errors/weights in results/rbm_weight_shrinkage_v1;
 REPORT.md, METRICS.json, SUMMARY.csv, RESULT_REVIEW.json and STATE_REVIEW.json.
 
+
+
+## Higher-moment localization experiment prepared - 2026-09-11 [Codex]
+
+## Higher compact moments through degree6 [Codex] - prepared 2026-09-11
+
+User requests higher-order moments for both RBM and IU-PCR. Dedicated
+codex/higher-moment-fusion-v1 from9e3d452ab, no other worktrees modified.
+Banks3/4/5/6 retain original6 then append distribution mr and selected a^r:
+6/8/10/12 columns; top15 q, no tail, no rank-power expansion. Four methods
+per bank: equal, IU, initialRBM, exact trainedRBM. Anchor fixed original6mean;
+original order3 outputs must replay exactly. Same13769 labels/folds/gate/top10.
+Primary d6-vs-d3 for RBM/IU,10000 grouped draws,97.5% CIs. No coefficient,
+window, graph or clipping search. Degree changes both moment families together.
+Protocol docs/experiments/HIGHER_MOMENT_FUSION_V1.md. Mechanical tests pass;
+27-answer smoke pending, full run not yet launched. Verify RUN_STATE/LAUNCH
+rather than inferring activity from this note. Full review follows evaluation.
+
