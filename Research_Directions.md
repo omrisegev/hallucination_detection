@@ -3736,3 +3736,24 @@ L-SML IS already an RBM' is too broad: model-distribution equivalence is not
 optimizer equivalence and does not establish the continuous Gaussian case.
 No old entries edited; clarification preserved here and in experiment protocol.
 
+
+
+## DUFS moment selection [Codex] - READY 2026-09-11
+
+User authorized feature selection before RBM. Dedicated branch
+codex/dufs-moment-selection-v1 from6e8f46100. Fixed order6 compact bank;
+all12, original6, adapted DUFS-select6 and squared-Pearson-select6, each
+trained RBM versus its untrained initialization. Same original6 risk anchor,
+external entropy q0.3 gate and Top10 token readout; full13769 benchmark.
+Why: learned diagonal variance improved covariance fit without improving
+localization. Test selection quality separately from RBM training, not more
+moment orders or new graph penalties. DUFS historical recipe:120 epochs,
+seeds0/1/2, hard top6; no labels or hyperparameter selection. Four workers.
+Four synthetic tests PASS;27 real mechanics answers PASS,108 exact saved
+reference replays, no failures. No subset performance conclusions.
+Scoring is expected to take hours. Check RUN_STATE and process liveness;
+READY is not a running or completion claim. Resumable pipeline proceeds to
+full10000-group bootstrap, separate arithmetic/model-state reviews, and
+concise result notes. No subsequent experiment or HTML is launched.
+Protocol: docs/experiments/DUFS_MOMENT_SELECTION_V1.md.
+Outputs: results/dufs_moment_selection_v1. Existing worktrees untouched.
