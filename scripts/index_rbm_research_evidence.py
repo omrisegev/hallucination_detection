@@ -59,12 +59,34 @@ def main():
         live_handle_check_required=True,scope='Select6 of12 FEATURES, then RBM; not token selection. No partial performance ranking.'))
     run.csv_write(out/'PRIOR_METHODS.csv',rows)
     run.base.atomic_json(out/'PRIOR_EXPERIMENTS.json',inventory)
+    cleanup_audits=[source/'scratch/cleanup_20260912'/name for name in
+                    ('verified_duplicates.jsonl','shrinkage_removed.jsonl')]
+    removed=[]
+    for audit in cleanup_audits:
+        if not audit.exists():continue
+        for line in audit.read_text(encoding='utf-8-sig').splitlines():
+            r={k.lower():v for k,v in json.loads(line).items()}
+            if r.get('action')=='removed':removed.append(r)
+    def reviewed(directory,extra=()):
+        statefile=directory/'RUN_STATE.json'
+        st=json.loads(statefile.read_text()) if statefile.exists() else dict(status='NOT_STARTED')
+        reports={}
+        for name in ('RESULT_REVIEW.json',*extra):
+            f=directory/name
+            reports[name]=json.loads(f.read_text()).get('status') if f.exists() else 'MISSING'
+        complete=st.get('status')=='COMPLETE' and all(s=='PASS' for s in reports.values())
+        return dict(reported_state=st,review_reports=reports,full_review_recorded=complete,
+                    note='Status snapshot; verify the live process separately. Completion still requires scope/output audit.')
+    correction=out/'diagnostic_correction'
+    correction_review=json.loads((correction/'REVIEW.json').read_text()) if (correction/'REVIEW.json').exists() else {}
     run.base.atomic_json(out/'REQUIREMENT_LEDGER.json',dict(
-        cleanup=dict(status='COMPLETE',audit=str(source/'scratch/cleanup_20260912/verified_duplicates.jsonl'),
-                     scope='104 SHA256-identical data copies, originals preserved'),
-        dufs=dict(status='PENDING_FULL_REVIEW',path=str(dufs)),
-        experiments=[dict(suite=s,path=str(out/s),required=True) for s in run.SUITES],
-        diagnostic_correction=dict(path=str(out/'diagnostic_correction/CORRECTED_DIAGNOSTICS.json'),required=True),
+        cleanup=dict(status='COMPLETE',audits=[str(p) for p in cleanup_audits],
+                     removed_files=len(removed),logical_bytes=sum(r['bytes'] for r in removed),
+                     scope='Only SHA256-identical data copies; originals preserved'),
+        dufs=dict(path=str(dufs),**reviewed(dufs,('STATE_REVIEW.json',))),
+        experiments=[dict(suite=s,path=str(out/s),required=True,**reviewed(out/s)) for s in run.SUITES],
+        diagnostic_correction=dict(path=str(correction/'CORRECTED_DIAGNOSTICS.json'),required=True,
+                                   review_status=correction_review.get('status','MISSING')),
         comparison_index=dict(indexed_rows=len(rows),inventory=str(out/'PRIOR_EXPERIMENTS.json'),
             note='An index is not completion of missing historical refits. Never merge incompatible metrics into one claimed leaderboard.'),
         remaining_optional_scope=[
