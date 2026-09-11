@@ -18188,3 +18188,51 @@ PIPELINE_STATE.json and RUN.log and verify process liveness for current status.
 Pipeline automatically follows scoring with10000-draw paired evaluation,
 metric arithmetic review, saved-state review and concise REPORT.md.
 No new HTML or further experiment. READY entry below is pre-launch history.
+
+
+## User research preference - first_near_max (2026-09-11)
+
+Omri explicitly asks to retain first_near_max as a preferred direction for
+integration after the current frozen DUFS run. Claude's Varentropy50 result:
+PB36.4366%, within-answer AUC.743826, PRMScore.632903, versus original
+35.6755%/.742465/.632777. This is a promising development result, not
+confirmation:0.25 SD was selected after inspecting labels on this population.
+Keep the exact rule; do not tune another threshold. Before a new experiment,
+check the actual saved-score transformation (not only the argmax description).
+Compare the same readout rule across fusion candidates and preserve the
+original Top10/common-gate controls. Untouched confirmation remains required.
+Do not change or stop the frozen DUFS run. Length-stratified analysis and
+length/random rows in the concise table remain reporting follow-ups.
+
+
+### RBM reference and first_near_max audit - 2026-09-11
+
+Inspected ushaham/RBMpaper rbm.m, usageExample.m and forward.m. Author
+implementation uses Bernoulli visible samples (data>rand), CD training,
+optional L1/L2 and an SVD-sized stack. Our moment_rbm_fusion.py is an
+independent one-hidden Gaussian RBM with unit conditional variance and exact
+analytic likelihood/L-BFGS-B. It is not a reproduction of their binary/deep
+training. Their single-layer sigmoid forward agrees with our conditional
+posterior, but their visible conditional/partition function do not validate
+ours. New audit_rbm_reference_bridge.py checks12 parameter cases in2/6/12
+columns: quadrature loss maxerror1.78e-15, gradient finite-difference error
+1.60e-10, energy-posterior error6.67e-16. PASS. No MATLAB was executed; shared
+forward expression transcribed. No correctness/calibration claim from this.
+Artifact results/rbm_reference_bridge_v1/REVIEW.json. Active DUFS untouched.
+
+first_near_max implementation detail verified: provenance_readout.py lifts
+ALL steps within0.25 SD of the maximum above the old maximum, ordered by
+chronology (epsilon=1e-6*max(sd,1e-12)). Thus it changes the score vector and
+PRMB rankings too, not only ProcessBench's selected index. Preserve the exact
+transformation in any follow-up; original signed risk and common gate stay.
+
+Literature distinction: Welinder et al., The Multidimensional Wisdom of
+Crowds (NIPS2010), models item heterogeneity and annotator expertise/bias
+from binary decisions. Inspiration for instance-dependent reliability, not
+a drop-in likelihood for our continuous, dependent moment features.
+Direct citing follow-ups verified: CoNAL (AAAI2021) and Label Correction of
+Crowdsourced Noisy Annotations with an Instance-Dependent Noise Transition
+Model (NeurIPS2023). Related sequential/networked ensemble classification
+(Traganitis/Giannakis,TKDE2022) is relevant to trajectory fusion; not claimed
+here as a verified direct citation. The2025 signal-processing crowdsourcing
+review (arxiv2407.06902v2) is already present locally. No new sweep launched.

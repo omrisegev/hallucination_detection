@@ -1,5 +1,32 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Reference audit / preferred readout - 2026-09-11
+
+first_near_max is Omri's preferred follow-up; preserve Claude's full score
+transformation, not just argmax. It changes PRMB rankings as well. Threshold
+was development-selected. RBMpaper source comparison and12-case numeric
+Gaussian audit PASS; no MATLAB execution or training-equivalence claim.
+Our continuous one-hidden exact-likelihood RBM differs from their binary
+CD-trained stack. See HISTORY and results/rbm_reference_bridge_v1/REVIEW.json.
+DUFS frozen run unchanged; no new performance experiment launched.
+
+
+
+## User research preference - first_near_max (2026-09-11)
+
+Omri explicitly asks to retain first_near_max as a preferred direction for
+integration after the current frozen DUFS run. Claude's Varentropy50 result:
+PB36.4366%, within-answer AUC.743826, PRMScore.632903, versus original
+35.6755%/.742465/.632777. This is a promising development result, not
+confirmation:0.25 SD was selected after inspecting labels on this population.
+Keep the exact rule; do not tune another threshold. Before a new experiment,
+check the actual saved-score transformation (not only the argmax description).
+Compare the same readout rule across fusion candidates and preserve the
+original Top10/common-gate controls. Untouched confirmation remains required.
+Do not change or stop the frozen DUFS run. Length-stratified analysis and
+length/random rows in the concise table remain reporting follow-ups.
+
+
 
 ## DUFS moment selection launch - 2026-09-11 10:25 local
 
