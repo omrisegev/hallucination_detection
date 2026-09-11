@@ -34,7 +34,12 @@ class ContractTests(unittest.TestCase):
         np.testing.assert_array_equal(c['position'],[-1]*8+[1]*4)
         self.assertEqual(d['outside_scored_spans'],4)
         self.assertEqual(sorted(d['step_signs']),sorted(d['permuted_step_signs']))
-        with self.assertRaises(ValueError):contexts(12,[[1,5],[4,8]],'a')
+        c,d=contexts(12,[[1,5],[4,8]],'a')
+        np.testing.assert_array_equal(c['position'],[-1]*4+[1]*8)
+        self.assertEqual(d['shared_boundary_tokens'],1)
+        c,d=contexts(9,[[0,9],[8,9],[8,9]],'a')
+        self.assertEqual(c['position'][8],1)
+        with self.assertRaises(ValueError):contexts(12,[[4,8],[1,5]],'a')
         score,delta,diag=fit_correction(self.X,self.c,self.a,self.w,self.b,.4,-1,single_step=True)
         np.testing.assert_array_equal(delta,np.zeros(4));np.testing.assert_allclose(score,-(self.b+self.X@self.w))
 

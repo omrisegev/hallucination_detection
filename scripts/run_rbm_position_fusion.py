@@ -17,7 +17,7 @@ from spectral_utils.higher_moment_fusion import representation_order,feature_nam
 from spectral_utils.direct_probability_fusion import zscore_columns,step_top_mean
 from spectral_utils.rbm_position_fusion import contexts,fit_correction,MODES
 
-OUT=ROOT/'results/rbm_position_fusion_v1'
+OUT=ROOT/'results/rbm_position_fusion_v1_overlap_fix'
 NEW=tuple(m+'__max' for m in MODES)
 
 
@@ -73,7 +73,11 @@ def scan(source,con,records,joined,refs,smoke,workers):
                 print('[load]',cell,flush=True);rows=base.old._source_row_map(base.old.load_pickle(path),kind=kind,dataset=dataset)
                 if smoke:
                     order=sorted(indices,key=lambda i:len(rows[records[i]['row_id']]['token_entropies']))
-                    indices=[order[j] for j in sorted({0,len(order)//2,int(.95*(len(order)-1))})]
+                    selected=[order[j] for j in sorted({0,len(order)//2,int(.95*(len(order)-1))})]
+                    for i in indices:
+                        spans=np.asarray(rows[records[i]['row_id']]['step_token_spans'],int)
+                        if np.any(spans[1:,0]<spans[:-1,1]):selected.append(i)
+                    indices=sorted(set(selected))
                 for offset in range(0,len(indices),8):
                     tasks=[]
                     for i in indices[offset:offset+8]:

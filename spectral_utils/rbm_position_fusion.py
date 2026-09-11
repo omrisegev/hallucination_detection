@@ -17,17 +17,18 @@ def contexts(n_tokens,spans,uid):
     spans=np.asarray(spans,int);n=len(spans)
     if n<1 or np.any(spans[:,0]<0) or np.any(spans[:,1]>n_tokens) or np.any(spans[:,1]<=spans[:,0]):
         raise ValueError('invalid spans')
-    if n>1 and np.any(spans[1:,0]<spans[:-1,1]):raise ValueError('overlapping/out-of-order steps')
+    if n>1 and (np.any(spans[1:,0]<spans[:-1,0]) or np.any(spans[1:,1]<spans[:-1,1])):
+        raise ValueError('out-of-order steps')
     step=np.clip(np.searchsorted(spans[:,0],np.arange(n_tokens),side='right')-1,0,n-1)
     signs=np.where(np.arange(n)<(n+1)//2,-1.,1.)
     seed=int.from_bytes(hashlib.sha256(('rbm-position-v1:'+uid).encode()).digest()[:8],'little')
     shuffled=np.random.default_rng(seed).permutation(signs)
     original=signs[step];counts=[int(np.sum(original==k)) for k in (-1,1)]
-    covered=np.zeros(n_tokens,bool)
-    for start,end in spans:covered[start:end]=True
+    covered=np.zeros(n_tokens,int)
+    for start,end in spans:covered[start:end]+=1
     return dict(position=original,shared=np.ones(n_tokens),permuted=shuffled[step]),dict(
         step_signs=signs.tolist(),permuted_step_signs=shuffled.tolist(),seed=seed,
-        early_tokens=counts[0],late_tokens=counts[1],outside_scored_spans=int((~covered).sum()),
+        early_tokens=counts[0],late_tokens=counts[1],outside_scored_spans=int((covered==0).sum()),shared_boundary_tokens=int((covered>1).sum()),
         single_step=n==1)
 
 

@@ -25,7 +25,7 @@ def mixture_loss(X,c,a,w0,b,delta):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--source-root',type=Path,required=True);p.add_argument('--smoke',action='store_true');args=p.parse_args()
-    source=args.source_root.resolve();out=ROOT/'results/rbm_position_fusion_v1';base.old.configure_source_root(source)
+    source=args.source_root.resolve();out=ROOT/'results/rbm_position_fusion_v1_overlap_fix';base.old.configure_source_root(source)
     records=json.loads((base.old.BENCH/'evaluation/JOINED.json').read_text())['records']
     db=source/'.worktrees/higher-moment-fusion-v1/results/higher_moment_fusion_v1/CHECKPOINT.sqlite'
     src=sqlite3.connect(db.as_uri()+'?mode=ro',uri=True)

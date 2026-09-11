@@ -49,3 +49,21 @@ arithmetic plus saved-state score/objective audit after completion.
 Stop with chat results and update HISTORY/PROGRESS/Research_Directions. No HTML.
 All evidence remains development data. No capacity, CD or other model follows
 automatically. Preserve prior worktrees, checkpoints and DUFS.
+
+## Integrity amendment before any comparative metrics
+
+The initial run (freeze b5614775e) stopped after8,112 committed answers (last progress message:8,104):
+three PRMB source records share boundary tokens between adjacent steps, with
+monotone starts/ends, sometimes identical one-token spans. All PB spans are
+nonoverlapping. No full metrics were produced from that run; preserve it in
+results/rbm_position_fusion_v1 with STOPPED_INTEGRITY_CHECK status.
+
+Allow these original overlaps without altering any benchmark span or label.
+For fitting context, each token belongs to the latest step whose start is at
+or before it; equal starts favor the latest step. The original readout still
+uses every frozen span, including shared tokens. This avoids duplicate fitting
+rows and preserves the input matrix and comparison contract. Count shared
+tokens explicitly. No features, loss, ridge, optimizer or readout changed.
+Restart the full run from zero in results/rbm_position_fusion_v1_overlap_fix;
+do not merge checkpoints. Add overlap/identical-start unit cases. Results
+from the successful run must disclose this amendment.
