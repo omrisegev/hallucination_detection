@@ -1,5 +1,7 @@
 """Independent algebra and sampling checks; no benchmark-label tuning."""
 import itertools
+import json
+import tempfile
 from pathlib import Path
 import sys
 import unittest
@@ -116,6 +118,17 @@ class AlgebraTests(unittest.TestCase):
         l,_=markov_inference(ell[:2]-prior,A,prior,np.array([True,False]))
         r,_=markov_inference(ell[2:]-prior,A,prior,np.array([True,False,False]))
         np.testing.assert_array_equal(full,np.r_[l,r])
+
+    def test_checkpoint_roundtrip_and_manifest_rejection(self):
+        from scripts.run_rbm_literature_completion import connect,methods
+        m=dict(methods=list(methods('variance')),banks=[6,12],hashes={'input':'digest'})
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp)/'check.sqlite'
+            c=connect(p,m);c.execute('insert into answers values (0,?,?)',(b'array','{}'));c.commit();c.close()
+            c=connect(p,json.loads(json.dumps(m)))
+            self.assertEqual(c.execute('select count(*) from answers').fetchone()[0],1);c.close()
+            wrong=dict(m,hashes={'input':'changed'})
+            with self.assertRaises(AssertionError):connect(p,wrong)
 
 
 if __name__=='__main__':unittest.main()

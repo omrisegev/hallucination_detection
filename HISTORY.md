@@ -18420,3 +18420,30 @@ proof of its answer. No automatic experiment follows. Preserve PRMB as its
 own task. Previous step-mean outputs are preserved, not silently replaced.
 Results: results/rbm_supervision_matched_v1/REPORT.md,COMPARISON.csv,
 PB_CELLS.csv,COEFFICIENTS.csv,DECISION.json. No HTML; DUFS untouched.
+
+## Step351 [Codex literature completion] - storage recovery and frozen missing tests, 2026-09-12
+
+**What:** Removed104 SHA256-identical dataset files from the failed literature
+checkout, preserving root originals and unique artifacts (11.0705GiB logical
+bytes; audit at source scratch/cleanup_20260912/verified_duplicates.jsonl).
+Resumed unchanged DUFS pipeline as PID18724 after quick_check=ok,9848 contiguous
+checkpoint rows and exact manifest identity. New rows were observed, not inferred
+from a stale RUN_STATE. No DUFS performance claim before full review.
+
+**Why:** Omri explicitly authorized completing the missing literature-linked
+variance, capacity/CD/depth and temporal tests. Previous stop-for-discussion
+instructions are superseded for that registered scope. A fresh code-only
+worktree prevents duplication of large datasets; base de237a3622, branch
+codex/rbm-literature-completion-v1, code freeze0042d13db.
+
+**Result so far:** Ten gradient/equivalence/Gibbs/Markov algebra tests PASS.
+Variance smoke27 answers,216 saved-state step-vector checks PASS, no failed
+models. This is feasibility only. Full results and stage reviews are pending.
+Both moment banks6/12 retain the full13769 labels/groups/folds, original
+Top10/argmax and fixed entropy gate. No first_near_max adoption or new grid.
+
+**Remaining:** Complete the V/C/S/D/T sequence and DUFS, correct the latest
+literature diagnostic's answer-bootstrap and old-readout attribution, and
+consolidate all relevant RBM/B3/IU/Varentropy comparisons. Plan:
+docs/experiments/RBM_LITERATURE_COMPLETION_V1.md. Program status and per-stage
+results live under results/rbm_literature_completion_v1. No HTML.

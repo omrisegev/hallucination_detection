@@ -82,7 +82,7 @@ def manifest_for(source,suite):
         assert state['status']=='COMPLETE', 'capacity must finish and pass review first'
         paths += [PROGRAM/'capacity/CHECKPOINT.sqlite',PROGRAM/'capacity/RESULT_REVIEW.json']
     return dict(schema='rbm-literature-completion-v1',suite=suite,
-        base='de237a3622c776f2cfd866b39e0b0de3ca30fe90',methods=methods(suite),
+        base='de237a3622c776f2cfd866b39e0b0de3ca30fe90',methods=list(methods(suite)),
         banks=[6,12],fit_scope='current answer only; no labels',bootstrap=10000,
         hashes={str(p):base.old.sha256_file(p) for p in paths})
 
@@ -94,7 +94,9 @@ def connect(path,manifest):
     con.execute('create table if not exists answers (idx integer primary key,payload blob,info text)')
     old=con.execute('select payload from manifest where id=1').fetchone()
     if old:
-        assert json.loads(old[0])==manifest,'frozen manifest changed'
+        if json.loads(old[0])!=manifest:
+            con.close()
+            raise AssertionError('frozen manifest changed')
     else:
         con.execute('insert into manifest values (1,?)',(base.dumps(manifest),));con.commit()
     return con
