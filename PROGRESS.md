@@ -1,5 +1,20 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## H1 numerical provenance check - 2026-09-12
+
+The27 frozen capacity smoke answers were checked for H1 provenance (both
+banks,54 fits). Current exact-H1 and the historical fit_rbm on the same
+C-contiguous input produce bit-identical parameters. Historical fit_rbm on
+Fortran-contiguous copies reproduces the original saved parameters exactly.
+Thus original-versus-current tiny refit differences come from input memory
+layout and floating-point reduction, not a different objective or optimizer.
+Maximum smoke Logit step difference .001015; posterior difference2.96e-11;
+NLL difference1.19e-10; zero changed peak choices in these mechanics cases.
+This is NOT a performance sample. The full capacity contrasts against frozen
+references remain required. Existing exact/CD comparisons use the same C
+inputs/initialization. No scientific code or active scorer was changed.
+Evidence: capacity/H1_NUMERICAL_PROVENANCE.{json,csv} in the program results.
+
 ## Variance forensics complete; dependency queue adopted - 2026-09-12
 
 Full saved-model density/covariance diagnostics cover55076 model-answer fits.

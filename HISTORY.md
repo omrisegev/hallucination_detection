@@ -18492,3 +18492,11 @@ The tested execution-only queue adopted scorer17352 unchanged as controller
 After DUFS finishes, two independent suites may run with two workers each;
 capacity is a prerequisite for stability/depth. Amendment and four passing
 scheduler/Windows-handle tests are committed as28b15d646.
+
+**Step352 numerical provenance follow-up:** H1 smoke refit differed slightly
+from frozen weights. On all27 fixed cases/both banks, historical fit_rbm and
+current exact-H1 are bit-identical on the same C-contiguous matrix. Historical
+fit_rbm on F-contiguous copies reproduces saved parameters exactly. Maximum
+NLL difference1.19e-10; no peak changes among these mechanics cases. This
+identifies numerical memory-layout provenance, not a changed model. Retain
+full reference contrasts and do not rank from smoke results. No scorer changed.
