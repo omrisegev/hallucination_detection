@@ -1,5 +1,31 @@
 # Research Directions — Thesis Roadmap
 
+## RBM logit/readout isolation COMPLETE - 2026-09-11
+
+Dedicated codex/rbm-logit-readout-v1 from7575cb237; code freeze5d18172de.
+All13769 answers,32 configurations, no refit. All24 original references replay;
+32-arm independent arithmetic metric review PASS;432 scalar replay checks,
+110152 near-max vector checks and80000 bootstrap interaction checks PASS.
+Primary logit/near versus posterior/max: RBM6 PB36.2017->34.7246,
+delta-1.4771pp (97.5%CI[-2.7656,-.2263]); RBM12 36.3750->36.3998,
+delta+.0247pp[-1.2677,1.3213]. Bank12 within-answer AUC .738702->.748781
+(CI for delta[.007569,.012683]), but PRMScore .629276->.624156.
+No PB advantage over Var15/IU or Varentropy was established.
+
+Reasoning: logits remove much of the damaging posterior/near interaction;
+425/732 and577/882 prior lost successes recover. Training helps strongly under
+matched logit readouts, so do not infer that learned weights are useless.
+The initial posterior remains a strong control. Near-max is not a universal
+RBM default; bank6 retains its original posterior/max reference. Next proposal
+is one answer-local position-conditioned bank12 fusion, motivated jointly by
+this interface result and the prior matched reliability reversal. Define its
+objective and shared-weight restraint before implementation; retain static IU
+and Varentropy controls. CD/capacity/variance extensions remain deferred.
+See results/rbm_logit_readout_v1/REPORT.md,COMPARISON.csv,PB_CELLS.csv,
+NEXT_STEPS.json. No next model started; DUFS and prior results unchanged.
+Full cached development, not untouched confirmation. No HTML.
+
+
 ## RBM data diagnostics COMPLETE - 2026-09-11
 
 Dedicated codex/rbm-data-diagnostics-v1 from44f9bced8; scoring freeze13e75a8fd.
