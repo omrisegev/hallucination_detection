@@ -1,6 +1,18 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
 
+## DUFS moment selection launch - 2026-09-11 10:25 local
+
+Source freeze a69bd2445. Pipeline PID23524, four below-normal workers.
+Full13769 scoring launched after synthetic and27-real-answer preflight.
+No quality results yet. Read results/dufs_moment_selection_v1/RUN_STATE.json,
+PIPELINE_STATE.json and RUN.log and verify process liveness for current status.
+Pipeline automatically follows scoring with10000-draw paired evaluation,
+metric arithmetic review, saved-state review and concise REPORT.md.
+No new HTML or further experiment. READY entry below is pre-launch history.
+
+
+
 ## DUFS moment selection [Codex] - READY 2026-09-11
 
 User authorized feature selection before RBM. Dedicated branch
