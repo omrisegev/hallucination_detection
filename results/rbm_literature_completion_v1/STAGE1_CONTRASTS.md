@@ -8,4 +8,7 @@
 | temporal | RBM with token sequence fusion across steps, 6 features, posterior − RBM with shuffled token order, control, 6 features, posterior | -0.3342 | [-0.9826, +0.3015] | -0.003561 | [-0.005372, -0.001824] | 85 / 119 |
 | stability | RBM, 4 hidden units, best density fit of 3 starts, 12 features, logit − RBM, 4 hidden units, exact training, 12 features, logit | -1.3291 | [-2.1655, -0.5145] | +0.000124 | [-0.001624, +0.001934] | 79 / 133 |
 | stability | RBM, 4 hidden units, best density fit of 3 starts, 6 features, posterior − RBM, 4 hidden units, exact training, 6 features, posterior | -0.6144 | [-1.3230, +0.0784] | -0.001438 | [-0.002739, -0.000160] | 44 / 71 |
-| depth_amended | not available | | | | | |
+| depth_amended | Stacked RBMs, 4 to 1 hidden units, exact second layer, 12 features, logit − RBM, 4 hidden units, exact training, 12 features, logit | -6.5588 | [-7.9473, -5.2557] | -0.142479 | [-0.153649, -0.131562] | 50 / 249 |
+| depth_amended | Stacked RBMs, 4 to 1 hidden units, exact second layer, 6 features, posterior − RBM, 4 hidden units, exact training, 6 features, posterior | -6.0499 | [-7.4186, -4.7172] | -0.088944 | [-0.097159, -0.080831] | 42 / 229 |
+| depth_amended (conditional, common covered answers n=13416) | Stacked RBMs, 4 to 1 hidden units, exact second layer, 12 features, logit − RBM, 4 hidden units, exact training, 12 features, logit | -5.5361 | [-6.9680, -4.1800] | -0.142479 | [-0.153849, -0.131586] | n/a / n/a |
+| depth_amended (conditional, common covered answers n=13629) | Stacked RBMs, 4 to 1 hidden units, exact second layer, 6 features, posterior − RBM, 4 hidden units, exact training, 6 features, posterior | -5.6609 | [-7.0642, -4.3153] | -0.088944 | [-0.097005, -0.080814] | n/a / n/a |

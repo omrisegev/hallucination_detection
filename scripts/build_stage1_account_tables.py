@@ -139,7 +139,7 @@ def main():
             out.append(f"| {suite} (conditional, common covered answers n={c['common_answers']}) | {display_name(a)} − {display_name(b)} | "
                        f"{(100 * c['pb_delta']) if c['pb_delta'] is not None else float('nan'):+.4f} | "
                        f"[{100 * c['pb_ci'][0]:+.4f}, {100 * c['pb_ci'][1]:+.4f}] | {c['prm_within_delta_common']:+.6f} | "
-                       f"[{c['prm_within_ci'][0]:+.6f}, {c['prm_within_ci'][1]:+.6f}] | {c['gained']} / {c['lost']} |")
+                       f"[{c['prm_within_ci'][0]:+.6f}, {c['prm_within_ci'][1]:+.6f}] | {c.get('gained', 'n/a')} / {c.get('lost', 'n/a')} |")
     (OUT / 'STAGE1_CONTRASTS.md').write_text('\n'.join(out) + '\n', encoding='utf-8')
     print('rows', len(csv_rows), 'missing', missing)
 

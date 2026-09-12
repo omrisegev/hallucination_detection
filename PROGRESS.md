@@ -1,5 +1,48 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Claude Stage-1 interim handoff - 2026-09-12 evening (Stage 1 OPEN)
+
+Omri's staged mandate is being executed in parallel tracks; account and tables:
+.worktrees/rbm-literature-completion-v1/docs/research_notes/RBM_PROGRAM_STAGE1_ACCOUNT_2026-09-12.md
+- Full window-sampling run RESUMED via the unchanged supervisor (scripts/complete_research_consolidation_v1.py,
+  logs results/research_consolidation_v1/supervisor_v4_stage1_20260912.*); ~13 s/record; projection
+  ~1.5 days (estimate). Stage 1 is complete only when RUN_STATE reaches COMPLETE_REVIEWED_FULL_SAMPLING.
+- RBM stability COMPLETE review PASS; capacity interpreted (iteration cap, saturation); depth amended
+  (declared failures + logit variants, separate driver) running; commit e6fafcf96 on codex/rbm-literature-completion-v1.
+- Stage 2 cross-rank fusion: protocol frozen, reviewed, full run launched (3 workers) in
+  .worktrees/varentropy-expansion-fusion-v1 (branch claude/varentropy-expansion-fusion-v1, uncommitted).
+- Stage 3 Renyi: prototype + DRAFT only; design waits for Stage-2 review.
+Do not restart the sampling supervisor while its driver (pid in RUN_STATE) is alive; checkpoints resume.
+
+
+## Claude handoff: verified final DUFS and stopped queue - 2026-09-12
+
+DUFS COMPLETE13769/13769, metric and state reviews PASS; actual completion
+2026-09-12 04:46:51 Israel. V/C/T suites also COMPLETE13769 and full review PASS.
+DUFS trained PB36.1235%, within .740974, PRMScore .626847. Against all12 trained,
+within +.002273 CI97.5[.000990,.003543], PB -.2516pp CI[-.8346,.3144]. No clear
+advantage over low-correlation6 and no automatic DUFS integration.
+
+Queue exited05:49:35; no Python processes found in elevated process audit at
+handoff. Stability smoke27 PASS, separate review/full pending. Depth smoke
+FAIL:6/27 answers,14 model records, fewer than three varying hidden views.
+Do not blindly restart queue or silently change the failed depth protocol.
+
+Capacity interpretation warning: exact4 nonconverged13769/13769 bank12 and
+13768/13769 bank6. Its large losses do not isolate capacity from optimization.
+CD has a fixed epoch budget, not a convergence PASS; H1 posterior has a local
+AUC gain but worse PRMScore. Temporal actual order loses within-answer AUC
+against shuffle in both retained banks; no demonstrated chronological gain.
+
+Full handoff (in source root, not only this worktree):
+../../docs/research_notes/CODEX_TO_CLAUDE_HANDOFF_2026-09-12.md
+Fresh machine snapshot: results/rbm_literature_completion_v1/HANDOFF_STATUS_20260912.json.
+Readable comparison now106 rows including reviewed DUFS, capacity and temporal.
+The handoff turn refreshed inventories/docs only; no models or jobs restarted.
+The full authorized program remains INCOMPLETE. Generated outputs and these
+latest documents include uncommitted files; preserve them when transferring.
+
+
 ## One readable RBM comparison across experiments - 2026-09-12
 
 The current-suite COMPARISON.csv alone omitted prior completed RBM families.

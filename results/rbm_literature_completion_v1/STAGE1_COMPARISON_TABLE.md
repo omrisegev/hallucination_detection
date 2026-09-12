@@ -31,5 +31,11 @@
 | Stability: best-of-3 exact H4, bank6, posterior | learned fusion | 24.7061 | 24.7061 | 1.0000 | 0.708662 | 0.689888 | 0.618526 | 13769 |
 | Stability: best-of-3 exact H1, bank12, logit | learned fusion | 36.2325 | 36.2325 | 1.0000 | 0.745024 | 0.705626 | 0.622175 | 13769 |
 | Stability: best-of-3 exact H4, bank12, logit | learned fusion | 27.3262 | 27.3262 | 1.0000 | 0.721817 | 0.685433 | 0.612483 | 13769 |
-
-Missing rows (not fabricated): depth_amended: status=RUNNING review=none
+| Depth: exact second layer on H4 posteriors, bank6 | learned fusion | 19.2706 | 19.6423 | 0.9898 | 0.621533 | 0.511115 | 0.467270 (conditional) | 13629 |
+| Depth: CD-10 second layer on H4 posteriors, bank6 | learned fusion | 28.1571 | 28.7623 | 0.9898 | 0.726867 | 0.682365 | 0.599428 (conditional) | 13629 |
+| Depth: exact second layer on H4 logits, bank6 (amendment) | learned fusion | 31.6933 | 31.6933 | 1.0000 | 0.689489 | 0.591206 | 0.569463 | 13769 |
+| Depth: CD-10 second layer on H4 logits, bank6 (amendment) | learned fusion | 32.3209 | 32.3209 | 1.0000 | 0.737389 | 0.687362 | 0.610108 | 13769 |
+| Depth: exact second layer on H4 posteriors, bank12 | learned fusion | 22.0965 | 22.9645 | 0.9744 | 0.579489 | 0.512072 | 0.486925 (conditional) | 13416 |
+| Depth: CD-10 second layer on H4 posteriors, bank12 | learned fusion | 20.3079 | 21.1267 | 0.9744 | 0.656764 | 0.623718 | 0.536128 (conditional) | 13416 |
+| Depth: exact second layer on H4 logits, bank12 (amendment) | learned fusion | 32.7766 | 32.7766 | 1.0000 | 0.715080 | 0.606142 | 0.595517 | 13769 |
+| Depth: CD-10 second layer on H4 logits, bank12 (amendment) | learned fusion | 22.9740 | 22.9740 | 1.0000 | 0.673483 | 0.626183 | 0.543016 | 13769 |

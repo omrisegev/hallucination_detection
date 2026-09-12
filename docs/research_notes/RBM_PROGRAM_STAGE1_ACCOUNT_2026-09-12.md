@@ -1,7 +1,7 @@
 # Stage 1 account — completing the Codex RBM / sampling program (Claude, 2026-09-12)
 
 Status line: **Stage 1 is OPEN.** The RBM suites (stability, amended depth, capacity interpretation)
-are [PENDING-FILL]; the full window-sampling run is still scoring (see §6, projection is an
+are complete and reviewed; the full window-sampling run is still scoring (see §6, projection is an
 estimate). Stage 2 (cross-rank varentropy-expansion fusion) and Stage 3 (Rényi views) remain drafts
 and do not start before Omri reviews this account and the sampling run reaches its reviewed end.
 
@@ -25,7 +25,7 @@ evidence only; no untouched confirmation. Tables: `results/rbm_literature_comple
 | Full window-sampling run (`localization_full_sampling_v3`, 56 arms) | stalled 3,547/13,769 since 09-09 (disk incident) | independent checkpoint/manifest review PASS (`research_consolidation_v1/RESUME_20260912_REVIEW.json`: 357 hashes match, 3,547 records verified, 0 bad); unchanged supervisor relaunched (driver pid 14584) | SCORING, [PENDING-FILL] |
 | RBM stability suite (3 exact starts, H1/H4, min-NLL selection) | smoke PASS, no full run | program runner: smoke → smoke review → full → full review → summary, unchanged protocol | COMPLETE, review PASS (§4) |
 | RBM capacity interpretation | scored/reviewed; 13,769/13,769 exact-H4 "nonconverged" unexplained | `analyze_rbm_completion_mechanisms.py --suite capacity` + new `analyze_rbm_capacity_convergence.py` (+ 27-answer maxiter probe) | `capacity/CAPACITY_INTERPRETATION.md`, `CAPACITY_CONVERGENCE.{csv,json}`, `CAPACITY_MAXITER_PROBE.json` |
-| RBM depth suite | smoke FAIL (6/27 answers, 14 records) | diagnosis → amendment doc → separate driver (original untouched) → smoke PASS_WITH_DECLARED_FAILURES (188 exact replays of the 21 non-failing original records; 14 failures renamed) → smoke review PASS (404 vectors) → full run + review | [PENDING-FILL] |
+| RBM depth suite | smoke FAIL (6/27 answers, 14 records) | diagnosis → amendment doc → separate driver (original untouched) → smoke PASS_WITH_DECLARED_FAILURES (188 exact replays of the 21 non-failing original records; 14 failures renamed) → smoke review PASS (404 vectors) → full run + review | COMPLETE, review PASS (§3) |
 
 Nothing in DUFS, variance, capacity scoring or temporal scoring was rerun; their reviewed results
 are reused as saved.
@@ -68,7 +68,34 @@ saturation collapses (0 failures in the smoke) but change the representation for
 they are compared beside the original, never in its place. The original driver file and the original
 failed smoke artifacts are untouched; the amended run lives in `depth_amended/`.
 
-Results: [PENDING-FILL]
+Results — COMPLETE, review PASS (`depth_amended/RESULT_REVIEW.json`: 13,769 answers, 218,332 step
+vectors replayed, 37 metric bundles). Declared failures: exactly the predicted 140 (bank6) and 353
+(bank12) `COLLAPSED_HIDDEN_VIEWS` answers for the original posterior-input variants, none of any
+other kind; the logit-input variants have full coverage.
+
+| Configuration (retained readout) | PB all-8 % full population | PB all-8 % covered answers | Coverage | PRMB within (n) | PRMScore |
+|---|---:|---:|---:|---:|---:|
+| exact H1 first layer (reference) bank6 / bank12 | 36.20 / 36.27 | — | 1.000 | 0.7360 / 0.7452 | 0.631 / 0.622 |
+| exact H4 first layer (reference) bank6 / bank12 | 25.32 / 28.66 | — | 1.000 | 0.7101 / 0.7217 | 0.617 / 0.602 |
+| original: exact second layer on H4 posteriors, bank6 | 19.27 | 19.64 | 0.990 | 0.6215 (6,022) | 0.467 (conditional) |
+| original: CD-10 second layer on H4 posteriors, bank6 | 28.16 | 28.76 | 0.990 | 0.7269 (6,022) | 0.599 (conditional) |
+| original: exact second layer on H4 posteriors, bank12 | 22.10 | 22.96 | 0.974 | 0.5795 (5,914) | 0.487 (conditional) |
+| original: CD-10 second layer on H4 posteriors, bank12 | 20.31 | 21.13 | 0.974 | 0.6568 (5,914) | 0.536 (conditional) |
+| amendment: exact second layer on H4 logits, bank6 | 31.69 | 31.69 | 1.000 | 0.6895 (6,030) | 0.569 |
+| amendment: CD-10 second layer on H4 logits, bank6 | 32.32 | 32.32 | 1.000 | 0.7374 (6,030) | 0.610 |
+| amendment: exact second layer on H4 logits, bank12 | 32.78 | 32.78 | 1.000 | 0.7151 (6,030) | 0.596 |
+| amendment: CD-10 second layer on H4 logits, bank12 | 22.97 | 22.97 | 1.000 | 0.6735 (6,030) | 0.543 |
+
+Primaries (original exact second layer minus the exact-H4 first layer, 97.5%): bank6 posterior
+**−6.05 pp [−7.42, −4.72]** (within −0.089 [−0.097, −0.081]); bank12 logit **−6.56 pp [−7.95, −5.26]**
+(within −0.142 [−0.154, −0.132]). On the common covered answers the deficit is the same size
+(−5.66 pp [−7.06, −4.32]; −5.54 pp [−6.97, −4.18]), so it is not a coverage artefact. The logit
+input removes every collapse and raises the exact second layer by +12.4 pp / +10.7 pp over its
+posterior-input counterpart (confirming saturation as the collapse mechanism), but the stacked
+model still sits below the single-unit first layer on every endpoint, and its CD variant on bank12
+is far below. Classification: the collapse was a representation property (fixed by the amendment
+for coverage); the stacked second layer over the maxiter-100 H4 layer is a **negative result at
+the registered budget**, entangled with the H4 optimization limitation of §2. No promotion.
 
 ## 4. Stability (three exact starts, lowest answer NLL) — COMPLETE, review PASS
 
@@ -147,6 +174,22 @@ sampling arms is made. [PENDING-FILL: final status]
 | Cross-rank products p_i p_j log p_i log p_j | never as explicit columns; only quadratic evidence is the separate-variance mixture (quadratic term reversed 922 of 934 lost cases) | not tested (Stage 2 draft; primary contrast B2_sel vs B2d_sel) |
 | Cross-position products / autocorrelation | lag8 concatenation (−2.1 pp), chain-LIU (nil), within-answer Markov (order worse than shuffle), BOCPD (within −0.014 to −0.066) | consistently negative for the tested mechanisms |
 | Derivatives along position | delta bank (within +0.004 [+0.002, +0.006]; PB +0.3 n.s.), C7/C8 onset/innovation (null), rise-vs-history readout (over-corrects early) | the only mildly positive temporal result; still below token entropy on PB |
+
+## 7b. Parallel track status (Omri's revised schedule, 2026-09-12 evening)
+
+- **Cross-rank varentropy-expansion fusion v1** (Stage 2): protocol frozen
+  (`.worktrees/varentropy-expansion-fusion-v1/docs/experiments/VARENTROPY_EXPANSION_FUSION_V1.md`),
+  14 unit tests pass, identity discrepancy 8.5e-12, Step-339 historical bank replays exactly, smoke
+  27/27 PASS with independent replay (621 arm checks), pre-run review READY WITH CAVEATS (fixes
+  applied, re-smoke PASS). Full run launched with 3 workers (Joint arms dominate; ≈14 h estimate).
+  Disclosures required by the reviewer: LW shrinkage alpha clips to 1 on nearly every answer
+  (shrink ≡ IU on the joint target); Joint model covariance condition up to 1e19, absorbed by the
+  analytic ridge; non-converged Joint fits scored and flagged; identity-sign equal weights are
+  anchor-flipped on the pair banks; n<p fits on the 138-column banks for short answers.
+- **Rényi-view fusion v1** (Stage 3): implemented and tested (14 tests), DRAFT protocol only; smoke
+  15/27 (stopped to free memory). Redundancy already visible: H2, H4 and H∞ are one view
+  (|r| ≥ 0.99, ≈ −log p₁), only H0.5 carries distinct information, and IU-PCR sits at its residual
+  ceiling on the 5-view bank. Final design waits for the Stage-2 review.
 
 ## 8. Provenance and housekeeping
 
