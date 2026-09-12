@@ -35,6 +35,8 @@ def display_name(method):
         'best_exact4':'RBM, 4 hidden units, best density fit of 3 starts',
         'layer2_exact':'Stacked RBMs, 4 to 1 hidden units, exact second layer',
         'layer2_cd':'Stacked RBMs, 4 to 1 hidden units, CD-10 second layer',
+        'layer2_logit_exact':'Stacked RBMs, 4 to 1 hidden units, exact second layer on hidden logits (amendment)',
+        'layer2_logit_cd':'Stacked RBMs, 4 to 1 hidden units, CD-10 second layer on hidden logits (amendment)',
         'chain_full':'RBM with token sequence fusion across steps',
         'chain_step_reset':'RBM with token sequence fusion reset at each step',
         'chain_shuffled':'RBM with shuffled token order, control',
@@ -44,7 +46,7 @@ def display_name(method):
 
 def main():
     evidence=[];rows=[];contrasts=[]
-    for suite in SUITES:
+    for suite in SUITES+('depth_amended',):
         out=PROGRAM/suite;state=out/'RUN_STATE.json'
         status=json.loads(state.read_text()) if state.exists() else dict(status='NOT_STARTED')
         review=out/'RESULT_REVIEW.json'
@@ -61,17 +63,20 @@ def main():
             entry['fit_summary']=fit_summary
             for m,v in data['metrics'].items():
                 rows.append(dict(suite=suite,method=m,display_name=display_name(m),**{k:v[k] for k in METRIC_KEYS},
-                                 valid_answers=v['valid_answers'],prm_within_n=v['prm_within_n']))
+                                 valid_answers=v['valid_answers'],prm_within_n=v['prm_within_n'],
+                                 coverage=v['valid_answers']/13769,
+                                 pb_all8_conditional=data.get('conditional',{}).get(m,{}).get('pb_all8',v['pb_all8'])))
             for key,c in data['contrasts'].items():contrasts.append(dict(suite=suite,comparison=key,**c))
             text=['# '+suite+': full development result','',
                 'All 13,769 answers scored; saved-state and separate metric review PASS.',
                 'Fusion fits each answer without labels. The entropy gate and PRMScore calibration use external folds.',
                 'Posterior and logit scores use the same Top10/argmax; no first_near_max.',
-                '', '| Method | PB macro % | PRMB within AUC | PRMScore | Valid answers |',
-                '|---|---:|---:|---:|---:|']
+                '', '| Method | PB macro % (full population) | PB macro % (covered answers) | PRMB within AUC | PRMScore | PRMScore conditional | Valid answers |',
+                '|---|---:|---:|---:|---:|---:|---:|']
             for m,v in data['metrics'].items():
                 fmt=lambda x:'NA' if x is None else f'{x:.6f}'
-                text.append(f"| {display_name(m)} | {fmt(100*v['pb_all8'])} | {fmt(v['prm_within'])} | {fmt(v['prmscore_q08'])} | {v['valid_answers']} |")
+                cond=data.get('conditional',{}).get(m,{})
+                text.append(f"| {display_name(m)} | {fmt(100*v['pb_all8'])} | {fmt(100*cond['pb_all8']) if cond.get('pb_all8') is not None else fmt(100*v['pb_all8'])} | {fmt(v['prm_within'])} | {fmt(v['prmscore_q08'])} | {fmt(v.get('prmscore_conditional'))} | {v['valid_answers']} |")
             text+=['','Primary planned contrasts (97.5% source-group intervals; 10,000 draws):']
             for key,c in data['contrasts'].items():
                 if c['primary']:

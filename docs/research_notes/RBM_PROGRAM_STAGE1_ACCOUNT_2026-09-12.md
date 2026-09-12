@@ -1,0 +1,158 @@
+# Stage 1 account — completing the Codex RBM / sampling program (Claude, 2026-09-12)
+
+Status line: **Stage 1 is OPEN.** The RBM suites (stability, amended depth, capacity interpretation)
+are [PENDING-FILL]; the full window-sampling run is still scoring (see §6, projection is an
+estimate). Stage 2 (cross-rank varentropy-expansion fusion) and Stage 3 (Rényi views) remain drafts
+and do not start before Omri reviews this account and the sampling run reaches its reviewed end.
+
+Framing (Omri, 2026-09-12): *We have not yet demonstrated a consistent overall advantage from
+learned fusion. The contributions of representation, optimization, normalization and readout remain
+partly entangled.* Learning changed performance in both directions; the tables below keep the
+losses visible beside the gains and never select a winner.
+
+Contract for every row: 13,769 answers (ProcessBench 6,800 in 8 cells; PRMBench 6,969), v3 labels,
+v2 canonical source groups and folds (3,483 groups), top-10 token-mean step readout with earliest
+argmax, external mean-entropy q=0.3 fold gate (calibrated without labels on other answers; not
+label-free method selection), PRMScore with q=0.8 held-fold thresholds, 10,000 paired source-group
+bootstrap draws (97.5% for pre-registered primaries, 95% descriptive otherwise). Development
+evidence only; no untouched confirmation. Tables: `results/rbm_literature_completion_v1/STAGE1_COMPARISON_TABLE.md`
+(hash-bound rows) and `STAGE1_CONTRASTS.md` (primary contrasts verbatim).
+
+## 1. What was completed in this stage
+
+| Item | State before | Action | State now |
+|---|---|---|---|
+| Full window-sampling run (`localization_full_sampling_v3`, 56 arms) | stalled 3,547/13,769 since 09-09 (disk incident) | independent checkpoint/manifest review PASS (`research_consolidation_v1/RESUME_20260912_REVIEW.json`: 357 hashes match, 3,547 records verified, 0 bad); unchanged supervisor relaunched (driver pid 14584) | SCORING, [PENDING-FILL] |
+| RBM stability suite (3 exact starts, H1/H4, min-NLL selection) | smoke PASS, no full run | program runner: smoke → smoke review → full → full review → summary, unchanged protocol | COMPLETE, review PASS (§4) |
+| RBM capacity interpretation | scored/reviewed; 13,769/13,769 exact-H4 "nonconverged" unexplained | `analyze_rbm_completion_mechanisms.py --suite capacity` + new `analyze_rbm_capacity_convergence.py` (+ 27-answer maxiter probe) | `capacity/CAPACITY_INTERPRETATION.md`, `CAPACITY_CONVERGENCE.{csv,json}`, `CAPACITY_MAXITER_PROBE.json` |
+| RBM depth suite | smoke FAIL (6/27 answers, 14 records) | diagnosis → amendment doc → separate driver (original untouched) → smoke PASS_WITH_DECLARED_FAILURES (188 exact replays of the 21 non-failing original records; 14 failures renamed) → smoke review PASS (404 vectors) → full run + review | [PENDING-FILL] |
+
+Nothing in DUFS, variance, capacity scoring or temporal scoring was rerun; their reviewed results
+are reused as saved.
+
+## 2. Capacity: optimization limitation, representation behaviour, negative result
+
+- **Optimization limitation.** All exact-H4 fits stopped at the registered L-BFGS-B cap
+  (`maxiter=100`): 13,768/13,769 (bank6) and 13,769/13,769 (bank12), median final gradient 0.031 /
+  0.072 against gtol 1e-6. H4 still fits the density better than H1 on every answer (median gain
+  0.98 / 1.78 nats per token). A feasibility probe on the 27 smoke answers (54 fits, maxiter 1000,
+  ≤ 1.4 s each) converges 48/54 with a further median NLL decrease of 0.47 and moves the top-10
+  peak in 7–8 of 54 fits. So the H4 result is conditional on the budget; a larger-budget run would
+  be cheap but is a new registered experiment, not a conclusion.
+- **Representation behaviour.** No dead units; duplicate units in 0.4% of fits; **sigmoid
+  saturation** (logit varies, posterior constant to machine precision) in one unit for 9.9% /
+  16.6% of fits and two units for 1.0% / 2.6% (bank6 / bank12). Two-view answers: 140 / 353.
+- **Negative result at the registered budget.** Exact H4 loses to exact H1 on both benchmarks
+  (bank6 posterior −10.88 pp [−13.10, −8.74]; bank12 logit −7.62 pp [−9.49, −5.76]; within-answer
+  AUC also lower). Losses are heavier in the least-optimized gradient quartile (bank6: 114 gained /
+  333 lost) but the best-optimized quartile still loses 2:1 (24 / 48), and fits with no saturated
+  unit account for most losses. Nothing here isolates capacity from optimization; nothing supports
+  "more units are inherently worse or better".
+- **Implementation failure:** none (review PASS; H1 provenance bit-identical to the historical
+  optimizer).
+
+## 3. Depth: diagnosis, amendment, measurement
+
+Diagnosis (`depth/SMOKE_DIAGNOSIS.json`): every one of the 14 failed records is condition (a),
+numerical sigmoid saturation of two of the four first-layer units (logit std 5–45, posterior std
+1e-13 to 1e-43, posterior mean 0.000); no duplicate or dead units among the failures. Expected
+full-population coverage of the original second layer: 98.98% (bank6) / 97.44% (bank12).
+
+Amendment (`docs/experiments/RBM_DEPTH_AMENDMENT_20260912.md`): (1) the original variants are
+measured on the full population with `COLLAPSED_HIDDEN_VIEWS` recorded as a named per-answer
+failure — counted as a missed decision in full-population metrics, reported beside conditional
+metrics on covered answers; this is a measurement, not a fix, and does not claim the layer works on
+every answer; (2) because the diagnosis is saturation, registered logit-input variants
+`layer2_logit_{exact,cd}` feed the oriented hidden logits instead of posteriors. They remove the
+saturation collapses (0 failures in the smoke) but change the representation for every answer, so
+they are compared beside the original, never in its place. The original driver file and the original
+failed smoke artifacts are untouched; the amended run lives in `depth_amended/`.
+
+Results: [PENDING-FILL]
+
+## 4. Stability (three exact starts, lowest answer NLL) — COMPLETE, review PASS
+
+Full 13,769; saved-state replay and separate metric arithmetic PASS
+(`stability/RESULT_REVIEW.json`); all 13 reference rows reproduce to 1e-12; 0 failures.
+
+| Configuration | PB all-8 % | PRMB within | PRMScore |
+|---|---:|---:|---:|
+| exact H1, bank6, posterior (capacity start) | 36.2017 | 0.735982 | 0.630749 |
+| best-of-3 exact H1, bank6, posterior | 36.2017 | 0.735954 | 0.630789 |
+| exact H4, bank6, posterior (capacity start) | 25.3205 | 0.710100 | 0.616757 |
+| best-of-3 exact H4, bank6, posterior | 24.7061 | 0.708662 | 0.618526 |
+| exact H1, bank12, logit (capacity start) | 36.2712 | 0.745204 | 0.622215 |
+| best-of-3 exact H1, bank12, logit | 36.2325 | 0.745024 | 0.622175 |
+| exact H4, bank12, logit (capacity start) | 28.6553 | 0.721693 | 0.601725 |
+| best-of-3 exact H4, bank12, logit | 27.3262 | 0.721817 | 0.612483 |
+
+Primaries (best-of-3 H4 minus the capacity single start, 97.5%): bank6 posterior **−0.61 pp
+[−1.32, +0.08]**, within −0.0014 [−0.0027, −0.0002]; bank12 logit **−1.33 pp [−2.17, −0.51]**,
+within +0.0001 [−0.0016, +0.0019]. Lost successes move early (bank12: 114 early / 19 late of 133).
+
+What the saved starts show:
+- **H1 is start-invariant.** All three exact starts converge (99.99% / 100%) to the same NLL
+  (spread 0 at the median, ≤ 0.01 at p95) and the same top-10 peak in 13,768 / 13,705 answers; the
+  chosen start is a three-way tie. Multiple initialization is not a lever for the single-unit model.
+- **H4 restarts do not converge at the registered budget** (0.004% / 0.0% of restarts), the three
+  starts end at different NLL (median spread 0.056 / 0.23 nats per token; the best start improves
+  on the capacity start by 0.009 / 0.070 at the median) and disagree on the peak in 18% / 33% of
+  answers. **Selecting the lowest-NLL start lowers ProcessBench** while leaving within-answer AUC
+  flat: under this budget, better density fit is not selecting task-useful H4 solutions.
+- Classification: optimization limitation (H4 budget) plus a negative result for min-NLL start
+  selection as a label-free selector; no implementation failure (review PASS).
+
+## 5. What worked, what did not, what is unresolved (completed RBM program, all suites)
+
+Rows are the completed, reviewed configurations; classification follows Omri's three categories.
+Full table with coverage and sources: `STAGE1_COMPARISON_TABLE.md`.
+
+| Finding | Evidence | Class |
+|---|---|---|
+| The single-unit Gaussian RBM on the moment bank (RBM6 36.20 / 0.7360 / 0.631; RBM12 logit 36.27 / 0.7452 / 0.622) has higher PB and PRMScore points than the raw varentropy references (35.96 / 35.68) and lower within-AUC than the equal-weight contributions (0.7470); every primary interval against a matched reference includes zero | moment-rbm, higher-moment, logit-readout suites | no winner |
+| Learning inside the RBM family changed results in both directions: shared-variance bank12 36.81; low-correlation-6 RBM 36.99 (not a registered primary); separate-variance bank12 21.09 (−15.09 pp [−17.47, −12.77]); 48-column rank-power RBM 19.44 (−16.94 pp below its own initialization); exact H4 25.3 / 28.7 | variance, DUFS, rbm-m3-powers, capacity | mixed; the losses are real learned-model failures, the gains are point estimates |
+| Posterior versus logit readout of the same weights changes PB by up to 1.5 pp and within-AUC by 0.01 | rbm-logit-readout-v1 | readout confound, not a fusion result |
+| DUFS column selection versus a greedy low-correlation control: PB −0.87 pp [−1.87, +0.13], within +0.0005 [−0.0016, +0.0026] | dufs-moment-selection-v1 | no winner; the unsupervised selector is not better than the trivial filter |
+| Within-answer token order (two-state Markov on fixed emissions): actual order loses within-AUC to the shuffled control in both banks (−0.0028 [−0.0040, −0.0017]; −0.0036 [−0.0054, −0.0018]); PB intervals include zero | temporal suite | negative result for that mechanism |
+| Position-conditioned weights: −0.69 pp [−1.25, −0.13], within −0.0027 | rbm-position-fusion-v1 | negative result |
+| Supervised step-BCE correction (labels, other answers) 37.20 / 0.7473 / 0.599: +0.93 pp [−0.22, +2.08] over the unlabeled update; PRMScore falls | rbm-supervision-matched-v1 | diagnostic; not an answer-only method, not a ceiling |
+| Exact H4 at maxiter 100 | capacity, §2 | optimization limitation + negative result at that budget |
+| Depth second layer on saturated posteriors | §3 | representation property of the first layer; measured with declared failures; logit amendment registered |
+| Full window-sampling run | §6 | open obligation, in progress |
+
+Unresolved after Stage 1: where the small PB point gains of the learned rows come from
+(representation vs normalization vs readout is not separated by any completed contrast); whether a
+converged H4 changes the capacity conclusion (feasible, not run); the late bias in exact-step misses
+and the strong step-length prior (Claude Steps 354–355) that every row in this table shares; an
+untouched confirmation cohort for any candidate.
+
+## 6. Full window-sampling run — status
+
+Resumed 2026-09-12 through the unchanged consolidation supervisor
+(`scripts/complete_research_consolidation_v1.py` → `run_full_sampling_v3.py --phase run`, 8-hour
+invocation caps, checkpoint resume). Observed rate with the RBM suites running concurrently:
+about 12 s per record at the frozen 2 workers → **projection ≈ 1.5 days for the remaining
+~10,100 records; an estimate, not a commitment.** On completion the supervisor runs the registered
+evaluation, the Hebrew consolidation reflection and the "Step332 completion" documentation block.
+Until `RUN_STATE.phase == COMPLETE_REVIEWED_FULL_SAMPLING`, no performance statement about the 56
+sampling arms is made. [PENDING-FILL: final status]
+
+## 7. The letter's four ideas against the record (coverage, not closure)
+
+| Idea | Tested as | Outcome (full 13,769) |
+|---|---|---|
+| Per-rank p, log p, powers | direct-probability v1/v2 (rank risks), surprisal powers d1–d3 (16/32/48 columns), 48-column RBM | all below token entropy; RBM on 48 columns collapses below its initialization |
+| Rényi / Tsallis alpha grid | only α=2 exists as one of 29 streams; moment grid m3–m6 is the closest cousin | not tested (Stage 3 draft) |
+| Gating test p_i (log p_i)² + H² | varentropy contributions k15 (equal / IU) | within +0.009 [+0.005, +0.013]; PB −0.6 [−1.7, +0.4] (IU vs raw) |
+| Cross-rank products p_i p_j log p_i log p_j | never as explicit columns; only quadratic evidence is the separate-variance mixture (quadratic term reversed 922 of 934 lost cases) | not tested (Stage 2 draft; primary contrast B2_sel vs B2d_sel) |
+| Cross-position products / autocorrelation | lag8 concatenation (−2.1 pp), chain-LIU (nil), within-answer Markov (order worse than shuffle), BOCPD (within −0.014 to −0.066) | consistently negative for the tested mechanisms |
+| Derivatives along position | delta bank (within +0.004 [+0.002, +0.006]; PB +0.3 n.s.), C7/C8 onset/innovation (null), rise-vs-history readout (over-corrects early) | the only mildly positive temporal result; still below token entropy on PB |
+
+## 8. Provenance and housekeeping
+
+- New code (worktree `codex/rbm-literature-completion-v1`): `scripts/analyze_rbm_capacity_convergence.py`,
+  `scripts/run_rbm_depth_amended.py`, `scripts/review_rbm_depth_amended.py`,
+  `scripts/build_stage1_account_tables.py`; summary builders extended for the amended suite.
+- Original drivers, checkpoints and the failed depth smoke are unchanged. Root HISTORY.md and
+  PROGRESS.md remain fragmented across worktrees (root ends at Step 335); this account and the
+  PROGRESS blocks point to the worktree files rather than merging the logs.

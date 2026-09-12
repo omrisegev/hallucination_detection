@@ -151,7 +151,7 @@ def main():
         append(spec, data[method], path, digest)
 
     stages = []
-    for suite in run.SUITES:
+    for suite in run.SUITES + ('depth_amended',):
         directory = out / suite
         state = directory / 'RUN_STATE.json'
         review = directory / 'RESULT_REVIEW.json'
@@ -162,11 +162,20 @@ def main():
             continue
         path = directory / 'METRICS.json'
         digest = run.base.old.sha256_file(path)
-        metrics = json.loads(path.read_text())['metrics']
-        for method in run.methods(suite):
+        payload = json.loads(path.read_text())
+        metrics = payload['metrics']
+        if suite in run.VARIANTS:
+            suite_methods = run.methods(suite)
+        else:
+            suite_methods = tuple(f'b{bank}_{v}_{s}' for bank in (6, 12) for v in payload['variants']
+                                  for s in ('logit', 'posterior'))
+        for method in suite_methods:
+            coverage = metrics[method]['valid_answers'] / 13769
             spec = dict(experiment=f'literature-{suite}', method=method,
-                        display_name=display_name(method), panel='answer_local',
-                        fusion_fit='unlabeled fitting within the current answer',
+                        display_name=display_name(method) + (f' [coverage {coverage:.4f}]' if coverage < 1 else ''),
+                        panel='answer_local',
+                        fusion_fit='unlabeled fitting within the current answer'
+                        + ('; declared per-answer failures counted as missed decisions' if coverage < 1 else ''),
                         score_readout=method.rsplit('_', 1)[-1] + '; Top10 token mean; earliest maximum')
             append(spec, metrics[method], path, digest)
 
