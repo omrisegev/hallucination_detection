@@ -227,11 +227,16 @@ def evaluate(source, vs, con, records, joined, reference):
         new = error & per[a]['decision_valid'] & (per[a]['prediction'] == target)
         oldhit = error & per[b]['decision_valid'] & (per[b]['prediction'] == target)
         gain, loss = new & ~oldhit, oldhit & ~new
-        c.update(gained=int(gain.sum()), lost=int(loss.sum()),
-                 lost_early=int(np.sum(loss & (per[a]['peak'] < target))),
-                 lost_late=int(np.sum(loss & (per[a]['peak'] > target))),
-                 lost_gate=int(np.sum(loss & (per[a]['peak'] == target) & (per[a]['prediction'] == -1))),
-                 lost_failure=int(np.sum(loss & ~per[a]['valid'])))
+        # Correction 2026-09-13: mutually exclusive loss categories. A failed answer has peak=-1 and
+        # would otherwise be counted as both "early" and "failure" (see LOSS_BREAKDOWN_CORRECTION_20260913).
+        va = per[a]['valid']
+        cats = dict(lost_failure=int(np.sum(loss & ~va)),
+                    lost_gate=int(np.sum(loss & va & (per[a]['peak'] == target) & (per[a]['prediction'] == -1))),
+                    lost_early=int(np.sum(loss & va & (per[a]['peak'] < target))),
+                    lost_late=int(np.sum(loss & va & (per[a]['peak'] > target))),
+                    lost_other=int(np.sum(loss & va & (per[a]['peak'] == target) & (per[a]['prediction'] != -1))))
+        assert sum(cats.values()) == int(loss.sum()), (a, b, cats)
+        c.update(gained=int(gain.sum()), lost=int(loss.sum()), **cats)
         for i in np.flatnonzero(gain | loss):
             changes.append(dict(comparison=a + '_minus_' + b, uid=records[i]['uid'], cell=records[i]['cell'],
                                 target=int(target[i]), before=int(per[b]['prediction'][i]),

@@ -96,7 +96,12 @@ posterior-input counterpart (confirming saturation as the collapse mechanism), b
 model still sits below the single-unit first layer on 15 of 16 endpoints (the exception: bank6 CD-10
 on logits, within-AUC 0.7374 vs 0.7360), and its CD variant on bank12 is far below under the retained
 logit readout (22.97) while the same fitted model read out as a posterior gives 34.68 / 0.7344 — the
-readout interaction of §5 is present here too. Classification: the collapse was a representation property (fixed by the amendment
+readout interaction of §5 is present here too. Loss-category correction (2026-09-13, `depth_amended/LOSS_BREAKDOWN_CORRECTION_20260913.{json,csv}`): the driver's
+early/late/failure counts overlapped because a failed answer (peak = −1) also satisfied peak < target; with
+mutually exclusive categories the bank12 exact primary loses 249 = 27 failures + 0 gate + 209 early + 13 late
+(the saved table said 236 early), bank6 229 = 5 + 0 + 218 + 6; 16 of 40 comparisons were affected, no point
+score changed (all 37 PB macros re-derived from saved predictions match), no other suite affected (full coverage).
+Classification: the collapse was a representation property (fixed by the amendment
 for coverage); the stacked second layer over the maxiter-100 H4 layer is a **negative result at
 the registered budget**, entangled with the H4 optimization limitation of §2. No promotion.
 
@@ -139,9 +144,9 @@ Full table with coverage and sources: `STAGE1_COMPARISON_TABLE.md`.
 
 | Finding | Evidence | Class |
 |---|---|---|
-| The single-unit Gaussian RBM on the moment bank (RBM6 36.20 / 0.7360 / 0.631; RBM12 logit 36.27 / 0.7452 / 0.622) has higher PB and PRMScore points than the raw varentropy references (35.96 / 35.68) and lower within-AUC than the equal-weight contributions (0.7470); every primary interval against a matched reference includes zero | moment-rbm, higher-moment, logit-readout suites | no winner |
+| The single-unit Gaussian RBM on the moment bank (RBM6 36.20 / 0.7360 / 0.631; RBM12 logit 36.27 / 0.7452 / 0.622) has higher PB points than the raw varentropy references (35.96 / 35.68); on PRMScore RBM6 posterior (0.631) is above varentropy15 (0.626) but below varentropy50 (0.633), and RBM12 logit (0.622) is below both; both have lower within-AUC than the equal-weight contributions (0.7470); every primary interval against a matched reference includes zero (correction 2026-09-13: the earlier wording claimed a PRMScore advantage for both) | moment-rbm, higher-moment, logit-readout suites | no winner |
 | Learning inside the RBM family changed results in both directions: shared-variance bank12 36.81; low-correlation-6 RBM 36.99 (not a registered primary); separate-variance bank12 21.09 (−15.09 pp [−17.47, −12.77]); 48-column rank-power RBM 19.44 (−16.94 pp below its own initialization); exact H4 25.3 / 28.7 | variance, DUFS, rbm-m3-powers, capacity | mixed; the losses are real learned-model failures, the gains are point estimates |
-| Posterior versus logit readout of the same weights changes PB by up to 1.5 pp and within-AUC by 0.01 for the trained RBM6/RBM12; for other fitted models the readout is decisive: separate-variance bank12 reads 21.09 (logit) vs 35.44 (posterior); CD-10 H1 bank12 27.78 (logit) vs 36.28 (posterior); depth CD bank12 22.97 (logit) vs 34.68 (posterior). Several primaries are therefore model × readout results, not model results alone | rbm-logit-readout-v1; variance, capacity, depth_amended METRICS | readout confound inside the primaries; disclosed, not resolved |
+| Posterior versus logit readout of the same weights changes PB by up to 1.5 pp and within-AUC by 0.01 for the trained RBM6/RBM12; for other fitted models the readout is decisive: separate-variance bank12 reads 21.09 (logit) vs 35.44 (posterior); CD-10 H1 bank6 27.78 / bank12 30.54 (logit) vs 35.99 / 36.28 (posterior) (correction 2026-09-13: 27.78 was previously attributed to bank12); depth CD bank12 22.97 (logit) vs 34.68 (posterior). Several primaries are therefore model × readout results, not model results alone | rbm-logit-readout-v1; variance, capacity, depth_amended METRICS | readout confound inside the primaries; disclosed, not resolved |
 | DUFS column selection versus a greedy low-correlation control: PB −0.87 pp [−1.87, +0.13], within +0.0005 [−0.0016, +0.0026] | dufs-moment-selection-v1 | no winner; the unsupervised selector is not better than the trivial filter |
 | Within-answer token order (two-state Markov on fixed emissions): actual order loses within-AUC to the shuffled control in both banks (−0.0028 [−0.0040, −0.0017]; −0.0036 [−0.0054, −0.0018]); PB intervals include zero | temporal suite | negative result for that mechanism |
 | Position-conditioned weights: −0.69 pp [−1.25, −0.13], within −0.0027 | rbm-position-fusion-v1 | negative result |
