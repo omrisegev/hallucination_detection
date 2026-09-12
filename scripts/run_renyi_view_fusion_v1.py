@@ -161,6 +161,14 @@ def score(con, records, workers, smoke, max_answers, guard_kb):
     with ProcessPoolExecutor(max_workers=workers, initializer=base.worker_init) as pool:
         for cell, path, kind, dataset in base.source_specs():
             indices = [i for i, r in enumerate(records) if r['cell'] == cell and i not in done]
+            if smoke:
+                # Pick shortest / median / 95th-percentile answers from the FULL cell roster
+                # (JOINED 'tokens' == saved trace length; verified against the pickle below),
+                # so a resume never re-picks among the remaining rows or reloads a finished cell.
+                order = sorted((i for i, r in enumerate(records) if r['cell'] == cell), key=lambda i: records[i]['tokens'])
+                picks = [order[j] for j in sorted({0, len(order) // 2, min(len(order) - 1, int(.95 * len(order)))})]
+                indices = [i for i in picks if i not in done]
+                if not indices: print('[skip]', cell, 'smoke picks already checkpointed', flush=True)
             if not indices: continue
             memory_guard(guard_kb)
             print('[load]', cell, len(indices), flush=True); t0 = time.perf_counter()
@@ -170,8 +178,9 @@ def score(con, records, workers, smoke, max_answers, guard_kb):
             lookup = {str(v): j for j, v in enumerate(np.load(d / 'row_ids.npy', allow_pickle=True))}
             load_seconds[cell] = time.perf_counter() - t0
             if smoke:
-                order = sorted(indices, key=lambda i: len(rows[records[i]['row_id']]['token_entropies']))
-                indices = [order[j] for j in sorted({0, len(order) // 2, min(len(order) - 1, int(.95 * len(order)))})]
+                for i in indices:
+                    if len(rows[records[i]['row_id']]['token_entropies']) != records[i]['tokens']:
+                        raise ValueError(f'{records[i]["uid"]}: JOINED tokens differ from the saved trace length')
             for start in range(0, len(indices), 32):
                 batch = []
                 for i in indices[start:start + 32]:
@@ -355,6 +364,31 @@ def evaluate(con, records, joined, temporal, varentropy):
     base.atomic_json(OUT / 'RUN_STATE.json', dict(status='COMPLETE', completed=len(records), expected=len(records)))
 
 
+def connect(path, manifest, smoke):
+    """Strict manifest binding; smoke checkpoints may resume across a driver-only change.
+
+    The relaxation applies to --smoke only (mechanics/feasibility, no benchmark
+    result): every input, protocol, module and document hash must still match;
+    only this driver's own hash may differ, and both hashes are recorded.
+    """
+    try:
+        return base.connect(path, manifest)
+    except ValueError:
+        if not smoke: raise
+        import sqlite3
+        con = sqlite3.connect(path)
+        stored = json.loads(con.execute('SELECT payload FROM manifest WHERE id=1').fetchone()[0])
+        key = str(Path(__file__))
+        same_meta = {k: v for k, v in stored.items() if k != 'hashes'} == {k: v for k, v in manifest.items() if k != 'hashes'}
+        same_hashes = {k: v for k, v in stored['hashes'].items() if k != key} == {k: v for k, v in manifest['hashes'].items() if k != key}
+        if not (same_meta and same_hashes and key in stored['hashes']):
+            con.close(); raise
+        manifest['smoke_resume'] = dict(previous_driver_sha256=stored['hashes'][key], current_driver_sha256=manifest['hashes'][key],
+                                        note='smoke-only resume after a driver change (smoke pick/resume fix); all other hashes identical')
+        print('[resume] smoke checkpoint accepted across a driver-only change', flush=True)
+        return con
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--source-root', type=Path, required=True)
@@ -373,7 +407,7 @@ def main():
         raise SystemExit('The full run is deferred until the cross-rank review; pass --allow-full only after authorization.')
     base.old.configure_source_root(source); OUT.mkdir(parents=True, exist_ok=True)
     manifest = manifest_for(source, v2, temporal, varentropy)
-    con = base.connect(OUT / ('SMOKE.sqlite' if args.smoke else 'CHECKPOINT.sqlite'), manifest)
+    con = connect(OUT / ('SMOKE.sqlite' if args.smoke else 'CHECKPOINT.sqlite'), manifest, args.smoke)
     base.atomic_json(OUT / ('SMOKE_MANIFEST.json' if args.smoke else 'MANIFEST.json'), manifest)
     records = json.loads((base.old.BENCH / 'evaluation/JOINED.json').read_text(encoding='utf8'))['records']
     joined = np.load(base.old.BENCH / 'evaluation/JOINED.npz', allow_pickle=False)

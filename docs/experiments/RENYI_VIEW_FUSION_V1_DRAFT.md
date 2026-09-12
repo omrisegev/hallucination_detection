@@ -111,6 +111,49 @@ quantiles, flip fractions per fused arm). The smoke summary lives in
 `results/renyi_view_fusion_v1/DIAGNOSTICS.json` (scope SMOKE, 27 answers,
 mechanics only).
 
+### Smoke redundancy table (27 designed answers, 9 cells x {shortest, median, 95th pct}; mechanics only)
+
+Source: `results/renyi_view_fusion_v1/DIAGNOSTICS.json` (36 checkpointed rows;
+the 9 extra rows scored by a resume defect are summarized separately under
+`all_36_rows` and agree with the 27). 0 fit failures in 11 arms x 36 rows;
+frozen K=50 Rényi-2/varentropy replay error 0.0 on every row.
+
+| pair | median Pearson | min Pearson | median Spearman | answers with abs(r) > 0.99 |
+|---|---|---|---|---|
+| H0.5 – H1 | 0.97 | 0.93 | 1.00 | 0/27 |
+| H1 – H2 | 0.99 | 0.96 | 1.00 | 0/27 |
+| H2 – H4 | 1.00 | 0.99 | 1.00 | 27/27 |
+| H4 – Hinf | 1.00 | 0.99 | 1.00 | 27/27 |
+| H2 – Hinf | 0.99 | 0.97 | 1.00 | 1/27 |
+| H4 / Hinf – top1_logprob | -1.00 | -1.00 | -1.00 | 27/27 |
+| H2 (K=15) – renyi2_k50 (K=50) | 1.00 (min per-answer r 0.9955) | 1.00 | 1.00 | 27/27 |
+| H0.5 – varentropy15 (anchor) | 0.88 | 0.60 | 0.98 | 0/27 |
+| H1 – varentropy15 | 0.77 | 0.27 | 0.97 | 0/27 |
+| Hinf – varentropy15 | 0.57 | -0.17 | 0.96 | 0/27 |
+| sel1 – any Rényi view | 0.24–0.29 | -0.30 | 0.94 | 0/27 |
+| sel1 – sel2 / sel2 – sel3 | 0.84 / 0.99 | 0.76 / 0.96 | 1.00 | 0/27, 8/27 |
+
+Per view: no near-constant view and no view dropped by `zscore_columns` in any
+answer (min within-answer std 0.15–0.36 for the Rényi views); Hartley H0 is
+exactly log 15 in all answers (max std 1.8e-15). Condition number of the
+correlation matrix: R5 median 4.6e4 (range 1.6e4–2.5e5); R5_sel median
+4.8e4 (max 2.5e5). Anchor correlation is positive for every Rényi view in
+26/27 answers (one shortest PRMBench answer, 20 tokens, has H2/H4/Hinf and
+sel1 slightly negative); sel3 is anchor-negative in 22/27 and sel2 in 9/27,
+so the per-column orientation flips a monotone power of sel1 in most answers
+(1.3 column flips per R5_sel fit on average; no global `_orient` flip in any
+fused arm). IU diagnostics: `R5__iu` returns g2_hat = 0.25 = var_y in all
+27 answers (residual at the ceiling; the two-component solve finds no rank-1
+signal in the five near-collinear orders); `R5_sel__iu` median 0.25, min 0.048;
+shrink alpha median 0.15 (0.04–1.0).
+
+Reading (design input, not a result): H2, H4 and Hinf are one view and are
+numerically -log p1; H1 sits between them and H0.5; H0.5 is the only order
+with distinct within-answer information and is the closest to varentropy.
+Spearman near 1 everywhere means all Rényi orders share the same within-answer
+ranking; only the Pearson spread (0.88–0.97 between H0.5 and the rest)
+distinguishes them, i.e. a level/shape difference rather than a reordering.
+
 Data-path fidelity: every scored answer replays the frozen K=50
 `topk_renyi2_series` and `topk_varentropy_series` from the same saved rows
 (1e-12), checks canonical step spans and, for PB, the gate detector value.
