@@ -4,7 +4,7 @@ Status: **Stage 2 OPEN.** The 19 non-Joint arms are scored on all 13,769 answers
 replay PASS (`results/varentropy_expansion_fusion_v1/fast_pass/RESULT_REVIEW.json`: 261,611 arm
 checks, 69 input/code hashes). The two Joint L-SML arms on the primary banks are running
 (`joint_pass/`, ~14–20 h estimate at 4 workers); the two Joint arms on the non-selected banks are
-deferred for compute (pending, not dropped). The supervised step-level diagnostic is running.
+deferred for compute (pending, not dropped). The supervised step-level diagnostic is complete (see below).
 Protocol: `docs/experiments/VARENTROPY_EXPANSION_FUSION_V1.md`. Figures and independent checks:
 `fast_pass/REVIEW_FIGURES/` (6 PNG, `REVIEW.md`, `CHECKS.json`; every recomputed macro and the
 primary within-AUC delta match the saved metrics).
@@ -92,6 +92,29 @@ varentropy or the Step-339 contribution arms. What remains open in Stage 2: the 
 (pending), the supervised matched diagnostic (pending; a diagnostic, not a ceiling), and the
 secondary observation that the identity-sign diagonal arm without the selected block tracks the
 contribution-equal level.
+
+## Supervised matched diagnostic — COMPLETE (other-answer labelled access; not a ceiling)
+
+Linear token score on the answer-locally standardized bank, the same top-10 token-mean step
+readout, class-balanced step-level BCE against step labels (PB: prefix 0 / first-error 1 / later
+steps excluded; PRMB step labels), per-cell 5 source-group folds, ridge 0.01; 90 fits, all FIT (67
+converged, 23 at the iteration limit, 0 stalled). Same gate, readout and evaluator.
+
+| Arm | PB all-8 % | PRMB within | PRMScore |
+|---|---:|---:|---:|
+| supervised B2d_sel | 36.03 | 0.7530 | 0.629 |
+| supervised B2_sel | 36.30 | 0.7531 | 0.629 |
+
+Paired (frozen evaluator, 10,000 draws; `supervised/CONTRASTS.json`): B2_sel − B2d_sel **+0.27 pp
+[−0.53, +1.08], within +0.0001 [−0.0009, +0.0010]** (97.5%) — the cross-rank products add nothing
+even when the coefficients are fitted with labels. Supervised B2_sel vs unsupervised B2_sel IU:
++2.35 pp [+1.17, +3.52], within +0.026 [+0.023, +0.030]; vs token entropy: +0.85 pp [−0.21, +1.94],
+within +0.023 [+0.019, +0.027]; vs varentropy15: +0.34 pp [−0.80, +1.48], within +0.015 [+0.011,
++0.019]. Reading: labels recover the loss the expanded bank suffers under answer-local IU and lift
+within-answer ranking above every unsupervised row, but on ProcessBench exact localization the
+labelled linear score on this bank does not separate from entropy or varentropy. This is a
+diagnostic with different access; it bounds neither the unsupervised methods nor the quadratic
+feature class in general.
 
 ## Stage 3 (Rényi) — prototype status, design pending review
 
