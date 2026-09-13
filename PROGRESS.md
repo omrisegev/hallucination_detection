@@ -6738,3 +6738,15 @@ token/window sampling shortlist remain pending after this run.
 - Verbalized confidence on 7B+ — parser is ready; needs one inference run with Qwen2.5-Math-7B on GSM8K
 - Phase 10 RAG re-run with variant=4 prompt — low priority
 - LapEigvals integration into spectral_utils — potential Group D feature for M=12, low priority
+
+## Codex hierarchical time fusion v1 ? 2026-09-13 ? IN PROGRESS
+
+Dedicated branch codex/rbm-hierarchical-time-v1, base 113c7eb79. Frozen RBM12 logits; learn only positive temporal weights over 16 relative-position regions. Compare local, other-answer shared, hierarchical and within-step shuffled hierarchy; supervised positive weights are a separate diagnostic. Keep Top10, all-token mean and contiguous10 controls. No first_near_max, RBM refit, new feature bank or later temporal family.
+
+Rationale: test whether shared data stabilizes temporal fusion and whether answer-local adaptation adds value. A common Gaussian factor is not assumed to equal semantic error. Same 13,769 answers, canonical source-group folds and fixed entropy gate; nested held-out calibration for PRMScore prevents outer-fold leakage. Full-population results, paired uncertainty and review are required before conclusions.
+
+Implementation: spectral_utils/rbm_hierarchical_time.py and scripts/run_rbm_hierarchical_time.py; contract docs/experiments/RBM_HIERARCHICAL_TIME_V1.md. Results: results/rbm_hierarchical_time_v1/. Unit fixtures passed; 27-answer smoke passed for all unlabelled arms. Four supervised smoke fits lacked one training class and were explicitly marked failed. Full fixed-RBM Top10 replay passed at absolute tolerance 1e-12. The independent PRMScore audit follows the official exclusion of synthetic correct controls from pooled F1.
+
+Preflight attempts are archived separately. They exposed insufficient fold coverage in the tiny smoke sample, a metrics JSON key mismatch, and an independent-audit control-row mismatch; none is a scientific result. Verified full profiles may be reused after checking unchanged input/module hashes, identical extraction AST, all IDs and exact baseline replay. No learned temporal fit is reused from the interrupted preflights. The sparse checkout avoids copying historical LFS data; original data and Claude runs remain unchanged.
+
+Stop after reviewed results from this hierarchical family; discuss tensor fusion, conditional RBM and convolution only afterward.
