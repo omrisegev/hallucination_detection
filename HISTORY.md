@@ -18561,3 +18561,22 @@ diagonal identity-sign arm; "no detected advantage" instead of "add nothing").
 **Result**: no scientific definition changed; conclusions unchanged except the tightened wording. The same calibration
 dependency exists in Codex's earlier supervised RBM correction arms (rbm-supervision-matched, first-error); their
 PRMScore values are flagged, not re-evaluated here.
+
+---
+
+### Step 358 [Claude Stage 3] — Rényi-order combination v2 on the frozen contract (2026-09-13)
+
+**What**: Omri authorized Stage 3 with a redesigned grid (combine several orders where the views differ on the
+top-15 support): α ∈ {0.1, 0.25, 0.5, 1, 2, ∞}; banks R6 / R6+SEL; equal / IU-PCR / shrinkage IU / Joint L-SML
+(declared tail/head/selected groups). New files only in `.worktrees/varentropy-expansion-fusion-v1`
+(`spectral_utils/renyi_view_fusion_v2.py`, `scripts/run_renyi_view_fusion_v2.py` with fast/joint rosters,
+reviewer, 16 tests, `docs/experiments/RENYI_VIEW_FUSION_V2.md`). Fast pass (12 arms) on all 13,769 answers:
+replay review PASS (165,228 checks), figure review PASS WITH CAVEATS (5 PNG). Joint arm scored separately (running).
+**Why**: Stage 3 of the 2026-09-12 plan; the v1 prototype grid had only three distinct directions.
+**Result**: Combining orders does not beat the best single order: primaries vs entropy15 +0.18 / +0.18 / +0.34 pp
+(intervals include 0), within +0.0009 (incl. 0) / +0.0024 / +0.0037; IU vs equal −0.00 pp, within −0.0015. Every
+fused arm is below the single H0.1 view on within-AUC (−0.007 … −0.012, intervals exclude 0). The tail-sensitive
+single order H0.1 has the highest within-AUC (0.7425) and PRMScore (0.633) of any answer-local stream: vs entropy
++0.0124 [+0.0100, +0.0149] within, PB −0.07 pp (incl. 0); vs varentropy15 (post hoc) within +0.0047 [+0.0016,
++0.0079], PB −0.59 [−1.72, +0.53]. Within-AUC is monotone in α. A representation finding on one endpoint, not a
+winner. Note: `docs/research_notes/RENYI_VIEW_FUSION_STAGE3_2026-09-13.md`.

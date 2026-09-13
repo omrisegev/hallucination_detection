@@ -1,5 +1,14 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Claude Stage 3 - 2026-09-13 (Renyi-order combination v2: fast pass complete, Joint pass running)
+
+Combining Renyi orders (alpha 0.1..inf, R6/R6+SEL, equal/IU/shrink) does not beat the best single order; the single
+H0.1 view carries the highest within-AUC (0.7425) and PRMScore (0.633) of any answer-local stream (vs entropy +0.012
+within, CI excludes 0; PB n.s.). Products (Stage 2) closed by Omri; H1 focus over H4. Joint L-SML arm running
+(`results/renyi_view_fusion_v2/joint_pass`, ~8 h). See HISTORY Step 358 and
+`.worktrees/varentropy-expansion-fusion-v1/docs/research_notes/RENYI_VIEW_FUSION_STAGE3_2026-09-13.md`.
+
+
 ## Claude corrections - 2026-09-13 (Codex review findings verified; all five confirmed and corrected)
 
 Supervised PRMScore recalibrated held-fold-blind (delta -5.5e-5 / +2.8e-4); depth loss categories made exclusive (no point
@@ -7,6 +16,13 @@ score changed); supervised smoke rule and input contract hardened; account/Stage
 `.worktrees/varentropy-expansion-fusion-v1/docs/research_notes/VARENTROPY_EXPANSION_STAGE2_INTERIM_2026-09-12.md` and
 `.worktrees/rbm-literature-completion-v1/results/rbm_literature_completion_v1/depth_amended/LOSS_BREAKDOWN_CORRECTION_20260913.json`.
 Still running: joint pass (B2_sel/B2d_sel Joint L-SML), full window-sampling run (Stage 1 open until its review).
+- 2026-09-13 10:13: full window-sampling run COMPLETE_REVIEWED_FULL_SAMPLING; supervisor finished (reflection built,
+  Step332 completion block inserted). **Stage 1 is COMPLETE.** Sampling replication: no selector changes PB or
+  within-answer AUC on the full population; risk-top / entropy-tails raise pooled AUC only (+0.030 / +0.026).
+- 2026-09-13 morning: Stage 2 joint pass COMPLETE + reviewed (Joint L-SML on B2_sel/B2d_sel): Joint edges IU on the same
+  bank (B2d_sel +0.40 pp [-0.00,+0.81], within +0.0036; B2_sel +0.42 pp [+0.05,+0.79], within +0.0023); products still hurt
+  under Joint (-0.78 pp); no expansion arm with the selected block reaches entropy/varentropy15 on PB. Two Joint arms on the
+  non-selected banks deferred. Stage 2 evidence complete pending PNG review; Stage 3 design awaits Omri's review.
 
 
 ## One readable RBM comparison across experiments - 2026-09-12

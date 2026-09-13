@@ -1,5 +1,14 @@
 # Research Directions — Thesis Roadmap
 
+## Update 2026-09-13 (Claude): Stage 3 Renyi combination
+
+- Fusing several Renyi orders of the top-15 head does not beat the best single order on the 13,769-answer benchmark
+  (all fused arms below the H0.1 view on within-AUC with intervals excluding zero; PB intervals include zero).
+- The tail-sensitive order alpha=0.1 is the strongest answer-local single stream on within-AUC/PRMScore
+  (0.7425 / 0.633); PB is not improved. Single-endpoint lead, not a winner; readout/gate remain the PB bottleneck.
+- Joint L-SML (tail/head/selected groups) pending; Stage 2 products closed; H1 (single-unit / linear) focus.
+
+
 ## Update 2026-09-13 (Claude): Stage 1/2 findings and corrections
 
 - Codex RBM program completed and accounted for (HISTORY Steps 356/357): learned fusion has not shown a consistent

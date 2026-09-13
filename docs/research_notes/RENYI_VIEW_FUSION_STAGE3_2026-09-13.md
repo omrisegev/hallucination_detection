@@ -86,5 +86,9 @@ H0.1 − H0.25: PB −0.15 [−0.40, +0.09], within +0.0011 [+0.0003, +0.0019].
    its fit quality on the smoke (converged 56 %, multistart PASS 56 %, condition > 1e12 on 11 %) is the
    same pattern as Stage 2; its result will be appended to the table when complete.
 
-Status: fast pass COMPLETE; independent replay review and figure review: see `fast_pass/RESULT_REVIEW.json`
-and `fast_pass/REVIEW_FIGURES/REVIEW.md`; Joint pass RUNNING.
+Status: fast pass COMPLETE. Independent replay review PASS (`fast_pass/RESULT_REVIEW.json`: 13,769 answers
+replayed, 165,228 checks, 16 metric bundles re-derived; the evaluate-only driver change is recorded and
+accepted against the checkpoint's stored hash). Figure review PASS WITH CAVEATS (`fast_pass/REVIEW_FIGURES/`,
+5 PNG, checks (a)–(j) all pass; caveats: Joint arm absent from this pass; near-collinear R6 columns;
+shrink alpha at 1 on 16 %; fused pooled/PRMScore below the entropy row through per-answer normalization).
+Joint pass RUNNING (`joint_pass/`, ≈2.1 s/answer at 4 workers; ≈8 h projected on a contended machine).
