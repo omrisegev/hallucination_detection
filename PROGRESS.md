@@ -1,5 +1,14 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Claude Stage 3b - 2026-09-13 (alpha sweep + escort varentropy: complete and reviewed)
+
+Renyi order has no interior optimum: within-AUC rises as alpha -> 0; the limit view (mean log q over the top-15)
+0.7440 within. Escort varentropy with uniform weights (VE_0, sign reversed) is the best answer-local single stream on
+PRMB (within 0.7534 / pooled 0.7231 / PRMScore 0.6355); VE_0.75 has the highest PB (36.76, intervals include 0).
+Nothing promoted; label-guided development sweep. Joint L-SML arm of Stage 3 still running. HISTORY Step 359;
+`.worktrees/varentropy-expansion-fusion-v1/docs/research_notes/RENYI_ALPHA_SWEEP_STAGE3B_2026-09-13.md`.
+
+
 ## Claude Stage 3 - 2026-09-13 (Renyi-order combination v2: fast pass complete, Joint pass running)
 
 Combining Renyi orders (alpha 0.1..inf, R6/R6+SEL, equal/IU/shrink) does not beat the best single order; the single

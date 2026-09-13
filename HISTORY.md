@@ -18580,3 +18580,23 @@ single order H0.1 has the highest within-AUC (0.7425) and PRMScore (0.633) of an
 +0.0124 [+0.0100, +0.0149] within, PB −0.07 pp (incl. 0); vs varentropy15 (post hoc) within +0.0047 [+0.0016,
 +0.0079], PB −0.59 [−1.72, +0.53]. Within-AUC is monotone in α. A representation finding on one endpoint, not a
 winner. Note: `docs/research_notes/RENYI_VIEW_FUSION_STAGE3_2026-09-13.md`.
+
+---
+
+### Step 359 [Claude Stage 3b] — Rényi-order sweep and escort varentropy (2026-09-13)
+
+**What**: Omri authorized a sweep for the optimal α and asked whether a varentropy with the same (escort) weights
+exists. 31 single-view arms on all 13,769 answers under the frozen contract: H_α for α ∈ {0.001 … 8, ∞} plus the
+analytic α→0 limit (mean log q over the top-15), and the escort varentropy VE_α = Σ w s² − (Σ w s)², w ∝ q^α
+(α ∈ {0 … 8}; VE_1 = frozen varentropy15, asserted), anchor-oriented per answer (flip recorded). Replay review PASS
+(426,839 checks), figure review PASS WITH CAVEATS (5 PNG), fold/cell selection-stability analysis
+(`results/renyi_alpha_sweep_v1/SELECTION.md`). Note: `docs/research_notes/RENYI_ALPHA_SWEEP_STAGE3B_2026-09-13.md`.
+**Why**: Stage 3 found within-AUC monotone in α with no interior optimum inside {0.1 … ∞}.
+**Result**: No interior optimum: within-AUC rises monotonically as α → 0 and the limit view (mean head surprisal)
+is the best H member (0.7440; +0.0139 vs entropy, +0.0062 vs varentropy15, intervals exclude 0; PB unchanged, all
+intervals include 0; region α ≤ 0.05 flat; argmax at the limit on every fold). Escort varentropy with uniform
+weights (VE_0, sign reversed on 100 % of answers) is the best answer-local single stream on all three PRMB
+endpoints (within 0.7534, pooled 0.7231, PRMScore 0.6355; +0.0156 within vs varentropy15, excl. 0), PB 35.57
+(−0.39 vs varentropy15, incl. 0). VE_0.75 has the highest PB measured for an answer-local stream (36.76; +0.80 vs
+varentropy15 [−0.20, +1.81], +1.32 vs entropy [−0.05, +2.71]) with lower within-AUC (−0.0055, excl. 0). Two
+label-free views pull in different directions; neither meets the two-endpoint rule. Development evidence only.

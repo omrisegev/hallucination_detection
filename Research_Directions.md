@@ -1,5 +1,14 @@
 # Research Directions — Thesis Roadmap
 
+## Update 2026-09-13 (Claude): Stage 3b alpha sweep
+
+- Renyi entropy: within-AUC monotone in alpha, best at the alpha->0 limit (mean head surprisal, 0.7440); PB flat.
+- Escort varentropy VE_0 (uniform weights, reversed sign): within 0.7534 / PRMScore 0.6355, the best answer-local
+  single stream on PRMB; VE_0.75: PB 36.76 (highest answer-local PB point; intervals include 0), lower within.
+- Two candidate representations pull in different directions; readout/gate remain the PB bottleneck. Nothing
+  promoted; a selection rule must be frozen before any untouched confirmation.
+
+
 ## Update 2026-09-13 (Claude): Stage 3 Renyi combination
 
 - Fusing several Renyi orders of the top-15 head does not beat the best single order on the 13,769-answer benchmark
