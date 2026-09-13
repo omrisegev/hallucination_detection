@@ -1,5 +1,17 @@
 # Research Directions — Thesis Roadmap
 
+## Update 2026-09-13 (Claude): Stage 1/2 findings and corrections
+
+- Codex RBM program completed and accounted for (HISTORY Steps 356/357): learned fusion has not shown a consistent
+  overall advantage on the 13,769-answer localization benchmark; representation, optimization, normalization and readout
+  remain partly entangled (readout confound inside several primaries; exact-H4 limited by the registered budget).
+- Cross-rank varentropy expansion (Stage 2): adding the cross-rank products lowers both endpoints under IU-PCR
+  (-0.80 pp [-1.31, -0.30]; within -0.0066); no detected advantage under supervision either. Joint arms pending.
+- Corrections applied 2026-09-13 (calibration leakage in supervised PRMScore, exclusive loss categories, smoke rule,
+  input contract, wording); earlier supervised RBM correction arms carry the same PRMScore calibration dependency (flagged).
+- Renyi views (Stage 3) prototype: H2/H4/H-inf collapse to -log p1; design waits for the Stage-2 review.
+
+
 ## Comparison presentation repair - 2026-09-12
 
 Use results/rbm_literature_completion_v1/RBM_FUSION_COMPARISON.csv for the

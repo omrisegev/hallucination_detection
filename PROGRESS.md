@@ -1,5 +1,14 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Claude corrections - 2026-09-13 (Codex review findings verified; all five confirmed and corrected)
+
+Supervised PRMScore recalibrated held-fold-blind (delta -5.5e-5 / +2.8e-4); depth loss categories made exclusive (no point
+score changed); supervised smoke rule and input contract hardened; account/Stage-2 wording corrected. See HISTORY Step 357,
+`.worktrees/varentropy-expansion-fusion-v1/docs/research_notes/VARENTROPY_EXPANSION_STAGE2_INTERIM_2026-09-12.md` and
+`.worktrees/rbm-literature-completion-v1/results/rbm_literature_completion_v1/depth_amended/LOSS_BREAKDOWN_CORRECTION_20260913.json`.
+Still running: joint pass (B2_sel/B2d_sel Joint L-SML), full window-sampling run (Stage 1 open until its review).
+
+
 ## One readable RBM comparison across experiments - 2026-09-12
 
 The current-suite COMPARISON.csv alone omitted prior completed RBM families.
