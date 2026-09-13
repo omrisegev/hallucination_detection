@@ -119,6 +119,15 @@ systematic across both families. On PB the no-error gate is identical across arm
   VE_1 0.279). On PRMBench the same crossover is large: first-third errors VE_1 0.691 / VE_0.75 0.689 versus VE_0
   0.681; last-third errors VE_0 0.785 versus VE_1 0.752 / VE_0.75 0.748. Per-answer AUC correlation VE_0 vs VE_0.75
   is 0.80; VE_0 is better by > 0.1 on 22.7 % of answers and worse by > 0.1 on 15.7 %.
+* **What "union" is (Omri, 2026-09-13).** The union is NOT a fusion and NOT an algorithm: it is a label-using
+  ceiling. An erroneous PB answer counts as "hit by the union" if at least one of the listed views points at the
+  labelled first-error step; it is the accuracy an oracle would reach by choosing, per answer, which view to
+  trust. No weights were learned and nothing was combined; the procedure was: (1) take the saved step scores of
+  each single view; (2) predicted step = argmax unless the shared gate says no-error; hit = predicted == labelled
+  first-error step; (3) per pair count both / only A / only B / neither (Jaccard, union); (4) split by
+  first-error position; (5) PRMB: per-answer within-AUC per view, correlations, split by first-error position.
+  The union bounds what any combination of these views could reach on PB (41.0 % for the five leading views vs
+  27.8 % for the best single view); a label-free fusion can recover only part of that gap.
 * Reading: a tail-sensitive order (α → 0, "how flat is the head") tracks errors that appear after a long correct
   prefix; a head-sensitive order (α ≥ 0.75, dominated by the top token) tracks errors at the very start. This is
   the first concrete evidence that two label-free streams carry position-complementary information, and it is

@@ -18600,3 +18600,10 @@ endpoints (within 0.7534, pooled 0.7231, PRMScore 0.6355; +0.0156 within vs vare
 (−0.39 vs varentropy15, incl. 0). VE_0.75 has the highest PB measured for an answer-local stream (36.76; +0.80 vs
 varentropy15 [−0.20, +1.81], +1.32 vs entropy [−0.05, +2.71]) with lower within-AUC (−0.0055, excl. 0). Two
 label-free views pull in different directions; neither meets the two-endpoint rule. Development evidence only.
+
+**Addendum (complementarity, post hoc):** the leading views find different errors by position. Large α (H_8, H_∞,
+VE_0.75, VE_1) is best for early first errors (PB step 0: VE_0.75 0.333 vs VE_0 0.246); small α (VE_0, H0lim) for
+late ones (PB last third: VE_0 0.296 vs H_∞ 0.264; PRMB last-third within-AUC VE_0 0.785 vs VE_1 0.752). VE_0 vs
+VE_0.75 PB hit sets: 828 both / 342 only VE_0 / 407 only VE_0.75 (Jaccard 0.53). The "union" figures (35.5 % for the
+pair, 41.0 % for five views) are label-using oracle ceilings (any view hits), not a fusion result; no weights were
+learned. Files: `results/renyi_alpha_sweep_v1/COMPLEMENTARITY*.{md,json,png}`; scripts `renyi_sweep_complementarity*.py`.
