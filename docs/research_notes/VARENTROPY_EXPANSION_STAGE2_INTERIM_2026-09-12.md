@@ -173,7 +173,8 @@ no held-fold label is consumed; perturbation test (B2d_sel, fold 0, all 19,415 k
 | supervised B2_sel | 0.629387 | 0.629332 | −0.000055 |
 | supervised B2d_sel | 0.629090 | 0.629366 | +0.000277 |
 
-Thresholds moved by up to +0.022 (fold 1) and −0.015 (fold 4) in both banks, in both directions; the
+Thresholds moved in both directions: B2_sel up to +0.022 (fold 1) and −0.015 (fold 4), B2d_sel +0.016 (fold 1) and
+−0.012 (fold 4); the
 PRMScore effect is measured, not assumed. The original values above in this note are superseded by the
 corrected ones for any comparison; PB and within-AUC are numerically identical in both evaluations.
 
