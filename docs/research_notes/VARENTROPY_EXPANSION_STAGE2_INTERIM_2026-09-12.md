@@ -3,9 +3,8 @@
 Status: **Stage 2 OPEN.** (2026-09-13: the supervised PRMScore calibration was re-evaluated under a corrected, separately
 identified procedure — see the correction section; corrected values supersede the original ones.) The 19 non-Joint arms are scored on all 13,769 answers with independent
 replay PASS (`results/varentropy_expansion_fusion_v1/fast_pass/RESULT_REVIEW.json`: 261,611 arm
-checks, 69 input/code hashes). The two Joint L-SML arms on the primary banks are running
-(`joint_pass/`, ~14–20 h estimate at 4 workers); the two Joint arms on the non-selected banks are
-deferred for compute (pending, not dropped). The supervised step-level diagnostic is complete (see below).
+checks, 69 input/code hashes). The two Joint L-SML arms on the primary banks are complete (`joint_pass/`, see the Joint section);
+the two Joint arms on the non-selected banks are deferred for compute (pending, not dropped). The supervised step-level diagnostic is complete (see below).
 Protocol: `docs/experiments/VARENTROPY_EXPANSION_FUSION_V1.md`. Figures and independent checks:
 `fast_pass/REVIEW_FIGURES/` (6 PNG, `REVIEW.md`, `CHECKS.json`; every recomputed macro and the
 primary within-AUC delta match the saved metrics).
@@ -121,6 +120,35 @@ within-answer ranking above every unsupervised row, but on ProcessBench exact lo
 labelled linear score on this bank does not separate from entropy or varentropy. This is a
 diagnostic with different access; it bounds neither the unsupervised methods nor the quadratic
 feature class in general.
+
+## Joint L-SML arms on the primary banks — COMPLETE (2026-09-13; joint_pass/, review status in RESULT_REVIEW.json)
+
+Joint L-SML (fit_joint_lsml, 5 starts, model-inverse map at lambda 0; groups = term-type x rank-block, SEL its own group)
+on B2d_sel (7 groups) and B2_sel (13 groups); all 13,769 answers, 0 declared failures; converged 99.6% / 99.5%
+(non-converged fits scored and flagged); model-covariance condition above 1e12 on 1.6% / 5.6% of answers (absorbed by
+the analytic ridge); n<p fits 1 / 705; fit time median 0.8 s / 3.7 s per answer. The two Joint arms on the non-selected
+banks (B2, B2d) remain deferred for compute.
+
+| Arm | PB all-8 % | PRMB within | PRMScore |
+|---|---:|---:|---:|
+| B2d_sel: IU / Joint | 34.75 / 35.15 | 0.7336 / 0.7371 | 0.618 / 0.620 |
+| B2_sel: IU / Joint | 33.95 / 34.37 | 0.7270 / 0.7293 | 0.616 / 0.617 |
+
+Architecture (Joint minus IU, same bank; 95%): B2d_sel +0.40 pp [-0.00, +0.81], within +0.0036 [+0.0022, +0.0049];
+B2_sel +0.42 pp [+0.05, +0.79], within +0.0023 [+0.0013, +0.0034]. Joint minus shrink is of the same size (shrink is IU on
+the joint target). A small, interval-supported within-answer gain and a ProcessBench point gain at the edge of its
+interval: evidence of a modest architecture effect on this bank, not a candidate (both Joint arms stay below the
+references). Bank (Joint, B2_sel minus B2d_sel): -0.78 pp [-1.29, -0.30], within -0.0079 [-0.0100, -0.0058] — the
+cross-rank products lower both endpoints under Joint as they do under IU, shrink and oriented equal. Versus references:
+B2d_sel Joint vs entropy PB -0.29 pp [-1.09, +0.50] (inconclusive), within +0.0070 [+0.0038, +0.0103] (higher); vs
+varentropy15 PB -0.81 pp [-2.00, +0.36] (inconclusive), within -0.0006 [-0.0051, +0.0037] (inconclusive). B2_sel Joint
+vs entropy -1.07 pp [-1.94, -0.21] (lower).
+
+Stage-2 reading with the Joint arms in: under all four registered solvers the cross-rank products reduce ProcessBench
+exact localization and PRMBench within-answer ranking relative to the diagonal terms; Joint L-SML is the best solver on
+both expansion banks by a small margin, but no expansion arm carrying the selected block reaches token entropy or
+varentropy15 on ProcessBench. Unresolved: the two deferred Joint arms (B2, B2d), the untouched-cohort check that no
+development row has, and the secondary observation about the identity-sign diagonal arm without the selected block.
 
 ## Correction 2026-09-13 — supervised PRMScore calibration, smoke rule, input contract
 
