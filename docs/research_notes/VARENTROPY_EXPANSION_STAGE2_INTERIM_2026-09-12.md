@@ -1,6 +1,7 @@
 # Stage 2 interim — varentropy-expansion (cross-rank) fusion v1, fast pass (Claude, 2026-09-12)
 
-Status: **Stage 2 OPEN.** The 19 non-Joint arms are scored on all 13,769 answers with independent
+Status: **Stage 2 OPEN.** (2026-09-13: the supervised PRMScore calibration was re-evaluated under a corrected, separately
+identified procedure — see the correction section; corrected values supersede the original ones.) The 19 non-Joint arms are scored on all 13,769 answers with independent
 replay PASS (`results/varentropy_expansion_fusion_v1/fast_pass/RESULT_REVIEW.json`: 261,611 arm
 checks, 69 input/code hashes). The two Joint L-SML arms on the primary banks are running
 (`joint_pass/`, ~14–20 h estimate at 4 workers); the two Joint arms on the non-selected banks are
@@ -87,8 +88,12 @@ cached development data, not an untouched test; no localization improvement is c
 The specific claim tested — that exposing the varentropy expansion's cross-rank products to learned
 fusion lets the fusion re-weight them usefully — is not supported at this benchmark under IU-PCR,
 shrinkage IU-PCR or equal weights: the products reduce both ProcessBench exact localization and
-PRMBench within-answer ranking relative to the diagonal terms, and no expanded bank reaches the raw
-varentropy or the Step-339 contribution arms. What remains open in Stage 2: the Joint L-SML arms
+PRMBench within-answer ranking relative to the diagonal terms, and no expanded bank carrying the selected
+block reaches the raw varentropy or the Step-339 contribution arms. The one expanded arm above the raw
+reference on points, identity-sign equal on the diagonal bank without the selected block (36.06 / 0.7464),
+is inconclusive on ProcessBench (+0.10 pp [−0.74, +0.96] vs varentropy15) and higher on within-answer AUC
+(+0.0086 [+0.0060, +0.0112]) while trailing the contribution-equal arm (0.7470); it contains no cross-rank
+product and therefore does not bear on the cross-rank claim (correction 2026-09-13 of an over-broad sentence). What remains open in Stage 2: the Joint L-SML arms
 (pending), the supervised matched diagnostic (pending; a diagnostic, not a ceiling), and the
 secondary observation that the identity-sign diagonal arm without the selected block tracks the
 contribution-equal level.
@@ -106,8 +111,9 @@ converged, 23 at the iteration limit, 0 stalled). Same gate, readout and evaluat
 | supervised B2_sel | 36.30 | 0.7531 | 0.629 |
 
 Paired (frozen evaluator, 10,000 draws; `supervised/CONTRASTS.json`): B2_sel − B2d_sel **+0.27 pp
-[−0.53, +1.08], within +0.0001 [−0.0009, +0.0010]** (97.5%) — the cross-rank products add nothing
-even when the coefficients are fitted with labels. Supervised B2_sel vs unsupervised B2_sel IU:
+[−0.53, +1.08], within +0.0001 [−0.0009, +0.0010]** (97.5%) — no detected advantage of the cross-rank products under this protocol even when the
+coefficients are fitted with labels (an inconclusive difference, not a demonstrated zero; correction
+2026-09-13 of the earlier wording). Supervised B2_sel vs unsupervised B2_sel IU:
 +2.35 pp [+1.17, +3.52], within +0.026 [+0.023, +0.030]; vs token entropy: +0.85 pp [−0.21, +1.94],
 within +0.023 [+0.019, +0.027]; vs varentropy15: +0.34 pp [−0.80, +1.48], within +0.015 [+0.011,
 +0.019]. Reading: labels recover the loss the expanded bank suffers under answer-local IU and lift
@@ -115,6 +121,49 @@ within-answer ranking above every unsupervised row, but on ProcessBench exact lo
 labelled linear score on this bank does not separate from entropy or varentropy. This is a
 diagnostic with different access; it bounds neither the unsupervised methods nor the quadratic
 feature class in general.
+
+## Correction 2026-09-13 — supervised PRMScore calibration, smoke rule, input contract
+
+Confirmed defect (Codex review, verified by Claude): the q=0.8 PRMScore threshold for held fold f was
+taken from saved scores of folds g≠f produced by models trained WITH fold f's labels, so test-fold
+labels could reach the threshold; the train/test group-disjointness assertion did not cover this
+model-training dependency. ProcessBench (fixed entropy gate) and within-answer AUC of the supervised
+arms are unaffected; unsupervised arms are unaffected (no labels in fitting).
+
+Corrected, separately identified evaluation (`supervised/correction_20260913/`, protocol
+`docs/experiments/VARENTROPY_EXPANSION_SUPERVISED_CORRECTION_20260913.md`): for each bank, held fold
+f and inner fold h≠f, a model fitted on folds ∉ {f,h} scores fold h (same fit, labels, ridge); q_f is
+the 0.8-quantile of these inner out-of-fold scores of the outer-training answers; fold f is scored
+by the existing saved outer fit (trained on folds ≠ f; reused, not refit); thresholds are passed
+explicitly to the frozen evaluator. All 40 inner fits converged. Provenance: every contributing
+model's training source groups are listed and none intersects the held fold; index-level check that
+no held-fold label is consumed; perturbation test (B2d_sel, fold 0, all 19,415 known labels flipped,
+4 refits) gives bit-identical theta, calibration scores and q_f.
+
+| Bank | PRMScore original | corrected | Δ |
+|---|---:|---:|---:|
+| supervised B2_sel | 0.629387 | 0.629332 | −0.000055 |
+| supervised B2d_sel | 0.629090 | 0.629366 | +0.000277 |
+
+Thresholds moved by up to +0.022 (fold 1) and −0.015 (fold 4) in both banks, in both directions; the
+PRMScore effect is measured, not assumed. The original values above in this note are superseded by the
+corrected ones for any comparison; PB and within-AUC are numerically identical in both evaluations.
+
+Smoke rule: the original rule returned PASS for any run whose fits were FIT/FAILED/STALLED; replaced by
+FIT / FIT_ITERATION_LIMIT / EXPECTED_SMOKE_LIMITATION / STALLED / UNEXPECTED_FAILURE with PASS only if
+every bank has a successful fit and no stalled or unexpected failure, INCONCLUSIVE for expected
+limitations only, FAIL otherwise; tests added (an all-failed or unexpected-failure run cannot PASS). The
+original smoke re-run under the new rule gives identical 90 outcomes and status FAIL (6 stalled fits on
+1–2-answer training folds). Full run fit health re-verified: 90 fits, 67 converged, 23 at the iteration
+limit (all B2_sel ProcessBench folds; every PRMBench fit converged), 0 stalled.
+
+Input contract: the supervised manifest now hashes the raw source pickles and the driver verifies
+uid/row mapping, exact step boundaries against the frozen benchmark, token counts and top-k/selected
+alignment, and records per-answer provenance; a differing manifest is refused with the differing keys
+named (tests: changed boundary with equal step count and changed source artifact are detected). For
+the completed run, `CACHE_VERIFICATION.json` re-derives every cached span from the frozen benchmark
+(13,769/13,769 match, 0 mismatches); the raw-source hashes recorded now describe the current files and
+are not proof of the extraction-time state, which was not recorded.
 
 ## Stage 3 (Rényi) — prototype status, design pending review
 
