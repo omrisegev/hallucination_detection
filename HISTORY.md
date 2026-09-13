@@ -18510,3 +18510,82 @@ units. The317-row raw alias ledger is preserved. Near-max and supervised/other-
 answer corrections are marked as diagnostics. New full suites and DUFS enter
 only after required completion/reviews. This repairs presentation, not models
 or results; live capacity and DUFS scorers were untouched.
+
+
+## Claude handoff: verified final DUFS and stopped queue - 2026-09-12
+
+DUFS COMPLETE13769/13769, metric and state reviews PASS; actual completion
+2026-09-12 04:46:51 Israel. V/C/T suites also COMPLETE13769 and full review PASS.
+DUFS trained PB36.1235%, within .740974, PRMScore .626847. Against all12 trained,
+within +.002273 CI97.5[.000990,.003543], PB -.2516pp CI[-.8346,.3144]. No clear
+advantage over low-correlation6 and no automatic DUFS integration.
+
+Queue exited05:49:35; no Python processes found in elevated process audit at
+handoff. Stability smoke27 PASS, separate review/full pending. Depth smoke
+FAIL:6/27 answers,14 model records, fewer than three varying hidden views.
+Do not blindly restart queue or silently change the failed depth protocol.
+
+Capacity interpretation warning: exact4 nonconverged13769/13769 bank12 and
+13768/13769 bank6. Its large losses do not isolate capacity from optimization.
+CD has a fixed epoch budget, not a convergence PASS; H1 posterior has a local
+AUC gain but worse PRMScore. Temporal actual order loses within-answer AUC
+against shuffle in both retained banks; no demonstrated chronological gain.
+
+Full handoff (in source root, not only this worktree):
+../../docs/research_notes/CODEX_TO_CLAUDE_HANDOFF_2026-09-12.md
+Fresh machine snapshot: results/rbm_literature_completion_v1/HANDOFF_STATUS_20260912.json.
+Readable comparison now106 rows including reviewed DUFS, capacity and temporal.
+The handoff turn refreshed inventories/docs only; no models or jobs restarted.
+The full authorized program remains INCOMPLETE. Generated outputs and these
+latest documents include uncommitted files; preserve them when transferring.
+
+---
+
+### Step 356 [Claude Stage 1] — Codex RBM program completed: stability, capacity interpretation, amended depth (2026-09-12)
+
+**What**: Resumed the stalled full window-sampling run (checkpoint review PASS, unchanged supervisor); ran the RBM
+stability suite (full 13,769, review PASS); interpreted the capacity suite (all exact-H4 fits stopped at the registered
+maxiter-100 cap; saturation is the unit condition; 27-answer maxiter-1000 probe = feasibility only); diagnosed the depth
+smoke failures (sigmoid saturation of two of four first-layer units) and measured the original second layer with declared
+COLLAPSED_HIDDEN_VIEWS failures (140 / 353) beside registered logit-input variants (full, review PASS). Independent
+figure review (7 PNG, 260 checks). Account: `.worktrees/rbm-literature-completion-v1/docs/research_notes/RBM_PROGRAM_STAGE1_ACCOUNT_2026-09-12.md`.
+**Why**: Omri's staged mandate (finish and account for the Codex work before new directions).
+**Result**: H1 start-invariant; best-of-3 H4 lowers PB (−0.61 / −1.33 pp); stacked second layer below the single-unit
+layer on 15/16 endpoints even after the logit amendment. Learned fusion has not shown a consistent overall advantage;
+representation / optimization / normalization / readout remain partly entangled. Stage 1 stays OPEN until the sampling
+run reaches its reviewed end (restarted 09-12 23:40 after a Windows file-replace race; ~6,200/13,769 on 09-13 morning).
+
+---
+
+### Step 356b [Claude Stage 2] — varentropy-expansion (cross-rank) fusion v1: fast pass, supervised diagnostic (2026-09-12/13)
+
+**What**: Omri's definition V = Σ q_i s_i² − Σ q_i q_j s_i s_j exposed as 15 D + 15 P_ii + 105 P_ij columns (+ selected
+block); identity reproduces varentropy15 to 8.5e-12; Step-339 bank replays exactly; 19 non-Joint arms scored on all
+13,769 (review PASS, 261,611 checks; 6 PNG review); supervised matched step-level diagnostic; Joint arms on the primary
+banks running (joint_pass), the two non-selected-bank Joint arms deferred for compute.
+**Result**: primary B2_sel__iu − B2d_sel__iu = PB −0.80 pp [−1.31, −0.30], within −0.0066 [−0.0089, −0.0044] (97.5%):
+adding the cross-rank products lowers both endpoints under IU-PCR (same sign under shrink and oriented equal). No
+expanded bank carrying the selected block reaches entropy or varentropy15; the identity-sign diagonal arm without the
+selected block matches varentropy15 on PB (inconclusive) and exceeds it on within-AUC while containing no product.
+Supervised: no detected advantage of the products (+0.27 pp [−0.53, +1.08]). Note:
+`.worktrees/varentropy-expansion-fusion-v1/docs/research_notes/VARENTROPY_EXPANSION_STAGE2_INTERIM_2026-09-12.md`.
+
+---
+
+### Step 357 [Claude corrections] — Codex review findings verified and corrected (2026-09-13)
+
+**What**: Five findings independently verified against current code and saved artifacts, all confirmed: (1) supervised
+PRMScore threshold for held fold f used scores from models trained with f's labels → corrected, separately identified
+evaluation with inner out-of-fold calibration, explicit thresholds, provenance trace and a label-perturbation test
+(B2_sel 0.629387 → 0.629332; B2d_sel 0.629090 → 0.629366; PB/within identical); (2) depth loss categories overlapped
+(failed answer with peak = −1 counted as early) → mutually exclusive categories with a sum assertion, 16/40 comparisons
+re-tabulated, no point score changed, other suites unaffected; (3) supervised smoke rule could PASS an all-failed run →
+replaced (original smoke now FAIL: 6 stalled fits on 1–2-answer folds), tests added; (4) supervised manifest/extract
+below the benchmark contract → raw-source hashes, exact boundary/identity/alignment checks, provenance, named manifest
+mismatch; completed run's cached spans re-verified 13,769/13,769; (5) number/wording errors in the account and the
+Stage-2 note corrected (CD-H1 bank attribution; RBM12 PRMScore below varentropy15; endpoint-specific statement for the
+diagonal identity-sign arm; "no detected advantage" instead of "add nothing").
+**Why**: repair the evidence before it is used to choose the next experiment.
+**Result**: no scientific definition changed; conclusions unchanged except the tightened wording. The same calibration
+dependency exists in Codex's earlier supervised RBM correction arms (rbm-supervision-matched, first-error); their
+PRMScore values are flagged, not re-evaluated here.

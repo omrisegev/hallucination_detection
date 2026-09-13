@@ -1,5 +1,45 @@
 # Research Directions — Thesis Roadmap
 
+## Update 2026-09-13 (Claude): Stage 1/2 findings and corrections
+
+- Codex RBM program completed and accounted for (HISTORY Steps 356/357): learned fusion has not shown a consistent
+  overall advantage on the 13,769-answer localization benchmark; representation, optimization, normalization and readout
+  remain partly entangled (readout confound inside several primaries; exact-H4 limited by the registered budget).
+- Cross-rank varentropy expansion (Stage 2): adding the cross-rank products lowers both endpoints under IU-PCR
+  (-0.80 pp [-1.31, -0.30]; within -0.0066); no detected advantage under supervision either. Joint arms pending.
+- Corrections applied 2026-09-13 (calibration leakage in supervised PRMScore, exclusive loss categories, smoke rule,
+  input contract, wording); earlier supervised RBM correction arms carry the same PRMScore calibration dependency (flagged).
+- Renyi views (Stage 3) prototype: H2/H4/H-inf collapse to -log p1; design waits for the Stage-2 review.
+
+
+## Claude handoff: verified final DUFS and stopped queue - 2026-09-12
+
+DUFS COMPLETE13769/13769, metric and state reviews PASS; actual completion
+2026-09-12 04:46:51 Israel. V/C/T suites also COMPLETE13769 and full review PASS.
+DUFS trained PB36.1235%, within .740974, PRMScore .626847. Against all12 trained,
+within +.002273 CI97.5[.000990,.003543], PB -.2516pp CI[-.8346,.3144]. No clear
+advantage over low-correlation6 and no automatic DUFS integration.
+
+Queue exited05:49:35; no Python processes found in elevated process audit at
+handoff. Stability smoke27 PASS, separate review/full pending. Depth smoke
+FAIL:6/27 answers,14 model records, fewer than three varying hidden views.
+Do not blindly restart queue or silently change the failed depth protocol.
+
+Capacity interpretation warning: exact4 nonconverged13769/13769 bank12 and
+13768/13769 bank6. Its large losses do not isolate capacity from optimization.
+CD has a fixed epoch budget, not a convergence PASS; H1 posterior has a local
+AUC gain but worse PRMScore. Temporal actual order loses within-answer AUC
+against shuffle in both retained banks; no demonstrated chronological gain.
+
+Full handoff (in source root, not only this worktree):
+../../docs/research_notes/CODEX_TO_CLAUDE_HANDOFF_2026-09-12.md
+Fresh machine snapshot: results/rbm_literature_completion_v1/HANDOFF_STATUS_20260912.json.
+Readable comparison now106 rows including reviewed DUFS, capacity and temporal.
+The handoff turn refreshed inventories/docs only; no models or jobs restarted.
+The full authorized program remains INCOMPLETE. Generated outputs and these
+latest documents include uncommitted files; preserve them when transferring.
+
+
 ## Comparison presentation repair - 2026-09-12
 
 Use results/rbm_literature_completion_v1/RBM_FUSION_COMPARISON.csv for the

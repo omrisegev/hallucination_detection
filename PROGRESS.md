@@ -1,5 +1,14 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Claude corrections - 2026-09-13 (Codex review findings verified; all five confirmed and corrected)
+
+Supervised PRMScore recalibrated held-fold-blind (delta -5.5e-5 / +2.8e-4); depth loss categories made exclusive (no point
+score changed); supervised smoke rule and input contract hardened; account/Stage-2 wording corrected. See HISTORY Step 357,
+`.worktrees/varentropy-expansion-fusion-v1/docs/research_notes/VARENTROPY_EXPANSION_STAGE2_INTERIM_2026-09-12.md` and
+`.worktrees/rbm-literature-completion-v1/results/rbm_literature_completion_v1/depth_amended/LOSS_BREAKDOWN_CORRECTION_20260913.json`.
+Still running: joint pass (B2_sel/B2d_sel Joint L-SML), full window-sampling run (Stage 1 open until its review).
+
+
 ## Claude Stage-1 interim handoff - 2026-09-12 evening (Stage 1 OPEN)
 
 Omri's staged mandate is being executed in parallel tracks; account and tables:
@@ -12,6 +21,10 @@ Omri's staged mandate is being executed in parallel tracks; account and tables:
 - Stage 2 cross-rank fusion: protocol frozen, reviewed, full run launched (3 workers) in
   .worktrees/varentropy-expansion-fusion-v1 (branch claude/varentropy-expansion-fusion-v1, uncommitted).
 - Stage 3 Renyi: prototype + DRAFT only; design waits for Stage-2 review.
+- 2026-09-12 late: Stage 2 fast pass COMPLETE + reviewed (19 non-Joint arms): primary B2_sel__iu - B2d_sel__iu
+  = PB -0.80 pp [-1.31,-0.30], within -0.0066 [-0.0089,-0.0044]; no expanded bank reaches entropy/varentropy15.
+  Note: .worktrees/varentropy-expansion-fusion-v1/docs/research_notes/VARENTROPY_EXPANSION_STAGE2_INTERIM_2026-09-12.md
+  Joint pass (B2_sel/B2d_sel) running ~14-20 h; supervised diagnostic running; Renyi prototype smoke complete.
 Do not restart the sampling supervisor while its driver (pid in RUN_STATE) is alive; checkpoints resume.
 
 
