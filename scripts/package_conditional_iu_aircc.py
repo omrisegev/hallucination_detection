@@ -41,9 +41,12 @@ def main():
     args.output.with_suffix('.manifest.json').write_text(json.dumps(manifest,indent=2))
     # Test the ACTUAL archive away from the checkout. -I prevents PYTHONPATH or
     # the source working directory from hiding missing nested helper modules.
-    with tempfile.TemporaryDirectory(prefix='bundle_import_',dir=args.output.parent) as temporary:
+    # A short system-temp path avoids Windows MAX_PATH for historical long
+    # protocol names; the verified temporary root also bounds automatic cleanup.
+    temporary_root=Path(tempfile.gettempdir()).resolve()
+    with tempfile.TemporaryDirectory(prefix='ciu_',dir=temporary_root) as temporary:
         temporary=Path(temporary).resolve()
-        assert temporary.is_relative_to(args.output.parent.resolve())
+        assert temporary.is_relative_to(temporary_root)
         with tarfile.open(args.output,'r:gz') as archive:archive.extractall(temporary,filter='data')
         probe=subprocess.run([sys.executable,'-I','-B',str(temporary/'code/scripts/test_conditional_iu_driver.py')],
                              cwd=temporary,capture_output=True,text=True,check=True)
