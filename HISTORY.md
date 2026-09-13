@@ -17631,6 +17631,12 @@ single order H0.1 has the highest within-AUC (0.7425) and PRMScore (0.633) of an
 +0.0079], PB −0.59 [−1.72, +0.53]. Within-AUC is monotone in α. A representation finding on one endpoint, not a
 winner. Note: `docs/research_notes/RENYI_VIEW_FUSION_STAGE3_2026-09-13.md`.
 
+**Addendum (2026-09-14, Joint pass complete):** R6_sel Joint L-SML (tail/head/selected groups) 35.49 / 0.7380 / 0.5915,
+coverage 100 %, converged 68.6 %; vs IU on the same bank PB −0.29 [−0.95, +0.35], within +0.0042 [+0.0026, +0.0059];
+vs the best single order H0.1 within −0.0045 [−0.0061, −0.0029]. Same reading as Stage 2: Joint edges IU on within-AUC
+only and no fused arm beats the best single order. Fit cost ≈6.4 s per answer (5 starts, median 1,224 sweeps, 10 % at
+the 5,000-sweep cap). Stage 3 COMPLETE.
+
 ---
 
 ### Step 359 [Claude Stage 3b] — Rényi-order sweep and escort varentropy (2026-09-13)

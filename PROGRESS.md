@@ -1,3 +1,82 @@
+## Codex Graph-local IU fetched - 2026-09-13
+
+## Claude 2026-09-14: Stage 3 Joint pass COMPLETE (no fused arm beats the best single order; Joint edges IU on within-AUC only). Stage 3 closed; Stage 3b sweep + complementarity recorded (Step 359). Next candidates: bounded fusion of {VE_0, VE_0.75, VE_1, H0lim, H1}; frozen-contract artifacts (gate/folds/labels) are NOT in git and should be committed on a dedicated branch.
+
+
+Job255753 COMPLETE_REVIEWED, all13,769 answers, 11 fetched SHA256 matches,
+PB macros rederived. Graph-local PB21.165% / within0.70115 / PRMScore0.57174;
+sliding-window35.547% /0.74182 /0.58590; permuted-graph36.268% /0.74945 /0.58857.
+Primary graph-versus-window is negative with corrected intervals excluding0.
+Graph-local losses versus RBM12 overwhelmingly shift early; no scoring failures.
+Do not conflate this graph with the still-running coefficient-GraphTV job255754.
+Interpretation and original reports: results/aircc_results_20260913/graph_local/
+in worktree .worktrees/conditional-iu-followups-v1. No new model launched.
+
+## Codex AIRCC result fetch - 2026-09-13: position results available
+
+Jobs 255722 (whole-answer position Factor/RBM/IU) and 255752 (conditional
+Shrinkage IU position prior) COMPLETE_REVIEWED, full 13,769 answers.
+Other-answer position IU: PB35.52%, within AUC0.76573, PRMScore0.61442.
+Conditional position IU: PB35.81%, within0.75690, PRMScore0.58991.
+Frozen RBM12 Logit: PB36.27%, within0.74520, PRMScore0.62222.
+Position benefits within-answer ranking; no overall winner. Conditional position
+beats its scale-only control (primary paired interval excludes zero), while both
+position IU candidates trail RBM12 in PRMScore. Rank-2 RBM loses through early
+peaks despite all selected optimizer convergence flags; do not call this a cap failure.
+Graph-local255753 is in bootstrap; GraphTV255754 is still scoring at this snapshot.
+Fetched reports, SHA256 audit and interpretation:
+.worktrees/conditional-iu-followups-v1/results/aircc_results_20260913/
+Relative to the worktree itself, use results/aircc_results_20260913/.
+Push SUCCEEDED at f3fa3cc34 after explicit approval; supersedes old blocked text.
+No new experiment was launched during this fetch.
+
+## Codex conditional IU - 2026-09-13 - all three full runs active
+
+Branch `codex/conditional-iu-followups-v1`, code/package commit dc12221d2.
+Independent science/literature review PASS, 36 mathematical/driver fixtures PASS,
+and the complete extracted archive passes isolated Python (-I) driver checks.
+Read-only validation of the 22 frozen data/provenance files also PASS.
+
+Current AIRCC jobs: position 255752; graph-local 255753; coefficient GraphTV 255754.
+Each requests 64 GiB, one BLAS thread, no GPU. Byte/fixture checks, Linux lifecycle, and all three smoke27 reviews PASS.
+All three are in full covariance extraction; no full performance result yet. Original position job
+255722 is separate and had already entered full training. No source data changed.
+Earlier attempts failed before scientific smoke: first at container memory limit,
+then because recursive scripts/localization helpers were omitted from packaging.
+Both operational issues were corrected; failed logs and original archives remain.
+
+Second-machine instructions: .worktrees/conditional-iu-followups-v1/docs/research_notes/CONDITIONAL_IU_SECOND_MACHINE.md
+inside `.worktrees/conditional-iu-followups-v1`. Git push was requested, but automatic approval review blocked
+it pending explicit destination confirmation. Latest code is still local; do not
+assume the GitHub branch already includes these changes. Large caches are not in Git.
+Protocol: .worktrees/conditional-iu-followups-v1/docs/experiments/CONDITIONAL_IU_FUSION_V1.md.
+Detailed review/jobs: .worktrees/conditional-iu-followups-v1/results/conditional_iu_preparation_v1/.
+
+## Codex conditional-IU follow-ups and AIRCC preparation - 2026-09-13
+
+New worktree `.worktrees/conditional-iu-followups-v1`, branch
+`codex/conditional-iu-followups-v1`, commit `0be12cc23` from `481381408`.
+Plan: `docs/experiments/CONDITIONAL_IU_FOLLOWUPS_V1.md` inside that worktree.
+Sequence: current whole-answer position fusion -> answer-local IU with an
+external position prior -> graph-local IU -> graph penalty on coefficient
+changes. Preparation may proceed now. The hybrid covariance adapter and exact
+alpha-zero tests are implemented; full hybrid/graph experiment drivers are
+still outstanding. HISTORY Step 360 and Research_Directions are in the new WT.
+
+AIRCC verified accessible; live allocation is cycle3_tau_averbuch_prj / owner_940,
+with SLURM_CONF_SERVER=controller-primary needed in noninteractive commands.
+A portable, hash-verified bundle prepares the CURRENT frozen experiment for
+more RAM, with separate remote outputs and unchanged scientific definitions.
+Inspect `.worktrees/conditional-iu-followups-v1/results/aircc_preparation_v1/CLUSTER_STATUS.json`
+for actual submission state; packaging and fixtures are not benchmark results.
+Current AIRCC job 255714 (64 GiB, CPU-only), smoke -> full on PASS, isolated
+under `/shared/cycle2_tau_averbuch_prj/omrisegev1/experiments/answer_position_20260913_0be12cc23`.
+Large base bundle plus small scheduler-handling overlay are separately hash-verified.
+Do not launch graph experiments or infer benchmark completion from this submission.
+Earlier job 255705 stopped before scientific smoke in a scheduler-stop fixture.
+The subprocess-lock deadlock was corrected and Linux lifecycle tests PASS;
+the original failed log is preserved. This was a runtime issue, not a model result.
+
 ## Codex answer-position fusion - 2026-09-13
 
 Implemented in `.worktrees/answer-position-fusion-v1`, branch
