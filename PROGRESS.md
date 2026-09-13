@@ -1,5 +1,8 @@
 # Spectral Hallucination Detection — Session Progress Handoff
 
+## Claude 2026-09-14: Stage 3 Joint pass COMPLETE (no fused arm beats the best single order; Joint edges IU on within-AUC only). Stage 3 closed; Stage 3b sweep + complementarity recorded (Step 359). Next candidates: bounded fusion of {VE_0, VE_0.75, VE_1, H0lim, H1}; frozen-contract artifacts (gate/folds/labels) are NOT in git and should be committed on a dedicated branch.
+
+
 ## Claude Stage 3b - 2026-09-13 (alpha sweep + escort varentropy: complete and reviewed)
 
 Renyi order has no interior optimum: within-AUC rises as alpha -> 0; the limit view (mean log q over the top-15)

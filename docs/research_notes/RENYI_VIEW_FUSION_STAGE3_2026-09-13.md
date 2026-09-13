@@ -40,7 +40,7 @@ Coverage 100 % for every arm, no declared failures.
 | R6_sel equal | 35.61 | 0.7352 | 0.6756 | 0.5949 |
 | R6_sel IU-PCR | **35.78** | 0.7338 | 0.6820 | 0.6028 |
 | R6_sel shrinkage IU | 35.75 | 0.7338 | 0.6814 | 0.6024 |
-| R6_sel Joint L-SML | running | | | |
+| R6_sel Joint L-SML (tail/head/selected groups) | 35.49 | 0.7380 | 0.6761 | 0.5915 |
 | varentropy15 raw (Step 339, reproduced) | 35.96 | 0.7378 | 0.7101 | 0.6258 |
 | varentropy15 contributions IU (Step 339, reproduced) | 35.35 | 0.7468 | 0.7103 | 0.6227 |
 | direct-probability IU (17 inputs, frozen) | 34.50 | 0.7328 | 0.7038 | 0.6205 |
@@ -82,13 +82,19 @@ H0.1 − H0.25: PB −0.15 [−0.40, +0.09], within +0.0011 [+0.0003, +0.0019].
    own inputs because per-answer z-scoring removes the between-answer scale that pooled AUC and the
    PRMScore threshold use; within-answer ranking and PB decisions are unaffected. Any comparison of fused
    rows on pooled/PRMScore against raw single views is confounded by this.
-4. Joint L-SML on R6_sel (tail/head/selected groups) is scored separately (≈2.2 s/answer at 4 workers);
-   its fit quality on the smoke (converged 56 %, multistart PASS 56 %, condition > 1e12 on 11 %) is the
-   same pattern as Stage 2; its result will be appended to the table when complete.
+4. **Joint L-SML on R6_sel (COMPLETE 2026-09-14; `joint_pass/`).** Coverage 100 %, no declared failures; fit
+   health: converged 68.6 %, multistart PASS 68.6 %, joint model below the hard-partition misfit on 89.1 %,
+   model-covariance condition > 1e12 on 6.3 %, map ridge positive on 100 %; fit time 87,858 worker-seconds
+   (≈6.4 s per answer, ≈6 h wall at 4 workers). Result: 35.49 / 0.7380 / 0.6761 / 0.5915. Joint − IU (same
+   bank): PB −0.29 [−0.95, +0.35], within +0.0042 [+0.0026, +0.0059]; Joint − equal: PB −0.12, within +0.0029
+   [+0.0011, +0.0048]; Joint − H1: PB +0.04 [−0.52, +0.62], within +0.0079 [+0.0063, +0.0096]; Joint − H0.1:
+   PB +0.12 [−0.34, +0.56], within −0.0045 [−0.0061, −0.0029]; Joint − varentropy15: PB −0.47 [−1.62, +0.68],
+   within +0.0003. Same pattern as Stage 2: Joint edges IU and equal on within-answer AUC, gains nothing on PB,
+   and stays below the best single order (H0.1) on within-AUC. Stage 3 is complete.
 
 Status: fast pass COMPLETE. Independent replay review PASS (`fast_pass/RESULT_REVIEW.json`: 13,769 answers
 replayed, 165,228 checks, 16 metric bundles re-derived; the evaluate-only driver change is recorded and
 accepted against the checkpoint's stored hash). Figure review PASS WITH CAVEATS (`fast_pass/REVIEW_FIGURES/`,
 5 PNG, checks (a)–(j) all pass; caveats: Joint arm absent from this pass; near-collinear R6 columns;
 shrink alpha at 1 on 16 %; fused pooled/PRMScore below the entropy row through per-answer normalization).
-Joint pass RUNNING (`joint_pass/`, ≈2.1 s/answer at 4 workers; ≈8 h projected on a contended machine).
+Joint pass COMPLETE (2026-09-14); replay review and figure review recorded in `joint_pass/RESULT_REVIEW.json` and `joint_pass/REVIEW_FIGURES/`.
