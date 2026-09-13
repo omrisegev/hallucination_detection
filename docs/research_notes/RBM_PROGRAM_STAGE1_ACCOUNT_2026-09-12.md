@@ -1,8 +1,9 @@
 # Stage 1 account — completing the Codex RBM / sampling program (Claude, 2026-09-12)
 
-Status line: **Stage 1 is OPEN.** The RBM suites (stability, amended depth, capacity interpretation)
-are complete and reviewed; the full window-sampling run is still scoring (see §6, projection is an
-estimate). Stage 2 (cross-rank varentropy-expansion fusion) and Stage 3 (Rényi views) remain drafts
+Status line: **Stage 1 is COMPLETE (2026-09-13 10:13).** The RBM suites (stability, amended depth, capacity
+interpretation) are complete and reviewed, and the full window-sampling run reached
+`COMPLETE_REVIEWED_FULL_SAMPLING` with the consolidation supervisor's evaluation, review and Hebrew reflection
+(`docs/reviews/research_consolidation_2026-09-08.html`, `results/research_consolidation_v1/LEDGER.json`; see §6). Stage 2 (cross-rank varentropy-expansion fusion) and Stage 3 (Rényi views) remain drafts
 and do not start before Omri reviews this account and the sampling run reaches its reviewed end.
 
 Framing (Omri, 2026-09-12): *We have not yet demonstrated a consistent overall advantage from
@@ -22,7 +23,7 @@ evidence only; no untouched confirmation. Tables: `results/rbm_literature_comple
 
 | Item | State before | Action | State now |
 |---|---|---|---|
-| Full window-sampling run (`localization_full_sampling_v3`, 56 arms) | stalled 3,547/13,769 since 09-09 (disk incident) | independent checkpoint/manifest review PASS (`research_consolidation_v1/RESUME_20260912_REVIEW.json`: 357 hashes match, 3,547 records verified, 0 bad); unchanged supervisor relaunched (driver pid 14584) | SCORING, [PENDING-FILL] |
+| Full window-sampling run (`localization_full_sampling_v3`, 56 arms) | stalled 3,547/13,769 since 09-09 (disk incident) | independent checkpoint/manifest review PASS (`research_consolidation_v1/RESUME_20260912_REVIEW.json`: 357 hashes match, 3,547 records verified, 0 bad); unchanged supervisor relaunched (driver pid 14584) | COMPLETE_REVIEWED_FULL_SAMPLING (§6) |
 | RBM stability suite (3 exact starts, H1/H4, min-NLL selection) | smoke PASS, no full run | program runner: smoke → smoke review → full → full review → summary, unchanged protocol | COMPLETE, review PASS (§4) |
 | RBM capacity interpretation | scored/reviewed; 13,769/13,769 exact-H4 "nonconverged" unexplained | `analyze_rbm_completion_mechanisms.py --suite capacity` + new `analyze_rbm_capacity_convergence.py` (+ 27-answer maxiter probe) | `capacity/CAPACITY_INTERPRETATION.md`, `CAPACITY_CONVERGENCE.{csv,json}`, `CAPACITY_MAXITER_PROBE.json` |
 | RBM depth suite | smoke FAIL (6/27 answers, 14 records) | diagnosis → amendment doc → separate driver (original untouched) → smoke PASS_WITH_DECLARED_FAILURES (94 non-failing original model records over 21 answers replay exactly, 188 = 94 × 2 readouts; 14 failures renamed) → smoke review PASS (404 vectors) → full run + review | COMPLETE, review PASS (§3) |
@@ -162,16 +163,33 @@ converged H4 changes the capacity conclusion (feasible, not run); the late bias 
 and the strong step-length prior (Claude Steps 354–355) that every row in this table shares; an
 untouched confirmation cohort for any candidate.
 
-## 6. Full window-sampling run — status
+## 6. Full window-sampling run — COMPLETE, review PASS (2026-09-13)
 
-Resumed 2026-09-12 through the unchanged consolidation supervisor
-(`scripts/complete_research_consolidation_v1.py` → `run_full_sampling_v3.py --phase run`, 8-hour
-invocation caps, checkpoint resume). Observed rate with the RBM suites running concurrently:
-about 12 s per record at the frozen 2 workers → **projection ≈ 1.5 days for the remaining
-~10,100 records; an estimate, not a commitment.** On completion the supervisor runs the registered
-evaluation, the Hebrew consolidation reflection and the "Step332 completion" documentation block.
-Until `RUN_STATE.phase == COMPLETE_REVIEWED_FULL_SAMPLING`, no performance statement about the 56
-sampling arms is made. [PENDING-FILL: final status]
+Resumed 2026-09-12 through the unchanged supervisor; the driver died once (Windows file-replace race on its
+status file, `research_consolidation_v1/SAMPLING_INCIDENT_20260912.json`, checkpoints verified intact) and was
+relaunched under an execution-only loop; scoring finished 2026-09-13 10:13, `evaluation/REVIEW.json` PASS
+(13,769 records, 97 arms, 1,000-draw paired source-group intervals on 3,483 groups). This run keeps its ORIGINAL
+frozen per-answer GMM/BIC gate (pre-declared; not the shared entropy-q0.3 gate), so its ProcessBench scale is the
+old one: answer-only arms 16.4–21.3, pooled historical arms 34.0–34.6.
+
+Observation-selection replication (seven selectors × seven fusion cores, 56 arms; IU core vs the full grid, 95%):
+
+| Selector (IU core) minus full grid | PB all-8 pp | within-answer AUC | pooled AUC |
+|---|---:|---:|---:|
+| uniform | +0.01 [−0.79, +0.83] | −0.0012 [−0.0027, +0.0002] | −0.0011 [−0.0025, +0.0005] |
+| risk-top (highest mean entropy) | −0.06 [−0.84, +0.67] | −0.0015 [−0.0028, −0.0001] | **+0.0301 [+0.0269, +0.0331]** |
+| entropy tails | −0.26 [−0.86, +0.39] | +0.0002 [−0.0008, +0.0012] | **+0.0262 [+0.0234, +0.0288]** |
+| entropy quantiles | +0.24 [−0.58, +1.07] | −0.0009 [−0.0024, +0.0005] | +0.0023 [+0.0009, +0.0035] |
+| DUFS transposed | −0.04 [−0.95, +0.88] | −0.0016 [−0.0033, +0.0000] | +0.0034 [+0.0008, +0.0059] |
+| DUFS permuted (control) | −0.10 [−0.89, +0.67] | +0.0003 [−0.0011, +0.0018] | −0.0015 [−0.0032, +0.0002] |
+| window diffusion | +0.15 [−0.57, +0.83] | −0.0012 [−0.0025, +0.0002] | +0.0035 [+0.0016, +0.0053] |
+
+Reading: no selector changes ProcessBench exact localization or within-answer ranking on the full population
+(risk-top is marginally negative on within-AUC); the pooled-AUC gains of risk-top and entropy-tails are the
+answer-level scale effect identified in the 110-answer pilot (Step 317) and do not translate into local ranking or
+decisions. The pilot's pooled jump replicates as a pooled-only effect. Graph cores (joint0 / graph010 / graph_perm)
+sit within 0.7 pp of each other with the permuted-graph control at the top of the PB points. Full arm table:
+`results/localization_full_sampling_v3/evaluation/METRICS.csv`; intervals `INTERVALS.json`.
 
 ## 7. The letter's four ideas against the record (coverage, not closure)
 

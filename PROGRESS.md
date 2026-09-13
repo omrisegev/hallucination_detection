@@ -7,6 +7,13 @@ score changed); supervised smoke rule and input contract hardened; account/Stage
 `.worktrees/varentropy-expansion-fusion-v1/docs/research_notes/VARENTROPY_EXPANSION_STAGE2_INTERIM_2026-09-12.md` and
 `.worktrees/rbm-literature-completion-v1/results/rbm_literature_completion_v1/depth_amended/LOSS_BREAKDOWN_CORRECTION_20260913.json`.
 Still running: joint pass (B2_sel/B2d_sel Joint L-SML), full window-sampling run (Stage 1 open until its review).
+- 2026-09-13 10:13: full window-sampling run COMPLETE_REVIEWED_FULL_SAMPLING; supervisor finished (reflection built,
+  Step332 completion block inserted). **Stage 1 is COMPLETE.** Sampling replication: no selector changes PB or
+  within-answer AUC on the full population; risk-top / entropy-tails raise pooled AUC only (+0.030 / +0.026).
+- 2026-09-13 morning: Stage 2 joint pass COMPLETE + reviewed (Joint L-SML on B2_sel/B2d_sel): Joint edges IU on the same
+  bank (B2d_sel +0.40 pp [-0.00,+0.81], within +0.0036; B2_sel +0.42 pp [+0.05,+0.79], within +0.0023); products still hurt
+  under Joint (-0.78 pp); no expansion arm with the selected block reaches entropy/varentropy15 on PB. Two Joint arms on the
+  non-selected banks deferred. Stage 2 evidence complete pending PNG review; Stage 3 design awaits Omri's review.
 
 
 ## Claude Stage-1 interim handoff - 2026-09-12 evening (Stage 1 OPEN)
