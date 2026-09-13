@@ -1,29 +1,24 @@
-## Codex conditional-IU implementation - 2026-09-13 - independent review PASS; submitted
+## Codex conditional IU - 2026-09-13 - all three full runs active
 
-Three requested families now have dedicated code: whole-answer position prior,
-local token-graph covariance, and Network Lasso on coefficient vectors. See
-`docs/experiments/CONDITIONAL_IU_FUSION_V1.md`. The baseline is answer-local
-Shrinkage IU; marginal rho/top-two subspace are fixed, with conditional solves.
-Alpha=0 recovers the baseline exactly. Matched pooled, scale-only, sliding-window
-and shuffled controls separate mechanisms. No performance result claimed.
+Branch `codex/conditional-iu-followups-v1`, code/package commit dc12221d2.
+Independent science/literature review PASS, 36 mathematical/driver fixtures PASS,
+and the complete extracted archive passes isolated Python (-I) driver checks.
+Read-only validation of the 22 frozen data/provenance files also PASS.
 
-Independent reviewer: core mathematics and driver/fold/calibration review PASS; 36 fixtures pass.
-Final failure-isolation delta review also PASS. Jobs 255746/255749/255750 failed before smoke: nested helper omitted from archive.
-Packaging correction and second-machine branch push are in progress. Other-answer priors
-are label-free and fold-excluded; entropy gate/Top10 and v3 labels remain frozen.
-No new HTML. No changes to Claude's jobs or running scientific source files.
+Current AIRCC jobs: position 255752; graph-local 255753; coefficient GraphTV 255754.
+Each requests 64 GiB, one BLAS thread, no GPU. Byte/fixture checks, Linux lifecycle, and all three smoke27 reviews PASS.
+All three are in full covariance extraction; no full performance result yet. Original position job
+255722 is separate and had already entered full training. No source data changed.
+Earlier attempts failed before scientific smoke: first at container memory limit,
+then because recursive scripts/localization helpers were omitted from packaging.
+Both operational issues were corrected; failed logs and original archives remain.
 
-Existing answer-position job 255722 completed smoke 27/27 and is RUNNING_FULL on
-AIRCC. Jobs 255705 and 255714 failed before fitting; scheduler/import fixes were
-recorded in separate byte-verified overlays. Local owned processes 16704/22856
-were stopped only after preserving their six-statistics/zero-fit checkpoint.
-See results/aircc_preparation_v1/CLUSTER_STATUS.json and LOCAL_MIGRATION.json.
-
-
-First submissions 255743/255744/255745 exhausted 32 GiB during Pyxis image
-building, before checks or experiment code. Resubmitted with --mem=64G, matching
-the already working position job. Frozen code and scientific settings unchanged.
-
+Second-machine instructions: docs/research_notes/CONDITIONAL_IU_SECOND_MACHINE.md
+inside this worktree. Git push was requested, but automatic approval review blocked
+it pending explicit destination confirmation. Latest code is still local; do not
+assume the GitHub branch already includes these changes. Large caches are not in Git.
+Protocol: docs/experiments/CONDITIONAL_IU_FUSION_V1.md.
+Detailed review/jobs: results/conditional_iu_preparation_v1/.
 
 ## Codex answer-position fusion - 2026-09-13 - IMPLEMENTED; no full results yet
 

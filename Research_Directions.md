@@ -19,6 +19,12 @@ claim for our fixed alpha or serial tokens. Independent literature/code review
 precedes cluster submission. Conditional RBM and Temporal Convolution remain open.
 
 
+Execution update: all three implementations passed independent review and actual-data
+smoke; AIRCC 255752/255753/255754 are running the full benchmark. Statistical
+conclusions and the next research decision wait for full metrics and coverage.
+Second-machine instructions are in docs/research_notes/CONDITIONAL_IU_SECOND_MACHINE.md.
+
+
 ## Codex answer-position fusion - 2026-09-13 - IMPLEMENTED; no full results yet
 
 Omri corrected the coordinate to position across the COMPLETE answer and requested

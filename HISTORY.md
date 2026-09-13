@@ -18684,3 +18684,23 @@ User also requested pushing this development branch for the second computer.
 Added a read-only 22-file input hash checker (PASS on current source) and
 docs/research_notes/CONDITIONAL_IU_SECOND_MACHINE.md with worktree and run commands.
 Git transfers code/review records, not the large untracked feature caches.
+
+**Corrected portable bundle**: After adding all recursive scripts and using
+a short temporary extraction path on Windows, the complete code archive passed
+the driver fixtures under isolated Python (-I), outside the source checkout.
+Code commit dc12221d2; SHA256
+1ab109378e4871786a818dfdfd0741e07a3d04271f50bea49f35ebd2bda7bf56.
+Uploaded/extracted to a new directory, then submitted position 255752,
+graph_local 255753, graph_tv 255754 with 64 GiB each. Independent startup
+monitoring will distinguish submission, fixtures, smoke and full processing.
+User requested Git push for another machine; automatic approval review rejected
+the update pending confirmation of the exact GitHub destination. Code remains
+committed locally; no successful push is claimed.
+
+**Verified scientific startup**: Corrected jobs 255752/255753/255754 passed
+all byte checks (1237 archive files and 22 read-only sources), core/graph/driver
+fixtures and Linux scheduler lifecycle fixtures. All three smoke reviews PASS
+on 27/27 answers. At 22:39:21 Israel time, full covariance extraction reached
+1000/900/700 of 13,769 answers respectively. These are extraction counts, not
+completed predictions or measured performance gains. Stderr was empty.
+All runs remain independent of the old position job and Claude's work.
