@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT))
 from scripts import run_direct_probability_temporal as base
 from spectral_utils.varentropy_contribution_fusion import METHODS, fit_all
 from spectral_utils.direct_probability_fusion import step_top_mean
-from spectral_utils.answer_localization_v2 import STREAM_NAMES
+from spectral_utils.fixed_gate_readout import STREAM_NAMES
 
 OUT = ROOT / 'results/varentropy_contribution_fusion_v1'
 NAMES = {f'k{k}__{m}': f'Top-{k} varentropy / '+{'raw':'Original sum','equal':'Normalized equal weights','iu':'IU-PCR learned weights'}[m]

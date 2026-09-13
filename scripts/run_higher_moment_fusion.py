@@ -17,7 +17,7 @@ from spectral_utils.higher_moment_fusion import METHODS, fit_all, ORDERS, SOLVER
 from spectral_utils.varentropy_contribution_fusion import contributions
 from scripts.run_varentropy_contribution_fusion import NAMES as VARENTROPY_NAMES
 from spectral_utils.direct_probability_fusion import step_top_mean
-from spectral_utils.answer_localization_v2 import STREAM_NAMES
+from spectral_utils.fixed_gate_readout import STREAM_NAMES
 
 OUT = ROOT / 'results/higher_moment_fusion_v1'
 NAMES={f'd{d}__{solver}':f'Moments through order {d} / '+{'equal':'equal mean','iu':'IU-PCR','rbm_initial':'RBM before learning','rbm':'trained RBM'}[solver] for d in ORDERS for solver in SOLVERS}

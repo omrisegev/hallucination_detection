@@ -304,6 +304,14 @@ def ensure_flat_dir(repo_id, token=None):
 
 ## AIRCC cluster (Slurm GPU allocation)
 
+**Live allocation verified 2026-09-13:** `sdata` reports account
+`cycle3_tau_averbuch_prj`, QoS `owner_940` on `power-gpu` (sandbox QoS
+`sandbox_owner_940`). Older `owner_880` examples are historical; rediscover before
+submission. Noninteractive SSH commands need `SLURM_CONF_SERVER=controller-primary`.
+The documented project workspace below remains accessible. Current jobs use
+Pyxis; the old rootless-Docker description below is historical. The dedicated
+answer-position analysis job was accepted without requesting a GPU.
+
 Second GPU backend besides Colab: national AIRCC cluster, 8× NVIDIA B200, ssh alias `aircc`
 (omrisegev1@slurm-login.iucc.ac.il, **TAU VPN required** — a hanging ssh means VPN is down).
 Full reference: [cluster/README.md](cluster/README.md). Rules that must never be violated:

@@ -1,3 +1,23 @@
+## 2026-09-13 - answer-local IU with external position/context priors
+
+The user authorized completing and submitting all three independent follow-ups,
+without waiting for the already running whole-answer position/RBM experiment.
+Core files: conditional_iu_fusion.py and conditional_iu_graph.py. Protocol:
+`docs/experiments/CONDITIONAL_IU_FUSION_V1.md`.
+
+Keep native answer-local rho and top-two subspace, change only the covariance
+in a fixed-signal quadratic solve. This is a LIU-style extension, not estimated
+conditional Cov(X,Y). Position effects need a scale-only control: apparent gains
+can arise from scaling all feature weights together. Pooled covariance averages
+the same within-region centered covariances; do not confound mean variation.
+
+Graph-local versus uniform windows tests the complete neighborhood/shrinkage
+recipe. GraphTV penalizes coefficient differences with an unsquared edge L2 norm;
+it does not average output scores. Report convergence and spike-related losses.
+Multi-Target Shrinkage supplies covariance-borrowing inspiration, not an optimality
+claim for our fixed alpha or serial tokens. Independent literature/code review
+precedes cluster submission. Conditional RBM and Temporal Convolution remain open.
+
 
 ## Codex answer-position fusion - 2026-09-13 - IMPLEMENTED; no full results yet
 
@@ -4063,18 +4083,3 @@ Model (NeurIPS2023). Related sequential/networked ensemble classification
 (Traganitis/Giannakis,TKDE2022) is relevant to trajectory fusion; not claimed
 here as a verified direct citation. The2025 signal-processing crowdsourcing
 review (arxiv2407.06902v2) is already present locally. No new sweep launched.
-## 2026-09-13 - position priors and graph context serving answer-local fusion
-
-The current multi-algorithm whole-answer position experiment is the first
-measurement. Next, retain the current answer's Shrinkage IU estimate and add a
-source-fold-excluded covariance prior by whole-answer position; new alpha=0
-must reproduce the baseline exactly. Then isolate graph-local neighborhoods
-against sliding windows, and finally a graph penalty on coefficient changes.
-These extend fusion; they do not substitute score smoothing or a new feature
-bank. The original Conditional RBM / Temporal Convolution roadmap stays open.
-
-Preparation can run in parallel; each scientific extension requires a frozen
-driver and matched controls. Currently only the borrowing adapter is coded;
-the graph experiments are designs. Full rationale, data access, controls,
-failure handling and cluster execution:
-`docs/experiments/CONDITIONAL_IU_FOLLOWUPS_V1.md`.

@@ -18601,4 +18601,53 @@ Cluster run status is recorded separately; no full result claimed here.
   frozen inputs, isolated packaging and scheduled smoke/full execution.
 - `PROGRESS.md`, `Research_Directions.md` - status and roadmap pointers.
 
+**Execution update**: Submitted AIRCC job 255705 with 64 GiB and no GPU request,
+using account cycle3_tau_averbuch_prj / owner_940. Verified base archive SHA256
+44159006ee4d6aa45e5c73a26accde2f66ed65706e26a1a6211258eca8474b40
+and separately declared scheduler overlay SHA256
+0bcd713ebb24d7b42877875e2ce3745804ec469640d21ef8ddb1cf80ae309239.
+The scheduler handler stops only its own child, preserves completed SQLite
+transactions, releases owned locks, and waits for scheduler termination/requeue.
+Wall-time expiry requires resubmission. A Linux fake-worker lifecycle fixture
+must pass before the smoke. Startup is monitored separately; no new results yet.
+No runtime source or scientific input in the original Windows worktree changed.
+
+**Startup review and correction**: Job 255705 failed before scientific smoke,
+in the newly added Linux scheduler fixture. SIGTERM cleanup re-entered
+`Popen.wait()` while the main wait held its non-reentrant waitpid lock. The
+handler now only records a stop flag; the main loop polls and performs cleanup
+outside subprocess locks. The Linux fake-worker fixture then PASSed (owned
+worker stopped, owned locks released, checkpoint preserved). Original failure
+log retained; separately verified fix overlay SHA256
+6e056246d59afd0292e3030bf1e9c23c06ebeea95ab452b4a6d00f76fc4a29e1.
+Resubmitted as job 255714 with the same data and scientific definitions.
+No claim of benchmark improvement or completed fitting follows from this fix.
+
 ---
+
+**Follow-up execution and review (same date)**: The user explicitly authorized
+completing all three conditional-IU families, independent literature/code review,
+and AIRCC submissions. Implemented whole-answer position covariance borrowing,
+local token graphs versus sliding windows, and convex Network Lasso on IU
+coefficient vectors. Native marginal rho/top-two subspace stay answer-local;
+alpha-zero exact replay, small-alpha continuity and eta-zero identities pass.
+Matched pooled and scale-only controls were added following the design review.
+The registered contract is CONDITIONAL_IU_FUSION_V1.md. No benchmark improvement
+is inferred from mathematical fixtures; review/submission statuses are separate.
+
+Job 255714 failed before fitting because two legacy helpers imported STREAM_NAMES
+from an omitted historical module. The maintained fixed_gate_readout exports the
+same 29 names (AST verified); updated helper imports in a separate hashed overlay.
+Job 255722 passed smoke 27/27 and entered full training. Its original code/data
+remain frozen. The old local waiting job had six extracted statistics records
+and zero fits/scores, preserved before its two owned processes were stopped.
+Only their verified stale locks were released; Claude processes were untouched.
+
+**Independent submission review**: conditional_iu_literature_review returned PASS
+for the three CPU-only submissions with the registered remote smoke guard, then
+PASS for the graph-failure isolation delta. Total 36 fixtures pass (11 core,
+15 graph, 10 driver), plus independent tiny-alpha/neighborhood reconstructions.
+The graph constructor previously could invalidate the valid baseline on a graph
+failure; it now confines failures to affected graph arms. Reviewed file hashes
+and limitations are saved in results/conditional_iu_preparation_v1/INDEPENDENT_REVIEW.json.
+No full-data performance conclusion follows from the review.

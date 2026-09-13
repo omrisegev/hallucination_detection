@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "timestamp": "2026-09-13T19:08:36.627150+00:00",
+  "reviewer": "/root/conditional_iu_literature_review",
+  "scope": "independent read-only code, mathematical and literature audit; permits three CPU-only submissions with registered remote smoke guard",
+  "reviewed_file_hashes": {
+    "spectral_utils/conditional_iu_fusion.py": "9134ae119c25f5997200048880944302149dd371db8c0335474562efdf1155f4",
+    "scripts/test_conditional_iu_fusion.py": "1b24f96b466e72cac9ae13faae325d922a78d60d815a0f372668abfa6cc082cb",
+    "scripts/run_conditional_iu_fusion.py": "8f45a4fa14f6e8dff0c71f6f1085a4a3171feecf44077548430135adb022ccbd",
+    "spectral_utils/conditional_iu_graph.py": "bab1fc48871b071525c0c78c97e9c2a9d65abac1ac7c3b808a23e5aa9dbf0398",
+    "scripts/test_conditional_iu_graph.py": "897c59edf68d83fc66db9affe9619e7b7a09d9c9238862acdc59bf0fca98b2b7",
+    "scripts/test_conditional_iu_driver.py": "66e3977ccba9d98aae8863a857a4fdbf56ac8068ccf7595012f368236cec1afc",
+    "docs/experiments/CONDITIONAL_IU_FUSION_V1.md": "20681dad49b7e62cabf0a4ee1e761380acb5aca40a91329a675a64ae05d3673a"
+  },
+  "fixtures": {
+    "core": 11,
+    "graph": 15,
+    "driver": 10,
+    "total": 36
+  },
+  "independent_additional_checks": {
+    "synthetic_token_feature_cases": 5,
+    "tiny_positive_alpha_paths": 45,
+    "neighborhood_reconstructions": 15
+  },
+  "corrections": [
+    "within-region centered matched pooled prior",
+    "scale-only control",
+    "protocol manifest binding",
+    "scheduler-stop latch",
+    "graph failure isolated from valid baseline"
+  ],
+  "limitations": [
+    "fixed-alpha covariance borrowing is an engineered fixed-signal surrogate, not the optimal Multi-Target Shrinkage estimator",
+    "graph/window contrast changes affinity and count-dependent shrinkage",
+    "finite capped GraphTV outputs are approximate and must report nonconvergence",
+    "intervals adjust three contrasts per endpoint, conditional on saved fits and calibration",
+    "development benchmarks are not untouched confirmation"
+  ],
+  "unverified_at_review": [
+    "actual-data 27-answer smoke",
+    "remote Linux lifecycle fixture",
+    "full benchmark outcomes"
+  ],
+  "operational_requirement": "Source/code hashes and 36 mathematical/driver fixtures plus Linux lifecycle must pass remotely; same-family smoke must PASS before full",
+  "optional_robustness_notes": [
+    "a permutation-only preparation failure also invalidates real-graph arms",
+    "eta-zero GraphTV currently still requires successful graph preparation; registered eta is .1"
+  ]
+}

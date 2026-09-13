@@ -13,7 +13,7 @@ import sys
 import time
 
 ROOT=Path(__file__).resolve().parents[1]
-OUT=ROOT/'results/answer_position_fusion_v1'
+OUT=ROOT/'results/conditional_iu_fusion_v1'
 
 
 def read(path):
@@ -26,7 +26,9 @@ def emit(value):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--source-root',type=Path,required=True);args=p.parse_args()
+    global OUT
+    p=argparse.ArgumentParser();p.add_argument('--source-root',type=Path,required=True);p.add_argument('--family',choices=['position','graph_local','graph_tv'],required=True);args=p.parse_args()
+    OUT=ROOT/'results/conditional_iu_fusion_v1'/args.family
     OUT.mkdir(parents=True,exist_ok=True);lock=OUT/'PROGRAM.lock'
     fd=os.open(lock,os.O_CREAT|os.O_EXCL|os.O_WRONLY);os.write(fd,str(os.getpid()).encode());os.close(fd)
     active = dict(process=None, folder=None)
@@ -69,8 +71,8 @@ def main():
                 # even when a checkpoint says complete.
                 emit(dict(status='RUNNING_'+phase.upper(),pid=os.getpid(),phase=phase))
                 with (OUT/(phase+'.stdout.log')).open('a',encoding='utf8') as stdout, (OUT/(phase+'.stderr.log')).open('a',encoding='utf8') as stderr:
-                    process=subprocess.Popen([sys.executable,'-B',str(ROOT/'scripts/run_answer_position_fusion.py'),
-                                              '--source-root',str(args.source_root),'--phase',phase],
+                    process=subprocess.Popen([sys.executable,'-B',str(ROOT/'scripts/run_conditional_iu_fusion.py'),
+                                              '--source-root',str(args.source_root),'--family',args.family,'--phase',phase],
                                              cwd=ROOT,stdout=stdout,stderr=stderr,
                                              creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
                     active.update(process=process,folder=folder)

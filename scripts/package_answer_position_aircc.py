@@ -27,6 +27,8 @@ def main():
     parser.add_argument('--original-worktree', type=Path, required=True)
     parser.add_argument('--frozen-manifest', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--overlay-from', type=Path,
+                        help='Existing bundle manifest; package changed code only, never data')
     args = parser.parse_args()
     if args.out.exists():
         raise FileExistsError('refuse to overwrite an existing bundle')
@@ -72,10 +74,22 @@ def main():
     manifest = dict(schema='answer-position-aircc-bundle-v1', base='481381408',
                     files=rows, original_sources=verified, operational_changes=changed,
                     note='RAM probe and manifest hash list only; new output identity')
+    included = set(files)
+    if args.overlay_from:
+        before = json.loads(args.overlay_from.read_text(encoding='utf8'))
+        previous = {row['path']:row['sha256'] for row in before['files']}
+        included = {row['path'] for row in rows if previous.get(row['path']) != row['sha256']}
+        if not all(name.startswith('code/') for name in included):
+            raise ValueError('an operational overlay cannot replace input data')
+        if set(previous)-set(files):
+            raise ValueError('an overlay cannot silently remove files')
+        manifest['requires_previous_manifest_sha256'] = digest(args.overlay_from)
+        manifest['overlay_members'] = sorted(included)
+        manifest['note'] = 'Portable RAM probe, hashes and scheduler checkpoint handling; no model changes'
     payload = json.dumps(manifest, indent=2).encode()
     with tarfile.open(args.out, 'w:gz', compresslevel=1) as tar:
         for name, path in sorted(files.items()):
-            tar.add(path, arcname=name, recursive=False)
+            if name in included:tar.add(path, arcname=name, recursive=False)
         item = tarfile.TarInfo('BUNDLE_MANIFEST.json');item.size=len(payload)
         tar.addfile(item, io.BytesIO(payload))
     args.out.with_suffix('.manifest.json').write_bytes(payload)

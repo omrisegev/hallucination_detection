@@ -9,6 +9,8 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=64G
 #SBATCH --time=2-00:00:00
+#SBATCH --requeue
+#SBATCH --signal=B:TERM@120
 #SBATCH --container-image=nvcr.io/nvidia/pytorch:25.01-py3
 #SBATCH --container-mounts=/shared/cycle2_tau_averbuch_prj/omrisegev1:/shared/cycle2_tau_averbuch_prj/omrisegev1
 
@@ -39,4 +41,5 @@ review=dict(status='PASS',files=len(manifest['files']),python=sys.version,
 print(review,flush=True)
 PY
 python -B scripts/test_conditional_iu_preparation.py
+python -B scripts/test_aircc_supervisor.py
 exec python -B scripts/complete_answer_position_fusion.py --source-root "$task_bundle/source"

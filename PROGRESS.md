@@ -1,3 +1,23 @@
+## Codex conditional-IU implementation - 2026-09-13 - independent review PASS; submitting
+
+Three requested families now have dedicated code: whole-answer position prior,
+local token-graph covariance, and Network Lasso on coefficient vectors. See
+`docs/experiments/CONDITIONAL_IU_FUSION_V1.md`. The baseline is answer-local
+Shrinkage IU; marginal rho/top-two subspace are fixed, with conditional solves.
+Alpha=0 recovers the baseline exactly. Matched pooled, scale-only, sliding-window
+and shuffled controls separate mechanisms. No performance result claimed.
+
+Independent reviewer: core mathematics and driver/fold/calibration review PASS; 36 fixtures pass.
+Final failure-isolation delta review also PASS. Cluster packaging/submission is next. Other-answer priors
+are label-free and fold-excluded; entropy gate/Top10 and v3 labels remain frozen.
+No new HTML. No changes to Claude's jobs or running scientific source files.
+
+Existing answer-position job 255722 completed smoke 27/27 and is RUNNING_FULL on
+AIRCC. Jobs 255705 and 255714 failed before fitting; scheduler/import fixes were
+recorded in separate byte-verified overlays. Local owned processes 16704/22856
+were stopped only after preserving their six-statistics/zero-fit checkpoint.
+See results/aircc_preparation_v1/CLUSTER_STATUS.json and LOCAL_MIGRATION.json.
+
 
 ## Codex answer-position fusion - 2026-09-13 - IMPLEMENTED; no full results yet
 
@@ -6785,23 +6805,3 @@ token/window sampling shortlist remain pending after this run.
 - Verbalized confidence on 7B+ — parser is ready; needs one inference run with Qwen2.5-Math-7B on GSM8K
 - Phase 10 RAG re-run with variant=4 prompt — low priority
 - LapEigvals integration into spectral_utils — potential Group D feature for M=12, low priority
-## Codex conditional-IU preparation - 2026-09-13
-
-Dedicated branch/worktree `codex/conditional-iu-followups-v1`, base 481381408.
-See `docs/experiments/CONDITIONAL_IU_FOLLOWUPS_V1.md` for the sequence and exact
-status: current whole-answer position comparison -> answer-local IU plus a
-training position prior -> graph-local IU -> graph penalty on weights. The
-last two are designs, not completed/queued experiments. Conditional RBM and
-Temporal Convolution remain separate future directions.
-
-Implemented a covariance-borrowing seam with exact alpha=0 baseline replay;
-unit tests and the inherited answer-position mathematical fixtures PASS. No
-new benchmark results. A full hybrid experiment driver is still required.
-
-AIRCC connectivity and Slurm verified. Live account/QoS are cycle3_tau_averbuch_prj /
-owner_940; set SLURM_CONF_SERVER=controller-primary for noninteractive commands.
-The old local smoke was waiting for 4 GiB available RAM. Cluster portability
-changes the memory guard only, with separately hashed code/input manifests,
-same fits/readout/folds, and separate output directories. Cluster execution
-status will be recorded in `results/aircc_preparation_v1/CLUSTER_STATUS.json`.
-Do not mistake packaging/unit-test PASS for smoke or benchmark completion.

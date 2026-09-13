@@ -1,3 +1,7 @@
+> Preparation snapshot: the status table below predates full implementation.
+> Current code, controls and review contract: [CONDITIONAL_IU_FUSION_V1.md](CONDITIONAL_IU_FUSION_V1.md).
+> Existing answer-position job 255722 has passed smoke and entered full training.
+
 # Answer-local fusion with information about position and token context
 
 Date: 2026-09-13. Base: answer-position-fusion-v1, commit 481381408.
@@ -111,13 +115,29 @@ new allocation without editing Claude's shared scripts/configuration.
 
 The local bottleneck is available RAM, not disk. Removing worktrees frees
 storage; it does not free the memory occupied by active processes. The cluster
-copy changes only the available-memory probe and its manifest hash list.
+copy changes the available-memory probe, its manifest hash list, and Linux
+supervisor handling of scheduler SIGTERM. A fake-worker lifecycle fixture must
+verify owned-lock release and checkpoint preservation before scientific work.
 It keeps one process, BLAS=1, same fits and eight-hour invocation caps. Input
 files are hash-verified and placed in an isolated directory under the existing
 project workspace, never synced over the shared `code` directory. An initial
 scheduled job requests 64 GiB and tests the platform plus original fixtures.
 Resource requests are not reservations until Slurm starts the job. GPU is not
 used by the algorithm. Queue policy may still require a GPU allocation.
+
+Submission: current job `255714`, CPU-only, 64 GiB, under the discovered owner_940
+allocation. Remote directory:
+`/shared/cycle2_tau_averbuch_prj/omrisegev1/experiments/answer_position_20260913_0be12cc23`.
+The large base bundle and small operational overlay have separate verified
+checksums. The overlay changed scheduler handling, not model code or data.
+Live state and transfer hashes: `results/aircc_preparation_v1/CLUSTER_STATUS.json`.
+Submission is not a passed smoke or a performance result. Time-limit expiry
+still needs resubmission; preemption uses the declared checkpoint/requeue path.
+
+Prior job 255705 stopped in the Linux fake-worker fixture before any scientific
+smoke: a signal-handler/subprocess-lock deadlock. A separately recorded fix
+moves cleanup into the normal polling loop. The Linux fixture passed before
+resubmission. Keep that failure distinct from a negative scientific result.
 
 Portable execution writes new results/manifests and preserves the waiting
 Windows artifacts. Do not reuse a SQLite manifest with different absolute
