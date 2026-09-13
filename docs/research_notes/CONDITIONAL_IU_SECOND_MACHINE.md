@@ -60,3 +60,16 @@ The remaining cache/provenance requirements still apply: run the full input chec
 If --source-root points to a separate data checkout, these three files must also
 be present under the same relative paths there. Copy the committed versions only
 when missing; investigate any hash mismatch instead of overwriting it.
+
+
+## Frozen v3 annotation bundle also included (2026-09-14)
+
+The branch also contains results/localization_full_benchmark_v3/evaluation/JOINED.json,
+JOINED.npz in the same directory, and results/localization_prm_label_audit_v1/RELEASE_V3.json.
+JOINED.npz contains labels and concatenated-step offsets plus historical scores.
+Original label sentinel values are preserved. Token span boundaries still come
+from the feature caches; those cache inputs remain required.
+RELEASE_V3.json is byte-exact provenance (including original-machine paths); it matches
+the joined answer roster and tracked fold hash, but does not bundle every file it references.
+Audit: results/frozen_gate_folds_bundle_v1/LABELS_REVIEW.json.
+If using a separate --source-root, these runtime inputs must exist at their relative paths there.

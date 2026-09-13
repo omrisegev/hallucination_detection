@@ -1,3 +1,12 @@
+## Codex frozen v3 labels/provenance in Git - 2026-09-14
+
+Added JOINED.json/JOINED.npz and RELEASE_V3.json unchanged, as requested.
+Joined files match the frozen runner manifest. Release roster (13769 answers),
+source groups, token/step counts and folds hash match. Packed step offsets and
+label array dimensions checked; original -2 sentinel preserved.
+Review: results/frozen_gate_folds_bundle_v1/LABELS_REVIEW.json.
+Large feature caches and their token spans remain separate required inputs.
+
 ## Codex frozen gate/folds bundle - 2026-09-14
 
 Added the exact FOLDS_V2.json and fusion_fixed_gate_v1/DETECTORS.npz + METRICS.json

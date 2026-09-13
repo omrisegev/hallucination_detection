@@ -18724,3 +18724,8 @@ User requested publication of the temporal development lineage for a later multi
 #### Step 360 follow-up: frozen gate and folds in Git (2026-09-14)
 
 User explicitly requested commit and push of FOLDS_V2.json and fixed gate DETECTORS.npz/METRICS.json. Copied the three original files byte-for-byte into the conditional-IU branch; SHA256 and size checks match the registered input manifest. No scientific code, folds or thresholds changed. Review: results/frozen_gate_folds_bundle_v1/REVIEW.json.
+
+
+#### Step 360 follow-up: frozen v3 labels and release bundle (2026-09-14)
+
+User requested the remaining JOINED JSON/NPZ and RELEASE_V3 provenance be committed and pushed. Copied exact bytes; verified frozen joined hashes, array link, full release roster and tracked fold hash. Step offsets index joined step rows, not token boundaries; feature caches remain required. Original -2 label sentinel preserved. Audit: results/frozen_gate_folds_bundle_v1/LABELS_REVIEW.json.
