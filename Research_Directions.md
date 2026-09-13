@@ -4063,3 +4063,18 @@ Model (NeurIPS2023). Related sequential/networked ensemble classification
 (Traganitis/Giannakis,TKDE2022) is relevant to trajectory fusion; not claimed
 here as a verified direct citation. The2025 signal-processing crowdsourcing
 review (arxiv2407.06902v2) is already present locally. No new sweep launched.
+## 2026-09-13 - position priors and graph context serving answer-local fusion
+
+The current multi-algorithm whole-answer position experiment is the first
+measurement. Next, retain the current answer's Shrinkage IU estimate and add a
+source-fold-excluded covariance prior by whole-answer position; new alpha=0
+must reproduce the baseline exactly. Then isolate graph-local neighborhoods
+against sliding windows, and finally a graph penalty on coefficient changes.
+These extend fusion; they do not substitute score smoothing or a new feature
+bank. The original Conditional RBM / Temporal Convolution roadmap stays open.
+
+Preparation can run in parallel; each scientific extension requires a frozen
+driver and matched controls. Currently only the borrowing adapter is coded;
+the graph experiments are designs. Full rationale, data access, controls,
+failure handling and cluster execution:
+`docs/experiments/CONDITIONAL_IU_FOLLOWUPS_V1.md`.

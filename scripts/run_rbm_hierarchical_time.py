@@ -35,13 +35,8 @@ def emit(name,obj):
 
 
 def free_gib():
-    class Memory(ctypes.Structure):
-        _fields_=[('length',ctypes.c_ulong),('load',ctypes.c_ulong)]+[(n,ctypes.c_ulonglong) for n in
-            ('total','available','total_page','available_page','total_virtual','available_virtual','extended')]
-    m=Memory();m.length=ctypes.sizeof(m)
-    if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(m)):
-        raise OSError('cannot check available RAM')
-    return m.available/2**30
+    from spectral_utils.available_memory import available_gib
+    return available_gib()
 
 
 class InvocationCap(Exception):pass

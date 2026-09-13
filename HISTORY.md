@@ -18571,3 +18571,34 @@ smoke/full supervisor waits for 4GiB RAM and stops on failures. No Claude proces
 raw cache, old driver or frozen score was modified. See
 `docs/experiments/ANSWER_POSITION_FUSION_V1.md` and
 `docs/research_notes/ANSWER_POSITION_IMPLEMENTATION_2026-09-13.md`.
+
+### Step 360 [Codex conditional-IU preparation] - Register position/graph follow-ups and prepare AIRCC
+
+**What**: Documented the relationship between the current two-axis/whole-answer
+position study and three follow-ups: external position priors for answer-local
+IU, graph-local covariance, and graph regularization of coefficient vectors.
+Implemented the covariance-borrowing seam and a portable RAM probe in a new
+worktree. Prepared an isolated, hash-checked cluster bundle and Slurm script.
+**Why**: The user wants current-answer fitting retained while borrowing position
+information from many answers, with exact baseline recovery when borrowing is
+disabled. Preparation need not wait for scientific conclusions. The current
+Windows smoke has not progressed past its available-RAM guard.
+**Result**: Alpha-zero exact replay, canonical IU covariance replay, failure
+handling, memory accounting fixtures and all inherited answer-position math
+tests PASS. No new performance finding. Graph algorithms and a full hybrid
+driver remain unimplemented. AIRCC SSH/Slurm verified; allocation is now
+cycle3_tau_averbuch_prj / owner_940, not the repository's historical owner_880.
+Cluster run status is recorded separately; no full result claimed here.
+
+**Files changed**:
+- `docs/experiments/CONDITIONAL_IU_FOLLOWUPS_V1.md` - sequence, rationale and contracts.
+- `spectral_utils/conditional_iu_covariance.py` - exact-zero covariance borrowing seam.
+- `spectral_utils/available_memory.py` - Windows/Linux RAM and cgroup accounting.
+- `scripts/test_conditional_iu_preparation.py` - estimator and platform fixtures.
+- `scripts/run_rbm_hierarchical_time.py`, `scripts/run_answer_position_fusion.py` -
+  portability-only change and its manifest hash, in the new worktree only.
+- `scripts/package_answer_position_aircc.py`, `cluster/answer_position_aircc.sbatch` -
+  frozen inputs, isolated packaging and scheduled smoke/full execution.
+- `PROGRESS.md`, `Research_Directions.md` - status and roadmap pointers.
+
+---

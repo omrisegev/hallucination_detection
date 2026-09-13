@@ -6785,3 +6785,23 @@ token/window sampling shortlist remain pending after this run.
 - Verbalized confidence on 7B+ — parser is ready; needs one inference run with Qwen2.5-Math-7B on GSM8K
 - Phase 10 RAG re-run with variant=4 prompt — low priority
 - LapEigvals integration into spectral_utils — potential Group D feature for M=12, low priority
+## Codex conditional-IU preparation - 2026-09-13
+
+Dedicated branch/worktree `codex/conditional-iu-followups-v1`, base 481381408.
+See `docs/experiments/CONDITIONAL_IU_FOLLOWUPS_V1.md` for the sequence and exact
+status: current whole-answer position comparison -> answer-local IU plus a
+training position prior -> graph-local IU -> graph penalty on weights. The
+last two are designs, not completed/queued experiments. Conditional RBM and
+Temporal Convolution remain separate future directions.
+
+Implemented a covariance-borrowing seam with exact alpha=0 baseline replay;
+unit tests and the inherited answer-position mathematical fixtures PASS. No
+new benchmark results. A full hybrid experiment driver is still required.
+
+AIRCC connectivity and Slurm verified. Live account/QoS are cycle3_tau_averbuch_prj /
+owner_940; set SLURM_CONF_SERVER=controller-primary for noninteractive commands.
+The old local smoke was waiting for 4 GiB available RAM. Cluster portability
+changes the memory guard only, with separately hashed code/input manifests,
+same fits/readout/folds, and separate output directories. Cluster execution
+status will be recorded in `results/aircc_preparation_v1/CLUSTER_STATUS.json`.
+Do not mistake packaging/unit-test PASS for smoke or benchmark completion.

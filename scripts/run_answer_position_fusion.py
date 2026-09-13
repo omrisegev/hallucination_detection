@@ -50,6 +50,7 @@ def manifest(source,smoke):
            ROOT/'spectral_utils/laplacian_upcr.py',ROOT/'spectral_utils/moment_rbm_fusion.py',
            ROOT/'scripts/test_answer_position_fusion.py',ROOT/'docs/experiments/ANSWER_POSITION_FUSION_V1.md']
     paths += [ROOT/'spectral_utils/higher_moment_fusion.py',
+              ROOT/'spectral_utils/available_memory.py',
               ROOT/'spectral_utils/reconstruction_benchmark/edis_bootstrap.py',
               source/'.worktrees/rbm-supervision-matched-v1/scripts/run_matched_rbm_supervision.py']
     inherited['hashes'].update({str(p):base.old.sha256_file(p) for p in paths})
