@@ -1,3 +1,22 @@
+
+## Codex answer-position fusion - 2026-09-13 - IMPLEMENTED; no full results yet
+
+Omri corrected the coordinate to position across the COMPLETE answer and requested
+several learning algorithms. Branch codex/answer-position-fusion-v1 (base 6249db384)
+implements Gaussian factor, exact Gaussian/Bernoulli H1 RBM, and canonical IU-PCR.
+All use the frozen 12 features, token scores, Top10, entropy-q0.3 gate, v3 labels,
+v2 groups and nested PRMScore folds. New fits use other answers WITHOUT labels.
+Fixed-weight and mean-only controls isolate position-specific coefficient changes;
+position shuffling moves assignments, never tokens across annotation boundaries.
+The prior within-step model completed smoke only and is preserved, not rejected
+by a full benchmark. No new experiment winner or numerical gain is claimed.
+
+Protocol: docs/experiments/ANSWER_POSITION_FUSION_V1.md.
+Review/decisions: docs/research_notes/ANSWER_POSITION_IMPLEMENTATION_2026-09-13.md.
+Run: scripts/complete_answer_position_fusion.py --source-root C:/Users/omris/TAU/hallucination_detection
+Live files: results/answer_position_fusion_v1/PROGRAM_STATE.json and smoke/RUN_STATE.json.
+One process/BLAS1, minimum 4GiB available RAM, resumable eight-hour invocations.
+Stop and present the complete matched findings before another model family.
 # Spectral Hallucination Detection — Session Progress Handoff
 
 ## Codex hierarchical time fusion v1 ? 2026-09-13 ? COMPLETE REVIEWED

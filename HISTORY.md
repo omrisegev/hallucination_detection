@@ -18549,3 +18549,25 @@ Boundary diagnostics are not promoted: Top10 without the first token gives PB 36
 Decision: retain original RBM12 Logit + Top10 as this temporal experiment's reference. Do not adopt the tested positive fixed-position averaging hierarchy. More data stabilizes temporal weights but cannot by itself recover information discarded by the readout. A next family should preserve score-adaptive high-risk token selection while isolating added temporal/context information. No tensor, conditional RBM, convolution or new feature experiment was started; discussion is required before the next family. Findings remain development evidence, not untouched confirmation. Historical low-correlation RBM6 and Varentropy50 remain explicit competing references, not replaced by this run.
 
 Artifacts: results/rbm_hierarchical_time_v1/{REPORT.md,COMPARISON.csv,PER_CELL.csv,METRICS.json,CONTRASTS.json,CONTROL_CONTRASTS.json,PRMSCORE_CONTRASTS.json,WEIGHTS.csv,WEIGHT_SUMMARY.json,ANSWER_DIAGNOSTICS.csv,RESULT_REVIEW.json,POSTFIT_REVIEW.json}. Protocol: docs/experiments/RBM_HIERARCHICAL_TIME_V1.md. Preflight archives preserve the JSON-reader/audit repairs; PROFILE_REUSE_REVIEW.json verifies the unchanged extraction and inputs. No original source, Claude run, or historical result was modified. No HTML was produced.
+
+### Step 359 [Codex answer-position fusion] - whole-answer coordinate and multiple fusion learners
+
+**What**: Implemented the user-requested amendment in a new worktree/branch,
+from 6249db384. Gaussian-factor and Gaussian/Bernoulli RBM maps compare stationary,
+rank1 and rank2; IU-PCR compares pooled and regularized regional covariance fits.
+**Why**: Step-relative bins have no common semantic role. The user's hypothesis
+concerns the progression of the complete answer. A multi-algorithm comparison
+also checks whether a failure comes from the Gaussian-factor learning objective.
+Keep token resolution and Top10; the completed hierarchical study showed that
+all-token averaging discarded useful signal. Preserve unsupervised training and
+separate other-answer access from the original answer-local RBM reference.
+**Review**: Exact historical RBM objective/gradient and independent mixture-density
+checks, canonical IU replay, gradient tests, whole-answer/short-answer geometry,
+position shuffling that preserves annotations, held-answer perturbation and
+matched centering controls. A draft IU mean-only control was corrected before
+any data extraction; its empty waiting smoke artifacts are archived separately.
+**Result**: Implementation/fixtures exist; no full benchmark result yet. Sequential
+smoke/full supervisor waits for 4GiB RAM and stops on failures. No Claude process,
+raw cache, old driver or frozen score was modified. See
+`docs/experiments/ANSWER_POSITION_FUSION_V1.md` and
+`docs/research_notes/ANSWER_POSITION_IMPLEMENTATION_2026-09-13.md`.
