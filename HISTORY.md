@@ -18511,6 +18511,71 @@ answer corrections are marked as diagnostics. New full suites and DUFS enter
 only after required completion/reviews. This repairs presentation, not models
 or results; live capacity and DUFS scorers were untouched.
 
+---
+
+### Step 356 [Claude Stage 1] — Codex RBM program completed: stability, capacity interpretation, amended depth (2026-09-12)
+
+Resumed the stalled full window-sampling run and completed the RBM stability,
+capacity and amended-depth account on the full 13,769-answer development set.
+H1 was start-invariant; best-of-three H4 lowered PB; stacked second layers were
+below the single-unit layer on 15/16 endpoints even after the logit amendment.
+The reviewed conclusion remains that learned fusion has not shown a consistent
+overall advantage and that representation, optimization, normalization and
+readout remain partly entangled. Full details and preserved caveats are in
+`docs/research_notes/RBM_PROGRAM_STAGE1_ACCOUNT_2026-09-12.md` and the imported
+Stage-1 result artifacts.
+
+---
+
+### Step 356b [Claude Stage 2] — varentropy-expansion fusion v1 (2026-09-12/13)
+
+Expanded varentropy into diagonal and cross-rank product contributions and ran
+19 non-Joint arms on all 13,769 answers. Adding cross-rank products under IU-PCR
+lowered PB by 0.80 pp, 97.5% CI [-1.31, -0.30], and within-AUC by 0.0066,
+CI [-0.0089, -0.0044]. The supervised diagnostic found no detected product
+advantage. The separately completed Joint pass edged IU on the same selected
+banks but products still hurt and no expansion arm reached entropy/varentropy15
+on PB. Artifacts and exact definitions are retained under
+`results/varentropy_expansion_fusion_v1/`.
+
+---
+
+### Step 357 [Claude corrections] — evidence-contract repairs (2026-09-13)
+
+Five review findings were verified and corrected: held-fold-blind supervised
+PRMScore calibration, mutually exclusive depth loss categories, a smoke rule
+that can fail, supervised manifest/input provenance, and result wording. No
+scientific definition or PB/within score changed; earlier supervised RBM
+correction arms with the same calibration dependency remain explicitly flagged.
+
+---
+
+### Step 358 [Claude Stage 3] — Rényi-order combination v2 (2026-09-13)
+
+Combined Rényi orders alpha in {0.1, 0.25, 0.5, 1, 2, infinity} using equal,
+IU-PCR, shrinkage-IU and declared Joint L-SML families on the frozen benchmark.
+The reviewed fast pass found that no fused arm beat the best single order on
+within-AUC; the tail-sensitive H0.1 view reached 0.7425 within-AUC and 0.633
+PRMScore, with no significant PB gain. This is representation evidence on one
+endpoint, not a promoted winner.
+
+---
+
+### Step 359 [Claude Stage 3b] — Rényi sweep and escort varentropy (2026-09-13)
+
+Thirty-one single views were evaluated on all 13,769 answers. H-alpha improved
+monotonically toward alpha=0 on within-answer ranking. VE_0 reached within-AUC
+0.7534, pooled AUC 0.7231 and PRMScore 0.6355; VE_0.75 reached the highest PB
+point, 36.76%, with intervals including zero and a lower within-AUC. Neither
+meets the two-endpoint promotion rule.
+
+The post-hoc complementarity audit found systematic position dependence:
+large-alpha views were stronger on early first errors and small-alpha views on
+late errors. VE_0 and VE_0.75 shared only about half their PB hits. Reported
+unions remain label-using oracle ceilings, not fusion algorithms. This evidence
+motivates the new bounded label-free position-conditioned fusion experiment;
+labels must not choose a view or weight at inference time.
+
 ## Codex hierarchical time fusion v1 ? 2026-09-13 ? IN PROGRESS
 
 Dedicated branch codex/rbm-hierarchical-time-v1, base 113c7eb79. Frozen RBM12 logits; learn only positive temporal weights over 16 relative-position regions. Compare local, other-answer shared, hierarchical and within-step shuffled hierarchy; supervised positive weights are a separate diagnostic. Keep Top10, all-token mean and contiguous10 controls. No first_near_max, RBM refit, new feature bank or later temporal family.

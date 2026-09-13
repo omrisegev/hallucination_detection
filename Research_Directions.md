@@ -45,6 +45,50 @@ One process/BLAS1, minimum 4GiB available RAM, resumable eight-hour invocations.
 Stop and present the complete matched findings before another model family.
 # Research Directions — Thesis Roadmap
 
+## 2026-09-14 — authorized Rényi position-varying fusion
+
+Merge the reviewed probability-head representation evidence with the reviewed
+whole-answer position learners. Freeze the token feature bank to `H0lim`,
+`VE_0`, `VE_0.75` and `VE_1` (varentropy15). Learn a weight map over normalized
+whole-answer position without labels, rather than choosing alpha from the true
+error location.
+
+The primary candidate families are: (1) other-answer, source-group-excluded
+position-conditioned IU-PCR; and (2) answer-local shrinkage-IU drawn toward a
+position-conditioned covariance prior fitted on other answers. Preserve the
+four single-view references, equal/static IU controls, shuffled-position
+control, and a scale-only position control that separates direction changes
+from magnitude changes.
+
+Keep the frozen v3 labels, v2 source groups, entropy-q0.3 gate, token-to-step
+mapping, Top10 token readout, earliest argmax and nested PRMScore calibration.
+The early/late complementarity is post-hoc development evidence and is a
+hypothesis only. A valid method receives no error-position label or per-answer
+oracle choice. Compare PB first-error localization, PRMB within-answer AUC and
+PRMScore separately; require full coverage and grouped uncertainty before any
+promotion.
+
+Source evidence: `results/renyi_alpha_sweep_v1/` and
+`results/aircc_results_20260913/{answer_position,conditional_position}/`.
+
+## Update 2026-09-13 (Claude): Stage 3b alpha sweep
+
+- Rényi entropy within-AUC improves toward alpha=0; H0lim reaches 0.7440 while
+  PB remains effectively flat across the family.
+- Escort varentropy VE_0 reaches within 0.7534 / PRMScore 0.6355; VE_0.75 has
+  PB 36.76% with intervals including zero and lower within-AUC.
+- Large-alpha views are descriptively stronger on early errors and small-alpha
+  views on late errors. Oracle unions are not fusion results.
+
+## Update 2026-09-13 (Claude): Stage 2/3 fusion boundary
+
+- Static fusion of multiple Rényi orders does not beat the best single order
+  on within-AUC; cross-rank varentropy products hurt both primary endpoints
+  under IU-PCR.
+- These negatives do not test a position-varying coefficient map. The new
+  experiment therefore changes the fusion geometry while freezing the selected
+  representation bank and readout/evaluation contract.
+
 ## Codex hierarchical time fusion v1 ? 2026-09-13 ? COMPLETE REVIEWED
 
 Full 13,769-answer run completed in 1,792.85 seconds (about 30 minutes, excluding implementation and preflight). All scoring and nested calibration covered the registered population. Independent PB, within-answer AUC and official PRMScore reconstruction PASS; 13 frozen reference rows reproduced; four additional DUFS/shared-variance reference rows re-evaluated against matching contract hashes. No numerical failures or nonconverged selected fits; the one-step answer uses the declared rules. 55 unique training exclusion sets and 41,645 answer/exclusion records were checked. Current-answer RBM12 coefficients never changed.

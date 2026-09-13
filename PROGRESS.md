@@ -10,6 +10,25 @@ Integration handoff: docs/research_notes/TEMPORAL_FUSION_INTEGRATION_HANDOFF_202
 The previous metadata commit f3fa3cc34 is already on GitHub; this update prepares
 the fetched result evidence and integration map for the same approved remote.
 
+## Claude Rényi/escort-varentropy evidence merged - 2026-09-14
+
+The complete Stage 2/3/3b implementation, reports and reviewed results from
+`claude/varentropy-expansion-fusion-v1` are merged into the isolated combined
+worktree. The frozen four-view bank for the next experiment is `{H0lim, VE_0,
+VE_0.75, VE_1}`. The observed early/late complementarity is post-hoc and may
+motivate the hypothesis only; labels must not select alpha or position weights.
+
+Stage 3b evidence: VE_0 is the strongest answer-local single stream on PRMB
+(within 0.7534 / pooled 0.7231 / PRMScore 0.6355); VE_0.75 has the largest PB
+point (36.76%, intervals include zero). Neither is promoted. Combining several
+Rényi orders with static fusion did not beat the best single order.
+
+The authorized next implementation is a label-free position-varying fusion of
+the four frozen views: other-answer positional IU-PCR and answer-local
+shrinkage-IU toward an external position-conditioned covariance prior, with
+static, shuffled-position and scale-only controls. No full run is authorized
+until the new manifest and local smoke/replay checks pass.
+
 ## Codex Graph-local IU fetched - 2026-09-13
 
 Job255753 COMPLETE_REVIEWED, all13,769 answers, 11 fetched SHA256 matches,
