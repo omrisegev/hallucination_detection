@@ -15,12 +15,20 @@ from threadpoolctl import threadpool_limits
 ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT))
 from spectral_utils import two_axis_factor_fusion as model
 from spectral_utils.direct_probability_fusion import step_top_mean
+from spectral_utils.higher_moment_fusion import feature_names
+from spectral_utils.historical_fusion_evaluation import pb_metrics
+from spectral_utils.reconstruction_benchmark import edis_bootstrap as auc_boot
 from scripts import run_rbm_hierarchical_time as hy
 from scripts.test_two_axis_factor_fusion import run as fixtures
 old=hy.old;base=hy.base
 OUT=ROOT/'results/two_axis_factor_fusion_v1'
 METHODS=('stationary','rank1','rank2','rank2_shuffled')
 PRIMARY=[('rank1','stationary'),('rank2','rank1')]
+FEATURE_NAMES=tuple(feature_names(6))
+EXPECTED_FEATURE_NAMES=('entropy15','varentropy15','moment3_15','selected_surprisal',
+    'selected_squared','selected_cubed','moment4_15','selected_power4',
+    'moment5_15','selected_power5','moment6_15','selected_power6')
+assert FEATURE_NAMES==EXPECTED_FEATURE_NAMES and FEATURE_NAMES[1]=='varentropy15'
 START=0.
 
 def emit(name,value):base.atomic_json(OUT/name,value)
@@ -33,9 +41,16 @@ def manifest(source,smoke):
     inherited=hy.manifest(source)
     paths=[Path(__file__),ROOT/'spectral_utils/two_axis_factor_fusion.py',
            ROOT/'scripts/test_two_axis_factor_fusion.py',ROOT/'docs/experiments/TWO_AXIS_FACTOR_FUSION_V1.md']
+    paths += [ROOT/'spectral_utils/higher_moment_fusion.py',
+              ROOT/'spectral_utils/reconstruction_benchmark/edis_bootstrap.py',
+              source/'.worktrees/rbm-supervision-matched-v1/scripts/run_matched_rbm_supervision.py']
     inherited['hashes'].update({str(p):base.old.sha256_file(p) for p in paths})
     return dict(schema='two-axis-factor-fusion-v1',base='2ec11dd0c',smoke=smoke,
-                methods=METHODS,hashes=inherited['hashes'])
+                methods=METHODS,feature_names=FEATURE_NAMES,bins=model.BINS,ranks=[1,2],
+                ridge=model.RIDGE,optimizer=dict(name='L-BFGS-B',maxiter=1000,ftol=1e-10,gtol=1e-6),
+                bootstrap=dict(draws=10000,primary_ci=.975,secondary_ci=.95,unit='canonical_source_group'),
+                gate='fixed mean-entropy q=0.3',prmscore_calibration='q=0.8 nested held folds',
+                readout='token score then Top10 mean per step; argmax earliest tie',hashes=inherited['hashes'])
 
 def connect(freeze,smoke):
     con=sqlite3.connect(OUT/('SMOKE.sqlite' if smoke else 'CHECKPOINT.sqlite'))
@@ -72,6 +87,8 @@ def answer(cache,k,records,joined,reference):
     x=cache['x'][ta:tb];spans=cache['spans'][sa:sb]-ta
     assert x.shape[1]==12 and np.isfinite(x).all()
     active=cache['active'][k]
+    assert active.shape==(12,)
+    np.testing.assert_array_equal(x[:,~active],0.)
     np.testing.assert_allclose(x[:,active].mean(axis=0),0.,atol=1e-10)
     np.testing.assert_allclose(x[:,active].std(axis=0),1.,atol=1e-10)
     assert spans.shape==(records[i]['steps'],2) and np.all(spans[:,1]>spans[:,0])
@@ -114,11 +131,12 @@ def train(con,records,fold,selected):
             train_ids=[i for i in ids if fold[i] not in excluded]
             assert train_ids
             weights=hy.group_weights(records,train_ids)
-            held_groups={records[i]['group_id'] for i in selected if fold[i] in excluded}
+            held_groups={records[i]['group_id'] for i in selected if records[i]['cell']==cell and fold[i] in excluded}
             groups=sorted({records[i]['group_id'] for i in train_ids})
             assert not held_groups.intersection(groups)
             moments={name:sum(weights[i]*stats[i][name] for i in train_ids) for name in ('real','shuffle')}
-            arrays={};info=dict(cell=cell,excluded_folds=excluded,training_ids=train_ids,training_groups=groups,fits={})
+            arrays={};info=dict(cell=cell,excluded_folds=excluded,excluded_groups=sorted(held_groups),
+                                training_ids=train_ids,training_groups=groups,fits={})
             for name in METHODS:
                 try:
                     a,d=model.fit(moments['shuffle' if name=='rank2_shuffled' else 'real'],
@@ -167,10 +185,139 @@ def review_exclusions(con,records,fold,selected):
         expected=[i for i in selected if records[i]['cell']==info['cell'] and fold[i] not in ex]
         assert info['training_ids']==expected
         assert set(info['training_groups'])=={records[i]['group_id'] for i in expected}
-        assert not set(info['training_groups']).intersection(records[i]['group_id'] for i in selected if fold[i] in ex)
+        expected_held={records[i]['group_id'] for i in selected if records[i]['cell']==info['cell'] and fold[i] in ex}
+        assert set(info['excluded_groups'])==expected_held
+        assert not set(info['training_groups']).intersection(expected_held)
         count+=1
     # Fit moments depend only on saved unlabeled token statistics; no labels are read by train/fit.
     return dict(status='PASS',models=count,all_exclusions_rederived=True,fit_api_accepts_no_labels=True)
+
+def label_firewall_review(con,records,joined,fold,selected):
+    """Perturb held labels and confirm the serialized fit inputs are unchanged."""
+    cell=next(records[i]['cell'] for i in selected if not records[i]['cell'].startswith('pb_'))
+    cell_ids=[i for i in selected if records[i]['cell']==cell]
+    held_fold=min({fold[i] for i in cell_ids});train_ids=[i for i in cell_ids if fold[i]!=held_fold]
+    weights=hy.group_weights(records,train_ids)
+    def digest():
+        h=hashlib.sha256()
+        for i in train_ids:
+            payload=con.execute('select payload from stats where idx=?',(i,)).fetchone()[0]
+            h.update(np.float64(weights[i]).tobytes());h.update(payload)
+        return h.hexdigest()
+    before=digest();labels=joined['labels'].copy();target=joined['target'].copy()
+    held=[i for i in cell_ids if fold[i]==held_fold];labels_before=labels.copy();target_before=target.copy()
+    for i in held:
+        a,b=joined['offsets'][i:i+2];known=labels[a:b]>=0;labels[a:b][known]=1-labels[a:b][known]
+        target[i]=target[i]+1
+    assert not np.array_equal(labels,labels_before) and not np.array_equal(target,target_before)
+    after=digest();assert before==after
+    return dict(status='PASS',cell=cell,held_fold=held_fold,held_answers=len(held),
+                labels_and_targets_perturbed=True,fit_input_sha256_before=before,
+                fit_input_sha256_after=after,fit_api_accepts_no_labels=True)
+
+def _auc_draws(labels,scores,groups,draws,seed):
+    state=auc_boot._validate_cell(labels=labels,scores_by_method=scores,group_ids=groups,
+                                  reference_method='top10',canonical_group_order=True)
+    rng=np.random.default_rng(seed);out={name:[] for name in state['methods']}
+    for start in range(0,draws,128):
+        n=min(128,draws-start);counts=auc_boot._draw_counts(draws=n,n_groups=len(state['roster']),rng=rng)
+        positive=counts@state['group_pos'];total=counts@state['group_total'];valid=(positive>0)&((total-positive)>0)
+        if not valid.any():continue
+        for name in state['methods']:
+            value,_=auc_boot._weighted_draw_metrics(labels=state['labels'],score=state['scores'][name],
+                row_group_index=state['row_group_index'],counts=counts)
+            out[name].append(value[valid])
+    return {name:np.concatenate(values) for name,values in out.items()}
+
+def endpoint_uncertainty(records,joined,scores,metrics,thresholds,fold):
+    """Grouped paired intervals for the registered pooled/fold AUC and PRMScore endpoints."""
+    methods=('top10',)+METHODS;pairs=PRIMARY+[('rank2','rank2_shuffled')]+[(name,'top10') for name in METHODS]
+    offsets=joined['offsets'];lengths=np.diff(offsets);cells=np.array([r['cell'] for r in records])
+    prm=~np.char.startswith(cells,'pb_');common=prm.copy()
+    for name in methods:
+        common &= np.array([np.isfinite(scores[name][offsets[i]:offsets[i+1]]).all() for i in range(len(records))])
+    step_prm=np.repeat(common,lengths);known=joined['labels']>=0;mask=step_prm&known
+    step_groups=np.repeat(np.array([r['group_id'] for r in records]),lengths)
+    step_fold=np.repeat(np.array([fold[i] for i in range(len(records))]),lengths)
+    flat={name:scores[name][mask] for name in methods};labels=(joined['labels'][mask]==1).astype(int);groups=step_groups[mask]
+    pooled=_auc_draws(labels,flat,groups,10000,2026091311)
+    fold_draws={name:[] for name in methods}
+    for f in sorted(set(step_fold[mask])):
+        fm=step_fold[mask]==f
+        draws=_auc_draws(labels[fm],{name:value[fm] for name,value in flat.items()},groups[fm],10000,2026091320+int(f))
+        for name in methods:fold_draws[name].append(draws[name])
+    fold_mean={name:np.mean(np.stack(values),axis=0) for name,values in fold_draws.items()}
+    pooled_point={name:base.old.auc(labels,flat[name]) for name in methods}
+    fold_point={name:np.mean([base.old.auc(labels[step_fold[mask]==f],flat[name][step_fold[mask]==f])
+                             for f in sorted(set(step_fold[mask]))]) for name in methods}
+    if int(common.sum())==int(prm.sum()):
+        for name in methods:
+            np.testing.assert_allclose(pooled_point[name],metrics[name]['prm_pooled'],atol=1e-12,rtol=0)
+            np.testing.assert_allclose(fold_point[name],metrics[name]['prm_fold_auc'],atol=1e-12,rtol=0)
+    # Official PRMScore excludes the synthetic correct-control class.
+    raw={str(r['idx']):r for r in base.old.load_pickle(base.old.PRMB_LABELS).values()}
+    unique_groups,inv=np.unique([r['group_id'] for r in records],return_inverse=True);counts=np.zeros((len(unique_groups),len(methods),4))
+    folds=json.loads(base.old.FOLDS.read_text())['outer']
+    for i,r in enumerate(records):
+        if not common[i] or r['cell'].startswith('pb_') or raw[str(r['row_id'])]['classification']=='correct':continue
+        a,b=offsets[i:i+2];truth=joined['labels'][a:b]==1
+        for j,name in enumerate(methods):
+            risk=scores[name][a:b]>=thresholds[name][str(folds[r['group_id']])]
+            counts[inv[i],j]+=np.array([np.sum(~truth&~risk),np.sum(truth&~risk),np.sum(truth&risk),np.sum(~truth&risk)])
+    def f1(c):
+        tp,fp,tn,fn=np.moveaxis(c,-1,0)
+        return .5*(2*tp/(2*tp+fp+fn)+2*tn/(2*tn+fp+fn))
+    point=f1(counts.sum(0))
+    if int(common.sum())==int(prm.sum()):
+        np.testing.assert_allclose(point,[metrics[n]['prmscore_conditional'] for n in methods],atol=1e-12,rtol=0)
+    prm_draws={name:[] for name in methods};rng=np.random.default_rng(2026091331)
+    for start in range(0,10000,128):
+        n=min(128,10000-start);w=rng.multinomial(len(unique_groups),np.full(len(unique_groups),1/len(unique_groups)),size=n)
+        value=f1((w@counts.reshape(len(unique_groups),-1)).reshape(n,len(methods),4))
+        for j,name in enumerate(methods):prm_draws[name].append(value[:,j])
+    prm_draws={name:np.concatenate(value) for name,value in prm_draws.items()}
+    out={}
+    for a,b in pairs:
+        primary=(a,b) in PRIMARY;level=.975 if primary else .95;q=[(1-level)/2,1-(1-level)/2]
+        out[a+'_minus_'+b]=dict(primary=primary,ci_level=level,draws=10000,
+            common_prm_answers=int(common.sum()),
+            prm_pooled_delta=float(pooled_point[a]-pooled_point[b]),
+            prm_pooled_ci=np.quantile(pooled[a]-pooled[b],q).tolist(),
+            prm_fold_auc_delta=float(fold_point[a]-fold_point[b]),
+            prm_fold_auc_ci=np.quantile(fold_mean[a]-fold_mean[b],q).tolist(),
+            prmscore_delta=float(point[methods.index(a)]-point[methods.index(b)]),
+            prmscore_ci=np.quantile(prm_draws[a]-prm_draws[b],q).tolist(),
+            conditional_on_saved_fits_scores_and_thresholds=True)
+    return out
+
+def independent_endpoint_review(records,joined,scores,metrics,fold):
+    offsets=joined['offsets'];target=joined['target'];cells=np.array([r['cell'] for r in records]);pb=np.char.startswith(cells,'pb_')
+    detector,gate=base.old._gate_contract(records);checks={}
+    for name,flat in scores.items():
+        valid=np.zeros(len(records),bool);peak=np.full(len(records),-1,int);pooled=np.zeros(len(flat),bool)
+        for i in range(len(records)):
+            a,b=offsets[i:i+2];s=flat[a:b]
+            if len(s) and np.isfinite(s).all():
+                valid[i]=True;peak[i]=int(np.argmax(s));
+                if not pb[i]:pooled[a:b]=joined['labels'][a:b]>=0
+        decision=valid&np.isfinite(detector)&np.isfinite(gate);prediction=np.where(detector>=gate,peak,-1)
+        p=pb_metrics(target[pb],prediction[pb],decision[pb],cells[pb]);error=pb&(target>=0);clean=pb&(target<0);diff=peak-target
+        expected=metrics[name]
+        np.testing.assert_allclose([p['macros'][k] for k in ('all','q4','q8')],
+                                   [expected[k] for k in ('pb_all8','pb_q4','pb_q8')],atol=1e-12,rtol=0)
+        for cell,value in p['cells'].items():np.testing.assert_allclose(value['f1'],expected['pb_cells'][cell]['f1'],atol=1e-12,rtol=0)
+        np.testing.assert_allclose(base.old.auc(joined['labels'][pooled]==1,flat[pooled]),expected['prm_pooled'],atol=1e-12,rtol=0)
+        fold_values=[base.old.auc(joined['labels'][pooled&(np.repeat(np.array([fold[i] for i in range(len(records))]),np.diff(offsets))==f)]==1,
+                                  flat[pooled&(np.repeat(np.array([fold[i] for i in range(len(records))]),np.diff(offsets))==f)]) for f in sorted(set(fold.values()))]
+        np.testing.assert_allclose(np.mean(fold_values),expected['prm_fold_auc'],atol=1e-12,rtol=0)
+        assert int(valid.sum())==expected['valid_answers'] and int(np.sum(pb&~decision))==expected['pb_invalid']
+        assert int(np.sum(error&valid&(diff<0)))==expected['pb_early'] and int(np.sum(error&valid&(diff>0)))==expected['pb_late']
+        assert int(np.sum(error&valid&(diff==0)))==expected['pb_exact_count']
+        assert int(np.sum(error&valid&(diff==0)&(prediction==-1)))==expected['pb_correct_peaks_suppressed']
+        np.testing.assert_allclose(np.sum(error&valid&(diff==0))/error.sum(),expected['pb_raw_exact'],atol=1e-12,rtol=0)
+        np.testing.assert_allclose(np.sum(clean&decision&(prediction==-1))/clean.sum(),expected['pb_clean_accuracy'],atol=1e-12,rtol=0)
+        checks[name]=dict(valid_answers=int(valid.sum()),all_registered_endpoints_reproduced=True)
+    return dict(status='PASS',methods=checks)
 
 def evaluate(con,records,joined,reference,fold,selected):
     assert len(selected)==13769
@@ -192,7 +339,10 @@ def evaluate(con,records,joined,reference,fold,selected):
                 if np.isfinite(a).all():values.append(a)
             if not values:raise ValueError(f'no calibration for {name} fold{f}')
             thresholds[name][str(f)]=float(np.quantile(np.concatenate(values),.8))
-            coverage.append(dict(method=name,outer_fold=f,answers=len(values),expected=len(ids)))
+            training_groups=sorted({records[i]['group_id'] for i in ids})
+            excluded_groups=sorted({records[i]['group_id'] for i in selected if not records[i]['cell'].startswith('pb_') and fold[i]==f})
+            coverage.append(dict(method=name,outer_fold=f,answers=len(values),expected=len(ids),
+                                 training_groups=training_groups,excluded_groups=excluded_groups))
     metrics,per=base.evaluate_arrays(records,joined,scores,calibration_thresholds=thresholds,fold_auc=True)
     prm=np.array([not r['cell'].startswith('pb_') for r in records]);step_prm=np.repeat(prm,np.diff(joined['offsets']))
     for name,flat in scores.items():
@@ -207,14 +357,17 @@ def evaluate(con,records,joined,reference,fold,selected):
     progress('BOOTSTRAP',draws=10000)
     contrasts=base.paired_bootstrap(records,joined,per,draws=10000,pairs=pairs,primary_pairs=set(PRIMARY),primary_ci=.975)
     review=hy.independent_review(records,joined,scores,metrics,thresholds,per)
+    endpoint_review=independent_endpoint_review(records,joined,scores,metrics,fold)
+    extended=endpoint_uncertainty(records,joined,scores,metrics,thresholds,fold)
     hy.METHODS=('top10',)+METHODS
     transitions=hy.error_and_weight_tables(records,joined,{},[],per)
     np.savez_compressed(OUT/'SCORES.npz',**scores)
-    emit('METRICS.json',metrics);emit('CONTRASTS.json',contrasts)
+    emit('METRICS.json',metrics);emit('CONTRASTS.json',contrasts);emit('ENDPOINT_CONTRASTS.json',extended)
     emit('CALIBRATION.json',dict(thresholds=thresholds,coverage=coverage));emit('ERROR_TRANSITIONS.json',transitions)
     old.csv_write(OUT/'COMPARISON.csv',[dict(method=n,**{k:v for k,v in a.items() if not isinstance(v,dict)}) for n,a in metrics.items()])
     old.csv_write(OUT/'PER_CELL.csv',[dict(method=n,cell=cell,**a) for n,d in metrics.items() for cell,a in d['pb_cells'].items()])
     emit('RESULT_REVIEW.json',dict(status='PASS',answers=len(selected),independent_metrics=review,
+                                 independent_all_endpoints=endpoint_review,
                                  frozen_references_reproduced=True,exclusions=review_exclusions(con,records,fold,selected)))
     report=['# Two-axis factor fusion (RBM12 bank, Top10 fixed)','',
             'Full development benchmark; other-answer unlabelled fitting. Rank means loading-map rank, not latent classes.',
@@ -240,7 +393,9 @@ def main():
             paths=sorted(old.caches(SOURCE).glob('cache_*.npz'))
             selected=sorted(i for path in paths for i in selection(path,records,fold,smoke))
             freeze=manifest(SOURCE,smoke);con=connect(freeze,smoke);emit('MANIFEST.json',freeze)
-            extract(con,paths,selected,records,joined,reference);train(con,records,fold,selected)
+            extract(con,paths,selected,records,joined,reference)
+            emit('LABEL_FIREWALL_REVIEW.json',label_firewall_review(con,records,joined,fold,selected))
+            train(con,records,fold,selected)
             score(con,paths,selected,records,joined,reference,fold)
             fits=[dict(model=key,arm=n,**d) for key,text in con.execute('select key,info from models') for n,d in json.loads(text)['fits'].items()]
             emit('FIT_HEALTH.json',fits)

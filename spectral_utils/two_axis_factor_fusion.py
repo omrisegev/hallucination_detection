@@ -51,6 +51,14 @@ def objective(theta, second, rank):
     gd=np.einsum('jii->i',g)*np.exp(logd)
     return float(val),np.r_[(gw@v).ravel(),(gw.T@u).ravel(),gd]
 
+def objective_parts(theta, second, rank):
+    """Return the pure Gaussian NLL and the fixed optimization penalty."""
+    j,p,_=second.shape
+    u,v,_=unpack(theta,j,p,rank);w=u@v.T
+    regularized=float(objective(theta,second,rank)[0])
+    penalty=float(.5*RIDGE*np.mean(w*w))
+    return regularized-penalty,penalty
+
 def factorize(w,rank):
     a,s,b=np.linalg.svd(w,full_matrices=False)
     s=np.sqrt(np.maximum(s[:rank],1e-12))
@@ -78,14 +86,21 @@ def fit(second, rank, stationary=False):
         e,b=np.linalg.eigh(s); w=b[:,-1]*np.sqrt(max(e[-1]-e[:-1].mean(),.01*max(average,1e-8)))
         if w[1]<0:w=-w
         regional.append(w)
-    fits=[]
-    for initial_w in (constant,np.asarray(regional)):
+    fits=[];start_info=[]
+    for start_index,(start_name,initial_w) in enumerate((('pooled',constant),('regional',np.asarray(regional)))):
         u,v=factorize(initial_w,rank); d=np.maximum(np.diag(pooled)-np.mean((u@v.T)**2,axis=0),floor)
         theta=np.r_[u.ravel(),v.ravel(),np.log(d)]
-        res=minimize(objective,theta,args=(c,rank),jac=True,method='L-BFGS-B',
-                     bounds=[(None,None)]*(len(theta)-p)+[(np.log(floor),None)]*p,
-                     options=dict(maxiter=1000,ftol=1e-10,gtol=1e-6))
+        try:
+            res=minimize(objective,theta,args=(c,rank),jac=True,method='L-BFGS-B',
+                         bounds=[(None,None)]*(len(theta)-p)+[(np.log(floor),None)]*p,
+                         options=dict(maxiter=1000,ftol=1e-10,gtol=1e-6))
+        except Exception as exc:
+            start_info.append(dict(start_index=start_index,start_name=start_name,success=False,
+                                   failure=type(exc).__name__+': '+str(exc)))
+            continue
         if not np.isfinite(res.fun) or not np.isfinite(res.x).all():
+            start_info.append(dict(start_index=start_index,start_name=start_name,success=False,
+                                   failure='nonfinite optimizer result',message=str(res.message)))
             continue
         u,v,logd=unpack(res.x,j,p,rank); w=u@v.T
         # Fix latent sign by positive loading on the registered varentropy15 view.
@@ -99,20 +114,27 @@ def fit(second, rank, stationary=False):
         sigma=np.einsum('ji,jk->jik',w,w)+np.diag(d)
         bounds=np.r_[np.full(len(res.x)-p,-np.inf),np.full(p,np.log(floor))]
         grad=res.jac.copy();grad[(res.x<=bounds+1e-9)&(grad>0)]=0
-        fits.append(dict(result=res,loadings=w,noise=d,coefficients=coef,
-                         info=dict(converged=bool(res.success),iterations=int(res.nit),message=str(res.message),
-                                   objective=float(res.fun),projected_gradient_max=float(np.abs(grad).max()),
+        nll,penalty=objective_parts(res.x,c,rank)
+        info=dict(start_index=start_index,start_name=start_name,success=True,
+                                   converged=bool(res.success),iterations=int(res.nit),message=str(res.message),
+                                   nll=float(nll),penalty=float(penalty),regularized_objective=float(res.fun),
+                                   objective=float(res.fun),
+                                   projected_gradient_max=float(np.abs(grad).max()),
                                    residual_relative=float(np.linalg.norm(c-sigma)/max(np.linalg.norm(c),1e-30)),
-                                   condition_max=float(np.linalg.cond(sigma).max()),anchor_ties=int(tie.sum()))))
+                                   condition_max=float(np.linalg.cond(sigma).max()),anchor_ties=int(tie.sum()))
+        start_info.append(info)
+        fits.append(dict(result=res,loadings=w,noise=d,coefficients=coef,info=info))
     if not fits:raise FloatingPointError('both factor fits nonfinite')
-    chosen=min(range(len(fits)),key=lambda i:fits[i]['info']['objective']); best=fits[chosen]
+    chosen=min(range(len(fits)),key=lambda i:fits[i]['info']['nll']); best=fits[chosen]
     arrays={k:best[k] for k in ('loadings','noise','coefficients')}
     if stationary:
         for k in ('loadings','coefficients'):arrays[k]=np.repeat(arrays[k],BINS,axis=0)
-    info=dict(rank=rank,stationary=stationary,noise_floor=floor,selected_start=chosen,
-              starts=[f['info'] for f in fits],**best['info'])
+    info=dict(rank=rank,stationary=stationary,noise_floor=floor,
+              selected_start=best['info']['start_index'],selected_start_name=best['info']['start_name'],
+              selected_by='pure_gaussian_nll',starts=start_info,**best['info'])
     info['coefficient_singular_values']=np.linalg.svd(arrays['coefficients'],compute_uv=False).tolist()
-    info['coefficient_start_l1_difference']=float(np.abs(fits[0]['coefficients']-fits[-1]['coefficients']).sum())
+    info['coefficient_start_l1_difference']=(float(np.abs(fits[0]['coefficients']-fits[1]['coefficients']).sum())
+                                             if len(fits)==2 else None)
     return arrays,info
 
 def step_scores(x, spans, coefficients, uid, shuffled=False):

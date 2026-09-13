@@ -35,12 +35,21 @@ def run():
     assert h2['residual_relative']<.03,h2
     assert np.linalg.matrix_rank(a1['coefficients'],tol=1e-9)==1
     assert np.linalg.matrix_rank(a2['coefficients'],tol=1e-9)==2
+    assert h1['selected_by']=='pure_gaussian_nll' and len(h1['starts'])==2
+    assert all({'nll','penalty','regularized_objective'} <= set(s) for s in h1['starts'] if s['success'])
+    base=rng.normal(size=(4,4));base=base@base.T+np.eye(4)
+    repeated=np.repeat(base[None],16,axis=0)
+    stationary,hs=m.fit(repeated,1,stationary=True)
+    rank1,hr=m.fit(repeated,1)
+    np.testing.assert_allclose(stationary['coefficients'],rank1['coefficients'],rtol=2e-5,atol=2e-6)
     az,hz=m.fit(np.zeros((16,4,4)),1)
     assert np.isfinite(az['coefficients']).all()
     try:m.sufficient_statistics(np.array([[np.nan]*4]),[(0,1)],'bad')
     except ValueError:pass
     else:raise AssertionError('nonfinite input accepted')
     return dict(status='PASS',gradient_ranks=[1,2],direct_gaussian=True,short_steps=True,
-                second_moment_identity=True,stationary_token_score=True,synthetic_rank2_misfit=h2['residual_relative'])
+                second_moment_identity=True,stationary_token_score=True,
+                stationary_rank1_fit_equivalence=True,pure_nll_selection=True,
+                synthetic_rank2_misfit=h2['residual_relative'])
 
 if __name__=='__main__':print(run())

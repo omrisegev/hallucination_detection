@@ -103,3 +103,23 @@ Inspiration, not claimed reproduction:
 
 Return results in chat and update HISTORY/PROGRESS/Research_Directions. Do not
 start Conditional RBM, temporal convolution or another feature-bank experiment.
+
+## Pre-run independent audit amendment — 2026-09-13
+
+An independent plan-to-code audit stopped the first smoke while it was still
+waiting for RAM (zero statistics, models and scores). The corrected runner now:
+
+- records pure Gaussian NLL and the ridge penalty separately and selects the
+  registered initialization by pure NLL;
+- retains a health record for both deterministic starts, including a failed one;
+- binds the exact ordered 12-feature roster, its producer and extraction code,
+  and verifies inactive cache columns are zero before scoring;
+- runs an actual held-fold label/target perturbation firewall check and saves
+  explicit included and excluded source groups;
+- adds grouped paired uncertainty for pooled PRMB AUC, fold-mean PRMB AUC and
+  PRMScore, and independently reconstructs the registered per-cell and
+  diagnostic endpoints; and
+- tests fitted stationary/rank1 equivalence on position-identical moments.
+
+The pre-audit smoke artifacts are retained under a separately named directory.
+They contain only unit-test and manifest records and are not scientific results.
