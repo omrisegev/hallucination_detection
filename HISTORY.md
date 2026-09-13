@@ -18651,3 +18651,36 @@ The graph constructor previously could invalidate the valid baseline on a graph
 failure; it now confines failures to affected graph arms. Reviewed file hashes
 and limitations are saved in results/conditional_iu_preparation_v1/INDEPENDENT_REVIEW.json.
 No full-data performance conclusion follows from the review.
+
+**Cluster submission**: Code-only archive (4,193,595 bytes), SHA256
+189d173b3e74b5ec83c5bc2063719e3337889958b7526d8496edac4c5bdaac16,
+verified after upload to isolated conditional_iu_20260913_6f7e26dc0.
+Reuses the earlier job's 22 data/provenance files read-only (nine caches);
+the inherited 43-entry scientific freeze also contains code, not 43 data files.
+Submitted position 255743, graph_local 255744, graph_tv 255745, each CPU-only
+with 32 GiB. Byte/fixture and actual-data smoke gates precede full evaluation.
+Startup verification is recorded separately in CLUSTER_JOBS.json.
+
+**Resource-only correction**: Jobs 255743/255744/255745 failed OUT_OF_MEMORY
+in Pyxis/enroot image creation before any byte check, test, or data extraction.
+Recorded exit 137/Slurm0:125; no failed scientific predictions were generated.
+Resubmitted the identical archive and source data with explicit sbatch --mem=64G
+as position 255746, graph_local 255749, graph_tv 255750. This matches the memory
+allocation of the already working answer-position job. The script's original
+32-GiB default remains in its immutable archive; CLUSTER_JOBS.json records the
+64-GiB submission override. Startup verification continues separately.
+
+**Packaging correction and second-machine request**: The 64-GiB containers
+started and transfer hashes passed, but driver fixtures failed importing
+evidence_drop from scripts/localization. The code-only packager had included
+only top-level scripts, unlike the earlier complete bundle. No scientific
+smoke started. Expanded packaging to recursive scripts and added an isolated
+extracted-archive driver fixture (-I, no checkout/PYTHONPATH fallback).
+This changes packaging, not the reviewed statistical model. Cluster default
+memory is now 64 GiB. The supervisor resolves relative source paths before
+launching its child in another working directory.
+
+User also requested pushing this development branch for the second computer.
+Added a read-only 22-file input hash checker (PASS on current source) and
+docs/research_notes/CONDITIONAL_IU_SECOND_MACHINE.md with worktree and run commands.
+Git transfers code/review records, not the large untracked feature caches.

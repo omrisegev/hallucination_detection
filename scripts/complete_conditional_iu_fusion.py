@@ -28,6 +28,7 @@ def emit(value):
 def main():
     global OUT
     p=argparse.ArgumentParser();p.add_argument('--source-root',type=Path,required=True);p.add_argument('--family',choices=['position','graph_local','graph_tv'],required=True);args=p.parse_args()
+    args.source_root=args.source_root.resolve()
     OUT=ROOT/'results/conditional_iu_fusion_v1'/args.family
     OUT.mkdir(parents=True,exist_ok=True);lock=OUT/'PROGRAM.lock'
     fd=os.open(lock,os.O_CREAT|os.O_EXCL|os.O_WRONLY);os.write(fd,str(os.getpid()).encode());os.close(fd)

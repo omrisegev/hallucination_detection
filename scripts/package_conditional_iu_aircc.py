@@ -1,5 +1,5 @@
 """Package reviewed code only; reuse the earlier frozen AIRCC source directory."""
-import argparse,hashlib,io,json,subprocess,tarfile
+import argparse,hashlib,io,json,subprocess,sys,tarfile,tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -23,8 +23,9 @@ def main():
     # The inherited 43-entry experiment freeze includes code; its separately
     # staged source directory contains these 22 data/provenance files.
     assert len(inputs)==22 and sum('/cache_' in f['path'] for f in inputs)==9
-    files=sorted(set([*ROOT.glob('scripts/*.py'),*ROOT.glob('spectral_utils/**/*.py'),
-                      *ROOT.glob('docs/experiments/*.md'),ROOT/'cluster/conditional_iu_aircc.sbatch']))
+    files=sorted(set([*ROOT.glob('*.py'),*ROOT.glob('scripts/**/*.py'),*ROOT.glob('spectral_utils/**/*.py'),
+                      *ROOT.glob('docs/experiments/*.md'),ROOT/'docs/experiments/CONDITIONAL_IU_INPUTS_V1.json',
+                      ROOT/'docs/research_notes/CONDITIONAL_IU_SECOND_MACHINE.md',ROOT/'cluster/conditional_iu_aircc.sbatch']))
     entries=[dict(path='code/'+f.relative_to(ROOT).as_posix(),bytes=f.stat().st_size,sha256=sha(f)) for f in files]
     review_bytes=json.dumps(review,indent=2).encode()
     entries.append(dict(path='INDEPENDENT_REVIEW.json',bytes=len(review_bytes),sha256=hashlib.sha256(review_bytes).hexdigest()))
@@ -38,8 +39,19 @@ def main():
         for name,data in [('INDEPENDENT_REVIEW.json',review_bytes),('BUNDLE_MANIFEST.json',json.dumps(manifest,indent=2).encode())]:
             item=tarfile.TarInfo(name);item.size=len(data);archive.addfile(item,io.BytesIO(data))
     args.output.with_suffix('.manifest.json').write_text(json.dumps(manifest,indent=2))
+    # Test the ACTUAL archive away from the checkout. -I prevents PYTHONPATH or
+    # the source working directory from hiding missing nested helper modules.
+    with tempfile.TemporaryDirectory(prefix='bundle_import_',dir=args.output.parent) as temporary:
+        temporary=Path(temporary).resolve()
+        assert temporary.is_relative_to(args.output.parent.resolve())
+        with tarfile.open(args.output,'r:gz') as archive:archive.extractall(temporary,filter='data')
+        probe=subprocess.run([sys.executable,'-I','-B',str(temporary/'code/scripts/test_conditional_iu_driver.py')],
+                             cwd=temporary,capture_output=True,text=True,check=True)
+        isolated=json.loads(probe.stdout)
+        assert isolated['status']=='PASS'
     result=dict(status='PASS',archive=str(args.output),sha256=sha(args.output),bytes=args.output.stat().st_size,
-                code_files=len(files),source_files_reused=len(inputs),copied_data_bytes=0)
+                code_files=len(files),source_files_reused=len(inputs),copied_data_bytes=0,
+                isolated_archive_driver_fixture=isolated)
     args.output.with_suffix('.review.json').write_text(json.dumps(result,indent=2));print(json.dumps(result,indent=2))
 
 

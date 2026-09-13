@@ -5,7 +5,7 @@
 #SBATCH --partition=power-gpu
 #SBATCH --qos=owner_940
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=32G
+#SBATCH --mem=64G
 #SBATCH --time=2-00:00:00
 #SBATCH --requeue
 #SBATCH --signal=B:TERM@120

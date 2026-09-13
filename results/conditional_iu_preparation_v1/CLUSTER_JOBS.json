@@ -1,0 +1,111 @@
+{
+  "status": "STARTUP_FAILED_PACKAGING_CORRECTION_IN_PROGRESS",
+  "timestamp": "2026-09-13T19:26:05.940362+00:00",
+  "branch": "codex/conditional-iu-followups-v1",
+  "commit": "6f7e26dc0",
+  "implementation_commit": "ff04e8d79",
+  "review": "PASS",
+  "fixtures": 36,
+  "remote_root": "/shared/cycle2_tau_averbuch_prj/omrisegev1/experiments/conditional_iu_20260913_6f7e26dc0",
+  "source_root": "/shared/cycle2_tau_averbuch_prj/omrisegev1/experiments/answer_position_20260913_0be12cc23/source",
+  "archive_sha256": "189d173b3e74b5ec83c5bc2063719e3337889958b7526d8496edac4c5bdaac16",
+  "source_files_reused": 22,
+  "large_source_data_uploaded": false,
+  "jobs": [
+    {
+      "family": "position",
+      "job": 255746,
+      "requested_ram_gib": 64,
+      "cpus_per_task": 1,
+      "gpus": 0,
+      "state": "FAILED",
+      "operational_override": "sbatch --mem=64G; same frozen script/code/data",
+      "stage": "incomplete code archive; no science started"
+    },
+    {
+      "family": "graph_local",
+      "job": 255749,
+      "requested_ram_gib": 64,
+      "cpus_per_task": 1,
+      "gpus": 0,
+      "state": "FAILED",
+      "operational_override": "sbatch --mem=64G; same frozen script/code/data",
+      "stage": "incomplete code archive; no science started"
+    },
+    {
+      "family": "graph_tv",
+      "job": 255750,
+      "requested_ram_gib": 64,
+      "cpus_per_task": 1,
+      "gpus": 0,
+      "state": "FAILED",
+      "operational_override": "sbatch --mem=64G; same frozen script/code/data",
+      "stage": "incomplete code archive; no science started"
+    }
+  ],
+  "scope": "remote byte verification and fixtures, then smoke27, then full13769 per family; no further model family",
+  "original_position_job": 255722,
+  "original_sources_mutated": false,
+  "last_verified_local_time": "2026-09-13 22:14:34 Asia/Jerusalem",
+  "failed_startups": [
+    {
+      "family": "position",
+      "job": 255743,
+      "requested_ram_gib": 32,
+      "state": "OUT_OF_MEMORY",
+      "phase": "Pyxis image import before experiment code",
+      "reason": "enroot-mksquashovlfs killed, exit137 / Slurm0:125",
+      "elapsed": "4:08"
+    },
+    {
+      "family": "graph_local",
+      "job": 255744,
+      "requested_ram_gib": 32,
+      "state": "OUT_OF_MEMORY",
+      "phase": "Pyxis image import before experiment code",
+      "reason": "enroot-mksquashovlfs killed, exit137 / Slurm0:125",
+      "elapsed": "4:07"
+    },
+    {
+      "family": "graph_tv",
+      "job": 255745,
+      "requested_ram_gib": 32,
+      "state": "OUT_OF_MEMORY",
+      "phase": "Pyxis image import before experiment code",
+      "reason": "enroot-mksquashovlfs killed, exit137 / Slurm0:125",
+      "elapsed": "4:04"
+    },
+    {
+      "family": "position",
+      "job": 255746,
+      "requested_ram_gib": 64,
+      "state": "FAILED",
+      "phase": "driver fixture import before smoke",
+      "reason": "ModuleNotFoundError: evidence_drop (scripts/localization omitted from archive)",
+      "container_import": "PASS",
+      "transfer_review": "PASS"
+    },
+    {
+      "family": "graph_local",
+      "job": 255749,
+      "requested_ram_gib": 64,
+      "state": "FAILED",
+      "phase": "driver fixture import before smoke",
+      "reason": "ModuleNotFoundError: evidence_drop (scripts/localization omitted from archive)",
+      "container_import": "PASS",
+      "transfer_review": "PASS"
+    },
+    {
+      "family": "graph_tv",
+      "job": 255750,
+      "requested_ram_gib": 64,
+      "state": "FAILED",
+      "phase": "driver fixture import before smoke",
+      "reason": "ModuleNotFoundError: evidence_drop (scripts/localization omitted from archive)",
+      "container_import": "PASS",
+      "transfer_review": "PASS"
+    }
+  ],
+  "scientific_settings_changed": false,
+  "remediation": "Include all recursive scripts, test extracted archive with isolated Python imports, then resubmit identical science"
+}

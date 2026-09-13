@@ -1,4 +1,4 @@
-## Codex conditional-IU implementation - 2026-09-13 - independent review PASS; submitting
+## Codex conditional-IU implementation - 2026-09-13 - independent review PASS; submitted
 
 Three requested families now have dedicated code: whole-answer position prior,
 local token-graph covariance, and Network Lasso on coefficient vectors. See
@@ -8,7 +8,8 @@ Alpha=0 recovers the baseline exactly. Matched pooled, scale-only, sliding-windo
 and shuffled controls separate mechanisms. No performance result claimed.
 
 Independent reviewer: core mathematics and driver/fold/calibration review PASS; 36 fixtures pass.
-Final failure-isolation delta review also PASS. Cluster packaging/submission is next. Other-answer priors
+Final failure-isolation delta review also PASS. Jobs 255746/255749/255750 failed before smoke: nested helper omitted from archive.
+Packaging correction and second-machine branch push are in progress. Other-answer priors
 are label-free and fold-excluded; entropy gate/Top10 and v3 labels remain frozen.
 No new HTML. No changes to Claude's jobs or running scientific source files.
 
@@ -17,6 +18,11 @@ AIRCC. Jobs 255705 and 255714 failed before fitting; scheduler/import fixes were
 recorded in separate byte-verified overlays. Local owned processes 16704/22856
 were stopped only after preserving their six-statistics/zero-fit checkpoint.
 See results/aircc_preparation_v1/CLUSTER_STATUS.json and LOCAL_MIGRATION.json.
+
+
+First submissions 255743/255744/255745 exhausted 32 GiB during Pyxis image
+building, before checks or experiment code. Resubmitted with --mem=64G, matching
+the already working position job. Frozen code and scientific settings unchanged.
 
 
 ## Codex answer-position fusion - 2026-09-13 - IMPLEMENTED; no full results yet
