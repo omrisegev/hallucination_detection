@@ -104,3 +104,24 @@ checks, 35 metric bundles re-derived, 70 manifest hashes). Figure review PASS WI
 checks (a)–(k) pass; caveats: label-guided development sweep, nothing promoted; no H-vs-H1 PB interval excludes
 zero; near-limit views are rank-equivalent to the limit; VE small-α arms rest on a 100 % anchor flip, i.e. a fixed
 negative sign). Joint L-SML pass of Stage 3 still running separately.
+
+## Complementarity by error position (post hoc, descriptive; `COMPLEMENTARITY.md`, `COMPLEMENTARITY_ALL_ALPHAS.{md,png}`)
+
+Omri (2026-09-13): do the leading views find different errors, e.g. early versus late? Yes, and the pattern is
+systematic across both families. On PB the no-error gate is identical across arms, so only the error peaks differ.
+
+* **PB hit sets are only half shared.** VE_0 vs VE_0.75: 828 answers hit by both, 342 only VE_0, 407 only VE_0.75
+  (Jaccard 0.53); the union (oracle pick per answer) hits 35.5 % of erroneous answers versus 27.8 % for the best
+  single arm; the union of all five leading arms reaches 41.0 %.
+* **Order of the entropy decides early versus late.** Large α (H_8, H_∞, VE_0.75, VE_1) is best when the first
+  error is early (step 0: VE_0.75 0.333, VE_1 0.324, H_8 0.300 versus VE_0 0.246, H0lim 0.281). Small α (VE_0,
+  H0lim) is best when the error is late (last third of the answer: VE_0 0.296, H0lim 0.285 versus H_∞ 0.264,
+  VE_1 0.279). On PRMBench the same crossover is large: first-third errors VE_1 0.691 / VE_0.75 0.689 versus VE_0
+  0.681; last-third errors VE_0 0.785 versus VE_1 0.752 / VE_0.75 0.748. Per-answer AUC correlation VE_0 vs VE_0.75
+  is 0.80; VE_0 is better by > 0.1 on 22.7 % of answers and worse by > 0.1 on 15.7 %.
+* Reading: a tail-sensitive order (α → 0, "how flat is the head") tracks errors that appear after a long correct
+  prefix; a head-sensitive order (α ≥ 0.75, dominated by the top token) tracks errors at the very start. This is
+  the first concrete evidence that two label-free streams carry position-complementary information, and it is
+  the motivation for a bounded fusion test of {VE_0, VE_0.75, varentropy15, H0lim}. The VE_0.5 arm appears in the
+  largest-union pairs only because it sits at the orientation boundary (partly inconsistent sign), not because it
+  is a good view.
