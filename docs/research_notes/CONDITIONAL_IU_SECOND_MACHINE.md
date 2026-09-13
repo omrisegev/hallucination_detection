@@ -45,3 +45,18 @@ fits: the manifest records runtime versions and exact source/code hashes. Shared
 is unchanged: frozen RBM12 features, answer-local native IU baseline, Top10, original
 entropy gate, source-group folds, and nested PRMScore calibration. Full protocol:
 `docs/experiments/CONDITIONAL_IU_FUSION_V1.md`.
+
+
+## Frozen gate and folds now included in Git (2026-09-14)
+
+The branch now carries these exact input files, matching the registered hashes:
+- results/localization_source_group_audit_v1/FOLDS_V2.json
+- results/fusion_fixed_gate_v1/DETECTORS.npz
+- results/fusion_fixed_gate_v1/METRICS.json
+
+Verification record: results/frozen_gate_folds_bundle_v1/REVIEW.json.
+These supply the fixed source-group split and saved gate data/thresholds.
+The remaining cache/provenance requirements still apply: run the full input checker.
+If --source-root points to a separate data checkout, these three files must also
+be present under the same relative paths there. Copy the committed versions only
+when missing; investigate any hash mismatch instead of overwriting it.

@@ -18719,3 +18719,8 @@ Full result negative versus uniform sliding window and permuted graph; all answe
 #### Step 360 follow-up: integration handoff (2026-09-14)
 
 User requested publication of the temporal development lineage for a later multi-branch experiment. Verified hierarchical-time, two-axis and whole-answer-position commits are already ancestors of conditional-IU. Prepared the three completed compact AIRCC result sets and provenance for push; pending GraphTV remains unchanged. See docs/research_notes/TEMPORAL_FUSION_INTEGRATION_HANDOFF_2026-09-14.md.
+
+
+#### Step 360 follow-up: frozen gate and folds in Git (2026-09-14)
+
+User explicitly requested commit and push of FOLDS_V2.json and fixed gate DETECTORS.npz/METRICS.json. Copied the three original files byte-for-byte into the conditional-IU branch; SHA256 and size checks match the registered input manifest. No scientific code, folds or thresholds changed. Review: results/frozen_gate_folds_bundle_v1/REVIEW.json.

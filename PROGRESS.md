@@ -1,3 +1,11 @@
+## Codex frozen gate/folds bundle - 2026-09-14
+
+Added the exact FOLDS_V2.json and fusion_fixed_gate_v1/DETECTORS.npz + METRICS.json
+to conditional-iu-followups-v1, as requested for second-machine/branch integration.
+All three match the pre-existing experiment input SHA256 and sizes. No new folds,
+labels or thresholds computed. The other 19 registered inputs remain required.
+Review: results/frozen_gate_folds_bundle_v1/REVIEW.json.
+
 ## Codex temporal-fusion integration snapshot - 2026-09-14
 
 The conditional-IU branch contains the hierarchical-time, initial two-axis and
