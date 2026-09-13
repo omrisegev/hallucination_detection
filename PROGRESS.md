@@ -1,3 +1,44 @@
+## Codex temporal-fusion integration snapshot - 2026-09-14
+
+The conditional-IU branch contains the hierarchical-time, initial two-axis and
+whole-answer-position branches as verified ancestors. Three completed AIRCC
+report sets and their SHA256 audits are included in this update.
+GraphTV255754 remains RUNNING at 00:01 Israel time: 4525/13769 answers scored.
+Remaining: outer/inner predictions, score-health review, calibrated metrics,
+10000-draw grouped intervals and final result review. No new combined run started.
+Integration handoff: docs/research_notes/TEMPORAL_FUSION_INTEGRATION_HANDOFF_2026-09-14.md.
+The previous metadata commit f3fa3cc34 is already on GitHub; this update prepares
+the fetched result evidence and integration map for the same approved remote.
+
+## Codex Graph-local IU fetched - 2026-09-13
+
+Job255753 COMPLETE_REVIEWED, all13,769 answers, 11 fetched SHA256 matches,
+PB macros rederived. Graph-local PB21.165% / within0.70115 / PRMScore0.57174;
+sliding-window35.547% /0.74182 /0.58590; permuted-graph36.268% /0.74945 /0.58857.
+Primary graph-versus-window is negative with corrected intervals excluding0.
+Graph-local losses versus RBM12 overwhelmingly shift early; no scoring failures.
+Do not conflate this graph with the still-running coefficient-GraphTV job255754.
+Interpretation and original reports: results/aircc_results_20260913/graph_local/
+in worktree .worktrees/conditional-iu-followups-v1. No new model launched.
+
+## Codex AIRCC result fetch - 2026-09-13: position results available
+
+Jobs 255722 (whole-answer position Factor/RBM/IU) and 255752 (conditional
+Shrinkage IU position prior) COMPLETE_REVIEWED, full 13,769 answers.
+Other-answer position IU: PB35.52%, within AUC0.76573, PRMScore0.61442.
+Conditional position IU: PB35.81%, within0.75690, PRMScore0.58991.
+Frozen RBM12 Logit: PB36.27%, within0.74520, PRMScore0.62222.
+Position benefits within-answer ranking; no overall winner. Conditional position
+beats its scale-only control (primary paired interval excludes zero), while both
+position IU candidates trail RBM12 in PRMScore. Rank-2 RBM loses through early
+peaks despite all selected optimizer convergence flags; do not call this a cap failure.
+Graph-local255753 is in bootstrap; GraphTV255754 is still scoring at this snapshot.
+Fetched reports, SHA256 audit and interpretation:
+.worktrees/conditional-iu-followups-v1/results/aircc_results_20260913/
+Relative to the worktree itself, use results/aircc_results_20260913/.
+Push SUCCEEDED at f3fa3cc34 after explicit approval; supersedes old blocked text.
+No new experiment was launched during this fetch.
+
 ## Codex conditional IU - 2026-09-13 - all three full runs active
 
 Branch `codex/conditional-iu-followups-v1`, code/package commit dc12221d2.

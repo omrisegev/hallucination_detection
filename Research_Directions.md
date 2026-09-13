@@ -4089,3 +4089,11 @@ Model (NeurIPS2023). Related sequential/networked ensemble classification
 (Traganitis/Giannakis,TKDE2022) is relevant to trajectory fusion; not claimed
 here as a verified direct citation. The2025 signal-processing crowdsourcing
 review (arxiv2407.06902v2) is already present locally. No new sweep launched.
+
+
+## AIRCC position evidence - 2026-09-13
+
+Whole-answer position benefits IU within-answer ranking and conditional coefficient changes beat scale-only, but PB does not beat frozen RBM12 and PRMScore regresses. Finish graph-local/GraphTV and analyze late-peak failures before extending architecture. Rank-2 RBM is not promoted; poor performance occurred despite optimizer convergence flags. Full evidence: results/aircc_results_20260913/RESULTS_INTERPRETATION.md.
+
+
+Graph-local update 2026-09-13: current affinity-weighted neighborhood is not promoted; it loses to sliding-window and permuted controls on the full benchmark. Preserve possible concentration/shrinkage confounding for diagnosis; do not reject all graphs. Await separate coefficient-GraphTV result.

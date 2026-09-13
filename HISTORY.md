@@ -18704,3 +18704,18 @@ on 27/27 answers. At 22:39:21 Israel time, full covariance extraction reached
 1000/900/700 of 13,769 answers respectively. These are extraction counts, not
 completed predictions or measured performance gains. Stderr was empty.
 All runs remain independent of the old position job and Claude's work.
+
+
+#### Step 360 follow-up: completed AIRCC position results fetched (2026-09-13)
+
+Fetched compact reports for jobs 255722/255752; 24 remote SHA256 matches and PB macro rederivation pass. Position improves within-answer ranking, but neither IU position candidate improves the complete endpoint set over RBM12. Conditional IU improves beyond scale-only. See results/aircc_results_20260913/RESULTS_INTERPRETATION.md for uncertainty, access scope, late/early losses and optimizer caveats. Graph-local bootstrap and GraphTV scoring remain active. Push succeeded at f3fa3cc34. No new model launched.
+
+
+#### Step 360 follow-up: Graph-local IU fetched (2026-09-13)
+
+Full result negative versus uniform sliding window and permuted graph; all answers covered. Early peak selection accounts for almost all losses versus RBM12. See results/aircc_results_20260913/graph_local/INTERPRETATION.md. GraphTV is a distinct pending experiment.
+
+
+#### Step 360 follow-up: integration handoff (2026-09-14)
+
+User requested publication of the temporal development lineage for a later multi-branch experiment. Verified hierarchical-time, two-axis and whole-answer-position commits are already ancestors of conditional-IU. Prepared the three completed compact AIRCC result sets and provenance for push; pending GraphTV remains unchanged. See docs/research_notes/TEMPORAL_FUSION_INTEGRATION_HANDOFF_2026-09-14.md.
