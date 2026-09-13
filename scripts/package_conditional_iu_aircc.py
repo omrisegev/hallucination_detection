@@ -20,7 +20,9 @@ def main():
         assert sha(ROOT/relative)==digest,('reviewed code changed',relative)
     previous=json.loads(args.prior_manifest.read_text())
     inputs=[f for f in previous['files'] if f['path'].startswith('source/')]
-    assert len(inputs)==43
+    # The inherited 43-entry experiment freeze includes code; its separately
+    # staged source directory contains these 22 data/provenance files.
+    assert len(inputs)==22 and sum('/cache_' in f['path'] for f in inputs)==9
     files=sorted(set([*ROOT.glob('scripts/*.py'),*ROOT.glob('spectral_utils/**/*.py'),
                       *ROOT.glob('docs/experiments/*.md'),ROOT/'cluster/conditional_iu_aircc.sbatch']))
     entries=[dict(path='code/'+f.relative_to(ROOT).as_posix(),bytes=f.stat().st_size,sha256=sha(f)) for f in files]
