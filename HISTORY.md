@@ -1,5 +1,21 @@
 # MV_EPR Project History
 
+## Step374 [Codex] - Fusion input-normalization ablation, 2026-09-14
+
+Compared answer-z, scale-only and literal raw inputs for seven frozen q15
+equal/IU/shrinkage solvers on 13,769 answers, with the tail15 Top10 q=.33 gate
+unchanged. The full Joint L-SML multistart arm was deferred; four views cannot
+satisfy its structural grouping contract.
+
+Raw local IU and shrinkage collapsed as the median second-moment condition
+number rose from 65.8 to 23,334.6. External stationary IU was nearly
+scale-invariant for localization. Scale-only equal exactly retained PB and
+within-answer ordering while recovering pooled OOF AUROC .675153 -> .715708
+and PRMScore .589883 -> .630093, confirming that centering—not scaling—caused
+the calibration loss. No non-z adaptive arm matched the current q15
+per-view-Top10 locator's joint PB/PRMB frontier. Results:
+`results/fusion_input_normalization_ablation_v1`.
+
 ## Step373 [Codex] - Localization-aware tail15 gate and frozen integration, 2026-09-14
 
 Held the selected q15 locator and raw missing-top15-mass Top10 gate definition
@@ -18999,3 +19015,28 @@ Decision: `RETAIN_TAIL15_MEAN_AS_NEXT_GATE_CANDIDATE; DO_NOT_YET_REPLACE_ENTROPY
 The next bounded test is the q=.3 operating point, followed again by a complete
 integration replay. PRMB is unchanged because the gate is PB-only. Report:
 `results/integrated_q15_tail15_gate_replay_v1/REPORT.md`.
+
+### Step 375 [Codex locator feature bank and integrated replay] - complete (2026-09-15)
+
+Ran Experiment 3 on the frozen 13,769-answer/145,597-step development contract.
+Eight feature banks crossed VE1 q15/q50, H1 absent/present and Hinf
+absent/present; each used raw equal, scale-only equal and answer-z local IU.
+All 24 arms completed without fallback, and the baseline reproduced the frozen
+current locator bitwise.
+
+H1 and Hinf have negative average PB and PRMB-within effects. VE1 q50 improves
+PRMScore in all matched comparisons but loses .290 PB points on average.
+Scale-only favors PB while raw equal favors PRMB; local IU does not reach the
+joint frontier. Although the label-using union adds 554 exact error hits, no
+single deployable arm dominates the current locator.
+
+The pre-registered minimum-regret candidate, VE1 q50 with scale-only equal
+fusion, was recomputed from every raw source row in a separate replay. Both
+candidate and reference match their frozen archives exactly. Candidate minus
+reference is +.133 PB points (95% CI [-.675,+.937]) and -.003139 PRMB within
+([-.004875,-.001398]), so it fails the .002 noninferiority margin. Decision:
+retain the current q15/raw/per-view-Top10 locator with tail15 Top10 q=.33 gate;
+do not add H1/Hinf, replace VE1 with q50, or use local IU here. Joint L-SML
+remains deferred under the staged cost decision. Reports:
+`results/renyi_locator_feature_bank_v1/REPORT.md` and
+`results/renyi_locator_integrated_replay_v1/REPORT.md`.

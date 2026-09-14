@@ -1,3 +1,55 @@
+## Latest Renyi follow-up — Step 375 (2026-09-15)
+
+Experiment 3 and its independent cumulative replay are COMPLETE / REVIEW PASS
+on 13,769 answers and 145,597 steps. The 2x2x2 feature banks crossed VE1 q15
+versus q50, native H1 absent/present and q15 Hinf absent/present, under raw
+equal, scale-only equal and answer-z local IU (24 arms). The q15/raw/no-extra
+baseline reconstructs the current locator bitwise.
+
+No arm improves both PB and PRMB within. H1 averages -.225 PB points and
+-.001053 within across its 12 matched comparisons; Hinf averages -.116 points
+and -.001262. Replacing VE1 q15 with q50 averages -.290 PB points and only
++.000130 within, though PRMScore rises in all 12 matched pairs. Scale-only
+systematically trades higher PB for lower PRMB; local IU is off the joint
+frontier. The label-using union has 554 additional exact error hits, but no
+tested label-free fusion captures them uniformly.
+
+The registered minimum-regret q50/scale candidate independently replays
+bitwise and gains +.133 PB points while losing .003139 PRMB within (95% CI
+[-.004875,-.001398]); it fails the frozen .002 loss margin. Final development
+recommendation therefore retains q15 `{H0lim, VE0, VE0.75, VE1}`, natural-unit
+per-view Top10 equal localization, and tail15 answer-Top10 q=.33 gating. This
+scores PB 37.4749%, PRMB within .753436 and PRMScore .634412; versus the
+original start, PB is +1.3075 points and within +.002321, while PRMScore is
+-.000392. External/new-model confirmation remains required. Reports:
+`results/renyi_locator_feature_bank_v1/REPORT.md` and
+`results/renyi_locator_integrated_replay_v1/REPORT.md`.
+
+## Previous Renyi follow-up — Step 374 (2026-09-14)
+
+The four-view fusion input-normalization ablation is COMPLETE / REVIEW PASS on
+13,769 answers. With the q15 feature bank, Top10 readout and tail15 Top10 q=.33
+gate fixed, 21 arms compared answer-z, scale-only and literal raw inputs across
+equal, local/external IU and local shrinkage solvers. Joint L-SML was deferred
+as requested; the four-view bank is structurally inadmissible for its full
+three-group/minimum-three-members model.
+
+Raw natural units do not improve adaptive local fusion. Local IU falls from PB
+37.2406% / PRMB within .745703 under answer-z to 32.8165% / .681698 raw; local
+shrinkage variants fall to 30.87%-32.07%. Median second-moment condition number
+rises from 65.8 to 23,334.6. External stationary IU is scale-robust but gains
+essentially no localization: answer-z 37.1865% / .746279 versus raw 37.2079% /
+.746155.
+
+The useful non-z effect is calibration. Equal scale-only is exactly invariant
+on PB and within-AUC relative to answer-z, while pooled OOF rises .675153 to
+.715708 and PRMScore .589883 to .630093. Raw equal reaches within .751115 /
+PRMScore .634805 but loses .230 PB points. No non-z algorithm arm enters the
+PB/within noninferiority region of the current per-view-Top10 locator
+(37.4749%, .753436, PRMScore .634412). Retain that locator; keep scale-only as
+a calibration control and answer-z for IU/shrinkage in Experiment 3. Canonical
+report: `results/fusion_input_normalization_ablation_v1/REPORT.md`.
+
 ## Latest Renyi follow-up — Step 373 (2026-09-14)
 
 The localization-aware operating-point experiment and immediate cumulative

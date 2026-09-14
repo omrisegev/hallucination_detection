@@ -264,3 +264,55 @@ No later experiment is authorized by the execution of Experiment 1.
 - Protocol: `TAIL15_LOCALIZATION_Q_V1.md`.
 - Report: `../../results/tail15_localization_q_v1/REPORT.md`.
 - Original-plan audit: `../../results/tail15_localization_q_v1/PLAN_AUDIT.md`.
+
+## Experiment 3A — fusion input-normalization isolation
+
+- Date opened/completed: 2026-09-14
+- Status: **COMPLETE / REVIEW PASS — DEVELOPMENT ONLY**
+- Fixed: q15 four-view bank, orientation, Top10, folds and tail15 Top10 q=.33
+  gate. No feature-bank expansion occurred.
+- Search: answer-z, scale-only and literal raw input for equal, answer-local IU,
+  external stationary/position IU, and three local-shrinkage controls; 21 arms.
+- Joint L-SML: not run, per the cost decision. The four-feature bank also fails
+  its required at-least-three groups of at-least-three members contract.
+- Result: literal raw local IU/shrinkage is harmful (local IU PB 37.2406% ->
+  32.8165%, PRMB within .745703 -> .681698). Raw second-moment conditioning is
+  severe: median 23,334.6 versus 65.8 under answer-z.
+- Equal scale-only leaves PB and within ordering exactly unchanged but restores
+  pooled OOF .675153 -> .715708 and PRMScore .589883 -> .630093. Raw equal
+  improves within to .751115 and PRMScore to .634805 while losing .230 PB
+  points. External stationary IU recovers calibration but not localization.
+- Decision: retain the current raw per-view-Top10 equal locator. Use answer-z
+  for adaptive IU/shrinkage; carry scale-only only as an explicit calibration
+  control in Experiment 3. No non-z adaptive arm reached the current locator's
+  joint PB/within noninferiority region.
+- Protocol: `FUSION_INPUT_NORMALIZATION_ABLATION_V1.md`.
+- Report: `../../results/fusion_input_normalization_ablation_v1/REPORT.md`.
+
+## Experiment 3B — H1/Hinf/VE1-support locator banks
+
+- Date opened/completed: 2026-09-14/15
+- Status: **COMPLETE / REVIEW PASS — DEVELOPMENT ONLY**
+- Population: 13,769 answers, 145,597 official steps, frozen source groups and
+  folds. The current baseline reconstructs bitwise.
+- Factorial: VE1 q15/q50 x H1 absent/present x q15 Hinf absent/present, under
+  natural-unit per-view-Top10 equal, scale-only per-view-Top10 equal and
+  answer-z static local IU: 24 arms total.
+- H1: mean matched delta -.225 PB points / -.001053 PRMB within; one of 12
+  comparisons improves each primary metric.
+- Hinf: mean matched delta -.116 PB points / -.001262 within. Separate Hinf
+  arms achieve the best PB and best within, but each loses on the other panel.
+- VE1 q50: mean matched delta -.290 PB points / +.000130 within; PRMScore rises
+  in all 12 comparisons but no uniform locator improvement results.
+- Fusion: scale-only trades PB for PRMB; local IU is off the joint frontier.
+  The label-using union adds 554 exact error localizations, diagnostic only.
+- Minimum-regret candidate: VE1 q50/no extras/scale-only. A separate raw-source
+  replay reproduces it bitwise and measures +.133 PB points / -.003139 within
+  against current. The within 95% CI [-.004875,-.001398] and frozen .002 margin
+  reject promotion.
+- Decision: retain q15 `{H0lim, VE0, VE0.75, VE1}` in natural units, per-view
+  Top10 then equal fusion, with the already frozen tail15 Top10 q=.33 gate.
+  H1, Hinf, VE1-q50 replacement and local IU are not added. Joint L-SML remains
+  deferred until a cheaper extension warrants its cost.
+- Reports: `../../results/renyi_locator_feature_bank_v1/REPORT.md` and
+  `../../results/renyi_locator_integrated_replay_v1/REPORT.md`.
