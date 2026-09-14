@@ -95,3 +95,120 @@ No later experiment is authorized by the execution of Experiment 1.
 - Report: `../../results/selected_q15_finalist_replay_v1/REPORT.md`
 - Frozen score SHA256:
   `3bd5c5b95474d75366b97b012b018d168cacafb3ccea178d26170207e220c7e6`.
+
+## Experiment 2 — gate feature/readout selection
+
+- Date opened/completed: 2026-09-14
+- Status: **COMPLETE / REVIEW PASS**
+- Fixed components: q15 raw per-view-Top10 locator and other-fold q=.3 gate
+  quantile rule.
+- Search: 11 label-free token signals x 3 whole-answer readouts, one definition
+  across all eight PB cells.
+- Result: `tail15_mass__token_mean` leads at PB 36.8818%, versus 36.6107% for
+  recalculated entropy mean. Its mean detector AUC is .792172 versus .742301.
+  H1 exactly matches native entropy; Hinf and raw `-log p1` are weaker. Contrary
+  to the locator, gate Top10 readouts lose at the fixed q=.3 operating point.
+  Selected-minus-baseline is +.271pp with post-selection descriptive 95% CI
+  [-1.079,+1.594].
+- Decision: `SELECT_TAIL15_TOKEN_MEAN_AS_NEXT_GATE_CANDIDATE_ON_DEVELOPMENT`;
+  do not call the F1 gain confirmed.
+- Report: `../../results/gate_feature_readout_selection_v1/REPORT.md`
+- Frozen detectors SHA256:
+  `e3ccc87503df2629834348ab0e65727f8a43ccefd784eccf76588a21ce99a36a`.
+
+## Integration checkpoint 2 — q15 finalist plus selected gate
+
+- Date opened/completed: 2026-09-14
+- Status: **COMPLETE / REVIEW PASS**
+- Purpose: same-benchmark cumulative composition check requested by Omri; no
+  independent holdout claim.
+- Result: original static + entropy 36.1674%; q15 finalist + entropy 36.6201%;
+  original static + tail15 36.5937%; integrated q15 + tail15 36.8818%.
+  Thus the selected gate adds +.262pp over the current finalist and all selected
+  decisions add +.714pp over the original. Family-wise 98.75% intervals for
+  both comparisons cross zero.
+- Decision: `RETAIN_TAIL15_MEAN_AS_NEXT_GATE_CANDIDATE; DO_NOT_YET_REPLACE_ENTROPY`.
+  The next bounded question is the q=.3 operating point; after any threshold
+  choice, rerun the complete integrated algorithm again.
+- Report: `../../results/integrated_q15_tail15_gate_replay_v1/REPORT.md`
+
+## Experiment 2B — full math-panel answer-gate development
+
+- Date opened/completed: 2026-09-14
+- Status: **COMPLETE / REVIEW PASS; NUMERICAL WINNER NOT PROMOTED**
+- Population: all 18,614 answers in the 15 historical GSM8K/MATH500 cells.
+- Search actually run: 11 token signals x 11 whole-answer readouts = 121
+  singles; near-duplicate removal; forward equal-mean fusion; nonnegative
+  epsilon-pruned simplex; and sparse logistic fusion. One q from `.05-.95` was
+  selected uniformly by equal-family clean/error macro-F1.
+- Numerical result: the three-feature equal mean (`VE1 Top10`, q15 raw4 final
+  quarter, entropy Top10) scores F1 .641310 / AUROC .803491 at q=.45, versus
+  .633562 / .786633 for the best single (`VE1 Top10`).
+- Decision revision: do not promote the three-feature arm. The +.775pp math F1
+  gain does not justify a new feature-selection/fusion layer. Its frozen PB
+  transfer and PB q=.40 integration replay remain valid diagnostics, but the
+  q=.40 candidate is superseded and must not be described as preferred.
+- Protocol: `MATH_GATE_DEVELOPMENT_V1.md`.
+- Machine-readable results: `../../results/math_gate_development_v1/`.
+
+## Experiment 2C — simplified two-arm gate choice
+
+- Date opened/completed: 2026-09-14
+- Status: **COMPLETE / REVIEW PASS**
+- Candidates only: native H1 entropy Top10; exact frozen q15 static token fusion
+  followed by one whole-answer Top10.
+- Exactness: the latter reconstructs frozen
+  `original_static_fusion_before_top10` after the registered per-step Top10
+  readout with maximum discrepancy zero. It is not the selected
+  per-view-Top10 locator, where Top10 precedes fusion.
+- Math result: entropy Top10 F1 .633271 / AUROC .791377 / AUPRC .775099;
+  token-fusion Top10 .632755 / .787228 / .759507. Both select q=.45.
+- Decision: `SELECT_ENTROPY_TOP10_Q45_AS_SIMPLE_TOTAL_ANSWER_CANDIDATE`.
+  The three-feature gate is not promoted.
+- Protocol: `SIMPLE_GATE_CHOICE_V1.md`.
+
+## Frozen transfer checkpoint 2C — entropy Top10 q=.45
+
+- Date completed: 2026-09-14
+- Status: **COMPLETE / REVIEW PASS**
+- Transfer: math-selected method and q applied unchanged to all eight PB cells;
+  no PB method, fusion or q selection. The within-cell mid-rank transform is
+  label-free.
+- Answer detection: family-macro F1 .693567 / AUROC .792620, versus .649999 /
+  .742301 for existing entropy mean q=.3.
+- Localization with the same frozen q15 locator: 35.5339% versus 36.6201% for
+  existing entropy mean q=.3; delta -1.086pp, conservative 98.75% paired CI
+  [-2.946,+.769]pp.
+- Error trade-off: 698 clean false alarms removed and 151 added, but 797 errors
+  newly closed and 328 reopened; 85 exact localizations gained and 338 lost.
+- Decision: retain entropy Top10 q=.45 for total-answer detection development,
+  but retain mean entropy q=.3 when gating the current localization pipeline.
+  The answer-level objective and exact-localization objective are not aligned
+  at the transferred operating point.
+- Report: `../../results/simple_gate_choice_v1/REPORT.md`.
+
+## Experiment 2D — leading distinct simple gates as gates
+
+- Date opened/completed: 2026-09-14
+- Status: **COMPLETE / REVIEW PASS**
+- Question: did simplifying 2C accidentally return to the initial entropy
+  family, and do the other leading math singles behave better when used as
+  actual gates for the frozen q15 locator?
+- Frozen candidates: VE1 Top10 q=.45, entropy/H1 Top10 q=.45, Hinf Top10
+  q=.45, audited q15 static token-fusion Top10 q=.45, and missing-tail15 mass
+  Top10 q=.40. H1 and raw top-1 duplicates were not repeated.
+- Transfer contract: every q came from the 15-cell math panel; no PB feature,
+  readout, fusion or q calibration; one definition across all eight PB cells.
+- Winner on both displayed PB objectives: tail15 Top10, answer family-macro F1
+  .697932 / AUROC .799571 and localization 36.6736%. Existing entropy mean q=.3
+  is .649999 / .742301 and 36.6201%. Localization delta +.054pp, family-wise
+  99% CI [-1.632,+1.804]pp.
+- Other PB localizations: q15 raw4 fusion 35.5691%, entropy 35.5339%, Hinf
+  35.0077%, VE1 34.9234%. All improve answer detection over the baseline, so
+  answer-level F1 alone does not choose the correct localization gate.
+- Decision: `RETAIN_TAIL15_TOP10_Q40_AS_NEXT_DISTINCT_SIMPLE_CANDIDATE`;
+  do not call the localization improvement confirmed. Historical tail15 mean
+  q=.3 at 36.8818% remains a PB-developed diagnostic rather than this frozen
+  math-to-PB transfer.
+- Protocol: `LEADING_GATE_TRANSFER_V1.md`.
+- Report: `../../results/leading_gate_transfer_v1/REPORT.md`.

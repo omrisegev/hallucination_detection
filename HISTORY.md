@@ -1,5 +1,47 @@
 # MV_EPR Project History
 
+## Step371 [Codex] - Five leading simple gates on frozen ProcessBench, 2026-09-14
+
+Transferred five conceptually distinct math-leading gates with their
+math-selected thresholds to the same q15 locator, with no ProcessBench feature
+or q calibration. Tail15 missing-mass Top10 q=.40 was the only method to retain
+the localization baseline while substantially improving answer detection:
+answer family-macro F1 .697932 / AUROC .799571 and PB 36.6736%, versus existing
+entropy mean q=.3 at .649999 / .742301 and 36.6201%. Its +.054pp PB interval
+[-1.632,+1.804]pp at family-wise 99% is inconclusive.
+
+Raw q15 fusion Top10, entropy Top10, Hinf Top10 and VE1 Top10 all improved the
+standalone answer detector but reduced PB to 35.5691%, 35.5339%, 35.0077% and
+34.9234%, respectively. This separates response-level separability from the
+cost-sensitive gate operating point required by exact localization. Tail15
+Top10 is retained as the next simple development candidate; no confirmed
+replacement claim is made. Results: `results/leading_gate_transfer_v1`.
+
+## Step367-370 [Codex] - Simple math-selected answer gate and frozen PB transfer, 2026-09-14
+
+The full 121-single/four-fusion math development screen was completed, but its
+three-feature equal-mean point winner was not promoted because the +.775pp
+family-macro F1 gain over the best single did not justify another learned
+selection/fusion layer. Its PB transfer and subsequent PB q=.40 calibration
+remain recorded as diagnostics and are superseded for method selection.
+
+A replacement frozen comparison used only native H1 entropy Top10 and the
+existing q15 static token fusion followed by a single whole-answer Top10. On
+18,614 answers across 15 math cells, entropy Top10 was both simpler and slightly
+better: F1 .633271 / AUROC .791377 / AUPRC .775099 versus .632755 / .787228 /
+.759507; both selected q=.45. The token-fusion construction reproduced the
+frozen `original_static_fusion_before_top10` localization stream with zero
+maximum discrepancy after the registered step readout.
+
+Entropy Top10 q=.45 transferred unchanged to 6,800 ProcessBench answers. It
+improved standalone answer detection versus entropy mean q=.3 (family-macro F1
+.693567 vs .649999; AUROC .792620 vs .742301), but reduced q15-localizer PB
+macro-F1 from 36.6201% to 35.5339%. The error trade-off was 698 removed and 151
+added clean false alarms, versus 797 newly closed and 328 reopened erroneous
+answers; 338 exact localizations were lost and 85 gained. Keep entropy Top10 as
+the simple total-answer candidate, not as a replacement localization gate.
+Results: `results/simple_gate_choice_v1`.
+
 ## Step350 [Codex] - First-error objective versus step BCE, 2026-09-11
 
 The next bounded test kept the saved answer-local bank12 RBM, the same
@@ -18892,3 +18934,35 @@ is not the current leading score. Gate optimization remains a separate next
 experiment; q=.3 was not changed here. The score archive SHA256 is
 `3bd5c5b95474d75366b97b012b018d168cacafb3ccea178d26170207e220c7e6`.
 Canonical report: `results/selected_q15_finalist_replay_v1/REPORT.md`.
+
+### Step 365 [Codex gate feature/readout selection] - complete (2026-09-14)
+
+Held the q15 raw per-view-Top10 locator and label-free other-fold q=.3 threshold
+rule fixed. Extracted 11 token signals and three whole-answer readouts for all
+6,800 PB answers; 33 candidates used one definition across all eight cells.
+Detector scores were frozen before target evaluation at SHA256
+`e3ccc87503df2629834348ab0e65727f8a43ccefd784eccf76588a21ce99a36a`.
+
+Whole-answer mean missing top-15 mass wins development selection at PB 36.8818%
+and mean detector AUC .792172, versus recalculated native entropy mean PB
+36.6107% / AUC .742301. H1 is decision-identical to native entropy; Hinf and
+raw `-log p1` are weaker. Top10 detector readouts do not translate their high
+separability AUC into final F1 under q=.3. Selected-minus-entropy is +.271pp,
+but its post-selection descriptive 95% interval [-1.079,+1.594] crosses zero.
+Decision: carry tail15 mean into a cumulative integration check, not as a
+confirmed replacement. Report: `results/gate_feature_readout_selection_v1/REPORT.md`.
+
+### Step 366 [Codex cumulative q15 plus tail15 gate integration] - complete (2026-09-14)
+
+Ran the selected gate together with every frozen q15 locator decision, without
+reselection, on the same development benchmark as explicitly requested.
+Original static + entropy scores 36.1674%; q15 finalist + entropy 36.6201%;
+original static + tail15 36.5937%; integrated q15 + tail15 36.8818%.
+The gate adds +.262pp over the current finalist and the complete stack adds
++.714pp over the original. Both point deltas are positive, so the registered
+composition gate passes, but all four family-wise 98.75% intervals cross zero.
+
+Decision: `RETAIN_TAIL15_MEAN_AS_NEXT_GATE_CANDIDATE; DO_NOT_YET_REPLACE_ENTROPY`.
+The next bounded test is the q=.3 operating point, followed again by a complete
+integration replay. PRMB is unchanged because the gate is PB-only. Report:
+`results/integrated_q15_tail15_gate_replay_v1/REPORT.md`.

@@ -1,4 +1,76 @@
-## Latest Renyi follow-up — Step 364 (2026-09-14)
+## Latest Renyi follow-up — Step 371 (2026-09-14)
+
+The leading-simple-gates comparison is COMPLETE / REVIEW PASS. Five distinct
+math-leading gates were transferred with their math-selected q to the same
+frozen q15 locator across all eight PB cells, with no PB feature or q
+calibration. Tail15 missing-mass Top10 at q=.40 is the only candidate that does
+not trade away localization: answer family-macro F1 .697932 / AUROC .799571 and
+PB 36.6736%, versus entropy-mean q=.3 at .649999 / .742301 and 36.6201%.
+The PB delta is +.054pp with family-wise 99% paired CI [-1.632,+1.804]pp, so the
+localization lift is not confirmed.
+
+The other transferred gates improve whole-answer detection but reduce PB:
+q15 raw4 fusion Top10 .697559 / 35.5691%; entropy Top10 .693567 / 35.5339%;
+Hinf Top10 .681939 / 35.0077%; VE1 Top10 .687474 / 34.9234%. Thus answer-gate
+macro-F1 alone is not an adequate proxy for exact localization. Promote
+tail15-Top10 only as the next distinct simple development candidate, not as a
+confirmed replacement. Historical tail15-mean q=.3 remains a PB-selected
+diagnostic (36.8818%), not the no-PB-tuning transfer result. Canonical report:
+`results/leading_gate_transfer_v1/REPORT.md`.
+
+## Latest Renyi follow-up — Steps 367-370 (2026-09-14)
+
+The gate decision was simplified after the full 15-cell math screen. The
+three-feature numerical winner (`VE1 Top10 + q15 raw4 last-quarter + entropy
+Top10`, family-macro F1 .641310) remains a valid ablation but is NOT promoted:
+its +.775pp math F1 over the best single was judged too small for the added
+selection/fusion layer. The later PB q=.40 calibration of that arm is likewise
+superseded as a decision candidate and remains diagnostic only.
+
+The replacement two-arm experiment is COMPLETE / REVIEW PASS. On all 18,614
+math answers, native H1 entropy Top10 scores family-macro F1 .633271 / AUROC
+.791377 / AUPRC .775099 at q=.45; frozen q15 static token fusion followed by
+one answer Top10 scores .632755 / .787228 / .759507, also at q=.45. Entropy
+Top10 is selected because it is simpler and slightly better on every reported
+metric. The token-fusion control reconstructs the exact frozen
+`original_static_fusion_before_top10` localization definition with zero maximum
+discrepancy after the registered step readout. It is not the later selected
+per-view-Top10 locator, because Top10 and fusion do not commute.
+
+The math-frozen entropy Top10 q=.45 gate was transferred to all eight PB cells
+without PB method or q selection. Standalone answer detection improves over
+the existing entropy-mean q=.3 gate: family-macro F1 .693567 vs .649999 and
+AUROC .792620 vs .742301. When used to gate the frozen q15 locator, however, PB
+localization falls from 36.6201% to 35.5339% (delta -1.086pp; conservative
+98.75% paired CI [-2.946,+.769]pp). It removes 698 old clean false alarms but
+loses 338 old exact error localizations. Therefore retain entropy Top10 q=.45
+as the simple total-answer detector candidate, but do not replace the existing
+mean-entropy q=.3 localization gate. External/new-model confirmation remains
+required. Canonical report: `results/simple_gate_choice_v1/REPORT.md`.
+
+## Latest Renyi follow-up — Steps 365-366 (2026-09-14)
+
+Gate Experiment 2 and its requested cumulative integration replay are COMPLETE
+/ REVIEW PASS. With the q15 finalist locator and q=.3 threshold rule fixed, 33
+uniform candidates (11 token signals x 3 readouts) were evaluated on all 6,800
+PB answers. Whole-answer mean missing top-15 mass wins development selection:
+PB 36.8818%, detector AUC .792172, versus recalculated entropy mean PB 36.6107%
+and AUC .742301. H1 is decision-identical to native entropy; Hinf and raw
+`-log p1` are weaker. Gate Top10 readouts lose despite higher separability AUC.
+
+The separate no-reselection integration replay composes every accepted locator
+and gate decision. Original static + entropy is 36.1674%; q15 finalist +
+entropy 36.6201%; original static + tail15 36.5937%; integrated q15 + tail15
+36.8818%. Incremental gate delta is +.262pp and cumulative delta +.714pp, so
+the registered point-composition gate passes. All family-wise 98.75% intervals
+cross zero; retain tail15 mean as the next gate candidate but do not yet replace
+entropy. PRMB remains q15 within .753436 / fold-pooled .722708 / PRMScore
+.634412. Next bounded question: test the q=.3 operating point, then rerun the
+complete algorithm with any selected threshold. Reports:
+`results/gate_feature_readout_selection_v1/REPORT.md` and
+`results/integrated_q15_tail15_gate_replay_v1/REPORT.md`.
+
+## Previous Renyi follow-up — Step 364 (2026-09-14)
 
 The post-Experiment-1B finalist replay is COMPLETE / REVIEW PASS. The one
 benchmark-uniform deployable specification is q15 `{H0lim, VE0, VE0.75, VE1}`
