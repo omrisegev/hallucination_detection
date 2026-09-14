@@ -4141,3 +4141,22 @@ Whole-answer position benefits IU within-answer ranking and conditional coeffici
 
 
 Graph-local update 2026-09-13: current affinity-weighted neighborhood is not promoted; it loses to sliding-window and permuted controls on the full benchmark. Preserve possible concentration/shrinkage confounding for diagnosis; do not reject all graphs. Await separate coefficient-GraphTV result.
+
+
+## Rényi position-temporal integration - 2026-09-14
+
+The integration experiment answers the immediate merge question. Position can
+recover the *direction* of the alpha complementarity without labels: the
+answer-local map emphasizes `VE_0.75`/`VE_1` early and `H0lim`/`VE_0` late.
+This produces a small confirmed PRMB within-answer improvement over scale-only,
+but no confirmed PB improvement; wholly external position coefficients regress
+PB materially. The best observed endpoints remain split between `VE_0.75`
+(PB) and `VE_0` (PRMB), so do not promote one fused detector or revisit an
+alpha sweep on this development set.
+
+For presentation, use the task-dependent alpha frontier plus the learned
+weight trajectory as the constructive result, and the external-position loss
+as the boundary. A next experiment is justified only if it is a bounded
+confirmation or adds a pre-registered calibration/PB-safety mechanism while
+keeping the local temporal update fixed. Evidence:
+`results/renyi_position_temporal_fusion_v1/REPORT.md`.

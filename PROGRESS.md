@@ -1,3 +1,65 @@
+## Latest Renyi follow-up — Step 364 (2026-09-14)
+
+The post-Experiment-1B finalist replay is COMPLETE / REVIEW PASS. The one
+benchmark-uniform deployable specification is q15 `{H0lim, VE0, VE0.75, VE1}`
+with per-view Top10 followed by raw equal step fusion, natural units and answer
+level retained, and no q50 duplication, supervised simplex or position fit. It
+scores PB all-8 36.6201%, PRMB within .753436, fold-pooled .722708 and PRMScore
+.634412 on 13,769 answers / 145,597 steps.
+
+Versus the original q15 fusion-before-Top10, PB is +.453pp (family-wise 98.333%
+CI [-.181,+1.122]), PRMB within +.002321 [.001322,.003367], and PRMScore
+-.000392. Versus the original local shrinkage + position method, PB is +.701pp
+[-.462,+1.823], within +.006055 [.003317,.008850], and PRMScore +.047003. The
+finalist reconstructs Experiment 1B's selected vector bitwise. The mean-entropy
+q=.3 gate remains unchanged and is the next separate experimental question.
+Canonical report: `results/selected_q15_finalist_replay_v1/REPORT.md`; frozen
+score SHA256: `3bd5c5b95474d75366b97b012b018d168cacafb3ccea178d26170207e220c7e6`.
+
+## Previous Renyi follow-up — Step 363 (2026-09-14)
+
+Experiment 1B, the benchmark-uniform support/weighting study, is COMPLETE /
+REVIEW PASS on all 13,769 answers and 145,597 steps. The frozen joint
+worst-regret rule selects one method for every cell: q15 raw equal after
+per-view Top10 (PB all-8 36.6201%, PRMB within .753436, fold-pooled .722708,
+PRMScore .634412). This supersedes the earlier benchmark-specific q15/q50
+wording. q50 raw gains only .001407 within while losing .634 PB points; static
+q15+q50 raw gains .000312 within and loses .368 PB points.
+
+Natural scale ratios are useful rather than pure nuisance: q15 raw is dominated
+by VE0/H0lim and beats global scale equalization by .004409 PRMB within. The
+shared supervised simplex discards those low-alpha views and is rejected; its
+eight-view fit collapses to q50 VE.75/VE1. Centering again preserves PB/within
+ordering but loses .006-.012 fold-pooled AUROC and .0075-.0096 PRMScore. Carry
+the q15 raw per-view-Top10 representation, preserve answer-level means, and hold
+the locator fixed for the next gate feature/readout experiment. New-model
+confirmation remains required.
+
+Frozen OOF scores SHA256:
+`2e87a3d11f4ee77594b64775457b1e99e864efb7d5eaca8350f9688b4adc14f4`.
+Canonical report: `results/uniform_multiscale_fusion_v1/REPORT.md`; ordered log:
+`docs/experiments/RENYI_FUSION_FOLLOWUP_LOG.md`.
+
+## Previous Renyi follow-up — Step 362 (2026-09-14)
+
+Experiment 1, the probability-normalization/mass/preprocessing ablation, is
+COMPLETE / REVIEW PASS on all 13,769 answers and 145,597 steps. Proper
+escort-varentropy is numerically invariant to raw retained `p` versus
+conditional `q` on fixed support (maximum token discrepancy `8.73e-10`), so
+top-K renormalization is not the standalone-to-fusion loss. `VE1 q50` gains
+.004678 PRMB within AUROC over q15 under the corrected interval while losing
+.285 ProcessBench points and passes the frozen promotion rule. Coarse residual
+tail mass does not help.
+
+Within-answer centering is the main preprocessing failure: it preserves
+within-answer ordering but removes roughly .04-.06 pooled AUROC/PRMScore.
+Future calibrated fusion must carry raw, scale-only or exclusion-safe
+fold-global preprocessing controls. The score archive was frozen before labels
+at SHA256 `402af091e82a10147de659cac22befbd7f8fd3a5c8c3427082935368ab50daef`.
+Experiment 2 (gate optimization beginning with Top10 mean) has not started.
+Canonical report: `results/probability_normalization_ablation_v1/REPORT.md`;
+ordered log: `docs/experiments/RENYI_FUSION_FOLLOWUP_LOG.md`.
+
 ## Codex frozen v3 labels/provenance in Git - 2026-09-14
 
 Added JOINED.json/JOINED.npz and RELEASE_V3.json unchanged, as requested.
@@ -6864,6 +6926,25 @@ energy source required by CIW's 3-by-3 core; RAG sentence/token/span/claim,
 stopping, and white-box hidden-state lanes require new unit-specific methods.
 See `docs/experiments/CIW_DEEM_MULTI_APPLICATION_V1.md` and
 `results/ciw_deem_multi_application_v1/`.
+
+## Latest localization integration — Step 361 (2026-09-14)
+
+The frozen four-view Rényi/escort-varentropy bank (`H0lim`, `VE_0`,
+`VE_0.75`, `VE_1`) was combined with whole-answer position-varying IU in an
+isolated worktree. Real smoke and the complete 13,769-answer benchmark pass
+with no failed outer/nested vectors, full exclusion replay, a bitwise-invariant
+label firewall and exact `VE_1` reference replay.
+
+The answer-local position-shrinkage arm learns the hypothesized early-to-late
+shift toward lower-alpha views and improves PRMB within-answer AUC over its
+scale-only control by +.001056 (98.333% CI [.000357,.001770]), but its PB
+change is uncertain (+.1640 points, CI [-.1729,+.4966]) and PRMScore is
+slightly lower. Fully external position IU is rejected: -1.7024 PB points
+versus the position-mean control, CI [-2.6533,-.7953]. No fused arm dominates
+the task-dependent leaders: `VE_0.75` on PB and `VE_0` on PRMB. Present the
+alpha frontier and learned temporal mechanism as the result; do not claim a
+universal fused winner. Full report:
+`results/renyi_position_temporal_fusion_v1/REPORT.md`.
 
 ---
 

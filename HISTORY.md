@@ -18794,3 +18794,101 @@ User explicitly requested commit and push of FOLDS_V2.json and fixed gate DETECT
 #### Step 360 follow-up: frozen v3 labels and release bundle (2026-09-14)
 
 User requested the remaining JOINED JSON/NPZ and RELEASE_V3 provenance be committed and pushed. Copied exact bytes; verified frozen joined hashes, array link, full release roster and tracked fold hash. Step offsets index joined step rows, not token boundaries; feature caches remain required. Original -2 label sentinel preserved. Audit: results/frozen_gate_folds_bundle_v1/LABELS_REVIEW.json.
+
+
+### Step 361 [Codex Rényi position-temporal fusion] - full integration result (2026-09-14)
+
+Created `codex/renyi-position-temporal-fusion-v1` from the conditional-IU
+lineage, merged the Rényi Stage-3b lineage, and cherry-picked the newly pushed
+frozen gate/fold and JOINED/release commits. Downloaded only the eight required
+ProcessBench LFS payloads. Registered four fixed views (`H0lim`, `VE_0`,
+`VE_0.75`, `VE_1`), sixteen-region whole-answer position, external position
+IU, answer-local covariance borrowing, position-mean, scale-only and shuffled
+controls. No labels or true error positions enter fitting.
+
+Eighteen unit/driver checks and real 27-answer smoke pass. The complete
+13,769-answer/145,597-step run has zero score failures; 55 exclusion-safe
+models replay and PB/PRMB outer/nested label-firewall perturbations are
+bitwise invariant. `VE_1` replays the frozen varentropy15 row. With the frozen
+98.333% primary intervals, external position IU loses 1.7024 PB points to its
+position-mean control (CI [-2.6533,-.7953]); local position shrinkage gains
+.001056 PRMB within AUC over scale-only (CI [.000357,.001770]) while its PB
+effect is inconclusive. The learned local map shifts weight from `VE_0.75` and
+`VE_1` early toward `H0lim` and `VE_0` late, but no fusion dominates the
+single-view frontier. See `results/renyi_position_temporal_fusion_v1/REPORT.md`.
+
+### Step 362 [Codex probability normalization and mass ablation] - complete (2026-09-14)
+
+Ran the first ordered Renyi/varentropy fusion follow-up on the frozen
+13,769-answer/145,597-step development population. Five unit tests and a
+27-answer real-data smoke passed. The complete score archive was frozen before
+evaluation at SHA256 `402af091e82a10147de659cac22befbd7f8fd3a5c8c3427082935368ab50daef`;
+four standalone/fusion references replay within `7.05e-12`, proper raw-head
+versus conditional-head escort-varentropy agrees within `8.73e-10`, and 41,645
+outer/nested standardizer contexts exclude held source groups.
+
+The `p -> q` normalization hypothesis is rejected on a fixed support. Expanding
+`VE1` from q15 to q50 gains .004678 PRMB within AUROC with a corrected positive
+interval and loses .285 PB points, passing the frozen promotion rule. A coarse
+tail bucket adds no useful value, and adding tail to fold-global fusion is
+harmful. The main mechanism finding is preprocessing: within-answer centering
+leaves PB/within ordering invariant but removes roughly .04-.06 pooled AUROC
+and PRMScore; raw, scale-only, or fold-global scaling recovers that calibration.
+Experiment 2 was not started. Canonical report:
+`results/probability_normalization_ablation_v1/REPORT.md`.
+
+### Step 363 [Codex uniform multiscale fusion] - complete (2026-09-14)
+
+Replaced the invalid benchmark-specific q15/q50 continuation with one frozen
+uniform protocol over q15, q50 and their eight-view concatenation. Every arm
+uses per-view Top10 then step fusion, the same preprocessing in all nine cells,
+and either fixed weights or one globally shared PB+PRMB cross-fitted simplex.
+Six unit tests and a 360-answer all-cell/all-fold smoke passed. All 15 outer and
+nested models fit on the complete 13,769-answer population; 41,645 contexts
+exclude held source groups. OOF scores were frozen before aggregate evaluation
+at SHA256 `2e87a3d11f4ee77594b64775457b1e99e864efb7d5eaca8350f9688b4adc14f4`.
+
+The registered worst-regret rule selects `q15_raw_equal` uniformly: PB all-8
+36.6201%, PRMB within .753436, fold-pooled .722708 and PRMScore .634412. q50
+raw gains only .001407 within and loses .634 PB points; raw q15+q50 gains only
+.000312 within and loses .368 PB points, with corrected intervals crossing zero.
+Global scale equalization removes useful natural scale ratios. The supervised
+simplex stably discards low-alpha views and worsens localization; the eight-view
+fit collapses exactly to the q50 high-alpha pair. Per-answer centering again
+preserves PB/within ordering while reducing fold-pooled AUROC and PRMScore.
+
+Decision: carry the q15 raw, per-view-Top10 representation as the single
+development candidate; do not choose features by benchmark, add static q50
+duplication, or adopt the tested global step-BCE simplex. Preserve the
+answer-level mean alongside any centered local channel. The next ordered study
+is gate feature/readout optimization with this locator held fixed. Canonical
+report: `results/uniform_multiscale_fusion_v1/REPORT.md`.
+### Step 364 [Codex selected q15 finalist replay] - complete (2026-09-14)
+
+**Question.** Before changing the answer-error gate, what does the complete
+configuration selected by the normalization and uniform-support experiments
+score as one standalone method, and how does it compare with the actual static
+and position-temporal starting points?
+
+**Frozen method.** Replayed q15 `H0lim/VE0/VE0.75/VE1` with the established
+label-free signs, Top10 separately per view, then a raw equal step average.
+Natural units and the answer-level offset are retained. No q50 duplication,
+within-answer centering/scaling, supervised simplex or position-dependent fit
+is used. The existing entropy q=.3 gate and PRMScore q=.8 fold calibration are
+unchanged.
+
+**Result.** Review PASS on all 13,769 answers and 145,597 steps. The finalist
+scores PB all-8 36.6201%, PB raw exact 33.1607%, PRMB within .753436,
+fold-pooled .722708, OOF pooled .722305 and PRMScore .634412. It is bitwise
+identical to Experiment 1B's selected score. Against the original static
+fusion-before-Top10 it gains +.453 PB points (98.333% CI [-.181,+1.122]) and
++.002321 within [.001322,.003367], with PRMScore -.000392. Against the original
+local shrinkage + position method it gains +.701 PB points
+[-.462,+1.823], +.006055 within [.003317,.008850], and +.047003 PRMScore.
+
+**Decision.** `FREEZE_Q15_RAW_PER_VIEW_TOP10_AS_CURRENT_DEVELOPMENT_FINALIST`.
+The prior position-varying standardized method remains a mechanism result but
+is not the current leading score. Gate optimization remains a separate next
+experiment; q=.3 was not changed here. The score archive SHA256 is
+`3bd5c5b95474d75366b97b012b018d168cacafb3ccea178d26170207e220c7e6`.
+Canonical report: `results/selected_q15_finalist_replay_v1/REPORT.md`.
