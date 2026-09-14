@@ -56,6 +56,8 @@ def _present(v):
         return False
     if isinstance(v, (list, tuple, dict, str)):
         return len(v) > 0
+    if hasattr(v, "size"):
+        return bool(v.size)
     return True
 
 
@@ -76,6 +78,17 @@ def main():
 
     with open(pkl, "rb") as f:
         data = pickle.load(f)
+
+    # Localization caches hold answer rows, not problems with candidates lists.
+    direct_rows = list(data.values()) if isinstance(data, dict) else data
+    if direct_rows and all(isinstance(r, dict) and "token_entropies" in r and "candidates" not in r for r in direct_rows):
+        lengths = [len(r["token_entropies"]) for r in direct_rows]
+        print(f"   schema=teacher-forced-localization rows={len(direct_rows)} tokens={sum(lengths)}")
+        print(f"   token lengths min={min(lengths)} max={max(lengths)}")
+        for key in BASE_KEYS + ["step_token_spans"]:
+            print(f"   {key}: {sum(_present(r.get(key)) for r in direct_rows)}/{len(direct_rows)}")
+        print("   Candidate-grid scoring is inapplicable; use the localization contract loader.")
+        return
 
     # ── structure + K ──────────────────────────────────────────────────────────
     n_problems = len(data)

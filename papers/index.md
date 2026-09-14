@@ -12,6 +12,7 @@ hand-type it in advance, the script computes it.
 
 | Paper | Slug | Status | One-line takeaway | Last updated |
 |---|---|---|---|---|
+| `diverging-flows-2602.13061v2.pdf` | `diverging-flows-2602-13061v2` | digested | Conditional flow with repel/curve losses and generated-path DOT; reasoning adaptation unvalidated. Tsakonas, Ivaldi, Mouret. | 2026-09-15 |
 | `A Deep Learning Approach to Unsupervised Ensemble Learning.pdf` | `a-deep-learning-approach-to-unsupervised-ensemble-learning` | digested | RBM-based deep neural networks model dependent base classifiers to outperform Dawid-Skene and majority voting. | 2026-07-13 |
 | `../Unsupervised Ensemble Learning Through Deep Energy-based Models.pdf (repo root)` | `unsupervised-ensemble-learning-through-deep-energy-based-models` | digested | DEEM learns nonlinear multinomial representations before an identifiable iRBM; dependence handling is empirical beyond the conditionally independent endpoint. | 2026-08-05 |
 | `[PMLR source; root Tenzer file is the wrong paper]` | `crowdsourcing-regression-a-spectral-approach` | digested | Actual U-PCR already includes SU-PCR, a rank-two plus sparse correlated-error extension; our remaining opening is dependency-aware weighting under approximate sparsity. | 2026-08-05 |

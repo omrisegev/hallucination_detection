@@ -19065,3 +19065,77 @@ controls; no new experiment or remote publication was performed.
 
 Review: docs/reviews/remote_temporal_review_2026-09-15.md.
 Audit: results/remote_temporal_review_20260915/AUDIT.json.
+
+### Step 377 [temporal research] — full baseline replay and prefix-innovation evidence
+
+**What**: Executed the approved research program in an isolated worktree from
+review a105b7a50. Verified all ten raw cache SHA256s and frozen contracts;
+recomputed the full 13,769-answer/145,597-step reference and 15 subsets.
+Added one-source PB metric bundles and repaired the affected evaluation paths;
+versioned replay of all 47 historical bundles is a separate running stage.
+
+**Why**: Distinguish representation, feature selection, weighting, chronology,
+readout and calibration before testing novel context models.
+
+**Result**: Reference PB .37474898261944 / within .7534358509472404 /
+PRMScore .6344124357811041 reproduce with zero difference. H0lim prefix
+innovation addition gives PB39.8314% / within .760293 / PRMScore .638830.
+Duplication, answer centering and shuffled-prefix controls do not recover its
+gain. These are development findings with paired group intervals, not untouched
+confirmation. RBM12 under the matched gate is37.1253%/.745204. Scalar independent
+PB audit and tokenwise independent prefix reconstruction pass. Full outputs:
+results/temporal_research_baseline_v1/ and results/temporal_research_mechanism_v1/.
+TCN/flow/ridge core code and mathematical fixtures are prepared; no benchmark
+model training or new cluster submission yet. Actual Diverging Flows paper is
+cached/digested and its earlier incorrect attribution corrected. AIRCC explicit
+SSH checks time out; GraphTV live state remains unknown.
+
+### Step 378 [temporal research] — complete repairs, DUFS and stronger readout controls
+
+**What**: Completed independent PB replay and versioned repair of all 47 stale
+historical bundles; all headline PB values unchanged. Completed 55 DUFS31
+selectors with source exclusion and nested calibration, all 13,769 answers.
+Added feature add/drop transitions, actual token-position profiles, Top10
+positions, sign/correlation diagnostics and fold selection stability.
+
+**Result**: DUFS k2/k3/k4 did not beat the original bank. Expensive bank lock
+contains original4 and innovation5. Historical earlier-VE0/VE075-peak readout
+is stronger than the plain argmax reference: PB39.3857%. Innovation's additional
+.4457pp is not established (development95%CI[-.6910,+1.6031]pp). Its early-error
+hits improve400->533 but late-error hits fall301->256. This qualifies the
+otherwise positive aggregate innovation result and motivates actual context
+and readout comparisons rather than an immediate final algorithm choice.
+
+**Execution**: Launched the full two-bank linear predictor experiment with
+outer/pair-excluded fits. Added complete TCN/FM/DiFlo training/scoring/evaluation
+drivers, 14 passing contract fixtures and successful TCN/DiFlo smoke runs.
+Started one full DiFlo fit (innovation5, seed0, excluded fold0) locally with
+checkpointing and automatic held-fold scoring on completion. Remaining neural
+matrix is prepared, not submitted; current cluster access remains blocked by
+VPN/connectivity. No full neural quality result claimed. See
+docs/reviews/temporal_research_execution_2026-09-15.html and live RUN_STATE files.
+
+### Step 379 — Run and audit source-excluded linear chronological predictors
+
+**What**: Fit linear predictors on both frozen banks, with outer and pair-fold
+source exclusion, and evaluate the complete development population. Compare
+signed and squared innovations with shuffled-history and zero-history controls.
+**Why**: Establish the inexpensive learned-context reference before interpreting
+TCN or Diverging Flows, while retaining base-score level and scale.
+**Result**: 30 fits, 13,769 answers, 145,597 steps, 38 PB metric bundles independently
+audited. Primary squared-residual .25 on innovation5: PB40.1386%/.757525 within;
+the within loss has a negative97.5%CI. Secondary signed-residual .25 gives
+PB40.8472%/.761620 within/PRMScore .641765. Its PB gain over innovation5 is
++1.0159pp (exploratory95%CI[+.2877,+1.7480]); within CI includes zero, and both
+intervals versus shuffled lag order include zero. Results suggest context
+background adjustment; they do not establish an exact-order advantage. All
+secondary comparisons retain their post-inspection status.
+
+**Files changed**:
+- `scripts/run_temporal_linear_context.py` — full nested experiment.
+- `scripts/analyze_temporal_linear_context.py` — independent audit and secondary contrasts.
+- `spectral_utils/context_readout.py` — shared signal-preserving prediction readouts.
+- `results/temporal_linear_context_v1/REPORT.md` — all results, with primary/secondary distinction.
+- `docs/reviews/temporal_research_execution_2026-09-15.html` — execution evidence and remaining work.
+
+---

@@ -207,8 +207,10 @@ def main() -> None:
     np.savez_compressed(archive, **{"steps__" + name: value for name, value in scores.items()})
     freeze = {"status": "SCORES_FROZEN_BEFORE_AGGREGATE_EVALUATION", "sha256": base.sha256_file(archive), "identity": replay_identity}
     atomic_json(OUT / "FROZEN_SCORES.json", freeze)
-    metrics, per = evaluator.evaluate_arrays(records, joined, scores, fold_auc=True)
     gate_data = frozen_gate.prepare()
+    from spectral_utils.pb_prediction_bundle import full_gate_from_pb_data
+    metrics, per = evaluator.evaluate_arrays(records, joined, scores, fold_auc=True,
+                                             pb_gate_open=full_gate_from_pb_data(gate_data))
     pb, predictions = apply_gate(joined, scores, gate_data)
     cells = np.asarray([row["cell"] for row in records])
     prm_steps = np.repeat(~np.char.startswith(cells, "pb_"), np.diff(joined["offsets"])) & (joined["labels"] >= 0)

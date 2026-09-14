@@ -1,5 +1,20 @@
 # CLAUDE.md — MV_EPR Spectral Hallucination Detection
 
+## Omri research execution authorization — 2026-09-15
+
+Omri approved `docs/experiments/TEMPORAL_RESEARCH_PROGRAM_20260915.md` and said
+"RUN THE PLAN". Execute its bounded stages without reopening earlier permission
+gates. Feature selection, fusion and routing are all candidates. Correctness
+labels remain excluded from model/weight/selector fitting; development labels
+may diagnose and select banks/configurations. Other-answer unlabeled learning
+is allowed with source-group exclusion; prefer answer-only when competitive.
+Report a Pareto frontier, not a mandatory two-metric win. Diverging Flows and
+TCN have first-cycle priority alongside a linear context control; linear failure
+does not rule out nonlinear models. Preserve all original results and frozen
+gate q=.33. Require independent baseline verification and repaired PB reporting.
+Read the current worktree's PROGRESS.md for execution state; code/tests alone
+do not mean a new model has been trained or benchmarked.
+
 ## Matched supervision clarification - 2026-09-11
 
 The matched token-Top10 coefficient-update experiment is complete in this

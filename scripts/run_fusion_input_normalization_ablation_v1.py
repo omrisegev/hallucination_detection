@@ -320,7 +320,9 @@ def run() -> dict:
         con.close()
 
     thresholds = calibration_thresholds(records, joined, fold, all_scores, all_nested)
-    metrics, per = evaluator.evaluate_arrays(records, joined, all_scores, calibration_thresholds=thresholds, fold_auc=True)
+    from spectral_utils.pb_prediction_bundle import full_gate_from_pb_data
+    metrics, per = evaluator.evaluate_arrays(records, joined, all_scores, calibration_thresholds=thresholds, fold_auc=True,
+                                             pb_gate_open=full_gate_from_pb_data(gate_data))
     pb, predictions = apply_frozen_pb_gate(records, joined, all_scores, gate_data)
     for name in METHODS:
         metrics[name]["pb_all8"] = pb[name]["macros"]["all"]
@@ -498,8 +500,10 @@ def main() -> None:
         with np.load(OUT / "SCORES.npz", allow_pickle=False) as saved:
             all_scores = {name: np.asarray(saved["steps__" + name], dtype=np.float64) for name in METHODS}
         thresholds = json.loads((OUT / "CALIBRATION.json").read_text())
-        metrics, per = evaluator.evaluate_arrays(records, joined, all_scores, calibration_thresholds=thresholds, fold_auc=True)
         gate_data = frozen_gate.prepare()
+        from spectral_utils.pb_prediction_bundle import full_gate_from_pb_data
+        metrics, per = evaluator.evaluate_arrays(records, joined, all_scores, calibration_thresholds=thresholds, fold_auc=True,
+                                                 pb_gate_open=full_gate_from_pb_data(gate_data))
         pb, predictions = apply_frozen_pb_gate(records, joined, all_scores, gate_data)
         valid_steps = np.repeat(np.array([not row["cell"].startswith("pb_") for row in records]), np.diff(joined["offsets"])) & (joined["labels"] >= 0)
         for name in METHODS:

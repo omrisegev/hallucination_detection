@@ -1,3 +1,25 @@
+## 2026-09-15 — approved temporal research program in execution
+
+Execute `docs/experiments/TEMPORAL_RESEARCH_PROGRAM_20260915.md`.
+The full raw-data baseline is independently reproduced exactly. H0lim prefix
+innovation is now a strong development candidate: its gain survives duplication,
+centering and shuffled-prefix controls. Preserve it beside the original bank
+when testing new learned context models; novelty alone is not a selection rule.
+Feature selection, fusion and routing remain open; evaluate the Pareto frontier.
+All 47 PB-report corrections and DUFS31 are complete. Locked banks are the
+original4 and innovation5. DUFS selection was stable but did not help detection.
+Innovation loses on late-error strata; its PB advantage over the historical
+earlier-VE0/VE075-peak rule is not established (CI includes zero). Preserve that
+strong readout control. Full linear evaluation is complete: the secondary signed
+residual on innovation5 reaches40.8472% PB/.761620 within, but the gain over
+shuffled lag order is not established. The primary squared-residual arm loses
+within on innovation5. This favors testing signal-preserving readouts and warns
+against equating generic prediction error with reasoning errors. Actual
+Diverging Flows training has started on the locked innovation bank. TCN/DiFlo
+training and scoring smoke tests pass, not a full neural quality benchmark;
+GraphTV current completion remains unverified while AIRCC is unreachable.
+See PROGRESS.md and the result directories for current execution evidence.
+
 ## 2026-09-15 — remote-review decision context, not a new experiment
 
 Latest pulled evidence is cf01849a7, through Steps 374–375. The retained

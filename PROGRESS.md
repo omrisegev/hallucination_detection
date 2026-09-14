@@ -1,3 +1,66 @@
+## Temporal research execution — 2026-09-15
+
+Active branch: `codex/temporal-research-20260915`, worktree
+`.worktrees/temporal-research-20260915`, based on review a105b7a50.
+Authorized program: `docs/experiments/TEMPORAL_RESEARCH_PROGRAM_20260915.md`.
+
+Full baseline and all 15 subsets COMPLETE on 13,769 answers / 145,597 steps.
+All 10 raw caches and frozen evaluation/fold/gate inputs match the remote SHA256
+manifest. Independent raw replay exactly matches PB .37474898261944,
+within .7534358509472404 and PRMScore .6344124357811041 (zero differences).
+Outputs: `results/temporal_research_baseline_v1/`.
+
+Initial innovation-H0lim augmentation: PB39.8314%, within .760293, PRMScore
+.638830. Paired development 95% CIs: PB gain [+1.2973,+3.4287]pp; within gain
+[.005072,.008679]. Not untouched confirmation. Mechanism controls COMPLETE:
+duplicate/centered H0lim PB37.0518%/within .751985; shuffled-prefix
+36.9548%/.752373. True prefix independently checked for every token.
+Matched final-gate RBM12: PB37.1253%/.745204; crossfold gate on baseline
+37.4761%/.753436. Independent scalar PB audit passes all reported methods.
+See `results/temporal_research_mechanism_v1/`.
+
+All 47 historical PB bundles independently replayed and repaired: PASS,
+zero changed PB headlines; originals preserved. See
+`results/temporal_historical_pb_repair_v2/REPAIR_REVIEW.json`.
+DUFS31 COMPLETE: 55 source-excluded selectors, all 13,769 answers, nested PRM
+calibration. k2/k3/k4 PB36.6665/36.7864/36.8593%, within .741841/.741765/.741530.
+All lose to the original bank. Final expensive banks: original4 and innovation5;
+`results/temporal_dufs31_v1/BANK_SELECTION.json` supersedes provisional subset lock.
+Full token-position/complementarity diagnostics and independent DUFS PB audit
+are in `results/temporal_feature_diagnostics_v1/`.
+
+Important counterevidence: historical earlier-VE0/VE075-peak readout PB39.3857%.
+Innovation gain over it is only .4457pp, exploratory 95% CI[-.6910,+1.6031]pp.
+Innovation improves early-error hits400->533 but reduces late-error hits301->256.
+Do not describe the innovation as uniformly better chronological detection.
+
+TCN/Flow/Ridge APIs, 14 contract fixtures and existing normalization/bank checks
+PASS. TCN and DiFlo training/scoring smoke checks pass; no quality claim from them.
+Full linear context experiment COMPLETE_REVIEWED in
+`results/temporal_linear_context_v1/`: 30 source-excluded fits, all answers,
+nested PRM calibration and 38 independently audited PB bundles. Primary squared
+residual .25 on innovation5: PB40.1386% / within .757525 (within loss CI excludes0).
+Secondary signed residual .25: PB40.8472% / within .761620 / PRMScore .641765.
+Its PB gain over innovation5 has exploratory95%CI[+.2877,+1.7480]pp; within
+gain CI includes0. Both PB/within CIs versus shuffled history include0. Do not
+claim an established advantage from exact lag order or promote secondary to primary.
+Actual DiFlo training STARTED: innovation5, seed0, excluded fold0, CPU, <=50000
+updates with validation early stopping. Checkpoints in
+`results/temporal_context_models_v1/diflo__innovation5__seed0__exclude0/`.
+A local watcher starts held-fold scoring after successful training. This single
+fold is NOT a full-population neural result. Full 270-fit matrix is prepared,
+not submitted. Flow uses actual repel/curve losses and generated-endpoint DOT,
+not GMM/KDE. Verified paper PDF/digest cached.
+AIRCC explicit-config checks timed out twice; GraphTV current status unknown.
+User has been asked to restore TAU VPN. No new cluster job submitted.
+
+Reviewable execution report: `docs/reviews/temporal_research_execution_2026-09-15.html`
+and `.md`. Next: complete context-model tracks,
+then the remaining registered coefficient/CRBM comparisons. Matched-order IU,
+multi-target shrinkage, simplex routing/fusion, Network Lasso, low-rank maps,
+matched-history negatives and the conditional LOCA/sampling work remain pending.
+Preserve original root worktree edits. Do not treat any old RUNNING PID as live.
+
 ## Independent remote review — Step 376 [review] (2026-09-15)
 
 Pulled origin/codex/renyi-position-temporal-fusion-v1 through cf01849a7 into

@@ -12,6 +12,8 @@ from .renyi_alpha_sweep import escort_varentropy
 from .upcr import upcr_fit_covariance
 
 
+# H1_native is conditional Shannon entropy of the normalized top-15 support.
+# Its historical key is retained for artifact compatibility; it is not H(full vocabulary).
 ALL_FEATURES = ("H0lim_q15", "VE0_q15", "VE0.75_q15", "VE1_q15", "VE1_q50", "H1_native", "Hinf_q15")
 SOLVERS = ("raw_step_equal", "scale_step_equal", "answer_z_local_iu")
 

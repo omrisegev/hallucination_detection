@@ -18,7 +18,9 @@ Status before execution: **PROTOCOL FROZEN / NOT YET SCORED**
 
 - Same 13,769 answers, 145,597 official steps, source groups and folds as the
   completed Renyi experiments.
-- Native H1 is the cached full-vocabulary token entropy. Hinf is calculated on
+- Correction (2026-09-15): native H1 is cached conditional top-15 Shannon
+  entropy, not full-vocabulary entropy. The historical key H1_native is retained.
+  Hinf is calculated on
   the conditional top-15 distribution. Raw `-log p1` is excluded from the
   primary roster because it was nearly redundant with Hinf in the math screen.
 - H1 and Hinf use their natural high-is-risk orientation. Existing Renyi/VE

@@ -21,6 +21,7 @@ from spectral_utils.direct_probability_fusion import step_top_mean
 from spectral_utils.direct_probability_temporal import METHODS, fit_all, seed_for
 from spectral_utils.historical_fusion_evaluation import pb_metrics
 from spectral_utils.prmbench import prmbench_evaluate
+from spectral_utils.pb_prediction_bundle import prediction_bundle
 
 OUT = ROOT / 'results/direct_probability_temporal_v3'
 REFERENCES = {'current__equal':'augmented_equal', 'current__iu':'augmented_iu', 'current__joint_lw':'augmented_joint_lw'}
@@ -187,10 +188,19 @@ def load_scored(con, records, offsets):
     return scores,telemetry
 
 
-def evaluate_arrays(records, joined, scores, *, calibration_thresholds=None, fold_auc=False):
+def evaluate_arrays(records, joined, scores, *, calibration_thresholds=None, fold_auc=False,
+                    pb_gate_open=None, pb_gate_valid=None):
     offsets,labels,target=joined['offsets'],joined['labels'],joined['target']
     cells=np.array([r['cell'] for r in records]);pb=np.char.startswith(cells,'pb_')
-    detector,thresholds=old._gate_contract(records)
+    if pb_gate_open is None:
+        detector,thresholds=old._gate_contract(records)
+        gate_open=detector>=thresholds
+        gate_valid=np.isfinite(detector) & np.isfinite(thresholds)
+    else:
+        gate_open=np.asarray(pb_gate_open, bool)
+        gate_valid=np.ones(len(records), bool) if pb_gate_valid is None else np.asarray(pb_gate_valid, bool)
+        if gate_open.shape != (len(records),) or gate_valid.shape != gate_open.shape:
+            raise ValueError('explicit PB gate must align with all records')
     folds=json.loads(old.FOLDS.read_text(encoding='utf8'))['outer']
     outer=np.array([int(folds[r['group_id']]) for r in records])
     prm_label_map={str(r['idx']):r for r in old.load_pickle(old.PRMB_LABELS).values()}
@@ -206,8 +216,7 @@ def evaluate_arrays(records, joined, scores, *, calibration_thresholds=None, fol
                 usable=labels[sl]>=0;y=labels[sl][usable]==1
                 pooled[sl]=usable
                 if y.any() and (~y).any():within[i]=old.auc(y,s[usable])
-        decision_valid=valid & np.isfinite(detector) & np.isfinite(thresholds)
-        pred=np.where(detector>=thresholds,peak,-1)
+        pb_bundle,pred,decision_valid=prediction_bundle(target,cells,peak,valid,gate_open,gate_valid)
         result=pb_metrics(target[pb],pred[pb],decision_valid[pb],cells[pb])
         error=pb & (target>=0);clean=pb & (target<0);diff=peak-target
         m=dict(pb_all8=result['macros']['all'],pb_q4=result['macros']['q4'],pb_q8=result['macros']['q8'],
@@ -221,6 +230,7 @@ def evaluate_arrays(records, joined, scores, *, calibration_thresholds=None, fol
             prm_within=float(np.nanmean(within)) if np.isfinite(within).any() else None,
             prm_within_n=int(np.isfinite(within).sum()),prm_pooled=old.auc(labels[pooled]==1,flat[pooled]) if pooled.any() and not fold_auc else None,
             prm_pooled_steps=int(pooled.sum()))
+        m.update(pb_bundle)
         if fold_auc:
             step_fold=np.repeat(outer,np.diff(offsets))
             fa={str(f):old.auc(labels[pooled&(step_fold==f)]==1,flat[pooled&(step_fold==f)]) for f in sorted(set(outer[~pb]))}

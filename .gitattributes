@@ -51,3 +51,17 @@ results/localization_source_group_audit_v1/FOLDS_V2.json -text whitespace=cr-at-
 # Frozen v3 annotation/provenance files retain their original CRLF bytes.
 results/localization_full_benchmark_v3/evaluation/JOINED.json -text whitespace=cr-at-eol
 results/localization_prm_label_audit_v1/RELEASE_V3.json -text whitespace=cr-at-eol
+
+# These new Windows-produced research artifacts are SHA-sealed as written.
+# CRLF is a record terminator; preserve the bytes and retain other whitespace checks.
+results/temporal_research_baseline_v1/** whitespace=cr-at-eol
+results/temporal_research_mechanism_v1/** whitespace=cr-at-eol
+results/temporal_research_smoke_v1/** whitespace=cr-at-eol
+results/temporal_historical_pb_repair_v2/** whitespace=cr-at-eol
+results/temporal_dufs31_v1/** whitespace=cr-at-eol
+results/temporal_feature_diagnostics_v1/** whitespace=cr-at-eol
+results/temporal_linear_context_v1/** whitespace=cr-at-eol
+results/temporal_context_data_v1/** whitespace=cr-at-eol
+results/temporal_context_smoke_v1/** whitespace=cr-at-eol
+results/temporal_context_models_v1/** whitespace=cr-at-eol
+results/temporal_execution_v1/** whitespace=cr-at-eol

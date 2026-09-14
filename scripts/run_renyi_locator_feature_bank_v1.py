@@ -357,8 +357,10 @@ def write_outputs(result: dict, scores: dict) -> None:
 
 
 def evaluate(records, joined, scores):
-    metrics, per = evaluator.evaluate_arrays(records, joined, scores, fold_auc=True)
     gate_data = frozen_gate.prepare()
+    from spectral_utils.pb_prediction_bundle import full_gate_from_pb_data
+    metrics, per = evaluator.evaluate_arrays(records, joined, scores, fold_auc=True,
+                                             pb_gate_open=full_gate_from_pb_data(gate_data))
     pb_metrics, predictions = apply_gate(records, joined, scores, gate_data)
     cells = np.asarray([row["cell"] for row in records])
     prm_answer = ~np.char.startswith(cells, "pb_")
