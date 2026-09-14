@@ -19040,3 +19040,28 @@ do not add H1/Hinf, replace VE1 with q50, or use local IU here. Joint L-SML
 remains deferred under the staged cost decision. Reports:
 `results/renyi_locator_feature_bank_v1/REPORT.md` and
 `results/renyi_locator_integrated_replay_v1/REPORT.md`.
+
+---
+
+### Step 376 [independent remote review] — temporal choice and evidence defects (2026-09-15)
+
+**What**: Fetched the latest remote experiment commit cf01849a7 into an isolated
+worktree and reviewed its normalization/feature-bank/replay additions alongside
+the RBM, Renyi and temporal lineage. Saved a Hebrew review and a reproducible
+audit on codex/temporal-review-20260915; original experiment outputs unchanged.
+
+**Result**: 47 new metric bundles have stale old-gate per-cell and suppressed
+peak fields, while their headlines agree with CSV. H1_native is top15 conditional
+entropy, not full-vocabulary H1; checked the capture code and 114,502 tokens from
+400 source answers whose file hash matches the remote manifest. Existing bank
+and normalization unit checks pass; 628 CSV fields, factor averages and the
+minimum-regret selection were cross-checked. New full-score archives are absent
+from Git, so this is not an independent full benchmark replay. Current q15 fusion
+is essentially tied with single VE0 on PRMB-within; matched strongest controls
+under the final tail15 q=.33 gate remain missing. The gate uses within-cell
+transductive percentile calibration. A short residual temporal-convolution
+component is the recommended next discussion after evidence repair and matched
+controls; no new experiment or remote publication was performed.
+
+Review: docs/reviews/remote_temporal_review_2026-09-15.md.
+Audit: results/remote_temporal_review_20260915/AUDIT.json.

@@ -1,3 +1,21 @@
+## 2026-09-15 — remote-review decision context, not a new experiment
+
+Latest pulled evidence is cf01849a7, through Steps 374–375. The retained
+development locator is natural-unit q15 {H0lim, VE0, VE0.75, VE1}, per-view
+Top10 then equal fusion; its PB gate is tail15 answer-Top10, within-cell
+midrank q=.33. This gate is transductive, and q was selected on PB labels.
+PRMB-within is essentially tied with single VE0; strongest single/RBM
+comparators still need the same final gate before a fusion-gain claim.
+
+Independent review found stale old-gate per-cell/suppressed-peak diagnostics
+in 47 new rows and a top15/full-vocabulary H1 description mismatch. Preserve
+source outputs and repair these before using the diagnostics. Proposal for
+discussion after matched controls: short residual temporal convolution using
+past context, keeping original token evidence and Top10. Conditional-context
+RBM and KalmanNet remain alternatives, not completed tests. GraphTV's current
+live state was not established; older running snapshots below are historical.
+Review: docs/reviews/remote_temporal_review_2026-09-15.md.
+
 ## 2026-09-13 - answer-local IU with external position/context priors
 
 The user authorized completing and submitting all three independent follow-ups,

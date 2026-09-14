@@ -1,3 +1,26 @@
+## Independent remote review — Step 376 [review] (2026-09-15)
+
+Pulled origin/codex/renyi-position-temporal-fusion-v1 through cf01849a7 into
+an isolated worktree; review branch codex/temporal-review-20260915. No original
+experiment results or main-worktree edits changed. Hebrew review:
+docs/reviews/remote_temporal_review_2026-09-15.md; reproducible evidence:
+results/remote_temporal_review_20260915/AUDIT.json.
+
+Two confirmed findings: all 47 newly reported metric bundles retain old-gate
+pb_cells/suppressed-peak diagnostics despite updated aggregate PB; H1_native
+is top15 conditional entropy, not the full-vocabulary entropy described in the
+feature-bank protocol. A matching-SHA256 400-answer cache verifies the latter.
+Headline CSV/JSON values agree; missing score/detector archives prevent a full
+independent replay here. No headline invalidation is established.
+
+Final q15 fusion has essentially the same PRMB-within as single VE0; strongest
+single/RBM controls still need the SAME tail15 q=.33 gate. That gate calibrates
+midranks on the target cell, so its transductive access must remain explicit.
+Recommendation for discussion: short residual temporal convolution as a
+context component, preserving Top10 and raw evidence, after matched controls
+and reporting repair. No new improvement experiment launched. GraphTV live
+state was not checked; the old RUNNING snapshot is not current evidence.
+
 ## Latest Renyi follow-up — Step 375 (2026-09-15)
 
 Experiment 3 and its independent cumulative replay are COMPLETE / REVIEW PASS
