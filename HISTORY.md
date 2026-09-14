@@ -1,5 +1,38 @@
 # MV_EPR Project History
 
+## Step373 [Codex] - Localization-aware tail15 gate and frozen integration, 2026-09-14
+
+Held the selected q15 locator and raw missing-top15-mass Top10 gate definition
+fixed, searched one uniform q=.01-.99 on all eight ProcessBench development
+cells, and chose q=.33 by official exact-localization macro-F1. The complete
+method reaches 37.4749%, versus 36.1674% for the starting static locator plus
+entropy-mean q=.3: +1.307pp, family-wise 99% grouped CI
+[-.484,+3.067]pp. The q=.31-.35 plateau is shallow, so q=.33 is a frozen
+development choice rather than a claim that the hundredth generalizes.
+
+The answer detector scores family-macro F1 .702180 / AUROC .799571 / AUPRC
+.863489. The current q15 locator scores PRMB within .753436 / fold AUROC
+.722708 / pooled OOF .722305 / PRMScore .634412. The earlier 36.8818% row is
+the historical tail15-mean q=.3 PB diagnostic, not the final value. External
+new-model confirmation remains required. Results and the original-plan audit:
+`results/tail15_localization_q_v1`.
+
+## Step372 [Codex] - Tail15 Top10 versus mean under one transfer contract, 2026-09-14
+
+Held the raw missing-top15-mass token signal fixed and compared only its
+whole-answer readout. Each threshold came from the same 15-cell math panel and
+was transferred to the frozen q15 locator without ProcessBench readout or q
+calibration. Top10 q=.40 beat mean q=.45 on math answer F1 (.632415 vs
+.625927), PB answer F1 (.697932 vs .691500), PB AUROC (.799571 vs .792172),
+and PB localization (36.6736% vs 36.6064%). The +.067pp localization interval
+[-.984,+1.149]pp at family-wise 98.333% crosses zero.
+
+Top10 produces 1,058 exact error localizations and 751 clean false alarms;
+mean produces 1,016 and 642. The historical PB-developed tail15-mean q=.3 point
+of 36.8818% remains higher than both fair-transfer rows, so the next bounded
+question is a localization-cost-aware operating-point rule rather than another
+readout. Results: `results/tail15_readout_headtohead_v1`.
+
 ## Step371 [Codex] - Five leading simple gates on frozen ProcessBench, 2026-09-14
 
 Transferred five conceptually distinct math-leading gates with their

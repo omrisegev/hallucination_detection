@@ -1,0 +1,32 @@
+{
+  "external_confirmation_required": true,
+  "locator": {
+    "orientation": "frozen_label_free",
+    "prediction": "earliest_argmax_step",
+    "support": "q15",
+    "token_to_step": "per_view_top10_then_natural_unit_equal_mean",
+    "views": [
+      "H0lim",
+      "VE0",
+      "VE0.75",
+      "VE1"
+    ]
+  },
+  "prmbench": {
+    "calibration": "frozen_nested_source_contract",
+    "gate": "none",
+    "prmscore_q": 0.8
+  },
+  "processbench_gate": {
+    "calibration": "midrank_percentile_within_cell_label_free",
+    "one_uniform_q_all_cells": true,
+    "q": 0.33,
+    "readout": "whole_answer_token_top10_mean",
+    "selection_objective": "max_processbench_all8_exact_localization_macro_f1",
+    "signal": "one_minus_sum_exp_top15_logprobs"
+  },
+  "q_selection_sha256": "2cd7c383893e373c1174899d522b2cf74deb672d9052d4a82c3feefb83abc1c8",
+  "schema": "renyi-tail15-integrated-development-method-v1",
+  "selection_population": "ProcessBench development for q only; math development for feature/readout",
+  "status": "FROZEN_DEVELOPMENT_CANDIDATE_FOR_EXTERNAL_CONFIRMATION"
+}

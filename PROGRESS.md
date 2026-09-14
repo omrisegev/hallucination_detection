@@ -1,3 +1,44 @@
+## Latest Renyi follow-up — Step 373 (2026-09-14)
+
+The localization-aware operating-point experiment and immediate cumulative
+replay are COMPLETE / REVIEW PASS. With the q15 locator and tail15 Top10 gate
+definition fixed, one q was selected across all eight ProcessBench development
+cells by official exact-localization macro-F1. The selected q=.33 gives PB
+37.4749%, versus 36.1674% for the starting static-locator + entropy-mean q=.3
+method: +1.307pp, with family-wise 99% grouped CI [-.484,+3.067]pp. The exact
+hundredth is not expected to be stable: q=.31-.35 spans 37.3969%-37.4749%.
+
+The current development-frozen method is q15 `{H0lim, VE0, VE0.75, VE1}`
+per-view Top10 natural-unit fusion for localization, plus raw missing-top15-mass
+Top10 with q=.33 for ProcessBench gating. Its answer detector is family-macro
+F1 .702180 / AUROC .799571 / AUPRC .863489. PRMB remains locator-only:
+within .753436, fold AUROC .722708, pooled OOF .722305, PRMScore .634412.
+The historical 36.8818% / .792172 row is tail15 **mean** with PB-fixed q=.3,
+not the final method. The feature/readout was developed on math; q=.33 was
+selected on PB development, so external/new-model confirmation is required.
+Canonical report: `results/tail15_localization_q_v1/REPORT.md`; plan audit:
+`results/tail15_localization_q_v1/PLAN_AUDIT.md`.
+
+## Latest Renyi follow-up — Step 372 (2026-09-14)
+
+The same-protocol tail15 readout head-to-head is COMPLETE / REVIEW PASS. The
+raw missing-top15-mass signal was held identical; only whole-answer Top10 versus
+mean changed, and each q was selected on the same 15-cell math panel before PB
+target access. Top10 q=.40 beats mean q=.45 on math answer F1 (.632415 vs
+.625927), PB answer F1 (.697932 vs .691500), PB AUROC (.799571 vs .792172),
+and PB localization (36.6736% vs 36.6064%). The localization delta is only
++.067pp with family-wise 98.333% paired CI [-.984,+1.149]pp and is not
+confirmed.
+
+Top10 opens more errors and yields 1,058 exact error localizations versus 1,016
+for mean, at the cost of 751 versus 642 clean false alarms. Both fair-transfer
+rows remain below the historical PB-developed tail15-mean q=.3 point of
+36.8818%, indicating that the next bounded question is the gate operating-point
+objective rather than another tail15 readout search. Retain tail15 Top10 as the
+readout candidate; next test a localization-cost-aware q rule on development,
+then rerun the complete integrated method before any external confirmation.
+Canonical report: `results/tail15_readout_headtohead_v1/REPORT.md`.
+
 ## Latest Renyi follow-up — Step 371 (2026-09-14)
 
 The leading-simple-gates comparison is COMPLETE / REVIEW PASS. Five distinct

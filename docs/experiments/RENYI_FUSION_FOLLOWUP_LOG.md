@@ -212,3 +212,55 @@ No later experiment is authorized by the execution of Experiment 1.
   math-to-PB transfer.
 - Protocol: `LEADING_GATE_TRANSFER_V1.md`.
 - Report: `../../results/leading_gate_transfer_v1/REPORT.md`.
+
+## Experiment 2E — tail15 Top10 versus mean under one protocol
+
+- Date opened/completed: 2026-09-14
+- Status: **COMPLETE / REVIEW PASS**
+- Frozen change: identical raw missing-top15-mass signal and frozen q15
+  locator; only the answer readout changes. Top10 uses math-selected q=.40 and
+  mean uses math-selected q=.45. No PB readout or q calibration.
+- Math answer F1: Top10 .632415 versus mean .625927.
+- PB answer detection: Top10 F1 .697932 / AUROC .799571; mean .691500 /
+  .792172.
+- PB localization: Top10 36.6736%; mean 36.6064%; Top10-minus-mean +.067pp,
+  family-wise 98.333% paired CI [-.984,+1.149]pp.
+- Trade-off: Top10 obtains 1,058 exact error localizations with 751 clean false
+  alarms; mean obtains 1,016 with 642.
+- Decision: `RETAIN_TAIL15_TOP10_AS_READOUT_CANDIDATE`; the difference is not
+  confirmed. The historical tail15-mean q=.3 PB-developed row at 36.8818%
+  exceeds both, pointing to the operating-point objective as the next question.
+- Next bounded experiment: select a localization-cost-aware q for frozen
+  tail15 Top10 on development and immediately replay the complete integrated
+  method; external confirmation still follows only after that specification is
+  frozen.
+- Protocol: `TAIL15_READOUT_HEADTOHEAD_V1.md`.
+- Report: `../../results/tail15_readout_headtohead_v1/REPORT.md`.
+
+## Experiment 2F — localization-aware q and cumulative freeze
+
+- Date opened/completed: 2026-09-14
+- Status: **COMPLETE / REVIEW PASS — DEVELOPMENT FROZEN**
+- Fixed components: q15 per-view-Top10 natural-unit locator; raw missing-top15
+  mass token signal; whole-answer Top10 readout; within-cell label-free midrank
+  percentile.
+- Search: one uniform q over `.01-.99` for all eight ProcessBench cells,
+  selected by official all-eight exact-localization macro-F1. No feature,
+  readout, locator or per-benchmark specialization was permitted.
+- Selection: q=.33, PB 37.4749%. The nearby q=.31-.35 values range only from
+  37.3969% to 37.4749%, so the exact hundredth is treated as a development
+  freeze rather than a stable external optimum.
+- Cumulative comparison: starting static locator + entropy mean q=.3 is
+  36.1674%; locator-only update 36.6201%; gate-only update 36.8759%; complete
+  q15 + tail15 Top10 q=.33 is 37.4749%. Final-minus-start is +1.307pp with
+  family-wise 99% grouped CI [-.484,+3.067]pp.
+- Answer detection: final family-macro F1 .702180 / AUROC .799571 / AUPRC
+  .863489, versus entropy-mean .649999 / .742301 / .831461.
+- PRMB locator: within .753436 / fold AUROC .722708 / pooled OOF .722305 /
+  PRMScore .634412. The gate is not applied to PRMB.
+- Interpretation: this completes the requested same-development integration,
+  not external generalization. The frozen method requires new-model/data
+  confirmation.
+- Protocol: `TAIL15_LOCALIZATION_Q_V1.md`.
+- Report: `../../results/tail15_localization_q_v1/REPORT.md`.
+- Original-plan audit: `../../results/tail15_localization_q_v1/PLAN_AUDIT.md`.
