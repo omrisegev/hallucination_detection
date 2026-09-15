@@ -19139,3 +19139,26 @@ secondary comparisons retain their post-inspection status.
 - `docs/reviews/temporal_research_execution_2026-09-15.html` — execution evidence and remaining work.
 
 ---
+
+### Step 380 — Continue the registered neural comparison with a resumable queue
+
+**What**: Verified completion of the first DiFlo fit and held-fold scoring.
+Added and started a sequential queue for the existing first-seed matrix,
+with skip-completed behavior, checkpoint resume, an exclusive process lock,
+explicit failures and automatic evaluation after complete coverage.
+**Why**: The original local watcher stopped after scoring its one model; no
+continuation queue had been launched. AIRCC still times out, so resume useful
+local work within the existing authorization without changing the experiment.
+**Result**: First DiFlo fit stopped at31,000 updates, selected checkpoint28,000
+and scored all2,782 held-fold answers. The queue covers90 registered fits:
+3 methods x2 banks x15 outer/pair exclusions, seed0. It skipped the completed
+DiFlo job and launched matched ordinary FM next. Five queue/nested-calibration
+tests pass. No new neural quality result yet; no new cluster submission.
+
+**Files changed**:
+- `scripts/run_temporal_neural_queue.py` — bounded sequential continuation and evaluation.
+- `tests/test_temporal_neural_queue.py` — exclusion matrix, process lock and completion validation.
+- `PROGRESS.md` — completed first model and current queue state.
+- `docs/reviews/temporal_research_execution_2026-09-15.html` — corrected execution status.
+
+---

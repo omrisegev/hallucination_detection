@@ -15,7 +15,9 @@ residual on innovation5 reaches40.8472% PB/.761620 within, but the gain over
 shuffled lag order is not established. The primary squared-residual arm loses
 within on innovation5. This favors testing signal-preserving readouts and warns
 against equating generic prediction error with reasoning errors. Actual
-Diverging Flows training has started on the locked innovation bank. TCN/DiFlo
+Diverging Flows first fit and held-fold scoring completed on innovation5. The
+sequential seed0 queue now continues all90 registered fits and full evaluation;
+see results/temporal_neural_queue_seed0_v1/RUN_STATE.json. TCN/DiFlo
 training and scoring smoke tests pass, not a full neural quality benchmark;
 GraphTV current completion remains unverified while AIRCC is unreachable.
 See PROGRESS.md and the result directories for current execution evidence.

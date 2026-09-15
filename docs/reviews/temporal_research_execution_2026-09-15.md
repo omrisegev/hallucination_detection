@@ -96,8 +96,16 @@ innovation5: PB 40.8472%, within 0.761620, PRMScore 0.641765. מול innovation5
 מומשו TCN, conditional flow matching ו־Diverging Flows, כולל אימון ללא
 תוויות נכונות, הפרדת קבוצות, checkpoints לפי מטרת האימון ו־readout ששומר
 את הבסיס. בדיקות קטנות עברו לאימון ולניקוד TCN ו־DiFlo; הן בדיקות תקינות
-ועלות בלבד. אימון DiFlo מלא ראשון התחיל מקומית עבור innovation5, seed 0,
-כאשר fold 0 מוחזק בחוץ. תוצריו אינם עדיין תוצאת איכות על כל האוכלוסייה.
+ועלות בלבד. אימון DiFlo ראשון עבור innovation5, seed 0, fold 0 הסתיים
+אחרי 31,000 עדכונים; נבחר checkpoint מעדכון 28,000. הניקוד הסתיים עבור
+כל 2,782 התשובות ב־fold המוחזק בחוץ. זו עדיין אינה הערכת איכות מלאה.
+
+הופעל תור מקומי רציף למחזור seed 0: כל 90 ההתאמות המתוכננות, כולל
+שני הבנקים, שלוש השיטות והכיול המקונן. התור מדלג על הרצות שהושלמו,
+ממשיך מ־checkpoints ומפעיל הערכה מלאה בסוף. FM רגיל הוא ההרצה הבאה
+אחרי DiFlo שהושלם, ולאחריו TCN. זו תמונת מצב; קובץ מצב התור המקושר
+בהמשך מציין איזו הרצה פעילה כעת. התור המקורי טיפל רק באימון ובניקוד
+DiFlo הראשון; לא היה בו המשך ליתר הסדרה. פער ההפעלה הזה תוקן.
 
 ב־DiFlo ממומשות ענישות repel/curve ו־DOT ביחס לקצה שהמודל יצר בעצמו.
 הניקוד אינו מקבל את התצפית העתידית. הפרעות PGD נוצרות ב־logits,
@@ -114,7 +122,8 @@ innovation5: PB 40.8472%, within 0.761620, PRMScore 0.641765. מול innovation5
 
 סדרת TCN/FM/DiFlo המלאה, מספר seeds והכיול המקונן טרם הושלמו.
 הוכנה מטריצה של עד 270 התאמות: 3 שיטות × 2 בנקים × 3 seeds × 15
-הפרדות folds. זו תקרת עבודות מוכנה, לא 270 עבודות שהוגשו.
+הפרדות folds. הופעל המחזור המקומי של seed 0 בלבד, עם 90 התאמות מתוכננות;
+יתר ה־seeds טרם הופעלו. זו אינה סריקת פרמטרים חדשה.
 חיבור AIRCC נכשל ב־timeout; GraphTV הקודם נשאר בסטטוס לא ידוע.
 לא הוגשה עבודה חדשה לקלאסטר. הגישה נחוצה לאימותו ולהאצת ההמשך.
 
@@ -136,5 +145,7 @@ LOCA ודגימת גרף לפי ההנחות שנקבעו. הן נשארות ב�
 - [המנבא הלינארי](../../results/temporal_linear_context_v1/RUN_STATE.json)
 - [תוצאות המנבא הלינארי והביקורות](../../results/temporal_linear_context_v1/REPORT.md)
 - [אימון DiFlo הראשון](../../results/temporal_context_models_v1/diflo__innovation5__seed0__exclude0/RUN_STATE.json)
+- [הניקוד שהושלם ל־DiFlo הראשון](../../results/temporal_context_models_v1/diflo__innovation5__seed0__exclude0/scoring/RUN_STATE.json)
+- [מצב תור ההמשך המקומי](../../results/temporal_neural_queue_seed0_v1/RUN_STATE.json)
 - [digest מאומת של Diverging Flows](../../papers/digests/diverging-flows-2602-13061v2.md)
 - [החוזה המלא](../experiments/TEMPORAL_RESEARCH_PROGRAM_20260915.md)

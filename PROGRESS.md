@@ -44,14 +44,21 @@ Secondary signed residual .25: PB40.8472% / within .761620 / PRMScore .641765.
 Its PB gain over innovation5 has exploratory95%CI[+.2877,+1.7480]pp; within
 gain CI includes0. Both PB/within CIs versus shuffled history include0. Do not
 claim an established advantage from exact lag order or promote secondary to primary.
-Actual DiFlo training STARTED: innovation5, seed0, excluded fold0, CPU, <=50000
-updates with validation early stopping. Checkpoints in
+First DiFlo training and scoring COMPLETE: innovation5, seed0, excluded fold0,
+31,000 updates, best checkpoint28,000; all2,782 held-fold answers scored.
+This is not a full-population neural quality result. Checkpoints in
 `results/temporal_context_models_v1/diflo__innovation5__seed0__exclude0/`.
-A local watcher starts held-fold scoring after successful training. This single
-fold is NOT a full-population neural result. Full 270-fit matrix is prepared,
-not submitted. Flow uses actual repel/curve losses and generated-endpoint DOT,
+The original watcher ended after that scoring run; it did not chain other fits.
+Now ACTIVE: sequential local seed0 queue, 90 registered fits (3 methods x2
+banks x15 outer/pair exclusions), skipping completed jobs, checkpoint resume,
+single-process lock, explicit failure states and automatic full evaluation.
+See `results/temporal_neural_queue_seed0_v1/RUN_STATE.json` and per-job logs.
+First new job is FM/innovation5/seed0/excluded0; TCN and other exclusions follow.
+No training/readout/gate hyperparameters changed. Seeds1/2 remain unlaunched.
+Full three-seed matrix has270 fits; no new cluster job was submitted.
+Flow uses actual repel/curve losses and generated-endpoint DOT,
 not GMM/KDE. Verified paper PDF/digest cached.
-AIRCC explicit-config checks timed out twice; GraphTV current status unknown.
+AIRCC explicit-config check still times out on this status check; GraphTV unknown.
 User has been asked to restore TAU VPN. No new cluster job submitted.
 
 Reviewable execution report: `docs/reviews/temporal_research_execution_2026-09-15.html`
