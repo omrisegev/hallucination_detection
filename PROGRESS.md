@@ -1,6 +1,46 @@
 ## Temporal research execution — 2026-09-15
 
-LATEST — Step386 context-weighted original levels COMPLETE_REVIEWED.
+LATEST — Step387 [Codex predictors] COMPLETE_REVIEWED, predictors BEFORE fusion.
+User asked for standalone predictor evidence before combining models. Results:
+results/aligned_context_predictors_v1/REPORT.html, METRICS.json, AUDIT.json.
+All13769 answers/145597 steps/6968779 tokens. Same innovation5 base, signed
+residual mean over5 standardized features, Top10, .25 correction, tail15 gate.
+Saved source-excluded Ridge16 versus mean16 and exact untruncated Gaussian
+BOCPD predictive means (5 separate filters, hazard1/32, unit variances), plus
+noreset and zero-prediction controls. Local recurrences borrow no answers;
+Ridge is externally fitted. Whole-answer normalization remains offline.
+
+PB% / within / PRMScore / predictionMSE (equal answer mean):
+ridge40.8472/.761620/.641765/.688936;
+mean16 39.8648/.759979/.639336/.957699;
+bocpd40.3676/.763223/.642268/.818527;
+noreset39.8608/.762839/.642239/1.015762;
+zero39.3977/.760116/.640378/1.000000;
+innovation5 reference39.8314/.760293/.638830.
+BOCPD-base within+.002930,PRIMARY99.5%CI[.000140,.005692]; PB+.5363pp,
+CI[-.5828,+1.7158]pp. BOCPD-Ridge PB-.4796pp/within+.001603, both primary
+CIs include0. BOCPD-noreset both primary CIs include0: no demonstrated
+change-point-specific benefit. mean16 has no positive primary interval.
+5 pairs x2 endpoints,10000 source-group draws,Bonferroni99.5% intervals.
+
+Ridge is a better feature predictor than BOCPD, yet BOCPD's within point is
+higher; noreset predicts worse than zero yet gives .762839 within. MSE cannot
+select semantic detection quality. BOCPD residual/Ridge correlation median
+.9103; after linearly removing shared current observation .7258 (diagnostic,
+not independence). BOCPD gains115 final PB error hits and loses139 vs Ridge.
+Complementarity of existing peaks is not a usable label-free fusion rule.
+Decision KEEP_RIDGE_AND_BOCPD_NO_FUSION_YET; keep noreset as mandatory control.
+Ridge/BOCPD are the two-endpoint point Pareto. All results development-only.
+
+13 tests PASS (4 new exact partition/no-future/edge tests +9 context/calibration),
+independent PB/pairwise-within for all13 methods, all9 reference headlines
+exact. Scalar/sort readout checks for13769x5 and Ridge score replay both have
+max delta0. All source/bundle hashes match. No missing scores/fallbacks.
+Scoring800.84s + evaluation21.95s CPU/BLAS1. Neural queue unchanged,paused4/90;
+no TCN/FM/DiFlo quality conclusion. No fusion fitted. Frozen protocol:
+docs/experiments/ALIGNED_CONTEXT_PREDICTORS_20260915.md.
+
+Previous — Step386 context-weighted original levels COMPLETE_REVIEWED.
 Results: results/context_weighted_levels_v1/REPORT.html, METRICS.json, AUDIT.json.
 All13769 answers/145597 steps/6968779 tokens;19 policies +9 historical anchors.
 45 Step384 source-excluded fits reused;10 nested PRMB pair-exclusion fits.

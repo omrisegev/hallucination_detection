@@ -19552,3 +19552,71 @@ report_context_weighted_levels.py, diagnose_context_weight_age.py;
 results/context_weighted_levels_v1/; PROGRESS.md and central execution report.
 
 ---
+
+
+### Step 387 [Codex predictors] ? Align predictor targets before fusion; retain Ridge and BOCPD
+
+**What**: User authorized predictor research before combining models. Frozen
+ALIGNED_CONTEXT_PREDICTORS_20260915; all13,769 answers/145,597 steps/6,968,779
+tokens. Compare saved external source-excluded Ridge16, past mean16, exact
+untruncated per-feature Gaussian BOCPD predictive means (hazard1/32, prior and
+observation variance1), noreset and zero. Predict current standardized5-vector
+BEFORE observing it; retain original innovation5 scores plus signed-residual
+Top10 correction .25 and unchanged tail15 gate. No correctness labels in
+prediction, no new fusion/bank/gate/TopK/dose fitting. Whole-answer preprocessing
+is offline; local recurrences do not borrow other answers. The five BOCPD
+filters have separate run-length posteriors, no cross-feature independence claim.
+
+**Why**: Same-target predictor views are a more coherent potential input to
+U-PCR than mixing raw change probabilities and signed residuals. First test
+standalone usefulness and distinguish predictor accuracy from detector quality.
+The previous token-entropy BOCPD rise/reset/surprise experiment did not test this
+signed, signal-preserving correction. No re-run of old Top10 alternatives.
+
+**Result (PB% / within / PRMScore / equal-answer feature MSE)**:
+- Ridge40.8472/.761620/.641765/.688936 (exact frozen replay).
+- BOCPD40.3676/.763223/.642268/.818527.
+- noreset39.8608/.762839/.642239/1.015762.
+- mean16 39.8648/.759979/.639336/.957699.
+- zero39.3977/.760116/.640378/1.000000.
+- innovation5 base39.8314/.760293/.638830.
+Five primary pairs x2 endpoints;10,000 paired source-group bootstrap draws,
+Bonferroni99.5%CI. BOCPD-base within+.002930 [.000140,.005692], PB+.5363pp
+[-.5828,+1.7158]. BOCPD-Ridge PB-.4796pp [-1.4458,+.4707], within+.001603
+[-.000248,+.003477]. BOCPD-noreset PB+.5069pp [-.5711,+1.6074], within+.000384
+[-.002184,+.002957]. mean16 comparisons have no positive primary interval.
+No equivalence claims; no demonstrated change-point-specific gain.
+
+**Mechanism diagnostics**: BOCPD and Ridge residual correlation median.9103,
+after linear removal of shared current scalar observation .7258. Does not
+establish conditional error independence. BOCPD gains115 final PB hits and
+loses139 versus Ridge; both hit1188. Early gains60/loses53, middle42/56,
+late13/30. Existing-peak complementarity is not a usable oracle or fusion bound.
+Ridge is the stronger MSE predictor, while noreset predicts worse than zero
+yet gives near-BOCPD within. Prediction loss cannot select semantic quality.
+
+**Decision**: KEEP_RIDGE_AND_BOCPD_NO_FUSION_YET. These two form the point
+PB/within Pareto. Keep noreset as a required control; do not attribute benefit
+to regime resets. No TCN/FM/DiFlo retraining or partial-fold quality verdict;
+neural queue remains paused4/90. All results are development evidence; bank
+and signed .25 readout were selected using earlier outcomes on this population.
+
+**Validation**: Four new exact partition-enumeration, noreset closed form,
+fixed-normalization no-current/future and short/constant/invalid-input tests;
+nine existing context/model/calibration tests PASS (13 total). Independent PB
+and pairwise within-AUC on all13 methods; all9 reference headlines exact.
+Independent scalar/sort readout for all13769x5 bundles has maxdelta0; Ridge
+step-score replay maxdelta0. Every source and data-bundle hash matches, all
+source-fold training/validation/held groups checked, no missing scores or
+silent fallbacks. Scoring800.84s, evaluation21.95s, single BLAS thread.
+
+**Files**: spectral_utils/aligned_context_predictors.py;
+scripts/{run,evaluate,report}_aligned_context_predictors.py;
+tests/test_aligned_context_predictors.py; frozen protocol; results/
+aligned_context_predictors_v1/{REPORT.html,REPORT.md,METRICS.json,AUDIT.json,
+SCORING_AUDIT.json,TESTS.json,MANIFEST.json,ARTIFACTS.json,RUN_STATE.json}.
+Large answer checkpoints/scores/diagnostics remain local with hashes.
+PROGRESS, Research_Directions and the central execution report updated;
+stale roadmap claims about DUFS stability and a running neural queue corrected.
+
+---

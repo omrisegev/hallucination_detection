@@ -1,3 +1,23 @@
+## 2026-09-15 — predictors before fusion (Step387)
+
+User asks to establish whether alternative context predictors improve the
+existing signed-residual correction BEFORE learning fusion between predictors.
+Bounded full-population comparison: saved Ridge16, mean16, Gaussian BOCPD
+predictive means, no-reset and zero controls. Hold innovation5, Top10, .25
+correction and tail15 gate fixed. Separate MSE, shared-observation residual
+agreement and localization quality. Protocol:
+`docs/experiments/ALIGNED_CONTEXT_PREDICTORS_20260915.md`.
+Step385 residual-only scores and Step38616-anchor conditional IU did not
+displace the additive Ridge reference. Neither closes all contextual fusion.
+No new neural training or predictor fusion in Step387; existing neural queue
+is paused4/90. Step387 is COMPLETE: BOCPD correction40.3676% PB/.763223
+within versus Ridge40.8472%/.761620. BOCPD-base within gain+.002930 has
+positive primary99.5%CI; BOCPD-Ridge and BOCPD-noreset intervals include0.
+Keep Ridge and BOCPD, with noreset as a mandatory mechanism control. A better
+MSE does not select the better localizer; no fusion has been fitted. Full
+report: results/aligned_context_predictors_v1/REPORT.html. Current execution
+state and detailed conclusions are in PROGRESS.md.
+
 ## 2026-09-15 — approved temporal research program in execution
 
 Execute `docs/experiments/TEMPORAL_RESEARCH_PROGRAM_20260915.md`.
@@ -7,7 +27,8 @@ centering and shuffled-prefix controls. Preserve it beside the original bank
 when testing new learned context models; novelty alone is not a selection rule.
 Feature selection, fusion and routing remain open; evaluate the Pareto frontier.
 All 47 PB-report corrections and DUFS31 are complete. Locked banks are the
-original4 and innovation5. DUFS selection was stable but did not help detection.
+original4 and innovation5. Corrected DUFS audit: gates remained saturated and
+selection was unstable between seeds; selection validity was not established.
 Innovation loses on late-error strata; its PB advantage over the historical
 earlier-VE0/VE075-peak rule is not established (CI includes zero). Preserve that
 strong readout control. Full linear evaluation is complete: the secondary signed
@@ -16,7 +37,7 @@ shuffled lag order is not established. The primary squared-residual arm loses
 within on innovation5. This favors testing signal-preserving readouts and warns
 against equating generic prediction error with reasoning errors. Actual
 Diverging Flows first fit and held-fold scoring completed on innovation5. The
-sequential seed0 queue now continues all90 registered fits and full evaluation;
+sequential seed0 queue is paused after4 of90 registered jobs;
 see results/temporal_neural_queue_seed0_v1/RUN_STATE.json. TCN/DiFlo
 training and scoring smoke tests pass, not a full neural quality benchmark;
 GraphTV current completion remains unverified while AIRCC is unreachable.
