@@ -1,6 +1,43 @@
 ## Temporal research execution — 2026-09-15
 
-LATEST — Step387 [Codex predictors] COMPLETE_REVIEWED, predictors BEFORE fusion.
+LATEST — Step388 [Codex TCN] COMPLETE_REVIEWED, standalone predictors before fusion.
+All13769 answers/145597 steps/6968779 tokens;15 source-excluded fits, seed0 only.
+Existing TCN, innovation5, signed .25 residual correction, Top10 and tail15 gate
+unchanged. Reused old fold0; completed4 outer+10 pair-exclusion calibration fits.
+PB% / within / PRMScore:
+- tcn__real: 40.9718% / 0.761592 / 0.641153
+- ridge: 40.8472% / 0.761620 / 0.641765
+- bocpd: 40.3676% / 0.763223 / 0.642268
+- noreset: 39.8608% / 0.762839 / 0.642239
+- innovation5: 39.8314% / 0.760293 / 0.638830
+- tcn__shuffled: 39.8180% / 0.761273 / 0.641283
+- tcn__zero: 39.4342% / 0.760106 / 0.640019
+
+6 primary pairs x2 endpoints;10000 source-group bootstrap draws,CI99.5833%:
+- TCN minus ridge: PB +0.1246pp [-0.5355,+0.8233]; within -0.000028 [-0.001343,+0.001288]
+- TCN minus bocpd: PB +0.6042pp [-0.4108,+1.6229]; within -0.001631 [-0.003680,+0.000544]
+- TCN minus noreset: PB +1.1111pp [-0.0386,+2.3124]; within -0.001247 [-0.003906,+0.001581]
+- TCN minus innovation5: PB +1.1405pp [+0.0883,+2.1731]; within +0.001300 [-0.001299,+0.003976]
+- TCN minus tcn__shuffled: PB +1.1539pp [+0.1292,+2.2830]; within +0.000319 [-0.001880,+0.002507]
+- TCN minus tcn__zero: PB +1.5376pp [+0.5082,+2.5485]; within +0.001487 [-0.000848,+0.003945]
+
+Prediction MSE: TCN 0.647035, Ridge 0.688936.
+TCN/Ridge signed residual median correlation .963236; after removing shared
+current scalar .902422. Better telemetry prediction is not a detection proof.
+Architecture audit:16 input slots but15 effective past tokens; unchanged.
+Shuffling16 slots can change which of the15 visible observations is omitted;
+not a pure order-only intervention. Zero-history is also an inference
+intervention; the current innovation target still contains past information.
+13 tests PASS; independent PB/within on16 methods; all13 reference headlines
+exact; signed readout independently replayed on all answers, maxdelta0.
+Source/data/checkpoint/group provenance verified; no fitting failures.
+Decision: KEEP_RIDGE_REFERENCE_TCN_CONTEXT_EVIDENCE_NO_FUSION_YET.
+Development evidence only; bank/readout selected earlier on this population.
+No predictor fusion fitted. Original90-job FM/DiFlo queue remains paused4/90.
+Report: results/tcn_aligned_predictor_seed0_v1/REPORT.html.
+Full audit: results/tcn_aligned_predictor_seed0_v1/AUDIT.json.
+
+PREVIOUS — Step387 [Codex predictors] COMPLETE_REVIEWED, predictors BEFORE fusion.
 User asked for standalone predictor evidence before combining models. Results:
 results/aligned_context_predictors_v1/REPORT.html, METRICS.json, AUDIT.json.
 All13769 answers/145597 steps/6968779 tokens. Same innovation5 base, signed

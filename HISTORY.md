@@ -19620,3 +19620,59 @@ PROGRESS, Research_Directions and the central execution report updated;
 stale roadmap claims about DUFS stability and a running neural queue corrected.
 
 ---
+
+### Step 388 — Complete aligned TCN prediction before predictor fusion [Codex]
+
+**What**: Complete the frozen TCN predictor with outer source-group exclusion
+and nested calibration. Preserve the old checkpoint, architecture, bank,
+signed residual readout and gate; score history interventions separately.
+
+**Why**: User asked to establish standalone predictor usefulness before
+attempting fusion between predictors or returning to U-PCR.
+
+**Result (PB% / within / PRMScore)**:
+- tcn__real: 40.9718% / 0.761592 / 0.641153
+- ridge: 40.8472% / 0.761620 / 0.641765
+- bocpd: 40.3676% / 0.763223 / 0.642268
+- noreset: 39.8608% / 0.762839 / 0.642239
+- innovation5: 39.8314% / 0.760293 / 0.638830
+- tcn__shuffled: 39.8180% / 0.761273 / 0.641283
+- tcn__zero: 39.4342% / 0.760106 / 0.640019
+
+**Paired uncertainty**: Six primary pairs, two endpoints each;10000 source-
+group bootstrap draws,Bonferroni99.5833% intervals.
+- TCN minus ridge: PB +0.1246pp [-0.5355,+0.8233]; within -0.000028 [-0.001343,+0.001288]
+- TCN minus bocpd: PB +0.6042pp [-0.4108,+1.6229]; within -0.001631 [-0.003680,+0.000544]
+- TCN minus noreset: PB +1.1111pp [-0.0386,+2.3124]; within -0.001247 [-0.003906,+0.001581]
+- TCN minus innovation5: PB +1.1405pp [+0.0883,+2.1731]; within +0.001300 [-0.001299,+0.003976]
+- TCN minus tcn__shuffled: PB +1.1539pp [+0.1292,+2.2830]; within +0.000319 [-0.001880,+0.002507]
+- TCN minus tcn__zero: PB +1.5376pp [+0.5082,+2.5485]; within +0.001487 [-0.000848,+0.003945]
+
+**Mechanism and scope**: TCN feature MSE .647035 versus Ridge .688936;
+signed residual correlation median .963236, or .902422 after linear removal
+of the shared current scalar. This is not conditional error independence.
+The existing16-slot TCN has an effective15-token receptive field. Shuffling
+all visible slots can change the omitted observation; not pure order-only
+evidence. Zero intervention retains current innovation and relative position.
+Offline answer normalization, seed0 only, previous bank/readout selection
+on development data. No predictor fusion fitted; original flow queue paused.
+
+**Decision**: KEEP_RIDGE_REFERENCE_TCN_CONTEXT_EVIDENCE_NO_FUSION_YET.
+
+**Validation**: All13769 answers/145597 steps/6968779 tokens,15 completed fits.
+13 tests PASS; independent PB and pairwise within for16 methods; all13
+reference headlines exact. Scalar readout replay maxdelta0 on all answers.
+Frozen data,source,checkpoint and exclusion-group audits PASS. Reused fold0
+unchanged. Transparent NTFS compression recovered1.25GiB without deleting
+data. Repaired question-mark-corrupted Hebrew in the central Step387
+summary from its intact report; numerical findings unchanged.
+
+**Files changed**:
+- scripts/{run,analyze,evaluate,report,rank,update}_tcn* — bounded execution, audits and reporting.
+- docs/experiments/TCN_ALIGNED_PREDICTOR_20260915.md — frozen contract.
+- tests/test_tcn_aligned_architecture.py and architecture audit — receptive field check.
+- results/tcn_aligned_predictor_seed0_v1/ — metrics,contrasts,reports and provenance.
+- PROGRESS,Research_Directions and central execution report — completion and interpretation.
+Large scores,SQLite token predictions and checkpoints remain local with hashes.
+
+---
