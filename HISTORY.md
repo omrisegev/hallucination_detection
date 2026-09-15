@@ -19309,3 +19309,68 @@ Legacy replay144.79s; new experiments96.94s, CPU threads1. No parameter changes
 after outcomes. Results: results/cca_iu_isolation_gate_v1/REPORT.html.
 
 ---
+
+### Step 384 — Diagnose real-bank context and IU weight stability
+
+**What**: Froze a label-free diagnostic connecting the Step381 innovation and
+position-control findings to the feasible energy-context path from Step383.
+Past-window energy, with training-only position/length profile removal, chooses
+source-excluded neighbors for centered shrinkage covariance. Canonical additive
+IU moments feed native PCR, a full-covariance simplex adaptation and a fixed
+group-mixture control. No CCA fitting, new model family or correctness scoring.
+
+**Why**: Before a full quality experiment, distinguish reproducible conditional
+structure from neighborhood estimation noise. Keep the original innovation5
+and its development-label selection as the quality anchor; do not conflate
+synthetic AUC, feature density prediction and error localization.
+
+**Result**: All13,769 answers,220,292 landmarks,3,483 source groups,45 fits over
+9 cells x5 folds. Held Gaussian NLL: static3.657672, position3.580509,
+energy3.215575, random3.709995. Energy-position difference-.364934,
+10k paired source-group descriptive95%CI[-.376860,-.353518], better in9/9
+cells. Direction variance / conditional bootstrap noise median: covariance3.845,
+rho3.815, nativePCR3.267 (45/45 above1), simplex1.227 (36/45), groups1.798.
+Random native/simplex1.027/.978. Ratios are not significance tests. NLL uses
+local means AND covariance; it does not isolate covariance's contribution.
+g2 is almost always at its fixed ceiling; scale identifiability is unresolved.
+Only.008829 of raw simplex updates projects onto the fixed group axis (median).
+Additional full-head movement is not proof of useful semantic information.
+Energy ignores lag order inside its16-token window. The first16 tokens are not
+landmark targets; future quality must score every token, including early errors.
+
+**Numerical correction**: v1 stopped after33 fits when an absolute1e-13 objective
+deadband retained a boundary face with KKT residual1.448e-7. Independent SLSQP
+confirmed the correction. Removed that deadband in the new real-bank solver;
+same objective/constraints/KKT tolerance, original synthetic solver untouched.
+Preserved v1 and reran all45 fits into v2. All33 prior non-simplex arrays match
+bitwise; maximum simplex coefficient difference6.56e-8. No silent fallback.
+
+**Validation/cost**:16 tests passed (8 new/current plus8 synthetic regression).
+Independent replay of all histories,881,168 NLL values via Cholesky (maximum
+absolute delta4.12e-13),180 canonical moment/native coefficient checks, and
+all landmark simplex KKT checks (maximum3.49e-16). Full coverage and source
+exclusion audited. Fit time452.74 seconds, single BLAS thread, excluding
+preparation/report and failed partial run. No labels opened, gate/readout
+changed, or neural jobs resumed. Large arrays remain local, with hashes and
+reproduction instructions; fit metadata and group NLL aggregates accompany
+the summary in Git.
+
+**Decision**: STABLE_CONTEXT_STRUCTURE_NOT_DETECTION_VALIDATION. Evidence
+supports one matched full-token quality comparison of static/contextual IU,
+equal, position/random and amplitude controls, with restrained simplex/group
+isolation. Freeze its readout/cost contract before rollout. Do not expand CCA,
+restart flows, or claim new PB/within improvements from this diagnostic.
+
+**Files changed**:
+- `docs/experiments/ENERGY_CONTEXT_STABILITY_20260915.md` — frozen contract.
+- `docs/experiments/ENERGY_CONTEXT_STABILITY_NUMERICAL_AMENDMENT_20260915.md` — numerical change record.
+- `spectral_utils/energy_context_stability.py` — label-free moments, heads and bootstrap.
+- `scripts/run_energy_context_stability.py` — full-population source-excluded execution.
+- `scripts/report_energy_context_stability.py` — independent audit and Hebrew report.
+- `scripts/diagnose_energy_qp_failure.py`, `scripts/check_energy_qp_numerics.py`, `scripts/audit_energy_numerical_revision.py` — numerical reproduction and version audit.
+- `tests/test_energy_context_stability.py` — history, source weighting, kNN, canonical fits, QP and density checks.
+- `results/energy_context_stability_v2/` — complete report, metadata, summaries and hashes.
+- `results/energy_context_stability_v1/` — preserved partial-run numerical evidence.
+- `PROGRESS.md`, `docs/reviews/temporal_research_execution_2026-09-15.md` and HTML — current state and historical continuity.
+
+---

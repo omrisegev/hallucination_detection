@@ -1,6 +1,37 @@
 ## Temporal research execution — 2026-09-15
 
-LATEST — CCA/IU isolation gate COMPLETE_REVIEWED (Step383).
+LATEST — real-bank context/weight stability COMPLETE_REVIEWED (Step384).
+Results: results/energy_context_stability_v2/REPORT.html and SUMMARY.json.
+All13,769 answers /220,292 landmarks /3,483 source groups;45 source-excluded
+fits over9 cells x5 folds. Label-free diagnostic ONLY, not PB/within scoring.
+Fixed past16 energy context, training-only position/length profile removal,
+K64 distinct groups, .5 covariance borrowing. Canonical IU moments feed native
+2PC, full-C simplex tau1/eta.25 and fixed one-parameter group weights.
+Held feature NLL: static3.657672, position3.580509, energy3.215575, random3.709995.
+Energy-position delta-.364934, descriptive grouped95%CI[-.376860,-.353518];
+better in9/9 cells. Direction-change/bootstrap-noise median: nativePCR3.267
+(45/45 above1), simplex1.227 (36/45), versus random1.027/.978. Ratios are
+conditional diagnostics, not significance tests or semantic reliability.
+g2 remains almost always at its prior ceiling. Fixed group axis explains only
+.008829 of raw simplex updates (median); extra motion is not proven useful.
+NLL evaluates both mean and covariance, whereas IU uses covariance. No claim
+that NLL alone validates fusion. Energy ignores ordering inside its16-token
+window. First16 tokens are not diagnostic targets; full quality must cover them.
+Step381 original innovation5 remains the real-data quality anchor, including
+its development-label bank selection and position controls. No neural restart.
+Decision: STABLE_CONTEXT_STRUCTURE_NOT_DETECTION_VALIDATION. Next: register
+one matched full-token IU fusion comparison with static/equal/position/random
+and amplitude controls, plus restrained simplex/group isolation; measure cost
+before rollout. No CCA expansion or new algorithm family justified here.
+Numerical v1 stopped after33 fits on a QP objective deadband; original artifacts
+preserved. Removing the1e-13 objective deadband left KKT tolerance unchanged.
+All45 fits rerun in v2;33 old non-simplex arrays bitwise identical; simplex
+coefficient delta<=6.56e-8.16 tests pass,180 real canonical checks,881,168 NLL
+and all landmark histories/KKT independently audited. Fits452.74 seconds,
+single BLAS thread, excluding prep/report. Large NPZ archives are local with
+hashes; summary/fit metadata and source-group aggregates are committed.
+
+Previous stage — CCA/IU isolation gate COMPLETE_REVIEWED (Step383).
 Results: results/cca_iu_isolation_gate_v1/REPORT.html and REPORT.md.
 Frozen S0 replay60/60 matches (max numeric delta1.42e-14); no old artifacts changed.
 New full-covariance simplex uses tau1, eta.25 and canonical additive IU moments.
