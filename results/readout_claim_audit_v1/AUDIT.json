@@ -1,0 +1,73 @@
+{
+  "status": "PASS",
+  "answers": 4442,
+  "all8_readout_ranks_replayed": true,
+  "max_innovation5_score_delta": 3.552713678800501e-15,
+  "cohorts": {
+    "caught": {
+      "n": 2914,
+      "observed_max_hit": 0.678448867536033,
+      "independent_five_peak_reference": 0.6458781854255917,
+      "common_shift_reference": 0.5417312709077684,
+      "common_permutation_reference": 0.5681615979759099,
+      "single_uniform_peak_reference": 0.21282151582018727,
+      "mean_distinct_peak_tokens": 3.9571036376115307,
+      "last4_hits": 725,
+      "eight_readout_oracle_hits": 2064
+    },
+    "gate_blocked": {
+      "n": 643,
+      "observed_max_hit": 0.7216174183514774,
+      "independent_five_peak_reference": 0.7038622359325234,
+      "common_shift_reference": 0.5609556700156849,
+      "common_permutation_reference": 0.5956053035591452,
+      "single_uniform_peak_reference": 0.2497256564635876,
+      "mean_distinct_peak_tokens": 3.6003110419906688,
+      "last4_hits": 249,
+      "eight_readout_oracle_hits": 541
+    },
+    "loc_miss_open": {
+      "n": 707,
+      "observed_max_hit": 0.18953323903818953,
+      "independent_five_peak_reference": 0.42637340965968823,
+      "common_shift_reference": 0.3381552065826508,
+      "common_permutation_reference": 0.35847744615998106,
+      "single_uniform_peak_reference": 0.11403099440001313,
+      "mean_distinct_peak_tokens": 3.949080622347949,
+      "last4_hits": 83,
+      "eight_readout_oracle_hits": 176
+    },
+    "loc_miss_closed": {
+      "n": 178,
+      "observed_max_hit": 0.19662921348314608,
+      "independent_five_peak_reference": 0.4715554038119844,
+      "common_shift_reference": 0.3473433980973885,
+      "common_permutation_reference": 0.37232702124726835,
+      "single_uniform_peak_reference": 0.1302220544500498,
+      "mean_distinct_peak_tokens": 3.5842696629213484,
+      "last4_hits": 36,
+      "eight_readout_oracle_hits": 68
+    }
+  },
+  "actual_method_gate_headroom": {
+    "innovation5": {
+      "correct_peak_suppressed": 321
+    },
+    "ridge": {
+      "correct_peak_suppressed": 310
+    },
+    "tcn__real": {
+      "correct_peak_suppressed": 316
+    },
+    "iu__ridge+tcn+noreset": {
+      "correct_peak_suppressed": 313
+    }
+  },
+  "source_sha256": "e4e020999c1dee228a2372b8a9a241f8cb0012d39b71e67f14f18b011ed3b1e6",
+  "source_rows_sha256": "ae6f5c1798152e2afc5805540ea9948ec90f0169db689c90e5ade17e69c5322e",
+  "source_summary_sha256": "0ee3353abf98592719d38d20607859241d1cc1ff52e619106d6ebb139532c071",
+  "code_sha256": "b95463166c53cb82f8d6d4d8d1337b9d5551fc549406ddf8c76ceff78fd37985",
+  "null_scope": "Geometric references conditional on fixed previously selected cohorts. Shared shifts preserve dependence, but neither reference accounts for selection as misses, step-boundary nonstationarity or semantic labels. No below-chance significance or information-impossibility claim.",
+  "all_common_misses_last4_hits": 119,
+  "all_common_misses_eight_readout_oracle_hits": 244
+}

@@ -1,3 +1,12 @@
+## Step391 - audit readout claims; retain fusion as an open research option
+
+Replayed all eight Claude readout ranks on all4442 PB error answers from frozen tokens; innovation5 score agreement max3.56e-15. No training or new quality sweep.
+Among885 previously common raw localization misses, last4 yields119 exact raw peaks (83 open,36 closed); the eight-readout label oracle yields244 (176 open,68 closed). This disproves a zero-recoverability claim, not evidence of net quality improvement.
+For707 open common misses, any-stream maximum hit18.95%; independent-five reference42.64%, common circular shift33.82%, shared permutation35.85%. Geometric references do not correct failure-cohort selection or boundary nonstationarity; no below-chance significance or information-impossibility conclusion.
+The643 gated oracle successes span the archive. Actual correct peaks suppressed: innovation5 321, ridge310, TCN316, leading IU313. Top2 is not exact localization. Earlier/later peak buckets are relative to innovation5, not the41% leader.
+User explicitly welcomes fusion. Next research direction remains complementary evidence about each step, with historical readout audit, standalone/equal/IU comparisons and full13769-answer evaluation. Do not reopen identical weight sweeps or assume missing per-stream maxima excludes fusion. No method promotion or neural restart.
+Review: docs/reviews/claude_readout_claims_audit_2026-09-15.md. Replay and new geometric diagnostics: scripts/audit_claude_readout_claims.py; results/readout_claim_audit_v1/AUDIT.json. Claude source files preserved.
+
 ## Step390 — common missed-error profiles
 
 Step390 COMPLETE_REVIEWED: descriptive missed-error atlas on all4442 PB error model-answer records (1979 sources), within the13769-answer benchmark. No model fitting, score changes or new method selection.
