@@ -1,3 +1,7 @@
+## Step396 (Claude) - digit disagreement as gate evidence, 2026-09-16
+
+COMPLETE on all PB answers with locators frozen and the same within-cell midrank>=.33 rule for every detector. Equal within-cell rank mean of tail15 and digit_rate: innovation5 locator 41.0671% PB (clean 63.19%, error exact 28.75%) versus current 39.8314%; digit025 locator 43.2546%/.776036 versus 41.3300%. Primary contrast (innovation5, 97.5%) +1.2357pp [-0.0077,+2.4775]; secondary (digit025, 95%) +1.9246pp [+0.7875,+3.0645]. Digit presence alone is near chance (AUC .568; PB 29.80%), so the gain is the disagreement, not digit count. Development only; untouched confirmation and the historical gate-selection contract comparison remain open. Report results/claude_real_checks_v1/DIGIT_GATE_REPORT.md; protocol docs/experiments/DIGIT_GATE_EVIDENCE_20260916.md. Step 395 (Codex, completed but uncommitted) and Claude's review artifacts are now committed.
+
 ## Step395 - corrected alternative views and fusion, 2026-09-16
 
 COMPLETE_REVIEWED on all13,769 answers/145,597 steps/6,968,779 tokens:28 new arms plus30 frozen references. Recomputed seven Claude views (surprisal, censored rank, mass-above, gap, logtail15/50, digit), plus raw-tail controls. Correct tail formula checked on every token; base/digit scores and all30 reference metric rows replay exactly.

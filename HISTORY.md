@@ -19829,3 +19829,17 @@ Report results/alternative_views_fusion_v1/REPORT.html; map docs/reviews/fusion_
 
 ---
 
+
+### Step 396 [Claude] - Digit disagreement as answer-gate evidence
+
+**What**: First bounded follow-up from the Step 395 insertion map: test the digit-disagreement view as answer-level gate evidence with the locators frozen. Protocol frozen before results in docs/experiments/DIGIT_GATE_EVIDENCE_20260916.md; every detector uses the current transductive within-cell midrank>=.33 rule, so the opened fraction per cell is matched. Detectors: current tail15, digit_count, digit_rate, digit_presence (confound control), and equal within-cell rank means of tail15 with digit_rate/digit_count. No q sweep, no learned gate, no IU (two genuinely different views only).
+
+**Why**: 643 PB answers in the archive have a correct peak that the gate suppresses; Step 393 showed the digit view separates clean from erroneous answers (AUC .69-.77 per cell) and is nearly uncorrelated with the tail-mass gate evidence.
+
+**Result**: PB%/clean acc/error exact, innovation5 locator: tail15 39.8314/60.35/28.55; digit_rate alone 37.2362/57.85/26.43; digit_presence 29.7984/36.64/23.71; equal_rank(tail15,digit_rate) 41.0671/63.19/28.75; equal_rank(tail15,digit_count) 41.0269/63.32/28.52. digit025 locator: tail15 41.3300/60.35/30.14; equal_rank(tail15,digit_rate) 43.2546/63.19/31.02; equal_rank(tail15,digit_count) 43.1073/63.32/30.64. Detector AUC (mean over cells): tail15 .800, digit_rate .729, digit_presence .568, equal_rank .832.
+Paired source-group bootstrap, 10,000 draws. Primary (innovation5 locator, 97.5%): equal_rank(tail15,digit_rate)-tail15 +1.2357pp [-0.0077,+2.4775]; digit_rate-tail15 -2.5951pp [-4.7507,-0.5300]. Secondary 95%: digit025 equal_rank(tail15,digit_rate)-tail15 +1.9246pp [+0.7875,+3.0645]; equal_rank(tail15,digit_count) +1.7773pp [+0.6357,+2.8993]. The combined detector improves both clean accuracy and error exact accuracy at the same operating point; digit presence alone is near chance, so the effect is disagreement, not digit count or length. Correct peaks suppressed 321->312 (innovation5). End to end on development data the same new view used twice (locator correction .25 and gate evidence) moves innovation5 from 39.8314%/.760293 to 43.2546%/.776036. Frozen-gate replays of innovation5 and digit025 reproduce exactly.
+Development only; the digit view was selected on this population; no untouched confirmation; no matched comparison yet against the historical gate-feature selection contract (results/gate_feature_readout_selection_v1, q=.3 token-mean rule). Math-specific view. Also committed: Step 395 (Codex's completed but uncommitted run) and Claude's review artifacts.
+
+**Files changed**: docs/experiments/DIGIT_GATE_EVIDENCE_20260916.md; results/claude_real_checks_v1/claude_digit_gate_eval.py, DIGIT_GATE_REPORT.md, DIGIT_GATE_EVAL.json; docs/reviews/claude_review_cca_contextual_fusion_proposal_2026-09-15.md (section 12); PROGRESS.md; Research_Directions.md.
+
+---
