@@ -1,6 +1,57 @@
 ## Temporal research execution — 2026-09-15
 
-LATEST — residual moments x scored representation COMPLETE_REVIEWED (Step385).
+LATEST — Step386 context-weighted original levels COMPLETE_REVIEWED.
+Results: results/context_weighted_levels_v1/REPORT.html, METRICS.json, AUDIT.json.
+All13769 answers/145597 steps/6968779 tokens;19 policies +9 historical anchors.
+45 Step384 source-excluded fits reused;10 nested PRMB pair-exclusion fits.
+Up to16 weight updates/answer, held until next anchor; first16 tokens static.
+Every original feature token remains eligible for unchanged per-stream Top10;
+multiply selected contributions by their token's weight. Context crosses steps.
+Three heads(native2PC,full-C simplex eta.25,one-parameter group), each static,
+energy,position,random,energy amplitude-only,energy direction-only; plus equal.
+
+PB% / within / PRMScore:
+innovation5 39.8314/.760293/.638830;
+native static39.3306/.757226/.637858 vs energy33.7873/.730749/.614660;
+native amplitude39.0222/.756863/.636882 vs direction34.1433/.729696/.613486;
+simplex static39.1949/.758554/.638971 vs energy39.2463/.757929/.639523;
+group static39.6369/.760134/.638996 vs energy39.5998/.759975/.638841.
+Historical secondary additive ridge remains40.8472/.761620/.641765.
+All8 primary CIs (simplex energy minus static/position/random/amplitude,
+PB/within,99.375%,10000 source-group draws) include0. No primary improvement
+or equivalence established. Native energy-static PB-5.5433pp,secondary95%CI
+[-6.9225,-4.1895]pp; within-.026477,[-.030966,-.022138]. Direction changes
+remain harmful with amplitude normalized; stable context weights != useful ones.
+
+Important limitation: post-ranking label-free schedule audit finds45.62% of
+selected feature-token contributions AFTER warmup use weights >=16 tokens old;
+median age14,p90=48. Warmup is4.87% of contributions. This does not establish
+staleness as the cause, but rules out generalizing the result to exact every-token
+context fitting. It is the frozen16-anchor policy, not every contextual algorithm.
+Static means fixed WEIGHTS: innovation5 itself already contains past information.
+
+22 tests PASS; independent PB/pairwise-within for all28 methods; scalar dynamic
+readout replay30 answers x19 policies,maxdelta1.78e-15. All9 historical anchors
+exact in headline metrics; no missing scores or silent fitting fallback. Fit/score
+1184.3s, evaluation/audit36.1s,BLAS1. Neff minimum62.39 distinct-source weights.
+Decision NO_16_ANCHOR_POLICY_PROMOTION_EXACT_TOKEN_CONTEXT_UNRESOLVED.
+Keep original features/innovation5 and the existing additive ridge reference.
+Separate refresh-frequency limitations from reliability identification before
+investing in a richer context for the same IU head. No eta/bank/refresh tuning
+was added after seeing outcomes; all results remain development evidence.
+
+Fixed protocol:
+docs/experiments/CONTEXT_WEIGHTED_LEVEL_FUSION_20260915.md.
+Omri explicitly keeps FM/DiFlo open; neural queue remains paused4/90 pending
+instrumented continuation, not closed. Integration roadmap:
+docs/reviews/context_fusion_flow_bridge_2026-09-15.md. No new flow training here.
+FM/DiFlo may provide learned context/predictive descriptors for neighbor/IU
+weights, or DOT/additive error evidence alongside original scores. DOT is a
+flow-path statistic, not a third model or per-feature reliability vector.
+Current flow condition includes current observation for next-token generation;
+past-only bridges must align/lag it explicitly. No combined method is trained.
+
+Previous — residual moments x scored representation COMPLETE_REVIEWED (Step385).
 Results: results/residual_moment_fusion_v1/REPORT.html, METRICS.json, AUDIT.json.
 User authorized unused worktree cleanup and quick synthetic->FULL real quality.
 Removed clean antigravity/direct-probability-fusion-v1 worktrees without force;

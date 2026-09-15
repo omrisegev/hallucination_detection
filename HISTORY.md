@@ -19466,3 +19466,89 @@ results/residual_moment_synthetic_v1/, results/residual_moment_fusion_v1/;
 PROGRESS.md and the central temporal execution review (Markdown/HTML).
 
 ---
+
+### Step 386 — Full quality test of context-weighted original features
+
+**Request**: Omri asks to continue the contextual-IU direction from before
+Claude's residual-moment work, while retaining FM/DiFlo and investigating their
+possible integration. No message sent to Claude or external service. Neural
+queue/checkpoints remain preserved and paused4/90, not declared unsuccessful.
+
+**Frozen experiment**: Reuse all45 checked Step384 outer source-excluded fits;
+fit10 additional PRMB pair-exclusion cases for nested calibration. Same past16
+energy, train-only position/length profile subtraction, K64 distinct groups,
+Gaussian kernel and .5 covariance borrowing. Same innovation5 ORIGINAL scores,
+tail15 percentile gate.33. No residual replacement, new bank or eta search.
+Three heads: native2PC, full-C simplex tau1/eta.25, fixed one-parameter grouping.
+Six policies/head: static,energy,position,random,energy amplitude-only,direction-only.
+With equal and9 references,28 complete score methods on13769 answers,145597
+steps and6968779 tokens. All fits/evidence selection exclude correctness labels.
+
+**Time/readout contract**: Up to16 existing landmarks per answer starting t16;
+hold the latest weight forward, never interpolate from future anchors. Initial
+16 tokens use static weights. All token evidence is retained. Original per-stream
+Top10 (stable tie break) is selected BEFORE multiplying token-varying weights;
+negative weights do not select bottom tokens. Dynamic weights span steps.
+Native raw a/sd divided by static raw-L1 norm preserves conditional amplitude.
+A=||sd*w_t||2/||sd*w_static||2; amplitude-only=A*w_static, direction-only=w_t/A.
+Global whole-answer feature orientation and relative length keep the system offline.
+
+**Full results** (PB%/within/PRMScore): innovation5 39.8314/.760293/.638830.
+Native static39.3306/.757226/.637858, energy33.7873/.730749/.614660,
+amplitude39.0222/.756863/.636882, direction34.1433/.729696/.613486.
+Simplex static39.1949/.758554/.638971, energy39.2463/.757929/.639523.
+Group static39.6369/.760134/.638996, energy39.5998/.759975/.638841.
+Historical secondary ridge signed.25 remains40.8472/.761620/.641765 and
+point-dominates every new method on PB/within. It is not fresh confirmation.
+
+**Inference**: Primary head simplex fixed before outcomes: energy minus static,
+position,random,amplitude,4 pairs x2 endpoints with10000 source-group bootstrap
+draws and99.375%CI. All8 intervals include0; no primary improvement or equivalence
+established. Energy-static PB+.0514pp,CI[-.6441,+.7266];within-.000625,
+[-.001942,+.000689]. Native energy-static secondary95% PB-5.5433pp,
+[-6.9225,-4.1895];within-.026477,[-.030966,-.022138]. Native energy-amplitude
+and direction-static remain harmful on both endpoints. This supports harmful
+direction adaptation in this policy, not just uniform score amplification.
+Step384 NLL/stability findings therefore did not establish detection benefit.
+Per-cell counts, all methods, primary/secondary contrasts and early/middle/late
+gained/lost errors are retained in METRICS.json. Development-label exposure from
+innovation5 bank selection and historical selection remains disclosed.
+
+**Important post-ranking diagnostic**: Full label-free schedule audit counted
+7173775 selected feature-token contributions. Warmup4.87%; of the rest45.62%
+use a weight at least16 tokens old. Median age14,p90=48,p99=92. Maximum anchor
+gap227 tokens. This does not prove that stale weights caused the loss. It does
+prevent generalizing the16-anchor policy result to exact every-token context
+updates. No adaptive refresh variant was added after seeing the outcome. Static
+means fixed fusion weights, not absence of history in the innovation5 bank.
+
+**Audit/cost**:22 tests passed (6 new readout/hold/tie/amplitude/synthetic-mechanics
+fixtures plus16 existing source/KKT/canonical fixtures). Switching-expert test
+provides the weights; it verifies routing mechanics, not unsupervised learning.
+Independent scalar PB and pairwise within for ALL28 methods; all9 references
+exact in headline metrics. Scalar dynamic readout replay30 answers x19 policies,
+max difference1.78e-15. Old fit/landmark/source hashes checked; nested group
+exclusion checked, neff minimum62.393. No missing scores or silent fallback.
+Fit/scoring1184.3s, evaluation/audit36.1s, one BLAS thread. Large source/anchor/
+score NPZs remain local with hashes; summaries/preprocessing/group manifests in Git.
+
+**Decision**: NO_16_ANCHOR_POLICY_PROMOTION_EXACT_TOKEN_CONTEXT_UNRESOLVED.
+Keep original scores/innovation5 and prior additive ridge. Separate temporal
+refresh approximation from reliability identification before claiming a broader
+context-IU failure or investing in richer context for the same estimator.
+FM/DiFlo stay open. FM is base conditional flow matching; DiFlo adds objectives;
+DOT is derived from either model's generated trajectory, not a third model.
+Bridge proposals: learned context/predictive descriptors -> source neighbors ->
+IU weights on original scores; alternatively DOT as bounded trust or additive
+evidence. Scalar DOT is not per-feature reliability or proof of semantic error.
+Current flow input includes token t for next-token generation; a past-only
+weighting bridge must explicitly lag/align it. No integrated flow/IU model fitted.
+
+**Files**: docs/experiments/CONTEXT_WEIGHTED_LEVEL_FUSION_20260915.md;
+docs/reviews/context_fusion_flow_bridge_2026-09-15.md;
+spectral_utils/context_weighted_levels.py; tests/test_context_weighted_levels.py;
+scripts/run_context_weighted_levels.py, evaluate_context_weighted_levels.py,
+report_context_weighted_levels.py, diagnose_context_weight_age.py;
+results/context_weighted_levels_v1/; PROGRESS.md and central execution report.
+
+---
