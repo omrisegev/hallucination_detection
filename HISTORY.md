@@ -19232,3 +19232,35 @@ answer-dependent feature weighting, with the registered position controls.
 No gate sweep, new flow training or routing experiment launched in this stage.
 
 ---
+
+### Step 382: Proposed CCA-conditioned IU fusion for review (2026-09-15)
+
+**Request**: Write an end-to-end proposal explaining the user motivation,
+connection to fusion and remaining research stages, and falsifiable experiments
+for review with Claude before implementation.
+
+**Proposal only**: Added CCA_CONTEXTUAL_FUSION_PROPOSAL_20260915.md and a
+standalone Hebrew HTML version with a reproducible stdlib renderer. Past16
+features predict a rank2 context through shrinkage CCA; the target view excludes
+current innovation to reduce a mechanical history shortcut. A dictionary from
+other source groups estimates centered conditional covariance. Canonical IU
+moments feed an explicitly adapted simplex objective in consistent units, with
+fixed global latent scale and a conservative blend with equal weights. Per-stream
+Top10 and the final gate remain matched to the frozen baseline. This is not a
+claim of a new validated algorithm or exact equivalence to unconstrained U-PCR.
+
+**Controls and decision**: Pre-review numeric defaults; static, position/length,
+existing DSP context, refitted matched-pair null, unordered history and amplitude
+controls. Synthetic identifiability tests precede cost-only feasibility checks;
+quality uses all13,769 answers with grouped/nested separation. Four proposed
+primary contrasts across PB/within imply eight endpoints,10,000 paired group
+bootstrap draws and99.375% Bonferroni intervals. Later sparse selection, routing,
+multi-target shrinkage and graph penalties require an identified need, not an
+automatic sweep. Conditional IU assumptions and the units/simplex adaptation
+are explicitly open mathematical review questions.
+
+**State**: Observed neural queue PAUSED_BETWEEN_JOBS after4/90 jobs. No model
+implementation, experiment launch, new quality measurement or external message
+to Claude. Prior experimental artifacts remain unchanged.
+
+---

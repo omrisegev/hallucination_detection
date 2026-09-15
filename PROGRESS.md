@@ -53,10 +53,10 @@ First DiFlo training and scoring COMPLETE: innovation5, seed0, excluded fold0,
 This is not a full-population neural quality result. Checkpoints in
 `results/temporal_context_models_v1/diflo__innovation5__seed0__exclude0/`.
 The original watcher ended after that scoring run; it did not chain other fits.
-NEURAL QUEUE PAUSE REQUESTED: STOP_AFTER_JOB exists; finish the current
-DiFlo/original4/fold0 job and pause before launching more. The 90-fit seed0
-matrix must not auto-continue past this diagnostic stage.
-FM, DiFlo and TCN innovation5/fold0 have scored all2,782 held answers each.
+NEURAL QUEUE PAUSED_BETWEEN_JOBS:4/90 completed; STOP_AFTER_JOB remains.
+The previously active DiFlo/original4/fold0 job also finished. FM, DiFlo and
+TCN innovation5/fold0 scored all2,782 held answers each. No new jobs launched
+while preparing the CCA proposal. The matrix must not auto-continue.
 See `results/temporal_neural_queue_seed0_v1/RUN_STATE.json` and per-job logs.
 No training/readout/gate hyperparameters changed. Seeds1/2 remain unlaunched.
 Full three-seed matrix has270 fits; no new cluster job was submitted.
@@ -89,6 +89,13 @@ No new gate tuning or routing model launched. Neural large matrix stays paused.
 
 Reviewable execution report: `docs/reviews/temporal_research_execution_2026-09-15.html`
 and `.md`. Next decision follows position controls, not the large neural queue.
+NEW PROPOSAL FOR CLAUDE REVIEW (not implemented or run):
+docs/experiments/CCA_CONTEXTUAL_FUSION_PROPOSAL_20260915.md and .html.
+CCA past->current-original4 context, source-disjoint local covariance,
+shrinkage and IU-moment simplex weights in original score units. Includes
+static/position/DSP/refitted-null controls, cost cap, source/nested calibration,
+specific mathematical questions and mapping to the remaining research program.
+Numeric defaults are proposals pending review, not newly frozen experiments.
 Matched-order IU,
 multi-target shrinkage, simplex routing/fusion, Network Lasso, low-rank maps,
 matched-history negatives and the conditional LOCA/sampling work remain pending.
