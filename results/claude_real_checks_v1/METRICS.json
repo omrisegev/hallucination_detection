@@ -1,0 +1,183 @@
+{
+ "table": {
+  "replay_native_LL": {
+   "pb": 0.39382515778302496,
+   "within": 0.7572176842096655,
+   "prmscore_default_calibration": 0.6351027480268667
+  },
+  "replay_simplex_LL": {
+   "pb": 0.39303313062456113,
+   "within": 0.7582620513407873,
+   "prmscore_default_calibration": 0.6382584944810372
+  },
+  "cluster3_native_LL": {
+   "pb": 0.3652671223409582,
+   "within": 0.7494270638123965,
+   "prmscore_default_calibration": 0.6213758910338288
+  },
+  "cluster3_simplex_LL": {
+   "pb": 0.3937969155819123,
+   "within": 0.7578595184719337,
+   "prmscore_default_calibration": 0.6371372911368368
+  },
+  "innovation5": {
+   "pb": 0.3983135319816689,
+   "within": 0.7602926245660656,
+   "prmscore_default_calibration": 0.6388298087698889
+  },
+  "original4": {
+   "pb": 0.37474898261944,
+   "within": 0.7534358509472404,
+   "prmscore_default_calibration": 0.6344124357811041
+  }
+ },
+ "contrasts": {
+  "cluster3_native_LL_minus_replay_native_LL": {
+   "primary": true,
+   "common_prm_answers": 6030,
+   "prm_within_delta_common": -0.007790620397268955,
+   "ci_level": 0.975,
+   "pb_ci": [
+    -0.04539683214756157,
+    -0.012229548786672508
+   ],
+   "prm_within_ci": [
+    -0.011677003415198109,
+    -0.0039244818041567755
+   ],
+   "bootstrap_draws": 10000,
+   "prm_valid_bootstrap_draws": 10000,
+   "pb_delta": -0.028558035442066754
+  },
+  "cluster3_simplex_LL_minus_replay_simplex_LL": {
+   "primary": true,
+   "common_prm_answers": 6030,
+   "prm_within_delta_common": -0.00040253286885371433,
+   "ci_level": 0.975,
+   "pb_ci": [
+    -0.002241468404958619,
+    0.003954497595393256
+   ],
+   "prm_within_ci": [
+    -0.0008531758072007363,
+    3.53165858324751e-05
+   ],
+   "bootstrap_draws": 10000,
+   "prm_valid_bootstrap_draws": 10000,
+   "pb_delta": 0.0007637849573511879
+  },
+  "cluster3_native_LL_minus_innovation5": {
+   "primary": false,
+   "common_prm_answers": 6030,
+   "prm_within_delta_common": -0.010865560753669063,
+   "ci_level": 0.95,
+   "pb_ci": [
+    -0.045393849821988304,
+    -0.02073495534732405
+   ],
+   "prm_within_ci": [
+    -0.01356642694877244,
+    -0.008097430835512086
+   ],
+   "bootstrap_draws": 10000,
+   "prm_valid_bootstrap_draws": 10000,
+   "pb_delta": -0.033046409640710706
+  },
+  "cluster3_simplex_LL_minus_innovation5": {
+   "primary": false,
+   "common_prm_answers": 6030,
+   "prm_within_delta_common": -0.002433106094132094,
+   "ci_level": 0.95,
+   "pb_ci": [
+    -0.008373682236209252,
+    -0.0007168183733981502
+   ],
+   "prm_within_ci": [
+    -0.003110490123528639,
+    -0.0017662345164154798
+   ],
+   "bootstrap_draws": 10000,
+   "prm_valid_bootstrap_draws": 10000,
+   "pb_delta": -0.00451661639975659
+  },
+  "replay_simplex_LL_minus_innovation5": {
+   "primary": false,
+   "common_prm_answers": 6030,
+   "prm_within_delta_common": -0.0020305732252783796,
+   "ci_level": 0.95,
+   "pb_ci": [
+    -0.009237642374416172,
+    -0.0015006783815976433
+   ],
+   "prm_within_ci": [
+    -0.0026739878354121627,
+    -0.001416067989694515
+   ],
+   "bootstrap_draws": 10000,
+   "prm_valid_bootstrap_draws": 10000,
+   "pb_delta": -0.005280401357107778
+  }
+ },
+ "summary": {
+  "answers": 13769,
+  "max_replay_delta": 0.0,
+  "g2_over_var_y": {
+   "min": 1.0,
+   "median": 1.0,
+   "at_ceiling_fraction": 1.0
+  },
+  "additive_residual_all_pairs": {
+   "median": 0.09179166835057544,
+   "q90": 0.12165362200006107
+  },
+  "additive_residual_cross_group": {
+   "median": 0.006588499103810018,
+   "q90": 0.014119166852087656
+  },
+  "rho_cosine_allpairs_vs_cluster3": {
+   "median": 0.9929012844733968,
+   "q10": 0.9866415091855868
+  },
+  "partition_top": [
+   [
+    "04|1|23",
+    8848
+   ],
+   [
+    "014|2|3",
+    4535
+   ],
+   [
+    "01|23|4",
+    386
+   ]
+  ],
+  "modal_partition": "04|1|23",
+  "modal_share_by_fold": {
+   "0": 0.6488138030194105,
+   "1": 0.6343065693430657,
+   "2": 0.6879120879120879,
+   "3": 0.6195809248554913,
+   "4": 0.6227719170607494
+  },
+  "modal_share_by_cell": {
+   "pb_gsm8k_q4": 0.92,
+   "pb_gsm8k_q8": 0.93,
+   "pb_math_q4": 0.875,
+   "pb_math_q8": 0.858,
+   "pb_olympiadbench_q4": 0.861,
+   "pb_olympiadbench_q8": 0.82,
+   "pb_omnimath_q4": 0.744,
+   "pb_omnimath_q8": 0.693,
+   "prmbench_qwen3_8b": 0.46735543119529344
+  },
+  "feature_order": [
+   "H0lim",
+   "VE0",
+   "VE075",
+   "VE1",
+   "innovation"
+  ],
+  "seconds": 98.12749530000292
+ }
+}
