@@ -19798,3 +19798,13 @@ Decision: retain digit correction and TCN+digit as useful development fusion can
 **Files changed**: spectral_utils/digit_fusion.py; scripts/run_digit_fusion.py, evaluate_digit_fusion.py, report_digit_fusion.py, update_digit_fusion_docs.py; tests/test_digit_fusion.py; docs/experiments/DIGIT_FUSION_20260915.md; results/digit_fusion_v1 summaries, ledger and audits; research logs and central HTML.
 
 ---
+
+### Step 394 - Audit the tail-screening normalization [Codex]
+
+**What**: Inspect tail15/50 and the candidate inventory in response to the user's question.
+
+**Why**: Distinguish complementary head-mass information from statistical independence and check whether historical negative evidence is valid.
+
+**Result**: Code/formula audit only: Claude new-view screening subtracts token_logsumexp from already normalized saved logprobs. Its tail15/tail50 rank1/correlation results are invalid as measurements of true missing mass. One71-token implementation check reproduces near-one malformed tails versus correct tail15 up to.00899; not a quality subset experiment. The current residual_tail_mass gate is correct; digit-ID results are unaffected. Corrected full-population tail screening remains pending. See docs/reviews/claude_tail_normalization_audit_2026-09-15.md. Seven views were screened; only digit reached the reported full fusion experiment. Operator/equality and digit-gate ideas remain proposals.
+
+---
