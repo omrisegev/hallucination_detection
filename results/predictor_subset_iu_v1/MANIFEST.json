@@ -1,0 +1,118 @@
+{
+  "schema": "predictor-subset-iu-v1",
+  "jobs": [
+    [
+      0
+    ],
+    [
+      1
+    ],
+    [
+      2
+    ],
+    [
+      3
+    ],
+    [
+      4
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      4
+    ]
+  ],
+  "predictors": [
+    "ridge",
+    "tcn",
+    "bocpd",
+    "noreset",
+    "mean16"
+  ],
+  "methods": [
+    "iu__ridge+tcn+bocpd",
+    "equal__ridge+tcn+bocpd",
+    "iu__ridge+tcn+noreset",
+    "equal__ridge+tcn+noreset",
+    "iu__ridge+tcn+mean16",
+    "equal__ridge+tcn+mean16",
+    "iu__ridge+bocpd+noreset",
+    "equal__ridge+bocpd+noreset",
+    "iu__ridge+bocpd+mean16",
+    "equal__ridge+bocpd+mean16",
+    "iu__ridge+noreset+mean16",
+    "equal__ridge+noreset+mean16",
+    "iu__tcn+bocpd+noreset",
+    "equal__tcn+bocpd+noreset",
+    "iu__tcn+bocpd+mean16",
+    "equal__tcn+bocpd+mean16",
+    "iu__tcn+noreset+mean16",
+    "equal__tcn+noreset+mean16",
+    "iu__bocpd+noreset+mean16",
+    "equal__bocpd+noreset+mean16",
+    "iu__ridge+tcn+bocpd+noreset",
+    "equal__ridge+tcn+bocpd+noreset",
+    "iu__ridge+tcn+bocpd+mean16",
+    "equal__ridge+tcn+bocpd+mean16",
+    "iu__ridge+tcn+noreset+mean16",
+    "equal__ridge+tcn+noreset+mean16",
+    "iu__ridge+bocpd+noreset+mean16",
+    "equal__ridge+bocpd+noreset+mean16",
+    "iu__tcn+bocpd+noreset+mean16",
+    "equal__tcn+bocpd+noreset+mean16",
+    "iu__ridge+tcn+bocpd+noreset+mean16",
+    "equal__ridge+tcn+bocpd+noreset+mean16"
+  ],
+  "source_hashes": {
+    "scripts/run_predictor_subset_study.py": "706bc03c931a75813932d2033fafd5f4ba05ab3a78962de220bd74b5b5169a8a",
+    "spectral_utils/predictor_subset_fusion.py": "f38d09975d2fc585523522ba279c74c796191c5fead6c99ef4543fe1271316cc",
+    "docs/experiments/PREDICTOR_SUBSET_IU_20260915.md": "9b5f5f15e04d4b9f0866c7f3a21fa1ba9abbd6841d10e07b57fa85339488a2a0",
+    "spectral_utils/upcr.py": "8e264093bc7bf4ae4c79185d90117052ff101f6730b3ff2f96fe4eb28f989d7a",
+    "spectral_utils/laplacian_upcr.py": "ecf2c387bbba48906dcb2e0a7d56561101cffcd24fb9bd2d32033d471347953a",
+    "spectral_utils/context_training.py": "6fb549fe67be461b0509a641e399249df21253e169ab36e07abc8a9ee32e7987",
+    "spectral_utils/temporal_context_models.py": "40139129ffbf5014f7ec01dc5089f1e8271b2eddefb278583b60b1f494ff3331",
+    "spectral_utils/aligned_context_predictors.py": "9c133b2d9a9c9a4fd585f8b81d15eab45bbf420b3e2de02e9bf54ed11314840b",
+    "scripts/run_aligned_context_predictors.py": "f01a59010a498d94b8a31525025711dfe7cbaee97d9e994c5c2515ae73ab52af"
+  },
+  "data_manifest_sha256": "4149da7107925b36fdb1c786c4bfbbece82ad949d69e125e30d3023dcdb7924d",
+  "reference_audit_sha256": "63b3bb8644ee44a1a9fc810bcd5955a5879c5996efc8aee27de992225ac45b2d",
+  "old_flow_state_sha256": "8ef3da84744666b62df6e5dba2e9fa34a1319407f2667afa68f0d59b4ae815c6",
+  "answers": 13769,
+  "tokens": 6968779,
+  "correctness_labels_used": false
+}

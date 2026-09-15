@@ -19676,3 +19676,44 @@ summary from its intact report; numerical findings unchanged.
 Large scores,SQLite token predictions and checkpoints remain local with hashes.
 
 ---
+### Step 389 — Compare all three-, four- and five-predictor IU combinations [Codex]
+
+**What**: User authorized all available predictor subsets. Fit answer-local
+canonical IU weights to standardized signed predictor residuals and compare
+with equal weights on the same columns. Keep the innovation base, token
+Top10, signed correction and gate fixed. Reuse the saved excluded-group fits.
+
+**Why**: Determine whether predictor fusion improves the existing method,
+and isolate predictor selection from the contribution of learned weights.
+
+**Result**:
+All16 subsets of ridge,tcn,bocpd,noreset,mean16 at sizes3/4/5 x IU/equal=32 configurations; all13769 answers/145597 steps/6968779 tokens. Reused15 excluded-group fits and nested calibration; no new training. Answer-standardized signed predictor residuals -> answer-local canonical IU2PC or equal -> token Top10 -> signed.25 correction -> innovation5 base ONCE, same tail15 gate.
+PB leader: IU ridge+tcn+noreset41.0378%/.760656/.640647; versus TCN40.9718%/.761592/.641153 only+.0659pp, exploratory95%CI[-.3226,+.4354]pp. No demonstrated replacement.
+Within leader: equal ridge+bocpd+noreset40.5585%/.763829/.642625. Balanced equal ridge+tcn+bocpd40.9665%/.762346/.641925. IU ridge+bocpd+noreset40.7726%/.763281/.642567. Retain point Pareto; no single winner.
+Best PB by size:3 above;4 IU ridge+tcn+bocpd+noreset40.9681%/.762033;5 IU all40.7495%/.762642. Best within by size:3 above;4 equal ridge+tcn+bocpd+noreset40.7209%/.763351;5 equal all40.6251%/.763231.
+16 primary matched IU-equal pairs x2 endpoints;10000 source-group bootstrap draws,CI99.84375%. No positive primary interval on either endpoint. All16 PB intervals include0; IU within lower in15/16 point estimates, four adjusted negative intervals. Leading PB triple within-minus-equal -.002243,CI[-.004226,-.000202]. Do not infer equivalence from intervals containing0.
+PB-leader median standardized-residual weights[.3549,.3800,-.1394];99.88% answers have a negative coefficient. noreset is chiefly subtracted, not positively voted. This does not establish a semantic noise-removal mechanism. Three-view pair fit is exactly identified, so zero residual is not an assumption check.
+All48 metric bundles independently audited; all32 readouts replayed across full population,maxdelta1.07e-14. All16 reference headlines exact; singleton scores replayed under15 outer/nested exclusions; canonical weights match on50 audit answers, three tests with45 covariance checks PASS. Scoring691.79s,evaluation90.77s.
+Decision KEEP_POINT_PARETO_NO_DEMONSTRATED_IU_ADVANTAGE. Development-only seed0; selector uses labels, fitting does not.96 secondary comparisons have exploratory95% intervals without winner-selection correction. Old FM/DiFlo queue unchanged,paused4/90.
+Report: results/predictor_subset_iu_v1/REPORT.html; METRICS.json contains all32+16 results, per-cell bundles,112 contrasts and diagnostics; AUDIT.json verifies coverage and provenance.
+
+Post-selection PB error audit:4442 error model-answer records,1979 source groups. All32 miss2853:821 gated closed,2032 gate open but wrong localization. IU PB leader gains45/loses39 vs TCN (net6); equal within leader gains103/loses122. All IDs and step decisions in PB_ERROR_LEDGER.csv; four deterministic GSM8K/Q4 text examples in ERRORS.html. Descriptive, not a new selection or significance test.
+
+**Validation and storage**: Three new tests including45 canonical covariance
+comparisons; all48 metric bundles independently verified; all32 readouts
+replayed independently over the full population. Singleton predictions
+replayed under every outer and nested exclusion. Complete provenance and
+per-cell results are stored. Recovered full disk by removing regenerable
+bytecode, retiring the clean binary-moment worktree while preserving its
+branch and unique ignored results, and hardlinking27 byte-identical inactive
+CLI copies. No research results deleted; see STORAGE.json.
+
+**Files changed**:
+- spectral_utils/predictor_subset_fusion.py and tests/test_predictor_subset_fusion.py.
+- scripts/{run,evaluate,report,update}_predictor_subset* — execution and review.
+- docs/experiments/PREDICTOR_SUBSET_IU_20260915.md — frozen comparison contract.
+- results/predictor_subset_iu_v1/ — complete metrics, intervals, reports and hashes.
+- PROGRESS, Research_Directions and central execution report — findings and scope.
+Large residual arrays, weights, score archives and SQLite remain local with hashes.
+
+---
