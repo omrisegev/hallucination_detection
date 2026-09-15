@@ -4,6 +4,19 @@ Authorized by Omri on 2026-09-15 ("RUN THE PLAN"). Based on reviewed commit
 cf01849a7 and review a105b7a50. This authorization supersedes older priority
 and stage-pause instructions for the bounded work below.
 
+## Review amendment — 2026-09-15
+
+After Claude's review and Omri's follow-up, STOP_AFTER_JOB pauses the neural
+matrix after the already active job. Do not resume flow training by default.
+The next bounded stage is frozen in
+`docs/experiments/TEMPORAL_REVIEW_FOLLOWUP_20260915.md`: repair DUFS reporting,
+audit saved BEST checkpoints without training, and evaluate nonlinear
+position/length controls for innovation on the full population with source
+exclusion. DUFS31 gate saturation/seed disagreement invalidates interpreting
+its top-k comparisons as validated sparse feature selection. Original scores
+and all historical fits remain preserved. This amendment supersedes automatic
+continuation of the neural matrix; other research directions remain pending.
+
 ## Scientific contract
 
 Use all 13,769 development answers / 145,597 steps, v3 PRMB labels and v2

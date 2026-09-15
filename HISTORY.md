@@ -19162,3 +19162,73 @@ tests pass. No new neural quality result yet; no new cluster submission.
 - `docs/reviews/temporal_research_execution_2026-09-15.html` — corrected execution status.
 
 ---
+
+
+### Step 381 [temporal review follow-up] ? selector correction, checkpoint audit and full position controls
+
+**What**: Addressed Claude's updated review. Preserved the historical DUFS
+RUN_STATE/BANK_SELECTION as pre_review copies and marked current selection
+SATURATED_NOT_SELECTIVE. All55 selectors have effective count30.79-31 and
+pairwise seed top4 intersection/4 mean.05303 (Jaccard.03030). Corrects Step378's
+interpretation of fold stability: numerical top-k scores remain observations;
+a valid sparse selector was not established. Bank retention is independent of
+this failed selector validation.
+
+**Checkpoint findings**: Fixed4096 source-group-balanced unlabeled validation
+windows on each completed BEST checkpoint captured before the audit
+(DiFlo and FM innovation5/fold0). DiFlo FM/repel/curve means4.04345/.93514/.88232;
+both hinge activity fractions1.0. Mean weighted auxiliary-sum gradient norm
+.02048 versus FM4.65702 (ratio.44%). FM under the same diagnostic PGD is similar;
+its original training did not include these auxiliary losses. This is a
+snapshot, not recovery of unlogged training history. Documented width128 vs
+paper512, update cap50k vs synthetic200k, early stopping and margins1/.9 with
+unestablished task-scale justification. Preserved checkpoints/manifests and
+training code; no new training started. STOP_AFTER_JOB prevents further queue
+jobs after the already active DiFlo/original4 job. Zero-history intervention
+retains current innovation, masks and position. No partial-fold quality claim.
+
+**Predeclared full test**: TEMPORAL_REVIEW_FOLLOWUP_20260915.md registered
+four fixed controls before profile fitting/evaluation. Float64 original H0lim,
+16 interpolated position bins, cell and four length strata, equal source-group
+weight, nested pair-excluded PRMB calibration. All13,769 answers/145,597 steps/
+6,968,779 tokens, five outer plus ten pair exclusions. Original innovation
+step scores independently replay within1e-12; original4 and innovation5 metrics
+unchanged; same Top10 and tail15 gate. Label-free fits finish before evaluator
+loads correctness labels. Profiles and all sparse-stratum fallbacks saved.
+
+**Results**: PB%/within/PRMScore:
+profile_only37.1600/.753876/.640343;
+constant_profile37.4553/.753436/.636365;
+mean_detrended39.6992/.758086/.637325;
+location_scale_detrended38.5039/.756870/.636673;
+original437.4749/.753436/.634412;
+original innovation539.8314/.760293/.638830.
+Mean-detrended vs profile-only primary98.75% CI: PB+2.5392pp
+[+1.0647,+4.0473], within+.004210[+.000666,+.007800].
+Location-scale vs profile-only: PB+1.3439pp[+.0198,+2.7767],
+within+.002993[-.000471,+.006475]. Four-endpoint Bonferroni correction;
+10,000 paired source-group draws, not a correction for historical adaptive
+selection. Mean-detrended loses within relative to original innovation:
+-.002206, descriptive95%CI[-.003418,-.000977]. Preserve original innovation;
+the shared fitted location/length mean profile alone is insufficient to
+explain its benefit. No claim every position interaction is removed or a
+new routing algorithm has been validated. Historical earlier-VE peak PB39.3857%
+remains separately visible.
+
+**Validation**:21 contract tests pass, including nonlinear synthetic trend,
+constant-profile identity, held-source mutation, forbidden-label metadata,
+first-token/constant behavior and existing context/nested/queue contracts.
+Independent scalar PB rates/counts/macros and pairwise within-AUC pass for all
+six full methods. A first audit attempt stopped on absent clean_hits/error_hits
+fields in the evaluator schema; the audit now compares independent counts via
+reported rates and denominators. All15 fits reused unchanged; prior manifest
+and the audit-only revision provenance retained. Runtime in final RUN_STATE
+is the resumed invocation, not the complete fitting cost.
+
+**Artifacts**: results/temporal_review_followup_v1/,
+results/temporal_position_control_v1/, updated Hebrew execution report.
+Next bounded research decision: an explicit unlabeled objective for
+answer-dependent feature weighting, with the registered position controls.
+No gate sweep, new flow training or routing experiment launched in this stage.
+
+---

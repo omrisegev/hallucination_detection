@@ -22,9 +22,13 @@ See `results/temporal_research_mechanism_v1/`.
 All 47 historical PB bundles independently replayed and repaired: PASS,
 zero changed PB headlines; originals preserved. See
 `results/temporal_historical_pb_repair_v2/REPAIR_REVIEW.json`.
-DUFS31 COMPLETE: 55 source-excluded selectors, all 13,769 answers, nested PRM
-calibration. k2/k3/k4 PB36.6665/36.7864/36.8593%, within .741841/.741765/.741530.
-All lose to the original bank. Final expensive banks: original4 and innovation5;
+DUFS31 CORRECTION: scores computed for 55 source-excluded selectors and all
+13,769 answers, with nested PRM calibration; sparse selection NOT VALIDATED.
+All gates are nearly open (effective features30.79-31), and mean pairwise
+top4 seed overlap is .053. Historical k2/k3/k4 PB36.6665/36.7864/36.8593%,
+within .741841/.741765/.741530 are observations of unstable top-k policies,
+not evidence that a validated DUFS selector lost. Original scores preserved.
+Final expensive banks remain original4 and innovation5 independently of DUFS;
 `results/temporal_dufs31_v1/BANK_SELECTION.json` supersedes provisional subset lock.
 Full token-position/complementarity diagnostics and independent DUFS PB audit
 are in `results/temporal_feature_diagnostics_v1/`.
@@ -49,11 +53,11 @@ First DiFlo training and scoring COMPLETE: innovation5, seed0, excluded fold0,
 This is not a full-population neural quality result. Checkpoints in
 `results/temporal_context_models_v1/diflo__innovation5__seed0__exclude0/`.
 The original watcher ended after that scoring run; it did not chain other fits.
-Now ACTIVE: sequential local seed0 queue, 90 registered fits (3 methods x2
-banks x15 outer/pair exclusions), skipping completed jobs, checkpoint resume,
-single-process lock, explicit failure states and automatic full evaluation.
+NEURAL QUEUE PAUSE REQUESTED: STOP_AFTER_JOB exists; finish the current
+DiFlo/original4/fold0 job and pause before launching more. The 90-fit seed0
+matrix must not auto-continue past this diagnostic stage.
+FM, DiFlo and TCN innovation5/fold0 have scored all2,782 held answers each.
 See `results/temporal_neural_queue_seed0_v1/RUN_STATE.json` and per-job logs.
-First new job is FM/innovation5/seed0/excluded0; TCN and other exclusions follow.
 No training/readout/gate hyperparameters changed. Seeds1/2 remain unlaunched.
 Full three-seed matrix has270 fits; no new cluster job was submitted.
 Flow uses actual repel/curve losses and generated-endpoint DOT,
@@ -61,9 +65,31 @@ not GMM/KDE. Verified paper PDF/digest cached.
 AIRCC explicit-config check still times out on this status check; GraphTV unknown.
 User has been asked to restore TAU VPN. No new cluster job submitted.
 
+Review follow-up: `docs/experiments/TEMPORAL_REVIEW_FOLLOWUP_20260915.md`.
+DUFS/checkpoint audits COMPLETE in `results/temporal_review_followup_v1/`:
+both hinges active100% in4096 validation windows; DiFlo weighted auxiliary
+gradient norm is about0.44% of FM gradient at BEST, not reconstructed history.
+FM diagnostic counterfactual is similar. Width128 vs512 and cap50k vs200k,
+early stopping and unjustified task-scale margins are explicitly recorded.
+No new training; no quality conclusion from fold0. Zero history preserves the
+current innovation feature, masks and relative position.
+Full nonlinear position/length profile control COMPLETE_REVIEWED on all
+13,769 answers/145,597 steps;15 source-excluded fits and nested calibration.
+Profile-only PB37.1600%/within.753876; mean-detrended39.6992%/.758086;
+location-scale-detrended38.5039%/.756870; original innovation39.8314%/.760293.
+Mean-detrended minus profile-only: PB+2.5392pp, primary98.75%CI[1.0647,4.0473];
+within+.004210, CI[.000666,.007800]. Location/scale within primary CI includes0.
+Mean-detrended loses within versus original innovation (-.002206,
+descriptive95%CI[-.003418,-.000977]); do not replace the original feature.
+Result supports answer-specific information beyond this fitted location/length
+mean profile, not removal of every positional interaction or proof of routing.
+Six method bundles pass independent scalar PB/per-cell/count and pairwise
+within-AUC audits.21 contract tests PASS. See results/temporal_position_control_v1/.
+No new gate tuning or routing model launched. Neural large matrix stays paused.
+
 Reviewable execution report: `docs/reviews/temporal_research_execution_2026-09-15.html`
-and `.md`. Next: complete context-model tracks,
-then the remaining registered coefficient/CRBM comparisons. Matched-order IU,
+and `.md`. Next decision follows position controls, not the large neural queue.
+Matched-order IU,
 multi-target shrinkage, simplex routing/fusion, Network Lasso, low-rank maps,
 matched-history negatives and the conditional LOCA/sampling work remain pending.
 Preserve original root worktree edits. Do not treat any old RUNNING PID as live.
