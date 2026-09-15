@@ -1,5 +1,26 @@
 ## Temporal research execution — 2026-09-15
 
+LATEST — CCA/IU isolation gate COMPLETE_REVIEWED (Step383).
+Results: results/cca_iu_isolation_gate_v1/REPORT.html and REPORT.md.
+Frozen S0 replay60/60 matches (max numeric delta1.42e-14); no old artifacts changed.
+New full-covariance simplex uses tau1, eta.25 and canonical additive IU moments.
+All20 seeds x3 worlds x31 methods =1860 audited score bundles. Synthetic ONLY.
+Informative AUC: static QP .849640; known-context population QP .877768;
+DSP-context QP .879522; past-energy QP .874187; linear CCA .849622;
+second-moment CCA .852372; energy one-parameter group mixture .873368.
+Supplied-context and energy arms pass the predeclared S0 gain/safety rules;
+all three CCA variants fail gain/wins. Nuisance retains small tolerated harm
+(energy .737247 vs static .739528), not zero loss or proven semantic reliability.
+Population native2PC: informative .973425, nuisance .505853; failure can persist
+without covariance sampling noise. Known-rho oracle QP .911706/.819271 exposes
+moment/scale limits; it is unavailable without synthetic target knowledge.
+Decision STOP_CCA_FULL_RUN_CONTEXT_WEIGHTING_FEASIBLE. No PB/PRMB quality or
+real-bank stability run yet; no tuning to these seeds. Next bounded proposal:
+unlabeled stability of energy-context C/rho/weights versus position/random,
+including one-parameter grouping. Neural queue remains paused4/90.
+8 tests PASS;180 population canonical-moment checks PASS; independent pairwise
+AUC and weighted-score reconstruction PASS. Runtime legacy145s + new97s.
+
 Active branch: `codex/temporal-research-20260915`, worktree
 `.worktrees/temporal-research-20260915`, based on review a105b7a50.
 Authorized program: `docs/experiments/TEMPORAL_RESEARCH_PROGRAM_20260915.md`.
@@ -89,7 +110,7 @@ No new gate tuning or routing model launched. Neural large matrix stays paused.
 
 Reviewable execution report: `docs/reviews/temporal_research_execution_2026-09-15.html`
 and `.md`. Next decision follows position controls, not the large neural queue.
-NEW PROPOSAL FOR CLAUDE REVIEW (not implemented or run):
+Earlier proposal (now amended and tested synthetically; full benchmark unrun):
 docs/experiments/CCA_CONTEXTUAL_FUSION_PROPOSAL_20260915.md and .html.
 CCA past->current-original4 context, source-disjoint local covariance,
 shrinkage and IU-moment simplex weights in original score units. Includes

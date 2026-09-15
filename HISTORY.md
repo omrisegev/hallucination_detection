@@ -19264,3 +19264,48 @@ implementation, experiment launch, new quality measurement or external message
 to Claude. Prior experimental artifacts remain unchanged.
 
 ---
+
+### Step 383 [temporal] — CCA/IU synthetic isolation gate after joint review
+
+**What/why**: Omri authorized the bounded isolation table before a full CCA
+benchmark. Froze CCA_IU_ISOLATION_GATE_20260915.md before execution. Full-C QP,
+tau1, eta.25, no PC truncation; native2PC is separate. Canonical additive moments,
+fixed global g2 search ceiling, and explicit known-rho oracle. Preserve S0 data,
+seeds and all original files. Added separate history-squared input versus
+second-moment targets: squaring history alone cannot recover zero-mean targets.
+
+**Execution**: All60 historical S0 seed/world rows and mechanics replay within
+1.42e-14. Three worlds,20 seeds,320 train/640 test,31 new methods. Added16-point
+histories under each fixed synthetic regime; this is an extension, not original
+S0. K64 distinct groups, train240/validation80 Gaussian NLL alpha selection,
+random neighbors with identical kernel masses, fixed two-block mixture control.
+No PB/PRMB labels/features or neural jobs opened. Original source hashes match.
+
+**Results**: informative AUC static QP .849640; population-context QP .877768;
+supplied-regime estimated QP .879375; DSP-only .879522; energy-history .874187;
+linear CCA .849622; H/H-squared->X .849591; H-squared->X-squared .852372;
+energy group mixture .873368. Population/oracle/DSP/energy full arms pass the
+registered S0 gain/win/null/nuisance gates; all CCA arms fail gain/win. Energy
+nuisance .737247 versus static .739528 is tolerated harm, not noninferiority at
+zero margin. Full-minus-group energy gain .000819, descriptive95%CI
+[.000209,.001394]; small, not exact equivalence. Population native2PC attains
+.973425 informative but .505853 nuisance, exposing a failure even without
+covariance noise. Known-rho QP .911706/.819271 isolates remaining moment/scale
+limits without claiming access to that oracle on real answers.
+
+**Decision**: STOP_CCA_FULL_RUN_CONTEXT_WEIGHTING_FEASIBLE. No full real-data
+run or automatic replacement by energy. Next sensible bounded question is
+label-free real-bank stability of energy-conditioned covariance/weights and
+the one-parameter control; do not tune CCA to these20 seeds. Histories have
+variance regimes and no semantic reasoning, so these are feasibility findings.
+
+**Validation/cost**:8 tests PASS (independent SLSQP, canonical moments, identities,
+units, group constraints, inference firewall, Gaussian ESS, population moments
+against frozen generator);180 extra canonical population checks delta<=3.34e-16.
+Independent pairwise AUC and weighted-score reconstruction on1860 bundles PASS.
+60 new NPZ score/weight artifacts plus JSON telemetry/checkpoints,31-method CSV,
+paired-seed bootstrap10k descriptive intervals, reports and hashes retained.
+Legacy replay144.79s; new experiments96.94s, CPU threads1. No parameter changes
+after outcomes. Results: results/cca_iu_isolation_gate_v1/REPORT.html.
+
+---
