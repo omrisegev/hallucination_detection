@@ -1,6 +1,51 @@
 ## Temporal research execution — 2026-09-15
 
-LATEST — real-bank context/weight stability COMPLETE_REVIEWED (Step384).
+LATEST — residual moments x scored representation COMPLETE_REVIEWED (Step385).
+Results: results/residual_moment_fusion_v1/REPORT.html, METRICS.json, AUDIT.json.
+User authorized unused worktree cleanup and quick synthetic->FULL real quality.
+Removed clean antigravity/direct-probability-fusion-v1 worktrees without force;
+branches retained, no unique/uncommitted artifacts removed; freed about1.6GB.
+Frozen RESIDUAL_MOMENT_FUSION_20260915.md: innovation5, crossed L/R moments x
+L/R scores x native2PC/full-C simplex(tau1,eta.25), local and source-excluded
+pooled moments.18 policies/controls +9 references, all13769 answers/145597 steps/
+6968779 tokens.27 complete independent PB/pairwise-within checks;22 tests and
+60 real canonical coefficient/readout checks PASS. No fit failures/fallbacks.
+
+The synthetic temporal nuisance mechanism works only under its assumptions:
+native LL->RR .78265->.96774 with fast target/slow nuisance, but .78322->.49598
+with slow target/fast nuisance.20 seeds x5 worlds, OOF training residuals,
+shared level units; not exact numerical replay of Claude's in-sample/std-R arms.
+Real equal residuals: PB36.3349%/within.651336, vs innovation5 39.8314%/.760293.
+Native residual fusion improves over equal residuals, but remains far below
+the level-score anchor. Primary RR-LR within gains are positive in native:
+local+.007393 / pooled+.000988, corrected99.6875%CI, no clear PB gains.
+Secondary pooled simplex RL (fit residuals, SCORE LEVELS):39.8459%/.761112/
+PRMScore.639269. Versus innovation5: PB+.0145pp,95%CI[-.4502,+.4747]pp;
+within+.000819,95%CI[.0000175,.0016361]. Secondary, no corrected winner.
+Local simplex RL gives .759895 within but PRMScore.598094: calibration matters.
+Historical SECONDARY ridge signed.25 remains40.8472%/.761620/.641765, dominating
+new arms at point estimates. It is not a new independent confirmation.
+Local rho L/R cosine median.99847; no synthetic-like reliability rotation.
+g2 ceiling local L100%,R99.26%; no new adaptive-eta policy justified here.
+
+15 frozen ridge fits reused;10 triple-excluded ridge fits added only for proper
+nested reference residuals. Current query and donor groups excluded from their
+predictor; no in-sample residual covariance. Whole-answer normalization, fixed
+q=.33 transductive gate; Top10 per stream BEFORE weights, including negative
+weights. First16 tokens included. Native raw coefficients normalized by L1;
+this fixed readout convention is not every possible native-IU implementation.
+Local weights use current-answer covariance plus EXTERNAL ridge. No strict
+answer-only or online claim. Weights constant within each answer in this stage.
+Synthetic19.8s; full scoring277.7s; evaluation/audit37.5s, BLAS1. Source-group
+bootstrap10000,8 primary pairs x2 endpoints=16 corrected comparisons. All remain
+development outcomes, including earlier innovation5 bank selection by labels.
+Decision: KEEP_LEVEL_SCORES_NO_RESIDUAL_ONLY_PROMOTION. Keep prior innovation5
+and additive ridge residual path. Step384 conditional energy weighting remains
+unscored: if continued, one matched dynamic-vs-static test on ORIGINAL scores,
+with position/random/amplitude controls; residual moments an ablation, not a
+preselected winner. Neural queue still paused4/90; no CCA/flow expansion.
+
+Previous — real-bank context/weight stability COMPLETE_REVIEWED (Step384).
 Results: results/energy_context_stability_v2/REPORT.html and SUMMARY.json.
 All13,769 answers /220,292 landmarks /3,483 source groups;45 source-excluded
 fits over9 cells x5 folds. Label-free diagnostic ONLY, not PB/within scoring.

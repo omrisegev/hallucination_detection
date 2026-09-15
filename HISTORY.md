@@ -19374,3 +19374,95 @@ restart flows, or claim new PB/within improvements from this diagnostic.
 - `PROGRESS.md`, `docs/reviews/temporal_research_execution_2026-09-15.md` and HTML — current state and historical continuity.
 
 ---
+
+### Step 385 — Cross residual IU moments and scored representation on the full data
+
+**What/why**: Omri authorized removing unused worktrees and moving quickly from
+synthetic checks to real quality. Tested Claude's residual-moment idea separately
+from replacing scores by residuals. Frozen contract: innovation5 only; level L
+versus ridge residual R for centered covariance AND scoring, independently;
+native2PC versus full-C simplex(tau1,eta.25), answer-local versus source-excluded
+pooled moments, equal-L/R controls.18 policies plus9 historical anchors. Constant
+weights within each answer; this stage is not a token-dependent router.
+
+**Cleanup**: Clean, unused antigravity and direct-probability-fusion-v1 worktrees
+removed via git worktree remove without force after path/status/process checks.
+No branches deleted or unique/uncommitted results removed. About1.6GB freed;
+active/review/Claude/direct-v2 worktrees preserved. Exact inventory is in
+docs/reviews/worktree_cleanup_2026-09-15.json.
+
+**Synthetic**:20 seeds x5 temporal worlds,200 train/test answers x64 tokens.
+Training residuals cross-fitted by answer; test predictions fit on training only.
+Shared LEVEL scale and fixed moment ceiling across L/R, unlike Claude's separate
+residual standardization and in-sample training residuals. Native LL->RR:
+fast target/slow nuisance .78265->.96774; slow target/fast nuisance .78322->.49598;
+both slow .78572->.57106. Demonstrates both the proposed mechanism and its
+counterworld; no synthetic quality veto on the real benchmark. Equal marginal
+variances remove the marginal-energy shortcut, not all joint-energy information.
+At the g2 ceiling Claude's proposed eta mapping equals a raised constant eta;
+no new real gate/eta sweep, given its retrospective synthetic calibration.
+
+**Full real results**:13769 answers,145597 steps,6968779 tokens, all scored.
+Innovation5 reference39.8314% PB/.760293 within/.638830 PRMScore. Equal R drops
+to36.3349%/.651336/.533193. Local native RR38.8139%/.694392/.578567; pooled
+native RR38.7620%/.694657/.564472. Native improves both endpoints over equal R
+in the primary corrected comparisons, but the representation remains inferior.
+RR-LR isolates the effect of fitting moments on residuals with the SAME residual
+scores: within gain local+.007393 (99.6875%CI[.005426,.009245]), pooled+.000988
+([.000464,.001589]); PB intervals include zero. Simplex RR-LR gives no clear gain.
+
+Secondary pooled simplex RL (residual moments, original level scores) gives
+39.8459%/.761112/.639269: vs innovation5 PB+.0145pp, descriptive95%CI
+[-.4502,+.4747]pp; within+.000819,[.0000175,.0016361]. Tiny secondary signal,
+not a corrected winner. Local simplex RL .759895 within but .598094 PRMScore
+shows calibration harm despite similar local ordering. Historical secondary
+ridge signed.25 remains40.8472%/.761620/.641765, point-dominating new methods;
+it is historical development evidence, not fresh confirmation. The complete
+Pareto/27-method table, per-cell PB counts, early/middle/late gained/lost errors
+and all8 primary pairs are retained in METRICS.json and REPORT.html.
+
+**Mechanism/limits**: Local rho L/R cosine median.998466 and native weight
+cosine.998715; no large reliability-axis correction as in the slow-nuisance
+synthetic world. Local g2 is at the ceiling100% for L and99.26% for R. Within
+loss cannot be attributed solely to removing an answer-wide constant, since
+that alone preserves within ranking. This is a failure of the tested complete
+residual replacement, not every innovation/context predictor or IU formulation.
+Step384 conditional energy neighborhoods have not yet been scored for quality.
+
+**Access/readout**:15 frozen single/pair excluded ridge fits reused;10 triple
+excluded fits added for fully nested reference residuals. Donor residuals exclude
+both donor fold and outer/calibration folds. No in-sample training residual
+covariance. Pooled moments use source->answer->landmark balanced observations
+within cell,16 uniform landmarks INCLUDING endpoints. Local moments use the
+whole current answer but still an externally fitted predictor. All first16
+tokens scored with existing masked history. Whole-answer normalization makes
+this offline. Same tail15 q=.33 transductive gate. Same raw per-stream Top10
+BEFORE multiplying weights, including negative native weights. Native retains
+two PCs and raw-unit L1 coefficient normalization; simplex retains full C.
+No correctness labels in fitting; labels enter only separated evaluation and
+historical development selection remains disclosed. No neural restart.
+
+**Audit/cost**:22 tests PASS.60 real canonical upcr_fit_covariance comparisons,
+max raw coefficient delta6.66e-16; independent sorted readout delta0. Full27-method
+independent scalar PB and pairwise within-AUC verification; all anchors replay,
+float32 baseline score delta<1e-6 with exactly unchanged headline metrics. No
+local/pooled native fallback or numerical failure.10000 paired SOURCE-GROUP
+bootstrap draws,8 primary contrasts x2 endpoints,99.6875%CI; secondary95%CI
+does not correct for adaptive historical selection. Synthetic19.8s, full fitting/
+scoring277.7s, evaluation/audit37.5s, one BLAS thread. Large score archives stay
+local with ARTIFACTS/MODEL_AUDIT hashes; new small ridge checkpoints are retained.
+
+**Decision**: KEEP_LEVEL_SCORES_NO_RESIDUAL_ONLY_PROMOTION. Keep innovation5 and
+the earlier additive ridge residual path. If continuing, one bounded matched
+dynamic-context versus static fusion comparison should retain ORIGINAL score
+levels and position/random/amplitude controls. Residual covariance is at most
+an ablation, not a preselected winner. No CCA/flow expansion or new eta search.
+
+**Files**: docs/experiments/RESIDUAL_MOMENT_FUSION_20260915.md;
+spectral_utils/residual_moment_fusion.py; tests/test_residual_moment_fusion.py;
+scripts/run_residual_moment_synthetic.py, run_residual_moment_real.py,
+evaluate_residual_moment_real.py, report_residual_moment_fusion.py;
+results/residual_moment_synthetic_v1/, results/residual_moment_fusion_v1/;
+PROGRESS.md and the central temporal execution review (Markdown/HTML).
+
+---
