@@ -19863,7 +19863,7 @@ Development only; the digit view was selected on this population; no untouched c
 
 ---
 
-### Step 398 - Add native SLA reporting beside gated ProcessBench metrics [Codex]
+### Step 398 [Codex] - Add native SLA reporting beside gated ProcessBench metrics
 
 **What**: Re-evaluated the frozen digit025 and L08 OOF locators using Mind the Gap's raw Step-level Localization Accuracy definition, added reusable SLA fields to the common ProcessBench prediction bundle and L-SML reporting path, and saved a compact per-cell comparison artifact. No fusion fit, gate fit or model inference was rerun.
 
@@ -19872,5 +19872,17 @@ Development only; the digit view was selected on this population; no untouched c
 **Result**: Digit025 raw SLA is 38.1810% pooled and 41.1784%/40.7501% in equal-cell Qwen-4B/8B macros. L08 Continuous L-SML is 38.9689% pooled and 41.9567%/40.9557%; pooled gated exact-error accuracy is 31.0221%/31.8325%, with 318/317 correct raw peaks suppressed by the frozen gate. Mind the Gap Table 3 Shannon Drop averages 39.1375%/39.3925%, so L08 is +2.8192pp/+1.5632pp at the published point-estimate level. Exact row/generation identity is not yet verified, so this is published context rather than a matched replay claim. Reporting is now locked to three separate lanes: raw SLA, gated exact-error accuracy, and end-to-end ProcessBench macro F1 including clean-trace abstention. Three targeted unittest cases and direct artifact assertions pass. Canonical artifact: `results/lsml_gate_locator_research_v1/SLA_METRICS.json`.
 
 **Files changed**: `spectral_utils/pb_prediction_bundle.py`; `scripts/run_lsml_gate_locator_research_v1.py`; `tests/test_temporal_research_contract.py`; `docs/experiments/LSML_GATE_LOCATOR_RESEARCH_V1.md`; `results/lsml_gate_locator_research_v1/{SLA_METRICS.json,REPORT.md,SUMMARY_HE.md}`; `PROGRESS.md`; `Research_Directions.md`; `HISTORY.md`.
+
+---
+
+### Step 398 [Claude] - Joint L-SML pair route and redundancy-robustness test on L08..L24
+
+**What**: Committed the untracked pair-group Joint modules (`joint_pair_extension`, `joint_pair_jacobian`, tests, docs) and ran one bounded test on the frozen 13,769-answer population: five rosters (L08, L08+3, L08+6, Codex's L14, all 24 eligible step streams), five source folds, seven arms (Continuous L-SML, Joint with its own LOAO consensus groups at minimum size two via the checked pair fit with hierarchical / global-loading / model-inverse readouts, Joint on L-SML's groups, IU-PCR, equal reference), frozen incumbent gate, 2,000-draw paired source bootstrap. No labels in any fit; no hand-supplied groups. Contract: `docs/experiments/JOINT_REDUNDANCY_ROBUSTNESS_V1.md`.
+
+**Why**: Omri asked why Joint needs a minimum of three streams per group and whether it could cluster by itself; the Step-397 soft/affinity test had shown the digit view suppressed. The pair route removes the size-three constraint; the question was whether the Joint model loses less than Continuous L-SML when redundant streams are added.
+
+**Result**: All replay anchors exact (incumbent 43.2546/.776036; L08 continuous 43.7402/.778143; L14 continuous 39.3519, Joint global 39.8716, hierarchical 40.3024; L24 continuous 38.9074). Joint runs on L08 without hand groups (2/3/3, one pair; every fold PASS multistart, native map and Jacobian, condition 8.4) and its hierarchical readout ties Continuous there (43.5862 / 43.8135 on L-SML's 4/2/2 groups; both CIs include zero). Adding redundancy: Continuous drops -2.55 (L11), -4.27 (L14x), -4.83pp (L24); Joint hierarchical drops -3.85, -3.23 and only -0.46pp [-0.85,-0.07], reaching 43.1289%/.775429 on all 24 streams, +4.22pp [+2.91,+5.54] over Continuous there; IU collapses to 26.07% on L24; equal reference 40.20%. Mechanism from the audits: robustness comes from Joint's stability-based K (smallest stable K=3) plus one vote per group, which isolates the digit trio on L24 (digit share .34 vs .02 for Continuous at K=7), not from the shared factor. The L11/L14x losses are group impurity: Renyi a0.25 joins the digit group and, because `hierarchical_joint_weights` builds the group virtual classifier from the global loading v, it dominates (digit share .13). Global-loading, model-inverse and IU readouts suppress digit everywhere (.00-.07). No successor declared; L24 Joint hierarchical is a research candidate below L08 continuous. Next single variant to discuss: a within-group readout inside Joint independent of v. Equal rows are reference only (Omri: plain averaging is not a method). Also removed six clean, merged, unlocked worktrees (disk was at 0.7 GB free).
+
+**Files changed**: `spectral_utils/joint_pair_extension.py`, `spectral_utils/joint_pair_jacobian.py`, `tests/test_joint_pair_*.py`, `docs/experiments/JOINT_PAIR_*.md` (now tracked); `scripts/run_joint_redundancy_robustness_v1.py`; `docs/experiments/JOINT_REDUNDANCY_ROBUSTNESS_V1.md`; `results/joint_redundancy_robustness_v1/{RUN,RUN_L24,RUN_COMBINED}.json`; `.gitignore`; `PROGRESS.md`, `HISTORY.md`.
 
 ---
