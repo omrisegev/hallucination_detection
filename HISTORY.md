@@ -19843,3 +19843,22 @@ Development only; the digit view was selected on this population; no untouched c
 **Files changed**: docs/experiments/DIGIT_GATE_EVIDENCE_20260916.md; results/claude_real_checks_v1/claude_digit_gate_eval.py, DIGIT_GATE_REPORT.md, DIGIT_GATE_EVAL.json; docs/reviews/claude_review_cca_contextual_fusion_proposal_2026-09-15.md (section 12); PROGRESS.md; Research_Directions.md.
 
 ---
+
+### Step 397 - Map fusion independence and test automatic L-SML/Joint follow-ups [Codex]
+
+**What**: Built a label-free registry spanning historical and reconstructable signal/readout candidates, replayed the frozen baselines, measured conditional error dependence at five legal fusion insertion points, and ran nested source-fold fusion selection. Followed the atlas with an eight-stream Continuous L-SML locator study and an automatic Soft Joint/no-K affinity comparison; no groups were supplied manually.
+
+**Why**: Determine whether the Step396 algorithm can be simplified or improved by signals with genuinely distinct errors, and test whether soft or continuous family structure avoids the digit suppression and rigidity observed in hard Joint fusion.
+
+**Result**: Baselines replay exactly through the 43.2546% PB/.776036 incumbent. The atlas screened 5,443 definitions, retained 114 representatives from 13 families and classified 2,879 pairs; no pair passed the combined PB+PRMB independence contract, although digit-disagreement Top2 + logtail15 Top10 is a stable dependent-complementary diagnostic at 43.3671%/.776019. Nested L08 Continuous L-SML was selected in 5/5 folds and reached 43.7402%/.778143 (+.4856pp/+.002107), with both paired bootstrap intervals crossing zero. A post-hoc three-family equal simplification reached 43.7745%/.778222 and remains a separately confirmable hypothesis. Automatic Joint fell back from unidentifiable L12 to valid L14; K=3 clustering was identical across folds (ARI 1.0, sizes 4/5/5), so soft co-assignment equaled hard global at 39.8716%/.757574. Hard hierarchical reached 40.3024%/.764044; no-K affinity reached 40.1639%/.759190 but was rank-deficient and multistart-blocked in every fold. Keep the incumbent; retain L08 and frozen family-equal only as development candidates. The five-point factorial remains blocked by an undefined composition contract; FM/DiFlo/DOT were not launched.
+
+**Files changed**:
+- `spectral_utils/fusion_signal_registry.py`, `spectral_utils/error_dependence.py` — signal/readout registry and dependence tests.
+- `spectral_utils/lsml_gate_locator_research.py` — nested L-SML, soft-mask and continuous-affinity helpers.
+- `scripts/run_fusion_independence_atlas_v1.py`, `scripts/run_lsml_gate_locator_research_v1.py`, `scripts/run_soft_joint_l12.py` — resumable atlas and follow-up runners.
+- `tests/test_fusion_independence_atlas_v1.py`, `tests/test_fusion_signal_registry.py`, `tests/test_error_dependence.py`, `tests/test_lsml_gate_locator_research.py` — leakage, identity, masking and solver checks.
+- `docs/experiments/FUSION_INDEPENDENCE_ATLAS_V1.md`, `docs/experiments/LSML_GATE_LOCATOR_RESEARCH_V1.md` — frozen contracts.
+- `results/fusion_independence_atlas_v1/`, `results/lsml_gate_locator_research_v1/`, `results/soft_joint_auto_v1/RUN.json` — compact machine-readable results; bulk binary caches remain local and ignored.
+- `PROGRESS.md`, `Research_Directions.md`, `HISTORY.md` — current decision and handoff.
+
+---
