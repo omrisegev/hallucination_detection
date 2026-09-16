@@ -23,6 +23,7 @@ if str(ROOT) not in sys.path:
 
 from spectral_utils.fusion_signal_registry import READOUT_NAMES, readout_steps
 from spectral_utils.historical_fusion_evaluation import auc, pb_metrics
+from spectral_utils.pb_prediction_bundle import prediction_bundle
 from spectral_utils.lsml_gate_locator_research import (
     FusionRecipe,
     answer_standardize,
@@ -285,17 +286,31 @@ def score_locator(step_scores: np.ndarray, gate: np.ndarray, data: Mapping[str, 
             valid = labels[sl] >= 0; y = labels[sl][valid] == 1
             if y.any() and (~y).any(): within[pos] = auc(y, local[valid])
     local_gate = np.asarray(gate, bool)[answers]
-    prediction = np.where(local_gate, peaks, -1)
-    metric = pb_metrics(target[answers], prediction, np.ones(len(answers), bool), cells[answers])
+    bundle, prediction, _ = prediction_bundle(
+        target[answers], cells[answers], peaks, np.ones(len(answers), bool), local_gate,
+    )
     return {
-        "pb": metric["macros"]["all"], "within": float(np.nanmean(within)),
-        "within_n": int(np.isfinite(within).sum()), "pb_cells": metric["cells"],
+        "pb": bundle["pb_all8"], "within": float(np.nanmean(within)),
+        "within_n": int(np.isfinite(within).sum()), "pb_cells": bundle["pb_cells"],
+        "sla_pooled": bundle["pb_sla_pooled"], "sla_cells": bundle["pb_sla_cells"],
+        "sla_q4": bundle["pb_sla_q4"], "sla_q8": bundle["pb_sla_q8"],
+        "sla_all8": bundle["pb_sla_all8"],
+        "gated_error_exact": bundle["pb_error_exact_accuracy"],
+        "raw_exact_count": bundle["pb_exact_count"],
+        "final_exact_count": bundle["pb_final_exact_count"],
+        "correct_peaks_suppressed": bundle["pb_correct_peaks_suppressed"],
+        "error_count": bundle["pb_error_count"],
         "answer_indexes": answers, "peaks": peaks, "prediction": prediction, "within_values": within,
     }
 
 
 def scalar_metrics(row: Mapping[str, Any]) -> dict[str, Any]:
-    return {k: json_ready(row[k]) for k in ("pb", "within", "within_n", "pb_cells")}
+    return {k: json_ready(row[k]) for k in (
+        "pb", "within", "within_n", "pb_cells", "sla_pooled", "sla_cells",
+        "sla_q4", "sla_q8", "sla_all8", "gated_error_exact", "raw_exact_count",
+        "final_exact_count", "correct_peaks_suppressed",
+        "error_count",
+    )}
 
 
 def fit_predict_locator(recipe, x, offsets, folds, train_answers, test_answers, seed):
@@ -414,10 +429,18 @@ def stitch_inner_gate_selection(data,gate_x,gate_names,recipes,locator_scores):
 def report(results):
     loc=results["locator_candidates"];gate=results["gate_candidates"];inter=results["interaction"]
     lines=["# L-SML gate/locator research v1","","Development-only; no untouched confirmation.","",
-           "## Locator cross-fitted candidates","",
-           "| Candidate | PB | Within | Effective rank |","|---|---:|---:|---:|"]
+           "## Locator cross-fitted candidates",""]
+    has_sla = bool(loc) and all(row.get("sla_all8") is not None for row in loc)
+    if has_sla:
+        lines += ["| Candidate | PB | Raw SLA (equal-cell all-8) | Within | Effective rank |",
+                  "|---|---:|---:|---:|---:|"]
+    else:
+        lines += ["| Candidate | PB | Within | Effective rank |","|---|---:|---:|---:|"]
     for r in sorted(loc,key=lambda x:x["pb"],reverse=True):
-        lines.append(f"| {r['name']} | {100*r['pb']:.4f}% | {r['within']:.6f} | {r['effective_rank']:.2f} |")
+        if has_sla:
+            lines.append(f"| {r['name']} | {100*r['pb']:.4f}% | {100*r['sla_all8']:.4f}% | {r['within']:.6f} | {r['effective_rank']:.2f} |")
+        else:
+            lines.append(f"| {r['name']} | {100*r['pb']:.4f}% | {r['within']:.6f} | {r['effective_rank']:.2f} |")
     lines += ["","## Gate cross-fitted candidates","",
               "| Candidate | PB with frozen locator | Gate AUC | False open | False close |","|---|---:|---:|---:|---:|"]
     for r in sorted(gate,key=lambda x:x["pb"],reverse=True):
@@ -429,6 +452,68 @@ def report(results):
               "## Stability","",f"Locator selections: `{results['locator_nested_selections']}`.",
               f"Gate selections: `{results['gate_nested_selections']}`.",""]
     (OUTPUT/"REPORT.md").write_text("\n".join(lines))
+
+
+def run_sla() -> None:
+    """Report Mind-the-Gap-style raw SLA from already frozen OOF scores."""
+    data = load_inputs()
+    with np.load(OUTPUT / "OOF_SCORES.npz", allow_pickle=False) as saved:
+        methods = {
+            "digit025": np.asarray(data["digit025_scores"], float),
+            "L08_atlas_diverse_continuous": np.asarray(
+                saved["locator__L08_atlas_diverse_continuous"], float
+            ),
+        }
+    rows = {}
+    for name, scores in methods.items():
+        metric = score_locator(scores, data["current_gate"], data)
+        rows[name] = {
+            "sla_pooled": metric["sla_pooled"],
+            "sla_all8_equal_cell_macro": metric["sla_all8"],
+            "sla_q4_equal_cell_macro": metric["sla_q4"],
+            "sla_q8_equal_cell_macro": metric["sla_q8"],
+            "sla_cells": metric["sla_cells"],
+            "gated_error_exact_pooled": metric["gated_error_exact"],
+            "raw_exact_count": metric["raw_exact_count"],
+            "gated_exact_count": metric["final_exact_count"],
+            "correct_peaks_suppressed": metric["correct_peaks_suppressed"],
+            "error_count": metric["error_count"],
+        }
+    mind_cells = {
+        "pb_gsm8k_q4": .4342, "pb_math_q4": .3203,
+        "pb_olympiadbench_q4": .4306, "pb_omnimath_q4": .3804,
+        "pb_gsm8k_q8": .4611, "pb_math_q8": .3290,
+        "pb_olympiadbench_q8": .4152, "pb_omnimath_q8": .3704,
+    }
+    mind_q4 = float(np.mean([value for cell, value in mind_cells.items() if cell.endswith("q4")]))
+    mind_q8 = float(np.mean([value for cell, value in mind_cells.items() if cell.endswith("q8")]))
+    result = {
+        "schema": SCHEMA + "/sla-comparison-v1",
+        "development_only": True,
+        "definition": (
+            "Raw SLA is exact first-error localization conditional on an erroneous "
+            "ProcessBench trace, before the answer-level gate."
+        ),
+        "reporting_decision": [
+            "Always report raw SLA beside gated exact-error accuracy and ProcessBench macro F1.",
+            "Report per-cell SLA plus equal-cell Qwen-4B/Qwen-8B macros; keep pooled SLA explicit.",
+            "Do not describe Mind the Gap Table 3 SLA as an end-to-end clean/error gate metric.",
+        ],
+        "methods": rows,
+        "mind_the_gap_table3_shannon_drop": {
+            "source": "papers/extracted/mind-the-gap-catching-hallucinations-via-evidence-drop.md, Table 3",
+            "sla_cells": mind_cells,
+            "sla_q4_equal_cell_macro": mind_q4,
+            "sla_q8_equal_cell_macro": mind_q8,
+            "scope": "published context only; exact row/generation identity is not yet verified",
+        },
+        "l08_minus_mind_the_gap_pp": {
+            "q4_equal_cell_macro": 100 * (rows["L08_atlas_diverse_continuous"]["sla_q4_equal_cell_macro"] - mind_q4),
+            "q8_equal_cell_macro": 100 * (rows["L08_atlas_diverse_continuous"]["sla_q8_equal_cell_macro"] - mind_q8),
+        },
+    }
+    dump(OUTPUT / "SLA_METRICS.json", result)
+    print(OUTPUT / "SLA_METRICS.json")
 
 
 def run_diagnostics(draws: int = 10_000) -> None:
@@ -562,10 +647,11 @@ def run() -> None:
 
 
 def main(argv: Sequence[str] | None=None):
-    parser=argparse.ArgumentParser();parser.add_argument("stage",choices=("prepare","run","diagnostics"),nargs="?",default="run")
+    parser=argparse.ArgumentParser();parser.add_argument("stage",choices=("prepare","run","diagnostics","sla"),nargs="?",default="run")
     args=parser.parse_args(argv)
     if args.stage=="prepare": print(prepare())
     elif args.stage=="diagnostics": run_diagnostics()
+    elif args.stage=="sla": run_sla()
     else: run()
 
 

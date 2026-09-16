@@ -15,6 +15,11 @@ new model forward pass is permitted and no result is an untouched confirmation.
   excludes both the outer and inner folds.
 - The ProcessBench gate keeps the frozen within-cell midrank threshold `.33`.
 - ProcessBench and PRMBench metrics are reported separately.
+- ProcessBench localization reporting has three distinct lanes: raw SLA on
+  erroneous traces before gating, exact-error accuracy after the answer gate,
+  and end-to-end ProcessBench macro F1 including clean-answer abstention.
+  Raw SLA must include per-cell values, equal-cell Qwen-4B/Qwen-8B macros and
+  the pooled value.  Mind the Gap Table 3 belongs only to the raw-SLA lane.
 
 ## Studies
 

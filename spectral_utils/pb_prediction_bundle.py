@@ -47,10 +47,24 @@ def prediction_bundle(target, cells, peak, score_valid, gate_open, gate_valid=No
     invalidated = raw_hit & ~decision_valid
     n_error, n_clean = int(error.sum()), int(clean.sum())
     rate = lambda numerator, denominator: float(numerator / denominator) if denominator else None
+    raw_sla_cells = {}
+    for cell in np.unique(cells[pb]):
+        cell_error = error & (cells == cell)
+        raw_sla_cells[str(cell)] = rate(raw_hit[cell_error].sum(), cell_error.sum())
+    raw_sla_macros = {}
+    for panel in ("q4", "q8", "all"):
+        values = [
+            value for cell, value in raw_sla_cells.items()
+            if panel == "all" or cell.endswith(panel)
+        ]
+        raw_sla_macros[panel] = float(np.mean(values)) if values and None not in values else None
     metrics = dict(
         pb_all8=result["macros"]["all"], pb_q4=result["macros"]["q4"], pb_q8=result["macros"]["q8"],
         pb_cells=result["cells"], pb_clean_accuracy=rate(np.sum(clean & decision_valid & (prediction == -1)), n_clean),
         pb_error_exact_accuracy=rate(exact.sum(), n_error), pb_raw_exact=rate(raw_hit.sum(), n_error),
+        pb_sla_pooled=rate(raw_hit.sum(), n_error), pb_sla_cells=raw_sla_cells,
+        pb_sla_q4=raw_sla_macros["q4"], pb_sla_q8=raw_sla_macros["q8"],
+        pb_sla_all8=raw_sla_macros["all"],
         pb_exact_count=int(raw_hit.sum()), pb_final_exact_count=int(exact.sum()),
         pb_correct_peaks_suppressed=int(suppressed.sum()), pb_correct_peaks_invalidated=int(invalidated.sum()),
         pb_early=int(np.sum(error & score_valid & (peak < target))),

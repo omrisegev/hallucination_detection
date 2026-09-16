@@ -2,6 +2,27 @@
 
 Development-only; no untouched confirmation.
 
+## Mind-the-Gap-style raw SLA
+
+Raw SLA evaluates exact first-error localization only on erroneous ProcessBench
+traces, before the answer-level gate. It is not the same quantity as gated
+exact-error accuracy or end-to-end ProcessBench macro F1.
+
+| Locator | Raw SLA pooled | Raw SLA equal-cell all-8 | Qwen-4B macro | Qwen-8B macro | Gated exact, pooled |
+|---|---:|---:|---:|---:|---:|
+| digit025 | 38.1810% | 40.9643% | 41.1784% | 40.7501% | 31.0221% |
+| L08 Continuous L-SML | 38.9689% | 41.4562% | 41.9567% | 40.9557% | 31.8325% |
+| Mind the Gap Shannon Drop, published | n/a | n/a | 39.1375% | 39.3925% | n/a |
+
+L08 is +2.8192pp over the published Mind the Gap Qwen-4B equal-cell macro and
++1.5632pp on Qwen-8B. This is published context only: exact trace/generation
+identity has not yet been verified, so it is not a matched-replay superiority
+claim. Per-cell values and counts are in `SLA_METRICS.json`.
+
+Reporting decision: future localization results report all three lanes together:
+raw SLA, gated exact-error accuracy, and ProcessBench macro F1 including clean
+trace abstention.
+
 ## Locator cross-fitted candidates
 
 | Candidate | PB | Within | Effective rank |

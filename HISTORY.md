@@ -19862,3 +19862,15 @@ Development only; the digit view was selected on this population; no untouched c
 - `PROGRESS.md`, `Research_Directions.md`, `HISTORY.md` — current decision and handoff.
 
 ---
+
+### Step 398 - Add native SLA reporting beside gated ProcessBench metrics [Codex]
+
+**What**: Re-evaluated the frozen digit025 and L08 OOF locators using Mind the Gap's raw Step-level Localization Accuracy definition, added reusable SLA fields to the common ProcessBench prediction bundle and L-SML reporting path, and saved a compact per-cell comparison artifact. No fusion fit, gate fit or model inference was rerun.
+
+**Why**: The earlier discussion compared gated exact-error accuracy with a paper metric computed only on erroneous traces. The project needs to report the same estimand for fair contextual comparison while preserving the harder end-to-end ProcessBench contract.
+
+**Result**: Digit025 raw SLA is 38.1810% pooled and 41.1784%/40.7501% in equal-cell Qwen-4B/8B macros. L08 Continuous L-SML is 38.9689% pooled and 41.9567%/40.9557%; pooled gated exact-error accuracy is 31.0221%/31.8325%, with 318/317 correct raw peaks suppressed by the frozen gate. Mind the Gap Table 3 Shannon Drop averages 39.1375%/39.3925%, so L08 is +2.8192pp/+1.5632pp at the published point-estimate level. Exact row/generation identity is not yet verified, so this is published context rather than a matched replay claim. Reporting is now locked to three separate lanes: raw SLA, gated exact-error accuracy, and end-to-end ProcessBench macro F1 including clean-trace abstention. Three targeted unittest cases and direct artifact assertions pass. Canonical artifact: `results/lsml_gate_locator_research_v1/SLA_METRICS.json`.
+
+**Files changed**: `spectral_utils/pb_prediction_bundle.py`; `scripts/run_lsml_gate_locator_research_v1.py`; `tests/test_temporal_research_contract.py`; `docs/experiments/LSML_GATE_LOCATOR_RESEARCH_V1.md`; `results/lsml_gate_locator_research_v1/{SLA_METRICS.json,REPORT.md,SUMMARY_HE.md}`; `PROGRESS.md`; `Research_Directions.md`; `HISTORY.md`.
+
+---
