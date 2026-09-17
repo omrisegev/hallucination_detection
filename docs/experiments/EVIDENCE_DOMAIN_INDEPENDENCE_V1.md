@@ -88,3 +88,9 @@ Consequence: a bank with more than three independent sources cannot be built by 
 the output distribution of one greedy pass. It requires a measurement channel we do not currently
 extract - internal layer states, multiple samples of the same answer, or a second model - each of
 which changes the access contract and must be declared as such.
+
+## Correction (Step 415)
+
+The 2.75 / 2.83 counts include answer length as a raw between-answer value. It is constant within an
+answer and carries no within-answer information. Without it, the 12 within-answer families give 2.46
+conditional independent signals. See docs/experiments/CHOSEN_TOKEN_CALIBRATION_V1.md.
