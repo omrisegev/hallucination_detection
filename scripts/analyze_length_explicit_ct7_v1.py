@@ -37,12 +37,15 @@ def main():
     codex = np.full((S_total, 5), np.nan); codex_ok = np.zeros((S_total, 5), bool); done = np.zeros(len(n_steps), bool)
     for path in sorted((OUT / "bank").glob("*.npz")):
         with np.load(path) as z, np.load(ROOT / "results/digitfree_broad50_v1/extracted" / path.name) as cz:
-            assert np.array_equal(z["indexes"], cz["indexes"])
+            # decompress once per file, never inside the answer loop
+            idx = z["indexes"]; ztop = z["top10"]; zcal = z["calibrated"]; zcnt = z["counts"]
+            cval = cz["values"][:, COLS]; cav = cz["available"][:, COLS]
+            assert np.array_equal(idx, cz["indexes"])
             cur = 0
-            for i in z["indexes"]:
+            for i in idx:
                 a, b = offsets[i:i + 2]; n = b - a
-                top[a:b] = z["top10"][cur:cur + n]; cal[a:b] = z["calibrated"][cur:cur + n]; cnt[a:b] = z["counts"][cur:cur + n]
-                codex[a:b] = cz["values"][cur:cur + n][:, COLS]; codex_ok[a:b] = cz["available"][cur:cur + n][:, COLS]
+                top[a:b] = ztop[cur:cur + n]; cal[a:b] = zcal[cur:cur + n]; cnt[a:b] = zcnt[cur:cur + n]
+                codex[a:b] = cval[cur:cur + n]; codex_ok[a:b] = cav[cur:cur + n]
                 cur += n; done[i] = True
     assert done.all(), "bank extraction incomplete"
     with np.load(OUT / "bocpd.npz") as z:
@@ -83,9 +86,14 @@ def main():
         ct7_frozen = z["step_scores"]
     gates["ct7_rebuild_float64_max_abs_diff"] = float(np.max(np.abs(ct7_views.mean(1) - ct7_frozen)))
     bank32 = masked_answer_standardize(np.nan_to_num(top.astype(np.float32).astype(float)), np.isfinite(top), offsets)
-    d3 = float(np.max(np.abs(np.column_stack([bank32, aux_std, token_view]).mean(1) - ct7_frozen)))
+    # Amendment 2: the exactness claim is about the READOUTS. Test the bank rebuild against the FROZEN
+    # BOCPD view; the recomputed BOCPD differs within the gate-2 tolerance and is reported separately.
+    d3 = float(np.max(np.abs(np.column_stack([bank32, ct7_bocpd_view, token_view]).mean(1) - ct7_frozen)))
+    d3b = float(np.max(np.abs(np.column_stack([bank32, aux_std, token_view]).mean(1) - ct7_frozen)))
     gates["ct7_rebuild_exact_after_float32_cast"] = d3 == 0.0
+    gates["ct7_rebuild_drift_with_recomputed_bocpd"] = d3b
     assert d3 == 0.0, f"gate 3 failed: {d3}"
+    assert d3b < 1e-9, f"gate 3b failed: {d3b}"
     print("exactness gates PASS", gates, flush=True)
 
     # ---- new arms

@@ -33,9 +33,10 @@ def load_folder(folder, offsets, width):
     x = np.full((offsets[-1], width), np.nan); done = np.zeros(len(offsets) - 1, bool)
     for path in sorted((OUT / folder).glob("*.npz")):
         with np.load(path) as z:
+            idx = z["indexes"]; vals = z["values"]  # decompress once, not per answer
             cursor = 0
-            for i in z["indexes"]:
-                a, b = offsets[i:i + 2]; x[a:b] = z["values"][cursor:cursor + b - a]; cursor += b - a; done[i] = True
+            for i in idx:
+                a, b = offsets[i:i + 2]; x[a:b] = vals[cursor:cursor + b - a]; cursor += b - a; done[i] = True
     if not done.all():
         raise ValueError(f"incomplete {folder}")
     return x

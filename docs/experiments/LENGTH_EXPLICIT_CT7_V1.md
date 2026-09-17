@@ -78,3 +78,14 @@ Gates 1 and 3 are amended to exact equality after casting the re-extraction to f
 stricter than the original tolerances; the float64 differences (1.90e-06 for the readouts, 1.151e-06 for
 the rebuilt candidate) are reported as diagnostics. The new arms keep full float64 precision. Gate 2 was
 unchanged and passed. No arm had been scored when this amendment was written.
+
+## Amendment 2 (2026-09-17, before any new arm was scored)
+
+Gate 3 as amended (exact equality after the float32 cast) FAILED at 9.99e-16. Diagnosis before any
+change: the rebuild used the RECOMPUTED BOCPD view, which differs from the frozen view within the
+gate-2 tolerance (1e-8); divided by seven views that residual reaches machine precision in the mean.
+Requiring exactly zero there conflated the readout claim with the BOCPD recomputation.
+
+Gate 3 now rebuilds the candidate with the float32-cast bank readouts and the FROZEN BOCPD view, and
+requires exact equality (the readout claim). The rebuild with the recomputed BOCPD view is reported as
+a diagnostic and must stay below 1e-9, one order tighter than gate 2. Still no arm had been scored.
