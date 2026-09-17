@@ -39,6 +39,7 @@ from spectral_utils.joint_lsml import (  # noqa: E402
     covariance_matrix, discover_loao_consensus_groups, hierarchical_joint_weights,
     regularized_joint_map_weights,
 )
+from spectral_utils.joint_group_readouts import hierarchical_group_readout  # noqa: E402
 from spectral_utils.joint_pair_jacobian import fit_joint_pairs_checked  # noqa: E402
 from spectral_utils.laplacian_upcr import IU_FIT_DEFAULTS  # noqa: E402
 from spectral_utils.lsml_gate_locator_research import (  # noqa: E402
@@ -88,7 +89,8 @@ L24 = (  # every eligible step_post_readout stream of the atlas (LALL24 in Step 
 )
 ROSTERS = {"L08": L08, "L11": L11, "L14x": L14X, "L14_codex": L14_CODEX, "L24": L24}
 EXPANDED = ("L11", "L14x", "L24")  # rosters contrasted against L08 in the bootstrap
-ARMS = ("continuous", "joint_global_v", "joint_inverse", "joint_hier", "joint_lsmlgroups_hier", "iu", "equal")
+ARMS = ("continuous", "joint_global_v", "joint_inverse", "joint_hier", "joint_hier_u", "joint_hier_sml",
+        "joint_lsmlgroups_hier", "iu", "equal")
 REPLAY_ANCHORS = {  # Step 397 / soft_joint_auto_v1 point estimates that must replay
     ("L08", "continuous"): (0.437402, 0.778143),
     ("L14_codex", "continuous"): (0.393519, 0.755577),
@@ -150,6 +152,13 @@ def joint_readouts(train, labels, seed, names, anchor=0):
     w_h, o_h = _orient(train, w_h, anchor)
     out["joint_hier"] = (w_h, {"anchor": o_h, "cross_group_weights": h_meta["cross_group_weights"],
                                "cross_small_m_guarded": h_meta["cross_small_m_guarded"]})
+    # Within-group readouts independent of v (Step 399 follow-up): group factor u_g, within-group SML.
+    for readout, arm in (("group_factor", "joint_hier_u"), ("within_sml", "joint_hier_sml")):
+        w_r, r_meta = hierarchical_group_readout(train, labels, joint.global_loading, joint.group_loading,
+                                                 readout=readout, small_m_guard=True)
+        w_r, o_r = _orient(train, w_r, anchor)
+        out[arm] = (w_r, {"anchor": o_r, "cross_group_weights": r_meta["cross_group_weights"],
+                          "group_notes": r_meta["group_notes"]})
     audit = {
         "converged": bool(joint.converged), "converged_starts": int(joint.converged_starts),
         "multistart": joint.multistart_audit["status"], "native_map": fit.native_map_audit["status"],

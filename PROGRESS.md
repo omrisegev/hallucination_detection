@@ -1,3 +1,7 @@
+## Step399 (Claude) - v-free within-group Joint readout fixes group impurity, 2026-09-17
+
+COMPLETE, development only, digit-inclusive rosters (historical under the digit decision). New `spectral_utils/joint_group_readouts.py`. Joint (own LOAO groups, pairs) + within-group SML direction + cross-group SML: L08 43.48/.7767, L11 42.37/.7697, L14x 43.02/.7773, L24 43.22/.7754; flat within ~0.5pp from 8 to 24 streams where Continuous L-SML loses 4.8. Versus the v-based readout on identical fits: L11 +2.63pp [+1.67,+3.57], L14x +2.67 [+1.64,+3.60]; L08/L24 unchanged. Group-factor u_g direction fails (within drops). Mechanism is not digit-specific; next: carry the same recipe (small stable K + one vote per group + v-free within direction) into the digit-free 50-stream bank against innovation5 39.83 / BOCPD+innovation5 40.37. Details: docs/experiments/JOINT_GROUP_READOUTS_V1.md.
+
 ## Step412 complete; base quality passes, iid/near coverage failures remain - 2026-09-17
 
 Atlas results/joint_mass_membership_v1 COMPLETE_REVIEWED.25 new full-bank fits.

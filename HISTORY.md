@@ -20145,3 +20145,15 @@ NOT integrated into frozen scoring and not evidence of restored coverage/quality
 Next numerical integration, then provisional-discovery/noise-screen ordering;
 keep actual final fit guards and new412 quality reference. No next quality fit.
 Atlas review: docs/reviews/joint_mass_groups_2026-09-17.md. Goal active; all terminal.
+
+### Step 399 [Claude] - Joint L-SML within-group readout independent of v fixes the group-impurity failure
+
+**What**: Built `spectral_utils/joint_group_readouts.py`: two label-free within-group directions for the hierarchical Joint readout, the fitted group factor u_g and the within-group SML eigenvector (Continuous L-SML's own rule), with the cross-group SML stage unchanged. Ran them as arms `joint_hier_u` / `joint_hier_sml` under the Step 398 contract (L08 / L11 / L14x / L24, five source folds, Joint's own LOAO consensus groups with pairs, frozen gate, 2,000-draw paired source bootstrap). Contract and tables: `docs/experiments/JOINT_GROUP_READOUTS_V1.md`; results `results/joint_group_readouts_v1/RUN.json`.
+
+**Why**: Step 398 traced Joint's losses on L11/L14x to `hierarchical_joint_weights` forming each group's virtual classifier from v, so a foreign stream in the digit group dominated it (digit share .34 -> .13).
+
+**Result**: All replay anchors exact. `joint_hier_sml` (PB / within): L08 43.4825/.776688, L11 42.3668/.769747, L14x 43.0245/.777274, L24 43.2194/.775355; digit share .30-.34 on every roster. Versus the v-based readout on the same fits: L11 +2.63pp [+1.67,+3.57] and within +.0109 [+.0088,+.0129]; L14x +2.67pp [+1.64,+3.60], within +.0129 [+.0106,+.0152]; L08 and L24 unchanged (intervals include zero). Versus Continuous L-SML: L11 +1.18 [+0.14,+2.19], L14x +3.55 [+2.32,+4.72], L24 +4.31 [+3.00,+5.62], L08 -0.26 [-0.73,+0.22]. Roster ladder for joint_hier_sml: L24 - L08 -0.26pp [-0.68,+0.15] where Continuous loses -4.83. The u_g direction does not work (within-AUC drops on every wider roster: u captures nuisance co-movement for redundant families). No successor declared: digit-inclusive rosters (historical under the 2026-09-17 decision), development data, one variant. The mechanism (stability-selected small K, one vote per group, v-free within-group direction) is not digit-specific and is the candidate to carry into the digit-free bank.
+
+**Files changed**: `spectral_utils/joint_group_readouts.py`; `scripts/run_joint_redundancy_robustness_v1.py` (two arms); `docs/experiments/JOINT_GROUP_READOUTS_V1.md`; `results/joint_group_readouts_v1/RUN.json`; `.gitignore`; `PROGRESS.md`, `HISTORY.md`.
+
+---
