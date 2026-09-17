@@ -20168,3 +20168,11 @@ Atlas review: docs/reviews/joint_mass_groups_2026-09-17.md. Goal active; all ter
 **Result**: Whole ladder in a 1.1-point band (39.0-40.0 PB, .749-.758 within); equal20 39.19/.7558. Best partition (affinity K5 block-equal) 40.04/.7550, +0.84pp [+0.27,+1.44] over equal20 on PB, nothing on within. No cross-group rule beats block-equal at any K under either rule (real eigen-solve at K=3 costs -0.5pp*; Continuous L-SML -0.6/-0.8pp* at K5/K6; Joint reliability weights negative on every good partition, positive only when repairing eq15's bad K=3 blob). Stability picks K=3 in all folds (ARI 1.0 for every K), Eq.14 residual picks K=6; the rules coincide from K=6. Codex's recipe at its own K=6: 39.60 vs 39.86 for cluster-equal. Equal20 beats every broad50 arm (<=38.60) under the same gate, but no ladder arm reaches historical BOCPD-corrected innovation5 (40.37/.7632) and all are below innovation5 on within (.7603). No promotion; on a digit-free bank the fusion core has no measurable advantage over averaging.
 
 ---
+
+### Step 413 addendum [Claude] - The leader's six components replay under equal weight; fitted rules lose on them
+
+**What**: Replayed innovation5's five streams and the BOCPD residual (all present in the 20-stream bank) inside the Step 413 harness with equal / IU-PCR / Continuous L-SML weights.
+**Why**: Omri asked what innovation5 + BOCPD contains and whether to build the bank around it.
+**Result**: Six streams equal 40.27/.7589 (frozen BOCPD-corrected innovation5 40.37/.7632); IU on the same six 36.65, Continuous L-SML 39.98; five streams equal 39.39. The bank contained the leader; equal weight on the right subset reproduces it and every fitted rule is worse than equal on that subset. Selection (20 -> 6) is the gap, not weighting; the six are near-duplicates of one signal. Recorded in docs/experiments/DIGITFREE20_LADDER_V1.md addendum. Also: my `git sparse-checkout add` deleted Codex's local-only ignored results in this worktree; the digit-free bank was re-extracted from the raw pickles (270 s) and the BOCPD channel rebuilt from the temporal worktree's frozen scores.
+
+---

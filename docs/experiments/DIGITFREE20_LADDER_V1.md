@@ -117,3 +117,22 @@ Paired contrasts (PB pp [95%], within [95%]); * = interval excludes zero:
    (innovation5 + BOCPD is one stream plus one predictor), or a different fusion objective altogether.
 
 No arm is promoted. Development evidence, hybrid pooled fitting, gate developed on these data.
+
+## Addendum: the leader's six components inside this harness
+
+innovation5 = equal mean of five Top10 step scores (H0lim, VE0, VE0.75, VE1 token streams + H0lim prefix
+innovation); the BOCPD correction adds .25 * std * standardized mean signed BOCPD residual of the same five.
+All six have a copy in the 20-stream bank. Replayed in this harness (same folds, gate, anchor):
+
+| streams | equal | IU-PCR | Continuous L-SML |
+|---|---|---|---|
+| the five | 39.39 / .7569 | 37.54 / .7486 | 38.91 / .7534 |
+| the six (+ BOCPD residual) | **40.27 / .7589** | 36.65 / .7486 | 39.98 / .7596 |
+| five + .25-dose BOCPD (leader's recipe, our extraction) | 40.02 / .7581 | | |
+| frozen historical innovation5 / BOCPD-corrected | 39.83 / .7603 | 40.37 / .7632 | |
+
+Spearman between our five-mean and the frozen innovation5 is .774 (different orientation/standardization
+in Codex's extraction). Reading: the 20-stream ladder contained the leader and did not find it; equal
+weight on the right six reproduces it, and every fitted rule (IU, L-SML) is worse than equal on that
+very set. The gap is a selection problem (20 -> 6), not a weighting problem, and the six are near
+duplicates of one signal, which is exactly the structure SML/IU are built to down-weight.
