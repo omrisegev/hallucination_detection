@@ -286,3 +286,35 @@ L-SML to add value over averaging, more than three conditionally independent vie
 Status: FROZEN_DEVELOPMENT_CANDIDATE_NOT_CONFIRMED. Confirmation requires untouched answers, unchanged
 recipe and gate, both endpoints, and the six-stream, innovation5+BOCPD, equal20 and position-prior
 comparators, with paired source-group intervals.
+
+## Step 419 [Claude]: position and length as additional evidence (diagnostic, no method)
+
+Omri asked whether position or length can be added as a feature, without implementing. Script
+`scripts/diagnostics/position_length_vs_ct7_v1.py`. Labels used for measurement only. CT7 unchanged.
+
+Step level, PRMB labelled steps, against the seven frozen CT7 views (effective views alone 1.80):
+
+| candidate | AUC | max cond. corr with CT7 views | effective views with it | within-answer corr with CT7 score |
+|---|---|---|---|---|
+| step token length (log) | .593 | .61 | 2.16 | .48 |
+| relative position (= absolute index, = minus steps-from-end, after answer standardization) | .644 | .12 | 2.26 | -.12 |
+| share of answer tokens before the step | .641 | .13 | 2.26 | -.14 |
+| first step indicator | .300 | .10 | 2.26 | .02 |
+| last step indicator | .360 | .11 | 2.26 | -.15 |
+
+ProcessBench error answers: first-error relative position quartiles .20 / .38 / .62; 12.2% at step 0,
+4.1% at the last step. The first error is the longest step in 29.7% (chance 15.5%); **the CT7 peak is the
+longest step in 43%**.
+
+Answer level, ProcessBench error versus clean: steps in answer AUC .587 (within cells .52-.60), log answer
+tokens .671, frozen gate score .807; Spearman gate score with steps in answer .35.
+
+Reading:
+1. Step length is already inside CT7: its Top10 views correlate .61 with length and CT7 peaks on the
+   longest step more often than the truth does. Adding length as a view would count it twice.
+2. Within an answer every position encoding is the same feature (a monotone tilt), so there is exactly
+   one position view. It is nearly independent of CT7 (.12) and would lift the effective count to 2.26,
+   still below three. Its orientation cannot be set without labels or an assumption, and the benchmarks
+   disagree on it: in Step 417 the position prior alone gave -0.62 PB and +.0085 within.
+3. Answer length varies only between answers, so its only role is the no-error gate, where it is weak
+   within cells (.52-.60) and partly already carried by the gate score.

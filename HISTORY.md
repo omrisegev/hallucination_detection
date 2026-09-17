@@ -20216,3 +20216,11 @@ Atlas review: docs/reviews/joint_mass_groups_2026-09-17.md. Goal active; all ter
 **Result**: Development 41.19 PB / .7724 within (six 40.27/.7589; frozen innovation5+BOCPD 40.37/.7632). Effective conditional independent views: six streams 1.45 of 6, **CT7 1.80 of 7** (first eigenvalue 73%), twenty streams + view 2.34 of 21. Not above three. The five entropy-family views correlate .75-.97 conditionally, BOCPD .56-.65, the chosen-token view .28-.38. CT7's gain is new evidence, not fusion weighting; L-SML's precondition (more than three conditionally independent views) remains unmet. Status: frozen development candidate, not confirmed.
 
 ---
+
+### Step 419 [Claude] - Position and length as evidence: diagnostic only
+
+**What**: Measured step token length, every within-answer position encoding, first/last-step indicators, and answer length against the frozen CT7 views and the gate, without building a method. `scripts/diagnostics/position_length_vs_ct7_v1.py`.
+**Why**: Omri asked whether position or length can be added as a feature, examine and propose only.
+**Result**: Step length AUC .593 but already inside CT7 (conditional corr .61 with its Top10 views; CT7 peaks on the longest step 43% vs truth 29.7%). All position encodings are one within-answer feature: AUC .644, conditional corr .12 with CT7, effective views 1.80 -> 2.26 (still under three), orientation undetermined without labels and benchmarks disagree (Step 417 prior-only -0.62 PB / +.0085 within). Answer length is between-answer only: PB error-vs-clean AUC .587 pooled, .52-.60 within cells, vs gate .807. No method built; CT7 unchanged.
+
+---
