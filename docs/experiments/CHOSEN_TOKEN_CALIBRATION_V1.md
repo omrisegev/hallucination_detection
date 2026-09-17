@@ -153,3 +153,87 @@ Levels: six + z pooled pos. at equal weight 39.41 PB / **.7661** within; with Co
 5. A plausible reason for the split, not tested: ProcessBench scores the single peak and its misses
    are late-biased, while the new view has its position trend removed; it may pull peaks earlier.
    A peak-displacement diagnostic on the ProcessBench errors would test this directly.
+
+## Step 417 [Claude]: the ProcessBench split is a first-step spike; removing it helps both benchmarks
+
+Omri chose to explain the PRMB/PB split before building anything. Scripts
+`scripts/diagnose_chosen_token_pb_split_v1.py`, `scripts/test_chosen_token_step_profile_v1.py`,
+`scripts/control_chosen_token_step_profile_v1.py`; results `PB_SPLIT_DIAGNOSTIC.json`,
+`STEP_PROFILE_V1.json`, `STEP_PROFILE_CONTROL_V1.json` in `results/chosen_token_calibration_v1/`.
+
+### Diagnosis
+
+The frozen gate does not depend on the locator, so clean-answer correctness is identical across arms
+(asserted); every ProcessBench difference comes from the 3,621 error answers with an open gate.
+Adding the position-removed view to the six streams moved 799 of their peaks, 566 earlier and 233
+later, gaining 183 exact hits and losing 214.
+
+The earlier hypothesis (the removed linear position trend pulls peaks early) was wrong in mechanism.
+Mean answer-standardized value of the pooled z-test by absolute step index, all answers, no labels:
+
+| step | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8+ |
+|---|---|---|---|---|---|---|---|---|---|
+| ProcessBench | **+2.08** | -.06 | -.33 | -.40 | -.41 | -.39 | -.38 | -.37 | -.31 |
+| PRMBench | **+2.48** | -.04 | -.21 | -.25 | -.27 | -.30 | -.24 | -.23 | -.18 |
+
+The first step is two answer standard deviations above every other step. The view alone peaks at
+step 0 in 96% of ProcessBench error answers, while 12% of first errors are at step 0. A linear trend
+in relative position cannot remove a one-step spike.
+
+### Confirmation (one label-free variant)
+
+Subtract the mean at each absolute step index (0..7, 8+), fitted on the four training folds only, then
+re-standardize within the answer. The view alone now peaks at step 0 in 8% of error answers; alone it
+scores 32.28 PB / .7434 within (from 19.62 / .6889).
+
+| arm | PB | within |
+|---|---|---|
+| six, equal | 40.27 | .7589 |
+| **six + profile-removed view, equal** | **41.24** | **.7734** |
+| six + profile-removed view, Continuous L-SML | 41.09 | .7721 |
+| six + step-0-neutral view (no fitted profile), equal | 41.19 | .7724 |
+| twenty + profile-removed view, equal | 40.16 | .7599 |
+| frozen BOCPD-corrected innovation5 | 40.37 | .7632 |
+
+Open-gate exact hits 1,292 -> 1,356; peaks moved 424 earlier and 404 later (balanced).
+
+### Control: token evidence or position prior?
+
+Removing a step-index profile is also a position prior. The control adds only the prior part
+(minus the fitted profile at each step index) to the same streams.
+
+| contrast | PB pp [95%] | within [95%] |
+|---|---|---|
+| six + view minus six | **+0.97 [+0.06, +1.88]*** | **+.0146 [+.0128, +.0163]*** |
+| six + prior only minus six | -0.62 [-1.43, +0.16] | +.0085 [+.0074, +.0096]* |
+| **six + view minus six + prior only** | **+1.59 [+0.67, +2.56]*** | **+.0061 [+.0043, +.0078]*** |
+| six + step-0-neutral view minus six | +0.92 [-0.00, +1.86] | +.0135 [+.0118, +.0153]* |
+| six + profile view minus six + step-0-neutral view | +0.05 [-0.49, +0.59] | +.0010 [+.0002, +.0018]* |
+| twenty + view minus twenty | +0.97 [+0.39, +1.55]* | +.0040 [+.0032, +.0050]* |
+| twenty + prior only minus twenty | +0.42 [-0.09, +0.93] | +.0046 [+.0040, +.0053]* |
+| twenty + view minus twenty + prior only | +0.55 [-0.03, +1.15] | -.0006 [-.0014, +.0002] |
+| six + view: Continuous L-SML minus equal | -0.15 [-0.54, +0.24] | -.0014 [-.0020, -.0008]* |
+
+### Reading
+
+1. The split was a first-step artifact of the statistic, not a disagreement between benchmarks about
+   the evidence. With the spike removed the entropy-free chosen-token view improves the six-stream
+   locator on both benchmarks, intervals excluding zero on both, and both levels exceed the frozen
+   leader for the first time in this line.
+2. On the six streams the token evidence carries the ProcessBench gain (prior alone -0.62, view over
+   prior +1.59*) and about 40% of the within-answer gain (+.0061* of +.0146*); the rest of the within
+   gain is the step-index prior.
+3. On the twenty-stream bank the gain is mostly the prior: the view over the prior is +0.55 PB with an
+   interval touching zero and nothing on within.
+4. The essential fix is neutralizing step 0. The fitted profile adds +.0010 within and nothing on PB
+   over simply setting step 0 to the answer mean, which has no fitted parameter.
+5. Weighting: Continuous L-SML is again not better than equal weight (-.0014 within*).
+
+### Status and caveats
+
+Development evidence only. This is the fifth readout of the same statistic evaluated on the same
+13,769 answers today (Top10, pooled z, position-removed, profile-removed, step-0-neutral), and the fix
+was motivated by a label-using peak diagnostic, so selection effects are real. The six-stream base was
+itself selected on this population in earlier work. Nothing is promoted. A frozen candidate needs an
+untouched confirmation: the minimal version (six streams + pooled chosen-token z-test with step 0
+neutralized, equal weight) has no fitted parameter beyond the historical base.
