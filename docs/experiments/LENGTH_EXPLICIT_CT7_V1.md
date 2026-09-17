@@ -64,3 +64,17 @@ answers whose peak is the longest step (truth 29.7%); effective conditionally in
 * If LX8 recovers CT7 within intervals, the length prior can be declared explicitly without loss.
 * No arm is promoted from this run; CT7 stays frozen. Any adopted arm becomes a new frozen candidate
   with its own confirmation requirement.
+
+## Amendment 1 (2026-09-17, before any new arm was scored)
+
+Gate 3 as written (CT7 rebuilt from the re-extracted readouts within 1e-6 of the frozen scores) FAILED
+at 1.151e-06. Diagnosis before any change: the frozen bank extraction is stored as float32, while the
+re-extraction computes in float64. Casting the re-extracted Top10 to float32 reproduces the stored
+extraction EXACTLY (max absolute difference 0.0 over all steps and all five streams), and the candidate
+rebuilt from it matches the frozen development scores exactly (0.0). The residual was therefore storage
+precision, not a difference in the readout.
+
+Gates 1 and 3 are amended to exact equality after casting the re-extraction to float32, which is
+stricter than the original tolerances; the float64 differences (1.90e-06 for the readouts, 1.151e-06 for
+the rebuilt candidate) are reported as diagnostics. The new arms keep full float64 precision. Gate 2 was
+unchanged and passed. No arm had been scored when this amendment was written.
