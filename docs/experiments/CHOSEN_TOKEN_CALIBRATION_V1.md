@@ -237,3 +237,52 @@ was motivated by a label-using peak diagnostic, so selection effects are real. T
 itself selected on this population in earlier work. Nothing is promoted. A frozen candidate needs an
 untouched confirmation: the minimal version (six streams + pooled chosen-token z-test with step 0
 neutralized, equal weight) has no fitted parameter beyond the historical base.
+
+## Step 418 [Claude]: frozen development candidate CT7
+
+Frozen 2026-09-17 on Omri's instruction. Module `spectral_utils/frozen_locator_ct7.py`, freeze script
+`scripts/freeze_candidate_ct7_v1.py`, immutable manifest `results/chosen_token_calibration_v1/FROZEN_CANDIDATE_CT7.json`
+(recipe, code and input SHA-256, development metrics, caveats, confirmation requirements), development
+scores `CT7_DEV_SCORES.npz` (hash in the manifest). The freeze script replays the scores exactly and
+refuses any drift in recipe, code or inputs; a change requires a new candidate id.
+
+Recipe: the seven views below, each answer-standardized, fused at equal weight 1/7 with no fitted
+parameter and no sign anchor; argmax step within the answer; ProcessBench no-error decision from the
+unchanged non-digit tail15 gate. Of the two de-spiking variants tested in Step 417, the frozen one sets
+step 0 of the chosen-token view to the mean of the answer's other steps (no fitted profile).
+
+| # | view | what it measures | AUC (PRMB step) |
+|---|---|---|---|
+| 1 | H0lim | limit Renyi order-0 shape of the top-15 distribution | .702 |
+| 2 | ve0 | escort varentropy, order 0 | .713 |
+| 3 | ve0.75 | escort varentropy, order .75 | .689 |
+| 4 | ve1 | escort varentropy, order 1 | .696 |
+| 5 | H0lim prefix innovation | H0lim minus its strict prefix mean | .702 |
+| 6 | BOCPD residual | residual of the five innovation5 features against a hazard-1/32 BOCPD predictor | .647 |
+| 7 | chosen-token z, step 0 neutral | pooled test sum(-log q(x) - H)/sqrt(sum VE), entropy-free | .690 |
+
+Development: **41.19 PB / .7724 within** (six streams 40.27 / .7589; frozen BOCPD-corrected
+innovation5 40.37 / .7632). Versus the six: +0.92 [-0.00, +1.86] PB, +.0135 [+.0118, +.0153] within.
+
+Effective number of conditionally independent views (participation ratio of the within-label
+correlation matrix, 94,203 labelled PRMB steps; labels for measurement only):
+
+| pool | views | marginal | conditional | largest eigenvalue share |
+|---|---|---|---|---|
+| six streams | 6 | 1.43 | 1.45 | |
+| **CT7 candidate** | 7 | 1.75 | **1.80** | 73% |
+| twenty streams + chosen-token view | 21 | 2.26 | 2.34 | |
+
+Conditional correlations inside CT7: the five entropy-family views .75-.97 with each other, BOCPD .56-.65
+with them, the chosen-token view .28-.38 with everything. Conditional eigenvalues
+5.12 / .82 / .56 / .28 / .14 / .06 / .02.
+
+The answer to "is the effective number of views above three" is **no**: 1.80 of 7. CT7's gain is not
+a fusion-weighting result. Six of its seven views are one entropy signal, and at this redundancy the
+correct L-SML output is an average (Step 205), which is what equal weight already is. What changed is
+that one view now carries evidence that is largely independent of that signal. The requirement for
+L-SML to add value over averaging, more than three conditionally independent views, is still unmet.
+
+Status: FROZEN_DEVELOPMENT_CANDIDATE_NOT_CONFIRMED. Confirmation requires untouched answers, unchanged
+recipe and gate, both endpoints, and the six-stream, innovation5+BOCPD, equal20 and position-prior
+comparators, with paired source-group intervals.

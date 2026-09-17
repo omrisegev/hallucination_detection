@@ -1,0 +1,118 @@
+{
+ "candidate_id": "CT7-six-entropy-plus-despiked-chosen-token-z-equal-v1",
+ "code_sha256": {
+  ".worktrees/fusion-independence-atlas-v1/scripts/run_chosen_token_calibration_steps_v2.py": "50b077c3be905afa4c5064b052d2624a2c16d8e79ea432943c3bc3e2317dbbf6",
+  ".worktrees/fusion-independence-atlas-v1/scripts/run_digitfree_broad50_v1.py": "2ca006fddb0099c562db9fa41ee3874287edabf4c9a1e414ec4318cb5d37bd93",
+  ".worktrees/fusion-independence-atlas-v1/scripts/run_joint_feature_selection_bocpd_v1.py": "83b4ef253bddcc8ed40c796ae73896698de931dc5f7085d87149b8a4e7f3b972",
+  ".worktrees/fusion-independence-atlas-v1/scripts/run_lsml_gate_locator_research_v1.py": "bc8cb0721d6211172020cf8f17b2399f3132a5194abb611a2d3667a0b8ca9b71",
+  ".worktrees/fusion-independence-atlas-v1/spectral_utils/chosen_token_calibration.py": "0064798d176985755f6ab068acf763eb90317b39082bf06cce4a90f50d9cdcb0",
+  ".worktrees/fusion-independence-atlas-v1/spectral_utils/digitfree_broad50.py": "28817e3ae252499830e1ac937965f076de8162d3530307ab409970e3d6227180",
+  ".worktrees/fusion-independence-atlas-v1/spectral_utils/frozen_locator_ct7.py": "b4ac9dc41067229a2c026776e8d53e82682a62c74a219d9e0b2e196a0f5c3f63",
+  ".worktrees/fusion-independence-atlas-v1/spectral_utils/renyi_alpha_sweep.py": "7692a23a36390a802188468733695343c936af0925a5f961b5d7779766eddf2f",
+  ".worktrees/temporal-research-20260915/scripts/run_aligned_context_predictors.py": "f01a59010a498d94b8a31525025711dfe7cbaee97d9e994c5c2515ae73ab52af",
+  ".worktrees/temporal-research-20260915/spectral_utils/aligned_context_predictors.py": "9c133b2d9a9c9a4fd585f8b81d15eab45bbf420b3e2de02e9bf54ed11314840b"
+ },
+ "confirmation_requirements": [
+  "Score the recipe unchanged on answers never used in development; no refit, no re-selection, no readout change.",
+  "Primary endpoints: ProcessBench-style macro-F1 with the unchanged gate rule and PRMBench-style within-answer AUROC, reported separately.",
+  "Mandatory comparators on the same answers: the six streams at equal weight, BOCPD-corrected innovation5, equal20, and the position-prior-only control.",
+  "Paired source-group bootstrap; a claim requires both endpoints to favour the candidate over the six streams.",
+  "A new scorer on previously seen ProcessBench answers is not untouched confirmation (CLAUDE.md)."
+ ],
+ "dev_scores_sha256": "9d10d2ff04402f56d6b04c643bfc87a55413786e67d721ad4a28b1578cd3b430",
+ "dev_scores_steps": 145597,
+ "development_evidence": {
+  "caveats": [
+   "Fifth readout of the same statistic evaluated on these answers on 2026-09-17 (Top10, pooled z, position-removed, profile-removed, step-0-neutral).",
+   "The step-0 neutralization was motivated by a label-using peak diagnostic.",
+   "The five entropy streams and the BOCPD residual were selected on this population in earlier work.",
+   "The gate was historically developed on these data.",
+   "The step-0-neutral variant (frozen) has no fitted parameter; its PB interval touches zero; the profile-removal variant's does not.",
+   "Continuous L-SML and IU-PCR on these views are not better than equal weight; this is not a fusion-weighting result.",
+   "Effective conditional independent views in this pool: 1.80 of 7 (participation ratio)."
+  ],
+  "comparators_same_gate": {
+   "equal20": [
+    0.3919,
+    0.7558
+   ],
+   "frozen_bocpd_corrected_innovation5": [
+    0.4037,
+    0.7632
+   ],
+   "six_streams_equal": [
+    0.4027,
+    0.7589
+   ]
+  },
+  "paired_contrasts_10000_source_group_draws": {
+   "candidate_profile_variant_minus_six": {
+    "pb_pp": [
+     0.97,
+     0.06,
+     1.88
+    ],
+    "within": [
+     0.0146,
+     0.0128,
+     0.0163
+    ]
+   },
+   "step0_neutral_candidate_minus_six": {
+    "pb_pp": [
+     0.92,
+     -0.0,
+     1.86
+    ],
+    "within": [
+     0.0135,
+     0.0118,
+     0.0153
+    ]
+   },
+   "token_view_over_position_prior_only": {
+    "pb_pp": [
+     1.59,
+     0.67,
+     2.56
+    ],
+    "within": [
+     0.0061,
+     0.0043,
+     0.0078
+    ]
+   }
+  },
+  "pb_macro_f1": 0.41188745848863717,
+  "population": "13,769 answers (8 ProcessBench cells + PRMBench qwen3-8b), v3 labels, v2 source groups",
+  "prmb_within_auc": 0.7723966352864217,
+  "prmb_within_n": 6030
+ },
+ "frozen": "2026-09-17",
+ "input_sha256": {
+  ".worktrees/fusion-independence-atlas-v1/results/fusion_independence_atlas_v1/baseline_replay/SCORES_FROZEN.npz": "e48649e82fb110f1f1e27f1e3e55a2e8cc9d5c8d394b68974930dd4678dcbdb6",
+  ".worktrees/fusion-independence-atlas-v1/results/fusion_independence_atlas_v1/dependence/EVALUATION.npz": "9c4589ccf4150403ab10dd61d77e93c07ef5e1330e83df1449eadfe17a2549cb",
+  ".worktrees/fusion-independence-atlas-v1/results/joint_feature_selection_bocpd_v1/INPUTS.npz": "733e23bd33eb33b1ed9c40fbee426c681951153f2134dacdf465bf1d342d1c73",
+  ".worktrees/temporal-research-20260915/results/aligned_context_predictors_v1/SCORES_FROZEN.npz": "f4b2b098c968b6f325ff9ca597bf758348df14f1440784b20a1f8828505988fe",
+  ".worktrees/temporal-research-20260915/results/temporal_research_baseline_v1/SCORES_FROZEN.npz": "10281652ebbf92cc8f796440485e75330e3acb81c90fc7ba3ab2b7844d59ea6c"
+ },
+ "recipe": {
+  "access": "gray-box: one teacher-forced forward pass, top-50 log-probabilities and provided-token surprisal; offline whole-answer processing; no labels; no other answers",
+  "bocpd_residual": "answer-standardized (historical_bocpd - innovation5) from aligned_context_predictors_v1 SCORES_FROZEN.npz: mean of five signed residuals against reset-before-observation Gaussian BOCPD, hazard 1/32, observation variance 1, prior mean 0 / variance 1 (bocpd_mean in codex/temporal-research-20260915 @ ff3b02852)",
+  "chosen_token_z": "sum(-log q(x) - H(q)) / sqrt(sum VE(q) + n*0.01) on renormalized top-50 q; tokens outside top-50 censored below the smallest listed mass; answer-standardized; step 0 set to the mean of the answer's other steps; re-standardized",
+  "fusion": "equal weight 1/7, no fitted parameter, no sign anchor",
+  "locator": "argmax step within the answer",
+  "no_error_decision": "frozen non-digit tail15 whole-answer Top10-mean prominence, within-cell midrank >= .33 (not part of the locator)",
+  "step_readout": "Top10 step mean for the five bank streams; pooled z-test for the chosen-token view",
+  "views": [
+   "H0lim",
+   "ve0",
+   "ve0.75",
+   "ve1",
+   "H0lim_prefix_innovation",
+   "bocpd_residual",
+   "chosen_token_z_despiked"
+  ]
+ },
+ "status": "FROZEN_DEVELOPMENT_CANDIDATE_NOT_CONFIRMED"
+}

@@ -1,3 +1,23 @@
+## Step413-418 update: fusion collapse explained; entropy-free chosen-token evidence; candidate CT7 frozen (2026-09-17)
+
+* Step 413: on the digit-free 20-stream bank no fusion rule (partition, SML at any K, Continuous
+  L-SML, Joint reliability weights, IU-PCR) beats block averaging; equal20 39.19 PB.
+* Step 414/415: the evidence families have **2.46** conditionally independent signals; tail is
+  entropy, prefix innovations are captive. Below three the L-SML eigen-stage is undetermined and
+  its output is an average by construction. This is the structural reason for Step 413.
+* Step 415-417: the standardized excess surprisal of the provided token is entropy-free on real data
+  (token correlation -.016). As a length-free pooled step z-test with the step-0 spike removed, it
+  improves the six-stream locator on both benchmarks (+0.92 to +0.97 PB, +.0135 to +.0146 within);
+  the token evidence, not the position prior, carries the PB gain (+1.59 over prior-only).
+* Step 418: candidate **CT7** frozen (six entropy/BOCPD views + de-spiked chosen-token z, equal
+  weight): development 41.19 PB / .7724 within; effective independent views **1.80 of 7**.
+
+Open directions, in the order proposed to Omri: (1) untouched confirmation of CT7 unchanged;
+(2) raise the independent view count with a new measurement channel (intermediate layers, context
+ablation), since L-SML can only add value over averaging above three conditionally independent views;
+(3) understand why the first step is surprising to the model. Doc:
+`docs/experiments/CHOSEN_TOKEN_CALIBRATION_V1.md`.
+
 ## Step412 update: preserve the new base gain while repairing two explicit failure modes
 
 Mass-aware discovery raises the base to38.9622/.754189 and passes preservation

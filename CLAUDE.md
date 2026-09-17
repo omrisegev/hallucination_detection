@@ -1,5 +1,17 @@
 # CLAUDE.md — MV_EPR Spectral Hallucination Detection
 
+## Frozen development candidate CT7 - Omri, 2026-09-17
+
+Omri instructed freezing `CT7-six-entropy-plus-despiked-chosen-token-z-equal-v1` (Step 418). Recipe and
+hashes: `results/chosen_token_calibration_v1/FROZEN_CANDIDATE_CT7.json`; code
+`spectral_utils/frozen_locator_ct7.py`. Do not change its views, readouts, step-0 rule, weights or gate;
+any change is a new candidate id, and `scripts/freeze_candidate_ct7_v1.py` refuses drift. Its 41.19 PB /
+.7724 within is DEVELOPMENT evidence on already-inspected data (fifth readout of the statistic tried that
+day, fix motivated by a label-using diagnostic); never report it as confirmed. Its views are 1.80
+effective conditionally independent signals of 7, so it is not an L-SML weighting result. Omri wants to
+be consulted on the next direction (confirmation route or new measurement channel) before new builds.
+Never run `git sparse-checkout add/set/reapply` in the atlas worktree: it deletes ignored local results.
+
 ## Omri research continuation - 2026-09-17
 
 Omri authorized gate-versus-locator diagnosis, feature selection inside Joint,
