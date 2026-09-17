@@ -25,6 +25,29 @@ $SHARED/logs/       # Slurm logs (%x_%j.out) + container exit codes
 $SHARED/pip_cache/  # PIP_CACHE_DIR — kills per-job pip cold-start
 ```
 
+## Every Slurm call needs SLURM_CONF_SERVER
+
+This site runs **configless Slurm**: `/etc/slurm` is empty and the controller address
+comes from `/etc/profile.d/slurm-configless.sh`, which exports
+`SLURM_CONF_SERVER=controller-primary`. `ssh aircc '<cmd>'` runs a **non-login** shell,
+which never sources `/etc/profile.d`, so the client falls back to a DNS SRV lookup for
+`_slurmctld._tcp` — NXDOMAIN here — and every `squeue`/`sinfo`/`sacct`/`sbatch` dies with:
+
+```
+squeue: fatal: Could not establish a configuration source
+```
+
+This is **not** a cluster outage and not a VPN problem. Prefix every Slurm call:
+
+```bash
+ssh aircc 'export SLURM_CONF_SERVER=controller-primary; squeue -u omrisegev1'
+ssh aircc 'bash -lc "squeue -u omrisegev1"'          # equivalent: login shell sources it
+```
+
+`sdata` reads accounting directly and works without it, which makes the failure look
+partial and misleading. The `slurm-login` alias does not round-robin — every connection
+lands on `login-node-02`, so retrying the connection never helps.
+
 ## Cheat sheet
 
 ```bash

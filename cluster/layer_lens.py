@@ -190,7 +190,11 @@ def candidate_layer_field(mdl, tap, hidden_states, gen_ids, plen, tgen, hid_proj
 
     field = {q: np.empty((len(MODULES), L, tgen), dtype=np.float16) for q in QUANTITIES}
     resid_norm = np.empty((L, tgen), dtype=np.float16)
-    cov_eigs = np.zeros((L, cov_eigs_r), dtype=np.float16)
+    # float32, NOT float16: residual Gram eigenvalues routinely exceed the float16 max
+    # (65504) on trained models — results/whitebox_layer_fusion_v2/DATA_INVENTORY.md
+    # records 47,008 non-finite cov_eigs entries on the Qwen3-8B cell from exactly this
+    # overflow.  The array is [L, r] per candidate, so float32 costs nothing.
+    cov_eigs = np.zeros((L, cov_eigs_r), dtype=np.float32)
     proj = np.empty((L, hid_proj.shape[1]), dtype=np.float16)
 
     # ``hidden_states[L]`` IS NOT x_L.  HF applies the final norm before appending the
@@ -235,7 +239,7 @@ def candidate_layer_field(mdl, tap, hidden_states, gen_ids, plen, tgen, hid_proj
             # far smaller than d here, so the T x T form is the cheap one.
             gram = (xc @ xc.T) / max(tgen - 1, 1)
             ev = torch.linalg.eigvalsh(gram.double()).flip(0)[:cov_eigs_r]
-            cov_eigs[l, :ev.numel()] = ev.cpu().numpy().astype(np.float16)
+            cov_eigs[l, :ev.numel()] = ev.cpu().numpy().astype(np.float32)
 
     del ref_lp
     out = {q: field[q] for q in QUANTITIES}
