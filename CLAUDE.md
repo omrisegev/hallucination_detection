@@ -1,5 +1,40 @@
 # CLAUDE.md — MV_EPR Spectral Hallucination Detection
 
+## Omri research continuation - 2026-09-17
+
+Omri authorized gate-versus-locator diagnosis, feature selection inside Joint,
+removing/replacing features (50 is not fixed), matched readout changes such as
+Top8/Top10, and explicitly BOCPD as a supporting component. Continue bounded,
+full-population stages without renewed permission. Retain the no-digit policy.
+Do not describe label-selected feature counts as unsupervised; exceeding40% is a
+research target, not permission to tune on held-out outcomes. Step400 completes
+initial diagnosis/selection/BOCPD/readout studies; the broader robust-Joint goal
+remains active. The synthetic copy fixture and modest within gain do not prove
+general robustness or recovery of the stronger historical method.
+
+## Omri decision update - 2026-09-17: exclude digit-based disagreement
+
+Omri explicitly rejects digit-specific disagreement with the scoring model's
+preferred token as contrary to the project's original approach. Exclude this
+mechanism and its derived features from future proposed methods: digit flags,
+rates/counts/presence, token-clock and opportunity-clock innovations, digit-based
+gates, and digit anchors used to orient fusion scores. Do not carry a digit
+dependency indirectly through a frozen gate or a baseline-plus-correction recipe.
+Earlier digit-inclusive recommendations and incumbent status are superseded for
+future method selection. Preserve their code/results as historical records;
+those numbers do not describe the future digit-free method. The proposed broad
+bank is now 50 streams (47 digit-free streams plus three general distribution
+features: top2/top1 probability ratio, top15 identity turnover, and adjacent
+normalized-top50 Jensen-Shannon divergence), with no digit channels. A new
+non-digit gate/orientation contract and evaluation are needed before reporting
+replacement performance. This decision does not itself change dataset scoring
+access or ban ordinary probability, entropy, or provided-token logprob features.
+No new experiment was launched by this documentation update.
+
+Omri's clarification: the algorithm should handle the broad bank without a
+protected favorite feature or repeatedly designing around digit success.
+Complementarity is not an established certificate of independent errors.
+
 ## Omri research execution authorization — 2026-09-15
 
 Omri approved `docs/experiments/TEMPORAL_RESEARCH_PROGRAM_20260915.md` and said

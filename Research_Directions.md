@@ -1,3 +1,94 @@
+## Step412 update: preserve the new base gain while repairing two explicit failure modes
+
+Mass-aware discovery raises the base to38.9622/.754189 and passes preservation
+versus408; within gain+.004112 CI[+.001527,+.006789]. Exact/structured additions
+are identical, but iid and near fail native coverage and preservation. Do not
+promote the whole method. Keep412 as an additional quality reference going forward.
+The next bounded correction is numerical active-set polishing of the SAME mass
+QP, keeping the1e-6 acceptance guard. Standalone code and two captured-failure
+checks pass; it is not integrated or evaluated for quality. Then investigate
+whether diagnostic inner-fold partition admissibility is being required before
+provisional noise screening, despite admissible consensus groups. Do not relax
+actual final Joint guards or hide fallback. The new grouping block changes
+projection/clustering/stability together; no individual-component causal claim.
+Evidence: atlas docs/reviews/joint_mass_groups_2026-09-17.md and
+results/joint_mass_membership_v1. Goal ACTIVE, no running process or next fit.
+
+## Step411 update: stop tuning pruning; investigate internal structure multiplicity
+
+Minimax original-factor information ranking repairs the demonstrated stopping
+mismatch (0/10 states retain feasible alternatives), but fails useful selection.
+Base38.0732/.748555, near37.4564/.745483; all native. Near-vsStep410 loses on both
+endpoints with declared adjusted intervals entirely below0. Prior-base and near
+preservation fail; exact/iid/structured remain identical. Do not promote this arm.
+Next investigate how near-duplicate measurement multiplicity enters Joint's
+initial grouping/factor objective, e.g. a training-only weighting rule with a
+verified duplication-invariance property. This requires design and testing; no
+new fit started. Existing block-pair-balanced control already exists and was
+not a success, so do not rename/repeat it as a new solution. Keep fusion central,
+no protected BOCPD, no digit channels or held-label N/threshold choice. Step408
+quality and409/410 robustness references remain. Evidence: atlas
+`docs/reviews/joint_minimax_refinement_2026-09-17.md`. Goal ACTIVE.
+
+## Step410 update: information feasibility alone does not establish baseline preservation
+
+Same top3 with budget rejection before regrouping: all four addition tests PASS,
+but prior Step408 base preservation remains unproven on both PB and within-AUC.
+Base38.3444/.749885; near38.5417/.750942; all13769 native. No replacement/no newover40.
+A saved-training-covariance diagnostic finds feasible alternatives outside top3
+at9/10 base/near stops. Next investigate ranking/constraint alignment; this is
+not evidence more deletions improve localization. Do not retune95%, choose N
+from held labels, or relax guards. Full audit32metrics/12intervals PASS.
+Evidence: atlas `docs/reviews/joint_feasible_refinement_2026-09-17.md`.
+Goal ACTIVE, no process running or next fit launched.
+
+## Step409 update: regrouping is a robustness candidate, not a proved replacement
+
+All four additions preserve the regrouped base38.3374/.750672; near38.2991/.750572.
+All13769 native, but the paired PB lower bound versus Step40838.7300 is-1.2084pp,
+below the predeclared-1pp baseline margin. Keep both references, no promotion.
+Next bounded question: reject information-budget-violating deletion proposals
+before terminating the path;9/10 audited base/near stops have a feasible top3
+alternative by information alone. Their regroup validity/quality remains untested.
+No threshold retuning, no label-selected N. Evidence: atlas
+`docs/reviews/joint_regroup_refinement_2026-09-17.md`. Goal ACTIVE; no next fit.
+
+## Step408 update: staged membership retained; near-copy refinement unresolved
+
+Zero-row removal and rediscovery before global-group exclusion recover full iid
+coverage and preserve the structured-noise repair. Base/exact/iid/structured all
+38.7300/.750078, native13769. Near still37.7185/.748723. Use staged membership as
+the next experimental base, not a robust successor. Full-data stage diagnostics
+point toward joint investigation of group discovery and95% information refinement;
+groups currently remain fixed through deletions. Test one bounded regrouping
+variant next; do not infer causality from point estimates or omit near copies.
+Evidence: atlas `docs/reviews/joint_staged_membership_2026-09-17.md`. Goal ACTIVE.
+
+## Step407 update: nuisance exclusion needs grouping reconsideration
+
+Global-only group membership repaired structured noise but broke iid-noise native
+coverage; do not replace Steps404-405 with this variant. The failed partition
+put all genuine measurements in one local-only group. Next test ordinary zero-row
+removal and group rediscovery before group-wide exclusion; this ordering remains
+untested and does not address near-copy instability. Full evidence is in atlas
+`docs/reviews/joint_signal_membership_2026-09-17.md`. Goal ACTIVE, no next fit.
+
+## Active update: digit-free Joint selection, Step406, 2026-09-17
+
+Omri's September17 no-digit decision in CLAUDE.md supersedes digit-inclusive
+candidate recommendations below. Current broad-bank research includes BOCPD
+and uses hybrid source-fold fitting; answer-only deployment remains separate.
+Integrated sparse membership and95% refinement preserve exact copies/iid noise,
+but full approximate-copy/structured-nuisance verification fails preservation.
+Do not promote the38.7300/.750078 base as robust or as a successor to the
+historical non-digit BOCPD reference40.3676/.763223. Broad goal ACTIVE.
+Next bounded design question: allow nuisance-only groups without forcing their
+participation in the global signal, while preserving identifiability guards;
+near-copy-induced grouping/removal instability also remains unresolved.
+No new fit launched. Evidence and uncertainty are in atlas worktree
+`docs/reviews/joint_structured_stress_2026-09-17.md` and
+`results/joint_structured_stress_v1/AUDIT.json`. Historical sections remain records.
+
 ## Step397 (Codex) - fusion independence atlas and automatic L-SML follow-up, 2026-09-16
 
 The full development atlas replayed the Step396 incumbent at 43.2546% PB/.776036 within, screened 5,443 definitions and retained 114 representatives from 13 provenance families. None of the 2,879 evaluated pairs passed the combined PB+PRMB independence contract at any insertion point; the useful combinations are dependent-complementary, not independent. The strongest simple diagnostic is digit-disagreement Top2 + logtail15 Top10 equal-rank at 43.3671%/.776019, stable in 5/5 folds.
