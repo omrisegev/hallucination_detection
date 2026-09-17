@@ -128,3 +128,72 @@ def self_test(seed=0):
 if __name__ == "__main__":
     import json
     print(json.dumps(self_test(), indent=1))
+
+
+SUFFICIENT = ("n_tokens", "sum_std_excess", "sum_pit_normal", "sum_excess", "sum_varentropy", "n_censored")
+
+
+def step_sufficient_stats(x, censored, diag, spans):
+    """Per-step sums from which every step readout is derived without re-reading tokens.
+
+    Columns: token count, sum of standardized excess, sum of PIT normal scores, sum of excess
+    surprisal, sum of varentropy, censored token count.
+    """
+    out = np.empty((len(spans), len(SUFFICIENT)))
+    for i, (a, b) in enumerate(np.asarray(spans, int)):
+        if not 0 <= a < b <= len(x):
+            raise ValueError("invalid span")
+        out[i] = (b - a, x[a:b, 3].sum(), x[a:b, 1].sum(), x[a:b, 2].sum(), diag[a:b, 1].sum(),
+                  censored[a:b].sum())
+    return out
+
+
+def step_z_readouts(stats, floor=VARENTROPY_FLOOR):
+    """Step-level tests whose null is N(0,1) whatever the entropy and the step length.
+
+    * ``z_std_excess``  sum of per-token standardized excess / sqrt(n)
+    * ``z_pit``         sum of PIT normal scores / sqrt(n). Drifts upward with step length because
+                        the mid-PIT normal score is not centred for discrete distributions (see the
+                        self-test); reported, not primary.
+    * ``z_pooled``      sum of excess surprisal / sqrt(sum of varentropy + n * floor): the exact
+                        one-sample test of "this step is more surprising than the model expected",
+                        pooling the variance over the step instead of per token.
+    """
+    n = stats[:, 0]
+    return np.column_stack([stats[:, 1] / np.sqrt(n), stats[:, 2] / np.sqrt(n),
+                            stats[:, 3] / np.sqrt(stats[:, 4] + n * floor)])
+
+
+def self_test_step_readouts(seed=1):
+    """Under H0 the step z readouts have mean 0 and sd ~1 at every step length; Top10 does not."""
+    rng = np.random.default_rng(seed)
+    T, K, V = 40000, 50, 300
+    temps = np.exp(rng.uniform(np.log(.1), np.log(4.0), T))
+    logits = rng.standard_normal((T, V)) * 3 / temps[:, None]
+    logits -= logits.max(axis=1, keepdims=True)
+    full = np.exp(logits); full /= full.sum(axis=1, keepdims=True)
+    order = np.argsort(-full, axis=1)[:, :K]; top = np.take_along_axis(full, order, axis=1)
+    qk = top / top.sum(axis=1, keepdims=True); c = qk.cumsum(axis=1)
+    pick = (c < rng.random(T)[:, None]).sum(axis=1).clip(0, K - 1)
+    provided = order[np.arange(T), pick]
+    x, cens, diag = token_calibration(np.log(top), order, provided, -np.log(full[np.arange(T), provided]))
+    lengths = rng.choice([4, 16, 64], size=4000)
+    ends = np.cumsum(lengths); keep = ends <= T; lengths = lengths[keep]; ends = ends[keep]
+    spans = np.column_stack([ends - lengths, ends])
+    z = step_z_readouts(step_sufficient_stats(x, cens, diag, spans))
+    top10 = step_top_readout(x, spans)[:, 3]
+    res = {}
+    for n in (4, 16, 64):
+        m = lengths == n
+        res[int(n)] = {"z_pooled_mean": float(z[m, 2].mean()), "z_pooled_sd": float(z[m, 2].std()),
+                       "z_pit_mean": float(z[m, 1].mean()), "top10_std_excess_mean": float(top10[m].mean())}
+        # Self-normalized sums are N(0,1) only asymptotically; surprisal is right-skewed, so very
+        # short steps carry a small negative bias (about -0.1 at 4 tokens) that shrinks with n.
+        assert abs(z[m, 2].mean()) < .15, res
+        assert .75 < z[m, 2].std() < 1.2, res
+    assert res[64]["top10_std_excess_mean"] - res[4]["top10_std_excess_mean"] > .5, res
+    # Known failure, kept visible: the mid-PIT normal score has a small positive per-token bias for
+    # discrete distributions (Phi^-1 of a non-uniform mid-PIT), so sum/sqrt(n) drifts upward with
+    # step length. z_pit is therefore NOT length-free; z_pooled is the primary readout.
+    assert res[64]["z_pit_mean"] > res[4]["z_pit_mean"], res
+    return res
