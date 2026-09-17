@@ -89,3 +89,49 @@ Requiring exactly zero there conflated the readout claim with the BOCPD recomput
 Gate 3 now rebuilds the candidate with the float32-cast bank readouts and the FROZEN BOCPD view, and
 requires exact equality (the readout claim). The rebuild with the recomputed BOCPD view is reported as
 a diagnostic and must stay below 1e-9, one order tighter than gate 2. Still no arm had been scored.
+
+## Result (2026-09-17)
+
+All three exactness gates PASS: the re-extracted bank readouts equal the frozen extraction exactly after
+the float32 cast; the recomputed token-level BOCPD reproduces the frozen view to 7.2e-15 and the
+historical BOCPD step scores to 5.3e-15; the candidate rebuilt from the re-extracted readouts equals the
+frozen development scores exactly (drift with the recomputed BOCPD 1.0e-15).
+
+| arm | PB | within | within-answer corr with log step length | peak = longest step (PB errors) |
+|---|---|---|---|---|
+| CT7 (frozen, length hidden) | 41.19 | .7724 | +.48 | .43 |
+| LX7 (length calibrated out) | 33.03 | .7137 | -.20 | .15 |
+| LX8 (LX7 + declared log length) | 36.38 | .7373 | -.05 | .22 |
+| LEN (log length alone) | 35.14 | .6181 | +1.00 | 1.00 |
+| CT7 + LEN | 41.40 | .7721 | +.58 | .52 |
+
+Truth: the first error is the longest step in **29.7%** of ProcessBench error answers (chance 15.5%).
+
+| contrast | PB pp [95%] | within [95%] |
+|---|---|---|
+| LX7 - CT7 | **-8.16 [-9.81, -6.59]*** | **-.0587 [-.0645, -.0531]*** |
+| LX8 - LX7 | +3.35 [+2.50, +4.26]* | +.0236 [+.0217, +.0254]* |
+| LX8 - CT7 | -4.81 [-6.16, -3.48]* | -.0351 [-.0401, -.0302]* |
+| CT7 + LEN - CT7 | +0.21 [-0.44, +0.86] | -.0003 [-.0019, +.0012] |
+
+Per-view AUC on PRMB steps after calibration (before, from Step 418): ve0 .663 (.713), H0lim .648 (.702),
+ve1 .642 (.696), H0lim innovation .645 (.702), ve0.75 .632 (.689), BOCPD .589 (.647); the chosen-token
+view is unchanged at .690 and log length alone is .593. Effective conditionally independent views:
+CT7 1.80, LX7 1.80, LX8 2.12 of 8. Mean calibrated six by step index: -.09 to +.06, no step-0 spike.
+
+## Reading
+
+1. **The pre-registered decomposition is answered, and the premise was wrong.** Removing step length
+   from the six streams costs 8.2 PB points and .059 within-answer AUROC. This is not a prior being
+   stripped from evidence: every stream loses .04 to .06 AUC when its length coupling is removed.
+2. **Length is evidence, not only a prior.** The first error really is the longest step three times as
+   often as chance. CT7 overuses it (peak on the longest step 43%), LX7 underuses it (15%, below the
+   truth), and LX8 lands between (22%) without recovering the loss.
+3. **The coupling is not additively separable.** A declared log-length view returns 3.35 of the 8.16
+   lost points. In an equal-weight sum a separate length view cannot reproduce "more tokens, more
+   opportunity for this stream's evidence to show up", which is what the Top-k readout encodes.
+4. **Adding length on top of CT7 changes nothing** (+0.21 PB, interval includes zero), so CT7 is not
+   starved of length information.
+5. **No new candidate.** CT7 stays frozen and unchanged. The calibrated readout remains a valid tool
+   (its synthetic null is exact) and is the right readout if a future representation has many rows per
+   step, but on this step-level representation it removes signal.
