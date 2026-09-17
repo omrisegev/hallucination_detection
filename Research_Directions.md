@@ -89,6 +89,10 @@ No new fit launched. Evidence and uncertainty are in atlas worktree
 `docs/reviews/joint_structured_stress_2026-09-17.md` and
 `results/joint_structured_stress_v1/AUDIT.json`. Historical sections remain records.
 
+## Step398 (Codex) - native SLA reporting for localization, 2026-09-17
+
+The frozen Step397 scores were evaluated under Mind the Gap's native erroneous-trace-only SLA without refitting. Digit025 reaches 38.1810% pooled and 41.1784%/40.7501% equal-cell Qwen-4B/8B SLA; L08 reaches 38.9689% pooled and 41.9567%/40.9557%. Published Shannon Drop averages 39.1375%/39.3925%, putting L08 +2.8192pp/+1.5632pp higher at the point-estimate level, but exact trace/generation identity is not verified and the comparison remains contextual. Future localization reports must separate raw SLA, gated exact-error accuracy and full ProcessBench macro F1; never use SLA alone as evidence of clean/error gating quality. Artifact: `results/lsml_gate_locator_research_v1/SLA_METRICS.json`.
+
 ## Step397 (Codex) - fusion independence atlas and automatic L-SML follow-up, 2026-09-16
 
 The full development atlas replayed the Step396 incumbent at 43.2546% PB/.776036 within, screened 5,443 definitions and retained 114 representatives from 13 provenance families. None of the 2,879 evaluated pairs passed the combined PB+PRMB independence contract at any insertion point; the useful combinations are dependent-complementary, not independent. The strongest simple diagnostic is digit-disagreement Top2 + logtail15 Top10 equal-rank at 43.3671%/.776019, stable in 5/5 folds.
