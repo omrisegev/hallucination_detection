@@ -92,8 +92,11 @@ def field_for_batch(mdl, batch, modules, quantities, hid_proj, cov_eigs_r):
             # output for no saving.  [L,r] + [L,D] per row is ~0.27 GB over 13,769 rows.
             keep["cov_eigs"] = field["cov_eigs"]
             keep["hid_proj"] = field["hid_proj"]
-            # final-layer residual lens entropy, for the gate against the saved telemetry
-            keep["final_lens_H"] = field["lens_H"][MODULES.index("resid"), -1].astype(np.float32)
+            # Gate input: the final-layer residual lens entropy in the cached top-15
+            # renormalised form.  lens_H is FULL-vocabulary and is a different statistic —
+            # comparing it to the saved token_entropies would fail the gate by construction.
+            keep["final_lens_H"] = field["final_lens_H_top15"]
+            keep["final_lens_H_fullvocab"] = field["lens_H"][MODULES.index("resid"), -1].astype(np.float32)
             results.append(keep)
         del out, tap
         torch.cuda.empty_cache() if torch.cuda.is_available() else None

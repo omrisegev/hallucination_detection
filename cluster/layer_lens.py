@@ -54,6 +54,11 @@ renormalisation.  The cached ``token_entropies`` in this repo ARE top-15 renorma
 the two are different statistics and must not be compared to each other.  Gate B (in
 ``backfill_views``) is what validates the prompt reconstruction, and it uses the
 top-15 form on the final layer, which is the quantity that was actually saved.
+
+For that reason ``candidate_layer_field`` also returns ``final_lens_H_top15``: the final
+layer's residual lens entropy in the cached top-15 renormalised form.  It is the ONLY
+lens output comparable to the saved telemetry and is what any gate must use.  Comparing
+``lens_H`` (full vocabulary) to ``token_entropies`` fails by construction, not by defect.
 """
 
 import numpy as np
@@ -143,7 +148,13 @@ def _lens_stats(z, norm, head, gen_ids, ref_logprobs=None, chunk=LENS_TOKEN_CHUN
     ``z`` is [T, d] — the activation at the generated-token positions.  Returns
     (H, logp_tgt, logp_top1, kl_to_ref) as float32 CPU tensors of length T, plus the
     full log-prob matrix when ``ref_logprobs`` is None (the caller keeps the final
-    layer's as the KL reference and discards it afterwards).
+    layer's as the KL reference and discards it afterwards), plus ``H_top15``.
+
+    ``H`` is the FULL-vocabulary entropy.  ``H_top15`` is the top-15 renormalised form,
+    computed exactly as ``backfill_views`` computes the cached ``token_entropies``
+    (topk(15) of the log-probs, renormalise, -sum p log p, same 1e-12 guards).  The two
+    are different statistics; only the second one is comparable to the saved telemetry,
+    so the gate must use it.  It costs a topk against an unembedding matmul, i.e. nothing.
 
     Chunked over tokens so peak memory stays chunk x V rather than T x V.
     """
@@ -153,6 +164,7 @@ def _lens_stats(z, norm, head, gen_ids, ref_logprobs=None, chunk=LENS_TOKEN_CHUN
     lp_top1 = torch.empty(T, dtype=torch.float32)
     kl = torch.empty(T, dtype=torch.float32) if ref_logprobs is not None else None
     keep = [] if ref_logprobs is None else None
+    H15 = torch.empty(T, dtype=torch.float32)
 
     for s in range(0, T, chunk):
         e = min(s + chunk, T)
@@ -162,6 +174,11 @@ def _lens_stats(z, norm, head, gen_ids, ref_logprobs=None, chunk=LENS_TOKEN_CHUN
         H[s:e] = (-(p * lp).sum(dim=-1)).cpu()
         lp_tgt[s:e] = lp[torch.arange(e - s, device=lp.device), gen_ids[s:e]].cpu()
         lp_top1[s:e] = lp.max(dim=-1).values.cpu()
+        # top-15 renormalised entropy, byte-for-byte the cached token_entropies recipe
+        p15 = lp.topk(min(15, lp.shape[-1]), dim=-1).values.exp()
+        p15 = p15 / (p15.sum(dim=-1, keepdim=True) + 1e-12)
+        H15[s:e] = (-(p15 * torch.log(p15 + 1e-12)).sum(dim=-1)).cpu()
+        del p15
         if ref_logprobs is not None:
             ref = ref_logprobs[s:e].to(lp.device)
             # KL(lens_l || lens_final), the direction DoLa contrasts on.
@@ -169,7 +186,7 @@ def _lens_stats(z, norm, head, gen_ids, ref_logprobs=None, chunk=LENS_TOKEN_CHUN
         else:
             keep.append(lp.cpu())
         del logits, lp, p
-    return H, lp_tgt, lp_top1, kl, (torch.cat(keep) if keep is not None else None)
+    return H, lp_tgt, lp_top1, kl, (torch.cat(keep) if keep is not None else None), H15
 
 
 def candidate_layer_field(mdl, tap, hidden_states, gen_ids, plen, tgen, hid_proj,
@@ -213,7 +230,7 @@ def candidate_layer_field(mdl, tap, hidden_states, gen_ids, plen, tgen, hid_proj
 
     # The lens at the final layer's residual stream is the KL reference for every other
     # readout, so it is computed first and its log-probs held for one pass.
-    _, _, _, _, ref_lp = _lens_stats(resid[L - 1], norm, head, gen_ids, None, chunk)
+    _, _, _, _, ref_lp, final_H15 = _lens_stats(resid[L - 1], norm, head, gen_ids, None, chunk)
 
     for l in range(L):
         acts = {
@@ -223,7 +240,7 @@ def candidate_layer_field(mdl, tap, hidden_states, gen_ids, plen, tgen, hid_proj
         }
         for mi, m in enumerate(MODULES):
             z = acts[m]
-            H, lp_tgt, lp_top1, kl, _ = _lens_stats(z, norm, head, gen_ids, ref_lp, chunk)
+            H, lp_tgt, lp_top1, kl, _, _ = _lens_stats(z, norm, head, gen_ids, ref_lp, chunk)
             field["lens_H"][mi, l] = H.numpy().astype(np.float16)
             field["lens_logp_tgt"][mi, l] = lp_tgt.numpy().astype(np.float16)
             field["lens_logp_top1"][mi, l] = lp_top1.numpy().astype(np.float16)
@@ -246,6 +263,9 @@ def candidate_layer_field(mdl, tap, hidden_states, gen_ids, plen, tgen, hid_proj
     out["resid_norm"] = resid_norm
     out["cov_eigs"] = cov_eigs
     out["hid_proj"] = proj
+    # Final-layer residual lens entropy in the CACHED top-15 renormalised form — the only
+    # lens quantity that is comparable to the saved token_entropies, hence the gate's input.
+    out["final_lens_H_top15"] = final_H15.numpy().astype(np.float32)
     return out
 
 
