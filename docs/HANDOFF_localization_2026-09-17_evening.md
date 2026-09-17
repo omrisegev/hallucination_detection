@@ -93,3 +93,74 @@ The BOCPD residual additionally needs the temporal worktree
 Do not modify CT7. Do not read the historical per-bank participation numbers as quality (some rest on 24
 answers, different populations and models). Do not open a broad sweep: one variant, one discussion, then
 build. Omri wants to be consulted on direction before new builds.
+
+---
+
+# Part B: session close, repository consolidation and open decisions (added late 2026-09-17)
+
+## B1. Repository state
+
+* **master is now the consolidation of everything.** All 27 branches that had a worktree were merged
+  into it, oldest first (`backup/master-20260917-2143` tags the state before). Verification after the
+  merges: no conflict markers in tracked text, 791 `### Step` blocks in HISTORY.md with no branch losing
+  a block, the frozen-candidate modules present and parsing, their hashes matching the manifest.
+* **Conflicts and how they were resolved** (only three): `.gitattributes` and `.gitignore` by union of
+  both rule sets, and both files are now `merge=union` along with HISTORY.md, PROGRESS.md and
+  Research_Directions.md; `docs/experiments/CIW_DEEM_V1.md` took the newer branch text, whose
+  "Application adapters" section explicitly supersedes the older "Task boundary" section;
+  `docs/research_notes/CONDITIONAL_IU_SECOND_MACHINE.md` was edited independently on two branches for a
+  Git LFS checkout and for a git-only checkout, and **both routes were kept**, the second under its own
+  heading.
+* **master is NOT pushed. This is the one open blocker.** GitHub reports the repository is over its Git
+  LFS budget and the pre-receive hook declines the push. Twelve LFS snapshots that existed only locally
+  were removed in their own commit (their history stays on `codex/conditional-iu-followups-v1`,
+  commit 54fc3fa99), which was not enough: master still references the LFS-tracked
+  `dataset_cache/repgrid` caches, about 17 GB. Ordinary branches without LFS content still push fine.
+  **Decision needed from Omri**: raise the LFS budget, or stop tracking `dataset_cache` in master.
+  Until then master exists only locally, merged and verified, with the backup tag above.
+
+## B2. Data locations after the cleanup
+
+Backed up to Drive at `gdrive:hallucination_detection/consolidated_results/local_backup_2026-09-17/`:
+
+* `atlas/` - today's extractions and scores: the digit-free bank extraction, the chosen-token step values
+  and per-step sufficient statistics, the BOCPD input and historical scores, the length-calibrated
+  readouts, the frozen CT7 development scores, and the atlas evaluation and baseline-replay archives.
+* `temporal/` - the token-level telemetry the BOCPD channel is built from
+  (`temporal_context_data_v1`: features.npy, METADATA.json, step_spans.npy, MANIFEST.json) and the frozen
+  predictor and baseline score archives.
+
+Deliberately **not** backed up, and lost with their worktrees: a partial varentropy run (3.7 GB, stopped
+at 576 of 13,769 answers on 2026-09-12) and roughly 4 GB of older RBM-family results whose findings are
+already recorded in tracked JSON and HISTORY blocks now on master.
+
+Worktrees: the main checkout and `.worktrees/a6-s0b` (which holds master) are kept; the other 25 are
+removed. **Deleting a worktree does not delete its branch**, so every lineage remains reachable by name.
+Two worktrees were locked with git's default "initializing" reason, not to protect anything; one
+worktree's RUN_STATE said RUNNING but had not been touched for five days and no process existed.
+
+## B3. The plan agreed for the next session (measurement first, not authorized to run yet)
+
+The live hypothesis after Steps 413-420: we have been testing L-SML outside its domain of definition,
+and the way in is the **representation**, not the fitting method.
+
+Evidence: a step-level answer has a median of 8 steps against 20+ features, so an answer-local covariance
+is not estimable; 8-token windows give a median of 49 rows per answer. Measured effective independent
+views are 1.8 to 2.5 for entropy-transform banks at step level, but 3.4 to 3.9 for the moment bank
+(level / sd / slope), because those are different functionals rather than smoothings of one series.
+Prediction residuals and prefix innovations add at most 0.15, and transforms of one stream add nothing.
+
+Proposed single bounded measurement: build a roughly ten-view bank on 8-token windows for the full
+13,769-answer population (one view per measured evidence family, plus sd and slope moments of two or
+three base streams) and measure the conditional participation ratio at window and step level. Only if it
+clears three does an L-SML versus equal-weight test become meaningful; that test would then use
+answer-local fitting with shrinkage (`spectral_utils/shrinkage_iu.py`), a label-free alpha, and a
+reported distance from the equal-weight solution. At step level shrinkage is forced toward the diagonal,
+i.e. toward averaging, so it only makes sense in the window representation.
+
+## B4. Open decisions waiting for Omri
+
+1. The LFS blocker above, which is what keeps master unpushed.
+2. Whether to run the window-representation measurement in B3, and with which ten views.
+3. Whether CT7 goes to an untouched confirmation now, and on which data, since the cached population is
+   already development data.
