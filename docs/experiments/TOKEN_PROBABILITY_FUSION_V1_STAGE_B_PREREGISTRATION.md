@@ -197,3 +197,50 @@ stated.
 
 Both are reported for all four cells, each beside its own separately computed
 shuffled null. Where the original §6 says "the PR", it now means the P1a quantity.
+
+---
+
+## Amendment 2 — 2026-09-18, §7 was a misreading; corrected before building
+
+§7 above read "per-cell adaptation" as a label-selected oracle ceiling. That is **not**
+the idea. Corrected by Omri, and recorded before anything is built.
+
+**What it actually is.** Fit the covariance and L-SML **separately for each of the nine
+cells**, with no labels at all, using only **cell identity** — which is information we
+genuinely hold at scoring time. That is a method variant with a different access
+contract, not an upper bound. It could be a candidate; an oracle ceiling could not.
+
+**The cheap screen, run before building it.** Compute the conditional correlation
+matrix separately for the nine cells and compare them to each other. If they are
+nearly identical, per-cell fitting has nothing to fit differently and cannot help,
+whatever the SLA table looks like. Only if they differ materially does building the
+variant make sense.
+
+**The datum that already argues against it**, verified here on the roster: the pooled
+token sample is allocated proportionally to token count, so the long-chain subsets are
+*already* the majority of the fit.
+
+| subset | tokens | share of the pooled fit | tokens/answer | steps/answer | tokens/step |
+|---|---|---|---|---|---|
+| GSM8K (4B+8B) | 229,004 | 3.3% | 286 | 5.21 | 55.0 |
+| MATH | 1,047,798 | 15.0% | 524 | 6.50 | 80.5 |
+| OlympiadBench | 1,562,568 | 22.4% | 781 | 8.82 | 88.6 |
+| Omni-MATH | 1,547,214 | 22.2% | 774 | 8.29 | 93.3 |
+| PRMBench | 2,582,195 | 37.1% | 371 | 13.52 | 27.4 |
+| **short (GSM8K+MATH)** | 1,276,802 | **18.3%** | | | |
+| **long (Olympiad+Omni)** | 3,109,782 | **44.6%** | | | |
+
+So the long-chain subsets already receive two and a half times the fitting weight of
+the short ones and still lose 6–8 pp to CT7 there. Giving them a dedicated fit is
+unlikely to be what they lack.
+
+Two structural notes from the same table, relevant to the length axis. "Long chain"
+grows on **both** axes at once — more steps per answer (5.2 → 8.8) *and* more tokens
+per step (55 → 93) — so the Top-10 order-statistic prior, which depends on tokens per
+step, varies by about 1.7× across the ProcessBench subsets. And PRMBench is the
+opposite shape: the most steps per answer (13.5) with by far the shortest steps (27
+tokens), so it is not a larger version of ProcessBench and its 37% share of the fit is
+pulling the pooled standardizer toward a regime no ProcessBench cell occupies.
+
+The per-cell screen therefore runs first, as a correlation-matrix comparison across the
+nine cells. No per-cell variant is built until it says there is something to fit.
