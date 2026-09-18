@@ -3450,3 +3450,44 @@ No partial output is promoted. The next decisions depend on the matched full
 report, followed by corrected historical refits and the token/window sampling
 shortlist. Feature-contract changes must remain a separate, label-free Joint
 diagnostic so that they do not contaminate this frozen comparison.
+
+## Step421-422 block (Claude, 2026-09-18): a new measurement channel, and the gate that was hiding a result
+
+**The three-source ceiling now has an instrument.** Step414 concluded that a bank with more than
+three conditionally independent sources "cannot be built by adding transforms of the output
+distribution of one greedy pass" and named the three things that would change that: internal layer
+states, multiple samples, or a second model. The first now exists for the whole evaluation
+population: 13,769 answers, 36 layers, three taps, four lens quantities per token, plus residual
+geometry (Step421). It is the first channel in the project that is not a function of the output
+distribution. THE FIRST MEASUREMENT ON IT SHOULD BE THE CONDITIONAL PARTICIPATION RATIO ALONG
+DEPTH, NOT A FUSION. Adjacent layers are expected to be near-duplicates exactly as prefix
+innovations were (.87-.96 with their parent family); the open question is how many effective
+dimensions survive, and whether TriLens's claim that the three taps are independently informative
+holds without labels.
+
+**L-SML beats averaging for the first time, and the gate was hiding it.** Under the gate-free
+Mind-the-Gap protocol the token-level arm gives L-SML 35.92 vs equal 32.59, +3.33 pp
+[+1.90, +4.75] on 1,979 paired source groups (Step422). Do not read this as the family being
+vindicated: the arm's absolute level is below CT7's under CT7's own gate, the comparison between
+those two numbers is still not matched, and the leading mechanistic hypothesis is that at token
+level L-SML is doing NOISE WEIGHTING - work that step-level Top-10 aggregation already does for
+free. The decisive test is the same bank fused before versus after the readout. If the gain
+vanishes on aggregation, that explains every previous negative result in this family.
+
+**Length splits the comparison against the literature.** We beat Chen et al.'s best detector on
+GSM8K by 3.7-4.4 points and lose 6.6-12.5 on OlympiadBench and Omni-MATH. Their score is a
+derivative (EMA plus worst-M drops), ours a level. This does not contradict Step414's finding that
+prefix innovations add no dimension: that was measured at STEP level on short step sequences, while
+this is token level on long chains. A token-level derivative channel is therefore a motivated new
+experiment, not a repeat of a closed one.
+
+**Evaluation-contract rule, added from this session's error.** ProcessBench macro-F1 is strongly
+gate-dependent, and two arms with different gates cannot be compared on it. Report the gate-free
+per-subset SLA on erroneous answers beside every macro-F1, and never compare arms whose gates
+differ without first holding the gate fixed. A threshold inherited from another arm is not a
+neutral choice: LOCO-5's 0.33 cost 2.77 pp against its own optimum.
+
+**Open, and never run despite being specified three times.** The matched answer-local versus pooled
+comparison on one fixed bank. No document records a decision to abandon answer-only fitting;
+CLAUDE.md forbade pooling on 2026-09-07 and permitted it conditionally on 2026-09-15, with nothing
+in between. The 20.38% versus 34.29% figures from Step329 are explicitly NOT that comparison.

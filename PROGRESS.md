@@ -1,3 +1,32 @@
+## Steps421-422 (Claude) - white-box field for the full population; the gate was hiding the token-level result, 2026-09-18
+
+**Step421.** White-box per-layer field extracted on AIRCC for ALL 13,769 localization answers
+(ProcessBench x Qwen3-4B/8B, PRMBench x Qwen3-8B), teacher-forced, jobs 259527 + 259529-259537.
+13,769/13,769 rows, gate checked on every row, ZERO failures, 5.5 GB, ~18.4 GPU-hours. Per token
+per layer per tap (attn/mlp/resid, all 36 layers): lens entropy, lens logp of the provided token,
+lens logp of top-1, KL to final; plus resid_norm per token and 32 covariance eigenvalues + a
+256-dim seeded projection per answer. Five pre-flight defects fixed, the load-bearing one being a
+gate that compared FULL-vocabulary lens entropy against the top-15 renormalised cached
+`token_entropies` and would have aborted the run. Attention and hidden states were never captured
+for ANY population in this project - the consumer exists, the input never arrived. Backed up to
+`gdrive:hallucination_detection/cluster_results/`. Handoff: docs/HANDOFF_WHITE_BOX_LAYER_VIEWS.md.
+
+**Step422.** Gate/locator separation of the token-level L-SML arm. Under the Mind-the-Gap protocol
+(per-subset SLA on erroneous answers, no gate; their ProcessBench population is exactly ours):
+**L-SML 35.92 vs equal 32.59, +3.33 pp [+1.90, +4.75], 10,000 paired source-group draws** - the
+first arm in this project where L-SML beats averaging with an interval excluding zero, and the gain
+is bigger gate-free than gated. We beat the paper's best on GSM8K (+4.41/+3.65) and MATH-4B, and
+lose 6.6-12.5 pp on the long-chain subsets, where their derivative readout should beat our level
+readout. LOCO-5's inherited 0.33 threshold costs 2.77 pp (optimum 0.41, label-selected ceiling).
+Protocol deviation found: the fusion is fit on a pooled donor-fold token matrix with no
+answer-local standardization while the readout is argmax within the answer. Handoff:
+docs/HANDOFF_TOKEN_PROBABILITIES.md.
+
+**Documentation finding.** There is no recorded decision to abandon answer-only fitting. CLAUDE.md
+forbade pooling on 2026-09-07 and permitted it conditionally on 2026-09-15 with "prefer answer-only
+when competitive"; nothing in between explains the switch. The matched answer-local versus pooled
+comparison on one fixed bank was specified three times and has never been run.
+
 ## Step412 complete; base quality passes, iid/near coverage failures remain - 2026-09-17
 
 Atlas results/joint_mass_membership_v1 COMPLETE_REVIEWED.25 new full-bank fits.
