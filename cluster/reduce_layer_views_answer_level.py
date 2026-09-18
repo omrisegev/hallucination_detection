@@ -87,9 +87,24 @@ def reduce_row(path: str) -> dict:
 
     resid_lens = lens_h[RESID].astype(np.float64)  # [L, T]
 
-    # Entry gate: lens_H at the final layer IS final_lens_H_fullvocab, so this is an identity
-    # check with a float16 tolerance, not a correlation.
-    identity = float(np.max(np.abs(resid_lens[-1] - final_full.astype(np.float64))))
+    # AXIS-ORDER assertion, NOT a token-alignment gate. Be precise about what this can prove.
+    #
+    # The producer writes  final_lens_H_fullvocab = lens_H[resid, -1].astype(f32)  (see
+    # cluster/run_localization_layer_views.py:99), and f16 -> f32 -> f64 is lossless, so this
+    # difference is EXACTLY 0.0 by construction and can never fail. On its own it is a vacuous
+    # gate of exactly the kind Step 421's pre-flight nearly shipped.
+    #
+    # What it does establish is that our (module index, layer index) convention matches the
+    # producer's. To make that non-vacuous we pair it with a control against the WRONG module:
+    # identity == 0 AND control > 0 together prove the convention. A control of 0 would mean the
+    # module axis is degenerate and the assertion proves nothing.
+    #
+    # Genuine token alignment is evidenced separately, and already: the producer's own gate
+    # compared final_lens_H against the cached top-15 token_entropies at tol_median 2e-2 and
+    # reported 13,769 checked / 0 failed, with a GATE_VACUOUS guard against a silent no-op join.
+    final_full64 = final_full.astype(np.float64)
+    identity = float(np.max(np.abs(resid_lens[-1] - final_full64)))
+    axis_control = float(np.max(np.abs(lens_h[0, -1].astype(np.float64) - final_full64)))
 
     # Depth-decay curve against the TOP-15 final entropy: a different statistic on purpose.
     target = final_top15.astype(np.float64)
@@ -110,6 +125,7 @@ def reduce_row(path: str) -> dict:
         "lens_anchor": np.float32(anchor_src.astype(np.float64).mean()),
         "depth_decay_corr": decay.astype(np.float32),
         "identity_check": np.float32(identity),
+        "axis_control": np.float32(axis_control),
         "n_tokens": np.int32(n_tokens),
         "gate_flag": gate_flag,
     }
@@ -151,7 +167,8 @@ def run(roots: str, joined_path: str, out_dir: str, limit: int | None = None) ->
 
     acc: dict[str, list] = {k: [] for k in
                             ("cov_eigs", "hid_proj", "resid_norm_mean", "lens_anchor",
-                             "depth_decay_corr", "identity_check", "n_tokens")}
+                             "depth_decay_corr", "identity_check", "axis_control",
+                             "n_tokens")}
     row_ids, cells, flags, missing = [], [], [], []
 
     for i, (row_id, cell) in enumerate(rows):
@@ -195,6 +212,12 @@ def run(roots: str, joined_path: str, out_dir: str, limit: int | None = None) ->
 
     digest = hashlib.sha256(open(out_npz, "rb").read()).hexdigest()
     identity = stacked["identity_check"]
+    control = stacked["axis_control"]
+    # Non-vacuity: the assertion only means something if the wrong-module control is far from 0.
+    if not (float(identity.max()) <= 1e-6 and float(control.min()) > 1e-3):
+        raise SystemExit(
+            f"axis-order assertion inconclusive: identity_max={float(identity.max()):.3e} "
+            f"(want ~0), control_min={float(control.min()):.3e} (want >0)")
     manifest = {
         "n_answers": len(row_ids),
         "per_cell": per_cell,
@@ -204,6 +227,8 @@ def run(roots: str, joined_path: str, out_dir: str, limit: int | None = None) ->
         "gate_flag_nonempty": int(sum(1 for f in flags if f)),
         "identity_check_max": float(identity.max()),
         "identity_check_p99": float(np.quantile(identity, 0.99)),
+        "axis_control_min": float(control.min()),
+        "axis_control_median": float(np.median(control)),
         "bytes": os.path.getsize(out_npz),
         "sha256": digest,
         "job_id": os.environ.get("SLURM_JOB_ID"),
