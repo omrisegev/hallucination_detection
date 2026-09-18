@@ -1,4 +1,4 @@
-# Research proposal — the depth channel on the localization population (v3)
+# Research proposal — the depth channel on the localization population (v4)
 
 Claude, 2026-09-18. Branch `claude/whitebox-layer-views-v1`,
 worktree `.worktrees/whitebox-layer-views-v1` (sparse).
@@ -56,7 +56,24 @@ target there — but it is the result this line is trying to overturn, and it go
 reader, not in an appendix.
 
 **Consequence for reporting:** `final_lens_H` / the cached entropy is a **mandatory row in every
-depth table**. A depth arm that does not clear the final layer has not cleared the incumbent.
+depth table**. It is the **incumbent**, not an alignment check. A depth arm that does not clear
+the final layer has not cleared the incumbent.
+
+### 0.2 The declared null hypothesis
+
+Stated now so it is a prediction and not a discovery:
+
+> **H0: the depth field is a noisy reconstruction of the final-layer signal.**
+
+All three historical findings are consistent with H0 and none of them required anything else to
+explain it: depth fusion lost to the final layer alone (0.7253 vs 0.7298); the best white-box
+fusion only tied the best single label-selected atomic view (+0.000426, interval crossing zero);
+and the fused white and gray scores correlated at Spearman 0.8677. A noisy reconstruction of a
+signal will do all three of those things.
+
+Every stage is therefore designed to *reject* H0, not to demonstrate a gain. The depth-decay
+curve (SS5.2) is the most direct measurement of it, and the final-layer row in every table is
+the standing test of it.
 
 ---
 
@@ -311,6 +328,46 @@ is structurally gate-immune, which makes it the right instrument precisely here.
 Reduction runs **on the cluster** (CPU): 5.5 GB of npz, and the within-answer shuffle null must
 be computed at token level before the step reduction, so it cannot come from a reduced artefact.
 
+### Stage 1a — the kill test. Runs before everything else.
+
+One hour, CPU only, no cluster, no fitting. It decides the stage that supposedly holds
+3.20–5.31 points per cell, so nothing else runs first.
+
+**The question, reduced to its cheapest form.** A single binary answer-level question — *does
+this answer contain an error at all* — scored by **AUROC**, per cell and pooled, with a paired
+source-group bootstrap. No threshold, no operating point, no abstention protocol, no macro-F1.
+
+**Population.** All **13,769** answers, because as a pure discrimination diagnostic PRMBench
+answers carry the same binary label. This is deliberately *wider* than the gated protocol in
+Stage 1 proper, which stays ProcessBench-only (6,800 answers) because macro-F1 with abstention
+is ProcessBench's protocol. Two different estimands, two populations, both declared.
+
+**The arm.** The rotation-invariant geometry summaries from `extract_geometry()` — and nothing
+else. No lens channels, no fusion, no learned weights.
+
+**Three mandatory baselines.**
+
+| baseline | why it is there |
+|---|---|
+| `n_steps` alone | one integer, and the most independent channel this project ever measured |
+| **max of the locator score** | the current gates are threshold functions of exactly this, so it is the true incumbent |
+| CT7's gate score | the frozen anchor |
+
+**A precision point on `n_steps`.** Its known **.667** is a *pooled step-level* AUC from the
+13-family table. The kill test asks an **answer-level** question. Those are different estimands,
+so .667 is **not** transferable and the answer-level number must be measured, not assumed.
+Writing .667 into an answer-level table would be the section 1 tag error in a new costume.
+
+**Pre-declared kill rule, fixed before the first number is computed:**
+
+> If the invariant geometry does not beat **both** `n_steps` **and** the locator maximum on
+> pooled AUROC, with a source-group interval excluding zero, **the line ends for the gate as
+> well as for the locator**, and that is written up as the result.
+
+This is the strongest available test of H0 (section 0.2) at the lowest available cost: a noisy
+reconstruction of the final-layer signal should not beat the locator maximum at answer level,
+because the locator maximum *is* that signal.
+
 ### Stage 1 — **the gate** (was Stage 3; now first)
 
 Highest-prior prediction of the line, and the largest measured deficit.
@@ -318,9 +375,16 @@ Highest-prior prediction of the line, and the largest measured deficit.
 - **Population.** The gate is **ProcessBench-only**: 6,800 answers over 8 cells, 4,442 erroneous
   / 2,358 clean. PRMBench does not score this stage (it scores the PR measurement and the
   locator). Stated because a "9-cell gate result" would be meaningless.
-- **Input — rotation-invariant summaries only.** The prior lineage explicitly ruled the geometry
-  family inadmissible until its pooling semantics were verified, and allowed *only*
-  rotation-invariant summaries. That contract is already implemented in
+- **Input — rotation-invariant summaries only, and this is a correctness requirement, not
+  hygiene.** `hid_proj` is a token-mean under a **fixed seeded Gaussian projection**. Its
+  coordinates are therefore **basis-dependent and individually meaningless**: coordinate 7 of
+  layer 12 names nothing: it is an arbitrary direction fixed by `HID_PROJ_SEED = 20260811`.
+  Feeding raw `hid_proj` columns into a participation ratio or a fusion does not produce noisy
+  numbers, it produces **meaningless** ones, and a participation ratio over them would measure
+  the spectrum of a random projection rather than anything about the model. The prior lineage
+  accordingly declared the geometry family inadmissible until its pooling semantics were
+  verified, and allowed **only** rotation-invariant summaries. That contract is already
+  implemented in
   `spectral_utils/whitebox_layer_fusion.py :: extract_geometry()`: `hid_proj` enters **only**
   through cosines and normalized distances to the final and adjacent layer, `resid_norm` only
   through log-ratios, `cov_eigs` only through top-share, negated `spectral_effective_rank` and
@@ -473,9 +537,16 @@ time.
 | stage | success | failure | failure still publishable as |
 |---|---|---|---|
 | 0 | last-layer correlation ≈ 1.0 | it is not | an alignment bug caught before the science |
-| 1 (gate) | clean accuracy up at equal-or-better error detection, length-controlled, locator fixed | no gain | evidence the gate's deficit is not representational |
-| 2 (PR) | added count separates from the shuffle null **and** from the 2.7–2.9 level | it does not | a measured ceiling result: depth is linearly redundant at step level |
-| 3 (locator) | gain on **both** benchmarks, gate fixed, paired interval excluding zero | no gain, or gain explained by the auxiliary score alone, or collapsing in the §5.1 before/after contrast | a negative with a mechanism |
+| **1a (kill test)** | invariant geometry beats **both** `n_steps` and the locator maximum on pooled answer-level AUROC, source-group interval excluding zero | it does not | **H0 confirmed cheaply — the line ends, for the gate as well as the locator** |
+| 1 (gate) | clean accuracy up, error detection equal-or-better, **and exact localizations net-positive at a matched opened fraction**, length-controlled, locator fixed | no gain, or a loss on the exact-localization ledger | evidence the gate's deficit is not representational |
+| 2 (PR) | added count separates from the shuffle null **and** from the self-computed 11-family baseline | it does not | a measured ceiling result: depth is linearly redundant at step level |
+| 3 (locator) | gain on **both** benchmarks, gate fixed, paired interval excluding zero, **and surviving both leave-subset-out and leave-model-out** | no gain, gain explained by the auxiliary score alone, collapsing in the §5.1 before/after contrast, or reversing across the two holdout axes | a negative with a mechanism |
+
+**Every depth claim is reported under leave-subset-out and leave-model-out separately, plus both
+fixed-axis controls.** This is not optional caution: it is the failure mode that has already
+happened twice here, and the 8 ProcessBench cells (4 subsets × 2 models) are the first fully
+crossed roster this project has had, so it is the first time the two axes can actually be held
+apart. **A gain that reverses between the axes is not a gain.**
 
 No promotion on development data. Frozen selection rule and endpoints precede any untouched
 confirmation; the full cached population remains **development** evidence.
@@ -516,14 +587,104 @@ channel or the chosen-token statistics.
 
 ## 11. What is being approved
 
-1. Stage 0, including the §5.2 alignment control as a hard entry gate.
-2. The §4 axis contract, with answer-only versus pooled left explicitly open.
-3. **Stage 1 = the gate, first.**
-4. Stage 2 as specified: token-varying sub-channel only for the 2.46 comparison, with/without
-   pair reported, virtual-level estimator, both reference levels, no authority over the line.
-5. Stage 3 deferred until Stage 2's geometry exists, then proposed as one variant.
-6. The §5.1 before/after contrast pre-registered now.
-7. The §7 reporting contract.
+1. **Stage 1a — the kill test — runs first, before anything else.** One hour, CPU only, with the
+   pre-declared kill rule in §6 and H0 in §0.2. Everything below is conditional on it.
+2. Stage 0, including the §5.2 alignment control as a hard entry gate.
+3. The §4 axis contract, with answer-only versus pooled left explicitly open.
+4. Stage 1 = the gate, through `extract_geometry()`'s rotation-invariant summaries only, with the
+   exact-localization ledger at a matched opened fraction as the deciding endpoint.
+5. Stage 2 as specified: token-varying sub-channel only, with/without pair reported,
+   virtual-level estimator, **a self-computed 11-family baseline rather than a regenerated
+   BOCPD**, and no authority over the line.
+6. Stage 3 deferred until Stage 2's geometry exists, then proposed as one variant.
+7. The §5.1 before/after contrast pre-registered now.
+8. The §7 reporting contract, and the two-axis holdout requirement in §8.
+
+**H0 is declared, not discovered:** the depth field is a noisy reconstruction of the final-layer
+signal. Every stage is built to reject it, and Stage 1a is the cheapest available attempt.
+
+---
+
+## 12. Asset inventory and Stage-0 facts (verified 2026-09-18)
+
+An asset survey ran across all registered worktrees; every claim below was re-verified directly.
+
+*This section was lost once.* The command meant to write it contained a `$(cat <<EOF)` nested
+inside an outer heredoc; bash parses the whole string before executing any of it, so the parse
+error meant **nothing in that command ran** — not the append, not the commit. An earlier summary
+described this inventory as recorded when it was not on disk. Operational rule adopted: **never
+nest a command substitution containing a heredoc inside another heredoc** — write the file with
+an editor tool, and pass commit messages via `-F <file>`.
+
+### 12.1 Worktree map — corrected
+
+`.worktrees/claude-feature-bank-token-lsml-v1` **no longer exists**; the token line's assets are
+in **`.worktrees/token-probability-fusion-v1`**.
+
+| tree | short name | holds |
+|---|---|---|
+| repo root | — | `gate_isolation_token_lsml_v1.py`, layer-lens driver |
+| `.worktrees/a6-s0b` (master) | **A6** | broad-50 bank, the PR estimator, bootstraps, CT7 code |
+| `.worktrees/token-probability-fusion-v1` | **TPF** | CT7 frozen scores, token feature bank, OOF scores |
+| `.worktrees/whitebox-layer-views-v1` | **WLV** | this line; newest `cluster/layer_lens.py` |
+
+### 12.2 The anchor's estimator survived; the doc describing it is stale
+
+`EVIDENCE_DOMAIN_INDEPENDENCE_V1.md` calls its code "scratchpad (`family_independence.py`,
+`four_domain_test.py`)". Those filenames exist nowhere, but the code **was committed** in
+`94e7bd4b9` as **`A6/scripts/diagnostics/evidence_domain_independence_v1.py`** — carrying the
+verbatim 13-family dict, the participation ratio, the within-label-class centring loop, and the
+virtual construction (orient by sign, z-score, mean, z-score again). Stage 2 reuses it rather
+than reimplementing.
+
+### 12.3 Missing inputs — and why this is **not** a blocker
+
+Both diagnostics scripts hardcode paths into `.worktrees/fusion-independence-atlas-v1`, deleted
+in the sparse-checkout incident of 2026-09-17. Missing locally:
+
+| missing | supplies | status |
+|---|---|---|
+| `results/digitfree_broad50_v1/extracted/*.npz` | 9 of the 13 families | **a run, not a blocker** — `A6/scripts/run_digitfree_broad50_v1.py :: extract()`; every raw telemetry pickle is present locally |
+| `joint_feature_selection_bocpd_v1/INPUTS.npz` | `bocpd`, `noreset` (2 of 13) | **do not regenerate** — see below |
+
+**Correction to the previous framing.** An earlier draft said computing the ratio on the eleven
+available families "would violate the tag rule". That is wrong, and it confuses a documentation
+constant with a dependency. The tag rule forbids **comparing two measurements whose tags
+differ**; it does not require reproducing a particular historical number. The correct response
+to a missing input is to **compute the eleven-family baseline myself, on exactly the same
+columns**, and compare `11` against `11 + k` *inside this experiment*. That comparison is
+tag-matched by construction and does not need the historical constant at all.
+
+It also comes with a free bonus: if the self-computed eleven-family baseline lands in the
+**2.4–2.9** region, that is independent validation that the pipeline was reimplemented
+correctly; if it lands elsewhere, there is a bug, and it surfaces **before** the science rather
+than after. This converts an expensive dependency — BOCPD over 145,597 steps — into a sanity
+check.
+
+### 12.4 Assets present and directly reusable
+
+| asset | location | note |
+|---|---|---|
+| `gate_isolation_token_lsml_v1.py` | root, TPF, **WLV** | `sla_gate_free` **is** the Mind-the-Gap measurement |
+| its input contract | — | reads **`OOF_PATH`** (env var): npz with `l_sml`, `equal` `[145597]` per step, `gate_score`, `gate_open` `[13769]` |
+| `CT7_DEV_SCORES.npz` | **TPF only** | `step_scores [145597]`, `gate [13769]` — CT7 needs **no** re-derivation |
+| paired source-group bootstrap | `A6/scripts/run_digitfree20_ladder_v1.py:250` | the canonical arm-vs-arm one the CT7 work uses |
+| top-10 token-mean readout | `A6/spectral_utils/chosen_token_calibration.py:72` | `step_top_readout(x, spans, k=10)`, cleanest of six |
+| `extract_geometry()` | `spectral_utils/whitebox_layer_fusion.py:1007` | the admissible rotation-invariant contract |
+| `row_id` to spans to labels | `TPF/scripts/run_claude_feature_bank_v1.py` | spans come from the raw pickle's `step_token_spans`, **not** from `JOINED` |
+
+**1,979 groups** = distinct `group_id` over ProcessBench **erroneous** answers (13,769 answers
+give 3,483 groups; PB 6,800 give 2,842; PB-error 4,442 give 1,979).
+
+### 12.5 Two adapters this line must write
+
+1. **No existing helper reads `rows/<row_id>.npz`.** The existing white-box reduction stack
+   consumes the older per-cell sidecar format and defaults to `expected_n_layers=32`,
+   `covariance_rank=16`, `hidden_size=4096`, whereas this capture is **L=36, `cov_eigs_r=32`**.
+   The `extract_geometry()` *contract* transfers directly; only the loader needs writing.
+2. The Stage-2 reduction runs **on the cluster**, because the shuffle null is defined at token
+   level and cannot be computed from an already-reduced artefact. **Stage 1a needs neither** —
+   it reads only the answer-level arrays.
 
 ---
 
