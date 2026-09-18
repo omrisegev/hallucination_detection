@@ -1,4 +1,4 @@
-# Calibrating the step readout — the first positive result in this line
+# Calibrating the step readout — mechanism confirmed, gain not established
 
 Runs `scripts/diagnostics/readout_calibration_c1_v1.py` (C1, with L-SML) and
 `readout_calibration_v1.py` (CT7-style, fit-free). Outputs
