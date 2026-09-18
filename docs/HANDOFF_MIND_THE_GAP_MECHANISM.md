@@ -189,3 +189,67 @@ The prediction worth writing before the run: if the gain lives in the **pairing*
 missing cell beats both single-axis failures *and* shows a ratio-to-chance that rises
 with chain length the way theirs does. If it does not, the pairing hypothesis is wrong
 and this line is finished.
+
+---
+
+## 8. AMENDMENT, 2026-09-19 — measurements that weaken §1's argument, and close CUSUM
+
+Written after §1–§7, before any of it was acted on. Omri proposed detecting the first
+error by running **CUSUM or BOCPD over the sequence of step scores** instead of taking an
+argmax. Testing that idea produced three measurements that change what this handoff
+should say.
+
+### The step-score signal is an isolated impulse, not a level shift
+
+Fused step score by offset from the true first error, answer-standardized SD:
+
+| subset | −3 | −2 | −1 | **0** | +1 | +2 | +3 |
+|---|---|---|---|---|---|---|---|
+| GSM8K | −0.021 | 0.045 | −0.074 | **0.464** | −0.078 | −0.206 | −0.321 |
+| OlympiadBench | 0.012 | 0.014 | 0.083 | **0.413** | −0.021 | −0.081 | −0.201 |
+| Omni-MATH | −0.019 | 0.009 | 0.024 | **0.399** | 0.035 | −0.031 | −0.146 |
+
+And the mean **after** the error is *below* the mean **before** it, by −0.19 to −0.35 SD in
+every subset. The error step is a local maximum in only 52.7–57.1% of answers.
+
+So there is no contaminated-reasoning plateau. The model becomes **more** confident after
+it errs, not less.
+
+### What that does to the sequential-detector idea
+
+- **CUSUM is closed by this.** It exists to detect a sustained shift in mean. Against a
+  one-step impulse there is nothing to accumulate, and accumulation only adds lag.
+- **BOCPD is better matched but aims one step off.** There *is* a real distribution
+  change — the post-error decline — but its boundary is the 0→1 transition, not the error
+  step. That is precisely the convention the project's own audit warns about
+  (`docs/reviews/bocpd_boundary_audit_2026-09-07.md`: distinguish a boundary before the
+  current observation from one after it). If BOCPD is tried, the off-by-one must be
+  handled deliberately and declared, not discovered.
+- **Exploiting the shape directly also fails.** The obvious label-free way to use the
+  post-error decline is to score a step by `v[t] − mean(v[t+1:])`. Piloted: 29.77 mean
+  against argmax's 34.95. `v − next` 25.96, `v − mean(before)` 33.63,
+  `0.5v − 0.5·mean(after)` 33.06. **Every shape rule loses.** The decline is a
+  population-average property; within a single answer it is smaller than the noise, so
+  subtracting an estimate of it costs more variance than it buys.
+
+### The consequence for §1
+
+**§1's argument is weaker than it reads.** For an isolated impulse in noise, argmax is
+close to the matched-filter optimum — so "the decision rule is the untouched axis" is not
+the strong claim §1 makes it. If the shape is an impulse, losing on long chains is just
+impulse detection against more candidates, and no alternative decision rule over *these*
+step scores repairs it. Three separate attempts now agree: first-crossing on the level
+series, all five shape rules, and the sequential-detector family.
+
+**What survives:** the missing 2×2 cell is still worth running, but the hypothesis moves
+from the decision rule to the **statistic**. Their evidence series is the derivative of
+renormalized top-20 entropy at *token* level; ours is a top-K level readout. If their
+advantage on long chains is real, it most likely lives in the token-level series having
+structure ours lacks — which their first-crossing rule can then exploit. Build their
+statistic first and look at its shape around the true error **before** choosing a readout
+for it. If that series also shows an isolated impulse, expect argmax to be near-optimal
+there too, and this line is finished.
+
+**Concretely, the first thing to run is now a diagnostic, not an arm:** rebuild their
+evidence series, and plot its profile around the true error step exactly as above. That
+one figure decides whether anything downstream is worth building.
