@@ -109,3 +109,28 @@ Two follow-ups this suggests: **freeze `K` chosen by split-half reproducibility 
 it with paired intervals**, and check whether the criterion also picks a **per-subset K**
 correctly — cell identity is available at scoring time, and the long subsets clearly peak
 wider than GSM8K.
+
+---
+
+## Correction — 2026-09-18, after the paired intervals were computed
+
+This document called the readout result "the first positive result in this line."
+**That was too strong, and the intervals say so.** They were listed above as a missing
+next step; they have now been run, on the same paired source-group bootstrap used
+everywhere else in this line:
+
+| contrast (C1, gate-free mean SLA) | difference | 95% CI | verdict |
+|---|---|---|---|
+| K=20 − K=10 | +1.09 pp | [−0.01, +2.23] | **includes zero** |
+| K=40 − K=10 | +0.93 pp | [−0.56, +2.43] | includes zero |
+
+So **no readout width is established as better than the K=10 we already use.** The
+point estimates still favour a wider readout, and the per-subset pattern — the gain
+landing on OlympiadBench and Omni-MATH — is still the right shape. But a point estimate
+on a grid, with the maximum selected from that same grid, is exactly the situation where
+an interval is required before the word "improvement" is used, and this one does not
+clear it.
+
+What survives unchanged: the falsification test on criterion 1 (reproducibility is not
+monotone, it peaks at K=40 and falls), the failure of the quantile family, and the
+failure of criterion 3 as predicted. What does not survive: the claim of a gain.
