@@ -123,9 +123,30 @@ def roster(joined_path: str) -> list[tuple[str, str]]:
     return [(r["row_id"], r["cell"]) for r in records]
 
 
-def run(roots: str, joined_path: str, out_dir: str) -> int:
+def stratified_pilot(rows: list[tuple[str, str]], limit: int) -> list[tuple[str, str]]:
+    """Take roughly ``limit`` rows spread over all nine cells.
+
+    The roster is grouped by cell, so ``rows[:limit]`` would be pb_gsm8k_q4 only and would never
+    exercise the PRMBench naming path or the 8B tree - i.e. it would not test the join at all.
+    """
+    per_cell = max(1, -(-limit // len(EXPECTED_COUNTS)))
+    seen: dict[str, int] = {}
+    picked = []
+    for row_id, cell in rows:
+        if seen.get(cell, 0) >= per_cell:
+            continue
+        seen[cell] = seen.get(cell, 0) + 1
+        picked.append((row_id, cell))
+    return picked
+
+
+def run(roots: str, joined_path: str, out_dir: str, limit: int | None = None) -> int:
     os.makedirs(out_dir, exist_ok=True)
     rows = roster(joined_path)
+    if limit:
+        rows = stratified_pilot(rows, limit)
+        print(f"[reduce] PILOT: {len(rows)} rows over "
+              f"{len(set(c for _, c in rows))} cells", flush=True)
     started = time.time()
 
     acc: dict[str, list] = {k: [] for k in
@@ -149,17 +170,24 @@ def run(roots: str, joined_path: str, out_dir: str) -> int:
         if (i + 1) % 1000 == 0:
             print(f"[reduce] {i + 1}/{len(rows)}  {time.time() - started:.0f}s", flush=True)
 
+    # A missing row is fatal in both modes: the pilot exists to prove the join, so a join miss
+    # there is exactly the failure it is looking for.
     if missing:
         raise SystemExit(f"{len(missing)} rows missing, first 5: {missing[:5]}")
-    if len(row_ids) != N_ANSWERS:
-        raise SystemExit(f"{len(row_ids)} rows reduced, expected {N_ANSWERS}")
 
     stacked = {key: np.stack(values) for key, values in acc.items()}
     per_cell = {cell: int(sum(1 for c in cells if c == cell)) for cell in EXPECTED_COUNTS}
-    if per_cell != EXPECTED_COUNTS:
-        raise SystemExit(f"per-cell counts drifted: {per_cell}")
+    if limit:
+        if len(set(cells)) != len(EXPECTED_COUNTS):
+            raise SystemExit(f"pilot touched {len(set(cells))} cells, expected all "
+                             f"{len(EXPECTED_COUNTS)}")
+    else:
+        if len(row_ids) != N_ANSWERS:
+            raise SystemExit(f"{len(row_ids)} rows reduced, expected {N_ANSWERS}")
+        if per_cell != EXPECTED_COUNTS:
+            raise SystemExit(f"per-cell counts drifted: {per_cell}")
 
-    out_npz = os.path.join(out_dir, "ANSWER_LEVEL.npz")
+    out_npz = os.path.join(out_dir, "ANSWER_LEVEL_PILOT.npz" if limit else "ANSWER_LEVEL.npz")
     tmp = out_npz + ".tmp.npz"
     np.savez_compressed(tmp, row_id=np.array(row_ids), cell=np.array(cells),
                         gate_flag=np.array(flags), **stacked)
@@ -181,9 +209,10 @@ def run(roots: str, joined_path: str, out_dir: str) -> int:
         "job_id": os.environ.get("SLURM_JOB_ID"),
         "git_sha": os.environ.get("GIT_SHA"),
         "seconds": round(time.time() - started, 1),
-        "status": "COMPLETE",
+        "status": "PILOT" if limit else "COMPLETE",
     }
-    with open(os.path.join(out_dir, "MANIFEST.json"), "w", encoding="utf-8") as handle:
+    name = "MANIFEST_PILOT.json" if limit else "MANIFEST.json"
+    with open(os.path.join(out_dir, name), "w", encoding="utf-8") as handle:
         json.dump(manifest, handle, indent=1)
     print(json.dumps(manifest, indent=1), flush=True)
     return 0
@@ -266,13 +295,15 @@ def main() -> int:
     parser.add_argument("--joined",
                         default="results/localization_full_benchmark_v3/evaluation/JOINED.json")
     parser.add_argument("--out", default=None)
+    parser.add_argument("--limit", type=int, default=None,
+                        help="stratified pilot over all nine cells; skips the full-count asserts")
     parser.add_argument("--smoke", action="store_true")
     args = parser.parse_args()
     if args.smoke:
         return smoke()
     if not args.out:
         parser.error("--out is required unless --smoke")
-    return run(args.roots, args.joined, args.out)
+    return run(args.roots, args.joined, args.out, args.limit)
 
 
 if __name__ == "__main__":
