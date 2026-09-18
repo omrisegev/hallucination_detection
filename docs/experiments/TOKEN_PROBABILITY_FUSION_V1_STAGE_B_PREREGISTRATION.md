@@ -147,3 +147,53 @@ It is not a candidate and may not be reported as a score.
 - Gate-free SLA is primary. Any macro-F1 is reported with its gate named.
 - CT7 stays frozen and appears only as the Stage A comparator.
 - Development-only throughout; the cached population has been inspected before.
+
+---
+
+## Amendment 1 — 2026-09-18, before any Stage B cell was run
+
+**P1 as written is not evaluable, because the two numbers it compares are different
+statistics.** Found while reading the fitter, not while looking at a result.
+
+The 9.69 is computed in `run_claude_feature_bank_v1.py` as
+
+    effective_rank = 1 / sum( (w_i / sum_j |w_j|)^2 )
+
+over the fitted **weight vector**. It is the inverse participation ratio of the
+weights: 11 when every channel carries equal weight, 1 when a single channel carries
+all of it. Verified against the stored fit: the formula reproduces 9.687417330565765
+exactly. So 9.69 out of a maximum of 11 says **L-SML's weights came back close to
+uniform**. It says nothing whatever about how many independent directions the views
+span.
+
+The project's 1.80 / 2.46 / 2.83 are a different quantity entirely — eigenvalues of a
+within-label-centred correlation matrix of the **views**,
+`(sum lambda)^2 / sum(lambda^2)`, a redundancy measure. The handoff called these "three
+differences at once" (conditional vs marginal, answer-standardized vs not, step vs
+token); that understates it. They are not the same statistic measured under different
+conditions. "The PR falls from 9.69 to 2-3" therefore cannot be true or false as
+stated.
+
+**Two consequences worth recording.**
+
+1. The IPR is **sign-blind**: it is a function of `|w|`. A channel that L-SML flips to
+   a negative weight — `chosen_surprisal` at −0.234 — raises the count towards
+   "uniform" just as an equally large positive weight would, while changing the fused
+   score in the opposite direction. So the one number that was read as "the fusion is
+   spread over many channels" is structurally unable to see the single most
+   interesting thing the fit did.
+2. Near-uniform weights that nonetheless beat equal weighting by +3.32 pp sharpens
+   the Stage A result rather than softening it: the gain is carried by a small number
+   of sign and magnitude deviations from uniform, not by a broad reweighting.
+
+**P1 is replaced by P1a and P1b**, both still recorded before any cell is run:
+
+- **P1a** (the redundancy question, comparable to 1.80 / 2.46 / 2.83): the conditional
+  eigenvalue participation ratio of the eleven views is **2-4** in every one of the
+  four cells, and **lower** in the answer-local cells than in the pooled ones.
+- **P1b** (the weight question, comparable to 9.69): the weight IPR **stays high**,
+  above 8, in all four cells, because it is near its ceiling of 11 and is not what the
+  standardization axis acts on.
+
+Both are reported for all four cells, each beside its own separately computed
+shuffled null. Where the original §6 says "the PR", it now means the P1a quantity.
