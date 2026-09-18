@@ -17663,3 +17663,262 @@ late ones (PB last third: VE_0 0.296 vs H_∞ 0.264; PRMB last-third within-AUC 
 VE_0.75 PB hit sets: 828 both / 342 only VE_0 / 407 only VE_0.75 (Jaccard 0.53). The "union" figures (35.5 % for the
 pair, 41.0 % for five views) are label-using oracle ceilings (any view hits), not a fusion result; no weights were
 learned. Files: `results/renyi_alpha_sweep_v1/COMPLEMENTARITY*.{md,json,png}`; scripts `renyi_sweep_complementarity*.py`.
+
+### Step 399 [Codex] - One full digit-free broad50 / block-balanced Joint test, 2026-09-17
+
+**What:** User authorized one experiment on a broad fixed bank. Extracted 50 non-digit streams on all 13,769 answers / 145,597 steps, uniform per-stream Top10. Compared Continuous L-SML, ordinary hierarchical Joint, and Joint with equal total covariance-block weights; H1/equal and original4/innovation5 controls. Five source-fold pooled fits are hybrid, not answer-only. Joint arms share source-fold-deletion consensus groups, K=3 or4; this bounded discovery is not exhaustive LOAO. Frozen non-digit tail15 Top10-mean gate, within-cell midrank>=.33; H1 sign anchor. PRMB within-answer AUC is ungated.
+
+**Result:** PB%/within: Continuous37.7632/.747926; Joint38.0485/.746070; balanced37.9903/.746046; equal37.8963/.748902; H1 36.3476/.730111. Historical original4 37.4749/.753436 and innovation5 39.8314/.760293 replay. Balanced-minus-Joint -.0581pp (97.5% CI[-.2072,+.0585]); within -.0000238 (CI[-.0002287,+.0001721]); 10,000 source-group draws. No balanced-loss improvement established. All fits valid, no fallback or missing entries. Joint weight cosines>.9998; K3 in three folds triggers existing outer averaging guard, K4 in two. No promotion or subsequent sweep.
+
+**Validation:** Six numerical checks; independent full score replay (maxdifference0), sklearn within-AUC, independent PB metric and historical-anchor replay PASS. Raw gate formula independently matches400 source-cell answers to2.3e-17. Preserved explicit correction: frozen protocol called gate_raw prominence, but the actual frozen artifact is Top10 mean with NO answer-mean subtraction. Results unchanged. One NPZ caching performance fix occurred before fitting; original manifest retained. No new model inference.
+
+**Artifacts:** `.worktrees/fusion-independence-atlas-v1/results/digitfree_broad50_v1/` (relative `results/digitfree_broad50_v1/` in that worktree): REPORT.md, RESULTS.json, AUDIT.json, GATE_DEFINITION.md, fold weights/diagnostics, source-hashed feature cache and OOF scores. New helpers `digitfree_broad50.py`, `joint_block_balanced.py`; driver/audit and four test functions. This is full development evidence, not untouched confirmation.
+
+
+### Step 400 [Codex] - Gate/locator attribution, integrated Joint inclusion and BOCPD, 2026-09-17
+
+**Authorization:** User requested identifying gate versus locator failures, changing/removing features or readouts, integrating selection inside Joint, and adding BOCPD. Full matched development only; no digits or new inference.
+
+**Diagnosis:** Joint1193 error hits,293 gate-only misses,2428 locator-only,528 both;935 false alarms among2358 clean answers. Shared gate across methods:200 gains/275 losses against innovation5 explain the75-hit deficit entirely through locator decisions. Saved47,600-row ledger and per-cell/oracle diagnostics; oracle scores are not deployable.
+
+**Method:** Alternate checked Joint refit and conditional-information feature removal, retaining global and local factor information. Fixed95% initial-information stopping rule, no label-based feature choice. Source-fold pooled hybrid fits, frozen whole-answer Tail15 Top10-mean gate. Add pure cached BOCPD residual, subtracting its original innovation5 baseline; matched noreset control. Full bank/control comparisons, plus all fixed counts8..50 from saved B50 paths.
+
+**Results PB%/within:** AutoJoint38.2737/.748011 vs full38.0485/.746070. BOCPD auto38.5998/.749097 vs full38.3554/.747238,33-36 retained; BOCPD retained5/5. Within selection gains positive at99.375%CI; PB intervals include0. Equal-selected BOCPD38.8563/.750717 is higher at the point level. Historical non-digit BOCPD+innovation5 replay40.3676/.763223. Diagnostic count maximum38.4141 at37; maxwithin.748174 at34; none above40. Count maxima are development-selected, not the automatic method.
+
+**Readout follow-up:** Matched Top8 changes the original50 features; cached BOCPD retains Top10. AutoJoint+BOCPD36.8625/.752522, versus Top10 PB-1.7373pp CI98.75%[-2.9212,-.5202], within+.003425[.000804,.006157]. Tradeoff, no successor.
+
+**Verification:** All38 new metric bundles independently replayed by pair-comparison AUC and PB counts; all fold weight maps exact, no missing/fallback answers. Five numerical/integration fixtures pass including actual Joint exact-copy removal and exact early-stop equivalence. All input/implementation manifests retained; prefit roundoff alignment and unnecessary diagnostic-depth optimizations logged. No general robustness guarantee from one synthetic test.
+
+**Status:** Initial stages COMPLETE_REVIEWED, overall user goal ACTIVE. Remaining: controlled full-data redundancy/noise additions and isolate group/global readout on fixed selected banks. Do not automatically repeat count sweeps. Combined Hebrew report in atlas worktree docs/reviews/joint_selection_bocpd_analysis_2026-09-17.md. Results: broad50_gate_locator_audit_v1, joint_feature_selection_bocpd_v1, broad50_top8_v1.
+
+## Step401 - full Joint redundancy/noise stress - 2026-09-17
+
+COMPLETE_REVIEWED in atlas worktree, results/joint_full_redundancy_stress_v1.
+All13769 answers; append15 exact probability copies or15 independent noise
+channels to B51 BOCPD Top10; rediscover groups, unchanged95% Joint selector,
+fixed source folds/gate. AutoJoint baseline38.5998/.749097; copies37.0862/.746547;
+noise36.9844/.739382 (H1 fallback2730 answers, native11039). Copies PB loss
+1.5136pp CI99.375[-2.7998,-.2308]; noise within loss.009715 CI[-.013552,-.006168].
+Neither stress preserves both endpoints under predeclared practical margins.
+Copies retain20-23 features, zero duplicate pairs, but2418 peaks/839 decisions
+change. Noise retains8-15 noise channels in valid folds; fold2 initial fit has
+zero converged starts (reproduced), although global local-identification passes.
+In noise fold0 a pure-noise group gets59.1% absolute selected-weight mass;
+this diagnoses a possible group-normalization problem, not causal proof.
+Continuous L-SML remains native13769; copies37.5348/.745811, noise37.6288/.750537.
+Independent17-metric and weight replay PASS, maxerror0; perturbation tests PASS.
+Hebrew review: docs/reviews/joint_redundancy_stress_2026-09-17.md.
+Broader goal ACTIVE; current selector is not robust. Next isolate fixed-bank
+readout and model weak/noise groups; preserve initial-fit failures separately.
+No process remains running at this checkpoint. No new inference or digit input.
+
+
+## Step402 - fixed-bank Joint model-inverse readout - 2026-09-17
+
+COMPLETE_REVIEWED, results/joint_fixed_readout_v1 in atlas worktree. Reconstructed
+28 accepted full/selected Joint fits with original seeds; hierarchical weights
+replay frozen results. Changed ONLY score construction to existing native model
+inverse (lambda0, condition1000). Same baseBOCPD51/copies66/noise66, source folds,
+gate, selected supports and failures. All13769 answers, no digit inputs.
+Base auto37.3178/.744936 vs historical38.5998/.749097; copies36.6840/.739352;
+noise37.7149/.744893, native11039 with original2730 H1 fallback answers.
+Base within regresses CI99.5[-.006795,-.001331]; noise within improves vs old
+CI[.002412,.008943]. Suppresses noise influence but harms original quality;
+do not promote.23 metric bundles and independent covariance/eigensolve/weight
+replay PASS; score maxerror0, weight2.73e-14. Two mechanism tests PASS.
+Saved all accepted global/group loadings and covariance models for later reuse.
+Broader goal remains active. No new inference or correctness-based tuning.
+
+## Step403 - model-derived outer group reliability - 2026-09-17
+
+COMPLETE_REVIEWED, results/joint_group_reliability_v1. Reused Step402 frozen fits;
+retained each virtual score t_g=X_g v_g, replaced only outer weighting with
+(||v_g||^2 / Var_model(t_g))*t_g. Shared-factor reliability, not certified error
+reliability. No optimizer rerun, new group/support or hyperparameter sweep.
+Auto base38.7300/.750078, copies37.6801/.748921, noise38.0338/.745776.
+Noise versus old auto improves both: PB+1.0494pp CI99.5[.0232,2.0138], within
++.006394 CI[.003810,.009205]. Copies within improves; base small improvements
+are uncertain. Noise absolute weight mass .74-1.40% vs59.1% in old fold0.
+Robustness still FAIL: copies lose1.0499pp versus new base; noise loses.004302
+within and preserves2730 H1 fallback answers (native11039/13769).
+Historical innovation5+BOCPD40.3676/.763223 remains higher; no new over40 method.
+Independent29-metric/weight replay PASS, score maxerror0, weight6.94e-17;
+two group-level mechanism tests PASS. Same gate, full benchmark, hybrid scope.
+Combined Hebrew review: docs/reviews/joint_readout_interventions_2026-09-17.md.
+Next: integrated noise-only membership, replication invariance and valid
+structure selection when initial fit fails. Do not count readout improvements
+as solving those requirements. Goal ACTIVE; no process running at checkpoint.
+
+
+## Step404 - sparse Joint loading membership and exact aliases - 2026-09-17
+
+COMPLETE_REVIEWED results/joint_sparse_membership_v1. Exact training aliases share
+model coordinates. Provisional Joint objective adds L1 on global/local loadings
+with diagonal variance constraints; both zero means noise-only membership.
+Penalty31 source-block sign randomizations,95th percentile, no correctness labels.
+Five starts/union support, <=3 rediscovery rounds, final original checked Joint.
+All15 independent noise channels zeroed in every fold; all51 genuine channels
+retained. Base/copy/noise each38.0948/.748971, native13769; previously failed fold
+recovered. Copy scores bit-identical; noise maxdifference1.33e-15, metrics identical.
+No initial unpenalized fit required; no H1 fallback in any bank.35 metric bundles,
+15 unique sparse rounds, independent signed-data calibration/objective/covariance
+and weight audit PASS; three mechanism tests PASS. Audit-only initializer memory
+order correction documented; no scientific parameter or score changed.
+Exact-copy/iid-noise preservation succeeds; broader generalization unproven.
+
+## Step405 - information refinement inside learned nonnull Joint - 2026-09-17
+
+COMPLETE_REVIEWED results/joint_sparse_refinement_v1. After sparse Joint learns
+noise-only rows and alias parameters, unchanged95% information refinement selects
+33/35/36/36/35 distinct measurements. Same five-start guards, groups/seeds,
+modeled group readout and H1 sign; no protected feature or new threshold.
+BOCPD retained5/5. Base/copy/noise each38.7300/.750078, native13769, no fallback.
+Exact copies change no scores; noise difference<=1.33e-15; neither changes any
+peak or endpoint. Both predeclared practical preservation tests PASS.
+This restores the already known automatic quality under additions, not a new
+accuracy breakthrough. Historical innovation5+BOCPD remains40.3676/.763223.
+Independent38-metric/factor/support/weight audit PASS, score replay maxerror0;
+alias/refinement integration test PASS. Frozen controls unchanged.
+Review: docs/reviews/joint_sparse_membership_2026-09-17.md.
+Goal ACTIVE: exact copies and iid noise are insufficient evidence for realistic
+correlated surplus banks. Next frozen verification: approximate copies and
+persistent correlated nuisance; docs/experiments/JOINT_STRUCTURED_REDUNDANCY_STRESS_V1.md.
+No process from Steps404-405 remains running. No new model inference or digits.
+
+### Step 406 [Joint structured stress] - Approximate copies and persistent nuisance expose remaining failure
+
+**What**: Frozen sparse/refined Joint exposed through a reusable training-only API;
+five-fold exact baseline replay, then full13769 approximate-copy and correlated
+AR1-noise additions with Continuous L-SML/equal controls. No digit inputs or tuning.
+**Why**: Exact-copy/iid-noise success from404-405 did not establish broad robustness.
+**Result**: Joint base38.7300/.750078 -> near37.7185/.748723, structured37.9235/.748005.
+Both preservation tests fail; near PB regression CI98.75[-1.7981,-.2416]pp.
+All new arms native13769. Near removes all added copies but many original features;
+structured retains all15, local nonzero/global zero in every sparse start/fold.
+Independent12-metric/17-round audit and two tests PASS. Goal ACTIVE, no process.
+Review: atlas docs/reviews/joint_structured_stress_2026-09-17.md; artifacts:
+results/joint_structured_stress_v1. No general robustness or new over40 claim.
+
+---
+
+### Step 407 [Joint signal membership] - Group-global zeros depend on the provisional partition
+
+**What**: One frozen integrated support rule removes globally-zero groups across
+all converged sparse starts, then rediscovers.25 fits, all13769 evaluation rows.
+**Why**: Test whether nuisance-only groups explain Step406 structured-noise failure.
+**Result**: Structured noise recoversbase38.7300/.750078, native13769, zero changed
+peaks; base/exact unchanged. Near remains37.7185/.748723. IID regresses38.3420/
+.746950, native11039 with2730 explicit H1 fallbacks. Failed fold puts all51 real
+features in one local-only group, noise in two zero groups; blanket global-only
+selection deletes everything. Independent failure replay verifies the mechanism.
+Do not promote. Test zero-row removal/rediscovery before group exclusion next;
+near-copy invariance remains unresolved.25-model/36-round/22-metric and12-interval
+independent audit PASS, three tests PASS; total fitting523s. Print-only int64
+serialization fixed, successful full audit rerun; scores never changed.
+Atlas review docs/reviews/joint_signal_membership_2026-09-17.md. Goal ACTIVE.
+
+---
+
+### Step 408 [Joint staged membership] - Remove zero rows before interpreting global-only groups
+
+**What**:25 fresh full-benchmark fits, staged ordinary row and global-group
+membership, unchanged native fit guards/95% refinement and non-digit gate.
+**Why**: Step407 incorrectly removed all genuine features in an iid-noise fold
+whose provisional grouping put them together as one local-only factor.
+**Result**: Base/exact/iid/structured ALL38.7300/.750078, native13769, no fallback
+and no changed peaks. Near copies still37.7185/.748723,1411 changed peaks.
+Three preservation tests pass, near fails; no general robustness or newover40.
+A separate fixed-fit stage diagnostic: before refinement base38.0948/.748971,
+near37.8744/.749832; after38.7300/.750078 versus37.7185/.748723. Initial groups
+change strongly despite parent/copy co-clustering. Do not claim exclusive cause:
+most diagnostic intervals include0. Next inspect regrouping during refinement.
+Independent25-model/37-round/27-metric and12-interval audit PASS; separate4-metric/
+10-readout/8-interval diagnostic audit PASS, three tests PASS. Fitting542s.
+Atlas docs/reviews/joint_staged_membership_2026-09-17.md; goal ACTIVE, no process.
+
+---
+
+### Step 409 [Joint regrouping] - Addition robustness improves but old-base preservation remains unproven
+
+**What**:25 fresh full13769-bank fits with group rediscovery per refinement
+proposal; fixed initial95% factor information and all native guards retained.
+**Why**: Step408 near-copy grouping/refinement interaction remained unresolved.
+**Result**: Base/exact/iid/structured38.3374/.750672; near38.2991/.750572, allnative.
+All four addition tests PASS. Base-vsStep408 PB-.3926pp CI99.5833[-1.2084,+.4106]
+does not prove preservation under the predeclared-1pp margin; do not promote.
+Near within vsStep408+.001849 CI[.000021,.003724]. Near changed peaks1411->330.
+Independent25-model/37-round/27-metric and12-interval audit PASS;366 grouping
+replays/195 changed partitions, no model-fit rejection in full run; two tests PASS.
+483s total fitting. Post-evaluation information-only stop diagnostic finds a
+feasible alternative in same top3 at9/10 base/near stops; no fit/quality claim for
+those alternatives. Next test information admissibility before terminating path.
+Atlas docs/reviews/joint_regroup_refinement_2026-09-17.md; goal ACTIVE, no process.
+
+---
+
+## Step410 [localization] - information-feasible Joint refinement, 2026-09-17
+
+Changed only proposal admissibility within the existing top3: reject any deletion
+below95% initial-factor information before grouping, then try remaining proposals.
+25 fresh full benchmark fits, no digit channels, no relaxed identification guards.
+Base/exact/iid/structured38.3444% PB/.749885 within; near38.5417%/.750942, native13769
+all. All four addition-preservation tests pass; previous Step408 base preservation
+not established: PB CI[-1.1086,+.3245]pp; within[-.002142,+.001717] at99.5833%.
+No significant damage claim, no promoted replacement, no newover40 success.
+Independent25-model/37-round/32-metric audit and12 paired10000-draw intervals PASS;
+418 regroupings/216 partition changes/144 information rejections/0 fit rejections.
+Three mechanism tests PASS, fit time532sec. BOCPD retained5/5, unprotected.
+Post-hoc read-only diagnostic: feasible deletions remain outside top3 at9/10
+base/near stops; validity/quality of those proposals not established. Next research
+question is aligning ranking with fixed information constraint, not threshold tuning.
+Artifacts in atlas results/joint_feasible_membership_v1; review
+`docs/reviews/joint_feasible_refinement_2026-09-17.md`. Goal active, no live process.
+
+## Step411 [localization] - minimax information selection rejects another pruning-only route, 2026-09-17
+
+Changed only proposal ranking from current-factor mean loss to worst cumulative
+initial-factor loss; retained top3,95% information, native guards and regrouping.
+25 fresh full-bank fits, all13769 native. Base/exact/iid/structured38.0732%/.748555;
+near37.4564%/.745483. Near and previous-base preservation fail. Versus Step410 near,
+PB-1.0853pp CI[-1.9692,-.2235], within-.005458[-.007406,-.003486],99.5833% adjusted.
+Base-vsStep408 both intervals include0 but fail preservation; no replacement.
+Base28/28/29/29/29 features, near20/19/20/20/20 originals, all added copies removed.
+BOCPD retained2/5 base and0/5 near, without protection.1295 near peak changes.
+Full PB gate/locator audit:1198 hits,285 gate-only,2423 locator-only,536 both;
+935 clean false alarms;46 gains/79 losses versus408 with unchanged gate.
+Independent25-model/37-round/37-metric and12 full bootstrap intervals PASS;
+677 grouping replays,493 changes,75 budget rejections,0 fit rejections. Three
+mechanism tests PASS;678sec fits. All10 stops have no remaining information-
+feasible eligible deletion, so the prior stopping mismatch is repaired without
+achieving useful robustness. Saved initial fits match410 exactly. Matched-original
+initial grouping ARI.196-.342; global loading cosine.9976-.9990. Explicit feature-ID
+alignment handles original49 already absent in near folds3/4. No causal attribution
+to BOCPD removal or grouping alone. Full learned rosters/weight-family report saved.
+Next investigate measurement multiplicity inside Joint structure/factor estimation;
+no further N/95% tuning or new fit yet. Goal active. All processes terminal.
+Atlas review: `docs/reviews/joint_minimax_refinement_2026-09-17.md`.
+
+## Step412 [localization] - mass-aware group discovery improves base but loses coverage, 2026-09-17
+
+Replaced internal grouping by squared-correlation kernel mass QP, weighted
+complete-covariance provisional projection, mass spectral clustering and weighted
+NMI source-fold stability. Final native Joint objective/guards and410 pruning
+unchanged.25 full fits: base/exact/structured38.9622%/.754189, native13769. Base
+preservation vs408 PASS; within gain+.004112 CI[+.001527,+.006789], PB+.2323pp
+CI[-.7964,+1.2631] (99.5833%). IID37.1621/.739068,5531 native; near37.9303/.743852,
+8271 native.8238/5498 H1 fallbacks respectively; both preservation tests FAIL.
+No whole-method promotion/no newover40. BOCPD5/5 base and3/3 valid near folds.
+Base1246 PB hits,298 gate-only,2375 locator-only,523 both;118 wins/103 losses vs408,
+same gate and935 clean false alarms. Full feature roster denominators expose failures.
+Independent25-model/30-round/42-metric/12-interval audit PASS.20 valid paths336
+regroupings/91 changes/154 budget rejections; partial aborted paths excluded from
+these counts. Six mechanism tests PASS,524sec fits. Full failed-model replays PASS.
+IID folds1/2/3 rejected due singleton diagnostic INNER partitions despite valid
+K3 consensus sizes. Near folds2/3 have numerical QP function-stop residuals3.22e-5
+and6.98e-4 >1e-6. The guard correctly rejects them; discovery exception aborts fit.
+Captured58/54-dimensional failure matrices. Standalone active-set polishing of
+unchanged QP attains2.33e-15/3.11e-15 KKT in2/3 iterations; two extra tests PASS.
+NOT integrated into frozen scoring and not evidence of restored coverage/quality.
+Next numerical integration, then provisional-discovery/noise-screen ordering;
+keep actual final fit guards and new412 quality reference. No next quality fit.
+Atlas review: docs/reviews/joint_mass_groups_2026-09-17.md. Goal active; all terminal.
