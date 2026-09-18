@@ -1,4 +1,4 @@
-# Research proposal — the depth channel on the localization population (v2)
+# Research proposal — the depth channel on the localization population (v3)
 
 Claude, 2026-09-18. Branch `claude/whitebox-layer-views-v1`,
 worktree `.worktrees/whitebox-layer-views-v1` (sparse).
@@ -7,8 +7,12 @@ Line this is measured against: `docs/HANDOFF_TOKEN_PROBABILITIES.md`.
 
 **Status: proposal, revised after review. Nothing measured, nothing launched.**
 
-v2 incorporates the review of 2026-09-18. Two of its points break things v1 asserted, and
-they are marked **[BREAKS v1]**. The stage order has changed: the gate now runs first.
+v2 incorporated the review of 2026-09-18; its two breaking points are marked **[BREAKS v1]**
+and the stage order changed so the gate runs first. **v3 adds what a history-mining pass over
+all worktrees turned up**: the negative per-layer-fusion prior (§0.1), the correction that 9.69
+is not a participation ratio at all (§1), the gate endpoint that actually decides Stage 1
+(§6), the mandatory length / random-step / final-layer comparator rows (§7), and the binding
+lessons register (§13).
 
 ---
 
@@ -26,6 +30,33 @@ Two separable claims, deliberately not allowed to stand in for each other:
 
 The project has a documented case of these coming apart — Step 415 raised the effective count
 2.46 → 2.78, the largest addition ever measured here, while quality *fell* 0.73 points.
+
+### 0.1 The prior this line must state up front, and v1/v2 did not
+
+**Per-layer lens fusion has already been tried in this project, and the registered primary was
+negative.** Steps 243–245b, record `docs/experiments/WHITEBOX_LAYER_FUSION_RESEARCH_RECORD.md`:
+
+| arm | macro AUROC |
+|---|---|
+| `lens-96` (4 metrics × 3 taps × 8 layers), DUFS-LIU fusion | 0.7253 |
+| **final-layer target NLL — a single number** | **0.7298** |
+| all-layer residual fusion | "much weaker"; depth NRM ~11.2 AUROC points below final-layer NLL |
+
+A 245-summary label-free screen then reached 0.784612 against a strengthened per-cell atomic
+oracle at 0.784186 — **+0.000426, 95% paired interval [−0.006351, +0.006833]**. Depth gains
+also reversed under whichever transfer axis was not held out: NRM was +0.438pp leave-model-out
+and −0.244pp leave-dataset-out; organic layer grouping was +0.136pp LODO and negative on *every*
+other control.
+
+So the honest prior is stronger and more specific than the 0.8677 correlation v2 cited: **the
+incumbent that every depth arm must beat is the final-layer statistic**, on a different task
+(final-answer detection) but with the same field and the same fusion machinery. This does not
+close the localization question — different task, different readout, and the gate was never the
+target there — but it is the result this line is trying to overturn, and it goes in front of the
+reader, not in an appendix.
+
+**Consequence for reporting:** `final_lens_H` / the cached entropy is a **mandatory row in every
+depth table**. A depth arm that does not clear the final layer has not cleared the incumbent.
 
 ---
 
@@ -56,7 +87,28 @@ Known values, tagged:
 | **2.83** | **step, conditional, virtuals** | 13 family virtuals, includes `n_steps` |
 | **2.46** | **step, conditional, virtuals** | the **12 within-answer** families, `n_steps` removed |
 | 1.80 | step, conditional, views | CT7's seven views |
-| 9.69 | token, marginal, raw | not comparable to any of the above |
+| 9.69 | **not a participation ratio at all** | see below |
+
+**Correction to v2's tag table.** v2 labelled 9.69 as "(token, marginal, raw)". That is wrong
+and it understates the problem. 9.69 is an **inverse participation ratio of the weight vector**,
+`1 / Σ(|w_i|/Σ_j|w_j|)²` — it equals 11 when the eleven weights are uniform and 1 when one
+channel carries everything. So 9.69/11 says *"L-SML's weights came back close to uniform"* and
+says nothing whatever about how many independent directions the views span. It is also
+**sign-blind**, being a function of `|w|`: `chosen_surprisal`'s −0.234 pushed the count *toward*
+"uniform" exactly as an equal positive weight would, so the statistic was structurally unable to
+see the single most interesting thing that fit did.
+
+**Naming rule, adopted now to prevent the third occurrence.** Three different quantities in this
+codebase are called some variant of "effective rank":
+
+| quantity | formula | role here | name to use |
+|---|---|---|---|
+| weight concentration | `1/Σ(|w_i|/Σ|w_j|)²` | diagnostic of a fit | **`weight_ipr`** |
+| view redundancy | `(Σλ)²/Σλ²` of a correlation matrix | the **instrument** in Stage 2 | **`view_pr`** |
+| spectrum shape of `cov_eigs` | `exp(spectral entropy)` | a **feature** in Stage 1 | **`spectral_effective_rank`** |
+
+Stage 1 feeds the third as an input while Stage 2 measures the second as an instrument. They get
+disjoint names in code and in every table, or they will be conflated exactly as above.
 
 CT7's **1.80** is *not* open (v1 said it was): it is PR 1.80 over 7 views. And 1.80 < 2.46 is
 itself the argument for choosing the measurement reference bank by **coverage** rather than by
@@ -263,16 +315,60 @@ be computed at token level before the step reduction, so it cannot come from a r
 
 Highest-prior prediction of the line, and the largest measured deficit.
 
-- **Input.** `cov_eigs` and `hid_proj`, reduced to a small answer-level summary; the
-  INSIDE-inspired direction is the eigenvalue spectrum of the mid-depth token covariance, with
-  the K=1 caveat stated wherever the number appears.
-- **Controls, in order.** (i) answer length — first, always, and an uncontrolled number is not
-  reportable; (ii) the current gate as incumbent; (iii) a same-signal control quantifying how
-  much of any gain is merely "a gate not derived from the locator".
+- **Population.** The gate is **ProcessBench-only**: 6,800 answers over 8 cells, 4,442 erroneous
+  / 2,358 clean. PRMBench does not score this stage (it scores the PR measurement and the
+  locator). Stated because a "9-cell gate result" would be meaningless.
+- **Input — rotation-invariant summaries only.** The prior lineage explicitly ruled the geometry
+  family inadmissible until its pooling semantics were verified, and allowed *only*
+  rotation-invariant summaries. That contract is already implemented in
+  `spectral_utils/whitebox_layer_fusion.py :: extract_geometry()`: `hid_proj` enters **only**
+  through cosines and normalized distances to the final and adjacent layer, `resid_norm` only
+  through log-ratios, `cov_eigs` only through top-share, negated `spectral_effective_rank` and
+  negated spectral entropy. **Reuse it; do not invent a second summary set, and never consume
+  `hid_proj` coordinates raw.** The INSIDE-inspired direction is the mid-depth covariance
+  spectrum, with the K=1 caveat stated wherever the number appears.
+- **Pre-fit numerical check, before any fitting.** Report the covariance **condition number** of
+  the input bank. `cov_eigs` spans orders of magnitude by construction, and the project's
+  precedent is unambiguous: a collapse was traced to the median second-moment condition number
+  rising 65.8 → 23,334.6, and **centering, not scaling, was the culprit** — scale-only equal
+  weighting recovered pooled OOF AUROC .675 → .716. Centering and scaling decisions are taken
+  and reported separately.
+- **The founding constraint on what a gate may be fed.** Answer-standardized fused step risks
+  separate erroneous from clean answers at **AUC 0.43–0.52 — chance** — while raw telemetry
+  summaries of the same answers separate them at **0.74–0.78 in every cell**. A gate must be fed
+  a cross-answer-comparable **raw** statistic. The label-free **q = 0.3 quantile constant** is
+  the precedent (it matched a fitted threshold: 31.16 vs 31.31), not a fitted threshold.
+- **Incumbent — corrected.** The gate to beat is **tail15-Top10 at q = 0.33**, *not* LOCO-5.
+  Step 423 measured tail15 beating LOCO-5 for both locators (+4.21pp for CT7, +3.25pp for the
+  token arm), and LOCO-5's own label-selected optimum at 0.41 still sits 0.48pp *below* tail15
+  at its registered setting. **LOCO-5 is the worse gate, not a mistuned one**, so its 0.41
+  ceiling is worth close to nothing.
+- **Controls, in order.** (i) answer length — first, always; an uncontrolled number is not
+  reportable; (ii) tail15 @ q=.33 as incumbent; (iii) a same-signal control quantifying how much
+  of any gain is merely "a gate not derived from the locator"; (iv) a presence/count confound
+  control that must land near chance if the effect is real (precedent: `digit_presence` .568
+  against `digit_rate` .729).
 - **Locator held fixed**, so the gate's contribution is not confounded with the locator's.
-- **Endpoint** per §5.3: clean accuracy and error detection, separately, per cell.
-- **Access declared**: answer-only, pooled-unlabeled, or externally calibrated are three
-  different scopes; a pooled unlabeled gate is a hybrid, not answer-only fitting.
+- **Endpoint — and this is the part that decides the stage.** Clean accuracy and error detection
+  separately per cell **is not sufficient**. Steps 367–371 are the trap: gates that improved
+  answer-level separability substantially — one moved family-macro F1 .6500 → .6936 and AUROC
+  .7423 → .7926 — nonetheless **reduced** end-to-end ProcessBench localization (36.62 → 35.53),
+  because 797 erroneous answers were newly closed against 328 reopened and **338 exact
+  localizations were lost against 85 gained**. Therefore Stage 1 reports, at a **matched opened
+  fraction**:
+
+  | required | why |
+  |---|---|
+  | clean accuracy, per cell | the deficit being targeted |
+  | erroneous-answer detection, per cell | the cost side |
+  | **exact localizations gained vs lost** | the number that actually decides |
+  | opened fraction per cell | without matching it, the comparison is not fair |
+
+  Separability is not an operating point. A Stage-1 "win" on the first two rows and a loss on
+  the third is a loss.
+- **Access declared**: answer-only, pooled-unlabeled, transductive-within-cell, or externally
+  calibrated are four different scopes. The registered midrank rule is **transductive** — it
+  uses other answers' scores at scoring time — and that must be declared, not inherited silently.
 
 ### Stage 2 — the depth-redundancy geometry (locator side)
 
@@ -338,7 +434,29 @@ Mandatory comparator rows:
 | token-level equal mean | 32.59 | **the simple-average control** |
 | Chen et al. Shannon Drop (Mind the Gap) | 39.27 | published; a *derivative* readout, ours is a level |
 | Chen et al. Shannon Avg (Mind the Gap) | 25.34 | published baseline |
+| **`final_lens_H` / cached entropy — the final layer alone** | to measure | **the depth incumbent** (§0.1) |
+| **`argmax(step length)` — the length prior** | to measure | **mandatory** |
+| **`random_step`** | to measure | **mandatory** |
 | chance | 16.58 | |
+
+**The last three rows are standing requirements, not optional context.**
+
+- The **final-layer** row is the incumbent from §0.1: depth fusion has already lost to a single
+  final-layer number once (0.7253 vs 0.7298, different task).
+- **`length` and `random_step`** are mandatory in every ProcessBench localization table by a
+  standing instruction from Step 354, and the reason is quantitative: `argmax(step length)`
+  alone reaches **29.7% raw exact peaks** against entropy Top-10's 31.5% and random-step's
+  15.5%; under the full gated protocol the length control scores **33.69**, only 1.75pp below
+  entropy Top-10. Error steps have a median of 107 tokens against 72 for others. Any readout
+  that does not clear the length row has measured the length prior.
+- Subsequent work confirmed the coupling is mostly **legitimate evidence and not separable**:
+  removing it costs every stream .04–.06 AUC, length-calibrating CT7 costs −8.16pp, and the
+  cost is uniform across short and long chains (interaction +0.43 [−3.68, +4.60]). So the rule
+  is *report length as a declared control row*, **not** *calibrate it out of the readout*.
+- Report **short-chain and long-chain subsets separately**. The macro mean hides a real
+  asymmetry: our level readout beats the published derivative readout on GSM8K and loses
+  6.6–12.5 points on the long subsets, and `LEN` alone scores 41.06 SLA on GSM8K against 26.44
+  on the long ones.
 
 Separate panel, different task, **never pooled**: the prior white-box lineage on final-answer
 detection, `results/whitebox_vs_graybox_matched_v1/` — white ≈ gray on 31,440 candidates over
@@ -406,3 +524,113 @@ channel or the chosen-token statistics.
 5. Stage 3 deferred until Stage 2's geometry exists, then proposed as one variant.
 6. The §5.1 before/after contrast pre-registered now.
 7. The §7 reporting contract.
+
+---
+
+## 13. Binding lessons from the project history
+
+Mined from `HISTORY.md` across all worktrees. Each is a rule this line follows, with the step
+that earned it. Items already absorbed into sections above are not repeated.
+
+### 13.1 Holdout structure - the 8 ProcessBench cells are fully crossed for the first time
+
+Depth gains in this project have reversed under whichever transfer axis was **not** held out:
+NRM was +0.438pp leave-model-out and -0.244pp leave-dataset-out; organic layer grouping was
++0.136pp LODO and negative on every other control (LOMO -0.049, LOCO -0.091, same-model -0.075,
+same-dataset -0.154). The old 13-cell roster was not fully crossed, so a simultaneous
+dataset+model holdout left a single source.
+
+**The 8 PB cells are 4 subsets x 2 models - properly crossed.** So this line reports
+**leave-subset-out and leave-model-out separately**, plus both fixed-axis controls. A gain on
+one axis that reverses on the other is not a gain.
+
+### 13.2 L-SML diagnostics that must ship with every weight vector
+
+- **Degeneracy.** Equation 15 is identically zero below 4 views and *undetermined* at 4: the
+  same numbers in a non-contiguous versus contiguous array differ by 5.55e-17 and that flipped a
+  partition, swinging AUROC 0.6833 to 0.7802 - a 9.68pp swing with no deliberate jitter. Any
+  depth roster with 3-4 groups is in that regime; run the invariance check and report the
+  `degenerate` / near-tie flag.
+- **The small-m guard silently replaces the learned outer stage with equal weights.** In the
+  current leading arm `cross_small_m_guarded` is **true in all five folds**, within-group SML
+  eigenvectors sit at |cos| >= .93 with uniform (mostly >= .997), and a real cross-group
+  eigen-solve costs about 3pp. A guarded fit **is an average** and must be described as one.
+- **Two-member groups are gauge, not inert.** An unidentified pair returns equal-and-opposite
+  weights, making its contribution `w*(z_a - z_b)` - a real difference channel whose split is
+  fixed by the group structure rather than the data. Report the **identified rank**, not the
+  column count, and ship a collapsed-pair control.
+- **Negative weights are the norm and are a diagnostic, not a result.** A complementary view
+  once received a negative coefficient in 99.98% of answers and collapsed the learned fuser
+  (equal 41.40 vs learned 30.53); 59.19% of native fits contain a negative coefficient. Report
+  the sign of every fitted weight and the fraction of fits carrying a negative one.
+- **Count and publish inadmissible, unconverged and fallback fits per fold.** Never average over
+  silently substituted arms.
+
+### 13.3 Orientation and label hygiene
+
+- **Never `max(auc, 1-auc)`.** Found three separate times here. On a supervised score it inflated
+  a cell by +12.6pp; as a fold-wise rule it created a one-sided noise floor that *credits a view
+  more the closer its mapping sits to chance*. Orientation comes from a declared label-free
+  anchor.
+- **Freeze detector scores before opening targets**, and report the post-selection interval. A
+  33-candidate gate search previously returned a +0.271pp winner whose post-selection interval
+  was [-1.079, +1.594].
+- **A label-selected optimum is a ceiling, never a candidate.**
+
+### 13.4 Reporting discipline
+
+- **Three lanes, never merged**: raw SLA, gated exact-error accuracy, and end-to-end ProcessBench
+  macro-F1 including clean-trace abstention.
+- **Per-cell before pooled.** A macro mean is a summary, never a gate - a previous verdict was
+  wrong precisely because a per-feature mean across cells hid an effect that was +12pp on 7 cells
+  and flat on 17.
+- **Intersect IDs before comparing**; report coverage as its own axis. Unmatched row sets have
+  reversed orderings here more than once.
+- **Positive class fixed once: incorrect = 1.** A prior white-box report's AUPRC was unreusable
+  because it had used correctness as the positive class.
+- **Ratio metrics need a declared minimum denominator**, set before looking at the p-value; a
+  headline p = 0.0096 was withdrawn when cells with sub-1pp denominators were excluded.
+- **Check a cell's existing caveats before making it the anchor of a comparison.** A headline gap
+  moved +37.99pp to +22.53pp when an anchor cell with 6 positives out of 256 - where trace length
+  alone scores 0.925 - was replaced.
+- **Name which fusion insertion point a channel enters at.** The project maintains an explicit
+  five-point map (token/step evidence, predictor-residual ensemble, background-before-innovation,
+  answer gate, final decision readout). A gain at one is not a gain at another, and both the
+  "versus simple combination" and "versus unstable fit" contrasts must be reported.
+
+### 13.5 Verification discipline for Stage 0
+
+- **Prove the gate is non-vacuous.** Step 421's own pre-flight had a gate that would have
+  "passed" with zero rows checked, because ProcessBench rows key on `id` and PRMBench on `idx`.
+  Assert a positive row count.
+- **Re-verify the label contract from the raw source, not a derived NPZ.** PRMBench annotations
+  are one-based; a writer that used `flags[step]` shifted every annotation and dropped
+  final-step errors. Repair changed 6,035 target arrays and 15,147 step flags, and earlier
+  reviews missed it because they validated against the derived NPZ.
+- **Enumerate every downstream consumer of the layer sidecars and re-derive it.** Stale numbers
+  have three independent carriers here - resume-safe CSV rows, enlarged pools, and lookup NPZs -
+  and the standing lesson is that *a sampled self-check is not a freshness guarantee*.
+- **Validation evidence travels inside the artefact's own metadata.** A resume that measured
+  nothing once overwrote the real verdicts of four completed cells, and the corrupted report
+  still looked populated. A run that measured nothing must never overwrite one that did.
+- **Every fitted hyperparameter needs an inertness guard.** A previous sweep never ran the
+  mechanism it was named for - the regularization parameter changed the answer in 0 of 350
+  groups. If changing a parameter never changes an output, the mechanism is not running.
+
+### 13.6 Structure-free controls
+
+Ship a shuffled or structure-free version of any structured mechanism, **and** a label-using
+ceiling that bounds what it could possibly fix, *before* running it. Precedents: a
+dependency-free uniform control beat the real numeral-provenance mechanism (36.24 vs 35.66) and
+the label-using ceiling had already bounded the fixable share at 14%; and on the 20-stream bank
+equal weighting on the right 6-stream subset reproduced the frozen leader (40.27 vs 40.37) with
+every fitted rule worse than equal - **selection was the gap, not weighting**.
+
+### 13.7 What the depth field's claim to novelty actually is
+
+An exhaustive label-free screen of **5,443 definitions**, 114 retained representatives across 13
+families and **2,879 classified pairs**, found **no pair passing the combined independence
+contract**. The structural conclusion was that more independent sources require internal layers,
+repeated samples, or a second model. **The depth field is the first of those three ever
+extracted in this project.** That is its entire claim to novelty, and it is an untested
+prediction - not a property it has been shown to have.
