@@ -72,6 +72,15 @@ def main() -> None:
     with np.load(RES / "STEP_VIEWS_12CH.npz", allow_pickle=False) as z:
         views = np.asarray(z["views"], float)
     arms = {"C1_token_l_sml": c1, "eleven_channel_equal_mean": views[:, :11].mean(1)}
+    # Their statistic, profiled by the same code path: if the evidence-drop series shows a
+    # different shape around the true error than our level readout does, that is what would
+    # justify a different decision rule for it. If it is also an isolated impulse, it will
+    # not. Both of OUR token->step collapses are profiled, since the paper defines neither.
+    drop = RES / "EVIDENCE_DROP.npz"
+    if drop.exists():
+        with np.load(drop, allow_pickle=False) as z:
+            arms["evidence_drop_mean_of_5_worst"] = np.asarray(z["step_m5"], float)
+            arms["evidence_drop_single_worst"] = np.asarray(z["step_worst"], float)
 
     # ---- anchor: C1 must still be the 35.92 arm before any shape claim is made --------
     sla = []

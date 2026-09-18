@@ -50,7 +50,7 @@ def style(ax, title, ylabel, xlabel=""):
 report = json.loads((RES / "IMPULSE_SHAPE_CONTROL.json").read_text(encoding="utf8"))
 arm = report["arms"][ARM]
 
-fig, axes = plt.subplots(1, 3, figsize=(15.2, 4.3))
+fig, axes = plt.subplots(1, 4, figsize=(19.6, 4.3))
 fig.patch.set_facecolor("white")
 
 # ---------------------------------------------------------------- panel 1: the impulse
@@ -106,6 +106,26 @@ ax.legend(frameon=False, fontsize=8.5, labelcolor=INK2, loc="lower left",
 ax.annotate("positive in every subset — the error's\nneighbourhood declines LESS than an\narbitrary index in the same answer",
             (0.99, 0.995), xycoords="axes fraction", ha="right", va="top",
             fontsize=8.5, color=INK2)
+
+# ------------------------------------- panel 4: does THEIR statistic have a different shape?
+# The diagnostic the amendment asked for. If the evidence-drop series shows structure our
+# level readout lacks, a different decision rule for it is justified; if it is also an
+# isolated impulse, it is not.
+ax = axes[3]
+COMPARE = (("our level readout (C1)", "C1_token_l_sml", BLUE, "-"),
+           ("their evidence drop, mean of 5 worst", "evidence_drop_mean_of_5_worst", ORANGE, "-"),
+           ("their evidence drop, single worst", "evidence_drop_single_worst", ORANGE, (0, (4, 2))))
+for label, key, colour, dash in COMPARE:
+    if key not in report["arms"]:
+        continue
+    a = report["arms"][key]
+    y = [np.mean([a[s]["profile_sd"][str(o)] for _, s, _ in SUBSETS]) for o in OFFSETS]
+    ax.plot(OFFSETS, y, color=colour, lw=2, ls=dash, marker="o", ms=5, label=label)
+ax.axhline(0, color=MUTED, lw=0.9, ls=(0, (4, 3)))
+ax.axvline(0, color="#d8d7d2", lw=1.2, zorder=0)
+style(ax, "Their statistic has the same shape as ours", "step score (answer SD), 4 subsets pooled",
+      "step offset from the true first error")
+ax.legend(frameon=False, fontsize=8.5, labelcolor=INK2, loc="upper left")
 
 fig.suptitle("Shape of the step score around the true first error — published C1 token L-SML arm, "
              "4,442 erroneous ProcessBench answers",
