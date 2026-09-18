@@ -173,9 +173,14 @@ def main() -> None:
 
     n = len(records)
     tok_mats = [tokens[tok_off[i]:tok_off[i + 1]] for i in range(n)]
-    # step spans are stored globally; make them answer-local for the readout
-    spans = [step_spans[offsets[i]:offsets[i + 1]] - tok_off[i] for i in range(n)]
+    # step_token_spans are already 0-based WITHIN the answer, and were cached verbatim.
+    # Subtracting the answer's token offset would shift them into nonsense.
+    spans = [step_spans[offsets[i]:offsets[i + 1]] for i in range(n)]
     lvl_mats = [level[offsets[i]:offsets[i + 1]] for i in range(n)]
+    for i in (0, n // 2, n - 1):  # cheap guard: spans must index inside their own answer
+        s = spans[i]
+        if s[0, 0] != 0 or s[-1, 1] != len(tok_mats[i]):
+            raise ValueError(f"answer {i}: spans {s[0, 0]}..{s[-1, 1]} vs {len(tok_mats[i])} tokens")
 
     design = {
         "C1_pooled_before": (tok_mats, spans),
