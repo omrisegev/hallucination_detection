@@ -192,6 +192,20 @@ This proposal fixes the axis per role, in advance:
 | principal confound | answer length and step length | answer length, difficulty, subset |
 | control required | — | explicit length control; the step-length prior is already documented as inflating every step readout |
 
+**The previous line already demonstrated this split empirically, which is the strongest
+support Stage 3 has.** In `EVIDENCE_DOMAIN_INDEPENDENCE_V1.md`, answer length in steps is
+**orthogonal to all thirteen evidence families** (|corr| ≤ .05) — the most independent
+channel ever measured in this project — and yet it is *constant within an answer*, so after
+answer-standardization it is exactly zero and carries no within-answer information at all.
+Its .667 pooled AUC is entirely the between-answer length prior. That document's own verdict:
+"**It can only inform the gate, never the step locator.**" Removing it is precisely what took
+2.83 down to 2.46.
+
+So the project has already found one genuinely independent channel and found that it is
+gate-only. `cov_eigs` and `hid_proj` are answer-constant in exactly the same way. That is an
+argument for routing them to the gate — and a warning that their pooled AUC, whatever it
+turns out to be, will be partly the same length prior unless it is explicitly controlled.
+
 **Two distinct things must not be conflated: the axis of the representation, and the scope
 of the weight fit.** The representation contract above is fixed. The fitting scope is a
 separate question with two declared arms:
@@ -219,10 +233,23 @@ and if both are run they appear as separate rows, never averaged.
 - **S0.2** Verify the join. *Already done:* `JOINED.json` resolves 13,769 records over
   exactly the nine cells (prmbench 6969; pb_{math,olympiadbench,omnimath}_{q4,q8} 1000 each;
   pb_gsm8k_{q4,q8} 400 each), matching the extraction manifests.
-- **S0.3** Pin the provenance of the participation-ratio anchors **2.46 / 2.83** to the Step
-  414–417 artefacts — which bank, which centring, which standardization, which population —
-  and reproduce the estimator exactly before any depth channel is added. If it cannot be
-  reproduced, Stage 1 reports its own nulls and does not cite those numbers.
+- **S0.3** ~~Pin the provenance of the participation-ratio anchors.~~ **Done — found in
+  `.worktrees/a6-s0b/docs/experiments/EVIDENCE_DOMAIN_INDEPENDENCE_V1.md`**, and it changes
+  Stage 1's estimator (see below). The anchors are:
+
+  | number | what it is |
+  |---|---|
+  | 2.75 | marginal PR over the 13 family virtuals |
+  | **2.83** | **conditional** PR, centred within label class — the headline |
+  | **2.46** | the same after removing `n_steps`, i.e. the **12 within-answer families** |
+  | 1.80 | CT7's seven views — **not** from this document, still to be pinned |
+
+  Estimator: `(Σλ)² / Σλ²` over the correlation matrix of **family virtuals**, where each
+  virtual is the equal mean of its z-scored, oriented members. Population: the **94,203
+  labelled PRMBench steps** (14.0% error) — *not* the eight ProcessBench cells the SLA work
+  runs on. Stage 1 runs on that same PRMBench population for comparability, and says so.
+
+  Remaining under S0.3: pin CT7's 1.80 to its own artefact.
 - **S0.4** Plan a move off `cycle2_*`. Not urgent, not blocking, not silent.
 
 Reduction runs **on the cluster** (CPU): 5.5 GB of npz, and the within-answer shuffle null
@@ -255,17 +282,26 @@ presented as if it were.
 **Arms.** (a) gray bank alone — reproduces the anchor and validates the estimator; (b) depth
 field alone; (c) union. The quantity of interest is **PR(c) − PR(a)**.
 
-**Three controls, because the raw difference is not interpretable on its own.** Omri's point
-that PR on 468 columns and PR on 13 are not on the same scale is exactly right, and adding
-468 columns to 13 raises PR mechanically even if every added column is noise. So:
+**The estimator is virtual-level, not column-level.** This is the correction S0.3 forces,
+and it is a better answer to Omri's scale objection than the one I first wrote. The anchor's
+PR is computed over **13 family virtuals** — each the equal mean of its z-scored, oriented
+members — not over the 50 raw streams. So "PR over 468 depth columns" would not have been
+comparable to 2.46 in the first place, regardless of any width control. Stage 1 therefore
+reduces the depth field to **depth family virtuals** on the same recipe (the natural
+partition is tap × quantity × depth band) and computes PR over `12 + k` virtuals.
+
+**Controls.**
 
 1. **Within-answer token shuffle**, independently per channel, R replicates, recomputing the
-   whole step readout and the ratio. Every arm is read against *its own* shuffled null.
-2. **Dimension-matched control** — the depth field subsampled or randomly projected to the
-   same column count as the gray bank, so that the comparison is not confounded by width.
-3. **PR as a function of the number of depth columns added**, rather than one number, with
-   the two controls tracked alongside. The shape of that curve is the finding; a single
-   scalar is not.
+   whole step readout, the virtuals and the ratio. Every arm is read against *its own* null.
+2. **Redundant-family calibration, which the anchor document hands us for free.** Adding
+   output-distribution families does **not** move the count: every subset tried — 3, 4, 5, 6,
+   7 families — lands at PR 2.7–2.9. That is a measured baseline for "what adding more of the
+   same looks like", and it is a sharper comparator than a synthetic null. Depth families
+   have to beat *that*, not beat zero.
+3. **PR as a function of the number of depth virtuals added**, rather than one number, with
+   both controls tracked alongside. The shape of that curve is the finding; a single scalar
+   is not.
 
 No number in this line is read against the bare integer 3.
 
