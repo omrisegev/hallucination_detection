@@ -12,7 +12,10 @@ and the stage order changed so the gate runs first. **v3 adds what a history-min
 all worktrees turned up**: the negative per-layer-fusion prior (§0.1), the correction that 9.69
 is not a participation ratio at all (§1), the gate endpoint that actually decides Stage 1
 (§6), the mandatory length / random-step / final-layer comparator rows (§7), and the binding
-lessons register (§13).
+lessons register (§13). **v4 is the round that matters**: it declares H0 (§0.2), puts a
+one-hour CPU **kill test** before everything else (§6, Stage 1a), restores §12 — which a shell
+parse error had silently prevented from ever being written — and withdraws the BOCPD blocker
+as overstated (§12.3).
 
 ---
 
@@ -72,7 +75,7 @@ and the fused white and gray scores correlated at Spearman 0.8677. A noisy recon
 signal will do all three of those things.
 
 Every stage is therefore designed to *reject* H0, not to demonstrate a gain. The depth-decay
-curve (SS5.2) is the most direct measurement of it, and the final-layer row in every table is
+curve (§5.2) is the most direct measurement of it, and the final-layer row in every table is
 the standing test of it.
 
 ---
@@ -356,7 +359,7 @@ else. No lens channels, no fusion, no learned weights.
 **A precision point on `n_steps`.** Its known **.667** is a *pooled step-level* AUC from the
 13-family table. The kill test asks an **answer-level** question. Those are different estimands,
 so .667 is **not** transferable and the answer-level number must be measured, not assumed.
-Writing .667 into an answer-level table would be the section 1 tag error in a new costume.
+Writing .667 into an answer-level table would be the §1 tag error in a new costume.
 
 **Pre-declared kill rule, fixed before the first number is computed:**
 
@@ -364,7 +367,7 @@ Writing .667 into an answer-level table would be the section 1 tag error in a ne
 > pooled AUROC, with a source-group interval excluding zero, **the line ends for the gate as
 > well as for the locator**, and that is written up as the result.
 
-This is the strongest available test of H0 (section 0.2) at the lowest available cost: a noisy
+This is the strongest available test of H0 (§0.2) at the lowest available cost: a noisy
 reconstruction of the final-layer signal should not beat the locator maximum at answer level,
 because the locator maximum *is* that signal.
 
