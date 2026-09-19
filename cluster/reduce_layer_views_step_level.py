@@ -6,17 +6,19 @@ is the only part of this capture that can say WHERE the error is, which is the p
 target.
 
     ssh aircc 'export SLURM_CONF_SERVER=controller-primary; \
-      S=<the shared project root>; cd $S/code && \
-      sbatch -p power-gpu --qos=<owner qos> cluster/cpu_job.sbatch \
-        cluster/reduce_layer_views_step_level.py \
-          --roots $S/results --joined $S/code/results/localization_full_benchmark_v3/evaluation \
-          --out $S/results/layer_views_step_level_v1'
+      S=/shared/cycle2_tau_averbuch_prj/omrisegev1; cd $S/code && \
+      sbatch -p power-gpu --account=cycle3_tau_averbuch_prj --qos=owner_940 \
+        cluster/cpu_job.sbatch cluster/reduce_layer_views_step_level.py \
+          --roots $S/results --out $S/results/layer_views_step_level_v1'
 
-`--roots` has no default on purpose. The project account has moved between shared filesystems
-(cycle2 -> cycle3) and the sibling script's docstring still names the old one; a wrong default
-here burns a wall-clock job to produce "N rows missing". Pass it, and the script prints what it
-resolved before reading anything.
+The storage root and the Slurm account are DIFFERENT cycles, and that is not a typo. Files
+live under cycle2 and always have; cycle3's tree is nearly empty. What moved is the SLURM
+ACCOUNT: every job since 2026-09-10 has run as cycle3_tau_averbuch_prj with QoS owner_940,
+and cpu_job.sbatch's own usage comment still names the retired owner_880. Getting either half
+wrong costs a queued job that dies on submission or on the first missing file.
 
+`--roots` has no default on purpose: a wrong default burns a wall-clock job to produce
+"N rows missing". Pass it, and the script prints what it resolved before reading anything.
 Local dry run on synthetic rows, no cluster and no real data:
     python cluster/reduce_layer_views_step_level.py --smoke
 
@@ -194,15 +196,20 @@ def run(roots: str, joined_dir: str, out_dir: str, limit: int | None = None) -> 
         records = json.load(handle)["records"]
     if len(records) != N_ANSWERS:
         raise SystemExit(f"roster has {len(records)} records, expected {N_ANSWERS}")
-    arrays = np.load(os.path.join(joined_dir, "JOINED.npz"), allow_pickle=False)
-    offsets = np.asarray(arrays["offsets"], dtype=np.int64)
+
+    # The step axis comes from JOINED.json alone. JOINED.npz is NOT present on the cluster
+    # (only the .json is), and it is not needed: every record carries its own `steps` and
+    # `tokens`, so the offsets are their cumulative sum and the token count is asserted per
+    # row. Requiring the npz here would have failed the job at startup.
+    steps_per_answer = np.array([int(r["steps"]) for r in records], dtype=np.int64)
+    offsets = np.concatenate([[0], np.cumsum(steps_per_answer)]).astype(np.int64)
     if int(offsets[-1]) != N_STEPS_TOTAL:
-        raise SystemExit(f"JOINED has {int(offsets[-1])} steps, expected {N_STEPS_TOTAL}")
-    steps_per_answer = np.diff(offsets)
+        raise SystemExit(f"JOINED.json sums to {int(offsets[-1])} steps, "
+                         f"expected {N_STEPS_TOTAL}")
 
     rows = [(r["row_id"], r["cell"]) for r in records]
-    expected = {(r["row_id"], r["cell"]): (int(steps_per_answer[i]), int(r["tokens"]))
-                for i, r in enumerate(records)}
+    expected = {(r["row_id"], r["cell"]): (int(r["steps"]), int(r["tokens"]))
+                for r in records}
     if limit:
         rows = stratified_pilot(rows, limit)
         print(f"[reduce-step] PILOT: {len(rows)} rows over "
