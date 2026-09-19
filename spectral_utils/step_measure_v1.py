@@ -94,37 +94,65 @@ def accumulate_autocorrelation(series, order: int, min_length: int = 0) -> np.nd
 def yule_walker(autocorrelation: np.ndarray) -> dict:
     """AR coefficients and innovation scale from an autocorrelation sequence.
 
-    Solves the Toeplitz system `R a = r` for the one-step linear predictor. The returned
-    ``residual_std`` is the theoretical innovation standard deviation implied by the same
-    sequence, used to keep the whitened series on a comparable scale to the input.
+    Solves the Toeplitz system `R a = r` for the one-step linear predictor, and also
+    returns the **ladder** of every lower-order predictor from the same sequence. The
+    ladder is what lets `whiten` treat the first few tokens of an answer correctly: at
+    position t < order there are only t past samples, and the right predictor there is
+    the order-t one, not the order-`order` one applied to invented history.
     """
     r = np.asarray(autocorrelation, dtype=float).reshape(-1)
     if len(r) < 2 or not np.isclose(r[0], 1.0, atol=1e-6):
         raise ValueError("expected a normalized autocorrelation starting at 1.0")
-    coefficients = solve_toeplitz((r[:-1], r[:-1]), r[1:])
-    variance = float(r[0] - coefficients @ r[1:])
+    ladder = []
+    for t in range(1, len(r)):
+        a_t = solve_toeplitz((r[:t], r[:t]), r[1:t + 1])
+        variance_t = float(r[0] - a_t @ r[1:t + 1])
+        ladder.append((a_t, float(np.sqrt(max(variance_t, 1e-12)))))
+    coefficients, residual_std = ladder[-1]
     return {"coefficients": coefficients,
-            "residual_std": float(np.sqrt(max(variance, 1e-12))),
+            "residual_std": residual_std,
             "order": len(coefficients),
+            "ladder": ladder,
             "autocorrelation": r}
 
 
 def whiten(values: np.ndarray, model: dict) -> np.ndarray:
     """Causal one-step prediction residual of a series under a fitted AR model.
 
-    ``e[t] = x[t] - sum_j a[j] x[t-1-j]``, scaled to unit innovation variance. The first
-    ``order`` samples have no history, so the series is padded with its own first value
-    and the padding is discarded -- the alternative, dropping them, would make the first
-    step of every answer unscoreable, and 12.25% of first errors are at step 0.
+    ``e[t] = x[t] - sum_j a[j] x[t-1-j]``, scaled to unit innovation variance.
+
+    The first ``order`` positions do not have a full history and must not be handled by
+    inventing one. An earlier version padded with ``x[0]``; the audit of 2026-09-19
+    measured what that costs and it is severe. Because ``x[0]`` is systematically the
+    lowest-risk token of an answer (about -1.65 SD), constant padding crushed e[0] to
+    0.42*x[0] and injected a **+1.06 offset into e[1] of every answer**. The whitened
+    readouts then predicted step 0 for 22-24% of erroneous answers against a true base
+    rate of 12.25%, depressing every whitened arm by 0.35 to 0.56 pp -- an artefact of the
+    padding, dressed up as a property of whitening.
+
+    The fix is the statistically correct one rather than a different guess: at position
+    ``t < order`` use the **order-t** predictor from the same autocorrelation, which is
+    the best linear predictor given the history that actually exists. At t = 0 there is no
+    history at all, so the predictor is the unconditional mean -- zero on a standardized
+    series -- with unit innovation variance, and ``e[0] = x[0]``. Step 0 therefore stays
+    scoreable and stays undistorted, which matters because 12.25% of first errors are
+    there.
     """
     x = answer_standardize(values)
     a = np.asarray(model["coefficients"], dtype=float)
+    ladder = model.get("ladder")
+    if ladder is None:
+        raise ValueError("model has no predictor ladder; refit with yule_walker")
     order = len(a)
-    if len(x) <= order:
-        return x
-    padded = np.concatenate([np.full(order, x[0]), x])
-    residual = lfilter(np.concatenate([[1.0], -a]), [1.0], padded)[order:]
-    return residual / model["residual_std"]
+    out = np.empty_like(x)
+    out[0] = x[0]                                   # no history: predictor is the mean
+    for t in range(1, min(order, len(x))):
+        a_t, residual_t = ladder[t - 1]
+        out[t] = (x[t] - a_t @ x[t - 1::-1][:t]) / residual_t
+    if len(x) > order:
+        full = lfilter(np.concatenate([[1.0], -a]), [1.0], x)
+        out[order:] = full[order:] / model["residual_std"]
+    return out
 
 
 def topk_mean_steps(values: np.ndarray, spans: np.ndarray, k: int) -> np.ndarray:

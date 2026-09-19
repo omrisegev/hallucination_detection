@@ -139,6 +139,23 @@ def main() -> None:
 
     inputs = {"raw": raw, "white_per_model": white_per_model, "white_pooled": white_pooled}
 
+    # ---- the length controls the 2026-09-19 audit showed were missing -----------------
+    # Every readout in this family inherits a step-LENGTH prior: the Top-k mean of more
+    # tokens is larger even with no signal. The audit measured that naming the LONGEST step
+    # and reading no score at all already scores 31.78, against the incumbent's 35.92, and
+    # that residualising each step score on log step length within the answer removes about
+    # two thirds of the width sweep's range. Both controls are now standing rows: no claim
+    # about what a width is "buying" can be read off the raw sweep alone.
+    log_tokens = [np.log(np.maximum(np.diff(sp, axis=1).ravel(), 1)) for sp in spans]
+
+    def residualise(values: np.ndarray, length: np.ndarray) -> np.ndarray:
+        """Remove the within-answer linear dependence of a step score on log step length."""
+        if len(length) < 3 or length.std() < 1e-9:
+            return values - values.mean()
+        centred = length - length.mean()
+        slope = float(centred @ (values - values.mean()) / (centred @ centred))
+        return values - values.mean() - slope * centred
+
     # ---- the sweep --------------------------------------------------------------------
     rows = np.flatnonzero(pb & (target >= 0))
     t_rows, c_rows, s_rows = target[rows], cells[rows], subsets[rows]
@@ -149,6 +166,15 @@ def main() -> None:
 
     def mean_sla(hit: np.ndarray) -> float:
         return float((np.bincount(code, weights=hit, minlength=n_cells) / counts).mean())
+
+    # Criterion 1 is a LABEL-FREE selector, so it must not be computed on a population
+    # that the label selected. The first version measured it on `rows` (erroneous answers
+    # only) and averaged flat over rows; the 2026-09-19 audit showed that this is what
+    # produced the K=80 disagreement with the established run, and that it flips the
+    # selector's pick by 2.56 pp of SLA. It is now computed over ALL ProcessBench answers
+    # and aggregated as a per-cell macro over the eight cells, matching the endpoint.
+    pb_rows = np.flatnonzero(pb)
+    pb_code = np.searchsorted(np.asarray(cell_names), cells[pb_rows])
 
     # The odd/even token split for criterion 1 does not depend on the arm, so it is built
     # once per (answer, source) and reused across all fourteen widths. Rebuilding it inside
@@ -166,18 +192,21 @@ def main() -> None:
     peaks: dict[str, np.ndarray] = {}
     point: dict[str, dict] = {}
     for source, series in inputs.items():
-        halves = [[split_parity(series[i], spans[i], p) for p in (0, 1)] for i in rows]
+        halves = [[split_parity(series[i], spans[i], p) for p in (0, 1)] for i in pb_rows]
         for kind, grid in (("topk", K_GRID), ("win", W_GRID)):
             for size in grid:
                 name = f"{source}__{kind}{size}"
                 # count halved so each half computes the same statistic as the whole
                 half = max(1, int(round(size / 2)))
-                chosen, repro = [], []
-                for slot, i in enumerate(rows):
-                    chosen.append(int(np.argmax(measure(series[i], spans[i], kind, size))))
-                    picks = [int(np.argmax(measure(flat, marks, kind, half)))
-                             for flat, marks in halves[slot]]
-                    repro.append(int(picks[0] == picks[1]))
+                chosen = [int(np.argmax(measure(series[i], spans[i], kind, size)))
+                          for i in rows]
+                delength = [int(np.argmax(residualise(
+                    measure(series[i], spans[i], kind, size), log_tokens[i])))
+                    for i in rows]
+                repro = np.asarray(
+                    [int(np.argmax(measure(f0, m0, kind, half))
+                         == np.argmax(measure(f1, m1, kind, half)))
+                     for (f0, m0), (f1, m1) in halves], float)
                 p = np.asarray(chosen, int)
                 peaks[name] = p
                 hit = (p == t_rows).astype(float)
@@ -186,12 +215,33 @@ def main() -> None:
                     m = s_rows == s
                     per_subset[s] = {"sla": float(hit[m].mean()),
                                      "within1": float((np.abs(p[m] - t_rows[m]) <= 1).mean())}
-                point[name] = {"mean_sla": mean_sla(hit),
-                               "mean_within1": float(np.mean([v["within1"] for v in per_subset.values()])),
-                               "reproducibility": float(np.mean(repro)),
-                               "per_subset": per_subset}
+                pb_counts = np.bincount(pb_code, minlength=n_cells)
+                point[name] = {
+                    "mean_sla": mean_sla(hit),
+                    # per-cell macro over the eight cells, matching mean_sla's aggregation
+                    "mean_within1": float((np.bincount(
+                        code, weights=(np.abs(p - t_rows) <= 1).astype(float),
+                        minlength=n_cells) / counts).mean()),
+                    "reproducibility": float((np.bincount(pb_code, weights=repro,
+                                                          minlength=n_cells)
+                                              / pb_counts).mean()),
+                    "per_subset": per_subset}
+                dl = np.asarray(delength, int)
+                peaks[f"{name}__delength"] = dl
+                point[name]["mean_sla_length_residualised"] = mean_sla(
+                    (dl == t_rows).astype(float))
         print(f"[sweep] {source}: {len(K_GRID) + len(W_GRID)} arms  "
               f"({time.time() - started:.0f}s)", flush=True)
+
+    longest = np.asarray([int(np.argmax(np.diff(spans[i], axis=1).ravel())) for i in rows])
+    peaks["control__longest_step"] = longest
+    point["control__longest_step"] = {
+        "mean_sla": mean_sla((longest == t_rows).astype(float)),
+        "mean_within1": float((np.bincount(
+            code, weights=(np.abs(longest - t_rows) <= 1).astype(float),
+            minlength=n_cells) / counts).mean()),
+        "reproducibility": None, "per_subset": None,
+        "note": "names the longest step and reads no score at all"}
 
     anchor = 100 * point["raw__topk10"]["mean_sla"]
     print(f"\nanchor: raw Top-10 = {anchor:.2f}  (must be 35.92)")
@@ -216,8 +266,16 @@ def main() -> None:
                       key=lambda k: point[k]["mean_sla"])
     topk_best = max((k for k in point if "__topk" in k), key=lambda k: point[k]["mean_sla"])
     win_best = max((k for k in point if "__win" in k), key=lambda k: point[k]["mean_sla"])
-    KEY_PAIRS = [(white_best, raw_best), (white_best, pooled_best), (win_best, topk_best)]
-    wanted = sorted(set(wanted) | {raw_best, white_best, pooled_best, topk_best, win_best})
+    raw_win_best = max((k for k in point if k.startswith("raw__win")),
+                       key=lambda k: point[k]["mean_sla"])
+    # P2 is about CONTIGUITY. Comparing the best window of any source against the best
+    # Top-K of any source crosses the whitening axis too; the audit flagged the -6.65 pp
+    # quoted for contiguity as whitening + contiguity. The matched-axis contrast keeps the
+    # source fixed at raw, and the crossed one is retained beside it, labelled.
+    KEY_PAIRS = [(white_best, raw_best), (white_best, pooled_best),
+                 (raw_win_best, raw_best), (win_best, topk_best)]
+    wanted = sorted(set(wanted) | {raw_best, white_best, pooled_best, topk_best,
+                                   win_best, raw_win_best})
 
     rng = np.random.default_rng(SEED)
     acc = {k: np.empty(BOOTSTRAP_DRAWS) for k in wanted}
@@ -273,6 +331,22 @@ def main() -> None:
         print(f"{k:28s}{100*point[k]['mean_sla']:8.2f}{100*point[k]['mean_within1']:9.2f}"
               f"{point[k]['reproducibility']:7.3f}"
               f"{iv['point_pp']:+11.2f} [{iv['ci95_pp'][0]:+6.2f},{iv['ci95_pp'][1]:+6.2f}]{mark}")
+
+    print()
+    print("=" * 96)
+    print("LENGTH CONTROLS -- what survives when the step-length prior is removed")
+    print("=" * 96)
+    print(f"{'control: name the longest step, read no score':52s}"
+          f"{100*point['control__longest_step']['mean_sla']:8.2f}")
+    print()
+    print(f"{'arm':24s}{'raw SLA':>10s}{'length-residualised':>22s}{'cost':>8s}")
+    for source in inputs:
+        for kind, grid in (("topk", K_GRID), ("win", W_GRID)):
+            for size in grid:
+                b = point[f"{source}__{kind}{size}"]
+                print(f"{source + '__' + kind + str(size):24s}{100*b['mean_sla']:10.2f}"
+                      f"{100*b['mean_sla_length_residualised']:22.2f}"
+                      f"{100*(b['mean_sla_length_residualised'] - b['mean_sla']):8.2f}")
 
     print()
     print("=" * 96)

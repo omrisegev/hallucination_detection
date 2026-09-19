@@ -63,6 +63,16 @@ for label, source, kind, grid, colour, marker, dash in FAMILIES:
 ax.set_xscale("log", base=2)
 ax.set_xticks(sorted(set(K_GRID) | set(W_GRID)))
 ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+LENGTH_ONLY = 100 * point["control__longest_step"]["mean_sla"]
+ax.axhspan(0, LENGTH_ONLY, color="#f4ece6", zorder=0, lw=0)
+ax.axhline(LENGTH_ONLY, color="#a8622f", lw=1.4, ls=(0, (2, 2)), zorder=1)
+ax.annotate(f"name the LONGEST step and read no score at all: {LENGTH_ONLY:.2f}",
+            (1.05, LENGTH_ONLY), color="#a8622f", fontsize=8.5, ha="left", va="bottom",
+            xytext=(0, 4), textcoords="offset points")
+for label, source, kind, grid, colour, marker, dash in FAMILIES[:1]:
+    y = [100 * point[f"{source}__{kind}{w}"]["mean_sla_length_residualised"] for w in grid]
+    ax.plot(grid, y, color=BLUE, lw=1.6, ls=(0, (1, 2)), marker="o", ms=4, alpha=0.75,
+            label="raw Top-K, length-residualised within the answer")
 ax.axhline(anchor, color=RED, lw=1.4, ls=(0, (5, 3)), zorder=1)
 ax.annotate(f"incumbent Top-10, {anchor:.2f}", (1.05, anchor), color=RED, fontsize=8.5,
             ha="left", va="bottom", xytext=(0, 4), textcoords="offset points")
@@ -73,8 +83,8 @@ ax.annotate("", xy=(40, 35.63), xytext=(20, peak),
                             connectionstyle="arc3,rad=-0.45"))
 ax.annotate("P1 predicted this optimum would move LEFT.\nWhitening moved it right, and lowered it.",
             (40, 35.63), textcoords="offset points", xytext=(8, -34), fontsize=8.5, color=ORANGE)
-ax.set_ylim(19.4, 39.2)
-style(ax, "Every curve rises with width, and both sharpened statistics sit below the blunt one",
+ax.set_ylim(15.0, 39.2)
+style(ax, "Every window arm scores below a readout that ignores the scores entirely",
       "width: K tokens (unordered) or w tokens (contiguous)",
       "gate-free SLA, mean over the eight ProcessBench cells (%)")
 ax.legend(frameon=False, fontsize=8.5, labelcolor=INK2, loc="lower center")
@@ -113,8 +123,8 @@ ax.set_yticklabels([LABELS[k] for k in rows], fontsize=8.5)
 ax.set_ylim(-0.7, len(rows) - 0.3)
 ax.grid(axis="y", linewidth=0)
 
-fig.suptitle("Redesigning the step-measurement stage — fusion held fixed, whitener fitted per model, "
-             "4,442 erroneous ProcessBench answers",
+fig.suptitle("Redesigning the step-measurement stage — corrected after independent audit, 2026-09-19. "
+             "Fusion held fixed; 4,442 erroneous ProcessBench answers",
              fontsize=11, color=INK, x=0.006, ha="left", y=0.995)
 fig.tight_layout(rect=(0, 0, 1, 0.94))
 FIG.mkdir(parents=True, exist_ok=True)

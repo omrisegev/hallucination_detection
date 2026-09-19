@@ -118,10 +118,22 @@ def test_whiten_preserves_length_so_step_zero_stays_scoreable():
         assert len(whiten(rng.normal(size=n), model)) == n
 
 
-def test_whiten_is_a_passthrough_when_the_series_is_shorter_than_the_order():
+def test_a_series_shorter_than_the_order_uses_the_lower_order_predictors():
+    """Not a passthrough. Superseded contract, 2026-09-19.
+
+    The first version returned the standardized series unchanged whenever it was shorter
+    than the AR order. That is wrong for the same reason the x[0] padding was wrong: at
+    position t there IS history, just less of it, and the order-t predictor uses exactly
+    what exists. Only t = 0, which has no history at all, passes through.
+    """
     model = yule_walker(0.5 ** np.arange(9))
     x = np.array([1.0, 4.0, 2.0])
-    assert np.allclose(whiten(x, model), answer_standardize(x))
+    z = answer_standardize(x)
+    out = whiten(x, model)
+    assert out[0] == pytest.approx(z[0])
+    for t in (1, 2):
+        a_t, sd_t = model["ladder"][t - 1]
+        assert out[t] == pytest.approx((z[t] - a_t @ z[t - 1::-1][:t]) / sd_t)
 
 
 # ------------------------------------------------------- the mechanism, on synthetic data
@@ -160,3 +172,60 @@ def test_contiguous_window_beats_unordered_topk_on_a_planted_burst():
         topk_hits += int(np.argmax(topk_mean_steps(x, spans, 24)) == truth)
         window_hits += int(np.argmax(best_window_steps(x, spans, 8)) == truth)
     assert window_hits > topk_hits
+
+
+# ------------------------------------------- the start-of-answer artefact (audit, 2026-09-19)
+def test_whiten_has_no_start_of_answer_offset():
+    """The bug the 2026-09-19 audit found: padding with x[0] biased the first tokens.
+
+    Constant padding made e[0] a shrunken copy of x[0] and injected a large offset into
+    e[1] of every answer, which pushed 22-24% of whitened predictions onto step 0 against
+    a 12.25% base rate. The predictor ladder must leave the first `order` positions with
+    the same first and second moments as the steady state.
+    """
+    rng = np.random.default_rng(31)
+    model = yule_walker(accumulate_autocorrelation(
+        (_ar1(3000, 0.5, rng) for _ in range(30)), order=8))
+    head = np.zeros((600, 8))
+    tail = []
+    for row in range(600):
+        e = whiten(_ar1(400, 0.5, rng), model)
+        head[row] = e[:8]
+        tail.append(e[12:])
+    tail = np.concatenate(tail)
+    # every one of the first eight positions must look like the steady state
+    assert np.abs(head.mean(axis=0)).max() < 0.15, head.mean(axis=0)
+    assert np.abs(head.std(axis=0) - tail.std()).max() < 0.15, head.std(axis=0)
+
+
+def test_whiten_first_sample_is_the_standardized_value_itself():
+    # With no history the best predictor is the unconditional mean, so e[0] = x[0]. This
+    # keeps step 0 reachable without giving it a manufactured score.
+    rng = np.random.default_rng(32)
+    model = yule_walker(0.5 ** np.arange(9))
+    x = rng.normal(size=40)
+    assert whiten(x, model)[0] == pytest.approx(answer_standardize(x)[0])
+
+
+def test_whiten_steady_state_is_unchanged_by_the_ladder():
+    # The fix must only touch the first `order` positions.
+    rng = np.random.default_rng(33)
+    model = yule_walker(accumulate_autocorrelation(
+        (_ar1(2000, 0.6, rng) for _ in range(20)), order=8))
+    x = _ar1(500, 0.6, rng)
+    a = model["coefficients"]
+    from scipy.signal import lfilter as _lf
+    reference = _lf(np.concatenate([[1.0], -a]), [1.0], answer_standardize(x))[8:] \
+        / model["residual_std"]
+    assert np.allclose(whiten(x, model)[8:], reference, atol=1e-12)
+
+
+def test_yule_walker_ladder_is_consistent_with_its_own_orders():
+    r = 0.6 ** np.arange(9)
+    model = yule_walker(r)
+    assert len(model["ladder"]) == 8
+    # For a true AR(1), every order-t predictor should reduce to the same single lag.
+    for t, (a_t, sd_t) in enumerate(model["ladder"], start=1):
+        assert a_t[0] == pytest.approx(0.6, abs=1e-9)
+        assert np.allclose(a_t[1:], 0.0, atol=1e-9)
+        assert sd_t == pytest.approx(np.sqrt(1 - 0.36), abs=1e-9)
