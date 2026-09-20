@@ -1,3 +1,17 @@
+## Step424 (Claude) - raw-channel readouts + soft cumulative fusion: pipeline ready, full cells pending, 2026-09-20
+
+Omri's follow-ups to Step423: fuse RAW channels (the eleven-channel Claude feature bank), find
+each channel's readout (top5/top10/max/mean/LoG/CUSUM/onset80), and run the SOFT cumulative-vote
+fusion beside the binary one. `scripts/experiments/raw_channel_readout_fusion_v1.py` does all
+of it out-of-fold with a tau->0 identity check; protocol and full-run command in
+`docs/experiments/RAW_CHANNEL_READOUT_FUSION_V1.md`. **Only 30-answer pilot caches were
+reachable here** (Drive connector 10 MB cap; full cells are LFS on Drive/AIRCC), so
+`results/raw_channel_readout_fusion_v1/pilot_*` are feasibility checks, not evidence. Mechanically
+`onset80` halves the late fraction at equal mean SLA and the soft MODE (not median) is the right
+readout. **Full cells: run the documented command on the machine with the caches (CPU, minutes).**
+Mind-the-Gap replay figures from Step423 verified against the frozen package (SLA 0.23323):
+`results/cumulative_vote_fusion_v1/MIND_THE_GAP_VERIFICATION.md`.
+
 ## Step423 (Claude) - cumulative-vote fusion of localizers reproduces the incumbent; long-chain deficit is a shared late bias, 2026-09-20
 
 Omri's "ask every localizer whether the first error is at a step <= n, then binary L-SML" run
