@@ -1,3 +1,19 @@
+## Step423 (Claude) - cumulative-vote fusion of localizers reproduces the incumbent; long-chain deficit is a shared late bias, 2026-09-20
+
+Omri's "ask every localizer whether the first error is at a step <= n, then binary L-SML" run
+retrospectively on the committed Llama-3.1-8B localization lane (3,400 questions, five
+label-free localizers, Mind-the-Gap SLA protocol, out-of-fold). **Decision
+`FUSION_REPRODUCES_INCUMBENT`**: Dawid-Skene mode 30.08 vs incumbent 30.12 (-0.05 pp
+[-0.27, +0.18]); the label-free consensus is family6 itself (psi .97 / eta .95). Mind-the-Gap
+common replay is the LATEST localizer on every subset and gets a negative SML weight;
+Unified-28 is early with a step-0 prior. On long chains the incumbent falls from 45.5% (depth
+0-2) to 16.4% (depth 8+) with the misses late (0.22 -> 0.60), and all five share a residual
+late bias of +0.5 to +1.4 steps beyond a uniform-guess null, concentrated on early errors in
+deep chains. Reweighting cannot fix that; next targets are an onset readout, a delta-shaped
+operator column, and the soft cumulative-curve fusion on the Qwen OOF step scores.
+Report: `results/cumulative_vote_fusion_v1/REPORT.md`; protocol:
+`docs/experiments/CUMULATIVE_VOTE_FUSION_V1.md`.
+
 ## Steps421-422 (Claude) - white-box field for the full population; the gate was hiding the token-level result, 2026-09-18
 
 **Step421.** White-box per-layer field extracted on AIRCC for ALL 13,769 localization answers
