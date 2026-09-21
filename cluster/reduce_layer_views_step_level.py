@@ -110,20 +110,38 @@ def channel_names() -> list[str]:
 
 
 def check_spans(path, starts, ends, n_tokens, expected_steps, expected_tokens):
-    """The real span contract, and the token-axis identity.
+    """The real span contract, the token-axis identity, and the overlap diagnostic.
 
-    `spectral_utils.processbench.build_chain` documents that step spans are "disjoint and ordered
-    but need not be contiguous (the separator sits between)", and `assert_alignment` states that
-    separator tokens legitimately fall outside every span and that coverage is REPORTED, not
-    asserted. An earlier draft of this file required `starts[1:] == ends[:-1]` and
-    `ends[-1] == n_tokens`; HISTORY records a real row with 1,112 steps and 16 separator tokens
-    outside the spans, so that assert would have aborted the job and emitted nothing.
+    Two things about step spans are documented and both bite here.
 
-    The token-axis check is the one that actually defends against Step 313's failure class. A
-    step COUNT check cannot: both sides are derived from `len(row["steps"])` by construction, so
-    they agree even under a one-step shift, a re-tokenization drift or a wrong chat template.
-    `JOINED.json` independently records each answer's token count, and comparing against it ties
-    this capture to the frozen benchmark on the token axis.
+    NOT CONTIGUOUS. `spectral_utils.processbench.build_chain` says spans are "disjoint and
+    ordered but need not be contiguous (the separator sits between)", and `assert_alignment`
+    says coverage is REPORTED, not asserted. Measured on the capture: ProcessBench coverage
+    runs 0.969-1.000, so separator tokens really do fall outside every span.
+
+    NOT DISJOINT EITHER, on PRMBench. `step_token_spans` assigns a token to a step when the
+    token's character extent INTERSECTS that step's span, so a step whose text is shorter than
+    one token shares that token with its neighbour. An earlier draft of this file required
+    `starts[1:] >= ends[:-1]` and the full run died on it at row ~8,000, on
+    prmbench/confidence_confidence_prm_train_p1_303, whose spans run
+    (0,9) (8,9) (8,9) (9,39) (38,39) (38,39) ...
+
+    What IS invariant, and is asserted: starts and ends are both non-decreasing, every span is
+    non-empty, and every span lies inside the token array. A scan of all 6,969 PRMBench rows
+    and 1,000 ProcessBench rows found no ordering violation anywhere.
+
+    The token-axis check is the one that defends against Step 313's failure class. A step COUNT
+    check cannot: both sides derive from `len(row["steps"])` by construction, so they agree even
+    under a one-step shift or a re-tokenization drift. `JOINED.json` independently records each
+    answer's token count, which ties this capture to the frozen benchmark on the token axis.
+
+    Returns (coverage, n_overlapping_steps, n_identical_spans). Overlap is counted rather than
+    waved through because it bounds the task: a step sharing tokens with its neighbour is
+    partly indistinguishable from it, and two steps with IDENTICAL spans are wholly
+    indistinguishable to any token-derived locator - their readouts are equal by construction,
+    so a first-error label on the later one can never be hit. Measured scale: 10 overlapping
+    steps of 94,203, 3 of them identical pairs. Negligible for any aggregate, but it is a real
+    ceiling and belongs in the manifest rather than in nobody's notes.
     """
     if len(starts) != expected_steps:
         raise SystemExit(f"{path}: {len(starts)} spans, JOINED says {expected_steps} steps")
@@ -135,9 +153,13 @@ def check_spans(path, starts, ends, n_tokens, expected_steps, expected_tokens):
     if not (starts < ends).all():
         raise SystemExit(f"{path}: empty or inverted span (an unmapped step reaches here as "
                          f"a degenerate range)")
-    if not (starts[1:] >= ends[:-1]).all():
-        raise SystemExit(f"{path}: spans overlap or are out of order")
-    return float((ends - starts).sum()) / max(n_tokens, 1)
+    if not ((starts[1:] >= starts[:-1]).all() and (ends[1:] >= ends[:-1]).all()):
+        raise SystemExit(f"{path}: spans are out of order")
+    overlapping = int((starts[1:] < ends[:-1]).sum())
+    identical = int(sum(1 for i in range(1, len(starts))
+                        if starts[i] == starts[i - 1] and ends[i] == ends[i - 1]))
+    coverage = float((ends - starts).sum()) / max(n_tokens, 1)
+    return coverage, overlapping, identical
 
 
 def reduce_row(path: str, expected_steps: int, expected_tokens: int) -> dict:
@@ -159,7 +181,8 @@ def reduce_row(path: str, expected_steps: int, expected_tokens: int) -> dict:
             raise SystemExit(f"{path}: {quantity} has shape {arr.shape}, "
                              f"expected ({len(MODULES)}, {N_LAYERS}, T)")
 
-    coverage = check_spans(path, starts, ends, n_tokens, expected_steps, expected_tokens)
+    coverage, overlapping, identical = check_spans(
+        path, starts, ends, n_tokens, expected_steps, expected_tokens)
 
     # Module-axis identity + wrong-module control, the same pair the answer-level sibling runs.
     # This script reads ALL THREE taps, so an attn/resid swap would silently invert every
@@ -180,6 +203,8 @@ def reduce_row(path: str, expected_steps: int, expected_tokens: int) -> dict:
         "step_len": (ends - starts).astype(np.int32),
         "n_tokens": np.int32(n_tokens),
         "coverage": np.float32(coverage),
+        "overlapping_steps": np.int32(overlapping),
+        "identical_spans": np.int32(identical),
         "identity_check": np.float32(identity),
         "axis_control": np.float32(control),
         "gate_flag": gate_flag,
@@ -217,7 +242,8 @@ def run(roots: str, joined_dir: str, out_dir: str, limit: int | None = None) -> 
     started = time.time()
 
     acc: dict[str, list] = {k: [] for k in ("step_views", "incumbent", "step_len", "n_tokens",
-                                            "coverage", "identity_check", "axis_control")}
+                                            "coverage", "overlapping_steps", "identical_spans",
+                                            "identity_check", "axis_control")}
     row_ids, cells, flags, counts, missing = [], [], [], [], []
     for i, (row_id, cell) in enumerate(rows):
         directory, subset = CELL_SOURCES[cell]
@@ -274,6 +300,8 @@ def run(roots: str, joined_dir: str, out_dir: str, limit: int | None = None) -> 
              step_len=np.concatenate(acc["step_len"], axis=0),
              n_tokens=np.asarray(acc["n_tokens"]),
              coverage=np.asarray(acc["coverage"]),
+             overlapping_steps=np.asarray(acc["overlapping_steps"]),
+             identical_spans=np.asarray(acc["identical_spans"]),
              identity_check=identity, axis_control=control,
              offsets=out_offsets,
              row_id=np.array(row_ids), cell=np.array(cells), gate_flag=np.array(flags),
@@ -294,6 +322,9 @@ def run(roots: str, joined_dir: str, out_dir: str, limit: int | None = None) -> 
         "readout": f"step_top_readout k={TOP_K}; .hi = top10(x), .lo = top10(-x), "
                    f"both risk-ascending",
         "token_coverage_min": float(cov.min()),
+        "rows_with_overlapping_spans": int((np.asarray(acc["overlapping_steps"]) > 0).sum()),
+        "overlapping_steps_total": int(np.asarray(acc["overlapping_steps"]).sum()),
+        "identical_spans_total": int(np.asarray(acc["identical_spans"]).sum()),
         "token_coverage_median": float(np.median(cov)),
         "identity_check_max": float(identity.max()),
         "axis_control_min": float(control.min()),
@@ -386,14 +417,34 @@ def smoke() -> int:
             else:
                 checks.append((f"guard fires on {label}", False))
 
+        # The real PRMBench shape, taken verbatim from the row that killed the full run:
+        # a short step shares its single token with the step before it, and two steps can have
+        # IDENTICAL spans. This must be ACCEPTED and counted, not rejected - the earlier
+        # fixture conflated overlap with disorder and so blessed an assert that was wrong.
+        overlap = _write_row(base, "gsm8k::gsm8k-3", "pb_gsm8k_q4",
+                             [0, 8, 8, 9, 38], [9, 9, 9, 39, 39], 40, rng)
+        try:
+            got = reduce_row(overlap, 5, 40)
+        except SystemExit as exc:
+            checks.append((f"overlapping spans accepted (got: {exc})", False))
+        else:
+            checks += [
+                ("overlapping spans accepted, as PRMBench really has them", True),
+                ("overlapping steps counted", int(got["overlapping_steps"]) == 3),
+                ("identical spans counted", int(got["identical_spans"]) == 1),
+                ("coverage may exceed 1.0 when spans overlap", float(got["coverage"]) > 1.0),
+            ]
+
+        # order, on the other hand, is invariant: a scan of all 6,969 PRMBench rows and 1,000
+        # ProcessBench rows found no ordering violation anywhere.
         bad = _write_row(base, "gsm8k::gsm8k-1", "pb_gsm8k_q4",
-                         [0, 5, 4], [5, 9, 12], 14, rng)     # out of order / overlapping
+                         [0, 7, 4], [5, 9, 12], 14, rng)     # starts decrease at index 2
         try:
             reduce_row(bad, 3, 14)
         except SystemExit:
-            checks.append(("guard fires on overlapping/out-of-order spans", True))
+            checks.append(("guard fires on OUT-OF-ORDER spans", True))
         else:
-            checks.append(("guard fires on overlapping/out-of-order spans", False))
+            checks.append(("guard fires on OUT-OF-ORDER spans", False))
 
         degenerate = _write_row(base, "gsm8k::gsm8k-2", "pb_gsm8k_q4",
                                 [0, 6, 6], [5, 6, 11], 12, rng)   # an unmapped step
