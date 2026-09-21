@@ -110,3 +110,11 @@ Pre-registered reading of the full result, written before any full cell was scor
   are carried but not scored (SLA protocol).
 - The Drive connector cannot fetch files above 10 MB, which excludes every full cell and the
   Omni-MATH pilots; the four full cells per scorer must be run where the caches are.
+
+## Addendum 2026-09-21 — clarifications and the PRMBench extension
+
+The discussion that followed the pilot run (eigenvector-versus-EM, what the matrix is, how the
+weights are used at inference, and how the same fusion transfers to PRMBench's every-step
+ranking with a per-step rather than cumulative encoding) is recorded in
+`docs/research_notes/cumulative_vote_fusion_clarifications_2026-09-21.md`. The PRMBench mode is
+designed there and not yet implemented.

@@ -12,6 +12,14 @@ readout. **Full cells: run the documented command on the machine with the caches
 Mind-the-Gap replay figures from Step423 verified against the frozen package (SLA 0.23323):
 `results/cumulative_vote_fusion_v1/MIND_THE_GAP_VERIFICATION.md`.
 
+**Addendum 2026-09-21.** Clarifications recorded in
+`docs/research_notes/cumulative_vote_fusion_clarifications_2026-09-21.md`: in `spectral_utils`
+the SML/L-SML eigenvector is the final weight vector (no EM, no psi/eta anywhere); the
+Dawid-Skene rows are SML-initialized EM living in the experiment script; the inference uses only
+the per-feature step estimates and the learned per-feature weights; and the PRMBench transfer
+needs a per-step ("is step s erroneous") encoding with top-k binarization instead of the
+cumulative one. PRMBench mode not implemented yet.
+
 ## Step423 (Claude) - cumulative-vote fusion of localizers reproduces the incumbent; long-chain deficit is a shared late bias, 2026-09-20
 
 Omri's "ask every localizer whether the first error is at a step <= n, then binary L-SML" run
