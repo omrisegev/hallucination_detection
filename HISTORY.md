@@ -1,5 +1,26 @@
 # MV_EPR Project History
 
+## Cumulative vote fusion v2 [Codex] — 2026-09-22
+
+Implemented the authorized binary/soft full-grid protocol, weighted spectral
+models with retained preprocessing and binary hierarchy, DS and exact latent-
+group EM, full nested PRMB threshold evaluation, shared CT7-gate PB scoring,
+paired source bootstraps and a Hebrew HTML report. All 13,769 raw-cache joins
+verified. Replayed the canonical Mind-the-Gap adapter from original top-k values;
+kept the older unadjusted-EMA scores separately. Llama historical prediction
+metrics replayed in a separate pilot appendix.
+
+All 230 fit jobs completed, all selected EM fits converged, no fallbacks.
+10 unit tests and artifact-level checks passed. Fixed an arithmetic mode-tie
+issue in 665 method/answer predictions before evaluation; old indices and source
+snapshots retained, fitted parameters and masses unchanged. Full selected-soft
+L-SML remains below CT7: 36.184 vs39.886 SLA, 38.313 vs41.189 common-gate F1,
+.761480 vs.772397 PRMB within-AUC. Learned fusion adds only +0.152 SLA pp over
+selected soft equal (CI includes0). No automatic winner/promotion.
+
+Artifacts: `results/cumulative_vote_fusion_v2/`; interpretation and limitations:
+`docs/experiments/CUMULATIVE_VOTE_FUSION_V2_SESSION_REPORT.md`.
+
 ## Step374 [Codex] - Fusion input-normalization ablation, 2026-09-14
 
 Compared answer-z, scale-only and literal raw inputs for seven frozen q15

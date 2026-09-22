@@ -56,6 +56,8 @@ cluster/** text eol=lf
 # SHA-256 replay checks fail closed on any EOL conversion (autocrlf on Windows
 # turned the frozen A6-S0a artifacts noncanonical). Never transform them.
 results/** -text
+# Byte-exact Windows experiment artifacts retain CRLF in their recorded hashes.
+results/cumulative_vote_fusion_v2/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 # Generated CSV artifacts may intentionally preserve source CRLF bytes for
 # checksum-equivalent replay. Treat them as data in diffs so whitespace checks
 # do not reinterpret their record terminators as editable-source whitespace.

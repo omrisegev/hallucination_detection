@@ -1,0 +1,728 @@
+{
+  "sources": [
+    {
+      "cell": "pb_gsm8k_q4",
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_4b\\processbench_gsm8k.pkl",
+      "bytes": 49801034,
+      "mtime_ns": 1785817306029842600,
+      "sha256": "549843b11a99f41b60ccb13eb6a65c5583527402602e6e40d1a417699e64b02b",
+      "manifest_sha256": "700527cc4b061a522004e00b094462e16db98b4830f29a706a737d3e9d28195c",
+      "manifest": {
+        "driver": "run_teacher_forced.py",
+        "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306) — ProcessBench SLA arm",
+        "model": "Qwen/Qwen3-4B",
+        "protocol": "teacher-forced single forward pass over the provided reasoning chain",
+        "prompt": "data_loaders.math_prompt on the problem (OUR choice — the paper states none)",
+        "prompt_suffix": " /no_think",
+        "thinking_mode": "off",
+        "step_separator": "\\n\\n",
+        "logprob_top_k": 50,
+        "n_samples_per_subset": null,
+        "job_id": "157578",
+        "written_utc": "2026-08-04T04:16:29+00:00",
+        "cells": {
+          "gsm8k": {
+            "n_rows": 400,
+            "n_with_error": 207,
+            "n_all_correct": 193,
+            "mean_steps": 5.205,
+            "mean_tokens": 286.255,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0,
+            "frac_steps_lt_32_tokens": 0.260806916426513,
+            "median_step_tokens": 51.0
+          },
+          "math": {
+            "n_rows": 1000,
+            "n_with_error": 594,
+            "n_all_correct": 406,
+            "mean_steps": 6.505,
+            "mean_tokens": 523.899,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0009223674096848578,
+            "frac_steps_lt_32_tokens": 0.15588009223674096,
+            "median_step_tokens": 67.0
+          },
+          "olympiadbench": {
+            "n_rows": 1000,
+            "n_with_error": 661,
+            "n_all_correct": 339,
+            "mean_steps": 8.819,
+            "mean_tokens": 781.284,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.003741920852704388,
+            "frac_steps_lt_32_tokens": 0.13402880145141172,
+            "median_step_tokens": 75.0
+          },
+          "omnimath": {
+            "n_rows": 1000,
+            "n_with_error": 759,
+            "n_all_correct": 241,
+            "mean_steps": 8.291,
+            "mean_tokens": 773.607,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0022916415390182125,
+            "frac_steps_lt_32_tokens": 0.10951634302255457,
+            "median_step_tokens": 80.0
+          }
+        }
+      },
+      "standard_schema_probe": {
+        "returncode": 0,
+        "stdout": "== ..\\..\\dataset_cache\\repgrid\\pb_qwen3_4b\\processbench_gsm8k.pkl  (49.8 MB) ==\n   model=Qwen/Qwen3-4B  dataset=None  N=None K=None T=None\n   published Y=None ()  head_to_head=None  judge=None\n   schema=teacher-forced-localization rows=400 tokens=114502\n   token lengths min=71 max=1167\n   full_text: 0/400\n   token_entropies: 400/400\n   token_spilled_energies: 400/400\n   token_offsets: 0/400\n   top_k_logprobs: 400/400\n   gen_token_ids: 400/400\n   label: 400/400\n   step_token_spans: 400/400\n   Candidate-grid scoring is inapplicable; use the localization contract loader.\n",
+        "stderr": ""
+      },
+      "answers": 400,
+      "max_float32_evidence_difference": 1.182507145536249e-07,
+      "ids_spans_token_values_labels_verified": true
+    },
+    {
+      "cell": "pb_math_q4",
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_4b\\processbench_math.pkl",
+      "bytes": 227049038,
+      "mtime_ns": 1785817322987515100,
+      "sha256": "807292c490012b68c7a20cc3d093cda637866227940b9024b258b6a201657c32",
+      "manifest_sha256": "700527cc4b061a522004e00b094462e16db98b4830f29a706a737d3e9d28195c",
+      "manifest": {
+        "driver": "run_teacher_forced.py",
+        "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306) — ProcessBench SLA arm",
+        "model": "Qwen/Qwen3-4B",
+        "protocol": "teacher-forced single forward pass over the provided reasoning chain",
+        "prompt": "data_loaders.math_prompt on the problem (OUR choice — the paper states none)",
+        "prompt_suffix": " /no_think",
+        "thinking_mode": "off",
+        "step_separator": "\\n\\n",
+        "logprob_top_k": 50,
+        "n_samples_per_subset": null,
+        "job_id": "157578",
+        "written_utc": "2026-08-04T04:16:29+00:00",
+        "cells": {
+          "gsm8k": {
+            "n_rows": 400,
+            "n_with_error": 207,
+            "n_all_correct": 193,
+            "mean_steps": 5.205,
+            "mean_tokens": 286.255,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0,
+            "frac_steps_lt_32_tokens": 0.260806916426513,
+            "median_step_tokens": 51.0
+          },
+          "math": {
+            "n_rows": 1000,
+            "n_with_error": 594,
+            "n_all_correct": 406,
+            "mean_steps": 6.505,
+            "mean_tokens": 523.899,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0009223674096848578,
+            "frac_steps_lt_32_tokens": 0.15588009223674096,
+            "median_step_tokens": 67.0
+          },
+          "olympiadbench": {
+            "n_rows": 1000,
+            "n_with_error": 661,
+            "n_all_correct": 339,
+            "mean_steps": 8.819,
+            "mean_tokens": 781.284,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.003741920852704388,
+            "frac_steps_lt_32_tokens": 0.13402880145141172,
+            "median_step_tokens": 75.0
+          },
+          "omnimath": {
+            "n_rows": 1000,
+            "n_with_error": 759,
+            "n_all_correct": 241,
+            "mean_steps": 8.291,
+            "mean_tokens": 773.607,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0022916415390182125,
+            "frac_steps_lt_32_tokens": 0.10951634302255457,
+            "median_step_tokens": 80.0
+          }
+        }
+      },
+      "standard_schema_probe": {
+        "returncode": 0,
+        "stdout": "== ..\\..\\dataset_cache\\repgrid\\pb_qwen3_4b\\processbench_math.pkl  (227.0 MB) ==\n   model=Qwen/Qwen3-4B  dataset=None  N=None K=None T=None\n   published Y=None ()  head_to_head=None  judge=None\n   schema=teacher-forced-localization rows=1000 tokens=523899\n   token lengths min=55 max=2028\n   full_text: 0/1000\n   token_entropies: 1000/1000\n   token_spilled_energies: 1000/1000\n   token_offsets: 0/1000\n   top_k_logprobs: 1000/1000\n   gen_token_ids: 1000/1000\n   label: 1000/1000\n   step_token_spans: 1000/1000\n   Candidate-grid scoring is inapplicable; use the localization contract loader.\n",
+        "stderr": ""
+      },
+      "answers": 1000,
+      "max_float32_evidence_difference": 1.1916416253754392e-07,
+      "ids_spans_token_values_labels_verified": true
+    },
+    {
+      "cell": "pb_olympiadbench_q4",
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_4b\\processbench_olympiadbench.pkl",
+      "bytes": 338485050,
+      "mtime_ns": 1785817354556451100,
+      "sha256": "e5e73f044247e0fb4081fea1c3a77793aab182485daebce48cf7a3f7809eb0ae",
+      "manifest_sha256": "700527cc4b061a522004e00b094462e16db98b4830f29a706a737d3e9d28195c",
+      "manifest": {
+        "driver": "run_teacher_forced.py",
+        "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306) — ProcessBench SLA arm",
+        "model": "Qwen/Qwen3-4B",
+        "protocol": "teacher-forced single forward pass over the provided reasoning chain",
+        "prompt": "data_loaders.math_prompt on the problem (OUR choice — the paper states none)",
+        "prompt_suffix": " /no_think",
+        "thinking_mode": "off",
+        "step_separator": "\\n\\n",
+        "logprob_top_k": 50,
+        "n_samples_per_subset": null,
+        "job_id": "157578",
+        "written_utc": "2026-08-04T04:16:29+00:00",
+        "cells": {
+          "gsm8k": {
+            "n_rows": 400,
+            "n_with_error": 207,
+            "n_all_correct": 193,
+            "mean_steps": 5.205,
+            "mean_tokens": 286.255,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0,
+            "frac_steps_lt_32_tokens": 0.260806916426513,
+            "median_step_tokens": 51.0
+          },
+          "math": {
+            "n_rows": 1000,
+            "n_with_error": 594,
+            "n_all_correct": 406,
+            "mean_steps": 6.505,
+            "mean_tokens": 523.899,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0009223674096848578,
+            "frac_steps_lt_32_tokens": 0.15588009223674096,
+            "median_step_tokens": 67.0
+          },
+          "olympiadbench": {
+            "n_rows": 1000,
+            "n_with_error": 661,
+            "n_all_correct": 339,
+            "mean_steps": 8.819,
+            "mean_tokens": 781.284,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.003741920852704388,
+            "frac_steps_lt_32_tokens": 0.13402880145141172,
+            "median_step_tokens": 75.0
+          },
+          "omnimath": {
+            "n_rows": 1000,
+            "n_with_error": 759,
+            "n_all_correct": 241,
+            "mean_steps": 8.291,
+            "mean_tokens": 773.607,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0022916415390182125,
+            "frac_steps_lt_32_tokens": 0.10951634302255457,
+            "median_step_tokens": 80.0
+          }
+        }
+      },
+      "standard_schema_probe": {
+        "returncode": 0,
+        "stdout": "== ..\\..\\dataset_cache\\repgrid\\pb_qwen3_4b\\processbench_olympiadbench.pkl  (338.5 MB) ==\n   model=Qwen/Qwen3-4B  dataset=None  N=None K=None T=None\n   published Y=None ()  head_to_head=None  judge=None\n   schema=teacher-forced-localization rows=1000 tokens=781284\n   token lengths min=163 max=1923\n   full_text: 0/1000\n   token_entropies: 1000/1000\n   token_spilled_energies: 1000/1000\n   token_offsets: 0/1000\n   top_k_logprobs: 1000/1000\n   gen_token_ids: 1000/1000\n   label: 1000/1000\n   step_token_spans: 1000/1000\n   Candidate-grid scoring is inapplicable; use the localization contract loader.\n",
+        "stderr": ""
+      },
+      "answers": 1000,
+      "max_float32_evidence_difference": 1.1919465059406775e-07,
+      "ids_spans_token_values_labels_verified": true
+    },
+    {
+      "cell": "pb_omnimath_q4",
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_4b\\processbench_omnimath.pkl",
+      "bytes": 335250837,
+      "mtime_ns": 1785817382423046200,
+      "sha256": "ec20e56553acee15c0646ad266f5d5d8d24ef22ba87289b6ffe013b0c639ba67",
+      "manifest_sha256": "700527cc4b061a522004e00b094462e16db98b4830f29a706a737d3e9d28195c",
+      "manifest": {
+        "driver": "run_teacher_forced.py",
+        "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306) — ProcessBench SLA arm",
+        "model": "Qwen/Qwen3-4B",
+        "protocol": "teacher-forced single forward pass over the provided reasoning chain",
+        "prompt": "data_loaders.math_prompt on the problem (OUR choice — the paper states none)",
+        "prompt_suffix": " /no_think",
+        "thinking_mode": "off",
+        "step_separator": "\\n\\n",
+        "logprob_top_k": 50,
+        "n_samples_per_subset": null,
+        "job_id": "157578",
+        "written_utc": "2026-08-04T04:16:29+00:00",
+        "cells": {
+          "gsm8k": {
+            "n_rows": 400,
+            "n_with_error": 207,
+            "n_all_correct": 193,
+            "mean_steps": 5.205,
+            "mean_tokens": 286.255,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0,
+            "frac_steps_lt_32_tokens": 0.260806916426513,
+            "median_step_tokens": 51.0
+          },
+          "math": {
+            "n_rows": 1000,
+            "n_with_error": 594,
+            "n_all_correct": 406,
+            "mean_steps": 6.505,
+            "mean_tokens": 523.899,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0009223674096848578,
+            "frac_steps_lt_32_tokens": 0.15588009223674096,
+            "median_step_tokens": 67.0
+          },
+          "olympiadbench": {
+            "n_rows": 1000,
+            "n_with_error": 661,
+            "n_all_correct": 339,
+            "mean_steps": 8.819,
+            "mean_tokens": 781.284,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.003741920852704388,
+            "frac_steps_lt_32_tokens": 0.13402880145141172,
+            "median_step_tokens": 75.0
+          },
+          "omnimath": {
+            "n_rows": 1000,
+            "n_with_error": 759,
+            "n_all_correct": 241,
+            "mean_steps": 8.291,
+            "mean_tokens": 773.607,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0022916415390182125,
+            "frac_steps_lt_32_tokens": 0.10951634302255457,
+            "median_step_tokens": 80.0
+          }
+        }
+      },
+      "standard_schema_probe": {
+        "returncode": 0,
+        "stdout": "== ..\\..\\dataset_cache\\repgrid\\pb_qwen3_4b\\processbench_omnimath.pkl  (335.3 MB) ==\n   model=Qwen/Qwen3-4B  dataset=None  N=None K=None T=None\n   published Y=None ()  head_to_head=None  judge=None\n   schema=teacher-forced-localization rows=1000 tokens=773607\n   token lengths min=103 max=1997\n   full_text: 0/1000\n   token_entropies: 1000/1000\n   token_spilled_energies: 1000/1000\n   token_offsets: 0/1000\n   top_k_logprobs: 1000/1000\n   gen_token_ids: 1000/1000\n   label: 1000/1000\n   step_token_spans: 1000/1000\n   Candidate-grid scoring is inapplicable; use the localization contract loader.\n",
+        "stderr": ""
+      },
+      "answers": 1000,
+      "max_float32_evidence_difference": 1.1920550146982123e-07,
+      "ids_spans_token_values_labels_verified": true
+    },
+    {
+      "cell": "pb_gsm8k_q8",
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_8b\\processbench_gsm8k.pkl",
+      "bytes": 49801034,
+      "mtime_ns": 1785817244673102100,
+      "sha256": "c258e8a37fad43216290fef2f70c88735f413f8c0ceb5cce39dfefe67d66955d",
+      "manifest_sha256": "a62763901acd50a58da86cffea3e4628e9ec8fe1e2fa2366baff61583d0a4d5d",
+      "manifest": {
+        "driver": "run_teacher_forced.py",
+        "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306) — ProcessBench SLA arm",
+        "model": "Qwen/Qwen3-8B",
+        "protocol": "teacher-forced single forward pass over the provided reasoning chain",
+        "prompt": "data_loaders.math_prompt on the problem (OUR choice — the paper states none)",
+        "prompt_suffix": " /no_think",
+        "thinking_mode": "off",
+        "step_separator": "\\n\\n",
+        "logprob_top_k": 50,
+        "n_samples_per_subset": null,
+        "job_id": "157576",
+        "written_utc": "2026-08-04T04:16:44+00:00",
+        "cells": {
+          "gsm8k": {
+            "n_rows": 400,
+            "n_with_error": 207,
+            "n_all_correct": 193,
+            "mean_steps": 5.205,
+            "mean_tokens": 286.255,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0,
+            "frac_steps_lt_32_tokens": 0.260806916426513,
+            "median_step_tokens": 51.0
+          },
+          "math": {
+            "n_rows": 1000,
+            "n_with_error": 594,
+            "n_all_correct": 406,
+            "mean_steps": 6.505,
+            "mean_tokens": 523.899,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0009223674096848578,
+            "frac_steps_lt_32_tokens": 0.15588009223674096,
+            "median_step_tokens": 67.0
+          },
+          "olympiadbench": {
+            "n_rows": 1000,
+            "n_with_error": 661,
+            "n_all_correct": 339,
+            "mean_steps": 8.819,
+            "mean_tokens": 781.284,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.003741920852704388,
+            "frac_steps_lt_32_tokens": 0.13402880145141172,
+            "median_step_tokens": 75.0
+          },
+          "omnimath": {
+            "n_rows": 1000,
+            "n_with_error": 759,
+            "n_all_correct": 241,
+            "mean_steps": 8.291,
+            "mean_tokens": 773.607,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0022916415390182125,
+            "frac_steps_lt_32_tokens": 0.10951634302255457,
+            "median_step_tokens": 80.0
+          }
+        }
+      },
+      "standard_schema_probe": {
+        "returncode": 0,
+        "stdout": "== ..\\..\\dataset_cache\\repgrid\\pb_qwen3_8b\\processbench_gsm8k.pkl  (49.8 MB) ==\n   model=Qwen/Qwen3-8B  dataset=None  N=None K=None T=None\n   published Y=None ()  head_to_head=None  judge=None\n   schema=teacher-forced-localization rows=400 tokens=114502\n   token lengths min=71 max=1167\n   full_text: 0/400\n   token_entropies: 400/400\n   token_spilled_energies: 400/400\n   token_offsets: 0/400\n   top_k_logprobs: 400/400\n   gen_token_ids: 400/400\n   label: 400/400\n   step_token_spans: 400/400\n   Candidate-grid scoring is inapplicable; use the localization contract loader.\n",
+        "stderr": ""
+      },
+      "answers": 400,
+      "max_float32_evidence_difference": 1.1919636655477461e-07,
+      "ids_spans_token_values_labels_verified": true
+    },
+    {
+      "cell": "pb_math_q8",
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_8b\\processbench_math.pkl",
+      "bytes": 227049038,
+      "mtime_ns": 1785817259564482900,
+      "sha256": "19cbbb2b4f90e073f2793360f142bc25334f88bbc4ec01fd78807f9f1ad2836d",
+      "manifest_sha256": "a62763901acd50a58da86cffea3e4628e9ec8fe1e2fa2366baff61583d0a4d5d",
+      "manifest": {
+        "driver": "run_teacher_forced.py",
+        "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306) — ProcessBench SLA arm",
+        "model": "Qwen/Qwen3-8B",
+        "protocol": "teacher-forced single forward pass over the provided reasoning chain",
+        "prompt": "data_loaders.math_prompt on the problem (OUR choice — the paper states none)",
+        "prompt_suffix": " /no_think",
+        "thinking_mode": "off",
+        "step_separator": "\\n\\n",
+        "logprob_top_k": 50,
+        "n_samples_per_subset": null,
+        "job_id": "157576",
+        "written_utc": "2026-08-04T04:16:44+00:00",
+        "cells": {
+          "gsm8k": {
+            "n_rows": 400,
+            "n_with_error": 207,
+            "n_all_correct": 193,
+            "mean_steps": 5.205,
+            "mean_tokens": 286.255,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0,
+            "frac_steps_lt_32_tokens": 0.260806916426513,
+            "median_step_tokens": 51.0
+          },
+          "math": {
+            "n_rows": 1000,
+            "n_with_error": 594,
+            "n_all_correct": 406,
+            "mean_steps": 6.505,
+            "mean_tokens": 523.899,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0009223674096848578,
+            "frac_steps_lt_32_tokens": 0.15588009223674096,
+            "median_step_tokens": 67.0
+          },
+          "olympiadbench": {
+            "n_rows": 1000,
+            "n_with_error": 661,
+            "n_all_correct": 339,
+            "mean_steps": 8.819,
+            "mean_tokens": 781.284,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.003741920852704388,
+            "frac_steps_lt_32_tokens": 0.13402880145141172,
+            "median_step_tokens": 75.0
+          },
+          "omnimath": {
+            "n_rows": 1000,
+            "n_with_error": 759,
+            "n_all_correct": 241,
+            "mean_steps": 8.291,
+            "mean_tokens": 773.607,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0022916415390182125,
+            "frac_steps_lt_32_tokens": 0.10951634302255457,
+            "median_step_tokens": 80.0
+          }
+        }
+      },
+      "standard_schema_probe": {
+        "returncode": 0,
+        "stdout": "== ..\\..\\dataset_cache\\repgrid\\pb_qwen3_8b\\processbench_math.pkl  (227.0 MB) ==\n   model=Qwen/Qwen3-8B  dataset=None  N=None K=None T=None\n   published Y=None ()  head_to_head=None  judge=None\n   schema=teacher-forced-localization rows=1000 tokens=523899\n   token lengths min=55 max=2028\n   full_text: 0/1000\n   token_entropies: 1000/1000\n   token_spilled_energies: 1000/1000\n   token_offsets: 0/1000\n   top_k_logprobs: 1000/1000\n   gen_token_ids: 1000/1000\n   label: 1000/1000\n   step_token_spans: 1000/1000\n   Candidate-grid scoring is inapplicable; use the localization contract loader.\n",
+        "stderr": ""
+      },
+      "answers": 1000,
+      "max_float32_evidence_difference": 1.1919651798919517e-07,
+      "ids_spans_token_values_labels_verified": true
+    },
+    {
+      "cell": "pb_olympiadbench_q8",
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_8b\\processbench_olympiadbench.pkl",
+      "bytes": 338485050,
+      "mtime_ns": 1785817282450254800,
+      "sha256": "2083c4f9d0cc8d84657b02558d0720f726db4288e39e7557be4c55f78f4d4e60",
+      "manifest_sha256": "a62763901acd50a58da86cffea3e4628e9ec8fe1e2fa2366baff61583d0a4d5d",
+      "manifest": {
+        "driver": "run_teacher_forced.py",
+        "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306) — ProcessBench SLA arm",
+        "model": "Qwen/Qwen3-8B",
+        "protocol": "teacher-forced single forward pass over the provided reasoning chain",
+        "prompt": "data_loaders.math_prompt on the problem (OUR choice — the paper states none)",
+        "prompt_suffix": " /no_think",
+        "thinking_mode": "off",
+        "step_separator": "\\n\\n",
+        "logprob_top_k": 50,
+        "n_samples_per_subset": null,
+        "job_id": "157576",
+        "written_utc": "2026-08-04T04:16:44+00:00",
+        "cells": {
+          "gsm8k": {
+            "n_rows": 400,
+            "n_with_error": 207,
+            "n_all_correct": 193,
+            "mean_steps": 5.205,
+            "mean_tokens": 286.255,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0,
+            "frac_steps_lt_32_tokens": 0.260806916426513,
+            "median_step_tokens": 51.0
+          },
+          "math": {
+            "n_rows": 1000,
+            "n_with_error": 594,
+            "n_all_correct": 406,
+            "mean_steps": 6.505,
+            "mean_tokens": 523.899,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0009223674096848578,
+            "frac_steps_lt_32_tokens": 0.15588009223674096,
+            "median_step_tokens": 67.0
+          },
+          "olympiadbench": {
+            "n_rows": 1000,
+            "n_with_error": 661,
+            "n_all_correct": 339,
+            "mean_steps": 8.819,
+            "mean_tokens": 781.284,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.003741920852704388,
+            "frac_steps_lt_32_tokens": 0.13402880145141172,
+            "median_step_tokens": 75.0
+          },
+          "omnimath": {
+            "n_rows": 1000,
+            "n_with_error": 759,
+            "n_all_correct": 241,
+            "mean_steps": 8.291,
+            "mean_tokens": 773.607,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0022916415390182125,
+            "frac_steps_lt_32_tokens": 0.10951634302255457,
+            "median_step_tokens": 80.0
+          }
+        }
+      },
+      "standard_schema_probe": {
+        "returncode": 0,
+        "stdout": "== ..\\..\\dataset_cache\\repgrid\\pb_qwen3_8b\\processbench_olympiadbench.pkl  (338.5 MB) ==\n   model=Qwen/Qwen3-8B  dataset=None  N=None K=None T=None\n   published Y=None ()  head_to_head=None  judge=None\n   schema=teacher-forced-localization rows=1000 tokens=781284\n   token lengths min=163 max=1923\n   full_text: 0/1000\n   token_entropies: 1000/1000\n   token_spilled_energies: 1000/1000\n   token_offsets: 0/1000\n   top_k_logprobs: 1000/1000\n   gen_token_ids: 1000/1000\n   label: 1000/1000\n   step_token_spans: 1000/1000\n   Candidate-grid scoring is inapplicable; use the localization contract loader.\n",
+        "stderr": ""
+      },
+      "answers": 1000,
+      "max_float32_evidence_difference": 1.1920644826801663e-07,
+      "ids_spans_token_values_labels_verified": true
+    },
+    {
+      "cell": "pb_omnimath_q8",
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\repgrid\\pb_qwen3_8b\\processbench_omnimath.pkl",
+      "bytes": 335250837,
+      "mtime_ns": 1785817301946872000,
+      "sha256": "561b96c5e96a25256e7e51a62c7ef01bcb2fd87ea1adcfc36e2c758807f559a0",
+      "manifest_sha256": "a62763901acd50a58da86cffea3e4628e9ec8fe1e2fa2366baff61583d0a4d5d",
+      "manifest": {
+        "driver": "run_teacher_forced.py",
+        "paper": "Mind the Gap / Evidence Drop (ICML 2026, PMLR 306) — ProcessBench SLA arm",
+        "model": "Qwen/Qwen3-8B",
+        "protocol": "teacher-forced single forward pass over the provided reasoning chain",
+        "prompt": "data_loaders.math_prompt on the problem (OUR choice — the paper states none)",
+        "prompt_suffix": " /no_think",
+        "thinking_mode": "off",
+        "step_separator": "\\n\\n",
+        "logprob_top_k": 50,
+        "n_samples_per_subset": null,
+        "job_id": "157576",
+        "written_utc": "2026-08-04T04:16:44+00:00",
+        "cells": {
+          "gsm8k": {
+            "n_rows": 400,
+            "n_with_error": 207,
+            "n_all_correct": 193,
+            "mean_steps": 5.205,
+            "mean_tokens": 286.255,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0,
+            "frac_steps_lt_32_tokens": 0.260806916426513,
+            "median_step_tokens": 51.0
+          },
+          "math": {
+            "n_rows": 1000,
+            "n_with_error": 594,
+            "n_all_correct": 406,
+            "mean_steps": 6.505,
+            "mean_tokens": 523.899,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0009223674096848578,
+            "frac_steps_lt_32_tokens": 0.15588009223674096,
+            "median_step_tokens": 67.0
+          },
+          "olympiadbench": {
+            "n_rows": 1000,
+            "n_with_error": 661,
+            "n_all_correct": 339,
+            "mean_steps": 8.819,
+            "mean_tokens": 781.284,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.003741920852704388,
+            "frac_steps_lt_32_tokens": 0.13402880145141172,
+            "median_step_tokens": 75.0
+          },
+          "omnimath": {
+            "n_rows": 1000,
+            "n_with_error": 759,
+            "n_all_correct": 241,
+            "mean_steps": 8.291,
+            "mean_tokens": 773.607,
+            "n_unmapped_steps": 0,
+            "n_rows_misaligned": 0,
+            "frac_steps_lt_8_tokens": 0.0022916415390182125,
+            "frac_steps_lt_32_tokens": 0.10951634302255457,
+            "median_step_tokens": 80.0
+          }
+        }
+      },
+      "standard_schema_probe": {
+        "returncode": 0,
+        "stdout": "== ..\\..\\dataset_cache\\repgrid\\pb_qwen3_8b\\processbench_omnimath.pkl  (335.3 MB) ==\n   model=Qwen/Qwen3-8B  dataset=None  N=None K=None T=None\n   published Y=None ()  head_to_head=None  judge=None\n   schema=teacher-forced-localization rows=1000 tokens=773607\n   token lengths min=103 max=1997\n   full_text: 0/1000\n   token_entropies: 1000/1000\n   token_spilled_energies: 1000/1000\n   token_offsets: 0/1000\n   top_k_logprobs: 1000/1000\n   gen_token_ids: 1000/1000\n   label: 1000/1000\n   step_token_spans: 1000/1000\n   Candidate-grid scoring is inapplicable; use the localization contract loader.\n",
+        "stderr": ""
+      },
+      "answers": 1000,
+      "max_float32_evidence_difference": 1.1920496412187731e-07,
+      "ids_spans_token_values_labels_verified": true
+    },
+    {
+      "cell": "prmbench_qwen3_8b",
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\four_localization\\prmbench_qwen3_8b_telemetry_full\\prmbench_telemetry.pkl",
+      "bytes": 1120907121,
+      "mtime_ns": 1786401638000000000,
+      "sha256": "b934afad0889ffacf0f4420f885ad52ddcf08f2124e506a21cd24f216bd170be",
+      "manifest_sha256": "40f222363ed20e7ea78b93436295f9b2ff411ad122f4f205fb7e5bd1c59ca3d7",
+      "manifest": {
+        "driver": "run_prmbench_teacher_forced.py",
+        "paper": "PRMBench (Song et al., arXiv:2501.03124, ACL 2025)",
+        "model": "Qwen/Qwen3-8B",
+        "dataset": "hitsmy/PRMBench_Preview",
+        "dataset_revision": null,
+        "dataset_diagnostics": {
+          "dataset_id": "hitsmy/PRMBench_Preview",
+          "split": "train",
+          "revision": null,
+          "n_raw_rows": 6216,
+          "n_meta_rows": 6969,
+          "n_raw_steps": 83456,
+          "n_duplicate_rows_dropped": 5,
+          "n_steps_total": 94203,
+          "n_steps_error_classes": 83371,
+          "n_rows_empty_error_steps": 160,
+          "n_rows_out_of_range_error_steps": 100,
+          "counts_by_classification": {
+            "confidence": 757,
+            "step_contradiction": 758,
+            "multi_solutions": 160,
+            "circular": 758,
+            "domain_inconsistency": 757,
+            "counterfactual": 757,
+            "correct": 758,
+            "redundency": 758,
+            "deception": 750,
+            "missing_condition": 756
+          }
+        },
+        "protocol": "teacher-forced single forward pass over the fixed official trace; no generation; conditioning prompt = spectral_utils.prmbench.prmbench_prompt (math_prompt + ' /no_think')",
+        "logprob_top_k": 50,
+        "gate_b_thresholds": {
+          "median_max": 0.05,
+          "min_corr": 0.999
+        },
+        "cell_stats": {
+          "n_rows": 6969,
+          "n_steps": 94203,
+          "mean_steps": 13.517434352130865,
+          "mean_tokens": 370.5259004161286,
+          "n_unmapped_steps": 0,
+          "n_rows_misaligned": 3,
+          "frac_steps_lt_8_tokens": 0.035434115686336955,
+          "frac_steps_lt_32_tokens": 0.7100941583601371,
+          "median_step_tokens": 24.0,
+          "counts_by_classification": {
+            "missing_condition": 756,
+            "step_contradiction": 758,
+            "deception": 750,
+            "correct": 758,
+            "confidence": 757,
+            "counterfactual": 757,
+            "domain_inconsistency": 757,
+            "circular": 758,
+            "redundency": 758,
+            "multi_solutions": 160
+          }
+        },
+        "n_items_misaligned": 3,
+        "elapsed_sec": 30.760389804840088,
+        "job_id": "177824",
+        "written_utc": "2026-08-10T22:40:40+00:00"
+      },
+      "standard_schema_probe": {
+        "returncode": 0,
+        "stdout": "== ..\\..\\dataset_cache\\four_localization\\prmbench_qwen3_8b_telemetry_full\\prmbench_telemetry.pkl  (1120.9 MB) ==\n   model=Qwen/Qwen3-8B  dataset=hitsmy/PRMBench_Preview  N=None K=None T=None\n   published Y=None ()  head_to_head=None  judge=None\n   schema=teacher-forced-localization rows=6969 tokens=2582195\n   token lengths min=20 max=3412\n   full_text: 0/6969\n   token_entropies: 6969/6969\n   token_spilled_energies: 6969/6969\n   token_offsets: 0/6969\n   top_k_logprobs: 6969/6969\n   gen_token_ids: 6969/6969\n   label: 0/6969\n   step_token_spans: 6969/6969\n   Candidate-grid scoring is inapplicable; use the localization contract loader.\n",
+        "stderr": ""
+      },
+      "answers": 6969,
+      "max_float32_evidence_difference": 1.192085341550353e-07,
+      "ids_spans_token_values_labels_verified": true
+    }
+  ],
+  "answers": 13769,
+  "raw_replay_peak_changes_from_float32_evidence": 0,
+  "max_replay_score_difference": 6.711007816129211e-08
+}

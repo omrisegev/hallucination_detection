@@ -1,3 +1,24 @@
+## Cumulative vote fusion v2 complete — 2026-09-22
+
+Branch `codex/cumulative-vote-fusion-v2`, based on `c3b018bd1`.
+Implemented and ran the approved full binary/soft/DS/hierarchical-EM experiment:
+6,800 PB + 6,969 PRMB answers; source-group folds v2; frozen CT7 gate.
+110 outer jobs, 120 genuine inner jobs; all selected EM fits converged, no
+fallbacks. Raw IDs/spans/labels/token alignment checked for all 13,769 answers.
+10 mathematical tests passed; 1,150 likelihood trajectories and 3,105 persisted
+model predictions checked. 10,000 shared source bootstraps, 328 Holm contrasts.
+
+Selected soft continuous L-SML: PB SLA 36.184%, common-gate F1 38.313%, PRMB
+within-AUC .761480; CT7 39.886% / 41.189% / .772397. Its SLA gain over selected
+soft equal is only +0.152 pp (95% CI -0.390,+0.685). DS helps the weak fixed
+binary spectral PB baseline but does not beat CT7; hierarchical EM adds no
+clear advantage over DS. No candidate promoted. Development evidence only.
+
+Report: `results/cumulative_vote_fusion_v2/REPORT_HE.html`.
+Session conclusions: `docs/experiments/CUMULATIVE_VOTE_FUSION_V2_SESSION_REPORT.md`.
+Historical results were not modified. Large OOF arrays/models are local,
+with hashes in REPORT_MANIFEST.json; compact evidence is versioned.
+
 ## Input bundle push blocked - 2026-09-14
 
 The new input bundle is committed locally and passes all 22 input hashes.
