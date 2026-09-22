@@ -1,9 +1,11 @@
-# FUSE-style boundary optimization, translated to readouts (proposal, 2026-09-22)
+# FUSE-style boundary optimization, translated to readouts (proposal and execution, 2026-09-22)
 
 Omri's prompt: FUSE (Lee, Ma, Zhao, Nair, Spector, Cohen, Candès, arXiv:2604.18547) chooses
 per-verifier binarization thresholds by minimizing a triplet-consistency violation statistic.
 Could the same idea choose our per-channel readouts? This note records the translation and the
-alternatives, ranked by what the project history says about each. No computation was run.
+alternatives, ranked by what the project history says about each. No computation had been run when
+Sections 1--4 were written. Sections 5--9 now record the bounded execution on the frozen profiles,
+the negative result, and the handoff.
 
 Source: `papers/extracted/fuse-ensembling-verifiers-with-zero-labeled-data.md` (arXiv blocked
 from this container; the cached v1 extraction was used). Prior project handling of FUSE:
@@ -100,3 +102,168 @@ fixed-top5, label-selected, shuffle and CT7 anchors, both binary and soft, with 
 next to SLA on the long cells. C is a second stage because it changes what a vote means. E is
 an architecture change and gets its own discussion. Report Ŝ next to every arm so that the
 relation between violation and localization is visible whatever the outcome.
+
+## 5. Executed scope and evidence boundary
+
+The work used the frozen eleven-channel profiles, source-group folds and OOF predictions from
+`cumulative-vote-fusion-v2` commit `bcf5a4bd`; no new model inference was performed. All choices
+were made separately on each outer-training fold. Labels entered only assumption audits and final
+OOF metrics, never clustering, readout selection, the FUSE statistic or L-SML fitting. These are
+development results on the population that motivated the method, not untouched confirmation.
+
+The executed sequence was:
+
+1. compute clipped Eq. 4 S-hat for the frozen top5, label-selected, shuffled and CT7 rosters in
+   hard, soft-PMF and soft-cumulative representations;
+2. audit FUSE's majority-better-than-random and drop assumptions rather than interpreting the
+   shuffle control without checking them;
+3. expand the common Top-k readout to `k in {1,2,3,5,8,10,15,20,30,40}` and evaluate fold-wise
+   label-free S-hat selection, including hard-selection/soft-decoding;
+4. cluster the eleven channels from binary top5 residual structure into exactly three groups of
+   size at least three, optimize per-channel Top-k by cross-cluster triplets, then fit continuous
+   L-SML on the soft PMFs using the frozen groups; compare freezing the initial groups with one
+   post-readout reclustering pass.
+
+Per-channel step offsets (alternative C), fusion-before-readout (alternative E), pseudo-label
+training and CT7 feature additions were not run. The final project decision is also **not to add
+any CT7 channel to the eleven-channel bank in this stage**.
+
+## 6. What the experiments found
+
+### 6.1 Frozen-roster S-hat gate
+
+Hard S-hat ordered the three comparable eleven-channel rosters exactly as hard SLA:
+
+- selected: S-hat `0.05994`, SLA `35.04%`;
+- shuffle: S-hat `0.25264`, SLA `21.99%`;
+- top5: S-hat `25434.23`, SLA `21.25%` at denominator clip `1e-6`.
+
+That apparently clean result did not survive the representation relevant to continuous
+localization. For soft PMFs, shuffle had the lowest S-hat (`0.00486`) but worse SLA (`29.71%`)
+than selected (`S-hat=0.02693`, SLA `36.03%`). Soft cumulative curves reversed the association
+completely; their shared ramp dominates the covariance. Under the preregistered rule, Stage A
+therefore stopped: `STOP_AFTER_STAGE_A`. CT7 was reported but excluded from the ordering gate
+because raw Eq. 4 sums over third verifiers and is not directly comparable between seven and
+eleven channels.
+
+Interpretation: S-hat measures compatibility with the TCI moment model, not localization quality.
+Independent or weakly coupled noise can have an excellent S-hat. Conversely, nearly zero
+covariances can make the ratio statistic enormous after clipping. The top5 value is a useful alarm
+for the known tie pathology, but its magnitude is not an accuracy scale.
+
+### 6.2 Assumption audit and FUSE drop rule
+
+The label-free MoM drop rule retained every channel in every fold for top5, selected, shuffle and
+CT7. The label audit likewise found a majority above balanced accuracy `1/2` in every fold. Thus
+the drop rule did not repair the selector or distinguish the shuffled roster. The shuffle concern
+remains conceptually important: it changes the relation between a voter and the boundary, so it is
+a stress control, not a model-valid negative whose S-hat must track SLA. In this realization it did
+not trigger the formal majority-good failure, but it still demonstrated that TCI fit and useful
+localization are different properties.
+
+### 6.3 Top-k ladder and fold-wise S-hat selection
+
+Within the restricted common-Top-k family, hard and soft-PMF S-hat were informative but not exact
+selectors. Across the ten values of k:
+
+- hard: Spearman `0.891`; both minimum S-hat and best hard SLA occurred at `k=40`;
+- soft PMF: Spearman `0.842`; minimum S-hat occurred at `k=20`, while best SLA occurred at `k=30`;
+- soft cumulative: Spearman `-0.939`; this representation is unsuitable for selection.
+
+The OOF comparison sharpened the conclusion:
+
+Here SLA is exact first-error-step accuracy on erroneous ProcessBench answers; `late` is the
+fraction whose predicted step falls after the true first-error step. "Long" below means the four
+OlympiadBench and OmniMath q4/q8 cells.
+
+- fixed `k=30`, soft-PMF decoding: SLA `35.47%`, late `36.46%`;
+- soft-PMF S-hat selection followed by soft-PMF decoding: SLA `35.17%`, late `36.65%`;
+- hard S-hat selection followed by soft-PMF decoding: SLA `34.06%`, late `36.81%`;
+- hard S-hat selection followed by hard decoding: SLA `31.69%`, late `27.62%`;
+- frozen label-selected soft ceiling: SLA `36.03%`;
+- frozen CT7 soft comparator: SLA `39.83%`.
+
+Hard selection failed mainly at `pb_q8/fold4`: it chose `k=1`, with clipped-denominator fraction
+`0.473`; the same fold's soft SLA was `21.76%`, versus `33.80%` when soft-PMF S-hat chose `k=20`.
+The other nine hard selections were `k=40`. This supports using hard statistics only as a
+predeclared numerical screen, not as the final selector. No clipping threshold was tuned after SLA
+was opened; any future eligibility rule must be frozen from numerical reliability alone.
+
+### 6.4 Binary clustering, cross-cluster triplets and continuous L-SML
+
+The last diagnostic implemented the proposed separation between structure discovery and final
+continuous fusion:
+
+- binary top5 residual clustering searched all `10,395` unlabeled three-way partitions of eleven
+  channels subject to minimum group size three;
+- readout coordinate descent used only triplets crossing the other two groups, so a size-three
+  cluster did not make the ratio variance degenerate;
+- unclipped candidates lexicographically dominated clipped candidates;
+- after readout selection, continuous L-SML was fit on soft PMF rows with the supplied binary
+  groups; clustering was never rerun on continuous data;
+- decoding used the ordinary soft cumulative/PAVA locator.
+
+Freezing the initial groups produced SLA `34.76%`, late `37.72%`; on OlympiadBench+OmniMath the
+corresponding values were SLA `30.46%`, late `41.20%`. Reclustering once after readout selection
+produced SLA `34.83%`, late `38.15%`; on the long datasets, SLA `30.85%`, late `41.99%`.
+The groups changed in all ten task-folds, yet the SLA difference between the two policies was only
+`+0.07` percentage point overall and `+0.39` on the long cells, while late errors increased.
+
+This directly answers whether selecting readouts can improve clustering: it changes the partition,
+but the changed partition does not translate into a material localization gain. The cross-cluster
+triplet objective converged numerically and avoided the size-three degeneracy; its failure is
+empirical rather than a missing implementation detail.
+
+## 7. What we learned across the sequence
+
+1. **Representation is part of the statistical objective.** Binary S-hat is useful for detecting
+   gross tie/covariance pathologies and for forming dependency groups. It is not a reliable
+   end-to-end selector for a soft decoder. Soft-PMF jumps are the relevant continuous
+   representation; cumulative curves mostly measure their common monotone ramp.
+2. **TCI compatibility and verifier quality are separate axes.** Minimizing Eq. 4 can favor weak,
+   noisy or shuffled voters. The majority-good assumption and drop rule do not turn S-hat into an
+   accuracy objective.
+3. **The readout contains real signal, but S-hat does not recover its optimum precisely.** Moving
+   from Top5 toward Top20--40 repairs much of the tie problem, and the broad ladder correlates with
+   SLA. Nevertheless, fold-wise S-hat selection loses to fixed Top30 and remains below the
+   supervised readout ceiling.
+4. **Denominator clipping is a first-class diagnostic.** The `q8/fold4` collapse shows that an
+   argmin can be driven by a numerically inadmissible corner. A clipping guard may be useful only
+   if frozen before looking at labels; the present results cannot choose its threshold.
+5. **Clustering and readout optimization did not solve one another.** Alternating them once changed
+   every fold's partition but barely changed SLA. The residual and triplet objectives describe
+   dependence structure; neither supplies the missing direction toward exact first-error location.
+6. **Continuous fusion should remain continuous.** After binary-only structure discovery,
+   continuous L-SML on PMFs preserved more information than hard decoding, consistent with the
+   earlier finding that binarization costs localization quality. It still did not beat fixed Top30,
+   the supervised ceiling or CT7.
+7. **The long-chain problem remains.** The cluster-triplet arms retain late fractions above `41%`
+   on OlympiadBench+OmniMath. The experiments rearranged dependence and readouts but did not create
+   an independent early-error signal.
+
+## 8. Decision and handoff
+
+The FUSE/triplet readout direction is closed as a final label-free selector on this development
+population. Nothing is promoted and no claim of confirmation is made. Preserve these narrower uses:
+
+- binary residual clustering as a dependency diagnostic;
+- hard S-hat and clipped fraction as numerical/pathology screens;
+- soft-PMF S-hat as a secondary diagnostic inside a predeclared admissible region;
+- fixed Top20/30/40 and the supervised selected roster as transparent comparison anchors.
+
+Do not use soft-cumulative S-hat for selection, do not use hard argmin S-hat followed by soft
+decoding as the final rule, and do not retrospectively freeze `k=30` as a confirmed choice. Do not
+add CT7 features to the eleven-channel bank in the next continuation; CT7 remains an external frozen
+comparator. Further development with Claude should start from the existing eleven features and treat
+this series as negative evidence about the selector, not as evidence that readouts or clustering are
+irrelevant in general.
+
+## 9. Artifacts
+
+- Stage A and plots: `results/fuse_boundary_search_v1/stage_a/`
+- Assumption/drop audit: `results/fuse_boundary_search_v1/stage_a_prime_assumption_audit/`
+- Top-k ladder: `results/fuse_boundary_search_v1/stage_a_prime_topk_ladder/`
+- Fold-wise and cross-representation selection:
+  `results/fuse_boundary_search_v1/stage_a_prime_topk_selection/`
+- Binary clusters, cross-cluster triplets and continuous L-SML:
+  `results/fuse_boundary_search_v1/binary_cluster_triplet_continuous_lsml_v1/`

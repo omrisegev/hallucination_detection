@@ -1,3 +1,19 @@
+## 2026-09-22 [Codex] - FUSE readout search closed as final selector; eleven-channel bank unchanged
+
+Bounded development diagnostics on frozen `cumulative-vote-fusion-v2` (`bcf5a4bd`) are complete;
+no new inference and no labels in fitting. Hard S-hat ordered frozen hard rosters and correlated
+with a common Top-k ladder, but soft-PMF exposed the objective mismatch: shuffle has lower S-hat
+than the stronger selected roster, and soft-cumulative S-hat is ramp-dominated. The FUSE drop rule
+kept every channel. Fold-wise soft-PMF S-hat selection reached SLA 35.17%, below fixed Top30 35.47%
+and the supervised selected ceiling 36.03%. Hard selection followed by soft decoding reached 34.06%
+and collapsed at `pb_q8/fold4` (`k=1`, clipped fraction .473). Binary residual clustering with
+minimum group size three, cross-cluster triplet readout search, then fixed-group continuous L-SML
+reached 34.76%; one post-readout reclustering pass changed all ten partitions but only reached
+34.83% and increased late errors. Decision: no promotion; S-hat remains a numerical/dependence
+diagnostic, not the final label-free readout objective. Do not add CT7 features to the eleven-channel
+bank; CT7 remains a frozen comparator. Full synthesis and artifact map:
+`docs/research_notes/fuse_boundary_search_for_readouts_2026-09-22.md` Sections 5--9.
+
 ## Step424 (Claude) - raw-channel readouts + soft cumulative fusion: pipeline ready, full cells pending, 2026-09-20
 
 Omri's follow-ups to Step423: fuse RAW channels (the eleven-channel Claude feature bank), find

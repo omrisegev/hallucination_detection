@@ -17948,6 +17948,39 @@ Atlas review: docs/reviews/joint_mass_groups_2026-09-17.md. Goal active; all ter
 
 ---
 
+### 2026-09-22 [Codex] - FUSE readout and binary-cluster triplet diagnostics complete; no promotion
+
+**What**: Executed and consolidated the bounded FUSE readout study on Codex's frozen v2 profiles
+(`bcf5a4bd`): clipped Eq. 4 S-hat on hard/soft-PMF/soft-cumulative rosters; MoM majority-good/drop
+audit; common Top-k ladder `1,2,3,5,8,10,15,20,30,40`; fold-wise S-hat selection including hard
+selection with soft decoding; and a final binary-residual clustering experiment with exactly three
+groups of size at least three, cross-cluster triplet coordinate descent over Top-k, followed by
+fixed-group continuous L-SML on soft PMFs. Compared frozen initial clusters with one post-readout
+reclustering pass. No new inference; labels entered audits and OOF metrics only.
+
+**Why**: Test whether FUSE's label-free triplet-consistency statistic can replace supervised
+per-channel readout selection, and whether the same binary residual structure can jointly discover
+dependency groups and useful readouts without sacrificing continuous fusion.
+
+**Result**: **`NO_PROMOTION_S_HAT_IS_DIAGNOSTIC_NOT_SELECTOR`.** Hard frozen rosters were ordered
+correctly, but soft PMF was not: shuffle S-hat `.00486` was below selected `.02693` despite SLA
+`29.71%` versus `36.03%`; soft-cumulative association reversed. The drop rule kept all channels.
+Across fixed Top-k, hard/PMF S-hat correlated with SLA (`.891/.842`), but the PMF optimum by S-hat
+was Top20 and by SLA Top30. OOF PMF S-hat selection gave `35.17%` SLA versus fixed Top30 `35.47%`;
+hard-selection/soft-decoding gave `34.06%`, with `pb_q8/fold4` selecting `k=1` at clipped fraction
+`.473`. The cluster-triplet-continuous pipeline gave `34.76%` SLA / `37.72%` late with initial
+groups and `34.83%` / `38.15%` after one reclustering pass. All ten partitions changed, but the
+overall gain was only `.07` pp and long-cell late errors increased. The objective converged and
+the cross-group construction avoided the size-three variance degeneracy; the negative result is
+empirical. S-hat remains useful for binary dependency/pathology screening and clipping diagnostics,
+not final accuracy selection. Soft PMF is the only suitable continuous selection representation;
+soft cumulative is ramp-dominated. No threshold is retrofitted, Top30 is not promoted, and no CT7
+feature is added to the eleven-channel bank. CT7 remains an external frozen comparator. Canonical
+synthesis: `docs/research_notes/fuse_boundary_search_for_readouts_2026-09-22.md` Sections 5--9;
+artifacts under `results/fuse_boundary_search_v1/`.
+
+---
+
 ### Step 424 [Claude] - Raw-channel readouts + soft cumulative-vote fusion: pipeline built, pilot-checked, full cells pending; Mind-the-Gap figures verified
 
 **What**: Omri's three follow-ups to Step 423. (1) Replace the existing-algorithm locators by the eleven raw token channels of the Claude feature bank (`spectral_utils/claude_feature_bank_v1.py`, copied unchanged from `codex/claude-feature-bank-token-lsml-v1`) and find each channel's readout: seven readouts per channel (top5, top10, max, mean, LoG-then-top5 delta detector, |CUSUM|-then-top5, and `onset80`, the first step reaching 80% of the answer's max top5), answer-local standardization, two rosters (fixed top5, label-free; per-channel readout chosen on training folds, label-selected development). (2) The soft cumulative-vote fusion beside the binary one: F_j(n) = cumulative softmax(z(profile)/tau), instances 2F-1, `sml_fuse_signed` and `lsml_continuous`, fused CDF -> PAVA -> mode/median, with a tau->0 identity check against the binary median (tie rule "earliest step wins", TIE_EPS). (3) Verification of the Mind-the-Gap replay numbers. New: `scripts/experiments/raw_channel_readout_fusion_v1.py`, `docs/experiments/RAW_CHANNEL_READOUT_FUSION_V1.md`, `results/raw_channel_readout_fusion_v1/` (pilot outputs + README), `results/cumulative_vote_fusion_v1/MIND_THE_GAP_VERIFICATION.md`.
