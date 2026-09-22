@@ -17939,3 +17939,22 @@ Atlas review: docs/reviews/joint_mass_groups_2026-09-17.md. Goal active; all ter
 **Result**: **Gate-free mean SLA over the eight cells: L-SML 35.92, equal-weight 32.59, chance 16.58. Paired source-group bootstrap on the difference +3.33 pp [+1.90, +4.75], 10,000 draws, 1,979 groups - the interval excludes zero.** The gain is LARGER gate-free than gated (+1.73 pp), so it is not a gate artefact, and it holds in all eight cells. To my knowledge this is the first arm in the project where L-SML beats equal weighting with a paired interval that excludes zero; Step 413's ladder had every rule within 1 pp of equal20. Against the paper: we beat their best (Shannon Drop) on GSM8K 4B/8B by +4.41 and +3.65 and on MATH-4B by +2.82, tie MATH-8B, and lose heavily on the long-chain subsets - OlympiadBench -12.50 / -10.51, Omni-MATH -7.08 / -6.61 - while beating their Shannon Avg baseline everywhere (35.92 vs 25.34). Their detector is a derivative (EMA plus the worst M drops); ours is a level. The deficit is concentrated exactly where a level readout should drown and a drop readout should not. LOCO-5's registered 0.33 threshold gives macro 34.08 while the optimum at 0.41 gives 36.84: **2.77 pp were lost to an inherited threshold** (that optimum is label-selected and is a ceiling, not a candidate). The gate costs 3-5 pp of exact error localization in every one of the eight cells and its clean accuracy runs 27-56%, so it both closes on erroneous answers and opens on clean ones. **Protocol audit**: bank, signs, Top-10 step readout, no-digit and no-length-calibration all match the plan, but the fusion is fit on a POOLED donor-fold token matrix with NO answer-local standardization while the readout is argmax within the answer - fitting between answers and applying within them. That is the likely source of both the 9.69 effective rank and the negative weight on `chosen_surprisal` (between answers surprisal tracks difficulty; within an answer it tracks error). Two smaller items: the protocol document says PRMBench uses max token risk while the code uses Top-10 for both (the code is right), and `energy_level`/`energy_innovation` form a two-member L-SML group, which is unidentified and returns exactly equal and opposite weights in all five folds - so the bank is effectively ten channels, not eleven. Handoff: `docs/HANDOFF_TOKEN_PROBABILITIES.md`.
 
 ---
+
+### Step 423 [Codex cross-branch audit] - cumulative first-error fusion review, 2026-09-21
+
+**What**: Reviewed freshly fetched token-axis-fusion-sampling branch at 2b321fa3a
+against token-probability 5cf01f95a, token bank 890459866, depth 63100b109 and
+whitebox 62004ea4d. Replayed both original 3400-answer runs and built local
+mathematical/source-group diagnostics. Omri clarified the intended gate-free SLA
+population; erroneous-answer evaluation filtering is valid and intentional.
+**Why**: Check implementation and conceptual continuity before relying on the
+new ordinal formulation or launching the pending full raw/soft comparison.
+**Result**: All 15 prediction columns exactly reproduce in both scopes. The idea
+is viable, but binary flattening removes inner sign, soft prediction drops train
+scales, fitting grids differ, source questions cross folds, and bootstrap ignores
+groups. Historical split:354 source groups/827 answers affected. Estimated DS
+family6 psi/eta .968/.945 do not match empirical .589/.650 on the same threshold
+instances. No near-perfect-reliability or impossibility-of-fusion conclusion.
+The branch lacks subsequent token-probability audit corrections. Research code
+and frozen outputs unchanged; evidence is in scratch/token_axis_review_20260921/.
+Review: docs/reviews/TOKEN_AXIS_FUSION_CROSS_BRANCH_REVIEW_20260921.md.

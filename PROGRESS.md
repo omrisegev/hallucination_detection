@@ -1,3 +1,23 @@
+## Cross-branch review - cumulative vote fusion, 2026-09-21
+
+Reviewed freshly fetched `origin/claude/token-axis-fusion-sampling-3i9r2u`
+at `2b321fa3a` against the token-probability, token-bank, depth and whitebox lines.
+Ordinal first-error formulation is viable. Omri clarified that this study targets
+gate-free SLA on erroneous answers: evaluation filtering is intentional; fitting
+on known-erroneous training answers must be declared, not treated as test-label leakage.
+All 15 prediction columns replay exactly on 3400 answers in both fit scopes.
+Review found binary L-SML flattening drops the inner sign, soft fit/predict scale
+mismatch, different binary/soft fitting grids, and source-question fold violations
+(354 groups / 827 answers in the historical folds). Bootstrap ignores source groups.
+DS family6 estimated psi/eta .968/.945 versus empirical threshold rates .589/.650;
+consensus is not demonstrated near-perfect reliability. No candidate promoted.
+The branch forks at72d8235b4 and lacks the later token-probability audit corrections.
+Report: docs/reviews/TOKEN_AXIS_FUSION_CROSS_BRANCH_REVIEW_20260921.md.
+Reproducible evidence: scratch/token_axis_review_20260921/ and
+scratch/review_token_axis_20260921.py. Isolated checkout:
+.worktrees/review-token-axis-20260921 (detached). No research code or frozen result
+modified; no new raw full-population experiment or inference launched.
+
 ## Steps421-422 (Claude) - white-box field for the full population; the gate was hiding the token-level result, 2026-09-18
 
 **Step421.** White-box per-layer field extracted on AIRCC for ALL 13,769 localization answers
