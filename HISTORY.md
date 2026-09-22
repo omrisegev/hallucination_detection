@@ -40551,3 +40551,13 @@ Atlas review: docs/reviews/joint_mass_groups_2026-09-17.md. Goal active; all ter
 **Result**: CT7 41.19/.7724; length-calibrated evidence only (LX7) **33.03/.7137**, i.e. -8.16pp [-9.81,-6.59] PB and -.0587 [-.0645,-.0531] within; adding the declared log-length view (LX8) recovers only +3.35pp, still -4.81pp below CT7; log length alone scores 35.14 PB / .6181; CT7 + length +0.21pp [-0.44,+0.86]. Every stream loses .04-.06 AUC when its length coupling is removed, and the first error truly is the longest step in 29.7% of PB error answers versus 15.5% chance. The Top-k readout's length coupling is largely legitimate evidence and is not additively separable into "evidence plus length view". Effective views unchanged (LX7 1.80; LX8 2.12 of 8). No new candidate; CT7 unchanged. Two pre-registration amendments (float32 storage; BOCPD recomputation residual) are recorded with their diagnoses.
 
 ---
+
+### Step 421 [Codex] - Repeat cumulative vote fusion on the frozen CT7 profiles
+
+**What**: Ran nine binary/soft/spectral/DS/hierarchical-EM arms on CT7's original seven step profiles, with all-answer and PB error-only fitting. Same 13,769 answers, corrected source folds and frozen gate; 50 outer + 40 inner jobs, 405 models. Preserved the original eleven-channel experiment and CT7.
+**Why**: Omri asked what happens when the proposed experiment uses CT7 instead of the eleven-channel bank.
+**Result**: Soft continuous L-SML 39.996 SLA / 41.260 common-gate F1 / .768632 PRMB within-AUROC, vs CT7 39.886 / 41.189 / .772397. SLA +.109 pp, CI[-.600,+.829]; PRMB -.003765, CI[-.004880,-.002680], Holm p=.02320. The bank/readout replacement improves the prior selected eleven-channel counterpart by3.811 SLA pp, but learned fusion adds no established PB gain over CT7 and reduces PRMB performance. Binary and EM variants are weaker; error-only fitting changes little. All selected EM converged, no fallbacks; 10 tests, 450 likelihood paths, 1,215 model-prediction replays passed. Ten thousand source bootstraps, 232 Holm contrasts. BOCPD recovered algebraically from an independent historical six-view average and cross-checked to7.22e-15; seven-view mean reproduces CT7 to1.33e-15 with identical peaks. Development only; no candidate promoted.
+
+Report: results/cumulative_vote_fusion_v2/ct7_profiles_v1/REPORT_HE.html. Details: docs/experiments/CT7_VOTE_FUSION_V1_SESSION_REPORT.md.
+
+---

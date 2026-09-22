@@ -1,3 +1,22 @@
+## CT7 seven-profile vote comparison complete — 2026-09-22
+
+User requested the same binary/soft/EM comparison on CT7 instead of the eleven
+channels. Preserved CT7's frozen step profiles/readouts and gate; used the same
+13,769 answers and source folds. 50 outer + 40 inner jobs, 405 models, no fallback
+or selected-EM nonconvergence. Ten core tests; 450 likelihood trajectories and
+1,215 saved-model predictions checked. 10,000 source bootstraps, 232 Holm contrasts.
+Soft continuous L-SML: SLA39.996/F1 41.260/within .768632 vs CT7
+39.886/41.189/.772397. SLA delta +.109 pp, CI[-.600,+.829]; within delta
+-.003765, CI[-.004880,-.002680], Holm p=.02320. Binary/EM weaker; error-only
+training does not materially change the result. CT7 bank helps compared with
+the old eleven-channel selected roster (+3.811 SLA pp), without evidence that
+new fusion improves on original CT7. No candidate promoted. Development only.
+Report: results/cumulative_vote_fusion_v2/ct7_profiles_v1/REPORT_HE.html.
+Session: docs/experiments/CT7_VOTE_FUSION_V1_SESSION_REPORT.md.
+BOCPD profile algebraically recovered from historical six_equal and validated
+against independent recomputation to7.22e-15; CT7 mean reproduced to1.33e-15,
+all locations identical. Original CT7 and eleven-channel reports unchanged.
+
 ## Cumulative vote fusion v2 complete — 2026-09-22
 
 Branch `codex/cumulative-vote-fusion-v2`, based on `c3b018bd1`.

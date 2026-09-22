@@ -1,3 +1,14 @@
+## CT7 fixed-profile cumulative fusion comparison (2026-09-22)
+
+Completed binary/soft/DS/hierarchical-EM comparison on all13769 answers, using
+the original seven CT7 profiles and readouts, corrected source folds and gate.
+Soft continuous L-SML reaches39.996% SLA vsCT7 39.886%, but the paired gain
+is uncertain: +.109pp, CI[-.600,+.829]. PRMB within-AUROC regresses by.003765,
+CI[-.004880,-.002680], Holm p=.02320. Binary fusion and EM are weaker. CT7's
+bank/readouts improve the earlier eleven-channel experiment, without a measured
+fusion advantage over CT7 itself. Frozen CT7 unchanged; no promotion.
+Evidence: docs/experiments/CT7_VOTE_FUSION_V1_SESSION_REPORT.md.
+
 ## Step413-418 update: fusion collapse explained; entropy-free chosen-token evidence; candidate CT7 frozen (2026-09-17)
 
 * Step 413: on the digit-free 20-stream bank no fusion rule (partition, SML at any K, Continuous
