@@ -4,6 +4,18 @@ description: Initialize a work session. Reads PROGRESS.md, shows git status and 
 
 Run the following session initialization sequence in order. Do not skip steps.
 
+## Step 0 — Orient: which code is live?
+```
+git fetch --all --prune
+git branch -a --sort=-committerdate | head -15
+git worktree list
+git log --oneline -5
+```
+State in one plain sentence which branch and worktree you believe is the live pipeline
+and **wait for Omri to confirm before reading any code**. Three sessions were lost to
+analysing an archived branch (LESSONS.md). Then read `docs/AGENT_OPERATING_CONTRACT.md`
+and the "Standing rules" table at the top of `LESSONS.md`.
+
 ## Step 1 — Read PROGRESS.md
 Read `PROGRESS.md` in full. Summarize the current state as exactly 5 bullets:
 - **Branch**: which git branch is active and why
@@ -26,7 +38,7 @@ Print this checklist as-is:
 ```
 Before-session checklist:
 [ ] Read PROGRESS.md ✓ (just done)
-[ ] Confirm git branch (master has no baselines.py — use feature/meta-agentic-integration for all Colab runs)
+[ ] Confirm git branch and worktree with Omri (Step 0) — never assume from PROGRESS.md alone
 [ ] List Drive folders — which Phase caches exist?
 [ ] Check last 5 HISTORY steps for open failures or pending fixes
 [ ] Verify CLAUDE.md gptqmodel install order if planning a GPU session

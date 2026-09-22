@@ -23,6 +23,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO)
 
 from spectral_utils.repgrid_scoring import load_repgrid_cell, subset_matrix
+from spectral_utils.label_sanity import check_labels, trace_lengths_from_candidates
 
 # Canonical rich-save schema (CLAUDE.md "save everything, derive later") + the extras.
 BASE_KEYS = ["full_text", "token_entropies", "token_spilled_energies", "token_offsets",
@@ -62,6 +63,8 @@ def _present(v):
 def main():
     ap = argparse.ArgumentParser(description="Schema report for a replication-grid raw pkl.")
     ap.add_argument("path", help="raw_*.pkl file or a cache/repgrid/<preset> directory")
+    ap.add_argument("--allow-degenerate", action="store_true",
+                    help="exit 0 even when the label-sanity gate fails (report only)")
     args = ap.parse_args()
 
     pkl, man = resolve(args.path)
@@ -106,6 +109,11 @@ def main():
         print(f"   trace len: mean={mean:.1f} median={median} min={tl[0]} max={tl[-1]}  "
               f"<8 tok (no spectral): {short}/{n_cand} ({short/max(n_cand,1):.0%})")
 
+    # ── label-sanity gate (LESSONS.md 2026-09-22) ──────────────────────────────
+    san = check_labels(labels, trace_lengths_from_candidates(cands),
+                       (man or {}).get("max_new"))
+    print("   " + san.summary().replace("\n", "\n   "))
+
     # ── key presence (fraction of candidates carrying each key) ─────────────────
     def presence_line(title, keys):
         cells = []
@@ -135,6 +143,10 @@ def main():
         vr = int(valid.sum()) / max(len(cell["rows"]), 1)
         print(f"      {name:16s} {len(present)}/{len(subset)} feats, valid rows={int(valid.sum())} "
               f"({vr:.2f}) of {len(cell['rows'])}")
+
+    if not san.ok and not args.allow_degenerate:
+        sys.exit(f"\n[label-sanity] DEGENERATE cell: {'; '.join(san.hard)}. "
+                 f"Do not score it. (--allow-degenerate to exit 0 for inspection only.)")
 
 
 if __name__ == "__main__":

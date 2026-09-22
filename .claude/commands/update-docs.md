@@ -52,7 +52,15 @@ Stage `HISTORY.md` and `PROGRESS.md` (and any other files changed this session t
 ```
 git commit -m "Step N: <same title as HISTORY.md entry>
 
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+<the attribution line the current session was given>"
 ```
 
-Then push to `origin feature/meta-agentic-integration`.
+Do not push. Omri pushes from his own terminal (credential helper is intermittent; a
+hanging push has cost whole turns). Say which branch is ready to push.
+
+## Step 7 — LESSONS.md entry (the memory file)
+If anything in this session was a mistake, a wrong assumption, a rule that did not hold,
+or a correction from Omri, append an entry to `LESSONS.md` in its format
+(`What happened / Why / Rule / Enforced by`). If the same lesson already exists there,
+add a line under it saying it recurred and propose moving it from prose into code or a
+command. A session with no mistakes appends nothing.

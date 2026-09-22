@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s https://datasets-server.huggingface.co/parquet?dataset=__TRACKED_VAR__)",
+      "Bash(git merge *)",
+      "Bash(sed -n '3406,3440p' HISTORY.md)",
+      "Bash(sed -n '3661,3770p' HISTORY.md)",
+      "Bash(sed -n '3851,3940p' HISTORY.md)",
+      "Bash(awk '/SECTION 13/,/\\\\.page/' results/method_comparison_report.html)",
+      "Bash(PYTHONUNBUFFERED=1 python scripts/method_comparison.py --smoke-test)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(PYTHONUNBUFFERED=1 python scripts/method_comparison.py --data-dir ./local_cache/)",
+      "Bash(curl -s \"https://api.semanticscholar.org/graph/v1/paper/DOI:10.1073/pnas.1219097111/citations?fields=title,authors,year,externalIds&limit=100\")",
+      "Bash(export PYTHONIOENCODING=utf-8)",
+      "Bash(curl -s \"https://api.semanticscholar.org/graph/v1/paper/search?query=Unsupervised%20Ensemble%20Learning%20with%20Dependent%20Classifiers%20Jaffe&fields=title,year,paperId,authors&limit=3\")",
+      "Bash(curl -s \"https://api.semanticscholar.org/graph/v1/paper/DOI:10.1073/pnas.1219097111/citations?fields=title,authors,year,externalIds&limit=200\")"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard_git.py\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

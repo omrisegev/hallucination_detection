@@ -89,7 +89,7 @@ FIT = dict(loss="l2", exclusion=True, difficulty_gate=False,
            simple_avg_fallback=True, recompute_after_exclusion=True,
            g2_projection_k=1, scale_ratio=0.25)
 
-ACC_BAND = (0.20, 0.85)
+from spectral_utils.label_sanity import FLAG_ACC_BAND as ACC_BAND  # one definition, desk-wide
 
 # Bars are cost classes, not quality tiers: a number is only comparable to ours if
 # it was bought with the same budget. Ordered from our exact class outward.

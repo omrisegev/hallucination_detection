@@ -105,6 +105,15 @@ def boot_auc(y, scores, n: int = 1000):
     y, s = y[mask], s[mask]
     if len(y) < 2 or len(np.unique(y)) < 2 or np.std(s) < 1e-8:
         return float("nan"), float("nan"), float("nan")
+    # Warn (never refuse: frozen replays must keep working) when the minority class is
+    # too small for the CI to mean anything. The scoring scripts refuse upstream via
+    # spectral_utils.label_sanity (LESSONS.md 2026-09-22, Step 82: AUC 0.93 from 2 positives).
+    _n_pos = int((y > 0.5).sum())
+    if min(_n_pos, len(y) - _n_pos) < 10:
+        import warnings
+        warnings.warn(f"boot_auc: minority class has {min(_n_pos, len(y) - _n_pos)} rows; "
+                      f"AUROC/CI are not trustworthy (see spectral_utils.label_sanity)",
+                      RuntimeWarning, stacklevel=2)
 
     base = roc_auc_score(y, s)
     rng  = np.random.default_rng(42)

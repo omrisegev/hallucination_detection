@@ -70,7 +70,10 @@ def _load_all():
 #   2. LABEL-VALIDITY FAILURE = documented REJECT, never scored: truncation-label
 #      leakage (cap-pinned negatives) or a single-class label set make AUROC a
 #      clean estimate of the WRONG quantity — no caveat rescues that.
-ACC_BAND = (0.20, 0.85)
+import sys as _sys
+if REPO not in _sys.path:
+    _sys.path.insert(0, REPO)
+from spectral_utils.label_sanity import FLAG_ACC_BAND as ACC_BAND, gate_flag  # one definition, desk-wide
 REJECT_REGISTRY = {
     "ars_gsm8k_qwen3_8b": "truncation leakage: 15/29 negatives cap-pinned at 8192 (+ ceiling acc 0.942)",
     "ars_gsm8k_qwen3_8b_reject": "same cell, archived dir name",
@@ -80,11 +83,16 @@ REJECT_REGISTRY = {
 }
 
 
-def gate_flag(acc):
-    """'' if in-band, else 'CEILING'/'FLOOR'. Feed it any cell's accuracy."""
-    a = _f(acc)
-    if a is None:
-        return ""
+def row_flag(r):
+    """Flag for a scored CSV row: the accuracy band flag, or the scorer's own
+    label-sanity/feasibility tag (column `flag`, since 2026-09-22) when present.
+    FEASIBILITY / DEGENERATE rows are shown but never counted as headline wins."""
+    fl = (r.get("flag") or "") if isinstance(r, dict) else ""
+    if "DEGENERATE" in fl:
+        return "DEGENERATE"
+    if "FEASIBILITY" in fl:
+        return "FEASIBILITY"
+    return gate_flag(r.get("acc") if isinstance(r, dict) else None)
     if a < ACC_BAND[0]:
         return "FLOOR"
     if a > ACC_BAND[1]:
@@ -208,7 +216,7 @@ def fig_gsm8k_forest():
         sv = _rb_val(rb, "GSM8K", model, sup_m) if sup_m else None
         u = _ub_row(ub, cell)
         sq = _f(u["seqlp_auroc"]) * 100 if u and _f(u.get("seqlp_auroc")) else None
-        flag = gate_flag(g.get("acc"))
+        flag = row_flag(g)
         tag = (" †" if flag == "CEILING" else " ▿" if flag == "FLOOR" else "")
         rows.append((lbl + tag + (" " + note if note else ""), v, lo, hi, av, anch_m, sv, sup_m, sq))
     rows.sort(key=lambda r: -r[1])
@@ -296,7 +304,7 @@ def fig_same_model_deltas():
         ds = DS_PRETTY.get(r["dataset"], r["dataset"])
         sup = SUP_Y.get(y_m, "")
         note = NOTE_Y.get(y_m, "")
-        flag = gate_flag(r.get("acc"))
+        flag = row_flag(r)
         sub = (f"vs {y_m}" + (f" — {sup}" if sup else "") + (f" ({note})" if note else "")
                + (f" [{flag}]" if flag else ""))
         # out-of-band cells are shown but never counted as clean wins: fade them
@@ -671,7 +679,7 @@ def fig_triviaqa_forest():
                 anchors = [(y * 100, ym, kind)]
         u = _ub_row(ub, cell)
         sq = _f(u["seqlp_auroc"]) * 100 if u and _f(u.get("seqlp_auroc")) else None
-        flag = gate_flag(g.get("acc"))
+        flag = row_flag(g)
         tag = " †" if flag == "CEILING" else " ▿" if flag == "FLOOR" else ""
         rows.append((lbl + tag, v, lo, hi, anchors, sq))
     rows.sort(key=lambda r: -r[1])
@@ -731,7 +739,7 @@ def fig_qa_extension_forest():
                 anchors.append((_f(r["auroc"]), r["method"], kind))
         u = _ub_row(ub, cell)
         sq = _f(u["seqlp_auroc"]) * 100 if u and _f(u.get("seqlp_auroc")) else None
-        flag = gate_flag(g.get("acc"))
+        flag = row_flag(g)
         tag = " †" if flag == "CEILING" else " ▿" if flag == "FLOOR" else ""
         rows.append((lbl + tag, v, lo, hi, anchors, sq))
     # WebQuestions from the legacy Phase-9 cache (no CI, no seqlp)
@@ -937,7 +945,7 @@ def master_table_html():
         y = y * 100 if y else None
         domain = "Math CoT" if r["dataset"] in MATH_DS else "QA"
         rows.append(("0" + domain, _row(domain, ds, model, r.get("n_problems"), r.get("acc"),
-                                        ours, ci, sq, y, r.get("Y_method", ""), gate_flag(r.get("acc")))))
+                                        ours, ci, sq, y, r.get("Y_method", ""), row_flag(r))))
     # legacy sweep cells (no CI in summary csv)
     LEG = {"math500": ("Math CoT", "MATH-500"), "gsm8k": ("Math CoT", "GSM8K (legacy)"),
            "gpqa": ("MCQ", "GPQA"), "qa": ("QA (legacy)", None), "rag": ("RAG", None)}

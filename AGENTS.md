@@ -7,6 +7,7 @@
 - Treat this file as a Codex adapter, not a second copy of the project rules. If project guidance changes, update `CLAUDE.md`; update this adapter only when Codex-specific discovery or translation changes.
 - Translate Claude-specific mechanisms to the available Codex equivalents. For example, when a workflow refers to a slash command, read the matching file under `.claude/commands/` and perform that workflow with the available tools. Do not assume Claude-only commands, agent types, or tool names exist in Codex.
 - Follow active user, system, and developer instructions when they impose stricter requirements than the repository guidance.
+- Read `docs/AGENT_OPERATING_CONTRACT.md` (permission boundary, reversible-or-auditable, fail loudly and stop, memory file, plan/test/simplicity) and the "Standing rules" table at the top of `LESSONS.md` at every session start. Append a `LESSONS.md` entry when a mistake is caught and at the end of any session that had one; both agents share that file. Before any cluster/GPU submission, perform the workflow in `.claude/commands/preflight.md` and refuse to submit without its PASS. The destructive-git commands listed in `.claude/hooks/guard_git.py` need a human in every tool.
 
 ## Google Drive data
 

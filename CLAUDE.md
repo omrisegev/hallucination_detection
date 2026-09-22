@@ -105,7 +105,26 @@ and source-fold refits, coverage and within-answer evidence are required.
 See PROGRESS.md for live handles. Full cached data remain development data.
 
 ## Session start
+**First orient, then read.** Run `git fetch --all --prune`, `git branch -a --sort=-committerdate | head -15`,
+`git worktree list`, say in one sentence which branch/worktree you believe is live, and wait for
+Omri to confirm before reading code (`/session-start` Step 0 does this). Then read
+`docs/AGENT_OPERATING_CONTRACT.md` (how every agent operates here: permission boundary,
+reversible-or-auditable, fail loudly and stop, memory file, plan/test/simplicity) and the
+"Standing rules" table at the top of `LESSONS.md` (the agents' shared memory of their own
+mistakes; append to it when one is caught, see `/update-docs` Step 7).
+
 **Always read `PROGRESS.md` before doing anything else.** It has the current experiment status, what's running, what's fixed, and what to do next. Do not rely on git log alone — PROGRESS.md is the handoff document.
+
+## Communication style
+Explain results in plain language first. Every result message opens with: (1) one plain
+sentence saying what happened; (2) the single most important number and what counts as good
+or bad for it; (3) what to do next. Then stop. Methodology, math and per-arm breakdowns only
+when Omri asks. No dense jargon walls, no shorthand labels (R1/T4/arm B), no untranslated
+technical Hebrew; if Omri asks for an explanation, give the intuition before the math. Every
+numeric claim names the file it came from and the N actually checked ("3 of 55 selectors" is
+not "the selectors"). If Omri pushes back on a claim, re-verify against the full data rather
+than defending the original answer. (Insights report 2026-09-22: two "REWRITE IN SIMPLE
+ENGLISH" interrupts and two thin-evidence generalizations caught by Codex.)
 
 **Review [SUPERVISED_ORACLE_CORRECTION.md](file:///C:/Users/omris/TAU/hallucination_detection/SUPERVISED_ORACLE_CORRECTION.md)** to understand the ML evaluation guidelines (specifically regarding class weight balancing and avoiding the `cross_val_predict` calibration pitfall) established after correcting the Step 142 Logistic Regression baseline.
 
@@ -117,7 +136,10 @@ Shortcut: type `/session-start` to run the full initialization sequence automati
 
 | Command | When to use |
 |---------|-------------|
-| `/session-start` | **Start of every session** — reads PROGRESS.md, git status, last HISTORY steps, prints priority action |
+| `/session-start` | **Start of every session** — orients on branches/worktrees, reads the contract + LESSONS.md, PROGRESS.md, last HISTORY steps, prints priority action |
+| `/preflight` | **Before every cluster/GPU submission** — tree state, disk + TMPDIR (local and AIRCC), CPU smoke of the preset, label-sanity gate on a named cache; no sbatch without its PASS |
+| `/red-team` | Before a headline number enters a report — three independent agents recompute from raw, audit population coverage, run a shuffled-label null and a math check; CLAIM / VERDICT / EVIDENCE |
+| `/negative-result` | After an experiment loses to its reference — writes `results/<dir>/NEGATIVE_RESULT.md` in the fixed format and links it from HISTORY |
 | `/update-docs` | After completing work — drafts HISTORY.md Step N entry + PROGRESS.md update, then commits |
 | `/new-cell` | Adding an analysis/inference cell — generates correct three-branch pkl reload template |
 | `/nadler-audit` | Before/after Nadler fusion — validates all 4 invariants (views, z-score, ρ, sign) |
@@ -352,7 +374,10 @@ Full reference: [cluster/README.md](cluster/README.md). Rules that must never be
   1 GB pickle. And there is no Google Drive mount on the Windows machine (only OneDrive/BGU), so
   a local copy is not an option either. Uploading from the cluster also avoids pulling 2+ GB down
   the VPN just to push it back up.
-- Workflow: `/aircc-setup` (once) → `/aircc-submit` → `/aircc-status` → `/aircc-fetch`.
+- Workflow: `/aircc-setup` (once) → `/preflight` → `/aircc-submit` → `/aircc-status` → `/aircc-fetch`.
+  **No sbatch without a `/preflight` PASS in the same session.** It checks the tree, disk and
+  TMPDIR on both machines, runs the CPU smoke of the preset, and the label-sanity gate on any
+  named cache. Five multi-hour jobs died on things that gate catches in a minute (LESSONS.md).
 - **All cluster polling / log-tailing goes through `/aircc-status` or the `cluster-ops` sub-agent — never raw `ssh aircc "squeue/sacct/tail"` loops in the main context.** Each raw ssh re-prints the login banner and dumps full logs into context; the sub-agent returns a one-line verdict. (Step-163 retro: inline ssh polling was the single biggest recurring token sink.)
 - **A new `cluster/presets.py` preset MUST pass `python scripts/smoke_preset.py <id>` (CPU-only) before it is submitted.** It runs the preset's real prompt/grader/judge helpers on fixtures — catching prompt / grader / judge-parse bugs offline instead of via a GPU round-trip (4 of the 6 Step-163 pilot bugs were this kind). Gate order: **local smoke → N=30 pilot → full N.**
 

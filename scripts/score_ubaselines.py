@@ -39,6 +39,7 @@ Cells >100 MB: run in the background with a generous timeout (CLAUDE.md rule).
 import argparse
 import csv
 import glob
+import json
 import os
 import pickle
 import sys
@@ -50,6 +51,7 @@ if REPO not in sys.path:
     sys.path.insert(0, REPO)
 
 from spectral_utils.fusion_utils import boot_auc
+from spectral_utils.label_sanity import check_labels, trace_lengths_from_candidates, feasibility_tag
 
 LSML_CSV = "results/repgrid/scores_lsml_upcr.csv"
 
@@ -72,8 +74,10 @@ def load_cell_signals(pkl_path):
     ppl, seqlp, nent, lab, lab_lex, pid = [], [], [], [], [], []
     pmean, pmin, pmax = [], [], []
     lmean, lmin, lmax = [], [], []
+    cands = []
     for idx in sorted(data.keys()):
         for c in data[idx]["candidates"]:
+            cands.append(c)
             dE = c.get("token_spilled_energies")
             H = c.get("token_entropies")
             Z = c.get("token_logsumexp")
@@ -104,6 +108,7 @@ def load_cell_signals(pkl_path):
         "lmean": np.asarray(lmean), "lmin": np.asarray(lmin), "lmax": np.asarray(lmax),
         "labels": np.asarray(lab, dtype=bool), "labels_lex": np.asarray(lab_lex, dtype=bool),
         "problem_id": np.asarray(pid, dtype=int), "n_problems": len(data),
+        "lengths": trace_lengths_from_candidates(cands),
     }
 
 
@@ -147,13 +152,26 @@ def load_lsml_join(path=LSML_CSV):
     return join
 
 
-def score_one(pkl_path, cell_id, lsml_join, n_boot):
+def score_one(pkl_path, cell_id, lsml_join, n_boot, max_new=None, n_population=None,
+              allow_degenerate=None):
     sig = load_cell_signals(pkl_path)
     y, y_lex = sig["labels"], sig["labels_lex"]
+    # Label-sanity gate (LESSONS.md 2026-09-22): a degenerate label set is refused, not scored.
+    san = check_labels(y, sig["lengths"], max_new)
+    print(f"   {cell_id}: " + san.summary().replace("\n", "\n   "))
+    flag = san.flag_string()
+    if not san.ok:
+        if not allow_degenerate:
+            sys.exit(f"[label-sanity] {cell_id} is DEGENERATE: {'; '.join(san.hard)}. No row written. "
+                     f"Re-run with --allow-degenerate \"<reason>\" only with Omri's explicit authorization.")
+        flag += f";ALLOWED:{allow_degenerate}"
+    feas = feasibility_tag(sig["n_problems"], n_population)
+    if feas:
+        flag = ";".join(x for x in (flag, feas) if x)
     agree = float((y == y_lex).mean())
     res = {"cell": cell_id, "n_cands": len(y), "n_problems": sig["n_problems"],
            "acc": round(float(y.mean()), 4), "acc_lex": round(float(y_lex.mean()), 4),
-           "label_agreement": round(agree, 4)}
+           "label_agreement": round(agree, 4), "flag": flag}
     for name in ("ppl", "seqlp", "nent", "pmean", "pmin", "pmax", "lmean", "lmin", "lmax"):
         s = sig[name]
         auc, lo, hi = _auc(y, s, n_boot)
@@ -175,6 +193,8 @@ def main():
     ap.add_argument("--cells", nargs="*", default=None, help="cell dir names; default all")
     ap.add_argument("--out", default="results/repgrid/ubaseline_scores.csv")
     ap.add_argument("--n-boot", type=int, default=1000)
+    ap.add_argument("--allow-degenerate", default=None, metavar="REASON",
+                    help="score a cell that FAILS the label-sanity gate anyway; REASON goes into the flag column")
     args = ap.parse_args()
 
     jobs = []
@@ -185,10 +205,13 @@ def main():
             continue
         pkls = sorted(glob.glob(os.path.join(cell_dir, "raw_*.pkl")))
         if pkls:
-            jobs.append((pkls[0], cell_id))
+            with open(man) as f:
+                m = json.load(f)
+            jobs.append((pkls[0], cell_id, m.get("max_new"), m.get("n_samples")))
 
     lsml_join = load_lsml_join()
-    rows = [score_one(p, c, lsml_join, args.n_boot) for p, c in jobs]
+    rows = [score_one(p, c, lsml_join, args.n_boot, max_new=mn, n_population=npop,
+                      allow_degenerate=args.allow_degenerate) for p, c, mn, npop in jobs]
     if not rows:
         print("no cells matched")
         return

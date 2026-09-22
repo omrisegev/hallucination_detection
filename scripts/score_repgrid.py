@@ -33,6 +33,7 @@ from spectral_utils.repgrid_scoring import (
     load_repgrid_cell, score_subset, ENERGY_FEATS, LOGPROB_FEATS,
     _candidate_features, logprob_features_extended,
 )
+from spectral_utils.label_sanity import check_labels, trace_lengths_from_candidates, feasibility_tag
 
 H16 = list(FEAT_NAMES[:16])
 SPILLED = ["epr_spilled", "sw_var_peak_spilled", "cusum_max_spilled", "min_spilled"]
@@ -67,7 +68,7 @@ def load_repgrid_cell_ext(pkl_path, label_key="label"):
     scorers (score_edis_grid.py, score_ubaselines.py, inspect_cell.py) depend on."""
     with open(pkl_path, "rb") as f:
         data = pickle.load(f)
-    rows, labels, labels_lex, pid = [], [], [], []
+    rows, labels, labels_lex, pid, cands = [], [], [], [], []
     for idx in sorted(data.keys()):
         for c in data[idx]["candidates"]:
             feats = dict(_candidate_features(c))
@@ -77,6 +78,7 @@ def load_repgrid_cell_ext(pkl_path, label_key="label"):
             labels.append(bool(c.get(label_key, c.get("label", False))))
             labels_lex.append(bool(c.get("label_lexical", c.get("label", False))))
             pid.append(int(idx))
+            cands.append(c)
     avail = sorted({k for r in rows for k in r})
     return {
         "rows": rows,
@@ -85,6 +87,7 @@ def load_repgrid_cell_ext(pkl_path, label_key="label"):
         "problem_id": np.asarray(pid, dtype=int),
         "n_problems": len(data),
         "available": avail,
+        "lengths": trace_lengths_from_candidates(cands),
     }
 
 
@@ -141,6 +144,9 @@ def main():
     ap.add_argument("--cache-dir", default="cache/repgrid")
     ap.add_argument("--out", default="results/repgrid")
     ap.add_argument("--cells", default=None, help="comma-sep substrings; score only matching cells")
+    ap.add_argument("--allow-degenerate", default=None, metavar="REASON",
+                    help="score a cell that FAILS the label-sanity gate anyway; REASON is written "
+                         "into the CSV flag column (Omri's explicit authorization, never silent)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
 
@@ -159,6 +165,21 @@ def main():
         print(f"\n== {preset_id} | {man.get('model')} | {man.get('dataset')} | "
               f"N={cell['n_problems']} acc={acc:.3f} | Y={Y} ({Ymethod}) h2h={h2h} ==")
 
+        # Label-sanity gate (LESSONS.md 2026-09-22): refuse to write an AUROC for a cell
+        # whose labels make it meaningless. Hard tier exits; flag tier is written + tagged.
+        san = check_labels(cell["labels"], cell["lengths"], man.get("max_new"))
+        print("   " + san.summary().replace("\n", "\n   "))
+        flag = san.flag_string()
+        if not san.ok:
+            if not args.allow_degenerate:
+                sys.exit(f"[label-sanity] {preset_id} is DEGENERATE: {'; '.join(san.hard)}. "
+                         f"No row written. Re-run with --allow-degenerate \"<reason>\" only with "
+                         f"Omri's explicit authorization.")
+            flag += f";ALLOWED:{args.allow_degenerate}"
+        feas = feasibility_tag(cell["n_problems"], man.get("n_samples"))
+        if feas:
+            flag = ";".join(x for x in (flag, feas) if x)
+
         def emit(r):
             delta = (r["auroc"] - Y) if (Y is not None and r["auroc"] == r["auroc"]) else None
             rows_out.append({
@@ -172,6 +193,7 @@ def main():
                 "n_rows": r["n"], "valid_rate": round(r["valid_rate"], 3),
                 "published_Y": Y, "Y_method": Ymethod, "delta_X_minus_Y": round(delta, 4) if delta is not None else None,
                 "head_to_head": h2h, "flipped": r["flipped"],
+                "flag": flag,
             })
             return delta
 

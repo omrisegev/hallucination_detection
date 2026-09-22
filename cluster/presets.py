@@ -27,8 +27,11 @@ import). `capture` flags map to generate_full(capture_*=...).
 # are populated: overall accuracy inside the band AND the minority class large enough for
 # a stable bootstrap CI. AIME24 x Qwen-1.5B floored at ~2% acc — that config is
 # verification-only, never a data cell.
-DEFAULT_ACC_BAND = (0.20, 0.85)
-DEFAULT_MIN_MINORITY = 30
+try:  # single source of truth since 2026-09-22; literal fallback keeps this module import-cheap
+    from spectral_utils.label_sanity import FLAG_ACC_BAND as DEFAULT_ACC_BAND, MIN_MINORITY_FLAG as DEFAULT_MIN_MINORITY
+except ImportError:  # pragma: no cover — presets imported outside the repo root
+    DEFAULT_ACC_BAND = (0.20, 0.85)
+    DEFAULT_MIN_MINORITY = 30
 
 
 def _preset(**kw):

@@ -5,9 +5,18 @@ description: Submit an inference job to the AIRCC cluster — syncs the working 
 Submit a `cluster/run_inference.py` job to AIRCC. `$SHARED` below means
 `/shared/cycle2_tau_averbuch_prj/omrisegev1`.
 
+## Step 0 — `/preflight` must have PASSED in this session
+
+Run `/preflight <preset_id> [cache path]` first if it has not run yet in this session.
+If its verdict was not `PREFLIGHT: PASS`, **refuse to sbatch** and report the failing row.
+Reason: five multi-hour jobs died on smoke-catchable bugs (asserts, JSON key types,
+OOM at image extraction, unset TMPDIR, full disk); see LESSONS.md.
+
 ## Step 1 — Connectivity pre-check
 
-`ssh -o ConnectTimeout=5 aircc 'echo ok'`. On failure: tell the user **check TAU VPN**, and stop.
+`ssh -o ConnectTimeout=10 -o BatchMode=yes aircc 'echo ok'`. On failure retry once with
+`ConnectTimeout=30`. If both fail, report "two probes timed out" (the observation, not
+"VPN is down") and stop.
 
 ## Step 2 — Collect parameters
 
