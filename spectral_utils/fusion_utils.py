@@ -330,7 +330,7 @@ def simple_average_fusion(*views) -> tuple:
 
 # ── L-SML: Latent Spectral Meta-Learner (Jaffé-Fetaya-Nadler 2016) ─────────────
 
-def sml_fuse_signed(*classifiers: np.ndarray) -> tuple:
+def sml_fuse_signed(*classifiers: np.ndarray, gates=None, small_m_guard: bool = False) -> tuple:
     """
     SML with signed weights and ±1 sign resolution via Paper 2 assumption (iii).
 
@@ -344,16 +344,43 @@ def sml_fuse_signed(*classifiers: np.ndarray) -> tuple:
 
     Args:
         *classifiers: Binary ±1 arrays of length n_samples.
+        gates: optional finite nonnegative per-classifier vector q (length k).
+            None, or a vector that is exactly all-ones, takes the historical
+            code path verbatim (the λ=0 exact-identity contract of the v2
+            protocol). Otherwise the eigen-solve runs on the congruence
+            transform diag(q)·R_off·diag(q) and the returned weights are the
+            pullback w = q·v, so fused = X @ w equals the gated-coordinate
+            score (X·diag(q)) @ v. Sign resolution applies to v (pre-pullback);
+            q ≥ 0 cannot flip a component's sign.
+        small_m_guard: when True and k == 3, the rank-1 off-diagonal system has
+            zero degrees of freedom (Steps 203/205: structurally undetermined),
+            so the eigen-solve is replaced by pre-registered equal weights over
+            SD-standardized units: w_i = (1/k)/std(x_i). Gates, if any, are NOT
+            applied on this branch (the guard defines the whole stage).
 
     Returns:
         (fused_scores, signed_weights)
     """
     X = np.column_stack(classifiers)
     _n, k = X.shape
+    if small_m_guard and k == 3:
+        stds = X.std(axis=0)
+        stds = np.where(stds > 1e-12, stds, 1.0)
+        w = (1.0 / k) / stds
+        return X @ w, w
+    gate_vector = None
+    if gates is not None:
+        gate_vector = np.asarray(gates, dtype=float)
+        if gate_vector.shape != (k,) or not np.isfinite(gate_vector).all() or np.any(gate_vector < 0):
+            raise ValueError("gates must be a finite nonnegative vector matching the classifier count")
+        if np.array_equal(gate_vector, np.ones(k)):
+            gate_vector = None
     R = np.cov(X.T)
     if R.ndim == 0:
         R = np.array([[float(R)]])
     R_off = R - np.diag(np.diag(R))
+    if gate_vector is not None:
+        R_off = gate_vector[:, None] * R_off * gate_vector[None, :]
     try:
         _, vecs = eigh(R_off)
         v = vecs[:, -1]
@@ -377,6 +404,9 @@ def sml_fuse_signed(*classifiers: np.ndarray) -> tuple:
                 v = -v
     except Exception:
         v = np.ones(k) / k
+    if gate_vector is not None:
+        w = gate_vector * v
+        return X @ w, w
     return X @ v, v
 
 
@@ -933,7 +963,8 @@ def lsml_fuse(*binary_classifiers, K_range=None, method: str = 'residual',
 
 def lsml_continuous(*views, K_range=None, method: str = 'residual',
                     groups=None, compute_score_matrix: bool = True,
-                    loading_scale: str = 'unit'):
+                    loading_scale: str = 'unit', gates=None,
+                    small_m_guard: bool = False):
     """
     Continuous L-SML — same group detection as lsml_fuse but skips binarization
     of virtual classifiers.
@@ -963,12 +994,30 @@ def lsml_continuous(*views, K_range=None, method: str = 'residual',
                   skip it (meta['score_matrix'] becomes None) for a ~500x
                   speedup in subset sweeps. Default True preserves the old
                   meta dict exactly.
+        gates:    optional finite nonnegative per-view vector q (length m),
+                  threaded to the WITHIN-group sml_fuse_signed stage only (the
+                  v2 Hook-2 congruence contract; the cross stage over virtual
+                  classifiers never sees feature gates). None or all-ones is a
+                  verbatim no-op.
+        small_m_guard: when True, any SML eigen-stage over exactly 3 units
+                  (within-group or cross-group) is replaced by equal weights
+                  over SD-standardized units (Steps 203/205); groups of 4 are
+                  fitted but flagged in meta['small_m_flags']. Default False
+                  preserves historical behavior bit-exactly.
 
     Returns:
         (fused_scores, meta_dict) — same format as lsml_fuse.
     """
     X = np.column_stack(views)
     n, m = X.shape
+
+    gate_all = None
+    if gates is not None:
+        gate_all = np.asarray(gates, dtype=float)
+        if gate_all.shape != (m,) or not np.isfinite(gate_all).all() or np.any(gate_all < 0):
+            raise ValueError(f"gates must be a finite nonnegative vector of length m={m}")
+        if np.array_equal(gate_all, np.ones(m)):
+            gate_all = None
 
     if groups is not None:
         c = np.asarray(groups, dtype=int)
@@ -993,13 +1042,23 @@ def lsml_continuous(*views, K_range=None, method: str = 'residual',
 
     virtual = []
     group_weights = []
+    small_m_flags = []
+    small_m_guarded = []
     for g in np.unique(c):
         idx = np.where(c == g)[0]
         if len(idx) == 1:
             xi_g = X[:, idx[0]].astype(float)
             w = np.array([1.0])
         else:
-            score, w = sml_fuse_signed(*[X[:, i] for i in idx])
+            if small_m_guard and len(idx) == 3:
+                small_m_guarded.append(("within", int(g)))
+            elif small_m_guard and len(idx) == 4:
+                small_m_flags.append(("within", int(g)))
+            score, w = sml_fuse_signed(
+                *[X[:, i] for i in idx],
+                gates=None if gate_all is None else gate_all[idx],
+                small_m_guard=small_m_guard,
+            )
             xi_g = score  # keep continuous — unlike lsml_fuse which applies np.sign
         virtual.append(xi_g)
         group_weights.append((idx, w))
@@ -1013,7 +1072,11 @@ def lsml_continuous(*views, K_range=None, method: str = 'residual',
             fused = virtual[0]
         cross_w = np.array([1.0])
     else:
-        fused, cross_w = sml_fuse_signed(*virtual)
+        if small_m_guard and len(virtual) == 3:
+            small_m_guarded.append(("cross", -1))
+        elif small_m_guard and len(virtual) == 4:
+            small_m_flags.append(("cross", -1))
+        fused, cross_w = sml_fuse_signed(*virtual, small_m_guard=small_m_guard)
 
     return fused, {
         'K': K, 'c': c, 'residual': residual, 'method': method,
@@ -1026,6 +1089,9 @@ def lsml_continuous(*views, K_range=None, method: str = 'residual',
         # carry it, so a coin flip is never presented as a measurement.
         'grouping_diag': diag,
         'degenerate': bool(diag.get('degenerate', False)),
+        'gates_applied': bool(gate_all is not None),
+        'small_m_flags': small_m_flags,
+        'small_m_guarded': small_m_guarded,
     }
 
 

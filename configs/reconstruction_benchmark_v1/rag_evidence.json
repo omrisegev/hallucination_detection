@@ -1,0 +1,262 @@
+{
+  "schema_version": "reconstruction-rag-evidence-registry-v1",
+  "lane_id": "rag_evidence_benchmark_v1",
+  "claim_boundary": {
+    "status": "retrospective_application_evidence",
+    "labels_previously_opened": true,
+    "forbidden": [
+      "cross-panel macro",
+      "pooling answer, sentence, token, example, or claim units",
+      "pooling RefChecker context settings",
+      "claiming GASP exact paper-sample reproduction",
+      "claiming RefChecker claim extraction evaluation",
+      "copying historical scores as an execution substitute"
+    ]
+  },
+  "panels": [
+    {
+      "panel_id": "ragtruth_evidence_contrast_answer",
+      "dataset": "RAGTruth",
+      "unit": "answer",
+      "access": "teacher_forced_full_noctx_loo_where_available",
+      "estimand": "response_hallucination_ranking",
+      "methods": ["fixed_rag_iu_pcr"],
+      "metrics": ["auroc", "auprc"],
+      "primary_split": "test",
+      "bootstrap_group": "source_id"
+    },
+    {
+      "panel_id": "ragtruth_evidence_contrast_sentence",
+      "dataset": "RAGTruth",
+      "unit": "sentence",
+      "access": "teacher_forced_full_noctx_loo_where_available",
+      "estimand": "sentence_hallucination_ranking",
+      "methods": ["fixed_rag_iu_pcr"],
+      "metrics": ["auroc", "auprc"],
+      "primary_split": "test",
+      "bootstrap_group": "source_id"
+    },
+    {
+      "panel_id": "ragtruth_evidence_contrast_token",
+      "dataset": "RAGTruth",
+      "unit": "scorer_token",
+      "access": "teacher_forced_full_noctx_loo_where_available",
+      "estimand": "token_overlap_hallucination_ranking",
+      "methods": ["fixed_rag_iu_pcr"],
+      "metrics": ["auroc", "auprc"],
+      "primary_split": "test",
+      "bootstrap_group": "source_id"
+    },
+    {
+      "panel_id": "gasp_protocol_sentence",
+      "dataset": "RAGTruth balanced GASP cohort",
+      "unit": "sentence",
+      "access": "teacher_forced_full_noctx_loo_exact_full_vocab_jsd",
+      "estimand": "sentence_hallucination_ranking_on_local_protocol_sample",
+      "methods": ["gasp_threshold", "fixed_rag_iu_pcr_matched"],
+      "metrics": ["auroc", "auprc"],
+      "primary_split": "local_400_response_sample",
+      "bootstrap_group": "source_id",
+      "fidelity": "protocol_reproduction_own_ids_and_splitter"
+    },
+    {
+      "panel_id": "lettucedetect_example",
+      "dataset": "RAGTruth",
+      "unit": "example",
+      "access": "supervised_ragtruth_token_classifier",
+      "estimand": "any_predicted_span_vs_any_gold_span",
+      "methods": ["lettucedetect_large_modernbert"],
+      "metrics": ["f1", "precision", "recall"],
+      "primary_split": "test",
+      "bootstrap_group": "source_id",
+      "fidelity": "exact_local_reproduction"
+    },
+    {
+      "panel_id": "refchecker_threeway",
+      "dataset": "KnowHalBench fixed claims",
+      "unit": "fixed_claim",
+      "access": "supervised_nli_checker",
+      "estimand": "three_way_claim_checking",
+      "methods": ["refchecker_nli"],
+      "metrics": ["accuracy", "macro_f1"],
+      "primary_split": "official_fixed_claims",
+      "bootstrap_group": "example_id",
+      "required_subgroups": ["accurate_context", "noisy_context", "zero_context"]
+    },
+    {
+      "panel_id": "refchecker_binary_claim",
+      "dataset": "KnowHalBench fixed claims",
+      "unit": "fixed_claim",
+      "access": "teacher_forced_full_noctx",
+      "estimand": "unsupported_claim_ranking_binary_collapse",
+      "methods": ["fixed_rag_iu_pcr_transfer"],
+      "metrics": ["auroc", "auprc"],
+      "primary_split": "official_fixed_claims",
+      "bootstrap_group": "example_id",
+      "required_subgroups": ["accurate_context", "noisy_context", "zero_context"]
+    }
+  ],
+  "method_contract": {
+    "fixed_rag_iu_pcr": {
+      "feature_contract": "shared-token-mixed-v2-applications-v1-2026-08-13",
+      "fit_population": "RAGTruth development evidence telemetry",
+      "fit_labels": "forbidden",
+      "transform_fit": "full-condition token traces, deterministic cap 60000",
+      "heads": ["noctx", "loo"],
+      "loo_availability": "used per response where registered; Summary rows have full/noctx only and use the noctx head",
+      "answer_reducer": "mean",
+      "sentence_reducer": "mean",
+      "token_reducer": "identity"
+    },
+    "gasp_threshold": {
+      "features": ["gasp_gap", "gasp_jsd0", "gasp_drop", "gasp_jsdloo"],
+      "standardization": "within exact local sentence population, label-free",
+      "score": "negative sum of four standardized grounding-sensitivity features"
+    },
+    "fixed_rag_iu_pcr_matched": {
+      "base_method": "fixed_rag_iu_pcr",
+      "fit_population": "the same frozen RAGTruth development fit",
+      "adapter": "mean token risk inside the exact local GASP sentence window",
+      "refit_on_gasp": false
+    },
+    "lettucedetect_large_modernbert": {
+      "model": "KRLabsOrg/lettucedect-large-modernbert-en-v1",
+      "entry_point": "HallucinationDetector.predict_prompt(prompt, answer)",
+      "score_source": "freshly rederived cached raw prediction booleans; no historical metric copy"
+    },
+    "refchecker_nli": {
+      "model": "ynie/roberta-large-snli_mnli_fever_anli_R1_R2_R3-nli",
+      "claim_extraction": "out_of_scope",
+      "score_source": "freshly rederived cached predicted labels; no historical metric copy"
+    },
+    "fixed_rag_iu_pcr_transfer": {
+      "base_method": "fixed_rag_iu_pcr",
+      "fit_population": "the same frozen RAGTruth development fit",
+      "adapter": "cross-scorer adaptation: Qwen2.5/RAGTruth-fitted noctx head transferred without refit to Qwen3 fixed-claim telemetry, then mean token risk over each claim",
+      "refit_on_refchecker": false,
+      "metric_boundary": "binary unsupported collapse only"
+    }
+  },
+  "evaluation": {
+    "bootstrap": {
+      "draws": 20000,
+      "seed": 2026082407,
+      "interval": [0.025, 0.975],
+      "resampling": "complete source groups with replacement",
+      "paired_contrasts": true
+    },
+    "undefined_metric_status": "METRIC_UNDEFINED_SINGLE_CLASS",
+    "cross_panel_macro": "FORBIDDEN",
+    "refchecker_setting_pooling": "FORBIDDEN",
+    "lane_artifacts": "canonical_byte_stable_csv",
+    "downstream_reporting_bridge": "typed_parquet_and_explicit_schema_required_before_integrated_dataset_cell_reporting"
+  },
+  "fit_visibility": {
+    "forbidden_fields": [
+      "label", "labels", "gold", "gold_spans", "gold_hallucinated",
+      "human_label", "label_unsupported", "response_label", "span_labels",
+      "span_token_spans", "source_id", "example_id", "bootstrap_group",
+      "private_labels", "target"
+    ],
+    "raw_source_access": "FORBIDDEN",
+    "historical_score_access": "FORBIDDEN"
+  },
+  "sources": {
+    "ragtruth_official_response": {
+      "path": "local_cache/RAGTruth_official/dataset/response.jsonl",
+      "sha256": "e4c2e4ac24fff676d8984cc61c35d791612fadc58015335d97dd632375e18073",
+      "size_bytes": 21458735
+    },
+    "ragtruth_dev_cache": {
+      "path": "local_cache/ragtruth_ec/dev/ragtruth_ec_train.pkl",
+      "sha256": "78fe5a9a84a99af4a6bb89d006a1fca0cfa9fb3ac285f6f9543f272298c381f0",
+      "size_bytes": 447690000
+    },
+    "ragtruth_dev_manifest": {
+      "path": "local_cache/ragtruth_ec/dev/manifest.json",
+      "sha256": "fbb2c2f32e121c5912671fb00325f29a27d4ddceeec7f24898e2b5e3f05eb9fd",
+      "size_bytes": 1308
+    },
+    "ragtruth_test_cache": {
+      "path": "local_cache/ragtruth_ec/test/ragtruth_ec_test.pkl",
+      "sha256": "4e22bc99d53587be5a1082c9e25720cb225dc04d3a5be87934fa06c9d3ca3f51",
+      "size_bytes": 1227625730
+    },
+    "ragtruth_test_manifest": {
+      "path": "local_cache/ragtruth_ec/test/manifest.json",
+      "sha256": "5f587bdf62da5e2eb57cd1e261b1bb762d376e1757e84d3cefd5796e9e17ec7c",
+      "size_bytes": 1268
+    },
+    "gasp_cache": {
+      "path": "dataset_cache/four_localization/gasp_ragtruth_exact_qwen15b_full/gasp_exact.pkl",
+      "sha256": "56cae715a76243bd68b9de19122d166666bc2a7a59f336fe8b06847366df9205",
+      "size_bytes": 169905324
+    },
+    "gasp_manifest": {
+      "path": "dataset_cache/four_localization/gasp_ragtruth_exact_qwen15b_full/manifest.json",
+      "sha256": "61146eb7ba3e0a7ac9ec3a5f81434af9016871aa194811bf26bd637becaebec4",
+      "size_bytes": 2204
+    },
+    "lettuce_cache": {
+      "path": "dataset_cache/four_localization/ragtruth_lettuce_large_span_full/lettuce_spans_test.pkl",
+      "sha256": "1937a381ffd56244411ec744aa2cdd81832fc1a8516fd3d7ac9e07c217eb4b5f",
+      "size_bytes": 10771591
+    },
+    "lettuce_manifest": {
+      "path": "dataset_cache/four_localization/ragtruth_lettuce_large_span_full/manifest.json",
+      "sha256": "110b4658c04508e4e81cb88c24ada08b8e19d0d4a7a07b7689ebea21215f78c2",
+      "size_bytes": 1459
+    },
+    "refchecker_cache": {
+      "path": "dataset_cache/four_localization/refchecker_knowhalbench_open_full/refchecker_claim_telemetry.pkl",
+      "sha256": "aebebf71bab731000e82dcf3e1b8e67eefd510c5cc071a970deee8c05509aca5",
+      "size_bytes": 122308459
+    },
+    "refchecker_nli_predictions": {
+      "path": "dataset_cache/four_localization/refchecker_knowhalbench_open_full/nli_checker_predictions.json",
+      "sha256": "53678acee0315b4253ab92609a9fb313b8eea8ded05782c25466ffe3892fec9e",
+      "size_bytes": 3544977
+    },
+    "refchecker_manifest": {
+      "path": "dataset_cache/four_localization/refchecker_knowhalbench_open_full/manifest.json",
+      "sha256": "29f1795d0e626a84c8957f81f9cbd7f1cae4992e99f386f8e7a4bb67349f7a49",
+      "size_bytes": 5569
+    },
+    "tokenizer_config": {
+      "path": "local_cache/qwen25_15b_tokenizer/tokenizer_config.json",
+      "sha256": "5b5d4f65d0acd3b2d56a35b56d374a36cbc1c8fa5cf3b3febbbfabf22f359583",
+      "size_bytes": 7305
+    },
+    "tokenizer_model_config": {
+      "path": "local_cache/qwen25_15b_tokenizer/config.json",
+      "sha256": "7463bb0ea78315365e6c6b74de4e73bbcc8359dfb0c5a737584e077d42c0b03c",
+      "size_bytes": 663
+    },
+    "tokenizer_json": {
+      "path": "local_cache/qwen25_15b_tokenizer/tokenizer.json",
+      "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+      "size_bytes": 7031645
+    },
+    "tokenizer_merges": {
+      "path": "local_cache/qwen25_15b_tokenizer/merges.txt",
+      "sha256": "599bab54075088774b1733fde865d5bd747cbcc7a547c5bc12610e874e26f5e3",
+      "size_bytes": 1671839
+    },
+    "tokenizer_vocab": {
+      "path": "local_cache/qwen25_15b_tokenizer/vocab.json",
+      "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+      "size_bytes": 2776833
+    }
+  },
+  "expected_rosters": {
+    "ragtruth_dev": {"conditions": 5724, "responses": 900, "sources": 150},
+    "ragtruth_test": {"conditions": 16200, "responses": 2700, "sources": 450},
+    "gasp": {"conditions": 2508, "responses": 400, "sources": 228},
+    "lettuce": {"examples": 2700, "gold_positive": 943, "truncated": 0},
+    "refchecker": {
+      "conditions": 21466,
+      "claims": 10733,
+      "settings": {"accurate_context": 3994, "noisy_context": 3420, "zero_context": 3319}
+    }
+  }
+}

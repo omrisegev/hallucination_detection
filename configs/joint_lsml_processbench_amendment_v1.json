@@ -1,0 +1,49 @@
+{
+  "schema": "joint-lsml-processbench-amendment-plan-v1",
+  "experiment_id": "JOINT_LSML_PROCESSBENCH_AMENDMENT_V1",
+  "scope": "RETROSPECTIVE_OPENED_DEVELOPMENT__POST_PRM_OPENED__PB_LABEL_FREE_AT_REGISTRATION",
+  "candidate": "joint_lsml23_hierarchical_v1_1__flat_sml_structural_fallback",
+  "controls": [
+    "iu_pcr_active23",
+    "equal_family_active23",
+    "fixed_family_continuous_lsml_active23"
+  ],
+  "candidate_policy": {
+    "admissible_cell": "frozen_joint_lsml23_hierarchical_v1_1_weights",
+    "structurally_blocked_cell": "G_empty_exact_flat_sml_alias_oriented_to_mean_confidence",
+    "expected_fallback_cells": ["processbench_math_qwen3_4b"],
+    "fallback_selected_without_processbench_labels": true
+  },
+  "processbench": {
+    "models": ["qwen3_4b", "qwen3_8b"],
+    "subsets": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "folds": 5,
+    "fold_namespace": "joint-lsml-processbench-amendment-v1",
+    "bootstrap_draws": 2000,
+    "bootstrap_seed": 2026090408,
+    "bootstrap_strata": "subset_x_frozen_fold",
+    "primary_metric": "equal_model_mean_equal_subset_macro_f1",
+    "detector": "max_token_risk",
+    "locator": "argmax_fixed_top10_mean_step_risk"
+  },
+  "reporting": {
+    "primary": "all_eight_cell_coverage_preserving_policy",
+    "diagnostic": "equal_cell_mean_over_the_seven_parent_admissible_cells_using_the_primary_all_eight_oof_predictions_and_thresholds; selection_conditioned_no_interval",
+    "intervals": "paired_two_sided_95_percentile_descriptive",
+    "multiplicity": "one new coverage-policy candidate versus three frozen controls; all contrasts descriptive",
+    "cumulative_opened_exposure": {
+      "prior_candidate_panel": "pure_joint_lsml23_hierarchical_v1_1_on_PRMBench__HARM",
+      "current_candidate_panel": "joint_or_flat_coverage_policy_on_ProcessBench",
+      "candidate_policies_seen": 2,
+      "current_primary_contrasts": 3,
+      "secondary_diagnostics": 1
+    },
+    "decision_state": {
+      "HARM": "candidate_minus_iu_pcr_ci_high_below_zero",
+      "DEVELOPMENT_SUPPORTED": "all_three_candidate_minus_control_ci_lows_above_or_equal_zero_and_candidate_minus_iu_pcr_point_positive",
+      "INCONCLUSIVE": "otherwise"
+    }
+  },
+  "promotion_allowed": false,
+  "generalization_claim_allowed": false
+}

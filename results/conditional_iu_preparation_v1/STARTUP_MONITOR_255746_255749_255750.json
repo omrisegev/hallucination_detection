@@ -1,0 +1,45 @@
+﻿{
+    "checked_at_utc":  "2026-09-13T19:21:36Z",
+    "remote_directory":  "/shared/cycle2_tau_averbuch_prj/omrisegev1/experiments/conditional_iu_20260913_6f7e26dc0",
+    "status":  "ALL_FAILED_DRIVER_IMPORT",
+    "jobs":  [
+                 {
+                     "exit_code":  "1:0",
+                     "family":  "position",
+                     "elapsed":  "00:01:41",
+                     "job_id":  255746,
+                     "state":  "FAILED"
+                 },
+                 {
+                     "exit_code":  "1:0",
+                     "family":  "graph_local",
+                     "elapsed":  "00:01:54",
+                     "job_id":  255749,
+                     "state":  "FAILED"
+                 },
+                 {
+                     "exit_code":  "1:0",
+                     "family":  "graph_tv",
+                     "elapsed":  "00:01:50",
+                     "job_id":  255750,
+                     "state":  "FAILED"
+                 }
+             ],
+    "requested_memory_per_job":  "64G",
+    "requested_cpus_per_job":  2,
+    "node":  "gpu-node-01",
+    "container_import":  "PASS_ALL_THREE",
+    "transfer_review":  {
+                            "code_files":  923,
+                            "status":  "PASS_ALL_THREE",
+                            "source_files":  22
+                        },
+    "driver_fixture":  "FAILED_AT_IMPORT",
+    "linux_scheduler_fixture":  "NOT_VERIFIED_IN_STARTUP_OUTPUT",
+    "smoke_training_started":  false,
+    "error":  "ModuleNotFoundError: No module named \u0027evidence_drop\u0027",
+    "error_source":  "scripts/run_direct_probability_fusion_v2.py:57",
+    "importing_fixture":  "scripts/test_conditional_iu_driver.py",
+    "remote_mutations":  false,
+    "monitoring_stop_reason":  "Failure confirmed for all three jobs"
+}

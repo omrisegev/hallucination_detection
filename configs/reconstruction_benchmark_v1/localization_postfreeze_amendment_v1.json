@@ -1,0 +1,1570 @@
+{
+  "amendment_id": "localization_prmbench_inert_oob_v1",
+  "disclosure": {
+    "estimand_scope": "PRMBench step-error localization labels only; no response score, ProcessBench target, fit, projection, or score artifact changes.",
+    "official_port_references": [
+      {
+        "line_spans": [
+          "36-41",
+          "180-202"
+        ],
+        "path": "spectral_utils/prmbench.py",
+        "sha256": "236c5b0296a25f34b885fd66c71c160bd5b9000f09263795b30a97491c86cf0f"
+      },
+      {
+        "line_spans": [
+          "11731-11737"
+        ],
+        "path": "HISTORY.md",
+        "sha256": "14218469e9fcf60abab73fa00dc31eeace43c78cd9b0e8105cff24340ccf09ce"
+      }
+    ],
+    "publication_scope": "Evaluation manifests, provenance, and A/B certificate must disclose this amendment; score A/B remains the original immutable release.",
+    "row_policy": "All 6208 frozen error responses and all 83280 realized steps remain; only impossible memberships are inert."
+  },
+  "effective_prmbench_counts": {
+    "expected_by_family": {
+      "circular": {
+        "positive_steps": 2135,
+        "responses": 758,
+        "steps": 7813
+      },
+      "confidence": {
+        "positive_steps": 1303,
+        "responses": 756,
+        "steps": 10711
+      },
+      "counterfactual": {
+        "positive_steps": 2074,
+        "responses": 757,
+        "steps": 10477
+      },
+      "deception": {
+        "positive_steps": 1698,
+        "responses": 749,
+        "steps": 10053
+      },
+      "domain_inconsistency": {
+        "positive_steps": 1338,
+        "responses": 757,
+        "steps": 10031
+      },
+      "missing_condition": {
+        "positive_steps": 1869,
+        "responses": 756,
+        "steps": 9613
+      },
+      "multi_solutions": {
+        "positive_steps": 0,
+        "responses": 160,
+        "steps": 2241
+      },
+      "redundency": {
+        "positive_steps": 1537,
+        "responses": 758,
+        "steps": 11613
+      },
+      "step_contradiction": {
+        "positive_steps": 1190,
+        "responses": 757,
+        "steps": 10728
+      }
+    },
+    "expected_error_responses": 6208,
+    "expected_positive_steps": 13144,
+    "expected_steps": 83280
+  },
+  "oob_audit": {
+    "all_annotation_count": 13295,
+    "annotation_count": 151,
+    "duplicate_annotation_rows": 0,
+    "minimum_annotation": 1,
+    "negative_count": 0,
+    "records": [
+      {
+        "error_steps": [
+          16,
+          34
+        ],
+        "family": "circular",
+        "idx": "circular_circular_prm_test_p1_62",
+        "invalid": [
+          34
+        ],
+        "n_steps": 33
+      },
+      {
+        "error_steps": [
+          4,
+          13
+        ],
+        "family": "circular",
+        "idx": "circular_circular_prm_test_p2_789",
+        "invalid": [
+          13
+        ],
+        "n_steps": 10
+      },
+      {
+        "error_steps": [
+          4,
+          10,
+          11,
+          37,
+          38,
+          41,
+          44,
+          46
+        ],
+        "family": "circular",
+        "idx": "circular_circular_prm_train_p1_137",
+        "invalid": [
+          37,
+          38,
+          41,
+          44,
+          46
+        ],
+        "n_steps": 12
+      },
+      {
+        "error_steps": [
+          6,
+          13,
+          14
+        ],
+        "family": "circular",
+        "idx": "circular_circular_prm_train_p1_198",
+        "invalid": [
+          13,
+          14
+        ],
+        "n_steps": 12
+      },
+      {
+        "error_steps": [
+          6,
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "family": "circular",
+        "idx": "circular_circular_prm_train_p1_317",
+        "invalid": [
+          28,
+          29,
+          30,
+          31,
+          32
+        ],
+        "n_steps": 15
+      },
+      {
+        "error_steps": [
+          9,
+          32
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_test_p1_104",
+        "invalid": [
+          32
+        ],
+        "n_steps": 30
+      },
+      {
+        "error_steps": [
+          52,
+          54
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_test_p1_29",
+        "invalid": [
+          54
+        ],
+        "n_steps": 53
+      },
+      {
+        "error_steps": [
+          19,
+          23
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_test_p1_44",
+        "invalid": [
+          23
+        ],
+        "n_steps": 22
+      },
+      {
+        "error_steps": [
+          28,
+          29
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_test_p1_46",
+        "invalid": [
+          29
+        ],
+        "n_steps": 28
+      },
+      {
+        "error_steps": [
+          27,
+          43
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_test_p1_62",
+        "invalid": [
+          43
+        ],
+        "n_steps": 34
+      },
+      {
+        "error_steps": [
+          9,
+          18
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_test_p1_76",
+        "invalid": [
+          18
+        ],
+        "n_steps": 17
+      },
+      {
+        "error_steps": [
+          9,
+          16
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_test_p1_87",
+        "invalid": [
+          16
+        ],
+        "n_steps": 11
+      },
+      {
+        "error_steps": [
+          24
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_test_p2_2114",
+        "invalid": [
+          24
+        ],
+        "n_steps": 23
+      },
+      {
+        "error_steps": [
+          32
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_train_p1_107",
+        "invalid": [
+          32
+        ],
+        "n_steps": 31
+      },
+      {
+        "error_steps": [
+          59
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_train_p1_218",
+        "invalid": [
+          59
+        ],
+        "n_steps": 58
+      },
+      {
+        "error_steps": [
+          30
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_train_p1_367",
+        "invalid": [
+          30
+        ],
+        "n_steps": 29
+      },
+      {
+        "error_steps": [
+          16,
+          18,
+          19,
+          20,
+          21,
+          24,
+          25
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_train_p1_371",
+        "invalid": [
+          24,
+          25
+        ],
+        "n_steps": 22
+      },
+      {
+        "error_steps": [
+          33,
+          39
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_train_p1_445",
+        "invalid": [
+          39
+        ],
+        "n_steps": 35
+      },
+      {
+        "error_steps": [
+          34
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_train_p1_51",
+        "invalid": [
+          34
+        ],
+        "n_steps": 33
+      },
+      {
+        "error_steps": [
+          21,
+          22,
+          23
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_train_p1_60",
+        "invalid": [
+          23
+        ],
+        "n_steps": 22
+      },
+      {
+        "error_steps": [
+          5,
+          6,
+          30
+        ],
+        "family": "confidence",
+        "idx": "confidence_confidence_prm_train_p1_70",
+        "invalid": [
+          30
+        ],
+        "n_steps": 28
+      },
+      {
+        "error_steps": [
+          17,
+          39,
+          42,
+          43
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_test_p1_29",
+        "invalid": [
+          43
+        ],
+        "n_steps": 42
+      },
+      {
+        "error_steps": [
+          12,
+          13,
+          14
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_test_p1_52",
+        "invalid": [
+          13,
+          14
+        ],
+        "n_steps": 12
+      },
+      {
+        "error_steps": [
+          3,
+          15,
+          16,
+          18,
+          19,
+          20,
+          21
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_test_p2_613",
+        "invalid": [
+          21
+        ],
+        "n_steps": 20
+      },
+      {
+        "error_steps": [
+          23,
+          24,
+          27,
+          28,
+          29,
+          30,
+          33,
+          34,
+          35,
+          36
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_train_p1_115",
+        "invalid": [
+          36
+        ],
+        "n_steps": 35
+      },
+      {
+        "error_steps": [
+          15,
+          16,
+          34,
+          50
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_train_p1_127",
+        "invalid": [
+          50
+        ],
+        "n_steps": 46
+      },
+      {
+        "error_steps": [
+          16,
+          25,
+          35,
+          39
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_train_p1_152",
+        "invalid": [
+          35,
+          39
+        ],
+        "n_steps": 30
+      },
+      {
+        "error_steps": [
+          33,
+          34,
+          35,
+          36,
+          37,
+          38
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_train_p1_17",
+        "invalid": [
+          37,
+          38
+        ],
+        "n_steps": 36
+      },
+      {
+        "error_steps": [
+          13,
+          16,
+          17
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_train_p1_254",
+        "invalid": [
+          17
+        ],
+        "n_steps": 16
+      },
+      {
+        "error_steps": [
+          33
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_train_p1_271",
+        "invalid": [
+          33
+        ],
+        "n_steps": 31
+      },
+      {
+        "error_steps": [
+          62,
+          66
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_train_p1_281",
+        "invalid": [
+          66
+        ],
+        "n_steps": 64
+      },
+      {
+        "error_steps": [
+          21,
+          39
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_train_p1_317",
+        "invalid": [
+          39
+        ],
+        "n_steps": 27
+      },
+      {
+        "error_steps": [
+          12,
+          19,
+          20,
+          21,
+          22,
+          23
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_train_p1_420",
+        "invalid": [
+          23
+        ],
+        "n_steps": 22
+      },
+      {
+        "error_steps": [
+          38,
+          40,
+          41,
+          42
+        ],
+        "family": "counterfactual",
+        "idx": "counterfactual_counterfactual_prm_train_p1_65",
+        "invalid": [
+          40,
+          41,
+          42
+        ],
+        "n_steps": 39
+      },
+      {
+        "error_steps": [
+          6,
+          8,
+          9,
+          21
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_test_p1_22",
+        "invalid": [
+          21
+        ],
+        "n_steps": 14
+      },
+      {
+        "error_steps": [
+          9,
+          11,
+          19,
+          22
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_test_p1_46",
+        "invalid": [
+          19,
+          22
+        ],
+        "n_steps": 17
+      },
+      {
+        "error_steps": [
+          2,
+          3,
+          4,
+          6,
+          7,
+          10,
+          12
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_test_p2_1052",
+        "invalid": [
+          10,
+          12
+        ],
+        "n_steps": 8
+      },
+      {
+        "error_steps": [
+          17,
+          19,
+          21
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_test_p2_287",
+        "invalid": [
+          21
+        ],
+        "n_steps": 20
+      },
+      {
+        "error_steps": [
+          13,
+          18,
+          19
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_test_p2_360",
+        "invalid": [
+          18,
+          19
+        ],
+        "n_steps": 17
+      },
+      {
+        "error_steps": [
+          2,
+          11,
+          12,
+          16,
+          19
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_test_p2_729",
+        "invalid": [
+          19
+        ],
+        "n_steps": 17
+      },
+      {
+        "error_steps": [
+          51,
+          54,
+          56,
+          60
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_train_p1_127",
+        "invalid": [
+          51,
+          54,
+          56,
+          60
+        ],
+        "n_steps": 43
+      },
+      {
+        "error_steps": [
+          16,
+          31,
+          36,
+          37,
+          39
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_train_p1_17",
+        "invalid": [
+          39
+        ],
+        "n_steps": 38
+      },
+      {
+        "error_steps": [
+          10,
+          11
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_train_p1_174",
+        "invalid": [
+          11
+        ],
+        "n_steps": 10
+      },
+      {
+        "error_steps": [
+          33,
+          36,
+          38
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_train_p1_177",
+        "invalid": [
+          38
+        ],
+        "n_steps": 36
+      },
+      {
+        "error_steps": [
+          53,
+          60,
+          61,
+          62
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_train_p1_218",
+        "invalid": [
+          61,
+          62
+        ],
+        "n_steps": 60
+      },
+      {
+        "error_steps": [
+          15,
+          16,
+          26,
+          31,
+          32,
+          33
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_train_p1_267",
+        "invalid": [
+          32,
+          33
+        ],
+        "n_steps": 31
+      },
+      {
+        "error_steps": [
+          18,
+          19,
+          24,
+          25
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_train_p1_291",
+        "invalid": [
+          25
+        ],
+        "n_steps": 24
+      },
+      {
+        "error_steps": [
+          30,
+          31,
+          32
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_train_p1_303",
+        "invalid": [
+          32
+        ],
+        "n_steps": 31
+      },
+      {
+        "error_steps": [
+          5,
+          12,
+          13,
+          14,
+          15
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_train_p1_316",
+        "invalid": [
+          12,
+          13,
+          14,
+          15
+        ],
+        "n_steps": 10
+      },
+      {
+        "error_steps": [
+          6,
+          24,
+          44
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_train_p1_333",
+        "invalid": [
+          44
+        ],
+        "n_steps": 28
+      },
+      {
+        "error_steps": [
+          29,
+          31,
+          35,
+          47
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_train_p1_449",
+        "invalid": [
+          35,
+          47
+        ],
+        "n_steps": 32
+      },
+      {
+        "error_steps": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "family": "deception",
+        "idx": "deception_deception_prm_train_p1_85",
+        "invalid": [
+          8
+        ],
+        "n_steps": 7
+      },
+      {
+        "error_steps": [
+          49,
+          50,
+          51
+        ],
+        "family": "domain_inconsistency",
+        "idx": "domain_inconsistency_domain_inconsistency_prm_train_p1_198",
+        "invalid": [
+          50,
+          51
+        ],
+        "n_steps": 49
+      },
+      {
+        "error_steps": [
+          19,
+          39,
+          56
+        ],
+        "family": "domain_inconsistency",
+        "idx": "domain_inconsistency_domain_inconsistency_prm_train_p1_281",
+        "invalid": [
+          56
+        ],
+        "n_steps": 45
+      },
+      {
+        "error_steps": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p1_13",
+        "invalid": [
+          8
+        ],
+        "n_steps": 7
+      },
+      {
+        "error_steps": [
+          23,
+          24
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p1_24",
+        "invalid": [
+          23,
+          24
+        ],
+        "n_steps": 16
+      },
+      {
+        "error_steps": [
+          7,
+          8
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p1_28",
+        "invalid": [
+          8
+        ],
+        "n_steps": 7
+      },
+      {
+        "error_steps": [
+          15
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p1_47",
+        "invalid": [
+          15
+        ],
+        "n_steps": 10
+      },
+      {
+        "error_steps": [
+          10,
+          11,
+          12,
+          13
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p1_67",
+        "invalid": [
+          11,
+          12,
+          13
+        ],
+        "n_steps": 10
+      },
+      {
+        "error_steps": [
+          12,
+          17,
+          27
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p1_80",
+        "invalid": [
+          27
+        ],
+        "n_steps": 23
+      },
+      {
+        "error_steps": [
+          6,
+          7
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_105",
+        "invalid": [
+          7
+        ],
+        "n_steps": 6
+      },
+      {
+        "error_steps": [
+          8,
+          9
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_1672",
+        "invalid": [
+          8,
+          9
+        ],
+        "n_steps": 7
+      },
+      {
+        "error_steps": [
+          1,
+          3,
+          5
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_1723",
+        "invalid": [
+          5
+        ],
+        "n_steps": 4
+      },
+      {
+        "error_steps": [
+          2,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_1778",
+        "invalid": [
+          11,
+          12,
+          13
+        ],
+        "n_steps": 10
+      },
+      {
+        "error_steps": [
+          15,
+          16,
+          17
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_198",
+        "invalid": [
+          17
+        ],
+        "n_steps": 16
+      },
+      {
+        "error_steps": [
+          5,
+          18
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_2136",
+        "invalid": [
+          18
+        ],
+        "n_steps": 16
+      },
+      {
+        "error_steps": [
+          8,
+          9,
+          10,
+          11
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_2155",
+        "invalid": [
+          10,
+          11
+        ],
+        "n_steps": 9
+      },
+      {
+        "error_steps": [
+          3,
+          7,
+          10
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_2400",
+        "invalid": [
+          7,
+          10
+        ],
+        "n_steps": 4
+      },
+      {
+        "error_steps": [
+          4,
+          5,
+          12,
+          13
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_2447",
+        "invalid": [
+          12,
+          13
+        ],
+        "n_steps": 8
+      },
+      {
+        "error_steps": [
+          11,
+          12,
+          15,
+          16,
+          20
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_613",
+        "invalid": [
+          20
+        ],
+        "n_steps": 16
+      },
+      {
+        "error_steps": [
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_726",
+        "invalid": [
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "n_steps": 9
+      },
+      {
+        "error_steps": [
+          4,
+          8,
+          21
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_736",
+        "invalid": [
+          21
+        ],
+        "n_steps": 18
+      },
+      {
+        "error_steps": [
+          3,
+          10
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_961",
+        "invalid": [
+          10
+        ],
+        "n_steps": 7
+      },
+      {
+        "error_steps": [
+          12,
+          13,
+          14,
+          15
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_test_p2_991",
+        "invalid": [
+          15
+        ],
+        "n_steps": 14
+      },
+      {
+        "error_steps": [
+          8,
+          10
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_1",
+        "invalid": [
+          10
+        ],
+        "n_steps": 8
+      },
+      {
+        "error_steps": [
+          36,
+          37
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_147",
+        "invalid": [
+          36,
+          37
+        ],
+        "n_steps": 35
+      },
+      {
+        "error_steps": [
+          10,
+          11,
+          12,
+          15,
+          16,
+          17
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_159",
+        "invalid": [
+          16,
+          17
+        ],
+        "n_steps": 15
+      },
+      {
+        "error_steps": [
+          5,
+          11
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_174",
+        "invalid": [
+          11
+        ],
+        "n_steps": 10
+      },
+      {
+        "error_steps": [
+          8,
+          12,
+          13
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_180",
+        "invalid": [
+          13
+        ],
+        "n_steps": 12
+      },
+      {
+        "error_steps": [
+          6,
+          7,
+          10,
+          18,
+          23
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_207",
+        "invalid": [
+          23
+        ],
+        "n_steps": 19
+      },
+      {
+        "error_steps": [
+          11,
+          12
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_3",
+        "invalid": [
+          12
+        ],
+        "n_steps": 11
+      },
+      {
+        "error_steps": [
+          10,
+          11
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_318",
+        "invalid": [
+          10,
+          11
+        ],
+        "n_steps": 7
+      },
+      {
+        "error_steps": [
+          14,
+          15,
+          16,
+          17
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_360",
+        "invalid": [
+          14,
+          15,
+          16,
+          17
+        ],
+        "n_steps": 12
+      },
+      {
+        "error_steps": [
+          4,
+          6,
+          13,
+          28
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_383",
+        "invalid": [
+          28
+        ],
+        "n_steps": 21
+      },
+      {
+        "error_steps": [
+          5,
+          6,
+          15
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_399",
+        "invalid": [
+          15
+        ],
+        "n_steps": 11
+      },
+      {
+        "error_steps": [
+          26,
+          27
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_417",
+        "invalid": [
+          26,
+          27
+        ],
+        "n_steps": 25
+      },
+      {
+        "error_steps": [
+          36,
+          40
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_431",
+        "invalid": [
+          40
+        ],
+        "n_steps": 39
+      },
+      {
+        "error_steps": [
+          38
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_449",
+        "invalid": [
+          38
+        ],
+        "n_steps": 12
+      },
+      {
+        "error_steps": [
+          3,
+          12
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_464",
+        "invalid": [
+          12
+        ],
+        "n_steps": 11
+      },
+      {
+        "error_steps": [
+          9
+        ],
+        "family": "missing_condition",
+        "idx": "missing_condition_missing_condition_prm_train_p1_80",
+        "invalid": [
+          9
+        ],
+        "n_steps": 7
+      },
+      {
+        "error_steps": [
+          4,
+          5,
+          16,
+          31
+        ],
+        "family": "redundency",
+        "idx": "redundency_redundency_prm_test_p1_46",
+        "invalid": [
+          31
+        ],
+        "n_steps": 30
+      },
+      {
+        "error_steps": [
+          17,
+          38,
+          45
+        ],
+        "family": "redundency",
+        "idx": "redundency_redundency_prm_test_p1_50",
+        "invalid": [
+          45
+        ],
+        "n_steps": 41
+      },
+      {
+        "error_steps": [
+          8,
+          22,
+          25,
+          26
+        ],
+        "family": "redundency",
+        "idx": "redundency_redundency_prm_train_p1_166",
+        "invalid": [
+          26
+        ],
+        "n_steps": 25
+      },
+      {
+        "error_steps": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38
+        ],
+        "family": "redundency",
+        "idx": "redundency_redundency_prm_train_p1_281",
+        "invalid": [
+          35,
+          36,
+          37,
+          38
+        ],
+        "n_steps": 34
+      },
+      {
+        "error_steps": [
+          9,
+          21,
+          31
+        ],
+        "family": "redundency",
+        "idx": "redundency_redundency_prm_train_p1_303",
+        "invalid": [
+          31
+        ],
+        "n_steps": 30
+      },
+      {
+        "error_steps": [
+          21,
+          32
+        ],
+        "family": "redundency",
+        "idx": "redundency_redundency_prm_train_p1_417",
+        "invalid": [
+          32
+        ],
+        "n_steps": 30
+      },
+      {
+        "error_steps": [
+          17,
+          53
+        ],
+        "family": "step_contradiction",
+        "idx": "step_contradiction_step_contradiction_prm_test_p1_80",
+        "invalid": [
+          53
+        ],
+        "n_steps": 52
+      },
+      {
+        "error_steps": [
+          14,
+          15,
+          16,
+          20
+        ],
+        "family": "step_contradiction",
+        "idx": "step_contradiction_step_contradiction_prm_test_p2_2136",
+        "invalid": [
+          20
+        ],
+        "n_steps": 17
+      },
+      {
+        "error_steps": [
+          36,
+          40
+        ],
+        "family": "step_contradiction",
+        "idx": "step_contradiction_step_contradiction_prm_train_p1_227",
+        "invalid": [
+          40
+        ],
+        "n_steps": 39
+      },
+      {
+        "error_steps": [
+          9,
+          10
+        ],
+        "family": "step_contradiction",
+        "idx": "step_contradiction_step_contradiction_prm_train_p1_92",
+        "invalid": [
+          10
+        ],
+        "n_steps": 9
+      }
+    ],
+    "records_sha256": "ed43a0eb9c64095e2214bf8d69f528a5c5ecda4e8a086139179a2f50b2af99a3",
+    "row_count": 100,
+    "zero_count": 0
+  },
+  "original_localization_registry": {
+    "path": "configs/reconstruction_benchmark_v1/localization.json",
+    "sha256": "611b609abf328df649d66330e4a8aadd919f240be264d3f6d7e04d205bf08f19"
+  },
+  "original_prmbench_counts": {
+    "expected_by_family": {
+      "circular": {
+        "positive_steps": 2149,
+        "responses": 758,
+        "steps": 7813
+      },
+      "confidence": {
+        "positive_steps": 1320,
+        "responses": 756,
+        "steps": 10711
+      },
+      "counterfactual": {
+        "positive_steps": 2092,
+        "responses": 757,
+        "steps": 10477
+      },
+      "deception": {
+        "positive_steps": 1728,
+        "responses": 749,
+        "steps": 10053
+      },
+      "domain_inconsistency": {
+        "positive_steps": 1341,
+        "responses": 757,
+        "steps": 10031
+      },
+      "missing_condition": {
+        "positive_steps": 1925,
+        "responses": 756,
+        "steps": 9613
+      },
+      "multi_solutions": {
+        "positive_steps": 0,
+        "responses": 160,
+        "steps": 2241
+      },
+      "redundency": {
+        "positive_steps": 1546,
+        "responses": 758,
+        "steps": 11613
+      },
+      "step_contradiction": {
+        "positive_steps": 1194,
+        "responses": 757,
+        "steps": 10728
+      }
+    },
+    "expected_error_responses": 6208,
+    "expected_positive_steps": 13295,
+    "expected_steps": 83280
+  },
+  "payload_sha256": "6874cc8c89583760fcf8a8e7f1600a5322b91140bc140333bfd6bfd104cd84ca",
+  "reason": "The certified PRMBench registry counted 151 one-based annotations beyond their retained response lengths as realizable positive steps; the official evaluator keeps those rows and treats those annotations as inert.",
+  "release_id": "2026-08-24_localization_v1",
+  "schema_version": "reconstruction-localization-postfreeze-amendment-v1",
+  "score_ab_certificate": {
+    "certificate_sha256": "79a9301808d9c15fa4cd1d18d023557823061526f0092590e3c92d9084610e9a",
+    "file_sha256": "779a7f6e614b03197a7f9bb8a8d3da7c67f53f42a834821b49719aeaac5a2631",
+    "path": "localization/AB_VERIFICATION.json",
+    "schema_version": "reconstruction-localization-ab-certificate-v2"
+  },
+  "score_verifier_repo": {
+    "required_git_head": "d96efdcf112fb46241f0a6594da00ef26cd079c3"
+  },
+  "semantics": {
+    "index_base": 1,
+    "indices_clamped": 0,
+    "indices_repaired": 0,
+    "indices_shifted": 0,
+    "out_of_range_behavior": "inert_upstream_membership_only",
+    "rows_dropped": 0
+  },
+  "stage": "post_score_ab_freeze_evaluation_only",
+  "telemetry": {
+    "manifest_path": "dataset_cache/four_localization/prmbench_qwen3_8b_telemetry_full/manifest.json",
+    "manifest_sha256": "c82955e81cf93939de950b0a567a829290e10957273d2cd0724aed2a6bf9a452",
+    "path": "dataset_cache/four_localization/prmbench_qwen3_8b_telemetry_full/prmbench_telemetry.pkl",
+    "sha256": "b934afad0889ffacf0f4420f885ad52ddcf08f2124e506a21cd24f216bd170be"
+  }
+}

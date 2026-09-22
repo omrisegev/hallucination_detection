@@ -1,0 +1,9 @@
+gate_id,status,observed,required,detail
+P2R_REFERENCE_SCORE_ALIAS,PASS,0.0,<=1e-12,local and combined step scores reproduce R1
+P2R_REFERENCE_DECISION_ALIAS,PASS,0,0,all predictions reproduce R1
+P2R_REFERENCE_FOLD_ALIAS,PASS,0,0,all source-group folds reproduce R1
+P2R_REFERENCE_METRIC_ALIAS,PASS,0.0,<=1e-12,all five per-cell metrics reproduce R1
+P2R_REFERENCE_BOOTSTRAP_ALIAS,PASS,0.0,<=1e-12,"all 20,000 paired samples reproduce R1"
+P2R_THRESHOLD_LEDGER_FROZEN,PASS,10,10 model-fold ledgers,the sole Phase-2R threshold reconstruction is now immutable
+P2R_LENGTH_STRATA_CALIBRATION_ONLY,PASS,10,10 model-fold cutpoint pairs,linear tertiles use only erroneous calibration rows
+P2R_FINITE_COMPLETE_SCORES,PASS,51394,all registered steps finite; no missing rows,verified after score-freeze checksums

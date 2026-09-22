@@ -1,0 +1,70 @@
+{
+  "schema": "reasoning_localization_phase0_s5_execution_registry_v1",
+  "state_id": "P0_S5_POPULATION_BRIDGES",
+  "status": "FROZEN_BEFORE_RUN",
+  "frozen_at": "2026-08-30T00:00:00+03:00",
+  "runner_sha256": "14a7b42942deadeea89d7f69af06e5678382bb9d2af594dba0b14dd224f1e26d",
+  "bootstrap_draws": 20000,
+  "bootstrap_seed": 2026082901,
+  "system_id": "token_iu29__step_only_null_v1",
+  "states": [
+    {
+      "variant_id": "P0_S5A_IU29_STEP_MAX_LOCAL_FIVEFOLD_QWEN8",
+      "changed_factor": "population",
+      "models": ["qwen3_4b", "qwen3_8b"],
+      "n_cells": 8
+    },
+    {
+      "variant_id": "P0_S5B_IU29_STEP_MAX_LOCAL_FIVEFOLD_FULL12",
+      "changed_factor": "population_panel_extension",
+      "models": ["qwen3_4b", "qwen3_8b", "llama31_8b"],
+      "n_cells": 12
+    }
+  ],
+  "frozen_method_contract": {
+    "representation": "LOCAL_IU29 frozen token score",
+    "detector": "maximum of the same local token curve",
+    "step_reducer": "step maximum / token argmax mapped to step",
+    "threshold_split": "deterministic five-fold source-group cross-fit",
+    "access_level": "saved_output_probability_telemetry_one_pass",
+    "supervision": "registered label-free token-only adapter; labels only in frozen cross-fit threshold and metrics"
+  },
+  "population_contrast_policy": {
+    "s4_to_s5a": "raw-state and cumulative descriptive comparison only; generated traces and scorer panel differ, so no paired delta or flips",
+    "s5a_to_s5b": "panel-composition diagnostic with shared Qwen cells and independent Llama traces; not a row-paired treatment effect",
+    "bootstrap": "20000 source-question resamples within each scorer cell; equal-cell panel mean",
+    "w_t_l_unit": "four ProcessBench source families for S5B-minus-S5A composition diagnostic"
+  },
+  "frozen_sources": [
+    {
+      "role": "build_a_decisions",
+      "path": "/Users/osegev/Desktop/hallucination_detection/.worktrees/reconstruction-science-run-v1/results/reconstruction_benchmark_v1/releases/2026-08-24_localization_v1/build_A/localization/evaluation/localization_decisions.csv",
+      "sha256": "1519c41cdd2e6339fb9d424f49ffb50543c32517a3fba52fcf25cd4f744e403e"
+    },
+    {
+      "role": "build_a_metrics",
+      "path": "/Users/osegev/Desktop/hallucination_detection/.worktrees/reconstruction-science-run-v1/results/reconstruction_benchmark_v1/releases/2026-08-24_localization_v1/build_A/localization/evaluation/metrics_long.csv",
+      "sha256": "4bd790fb851154e0b485fbc9923727435ab1cbc7043a0fce1d894f415aa50fa2"
+    },
+    {
+      "role": "build_a_manifest",
+      "path": "/Users/osegev/Desktop/hallucination_detection/.worktrees/reconstruction-science-run-v1/results/reconstruction_benchmark_v1/releases/2026-08-24_localization_v1/build_A/localization/evaluation/MANIFEST.json",
+      "sha256": "e580b2c44a05ca8ab2e2d668190aa0de18d928a9dbce270b6c7cd8644933ea03"
+    },
+    {
+      "role": "build_b_decisions",
+      "path": "/Users/osegev/Desktop/hallucination_detection/.worktrees/reconstruction-science-run-v1/results/reconstruction_benchmark_v1/releases/2026-08-24_localization_v1/build_B/localization/evaluation/localization_decisions.csv",
+      "sha256": "1519c41cdd2e6339fb9d424f49ffb50543c32517a3fba52fcf25cd4f744e403e"
+    },
+    {
+      "role": "build_b_metrics",
+      "path": "/Users/osegev/Desktop/hallucination_detection/.worktrees/reconstruction-science-run-v1/results/reconstruction_benchmark_v1/releases/2026-08-24_localization_v1/build_B/localization/evaluation/metrics_long.csv",
+      "sha256": "4bd790fb851154e0b485fbc9923727435ab1cbc7043a0fce1d894f415aa50fa2"
+    },
+    {
+      "role": "build_b_manifest",
+      "path": "/Users/osegev/Desktop/hallucination_detection/.worktrees/reconstruction-science-run-v1/results/reconstruction_benchmark_v1/releases/2026-08-24_localization_v1/build_B/localization/evaluation/MANIFEST.json",
+      "sha256": "05ff09f607a378c2777f5eb064aff41aa6fb60364d260d9c6869b28de2d1e858"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+gate_id,variant_id,metric_id,observed,threshold,direction,passed,status,evidence_status,notes
+P2E_QWEN_H0_ALIAS,P2E_H0_FAMILY6_TOP10_LLAMA4,max_abs_error,0.0,1e-12,le,true,PASS,TRANSFER,Exact H0 combined-score reconstruction.
+P2E_QWEN_H2_ALIAS,P2E_H2_CLEAN_C7_LLAMA4,max_abs_error,0.0,1e-12,le,true,PASS,TRANSFER,Exact H2 Qwen score alias before Llama label import.
+P2E_QWEN_H3_ALIAS,P2E_H3_EQUAL_C8_RERANK_LLAMA4,max_abs_error,0.0,1e-12,le,true,PASS,TRANSFER,Exact H3 Qwen score alias before Llama label import.
+P2E_ABSTENTION_ALIAS,P2E_H3_EQUAL_C8_RERANK_LLAMA4,mismatches,0,0,eq,true,PASS,TRANSFER,H2/H3 copy H0 clean/error decisions exactly.
+P2E_GROUP_FOLD,P2E_H3_EQUAL_C8_RERANK_LLAMA4,max_fold_count,1,1,le,true,PASS,TRANSFER,Every source group stays inside one fold per arm.
+P2E_H2_DIRECTIONAL,P2E_H2_CLEAN_C7_LLAMA4,macro_f1_ci_low,-0.007090624878183999,0.0,gt,false,FAIL,TRANSFER,"H2 interval crosses zero; positive-improvement claim unsupported, not rejected."
+P2E_H2_PRACTICAL,P2E_H2_CLEAN_C7_LLAMA4,macro_f1_ci_low,-0.007090624878183999,0.003,gt,false,FAIL,TRANSFER,H2 does not clear the practical-benefit bound.
+P2E_H3_DIRECTIONAL,P2E_H3_EQUAL_C8_RERANK_LLAMA4,macro_f1_ci_low,-0.009677021874356245,0.0,gt,false,FAIL,TRANSFER,"H3 interval crosses zero; positive-improvement claim unsupported, not rejected."
+P2E_H3_PRACTICAL,P2E_H3_EQUAL_C8_RERANK_LLAMA4,macro_f1_ci_low,-0.009677021874356245,0.003,gt,false,FAIL,TRANSFER,H3 does not clear the practical-benefit bound.
+P2E_H3_WORST_CELL,P2E_H3_EQUAL_C8_RERANK_LLAMA4,worst_cell_delta,-0.021595411922775698,-0.02,ge,false,FAIL,TRANSFER,"Worst Llama family is slightly beyond the robustness boundary, but above the -0.030 hard-stop bound."
+P2E_H3_BEATS_H2,P2E_H3_EQUAL_C8_RERANK_LLAMA4,macro_f1_ci_low,-0.011661874608934803,0.0,gt,false,FAIL,TRANSFER,H3 does not improve over H2; its negative point delta is uncertain.
+P2E_FRESH_CONFIRMATION,P2E_H3_EQUAL_C8_RERANK_LLAMA4,fresh_population,false,true,eq,false,FAIL,TRANSFER,The exact questions and labels were already opened in Phase 1.

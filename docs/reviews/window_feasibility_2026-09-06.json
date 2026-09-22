@@ -1,0 +1,204 @@
+{
+  "created_utc": "2026-09-05T23:09:34.433332+00:00",
+  "scope": "GSM8K/Qwen3-4B feature feasibility only; no fusion or labels",
+  "source_commit": "6dea2f79",
+  "submission_commit": "70bec16",
+  "cluster_root": "/shared/cycle3_tau_averbuch_prj/omrisegev1/window_feasibility_20260906_v1",
+  "jobs": {
+    "initial_pilot": 247835,
+    "superseded_full": 247838,
+    "corrected_full": 247840
+  },
+  "slurm_elapsed_seconds": {
+    "initial_pilot": 101,
+    "superseded_full": 21,
+    "corrected_full": 21
+  },
+  "compute_seconds": {
+    "initial_pilot_cluster_8_workers": 1.2292309239855967,
+    "initial_pilot_local_1_worker": 22.723410799866542,
+    "corrected_sample_local_1_worker": 21.153387100202963,
+    "corrected_full_cluster_8_workers": 10.815471340960357
+  },
+  "timing_limitations": "Different hardware, OS/Python versions, process startup and concurrent local Claude workload; no general speedup guarantee. MaxRSS unavailable.",
+  "superseded_diagnostic": "Three of the 30 shared sample matrices differed in numerical rank across platforms before standardized recentering and N-1 cap. Other categorical diagnostics agreed; participation ranks differed by less than 1e-8. Source and outputs retained. Job247838 stderr path typo did not prevent completion; corrected job247840 has empty stderr at the correct path.",
+  "validation": {
+    "complete_unique_rows": 400,
+    "errors": 0,
+    "label_access": false,
+    "rank_cap_violations": 0,
+    "matching_local_cluster_sample": 30,
+    "max_participation_rank_difference": 3.552713678800501e-15,
+    "categorical_diagnostics_match": true
+  },
+  "widths": [
+    {
+      "width": 32,
+      "matrices_extracted": 400,
+      "answers_with_at_least_8_windows": 220,
+      "median_n": 8.0,
+      "median_active_p": 29.0,
+      "median_rank": 7.0,
+      "median_participation_rank": 3.650567564530915,
+      "constant_or_unavailable_counts": {
+        "trace_length": 400,
+        "min_spilled": 166
+      }
+    },
+    {
+      "width": 48,
+      "matrices_extracted": 399,
+      "answers_with_at_least_8_windows": 66,
+      "median_n": 5.0,
+      "median_active_p": 28.0,
+      "median_rank": 4.0,
+      "median_participation_rank": 2.764668779399083,
+      "constant_or_unavailable_counts": {
+        "trace_length": 399,
+        "min_spilled": 268,
+        "dominant_freq": 3,
+        "cusum_shift_idx": 1
+      }
+    },
+    {
+      "width": 64,
+      "matrices_extracted": 388,
+      "answers_with_at_least_8_windows": 13,
+      "median_n": 4.0,
+      "median_active_p": 28.0,
+      "median_rank": 3.0,
+      "median_participation_rank": 2.1408240868895874,
+      "constant_or_unavailable_counts": {
+        "trace_length": 388,
+        "min_spilled": 319,
+        "dominant_freq": 11,
+        "cusum_shift_idx": 2
+      }
+    },
+    {
+      "width": 96,
+      "matrices_extracted": 322,
+      "answers_with_at_least_8_windows": 2,
+      "median_n": 3.0,
+      "median_active_p": 28.0,
+      "median_rank": 2.0,
+      "median_participation_rank": 1.5303365271818463,
+      "constant_or_unavailable_counts": {
+        "trace_length": 322,
+        "min_spilled": 290,
+        "dominant_freq": 17,
+        "cusum_shift_idx": 1
+      }
+    },
+    {
+      "width": 128,
+      "matrices_extracted": 220,
+      "answers_with_at_least_8_windows": 2,
+      "median_n": 2.0,
+      "median_active_p": 28.0,
+      "median_rank": 1.0,
+      "median_participation_rank": 1.0,
+      "constant_or_unavailable_counts": {
+        "trace_length": 220,
+        "min_spilled": 205,
+        "dominant_freq": 12,
+        "cusum_shift_idx": 1
+      }
+    }
+  ],
+  "config": {
+    "schema": "window-feasibility-v1",
+    "stream_names": [
+      "trace_length_series",
+      "entropy_series",
+      "entropy_rolling_spectral_entropy",
+      "entropy_rolling_low_band_power",
+      "entropy_rolling_high_band_power",
+      "entropy_rolling_hl_ratio",
+      "entropy_rolling_dominant_freq",
+      "entropy_rolling_spectral_centroid",
+      "entropy_stft_high_series",
+      "entropy_stft_frame_entropy",
+      "entropy_rolling_tail_ratio",
+      "entropy_sw_var_series",
+      "entropy_pe_series",
+      "entropy_rolling_rs_hurst",
+      "entropy_cusum_abs_series",
+      "spilled_series",
+      "spilled_sw_var_series",
+      "spilled_cusum_abs_series",
+      "spilled_rolling_min",
+      "energy_series",
+      "energy_rolling_min",
+      "energy_sw_var_series",
+      "energy_cusum_abs_series",
+      "top1_logprob_series",
+      "logprob_margin_series",
+      "topk_entropy_series",
+      "topk_varentropy_series",
+      "topk_renyi2_series",
+      "topk_tail_mass_series"
+    ],
+    "widths": [
+      32,
+      48,
+      64,
+      96,
+      128
+    ],
+    "minimum_fit_windows": 8,
+    "rows_per_cell": 0,
+    "runtime": {
+      "python": "3.12.3",
+      "numpy": "2.2.4",
+      "scipy": "1.17.1"
+    },
+    "cells": {
+      "pb_gsm8k_q4": "5b1b40260681252401fe2afced2fd7764a194bd92145e6e3b79248197e5532fd"
+    },
+    "source": {
+      "spectral_utils/feature_utils.py": "b68bc5e1647742667fc20908321485bf9229954713b5da7215bf0f2629c74362",
+      "spectral_utils/window_localization.py": "1338e2d5b78230ddca69186e0f9e71a89e287673e910797e13b85a5f99d263d7",
+      "scripts/per_answer_localization/feasibility.py": "4182f942817f64a835985ef6ff01b8306a13f5ab950c70e81c2ef8b85a85a756"
+    },
+    "labels_accessed": false
+  },
+  "summary": {
+    "status": "COMPLETE",
+    "new_answers": 400,
+    "workers": 8,
+    "elapsed_seconds": 10.815471340960357,
+    "geometry": [
+      {
+        "cell": "pb_gsm8k_q4",
+        "answers": 400,
+        "median_tokens": 269.5,
+        "widths": [
+          {
+            "width": 32,
+            "answers_meeting_count_floor": 220
+          },
+          {
+            "width": 48,
+            "answers_meeting_count_floor": 66
+          },
+          {
+            "width": 64,
+            "answers_meeting_count_floor": 13
+          },
+          {
+            "width": 96,
+            "answers_meeting_count_floor": 2
+          },
+          {
+            "width": 128,
+            "answers_meeting_count_floor": 2
+          }
+        ]
+      }
+    ],
+    "config_sha256": "e05868bdf04ddb2357e90826a1456e088c4ab5a5fe7d71fa2bfd2da382844215",
+    "labels_accessed": false
+  },
+  "interpretation": "32 maximizes count coverage among this grid, not proven optimal accuracy. Eight windows is a configurable screening floor. N<P alone does not establish fusion failure. No-error calibration and fit stability remain untested."
+}

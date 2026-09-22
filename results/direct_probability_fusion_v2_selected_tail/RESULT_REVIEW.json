@@ -1,0 +1,68 @@
+{
+  "checks": {
+    "bootstrap_intervals": "present and finite",
+    "coefficient_shapes": "17 columns",
+    "coverage": "complete",
+    "fallbacks": "none",
+    "historical_cell_auroc_replay": "24/24 cells, 5 methods",
+    "html_content_and_encoding": "PASS",
+    "localization_metric_replay": "4/4 methods"
+  },
+  "findings_review": {
+    "attribution_limit": "This combined run cannot separate the contribution of selected-token surprisal from residual tail mass.",
+    "complete_answer_detection": "The added coordinates carry a small answer-level signal, strongest with equal weights.",
+    "fusion_limit": "IU-PCR improves over its direct-matrix v1 counterpart on the historical panel, but equal weights remain stronger; Joint Shrinkage is not competitive.",
+    "localization": "The added coordinates do not improve the frozen one-answer localization route."
+  },
+  "historical": {
+    "augmented_equal": {
+      "all24": 0.7781083286105567,
+      "math15": 0.7907536458530061,
+      "qa9": 0.7570327998731411
+    },
+    "augmented_iu": {
+      "all24": 0.7688310029680396,
+      "math15": 0.779613260069772,
+      "qa9": 0.7508605744651522
+    },
+    "augmented_joint_lw": {
+      "all24": 0.7285393213822874,
+      "math15": 0.7563795983006377,
+      "qa9": 0.6821388598517034
+    },
+    "entropy": {
+      "all24": 0.7717386719285596,
+      "math15": 0.783645072007297,
+      "qa9": 0.7518946717973306
+    },
+    "historical_iu_pcr": {
+      "all24": 0.7760865493175492,
+      "math15": 0.7858929418007993,
+      "qa9": 0.759742561845466
+    }
+  },
+  "localization": {
+    "augmented_equal": {
+      "prmbench_pooled": 0.7012937365443381,
+      "prmbench_within": 0.7339189140105462,
+      "processbench_all8": 0.34563115526545907
+    },
+    "augmented_iu": {
+      "prmbench_pooled": 0.7038074104714571,
+      "prmbench_within": 0.7327565475977551,
+      "processbench_all8": 0.3450209795170901
+    },
+    "augmented_joint_lw": {
+      "prmbench_pooled": 0.7031343788494787,
+      "prmbench_within": 0.7296819712011726,
+      "processbench_all8": 0.34594751080256436
+    },
+    "entropy": {
+      "prmbench_pooled": 0.7026639408146143,
+      "prmbench_within": 0.7301113611124387,
+      "processbench_all8": 0.35444376642134146
+    }
+  },
+  "schema": "direct-probability-fusion-v2-result-integrity-review",
+  "status": "PASS"
+}

@@ -1,0 +1,110 @@
+{
+  "schema": "reasoning_localization_p0_s2b_execution_registry_v1",
+  "state_id": "P0_S2B_PURE_LOCAL_DETECTOR_BRIDGE",
+  "status": "FROZEN_BEFORE_RUN",
+  "purpose": "Detector-only retrospective bridge from the P0-S2A mainline. Keep the exact historical rows, 40/20 roles, family6-level local representation and fitted head, step-max locator, threshold objective, access tier and grouped bootstrap while replacing only the calibration-only mixed-v2 DUFS-LIU complete-answer detector with the maximum of the same fitted local-risk curve. P0-S2I is a completed side interaction control and is not the parent of this state.",
+  "source_commit": "e2123168ddd0a0c07ebee7e904c94a4610615eed",
+  "runner": "scripts/reasoning_localization/run_phase0_pure_local_detector_bridge.py",
+  "runner_sha256": "48e1f74d7c4e6b93e394d77d43a70478b44e13df4211e782e565e7032dcf5448",
+  "variant_id": "P0_S2B_FAMILY6_STEP_MAX_LOCAL_DETECTOR",
+  "parent_variant_id": "P0_S2A_FAMILY6_STEP_MAX_DUFS_DETECTOR",
+  "single_changed_factor": {
+    "factor": "answer_detector",
+    "from": "calibration-only answer_dufs_liu_mixed",
+    "to": "maximum of the fitted family6 level local-risk curve"
+  },
+  "fixed_factors": {
+    "models": ["qwen3_8b", "llama31_8b"],
+    "families": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "population": "historical_stage4_eight_cell_audit",
+    "calibration_role": "historical deterministic 40 percent per family",
+    "evaluation_role": "historical deterministic 20 percent audit per family",
+    "representation": "family6",
+    "transform": "level",
+    "local_head_fit": "historical calibration-only family6 trajectory head",
+    "step_reducer": "step_max_token_argmax",
+    "threshold_objective": "historical calibration-role ProcessBench macro F1 within each scorer cell",
+    "threshold_tie_break": "first maximum in stable descending risk sweep",
+    "scorer_copy_grouping": "same source-question draw carries both scorer copies",
+    "access_tier": "A",
+    "supervision": "labels only for the unchanged historical threshold and metrics"
+  },
+  "pure_local_detector": {
+    "score": "max_t local_family6_level_risk[t]",
+    "fit_population": "historical calibration rows only",
+    "uses_same_curve_as_locator": true,
+    "labels_seen_during_curve_fit": false,
+    "threshold_labels": "unchanged historical calibration-role labels"
+  },
+  "bootstrap_draws": 20000,
+  "bootstrap_seed": 2026082901,
+  "bootstrap_contract": "Paired source-question bootstrap. A family-unit draw carries both scorer copies and both S2A/S2B predictions; family estimates are averaged before the four-family macro contrast.",
+  "s2a_execution_registry": {
+    "path": "results/reasoning_localization_03662_v1/phase_0/P0_S2A_EXECUTION_REGISTRY.json",
+    "sha256": "134009cbb801ffb6a59a41281cd660f1c8babfd0f512e3fbd05e19309f91971c"
+  },
+  "s2a_artifacts": [
+    {
+      "role": "per_question",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge/P0_S2A_LOCAL_PER_QUESTION.csv",
+      "sha256": "b46dfc5d09e890fc4455b3e3237c10168b3d4ac427a95febc41458cd59cbb8cf"
+    },
+    {
+      "role": "cell_metrics",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge/P0_S2A_LOCAL_CELL_METRICS.csv",
+      "sha256": "92fba21ed801de1ca77dad03747ac706a3d2e4ad15d33ea74ed404cae80aefd6"
+    },
+    {
+      "role": "population",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge/P0_S2A_POPULATION.json",
+      "sha256": "a1b2e2f471f00bbc212743c2727f2e022f00b240ca72745ef65cba42ee316e73"
+    },
+    {
+      "role": "verification",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge/P0_S2A_VERIFICATION.json",
+      "sha256": "2534182fc610e233a5b73e52d8adc4950b803414e2300c5ca6e309b54548c458"
+    },
+    {
+      "role": "run_manifest",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s2a_detector_bridge/RUN_MANIFEST.json",
+      "sha256": "b499209ecf44264836c33b2ccc880867165577d1a486e9899414f707f70a5f57"
+    }
+  ],
+  "code_dependencies": [
+    {
+      "path": "scripts/reasoning_localization/run_phase0_detector_bridge.py",
+      "sha256": "1d3fddf7d75bacbc848ba9cd9d6d1230b6b1010d84ed624545d88acc9ec78082"
+    },
+    {
+      "path": "scripts/reasoning_localization/run_phase0_reducer_bridge.py",
+      "sha256": "8dab5e1d07a44ccd651da99f3578f58233df6bd07be30841036dd8b383b9d870"
+    }
+  ],
+  "expected_population": {
+    "n_cells": 8,
+    "n_scorer_rows": 1270,
+    "n_source_question_groups": 635,
+    "source_question_group_sha256": "d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05"
+  },
+  "expected_parent": {
+    "macro_f1": 0.32859546976358334,
+    "reconstruction_tolerance": 1e-12
+  },
+  "hard_fail_conditions": [
+    "any registered S2A source, artifact, dependency, runner or registry hash differs",
+    "any S2A unit, target, locator, prediction, score, threshold or metric fails reconstruction within 1e-12",
+    "the 1270-row, 635-source-question population or its grouping hash changes",
+    "any factor besides the answer detector changes",
+    "the purely-local detector does not use the same fitted family6 level curve as the unchanged locator",
+    "a label enters the local curve fit",
+    "any later representation, split or population bridge is opened in the same run"
+  ],
+  "mutation_boundary": {
+    "new_model_inference": false,
+    "gpu": false,
+    "source_mutation": false,
+    "method_fit": "CPU label-free calibration-only family6 trajectory head",
+    "allowed_write_root": "results/reasoning_localization_03662_v1/phase_0/p0_s2b_pure_local_detector_bridge"
+  },
+  "promotion": "AUDIT_ONLY_NO_PROMOTION"
+}

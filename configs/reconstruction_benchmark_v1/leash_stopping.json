@@ -1,0 +1,258 @@
+{
+  "schema_version": "reconstruction-leash-stopping-registry-v1",
+  "lane_id": "leash_actual_stopping_v1",
+  "task_id": "retrospective_actual_policy_stopping_evaluation",
+  "fidelity": "paper-specified-partial",
+  "claim_boundary": {
+    "allowed": "retrospective evaluation of already executed LEASH, CoT, and noCoT generations using realized reasoning plus closure tokens and independently reparsed final answers",
+    "actual_stopping_claim_requires": [
+      "the LEASH token callback was executed during generation",
+      "every observed LEASH policy stop produced the second-stage closure answer",
+      "the evaluated records are complete and source-bound"
+    ],
+    "forbidden": [
+      "paper-exact reproduction",
+      "reproduced equation",
+      "conceptual objective reproduced as an equation",
+      "matched-accuracy token savings",
+      "cross-task or cross-access macro",
+      "actual stopping inferred from proxy-only traces",
+      "Mistral stopping results"
+    ],
+    "conceptual_objective_status": "CONCEPTUAL_ONLY_NOT_REPRODUCED_EQUATION",
+    "paper_exact_status": "FORBIDDEN",
+    "matched_accuracy_status": "FORBIDDEN"
+  },
+  "policy_contract": {
+    "arms": ["cot", "leash", "nocot"],
+    "setting_label": "central",
+    "published_constants": {"k": 8, "L": 5, "eps_H": 0.005, "delta_M": 0.05, "m": 64, "M": 320},
+    "declared_not_paper_specified": {"B": 30.0, "tau_p": 0.95, "w": 16, "gamma": 0.1},
+    "t_min": 80,
+    "acquisition_repo_commit": "4b6b81015971fc332db603468ff69c2925cc3084",
+    "acquisition_repo_dirty": false,
+    "policy_execution_evidence": "raw acquisition fields stopped_early, closure_generated, stop_reason, and realized token counts from the streamed LEASH callback run",
+    "forced_closure_definition": "stopped_early and closure_generated",
+    "proxy_stopping": false
+  },
+  "population": {
+    "ready_cells": 6,
+    "blocked_cells": 2,
+    "expected_ready_traces": 4986,
+    "expected_ready_questions_by_dataset": {"aqua": 254, "gsm8k": 300},
+    "expected_models": [
+      "Qwen/Qwen2.5-7B-Instruct",
+      "meta-llama/Llama-3.1-8B-Instruct",
+      "microsoft/Phi-3-mini-128k-instruct"
+    ],
+    "blocked_model": "mistralai/Mistral-7B-v0.1"
+  },
+  "fit_visibility": {
+    "allowed_fields": [
+      "row_id", "group_id", "cell_id", "population_id", "dataset_revision",
+      "dataset", "question_id", "model", "model_revision", "arm", "method_id",
+      "trace_key", "source_artifact_sha256", "n_reasoning_tokens",
+      "n_closure_tokens", "n_total_tokens", "wall_s", "stopped_early",
+      "closure_generated", "stop_reason", "setting_label", "fidelity",
+      "actual_policy_execution_observed", "policy_replay_verified",
+      "policy_replay_fired", "policy_replay_stop_index", "closure_evidence_verified"
+    ],
+    "forbidden_field_names": [
+      "answer", "answer_text", "gold", "gold_answer", "label", "labels", "correct",
+      "stored_correct", "pred_answer", "prediction", "stored_prediction", "parse_status",
+      "stored_parse_status", "parser_failure", "problem", "prompt", "response", "target"
+    ],
+    "outcomes_location": "private tree only; fit must not open it"
+  },
+  "source_contract": {
+    "implementation_files": {
+      "acquisition_runner": {
+        "path": "cluster/run_paper_exact_leash.py",
+        "sha256": "a91c4bd8033f6f15149d1e5742dcafa06a7a87d1fc1ec7f7e958b0aeec9db1b8"
+      },
+      "policy_callback": {
+        "path": "spectral_utils/paper_exact/leash.py",
+        "sha256": "02786f0fc72745dbc92180efd630803a740f3f325af0b092016c7424ff977fba"
+      },
+      "acquisition_evaluator": {
+        "path": "spectral_utils/paper_exact/evaluator.py",
+        "sha256": "a84692fad09b9731bf33cb10cf0d25e5a888426e5c86e991dd7b1d6508839861"
+      },
+      "frozen_stopping_loader": {
+        "path": "spectral_utils/fair_comparisons/stopping.py",
+        "sha256": "8b4051dcfb83fbae2a432fa53d2090abecebe92caae25e9343171be2522c4406"
+      }
+    },
+    "source_guard_code_files": {
+      "worker": {
+        "path": "scripts/reconstruction_benchmark/leash_source_guard_worker.py",
+        "sha256": "50a0c9b07a703768e4115c165adc01b3847b578f288a20cbe51c9e0ddcdab704"
+      },
+      "contract": {
+        "path": "spectral_utils/reconstruction_benchmark/leash_contract.py",
+        "sha256": "7d3013409ff542713483fad8a7c5edb5aa753ca41e8cf912a08904ec7ff54e54"
+      },
+      "preparation": {
+        "path": "spectral_utils/reconstruction_benchmark/leash_preparation.py",
+        "sha256": "b8d1a989286d5c0cdd82c7c781751630a484ea984392c108e0c01950991c05e5"
+      },
+      "canonical_io": {
+        "path": "spectral_utils/reconstruction_benchmark/io.py",
+        "sha256": "97eccfe07463a5e5ff3470e2155f0d9c5a506631687c941e2841046efb57142b"
+      },
+      "stopping_adapter": {
+        "path": "spectral_utils/fair_comparisons/stopping.py",
+        "sha256": "8b4051dcfb83fbae2a432fa53d2090abecebe92caae25e9343171be2522c4406"
+      },
+      "comparison_registry": {
+        "path": "spectral_utils/fair_comparisons/registry.py",
+        "sha256": "ae03f4cc24149776075968929fd5ebba384f746611c93e5fc7346ae08c5702ac"
+      },
+      "policy_callback": {
+        "path": "spectral_utils/paper_exact/leash.py",
+        "sha256": "02786f0fc72745dbc92180efd630803a740f3f325af0b092016c7424ff977fba"
+      },
+      "source_manifest": {
+        "path": "spectral_utils/paper_exact/manifest.py",
+        "sha256": "6de593c8e3985eb9a0bbcf617ab672e5361bdaa37e543219d42ea0dfaca7a244"
+      },
+      "source_evaluator": {
+        "path": "spectral_utils/paper_exact/evaluator.py",
+        "sha256": "a84692fad09b9731bf33cb10cf0d25e5a888426e5c86e991dd7b1d6508839861"
+      }
+    },
+    "ready_runs": [
+      {
+        "run_id": "s2_leash_Llama-3.1-8B-Instruct_aqua",
+        "path": "local_cache/fair_paper_exact_comparisons_v1/s2_leash_Llama-3.1-8B-Instruct_aqua",
+        "dataset": "aqua", "model": "meta-llama/Llama-3.1-8B-Instruct",
+        "expected_questions": 254, "expected_traces": 762, "expected_leash_policy_stops": 172,
+        "file_count": 17, "bytes_total": 59028823,
+        "tree_sha256": "a6cb5dada792ad5469438ae873b2142983356d55ae783de86c8d98d3e9b7ca69",
+        "manifest_sha256": "66e3ae93ba5361d5ae04efc4ed761caf1e7976194465d8843f300810f8981351",
+        "index_sha256": "844422f0d5ae54434737eca917480e10a6425886d43c2b0aef539c5cb0948b87",
+        "status_sha256": "edec2287f8f5390fc739a9d36aeeae034e3b83c71964a8c95329210744e32288",
+        "summary_sha256": "0cd285d7584704276a4ed665952ab814d14e7fe12bf10da57196f6b45e1c9d1c"
+      },
+      {
+        "run_id": "s2_leash_Llama-3.1-8B-Instruct_gsm8k",
+        "path": "local_cache/fair_paper_exact_comparisons_v1/s2_leash_Llama-3.1-8B-Instruct_gsm8k",
+        "dataset": "gsm8k", "model": "meta-llama/Llama-3.1-8B-Instruct",
+        "expected_questions": 300, "expected_traces": 900, "expected_leash_policy_stops": 219,
+        "file_count": 20, "bytes_total": 67851586,
+        "tree_sha256": "dfb8810147814458f2e68e1e5e8fae9f2a73b602cd05614c275f06edf80d605f",
+        "manifest_sha256": "3d1c83c6c2c3ded949d2fa14267d9274d09e3f20305cad41bba7955b700641f8",
+        "index_sha256": "eb3ccff90acac53070a6f434e30cc2b19e4458685dcdd57709a5994491aaf527",
+        "status_sha256": "79759760ca6c0ce560eb89c2ff1bdf128cdcd37c9c501471ec861bc7799dd5e2",
+        "summary_sha256": "d0b708c5700c0bc2a1832f3ed9c8ffb65d29db6dccd571293bbc1cf126fc5774"
+      },
+      {
+        "run_id": "s2_leash_Phi-3-mini-128k-instruct_aqua",
+        "path": "local_cache/fair_paper_exact_comparisons_v1/s2_leash_Phi-3-mini-128k-instruct_aqua",
+        "dataset": "aqua", "model": "microsoft/Phi-3-mini-128k-instruct",
+        "expected_questions": 254, "expected_traces": 762, "expected_leash_policy_stops": 171,
+        "file_count": 17, "bytes_total": 59038793,
+        "tree_sha256": "1b71e7e8cc292a7f6c8f218b786fe0391e257ec74f3748085c343bf5ae7219c7",
+        "manifest_sha256": "8327dea16c9d524acf30b4abef58bab4ed75f1e631a4ef6b5d24d0ae5b04d113",
+        "index_sha256": "75c15f83ac95421694e339755cf6c4b806ee6a0bb9500c4de4b7847854ec605c",
+        "status_sha256": "8e623240ee2a0186779811bfdd93f50b04583dcc5b9eb52585a5c7e5bfe31691",
+        "summary_sha256": "790ee99d7280d1998e343810e891a078da760cde57d0db048e1ab3cd1adf4055"
+      },
+      {
+        "run_id": "s2_leash_Phi-3-mini-128k-instruct_gsm8k",
+        "path": "local_cache/fair_paper_exact_comparisons_v1/s2_leash_Phi-3-mini-128k-instruct_gsm8k",
+        "dataset": "gsm8k", "model": "microsoft/Phi-3-mini-128k-instruct",
+        "expected_questions": 300, "expected_traces": 900, "expected_leash_policy_stops": 92,
+        "file_count": 20, "bytes_total": 82236942,
+        "tree_sha256": "717ebbe24ff6ab30441bdb3d554bf844a90d512c45024aefe5e7f050eb5b18f6",
+        "manifest_sha256": "ca7d441e9305eb69f0dc4266df5d15c832476ac433ceea5f6f2587c89e252bae",
+        "index_sha256": "a743e6cb23f410b2dabae591c0486ce30f29d6cdfc2acccb4c23fb7a6141cdc6",
+        "status_sha256": "612b13e96a859a96bd3973f3c185fefdb547d598c4ceded4f81480674df43ee8",
+        "summary_sha256": "dda07d688ec01559c0b9eb233256bd35d0d47bfc75409edece5789e43a023c9b"
+      },
+      {
+        "run_id": "s2_leash_Qwen2.5-7B-Instruct_aqua",
+        "path": "local_cache/fair_paper_exact_comparisons_v1/s2_leash_Qwen2.5-7B-Instruct_aqua",
+        "dataset": "aqua", "model": "Qwen/Qwen2.5-7B-Instruct",
+        "expected_questions": 254, "expected_traces": 762, "expected_leash_policy_stops": 168,
+        "file_count": 17, "bytes_total": 59354878,
+        "tree_sha256": "a36e687bc0d712a1d2d37159c3bee6530d06ebf3c18e5a09678f2efa1edb34e0",
+        "manifest_sha256": "5556bbfbd83cf39b6674a0a013b461b09d9725839f9d5d3f0ae49df49abacb16",
+        "index_sha256": "f88e5700f71fed53577ed5ef836d127f2935879c32f97278afca109bfb29ff60",
+        "status_sha256": "f5a48b9ec7686c8ec460ff1c067cbddf86cca87aa9eba190991336f82d8adc0c",
+        "summary_sha256": "a19de7d31c2257ef165a5aea3fb1b26bb3953d8c30f2e2cd4cf9784f53dba102"
+      },
+      {
+        "run_id": "s2_leash_Qwen2.5-7B-Instruct_gsm8k",
+        "path": "local_cache/fair_paper_exact_comparisons_v1/s2_leash_Qwen2.5-7B-Instruct_gsm8k",
+        "dataset": "gsm8k", "model": "Qwen/Qwen2.5-7B-Instruct",
+        "expected_questions": 300, "expected_traces": 900, "expected_leash_policy_stops": 123,
+        "file_count": 20, "bytes_total": 78694557,
+        "tree_sha256": "3d6279d9e707e27b24fa87b3ed6f078bab592601493c126cece8f7cd02ea8cd2",
+        "manifest_sha256": "35ee412c6fff72dc26f88490a28bf4af94712d5d86b38d66dd4487fef2dc3de3",
+        "index_sha256": "2962a060c1b49208c767b2ed532d200bd09b3c51759a3d5024c92f3954d42e46",
+        "status_sha256": "0bd0aaaf09c5558dbe8af801e4c284a843cc0b58ad12577ed3e6ee6e19e2ba79",
+        "summary_sha256": "ebfcd87dda090f90f08f7da5e1d22b371e462336126ccdcc2fd02083646d028f"
+      }
+    ],
+    "blocked_runs": [
+      {
+        "run_id": "s2_leash_Mistral-7B-v0.1_aqua",
+        "path": "results/paper_exact_summaries/s2_leash_Mistral-7B-v0.1_aqua",
+        "dataset": "aqua", "model": "mistralai/Mistral-7B-v0.1",
+        "expected_traces": 762, "expected_failed": 762,
+        "coverage_status": "PROTOCOL_GATE_FAILED",
+        "failure_signature": "tokenizer.chat_template is not set",
+        "files": {
+          "RUN_MANIFEST.json": "0bc3d90a7c45031e7283de1abf7d3064ad9390aa83257d20e9587749f2ce8a9a",
+          "GATE_S2-leash-full.json": "1417ae6bf83271dd51f7f89fc34387ab0a8c3a5873280e6cdf9e1179369b7bdf",
+          "STATUS.json": "b5447b880ba852e40715337af50bb3144655cca84f9cfa2e86ba60c91b903632"
+        }
+      },
+      {
+        "run_id": "s2_leash_Mistral-7B-v0.1_gsm8k",
+        "path": "results/paper_exact_summaries/s2_leash_Mistral-7B-v0.1_gsm8k",
+        "dataset": "gsm8k", "model": "mistralai/Mistral-7B-v0.1",
+        "expected_traces": 900, "expected_failed": 900,
+        "coverage_status": "PROTOCOL_GATE_FAILED",
+        "failure_signature": "tokenizer.chat_template is not set",
+        "files": {
+          "RUN_MANIFEST.json": "dee99bd88a6cd8cd78e59a803eab083c63b7ac28743476b2de6ca711346c60f4",
+          "GATE_S2-leash-full.json": "fb8315b65a41a6216606cf7c3d92e2ee901dc640dfb0354a69ba8770ca022b42",
+          "STATUS.json": "60fcf136e6c7523e9bf86aab1c09b0b74e4497f1eaf1fab53e520397f783f603"
+        }
+      }
+    ]
+  },
+  "evaluation": {
+    "metrics": [
+      "pass_at_1", "mean_reasoning_tokens", "mean_closure_tokens", "mean_total_tokens",
+      "mean_wall_s", "early_stop_rate", "forced_closure_rate", "parser_failure_rate"
+    ],
+    "comparisons_vs_cot": ["leash", "nocot"],
+    "frontier": "accuracy versus realized total tokens within each model-by-dataset cell",
+    "aggregations": [
+      "cell",
+      "equal-model-within-dataset",
+      "equal-dataset-after-equal-model"
+    ],
+    "cross_task_or_access_macro": "FORBIDDEN",
+    "bootstrap": {
+      "draws": 2000,
+      "seed": 2026082406,
+      "unit": "source question",
+      "stratification": "within dataset",
+      "paired_across_arms_and_model_copies": true
+    }
+  },
+  "output_contract": {
+    "formats": ["json", "csv", "parquet"],
+    "searchable_tables": [
+      "coverage", "per_question", "cell_metrics", "contrasts", "frontier",
+      "aggregate_metrics", "bootstrap_intervals"
+    ],
+    "parquet_required_for_science_release": true,
+    "atomic_no_clobber": true,
+    "ab_rederivation": "preparation, fit, and evaluation are independently rebuilt from upstream sources and must match byte-for-byte"
+  }
+}

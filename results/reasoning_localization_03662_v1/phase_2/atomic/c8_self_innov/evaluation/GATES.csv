@@ -1,0 +1,10 @@
+gate_id,status,observed,required,detail
+P2A_SCORE_FREEZE_COMPLETE,PASS,8,8 cells,reference and candidate scores froze before labels
+P2A_LABEL_FIREWALL,PASS,labels opened after score freeze,no fit-side labels or targets,all transforms and fusion are target-free
+P2A_TOP10_LOCAL_ALIAS,PASS,0.0,<=1e-12,atomic top-ten local alias
+P2A_TOP10_COMBINED_ALIAS,PASS,0.0,<=1e-12,atomic top-ten combined alias
+C8_SELF_INNOV_SUFFIX_INVARIANCE,PASS,0.0,<=1e-12,fixed-map prefix replay
+C8_SELF_INNOV_WORST_CELL_HARD_BOUND,PASS,-0.007686032099780804,>=-0.03,minimum across both required comparators
+C8_SELF_INNOV_PROMOTION_ELIGIBILITY,NOT_ELIGIBLE,false,registered promotion-eligible branch,diagnostic prior with uncertain ProcessBench and negative PRMBench evidence
+C8_SELF_INNOV_PREMISE_PROMOTION,FAIL,false,eligible and all promotion gates pass,atomic survivor gate
+C8_IU29_STEPMAX_PARENT_ALIAS,PASS,2.220446049250313e-16,<=1e-12,original-only IU29 reconstruction aliases frozen R3 step-max

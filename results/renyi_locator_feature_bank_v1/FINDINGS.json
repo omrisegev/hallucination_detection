@@ -1,0 +1,89 @@
+{
+  "best_pb": "ve1q15__h10__hinf1__scale_step_equal",
+  "best_prm_within": "ve1q15__h10__hinf1__raw_step_equal",
+  "factor_effects": {
+    "H1": {
+      "pairs": 12,
+      "pb_all8": {
+        "maximum": 0.00027645021527278324,
+        "mean_delta": -0.002247565504215463,
+        "minimum": -0.006446453728721047,
+        "wins": 1
+      },
+      "prm_within": {
+        "maximum": 0.00028869308961465556,
+        "mean_delta": -0.0010528391787062257,
+        "minimum": -0.002733920245600374,
+        "wins": 1
+      },
+      "prmscore_q08": {
+        "maximum": 0.0048332480066693995,
+        "mean_delta": 0.000430511470708661,
+        "minimum": -0.0024544885478919864,
+        "wins": 7
+      }
+    },
+    "Hinf": {
+      "pairs": 12,
+      "pb_all8": {
+        "maximum": 0.001071985096364747,
+        "mean_delta": -0.001163729723118595,
+        "minimum": -0.005729146667893981,
+        "wins": 3
+      },
+      "prm_within": {
+        "maximum": 0.0002449161825989199,
+        "mean_delta": -0.0012620322627140412,
+        "minimum": -0.002633257279255008,
+        "wins": 2
+      },
+      "prmscore_q08": {
+        "maximum": 0.0024781410435238405,
+        "mean_delta": -0.0006115321236034125,
+        "minimum": -0.0034013569454482973,
+        "wins": 5
+      }
+    },
+    "q50": {
+      "pairs": 12,
+      "pb_all8": {
+        "maximum": 0.00018603070741551875,
+        "mean_delta": -0.0029031852599002983,
+        "minimum": -0.006415439051237315,
+        "wins": 1
+      },
+      "prm_within": {
+        "maximum": 0.0016644105813357069,
+        "mean_delta": 0.00012998627421362263,
+        "minimum": -0.0005301213024944129,
+        "wins": 5
+      },
+      "prmscore_q08": {
+        "maximum": 0.007610264263922195,
+        "mean_delta": 0.002324015837581813,
+        "minimum": 8.461731858022681e-05,
+        "wins": 12
+      }
+    }
+  },
+  "final_recommendation": {
+    "gate": "tail15_mass__token_top10",
+    "gate_q": 0.33,
+    "locator": "ve1q15__h10__hinf0__raw_step_equal"
+  },
+  "integrated_replay_promotion": {
+    "passed": false,
+    "reason": "candidate PRMB-within loss exceeds frozen .002 margin",
+    "recommended_locator": "ve1q15__h10__hinf0__raw_step_equal"
+  },
+  "minimum_regret": "ve1q50__h10__hinf0__scale_step_equal",
+  "questions": {
+    "H1": "No: mean PB and PRMB effects are negative and only one of 12 matched comparisons improves each primary metric.",
+    "Hinf": "No uniform gain: isolated best-PB and best-PRMB arms trade away the other benchmark.",
+    "VE1_q50": "No promotion: small mean PRMB/PRMScore gains trade against a larger mean PB loss.",
+    "fusion": "Raw equal is the balanced choice; scale-only favors PB, while local IU is worse on the joint frontier.",
+    "integration": "The independent replay rejects the minimum-regret candidate and retains the frozen q15/raw locator plus tail15 q=.33 gate."
+  },
+  "schema": "renyi-locator-feature-bank-findings-v1",
+  "status": "PASS"
+}

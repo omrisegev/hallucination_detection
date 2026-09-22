@@ -1,0 +1,364 @@
+{
+  "complete_five_point_factorial_ready": false,
+  "composition_contract": "COMPOSITION_CONTRACT.json",
+  "finalists": {
+    "step_post_readout": {
+      "access_scopes": [
+        "answer_only"
+      ],
+      "available_answers": 13737,
+      "cost": 1.0,
+      "family_count": 1,
+      "head": "singleton",
+      "independence_status": "SINGLETON",
+      "iu_diagnostic_only": false,
+      "members": [
+        "step::digit.token_clock_innovation::top1"
+      ],
+      "name": "step_post_readout::step::digit.token_clock_innovation::top1::singleton",
+      "outer_folds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "pb": 0.42004660296524726,
+      "pb_cells": {
+        "pb_gsm8k_q4": {
+          "clean_accuracy": 0.5647668393782384,
+          "clean_hits": 109,
+          "clean_total": 193,
+          "error_exact_accuracy": 0.4492753623188406,
+          "error_hits": 93,
+          "error_total": 207,
+          "f1": 0.5004443127962085,
+          "valid": 400
+        },
+        "pb_gsm8k_q8": {
+          "clean_accuracy": 0.5595854922279793,
+          "clean_hits": 108,
+          "clean_total": 193,
+          "error_exact_accuracy": 0.41545893719806765,
+          "error_hits": 86,
+          "error_total": 207,
+          "f1": 0.47687015454125375,
+          "valid": 400
+        },
+        "pb_math_q4": {
+          "clean_accuracy": 0.6182266009852216,
+          "clean_hits": 251,
+          "clean_total": 406,
+          "error_exact_accuracy": 0.38047138047138046,
+          "error_hits": 226,
+          "error_total": 594,
+          "f1": 0.4710483703549927,
+          "valid": 1000
+        },
+        "pb_math_q8": {
+          "clean_accuracy": 0.6206896551724138,
+          "clean_hits": 252,
+          "clean_total": 406,
+          "error_exact_accuracy": 0.38047138047138046,
+          "error_hits": 226,
+          "error_total": 594,
+          "f1": 0.47176156789980284,
+          "valid": 1000
+        },
+        "pb_olympiadbench_q4": {
+          "clean_accuracy": 0.6135693215339233,
+          "clean_hits": 208,
+          "clean_total": 339,
+          "error_exact_accuracy": 0.24962178517397882,
+          "error_hits": 165,
+          "error_total": 661,
+          "f1": 0.3548698965479803,
+          "valid": 1000
+        },
+        "pb_olympiadbench_q8": {
+          "clean_accuracy": 0.6253687315634219,
+          "clean_hits": 212,
+          "clean_total": 339,
+          "error_exact_accuracy": 0.2526475037821483,
+          "error_hits": 167,
+          "error_total": 661,
+          "f1": 0.3598973290299627,
+          "valid": 1000
+        },
+        "pb_omnimath_q4": {
+          "clean_accuracy": 0.7302904564315352,
+          "clean_hits": 176,
+          "clean_total": 241,
+          "error_exact_accuracy": 0.23978919631093545,
+          "error_hits": 182,
+          "error_total": 759,
+          "f1": 0.3610337792906011,
+          "valid": 997
+        },
+        "pb_omnimath_q8": {
+          "clean_accuracy": 0.7219917012448133,
+          "clean_hits": 174,
+          "clean_total": 241,
+          "error_exact_accuracy": 0.2437417654808959,
+          "error_hits": 185,
+          "error_total": 759,
+          "f1": 0.364447413261176,
+          "valid": 997
+        }
+      },
+      "pb_correct": 2820,
+      "pb_total": 6800,
+      "point": "step_post_readout",
+      "recipe": {
+        "callables": [
+          "apply_label_free_fusion_weights",
+          "_fusion_model_metrics"
+        ],
+        "execution": "per-view readout -> answer-local step rank fusion -> argmax",
+        "families": [
+          "digit"
+        ],
+        "head": "singleton",
+        "input_type": "aligned_step_readout_matrix",
+        "labels_used_for_weights": false,
+        "member_columns": [
+          68
+        ],
+        "members": [
+          "step::digit.token_clock_innovation::top1"
+        ],
+        "model": "step_post_readout::step::digit.token_clock_innovation::top1::singleton",
+        "output_type": "step_risk_trajectory_and_peak",
+        "point": "step_post_readout",
+        "step_store": "dependence/CONSOLIDATED.npz::step_scores",
+        "tie_break": "lowest_step_index",
+        "weight_fit": {
+          "head": "singleton",
+          "live_members": 1,
+          "status": "FIT",
+          "weights_sum": 1.0
+        },
+        "weights": [
+          1.0
+        ]
+      },
+      "roster_stability": 4,
+      "uncertainty": {
+        "baseline": {
+          "pb": 0.43254581458492525,
+          "within": 0.7760680834265197
+        },
+        "candidate": {
+          "pb": 0.42004660296524726,
+          "within": 0.6008208397011566
+        },
+        "delta": {
+          "pb": -0.012499211619677986,
+          "within": -0.17524724372536304
+        },
+        "finite_draws": {
+          "pb": 10000,
+          "within": 10000
+        },
+        "promotion": "NO_SUCCESSOR",
+        "simplification": "UNRESOLVED_BASELINE_COMPLEXITY_NOT_BOUND",
+        "simultaneous_95_ci": {
+          "pb": [
+            -0.03637088044418047,
+            0.011880502632934711
+          ],
+          "within": [
+            -0.1864833951656186,
+            -0.16374746715038885
+          ]
+        }
+      },
+      "within": 0.6008208397011566,
+      "within_count": 5715
+    },
+    "token_pre_readout": {
+      "access_scopes": [
+        "answer_only"
+      ],
+      "available_answers": 13737,
+      "cost": 1.0,
+      "family_count": 1,
+      "head": "singleton",
+      "independence_status": "SINGLETON",
+      "iu_diagnostic_only": false,
+      "members": [
+        "token::digit.token_clock_innovation::top1"
+      ],
+      "name": "token_pre_readout::token::digit.token_clock_innovation::top1::singleton",
+      "outer_folds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "pb": 0.42004660296524726,
+      "pb_cells": {
+        "pb_gsm8k_q4": {
+          "clean_accuracy": 0.5647668393782384,
+          "clean_hits": 109,
+          "clean_total": 193,
+          "error_exact_accuracy": 0.4492753623188406,
+          "error_hits": 93,
+          "error_total": 207,
+          "f1": 0.5004443127962085,
+          "valid": 400
+        },
+        "pb_gsm8k_q8": {
+          "clean_accuracy": 0.5595854922279793,
+          "clean_hits": 108,
+          "clean_total": 193,
+          "error_exact_accuracy": 0.41545893719806765,
+          "error_hits": 86,
+          "error_total": 207,
+          "f1": 0.47687015454125375,
+          "valid": 400
+        },
+        "pb_math_q4": {
+          "clean_accuracy": 0.6182266009852216,
+          "clean_hits": 251,
+          "clean_total": 406,
+          "error_exact_accuracy": 0.38047138047138046,
+          "error_hits": 226,
+          "error_total": 594,
+          "f1": 0.4710483703549927,
+          "valid": 1000
+        },
+        "pb_math_q8": {
+          "clean_accuracy": 0.6206896551724138,
+          "clean_hits": 252,
+          "clean_total": 406,
+          "error_exact_accuracy": 0.38047138047138046,
+          "error_hits": 226,
+          "error_total": 594,
+          "f1": 0.47176156789980284,
+          "valid": 1000
+        },
+        "pb_olympiadbench_q4": {
+          "clean_accuracy": 0.6135693215339233,
+          "clean_hits": 208,
+          "clean_total": 339,
+          "error_exact_accuracy": 0.24962178517397882,
+          "error_hits": 165,
+          "error_total": 661,
+          "f1": 0.3548698965479803,
+          "valid": 1000
+        },
+        "pb_olympiadbench_q8": {
+          "clean_accuracy": 0.6253687315634219,
+          "clean_hits": 212,
+          "clean_total": 339,
+          "error_exact_accuracy": 0.2526475037821483,
+          "error_hits": 167,
+          "error_total": 661,
+          "f1": 0.3598973290299627,
+          "valid": 1000
+        },
+        "pb_omnimath_q4": {
+          "clean_accuracy": 0.7302904564315352,
+          "clean_hits": 176,
+          "clean_total": 241,
+          "error_exact_accuracy": 0.23978919631093545,
+          "error_hits": 182,
+          "error_total": 759,
+          "f1": 0.3610337792906011,
+          "valid": 997
+        },
+        "pb_omnimath_q8": {
+          "clean_accuracy": 0.7219917012448133,
+          "clean_hits": 174,
+          "clean_total": 241,
+          "error_exact_accuracy": 0.2437417654808959,
+          "error_hits": 185,
+          "error_total": 759,
+          "f1": 0.364447413261176,
+          "valid": 997
+        }
+      },
+      "pb_correct": 2820,
+      "pb_total": 6800,
+      "point": "token_pre_readout",
+      "recipe": {
+        "callables": [
+          "apply_label_free_fusion_weights",
+          "_apply_token_model"
+        ],
+        "execution": "answer-local token rank fusion -> step readout -> argmax",
+        "families": [
+          "digit"
+        ],
+        "head": "singleton",
+        "input_type": "aligned_token_signal_matrix",
+        "labels_used_for_weights": false,
+        "member_columns": [
+          92
+        ],
+        "members": [
+          "token::digit.token_clock_innovation::top1"
+        ],
+        "model": "token_pre_readout::token::digit.token_clock_innovation::top1::singleton",
+        "output_type": "step_risk_trajectory_and_peak",
+        "point": "token_pre_readout",
+        "readout": "top1",
+        "tie_break": "lowest_step_index",
+        "token_signals": [
+          "digit.token_clock_innovation"
+        ],
+        "token_store": "dependence/TOKEN_VALUES.npy",
+        "weight_fit": {
+          "head": "singleton",
+          "live_members": 1,
+          "status": "FIT",
+          "weights_sum": 1.0
+        },
+        "weights": [
+          1.0
+        ]
+      },
+      "roster_stability": 4,
+      "uncertainty": {
+        "baseline": {
+          "pb": 0.43254581458492525,
+          "within": 0.7760680834265197
+        },
+        "candidate": {
+          "pb": 0.42004660296524726,
+          "within": 0.6008208397011566
+        },
+        "delta": {
+          "pb": -0.012499211619677986,
+          "within": -0.17524724372536304
+        },
+        "finite_draws": {
+          "pb": 10000,
+          "within": 10000
+        },
+        "promotion": "NO_SUCCESSOR",
+        "simplification": "UNRESOLVED_BASELINE_COMPLEXITY_NOT_BOUND",
+        "simultaneous_95_ci": {
+          "pb": [
+            -0.03637088044418047,
+            0.011880502632934711
+          ],
+          "within": [
+            -0.1864833951656186,
+            -0.16374746715038885
+          ]
+        }
+      },
+      "within": 0.6008208397011566,
+      "within_count": 5715
+    }
+  },
+  "fusion_order_sensitivity": "FUSION_ORDER_SENSITIVITY.json",
+  "schema": "fusion-independence-atlas-v1/finalists-v2",
+  "uncertainty": "UNCERTAINTY.json",
+  "unsupported_points": {
+    "roster_stability": "no model recurred in at least 4/5 folds for: answer_gate, background, decoder"
+  }
+}

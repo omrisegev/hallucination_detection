@@ -1,0 +1,9 @@
+gate_id,status,observed,required,detail
+P2R_SCORE_FREEZE_COMPLETE,PASS,8,8 cells,all registered candidate scores were frozen before labels opened
+P2R_LABEL_FIREWALL,PASS,labels opened after score-freeze manifest,no fit-side labels or targets,the reducer and score combination are label-free
+P2R_REFERENCE_THRESHOLD_HASH,PASS,5166229e5ad8f812b2b7ee57449cd945612cb986c2ffcdbad98ea00653a72be3,5166229e5ad8f812b2b7ee57449cd945612cb986c2ffcdbad98ea00653a72be3,candidate uses the immutable top-five threshold artifact
+P2R_NO_CANDIDATE_RETHRESHOLD,PASS,0 threshold fits,0,all 6800 decisions apply the ten frozen reference thresholds
+P2R_FOLD_ALIAS,PASS,0,0,source-group fold assignments match the reference
+P2R_POPULATION_COMPLETE,PASS,6800,6800 rows,same eight Qwen cells and rows as the reference
+P2R_BOOTSTRAP_ALIGNMENT,PASS,20000,20000,paired samples reuse the frozen seed and source-question groups
+P2R_WORST_CELL_HARD_BOUND,PASS,-0.025059218319582355,>= -0.03,worst cell is processbench_gsm8k_qwen3_8b

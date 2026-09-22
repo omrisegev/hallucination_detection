@@ -1,0 +1,142 @@
+{
+  "schema_version": "reconstruction-localization-registry-v1",
+  "external_final_answer_release_contract": {
+    "registry": "configs/reconstruction_benchmark_v1/external_final_answer.json",
+    "population_registry": "configs/reconstruction_benchmark_v1/populations.json",
+    "certificate_relative_path": "external_final_answer/AB_VERIFICATION.json",
+    "required_status": "PASS",
+    "required_method_roster": "configs/reconstruction_benchmark_v1/methods.json",
+    "rule": "The signed external A/B score freeze is the sole response-risk source. Localization must not refit any of the 13 response methods."
+  },
+  "token_contract": {
+    "contract_id": "localization-token-iu29-mixed-v2-v1",
+    "source": "spectral_utils.fixed_application_pipelines.SHARED_TOKEN_VIEWS",
+    "n_streams": 29,
+    "preprocessing": "FixedMixedV2Transformer fitted once on a deterministic label-free token sample and applied exactly once",
+    "fit_sample_cap": 60000,
+    "fusion": "full-pool two-component L2 IU-PCR",
+    "step_reducer": "maximum token risk within the supplied half-open step span"
+  },
+  "adapter_contract": {
+    "adapter_id": "response-token-midrank-geomean-v1",
+    "response_rank": "empirical midrank (rank-0.5)/n within the exact response cell",
+    "step_rank": "empirical midrank (rank-0.5)/m over all scoreable steps in the exact cell",
+    "combined_risk": "sqrt(response_rank * step_rank)",
+    "historical_075_025_blend": "FORBIDDEN",
+    "primary_system_count": 13,
+    "response_only_ablation_count": 13,
+    "token_only_ablation_count": 1
+  },
+  "processbench": {
+    "dataset_id": "processbench",
+    "task_id": "first_error_localization",
+    "models": ["qwen3_4b", "qwen3_8b", "llama31_8b"],
+    "population_id_by_model": {
+      "qwen3_4b": "processbench_qwen3_fixed_first_error_v1",
+      "qwen3_8b": "processbench_qwen3_fixed_first_error_v1",
+      "llama31_8b": "processbench_llama31_first_error_v1"
+    },
+    "subsets": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "expected_rows_by_subset": {"gsm8k": 400, "math": 1000, "olympiadbench": 1000, "omnimath": 1000},
+    "expected_first_error_balance_by_subset": {
+      "gsm8k": {"error": 207, "clean": 193},
+      "math": {"error": 594, "clean": 406},
+      "olympiadbench": {"error": 661, "clean": 339},
+      "omnimath": {"error": 759, "clean": 241}
+    },
+    "source_cells": [
+      "processbench_gsm8k_qwen3_4b",
+      "processbench_math_qwen3_4b",
+      "processbench_olympiadbench_qwen3_4b",
+      "processbench_omnimath_qwen3_4b",
+      "processbench_gsm8k_qwen3_8b",
+      "processbench_math_qwen3_8b",
+      "processbench_olympiadbench_qwen3_8b",
+      "processbench_omnimath_qwen3_8b",
+      "processbench_gsm8k_llama31_8b",
+      "processbench_math_llama31_8b",
+      "processbench_olympiadbench_llama31_8b",
+      "processbench_omnimath_llama31_8b"
+    ],
+    "positive_class": "trace_has_first_error",
+    "decision": "predict argmax step when max adapted risk is strictly above the held-fold threshold; otherwise -1",
+    "threshold_fit": {
+      "folds": 5,
+      "group": "source question shared across scorer models",
+      "scope": "one scorer model across its four subsets",
+      "objective": "equal-subset mean official ProcessBench macro-F1",
+      "tie_break": "largest threshold, then canonical IEEE-754 order",
+      "stage": "post-score-freeze only"
+    },
+    "metrics": ["official_macro_f1", "first_error_exact", "first_error_within_one", "clean_abstention_accuracy", "overall_decision_accuracy"],
+    "bootstrap": {"draws": 20000, "unit": "source question", "paired": true, "seed": 2026082403}
+  },
+  "prmbench": {
+    "dataset_id": "prmbench",
+    "task_id": "step_error_localization",
+    "source_cell": "prmbench_response_qwen3_8b",
+    "source_slice_id": "overall",
+    "model_id": "qwen3_8b",
+    "population_id": "prmbench_qwen3_native_steps_v1",
+    "overall_slice": "all_nine_error_families",
+    "error_families": ["circular", "confidence", "counterfactual", "deception", "domain_inconsistency", "missing_condition", "multi_solutions", "redundency", "step_contradiction"],
+    "excluded_class": "correct",
+    "expected_error_responses": 6208,
+    "expected_steps": 83280,
+    "expected_positive_steps": 13295,
+    "expected_by_family": {
+      "circular": {"responses": 758, "steps": 7813, "positive_steps": 2149},
+      "confidence": {"responses": 756, "steps": 10711, "positive_steps": 1320},
+      "counterfactual": {"responses": 757, "steps": 10477, "positive_steps": 2092},
+      "deception": {"responses": 749, "steps": 10053, "positive_steps": 1728},
+      "domain_inconsistency": {"responses": 757, "steps": 10031, "positive_steps": 1341},
+      "missing_condition": {"responses": 756, "steps": 9613, "positive_steps": 1925},
+      "multi_solutions": {"responses": 160, "steps": 2241, "positive_steps": 0},
+      "redundency": {"responses": 758, "steps": 11613, "positive_steps": 1546},
+      "step_contradiction": {"responses": 757, "steps": 10728, "positive_steps": 1194}
+    },
+    "positive_class": "annotated_error_step",
+    "metrics": ["auroc", "auprc"],
+    "single_class_status": "METRIC_UNDEFINED_SINGLE_CLASS",
+    "single_class_alternatives": ["mean_risk", "risk_q90", "coverage"],
+    "bootstrap": {"draws": 20000, "unit": "source_idx", "paired": true, "seed": 2026082404}
+  },
+  "comparators": [
+    {
+      "system_id": "processbench_qwen25_math_prm_7b_native",
+      "dataset_id": "processbench",
+      "kind": "processbench_prm",
+      "path_template": "dataset_cache/four_localization/pb_prm_qwen25math7b_full/pb_prm_{slice_id}.pkl",
+      "access_level": "high_access_supervised_prm",
+      "fidelity": "official_model_adapter",
+      "projection": "rewards and native prediction only"
+    },
+    {
+      "system_id": "processbench_qwen25_72b_critic_native",
+      "dataset_id": "processbench",
+      "kind": "processbench_fixed_prediction",
+      "path_template": "dataset_cache/four_localization/pb_critic_qwen72b_full/pb_critic_{slice_id}.pkl",
+      "access_level": "high_access_large_critic",
+      "fidelity": "processbench_protocol_model_substitution",
+      "projection": "native parsed prediction only"
+    },
+    {
+      "system_id": "processbench_uprm_eq6_qwen3_8b_native",
+      "dataset_id": "processbench",
+      "kind": "processbench_uprm",
+      "path_template": "dataset_cache/four_localization/pb_uprm_baseline_qwen3_8b_full/pb_uprm_base_{slice_id}.pkl",
+      "access_level": "gray_box_judge_control",
+      "fidelity": "paper_specified_partial_prompt_reconstruction",
+      "projection": "per-step scores and native prediction only"
+    },
+    {
+      "system_id": "prmbench_qwen25_math_prm_7b",
+      "dataset_id": "prmbench",
+      "kind": "prmbench_prm",
+      "path_template": "dataset_cache/four_localization/prmbench_qwen25math7b_full/prmbench_prm.pkl",
+      "access_level": "high_access_supervised_prm",
+      "fidelity": "official_prmbench_adapter",
+      "projection": "negative per-step reward only"
+    }
+  ]
+}

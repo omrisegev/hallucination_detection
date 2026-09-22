@@ -1,0 +1,13 @@
+gate_id,variant_id,metric_id,observed,threshold,direction,passed,status,evidence_status,notes
+P2F_V1_PRELABEL_ALIAS,P2F_H0_FAMILY6_TOP10_PRM,max_abs_error,0.23125777605843761,1e-12,le,false,HARD_FAIL,TRANSFER,Invalid top-ten-to-top-five alias; stopped before labels and superseded by V2.
+P2F_V2_TOP5_PARENT_ALIAS,P2F_H0_FAMILY6_TOP10_PRM,max_abs_error,0.0,1e-12,le,true,PASS,TRANSFER,Corrected non-rankable top-five control aliases Phase-1 R2 exactly.
+P2F_QWEN_SCORE_ALIASES,P2F_H3_EQUAL_C8_RERANK_PRM,max_abs_error,0.0,1e-12,le,true,PASS,TRANSFER,All imported Qwen H0/H2/H3 scores reproduce exactly.
+P2F_POPULATION_RESPONSES,P2F_H3_EQUAL_C8_RERANK_PRM,responses,6208,6208,eq,true,PASS,TRANSFER,Exact sealed evaluable response population.
+P2F_POPULATION_STEPS,P2F_H3_EQUAL_C8_RERANK_PRM,steps,83280,83280,eq,true,PASS,TRANSFER,Exact sealed annotated-step population.
+P2F_NINE_FAMILIES,P2F_H3_EQUAL_C8_RERANK_PRM,families_visible,true,true,eq,true,PASS,TRANSFER,All nine families visible; multi_solutions remains single-class.
+P2F_H2_AUROC_BENEFIT,P2F_H2_CLEAN_C7_PRM,auroc_ci_low,0.004709915874582581,0.003,gt,true,PASS,TRANSFER,H2 clears the frozen practical-benefit bound versus H0.
+P2F_H3_AUROC_BENEFIT,P2F_H3_EQUAL_C8_RERANK_PRM,auroc_ci_low,0.023675457094332514,0.003,gt,true,PASS,TRANSFER,H3 clears the benefit bound versus H0.
+P2F_H3_INCREMENTAL_AUROC,P2F_H3_EQUAL_C8_RERANK_PRM,auroc_ci_low,0.01765339733520443,0.003,gt,true,PASS,TRANSFER,H3 clears the benefit bound versus H2.
+P2F_H3_WORST_FAMILY,P2F_H3_EQUAL_C8_RERANK_PRM,worst_family_delta,0.0216551101411947,-0.02,ge,true,PASS,TRANSFER,Every evaluable PRMBench family improves.
+P2F_SOURCE_STRATA,P2F_H3_EQUAL_C8_RERANK_PRM,source_strata_available,false,true,eq,false,BLOCKED,TRANSFER,Sealed evaluator lacks prm_train/prm_test membership.
+P2F_PHASE4_PROMOTION,P2F_H3_EQUAL_C8_RERANK_PRM,promotion_eligible,false,true,eq,false,FAIL,TRANSFER,Opened labels and missing ProcessBench survivor forbid Phase-4 promotion.

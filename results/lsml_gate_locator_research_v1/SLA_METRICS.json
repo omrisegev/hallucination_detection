@@ -1,0 +1,74 @@
+{
+  "definition": "Raw SLA is exact first-error localization conditional on an erroneous ProcessBench trace, before the answer-level gate.",
+  "development_only": true,
+  "l08_minus_mind_the_gap_pp": {
+    "q4_equal_cell_macro": 2.819164587066486,
+    "q8_equal_cell_macro": 1.5632130426366742
+  },
+  "methods": {
+    "L08_atlas_diverse_continuous": {
+      "correct_peaks_suppressed": 317,
+      "error_count": 4442,
+      "gated_error_exact_pooled": 0.3183250787933363,
+      "gated_exact_count": 1414,
+      "raw_exact_count": 1731,
+      "sla_all8_equal_cell_macro": 0.4145618881485158,
+      "sla_cells": {
+        "pb_gsm8k_q4": 0.5314009661835749,
+        "pb_gsm8k_q8": 0.5024154589371981,
+        "pb_math_q4": 0.4444444444444444,
+        "pb_math_q8": 0.43602693602693604,
+        "pb_olympiadbench_q4": 0.3585476550680787,
+        "pb_olympiadbench_q8": 0.3585476550680787,
+        "pb_omnimath_q4": 0.3438735177865613,
+        "pb_omnimath_q8": 0.3412384716732543
+      },
+      "sla_pooled": 0.38968932913102206,
+      "sla_q4_equal_cell_macro": 0.41956664587066483,
+      "sla_q8_equal_cell_macro": 0.40955713042636677
+    },
+    "digit025": {
+      "correct_peaks_suppressed": 318,
+      "error_count": 4442,
+      "gated_error_exact_pooled": 0.31022062134173795,
+      "gated_exact_count": 1378,
+      "raw_exact_count": 1696,
+      "sla_all8_equal_cell_macro": 0.40964256235090934,
+      "sla_cells": {
+        "pb_gsm8k_q4": 0.5410628019323671,
+        "pb_gsm8k_q8": 0.5362318840579711,
+        "pb_math_q4": 0.38047138047138046,
+        "pb_math_q8": 0.3838383838383838,
+        "pb_olympiadbench_q4": 0.36459909228441756,
+        "pb_olympiadbench_q8": 0.3555219364599092,
+        "pb_omnimath_q4": 0.36100131752305664,
+        "pb_omnimath_q8": 0.3544137022397892
+      },
+      "sla_pooled": 0.38180999549752365,
+      "sla_q4_equal_cell_macro": 0.41178364805280543,
+      "sla_q8_equal_cell_macro": 0.40750147664901326
+    }
+  },
+  "mind_the_gap_table3_shannon_drop": {
+    "scope": "published context only; exact row/generation identity is not yet verified",
+    "sla_cells": {
+      "pb_gsm8k_q4": 0.4342,
+      "pb_gsm8k_q8": 0.4611,
+      "pb_math_q4": 0.3203,
+      "pb_math_q8": 0.329,
+      "pb_olympiadbench_q4": 0.4306,
+      "pb_olympiadbench_q8": 0.4152,
+      "pb_omnimath_q4": 0.3804,
+      "pb_omnimath_q8": 0.3704
+    },
+    "sla_q4_equal_cell_macro": 0.391375,
+    "sla_q8_equal_cell_macro": 0.393925,
+    "source": "papers/extracted/mind-the-gap-catching-hallucinations-via-evidence-drop.md, Table 3"
+  },
+  "reporting_decision": [
+    "Always report raw SLA beside gated exact-error accuracy and ProcessBench macro F1.",
+    "Report per-cell SLA plus equal-cell Qwen-4B/Qwen-8B macros; keep pooled SLA explicit.",
+    "Do not describe Mind the Gap Table 3 SLA as an end-to-end clean/error gate metric."
+  ],
+  "schema": "lsml-gate-locator-research-v1/sla-comparison-v1"
+}

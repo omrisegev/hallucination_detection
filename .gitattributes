@@ -1,9 +1,65 @@
+
+# (core.autocrlf=true) the LF blob lands as CRLF and hashes to something the
+# A frozen protocol snapshot is a hashed artifact, not editable source. Its
+# Cluster scripts run on Linux — CRLF in .sh/.sbatch fails silently there.
+# Hash-sealed experiment artifacts are byte-exact: canonical-JSON loaders and
+# SHA-256 is recorded inside the runs that were gated on it, so a checkout that
+# SHA-256 replay checks fail closed on any EOL conversion (autocrlf on Windows
+# everywhere, which is the only form in which the hash means anything.
+# gate cannot recognise. Marking it binary makes the checkout byte-exact
+# rewrites its line endings silently changes its identity: on Windows
+# turned the frozen A6-S0a artifacts noncanonical). Never transform them.
+*.pdf binary
+HISTORY.md merge=union
+PROGRESS.md merge=union
+Research_Directions.md merge=union
+cluster/** text eol=lf
+dataset_cache/**/*.pkl filter=lfs diff=lfs merge=lfs -text
+dataset_cache/**/*.pkl.part-* filter=lfs diff=lfs merge=lfs -text
+docs/experiments/*.frozen-*.md -text
+results/** -text
+# Generated CSV artifacts may intentionally preserve source CRLF bytes for
+# checksum-equivalent replay. Treat them as data in diffs so whitespace checks
+# do not reinterpret their record terminators as editable-source whitespace.
+results/**/*.csv -diff
+
+docs/experiments/*.frozen-*.md -text whitespace=-blank-at-eof
+
+# This executed Phase-3 runner is SHA-sealed with one historical blank line at
+# EOF. Preserve the byte identity while keeping `git diff --check` meaningful
+# for every other source file.
+scripts/reasoning_localization/run_phase3_family_expert_attribution.py whitespace=-blank-at-eof
+
+# Agent-B research records and their source are content-addressed by the frozen
+# T0/Joint manifests. Preserve their historical bytes while preventing
+# `git diff --check` from treating intentional trailing/EOF whitespace as an
+# editable defect.
+docs/experiments/OG_SML_AGENT_B_T0_V1.md whitespace=-blank-at-eol,-blank-at-eof
+docs/experiments/PRIOR_ORDER_AUDIT_JOINT_LSML_V1.md whitespace=-blank-at-eol,-blank-at-eof
+docs/experiments/PRIOR_ORDER_AUDIT_OG_SML_AGENT_B_V1.md whitespace=-blank-at-eol,-blank-at-eof
+results/og_sml_agent_b_v1/*.md whitespace=-blank-at-eol,-blank-at-eof
+spectral_utils/og_sml_graph.py whitespace=-blank-at-eof
+
+# The executed Joint-LSML evaluation amendments and their audited tests are
+# SHA-sealed with one intentional blank line at EOF. Keep those bytes exact.
+docs/experiments/JOINT_LSML_EXISTING_LOCALIZATION_EVALUATION_AMENDMENT_R2.md whitespace=-blank-at-eof
+scripts/joint_lsml_localization/evaluate_existing_v1_r1.py whitespace=-blank-at-eof
+scripts/joint_lsml_localization/evaluate_existing_v1_r2.py whitespace=-blank-at-eof
+scripts/joint_lsml_localization/finalize_existing_v1.py whitespace=-blank-at-eof
+tests/test_joint_lsml_evaluation_amendment_r1.py whitespace=-blank-at-eof
+tests/test_joint_lsml_evaluation_amendment_r2.py whitespace=-blank-at-eof
+.gitattributes merge=union
+.gitignore merge=union
 # Cluster scripts run on Linux — CRLF in .sh/.sbatch fails silently there.
 cluster/** text eol=lf
 # Hash-sealed experiment artifacts are byte-exact: canonical-JSON loaders and
 # SHA-256 replay checks fail closed on any EOL conversion (autocrlf on Windows
 # turned the frozen A6-S0a artifacts noncanonical). Never transform them.
 results/** -text
+# Generated CSV artifacts may intentionally preserve source CRLF bytes for
+# checksum-equivalent replay. Treat them as data in diffs so whitespace checks
+# do not reinterpret their record terminators as editable-source whitespace.
+results/**/*.csv -diff
 dataset_cache/**/*.pkl filter=lfs diff=lfs merge=lfs -text
 dataset_cache/**/*.pkl.part-* filter=lfs diff=lfs merge=lfs -text
 *.pdf binary
@@ -14,4 +70,70 @@ dataset_cache/**/*.pkl.part-* filter=lfs diff=lfs merge=lfs -text
 # (core.autocrlf=true) the LF blob lands as CRLF and hashes to something the
 # gate cannot recognise. Marking it binary makes the checkout byte-exact
 # everywhere, which is the only form in which the hash means anything.
-docs/experiments/*.frozen-*.md -text
+docs/experiments/*.frozen-*.md -text whitespace=-blank-at-eof
+
+# This executed Phase-3 runner is SHA-sealed with one historical blank line at
+# EOF. Preserve the byte identity while keeping `git diff --check` meaningful
+# for every other source file.
+scripts/reasoning_localization/run_phase3_family_expert_attribution.py whitespace=-blank-at-eof
+
+# Agent-B research records and their source are content-addressed by the frozen
+# T0/Joint manifests. Preserve their historical bytes while preventing
+# `git diff --check` from treating intentional trailing/EOF whitespace as an
+# editable defect.
+docs/experiments/OG_SML_AGENT_B_T0_V1.md whitespace=-blank-at-eol,-blank-at-eof
+docs/experiments/PRIOR_ORDER_AUDIT_JOINT_LSML_V1.md whitespace=-blank-at-eol,-blank-at-eof
+docs/experiments/PRIOR_ORDER_AUDIT_OG_SML_AGENT_B_V1.md whitespace=-blank-at-eol,-blank-at-eof
+results/og_sml_agent_b_v1/*.md whitespace=-blank-at-eol,-blank-at-eof
+spectral_utils/og_sml_graph.py whitespace=-blank-at-eof
+
+# The executed Joint-LSML evaluation amendments and their audited tests are
+# SHA-sealed with one intentional blank line at EOF. Keep those bytes exact.
+docs/experiments/JOINT_LSML_EXISTING_LOCALIZATION_EVALUATION_AMENDMENT_R2.md whitespace=-blank-at-eof
+scripts/joint_lsml_localization/evaluate_existing_v1_r1.py whitespace=-blank-at-eof
+scripts/joint_lsml_localization/evaluate_existing_v1_r2.py whitespace=-blank-at-eof
+scripts/joint_lsml_localization/finalize_existing_v1.py whitespace=-blank-at-eof
+tests/test_joint_lsml_evaluation_amendment_r1.py whitespace=-blank-at-eof
+tests/test_joint_lsml_evaluation_amendment_r2.py whitespace=-blank-at-eof
+
+# These frozen gate/fold JSON inputs have original CRLF bytes sealed by SHA256.
+results/fusion_fixed_gate_v1/METRICS.json -text whitespace=cr-at-eol
+results/localization_source_group_audit_v1/FOLDS_V2.json -text whitespace=cr-at-eol
+
+# Frozen v3 annotation/provenance files retain their original CRLF bytes.
+results/localization_full_benchmark_v3/evaluation/JOINED.json -text whitespace=cr-at-eol
+results/localization_prm_label_audit_v1/RELEASE_V3.json -text whitespace=cr-at-eol
+
+# Frozen conditional-IU reproduction inputs (historical paths, not nested checkouts).
+.worktrees/higher-moment-fusion-v1/results/higher_moment_fusion_v1/CHECKPOINT.sqlite filter=lfs diff=lfs merge=lfs -text
+.worktrees/rbm-logit-readout-v1/results/rbm_logit_readout_v1/METRICS.json -text whitespace=cr-at-eol
+.worktrees/rbm-logit-readout-v1/results/rbm_logit_readout_v1/RESULT_REVIEW.json -text whitespace=cr-at-eol
+.worktrees/rbm-logit-readout-v1/results/rbm_logit_readout_v1/SCORES.npz filter=lfs diff=lfs merge=lfs -text
+.worktrees/rbm-supervision-matched-v1/results/rbm_supervision_matched_v1/MANIFEST.json -text whitespace=cr-at-eol
+.worktrees/rbm-supervision-matched-v1/results/rbm_supervision_matched_v1/ZERO_UPDATE_REVIEW.json -text whitespace=cr-at-eol
+.worktrees/rbm-supervision-matched-v1/results/rbm_supervision_matched_v1/cache_pb_gsm8k_q4.npz filter=lfs diff=lfs merge=lfs -text
+.worktrees/rbm-supervision-matched-v1/results/rbm_supervision_matched_v1/cache_pb_gsm8k_q8.npz filter=lfs diff=lfs merge=lfs -text
+.worktrees/rbm-supervision-matched-v1/results/rbm_supervision_matched_v1/cache_pb_math_q4.npz filter=lfs diff=lfs merge=lfs -text
+.worktrees/rbm-supervision-matched-v1/results/rbm_supervision_matched_v1/cache_pb_math_q8.npz filter=lfs diff=lfs merge=lfs -text
+.worktrees/rbm-supervision-matched-v1/results/rbm_supervision_matched_v1/cache_pb_olympiadbench_q4.npz filter=lfs diff=lfs merge=lfs -text
+.worktrees/rbm-supervision-matched-v1/results/rbm_supervision_matched_v1/cache_pb_olympiadbench_q8.npz filter=lfs diff=lfs merge=lfs -text
+.worktrees/rbm-supervision-matched-v1/results/rbm_supervision_matched_v1/cache_pb_omnimath_q4.npz filter=lfs diff=lfs merge=lfs -text
+.worktrees/rbm-supervision-matched-v1/results/rbm_supervision_matched_v1/cache_pb_omnimath_q8.npz filter=lfs diff=lfs merge=lfs -text
+.worktrees/rbm-supervision-matched-v1/results/rbm_supervision_matched_v1/cache_prmbench_qwen3_8b.npz filter=lfs diff=lfs merge=lfs -text
+.worktrees/rbm-supervision-matched-v1/scripts/run_matched_rbm_supervision.py -text whitespace=cr-at-eol
+dataset_cache/four_localization/prmbench_qwen25math7b_full/prmbench_prm.pkl filter=lfs diff=lfs merge=lfs -text
+# These new Windows-produced research artifacts are SHA-sealed as written.
+# CRLF is a record terminator; preserve the bytes and retain other whitespace checks.
+results/temporal_research_baseline_v1/** whitespace=cr-at-eol
+results/temporal_research_mechanism_v1/** whitespace=cr-at-eol
+results/temporal_research_smoke_v1/** whitespace=cr-at-eol
+results/temporal_historical_pb_repair_v2/** whitespace=cr-at-eol
+results/temporal_dufs31_v1/** whitespace=cr-at-eol
+results/temporal_feature_diagnostics_v1/** whitespace=cr-at-eol
+results/temporal_linear_context_v1/** whitespace=cr-at-eol
+results/temporal_context_data_v1/** whitespace=cr-at-eol
+results/temporal_context_smoke_v1/** whitespace=cr-at-eol
+results/temporal_context_models_v1/** whitespace=cr-at-eol
+results/temporal_execution_v1/** whitespace=cr-at-eol
+results/temporal_neural_queue_seed0_v1/** whitespace=cr-at-eol
+results/temporal_context_evaluation_seed0_v1/** whitespace=cr-at-eol

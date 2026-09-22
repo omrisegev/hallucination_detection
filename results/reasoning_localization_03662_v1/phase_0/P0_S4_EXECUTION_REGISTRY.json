@@ -1,0 +1,111 @@
+{
+  "schema": "reasoning_localization_p0_s4_execution_registry_v1",
+  "state_id": "P0_S4_FIVEFOLD_SPLIT_BRIDGE",
+  "status": "FROZEN_BEFORE_RUN",
+  "purpose": "Change only the threshold split on the exact P0-S3B rows. Keep IU29 scores and locators, the purely-local detector, step-max reducer, population, source grouping, access tier and bootstrap fixed while replacing historical 40/20 calibration/audit thresholding with the current deterministic five-fold source-group cross-fit.",
+  "source_commit": "e2123168ddd0a0c07ebee7e904c94a4610615eed",
+  "runner": "scripts/reasoning_localization/run_phase0_split_bridge.py",
+  "runner_sha256": "b6889f68c708c30dc56ec24688ee2b4954ef63ad1f4205b8e8cb46414c0cdb92",
+  "variant_id": "P0_S4_IU29_STEP_MAX_LOCAL_DETECTOR_FIVEFOLD",
+  "parent_variant_id": "P0_S3B_IU29_STEP_MAX_LOCAL_DETECTOR",
+  "single_changed_factor": {
+    "factor": "threshold_split",
+    "from": "historical deterministic 40-percent calibration / 20-percent audit roles",
+    "to": "deterministic five-fold source-group threshold cross-fit on the same audit population"
+  },
+  "fixed_factors": {
+    "models": ["qwen3_8b", "llama31_8b"],
+    "families": ["gsm8k", "math", "olympiadbench", "omnimath"],
+    "population": "historical_stage4_eight_cell_audit",
+    "n_scorer_rows": 1270,
+    "n_source_question_groups": 635,
+    "representation": "calibration-only LOCAL_IU29 token risk frozen from S3B",
+    "answer_detector_construction": "maximum of the unchanged IU29 token-risk curve",
+    "step_reducer": "step_max_token_argmax",
+    "score_and_locator": "reuse exact S3B per-question score and locator",
+    "scorer_copy_grouping": "same source-question fold and bootstrap draw carries both scorer copies",
+    "access_tier": "A",
+    "supervision": "labels enter only the threshold cross-fit and metrics; no representation or score parameter is refit"
+  },
+  "crossfit_contract": {
+    "folds": 5,
+    "fold_unit": "source_question",
+    "fit_scope": "one scorer model across four subsets",
+    "strata": "subset x error-present",
+    "assignment": "SHA256(group_id) stable ordering then round-robin within stratum",
+    "objective": "equal-subset mean official ProcessBench F1",
+    "decision": "argmax step iff maximum score is strictly above threshold else -1",
+    "tie_break": "largest numeric threshold",
+    "score_parameters_refit": false
+  },
+  "bootstrap_draws": 20000,
+  "bootstrap_seed": 2026082901,
+  "bootstrap_contract": "Paired source-question bootstrap on the unchanged 635 groups. A draw carries both scorer copies and both S3B/S4 predictions; family estimates are averaged before the four-family macro contrast.",
+  "parent_registry": {
+    "path": "results/reasoning_localization_03662_v1/phase_0/P0_S3B_EXECUTION_REGISTRY.json",
+    "sha256": "4a8e917754070c926c54f8ad23b9dc239f64c96b599473c5115fdadaa99ad080"
+  },
+  "parent_artifacts": [
+    {
+      "role": "per_question",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s3b_iu29_representation_bridge/P0_S3B_LOCAL_PER_QUESTION.csv",
+      "sha256": "41ea5cdbdc57963f7eb4ae00fb1dda6f95cf83c50fa357478fc6f81c86b02970"
+    },
+    {
+      "role": "cell_metrics",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s3b_iu29_representation_bridge/P0_S3B_LOCAL_CELL_METRICS.csv",
+      "sha256": "a05d74dbd7b7f83e3503fd9b408d5f5bd905f21eaa8afbaf0af5ea1f4bbe7532"
+    },
+    {
+      "role": "aggregate",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s3b_iu29_representation_bridge/P0_S3B_LOCAL_AGGREGATE.csv",
+      "sha256": "08369b31d61f7db079659be605b3201220f5bf80add4ae7d3bcb0ac4b3f4ba75"
+    },
+    {
+      "role": "population",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s3b_iu29_representation_bridge/P0_S3B_POPULATION.json",
+      "sha256": "d9e17984a0eaba3ea5abb51708cda430548d6e342a018cee38258e80c650f2ba"
+    },
+    {
+      "role": "verification",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s3b_iu29_representation_bridge/P0_S3B_VERIFICATION.json",
+      "sha256": "342d533139c03aac830768ff54b3035eefa2092460340941d7c7cf0afccd68b4"
+    },
+    {
+      "role": "run_manifest",
+      "path": "results/reasoning_localization_03662_v1/phase_0/p0_s3b_iu29_representation_bridge/RUN_MANIFEST.json",
+      "sha256": "fed0589015fb8a036a8be03817fb0ec5b6e9c1cf84906e470910f985d8beef00"
+    }
+  ],
+  "code_dependencies": [
+    {
+      "path": "scripts/reasoning_localization/run_phase0_reducer_bridge.py",
+      "sha256": "8dab5e1d07a44ccd651da99f3578f58233df6bd07be30841036dd8b383b9d870"
+    },
+    {
+      "path": "scripts/reasoning_localization/run_phase0_raw_entropy_representation_bridge.py",
+      "sha256": "fc741d3389e1eff7d3202c4cd7b765afa5b2b3bc70d48642dfa8804c026c53c1"
+    },
+    {
+      "path": "spectral_utils/reconstruction_benchmark/localization_evaluation.py",
+      "sha256": "76dd5eadc91d303c3054e818b7581821c2a26405b234acf6e12a5c644d0a3d04"
+    }
+  ],
+  "expected_population": {
+    "n_cells": 8,
+    "n_scorer_rows": 1270,
+    "n_source_question_groups": 635,
+    "source_question_group_sha256": "d12d651cad9bec326686c2c83070644d22ca058ed57e942f683452050e757a05"
+  },
+  "hard_fail_conditions": [
+    "any registered S3B artifact dependency runner or registry hash differs",
+    "the S3B per-cell metrics do not reconstruct from its frozen decisions within 1e-12",
+    "any score locator representation detector reducer row source group or population changes",
+    "the same source question is assigned to different folds across scorer copies",
+    "any fold lacks one of the five registered fold ids or any threshold training panel lacks a subset or class",
+    "any representation or score parameter is refit",
+    "any source changes during execution"
+  ],
+  "interpretation": "Audit-only split attribution. Compare S4 directly with S3B for the split effect and with S0 only as a labeled cumulative waterfall position. A zero-crossing interval is inconclusive and not rejection or parity. No method promotion is possible in Phase 0.",
+  "later_bridges_opened": false
+}

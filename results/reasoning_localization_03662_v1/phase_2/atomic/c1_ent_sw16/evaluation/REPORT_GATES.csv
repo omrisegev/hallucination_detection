@@ -1,0 +1,20 @@
+gate_id,observed,threshold,direction,passed,status,evidence_status,notes
+P2A_SCORE_FREEZE_COMPLETE,8,8 cells,contract,true,COMPLETE,DEVELOPMENT,both atomic reference and C1 scores froze before labels opened; raw gate status=PASS
+P2A_LABEL_FIREWALL,labels opened after complete score-freeze manifest,no fit-side labels or targets,contract,true,COMPLETE,DEVELOPMENT,"C1 transform, reduction, and fusion are label-free; raw gate status=PASS"
+P2A_TOP10_LOCAL_ALIAS,0.0,<=1e-12,contract,true,COMPLETE,DEVELOPMENT,atomic top-ten local scores reproduce Stage-A top-ten; raw gate status=PASS
+P2A_TOP10_COMBINED_ALIAS,0.0,<=1e-12,contract,true,COMPLETE,DEVELOPMENT,atomic top-ten combined scores reproduce Stage-A top-ten before threshold refit; raw gate status=PASS
+C1_SUFFIX_INVARIANCE,0.0,<=1e-12,contract,true,COMPLETE,DEVELOPMENT,every response passed deterministic prefix replay cuts; raw gate status=PASS
+C1_WORST_CELL_HARD_BOUND,-0.0312492627344505,>=-0.03,contract,false,COMPLETE,DEVELOPMENT,minimum across both required comparators; raw gate status=HARD_FAIL
+C1_PREMISE_PROMOTION,false,all promotion gates versus top-ten and top-five,contract,false,COMPLETE,DEVELOPMENT,Phase-2R-B SWVar template opens only if this premise passes; raw gate status=FAIL
+C1_VS_P2A_TOPK10_REFERENCE_POINT_BENEFIT,-0.010626959746733666,>=0.005,contract,false,COMPLETE,DEVELOPMENT,C1 versus P2A_TOPK10_REFERENCE; raw gate status=FAIL
+C1_VS_P2A_TOPK10_REFERENCE_CI_BENEFIT,-0.02169207425332418,>0.005,contract,false,COMPLETE,DEVELOPMENT,C1 versus P2A_TOPK10_REFERENCE; raw gate status=FAIL
+C1_VS_P2A_TOPK10_REFERENCE_NONNEGATIVE_CELLS,1,>=6,contract,false,COMPLETE,DEVELOPMENT,C1 versus P2A_TOPK10_REFERENCE; raw gate status=FAIL
+C1_VS_P2A_TOPK10_REFERENCE_WORST_CELL,-0.0312492627344505,>=-0.02,contract,false,COMPLETE,DEVELOPMENT,C1 versus P2A_TOPK10_REFERENCE; raw gate status=FAIL
+C1_VS_P2A_TOPK10_REFERENCE_EXACT_ERROR,-0.008948398896106546,>=-0.01,contract,true,COMPLETE,DEVELOPMENT,C1 versus P2A_TOPK10_REFERENCE; raw gate status=PASS
+C1_VS_P2A_TOPK10_REFERENCE_CLEAN_ABSTENTION,-0.016826993656108846,>=-0.01,contract,false,COMPLETE,DEVELOPMENT,C1 versus P2A_TOPK10_REFERENCE; raw gate status=FAIL
+C1_VS_R1_ENTROPY_TOP5_POINT_BENEFIT,0.001347287674294595,>=0.005,contract,false,COMPLETE,DEVELOPMENT,C1 versus R1_ENTROPY_TOP5; raw gate status=FAIL
+C1_VS_R1_ENTROPY_TOP5_CI_BENEFIT,-0.009004425943849636,>0.005,contract,false,COMPLETE,DEVELOPMENT,C1 versus R1_ENTROPY_TOP5; raw gate status=FAIL
+C1_VS_R1_ENTROPY_TOP5_NONNEGATIVE_CELLS,5,>=6,contract,false,COMPLETE,DEVELOPMENT,C1 versus R1_ENTROPY_TOP5; raw gate status=FAIL
+C1_VS_R1_ENTROPY_TOP5_WORST_CELL,-0.015150696922816953,>=-0.02,contract,true,COMPLETE,DEVELOPMENT,C1 versus R1_ENTROPY_TOP5; raw gate status=PASS
+C1_VS_R1_ENTROPY_TOP5_EXACT_ERROR,-0.00045449728489260766,>=-0.01,contract,true,COMPLETE,DEVELOPMENT,C1 versus R1_ENTROPY_TOP5; raw gate status=PASS
+C1_VS_R1_ENTROPY_TOP5_CLEAN_ABSTENTION,0.0017516070674378215,>=-0.01,contract,true,COMPLETE,DEVELOPMENT,C1 versus R1_ENTROPY_TOP5; raw gate status=PASS

@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Basic fusion methods</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --ink: #17243b;
+  --muted: #5f6c80;
+  --paper: #fbfcfe;
+  --panel: #f3f6fb;
+  --line: #d8e0eb;
+  --blue: #2764c5;
+  --blue-soft: #dce9ff;
+  --teal: #177b77;
+  --teal-soft: #d8f2ef;
+  --amber: #aa6b00;
+  --amber-soft: #fff0c9;
+  --red: #a23b42;
+  --red-soft: #f8dfe1;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.58 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+main { width: min(980px, calc(100% - 32px)); margin: 0 auto; padding: 46px 0 64px; }
+h1 { font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.05; margin: .35rem 0 1rem; letter-spacing: -.035em; }
+h2 { font-size: 1.45rem; line-height: 1.2; margin: 2.1rem 0 .75rem; }
+h3 { font-size: 1.08rem; line-height: 1.3; margin: 0 0 .45rem; }
+p { margin: .45rem 0 .9rem; }
+.eyebrow { color: var(--blue); font-size: .78rem; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; }
+.lead { max-width: 780px; font-size: 1.13rem; color: var(--muted); }
+.guide {
+  border-left: 4px solid var(--blue);
+  background: var(--panel);
+  padding: 14px 18px;
+  margin: 1.4rem 0 2rem;
+}
+.guide strong { color: var(--ink); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.card {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 18px;
+}
+.card p:last-child { margin-bottom: 0; }
+.tag {
+  display: inline-block;
+  color: var(--blue);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: .55rem;
+}
+.equation {
+  overflow-x: auto;
+  border-left: 3px solid var(--teal);
+  background: var(--teal-soft);
+  color: #123a3a;
+  font: 1rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 12px 15px;
+  margin: 1rem 0;
+}
+.equation small { display: block; font: .86rem/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin-top: 6px; }
+.plot { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 18px 0 14px; margin: 1rem 0; }
+.plot-title { font-weight: 700; margin-bottom: 2px; }
+.plot-note { color: var(--muted); font-size: .88rem; margin-bottom: 13px; }
+.bar-row { display: grid; grid-template-columns: minmax(145px, 1.5fr) minmax(170px, 3fr) 74px; gap: 10px; align-items: center; margin: 9px 0; }
+.bar-label { font-size: .92rem; }
+.bar-track { height: 18px; background: var(--blue-soft); position: relative; }
+.bar-fill { height: 100%; background: var(--blue); min-width: 2px; }
+.bar-fill.teal { background: var(--teal); }
+.bar-fill.amber { background: var(--amber); }
+.bar-value { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+.axis { display: flex; justify-content: space-between; margin: 7px 84px 0 calc(1.5 / 4.5 * 100%); color: var(--muted); font-size: .75rem; }
+.delta-row { display: grid; grid-template-columns: minmax(165px, 1.6fr) minmax(180px, 3fr) 76px; gap: 10px; align-items: center; margin: 10px 0; }
+.delta-track { height: 20px; background: var(--panel); position: relative; border: 1px solid var(--line); }
+.delta-zero { position: absolute; left: 75%; top: -2px; bottom: -2px; width: 1px; background: var(--ink); }
+.delta-neg, .delta-pos { position: absolute; top: 3px; bottom: 3px; }
+.delta-neg { right: 25%; background: var(--red); }
+.delta-pos { left: 75%; background: var(--teal); }
+.interval-row { display: grid; grid-template-columns: minmax(185px, 1.7fr) minmax(210px, 3fr) 92px; gap: 10px; align-items: center; margin: 12px 0; }
+.interval-track { height: 24px; background: var(--panel); position: relative; border: 1px solid var(--line); }
+.interval-zero { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--ink); }
+.interval-whisker { position: absolute; top: 11px; height: 2px; background: var(--teal); }
+.interval-point { position: absolute; top: 6px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--teal); }
+.interval-value { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+.result { color: var(--muted); font-size: .92rem; }
+.callout { background: var(--amber-soft); color: #4c3507; padding: 13px 16px; margin: 1rem 0; }
+.questions { border-top: 3px solid var(--blue); margin-top: 2.25rem; padding-top: 1rem; }
+ul { padding-left: 1.2rem; }
+li { margin: .4rem 0; }
+details { margin-top: 2rem; color: var(--muted); font-size: .86rem; }
+summary { cursor: pointer; color: var(--ink); font-weight: 700; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+@media (max-width: 690px) {
+  main { width: min(100% - 22px, 980px); padding-top: 28px; }
+  .grid { grid-template-columns: 1fr; }
+  .bar-row, .delta-row { grid-template-columns: 1fr 62px; gap: 5px 8px; }
+  .interval-row { grid-template-columns: 1fr 82px; gap: 5px 8px; }
+  .bar-track, .delta-track { grid-row: 2; grid-column: 1 / -1; }
+  .interval-track { grid-row: 2; grid-column: 1 / -1; }
+  .bar-value { grid-column: 2; grid-row: 1; }
+  .interval-value { grid-column: 2; grid-row: 1; }
+  .axis { display: none; }
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #edf3ff;
+    --muted: #b4bfd0;
+    --paper: #111723;
+    --panel: #1a2332;
+    --line: #344157;
+    --blue: #78a9ff;
+    --blue-soft: #243b61;
+    --teal: #57c8c1;
+    --teal-soft: #153b3a;
+    --amber: #efbd5b;
+    --amber-soft: #493816;
+    --red: #ef8990;
+    --red-soft: #4a2529;
+  }
+  .equation { color: #daf9f5; }
+  .callout { color: #fff0c9; }
+}
+@media print {
+  body { background: white; color: #17243b; }
+  main { width: 100%; padding: 0; }
+  .card, .guide, .plot { break-inside: avoid; }
+  details { display: block; }
+  details > * { display: block; }
+}
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Advisor discussion brief 1 · August 2026</div>
+  <h1>Basic fusion methods</h1>
+  <p class="lead">Four methods I think are worth discussing, separated from the much larger set of variants that did not improve the result.</p>
+  
+<div class="guide">
+  <strong>Short version.</strong> Historical L-SML showed that continuous inputs help. U-PCR later automated my subset at
+  similar accuracy; the DUFS graph added almost nothing; Family-NRM gave one small result that needs manual groups.
+</div>
+
+<p>Each method turns about 30 token-probability summaries—entropy, energy, change over time and top-probability shape—into
+one score. Fitting uses no answer labels. The corrected development set has 24 dataset–model experiments: 9 question-answering and 15
+math. Macro AUROC averages their AUROCs equally; 0.5 is random.</p>
+
+<h2>1. Continuous L-SML</h2>
+<p>L-SML (Latent Spectral Meta-Learner, previously “Nadler fusion”) fuses measurements inside correlated groups, then
+fuses the group scores. Our historical change kept continuous values instead of only “high” or “low.”</p>
+<div class="equation">q<sub>g</sub> = X<sub>g</sub>a<sub>g</sub>;&nbsp;&nbsp;
+s = Σ<sub>g</sub> β<sub>g</sub>q<sub>g</sub>
+  <small>X<sub>g</sub> is one measurement group; covariance supplies the within-group weights a<sub>g</sub> and final weights β<sub>g</sub>.</small>
+</div>
+<figure class="plot">
+  <figcaption class="plot-title">Historical L-SML encoding test</figcaption>
+  <div class="plot-note">Mean of five domain AUROCs over 29 historical cells: 0.652 → 0.701. The five inputs were label-selected, so this isolates the encoding change only.</div>
+  <div class="bar-row">
+  <div class="bar-label">Binary high/low input</div>
+  <div class="bar-track"><div class="bar-fill " style="width:60.80%" role="img" aria-label="Binary high/low input: 0.6520"></div></div>
+  <div class="bar-value">0.6520</div>
+</div><div class="bar-row">
+  <div class="bar-label">Continuous standardized input</div>
+  <div class="bar-track"><div class="bar-fill teal" style="width:80.40%" role="img" aria-label="Continuous standardized input: 0.7010"></div></div>
+  <div class="bar-value">0.7010</div>
+</div>
+  <div class="axis"><span>0.50</span><span>AUROC</span><span>0.75</span></div>
+</figure>
+
+<h2>2. U-PCR</h2>
+<p>U-PCR (Unsupervised Principal Component Regression) estimates each measurement's relation to unknown correctness from
+covariance, drops weak measurements and combines the rest. IU-PCR is the keep-all control.</p>
+<div class="equation">C<sub>ij</sub> ≈ ρ<sub>i</sub> + ρ<sub>j</sub> − g²;&nbsp;&nbsp; s = Xŵ
+  <small>C is observed covariance; ρ estimates each measurement's relation to hidden correctness; ŵ is the final
+  weight; g² is a fitted shared-signal term. One pre-chosen orientation feature still tells the method which direction
+  means “correct.”</small>
+</div>
+<h2>3. DUFS inside U-PCR</h2>
+<p>Following Bracha's suggestion, DUFS (Differentiable Unsupervised Feature Selection) learns which measurements define
+answer similarity; DUFS-LIU then encourages similar answers to receive similar IU-PCR scores.</p>
+<div class="equation">R = XLXᵀ/n;&nbsp;&nbsp;
+w<sub>λ</sub> = U[Uᵀ(C + λR)U]<sup>−1</sup>Uᵀρ̂
+  <small>L is the answer-graph Laplacian; U holds the leading covariance directions; ρ̂ is U-PCR's estimated relation
+  to correctness. λ controls the graph, and λ=0 gives ordinary IU-PCR.</small>
+</div>
+<figure class="plot">
+  <figcaption class="plot-title">Current methods on the same corrected 24 cells</figcaption>
+  <div class="plot-note">GOOD_6 was selected with labels. U-PCR differs from it by +0.02 percentage points; DUFS-LIU differs from IU-PCR by +0.008. Retrospective development evidence.</div>
+  <div class="bar-row">
+  <div class="bar-label">GOOD_6 · six hand-picked measurements</div>
+  <div class="bar-track"><div class="bar-fill amber" style="width:91.10%" role="img" aria-label="GOOD_6 · six hand-picked measurements: 0.7733"></div></div>
+  <div class="bar-value">0.7733</div>
+</div><div class="bar-row">
+  <div class="bar-label">U-PCR · drops weak measurements</div>
+  <div class="bar-track"><div class="bar-fill " style="width:91.18%" role="img" aria-label="U-PCR · drops weak measurements: 0.7735"></div></div>
+  <div class="bar-value">0.7735</div>
+</div><div class="bar-row">
+  <div class="bar-label">IU-PCR · keeps all measurements</div>
+  <div class="bar-track"><div class="bar-fill " style="width:91.35%" role="img" aria-label="IU-PCR · keeps all measurements: 0.7741"></div></div>
+  <div class="bar-value">0.7741</div>
+</div><div class="bar-row">
+  <div class="bar-label">DUFS-LIU · adds answer graph</div>
+  <div class="bar-track"><div class="bar-fill teal" style="width:91.38%" role="img" aria-label="DUFS-LIU · adds answer graph: 0.7741"></div></div>
+  <div class="bar-value">0.7741</div>
+</div>
+  <div class="axis"><span>0.50</span><span>AUROC</span><span>0.80</span></div>
+</figure>
+
+<h2>4. Family-NRM</h2>
+<p>Family-NRM (Family Neutral Residual Mode) divides the 30 measurements into six types based on how they were produced, removes the shared
+IU-PCR part, and adds a repeatable leftover disagreement as a small correction.</p>
+<div class="equation">q = Rv*;&nbsp;&nbsp; s<sub>NRM</sub> = z(s<sub>IU</sub>) + q/[G · sd(q)]
+  <small>R holds standardized family contributions after removing their shared IU-PCR part; v* is the residual-covariance
+  direction closest to unit variance; G is the number of present families; z and sd standardize.</small>
+</div>
+<figure class="plot">
+  <figcaption class="plot-title">Family-NRM on the separate PRMBench response test</figcaption>
+  <div class="plot-note">The direction used 23 source experiments without reading their labels, although their eligibility rule used label counts. It was then fixed. On 6,966 Qwen3-8B responses covering correct solutions and nine math-error types: +0.46 percentage points, 95% interval [+0.07,+0.84]. Whole-response task, not the official step score.</div>
+  <div class="bar-row">
+  <div class="bar-label">IU-PCR</div>
+  <div class="bar-track"><div class="bar-fill " style="width:73.53%" role="img" aria-label="IU-PCR: 0.7206"></div></div>
+  <div class="bar-value">0.7206</div>
+</div><div class="bar-row">
+  <div class="bar-label">IU-PCR + Family-NRM</div>
+  <div class="bar-track"><div class="bar-fill teal" style="width:75.07%" role="img" aria-label="IU-PCR + Family-NRM: 0.7252"></div></div>
+  <div class="bar-value">0.7252</div>
+</div>
+  <div class="axis"><span>0.50</span><span>AUROC</span><span>0.80</span></div>
+</figure>
+<p class="result">The six groups—entropy level, entropy change, two energy types, top-probability shape and trace
+structure—are supplied by hand. Family-NRM does not discover them.</p>
+<p class="callout"><strong>For the next comparison:</strong> the direction used unlabeled donors selected by a
+label-count eligibility rule, so I treat it as legacy label-touched calibration. Donors are optional: a target-cell-only
+version without donors or labels is planned, not tested.</p>
+
+<section class="questions">
+  <h2>What I would like to discuss</h2>
+  <ul>
+    <li>Does U-PCR reaching the hand-picked result without labels count as a useful contribution?</li>
+    <li>Is the manual six-family definition acceptable for the small Family-NRM result?</li>
+    <li>Should the near-zero DUFS result stay in the main story?</li>
+  </ul>
+</section>
+<details><summary>Sources and exact artifacts</summary><ul><li><strong>Continuous L-SML ablation:</strong> <code>results/method_comparison_table1.csv</code></li><li><strong>Corrected 24-cell comparison:</strong> <code>results/frozen_24cell_benchmark/headline_summary.csv</code></li><li><strong>GOOD_6 reference standing:</strong> <code>results/BENCHMARK_STANDING.md</code></li><li><strong>Family-NRM PRMBench result:</strong> <code>results/neutral_residual_mode_prmbench_v1/RESULT.json</code></li></ul></details>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,14 @@
+lane,status,unit,scope,ciw_contract,reason
+frozen_24,COMPLETE,response,24 cells,exact registered CIW-DEEM v1,Five-seed completed-response benchmark
+external_final_answer,COMPLETE,response,22 eligible cells,exact registered CIW-DEEM v1,ProcessBench PRMBench Evidence-Drop GPQA and HLE
+localization,COMPLETE,step,ProcessBench and PRMBench,response CIW plus frozen token-IU29 adapter,No token model was refitted
+causal_early_detection,COMPLETE,prefix,9277 budgeted prefix observations,CIW refit on label-free calibration prefixes,Causal features only at each budget
+ragtruth_response,COMPLETE,response,1800 test responses,exact registered CIW-DEEM v1 on original-30 full-context features,QA and Data2txt response cohort
+edis_multi_sample,INCOMPATIBLE_FEATURE_CONTRACT,response-set,4 completed descriptive cells,not run as CIW-DEEM,Prepared inputs omit all four partition-energy core coordinates and raw pre-transform features are not serialized
+ragtruth_sentence,REQUIRES_NEW_METHOD,sentence,RAGTruth sentence panel,not run as CIW-DEEM,Registered CIW consumes completed-response features rather than sentence windows
+ragtruth_token,REQUIRES_NEW_METHOD,token,RAGTruth token panel,not run as CIW-DEEM,Registered CIW has no causal token-level feature contract
+gasp_sentence,REQUIRES_NEW_METHOD,sentence,GASP local protocol,not run as CIW-DEEM,Requires a sentence-window CIW model
+lettucedetect_span,NOT_APPLICABLE,character span,RAGTruth spans,not run as CIW-DEEM,Supervised span extraction is a different prediction unit and access contract
+refchecker_claim,REQUIRES_NEW_METHOD,claim,KnowHalBench fixed claims,not run as CIW-DEEM,Requires a claim-window feature contract
+stopping,REQUIRES_POLICY,trajectory,LEASH REForN and DeepConf lanes,not run as a stopping method,Prefix risk ranking does not define a stop or continue action
+white_box,SEPARATE_ACCESS_TIER,hidden-state row,white-box layer panels,not run inside hidden-state model,CIW input semantics are output probabilities and energies rather than transformer layers

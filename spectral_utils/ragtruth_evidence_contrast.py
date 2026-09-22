@@ -20,7 +20,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 from types import MappingProxyType
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, BinaryIO, Iterable, Mapping, Sequence
 
 import numpy as np
 
@@ -80,15 +80,19 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def load_cache(path: Path) -> dict[str, dict[str, Any]]:
-    with Path(path).open("rb") as handle:
-        value = RestrictedUnpickler(handle).load()
+def load_cache_handle(handle: BinaryIO) -> dict[str, dict[str, Any]]:
+    value = RestrictedUnpickler(handle).load()
     if not isinstance(value, dict) or not value:
         raise ValueError("RAGTruth cache root must be a non-empty dictionary")
     if not all(isinstance(key, str) and isinstance(row, dict)
                for key, row in value.items()):
         raise ValueError("RAGTruth cache contains an invalid key or row")
     return value
+
+
+def load_cache(path: Path) -> dict[str, dict[str, Any]]:
+    with Path(path).open("rb") as handle:
+        return load_cache_handle(handle)
 
 
 @dataclass(frozen=True)
@@ -216,16 +220,21 @@ def _condition_trace(row: Mapping[str, Any]) -> ConditionTrace:
     )
 
 
-def load_official_responses(path: Path) -> dict[str, dict[str, Any]]:
+def load_official_responses_handle(handle: BinaryIO) -> dict[str, dict[str, Any]]:
     output: dict[str, dict[str, Any]] = {}
-    with Path(path).open(encoding="utf-8") as handle:
-        for line in handle:
-            row = json.loads(line)
-            response_id = str(row["id"])
-            if response_id in output:
-                raise ValueError(f"duplicate official response id: {response_id}")
-            output[response_id] = row
+    for raw_line in handle:
+        line = raw_line.decode("utf-8") if isinstance(raw_line, bytes) else raw_line
+        row = json.loads(line)
+        response_id = str(row["id"])
+        if response_id in output:
+            raise ValueError(f"duplicate official response id: {response_id}")
+        output[response_id] = row
     return output
+
+
+def load_official_responses(path: Path) -> dict[str, dict[str, Any]]:
+    with Path(path).open("rb") as handle:
+        return load_official_responses_handle(handle)
 
 
 def _sentence_char_spans(text: str) -> list[tuple[int, int]]:
@@ -294,10 +303,19 @@ def adapt_cache(
     tokenizer: Any,
     *,
     tokenizer_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
+    raw_cache: Mapping[str, dict[str, Any]] | None = None,
+    official_responses: Mapping[str, dict[str, Any]] | None = None,
+    sidecar_manifest: Mapping[str, Any] | None = None,
+    cache_sha256: str | None = None,
+    sidecar_manifest_sha256: str | None = None,
 ) -> tuple[RagDataset, RagLabelSet, dict[str, Any]]:
     """Split one raw cache into label-free canonical data and isolated labels."""
-    raw = load_cache(cache_path)
-    official = load_official_responses(official_response_path)
+    raw = dict(raw_cache) if raw_cache is not None else load_cache(cache_path)
+    official = (
+        dict(official_responses)
+        if official_responses is not None
+        else load_official_responses(official_response_path)
+    )
     grouped: dict[str, dict[str, dict[str, Any]]] = {}
     for cache_key, row in raw.items():
         response_id = str(row.get("response_id", ""))
@@ -392,7 +410,7 @@ def adapt_cache(
 
     dataset = RagDataset(
         responses=tuple(responses),
-        cache_sha256=sha256_file(cache_path),
+        cache_sha256=cache_sha256 or sha256_file(cache_path),
         tokenizer_name=tokenizer_name,
     )
     labels = RagLabelSet(
@@ -408,8 +426,10 @@ def adapt_cache(
         "sentence_positive_count": sum(item.hallucinated for item in sentence_labels.values()),
     }
     manifest_path = Path(cache_path).parent / "manifest.json"
-    if manifest_path.exists():
+    manifest = dict(sidecar_manifest) if sidecar_manifest is not None else None
+    if manifest is None and manifest_path.exists():
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest is not None:
         stats = manifest.get("stats") or {}
         by_condition: dict[str, int] = {}
         by_task: dict[str, int] = {}
@@ -437,7 +457,9 @@ def adapt_cache(
             )
         diagnostics.update({
             "sidecar_manifest_validated": True,
-            "sidecar_manifest_sha256": sha256_file(manifest_path),
+            "sidecar_manifest_sha256": (
+                sidecar_manifest_sha256 or sha256_file(manifest_path)
+            ),
             "sidecar_manifest_split": manifest.get("split"),
         })
     else:
@@ -659,7 +681,8 @@ __all__ = [
     "ConditionTrace", "FeatureTable", "RagDataset", "RagLabelSet",
     "RagResponse", "SentenceUnit", "UnitLabel", "adapt_cache",
     "approximate_topk_jsd", "build_feature_tables", "label_vector",
-    "load_cache", "sha256_file", "standardize_features", "topk_plus_tail_entropy",
+    "load_cache", "load_cache_handle", "load_official_responses",
+    "load_official_responses_handle", "sha256_file", "standardize_features", "topk_plus_tail_entropy",
     "topk_tail_mass",
     "trace_jsd",
 ]

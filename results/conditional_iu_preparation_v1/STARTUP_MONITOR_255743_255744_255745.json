@@ -1,0 +1,39 @@
+﻿{
+    "checked_at_utc":  "2026-09-13T19:17:28Z",
+    "remote_directory":  "/shared/cycle2_tau_averbuch_prj/omrisegev1/experiments/conditional_iu_20260913_6f7e26dc0",
+    "status":  "ALL_FAILED_CONTAINER_IMPORT_OOM",
+    "jobs":  [
+                 {
+                     "exit_code":  "0:125",
+                     "family":  "position",
+                     "elapsed":  "00:04:08",
+                     "job_id":  255743,
+                     "state":  "OUT_OF_MEMORY"
+                 },
+                 {
+                     "exit_code":  "0:125",
+                     "family":  "graph_local",
+                     "elapsed":  "00:04:07",
+                     "job_id":  255744,
+                     "state":  "OUT_OF_MEMORY"
+                 },
+                 {
+                     "exit_code":  "0:125",
+                     "family":  "graph_tv",
+                     "elapsed":  "00:04:04",
+                     "job_id":  255745,
+                     "state":  "OUT_OF_MEMORY"
+                 }
+             ],
+    "requested_memory_per_job":  "32G",
+    "requested_cpus_per_job":  2,
+    "node":  "gpu-node-01",
+    "transfer_review":  "NOT_REACHED",
+    "linux_scheduler_fixture":  "NOT_REACHED",
+    "smoke_training_started":  false,
+    "program_state_files_present":  false,
+    "smoke_state_files_present":  false,
+    "error":  "Pyxis image import failed: enroot-mksquashovlfs was killed while creating squashfs; pyxis child exit 137; Slurm detected 1 oom_kill event in each batch step.",
+    "remote_mutations":  false,
+    "monitoring_stop_reason":  "Failure confirmed for all three jobs"
+}
