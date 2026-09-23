@@ -180,3 +180,16 @@ Job265833 failed to resolve package-index DNS inside Pyxis before model load;
 old shared data and model cache remain accessible. Use pinned offline wheels,
 preserve NGC torch AND numpy, and prepare missing models on CPU compute nodes.
 Never assume login-node DNS proves container network access.
+
+## 2026-09-24 - Validate the deployed archive, not only the checkout
+
+What happened: QwQ timing job265865 failed after loading weights because a manually
+selected code archive omitted cluster/backfill_specs.py, imported indirectly by
+the scorer. No telemetry was collected;105 allocated GPU seconds were consumed.
+Why: the five-example CPU smoke ran in the full checkout, hiding a packaging gap.
+Rule: extract the exact Git archive into a separate directory and execute its
+five-example CPU collection/save/resume smoke before uploading it. Include the
+complete committed cluster and spectral_utils trees. Never overwrite a failed
+snapshot; record packaging revision and archive SHA256.
+Enforced by: tests/test_external_generalization.py --cpu-smoke executed from
+scratch/external_generalization_private/snapshot_956_complete; JOBS.json.

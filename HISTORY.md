@@ -18141,3 +18141,38 @@ AIRCC timing jobs submitted from commit c98a5f09e: 265833 Hard2Verify/Qwen3-8B,
 265834 Socratic/Qwen3-8B, 265835 Socratic/QwQ-32B. One GPU-hour and 12 examples
 maximum per job. Job handles/log/output paths: results/lsml_external_generalization_v1/JOBS.json.
 Initial scheduling: 265833 running, others pending priority. No timing results yet.
+
+### 2026-09-24 [Codex] External telemetry smoke evidence
+
+Dedicated branch codex/lsml-external-generalization-v1; earlier work checkpoint
+efe85052f. User prioritizes collecting reusable telemetry before CPU features
+and fusion. No external quality metrics have been evaluated.
+
+Completed timing collection: job265843 Hard2Verify/Qwen3-8B and job265851
+Socratic/Qwen3-8B, 12/12 answers each. Raw probability/entropy/span audit PASS;
+cluster-to-Drive archives checksum-verified. Full corpora tokenize without
+truncation: 200/1860 and 2995/26055 answers/steps. Three empty Socratic steps
+retained. Compact artifacts: results/lsml_external_generalization_v1/.
+
+QwQ model downloaded on CPU in job265848 (372s). Its timing job265853 stopped
+before collection on a first-token prefix-layout discrepancy (.374979 nat).
+Diagnostic job265860 completed: all three same-length causal errors were zero;
+the .374979 prefix discrepancy became zero with the same weights under fp32.
+Gate v2 additionally checks exact target offsets and future-token invariance.
+Only the identical pinned numerical diagnostic permits this QwQ prefix case;
+production remains bf16. Retry265865 failed on a missing packaged helper. Complete archive CPU smoke
+passed; replacement twelve-answer timing job265869 is submitted, not complete.
+
+Full Qwen3 collection budget decision requested: <=1 GPU-hour total (30min each),
+compute-only projection ~4.2min, ~3.94GB output. Await user's response. No full
+run authorization recorded. Comparators and feature/fusion evaluation deferred.
+Retain frozen and answer-local bank11 methods; averaging controls only.
+
+Reclaimed9.97GB old local copies after Drive size/hash verification; tracked LFS
+files now exact HEAD pointers. Restore locations in CLEANUP_REMOVED.json.
+AIRCC current account cycle3, QoS owner_940; old shared paths accessible.
+Use offline wheels; CPU model bootstrap avoids unavailable ensurepip. Invoke
+remote sbatch as one command: Windows-piped final CR caused one startup failure.
+Historical generated-cache Gate B and source calibration remain separate pending
+fidelity/evaluation items. Spec/runbook: docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1.md
+and docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1_RUNBOOK.md. MedPRMBench deferred.

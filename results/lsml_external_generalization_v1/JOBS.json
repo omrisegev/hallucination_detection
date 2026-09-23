@@ -12,7 +12,9 @@
       "log": "/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/ext_h2v_q3_smoke_265833.out",
       "state": "CANCELLED",
       "reason": "compute-container pip DNS failure; stopped batch before telemetry",
-      "elapsed_seconds": 98
+      "elapsed_seconds": 98,
+      "gpus": 1,
+      "detail": "container package DNS"
     },
     {
       "job_id": 265834,
@@ -26,7 +28,9 @@
       "log": "/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/ext_soc_q3_smoke_265834.out",
       "state": "CANCELLED",
       "reason": "compute-container pip DNS failure; stopped batch before telemetry",
-      "elapsed_seconds": 0
+      "elapsed_seconds": 0,
+      "gpus": 1,
+      "detail": "cancelled pending"
     },
     {
       "job_id": 265835,
@@ -40,9 +44,111 @@
       "log": "/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/ext_soc_qwq_smoke_265835.out",
       "state": "CANCELLED",
       "reason": "compute-container pip DNS failure; stopped batch before telemetry",
-      "elapsed_seconds": 0
+      "elapsed_seconds": 0,
+      "gpus": 1,
+      "detail": "cancelled pending"
+    },
+    {
+      "job_id": 265842,
+      "cell": "qwq_model_prepare",
+      "state": "FAILED",
+      "elapsed_seconds": 1,
+      "gpus": 0,
+      "detail": "host ensurepip unavailable"
+    },
+    {
+      "job_id": 265843,
+      "cell": "hard2verify_qwen3_8b",
+      "state": "COMPLETED",
+      "elapsed_seconds": 100,
+      "gpus": 1,
+      "detail": "12/12 collected and audited",
+      "mode": "smoke",
+      "maximum_examples": 12,
+      "wall_limit_hours": 1,
+      "snapshot_commit": "bfdd74490",
+      "output": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/lsml_external_generalization_v1/hard2verify_qwen3_8b_smoke_bfdd74490"
+    },
+    {
+      "job_id": 265844,
+      "cell": "socratic_qwen3_8b",
+      "state": "FAILED",
+      "elapsed_seconds": 82,
+      "gpus": 1,
+      "detail": "Windows CR in final argument"
+    },
+    {
+      "job_id": 265848,
+      "cell": "qwq_model_prepare",
+      "state": "COMPLETED",
+      "elapsed_seconds": 372,
+      "gpus": 0,
+      "detail": "pinned QwQ cached"
+    },
+    {
+      "job_id": 265851,
+      "cell": "socratic_qwen3_8b",
+      "state": "COMPLETED",
+      "elapsed_seconds": 97,
+      "gpus": 1,
+      "detail": "12/12 collected and audited",
+      "mode": "smoke",
+      "maximum_examples": 12,
+      "wall_limit_hours": 1,
+      "snapshot_commit": "bfdd74490",
+      "output": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/lsml_external_generalization_v1/socratic_qwen3_8b_smoke_bfdd74490"
+    },
+    {
+      "job_id": 265853,
+      "cell": "socratic_qwq32b",
+      "state": "FAILED",
+      "elapsed_seconds": 125,
+      "gpus": 1,
+      "detail": "alignment gate first-token delta .374979",
+      "mode": "smoke",
+      "maximum_examples": 12,
+      "wall_limit_hours": 1,
+      "snapshot_commit": "bfdd74490",
+      "output": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/lsml_external_generalization_v1/socratic_qwq32b_smoke_bfdd74490"
+    },
+    {
+      "job_id": 265860,
+      "cell": "qwq_alignment_diagnostic",
+      "state": "COMPLETED",
+      "elapsed_seconds": 103,
+      "gpus": 1,
+      "detail": "bf16 vs fp32 numerical and causality diagnostic"
+    },
+    {
+      "job_id": 265865,
+      "cell": "socratic_qwq32b",
+      "state": "FAILED",
+      "elapsed_seconds": 105,
+      "gpus": 1,
+      "detail": "archive omitted backfill_specs; no telemetry",
+      "mode": "smoke",
+      "maximum_examples": 12,
+      "wall_limit_hours": 1,
+      "snapshot_commit": "956a1aa19",
+      "output": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/lsml_external_generalization_v1/socratic_qwq32b_smoke_956a1aa19"
+    },
+    {
+      "job_id": 265869,
+      "cell": "socratic_qwq32b",
+      "state": "PENDING",
+      "elapsed_seconds": null,
+      "gpus": 1,
+      "detail": "complete archive five-example CPU smoke passed; 12-answer timing retry",
+      "mode": "smoke",
+      "maximum_examples": 12,
+      "wall_limit_hours": 1,
+      "snapshot_commit": "956a1aa19",
+      "snapshot_directory": "lsml_external_956a1aa19_complete",
+      "output": "/shared/cycle2_tau_averbuch_prj/omrisegev1/results/lsml_external_generalization_v1/socratic_qwq32b_smoke_956a1aa19_complete",
+      "log": "/shared/cycle2_tau_averbuch_prj/omrisegev1/logs/ext_soc_qwq_smoke_complete_265869.out"
     }
   ],
   "full_run_authorized": false,
-  "submitted_utc": "2026-09-23T22:03:03.107315+00:00"
+  "submitted_utc": "2026-09-23T22:03:03.107315+00:00",
+  "updated_utc": "2026-09-23T22:46:00.968744+00:00"
 }

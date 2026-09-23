@@ -86,3 +86,25 @@ evaluation matrix. Ask for the user's full-run budget decision with these costs.
 Only then launch full collection. Further source calibration, CT7 reconstruction,
 official evaluator parity, comparator runners, prediction seals, full bootstrap
 and technical/Hebrew results remain required for scientific completion.
+
+## QwQ numerical diagnostic and gate v2
+
+Job265860 checked one answer at positions0/8/15. The bf16 prefix discrepancy
+(.374979 nat at position0) disappeared with the same weights in fp32 arithmetic;
+all full-vocabulary future-perturbation deltas were zero. See the immutable
+QWQ_ALIGNMENT_DIAGNOSTIC.json under results/lsml_external_generalization_v1/.
+Collector956a1aa19 retains bf16 production and adds fixed-shape direct target
+offset and causal checks (1e-5 maximum). The original .05 prefix limit remains;
+its one reviewed exception requires --alignment-evidence, exact SHA256, the
+pinned checkpoint, identical answer ID and reproduced diagnostic differences
+within1e-4. It does not globally relax bf16 tolerances. CPU validation rejects
+a deliberately shifted target index. Gate version and evidence hash enter the
+immutable run identity. Do not resume a v1 output directory with v2.
+
+Package the complete committed cluster/ and spectral_utils/ trees with the
+external test, auditor and pinned collection manifests. Extract the archive
+and run its five-example CPU smoke from that extracted directory before upload;
+a checkout smoke alone cannot detect omitted transitive imports. The incomplete
+956a1aa19 deployment failed as job265865; its immutable replacement directory
+is lsml_external_956a1aa19_complete (same source commit). DEPLOYMENT.json records
+the exact archive hash and validation.

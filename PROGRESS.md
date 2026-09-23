@@ -1,25 +1,37 @@
-## 2026-09-24 Codex: external collection first
+## 2026-09-24 Codex: AIRCC telemetry collection active
 
-AIRCC timing jobs submitted from commit c98a5f09e: 265833 Hard2Verify/Qwen3-8B,
-265834 Socratic/Qwen3-8B, 265835 Socratic/QwQ-32B. One GPU-hour and 12 examples
-maximum per job. Job handles/log/output paths: results/lsml_external_generalization_v1/JOBS.json.
-Initial batch cancelled after compute-container pip DNS failure (98 GPU-seconds;
-other jobs unallocated). Offline wheels repair prepared; no telemetry yet.
+Dedicated branch codex/lsml-external-generalization-v1; earlier work checkpoint
+efe85052f. User prioritizes collecting reusable telemetry before CPU features
+and fusion. No external quality metrics have been evaluated.
 
-Prior Codex work committed as efe85052f; dedicated branch
-`codex/lsml-external-generalization-v1`. User prioritizes AIRCC telemetry collection
-before further fusion implementation. Hard2Verify (200 answers/1860 steps) and
-Socratic (2995/26055) adapted with isolated labels; MedPRMBench deferred. Three
-empty Socratic steps retained explicitly. Collection saves all raw bank11 inputs
-plus full entropy, IDs/offsets/spans for later CPU extraction. No quality evaluated.
+Completed timing collection: job265843 Hard2Verify/Qwen3-8B and job265851
+Socratic/Qwen3-8B, 12/12 answers each. Raw probability/entropy/span audit PASS;
+cluster-to-Drive archives checksum-verified. Full corpora tokenize without
+truncation: 200/1860 and 2995/26055 answers/steps. Three empty Socratic steps
+retained. Compact artifacts: results/lsml_external_generalization_v1/.
 
-Reclaimed 9.97 GB of checksum-verified Drive-backed local copies; archive ledger:
-results/lsml_external_generalization_v1/CLEANUP_REMOVED.json. AIRCC works outside
-the restricted process; current QoS owner_940. Timing jobs are limited to 12
-examples/one GPU-hour each. Full-run budget approval remains required.
-Plan/runbook: docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1.md and
-docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1_RUNBOOK.md. Source calibration,
-comparator inference and final external evaluation remain incomplete.
+QwQ model downloaded on CPU in job265848 (372s). Its timing job265853 stopped
+before collection on a first-token prefix-layout discrepancy (.374979 nat).
+Diagnostic job265860 completed: all three same-length causal errors were zero;
+the .374979 prefix discrepancy became zero with the same weights under fp32.
+Gate v2 additionally checks exact target offsets and future-token invariance.
+Only the identical pinned numerical diagnostic permits this QwQ prefix case;
+production remains bf16. Retry265865 failed on a missing packaged helper. Complete archive CPU smoke
+passed; replacement twelve-answer timing job265869 is submitted, not complete.
+
+Full Qwen3 collection budget decision requested: <=1 GPU-hour total (30min each),
+compute-only projection ~4.2min, ~3.94GB output. Await user's response. No full
+run authorization recorded. Comparators and feature/fusion evaluation deferred.
+Retain frozen and answer-local bank11 methods; averaging controls only.
+
+Reclaimed9.97GB old local copies after Drive size/hash verification; tracked LFS
+files now exact HEAD pointers. Restore locations in CLEANUP_REMOVED.json.
+AIRCC current account cycle3, QoS owner_940; old shared paths accessible.
+Use offline wheels; CPU model bootstrap avoids unavailable ensurepip. Invoke
+remote sbatch as one command: Windows-piped final CR caused one startup failure.
+Historical generated-cache Gate B and source calibration remain separate pending
+fidelity/evaluation items. Spec/runbook: docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1.md
+and docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1_RUNBOOK.md. MedPRMBench deferred.
 
 ## Codex storage recovery, CPU fusion scope and historical L-SML audit - 2026-09-23
 
