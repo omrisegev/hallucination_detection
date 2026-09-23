@@ -17,11 +17,12 @@ the .374979 prefix discrepancy became zero with the same weights under fp32.
 Gate v2 additionally checks exact target offsets and future-token invariance.
 Only the identical pinned numerical diagnostic permits this QwQ prefix case;
 production remains bf16. Retry265865 failed on a missing packaged helper. Complete archive CPU smoke
-passed; replacement twelve-answer timing job265869 is submitted, not complete.
+passed; replacement265869 completed12/12 in149s. Raw audit PASS and Drive17
+matching files. All three timing cells are complete; no quality evaluated.
 
-Full Qwen3 collection budget decision requested: <=1 GPU-hour total (30min each),
-compute-only projection ~4.2min, ~3.94GB output. Await user's response. No full
-run authorization recorded. Comparators and feature/fusion evaluation deferred.
+Updated full-collection budget requested: <=2 GPU-hours total (30+30+60min)
+for both Qwen3 cells and Socratic/QwQ. Compute-only projection10.79min,7.56GB;
+startup/serialization/Drive excluded. User decision pending; no full run started. Comparators and feature/fusion evaluation deferred.
 Retain frozen and answer-local bank11 methods; averaging controls only.
 
 Reclaimed9.97GB old local copies after Drive size/hash verification; tracked LFS

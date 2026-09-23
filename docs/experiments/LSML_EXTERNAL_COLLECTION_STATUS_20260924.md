@@ -1,7 +1,7 @@
 # External telemetry collection: 2026-09-24
 
-The telemetry pipeline runs on AIRCC. Two timing cells are complete and verified;
-QwQ collection is pending a timing retry after a completed numerical diagnostic. These are engineering
+The telemetry pipeline runs on AIRCC. All three timing cells are complete, audited
+and checksum-verified on Drive. These are engineering
 results, not benchmark quality results. No external PRMScore or Balanced F1 has
 been calculated, and no fusion variant has been selected using these datasets.
 
@@ -11,6 +11,7 @@ been calculated, and no fusion variant has been selected using these datasets.
 |---|---:|---:|---:|---:|---:|
 | Hard2Verify / Qwen3-8B | 12 | 29,277 | 122 | 100 s | 265843 |
 | Socratic / Qwen3-8B | 12 | 11,180 | 103 | 97 s | 265851 |
+| Socratic / QwQ-32B | 12 | 11,180 | 103 | 149 s | 265869 |
 
 All 200 Hard2Verify and 2,995 Socratic answers were tokenized, without truncation,
 before the length-stratified timing samples were chosen. Longest full inputs are
@@ -43,10 +44,11 @@ and 3.38 GB. Feature extraction, fusion, bootstrap and comparator generation
 are also excluded. Evidence:
 [QWEN3_COMPUTE_ESTIMATE.json](../../results/lsml_external_generalization_v1/QWEN3_COMPUTE_ESTIMATE.json).
 
-The requested full-collection budget is capped at one GPU-hour total, with two
-30-minute allocations, to allow substantial operational margin. This decision
-has been requested from the user and is not yet recorded as approved. It covers
-Qwen3 telemetry only; QwQ and critic/PRM inference remain separate.
+The updated request covers all three telemetry cells, capped at two GPU-hours
+total:30min for each Qwen3 cell and60min for QwQ. User approval is pending.
+Adding QwQ gives10.79min compute-only projection and7.56GB storage in
+[ALL_TELEMETRY_COMPUTE_ESTIMATE.json](../../results/lsml_external_generalization_v1/ALL_TELEMETRY_COMPUTE_ESTIMATE.json).
+QwQ peaks at66.79GB allocated GPU memory. Critic/PRM inference remains separate.
 The [cost ledger](../../results/lsml_external_generalization_v1/COST_LEDGER.json)
 includes failed startup attempts, rather than hiding their allocation cost.
 
@@ -67,7 +69,12 @@ explicit exception bound to the exact diagnostic SHA256, checkpoint, answer ID
 and reproduced differences. No global bf16 tolerance was increased. Production
 precision is unchanged. Job265865 then failed because the archive omitted an indirect helper import.
 The corrected full archive passed the five-example CPU test after extraction;
-replacement timing job265869 is submitted, not yet complete.
+replacement timing job265869 completed all12 answers. Its three target-offset
+and three causal errors were zero; the pinned prefix discrepancy reproduced.
+The raw audit passed11,180 tokens and103 steps, including216 tokens outside
+top50 with actual-token probabilities retained. Drive check:17 files, zero
+differences. This passes gate-v2; it does not retroactively pass the original
+prefix-only gate.
 The CPU smoke passed five forwards/save/resume checks and rejected an injected
 off-by-one target alignment error.
 
@@ -83,17 +90,16 @@ for later bank11 work were retained. The cleanup ledger records archive paths.
 
 ## Remaining scientific work
 
-Finish QwQ validation/timing, obtain budget decisions, collect full telemetry and
+Obtain the full-run budget decision, collect full telemetry and
 verify archives. Then complete source fit/calibration separation and freeze both
 L-SML variants before external quality evaluation. Complete overlap auditing,
 CT7/comparator implementation and official evaluator parity, seal predictions,
 and run registered paired analysis. Existing helper code is not a completed
 external evaluation. MedPRMBench remains deferred.
 
-## פירוש קצר בעברית
+## ????? ??? ??????
 
-האיסוף ב־AIRCC עובד: הושלמו ונבדקו 12 תשובות מכל benchmark עם Qwen3, והמידע
-גובה ישירות ל־Drive. נשמרו כל נתוני ההסתברויות הדרושים לחילוץ הפיצ'רים בהמשך,
-כולל הסתברות הטוקן האמיתי גם כשהוא מחוץ ל־Top50. עדיין לא נמדדה איכות השיטה.
-הריצה המלאה ממתינה להחלטת התקציב שביקשנו; QwQ נבדק בנפרד בעקבות אי־התאמה
-נומרית שנמצאה בבדיקת התקינות. לא הסרנו את הבדיקה כדי להעביר את הריצה.
+?????? ???? ????? ?????? ?-AIRCC: ??? ????? Qwen3 ????? QwQ, ??12 ?????? ??? ????.
+??????? ????? ????? ?????? ?-Drive, ???? ?????????? ??????? ?????? ???'??? ?????.
+??????9.97GB ?? ?????? ??????? ????? ???? ????? ??????. ?? ????? ????? ????? ?????.
+?????? ???? ????? ?????? ??????: ???? ?? ??? ???? GPU ??? ???? ?????? ???.
