@@ -46,7 +46,7 @@ python -B scripts/diagnostics/extract_ct7_token_streams_v1.py --source-root C:/U
     --temporal C:/Users/omris/TAU/hallucination_detection/.worktrees/temporal-research-20260915/results/temporal_context_data_v1 ^
     --bank-dir C:/Users/omris/TAU/hallucination_detection/.worktrees/token-probability-fusion-v1/results/length_explicit_ct7_v1/bank ^
     --profiles C:/Users/omris/TAU/hallucination_detection/results/cumulative_vote_fusion_v2/ct7_profiles_v1/profiles.npy ^
-    --out results/ct7_token_lsml_v1/CT7_TOKEN_MATRICES.npz
+    --out C:/Users/omris/TAU/hallucination_detection/results/ct7_token_lsml_v1/CT7_TOKEN_MATRICES.npz
 python -B scripts/experiments/ct7_token_lsml_v1.py --config configs/ct7_token_lsml_v1.json
 
 # item 4 — measurement minutes; fusion only if WINDOW_PR.json says gate_passed
@@ -78,6 +78,11 @@ runs. HISTORY blocks are tagged `[Codex]` with the date; never renumber; merge H
 union only.
 
 ## Things that will bite
+
+- Running from a worktree: the configs' `output` entries are relative to the config file, so results
+  land in `<worktree>/results/...`; but `paths.ct7_tokens` in the item 3 and item 4 configs is the
+  ABSOLUTE main-checkout path. Write the extraction to exactly that path (the `--out` above), or the
+  drivers will not find it. Do not edit the configs (they are hashed into `RUN_FREEZE.json`).
 
 - `spectral_utils/__init__.py` imports torch; the drivers register a bare package if the real import
   fails (`ct7_levers_common.ensure_spectral_package`), so they run in a numpy/scipy/sklearn/pandas
