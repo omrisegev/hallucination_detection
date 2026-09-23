@@ -1,5 +1,21 @@
 # CLAUDE.md — MV_EPR Spectral Hallucination Detection
 
+## Omri execution update - 2026-09-24: external telemetry first
+
+Implement Hard2Verify and Socratic-PRMBench transfer on the dedicated
+codex/lsml-external-generalization-v1 branch. MedPRMBench is deferred.
+Prioritize AIRCC collection of complete reusable telemetry, then extract
+features and fit/evaluate the locked CPU fusion methods. Teacher-forced
+external telemetry and separate comparator inference are now authorized;
+the older blanket prohibition on extra inference below does not apply to
+this approved pipeline. No GPU training or benchmark answer regeneration.
+Timing jobs: <=12 deterministic examples per dataset/backbone, <=1 allocated
+GPU-hour each. Obtain the full-run budget decision from measured estimates
+before full inference. Preserve label isolation and do not inspect external
+quality before method freeze. User authorizes cleanup of unneeded old local
+material whose archive is verified, and Drive storage for large outputs.
+Specification: docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1.md.
+
 ## Omri decision update - 2026-09-23: L-SML impact, PRMBench primary, CPU runtime
 
 This supersedes older PB-first and GPU-SSL directions. Prioritize a version where

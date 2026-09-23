@@ -18119,3 +18119,20 @@ Next action remains the bounded fit/calibration/evaluation separation in
 PRMBench is primary, PB secondary, CT7 a reference and averaging control-only.
 Older roadmap recommendations remain historical and do not override this priority.
 This entry records documentation alignment, not a new experiment or new evidence.
+
+## 2026-09-24 Codex: external collection first
+
+Prior Codex work committed as efe85052f; dedicated branch
+`codex/lsml-external-generalization-v1`. User prioritizes AIRCC telemetry collection
+before further fusion implementation. Hard2Verify (200 answers/1860 steps) and
+Socratic (2995/26055) adapted with isolated labels; MedPRMBench deferred. Three
+empty Socratic steps retained explicitly. Collection saves all raw bank11 inputs
+plus full entropy, IDs/offsets/spans for later CPU extraction. No quality evaluated.
+
+Reclaimed 9.97 GB of checksum-verified Drive-backed local copies; archive ledger:
+results/lsml_external_generalization_v1/CLEANUP_REMOVED.json. AIRCC works outside
+the restricted process; current QoS owner_940. Timing jobs are limited to 12
+examples/one GPU-hour each. Full-run budget approval remains required.
+Plan/runbook: docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1.md and
+docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1_RUNBOOK.md. Source calibration,
+comparator inference and final external evaluation remain incomplete.
