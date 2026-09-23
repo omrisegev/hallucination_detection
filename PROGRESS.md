@@ -1,3 +1,14 @@
+## SSL plan stage S3 complete (Claude) - 2026-09-23
+
+`results/ssl_pseudolabel_residual_v1/S3/run_20260923/`: NRM-inspired contribution
+residual, unsupported. R_CONTRIB - BASE PB +0.62 pp [-0.28, +1.52] / PRMB -0.0056;
+R_CONTRIB - random direction +0.14 pp / -0.0084. The eigenvalue-closest-to-1
+direction is unstable across folds (PRMB cosine mean 0.36, min -0.07) and random
+seeds differ among themselves by up to 0.023 PRMB AUC. See HISTORY Step 436.
+Stages S0, S0-C, S1, S2, S3 of the plan are done on branch
+claude/ssl-pseudolabel-residual-v1; S4/S5 (masked SSL, learned pooling; GPU) remain,
+plus the open S2 v1.1 contrast (per-channel standardized residual readout).
+
 ## SSL plan stage S2 complete (Claude) - 2026-09-23
 
 `results/ssl_pseudolabel_residual_v1/S2/run_20260923/`: ridge prediction residual
