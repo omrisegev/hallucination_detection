@@ -1,3 +1,29 @@
+## Step 433 (Claude) — three L-SML levers against CT7's failures, built and synthetic-tested — 2026-09-23
+
+Branch `claude/lsml-ct7-levers-v1` (from competition-sync `49787d46`). Omri's decisions: implement
+here; item 4 = measurement plus gated fusion; Codex runs on the data and reports. Handoff:
+`docs/HANDOFF_CODEX_LSML_CT7_LEVERS_2026-09-23.md`. Background notes:
+`docs/research_notes/ct7_anatomy_2026-09-23.md`, `docs/research_notes/lsml_against_ct7_failures_2026-09-23.md`.
+
+- Item 2 CT7 family-equal (partition 4/2/1 and 5/1/1; partition-only, answer-restandardized,
+  fold-sd and eigen scalings; one label-free discovery route; controls): `ct7_family_equal_v1.py`,
+  protocol `docs/experiments/CT7_FAMILY_EQUAL_V1.md`. Primary: 11+ stratum SLA `fam421_answer - ct7`, paired.
+- Item 3 token-level L-SML on CT7's seven streams before Top10 (Stage B C1/C2 on CT7; invalid tokens
+  out of every fit; token-level step-0 rule): extraction `extract_ct7_token_streams_v1.py` (~2 h once,
+  two exactness gates), driver `ct7_token_lsml_v1.py`, protocol `docs/experiments/CT7_TOKEN_LSML_V1.md`.
+  Primary: `T_C2 - T_E2` on macro8 SLA.
+- Item 4 window representation B3: ten-view 8-token moment bank, conditional PR at window and step
+  level with a per-channel shuffle UPPER reference and n_eff; gate real step PR >= 3.0 and shuffled >=
+  real + 0.5; answer-only equal / IU / shrink-IU / L-SML only if gated in:
+  `window_pr_measurement_v1.py`, `window_answer_local_fusion_v1.py`, protocol
+  `docs/experiments/WINDOW_REPRESENTATION_B3_V1.md`.
+- Shared: `scripts/experiments/ct7_levers_common.py` (light dataset around the frozen cvf_v2 scorers,
+  CT7 anchor asserts, answer-z before pooled endpoints, stratum intervals, freeze, synthetic dry runs).
+  Nothing in `cvf_v2/` or the RUN_FREEZE-hashed modules edited. 12 new tests pass; every driver has `--dry-run`.
+
+Next: Codex runs items 2, 3, 4 in that order on Omri's machine; Claude reviews against the
+pre-registered predictions. No real number exists yet; no promotion from any outcome.
+
 ## Steps 430-432 (Claude) — competition diagnostics and per-channel evidence — 2026-09-23
 
 Branch `claude/readout-quickest-detection-v1` (worktree `.worktrees/readout-quickest-detection-v1`),
