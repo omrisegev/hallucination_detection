@@ -57923,3 +57923,28 @@ expects. Items 3 and 4 produced no real number: the extraction gate needs a dtyp
 stay local, ignored by `results/**/*.npz`.
 
 ---
+
+### Step 435 [Claude][ct7-levers] — Review of Step 434 and gate correction A1 for item 3 (no new number)
+
+**What**: Reviewed the local run (Step 434 [local][ct7-levers]). Item 2 is recorded as run. Item 3's
+stop was an implementation error in the exactness gates, not in the streams: the frozen bank stores
+float64 `top10`, which CT7 consumes as `astype(float32)`, but gate (i) cast only the recomputed side.
+Also, the extraction stored tokens as float32, too coarse for gate (ii)'s 1e-8, and the BOCPD
+fallback was a different construction from CT7's view 5. Protocol Amendment A1
+(`docs/experiments/CT7_TOKEN_LSML_V1.md`), before any item-3 number:
+- gate (i) compares both sides at float32 and records the float64 difference;
+- tokens are stored as float64;
+- when `temporal_context_data_v1` is absent, the BOCPD column is rebuilt from the raw rows by
+  `ct7_token_streams.bocpd_residual_temporal_recipe`, the bundle's own chain (`feature_matrix`
+  columns 0-3, prefix innovation including token 0, float64 mean/scale, float32 round trip, BOCPD
+  prior mean). The source modules are byte-identical to the temporal branch's. Tolerance 1e-8 on
+  both routes.
+
+No arm, endpoint, prediction or decision rule changed.
+**Why**: The assert was unsatisfiable as written; relaxing it on the data would have been
+the wrong fix, and the amendment keeps CT7's exact precision.
+**Result**: 23 tests pass (one new recipe test), and all dry runs complete. Item 4's Step-434
+`RUN_FREEZE.json` froze a run that produced nothing and must be removed before the rerun (handoff).
+Next: rerun the item 3 smoke, then the full extraction, then items 3 and 4 in order.
+
+---

@@ -42,7 +42,7 @@ import ct7_levers_common as L  # noqa: E402
 L.ensure_spectral_package()
 from spectral_utils.aligned_context_predictors import bocpd_mean  # noqa: E402
 from spectral_utils.ct7_token_streams import (  # noqa: E402
-    HAZARD, STREAMS, answer_streams, masked_step_top10, step0_token_mask,
+    HAZARD, STREAMS, answer_streams, bocpd_residual_temporal_recipe, masked_step_top10, step0_token_mask,
 )
 from spectral_utils.digitfree_broad50 import masked_answer_standardize  # noqa: E402
 
@@ -96,7 +96,7 @@ def main() -> None:
     n = len(records); total_steps = int(offsets[-1])
     token_counts = np.asarray([int(r["tokens"]) for r in records]); token_offsets = np.concatenate([[0], np.cumsum(token_counts)])
     N = int(token_offsets[-1])
-    tokens = np.zeros((N, 7), np.float32); valid = np.zeros((N, 7), bool)
+    tokens = np.zeros((N, 7), np.float64); valid = np.zeros((N, 7), bool)
     spans_all = np.zeros((total_steps, 2), np.int32); step0 = np.zeros(N, bool); done = np.zeros(n, bool)
 
     temporal = None
@@ -124,20 +124,24 @@ def main() -> None:
             a, b = offsets[i], offsets[i + 1]; ta, tb = token_offsets[i], token_offsets[i + 1]
             if len(payload["logprobs"]) != tb - ta or spans.shape != (b - a, 2) or spans[0, 0] != 0 or spans[-1, 1] != tb - ta:
                 raise ValueError(f"answer {i}: token/step mismatch")
-            boc = bocpd_verbatim(temporal[0], temporal[1], temporal[2][i]) if temporal is not None else None
+            boc = (bocpd_verbatim(temporal[0], temporal[1], temporal[2][i]) if temporal is not None
+                   else bocpd_residual_temporal_recipe(payload["logprobs"], row["token_entropies"]))
             x, v = answer_streams(payload["logprobs"], payload["ids"], row["gen_token_ids"], row["token_spilled_energies"], bocpd=boc)
-            tokens[ta:tb] = x.astype(np.float32); valid[ta:tb] = v; spans_all[a:b] = spans
+            tokens[ta:tb] = x; valid[ta:tb] = v; spans_all[a:b] = spans
             step0[ta:tb] = step0_token_mask(spans, tb - ta); done[i] = True
         del rows; gc.collect()
         print(f"[cell] {cell}: {len(indexes)} answers, {time.time() - started:.0f}s", flush=True)
     if not args.smoke:
         assert done.all(), "incomplete extraction"
     keep = np.flatnonzero(done)
-    provenance = "temporal_context_data_v1 verbatim (Step 420 recipe)" if temporal is not None else "recomputed from the answer's five bank streams (whole-answer mean/sd)"
+    provenance = ("temporal_context_data_v1 verbatim (Step 420 recipe)" if temporal is not None
+                  else "rebuilt from the raw row by the temporal_context_data_v1 recipe (bocpd_residual_temporal_recipe)")
 
     gates = {}
     if args.bank_dir:
-        folder = Path(args.bank_dir); mism = 0; checked = 0
+        # CT7 consumes the bank as top10.astype(float32) (cvf_v2/ct7.py::prepare), so exactness is
+        # required at that precision on BOTH sides; the float64 difference is recorded descriptively.
+        folder = Path(args.bank_dir); mism = 0; checked = 0; max64 = 0.0
         for cell, indexes in by_cell.items():
             f = folder / f"{cell}.npz"
             if not f.exists():
@@ -147,11 +151,16 @@ def main() -> None:
                 if not done[i]:
                     cursor += offsets[i + 1] - offsets[i]; continue
                 a, b = offsets[i], offsets[i + 1]; ta, tb = token_offsets[i], token_offsets[i + 1]
-                got = np.column_stack([masked_step_top10(tokens[ta:tb, j].astype(float), valid[ta:tb, j], spans_all[a:b]) for j in range(5)]).astype(np.float32)
+                got = np.column_stack([masked_step_top10(tokens[ta:tb, j].astype(float), valid[ta:tb, j], spans_all[a:b]) for j in range(5)])
                 want = top[cursor:cursor + (b - a)]; cursor += b - a
+                fin = np.isfinite(got) & np.isfinite(want)
+                if fin.any():
+                    max64 = max(max64, float(np.max(np.abs(got[fin] - want[fin]))))
+                got = got.astype(np.float32); want = np.asarray(want).astype(np.float32)
                 same = np.array_equal(np.isnan(got), np.isnan(want)) and np.array_equal(got[~np.isnan(got)], want[~np.isnan(want)])
                 mism += int(not same); checked += 1
-        gates["i_bank_top10_exact"] = {"checked_answers": checked, "mismatches": mism}
+        gates["i_bank_top10_exact"] = {"checked_answers": checked, "mismatches": mism, "compared_as": "float32 (CT7 precision)",
+                                       "max_abs_difference_float64": max64}
         assert mism == 0, f"gate (i) failed on {mism} answers"
     if args.profiles:
         prof = np.load(args.profiles); assert prof.shape == (total_steps, 7)
@@ -162,7 +171,7 @@ def main() -> None:
         rows_ok = np.repeat(done, np.diff(offsets))
         z5 = masked_answer_standardize(t5[:, None], np.isfinite(t5)[:, None], offsets)[:, 0]
         delta = float(np.max(np.abs(z5[rows_ok] - prof[rows_ok, 5])))
-        tol = 1e-8 if temporal is not None else 1e-6
+        tol = 1e-8
         gates["ii_bocpd_view_replay"] = {"max_abs_difference": delta, "tolerance": tol, "provenance": provenance}
         assert delta < tol, f"gate (ii) failed: {delta} >= {tol} ({provenance})"
 

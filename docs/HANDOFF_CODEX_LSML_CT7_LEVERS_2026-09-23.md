@@ -61,8 +61,14 @@ smoke output must not be passed to the driver.
 
 - CT7 replay: macro-F1 .41188745848863717 and within-AUC .7723966352864217 on 6,030 eligible answers
   (`ct7_levers_common.replay_ct7`); `profiles.npy` sha; its mean equal to CT7 to 1e-12.
-- Item 3 gates: (i) masked Top10 of the five bank columns equals the frozen bank extraction exactly
-  after the float32 cast; (ii) the BOCPD column replays CT7's view 5 (1e-8 verbatim / 1e-6 fallback).
+- Item 3 gates (protocol Amendment A1): (i) masked Top10 of the five bank columns equals the frozen
+  bank extraction exactly with BOTH sides cast to float32 (CT7's precision); (ii) the BOCPD column
+  replays CT7's view 5 to 1e-8, from `--temporal` if present, else rebuilt from the raw rows by the
+  bundle's own recipe. Tokens are stored float64.
+- Item 4: `results/window_representation_b3_v1/RUN_FREEZE.json` from Step 434 froze a run that
+  produced nothing (it stopped on the missing token matrices) and hashes the pre-A1
+  `ct7_token_streams.py`, so the rerun refuses that directory. Remove only that file before the rerun
+  (with Omri's approval); nothing else in the directory exists.
 - Item 4 anchor: conditional PR of the CT7 profiles within 0.01 of 1.80.
 - `RUN_FREEZE.json` in each output directory: a changed freeze refuses the directory; use a new one.
 

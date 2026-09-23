@@ -99,3 +99,27 @@ python -B scripts/diagnostics/extract_ct7_token_streams_v1.py --source-root <rep
 python -B scripts/experiments/ct7_token_lsml_v1.py --config configs/ct7_token_lsml_v1.json   # minutes
 python -B scripts/experiments/ct7_token_lsml_v1.py --dry-run                                  # synthetic
 ```
+
+## Amendment A1 — 2026-09-23, before any item-3 number (gate correction only)
+
+Step 434's smoke run stopped at gate (i) on 270/270 answers. No arm, endpoint, contrast, prediction
+or decision rule is changed by this amendment; only the two exactness gates and the storage dtype
+they check.
+
+- **Gate (i)**: the frozen bank stores float64 `top10`, and CT7 consumes it as
+  `top10.astype(float32)` (`cvf_v2/ct7.py::prepare`). The original gate cast only the recomputed side
+  to float32, which can never equal a float64 value. The gate now requires exact equality with BOTH
+  sides cast to float32 (CT7's precision) and records the float64 maximum difference descriptively
+  (the smoke diagnosis measured 0.0 in float64 on 270/270 answers).
+- **Storage**: `CT7_TOKEN_MATRICES.npz` stores the seven token streams as float64 (was float32). A
+  float32 round trip on the tokens alone moves an answer-standardized Top10 by about 1e-7, above gate
+  (ii)'s 1e-8, and would make the `ct7_top10_equal7` bridge inexact.
+- **Gate (ii) source**: `temporal_context_data_v1/features.npy` exists on no local worktree. The
+  earlier fallback (`bocpd_residual_from_bank`: digit-free bank orientation, token 0 masked, no
+  float32 round trip) is a different construction and was never expected to replay view 5 exactly.
+  The extraction now rebuilds the column from the raw row by the recipe that produced that bundle
+  (`ct7_token_streams.bocpd_residual_temporal_recipe`: `renyi_locator_feature_bank.feature_matrix`
+  columns 0-3, prefix innovation of column 0 with token 0 included, float64 mean and max(std, 1e-8),
+  float32 storage round trip, BOCPD prior-mean residual at hazard 1/32). Those source modules are
+  byte-identical to the temporal branch's. The tolerance is 1e-8 on both routes; a failure stops
+  the run and is reported, never relaxed.

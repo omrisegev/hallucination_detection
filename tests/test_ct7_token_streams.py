@@ -49,3 +49,24 @@ def test_module_reads_no_labels():
     code = re.sub(r'"""[\s\S]*?"""', "", src)
     code = "\n".join(l for l in code.splitlines() if not l.strip().startswith("#"))
     assert re.search(r"\b(target|labels|error_steps|np\.load|pickle)\b", code) is None
+
+
+def test_bocpd_temporal_recipe_follows_the_bundle_chain():
+    """The raw-row rebuild follows baseline -> prepare_temporal_context_data -> _bocpd_one:
+    float64 oriented features, prefix innovation with token 0 included, float64 mean/scale,
+    float32 storage round trip, BOCPD prior-mean residual; and it enters column 5 unmasked."""
+    from spectral_utils.aligned_context_predictors import bocpd_mean
+    from spectral_utils.renyi_locator_feature_bank import feature_matrix
+    rng = np.random.default_rng(3)
+    r = ts.synthetic_row(rng, 80, 5); p = r["top_k_logprobs"]
+    b = ts.bocpd_residual_temporal_recipe(p["logprobs"], r["token_entropies"])
+    m = feature_matrix(np.asarray(p["logprobs"], float), np.asarray(r["token_entropies"], float))["matrix"][:, :4]
+    inn = np.r_[0.0, m[1:, 0] - np.cumsum(m[:-1, 0]) / np.arange(1, len(m))]
+    aug = np.column_stack([m, inn]); feats = aug.astype(np.float32)
+    z = (feats.astype(float) - aug.mean(0)) / np.maximum(aug.std(0), 1e-8)
+    assert np.array_equal(b, (z - bocpd_mean(z, hazard=1 / 32)).mean(1))
+    # float32 storage matters at the 1e-8 replay tolerance: without it the result moves
+    z64 = (aug - aug.mean(0)) / np.maximum(aug.std(0), 1e-8)
+    assert not np.array_equal(b, (z64 - bocpd_mean(z64, hazard=1 / 32)).mean(1))
+    x, v = ts.answer_streams(p["logprobs"], p["ids"], r["gen_token_ids"], r["token_spilled_energies"], bocpd=b)
+    assert np.array_equal(x[:, 5], b) and v[:, 5].all() and x.dtype == np.float64

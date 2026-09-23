@@ -60,6 +60,30 @@ def bocpd_residual_from_bank(x5: np.ndarray, valid5: np.ndarray, *, hazard: floa
     return (z - bocpd_mean(z, hazard=hazard)).mean(axis=1)
 
 
+def bocpd_residual_temporal_recipe(logp, entropy, *, hazard: float = HAZARD) -> np.ndarray:
+    """Signed BOCPD residual per token, rebuilt from the raw row by the recipe that produced
+    `temporal_context_data_v1` and CT7's view 5, for use when that bundle is absent.
+
+    Chain (scripts/run_temporal_research_baseline.py -> scripts/prepare_temporal_context_data.py
+    -> scripts/run_length_calibrated_streams_v1.py::_bocpd_one): the first four oriented columns
+    of `renyi_locator_feature_bank.feature_matrix(logprobs, token_entropies)` (float64), the prefix
+    innovation of the first column appended (token 0 = 0, included), per-answer mean and
+    max(std, 1e-8) over that float64 matrix, the matrix stored as float32 in features.npy and read
+    back as float64, then z = (raw - mean)/scale and the mean over the five streams of
+    z - bocpd_mean(z). This differs from `bocpd_residual_from_bank` (a different orientation
+    rule, token 0 masked, no float32 round trip), which is why that route cannot replay view 5.
+    """
+    from .renyi_locator_feature_bank import feature_matrix
+    from .temporal_research_features import prefix_innovation
+    matrix = feature_matrix(np.asarray(logp, np.float64), np.asarray(entropy, np.float64))["matrix"][:, :4]
+    innovation, _ = prefix_innovation(matrix[:, 0])
+    augmented = np.column_stack((matrix, innovation))
+    mean = augmented.mean(axis=0); scale = np.maximum(augmented.std(axis=0), 1e-8)
+    raw = augmented.astype(np.float32).astype(np.float64)
+    z = (raw - mean) / scale
+    return (z - bocpd_mean(z, hazard=hazard)).mean(axis=1)
+
+
 def chosen_stream(logp, ids, provided, surprisal) -> np.ndarray:
     """[T] per-token standardized excess surprisal (entropy-free chosen-token evidence)."""
     x, _, _ = token_calibration(logp, ids, provided, surprisal)
