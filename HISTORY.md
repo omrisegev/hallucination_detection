@@ -57834,3 +57834,92 @@ Decision: item 5 is answered on this bank and closed for first-error localizatio
 **Result**: Code and protocols only. 12 new tests pass (`tests/test_family_equal_readout.py`, `test_ct7_token_streams.py`, `test_window_moment_bank.py`; the frozen `test_cumulative_vote_v2.py` still passes); all five drivers run end to end on the synthetic population through the frozen scorers and bootstrap (item 2 in 1.4 s, item 3 in 9 s, item 4 measurement 9 s and fusion 8 s). Two mechanism facts surfaced by the self-tests and recorded in the protocols: the residual-affinity discovery route on a Joint-structured plant separates the level and temporal families at K = 2 and never isolates a singleton (several K are perfectly stable and the tie-break prefers the smallest), so `fam_auto` is expected NOT to reproduce 4/2/1; and on a 2-step answer the within-answer family rule yields +-1 per family or exactly 0 when two standardized members cancel. No real number exists; the large inputs are on Omri's machine. Development evidence only when run; nothing is promoted.
 
 ---
+
+### Step 434 [local][ct7-levers] — Running the three L-SML levers on the data: family-equal is a null on ProcessBench with a small PRMBench within-answer gain; the token-level extraction stops at its own exactness gate (float32 cast against a float64 bank); the window measurement is blocked on that missing output
+
+**What**: Ran the Step 433 protocols in order on the frozen 13,769-answer population from worktree
+`.worktrees/lsml-ct7-levers-run` (branch `claude/lsml-ct7-levers-v1` @ `adfff408`). Tests: 22 passed
+(`test_family_equal_readout`, `test_ct7_token_streams`, `test_window_moment_bank`, `test_cumulative_vote_v2`);
+all four `--dry-run`s complete. Inputs: `profiles.npy` did not exist at the configured main-checkout path;
+the byte-identical frozen file (sha `d564ba43…ff674`, equal to the tracked `PROFILE_VALIDATION.json`) was
+copied there from `.worktrees/cumulative-vote-fusion-v2/results/cumulative_vote_fusion_v2/ct7_profiles_v1/`
+together with the only existing `step_lengths.npy` (145,597 rows, no declared sha); the temporal
+`features.npy` (manifest sha `e4b88b6e…`) exists in no local worktree, so the extraction used the
+protocol's fallback BOCPD recomputation. No config, assert, `cvf_v2/` file or hashed module was edited.
+
+**Item 2 — `results/ct7_family_equal_v1/`** (90.6 s: metrics 19.3, bootstrap 4.9, strata 9.6, PRMScore
+13.5; 10,000 paired source draws). CT7 replay asserted: macro-F1 .41188745848863717, within-AUC
+.7723966352864217, 6,030 answers; profiles sha and mean-equals-CT7 asserted.
+
+| arm | macro8 SLA | common-gate F1 | PRMB within-AUC | early | late | 11+ SLA |
+|---|---|---|---|---|---|---|
+| ct7 | 39.89 | 41.19 | .7724 | .269 | .332 | 29.93 |
+| fam421_raw | 39.80 | 40.76 | .7801 | .298 | .304 | 29.81 |
+| fam421_answer | 39.94 | 40.91 | .7801 | .299 | .302 | 30.29 |
+| fam421_fold | 39.79 | 40.79 | .7798 | .299 | .303 | 30.41 |
+| fam421_eigen | 40.56 | 41.60 | .7786 | .296 | .298 | 30.05 |
+| fam511_answer | 40.30 | 41.10 | .7721 | .305 | .292 | 29.32 |
+| fam_auto_answer | 40.00 | 41.33 | .7746 | .271 | .329 | 30.54 |
+| six_equal | 38.76 | 40.27 | .7589 | .276 | .336 | 25.67 |
+| level_only | 35.63 | 37.58 | .7516 | .242 | .402 | 19.59 |
+| temporal_only | 36.68 | 38.48 | .7399 | .410 | .224 | 25.18 |
+| control__longest_step | 31.78 | 35.14 | .6181 | .324 | .358 | 17.52 |
+
+Primary (11+ SLA, `fam421_answer − ct7`): +0.36 pp [-3.13, +3.75], includes zero. Other 11+:
+`fam421_fold − ct7` +0.49 pp [-3.02, +3.89]; `fam421_raw − ct7` -0.12 pp [-3.65, +3.30];
+`fam511_answer − ct7` -0.61 pp [-4.18, +2.88]; `fam_auto_answer − ct7` +0.61 pp [-1.11, +2.33];
+`fam421_answer − fam511_answer` +0.97 pp [-0.84, +2.78]. Holm family (54 contrasts, `UNCERTAINTY.json`): every family arm
+minus ct7 on macro8 SLA and common-gate F1 has Holm p = 1 (largest |delta| `fam421_eigen` +0.67 pp SLA);
+PRMB within-AUC is the only endpoint with intervals excluding zero: `fam421_{raw,answer,fold} − ct7`
++0.77 / +0.77 / +0.74 pp [+0.55, +1.00] Holm .005, `fam421_eigen − ct7` +0.62 pp; the 5/1/1 arms are at
+CT7 (−0.03 to −0.28 pp); `fam_auto_* − fam421_*` −0.52 / −0.55 pp Holm .005; `level_only − ct7` −4.25 pp
+SLA / −2.08 pp AUC and `temporal_only − ct7` −3.21 pp / −3.25 pp, all Holm <= .03. Late fraction: population
+.332 -> .302 (`fam421_answer`), long cells .342 -> .301, with long-cell SLA 37.72 -> 36.78; tolerance-one .626 ->
+.641; MAE 1.62 -> 1.55. PRMScore q80 (standardized, secondary) .6425 -> .6562. Coverage: 13,769 answers,
+58 two-step answers, zeroed families 83 (`fam421_answer`) / 61 (`fam511_answer`), frozen gate open on
+4,556 PB answers and 0 PRMB answers. Fits: `fam421_eigen` cross weights (.634, .631, .447) in every fold
+(near-equal, not the ~3 pp loser); discovery route: K = 2 in folds 1, 2, 4 with groups {H0lim, ve0,
+bocpd, chosen} vs {ve0.75, ve1, innovation} (all K perfectly stable, min ARI 1.0, tie-break to K = 2),
+K = 4 in folds 0, 3 ({H0lim, ve0}, {ve0.75, ve1}, {innovation, bocpd}, {chosen}; the only K with min
+ARI 1.0 there).
+
+Predictions: (1) late fraction down and early up on the population and long cells, macro8 SLA +0.06 pp —
+held (stratum-specific early/late not tabulated); (2) `fam421_raw` closer to CT7 than `fam421_answer` —
+mixed: |−0.09| vs |+0.06| pp on macro8 (did not hold), |−0.12| vs |+0.36| pp on 11+ (held), all within
+0.5 pp; (3) `fam421_eigen` below `fam421_answer` — did not hold (+0.62 pp SLA, +0.69 pp F1, Holm 1.0 / .42;
+−0.15 pp within-AUC); (4) discovered partition differs from 4/2/1 — held; "K = 2, level against the rest" — did not
+hold (the K = 2 split crosses families; K = 4 in two folds); (5) `fam511_*` trails `fam421_*` on 11+ —
+held at the point level (29.32 vs 30.29), interval includes zero. Decision language: no primary interval
+excludes zero on either side, so the protocol's unfavourable wording applies — "the temporal family is
+not the lever for late misses" on the 11+ SLA endpoint; the late-miss reduction is real but is not
+converted into exact hits. Development rows only; nothing promoted.
+
+**Item 3 — stopped at the extraction's gate (i).** `--smoke 30` (270 answers, nine cells, 46 s to the
+gate, written to scratch) ended with `AssertionError: gate (i) failed on 270 answers`
+(`scripts/diagnostics/extract_ct7_token_streams_v1.py:155`). Read-only diagnosis (scratch script, no
+project file edited): the recomputed masked Top10 of the five bank streams equals
+`length_explicit_ct7_v1/bank/<cell>.npz['top10']` EXACTLY in float64 on 270/270 answers (max |diff| 0.0),
+but that bank stores float64 values of which 0% are float32-representable, and the gate compares
+`got.astype(np.float32)` against the float64 `want` (max |f32(got) − want| 9.2e-7), so 0/270 pass. The
+assert is unsatisfiable as written against this bank; the streams themselves replay. Per the run rules
+the assert was not relaxed, the full extraction was not launched, `CT7_TOKEN_MATRICES.npz` does not
+exist and `ct7_token_lsml_v1.py` was not run. Gate (ii) was never reached. The `--temporal` source was
+absent (see above). For Claude's review: the fix is either to compare in the bank's own dtype or to
+document that the bank was never float32-cast; that is a protocol/gate correction, not a stream change.
+
+**Item 4 — blocked on item 3's output.** `window_pr_measurement_v1.py` wrote
+`results/window_representation_b3_v1/RUN_FREEZE.json` and stopped with
+`FileNotFoundError: C:\Users\omris\TAU\hallucination_detection\results\ct7_token_lsml_v1\CT7_TOKEN_MATRICES.npz`
+(`paths.ct7_tokens`). No `WINDOW_PR.json`, no PR value, no gate verdict; the fusion stage was not run
+(no `--force` on real data).
+
+**Why**: Step 433's three levers were built and synthetic-tested only; this is their first contact with
+the data, in the pre-registered order, with the hard rule that every assert passes as written.
+**Result**: Item 2 is a null on ProcessBench SLA/F1 at every family scaling, with a consistent but small
+PRMBench within-answer gain (+0.7-0.8 pp AUROC, Holm .005) for the 4/2/1 partition only, and a late-to-early
+redistribution that does not add exact hits; the eigen-solve did not lose the ~3 pp the method card
+expects. Items 3 and 4 produced no real number: the extraction gate needs a dtype correction before the
+2-hour extraction is worth running. Large outputs (`BOOTSTRAP_PRIMARY_DRAWS.npz`, `PRM_OOF_DECISIONS.npz`)
+stay local, ignored by `results/**/*.npz`.
+
+---

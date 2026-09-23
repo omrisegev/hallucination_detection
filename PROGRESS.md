@@ -1,3 +1,29 @@
+## Step 434 (local run) — the three L-SML levers on the data: item 2 null on ProcessBench, item 3 stopped at its extraction gate, item 4 blocked — 2026-09-23
+
+Worktree `.worktrees/lsml-ct7-levers-run` on `claude/lsml-ct7-levers-v1` (from `adfff408`). Tests 22 pass,
+four dry-runs complete. Full account in HISTORY Step 434 [local][ct7-levers].
+
+- Item 2 `results/ct7_family_equal_v1/` (RESULTS/SUMMARY/UNCERTAINTY/RUN_FREEZE/PRMSCORE committed; npz
+  local). CT7 replay asserted. Primary 11+ SLA `fam421_answer − ct7` +0.36 pp [−3.13, +3.75]. Macro8 SLA
+  39.94 vs 39.89, F1 40.91 vs 41.19 (Holm 1.0); PRMB within-AUC +0.77 pp [+0.55, +1.00] Holm .005 for
+  the 4/2/1 arms only. Late fraction .332 → .302 without an SLA gain. `fam421_eigen` 40.56 SLA is ABOVE
+  `fam421_answer` (prediction 3 did not hold); discovery route gives K = 2 {H0lim, ve0, bocpd, chosen} vs
+  {ve0.75, ve1, innovation} in 3/5 folds, K = 4 in 2/5 (prediction 4's "level vs rest" did not hold).
+  Protocol wording for the outcome: "the temporal family is not the lever for late misses". No promotion.
+- Item 3: `--smoke 30` extraction fails gate (i) on 270/270 answers. Diagnosis: the recomputed Top10 equals
+  the frozen bank exactly in float64 (max diff 0.0 on 270/270) but the bank is float64 and 0% of its values
+  are float32-representable, so the gate's `astype(np.float32)` comparison can never pass (max 9.2e-7).
+  Not relaxed; full extraction NOT launched; `CT7_TOKEN_MATRICES.npz` does not exist; scoring not run.
+  Also: the temporal `features.npy` exists in no local worktree (fallback BOCPD would apply).
+- Item 4: measurement stops at `FileNotFoundError` on `paths.ct7_tokens`; only `RUN_FREEZE.json` written;
+  no PR, no gate verdict, fusion not run.
+- Inputs placed (new files, nothing overwritten): the sha-verified frozen `profiles.npy` (`d564ba43…ff674`)
+  and `step_lengths.npy` copied from `.worktrees/cumulative-vote-fusion-v2/` to the configured
+  main-checkout `results/cumulative_vote_fusion_v2/` paths.
+
+Next (for Claude's review, not done here): correct gate (i) to the bank's dtype (or the protocol's claim of
+a float32 cast), then rerun the smoke, the ~2 h extraction and items 3-4 in order.
+
 ## Step 433 (Claude) — three L-SML levers against CT7's failures, built and synthetic-tested — 2026-09-23
 
 Branch `claude/lsml-ct7-levers-v1` (from competition-sync `49787d46`). Omri's decisions: implement
