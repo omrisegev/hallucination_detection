@@ -3,8 +3,8 @@
 Omri's question: how to attack CT7's failure points (Section 7 of `ct7_anatomy_2026-09-23.md`)
 with L-SML. This note reads the "next" lines of HISTORY Steps 397-432, the handoffs
 (`HANDOFF_TOKEN_PROBABILITIES.md`, `HANDOFF_localization_2026-09-17_evening.md`,
-`HANDOFF_WHITE_BOX_LAYER_VIEWS.md`), Codex's 2026-09-23 plan and reviews, and the branches
-`codex/whitebox-layer-fusion`, `codex/fusion-independence-atlas-v1`, `claude/token-probability-
+), Codex's 2026-09-23 plan and reviews, and the branches
+`codex/fusion-independence-atlas-v1`, `claude/token-probability-
 fusion-v1`, `codex/cumulative-vote-fusion-v2`, `claude/competition-sync-2026-09-23`. Nothing was
 recomputed.
 
@@ -20,12 +20,11 @@ Measured effective independent views on this population (labels for measurement 
 | token level, eleven channels, fused before Top10 | marginal 9.69 (not comparable) | +3.33 [+1.90, +4.75] (Step 422), of which two thirds is repair of the energy gauge pair; +1.0 to +1.2 remains (Step 425) |
 | 8-token windows, moment bank (level / sd / slope), 24 answers | 3.4-3.9 | never run on the full population (atlas handoff B3, not authorized) |
 | answer level, final-answer detection, 16 continuous features | not measured | L-SML +6.1 pp over flat SML at 16 features, +3.6 at 9, tie at 5 (Step 135) |
-| white-box depth, 13 experts, final-answer detection, 13 cells | not measured | U-PCR .7846 vs equal mean .7799 AUROC; ties the 30-feature gray system (Steps 245, 245b) |
 | wide redundant rosters L11-L24, step level | not measured | Joint partition + equal within/across groups holds 43.2 where continuous L-SML falls to 38.9; the active ingredient is the partition at the smallest stable K, not the eigenvector (Step 399 addendum) |
 
 So every negative L-SML result on localization was obtained at step level on banks with fewer
 than three independent views, where averaging is the method's own correct output. The three
-places where fusion did add something are: many views (answer-level or depth), fusion before a
+places where fusion did add something are: many views at answer level, fusion before a
 noisy readout (token level), and a partition that isolates a family (Joint, K=3, equal across
 groups). Those are the levers, and each maps to a specific CT7 failure.
 
@@ -37,8 +36,7 @@ groups). Those are the levers, and each maps to a specific CT7 failure.
 | **Late misses** (34 %, 42 % on 11+): peaks after the error | **partition-then-equal on CT7's three families** (entropy level x5, temporal x2 = innovation + BOCPD residual, chosen-token x1): equal across groups 1/3 each instead of 5/7 : 1/7 : 1/7 | the two temporal views are early-biased (early .44 / .38), the level views late-biased (late .39-.42); CT7's balance is the accident of equal weight. Step 399 addendum: the partition, not the eigenvector, carries the Joint result; a cross-group eigen-solve costs ~3 pp. Codex's soft L-SML on the seven profiles (+0.11) is the eigen-solve, not this rule | **never run on CT7**; one arm on the frozen `profiles.npy`, report early / late by stratum |
 | **Early misses** (27 %): start-of-answer excess | position-conditional null (Step 432) fixes them one-for-one against late misses | not a fusion lever; closed | closed |
 | **Argmax competition** on long chains (exact .30 at 11+ with pairwise .78) | cumulative-vote L-SML / DS was the fusion designed for this decision and reproduced the incumbent (Steps 423, v2, CT7-profile run); no non-max rule beats argmax (Step 430 A3) | closed for weighting; only new views change the competitor's height | closed |
-| **1.80-view ceiling** and the length-coupled Top10 blind spot (short error steps in long answers) | **(a) white-box depth field** (Step 421: 36 layers x 3 taps x 4 quantities on all 13,769 answers, unscored for localization): a chain of layers is the latent-tree structure L-SML's group model assumes; adjacent layers = dependent groups; taps = candidate families | first channel not a function of the output distribution (Step 414's stated only way past the ceiling). On final-answer detection the depth experts fused label-free beat equal and tied the gray system (Steps 245-245b). Handoff §6: measure the conditional participation ratio at step level with a within-answer token-shuffle null first | **data exists, nothing scored**; CPU only |
-| same | **(b) window representation** (atlas B3): ~10-view moment bank on 8-token windows, 49 rows per answer, answer-local fit with shrinkage, label-free alpha | 3.4-3.9 effective views on 24 answers; the only representation where the thesis's answer-only fit is estimable | **not authorized yet** |
+| **1.80-view ceiling** and the length-coupled Top10 blind spot (short error steps in long answers) | **window representation** (atlas B3): ~10-view moment bank on 8-token windows, 49 rows per answer, answer-local fit with shrinkage, label-free alpha | 3.4-3.9 effective views on 24 answers; the only representation where the thesis's answer-only fit is estimable | **not authorized yet** |
 | **Fusion before the readout on CT7's own streams** (HANDOFF_TOKEN_PROBABILITIES 5.1, still open per Step 429) | token-level continuous L-SML on the five bank streams + token BOCPD residual (Step 420 recomputation) + per-token standardized excess, then Top10, answer-local standardization before the fit (5.2) | the only configuration in which L-SML beat equal (C1 +3.32 vs C3 +0.22) has never been applied to the strongest bank; expected size after the Step 425 correction is about +1 pp | **never run**; inputs cached |
 | **PRMBench multi-error answers** (28 % have more than one error run; argmax is the wrong object) | per-step encoding (clarifications note §3): top-k-per-answer binarization or z-profiles as columns, `lsml_continuous`, fused per-step score as the ranking | within-answer ranking is the one endpoint where learned combinations moved: Step 416 L-SML +.0011*, Step 432 position evidence +.014 within-AUC | designed, not implemented |
 
@@ -52,14 +50,14 @@ groups). Those are the levers, and each maps to a specific CT7 failure.
 2. **CT7 family-equal (K = 3 partition, equal across groups).** One arm, minutes of CPU, targets
    the late/early balance directly. If it moves the 11+ stratum without losing the short cells,
    it is a new frozen candidate id; if not, the temporal family is not the lever for late misses.
-3. **Depth participation ratio on the Step 421 field**, step level, shuffle null, before any
-   fusion; only if it clears three, L-SML over layers with group discovery, and CT7 + depth as
-   the matched comparison.
-4. **Token-level L-SML on CT7's streams before Top10**, answer-local standardized. Cheap, and it
+3. **Token-level L-SML on CT7's streams before Top10**, answer-local standardized. Cheap, and it
    closes HANDOFF 5.1 on the bank that matters.
-5. **Window representation measurement** (atlas B3), then answer-local L-SML with shrinkage.
-6. **PRMBench per-step mode.**
+4. **Window representation measurement** (atlas B3), then answer-local L-SML with shrinkage.
+5. **PRMBench per-step mode.**
 
 Not again: step-level weighting on entropy-family banks (Steps 413, 429, CT7-profile run),
 readout sweeps (Step 429), non-max rules (Step 430), consensus or triplet-statistic selectors
 (Step 429; Codex 2026-09-22).
+
+Scope note (Omri, 2026-09-23): the white-box depth line is a separate arm and is excluded from this
+diagnosis; its numbers are not comparable to the gray-box localization results.
