@@ -1,0 +1,233 @@
+{
+  "population": {
+    "rows": 13769,
+    "pb": 6800,
+    "prm": 6969,
+    "pb_errors": 4442,
+    "groups_crossing_folds": 0
+  },
+  "pb_metric_replay": {
+    "methods": 157,
+    "max_sla_error": 8.326672684688674e-17,
+    "max_f1_error": 8.326672684688674e-17
+  },
+  "jobs": {
+    "outer": 300,
+    "inner": 320,
+    "train_test_group_overlap": 0
+  },
+  "frozen_source_hashes": {
+    "core.py": true,
+    "em.py": true,
+    "data.py": true,
+    "runner.py": true,
+    "readout.py": true,
+    "fusion_utils.py": true,
+    "step_readouts_v1.py": true
+  },
+  "input_freeze_hash": true,
+  "multiplicity": {
+    "comparisons": 1464,
+    "draws": 10000,
+    "min_raw_p": 9.999000099990002e-05,
+    "min_holm_p": 0.1463853614638536,
+    "holm_below_005": 0,
+    "unadjusted_ci_excludes_zero": 1174
+  },
+  "causality_fixture": {
+    "same_raw_prefix": true,
+    "causal_z_prefix_max_diff": 0.0,
+    "claimed_causal_page_prefix_max_diff": 5.65246633320039,
+    "page_prefix_a": [
+      0.361024032474778,
+      2.6367760596499266
+    ],
+    "page_prefix_b": [
+      2.931458885514952,
+      8.289242392850317
+    ]
+  },
+  "prm_metric_replay": [
+    {
+      "method": "ct7",
+      "eligible": 6030,
+      "auc": 0.7723966352864217,
+      "error": 0.0
+    },
+    {
+      "method": "token_lsml",
+      "eligible": 6030,
+      "auc": 0.7531638360944569,
+      "error": 1.1102230246251565e-16
+    },
+    {
+      "method": "top5__all__soft__equal",
+      "eligible": 6030,
+      "auc": 0.7531533804218778,
+      "error": 0.0
+    },
+    {
+      "method": "top30__all__soft__equal",
+      "eligible": 6030,
+      "auc": 0.6998272893457927,
+      "error": 0.0
+    },
+    {
+      "method": "consensus__all__soft__equal",
+      "eligible": 6030,
+      "auc": 0.717918908449799,
+      "error": 0.0
+    },
+    {
+      "method": "selected_all__all__hard__ds",
+      "eligible": 6030,
+      "auc": 0.7530049963869598,
+      "error": 0.0
+    },
+    {
+      "method": "top5__all__pmf__continuous_lsml",
+      "eligible": 6030,
+      "auc": 0.7550375112745155,
+      "error": 0.0
+    },
+    {
+      "method": "selected__all__soft__equal",
+      "eligible": 6030,
+      "auc": 0.7604800959269779,
+      "error": 0.0
+    }
+  ],
+  "competition": [
+    {
+      "method": "ct7",
+      "stratum": "2_to_5",
+      "n": 1312,
+      "exact": 0.4763719512195122,
+      "pairwise_all": 0.7317708333333333,
+      "before": 0.6920931758530184,
+      "after": 0.7673151214128034,
+      "retained_3_competitors_success": 0.49797661870503596
+    },
+    {
+      "method": "ct7",
+      "stratum": "6_to_10",
+      "n": 2308,
+      "exact": 0.3587521663778163,
+      "pairwise_all": 0.7524504140188716,
+      "before": 0.7299751890003313,
+      "after": 0.7813610229276896,
+      "retained_3_competitors_success": 0.5214492035982503
+    },
+    {
+      "method": "ct7",
+      "stratum": "11_plus",
+      "n": 822,
+      "exact": 0.29927007299270075,
+      "pairwise_all": 0.7755206218738472,
+      "before": 0.7345156242357566,
+      "after": 0.7923386035806103,
+      "retained_3_competitors_success": 0.5738439907220588
+    },
+    {
+      "method": "token_lsml",
+      "stratum": "2_to_5",
+      "n": 1312,
+      "exact": 0.4321646341463415,
+      "pairwise_all": 0.6910569105691057,
+      "before": 0.7125164041994752,
+      "after": 0.6937775938189845,
+      "retained_3_competitors_success": 0.46785071942446044
+    },
+    {
+      "method": "token_lsml",
+      "stratum": "6_to_10",
+      "n": 2308,
+      "exact": 0.31802426343154244,
+      "pairwise_all": 0.7141041511925394,
+      "before": 0.7478744992620705,
+      "after": 0.7109132275132275,
+      "retained_3_competitors_success": 0.47536983164149543
+    },
+    {
+      "method": "token_lsml",
+      "stratum": "11_plus",
+      "n": 822,
+      "exact": 0.20802919708029197,
+      "pairwise_all": 0.7088269963287464,
+      "before": 0.7295783308836205,
+      "after": 0.6920591964730662,
+      "retained_3_competitors_success": 0.46929657027689753
+    }
+  ],
+  "first_crossing_30pct": {
+    "locators": 69,
+    "beats_argmax": 0
+  },
+  "reported_headline_rows": [
+    {
+      "method": "ct7",
+      "pb_sla_macro8": 0.3988620140983161,
+      "pb_f1_ct7_gate": 0.4118874584886371,
+      "within_auc": 0.7723966352864217
+    },
+    {
+      "method": "token_lsml",
+      "pb_sla_macro8": 0.3592368825176495,
+      "pb_f1_ct7_gate": 0.3732442704802602,
+      "within_auc": 0.7531638360944568
+    },
+    {
+      "method": "top5__all__soft__equal",
+      "pb_sla_macro8": 0.3248948545066087,
+      "pb_f1_ct7_gate": 0.3524359319607616,
+      "within_auc": 0.7531533804218778
+    },
+    {
+      "method": "top30__all__soft__equal",
+      "pb_sla_macro8": 0.3546805039808066,
+      "pb_f1_ct7_gate": 0.3770779682144524,
+      "within_auc": 0.6998272893457927
+    },
+    {
+      "method": "consensus__all__soft__equal",
+      "pb_sla_macro8": 0.2682158386912383,
+      "pb_f1_ct7_gate": 0.3103497009076844,
+      "within_auc": 0.717918908449799
+    },
+    {
+      "method": "selected_all__all__hard__ds",
+      "pb_sla_macro8": 0.3637756265321549,
+      "pb_f1_ct7_gate": 0.3812573591086495,
+      "within_auc": 0.7530049963869598
+    },
+    {
+      "method": "top5__all__pmf__continuous_lsml",
+      "pb_sla_macro8": 0.3267585909745352,
+      "pb_f1_ct7_gate": 0.3550072677825748,
+      "within_auc": 0.7550375112745155
+    },
+    {
+      "method": "selected__all__soft__equal",
+      "pb_sla_macro8": 0.3603229144035235,
+      "pb_f1_ct7_gate": 0.3812838355709254,
+      "within_auc": 0.7604800959269779
+    }
+  ],
+  "current_source_matches_freeze": {
+    "core.py": true,
+    "em.py": true,
+    "data.py": true,
+    "runner.py": true,
+    "readout.py": true,
+    "fusion_utils.py": true,
+    "step_readouts_v1.py": true
+  },
+  "existing_tests": {
+    "passed": 20,
+    "files": [
+      "tests/test_step_readouts_v1.py",
+      "tests/test_cumulative_vote_v2.py"
+    ],
+    "seconds": 13.26
+  }
+}

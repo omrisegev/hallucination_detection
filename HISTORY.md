@@ -17958,3 +17958,70 @@ instances. No near-perfect-reliability or impossibility-of-fusion conclusion.
 The branch lacks subsequent token-probability audit corrections. Research code
 and frozen outputs unchanged; evidence is in scratch/token_axis_review_20260921/.
 Review: docs/reviews/TOKEN_AXIS_FUSION_CROSS_BRANCH_REVIEW_20260921.md.
+
+---
+
+### Step 430 [Codex independent readout audit] - Claude Steps428-429 replay; interpretation and causal-diagnostic limits, 2026-09-22
+
+**What**: Reviewed Claude branch readout-quickest-detection-v1 at e572fbdc1
+against the registered readout/quickest-detection protocols, token-probability
+history and cumulative-vote/CT7 comparators. Recomputed all157 PB SLA/F1
+bundles and eight full PRMB within-AUC bundles from saved predictions/scores.
+Checked300 outer/320 inner job source splits and seven source hashes;20
+existing tests passed. Added a frozen-score three-competitor diagnostic and
+a synthetic same-prefix/different-suffix causality check, without new fitting.
+
+**Why**: Omri requested a review of plan adherence, execution, completeness
+of conclusions and the prospects for self-supervised localization.
+
+**Result**: Primary metrics replay to floating precision; no recorded group
+crossing. No-promotion decision supported. Page's claimed causal diagnostic
+uses whole-answer re-standardization and fails suffix invariance. The B4
+ln(100)/KL quantity is not a justified Lorden delay bound under this contract.
+Holm1464/10000 draws has minimum adjusted p=.146385, so no contrast passes.05;
+unadjusted intervals remain descriptive. Per-channel selected readouts do not
+bound joint pooling, and effective dimension is not certified independence.
+Competitor-count diagnostic supports the long-chain competition hypothesis,
+explicitly as a label-using oracle, not deployable improvement. Hebrew review
+includes a bounded masked-family self-supervised pooling proposal and controls:
+docs/reviews/CLAUDE_READOUT_REVIEW_20260922_HE.md. Reproducible script/evidence:
+scratch/review_claude_readout_20260922.py and
+scratch/claude_readout_review_20260922/AUDIT.json. No frozen experiment file
+changed, no inference or new model training launched.
+
+---
+
+### Step 431 [Codex research planning] - Specify SSL, pseudo-label and residual localization protocols using completed Claude results, 2026-09-23
+
+**What**: Wrote an implementable Hebrew research plan separating pseudo-target
+quality, representation, residual correction, pooling and fusion. Incorporated
+the completed Claude Step432 A1 results and independently replayed saved scores.
+Defined a calibration follow-up on existing nested predictions before neural
+training, alternative pseudo-label methods, matched simple controls, source
+splits, statistical families, output schemas and mandatory report questions.
+
+**Why**: Omri requested precise protocols another agent can implement, clarified
+that pseudo-label use is not restricted to Claude's recipe, and asked that the
+finished results guide both agreements and challenges to Claude's conclusions.
+
+**Result**:57 PB SLA/F1 and10 PRMB within-AUC replays agree to floating precision;
+30 outer/40 inner jobs show no recorded train/test overlap. Position evidence
+improves PRMB within-AUC from .758912 to .767425 while thresholded PRMScore falls;
+learned plain-evidence weights help PRMB but hurt PB. These are task-specific
+findings, not a closure of all pseudo-labels/SSL or an information ceiling.
+Step-z seed normalization changes1508 PB decisions and recovers frozen equal
+SLA .324895 versus raw seed .296440. Found driver/module basename collision in
+source freezing; data hashes agree, except an explained completion-log append.
+Plan and read-only audit only; no research implementation, fit or inference run.
+
+**Files changed**:
+- `docs/experiments/SSL_PSEUDOLABEL_RESIDUAL_LOCALIZATION_PLAN_HE.md` - detailed v1.1 plan.
+- `scratch/review_step_evidence_for_plan_20260923.py` and its audit JSON - replay evidence.
+- `PROGRESS.md` and `HISTORY.md` - planning handoff and result context.
+
+**Publication handoff (2026-09-23)**: Omri assigned Claude publication of his own
+work and Codex publication of its review/plan package. Added
+docs/reviews/CODEX_REVIEW_HANDOFF_20260923.md with source versions, artifact index,
+reproduction requirements and external-data limitations. Included the earlier
+token-axis audit and compact replay outputs; made its audit repository path
+relative to the script. No Claude experiment worktree or frozen result changed.

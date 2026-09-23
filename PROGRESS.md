@@ -1,3 +1,51 @@
+## Codex review publication handoff - 2026-09-23
+
+Omri assigned Claude publication of his own work and Codex publication of its
+reviews, research plan and audit evidence. The scoped package is documented in
+docs/reviews/CODEX_REVIEW_HANDOFF_20260923.md, including inspected source commits,
+reproduction commands and required external data. Publication branch:
+codex/token-local-fusion-optimization-v1. No Claude worktree is modified.
+
+## SSL / pseudo-label / residual localization plan and completed Step432 review - 2026-09-23
+
+Omri requested an implementable Hebrew Markdown research plan, including several
+pseudo-label uses beyond Claude's recipe and explicit treatment of his completed
+results. Plan: docs/experiments/SSL_PSEUDOLABEL_RESIDUAL_LOCALIZATION_PLAN_HE.md
+(v1.1). Defines data/split contracts, formulas, bounded stages, controls, metrics,
+paired source uncertainty, output schemas and required report conclusions.
+Step432 A1 is COMPLETE: 30 outer +40 inner jobs. Independent read-only replay:
+57 PB SLA/F1 rows and10 PRMB within-AUC rows agree to floating precision.
+PRMB position evidence .767425 vs plain .758912, while PRMScore weakens;
+plain evidence +L-SML improves PRMB .002989 but hurts PB. No CT7 promotion.
+The plan therefore prioritizes S0-C: nested-score calibration with ranking held
+fixed, followed by separate pseudo-target, temporal/contribution residual and
+masked-SSL/learned-pooling protocols. No new training or inference launched.
+Seed normalization audit: adding step-z changes1508/6800 PB predictions and
+reproduces Step429 equal SLA .324895 versus Step432 raw seed .296440.
+Source snapshot basename collision omits the driver hash; recorded data hashes
+match, with only an explained completion-log append. Evidence/script:
+scratch/step_evidence_plan_review_20260923/AUDIT.json and
+scratch/review_step_evidence_for_plan_20260923.py. Claude artifacts unchanged.
+
+## Independent review of Claude Steps 428-429 - 2026-09-22
+
+Reviewed readout-quickest-detection-v1 at e572fbdc1 against its protocols and
+frozen artifacts. Independently replayed all157 PB SLA/F1 bundles and eight
+full PRMB within-AUC bundles; 300 outer/320 inner jobs, no recorded source-group
+overlap. Seven frozen source hashes match;20 existing tests pass. No new fit.
+Headline no-promotion decision supported; several broader closure claims are not.
+Confirmed Page 'causal' diagnostic re-standardizes on the whole answer: same
+prefix/different suffix changes earlier scores. B4 ln(100)/KL is descriptive,
+not a justified Lorden delay bound under this data/false-alarm contract. Holm
+family1464 with10000 draws has minimum adjusted p=.146385; no contrast passes.05.
+Selected-per-channel readouts are not an upper bound on joint learned pooling.
+Additional frozen-score competitor-count diagnostic supports the long-chain
+competition hypothesis; explicitly label-using, descriptive, not a candidate.
+Hebrew review and bounded self-supervised proposal:
+docs/reviews/CLAUDE_READOUT_REVIEW_20260922_HE.md.
+Evidence: scratch/claude_readout_review_20260922/AUDIT.json and
+scratch/review_claude_readout_20260922.py. Experiment source/results unchanged.
+
 ## Cross-branch review - cumulative vote fusion, 2026-09-21
 
 Reviewed freshly fetched `origin/claude/token-axis-fusion-sampling-3i9r2u`
