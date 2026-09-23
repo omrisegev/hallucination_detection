@@ -1,0 +1,98 @@
+pb_q4 fold0: ridge train MSE 196319756.1669 (zero 309878956.7955), 6s
+pb_q4 fold1: ridge train MSE 521203612.6120 (zero 1052988804.5460), 6s
+pb_q4 fold2: ridge train MSE 392049028.6714 (zero 1228865040.1328), 6s
+pb_q4 fold3: ridge train MSE 1195353787.9125 (zero 2057832801.3580), 6s
+pb_q4 fold4: ridge train MSE 2175389856.1550 (zero 2380208672.7180), 5s
+pb_q8 fold0: ridge train MSE 595397816.3328 (zero 928118069.6504), 5s
+pb_q8 fold1: ridge train MSE 195669795.3305 (zero 4874186418.1660), 5s
+pb_q8 fold2: ridge train MSE 128119824.2632 (zero 131395095.4733), 8s
+pb_q8 fold3: ridge train MSE 148488855.5168 (zero 197842311.1404), 8s
+pb_q8 fold4: ridge train MSE 105413478.6739 (zero 165041557.2492), 6s
+prm fold0: ridge train MSE 3361501.2527 (zero 4269547.1666), 11s
+prm fold1: ridge train MSE 964785.2514 (zero 1201447.6150), 9s
+prm fold2: ridge train MSE 1537289.1471 (zero 1682208.3899), 9s
+prm fold3: ridge train MSE 238253.3193 (zero 271534.5674), 8s
+prm fold4: ridge train MSE 773979.5564 (zero 1578614.3875), 11s
+                                 contrast_id  primary        endpoint     delta   ci95_lo   ci95_hi
+0                              R_TEMP - BASE     True   pb_sla_macro8 -0.015393 -0.023329 -0.007560
+1                              R_TEMP - BASE     True  prm_within_auc -0.009242 -0.010908 -0.007600
+2                            R_TEMP - R_ZERO     True   pb_sla_macro8 -0.012990 -0.021848 -0.004116
+3                            R_TEMP - R_ZERO     True  prm_within_auc -0.009549 -0.011398 -0.007705
+4                              R_ZERO - BASE    False   pb_sla_macro8 -0.002403 -0.008582  0.003668
+5                              R_ZERO - BASE    False  prm_within_auc  0.000308 -0.001191  0.001801
+6                           R_NORESET - BASE    False   pb_sla_macro8 -0.023670 -0.032256 -0.015205
+7                           R_NORESET - BASE    False  prm_within_auc -0.012343 -0.013871 -0.010823
+8                         R_TEMP - R_NORESET    False   pb_sla_macro8  0.008277  0.001624  0.014853
+9                         R_TEMP - R_NORESET    False  prm_within_auc  0.003102  0.001408  0.004800
+10                              R_ABS - BASE    False   pb_sla_macro8 -0.016640 -0.025014 -0.008418
+11                              R_ABS - BASE    False  prm_within_auc -0.009274 -0.010928 -0.007639
+12                             R_ONLY - BASE    False   pb_sla_macro8 -0.132578 -0.155188 -0.110191
+13                             R_ONLY - BASE    False  prm_within_auc -0.113318 -0.120889 -0.105761
+14                            R_ABS - R_TEMP    False   pb_sla_macro8 -0.001247 -0.005210  0.002597
+15                            R_ABS - R_TEMP    False  prm_within_auc -0.000032 -0.001124  0.001059
+16                                BASE - ct7    False   pb_sla_macro8 -0.073967 -0.090819 -0.057187
+17                                BASE - ct7    False  prm_within_auc -0.016084 -0.020153 -0.011994
+18                         BASE - token_lsml    False   pb_sla_macro8 -0.034342 -0.049377 -0.019504
+19                         BASE - token_lsml    False  prm_within_auc  0.003149 -0.001029  0.007310
+20                        BASE - token_equal    False   pb_sla_macro8 -0.001031 -0.017824  0.015716
+21                        BASE - token_equal    False  prm_within_auc  0.025208  0.020933  0.029499
+22      BASE - evidence30__all__plain__equal    False   pb_sla_macro8 -0.024604 -0.040754 -0.008533
+23      BASE - evidence30__all__plain__equal    False  prm_within_auc  0.044534  0.037857  0.051223
+24     BASE - evidence__all__position__equal    False   pb_sla_macro8  0.029705  0.011725  0.047731
+25     BASE - evidence__all__position__equal    False  prm_within_auc -0.011112 -0.014701 -0.007546
+26    BASE - evidence__all__position2__equal    False   pb_sla_macro8  0.044284  0.026548  0.062107
+27    BASE - evidence__all__position2__equal    False  prm_within_auc -0.013242 -0.017457 -0.009071
+28                              R_TEMP - ct7    False   pb_sla_macro8 -0.089360 -0.107215 -0.071583
+29                              R_TEMP - ct7    False  prm_within_auc -0.025325 -0.029580 -0.021082
+30                       R_TEMP - token_lsml    False   pb_sla_macro8 -0.049735 -0.066302 -0.033210
+31                       R_TEMP - token_lsml    False  prm_within_auc -0.006092 -0.010357 -0.001862
+32                      R_TEMP - token_equal    False   pb_sla_macro8 -0.016424 -0.034258  0.001517
+33                      R_TEMP - token_equal    False  prm_within_auc  0.015967  0.011538  0.020367
+34    R_TEMP - evidence30__all__plain__equal    False   pb_sla_macro8 -0.039997 -0.057124 -0.023057
+35    R_TEMP - evidence30__all__plain__equal    False  prm_within_auc  0.035292  0.028678  0.041920
+36   R_TEMP - evidence__all__position__equal    False   pb_sla_macro8  0.014312 -0.004294  0.033022
+37   R_TEMP - evidence__all__position__equal    False  prm_within_auc -0.020353 -0.024112 -0.016651
+38  R_TEMP - evidence__all__position2__equal    False   pb_sla_macro8  0.028891  0.010412  0.047609
+39  R_TEMP - evidence__all__position2__equal    False  prm_within_auc -0.022484 -0.026845 -0.018158
+40                              R_ZERO - ct7    False   pb_sla_macro8 -0.076370 -0.093559 -0.059396
+41                              R_ZERO - ct7    False  prm_within_auc -0.015776 -0.019923 -0.011617
+42                       R_ZERO - token_lsml    False   pb_sla_macro8 -0.036745 -0.051915 -0.021779
+43                       R_ZERO - token_lsml    False  prm_within_auc  0.003457 -0.000531  0.007433
+44                      R_ZERO - token_equal    False   pb_sla_macro8 -0.003434 -0.020012  0.013063
+45                      R_ZERO - token_equal    False  prm_within_auc  0.025516  0.021342  0.029727
+46    R_ZERO - evidence30__all__plain__equal    False   pb_sla_macro8 -0.027007 -0.043340 -0.010833
+47    R_ZERO - evidence30__all__plain__equal    False  prm_within_auc  0.044842  0.038443  0.051255
+48   R_ZERO - evidence__all__position__equal    False   pb_sla_macro8  0.027302  0.009225  0.045466
+49   R_ZERO - evidence__all__position__equal    False  prm_within_auc -0.010804 -0.014051 -0.007570
+50  R_ZERO - evidence__all__position2__equal    False   pb_sla_macro8  0.041881  0.023968  0.059910
+51  R_ZERO - evidence__all__position2__equal    False  prm_within_auc -0.012935 -0.016731 -0.009175
+{
+ "status": "COMPLETE",
+ "started": "2026-09-23T13:06:40",
+ "run_id": "run_20260923",
+ "finished": "2026-09-23T13:09:29",
+ "fits": 15,
+ "failures": 0,
+ "methods": [
+  "BASE",
+  "R_TEMP",
+  "R_ZERO",
+  "R_NORESET",
+  "R_ONLY",
+  "R_ABS",
+  "ct7",
+  "token_lsml",
+  "token_equal",
+  "evidence30__all__plain__equal",
+  "evidence__all__position__equal",
+  "evidence__all__position2__equal"
+ ],
+ "invalid_bootstrap_draw_rate": 0.0
+}
+{
+ "fit_and_score_s": 113.73335259995656,
+ "eval_s": 16.071312899992336,
+ "bootstrap_s": 37.0446528000175,
+ "total_s": 168.78603469999507,
+ "output_bytes": 61790468
+}
