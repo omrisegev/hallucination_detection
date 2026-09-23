@@ -112,6 +112,20 @@ def cpu_collector_smoke(out):
     answers = [Answer(str(i), "fixture", str(i), "Q", "Q", ("abc", "defg")) for i in range(5)]
     items = driver.make_items(answers, CharTokenizer(), 512)
     gate = driver.alignment_gate(model, items[0])
+    # A target off-by-one must fail even when prefix differences might otherwise
+    # be attributed to numerical precision.
+    from unittest.mock import patch
+    import backfill_views
+    original_forward = backfill_views.forward_batch
+    def shifted_forward(m, rows):
+        return [x.roll(1, dims=0) for x in original_forward(m, rows)]
+    with patch.object(backfill_views, 'forward_batch', shifted_forward):
+        try:
+            driver.alignment_gate(model, items[0])
+        except ValueError:
+            pass
+        else:
+            raise AssertionError('incorrect target alignment accepted')
     with RecordStore(out, {"cpu_smoke":1}) as store:
         complete, rows = driver.run(items, store, lambda i:driver.collect_quantities(model,i), range(5))
         assert complete and len(rows)==5

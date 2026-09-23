@@ -65,7 +65,7 @@ def collect_quantities(model, item):
             "top_k_logprobs": {"ids": top["ids"].tolist(), "logprobs": top["logprobs"].tolist()}}
 
 
-def alignment_gate(model, item):
+def alignment_gate(model, item, *, model_id=None, revision=None, evidence=None):
     """Fixed-token serial-prefix vs batched teacher-forcing consistency; no generation.
 
     Complements (does not claim to replace) historical generated-cache Gate B.
@@ -76,16 +76,44 @@ def alignment_gate(model, item):
     short = dict(item, gen_ids=item["gen_ids"][:16])
     with torch.no_grad():
         batch = forward_batch(model, [short])[0].float().log_softmax(-1)
-        differences = []
+        differences, causal_errors, offset_errors = [], [], []
+        full_ids = torch.tensor([short['prompt_ids'] + short['gen_ids']], device=model.device)
+        direct = model(input_ids=full_ids, attention_mask=torch.ones_like(full_ids),
+                       use_cache=False).logits[0].float().log_softmax(-1)
         for j in sorted({0, len(short["gen_ids"])//2, len(short["gen_ids"])-1}):
             prefix = short["prompt_ids"] + short["gen_ids"][:j]
             ids = torch.tensor([prefix], device=model.device)
             lp = model(input_ids=ids, use_cache=False).logits[0, -1].float().log_softmax(-1)
             target = short["gen_ids"][j]
             differences.append(abs(float(lp[target] - batch[j, target])))
+            offset_errors.append(float((direct[len(short['prompt_ids'])-1+j] - batch[j]).abs().max()))
+            changed = dict(short, gen_ids=short['gen_ids'][:j] +
+                           [(t+1) % batch.shape[-1] for t in short['gen_ids'][j:]])
+            causal = forward_batch(model, [changed])[0][j].float().log_softmax(-1)
+            causal_errors.append(float((causal-batch[j]).abs().max()))
+    import math
+    if not all(math.isfinite(x) for x in differences + causal_errors + offset_errors):
+        raise ValueError('non-finite alignment measurement')
+    if max(causal_errors + offset_errors) > 1e-5:
+        raise ValueError('fixed-shape causal/target-offset gate failed')
+    evidence_sha = None
     if max(differences) > .05:
-        raise ValueError("fixed-token alignment gate failed: " + str(differences))
-    return {"status": "PASS", "actual_logprob_abs_errors": differences, "max_allowed": .05}
+        # A single reviewed numerical exception, bound to exact immutable evidence,
+        # checkpoint and example. Never turn this into a blanket bf16 tolerance.
+        if (evidence is None or model_id != 'Qwen/QwQ-32B' or
+                revision != '976055f8c83f394f35dbd3ab09a285a984907bd0' or
+                file_hash(evidence) != '6aaf9f704d0475e12c73ffab0cbc8a25540c1bcca57c3f9b42f8b64ccecf6079'):
+            raise ValueError('prefix discrepancy requires reviewed pinned numerical evidence')
+        diagnostic = json.loads(evidence.read_text())
+        expected = [abs(r['plain_prefix_delta']) for r in diagnostic['bf16']]
+        if (diagnostic['uid'] != item['uid'] or len(expected) != len(differences) or
+                any(abs(x-y) > 1e-4 for x,y in zip(expected,differences))):
+            raise ValueError('prefix discrepancy does not reproduce reviewed diagnostic')
+        evidence_sha = file_hash(evidence)
+    return {'status': 'PASS', 'gate_version': 2, 'actual_logprob_abs_errors': differences,
+            'prefix_standard_limit': .05, 'prefix_standard_pass': max(differences) <= .05,
+            'causal_full_vocab_errors': causal_errors, 'target_offset_full_vocab_errors': offset_errors,
+            'fixed_shape_limit': 1e-5, 'numerical_evidence_sha256': evidence_sha}
 
 
 def run(items, store, scorer, selected, *, memory=lambda: 0):
@@ -124,6 +152,7 @@ def main():
     p.add_argument("--estimate", type=Path)
     p.add_argument("--max-context", type=int, default=32768)
     p.add_argument("--validate-pkl", type=Path)
+    p.add_argument("--alignment-evidence", type=Path)
     args = p.parse_args()
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
@@ -149,7 +178,8 @@ def main():
                 "chat_template_sha256": digest(tok.chat_template), "prompt_suffix": " /no_think",
                 "thinking_mode": "tokenizer_default_with_source_no_think_suffix",
                 "max_context": args.max_context, "schema": 1, "mode": args.mode,
-                "selected_uids": [items[i]["uid"] for i in selected]}
+                "selected_uids": [items[i]["uid"] for i in selected], 'alignment_gate_version': 2,
+                'alignment_evidence_sha256': file_hash(args.alignment_evidence) if args.alignment_evidence else None}
     atomic_json(args.out / "TOKENIZATION.json", {"identity": identity, "lengths": lengths,
                 "uids": [a.uid for a in answers], "selected_indices": selected,
                 "total_answer_tokens": sum(len(i["gen_ids"]) for i in items), "truncated": 0})
@@ -159,7 +189,8 @@ def main():
     model.eval()
     load_seconds = time.perf_counter()-loaded_at
     torch.cuda.reset_peak_memory_stats()
-    gate = alignment_gate(model, items[min(range(len(items)), key=lambda i:lengths[i])])
+    gate = alignment_gate(model, items[min(range(len(items)), key=lambda i:lengths[i])],
+                          model_id=args.model, revision=args.revision, evidence=args.alignment_evidence)
     if args.validate_pkl:
         from types import SimpleNamespace
         from run_teacher_forced import run_gate_b
