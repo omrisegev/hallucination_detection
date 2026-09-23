@@ -1,0 +1,42 @@
+{
+  "protocol_id": "ssl_pseudolabel_residual_localization_v1/S5-CPU",
+  "version": "1.0",
+  "frozen_before_scoring": "2026-09-23",
+  "status": "development_only",
+  "question": "Does a learned attention pooling inside a step combine token evidence better than the frozen top5 readout, with the teacher held fixed?",
+  "deviation_from_plan_section_11": {
+    "reason": "Omri excluded GPU self-supervision on 2026-09-23, so S4 is not run and its encoder does not exist.",
+    "removed": "the 11 masked-linear residual columns and the 32-dim SSL embedding, and with them the H_SSL and H_SSL_MEAN arms",
+    "kept": "the plan's own H_RAW arm (attention pooling over the raw token channels), the P_SOFT target, the role contract of plan 4.4, the optimizer settings of section 11, the B-fold global scale, and both primary endpoints",
+    "not_answered": "whether a learned SSL representation adds information; only the narrow pooling question is answered"
+  },
+  "representation": {
+    "tokens": "TOKEN_MATRICES.npz, 6,968,779 tokens x 11 float32 channels, token_offsets, step_spans (answer-relative); 6,963,312 tokens lie inside a step and are the only ones used",
+    "normalization": "per answer, per channel standardization over the answer's tokens (mean 0, SD 1; SD <= 1e-8 -> channel is all zeros)",
+    "normalization_rationale": "S2 finding: the frozen median/IQR normalization leaves top50_js, chosen_surprisal and true_tail50 with variance 1e6-3e9, so any channel-mixing pooling is otherwise dominated by three channels",
+    "no_position_no_length_no_text_no_digit_features": true
+  },
+  "base": "plan 5.2 teacher (as S1/S2/S3): PB q_loc = mean_c softmax_s(Z); PRMB q_step = mean_c sigmoid(Z); Z = per-answer per-channel standardization of the frozen top5 step profile",
+  "arms": {
+    "BASE": "the teacher itself; fit-free, frozen readout top5 with equal channel weights",
+    "H_TOP5": "linear head u_s = w^T Z_s + b on the frozen top5 step profile, L-BFGS as plan 7.2 (this is the S1 P_SOFT student, recomputed here as the fixed-readout rung of the ladder)",
+    "H_MEAN": "same token features, uniform pooling attention_t = 1/n_tokens_s, AdamW as section 11",
+    "H_RANDATT": "attention of the same form with W, a, v frozen at random initialization; only the token-risk head is learned",
+    "H_RAW": "learned attention: k_t = tanh(W f_t + a) in R^32, attention_t = softmax_within_step(v^T k_t), token_risk_t = w^T f_t + b, u_s = sum_t attention_t * token_risk_t"
+  },
+  "target": "P_SOFT only (PB q_loc, PRMB q_step); no gate, no confidence filtering, no teacher reselection after S1",
+  "loss": "plan 7.2: PB weighted cross-entropy of q against log_softmax(u) over the answer's steps; PRMB weighted mean over steps of BCEWithLogits(u, q); answers drawn with the plan 5.3 weights",
+  "optimizer": {"neural_arms": "AdamW, lr 1e-3, weight_decay 1e-4, 2000 updates, batch 16 answers sampled with replacement by the 5.3 weights, seeds 0/1/2, the LAST head is the result", "H_TOP5": "L-BFGS from zero, ridge 0.01, maxiter 1000, gtol 1e-6, PB bias fixed at 0", "no_checkpoint_selection": true, "no_validation_on_H_or_C": true},
+  "scale": "per head/seed, weighted mean and SD of u on B (answer mass divided by step count); final score = mean over the three seeds of (u - mu_B)/max(sd_B,1e-8); one global scale per fold/seed, no per-answer re-centering",
+  "splits": {"H": "fold k (evaluation)", "C": "(k+1) mod 5 (PRMScore quantile calibration only)", "B": "(k+2) mod 5 (all head fits)", "A": "(k+3) mod 5 and (k+4) mod 5 - UNUSED in S5-CPU, because there is no encoder or transform to fit", "tasks": ["pb_q4", "pb_q8", "prm"]},
+  "primary_endpoints": ["pb_sla_macro8", "prm_within_answer_auc"],
+  "primary_family": {"contrasts": ["H_RAW - BASE", "H_RAW - H_MEAN", "H_RAW - ct7"], "K": 6, "ci": "95% and Bonferroni 1-0.05/6"},
+  "secondary": ["H_RAW - H_RANDATT", "H_RAW - H_TOP5", "H_MEAN - BASE", "H_TOP5 - BASE", "H_RANDATT - BASE", "each arm vs the fixed comparators", "PB F1 with the frozen CT7 gate", "PRMScore (C-calibrated; raw and per-answer z, per the S0-C rule)", "depth strata", "rescue matrices"],
+  "comparators_fixed": ["ct7", "token_lsml", "token_equal", "evidence30__all__plain__equal", "evidence__all__position__equal", "evidence__all__position2__equal"],
+  "diagnostics": ["attention entropy vs uniform, per task and depth stratum", "attention mass on the first/last token of a step", "correlation of attention with each raw channel", "token-risk weights per channel", "loss traces per arm/fold/seed", "seed spread of every endpoint", "drop-top-attention vs drop-equally-many-random-tokens (post-evaluation diagnostic only)"],
+  "failure_policy": "a non-finite u, a non-converged L-BFGS fit or a step with no tokens is a visible failure per (task, fold, seed); the affected H answers keep BASE and are reported as a separate baseline-preserving fallback row, never as native predictions",
+  "bootstrap": {"unit": "source_group", "draws": 100000, "seed": 20260923, "paired": true},
+  "budget": "<= 4 CPU-hours + evaluation; stop INCOMPLETE rather than truncate the training budget",
+  "labels": "v3", "folds": "source_groups_v2", "digit_features": false, "new_raw_inference": false, "automatic_stage_chaining": false,
+  "interpretation": "Attention is not a causal explanation. A gain must beat BOTH uniform pooling (H_MEAN, same optimizer and budget) and arbitrary attention of the same form (H_RANDATT); beating only BASE would confound learned pooling with learned channel weights."
+}
