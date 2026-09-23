@@ -1,0 +1,33 @@
+{
+  "protocol_id": "ssl_pseudolabel_residual_localization_v1/S0-C",
+  "frozen_before_scoring": "2026-09-23",
+  "status": "development_only",
+  "question": "Does a realizable between-answer scale change improve PRMScore while the within-answer ranking stays exactly the same?",
+  "source_run": ".worktrees/readout-quickest-detection-v1/results/step_evidence_v1 (Claude Step 432, amendment A1)",
+  "methods": ["evidence__all__plain__equal", "evidence__all__position__equal", "evidence__all__position2__equal"],
+  "comparators_no_retuning": ["ct7 (frozen anchor, original prmscore_inner)", "original prmscore_inner of each method from the run"],
+  "transforms_per_answer": {
+    "C_RAW": "s",
+    "C_Z": "(s - mean(s)) / max(population_sd(s), 1e-8)",
+    "C_ECDF": "(average_rank(s) - 0.5) / len(s)"
+  },
+  "calibration_scores_for_outer_fold_k": "inner-held predictions of the 4 jobs prm__fold{k}__evidence__all__spectral__inner{j}, j != k; each fitted excluding folds k and j; transform applied per whole answer; concatenated over the 4 folds j",
+  "evaluation_scores_for_outer_fold_k": "outer-held OOF scores of fold k (OOF_STEP_SCORES.npz), transformed per whole answer",
+  "threshold_grid": "quantiles 0.50..0.99 step 0.01 of the pooled calibration step scores (50 values)",
+  "threshold_selection": {
+    "inner_selected": "quantile maximizing total PRMScore on calibration labels, eligibility = classification != 'correct'; ties -> lower quantile; the NUMERIC threshold is frozen and applied to fold k (supervised calibration)",
+    "q80": "fixed quantile 0.80 of the calibration scores (label-free)"
+  },
+  "decision": "step VALID iff transformed score < threshold (lower score = less suspicious)",
+  "identity_check": "within-answer AUROC of C_Z and C_ECDF must equal C_RAW to 1e-12 for every method",
+  "evaluator": "spectral_utils/prmbench.py::prmbench_evaluate (frozen official port); vectorized total-PRMScore reimplementation verified against all 114 saved decision sets before use",
+  "primary_family": {
+    "method": "evidence__all__position__equal",
+    "tests": ["C_Z - C_RAW (PRMScore, inner-selected)", "C_ECDF - C_RAW (PRMScore, inner-selected)"],
+    "uncertainty": "paired source-group bootstrap, 100000 draws, seed 20260923, 95% CI and Bonferroni 97.5% CI"
+  },
+  "secondary": ["other two methods", "q80 thresholds", "pooled step AUROC", "clean-control false-alarm rate (classification == 'correct')", "between-answer location/scale shift", "original PRMScore of the run beside recalibrated C_RAW"],
+  "interpretation_rule": "PRMScore up with identical within-AUC = a better use of the same rankings for the decision contract, not new localization information. No improvement in both transforms does not close all calibration methods; do not search further transforms.",
+  "budget": "<= 2 CPU-hours before evaluation; no fit of histogram/teacher/SSL",
+  "labels": "v3", "folds": "source_groups_v2", "digit_features": false, "new_raw_inference": false
+}
