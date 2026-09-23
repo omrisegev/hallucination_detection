@@ -1,3 +1,13 @@
+## SSL plan stage S1 complete (Claude) - 2026-09-23
+
+`results/ssl_pseudolabel_residual_v1/S1/run_20260923/`: one linear student, six
+targets. Teacher reproduces Step 429 equal (32.49% PB / 0.7563 PRMB). Primary:
+P_SOFT - P_HARD -0.43 pp [-0.96, +0.10] / -0.0019; P_AGREE - P_SOFT +1.10 pp
+[+0.39, +1.83] / -0.0097. Mixed, no winner; every student within 1.4 pp of its
+teacher; P_AGREE trains on 4.7% of PB answers and its PB gain is mostly matched by
+a coverage-matched P_SOFT. All below token L-SML and CT7. See HISTORY Step 434.
+Next: S2. BOOTSTRAP_DELTAS.npz / PSEUDO_TARGETS.npz are on disk only (>20 MB).
+
 ## SSL plan stages S0 + S0-C complete (Claude) - 2026-09-23
 
 Branch `claude/ssl-pseudolabel-residual-v1`, worktree `.worktrees/ssl-pseudolabel-residual-v1`,
