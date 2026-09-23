@@ -1,3 +1,37 @@
+## Step 437 (local run) — the supervised PRM measured beside CT7 on PRMBench: ahead by 2–3 pp on every matched endpoint, but it misses 36 % of the answers CT7 localizes correctly, and its conditional correlation with the CT7 mean is only 0.27 — 2026-09-23
+
+Worktree `.worktrees/lsml-ct7-levers-run` on `claude/lsml-ct7-levers-v1` @ `fbf0984bc`.
+Measurement only: no new arm, no PRM+CT7 fusion, nothing fitted on labels.
+Full account in HISTORY Step 437 [local][prm-measure]. Results in `results/prm_vs_ct7_prmbench_v1/`.
+
+- **Matched endpoints** (`MEASUREMENT.json`, N = 6,030 eligible answers / 6,969 scored predictions):
+  `ct7_z` .7724 within-AUC / .7240 pooled / .6457 q80 / .6504 inner; `fam421_answer` .7801 / .7287 /
+  .6547 / .6601; **supervised** `prm_risk` .8012 / .8028 / .6804 / .6829; `prm_risk_z` .8012 / .7356 /
+  .6733 / .6747. The PRM's own native 0.5 threshold scores **.6546**, below both of our threshold
+  rules on the same PRM scores — the reward ordering beats its shipped cut-point.
+- **Contrasts** (10,000 source-group draws, all exclude zero): PRM − CT7 **+2.88 pp** [+2.14, +3.60];
+  PRM − fam421 **+2.11 pp** [+1.39, +2.80]; fam421 − CT7 **+0.77 pp** [+0.55, +0.99].
+- **The gap is class-specific, not uniform.** PRM ahead on `confidence` (.923 vs .786),
+  `counterfactual` (.857 vs .713), `deception` (.812 vs .643). PRM *behind* on `redundency`
+  (.654 vs .850), `circular` (.763 vs .807), `domain_inconsistency` (.828 vs .857).
+- **Not a redundant view.** Conditional (within-label) correlation of PRM risk with the CT7 mean
+  **0.270** (marginal 0.334), with the seven views 0.135–0.279. Conditional PR 1.798 → 2.205 (seven
+  views + PRM), 1.853 → 2.596 (three families + PRM). Per-answer within-AUC rank corr 0.255.
+- **Complementarity** (6,035 erroneous answers, argmax on an error step): CT7 61.1 %, fam421 64.0 %,
+  PRM 57.8 % — the PRM's hit rate is *lower* than CT7's. Both 39.0 %, CT7-only 22.1 %, PRM-only
+  18.8 %, neither 20.1 %, union **79.9 %**, φ 0.153 vs both-if-independent 35.3 %.
+- Asserts passed as written: CT7 within-AUC .7723966352864217, profiles sha `d564ba43…`, 0
+  reward-length/NaN failures on 6,969 answers. 15.3 s. `RUN_FREEZE.json` written.
+
+**Access**: `prm_risk` rows are a supervised external verifier (Qwen2.5-Math-PRM-7B, step-level
+correctness labels, own forward pass) — a high-access reference row, never a label-free arm. Nothing
+promoted or fused; development evidence on already-evaluated data, not untouched confirmation.
+
+Next: nothing is scheduled from this measurement. The open question it raises for Omri is whether the
+class split (PRM wins semantic classes, CT7 wins structural ones) and the 20.1 % neither-hits are
+worth a follow-up; that is a decision, not a queued run.
+
+
 ## Step 436 (local run) — items 3 and 4 completed after gate correction A1: token-level L-SML is below equal, the window representation passes its PR gate but learned weights buy nothing — 2026-09-23
 
 Worktree `.worktrees/lsml-ct7-levers-run` on `claude/lsml-ct7-levers-v1` @ `54341ed2b`. 23 tests pass.

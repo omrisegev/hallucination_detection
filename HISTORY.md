@@ -58059,3 +58059,70 @@ Decision language: the gate passed, but no learned arm beats equal with an inter
 protocol's "first configuration in L-SML's domain" wording does not apply. Nothing is promoted or frozen.
 
 ---
+
+### Step 437 [local][prm-measure] — The supervised PRM measured beside CT7 on PRMBench under matched endpoints: it wins every headline by 2–3 pp, but it is not a redundant copy of CT7 — the two land on different error steps, and the locator that scores worse than the PRM is the one that answers the questions the PRM cannot
+
+**What**: `scripts/diagnostics/prm_vs_ct7_prmbench_v1.py` with `configs/prm_vs_ct7_prmbench_v1.json`
+on the frozen PRMBench population. Measurement only — no new arm, no fusion of the PRM with CT7,
+nothing fitted on labels. Four score rows are put through exactly the endpoints CT7 already reports
+(`cvf_v2.scoring.prm_metrics` / `prmscores`): `ct7_z`, `fam421_answer` (the Step-434 family-equal
+readout), `prm_risk = 1 − reward` read straight out of `prmbench_prm.pkl`, and its answer-standardized
+form `prm_risk_z`; plus the PRM's own native 0.5-threshold PRMScore row. Then two independence
+measurements on the 94,203 labelled PRMBench steps — within-label (conditional) correlation of the
+PRM with each CT7 view and with the CT7 mean, and the conditional participation ratio with and without
+the PRM — and a descriptive argmax-hit complementarity table on the 6,035 erroneous answers.
+
+**Why**: the PRM is a supervised external verifier (Qwen2.5-Math-PRM-7B) and has sat unused in the
+file every PRMScore run already loads. Two things needed measuring before any claim about CT7's
+headroom: how far the supervised reference actually is under *our* endpoints (previous comparisons
+were paper-reported, unmatched), and whether its evidence is the same evidence CT7's seven views
+already carry. The conditional participation ratio of the CT7 bank is 1.80 of 7 — the question is
+whether a supervised verifier adds an independent direction to that or collapses into it.
+
+**Result** (`results/prm_vs_ct7_prmbench_v1/MEASUREMENT.json`, `PRMSCORE.json`; N = 6,030 eligible
+answers for within-AUC, 6,969 scored predictions for PRMScore, 94,203 steps for independence):
+
+| row (access) | within-AUC | pooled AUROC (fold mean) | PRMScore q80 | PRMScore inner |
+|---|---|---|---|---|
+| `ct7_z` (label-free) | .772397 | .724027 | .645689 | .650370 |
+| `fam421_answer` (label-free) | .780120 | .728662 | .654664 | .660091 |
+| `prm_risk` (**supervised**) | .801180 | .802773 | .680351 | .682885 |
+| `prm_risk_z` (**supervised**) | .801180 | .735584 | .673272 | .674726 |
+
+The PRM's native 0.5 threshold gives PRMScore .654568 — *below* both of our threshold rules applied
+to the same PRM scores (.680351 / .682885), i.e. the reward ordering is better than the shipped
+cut-point. All three paired within-AUC contrasts (10,000 source-group draws) exclude zero:
+`prm_risk − ct7` +2.878 pp [+2.142, +3.601]; `prm_risk − fam421_answer` +2.106 pp [+1.388, +2.803];
+`fam421_answer − ct7` +0.772 pp [+0.547, +0.994].
+
+The aggregate hides a clean split by error type. The PRM is far ahead on `confidence` (.923 vs .786),
+`counterfactual` (.857 vs .713) and `deception` (.812 vs .643) — semantic/pragmatic errors — and
+*behind* CT7 on `redundency` (.654 vs .850), `circular` (.763 vs .807) and `domain_inconsistency`
+(.828 vs .857). CT7's three worst classifications are exactly three of the PRM's four best.
+
+Independence: the conditional (within-label) correlation of the answer-standardized PRM risk with the
+CT7 mean is **0.270** (marginal 0.334), and with the individual views 0.135–0.279 (lowest
+`bocpd_residual` 0.135, highest `ve0` 0.279). Adding the PRM moves the conditional participation ratio
+of the seven views 1.798 → 2.205, and of the three families 1.853 → 2.596; CT7-mean-plus-PRM alone is
+1.864 of 2. So the PRM is a genuinely partly-new direction, not a copy — but not an orthogonal one
+either. Per-answer within-AUC rank correlation between CT7 and the PRM is 0.255.
+
+Complementarity on the 6,035 erroneous answers (argmax step lands on a labelled error step):
+CT7 hits 61.14 %, `fam421_answer` 64.04 %, the PRM 57.78 % — the PRM has the *lower* hit rate despite
+the higher within-AUC. Both 39.02 %, CT7-only 22.12 %, PRM-only 18.76 %, neither 20.10 %, union
+**79.90 %**. φ = 0.153, and both-if-independent is 35.30 % against the observed 39.02 %, so the hit
+sets are only weakly coupled. One in five answers is missed by both.
+
+Asserts all passed as written: CT7 within-AUC exactly .7723966352864217 on 6,030 eligible answers,
+`profiles.npy` sha256 `d564ba43…` matching `PROFILE_VALIDATION.json`, `CT7_DEV_SCORES.npz` sha matching
+the frozen constant, and 0 reward-length/NaN failures across all 6,969 PRM answers (reward range
+0.000345–1.0). Runtime 15.3 s (metrics 11.2 s, PRMScore 2.5 s). `RUN_FREEZE.json` hashes the four
+sources and six inputs.
+
+**Access note, to be carried with every citation of these numbers**: the `prm_risk` / `prm_risk_z`
+rows are a *supervised external verifier* trained on step-level correctness labels, with its own
+model forward pass. They are a high-access reference row, never a label-free arm and never a
+comparator our method "beats" or "loses to" on equal terms. Nothing here is promoted, frozen or
+fused; development evidence on already-evaluated data, not untouched confirmation.
+
+---
