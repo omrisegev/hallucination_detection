@@ -1,3 +1,15 @@
+## SSL plan stages S0 + S0-C complete (Claude) - 2026-09-23
+
+Branch `claude/ssl-pseudolabel-residual-v1`, worktree `.worktrees/ssl-pseudolabel-residual-v1`,
+results `results/ssl_pseudolabel_residual_v1/{S0,S0C}/`. S0 VALIDATED (57 methods replay to
+8e-17, 114 PRMScore exact). S0-C: per-answer z-score raises position-evidence PRMScore
+0.578 -> 0.640 (+0.062, CI [+0.053, +0.071]) with within-AUC unchanged; CT7 gains only
++0.003 from the same transform; matched z-vs-z gap to CT7 -0.011 [-0.015, -0.006]. The
+Step 432 PRMScore deficit was mostly between-answer scale. No promotion. Rule: normalize
+log-ratio-sum scores per answer before any PRMScore threshold. Next stage: S1 (pseudo-label
+targets P_HARD / P_SOFT / P_AGREE on one linear student, roles H/C/B/A per fold, 4 CPU-h cap).
+See HISTORY Step 433 [Claude].
+
 ## Codex review publication handoff - 2026-09-23
 
 Omri assigned Claude publication of his own work and Codex publication of its
