@@ -156,12 +156,13 @@ rc = Cp.loc[('H_RAW - ct7', 'pb_sla_macro8')]; rcp = Cp.loc[('H_RAW - ct7', 'prm
 def vd(r): return 'תומך' if r.ci_adj_lo > 0 else 'שלילי' if r.ci_adj_hi < 0 else 'לא מכריע'
 
 
+# frozen decision rule of PROTOCOL.json: a gain must clear BASE and BOTH controls.
 pos = [r.ci_adj_lo > 0 for r in [rb, rbp, rm_, rmp]]
-neg_base = rb.ci_adj_hi < 0 or rbp.ci_adj_hi < 0
-neg_mean = rm_.ci_adj_hi < 0 or rmp.ci_adj_hi < 0
-outcome = 'supported' if all(pos) else 'unsupported' if (neg_base and neg_mean) else 'inconclusive / mixed'
+outcome = ('supported' if all(pos)
+           else 'unsupported' if (rb.ci_adj_hi < 0 and rbp.ci_adj_hi < 0)   # loses to the teacher on both endpoints
+           else 'inconclusive / mixed')
 verdict_txt = ('שיפור מול ה-teacher וגם מול ממוצע אחיד: מועמד development להמשך, לא promotion.' if outcome == 'supported'
-               else 'pooling נלמד בתוך צעד אינו עדיף על ה-readout הקבוע; ה-attention לא מצא מה שהממוצע האחיד מפספס.' if outcome == 'unsupported'
+               else 'pooling נלמד בתוך צעד מפסיד ל-readout הקבוע בשתי נקודות המדידה. ה-attention כן לומד משהו אמיתי, כי הוא מנצח גם ממוצע אחיד וגם attention אקראי, אבל כל משפחת הממוצע-על-טוקנים נמצאת הרבה מתחת ל-top5.' if outcome == 'unsupported'
                else 'תמונה מעורבת או לא מכריעה; אין winner ואין סגירת המשפחה.')
 ent_raw = A[A.arm == 'H_RAW'].attention_entropy_ratio.mean()
 ent_rnd = A[A.arm == 'H_RANDATT'].attention_entropy_ratio.mean()
@@ -238,6 +239,7 @@ code{{font-family:"IBM Plex Mono",monospace;font-size:13px;direction:ltr;unicode
 <div class="next">
 <p><b>כלל הפירוש שהוקפא:</b> רווח חייב לעבור גם את BASE וגם את H_MEAN, כלומר גם את ה-readout הקפוא וגם ממוצע אחיד שאומן באותו אופן ובאותו תקציב. ניצחון על BASE בלבד היה מערבב "pooling נלמד" עם "משקלי ערוץ נלמדים", ולכן H_TOP5 ו-H_MEAN נמצאים שם בדיוק בשביל להפריד את השניים.</p>
 <p><b>לפי טבלת ההכרעה:</b> {verdict_txt}</p>
+<p><b>הסיבה המבנית.</b> ה-readout הקפוא לוקח את חמשת הערכים הגבוהים <em>בכל ערוץ בנפרד</em>, כלומר הוא בוחר קבוצת טוקנים שונה לכל אחד מ-11 הערוצים. ל-attention של התוכנית יש softmax אחד משותף לכל הערוצים, שמוכפל בציון סיכון סקלרי אחד לכל טוקן. הארכיטקטורה הזו אינה יכולה לבטא "top-k לכל ערוץ", וזה בדיוק המקום שבו יושב המידע. מכאן שהפער אינו שאלה של תקציב אימון או של seeds.</p>
 <p><b>מול CT7:</b> H_RAW {"מתחת" if est("H_RAW", "pb", "sla", "macro8") < est("ct7", "pb", "sla", "macro8") else "מעל"} ל-CT7 ב-ProcessBench ({pp(rc.delta)} נקודות) ו-{"מתחת" if est("H_RAW", "prm", "within_auc") < est("ct7", "prm", "within_auc") else "מעל"} ב-PRMBench ({sgn(rcp.delta)}).</p>
 </div>
 <p class="note">קבצים: <code>results/ssl_pseudolabel_residual_v1/S5/{RUN_ID}/</code>. פרוטוקול קפוא: <code>S5/PROTOCOL.json</code>. בדיקות: <code>tests/test_ssl_s5.py</code> (6 עוברות: סטנדרטיזציה לכל ערוץ ולכל תשובה, פעולות segment מול לולאת ייחוס, attention עם לוגיטים שטוחים שווה בדיוק לממוצע, שתי פונקציות ה-loss מול חישוב ידני ותשובה בת צעד אחד שעולה אפס, דחיית קלט דמוי-label והקפאת ה-attention האקראי, וכלל הסקאלה המשוקללת).</p>
