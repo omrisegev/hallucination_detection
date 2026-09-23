@@ -1,0 +1,31 @@
+{
+  "protocol_id": "ssl_pseudolabel_residual_localization_v1/S1",
+  "version": "1.0",
+  "frozen_before_scoring": "2026-09-23",
+  "status": "development_only",
+  "question": "Does the way the training target is built change localization, with representation and architecture held fixed?",
+  "representation": "P = frozen top5 readout (profiles_full[:, :, 0] of Step 432); Z = per-answer per-channel standardization (population SD, SD<=1e-8 -> 1). Student input = Z[a,s,:], exactly 11 channels; no position, length, labels or text.",
+  "teachers": {"pb": "q_loc = mean_c softmax_s(Z[:,c]), T=1", "prm": "q_step = mean_c sigmoid(Z[s,c]), T=1", "fit_free": true, "gate": "none"},
+  "families_for_leave_one_out": {"G1": ["q15_H1", "q15_VE1", "chosen_surprisal", "logprob_margin", "true_tail50"], "G2": ["energy_level", "energy_innovation"], "G3": ["top15_turnover", "top50_js"], "G4": ["dominant_freq16", "bocpd_p0"]},
+  "arms": {
+    "BASE": "teacher itself (argmax q_loc / q_step ranking); no fit",
+    "P_HARD": "PB one-hot at earliest-tie argmax q_loc; PRMB per-step 1[q_step >= 0.5]",
+    "P_SOFT": "PB full q_loc; PRMB q_step per step",
+    "P_AGREE": "PB: qA = mean of 4 leave-family-out q; v = share of views with the modal unique peak (tied views count as disagreement); c = 1 - H(qA)/log S; train iff v>=0.75 and c>=0.10, weight x v*c, renormalized. PRMB: qA_s = mean of 4 sigmoid views; step enters loss iff (qA_s<=0.25 or >=0.75) and >=3 of 4 views on qA_s's side of 0.5; target qA_s, step weight |2qA_s-1|",
+    "P_RANDOM": "PB circular roll of q_loc by a uniform shift in 1..S-1 (SeedSequence([20260923, answer_index])); PRMB permutation of q_step within the answer",
+    "P_POSITION_LENGTH": "same head/loss as P_SOFT on [r, r^2, log1p(S), log1p(tokens_in_step)], r = s/max(S-1,1); features scaled by B-only weighted mean/SD (floor 1e-8)",
+    "P_SOFT_COVERAGE_MATCH": "P_SOFT targets and base weights on the same number of answers (PB) / steps (PRMB) that P_AGREE kept, per cell x depth bin x relative-position bin, chosen by SHA256('coverage|uid|step_id|20260923') order (PB step_id = 'answer', position = teacher peak)"
+  },
+  "student": {"head": "u_s = w^T Z_s + b", "pb_bias": 0, "prm_bias": "learned, unpenalized", "loss_pb": "weighted_mean_answers(-sum_s q_s log_softmax(u)_s)", "loss_prm": "weighted_mean_answers(weighted_mean_selected_steps(BCEWithLogits(u_s, q_s)))", "penalty": "0.01 * ||w||_2^2", "optimizer": "L-BFGS-B from zero, maxiter 1000, gtol 1e-6", "readout": "PB earliest-tie argmax(u); PRMB u as ranking score; no temperature/scale tuning"},
+  "sample_weights": "PB: equal mass per dataset cell within task, then per source group in cell, then per answer in group. PRMB: equal per source group, then per answer. Step-level PRMB losses divide the answer mass by the selected-step weight sum.",
+  "splits": {"H": "fold k (evaluation)", "C": "(k+1) mod 5 (PRMScore quantile calibration only)", "B": "(k+2) mod 5 (head fit)", "A": "remaining two folds (unused in S1: teachers are fit-free)", "tasks": ["pb_q4", "pb_q8", "prm"], "membership": "source_group_id via FOLDS_V2 as joined in Step 432 OOF_ANSWERS.csv (verified in S0)"},
+  "primary_endpoints": ["pb_sla_macro8", "prm_within_answer_auc"],
+  "secondary": ["pb_f1_frozen_ct7_gate", "pb_tolerance_one", "pb_early_late", "prm_pooled_step_auroc_auprc", "prmscore (C-calibrated inner-selected quantile and q80) on raw u AND on per-answer z(u) per the S0-C rule", "coverage", "runtime"],
+  "primary_family": {"contrasts": ["P_SOFT - P_HARD", "P_AGREE - P_SOFT"], "endpoints": 2, "K": 4, "ci": "95% and Bonferroni 1-0.05/4 percentile intervals"},
+  "comparators_fixed": ["BASE (new teacher)", "ct7", "token_lsml", "token_equal", "evidence30__all__plain__equal", "evidence__all__position__equal", "evidence__all__position2__equal"],
+  "bootstrap": {"unit": "source_group", "draws": 100000, "seed": 20260923, "paired": true, "pb": "macro8 recomputed per draw with 8 denominators; invalid draw if any cell denominator is 0", "prm": "multiplicity-weighted mean of within-answer AUROC over eligible answers"},
+  "diagnostics": ["teacher top1/true-step mass/entropy/rank on erroneous PB; confidence and abstention clean vs erroneous", "PRMB hard-pseudo precision/recall, soft AUPRC, predicted positives vs true errors, by clean/single/multi", "teacher/student 2x2 per arm; PRMB per-answer AUROC delta and corrected/destroyed pairs", "P_AGREE coverage per cell/depth/position", "confidence quintiles fixed on B"],
+  "budget": "<= 4 CPU-hours fit + shared evaluation",
+  "labels": "v3", "folds": "source_groups_v2", "digit_features": false, "new_raw_inference": false, "automatic_stage_chaining": false,
+  "interpretation": "P_SOFT/P_AGREE differences isolate the target; a gain that P_POSITION_LENGTH also shows is a learned prior, not new error evidence; accuracy on the filtered P_AGREE subset does not substitute for full-H quality."
+}
