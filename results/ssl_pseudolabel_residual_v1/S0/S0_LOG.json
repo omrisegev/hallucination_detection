@@ -1,0 +1,185 @@
+{
+  "inventory": {
+    "jobs": 70,
+    "outer": 30,
+    "inner": 40,
+    "stale_jobs_newer_than_summary": 0,
+    "manifest_sha_ok_all": true,
+    "summary_mtime": "2026-09-23T07:35:56",
+    "prm_pseudo_rules": [
+      "every training answer (amendment A1: the CT7 gate never opens on PRMBench)"
+    ],
+    "prm_min_pseudo_positive": 4138.0,
+    "pb_min_pseudo_positive": 1802.0
+  },
+  "input_freeze_today": {
+    "roster": {
+      "exists": true,
+      "bytes_ok": true,
+      "sha_ok": true
+    },
+    "joined": {
+      "exists": true,
+      "bytes_ok": true,
+      "sha_ok": true
+    },
+    "folds": {
+      "exists": true,
+      "bytes_ok": true,
+      "sha_ok": true
+    },
+    "tokens": {
+      "exists": true,
+      "bytes_ok": true,
+      "sha_ok": true
+    },
+    "mindgap": {
+      "exists": true,
+      "bytes_ok": true,
+      "sha_ok": true
+    },
+    "ct7": {
+      "exists": true,
+      "bytes_ok": true,
+      "sha_ok": true
+    },
+    "ct7_manifest": {
+      "exists": true,
+      "bytes_ok": true,
+      "sha_ok": true
+    },
+    "token_fusion": {
+      "exists": true,
+      "bytes_ok": true,
+      "sha_ok": true
+    },
+    "prm_metadata": {
+      "exists": true,
+      "bytes_ok": true,
+      "sha_ok": true
+    }
+  },
+  "source_freeze": {
+    "core.py": {
+      "snapshot_sha": "046917aacf45721e222e733e0911d04ae5ff78cbe970e35567d84c302c1b3087",
+      "run_freeze_sha": "046917aacf45721e222e733e0911d04ae5ff78cbe970e35567d84c302c1b3087"
+    },
+    "data.py": {
+      "snapshot_sha": "120d64cdde9dfade99b5e883faa2a413e024685ec2faacf9a4d9f4921a1c68e7",
+      "run_freeze_sha": "120d64cdde9dfade99b5e883faa2a413e024685ec2faacf9a4d9f4921a1c68e7"
+    },
+    "scoring.py": {
+      "snapshot_sha": "4f71c7f5c1e733c6f3805c0e8364c463aba56e79454624e42b7fc8690798cbae",
+      "run_freeze_sha": "4f71c7f5c1e733c6f3805c0e8364c463aba56e79454624e42b7fc8690798cbae"
+    },
+    "uncertainty.py": {
+      "snapshot_sha": "68758b0b9d12a5754a7c687f3f37a3e12873615408c2038da2e2cdb52ddce8ee",
+      "run_freeze_sha": "68758b0b9d12a5754a7c687f3f37a3e12873615408c2038da2e2cdb52ddce8ee"
+    },
+    "report.py": {
+      "snapshot_sha": "2bf485e6b49b1e48799f64d896fedf1aa8096e0385c52fa496e83b0bda083f20",
+      "run_freeze_sha": "2bf485e6b49b1e48799f64d896fedf1aa8096e0385c52fa496e83b0bda083f20"
+    },
+    "readout.py": {
+      "snapshot_sha": "5bad7a9bc8ca9c5d6b546bfd65de992c266204411cff0c44d210cfef5081f745",
+      "run_freeze_sha": "5bad7a9bc8ca9c5d6b546bfd65de992c266204411cff0c44d210cfef5081f745"
+    },
+    "step_evidence_v1.py": {
+      "snapshot_sha": "2860a10a4eb875226722afc04f4c3fa67e688232f86666fb9aa194e910a3a072",
+      "run_freeze_sha": "2860a10a4eb875226722afc04f4c3fa67e688232f86666fb9aa194e910a3a072"
+    },
+    "driver_vs_module": {
+      "scripts/experiments/step_evidence_v1.py": "1411462fabfef56c7adf7c93964572a937d84e32a7c112c113d3b3a0228c9705",
+      "spectral_utils/step_evidence_v1.py": "2860a10a4eb875226722afc04f4c3fa67e688232f86666fb9aa194e910a3a072",
+      "note": "RUN_FREEZE key step_evidence_v1.py is the MODULE hash (basename collision); the driver hash is not frozen."
+    }
+  },
+  "coverage": {
+    "answers": 13769,
+    "pb": 6800,
+    "prm": 6969,
+    "steps": 145597,
+    "pb_erroneous": 4442,
+    "pb_clean": 2358,
+    "prm_two_class_answers": 6030,
+    "uid_unique": true,
+    "groups_crossing_folds": 0,
+    "fold_matches_FOLDS_V2": true,
+    "pb_target_in_range": true,
+    "step_lengths_positive": true,
+    "ct7_gate_open_pb": 4556,
+    "ct7_gate_open_prm": 0,
+    "methods_with_nonfinite_scores": [
+      "dual__iu",
+      "dual__joint0",
+      "dual__equal",
+      "context__iu",
+      "single__joint0"
+    ],
+    "pb_predictions_missing": {
+      "dual__iu": 4,
+      "dual__joint0": 4,
+      "dual__equal": 4,
+      "context__iu": 4,
+      "single__joint0": 4
+    },
+    "labels_binary_prm_steps": true,
+    "pb_step_label_sentinel": [
+      -2
+    ]
+  },
+  "seed_parity": {
+    "raw_replay_reproduces_stored": true,
+    "step_z_changes_pb_argmax": 1508,
+    "deviation": "two seeds = two method IDs: seed_raw (run) and seed_stepz (protocol text / Step429 equal)"
+  },
+  "scoreboard_replay": {
+    "methods": 57,
+    "max_abs_error_per_metric": {
+      "err_pb_sla_macro8": 7.632783294297951e-17,
+      "err_pb_f1_ct7_gate": 8.326672684688674e-17,
+      "err_pb_sla_q4": 8.326672684688674e-17,
+      "err_pb_sla_q8": 8.326672684688674e-17,
+      "err_within_auc": 5.551115123125783e-17,
+      "err_eligible": 0.0,
+      "err_prmscore_q80": 0.0,
+      "err_prmscore_inner": 0.0
+    },
+    "pb_partial_coverage": {
+      "dual__iu": 6796,
+      "dual__joint0": 6796,
+      "dual__equal": 6796,
+      "context__iu": 6796,
+      "single__joint0": 6796
+    },
+    "prmscore_methods_replayed": 57
+  },
+  "contrast_columns": [
+    "endpoint",
+    "a",
+    "b",
+    "contrast",
+    "delta",
+    "ci95",
+    "p_bootstrap",
+    "draws",
+    "p_holm"
+  ],
+  "contrast_endpoints": [
+    "pb_common_gate_f1",
+    "pb_sla",
+    "prm_within_auc"
+  ],
+  "multiplicity": {
+    "family_size": 312,
+    "draws": 10000,
+    "seed": 20260922,
+    "unit": "source_question_shared_across_scorers",
+    "source_groups": 3483,
+    "minimum_raw_p_resolution": 9.999000099990002e-05,
+    "min_p_holm": 0.0311968803119688,
+    "contrasts_with_p_holm_below_0.05": 245,
+    "note": "Holm over all 312 planned primary-endpoint contrasts jointly; tail resolution 1e-4 so p_holm floor = 312e-4 = 0.0312"
+  },
+  "seconds": 4007.863687300007
+}
