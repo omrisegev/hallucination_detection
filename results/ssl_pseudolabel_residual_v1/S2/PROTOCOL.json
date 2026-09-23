@@ -1,0 +1,30 @@
+{
+  "protocol_id": "ssl_pseudolabel_residual_localization_v1/S2",
+  "version": "1.0",
+  "frozen_before_scoring": "2026-09-23",
+  "status": "development_only",
+  "question": "Does context prediction add to the level score, in the same 11-channel bank and the same top5-per-channel readout?",
+  "token_normalization": "frozen cvf_v2.core.profiles rule per answer and channel: (x - median) / (IQR/1.349); scale<=1e-8 -> SD; SD<=1e-8 -> 1 (offline, whole answer; no causal-online claim)",
+  "predictor": {"model": "ridge", "inputs": "z_token[t-1..t-16] (zeros where absent), 16 presence bits, t/max(T-1,1)", "dim": 193, "objective": "sum of squared errors on the sampled tokens + 1.0 * ||W||_F^2, intercept unpenalized, closed form", "alpha_search": false, "fit_role": "A = folds (k+3) mod 5 and (k+4) mod 5, per task", "prediction_timing": "before the current token enters the context"},
+  "training_sample": {"n": 16384, "scheme": "hierarchical with replacement: cell -> source group -> answer -> token", "seed": 20260923, "shared_across_arms": true, "saved": "TRAINING_SAMPLES.npz"},
+  "residual_readout": "e[t,c] = z_token[t,c] - prediction[t,c]; aux[s] = mean over channels of the per-channel top5 mean of e over the step's tokens (top5 per channel BEFORE the channel mean)",
+  "base": "BASE from plan 5.2: PB q_loc = mean_c softmax_s(Z), PRMB q_step = mean_c sigmoid(Z), Z = per-answer per-channel standardization of the frozen top5 profile (S1 teacher, reproduces the Step 429 equal anchor)",
+  "correction": "plan 5.4: score = BASE + 0.25 * sd_steps(BASE) * std_answer(aux); dose fixed, not tuned; dose 0 returns BASE byte-identically (tested)",
+  "arms": {
+    "R_TEMP": "ridge prediction residual, corrected",
+    "R_ZERO": "prediction = 0 (residual = z_token itself), same top5 and correction: isolates readout/amplification from real prediction; its aux equals the channel mean of the frozen top5 profile (tested)",
+    "R_NORESET": "prediction[t,c] = sum_{u<t} z[u,c] / (t+1); answer-local, no external fit",
+    "R_ONLY": "aux of R_TEMP alone, no BASE (diagnostic)",
+    "R_ABS": "|e| instead of e, same correction (diagnostic; no post-hoc sign choice)"
+  },
+  "splits": {"H": "fold k", "C": "(k+1) mod 5 (PRMScore quantile calibration only)", "A": "(k+3) mod 5 and (k+4) mod 5 (ridge fit)", "B": "(k+2) mod 5 (unused in S2)", "tasks": ["pb_q4", "pb_q8", "prm"]},
+  "primary_endpoints": ["pb_sla_macro8", "prm_within_answer_auc"],
+  "primary_family": {"contrasts": ["R_TEMP - BASE", "R_TEMP - R_ZERO"], "K": 4, "ci": "95% and Bonferroni 1-0.05/4"},
+  "secondary": ["R_ZERO - BASE", "R_NORESET - BASE", "R_TEMP - R_NORESET", "R_ABS - BASE", "R_ONLY - BASE", "vs fixed comparators", "PB F1 with frozen CT7 gate", "PRMScore (C-calibrated inner and q80; raw and per-answer z per the S0-C rule)", "pooled step AUROC/AUPRC", "depth strata"],
+  "comparators_fixed": ["ct7", "token_lsml", "token_equal", "evidence30__all__plain__equal", "evidence__all__position__equal", "evidence__all__position2__equal"],
+  "residual_diagnostics": ["per-channel MSE of ridge / zero / noreset predictions on H tokens, t<16 vs t>=16", "per-channel corr(prediction, z) and corr(residual, z)", "residual variance", "post-hoc: residual MSE after regressing each channel's residual on its current value (analysis only, never a scoring component)"],
+  "bootstrap": {"unit": "source_group", "draws": 100000, "seed": 20260923, "paired": true},
+  "budget": "<= 6 CPU-hours + evaluation",
+  "labels": "v3", "folds": "source_groups_v2", "digit_features": false, "new_raw_inference": false, "automatic_stage_chaining": false,
+  "interpretation": "No success is attributed to temporal prediction unless R_TEMP - R_ZERO is supported; lower MSE alone is 'the self task was learned', not localization benefit."
+}
