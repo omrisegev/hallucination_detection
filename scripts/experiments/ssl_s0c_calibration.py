@@ -65,7 +65,7 @@ dec = np.load(R / 'PRM_OOF_DECISIONS.npz'); saved = read(R / 'PRMSCORE.json')
 fixture = []
 for key in dec.files:
     m, kind = key.rsplit('__', 1); want = saved[m]['quantile_0.8' if kind == 'q80' else 'inner_selected']['prmscore']
-    covered = np.repeat(np.array([np.isfinite(Z[m][off[i]:off[i+1]]).all() for i in range(n)]), nsteps)   # historical methods cover 6,952/6,969: official scored their covered subset
+    zm = Z[m]; covered = np.repeat(np.array([np.isfinite(zm[off[i]:off[i+1]]).all() for i in range(n)]), nsteps)   # historical methods cover 6,952/6,969: official scored their covered subset
     take = prm_steps & covered
     got = total_prmscore(dec[key][take], labels[take], elig_steps[take]); fixture.append(abs(got - want))
 fixture_max = max(fixture)
