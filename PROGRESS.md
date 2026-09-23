@@ -1,3 +1,22 @@
+## SSL plan stage S5-CPU complete (Claude) - 2026-09-23
+
+`results/ssl_pseudolabel_residual_v1/S5/run_20260923/`: learned attention pooling
+inside a step, unsupported. H_RAW - BASE -9.23 pp PB / -0.044 PRMB; H_RAW - H_MEAN
++1.49 pp / +0.055; H_RAW - ct7 -16.63 pp / -0.060. The attention IS learning (it
+beats uniform mean and beats arbitrary frozen attention, and concentrates 60x on
+high-surprisal and step-initial tokens), but the whole token-average family sits
+11 pp below the frozen per-channel top5 readout. H_TOP5 (frozen top5 + learned
+channel weights) is +0.29 pp [-0.61, +1.19] on BASE, so the readout's order
+statistic - not the channel weights and not the token weights - is what carries
+localization. One shared softmax over tokens cannot express per-channel top-k.
+
+S5 as written in plan section 11 did not run: it consumes the S4 GPU encoder,
+which Omri excluded. Whether a learned SSL representation adds information is
+still unanswered and would need GPU. Remaining non-GPU contrast in the plan:
+S2 v1.1, a per-channel standardized residual readout. Five stages executed
+(S0, S0-C, S1, S2, S3, S5-CPU); no candidate approaches CT7 (39.89% / 0.7724).
+Branch `claude/ssl-pseudolabel-residual-v1`, HISTORY Step 437.
+
 ## SSL plan stage S3 complete (Claude) - 2026-09-23
 
 `results/ssl_pseudolabel_residual_v1/S3/run_20260923/`: NRM-inspired contribution
