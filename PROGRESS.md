@@ -1,3 +1,29 @@
+## Step 436 (local run) — items 3 and 4 completed after gate correction A1: token-level L-SML is below equal, the window representation passes its PR gate but learned weights buy nothing — 2026-09-23
+
+Worktree `.worktrees/lsml-ct7-levers-run` on `claude/lsml-ct7-levers-v1` @ `54341ed2b`. 23 tests pass.
+Item 2 not rerun (Step 434 stands). Full account in HISTORY Step 436 [local][ct7-levers].
+
+- Item 3 extraction unblocked: gate (i) 0 mismatches on 13,769/13,769 answers at float32 (float64 max
+  diff 0.0); gate (ii) BOCPD replay max diff 7.2e-15 vs 1e-8, rebuilt by the A1 recipe (no `--temporal`
+  on this machine). 1,118 s. `CT7_TOKEN_MATRICES.npz` is local (results npz are gitignored).
+- Item 3 `results/ct7_token_lsml_v1/`: primary `T_C2 − T_E2` on macro8 SLA **−0.83 pp [−1.93, +0.25]**,
+  Holm 1; `T_C1 − T_E1` −0.67 pp. On PRMB within-AUC both are negative with intervals excluding zero
+  (−.0125, −.0176). All T-arms below CT7 (39.89 SLA) by 1.6–2.7 pp. `ct7_top10_equal7` — the seventh
+  view built CT7's way, no fusion — is **41.04 SLA, +1.15 pp [+0.06, +2.25]** over CT7. Fusing before the
+  readout costs 3.0–3.8 pp. Despike +4.89 pp. Per fold (all five identical): `T_C2` K = 3, `T_C1` K = 4,
+  no negative weight anywhere; conditional PR of the seven Top10 views 1.800 (CT7's 1.80).
+- Item 4 `results/window_representation_b3_v1/`: stale Step-434 `RUN_FREEZE.json` deleted (Omri approved).
+  Measurement gate **passed** — real step PR (Top10) 3.748 on 94,203 steps vs shuffled 6.803, rule
+  ">= 3.0 and shuffled >= real + 0.5"; CT7 anchor PR 1.7979. Fusion stage run (no `--force`): primary
+  `window_lsml_top10 − window_equal_top10` **+0.40 pp [−0.58, +1.34]**, Holm 1; IU +0.15, shrink-IU +0.08,
+  every native-row version negative. Whole window family is ~10 pp below CT7 (29.3–29.7 vs 39.89 SLA).
+  3,320 of 13,769 answers fall back to equal (PRMBench 37.3 %, ProcessBench 10.6 %).
+- Nothing promoted or frozen; development rows only, not untouched confirmation.
+
+Next: nothing further is scheduled from these three protocols. The one positive is
+`ct7_top10_equal7` (+1.15 pp SLA over CT7 at equal weight, Holm 0.79 — not significant after Holm),
+which is a seventh-view construction, not a fusion result.
+
 ## Step 434 (local run) — the three L-SML levers on the data: item 2 null on ProcessBench, item 3 stopped at its extraction gate, item 4 blocked — 2026-09-23
 
 Worktree `.worktrees/lsml-ct7-levers-run` on `claude/lsml-ct7-levers-v1` (from `adfff408`). Tests 22 pass,

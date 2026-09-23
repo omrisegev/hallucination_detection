@@ -57948,3 +57948,114 @@ the wrong fix, and the amendment keeps CT7's exact precision.
 Next: rerun the item 3 smoke, then the full extraction, then items 3 and 4 in order.
 
 ---
+
+### Step 436 [local][ct7-levers] — Items 3 and 4 on the data after gate correction A1: the token-level L-SML arm is below equal and below CT7; the window representation passes its participation-ratio gate and the answer-local learned weights buy nothing over equal
+
+**What**: Reran the Step 433 protocols for items 3 and 4 from worktree
+`.worktrees/lsml-ct7-levers-run` on `claude/lsml-ct7-levers-v1` @ `54341ed2b` (the Amendment A1 gate
+correction). Tests: 23 pass (`test_family_equal_readout`, `test_ct7_token_streams`,
+`test_window_moment_bank`, `test_cumulative_vote_v2`). Item 2 was not rerun (Step 434 result stands).
+No config, assert, `cvf_v2/` file or hashed module was edited; no assert was relaxed. Development rows
+only; nothing promoted.
+
+**Why**: Step 434 stopped item 3 at extraction gate (i) (float32 cast against the float64 bank) and
+item 4 on the missing `CT7_TOKEN_MATRICES.npz`. A1 fixed the gate's precision, stores the tokens as
+float64 and rebuilds the BOCPD column from the raw rows by the temporal bundle's own recipe.
+
+**Result**:
+
+*Item 3 extraction* (`results/ct7_token_lsml_v1/CT7_TOKEN_MATRICES.MANIFEST.json`, npz local, ignored
+by `results/**/*.npz`). Smoke (`--smoke 30`, 270 answers, 9 cells, 39 s) and then the full run over all
+13,769 answers / 6,968,779 tokens / 145,597 steps in 1,118 s, both without `--temporal` (no local
+`features.npy`). Gate (i) masked Top10 vs the frozen bank: 13,769 answers checked, 0 mismatches at
+float32, float64 max |diff| 0.0. Gate (ii) BOCPD replay of CT7's view 5: max |diff| 7.216449660063518e-15
+against a 1e-8 tolerance, provenance `bocpd_residual_temporal_recipe`.
+
+*Item 3 scoring* (`results/ct7_token_lsml_v1/`, 445.9 s; CT7 replay asserted — macro-F1 .41189,
+within-AUC .77240 reproduced). Macro8 gate-free SLA / common-gate F1 / PRMB within-AUC:
+
+| arm | SLA | F1 | within-AUC | early | late | PRMScore q80 |
+|---|---|---|---|---|---|---|
+| ct7 | 39.89 | 41.19 | .7724 | .269 | .332 | .6425 |
+| ct7_top10_equal7 | 41.04 | 41.45 | .7750 | .226 | .364 | .6459 |
+| ct7_top10_equal7_nodespike | 36.14 | 38.96 | .7523 | .382 | .257 | — |
+| T_E1 | 38.29 | 39.36 | .7731 | .265 | .352 | .6414 |
+| T_C1 | 37.62 | 39.18 | .7555 | .275 | .348 | .6289 |
+| T_E2 | 38.02 | 39.55 | .7679 | .262 | .358 | .6384 |
+| T_C2 | 37.20 | 39.03 | .7554 | .266 | .362 | .6285 |
+| T_E1_six / T_C1_six | 37.60 / 37.59 | 39.16 / 39.16 | .7545 / .7547 | | | |
+| T_E2_six / T_C2_six | 37.40 / 37.20 | 39.01 / 39.00 | .7554 / .7530 | | | |
+| T_C2_nostep0fit | 37.21 | 38.89 | .7585 | .279 | .349 | |
+
+Primary `T_C2 − T_E2` on macro8 SLA: **−0.83 pp [−1.93, +0.25]**, bootstrap p .143, Holm 1
+(`UNCERTAINTY.json`, 10,000 paired source draws over 3,483 source groups). Companions:
+`T_C1 − T_E1` −0.67 pp [−1.77, +0.39]; `T_C2_six − T_E2_six` −0.21 pp; `T_C1_six − T_E1_six` −0.00 pp.
+On PRMB within-AUC the same contrasts are negative with intervals excluding zero: −.0125 [−.0142, −.0108]
+and −.0176 [−.0200, −.0153], Holm .0048. Depth strata (pooled erroneous answers, `RESULTS.json["strata"]`):
+2–5 steps +1.44 pp [−0.54, +3.46] (includes zero); 6–10 −2.30 pp [−3.87, −0.78]; 11+ −2.55 pp [−4.85, −0.25].
+Every T-arm is below CT7 on SLA (−1.60 to −2.69 pp) and on F1 (−1.64 to −2.16 pp). The seventh view
+built CT7's way, `ct7_top10_equal7`, is **+1.15 pp [+0.06, +2.25]** above CT7 on SLA (Holm 0.79),
++.0026 [+.0013,+.0039] on within-AUC (Holm .0112); fusing before the readout costs −3.01 pp
+(`T_E2 − ct7_top10_equal7`, Holm .0048) and −3.84 pp with L-SML. Despike: +4.89 pp SLA [+3.22, +6.63],
+Holm .0048. Seventh stream: ±0.00 pp SLA, +.0008/+.0024 within-AUC. Per fold, all five folds identical:
+`T_C2` K = 3, groups {H0lim, ve0, innovation, bocpd} / {ve0.75, ve1} / {chosen}, IPR 6.20–6.22, weight on
+`chosen_std_excess` .085–.090, **no negative weights**; `T_C1` K = 4, {H0lim, ve0} / {ve0.75, ve1} /
+{innovation, bocpd} / {chosen}, IPR 6.17–6.22, chosen weight .037–.046, no negatives; `T_C2_six` K = 2,
+`T_C1_six` K = 3, `T_C2_nostep0fit` K = 3, none with a negative weight. Conditional participation ratio
+of the seven Top10 step views on labelled PRMBench steps: **1.800**, the same as CT7's 1.80. Coverage:
+13,769 answers, 6,800 ProcessBench (8 cells, 0 fallbacks in every cell), 6,969 PRMBench of which 6,030
+eligible.
+
+Predictions: (1) "both L-SML-minus-equal contrasts small, about +1 pp or less" — held in magnitude on the
+primary (|−0.83|, |−0.67| pp, intervals include zero) but the sign is negative and on PRMB within-AUC the
+gaps exceed 1 pp with intervals excluding zero; (2) "K = 2 in most folds" — did NOT hold (K = 3 in 5/5 for
+`T_C2`, K = 4 in 5/5 for `T_C1`; K = 2 only in the six-stream answer-local arm), and the K = 3 split is not
+"the five entropy streams against the rest"; (3) `T_E2` below `ct7_top10_equal7` — held (−3.01 pp); "both
+below CT7" — did NOT hold, `ct7_top10_equal7` is above CT7; (4) despike matters for the seventh view — held
+(+4.89 pp); its "little for the fused T-arms" half was not tested (no nodespike fused arm is in the roster).
+Decision language: no favourable primary; `T_C2 − T_E2` does not exclude zero on the primary and is negative
+where it does exclude zero, so token-level L-SML over this bank is not above equal.
+
+*Item 4* (`results/window_representation_b3_v1/`). The Step-434 `RUN_FREEZE.json` (a freeze of a run that
+produced nothing) was deleted with Omri's approval; nothing else in the directory existed. Measurement
+(940.3 s, `WINDOW_PR.json`, width 8, stride 1): CT7 anchor conditional PR **1.7979** (within 0.01 of 1.80,
+asserted); real step-level PR under the Top10 readout **3.748** on 94,203 labelled steps; shuffled
+within-answer reference **6.803**; gate rule "real >= 3.0 and shuffled >= real + 0.5" — **passed**.
+Also: window-level PR 2.895 on 1,924,667 labelled windows (shuffled 8.224), step overlap-mean PR 2.563
+(shuffled 8.259), marginal participation rank median 2.689 (shuffled 7.029), n_eff/n median per view
+0.45–1.00, 0 answers below the window width, median 49 fit windows.
+
+Fusion stage (run only because `gate_passed` was true; never with `--force`; 1,091.3 s,
+`fusion/RESULTS.json`):
+
+| arm | macro8 SLA | F1 | PRMB within-AUC |
+|---|---|---|---|
+| ct7 | 39.89 | 41.19 | .7724 |
+| window_equal_top10 | 29.30 | 32.53 | .7386 |
+| window_iu_top10 | 29.45 | 32.62 | .7393 |
+| window_shrink_iu_top10 | 29.38 | 32.59 | .7383 |
+| window_lsml_top10 | 29.70 | 32.97 | .7407 |
+| window_equal_mean | 24.53 | 28.91 | .6622 |
+| window_lsml_mean | 24.47 | 28.74 | .6661 |
+
+Primary `window_lsml_top10 − window_equal_top10`: **+0.40 pp [−0.58, +1.34]**, Holm 1; IU +0.15 pp,
+shrink-IU +0.08 pp, all native-row versions negative (−0.52 to −0.81 pp) and all intervals include zero.
+`shrink_iu − iu` −0.07 pp. Every window arm is far below CT7: −10.19 to −10.59 pp SLA, −8.22 to −8.66 pp F1,
+−.0317 to −.0341 within-AUC, Holm .0045. `top10 − overlap_mean` at equal weight +4.77 pp SLA, Holm .0045.
+Depth strata for the primary: 2–5 steps −0.14 pp, 6–10 +0.99 pp, 11+ +0.24 pp, none excluding zero.
+PRMScore q80 .6235 (equal) / .6221 (L-SML) / .6425 (CT7). Coverage: 13,769 answers fitted, 3,320 fall back
+to equal for the learned arms (PRMBench 2,602 of 6,969 = 37.3 %; ProcessBench 718 of 6,800 = 10.6 %),
+0 failed fits, 0 abstentions; L-SML K counts 2:472, 3:3696, 4:4823, 5:1392, 6:64, 7:2; weight distance from
+equal median cosine .719 / L2 .247, IPR median 8.40; shrinkage alpha median 1.0.
+
+Predictions: "window-level PR above step-level PR" — did NOT hold under the Top10 readout (2.895 vs 3.748),
+held against the overlap-mean readout (2.563); "step-level PR between 2 and 3" — did NOT hold for Top10
+(3.748), held for overlap-mean; "n_eff/n of the level views well below 1" — held for 6 of 10 views
+(0.45–0.70) but `bocpd_residual` level and `q15_H1` slope are exactly 1.0; "shuffled reference near 10 at
+every level" — did NOT hold (6.80 / 8.26 / 8.22), though it is well above the real values in every case;
+"PRMBench answers fall back in a large fraction" — held (37.3 %); "the learned arms within 1 pp of equal on
+ProcessBench SLA" — held (+0.08 to +0.40 pp); "the whole window family below CT7" — held (about −10 pp).
+Decision language: the gate passed, but no learned arm beats equal with an interval excluding zero, so the
+protocol's "first configuration in L-SML's domain" wording does not apply. Nothing is promoted or frozen.
+
+---
