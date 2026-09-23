@@ -18025,3 +18025,97 @@ docs/reviews/CODEX_REVIEW_HANDOFF_20260923.md with source versions, artifact ind
 reproduction requirements and external-data limitations. Included the earlier
 token-axis audit and compact replay outputs; made its audit repository path
 relative to the script. No Claude experiment worktree or frozen result changed.
+
+---
+
+### Step 432 [Codex daily review] - Cross-branch experiment status, positive controls and reporting corrections, 2026-09-23
+
+**What**: Reviewed the September23 experiment activity after fetching branch refs:
+completed Step432 A1, SSL-plan S0/S0-C/S1/S2/S3/S5-CPU, CT7 family/token/window
+experiments and cached supervised PRM measurement. Distinguished September22
+competition diagnostics, publication-only commits and unexecuted SSL stages.
+
+**Why**: Omri requested one view of all today's experiments, their execution,
+results and progress, rather than relying on the root branch's stale handoff.
+
+**Result**: Family balancing gives a corrected positive PRMB within-AUC result
+(.772397 -> .780120). A seventh-view equal control reaches41.0366% PB but does
+not pass its PB Holm comparison. S0-C recovers PRMScore through scaling with
+unchanged within-answer ranking. Tested residual/attention variants do not
+replace CT7; masked SSL and original S5 did not run. Supervised PRM adds a
+different high-access reference (.801180 PRMB AUC) and complementary hits,
+not an evaluated fusion or an unsupervised improvement.
+
+Independent saved-score review reproduces49 SSL method bundles on13769 answers,
+and147 saved interval bundles in the CT7 line. Separate repeatable review code
+checks49 CSV metric bundles,228 contrast points and60 split records. Found that
+window native comparisons mask only the learned arm: reconstruction on common
+native PB rows changes L-SML-vs-equal from negative to+.3988pp, without a valid
+matched-native CI or any change to the full-population no-promotion decision.
+Corrected interpretation of S1 agreement coverage:857/94203 PRMB steps(.91%),
+812/6969 answers(11.65%). SSL paired_N is bootstrap draw count, not sample size.
+Broader closure/convergence claims and incomplete artifact schemas are noted.
+
+**Files**: docs/reviews/REPO_DAILY_EXPERIMENT_REVIEW_20260923_HE.md;
+scratch/review_daily_experiments_20260923.py;
+scratch/daily_experiment_review_20260923/AUDIT.json; PROGRESS.md/HISTORY.md.
+No original experiment result or another agent's worktree changed. No model
+fitting, new inference or cluster job launched in this review.
+
+---
+
+### 2026-09-23 [Codex] Runtime fusion contract, reporting repairs and storage recovery
+
+Omri ruled out GPU SSL training and additional LLM inference, prioritized learned
+fusion and PRMBench, then explicitly requested attributable L-SML value on any
+promising last-month feature bank. Mean/family-equal are controls, not final methods.
+Updated CLAUDE.md, Research_Directions.md and the SSL plan; implementable replacement:
+docs/experiments/PRMBENCH_RUNTIME_FUSION_PLAN_HE.md. Literature/Claude-claim audit:
+docs/reviews/PRMBENCH_LITERATURE_AND_CLAIM_AUDIT_20260923_HE.md.
+
+Added runtime_fusion_protocol.py, six passing regression tests, a versioned native
+window rerun adapter, and a frozen-report repair script. Regenerated228 contrast
+metadata rows from four13769-answer bundles; verified identical masks before
+retaining existing intervals. No new localization fit or inference performed.
+
+Disk-full writes truncated CLAUDE.md; recovered exact HEAD bytes, temporarily via
+an identical-source hardlink. After explicit cleanup authorization, removed two
+inactive backed worktrees, verified3,936,321,536 free bytes, and detached the
+hardlink into a verified independent file before editing. No scientific artifacts
+or branches removed. Cleanup checks and retained worktrees are recorded in
+docs/reviews/WORKTREE_CLEANUP_20260923.md. Last-month L-SML/PRMScore audit continues
+from saved scores, with PB treated as secondary rather than a selection veto.
+
+### 2026-09-23 [Codex] Last-month L-SML candidate audit completed
+
+Inspected67 recent learned-method rows and10 overlapping historical families;
+downloaded only two verified Drive artifacts (~72MB) and replayed64 saved ladder
+methods. No new fit, GPU use or model inference. Canonical v4 evidence contains
+148 metric rows,30 paired contrasts, frozen decisions, hashes and code snapshot.
+Report: docs/reviews/LSML_PRMBENCH_MONTH_REVIEW_20260923_HE.md.
+
+The strongest inspected starting point combining fusion value and absolute PRMB
+quality is11-channel STEP continuous L-SML: within .764531 vs equal .749644;
+answer-z/q80 PRMScore .641184 vs .633111. Local Bonferroni-adjusted intervals are
+positive for both. Group-balanced control .637245 narrows official gain to an
+uncertain difference; CT7 .645689 remains a reference above this candidate.
+PB's weaker score does not negate the PRMB result. Historical20-channel variants
+show some matched fusion gains but do not offer a stronger joint case. Correcting
+score scale recovers evidence L-SML PRMScore .584707 -> .636571, with unchanged
+ranking. All new thresholds are retrospective OOF diagnostics, not clean nested
+evaluation. Updated runtime plan prioritizes bank11 validation with separate fit,
+calibration and evaluation, followed by explicitly distinct local CPU adaptation.
+
+### 2026-09-23 [Codex] Bank11 direction synchronized across research handoff files
+
+At Omri's request, synchronized HISTORY.md, PROGRESS.md and the active section
+of [Research_Directions.md](Research_Directions.md) around the audited bank11
+STEP L-SML candidate. The roadmap now includes the matched four-method table,
+evaluated populations, retrospective/donor-fitting limitations and the unresolved
+learned-weight versus group-balancing contribution to official PRMScore.
+
+Next action remains the bounded fit/calibration/evaluation separation in
+[the runtime fusion plan](docs/experiments/PRMBENCH_RUNTIME_FUSION_PLAN_HE.md).
+PRMBench is primary, PB secondary, CT7 a reference and averaging control-only.
+Older roadmap recommendations remain historical and do not override this priority.
+This entry records documentation alignment, not a new experiment or new evidence.

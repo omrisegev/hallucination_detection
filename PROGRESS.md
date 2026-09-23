@@ -1,3 +1,70 @@
+## Codex storage recovery, CPU fusion scope and historical L-SML audit - 2026-09-23
+
+Omri authorized inactive GitHub-backed worktree cleanup. Removed competition-sync
+and completed review-token-axis-20260921 after clean-state, actual remote-head,
+ancestry, ignored-file and LFS-pointer checks. No branches or scientific artifacts
+deleted. Free disk changed0 ->3,936,321,536 bytes. CLAUDE.md restored independently
+(link count1), then updated safely. Details: docs/reviews/WORKTREE_CLEANUP_20260923.md.
+Dirty/unbacked historical worktrees and current experiment-input worktrees retained.
+
+Current research priority: L-SML must add value over same-bank fixed/equal fusion,
+with strong PRMBench AND official PRMScore; CT7 is not a required architecture.
+PB is secondary. No GPU training or extra LLM/PRM pass; CPU runtime adaptation only.
+Last-month bank review is complete; bank11 STEP L-SML is the selected research base.
+Canonical requirements and old SSL plan amended; new bounded protocols:
+docs/experiments/PRMBENCH_RUNTIME_FUSION_PLAN_HE.md. Claim/literature audit:
+docs/reviews/PRMBENCH_LITERATURE_AND_CLAIM_AUDIT_20260923_HE.md.
+
+Previous turn's implemented repairs: per-channel residual normalization, matched
+native-window controls, and228 regenerated contrast metadata rows from four
+complete13769-answer OOF bundles (results/runtime_fusion_protocol_v2). Six tests
+pass. paired_N=4442 PB/6030 PRMB, distinct from100000 draws. No full new candidate
+fit or inference run. Historical saved-score PRMB-only audit is complete:
+docs/reviews/LSML_PRMBENCH_MONTH_REVIEW_20260923_HE.md. Indexed67 recent learned
+rows (not67 independent experiments); replayed64 Sep17 ladder methods from two
+verified Drive files. Canonical results/prmbench_lsml_month_audit_v4 contains148
+metric rows,30 corrected contrasts, decisions, source hashes and executed code.
+
+Selected research starting point: STEP-level bank11 continuous L-SML, not CT7.
+Within-AUC .764531 vs same-bank equal .749644; retrospective answer-z/q80 official
+PRMScore .641184 vs .633111. Both paired gains survive the local Bonferroni30
+correction. Same learned-partition equal reaches .637245 PRMScore; the additional
+learned-weight gain over that control does NOT pass corrected uncertainty.
+CT7 reference .645689 PRMScore remains higher. PB weakness is not a PRMB veto.
+Historical20-channel ladder and added depth/novelty do not improve the combined
+case. Evidence L-SML's raw .584707 PRMScore recovers to .636571 with answer-z,
+without changing ranking; its learned-minus-equal official gain is uncertain.
+
+These are existing donor-fitted scores, not answer-only learning or new training.
+Added PRMScore calibration is retrospective; nested fitting was not reconstructed.
+Next bounded protocol R0-B separates3 fit/1 calibration/1 evaluation source folds
+on bank11 before optional local adaptation. No new candidate fit was launched.
+
+Decision and evidence are now synchronized with the active section of
+[Research_Directions.md](Research_Directions.md) and the appended record in
+[HISTORY.md](HISTORY.md). The handoff question is whether learned weights improve
+official PRMScore beyond learned-partition equal under separated calibration.
+Population checked: 6,969 PRMB answers; 6,030 within-AUC eligible; official pooled
+PRMScore uses 6,211 non-control answers / 83,371 steps. Keep all three comparators
+and report PB secondarily; do not restart CT7-only development or a broad sweep.
+
+## Codex cross-branch daily experiment review - 2026-09-23 evening
+
+Reviewed today's completed Step432, SSL-plan CPU stages, CT7 levers and cached
+supervised PRM measurement across the active branches. Full Hebrew synthesis:
+docs/reviews/REPO_DAILY_EXPERIMENT_REVIEW_20260923_HE.md. Family-balanced CT7
+improves PRMB within-AUC .772397 -> .780120; seventh-view equal control reaches
+41.0366% PB, but its PB Holm test does not pass. SSL-plan calibration recovers
+PRMScore without changing ranking; the tested residual/pooling recipes do not
+replace CT7. Masked SSL and original SSL-based S5 remain unrun.
+Review reproduced 49 SSL method bundles; saved-score checks and source snapshots
+agree. Found unmatched native-window comparisons: same-population L-SML delta
+is +.3988pp PB, not the reported negative difference (no matched-native CI).
+S1 agreement uses .91% of PRMB steps; 11.65% is the answer coverage. paired_N
+erroneously records bootstrap draws in SSL contrast CSVs. Prior result files
+unchanged; separate review script/evidence in scratch/review_daily_experiments_20260923.py
+and scratch/daily_experiment_review_20260923/AUDIT.json. No fit/inference launched.
+
 ## Codex review publication handoff - 2026-09-23
 
 Omri assigned Claude publication of his own work and Codex publication of its

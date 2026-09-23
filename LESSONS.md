@@ -22,6 +22,20 @@ Enforced by: code | command | prose   (name the file)
 
 ---
 
+## 2026-09-23 — Disk-full writes can truncate canonical documentation
+
+What happened: apply_patch truncated CLAUDE.md after the volume filled. The original
+content was restored exactly; a temporary emergency hardlink was detached and its
+link count verified as1 before editing either copy. User-authorized removal of two
+clean GitHub-backed inactive worktrees restored space. No experiment data lost.
+Why: a small free-space reading was treated as enough for subsequent writes while
+other activity exhausted the remaining space; the edit did not fail atomically.
+Rule: after disk exhaustion, require a useful free-space margin before rewriting
+canonical files. Prefer write-to-temp, verify and replace. Never edit an emergency
+hardlink shared with another worktree; detach it first. Check ignored files and
+actual remote ancestry, not just clean git status, before deleting a worktree.
+Enforced by: prose and recorded recovery checks in docs/reviews/WORKTREE_CLEANUP_20260923.md.
+
 ## Standing rules (read these)
 
 | Rule | Enforced by | Recurred after the rule? |

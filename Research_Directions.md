@@ -1,3 +1,54 @@
+## 2026-09-23 active direction: measurable L-SML value on PRMBench
+
+Prioritize L-SML that improves over same-bank fixed/equal fusion, with strong
+PRMBench quality AND official PRMScore. The last-month audit is complete; the
+selected starting point is STEP-level continuous L-SML on the 11-channel bank
+from step_level_bank_baseline_v1. CT7 is a reference, not a mandatory architecture.
+PB is secondary; weaker PB performance alone does not disqualify this candidate.
+No new GPU training or LLM inference; CPU runtime learning on available traces.
+Exact H1 RBM remains a bounded alternative; averaging is control-only.
+See [revised protocols](docs/experiments/PRMBENCH_RUNTIME_FUSION_PLAN_HE.md)
+and [claim/literature audit](docs/reviews/PRMBENCH_LITERATURE_AND_CLAIM_AUDIT_20260923_HE.md).
+
+### Evidence, unresolved question and next experiment
+
+The [month review](docs/reviews/LSML_PRMBENCH_MONTH_REVIEW_20260923_HE.md) and
+[canonical saved-score audit](results/prmbench_lsml_month_audit_v4/AUDIT.json)
+cover 6,969 PRMB answers: 6,030 eligible for within-answer AUC and 6,211
+non-control answers / 83,371 steps for official pooled PRMScore. Scores below
+are multiplied by 100; PRMScore uses final answer-z and retrospective q80 calibration.
+
+| Same-population comparison | Within-answer AUC | PRMScore |
+|---|---:|---:|
+| Bank11 ordinary equal control | 74.9644 | 63.3111 |
+| Bank11 learned-partition equal control | 75.3084 | 63.7245 |
+| **Bank11 continuous L-SML** | **76.4531** | **64.1184** |
+| CT7 reference | 77.2397 | 64.5689 |
+
+L-SML improves over ordinary equal by 1.4887 AUC points and 0.8073 PRMScore
+points; both paired intervals remain positive after the audit's local
+Bonferroni correction over 30 contrasts. Beyond learned-partition equal,
+the ranking gain remains supported but the PRMScore gain is not significant.
+Thus the next question is whether learned weights add official-score value
+beyond balancing groups, under a clean calibration protocol. CT7 remains higher;
+this is a promising research base, not a newly established overall winner.
+
+Existing bank11 weights were donor-fitted. These results neither demonstrate
+answer-only learning nor establish superiority to supervised PRMs. Retrospective
+OOF calibration and month-wide development selection limit confirmatory claims.
+The 64 rescored historical bank20 variants did not provide a stronger combined
+case; tested depth/novelty additions are not included in the selected bank.
+
+Next, execute the bounded R0-B protocol in the linked plan: preserve the existing
+five source folds, use three for fit, one for calibration and one for evaluation,
+and compare L-SML, same-preprocessing equal, learned-partition equal and CT7.
+Report both ranking and official PRMScore with paired uncertainty. This donor
+validation is separate from subsequent answer-local CPU adaptation. No new fit
+has been launched. Residual/pseudo-label mechanisms and exact H1 RBM remain
+bounded follow-ups; no broad sweep, extra inference or GPU training is implied.
+This priority supersedes the older next-action recommendations below, which are
+retained as historical records.
+
 ## Step412 update: preserve the new base gain while repairing two explicit failure modes
 
 Mass-aware discovery raises the base to38.9622/.754189 and passes preservation
