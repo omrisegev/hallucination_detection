@@ -18136,3 +18136,8 @@ examples/one GPU-hour each. Full-run budget approval remains required.
 Plan/runbook: docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1.md and
 docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1_RUNBOOK.md. Source calibration,
 comparator inference and final external evaluation remain incomplete.
+
+AIRCC timing jobs submitted from commit c98a5f09e: 265833 Hard2Verify/Qwen3-8B,
+265834 Socratic/Qwen3-8B, 265835 Socratic/QwQ-32B. One GPU-hour and 12 examples
+maximum per job. Job handles/log/output paths: results/lsml_external_generalization_v1/JOBS.json.
+Initial scheduling: 265833 running, others pending priority. No timing results yet.

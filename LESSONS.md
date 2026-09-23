@@ -172,3 +172,11 @@ Enforced by: prose + `save_cache_atomic` pattern. No recurrence.
 ## 2026-05-12 — Retry loop on an oversized notebook edit; "are you working? stuck?"
 Rule: after two failed retries, write a paste-in fix document instead.
 Enforced by: prose.
+
+### 2026-09-24 AIRCC external collection startup
+
+Job265833 failed to resolve package-index DNS inside Pyxis before model load;
+265834/265835 cancelled while pending. Current account is cycle3/owner_940;
+old shared data and model cache remain accessible. Use pinned offline wheels,
+preserve NGC torch AND numpy, and prepare missing models on CPU compute nodes.
+Never assume login-node DNS proves container network access.

@@ -1,5 +1,11 @@
 ## 2026-09-24 Codex: external collection first
 
+AIRCC timing jobs submitted from commit c98a5f09e: 265833 Hard2Verify/Qwen3-8B,
+265834 Socratic/Qwen3-8B, 265835 Socratic/QwQ-32B. One GPU-hour and 12 examples
+maximum per job. Job handles/log/output paths: results/lsml_external_generalization_v1/JOBS.json.
+Initial batch cancelled after compute-container pip DNS failure (98 GPU-seconds;
+other jobs unallocated). Offline wheels repair prepared; no telemetry yet.
+
 Prior Codex work committed as efe85052f; dedicated branch
 `codex/lsml-external-generalization-v1`. User prioritizes AIRCC telemetry collection
 before further fusion implementation. Hard2Verify (200 answers/1860 steps) and
