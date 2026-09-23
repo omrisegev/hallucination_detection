@@ -61,3 +61,7 @@ readout sweeps (Step 429), non-max rules (Step 430), consensus or triplet-statis
 
 Scope note (Omri, 2026-09-23): the white-box depth line is a separate arm and is excluded from this
 diagnosis; its numbers are not comparable to the gray-box localization results.
+
+Implementation (2026-09-23): items 2, 3 and 4 are built, synthetic-tested and pre-registered on branch
+`claude/lsml-ct7-levers-v1` (from competition-sync `49787d46`); Codex runs them on the data. Handoff:
+`docs/HANDOFF_CODEX_LSML_CT7_LEVERS_2026-09-23.md` on that branch.
