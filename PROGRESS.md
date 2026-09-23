@@ -1,3 +1,14 @@
+## SSL plan stage S2 complete (Claude) - 2026-09-23
+
+`results/ssl_pseudolabel_residual_v1/S2/run_20260923/`: ridge prediction residual
+as a fixed-dose correction of the S1 teacher, unsupported. R_TEMP - BASE PB -1.54 pp
+[-2.33, -0.76] / PRMB -0.0092; R_TEMP - R_ZERO -1.30 pp / -0.0095; R_ZERO = BASE.
+Cause: the frozen median/IQR token normalization explodes top50_js, chosen_surprisal,
+true_tail50 (variance 1e6-3e9), so the unstandardized channel-mean residual readout
+is dominated by them and held-out ridge MSE exceeds the zero predictor; the correction
+also pushes peaks earlier (449 vs 75). Next decisive contrast: S2 v1.1 with per-channel,
+per-answer standardized residual top5 (new frozen protocol). See HISTORY Step 435.
+
 ## SSL plan stage S1 complete (Claude) - 2026-09-23
 
 `results/ssl_pseudolabel_residual_v1/S1/run_20260923/`: one linear student, six
