@@ -1,3 +1,16 @@
+## bank20 L-SML on PRMBench complete (Claude) - 2026-09-24
+
+`results/bank20_lsml_prmbench_v1/run_20260924/`: extending Codex's bank11 (CONT L-SML
+.7645) to 15/19/20 channels with CT7 token channels, q15_H1 shape readouts and the
+Mind-the-Gap flux, under the identical recipe, is unsupported. B20 L-SML .7603 (-.0042
+vs B11, Bonferroni-negative); L-SML still beats equal on B20 (+.0071) but its edge
+shrinks from +.0149 on B11 because equal improves (+.0036) while L-SML degrades.
+Mechanism: the bank11 edge is de-noising of one fixed K=6 partition that isolates the
+anti-oriented trio (energy_innovation .407, top50_js .458, turnover .606 single-stream
+AUC) at 0.045 total weight; added channels change the partition (K 4..8 across folds)
+and the trio's suppression is lost. energy_level alone scores .7612. Nothing promoted.
+HISTORY Step 438. Branch `claude/ssl-pseudolabel-residual-v1`.
+
 ## SSL plan stage S5-CPU complete (Claude) - 2026-09-23
 
 `results/ssl_pseudolabel_residual_v1/S5/run_20260923/`: learned attention pooling
