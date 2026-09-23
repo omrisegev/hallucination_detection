@@ -9,6 +9,7 @@ from .data import within_auc,dump
 
 spec=importlib.util.spec_from_file_location('cvf_prm_evaluator',Path(__file__).resolve().parents[3]/'spectral_utils/prmbench.py')
 prm=importlib.util.module_from_spec(spec);spec.loader.exec_module(prm)
+NONFINITE_ROSTERS={'onset80','page_cross'}   # ProcessBench-only rosters (suffix-masked profiles)
 
 def collect(d):
     methods={};jobs=[]
@@ -16,6 +17,7 @@ def collect(d):
         if name not in methods:methods[name]={'scores':np.full(int(d.off[-1]),np.nan),'pred':np.full(d.n,-999,int),
           'median':np.full(d.n,-999,int),'fallback':np.zeros(d.n,bool),'valid':np.zeros(d.n,bool)}
         return methods[name]
+    expected_valid={}
     for path in sorted((d.out/'jobs').glob('*.json')):
         if '__inner' in path.stem:continue
         info=json.loads(path.read_text(encoding='utf8'));jobs.append(info)
@@ -28,13 +30,18 @@ def collect(d):
             for ii,i in enumerate(idx):m['scores'][d.off[i]:d.off[i+1]]=saved_scores[off[ii]:off[ii+1]]
             m['valid'][idx]=True;m['fallback'][idx]=z[arm+'__fallback']
             if info['task']!='prm':m['pred'][idx]=z[arm+'__mode'];m['median'][idx]=z[arm+'__median']
-    if len(jobs)!=110:raise ValueError(f'need all 110 outer jobs, found {len(jobs)}')
+    from .runner import expected_outer_jobs
+    need=expected_outer_jobs(d)
+    if len(jobs)!=need:raise ValueError(f'need all {need} outer jobs, found {len(jobs)}')
     for name,m in methods.items():
-        want=d.pb if '__errors__' in name else np.ones(d.n,bool)
+        # Coverage each method must reach: every answer of every task its roster was run on.
+        roster,pop=name.split('__')[:2]
+        pb_only=pop=='errors' or roster in NONFINITE_ROSTERS
+        want=d.pb if pb_only else np.ones(d.n,bool)
         assert np.array_equal(m['valid'],want),name
     for name,s in d.references.items():
         m=create(name);m['scores']=s.copy();m['valid']=d.reference_valid[name].copy();m['pred']=d.peaks(s)
-    profiles=np.load(d.out/'profiles.npy',mmap_mode='r')
+    profiles=np.load(d.out/d.profile_file,mmap_mode='r')
     for j,channel in enumerate(CHANNELS):
         m=create('single__'+channel);s=profiles[:,j,0].copy()
         for i in np.flatnonzero(d.prm):a,b=d.off[i:i+2];s[a:b]=standardize(s[a:b])[0]
@@ -102,7 +109,7 @@ def prmscores(d,methods):
             trainsteps=np.flatnonzero(np.repeat(train,np.diff(d.off)));teststeps=np.flatnonzero(np.repeat(test,np.diff(d.off)))
             # Inner OOF label decisions, never outer held-out labels.
             inner_valid=np.zeros((len(qgrid),len(trainsteps)),bool);global_to_train=np.full(int(d.off[-1]),-1,int);global_to_train[trainsteps]=np.arange(len(trainsteps))
-            is_new=name.startswith(('top5__','selected__','shuffle__'))
+            is_new=name.startswith(tuple(f'{r}__' for r,_ in d.rosters+d.pb_extra_rosters))
             if is_new:
                 roster,pop,enc,kind=name.split('__');stage='em' if kind in ['ds','hem'] else 'spectral';arm=enc+'__'+kind
                 stem=f'prm__fold{outer}__{roster}__all__{stage}'

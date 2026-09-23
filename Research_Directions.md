@@ -1,3 +1,4 @@
+## Step413-418 update: fusion collapse explained; entropy-free chosen-token evidence; candidate CT7 frozen (2026-09-17)
 ## CT7 fixed-profile cumulative fusion comparison (2026-09-22)
 
 Completed binary/soft/DS/hierarchical-EM comparison on all13769 answers, using
@@ -358,6 +359,42 @@ Live files: results/answer_position_fusion_v1/PROGRAM_STATE.json and smoke/RUN_S
 One process/BLAS1, minimum 4GiB available RAM, resumable eight-hour invocations.
 Stop and present the complete matched findings before another model family.
 # Research Directions — Thesis Roadmap
+
+## Steps 430-432 (Claude) — drift is a start-of-answer excess; readout families are not error-complementary; per-channel evidence closed, 2026-09-23
+
+Branch `claude/readout-quickest-detection-v1`. Step 430 measured the generation-drift
+hypothesis on the label-free gate-closed population: every channel and fused locator falls
+about 1 SD along the answer with the first two steps highest, which explains the early misses
+(27 %) and not the late ones (34 %, 42 % on 11+ steps) that sit where the null is lowest. No
+readout family misses different answers than top-k beyond the shuffled-token null, closing
+fusion-before-readout with readouts as voters unrun; no non-max decision rule beats the argmax.
+Step 432 built the per-channel log-likelihood-ratio evidence with pseudo-labels and a
+position-conditional null: half the decisions change and the construction is far above its
+random-seed null, but it never beats the linear fusion it is seeded from, its label ceiling is
+below label-free equal fusion (independent per-channel ratios over-count a 1.8-effective-view
+bank), and the position null trades early for late misses as predicted. Roadmap consequence:
+readout, readout-as-voter, non-max rule and per-channel evidence are closed on this bank; the
+remaining levers are new independent views and the gate. Protocols:
+`docs/experiments/COMPETITION_DIAGNOSTICS_V1.md`, `docs/experiments/STEP_EVIDENCE_V1_PROTOCOL.md`;
+note `docs/research_notes/generation_drift_hypothesis_2026-09-22.md`; HISTORY Steps 430-432.
+
+
+## Steps 428-429 (Claude) — readout family closed; long-chain collapse is competition, 2026-09-22
+
+Branch `claude/readout-quickest-detection-v1`. Ten within-step reducers inspired by temporal
+statistics, a sequential first-crossing column, a label-free consensus readout choice and pmf
+fitting of the soft weights were run on the frozen eleven-channel bank (300 + 320 jobs, parity
+with Codex's cumulative-vote-v2 on 61 shared methods). No roster approaches CT7 (best -3.5 pp,
+CI excludes zero); the label-selected ceiling over 17 readouts equals the one over 7; the
+consensus rule scores below its shuffled null. Diagnostics: the first-error step outscores a
+random error-free step MORE on long chains while SLA falls, so the deficit is the argmax losing
+to competition; PRMBench errors persist weakly (60 % single-step runs) and the first-error hazard
+is far from constant. Roadmap consequence: retire readout / reducer sweeps on this bank; next
+levers are the decision among competing steps (position prior, non-constant hazard, gate), fusion
+before the readout with pmf fitting (HANDOFF_TOKEN_PROBABILITIES 5.1), and new independent views.
+Protocols: `docs/experiments/READOUT_FAMILY_V1_PROTOCOL.md`,
+`docs/experiments/QUICKEST_DETECTION_DIAGNOSTICS_V1.md`; HISTORY Steps 428-429.
+
 
 ## Codex hierarchical time fusion v1 ? 2026-09-13 ? COMPLETE REVIEWED
 ## 2026-09-14 — authorized Rényi position-varying fusion
@@ -1912,6 +1949,158 @@ Keep Token Entropy as the ProcessBench localization anchor and Historical
 IU-PCR as the 24-cell anchor. Evidence:
 `results/direct_probability_fusion_v1/REPORT.html` and stage-specific run
 manifests in the same directory.
+
+## Step412 update: preserve the new base gain while repairing two explicit failure modes
+
+Mass-aware discovery raises the base to38.9622/.754189 and passes preservation
+versus408; within gain+.004112 CI[+.001527,+.006789]. Exact/structured additions
+are identical, but iid and near fail native coverage and preservation. Do not
+promote the whole method. Keep412 as an additional quality reference going forward.
+The next bounded correction is numerical active-set polishing of the SAME mass
+QP, keeping the1e-6 acceptance guard. Standalone code and two captured-failure
+checks pass; it is not integrated or evaluated for quality. Then investigate
+whether diagnostic inner-fold partition admissibility is being required before
+provisional noise screening, despite admissible consensus groups. Do not relax
+actual final Joint guards or hide fallback. The new grouping block changes
+projection/clustering/stability together; no individual-component causal claim.
+Evidence: atlas docs/reviews/joint_mass_groups_2026-09-17.md and
+results/joint_mass_membership_v1. Goal ACTIVE, no running process or next fit.
+
+## Step411 update: stop tuning pruning; investigate internal structure multiplicity
+
+Minimax original-factor information ranking repairs the demonstrated stopping
+mismatch (0/10 states retain feasible alternatives), but fails useful selection.
+Base38.0732/.748555, near37.4564/.745483; all native. Near-vsStep410 loses on both
+endpoints with declared adjusted intervals entirely below0. Prior-base and near
+preservation fail; exact/iid/structured remain identical. Do not promote this arm.
+Next investigate how near-duplicate measurement multiplicity enters Joint's
+initial grouping/factor objective, e.g. a training-only weighting rule with a
+verified duplication-invariance property. This requires design and testing; no
+new fit started. Existing block-pair-balanced control already exists and was
+not a success, so do not rename/repeat it as a new solution. Keep fusion central,
+no protected BOCPD, no digit channels or held-label N/threshold choice. Step408
+quality and409/410 robustness references remain. Evidence: atlas
+`docs/reviews/joint_minimax_refinement_2026-09-17.md`. Goal ACTIVE.
+
+## Step410 update: information feasibility alone does not establish baseline preservation
+
+Same top3 with budget rejection before regrouping: all four addition tests PASS,
+but prior Step408 base preservation remains unproven on both PB and within-AUC.
+Base38.3444/.749885; near38.5417/.750942; all13769 native. No replacement/no newover40.
+A saved-training-covariance diagnostic finds feasible alternatives outside top3
+at9/10 base/near stops. Next investigate ranking/constraint alignment; this is
+not evidence more deletions improve localization. Do not retune95%, choose N
+from held labels, or relax guards. Full audit32metrics/12intervals PASS.
+Evidence: atlas `docs/reviews/joint_feasible_refinement_2026-09-17.md`.
+Goal ACTIVE, no process running or next fit launched.
+
+## Step409 update: regrouping is a robustness candidate, not a proved replacement
+
+All four additions preserve the regrouped base38.3374/.750672; near38.2991/.750572.
+All13769 native, but the paired PB lower bound versus Step40838.7300 is-1.2084pp,
+below the predeclared-1pp baseline margin. Keep both references, no promotion.
+Next bounded question: reject information-budget-violating deletion proposals
+before terminating the path;9/10 audited base/near stops have a feasible top3
+alternative by information alone. Their regroup validity/quality remains untested.
+No threshold retuning, no label-selected N. Evidence: atlas
+`docs/reviews/joint_regroup_refinement_2026-09-17.md`. Goal ACTIVE; no next fit.
+
+## Step408 update: staged membership retained; near-copy refinement unresolved
+
+Zero-row removal and rediscovery before global-group exclusion recover full iid
+coverage and preserve the structured-noise repair. Base/exact/iid/structured all
+38.7300/.750078, native13769. Near still37.7185/.748723. Use staged membership as
+the next experimental base, not a robust successor. Full-data stage diagnostics
+point toward joint investigation of group discovery and95% information refinement;
+groups currently remain fixed through deletions. Test one bounded regrouping
+variant next; do not infer causality from point estimates or omit near copies.
+Evidence: atlas `docs/reviews/joint_staged_membership_2026-09-17.md`. Goal ACTIVE.
+
+## Step407 update: nuisance exclusion needs grouping reconsideration
+
+Global-only group membership repaired structured noise but broke iid-noise native
+coverage; do not replace Steps404-405 with this variant. The failed partition
+put all genuine measurements in one local-only group. Next test ordinary zero-row
+removal and group rediscovery before group-wide exclusion; this ordering remains
+untested and does not address near-copy instability. Full evidence is in atlas
+`docs/reviews/joint_signal_membership_2026-09-17.md`. Goal ACTIVE, no next fit.
+
+## Active update: digit-free Joint selection, Step406, 2026-09-17
+
+Omri's September17 no-digit decision in CLAUDE.md supersedes digit-inclusive
+candidate recommendations below. Current broad-bank research includes BOCPD
+and uses hybrid source-fold fitting; answer-only deployment remains separate.
+Integrated sparse membership and95% refinement preserve exact copies/iid noise,
+but full approximate-copy/structured-nuisance verification fails preservation.
+Do not promote the38.7300/.750078 base as robust or as a successor to the
+historical non-digit BOCPD reference40.3676/.763223. Broad goal ACTIVE.
+Next bounded design question: allow nuisance-only groups without forcing their
+participation in the global signal, while preserving identifiability guards;
+near-copy-induced grouping/removal instability also remains unresolved.
+No new fit launched. Evidence and uncertainty are in atlas worktree
+`docs/reviews/joint_structured_stress_2026-09-17.md` and
+`results/joint_structured_stress_v1/AUDIT.json`. Historical sections remain records.
+
+## Codex conditional IU - 2026-09-13 - all three full runs active
+
+Branch `codex/conditional-iu-followups-v1`, code/package commit dc12221d2.
+Independent science/literature review PASS, 36 mathematical/driver fixtures PASS,
+and the complete extracted archive passes isolated Python (-I) driver checks.
+Read-only validation of the 22 frozen data/provenance files also PASS.
+
+Current AIRCC jobs: position 255752; graph-local 255753; coefficient GraphTV 255754.
+Each requests 64 GiB, one BLAS thread, no GPU. Byte/fixture checks, Linux lifecycle, and all three smoke27 reviews PASS.
+All three are in full covariance extraction; no full performance result yet. Original position job
+255722 is separate and had already entered full training. No source data changed.
+Earlier attempts failed before scientific smoke: first at container memory limit,
+then because recursive scripts/localization helpers were omitted from packaging.
+Both operational issues were corrected; failed logs and original archives remain.
+
+Second-machine instructions: .worktrees/conditional-iu-followups-v1/docs/research_notes/CONDITIONAL_IU_SECOND_MACHINE.md
+inside `.worktrees/conditional-iu-followups-v1`. Git push was requested, but automatic approval review blocked
+it pending explicit destination confirmation. Latest code is still local; do not
+assume the GitHub branch already includes these changes. Large caches are not in Git.
+Protocol: .worktrees/conditional-iu-followups-v1/docs/experiments/CONDITIONAL_IU_FUSION_V1.md.
+Detailed review/jobs: .worktrees/conditional-iu-followups-v1/results/conditional_iu_preparation_v1/.
+
+## Update 2026-09-13 (Claude): Stage 3b alpha sweep
+
+- Renyi entropy: within-AUC monotone in alpha, best at the alpha->0 limit (mean head surprisal, 0.7440); PB flat.
+- Escort varentropy VE_0 (uniform weights, reversed sign): within 0.7534 / PRMScore 0.6355, the best answer-local
+  single stream on PRMB; VE_0.75: PB 36.76 (highest answer-local PB point; intervals include 0), lower within.
+- Two candidate representations pull in different directions; readout/gate remain the PB bottleneck. Nothing
+  promoted; a selection rule must be frozen before any untouched confirmation.
+
+
+## Update 2026-09-13 (Claude): Stage 3 Renyi combination
+
+- Fusing several Renyi orders of the top-15 head does not beat the best single order on the 13,769-answer benchmark
+  (all fused arms below the H0.1 view on within-AUC with intervals excluding zero; PB intervals include zero).
+- The tail-sensitive order alpha=0.1 is the strongest answer-local single stream on within-AUC/PRMScore
+  (0.7425 / 0.633); PB is not improved. Single-endpoint lead, not a winner; readout/gate remain the PB bottleneck.
+- Joint L-SML (tail/head/selected groups) pending; Stage 2 products closed; H1 (single-unit / linear) focus.
+
+
+## Step332 completion — consolidation reviewed
+
+Both previously paused frozen runs are now complete and reviewed: historical Joint245/245 and full sampling13769/13769. The separate entropy-gate review also passed. These statements supersede earlier live/paused checkpoints.
+
+Hebrew reflection: docs/reviews/research_consolidation_2026-09-08.html. Machine-readable evidence and review: results/research_consolidation_v1/. Original reports and protocol distinctions are preserved. Full cached results remain development evidence. Completion of these obligations does not mean all historical leaders or untouched confirmation are finished.
+
+**Stage boundary reached: return to Omri before a new improvement experiment.** Shared-q0.3 gate and max/top10 trials are specified, not started. No expanded search.
+
+
+## Update 2026-09-13 (Claude): Stage 1/2 findings and corrections
+
+- Codex RBM program completed and accounted for (HISTORY Steps 356/357): learned fusion has not shown a consistent
+  overall advantage on the 13,769-answer localization benchmark; representation, optimization, normalization and readout
+  remain partly entangled (readout confound inside several primaries; exact-H4 limited by the registered budget).
+- Cross-rank varentropy expansion (Stage 2): adding the cross-rank products lowers both endpoints under IU-PCR
+  (-0.80 pp [-1.31, -0.30]; within -0.0066); no detected advantage under supervision either. Joint arms pending.
+- Corrections applied 2026-09-13 (calibration leakage in supervised PRMScore, exclusive loss categories, smoke rule,
+  input contract, wording); earlier supervised RBM correction arms carry the same PRMScore calibration dependency (flagged).
+- Renyi views (Stage 3) prototype: H2/H4/H-inf collapse to -log p1; design waits for the Stage-2 review.
+
 
 ## 2026-09-09 - shrinkage evidence and the required simple control
 
@@ -5789,3 +5978,45 @@ as the boundary. A next experiment is justified only if it is a bounded
 confirmation or adds a pre-registered calibration/PB-safety mechanism while
 keeping the local temporal update fixed. Evidence:
 `results/renyi_position_temporal_fusion_v1/REPORT.md`.
+diagnostic so that they do not contaminate this frozen comparison.
+
+## Step421-422 block (Claude, 2026-09-18): a new measurement channel, and the gate that was hiding a result
+
+**The three-source ceiling now has an instrument.** Step414 concluded that a bank with more than
+three conditionally independent sources "cannot be built by adding transforms of the output
+distribution of one greedy pass" and named the three things that would change that: internal layer
+states, multiple samples, or a second model. The first now exists for the whole evaluation
+population: 13,769 answers, 36 layers, three taps, four lens quantities per token, plus residual
+geometry (Step421). It is the first channel in the project that is not a function of the output
+distribution. THE FIRST MEASUREMENT ON IT SHOULD BE THE CONDITIONAL PARTICIPATION RATIO ALONG
+DEPTH, NOT A FUSION. Adjacent layers are expected to be near-duplicates exactly as prefix
+innovations were (.87-.96 with their parent family); the open question is how many effective
+dimensions survive, and whether TriLens's claim that the three taps are independently informative
+holds without labels.
+
+**L-SML beats averaging for the first time, and the gate was hiding it.** Under the gate-free
+Mind-the-Gap protocol the token-level arm gives L-SML 35.92 vs equal 32.59, +3.33 pp
+[+1.90, +4.75] on 1,979 paired source groups (Step422). Do not read this as the family being
+vindicated: the arm's absolute level is below CT7's under CT7's own gate, the comparison between
+those two numbers is still not matched, and the leading mechanistic hypothesis is that at token
+level L-SML is doing NOISE WEIGHTING - work that step-level Top-10 aggregation already does for
+free. The decisive test is the same bank fused before versus after the readout. If the gain
+vanishes on aggregation, that explains every previous negative result in this family.
+
+**Length splits the comparison against the literature.** We beat Chen et al.'s best detector on
+GSM8K by 3.7-4.4 points and lose 6.6-12.5 on OlympiadBench and Omni-MATH. Their score is a
+derivative (EMA plus worst-M drops), ours a level. This does not contradict Step414's finding that
+prefix innovations add no dimension: that was measured at STEP level on short step sequences, while
+this is token level on long chains. A token-level derivative channel is therefore a motivated new
+experiment, not a repeat of a closed one.
+
+**Evaluation-contract rule, added from this session's error.** ProcessBench macro-F1 is strongly
+gate-dependent, and two arms with different gates cannot be compared on it. Report the gate-free
+per-subset SLA on erroneous answers beside every macro-F1, and never compare arms whose gates
+differ without first holding the gate fixed. A threshold inherited from another arm is not a
+neutral choice: LOCO-5's 0.33 cost 2.77 pp against its own optimum.
+
+**Open, and never run despite being specified three times.** The matched answer-local versus pooled
+comparison on one fixed bank. No document records a decision to abandon answer-only fitting;
+CLAUDE.md forbade pooling on 2026-09-07 and permitted it conditionally on 2026-09-15, with nothing
+in between. The 20.38% versus 34.29% figures from Step329 are explicitly NOT that comparison.

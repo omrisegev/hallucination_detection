@@ -1,0 +1,287 @@
+{
+  "roster": {
+    "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_full_benchmark_v3\\evaluation\\JOINED.json",
+    "bytes": 5042974,
+    "sha256": "22fcbfd346db6565665b5358ac74393a4188e9047565ca2af44908a9e8d3f49d"
+  },
+  "joined": {
+    "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_full_benchmark_v3\\evaluation\\JOINED.npz",
+    "bytes": 10626856,
+    "sha256": "31c1fe06ac62f7dbd3f3e9fe5653148db718f32258bb45a246992476da0cb2c2"
+  },
+  "folds": {
+    "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_source_group_audit_v1\\FOLDS_V2.json",
+    "bytes": 2040608,
+    "sha256": "1f9f33032addedc450d0e2b5a45690679dfe2f3c3f8764663e6d0d94a1cf8205"
+  },
+  "tokens": {
+    "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\token_probability_fusion_v1\\TOKEN_MATRICES.npz",
+    "bytes": 307902984,
+    "sha256": "ab4943bf72b3d27436721d7e2ce8d95dd1254e10d3d05b7c25b65706c1c729e5"
+  },
+  "mindgap": {
+    "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\token_probability_fusion_v1\\EVIDENCE_DROP.npz",
+    "bytes": 57027474,
+    "sha256": "86167f3c46f8e6aa1019dda36340fd19cd51df0deeadeccc346b15469b2f6a1e"
+  },
+  "ct7": {
+    "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\chosen_token_calibration_v1\\CT7_DEV_SCORES.npz",
+    "bytes": 1116752,
+    "sha256": "9d10d2ff04402f56d6b04c643bfc87a55413786e67d721ad4a28b1578cd3b430"
+  },
+  "ct7_manifest": {
+    "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\chosen_token_calibration_v1\\FROZEN_CANDIDATE_CT7.json",
+    "bytes": 6532,
+    "sha256": "1d2eb8fab03395f87af0159a2a27e6d4d57594956651f2b2f75633047ef85eb9"
+  },
+  "token_fusion": {
+    "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\claude_feature_bank_token_lsml_v1\\OOF_SCORES.npz",
+    "bytes": 2243193,
+    "sha256": "67434fd2e1b3ee6721c33d866d9470e320f7802ab395c2ed97ab7450b8fa6710"
+  },
+  "prm_metadata": {
+    "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\four_localization\\prmbench_qwen25math7b_full\\prmbench_prm.pkl",
+    "bytes": 2053470,
+    "sha256": "95be425c66d4dadc6a8e03567ad66ef2933aee27eb7967bf7200139c56518232"
+  },
+  "protocol": {
+    "schema": "step-evidence-v1",
+    "development_only": true,
+    "seed": 20260922,
+    "bootstrap_draws": 10000,
+    "temperature": 1.0,
+    "em_max_iter": 1000,
+    "em_relative_tolerance": 1e-08,
+    "em_stable_iterations": 3,
+    "em_probability_clip": 1e-06,
+    "inner_threshold_quantiles": [
+      0.5,
+      0.99,
+      50
+    ],
+    "readouts_ext": [
+      "top30",
+      "std",
+      "iqr",
+      "frac_above_z",
+      "slope",
+      "jump",
+      "q90",
+      "first_token",
+      "boxcar8_max",
+      "page_wmax"
+    ],
+    "frac_z_threshold": 1.0,
+    "boxcar_width": 8,
+    "quantile": 0.9,
+    "page_k": 0.5,
+    "page_h_quantile": 0.5,
+    "consensus_sweeps": 2,
+    "pmf_arms": true,
+    "rosters": [
+      [
+        "evidence",
+        "all"
+      ],
+      [
+        "evidence30",
+        "all"
+      ]
+    ],
+    "pb_extra_rosters": [],
+    "frozen_profiles_sha256": "f932ad81095a0c80937a39c0fe55bf2e7421dae9279f529a9174db858a94f5f3",
+    "frozen_shuffle_sha256": "60d6ba3aea2304256099f69e2a328fd53a4394e8c35aeada8498078ecf73a065",
+    "reference_run": "../results/readout_family_v1",
+    "anchor_parity_strict": true,
+    "paths": {
+      "roster": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_full_benchmark_v3\\evaluation\\JOINED.json",
+      "joined": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_full_benchmark_v3\\evaluation\\JOINED.npz",
+      "folds": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_source_group_audit_v1\\FOLDS_V2.json",
+      "tokens": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\token_probability_fusion_v1\\TOKEN_MATRICES.npz",
+      "mindgap": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\token_probability_fusion_v1\\EVIDENCE_DROP.npz",
+      "ct7": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\chosen_token_calibration_v1\\CT7_DEV_SCORES.npz",
+      "ct7_manifest": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\chosen_token_calibration_v1\\FROZEN_CANDIDATE_CT7.json",
+      "token_fusion": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\claude_feature_bank_token_lsml_v1\\OOF_SCORES.npz",
+      "prm_metadata": "C:\\Users\\omris\\TAU\\hallucination_detection\\dataset_cache\\four_localization\\prmbench_qwen25math7b_full\\prmbench_prm.pkl",
+      "output": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\readout-quickest-detection-v1\\results\\step_evidence_v1"
+    },
+    "evidence": {
+      "position_bins": 8,
+      "histogram_bins": 32,
+      "alpha": 0.5,
+      "pseudo_count": 32.0,
+      "readout": {
+        "evidence": "top5",
+        "evidence30": "top30"
+      },
+      "seed": "equal-weight mean of per-channel softmax over steps of the answer-standardised readout (answer-local, no fit)",
+      "pseudo_positive": "argmax step of the seed mass on training answers the frozen CT7 gate opens; gate-closed training answers contribute every step to f0",
+      "iterations": 2,
+      "random_seed_control": true,
+      "label_ceiling": true
+    },
+    "profiles_source": "../results/readout_family_v1",
+    "planned_contrasts_extra": [
+      [
+        "evidence__all__position__equal",
+        "evidence__all__plain__equal",
+        "position_null_minus_plain"
+      ],
+      [
+        "evidence__all__plain2__equal",
+        "evidence__all__plain__equal",
+        "iteration2_minus_iteration1"
+      ],
+      [
+        "evidence__all__position2__equal",
+        "evidence__all__position__equal",
+        "iteration2_minus_iteration1"
+      ],
+      [
+        "evidence__all__plain__equal",
+        "evidence__all__seed__equal",
+        "evidence_minus_seed"
+      ],
+      [
+        "evidence__all__position__equal",
+        "evidence__all__seed__equal",
+        "evidence_minus_seed"
+      ],
+      [
+        "evidence__all__plain__equal",
+        "evidence__all__randomseed__equal",
+        "primary_minus_random_seed_null"
+      ],
+      [
+        "evidence__all__position__equal",
+        "evidence__all__randomseed_position__equal",
+        "primary_minus_random_seed_null"
+      ],
+      [
+        "evidence__all__ceiling__equal",
+        "evidence__all__plain__equal",
+        "label_ceiling_minus_primary"
+      ],
+      [
+        "evidence__all__ceiling_position__equal",
+        "evidence__all__position__equal",
+        "label_ceiling_minus_primary"
+      ],
+      [
+        "evidence__all__prioronly__equal",
+        "evidence__all__plain__equal",
+        "position_prior_alone_minus_plain"
+      ],
+      [
+        "evidence__all__position__equal",
+        "evidence__all__prioronly__equal",
+        "position_null_minus_prior_alone"
+      ],
+      [
+        "evidence__all__plain__equal",
+        "token_lsml",
+        "new_minus_token_lsml"
+      ],
+      [
+        "evidence__all__position__equal",
+        "token_lsml",
+        "new_minus_token_lsml"
+      ],
+      [
+        "evidence__all__plain__equal",
+        "top5__all__pmf__equal",
+        "new_minus_pmf_equal_reference"
+      ],
+      [
+        "evidence__all__position__equal",
+        "top5__all__pmf__equal",
+        "new_minus_pmf_equal_reference"
+      ],
+      [
+        "evidence30__all__position__equal",
+        "evidence30__all__plain__equal",
+        "position_null_minus_plain"
+      ],
+      [
+        "evidence30__all__plain2__equal",
+        "evidence30__all__plain__equal",
+        "iteration2_minus_iteration1"
+      ],
+      [
+        "evidence30__all__position2__equal",
+        "evidence30__all__position__equal",
+        "iteration2_minus_iteration1"
+      ],
+      [
+        "evidence30__all__plain__equal",
+        "evidence30__all__seed__equal",
+        "evidence_minus_seed"
+      ],
+      [
+        "evidence30__all__position__equal",
+        "evidence30__all__seed__equal",
+        "evidence_minus_seed"
+      ],
+      [
+        "evidence30__all__plain__equal",
+        "evidence30__all__randomseed__equal",
+        "primary_minus_random_seed_null"
+      ],
+      [
+        "evidence30__all__position__equal",
+        "evidence30__all__randomseed_position__equal",
+        "primary_minus_random_seed_null"
+      ],
+      [
+        "evidence30__all__ceiling__equal",
+        "evidence30__all__plain__equal",
+        "label_ceiling_minus_primary"
+      ],
+      [
+        "evidence30__all__ceiling_position__equal",
+        "evidence30__all__position__equal",
+        "label_ceiling_minus_primary"
+      ],
+      [
+        "evidence30__all__prioronly__equal",
+        "evidence30__all__plain__equal",
+        "position_prior_alone_minus_plain"
+      ],
+      [
+        "evidence30__all__position__equal",
+        "evidence30__all__prioronly__equal",
+        "position_null_minus_prior_alone"
+      ],
+      [
+        "evidence30__all__plain__equal",
+        "token_lsml",
+        "new_minus_token_lsml"
+      ],
+      [
+        "evidence30__all__position__equal",
+        "token_lsml",
+        "new_minus_token_lsml"
+      ],
+      [
+        "evidence30__all__plain__equal",
+        "top5__all__pmf__equal",
+        "new_minus_pmf_equal_reference"
+      ],
+      [
+        "evidence30__all__position__equal",
+        "top5__all__pmf__equal",
+        "new_minus_pmf_equal_reference"
+      ],
+      [
+        "evidence30__all__plain__equal",
+        "evidence__all__plain__equal",
+        "top30_minus_top5"
+      ],
+      [
+        "evidence30__all__position__equal",
+        "evidence__all__position__equal",
+        "top30_minus_top5"
+      ]
+    ]
+  }
+}

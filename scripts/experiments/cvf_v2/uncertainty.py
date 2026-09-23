@@ -7,23 +7,38 @@ from scipy import sparse
 from .data import dump
 from .core import ARMS
 
-def planned(names):
+LEGACY_ROSTERS=[('top5','all'),('selected','all'),('shuffle','all'),('top5','errors')]
+
+def planned(names,rosters=None,arms=None,extra=None):
+    """Planned contrasts.  With the defaults this is the frozen v2 list; the extended run adds
+    the pmf-versus-cumulative, roster-versus-top5, consensus-versus-selected and
+    shuffle-consensus-versus-consensus contrasts."""
+    rosters=LEGACY_ROSTERS if rosters is None else list(rosters);arms=ARMS if arms is None else list(arms)
     pairs=[]
     def add(a,b,why):
         if a in names and b in names and a!=b and (a,b,why) not in pairs:pairs.append((a,b,why))
-    for roster,pop in [('top5','all'),('selected','all'),('top5','errors')]:
+    for roster,pop in rosters:
+        if roster.startswith('shuffle'):continue
         pre=f'{roster}__{pop}__'
         for kind in ['equal','spectral','continuous_lsml']:add(pre+'soft__'+kind,pre+'hard__'+kind,'soft_minus_binary')
         add(pre+'hard__continuous_lsml',pre+'hard__binary_lsml','continuous_core_bridge')
-        for enc,kind in ARMS:
+        for enc,kind in arms:
             name=pre+enc+'__'+kind
             if kind!='equal':add(name,pre+enc+'__equal','learned_minus_equal')
             for base in ['ct7','mindgap']:add(name,base,'new_minus_'+base)
-            if roster=='selected':add(name,'top5__all__'+enc+'__'+kind,'selected_minus_top5')
+            if roster!='top5' and pop=='all':add(name,'top5__all__'+enc+'__'+kind,f'{roster}_minus_top5')
             if pop=='errors':add(name,'top5__all__'+enc+'__'+kind,'error_only_minus_all_training')
+            if roster=='consensus':add(name,'selected__all__'+enc+'__'+kind,'consensus_minus_selected')
+            if roster=='selected_all':add(name,'selected__all__'+enc+'__'+kind,'selected_all_minus_selected')
+            if roster=='consensus10':add(name,'consensus__all__'+enc+'__'+kind,'ten_channel_minus_eleven')
+        for kind in ['equal','spectral','continuous_lsml']:add(pre+'pmf__'+kind,pre+'soft__'+kind,'pmf_minus_cumulative')
         for kind in ['ds','hem']:add(pre+'hard__'+kind,pre+'hard__spectral','em_minus_spectral_initialization')
         add(pre+'hard__hem',pre+'hard__ds','hierarchical_minus_ds')
-    for enc,kind in ARMS:add('shuffle__all__'+enc+'__'+kind,'top5__all__'+enc+'__'+kind,'token_shuffle_minus_original')
+    for enc,kind in arms:
+        add('shuffle__all__'+enc+'__'+kind,'top5__all__'+enc+'__'+kind,'token_shuffle_minus_original')
+        add('shuffle_consensus__all__'+enc+'__'+kind,'consensus__all__'+enc+'__'+kind,'token_shuffle_minus_original')
+    # Experiment-specific contrasts declared in the config (Step 432); absent by default.
+    for a,b,why in (extra or []):add(a,b,why)
     return pairs
 
 def bootstrap(d,methods,within):
@@ -66,13 +81,15 @@ def bootstrap(d,methods,within):
         for a,v in zip(arrays,out):a[start:start+count]=v
         if start%2048==0:print(f'paired source bootstrap {start}/{B}',flush=True)
     intervals={};contrasts=[];endpoints=['pb_sla','pb_common_gate_f1','prm_within_auc']
+    rosters=getattr(d,'rosters',None);arms=getattr(d,'fusion_arms',None)
+    if rosters is not None:rosters=list(rosters)+list(getattr(d,'pb_extra_rosters',[]))
     for endpoint,pts,draws in zip(endpoints,point,arrays):
         table={}
         for j,name in enumerate(names):
             if not np.isfinite(pts[0,j]):continue
             table[name]={'point':float(pts[0,j]),'ci95':np.nanpercentile(draws[:,j],[2.5,97.5]).tolist()}
         intervals[endpoint]=table
-        for a,b,why in planned(table):
+        for a,b,why in planned(table,rosters,arms,d.c.get('planned_contrasts_extra')):
             ia=names.index(a);ib=names.index(b);delta=float(pts[0,ia]-pts[0,ib]);boot=draws[:,ia]-draws[:,ib]
             boot=boot[np.isfinite(boot)]
             # Centered nonparametric bootstrap test, finite Monte Carlo correction.

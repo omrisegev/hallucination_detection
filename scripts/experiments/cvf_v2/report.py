@@ -28,7 +28,7 @@ def diagnostics(d,methods,jobs):
               'job_seconds':job['seconds']})
         if job['stage']=='spectral':
             selections.extend({'task':job['task'],'fold':job['fold'],'roster':job['roster'],'population':job['population'],
-              'channel':ch,'readout':r} for ch,r in zip(CHANNELS,job['readouts']))
+              'channel':ch,'readout':r} for ch,r in zip(job.get('channels',CHANNELS),job['readouts']))
     csv_write(d.out/'MODEL_DIAGNOSTICS.csv',summary);csv_write(d.out/'READOUT_SELECTIONS.csv',selections)
     stepcounts=np.diff(d.off);lengths=np.load(d.out/'step_lengths.npy');longest=d.peaks(lengths)
     strata=[]
@@ -116,7 +116,39 @@ def html_report(d,pb,pr,ps,uncertainty,diag,coverage):
       '<script>function filterRows(){const q=document.getElementById("filter").value.toLowerCase();document.querySelectorAll("#allmethods tbody tr").forEach(r=>r.hidden=!r.textContent.toLowerCase().includes(q));}</script></html>']
     (d.out/'REPORT_HE.html').write_text('\n'.join(pieces),encoding='utf8')
 
-def report(d):
+def anchor_parity(d,pb,pr):
+    """Every method name shared with the reference run must reproduce its ProcessBench macro
+    SLA / F1 and PRMBench within-answer AUROC to 1e-12 BEFORE any new arm is read."""
+    ref=d.c.get('reference_run')
+    if not ref:return None
+    ref=Path(ref);rpb=json.loads((ref/'PB_METRICS.json').read_text(encoding='utf8'));rpr=json.loads((ref/'PRM_RANKING_METRICS.json').read_text(encoding='utf8'))
+    # Binary-vote arms ('hard__') produce discrete scores with exact ties on PRMBench steps; the
+    # saved weights replay to 1e-13 yet that noise re-orders tied pairs in the rank-based
+    # within-answer AUROC (verified on prm__fold0__top5: weights 2.6e-14, scores 2e-13, AUC 8e-5).
+    # ProcessBench numbers are argmax-based and exact. Tolerances are therefore per endpoint.
+    TOL_EXACT=1e-12;TOL_TIED_AUC=1e-4
+    rows=[];worst=0.;worst_excess=0.
+    for name in sorted(set(pb)&set(rpb)):
+        row={'method':name,'sla_here':pb[name]['macro8']['sla'],'sla_reference':rpb[name]['macro8']['sla'],
+             'f1_here':pb[name]['macro8']['f1'],'f1_reference':rpb[name]['macro8']['f1']}
+        diffs=[(abs(row['sla_here']-row['sla_reference']),TOL_EXACT),(abs(row['f1_here']-row['f1_reference']),TOL_EXACT)]
+        if name in pr and name in rpr:
+            row['auc_here']=pr[name]['within_auc'];row['auc_reference']=rpr[name]['within_auc']
+            binary='__hard__' in name
+            diffs.append((abs(row['auc_here']-row['auc_reference']),TOL_TIED_AUC if binary else TOL_EXACT))
+            row['auc_tolerance']=TOL_TIED_AUC if binary else TOL_EXACT
+        row['max_abs_diff']=max(x for x,_ in diffs);row['pass']=all(x<=t for x,t in diffs)
+        worst=max(worst,row['max_abs_diff']);worst_excess=max(worst_excess,max(x-t for x,t in diffs));rows.append(row)
+    result={'reference_run':str(ref),'shared_methods':len(rows),'worst_abs_diff':worst,'tolerance_exact':TOL_EXACT,
+            'tolerance_binary_within_auc':TOL_TIED_AUC,'binary_auc_note':'discrete binary-vote scores; 1e-13 weight noise re-orders exact ties in the rank-based AUROC',
+            'pass':worst_excess<=0,'failing_methods':[r['method'] for r in rows if not r['pass']],'rows':rows}
+    dump(d.out/'ANCHOR_PARITY.json',result)
+    if not result['pass'] and d.c.get('anchor_parity_strict',True):
+        raise ValueError(f'anchor parity failed for {result["failing_methods"]}; see ANCHOR_PARITY.json')
+    print(f'Anchor parity: {len(rows)} shared methods, worst |diff| {worst:.2e}, all within tolerance',flush=True)
+    return result
+
+def report(d,html=True):
     methods,jobs=collect(d);pb={};pr={};within={};coverage={}
     for name,m in methods.items():
         pb[name]=pb_metrics(d,m)
@@ -124,6 +156,7 @@ def report(d):
         coverage[name]={'pb':int((d.pb&m['valid']).sum()),'prm':int((d.prm&m['valid']).sum()),
           'pb_fallback':int((d.pb&m['fallback']).sum()),'prm_fallback':int((d.prm&m['fallback']).sum())}
     dump(d.out/'PB_METRICS.json',pb);dump(d.out/'PRM_RANKING_METRICS.json',pr);dump(d.out/'COVERAGE.json',coverage)
+    anchor_parity(d,pb,pr)
     native={n:d.pb_metrics(d.peaks(d.references[n]),d.token_gate if n.startswith('token_') else d.gate) for n in ['ct7','token_lsml','token_equal']}
     dump(d.out/'HISTORICAL_NATIVE_GATES.json',native)
     ps=prmscores(d,methods)
@@ -144,7 +177,7 @@ def report(d):
           **{k:p.get(k) for k in ['within_auc','eligible','step_auroc_mean_folds','step_auprc_mean_folds']},
           'prmscore_q80':s.get('quantile_0.8',{}).get('prmscore'),'prmscore_inner':s.get('inner_selected',{}).get('prmscore'),**coverage[name]})
     csv_write(d.out/'SUMMARY.csv',summary);csv_write(d.out/'PAIRED_CONTRASTS.csv',uncertainty['contrasts'])
-    html_report(d,pb,pr,ps,uncertainty,diag,coverage)
+    if html:html_report(d,pb,pr,ps,uncertainty,diag,coverage)
     dump(d.out/'REPORT_MANIFEST.json',{'outer_jobs':len(jobs),'inner_jobs':len(list((d.out/'jobs').glob('*__inner*.json'))),
       'outer_fit_seconds':sum(j['seconds'] for j in jobs),'development_only':True,
       'jobs':{str(p.relative_to(d.out)):{'bytes':p.stat().st_size,'sha256':digest(p)} for p in (d.out/'jobs').iterdir() if p.is_file()},

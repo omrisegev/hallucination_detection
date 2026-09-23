@@ -1,3 +1,82 @@
+## Steps 430-432 (Claude) — competition diagnostics and per-channel evidence — 2026-09-23
+
+Branch `claude/readout-quickest-detection-v1` (worktree `.worktrees/readout-quickest-detection-v1`),
+on top of Steps 428-429. Not pushed (LFS hook); Omri pushes. Large inputs still read from the
+sibling worktrees `token-probability-fusion-v1` and `cumulative-vote-fusion-v2`; the Step 432
+profiles are hard links to `results/readout_family_v1/` (do not remove either).
+
+Step 430 (`results/competition_diagnostics_v1/`, labels for evaluation only): the channels drift
+strongly along the answer but towards the START (CT7 +0.67 SD at step 0, +0.43 at step 1, flat
+-0.3 SD from step 3; slope -1.17 SD per unit relative position on gate-closed answers; entropy,
+varentropy, surprisal, margin and energy-innovation all fall about 1 SD; only bocpd_p0 rises).
+That explains the fused locators' EARLY misses (predicted at relative position 0.19, target 0.58,
+null +0.48 SD higher) and not the late ones that dominate long chains (predicted 0.67, target 0.27,
+null 0.46 SD LOWER). No readout family misses different answers than top-k beyond the
+shuffled-token null (spread -0.15, peak -0.03, trend 0.00 conditional hit rate vs null); union
+ceilings are coverage artefacts (168 argmaxes hit 99.8 % real vs 99.9 % shuffled). No non-max
+decision rule beats the argmax (earliest-of-top-2 -6.7 pp on CT7; within-0.25-SD rules within
++-0.4 pp). Fusion-before-readout with the readouts as voters (the planned Step 431) is closed
+without running. Hypothesis note: `docs/research_notes/generation_drift_hypothesis_2026-09-22.md`.
+
+Step 432 (`results/step_evidence_v1/`, 30 outer + 40 inner jobs, anchor parity exact on 25 shared
+rows): per-channel log-likelihood-ratio evidence from pseudo-labels (seed = fit-free softmax-mean
+fusion; pseudo-positive = its argmax on gate-open training answers) with a plain or a
+position-conditional null. Mechanism verified (half the decisions change; +17.5 pp over the
+random-seed null) but no improvement: top5 plain -0.60 [-2.35, +1.12] vs its seed, top30 plain
++1.68 [+0.07, +3.28] only up to the frozen top30 soft-equal fusion; the label ceiling of the same
+construction is BELOW the label-free linear fusion (-1.09 / -2.24 vs plain) because summing
+independent per-channel ratios over-counts a bank with 1.8 effective views; the position null
+lowers early and raises late misses (top5 +0.48 [-0.82, +1.76], top30 -2.30); iteration 2 and
+learned weights on the evidence columns hurt; every arm below CT7 with intervals excluding zero. The exception is PRMBench within-answer
+ranking: top5 position evidence .7674 within-AUC, +0.014 over the bank's frozen equal fusion and
+0.005 below CT7 (iteration 2 within CT7's interval), while PRMScore falls 5 pp because the
+evidence has no answer-level scale.
+Amendment A1: the CT7 gate never opens on PRMBench, so PRMBench pseudo-positives were redefined
+as the seed argmax of every training answer and the PRMBench jobs rerun; ProcessBench jobs
+replay byte-identically.
+
+Next: the readout, readout-as-voter, non-max-rule and per-channel-evidence levers on the
+eleven-channel bank are closed (Steps 429-432). Remaining levers: genuinely new independent
+views for the 1.80-effective-view ceiling (attention flow, layer-wise views from the white-box
+line), and the gate; a position-conditional null is the correct label-free fix for early misses
+if a future locator needs one. Do not re-open drift-based late-bias corrections: the late
+competing peaks are real excursions above a lower null.
+
+## Steps 428-429 (Claude) — quickest-detection diagnostics and readout family — 2026-09-22
+
+Branch `claude/readout-quickest-detection-v1` (worktree `.worktrees/readout-quickest-detection-v1`),
+built on the consolidation branch `consolidation/fusion-2026-09-22` (`2e7758158` = master +
+codex/token-local-fusion-optimization-v1 + claude/token-probability-fusion-v1 +
+claude/token-axis-fusion-sampling-3i9r2u + codex/cumulative-vote-fusion-v2, ledgers merged by
+union, every Step heading of every parent present; white-box line left separate). Push of both
+branches is blocked by the GitHub LFS pre-receive hook (known budget blocker); Omri pushes.
+Large inputs are read from the sibling worktrees `token-probability-fusion-v1` (TOKEN_MATRICES.npz,
+CT7_DEV_SCORES.npz, OOF_SCORES.npz) and `cumulative-vote-fusion-v2` (frozen profiles, reference
+metrics); do not remove those worktrees.
+
+Step 428 (`results/quickest_detection_diagnostics_v1/`): PRMBench errors persist weakly
+(P(err|err) .417 vs P(err|ok) .106, 60 % single-step runs, hazard .02 at step 0 rising to .15);
+the long-chain collapse is an argmax competition effect, not signal loss (CT7's first-error step
+outscores a random error-free step .73/.75/.78 by depth while SLA falls .48/.36/.30; KL rises
+.26/.35/.44); aggregation is monotone (top30 > top10 > top5) and every spread/trend/sequential
+statistic carries less than top5; a first-crossing rule never beats the argmax (0/69 locators).
+
+Step 429 (`results/readout_family_v1/`, 300 outer + 320 inner jobs, anchor parity vs Codex's run
+on 61 shared methods): label-free consensus readout choice -5.67 pp [-7.22, -4.10] vs top5 and
+BELOW its shuffled-token null (+4.55 for the null); all-onset80 -16.60; page_cross -5.23; fixed
+top30 +2.98 SLA [+1.73, +4.27] but -0.053 within-AUC on PRMBench (steps shorter than 30 tokens);
+label-selected over 17 readouts = label-selected over 7 (-0.13 [-1.42, +1.15]); pmf fitting repairs
+the learned soft arms (+6.9 pp) exactly to equal weighting (+0.3 [-0.45, +1.07]); best new arm
+3.5 pp behind CT7 with intervals excluding zero. No promotion; the readout lever on this bank is
+closed, label-free and label-selected alike.
+
+Next: (a) the decision among competing steps on long chains — a label-free position prior or the
+non-constant first-error hazard measured in Step 428, tested as a readout of the same fused
+score with the gate held fixed; (b) HANDOFF_TOKEN_PROBABILITIES 5.1, fusion before the readout,
+now with pmf fitting; (c) new independent views (attention flow, Koopman-type embedding
+residuals) for the 1.80-effective-view ceiling; not another readout or reducer sweep.
+Standing rule from this stage: fit learned soft fusion on the pmf, never on cumulative curves.
+
 ## CT7 seven-profile vote comparison complete — 2026-09-22
 
 User requested the same binary/soft/EM comparison on CT7 instead of the eleven
@@ -45,6 +124,373 @@ GitHub rejected the LFS upload: repository exceeded its LFS budget (0/12 objects
 uploaded). Remote branch remains 9966cf6c356843e8dbd1a536f95d44e11e3f4516.
 The second-machine LFS instructions require restoring LFS access and a successful
 push first; the new caches are NOT yet available from the remote branch.
+## Cross-branch review - cumulative vote fusion, 2026-09-21
+
+Reviewed freshly fetched `origin/claude/token-axis-fusion-sampling-3i9r2u`
+at `2b321fa3a` against the token-probability, token-bank, depth and whitebox lines.
+Ordinal first-error formulation is viable. Omri clarified that this study targets
+gate-free SLA on erroneous answers: evaluation filtering is intentional; fitting
+on known-erroneous training answers must be declared, not treated as test-label leakage.
+All 15 prediction columns replay exactly on 3400 answers in both fit scopes.
+Review found binary L-SML flattening drops the inner sign, soft fit/predict scale
+mismatch, different binary/soft fitting grids, and source-question fold violations
+(354 groups / 827 answers in the historical folds). Bootstrap ignores source groups.
+DS family6 estimated psi/eta .968/.945 versus empirical threshold rates .589/.650;
+consensus is not demonstrated near-perfect reliability. No candidate promoted.
+The branch forks at72d8235b4 and lacks the later token-probability audit corrections.
+Report: docs/reviews/TOKEN_AXIS_FUSION_CROSS_BRANCH_REVIEW_20260921.md.
+Reproducible evidence: scratch/token_axis_review_20260921/ and
+scratch/review_token_axis_20260921.py. Isolated checkout:
+.worktrees/review-token-axis-20260921 (detached). No research code or frozen result
+modified; no new raw full-population experiment or inference launched.
+## 2026-09-22 [Codex] - FUSE readout search closed as final selector; eleven-channel bank unchanged
+
+Bounded development diagnostics on frozen `cumulative-vote-fusion-v2` (`bcf5a4bd`) are complete;
+no new inference and no labels in fitting. Hard S-hat ordered frozen hard rosters and correlated
+with a common Top-k ladder, but soft-PMF exposed the objective mismatch: shuffle has lower S-hat
+than the stronger selected roster, and soft-cumulative S-hat is ramp-dominated. The FUSE drop rule
+kept every channel. Fold-wise soft-PMF S-hat selection reached SLA 35.17%, below fixed Top30 35.47%
+and the supervised selected ceiling 36.03%. Hard selection followed by soft decoding reached 34.06%
+and collapsed at `pb_q8/fold4` (`k=1`, clipped fraction .473). Binary residual clustering with
+minimum group size three, cross-cluster triplet readout search, then fixed-group continuous L-SML
+reached 34.76%; one post-readout reclustering pass changed all ten partitions but only reached
+34.83% and increased late errors. Decision: no promotion; S-hat remains a numerical/dependence
+diagnostic, not the final label-free readout objective. Do not add CT7 features to the eleven-channel
+bank; CT7 remains a frozen comparator. Full synthesis and artifact map:
+`docs/research_notes/fuse_boundary_search_for_readouts_2026-09-22.md` Sections 5--9.
+
+## Step424 (Claude) - raw-channel readouts + soft cumulative fusion: pipeline ready, full cells pending, 2026-09-20
+
+Omri's follow-ups to Step423: fuse RAW channels (the eleven-channel Claude feature bank), find
+each channel's readout (top5/top10/max/mean/LoG/CUSUM/onset80), and run the SOFT cumulative-vote
+fusion beside the binary one. `scripts/experiments/raw_channel_readout_fusion_v1.py` does all
+of it out-of-fold with a tau->0 identity check; protocol and full-run command in
+`docs/experiments/RAW_CHANNEL_READOUT_FUSION_V1.md`. **Only 30-answer pilot caches were
+reachable here** (Drive connector 10 MB cap; full cells are LFS on Drive/AIRCC), so
+`results/raw_channel_readout_fusion_v1/pilot_*` are feasibility checks, not evidence. Mechanically
+`onset80` halves the late fraction at equal mean SLA and the soft MODE (not median) is the right
+readout. **Full cells: run the documented command on the machine with the caches (CPU, minutes).**
+Mind-the-Gap replay figures from Step423 verified against the frozen package (SLA 0.23323):
+`results/cumulative_vote_fusion_v1/MIND_THE_GAP_VERIFICATION.md`.
+
+**Addendum 2026-09-21.** Clarifications recorded in
+`docs/research_notes/cumulative_vote_fusion_clarifications_2026-09-21.md`: in `spectral_utils`
+the SML/L-SML eigenvector is the final weight vector (no EM, no psi/eta anywhere); the
+Dawid-Skene rows are SML-initialized EM living in the experiment script; the inference uses only
+the per-feature step estimates and the learned per-feature weights; and the PRMBench transfer
+needs a per-step ("is step s erroneous") encoding with top-k binarization instead of the
+cumulative one. PRMBench mode not implemented yet.
+
+## Step423 (Claude) - cumulative-vote fusion of localizers reproduces the incumbent; long-chain deficit is a shared late bias, 2026-09-20
+
+Omri's "ask every localizer whether the first error is at a step <= n, then binary L-SML" run
+retrospectively on the committed Llama-3.1-8B localization lane (3,400 questions, five
+label-free localizers, Mind-the-Gap SLA protocol, out-of-fold). **Decision
+`FUSION_REPRODUCES_INCUMBENT`**: Dawid-Skene mode 30.08 vs incumbent 30.12 (-0.05 pp
+[-0.27, +0.18]); the label-free consensus is family6 itself (psi .97 / eta .95). Mind-the-Gap
+common replay is the LATEST localizer on every subset and gets a negative SML weight;
+Unified-28 is early with a step-0 prior. On long chains the incumbent falls from 45.5% (depth
+0-2) to 16.4% (depth 8+) with the misses late (0.22 -> 0.60), and all five share a residual
+late bias of +0.5 to +1.4 steps beyond a uniform-guess null, concentrated on early errors in
+deep chains. Reweighting cannot fix that; next targets are an onset readout, a delta-shaped
+operator column, and the soft cumulative-curve fusion on the Qwen OOF step scores.
+Report: `results/cumulative_vote_fusion_v1/REPORT.md`; protocol:
+`docs/experiments/CUMULATIVE_VOTE_FUSION_V1.md`.
+
+## Steps421-422 (Claude) - white-box field for the full population; the gate was hiding the token-level result, 2026-09-18
+
+**Step421.** White-box per-layer field extracted on AIRCC for ALL 13,769 localization answers
+(ProcessBench x Qwen3-4B/8B, PRMBench x Qwen3-8B), teacher-forced, jobs 259527 + 259529-259537.
+13,769/13,769 rows, gate checked on every row, ZERO failures, 5.5 GB, ~18.4 GPU-hours. Per token
+per layer per tap (attn/mlp/resid, all 36 layers): lens entropy, lens logp of the provided token,
+lens logp of top-1, KL to final; plus resid_norm per token and 32 covariance eigenvalues + a
+256-dim seeded projection per answer. Five pre-flight defects fixed, the load-bearing one being a
+gate that compared FULL-vocabulary lens entropy against the top-15 renormalised cached
+`token_entropies` and would have aborted the run. Attention and hidden states were never captured
+for ANY population in this project - the consumer exists, the input never arrived. Backed up to
+`gdrive:hallucination_detection/cluster_results/`. Handoff: docs/HANDOFF_WHITE_BOX_LAYER_VIEWS.md.
+
+**Step422.** Gate/locator separation of the token-level L-SML arm. Under the Mind-the-Gap protocol
+(per-subset SLA on erroneous answers, no gate; their ProcessBench population is exactly ours):
+**L-SML 35.92 vs equal 32.59, +3.33 pp [+1.90, +4.75], 10,000 paired source-group draws** - the
+first arm in this project where L-SML beats averaging with an interval excluding zero, and the gain
+is bigger gate-free than gated. We beat the paper's best on GSM8K (+4.41/+3.65) and MATH-4B, and
+lose 6.6-12.5 pp on the long-chain subsets, where their derivative readout should beat our level
+readout. LOCO-5's inherited 0.33 threshold costs 2.77 pp (optimum 0.41, label-selected ceiling).
+Protocol deviation found: the fusion is fit on a pooled donor-fold token matrix with no
+answer-local standardization while the readout is argmax within the answer. Handoff:
+docs/HANDOFF_TOKEN_PROBABILITIES.md.
+
+**Documentation finding.** There is no recorded decision to abandon answer-only fitting. CLAUDE.md
+forbade pooling on 2026-09-07 and permitted it conditionally on 2026-09-15 with "prefer answer-only
+when competitive"; nothing in between explains the switch. The matched answer-local versus pooled
+comparison on one fixed bank was specified three times and has never been run.
+
+## Step412 complete; base quality passes, iid/near coverage failures remain - 2026-09-17
+
+Atlas results/joint_mass_membership_v1 COMPLETE_REVIEWED.25 new full-bank fits.
+Mass-aware internal group discovery (kernel QP, weighted provisional complete
+covariance projection/spectral clustering/NMI). Final sparse/checked Joint and
+Step410 refinement unchanged. Base/exact/structured38.9622/.754189, all13769 native.
+Base vs408 +.2323pp PB CI99.5833[-.7964,+1.2631], within+.004112[+.001527,+.006789]:
+baseline preservation PASS; within gain positive, PB gain not established.
+IID37.1621/.739068 with5531 native/8238 H1 fallback; near37.9303/.743852 with8271
+native/5498 fallback. Both addition tests FAIL; exact/structured PASS. No promotion.
+Base keeps36/35/37/39/36, BOCPD5/5. Near native folds0/1/4 keep37/36/35, BOCPD3/3.
+Gate unchanged: base1246 hits,298 gate-only,2375 locator-only,523 both;935 clean
+false alarms.118 wins/103 losses versus408, so relative gain is locator.
+Audit PASS:25 model/failure replays,30 sparse rounds,42 metrics,12 paired intervals;
+20 native paths336 grouping replays/91 changes/154 budget rejections. Six tests
+PASS,524sec fits. Failed partial paths are not included in those proposal counts.
+Failure diagnosis: iid folds1/2/3 have inadmissible singleton INNER partitions
+although K3 consensus groups all have>=2. Near folds2/3 abort at FEATURE_MASS_KKT:
+L-BFGS function-stop residual3.22e-5/6.98e-4 exceeds unchanged1e-6 guard. Captured
+58/54-dimensional covariance inputs and exact failure replays saved.
+New standalone joint_mass_polish.py (NOT integrated into frozen fits) solves the
+same QP on those two matrices to KKT2.33e-15/3.11e-15 in2/3 active-set iterations;
+two extra mechanism tests PASS, no repaired scoring/coverage claim.
+Next integrate numerical polish without relaxing criteria, then separately address
+provisional-discovery admissibility before noise screening. Keep actual final
+Joint identification guards. Preserve412 base quality as an additional reference,
+not merely408 or lower baselines. No new quality fit launched. No newover40.
+Review docs/reviews/joint_mass_groups_2026-09-17.md in atlas worktree.
+Goal ACTIVE; previous/current turns progress. All sessions terminal, no blocker.
+
+## Step411 complete; minimax fixes stopping but loses quality/near-copy robustness - 2026-09-17
+
+Atlas results/joint_minimax_membership_v1 COMPLETE_REVIEWED.25 fresh fits,
+all13769 native. Rank top3 by worst cumulative INITIAL-factor information loss;
+same95% constraint, staged membership, regrouping, seeds/guards/non-digit gate.
+Base/exact/iid/structured38.0732/.748555; near37.4564/.745483. Three easy addition
+tests PASS; near-copy and prior Step408 baseline preservation FAIL. Newnear versus
+Step410near significantly lower on both endpoints under declared99.5833% intervals:
+PB-1.0853pp[-1.9692,-.2235]; within-.005458[-.007406,-.003486]. Base-vs408 intervals
+include0 but fail margins: PB[-1.3930,+.0594]pp, within[-.003134,+.000062]. No promotion.
+Base keeps28/28/29/29/29; near20/19/20/20/20 originals, all new copies removed.
+BOCPD kept2/5 base and0/5 near; removal not proved to cause decline.1295 near peak
+changes, zero exact/iid/structured. Full PB diagnosis: base1198 hits,285 gate-only,
+2423 locator-only,536 both;935 clean false alarms. Same gate;46 gains/79 losses
+versus408, so relative regression is locator. Full typed feature rosters saved.
+Independent25-model/37-round/37-metric/12-interval audit PASS,677 grouping replays,
+493 partition changes,75 information rejections,0 fit rejections. Three tests PASS.
+678sec fits. All10 base/near stops now have0 information-feasible alternatives;
+stopping mismatch repaired, quality not. Initial fits exactly replay410. Initial
+common-original grouping ARI.196-.342 despite global cosine.9976-.9990; this is
+an association, not isolated causal proof. Align original IDs: feature49 already
+removed in two near membership fits, so do not naively slice first51 rows.
+Next: address correlated-feature multiplicity in Joint structure/factor fitting,
+not further95%/N tuning. Derive and test an internal weighting/invariance rule
+before one new full matched candidate. No next fit launched. Preserve408/409/410.
+Review docs/reviews/joint_minimax_refinement_2026-09-17.md in atlas worktree.
+Goal ACTIVE; previous/current turns progress. All sessions terminal, no blocker.
+
+## Step410 complete; feasible proposals preserve additions, prior base still unproven - 2026-09-17
+
+Atlas results/joint_feasible_membership_v1 COMPLETE_REVIEWED.25 fresh full-bank
+fits, all13769 native. Reject an information-budget-violating proposal before
+regrouping, then try remaining same top3; retain95% INITIAL-factor information.
+Base/exact/iid/structured38.3444/.749885; near38.5417/.750942. Four addition tests
+PASS. Prior Step408 baseline preservation FAIL on both endpoints: PB delta
+-.3855pp CI99.5833[-1.1086,+.3245], within-.000192[-.002142,+.001717]. Neither
+establishes significant harm, but do NOT promote a replacement. Near-vsStep409
++.2426pp/+.000370, both intervals include0. No newover40 result.
+Base keeps40/40/39/32/34; near40/36/39/37/38, BOCPD5/5.494 near changed peaks,
+zero other-addition changes. Independent25-model/37-round/32-metric and12-interval
+bootstrap audit PASS;418 grouping replays,216 partition changes,144 information
+rejections,0 group/fit rejections. Three tests PASS;532sec fits, all processes done.
+Read-only stop diagnostic:9/10 base/near stops still have information-feasible
+alternatives outside the same top3. Direct solves verify deletion identity;
+no alternative group validity or quality claim. Next bounded question: align
+proposal ranking with fixed-initial information constraint, without threshold
+retuning/wider label-guided search. No next fit launched. Step408 quality and
+Step409 robustness references retained. Hybrid sourcefold, same non-digit gate.
+Review docs/reviews/joint_feasible_refinement_2026-09-17.md in atlas worktree.
+Goal ACTIVE; previous/current turns progress. No running process or blocker.
+
+## Step409 complete; all addition tests pass, prior-base preservation unproven - 2026-09-17
+
+Atlas results/joint_regroup_membership_v1 COMPLETE_REVIEWED.25 fresh full-bank
+fits; regroup every refinement deletion, fixed INITIAL95% information reference.
+New base/exact/iid/structured ALL38.3374/.750672; near38.2991/.750572, native13769
+all arms. Four addition preservation tests PASS; near-vsbase-.0383pp PB and
+-.000100 within, CI lower bounds above declared margins. Near changes330 peaks
+versus1411 inStep408. But base-vsStep408 PB-.3926pp CI99.5833[-1.2084,+.4106]
+fails the predeclared baseline-preservation bound; no significant harm established,
+no replacement promoted. Near within improves+.001849 CI[.000021,.003724].
+Independent25-model/37-round/27-metric and12-interval audit PASS;366 grouping
+replays,195 changed partitions,0 rejected model-fit proposals. Two tests PASS.
+Base keeps42/40/40/36/42; near42/42/42/40/41 channels, BOCPD5/5. No newover40.
+Post-hoc stop diagnostic:9/10 base/near stopping states have an information-
+feasible alternative among the same top3, yet first-crossing ends the path.
+This is consistent with the protocol, not an implementation bug; alternatives'
+regroup validity and quality are untested. Next bounded candidate: make95%
+information a proposal-admissibility constraint before stopping; no threshold
+retuning or broader search. Keep Step408 quality and Step409 robustness references.
+Review docs/reviews/joint_regroup_refinement_2026-09-17.md in atlas worktree.
+Goal ACTIVE, previous/current turns progress. No process running, no next fit.
+
+## Step408 complete; ordering repairs iid and preserves structured noise - 2026-09-17
+
+Atlas results/joint_staged_membership_v1 COMPLETE_REVIEWED.25 fresh fits across
+all five banks. Zero-row removal/rediscovery precedes global-group exclusion.
+Base/exact/iid/structured ALL38.7300/.750078, native13769, no fallback, zero
+changed peaks; maxscore drift<=1.33e-15. Recovered2730 answers from Step407 H1.
+Near copies still37.7185/.748723,1411 changed peaks, only23/20/22/22/23 originals
+retained. Full three preservation tests PASS; near-copy test FAIL. No newover40.
+IID within gain vsStep407+.003127 CI99.5833[.001605,.004877]; PB interval includes0.
+Independent25-model/37-round/27-metric audit and12 full bootstrap intervals PASS;
+three tests PASS. Hybrid sourcefold, same non-digit gate, no guard relaxation.
+Separate all13769 stage diagnostic from frozen Step406: base full38.0948/.748971
+->refined38.7300/.750078; nearfull37.8744/.749832 ->refined37.7185/.748723.
+Original partition ARI.202-.342 despite all15 parent/copy pairs co-clustering;
+global loading cosine.9976-.9990. Eight separate diagnostic intervals replay;
+most include0, no exclusive causal attribution or new unrefined winner.
+Next: investigate grouping updates during information refinement (currently fixed
+through deletions), with one frozen bounded variant. Near-copy invariance remains
+required; do not protect BOCPD, tuneN on held labels or call noise tests sufficient.
+Review docs/reviews/joint_staged_membership_2026-09-17.md in atlas worktree.
+Goal ACTIVE, previous/current turns progress. No process running; no next fit.
+
+## Step407 complete; global-only group exclusion is not a replacement - 2026-09-17
+
+Atlas results/joint_signal_membership_v1 COMPLETE_REVIEWED.25 new full-source-fold
+fits on base/exact/iid/near/structured banks. Base and exact remain38.7300/.750078;
+structured recovers38.7300/.750078, zero changed peaks, native13769. Near unchanged
+37.7185/.748723. IID regresses38.3420/.746950 with2730 H1 fallbacks (native11039).
+Do NOT promote this variant. Six paired contrasts,99.5833% intervals: iid within
+loss-.003127 CI[-.004877,-.001605]; structured improvement vsold intervals include0.
+Mechanism verified by diagnostic refit: iid outer2 initially groups51/7/8, all
+originals in first group, all globalv=0, localu nonzero only fororiginal51.
+New global-group rule removes everything; old(v ORu) removes only15 iid columns,
+then rediscovery produces14/15/18/4 and a valid model. Global-zero is conditional
+on provisional grouping, not proof of nuisance. Proposed next: settle ordinary
+zero-row removal and rediscover before global-only group exclusion. Untested;
+approximate-copy grouping/pruning instability remains a separate requirement.
+Independent25-model/36-round/22-metric audit, all12 bootstrap intervals replay,
+three tests PASS. Readout/gate/seeds/guards unchanged, no digits, hybrid fitting.
+Review docs/reviews/joint_signal_membership_2026-09-17.md in atlas worktree.
+Goal ACTIVE; previous/current turn progress. No process running, no next fit.
+
+## Step406 complete; approximate/structured robustness fails - 2026-09-17
+
+Atlas results/joint_structured_stress_v1 COMPLETE_REVIEWED, full13769, native
+all six new arms, no fallback. Reusable joint_noise_aware API replays all five
+base folds exactly. Frozen base Joint38.7300/.750078; near copies37.7185/.748723;
+structured nuisance37.9235/.748005. Both preservation tests FAIL. Near-copy PB
+change-1.0115pp, corrected98.75% CI[-1.7981,-.2416]; other three intervals include0.
+Near copies all removed but only23/20/22/22/23 original channels survive and
+BOCPD0/5. Structured noise retains all15 in5/5, BOCPD5/5: each initial pure
+nuisance group has globalv=0 and localu!=0 across all converged sparse starts.
+Membership(v ORu) preserves it; post-debias added weight fraction.27%-3.10%.
+Full controls: Continuous near37.5544/.745933, structured37.8974/.749137;
+equal near37.5929/.746523, structured36.8025/.742034. No new over40 method.
+Independent12-metric/17-round algebra audit PASS; two contract tests PASS.
+Hybrid source-fold fitting, same non-digit gate, development benchmark.
+Review docs/reviews/joint_structured_stress_2026-09-17.md in atlas worktree.
+Goal ACTIVE: handle nuisance-only groups and approximate duplication without
+protecting favorite features or relaxing identifiability blindly. No next fit
+launched, no process running. Earlier exact-copy/iid success is only partial.
+
+## Steps404-405 complete; sparse Joint preserves tested additions
+
+Atlas worktree results/joint_sparse_membership_v1 and joint_sparse_refinement_v1
+COMPLETE_REVIEWED. Sparse covariance loading objective learns noise-only rows;
+exact aliases share model parameters. All15 iid noise channels removed in each
+fold; final checked fit recovers the previously failed2730-answer fold. After
+unchanged95% refinement,33/35/36/36/35 distinct measurements remain, BOCPD5/5.
+Base/copy/noise ALL38.7300/.750078, native13769, no fallback. Copies bit-identical;
+noise differences<=1.33e-15, zero changed peaks/metrics. Preservation tests PASS.
+35/38-metric and calibration/objective/weight audits PASS; four tests PASS.
+Full13769 benchmark, same gate/source folds, hybrid fitting, no digit features.
+Review: docs/reviews/joint_sparse_membership_2026-09-17.md in atlas worktree.
+Broader goal ACTIVE: approximate copies and structured correlated nuisance remain
+untested; historical40.3676/.763223 still higher. Next verification frozen in
+JOINT_STRUCTURED_REDUNDANCY_STRESS_V1.md; not launched. No process from these
+stages running at checkpoint. Do not call these easier stresses general robustness.
+
+## Steps402-403 complete; model-based group readout helps but goal active
+
+Atlas worktree results/joint_fixed_readout_v1 and joint_group_reliability_v1
+COMPLETE_REVIEWED. Model-inverse head suppresses noise but harms base performance;
+do not promote. Outer-only modeled group reliability retains within-group v:
+auto base38.7300/.750078, copies37.6801/.748921, noise38.0338/.745776.
+Noise versus old head improves BOTH endpoints with corrected99.5% intervals;
+base improvement is small/uncertain. Still fails preservation: copies PB loss
+1.0499pp; noise within loss.004302 and2730 original H1 fallback answers.
+No new method over40; historical BOCPD remains40.3676/.763223. All13769 answers,
+same gate/folds/supports; source-fold hybrid, no digit inputs. Independent23/29
+metric-bundle and weight/covariance replay PASS; four mechanism tests PASS.
+Review: docs/reviews/joint_readout_interventions_2026-09-17.md in atlas worktree.
+Next inside Joint: noise-only membership, replication invariance, valid structure
+when initial fit fails. No running process. Broader goal remains ACTIVE.
+
+## Step401 - full Joint redundancy/noise stress - 2026-09-17
+
+COMPLETE_REVIEWED in atlas worktree, results/joint_full_redundancy_stress_v1.
+All13769 answers; append15 exact probability copies or15 independent noise
+channels to B51 BOCPD Top10; rediscover groups, unchanged95% Joint selector,
+fixed source folds/gate. AutoJoint baseline38.5998/.749097; copies37.0862/.746547;
+noise36.9844/.739382 (H1 fallback2730 answers, native11039). Copies PB loss
+1.5136pp CI99.375[-2.7998,-.2308]; noise within loss.009715 CI[-.013552,-.006168].
+Neither stress preserves both endpoints under predeclared practical margins.
+Copies retain20-23 features, zero duplicate pairs, but2418 peaks/839 decisions
+change. Noise retains8-15 noise channels in valid folds; fold2 initial fit has
+zero converged starts (reproduced), although global local-identification passes.
+In noise fold0 a pure-noise group gets59.1% absolute selected-weight mass;
+this diagnoses a possible group-normalization problem, not causal proof.
+Continuous L-SML remains native13769; copies37.5348/.745811, noise37.6288/.750537.
+Independent17-metric and weight replay PASS, maxerror0; perturbation tests PASS.
+Hebrew review: docs/reviews/joint_redundancy_stress_2026-09-17.md.
+Broader goal ACTIVE; current selector is not robust. Next isolate fixed-bank
+readout and model weak/noise groups; preserve initial-fit failures separately.
+No process remains running at this checkpoint. No new inference or digit input.
+
+## Step400 complete; broader Joint robustness goal active - 2026-09-17
+
+Worktree `.worktrees/fusion-independence-atlas-v1`: gate/locator audit COMPLETE
+at `results/broad50_gate_locator_audit_v1/`. Joint1193 hits,293 gate-only,
+2428 locator-only,528 both,935 clean false alarms; gains200/loses275 vs innovation5.
+Same gate means relative regression is locator. User authorized feature changes
+and explicitly BOCPD. Completed `scripts/run_joint_feature_selection_bocpd_v1.py`:
+alternating Joint refits/backward information-based feature selection, automatic
+95% retention plus fixed-count diagnostic path, banks50/51+BOCPD/51+noreset.
+No digit inputs; source-fold hybrid fits, frozen gate. AutoJoint38.2737/.748011;
+autoJoint+BOCPD38.5998/.749097 (33-36 retained), fullJoint+BOCPD38.3554/.747238.
+Within improves with multiplicity-corrected intervals; PB remains uncertain.
+Historical BOCPD+innovation5 replay40.3676/.763223. N=8..50 best38.4141 at37.
+MatchedTop8 completed: autoJoint+BOCPD36.8625/.752522, significant PB loss/within
+gain vsTop10. Five tests and independent38-metric/weight replay PASS; no fallback.
+No process remains running. Combined review in worktree:
+`docs/reviews/joint_selection_bocpd_analysis_2026-09-17.md`.
+Broader goal ACTIVE: full-data controlled redundancy/noise stress and fixed-bank
+Joint readout diagnosis remain; no general robustness or successor established.
+
+## Broad50 first digit-free experiment - 2026-09-17
+
+COMPLETE_REVIEWED in `.worktrees/fusion-independence-atlas-v1/`, results at
+`results/digitfree_broad50_v1/REPORT.md` and `AUDIT.json`. Full13,769 answers,
+50 fixed digit-free streams/Top10. PB% / PRMB within-AUC: Continuous37.7632/.747926;
+Joint38.0485/.746070; balanced Joint37.9903/.746046; equal37.8963/.748902.
+Historical non-digit innovation5 remains39.8314/.760293. Primary paired97.5%
+intervals include0 on both endpoints; no demonstrated balanced-loss advantage.
+All fits valid, no fallback. Five-source-fold pooled fitting is hybrid; grouping
+uses four training-fold deletions, not historical LOAO. Shared gate: whole-answer
+Tail15 Top10 MEAN, within-cell midrank>=.33; no digit channels. Original protocol
+misnamed it "prominence"; explicit correction in result `GATE_DEFINITION.md`.
+Scores were unchanged and independently verified. PRMB within-AUC is ungated.
+No additional sweep or inference launched.
+
+## Omri decision - 2026-09-17: retire digit-based disagreement from the method
+
+Digit-specific disagreement and all derived digit inputs are excluded from
+future candidates, gates and score-orientation anchors. Earlier digit-inclusive
+incumbents remain historical only. Broad-bank proposal now has 50 digit-free
+streams: the retained 47 plus three general distribution features. A digit-free
+gate/orientation contract must precede new performance
+claims. See the latest amendment in CLAUDE.md and the direction-review note in
+the root repository docs/reviews/joint_lsml_direction_review_2026-09-17.md.
+Documentation only; no experiment or running scorer was changed.
+
 ## Codex Graph-local IU fetched - 2026-09-13
 
 ## Claude 2026-09-14: Stage 3 Joint pass COMPLETE (no fused arm beats the best single order; Joint edges IU on within-AUC only). Stage 3 closed; Stage 3b sweep + complementarity recorded (Step 359). Next candidates: bounded fusion of {VE_0, VE_0.75, VE_1, H0lim, H1}; frozen-contract artifacts (gate/folds/labels) are NOT in git and should be committed on a dedicated branch.
