@@ -237,8 +237,9 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("--root",type=Path,default=ROOT/"results/family_tail_external_v1")
     args=parser.parse_args();out=args.root
-    if not (out/"RED_TEAM.md").exists():
-        raise ValueError("Independent RED_TEAM.md required before reporting results")
+    review_file="RED_TEAM.md" if (out/"RED_TEAM.md").exists() else "AUDIT_DEFERRED.md"
+    if not (out/review_file).exists():
+        raise ValueError("Review status file required before reporting results")
     metrics=load(out/"METRICS.json");contrasts=load(out/"CONTRASTS.json")
     literature=load(out/"LITERATURE_CONTEXT.json")
     literature["rows"]=[dict(row,benchmark=bench,method=row["model"],
@@ -278,16 +279,17 @@ def main():
         value="not available" if score is None else str(score)
         md.append(f"- **{row.get('benchmark')} / {row.get('method')}**: {value} ({row.get('scale','fraction')}). {row.get('protocol_note','')} [Source]({row.get('url','')}).")
     md += ["","## Audit and machine-readable evidence","",
-           "[Independent audit](RED_TEAM.md), [metrics and all components](METRICS.json), [paired contrasts](CONTRASTS.json), [official replay](OFFICIAL_METRIC_REPLAY.json), [provenance](EVALUATION_PROVENANCE.json).",""]
+           f"[Review status]({review_file}), [metrics and all components](METRICS.json), [paired contrasts](CONTRASTS.json), [official replay](OFFICIAL_METRIC_REPLAY.json), [provenance](EVALUATION_PROVENANCE.json).",""]
     he=out/"INTERPRETATION_HE.md"
     if he.exists():md += [he.read_text(encoding="utf8")]
-    (out/"REPORT.md").write_text("\n".join(md)+"\n",encoding="utf8",newline="\n")
+    (out/"REPORT.md").write_text("\n".join(md).rstrip()+"\n",encoding="utf8",newline="\n")
     hebrew_card=""
     if he.exists():
         he_text=he.read_text(encoding="utf8")
         hebrew_card='<section dir="rtl" lang="he"><div style="white-space:pre-wrap;line-height:1.7">'+html.escape(he_text)+'</div></section>'
     cards="".join(f'<section><h2>{html.escape(caption)}</h2><a href="plots/{name}.pdf">Vector PDF</a><img loading="lazy" src="plots/{name}.png" alt="{html.escape(caption)}"></section>' for name,caption in captions)
     page='<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Family15 external transfer</title><style>body{font:16px system-ui;max-width:1550px;margin:auto;padding:32px;background:#f1f5f9;color:#172033}section{background:white;padding:24px;margin:24px 0;border-radius:12px}img{width:100%;height:auto}a{color:#12649a}h1{font-size:32px}p{max-width:1000px}</style><h1>Family15 tail20: external benchmark comparison</h1><p>Ten frozen alternatives, complete populations. Exploratory follow-up; no new GPU inference. Published comparator bars are context, not reproduced measurements.</p><p><a href="REPORT.md">Full technical report</a> | <a href="RED_TEAM.md">Independent audit</a> | <a href="METRICS.json">Exact metrics</a></p>'+hebrew_card+cards+'</html>'
+    page=page.replace('href="RED_TEAM.md">Independent audit',f'href="{review_file}">Review status')
     (out/"REPORT.html").write_text(page,encoding="utf8",newline="\n")
     print("Rendered",len(captions),"PNG/PDF figure pairs and Markdown/HTML reports")
 

@@ -18251,3 +18251,34 @@ no SOTA claim. The broader published-comparator reproduction remains pending.
 Negative result recorded: results/lsml_external_generalization_v1/evaluation/NEGATIVE_RESULT.md
 
 ---
+
+### 2026-09-24 [Codex] Family15 tail20 transfer across two external benchmarks
+
+**What:** Reconstructed 48 source features on all13,769 answers/145,597 steps
+(maximum difference6.66e-14), froze ten methods and scored all6,190 external
+answer/backbone records/53,970 steps without a new GPU pass. Predictions were
+sealed before official labels. Generated all30 method/cell metric rows,
+18 registered paired contrasts, overlap sensitivity, diagnostics and15 PNG/PDF
+plot pairs. A190,131,044-byte archive with6,312 verified members preserves the
+large arrays and source pool. Methods, thresholds and source calibration stayed
+frozen; only the report/archive prerequisite changed after the user's request to
+defer further independent review.
+
+**Result:** Family15 tail20 L-SML yielded Hard2 Balanced F1 41.020 and Socratic
+PRMScore 59.921/62.690 (Qwen3/QwQ), versus Bank11 L-SML 43.670 and
+63.221/64.238. Socratic losses to Bank11 are supported by the adjusted paired
+intervals; the Hard2 interval includes zero. Socratic error-class F1 decreased.
+The new tail fit beats matched Family15 covariance L-SML only on QwQ, not the
+leading Bank11 or family-equal control. Published comparator numbers are contextual
+and have different calibration/access conditions. This is exploratory external
+evidence, not untouched confirmation or a combined independent sign-off. Three
+full-population component audits report PASS; the user deferred a further synthesis.
+An independent metric-audit script received documented post-seal integrity guards,
+without changing the frozen primary evaluator or predictions.
+
+**Files:** docs/experiments/FAMILY_TAIL_EXTERNAL_RESULTS_20260924.md;
+results/family_tail_external_v1/REPORT.md, REPORT.html, plots/,
+METRICS.json, CONTRASTS.json, DISJOINT_CONTRASTS.json, COST_LEDGER.json,
+AUDIT_DEFERRED.md, ARCHIVE.json. Scripts: run_family_external.py,
+evaluate_family_external.py, diagnose_family_external.py,
+render_family_external.py and archive_family_external.py.

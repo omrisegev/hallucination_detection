@@ -1,5 +1,8 @@
 """Independent Agent A audit: raw shards + evaluator-only labels, never root summaries."""
 from __future__ import annotations
+import os
+for _key in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+    os.environ[_key] = "1"
 import argparse
 import ast
 import csv
@@ -98,6 +101,17 @@ def main():
     allseal_path = OUT / "ALL_CELLS_SEALED.json"
     allseal = read(allseal_path)  # Absent means fail before reading any external labels.
     plan = read(OUT / "EXECUTION_PLAN.json")
+    freeze_path = OUT / "IMPLEMENTATION_FREEZE.json"
+    freeze = read(freeze_path)
+    execution = read(OUT / "CPU_EXECUTION.json")
+    if execution["identity"]["implementation_freeze"] != sha(freeze_path):
+        raise ValueError("execution freeze hash mismatch")
+    if execution["identity"]["code"] != freeze["files"]:
+        raise ValueError("execution code/input identity differs from freeze")
+    for relative, expected_hash in freeze["files"].items():
+        if sha(ROOT / relative) != expected_hash:
+            raise ValueError("frozen code/input changed: " + relative)
+    expected_run_identity = digest(execution["identity"])
     arms = plan["methods"]
     if len(arms) != 10 or set(allseal["seals"]) != set(CELLS):
         raise ValueError("missing registered arms/cell seals")
@@ -124,8 +138,10 @@ def main():
         seal = read(OUT / cell / "SEAL.json")
         if seal != allseal["seals"][cell] or seal["prediction_sha256"] != digest(payloads):
             raise ValueError("prediction seal mismatch")
-        if len(runids) != 1 or set(seal["arms"]) != set(arms) or seal["answers"] != expected:
+        if runids != {expected_run_identity} or set(seal["arms"]) != set(arms) or seal["answers"] != expected:
             raise ValueError("run/arm/seal mismatch")
+        if seal["lock_sha256"] != sha(lockpath) or seal["implementation_freeze_sha256"] != sha(freeze_path):
+            raise ValueError("cell lock/freeze mismatch")
         rows[cell] = payloads
         seal_info[cell] = {"sha256": sha(OUT / cell / "SEAL.json"),
                            "prediction_digest": digest(payloads), "answers": expected}
@@ -153,6 +169,8 @@ def main():
                 raise ValueError("arm missing")
             if not len(g["correct"]) == len(g["include"]) == len(r["nonempty"]):
                 raise ValueError("mask alignment")
+            if not set(g["include"]) <= {True, False} or not set(r["nonempty"]) <= {True, False}:
+                raise ValueError("nonbinary inclusion/nonempty mask")
             empty_steps += sum(not x for x in r["nonempty"])
             excluded_steps += sum(not x for x in g["include"])
             category = str(g["category"])
@@ -163,6 +181,8 @@ def main():
             oob_answers += bool(outside)
             oob_indices += len(outside)
             for arm in arms:
+                if any(p != 0 for p, nonempty in zip(r["predictions"][arm], r["nonempty"]) if not nonempty):
+                    raise ValueError("empty step was not routed to invalid")
                 c = count(g["correct"], r["predictions"][arm], g["include"])
                 aggregate[arm] = add(aggregate[arm], c)
                 categories[category][arm] = add(categories[category][arm], c)
@@ -216,12 +236,14 @@ def main():
         step_count += output["steps"]
         totals[cell] = output
         print("Agent A independently verified", cell, expected, "answers", output["steps"], "steps", flush=True)
-    if checked != 6190 or len(metric_rows) != 30 or len(comparisons) != 18:
+    if checked != 6190 or step_count != 53970 or len(metric_rows) != 30 or len(comparisons) != 18:
         raise ValueError("full-population accounting failed")
     DEST.mkdir(exist_ok=True)
     result = {"status": "PASS", "n_checked": checked, "n_total": 6190, "steps": step_count,
               "root_summaries_read": False, "other_reviewer_outputs_read": False,
               "source_lock_sha256": sha(lockpath), "all_cells_seal_sha256": sha(allseal_path),
+              "implementation_freeze_sha256": sha(freeze_path), "frozen_files_checked": len(freeze["files"]),
+              "run_identity": expected_run_identity,
               "seals": seal_info, "labels_sha256": labels_hashes,
               "official_sources": {str(p.relative_to(ROOT)): sha(p) for p in (hp, sp)},
               "oob_answer_backbone_records": oob_answers, "oob_index_backbone_records": oob_indices,

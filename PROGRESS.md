@@ -6429,3 +6429,20 @@ token/window sampling shortlist remain pending after this run.
 - Verbalized confidence on 7B+ — parser is ready; needs one inference run with Qwen2.5-Math-7B on GSM8K
 - Phase 10 RAG re-run with variant=4 prompt — low priority
 - LapEigvals integration into spectral_utils — potential Group D feature for M=12, low priority
+
+## 2026-09-24: Family15 tail20 transfer complete; independent review deferred
+
+All ten registered arms were scored on 6,190/6,190 answer/backbone records and
+53,970 official steps, with zero new GPU inference. Family15 tail20 L-SML scored
+41.020 Hard2 Balanced F1 and 59.921/62.690 Socratic PRMScore (Qwen3/QwQ), below
+frozen Bank11 L-SML at 43.670 and 63.221/64.238. The Socratic paired losses
+exclude zero after Bonferroni adjustment across 18 contrasts; Hard2 is
+inconclusive. All15 plot pairs, official components, overlap sensitivity, cost,
+literature context and a SHA-verified 190,131,044-byte reproduction archive are
+recorded in docs/experiments/FAMILY_TAIL_EXTERNAL_RESULTS_20260924.md and
+results/family_tail_external_v1/. The user requested that a separate agent perform
+the final independent synthesis; three component audits already report full-population
+PASS, including a documented post-seal integrity-guard correction in the independent
+metric-audit script. Do not treat this as a combined sign-off. The archived
+source files and existing telemetry are reusable; no further external tuning is
+licensed by this result.

@@ -16,6 +16,13 @@ status. `ARCHIVE_CONTENTS.json` records every included member's size and SHA256.
 An archive is backed up only when the manifest explicitly records a verified
 remote copy; a local `NOT_UPLOADED` archive is not a remote backup.
 
+The 190,131,044-byte archive for this run is at
+`gdrive:hallucination_detection/cluster_results/lsml_external_generalization_v1/evaluation_archives/family_tail_external_v1_results_a1e2f683cc6932a9.tar.gz`.
+Its remote SHA256 was verified against the local SHA256
+`a1e2f683cc6932a95522f71c5bb5e5998bfdfb5f7a27a54f056df4ef675395ed`.
+There are 6,312 verified members. `ARCHIVE.json` is the authoritative restore
+manifest. The independent review remains deferred; see `AUDIT_DEFERRED.md`.
+
 Download only after checking the manifest and available space. Verify the outer
 SHA256 before extracting into an isolated replay directory. Verify members against
 `ARCHIVE_CONTENTS.json`. The archive includes no benchmark question/answer text,
@@ -62,8 +69,11 @@ requires the existing private raw telemetry described below.
    all cells before annotations. The full evaluator then computes all registered
    metrics and100,000 paired source-question bootstrap draws.
 5. Run the three independent audit scripts, reconcile their raw results, and
-   record `RED_TEAM.md` before rendering. `diagnose_family_external.py` adds
-   label-free constant-channel and CUSUM contribution diagnostics.
+   record `RED_TEAM.md` before treating the result as independently reviewed.
+   This run was rendered under the user's explicit waiver recorded in
+   `AUDIT_DEFERRED.md`; independent review is still outstanding.
+   `diagnose_family_external.py` adds label-free constant-channel and CUSUM
+   contribution diagnostics.
 6. `render_family_external.py` writes the report and standalone PNG/PDF figures.
 
 This is an exploratory follow-up on already inspected external benchmarks.

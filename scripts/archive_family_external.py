@@ -24,7 +24,8 @@ def main():
     args = parser.parse_args()
     if args.output.exists():
         raise FileExistsError(args.output)
-    for name in ('RED_TEAM.md', 'ALL_CELLS_SEALED.json', 'METRICS.json', 'REPORT.html'):
+    review_file = 'RED_TEAM.md' if (OUT/'RED_TEAM.md').is_file() else 'AUDIT_DEFERRED.md'
+    for name in (review_file, 'ALL_CELLS_SEALED.json', 'METRICS.json', 'REPORT.html'):
         if not (OUT/name).is_file():
             raise ValueError('Incomplete final artifacts: '+name)
     if list(OUT.rglob('WRITER.lock')):

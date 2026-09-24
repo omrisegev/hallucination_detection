@@ -3641,3 +3641,19 @@ neutral choice: LOCO-5's 0.33 cost 2.77 pp against its own optimum.
 comparison on one fixed bank. No document records a decision to abandon answer-only fitting;
 CLAUDE.md forbade pooling on 2026-09-07 and permitted it conditionally on 2026-09-15, with nothing
 in between. The 20.38% versus 34.29% figures from Step329 are explicitly NOT that comparison.
+## 2026-09-24: Family15 tail20 external transfer completed
+
+The source-frozen Family15 tail20 L-SML variant was evaluated on all three
+Hard2Verify/Socratic telemetry cells against nine registered alternatives. Its
+Balanced F1 / PRMScore results were 41.020 / 59.921 / 62.690, below frozen
+Bank11 L-SML at 43.670 / 63.221 / 64.238. Bonferroni-adjusted paired intervals
+exclude zero for the Socratic losses, but not for Hard2Verify. The error-class F1
+gap is the main Socratic weakness. Tail20 exceeds matched Family15 covariance
+L-SML on QwQ, yet does not beat Bank11 or the equal-family control overall.
+Bank11 remains the leading frozen transfer method. Equal fusion remains a control.
+
+Do not tune on these inspected external labels. The result is exploratory; the
+user deferred the final independent synthesis to a separate agent; three
+full-population component audits already report PASS. Detailed plots,
+official components, literature-access caveats and restore instructions are in
+[the transfer report](docs/experiments/FAMILY_TAIL_EXTERNAL_RESULTS_20260924.md).

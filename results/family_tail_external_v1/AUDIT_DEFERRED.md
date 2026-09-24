@@ -1,0 +1,7 @@
+# Independent review status
+
+The user requested completion of the scripts and results without another round of self-checks because token capacity is limited. An independent agent will review the completed work later. This file records that waiver; it is not an audit pass.
+
+The main evaluator completed all 6,190 answer/backbone records and replayed the pinned official metrics. Three separate component reviewers have now completed full-population checks: numerical metrics (`independent_metrics/AUDIT_REVIEW.md`, 6,190/6,190 records and 30 rows), coverage/contracts (`independent_coverage/CONTRACT_AUDIT.md`, 6,190/6,190 records), and null/math replay (`independent_null/RED_TEAM_C.md`, 6,190/6,190 records). Each component reports PASS. The metric-audit script was strengthened after prediction sealing; `independent_metrics/AUDIT_AMENDMENT.json` records the original and revised code hashes, timing and unchanged metric formulas. The primary frozen scorer and evaluator were not modified.
+
+The user waived a further self-check and intends to use another agent for a final synthesis. These completed component reports are preserved, but no combined `RED_TEAM.md` sign-off is claimed. The aggregate interpretation remains provisional pending that synthesis. No further self-checks were run in response to the waiver. This status correction was recorded after the immutable archive was created; the Git copy is authoritative for the latest review status, while the archive remains an exact snapshot described by its manifest.
