@@ -1,0 +1,35 @@
+{
+ "stage": "tail1_transfer_v3",
+ "date": "2026-09-24",
+ "written": "before any fit, score or metric of the new rows",
+ "requested_by": "Omri, 2026-09-24: run the same kind of run (source + external, with the fix) with a tail that is only the maximal step, on bank11 and on family 15.",
+ "rows_new": {
+  "F15_tail1s_lsml": "15 families (as V1/V2); marks = tie-aware top-1 step per answer and family (the maximal step; boundary ties share the single mark), centred within answer; marks z-scored over the pooled fit rows; lsml_continuous (unit loading scale, small_m_guard); Spearman orientation on continuous F15 with the level_entropy anchor; weights applied to continuous F15, then within-answer z",
+  "B11_tail1s_lsml": "bank11 channels as the frozen bank11 L-SML uses them (answer-z, NOT sign-oriented); marks = tie-aware top-1 of each raw channel; otherwise as F15_tail1s_lsml; anchor entropy (column 0); weights applied to continuous bank11",
+  "B11o_tail1s_lsml": "bank11 channels oriented by the V1 lock source_signs (label-derived, like the families); marks = tie-aware top-1 of each oriented channel (the maximal-risk step); otherwise as B11_tail1s_lsml; weights applied to continuous oriented bank11"
+ },
+ "why_two_bank11_rows": "the maximal step depends on channel orientation; the frozen bank11 representation is unoriented (L-SML learns signs) while the families are oriented. Both are declared so no orientation is chosen from results. Earlier unstandardized historical-tie runs (family_tail_calfix_v1: B11_tail1 63.38, B11o_tail1 61.21, F15_tail1 63.44 PRMScore; all K=2) are known and disclosed; they do not decide anything here.",
+ "fix": "marks standardized before lsml_continuous (tail_threshold_calibration_v1, Step 443)",
+ "population_folds_roles": "as tail_threshold_calibration_v1 (13,769 answers; fit 3 folds / cal (k+1)%5 / eval k; one model_id per role pair; write-once bundle)",
+ "controls": {"F15_equal": "control", "F15_cov_lsml": "continuous L-SML on families", "F15_tailstd_lsml": "V2 corrected row = top-20% standardized (T20s)",
+              "B11_lsml": "frozen bank11 L-SML", "B11_equal": "equal on unoriented bank11 (V1 row)", "B11o_equal": "equal on oriented bank11", "ct7": "reference"},
+ "replays": "F15_equal, F15_cov_lsml, B11_lsml, ct7 and F15_tailstd_lsml must equal tail_threshold_calibration_v1/run_20260924_2058 scores (T20s for the last) to 1e-12",
+ "evaluation": "calfix_evaluate.evaluate unchanged: P1 primary, P1b, P2 panel, within-answer AUC, PB SLA macro8, 20,000 paired source-group draws, seed 20260924",
+ "primary_contrasts_P1_prmscore_holm5": [
+  ["F15_tail1s_lsml", "F15_tailstd_lsml", "max-step tail vs top-20% tail (families)"],
+  ["F15_tail1s_lsml", "F15_equal", "max-step tail L-SML vs matched equal (families)"],
+  ["B11_tail1s_lsml", "B11_lsml", "max-step tail vs continuous covariance L-SML (bank11)"],
+  ["B11o_tail1s_lsml", "B11_lsml", "oriented max-step tail vs continuous covariance L-SML (bank11)"],
+  ["B11_tail1s_lsml", "B11_equal", "max-step tail L-SML vs matched equal (bank11)"]
+ ],
+ "descriptive_contrasts": [
+  ["B11o_tail1s_lsml", "B11o_equal", "oriented max-step tail vs oriented equal"],
+  ["B11_tail1s_lsml", "B11o_tail1s_lsml", "unoriented vs oriented max-step tail"],
+  ["F15_tail1s_lsml", "F15_cov_lsml", "max-step tail vs continuous (families)"],
+  ["F15_tail1s_lsml", "ct7", "vs CT7"], ["B11_tail1s_lsml", "ct7", "vs CT7"], ["B11o_tail1s_lsml", "ct7", "vs CT7"]
+ ],
+ "diagnostics": "K and partition per fold for raw (unstandardized) and standardized top-1 marks; mark degeneracy (constant and boundary-tie rates)",
+ "external_decision": "ALL THREE new rows go to the external run regardless of their source results (Omri's request). TRANSFER_LOCK_V3 = V2 unchanged + these three rows, deployment fit on source folds 0-3, q80 threshold on fold 4, written before any external score of them.",
+ "external_exposure": "V1 and V2 external results have been read. The new rows are defined by the request (maximal-step tail, the declared fix, both bank11 orientations), not by external data; exploratory follow-up.",
+ "external_primary_contrasts": "the same five contrasts per cell (3 cells), Bonferroni over 15; V1 (18) and V2 (12) contrasts replayed as bridges"
+}

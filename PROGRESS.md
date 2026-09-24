@@ -1,3 +1,17 @@
+## 2026-09-24: maximal-step tail rows (TRANSFER_LOCK_V3) source + external COMPLETE (Claude)
+
+**START HERE next session: `docs/HANDOFF_FAMILY_TAIL_LSML_2026-09-24.md`** (where we stopped, branches/commits, fragile source-pool dependency, recommended next research, paste-ready prompt).
+
+Three new rows with standardized top-1 tail marks: family15, bank11 unoriented and bank11 oriented. Source is Step 445 (`claude/ssl-pseudolabel-residual-v1`, `results/tail1_transfer_v3/`); external is Step 446 (`codex/lsml-external-generalization-v1`, `results/family_tail_external_v3/`, `docs/experiments/FAMILY_TAIL_EXTERNAL_V3.md`).
+- **Source:** all three rows are below their alternatives (F15 63.76, B11 63.25, B11o 63.75, against bank11 L-SML 64.17).
+- **External** (Hard2Verify / Socratic-Qwen3 / Socratic-QwQ):
+  - bank11 max-step 44.48 / 62.38 / 63.65
+  - bank11 L-SML 43.67 / 63.22 / 64.24
+  - bank11 max-step is the best Hard2Verify score but not significant (+0.81). It is -0.84 / -0.59 on Socratic (significant).
+  - It beats bank11 equal in all 3 cells (+3.6 / +1.6 / +2.2).
+  - family15 max-step stays at the equal level.
+- **Next:** bank11 L-SML stays the lead. All V2 arms and the V1/V2 contrasts replay exactly.
+
 ## Family/tail L-SML closed; bank11 L-SML remains the transfer candidate (Claude) - 2026-09-24
 
 HISTORY Steps 441-443 on `claude/ssl-pseudolabel-residual-v1` and Step 444 on `codex/lsml-external-generalization-v1`.

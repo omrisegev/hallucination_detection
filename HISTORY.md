@@ -18203,3 +18203,39 @@ relative to the script. No Claude experiment worktree or frozen result changed.
 - **Report**: `results/tail_threshold_calibration_v1/REPORT_HE.md`. LESSONS.md has the input-contract rule.
 
 ---
+
+### Step 445 [Claude, maximal-step tail, source + lock V3] - Top-1 (maximal-step) tail-mark L-SML with standardized marks on family15 and bank11: below its alternatives on source; all three rows locked for external regardless, 2026-09-24
+
+**What**: Omri asked for the same fixed procedure with a tail that is only the maximal step, on bank11 and family15. Protocol `results/tail1_transfer_v3/PROTOCOL.json` was written before any result.
+- **Rows** (tie-aware top-1 marks, z-scored over the fit rows, `lsml_continuous` unit):
+  - `F15_tail1s_lsml`
+  - `B11_tail1s_lsml` (unoriented bank11, as the frozen bank11 L-SML uses it)
+  - `B11o_tail1s_lsml` (bank11 oriented by the source signs)
+  - Both orientations were declared so none was chosen from results.
+- **Evaluation**: 5 folds with the calfix evaluator. Replays of F15_equal, F15_cov_lsml, B11_lsml, ct7 and the V2 row are exact.
+- **External decision**: pre-declared that all three rows go external regardless of the source result.
+- **Lock**: `TRANSFER_LOCK_V3.json` (sha256 0fc561b7...) = V2 unchanged + the three rows (fit on folds 0-3, q80 on fold 4).
+- **Code**: `scripts/experiments/tail1_transfer_v3_run.py`, run `run_20260924_*`, 65 s.
+
+**Result**:
+- **Source PRMScore:**
+
+  | Row | PRMScore |
+  |---|---:|
+  | F15 max-step | 63.76 |
+  | B11o max-step | 63.75 |
+  | B11 max-step | 63.25 |
+
+  | Contrast | Δ | Significance |
+  |---|---:|---|
+  | F15 max-step vs 20% tail | -0.41 | Holm <.001 |
+  | F15 max-step vs F15 equal | -0.58 | Holm <.001 |
+  | B11 max-step vs bank11 L-SML | -0.92 | Holm <.001 |
+  | B11o max-step vs bank11 L-SML | -0.42 | Holm <.001 |
+  | B11 max-step vs bank11 equal | -0.08 | n.s. |
+
+- **K after standardization**: 5 in every fold for F15, 5-8 for B11o. Unoriented B11 still gives K=2 in 2 of 5 folds.
+- **Top-1 boundary ties**: 17.7% of answer-columns on bank11 and 4.4% on the families.
+- The external result is Step 446 on `codex/lsml-external-generalization-v1`.
+
+---
