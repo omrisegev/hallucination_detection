@@ -1,0 +1,74 @@
+{
+  "status": "PASS",
+  "scope": "FULL source cached-token to two step channels; NOT full raw-telemetry feature parity",
+  "external_predictions_computed": false,
+  "n_checked": 13769,
+  "n_total": 13769,
+  "steps": 145597,
+  "channels_checked": 2,
+  "locked_channels_total": 48,
+  "maximum_absolute_errors": {
+    "chosen_raw_union": 2.842170943040401e-14,
+    "frac_raw_profiles": 0.0,
+    "chosen_pool_z": 1.7763568394002505e-15,
+    "frac_pool_z": 0.0
+  },
+  "seconds": 7.229478400000517,
+  "definitions": {
+    "ct7_chosen_std_excess": "Top10 mean of cached float32 per-token standardized excess surprisal, cast to float64 before reduction. No first-step replacement, no pooled step-z-test.",
+    "H1_frac_above_z": "Fraction of step tokens >=1 after answer median/(IQR/1.349) normalization of cached q15_H1. Scale <=1e-8 falls back to std, then 1. Final step-channel answer-z."
+  },
+  "inputs": {
+    "tokens": {
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\token-probability-fusion-v1\\results\\token_probability_fusion_v1\\TOKEN_MATRICES.npz",
+      "bytes": 307902984,
+      "sha256": "ab4943bf72b3d27436721d7e2ce8d95dd1254e10d3d05b7c25b65706c1c729e5"
+    },
+    "ct7": {
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\ct7_token_lsml_v1\\CT7_TOKEN_MATRICES.npz",
+      "bytes": 447292975,
+      "sha256": "17813643aae9bcdb7fdfea121661c900b2d0d52f1acf46c5253a2a268af0d1eb"
+    },
+    "answers": {
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\readout-quickest-detection-v1\\results\\step_evidence_v1\\OOF_STEP_SCORES.npz",
+      "bytes": 53911670,
+      "sha256": "473c7caa001d6c5487c9f0663c705b1de1338c0e7408f1b9f6afccf0963e58cd"
+    },
+    "profiles": {
+      "path": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\readout-quickest-detection-v1\\results\\step_evidence_v1\\profiles_full.npy",
+      "bytes": 217813240,
+      "sha256": "203aa4280ed3226033c88edefc601f5994a473893aa4f721f752e05f0c1f1b19"
+    },
+    "pool": {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\C--Users-omris-TAU-hallucination-detection\\2d14a8c9-8b3f-489b-b26f-812b4b84a8b3\\scratchpad\\pool_z.npy",
+      "bytes": 60568480,
+      "sha256": "d9abccfb561f459d2f3a6c5b4346a1f6766df7fdbaddb230338aa40349077a16"
+    },
+    "names": {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\C--Users-omris-TAU-hallucination-detection\\2d14a8c9-8b3f-489b-b26f-812b4b84a8b3\\scratchpad\\pool_names.json",
+      "bytes": 1288,
+      "sha256": "8e7484504bb1e432911e3e90c04e59eb6d9022f93aff8de6ae253d9942191734"
+    },
+    "union": {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\C--Users-omris-TAU-hallucination-detection\\2d14a8c9-8b3f-489b-b26f-812b4b84a8b3\\scratchpad\\union_top10_profiles.npy",
+      "bytes": 20966096,
+      "sha256": "80748a0355ab87c7051f6bea887555941a32ff9505324ba5e8f21b7a064da1b2"
+    },
+    "union_builder": {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\C--Users-omris-TAU-hallucination-detection\\2d14a8c9-8b3f-489b-b26f-812b4b84a8b3\\scratchpad\\union_structure.py",
+      "bytes": 5478,
+      "sha256": "b9a7672a77e52cadd895b7bae6e4d038ebff1a5a1b4f2013654d9cebc1a069ec"
+    },
+    "pool_builder": {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\C--Users-omris-TAU-hallucination-detection\\2d14a8c9-8b3f-489b-b26f-812b4b84a8b3\\scratchpad\\pool_structure.py",
+      "bytes": 3726,
+      "sha256": "c38ba41594fe4f243adc35c362a0f516277cefed40c76d77e84facdc6542d33b"
+    },
+    "hist_builder": {
+      "path": "C:\\Users\\DELL\\AppData\\Local\\Temp\\claude\\C--Users-omris-TAU-hallucination-detection\\2d14a8c9-8b3f-489b-b26f-812b4b84a8b3\\scratchpad\\hist29_align.py",
+      "bytes": 3113,
+      "sha256": "e56fbc59ac59cfe2694b2cc11068602140c9d3aadb9b51a8dbb89fb4707b5358"
+    }
+  },
+  "script_sha256": "9bdcd3f2c41ccf790135e870b82aef861cdc2a775cb630cd233b41fdeb607e0f"
+}
