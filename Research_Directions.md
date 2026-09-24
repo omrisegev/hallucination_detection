@@ -1,3 +1,12 @@
+## 2026-09-24: identical teacher-forcing repeats supplied no observed diversity
+
+Read-only smoke/full comparison:36 paired answer/backbone records,51637 token
+observations,12 answers per cell. All saved telemetry values match exactly.
+No new inference or quality evaluation. This is not a whole-corpus or three-run
+claim. Prefer checking complementary views (existing Qwen3/QwQ on Socratic) to
+blind identical reruns; usefulness for L-SML remains untested. Review:
+docs/experiments/EXTERNAL_TEACHER_FORCING_REPEATABILITY_20260924.md.
+
 ## 2026-09-24: full external telemetry COMPLETE and archived
 
 User approved the two GPU-hour cap. All three full collections and CPU audits/

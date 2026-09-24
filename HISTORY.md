@@ -18208,3 +18208,12 @@ No external benchmark quality was computed. Next: use collected telemetry for
 CPU feature extraction, source fit/calibration separation and method freeze;
 then overlap/comparator/evaluator work and registered external evaluation.
 No additional inference, GPU training or method sweep is started by this handoff.
+
+### 2026-09-24 [Codex] Existing teacher-forcing repeatability check
+
+Read-only smoke/full comparison:36 paired answer/backbone records,51637 token
+observations,12 answers per cell. All saved telemetry values match exactly.
+No new inference or quality evaluation. This is not a whole-corpus or three-run
+claim. Prefer checking complementary views (existing Qwen3/QwQ on Socratic) to
+blind identical reruns; usefulness for L-SML remains untested. Review:
+docs/experiments/EXTERNAL_TEACHER_FORCING_REPEATABILITY_20260924.md.
