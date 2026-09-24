@@ -1,3 +1,16 @@
+## Independent weak channels on PRMBench complete (Claude) - 2026-09-24
+
+`results/indbank_lsml_prmbench_v1/run_20260924/`: Omri's counter-proposal to Step 438
+(add the weak channels whose errors are independent of entropy). A label-free screen of
+52 materialized step channels (incl. the 29-stream historical token bank, now aligned to
+the roster) selects 21 with |r| < .35 to the level family, all weak alone (.52-.65).
+Adding them to bank11 under CONT L-SML: .7645 -> .6724 within-AUC, 7 points BELOW equal
+on the same bank; oracle orientation gives an identical L-SML score, so orientation is
+not the bottleneck. L-SML moves a quarter of its weight onto the empty channels. SML
+needs independence AND accuracy; these have only the first. Both bank-extension routes
+(by family, Step 438; by independence, Step 439) are now closed on the materialized pool.
+HISTORY Step 439. Branch `claude/ssl-pseudolabel-residual-v1`.
+
 ## bank20 L-SML on PRMBench complete (Claude) - 2026-09-24
 
 `results/bank20_lsml_prmbench_v1/run_20260924/`: extending Codex's bank11 (CONT L-SML
