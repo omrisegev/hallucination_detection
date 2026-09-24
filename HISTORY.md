@@ -18177,3 +18177,11 @@ remote sbatch as one command: Windows-piped final CR caused one startup failure.
 Historical generated-cache Gate B and source calibration remain separate pending
 fidelity/evaluation items. Spec/runbook: docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1.md
 and docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1_RUNBOOK.md. MedPRMBench deferred.
+
+### 2026-09-24 [Codex] Approved full external telemetry launch
+
+User: "approved. run it". Recorded2 GPU-hour total cap and pinned estimate hashes.
+After current-session preflight PASS, launched266081/266082/266083 from411316927
+with30/30/60min caps and no automatic requeue. Both Qwen3 cells and Socratic/QwQ
+are running. Full accounting: results/lsml_external_generalization_v1/FULL_JOBS.json.
+No training, generated benchmark answers, feature fitting or quality evaluation.

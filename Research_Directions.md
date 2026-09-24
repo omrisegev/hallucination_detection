@@ -1,3 +1,12 @@
+## 2026-09-24: approved full external telemetry is running
+
+User approved the two GPU-hour cap. Jobs266081/266082/266083 collect full
+Hard2Verify/Qwen3, Socratic/Qwen3 and Socratic/QwQ, with30/30/60min limits.
+Committed snapshot411316927; current-session preflight PASS and budget hashes
+in results/lsml_external_generalization_v1/FULL_{PREFLIGHT,BUDGET_DECISION}.json.
+Full raw audit and direct AIRCC-to-Drive archival follow completion. CPU-only
+feature extraction/fusion and external quality evaluation remain deferred.
+
 ## 2026-09-24 Codex: AIRCC telemetry collection active
 
 Dedicated branch codex/lsml-external-generalization-v1; earlier work checkpoint
