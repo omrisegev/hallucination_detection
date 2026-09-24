@@ -1,0 +1,26 @@
+{
+  "status": "PREDECLARED BEFORE EXTERNAL QUALITY ACCESS",
+  "script_sha256": "d218afd8db31882a732365e543f2dda6b505b02e68a4b7c085b6c7966d1592d0",
+  "scope": 6190,
+  "label_null": {
+    "draws": 200,
+    "global": "permute included labels inside each benchmark; fixed class counts",
+    "within_answer": "permute included labels separately within each answer; fixed per-answer class counts",
+    "seed": 2026092407,
+    "paired": "all ten arms and the two Socratic backbones share permutations"
+  },
+  "feature_diagnostic": {
+    "family": "level_entropy",
+    "unit": "nonempty steps within each answer",
+    "permutations_per_answer": 1,
+    "seed": "2026092407 + first12 hex SHA256(uid)",
+    "arms": [
+      "F15_tailtie_lsml",
+      "F15_equal"
+    ],
+    "fit": "none; frozen source weights and thresholds",
+    "readout": "continuous; final answer-z",
+    "scope": "full6190 answer/backbone records"
+  },
+  "independence_limit": "Reviewer implemented hist26 extraction. Independent downstream family/metric math, not independent extraction review."
+}
