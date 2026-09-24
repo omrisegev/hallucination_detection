@@ -1,0 +1,33 @@
+{
+  "verdict": "PASS",
+  "session_id": "external-full-approved-20260924",
+  "utc": "2026-09-24T05:23:54.251339+00:00",
+  "protocol_hash": "be3450deca84f61b7ce9f1b43c4332d2cffcb201ab16bc76a8c82785f57ec846",
+  "local_free_bytes": 11779764224,
+  "TMPDIR": "C:\\Users\\omris\\TAU\\hallucination_detection\\scratch\\external_generalization_private\\tmp",
+  "tmp_free_bytes": 11779764224,
+  "cluster_shared_free_bytes": 9233402241024,
+  "cluster_tmp_free_bytes": 1022074851328,
+  "cluster_jobs_before_submit": 0,
+  "tree": "codex/lsml-external-generalization-v1; tracked tree clean at preflight; deployment from committed archive excludes unrelated untracked historical files",
+  "preset_smoke": "ars_gsm8k_qwen3_8b PASS (shared prompt/grader only)",
+  "driver_cpu_smoke": "5 real CPU forwards, save/resume and shifted-offset negative fixture PASS from extracted exact source archive",
+  "tests": "8 external + 6 runtime PASS; ars_gsm8k_qwen3_8b prompt/grader PASS",
+  "label_sanity": {
+    "hard2verify": {
+      "correct_steps": 1080,
+      "incorrect_steps": 780,
+      "schema_label_sanity": "PASS",
+      "prediction_quality_evaluated": false
+    },
+    "socratic": {
+      "correct_steps": 17127,
+      "incorrect_steps": 8928,
+      "schema_label_sanity": "PASS",
+      "prediction_quality_evaluated": false
+    }
+  },
+  "legacy_generated_cache": "not used; incompatible ARS pilot rejected",
+  "gpu_gate": "v2 fixed-shape full-vocabulary target offsets and future-token invariance; exact pinned QwQ numerical diagnostic required for its reproduced prefix discrepancy",
+  "input_integrity": "Both answer-file SHA256 and counts match pinned manifest; evaluator labels remain separate"
+}
