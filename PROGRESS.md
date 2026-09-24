@@ -1,3 +1,19 @@
+## Declared partitions + Joint L-SML on the step bank (Claude) - 2026-09-24
+
+`results/declared_joint_prmbench_v1/run_20260924/`: answers Omri's two questions at once.
+The declared provenance partition that WON on CT7 (+.0077) LOSES on bank11 (-.0147): on CT7
+the level family is 71% of the equal vote and rebalancing helps, on bank11 it is 45% and
+forcing a third promotes the anti-oriented churn family. But Joint L-SML on that same
+declared partition - never run on these banks before, because the discovered partition always
+has singletons - converges 10/10 and adds +.0130 [Bonf +.0088,+.0172] over block-equal. It is
+also the ONLY rule under which Omri's four strong-but-entropy-independent channels pay:
+B15_declared_joint .7587 vs B11_declared_joint .7479 (+.0107), while the same four cost equal
+-.0093 and L-SML -.0261. Mechanism: on bank15 CONT L-SML stops silencing the anti-oriented
+trio while Joint zeroes it and concentrates .74 of the weight on the level family. Still below
+bank11 L-SML .7645 and CT7 .7724 (-.0137). No candidate; a working mechanism not tried before.
+Open next: Joint on a better-balanced declared partition for bank11, and Joint on the CT7 seven.
+HISTORY Step 440. Branch `claude/ssl-pseudolabel-residual-v1`.
+
 ## Independent weak channels on PRMBench complete (Claude) - 2026-09-24
 
 `results/indbank_lsml_prmbench_v1/run_20260924/`: Omri's counter-proposal to Step 438
