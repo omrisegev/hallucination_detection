@@ -1,0 +1,151 @@
+{
+ "stage": "named_group_fusion_v1",
+ "date": "2026-09-24",
+ "approved_by": "Omri, 2026-09-24: M named groups from error clustering of the AUC>=0.60 features, level split into 3 or 4 subgroups; within-group mean and SML; between-group equal, SML and L-SML; compare with plain average of all features; run both splits",
+ "access": "LABEL-USING DEVELOPMENT: PRMBench labels chose orientation (AUC sign), the AUC>=0.60 filter and the error-correlation grouping (error_cluster_lsml_v1 run_20260924, v2 orientation). All SML/L-SML weights are fitted label-free on fit folds. ProcessBench not used in design.",
+ "splits": {
+  "S3_M15": {
+   "level_entropy": [
+    "q15_H1",
+    "hist_topk_entropy_series",
+    "hist_topk_renyi2_series",
+    "hist_topk_tail_mass_series",
+    "q15_VE1",
+    "ct7_H0lim",
+    "ct7_ve0",
+    "ct7_ve0.75",
+    "ct7_H0lim_prefix_innovation",
+    "hist_topk_varentropy_series"
+   ],
+   "margin": [
+    "logprob_margin"
+   ],
+   "energy": [
+    "energy_level"
+   ],
+   "tail": [
+    "true_tail50"
+   ],
+   "change_evidence": [
+    "evidence_drop_risk",
+    "ct7_bocpd_residual"
+   ],
+   "token_surprise": [
+    "chosen_surprisal",
+    "ct7_chosen_std_excess",
+    "hist_spilled_sw_var_series"
+   ],
+   "entropy_volatility": [
+    "hist_entropy_sw_var_series"
+   ],
+   "changepoint": [
+    "bocpd_p0"
+   ],
+   "frac_above": [
+    "H1_frac_above_z"
+   ],
+   "energy_cusum": [
+    "hist_energy_cusum_abs_series"
+   ],
+   "tail_ratio": [
+    "hist_entropy_rolling_tail_ratio"
+   ],
+   "entropy_cusum": [
+    "hist_entropy_cusum_abs_series"
+   ],
+   "slow_dynamics": [
+    "hist_entropy_rolling_rs_hurst",
+    "hist_entropy_rolling_low_band_power"
+   ],
+   "energy_floor": [
+    "hist_energy_rolling_min"
+   ],
+   "top_turnover": [
+    "top15_turnover"
+   ]
+  },
+  "S4_M16": {
+   "entropy": [
+    "q15_H1",
+    "hist_topk_entropy_series",
+    "hist_topk_renyi2_series",
+    "hist_topk_tail_mass_series"
+   ],
+   "varentropy": [
+    "q15_VE1",
+    "ct7_H0lim",
+    "ct7_ve0",
+    "ct7_ve0.75",
+    "ct7_H0lim_prefix_innovation",
+    "hist_topk_varentropy_series"
+   ],
+   "margin": [
+    "logprob_margin"
+   ],
+   "energy": [
+    "energy_level"
+   ],
+   "tail": [
+    "true_tail50"
+   ],
+   "change_evidence": [
+    "evidence_drop_risk",
+    "ct7_bocpd_residual"
+   ],
+   "token_surprise": [
+    "chosen_surprisal",
+    "ct7_chosen_std_excess",
+    "hist_spilled_sw_var_series"
+   ],
+   "entropy_volatility": [
+    "hist_entropy_sw_var_series"
+   ],
+   "changepoint": [
+    "bocpd_p0"
+   ],
+   "frac_above": [
+    "H1_frac_above_z"
+   ],
+   "energy_cusum": [
+    "hist_energy_cusum_abs_series"
+   ],
+   "tail_ratio": [
+    "hist_entropy_rolling_tail_ratio"
+   ],
+   "entropy_cusum": [
+    "hist_entropy_cusum_abs_series"
+   ],
+   "slow_dynamics": [
+    "hist_entropy_rolling_rs_hurst",
+    "hist_entropy_rolling_low_band_power"
+   ],
+   "energy_floor": [
+    "hist_energy_rolling_min"
+   ],
+   "top_turnover": [
+    "top15_turnover"
+   ]
+  }
+ },
+ "within_group": {
+  "mean": "mean of oriented member z-scores",
+  "sml": "sml_fuse_signed(small_m_guard=True) fitted on fit-fold rows; groups of 1-2 members use the mean (SML undefined); a group of exactly 3 falls to the guard (equal over SD-standardized members, Steps 203/205)"
+ },
+ "between_group": {
+  "equal": "1/M",
+  "sml": "sml_fuse_signed(small_m_guard=True) on the M re-z-scored group features, fit folds, then oriented by Spearman with the group containing q15_H1",
+  "lsml": "continuous L-SML (fit_fusion_weights mode=continuous), anchor = group containing q15_H1"
+ },
+ "references": [
+  "all48_equal (native signs)",
+  "all48_lsml",
+  "all48_oriented_equal",
+  "kept28_oriented_equal",
+  "kept28_lsml",
+  "B11_lsml",
+  "B11_equal",
+  "ct7"
+ ],
+ "folds_and_endpoints": "as core_virtual_lsml_v1: fit three folds, calibrate (k+1)%5, evaluate k; PRMBench within-AUC + PRMScore; ProcessBench macro8 first-error accuracy; paired source-group bootstrap 20000",
+ "reporting": "all 12 arms reported; no arm is selected as the method on these data"
+}

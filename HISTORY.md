@@ -18097,3 +18097,109 @@ relative to the script. No Claude experiment worktree or frozen result changed.
 **Result**: 25 fits, 0 failures, Joint converged in 10/10 fits (relative off-diagonal misfit .20 on bank11, .29 on bank15). Status INCOMPLETE only because the bank11 fit-on-4 replay deviates 1.28e-9 against the protocol's 1e-9 tolerance, float rounding from re-standardizing an already-standardized matrix; no fit failed. Primary (K=6): B11_declared_equal - B11_equal **-.0147 Bonf[-.0175,-.0119]**; B11_declared_joint - B11_declared_equal **+.0130 Bonf[+.0088,+.0172]**; B15_declared_equal - B11_declared_equal -.0082 Bonf[-.0119,-.0046]. Scoreboard (within-AUC): B11 equal .7496, discovered group-equal .7531, L-SML .7645, declared equal .7350, declared Joint .7479; B15 equal .7404, L-SML .7384, discovered group-equal .7263, declared equal .7268, **declared Joint .7587**; ct7 .7724. Two findings. (1) The CT7 declared-partition result does not transfer: on CT7 the level family is 5 of 7 views, 71% of the vote under equal, and rebalancing to a third helps; on bank11 it is 5 of 11, 45%, already balanced, and forcing a third promotes the anti-oriented churn family to a third of the vote. Declared partitions help when one family dominates, not as a universal recipe. (2) Joint L-SML on the same declared partition adds +.0130 over block-equal, contradicting the Step 399 expectation that within-group directions are near-uniform. Mechanism from the weights: on bank15 CONT L-SML stops silencing the anti-oriented trio (.069/.073/.075 to energy_innovation/top15_turnover/top50_js) while Joint gives them -.008/.043/.008 and puts .74 of its weight on the level family. Omri's four channels pay only under Joint: B15_declared_joint - B11_declared_joint +.0107 [+.0073,+.0142] and +.0202 [+.0158,+.0247] over L-SML on the same bank, while the same four cost equal -.0093 and L-SML -.0261; Joint uses them sparingly (.056 of absolute weight vs L-SML's .21-.31). Nothing reaches bank11 L-SML .7645 or CT7 .7724; the best new arm is -.0137 [-.0168,-.0106] from CT7 on within-AUC and -.0079 on PRMScore. Predictions: P1 (replay exact) not held at 1.28e-9; P2 (declared beats equal) not held, opposite sign; P3 (declared beats discovered) not held (-.0181 on bank11); P4 (Joint within +-.004 of block-equal) not held (+.0130); P5 (four channels worth < +.005) held; P6 (nothing reaches .7801) held. Hebrew page `declared_joint_prmbench_v1/run_20260924/REPORT_HE.html`, artifact https://claude.ai/artifact/GCUx9kjGQy2rYuVqf8nyeU.
 
 ---
+
+### Step 441 [Claude, family/tail L-SML development chain] - Error-clustered virtual features, 15 named families and tail-mark L-SML: label-using development whose evaluation is superseded by Step 442, 2026-09-24
+
+**What**: Omri's sequence of same-day requests after Step 440, all on the 13,769-answer source population (PB+PRMB, same folds). The design is label-using development: PRMBench labels chose channel orientation, the AUC>=0.60 filter (48 -> 28 channels) and the error-correlation grouping. L-SML/SML weights were always fitted label-free on the fit folds.
+- `error_cluster_lsml_v1`: cluster all channels by correlated errors into virtual features (thresholds err30/50/70), then L-SML on the virtuals.
+- `named_group_fusion_v1`: 15 or 16 named families from that clustering (the level block split into 3-4 subgroups). Within-group mean or SML; between-group equal, SML or L-SML.
+- `core_virtual_lsml_v1`: collapse the redundant level core to 1-3 averaged virtuals, then add ~30 independent channels (options A/B/C).
+- `tail_label_share_v1`: is between-channel dependence more label-driven in the top-20% co-exceedance tail than in the whole covariance?
+- `tail_weighted_fusion_v1` and `tail_lsml_banks_v1`: fit L-SML on centred top-20% tail marks, apply the weights to the continuous features; the latter asks the same for bank11 and the CT7 channels.
+- Token level, on branch `lsml-ct7-levers-run`: `ct7_token_tail_lsml_v1`, the same idea on CT7 token streams.
+
+**Why**: Steps 438-440 showed CONT L-SML does not use added channels and that the partition is the lever. The tail question tested whether a label-free rule could weight independent channels from the tail, where co-movement might carry more label information.
+
+**Result**:
+- The virtual-feature and core-collapse routes fail. L-SML is below equal on every virtual bank: err70 .5754 vs .6312 PRMScore; core options A/B/C .49-.53 vs .54-.56. All are far below bank11 L-SML .6412.
+- The tail share is only modestly higher: 21.8% label-driven covariance in the top-20% co-exceedance vs 17.6% in the full covariance.
+- The best new arm was the 15-family tail-mark L-SML. Tail L-SML on bank11, 28 channels and 48 channels was worse than equal and than covariance L-SML.
+- **These runs had an evaluation defect found by Codex's handoff (`docs/reviews/CLAUDE_TOKEN_TAIL_LSML_CORRECTION_HANDOFF_20260924_HE.md`):**
+  - One array held both the evaluation and the calibration scores, so fold j's calibration scores were overwritten before thresholds were set.
+  - PRMScore had no paired intervals.
+  - Their PRMScore numbers are superseded by Step 442. The frozen directories are unchanged.
+
+---
+
+### Step 442 [Claude, calfix] - Same-model calibration fix of the family/tail runs: numbers move <=0.14 pp; learned weights beat equal only on bank11; 10-row transfer list locked (TRANSFER_LOCK_V1), 2026-09-24
+
+**What**: Codex handoff `CLAUDE_TOKEN_TAIL_LSML_CORRECTION_HANDOFF_20260924_HE.md`, including section 8. All step-level and token-level arms were re-run in new folders.
+- **Folds and roles**: for outer fold k, fit on 3 folds, calibrate on (k+1)%5, evaluate on k.
+  - One model_id scores both the calibration and evaluation roles, stored in write-once arrays (`calfix_common.ScoreBundle`).
+  - No source group is shared between roles.
+- **Panels**: P1 is the primary threshold, q80 of the pooled PB+PRMB calibration scores (label-free, the external contract). P1b is PRMB-only q80. P2 is a quantile selected with labels, reported as a separate panel.
+- **Uncertainty**: official PRMScore replay (max difference 1.1e-16), paired source-group bootstrap with 20,000 draws and seed 20260924, Holm correction over 13 primary contrasts.
+- **Bridges**: the pipeline reproduces Codex's frozen bank11 source validation and deployment bundle to machine precision.
+- **Code**: `scripts/experiments/calfix_{common,evaluate,before_after}.py`, `family_tail_calfix_{run,eval}.py`, `family_tail_transfer_lock.py`.
+- **Results**: `results/family_tail_calfix_v1/` (REPORT_HE.md, METHOD_NOTE.md). Token level: `lsml-ct7-levers-run/results/ct7_token_tail_lsml_calfix_v1/`.
+
+**Why**: the handoff found the calibration defect of Step 441 and asked for a before/after report, matched controls, and a reasoned shortlist before any external run.
+
+**Result**:
+- **The fix moved PRMScore by at most 0.12 pp at step level and 0.14 pp at token level.** Answer-z alone lifts CT7 by 0.36 pp.
+- **Source PRMScore (P1, 6,211 non-control PRMB answers, 83,371 steps, 707 groups):**
+
+  | Method | PRMScore |
+  |---|---:|
+  | CT7 | 64.62 |
+  | F15 tail-mark L-SML | 64.52 |
+  | F15 equal | 64.33 |
+  | bank11 L-SML | 64.17 |
+  | K28 equal | 64.09 |
+  | F15 covariance L-SML | 63.91 |
+  | bank11 equal | 63.33 |
+
+- **Paired contrasts:**
+  - Candidate vs F15 equal: +0.19 [-0.07, +0.44], Holm .17. Candidate vs bank11: +0.35, Holm .17.
+  - Learned weights beat matched equal only on bank11: +0.84 vs equal and +0.42 vs its own partition-equal.
+  - Covariance L-SML is below equal on 28 channels (-0.50) and on 15 families (-0.42).
+  - Orientation adds +1.25, the 48->28 filter +0.44, the family layer +0.24 (n.s.).
+  - Re-deriving orientation and filter inside the fit folds changes nothing.
+- **Token level**: tail L-SML is below equal (-0.17). Token fusion followed by readout is -0.92 vs the matched readout-first order.
+- **K=2 in every step-level tail fit.** The cross-group split is therefore not learned. Step 443 shows the cause is input scale, not the tail.
+- **Transfer lock**: `TRANSFER_LOCK_V1.json` (sha256 65b35336...) fixes 10 rows, deployment fits on folds 0-3, q80 thresholds on fold 4 and a 6-contrast external family.
+  - Codex then built the external extractor, passed the full 48-channel source parity gate and ran it (branch `codex/lsml-external-generalization-v1`, commit 1d3c23681).
+  - Externally, bank11 L-SML leads every cell. The V1 candidate is below family equal.
+
+---
+
+### Step 443 [Claude, tail threshold calibration] - Step-level K=2 is an input-scale artefact, not a property of the tail; the corrected recipe and every tail-threshold calibration fail to beat matched equal, 2026-09-24
+
+**What**: Omri asked what exactly happens in tail-mark L-SML (why K=2), whether 20% is arbitrary or ill-suited per feature, and for a FUSE-like per-feature binarization threshold calibrated on PRMBench. Protocol `results/tail_threshold_calibration_v1/PROTOCOL.json` was written before any result.
+- **Stage 0, label-free**: K, partition and per-K residual curve for raw marks, standardized marks and continuous features, under unit/eigen/complete loading scales. Covers 4 banks x 5 folds, plus a scale control.
+- **Arms** (all standardized, unit):
+  - The V1 recipe replayed bit-exactly.
+  - The minimal fix: marks z-scored over the fit rows before `lsml_continuous`.
+  - A threshold curve over 7 fractions x rank or value cut.
+  - A nested common fraction.
+  - Per-family fractions chosen by coordinate descent, either label-free (FUSE-inspired: minimize the relative latent-group misfit) or label-selected (nested fit-fold PRMScore; calibration- and evaluation-fold labels withheld).
+- **Code**: `scripts/experiments/tail_calib_common.py` (8 known-result tests in `test_tail_calib_common.py`) and `tail_threshold_calibration_run.py`. Run `run_20260924_2058`, 23 minutes of CPU, 0 search failures.
+
+**Why**: the K=2 finding of Step 442 meant the between-group L-SML weights were never learned. A side conversation proposed that CUSUM channels mark the same end steps. FUSE (Candes et al. 2026) tunes per-verifier binarization thresholds.
+
+**Result**:
+- **The CUSUM hypothesis is false.** CUSUM marks sit mid-answer: only 6.6% and 11.2% of them fall in the last 20% of steps, vs 20% at chance.
+- **The cause is input scale.**
+  - The centred marks (variance ~0.18) were fed to `lsml_continuous` unstandardized, although its documented input is z-scored. Its default `loading_scale='unit'` K criterion is not scale invariant.
+  - The same continuous F15 multiplied by 0.4 also drops from K=5 to K=2. `complete` gives K=5 at both scales.
+  - Standardized marks give K=4 in every fold, with the same partition (ARI 1): level block / margin-change block / changepoint+tail_ratio / CUSUM pair.
+  - Conditional correlations are .31-.36 inside groups and .12-.18 across, so the groups are real.
+  - The same collapse appears on K28, A48o and bank11. `METHOD_NOTE.md` says "standardize" but the code did not.
+- **The corrected recipe scores lower:**
+
+  | Comparison | Δ PRMScore | Interval | Holm |
+  |---|---:|---|---:|
+  | Corrected 64.17 vs V1 64.52 | -0.35 | [-0.64, -0.05] | .096 |
+  | Corrected vs F15 equal | -0.16 | | n.s. |
+  | Corrected vs continuous covariance L-SML | +0.26 | | .005 |
+
+- **Calibration does not help.**
+  - All 14 standardized curve points fall within 63.77-64.25.
+  - The nested common choice is unstable across folds (15%v, 50%r, 50%r, 5%v, 5%v); +0.20 vs 20%, Holm .14.
+  - Label-selected per-family thresholds reach exactly equal: +0.01 vs F15 equal. The chosen fractions are unstable across folds.
+  - FUSE-style label-free thresholds lower the model misfit (.057 -> .035) but cost -0.51 vs equal (Holm .019 vs 20%). Better internal model fit is not better PRMScore.
+- **V1's edge is not learned.** It comes from an arbitrary 30% weight on the CUSUM pair, fixed by eigenvector normalization at K=2. No mechanism was found; equal weight over the 4 corrected groups gives 63.05.
+- **Follow-up**: `TRANSFER_LOCK_V2.json` (sha256 0c5c5599...) adds the corrected row to V1 unchanged. It was written before V1 external results were read. The external rescoring is Step 444 on branch `codex/lsml-external-generalization-v1`.
+- **Report**: `results/tail_threshold_calibration_v1/REPORT_HE.md`. LESSONS.md has the input-contract rule.
+
+---

@@ -1,0 +1,83 @@
+{
+ "stage": "family_tail_calfix_v1",
+ "date": "2026-09-24",
+ "written": "before any fit, score or metric of this stage",
+ "requested_by": "Omri, 2026-09-24: carry out docs/reviews/CLAUDE_TOKEN_TAIL_LSML_CORRECTION_HANDOFF_20260924_HE.md (incl. section 8): evaluation corrections first, reproduce in a new folder without touching frozen results; primary goal PRMScore and transfer to PRMBench-like benchmarks; matched table and reasoned shortlist; separate the contributions of feature filtering, families and learned weights.",
+ "supersedes_for_evaluation": ["results/named_group_fusion_v1/run_20260924", "results/tail_weighted_fusion_v1/run_20260924", "results/tail_lsml_banks_v1/run_20260924"],
+ "frozen_results_untouched": "the three runs above stay byte-identical; this stage writes only results/family_tail_calfix_v1/",
+
+ "evaluation_corrections": {
+  "same_model_calibration": "for outer fold k: eval fold k, calibration fold (k+1)%5, fit folds = the other three. Every learned component (L-SML/SML weights, discovered groups, tail marks' weights, in-fold orientation/filter) is fitted on the fit folds only. The SAME fitted bundle (one model_id) scores the calibration fold and the evaluation fold; scores are stored per (method, outer_fold, role) in write-once arrays, so no role can overwrite another. The previous runs wrote eval and calibration rows into one array, so fold j's calibration scores were overwritten by model j's evaluation scores before thresholds were computed (named_group_fusion_run.py:82-113,133-139).",
+  "thresholds": {
+   "P1_primary_q80_pooled": "label-free: tau_k = q80 (numpy linear) of the model's calibration-fold scores over ALL calibration-fold steps (ProcessBench + PRMBench, unlabeled). Identical to the frozen external contract (docs/experiments/LSML_EXTERNAL_EVALUATION_LOCK_20260924.md).",
+   "P1b_q80_prmb_calibration": "label-free sensitivity: q80 over the calibration fold's PRMBench steps only (the pool the superseded step runs used); bridges before/after.",
+   "P2_label_selected_quantile": "SEPARATE label-using panel: for each method and outer fold, the quantile q in linspace(0.50,0.99,50) that maximizes PRMScore on the calibration fold's PRMBench non-control answers (calibration labels only, never evaluation labels); threshold = that quantile of the pooled calibration scores. Same access for every method. Not label-free calibration."
+  },
+  "decision": "a step is predicted VALID iff score < tau (score = error risk).",
+  "final_normalization": "every method's final step score is z-scored within its answer (constant answer -> 0), including CT7 ('ct7'). The historical CT7 scale is kept as a separate descriptive row 'ct7_raw'.",
+  "prmscore": "official PRMBench PRMScore = 0.5*(F1_valid + F1_error) on the confusion matrix pooled over all non-control PRMBench answers of the five evaluation folds (control = classification 'correct', excluded from the pooled totals exactly as the official evaluator). Every P1/P1b/P2 point estimate is replayed through spectral_utils.prmbench.prmbench_evaluate (port of the official evaluate_function) and must match the count-based value to 1e-12.",
+  "uncertainty": "paired bootstrap over PRMBench source groups (20,000 multinomial draws, seed 20260924); in each draw the pooled confusion matrix is rebuilt from per-group counts and PRMScore recomputed from those decisions; within-answer AUC uses the same draws. ProcessBench SLA uses an independent draw over ProcessBench source groups of the 4,442 erroneous answers and recomputes the macro over 8 cells in each draw. Two-sided bootstrap p = min(1, 2*min(P(d<=0), P(d>=0))).",
+  "multiplicity": "Holm over the 13 PRIMARY PRMScore contrasts below (panel P1). All other contrasts, endpoints and panels are descriptive with unadjusted 95% percentile intervals."
+ },
+
+ "access_statement": {
+  "label_free": ["all L-SML/SML weight fitting", "L-SML group discovery", "tail marks (rank-based, per answer)", "q80 thresholds (P1, P1b)", "answer-z normalization", "the frozen bank11 recipe (native signs, entropy anchor)"],
+  "label_using_design_retrospective": ["orientation of the 48 pool channels by the sign of their mean PRMBench within-answer AUC over ALL 6,030 eligible answers", "the AUC>=0.60 filter to 28 channels", "the 15 named families (grouped by error correlation of label-conditional residuals, also on all folds)", "the DROP of ct7_ve1 and three hist series from 52 to 48", "the choice of tail fraction 0.20 and of Top10 step readout (earlier development)"],
+  "label_using_calibration": ["panel P2 only"],
+  "consequence": "rows that use the retrospective design are development numbers that already saw the evaluation folds' labels through design; they are not source-OOF clean. The in-fold sensitivity rows (suffix 'if') re-derive orientation and the AUC filter on the three fit folds only; family membership names stay the retrospective design."
+ },
+
+ "inputs": {
+  "population": ".worktrees/readout-quickest-detection-v1/results/step_evidence_v1/{OOF_ANSWERS.csv,OOF_STEP_SCORES.npz} (13,769 answers; offsets/labels/folds/groups verified identical to results/localization_full_benchmark_v3/evaluation/JOINED.* and FOLDS_V2.json)",
+  "pool": "scratchpad pool_z.npy/pool_names.json (52 answer-z step channels, sha256 d9abccfb561f459d2f3a6c5b4346a1f6766df7fdbaddb230338aa40349077a16 as in the superseded runs); columns 0-10 verified identical to the per-answer standardization of DERIVATIVE_CHANNELS.npz 'level' (frozen bank11)",
+  "families": "results/named_group_fusion_v1/PROTOCOL.json splits S3_M15 (15 families) and S4_M16 (16 families)",
+  "ct7": "OOF_STEP_SCORES.npz 'ct7' == CT7_DEV_SCORES.npz step_scores (verified)",
+  "lsml_backend": "main checkout spectral_utils/external_generalization (fusion.fit_weights / partition_equal, vendored lsml_continuous with numerical-failure recording), loaded by path as package 'extgen'; sha256 recorded in INPUT_MANIFEST.json. SML arms keep depth-feature-fusion-v1 sml_fuse_signed as in the superseded runs."
+ },
+
+ "lsml_fit": "extgen fit_weights semantics for every L-SML arm: lsml_continuous(small_m_guard=True) on the fit rows, flattened cross*within weights, oriented by the sign of the Spearman correlation of the fused CONTINUOUS score with the anchor column (bank11: q15_H1 = column 0; 48/28: q15_H1; families: the family containing q15_H1), normalized to sum|w|=1; any recorded numerical failure raises (no silent fallback). For B11_lsml the wrapper must reproduce extgen.fit_weights exactly on every fold and the frozen source VALIDATION_FITS.json weights/thresholds.",
+
+ "tail_marks": {
+  "historical": "per answer and column: 1 on the ceil(0.20*n) highest steps (stable argsort, ties broken by position), centred within answer (tail20); tail1 = argmax only. Reproduces the superseded arms.",
+  "tie_aware": "per answer and column: k = ceil(0.20*n); steps above the k-th largest value get 1, steps tied at it share the remaining mass equally (expected indicator under random tie-breaking), centred within answer. A column constant within an answer therefore contributes zero (uninformative), not an artificial mark on the first steps. Label-free degeneracy measured before this protocol: F15 families constant in 1.16% and boundary-tied in 3.96% of (answer, family) pairs; bank11 3.76% / 15.9%.",
+  "declared_candidate": "the transfer candidate 'F15_tailtie_lsml' uses the tie-aware marks (declared here, before any result, on the grounds above). The historical 'F15_tail20_lsml' is the reproduction of the approved arm and is reported beside it.",
+  "application": "weights learned on the marks are applied to the CONTINUOUS family features (then answer-z). Control 'votes': the same weights applied to the (uncentred) marks themselves, then answer-z."
+ },
+
+ "arms": {
+  "transfer_list_section8": {
+   "B11_lsml": "frozen bank11 L-SML (native signs), learned anchor",
+   "F15_tailtie_lsml": "equal mean within each of the 15 families (oriented members) -> answer-z family feature -> L-SML fitted on tie-aware top-20% marks, applied to continuous family features",
+   "F15_cov_lsml": "same families, continuous L-SML between families",
+   "K28_cov_lsml": "continuous L-SML directly on the 28 oriented channels",
+   "K28_equal": "equal on the 28 oriented channels",
+   "F15_equal": "equal over the 15 family features",
+   "B11_equal": "equal on bank11 (native signs)",
+   "B11_partition_equal": "extgen partition_equal over the groups discovered by the B11 L-SML fit of the same fold",
+   "ct7": "frozen CT7 step scores, answer-z (reference only; developed on these data)"
+  },
+  "decomposition": ["A48n_equal", "A48n_cov_lsml", "A48o_equal", "A48o_cov_lsml", "A48o_tailtie_lsml", "K28_tailtie_lsml", "B11_tailtie_lsml", "ct7_raw"],
+  "leading_candidate_controls": {"F15_tailtie_partition_equal": "block-equal over the groups the tail fit discovered", "F15_tailtie_votes": "tail weights on the marks", "F15_tail20_lsml": "historical marks (reproduction)"},
+  "in_fold_selection_sensitivity": ["A48if_equal", "K28if_equal", "K28if_cov_lsml", "K28if_tailtie_lsml", "F15if_equal", "F15if_cov_lsml", "F15if_tailtie_lsml"],
+  "historical_reproduction": "every arm of the three superseded runs under its old name (S3_M15/S4_M16 x mean/sml within x equal/sml/lsml between; S3/S4 x equal/cov_sml/tail20_sml/tail1_sml/tail20_lsml/tail1_lsml; B11/B11_oriented/CT7s x equal/cov_lsml/tail20_lsml/tail1_lsml; CT7s_block421; all48/all48_oriented/kept28_oriented/B11 x equal/lsml) for the before/after table"
+ },
+
+ "primary_contrasts_P1_prmscore_holm13": [
+  ["F15_tailtie_lsml", "B11_lsml", "does the new candidate add over the transferred anchor"],
+  ["F15_tailtie_lsml", "F15_cov_lsml", "learning object: tail marks vs covariance"],
+  ["F15_tailtie_lsml", "F15_equal", "learned weights vs matched equal (tail)"],
+  ["F15_cov_lsml", "F15_equal", "learned weights vs matched equal (covariance)"],
+  ["F15_cov_lsml", "K28_cov_lsml", "family layer under L-SML"],
+  ["F15_equal", "K28_equal", "family layer under equal"],
+  ["K28_cov_lsml", "K28_equal", "learned weights on the 28"],
+  ["K28_cov_lsml", "A48o_cov_lsml", "filtering under L-SML (same source orientation)"],
+  ["K28_equal", "A48o_equal", "filtering under equal (same source orientation)"],
+  ["B11_lsml", "B11_equal", "anchor learned vs equal"],
+  ["B11_lsml", "B11_partition_equal", "anchor learned vs learned-partition equal"],
+  ["F15_tailtie_lsml", "F15_tailtie_partition_equal", "candidate vs its learned groups with equal weights"],
+  ["F15_tailtie_lsml", "F15_tailtie_votes", "candidate: continuous application vs votes"]
+ ],
+ "descriptive_contrasts": "orientation (A48o-A48n), tie handling (F15_tailtie-F15_tail20), in-fold vs retrospective selection, every row vs ct7, and the same 13 pairs on P1b, P2, within-AUC and ProcessBench SLA.",
+ "selection_rule": "no winner is selected inside this stage. The shortlist recommendation weighs P1 PRMScore contrasts against matched controls with their uncertainty and per-fold stability; ProcessBench is reported and explained, never a veto; a CT7 gap is not a reason to drop a candidate.",
+ "reporting": "all rows reported; results/family_tail_calfix_v1/run_*/ with SCORES.npz (eval__/cal__ per method), MODELS.jsonl (model_id, weights, groups, orientation, fit/cal/eval folds), BUNDLE_CHECKS.json, METRICS.csv, CONTRASTS.csv, THRESHOLDS.json, EVAL_CHECKS.json, BEFORE_AFTER.csv"
+}

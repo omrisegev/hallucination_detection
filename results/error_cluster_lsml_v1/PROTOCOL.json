@@ -1,0 +1,24 @@
+{
+ "stage": "error_cluster_lsml_v1",
+ "date": "2026-09-24",
+ "approved_by": "Omri, 2026-09-24: cluster all features (not only the core) into virtual latent features by correlated errors, then L-SML on the K virtuals; label use accepted because generalization will be tested on external benchmarks",
+ "access": "LABEL-USING DEVELOPMENT. PRMBench step labels (eligible answers, all folds) set each channel's orientation and the error-correlation clustering. L-SML weights are then fitted label-free on fit folds. ProcessBench labels are not used in the design, so ProcessBench is a partial transfer check. Not an unsupervised result; external benchmarks are the generalization test.",
+ "channels": "same 48 as core_virtual_lsml_v1, per-answer z-scored",
+ "orientation": "v2 (2026-09-24): sign of the channel's mean within-answer AUC on PRMBench eligible answers (high = error). v1 used the sign of the mean error-minus-nonerror difference, which disagreed with the AUC sign on 5 channels; v1 outputs are kept in run_20260924_v1_meandiff_orientation and are superseded.",
+ "error_correlation": "within each answer, subtract the class mean (error / non-error) from each channel; Pearson correlation of these label-conditional residuals, pooled over PRMBench eligible steps, after orientation",
+ "clustering": "average-linkage hierarchical clustering on 1 - error_corr; cut where average error correlation drops below r",
+ "error_corr_thresholds": [
+  0.7,
+  0.5,
+  0.3
+ ],
+ "virtuals": "mean of oriented member z-scores, re-z-scored within answer",
+ "arms": {
+  "errR_lsml": "continuous L-SML on the K virtuals (anchor = virtual containing q15_H1)",
+  "errR_equal": "equal weights on the same K virtuals",
+  "all48_oriented_lsml / _equal": "same orientation, no clustering: separates orientation from clustering",
+  "all48_lsml / _equal, B11_lsml / _equal, ct7": "references"
+ },
+ "folds_and_endpoints": "identical to core_virtual_lsml_v1 (fit on three folds, calibrate on (k+1)%5, evaluate k; PRMBench within-AUC + PRMScore primary, ProcessBench macro8 first-error accuracy secondary; paired source-group bootstrap 20000)",
+ "reporting": "all three thresholds reported; no threshold is selected as the method on these data"
+}

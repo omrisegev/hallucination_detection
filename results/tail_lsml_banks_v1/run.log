@@ -1,0 +1,63 @@
+tail indicators built
+fold 0 done (4s)
+fold 1 done (2s)
+fold 2 done (2s)
+fold 3 done (2s)
+fold 4 done (2s)
+metric                    pb_sla_macro8  prm_within_auc  prmscore
+method                                                           
+B11_cov_lsml                     0.3480          0.7645    0.6412
+B11_equal                        0.3495          0.7496    0.6333
+B11_oriented_cov_lsml            0.3436          0.7636    0.6399
+B11_oriented_equal               0.3434          0.7552    0.6329
+B11_oriented_tail1_lsml          0.3106          0.7369    0.6116
+B11_oriented_tail20_lsml         0.3273          0.7411    0.6172
+B11_tail1_lsml                   0.3513          0.7492    0.6336
+B11_tail20_lsml                  0.3489          0.7418    0.6271
+CT7s_block421                    0.2589          0.7205    0.6048
+CT7s_cov_lsml                    0.3682          0.7543    0.6291
+CT7s_equal                       0.3614          0.7523    0.6276
+CT7s_tail1_lsml                  0.3804          0.7575    0.6313
+CT7s_tail20_lsml                 0.3794          0.7562    0.6310
+ct7                              0.3989          0.7724    0.6458
+                                            contrast        endpoint   delta  ci95_lo  ci95_hi
+0                     B11_tail20_lsml - B11_cov_lsml  prm_within_auc -0.0227  -0.0264  -0.0189
+1                     B11_tail20_lsml - B11_cov_lsml        prmscore -0.0141  -0.0173  -0.0109
+2                     B11_tail20_lsml - B11_cov_lsml   pb_sla_pooled -0.0007  -0.0101   0.0089
+3                      B11_tail1_lsml - B11_cov_lsml  prm_within_auc -0.0153  -0.0184  -0.0121
+4                      B11_tail1_lsml - B11_cov_lsml        prmscore -0.0076  -0.0104  -0.0047
+5                      B11_tail1_lsml - B11_cov_lsml   pb_sla_pooled  0.0018  -0.0067   0.0102
+6                           B11_equal - B11_cov_lsml  prm_within_auc -0.0149  -0.0179  -0.0119
+7                           B11_equal - B11_cov_lsml        prmscore -0.0079  -0.0108  -0.0050
+8                           B11_equal - B11_cov_lsml   pb_sla_pooled  0.0023  -0.0068   0.0114
+9   B11_oriented_tail20_lsml - B11_oriented_cov_lsml  prm_within_auc -0.0225  -0.0257  -0.0194
+10  B11_oriented_tail20_lsml - B11_oriented_cov_lsml        prmscore -0.0226  -0.0259  -0.0193
+11  B11_oriented_tail20_lsml - B11_oriented_cov_lsml   pb_sla_pooled -0.0137  -0.0262  -0.0011
+12   B11_oriented_tail1_lsml - B11_oriented_cov_lsml  prm_within_auc -0.0267  -0.0302  -0.0233
+13   B11_oriented_tail1_lsml - B11_oriented_cov_lsml        prmscore -0.0283  -0.0318  -0.0247
+14   B11_oriented_tail1_lsml - B11_oriented_cov_lsml   pb_sla_pooled -0.0281  -0.0416  -0.0144
+15        B11_oriented_equal - B11_oriented_cov_lsml  prm_within_auc -0.0084  -0.0102  -0.0066
+16        B11_oriented_equal - B11_oriented_cov_lsml        prmscore -0.0070  -0.0090  -0.0049
+17        B11_oriented_equal - B11_oriented_cov_lsml   pb_sla_pooled  0.0002  -0.0075   0.0081
+18                  CT7s_tail20_lsml - CT7s_cov_lsml  prm_within_auc  0.0019   0.0010   0.0028
+19                  CT7s_tail20_lsml - CT7s_cov_lsml        prmscore  0.0019   0.0008   0.0031
+20                  CT7s_tail20_lsml - CT7s_cov_lsml   pb_sla_pooled  0.0095   0.0021   0.0169
+21                   CT7s_tail1_lsml - CT7s_cov_lsml  prm_within_auc  0.0032   0.0021   0.0043
+22                   CT7s_tail1_lsml - CT7s_cov_lsml        prmscore  0.0022   0.0009   0.0036
+23                   CT7s_tail1_lsml - CT7s_cov_lsml   pb_sla_pooled  0.0122   0.0036   0.0207
+24                        CT7s_equal - CT7s_cov_lsml  prm_within_auc -0.0019  -0.0029  -0.0010
+25                        CT7s_equal - CT7s_cov_lsml        prmscore -0.0015  -0.0028  -0.0002
+26                        CT7s_equal - CT7s_cov_lsml   pb_sla_pooled -0.0070  -0.0150   0.0009
+27                  CT7s_tail20_lsml - CT7s_block421  prm_within_auc  0.0357   0.0324   0.0390
+28                  CT7s_tail20_lsml - CT7s_block421        prmscore  0.0261   0.0222   0.0301
+29                  CT7s_tail20_lsml - CT7s_block421   pb_sla_pooled  0.1177   0.1001   0.1351
+30                               CT7s_block421 - ct7  prm_within_auc -0.0519  -0.0553  -0.0485
+31                               CT7s_block421 - ct7        prmscore -0.0410  -0.0452  -0.0368
+32                               CT7s_block421 - ct7   pb_sla_pooled -0.1427  -0.1634  -0.1217
+33                            CT7s_tail20_lsml - ct7  prm_within_auc -0.0162  -0.0180  -0.0144
+34                            CT7s_tail20_lsml - ct7        prmscore -0.0149  -0.0171  -0.0126
+35                            CT7s_tail20_lsml - ct7   pb_sla_pooled -0.0250  -0.0380  -0.0120
+36                             B11_tail20_lsml - ct7  prm_within_auc -0.0306  -0.0349  -0.0262
+37                             B11_tail20_lsml - ct7        prmscore -0.0188  -0.0225  -0.0151
+38                             B11_tail20_lsml - ct7   pb_sla_pooled -0.0567  -0.0723  -0.0409
+{"status": "COMPLETE", "started": "2026-09-24T13:46:04", "finished": "2026-09-24T13:47:22", "failures": [], "methods": ["B11_equal", "B11_cov_lsml", "B11_tail20_lsml", "B11_tail1_lsml", "B11_oriented_equal", "B11_oriented_cov_lsml", "B11_oriented_tail20_lsml", "B11_oriented_tail1_lsml", "CT7s_equal", "CT7s_cov_lsml", "CT7s_tail20_lsml", "CT7s_tail1_lsml", "CT7s_block421", "ct7"], "seconds": 78.20441469999969}

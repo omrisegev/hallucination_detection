@@ -1,0 +1,62 @@
+fold 0: A K=8, B K=7, C K=7, all48 K=7, B11 K=6  (5s)
+fold 1: A K=8, B K=7, C K=7, all48 K=7, B11 K=6  (2s)
+fold 2: A K=8, B K=7, C K=7, all48 K=8, B11 K=6  (2s)
+fold 3: A K=8, B K=7, C K=7, all48 K=7, B11 K=6  (2s)
+fold 4: A K=8, B K=7, C K=7, all48 K=7, B11 K=6  (2s)
+metric       pb_sla_macro8  prm_within_auc  prmscore
+method                                              
+A_equal             0.2582          0.6084    0.5441
+A_lsml              0.2141          0.5069    0.4913
+B11_equal           0.3495          0.7496    0.6333
+B11_lsml            0.3480          0.7645    0.6412
+B_equal             0.2717          0.6263    0.5539
+B_lsml              0.2362          0.5610    0.5168
+C_equal             0.2787          0.6373    0.5594
+C_lsml              0.2501          0.5804    0.5272
+all48_equal         0.3464          0.7372    0.6238
+all48_lsml          0.3285          0.7017    0.5965
+ct7                 0.3989          0.7724    0.6458
+                    contrast        endpoint   delta  ci95_lo  ci95_hi
+0           A_lsml - A_equal  prm_within_auc -0.1015  -0.1065  -0.0966
+1           A_lsml - A_equal        prmscore -0.0528  -0.0567  -0.0489
+2           A_lsml - A_equal   pb_sla_pooled -0.0405  -0.0500  -0.0308
+3           B_lsml - B_equal  prm_within_auc -0.0654  -0.0690  -0.0617
+4           B_lsml - B_equal        prmscore -0.0372  -0.0404  -0.0340
+5           B_lsml - B_equal   pb_sla_pooled -0.0326  -0.0415  -0.0237
+6           C_lsml - C_equal  prm_within_auc -0.0569  -0.0603  -0.0535
+7           C_lsml - C_equal        prmscore -0.0322  -0.0352  -0.0292
+8           C_lsml - C_equal   pb_sla_pooled -0.0281  -0.0370  -0.0193
+9        A_lsml - all48_lsml  prm_within_auc -0.1948  -0.2024  -0.1872
+10       A_lsml - all48_lsml        prmscore -0.1052  -0.1112  -0.0991
+11       A_lsml - all48_lsml   pb_sla_pooled -0.1137  -0.1294  -0.0980
+12       B_lsml - all48_lsml  prm_within_auc -0.1407  -0.1468  -0.1346
+13       B_lsml - all48_lsml        prmscore -0.0797  -0.0849  -0.0746
+14       B_lsml - all48_lsml   pb_sla_pooled -0.0952  -0.1097  -0.0806
+15       C_lsml - all48_lsml  prm_within_auc -0.1212  -0.1267  -0.1157
+16       C_lsml - all48_lsml        prmscore -0.0693  -0.0740  -0.0647
+17       C_lsml - all48_lsml   pb_sla_pooled -0.0831  -0.0968  -0.0692
+18         A_lsml - B11_lsml  prm_within_auc -0.2576  -0.2687  -0.2465
+19         A_lsml - B11_lsml        prmscore -0.1498  -0.1577  -0.1421
+20         A_lsml - B11_lsml   pb_sla_pooled -0.1357  -0.1576  -0.1139
+21         B_lsml - B11_lsml  prm_within_auc -0.2035  -0.2135  -0.1934
+22         B_lsml - B11_lsml        prmscore -0.1244  -0.1317  -0.1172
+23         B_lsml - B11_lsml   pb_sla_pooled -0.1173  -0.1388  -0.0957
+24         C_lsml - B11_lsml  prm_within_auc -0.1841  -0.1936  -0.1744
+25         C_lsml - B11_lsml        prmscore -0.1140  -0.1210  -0.1071
+26         C_lsml - B11_lsml   pb_sla_pooled -0.1051  -0.1265  -0.0836
+27              A_lsml - ct7  prm_within_auc -0.2655  -0.2765  -0.2543
+28              A_lsml - ct7        prmscore -0.1545  -0.1627  -0.1464
+29              A_lsml - ct7   pb_sla_pooled -0.1918  -0.2144  -0.1687
+30              B_lsml - ct7  prm_within_auc -0.2114  -0.2215  -0.2013
+31              B_lsml - ct7        prmscore -0.1291  -0.1367  -0.1216
+32              B_lsml - ct7   pb_sla_pooled -0.1733  -0.1955  -0.1506
+33              C_lsml - ct7  prm_within_auc -0.1920  -0.2016  -0.1823
+34              C_lsml - ct7        prmscore -0.1186  -0.1260  -0.1116
+35              C_lsml - ct7   pb_sla_pooled -0.1612  -0.1830  -0.1386
+36  all48_lsml - all48_equal  prm_within_auc -0.0355  -0.0387  -0.0323
+37  all48_lsml - all48_equal        prmscore -0.0273  -0.0306  -0.0240
+38  all48_lsml - all48_equal   pb_sla_pooled -0.0212  -0.0326  -0.0098
+39      B11_lsml - B11_equal  prm_within_auc  0.0149   0.0119   0.0179
+40      B11_lsml - B11_equal        prmscore  0.0079   0.0050   0.0108
+41      B11_lsml - B11_equal   pb_sla_pooled -0.0023  -0.0114   0.0068
+{"status": "COMPLETE", "started": "2026-09-24T11:45:54", "finished": "2026-09-24T11:46:28", "failures": [], "methods": ["A_lsml", "A_equal", "B_lsml", "B_equal", "C_lsml", "C_equal", "all48_lsml", "all48_equal", "B11_lsml", "B11_equal", "ct7"], "seconds": 33.96997240000019}

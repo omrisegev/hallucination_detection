@@ -1,0 +1,146 @@
+{
+ "stage": "tail_weighted_fusion_v1",
+ "date": "2026-09-24",
+ "approved_by": "Omri, 2026-09-24: use the tail_label_share_v1 finding to set between-group weights",
+ "motivation": "tail_label_share_v1: label-driven share of inter-channel dependence 30.6% (argmax) / 21.8% (top20) vs 17.6% covariance on PRMBench; independent-channel quality recovery Spearman .77 (top20) vs .64 (covariance). named_group_fusion_v1: covariance L-SML gives the level groups ~80% of weight and plain averaging wins. Exploratory: the tail did not pass its own pre-declared 2x rule.",
+ "access": "LABEL-USING DEVELOPMENT: PRMBench labels chose orientation (AUC sign), the AUC>=0.60 filter and the error-correlation grouping (error_cluster_lsml_v1 run_20260924, v2 orientation). All SML/L-SML weights are fitted label-free on fit folds. ProcessBench not used in design.",
+ "splits": {
+  "S3_M15": {
+   "level_entropy": [
+    "q15_H1",
+    "hist_topk_entropy_series",
+    "hist_topk_renyi2_series",
+    "hist_topk_tail_mass_series",
+    "q15_VE1",
+    "ct7_H0lim",
+    "ct7_ve0",
+    "ct7_ve0.75",
+    "ct7_H0lim_prefix_innovation",
+    "hist_topk_varentropy_series"
+   ],
+   "margin": [
+    "logprob_margin"
+   ],
+   "energy": [
+    "energy_level"
+   ],
+   "tail": [
+    "true_tail50"
+   ],
+   "change_evidence": [
+    "evidence_drop_risk",
+    "ct7_bocpd_residual"
+   ],
+   "token_surprise": [
+    "chosen_surprisal",
+    "ct7_chosen_std_excess",
+    "hist_spilled_sw_var_series"
+   ],
+   "entropy_volatility": [
+    "hist_entropy_sw_var_series"
+   ],
+   "changepoint": [
+    "bocpd_p0"
+   ],
+   "frac_above": [
+    "H1_frac_above_z"
+   ],
+   "energy_cusum": [
+    "hist_energy_cusum_abs_series"
+   ],
+   "tail_ratio": [
+    "hist_entropy_rolling_tail_ratio"
+   ],
+   "entropy_cusum": [
+    "hist_entropy_cusum_abs_series"
+   ],
+   "slow_dynamics": [
+    "hist_entropy_rolling_rs_hurst",
+    "hist_entropy_rolling_low_band_power"
+   ],
+   "energy_floor": [
+    "hist_energy_rolling_min"
+   ],
+   "top_turnover": [
+    "top15_turnover"
+   ]
+  },
+  "S4_M16": {
+   "entropy": [
+    "q15_H1",
+    "hist_topk_entropy_series",
+    "hist_topk_renyi2_series",
+    "hist_topk_tail_mass_series"
+   ],
+   "varentropy": [
+    "q15_VE1",
+    "ct7_H0lim",
+    "ct7_ve0",
+    "ct7_ve0.75",
+    "ct7_H0lim_prefix_innovation",
+    "hist_topk_varentropy_series"
+   ],
+   "margin": [
+    "logprob_margin"
+   ],
+   "energy": [
+    "energy_level"
+   ],
+   "tail": [
+    "true_tail50"
+   ],
+   "change_evidence": [
+    "evidence_drop_risk",
+    "ct7_bocpd_residual"
+   ],
+   "token_surprise": [
+    "chosen_surprisal",
+    "ct7_chosen_std_excess",
+    "hist_spilled_sw_var_series"
+   ],
+   "entropy_volatility": [
+    "hist_entropy_sw_var_series"
+   ],
+   "changepoint": [
+    "bocpd_p0"
+   ],
+   "frac_above": [
+    "H1_frac_above_z"
+   ],
+   "energy_cusum": [
+    "hist_energy_cusum_abs_series"
+   ],
+   "tail_ratio": [
+    "hist_entropy_rolling_tail_ratio"
+   ],
+   "entropy_cusum": [
+    "hist_entropy_cusum_abs_series"
+   ],
+   "slow_dynamics": [
+    "hist_entropy_rolling_rs_hurst",
+    "hist_entropy_rolling_low_band_power"
+   ],
+   "energy_floor": [
+    "hist_energy_rolling_min"
+   ],
+   "top_turnover": [
+    "top15_turnover"
+   ]
+  }
+ },
+ "within_group": "mean of oriented member z-scores (named_group_fusion_v1 'mean')",
+ "between_group": {
+  "equal": "1/M",
+  "cov_sml": "sml_fuse_signed on the M continuous group features (= named_group_fusion_v1 mean_sml)",
+  "tail20_sml / tail1_sml": "per answer, indicator that a step is in a group feature's top k=max(1,ceil(0.2n)) (or k=1) steps, centred within answer; SML weights = sml_fuse_signed on those indicator columns over fit-fold rows; weights applied to the CONTINUOUS group features; oriented by Spearman with the group containing q15_H1",
+  "tail20_lsml / tail1_lsml": "continuous L-SML fitted on the same indicator columns; weights applied to the continuous group features"
+ },
+ "references": [
+  "kept28_oriented_equal",
+  "B11_lsml",
+  "ct7",
+  "all48_equal"
+ ],
+ "folds_and_endpoints": "as core_virtual_lsml_v1: fit three folds, calibrate (k+1)%5, evaluate k; PRMBench within-AUC + PRMScore; ProcessBench macro8 first-error accuracy; paired source-group bootstrap 20000",
+ "reporting": "all arms reported; exploratory"
+}

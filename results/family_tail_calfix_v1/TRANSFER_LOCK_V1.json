@@ -1,0 +1,641 @@
+{
+ "lock": "family_tail_transfer_lock_v1",
+ "date": "2026-09-24T15:59:24",
+ "status": "LOCKED (source side). External feature extraction and scoring have NOT started; they are gated by the parity gate below. Any change to rows, recipes or comparisons requires a new lock version with its reason, written before external scoring.",
+ "basis": {
+  "source_run": "results\\family_tail_calfix_v1\\run_20260924_1542",
+  "metrics_sha256": "1f5a20409cc1c35436923133d99898731871999b60ec3dc8afaa03c59a9ed117",
+  "contrasts_sha256": "2f3628802f7e94c7294e8d8030b38e726cf30f432c80fe2d48e44b7bf96b9bfe",
+  "models_sha256": "899f8c1e95c0e07eb409861c1a9e9c7e4ec8ca9c6b0ebdddf0b1e87cbed06ed0",
+  "report": "results/family_tail_calfix_v1/REPORT_HE.md",
+  "protocol_sha256": "1b58c53382b564bfecb5302f793e98621baaaf48d235ec3e0dcf190cf15229fb"
+ },
+ "external_access_label": "Socratic-PRMBench and Hard2Verify were already evaluated for bank11 and have influenced this discussion: any evaluation of this shortlist on them is an EXPLORATORY FOLLOW-UP, not confirmation. A confirmation claim needs a source-disjoint set not yet exposed to selection. Hard2Verify keeps its own official metric (balanced F1 of correct/incorrect step recall), never called PRMScore and never averaged with Socratic.",
+ "rows": {
+  "B11_lsml": "frozen bank11 L-SML: learned anchor, identical to the existing external bundle",
+  "F15_tailtie_lsml": "new research candidate: equal mean of oriented members within each of 15 families, answer-z, then L-SML fitted on tie-aware top-20% marks and applied to the continuous family features. NOTE: the fit discovers K=2 groups (energy_cusum+entropy_cusum vs the other 13) on every source fold; the between-group split is fixed by eigenvector normalization, not learned. What is learned is the within-group SML weighting of the 13-family group. Describe it as tail-weighted family fusion, not as evidence for L-SML between-group learning.",
+  "F15_cov_lsml": "learned control: same families, continuous L-SML between families (learning-object question)",
+  "K28_cov_lsml": "learned control: L-SML directly on the 28 oriented channels (does the family layer add beyond filtering)",
+  "K28_equal": "control",
+  "F15_equal": "control (matched equal of the candidate)",
+  "B11_equal": "control",
+  "B11_partition_equal": "control",
+  "A48o_equal": "explanatory filtering control: equal on all 48 channels with the same frozen source signs (section 8, last paragraph)",
+  "ct7": "reference (developed on the source data; not an unbiased transfer estimate)"
+ },
+ "recipe": {
+  "channels_48": [
+   "q15_H1",
+   "q15_VE1",
+   "chosen_surprisal",
+   "logprob_margin",
+   "true_tail50",
+   "energy_level",
+   "energy_innovation",
+   "top15_turnover",
+   "top50_js",
+   "dominant_freq16",
+   "bocpd_p0",
+   "ct7_H0lim",
+   "ct7_ve0",
+   "ct7_ve0.75",
+   "ct7_H0lim_prefix_innovation",
+   "ct7_bocpd_residual",
+   "ct7_chosen_std_excess",
+   "H1_first_token",
+   "H1_slope",
+   "H1_jump",
+   "H1_frac_above_z",
+   "evidence_drop_risk",
+   "hist_entropy_rolling_spectral_entropy",
+   "hist_entropy_rolling_low_band_power",
+   "hist_entropy_rolling_high_band_power",
+   "hist_entropy_rolling_hl_ratio",
+   "hist_entropy_rolling_dominant_freq",
+   "hist_entropy_rolling_spectral_centroid",
+   "hist_entropy_stft_high_series",
+   "hist_entropy_stft_frame_entropy",
+   "hist_entropy_rolling_tail_ratio",
+   "hist_entropy_sw_var_series",
+   "hist_entropy_pe_series",
+   "hist_entropy_rolling_rs_hurst",
+   "hist_entropy_cusum_abs_series",
+   "hist_spilled_sw_var_series",
+   "hist_spilled_cusum_abs_series",
+   "hist_spilled_rolling_min",
+   "hist_energy_series",
+   "hist_energy_rolling_min",
+   "hist_energy_sw_var_series",
+   "hist_energy_cusum_abs_series",
+   "hist_top1_logprob_series",
+   "hist_logprob_margin_series",
+   "hist_topk_entropy_series",
+   "hist_topk_varentropy_series",
+   "hist_topk_renyi2_series",
+   "hist_topk_tail_mass_series"
+  ],
+  "channels_28": [
+   "q15_H1",
+   "q15_VE1",
+   "chosen_surprisal",
+   "logprob_margin",
+   "true_tail50",
+   "energy_level",
+   "top15_turnover",
+   "bocpd_p0",
+   "ct7_H0lim",
+   "ct7_ve0",
+   "ct7_ve0.75",
+   "ct7_H0lim_prefix_innovation",
+   "ct7_bocpd_residual",
+   "ct7_chosen_std_excess",
+   "H1_frac_above_z",
+   "evidence_drop_risk",
+   "hist_entropy_rolling_low_band_power",
+   "hist_entropy_rolling_tail_ratio",
+   "hist_entropy_sw_var_series",
+   "hist_entropy_rolling_rs_hurst",
+   "hist_entropy_cusum_abs_series",
+   "hist_spilled_sw_var_series",
+   "hist_energy_rolling_min",
+   "hist_energy_cusum_abs_series",
+   "hist_topk_entropy_series",
+   "hist_topk_varentropy_series",
+   "hist_topk_renyi2_series",
+   "hist_topk_tail_mass_series"
+  ],
+  "bank11": [
+   "q15_H1",
+   "q15_VE1",
+   "chosen_surprisal",
+   "logprob_margin",
+   "true_tail50",
+   "energy_level",
+   "energy_innovation",
+   "top15_turnover",
+   "top50_js",
+   "dominant_freq16",
+   "bocpd_p0"
+  ],
+  "source_signs": {
+   "q15_H1": 1,
+   "q15_VE1": 1,
+   "chosen_surprisal": 1,
+   "logprob_margin": 1,
+   "true_tail50": 1,
+   "energy_level": 1,
+   "energy_innovation": -1,
+   "top15_turnover": 1,
+   "top50_js": -1,
+   "dominant_freq16": 1,
+   "bocpd_p0": 1,
+   "ct7_H0lim": 1,
+   "ct7_ve0": 1,
+   "ct7_ve0.75": 1,
+   "ct7_H0lim_prefix_innovation": 1,
+   "ct7_bocpd_residual": 1,
+   "ct7_chosen_std_excess": 1,
+   "H1_first_token": 1,
+   "H1_slope": 1,
+   "H1_jump": 1,
+   "H1_frac_above_z": 1,
+   "evidence_drop_risk": 1,
+   "hist_entropy_rolling_spectral_entropy": 1,
+   "hist_entropy_rolling_low_band_power": 1,
+   "hist_entropy_rolling_high_band_power": 1,
+   "hist_entropy_rolling_hl_ratio": 1,
+   "hist_entropy_rolling_dominant_freq": 1,
+   "hist_entropy_rolling_spectral_centroid": 1,
+   "hist_entropy_stft_high_series": 1,
+   "hist_entropy_stft_frame_entropy": 1,
+   "hist_entropy_rolling_tail_ratio": 1,
+   "hist_entropy_sw_var_series": 1,
+   "hist_entropy_pe_series": 1,
+   "hist_entropy_rolling_rs_hurst": 1,
+   "hist_entropy_cusum_abs_series": 1,
+   "hist_spilled_sw_var_series": 1,
+   "hist_spilled_cusum_abs_series": 1,
+   "hist_spilled_rolling_min": 1,
+   "hist_energy_series": -1,
+   "hist_energy_rolling_min": -1,
+   "hist_energy_sw_var_series": 1,
+   "hist_energy_cusum_abs_series": 1,
+   "hist_top1_logprob_series": -1,
+   "hist_logprob_margin_series": -1,
+   "hist_topk_entropy_series": 1,
+   "hist_topk_varentropy_series": 1,
+   "hist_topk_renyi2_series": 1,
+   "hist_topk_tail_mass_series": 1
+  },
+  "families_15": {
+   "level_entropy": [
+    "q15_H1",
+    "hist_topk_entropy_series",
+    "hist_topk_renyi2_series",
+    "hist_topk_tail_mass_series",
+    "q15_VE1",
+    "ct7_H0lim",
+    "ct7_ve0",
+    "ct7_ve0.75",
+    "ct7_H0lim_prefix_innovation",
+    "hist_topk_varentropy_series"
+   ],
+   "margin": [
+    "logprob_margin"
+   ],
+   "energy": [
+    "energy_level"
+   ],
+   "tail": [
+    "true_tail50"
+   ],
+   "change_evidence": [
+    "evidence_drop_risk",
+    "ct7_bocpd_residual"
+   ],
+   "token_surprise": [
+    "chosen_surprisal",
+    "ct7_chosen_std_excess",
+    "hist_spilled_sw_var_series"
+   ],
+   "entropy_volatility": [
+    "hist_entropy_sw_var_series"
+   ],
+   "changepoint": [
+    "bocpd_p0"
+   ],
+   "frac_above": [
+    "H1_frac_above_z"
+   ],
+   "energy_cusum": [
+    "hist_energy_cusum_abs_series"
+   ],
+   "tail_ratio": [
+    "hist_entropy_rolling_tail_ratio"
+   ],
+   "entropy_cusum": [
+    "hist_entropy_cusum_abs_series"
+   ],
+   "slow_dynamics": [
+    "hist_entropy_rolling_rs_hurst",
+    "hist_entropy_rolling_low_band_power"
+   ],
+   "energy_floor": [
+    "hist_energy_rolling_min"
+   ],
+   "top_turnover": [
+    "top15_turnover"
+   ]
+  },
+  "family_feature": "mean of the sign-oriented member channels, then within-answer z-score (constant -> 0)",
+  "channel_normalization": "each channel: Top10 token-mean step readout of its token stream exactly as the source pool, NaN step values replaced by the answer column mean, then within-answer z-score (constant -> 0)",
+  "tail_marks": "tie-aware top ceil(0.2 n) steps per answer and family, centred within answer (calfix_common.tail_marks tie_aware=True)",
+  "lsml_fit": "calfix_common.lsml_fit == extgen fusion.fit_weights semantics (small_m_guard, failure recording raises, Spearman orientation with the anchor on continuous features, sum|w|=1)",
+  "final_score": "weights applied to the continuous features, then within-answer z-score",
+  "deployment_fit": "source folds 0-3 (PB+PRMB, 13,769-answer population, unlabeled)",
+  "calibration": "q80 (numpy linear) of the method's scores on all source fold-4 steps, unlabeled; the same threshold transfers to every external cell",
+  "decision": "step valid iff score < threshold",
+  "empty_external_steps": "predicted incorrect, null score (as the existing external lock)",
+  "fit_failure": "raise; no silent equal fallback"
+ },
+ "deployment": {
+  "B11_lsml": {
+   "weights": {
+    "q15_H1": 0.07819745563879048,
+    "q15_VE1": 0.07819745563879042,
+    "chosen_surprisal": 0.16797673072963812,
+    "logprob_margin": 0.07819745563878983,
+    "true_tail50": 0.1647001177342597,
+    "energy_level": 0.1647001177342597,
+    "energy_innovation": 0.014877353913240394,
+    "top15_turnover": 0.015706593559494365,
+    "top50_js": 0.015298091034317242,
+    "dominant_freq16": 0.08594965115119461,
+    "bocpd_p0": 0.13619897722722515
+   },
+   "q80_threshold_fold4": 0.8553279684883285,
+   "K": 6,
+   "groups": {
+    "q15_H1": 2,
+    "q15_VE1": 2,
+    "chosen_surprisal": 4,
+    "logprob_margin": 2,
+    "true_tail50": 3,
+    "energy_level": 3,
+    "energy_innovation": 1,
+    "top15_turnover": 1,
+    "top50_js": 1,
+    "dominant_freq16": 5,
+    "bocpd_p0": 0
+   },
+   "small_m_guarded": [
+    [
+     "within",
+     1
+    ],
+    [
+     "within",
+     2
+    ]
+   ],
+   "anchor_spearman": 0.8984907168094953
+  },
+  "K28_cov_lsml": {
+   "weights": {
+    "q15_H1": 0.05245966903165022,
+    "q15_VE1": 0.05712958160168098,
+    "chosen_surprisal": 0.006525798028179097,
+    "logprob_margin": 0.04861985164886433,
+    "true_tail50": 0.021665093998899654,
+    "energy_level": 0.036015529187599885,
+    "top15_turnover": -0.0062746531084609805,
+    "bocpd_p0": 0.0302539994392573,
+    "ct7_H0lim": 0.05655826387961873,
+    "ct7_ve0": 0.05626166928056636,
+    "ct7_ve0.75": 0.055104889106021245,
+    "ct7_H0lim_prefix_innovation": 0.04716049976373893,
+    "ct7_bocpd_residual": 0.04083157270944297,
+    "ct7_chosen_std_excess": 0.006525798028179093,
+    "H1_frac_above_z": 0.03986997160851836,
+    "evidence_drop_risk": 0.049449831248379476,
+    "hist_entropy_rolling_low_band_power": 0.036288847243204,
+    "hist_entropy_rolling_tail_ratio": 0.0302539994392573,
+    "hist_entropy_sw_var_series": 0.021665093998899553,
+    "hist_entropy_rolling_rs_hurst": 0.036288847243204,
+    "hist_entropy_cusum_abs_series": 0.018077909624991076,
+    "hist_spilled_sw_var_series": 0.006525798028179099,
+    "hist_energy_rolling_min": 0.039618940771687004,
+    "hist_energy_cusum_abs_series": 0.018077909624991076,
+    "hist_topk_entropy_series": 0.05202306456818451,
+    "hist_topk_varentropy_series": 0.05693058337841391,
+    "hist_topk_renyi2_series": 0.05187724041103119,
+    "hist_topk_tail_mass_series": 0.021665093998899567
+   },
+   "q80_threshold_fold4": 0.9064911093433977,
+   "K": 8,
+   "groups": {
+    "q15_H1": 0,
+    "q15_VE1": 3,
+    "chosen_surprisal": 7,
+    "logprob_margin": 0,
+    "true_tail50": 5,
+    "energy_level": 2,
+    "top15_turnover": 2,
+    "bocpd_p0": 4,
+    "ct7_H0lim": 3,
+    "ct7_ve0": 3,
+    "ct7_ve0.75": 3,
+    "ct7_H0lim_prefix_innovation": 0,
+    "ct7_bocpd_residual": 0,
+    "ct7_chosen_std_excess": 7,
+    "H1_frac_above_z": 2,
+    "evidence_drop_risk": 0,
+    "hist_entropy_rolling_low_band_power": 1,
+    "hist_entropy_rolling_tail_ratio": 4,
+    "hist_entropy_sw_var_series": 5,
+    "hist_entropy_rolling_rs_hurst": 1,
+    "hist_entropy_cusum_abs_series": 6,
+    "hist_spilled_sw_var_series": 7,
+    "hist_energy_rolling_min": 2,
+    "hist_energy_cusum_abs_series": 6,
+    "hist_topk_entropy_series": 0,
+    "hist_topk_varentropy_series": 3,
+    "hist_topk_renyi2_series": 0,
+    "hist_topk_tail_mass_series": 5
+   },
+   "small_m_guarded": [
+    [
+     "within",
+     5
+    ],
+    [
+     "within",
+     7
+    ]
+   ],
+   "anchor_spearman": 0.9590248348988154
+  },
+  "F15_cov_lsml": {
+   "weights": {
+    "level_entropy": 0.06931218571640507,
+    "margin": 0.09532025727039192,
+    "energy": 0.06650713177217846,
+    "tail": 0.06424343391232928,
+    "change_evidence": 0.09898236813087997,
+    "token_surprise": 0.02978968104708662,
+    "entropy_volatility": 0.060451881151808017,
+    "changepoint": 0.07968590665124307,
+    "frac_above": 0.05841366719109558,
+    "energy_cusum": 0.05424852345170686,
+    "tail_ratio": 0.07968590665124307,
+    "entropy_cusum": 0.05424852345170686,
+    "slow_dynamics": 0.07062928028948258,
+    "energy_floor": 0.04051434570377076,
+    "top_turnover": 0.07796690760867196
+   },
+   "q80_threshold_fold4": 0.8782381786904196,
+   "K": 5,
+   "groups": {
+    "level_entropy": 0,
+    "margin": 2,
+    "energy": 0,
+    "tail": 0,
+    "change_evidence": 2,
+    "token_surprise": 4,
+    "entropy_volatility": 0,
+    "changepoint": 3,
+    "frac_above": 0,
+    "energy_cusum": 1,
+    "tail_ratio": 3,
+    "entropy_cusum": 1,
+    "slow_dynamics": 2,
+    "energy_floor": 0,
+    "top_turnover": 2
+   },
+   "small_m_guarded": [],
+   "anchor_spearman": 0.8940772186586735
+  },
+  "F15_tailtie_lsml": {
+   "weights": {
+    "level_entropy": 0.09021679897151046,
+    "margin": 0.07720456603960066,
+    "energy": 0.07733773323398667,
+    "tail": 0.07943076846913447,
+    "change_evidence": 0.07312757560131071,
+    "token_surprise": 0.041598045662563615,
+    "entropy_volatility": 0.06506678209280278,
+    "changepoint": 0.03637242178782033,
+    "frac_above": 0.04983158395090342,
+    "energy_cusum": 0.14962313576762204,
+    "tail_ratio": 0.022132278074444393,
+    "entropy_cusum": 0.14962313576762204,
+    "slow_dynamics": 0.03847010935511455,
+    "energy_floor": 0.02006973674540146,
+    "top_turnover": 0.02989532848016239
+   },
+   "q80_threshold_fold4": 0.878464199608311,
+   "K": 2,
+   "groups": {
+    "level_entropy": 0,
+    "margin": 0,
+    "energy": 0,
+    "tail": 0,
+    "change_evidence": 0,
+    "token_surprise": 0,
+    "entropy_volatility": 0,
+    "changepoint": 0,
+    "frac_above": 0,
+    "energy_cusum": 1,
+    "tail_ratio": 0,
+    "entropy_cusum": 1,
+    "slow_dynamics": 0,
+    "energy_floor": 0,
+    "top_turnover": 0
+   },
+   "small_m_guarded": [],
+   "anchor_spearman": 0.8558052729261626
+  },
+  "B11_equal": {
+   "weights": {
+    "q15_H1": 0.09090909090909091,
+    "q15_VE1": 0.09090909090909091,
+    "chosen_surprisal": 0.09090909090909091,
+    "logprob_margin": 0.09090909090909091,
+    "true_tail50": 0.09090909090909091,
+    "energy_level": 0.09090909090909091,
+    "energy_innovation": 0.09090909090909091,
+    "top15_turnover": 0.09090909090909091,
+    "top50_js": 0.09090909090909091,
+    "dominant_freq16": 0.09090909090909091,
+    "bocpd_p0": 0.09090909090909091
+   },
+   "q80_threshold_fold4": 0.8631798654042805
+  },
+  "B11_partition_equal": {
+   "weights": {
+    "q15_H1": 0.05555555555555555,
+    "q15_VE1": 0.05555555555555555,
+    "chosen_surprisal": 0.16666666666666666,
+    "logprob_margin": 0.05555555555555555,
+    "true_tail50": 0.08333333333333333,
+    "energy_level": 0.08333333333333333,
+    "energy_innovation": 0.05555555555555555,
+    "top15_turnover": 0.05555555555555555,
+    "top50_js": 0.05555555555555555,
+    "dominant_freq16": 0.16666666666666666,
+    "bocpd_p0": 0.16666666666666666
+   },
+   "q80_threshold_fold4": 0.8575592082766615,
+   "groups_from": "B11_lsml deployment fit"
+  },
+  "K28_equal": {
+   "weights": {
+    "q15_H1": 0.03571428571428571,
+    "q15_VE1": 0.03571428571428571,
+    "chosen_surprisal": 0.03571428571428571,
+    "logprob_margin": 0.03571428571428571,
+    "true_tail50": 0.03571428571428571,
+    "energy_level": 0.03571428571428571,
+    "top15_turnover": 0.03571428571428571,
+    "bocpd_p0": 0.03571428571428571,
+    "ct7_H0lim": 0.03571428571428571,
+    "ct7_ve0": 0.03571428571428571,
+    "ct7_ve0.75": 0.03571428571428571,
+    "ct7_H0lim_prefix_innovation": 0.03571428571428571,
+    "ct7_bocpd_residual": 0.03571428571428571,
+    "ct7_chosen_std_excess": 0.03571428571428571,
+    "H1_frac_above_z": 0.03571428571428571,
+    "evidence_drop_risk": 0.03571428571428571,
+    "hist_entropy_rolling_low_band_power": 0.03571428571428571,
+    "hist_entropy_rolling_tail_ratio": 0.03571428571428571,
+    "hist_entropy_sw_var_series": 0.03571428571428571,
+    "hist_entropy_rolling_rs_hurst": 0.03571428571428571,
+    "hist_entropy_cusum_abs_series": 0.03571428571428571,
+    "hist_spilled_sw_var_series": 0.03571428571428571,
+    "hist_energy_rolling_min": 0.03571428571428571,
+    "hist_energy_cusum_abs_series": 0.03571428571428571,
+    "hist_topk_entropy_series": 0.03571428571428571,
+    "hist_topk_varentropy_series": 0.03571428571428571,
+    "hist_topk_renyi2_series": 0.03571428571428571,
+    "hist_topk_tail_mass_series": 0.03571428571428571
+   },
+   "q80_threshold_fold4": 0.8943433580856562
+  },
+  "F15_equal": {
+   "weights": {
+    "level_entropy": 0.06666666666666667,
+    "margin": 0.06666666666666667,
+    "energy": 0.06666666666666667,
+    "tail": 0.06666666666666667,
+    "change_evidence": 0.06666666666666667,
+    "token_surprise": 0.06666666666666667,
+    "entropy_volatility": 0.06666666666666667,
+    "changepoint": 0.06666666666666667,
+    "frac_above": 0.06666666666666667,
+    "energy_cusum": 0.06666666666666667,
+    "tail_ratio": 0.06666666666666667,
+    "entropy_cusum": 0.06666666666666667,
+    "slow_dynamics": 0.06666666666666667,
+    "energy_floor": 0.06666666666666667,
+    "top_turnover": 0.06666666666666667
+   },
+   "q80_threshold_fold4": 0.8825338964942113
+  },
+  "A48o_equal": {
+   "weights": {
+    "q15_H1": 0.020833333333333332,
+    "q15_VE1": 0.020833333333333332,
+    "chosen_surprisal": 0.020833333333333332,
+    "logprob_margin": 0.020833333333333332,
+    "true_tail50": 0.020833333333333332,
+    "energy_level": 0.020833333333333332,
+    "energy_innovation": 0.020833333333333332,
+    "top15_turnover": 0.020833333333333332,
+    "top50_js": 0.020833333333333332,
+    "dominant_freq16": 0.020833333333333332,
+    "bocpd_p0": 0.020833333333333332,
+    "ct7_H0lim": 0.020833333333333332,
+    "ct7_ve0": 0.020833333333333332,
+    "ct7_ve0.75": 0.020833333333333332,
+    "ct7_H0lim_prefix_innovation": 0.020833333333333332,
+    "ct7_bocpd_residual": 0.020833333333333332,
+    "ct7_chosen_std_excess": 0.020833333333333332,
+    "H1_first_token": 0.020833333333333332,
+    "H1_slope": 0.020833333333333332,
+    "H1_jump": 0.020833333333333332,
+    "H1_frac_above_z": 0.020833333333333332,
+    "evidence_drop_risk": 0.020833333333333332,
+    "hist_entropy_rolling_spectral_entropy": 0.020833333333333332,
+    "hist_entropy_rolling_low_band_power": 0.020833333333333332,
+    "hist_entropy_rolling_high_band_power": 0.020833333333333332,
+    "hist_entropy_rolling_hl_ratio": 0.020833333333333332,
+    "hist_entropy_rolling_dominant_freq": 0.020833333333333332,
+    "hist_entropy_rolling_spectral_centroid": 0.020833333333333332,
+    "hist_entropy_stft_high_series": 0.020833333333333332,
+    "hist_entropy_stft_frame_entropy": 0.020833333333333332,
+    "hist_entropy_rolling_tail_ratio": 0.020833333333333332,
+    "hist_entropy_sw_var_series": 0.020833333333333332,
+    "hist_entropy_pe_series": 0.020833333333333332,
+    "hist_entropy_rolling_rs_hurst": 0.020833333333333332,
+    "hist_entropy_cusum_abs_series": 0.020833333333333332,
+    "hist_spilled_sw_var_series": 0.020833333333333332,
+    "hist_spilled_cusum_abs_series": 0.020833333333333332,
+    "hist_spilled_rolling_min": 0.020833333333333332,
+    "hist_energy_series": 0.020833333333333332,
+    "hist_energy_rolling_min": 0.020833333333333332,
+    "hist_energy_sw_var_series": 0.020833333333333332,
+    "hist_energy_cusum_abs_series": 0.020833333333333332,
+    "hist_top1_logprob_series": 0.020833333333333332,
+    "hist_logprob_margin_series": 0.020833333333333332,
+    "hist_topk_entropy_series": 0.020833333333333332,
+    "hist_topk_varentropy_series": 0.020833333333333332,
+    "hist_topk_renyi2_series": 0.020833333333333332,
+    "hist_topk_tail_mass_series": 0.020833333333333332
+   },
+   "q80_threshold_fold4": 0.8923393542748571
+  },
+  "ct7": {
+   "recipe": "frozen CT7 (external port spectral_utils/external_generalization/ct7.py), answer-z",
+   "q80_threshold_fold4": 0.9013378513492424
+  }
+ },
+ "bank11_replay_of_frozen_external_bundle": {
+  "B11_weights_max_abs_diff": 1.5612511283791264e-16,
+  "B11_groups_equal": true,
+  "threshold_diffs": {
+   "B11_lsml": 2.220446049250313e-16,
+   "B11_equal": 1.1102230246251565e-16,
+   "B11_partition_equal": 0.0,
+   "ct7": 0.0
+  },
+  "status": "PASS"
+ },
+ "tail_mark_degeneracy_source": {
+  "answer_columns": 206535,
+  "constant_rate": 0.011567046747524633,
+  "boundary_tie_rate": 0.03961071973273295
+ },
+ "parity_gate": {
+  "required_before_external_scoring": true,
+  "rule": "the external extractor, run on SOURCE raw telemetry, must reproduce every one of the 48 pool channels after within-answer z-score with max |diff| <= 1e-6 on all 13,769 source answers (or, if raw source telemetry is unavailable for some cells, on a deterministic sample of >= 300 answers covering all 9 cells, declared before running). A channel that fails gives the pipeline a new identity: source validation is rerun with the replayable definition and a new lock is written before any external score.",
+  "known_risks": [
+   "15 of the 28 channels are not computed by the external pipeline today; 5 CT7 streams are computed inside the external CT7 port but not output",
+   "the builder of the pooled ct7 step channels (union_top10_profiles.npy) was not found: whether ct7_chosen_std_excess is a Top10 of the token z-stream and whether step 0 was replaced must be recovered",
+   "H1_frac_above_z is profiles_full column 10 and is not a Top10 readout",
+   "hist_* rolling streams need >= 16 tokens (shorter answers are constant -> 0)"
+  ]
+ },
+ "external_primary_contrasts": [
+  [
+   "F15_tailtie_lsml",
+   "B11_lsml"
+  ],
+  [
+   "F15_tailtie_lsml",
+   "F15_equal"
+  ],
+  [
+   "F15_tailtie_lsml",
+   "F15_cov_lsml"
+  ],
+  [
+   "F15_cov_lsml",
+   "K28_cov_lsml"
+  ],
+  [
+   "F15_equal",
+   "K28_equal"
+  ],
+  [
+   "K28_equal",
+   "A48o_equal"
+  ]
+ ],
+ "external_multiplicity": "per dataset/backbone cell; paired source-question bootstrap, 100,000 draws, seed 20260924; Bonferroni over 6 contrasts x the number of cells evaluated. B11_lsml vs its two controls and vs CT7 keep the existing lock. Secondary: within-answer AUC, class recalls, category panels. No row is selected, dropped or re-tuned after external labels are seen; all rows are reported.",
+ "code_hashes": {
+  "calfix_common": "1c8faa4ef12f08ade15cdeddad7c3c53f359639ef0aa02f2a8445f38099fe042",
+  "lock_script": "117f47902663883463de0221e6a98fefc302ab403660200ecd08d9606bba748c",
+  "spectral_utils\\external_generalization\\fusion.py": "be9d6aca5553c983bc4228bbbf8f6ac998276590773ce8b46f437b0be1bf71fd",
+  "spectral_utils\\external_generalization\\_bank11\\fusion_utils.py": "cbfef7d4828969f1245ada68e78f16c787c95c289d04f27871489c48e9a581a5"
+ }
+}

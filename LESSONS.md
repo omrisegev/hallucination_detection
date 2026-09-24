@@ -38,6 +38,7 @@ Enforced by: code | command | prose   (name the file)
 | Plain-language first: one sentence, one number, next step | **prose**: `CLAUDE.md` Communication style | yes (2× "REWRITE IN SIMPLE ENGLISH") |
 | Terminology bans: not "Nadler", not "MV_EPR", not "recommended", not "CONT" | prose, `feedback_terminology` | no |
 | Notebook JSON is edited with NotebookEdit / json.dump, never str.replace | **code**: `.git/hooks/pre-commit` (untracked!) | no |
+| z-score every matrix given to `lsml_continuous`; rerun at another input scale before explaining a surprising K | **code**: `tail_calib_common.lsml_fit_scaled` + scale test (2026-09-24) | new (09-24: K=2 artefact locked and run externally) |
 
 ---
 
@@ -158,3 +159,15 @@ Enforced by: prose + `save_cache_atomic` pattern. No recurrence.
 ## 2026-05-12 — Retry loop on an oversized notebook edit; "are you working? stuck?"
 Rule: after two failed retries, write a paste-in fix document instead.
 Enforced by: prose.
+
+## 2026-09-24 — A new object fed to `lsml_continuous` without z-scoring collapsed K to 2, and the artefact was reported as a finding
+What happened: step-level tail-mark L-SML (Steps 441-442) passed centred 0/1 marks (variance ~0.18) straight to `lsml_continuous`. K=2 came out on every fold and bank. It was reported and locked as "tail learning collapses to K=2" with a mechanistic story (a side conversation blamed CUSUM end-of-answer marks). Step 443 showed K=2 is produced by input scale: the same continuous features multiplied by 0.4 also give K=2, and standardized marks give a stable K=4. The locked V1 candidate and its external run carried the artefact.
+Why: `lsml_continuous` documents z-scored inputs, but nothing enforces it. Its default `loading_scale='unit'` Eq.14 K criterion is not scale invariant. `METHOD_NOTE.md` said "standardize" while the code did not.
+Rule: z-score every matrix passed to `lsml_continuous` (or use `loading_scale='complete'`). Before explaining a surprising K, run the scale control: rerun at another input scale.
+Enforced by: code, `tail_calib_common.lsml_fit_scaled(standardize=True)` with the scale-invariance test in `scripts/experiments/test_tail_calib_common.py`; prose for other callers.
+
+## 2026-09-24 — A write-once test passed on its own "not caught" sentinel
+What happened: the ScoreBundle overwrite test did `try: second_write(); raise AssertionError('overwrite not caught') except AssertionError as e: assert 'overwrite' in str(e)`. The sentinel text contains "overwrite", so the test passed while `_init` re-created the arrays on every write (a key check on `m` against a dict keyed `(m, role)`). The full run then failed at finalize after 7 minutes of fits.
+Why: the same `except` catches the sentinel, and string matching cannot tell it from the real error.
+Rule: set a flag only on the specific real message and assert the flag after the `try`. Also test the positive path end to end.
+Enforced by: code, `test_calfix_common.py` and `test_tail_calib_common.py` (flag pattern).

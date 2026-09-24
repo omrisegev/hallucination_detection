@@ -1,0 +1,31 @@
+{
+ "stage": "core_virtual_lsml_v1",
+ "date": "2026-09-24",
+ "approved_by": "Omri, 2026-09-24: run all three options and compare; generalization later",
+ "question": "If the redundant level core is collapsed to 1-3 averaged virtual channels before fusion, does continuous L-SML over [core virtuals + 30 independent channels] stop failing (as it did when independent channels were added to the full bank) and add value over plain averaging of the same inputs?",
+ "motivation": "tail_label_share_v1: covariance ranks independent channels by quality (Spearman .64 PRMB / .87 PB) but the nuisance-inflated core compresses their scale, e.g. hist_energy_cusum_abs accuracy .132 with core correlation .045, 65% label-driven.",
+ "channels": "48 = 52-column pool minus exact duplicates (ct7_ve1, hist_entropy_series, hist_spilled_series) and constant hist_trace_length_series. Per-answer z-scored, native sign. Level family = |r_level_marginal| >= 0.45 (18 channels, POOL_STRUCTURE.csv, label-free). Independent = the other 30.",
+ "virtual_construction": "plain mean of the member channels' per-answer z-scores, then re-z-scored within answer. Membership fixed from label-free correlation structure (PCA/|r| clustering on pooled PRMBench steps). Note: the count 1-3 was motivated partly by a label-using diagnostic, so all three options are frozen and reported together; none is selected afterwards as 'the method'.",
+ "options": {
+  "A": {"level": "all 18 level channels"},
+  "B": {"level": ["q15_H1", "q15_VE1", "logprob_margin", "energy_level", "ct7_H0lim", "ct7_ve0", "ct7_ve0.75", "ct7_H0lim_prefix_innovation", "hist_topk_entropy_series", "hist_topk_varentropy_series", "hist_topk_renyi2_series", "hist_topk_tail_mass_series"],
+        "local_level": ["ct7_bocpd_residual", "evidence_drop_risk", "chosen_surprisal", "hist_entropy_sw_var_series", "true_tail50", "H1_frac_above_z"]},
+  "C": {"level": "same 12 as B.level", "change": ["ct7_bocpd_residual", "evidence_drop_risk"],
+        "surprise": ["chosen_surprisal", "hist_entropy_sw_var_series", "true_tail50", "H1_frac_above_z"]}
+ },
+ "arms": {
+  "X_lsml": "continuous L-SML (fit_fusion_weights mode=continuous, anchor = level virtual) on [virtuals + 30 independent], X in A,B,C",
+  "X_equal": "equal weights on the same reduced inputs (tests whether L-SML adds value)",
+  "all48_lsml": "continuous L-SML on all 48 (known failure mode), anchor q15_H1",
+  "all48_equal": "equal on all 48",
+  "B11_lsml / B11_equal": "bank11 references refitted on the same folds",
+  "ct7": "frozen CT7 step scores (reference)"
+ },
+ "folds": "FOLDS as in OOF_ANSWERS: evaluation fold k, calibration fold (k+1)%5, fit on the other three (same as declared_joint_prmbench_v1)",
+ "endpoints": {
+  "primary": "PRMBench within-answer AUC and PRMScore (answer-z, threshold = 0.8 quantile of calibration-fold scores)",
+  "secondary": "ProcessBench macro8 step-level accuracy of the earliest argmax on erroneous answers"
+ },
+ "contrasts": "paired source-group bootstrap, 20000 draws, seed 20260924: X_lsml - X_equal, X_lsml - all48_lsml, X_lsml - B11_lsml, X_lsml - ct7 for X in A,B,C; all48_lsml - all48_equal. 95% intervals, no multiplicity claim of a winner.",
+ "not_in_scope": "generalization to external benchmarks (later, per Omri); any selection among A/B/C."
+}

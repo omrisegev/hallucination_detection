@@ -1,3 +1,21 @@
+## Family/tail L-SML closed; bank11 L-SML remains the transfer candidate (Claude) - 2026-09-24
+
+HISTORY Steps 441-443 on `claude/ssl-pseudolabel-residual-v1` and Step 444 on `codex/lsml-external-generalization-v1`.
+
+- **Evaluation fixed (Step 442, `results/family_tail_calfix_v1/`).** Same-model calibration, write-once bundles and paired PRMScore intervals. The fix moved numbers by at most 0.14 pp.
+  - Source PRMScore: CT7 64.62, F15 tail L-SML 64.52, F15 equal 64.33, bank11 L-SML 64.17.
+  - Learned weights beat matched equal only on bank11 (+0.84).
+- **Step-level tail-mark K=2 was an input-scale artefact (Step 443, `results/tail_threshold_calibration_v1/`).**
+  - Unstandardized marks were fed to `lsml_continuous`, whose default unit K criterion is scale-sensitive. With standardized marks K=4 and the partition is stable.
+  - The corrected recipe (64.17) and every tail-threshold calibration fail to beat F15 equal: common or per-family, label-free (FUSE-style) or label-selected.
+- **External (Codex V1 + Claude V2, Step 444).** Hard2Verify balanced F1 / Socratic-Qwen3 / Socratic-QwQ PRMScore:
+  - bank11 L-SML 43.67 / 63.22 / 64.24
+  - F15 equal 42.38 / 61.12 / 62.94
+  - corrected tail row 42.28 / 61.00 / 62.30
+  - V1 tail row 41.02 / 59.92 / 62.69
+  - Source rank did not predict external rank.
+- **Next.** Do not continue the family/tail line. Any new object passed to `lsml_continuous` must be z-scored (or use `loading_scale='complete'`), and K must be reported. bank11 L-SML stays the learned transfer anchor.
+
 ## Declared partitions + Joint L-SML on the step bank (Claude) - 2026-09-24
 
 `results/declared_joint_prmbench_v1/run_20260924/`: answers Omri's two questions at once.
