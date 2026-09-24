@@ -18251,3 +18251,22 @@ no SOTA claim. The broader published-comparator reproduction remains pending.
 Negative result recorded: results/lsml_external_generalization_v1/evaluation/NEGATIVE_RESULT.md
 
 ---
+
+### 2026-09-24 [Codex] Preserve family15 tail20 for external-evaluation handoff
+
+User requested a separate committed branch for Claude's15-family tail candidate.
+Created codex/family15-tail20-transfer-v1 from715e586d5, preserving the original
+working tree and Claude's worktree. Copied the immutable lock, compact source
+metrics/models/protocol and original scripts with hashes. Added a portable module,
+two tests, full-source verifier and Hebrew agent handoff.
+
+All13,769answers/145,597steps replay over5fit/cal/eval rotations: score error at
+most2.22e-16; deployment weights, scores and threshold exactly replay. This verifies
+fusion from the source feature matrix, not external raw-feature extraction. The
+next agent must complete feature parity before target scoring. No external quality
+or new inference performed. Explicitly document fractional boundary ties, answer
+centering, no extra pooled mark standardization, K=2 and exploratory target status.
+
+Files: spectral_utils/family_tail_transfer.py,scripts/verify_family_tail_transfer.py,
+tests/test_family_tail_transfer.py,docs/experiments/FAMILY15_TAIL20_AGENT_HANDOFF_HE.md,
+results/family_tail_transfer_v1/ (lock,provenance,source snapshot,PORT_REPLAY.json).

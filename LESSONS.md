@@ -227,3 +227,15 @@ Rule: retain corrected matched-control intervals, native/fallback accounting,
 null prevalence effects and FEASIBILITY labels; record the negative implementation
 result alongside the positive transfer result.
 Enforced by: CONTRASTS.json, RED_TEAM.md, NEGATIVE_RESULT.md and independent audits.
+
+## 2026-09-24 - Preserve executed tail preprocessing, not an inconsistent method description
+What happened: while packaging Claude's F15_tailtie_lsml, METHOD_NOTE said to standardize pooled tail marks, but calfix_common.lsml_fit and the deployment builder feed answer-centered marks directly into the frozen backend. A portable implementation following the prose could silently create a different method. The full source port now exactly replays the executed recipe. A replay initially failed because upstream saved answer_uid as an object array; the verifier explicitly enables pickle only for this trusted local source artifact.
+Why: display names and prose did not specify all normalization details, and the upstream NPZ mixed numeric arrays with object identifiers.
+Rule: preserve exact executable preprocessing and verify all source folds plus deployment weights/scores/threshold. State fractional ties and the absence of extra pooled normalization. Validate source identifiers using the actual storage format rather than skipping their alignment check.
+Enforced by: spectral_utils/family_tail_transfer.py, scripts/verify_family_tail_transfer.py, tests/test_family_tail_transfer.py and results/family_tail_transfer_v1/PORT_REPLAY.json (13,769answers/145,597steps).
+
+## 2026-09-24 - Check blob bytes before fixing apparent changes in a fresh worktree
+What happened: two pinned bank11 files appeared modified immediately after checkout even though their disk bytes exactly equaled HEAD. Their committed CRLF conflicted with the blanket text eol=lf attribute. Added two specific -text overrides on this new branch, preserving every byte rather than normalizing sealed dependencies. A first attribute patch had a missing-context error and made no change; the corrected patch then applied.
+Why: Git clean normalization can report a difference even when worktree bytes match a non-normalized committed blob.
+Rule: compare raw HEAD and disk bytes before changing a pinned dependency; use narrowly scoped attributes to preserve byte identity. Explicit LF attributes preserve the new port's recorded source hash across checkout.
+Enforced by: this branch's .gitattributes and PORT_REPLAY.json; the pinned dependency blobs are unchanged.

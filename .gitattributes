@@ -25,3 +25,11 @@ docs/experiments/LSML_EXTERNAL_EVALUATION_LOCK_20260924.md text eol=lf
 
 # Existing hashed audit JSON/CSV uses CRLF; retain bytes while checking real whitespace.
 results/lsml_external_generalization_v1/** whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+
+# These two pinned base blobs contain CRLF: preserve their actual HEAD bytes.
+spectral_utils/external_generalization/_bank11/__init__.py -text
+spectral_utils/external_generalization/_bank11/chosen_token_calibration.py -text
+# Portable family-tail replay records the exact implementation hash.
+spectral_utils/family_tail_transfer.py text eol=lf
+scripts/verify_family_tail_transfer.py text eol=lf
+tests/test_family_tail_transfer.py text eol=lf

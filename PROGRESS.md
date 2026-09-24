@@ -1,3 +1,26 @@
+## 2026-09-24: family15 tail20 handoff branch READY
+
+This dedicated branch `codex/family15-tail20-transfer-v1` packages Claude's
+`F15_tailtie_lsml`, its exact frozen deployment lock and a portable implementation.
+Start with docs/experiments/FAMILY15_TAIL20_AGENT_HANDOFF_HE.md.
+
+Full source replay PASS:13,769answers/145,597steps, all5folds; maximum score
+difference2.22e-16, deployment weights/scores/threshold differences0. Tail markers
+exactly replay upstream; two mechanism/API tests pass. Evidence:
+results/family_tail_transfer_v1/PORT_REPLAY.json. No external evaluation started.
+
+The next agent must complete the missing external feature extraction and source
+feature-parity gate before scoring targets. The API starts from finite step
+features; it does not claim raw-telemetry extraction completeness. External
+Socratic/Hard2Verify repeats are exploratory. Preserve all locked comparisons.
+
+Exact recipe: top-ceil20% step marks with fractional boundary ties, answer
+centering, NO additional pooled normalization of marks, existing continuous
+L-SML backend, continuous-anchor sign, continuous application and answer-z.
+The old upstream METHOD_NOTE's extra standardization wording does not match its
+code; this port preserves measured code and the lock. K=2 limits claims about
+learned between-group reliability. Not the separate group-confidence EM variant.
+
 ## 2026-09-24: external L-SML comparison COMPLETE; frozen bank11 leads
 
 All seven internal arms completed on 6,190/6,190 answer/backbone records and
