@@ -1,0 +1,34 @@
+marks built {"top20pct": {"answer_streams": 96383, "constant_rate": 0.0, "boundary_tie_rate": 0.09364721994542606, "fewer_than_k_rate": 0.0}, "top30tok": {"answer_streams": 96383, "constant_rate": 0.0, "boundary_tie_rate": 0.034705290352033034, "fewer_than_k_rate": 7.262691553489724e-05}, "top10tok": {"answer_streams": 96383, "constant_rate": 0.0, "boundary_tie_rate": 0.0023448118444123964, "fewer_than_k_rate": 0.0}, "tailtie20": {"answer_streams": 96383, "constant_rate": 0.0, "boundary_tie_rate": 0.09364721994542606, "fewer_than_k_rate": 0.0}, "steps_without_all_valid_token": 0, "all_valid_token_rate": 0.9980241875944121}
+fold 0 done (24s): cov_lsml K=3, tail_top20pct_lsml K=3, tail_top30tok_lsml K=3, tail_top10tok_lsml K=3, tailtie20_lsml K=3
+fold 1 done (24s): cov_lsml K=3, tail_top20pct_lsml K=3, tail_top30tok_lsml K=3, tail_top10tok_lsml K=2, tailtie20_lsml K=3
+fold 2 done (22s): cov_lsml K=3, tail_top20pct_lsml K=3, tail_top30tok_lsml K=3, tail_top10tok_lsml K=4, tailtie20_lsml K=3
+fold 3 done (24s): cov_lsml K=3, tail_top20pct_lsml K=3, tail_top30tok_lsml K=3, tail_top10tok_lsml K=3, tailtie20_lsml K=3
+fold 4 done (22s): cov_lsml K=3, tail_top20pct_lsml K=3, tail_top30tok_lsml K=3, tail_top10tok_lsml K=3, tailtie20_lsml K=3
+bundle PASS
+                        method  prmscore_P1  prmscore_P1b  prmscore_P2  within_auc  pb_sla_macro8
+                  cov_lsml_r10       0.6291        0.6288       0.6292      0.7563         0.3719
+                  cov_lsml_r30       0.5879        0.5876       0.5872      0.6996         0.3866
+                           ct7       0.6462        0.6458       0.6502      0.7724         0.3989
+                       ct7_raw       0.6426        0.6424       0.6468      0.7724         0.3989
+                     equal_r10       0.6396        0.6395       0.6406      0.7691         0.3830
+                     equal_r30       0.5938        0.5935       0.5918      0.7095         0.3995
+   readout_then_equal_ct7views       0.6462        0.6458       0.6477      0.7750         0.4104
+readout_then_equal_matched_r10       0.6488        0.6477       0.6497      0.7776         0.4136
+        tail_top10tok_lsml_r10       0.6282        0.6282       0.6274      0.7560         0.3713
+        tail_top10tok_lsml_r30       0.5862        0.5863       0.5851      0.6975         0.3885
+        tail_top20pct_lsml_r10       0.6378        0.6378       0.6389      0.7666         0.3765
+        tail_top20pct_lsml_r30       0.5930        0.5927       0.5904      0.7081         0.3958
+        tail_top30tok_lsml_r10       0.6313        0.6312       0.6321      0.7591         0.3703
+        tail_top30tok_lsml_r30       0.5892        0.5894       0.5882      0.7020         0.3891
+            tailtie20_lsml_r10       0.6379        0.6379       0.6392      0.7666         0.3765
+ tailtie20_partition_equal_r10       0.6409        0.6403       0.6422      0.7699         0.3862
+           tailtie20_votes_r10       0.6313        0.6328       0.6334      0.7546         0.3487
+ family                  a                              b                                                why    endpoint   delta  ci95_lo  ci95_hi  p_boot  folds_a_gt_b  p_holm_primary
+primary tailtie20_lsml_r10                   cov_lsml_r10      learning object: tie-aware tail vs covariance prmscore_P1  0.0088   0.0070   0.0107  0.0000           5.0          0.0000
+primary tailtie20_lsml_r10                      equal_r10                        tail L-SML vs matched equal prmscore_P1 -0.0017  -0.0027  -0.0008  0.0004           0.0          0.0004
+primary       cov_lsml_r10                      equal_r10                  covariance L-SML vs matched equal prmscore_P1 -0.0105  -0.0126  -0.0085  0.0000           0.0          0.0000
+primary tailtie20_lsml_r10  tailtie20_partition_equal_r10 candidate vs its learned groups with equal weights prmscore_P1 -0.0030  -0.0045  -0.0017  0.0000           0.0          0.0000
+primary tailtie20_lsml_r10            tailtie20_votes_r10                    continuous application vs votes prmscore_P1  0.0065   0.0036   0.0094  0.0000           5.0          0.0000
+primary          equal_r10 readout_then_equal_matched_r10                       order of operations, matched prmscore_P1 -0.0092  -0.0116  -0.0068  0.0000           0.0          0.0000
+written: C:\Users\omris\TAU\hallucination_detection\.worktrees\lsml-ct7-levers-run\results\ct7_token_tail_lsml_calfix_v1\run_20260924_1550 (358.0s)
+exit 0

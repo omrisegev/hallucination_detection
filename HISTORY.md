@@ -58126,3 +58126,26 @@ comparator our method "beats" or "loses to" on equal terms. Nothing here is prom
 fused; development evidence on already-evaluated data, not untouched confirmation.
 
 ---
+
+### Steps 441-442 [Claude, token-level tail L-SML artifacts] - Token-level tail-mark L-SML and its calibration-corrected replay; narrative in the ssl branch HISTORY, 2026-09-24
+
+**What**: This branch holds the token-level part of Claude Steps 441-442. The full narrative lives in HISTORY on `claude/ssl-pseudolabel-residual-v1`.
+- `results/ct7_token_tail_lsml_v1/` is the original run. It is left unchanged; its evaluation had the calibration defect.
+- `results/ct7_token_tail_lsml_calfix_v1/run_20260924_1550/` is the corrected replay: 3 fit folds / 1 calibration / 1 evaluation, one model_id for both roles, P1 pooled q80, and paired PRMScore bootstrap. Evaluator code is shared with the step-level stage (`calfix_common.py`, `calfix_evaluate.py` on the ssl branch).
+
+**Result** (P1 PRMScore):
+
+| Method | PRMScore |
+|---|---:|
+| Readout, then equal (matched) | 64.88 |
+| CT7 | 64.62 |
+| Equal | 63.96 |
+| Tail L-SML | 63.79 |
+| Covariance L-SML | 62.91 |
+
+- Tail L-SML vs equal: -0.17 [-0.27, -0.08].
+- Token fusion followed by readout vs the matched readout-first order: -0.92.
+- 9.4% of top-20% token boundaries are ties.
+- The fix moved token numbers by at most 0.14 pp.
+
+---

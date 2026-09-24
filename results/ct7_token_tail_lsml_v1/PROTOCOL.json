@@ -1,0 +1,22 @@
+{
+ "stage": "ct7_token_tail_lsml_v1",
+ "date": "2026-09-24",
+ "approved_by": "Omri, 2026-09-24: mark each CT7 stream's top tokens per answer (20% / top30 / top10) as 1, fit L-SML on the marks, apply the weights to the continuous tokens, read out steps with Top10 and Top30 means",
+ "pipeline": "unchanged ct7_token_lsml_v1 (Step 436): CT7_TOKEN_MATRICES, step-0 despike of chosen_std_excess, answer-local token z (T_C2/T_E2 axis), donor standardizer (60k-token cap), outer 5-fold by FOLDS_V2 (fit on the other four folds), ct7_levers_common evaluation incl. PRMScore and CT7 replay",
+ "marks": {
+  "top20pct": "top ceil(0.2*n_valid) tokens of the answer",
+  "top30tok": "top 30 tokens",
+  "top10tok": "top 10 tokens"
+ },
+ "rules": {
+  "equal": "1/7",
+  "cov_lsml": "L-SML on continuous tokens (= T_C2)",
+  "tail_<mark>_lsml": "L-SML on centred indicators; weights applied to continuous tokens"
+ },
+ "readouts": {
+  "r10": "Top10 token mean per step",
+  "r30": "Top30 token mean per step"
+ },
+ "labels": "none in any fit; evaluation only",
+ "reporting": "all 3 marks x 2 readouts reported with equal / cov_lsml / ct7 references; no arm selected on these data (external benchmark decides)"
+}

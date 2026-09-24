@@ -1,0 +1,43 @@
+{
+ "stage": "ct7_token_tail_lsml_calfix_v1",
+ "date": "2026-09-24",
+ "written": "before any fit, score or metric of this stage",
+ "requested_by": "Omri, 2026-09-24: docs/reviews/CLAUDE_TOKEN_TAIL_LSML_CORRECTION_HANDOFF_20260924_HE.md sections 2-5: correct the evaluation of results/ct7_token_tail_lsml_v1 and reproduce it in a new folder; the old folder stays unchanged.",
+ "reproduces": "results/ct7_token_tail_lsml_v1 (same token matrices, step-0 despike, answer-local axis, donor standardizer with the 60,000-token length-weighted deterministic sample, token L-SML with the positive-sum gauge, tail marks top20pct/top30tok/top10tok, Top10/Top30 step readout, final answer-z)",
+
+ "evaluation_corrections": {
+  "fit_scope": "outer fold k: fit on the three folds other than k and (k+1)%5 (the old run fitted on four folds). Standardizers, L-SML weights and groups come from the fit folds only.",
+  "same_model_calibration": "the fitted bundle of outer fold k scores the calibration fold (k+1)%5 and the evaluation fold k; scores stored write-once per (method, outer_fold, role, answer) with a model_id shared by both roles (ssl-pseudolabel-residual-v1/scripts/experiments/calfix_common.ScoreBundle). The old run calibrated from out-of-fold scores of other models (cvf_v2/scoring.py prmscores with rosters=[]), some fitted on the evaluated fold's telemetry.",
+  "panels_and_metrics": "identical evaluator and panels as results/family_tail_calfix_v1 (ssl-pseudolabel-residual-v1/scripts/experiments/calfix_evaluate.py): P1 q80 of pooled PB+PRMB calibration scores (primary, label-free), P1b q80 of the calibration fold's PRMB scores (label-free sensitivity), P2 calibration-label-selected quantile (separate label-using panel). PRMScore replayed through the official evaluator port; paired source-group bootstrap 20,000 draws recomputing PRMScore from decisions; Holm over the primary family below.",
+  "normalization": "all arms answer-z; 'ct7' = frozen CT7 step scores answer-z; 'ct7_raw' keeps the historical scale (the old run's 'ct7' row) for the before/after bridge.",
+  "naming": "'readout_then_equal_ct7views' is the old 'ct7_top10_equal7': Top10 per stream over that stream's valid tokens, per-view answer standardization, equal mean. It is NOT the original CT7 (whose seventh view is a pooled step-level z-test); it is model-free."
+ },
+
+ "access_statement": {
+  "label_free": ["all standardizers, weights, groups, tail marks", "P1/P1b thresholds", "answer-z"],
+  "label_using": ["P2 threshold selection on calibration-fold labels", "earlier development choices: the seven CT7 streams and their orientation, step-0 despike, Top10 readout, the mark fractions (all selected on these data before this stage)"],
+  "retrospective": "CT7 itself was developed on these data over many steps; it is a reference, not an unbiased estimate of transfer."
+ },
+
+ "implementation_notes": {
+  "readout": "the Top-k step readout is recomputed with a direct top-k mean (identical to spectral_utils.ct7_token_streams.masked_step_top10, whose unused calibrated-z branch is skipped); equality is asserted on 300 answers before scoring.",
+  "masks": "fusion-before-readout arms read out over tokens valid in ALL seven streams (as in the old run); the historical 'readout_then_equal_ct7views' uses each stream's own valid tokens. The matched order-of-operations pair uses the all-valid mask on both sides.",
+  "token_sample": "the donor standardizer and every L-SML fit use deterministic_token_sample: 60,000 tokens, allocated to answers in proportion to their length (long answers contribute more tokens), evenly spaced within answer. Not changed.",
+  "tail_marks": {"historical": "per answer and stream: 1 on the top-k all-valid tokens (stable argsort; ties and constant streams resolved by token position), centred over the answer's all-valid tokens; k = ceil(0.2*n) (top20pct) or min(30|10, n)", "tie_aware": "top20pct with the boundary ties sharing the remaining mass (a constant stream carries no mark); declared as the token candidate 'tailtie20'", "degeneracy": "constant-stream, boundary-tie and n<k rates are reported per mark before any mechanism is inferred"}
+ },
+
+ "arms": {
+  "reproduction": ["equal_r10", "equal_r30", "cov_lsml_r10", "cov_lsml_r30", "tail_top20pct_lsml_r10", "tail_top20pct_lsml_r30", "tail_top30tok_lsml_r10", "tail_top30tok_lsml_r30", "tail_top10tok_lsml_r10", "tail_top10tok_lsml_r30", "readout_then_equal_ct7views", "ct7", "ct7_raw"],
+  "candidate_and_controls": {"tailtie20_lsml_r10": "tie-aware top20pct marks, weights applied to continuous streams, Top10", "tailtie20_partition_equal_r10": "equal weight per group discovered by that fit, equal within group", "tailtie20_votes_r10": "the same weights applied to the uncentred tie-aware marks"},
+  "order_of_operations_matched": {"tokfuse_then_readout_equal_r10": "= equal_r10 (same answer-local axis, donor standardizer, all-valid mask, despike, k=10)", "readout_then_equal_matched_r10": "Top10 per stream of the SAME standardized streams over the SAME all-valid mask, then equal mean"}
+ },
+ "primary_contrasts_P1_prmscore_holm6": [
+  ["tailtie20_lsml_r10", "cov_lsml_r10", "learning object: tie-aware tail vs covariance"],
+  ["tailtie20_lsml_r10", "equal_r10", "tail L-SML vs matched equal"],
+  ["cov_lsml_r10", "equal_r10", "covariance L-SML vs matched equal"],
+  ["tailtie20_lsml_r10", "tailtie20_partition_equal_r10", "candidate vs its learned groups with equal weights"],
+  ["tailtie20_lsml_r10", "tailtie20_votes_r10", "continuous application vs votes"],
+  ["equal_r10", "readout_then_equal_matched_r10", "order of operations, matched"]
+ ],
+ "reporting": "all rows; results/ct7_token_tail_lsml_calfix_v1/run_*/ with SCORES.npz, MODELS.jsonl (weights, K, groups, standardizer mean/std, sample size), BUNDLE_CHECKS.json, METRICS.csv, CONTRASTS.csv, THRESHOLDS.json, EVAL_CHECKS.json, DEGENERACY.json, BEFORE_AFTER.csv"
+}
