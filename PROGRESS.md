@@ -1,3 +1,27 @@
+## 2026-09-24: external CPU comparison running, methods frozen
+
+Source-separated calibration and validation are complete (13,769 development
+answers). Strict numerical-failure replay preserved every local score and six
+frozen fits; deployment weights reproduce the historical fold4 model. CT7/raw
+bank11 replay passed on12 deterministic source examples. Seven arms are frozen:
+frozen/local L-SML, their equal and partition-equal controls, and CT7.
+Code checkpoints63fc55fcd/3b9e3099c are pushed on the dedicated branch.
+
+AIRCC SSH timed out on repeated explicit probes. Verified all three Drive
+telemetry archives locally (6,190 records); CPU-only fallback started with4
+workers after a15-record end-to-end smoke. No extra model inference. No external
+quality inspected; seal all three cells before evaluator-only label joining.
+Entry point: scripts/run_external_local_cpu.py. Artifacts:
+results/lsml_external_generalization_v1/evaluation/. Prediction checkpoints are
+immutable per answer. Local raw archives remain in private ignored scratch.
+
+Independent overlap audit: Socratic442/2,995 source-connected rows overlap saved
+development question hashes; observed-disjoint panel2,553 rows. Hard2Verify200
+rows/79 groups, no observed exact overlap. This is not a paraphrase/pretraining
+contamination exclusion. Three empty Socratic steps retained with fixed incorrect
+decision. Primary contrast family18;100,000 source-group draws, Bonferroni.
+Execution lock: docs/experiments/LSML_EXTERNAL_EVALUATION_LOCK_20260924.md.
+
 ## 2026-09-24: identical teacher-forcing repeats supplied no observed diversity
 
 Read-only smoke/full comparison:36 paired answer/backbone records,51637 token

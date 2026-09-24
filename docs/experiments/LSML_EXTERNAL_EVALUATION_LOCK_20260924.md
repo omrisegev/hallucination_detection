@@ -46,3 +46,11 @@ seven token streams is not an equivalent reference. Replay on source inputs is a
 
 No GPU training, new model pass or benchmark answer generation. Final results
 must distinguish ranking transfer, threshold transfer and incremental fusion value.
+
+## Pre-evaluation overlap sensitivity clarification
+
+Before opening any external quality result, register paired source-group intervals
+for the observed-disjoint panel as well (100,000 draws, same seed and18-contrast
+Bonferroni family). These are sensitivity analyses; the official full-set panel
+remains primary. No target scores, thresholds or methods are selected from them.
+They establish only transfer after the documented exact-match/component exclusions.

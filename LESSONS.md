@@ -204,3 +204,13 @@ Rule: replay each historical view's full dtype chain and instrument internal num
 fallbacks; verify all source scores under the strict observer before method freeze.
 Enforced by: code in external_generalization/{ct7,fusion}.py, backend failure observer,
 test_external_scoring.py and verify_external_source_strict.py.
+
+## 2026-09-24 - Preserve frozen byte identities across Windows checkouts
+What happened: line-ending normalization required explicit old/new hash lineage;
+ordinary autocrlf checkout could otherwise change a scientifically unchanged scorer.
+Why: executable source files had not been assigned stable checkout line endings.
+Rule: pin LF before a method/analysis freeze and verify staged bytes against frozen
+hashes. Test discovery must also explicitly set the repository import path because
+the tool working directory did not reliably select it in this Windows session.
+Enforced by: .gitattributes, ANALYSIS_FREEZE.json, method identity checks and the
+absolute-path unittest discovery command (19 tests passed after correcting invocation).
