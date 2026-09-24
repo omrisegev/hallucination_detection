@@ -55,7 +55,9 @@ def digest(value):
 
 def write(name, value):
     p = OUT/name
-    check(not p.exists(), "refuse overwrite audit artifact: " + str(p))
+    if p.exists():
+        check(load(p) == value, "refuse overwrite changed audit artifact: " + str(p))
+        return
     p.write_text(json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n", encoding="utf8")
 
 
@@ -253,8 +255,11 @@ def main():
         print("AUDIT_CELL_PASS",cell,dict(count),flush=True)
     check(sum(r["counts"]["answers"] for r in results.values()) == 6190, "not all6190 answer/backbone records checked")
     report = {"status":"PASS","created_utc":datetime.now(timezone.utc).isoformat(),"n_checked":6190,"n_total":6190,
+              "coverage_flag":"FULL_REGISTERED_POPULATION",
+              "exact_command":"python results/lsml_external_generalization_v1/evaluation/independent_coverage/audit_coverage.py --authorized-go",
+              "unique_answer_uids":len({x["uid"] for x in details}),"unique_source_groups":len({x["group"] for x in details}),
               "quality_reports_read":False,"quality_metrics_computed":False,"processes":1,"results":results,
-              "source_input_hashes":source_hashes,"bundle_sha256":bundle_hash,"method_freeze_sha256":sha(EVAL/"METHOD_FREEZE.json"),
+              "source_input_hashes":source_hashes,"source_input_paths":source_inputs["paths"],"bundle_sha256":bundle_hash,"method_freeze_sha256":sha(EVAL/"METHOD_FREEZE.json"),
               "all_cells_sealed_sha256":sha(marker_path),"cpu_execution_sha256":sha(EVAL/"CPU_EXECUTION.json"),
               "analysis_freeze_sha256":sha(analysis_path),"analysis_files_checked":len(analysis["files"]),
               "population_audit_sha256":sha(population/"AUDIT.json"),"audit_script_sha256":sha(Path(__file__)),

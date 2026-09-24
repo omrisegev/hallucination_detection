@@ -18217,3 +18217,37 @@ No new inference or quality evaluation. This is not a whole-corpus or three-run
 claim. Prefer checking complementary views (existing Qwen3/QwQ on Socratic) to
 blind identical reruns; usefulness for L-SML remains untested. Review:
 docs/experiments/EXTERNAL_TEACHER_FORCING_REPEATABILITY_20260924.md.
+
+### Step 433 - Evaluate frozen and answer-local L-SML on external benchmarks
+
+**What**: Complete the registered seven-arm CPU comparison on the collected
+Hard2Verify and Socratic telemetry. Freeze separated source fitting/calibration,
+seal all predictions before label joining, retain matched controls, and audit
+source overlap, official metrics, estimator algebra and complete coverage.
+**Why**: Test whether the selected L-SML method adds transferable value beyond
+CT7 and matched averaging controls without GPU training or more inference.
+**Result**: 6,190/6,190 records and 53,970 steps. Frozen L-SML achieves 43.670 Hard2
+Balanced F1 and 63.221/64.238 Socratic PRMScore, versus CT7 at 37.751/58.753/60.166.
+Both Socratic matched-control gains are positive after 100,000 question-group
+bootstrap draws and Bonferroni correction across 18 contrasts, including observed-disjoint sensitivity.
+Hard2 versus ordinary equal remains inconclusive; partition-equal/CT7 gains
+are supported. Answer-local L-SML loses to matched ordinary equal on both
+Socratic backbones. All 21 official numbers replay, 19 tests pass, three independent
+full-population audits pass. Frozen step L-SML is the leading learned variant;
+no SOTA claim. The broader published-comparator reproduction remains pending.
+
+**Files changed**:
+
+- `spectral_utils/external_generalization/` - locked historical method adapters,
+  explicit failure routing and per-answer scoring.
+- `scripts/*external*.py`, `spectral_utils/external_bootstrap.py` - source validation,
+  sealed evaluation, uncertainty, official replay and descriptive diagnostics.
+- `docs/experiments/LSML_EXTERNAL_GENERALIZATION_RESULTS_20260924.md` - full English
+  technical report and concise Hebrew interpretation.
+- `results/lsml_external_generalization_v1/evaluation/` - bundles, freezes, metrics,
+  seals, confidence intervals, independent audits and reproducibility archives.
+- `PROGRESS.md`, `Research_Directions.md`, `LESSONS.md` - current findings and limits.
+
+Negative result recorded: results/lsml_external_generalization_v1/evaluation/NEGATIVE_RESULT.md
+
+---

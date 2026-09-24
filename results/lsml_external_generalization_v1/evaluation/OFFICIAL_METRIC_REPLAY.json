@@ -1,0 +1,242 @@
+{
+  "sources": {
+    "scratch\\external_generalization_private\\sources\\hard2verify\\utils.py": {
+      "sha256": "26d06dc736420d44d38b8d33467b2de76e4fef60131c3d4aa98b514b45280ce8",
+      "revision": "9cd1eca6fa662c3dcd4576ee5ae8668515add186"
+    },
+    "scratch\\external_generalization_private\\sources\\prmeval_classified_task.py": {
+      "sha256": "7d947eed1bda2a4051fdb7755b2d15293de729a16012452e28ee0fc309307bca",
+      "revision": "a1ae4eab803e14c4c6316bf89d1679b0486faa8c"
+    }
+  },
+  "cells": {
+    "hard2verify_qwen3_8b": {
+      "answers": 200,
+      "steps": 1860,
+      "prediction_sha256": "34bfe8d3d6862bb028160996d86bc0861a233a63ab3a6f6b9091ff8a1c4b250e",
+      "gold_sha256": "7c873e44a7ed625407bdf6156e19520e989d4e4e213c792a70ab6a757e530b5f",
+      "arms": {
+        "ct7": {
+          "official_percent_rounded": 37.75,
+          "ours_percent_rounded": 37.75,
+          "pass": true
+        },
+        "frozen_equal": {
+          "official_percent_rounded": 40.88,
+          "ours_percent_rounded": 40.88,
+          "pass": true
+        },
+        "frozen_lsml": {
+          "official_percent_rounded": 43.67,
+          "ours_percent_rounded": 43.67,
+          "pass": true
+        },
+        "frozen_partition_equal": {
+          "official_percent_rounded": 39.76,
+          "ours_percent_rounded": 39.76,
+          "pass": true
+        },
+        "local_equal": {
+          "official_percent_rounded": 42.21,
+          "ours_percent_rounded": 42.21,
+          "pass": true
+        },
+        "local_lsml": {
+          "official_percent_rounded": 42.81,
+          "ours_percent_rounded": 42.81,
+          "pass": true
+        },
+        "local_partition_equal": {
+          "official_percent_rounded": 42.93,
+          "ours_percent_rounded": 42.93,
+          "pass": true
+        }
+      }
+    },
+    "socratic_qwen3_8b": {
+      "answers": 2995,
+      "steps": 26055,
+      "prediction_sha256": "f5d76ef6d6eb753de0e0284f81e7ddb20545a05d7bb75271d9600dfa7e1f9d58",
+      "gold_sha256": "da0f75b3834262f354ca9dd695cedcfa680a54271cfb4b97bfcaf4664ce0042d",
+      "arms": {
+        "ct7": {
+          "official_prmscore": 0.5875289335890428,
+          "ours_prmscore": 0.5875289335890428,
+          "absolute_difference": 0.0,
+          "confusion": [
+            15092,
+            6266,
+            2662,
+            2035
+          ],
+          "pass": true
+        },
+        "frozen_equal": {
+          "official_prmscore": 0.6079124374368405,
+          "ours_prmscore": 0.6079124374368405,
+          "absolute_difference": 0.0,
+          "confusion": [
+            15160,
+            5998,
+            2930,
+            1967
+          ],
+          "pass": true
+        },
+        "frozen_lsml": {
+          "official_prmscore": 0.6322130421917849,
+          "ours_prmscore": 0.6322130421917849,
+          "absolute_difference": 0.0,
+          "confusion": [
+            15043,
+            5571,
+            3357,
+            2084
+          ],
+          "pass": true
+        },
+        "frozen_partition_equal": {
+          "official_prmscore": 0.6126966571557679,
+          "ours_prmscore": 0.6126966571557679,
+          "absolute_difference": 0.0,
+          "confusion": [
+            15080,
+            5889,
+            3039,
+            2047
+          ],
+          "pass": true
+        },
+        "local_equal": {
+          "official_prmscore": 0.6324680239047907,
+          "ours_prmscore": 0.6324680239047907,
+          "absolute_difference": 0.0,
+          "confusion": [
+            15041,
+            5566,
+            3362,
+            2086
+          ],
+          "pass": true
+        },
+        "local_lsml": {
+          "official_prmscore": 0.6196131731703941,
+          "ours_prmscore": 0.6196131731703941,
+          "absolute_difference": 0.0,
+          "confusion": [
+            14932,
+            5712,
+            3216,
+            2195
+          ],
+          "pass": true
+        },
+        "local_partition_equal": {
+          "official_prmscore": 0.6301961433565764,
+          "ours_prmscore": 0.6301961433565763,
+          "absolute_difference": 1.1102230246251565e-16,
+          "confusion": [
+            14913,
+            5537,
+            3391,
+            2214
+          ],
+          "pass": true
+        }
+      }
+    },
+    "socratic_qwq32b": {
+      "answers": 2995,
+      "steps": 26055,
+      "prediction_sha256": "bebe02efcdbda7002df1e811dffb580a8604279e86c72427dd65590a48fb5f1f",
+      "gold_sha256": "da0f75b3834262f354ca9dd695cedcfa680a54271cfb4b97bfcaf4664ce0042d",
+      "arms": {
+        "ct7": {
+          "official_prmscore": 0.6016558146303826,
+          "ours_prmscore": 0.6016558146303826,
+          "absolute_difference": 0.0,
+          "confusion": [
+            15369,
+            6184,
+            2744,
+            1758
+          ],
+          "pass": true
+        },
+        "frozen_equal": {
+          "official_prmscore": 0.6150337659095937,
+          "ours_prmscore": 0.6150337659095937,
+          "absolute_difference": 0.0,
+          "confusion": [
+            15216,
+            5918,
+            3010,
+            1911
+          ],
+          "pass": true
+        },
+        "frozen_lsml": {
+          "official_prmscore": 0.6423822661085058,
+          "ours_prmscore": 0.6423822661085059,
+          "absolute_difference": 1.1102230246251565e-16,
+          "confusion": [
+            15044,
+            5411,
+            3517,
+            2083
+          ],
+          "pass": true
+        },
+        "frozen_partition_equal": {
+          "official_prmscore": 0.6210976027506199,
+          "ours_prmscore": 0.6210976027506198,
+          "absolute_difference": 1.1102230246251565e-16,
+          "confusion": [
+            15102,
+            5772,
+            3156,
+            2025
+          ],
+          "pass": true
+        },
+        "local_equal": {
+          "official_prmscore": 0.6324013045173205,
+          "ours_prmscore": 0.6324013045173205,
+          "absolute_difference": 0.0,
+          "confusion": [
+            15031,
+            5562,
+            3366,
+            2096
+          ],
+          "pass": true
+        },
+        "local_lsml": {
+          "official_prmscore": 0.6215264005551107,
+          "ours_prmscore": 0.6215264005551107,
+          "absolute_difference": 0.0,
+          "confusion": [
+            14903,
+            5668,
+            3260,
+            2224
+          ],
+          "pass": true
+        },
+        "local_partition_equal": {
+          "official_prmscore": 0.6161164533273299,
+          "ours_prmscore": 0.6161164533273298,
+          "absolute_difference": 1.1102230246251565e-16,
+          "confusion": [
+            14807,
+            5705,
+            3223,
+            2320
+          ],
+          "pass": true
+        }
+      }
+    }
+  },
+  "passed": true
+}

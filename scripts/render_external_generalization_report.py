@@ -19,6 +19,7 @@ def main():
       '## Official full-set results','',
       'Percentages below use the metric defined by each benchmark. Hard2Verify: harmonic mean of correct-step and incorrect-step recalls. Socratic: pooled binary macro-F1 (PRMScore). The columns must not be averaged.','',
       '| Method | Hard2Verify / Qwen3-8B | Socratic / Qwen3-8B | Socratic / QwQ-32B |','|---|---:|---:|---:|']
+    lines[2:2]=(OUT/'INTERPRETATION.md').read_text(encoding='utf8').splitlines()+['']
     for arm,name in NAMES.items():lines.append('| '+name+' | '+' | '.join(f"{100*metrics[c]['arms'][arm]['metric']:.3f}" for c in CELLS)+' |')
     lines+=['','## Incremental fusion value','',
       'Each primary contrast uses identical answer/step masks and source-only calibration access. Intervals are paired source-question bootstrap intervals: 100,000 draws, seed 20260924, Bonferroni correction across 18 contrasts. Positive intervals support improvement over that particular reference. Native fitting and readout differ between the frozen-step and local-token families; compare their matched controls first.','',
@@ -41,7 +42,7 @@ def main():
     for cell in CELLS:
         m=metrics[cell];lines.append(f"| {CELLS[cell]} | {m['answers']} | {m['steps']} | {m['local_native_answers']} | {m['empty_steps']} | {m['process_cpu_seconds_sum']:.1f} | {m['cpu_seconds_p50_p95'][1]:.3f} |")
     lines+=['','Three empty Socratic steps per backbone remain included, with a fixed incorrect decision independent of labels and a null risk score. Native-score ranking excludes those empty steps. Local estimator failures use chosen-token surprisal for all three local arms; complete-policy and matched-native metrics are both saved. Each arm has its own source q80 threshold, so identical fallback scores can still produce different binary decisions. METRICS.json records those fallback decision differences, small-group guards and degeneracy flags.','',
-      'Runtime above includes feature extraction and all seven comparison arms, including CT7. It is not the deployment cost of one L-SML method. CPU time is measured with process_time; elapsed percentiles include contention on the local workstation. AIRCC collection was already complete: 1,376 allocated GPU seconds (0.38222 GPU-hours). This stage added zero GPU hours. The local fallback followed repeated SSH timeouts and verified SHA256s of all three private Drive archives.','',
+      'Runtime above includes feature extraction and all seven comparison arms, including CT7. It is not the deployment cost of one L-SML method. CPU time is measured with process_time; elapsed percentiles include contention on the local workstation. The three full AIRCC collection jobs used 1,376 allocated GPU seconds (0.38222 GPU-hours); earlier timing, pilot and failed-job costs are recorded separately in the collection ledger. This evaluation stage added zero GPU hours. The local fallback followed repeated SSH timeouts and verified SHA256s of all three private Drive archives.','',
       '| Cell | Method | Correct-step recall (%) | Error-step recall (%) | Predicted error fraction (%) | Gold error fraction (%) |','|---|---|---:|---:|---:|---:|']
     for cell in CELLS:
         for arm in ('frozen_lsml','local_lsml','ct7'):
@@ -55,7 +56,7 @@ def main():
       '## Published context, not reproduced baselines','',
       'Hard2Verify reports step-level Balanced F1 of 53.51 for the Qwen3-8B critic, 42.37 for Qwen2.5-Math-PRM-7B and 60.27 for UniversalPRM-7B. Its PRM thresholds were tuned on 100 target responses; our thresholds were frozen on development data. These are different access conditions. [Hard2Verify, Table 2 and Appendix E.1](https://arxiv.org/html/2510.13744v1).','',
       'Socratic reports PRMScore 68.0 for Qwen2.5-Math-PRM-7B and 73.8 for the QwQ-32B critic. These are literature context, not same-run measurements or evidence of statistically established superiority. [Socratic-PRMBench, Table 3](https://arxiv.org/html/2505.23474v1).','',
-      '## Evidence and reproduction','',
+      '## Evidence and reproduction','', '- Input and result restore locations/checksums: `evaluation/SOURCE_DEPENDENCY_ARCHIVE.json` and `evaluation/EVALUATION_ARCHIVE.json`; restore into a separate checkout and verify hashes before running.','',
       '- Frozen contract: [execution lock](LSML_EXTERNAL_EVALUATION_LOCK_20260924.md).',
       '- Machine-readable results: `results/lsml_external_generalization_v1/evaluation/{METRICS,CONTRASTS,EVALUATION_PROVENANCE}.json`.',
       '- Per-cell predictions, seals, confusion arrays, bootstrap draws, category and native panels are in the corresponding cell directory.',
@@ -64,6 +65,8 @@ def main():
       '- Run `scripts/fit_external_source_bundle.py`, verify with `scripts/verify_external_source_strict.py`, then run `scripts/run_external_local_cpu.py`. The AIRCC CPU driver uses the identical scorer when connectivity is available.',
       '- Seal/evaluate with `scripts/evaluate_external_locked_scores.py --root results/lsml_external_generalization_v1/evaluation --inputs scratch/external_generalization_private/inputs`; the evaluator rejects mixed run identities and changed code/bundles.',
       '- No raw Hard2Verify text is included in Git. Frozen result files are retained; this evaluation does not rewrite historical scores.','']
+    lines+=['','![Paired corrected contrasts](../../results/lsml_external_generalization_v1/evaluation/PAIRED_CONTRASTS.png)','']
+    if (OUT/'INTERPRETATION_HE.md').exists():lines+=(OUT/'INTERPRETATION_HE.md').read_text(encoding='utf8').splitlines()+['']
     dest=ROOT/'docs/experiments/LSML_EXTERNAL_GENERALIZATION_RESULTS_20260924.md';dest.write_text('\n'.join(lines),encoding='utf8',newline='\n')
     with (OUT/'METRICS.csv').open('w',newline='',encoding='utf8') as f:
         fields=['cell','arm','metric','within_auc','correct_recall','error_recall','disjoint_metric','within_auc_answers','n_checked','n_total','flag'];w=csv.DictWriter(f,fieldnames=fields);w.writeheader()

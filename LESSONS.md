@@ -214,3 +214,16 @@ hashes. Test discovery must also explicitly set the repository import path becau
 the tool working directory did not reliably select it in this Windows session.
 Enforced by: .gitattributes, ANALYSIS_FREEZE.json, method identity checks and the
 absolute-path unittest discovery command (19 tests passed after correcting invocation).
+
+## 2026-09-24 - Scope external fusion claims to their matched controls
+What happened: the completed comparison supports frozen L-SML on Socratic,
+but Hard2 versus ordinary equal remains inconclusive and answer-local L-SML
+loses to that control on both Socratic backbones. A36-answer feature perturbation
+cannot establish the mechanism over6,190 records; exact-match exclusions cannot
+establish absence of semantic source overlap.
+Why: stronger-than-CT7 performance, positive point deltas and bounded sensitivity
+checks answer different questions from incremental learned-weight superiority.
+Rule: retain corrected matched-control intervals, native/fallback accounting,
+null prevalence effects and FEASIBILITY labels; record the negative implementation
+result alongside the positive transfer result.
+Enforced by: CONTRASTS.json, RED_TEAM.md, NEGATIVE_RESULT.md and independent audits.

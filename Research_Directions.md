@@ -1,3 +1,34 @@
+## 2026-09-24 active direction: frozen L-SML has external transfer evidence
+
+Retain source-fitted STEP-level bank11 L-SML as the leading learned method.
+The complete external comparison yields Hard2 Balanced F1 43.670 and Socratic
+PRMScore 63.221 (Qwen3) / 64.238 (QwQ), above CT7 at 37.751 / 58.753 / 60.166. On Socratic,
+learned weights improve both matched controls with corrected paired intervals;
+this persists in the observed-disjoint panel. Hard2 gains versus learned-partition
+equal and CT7 are supported, while the ordinary-equal contrast is inconclusive.
+Do not claim universal dominance: local equal effectively ties frozen L-SML on
+Socratic/Qwen3, and published Socratic comparators still score higher in different
+protocols. Reproducing those comparators remains unfinished.
+
+Do not promote the current answer-local token L-SML implementation: it loses to
+its matched ordinary equal on both Socratic backbones despite >99% native coverage.
+Keep averaging as a control only. A future local/RBM/residual extension needs one
+source-validated hypothesis and matched controls; no new GPU-trained encoder.
+
+Priority for a next source-only diagnostic: preserve answer-level information and
+separate ranking from decision calibration. The current Hard2 frozen policy flags
+41/42 entirely-correct answers; its observed per-answer prediction budgets cap
+oracle reranking at 52.673 Balanced F1. This does not prove another threshold fixes
+it, nor bound all L-SML. Cross-backbone diversity already exists in saved Socratic
+traces (6.72% frozen decision disagreement; mean within-answer Spearman .9003),
+but no unsupervised cross-backbone fusion benefit has been demonstrated.
+
+These external labels are now inspected. Do not tune on them and call a rerun an
+untouched generalization test. PRMBench remains development evidence, ProcessBench
+secondary, and MedPRMBench deferred. No extra inference/training was used here.
+[Results and interpretation](docs/experiments/LSML_EXTERNAL_GENERALIZATION_RESULTS_20260924.md)
+[Negative local result](results/lsml_external_generalization_v1/evaluation/NEGATIVE_RESULT.md)
+
 ## 2026-09-24: identical teacher-forcing repeats supplied no observed diversity
 
 Read-only smoke/full comparison:36 paired answer/backbone records,51637 token

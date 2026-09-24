@@ -27,7 +27,7 @@ def main():
         ax.set_yticks(range(6),labels);ax.grid(axis='x',alpha=.2)
         ax.spines[['top','right']].set_visible(False)
     axes[0].invert_yaxis()
-    fig.suptitle('Source-frozen transfer: paired source-question intervals\n100,000 draws; Bonferroni correction across18 primary contrasts',fontsize=12)
+    fig.suptitle('Source-frozen transfer: paired source-question intervals\n100,000 draws; Bonferroni correction across 18 primary contrasts',fontsize=12)
     fig.savefig(OUT/'PAIRED_CONTRASTS.png',dpi=180)
     fig.savefig(OUT/'PAIRED_CONTRASTS.pdf')
     plt.close(fig)

@@ -26,7 +26,7 @@ def main():
     digest=sha(tmp);archive=DEST/f'external_evaluation_{digest[:16]}.tar.gz'
     if archive.exists():raise FileExistsError(archive)
     tmp.rename(archive)
-    result={'archive':str(archive),'sha256':digest,'bytes':archive.stat().st_size,'manifest_sha256':sha(mf),'file_count':len(entries),'uncompressed_bytes':manifest['uncompressed_bytes'],'remote':'gdrive:hallucination_detection/cluster_results/lsml_external_generalization_v1/evaluation_archives/'+archive.name,'remote_verified':False,'reason_local_upload':'AIRCC SSH probes timed out; completed CPU evaluation and authorized Drive storage use local fallback'}
+    result={'archive':str(archive),'sha256':digest,'bytes':archive.stat().st_size,'manifest_sha256':sha(mf),'file_count':len(entries),'uncompressed_bytes':manifest['uncompressed_bytes'],'remote':'gdrive:hallucination_detection/cluster_results/lsml_external_generalization_v1/evaluation_archives/'+archive.name,'remote_verified':False,'reason_local_upload':'CPU evaluation completed locally after earlier AIRCC SSH timeouts; connectivity later recovered. Preserve locally produced evidence in the authorized project Drive archive.'}
     (OUT/'EVALUATION_ARCHIVE.json').write_text(json.dumps(result,indent=2)+'\n',encoding='utf8',newline='\n')
     print(json.dumps(result,indent=2))
 if __name__=='__main__':main()

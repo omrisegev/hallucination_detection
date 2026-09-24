@@ -1,26 +1,41 @@
-## 2026-09-24: external CPU comparison running, methods frozen
+## 2026-09-24: external L-SML comparison COMPLETE; frozen bank11 leads
 
-Source-separated calibration and validation are complete (13,769 development
-answers). Strict numerical-failure replay preserved every local score and six
-frozen fits; deployment weights reproduce the historical fold4 model. CT7/raw
-bank11 replay passed on12 deterministic source examples. Seven arms are frozen:
-frozen/local L-SML, their equal and partition-equal controls, and CT7.
-Code checkpoints63fc55fcd/3b9e3099c are pushed on the dedicated branch.
+All seven internal arms completed on 6,190/6,190 answer/backbone records and
+53,970 steps: Hard2Verify/Qwen3-8B and Socratic/Qwen3-8B + QwQ-32B. Predictions
+were sealed before labels; frozen source fit/calibration and statistical code
+were checkpointed/pushed before external quality. No new GPU inference/training.
 
-AIRCC SSH timed out on repeated explicit probes. Verified all three Drive
-telemetry archives locally (6,190 records); CPU-only fallback started with4
-workers after a15-record end-to-end smoke. No extra model inference. No external
-quality inspected; seal all three cells before evaluator-only label joining.
-Entry point: scripts/run_external_local_cpu.py. Artifacts:
-results/lsml_external_generalization_v1/evaluation/. Prediction checkpoints are
-immutable per answer. Local raw archives remain in private ignored scratch.
+Frozen step L-SML: Hard2 Balanced F1 43.670; Socratic PRMScore 63.221 / 64.238.
+CT7: 37.751 / 58.753 / 60.166. Frozen L-SML improves both matched controls on
+Socratic with corrected paired intervals; gains survive observed-disjoint
+exclusion (2,553 Socratic answers). Hard2 improves over partition equal and CT7,
+but versus ordinary equal the corrected interval includes zero. Answer-local
+L-SML loses to matched ordinary equal on both Socratic backbones; keep frozen
+step L-SML as the leading learned method. Averaging remains control-only.
 
-Independent overlap audit: Socratic442/2,995 source-connected rows overlap saved
-development question hashes; observed-disjoint panel2,553 rows. Hard2Verify200
-rows/79 groups, no observed exact overlap. This is not a paraphrase/pretraining
-contamination exclusion. Three empty Socratic steps retained with fixed incorrect
-decision. Primary contrast family18;100,000 source-group draws, Bonferroni.
-Execution lock: docs/experiments/LSML_EXTERNAL_EVALUATION_LOCK_20260924.md.
+19 validation tests PASS; official metric replay agrees all 21 rows. Three
+independent audits cover all 6,190 records, every telemetry hash, masks, weights
+and decisions. Bootstrap: 100,000 source-question draws, seed 20260924, Bonferroni correction across 18 contrasts.
+Feature perturbation was only 36/6190 (FEASIBILITY), not a complete causal ablation.
+
+Important diagnostic: Hard2 frozen policy flags 41/42 entirely-correct answers.
+At its observed per-answer decision counts, oracle reranking is capped at 52.673
+Balanced F1. This is not a bound on all thresholds or all L-SML implementations.
+Future method/calibration work stays on source data; these external labels have
+now been inspected. Published critic/PRM comparator inference remains outstanding;
+no SOTA claim and no claim that the entire broader pipeline is finished.
+
+AIRCC connectivity recovered after the user enabled VPN; the already-running
+CPU fallback completed locally (3,922.9s for 6,175 resumed records + 15 smoke).
+Source-dependency archive (264,238,660 bytes) is SHA256-verified on approved Drive path;
+restore manifest: evaluation/SOURCE_DEPENDENCY_ARCHIVE.json. Compact results,
+seals and report live under results/lsml_external_generalization_v1/evaluation/.
+Technical report + Hebrew interpretation:
+[External results](docs/experiments/LSML_EXTERNAL_GENERALIZATION_RESULTS_20260924.md).
+Final evaluation archive (44,876,664 bytes, 20,044 files) is SHA256-verified on
+Drive; restore manifest: evaluation/EVALUATION_ARCHIVE.json. Both source and
+result backups are complete. Analysis checkpoint: e6284f384. Final report and
+evidence are documented on this branch.
 
 ## 2026-09-24: identical teacher-forcing repeats supplied no observed diversity
 
