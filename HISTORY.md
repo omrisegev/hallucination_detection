@@ -18282,3 +18282,44 @@ METRICS.json, CONTRASTS.json, DISJOINT_CONTRASTS.json, COST_LEDGER.json,
 AUDIT_DEFERRED.md, ARCHIVE.json. Scripts: run_family_external.py,
 evaluate_family_external.py, diagnose_family_external.py,
 render_family_external.py and archive_family_external.py.
+
+---
+
+### Step 444 [Claude, family-tail external V2] - The defect-corrected family-tail row reaches the family-equal level externally and stays 1.4-2.2 points below bank11 L-SML, 2026-09-24
+
+**What**: Omri asked to take Codex's family-tail external run (above, commit 1d3c23681) and run it with the fix from Claude's Step 443 (branch `claude/ssl-pseudolabel-residual-v1`). That fix z-scores the tail marks before `lsml_continuous`; V1 fed them unstandardized, which collapsed K to 2.
+- **Lock**: `results/family_tail_transfer_v2/TRANSFER_LOCK_V2.json` (sha256 0c5c5599...).
+  - It carries every V1 row, recipe item, weight and threshold unchanged and adds one row, `F15_tailstd_lsml`, fitted on source folds 0-3 with the q80 threshold from fold 4 (K=4).
+  - It was written before V1 external results were read. It records that they already existed.
+- **Scoring**: `scripts/run_family_external_v2.py` rescored all 11 arms from the 48-channel features already extracted and sealed in the V1 records. No new extraction, GPU or target fitting.
+- **Evaluation**: `scripts/evaluate_family_external_v2.py` is a minimal-diff copy of the V1 evaluator.
+  - V2 primary family: corrected row vs V1 tail row, F15 equal, F15 covariance L-SML and bank11 L-SML. That is 4 contrasts x 3 cells = 12, Bonferroni.
+  - 100,000 source-question draws, seed 20260924. The six V1 contrasts are replayed as a bridge.
+
+**Why**: to measure whether the corrected recipe transfers, without selecting anything on external data.
+
+**Result**:
+- **Replay is exact.** The ten V1 arms reproduce every V1 score and decision on 6,190/6,190 records (difference 0.0), all 18 V1 contrasts reproduce exactly, and the official evaluator replay passes.
+- **Scores** (Hard2Verify balanced F1 / Socratic-Qwen3 PRMScore / Socratic-QwQ PRMScore):
+
+  | Method | Hard2Verify | Socratic-Qwen3 | Socratic-QwQ |
+  |---|---:|---:|---:|
+  | Corrected row | 42.28 | 61.00 | 62.30 |
+  | V1 tail row | 41.02 | 59.92 | 62.69 |
+  | F15 equal | 42.38 | 61.12 | 62.94 |
+  | F15 covariance L-SML | 42.02 | 60.02 | 61.15 |
+  | bank11 L-SML | 43.67 | 63.22 | 64.24 |
+
+- **Contrasts** (Bonferroni over 12):
+
+  | Corrected vs | Hard2Verify | Socratic-Qwen3 | Socratic-QwQ |
+  |---|---|---|---|
+  | V1 tail row | +1.26 (n.s.) | +1.08 [+0.50, +1.68] | -0.39 (n.s.) |
+  | F15 equal | -0.10 | -0.12 | -0.64 [-0.98, -0.30] |
+  | F15 covariance L-SML | +0.26 | +0.98 | +1.15 |
+  | bank11 L-SML | -1.39 (n.s.) | -2.22 [-2.78, -1.66] | -1.94 [-2.55, -1.34] |
+
+  - The source-disjoint panel agrees in direction.
+- **Conclusion**: the corrected recipe lands at the family-equal level, as on source. bank11 L-SML leads every external cell even though it trailed the family variants on source (64.17), so source rank did not predict transfer.
+- **Limits**: exploratory (the benchmarks were already exposed). Codex's three independent audits were not re-run on V2.
+- **Reports**: `results/family_tail_external_v2/REPORT_HE.md` and `docs/experiments/FAMILY_TAIL_EXTERNAL_V2.md`. Large arrays and per-answer records are git-ignored as in V1.

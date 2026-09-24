@@ -1,3 +1,19 @@
+## 2026-09-24: family-tail external V2 (defect-corrected row) COMPLETE (Claude)
+
+`TRANSFER_LOCK_V2` adds one row to V1 (unchanged): the family15 tail-mark L-SML with its marks z-scored before `lsml_continuous`. V1 passed them unstandardized, which collapsed K to 2 (Claude Step 443). All 11 arms were rescored from the sealed V1 features; the ten V1 arms and all 18 V1 contrasts replay exactly.
+
+| Method | Hard2Verify balanced F1 | Socratic-Qwen3 PRMScore | Socratic-QwQ PRMScore |
+|---|---:|---:|---:|
+| Corrected row | 42.28 | 61.00 | 62.30 |
+| V1 tail row | 41.02 | 59.92 | 62.69 |
+| Family equal | 42.38 | 61.12 | 62.94 |
+| bank11 L-SML | 43.67 | 63.22 | 64.24 |
+
+- Corrected vs bank11: -2.22 and -1.94 on Socratic (significant after Bonferroni over 12), -1.39 on Hard2Verify (n.s.).
+- The family/tail line is closed; bank11 L-SML stays the learned transfer candidate.
+- Exploratory; independent audits of V2 not run.
+- Step 444; `results/family_tail_external_v2/REPORT_HE.md`; `docs/experiments/FAMILY_TAIL_EXTERNAL_V2.md`.
+
 ## 2026-09-24: external L-SML comparison COMPLETE; frozen bank11 leads
 
 All seven internal arms completed on 6,190/6,190 answer/backbone records and
