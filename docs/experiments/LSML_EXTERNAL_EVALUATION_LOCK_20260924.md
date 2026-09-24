@@ -1,4 +1,4 @@
-# External evaluation execution lock ? 2026-09-24
+# External evaluation execution lock - 2026-09-24
 
 This execution supplements LSML_EXTERNAL_GENERALIZATION_V1.md before external quality evaluation.
 Assumption: the historical bank11/CT7 recipes can be replayed from saved telemetry.
@@ -11,7 +11,7 @@ A replay discrepancy falsifies implementation fidelity and stops quality evaluat
 Seven arms: frozen_lsml, frozen_equal, frozen_partition_equal, local_lsml,
 local_equal, local_partition_equal, ct7. No architecture or target-threshold sweep.
 Frozen fitting preserves the original PB+PRMB 13,769-answer donor population.
-Fit development folds 0?3; reserve fold4 for each arm's q80 linear-quantile
+Fit development folds 0-3; reserve fold4 for each arm's q80 linear-quantile
 threshold, using all its unlabeled step scores. The same threshold transfers to
 both datasets and both backbones. Source validation rotates evaluation fold k,
 calibration (k+1)%5 and the remaining three fitting folds. No labels enter fitting
