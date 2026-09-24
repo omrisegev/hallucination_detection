@@ -1,5 +1,7 @@
 # External telemetry collection: 2026-09-24
 
+Subsequent update: the user approved the budget and [full collection is complete](LSML_EXTERNAL_FULL_COLLECTION_20260924.md). Budget-pending statements below record the earlier smoke-stage handoff.
+
 The telemetry pipeline runs on AIRCC. All three timing cells are complete, audited
 and checksum-verified on Drive. These are engineering
 results, not benchmark quality results. No external PRMScore or Balanced F1 has

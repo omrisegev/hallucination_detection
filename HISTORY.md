@@ -18185,3 +18185,26 @@ After current-session preflight PASS, launched266081/266082/266083 from411316927
 with30/30/60min caps and no automatic requeue. Both Qwen3 cells and Socratic/QwQ
 are running. Full accounting: results/lsml_external_generalization_v1/FULL_JOBS.json.
 No training, generated benchmark answers, feature fitting or quality evaluation.
+
+### 2026-09-24 [Codex] Full external collection verified and archived
+
+User approved the two GPU-hour cap. All three full collections and CPU audits/
+Drive archives succeeded: Hard2Verify/Qwen3 200/200, Socratic/Qwen3 2995/2995,
+Socratic/QwQ 2995/2995. Jobs266081/266082/266083; archive266094/266095/266096.
+Total6190 dataset/backbone records,53970 steps,5399900 scored answer tokens.
+No missing answers or truncation; three empty Socratic steps retained per model.
+GPU allocation1376s (22m56s;0.38222h) against2h; CPU archival0.25778 core-hours.
+Compressed telemetry1918336109 bytes is verified on private Google Drive;
+normalized answer-only inputs are backed up separately. No raw arrays or
+Hard2Verify decrypted text entered Git. Compact manifests only are local.
+
+Report: docs/experiments/LSML_EXTERNAL_FULL_COLLECTION_20260924.md.
+Evidence: results/lsml_external_generalization_v1/FULL_{COLLECTION_VERIFICATION,
+ARCHIVES,JOBS,BUDGET_DECISION}.json and full/<cell>/. All raw audits, record-ID,
+step/token accounting and archive checksums PASS. QwQ uses the recorded gate-v2
+numerical exception; bf16 production and source protocol stayed unchanged.
+
+No external benchmark quality was computed. Next: use collected telemetry for
+CPU feature extraction, source fit/calibration separation and method freeze;
+then overlap/comparator/evaluator work and registered external evaluation.
+No additional inference, GPU training or method sweep is started by this handoff.

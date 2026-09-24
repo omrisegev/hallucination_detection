@@ -1,11 +1,25 @@
-## 2026-09-24: approved full external telemetry is running
+## 2026-09-24: full external telemetry COMPLETE and archived
 
-User approved the two GPU-hour cap. Jobs266081/266082/266083 collect full
-Hard2Verify/Qwen3, Socratic/Qwen3 and Socratic/QwQ, with30/30/60min limits.
-Committed snapshot411316927; current-session preflight PASS and budget hashes
-in results/lsml_external_generalization_v1/FULL_{PREFLIGHT,BUDGET_DECISION}.json.
-Full raw audit and direct AIRCC-to-Drive archival follow completion. CPU-only
-feature extraction/fusion and external quality evaluation remain deferred.
+User approved the two GPU-hour cap. All three full collections and CPU audits/
+Drive archives succeeded: Hard2Verify/Qwen3 200/200, Socratic/Qwen3 2995/2995,
+Socratic/QwQ 2995/2995. Jobs266081/266082/266083; archive266094/266095/266096.
+Total6190 dataset/backbone records,53970 steps,5399900 scored answer tokens.
+No missing answers or truncation; three empty Socratic steps retained per model.
+GPU allocation1376s (22m56s;0.38222h) against2h; CPU archival0.25778 core-hours.
+Compressed telemetry1918336109 bytes is verified on private Google Drive;
+normalized answer-only inputs are backed up separately. No raw arrays or
+Hard2Verify decrypted text entered Git. Compact manifests only are local.
+
+Report: docs/experiments/LSML_EXTERNAL_FULL_COLLECTION_20260924.md.
+Evidence: results/lsml_external_generalization_v1/FULL_{COLLECTION_VERIFICATION,
+ARCHIVES,JOBS,BUDGET_DECISION}.json and full/<cell>/. All raw audits, record-ID,
+step/token accounting and archive checksums PASS. QwQ uses the recorded gate-v2
+numerical exception; bf16 production and source protocol stayed unchanged.
+
+No external benchmark quality was computed. Next: use collected telemetry for
+CPU feature extraction, source fit/calibration separation and method freeze;
+then overlap/comparator/evaluator work and registered external evaluation.
+No additional inference, GPU training or method sweep is started by this handoff.
 
 ## 2026-09-24 Codex: AIRCC telemetry collection active
 
