@@ -193,3 +193,14 @@ complete committed cluster and spectral_utils trees. Never overwrite a failed
 snapshot; record packaging revision and archive SHA256.
 Enforced by: tests/test_external_generalization.py --cpu-smoke executed from
 scratch/external_generalization_private/snapshot_956_complete; JOBS.json.
+
+## 2026-09-24 - Verify precision and numerical fallback paths before transfer
+What happened: review of the new external adapter found an extra float32 cast after
+CT7 BOCPD Top10, and the legacy L-SML backend could hide a numerical failure as equal
+weights. Both were caught before full external scoring or quality inspection.
+Why: the bank storage precision was incorrectly generalized to the residual stream;
+outer estimator exception handling could not see exceptions consumed by its backend.
+Rule: replay each historical view's full dtype chain and instrument internal numerical
+fallbacks; verify all source scores under the strict observer before method freeze.
+Enforced by: code in external_generalization/{ct7,fusion}.py, backend failure observer,
+test_external_scoring.py and verify_external_source_strict.py.

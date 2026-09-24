@@ -403,6 +403,7 @@ def sml_fuse_signed(*classifiers: np.ndarray, gates=None, small_m_guard: bool = 
             if nz.size and v[nz[0]] < 0:
                 v = -v
     except Exception:
+        NUMERICAL_FAILURES.append('sml_fuse_signed')
         v = np.ones(k) / k
     if gate_vector is not None:
         w = gate_vector * v
@@ -639,6 +640,7 @@ def _rank1_masked(M: np.ndarray, unknown: np.ndarray, scale: str,
     try:
         vals, vecs = eigh(S)
     except Exception:
+        NUMERICAL_FAILURES.append('_rank1_masked')
         return np.ones(S.shape[0]) / np.sqrt(S.shape[0])
 
     u = vecs[:, -1]
@@ -666,6 +668,7 @@ def _rank1_masked(M: np.ndarray, unknown: np.ndarray, scale: str,
         try:
             vals_i, vecs_i = eigh(filled)
         except Exception:
+            NUMERICAL_FAILURES.append('_rank1_masked')
             guard_fired = True
             break
         lam_i = max(float(vals_i[-1]), 0.0)
@@ -711,6 +714,7 @@ def _estimate_von_voff(R: np.ndarray, c: np.ndarray,
         except ValueError:
             raise
         except Exception:
+            NUMERICAL_FAILURES.append('_estimate_von_voff')
             v_on[idx] = 1.0 / np.sqrt(len(idx))
 
     # within-group entries (incl. the diagonal) are unobserved for v^off
@@ -720,6 +724,7 @@ def _estimate_von_voff(R: np.ndarray, c: np.ndarray,
     except ValueError:
         raise
     except Exception:
+        NUMERICAL_FAILURES.append('_estimate_von_voff')
         v_off = np.ones(m) / np.sqrt(m)
 
     return v_on, v_off
@@ -832,6 +837,7 @@ def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'res
         try:
             c = _spectral_cluster_precomputed(s, K)
         except Exception:
+            NUMERICAL_FAILURES.append('detect_dependent_groups')
             out = (1, np.zeros(m, dtype=int), float('inf'), s)
             return out + ([],) if return_curve else out
         r = _residual_lsml(R, c, loading_scale=loading_scale)
@@ -857,6 +863,7 @@ def detect_dependent_groups(binary_classifiers, K_range=None, method: str = 'res
         try:
             c = _spectral_cluster_precomputed(s, K)
         except Exception:
+            NUMERICAL_FAILURES.append('detect_dependent_groups')
             continue
         r = _residual_lsml(R, c, loading_scale=loading_scale)
         curve.append((K, r, c))
@@ -1810,3 +1817,6 @@ def upcr_pipeline(feats_dict, feat_names, signs, var_y=0.25, return_diagnostics=
         w, rho_hat, g2_hat = result
         score = w @ F
         return score, w, rho_hat, g2_hat
+
+# External-transfer adapter audits legacy numerical fallback paths.
+NUMERICAL_FAILURES = []

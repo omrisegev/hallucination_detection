@@ -3,6 +3,7 @@ import time
 import numpy as np
 from scipy.stats import spearmanr
 from ._bank11.fusion_utils import lsml_continuous
+from ._bank11 import fusion_utils as numerical_backend
 from ._bank11.claude_feature_bank_v1 import build_token_feature_matrix, FEATURE_NAMES
 
 EPS = 1e-12
@@ -42,7 +43,10 @@ def fit_weights(x):
         raise ValueError("insufficient or invalid fitting observations")
     if x[:, 0].std() <= EPS:
         raise ValueError("fixed entropy orientation anchor is inactive")
+    numerical_backend.NUMERICAL_FAILURES.clear()
     _, meta = lsml_continuous(*x.T, compute_score_matrix=False, small_m_guard=True)
+    if numerical_backend.NUMERICAL_FAILURES or not np.isfinite(meta["residual"]):
+        raise ValueError("numerical estimator failure: " + repr(numerical_backend.NUMERICAL_FAILURES))
     w = np.zeros(x.shape[1])
     for cross, (idx, within) in zip(meta["cross_weights"], meta["group_weights"]):
         w[np.asarray(idx, int)] = np.asarray(within) * cross
@@ -55,7 +59,9 @@ def fit_weights(x):
     return {"weights": w.tolist(), "groups": np.asarray(meta["c"], int).tolist(),
             "anchor_spearman": abs(rho), "anchor_flipped": rho < 0,
             "residual": float(meta["residual"]),
-            "small_m_guarded": [list(v) for v in meta["small_m_guarded"]]}
+            "small_m_guarded": [list(v) for v in meta["small_m_guarded"]],
+            "small_m_flags": [list(v) for v in meta.get("small_m_flags", [])],
+            "grouping_diag": meta.get("grouping_diag", {})}
 
 
 def partition_equal(groups):
