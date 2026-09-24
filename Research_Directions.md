@@ -3657,3 +3657,14 @@ user deferred the final independent synthesis to a separate agent; three
 full-population component audits already report PASS. Detailed plots,
 official components, literature-access caveats and restore instructions are in
 [the transfer report](docs/experiments/FAMILY_TAIL_EXTERNAL_RESULTS_20260924.md).
+
+## 2026-09-24 (Claude): family/tail L-SML line closed; corrected (V2) and maximal-step (V3) external follow-ups
+
+- **What happened.** The step-level tail-mark L-SML "K=2" came from feeding unstandardized marks to `lsml_continuous` (Claude Step 443).
+- **After the fix,** no tail variant beats matched equal on source. Calibrating the threshold (common or per family, label-free or label-selected) does not change that.
+- **External results.** Hard2Verify balanced F1 / Socratic-Qwen3 / Socratic-QwQ PRMScore; Steps 444 and 446:
+  - corrected top-20% family row 42.28 / 61.00 / 62.30, at the family-equal level
+  - family max-step 42.79 / 61.05 / 62.28
+  - bank11 max-step 44.48 / 62.38 / 63.65: the best Hard2Verify score (n.s.), significantly below bank11 L-SML on both Socratic cells, clearly above bank11 equal
+  - frozen bank11 L-SML 43.67 / 63.22 / 64.24 stays the lead
+- **Open direction.** In three locks, source PRMScore rank did not predict external rank. The next priority is a source-side transfer proxy (e.g. leave-one-benchmark-out), labelled as proxy validation on exposed data. See `docs/HANDOFF_FAMILY_TAIL_LSML_2026-09-24.md`. No tuning on the inspected external labels.

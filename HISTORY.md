@@ -18323,3 +18323,39 @@ render_family_external.py and archive_family_external.py.
 - **Conclusion**: the corrected recipe lands at the family-equal level, as on source. bank11 L-SML leads every external cell even though it trailed the family variants on source (64.17), so source rank did not predict transfer.
 - **Limits**: exploratory (the benchmarks were already exposed). Codex's three independent audits were not re-run on V2.
 - **Reports**: `results/family_tail_external_v2/REPORT_HE.md` and `docs/experiments/FAMILY_TAIL_EXTERNAL_V2.md`. Large arrays and per-answer records are git-ignored as in V1.
+
+---
+
+### Step 446 [Claude, family-tail external V3] - Maximal-step tail rows externally: bank11 max-step is the best Hard2Verify score (44.48, n.s. vs bank11 L-SML) and beats bank11 equal everywhere, but trails bank11 L-SML on both Socratic cells; family15 max-step stays at the equal level, 2026-09-24
+
+**What**: This is the external run of Claude Step 445 (branch `claude/ssl-pseudolabel-residual-v1`).
+- **Lock**: `results/family_tail_transfer_v2/TRANSFER_LOCK_V3.json` (sha256 0fc561b7...) = V2 unchanged + `F15_tail1s_lsml`, `B11_tail1s_lsml`, `B11o_tail1s_lsml`.
+- **Scripts**: `scripts/run_family_external_v3.py` rescored 14 arms from the sealed V1 features. The eleven V2 arms replay the sealed V2 records exactly (0.0 on 6,190 records). `scripts/evaluate_family_external_v3.py` is a minimal-diff copy of the V2 evaluator.
+- **Statistics**: primary family 5 contrasts x 3 cells = 15, Bonferroni, 100,000 source-question draws, seed 20260924. V1 (18) and V2 (12) contrasts reproduce exactly. The official evaluator replay passes.
+
+**Result**:
+- **Scores** (Hard2Verify balanced F1 / Socratic-Qwen3 PRMScore / Socratic-QwQ PRMScore):
+
+  | Method | Hard2Verify | Socratic-Qwen3 | Socratic-QwQ |
+  |---|---:|---:|---:|
+  | B11 max-step | 44.48 | 62.38 | 63.65 |
+  | B11o max-step | 43.86 | 61.82 | 63.12 |
+  | F15 max-step | 42.79 | 61.05 | 62.28 |
+  | bank11 L-SML | 43.67 | 63.22 | 64.24 |
+  | bank11 equal | 40.88 | 60.79 | 61.50 |
+  | F15 equal | 42.38 | 61.12 | 62.94 |
+
+- **Contrasts** (Bonferroni over 15):
+
+  | Contrast | Hard2Verify | Socratic-Qwen3 | Socratic-QwQ |
+  |---|---|---|---|
+  | B11 max-step vs bank11 L-SML | +0.81 [-1.11, +2.81] | -0.84 [-1.23, -0.45] | -0.59 [-0.96, -0.21] |
+  | B11 max-step vs bank11 equal | +3.60 [+0.68, +6.66] | +1.59 | +2.15 (all significant) |
+  | B11o max-step vs bank11 L-SML | +0.19 | -1.40 | -1.12 |
+  | F15 max-step vs 20% tail | +0.52 | +0.05 | -0.02 (all n.s.) |
+  | F15 max-step vs F15 equal | +0.41 | -0.07 | -0.66 [-1.16, -0.16] |
+
+  - The source-disjoint panel agrees in direction.
+- **Conclusion**: the frozen bank11 L-SML stays the leading candidate on the PRMScore benchmarks. On bank11 the max-step learning object beats equal clearly externally, although it only tied equal on source. Source rank again did not predict external rank.
+- **Limits**: exploratory; independent audits not re-run.
+- **Reports**: `results/family_tail_external_v3/REPORT_HE.md` and `docs/experiments/FAMILY_TAIL_EXTERNAL_V3.md`.
