@@ -1,3 +1,24 @@
+## Exhaustive partition ceiling on PRMBench (Claude) - 2026-09-27
+
+`results/partition_ceiling_prmbench_v1/run_20260927/`: answers Omri's three questions of
+2026-09-24 by measuring EVERY block-equal partition of the 11-channel bank. Under block-equal
+the weight is 1/(K*|g|), so the score depends only on each channel's group SIZE, and the
+678,570 set partitions collapse to 237,018 distinct weight vectors - all evaluated.
+
+Ceiling .7746 (sizes [8,2,1]: energy_level alone with a third of the vote, chosen_surprisal +
+bocpd_p0 a sixth each, the other eight 1/24 each). Ranking of our rules out of 237,018:
+discovered L-SML .7645 rank 48,487; equal .7496 rank 80,100; a random partition .7455 (below
+equal); the declared 5/3/3 partition .7350 rank 179,367, BOTTOM QUARTILE. Selecting the profile
+by the endpoint on three fit folds picks the identical [8,2,1] in all five folds and scores
+.7737 held out: +.0240 over equal, +.0092 over L-SML, +.0013 over CT7 with an interval
+including zero, and -.0020 on PRMScore. So: no rule we own searches for the optimum, the
+optimum is stable and findable, it is exactly the singleton structure Joint forbids - and the
+whole lever is worth barely reaching CT7, never passing it. Label-selected arm, declared.
+My shuffled-label null is flawed (it degenerates to anti-selection, landing on the distribution
+minimum); the distribution median is the correct random-selection reference. Nothing promoted;
+source rank does not predict external rank. HISTORY Step 447. Branch
+`claude/ssl-pseudolabel-residual-v1`.
+
 ## 2026-09-24: maximal-step tail rows (TRANSFER_LOCK_V3) source + external COMPLETE (Claude)
 
 **START HERE next session: `docs/HANDOFF_FAMILY_TAIL_LSML_2026-09-24.md`** (where we stopped, branches/commits, fragile source-pool dependency, recommended next research, paste-ready prompt).
