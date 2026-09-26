@@ -58149,3 +58149,19 @@ fused; development evidence on already-evaluated data, not untouched confirmatio
 - The fix moved token numbers by at most 0.14 pp.
 
 ---
+
+### Step 447 [Claude, PB tail weights] - Weights learned from binary top-20% tail marks and applied to the continuous signals do not improve ProcessBench on any representation, pooled or PB-only fit, 2026-09-27
+
+**What**: Omri asked whether the tail recipe (learn L-SML weights on the binary top-20% marks, apply them to the continuous signals) works on ProcessBench with the leading representations. Protocol `results/pb_tail_weights_v1/PROTOCOL.json`, committed with the script in 4cae70d8a before any number. Three representations: the seven CT7 streams read out Top10 per stream (the PB leader, 41.36), family15 and bank11. Five rules: equal, continuous L-SML, tail (standardized tie-aware marks, the Step 443 contract), the same weights on the marks (votes) and the tail partition with equal weights. Two fit scopes: pooled PB+PRMB fit rows and, new, PB-only fit rows. Calfix contract and frozen evaluator. Primary endpoint: PB first-error argmax hit (4,442 erroneous answers, macro over 8 cells), Holm over 10 declared contrasts. Secondary: official PB F1 with the label-free q80 first-crossing rule. Descriptive: F1 under the frozen CT7 gate and under a calibration-label-selected threshold. Guard: PRMScore P1.
+
+**Why**: the tail line had only been scored on PB as a secondary endpoint, always with pooled fits, and never on the Top10-per-stream CT7 readouts. Earlier numbers: family15 tail 37.18 (K=2 artefact) and corrected 36.38 vs equal 36.51; token-level CT7 tail -0.65 vs equal.
+
+**Result**: run `run_20260927_0043`, 312 s CPU, 29 rows. Seven reference rows replay to <=1.3e-15, CT7 common-gate F1 replays 0.41188745848863717 exactly.
+- Primary, tail vs matched equal: CT7 readouts +0.08 [-0.74,+0.90], family15 -0.13 [-0.63,+0.36], bank11 -0.20 [-1.37,+0.96]. Tail vs continuous L-SML and PB-only vs pooled fit are also inside +-0.5 with intervals across zero. Every Holm p = 1.0; the decision rule is not met on any representation. All three predictions held.
+- PRMScore guard: CT7-readout tail -0.36 vs the leader row (Holm <.001); bank11 tail -0.32 vs frozen bank11 L-SML (Holm .001); PB-only bank11 fit -1.04 (Holm <.001).
+- Controls: on CT7 readouts the same weights on the binary marks lose 2.98 [+1.24,+4.69]. The continuous application matters but only reaches equal. The learned partition with equal weights is indistinguishable (+0.29).
+- Official F1: the q80 first-crossing rule is unusable on PB. It flags 91-99% of answers, clean accuracy is 1-8%, and F1 is 1.6-13.4 for every row. Under the shared frozen CT7 gate all CT7-readout rows are 41.7-42.3 (tail vs equal +0.08 [-0.51,+0.66]). A calibration-label-selected step threshold gives 26.0-31.1, 8.5-12.5 below the frozen gate on every row.
+- K: CT7 tail 2-3 per fold; the PB-only bank11 tail fit is K=2 in all five folds, so its between-group weights are not learned.
+- Report `results/pb_tail_weights_v1/REPORT_HE.md`.
+
+---
