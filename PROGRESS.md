@@ -1,3 +1,34 @@
+## 2026-09-27: digit alternative probability experiment COMPLETE (Codex, dedicated branch)
+
+User explicitly authorized a new digit-feature research experiment on a branch
+from the current main checkout; `codex/digit-alternative-probability-v1`, worktree
+`.worktrees/digit-alternative-probability-v1`, base bef0b1de3. This does not reinstate
+the historical digit-dependent production method or alter any frozen result.
+
+Candidate: original probability of the second-most-likely ASCII digit observed
+in saved top50, zero when fewer than two digits are saved; top2 mean per step.
+Independent of provided/generated token choice, including greedy decoding.
+All13,769 source answers /145,597steps /6,968,779tokens scored. Teacher-forced
+cache experiment only; no generated-answer quality or new inference/GPU job.
+
+PB macro exact localization on4,442 erroneous answer/model records: candidate
+34.5793%, old digit top2 35.4717%, entropy top2 27.6729%, entropy top10 33.6399%.
+PRMB within-answer AUC on6,030 mixed-label answers: .712975/.639455/.708873/.730111.
+Candidate-minus-old PRMB +.07352,98.75% source-group CI[.06473,.08242]; PB -.8924pp,
+CI[-3.913,+2.070]. Versus entropy top2: PB +6.906pp [3.450,10.226], PRMB interval
+includes zero. Not a consistent standalone replacement; useful signal, no tested
+fusion gain. These are not F1/PRMScore or end-to-end detector results.
+
+Six mechanism tests PASS; full scalar extraction, label/span checks and separate
+metric replay PASS. Source-question bootstrap5,000 draws, four primary contrasts.
+Top50 censoring affects4,930,517 token positions;13,234/13,769 peak decisions are
+certified against the resulting interval bounds. Preserve this limitation.
+Three inherited PRMB boundary-overlap records replay exactly by re-tokenization;
+their exclusion does not change the conclusion. Details and all per-cell results:
+`results/digit_alternative_probability_v1/REPORT_HE.md`, METRICS.json, REVIEW.json.
+Potential next authorized stage would test same fusion with/without the feature;
+no such follow-up run was started here. Historical transfer handoff follows.
+
 ## 2026-09-24: maximal-step tail rows (TRANSFER_LOCK_V3) source + external COMPLETE (Claude)
 
 **START HERE next session: `docs/HANDOFF_FAMILY_TAIL_LSML_2026-09-24.md`** (where we stopped, branches/commits, fragile source-pool dependency, recommended next research, paste-ready prompt).

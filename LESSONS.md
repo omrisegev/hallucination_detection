@@ -227,3 +227,21 @@ Rule: retain corrected matched-control intervals, native/fallback accounting,
 null prevalence effects and FEASIBILITY labels; record the negative implementation
 result alongside the positive transfer result.
 Enforced by: CONTRASTS.json, RED_TEAM.md, NEGATIVE_RESULT.md and independent audits.
+
+## 2026-09-27 — Replaying digit innovation requires its opportunity mask
+What happened: a new extraction initially subtracted the historical token-clock mean at all tokens. The canonical registry emits only at provided-digit positions after token zero and masks other positions during step readout. The extraction was stopped before scores or quality were saved, corrected and restarted.
+Why: the method-card shorthand omitted activity-mask semantics; the earlier conversation also simplified this detail.
+Rule: verify both values and masks against the canonical registry before claiming a historical feature replay. Keep no-opportunity steps explicitly distinguishable from verified low risk.
+Enforced by: code (tests/test_digit_alternative_probability.py::test_historical_innovation_mask_is_not_all_tokens; spectral_utils/digit_alternative_probability.py::digit_innovation_step_max).
+
+## 2026-09-27 — Disable LFS smudge before creating a code-only experiment worktree
+What happened: worktree creation started materializing large cached datasets. Stopping its specific LFS process caused Git to roll back the incomplete worktree; it was recreated with GIT_LFS_SKIP_SMUDGE=1. Existing raw caches remained intact.
+Why: the checkout inherited default LFS smudge despite the experiment already having read-only access to source caches. A recovery restore also assumed the rolled-back directory still existed and failed harmlessly.
+Rule: use GIT_LFS_SKIP_SMUDGE=1 for code-only worktrees, verify directory existence after failed checkout, and use absolute Python paths because this Windows runner can ignore workdir or deny Set-Location even when file access succeeds.
+Enforced by: command (the worktree creation and experiment commands recorded in this session).
+
+## 2026-09-27 — Do not assume frozen reasoning steps have disjoint token spans
+What happened: the new digit extraction stopped at a disjoint-token-span assertion on PRMB before quality evaluation. Three existing answers have ten shared boundary tokens. Independent re-tokenization exactly reproduced every affected ID/span, and all 6,969 label rows matched corrected v3.
+Why: character-disjoint steps need not map to token-disjoint spans; the original producer records these with strict=False.
+Rule: preserve frozen spans and validate exact audited overlaps rather than adding an incompatible invariant. Any unregistered overlap still fails; report an exclusion sensitivity for the three known rows.
+Enforced by: code (scripts/audit_digit_source_spans.py, SPAN_AUDIT.json, extraction identity checks).

@@ -18359,3 +18359,41 @@ render_family_external.py and archive_family_external.py.
 - **Conclusion**: the frozen bank11 L-SML stays the leading candidate on the PRMScore benchmarks. On bank11 the max-step learning object beats equal clearly externally, although it only tied equal on source. Source rank again did not predict external rank.
 - **Limits**: exploratory; independent audits not re-run.
 - **Reports**: `results/family_tail_external_v3/REPORT_HE.md` and `docs/experiments/FAMILY_TAIL_EXTERNAL_V3.md`.
+
+---
+
+### Step 447 [Codex, digit alternative probability] — A decoding-independent numeric alternative carries signal, but does not establish a consistently better standalone replacement, 2026-09-27
+
+**What**: User-authorized single-feature CPU experiment, dedicated branch
+`codex/digit-alternative-probability-v1` from bef0b1de3. Probability of the second
+ASCII digit in saved top50, zero if censored, top2 mean within step. Full13,769
+source answer/model rows,145,597steps,6,968,779tokens. Raw caches were read only.
+No inference, external-data selection, training, gate or fusion fitting.
+
+**Why**: The old disagreement signal is identically zero during greedy generation
+by the same model. This candidate uses only the next-token distribution, retaining
+the same formula for teacher forcing and self-generation. Quality was evaluated
+only on existing teacher-forced traces; decoding transfer remains untested.
+
+**Result**: PB macro exact first-error localization (4,442 erroneous records):
+34.5793% vs old digit Top2 35.4717%, entropy Top2 27.6729%, entropy Top10 33.6399%.
+PRMB within-answer AUC (6,030 mixed-label answers): .712975 vs .639455/.708873/.730111.
+Paired source-question bootstrap5,000,98.75% primary CIs: candidate-old PB
+-.8924pp[-3.913,+2.070], PRMB+.07352[.06473,.08242]; candidate-entropy Top2 PB
++6.906pp[3.450,10.226], PRMB+.00410[-.00800,.01652]. Useful signal, not a consistent
+standalone winner and not proof of added fusion value. No F1/PRMScore claim.
+
+**Verification/limits**:6 mechanism tests, all-token independent scalar extraction,
+all-row raw-label replay and separate saved-score metric implementation PASS;
+historical innovation masking replays200 synthetic traces exactly. This is a
+same-agent review, not an independent-agent audit. Top50 censoring is explicit;
+13,234/13,769 peaks certified across missing-probability bounds. Three inherited
+PRMB boundary-overlap rows replay exactly with the original tokenizer; sensitivity
+exclusion leaves the conclusion unchanged. Two pre-evaluation extraction attempts
+were stopped for correcting mask handling and an incompatible disjoint-span
+assertion; no quality result was used to alter the protocol. See LESSONS.md.
+
+**Artifacts**: `results/digit_alternative_probability_v1/REPORT_HE.md`, METRICS.json,
+EXTRACTION_AUDIT.json, REVIEW.json, SPAN_AUDIT.json and sealed score arrays. Protocol:
+`docs/experiments/DIGIT_ALTERNATIVE_PROBABILITY_V1.md`. Next candidate question is
+matched fusion with/without this one feature; that experiment has not been run.
