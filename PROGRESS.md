@@ -1,3 +1,15 @@
+## Expectation vs realization fusion, stage B complete (Claude) - 2026-09-27
+
+`results/expectation_realization_v1/run_20260927_stage_b/` (HISTORY Step 451, RED_TEAM.md). Binary SML/Dawid-Skene properties on
+top-20% marks: the label-free filter drops exactly the two anti-oriented channels (energy_innovation, top50_js) in 5/5 folds, but
+weights built from estimated group sensitivity/specificity LOSE to equal weights on the same discovered groups (G1_sml 0.7729 vs
+G1_equal 0.7797, -0.0068 [-0.0094, -0.0043]) and do not beat averaging all 13 (0.7749): the two level sub-groups are dependent
+(clean-step mark correlation 0.517), so Dawid-Skene overweights them and doubles the prevalence. Best stage-B arm: filter + average
+(S_equal) 0.7802 / PRMScore 0.6565, but the red team shows its gain over all-13 averaging (+0.0053) is reproduced by position alone
+(whole-answer label swap null +0.0063); +0.0043 survives on the position-adjusted bank. S_equal = block_equal = fam421 on PRMBench,
+below ct7 on ProcessBench in 8/8 cells (0.3750 vs 0.3989). L-SML on the survivors loses to averaging them. Stable discovered partition
+needs tie-aware marks (amendment B1). Decision on next steps with Omri. Branch `claude/ssl-pseudolabel-residual-v1`.
+
 ## Expectation vs realization fusion, stage A complete (Claude) - 2026-09-27
 
 `results/expectation_realization_v1/run_20260927/` (HISTORY Step 450, RED_TEAM.md). The written-token block (chosen_surprisal,

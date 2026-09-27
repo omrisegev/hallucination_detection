@@ -20,3 +20,5 @@ Stage-by-stage management record. Protocol: `PROTOCOL.json` (frozen before any s
 | 2026-09-27 | Stage B frozen | PROTOCOL_STAGE_B.json (2b3971383); pre-run code review PASS with non-blocking fixes | 2b3971383 |
 | 2026-09-27 | Amendment B1 | after the fold-0 smoke: label-free partition diagnostic; G1 arms on the stage-A tail partition; re-review PASS | 7fa255e8f |
 | 2026-09-27 | Stage B full run | run_20260927_stage_b: COMPLETE, 0 failed fits, replay 1.1e-16, stage-A metrics reproduced 0.0; 266 s | pending red team |
+| 2026-09-27 | Stage B red team complete | A recomputation: all claims confirmed (own DS EM); B coverage: full population, 5/5 folds, class and PB qualifiers; C nulls: claim 1 weakened (whole-answer label swap reproduces the filter gain; +0.0043 survives position adjustment), weights claims confirmed with dependence mechanism. `run_20260927_stage_b/RED_TEAM.md` | Step 451 commit |
+| 2026-09-27 | Stage B done, STOP | Decision with Omri | |
