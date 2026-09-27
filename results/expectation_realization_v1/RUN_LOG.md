@@ -22,3 +22,5 @@ Stage-by-stage management record. Protocol: `PROTOCOL.json` (frozen before any s
 | 2026-09-27 | Stage B full run | run_20260927_stage_b: COMPLETE, 0 failed fits, replay 1.1e-16, stage-A metrics reproduced 0.0; 266 s | pending red team |
 | 2026-09-27 | Stage B red team complete | A recomputation: all claims confirmed (own DS EM); B coverage: full population, 5/5 folds, class and PB qualifiers; C nulls: claim 1 weakened (whole-answer label swap reproduces the filter gain; +0.0043 survives position adjustment), weights claims confirmed with dependence mechanism. `run_20260927_stage_b/RED_TEAM.md` | Step 451 commit |
 | 2026-09-27 | Stage B done, STOP | Decision with Omri | |
+| 2026-09-27 | Stage B2 frozen | PROTOCOL_STAGE_B2.json (028b313df); pre-run review PASS, fixes 9b57f4a09 | 028b313df |
+| 2026-09-27 | Stage B2 full run | run_20260927_stage_b2: COMPLETE, 0 failed fits, replay 8.9e-16, stage-B metrics reproduced 0.0 | pending red team |
