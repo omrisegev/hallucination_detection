@@ -195,3 +195,9 @@ What happened: in the stage-B2 preliminary report (before the red team) I presen
 Why: I compared the new rule with the protocol's matched control only, not with the strongest simple control on the same channels, and read a summary statistic without checking what changes it by construction.
 Rule: a new weighting is always compared with the plain average of the SAME channels, not only with a structured control; a diagnostic whose value can change by construction (a deleted pair, a changed partition) is reported with that mechanism, never as evidence; a preliminary report says which reference each number is relative to.
 Enforced by: prose (this entry, results/expectation_realization_v1/run_20260927_stage_b2/RED_TEAM.md).
+
+## 2026-09-27 — A hard-coded family list was reported as if the method had found it
+What happened: stage B2 of expectation_realization_v1 merged "the two level groups" and removed "two of the five level channels" through a fixed list `LEVEL` in the runner. The protocol justified the list by the stable discovered partition, but the code did not discover it, and the first report presented the merge rule (0.7818) as a result of the method. Omri's goal was explicitly to avoid predeclared families. The same report also added gain components computed on two different paths (merge and removal).
+Why: the list was convenient for a mechanism test and its provenance was argued in the protocol text, so its non-algorithmic status was never stated next to the number.
+Rule: any row that depends on a fixed channel list, a manual merge or a post-hoc choice carries that label in every table and summary ("mechanism test, not algorithmic"); a gain decomposition uses one path of paired comparisons whose parts sum to the total, and names the pair behind each part.
+Enforced by: prose (this entry, docs/HANDOFF_EXPECTATION_REALIZATION_2026-09-27.md section 5).

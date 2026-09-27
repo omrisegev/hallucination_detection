@@ -1,12 +1,14 @@
-## Expectation vs realization fusion, stage B2 level reduction complete (Claude) - 2026-09-27
+## Expectation vs realization fusion, stages A-B2 closed; HANDOFF (Claude) - 2026-09-27
 
-`results/expectation_realization_v1/run_20260927_stage_b2/` (HISTORY Step 452, RED_TEAM.md). Counting the level family once
-(merging its two sub-groups, or removing two of five level channels, all ten pairs reported) repairs the binary-property weights:
-the rule rises from 0.7729 to 0.7818 (oracle 0.7823), beating all-13 averaging (0.7749). But the gain is the filter (positional)
-plus counting level once under plain averaging; the rule over the plain average of the same channels adds +0.0001 (removal median)
-to +0.0016 (merge, fragile). L-SML still loses to averaging the same channels (-0.0073, 0/10). ProcessBench below ct7. A label-free
-group-cohesion weight (first-component variance share) equalled the oracle on merge post hoc - not a candidate without its own
-frozen test. Next decision with Omri. Branch `claude/ssl-pseudolabel-residual-v1`.
+**Read `docs/HANDOFF_EXPECTATION_REALIZATION_2026-09-27.md` first.** Steps 450-452, `results/expectation_realization_v1/`.
+Omri's decision: KEEP the label-free Dawid-Skene estimates as a filter (drops exactly the two anti-oriented channels
+in 5/5 folds; filter + average 0.7802 vs all-13 average 0.7749, PRMScore +0.0038; but a simple correlation filter finds
+the same channel, and on the original bank the gain is not distinguishable from error position); KEEP binary-mark
+clustering as an option (not shown better than continuous); DROP weights from the estimates (with the level merged they
+add +0.0016 over the plain average of the same channels, fragile; the merge itself used a HARD-CODED level list, so it is a
+mechanism test, not a method). L-SML never beat plain averaging on this bank. ProcessBench: all below ct7.
+Next: PRMScore decomposition (categories, components, length/position, paired per-answer), then DS filter vs simple
+filter, then at most one frozen algorithmic candidate on the external pipeline. Branch `claude/ssl-pseudolabel-residual-v1`.
 
 ## Expectation vs realization fusion, stage B complete (Claude) - 2026-09-27
 
