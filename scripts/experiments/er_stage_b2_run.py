@@ -146,7 +146,7 @@ def config_chain(V, votes13, Tta, key_g, pf, fit_rows, bank, k):
         try:
             if c == 'merge':
                 if base_part is None: raise ValueError('base partition missing')
-                gs = C2.merge_groups_containing(base_part, chans, set(LEVEL))
+                gs = C2.merge_groups_containing(base_part, chans, set(LEVEL)); d['level_groups_merged'] = len({int(base_part[j]) for j, x in enumerate(chans) if x in LEVEL})
             else:
                 ps = TC.lsml_fit_scaled(Tta[fit_rows][:, idx], anchor, V[fit_rows][:, idx], standardize=True, loading_scale='unit')
                 gs = np.unique(np.asarray(ps['groups'], int), return_inverse=True)[1]
@@ -218,9 +218,10 @@ for k in FOLDS:
                 nm = f'{a}__{c}'
                 if nm in out: put(nm + sfx, k, ev_rows, out[nm], cal)
                 else: failures.append({'fold': k, 'arm': nm + sfx, 'reason': reason(a, d)})
-            fit_log.append({kk: d.get(kk) for kk in ('fold', 'bank', 'config', 'survivors13', 'ds13', 'channels', 'anchor', 'partition', 'members', 'ds', 'w_est', 'w_oracle', 'bar', 'L_own', 'L_grp', 'failure', 'B_sml_failure', 'L_own_failure', 'L_grp_failure')})
+            fit_log.append({kk: d.get(kk) for kk in ('fold', 'bank', 'config', 'survivors13', 'ds13', 'channels', 'anchor', 'partition', 'members', 'ds', 'w_est', 'w_oracle', 'bar', 'L_own', 'L_grp', 'level_groups_merged', 'failure', 'B_sml_failure', 'L_own_failure', 'L_grp_failure')})
         for a, b in REPLAY_B.items():
-            if a in out: replay[f'{a}{sfx}_fold{k}'] = float(np.max(np.abs(out[a][ev_rows] - B_SC[b + sfx][ev_rows])))
+            if a not in out: hard_stop(f'base arm {a}{sfx} missing in fold {k}: stage-B replay impossible')
+            replay[f'{a}{sfx}_fold{k}'] = float(np.max(np.abs(out[a][ev_rows] - B_SC[b + sfx][ev_rows])))
     msg = f'fold {k}: fit {fitf} cal {cal}'
     for d in [x for x in diag if x['fold'] == k and x['bank'] == 'main']:
         pe = round(d['est']['prevalence'], 3) if 'est' in d else None; pt = round(d['truth']['prevalence'], 3) if 'truth' in d else None
@@ -262,7 +263,7 @@ summ = {}
 for bank in ('main', 'pos'):
     for c in CONFIGS:
         ds = [d for d in diag if d['bank'] == bank and d['config'] == c]
-        summ[f'{bank}_{c}'] = {'partition_identical_5_folds': len({json.dumps(d.get('members')) for d in ds}) == 1, 'n_groups': [len(d.get('members') or []) for d in ds],
+        summ[f'{bank}_{c}'] = {'partition_identical_5_folds': len({frozenset(frozenset(g) for g in (d.get('members') or [])) for d in ds}) == 1, 'n_groups': [len(d.get('members') or []) for d in ds],
                                'prevalence_err': [d['est']['prevalence'] - d['truth']['prevalence'] if 'est' in d else None for d in ds],
                                'clean_max_abs_r_marks': [d['dep_marks']['clean']['max_abs_offdiag'] if 'dep_marks' in d else None for d in ds],
                                'bar_passes': [(d.get('bar') or {}).get('passes') for d in ds]}
@@ -322,6 +323,10 @@ sec = []
 for r in RMS:
     sec += [(f'E_equal__{r}', 'E_equal__base'), (f'L_grp__{r}', f'E_equal__{r}'), (f'B_oracle__{r}', f'B_equal__{r}'), (f'E_equal__{r}', 'B13_equal')]
     sec += [(f'{a}__{r}', ref) for a in ('B_sml', 'L_own') for ref in ('ct7', 'fam421')]
+for r in RMS:
+    sec += [(f'L_own__{r}', 'B13_equal'), (f'E_equal__{r}', 'ct7')]
+sec += [(f'{a}__{c}', 'ct7') for c in ('base', 'merge') for a in arms_of(c) if a in ('B_sml', 'L_own', 'E_equal', 'L_grp')]
+sec += [('L_own__base', 'B13_equal'), ('B_sml__base', 'B_equal__base'), ('B_oracle__merge', 'B_equal__merge')]
 sec += [('B_sml__merge', 'B_sml__base'), ('B_sml__merge', 'B13_equal'), ('B_sml__merge', 'B_equal__merge'), ('L_grp__merge', 'E_equal__base'), ('L_grp__base', 'E_equal__base'),
         ('B_sml__base', 'B13_equal'), ('L_own__base', 'E_equal__base'), ('E_equal__base', 'B13_equal')]
 PAIRS = list(dict.fromkeys([p for v in PRIMARY.values() for p in v] + [p for v in POSMED.values() for p in v] + sec))
@@ -364,7 +369,7 @@ for fam, groups_of in [('primary', PRIMARY), ('position_bank', POSMED)]:
         if not ok: rows.append({'family': fam, 'contrast_id': cid, 'note': 'NOT_ESTIMABLE'}); continue
         for ep, key in EPN + [('pb_sla_macro8', 'sla')]:
             X = np.stack([dl[p][key] for p in ok]); med = np.median(X, 0) if len(ok) > 1 else X[0]; pts = [pt[p][key] for p in ok]
-            r = {'family': fam, 'contrast_id': cid, 'endpoint': ep, 'configs': len(ok), 'delta': float(np.median(pts)), 'min_config': float(min(pts)), 'max_config': float(max(pts)),
+            r = {'family': fam, 'contrast_id': cid, 'endpoint': ep, 'configs': len(ok), 'min_folds': min(len(prep[p]['folds']) for p in ok), 'max_folds': max(len(prep[p]['folds']) for p in ok), 'delta': float(np.median(pts)), 'min_config': float(min(pts)), 'max_config': float(max(pts)),
                  'configs_positive': int(sum(v > 0 for v in pts)), 'ci95_lo': float(np.nanquantile(med, .025)), 'ci95_hi': float(np.nanquantile(med, .975)), 'B': DRAWS}
             if fam == 'primary' and ep != 'pb_sla_macro8':
                 r.update({'family_K': 10, 'ci_adj_lo': float(np.quantile(med, .05 / 10 / 2)), 'ci_adj_hi': float(np.quantile(med, 1 - .05 / 10 / 2))})
@@ -381,20 +386,20 @@ timing['bootstrap_s'] = time.perf_counter() - t
 
 # ------------------------------------------------------------------ nulls for the five primary contrasts (PRMBench within-AUC, main bank)
 t = time.perf_counter()
-NULL_ARMS = sorted({m for v in PRIMARY.values() for p in v for m in p})
-ok_ans = np.array([eligible[i] and all(np.isfinite(scores[m][off[i]:off[i+1]]).all() for m in NULL_ARMS) for i in range(n)])
-ans_idx = np.flatnonzero(ok_ans); Smat = np.column_stack([scores[m] for m in NULL_ARMS])
-Rk, loc = C2.within_ranks(Smat, off, ans_idx); yobs = np.concatenate([labels[off[i]:off[i+1]] for i in ans_idx]).astype(float)
-col = {m: j for j, m in enumerate(NULL_ARMS)}
-def stats_of(y):
-    A = np.nanmean(C2.auc_from_ranks(Rk, loc, y), 0)
-    return {cid: float(np.median([A[col[a]] - A[col[b]] for a, b in plist])) for cid, plist in PRIMARY.items()}
-obs = stats_of(yobs); nulls = {'answers': int(len(ans_idx)), 'observed_on_null_set': obs}
-for nm, fn, sd in [('within_answer_shuffle', C2.shuffle_within, 11), ('whole_answer_same_length_swap', C2.swap_same_length, 12)]:
-    rg = np.random.default_rng(sd); draws = [stats_of(fn(yobs, loc, rg)) for _ in range(int(os.environ.get('ER_NULL_PERMS', 200)))]
-    nulls[nm] = {cid: {'mean': float(np.mean([x[cid] for x in draws])), 'sd': float(np.std([x[cid] for x in draws])), 'p01': float(np.quantile([x[cid] for x in draws], .01)),
-                       'p99': float(np.quantile([x[cid] for x in draws], .99)), 'share_ge_observed': float(np.mean([x[cid] >= obs[cid] for x in draws])),
-                       'share_le_observed': float(np.mean([x[cid] <= obs[cid] for x in draws]))} for cid in PRIMARY}
+nulls = {}; NPERM = int(os.environ.get('ER_NULL_PERMS', 200))
+for cid, plist in PRIMARY.items():
+    arms_c = sorted({m for p in plist for m in p})
+    ans_idx = np.flatnonzero([eligible[i] and all(np.isfinite(scores[m][off[i]:off[i+1]]).all() for m in arms_c) for i in range(n)])
+    if not len(ans_idx): nulls[cid] = {'note': 'NOT_ESTIMABLE (no fully scored eligible answer)'}; continue
+    Rk, loc = C2.within_ranks(np.column_stack([scores[m] for m in arms_c]), off, ans_idx); yobs = np.concatenate([labels[off[i]:off[i+1]] for i in ans_idx]).astype(float)
+    col = {m: j for j, m in enumerate(arms_c)}
+    def stat(y):
+        A = np.nanmean(C2.auc_from_ranks(Rk, loc, y), 0); return float(np.median([A[col[a]] - A[col[b]] for a, b in plist]))
+    obs = stat(yobs); nulls[cid] = {'answers': int(len(ans_idx)), 'observed_on_null_set': obs}
+    for nm, fn, sd in [('within_answer_shuffle', C2.shuffle_within, 11), ('whole_answer_same_length_swap', C2.swap_same_length, 12)]:
+        rg = np.random.default_rng(sd); x = np.array([stat(fn(yobs, loc, rg)) for _ in range(NPERM)])
+        nulls[cid][nm] = {'mean': float(x.mean()), 'sd': float(x.std()), 'p01': float(np.quantile(x, .01)), 'p99': float(np.quantile(x, .99)),
+                          'share_ge_observed': float(np.mean(x >= obs)), 'share_le_observed': float(np.mean(x <= obs)), 'permutations': NPERM}
 dump(OUT / 'NULLS.json', nulls); timing['nulls_s'] = time.perf_counter() - t
 timing['total_s'] = time.perf_counter() - T0; dump(OUT / 'TIMING.json', timing)
 status.update({'status': 'COMPLETE' if not failures else 'COMPLETE_WITH_FAILED_FITS', 'finished': datetime.now().isoformat(timespec='seconds'), 'failures': failures,
@@ -403,4 +408,4 @@ dump(OUT / 'RUN_STATUS.json', status)
 Mx = M[M.stratum.isin(['all', 'macro8']) & ~M.method.str.endswith('_pos')].pivot(index='method', columns='metric', values='estimate')
 print(Mx[['within_auc', 'prmscore', 'sla']].sort_values('within_auc', ascending=False).round(4).to_string())
 print(pd.DataFrame(rows)[lambda d: d.family.isin(['primary', 'position_bank'])][['family', 'contrast_id', 'endpoint', 'delta', 'min_config', 'max_config', 'configs_positive', 'ci_adj_lo', 'ci_adj_hi', 'ci95_lo', 'ci95_hi']].round(4).to_string())
-print(json.dumps({k: v for k, v in nulls.items() if k != 'answers'}, indent=1)[:3000]); print(json.dumps(timing, indent=1)); print('status', status['status'], 'failures', len(failures))
+print(json.dumps(nulls, indent=1)[:4000]); print(json.dumps(timing, indent=1)); print('status', status['status'], 'failures', len(failures))
