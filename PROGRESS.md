@@ -9,7 +9,8 @@ within about 2; LogTokU Avg cannot be matched (ours about 11.8 vs 24.4). Drop > 
 (6/8 to 8/8 cells). The residual gap sits in OlympiadBench and Omni-MATH, beyond anything the
 aggregation grid explains (prompt is the untested suspect). Best-match rows are selected to match
 their table, so they are candidate readings, not a comparator. HISTORY Step 449. Open options: ask
-the authors for the ProcessBench script; nothing else is queued. Branch
+the authors for the ProcessBench script; nothing else is queued.
+Session handoff with the open-lead list: `docs/HANDOFF_PRMBENCH_LEVERS_AND_MTG_2026-09-27.md`. Branch
 `claude/ssl-pseudolabel-residual-v1`.
 
 ## Exhaustive partition ceiling on PRMBench (Claude) - 2026-09-27
