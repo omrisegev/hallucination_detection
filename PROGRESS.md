@@ -1,3 +1,32 @@
+## 2026-09-28: two-member extension of numeric family COMPLETE (Codex)
+
+Same dedicated branch/worktree. User requested two more members for the numeric
+family. Added saved-digit-mass-weighted entropy and strictly prior alternative-
+probability innovation; Top2 step readout, no provided-token conditioning.
+Full13,769 answers/145,597steps/6,968,779tokens; v1 feature and both bank11 baseline
+scores/decisions replay. No new inference, GPU work or external quality access.
+
+L-SML automatically isolates all3 numeric columns in5/5 folds, with7.90-8.12% of
+normalized absolute coefficient mass. Conditional pairwise decision-error phi
+versus six original families ranges .002-.163 (70,222 correct/13,149 erroneous
+noncontrol PRMB steps): low relative to within-digit dependence, not independence
+proof. Original-versus-innovation step-score correlation .999874; errors .995.
+
+PRMScore (6,211 noncontrol answers): baseline64.1723, +one64.6554, +three64.5214,
++three exact copies64.4617, same-bank equal64.3720. Candidate+three versus baseline
++0.3491pp, corrected CI[.0837,.6420]; versus one/duplicates/equal intervals include
+zero. No demonstrated incremental value for adding two columns. PB macro exact
+(4,442 error records):34.7986/36.3034/36.3791/36.3809; plus3 equal39.8419 is a control,
+not an L-SML gain. Within-AUC (6,030 mixed answers): .76455/.76946/.76799/.76738.
+
+Four feature tests PASS; full scalar entropy replay; official metrics replay for
+17 primary methods plus the late-completed, predeclared duplicates-equal control.
+Separate full-population review PASS,102,510 pairwise AUC checks; no external-agent
+audit claimed. Late control is separately sealed; primary artifacts untouched.
+Report: results/digit_family_extension_v1/REPORT_HE.md. Keep two new features as
+experimental; do not promote three merely to increase weight. A less-redundant
+third signal or generated-answer transfer would require a new bounded experiment.
+
 ## 2026-09-27: digit alternative probability experiment COMPLETE (Codex, dedicated branch)
 
 User explicitly authorized a new digit-feature research experiment on a branch

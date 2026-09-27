@@ -18397,3 +18397,44 @@ assertion; no quality result was used to alter the protocol. See LESSONS.md.
 EXTRACTION_AUDIT.json, REVIEW.json, SPAN_AUDIT.json and sealed score arrays. Protocol:
 `docs/experiments/DIGIT_ALTERNATIVE_PROBABILITY_V1.md`. Next candidate question is
 matched fusion with/without this one feature; that experiment has not been run.
+
+---
+
+### Step 448 [Codex, numeric-family extension] — Three columns form a separate group, but do not establish gain over one column or duplication, 2026-09-28
+
+**What**: User-authorized addition of two decoding-independent digit features:
+saved-digit-mass-weighted entropy and strictly prior second-digit-probability
+innovation. Full source13,769answers/145,597steps/6,968,779tokens; same Top2 readout.
+Compared bank11 L-SML base/+one/+three/+three copies, plus matched equal controls,
+under existing3fit/1unlabeled-cal/1test source folds. No GPU/inference/external run.
+
+**Why**: Test numeric-family weighting and whether its errors differ from those of
+the general feature families, without equating three transforms with independent
+evidence or assigning a protected group/weight.
+
+**Result**: Three numeric columns form an isolated group in5/5 folds with7.90-8.12%
+L1 weight mass. PRMScore on6,211 noncontrol answers:64.1723 base,64.6554 +one,
+64.5214 +three,64.4617 copies,64.3720 +three equal. Four primary contrasts,5,000
+source-group draws,98.75% intervals: +three-base+.3491pp[.0837,.6420], +three-one
+-.1340[-.3419,.0753], +three-copies+.0597[-.0060,.1270], +three-equal+.1494[-.2688,.5588].
+PB macro exact on4,442 error records:34.7986/36.3034/36.3791/36.3809; +three equal
+39.8419 is not an L-SML achievement. Within-AUC on6,030 answers:
+.76455/.76946/.76799/.76738. No proven incremental benefit from two added columns.
+
+**Dependence**: Pairwise error phi vs six original families .002-.163 conditioned
+on gold step class (70,222 correct;13,149 erroneous). Within-digit error correlations
+.879-.995. Step-score original/innovation correlation .999874. Supports descriptive
+complementarity across families, not proof of latent conditional independence.
+
+**Verification**:4 mechanism tests PASS; all-token scalar spread audit; original
+feature and both bank11 baselines replay;17 official metric replays and full saved
+prediction review (582,388 L-SML step predictions,102,510 pairwise AUC computations)
+PASS. The predeclared copies-equal control was accidentally omitted, then completed
+after outcomes in its own sealed subdirectory (PRMScore64.1971, PB39.4582). No frozen
+primary prediction or contrast changed. Code-independent replay here is within the
+same agent/session. Protocol and result report document access, censoring, timing,
+all controls and the non-promotion conclusion.
+
+**Artifacts**: results/digit_family_extension_v1/REPORT_HE.md, METRICS.json, FITS.json,
+FEATURES.npz, PREDICTIONS.npz, EVALUATION.npz, REVIEW.json; protocol:
+docs/experiments/DIGIT_FAMILY_EXTENSION_V1.md. No further variant was tested.

@@ -251,3 +251,9 @@ What happened: the first experiment commit omitted two compact NPZ files because
 Why: artifact coverage was checked on disk rather than against the staged file list; Windows JSON writes preserved CRLF under results/** -text.
 Rule: compare manifest members to tracked paths, explicitly include small replay arrays, use the existing cr-at-eol attribute for sealed Windows artifacts, and inspect a bounded check result before committing.
 Enforced by: code/config (.gitignore exact exceptions and .gitattributes rule for digit_alternative_probability_v1); command (manifest-versus-git validation).
+
+## 2026-09-27 — Match the executed control roster to every bank in the protocol
+What happened: the numeric-family extension protocol specified equal fusion for each bank, but the runner omitted equal fusion on the duplicate-feature bank. After primary outcomes, the missing predeclared control was completed in a separate sealed subdirectory; no primary predictions or contrasts were changed.
+Why: the learned-arm roster and equal-control roster were written separately and one explicitly excluded the duplication bank.
+Rule: verify the Cartesian product of registered banks and requested control types before fitting; disclose late completion instead of silently rewriting a frozen run.
+Enforced by: command/artifact (duplicate_equal_completion/SEAL.json and the report's explicit timing disclosure).
