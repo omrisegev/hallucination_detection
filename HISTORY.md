@@ -18290,3 +18290,54 @@ relative to the script. No Claude experiment worktree or frozen result changed.
 **Correction (same day, after review by Codex and a side Claude agent)**: (1) the merge and the ten removals use a HARD-CODED list of the five level channels (`LEVEL` in `er_stage_b2_run.py`), so stage B2 is a mechanism test ("what if level is counted once"), not an automatic method; the first report of 0.7818 did not say so. (2) The decomposition above double-counted: on the merge path +0.0069 = DS filter +0.0053 + rule over the plain average of the same 11 channels +0.0016; the +0.0028 (plain average of 9 vs 11 channels) belongs to the removal path. (3) "The filter gain is entirely positional" was too strong: the swap null reproduces it on the original bank, while +0.0043 survives on the position-adjusted bank (Step 451). (4) B_oracle is the same rule with true psi/eta, not a ceiling for all weightings (label-using correlation-aware weighting 0.7890); the est/oracle factors became more uniform, they did not cancel. (5) Rule minus the plain average of the same 9 channels is positive in 6/10 removal configurations (two below 0.0001). Omri's decision: keep the DS estimates as a label-free filter (first stage), keep binary-mark clustering as an option (not shown better than continuous), drop weights computed from the estimates. Next: PRMScore decomposition. Handoff: `docs/HANDOFF_EXPECTATION_REALIZATION_2026-09-27.md`.
 
 ---
+
+### Step 453 [Claude, calfix of six older runners] - Fold-role fix of the Step 438-441 and partition-ceiling runners: no cited conclusion changes; Steps 438-440 move at most 0.0021 within-AUC / 0.0008 PRMScore, 2026-09-27
+
+**What**: Handoff item 6.7 of `docs/HANDOFF_EXPECTATION_REALIZATION_2026-09-27.md`. The runners wrote each fold-k model's scores into ONE array for its evaluation fold k and its calibration fold (k+1)%5 (LESSONS 2026-09-27). First checked whether anything external depends on them: no. `TRANSFER_LOCK_V1` rests on `family_tail_calfix_v1/run_20260924_1542` (Step 442, already write-once), and Codex's `scripts/fit_external_source_bundle.py` writes only test rows, with the threshold from the same model. Then fixed the three named runners (`bank20_lsml_run.py`, `indbank_lsml_run.py`, `declared_joint_run.py`). The independent reviewer grepped the pattern and found it in three more runners with reported results: `error_cluster_lsml_run.py` and `core_virtual_lsml_run.py` (Step 441 arms that the Step 442 calfix never re-scored) and `partition_ceiling_run.py`. All six now use the same `put()`:
+- every fold-k model writes only its evaluation rows, and a repeated write raises `RuntimeError`;
+- its calibration-fold scores are kept apart, saved as `CAL_SCORES.npz`, and feed its own q80 threshold;
+- the runners refuse to write into a folder that already holds a run.
+
+Each stage was re-run into `run_20260927_calfix`; the old runs are untouched. `scripts/experiments/old_runners_calfix_verify.py` writes `CALFIX_VERIFY.json`, `BEFORE_AFTER.csv`, `CONTRASTS_BEFORE_AFTER.csv`, `SCORE_DIFF_BY_FOLD.csv` and `THRESHOLDS_BEFORE_AFTER.csv` per stage.
+
+**Why**: the PRMScore numbers of these steps had never been checked against the declared contract (fold k scored by the fold-k model; threshold = q80 of the SAME model's answer-z scores on the calibration fold).
+
+**Result**: all six stages PASS. Mechanism, confirmed exactly:
+- Inputs are identical (hash) and fit/selection records are identical.
+- Folds 1-4 are identical for every method.
+- Old fold 0 equals the fold-4 model's calibration scores bit for bit (53 method arrays in five stages; the partition-ceiling run saved no step scores, so it is checked at the metric, selection and contrast level).
+- The 185 saved old thresholds recompute from the overwritten array, and the new ones from the same model's calibration scores.
+- Fixed-weight arms (equal, declared_equal, energy_level_alone, ct7) are unchanged in every metric.
+
+Largest changes per stage (within-AUC N=6,030; PRMScore N=6,211; PB SLA macro-8), absolute values:
+
+| stage | within-AUC | PRMScore | PB SLA | verdict changes |
+|---|---:|---:|---:|---|
+| bank20 (Step 438) | 0.0021 | 0.0008 | 0.0040 | one secondary |
+| indbank (Step 439) | 0.0001 | 0.0001 | 0.0008 | none |
+| declared_joint (Step 440) | 0.0001 | 0.0001 | 0.0002 | one secondary |
+| core_virtual (Step 441) | 0.0012 | 0.0005 | 0.0008 | none |
+| error_cluster (Step 441) | 0.0169 | 0.0094 | 0.0101 | none |
+| partition ceiling | 0.00004 | 0.0001 | 0 | none |
+
+The cited numbers:
+- **Step 438:** L-SML ladder 0.7645 / 0.7602 / 0.7550 (was 0.7543) / 0.7599 (was 0.7603). B20 L-SML minus B20 equal is 0.0067 (was 0.0071) within-AUC and 0.0034 PRMScore. B20 L-SML minus B11 L-SML is -0.0047 (was -0.0042). B19 L-SML minus B19 equal is 0.0010, 95% [-0.0021, 0.0041] (was 0.0003).
+- **Steps 439-440:** primary contrasts unchanged to 4 decimals (-0.0921 -> -0.0923; 0.0130; -0.0147; -0.0082).
+- **Step 441:** err70 L-SML 0.5755 vs equal 0.6312 PRMScore; core options A/B/C 0.4915 / 0.5167 / 0.5270 vs equal 0.54-0.56.
+- **Partition ceiling:** 0.7746, and the selected profile is identical in all folds (0.7737; minus ct7 0.0013, 95% [-0.0025, 0.0051], within-AUC, -0.0019 PRMScore).
+
+The largest single move is err50 L-SML: 0.5733 -> 0.5902 within-AUC and 0.5274 -> 0.5367 PRMScore. Its fold-0 and fold-4 fits differ, and it stays far below err50 equal (0.7028 / 0.5998). Two secondary contrasts move from an interval above 0 to one that includes 0; neither is cited:
+- B19_lsml - B19_group_equal within-AUC: 0.0044 -> 0.0029 [-0.0007, 0.0066];
+- B15_declared_equal - B15_discovered_group_equal PRMScore: 0.0022 -> 0.0020 [-0.0000, 0.0041].
+
+Disclosure: the B11 fit-on-4 replay arm keeps its scores, but its threshold now comes from a fold its own model was fitted on (label-free; PRMScore -0.00005).
+
+Review: an independent subagent gave PASS on the fix. Its checks: a write-order toy replay, a mutation test of the write-once guards (flag pattern), a least-squares same-model check, and all 185 new thresholds recomputed. Its nits on the verification script are applied.
+
+Runtime: under 2 CPU-minutes per stage, 45 minutes for the partition ceiling.
+
+Hash note: `partition_ceiling_run.py` and `core_virtual_lsml_run.py` were run while their working copies had CRLF line endings (an editing side effect, reverted before commit). Their `CODE_MANIFEST` / `script_sha256` hashes are therefore over the CRLF bytes; the code is identical after normalizing line endings, and `SOURCE_SNAPSHOT` / the manifests hold the exact bytes that ran.
+
+LESSONS: the overwrite entry is updated, and a new entry records that the named list of affected runners was incomplete.
+
+---

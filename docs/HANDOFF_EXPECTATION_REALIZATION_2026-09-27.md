@@ -155,7 +155,8 @@ PRMBench within-AUC / official PRMScore / ProcessBench SLA (macro 8 cells, gate-
    not algorithmic and cannot be sent.
 6. Only after that: an automatic merge rule or the cohesion weight, each as its own frozen single-variant
    protocol, compared with the plain average of the same channels (LESSONS 2026-09-27).
-7. Still open from Step 450: re-score the PRMScore numbers of the Step 438-440 runners
+7. **Done 2026-09-27, Step 453** (six runners fixed and re-scored in `*/run_20260927_calfix/`; see HISTORY Step 453 for the
+   before/after). Original text: re-score the PRMScore numbers of the Step 438-440 runners
    (`bank20_lsml_run.py`, `indbank_lsml_run.py`, `declared_joint_run.py`), which have the
    evaluation/calibration overwrite.
 

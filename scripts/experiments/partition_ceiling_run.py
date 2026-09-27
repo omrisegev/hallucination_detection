@@ -20,6 +20,7 @@ from scipy.stats import rankdata  # noqa: E402
 
 RUN_ID = sys.argv[1] if len(sys.argv) > 1 else 'run_20260927'
 STAGE = ROOT / 'results/partition_ceiling_prmbench_v1'; OUT = STAGE / RUN_ID; OUT.mkdir(parents=True, exist_ok=True)
+if (OUT / 'RUN_STATUS.json').exists(): raise SystemExit(f'{OUT} already holds a run; pass a new run id (old runs are evidence)')
 P = json.loads((STAGE / 'PROTOCOL.json').read_text(encoding='utf8'))
 DRAWS = int(os.environ.get('PC_DRAWS', 100_000)); SEED = 20260927; FIT_SEED = 20260919
 NULL_SEEDS = [int(x) for x in os.environ.get('PC_NULL_SEEDS', '0,1,2').split(',')]
@@ -122,6 +123,14 @@ def prof(j): return {'auc_all': float(AUC[j]), 'K': int(KK[j]), 'sizes': sorted(
 scores = {a: np.full(int(off[-1]), np.nan) for a in ['equal', 'lsml', 'declared_equal', 'energy_level_alone', 'profile_selected']}
 for s in NULL_SEEDS: scores[f'null_seed{s}'] = np.full(int(off[-1]), np.nan)
 scores['ct7'] = Zs['ct7'].astype(float)
+# 2026-09-27 fix (LESSONS 2026-09-27): the old loop wrote each model's scores into ONE array for both roles, so fold 0
+# ended up scored by the fold-4 model and the thresholds of folds 0-3 were read from the next fold's model. Now every
+# fold-k model writes ONLY its evaluation rows (write-once), and its calibration-fold scores are kept apart for its own threshold.
+cal_src = {}
+def put(m, k, ev_rows, cal_rows, ev_vals, cal_vals):
+    if not np.isnan(scores[m][ev_rows]).all(): raise RuntimeError(f'write-once violated: {m} evaluation rows, fold {k}')
+    if (m, k) in cal_src: raise RuntimeError(f'write-once violated: {m} calibration scores, fold {k}')
+    scores[m][ev_rows] = ev_vals; c = np.full(int(off[-1]), np.nan); c[cal_rows] = cal_vals; cal_src[(m, k)] = c
 DECL = dict(q15_H1=5, q15_VE1=5, logprob_margin=5, true_tail50=5, energy_level=5,
             energy_innovation=3, top15_turnover=3, top50_js=3, chosen_surprisal=3, bocpd_p0=3, dominant_freq16=3)
 w_eq = np.full(m, 1 / m); w_decl = np.array([1 / (3 * DECL[nm]) for nm in NAMES]); w_en = (np.array(NAMES) == 'energy_level').astype(float)
@@ -149,13 +158,13 @@ for k in range(5):
     wsel = nans[fitf] / nans[fitf].sum()
     j_sel = int(np.argmax(AUCF[:, fitf] @ wsel))
     for arm, w in [('equal', w_eq), ('declared_equal', w_decl), ('energy_level_alone', w_en), ('profile_selected', Wall[j_sel])]:
-        for rr in (ev, cl): scores[arm][rr] = values[rr] @ w
+        put(arm, k, ev, cl, values[ev] @ w, values[cl] @ w)
     for s in NULL_SEEDS:
         jn = int(np.argmax(null_fold_auc[s][:, fitf] @ wsel))
-        for rr in (ev, cl): scores[f'null_seed{s}'][rr] = values[rr] @ Wall[jn]
+        put(f'null_seed{s}', k, ev, cl, values[ev] @ Wall[jn], values[cl] @ Wall[jn])
         sel_log.append({'fold': k, 'arm': f'null_seed{s}', 'sizes': sorted(Counter(SZ[jn].tolist()).elements(), reverse=True), 'weights': {nm: round(float(v), 4) for nm, v in zip(NAMES, Wall[jn])}})
     wl, ml = fit_fusion_weights(values[fit_rows], FusionRecipe(name='lsml', members=tuple(NAMES), mode='continuous', anchor=0), seed=FIT_SEED)
-    for rr in (ev, cl): scores['lsml'][rr] = values[rr] @ wl
+    put('lsml', k, ev, cl, values[ev] @ wl, values[cl] @ wl)
     sel_log.append({'fold': k, 'arm': 'profile_selected', 'fit_folds': fitf, 'cal_fold': cal, 'sizes': sorted(Counter(SZ[j_sel].tolist()).elements(), reverse=True),
                     'weights': {nm: round(float(v), 4) for nm, v in zip(NAMES, Wall[j_sel])}, 'rank_overall': int(np.flatnonzero(order == j_sel)[0]) + 1,
                     'auc_on_fit_folds': float(AUCF[j_sel, fitf] @ wsel), 'auc_on_eval_fold': float(AUCF[j_sel, k])})
@@ -163,6 +172,9 @@ for k in range(5):
     print(f'fold {k}: fit {fitf} cal {cal} -> selected sizes {sel_log[-2]["sizes"]} (rank {sel_log[-2]["rank_overall"]:,})', flush=True)
 timing['fits_s'] = time.perf_counter() - T0
 ARMS = ['equal', 'lsml', 'declared_equal', 'energy_level_alone', 'profile_selected'] + [f'null_seed{s}' for s in NULL_SEEDS]
+METHODS = ARMS + ['ct7']   # saved for audit (added with the 2026-09-27 fix)
+np.savez_compressed(OUT / 'STEP_SCORES.npz', offsets=off, **{m: scores[m] for m in METHODS})
+np.savez_compressed(OUT / 'CAL_SCORES.npz', offsets=off, **{f'{m}__fold{k}': v for (m, k), v in cal_src.items() if m in METHODS})   # threshold inputs, same model
 with open(OUT / 'SELECTION_LOG.jsonl', 'w', encoding='utf8') as f:
     for r in sel_log: f.write(json.dumps(r, default=float) + '\n')
 
@@ -183,8 +195,8 @@ for mth in METHODS:
     auc[mth] = np.array([within_auc(labels[off[i]:off[i + 1]], s[off[i]:off[i + 1]]) if elig[i] else np.nan for i in range(n)])
     v = np.zeros(int(off[-1]), bool)
     for k in range(5):
-        cal = (k + 1) % 5
-        cs = np.concatenate([zt(s[off[i]:off[i + 1]]) for i in np.flatnonzero(prm & (fold == cal))]); tau = float(np.quantile(cs, .8))
+        cal = (k + 1) % 5; src = s if mth == 'ct7' else cal_src[(mth, k)]   # the SAME fold-k model's calibration-fold scores; ct7 is fixed
+        cs = np.concatenate([zt(src[off[i]:off[i + 1]]) for i in np.flatnonzero(prm & (fold == cal))]); tau = float(np.quantile(cs, .8))
         for i in np.flatnonzero(prm & (fold == k)):
             a, b = off[i:i + 2]; v[a:b] = zt(s[a:b]) < tau
     off_ = prmbench_evaluate([{'idx': ids[i], 'labels': v[off[i]:off[i + 1]].astype(int).tolist()} for i in prm_pos], [meta[ids[i]] for i in prm_pos])['total']

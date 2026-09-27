@@ -1,3 +1,13 @@
+## Fold-role fix of six older runners, re-scored; no cited conclusion changes (Claude) - 2026-09-27
+
+HISTORY Step 453. The evaluation/calibration overwrite (LESSONS 2026-09-27) is fixed in `bank20_lsml_run.py`, `indbank_lsml_run.py`,
+`declared_joint_run.py`, `error_cluster_lsml_run.py`, `core_virtual_lsml_run.py` and `partition_ceiling_run.py`. The last three were found by
+grep and were not on the original list. Each stage was re-run into `run_20260927_calfix` (old runs untouched); verified by
+`scripts/experiments/old_runners_calfix_verify.py`, all six PASS; independent review PASS. Steps 438-440 move at most 0.0021 within-AUC /
+0.0008 PRMScore; the largest move anywhere is err50 L-SML (Step 441) 0.5733 -> 0.5902, still far below its equal control. No primary
+or cited contrast changes verdict. External work is unaffected: TRANSFER_LOCK_V1 rests on the already fixed Step 442 run, and Codex's
+source bundle has separate fold roles. Next: PRMScore decomposition (handoff section 6.1). Branch `claude/ssl-pseudolabel-residual-v1`.
+
 ## Expectation vs realization fusion, stages A-B2 closed; HANDOFF (Claude) - 2026-09-27
 
 **Read `docs/HANDOFF_EXPECTATION_REALIZATION_2026-09-27.md` first.** Steps 450-452, `results/expectation_realization_v1/`.

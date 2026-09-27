@@ -15,7 +15,9 @@ from spectral_utils.lsml_gate_locator_research import FusionRecipe, answer_stand
 from spectral_utils.prmbench import prmbench_evaluate  # noqa: E402
 from scipy.stats import rankdata  # noqa: E402
 
-STAGE = ROOT / 'results/core_virtual_lsml_v1'; OUT = STAGE / 'run_20260924'; OUT.mkdir(parents=True, exist_ok=True)
+RUN_ID = sys.argv[1] if len(sys.argv) > 1 else 'run_20260924'
+STAGE = ROOT / 'results/core_virtual_lsml_v1'; OUT = STAGE / RUN_ID; OUT.mkdir(parents=True, exist_ok=True)
+if (OUT / 'RUN_STATUS.json').exists(): raise SystemExit(f'{OUT} already holds a run; pass a new run id (old runs are evidence)')
 P = json.loads((STAGE / 'PROTOCOL.json').read_text(encoding='utf8'))
 R = MAIN / '.worktrees/readout-quickest-detection-v1/results/step_evidence_v1'
 SCR = Path('C:/Users/DELL/AppData/Local/Temp/claude/c--Users-omris-TAU-hallucination-detection/2d14a8c9-8b3f-489b-b26f-812b4b84a8b3/scratchpad')
@@ -72,17 +74,25 @@ scores = {}; fit_log = []; failures = []
 for s in INPUT_SETS:
     for arm in ['lsml', 'equal']: scores[f'{s}_{arm}'] = np.full(int(off[-1]), np.nan)
 scores['ct7'] = Zs['ct7'].astype(float)
+# 2026-09-27 fix (LESSONS 2026-09-27): the old loop wrote each model's scores into ONE array for both roles, so fold 0
+# ended up scored by the fold-4 model and the thresholds of folds 0-3 were read from the next fold's model. Now every
+# fold-k model writes ONLY its evaluation rows (write-once), and its calibration-fold scores are kept apart for its own threshold.
+cal_src = {}
+def put(m, k, ev_rows, cal_rows, ev_vals, cal_vals):
+    if not np.isnan(scores[m][ev_rows]).all(): raise RuntimeError(f'write-once violated: {m} evaluation rows, fold {k}')
+    if (m, k) in cal_src: raise RuntimeError(f'write-once violated: {m} calibration scores, fold {k}')
+    scores[m][ev_rows] = ev_vals; c = np.full(int(off[-1]), np.nan); c[cal_rows] = cal_vals; cal_src[(m, k)] = c
 for k in FOLDS:
     t = time.perf_counter(); cal = (k + 1) % 5; fitf = [f for f in range(5) if f not in (k, cal)]
     fit_rows = rows_of(np.isin(fold, fitf)); ev_rows = rows_of(fold == k); cal_rows = rows_of(fold == cal)
     for s, (X, mem) in INPUT_SETS.items():
         we = np.ones(X.shape[1]) / X.shape[1]
-        for rr in (ev_rows, cal_rows): scores[f'{s}_equal'][rr] = X[rr] @ we
+        put(f'{s}_equal', k, ev_rows, cal_rows, X[ev_rows] @ we, X[cal_rows] @ we)
         try:
             w, m = fit_fusion_weights(X[fit_rows], FusionRecipe(name=s, members=tuple(mem), mode='continuous', anchor=ANCHOR[s]), seed=FIT_SEED)
         except Exception as e:
             failures.append({'fold': k, 'set': s, 'reason': repr(e)}); continue
-        for rr in (ev_rows, cal_rows): scores[f'{s}_lsml'][rr] = X[rr] @ w
+        put(f'{s}_lsml', k, ev_rows, cal_rows, X[ev_rows] @ w, X[cal_rows] @ w)
         g = np.asarray(m['groups'], int)
         fit_log.append({'fold': k, 'set': s, 'K': int(m['K']), 'group_sizes': np.bincount(g).tolist(),
                         'groups': {int(q): [mem[j] for j in np.flatnonzero(g == q)] for q in np.unique(g)},
@@ -94,6 +104,7 @@ with open(OUT / 'FIT_MANIFEST.jsonl', 'w', encoding='utf8') as f:
     for r in fit_log: f.write(json.dumps(r) + '\n')
 ev_all = rows_of(np.isin(fold, FOLDS)); METHODS = [m for m in scores if np.isfinite(scores[m][ev_all]).all()]
 np.savez_compressed(OUT / 'STEP_SCORES.npz', offsets=off, **{m: scores[m] for m in METHODS})
+np.savez_compressed(OUT / 'CAL_SCORES.npz', offsets=off, **{f'{m}__fold{k}': v for (m, k), v in cal_src.items() if m in METHODS})   # threshold inputs, same model
 
 # ------------------------------------------------------------------ evaluation (labels enter here only)
 def within_auc(y, s):
@@ -111,7 +122,8 @@ for m in METHODS:
     auc[m] = np.array([within_auc(labels[off[i]:off[i+1]], s[off[i]:off[i+1]]) if eligible[i] else np.nan for i in range(n)])
     v = np.zeros(int(off[-1]), bool)
     for k in FOLDS:
-        cal = (k + 1) % 5; cs = np.concatenate([zt(s[off[i]:off[i+1]]) for i in np.flatnonzero(prm & (fold == cal))]); tau = float(np.quantile(cs, .8))
+        cal = (k + 1) % 5; src = s if m == 'ct7' else cal_src[(m, k)]   # the SAME fold-k model's calibration-fold scores; ct7 is fixed
+        cs = np.concatenate([zt(src[off[i]:off[i+1]]) for i in np.flatnonzero(prm & (fold == cal))]); tau = float(np.quantile(cs, .8))
         for i in np.flatnonzero(prm & (fold == k)):
             a, b = off[i:i+2]; v[a:b] = zt(s[a:b]) < tau
     official[m] = prmbench_evaluate([{'idx': ids[i], 'labels': v[off[i]:off[i+1]].astype(int).tolist()} for i in prm_pos], [meta[ids[i]] for i in prm_pos])['total']
