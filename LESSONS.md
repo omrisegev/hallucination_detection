@@ -245,3 +245,9 @@ What happened: the new digit extraction stopped at a disjoint-token-span asserti
 Why: character-disjoint steps need not map to token-disjoint spans; the original producer records these with strict=False.
 Rule: preserve frozen spans and validate exact audited overlaps rather than adding an incompatible invariant. Any unregistered overlap still fails; report an exclusion sensitivity for the three known rows.
 Enforced by: code (scripts/audit_digit_source_spans.py, SPAN_AUDIT.json, extraction identity checks).
+
+## 2026-09-27 — Verify sealed arrays and bound whitespace-check output before committing
+What happened: the first experiment commit omitted two compact NPZ files because of the repository-wide result-array ignore rule. The staged whitespace check also emitted a large CRLF-only warning stream for sealed JSON; the command sequence did not gate the commit on its exit status.
+Why: artifact coverage was checked on disk rather than against the staged file list; Windows JSON writes preserved CRLF under results/** -text.
+Rule: compare manifest members to tracked paths, explicitly include small replay arrays, use the existing cr-at-eol attribute for sealed Windows artifacts, and inspect a bounded check result before committing.
+Enforced by: code/config (.gitignore exact exceptions and .gitattributes rule for digit_alternative_probability_v1); command (manifest-versus-git validation).
