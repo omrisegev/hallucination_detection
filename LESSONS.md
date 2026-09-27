@@ -219,3 +219,9 @@ What happened: prmscore_decomposition_v1 (frozen protocol, all numbers exact) re
 Why: the standing rule to run both nulls was applied to within-answer AUC gains in earlier stages but not carried into a new kind of analysis (a decomposition of a threshold metric); stratifications by label-derived variables were reported without their class mix.
 Rule: every paired contrast in a decomposition carries the within-answer permutation AND the whole-answer swap null residual; every rate-under-a-rule panel carries a random-score baseline under the same rule; every stratification by a label-derived variable reports its composition by class before any effect is read.
 Enforced by: prose (this entry; results/expectation_realization_v1/prmscore_decomposition_v1/RED_TEAM.md).
+
+## 2026-09-28 — A secondary bank's gain was called "content" although it had no null behind it
+What happened: in er_generality_v1 the runner computed permutation nulls only for the primary banks (B20, B32). My preliminary report nevertheless said the filter's gain on the secondary bank B51 (+0.0128) was content; the red team ran the whole-answer same-length swap there and ~70% of it is position. The same report proposed a mechanism for the simple filter's failure (a level-dominated mean) that the red team refuted, and omitted that the B32 gain comes 86% from 61 answers.
+Why: I extrapolated the primary banks' null result to a bank without one, and wrote a mechanism as an explanation before testing it.
+Rule: never characterise a gain as content or position without that bank's own null; a proposed mechanism is labelled a hypothesis until a test supports it; every headline gain carries its concentration (share from the top 1% of answers, trimmed mean).
+Enforced by: prose (this entry, results/er_generality_v1/run_20260927/RED_TEAM.md).

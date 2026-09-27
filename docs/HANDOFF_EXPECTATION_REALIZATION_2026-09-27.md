@@ -173,3 +173,12 @@ PRMBench within-AUC / official PRMScore / ProcessBench SLA (macro 8 cells, gate-
 - Say which reference a number is relative to; do not add components computed on different paths.
 - A red-team script that reads `np.load(npz)[key]` inside a per-answer loop decompresses the array each time
   (38 minutes wasted); load arrays once.
+
+## 8. Addendum 2026-09-28: generality test (Step 455, `results/er_generality_v1/SUMMARY.md`)
+
+Omri asked whether the method is tailored to the 13 channels. On pre-existing 20/32/51-channel banks with no parameter changed:
+the DS filter's channel SELECTION transfers (never dropped a channel with true balanced accuracy >= 0.52; always dropped those
+< 0.475; the simple correlation filter misfires on larger banks), but its score gain is bank-dependent (none on B20, concentrated on
+B32, mostly positional on B51); grouping and L-SML do not transfer; the binary partition beats the continuous one at equal group
+weights on every bank but loses to plain averaging. Item 3 of section 6 (DS vs simple filter) is answered on PRMBench: DS is much
+better on the heterogeneous B32/B51, slightly worse on B20. Open: flipping strongly reversed channels instead of dropping them.

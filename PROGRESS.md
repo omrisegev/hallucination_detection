@@ -1,3 +1,13 @@
+## er_generality_v1: is the stage-B method tailored to 13 channels? (Claude) - 2026-09-28
+
+HISTORY Step 455, `results/er_generality_v1/SUMMARY.md` (+ run_20260927/RED_TEAM.md). Frozen stage-B chain, no parameter changed, on
+pre-existing banks B20 / B32 / B51. The label-free DS filter's SELECTION transfers (never dropped a channel with true balanced accuracy
+>= 0.52, always dropped those < 0.475; the simple correlation filter misfires on larger banks). Its SCORE gain is bank-dependent: none on
+B20, +0.0035 on B32 (not positional, but concentrated), +0.0128 on B51 (~70% positional). Grouping (unstable partitions, below plain
+averaging) and L-SML (collapses on B32 without the filter) do not transfer; the binary partition beats the continuous one at equal group
+weights on every bank. Larger banks all score below B13. Untested: flip reversed channels instead of dropping. Branch
+`claude/ssl-pseudolabel-residual-v1` (merged from `claude/er-generality-v1`; that worktree was removed).
+
 ## PRMScore decomposition on frozen predictions, complete with red team (Claude) - 2026-09-27
 
 HISTORY Step 454, `results/expectation_realization_v1/prmscore_decomposition_v1/` (REPORT_HE.html, RED_TEAM.md), page
