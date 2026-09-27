@@ -1,3 +1,20 @@
+## Codex digit family merged; clustering diagnosis (Claude) - 2026-09-28
+
+- Merged `codex/digit-alternative-probability-v1` (Codex Steps 447-448, and the external-generalization line it sits on) into
+  `claude/ssl-pseudolabel-residual-v1` (a9c7d6f83; logs resolved by union; Step 433 collision tagged). The three decoding-independent
+  digit features (`results/digit_family_extension_v1/FEATURES.npz`: digit_alternative, digit_spread, digit_alternative_innovation;
+  step-aligned) are now available here. They use no chosen-token disagreement, so the 2026-09-17 digit exclusion (disagreement with the
+  preferred token) is not affected; the old disagreement feature stays excluded unless Omri decides otherwise. Codex's worktree
+  `.worktrees/digit-alternative-probability-v1` is clean; removing it needs Omri's terminal (guard_git blocks agents).
+- Clustering diagnosis, label-free (`results/expectation_realization_v1/stage_b_diagnostics/clustering_merge_diag_label_free.py/.json`):
+  where L-SML splits the level family, its own Eq.14 residual PREFERS the split (e.g. B13 10.04 vs 10.17 merged), even when the merged
+  partition is among its candidates -> a model property (the level block explains itself through the off-group factor), not a search
+  failure. Kaiser (lambda_2 < 1) merge is size-biased (merges singletons into the level group on B20, never merges large halves on B51).
+  A size-free absorption ratio rho = lambda_2(union) / min(lambda_1(A), lambda_1(B)) < 0.5 merged exactly the two level halves wherever
+  level was split (B13, B16 = B13 + 3 digit features, B20, B51; continuous and binary partitions; folds 0, 2, 4) and nothing else
+  (merged 0.37-0.46; next pair >= 0.53, >= 0.69 on binary partitions). Designed after seeing the Kaiser behaviour: label-free but not
+  blind. The digit features form their own group. Next: frozen test of L-SML + this merge step (Omri to approve).
+
 ## er_generality_v1: is the stage-B method tailored to 13 channels? (Claude) - 2026-09-28
 
 HISTORY Step 455, `results/er_generality_v1/SUMMARY.md` (+ run_20260927/RED_TEAM.md). Frozen stage-B chain, no parameter changed, on
