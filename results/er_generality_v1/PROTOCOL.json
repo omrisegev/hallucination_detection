@@ -1,0 +1,72 @@
+{
+ "protocol_id": "er_generality_v1",
+ "version": 1,
+ "frozen_before_scoring": true,
+ "status": "FROZEN",
+ "requested_by": "Omri 2026-09-27: concern that the stage-B method was tailored to exactly the 13 channels and would not work on 20 or 30 channels; test it in a separate worktree, summarize in a committed document, then delete the worktree.",
+ "question": "Does the frozen label-free chain of expectation_realization_v1 stages B/B2 (Dawid-Skene filter on top-20% marks, then plain averaging, binary-mark or continuous grouping, or L-SML) behave on larger pre-existing banks as it did on the 13-channel bank, with NO parameter changed?",
+ "not_tested_and_why": "The stage-B2 level merge is a hard-coded channel list, not an algorithm, and has no meaning on another bank. Weights from the DS estimates were dropped by Omri (Step 452).",
+ "banks": {
+  "B13": "the stage A/B bank (bank11 + realized_z + realized_drv); replay anchor: DSF_equal and DSF_lsml must equal the stage-B S_equal and S_lsml evaluation rows within 1e-9 (hard stop)",
+  "B20": "the Step 438 bank20 (bank11 + ct7_chosen_std_excess, ct7_bocpd_residual, ct7_H0lim_prefix_innovation, ct7_ve0, H1_first_token, H1_slope, H1_jump, H1_frac_above_z, evidence_drop_risk), taken from the 52-channel step pool; check: ALL_equal and ALL_lsml within-AUC vs the Step 453 calfix B20_equal 0.753200 and B20_lsml 0.759891 (hard stop if either differs by > 1e-4)",
+  "B32": "the Step 439 bank B11_IND_lf (bank11 + 21 entropy-independent pool channels with their label-free orientation sign(r with the level mean)); check vs the calfix B11_IND_lf_equal 0.744031 and B11_IND_lf_lsml 0.672229 (hard stop > 1e-4)",
+  "B51": "the 52-channel step pool (pool_z.npy, sha256 prefix d9abccfb561f as in the Step 439 manifest) minus channels with zero variance (label-free hygiene rule, found in the fold-0 smoke: hist_trace_length_series is constant within every answer, hence 0 after answer standardization; the DS filter kept it at pi_hat just above 0.5 and the binary partition then failed on a constant column), every channel in its native orientation; 51 channels; not used before as a bank (extension, secondary)"
+ },
+ "chain_frozen_from_stage_B": {
+  "marks": "per answer and channel the top ceil(0.2 n) steps, ties by a uniform random key numpy default_rng(20260928).random((steps, channels))",
+  "DS_filter": "Dawid-Skene (cvf_v2 em.fit_em 'ds', spectral initialization, er_stage_a.em_estimate) on the marks over the PRMBench steps of the three fit folds; keep channel iff pi_hat > 0.5; fewer than 3 survivors = arm unscored",
+  "simple_filter": "label-free control: drop channel j iff the Pearson correlation between channel j and the mean of the other channels of the bank, over the PRMBench fit-fold steps, is < 0",
+  "binary_partition": "B1 recipe: tail_calib_common.lsml_fit_scaled on tie-aware centred top-20% marks (calfix_common.tail_marks) of the survivors over all fit-fold steps",
+  "continuous_partition": "the groups of CONT L-SML (fit_fusion_weights 'continuous') on the survivors over all fit-fold steps",
+  "group_score": "answer re-standardized mean of the members; equal weights across groups",
+  "anchor": "q15_H1 (present and surviving in every bank)",
+  "folds": "eval k, calibration (k+1)%5 for the PRMScore threshold only (same fold-k model), fit on the other three; write-once"
+ },
+ "arms_per_bank": {
+  "ALL_equal": "average of all channels of the bank",
+  "DSF_equal": "DS filter, then average of the survivors (the stage-1 Omri keeps)",
+  "SF_equal": "simple filter, then average of the survivors",
+  "DSF_Gbin": "DS filter, binary-mark partition, equal group weights",
+  "DSF_Gcont": "DS filter, continuous L-SML partition, equal group weights",
+  "ALL_lsml": "CONT L-SML on all channels",
+  "DSF_lsml": "CONT L-SML on the DS survivors",
+  "position_replicate": "ALL_equal, DSF_equal and SF_equal repeated on the position-adjusted bank (stage-B definition; suffix _pos)",
+  "references": "ct7, fam421, step_index"
+ },
+ "diagnostics_label_using_for_diagnosis_only": "per bank and fold: DS pi_hat vs true pi of every channel on the same rows; dropped vs truly anti-oriented (true pi <= 0.5) channels, and dropped channels that are informative when flipped (true pi < 0.45); simple-filter drops; estimated vs true prevalence; binary and continuous partitions and their identity across folds; single-channel within-AUC of every channel",
+ "endpoints": "PRMBench within-answer AUC and official PRMScore (primary); ProcessBench gate-free SLA macro 8 cells (beside)",
+ "contrasts": {
+  "primary": [
+   ["DSF_equal", "ALL_equal", "does the stage-1 DS filter help averaging on a larger bank"],
+   ["DSF_equal", "SF_equal", "unique value of the DS estimate over a simple correlation filter"],
+   ["DSF_Gbin", "DSF_equal", "binary-mark grouping (equal group weights) vs plain averaging of the same survivors"],
+   ["DSF_Gbin", "DSF_Gcont", "binary vs continuous partition at equal group weights"],
+   ["DSF_lsml", "DSF_equal", "L-SML vs plain averaging of the same survivors"]
+  ],
+  "primary_banks": ["B20", "B32"],
+  "primary_family": "5 contrasts x 2 banks x 2 PRMBench endpoints = 20, Bonferroni, 100,000 paired source-group draws (seed 20260927)",
+  "secondary": "the same five contrasts on B13 and B51 (95% intervals); every arm vs ct7 and fam421; ProcessBench SLA of every contrast; position replicate DSF_equal_pos - ALL_equal_pos and DSF_equal_pos - SF_equal_pos"
+ },
+ "nulls": "for the ten primary contrasts on PRMBench within-AUC: within-answer label shuffle and whole-answer same-length label swap, 200 permutations each (seeds 11, 12)",
+ "interpretation_rule_frozen": {
+  "filter_generalizes": "on BOTH B20 and B32: in every fold no dropped channel has true pi >= 0.52, and DSF_equal - ALL_equal has a Bonferroni interval above 0 on within-AUC",
+  "DS_beats_simple_filter": "DSF_equal - SF_equal adjusted interval above 0 on within-AUC for at least one of B20, B32 and below 0 for neither",
+  "binary_grouping_helps": "DSF_Gbin - DSF_equal adjusted interval above 0 on within-AUC on both banks",
+  "binary_beats_continuous_partition": "DSF_Gbin - DSF_Gcont adjusted interval above 0 on within-AUC on both banks",
+  "lsml_beats_averaging": "DSF_lsml - DSF_equal adjusted interval above 0 on within-AUC on both banks",
+  "otherwise": "reported as not established on larger banks; PRMScore and ProcessBench reported beside, never used to rescue a within-AUC failure"
+ },
+ "predictions_frozen": {
+  "P1": "B20: the DS filter drops the channels with true pi <= 0.5 and no channel with true pi >= 0.52, in every fold",
+  "P2": "B32: same as P1",
+  "P3": "DSF_equal - ALL_equal > 0 (point) on B20 and B32",
+  "P4": "|DSF_equal - SF_equal| < 0.002 on B20 and B32",
+  "P5": "DSF_lsml below DSF_equal on B20 and B32",
+  "P6": "B51 (native orientation): the DS filter drops many channels, including some with true pi < 0.45 (informative if flipped)",
+  "P7": "binary and continuous partitions differ on B32 and B51"
+ },
+ "hard_stops": ["input hashes differ from the Step 439 / stage-A manifests", "B13 replay of stage-B S_equal / S_lsml > 1e-9", "B20 or B32 replay of the calfix equal / L-SML within-AUC > 1e-4", "mark counts not ceil(0.2 n)", "any evaluation row written twice"],
+ "review": "independent pre-run code review; after the run independent verification by subagents (recomputation, coverage, nulls)",
+ "budget": "CPU only, <= 1 hour",
+ "outputs": "results/er_generality_v1/run_20260927/: RUN_STATUS, INPUT_MANIFEST, CODE_MANIFEST, FIT_MANIFEST.jsonl, METRICS.csv, CONTRASTS.csv, PB_CONTRASTS.csv, CHANNELS.csv (per bank, fold, channel diagnostics), PARTITIONS.json, NULLS.json, FAILURES.csv, TIMING.json; SUMMARY.md; npz kept locally"
+}
