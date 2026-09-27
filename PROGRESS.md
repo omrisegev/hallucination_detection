@@ -1,3 +1,14 @@
+## PRMScore decomposition on frozen predictions, complete with red team (Claude) - 2026-09-27
+
+HISTORY Step 454, `results/expectation_realization_v1/prmscore_decomposition_v1/` (REPORT_HE.html, RED_TEAM.md), page
+https://claude.ai/artifact/2ruJ31MznDA5d8HyhJhVoq. No number wrong; three readings weakened by the nulls: the filter gain (0.0038) and the
+fused row's tie with realized_drv (0.6565 vs 0.6590) are mostly position structure (whole-answer swap null); the gap to Qwen PRM is 0.0241
+to its raw-scale q80, 0.0073 of it calibration (answer-z), and 0.0140 of the remaining 0.0168 is flag-count allocation per answer, not
+placement. Per class: we lead on redundency/circular (validity fallback) and domain_inconsistency; the PRM on deception/counterfactual/
+confidence/missing_condition. Per-answer normalization flags ~99% of clean answers, same as random scores (structural gate limit).
+Correction: stage A-B2 marks are within-answer. Next (handoff 6.2-6.5): decide with Omri; the facts point at the per-answer gate/flag
+count, not at new weights. Branch `claude/ssl-pseudolabel-residual-v1`.
+
 ## Fold-role fix of six older runners, re-scored; no cited conclusion changes (Claude) - 2026-09-27
 
 HISTORY Step 453. The evaluation/calibration overwrite (LESSONS 2026-09-27) is fixed in `bank20_lsml_run.py`, `indbank_lsml_run.py`,

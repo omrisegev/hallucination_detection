@@ -213,3 +213,9 @@ What happened: Step 453 edited HISTORY.md, PROGRESS.md, LESSONS.md, a handoff an
 Why: text-mode writes on Windows convert newlines, and the scripted edits never looked at the byte-level diff.
 Rule: scripted edits read and write bytes (`read_bytes().decode()` / `write_bytes(...encode())`) or pass `newline=''`; before every commit check `git diff --cached --stat` against the expected size of the change.
 Enforced by: prose (this entry).
+
+## 2026-09-27 — A PRMScore decomposition reported panels without their null baselines
+What happened: prmscore_decomposition_v1 (frozen protocol, all numbers exact) reported paired contrasts, a clean-answer false-alarm panel and a first-error-position panel. The red team showed three readings needed baselines the design lacked: (1) about 70% of the filter gain and the fused row's apparent tie with realized_drv are reproduced by a whole-answer label swap between answers of equal length (position structure); (2) under our answer-z rule, 0.0140 of the 0.0168 gap to the PRM survives a within-answer label permutation (it is flag-count allocation, not placement); (3) "99% of clean answers get a false flag" is produced by random scores under the same rule; (4) the position gradient mirrors class composition.
+Why: the standing rule to run both nulls was applied to within-answer AUC gains in earlier stages but not carried into a new kind of analysis (a decomposition of a threshold metric); stratifications by label-derived variables were reported without their class mix.
+Rule: every paired contrast in a decomposition carries the within-answer permutation AND the whole-answer swap null residual; every rate-under-a-rule panel carries a random-score baseline under the same rule; every stratification by a label-derived variable reports its composition by class before any effect is read.
+Enforced by: prose (this entry; results/expectation_realization_v1/prmscore_decomposition_v1/RED_TEAM.md).

@@ -136,7 +136,7 @@ PRMBench within-AUC / official PRMScore / ProcessBench SLA (macro 8 cells, gate-
 
 ## 6. Next steps (ordered)
 
-1. **PRMScore decomposition (Omri + Codex, next task).** On existing scores (no new fitting), compare
+1. **Done 2026-09-27, Step 454** (`prmscore_decomposition_v1/`, page https://claude.ai/artifact/2ruJ31MznDA5d8HyhJhVoq). Original text: **PRMScore decomposition (Omri + Codex, next task).** On existing scores (no new fitting), compare
    all-13 average, DS filter + average, simple filter + average, the stage-B2 merge rule, L-SML, fam421 and
    CT7 by: official PRMBench categories; official PRMScore components (positive F1, negative F1); answer
    length and first-error position; paired per-answer changes (improved / worse / unchanged). Report N and
