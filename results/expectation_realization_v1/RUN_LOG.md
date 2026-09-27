@@ -17,3 +17,6 @@ Stage-by-stage management record. Protocol: `PROTOCOL.json` (frozen before any s
 | 2026-09-27 | Red team | three independent agents launched (recompute / coverage / null+math); no interpretation before their consensus | |
 | 2026-09-27 | Red team complete | A recomputation: all numbers within 5e-5; B coverage: full, PRMBench-only qualifiers; C null+math: claims survive, math sound; claim 2 weakened (post-hoc channel beats all fusion; block gain = down-weighting of anti-oriented channels; position prior), claim 4 range corrected. `run_20260927/RED_TEAM.md`; step index alone verified at 0.6617 | Step 450 commit |
 | 2026-09-27 | Stage A done, STOP | Discussion with Omri before stage B | |
+| 2026-09-27 | Stage B frozen | PROTOCOL_STAGE_B.json (2b3971383); pre-run code review PASS with non-blocking fixes | 2b3971383 |
+| 2026-09-27 | Amendment B1 | after the fold-0 smoke: label-free partition diagnostic; G1 arms on the stage-A tail partition; re-review PASS | 7fa255e8f |
+| 2026-09-27 | Stage B full run | run_20260927_stage_b: COMPLETE, 0 failed fits, replay 1.1e-16, stage-A metrics reproduced 0.0; 266 s | pending red team |
