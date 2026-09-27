@@ -1,0 +1,82 @@
+{
+ "protocol_id": "expectation_realization_v1_stage_B",
+ "version": 1,
+ "frozen_before_scoring": true,
+ "status": "FROZEN",
+ "requested_by": "Omri 2026-09-27: use the automatic clustering instead of declared blocks; drop the channels the binary estimates identify as weak, re-cluster, then use group-level estimates; the aim is a decision rule built from the binary classifier properties that beats averaging all features and scores well on the benchmarks. Plan approved in conversation ('בצע את הריצה'). Joint is dropped (Omri: focus on L-SML).",
+ "parent": "results/expectation_realization_v1/PROTOCOL.json (stage A, amendment A1) and its run run_20260927 (Step 450)",
+ "questions": {
+  "Q1_filter": "Does removing every channel whose Dawid-Skene balanced accuracy estimate is <= 0.5 remove the channels that are truly anti-oriented (and only those)?",
+  "Q2_partition": "Is the L-SML partition of the surviving channels, found on their binary marks, identical across the 5 folds and equal to the 13-channel partition restricted to the survivors?",
+  "Q3_group_estimates": "Are the Dawid-Skene estimates of sensitivity, specificity and prevalence accurate when each discovered group votes once (group representative) instead of each channel?",
+  "Q4_rule": "Does the decision rule built from the estimated group properties (maximum-likelihood log-odds weights learned on binary marks, applied to the continuous group scores) beat averaging all 13 channels on PRMBench, beat equal weights on the same groups, and beat channel-level estimated weights?",
+  "Q5_continuous": "Does continuous L-SML on the surviving channels beat L-SML on all 13 channels, and beat averaging the survivors?"
+ },
+ "population": "unchanged from stage A: 13,769 answers, source_groups_v2 folds, outer fold k evaluated, calibration fold (k+1)%5 sets only the PRMScore threshold, fitting on the other three folds; 13 answer-standardized channels (bank11 + realized_z + realized_drv). Input files must hash-equal the stage-A INPUT_MANIFEST",
+ "label_free_chain": {
+  "rows": "every label-free estimation step (marks statistics, Dawid-Skene, partition) uses the PRMBench steps of the three fit folds with uniform weights, as stage A did, so that the stage-A truth can be computed on the same rows. S_lsml is fitted on all fit-fold steps (both benchmarks) exactly like the stage-A B13_lsml, so contrast 4 isolates channel removal",
+  "1_marks": "per answer and channel: +1 for the top ceil(0.2 n) steps, -1 otherwise. Boundary ties are broken by a uniform random key (numpy default_rng(20260928), one key per step and column, fixed for the run), NOT by position: stage A found boundary ties in 16.7% of answer-channel cells (dominant_freq16 86%, top15_turnover 49%) resolved toward early steps",
+  "2_filter": "Dawid-Skene EM (cvf_v2 em.fit_em 'ds', spectral initialization, as stage A) on the 13 channels' marks; channel i survives iff its estimated balanced accuracy pi_hat_i = (psi_hat_i + eta_hat_i)/2 > 0.5. Fewer than 3 survivors or an EM failure = every stage-B arm of that fold is unscored (no fallback)",
+  "3_partition": "L-SML grouping of the survivors on their answer-centred marks (tail_calib_common.lsml_fit_scaled, standardize, unit loading scale: the recipe whose 13-channel partition equalled the three declared families in all 5 stage-A folds). The same grouping on all 13 channels is computed for Q2 only",
+  "4_group_scores": "continuous group score = answer re-standardized mean of the member channels (answer-standardized values); binary group representative = top-20% marks of that score with its own random tie key (default_rng(20260929))",
+  "5_group_estimates": "Dawid-Skene EM on the group representatives' marks (needs >= 3 groups; otherwise G_sml is unscored in that fold). The truth on the same rows is computed for the diagnostic only",
+  "6_rule": "weight of group g = max(0, log(psi_g eta_g / ((1-psi_g)(1-eta_g)))) with psi, eta clipped to [1e-4, 1-1e-4] (the Parisi et al. 2014 maximum-likelihood vote weight; positive exactly when pi_g > 0.5), normalized to sum 1; step score = sum_g w_g * continuous group score. All weights 0 = unscored"
+ },
+ "arms": {
+  "candidate": {
+   "G_sml": "the rule above"
+  },
+  "stage_B_controls": {
+   "G_equal": "equal weights on the same discovered groups' continuous scores (discovered-group block-equal)",
+   "C_sml": "channel-level rule: max(0, log alpha_i) from the 13-channel Dawid-Skene estimates of step 2, applied to the answer-standardized channels (no grouping; filtered channels get weight 0 automatically)",
+   "S_equal": "equal weights on the surviving channels",
+   "S_lsml": "CONT L-SML (fit_fusion_weights 'continuous', small_m_guard, FIT_SEED 20260919) on the surviving channels, fitted on all fit-fold steps; orientation anchor q15_H1 if it survives, otherwise the survivor with the largest pi_hat",
+   "G_oracle": "DIAGNOSTIC, LABEL-USING, NEVER A CANDIDATE: the same group weights computed from the TRUE psi, eta of the group representatives on the fit-fold PRMBench steps. Measures the headroom of the rule if the estimates were perfect"
+  },
+  "references_refitted_and_replayed": "B13_equal, B13_block_equal (declared blocks), B13_lsml, B11_lsml, B11_equal, ct7, fam421: refitted per fold and required to equal the stage-A STEP_SCORES.npz evaluation rows (<= 1e-9; hard stop otherwise); PRMScore thresholds from the same fold models",
+  "position_reference": "step_index: the 0-based step index as the step score (stage-A red team: 0.662 within-answer on PRMBench)",
+  "position_controlled_replicate": "the whole label-free chain and the arms G_sml, G_equal, C_sml, S_equal, S_lsml, G_oracle and B13_equal repeated on a position-adjusted bank (suffix _pos): each answer-standardized channel minus its label-free mean at (answer step count, step index) over the PRMBench fit-fold steps (unseen keys: 0), then answer re-standardized. Stage-A red team: drv's positional profile alone scores 0.651",
+  "tie_seed_stability": "the chain on the original bank repeated with tie keys from default_rng(20260930) and default_rng(20260931) (suffixes _tie2, _tie3); survivors, partitions, weights and metrics reported, no contrasts"
+ },
+ "endpoints": "unchanged from stage A: PRMBench within-answer AUC and official PRMScore (primary), any-error hit (secondary), ProcessBench gate-free SLA macro over 8 cells (reported beside)",
+ "contrasts": {
+  "primary": [
+   ["G_sml", "B13_equal", "does the binary-property rule beat averaging all 13 channels (the stated goal)"],
+   ["G_sml", "G_equal", "do the estimated weights add over equal weights on the same discovered groups"],
+   ["G_sml", "C_sml", "does estimating per discovered group beat estimating per channel"],
+   ["S_lsml", "B13_lsml", "does removing the estimated-weak channels help continuous L-SML"],
+   ["S_lsml", "S_equal", "does continuous L-SML add over averaging the survivors"]
+  ],
+  "primary_family": "5 contrasts x 2 PRMBench endpoints (within-AUC, PRMScore) = 10; Bonferroni-adjusted intervals from 100,000 paired source-group bootstrap draws (seed 20260927), on the folds both arms cover",
+  "secondary": "every stage-B arm vs B13_equal, B13_block_equal, B13_lsml, B11_lsml, ct7, fam421 and step_index; S_equal - B13_equal; G_oracle - G_equal; G_oracle - G_sml; position replicate: G_sml_pos - B13_equal_pos, G_sml_pos - G_equal_pos, S_lsml_pos - S_equal_pos; ProcessBench SLA of every pair (100,000 paired draws over ProcessBench source groups, percentile intervals, no correction)"
+ },
+ "diagnostic_bars": {
+  "Q1": "per fold: the set of dropped channels vs the set with true pi <= 0.5 on the same rows (both lists reported; no bar)",
+  "Q2": "per fold partition of the survivors, adjusted Rand index between every pair of folds, and equality with the 13-channel partition restricted to the survivors",
+  "Q3_bar": "group estimates are called accurate in a fold only if (a) |prevalence_hat - prevalence_true| <= 0.05; (b) every group with |pi_true - 0.5| > 0.02 is on the correct side of 0.5; (c) rank: Spearman(pi_hat, pi_true) >= 0.80 when there are >= 4 groups, the identical order when there are 3. Also reported: MAE of psi and eta, and the Spearman between estimated and oracle weights. The bar does not gate scoring: if it fails, any G_sml result cannot be attributed to accurate estimates"
+ },
+ "decision": "G_sml meets Omri's goal on PRMBench if contrast 1 has a Bonferroni-adjusted within-AUC interval above 0 AND a PRMScore point delta >= 0. Reported with its position-replicate contrast, tie-seed stability, Q3 bar and ProcessBench SLA. Candidate for the external benchmarks = the stage-B arm (G_sml, G_equal, C_sml, S_equal, S_lsml) with the highest PRMBench within-AUC; whether it goes to the external lock is decided WITH Omri. No arm is promoted by this run",
+ "predictions_frozen": {
+  "P1": "the filter drops energy_innovation and top50_js in all 5 folds; no channel with true pi > 0.52 is dropped",
+  "P2": "the survivors' partition is identical in all 5 folds and equals the 13-channel partition restricted to the survivors",
+  "P3": "group-level prevalence error is smaller than channel-level prevalence error in every fold, but the Q3 bar still fails in at least 3 of 5 folds (a shared step-length factor across groups)",
+  "P4": "G_sml > B13_equal on PRMBench within-AUC (point)",
+  "P5": "|G_sml - G_equal| < 0.003 within-AUC",
+  "P6": "G_sml > C_sml within-AUC (point)",
+  "P7": "S_lsml > B13_lsml within-AUC (point)",
+  "P8": "on the position-adjusted bank, G_sml_pos - B13_equal_pos is smaller than G_sml - B13_equal",
+  "P9": "every stage-B arm is below ct7 on ProcessBench SLA"
+ },
+ "hard_stops": [
+  "input file hashes differ from the stage-A INPUT_MANIFEST",
+  "answer order / step counts differ from JOINED",
+  "any refitted reference differs from the stage-A evaluation-row scores by more than 1e-9",
+  "stage-A within-AUC of B13_equal, B13_lsml, B11_lsml, ct7 not reproduced within 1e-9",
+  "any mark column without exactly ceil(0.2 n) marks",
+  "any arm writes an evaluation row twice"
+ ],
+ "failed_fit_policy": "amendment A1 of stage A: a failed fit leaves its evaluation rows unscored, no fallback; arms are evaluated on the folds where they were fitted and paired contrasts use the common folds",
+ "review": "Omri 2026-09-27: an independent subagent reviews the implementation before the full run; after it, three independent agents recompute and audit (red team); results are reported only with their consensus",
+ "budget": "CPU only, <= 1 hour; no inference, no GPU, no Joint",
+ "outputs": "results/expectation_realization_v1/<run_id>_stage_b/: RUN_STATUS, INPUT_MANIFEST, CODE_MANIFEST, FIT_MANIFEST.jsonl, METRICS.csv, CONTRASTS.csv, PB_CONTRASTS.csv, STAGE_B_FILTER.csv, STAGE_B_GROUPS.csv, STAGE_B_PARTITIONS.json, FAILURES.csv, TIMING.json; STEP_SCORES.npz and BOOTSTRAP_DELTAS.npz stay local"
+}
