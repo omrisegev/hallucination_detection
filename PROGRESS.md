@@ -1,3 +1,17 @@
+## Mind the Gap reproduction on ProcessBench (Claude) - 2026-09-27
+
+`results/mtg_reproduction_v1/`: frozen-protocol reproduction of Chen et al.'s Table 3 (ProcessBench
+SLA) on our eight PB cells, 4,576 configurations of token-to-step reading and decision rule, CPU
+only. Exact reproduction is impossible (Table 3 is not k/N over one population). With the PUBLISHED
+method, Shannon Drop comes within 3.33 SLA points on average (37.00 vs 39.26); with the RELEASED
+code's running mean it is 18.42 points away. Shannon Avg matches within 1.51, LN-S and LogTokU Drop
+within about 2; LogTokU Avg cannot be matched (ours about 11.8 vs 24.4). Drop > Avg reproduces
+(6/8 to 8/8 cells). The residual gap sits in OlympiadBench and Omni-MATH, beyond anything the
+aggregation grid explains (prompt is the untested suspect). Best-match rows are selected to match
+their table, so they are candidate readings, not a comparator. HISTORY Step 449. Open options: ask
+the authors for the ProcessBench script; nothing else is queued. Branch
+`claude/ssl-pseudolabel-residual-v1`.
+
 ## Exhaustive partition ceiling on PRMBench (Claude) - 2026-09-27
 
 `results/partition_ceiling_prmbench_v1/run_20260927/`: answers Omri's three questions of
