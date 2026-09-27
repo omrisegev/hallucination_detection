@@ -43,6 +43,7 @@ def sha(p):
     with open(p, 'rb') as f:
         for b in iter(lambda: f.read(8 << 20), b''): h.update(b)
     return h.hexdigest()
+if (OUT / 'RUN_STATUS.json').exists() and not SMOKE: raise SystemExit(f'{OUT} already holds a run; pass a new run id')
 status = {'status': 'RUNNING', 'started': datetime.now().isoformat(timespec='seconds'), 'run_id': RUN_ID, 'smoke_overrides': SMOKE}; dump(OUT / 'RUN_STATUS.json', status)
 checks = {}
 def _crash(et, ev, tb):
@@ -144,6 +145,7 @@ REPLAY_CALFIX = {'B20__ALL_equal': ('bank20_lsml_prmbench_v1', 'B20_equal'), 'B2
                  'B32__ALL_equal': ('indbank_lsml_prmbench_v1', 'B11_IND_lf_equal'), 'B32__ALL_lsml': ('indbank_lsml_prmbench_v1', 'B11_IND_lf_lsml')}
 B_SC_PATH = MAIN / '.worktrees/ssl-pseudolabel-residual-v1/results/expectation_realization_v1/run_20260927_stage_b/STEP_SCORES.npz'   # gitignored; lives in the stage-B worktree
 hashes['stage_b_step_scores'] = sha(B_SC_PATH); B_SC = np.load(B_SC_PATH)
+dump(OUT / 'POOL_MANIFEST.json', json.loads((OUT / 'POOL_MANIFEST.json').read_text(encoding='utf8')) | {'stage_b_step_scores': {'path': str(B_SC_PATH), 'sha256': hashes['stage_b_step_scores']}})
 MARKS = {}; TTA = {}
 t = time.perf_counter()
 for bk, (V, nm) in BANKS.items():
@@ -224,7 +226,7 @@ for k in FOLDS:
             if a in outp: put(f'{bk}__{a}_pos', k, ev_rows, outp[a], cal)
             else: failures.append({'fold': k, 'arm': f'{bk}__{a}_pos', 'reason': dp.get('failure') or 'not produced'})
         if bk == 'B13':
-            for mine, theirs in [('DSF_equal', 'S_equal'), ('DSF_lsml', 'S_lsml')]:
+            for mine, theirs in [('DSF_equal', 'S_equal'), ('DSF_lsml', 'S_lsml'), ('DSF_Gbin', 'G1_equal')]:
                 if mine not in out: hard_stop(f'B13 {mine} missing in fold {k}')
                 replay[f'B13__{mine}_fold{k}'] = float(np.max(np.abs(out[mine][ev_rows] - B_SC[theirs][ev_rows])))
         fit_log.append({kk: d.get(kk) for kk in ('fold', 'bank', 'survivors', 'dropped', 'truly_anti', 'dropped_good', 'dropped_flip_informative', 'sf_dropped', 'bin_partition', 'cont_partition', 'ALL_lsml_K', 'failure', 'DSF_lsml_failure', 'DSF_Gbin_failure', 'ALL_lsml_failure')}
@@ -309,7 +311,7 @@ if FOLDS == list(range(5)):                                                   # 
         x = MC[(MC.method == theirs) & (MC.metric == 'within_auc') & (MC.stratum == 'all')].estimate.item(); y = M[(M.method == mine) & (M.metric == 'within_auc') & (M.stratum == 'all')].estimate.item()
         mism[mine] = abs(x - y)
     checks['calfix_replay_within_auc_diffs'] = mism; checks['calfix_replay_max'] = max(mism.values())
-    if checks['calfix_replay_max'] > 1e-4: hard_stop('B20/B32 do not reproduce the earlier bank runs (definition mismatch)')
+    if not (checks['calfix_replay_max'] <= 1e-4): hard_stop('B20/B32 do not reproduce the earlier bank runs (definition mismatch)')
 
 # ------------------------------------------------------------------ paired source-group bootstrap (as stage A/B)
 t = time.perf_counter()
