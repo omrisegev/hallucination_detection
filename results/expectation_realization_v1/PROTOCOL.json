@@ -1,0 +1,106 @@
+{
+  "protocol_id": "expectation_realization_v1",
+  "version": "1.0",
+  "frozen_before_scoring": "2026-09-27",
+  "status": "development study on previously exposed data; PRMBench decides, ProcessBench is reported beside it; the chosen arm goes to the external benchmarks under a separate lock",
+  "requested_by": "Omri, 2026-09-27 chat design: fuse classifiers of the model's EXPECTATION (its next-token distribution: level and change) with classifiers of the REALIZATION (the written token measured against a forecast); measure CONT L-SML, Joint L-SML (declared and own partition) and tail-mark L-SML; stage A checks whether label-free SML estimates of each channel's sensitivity/specificity are accurate. Stop after stage A and discuss before stage B.",
+  "questions": {
+    "Q1": "Does adding the realization block to bank11 improve PRMBench, and under which fusion rule? (ProcessBench reported beside it)",
+    "Q2": "Does L-SML in any form add value over simple averaging of the SAME 13 channels?",
+    "Q3": "Are label-free SML estimates of sensitivity, specificity and balanced accuracy of each channel's top-20% marks accurate on our data?"
+  },
+  "population": {
+    "answers": "13,769 (ProcessBench 6,800 incl. 4,442 erroneous; PRMBench 6,969 incl. 6,030 eligible for within-answer AUC)",
+    "labels": "v3 via readout-quickest-detection-v1/results/step_evidence_v1 (OOF_STEP_SCORES labels; PB step labels are placeholders and are never read; PB uses the answer target)",
+    "splits": "source_groups_v2 folds; outer fold k is evaluated, calibration fold (k+1)%5 sets the PRMScore threshold only, fitting uses the other three folds; answer-local standardization of every channel"
+  },
+  "channels": {
+    "view_A_expectation": {
+      "level": ["q15_H1", "q15_VE1", "true_tail50", "logprob_margin", "energy_level"],
+      "change": ["energy_innovation", "top15_turnover", "top50_js", "bocpd_p0", "dominant_freq16"]
+    },
+    "view_B_realization": {
+      "realization": ["chosen_surprisal", "realized_z", "realized_drv"]
+    },
+    "sources": {
+      "bank11": "token_probability_fusion_v1/DERIVATIVE_CHANNELS.npz key 'level' = the Top10 step readout of the risk-oriented bank11 token channels (the Steps 438-440 source; exact replay of the frozen bank11 L-SML)",
+      "realized_z": "column 'chosen_token_z_despiked' of cumulative_vote_fusion_v2/ct7_profiles_v1/profiles.npy (sha256 d564ba43b0965f5f63a53cfe3420b4dfba7121be37ff233fd352282397bff674) = frozen_locator_ct7.despiked_chosen_token_z: pooled step z-test sum(-log q(x) - H)/sqrt(sum VE + 0.01 n) over the renormalized top-50, answer-standardized, step 0 replaced by the mean of the answer's other steps, standardized again. This is CT7's seventh view, NOT the Top10 of chosen_std_excess",
+      "realized_drv": "DERIVATIVE_CHANNELS.npz key 'derivative', column chosen_surprisal: causal EMA span 16 of the realized token's surprisal, first differences, positive rises only, per step the mean of the 3 largest rises (derivative_step_channel_v1)",
+      "standardization": "every column answer-standardized once (lsml_gate_locator_research.answer_standardize); all columns risk-oriented (higher = more suspect)"
+    },
+    "facts_recorded_before_scoring": {
+      "single_channel_prmb_within_auc": {"realized_z": 0.73874, "realized_drv": 0.79574, "ct7": 0.7723966352864217, "fam421_recomputed_from_profiles": 0.78013},
+      "discrepancy": "The chat on 2026-09-27 quoted 0.7434 for the pooled z-test alone (HISTORY Step 417). The frozen CT7 profile column scores 0.73874 alone; the frozen column is what CT7 uses and is what enters this study. Recorded, not resolved",
+      "selection_disclosure": "The realization block was chosen AFTER seeing realized_drv = 0.7957 (the best of 22 single-channel numbers) on this same data. Every result here is development evidence, and the block is label-informed by construction"
+    }
+  },
+  "arms": {
+    "references": {
+      "B11_lsml": "bank11 CONT L-SML fitted on the three fit folds (Steps 438-440 recipe)",
+      "B11_equal": "bank11 equal",
+      "B11_lsml_replay4": "bank11 L-SML fitted on the four non-evaluation folds; must equal the saved step_level_bank_baseline_v1 scores to 1e-9 (single standardization, as in Step 438)",
+      "ct7": "OOF ct7 step score; within-AUC must equal 0.7723966352864217 to 1e-9",
+      "fam421": "CT7 seven profile columns answer-standardized, family weights 1/12 x4 (H0lim, ve0, ve0.75, ve1), 1/6 x2 (H0lim_prefix_innovation, bocpd_residual), 1/3 (chosen_token_z_despiked); within-AUC must equal 0.780120 to 5e-4"
+    },
+    "B13": {
+      "equal": "13 channels, weight 1/13",
+      "block_equal": "declared blocks 5/5/3, weight 1/(3 * block size)",
+      "lsml": "CONT L-SML with its own automatic partition: FusionRecipe mode 'continuous', anchor q15_H1, small_m_guard (depth-feature-fusion-v1 fit_fusion_weights), fit on the fit-fold steps",
+      "joint_declared": "Joint L-SML on the declared 5/5/3 partition (FusionRecipe mode 'joint', 5 starts)",
+      "joint_own": "Joint L-SML on the partition from discover_loao_consensus_groups on the fit-fold steps (owners = answers, k_range (3,4) because K>=5 cannot give groups of >=3 with 13 channels, minimum_group_size 3, other arguments default). If BLOCKED_NO_ADMISSIBLE_PARTITION the arm is not fitted in that fold and is reported as a failure; no fallback",
+      "tail": "Step 443 corrected tail recipe: tail_marks(frac 0.20, tie_aware, centred) on the answer-standardized 13 columns, tail_calib_common.lsml_fit_scaled(marks, anchor 0, orient_X = continuous values, standardize True, loading_scale 'unit'); the weights are applied to the continuous answer-standardized values"
+    }
+  },
+  "endpoints": {
+    "prmbench_primary": {
+      "within_auc": "mean over eligible answers of the within-answer AUROC of step scores vs error labels",
+      "prmscore": "official prmbench_evaluate; a step is flagged when its answer-z score exceeds the 0.8 quantile of the calibration fold's answer-z PRMBench step scores (label-free threshold)"
+    },
+    "prmbench_secondary": {"any_error_hit": "share of PRMBench answers with >=1 labelled error step whose earliest argmax step is an error step"},
+    "processbench_reported": {"sla_macro8": "earliest argmax equals the annotated first error, erroneous answers, macro over the 8 cells, gate-free"}
+  },
+  "contrasts": {
+    "primary": [
+      ["B13_lsml", "B11_lsml", "does the realization block add under the incumbent recipe"],
+      ["B13_lsml", "B13_equal", "does CONT L-SML add over averaging the same 13 channels"],
+      ["B13_joint_declared", "B13_block_equal", "do learned weights add on the declared partition"],
+      ["B13_joint_own", "B13_joint_declared", "own discovered partition vs declared partition"],
+      ["B13_tail", "B13_equal", "do weights learned on binary marks add over averaging"]
+    ],
+    "primary_family": "5 contrasts x 2 PRMBench endpoints (within-AUC, PRMScore) = 10; Bonferroni-adjusted intervals from 100,000 paired source-group bootstrap draws (seed 20260927)",
+    "secondary": "every B13 arm vs B11_lsml, B11_equal, ct7 and fam421; B13_equal - B11_equal; B13_block_equal - B13_equal; ProcessBench SLA of the primary pairs and of every B13 arm vs ct7 with 100,000 paired draws over ProcessBench source groups (percentile intervals, no correction); any-error hit points"
+  },
+  "decision": "The candidate for the external benchmarks is the B13 arm with the highest PRMBench within-AUC, reported with its PRMScore, its primary intervals and its ProcessBench SLA. Whether it goes to the external lock is decided WITH Omri after stage A. No arm is promoted by this run",
+  "stage_A": {
+    "marks": "per answer and channel, the top ceil(0.2 n) steps (stable order, not tie-aware, so marks are exactly binary) of the 13 answer-standardized columns; vote +1 = marked (says error), -1 otherwise; boundary tie rate reported",
+    "rows": "PRMBench steps of the three fit folds of each outer fold (unlabelled for the estimators), uniform step weights",
+    "estimators": {
+      "SML": "Parisi et al. 2014: covariance of the votes, rank-one completion of the diagonal (iterate diag = lambda v^2), leading eigenvector oriented so q15_H1 is positive; t_i = sqrt(lambda) v_i = sqrt(1-b^2)(2 pi_i - 1); pi_i = 0.5 + t_i / (2 sqrt(1 - b_hat^2)) with b_hat from the DS prior. Gives balanced accuracy only",
+      "DS": "Dawid-Skene EM, cvf_v2/em.py fit_em kind 'ds', initialized from cvf_v2/core.py fit_spectral(votes, w, 'spectral'); psi_i = P(vote +1 | error class), eta_i = P(vote -1 | clean class), prevalence = P(error class); the error class is the class the model's orientation assigns to all +1 votes",
+      "HEM": "the same EM with latent groups (the L-SML model for binary classifiers), kind 'hem', groups = the declared 5/5/3 blocks; psi_i = sum_a P(vote +1 | a) P(a | error)"
+    },
+    "truth": "on the same rows with labels, evaluation only: psi = share of error steps marked, eta = share of clean steps not marked, pi = (psi + eta)/2, prevalence = share of error steps; also reported on the evaluation fold",
+    "bar_per_estimator": "usable only if in EVERY outer fold: (a) Spearman(pi_hat, pi_true) over the 13 channels >= 0.80; (b) every channel with |pi_true - 0.5| > 0.02 is on the correct side of 0.5; (c) |prevalence_hat - prevalence_true| <= 0.05 (DS and HEM only). Mean absolute errors of psi and eta and the per-channel table are reported without a bar",
+    "after": "STOP. Report and discuss with Omri before any stage B use (selection, orientation, likelihood weights, prevalence-based threshold)"
+  },
+  "controls": {
+    "derivative_replay": "realized_drv recomputed from TOKEN_MATRICES.npz (column chosen_surprisal) with derivative_step_readout must equal the stored column to 1e-9",
+    "token_shuffle": "the chosen_surprisal token series permuted within each answer (seed 20260927), derivative recomputed with the original spans; single-channel within-AUC reported (a temporal signal must collapse)",
+    "length": "median within-answer Spearman of each realization channel with log step length, and the single-channel within-AUC after regressing log step length out within each answer",
+    "digit_share": "diagnostic only, PRMBench: tokens decoded with the local Qwen3-8B tokenizer; share of the 3 largest derivative rises per step and of the z-test excess that fall on tokens containing a digit, against the digit base rate; single-channel within-AUC of the derivative with digit-token rises excluded. Skipped and reported if the tokenizer or the provided token ids are unavailable"
+  },
+  "predictions_frozen": [
+    "P1 B13_lsml - B11_lsml within-AUC is positive with a Bonferroni interval excluding zero (expected +0.01 to +0.03)",
+    "P2 B13_lsml - B13_equal within-AUC is positive with a Bonferroni interval excluding zero",
+    "P3 B13_joint_declared - B13_block_equal within-AUC is positive with a Bonferroni interval excluding zero",
+    "P4 joint_own finds an admissible partition in all 5 folds and is within +-0.005 within-AUC of joint_declared",
+    "P5 B13_tail - B13_equal within-AUC interval includes zero or is negative",
+    "P6 HEM passes the stage-A bar and DS fails at least one criterion; psi/eta errors are larger in the level block than in the realization block",
+    "P7 the token-shuffled derivative falls below 0.60 single-channel within-AUC",
+    "P8 no B13 arm exceeds ct7 on ProcessBench SLA",
+    "P9 digit tokens are over-represented among the largest derivative rises relative to their base rate, and the digit-excluded derivative stays above 0.70"
+  ],
+  "review": "Omri 2026-09-27: independent subagents review the implementation before the full run and independently recompute the key numbers from raw inputs after it; results are reported only with their consensus",
+  "budget": "CPU only, <= 2 hours; no inference, no GPU",
+  "outputs": "results/expectation_realization_v1/<run_id>/: RUN_STATUS, INPUT_MANIFEST, CODE_MANIFEST, FIT_MANIFEST.jsonl, METRICS.csv, CONTRASTS.csv, PB_CONTRASTS.csv, STAGE_A.json, STAGE_A_CHANNELS.csv, CONTROLS.json, FAILURES.csv, TIMING.json; STEP_SCORES.npz and BOOTSTRAP_DELTAS.npz stay local (gitignored)"
+}
