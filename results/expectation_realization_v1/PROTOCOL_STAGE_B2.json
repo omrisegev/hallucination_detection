@@ -1,0 +1,73 @@
+{
+ "protocol_id": "expectation_realization_v1_stage_B2_level_reduction",
+ "version": 1,
+ "frozen_before_scoring": true,
+ "status": "FROZEN",
+ "requested_by": "Omri 2026-09-27: remove some of the level channels so the level family is counted once, and test whether the binary estimates and L-SML improve; with four corrections (hypothesis not promise; measure residual class-conditional dependence; compare prevalence to the fitted population's truth and report per-family errors and weight values; run the binary and the L-SML analyses regardless of each other), all ten removal choices reported with median and range, plus a forced-merge control without removal; then run.",
+ "parent": "PROTOCOL_STAGE_B.json (amendment B1) and its run run_20260927_stage_b (Step 451)",
+ "label_free_premise_checked_before_freezing": "stage_b_diagnostics/level_removal_partition_label_free.py (no labels): removing 2 of the 5 level channels from the 11 stage-B survivors and re-clustering with the B1 recipe gives three separate families (the 3 remaining level channels | chosen_surprisal, realized_z, realized_drv | top15_turnover, dominant_freq16, bocpd_p0), identical in 5/5 folds, for 9 of the 10 removal pairs; removing q15_H1 + q15_VE1 moves logprob_margin into the change group and is not identical across folds",
+ "hypotheses": {
+  "H1": "counting the level family once (by removing two level channels, or by merging the two level sub-groups) reduces the class-conditional dependence between the group voters and brings the label-free Dawid-Skene estimates closer to the truth",
+  "H2": "with better estimates, the maximum-likelihood group weights beat equal group weights and beat averaging all 13 channels",
+  "H3": "continuous L-SML stops losing to averaging the same channels once the level family is not split into two groups",
+  "note": "these are hypotheses under test, not expectations: residual dependence between the three families, weak identification with three voters, or information lost by the removal can each defeat them"
+ },
+ "population_and_folds": "unchanged from stage A/B (13,769 answers; eval k, calibration (k+1)%5 for the PRMScore threshold only, fit on the other three); input hashes must equal the stage-A INPUT_MANIFEST",
+ "chain": {
+  "filter": "unchanged from stage B: Dawid-Skene on the 13 channels' random-tie top-20% marks (key default_rng(20260928)) over PRMBench fit-fold steps; survivors pi_hat > 0.5",
+  "level_channels": "q15_H1, q15_VE1, logprob_margin, true_tail50, energy_level (the members of the two level sub-groups of the stable B1 partition in 5/5 folds)",
+  "configurations": {
+   "base": "all survivors, B1 partition (reproduces the stage-B G1 arms)",
+   "merge": "all survivors, B1 partition with the two groups that contain level channels merged into one group (no channel removed) - control that separates fixing the partition from removing channels",
+   "rm_<a>_<b>": "the ten configurations that remove two of the five level channels from the survivors (every pair, none selected), then re-cluster with the B1 recipe"
+  },
+  "partition": "B1 recipe: tail_calib_common.lsml_fit_scaled on tie-aware centred top-20% marks (calfix_common.tail_marks) over all fit-fold steps; anchor q15_H1 if present, else the survivor with the largest 13-channel pi_hat",
+  "group_scores_and_marks": "as stage B: continuous group score = answer re-standardized mean of members; binary representative = random-tie top-20% marks of the group score (key default_rng(20260929))",
+  "estimates": "Dawid-Skene on the group representatives over PRMBench fit-fold steps (>= 3 groups); weights max(0, log(psi eta / ((1-psi)(1-eta)))) clipped [1e-4, 1-1e-4], normalized"
+ },
+ "arms_per_configuration": {
+  "B_sml": "estimated group weights on the continuous group scores (binary-property rule)",
+  "B_equal": "equal group weights",
+  "B_oracle": "DIAGNOSTIC, LABEL-USING: group weights from the true psi, eta on the fit-fold PRMBench steps",
+  "E_equal": "equal weights on the configuration's channels (not defined separately for merge: equals base)",
+  "L_own": "CONT L-SML (fit_fusion_weights 'continuous', small_m_guard, FIT_SEED 20260919) on the configuration's channels with its OWN continuous partition, fitted on all fit-fold steps (not defined separately for merge: equals base = stage-B S_lsml)",
+  "L_grp": "CONT L-SML on the configuration's channels with the configuration's B1 partition passed as its groups (for merge: the merged partition)"
+ },
+ "banks": "main (answer-standardized channels) and pos (position-adjusted bank of stage B, fit-fold PRMBench profile); every configuration and arm on both",
+ "references": "B13_equal, B13_lsml, S_equal, S_lsml, G1_sml, G1_equal, G1_oracle, ct7, fam421, step_index; base-configuration arms must equal the stage-B arms (B_sml=G1_sml, B_equal=G1_equal, B_oracle=G1_oracle, E_equal=S_equal, L_own=S_lsml; same on pos) within 1e-9 (hard stop)",
+ "diagnostics_label_using_for_diagnosis_only": {
+  "estimates": "per bank, configuration, fold and family: psi_hat, eta_hat, pi_hat vs true psi, eta, pi; prevalence_hat vs the TRUE prevalence of the same fit-fold PRMBench steps; estimated and oracle weight VALUES and their ratio; stage-B group bar reported without gating",
+  "residual_dependence": "per bank, configuration and fold: correlation matrices between the group marks, and between the continuous group scores, computed separately on clean steps and on error steps of the fit-fold PRMBench rows; summary = maximum and mean off-diagonal absolute correlation per class",
+  "partition": "per fold members, number of groups, identity across folds"
+ },
+ "endpoints": "PRMBench within-answer AUC and official PRMScore (primary); any-error hit; ProcessBench gate-free SLA macro over 8 cells (reported beside)",
+ "contrasts": {
+  "primary": [
+   ["median_r(B_sml[r] - B13_equal)", "binary-property rule after level reduction vs averaging all 13 channels (the stated goal)"],
+   ["median_r(B_sml[r] - B_equal[r])", "estimated weights vs equal weights on the same three families"],
+   ["median_r(L_own[r] - E_equal[r])", "L-SML vs averaging the same channels"],
+   ["median_r(L_own[r] - S_lsml)", "does level reduction help L-SML (vs L-SML on the 11 survivors)"],
+   ["L_grp[merge] - S_lsml", "merge control: L-SML with the level counted once, no channel removed"]
+  ],
+  "median_definition": "r runs over the ten removal configurations; per bootstrap draw the ten paired deltas are computed with the same source-group weights and their median is taken; the point estimate is the median of the ten point deltas. The ten configurations share data and channels and are not independent experiments",
+  "primary_family": "5 contrasts x 2 PRMBench endpoints = 10, Bonferroni-adjusted intervals, 100,000 paired source-group draws (seed 20260927), main bank",
+  "secondary": "every configuration separately (all ten + merge + base) for the five contrast types, E_equal[r] - S_equal, L_grp[r] - E_equal[r], B_oracle[r] - B_equal[r], B_sml[merge] - G1_sml, B_sml[r] and L_own[r] vs ct7 and fam421; position bank: the five primary contrasts; ProcessBench SLA for the primary medians and every configuration's B_sml, L_own, E_equal vs B13_equal and ct7",
+  "report": "all ten configurations, their median and range, and the paired differences; robustness (how many of ten configurations have a positive delta) is reported but is not a necessary condition for value"
+ },
+ "nulls": "for the five primary contrasts on PRMBench within-AUC (main bank): (a) within-answer label shuffle and (b) whole-answer label swap between eligible answers with the same step count (answers in singleton length strata keep their labels), 200 permutations each (seeds 11 and 12), statistic recomputed exactly as the observed one (median over configurations where applicable)",
+ "predictions_frozen": {
+  "P1": "max off-diagonal absolute class-conditional correlation between group marks on clean steps drops from about 0.52 (base) to <= 0.35 in at least 8 of 10 removal configurations (main bank, every fold)",
+  "P2": "the prevalence error of the group-level estimate (estimate minus the fitted population's truth) is smaller than in base in at least 8 of 10 removal configurations, but still > 0.05 in most",
+  "P3": "median B_sml[r] - B_equal[r] within-AUC is between -0.003 and +0.003",
+  "P4": "median L_own[r] - E_equal[r] is above the stage-B S_lsml - S_equal (-0.0050)",
+  "P5": "median E_equal[r] - S_equal is between -0.003 and +0.003 (removing two level channels costs little under averaging)",
+  "P6": "L_grp[merge] - S_lsml > 0 within-AUC (point)",
+  "P7": "every configuration's B_sml, L_own and E_equal is below ct7 on ProcessBench SLA"
+ },
+ "decision": "descriptive, no promotion. If a primary median has an adjusted interval above 0 on both PRMBench endpoints, report it as a candidate for discussion with Omri together with its range over configurations, nulls, position replicate and ProcessBench; which configuration (if any) would be used later needs a label-free rule agreed with Omri",
+ "hard_stops": ["input hashes differ from stage A", "answer order / step counts differ", "base-configuration arms differ from the stage-B arms by > 1e-9", "stage-B reference metrics not reproduced within 1e-9", "mark counts not ceil(0.2 n)", "any arm writes an evaluation row twice"],
+ "failed_fit_policy": "stage-A amendment A1: failed fits unscored, no fallback; contrasts on common folds; a configuration whose arm is unscored in a fold is excluded from that fold's median only if unscored in every draw (reported)",
+ "review": "independent pre-run code review; after the run three independent agents (recomputation, coverage, nulls/math)",
+ "budget": "CPU only, <= 1 hour",
+ "outputs": "results/expectation_realization_v1/run_20260927_stage_b2/: RUN_STATUS, INPUT_MANIFEST, CODE_MANIFEST, FIT_MANIFEST.jsonl, METRICS.csv, CONTRASTS.csv (per pair and medians), PB_CONTRASTS.csv, ESTIMATES.csv (per family), DEPENDENCE.csv, PARTITIONS.json, NULLS.json, FAILURES.csv, TIMING.json; npz local"
+}
