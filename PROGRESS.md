@@ -1,3 +1,13 @@
+## Expectation vs realization fusion, stage B2 level reduction complete (Claude) - 2026-09-27
+
+`results/expectation_realization_v1/run_20260927_stage_b2/` (HISTORY Step 452, RED_TEAM.md). Counting the level family once
+(merging its two sub-groups, or removing two of five level channels, all ten pairs reported) repairs the binary-property weights:
+the rule rises from 0.7729 to 0.7818 (oracle 0.7823), beating all-13 averaging (0.7749). But the gain is the filter (positional)
+plus counting level once under plain averaging; the rule over the plain average of the same channels adds +0.0001 (removal median)
+to +0.0016 (merge, fragile). L-SML still loses to averaging the same channels (-0.0073, 0/10). ProcessBench below ct7. A label-free
+group-cohesion weight (first-component variance share) equalled the oracle on merge post hoc - not a candidate without its own
+frozen test. Next decision with Omri. Branch `claude/ssl-pseudolabel-residual-v1`.
+
 ## Expectation vs realization fusion, stage B complete (Claude) - 2026-09-27
 
 `results/expectation_realization_v1/run_20260927_stage_b/` (HISTORY Step 451, RED_TEAM.md). Binary SML/Dawid-Skene properties on

@@ -24,3 +24,5 @@ Stage-by-stage management record. Protocol: `PROTOCOL.json` (frozen before any s
 | 2026-09-27 | Stage B done, STOP | Decision with Omri | |
 | 2026-09-27 | Stage B2 frozen | PROTOCOL_STAGE_B2.json (028b313df); pre-run review PASS, fixes 9b57f4a09 | 028b313df |
 | 2026-09-27 | Stage B2 full run | run_20260927_stage_b2: COMPLETE, 0 failed fits, replay 8.9e-16, stage-B metrics reproduced 0.0 | pending red team |
+| 2026-09-27 | Stage B2 red team complete | A: all numbers reproduce; B: full coverage, fold/class/tertile, merge-vs-average gain concentrated; C: gain = filter (positional) + level counted once under averaging; rule adds ~0 over plain averaging; three preliminary-report readings corrected. `run_20260927_stage_b2/RED_TEAM.md` | Step 452 commit |
+| 2026-09-27 | Stage B2 done, STOP | Decision with Omri | |
