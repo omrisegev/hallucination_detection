@@ -36,15 +36,18 @@ cell, path, kind, dataset = [s for s in runner.source_specs() if s[0] == 'prmben
 src = runner.source_row_map(runner.load_pickle(path), kind=kind, dataset=dataset)
 print(f'pickle loaded {time.time()-t0:.0f}s', flush=True)
 
-from transformers import AutoTokenizer  # noqa: E402
-tk = AutoTokenizer.from_pretrained('Qwen/Qwen3-8B', local_files_only=True)
+try:
+    from transformers import AutoTokenizer  # noqa: E402
+    tk = AutoTokenizer.from_pretrained('Qwen/Qwen3-8B', local_files_only=True)
+except Exception as e:                                          # protocol: skip and report
+    RUN.mkdir(parents=True, exist_ok=True); (RUN / 'DIGIT_SHARE.json').write_text(json.dumps({'status': 'SKIPPED', 'reason': repr(e)}, indent=1), encoding='utf8'); raise SystemExit(0)
 digit_cache = {}
 def is_digit_token(i):
     if i not in digit_cache: digit_cache[i] = any(ch.isdigit() for ch in tk.decode([int(i)]))
     return digit_cache[i]
 
 surpr_diff = []; drv_diff = []; top_digit = top_cnt = 0; base_tok_digit = base_tok = 0; uniform_expect = []
-exc_pos_digit = exc_pos_all = 0.0; drv_nodigit = np.zeros(int(off[-1])); n_ans = 0
+exc_pos_digit = exc_pos_all = 0.0; drv_nodigit = np.zeros(int(off[-1])); n_ans = 0; w_top_digit = w_top_all = 0.0; pos_digit = pos_all = 0
 for i in np.flatnonzero(prm):
     row = src[str(recs[i]['row_id'])]; ta, tb = int(toff[i]), int(toff[i+1]); sp = spans[off[i]:off[i+1]]
     gid = np.asarray(row['gen_token_ids'], np.int64); se = np.asarray(row['token_spilled_energies'], float)
@@ -57,10 +60,12 @@ for i in np.flatnonzero(prm):
     cal, _, _ = CTC.token_calibration(lp, ids, gid, se); exc = np.maximum(cal[:, 2], 0.0)
     exc_pos_digit += float(exc[dig].sum()); exc_pos_all += float(exc.sum())
     for s, (a, b) in enumerate(sp):
-        seg = rises[a:b]; k = min(3, len(seg))
-        top = np.argpartition(seg, len(seg) - k)[-k:]; top_digit += int(dig[a:b][top].sum()); top_cnt += k
-        uniform_expect.append(k * dig[a:b].mean())
-        nd = seg[~dig[a:b]]; kk = min(3, len(nd)); drv_nodigit[off[i] + s] = np.partition(nd, len(nd) - kk)[-kk:].mean() if kk else 0.0
+        seg = rises[a:b]; dg = dig[a:b]; pos_ = seg > 0; kp = min(3, int(pos_.sum()))   # amendment A1: positive rises only
+        if kp:
+            top = np.argsort(-seg, kind='stable')[:kp]; top_digit += int(dg[top].sum()); top_cnt += kp
+            uniform_expect.append(kp * dg[pos_].mean()); w_top_digit += float(seg[top][dg[top]].sum()); w_top_all += float(seg[top].sum())
+            pos_digit += int((pos_ & dg).sum()); pos_all += int(pos_.sum())
+        nd = seg[~dg]; kk = min(3, len(nd)); drv_nodigit[off[i] + s] = np.partition(nd, len(nd) - kk)[-kk:].mean() if kk else 0.0
     base_tok_digit += int(dig.sum()); base_tok += len(dig); n_ans += 1
 out['alignment'] = {'answers': n_ans, 'max_abs_chosen_surprisal_vs_token_matrix': max(surpr_diff), 'max_abs_derivative_recomputed_vs_stored': max(drv_diff)}
 assert out['alignment']['max_abs_chosen_surprisal_vs_token_matrix'] < 1e-4 and out['alignment']['max_abs_derivative_recomputed_vs_stored'] < 1e-9, out['alignment']
@@ -70,8 +75,11 @@ def mean_within(s):
     return float(np.mean([within_auc(labels[off[i]:off[i+1]], s[off[i]:off[i+1]]) for i in np.flatnonzero(eligible)]))
 out.update({
     'digit_token_base_rate': base_tok_digit / base_tok,
-    'derivative_top3_rises_on_digit_tokens': top_digit / top_cnt,
-    'derivative_top3_expected_if_uniform_within_step': float(np.sum(uniform_expect) / top_cnt),
+    'positive_rise_tokens_digit_rate': pos_digit / pos_all,
+    'derivative_top3_positive_rises_on_digit_tokens': top_digit / top_cnt,
+    'derivative_top3_expected_if_uniform_among_positive_rises_in_step': float(np.sum(uniform_expect) / top_cnt),
+    'derivative_top3_rise_mass_on_digit_tokens': w_top_digit / w_top_all,
+    'top3_slots_counted': top_cnt,
     'zscore_positive_excess_mass_on_digit_tokens': exc_pos_digit / exc_pos_all,
     'derivative_within_auc_stored': mean_within(drv_stored),
     'derivative_within_auc_digit_rises_excluded': mean_within(drv_nodigit),

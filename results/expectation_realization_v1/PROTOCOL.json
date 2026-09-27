@@ -16,11 +16,27 @@
   },
   "channels": {
     "view_A_expectation": {
-      "level": ["q15_H1", "q15_VE1", "true_tail50", "logprob_margin", "energy_level"],
-      "change": ["energy_innovation", "top15_turnover", "top50_js", "bocpd_p0", "dominant_freq16"]
+      "level": [
+        "q15_H1",
+        "q15_VE1",
+        "true_tail50",
+        "logprob_margin",
+        "energy_level"
+      ],
+      "change": [
+        "energy_innovation",
+        "top15_turnover",
+        "top50_js",
+        "bocpd_p0",
+        "dominant_freq16"
+      ]
     },
     "view_B_realization": {
-      "realization": ["chosen_surprisal", "realized_z", "realized_drv"]
+      "realization": [
+        "chosen_surprisal",
+        "realized_z",
+        "realized_drv"
+      ]
     },
     "sources": {
       "bank11": "token_probability_fusion_v1/DERIVATIVE_CHANNELS.npz key 'level' = the Top10 step readout of the risk-oriented bank11 token channels (the Steps 438-440 source; exact replay of the frozen bank11 L-SML)",
@@ -29,7 +45,12 @@
       "standardization": "every column answer-standardized once (lsml_gate_locator_research.answer_standardize); all columns risk-oriented (higher = more suspect)"
     },
     "facts_recorded_before_scoring": {
-      "single_channel_prmb_within_auc": {"realized_z": 0.73874, "realized_drv": 0.79574, "ct7": 0.7723966352864217, "fam421_recomputed_from_profiles": 0.78013},
+      "single_channel_prmb_within_auc": {
+        "realized_z": 0.73874,
+        "realized_drv": 0.79574,
+        "ct7": 0.7723966352864217,
+        "fam421_recomputed_from_profiles": 0.78013
+      },
       "discrepancy": "The chat on 2026-09-27 quoted 0.7434 for the pooled z-test alone (HISTORY Step 417). The frozen CT7 profile column scores 0.73874 alone; the frozen column is what CT7 uses and is what enters this study. Recorded, not resolved",
       "selection_disclosure": "The realization block was chosen AFTER seeing realized_drv = 0.7957 (the best of 22 single-channel numbers) on this same data. Every result here is development evidence, and the block is label-informed by construction"
     }
@@ -56,16 +77,40 @@
       "within_auc": "mean over eligible answers of the within-answer AUROC of step scores vs error labels",
       "prmscore": "official prmbench_evaluate; a step is flagged when its answer-z score exceeds the 0.8 quantile of the calibration fold's answer-z PRMBench step scores (label-free threshold)"
     },
-    "prmbench_secondary": {"any_error_hit": "share of PRMBench answers with >=1 labelled error step whose earliest argmax step is an error step"},
-    "processbench_reported": {"sla_macro8": "earliest argmax equals the annotated first error, erroneous answers, macro over the 8 cells, gate-free"}
+    "prmbench_secondary": {
+      "any_error_hit": "share of PRMBench answers with >=1 labelled error step whose earliest argmax step is an error step"
+    },
+    "processbench_reported": {
+      "sla_macro8": "earliest argmax equals the annotated first error, erroneous answers, macro over the 8 cells, gate-free"
+    }
   },
   "contrasts": {
     "primary": [
-      ["B13_lsml", "B11_lsml", "does the realization block add under the incumbent recipe"],
-      ["B13_lsml", "B13_equal", "does CONT L-SML add over averaging the same 13 channels"],
-      ["B13_joint_declared", "B13_block_equal", "do learned weights add on the declared partition"],
-      ["B13_joint_own", "B13_joint_declared", "own discovered partition vs declared partition"],
-      ["B13_tail", "B13_equal", "do weights learned on binary marks add over averaging"]
+      [
+        "B13_lsml",
+        "B11_lsml",
+        "does the realization block add under the incumbent recipe"
+      ],
+      [
+        "B13_lsml",
+        "B13_equal",
+        "does CONT L-SML add over averaging the same 13 channels"
+      ],
+      [
+        "B13_joint_declared",
+        "B13_block_equal",
+        "do learned weights add on the declared partition"
+      ],
+      [
+        "B13_joint_own",
+        "B13_joint_declared",
+        "own discovered partition vs declared partition"
+      ],
+      [
+        "B13_tail",
+        "B13_equal",
+        "do weights learned on binary marks add over averaging"
+      ]
     ],
     "primary_family": "5 contrasts x 2 PRMBench endpoints (within-AUC, PRMScore) = 10; Bonferroni-adjusted intervals from 100,000 paired source-group bootstrap draws (seed 20260927)",
     "secondary": "every B13 arm vs B11_lsml, B11_equal, ct7 and fam421; B13_equal - B11_equal; B13_block_equal - B13_equal; ProcessBench SLA of the primary pairs and of every B13 arm vs ct7 with 100,000 paired draws over ProcessBench source groups (percentile intervals, no correction); any-error hit points"
@@ -102,5 +147,22 @@
   ],
   "review": "Omri 2026-09-27: independent subagents review the implementation before the full run and independently recompute the key numbers from raw inputs after it; results are reported only with their consensus",
   "budget": "CPU only, <= 2 hours; no inference, no GPU",
-  "outputs": "results/expectation_realization_v1/<run_id>/: RUN_STATUS, INPUT_MANIFEST, CODE_MANIFEST, FIT_MANIFEST.jsonl, METRICS.csv, CONTRASTS.csv, PB_CONTRASTS.csv, STAGE_A.json, STAGE_A_CHANNELS.csv, CONTROLS.json, FAILURES.csv, TIMING.json; STEP_SCORES.npz and BOOTSTRAP_DELTAS.npz stay local (gitignored)"
+  "outputs": "results/expectation_realization_v1/<run_id>/: RUN_STATUS, INPUT_MANIFEST, CODE_MANIFEST, FIT_MANIFEST.jsonl, METRICS.csv, CONTRASTS.csv, PB_CONTRASTS.csv, STAGE_A.json, STAGE_A_CHANNELS.csv, CONTROLS.json, FAILURES.csv, TIMING.json; STEP_SCORES.npz and BOOTSTRAP_DELTAS.npz stay local (gitignored)",
+  "amendments": [
+    {
+      "id": "A1",
+      "date": "2026-09-27",
+      "before_full_run": true,
+      "trigger": "Independent code review of commit 409497657 and the one-fold implementation smoke (smoke numbers are not evidence and select nothing)",
+      "changes": [
+        "Role separation (implementation defect, the frozen text already required it): each fold-k model writes ONLY its evaluation rows; its PRMScore threshold is the 0.8 quantile of the SAME fold-k model's answer-z scores on the calibration fold, computed inside the fold loop; every evaluation row is asserted to be written once. The previous code shared one array between evaluation and calibration roles, so fold 0 was scored by the fold-4 model and folds 0-3 took thresholds from models fitted on the evaluation fold. The same defect is present in the Step 438, 439 and 440 runners (reported separately; their numbers are not changed here)",
+        "Failed fits: a Joint fit that does not converge is a FAILED fit and is not scored (no fallback, same rule as a blocked discovery). An arm is evaluated on the folds where it was fitted; paired contrasts use the folds BOTH arms cover and report them; an arm with no fitted fold gets NOT_ESTIMABLE rows. This policy was prompted by the smoke, where Joint on its own partition did not converge in fold 0",
+        "Discovery seed: discover_loao_consensus_groups is called with its default seed, as the frozen text says (the reviewed code passed the fit seed)",
+        "Hard stops before evaluation: answer order (JOINED uids and step counts equal the OOF frame), CT7 profile order, level bank and derivative reproduced from TOKEN_MATRICES to 1e-9 (new row-order proof for the level bank), bank11 replay, ct7 and fam421 replays, write-once check",
+        "Digit diagnostic: the top-3 derivative rises count POSITIVE rises only (steps with fewer positive rises contribute fewer slots); the uniform expectation uses the same basis (positive-rise tokens of the step); a rise-size-weighted share is added. The script writes SKIPPED instead of crashing when the tokenizer is unavailable",
+        "Reporting: evaluation-fold truth of psi, eta and prevalence added to stage A; duplicate secondary contrast removed; CODE_MANIFEST hashes prmbench.py, er_digit_share.py and chosen_token_calibration.py"
+      ],
+      "unchanged": "channels, arms, endpoints, primary contrasts and Bonferroni family, stage-A estimators and bar, predictions, decision rule"
+    }
+  ]
 }
