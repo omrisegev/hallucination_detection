@@ -1,3 +1,16 @@
+## Expectation vs realization fusion, stage A complete (Claude) - 2026-09-27
+
+`results/expectation_realization_v1/run_20260927/` (HISTORY Step 450, RED_TEAM.md). The written-token block (chosen_surprisal,
+CT7's pooled de-spiked z-test, the EMA-16 derivative of chosen_surprisal) lifts bank11 L-SML on PRMBench within-AUC by +0.0119
+[0.0097, 0.0142] (0.7645 -> 0.7765) and PRMScore by +0.0093. On the 13 channels L-SML does NOT beat averaging (+0.0015, inside
+the null); the best arm is block-equal 0.7805 / 0.6577, level with fam421, above ct7 by +0.0081, but the red team shows the
+block gain is down-weighting of two anti-oriented channels, the derivative alone (0.7957, chosen post hoc) beats every fusion,
+and step index alone scores 0.6617 (margin over ct7 +0.0026 after removing the derivative's positional profile). ProcessBench:
+every arm below ct7. Stage A: label-free SML / Dawid-Skene / latent-group EM sensitivity-specificity estimates fail in all
+folds (prevalence 0.28 vs 0.14; level block overrated). Joint on its own partition never converged. Stage B is paused for
+discussion with Omri. Open: re-score the Step 438-440 PRMScore numbers (evaluation/calibration overwrite, LESSONS.md).
+Branch `claude/ssl-pseudolabel-residual-v1`.
+
 ## Mind the Gap reproduction on ProcessBench (Claude) - 2026-09-27
 
 `results/mtg_reproduction_v1/`: frozen-protocol reproduction of Chen et al.'s Table 3 (ProcessBench

@@ -15,3 +15,5 @@ Stage-by-stage management record. Protocol: `PROTOCOL.json` (frozen before any s
 | 2026-09-27 | Full run `run_20260927` | 5 folds, 100,000 draws, 43 min; all pre-evaluation hard stops passed (answer order, level bank and derivative reproduced from the token matrix to 0.0, B11 replay 0.0, ct7 exact, fam421 0.78013, write-once); Joint on its own partition did not converge in any fold (NOT_ESTIMABLE) | this commit |
 | 2026-09-27 | Digit diagnostic | PRMBench, alignment exact (0.0) | this commit |
 | 2026-09-27 | Red team | three independent agents launched (recompute / coverage / null+math); no interpretation before their consensus | |
+| 2026-09-27 | Red team complete | A recomputation: all numbers within 5e-5; B coverage: full, PRMBench-only qualifiers; C null+math: claims survive, math sound; claim 2 weakened (post-hoc channel beats all fusion; block gain = down-weighting of anti-oriented channels; position prior), claim 4 range corrected. `run_20260927/RED_TEAM.md`; step index alone verified at 0.6617 | Step 450 commit |
+| 2026-09-27 | Stage A done, STOP | Discussion with Omri before stage B | |
