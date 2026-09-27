@@ -78,5 +78,37 @@
  "failed_fit_policy": "amendment A1 of stage A: a failed fit leaves its evaluation rows unscored, no fallback; arms are evaluated on the folds where they were fitted and paired contrasts use the common folds",
  "review": "Omri 2026-09-27: an independent subagent reviews the implementation before the full run; after it, three independent agents recompute and audit (red team); results are reported only with their consensus",
  "budget": "CPU only, <= 1 hour; no inference, no GPU, no Joint",
- "outputs": "results/expectation_realization_v1/<run_id>_stage_b/: RUN_STATUS, INPUT_MANIFEST, CODE_MANIFEST, FIT_MANIFEST.jsonl, METRICS.csv, CONTRASTS.csv, PB_CONTRASTS.csv, STAGE_B_FILTER.csv, STAGE_B_GROUPS.csv, STAGE_B_PARTITIONS.json, FAILURES.csv, TIMING.json; STEP_SCORES.npz and BOOTSTRAP_DELTAS.npz stay local"
+ "outputs": "results/expectation_realization_v1/<run_id>_stage_b/: RUN_STATUS, INPUT_MANIFEST, CODE_MANIFEST, FIT_MANIFEST.jsonl, METRICS.csv, CONTRASTS.csv, PB_CONTRASTS.csv, STAGE_B_FILTER.csv, STAGE_B_GROUPS.csv, STAGE_B_PARTITIONS.json, FAILURES.csv, TIMING.json; STEP_SCORES.npz and BOOTSTRAP_DELTAS.npz stay local",
+ "amendments": [
+  {
+   "id": "B1",
+   "date": "2026-09-27",
+   "when": "after the fold-0 smoke (feasibility run, whose fold-0 metrics the author saw), before the full run and before any other fold was scored",
+   "motivation_label_free": "A label-free partition diagnostic (scratchpad stage_b/partition_diag.py; no labels read) over the 5 folds: (i) the three-family partition of stage A appears only with tie-aware fractional marks (pooled rows: 5/5 folds); with random-tie binary marks the 13-channel partition has 6 groups (identical in 5/5 folds); (ii) re-clustering after dropping energy_innovation and top50_js changes the random-tie partition in every fold (K 4 to 7, top15_turnover moving into the level group in some folds), so the frozen premise of Q2 fails for the frozen recipe; (iii) the stage-A tail recipe (tie-aware centred marks, all fit-fold steps) re-clustered on the 11 survivors gives the SAME 4-group partition in 5/5 folds: {q15_H1, q15_VE1, logprob_margin} | {chosen_surprisal, realized_z, realized_drv} | {true_tail50, energy_level} | {top15_turnover, dominant_freq16, bocpd_p0}. Omri's intent: groups found by the clustering that found the families, stable after the drop",
+   "change": "Adds arms G1_sml, G1_equal, G1_oracle (and their _pos and _tie2/_tie3 replicates): identical to G_sml, G_equal, G_oracle except step 3, where the survivors are partitioned by tail_calib_common.lsml_fit_scaled on TIE-AWARE centred marks (calfix_common.tail_marks(frac 0.2, tie_aware=True, centred=True)) over ALL fit-fold steps (the stage-A B13_tail recipe). Group representatives, Dawid-Skene and weights are unchanged (binary random-tie marks of the group scores, PRMBench fit-fold steps). The frozen arms, primary contrasts and decision rule are unchanged and remain primary",
+   "contrasts": [
+    [
+     "G1_sml",
+     "B13_equal",
+     "the binary-property rule on the stable discovered groups vs averaging all 13 channels"
+    ],
+    [
+     "G1_sml",
+     "G1_equal",
+     "estimated weights vs equal weights on the same stable groups"
+    ],
+    [
+     "G1_sml",
+     "G_sml",
+     "stable partition vs the frozen re-clustered partition"
+    ]
+   ],
+   "contrast_family": "3 contrasts x 2 PRMBench endpoints = 6, Bonferroni within the amendment family; reported as an amendment made after the fold-0 smoke, not as a confirmatory result",
+   "predictions": {
+    "P10": "the G1 survivor partition is identical in all 5 folds (label-free diagnostic already shows it)",
+    "P11": "G1_sml - B13_equal within-AUC > 0 (point)",
+    "P12": "G1 group-level prevalence error is smaller than the G partition's in at least 3 of 5 folds"
+   }
+  }
+ ]
 }

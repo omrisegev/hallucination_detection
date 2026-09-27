@@ -3,7 +3,8 @@ groups discovered from the data instead of declared.  Frozen protocol: results/e
 PROTOCOL_STAGE_B.json.  Chain (label-free, PRMBench fit-fold steps): random-tie top-20% marks -> Dawid-Skene
 filter (keep pi_hat > 0.5) -> L-SML partition of the survivors on their marks -> continuous group scores and
 binary group representatives -> Dawid-Skene on the representatives -> maximum-likelihood vote weights applied
-to the continuous group scores (G_sml).  Controls: G_equal, C_sml, S_equal, S_lsml, G_oracle (label-using
+to the continuous group scores (G_sml).  Amendment B1 (after the fold-0 smoke): the same rule on the partition of
+the stage-A tail recipe (tie-aware marks, all fit-fold steps), arms G1_*.  Controls: G_equal, C_sml, S_equal, S_lsml, G_oracle (label-using
 diagnostic).  References are refitted and must equal the stage-A scores.  Smoke: ER_FOLDS=0 ER_DRAWS=2000.
 
 Role separation (stage-A amendment A1): every fold-k model writes ONLY its evaluation rows; the PRMScore
@@ -48,6 +49,11 @@ def sha(p):
     return h.hexdigest()
 status = {'status': 'RUNNING', 'started': datetime.now().isoformat(timespec='seconds'), 'run_id': RUN_ID, 'smoke_overrides': SMOKE}; dump(OUT / 'RUN_STATUS.json', status)
 checks = {}
+def _crash(et, ev, tb):
+    import traceback; traceback.print_exception(et, ev, tb)
+    if status.get('status') == 'RUNNING':
+        status.update({'status': 'CRASHED', 'reason': repr(ev), 'checks': checks, 'finished': datetime.now().isoformat(timespec='seconds')}); dump(OUT / 'RUN_STATUS.json', status)
+sys.excepthook = _crash
 def hard_stop(reason):
     status.update({'status': 'STOPPED', 'reason': reason, 'checks': checks, 'finished': datetime.now().isoformat(timespec='seconds')}); dump(OUT / 'RUN_STATUS.json', status)
     raise SystemExit('HARD STOP: ' + reason)
@@ -109,7 +115,7 @@ timing['channels_s'] = time.perf_counter() - t
 dump(OUT / 'INPUT_MANIFEST.json', {k: {'path': str(v), 'bytes': v.stat().st_size, 'sha256': hashes[k]} for k, v in INPUTS.items()} | {'channels': names, 'declared_blocks_reference_only': lab.tolist(),
         'population': {'answers': n, 'prm': int(prm.sum()), 'eligible': int(eligible.sum()), 'noncontrol': int(noncontrol.sum()), 'steps': S, 'pb_erroneous': int((pb & (target >= 0)).sum())}})
 snap = OUT / 'SOURCE_SNAPSHOT'; code = {}
-for rel, base in [('scripts/experiments/er_stage_b_run.py', ROOT), ('scripts/experiments/er_stage_b.py', ROOT), ('scripts/experiments/er_stage_a.py', ROOT), ('scripts/experiments/tail_calib_common.py', ROOT),
+for rel, base in [('scripts/experiments/er_stage_b_run.py', ROOT), ('scripts/experiments/er_stage_b.py', ROOT), ('scripts/experiments/er_stage_a.py', ROOT), ('scripts/experiments/tail_calib_common.py', ROOT), ('scripts/experiments/calfix_common.py', ROOT),
                   ('spectral_utils/lsml_gate_locator_research.py', DEPTH), ('spectral_utils/fusion_utils.py', DEPTH), ('spectral_utils/prmbench.py', DEPTH),
                   ('scripts/experiments/cvf_v2/em.py', MAIN / '.worktrees/cumulative-vote-fusion-v2'), ('scripts/experiments/cvf_v2/core.py', MAIN / '.worktrees/cumulative-vote-fusion-v2')]:
     dst = snap / base.name / rel; dst.parent.mkdir(parents=True, exist_ok=True); shutil.copy(base / rel, dst); code[f'{base.name}/{rel}'] = sha(base / rel)
@@ -118,49 +124,62 @@ dump(OUT / 'CODE_MANIFEST.json', {'files': code, 'git_head_ssl_worktree': git(RO
 print(f'channels ready ({timing["channels_s"]:.0f}s); checks {checks}', flush=True)
 
 # ------------------------------------------------------------------ the label-free chain
-STAGEB = ['G_sml', 'G_equal', 'C_sml', 'S_equal', 'S_lsml', 'G_oracle']
-def chain(V, votes, key_g, pf, fit_rows, tag, k):
-    """Label-free chain on PRMBench fit-fold steps pf; returns full-row scores of the stage-B arms and diagnostics.
-    Labels enter only the truth rows (diagnostic) and G_oracle (label-using diagnostic arm)."""
+from scipy.stats import spearmanr  # noqa: E402
+from calfix_common import tail_marks  # noqa: E402
+# partition recipes: 'G' = frozen (random-tie binary marks, PRMBench fit-fold steps); 'G1' = amendment B1 (tie-aware centred marks, all fit-fold steps)
+GP = ('G', 'G1')
+STAGEB = ['G_sml', 'G_equal', 'C_sml', 'S_equal', 'S_lsml', 'G_oracle', 'G1_sml', 'G1_equal', 'G1_oracle']
+def ds_meta(est): return {kk: est.get(kk) for kk in ('converged', 'selected_start', 'boundary_emissions', 'orientation', 'prevalence')}
+def group_rule(V, surv, gs, key_g, pf, p, arms, d):
+    """Steps 4-6 for one partition gs (labels 0..G-1) of the survivors; arm names prefixed p."""
+    G = int(gs.max()) + 1
+    d[f'{p}_partition'] = gs.tolist(); d[f'{p}_members'] = [[names[surv[j]] for j in np.flatnonzero(gs == g)] for g in range(G)]
+    Z = SB.group_scores(V[:, surv], off, gs, answer_standardize)
+    arms[f'{p}_equal'] = Z @ np.full(G, 1 / G)
+    gv = SB.random_tie_marks(Z, off, .2, key_g[:, :G])
+    if not marks_ok(gv): hard_stop('group mark counts')
+    truG = SA.truth(gv[pf], labels[pf]); wO = SB.mle_weights(truG['psi'], truG['eta']); d[f'{p}_truth'] = truG; d[f'{p}_w_oracle'] = wO
+    if wO.sum() > 0: arms[f'{p}_oracle'] = Z @ (wO / wO.sum())                  # label-using diagnostic
+    if G < 3: d[f'{p}_sml_failure'] = f'{G} groups'; return
+    try: estG = SA.em_estimate(gv[pf], 'ds')
+    except Exception as e: d[f'{p}_sml_failure'] = 'DS on groups: ' + repr(e); return
+    wG = SB.mle_weights(estG['psi'], estG['eta'])
+    d[f'{p}_est'] = estG; d[f'{p}_ds'] = ds_meta(estG); d[f'{p}_w_est'] = wG; d[f'{p}_bar'] = SB.group_bar(estG, truG)
+    d[f'{p}_weight_spearman'] = float(spearmanr(wG, wO).statistic)
+    if wG.sum() > 0: arms[f'{p}_sml'] = Z @ (wG / wG.sum())
+    else: d[f'{p}_sml_failure'] = 'all group weights 0'
+def chain(V, votes, Tta, key_g, pf, fit_rows, tag, k):
+    """Label-free chain; returns full-row scores of the stage-B arms and diagnostics.  Labels enter only the
+    truth rows (diagnostic) and the *_oracle arms (label-using diagnostics, fit-fold labels only)."""
     arms = {}; d = {'fold': k, 'bank': tag}
-    tru13 = SA.truth(votes[pf], labels[pf]); d['truth13'] = tru13
+    tru13 = SA.truth(votes[pf], labels[pf]); d['truth13'] = tru13; d['truly_anti'] = [names[j] for j in range(13) if tru13['pi'][j] <= 0.5]
     try: est13 = SA.em_estimate(votes[pf], 'ds')
     except Exception as e: d['failure'] = 'DS on 13 channels: ' + repr(e); return arms, d
-    d['est13'] = est13; surv = np.flatnonzero(est13['pi'] > 0.5); d['survivors'] = [names[j] for j in surv]; d['dropped'] = [names[j] for j in range(13) if j not in surv]
-    d['truly_anti'] = [names[j] for j in range(13) if tru13['pi'][j] <= 0.5]
+    w13 = SB.mle_weights(est13['psi'], est13['eta']); d['est13'] = est13; d['ds13'] = ds_meta(est13); d['w_channel'] = w13
+    surv = np.flatnonzero(est13['pi'] > 0.5); d['survivors'] = [names[j] for j in surv]; d['dropped'] = [names[j] for j in range(13) if j not in surv]
     if len(surv) < 3: d['failure'] = f'{len(surv)} survivors'; return arms, d
     anchor_s = int(np.flatnonzero(surv == A0)[0]) if A0 in surv else int(np.argmax(est13['pi'][surv])); d['anchor'] = names[surv[anchor_s]]
-    Tc = SB.answer_center((votes > 0).astype(float), off)
-    try: d['partition13'] = [int(v) for v in TC.lsml_fit_scaled(Tc[pf], A0, V[pf], standardize=True, loading_scale='unit')['groups']]
-    except Exception as e: d['partition13'] = None; d['partition13_error'] = repr(e)
-    try: ps = TC.lsml_fit_scaled(Tc[pf][:, surv], anchor_s, V[pf][:, surv], standardize=True, loading_scale='unit')
-    except Exception as e: d['failure'] = 'survivor partition: ' + repr(e); return arms, d
-    gs = np.unique(np.asarray(ps['groups'], int), return_inverse=True)[1]; G = int(gs.max()) + 1
-    d['partition'] = gs.tolist(); d['group_members'] = [[names[surv[j]] for j in np.flatnonzero(gs == g)] for g in range(G)]
-    d['partition_equals_13_restricted'] = None if d['partition13'] is None else SB.canonical(np.asarray(d['partition13'])[surv]) == SB.canonical(gs)
-    Z = SB.group_scores(V[:, surv], off, gs, answer_standardize)
     w_s = np.zeros(13); w_s[surv] = 1 / len(surv); arms['S_equal'] = V @ w_s
-    w13 = SB.mle_weights(est13['psi'], est13['eta']); d['w_channel'] = w13
     if w13.sum() > 0: arms['C_sml'] = V @ (w13 / w13.sum())
-    arms['G_equal'] = Z @ np.full(G, 1 / G)
     try:
         wl, ml = fit_fusion_weights(V[fit_rows][:, surv], FusionRecipe(name='S_lsml', members=tuple(names[j] for j in surv), mode='continuous', anchor=anchor_s), seed=FIT_SEED)
         arms['S_lsml'] = V[:, surv] @ wl; d['S_lsml'] = {'weights': wl, 'K': int(ml['K']), 'groups': ml['groups'], 'anchor_flipped': ml['anchor_flipped'], 'small_m_guarded': ml['small_m_guarded']}
     except Exception as e: d['S_lsml_failure'] = repr(e)
-    if G < 3: d['G_sml_failure'] = f'{G} groups'; return arms, d
-    gv = SB.random_tie_marks(Z, off, .2, key_g[:, :G])
-    if not marks_ok(gv): hard_stop('group mark counts')
-    truG = SA.truth(gv[pf], labels[pf]); d['truthG'] = truG
-    wO = SB.mle_weights(truG['psi'], truG['eta']); d['w_oracle'] = wO
-    if wO.sum() > 0: arms['G_oracle'] = Z @ (wO / wO.sum())
-    try: estG = SA.em_estimate(gv[pf], 'ds')
-    except Exception as e: d['G_sml_failure'] = 'DS on groups: ' + repr(e); return arms, d
-    d['estG'] = estG; wG = SB.mle_weights(estG['psi'], estG['eta']); d['w_group'] = wG; d['barG'] = SB.group_bar(estG, truG)
-    from scipy.stats import spearmanr
-    d['weight_spearman_est_vs_oracle'] = float(spearmanr(wG, wO).statistic) if G >= 3 else None
-    if wG.sum() > 0: arms['G_sml'] = Z @ (wG / wG.sum())
-    else: d['G_sml_failure'] = 'all group weights 0'
+    Tc = SB.answer_center((votes > 0).astype(float), off)
+    for p, T, rr in (('G', Tc, pf), ('G1', Tta, fit_rows)):
+        try: d[f'{p}_partition13'] = [int(v) for v in TC.lsml_fit_scaled(T[rr], A0, V[rr], standardize=True, loading_scale='unit')['groups']]
+        except Exception as e: d[f'{p}_partition13'] = None; d[f'{p}_partition13_error'] = repr(e)
+        try: ps = TC.lsml_fit_scaled(T[rr][:, surv], anchor_s, V[rr][:, surv], standardize=True, loading_scale='unit')
+        except Exception as e: d[f'{p}_partition_failure'] = repr(e); continue
+        gs = np.unique(np.asarray(ps['groups'], int), return_inverse=True)[1]; p13 = d[f'{p}_partition13']
+        d[f'{p}_partition_equals_13_restricted'] = None if p13 is None else SB.canonical(np.asarray(p13)[surv]) == SB.canonical(gs)
+        group_rule(V, surv, gs, key_g, pf, p, arms, d)
     return arms, d
+def reason(a, d):
+    p = a.split('_')[0]
+    return d.get('failure') or (d.get('S_lsml_failure') if a == 'S_lsml' else None) or d.get(f'{p}_partition_failure') or (d.get(f'{p}_sml_failure') if a.endswith('_sml') else None) or 'not produced (all weights 0)'
+CHAIN_KEYS = ['survivors', 'dropped', 'truly_anti', 'anchor', 'ds13', 'w_channel', 'S_lsml', 'S_lsml_failure', 'failure'] + [f'{p}_{s}' for p in GP for s in (
+    'partition', 'members', 'partition13', 'partition13_error', 'partition_equals_13_restricted', 'partition_failure', 'ds', 'w_est', 'w_oracle', 'weight_spearman', 'bar', 'sml_failure')]
 
 # ------------------------------------------------------------------ fits: eval fold k, cal (k+1)%5, fit = the other three
 REFS = ['B13_equal', 'B13_block_equal', 'B13_lsml', 'B11_lsml', 'B11_equal', 'ct7', 'fam421', 'step_index']
@@ -169,6 +188,7 @@ ALL = REFS + STAGEB + POS + TIE
 scores = {m: np.full(S, np.nan) for m in ALL}; written = {m: np.zeros(S, np.int8) for m in ALL}
 tau = {m: {} for m in ALL}; fitted_folds = {m: [] for m in ALL}; fit_log = []; failures = []; diag = []
 A_SC = np.load(A_RUN / 'STEP_SCORES.npz'); replay = {}
+TTA = tail_marks(values, off, .2, tie_aware=True, centred=True)[0]
 def cal_tau(s_full, cal):
     """PRMScore threshold of the fold-k model: 0.8 quantile of its answer-z scores on the calibration fold's PRMBench answers."""
     return float(np.quantile(np.concatenate([zt(s_full[off[i]:off[i+1]]) for i in np.flatnonzero(prm & (fold == cal))]), .8))
@@ -189,29 +209,31 @@ for k in FOLDS:
         if r in A_SC.files: replay[f'{r}_fold{k}'] = float(np.max(np.abs(s[ev_rows] - A_SC[r][ev_rows])))
         put(r, k, ev_rows, s, cal)
     # stage B on the original bank, on the position-adjusted bank and with two more tie keys
-    runs = [('main', values, VOTES['main'], KEYS['main'][1], '')]
-    Vpos = answer_standardize(values - SB.position_profile(values, off, pf), off)
-    runs.append(('pos', Vpos, SB.random_tie_marks(Vpos, off, .2, KEYS['main'][0]), KEYS['main'][1], '_pos'))
+    runs = [('main', values, VOTES['main'], TTA, KEYS['main'][1], '')]
+    Vpos = answer_standardize(values - SB.position_profile(values, off, pf), off); vpos = SB.random_tie_marks(Vpos, off, .2, KEYS['main'][0])
+    if not marks_ok(vpos): hard_stop('position-bank mark counts')
+    runs.append(('pos', Vpos, vpos, tail_marks(Vpos, off, .2, tie_aware=True, centred=True)[0], KEYS['main'][1], '_pos'))
     put('B13_equal_pos', k, ev_rows, Vpos @ np.full(13, 1 / 13), cal)
-    runs += [(tg, values, VOTES[tg], KEYS[tg][1], '_' + tg) for tg in ('tie2', 'tie3')]
-    for tag, V, votes, key_g, sfx in runs:
-        if tag == 'pos' and not marks_ok(votes): hard_stop('position-bank mark counts')
-        arms, d = chain(V, votes, key_g, pf, fit_rows, tag, k); diag.append(d)
+    runs += [(tg, values, VOTES[tg], TTA, KEYS[tg][1], '_' + tg) for tg in ('tie2', 'tie3')]
+    for tag, V, votes, Tta, key_g, sfx in runs:
+        arms, d = chain(V, votes, Tta, key_g, pf, fit_rows, tag, k); diag.append(d)
         for a in STAGEB:
             if a in arms: put(a + sfx, k, ev_rows, arms[a], cal)
-            else: failures.append({'fold': k, 'arm': a + sfx, 'reason': d.get('failure') or d.get(f'{a}_failure') or d.get('G_sml_failure') or 'not produced'})
-        fit_log.append({'fold': k, 'arm': 'stage_B_chain' + sfx, **{kk: d.get(kk) for kk in ('survivors', 'dropped', 'truly_anti', 'anchor', 'partition', 'group_members', 'partition13', 'partition_equals_13_restricted',
-                        'w_channel', 'w_group', 'w_oracle', 'weight_spearman_est_vs_oracle', 'barG', 'S_lsml', 'failure', 'G_sml_failure')}})
+            else: failures.append({'fold': k, 'arm': a + sfx, 'reason': reason(a, d)})
+        fit_log.append({'fold': k, 'arm': 'stage_B_chain' + sfx, **{kk: d.get(kk) for kk in CHAIN_KEYS}})
     dm = [x for x in diag if x['fold'] == k and x['bank'] == 'main'][0]
-    print(f"fold {k}: fit {fitf} cal {cal}; dropped {dm.get('dropped')}; truly anti {dm.get('truly_anti')}; groups {dm.get('group_members')}; w_group {np.round(dm.get('w_group', []), 3).tolist()}; "
-          f"w_oracle {np.round(dm.get('w_oracle', []), 3).tolist()}; prev est/true {round(dm['estG']['prevalence'], 3) if 'estG' in dm else None}/{round(dm['truthG']['prevalence'], 3) if 'truthG' in dm else None}; "
-          f"bar {dm.get('barG', {}).get('passes')} ({time.perf_counter()-t:.0f}s)", flush=True)
+    msg = f"fold {k}: fit {fitf} cal {cal}; dropped {dm.get('dropped')}; truly anti {dm.get('truly_anti')}; DS13 {dm.get('ds13')}"
+    for p in GP:
+        pe = round(dm[f'{p}_est']['prevalence'], 3) if f'{p}_est' in dm else None; pt = round(dm[f'{p}_truth']['prevalence'], 3) if f'{p}_truth' in dm else None
+        msg += (f"\n   {p}: groups {dm.get(f'{p}_members')}; w_est {np.round(dm.get(f'{p}_w_est', []), 3).tolist()}; w_oracle {np.round(dm.get(f'{p}_w_oracle', []), 3).tolist()}; "
+                f"prev est/true {pe}/{pt}; bar {(dm.get(f'{p}_bar') or {}).get('passes')}")
+    print(msg + f' ({time.perf_counter()-t:.0f}s)', flush=True)
 timing['fit_s'] = time.perf_counter() - T0
 checks['replay_max_abs_diff'] = max(replay.values()); checks['replay_per_ref'] = replay
 for m in ALL: checks[f'written_once_{m}'] = bool(written[m].max() <= 1)
 checks['replays_pass'] = bool(checks['replay_max_abs_diff'] <= 1e-9 and all(checks[f'written_once_{m}'] for m in ALL))
 with open(OUT / 'FIT_MANIFEST.jsonl', 'w', encoding='utf8') as f:
-    for r in fit_log: f.write(json.dumps(r, default=lambda v: v.tolist() if isinstance(v, np.ndarray) else float(v) if isinstance(v, np.generic) else str(v)) + '\n')
+    for r in fit_log: f.write(json.dumps(r, default=lambda v: v.tolist() if isinstance(v, np.ndarray) else v.item() if isinstance(v, np.generic) else str(v)) + '\n')
 np.savez_compressed(OUT / 'STEP_SCORES.npz', offsets=off, **{m: scores[m] for m in ALL})
 pd.DataFrame(failures or [{'fold': '', 'arm': '', 'reason': 'none'}]).to_csv(OUT / 'FAILURES.csv', index=False)
 print('checks:', {k: v for k, v in checks.items() if not k.startswith('written_once') and k != 'replay_per_ref'}, flush=True)
@@ -223,27 +245,31 @@ for d in diag:
     k, bank = d['fold'], d['bank']
     for j, c in enumerate(names):
         r = {'fold': k, 'bank': bank, 'channel': c, 'psi_true': d['truth13']['psi'][j], 'eta_true': d['truth13']['eta'][j], 'pi_true': d['truth13']['pi'][j]}
-        if 'est13' in d: r.update({'psi_hat': d['est13']['psi'][j], 'eta_hat': d['est13']['eta'][j], 'pi_hat': d['est13']['pi'][j], 'kept': c in d['survivors'], 'w_channel': d['w_channel'][j]})
+        if 'est13' in d: r.update({'psi_hat': d['est13']['psi'][j], 'eta_hat': d['est13']['eta'][j], 'pi_hat': d['est13']['pi'][j], 'kept': c in d.get('survivors', []), 'w_channel': d['w_channel'][j]})
         frows.append(r)
-    for g, mem in enumerate(d.get('group_members') or []):
-        r = {'fold': k, 'bank': bank, 'group': g, 'members': ' + '.join(mem)}
-        if 'truthG' in d: r.update({'psi_true': d['truthG']['psi'][g], 'eta_true': d['truthG']['eta'][g], 'pi_true': d['truthG']['pi'][g], 'w_oracle': d['w_oracle'][g]})
-        if 'estG' in d: r.update({'psi_hat': d['estG']['psi'][g], 'eta_hat': d['estG']['eta'][g], 'pi_hat': d['estG']['pi'][g], 'w_est': d['w_group'][g]})
-        grows.append(r)
-    parts[f'{bank}_fold{k}'] = {kk: d.get(kk) for kk in ('survivors', 'dropped', 'truly_anti', 'anchor', 'group_members', 'partition', 'partition13', 'partition_equals_13_restricted', 'barG', 'weight_spearman_est_vs_oracle', 'failure', 'G_sml_failure')} | {
-        'prevalence_true': d['truth13']['prevalence'], 'prevalence_hat_channels': d['est13']['prevalence'] if 'est13' in d else None, 'prevalence_hat_groups': d['estG']['prevalence'] if 'estG' in d else None,
-        'channel_bar': SA.bar(d['est13'], d['truth13']) if 'est13' in d else None}
+    for p in GP:
+        for g, mem in enumerate(d.get(f'{p}_members') or []):
+            r = {'fold': k, 'bank': bank, 'recipe': p, 'group': g, 'members': ' + '.join(mem)}
+            if f'{p}_truth' in d: r.update({'psi_true': d[f'{p}_truth']['psi'][g], 'eta_true': d[f'{p}_truth']['eta'][g], 'pi_true': d[f'{p}_truth']['pi'][g], 'w_oracle': d[f'{p}_w_oracle'][g]})
+            if f'{p}_est' in d: r.update({'psi_hat': d[f'{p}_est']['psi'][g], 'eta_hat': d[f'{p}_est']['eta'][g], 'pi_hat': d[f'{p}_est']['pi'][g], 'w_est': d[f'{p}_w_est'][g]})
+            grows.append(r)
+    parts[f'{bank}_fold{k}'] = {kk: d.get(kk) for kk in CHAIN_KEYS if kk not in ('w_channel', 'S_lsml')} | {
+        'prevalence_true': d['truth13']['prevalence'], 'prevalence_hat_channels': d['est13']['prevalence'] if 'est13' in d else None,
+        **{f'{p}_prevalence_hat_groups': d[f'{p}_est']['prevalence'] if f'{p}_est' in d else None for p in GP}, 'channel_bar': SA.bar(d['est13'], d['truth13']) if 'est13' in d else None}
 summ = {}
 for bank in ('main', 'pos', 'tie2', 'tie3'):
     ds = [d for d in diag if d['bank'] == bank]
-    common = sorted(set.intersection(*[set(d.get('survivors') or []) for d in ds])) if ds else []
-    labs = [np.asarray(d['partition'])[[d['survivors'].index(c) for c in common]] for d in ds if d.get('partition') is not None]
-    summ[bank] = {'survivor_sets_identical': len({tuple(d.get('survivors') or []) for d in ds}) == 1, 'common_survivors': common,
-                  'partitions_identical_on_common': len({SB.canonical(l) for l in labs}) == 1 if labs else None,
-                  'min_pairwise_ari_on_common': min([SB.ari(a, b) for i, a in enumerate(labs) for b in labs[i + 1:]], default=None),
-                  'group_bar_passes': [d.get('barG', {}).get('passes') for d in ds],
-                  'group_prev_error': [d['estG']['prevalence'] - d['truthG']['prevalence'] if 'estG' in d else None for d in ds],
-                  'channel_prev_error': [d['est13']['prevalence'] - d['truth13']['prevalence'] if 'est13' in d else None for d in ds]}
+    sb = {'survivor_sets_identical': len({tuple(d.get('survivors') or []) for d in ds}) == 1,
+          'channel_prev_error': [d['est13']['prevalence'] - d['truth13']['prevalence'] if 'est13' in d else None for d in ds]}
+    common = sorted(set.intersection(*[set(d.get('survivors') or []) for d in ds])) if ds else []; sb['common_survivors'] = common
+    for p in GP:
+        labs = [np.asarray(d[f'{p}_partition'])[[d['survivors'].index(c) for c in common]] for d in ds if d.get(f'{p}_partition') is not None] if len(common) >= 2 else []
+        sb[p] = {'partitions_identical_on_common': len({SB.canonical(l) for l in labs}) == 1 if labs else None,
+                 'min_pairwise_ari_on_common': min([SB.ari(a, b) for i, a in enumerate(labs) for b in labs[i + 1:]], default=None),
+                 'n_groups': [len(d.get(f'{p}_members') or []) for d in ds], 'bar_passes': [(d.get(f'{p}_bar') or {}).get('passes') for d in ds],
+                 'prev_error': [d[f'{p}_est']['prevalence'] - d[f'{p}_truth']['prevalence'] if f'{p}_est' in d else None for d in ds],
+                 'ds_converged': [(d.get(f'{p}_ds') or {}).get('converged') for d in ds]}
+    summ[bank] = sb
 parts['summary'] = summ
 pd.DataFrame(frows).to_csv(OUT / 'STAGE_B_FILTER.csv', index=False); pd.DataFrame(grows).to_csv(OUT / 'STAGE_B_GROUPS.csv', index=False); dump(OUT / 'STAGE_B_PARTITIONS.json', parts)
 print('stage B summary:', json.dumps(summ, default=float)[:2500], flush=True)
@@ -293,9 +319,10 @@ t = time.perf_counter()
 Gpr, ginv_all = np.unique(groups[prm], return_inverse=True); gpr = np.full(n, -1); gpr[prm] = ginv_all
 Gpb, gpb_all = np.unique(groups[pb], return_inverse=True); gpbx = np.full(n, -1); gpbx[pb] = gpb_all
 prim = [(a, b) for a, b, _ in P['contrasts']['primary']]
+amend = [(a, b) for a, b, _ in P['amendments'][0]['contrasts']]; FAM = {p: ('primary', 10) for p in prim} | {p: ('amendment_B1', 6) for p in amend}
 sec = [(a, r) for a in STAGEB for r in ['B13_equal', 'B13_block_equal', 'B13_lsml', 'B11_lsml', 'ct7', 'fam421', 'step_index']] + [('S_equal', 'B13_equal'), ('G_oracle', 'G_equal'), ('G_oracle', 'G_sml'),
-       ('G_sml_pos', 'B13_equal_pos'), ('G_sml_pos', 'G_equal_pos'), ('S_lsml_pos', 'S_equal_pos')]
-PAIRS = list(dict.fromkeys(prim + sec))
+       ('G_sml_pos', 'B13_equal_pos'), ('G_sml_pos', 'G_equal_pos'), ('S_lsml_pos', 'S_equal_pos'), ('G1_oracle', 'G1_equal'), ('G1_sml_pos', 'B13_equal_pos'), ('G1_sml_pos', 'G1_equal_pos')]
+PAIRS = list(dict.fromkeys(prim + amend + sec))
 prep = {}
 for a, b in PAIRS:
     F = cov[a] & cov[b]; folds_c = sorted(set(fitted_folds[a]) & set(fitted_folds[b]))
@@ -307,7 +334,7 @@ for a, b in PAIRS:
         hs = np.zeros((len(Gpb), len(PBC))); np.add.at(hs, (gpbx[pe], cell_idx[pe]), hitA[m][pe]); d[m]['hit'] = hs
     d['cnt'] = np.bincount(gpr[e], minlength=len(Gpr)).astype(float); hc = np.zeros((len(Gpb), len(PBC))); np.add.at(hc, (gpbx[pe], cell_idx[pe]), 1); d['hcnt'] = hc
     prep[(a, b)] = d
-K = 10; dl = {p: {'auc': np.empty(DRAWS), 'ps': np.empty(DRAWS), 'sla': np.empty(DRAWS)} for p in PAIRS if prep[p]}
+dl = {p: {'auc': np.empty(DRAWS), 'ps': np.empty(DRAWS), 'sla': np.empty(DRAWS)} for p in PAIRS if prep[p]}
 rng = np.random.default_rng(SEED); rng2 = np.random.default_rng(SEED + 1); pos = 0
 while pos < DRAWS:
     nb = min(5000, DRAWS - pos)
@@ -322,15 +349,15 @@ while pos < DRAWS:
     pos += nb
 rows = []; pbrows = []; deltas = {}
 for p in PAIRS:
-    a, b = p; primary = p in prim; d = prep[p]
+    a, b = p; primary = p in prim; fam, K = FAM.get(p, ('secondary', None)); d = prep[p]
     if d is None:
-        rows.append({'contrast_id': f'{a} - {b}', 'primary': primary, 'endpoint': 'all', 'note': 'NOT_ESTIMABLE (no common fitted fold)'}); continue
+        rows.append({'contrast_id': f'{a} - {b}', 'primary': primary, 'family': fam, 'endpoint': 'all', 'note': 'NOT_ESTIMABLE (no common fitted fold)'}); continue
     pt_auc = (d[a]['auc'].sum() - d[b]['auc'].sum()) / d['cnt'].sum(); pt_ps = float(prmscore_from_counts(*d[a]['conf'].sum(0)) - prmscore_from_counts(*d[b]['conf'].sum(0)))
     hc = d['hcnt'].sum(0); pt_sla = float(np.mean((d[a]['hit'].sum(0) - d[b]['hit'].sum(0))[hc > 0] / hc[hc > 0]))
     for ep, key, pt in [('prm_within_auc', 'auc', pt_auc), ('prmscore', 'ps', pt_ps)]:
         x = dl[p][key]; deltas[f'{a}__minus__{b}__{ep}'] = x.astype(np.float32)
-        rows.append({'contrast_id': f'{a} - {b}', 'primary': primary, 'endpoint': ep, 'folds': ','.join(map(str, d['folds'])), 'delta': float(pt), 'ci95_lo': float(np.quantile(x, .025)), 'ci95_hi': float(np.quantile(x, .975)),
-                     'ci_adj_lo': float(np.quantile(x, .05 / K / 2)) if primary else None, 'ci_adj_hi': float(np.quantile(x, 1 - .05 / K / 2)) if primary else None, 'family_K': K if primary else None, 'B': DRAWS, 'paired_groups': len(Gpr)})
+        rows.append({'contrast_id': f'{a} - {b}', 'primary': primary, 'family': fam, 'endpoint': ep, 'folds': ','.join(map(str, d['folds'])), 'delta': float(pt), 'ci95_lo': float(np.quantile(x, .025)), 'ci95_hi': float(np.quantile(x, .975)),
+                     'ci_adj_lo': float(np.quantile(x, .05 / K / 2)) if K else None, 'ci_adj_hi': float(np.quantile(x, 1 - .05 / K / 2)) if K else None, 'family_K': K, 'B': DRAWS, 'paired_groups': len(Gpr)})
     x = dl[p]['sla']; deltas[f'{a}__minus__{b}__pb_sla'] = x.astype(np.float32)
     pbrows.append({'contrast_id': f'{a} - {b}', 'primary_pair': primary, 'endpoint': 'pb_sla_macro8', 'folds': ','.join(map(str, d['folds'])), 'delta': pt_sla, 'ci95_lo': float(np.nanquantile(x, .025)), 'ci95_hi': float(np.nanquantile(x, .975)), 'B': DRAWS, 'paired_groups': len(Gpb)})
 pd.DataFrame(rows).to_csv(OUT / 'CONTRASTS.csv', index=False); pd.DataFrame(pbrows).to_csv(OUT / 'PB_CONTRASTS.csv', index=False)
@@ -340,5 +367,5 @@ status.update({'status': 'COMPLETE' if not failures else 'COMPLETE_WITH_FAILED_F
                'checks': {k: v for k, v in checks.items() if not k.startswith('written_once')}, 'fitted_folds': fitted_folds})
 dump(OUT / 'RUN_STATUS.json', status)
 print(M[M.stratum.isin(['all', 'macro8'])].pivot(index='method', columns='metric', values='estimate').round(4).to_string())
-print(pd.DataFrame(rows)[lambda d: d.primary == True][['contrast_id', 'endpoint', 'folds', 'delta', 'ci_adj_lo', 'ci_adj_hi']].round(4).to_string())
+print(pd.DataFrame(rows)[lambda d: d.family != 'secondary'][['family', 'contrast_id', 'endpoint', 'folds', 'delta', 'ci_adj_lo', 'ci_adj_hi']].round(4).to_string())
 print(json.dumps(timing, indent=1)); print('status', status['status'], 'failures', len(failures))
