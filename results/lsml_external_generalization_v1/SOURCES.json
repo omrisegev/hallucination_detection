@@ -1,0 +1,170 @@
+{
+  "repositories": {
+    "hard2verify": {
+      "repo": "SalesforceAIResearch/Hard2Verify",
+      "revision": "9cd1eca6fa662c3dcd4576ee5ae8668515add186"
+    },
+    "socratic": {
+      "repo": "Xiang-Li-oss/Socratic-PRMBench",
+      "revision": "730dbfa75c6d9cbc6e0117882d22ced43417d86f"
+    },
+    "prmbench": {
+      "repo": "PRMBench/PRMBench",
+      "revision": "a526a3c139e59ae6b825712b65f2beeec49e0d50"
+    }
+  },
+  "models": {
+    "Qwen/Qwen3-8B": "b968826d9c46dd6066d109eabc6255188de91218",
+    "Qwen/QwQ-32B": "976055f8c83f394f35dbd3ab09a285a984907bd0",
+    "Qwen/Qwen2.5-Math-PRM-7B": "0610740060112df12585d00a1c5f4624d2f59051",
+    "universalprm/Universal-PRM": "791846da037cada4a5b12f48a3bd74d7e8dd743b"
+  },
+  "datasets": {
+    "Salesforce/Hard2Verify": {
+      "revision": "8f1226246127de3775e92006435ec84781183079",
+      "files": [
+        {
+          "rfilename": ".gitattributes"
+        },
+        {
+          "rfilename": "README.md"
+        },
+        {
+          "rfilename": "test.jsonl"
+        }
+      ]
+    }
+  },
+  "files": [
+    {
+      "path": "hard2verify/LICENSE.txt",
+      "bytes": 11444,
+      "sha256": "a32115015c1eea6186e519fa03ab3b77844170a75cf57ddbeb57f15dae44729a"
+    },
+    {
+      "path": "hard2verify/README.md",
+      "bytes": 3214,
+      "sha256": "736e3976b777d551ed2c03a48fe62773fa3a2d48f4dea12fc0f33de3281a11d4"
+    },
+    {
+      "path": "hard2verify/model.py",
+      "bytes": 12286,
+      "sha256": "d393d2af1fea90548a53c4fe9be779fa28c9a4e4ca00cdc77c47de442f79cc07"
+    },
+    {
+      "path": "hard2verify/run_eval.py",
+      "bytes": 7116,
+      "sha256": "d8ecd2a69cbe40fc996bd7d195ec32441232e0b78929f97fa44de460de4b90d3"
+    },
+    {
+      "path": "hard2verify/utils.py",
+      "bytes": 15269,
+      "sha256": "26d06dc736420d44d38b8d33467b2de76e4fef60131c3d4aa98b514b45280ce8"
+    },
+    {
+      "path": "socratic/README.md",
+      "bytes": 19,
+      "sha256": "e92cd7c448530ed3e0e791eb841bc119e76a59cc8612073740cb922e4e90fb12"
+    },
+    {
+      "path": "socratic/data/test_conclusion_counterfactual.jsonl",
+      "bytes": 1009821,
+      "sha256": "65353ae2af3586e6fdc1d29a3fbbc5ed507b9fdd83c8f701b0bfe0decfebc2f9"
+    },
+    {
+      "path": "socratic/data/test_conclusion_inconsistency.jsonl",
+      "bytes": 1000515,
+      "sha256": "cfb61df7c1e7d11742700b6d31eb3475406632506f040af1f3147fe54c431a60"
+    },
+    {
+      "path": "socratic/data/test_conclusion_invalidity.jsonl",
+      "bytes": 977690,
+      "sha256": "bf49b74f5ddd3b3f7570d58fd954073bcc2c2027ca2fa9642161246fd1e6c24f"
+    },
+    {
+      "path": "socratic/data/test_correction_error.jsonl",
+      "bytes": 715544,
+      "sha256": "d52aeb1357cbb234e1408aa881349184d55aa9026257177dc73eb50172e5fed6"
+    },
+    {
+      "path": "socratic/data/test_decomposition_incompleteness.jsonl",
+      "bytes": 897144,
+      "sha256": "98de973914c5a5cd1936d3c72f51d327b2127e58eba73061f8bd00a092d9ae7a"
+    },
+    {
+      "path": "socratic/data/test_decomposition_redundancy.jsonl",
+      "bytes": 1037809,
+      "sha256": "88d954b23e426cd1762f20e5ed81bd5e131418888aa6e751e236664b745bf853"
+    },
+    {
+      "path": "socratic/data/test_decomposition_unsoundness.jsonl",
+      "bytes": 967000,
+      "sha256": "a740a9002afe4c1ed684507eb45d5463a9e76949ce61199f613c632d2c7ccc33"
+    },
+    {
+      "path": "socratic/data/test_detection_error.jsonl",
+      "bytes": 719864,
+      "sha256": "fe61b2039dad13e0c43c9bb08a48afc0f98efc7343fefdbdf1abbad7fa47ed92"
+    },
+    {
+      "path": "socratic/data/test_integration_incompleteness.jsonl",
+      "bytes": 969633,
+      "sha256": "1a5a05c8a099a7b5839595f5ca5cb28aa817fa6879a74ab1e77777bde5b9f1e4"
+    },
+    {
+      "path": "socratic/data/test_integration_inconsistency.jsonl",
+      "bytes": 948491,
+      "sha256": "2f6e763155ca4141e2ce501283ad09d2ce0b445495f44d334139601e62c3af45"
+    },
+    {
+      "path": "socratic/data/test_integration_redundancy.jsonl",
+      "bytes": 962561,
+      "sha256": "5b6d81449fb510367e8bfbfbe8fa287be438df014ac8c2f7850b4d375f365a92"
+    },
+    {
+      "path": "socratic/data/test_integration_unsoundness.jsonl",
+      "bytes": 917348,
+      "sha256": "e1c3ee52593a937c27c2ca9c358f1d11ab348b289a388350fa535ca42aa134c5"
+    },
+    {
+      "path": "socratic/data/test_premise_incompleteness.jsonl",
+      "bytes": 968489,
+      "sha256": "9b746a08507b4d4466fd96b973e2a6bd8f990c7602c3775dab568019f1ac983a"
+    },
+    {
+      "path": "socratic/data/test_premise_redundancy.jsonl",
+      "bytes": 1010269,
+      "sha256": "4866c83534193f475ceb91fcaabe74df3e0d313c924874149c875718b16607a5"
+    },
+    {
+      "path": "socratic/data/test_premise_unsoundness.jsonl",
+      "bytes": 978041,
+      "sha256": "48c369ff60713f3472cd8001376cc119519abe60765a06f184bb91ff82880fc9"
+    },
+    {
+      "path": "socratic/data/test_regather_imprecision.jsonl",
+      "bytes": 963143,
+      "sha256": "b87ba1711fb8d4ef59a5a7855aa726e04494b933ad45e11008e7d98058c77171"
+    },
+    {
+      "path": "socratic/data/test_regather_incompleteness.jsonl",
+      "bytes": 962513,
+      "sha256": "9bfa6bab2553d4c635dac14cd95a1c2eea16410fcafa484fabb9c2e69602138e"
+    },
+    {
+      "path": "socratic/data/test_regather_redundancy.jsonl",
+      "bytes": 966243,
+      "sha256": "16d204a3dae589622e1d3df1471bebaa3a6ce41167ed3764f0da3b7eedcd49e2"
+    },
+    {
+      "path": "socratic/data/test_repeat_counterfactual.jsonl",
+      "bytes": 1010495,
+      "sha256": "904a9def50a81b261559253f9d590df715dcaa7c50b990dc0635e6eeb20e3c78"
+    },
+    {
+      "path": "socratic/data/test_repeat_inconsistency.jsonl",
+      "bytes": 934392,
+      "sha256": "f7658587be18a4bfd1fcd3e53e7cec8fe294f50ac684af8039bf3db8a4cfd3a2"
+    }
+  ]
+}

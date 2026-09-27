@@ -1,0 +1,298 @@
+{
+  "schema": "runtime-fusion-report-repair-v2",
+  "fit_or_inference": false,
+  "intervals_recomputed": false,
+  "source_sha256": {
+    ".worktrees/ssl-pseudolabel-residual-v1/results/ssl_pseudolabel_residual_v1/S1/run_20260923/OOF_ANSWERS.csv": "91a5b4a6de1cec91213c70500ab85f88017336b46cd0067c299378463c190b0d",
+    ".worktrees/ssl-pseudolabel-residual-v1/results/ssl_pseudolabel_residual_v1/S1/run_20260923/CONTRASTS.csv": "192ff279d91f5d108cf1a9e35ec86f3fdbc4c6cc5cefa5f3e6242c4cf97d92d8",
+    ".worktrees/ssl-pseudolabel-residual-v1/results/ssl_pseudolabel_residual_v1/S2/run_20260923/OOF_ANSWERS.csv": "6c37642e9426c8481b5f6026de2559a8c77a46d987916e58be5fd729f5b7f808",
+    ".worktrees/ssl-pseudolabel-residual-v1/results/ssl_pseudolabel_residual_v1/S2/run_20260923/CONTRASTS.csv": "f63f10a1881a7ada3a05f3f73fd4fde9c976f10b4024c5b1411c1a640504e4a7",
+    ".worktrees/ssl-pseudolabel-residual-v1/results/ssl_pseudolabel_residual_v1/S3/run_20260923/OOF_ANSWERS.csv": "ffa0222003326d33c25809b5252ec3b09fa21e207e59a42bef540f1227206bae",
+    ".worktrees/ssl-pseudolabel-residual-v1/results/ssl_pseudolabel_residual_v1/S3/run_20260923/CONTRASTS.csv": "09adcaf5fd4a219f5920adcea5c289e8b5cd68f17fe43ef84e68ec4738e840e5",
+    ".worktrees/ssl-pseudolabel-residual-v1/results/ssl_pseudolabel_residual_v1/S5/run_20260923/OOF_ANSWERS.csv": "185a3ff1e7dc241f76ed57d07955d540daebf69bb753bec28aa83d44c1c4ded3",
+    ".worktrees/ssl-pseudolabel-residual-v1/results/ssl_pseudolabel_residual_v1/S5/run_20260923/CONTRASTS.csv": "9aea0048a343c10953fcbd8d9c80dd73ecac845253aa168d170e855e603aa471"
+  },
+  "stages": {
+    "S1": {
+      "oof_answers": 13769,
+      "contrast_rows": 62,
+      "paired_N": [
+        4442,
+        6030
+      ]
+    },
+    "S2": {
+      "oof_answers": 13769,
+      "contrast_rows": 52,
+      "paired_N": [
+        4442,
+        6030
+      ]
+    },
+    "S3": {
+      "oof_answers": 13769,
+      "contrast_rows": 38,
+      "paired_N": [
+        4442,
+        6030
+      ]
+    },
+    "S5": {
+      "oof_answers": 13769,
+      "contrast_rows": 76,
+      "paired_N": [
+        4442,
+        6030
+      ]
+    }
+  },
+  "daily_audit_sha256": "8c77798694e0cbfc5960c86e1e84860eb600c59a7f4a19f10794fd16696f2aec",
+  "window_native": {
+    "matched_native_window": {
+      "iu": {
+        "derivation": "Fallback scores equal; subtract fallback hit counts / AUC sums from full-population totals.",
+        "pb_cells": {
+          "pb_gsm8k_q4": {
+            "native_answers": 251,
+            "native_errors": 148,
+            "native_learned_hits": 58,
+            "native_equal_hits": 54,
+            "learned_sla": 0.3918918918918919,
+            "equal_sla": 0.36486486486486486
+          },
+          "pb_gsm8k_q8": {
+            "native_answers": 251,
+            "native_errors": 148,
+            "native_learned_hits": 55,
+            "native_equal_hits": 53,
+            "learned_sla": 0.3716216216216216,
+            "equal_sla": 0.3581081081081081
+          },
+          "pb_math_q4": {
+            "native_answers": 832,
+            "native_errors": 521,
+            "native_learned_hits": 136,
+            "native_equal_hits": 139,
+            "learned_sla": 0.26103646833013433,
+            "equal_sla": 0.2667946257197697
+          },
+          "pb_math_q8": {
+            "native_answers": 832,
+            "native_errors": 521,
+            "native_learned_hits": 130,
+            "native_equal_hits": 145,
+            "learned_sla": 0.2495201535508637,
+            "equal_sla": 0.2783109404990403
+          },
+          "pb_olympiadbench_q4": {
+            "native_answers": 989,
+            "native_errors": 654,
+            "native_learned_hits": 174,
+            "native_equal_hits": 172,
+            "learned_sla": 0.26605504587155965,
+            "equal_sla": 0.26299694189602446
+          },
+          "pb_olympiadbench_q8": {
+            "native_answers": 989,
+            "native_errors": 654,
+            "native_learned_hits": 178,
+            "native_equal_hits": 178,
+            "learned_sla": 0.27217125382262997,
+            "equal_sla": 0.27217125382262997
+          },
+          "pb_omnimath_q4": {
+            "native_answers": 969,
+            "native_errors": 752,
+            "native_learned_hits": 178,
+            "native_equal_hits": 175,
+            "learned_sla": 0.23670212765957446,
+            "equal_sla": 0.2327127659574468
+          },
+          "pb_omnimath_q8": {
+            "native_answers": 969,
+            "native_errors": 752,
+            "native_learned_hits": 178,
+            "native_equal_hits": 173,
+            "learned_sla": 0.23670212765957446,
+            "equal_sla": 0.2300531914893617
+          }
+        },
+        "pb_native_answers": 6082,
+        "pb_native_errors": 4150,
+        "pb_native_equal_sla": 0.28325158654465576,
+        "pb_native_learned_sla": 0.2857125863009813,
+        "pb_native_delta_pp": 0.24609997563255215,
+        "prm_native_answers": 4367,
+        "prm_native_eligible": 3745,
+        "prm_native_equal_auc": 0.7319965268748616,
+        "prm_native_learned_auc": 0.7330439721491862,
+        "prm_native_delta_auc": 0.0010474452743245433,
+        "uncertainty": "No valid matched-native interval calculated; points do not establish improvement."
+      },
+      "shrink_iu": {
+        "derivation": "Fallback scores equal; subtract fallback hit counts / AUC sums from full-population totals.",
+        "pb_cells": {
+          "pb_gsm8k_q4": {
+            "native_answers": 251,
+            "native_errors": 148,
+            "native_learned_hits": 57,
+            "native_equal_hits": 54,
+            "learned_sla": 0.38513513513513514,
+            "equal_sla": 0.36486486486486486
+          },
+          "pb_gsm8k_q8": {
+            "native_answers": 251,
+            "native_errors": 148,
+            "native_learned_hits": 55,
+            "native_equal_hits": 53,
+            "learned_sla": 0.3716216216216216,
+            "equal_sla": 0.3581081081081081
+          },
+          "pb_math_q4": {
+            "native_answers": 832,
+            "native_errors": 521,
+            "native_learned_hits": 136,
+            "native_equal_hits": 139,
+            "learned_sla": 0.26103646833013433,
+            "equal_sla": 0.2667946257197697
+          },
+          "pb_math_q8": {
+            "native_answers": 832,
+            "native_errors": 521,
+            "native_learned_hits": 134,
+            "native_equal_hits": 145,
+            "learned_sla": 0.2571976967370441,
+            "equal_sla": 0.2783109404990403
+          },
+          "pb_olympiadbench_q4": {
+            "native_answers": 989,
+            "native_errors": 654,
+            "native_learned_hits": 170,
+            "native_equal_hits": 172,
+            "learned_sla": 0.2599388379204893,
+            "equal_sla": 0.26299694189602446
+          },
+          "pb_olympiadbench_q8": {
+            "native_answers": 989,
+            "native_errors": 654,
+            "native_learned_hits": 178,
+            "native_equal_hits": 178,
+            "learned_sla": 0.27217125382262997,
+            "equal_sla": 0.27217125382262997
+          },
+          "pb_omnimath_q4": {
+            "native_answers": 969,
+            "native_errors": 752,
+            "native_learned_hits": 178,
+            "native_equal_hits": 175,
+            "learned_sla": 0.23670212765957446,
+            "equal_sla": 0.2327127659574468
+          },
+          "pb_omnimath_q8": {
+            "native_answers": 969,
+            "native_errors": 752,
+            "native_learned_hits": 177,
+            "native_equal_hits": 173,
+            "learned_sla": 0.23537234042553193,
+            "equal_sla": 0.2300531914893617
+          }
+        },
+        "pb_native_answers": 6082,
+        "pb_native_errors": 4150,
+        "pb_native_equal_sla": 0.28325158654465576,
+        "pb_native_learned_sla": 0.2848969352065201,
+        "pb_native_delta_pp": 0.1645348661864332,
+        "prm_native_answers": 4367,
+        "prm_native_eligible": 3745,
+        "prm_native_equal_auc": 0.7319965268748615,
+        "prm_native_learned_auc": 0.731489113665248,
+        "prm_native_delta_auc": -0.0005074132096134498,
+        "uncertainty": "No valid matched-native interval calculated; points do not establish improvement."
+      },
+      "lsml": {
+        "derivation": "Fallback scores equal; subtract fallback hit counts / AUC sums from full-population totals.",
+        "pb_cells": {
+          "pb_gsm8k_q4": {
+            "native_answers": 251,
+            "native_errors": 148,
+            "native_learned_hits": 56,
+            "native_equal_hits": 54,
+            "learned_sla": 0.3783783783783784,
+            "equal_sla": 0.36486486486486486
+          },
+          "pb_gsm8k_q8": {
+            "native_answers": 251,
+            "native_errors": 148,
+            "native_learned_hits": 52,
+            "native_equal_hits": 53,
+            "learned_sla": 0.35135135135135137,
+            "equal_sla": 0.3581081081081081
+          },
+          "pb_math_q4": {
+            "native_answers": 832,
+            "native_errors": 521,
+            "native_learned_hits": 131,
+            "native_equal_hits": 139,
+            "learned_sla": 0.2514395393474088,
+            "equal_sla": 0.2667946257197697
+          },
+          "pb_math_q8": {
+            "native_answers": 832,
+            "native_errors": 521,
+            "native_learned_hits": 144,
+            "native_equal_hits": 145,
+            "learned_sla": 0.2763915547024952,
+            "equal_sla": 0.2783109404990403
+          },
+          "pb_olympiadbench_q4": {
+            "native_answers": 989,
+            "native_errors": 654,
+            "native_learned_hits": 169,
+            "native_equal_hits": 172,
+            "learned_sla": 0.25840978593272174,
+            "equal_sla": 0.26299694189602446
+          },
+          "pb_olympiadbench_q8": {
+            "native_answers": 989,
+            "native_errors": 654,
+            "native_learned_hits": 187,
+            "native_equal_hits": 178,
+            "learned_sla": 0.28593272171253825,
+            "equal_sla": 0.27217125382262997
+          },
+          "pb_omnimath_q4": {
+            "native_answers": 969,
+            "native_errors": 752,
+            "native_learned_hits": 194,
+            "native_equal_hits": 175,
+            "learned_sla": 0.2579787234042553,
+            "equal_sla": 0.2327127659574468
+          },
+          "pb_omnimath_q8": {
+            "native_answers": 969,
+            "native_errors": 752,
+            "native_learned_hits": 179,
+            "native_equal_hits": 173,
+            "learned_sla": 0.23803191489361702,
+            "equal_sla": 0.2300531914893617
+          }
+        },
+        "pb_native_answers": 6082,
+        "pb_native_errors": 4150,
+        "pb_native_equal_sla": 0.28325158654465576,
+        "pb_native_learned_sla": 0.28723924621534574,
+        "pb_native_delta_pp": 0.39876596706899803,
+        "prm_native_answers": 4367,
+        "prm_native_eligible": 3745,
+        "prm_native_equal_auc": 0.731996526874862,
+        "prm_native_learned_auc": 0.7354221092317974,
+        "prm_native_delta_auc": 0.0034255823569353527,
+        "uncertainty": "No valid matched-native interval calculated; points do not establish improvement."
+      }
+    }
+  },
+  "limitations": [
+    "Window native points reconstructed from exact fallback identity; no matched native CI yet.",
+    "Residual-channel repair is unit-tested, not a newly evaluated localization method."
+  ]
+}

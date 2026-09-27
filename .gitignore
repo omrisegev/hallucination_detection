@@ -140,6 +140,12 @@ results/reconstruction_benchmark_v1/external_audits/
 # Research-run intermediates. Commit reports, summary tables, manifests, and
 # advisor figures; regenerate per-run score matrices and verbose diagnostics.
 results/**/*.npz
+!results/digit_alternative_probability_v1/SCORES.npz
+!results/digit_alternative_probability_v1/ANSWER_METRICS.npz
+!results/digit_family_extension_v1/FEATURES.npz
+!results/digit_family_extension_v1/PREDICTIONS.npz
+!results/digit_family_extension_v1/EVALUATION.npz
+!results/digit_family_extension_v1/duplicate_equal_completion/PREDICTIONS.npz
 results/**/diagnostics/
 results/**/training_history.csv
 results/frozen_24cell_benchmark_failed_nan_diagnostic/
@@ -243,3 +249,8 @@ dataset_cache/whitebox_layer_fusion_v1/
 
 # Controller-only reconstruction secrets/provenance must never be staged.
 results/reconstruction_benchmark_v1/private_control/
+
+# External benchmark text, annotations and telemetry stay private/off Git.
+scratch/external_generalization_private/
+dataset_cache/external_generalization/
+results/lsml_external_generalization_v1/private/

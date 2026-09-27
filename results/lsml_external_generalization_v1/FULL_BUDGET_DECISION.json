@@ -1,0 +1,33 @@
+{
+  "approved_by": "user",
+  "user_instruction": "approved. run it",
+  "recorded_utc": "2026-09-24T05:23:21.710869+00:00",
+  "protocol_hash": "be3450deca84f61b7ce9f1b43c4332d2cffcb201ab16bc76a8c82785f57ec846",
+  "estimate_hash": "0f657139e490acb86c3f50f062d1378f0762da8aa92ebb3f7c352d4b1c4d3324",
+  "max_gpu_hours": 2,
+  "cells": [
+    {
+      "dataset": "hard2verify",
+      "model": "Qwen/Qwen3-8B",
+      "answers": 200,
+      "gpus": 1,
+      "wall_limit_minutes": 30
+    },
+    {
+      "dataset": "socratic",
+      "model": "Qwen/Qwen3-8B",
+      "answers": 2995,
+      "gpus": 1,
+      "wall_limit_minutes": 30
+    },
+    {
+      "dataset": "socratic",
+      "model": "Qwen/QwQ-32B",
+      "answers": 2995,
+      "gpus": 1,
+      "wall_limit_minutes": 60
+    }
+  ],
+  "scope": "Full teacher-forced telemetry only; no answer regeneration, training, comparator generation or external quality evaluation",
+  "retries": "No automatic requeue. Any retry must fit remaining total allocation budget."
+}

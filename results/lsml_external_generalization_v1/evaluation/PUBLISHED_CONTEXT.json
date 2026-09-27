@@ -1,0 +1,24 @@
+{
+  "kind": "published context, NOT reproduced measurements",
+  "hard2verify": {
+    "metric": "step-level Balanced F1 (harmonic correct/error recall), percentage",
+    "source": "https://arxiv.org/html/2510.13744v1",
+    "table": "Table2 / Appendix B; step-level BalancedF1, not ErrorID F1",
+    "rows": {
+      "Qwen3-8B critic": 53.51,
+      "Qwen2.5-Math-PRM-7B": 42.37,
+      "UniversalPRM-7B": 60.27
+    },
+    "access": "Paper PRM thresholds tuned on100 target responses; 0.1..0.9 step0.05 optimizing harmonic three-task BalancedF1. Our q80 thresholds are frozen from source data."
+  },
+  "socratic": {
+    "metric": "PRMScore, percentage",
+    "source": "https://arxiv.org/html/2505.23474v1",
+    "table": "Table3",
+    "rows": {
+      "Qwen2.5-Math-PRM-7B": 68.0,
+      "QwQ-32B critic": 73.8
+    },
+    "access": "Published settings; comparator checkpoints/prompts/thresholds not reproduced in this CPU run."
+  }
+}

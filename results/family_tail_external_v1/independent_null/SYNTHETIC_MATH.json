@@ -1,0 +1,82 @@
+{
+  "status": "PASS",
+  "tail_tie_cases": 100,
+  "k2_eigen_cases": [
+    {
+      "off_diagonal": -10,
+      "absolute_weights": [
+        0.7071067811865475,
+        0.7071067811865475
+      ]
+    },
+    {
+      "off_diagonal": -1,
+      "absolute_weights": [
+        0.7071067811865475,
+        0.7071067811865475
+      ]
+    },
+    {
+      "off_diagonal": -0.01,
+      "absolute_weights": [
+        0.7071067811865475,
+        0.7071067811865475
+      ]
+    },
+    {
+      "off_diagonal": 0.01,
+      "absolute_weights": [
+        0.7071067811865475,
+        0.7071067811865475
+      ]
+    },
+    {
+      "off_diagonal": 1,
+      "absolute_weights": [
+        0.7071067811865475,
+        0.7071067811865475
+      ]
+    },
+    {
+      "off_diagonal": 10,
+      "absolute_weights": [
+        0.7071067811865475,
+        0.7071067811865475
+      ]
+    }
+  ],
+  "locked_group_masses": {
+    "0": {
+      "members": [
+        "level_entropy",
+        "margin",
+        "energy",
+        "tail",
+        "change_evidence",
+        "token_surprise",
+        "entropy_volatility",
+        "changepoint",
+        "frac_above",
+        "tail_ratio",
+        "slow_dynamics",
+        "energy_floor",
+        "top_turnover"
+      ],
+      "l1_mass": 0.7007537284647559,
+      "l2_norm": 0.21159906784736202
+    },
+    "1": {
+      "members": [
+        "energy_cusum",
+        "entropy_cusum"
+      ],
+      "l1_mass": 0.2992462715352441,
+      "l2_norm": 0.21159906784736202
+    }
+  },
+  "caveat": "K=2 off-diagonal eigenvectors have equal absolute OUTER coefficients for nonzero covariance. Final group L1 masses differ because within-group eigenvectors have unit L2, not unit L1. No between-group reliability identification. Zero covariance is degenerate.",
+  "deployment_caveat": "Fractional centered quota marks fit the weights, but continuous family scores are deployed. Binary-classifier reliability guarantees do not automatically carry over.",
+  "equal_tail_marks_but_continuous_score_max_delta": 0.743594398197263,
+  "lock_sha256": "65b35336fcc2f66b7843ec040d3bdafbbaa03bb44ae5f61f1d00335abfaea5cf",
+  "script_sha256": "d218afd8db31882a732365e543f2dda6b505b02e68a4b7c085b6c7966d1592d0"
+}

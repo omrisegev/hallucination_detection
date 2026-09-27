@@ -1,5 +1,45 @@
 # CLAUDE.md — MV_EPR Spectral Hallucination Detection
 
+## Omri execution update - 2026-09-24: external telemetry first
+
+Implement Hard2Verify and Socratic-PRMBench transfer on the dedicated
+codex/lsml-external-generalization-v1 branch. MedPRMBench is deferred.
+Prioritize AIRCC collection of complete reusable telemetry, then extract
+features and fit/evaluate the locked CPU fusion methods. Teacher-forced
+external telemetry and separate comparator inference are now authorized;
+the older blanket prohibition on extra inference below does not apply to
+this approved pipeline. No GPU training or benchmark answer regeneration.
+Timing jobs: <=12 deterministic examples per dataset/backbone, <=1 allocated
+GPU-hour each. Obtain the full-run budget decision from measured estimates
+before full inference. Preserve label isolation and do not inspect external
+quality before method freeze. User authorizes cleanup of unneeded old local
+material whose archive is verified, and Drive storage for large outputs.
+Specification: docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1.md.
+
+## Omri decision update - 2026-09-23: L-SML impact, PRMBench primary, CPU runtime
+
+This supersedes older PB-first and GPU-SSL directions. Prioritize a version where
+L-SML itself adds measured value over the SAME feature bank with fixed/equal
+fusion, and PRMBench quality INCLUDING official PRMScore is strong. CT7 is a
+reference, not the required final architecture or feature bank. Review the last
+month's experiments before proposing another sweep; do not discard other banks
+because their ProcessBench score is weaker. PB is now a reported secondary panel.
+
+No new GPU training, encoder or additional LLM/PRM inference. Self-supervision is
+relevant only as CPU processing/adaptation of available telemetry at runtime.
+Answer-local fitting remains primary; donor fitting/calibration must be labelled.
+Full-answer normalization is offline, not causal streaming. Existing benchmark
+traces use teacher-forced scoring; zero extra inference assumes available traces.
+Other learned fusion and a bounded exact H1 CPU RBM are alternatives. Simple and
+family averaging are controls only. GPU S4 and encoder-based S5 are outside scope.
+
+Preserve labels, source folds and frozen results. Prioritization follows observed
+development evidence, not untouched confirmation. Separate within-AUC, any-error
+hit and official PRMScore; compare threshold calibration access fairly. Current
+CT7-vs-PRM hit advantage does not establish overall superiority to supervised PRMs.
+Plan: docs/experiments/PRMBENCH_RUNTIME_FUSION_PLAN_HE.md. Claim/literature audit:
+docs/reviews/PRMBENCH_LITERATURE_AND_CLAIM_AUDIT_20260923_HE.md.
+
 ## Omri research continuation - 2026-09-17
 
 Omri authorized diagnosing whether broad-bank failures come from gate or locator,

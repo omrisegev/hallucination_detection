@@ -1,5 +1,26 @@
 # Codex review and research-plan handoff — 2026-09-23
 
+## Checkpoint update — 2026-09-24
+
+The current decision supersedes the original reading order and CT7 recommendation
+below: bank11 STEP-level L-SML is the research starting point, PRMBench is primary,
+and CT7/equal fusion are controls. See [month audit](LSML_PRMBENCH_MONTH_REVIEW_20260923_HE.md)
+and [runtime protocols](../experiments/PRMBENCH_RUNTIME_FUSION_PLAN_HE.md).
+The saved-score PRMScore audit uses retrospective calibration, not nested refitting.
+Its donor-fitted model does not demonstrate answer-only learning.
+
+Checkpoint inventory and large-input locations are recorded in
+`results/codex_checkpoint_20260924/MANIFEST.json`. Large local-only bank11 arrays
+remain dependencies, not files backed up by this commit. The removed
+`review-token-axis-20260921` worktree was a disposable clean checkout; reconstruct
+its recorded commit in a separate checkout when replaying that historical audit.
+Do not recreate it merely to run the new external benchmark pipeline.
+
+Omri authorized implementation on `codex/lsml-external-generalization-v1` after
+this checkpoint: Hard2Verify and Socratic-PRMBench, frozen and local L-SML,
+matched published comparators, and an AIRCC timing estimate before the full-run
+budget decision. MedPRMBench is deferred. No external inference is claimed here.
+
 This package contains Codex's independent reviews, their compact evidence, and
 the proposed follow-up protocols. Per Omri's latest instruction, Claude handles
 publication of his own experiment branches and data manifests separately.

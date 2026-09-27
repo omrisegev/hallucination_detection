@@ -1,0 +1,113 @@
+{
+ "status": "LOCKED before V3 rescoring",
+ "lock_sha256": "0fc561b7e382814cacdaa3a6425916cdba5119d03b48f2839729459a7e58c8ee",
+ "extends_lock_sha256": "0c5c55996503394edf2faeb1bc066e3fdec3c6eb315c79c0e7d59ca7d61c986c",
+ "requested_by": "Omri, 2026-09-24: the same run with a tail that is only the maximal step, on bank11 and family 15",
+ "new_rows": [
+  "F15_tail1s_lsml",
+  "B11_tail1s_lsml",
+  "B11o_tail1s_lsml"
+ ],
+ "cells": [
+  "hard2verify_qwen3_8b",
+  "socratic_qwen3_8b",
+  "socratic_qwq32b"
+ ],
+ "methods": [
+  "B11_lsml",
+  "F15_tailtie_lsml",
+  "F15_cov_lsml",
+  "K28_cov_lsml",
+  "K28_equal",
+  "F15_equal",
+  "B11_equal",
+  "B11_partition_equal",
+  "A48o_equal",
+  "ct7",
+  "F15_tailstd_lsml",
+  "F15_tail1s_lsml",
+  "B11_tail1s_lsml",
+  "B11o_tail1s_lsml"
+ ],
+ "draws": 100000,
+ "seed": 20260924,
+ "primary_family": 15,
+ "primary_contrasts": [
+  [
+   "F15_tail1s_lsml",
+   "F15_tailstd_lsml"
+  ],
+  [
+   "F15_tail1s_lsml",
+   "F15_equal"
+  ],
+  [
+   "B11_tail1s_lsml",
+   "B11_lsml"
+  ],
+  [
+   "B11o_tail1s_lsml",
+   "B11_lsml"
+  ],
+  [
+   "B11_tail1s_lsml",
+   "B11_equal"
+  ]
+ ],
+ "bridges": {
+  "V1": [
+   [
+    [
+     "F15_tailtie_lsml",
+     "B11_lsml"
+    ],
+    [
+     "F15_tailtie_lsml",
+     "F15_equal"
+    ],
+    [
+     "F15_tailtie_lsml",
+     "F15_cov_lsml"
+    ],
+    [
+     "F15_cov_lsml",
+     "K28_cov_lsml"
+    ],
+    [
+     "F15_equal",
+     "K28_equal"
+    ],
+    [
+     "K28_equal",
+     "A48o_equal"
+    ]
+   ],
+   18
+  ],
+  "V2": [
+   [
+    [
+     "F15_tailstd_lsml",
+     "F15_tailtie_lsml"
+    ],
+    [
+     "F15_tailstd_lsml",
+     "F15_equal"
+    ],
+    [
+     "F15_tailstd_lsml",
+     "F15_cov_lsml"
+    ],
+    [
+     "F15_tailstd_lsml",
+     "B11_lsml"
+    ]
+   ],
+   12
+  ]
+ },
+ "features": "reused from the sealed V1 records; no new extraction",
+ "replay_gate": "all eleven V2 arms must reproduce every sealed V2 score (<=1e-12) and decision before sealing",
+ "access": "exploratory follow-up; V1 and V2 external results had been read before the V3 lock; the new rows were pre-declared to go external regardless of their source result",
+ "reporting": "all 14 arms and all 3 cells; nothing selected, dropped or re-tuned after labels; Hard2Verify and Socratic metrics never averaged"
+}

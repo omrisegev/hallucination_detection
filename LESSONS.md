@@ -22,6 +22,20 @@ Enforced by: code | command | prose   (name the file)
 
 ---
 
+## 2026-09-23 — Disk-full writes can truncate canonical documentation
+
+What happened: apply_patch truncated CLAUDE.md after the volume filled. The original
+content was restored exactly; a temporary emergency hardlink was detached and its
+link count verified as1 before editing either copy. User-authorized removal of two
+clean GitHub-backed inactive worktrees restored space. No experiment data lost.
+Why: a small free-space reading was treated as enough for subsequent writes while
+other activity exhausted the remaining space; the edit did not fail atomically.
+Rule: after disk exhaustion, require a useful free-space margin before rewriting
+canonical files. Prefer write-to-temp, verify and replace. Never edit an emergency
+hardlink shared with another worktree; detach it first. Check ignored files and
+actual remote ancestry, not just clean git status, before deleting a worktree.
+Enforced by: prose and recorded recovery checks in docs/reviews/WORKTREE_CLEANUP_20260923.md.
+
 ## Standing rules (read these)
 
 | Rule | Enforced by | Recurred after the rule? |
@@ -225,3 +239,88 @@ What happened: in er_generality_v1 the runner computed permutation nulls only fo
 Why: I extrapolated the primary banks' null result to a bank without one, and wrote a mechanism as an explanation before testing it.
 Rule: never characterise a gain as content or position without that bank's own null; a proposed mechanism is labelled a hypothesis until a test supports it; every headline gain carries its concentration (share from the top 1% of answers, trimmed mean).
 Enforced by: prose (this entry, results/er_generality_v1/run_20260927/RED_TEAM.md).
+
+### 2026-09-24 AIRCC external collection startup
+
+Job265833 failed to resolve package-index DNS inside Pyxis before model load;
+265834/265835 cancelled while pending. Current account is cycle3/owner_940;
+old shared data and model cache remain accessible. Use pinned offline wheels,
+preserve NGC torch AND numpy, and prepare missing models on CPU compute nodes.
+Never assume login-node DNS proves container network access.
+
+## 2026-09-24 - Validate the deployed archive, not only the checkout
+
+What happened: QwQ timing job265865 failed after loading weights because a manually
+selected code archive omitted cluster/backfill_specs.py, imported indirectly by
+the scorer. No telemetry was collected;105 allocated GPU seconds were consumed.
+Why: the five-example CPU smoke ran in the full checkout, hiding a packaging gap.
+Rule: extract the exact Git archive into a separate directory and execute its
+five-example CPU collection/save/resume smoke before uploading it. Include the
+complete committed cluster and spectral_utils trees. Never overwrite a failed
+snapshot; record packaging revision and archive SHA256.
+Enforced by: tests/test_external_generalization.py --cpu-smoke executed from
+scratch/external_generalization_private/snapshot_956_complete; JOBS.json.
+
+## 2026-09-24 - Verify precision and numerical fallback paths before transfer
+What happened: review of the new external adapter found an extra float32 cast after
+CT7 BOCPD Top10, and the legacy L-SML backend could hide a numerical failure as equal
+weights. Both were caught before full external scoring or quality inspection.
+Why: the bank storage precision was incorrectly generalized to the residual stream;
+outer estimator exception handling could not see exceptions consumed by its backend.
+Rule: replay each historical view's full dtype chain and instrument internal numerical
+fallbacks; verify all source scores under the strict observer before method freeze.
+Enforced by: code in external_generalization/{ct7,fusion}.py, backend failure observer,
+test_external_scoring.py and verify_external_source_strict.py.
+
+## 2026-09-24 - Preserve frozen byte identities across Windows checkouts
+What happened: line-ending normalization required explicit old/new hash lineage;
+ordinary autocrlf checkout could otherwise change a scientifically unchanged scorer.
+Why: executable source files had not been assigned stable checkout line endings.
+Rule: pin LF before a method/analysis freeze and verify staged bytes against frozen
+hashes. Test discovery must also explicitly set the repository import path because
+the tool working directory did not reliably select it in this Windows session.
+Enforced by: .gitattributes, ANALYSIS_FREEZE.json, method identity checks and the
+absolute-path unittest discovery command (19 tests passed after correcting invocation).
+
+## 2026-09-24 - Scope external fusion claims to their matched controls
+What happened: the completed comparison supports frozen L-SML on Socratic,
+but Hard2 versus ordinary equal remains inconclusive and answer-local L-SML
+loses to that control on both Socratic backbones. A36-answer feature perturbation
+cannot establish the mechanism over6,190 records; exact-match exclusions cannot
+establish absence of semantic source overlap.
+Why: stronger-than-CT7 performance, positive point deltas and bounded sensitivity
+checks answer different questions from incremental learned-weight superiority.
+Rule: retain corrected matched-control intervals, native/fallback accounting,
+null prevalence effects and FEASIBILITY labels; record the negative implementation
+result alongside the positive transfer result.
+Enforced by: CONTRASTS.json, RED_TEAM.md, NEGATIVE_RESULT.md and independent audits.
+
+## 2026-09-27 — Replaying digit innovation requires its opportunity mask
+What happened: a new extraction initially subtracted the historical token-clock mean at all tokens. The canonical registry emits only at provided-digit positions after token zero and masks other positions during step readout. The extraction was stopped before scores or quality were saved, corrected and restarted.
+Why: the method-card shorthand omitted activity-mask semantics; the earlier conversation also simplified this detail.
+Rule: verify both values and masks against the canonical registry before claiming a historical feature replay. Keep no-opportunity steps explicitly distinguishable from verified low risk.
+Enforced by: code (tests/test_digit_alternative_probability.py::test_historical_innovation_mask_is_not_all_tokens; spectral_utils/digit_alternative_probability.py::digit_innovation_step_max).
+
+## 2026-09-27 — Disable LFS smudge before creating a code-only experiment worktree
+What happened: worktree creation started materializing large cached datasets. Stopping its specific LFS process caused Git to roll back the incomplete worktree; it was recreated with GIT_LFS_SKIP_SMUDGE=1. Existing raw caches remained intact.
+Why: the checkout inherited default LFS smudge despite the experiment already having read-only access to source caches. A recovery restore also assumed the rolled-back directory still existed and failed harmlessly.
+Rule: use GIT_LFS_SKIP_SMUDGE=1 for code-only worktrees, verify directory existence after failed checkout, and use absolute Python paths because this Windows runner can ignore workdir or deny Set-Location even when file access succeeds.
+Enforced by: command (the worktree creation and experiment commands recorded in this session).
+
+## 2026-09-27 — Do not assume frozen reasoning steps have disjoint token spans
+What happened: the new digit extraction stopped at a disjoint-token-span assertion on PRMB before quality evaluation. Three existing answers have ten shared boundary tokens. Independent re-tokenization exactly reproduced every affected ID/span, and all 6,969 label rows matched corrected v3.
+Why: character-disjoint steps need not map to token-disjoint spans; the original producer records these with strict=False.
+Rule: preserve frozen spans and validate exact audited overlaps rather than adding an incompatible invariant. Any unregistered overlap still fails; report an exclusion sensitivity for the three known rows.
+Enforced by: code (scripts/audit_digit_source_spans.py, SPAN_AUDIT.json, extraction identity checks).
+
+## 2026-09-27 — Verify sealed arrays and bound whitespace-check output before committing
+What happened: the first experiment commit omitted two compact NPZ files because of the repository-wide result-array ignore rule. The staged whitespace check also emitted a large CRLF-only warning stream for sealed JSON; the command sequence did not gate the commit on its exit status.
+Why: artifact coverage was checked on disk rather than against the staged file list; Windows JSON writes preserved CRLF under results/** -text.
+Rule: compare manifest members to tracked paths, explicitly include small replay arrays, use the existing cr-at-eol attribute for sealed Windows artifacts, and inspect a bounded check result before committing.
+Enforced by: code/config (.gitignore exact exceptions and .gitattributes rule for digit_alternative_probability_v1); command (manifest-versus-git validation).
+
+## 2026-09-27 — Match the executed control roster to every bank in the protocol
+What happened: the numeric-family extension protocol specified equal fusion for each bank, but the runner omitted equal fusion on the duplicate-feature bank. After primary outcomes, the missing predeclared control was completed in a separate sealed subdirectory; no primary predictions or contrasts were changed.
+Why: the learned-arm roster and equal-control roster were written separately and one explicitly excluded the duplication bank.
+Rule: verify the Cartesian product of registered banks and requested control types before fitting; disclose late completion instead of silently rewriting a frozen run.
+Enforced by: command/artifact (duplicate_equal_completion/SEAL.json and the report's explicit timing disclosure).

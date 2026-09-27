@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "purpose": "telemetry_only_no_quality_evaluation",
+  "models": {
+    "Qwen/Qwen3-8B": "b968826d9c46dd6066d109eabc6255188de91218",
+    "Qwen/QwQ-32B": "976055f8c83f394f35dbd3ab09a285a984907bd0"
+  },
+  "cells": [
+    {
+      "benchmark": "hard2verify",
+      "model": "Qwen/Qwen3-8B"
+    },
+    {
+      "benchmark": "socratic",
+      "model": "Qwen/Qwen3-8B"
+    },
+    {
+      "benchmark": "socratic",
+      "model": "Qwen/QwQ-32B"
+    }
+  ],
+  "prompt": "math_prompt + space /no_think; default pinned tokenizer chat template",
+  "precision": "bfloat16; quantities float32",
+  "attention": "sdpa",
+  "top_k": 50,
+  "max_context": 32768,
+  "smoke_examples": 12,
+  "smoke_gpu_hours_per_job": 1,
+  "medprmbench": "deferred",
+  "benchmark_revisions": {
+    "hard2verify": {
+      "repo": "SalesforceAIResearch/Hard2Verify",
+      "revision": "9cd1eca6fa662c3dcd4576ee5ae8668515add186"
+    },
+    "socratic": {
+      "repo": "Xiang-Li-oss/Socratic-PRMBench",
+      "revision": "730dbfa75c6d9cbc6e0117882d22ced43417d86f"
+    },
+    "prmbench": {
+      "repo": "PRMBench/PRMBench",
+      "revision": "a526a3c139e59ae6b825712b65f2beeec49e0d50"
+    }
+  },
+  "hard2verify_dataset_revision": "8f1226246127de3775e92006435ec84781183079",
+  "full_run_requires_budget_decision": true,
+  "transformers": "4.51.3",
+  "accelerate": "1.6.0"
+}

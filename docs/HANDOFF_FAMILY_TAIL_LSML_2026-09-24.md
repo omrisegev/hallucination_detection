@@ -6,9 +6,9 @@ This handoff is for the next research session. Read it after `PROGRESS.md` and b
 
 | Branch | Commit(s) | What is there |
 |---|---|---|
-| `claude/ssl-pseudolabel-residual-v1` (worktree `.worktrees/ssl-pseudolabel-residual-v1`) | 62078ae50 + the V3 commit | Source stages, HISTORY Steps 441-443 and 445, locks V1/V2/V3 (source copies) |
+| `claude/ssl-pseudolabel-residual-v1` (worktree `.worktrees/ssl-pseudolabel-residual-v1`) | 62078ae50 (Steps 441-443), dc43900c4 (Step 445 + this handoff) | Source stages, HISTORY Steps 441-443 and 445, locks V1/V2/V3 (source copies) |
 | `lsml-ct7-levers-run` (worktree `.worktrees/lsml-ct7-levers-run`) | 1a3446b6e | Token-level tail L-SML, original run and calibration-corrected replay |
-| `codex/lsml-external-generalization-v1` (main checkout) | 1d3c23681 (Codex V1), 33d0acf8d (V2), + the V3 commit | External pipeline, results V1/V2/V3, HISTORY Steps 444 and 446 |
+| `codex/lsml-external-generalization-v1` (main checkout) | 1d3c23681 (Codex V1), 33d0acf8d (Step 444, V2), the commit after it (Step 446, V3 + this handoff) | External pipeline, results V1/V2/V3, HISTORY Steps 444 and 446 |
 
 - **Nothing is pushed.** `git push` needs Omri's terminal if the credential helper fails.
 - **The main checkout contains Codex's own uncommitted, unrelated work.** It is the group-confidence experiment: `results/lsml_group_confidence_v1/`, `spectral_utils/lsml_group_confidence*.py`, and edits in HISTORY/LESSONS/PROGRESS. Claude's commits staged only Claude's hunks. Do not commit, revert or overwrite Codex's edits.

@@ -102,6 +102,66 @@ minimum); the distribution median is the correct random-selection reference. Not
 source rank does not predict external rank. HISTORY Step 447. Branch
 `claude/ssl-pseudolabel-residual-v1`.
 
+## 2026-09-28: two-member extension of numeric family COMPLETE (Codex)
+
+Same dedicated branch/worktree. User requested two more members for the numeric
+family. Added saved-digit-mass-weighted entropy and strictly prior alternative-
+probability innovation; Top2 step readout, no provided-token conditioning.
+Full13,769 answers/145,597steps/6,968,779tokens; v1 feature and both bank11 baseline
+scores/decisions replay. No new inference, GPU work or external quality access.
+
+L-SML automatically isolates all3 numeric columns in5/5 folds, with7.90-8.12% of
+normalized absolute coefficient mass. Conditional pairwise decision-error phi
+versus six original families ranges .002-.163 (70,222 correct/13,149 erroneous
+noncontrol PRMB steps): low relative to within-digit dependence, not independence
+proof. Original-versus-innovation step-score correlation .999874; errors .995.
+
+PRMScore (6,211 noncontrol answers): baseline64.1723, +one64.6554, +three64.5214,
++three exact copies64.4617, same-bank equal64.3720. Candidate+three versus baseline
++0.3491pp, corrected CI[.0837,.6420]; versus one/duplicates/equal intervals include
+zero. No demonstrated incremental value for adding two columns. PB macro exact
+(4,442 error records):34.7986/36.3034/36.3791/36.3809; plus3 equal39.8419 is a control,
+not an L-SML gain. Within-AUC (6,030 mixed answers): .76455/.76946/.76799/.76738.
+
+Four feature tests PASS; full scalar entropy replay; official metrics replay for
+17 primary methods plus the late-completed, predeclared duplicates-equal control.
+Separate full-population review PASS,102,510 pairwise AUC checks; no external-agent
+audit claimed. Late control is separately sealed; primary artifacts untouched.
+Report: results/digit_family_extension_v1/REPORT_HE.md. Keep two new features as
+experimental; do not promote three merely to increase weight. A less-redundant
+third signal or generated-answer transfer would require a new bounded experiment.
+
+## 2026-09-27: digit alternative probability experiment COMPLETE (Codex, dedicated branch)
+
+User explicitly authorized a new digit-feature research experiment on a branch
+from the current main checkout; `codex/digit-alternative-probability-v1`, worktree
+`.worktrees/digit-alternative-probability-v1`, base bef0b1de3. This does not reinstate
+the historical digit-dependent production method or alter any frozen result.
+
+Candidate: original probability of the second-most-likely ASCII digit observed
+in saved top50, zero when fewer than two digits are saved; top2 mean per step.
+Independent of provided/generated token choice, including greedy decoding.
+All13,769 source answers /145,597steps /6,968,779tokens scored. Teacher-forced
+cache experiment only; no generated-answer quality or new inference/GPU job.
+
+PB macro exact localization on4,442 erroneous answer/model records: candidate
+34.5793%, old digit top2 35.4717%, entropy top2 27.6729%, entropy top10 33.6399%.
+PRMB within-answer AUC on6,030 mixed-label answers: .712975/.639455/.708873/.730111.
+Candidate-minus-old PRMB +.07352,98.75% source-group CI[.06473,.08242]; PB -.8924pp,
+CI[-3.913,+2.070]. Versus entropy top2: PB +6.906pp [3.450,10.226], PRMB interval
+includes zero. Not a consistent standalone replacement; useful signal, no tested
+fusion gain. These are not F1/PRMScore or end-to-end detector results.
+
+Six mechanism tests PASS; full scalar extraction, label/span checks and separate
+metric replay PASS. Source-question bootstrap5,000 draws, four primary contrasts.
+Top50 censoring affects4,930,517 token positions;13,234/13,769 peak decisions are
+certified against the resulting interval bounds. Preserve this limitation.
+Three inherited PRMB boundary-overlap records replay exactly by re-tokenization;
+their exclusion does not change the conclusion. Details and all per-cell results:
+`results/digit_alternative_probability_v1/REPORT_HE.md`, METRICS.json, REVIEW.json.
+Potential next authorized stage would test same fusion with/without the feature;
+no such follow-up run was started here. Historical transfer handoff follows.
+
 ## 2026-09-24: maximal-step tail rows (TRANSFER_LOCK_V3) source + external COMPLETE (Claude)
 
 **START HERE next session: `docs/HANDOFF_FAMILY_TAIL_LSML_2026-09-24.md`** (where we stopped, branches/commits, fragile source-pool dependency, recommended next research, paste-ready prompt).
@@ -238,6 +298,196 @@ Step 432 PRMScore deficit was mostly between-answer scale. No promotion. Rule: n
 log-ratio-sum scores per answer before any PRMScore threshold. Next stage: S1 (pseudo-label
 targets P_HARD / P_SOFT / P_AGREE on one linear student, roles H/C/B/A per fold, 4 CPU-h cap).
 See HISTORY Step 433 [Claude].
+
+## 2026-09-24: family-tail external V2 (defect-corrected row) COMPLETE (Claude)
+
+`TRANSFER_LOCK_V2` adds one row to V1 (unchanged): the family15 tail-mark L-SML with its marks z-scored before `lsml_continuous`. V1 passed them unstandardized, which collapsed K to 2 (Claude Step 443). All 11 arms were rescored from the sealed V1 features; the ten V1 arms and all 18 V1 contrasts replay exactly.
+
+| Method | Hard2Verify balanced F1 | Socratic-Qwen3 PRMScore | Socratic-QwQ PRMScore |
+|---|---:|---:|---:|
+| Corrected row | 42.28 | 61.00 | 62.30 |
+| V1 tail row | 41.02 | 59.92 | 62.69 |
+| Family equal | 42.38 | 61.12 | 62.94 |
+| bank11 L-SML | 43.67 | 63.22 | 64.24 |
+
+- Corrected vs bank11: -2.22 and -1.94 on Socratic (significant after Bonferroni over 12), -1.39 on Hard2Verify (n.s.).
+- The family/tail line is closed; bank11 L-SML stays the learned transfer candidate.
+- Exploratory; independent audits of V2 not run.
+- Step 444; `results/family_tail_external_v2/REPORT_HE.md`; `docs/experiments/FAMILY_TAIL_EXTERNAL_V2.md`.
+
+## 2026-09-24: external L-SML comparison COMPLETE; frozen bank11 leads
+
+All seven internal arms completed on 6,190/6,190 answer/backbone records and
+53,970 steps: Hard2Verify/Qwen3-8B and Socratic/Qwen3-8B + QwQ-32B. Predictions
+were sealed before labels; frozen source fit/calibration and statistical code
+were checkpointed/pushed before external quality. No new GPU inference/training.
+
+Frozen step L-SML: Hard2 Balanced F1 43.670; Socratic PRMScore 63.221 / 64.238.
+CT7: 37.751 / 58.753 / 60.166. Frozen L-SML improves both matched controls on
+Socratic with corrected paired intervals; gains survive observed-disjoint
+exclusion (2,553 Socratic answers). Hard2 improves over partition equal and CT7,
+but versus ordinary equal the corrected interval includes zero. Answer-local
+L-SML loses to matched ordinary equal on both Socratic backbones; keep frozen
+step L-SML as the leading learned method. Averaging remains control-only.
+
+19 validation tests PASS; official metric replay agrees all 21 rows. Three
+independent audits cover all 6,190 records, every telemetry hash, masks, weights
+and decisions. Bootstrap: 100,000 source-question draws, seed 20260924, Bonferroni correction across 18 contrasts.
+Feature perturbation was only 36/6190 (FEASIBILITY), not a complete causal ablation.
+
+Important diagnostic: Hard2 frozen policy flags 41/42 entirely-correct answers.
+At its observed per-answer decision counts, oracle reranking is capped at 52.673
+Balanced F1. This is not a bound on all thresholds or all L-SML implementations.
+Future method/calibration work stays on source data; these external labels have
+now been inspected. Published critic/PRM comparator inference remains outstanding;
+no SOTA claim and no claim that the entire broader pipeline is finished.
+
+AIRCC connectivity recovered after the user enabled VPN; the already-running
+CPU fallback completed locally (3,922.9s for 6,175 resumed records + 15 smoke).
+Source-dependency archive (264,238,660 bytes) is SHA256-verified on approved Drive path;
+restore manifest: evaluation/SOURCE_DEPENDENCY_ARCHIVE.json. Compact results,
+seals and report live under results/lsml_external_generalization_v1/evaluation/.
+Technical report + Hebrew interpretation:
+[External results](docs/experiments/LSML_EXTERNAL_GENERALIZATION_RESULTS_20260924.md).
+Final evaluation archive (44,876,664 bytes, 20,044 files) is SHA256-verified on
+Drive; restore manifest: evaluation/EVALUATION_ARCHIVE.json. Both source and
+result backups are complete. Analysis checkpoint: e6284f384. Final report and
+evidence are documented on this branch.
+
+## 2026-09-24: identical teacher-forcing repeats supplied no observed diversity
+
+Read-only smoke/full comparison:36 paired answer/backbone records,51637 token
+observations,12 answers per cell. All saved telemetry values match exactly.
+No new inference or quality evaluation. This is not a whole-corpus or three-run
+claim. Prefer checking complementary views (existing Qwen3/QwQ on Socratic) to
+blind identical reruns; usefulness for L-SML remains untested. Review:
+docs/experiments/EXTERNAL_TEACHER_FORCING_REPEATABILITY_20260924.md.
+
+## 2026-09-24: full external telemetry COMPLETE and archived
+
+User approved the two GPU-hour cap. All three full collections and CPU audits/
+Drive archives succeeded: Hard2Verify/Qwen3 200/200, Socratic/Qwen3 2995/2995,
+Socratic/QwQ 2995/2995. Jobs266081/266082/266083; archive266094/266095/266096.
+Total6190 dataset/backbone records,53970 steps,5399900 scored answer tokens.
+No missing answers or truncation; three empty Socratic steps retained per model.
+GPU allocation1376s (22m56s;0.38222h) against2h; CPU archival0.25778 core-hours.
+Compressed telemetry1918336109 bytes is verified on private Google Drive;
+normalized answer-only inputs are backed up separately. No raw arrays or
+Hard2Verify decrypted text entered Git. Compact manifests only are local.
+
+Report: docs/experiments/LSML_EXTERNAL_FULL_COLLECTION_20260924.md.
+Evidence: results/lsml_external_generalization_v1/FULL_{COLLECTION_VERIFICATION,
+ARCHIVES,JOBS,BUDGET_DECISION}.json and full/<cell>/. All raw audits, record-ID,
+step/token accounting and archive checksums PASS. QwQ uses the recorded gate-v2
+numerical exception; bf16 production and source protocol stayed unchanged.
+
+No external benchmark quality was computed. Next: use collected telemetry for
+CPU feature extraction, source fit/calibration separation and method freeze;
+then overlap/comparator/evaluator work and registered external evaluation.
+No additional inference, GPU training or method sweep is started by this handoff.
+
+## 2026-09-24 Codex: AIRCC telemetry collection active
+
+Dedicated branch codex/lsml-external-generalization-v1; earlier work checkpoint
+efe85052f. User prioritizes collecting reusable telemetry before CPU features
+and fusion. No external quality metrics have been evaluated.
+
+Completed timing collection: job265843 Hard2Verify/Qwen3-8B and job265851
+Socratic/Qwen3-8B, 12/12 answers each. Raw probability/entropy/span audit PASS;
+cluster-to-Drive archives checksum-verified. Full corpora tokenize without
+truncation: 200/1860 and 2995/26055 answers/steps. Three empty Socratic steps
+retained. Compact artifacts: results/lsml_external_generalization_v1/.
+
+QwQ model downloaded on CPU in job265848 (372s). Its timing job265853 stopped
+before collection on a first-token prefix-layout discrepancy (.374979 nat).
+Diagnostic job265860 completed: all three same-length causal errors were zero;
+the .374979 prefix discrepancy became zero with the same weights under fp32.
+Gate v2 additionally checks exact target offsets and future-token invariance.
+Only the identical pinned numerical diagnostic permits this QwQ prefix case;
+production remains bf16. Retry265865 failed on a missing packaged helper. Complete archive CPU smoke
+passed; replacement265869 completed12/12 in149s. Raw audit PASS and Drive17
+matching files. All three timing cells are complete; no quality evaluated.
+
+Updated full-collection budget requested: <=2 GPU-hours total (30+30+60min)
+for both Qwen3 cells and Socratic/QwQ. Compute-only projection10.79min,7.56GB;
+startup/serialization/Drive excluded. User decision pending; no full run started. Comparators and feature/fusion evaluation deferred.
+Retain frozen and answer-local bank11 methods; averaging controls only.
+
+Reclaimed9.97GB old local copies after Drive size/hash verification; tracked LFS
+files now exact HEAD pointers. Restore locations in CLEANUP_REMOVED.json.
+AIRCC current account cycle3, QoS owner_940; old shared paths accessible.
+Use offline wheels; CPU model bootstrap avoids unavailable ensurepip. Invoke
+remote sbatch as one command: Windows-piped final CR caused one startup failure.
+Historical generated-cache Gate B and source calibration remain separate pending
+fidelity/evaluation items. Spec/runbook: docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1.md
+and docs/experiments/LSML_EXTERNAL_GENERALIZATION_V1_RUNBOOK.md. MedPRMBench deferred.
+
+## Codex storage recovery, CPU fusion scope and historical L-SML audit - 2026-09-23
+
+Omri authorized inactive GitHub-backed worktree cleanup. Removed competition-sync
+and completed review-token-axis-20260921 after clean-state, actual remote-head,
+ancestry, ignored-file and LFS-pointer checks. No branches or scientific artifacts
+deleted. Free disk changed0 ->3,936,321,536 bytes. CLAUDE.md restored independently
+(link count1), then updated safely. Details: docs/reviews/WORKTREE_CLEANUP_20260923.md.
+Dirty/unbacked historical worktrees and current experiment-input worktrees retained.
+
+Current research priority: L-SML must add value over same-bank fixed/equal fusion,
+with strong PRMBench AND official PRMScore; CT7 is not a required architecture.
+PB is secondary. No GPU training or extra LLM/PRM pass; CPU runtime adaptation only.
+Last-month bank review is complete; bank11 STEP L-SML is the selected research base.
+Canonical requirements and old SSL plan amended; new bounded protocols:
+docs/experiments/PRMBENCH_RUNTIME_FUSION_PLAN_HE.md. Claim/literature audit:
+docs/reviews/PRMBENCH_LITERATURE_AND_CLAIM_AUDIT_20260923_HE.md.
+
+Previous turn's implemented repairs: per-channel residual normalization, matched
+native-window controls, and228 regenerated contrast metadata rows from four
+complete13769-answer OOF bundles (results/runtime_fusion_protocol_v2). Six tests
+pass. paired_N=4442 PB/6030 PRMB, distinct from100000 draws. No full new candidate
+fit or inference run. Historical saved-score PRMB-only audit is complete:
+docs/reviews/LSML_PRMBENCH_MONTH_REVIEW_20260923_HE.md. Indexed67 recent learned
+rows (not67 independent experiments); replayed64 Sep17 ladder methods from two
+verified Drive files. Canonical results/prmbench_lsml_month_audit_v4 contains148
+metric rows,30 corrected contrasts, decisions, source hashes and executed code.
+
+Selected research starting point: STEP-level bank11 continuous L-SML, not CT7.
+Within-AUC .764531 vs same-bank equal .749644; retrospective answer-z/q80 official
+PRMScore .641184 vs .633111. Both paired gains survive the local Bonferroni30
+correction. Same learned-partition equal reaches .637245 PRMScore; the additional
+learned-weight gain over that control does NOT pass corrected uncertainty.
+CT7 reference .645689 PRMScore remains higher. PB weakness is not a PRMB veto.
+Historical20-channel ladder and added depth/novelty do not improve the combined
+case. Evidence L-SML's raw .584707 PRMScore recovers to .636571 with answer-z,
+without changing ranking; its learned-minus-equal official gain is uncertain.
+
+These are existing donor-fitted scores, not answer-only learning or new training.
+Added PRMScore calibration is retrospective; nested fitting was not reconstructed.
+Next bounded protocol R0-B separates3 fit/1 calibration/1 evaluation source folds
+on bank11 before optional local adaptation. No new candidate fit was launched.
+
+Decision and evidence are now synchronized with the active section of
+[Research_Directions.md](Research_Directions.md) and the appended record in
+[HISTORY.md](HISTORY.md). The handoff question is whether learned weights improve
+official PRMScore beyond learned-partition equal under separated calibration.
+Population checked: 6,969 PRMB answers; 6,030 within-AUC eligible; official pooled
+PRMScore uses 6,211 non-control answers / 83,371 steps. Keep all three comparators
+and report PB secondarily; do not restart CT7-only development or a broad sweep.
+
+## Codex cross-branch daily experiment review - 2026-09-23 evening
+
+Reviewed today's completed Step432, SSL-plan CPU stages, CT7 levers and cached
+supervised PRM measurement across the active branches. Full Hebrew synthesis:
+docs/reviews/REPO_DAILY_EXPERIMENT_REVIEW_20260923_HE.md. Family-balanced CT7
+improves PRMB within-AUC .772397 -> .780120; seventh-view equal control reaches
+41.0366% PB, but its PB Holm test does not pass. SSL-plan calibration recovers
+PRMScore without changing ranking; the tested residual/pooling recipes do not
+replace CT7. Masked SSL and original SSL-based S5 remain unrun.
+Review reproduced 49 SSL method bundles; saved-score checks and source snapshots
+agree. Found unmatched native-window comparisons: same-population L-SML delta
+is +.3988pp PB, not the reported negative difference (no matched-native CI).
+S1 agreement uses .91% of PRMB steps; 11.65% is the answer coverage. paired_N
+erroneously records bootstrap draws in SSL contrast CSVs. Prior result files
+unchanged; separate review script/evidence in scratch/review_daily_experiments_20260923.py
+and scratch/daily_experiment_review_20260923/AUDIT.json. No fit/inference launched.
 
 ## Codex review publication handoff - 2026-09-23
 
@@ -6496,3 +6746,20 @@ token/window sampling shortlist remain pending after this run.
 - Verbalized confidence on 7B+ — parser is ready; needs one inference run with Qwen2.5-Math-7B on GSM8K
 - Phase 10 RAG re-run with variant=4 prompt — low priority
 - LapEigvals integration into spectral_utils — potential Group D feature for M=12, low priority
+
+## 2026-09-24: Family15 tail20 transfer complete; independent review deferred
+
+All ten registered arms were scored on 6,190/6,190 answer/backbone records and
+53,970 official steps, with zero new GPU inference. Family15 tail20 L-SML scored
+41.020 Hard2 Balanced F1 and 59.921/62.690 Socratic PRMScore (Qwen3/QwQ), below
+frozen Bank11 L-SML at 43.670 and 63.221/64.238. The Socratic paired losses
+exclude zero after Bonferroni adjustment across 18 contrasts; Hard2 is
+inconclusive. All15 plot pairs, official components, overlap sensitivity, cost,
+literature context and a SHA-verified 190,131,044-byte reproduction archive are
+recorded in docs/experiments/FAMILY_TAIL_EXTERNAL_RESULTS_20260924.md and
+results/family_tail_external_v1/. The user requested that a separate agent perform
+the final independent synthesis; three component audits already report full-population
+PASS, including a documented post-seal integrity-guard correction in the independent
+metric-audit script. Do not treat this as a combined sign-off. The archived
+source files and existing telemetry are reusable; no further external tuning is
+licensed by this result.

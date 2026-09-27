@@ -1,0 +1,76 @@
+{
+ "status": "LOCKED before V2 rescoring and before V1 external results were read",
+ "lock_sha256": "0c5c55996503394edf2faeb1bc066e3fdec3c6eb315c79c0e7d59ca7d61c986c",
+ "extends_lock_sha256": "65b35336fcc2f66b7843ec040d3bdafbbaa03bb44ae5f61f1d00335abfaea5cf",
+ "requested_by": "Omri, 2026-09-24: look at the Codex run and run it now with the fix",
+ "fix": "F15_tailstd_lsml = V1 candidate with tail marks z-scored before lsml_continuous (results/tail_threshold_calibration_v1)",
+ "cells": [
+  "hard2verify_qwen3_8b",
+  "socratic_qwen3_8b",
+  "socratic_qwq32b"
+ ],
+ "methods": [
+  "B11_lsml",
+  "F15_tailtie_lsml",
+  "F15_cov_lsml",
+  "K28_cov_lsml",
+  "K28_equal",
+  "F15_equal",
+  "B11_equal",
+  "B11_partition_equal",
+  "A48o_equal",
+  "ct7",
+  "F15_tailstd_lsml"
+ ],
+ "draws": 100000,
+ "seed": 20260924,
+ "primary_family": 12,
+ "primary_contrasts": [
+  [
+   "F15_tailstd_lsml",
+   "F15_tailtie_lsml"
+  ],
+  [
+   "F15_tailstd_lsml",
+   "F15_equal"
+  ],
+  [
+   "F15_tailstd_lsml",
+   "F15_cov_lsml"
+  ],
+  [
+   "F15_tailstd_lsml",
+   "B11_lsml"
+  ]
+ ],
+ "bridge_contrasts_v1_family_18": [
+  [
+   "F15_tailtie_lsml",
+   "B11_lsml"
+  ],
+  [
+   "F15_tailtie_lsml",
+   "F15_equal"
+  ],
+  [
+   "F15_tailtie_lsml",
+   "F15_cov_lsml"
+  ],
+  [
+   "F15_cov_lsml",
+   "K28_cov_lsml"
+  ],
+  [
+   "F15_equal",
+   "K28_equal"
+  ],
+  [
+   "K28_equal",
+   "A48o_equal"
+  ]
+ ],
+ "features": "reused from the sealed V1 records (identical telemetry, masks and 48-channel extraction that passed the full source parity gate); no new extraction",
+ "replay_gate": "the ten V1 arms must reproduce every V1 score (<=1e-12) and decision exactly before sealing",
+ "access": "exploratory follow-up, external benchmarks already seen; V1 family-tail external results existed (commit 1d3c23681) but were not read before this plan and the V2 lock",
+ "reporting": "all 11 arms and all 3 cells; no arm selected, dropped or re-tuned after labels; Hard2Verify balanced F1 and Socratic PRMScore never averaged"
+}
