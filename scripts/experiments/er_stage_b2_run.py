@@ -236,6 +236,9 @@ checks['replays_pass'] = bool(checks['replay_max_abs_diff'] <= 1e-9 and all(chec
 with open(OUT / 'FIT_MANIFEST.jsonl', 'w', encoding='utf8') as f:
     for r in fit_log: f.write(json.dumps(r, default=lambda v: v.tolist() if isinstance(v, np.ndarray) else v.item() if isinstance(v, np.generic) else str(v)) + '\n')
 np.savez_compressed(OUT / 'STEP_SCORES.npz', offsets=off, **{m: scores[m] for m in ALL})
+# 2026-09-27 (PRMScore decomposition): save the per-fold q80 thresholds each fold-k model used, and the channel matrix
+dump(OUT / 'THRESHOLDS.json', {m: {str(k): float(v) for k, v in tau[m].items()} for m in ALL})
+np.savez_compressed(OUT / 'CHANNELS.npz', offsets=off, values=values, names=np.array(names))
 pd.DataFrame(failures or [{'fold': '', 'arm': '', 'reason': 'none'}]).to_csv(OUT / 'FAILURES.csv', index=False)
 print('checks:', {k: v for k, v in checks.items() if not k.startswith('written_once') and k != 'replay_per_ref'}, flush=True)
 if not checks['replays_pass']: hard_stop('replay (stage-B arms or references) or write-once check failed')
