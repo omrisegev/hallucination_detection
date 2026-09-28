@@ -56,6 +56,22 @@ def test_reversed_group_gets_zero_between_weight():
     assert GW.mle_group_weights(r['psi'], r['eta'])[1] == 0.0
 
 
+def test_flipped_latent_state_gives_identical_estimates(monkeypatch):
+    """The same model with the latent state relabelled (e -> e[:, ::-1], t -> 1 - t) must give identical group and within estimates."""
+    x, y, g = simulate(30000, [4, 3, 3], [0.8, 0.7, 0.7], [0.2, 0.3, 0.3], 0.9, 0.1, 0.3, 7)
+    ref = GW.hem_fit(x, g)
+    core, em = GW.SA._cvf()
+    class EmFlip:
+        @staticmethod
+        def fit_em(*a, **kw):
+            m = em.fit_em(*a, **kw); m.emissions = np.asarray(m.emissions)[:, ::-1].copy(); m.transition = 1 - np.asarray(m.transition); return m
+    monkeypatch.setattr(GW.SA, '_cvf', lambda: (core, EmFlip))
+    alt = GW.hem_fit(x, g)
+    assert all(alt['latent_flipped']) and not any(ref['latent_flipped'])
+    assert np.allclose(alt['psi'], ref['psi']) and np.allclose(alt['eta'], ref['eta']) and alt['prevalence'] == pytest.approx(ref['prevalence'])
+    assert all(np.allclose(a, b) for a, b in zip(alt['within'], ref['within']))
+
+
 def test_rejects_bad_input():
     with pytest.raises(ValueError):
         GW.hem_fit(np.zeros((10, 3)), [0, 1, 2])
