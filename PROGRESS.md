@@ -9,6 +9,10 @@ band rule (drop 0.45-0.55, flip < 0.45) never beats the DS filter; dropping help
 features raise the plain average to 0.7918 (B16; +0.0116, ~82% positional, +0.0063 after position adjustment) and ProcessBench to
 0.4126 - needs a frozen test and Omri's digit-scope decision. Correction to the diagnosis block below: the absorption ratio is NOT
 size-free (for halves of one factor rho = (1-r)/(1+(m-1)r), m = smaller half); only its independence reference is.
+Hebrew HTML report `results/lsml_merge_step_v1/REPORT_HE.html` (artifact https://claude.ai/artifact/T9HZnunKd4LhYYusxpnSo7): all
+methods x banks x cells, head-to-head matrices, and a direct check of the L-SML assumption: class-conditional between-group |r|
+0.14-0.31 (worst pairs 0.72-0.86; higher on error steps), better than any random partition but far from independence; removing
+position does not lower it, so the position hypothesis above is NOT supported.
 
 ## Codex digit family merged; clustering diagnosis (Claude) - 2026-09-28
 

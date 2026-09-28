@@ -71,3 +71,15 @@ over plain averaging on the raw banks. The losses are largely positional; after 
 on the three larger banks. Hypothesis, not tested: position acts as a shared factor that L-SML's weights follow (it violates the
 conditional-independence assumption), so the next lever would be position, not the partition. The position-adjusted banks score
 below the raw plain average, so removing position from the scores is not itself the answer.
+
+## Addendum 2026-09-28: direct check of the L-SML assumption (REPORT_HE.html, report_data.py)
+
+Class-conditional correlations (fold-0 partitions, 55,623 PRMBench fit-fold steps, 7,869 errors; labels for diagnosis only):
+between groups of the merged binary partition the mean |r| (clean and error steps averaged) is 0.31 (B13), 0.23 (B16), 0.30 (B20),
+0.14 (B32), 0.19 (B51), against 0.40 / 0.32 / 0.36 / 0.18 / 0.29 for random partitions of the same sizes (every found partition beats
+all 2,000 random ones); worst between-group pairs 0.72-0.86 (B13/B16: chosen_surprisal with q15_VE1/q15_H1; B20:
+ct7_H0lim_prefix_innovation with ct7_ve0 and the level channels). Dependence is higher on error steps than on clean steps in every
+bank. On top-20% marks it is lower (0.08-0.21) but not zero. So the clustering finds real structure but the conditional-independence
+assumption does not hold. Removing the position profile does NOT lower the between-group dependence (it rises slightly: B13 0.31 ->
+0.33), which contradicts the hypothesis in the bottom line above that position is the shared factor violating the assumption; why
+L-SML + step leads on the position-adjusted banks remains unexplained. The digit features always form their own group.
