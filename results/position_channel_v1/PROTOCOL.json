@@ -40,7 +40,25 @@
   "P4": "every position variant lowers ProcessBench SLA",
   "P5": "the content share of the position gains is small (< 50%)"
  },
- "hard_stops": ["input hashes differ from the algorithm_decisions_v1 manifest", "BASE or GRP replay of algorithm_decisions_v1 P0__BASE / P0__EQ_DSM > 1e-9", "mark counts wrong", "any evaluation row written twice"],
+ "hard_stops": [
+  "input hashes differ from the algorithm_decisions_v1 manifest",
+  "BASE or GRP replay of algorithm_decisions_v1 P0__BASE / P0__EQ_DSM > 1e-9",
+  "mark counts wrong",
+  "any evaluation row written twice"
+ ],
  "review": "pre-run code review; red team of three after the run",
- "budget": "CPU only, <= 1 hour"
+ "budget": "CPU only, <= 1 hour",
+ "amendments": [
+  {
+   "id": "A1",
+   "date": "2026-09-29",
+   "before_full_run": true,
+   "after": "fold-0 smoke (feasibility only) and the pre-run review",
+   "change_1_adoption_rule": "adopt a position variant iff (a) its primary contrast (BASE_POS - BASE or GRP_POS - GRP) is Bonferroni above 0 on within-AUC on all four banks AND (b) the variant is above POS_ALONE (step index alone) on within-AUC with the 95% interval above 0 on all four banks (the bank channels still add beyond the prior); the ProcessBench change is stated beside. The same-length swap-null content difference is reported as DESCRIPTIVE only.",
+   "reason_1": "the pre-run review showed that the frozen clause (content share > 0 on 3 of 4 banks) cannot be met by any position channel by construction: under same-length label swap the base score falls to its positional AUC, so adding the step index gains MORE under the null than on real labels (swap mean > observed on 8/8 primary contrasts in the smoke). The clause was a logic error, not a data-driven change.",
+   "change_2_wording": "the direction of POS (a later step is riskier) is a DECLARED structural prior (error propagation), not a label-free finding; it is also consistent with earlier labelled results (step index 0.6617 on development). A label-free orientation diagnostic is logged: the sign of the Spearman correlation of POS with the BASE score on the fit rows. The DS filter can drop POS but not flip it.",
+   "change_3_cum_note": "CUM is a function of the survivors, so its Dawid-Skene accuracy estimate measures agreement with its own source, not accuracy; reported as such.",
+   "change_4_statistics": "content is reported as the difference observed - swap mean (the declared quantity); the ratio only when observed > 0."
+  }
+ ]
 }

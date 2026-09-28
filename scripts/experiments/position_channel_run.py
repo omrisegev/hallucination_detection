@@ -14,7 +14,7 @@ MAIN = Path(r'C:\Users\omris\TAU\hallucination_detection'); ROOT = Path(__file__
 sys.path.insert(0, str(MAIN / '.worktrees/depth-feature-fusion-v1'))
 from spectral_utils.lsml_gate_locator_research import answer_standardize  # noqa: E402
 from spectral_utils.prmbench import prmbench_evaluate  # noqa: E402
-from scipy.stats import rankdata, trim_mean  # noqa: E402
+from scipy.stats import rankdata, trim_mean, spearmanr  # noqa: E402
 sys.path.insert(0, str(ROOT / 'scripts/experiments'))
 import tail_calib_common as TC, er_stage_a as SA, er_stage_b as SB, er_stage_b2 as C2, lsml_merge_step as MS, ds_group_weights as GW  # noqa: E402
 from calfix_common import tail_marks  # noqa: E402
@@ -43,6 +43,8 @@ def _crash(et, ev, tb):
     if status.get('status') == 'RUNNING': status.update({'status': 'CRASHED', 'reason': repr(ev), 'checks': checks}); dump(OUT / 'RUN_STATUS.json', status)
 sys.excepthook = _crash
 dump(OUT / 'CODE_MANIFEST.json', {'script_sha256': sha(Path(__file__)), 'protocol_sha256': sha(GEN / 'PROTOCOL.json'),
+     'helpers': {h: sha(ROOT / 'scripts/experiments' / h) for h in ('er_stage_a.py', 'er_stage_b.py', 'er_stage_b2.py', 'ds_group_weights.py', 'lsml_merge_step.py', 'tail_calib_common.py', 'calfix_common.py')},
+     'depth_git_head': subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=MAIN / '.worktrees/depth-feature-fusion-v1', capture_output=True, text=True).stdout.strip(),
      'git_head': subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT, capture_output=True, text=True).stdout.strip()})
 
 # ------------------------------------------------------------------ population (as algorithm_decisions_run.py)
@@ -127,19 +129,23 @@ for k in FOLDS:
         X = V[:, surv]; out['BASE'] = X @ np.full(len(surv), 1 / len(surv))
         # BASE_POS: one DS fit on all channels + POS
         e2 = SA.em_estimate(np.column_stack([MARKS[bk], POSM])[pf], 'ds'); s2 = np.flatnonzero(e2['pi'] > 0.5)
-        Xp = np.column_stack([V, POSZ]); out['BASE_POS'] = Xp[:, s2].mean(1)
+        Xp = np.column_stack([V, POSZ]); out['BASE_POS'] = Xp[:, s2] @ np.full(len(s2), 1 / len(s2))
+        d['label_free_orientation_spearman_pos_vs_base_fit_rows'] = float(spearmanr(POSZ[fit_rows], out['BASE'][fit_rows]).statistic)
         d['pos_pi_hat_with_bank'] = float(e2['pi'][-1]); d['pos_kept'] = bool(m in s2); d['survivors_changed_by_pos'] = sorted(set(s2) - {m}) != sorted(surv.tolist())
         # CUM: running mean of the answer-z BASE score
         bz = answer_z(out['BASE']); cum = np.empty(S)
         for a, b in zip(off[:-1], off[1:]): cum[a:b] = np.cumsum(bz[a:b]) / np.arange(1, b - a + 1)
         CUMZ = answer_z(cum); CUMM = SB.random_tie_marks(CUMZ[:, None], off, .2, KEYC)
+        if not marks_ok(CUMM): hard_stop(f'CUM mark counts {bk} fold {k}')
         e3 = SA.em_estimate(np.column_stack([MARKS[bk][:, surv], CUMM])[pf], 'ds'); s3 = np.flatnonzero(e3['pi'] > 0.5)
-        out['BASE_CUM'] = np.column_stack([X, CUMZ])[:, s3].mean(1); d['cum_pi_hat'] = float(e3['pi'][-1]); d['cum_kept'] = bool(len(surv) in s3)
+        out['BASE_CUM'] = np.column_stack([X, CUMZ])[:, s3] @ np.full(len(s3), 1 / len(s3)); d['survivors_changed_by_cum'] = sorted(set(s3) - {len(surv)}) != list(range(len(surv))); d['cum_pi_hat'] = float(e3['pi'][-1]); d['cum_kept'] = bool(len(surv) in s3)
         # GRP (= P0__EQ_DSM) and GRP + a POS / CUM group
         T = TTA[bk][:, surv]; anchor = int(np.flatnonzero(surv == 0)[0])
         gb = MS.canon(TC.lsml_fit_scaled(T[fit_rows], anchor, X[fit_rows], standardize=True, loading_scale='unit')['groups'])
         gbm, _ = MS.absorb_merge(np.corrcoef(T[fit_rows], rowvar=False), gb); G = int(gbm.max()) + 1
+        if G > KEYG.shape[1]: hard_stop(f'{bk} fold {k}: {G} groups exceed the key')
         Z = GW.group_matrix(X, off, gbm, None, answer_standardize); gv = SB.random_tie_marks(Z, off, .2, KEYG[:, :G])
+        if not marks_ok(gv): hard_stop(f'group mark counts {bk} fold {k}')
         eg = SA.em_estimate(gv[pf], 'ds'); w = SB.mle_weights(eg['psi'], eg['eta'])
         if w.sum() <= 0: hard_stop(f'{bk} fold {k}: GRP weights all 0')
         out['GRP'] = GW.weighted_group_score(Z, w)
@@ -203,7 +209,7 @@ while pos < DRAWS:
     pos += nb
 Mx = M.set_index('method')
 PRIM = [(f'{bk}__{a}', f'{bk}__{b}') for bk in BANKS for a, b in (('BASE_POS', 'BASE'), ('GRP_POS', 'GRP'))]; K = len(PRIM) * 1
-SEC = [(f'{bk}__{a}', f'{bk}__{b}') for bk in BANKS for a, b in (('BASE_CUM', 'BASE'), ('GRP_CUM', 'GRP'), ('GRP_POS', 'BASE'), ('POS_ALONE', 'BASE'), ('GRP', 'BASE'))]
+SEC = [(f'{bk}__{a}', f'{bk}__{b}') for bk in BANKS for a, b in (('BASE_CUM', 'BASE'), ('GRP_CUM', 'GRP'), ('GRP_POS', 'BASE'), ('POS_ALONE', 'BASE'), ('GRP', 'BASE'), ('BASE_POS', 'POS_ALONE'), ('GRP_POS', 'POS_ALONE'))]
 rows = []
 for a, b in PRIM + SEC:
     prim = (a, b) in PRIM; r = {'contrast_id': f'{a} - {b}', 'primary': prim}
@@ -225,11 +231,11 @@ for a, b in PRIM + [(f'{bk}__BASE_CUM', f'{bk}__BASE') for bk in BANKS]:
     for nm_, fn, sd in (('within_answer_shuffle', C2.shuffle_within, 11), ('whole_answer_same_length_swap', C2.swap_same_length, 12)):
         rg = np.random.default_rng(sd); x = np.array([stat(fn(yE, loc, rg)) for _ in range(NPERM)])
         nulls[cid][nm_] = {'mean': float(x.mean()), 'sd': float(x.std()), 'share_ge_observed': float(np.mean(x >= obs))}
-    nulls[cid]['content_share'] = (obs - nulls[cid]['whole_answer_same_length_swap']['mean']) / obs if obs else None
-dump(OUT / 'NULLS.json', nulls); dump(OUT / 'CONCENTRATION.json', conc)
+    cdiff = obs - nulls[cid]['whole_answer_same_length_swap']['mean']; nulls[cid]['content_diff_descriptive'] = cdiff; nulls[cid]['content_share'] = cdiff / obs if obs > 0 else None
+dump(OUT / 'NULLS.json', nulls); dump(OUT / 'CONCENTRATION.json', conc); timing['nulls_s'] = time.perf_counter() - T0 - timing['fit_s'] - timing['eval_s'] - timing['bootstrap_s']
 timing['total_s'] = time.perf_counter() - T0; dump(OUT / 'TIMING.json', timing)
 status.update({'status': 'COMPLETE', 'finished': datetime.now().isoformat(timespec='seconds'), 'checks': checks}); dump(OUT / 'RUN_STATUS.json', status)
 print(M[['method', 'within_auc', 'prmscore', 'pb_sla_macro8']].round(4).to_string(index=False))
 print(CON[['contrast_id', 'within_auc_delta', 'within_auc_lo95', 'within_auc_hi95', 'prmscore_delta', 'pb_sla_macro8_delta']].round(4).to_string(index=False))
-print(json.dumps({k: {'obs': round(v['observed'], 4), 'swap': round(v['whole_answer_same_length_swap']['mean'], 4), 'content_share': v['content_share']} for k, v in nulls.items()}, indent=0))
+print(json.dumps({k: {'obs': round(v['observed'], 4), 'swap': round(v['whole_answer_same_length_swap']['mean'], 4), 'content_diff': round(v['content_diff_descriptive'], 4)} for k, v in nulls.items()}, indent=0))
 print(json.dumps(timing))
