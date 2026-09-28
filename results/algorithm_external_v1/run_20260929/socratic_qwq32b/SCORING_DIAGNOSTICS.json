@@ -1,0 +1,438 @@
+{
+ "thresholds": {
+  "F_B16_BASE": 0.8677361552429391,
+  "F_B16_GRP": 0.8746386745087154,
+  "F_B16_SW": 0.8677361552429391,
+  "R_B16_BASE": 0.861145433215507,
+  "R_B16_GRP": 0.9006398265548712,
+  "F_B23_BASE": 0.8736773111098417,
+  "F_B23_GRP": 0.8856251827306537,
+  "F_B23_SW": 0.8736773111098417,
+  "R_B23_BASE": 0.8584561769531273,
+  "R_B23_GRP": 0.8872922662583358,
+  "F_B35_BASE": 0.8732637111640255,
+  "F_B35_GRP": 0.8774385651263514,
+  "F_B35_SW": 0.8732637111640255,
+  "R_B35_BASE": 0.8157915471543077,
+  "R_B35_GRP": 0.8494939896917452,
+  "F_B54_BASE": 0.8852132858940901,
+  "F_B54_GRP": 0.8763458648669905,
+  "F_B54_SW": 0.8852132858940901,
+  "R_B54_BASE": 0.8519355004686329,
+  "R_B54_GRP": 0.8536041275290702
+ },
+ "banks": {
+  "B16": {
+   "switch_statistics": {
+    "S1_between_dependence": 0.26668274446629464,
+    "S2_largest_group_share": 0.35714285714285715
+   },
+   "switch_uses_grouping": false,
+   "refit": {
+    "survivors": [
+     "q15_H1",
+     "q15_VE1",
+     "chosen_surprisal",
+     "logprob_margin",
+     "true_tail50",
+     "energy_level",
+     "energy_innovation",
+     "top15_turnover",
+     "top50_js",
+     "dominant_freq16",
+     "bocpd_p0",
+     "realized_z",
+     "realized_drv",
+     "digit_alternative",
+     "digit_spread",
+     "digit_alternative_innovation"
+    ],
+    "dropped": [],
+    "prevalence_hat": 0.39469333807616147,
+    "partition": [
+     [
+      "q15_H1",
+      "q15_VE1",
+      "logprob_margin",
+      "true_tail50",
+      "energy_level"
+     ],
+     [
+      "chosen_surprisal",
+      "realized_z",
+      "realized_drv"
+     ],
+     [
+      "digit_alternative",
+      "digit_spread",
+      "digit_alternative_innovation"
+     ],
+     [
+      "energy_innovation",
+      "top15_turnover",
+      "top50_js",
+      "dominant_freq16",
+      "bocpd_p0"
+     ]
+    ],
+    "merged": false,
+    "merge_log": [
+     {
+      "stop": "rho",
+      "rho": 0.6256428400285106
+     }
+    ],
+    "group_weights": [
+     0.7273174223343423,
+     0.1348015890321218,
+     0.08842521566426585,
+     0.04945577296927011
+    ]
+   }
+  },
+  "B23": {
+   "switch_statistics": {
+    "S1_between_dependence": 0.26509154661465695,
+    "S2_largest_group_share": 0.38095238095238093
+   },
+   "switch_uses_grouping": false,
+   "refit": {
+    "survivors": [
+     "q15_H1",
+     "q15_VE1",
+     "chosen_surprisal",
+     "logprob_margin",
+     "true_tail50",
+     "energy_level",
+     "energy_innovation",
+     "top15_turnover",
+     "top50_js",
+     "dominant_freq16",
+     "bocpd_p0",
+     "ct7_chosen_std_excess",
+     "ct7_bocpd_residual",
+     "ct7_H0lim_prefix_innovation",
+     "ct7_ve0",
+     "H1_first_token",
+     "H1_slope",
+     "H1_jump",
+     "H1_frac_above_z",
+     "evidence_drop_risk",
+     "digit_alternative",
+     "digit_spread",
+     "digit_alternative_innovation"
+    ],
+    "dropped": [],
+    "prevalence_hat": 0.2902091987507186,
+    "partition": [
+     [
+      "energy_innovation",
+      "top15_turnover",
+      "top50_js",
+      "dominant_freq16",
+      "bocpd_p0",
+      "ct7_bocpd_residual"
+     ],
+     [
+      "chosen_surprisal",
+      "ct7_chosen_std_excess",
+      "ct7_H0lim_prefix_innovation",
+      "H1_first_token",
+      "H1_slope",
+      "H1_jump"
+     ],
+     [
+      "q15_H1",
+      "q15_VE1",
+      "logprob_margin",
+      "true_tail50",
+      "energy_level",
+      "ct7_ve0",
+      "H1_frac_above_z",
+      "evidence_drop_risk"
+     ],
+     [
+      "digit_alternative",
+      "digit_spread",
+      "digit_alternative_innovation"
+     ]
+    ],
+    "merged": false,
+    "merge_log": [
+     {
+      "stop": "rho",
+      "rho": 0.7811066250977219
+     }
+    ],
+    "group_weights": [
+     0.057351012142314806,
+     0.1914442084108595,
+     0.6500427435608032,
+     0.1011620358860227
+    ]
+   }
+  },
+  "B35": {
+   "switch_statistics": {
+    "S1_between_dependence": 0.25671840880514885,
+    "S2_largest_group_share": 0.2
+   },
+   "switch_uses_grouping": false,
+   "refit": {
+    "survivors": [
+     "q15_H1",
+     "q15_VE1",
+     "chosen_surprisal",
+     "logprob_margin",
+     "true_tail50",
+     "energy_level",
+     "energy_innovation",
+     "top15_turnover",
+     "top50_js",
+     "dominant_freq16",
+     "bocpd_p0",
+     "lf__H1_first_token",
+     "lf__H1_slope",
+     "lf__hist_entropy_rolling_low_band_power",
+     "lf__hist_entropy_rolling_high_band_power",
+     "lf__hist_entropy_rolling_hl_ratio",
+     "lf__hist_entropy_rolling_dominant_freq",
+     "lf__hist_entropy_rolling_spectral_centroid",
+     "lf__hist_entropy_stft_high_series",
+     "lf__hist_entropy_stft_frame_entropy",
+     "lf__hist_entropy_rolling_tail_ratio",
+     "lf__hist_entropy_pe_series",
+     "lf__hist_entropy_rolling_rs_hurst",
+     "lf__hist_entropy_cusum_abs_series",
+     "lf__hist_spilled_sw_var_series",
+     "lf__hist_spilled_cusum_abs_series",
+     "lf__hist_energy_cusum_abs_series",
+     "digit_alternative",
+     "digit_spread",
+     "digit_alternative_innovation"
+    ],
+    "dropped": [
+     "lf__ct7_chosen_std_excess",
+     "lf__hist_entropy_rolling_spectral_entropy",
+     "lf__hist_spilled_rolling_min",
+     "lf__hist_energy_sw_var_series",
+     "lf__hist_top1_logprob_series"
+    ],
+    "prevalence_hat": 0.34870518162843356,
+    "partition": [
+     [
+      "lf__hist_entropy_rolling_high_band_power",
+      "lf__hist_entropy_rolling_hl_ratio",
+      "lf__hist_entropy_rolling_dominant_freq",
+      "lf__hist_entropy_rolling_spectral_centroid",
+      "lf__hist_entropy_stft_high_series"
+     ],
+     [
+      "chosen_surprisal",
+      "lf__H1_first_token",
+      "lf__H1_slope",
+      "lf__hist_spilled_sw_var_series"
+     ],
+     [
+      "dominant_freq16",
+      "lf__hist_entropy_rolling_low_band_power",
+      "lf__hist_entropy_rolling_rs_hurst"
+     ],
+     [
+      "energy_innovation",
+      "top15_turnover",
+      "top50_js",
+      "bocpd_p0",
+      "lf__hist_entropy_stft_frame_entropy",
+      "lf__hist_entropy_rolling_tail_ratio",
+      "lf__hist_entropy_pe_series"
+     ],
+     [
+      "q15_H1",
+      "q15_VE1",
+      "logprob_margin",
+      "true_tail50",
+      "energy_level"
+     ],
+     [
+      "lf__hist_entropy_cusum_abs_series",
+      "lf__hist_spilled_cusum_abs_series",
+      "lf__hist_energy_cusum_abs_series"
+     ],
+     [
+      "digit_alternative",
+      "digit_spread",
+      "digit_alternative_innovation"
+     ]
+    ],
+    "merged": false,
+    "merge_log": [
+     {
+      "stop": "rho",
+      "rho": 0.6050497085533749
+     }
+    ],
+    "group_weights": [
+     0.08653091564415122,
+     0.12537030493591436,
+     0.1566114109851242,
+     0.12693769792198348,
+     0.22337233347526148,
+     0.14397353590216155,
+     0.1372038011354036
+    ]
+   }
+  },
+  "B54": {
+   "switch_statistics": {
+    "S1_between_dependence": 0.2781399797782066,
+    "S2_largest_group_share": 0.5217391304347826
+   },
+   "switch_uses_grouping": false,
+   "refit": {
+    "survivors": [
+     "q15_H1",
+     "q15_VE1",
+     "chosen_surprisal",
+     "logprob_margin",
+     "true_tail50",
+     "energy_level",
+     "top15_turnover",
+     "top50_js",
+     "dominant_freq16",
+     "bocpd_p0",
+     "ct7_H0lim",
+     "ct7_ve0",
+     "ct7_ve0.75",
+     "ct7_ve1",
+     "ct7_H0lim_prefix_innovation",
+     "ct7_bocpd_residual",
+     "ct7_chosen_std_excess",
+     "H1_first_token",
+     "H1_slope",
+     "H1_jump",
+     "H1_frac_above_z",
+     "evidence_drop_risk",
+     "hist_entropy_series",
+     "hist_entropy_rolling_low_band_power",
+     "hist_entropy_rolling_high_band_power",
+     "hist_entropy_rolling_hl_ratio",
+     "hist_entropy_rolling_dominant_freq",
+     "hist_entropy_rolling_spectral_centroid",
+     "hist_entropy_stft_high_series",
+     "hist_entropy_stft_frame_entropy",
+     "hist_entropy_rolling_tail_ratio",
+     "hist_entropy_sw_var_series",
+     "hist_entropy_pe_series",
+     "hist_entropy_rolling_rs_hurst",
+     "hist_entropy_cusum_abs_series",
+     "hist_spilled_series",
+     "hist_spilled_sw_var_series",
+     "hist_spilled_cusum_abs_series",
+     "hist_spilled_rolling_min",
+     "hist_energy_sw_var_series",
+     "hist_energy_cusum_abs_series",
+     "hist_topk_entropy_series",
+     "hist_topk_varentropy_series",
+     "hist_topk_renyi2_series",
+     "hist_topk_tail_mass_series",
+     "digit_alternative",
+     "digit_spread",
+     "digit_alternative_innovation"
+    ],
+    "dropped": [
+     "energy_innovation",
+     "hist_entropy_rolling_spectral_entropy",
+     "hist_energy_series",
+     "hist_energy_rolling_min",
+     "hist_top1_logprob_series",
+     "hist_logprob_margin_series"
+    ],
+    "prevalence_hat": 0.26173349040963123,
+    "partition": [
+     [
+      "q15_H1",
+      "logprob_margin",
+      "true_tail50",
+      "energy_level",
+      "ct7_H0lim",
+      "ct7_ve0",
+      "ct7_H0lim_prefix_innovation",
+      "H1_first_token",
+      "evidence_drop_risk",
+      "hist_entropy_series",
+      "hist_entropy_sw_var_series",
+      "hist_topk_entropy_series",
+      "hist_topk_renyi2_series",
+      "hist_topk_tail_mass_series"
+     ],
+     [
+      "hist_entropy_cusum_abs_series",
+      "hist_spilled_cusum_abs_series",
+      "hist_energy_cusum_abs_series"
+     ],
+     [
+      "chosen_surprisal",
+      "ct7_chosen_std_excess",
+      "H1_slope",
+      "hist_spilled_series",
+      "hist_spilled_sw_var_series",
+      "hist_spilled_rolling_min",
+      "hist_energy_sw_var_series"
+     ],
+     [
+      "digit_alternative",
+      "digit_spread",
+      "digit_alternative_innovation"
+     ],
+     [
+      "dominant_freq16",
+      "hist_entropy_rolling_low_band_power",
+      "hist_entropy_rolling_rs_hurst"
+     ],
+     [
+      "hist_entropy_rolling_high_band_power",
+      "hist_entropy_rolling_hl_ratio",
+      "hist_entropy_rolling_dominant_freq",
+      "hist_entropy_rolling_spectral_centroid",
+      "hist_entropy_stft_high_series"
+     ],
+     [
+      "q15_VE1",
+      "ct7_ve0.75",
+      "ct7_ve1",
+      "hist_topk_varentropy_series"
+     ],
+     [
+      "top15_turnover",
+      "top50_js",
+      "bocpd_p0",
+      "ct7_bocpd_residual",
+      "H1_jump",
+      "H1_frac_above_z",
+      "hist_entropy_stft_frame_entropy",
+      "hist_entropy_rolling_tail_ratio",
+      "hist_entropy_pe_series"
+     ]
+    ],
+    "merged": false,
+    "merge_log": [
+     {
+      "stop": "rho",
+      "rho": 0.5631337063763129
+     }
+    ],
+    "group_weights": [
+     0.19415232415658187,
+     0.09926378546640735,
+     0.06576699692033594,
+     0.0953450136734554,
+     0.11127756739663197,
+     0.06525296017088118,
+     0.2281692917991683,
+     0.14077206041653811
+    ]
+   }
+  }
+ }
+}

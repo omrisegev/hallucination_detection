@@ -112,6 +112,8 @@ def main():
     status = load(scoring)
     if status["bundle_sha256"] != file_hash(bundle) or status.get("external_labels_opened") is not False:
         raise ValueError("scoring used another bundle or touched labels")
+    if status["code"]["score_script_sha256"] != file_hash(ROOT/"scripts/score_algorithm_external_v1.py") or load(bundle)["code"]["fit_script_sha256"] != file_hash(ROOT/"scripts/fit_algorithm_external_v1.py"):
+        raise ValueError("fit or scoring script changed since it produced the bundle / predictions")
     arms = status["cells"][next(iter(CELLS))]["arms"]
     if any(status["cells"][c]["arms"] != arms for c in CELLS):
         raise ValueError("arm registry differs between cells")
@@ -133,8 +135,14 @@ def main():
                     raise ValueError("step alignment")
                 if not set(row["predictions"][arm]) <= {0, 1}:
                     raise ValueError("nonbinary decision")
+                ne = np.asarray(row["nonempty"], bool); sc = np.asarray([np.nan if v is None else v for v in row["scores"][arm]], float)
+                if not np.isfinite(sc[ne]).all():
+                    raise ValueError("nonfinite score on a non-empty step (checked before sealing)")
+        feat = ROOT/"results/external_banks_v4"/cell
         seal = dict(prediction_sha256=digest(rows), protocol_sha256=file_hash(protocol), bundle_sha256=file_hash(bundle),
-                    scoring_status_sha256=file_hash(scoring), evaluator_sha256=file_hash(Path(__file__)), answers=len(rows), arms=arms)
+                    scoring_status_sha256=file_hash(scoring), features_sha256=file_hash(feat/"FEATURES.npz"), features_manifest_sha256=file_hash(feat/"MANIFEST.json"),
+                    score_script_sha256=file_hash(ROOT/"scripts/score_algorithm_external_v1.py"), fit_script_sha256=file_hash(ROOT/"scripts/fit_algorithm_external_v1.py"),
+                    answers=len(rows), arms=arms)
         if (out/cell/"SEAL.json").exists() and load(out/cell/"SEAL.json") != seal:
             raise ValueError("sealed predictions changed")
         atomic_json(out/cell/"SEAL.json", seal)
