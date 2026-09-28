@@ -1,0 +1,46 @@
+{
+ "protocol_id": "position_channel_v1",
+ "version": 1,
+ "frozen_before_scoring": true,
+ "status": "FROZEN",
+ "requested_by": "Omri 2026-09-29: find a principled way to integrate step position as an additional channel (the external check, Step 459, showed that the step index alone beats every method on Hard2Verify and Socratic). No report yet.",
+ "principle": "Error propagation: a step that follows an error builds on it, so the probability that a step is erroneous tends to rise along the answer. This is a structural prior of multi-step reasoning, not a label-derived quantity. The position channel is therefore added like any other channel and the EXISTING label-free machinery decides whether and how much it counts: the Dawid-Skene filter estimates its accuracy from its agreement with the other channels (keep iff pi_hat > 0.5), and in the grouped method it is its own group whose weight comes from the group-level Dawid-Skene estimate. No weight, sign or threshold for position is set by hand or from labels.",
+ "task_conflict_declared": "Rewarding later steps helps the step-validity task (PRMBench within-answer AUC and PRMScore; Socratic; Hard2Verify) but is expected to HURT first-error localization (ProcessBench: the argmax moves toward the end). ProcessBench is reported beside every arm; a decision in favour of a position channel must state this trade-off.",
+ "channels": {
+  "POS": "relative step index within the answer (0 .. n-1), answer-z-scored (constant 0 for one-step answers); its top-20% marks are the last ceil(0.2 n) steps",
+  "CUM": "accumulated evidence: running mean over steps 1..t of the answer-z plain-average score of the DS survivors (BASE), answer-z-scored; uses the answer's own signal instead of a fixed prior; computed after the DS filter"
+ },
+ "banks": "B16, B23, B35, B54 (the four digit banks, as in the external test); construction as results/algorithm_decisions_v1 (partition_switch_run.py bank(), replays P0__BASE exactly)",
+ "arms_per_bank": {
+  "BASE": "DS filter, plain average (= algorithm_decisions_v1 P0__BASE; replay hard stop 1e-9)",
+  "BASE_POS": "DS filter on the bank plus POS (one Dawid-Skene fit on all channels' marks + POS marks; POS key drawn separately so the other channels' marks are unchanged), plain average of all survivors (POS enters with weight 1/p if kept)",
+  "BASE_CUM": "DS filter as BASE; then one Dawid-Skene fit on the survivors' marks + CUM marks; plain average of the survivors that stay above 0.5 plus CUM if kept",
+  "GRP": "DS filter, binary partition + merge, mean within groups, DS-estimate MLE weights between groups (= algorithm_decisions_v1 P0__EQ_DSM; replay hard stop 1e-9)",
+  "GRP_POS": "GRP with POS added as its own group (group-level Dawid-Skene on the group marks + POS marks, POS key drawn separately); MLE weights",
+  "GRP_CUM": "GRP with CUM added as its own group",
+  "POS_ALONE": "the step index alone (reference row)",
+  "references": "ct7, fam421"
+ },
+ "folds_and_access": "as algorithm_decisions_v1: eval fold k, calibration (k+1)%5 for the PRMScore threshold only, learning on the other three (DS on PRMBench learning steps, partition on all learning steps); write-once; no fallback",
+ "endpoints": "PRMBench within-answer AUC (primary), official PRMScore; ProcessBench gate-free SLA macro-8 (beside, expected to worsen)",
+ "contrasts": {
+  "primary": "per bank: BASE_POS - BASE and GRP_POS - GRP on PRMBench within-AUC; 2 x 4 = 8, Bonferroni, paired source-group bootstrap 50,000 draws (seed 20260927)",
+  "secondary": "per bank at 95%: BASE_CUM - BASE, GRP_CUM - GRP, GRP_POS - BASE, POS_ALONE - BASE; the same contrasts on PRMScore and ProcessBench SLA"
+ },
+ "nulls": "for every primary contrast: same-length whole-answer label swap and within-answer shuffle (200 permutations, seeds 12 / 11); the content share (observed minus swap mean) is reported beside every gain, because a position channel is expected to gain mainly through position",
+ "interpretation_frozen": {
+  "adopt_position_channel": "a variant is recommended for the method only if its primary contrast is Bonferroni above 0 on within-AUC on all four banks AND its content share (observed minus swap mean) is above 0 on at least 3 of 4 banks; otherwise it is reported as a positional prior, not a method gain",
+  "processbench": "the ProcessBench SLA change is reported beside and must be stated in any recommendation"
+ },
+ "then": "if a variant is recommended, a separate frozen external check (exploratory; the benchmarks are exposed) with the step-index row, swap nulls and equal-share comparisons (LESSONS 2026-09-29)",
+ "predictions_frozen": {
+  "P1": "the DS filter keeps POS on every bank and fold (it agrees with the error-prone late steps other channels mark)",
+  "P2": "BASE_POS - BASE is small on development (< 0.005 within-AUC) because the step index alone is weak there (0.6617)",
+  "P3": "GRP_POS gains more than BASE_POS (its group weight is not diluted to 1/p)",
+  "P4": "every position variant lowers ProcessBench SLA",
+  "P5": "the content share of the position gains is small (< 50%)"
+ },
+ "hard_stops": ["input hashes differ from the algorithm_decisions_v1 manifest", "BASE or GRP replay of algorithm_decisions_v1 P0__BASE / P0__EQ_DSM > 1e-9", "mark counts wrong", "any evaluation row written twice"],
+ "review": "pre-run code review; red team of three after the run",
+ "budget": "CPU only, <= 1 hour"
+}
