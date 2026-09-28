@@ -95,7 +95,7 @@ def pos_table():
                 a = f'{bk}__{p}__{f}'; t = None if (p == 'P0' and f == 'BASE') else con(a, f'{bk}__P0__BASE')
                 cid = f'{a} - {bk}__P0__BASE'; sw = NUL.get(cid, {}).get('whole_answer_same_length_swap', {}).get('mean')
                 if t is None: tds.append(f'<td class="centre">{f4(wa(a))}</td>'); continue
-                c_ = cell(t); tds.append(c_[:-5] + (f'<br><small class="sw">מיקום לבד {f4(sw)}</small>' if sw is not None else '') + '</td>')
+                c_ = cell(t); tds.append(c_[:-5] + (f'<small class="swn">מיקום לבד {f4(sw)}</small>' if sw is not None else '') + '</td>')
             body.append(f'<tr><th scope="row">{lab}, {POS_HE[p]}</th>{"".join(tds)}</tr>')
     return ('<div class="tablewrap"><table class="selt"><caption>הפרש מהממוצע הפשוט בלי נטרול. "מיקום לבד" = ממוצע ההפרש כשמחליפים תוויות בין תשובות באותו אורך (כמה מההפרש מוסבר במיקום).</caption>'
             '<thead><tr><th scope="col">שיטה ומצב מיקום</th>' + ''.join(f'<th scope="col">{BANK_HE[b]}</th>' for b in BANKS) + '</tr></thead><tbody>' + ''.join(body) + '</tbody></table></div>')
@@ -181,8 +181,9 @@ CSS += """
 .stage .dec{font-size:.8rem;border-radius:999px;padding:1px 8px;justify-self:start;border:1px solid currentColor}
 .dec.done{color:var(--gain)}.dec.new{color:var(--avg)}
 tr.cand th,tr.cand td{background:color-mix(in srgb,var(--gain) 12%,var(--surface))}tr.ext th,tr.ext td{background:color-mix(in srgb,var(--band) 8%,var(--surface))}
-td.centre{font-family:var(--mono);text-align:center;font-weight:600}td.na{color:var(--muted);text-align:center}small.sw{color:var(--muted);font-family:var(--mono)}
-.selt th{white-space:normal;min-width:180px}
+td.centre{font-family:var(--mono);text-align:center;font-weight:600}td.na{color:var(--muted);text-align:center}small.swn{display:block;color:var(--muted);font-family:var(--mono);font-size:.68rem;font-weight:400}
+table.dec td{font-family:var(--body);text-align:start;font-size:.88rem}
+.selt th{white-space:normal;min-width:260px;font-size:.82rem}
 """
 JS = """document.querySelectorAll('.tabs button').forEach(function(b){b.addEventListener('click',function(){var g=b.dataset.g,i=b.dataset.i;
 document.querySelectorAll('.tabs button[data-g="'+g+'"]').forEach(function(x){x.setAttribute('aria-selected',x.dataset.i===i?'true':'false')});
@@ -203,9 +204,23 @@ page = f"""<title>הכרעות באלגוריתם</title>
 <p class="lede">ניסוי {code('algorithm_decisions_v1')}. 8 בנקים (13, 20, 32, 51 ערוצים, כל אחד בלי ועם שלושת פיצ'רי הספרות), 3 מצבי מיקום, 12 כללי שקלול, 5 folds לפי קבוצות מקור.
 PRMBench: 6,030 תשובות עם צעד שגוי ותקין. ProcessBench: 4,442 תשובות שגויות ב-8 cells. מצב הריצה: {e(STATUS.get('status'))}.</p></header>
 <section class="summary" aria-labelledby="sum"><h2 id="sum">בקצרה</h2><ul>
-<li><b>המועמד:</b> {cand_he}. {nw} וריאנטים עמדו בכלל הבחירה (בלי הפסד באף בנק וניצחון ב-5 מתוך 8), {ne} היו כשירים (בלי הפסד באף בנק).</li>
-<li><b>הווריאנט עם הממוצע הגבוה ביותר:</b> {e(vname(best))}, {num(bestm)} בממוצע על 8 הבנקים, מול {num(base_mean)} לממוצע הפשוט.</li>
+<li><b>המועמד לפי הכלל שהוקפא מראש:</b> {cand_he}, כלומר סינון DS ואחריו ממוצע פשוט של הערוצים שנשארו. {nw} וריאנטים עמדו בכלל הבחירה ו-{ne} היו כשירים: כל וריאנט אחר הפסיד באופן מובהק לפחות בבנק אחד.</li>
+<li><b>הקרוב ביותר:</b> {e(vname(best))}, {num(bestm)} בממוצע על 8 הבנקים מול {num(base_mean)} לממוצע הפשוט. רווח אמיתי ורחב ב-32 ערוצים (עם ובלי ספרות), רווח דק ב-13 וב-51 ועוד ספרות, והפסד רחב ב-20 ועוד ספרות וב-51.</li>
+<li><b>L-SML</b> נמוך מהממוצע הפשוט בכל 8 הבנקים, גם כשלומדים בלי מיקום.</li>
+<li><b>אומדני DS כמשקלים בין קבוצות</b> הם השקלול הטוב ביותר בין קבוצות, ובבנק של 32 ערוצים הם מגיעים לתקרה של משקלים שחושבו עם תוויות. אבל החלוקה לקבוצות עצמה עולה יותר ממה שהם מחזירים ברוב הבנקים.</li>
+<li><b>מיקום:</b> לא מנטרלים. נטרול בלמידה בלבד כמעט לא משנה, ונטרול מלא פוגע בכל הבנקים.</li>
+<li><b>ספרות:</b> משפרות את הממוצע הפשוט בכל בנק; מעבר למיקום הרווח מובהק ב-20, 32 ו-51 אבל לא ב-13.</li>
 </ul></section>
+<h2 id="decide">ההחלטות לפי שלבי האלגוריתם</h2>
+<div class="tablewrap"><table class="assum dec"><thead><tr><th scope="col">שלב</th><th scope="col">ההחלטה</th><th scope="col">על סמך</th></tr></thead><tbody>
+<tr><th scope="row">סינון</th><td>DS על הסימונים הבינאריים, להשאיר ערוץ אם הדיוק הנאמד מעל 0.5</td><td>Steps 451, 455, 456; הספרות לא משנות את ההחלטות</td></tr>
+<tr><th scope="row">מיקום</th><td>לא לנטרל</td><td>נטרול בלמידה: שינוי של עד 0.0015, והפסד ב-32 ערוצים; נטרול מלא: הפסד בכל 8 הבנקים</td></tr>
+<tr><th scope="row">קבוצות ומשקלים</th><td>לא נכנסים למועמד</td><td>אף שילוב של משקלים בתוך קבוצה ובין קבוצות לא נמנע מהפסד בכל הבנקים</td></tr>
+<tr><th scope="row">שימוש באומדנים</th><td>כמסנן: כן. כמשקלים בין קבוצות: רק כווריאנט משני שתלוי בבנק</td><td>עדיף על משקל שווה לקבוצה ב-6 מתוך 8 בנקים (אחרי ניכוי מיקום), מנצח את הממוצע רק ב-32 ערוצים</td></tr>
+<tr><th scope="row">בינארי מול רציף</th><td>בינארי לאמידה (סינון, חלוקה, אומדני קבוצה), רציף לציון שמשלבים</td><td>ללא שינוי</td></tr>
+<tr><th scope="row">L-SML</th><td>לא במועמד</td><td>נמוך מהממוצע בכל 8 הבנקים</td></tr>
+<tr><th scope="row">ספרות</th><td>להוסיף, בכפוף להחלטתך על ההחרגה</td><td>רווח בכל בנק; מעבר למיקום מובהק ב-3 מתוך 4</td></tr>
+</tbody></table></div>
 <h2 id="algo">האלגוריתם בשלבים</h2>{flow}
 <h2 id="selection">כל הווריאנטים מול הממוצע הפשוט</h2>{sel_table}
 <h2 id="stages">מה כל רכיב תורם</h2>{of_table()}
@@ -213,6 +228,15 @@ PRMBench: 6,030 תשובות עם צעד שגוי ותקין. ProcessBench: 4,44
 <h2 id="estimates">האומדנים מול האמת</h2>{est_tables()}<h3>איזו קבוצה שולטת באומדנים</h3>{logo_table()}<h3>מה הספרות עושות לאומדנים</h3>{shift_table()}
 <h2 id="pb">ProcessBench לפי cell, מול Mind the Gap</h2>{pb_table()}
 <h2 id="activity">האם כל רכיב פעל</h2>{act_table()}
+<h2 id="redteam">מה הצוות האדום תיקן</h2>
+<ul>
+<li>כל המספרים שוחזרו בקוד עצמאי, כולל בנייה מחדש מהקלטים הגולמיים, והכלל בחר שוב את הממוצע הפשוט.</li>
+<li>הרווחים של הווריאנט הקרוב ביותר ב-13 וב-51 ועוד ספרות מרוכזים באחוז אחד של התשובות. רק הרווח ב-32 ערוצים רחב ואמיתי.</li>
+<li>המנגנון שהצעתי, שאומדני DS נותנים משקל 0 לקבוצות ברמת ניחוש, הופרך: אין אף קבוצה עם משקל 0 ואף קבוצה ברמת ניחוש. מה שהם עושים בפועל הוא לתת לקבוצת הרמה את המשקל הגבוה ביותר בכל 40 המקרים, עם יחסים מוגזמים בגלל אומדנים מנופחים.</li>
+<li>"האיחוד פעל בכל מקום שבו הרמה פוצלה" נכון רק בלמידה על הבנק המקורי (10 מתוך 14 בלמידה בלי מיקום).</li>
+<li>"קבוצת הרמה שולטת באומדנים בכל בנק" נכון רק לפי אחד משני מדדים; הוצאתה מקרבת את השכיחות לאמת ב-5 מתוך 8 בנקים, לא 6.</li>
+<li>ב-13 ערוצים הרווח של הספרות מעבר למיקום לא מובהק (0.0022).</li>
+</ul>
 <p class="files lede">קבצים: {code(str(RUN.relative_to(HERE.parent.parent)))} (METRICS.csv, CONTRASTS.csv, SELECTION.json, NULLS.json, ACTIVITY.jsonl, GROUPS.csv, LOGO.csv, SHIFT.csv); פרוטוקול {code('results/algorithm_decisions_v1/PROTOCOL.json')}.</p>
 </div><script>{JS}</script>"""
 OUTF.write_text(page, encoding='utf8'); print('written', OUTF, len(page))

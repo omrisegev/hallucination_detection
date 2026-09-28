@@ -1,3 +1,13 @@
+## algorithm_decisions_v1: the open components decided; candidate = DS filter + plain average (Claude) - 2026-09-28
+
+HISTORY Step 457, `results/algorithm_decisions_v1/SUMMARY.md`, `REPORT_HE.html`, `run_20260928/RED_TEAM.md`. 8 banks (13/20/32/51,
+each without and with the three digit features) x position (raw / learn without / full) x within (mean / SML / hem) x between
+(equal / SML / DS estimates / hem). Frozen rule: no variant avoids a significant loss on all 8 banks, so the frozen candidate is
+the DS-filtered plain average (8-bank mean 0.7656). Estimate-based between weights (DS on group marks) are the best group weighting
+(content gains on the heterogeneous 32-channel bank, equal to the label-using ceiling there) but lose on 20+d and 51. L-SML below
+the plain average on all 8 banks, also when learned without position. Do not neutralize position. Digits help on every bank
+(content significant on 20/32/51, not on 13). Open for Omri: the digit scope decision and the bank for the new benchmarks.
+
 ## lsml_merge_step_v1: L-SML + one merge step; DS band rule (Claude) - 2026-09-28
 
 HISTORY Step 456, `results/lsml_merge_step_v1/SUMMARY.md` (+ run_20260928/RED_TEAM.md). The label-free absorption-merge step repairs

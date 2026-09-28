@@ -192,3 +192,12 @@ with position removed L-SML + step leads on B20/B32/B51. The band rule (drop 0.4
 Post hoc: Codex's three digit features lift the plain average to 0.7918 PRMBench / 0.4126 ProcessBench (mostly positional on
 PRMBench; +0.0063 after position adjustment). Open: (a) position as the shared factor L-SML follows (hypothesis); (b) a frozen test of
 the digit features, pending Omri's scope decision on the 2026-09-17 digit exclusion.
+
+## 10. Addendum 2026-09-28: the open components decided (Step 457, `results/algorithm_decisions_v1/SUMMARY.md`)
+
+Frozen rule over 38 variants x 8 banks: the candidate for the new benchmarks is the DS filter (pi_hat > 0.5) followed by the plain
+average of the survivors - no variant avoided a significant loss on every bank. Do not neutralize position. Clustering + estimate-
+based between-group weights (DS on group-score marks, optionally hem within) is the best group weighting and wins with content on
+the heterogeneous 32-channel bank, but loses on 20+digits and 51; L-SML loses on all 8 banks. Digits help on every bank (content
+significant on 20/32/51). Open: Omri's digit-scope decision, the bank for the external test, whether to carry the estimate-weighted
+variant as a labelled secondary.
