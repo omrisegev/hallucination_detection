@@ -182,3 +182,13 @@ the DS filter's channel SELECTION transfers (never dropped a channel with true b
 B32, mostly positional on B51); grouping and L-SML do not transfer; the binary partition beats the continuous one at equal group
 weights on every bank but loses to plain averaging. Item 3 of section 6 (DS vs simple filter) is answered on PRMBench: DS is much
 better on the heterogeneous B32/B51, slightly worse on B20. Open: flipping strongly reversed channels instead of dropping them.
+
+## 9. Addendum 2026-09-28: clustering step and DS band rule (Step 456, `results/lsml_merge_step_v1/SUMMARY.md`)
+
+Omri kept L-SML and asked for "another step" to fix the clustering, and a better use of the DS estimates. A label-free absorption
+merge (rho < 0.5) after L-SML's partition repairs the split of the level family (exactly the stage-B2 manual merge on B13), but L-SML
+on the repaired partition still does not beat plain averaging on any of B13/B16/B20/B32/B51; the losses are mostly positional, and
+with position removed L-SML + step leads on B20/B32/B51. The band rule (drop 0.45-0.55, flip < 0.45) never beats the DS filter.
+Post hoc: Codex's three digit features lift the plain average to 0.7918 PRMBench / 0.4126 ProcessBench (mostly positional on
+PRMBench; +0.0063 after position adjustment). Open: (a) position as the shared factor L-SML follows (hypothesis); (b) a frozen test of
+the digit features, pending Omri's scope decision on the 2026-09-17 digit exclusion.

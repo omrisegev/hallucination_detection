@@ -1,3 +1,15 @@
+## lsml_merge_step_v1: L-SML + one merge step; DS band rule (Claude) - 2026-09-28
+
+HISTORY Step 456, `results/lsml_merge_step_v1/SUMMARY.md` (+ run_20260928/RED_TEAM.md). The label-free absorption-merge step repairs
+the partition (level family one group wherever it was split; exact replay of the stage-B2 manual merge on B13), but L-SML with it
+still does not beat the DS-filtered plain average on any of 5 banks (B13 -0.0014 n.s.; B16/B20/B32/B51 -0.0069 to -0.0239). The
+losses are mostly positional; with position removed, L-SML + step leads on B20/B32/B51 (+0.0022 to +0.0060) - hypothesis: position is
+a shared factor L-SML's weights follow. On B13 the merged partition has 3 groups, so L-SML's guard makes it equal-per-group. Omri's
+band rule (drop 0.45-0.55, flip < 0.45) never beats the DS filter; dropping helps only B32, flipping hurts. Post hoc: the three digit
+features raise the plain average to 0.7918 (B16; +0.0116, ~82% positional, +0.0063 after position adjustment) and ProcessBench to
+0.4126 - needs a frozen test and Omri's digit-scope decision. Correction to the diagnosis block below: the absorption ratio is NOT
+size-free (for halves of one factor rho = (1-r)/(1+(m-1)r), m = smaller half); only its independence reference is.
+
 ## Codex digit family merged; clustering diagnosis (Claude) - 2026-09-28
 
 - Merged `codex/digit-alternative-probability-v1` (Codex Steps 447-448, and the external-generalization line it sits on) into
