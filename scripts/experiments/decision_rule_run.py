@@ -150,6 +150,7 @@ def main():
         zS = answer_z(Sr); flags = {r: np.zeros(S_, bool) for r in RULES}; post = np.full(S_, np.nan); G_all = np.full(S_, np.nan)
         for k in range(5):
             c = (k + 1) % 5; fitm = ~np.isin(step_fold, [k, c]); calm = prm_step & (step_fold == c); evm = step_fold == k
+            assert not (fitm & evm).any() and not (calm & evm).any()   # hard stop: no fold-k row in a fold-k quantity
             t0 = tau0[k] if tau0 is not None else float(np.quantile(zS[calm], .8))
             flags['R0_frozen'][evm] = zS[evm] >= t0
             mu = Xr[fitm].mean(0); sd = np.maximum(Xr[fitm].std(0), 1e-12); Zg = (Xr - mu) / sd; G = Zg.mean(1); G_all[evm] = G[evm]
@@ -179,7 +180,10 @@ def main():
         return flags, post, G_all
 
     t = time.perf_counter(); rec = {}
-    flags, post, G_all = build_rules(Xs, S, tauS, DS_SEED, record=rec)
+    try:
+        flags, post, G_all = build_rules(Xs, S, tauS, DS_SEED, record=rec)
+    except (ArithmeticError, ValueError) as e:
+        stop(f'rule construction failed: {e!r}')
     gates['ds_closed_form_vs_model_posterior_max_abs'] = max(r['closed_form_vs_model_posterior_max_abs'] for r in rec.values())
     if not gates['ds_closed_form_vs_model_posterior_max_abs'] <= 1e-8: stop('closed-form DS posterior differs from the EM model')
     gates['ds_converged_all_folds'] = all(r['ds_converged'] for r in rec.values())
@@ -218,6 +222,8 @@ def main():
         pp = prm_parts(counts[r][noncontrol].sum(0)); fl = nflag[r]
         def clean(mask): return {'answers': int(mask.sum()), 'share_with_flag': float((fl[mask] > 0).mean()), 'step_flag_rate': float(fl[mask].sum() / ns[mask].sum())}
         rows.append({'rule': r, **{k: float(v) for k, v in pp.items()}, 'official_prmscore': official[r]['prmscore'],
+                     'official_by_class_f1': official[r]['by_class_f1'], 'official_by_class_negative_f1': official[r]['by_class_negative_f1'],
+                     'used_redundancy_head': official[r]['used_redundancy_head'],
                      'within_auc_of_placement_scale': wa[place[r]], 'placement_scale': place[r],
                      'alloc_corr_flag_share_vs_error_share': float(np.corrcoef(fl[noncontrol] / ns[noncontrol], err_share[noncontrol])[0, 1]),
                      'erroneous_with_error_flagged': float((counts[r][has_err & noncontrol][:, 2] > 0).mean()),
@@ -251,7 +257,7 @@ def main():
                 crow.append({'contrast': f'{r} - R0_frozen', 'stratum': sname, 'endpoint': e, 'delta': pt, 'ci95': q(d, .05),
                              'ci_bonf9': q(d, .05 / 9) if sname in CLASSES else None, 'p_two_sided': float(min(1, 2 * min((d <= 0).mean(), (d >= 0).mean()))) if np.isfinite(d).any() else None})
     CT = pd.DataFrame(crow)
-    prim = CT[(CT.stratum == 'total') & (CT.endpoint == 'prmscore')].copy().sort_values('p_two_sided')
+    prim = CT[(CT.stratum == 'total') & (CT.endpoint == 'prmscore')].copy().sort_values('p_two_sided', kind='stable')
     m = len(prim); holm = []; still = True
     for rank_, (_, row) in enumerate(prim.iterrows()):   # step-down: once a contrast is not rejected, none after it is
         a = .05 / (m - rank_); d = boot[row.contrast.split(' - ')[0]][:, 0, 0].astype(float) - boot['R0_frozen'][:, 0, 0].astype(float)
@@ -283,8 +289,12 @@ def main():
             nullA[r].append(prm_from_labels(labA, r) - b0A); nullB[r].append(prm_from_labels(labB, r) - b0B)
     nulls = {r: {'observed': obs[r], 'within_answer_null_mean': float(np.mean(nullA[r])), 'within_answer_null_sd': float(np.std(nullA[r])),
                  'swap_null_mean': float(np.mean(nullB[r])), 'swap_null_sd': float(np.std(nullB[r])),
-                 'residual_vs_within_answer': obs[r] - float(np.mean(nullA[r])), 'residual_vs_swap': obs[r] - float(np.mean(nullB[r]))} for r in FAMILY}
-    dump(OUT / 'NULLS.json', {'perms': args.perms, 'interpretation': 'an allocation gain survives the within-answer null by design (it keeps error counts); a residual above the swap null means answer-specific information beyond length', 'rules': nulls})
+                 'residual_vs_within_answer': obs[r] - float(np.mean(nullA[r])), 'residual_vs_swap': obs[r] - float(np.mean(nullB[r])),
+                 'allocation_beyond_length': float(np.mean(nullA[r]) - np.mean(nullB[r]))} for r in FAMILY}
+    sizes = keyB.groupby(['len', 'fold']).i.transform('size'); unswapped = keyB[sizes < 2].i.to_numpy()
+    dump(OUT / 'NULLS.json', {'perms': args.perms,
+                              'interpretation': 'within-answer null keeps each answer error count, so a pure allocation gain survives it (observed - its mean = placement part); the swap null keeps only length/fold structure (observed - its mean = everything answer-specific, allocation and placement); within-answer mean - swap mean = allocation beyond length',
+                              'unswapped_answers_alone_in_their_length_fold_cell': int(len(unswapped)), 'unswapped_steps': int(ns[unswapped].sum()), 'rules': nulls})
     timing['nulls_s'] = time.perf_counter() - t
 
     # ------------------------------------------------------------------ random-score baseline for the clean-answer panel
@@ -306,6 +316,7 @@ def main():
 
     # ------------------------------------------------------------------ ProcessBench official F1 (secondary)
     t = time.perf_counter(); PBc = sorted(set(cells[pb])); pred = {}
+    if len(PBc) != 8: stop(f'expected 8 ProcessBench cells, found {len(PBc)}')
     for r in RULES:
         pr = np.full(n, -2)
         for i in np.flatnonzero(pb):
@@ -317,8 +328,8 @@ def main():
         np.add.at(a, (gpi, cix, 0), (hit & err).astype(float)); np.add.at(a, (gpi, cix, 1), err.astype(float))
         np.add.at(a, (gpi, cix, 2), (hit & ~err).astype(float)); np.add.at(a, (gpi, cix, 3), (~err).astype(float))
         return a
-    def pb_f1(a):
-        ae = ratio(a[..., 0], a[..., 1]); ac = ratio(a[..., 2], a[..., 3]); f = ratio(2 * ae * ac, ae + ac)
+    def pb_f1(a):   # official convention: both accuracies 0 -> F1 0 (not NaN, which nanmean would drop)
+        ae = ratio(a[..., 0], a[..., 1]); ac = ratio(a[..., 2], a[..., 3]); f = np.where((ae == 0) & (ac == 0), 0.0, ratio(2 * ae * ac, ae + ac))
         return f, ae, ac
     PA = {r: pb_counts(r) for r in RULES}; rng4 = np.random.default_rng(20261002); pbb = {r: np.empty(args.draws) for r in RULES}; pos_ = 0
     while pos_ < args.draws:
@@ -344,7 +355,12 @@ def main():
     timing['total_s'] = time.perf_counter() - T0; dump(OUT / 'TIMING.json', timing); dump(OUT / 'GATES.json', gates)
     dump(OUT / 'CODE_MANIFEST.json', {'script_sha256': sha(Path(__file__)), 'protocol_sha256': sha(STAGE / 'PROTOCOL.json'),
                                       'inputs': {k: {'path': str(v), 'sha256': sha(v)} for k, v in INPUTS.items()}, 'prm_metadata_sha256': sha(meta_path),
-                                      'er_stage_a_sha256': sha(ROOT / 'scripts/experiments/er_stage_a.py')})
+                                      'er_stage_a_sha256': sha(ROOT / 'scripts/experiments/er_stage_a.py'),
+                                      'cvf_em_sha256': sha(MAIN / '.worktrees/cumulative-vote-fusion-v2/scripts/experiments/cvf_v2/em.py'),
+                                      'cvf_core_sha256': sha(MAIN / '.worktrees/cumulative-vote-fusion-v2/scripts/experiments/cvf_v2/core.py'),
+                                      'prmbench_sha256': sha(DEPTH / 'spectral_utils/prmbench.py'),
+                                      'lsml_gate_locator_research_sha256': sha(DEPTH / 'spectral_utils/lsml_gate_locator_research.py'),
+                                      'git_head': __import__('subprocess').run(['git', 'rev-parse', 'HEAD'], cwd=ROOT, capture_output=True, text=True).stdout.strip()})
     status.update({'status': 'COMPLETE', 'finished': datetime.now().isoformat(timespec='seconds')}); dump(OUT / 'RUN_STATUS.json', status)
     pd.set_option('display.width', 250)
     print(pd.DataFrame([{k: (round(v, 4) if isinstance(v, float) else v) for k, v in r.items() if not isinstance(v, dict)} for r in rows]).to_string(index=False))
@@ -359,6 +375,7 @@ if __name__ == '__main__':
     except SystemExit:
         raise
     except Exception as exc:
-        rid = next((a for a in sys.argv[1:] if not a.startswith('-')), 'run_20260929')
+        _ap = argparse.ArgumentParser(); _ap.add_argument('run_id', nargs='?', default='run_20260929')
+        rid = _ap.parse_known_args()[0].run_id
         (STAGE / rid).mkdir(parents=True, exist_ok=True)
         dump(STAGE / rid / 'RUN_STATUS.json', {'status': 'FAILED', 'error': repr(exc), 'at': datetime.now().isoformat(timespec='seconds')}); raise
