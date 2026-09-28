@@ -5,7 +5,8 @@ absorb_merge: for two groups A, B of a partition, rho = lambda_2(R[A u B]) / min
 correlation matrix of the fitting rows.  Two groups with no correlation between them give rho = 1 whatever their sizes (the
 weaker group keeps its own direction inside the union); two halves of one common factor give rho well below 1 (the weaker
 half is absorbed into one direction).  The pair with the smallest rho is merged while rho < thr, and never below min_groups
-groups (the cross-group SML stage of L-SML needs at least 3 virtual classifiers).
+groups (SML over 2 virtual classifiers is not identifiable).  With exactly 3 groups L-SML's own small-m guard replaces
+the cross-group eigen-solve by equal weights over SD-standardized group scores (likewise inside a group of 3).
 """
 import numpy as np
 
