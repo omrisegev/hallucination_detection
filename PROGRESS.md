@@ -1,3 +1,11 @@
+## position_channel_v1: step position as a channel (Claude) - 2026-09-29
+
+HISTORY Step 460, `results/position_channel_v1/SUMMARY.md` (+ RED_TEAM.md). Adding the step index as one more channel is adopted by
+the frozen rule (A1) on all four digit banks (PRMBench within-AUC +0.004 to +0.009, above position alone), best 0.8002 on 13+d. It is
+a positional prior: late-error answers gain, early-error answers and ProcessBench lose. The DS fit identifies its direction without
+labels (flipped POS dropped 20/20), not its weight (plain-average weight = 1/(p-1), bank size; 15-47% of the post-hoc positional
+gain). Open: a label-free estimate of how much position should count; external check deferred. No advisor report yet (Omri).
+
 ## algorithm_external_v1: the frozen candidates on the external benchmarks (Claude) - 2026-09-29
 
 HISTORY Step 459, `results/algorithm_external_v1/SUMMARY.md` (+ RED_TEAM.md). All four digit banks, frozen from development and
