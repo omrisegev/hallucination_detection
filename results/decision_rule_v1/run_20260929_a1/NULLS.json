@@ -1,0 +1,58 @@
+{
+ "perms": 100,
+ "interpretation": "within-answer null keeps each answer error count, so a pure allocation gain survives it (observed - its mean = placement part); the swap null keeps only length/fold structure (observed - its mean = everything answer-specific, allocation and placement); within-answer mean - swap mean = allocation beyond length",
+ "unswapped_answers_alone_in_their_length_fold_cell": 36,
+ "unswapped_steps": 1651,
+ "rules": {
+  "R1_global": {
+   "observed": 0.00816850945737524,
+   "within_answer_null_mean": 0.009723809880817651,
+   "within_answer_null_sd": 0.0014121683156886726,
+   "swap_null_mean": 0.003469833906008183,
+   "swap_null_sd": 0.001403984651879676,
+   "residual_vs_within_answer": -0.0015553004234424121,
+   "residual_vs_swap": 0.004698675551367056,
+   "allocation_beyond_length": 0.0062539759748094685
+  },
+  "R2_allocate": {
+   "observed": 0.007017119201295441,
+   "within_answer_null_mean": 0.009665049274645298,
+   "within_answer_null_sd": 0.0014454248043790335,
+   "swap_null_mean": 0.003667158374032904,
+   "swap_null_sd": 0.001394180447993839,
+   "residual_vs_within_answer": -0.002647930073349857,
+   "residual_vs_swap": 0.003349960827262537,
+   "allocation_beyond_length": 0.005997890900612394
+  },
+  "R3_ds_map": {
+   "observed": -0.01768097780833222,
+   "within_answer_null_mean": 0.008398811067497073,
+   "within_answer_null_sd": 0.001471469617899912,
+   "swap_null_mean": -0.001346391550411915,
+   "swap_null_sd": 0.0015900372376957128,
+   "residual_vs_within_answer": -0.026079788875829294,
+   "residual_vs_swap": -0.016334586257920305,
+   "allocation_beyond_length": 0.009745202617908988
+  },
+  "R4_ds_expected_f1": {
+   "observed": -0.01794696520006467,
+   "within_answer_null_mean": 0.00827575662034596,
+   "within_answer_null_sd": 0.00147085073245387,
+   "swap_null_mean": -0.0014158441850395942,
+   "swap_null_sd": 0.0015969218015159142,
+   "residual_vs_within_answer": -0.02622272182041063,
+   "residual_vs_swap": -0.016531121015025074,
+   "allocation_beyond_length": 0.009691600805385555
+  },
+  "R5_ds_count": {
+   "observed": -0.012868164934220605,
+   "within_answer_null_mean": 0.007679484306124426,
+   "within_answer_null_sd": 0.0014189069158365324,
+   "swap_null_mean": -0.003059827834711828,
+   "swap_null_sd": 0.0015163001609810125,
+   "residual_vs_within_answer": -0.02054764924034503,
+   "residual_vs_swap": -0.009808337099508777,
+   "allocation_beyond_length": 0.010739312140836253
+  }
+ }
+}

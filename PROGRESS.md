@@ -1,3 +1,13 @@
+## decision_rule_v1: per-answer flag count (Claude) - 2026-09-29
+
+HISTORY Step 459, `results/decision_rule_v1/SUMMARY.md` (+ RED_TEAM.md), branch `claude/decision-rule-v1` in `.worktrees/decision-rule-v1`
+(separate from the ssl worktree, where another session was active; not merged yet). Frozen scores, only the flag decision changes.
+Primary R2 (count per answer from a globally standardized score of the raw channels, placement by the frozen ranking): PRMScore
+0.6565 -> 0.6635 (+0.0070, Holm [0.0012, 0.0132]); R1 0.6647. Answer-level information, not rate or length; concentrated in circular
+and missing_condition; against a label-tuned global rate the gain includes zero. Clean controls flagged 99% -> 57%, but modified-but-
+correct answers stay flagged (93%). The classic DS threshold route loses (biased estimates: prevalence 0.22 vs 0.14). ProcessBench
+official F1 rises only by leaving correct answers unflagged. Open for Omri: whether R2 enters the external candidate.
+
 ## partition_switch_v1: the stopping rule is a one-family lookup (Claude) - 2026-09-28
 
 HISTORY Step 458, `results/partition_switch_v1/SUMMARY.md` (+ RED_TEAM.md). A label-free switch (grouped DS-estimate fusion iff the

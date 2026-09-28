@@ -1,0 +1,8 @@
+exec(open('load.py').read())
+print(ans.columns.tolist()); print(ans.head(3).to_string())
+print('Z keys', Z.files); print('D keys', D.files, {k: D[k].shape for k in D.files})
+print(type(metaraw), len(metaraw)); k0=list(metaraw.keys())[:2] if isinstance(metaraw,dict) else None; print(k0)
+m0 = list(metaraw.values())[0] if isinstance(metaraw,dict) else metaraw[0]; print({k:(v if not isinstance(v,list) else (len(v), v[:3])) for k,v in m0.items()})
+print('offsets equal', np.array_equal(D['offsets'], off))
+print(ans.cell.value_counts())
+print(ans.fold.value_counts().sort_index())
