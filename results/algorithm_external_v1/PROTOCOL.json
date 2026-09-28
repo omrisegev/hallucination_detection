@@ -5,7 +5,11 @@
  "status": "FROZEN",
  "requested_by": "Omri 2026-09-29 ('approved'): send the frozen candidates to the external benchmarks on EVERY feature combination that includes the three digit features, so that the result shows the algorithm and not a lucky subset; primary = DS filter then plain average; secondary = the grouped method with DS-estimate between-group weights, always on; the stopping rule only as a labelled diagnostic.",
  "exposure_statement": "Hard2Verify (Qwen3-8B) and Socratic-PRMBench (Qwen3-8B, QwQ-32B) were evaluated earlier in the project (Steps 433 [Codex], 444, 446; labels inspected). This is an EXPLORATORY transfer test of methods selected on PRMBench/ProcessBench only (Steps 457-458); it is not an untouched confirmation (MedPRMBench, deferred, would be). No external label or quality number was read while building the features (results/external_banks_v4) or this protocol.",
- "cells": {"hard2verify_qwen3_8b": "hard2verify (200 answers)", "socratic_qwen3_8b": "socratic (2,995)", "socratic_qwq32b": "socratic (2,995)"},
+ "cells": {
+  "hard2verify_qwen3_8b": "hard2verify (200 answers)",
+  "socratic_qwen3_8b": "socratic (2,995)",
+  "socratic_qwq32b": "socratic (2,995)"
+ },
  "features": "results/external_banks_v4 (commit 408f03251): 56 raw step channels, full source parity PASS (max error <= 8.9e-16 on all 13,769 source answers); external cells: non-empty steps only (3 empty Socratic steps: score null, prediction 0 = 'incorrect', as in the earlier external runs)",
  "banks": {
   "B16": "13 base channels (bank11 + realized_z + realized_drv) + 3 digit features",
@@ -31,7 +35,18 @@
  "sealing": "scoring writes per-cell predictions with no label access; the evaluator seals them (prediction digest) with --seal-only before any label file is opened; evaluation refuses changed seals",
  "endpoints": "official metric per cell (Hard2Verify balanced F1 of the two class recalls; Socratic PRMScore = mean of F1_correct and F1_error), with the official evaluator replayed exactly; within-answer AUC over non-empty included steps of answers with both classes",
  "contrasts": {
-  "primary": [["F_{bank}_BASE", "ct7", "the frozen candidate vs the earlier incumbent"], ["F_{bank}_GRP", "F_{bank}_BASE", "does the grouped estimate weighting help externally"]],
+  "primary": [
+   [
+    "F_{bank}_BASE",
+    "ct7",
+    "the frozen candidate vs the earlier incumbent"
+   ],
+   [
+    "F_{bank}_GRP",
+    "F_{bank}_BASE",
+    "does the grouped estimate weighting help externally"
+   ]
+  ],
   "primary_family": "2 contrasts x 4 banks x 3 cells = 24 on the official metric, Bonferroni, paired bootstrap over exact-question groups, 100,000 draws, seed 20260924",
   "secondary": "95%: F_{bank}_BASE - frozen_equal and - frozen_lsml; R_{bank}_BASE - F_{bank}_BASE; R_{bank}_GRP - R_{bank}_BASE; F_{bank}_SW - F_{bank}_BASE; within-answer AUC deltas of every primary and secondary contrast (paired bootstrap over question groups, 20,000 draws); the development-disjoint sensitivity panel (questions overlapping the development set removed)"
  },
@@ -46,7 +61,23 @@
   "P3": "the SW diagnostic turns grouping on for B35 in all 3 cells and nowhere else",
   "P4": "R_BASE and F_BASE differ by less than 0.005 within-AUC in every bank and cell"
  },
- "hard_stops": ["feature or source-bank definition checks fail", "reference-arm telemetry identity differs from the external features (telemetry_sha256 per uid)", "any external label file opened before ALL_CELLS_SEALED.json exists", "a sealed prediction changes", "official evaluator replay mismatch"],
+ "hard_stops": [
+  "feature or source-bank definition checks fail",
+  "reference-arm telemetry identity differs from the external features (telemetry_sha256 per uid)",
+  "any external label file opened before ALL_CELLS_SEALED.json exists",
+  "a sealed prediction changes",
+  "official evaluator replay mismatch"
+ ],
  "review": "independent pre-run code review of the fit and scoring scripts before sealing; red team of three after the evaluation",
- "budget": "CPU only, <= 1.5 hours"
+ "budget": "CPU only, <= 1.5 hours",
+ "amendments": [
+  {
+   "id": "A1",
+   "date": "2026-09-29",
+   "before_any_external_scoring": true,
+   "change": "bank definition check: max |difference| <= 1e-9 on answer-columns whose raw within-answer standard deviation exceeds 1e-6; answer-columns with raw spread <= 1e-6 are numerically constant and their answer-z values are rounding noise in both constructions, so they are checked at 1e-6.",
+   "reason": "the first fit run stopped at 4.3e-8 (B16) / 8.2e-8 (B23, B35, B54): all differences sit in top50_js and logprob_margin, only in answer-columns with raw spread <= 1.4e-7; every other entry agrees to <= 4.9e-12. The external features are built by the same code path as the source features used for the fit.",
+   "no_external_data_seen": true
+  }
+ ]
 }

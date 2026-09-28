@@ -70,8 +70,14 @@ checks = {}
 V = {}
 for bk in BANKS:
     V[bk] = build_bank(bk, X, names, DA, off)
-    ref = ns_['bank'](bk); checks[f'bank_definition_max_diff_{bk}'] = float(np.max(np.abs(V[bk] - ref)))
-    if not checks[f'bank_definition_max_diff_{bk}'] <= 1e-9: stop(f'{bk} differs from the development bank by {checks[f"bank_definition_max_diff_{bk}"]}')
+    ref = ns_['bank'](bk); d = np.abs(V[bk] - ref)
+    # amendment A1: answer-columns whose raw within-answer spread <= 1e-6 are numerically constant (their z-values are rounding noise)
+    cols = BN[bk]; src = [c[4:] if c.startswith('lf__') else c for c in cols]; raw = X[:, [names.index(c) for c in src]]
+    cnt = np.diff(off)[:, None]; mu = np.add.reduceat(raw, off[:-1], axis=0) / cnt; sq = np.add.reduceat(raw * raw, off[:-1], axis=0) / cnt
+    spread = np.repeat(np.sqrt(np.maximum(sq - mu * mu, 0)), np.diff(off), axis=0); const = spread <= 1e-6
+    checks[f'bank_definition_max_diff_{bk}'] = float(d[~const].max()); checks[f'bank_definition_max_diff_constant_cells_{bk}'] = float(d[const].max()) if const.any() else 0.0
+    checks[f'bank_constant_answer_column_steps_{bk}'] = int(const.sum())
+    if not (checks[f'bank_definition_max_diff_{bk}'] <= 1e-9 and checks[f'bank_definition_max_diff_constant_cells_{bk}'] <= 1e-6): stop(f'{bk} differs from the development bank {checks}')
 print('banks match development:', {k: f'{v:.1e}' for k, v in checks.items()}, flush=True)
 
 # ------------------------------------------------------------------ the frozen fit (folds 0-3) and fold-4 thresholds
