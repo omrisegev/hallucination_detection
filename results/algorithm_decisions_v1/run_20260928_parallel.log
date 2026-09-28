@@ -1,0 +1,42 @@
+fit phase exit: 0
+banks ready: {'B13': 13, 'B16': 16, 'B20': 20, 'B23': 23, 'B32': 32, 'B35': 35, 'B51': 51, 'B54': 54} (0s); checks {'input_hashes_equal_stage_A': True, 'joined_uid_order_equals_oof': True, 'joined_step_counts_equal_oof': True, 'ct7_profile_mean_vs_oof_ct7': 1.3322676295501878e-15, 'pool_hashes_equal_step439': True, 'pool_dead_channels': ['hist_trace_length_series']}
+fold 0: fit [2, 3, 4] cal 1 done (0s)
+fold 1: fit [0, 3, 4] cal 2 done (0s)
+fold 2: fit [0, 1, 4] cal 3 done (0s)
+fold 3: fit [0, 1, 2] cal 4 done (0s)
+fold 4: fit [1, 2, 3] cal 0 done (0s)
+checks: {'input_hashes_equal_stage_A': True, 'joined_uid_order_equals_oof': True, 'joined_step_counts_equal_oof': True, 'ct7_profile_mean_vs_oof_ct7': 1.3322676295501878e-15, 'pool_hashes_equal_step439': True, 'pool_dead_channels': ['hist_trace_length_series'], 'part_sha256_part_B32_B23.pkl': '23c180f205f7b5bbca63e37629152091c9a62753540c1ec3b9de657dabe442d8', 'part_sha256_part_B35_B20.pkl': '6062558d5692b54e2c505cf697918dfc3b2da08b4e7ec20dde30e2101341beea', 'part_sha256_part_B51_B16.pkl': '1be4f0f57e43030ef8557c200d0760eea8027c510bddb6e4b7b386b9cb8c0cd4', 'part_sha256_part_B54_B13.pkl': '8c21c21afa5a21b0bf6c41c8e810f3010d024905b492e5ff9ed4dc39cd4a528e', 'replay_lsml_merge_step_max': 8.881784197001252e-16, 'replay_stage_b2': {'fold0': {'auto_equals_manual_merge': True, 'EQ_DSM_vs_B_sml__merge': 0.0, 'ORACLE_vs_B_oracle__merge': 0.0}, 'fold1': {'auto_equals_manual_merge': True, 'EQ_DSM_vs_B_sml__merge': 0.0, 'ORACLE_vs_B_oracle__merge': 0.0}, 'fold2': {'auto_equals_manual_merge': True, 'EQ_DSM_vs_B_sml__merge': 0.0, 'ORACLE_vs_B_oracle__merge': 0.0}, 'fold3': {'auto_equals_manual_merge': True, 'EQ_DSM_vs_B_sml__merge': 0.0, 'ORACLE_vs_B_oracle__merge': 0.0}, 'fold4': {'auto_equals_manual_merge': True, 'EQ_DSM_vs_B_sml__merge': 0.0, 'ORACLE_vs_B_oracle__merge': 0.0}}, 'replays_pass': True}
+selection: {'candidate': 'P0__BASE', 'candidate_is_baseline': True, 'best_eligible': None, 'best_overall': 'P0__HEM_DSM', 'P0__BASE_mean_within_auc_8banks': 0.7655839687264705}
+        variant  mean_within_auc_8banks  mean_delta_vs_P0_BASE                  wins                                    losses  eligible  qualifies
+10  P0__HEM_DSM                  0.7670                 0.0014  [B13, B32, B35, B54]                                [B23, B51]     False      False
+2    P0__EQ_DSM                  0.7654                -0.0002       [B13, B32, B35]                           [B20, B23, B51]     False      False
+11  P0__HEM_HEM                  0.7645                -0.0011            [B32, B35]                      [B13, B16, B23, B51]     False      False
+3    P0__EQ_HEM                  0.7643                -0.0013            [B32, B35]                 [B13, B16, B23, B51, B54]     False      False
+36     P1__BASE                  0.7642                -0.0013                 [B20]                                [B32, B35]     False      False
+7   P0__SML_HEM                  0.7637                -0.0019            [B32, B51]                 [B13, B16, B20, B23, B54]     False      False
+9   P0__HEM_SML                  0.7620                -0.0035                    []                           [B13, B20, B23]     False      False
+14   P1__EQ_DSM                  0.7615                -0.0041                 [B13]                      [B20, B23, B51, B54]     False      False
+1    P0__EQ_SML                  0.7604                -0.0051            [B32, B35]            [B13, B16, B20, B23, B51, B54]     False      False
+8    P0__HEM_EQ                  0.7600                -0.0055                    []            [B13, B20, B23, B32, B51, B54]     False      False
+18  P1__SML_DSM                  0.7597                -0.0059                 [B13]                 [B20, B23, B32, B35, B54]     False      False
+22  P1__HEM_DSM                  0.7592                -0.0064                    []  [B13, B16, B20, B23, B32, B35, B51, B54]     False      False
+15   P1__EQ_HEM                  0.7586                -0.0070                    []                 [B16, B23, B35, B51, B54]     False      False
+6   P0__SML_DSM                  0.7584                -0.0071                 [B13]                      [B20, B23, B32, B35]     False      False
+19  P1__SML_HEM                  0.7580                -0.0075                 [B13]            [B16, B20, B23, B32, B35, B54]     False      False
+{
+ "channels_s": 0.9114090999937616,
+ "banks_s": 0.006147300009615719,
+ "fit_s": 5770.71277709998,
+ "fit_s_parts": {
+  "part_B32_B23.pkl": 5764.763998699986,
+  "part_B35_B20.pkl": 5598.258501100005,
+  "part_B51_B16.pkl": 4306.676499499998,
+  "part_B54_B13.pkl": 4037.111974600004
+ },
+ "eval_s": 318.0079456999956,
+ "bootstrap_s": 77.74766779999482,
+ "nulls_s": 299.94291779998457,
+ "total_s": 722.5340690999874
+}
+status COMPLETE failures 0 candidate P0__BASE
+assemble exit: 0
