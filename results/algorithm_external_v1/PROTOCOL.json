@@ -1,0 +1,52 @@
+{
+ "protocol_id": "algorithm_external_v1",
+ "version": 1,
+ "frozen_before_scoring": true,
+ "status": "FROZEN",
+ "requested_by": "Omri 2026-09-29 ('approved'): send the frozen candidates to the external benchmarks on EVERY feature combination that includes the three digit features, so that the result shows the algorithm and not a lucky subset; primary = DS filter then plain average; secondary = the grouped method with DS-estimate between-group weights, always on; the stopping rule only as a labelled diagnostic.",
+ "exposure_statement": "Hard2Verify (Qwen3-8B) and Socratic-PRMBench (Qwen3-8B, QwQ-32B) were evaluated earlier in the project (Steps 433 [Codex], 444, 446; labels inspected). This is an EXPLORATORY transfer test of methods selected on PRMBench/ProcessBench only (Steps 457-458); it is not an untouched confirmation (MedPRMBench, deferred, would be). No external label or quality number was read while building the features (results/external_banks_v4) or this protocol.",
+ "cells": {"hard2verify_qwen3_8b": "hard2verify (200 answers)", "socratic_qwen3_8b": "socratic (2,995)", "socratic_qwq32b": "socratic (2,995)"},
+ "features": "results/external_banks_v4 (commit 408f03251): 56 raw step channels, full source parity PASS (max error <= 8.9e-16 on all 13,769 source answers); external cells: non-empty steps only (3 empty Socratic steps: score null, prediction 0 = 'incorrect', as in the earlier external runs)",
+ "banks": {
+  "B16": "13 base channels (bank11 + realized_z + realized_drv) + 3 digit features",
+  "B23": "bank11 + 9 pool channels of Step 438 + 3 digit features",
+  "B35": "bank11 + 21 lf__ pool channels (label-free sign of Step 439) + 3 digit features",
+  "B54": "51 live pool channels + 3 digit features",
+  "channel_lists": "exactly INPUT_MANIFEST.json 'banks' of results/algorithm_decisions_v1/run_20260928",
+  "standardization": "per answer over its non-empty steps: z-score of every channel (constant -> 0); digit features masked by their 'active' flag (inactive -> 0); lf__ sign applied (sign-equivariant)",
+  "definition_check": "HARD STOP if the source banks rebuilt from results/external_banks_v4/source/FEATURES.npz differ from the algorithm_decisions_v1 banks (rebuilt as in partition_switch_run.py) by > 1e-9"
+ },
+ "access_modes": {
+  "F_frozen_from_development": "PRIMARY. Everything label-free is learned on the 13,769 source answers, folds 0-3 (OOF_ANSWERS fold), and applied unchanged to every external cell; the decision threshold is the 0.8 quantile of the answer-z scores on all source steps of fold 4 (the convention of the earlier external bundle, scripts/fit_external_source_bundle.py)",
+  "R_refit_on_target": "SECONDARY. The same label-free learning on each external cell's own unlabelled steps (transductive; never done before in this project); threshold = 0.8 quantile of the cell's own answer-z scores"
+ },
+ "methods": {
+  "BASE": "DS filter (Dawid-Skene on top-20% random-tie marks, key default_rng(20260928), PRMBench steps of the learning rows for F / all steps of the cell for R; keep pi_hat > 0.5), then the plain average of the surviving channels",
+  "GRP": "DS filter; L-SML partition on tie-aware centred top-20% marks (tail_calib_common.lsml_fit_scaled, anchor q15_H1); absorption merge (lsml_merge_step.absorb_merge, rho < 0.5, >= 3 groups); group score = answer-z of the members' mean; between-group MLE weights max(0, log(psi eta/((1-psi)(1-eta)))) from Dawid-Skene on top-20% marks of the group scores (key default_rng(20260929)[:, :G]); = algorithm_decisions_v1 P0__EQ_DSM",
+  "SW": "DIAGNOSTIC (frozen access only): GRP if the between-group dependence S1 of the frozen partition, computed on the external cell's own steps (label-free), is <= tau*, else BASE; (statistic, tau*) = the partition_switch_v1 objective maximised over all 40 development bank-folds (no hold-out), recorded in the bundle. Step 458 showed this rule is a lookup for the 32-channel family; it is reported only to see whether that family's grouping gain transfers",
+  "references": "sealed predictions of the earlier external run (results/lsml_external_generalization_v1/evaluation/<cell>/shard_000): ct7, frozen_lsml (bank11 L-SML), frozen_equal (bank11 plain average), copied unchanged by uid"
+ },
+ "arms": "for each bank in B16, B23, B35, B54: F_{bank}_BASE, F_{bank}_GRP, F_{bank}_SW, R_{bank}_BASE, R_{bank}_GRP (20) + ct7, frozen_lsml, frozen_equal = 23 arms per cell",
+ "prediction_rule": "step predicted correct (1) iff its answer-z score < threshold, else 0; scores are risk-oriented (higher = more likely error)",
+ "sealing": "scoring writes per-cell predictions with no label access; the evaluator seals them (prediction digest) with --seal-only before any label file is opened; evaluation refuses changed seals",
+ "endpoints": "official metric per cell (Hard2Verify balanced F1 of the two class recalls; Socratic PRMScore = mean of F1_correct and F1_error), with the official evaluator replayed exactly; within-answer AUC over non-empty included steps of answers with both classes",
+ "contrasts": {
+  "primary": [["F_{bank}_BASE", "ct7", "the frozen candidate vs the earlier incumbent"], ["F_{bank}_GRP", "F_{bank}_BASE", "does the grouped estimate weighting help externally"]],
+  "primary_family": "2 contrasts x 4 banks x 3 cells = 24 on the official metric, Bonferroni, paired bootstrap over exact-question groups, 100,000 draws, seed 20260924",
+  "secondary": "95%: F_{bank}_BASE - frozen_equal and - frozen_lsml; R_{bank}_BASE - F_{bank}_BASE; R_{bank}_GRP - R_{bank}_BASE; F_{bank}_SW - F_{bank}_BASE; within-answer AUC deltas of every primary and secondary contrast (paired bootstrap over question groups, 20,000 draws); the development-disjoint sensitivity panel (questions overlapping the development set removed)"
+ },
+ "interpretation_frozen": {
+  "transfer_of_the_candidate": "F_BASE is reported per bank and cell against ct7 / frozen_equal / frozen_lsml; 'better than the incumbent' requires the Bonferroni interval of F_BASE - ct7 above 0; the result is reported for all four banks together, never for a selected bank",
+  "grouping": "GRP helps externally on a bank only if its Bonferroni interval over F_BASE is above 0 in at least 2 of the 3 cells",
+  "access": "R vs F is descriptive (transductive refit is a different access level)"
+ },
+ "predictions_frozen": {
+  "P1": "F_BASE within-AUC above frozen_equal (bank11 average) on B16 in all 3 cells",
+  "P2": "F_GRP - F_BASE positive only on B35 and negative on B23 and B54 (point, official metric)",
+  "P3": "the SW diagnostic turns grouping on for B35 in all 3 cells and nowhere else",
+  "P4": "R_BASE and F_BASE differ by less than 0.005 within-AUC in every bank and cell"
+ },
+ "hard_stops": ["feature or source-bank definition checks fail", "reference-arm telemetry identity differs from the external features (telemetry_sha256 per uid)", "any external label file opened before ALL_CELLS_SEALED.json exists", "a sealed prediction changes", "official evaluator replay mismatch"],
+ "review": "independent pre-run code review of the fit and scoring scripts before sealing; red team of three after the evaluation",
+ "budget": "CPU only, <= 1.5 hours"
+}
