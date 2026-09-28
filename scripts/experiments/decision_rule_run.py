@@ -88,6 +88,8 @@ def ds_posterior(marks01, est, eps=1e-6):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('run_id', nargs='?', default='run_20260929')
     ap.add_argument('--draws', type=int, default=10_000); ap.add_argument('--perms', type=int, default=100); ap.add_argument('--baseline-draws', type=int, default=3)
+    ap.add_argument('--ds-population', choices=['all', 'prm'], default='all',
+                    help="rows for the DS marks and fit: 'all' fit-fold steps (frozen protocol) or PRMBench fit-fold steps only (post-hoc amendment A1)")
     args = ap.parse_args(); OUT = STAGE / args.run_id
     if (OUT / 'RUN_STATUS.json').exists() and json.loads((OUT / 'RUN_STATUS.json').read_text(encoding='utf8')).get('status') == 'COMPLETE':
         raise SystemExit(f'{OUT} already holds a finished run; pass a new run id')
@@ -155,8 +157,9 @@ def main():
             flags['R0_frozen'][evm] = zS[evm] >= t0
             mu = Xr[fitm].mean(0); sd = np.maximum(Xr[fitm].std(0), 1e-12); Zg = (Xr - mu) / sd; G = Zg.mean(1); G_all[evm] = G[evm]
             tauG = float(np.quantile(G[calm], .8)); f1 = G >= tauG; flags['R1_global'][evm] = f1[evm]
-            thr = np.quantile(Zg[fitm], .8, axis=0); m01 = (Zg >= thr).astype(float)
-            model, est = ds_fit(np.where(m01[fitm] > 0, 1.0, -1.0), seed_ds)
+            dsm = fitm & prm_step if args.ds_population == 'prm' else fitm   # amendment A1: PRMBench fit steps only
+            thr = np.quantile(Zg[dsm], .8, axis=0); m01 = (Zg >= thr).astype(float)
+            model, est = ds_fit(np.where(m01[dsm] > 0, 1.0, -1.0), seed_ds)
             p = ds_posterior(m01, est)
             if not np.isfinite(p).all(): raise ArithmeticError('posterior not finite')
             post[evm] = p[evm]
@@ -349,9 +352,12 @@ def main():
     for k, r_ in rec.items():
         c = (k + 1) % 5; fitm = ~np.isin(step_fold, [k, c]); prm_fit = fitm & prm_step
         Zg = (Xs - r_['mu']) / r_['sd']; m01 = Zg >= r_['mark_thresholds']; y = labels[fitm]
-        diag[k] = {**{kk: vv for kk, vv in r_.items() if kk not in ('mu', 'sd', 'mark_thresholds')}, 'true_prevalence_fit': float(y.mean()),
-                   'true_psi': m01[fitm][y].mean(0), 'true_eta': (~m01[fitm][~y]).mean(0), 'true_prevalence_fit_prm': float(labels[prm_fit].mean())}
-    dump(OUT / 'DS_ESTIMATES.json', {'channels': [names[j] for j in surv], 'folds': diag})
+        yp = labels[prm_fit]
+        diag[k] = {**{kk: vv for kk, vv in r_.items() if kk not in ('mu', 'sd', 'mark_thresholds')}, 'true_prevalence_fit_MIXED_PB_PLACEHOLDER': float(y.mean()),
+                   'true_psi_MIXED_PB_PLACEHOLDER': m01[fitm][y].mean(0), 'true_eta_MIXED_PB_PLACEHOLDER': (~m01[fitm][~y]).mean(0),
+                   'true_prevalence_fit_prm': float(yp.mean()), 'true_psi_prm': m01[prm_fit][yp].mean(0), 'true_eta_prm': (~m01[prm_fit][~yp]).mean(0)}
+    dump(OUT / 'DS_ESTIMATES.json', {'channels': [names[j] for j in surv], 'ds_population': args.ds_population,
+                                     'note': 'OOF labels mark every ProcessBench step True (PB uses target); only the *_prm truth is meaningful', 'folds': diag})
     timing['total_s'] = time.perf_counter() - T0; dump(OUT / 'TIMING.json', timing); dump(OUT / 'GATES.json', gates)
     dump(OUT / 'CODE_MANIFEST.json', {'script_sha256': sha(Path(__file__)), 'protocol_sha256': sha(STAGE / 'PROTOCOL.json'),
                                       'inputs': {k: {'path': str(v), 'sha256': sha(v)} for k, v in INPUTS.items()}, 'prm_metadata_sha256': sha(meta_path),
