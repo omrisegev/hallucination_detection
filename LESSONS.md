@@ -336,3 +336,9 @@ What happened: in algorithm_decisions_v1 I stated as the mechanism of the DS-est
 Why: I wrote the explanation from the aggregate scores before opening the per-group records the runner had saved for exactly this purpose, and I restated an earlier claim without its known exception.
 Rule: before stating a mechanism for a weighting, read its recorded per-group weights and state what they are (zeros, shares, ranking vs truth); a claim that already failed in a scope keeps that scope in every later statement; an "every bank" claim names the measure.
 Enforced by: prose (this entry, results/algorithm_decisions_v1/run_20260928/RED_TEAM.md); the runner saves GROUPS.csv and ACTIVITY.jsonl for these checks.
+
+## 2026-09-28 — A leave-one-bank-out rule selection treated 8 banks as independent although they were 4 twin families
+What happened: in partition_switch_v1 the stopping rule for bank b was chosen on the other banks (and other folds, to avoid label leakage). But the 8 banks are 4 families (each bank with and without the same three digit channels), so B32's rule was trained on B35 and vice versa. The frozen success criterion was met (+0.0028, no bank loss); with the family held out the rule never switched on and the gain was 0. The runner's pre-run review also had to catch a 95-minute slowdown from indexing an npz inside a loop, a rule already in this file.
+Why: I guarded against the leak I had seen before (shared answers across banks) and not against shared structure (shared channels); I did not ask what the independent units of the leave-out design are.
+Rule: in any leave-out selection across feature sets, first list which units share inputs (channels, answers, families) and hold out the whole sharing group; report the leave-family-out result beside the declared one. Load every npz array once into memory before any loop.
+Enforced by: prose (this entry, results/partition_switch_v1/run_20260928/RED_TEAM.md).

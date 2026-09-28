@@ -1,3 +1,11 @@
+## partition_switch_v1: the stopping rule is a one-family lookup (Claude) - 2026-09-28
+
+HISTORY Step 458, `results/partition_switch_v1/SUMMARY.md` (+ RED_TEAM.md). A label-free switch (grouped DS-estimate fusion iff the
+between-group dependence is low, threshold chosen on other banks AND folds) meets its frozen criterion (no bank loss, 8-bank mean
++0.0028) but only because B32 and B35 (twins with/without digits) train each other's rule: with the family held out it never
+switches on. No transferable stopping rule found. External test in preparation (extractor for the missing channels running:
+results/external_banks_v4, source parity gate first).
+
 ## algorithm_decisions_v1: the open components decided; candidate = DS filter + plain average (Claude) - 2026-09-28
 
 HISTORY Step 457, `results/algorithm_decisions_v1/SUMMARY.md`, `REPORT_HE.html`, `run_20260928/RED_TEAM.md`. 8 banks (13/20/32/51,
