@@ -1,3 +1,11 @@
+## algorithm_external_v1: the frozen candidates on the external benchmarks (Claude) - 2026-09-29
+
+HISTORY Step 459, `results/algorithm_external_v1/SUMMARY.md` (+ RED_TEAM.md). All four digit banks, frozen from development and
+refit on target, sealed before labels. 13+d plain average beats ct7 on Socratic (+0.044 PRMScore) but mostly through step position;
+ties the earlier frozen bank11 L-SML in raw numbers and leads it net of position; grouping helps on 32+d. Step position alone beats
+every method on these benchmarks (within-AUC 0.73 Socratic, 0.86 Hard2Verify): external comparisons must carry the step-index row and
+position nulls. Exploratory (benchmarks exposed earlier); MedPRMBench remains the untouched candidate.
+
 ## partition_switch_v1: the stopping rule is a one-family lookup (Claude) - 2026-09-28
 
 HISTORY Step 458, `results/partition_switch_v1/SUMMARY.md` (+ RED_TEAM.md). A label-free switch (grouped DS-estimate fusion iff the

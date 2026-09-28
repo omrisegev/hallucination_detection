@@ -342,3 +342,9 @@ What happened: in partition_switch_v1 the stopping rule for bank b was chosen on
 Why: I guarded against the leak I had seen before (shared answers across banks) and not against shared structure (shared channels); I did not ask what the independent units of the leave-out design are.
 Rule: in any leave-out selection across feature sets, first list which units share inputs (channels, answers, families) and hold out the whole sharing group; report the leave-family-out result beside the declared one. Load every npz array once into memory before any loop.
 Enforced by: prose (this entry, results/partition_switch_v1/run_20260928/RED_TEAM.md).
+
+## 2026-09-29 — An external protocol compared methods without a step-index baseline row or a position null
+What happened: in algorithm_external_v1 the frozen protocol compared the candidates with ct7 and the earlier L-SML on the official metric and within-answer AUC, but had no step-position reference and no swap null. The red team found that the step index alone beats every method on the external benchmarks (within-AUC 0.73 Socratic, 0.86 Hard2Verify) and that most of the candidate's advantage over ct7, and all of L-SML's advantage over plain averaging, is a tilt toward later steps. Part of the PRMScore gaps was also threshold transfer (different predicted-correct shares).
+Why: the development protocols carried step_index and position nulls, but I did not carry them into the external protocol, and I compared thresholded metrics without checking the predicted-correct shares.
+Rule: every external or new-benchmark protocol includes the step-index row, the same-length swap null for each headline contrast, and an equal-share (same fraction predicted correct) version of every thresholded comparison.
+Enforced by: prose (this entry, results/algorithm_external_v1/run_20260929/RED_TEAM.md).
