@@ -131,3 +131,16 @@ within-answer AUC (first-error step against earlier steps). Success = behaviour 
 |own - ProcessBench| < 0.03 within-AUC with the 95% interval of the difference containing 0
 (independent bootstrap over question groups, 2000 draws). The first-error hit is reported beside it
 but depends on answer length (own MATH answers are ~3x longer), so it is not the equivalence test.
+
+## Round 2: resolving the 118 round-1 disagreements (declared 2026-09-29, before round-2 labels)
+
+Omri's design. The 102 own + 16 ProcessBench items on which the two round-1 judges disagree are
+re-packed blind (`round2/packet`, new K-ids, new seeded order, same content, instructions and
+checker; the mapping is in `round2/private/ROUND2_KEY.jsonl`). Two new independent judges label all
+118 from scratch: `fable-5.1` (Claude Fable 5.1 subagent, step-judge definition, effort medium) and
+`astra-6` (GPT Astra 6, run by Omri with the same launch prompt). Neither sees round-1 labels.
+
+Decision rule (four votes per item): RESOLVED if the two round-2 judges give the same first-error
+step AND it equals one of the two round-1 answers (3 of 4). Everything else (round-2 judges
+disagree, or agree on a third answer) goes to a blind debate with votes, designed next. The rule's
+accuracy is measured on the 16 ProcessBench items against their human labels.
