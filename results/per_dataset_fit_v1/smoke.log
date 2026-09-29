@@ -1,14 +1,14 @@
-setup 37s
-code-path replay max 8.9e-16 (43s)
-  pb_gsm8k_q4 B16: surv 16 flips 0 K 6 | pi10 0.48->0.16 a 4.86 a_cf_eq 2.77 | GRP a 3.36
-  pb_gsm8k_q4 B23: surv 23 flips 0 K 6 | pi10 0.51->0.12 a 5.79 a_cf_eq 3.90 | GRP a 3.75
-  pb_gsm8k_q4 B35: surv 35 flips 5 K 6 | pi10 0.55->0.10 a 5.09 a_cf_eq 2.80 | GRP a 3.17
-  pb_gsm8k_q4 B54: surv 54 flips 0 K 7 | pi10 0.49->0.12 a 5.39 a_cf_eq 3.08 | GRP a 3.61
-pb_gsm8k_q4 done (10s)
-  pb_math_q4 B16: surv 16 flips 0 K 5 | pi10 0.49->0.31 a 4.12 a_cf_eq 2.03 | GRP a 2.55
-  pb_math_q4 B23: surv 23 flips 0 K 5 | pi10 0.53->0.23 a 5.29 a_cf_eq 4.69 | GRP a 2.97
-  pb_math_q4 B35: surv 34 flips 5 K 6 | pi10 0.97->0.19 a 3.95 a_cf_eq 1.71 | GRP a 1.69
-  pb_math_q4 B54: surv 53 flips 0 K 7 | pi10 0.51->0.23 a 4.66 a_cf_eq 4.53 | GRP a 2.58
+setup 34s
+code-path replay max 8.9e-16 (46s)
+  pb_gsm8k_q4 B16: surv 16 flips 0 K 6 clip 0/0 cf ok | pi10 0.48->0.16 a 4.86 a_cf_eq 2.77 | GRP a 3.36
+  pb_gsm8k_q4 B23: surv 23 flips 0 K 6 clip 0/0 cf ok | pi10 0.51->0.12 a 5.79 a_cf_eq 3.90 | GRP a 3.75
+  pb_gsm8k_q4 B35: surv 35 flips 5 K 6 clip 0/0 cf ok | pi10 0.55->0.10 a 5.09 a_cf_eq 2.80 | GRP a 3.17
+  pb_gsm8k_q4 B54: surv 54 flips 0 K 7 clip 0/0 cf ok | pi10 0.49->0.12 a 5.39 a_cf_eq 3.08 | GRP a 3.61
+pb_gsm8k_q4 done (11s)
+  pb_math_q4 B16: surv 16 flips 0 K 5 clip 0/0 cf ok | pi10 0.49->0.31 a 4.12 a_cf_eq 2.03 | GRP a 2.55
+  pb_math_q4 B23: surv 23 flips 0 K 5 clip 0/0 cf ok | pi10 0.53->0.23 a 5.29 a_cf_eq 4.69 | GRP a 2.97
+  pb_math_q4 B35: surv 34 flips 5 K 6 clip 0/0 cf ok | pi10 0.97->0.19 a 3.95 a_cf_eq 1.71 | GRP a 1.69
+  pb_math_q4 B54: surv 53 flips 0 K 7 clip 0/1 cf ok | pi10 0.51->0.23 a 4.66 a_cf_eq 4.53 | GRP a 2.58
 pb_math_q4 done (13s)
 C:\Users\DELL\AppData\Local\Programs\Python\Python313\Lib\site-packages\numpy\lib\_nanfunctions_impl.py:1601: RuntimeWarning: All-NaN slice encountered
   return _nanquantile_unchecked(
@@ -122,6 +122,7 @@ B54__FE_BASE_PRIOR_CF         NaN       NaN         0.2568         0.2572
                    B16__GRP - B16__REF_GRP                       NaN              NaN              -0.0040             -0.0283              0.0188
       B16__BASE_PRIOR_CF - B16__BASE_PRIOR                       NaN              NaN               0.0146             -0.0055              0.0351
 B16__FE_BASE_PRIOR_CF - B16__FE_BASE_PRIOR                       NaN              NaN              -0.0344             -0.0530             -0.0152
+            B16__FE_PRIOR_ALONE - B16__GRP                       NaN              NaN              -0.2573             -0.3040             -0.2068
      B16__BASE_PRIOR - B16__REF_BASE_PRIOR                       NaN              NaN               0.0190             -0.0079              0.0484
            B16__GRP_POS - B16__REF_GRP_POS                       NaN              NaN               0.0108             -0.0130              0.0331
                  B23__FE_BASE0 - B23__BASE                       NaN              NaN              -0.0661             -0.1055             -0.0266
@@ -137,6 +138,7 @@ B16__FE_BASE_PRIOR_CF - B16__FE_BASE_PRIOR                       NaN            
                    B23__GRP - B23__REF_GRP                       NaN              NaN               0.0074             -0.0158              0.0320
       B23__BASE_PRIOR_CF - B23__BASE_PRIOR                       NaN              NaN              -0.0031             -0.0251              0.0222
 B23__FE_BASE_PRIOR_CF - B23__FE_BASE_PRIOR                       NaN              NaN               0.0147             -0.0085              0.0382
+            B23__FE_PRIOR_ALONE - B23__GRP                       NaN              NaN              -0.2377             -0.2798             -0.1908
      B23__BASE_PRIOR - B23__REF_BASE_PRIOR                       NaN              NaN              -0.0011             -0.0274              0.0263
            B23__GRP_POS - B23__REF_GRP_POS                       NaN              NaN               0.0090             -0.0151              0.0349
                  B35__FE_BASE0 - B35__BASE                       NaN              NaN              -0.0847             -0.1233             -0.0463
@@ -152,6 +154,7 @@ B23__FE_BASE_PRIOR_CF - B23__FE_BASE_PRIOR                       NaN            
                    B35__GRP - B35__REF_GRP                       NaN              NaN               0.0139             -0.0117              0.0397
       B35__BASE_PRIOR_CF - B35__BASE_PRIOR                       NaN              NaN              -0.0391             -0.0638             -0.0131
 B35__FE_BASE_PRIOR_CF - B35__FE_BASE_PRIOR                       NaN              NaN              -0.0540             -0.0771             -0.0315
+            B35__FE_PRIOR_ALONE - B35__GRP                       NaN              NaN              -0.2390             -0.2852             -0.1933
      B35__BASE_PRIOR - B35__REF_BASE_PRIOR                       NaN              NaN              -0.1212             -0.1638             -0.0801
            B35__GRP_POS - B35__REF_GRP_POS                       NaN              NaN               0.0319              0.0015              0.0607
                  B54__FE_BASE0 - B54__BASE                       NaN              NaN              -0.0536             -0.0897             -0.0143
@@ -167,6 +170,7 @@ B35__FE_BASE_PRIOR_CF - B35__FE_BASE_PRIOR                       NaN            
                    B54__GRP - B54__REF_GRP                       NaN              NaN               0.0025             -0.0238              0.0303
       B54__BASE_PRIOR_CF - B54__BASE_PRIOR                       NaN              NaN              -0.0326             -0.0611             -0.0026
 B54__FE_BASE_PRIOR_CF - B54__FE_BASE_PRIOR                       NaN              NaN              -0.0622             -0.0863             -0.0389
+            B54__FE_PRIOR_ALONE - B54__GRP                       NaN              NaN              -0.2450             -0.2891             -0.1970
      B54__BASE_PRIOR - B54__REF_BASE_PRIOR                       NaN              NaN              -0.0099             -0.0371              0.0182
            B54__GRP_POS - B54__REF_GRP_POS                       NaN              NaN               0.0156             -0.0110              0.0433
                    B16__FE_GRP_PRIOR - ct7                       NaN              NaN              -0.0815             -0.1231             -0.0389
@@ -211,7 +215,9 @@ B54__FE_BASE_PRIOR_CF - B54__FE_BASE_PRIOR                       NaN            
    "B35": false,
    "B54": false
   },
-  "adopt": false
+  "failures": 0,
+  "adopt": false,
+  "not_blind_on": "pb_gsm8k_q4/q8, pb_math_q4/q8 (smoke, A2)"
  }
 }
-{"setup_s": 37.12799720000476, "replay_s": 42.71799770000507, "fit_s": 111.87140199998976, "eval_s": 0.9951475000125356, "bootstrap_s": 1.055922899977304, "total_s": 113.926796499989}
+{"setup_s": 34.45122099999571, "replay_s": 46.311031999997795, "fit_s": 113.43479299999308, "eval_s": 1.0525516000052448, "bootstrap_s": 1.314091499982169, "total_s": 115.80508120000013}

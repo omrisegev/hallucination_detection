@@ -124,6 +124,7 @@ def cell_bank(bk, rc, ce):
     flips = []; rs = {}
     for i, c in LFCOL[bk]:
         j = PN.index(c); r = float(np.corrcoef(POOL[rc, j], LEVEL[rc])[0, 1]); rs[c] = r
+        if not np.isfinite(r): hard_stop(f'{c} in {ce}: non-finite level correlation')   # A2
         if ce == PRMC and abs(r - float(PS.loc[c, 'r_level_marginal'])) > 1e-6: hard_stop(f'{c}: PRMBench-cell correlation {r} differs from POOL_STRUCTURE')
         if (float(np.sign(r)) or 1.0) != (float(np.sign(PS.loc[c, 'r_level_marginal'])) or 1.0): flips.append(i)
     if not flips: return VB[bk], MARKS[bk], TTA[bk], [], rs
@@ -132,22 +133,27 @@ def cell_bank(bk, rc, ce):
     if not marks_ok(Mc): hard_stop(f'mark counts after sign flips {bk} {ce}')
     Tc = TTA[bk].copy(); Tc[:, flips] = tail_marks(Vc[:, flips], off, .2, tie_aware=True, centred=True)[0]
     return Vc, Mc, Tc, [BN[bk][i] for i in flips], rs
+class CFFail(Exception): pass
+def stop(msg, fatal):
+    if fatal: hard_stop(msg)
+    raise CFFail(msg)
+def n_clip(f): return int(np.sum((f['pi_bins'] <= PP.EPS * 1.001) | (f['pi_bins'] >= 1 - PP.EPS * 1.001)))
 def logit_pi(f): return np.log(f['pi_bins']) - np.log1p(-f['pi_bins'])
-def one_bin_start(marks_fit, init, rows, tag):
+def one_bin_start(marks_fit, init, rows, tag, fatal=True):
     f = PP.fit_pds(marks_fit, BINS[1][rows], 1, init['psi'], init['eta'], init['prevalence'])
     dev = float(max(np.abs(f['psi'] - init['psi']).max(), np.abs(f['eta'] - init['eta']).max(), abs(f['pi_bins'][0] - init['prevalence'])))
     rel = float((f['loglik'] - f['loglik_start']) / abs(f['loglik_start']))
     if not (f['converged'] and f['oriented'] and rel <= 1e-6 and dev <= 1e-2):
-        hard_stop(f'{tag}: one-bin fit is not the constant DS optimum (rel {rel}, move {dev}, oriented {f["oriented"]})')
+        stop(f'{tag}: one-bin fit is not the constant DS optimum (rel {rel}, move {dev}, oriented {f["oriented"]})', fatal)
     return {'psi': f['psi'], 'eta': f['eta'], 'prevalence': float(f['pi_bins'][0])}, {'max_param_move': dev, 'rel_loglik_rise': rel}, f
-def prior_fit(marks_fit, init, rows, tag):
+def prior_fit(marks_fit, init, rows, tag, fatal=True):
     f = PP.fit_pds(marks_fit, BINS[10][rows], 10, init['psi'], init['eta'], init['prevalence'])
-    if not (f['converged'] and f['oriented']): hard_stop(f'{tag}: 10-bin fit converged {f["converged"]} oriented {f["oriented"]}')
-    if f['bin_rows'].min() < 50: hard_stop(f'{tag}: a bin has {f["bin_rows"].min()} rows')
+    if not (f['converged'] and f['oriented']): stop(f'{tag}: 10-bin fit converged {f["converged"]} oriented {f["oriented"]}', fatal)
+    if f['bin_rows'].min() < 50: stop(f'{tag}: a bin has {f["bin_rows"].min()} rows', fatal)
     return f
-def slope(S_full, q, rows, tag):
+def slope(S_full, q, rows, tag, fatal=True):
     a, parts = PP.latent_slope(S_full[rows], q)
-    if not a > 0: hard_stop(f'{tag}: slope {a}')
+    if not a > 0: stop(f'{tag}: slope {a}', fatal)
     return a, parts['mu1'], parts['mu0'], parts
 def fe_score(L):
     """log P(first error at t) = log q_t + sum_{s<t} log(1 - q_s), q = sigmoid(L), within each answer."""
@@ -171,7 +177,7 @@ def fit_arms(V, MK, TT, dsr, ptr, tag):
     a, m1, m0, parts = slope(out['BASE'], f10['q'], dsr, f'{tag} BASE')
     out['BASE_PRIOR'] = out['BASE'] + lp / a
     out['FE_BASE_PRIOR'] = fe_score(lp + a * (out['BASE'] - (m1 + m0) / 2)); out['FE_PRIOR_ALONE'] = fe_score(lp)
-    d['base'] = {'pi10': f10['pi_bins'].tolist(), 'a': a, 'a_one_bin': a0, 'latent_prevalence': float(f10['q'].mean()), 'two_dLL': 2 * (f10['loglik'] - f10['loglik_start'])}
+    d['base'] = {'pi10': f10['pi_bins'].tolist(), 'a': a, 'a_one_bin': a0, 'latent_prevalence': float(f10['q'].mean()), 'two_dLL': 2 * (f10['loglik'] - f10['loglik_start']), 'pi_clipped_bins': n_clip(f10)}
     # partition (label-free, rows ptr) - used by the grouped method and, amendment A1, by the cross-fit halves
     T = TT[:, surv]; anchor = int(np.flatnonzero(surv == anchor_ch)[0])
     gb = MS.canon(TC.lsml_fit_scaled(T[ptr], anchor, X[ptr], standardize=True, loading_scale='unit')['groups'])
@@ -182,15 +188,21 @@ def fit_arms(V, MK, TT, dsr, ptr, tag):
         nA = sum(sizes[h] for h, v in half.items() if v == 'A'); nB = sum(sizes[h] for h, v in half.items() if v == 'B'); half[g] = 'A' if nA <= nB else 'B'
     HA = surv[np.isin(gbm, [g for g in range(G) if half[g] == 'A'])]; HB = surv[np.isin(gbm, [g for g in range(G) if half[g] == 'B'])]; d['cf_split'] = 'groups'
     if min(len(HA), len(HB)) < 3: HA, HB = surv[0::2], surv[1::2]; d['cf_split'] = 'alternating (fallback)'
-    if min(len(HA), len(HB)) < 3: hard_stop(f'{tag}: a cross-fit half has < 3 channels')
-    SAv = V[:, HA].mean(1); SBv = V[:, HB].mean(1); qh = {}
-    for nm, H in (('A', HA), ('B', HB)):
-        mh = MK[:, H][dsr]; eh, _, _ = one_bin_start(mh, SA.em_estimate(mh, 'ds'), dsr, f'{tag} half {nm}'); qh[nm] = prior_fit(mh, eh, dsr, f'{tag} half {nm}')['q']
-    aB, mB1, mB0, _ = slope(SBv, qh['A'], dsr, f'{tag} CF slope B'); aA, mA1, mA0, _ = slope(SAv, qh['B'], dsr, f'{tag} CF slope A')
-    content_cf = aA * (SAv - (mA1 + mA0) / 2) + aB * (SBv - (mB1 + mB0) / 2)
-    out['BASE_PRIOR_CF'] = content_cf + lp; out['FE_BASE_PRIOR_CF'] = fe_score(content_cf + lp)
-    bc = out['BASE'][dsr] - out['BASE'][dsr].mean(); cc = content_cf[dsr] - content_cf[dsr].mean()
-    d['cf'] = {'a_A': aA, 'a_B': aB, 'n_A': int(len(HA)), 'n_B': int(len(HB)), 'a_cf_equivalent_on_BASE': float(cc @ bc / (bc @ bc)), 'a_model': a, 'split': d['cf_split']}
+    try:   # A2: a cross-fit failure fails only the cross-fit arms
+        if min(len(HA), len(HB)) < 3: raise CFFail('a cross-fit half has < 3 channels')
+        SAv = V[:, HA].mean(1); SBv = V[:, HB].mean(1); qh = {}; d['cf_halves'] = {}
+        for nm, H in (('A', HA), ('B', HB)):
+            mh = MK[:, H][dsr]; eh, info, _ = one_bin_start(mh, SA.em_estimate(mh, 'ds'), dsr, f'{tag} half {nm}', fatal=False)
+            fh = prior_fit(mh, eh, dsr, f'{tag} half {nm}', fatal=False); qh[nm] = fh['q']
+            d['cf_halves'][nm] = {**info, 'pi10': fh['pi_bins'].tolist(), 'pi_clipped_bins': n_clip(fh)}
+        aB, mB1, mB0, _ = slope(SBv, qh['A'], dsr, f'{tag} CF slope B', fatal=False); aA, mA1, mA0, _ = slope(SAv, qh['B'], dsr, f'{tag} CF slope A', fatal=False)
+        content_cf = aA * (SAv - (mA1 + mA0) / 2) + aB * (SBv - (mB1 + mB0) / 2)
+        out['BASE_PRIOR_CF'] = content_cf + lp; out['FE_BASE_PRIOR_CF'] = fe_score(content_cf + lp)
+        bc = out['BASE'][dsr] - out['BASE'][dsr].mean(); cc = content_cf[dsr] - content_cf[dsr].mean()
+        d['cf'] = {'a_A': aA, 'a_B': aB, 'n_A': int(len(HA)), 'n_B': int(len(HB)), 'a_cf_equivalent_on_BASE': float(cc @ bc / (bc @ bc)), 'a_model': a, 'split': d['cf_split'], 'failed': None}
+    except CFFail as e:
+        out['BASE_PRIOR_CF'] = out['BASE_PRIOR']; out['FE_BASE_PRIOR_CF'] = out['FE_BASE_PRIOR']
+        d['cf'] = {'a_cf_equivalent_on_BASE': float('nan'), 'a_model': a, 'split': d['cf_split'], 'failed': str(e)}
     # grouped method (partition computed above)
     if G > KEYG.shape[1]: hard_stop(f'{tag}: {G} groups exceed the key')
     Z = GW.group_matrix(X, off, gbm, None, answer_standardize); gv = SB.random_tie_marks(Z, off, .2, KEYG[:, :G])
@@ -206,7 +218,7 @@ def fit_arms(V, MK, TT, dsr, ptr, tag):
     fg10 = prior_fit(gv[dsr], eg1, dsr, f'{tag} GRP'); lpg = logit_pi(fg10)[BINS[10]]
     ag, m1, m0, _ = slope(out['GRP'], fg10['q'], dsr, f'{tag} GRP')
     out['GRP_PRIOR'] = out['GRP'] + lpg / ag; out['FE_GRP_PRIOR'] = fe_score(lpg + ag * (out['GRP'] - (m1 + m0) / 2))
-    d['grp'] = {'K': G, 'pi10': fg10['pi_bins'].tolist(), 'a': ag, 'a_one_bin': ag0, 'weights': w.tolist()}
+    d['grp'] = {'K': G, 'pi10': fg10['pi_bins'].tolist(), 'a': ag, 'a_one_bin': ag0, 'weights': w.tolist(), 'pi_clipped_bins': n_clip(fg10)}
     return out, d
 ARMS = ['BASE', 'BASE_POS', 'BASE_PRIOR', 'BASE_PRIOR_CF', 'GRP', 'GRP_POS', 'GRP_PRIOR', 'FE_BASE0', 'FE_BASE_PRIOR', 'FE_BASE_PRIOR_CF', 'FE_GRP0', 'FE_GRP_PRIOR', 'FE_PRIOR_ALONE']
 REFS = {'REF_BASE': (AD, 'P0__BASE'), 'REF_GRP': (AD, 'P0__EQ_DSM'), 'REF_BASE_POS': (ROOT / 'results/position_channel_v1/run_20260929', 'BASE_POS'),
@@ -244,11 +256,14 @@ for ce in CELLS:
         for a in ARMS: put(f'{bk}__{a}', rc, o[a])
         for r in REFS: put(f'{bk}__{r}', rc, REFSC[f'{bk}__{r}'])
         d |= {'cell': ce, 'bank': bk, 'sign_flips': flips, 'lf_level_corr': rs}; diag.append(d)
-        print(f"  {ce} {bk}: surv {d['n_survivors']} flips {len(flips)} K {d['grp']['K']} | pi10 {d['base']['pi10'][0]:.2f}->{d['base']['pi10'][-1]:.2f} "
+        print(f"  {ce} {bk}: surv {d['n_survivors']} flips {len(flips)} K {d['grp']['K']} clip {d['base']['pi_clipped_bins']}/{d['grp']['pi_clipped_bins']} cf {d['cf']['failed'] or 'ok'} | pi10 {d['base']['pi10'][0]:.2f}->{d['base']['pi10'][-1]:.2f} "
               f"a {d['base']['a']:.2f} a_cf_eq {d['cf']['a_cf_equivalent_on_BASE']:.2f} | GRP a {d['grp']['a']:.2f}", flush=True)
     for m in ('ct7', 'fam421', 'POS_ALONE'): put(m, rc, REFSC[m])
     print(f'{ce} done ({time.perf_counter()-t:.0f}s)', flush=True)
 checks['written_once'] = all(written[m].max() <= 1 for m in ALL)
+checks['cf_failures'] = [(d_['cell'], d_['bank'], d_['cf']['failed']) for d_ in diag if d_['cf']['failed']]
+checks['clipped_fits'] = [(d_['cell'], d_['bank'], d_['base']['pi_clipped_bins'], d_['grp']['pi_clipped_bins']) for d_ in diag if d_['base']['pi_clipped_bins'] or d_['grp']['pi_clipped_bins']]
+if 'ER_CELLS' not in SMOKE and not all(np.isfinite(scores[m]).all() for m in ALL): hard_stop('not every step of every arm is scored')   # A2
 dump(OUT / 'FIT_DIAGNOSTICS.json', diag); np.savez_compressed(OUT / 'STEP_SCORES.npz', offsets=off, **scores)
 timing['fit_s'] = time.perf_counter() - T0
 
@@ -288,8 +303,9 @@ cntG = np.bincount(gpr[e_all], minlength=len(Gpr)).astype(float); hc = np.zeros(
 st = {}
 for m in ALL:
     hs = np.zeros(hc.shape); np.add.at(hs, (gpbx[pe_all], cell_idx[pe_all]), hitA[m][pe_all])
-    st[m] = {'auc': np.bincount(gpr[e_all], weights=aucA[m][e_all], minlength=len(Gpr)), 'conf': np.stack([np.bincount(gpr[nc_all], weights=confA[m][nc_all, q], minlength=len(Gpr)) for q in range(4)], 1), 'hit': hs}
-dr = {m: {e: np.empty(DRAWS, np.float32) for e in ('auc', 'ps', 'sla')} for m in ALL}
+    st[m] = {'pool': np.bincount(gpbx[pe_all], weights=hitA[m][pe_all], minlength=len(Gpb)), 'auc': np.bincount(gpr[e_all], weights=aucA[m][e_all], minlength=len(Gpr)), 'conf': np.stack([np.bincount(gpr[nc_all], weights=confA[m][nc_all, q], minlength=len(Gpr)) for q in range(4)], 1), 'hit': hs}
+dr = {m: {e: np.empty(DRAWS, np.float32) for e in ('auc', 'ps', 'sla', 'pool')} for m in ALL}
+pcnt = np.bincount(gpbx[pe_all], minlength=len(Gpb)).astype(float)
 rng = np.random.default_rng(SEED); rng2 = np.random.default_rng(SEED + 1); pos = 0
 with np.errstate(invalid='ignore', divide='ignore'):
     while pos < DRAWS:
@@ -297,6 +313,7 @@ with np.errstate(invalid='ignore', divide='ignore'):
         den = W @ cntG; hden = W2 @ hc
         for m in ALL:
             dr[m]['auc'][pos:pos+nb] = (W @ st[m]['auc']) / den; dr[m]['ps'][pos:pos+nb] = prmscore_from_counts(*(W @ st[m]['conf']).T)
+            dr[m]['pool'][pos:pos+nb] = (W2 @ st[m]['pool']) / (W2 @ pcnt)
             dr[m]['sla'][pos:pos+nb] = np.nanmean(np.divide(W2 @ st[m]['hit'], hden, out=np.full(hden.shape, np.nan), where=hden > 0), 1)
         pos += nb
 Mx = M.set_index('method')
@@ -305,15 +322,17 @@ PRIM_B = [(f'{bk}__{a}', f'{bk}__{b}') for bk in BANKS for a, b in (('FE_BASE_PR
 SEC = [(f'{bk}__{a}', f'{bk}__{b}') for bk in BANKS for a, b in (
     ('FE_BASE0', 'BASE'), ('FE_GRP0', 'GRP'), ('FE_BASE_PRIOR', 'FE_BASE0'), ('FE_GRP_PRIOR', 'FE_GRP0'), ('FE_BASE_PRIOR', 'BASE_PRIOR'), ('FE_GRP_PRIOR', 'GRP_PRIOR'),
     ('FE_BASE_PRIOR', 'REF_BASE'), ('FE_GRP_PRIOR', 'REF_GRP'), ('FE_PRIOR_ALONE', 'BASE'), ('BASE', 'REF_BASE'), ('GRP', 'REF_GRP'),
-    ('BASE_PRIOR_CF', 'BASE_PRIOR'), ('FE_BASE_PRIOR_CF', 'FE_BASE_PRIOR'), ('BASE_PRIOR', 'REF_BASE_PRIOR'), ('GRP_POS', 'REF_GRP_POS'))] + [(f'{bk}__FE_GRP_PRIOR', 'ct7') for bk in BANKS]
+    ('BASE_PRIOR_CF', 'BASE_PRIOR'), ('FE_BASE_PRIOR_CF', 'FE_BASE_PRIOR'), ('FE_PRIOR_ALONE', 'GRP'), ('BASE_PRIOR', 'REF_BASE_PRIOR'), ('GRP_POS', 'REF_GRP_POS'))] + [(f'{bk}__FE_GRP_PRIOR', 'ct7') for bk in BANKS]
+DESCR = {(f'{bk}__{a}', f'{bk}__{b}') for bk in BANKS for a, b in (('BASE_PRIOR', 'REF_BASE_PRIOR'), ('GRP_POS', 'REF_GRP_POS'))} | {(f'{bk}__FE_GRP_PRIOR', 'ct7') for bk in BANKS}   # A2: not registered
 K = 8; rows = []
 for a, b in PRIM_A + PRIM_B + SEC:
-    fam = 'A' if (a, b) in PRIM_A else 'B' if (a, b) in PRIM_B else ''; r = {'contrast_id': f'{a} - {b}', 'primary': fam}
+    fam = 'A' if (a, b) in PRIM_A else 'B' if (a, b) in PRIM_B else ''; r = {'contrast_id': f'{a} - {b}', 'primary': fam, 'registered': not ((a, b) in DESCR)}
     for e, col in (('auc', 'within_auc'), ('ps', 'prmscore'), ('sla', 'pb_sla_macro8')):
         x = dr[a][e].astype(float) - dr[b][e].astype(float); r[f'{col}_delta'] = float(Mx.loc[a, col] - Mx.loc[b, col])
         r[f'{col}_lo95'], r[f'{col}_hi95'] = (np.nanquantile(x, [.025, .975]).tolist() if np.isfinite(x).any() else [np.nan, np.nan])
         if (fam == 'A' and e == 'auc') or (fam == 'B' and e == 'sla'): r[f'{col}_lo_bonf'], r[f'{col}_hi_bonf'] = np.nanquantile(x, [.025 / K, 1 - .025 / K]).tolist()
-    r['pb_sla_pooled_delta'] = float(Mx.loc[a, 'pb_sla_pooled'] - Mx.loc[b, 'pb_sla_pooled']); rows.append(r)
+    r['pb_sla_pooled_delta'] = float(Mx.loc[a, 'pb_sla_pooled'] - Mx.loc[b, 'pb_sla_pooled']); xp = dr[a]['pool'].astype(float) - dr[b]['pool'].astype(float)
+    r['pb_sla_pooled_lo95'], r['pb_sla_pooled_hi95'] = (np.nanquantile(xp, [.025, .975]).tolist() if np.isfinite(xp).any() else [np.nan, np.nan]); rows.append(r)
 CON = pd.DataFrame(rows); CON.to_csv(OUT / 'CONTRASTS.csv', index=False); timing['bootstrap_s'] = time.perf_counter() - T0 - timing['fit_s'] - timing['eval_s']
 
 # ------------------------------------------------------------------ nulls and concentration for primary A; decision
@@ -336,10 +355,11 @@ if PBC:
         decision[f'first_error_readout_{fam}'] = {'bonferroni_above_content_argmax': ok, 'adopt': all(ok.values()),
                                                    'delta_macro8': {bk: float(Cx.loc[f'{bk}__FE_{x}_PRIOR - {bk}__{x}', 'pb_sla_macro8_delta']) for bk in BANKS}}
     okf = {bk: bool(Cx.loc[f'{bk}__FE_BASE_PRIOR_CF - {bk}__FE_BASE_PRIOR', 'pb_sla_macro8_lo95'] > 0) for bk in BANKS}
-    decision['cross_fit_in_first_error_readout'] = {'lo95_above_0': okf, 'adopt': all(okf.values())}
+    decision['cross_fit_in_first_error_readout'] = {'lo95_above_0': okf, 'failures': len(checks['cf_failures']), 'adopt': all(okf.values()) and not checks['cf_failures'], 'not_blind_on': 'pb_gsm8k_q4/q8, pb_math_q4/q8 (smoke, A2)'}
 if prm_cov.any():
     okc = {bk: bool(Cx.loc[f'{bk}__BASE_PRIOR_CF - {bk}__BASE_PRIOR', 'within_auc_lo95'] > 0) for bk in BANKS}
-    decision['cross_fit_in_plain_average_prior'] = {'lo95_above_0': okc, 'adopt': all(okc.values())}
+    decision['cross_fit_in_plain_average_prior'] = {'lo95_above_0': okc, 'failures': len(checks['cf_failures']), 'adopt': all(okc.values()) and not checks['cf_failures']}
+    decision['clipped_fits_flag'] = checks['clipped_fits']
     decision['per_dataset_vs_pooled_prmbench_within_auc'] = {c: {'delta': float(Cx.loc[f'{a} - {b}', 'within_auc_delta']), 'lo_bonf': float(Cx.loc[f'{a} - {b}', 'within_auc_lo_bonf']), 'hi_bonf': float(Cx.loc[f'{a} - {b}', 'within_auc_hi_bonf'])} for a, b in PRIM_A for c in [f'{a} - {b}']}
 dump(OUT / 'DECISION.json', decision)
 timing['total_s'] = time.perf_counter() - T0; dump(OUT / 'TIMING.json', timing)
