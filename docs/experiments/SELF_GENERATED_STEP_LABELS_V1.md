@@ -144,3 +144,10 @@ Decision rule (four votes per item): RESOLVED if the two round-2 judges give the
 step AND it equals one of the two round-1 answers (3 of 4). Everything else (round-2 judges
 disagree, or agree on a third answer) goes to a blind debate with votes, designed next. The rule's
 accuracy is measured on the 16 ProcessBench items against their human labels.
+
+## Label release v1 (closed 2026-09-30, Omri: no debate stage)
+
+`FINAL_LABELS_V1.jsonl`: 958 own answers (779 questions). 856 round-1 agreement + 34 round-2 3-of-4
+= 890 labelled (417 with an error, 473 clean; 746 questions, 144 answered by both models); 68
+unresolved (first_error_step null). Round-2 rule on the 16 ProcessBench checks: 8 resolved, 5 match
+the human label. The B16 behaviour result above used the 856 round-1 agreements only.
