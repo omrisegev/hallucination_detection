@@ -77,3 +77,15 @@ packet, not the first judge's labels.
 
 Not decided here: the bias-measurement analysis on the existing teacher-forced data, which
 methods to score, and the new-inference stage (sampling, OlympiadBench / Omni-MATH).
+
+## Technical debt recorded 2026-09-29 (deferred by Omri)
+
+Both judges call 85 of the 558 grader-wrong own answers correct (81 MATH, 22% of the MATH
+grader-wrong class): `spectral_utils.data_loaders.is_correct_math` misgrades equivalent forms
+(`\frac32` vs `3/2`, `3/2` vs gold `1.5`, `\pm 3i` vs `3i,-3i`, `D` vs `\text{(B)}`, pmatrix vs
+tuple). Benchmark-labelled localization results (ProcessBench, PRMBench, Hard2Verify, Socratic)
+are not affected. Every self-generated MATH cell graded at inference time may carry this label
+noise (math500 cells via `cluster/run_inference.py`, AMC/AIME wrappers, `evdrop_math_*`); the
+Colab-era MATH-500 headline cells are not yet verified to use the same grader. To do later:
+regrade offline with a real equivalence checker (CPU), count flips per cell, rescore old MATH
+results only if material. Omri chose to test the leading method on self-generated data first.
