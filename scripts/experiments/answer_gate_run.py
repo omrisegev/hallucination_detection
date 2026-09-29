@@ -65,7 +65,9 @@ INPUTS = {'features': STAGE / 'ANSWER_FEATURES.npz',
 FIT = dict(loss='l2', exclusion=True, difficulty_gate=False, simple_avg_fallback=True, recompute_after_exclusion=True,
            g2_projection_k=1, scale_ratio=0.25)          # scripts/labelfree_standing_report.py, verbatim
 GOOD_5 = ['epr', 'low_band_power', 'sw_var_peak', 'cusum_max', 'spectral_entropy']
-DETECTORS = ['D1_upcr_full', 'D2_lsml_cont_good5', 'D3_lsml_full', 'D4_equal_full', 'D5_epr', 'D6_length']
+DETECTORS = ['D1_upcr_full', 'D2_lsml_cont_good5', 'D3_lsml_full', 'D4_equal_full', 'D5_epr', 'D6_length', 'D6b_length_anchored']
+FIXED_DIRECTION = {'D6_length'}      # amendment A1: +trace_length, no anchor flip
+CONST_SD = 1e-5                      # amendment A1: a view with fit-fold sd below this is constant (min_spilled float32 residue)
 PRIMARY_DET = ['D1_upcr_full', 'D2_lsml_cont_good5']
 DROPPED = ['energy_innovation', 'top50_js']
 
@@ -155,7 +157,7 @@ def main():
             c = (k + 1) % 5; fa = cm & ~np.isin(fold, [k, c]); use = cm & np.isin(fold, [k, c])
             assert not (fa & (fold == k)).any()
             Xf = X[fa].copy(); med = np.nanmedian(Xf, 0); Xall = np.where(np.isfinite(X), X, med)     # fit-fold medians only
-            mu = Xall[fa].mean(0); sd = Xall[fa].std(0); keep = sd > 1e-12
+            mu = Xall[fa].mean(0); sd = Xall[fa].std(0); keep = sd > CONST_SD
             Z = np.zeros_like(Xall); Z[:, keep] = (Xall[:, keep] - mu[keep]) / sd[keep]
             anchor_fit = Z[fa, e_ix]
             vals = {}
@@ -163,27 +165,32 @@ def main():
             Ff = Z[fa][:, keep].T
             probe = upcr_fit(Ff, **FIT); pol = np.sign(probe.rho_hat_full); pol[pol == 0] = 1.0
             res = upcr_fit(Ff * pol[:, None], **FIT); w = np.zeros(len(names)); w[np.flatnonzero(keep)] = res.w * pol
-            vals['D1_upcr_full'] = (w, int(res.keep.sum()) if hasattr(res, 'keep') else None)
+            vals['D1_upcr_full'] = (w, {'views_kept_by_upcr': int(res.keep.sum()),
+                                        **{kx: (bool(res.meta[kx]) if isinstance(res.meta.get(kx), (bool, np.bool_)) else str(res.meta[kx]))
+                                           for kx in ('g2_at_ceiling', 'used_simple_average') if kx in getattr(res, 'meta', {})}})
             polfull = np.zeros(len(names)); polfull[np.flatnonzero(keep)] = pol
             # D2: continuous L-SML on GOOD_5 with FEATURE_SIGNS (original configuration)
             W5, fused5, m5 = lsml_linear(Z[fa][:, g5] * sig5)
             w2 = np.zeros(len(names)); w2[g5] = W5 * sig5
             gates.setdefault('lsml_linear_reproduces_fused_max_abs', 0.0)
             gates['lsml_linear_reproduces_fused_max_abs'] = max(gates['lsml_linear_reproduces_fused_max_abs'], float(np.max(np.abs(Z[fa][:, g5] @ w2[g5] - fused5))))
-            vals['D2_lsml_cont_good5'] = (w2, int(m5['K']))
+            vals['D2_lsml_cont_good5'] = (w2, {'K': int(m5['K']), 'degenerate': bool(m5.get('degenerate', False))})
             # D3: continuous L-SML on the full pool with D1's polarities; D4: equal average of the same
             kk = np.flatnonzero(keep); Wf, fusedf, mf = lsml_linear(Z[fa][:, kk] * pol)
             w3 = np.zeros(len(names)); w3[kk] = Wf * pol
             gates['lsml_linear_reproduces_fused_max_abs'] = max(gates['lsml_linear_reproduces_fused_max_abs'], float(np.max(np.abs(Z[fa][:, kk] @ w3[kk] - fusedf))))
-            vals['D3_lsml_full'] = (w3, int(mf['K']))
+            vals['D3_lsml_full'] = (w3, {'K': int(mf['K']), 'degenerate': bool(mf.get('degenerate', False))})
             w4 = np.zeros(len(names)); w4[kk] = pol / len(kk); vals['D4_equal_full'] = (w4, None)
             w5 = np.zeros(len(names)); w5[e_ix] = 1.0; vals['D5_epr'] = (w5, None)
-            w6 = np.zeros(len(names)); w6[l_ix] = 1.0; vals['D6_length'] = (w6, None)
+            w6 = np.zeros(len(names)); w6[l_ix] = 1.0; vals['D6_length'] = (w6, None); vals['D6b_length_anchored'] = (w6.copy(), None)
             for d, (wd, extra) in vals.items():
-                sf = Z[fa] @ wd; _, flipped = anchor_orient(sf, anchor_fit); sgn = -1.0 if flipped else 1.0
+                sf = Z[fa] @ wd
+                if d in FIXED_DIRECTION: flipped = False
+                else: _, flipped = anchor_orient(sf, anchor_fit)
+                sgn = -1.0 if flipped else 1.0
                 sf = sgn * sf; m_, s_ = sf.mean(), max(sf.std(), 1e-12)
                 su = sgn * (Z[use] @ wd); zA[d][k][use] = (su - m_) / s_
-                ev = cm & (fold == k); A[d][ev] = sgn * (Z[ev] @ wd)
+                ev = cm & (fold == k); A[d][ev] = zA[d][k][ev]      # amendment A1: evaluation answers' standardized zA
                 fitlog.append({'cell': cell, 'fold': k, 'detector': d, 'flipped': bool(flipped), 'extra': extra, 'views_kept': int(keep.sum()),
                                'imputed_fit_values': int((~np.isfinite(X[fa])).sum())})
     for d in DETECTORS:
@@ -266,39 +273,51 @@ def main():
                      'pb_per_cell_f1': dict(zip(PBc, map(float, f)))})
     dump(OUT / 'METRICS.json', rows)
 
-    # answer-level detection AUROC (evaluation answers pooled over folds, per cell) with group bootstrap
-    def auc(pos, neg):
-        s = np.r_[pos, neg]; r_ = rankdata(s); return float((r_[:len(pos)].sum() - len(pos) * (len(pos) + 1) / 2) / (len(pos) * len(neg)))
-    det = {}
-    rng2 = np.random.default_rng(20261014)
+    # answer-level detection AUROC on the evaluation answers' standardized zA (amendment A1), paired group bootstrap (args.draws)
+    def cmp_matrix(pos, neg): return (pos[:, None] > neg[None, :]) + 0.5 * (pos[:, None] == neg[None, :])
+    def q(x, a):
+        x = np.asarray(x, float); x = x[np.isfinite(x)]
+        return [float(np.quantile(x, a / 2)), float(np.quantile(x, 1 - a / 2))] if len(x) else [float('nan'), float('nan')]
+    bins = np.quantile(ns[ms], [0, .2, .4, .6, .8, 1]); eb = np.clip(np.searchsorted(bins, ns[err_nc], 'right') - 1, 0, 4)
+    mb = np.clip(np.searchsorted(bins, ns[ms], 'right') - 1, 0, 4)
+    lm_w = np.array([(mb == b).mean() / max((eb == b).mean(), 1e-12) for b in eb])     # erroneous reweighted to the multi_solutions step-count bins
+    ugp, gip = np.unique(groups[pb], return_inverse=True); pbi = np.flatnonzero(pb)
+    ug, gi_ = np.unique(groups[prm], return_inverse=True); pri = np.flatnonzero(prm)
+    rng2 = np.random.default_rng(20261014); WPB = []; WPR = []
+    for s0 in range(0, args.draws, 1000):
+        nb = min(1000, args.draws - s0)
+        WPB.append(rng2.multinomial(len(ugp), np.full(len(ugp), 1 / len(ugp)), size=nb).astype(float))
+        WPR.append(rng2.multinomial(len(ug), np.full(len(ug), 1 / len(ug)), size=nb).astype(float))
+    det = {}; bsd = {}
     for d in DETECTORS:
-        per = {c: auc(A[d][(cells == c) & (target >= 0)], A[d][(cells == c) & (target < 0)]) for c in PBc}
-        e_ms = auc(A[d][err_nc], A[d][ms]); e_ct = auc(A[d][err_nc], A[d][control])
-        # length-matched erroneous vs multi_solutions: erroneous answers resampled to the multi_solutions step-count distribution (5 bins)
-        bins = np.quantile(ns[ms], [0, .2, .4, .6, .8, 1]); eb = np.clip(np.searchsorted(bins, ns[err_nc], 'right') - 1, 0, 4); mb = np.clip(np.searchsorted(bins, ns[ms], 'right') - 1, 0, 4)
-        wts = np.array([(mb == b).mean() / max((eb == b).mean(), 1e-12) for b in eb]); pos_ = A[d][err_nc]; neg_ = A[d][ms]
-        cmp_ = (pos_[:, None] > neg_[None, :]) + 0.5 * (pos_[:, None] == neg_[None, :]); e_ms_lm = float((wts[:, None] * cmp_).sum() / (wts.sum() * len(neg_)))
-        det[d] = {'pb_auc_per_cell': per, 'pb_auc_macro8': float(np.mean(list(per.values()))), 'prm_err_vs_multi_solutions': e_ms,
-                  'prm_err_vs_multi_solutions_length_matched': e_ms_lm, 'prm_err_vs_controls_CONFOUNDED': e_ct}
-        # group bootstrap for the PB macro and the fair PRMBench comparison
-        bs_pb = []; bs_ms = []
-        ugp, gip = np.unique(groups[pb], return_inverse=True); pbi = np.flatnonzero(pb)
-        for _ in range(500):
-            wg = rng2.multinomial(len(ugp), np.full(len(ugp), 1 / len(ugp))); wa = wg[gip]
-            vals_ = []
-            for c in PBc:
-                cmk = cells[pbi] == c; e_ = cmk & (target[pbi] >= 0); o_ = cmk & (target[pbi] < 0)
-                pe = np.repeat(A[d][pbi[e_]], wa[e_]); po = np.repeat(A[d][pbi[o_]], wa[o_])
-                if len(pe) and len(po): vals_.append(auc(pe, po))
-            bs_pb.append(np.mean(vals_))
-        det[d]['pb_auc_macro8_ci95'] = [float(np.quantile(bs_pb, .025)), float(np.quantile(bs_pb, .975))]
-        ug, gi_ = np.unique(groups[prm], return_inverse=True); pri = np.flatnonzero(prm)
-        for _ in range(500):
-            wg = rng2.multinomial(len(ug), np.full(len(ug), 1 / len(ug))); wa = wg[gi_]
-            pe = np.repeat(A[d][pri[err_nc[pri]]], wa[err_nc[pri]]); po = np.repeat(A[d][pri[ms[pri]]], wa[ms[pri]])
-            if len(pe) and len(po): bs_ms.append(auc(pe, po))
-        det[d]['prm_err_vs_multi_solutions_ci95'] = [float(np.quantile(bs_ms, .025)), float(np.quantile(bs_ms, .975))]
+        per = {}; bs_cells = []
+        for c in PBc:
+            cmk = cells[pbi] == c; e_ = cmk & (target[pbi] >= 0); o_ = cmk & (target[pbi] < 0)
+            M = cmp_matrix(A[d][pbi[e_]], A[d][pbi[o_]]); per[c] = float(M.mean())
+            bc = []
+            for W in WPB:
+                wp = W[:, gip[e_]]; wq = W[:, gip[o_]]; bc.append(((wp @ M) * wq).sum(1) / (wp.sum(1) * wq.sum(1)))
+            bs_cells.append(np.concatenate(bc))
+        bs_pb = np.mean(np.vstack(bs_cells), 0)
+        e_ = err_nc[pri]; m_ = ms[pri]; M = cmp_matrix(A[d][pri[e_]], A[d][pri[m_]])
+        bms = []
+        for W in WPR:
+            wp = W[:, gi_[e_]]; wq = W[:, gi_[m_]]; bms.append(((wp @ M) * wq).sum(1) / (wp.sum(1) * wq.sum(1)))
+        bs_ms = np.concatenate(bms); bsd[d] = {'pb': bs_pb, 'ms': bs_ms}
+        det[d] = {'pb_auc_per_cell': per, 'pb_auc_macro8': float(np.mean(list(per.values()))), 'pb_auc_macro8_ci95': q(bs_pb, .05),
+                  'prm_err_vs_multi_solutions': float(M.mean()), 'prm_err_vs_multi_solutions_ci95': q(bs_ms, .05),
+                  'prm_err_vs_multi_solutions_length_matched': float((lm_w[:, None] * M).sum() / (lm_w.sum() * M.shape[1])),
+                  'prm_err_vs_controls_CONFOUNDED': float(cmp_matrix(A[d][err_nc], A[d][control]).mean())}
+    det['paired_differences'] = {f'{a_} - {b_}': {'pb_auc_macro8': [float(np.mean(list(det[a_]['pb_auc_per_cell'].values())) - np.mean(list(det[b_]['pb_auc_per_cell'].values()))),
+                                                                   q(bsd[a_]['pb'] - bsd[b_]['pb'], .05)],
+                                                  'prm_err_vs_multi_solutions': [det[a_]['prm_err_vs_multi_solutions'] - det[b_]['prm_err_vs_multi_solutions'],
+                                                                                 q(bsd[a_]['ms'] - bsd[b_]['ms'], .05)]}
+                                  for a_, b_ in (('D1_upcr_full', 'D2_lsml_cont_good5'), ('D3_lsml_full', 'D4_equal_full'), ('D1_upcr_full', 'D5_epr'))}
+    det['length_bins_multi_solutions_step_quintiles'] = bins.tolist()
     dump(OUT / 'ANSWER_DETECTION.json', det)
+    for r in rows:   # amendment A1: length-matched clean-answer panel
+        fl = nfl[r['rule']]; r['prm_err_share_flagged_length_matched_to_ms'] = float((lm_w * (fl[err_nc] > 0)).sum() / lm_w.sum())
+    dump(OUT / 'METRICS.json', rows)
 
     # paired bootstrap of rule contrasts: PRMScore (PRMBench groups) and PB F1 macro-8 (PB groups)
     Gu, gi = np.unique(groups[P], return_inverse=True); gmap = np.full(n, -1); gmap[P] = gi; nci = np.flatnonzero(noncontrol)
@@ -316,9 +335,8 @@ def main():
             bf[r][pos_:pos_ + nb] = np.nanmean(pb_f1(np.einsum('bg,gkc->bkc', Wp, PBA[r]))[0], 1)
         pos_ += nb
     pt = {r: (OFF[r], float(np.nanmean(pb_f1(PBA[r].sum(0))[0]))) for r in ruleset}
-    def q(x, a): x = x[np.isfinite(x)]; return [float(np.quantile(x, a / 2)), float(np.quantile(x, 1 - a / 2))]
     cons = []
-    pairs = [(f'OFFSET_{d}', ref) for d in DETECTORS for ref in ('R0_frozen', 'R2_allocate', 'R2pb_allocate')] + [('OFFSET_D3_lsml_full', 'OFFSET_D4_equal_full'), ('OFFSET_D1_upcr_full', 'OFFSET_D2_lsml_cont_good5')]
+    pairs = [(f'OFFSET_{d}', ref) for d in DETECTORS for ref in ('R0_frozen', 'R2_allocate', 'R2pb_allocate')] + [('OFFSET_D3_lsml_full', 'OFFSET_D4_equal_full'), ('OFFSET_D1_upcr_full', 'OFFSET_D2_lsml_cont_good5'), ('OFFSET_D1_upcr_full', 'OFFSET_D5_epr')]
     for a_, b_ in pairs:
         for ep, B_ in (('prmscore', bp), ('pb_f1_macro8', bf)):
             if (ep == 'prmscore' and b_ == 'R2pb_allocate') or (ep == 'pb_f1_macro8' and b_ == 'R2_allocate'): continue

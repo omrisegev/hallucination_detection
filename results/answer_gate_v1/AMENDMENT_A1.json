@@ -1,0 +1,16 @@
+{
+ "amendment": "A1 to answer_gate_v1/PROTOCOL.json",
+ "date": "2026-09-30",
+ "written": "after the independent pre-run review and a smoke run whose metric files were not opened by the authors or the reviewer; before the full run",
+ "changes": {
+  "near_constant_views": "Review R1: min_spilled (minimum chosen-token surprisal) is exactly 0 for 99%+ of answers; the non-zero values are float32 residue (~1.2e-7), its fit-fold sd is 0 to 2.5e-6, and z-scoring it produced held-out values up to 1,472. A view is now treated as constant (weight 0) in a cell and fold when its fit-fold sd is below 1e-5. Label-free check before this amendment: only min_spilled falls below 1e-5 (max 2.5e-6); the smallest genuine view, tail50_mass, has sd >= 1.3e-4.",
+  "length_control_direction": "Review R3: the epr anchor flipped D6 (trace_length) in 30/45 fits and between folds of one cell. D6 is now fixed as +trace_length (longer = more suspicious, no anchor flip). The frozen anchored version is kept as D6b_length_anchored, descriptive only, with its flip table.",
+  "answer_level_auroc_scale": "Review R2 (clarification): answer-level AUROC is computed on the evaluation answers' standardized zA (the quantity the rule consumes), not on raw detector values pooled across five fold models.",
+  "auroc_bootstrap_draws": "Review R4: the answer-level AUROC bootstrap uses the protocol's 10,000 draws.",
+  "length_matched_clean_panel": "Review R5: the frozen endpoint 'multi_solutions vs erroneous share with at least one flag, length-matched' is computed with the same 5 step-count bins as the length-matched AUROC (bins are step-count quintiles of multi_solutions).",
+  "added_descriptive_contrasts": "OFFSET_D1 - OFFSET_D5 (prediction P3) and paired answer-level AUROC differences D1 - D2 and D3 - D4 (prediction P5).",
+  "logging": "FIT_LOG records U-PCR meta flags (g2 at ceiling, simple-average fallback) and L-SML degenerate/K when present."
+ },
+ "unchanged": "primary family, decision rule, per-benchmark calibration, references, detectors D1-D5, draws, seeds, predictions",
+ "note_on_labels_read": "the feature extractor loaded OOF_ANSWERS.csv (which contains the target column) only for ids, cells and folds; no label value entered any feature"
+}
