@@ -1,3 +1,16 @@
+## Estimator provenance, tensor MoM, collection map (Claude) - 2026-09-29
+
+HISTORY Step 463, branch `claude/estimator-provenance-collection-2026-09-29`.
+- **Provenance:** "DS estimate" = Dawid-Skene EM (1979), not the Jaffe-Nadler-Kluger (2015) tensor method
+  the advisor pointed to. Advisor-ready source table, equations and stage-by-stage table (what, which paper,
+  alternatives, tried or not): `docs/research_notes/ESTIMATOR_PROVENANCE_2026-09-29_HE.md`.
+- **Tensor MoM:** the 2015 method is now implemented (`er_stage_a.tensor_mom_estimate`, paper's Algorithm 1,
+  4 tests). **Next:** run `python scripts/experiments/tensor_mom_stage_a_run.py` locally (needs the data).
+  Expected: no filter change (sign of t) and little weight headroom (ceiling 0.7667 vs 0.7656).
+- **Glossary:** `a1_residual` misattribution corrected (Eq. 14/15 are the 2016 paper's).
+- **Collecting the last two weeks:** `docs/HANDOFF_COLLECTION_2026-09-29.md`. Two lineages, B not in A
+  (124 result dirs), merge order, the 11 conflicts, and the LFS push blocker.
+
 ## per_dataset_fit_v1: the method fitted per model per dataset (Claude) - 2026-09-29
 
 HISTORY Step 462, `results/per_dataset_fit_v1/SUMMARY.md` (+ RED_TEAM.md). Omri's contract - fit per model per dataset on the

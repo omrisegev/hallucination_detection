@@ -83,9 +83,10 @@ def tensor_mom_estimate(votes: np.ndarray, anchor: int | None = None, eps: float
     Under conditional independence, with delta_i = 2 pi_i - 1, t_i = sqrt(1 - b^2) delta_i and z = f - mean(f):
       second moment (i != j):          E[z_i z_j]     = t_i t_j
       third moment (i, j, k distinct): E[z_i z_j z_k] = alpha t_i t_j t_k,   alpha = -2b / sqrt(1 - b^2)
-    t comes from the rank-one completion (as in `sml_estimate`); alpha is the least-squares fit of the third-moment
-    tensor over all distinct index triples, summed in closed form by power sums (6 e_3 = p_1^3 - 3 p_1 p_2 + 2 p_3),
-    so the m^3 tensor is never built.  Then b = -alpha / sqrt(alpha^2 + 4) and, from E[f_i | Y] = mu_i + delta_i (Y - b),
+    This is the paper's Algorithm 1 (Section 4.1; Lemma 4 = Eq. 13, Eq. 16-19): t is the paper's v, from the rank-one
+    completion (as in `sml_estimate`); alpha is the least-squares fit of Eq. 19 over distinct index triples, summed in
+    closed form by power sums (6 e_3 = p_1^3 - 3 p_1 p_2 + 2 p_3; ordered triples scale numerator and denominator by 6
+    alike), so the m^3 tensor is never built.  Then b by Eq. 17 and, from E[f_i | Y] = mu_i + delta_i (Y - b),
       psi_i = (1 + mu_i + delta_i (1 - b)) / 2,   eta_i = (1 - mu_i + delta_i (1 + b)) / 2.
     The keep/drop side pi_i > 1/2 is sign(t_i), independent of b.  Orientation: t is signed so that t[anchor] > 0, or
     sum(t) > 0 without an anchor ('most classifiers beat random').  psi / eta outside [0, 1] are clipped and counted."""

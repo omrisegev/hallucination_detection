@@ -108,9 +108,15 @@ FAMILY_NOTES = {
         "history": "Step 186",
     },
     "a1_residual": {
-        "paper": "Jaffe, Nadler, Kluger — \"Estimating the Accuracies of "
-                 "Multiple Classifiers Without Labels\" (arXiv:1407.7644, "
-                 "2014). Reuses the paper's own Eq-14 structural residual — "
+        "paper": "Jaffe, Fetaya, Nadler, Jiang, Kluger — \"Unsupervised "
+                 "Ensemble Learning with Dependent Classifiers\" (AISTATS "
+                 "2016, arXiv:1510.05830). (Attribution corrected "
+                 "2026-09-29, Step 463: this entry previously cited the 2015 "
+                 "paper arXiv:1407.7644, whose Eq. 13-19 are the third-moment "
+                 "tensor estimator of the class imbalance; the residual is "
+                 "Eq. 14 and the score matrix Eq. 15 of the 2016 paper, as "
+                 "spectral_utils/fusion_utils.py states. Checked against "
+                 "papers/extracted/.) Reuses the paper's own Eq-14 structural residual — "
                  "how well a K-group rank-one covariance model fits a "
                  "subset's correlation structure — but as a SELECTION "
                  "criterion, which is not what the paper proposes it for "
