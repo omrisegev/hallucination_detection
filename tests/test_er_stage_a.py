@@ -66,3 +66,34 @@ def test_bar_flags_a_wrong_side():
     est = {'pi': np.array([0.62, 0.53, 0.52, 0.69]), 'prevalence': 0.21}
     r = A.bar(est, tru)
     assert r['side_wrong'] == 1 and not r['passes']
+
+
+def test_tensor_mom_recovers_independent_classifiers():
+    votes, y, psi, eta = _independent(seed=4, n=200_000)
+    est = A.tensor_mom_estimate(votes); tru = A.truth(votes, y)
+    assert abs(est['prevalence'] - tru['prevalence']) < 0.01
+    assert np.max(np.abs(est['psi'] - tru['psi'])) < 0.03 and np.max(np.abs(est['eta'] - tru['eta'])) < 0.03
+    assert est['out_of_range'] == 0 and A.bar(est, tru)['passes']
+
+
+def test_tensor_mom_power_sums_equal_the_explicit_tensor():
+    rng = np.random.default_rng(5); votes = np.where(rng.random((400, 6)) < 0.3, 1, -1).astype(np.int8)
+    est = A.tensor_mom_estimate(votes); t = est['t']; z = votes - votes.mean(0)
+    T = np.einsum('ni,nj,nk->ijk', z, z, z) / len(z); tt = np.einsum('i,j,k->ijk', t, t, t)
+    i, j, k = np.indices(T.shape); distinct = (i != j) & (j != k) & (i != k)
+    assert np.isclose(est['alpha'], np.sum(T[distinct] * tt[distinct]) / np.sum(tt[distinct] ** 2), rtol=1e-10)
+
+
+def test_tensor_mom_side_is_the_sign_of_t_whatever_the_imbalance():
+    for prev in (0.1, 0.5, 0.8):
+        votes, y, psi, eta = _independent(seed=6, n=60_000, prev=prev)
+        est = A.tensor_mom_estimate(votes)
+        assert np.array_equal(est['pi'] > 0.5, est['t'] > 0)
+
+
+def test_tensor_mom_anchor_sets_the_orientation():
+    votes, y, psi, eta = _independent(seed=7)
+    votes[:, 0] = -votes[:, 0]                     # a reversed channel: anchoring on it flips the classes
+    a, b = A.tensor_mom_estimate(votes), A.tensor_mom_estimate(votes, anchor=0)
+    assert a['t'][0] < 0 < b['t'][0]
+    assert np.allclose(a['t'], -b['t']) and np.isclose(a['prevalence'], 1 - b['prevalence'])

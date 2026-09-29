@@ -8,8 +8,9 @@ Binary classifier i votes +1 (says "error step") or -1.  Parisi, Strino, Nadler 
 Under conditional independence the off-diagonal covariance is q_ij = (1 - b^2)(2 pi_i - 1)(2 pi_j - 1),
 so its rank-one completion gives t_i = sqrt(1 - b^2)(2 pi_i - 1) from the leading eigenvector.
 
-Estimators: SML (rank-one completion; balanced accuracy only), Dawid-Skene EM and the latent-group EM of
-the cumulative-vote line (cvf_v2/em.py, imported unchanged).  Labels enter only `truth`.
+Estimators: SML (rank-one completion; balanced accuracy only), the third-moment method of moments of Jaffe,
+Nadler & Kluger (AISTATS 2015; `tensor_mom_estimate`), Dawid-Skene EM and the latent-group EM of the
+cumulative-vote line (cvf_v2/em.py, imported unchanged).  Labels enter only `truth`.
 """
 from __future__ import annotations
 
@@ -74,6 +75,43 @@ def sml_estimate(votes: np.ndarray, anchor: int = 0, b_hat: float | None = None)
     if b_hat is not None:
         out['pi'] = 0.5 + t / (2 * np.sqrt(max(1 - b_hat ** 2, 1e-12)))
     return out
+
+
+def tensor_mom_estimate(votes: np.ndarray, anchor: int | None = None, eps: float = 1e-6) -> dict:
+    """psi, eta, prevalence by the method of moments of Jaffe, Nadler & Kluger (AISTATS 2015): no EM, no b from elsewhere.
+
+    Under conditional independence, with delta_i = 2 pi_i - 1, t_i = sqrt(1 - b^2) delta_i and z = f - mean(f):
+      second moment (i != j):          E[z_i z_j]     = t_i t_j
+      third moment (i, j, k distinct): E[z_i z_j z_k] = alpha t_i t_j t_k,   alpha = -2b / sqrt(1 - b^2)
+    t comes from the rank-one completion (as in `sml_estimate`); alpha is the least-squares fit of the third-moment
+    tensor over all distinct index triples, summed in closed form by power sums (6 e_3 = p_1^3 - 3 p_1 p_2 + 2 p_3),
+    so the m^3 tensor is never built.  Then b = -alpha / sqrt(alpha^2 + 4) and, from E[f_i | Y] = mu_i + delta_i (Y - b),
+      psi_i = (1 + mu_i + delta_i (1 - b)) / 2,   eta_i = (1 - mu_i + delta_i (1 + b)) / 2.
+    The keep/drop side pi_i > 1/2 is sign(t_i), independent of b.  Orientation: t is signed so that t[anchor] > 0, or
+    sum(t) > 0 without an anchor ('most classifiers beat random').  psi / eta outside [0, 1] are clipped and counted."""
+    x = np.asarray(votes, float)
+    if x.ndim != 2 or x.shape[1] < 3 or not np.isin(x, [-1, 1]).all():
+        raise ValueError('votes must be n x m (m >= 3) in {-1, +1}')
+    mu = x.mean(0); z = x - mu
+    lam, v = rank_one_completion(np.cov(x, rowvar=False, bias=True))
+    t = np.sqrt(max(lam, 0.0)) * v
+    if (t[anchor] if anchor is not None else t.sum()) < 0:
+        t = -t
+
+    def e3(p1, p2, p3):  # sum over ordered distinct triples of a_i a_j a_k, from power sums
+        return p1 ** 3 - 3 * p1 * p2 + 2 * p3
+    s1, s2, s3 = z @ t, (z ** 2) @ (t ** 2), (z ** 3) @ (t ** 3)
+    num = float(np.mean(e3(s1, s2, s3)))
+    den = float(e3(np.sum(t ** 2), np.sum(t ** 4), np.sum(t ** 6)))
+    if den <= 0:
+        raise ArithmeticError('third-moment fit is degenerate (t has fewer than three non-zero entries)')
+    alpha = num / den
+    b = -alpha / np.sqrt(alpha ** 2 + 4)
+    delta = t / np.sqrt(1 - b ** 2)
+    psi_raw = (1 + mu + delta * (1 - b)) / 2; eta_raw = (1 - mu + delta * (1 + b)) / 2
+    psi = np.clip(psi_raw, eps, 1 - eps); eta = np.clip(eta_raw, eps, 1 - eps)
+    return {'psi': psi, 'eta': eta, 'pi': (psi + eta) / 2, 'prevalence': float((1 + b) / 2), 'b': float(b), 'alpha': float(alpha),
+            't': t, 'lambda': lam, 'out_of_range': int(np.sum((psi_raw != psi) | (eta_raw != eta)))}
 
 
 def em_estimate(votes: np.ndarray, kind: str, groups: np.ndarray | None = None, seed: int = 20260927) -> dict:
