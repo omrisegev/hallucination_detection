@@ -1,3 +1,10 @@
+## per_dataset_fit_v1: the method fitted per model per dataset (Claude) - 2026-09-29
+
+HISTORY Step 462, `results/per_dataset_fit_v1/SUMMARY.md` (+ RED_TEAM.md). Omri's contract - fit per model per dataset on the
+dataset's own unlabeled answers - is free on PRMBench and on ProcessBench the fit drops the position channel by itself (32/32).
+The per-cell position prior latches onto a start-of-answer telemetry artefact on ProcessBench (17/32 grouped fits predict step 0);
+the first-error readout fails; the plain argmax stays. Cross-fitted slope: best PRMBench so far (0.8089) but not adopted.
+
 ## position_prior_v1: step position as a prior inside the Dawid-Skene model (Claude) - 2026-09-29
 
 HISTORY Step 461, `results/position_prior_v1/SUMMARY.md` (+ RED_TEAM.md). The model estimates a position-dependent prevalence of
