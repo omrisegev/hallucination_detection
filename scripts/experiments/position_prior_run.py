@@ -132,11 +132,14 @@ def prior_fit(marks_fit, init, key, pf, tag):
     if not (f['converged'] and f['oriented']): hard_stop(f'{tag} bins {key}: converged {f["converged"]} oriented {f["oriented"]}')
     if f['bin_rows'].min() < 50: hard_stop(f'{tag} bins {key}: a bin has {f["bin_rows"].min()} fit rows')
     return f
-def one_bin_check(marks_fit, init, pf, tag):
+def one_bin_start(marks_fit, init, pf, tag):
+    # amendment A1: the one-bin fit, converged from the constant DS fit, is the nested start of every multi-bin fit
     f = PP.fit_pds(marks_fit, BINS[1][pf], 1, init['psi'], init['eta'], init['prevalence'])
     dev = float(max(np.abs(f['psi'] - init['psi']).max(), np.abs(f['eta'] - init['eta']).max(), abs(f['pi_bins'][0] - init['prevalence'])))
-    if not dev <= 1e-3: hard_stop(f'{tag}: one-bin fit moves {dev} from the constant DS fit')
-    return dev
+    rel = float((f['loglik'] - f['loglik_start']) / abs(f['loglik_start']))
+    if not (f['converged'] and f['oriented'] and rel <= 1e-6 and dev <= 1e-2):
+        hard_stop(f'{tag}: one-bin fit is not the constant DS optimum (rel loglik rise {rel}, max parameter move {dev}, oriented {f["oriented"]})')
+    return {'psi': f['psi'], 'eta': f['eta'], 'prevalence': float(f['pi_bins'][0])}, {'max_param_move': dev, 'rel_loglik_rise': rel, 'iterations': f['iterations']}
 def with_prior(S_full, f, key, pf, tag):
     a, parts = PP.latent_slope(S_full[pf], f['q'])
     if not a > 0: hard_stop(f'{tag} bins {key}: slope a = {a}')
@@ -158,7 +161,7 @@ for k in FOLDS:
         e2 = SA.em_estimate(np.column_stack([MARKS[bk], POSM])[pf], 'ds'); s2 = np.flatnonzero(e2['pi'] > 0.5)
         out['BASE_POS'] = np.column_stack([V, POSZ])[:, s2] @ np.full(len(s2), 1 / len(s2))
         # position prior on the survivors' marks, started from the constant DS fit on the same marks
-        ms = MARKS[bk][:, surv][pf]; es = SA.em_estimate(ms, 'ds'); d['one_bin_dev_base'] = one_bin_check(ms, es, pf, f'{bk} fold {k} BASE')
+        ms = MARKS[bk][:, surv][pf]; es, d['one_bin_base'] = one_bin_start(ms, SA.em_estimate(ms, 'ds'), pf, f'{bk} fold {k} BASE')
         fb = {key: prior_fit(ms, es, key, pf, f'{bk} fold {k} BASE') for key in (10, 5, 20, 'perm')}
         for key, arm in ((10, 'BASE_PRIOR'), (5, 'BASE_PRIOR_B5'), (20, 'BASE_PRIOR_B20'), ('perm', 'BASE_PRIOR_PERM')):
             out[arm], a, parts, term = with_prior(out['BASE'], fb[key], key, pf, f'{bk} fold {k} BASE')
@@ -178,8 +181,8 @@ for k in FOLDS:
         out['GRP'] = GW.weighted_group_score(Z, w)
         ex = SA.em_estimate(np.column_stack([gv, POSM])[pf], 'ds'); wx = SB.mle_weights(ex['psi'], ex['eta'])
         out['GRP_POS'] = GW.weighted_group_score(np.column_stack([Z, POSZ]), wx)
-        d['one_bin_dev_grp'] = one_bin_check(gv[pf], eg, pf, f'{bk} fold {k} GRP')
-        fg = {key: prior_fit(gv[pf], eg, key, pf, f'{bk} fold {k} GRP') for key in (10, 'perm')}
+        eg1, d['one_bin_grp'] = one_bin_start(gv[pf], eg, pf, f'{bk} fold {k} GRP')
+        fg = {key: prior_fit(gv[pf], eg1, key, pf, f'{bk} fold {k} GRP') for key in (10, 'perm')}
         for key, arm in ((10, 'GRP_PRIOR'), ('perm', 'GRP_PRIOR_PERM')):
             out[arm], a, parts, term = with_prior(out['GRP'], fg[key], key, pf, f'{bk} fold {k} GRP')
             d[f'grp_fit_{key}'] = fit_summary(fg[key], key, a, parts); d[f'grp_implied_c_{key}'] = implied_c(term, pf)
@@ -191,10 +194,11 @@ for k in FOLDS:
         for a_ in ARMS: put(f'{bk}__{a_}', k, ev, out[a_], cal)
         diag.append(d)
         print(f"  fold {k} {bk}: pi10 {np.round(fb[10]['pi_bins'], 3).tolist()} a {d['base_fit_10']['a']:.2f} c {d['base_implied_c_10']:.3f} (1/(p-1) {1/len(surv):.3f}) | "
-              f"GRP c {d['grp_implied_c_10']:.3f} | perm c {d['base_implied_c_perm']:.4f} | one-bin dev {d['one_bin_dev_base']:.1e}/{d['one_bin_dev_grp']:.1e}", flush=True)
+              f"GRP c {d['grp_implied_c_10']:.3f} | perm c {d['base_implied_c_perm']:.4f} | one-bin move {d['one_bin_base']['max_param_move']:.1e}/{d['one_bin_grp']['max_param_move']:.1e} rel dLL {d['one_bin_base']['rel_loglik_rise']:.1e}/{d['one_bin_grp']['rel_loglik_rise']:.1e}", flush=True)
     print(f'fold {k} done ({time.perf_counter()-t:.0f}s)', flush=True)
 checks['replay_max'] = max(replay.values()); checks['written_once'] = all(written[m].max() <= 1 for m in ALL)
-checks['one_bin_dev_max'] = max(max(d_['one_bin_dev_base'], d_['one_bin_dev_grp']) for d_ in diag)
+checks['one_bin_max_param_move'] = max(max(d_['one_bin_base']['max_param_move'], d_['one_bin_grp']['max_param_move']) for d_ in diag)
+checks['one_bin_max_rel_loglik_rise'] = max(max(d_['one_bin_base']['rel_loglik_rise'], d_['one_bin_grp']['rel_loglik_rise']) for d_ in diag)
 dump(OUT / 'FIT_DIAGNOSTICS.json', diag); np.savez_compressed(OUT / 'STEP_SCORES.npz', offsets=off, **scores); dump(OUT / 'THRESHOLDS.json', tau)
 timing['fit_s'] = time.perf_counter() - T0
 

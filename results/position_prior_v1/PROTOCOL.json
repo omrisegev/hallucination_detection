@@ -60,5 +60,16 @@
   "any evaluation row written twice"
  ],
  "review": "tests/test_position_prior_ds.py (7 tests: exact bins, recovery of a position-dependent prevalence, flat prior under constant prevalence, one bin = the constant model, nested likelihood rise and orientation, LDA slope, posterior identity); pre-run code review after a fold-0 smoke; red team of three after the run",
- "budget": "CPU only, <= 1 hour"
+ "budget": "CPU only, <= 1 hour",
+ "amendments": [
+  {
+   "id": "A1",
+   "date": "2026-09-29",
+   "before_full_run": true,
+   "after": "fold-0 smoke (feasibility only), before the pre-run review",
+   "change": "the one-bin hard stop \"differs from the constant DS fit by > 1e-3 in any psi, eta or prevalence\" is replaced by: the one-bin fit of position_prior_ds (tol 1e-10), started from the constant DS fit, must be the same optimum - converged, oriented, relative log-likelihood rise <= 1e-6 and parameter move <= 1e-2; this converged one-bin fit is then the nested start of every multi-bin fit (so the likelihood gain 2 dLL measures position alone, not convergence slack).",
+   "reason": "the smoke stopped on B54 GRP fold 0 with a parameter move of 1.17e-3. The existing constant DS fit (cvf_v2 EM) stops at a relative log-likelihood change < 1e-8; iterating on to 1e-10 raised the log-likelihood by at most 1.2e-7 (relative) while parameters of the few-channel group model moved up to 1.2e-3: the same optimum on a flat likelihood surface, not a different solution. The parameter tolerance was set without knowing that flatness.",
+   "smoke_values": "fold 0: max parameter move 1.8e-5 to 4.9e-5 (plain average), 6.9e-4 to 1.17e-3 (grouped); max relative log-likelihood rise 1.2e-7"
+  }
+ ]
 }
