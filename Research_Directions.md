@@ -1,3 +1,10 @@
+## 2026-09-30 (Claude) pointer: current state of the label-free algorithm
+
+Steps 447-462 (the Dawid-Skene filter + plain average line, position, per-model-per-dataset fitting) are summarized, with the
+algorithm stages, a reference table and the proposed next directions, in the section "2026-09-30 (Claude): the label-free algorithm line" at the end of this file. It supersedes, for this line, the 2026-09-24
+statement below that bank11 L-SML is the leading method (Step 457: L-SML loses to plain averaging on 8/8 banks; Step 459:
+external comparisons are dominated by step position). The fitting contract is now per model per dataset (Omri, 2026-09-29).
+
 ## 2026-09-24 active direction: frozen L-SML has external transfer evidence
 
 Retain source-fitted STEP-level bank11 L-SML as the leading learned method.
@@ -3668,3 +3675,81 @@ official components, literature-access caveats and restore instructions are in
   - bank11 max-step 44.48 / 62.38 / 63.65: the best Hard2Verify score (n.s.), significantly below bank11 L-SML on both Socratic cells, clearly above bank11 equal
   - frozen bank11 L-SML 43.67 / 63.22 / 64.24 stays the lead
 - **Open direction.** In three locks, source PRMScore rank did not predict external rank. The next priority is a source-side transfer proxy (e.g. leave-one-benchmark-out), labelled as proxy validation on exposed data. See `docs/HANDOFF_FAMILY_TAIL_LSML_2026-09-24.md`. No tuning on the inspected external labels.
+
+## 2026-09-30 (Claude): the label-free algorithm line, Steps 447-462 - current state and next directions
+
+This section records Claude's line from Step 447 to Step 462 in one place: the algorithm as it now stands, what was decided or
+closed, and the proposed next directions in priority order. Step-by-step narrative: HISTORY.md Steps 447-462. Files, commands and
+untracked artefacts: [docs/HANDOFF_LABEL_FREE_ALGORITHM_2026-09-30.md](docs/HANDOFF_LABEL_FREE_ALGORITHM_2026-09-30.md).
+Every experiment since Step 456 had a frozen protocol, a smoke, an independent pre-run review (from Step 460), a full run, a
+red team of three agents and a documented verdict.
+
+### Fitting contract (Omri, 2026-09-29)
+The method is fitted **per model per dataset, on that dataset's own unlabeled answers**, and scores the same answers (real use:
+ask a model n questions, run the method on those answers). Nothing fitted is shared across datasets or benchmarks. Without labels,
+fitting on the scored answers is legitimate. Step 462 showed this contract costs nothing on PRMBench. Steps 456-461 still used
+PRMBench learning folds and applied the fit to ProcessBench; their ProcessBench numbers are superseded by Step 462.
+
+### The algorithm as it stands (per model, per dataset)
+1. **Channels.** Per-step telemetry channels, each z-scored within its answer. Best bank on PRMBench: the 13 core channels plus the
+   three digit features (16). The signs of the pool channels are set label-free per dataset (correlation with the level mean).
+2. **Marks.** Each channel marks the top 20% of steps within each answer.
+3. **Filter.** Dawid-Skene on the marks; keep the channels whose estimated balanced accuracy exceeds 0.5. It removes exactly the
+   anti-oriented channels (Step 451), and the selection transfers to larger banks (Step 455).
+4. **Fusion.** Plain average of the kept channels (the frozen candidate of Step 457). The grouped variant (label-free partition +
+   one merge step + group-level Dawid-Skene weights) helps only on the heterogeneous 32(+d) bank. L-SML loses to plain averaging
+   on 8/8 banks (Steps 450, 452, 456, 457).
+5. **Position.** The step index enters as one more channel in the same filter (Step 460). Fitted per dataset, the filter keeps it
+   on PRMBench (4/4 banks) and drops it on every ProcessBench cell (32/32), so it helps the step-validity task and costs nothing on
+   first-error localization (Step 462). The stronger position prior inside the Dawid-Skene model (Step 461) is not safe per
+   dataset (Step 462, below).
+6. **Readout.** Step validity: the fused score; PRMScore threshold = the 80% quantile of the answer-z scores within the dataset.
+   First error: the plain argmax. The first-error readout q_t prod(1 - q_s) fails by 10-20 points (Step 462).
+
+Reference numbers under the per-dataset contract (Step 462; PRMBench within-answer AUC / PRMScore; ProcessBench first-error
+accuracy, macro over 8 cells):
+
+| Method | PRMBench within-AUC | PRMScore | ProcessBench |
+|---|---:|---:|---:|
+| ct7 (incumbent) | 0.7724 | 0.6457 | 0.3989 |
+| fam421 | 0.7801 | 0.6572 | 0.3980 |
+| 16-channel bank, filter + plain average | 0.7918 | 0.6616 | **0.4131** |
+| same + position channel (**current method**) | 0.8002 | 0.6650 | **0.4131** |
+| grouped + position prior (Step 461 recipe, per dataset) | 0.8054 | 0.6677 | 0.3133 |
+| plain average + prior with cross-fitted slope (not adopted) | **0.8089** | 0.6658 | 0.4035 |
+| step index alone | 0.6617 | 0.5275 | 0.0484 |
+
+### Decided or closed in this line
+- Label-free sensitivity/specificity estimates (SML, Dawid-Skene, latent-group EM) select channels but cannot weight them; the
+  latent class is not the error class (prevalence 0.28-0.41 vs 0.14) (Steps 450-452).
+- L-SML over this bank adds nothing over averaging, with or without the merge step; its losses are mostly positional (450, 452,
+  456, 457). The partition-switch rule is a lookup of one bank family, not a transferable rule (458).
+- External (Hard2Verify, Socratic; exposed, exploratory): the 13+d candidate beats ct7 on Socratic mostly through step position;
+  the step index alone beats every method there (within-AUC 0.73 / 0.86) (459). External protocols must carry the step-index row,
+  swap nulls and equal-share comparisons (LESSONS 2026-09-29).
+- Position: its direction is identified without labels (a flipped position channel is dropped in 20/20 fits); its weight is not
+  (460). The Dawid-Skene prior weighs it 2-5x below the PRMBench optimum because the latent class shares the content channels, and
+  what it adds over the channel is the size of the weight, not the shape (461). Per dataset, on ProcessBench the prior latches onto
+  a start-of-answer telemetry artefact (every answer, clean ones included, is high on step 0) and 17/32 grouped fits predict step 0
+  always (462).
+- The first-error product readout fails, with or without a prior; the plain argmax stays (462).
+- Also in this line: the exhaustive partition ceiling (447), the Mind the Gap code audit and reproduction (448-449), the fold-role
+  fix of six older runners (453), the PRMScore decomposition (454).
+
+### Next directions (Claude's proposals, in priority order; none started)
+1. **Use the filter's position decision as the gate for the position prior.** Per dataset, the Dawid-Skene decision on the position
+   channel behaved correctly everywhere (kept on PRMBench 4/4, dropped on ProcessBench 32/32). Apply the stronger prior only in
+   datasets where the filter keeps the position channel. Label-free, no new parameter. It was suggested by Step 462's outcome, so it
+   needs a fresh frozen protocol and, for a claim, data other than PRMBench/ProcessBench.
+2. **A position weight that does not re-weight the content.** Use the cross-fitted slope only to set the position weight (plain
+   average + logit(pi_b)/a_cf), keeping the plain average unchanged. In Step 462 the cross-fit reached the post-hoc dose optimum on
+   13+d and 32+d; its loss on 20+d came from re-weighting the content halves (0.75 vs 3.05), not from the position weight.
+3. **Remove positional telemetry artefacts before any position term.** Per dataset, estimate the content score's mean position
+   profile over all answers (label-free) and test whether a prior fitted after its removal still latches onto step 0. On its own the
+   removal does not beat the argmax (Step 462: -0.7 to +1.0 points, better on 4/8), so it is a safeguard, not a method.
+4. **External check under the per-dataset contract** (Hard2Verify, Socratic), with the step-index row, swap nulls and equal-share
+   comparisons: does the filter keep the position channel there, and how does the method compare with the step index alone?
+5. **Decide the digit features.** CLAUDE.md (2026-09-17) excludes digit-based features from future methods; Omri approved them for
+   the external runs, and every bank in Steps 457-462 contains them. One explicit decision is needed before any report.
+6. **Untouched confirmation** (MedPRMBench; needs the cluster). PRMBench, ProcessBench, Hard2Verify and Socratic are all exposed.
+7. **The advisor report** - paused by Omri until the findings from the other conversations are collected.
