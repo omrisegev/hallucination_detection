@@ -70,6 +70,16 @@
    "change": "the one-bin hard stop \"differs from the constant DS fit by > 1e-3 in any psi, eta or prevalence\" is replaced by: the one-bin fit of position_prior_ds (tol 1e-10), started from the constant DS fit, must be the same optimum - converged, oriented, relative log-likelihood rise <= 1e-6 and parameter move <= 1e-2; this converged one-bin fit is then the nested start of every multi-bin fit (so the likelihood gain 2 dLL measures position alone, not convergence slack).",
    "reason": "the smoke stopped on B54 GRP fold 0 with a parameter move of 1.17e-3. The existing constant DS fit (cvf_v2 EM) stops at a relative log-likelihood change < 1e-8; iterating on to 1e-10 raised the log-likelihood by at most 1.2e-7 (relative) while parameters of the few-channel group model moved up to 1.2e-3: the same optimum on a flat likelihood surface, not a different solution. The parameter tolerance was set without knowing that flatness.",
    "smoke_values": "fold 0: max parameter move 1.8e-5 to 4.9e-5 (plain average), 6.9e-4 to 1.17e-3 (grouped); max relative log-likelihood rise 1.2e-7"
+  },
+  {
+   "id": "A2",
+   "date": "2026-09-29",
+   "before_full_run": true,
+   "after": "the independent pre-run code review (verdict GO, no blocker); no score changes",
+   "change_1_declared_limit": "added: pi_b measures where the channels' marks AGREE along the answer. The model cannot separate \"errors are more frequent later\" from \"the channels' agreement drifts later regardless of errors\"; in the second case adding logit(pi_b)/a counts the channels' own positional trend twice. Reported beside every pi_b: the label-free mark density per bin (mean share of marked steps over the survivors, 10 and 20 bins) and the DESCRIPTIVE label-using true error rate per bin. P1 is read as \"the channels' agreement concentrates later\"; whether that coincides with errors is shown by the descriptive rate, not assumed.",
+   "change_2_wording": "the principle sentence \"the position weight follows from the model's estimates, not from the number of channels\" is corrected to \"the position weight is estimated from the model rather than set by the channel count\": the latent class is defined by the same channels' marks, so the posteriors (and the slope a) are not independent of them (declared limit 2).",
+   "change_3_reporting": "DECISION.json also records the pooled ProcessBench change; P2 is reported with the survivor-count ratio of the two banks (46/14 = 3.286 in every Step 460 fold), since the frozen 3.3 threshold is slightly above it.",
+   "change_4_note": "the 20-bin arm has no permuted control; the 20% marking quota with short answers makes the mark density zig-zag between odd and even bins (label-free, 0.213-0.247), so a zig-zag in its pi_b may partly be that artefact."
   }
  ]
 }

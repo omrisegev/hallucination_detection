@@ -163,6 +163,7 @@ for k in FOLDS:
         # position prior on the survivors' marks, started from the constant DS fit on the same marks
         ms = MARKS[bk][:, surv][pf]; es, d['one_bin_base'] = one_bin_start(ms, SA.em_estimate(ms, 'ds'), pf, f'{bk} fold {k} BASE')
         fb = {key: prior_fit(ms, es, key, pf, f'{bk} fold {k} BASE') for key in (10, 5, 20, 'perm')}
+        for nb in (10, 20): d[f'mark_density_per_bin_{nb}_labelfree'] = (np.bincount(BINS[nb][pf], weights=(ms > 0).mean(1), minlength=nb) / np.bincount(BINS[nb][pf], minlength=nb)).tolist()   # A2
         for key, arm in ((10, 'BASE_PRIOR'), (5, 'BASE_PRIOR_B5'), (20, 'BASE_PRIOR_B20'), ('perm', 'BASE_PRIOR_PERM')):
             out[arm], a, parts, term = with_prior(out['BASE'], fb[key], key, pf, f'{bk} fold {k} BASE')
             d[f'base_fit_{key}'] = fit_summary(fb[key], key, a, parts); d[f'base_implied_c_{key}'] = implied_c(term, pf)
@@ -274,7 +275,8 @@ for fam, arm, pos_arm, perm_arm, base_arm in (('plain average', 'BASE_PRIOR', 'B
     a_ok = {bk: bool(Cx.loc[f'{bk}__{arm} - {bk}__{pos_arm}', 'within_auc_lo_bonf'] > 0) for bk in BANKS}
     b_ok = {bk: not bool(Cx.loc[f'{bk}__{perm_arm} - {bk}__{base_arm}', 'within_auc_lo95'] > 0) for bk in BANKS}
     decision[fam] = {'a_bonferroni_above_step460_variant': a_ok, 'b_permuted_control_not_above_base': b_ok, 'adopt': all(a_ok.values()) and all(b_ok.values()),
-                     'pb_macro8_delta_vs_step460_variant': {bk: float(Cx.loc[f'{bk}__{arm} - {bk}__{pos_arm}', 'pb_sla_macro8_delta']) for bk in BANKS}}
+                     'pb_macro8_delta_vs_step460_variant': {bk: float(Cx.loc[f'{bk}__{arm} - {bk}__{pos_arm}', 'pb_sla_macro8_delta']) for bk in BANKS},
+                     'pb_pooled_delta_vs_step460_variant': {bk: float(Mx.loc[f'{bk}__{arm}', 'pb_sla_pooled'] - Mx.loc[f'{bk}__{pos_arm}', 'pb_sla_pooled']) for bk in BANKS}}
 dump(OUT / 'DECISION.json', decision)
 timing['total_s'] = time.perf_counter() - T0; dump(OUT / 'TIMING.json', timing)
 status.update({'status': 'COMPLETE', 'finished': datetime.now().isoformat(timespec='seconds'), 'checks': checks}); dump(OUT / 'RUN_STATUS.json', status)

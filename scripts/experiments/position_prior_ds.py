@@ -8,7 +8,9 @@ constant model.  The EM starts from the constant fit (a nested start), so its li
 The position term enters a continuous content score S in the same currency as the content: posterior log-odds
 logit(pi_b) + a S, where a = (mu_1 - mu_0) / sigma_w^2 is the log-likelihood-ratio slope of S under a two-class
 equal-variance Gaussian model whose class memberships are the EM posteriors.  Within an answer this ranks steps as
-S + logit(pi_b) / a: no direction is assumed and nothing depends on the number of channels.
+S + logit(pi_b) / a: no direction or shape is assumed, and the weight is estimated from the model rather than set by the
+channel count (the latent class is defined by the same channels' marks, so it is not independent of them).  pi_b measures
+where the channels' marks agree along the answer, which need not be where the errors are.
 """
 from __future__ import annotations
 
