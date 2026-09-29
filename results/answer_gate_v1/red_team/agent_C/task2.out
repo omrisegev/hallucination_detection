@@ -1,0 +1,98 @@
+PROCESSBENCH macro-8 decomposition
+                                             rule     F1  acc_err  acc_correct(=unflagged share of correct)  erroneous_flagged_share  first_flag_hits_error|flagged  unflagged_share_all  early(first<target)|err  late|err  F1_sd
+                                        R0_frozen 0.0621   0.3551                                    0.0342                   0.9619                         0.3690               0.0374                   0.3778    0.2532    NaN
+                                    R2pb_allocate 0.3407   0.2511                                    0.6037                   0.7038                         0.3833               0.4102                   0.4190    0.1977    NaN
+                                      R2_allocate 0.1631   0.2228                                    0.1395                   0.9739                         0.2312               0.0736                   0.7346    0.0343    NaN
+                              OFFSET_D1_upcr_full 0.3371   0.2236                                    0.6928                   0.6490                         0.3455               0.4718                   0.4898    0.1647    NaN
+                        OFFSET_D2_lsml_cont_good5 0.3408   0.2283                                    0.6772                   0.6516                         0.3503               0.4669                   0.4791    0.1706    NaN
+                              OFFSET_D3_lsml_full 0.2940   0.1932                                    0.6233                   0.5867                         0.3294               0.4919                   0.5048    0.1658    NaN
+                             OFFSET_D4_equal_full 0.3372   0.2218                                    0.7133                   0.6529                         0.3406               0.4782                   0.4839    0.1755    NaN
+                                    OFFSET_D5_epr 0.3441   0.2344                                    0.6692                   0.6764                         0.3451               0.4488                   0.4894    0.1655    NaN
+                                 OFFSET_D6_length 0.2461   0.1508                                    0.6922                   0.4575                         0.3286               0.5991                   0.5111    0.1603    NaN
+                       OFFSET_D6b_length_anchored 0.2367   0.2059                                    0.3151                   0.6297                         0.3273               0.3613                   0.5011    0.1716    NaN
+                          OFFSETw0.5_D1_upcr_full 0.3599   0.3107                                    0.4365                   0.8176                         0.3805               0.2733                   0.4165    0.2029    NaN
+                          OFFSETw2.0_D1_upcr_full 0.2478   0.1454                                    0.8564                   0.4864                         0.2987               0.6377                   0.5692    0.1320    NaN
+                           GATE_D1_matched_pbfold 0.3628   0.2462                                    0.7150                   0.6639                         0.3712               0.4691                   0.3350    0.2938    NaN
+                         GATE_D1_matched_cellfold 0.3630   0.2451                                    0.7179                   0.6612                         0.3721               0.4718                   0.3354    0.2925    NaN
+                               GATE_D1_calibrated 0.3624   0.2460                                    0.7132                   0.6606                         0.3730               0.4701                   0.3342    0.2927    NaN
+                           GATE_D2_matched_pbfold 0.3615   0.2469                                    0.6918                   0.6583                         0.3755               0.4662                   0.3373    0.2872    NaN
+                GATE_D5epr_matched_D1share_pbfold 0.3631   0.2540                                    0.6766                   0.6580                         0.3829               0.4616                   0.3091    0.3079    NaN
+               GATE_length_matched_D1share_pbfold 0.2198   0.1583                                    0.6514                   0.5090                         0.3003               0.5438                   0.4110    0.2887    NaN
+            GATE_stepcount_matched_D1share_pbfold 0.2258   0.1505                                    0.5748                   0.5201                         0.3029               0.5141                   0.4916    0.2055    NaN
+                   GATE_D1_matched_pbfold_on_R2pb 0.3420   0.2216                                    0.7656                   0.6266                         0.3774               0.5124                   0.4236    0.1990    NaN
+        RANDOM_GATE_D1share_cellfold (mean of 50) 0.2717   0.1918                                    0.4712                   0.5289                         0.3642               0.4718                   0.3808    0.2550 0.0055
+          RANDOM_GATE_D1share_pbfold (mean of 50) 0.2735   0.1965                                    0.4630                   0.5322                         0.3690               0.4666                   0.3793    0.2517 0.0058
+RANDOM_GATE_D1share_cellfold_on_R2pb (mean of 50) 0.3157   0.2055                                    0.6986                   0.5601                         0.3828               0.5395                   0.4205    0.1967 0.0026
+
+ R0_frozen
+               cell    F1  acc_err  acc_correct(=unflagged share of correct)  erroneous_flagged_share  first_flag_hits_error|flagged  unflagged_share_all  early(first<target)|err  late|err
+        pb_gsm8k_q4 0.076    0.478                                     0.041                    0.971                          0.493                0.035                    0.289     0.219
+        pb_gsm8k_q8 0.067    0.444                                     0.036                    0.961                          0.462                0.038                    0.302     0.236
+         pb_math_q4 0.094    0.347                                     0.054                    0.960                          0.361                0.046                    0.356     0.282
+         pb_math_q8 0.059    0.348                                     0.032                    0.963                          0.362                0.035                    0.320     0.318
+pb_olympiadbench_q4 0.044    0.283                                     0.024                    0.970                          0.292                0.028                    0.498     0.211
+pb_olympiadbench_q8 0.044    0.300                                     0.024                    0.970                          0.309                0.028                    0.485     0.206
+     pb_omnimath_q4 0.053    0.319                                     0.029                    0.953                          0.335                0.043                    0.400     0.266
+     pb_omnimath_q8 0.060    0.321                                     0.033                    0.949                          0.339                0.047                    0.374     0.288
+
+ R2pb_allocate
+               cell    F1  acc_err  acc_correct(=unflagged share of correct)  erroneous_flagged_share  first_flag_hits_error|flagged  unflagged_share_all  early(first<target)|err  late|err
+        pb_gsm8k_q4 0.388    0.246                                     0.912                    0.430                          0.573                0.735                    0.169     0.258
+        pb_gsm8k_q8 0.307    0.184                                     0.938                    0.348                          0.528                0.790                    0.139     0.333
+         pb_math_q4 0.362    0.251                                     0.653                    0.697                          0.360                0.445                    0.394     0.246
+         pb_math_q8 0.368    0.254                                     0.667                    0.689                          0.369                0.456                    0.381     0.249
+pb_olympiadbench_q4 0.304    0.242                                     0.407                    0.850                          0.285                0.237                    0.594     0.121
+pb_olympiadbench_q8 0.307    0.239                                     0.431                    0.838                          0.285                0.253                    0.594     0.121
+     pb_omnimath_q4 0.340    0.294                                     0.402                    0.896                          0.328                0.176                    0.562     0.110
+     pb_omnimath_q8 0.349    0.299                                     0.419                    0.883                          0.339                0.190                    0.519     0.142
+
+ OFFSET_D1_upcr_full
+               cell    F1  acc_err  acc_correct(=unflagged share of correct)  erroneous_flagged_share  first_flag_hits_error|flagged  unflagged_share_all  early(first<target)|err  late|err
+        pb_gsm8k_q4 0.359    0.251                                     0.627                    0.647                          0.388                0.485                    0.522     0.090
+        pb_gsm8k_q8 0.356    0.246                                     0.642                    0.604                          0.408                0.515                    0.472     0.120
+         pb_math_q4 0.342    0.229                                     0.675                    0.652                          0.351                0.481                    0.475     0.173
+         pb_math_q8 0.325    0.214                                     0.677                    0.655                          0.326                0.480                    0.478     0.195
+pb_olympiadbench_q4 0.304    0.194                                     0.705                    0.661                          0.293                0.463                    0.565     0.142
+pb_olympiadbench_q8 0.308    0.197                                     0.705                    0.670                          0.293                0.457                    0.544     0.163
+     pb_omnimath_q4 0.357    0.233                                     0.763                    0.656                          0.355                0.445                    0.430     0.215
+     pb_omnimath_q8 0.346    0.225                                     0.747                    0.647                          0.348                0.448                    0.432     0.220
+
+ OFFSET_D2_lsml_cont_good5
+               cell    F1  acc_err  acc_correct(=unflagged share of correct)  erroneous_flagged_share  first_flag_hits_error|flagged  unflagged_share_all  early(first<target)|err  late|err
+        pb_gsm8k_q4 0.366    0.256                                     0.642                    0.657                          0.390                0.488                    0.500     0.110
+        pb_gsm8k_q8 0.369    0.256                                     0.663                    0.633                          0.405                0.510                    0.481     0.115
+         pb_math_q4 0.334    0.222                                     0.675                    0.655                          0.339                0.479                    0.494     0.167
+         pb_math_q8 0.348    0.234                                     0.675                    0.670                          0.349                0.470                    0.425     0.226
+pb_olympiadbench_q4 0.299    0.194                                     0.655                    0.622                          0.311                0.472                    0.545     0.144
+pb_olympiadbench_q8 0.328    0.216                                     0.676                    0.651                          0.333                0.460                    0.512     0.156
+     pb_omnimath_q4 0.343    0.225                                     0.718                    0.664                          0.339                0.428                    0.444     0.216
+     pb_omnimath_q8 0.339    0.223                                     0.714                    0.661                          0.337                0.429                    0.432     0.231
+
+ GATE_D1_calibrated
+               cell    F1  acc_err  acc_correct(=unflagged share of correct)  erroneous_flagged_share  first_flag_hits_error|flagged  unflagged_share_all  early(first<target)|err  late|err
+        pb_gsm8k_q4 0.406    0.304                                     0.611                    0.662                          0.460                0.470                    0.285     0.255
+        pb_gsm8k_q8 0.381    0.275                                     0.617                    0.609                          0.452                0.500                    0.278     0.270
+         pb_math_q4 0.375    0.258                                     0.690                    0.678                          0.380                0.471                    0.328     0.293
+         pb_math_q8 0.384    0.264                                     0.700                    0.699                          0.378                0.463                    0.296     0.325
+pb_olympiadbench_q4 0.335    0.215                                     0.761                    0.646                          0.333                0.492                    0.400     0.267
+pb_olympiadbench_q8 0.326    0.209                                     0.746                    0.646                          0.323                0.487                    0.407     0.269
+     pb_omnimath_q4 0.345    0.221                                     0.784                    0.676                          0.327                0.435                    0.355     0.318
+     pb_omnimath_q8 0.346    0.221                                     0.797                    0.669                          0.331                0.443                    0.325     0.344
+
+ GATE_D1_matched_pbfold
+               cell    F1  acc_err  acc_correct(=unflagged share of correct)  erroneous_flagged_share  first_flag_hits_error|flagged  unflagged_share_all  early(first<target)|err  late|err
+        pb_gsm8k_q4 0.409    0.304                                     0.622                    0.667                          0.457                0.472                    0.290     0.254
+        pb_gsm8k_q8 0.385    0.280                                     0.617                    0.623                          0.450                0.492                    0.279     0.271
+         pb_math_q4 0.374    0.256                                     0.692                    0.685                          0.373                0.468                    0.327     0.300
+         pb_math_q8 0.383    0.264                                     0.697                    0.699                          0.378                0.462                    0.299     0.323
+pb_olympiadbench_q4 0.335    0.215                                     0.764                    0.649                          0.331                0.491                    0.403     0.266
+pb_olympiadbench_q8 0.326    0.209                                     0.743                    0.644                          0.324                0.487                    0.406     0.270
+     pb_omnimath_q4 0.344    0.220                                     0.784                    0.676                          0.326                0.435                    0.355     0.320
+     pb_omnimath_q8 0.347    0.221                                     0.801                    0.668                          0.331                0.445                    0.321     0.347
+
+Random-gate curve on R0 (analytic, per-cell expectation, macro): u -> F1
+  u=0.3  F1=0.2793
+  u=0.4  F1=0.2809
+  u=0.5  F1=0.2628
+  u=0.6  F1=0.2296
+  u=0.7  F1=0.1846

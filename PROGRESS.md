@@ -1,3 +1,13 @@
+## answer_gate_v1: answer-level detectors as the flag decision (Claude) - 2026-09-30
+
+HISTORY Step 460, `results/answer_gate_v1/SUMMARY.md` (+ RED_TEAM.md), branch `claude/decision-rule-v1` (not merged). U-PCR full pool
+and the original L-SML GOOD_5 as answer-level detectors (27 label-free views from token telemetry). ProcessBench: erroneous vs correct
+answers AUROC 0.773 (U-PCR), 0.742 (entropy), but the fused edge is length (within length deciles entropy 0.770 > U-PCR 0.745);
+a gate lifts official F1 0.062 -> 0.36 (pure gate), mostly generic (random gate 0.272). PRMBench: the answer-level decision lowers
+PRMScore (-0.049 / -0.021). Construction priors found: PRMBench inserts about 2 errors per answer at any length (flagging the top-2 steps
+per answer gives PRMScore 0.6808 with no answer score - diagnostic, post hoc) and multi_solutions are a different text style (not a fair
+clean reference). L-SML on the full pool again below the plain average. Open for Omri: what this means for the PRMScore comparisons.
+
 ## decision_rule_v1: per-answer flag count (Claude) - 2026-09-29
 
 HISTORY Step 459, `results/decision_rule_v1/SUMMARY.md` (+ RED_TEAM.md), branch `claude/decision-rule-v1` in `.worktrees/decision-rule-v1`

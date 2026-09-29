@@ -1,0 +1,105 @@
+R0 steps inside OFFSET_D1_upcr_full zero-flag set removed: PB F1/acc_err/acc_cor = [0.3522 0.2383 0.6938]  vs OFFSET_D1_upcr_full [0.3371 0.2236 0.6928]
+   among PB erroneous answers flagged by both: n=2844  hit R0 0.3544  hit OFFSET_D1_upcr_full 0.3337  mean flags R0 1.88 vs 3.09; first flag earlier than R0 in 0.267, later 0.081
+R0 steps inside OFFSET_D2_lsml_cont_good5 zero-flag set removed: PB F1/acc_err/acc_cor = [0.353  0.2402 0.6785]  vs OFFSET_D2_lsml_cont_good5 [0.3408 0.2283 0.6772]
+   among PB erroneous answers flagged by both: n=2836  hit R0 0.3572  hit OFFSET_D2_lsml_cont_good5 0.3396  mean flags R0 1.86 vs 3.07; first flag earlier than R0 in 0.268, later 0.088
+
+PRMBench non-control (6211 answers) confusion counts; positive = correct step kept
+                               rule  TP(correct kept)  FP(error kept)  TN(error flagged)  FN(correct flagged)  F1_correct  F1_error  PRMScore  flag_rate  zero_flag_answers  err_answers_zero_flag  err_answers_with_error_flagged
+                          R0_frozen          60079.00          6661.0             6488.0             10143.00      0.8773    0.4357    0.6565     0.1995             0.0056                 0.0058                          0.8116
+                        R2_allocate          59436.00          6163.0             6986.0             10786.00      0.8752    0.4519    0.6635     0.2132             0.0989                 0.0998                          0.7702
+                OFFSET_D1_upcr_full          58153.00          7627.0             5522.0             12069.00      0.8552    0.3593    0.6072     0.2110             0.3016                 0.2858                          0.5954
+          OFFSET_D2_lsml_cont_good5          58580.00          6797.0             6352.0             11642.00      0.8640    0.4079    0.6360     0.2158             0.2235                 0.2043                          0.6656
+               OFFSET_D4_equal_full          58011.00          7750.0             5399.0             12211.00      0.8532    0.3511    0.6021     0.2112             0.3117                 0.2978                          0.5814
+                      OFFSET_D5_epr          58679.00          6937.0             6212.0             11543.00      0.8640    0.4020    0.6330     0.2130             0.2182                 0.2012                          0.6620
+                   OFFSET_D6_length          56351.00         10708.0             2441.0             13871.00      0.8210    0.1657    0.4933     0.1957             0.6146                 0.6225                          0.2848
+              GATE_D1_matched_on_R0          62389.00          8145.0             5004.0              7833.00      0.8865    0.3851    0.6358     0.1540             0.2987                 0.2822                          0.6030
+    R0_minus_OFFSET_D1_zeroflag_set          62353.00          8207.0             4942.0              7869.00      0.8858    0.3807    0.6333     0.1537             0.3028                 0.2872                          0.6013
+RANDOM_GATE_D1share_on_R0 (mean 50)          63438.84          8802.8             4346.2              6783.16      0.8906    0.3580    0.6243     0.1335             0.3341                 0.3341                          0.5433
+R0_frozen official PRMScore 0.6565188557935739
+OFFSET_D1_upcr_full official PRMScore 0.6072249540285283
+OFFSET_D2_lsml_cont_good5 official PRMScore 0.6359714527578306
+R2_allocate official PRMScore 0.6635359749948694
+
+Changes vs R0:
+  R0_frozen                                dTP      +0 dFP      +0 dTN      +0 dFN      +0  dPRMScore +0.0000  dF1c +0.0000 dF1e +0.0000
+  R2_allocate                              dTP    -643 dFP    -498 dTN    +498 dFN    +643  dPRMScore +0.0070  dF1c -0.0021 dF1e +0.0161
+  OFFSET_D1_upcr_full                      dTP   -1926 dFP    +966 dTN    -966 dFN   +1926  dPRMScore -0.0493  dF1c -0.0221 dF1e -0.0765
+  OFFSET_D2_lsml_cont_good5                dTP   -1499 dFP    +136 dTN    -136 dFN   +1499  dPRMScore -0.0205  dF1c -0.0133 dF1e -0.0278
+  OFFSET_D4_equal_full                     dTP   -2068 dFP   +1089 dTN   -1089 dFN   +2068  dPRMScore -0.0544  dF1c -0.0241 dF1e -0.0847
+  OFFSET_D5_epr                            dTP   -1400 dFP    +276 dTN    -276 dFN   +1400  dPRMScore -0.0235  dF1c -0.0134 dF1e -0.0337
+  OFFSET_D6_length                         dTP   -3728 dFP   +4047 dTN   -4047 dFN   +3728  dPRMScore -0.1632  dF1c -0.0564 dF1e -0.2700
+  GATE_D1_matched_on_R0                    dTP   +2310 dFP   +1484 dTN   -1484 dFN   -2310  dPRMScore -0.0207  dF1c +0.0092 dF1e -0.0506
+  R0_minus_OFFSET_D1_zeroflag_set          dTP   +2274 dFP   +1546 dTN   -1546 dFN   -2274  dPRMScore -0.0232  dF1c +0.0085 dF1e -0.0550
+  RANDOM_GATE_D1share_on_R0 (mean 50)      dTP   +3360 dFP   +2142 dTN   -2142 dFN   -3360  dPRMScore -0.0322  dF1c +0.0133 dF1e -0.0777
+
+PRMBench erroneous non-control: Spearman(zA_D1, error-step density) = -0.06  Spearman(zA_D1, n steps) = 0.303  Spearman(zA_D1, n error steps)= 0.228
+               err   steps err_density flags_R0 flags_OFF errflag_R0 errflag_OFF zero_R0 zero_OFF
+              mean    mean        mean     mean      mean       mean        mean    mean     mean
+zA_quintile                                                                                      
+0            0.881   9.843       0.207    1.991     0.115      0.747       0.082   0.011    0.887
+1            0.993  11.566       0.202    2.233     0.588      1.004       0.402   0.003    0.461
+2            0.996  12.610       0.204    2.427     1.277      1.081       0.721   0.004    0.147
+3            0.995  14.841       0.204    2.944     2.708      1.184       1.119   0.005    0.012
+4            0.994  18.258       0.207    3.795     9.476      1.209       2.122   0.005    0.000
+sum over quintiles of error flags (TN):              errflag_R0  errflag_OFF  flags_R0  flags_OFF
+zA_quintile                                              
+0                 928.0        102.0    2475.0      143.0
+1                1247.0        499.0    2773.0      730.0
+2                1342.0        896.0    3014.0     1586.0
+3                1470.0       1390.0    3656.0     3363.0
+4                1501.0       2635.0    4713.0    11769.0
+AUROC zA_D1 err vs multi_solutions (non-control): 0.9587
+
+TASK 4
+  R0_frozen                        answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 0
+  R2_allocate                      answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 1
+  R2pb_allocate                    answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 1
+  OFFSET_D1_upcr_full              answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 0
+  OFFSET_D2_lsml_cont_good5        answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 0
+  OFFSET_D3_lsml_full              answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 0
+  OFFSET_D4_equal_full             answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 0
+  OFFSET_D5_epr                    answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 0
+  OFFSET_D6_length                 answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 0
+  OFFSET_D6b_length_anchored       answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 0
+  OFFSETw0.5_D1_upcr_full          answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 0
+  OFFSETw2.0_D1_upcr_full          answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 0
+  OFFSETw0.5_D2_lsml_cont_good5    answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 0
+  OFFSETw2.0_D2_lsml_cont_good5    answers violating upper set (unflagged S > flagged S): 0; exact-tie boundary answers: 0
+  recomputed OFFSET_D1_upcr_full equals saved: True
+  recomputed OFFSET_D2_lsml_cont_good5 equals saved: True
+  recomputed OFFSET_D4_equal_full equals saved: True
+  recomputed OFFSET_D5_epr equals saved: True
+  recomputed OFFSET_D6_length equals saved: True
+
+  flag rate per benchmark x fold (evaluation steps):
+                     rule  prm_all  prm_f0  prm_f1  prm_f2  prm_f3  prm_f4  prm_noncontrol_all  prm_noncontrol_f0  prm_noncontrol_f1  prm_noncontrol_f2  prm_noncontrol_f3  prm_noncontrol_f4  pb_all  pb_f0  pb_f1  pb_f2  pb_f3  pb_f4
+                R0_frozen   0.2000  0.2008  0.1971  0.2049  0.1968  0.2003              0.1995             0.2006             0.1966             0.2047             0.1958             0.1997  0.2193 0.2187 0.2132 0.2239 0.2189 0.2219
+              R2_allocate   0.2001  0.1855  0.2188  0.1942  0.2056  0.1968              0.2132             0.1970             0.2319             0.2078             0.2195             0.2100  0.4951 0.4750 0.5014 0.4904 0.5044 0.5049
+            R2pb_allocate   0.2001  0.1855  0.2188  0.1942  0.2056  0.1968              0.2132             0.1970             0.2319             0.2078             0.2195             0.2100  0.2001 0.2030 0.2030 0.1831 0.1954 0.2164
+      OFFSET_D1_upcr_full   0.1982  0.2060  0.2026  0.2261  0.1726  0.1835              0.2110             0.2190             0.2178             0.2384             0.1839             0.1961  0.2000 0.2061 0.2102 0.1758 0.1913 0.2167
+OFFSET_D2_lsml_cont_good5   0.2001  0.1982  0.2081  0.2069  0.1981  0.1894              0.2158             0.2136             0.2253             0.2230             0.2130             0.2046  0.2008 0.2101 0.2067 0.1804 0.1902 0.2164
+     OFFSET_D4_equal_full   0.1984  0.2043  0.2025  0.2281  0.1724  0.1846              0.2112             0.2175             0.2182             0.2405             0.1831             0.1971  0.2011 0.2069 0.2142 0.1745 0.1989 0.2111
+            OFFSET_D5_epr   0.2007  0.1869  0.2445  0.1682  0.1983  0.2038              0.2130             0.1982             0.2578             0.1816             0.2103             0.2154  0.1998 0.2026 0.2166 0.1778 0.1883 0.2138
+                     R0_frozen  OFFSET_D1_upcr_full  OFFSET_D2_lsml_cont_good5
+pb_gsm8k_q4             0.2363               0.2051                     0.2104
+pb_gsm8k_q8             0.2358               0.1974                     0.2051
+pb_math_q4              0.2267               0.2161                     0.2304
+pb_math_q8              0.2281               0.2206                     0.2003
+pb_olympiadbench_q4     0.2159               0.1818                     0.1762
+pb_olympiadbench_q8     0.2139               0.1854                     0.1786
+pb_omnimath_q4          0.2138               0.2006                     0.2110
+pb_omnimath_q8          0.2129               0.2049                     0.2138
+
+Spearman(A_d, epr) on evaluation answers per cell
+                     D1_upcr_full  D2_lsml_cont_good5  D3_lsml_full  D4_equal_full  D1_fold0  D1_fold1  D1_fold2  D1_fold3  D1_fold4
+pb_gsm8k_q4                 0.543               0.568         0.257          0.638     0.655     0.448     0.545     0.462     0.644
+pb_gsm8k_q8                 0.536               0.575         0.379          0.633     0.648     0.432     0.520     0.472     0.646
+pb_math_q4                  0.446               0.361         0.243          0.594     0.511     0.374     0.408     0.541     0.375
+pb_math_q8                  0.402               0.610         0.219          0.516     0.552     0.354     0.302     0.427     0.350
+pb_olympiadbench_q4         0.801               0.749         0.077          0.730     0.778     0.918     0.870     0.742     0.698
+pb_olympiadbench_q8         0.742               0.805         0.283          0.695     0.615     0.948     0.732     0.730     0.657
+pb_omnimath_q4              0.738               0.580         0.258          0.767     0.740     0.712     0.781     0.755     0.684
+pb_omnimath_q8              0.750               0.578         0.129          0.758     0.716     0.778     0.781     0.804     0.652
+prmbench_qwen3_8b           0.673               0.739         0.054          0.668     0.690     0.696     0.671     0.649     0.655
+
+answers with 1 step: 1  constant-S answers: 7  PB among them: 6

@@ -1,0 +1,78 @@
+           detector  macro8  resid_logTL  resid_logTL_logSteps  within_exact_stepcount  within_stepcount_quintile  min_cell
+       D1_upcr_full  0.7734       0.7207                0.7172                  0.7638                     0.7736    0.7300
+ D2_lsml_cont_good5  0.7548       0.7141                0.7105                  0.7466                     0.7581    0.7277
+       D3_lsml_full  0.6848       0.6306                0.6289                  0.6795                     0.6871    0.5639
+      D4_equal_full  0.7812       0.7301                0.7265                  0.7726                     0.7814    0.7334
+             D5_epr  0.7418       0.7469                0.7421                  0.7482                     0.7515    0.7162
+          D6_length  0.6436       0.4689                0.4794                  0.6414                     0.6420    0.6254
+D6b_length_anchored  0.4537       0.5126                0.5084                  0.4456                     0.4554    0.3328
+   trace_length_raw  0.6435       0.4671                0.4820                  0.6412                     0.6428    0.6255
+         step_count  0.5536       0.4404                0.5043                  0.5003                     0.5394    0.5227
+
+per-cell raw AUROC
+                     D1_upcr_full  D2_lsml_cont_good5  D3_lsml_full  D4_equal_full  D5_epr  D6_length  D6b_length_anchored  trace_length_raw  step_count
+pb_gsm8k_q4                 0.730               0.731         0.664          0.733   0.745      0.625                0.625             0.625       0.531
+pb_gsm8k_q8                 0.731               0.735         0.700          0.735   0.732      0.625                0.625             0.625       0.531
+pb_math_q4                  0.765               0.753         0.723          0.789   0.718      0.656                0.570             0.656       0.565
+pb_math_q8                  0.765               0.749         0.732          0.778   0.716      0.656                0.395             0.656       0.565
+pb_olympiadbench_q4         0.780               0.728         0.564          0.785   0.725      0.626                0.374             0.626       0.523
+pb_olympiadbench_q8         0.772               0.728         0.702          0.775   0.728      0.626                0.374             0.626       0.523
+pb_omnimath_q4              0.823               0.805         0.736          0.829   0.788      0.667                0.333             0.667       0.596
+pb_omnimath_q8              0.822               0.810         0.657          0.825   0.784      0.667                0.333             0.667       0.596
+
+per-cell AUROC after residualizing log(trace_length)
+                     D1_upcr_full  D2_lsml_cont_good5  D3_lsml_full  D4_equal_full  D5_epr  D6_length  D6b_length_anchored  trace_length_raw  step_count
+pb_gsm8k_q4                 0.697               0.701         0.612          0.697   0.732      0.483                0.483             0.487       0.461
+pb_gsm8k_q8                 0.689               0.698         0.648          0.693   0.718      0.483                0.483             0.487       0.461
+pb_math_q4                  0.698               0.694         0.654          0.730   0.712      0.485                0.538             0.487       0.446
+pb_math_q8                  0.696               0.702         0.670          0.718   0.721      0.485                0.412             0.487       0.446
+pb_olympiadbench_q4         0.746               0.716         0.557          0.749   0.753      0.473                0.527             0.472       0.419
+pb_olympiadbench_q8         0.737               0.730         0.655          0.737   0.756      0.473                0.527             0.472       0.419
+pb_omnimath_q4              0.751               0.735         0.640          0.763   0.790      0.435                0.565             0.423       0.436
+pb_omnimath_q8              0.751               0.737         0.610          0.754   0.793      0.435                0.565             0.423       0.436
+
+NULL within_cell: mean [2.5%, 97.5%] max  vs observed
+  D1_upcr_full             0.5004 [0.4857, 0.5154] max 0.5224  obs 0.7734  p=0.010
+  D2_lsml_cont_good5       0.5003 [0.4840, 0.5161] max 0.5255  obs 0.7548  p=0.010
+  D3_lsml_full             0.5001 [0.4881, 0.5150] max 0.5181  obs 0.6848  p=0.010
+  D4_equal_full            0.5006 [0.4870, 0.5162] max 0.5173  obs 0.7812  p=0.010
+  D5_epr                   0.4995 [0.4876, 0.5133] max 0.5242  obs 0.7418  p=0.010
+  D6_length                0.5006 [0.4894, 0.5132] max 0.5183  obs 0.6436  p=0.010
+  D6b_length_anchored      0.4996 [0.4848, 0.5140] max 0.5175  obs 0.4537  p=1.000
+
+NULL within_cell_x_exact_steps: mean [2.5%, 97.5%] max  vs observed
+  D1_upcr_full             0.5219 [0.5086, 0.5348] max 0.5386  obs 0.7734  p=0.010
+  D2_lsml_cont_good5       0.5234 [0.5085, 0.5374] max 0.5392  obs 0.7548  p=0.010
+  D3_lsml_full             0.5231 [0.5091, 0.5364] max 0.5374  obs 0.6848  p=0.010
+  D4_equal_full            0.5203 [0.5076, 0.5327] max 0.5358  obs 0.7812  p=0.010
+  D5_epr                   0.5015 [0.4868, 0.5191] max 0.5205  obs 0.7418  p=0.010
+  D6_length                0.5369 [0.5278, 0.5440] max 0.5504  obs 0.6436  p=0.010
+  D6b_length_anchored      0.4873 [0.4746, 0.5006] max 0.5019  obs 0.4537  p=1.000
+
+NULL within_cell_x_step_quintile: mean [2.5%, 97.5%] max  vs observed
+  D1_upcr_full             0.5165 [0.5022, 0.5302] max 0.5403  obs 0.7734  p=0.010
+  D2_lsml_cont_good5       0.5172 [0.5035, 0.5300] max 0.5419  obs 0.7548  p=0.010
+  D3_lsml_full             0.5186 [0.5037, 0.5342] max 0.5416  obs 0.6848  p=0.010
+  D4_equal_full            0.5157 [0.5002, 0.5307] max 0.5447  obs 0.7812  p=0.010
+  D5_epr                   0.4990 [0.4821, 0.5142] max 0.5203  obs 0.7418  p=0.010
+  D6_length                0.5287 [0.5168, 0.5402] max 0.5441  obs 0.6436  p=0.010
+  D6b_length_anchored      0.4866 [0.4751, 0.4983] max 0.5012  obs 0.4537  p=1.000
+D1_upcr_full - D2_lsml_cont_good5: raw +0.0186  resid logTL +0.0067  within exact steps +0.0172
+D4_equal_full - D3_lsml_full: raw +0.0964  resid logTL +0.0994  within exact steps +0.0931
+D1_upcr_full - D5_epr: raw +0.0316  resid logTL -0.0262  within exact steps +0.0156
+D4_equal_full - D1_upcr_full: raw +0.0077  resid logTL +0.0093  within exact steps +0.0088
+
+Spearman(detector, trace_length) per cell
+                     D1_upcr_full  D2_lsml_cont_good5  D3_lsml_full  D4_equal_full  D5_epr  D6_length  D6b_length_anchored
+pb_gsm8k_q4                 0.680               0.717         0.771          0.586   0.078      0.994                0.994
+pb_gsm8k_q8                 0.663               0.706         0.712          0.576   0.052      0.994                0.994
+pb_math_q4                  0.697               0.788         0.785          0.557  -0.065      1.000                0.563
+pb_math_q8                  0.672               0.322         0.731          0.587  -0.114      1.000               -0.553
+pb_olympiadbench_q4         0.230               0.042         0.134          0.362  -0.185      0.999               -0.999
+pb_olympiadbench_q8         0.271              -0.064         0.642          0.389  -0.186      0.999               -0.999
+pb_omnimath_q4              0.412               0.580         0.705          0.384  -0.100      0.999               -0.999
+pb_omnimath_q8              0.363               0.563         0.440          0.372  -0.120      0.999               -0.999
+
+q4 vs q8 same answers? trace_length equal: {'pb_gsm8k': True, 'pb_math': True, 'pb_olympiadbench': True, 'pb_omnimath': True}
+ids equal q4/q8: {'pb_gsm8k': True, 'pb_math': True, 'pb_olympiadbench': True, 'pb_omnimath': True}
+['gsm8k::gsm8k-0', 'gsm8k::gsm8k-1', 'gsm8k::gsm8k-10'] ['gsm8k::gsm8k-0', 'gsm8k::gsm8k-1', 'gsm8k::gsm8k-10']
