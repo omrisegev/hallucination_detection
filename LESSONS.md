@@ -227,3 +227,22 @@ Rule: retain corrected matched-control intervals, native/fallback accounting,
 null prevalence effects and FEASIBILITY labels; record the negative implementation
 result alongside the positive transfer result.
 Enforced by: CONTRASTS.json, RED_TEAM.md, NEGATIVE_RESULT.md and independent audits.
+
+## 2026-09-29 - Parallel subagents share one session scratchpad
+What happened: seven step-judge subagents ran in parallel from one session; two reported that another instance overwrote
+their helper script in the shared scratchpad (one produced empty printouts before noticing). Labels were unaffected (the
+checker verifies ids and order; the helper scripts only serialized hand-written labels), but only because the judges noticed.
+Also: a new `.claude/agents/*.md` definition is NOT loaded mid-session (it needed a restart).
+Why: every subagent of a session gets the same scratchpad path and picks generic file names.
+Rule: every parallel-agent launch prompt names a private scratch subfolder (e.g. `<scratchpad>/<judge_id>_<range>/`);
+write agent definitions before the session that needs them.
+Enforced by: prose in the round-2 launch prompts (results/self_generated_step_labels_v1/round2).
+
+## 2026-09-29 - An inference-time grade is not ground truth
+What happened: the MATH grade saved at generation time (`spectral_utils.data_loaders.is_correct_math`) marked 81 of 366
+non-truncated "wrong" Qwen3 MATH answers wrong although both independent judges found the final answer equivalent
+(`\frac32` vs `3/2`, `3/2` vs gold `1.5`, `\pm 3i`, `\text{D}`, pmatrix vs tuple).
+Why: ad-hoc normalization plus float/string comparison; the `label` field was never audited against an independent check.
+Rule: before using a self-generated cell's `label` as ground truth, regrade with a real equivalence checker or an
+independent judge; treat old self-generated MATH results as unverified until regraded (technical debt, deferred).
+Enforced by: prose; docs/experiments/SELF_GENERATED_STEP_LABELS_V1.md "Technical debt".

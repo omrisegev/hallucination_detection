@@ -1,3 +1,16 @@
+## 2026-09-30: self-generated step labels + off-teacher-forcing behaviour check COMPLETE (Claude, Step 463)
+
+Branch `claude/self-generated-step-labels-v1`; protocol `docs/experiments/SELF_GENERATED_STEP_LABELS_V1.md`.
+- Labels for Qwen3-4B/8B OWN greedy answers (evdrop cells, no new inference): two blind judges (Opus 5.5, GPT-6 SOL),
+  validated on 240 hidden ProcessBench human labels (F1 88.7 / 86.2; consensus 90.9); round 2 (Fable 5.1, Astra 6, 3-of-4).
+  Release `results/self_generated_step_labels_v1/FINAL_LABELS_V1.jsonl`: 890 labelled answers (417 error), 68 unresolved.
+- Leading method B16 (with digits; DS + average / grouped), fitted per model per dataset: pooled within-answer AUC on own
+  answers 0.757 vs 0.763 on teacher-forced ProcessBench (BASE; GRP 0.739 vs 0.720): behaviour preserved (declared criterion).
+  GSM8K/Qwen3-4B is the one borderline cell (0.712 vs 0.801). Frozen bank11 L-SML: 0.732 vs 0.718.
+- TECHNICAL DEBT (deferred by Omri): `is_correct_math` misgrades equivalent MATH forms (81 of 366 non-truncated grader-wrong
+  MATH own answers are correct); old self-generated MATH results are unverified.
+- Next if wanted: T=1 sampled own answers on AIRCC for per-cell power.
+
 ## 2026-09-24: maximal-step tail rows (TRANSFER_LOCK_V3) source + external COMPLETE (Claude)
 
 **START HERE next session: `docs/HANDOFF_FAMILY_TAIL_LSML_2026-09-24.md`** (where we stopped, branches/commits, fragile source-pool dependency, recommended next research, paste-ready prompt).
