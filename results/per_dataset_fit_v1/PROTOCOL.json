@@ -54,5 +54,16 @@
   "mark counts wrong, non-finite scores, a row written twice"
  ],
  "review": "tests/test_position_prior_ds.py; pre-run code review by an independent subagent after a smoke; red team of three after the run; findings presented to Omri with the reviewers' verdicts",
- "budget": "CPU only, <= 1 hour"
+ "budget": "CPU only, <= 1 hour",
+ "amendments": [
+  {
+   "id": "A1",
+   "date": "2026-09-29",
+   "before_full_run": true,
+   "after": "two-cell smoke (pb_gsm8k_q4, pb_math_q4; feasibility), before the pre-run review",
+   "change": "the cross-fit halves follow the cell's own label-free partition instead of alternating channels: groups sorted by size (descending, ties by group id) are assigned one by one to the half with fewer channels so far (ties to A); if a half ends with fewer than 3 channels the alternating split is used and recorded. The partition is therefore computed before the cross-fit (it was already computed on the same rows for the grouped method; its result is unchanged).",
+   "reason": "the label-free slope diagnostic of the smoke showed that the alternating split does not reduce the slope (cross-fitted equivalent 2.96-9.69 vs model 3.95-5.79): alternating puts channels of the same dependence family into both halves, so the halves are not conditionally independent and the class of one half is still nearly a threshold on the other half's content. The cross-fit must split along the dependence structure, which the partition estimates.",
+   "disclosure": "the smoke also printed ProcessBench outcomes on its two cells (the first-error readout was far below the content argmax). A1 changes nothing in the first-error readout, the primary contrasts, the adoption rules or any arm other than BASE_PRIOR_CF / FE_BASE_PRIOR_CF."
+  }
+ ]
 }

@@ -172,8 +172,16 @@ def fit_arms(V, MK, TT, dsr, ptr, tag):
     out['BASE_PRIOR'] = out['BASE'] + lp / a
     out['FE_BASE_PRIOR'] = fe_score(lp + a * (out['BASE'] - (m1 + m0) / 2)); out['FE_PRIOR_ALONE'] = fe_score(lp)
     d['base'] = {'pi10': f10['pi_bins'].tolist(), 'a': a, 'a_one_bin': a0, 'latent_prevalence': float(f10['q'].mean()), 'two_dLL': 2 * (f10['loglik'] - f10['loglik_start'])}
-    # cross-fitted slopes: the latent class of one half of the survivors gives the slope of the other half's average
-    HA, HB = surv[0::2], surv[1::2]
+    # partition (label-free, rows ptr) - used by the grouped method and, amendment A1, by the cross-fit halves
+    T = TT[:, surv]; anchor = int(np.flatnonzero(surv == anchor_ch)[0])
+    gb = MS.canon(TC.lsml_fit_scaled(T[ptr], anchor, X[ptr], standardize=True, loading_scale='unit')['groups'])
+    gbm, _ = MS.absorb_merge(np.corrcoef(T[ptr], rowvar=False), gb); G = int(gbm.max()) + 1
+    # cross-fitted slopes (A1): halves along the dependence groups; the latent class of one half gives the slope of the other half's average
+    sizes = np.bincount(gbm, minlength=G); half = {}
+    for g in sorted(range(G), key=lambda g: (-sizes[g], g)):
+        nA = sum(sizes[h] for h, v in half.items() if v == 'A'); nB = sum(sizes[h] for h, v in half.items() if v == 'B'); half[g] = 'A' if nA <= nB else 'B'
+    HA = surv[np.isin(gbm, [g for g in range(G) if half[g] == 'A'])]; HB = surv[np.isin(gbm, [g for g in range(G) if half[g] == 'B'])]; d['cf_split'] = 'groups'
+    if min(len(HA), len(HB)) < 3: HA, HB = surv[0::2], surv[1::2]; d['cf_split'] = 'alternating (fallback)'
     if min(len(HA), len(HB)) < 3: hard_stop(f'{tag}: a cross-fit half has < 3 channels')
     SAv = V[:, HA].mean(1); SBv = V[:, HB].mean(1); qh = {}
     for nm, H in (('A', HA), ('B', HB)):
@@ -182,11 +190,8 @@ def fit_arms(V, MK, TT, dsr, ptr, tag):
     content_cf = aA * (SAv - (mA1 + mA0) / 2) + aB * (SBv - (mB1 + mB0) / 2)
     out['BASE_PRIOR_CF'] = content_cf + lp; out['FE_BASE_PRIOR_CF'] = fe_score(content_cf + lp)
     bc = out['BASE'][dsr] - out['BASE'][dsr].mean(); cc = content_cf[dsr] - content_cf[dsr].mean()
-    d['cf'] = {'a_A': aA, 'a_B': aB, 'n_A': int(len(HA)), 'n_B': int(len(HB)), 'a_cf_equivalent_on_BASE': float(cc @ bc / (bc @ bc)), 'a_model': a}
-    # grouped method
-    T = TT[:, surv]; anchor = int(np.flatnonzero(surv == anchor_ch)[0])
-    gb = MS.canon(TC.lsml_fit_scaled(T[ptr], anchor, X[ptr], standardize=True, loading_scale='unit')['groups'])
-    gbm, _ = MS.absorb_merge(np.corrcoef(T[ptr], rowvar=False), gb); G = int(gbm.max()) + 1
+    d['cf'] = {'a_A': aA, 'a_B': aB, 'n_A': int(len(HA)), 'n_B': int(len(HB)), 'a_cf_equivalent_on_BASE': float(cc @ bc / (bc @ bc)), 'a_model': a, 'split': d['cf_split']}
+    # grouped method (partition computed above)
     if G > KEYG.shape[1]: hard_stop(f'{tag}: {G} groups exceed the key')
     Z = GW.group_matrix(X, off, gbm, None, answer_standardize); gv = SB.random_tie_marks(Z, off, .2, KEYG[:, :G])
     if not marks_ok(gv): hard_stop(f'{tag}: group mark counts')
