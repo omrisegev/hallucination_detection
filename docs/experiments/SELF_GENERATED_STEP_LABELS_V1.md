@@ -89,3 +89,27 @@ noise (math500 cells via `cluster/run_inference.py`, AMC/AIME wrappers, `evdrop_
 Colab-era MATH-500 headline cells are not yet verified to use the same grader. To do later:
 regrade offline with a real equivalence checker (CPU), count flips per cell, rescore old MATH
 results only if material. Omri chose to test the leading method on self-generated data first.
+
+## Frozen-method evaluation (declared 2026-09-29, before the evaluation was run)
+
+Omri's decision: test the methods locked for the external study directly on the generation-time
+telemetry of the self-generated answers; no cluster run. Arms: the seven locked arms of
+`spectral_utils/external_generalization` (frozen bank11 L-SML / equal / partition-equal,
+answer-local L-SML / equal / partition-equal, CT7) with the frozen source bundle
+(`BUNDLE.json`, sha b96939fc...), no refit and no recalibration. Code hashes match
+METHOD_FREEZE.json (15/15, line endings normalized).
+
+Telemetry check before scoring (40 GSM8K answers): generation `top_k_logprobs` equals the raw
+top-50, saved entropy equals top-15 entropy of the raw log-probs (max diff 2.1e-7), saved
+surprisal equals the raw chosen-token log-prob, greedy token is always raw top-1, and the locked
+`validate_telemetry` passes. Token-to-step rule: a token belongs to the step containing its first
+character. Scores are sealed (`scoring/SCORES.jsonl`) before labels are read.
+
+Labels: consensus of the two judges (identical first-error step, including -1); the 102
+disagreements are excluded pending adjudication. Metrics (`scripts/self_generated_labels/
+evaluate_selfgen.py`): ProcessBench F1 at the frozen thresholds; within-answer AUC of the first
+error step against the steps before it; argmax accuracy. Reference with the same code: the
+same arms' cross-fitted source scores on ProcessBench GSM8K + MATH (Qwen3-8B and Qwen3-4B
+telemetry over other models' text). Bootstrap 2000 draws over question groups. The comparison
+is between different answer populations (own greedy answers vs ProcessBench answers), not a
+paired test; the reference also uses per-fold rather than deployed thresholds.
