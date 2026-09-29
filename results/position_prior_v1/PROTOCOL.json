@@ -1,0 +1,64 @@
+{
+ "protocol_id": "position_prior_v1",
+ "version": 1,
+ "frozen_before_scoring": true,
+ "status": "FROZEN",
+ "requested_by": "Omri 2026-09-29 ('run your proposal for the next step'), after position_channel_v1 (Step 460): the step index added as a channel helps on PRMBench, the Dawid-Skene fit identifies its direction without labels, but its weight is not estimated (in a plain average it is 1/(p-1) of the base, a function of bank size). Proposal: let the Dawid-Skene model itself estimate how much position counts. No advisor report yet.",
+ "principle": "Position enters as a PRIOR, not as a channel. In the Dawid-Skene latent-class model the prevalence of the error class is allowed to depend on the step's relative position in the answer: P(Y=1 | bin b) = pi_b, 10 equal bins of t/(n-1), estimated by EM without labels together with each channel's sensitivity and specificity (scripts/experiments/position_prior_ds.py). No direction and no shape are assumed; with one bin the model is the existing constant-prevalence Dawid-Skene. The content score S (the unchanged Step 457 plain average or grouped score) and the position prior are combined in the model's own currency, posterior log-odds = logit(pi_b) + a S, where a = (mu_1 - mu_0) / sigma_w^2 is the log-likelihood-ratio slope of S under a two-class equal-variance Gaussian model whose memberships are the EM posteriors (label-free). Within an answer this ranks steps as S + logit(pi_b)/a: the position weight follows from the model's estimates, not from the number of channels.",
+ "declared_limits": [
+  "the latent class is the class the channels' marks agree on, not the error class: in Step 460 its prevalence was 0.28-0.41 against a true error rate of 0.141; pi_b are latent-class rates, and the weight is self-consistent only within that model",
+  "the slope a is estimated from the same marks that define the latent class, so content separation may be overstated (which would make the position weight too small)",
+  "task conflict: a position prior helps the step-validity task (PRMBench) and is expected to hurt first-error localization (ProcessBench); ProcessBench is reported beside every arm",
+  "the prior is estimated on PRMBench fit steps and applied unchanged to ProcessBench"
+ ],
+ "banks": "B16, B23, B35, B54 (the four digit banks), construction as position_channel_v1 / partition_switch_run.py bank()",
+ "fit_rows": "PRMBench fit steps (pf, as the existing Dawid-Skene fits; eval fold k, calibration fold (k+1)%5 for the PRMScore threshold only, learning on the other three); every diagnostic is computed on these same rows",
+ "arms_per_bank": {
+  "BASE": "DS filter + plain average (= algorithm_decisions_v1 P0__BASE; replay hard stop 1e-9)",
+  "BASE_POS": "Step 460 plain average + POS channel (replay of position_channel_v1 STEP_SCORES, hard stop 1e-9)",
+  "BASE_PRIOR": "BASE + logit(pi_b)/a; position-prior DS (10 bins) on the survivors' marks, started from the constant DS fit on the same marks; a from BASE on the fit rows",
+  "BASE_PRIOR_B5": "as BASE_PRIOR with 5 bins (sensitivity)",
+  "BASE_PRIOR_B20": "as BASE_PRIOR with 20 bins (sensitivity)",
+  "BASE_PRIOR_PERM": "control: as BASE_PRIOR with the bins computed from a within-answer random permutation of the step order (np.random.default_rng(20260934), one permutation for all banks and folds); expected to add nothing",
+  "DSPOST0": "the model's own content score: the DS log-likelihood ratio of the survivors' marks under the 10-bin fit",
+  "DSPOST": "DSPOST0 + logit(pi_b): the model's full posterior log-odds",
+  "GRP": "DS filter, binary partition + merge, group means, DS-estimate MLE weights (= algorithm_decisions_v1 P0__EQ_DSM; replay 1e-9)",
+  "GRP_POS": "Step 460 grouped + POS group (replay 1e-9)",
+  "GRP_PRIOR": "GRP + logit(pi_b)/a; position-prior DS (10 bins) on the group marks, started from the group-level constant DS fit; a from GRP",
+  "GRP_PRIOR_PERM": "control, as BASE_PRIOR_PERM for the grouped method",
+  "PRIOR_ALONE": "logit(pi_b) of the BASE_PRIOR fit alone (label-free position prior as a score)",
+  "POS_ALONE": "step index alone (reference)",
+  "references": "ct7, fam421"
+ },
+ "endpoints": "PRMBench within-answer AUC (primary), official PRMScore; ProcessBench gate-free SLA macro-8 (beside; also pooled over answers)",
+ "contrasts": {
+  "primary": "per bank: BASE_PRIOR - BASE_POS and GRP_PRIOR - GRP_POS on PRMBench within-AUC; 2 x 4 = 8, Bonferroni, paired source-group bootstrap 50,000 draws (seed 20260927)",
+  "secondary": "per bank at 95%: BASE_PRIOR - BASE, GRP_PRIOR - GRP, BASE_PRIOR_B5 - BASE_PRIOR, BASE_PRIOR_B20 - BASE_PRIOR, BASE_PRIOR_PERM - BASE, GRP_PRIOR_PERM - GRP, DSPOST - DSPOST0, DSPOST - BASE, PRIOR_ALONE - POS_ALONE; the same contrasts on PRMScore and ProcessBench SLA"
+ },
+ "nulls": "for the primary contrasts and BASE_PRIOR - BASE: within-answer shuffle and same-length whole-answer swap (200 permutations, seeds 11 / 12); the content difference (observed - swap mean) is DESCRIPTIVE (a position prior gains more under the swap by construction, position_channel_v1 A1); concentration (top-1% share, trimmed mean)",
+ "diagnostics": "per bank x fold on the fit rows: pi_b for 5/10/20 bins and the permuted control, a and its parts, likelihood gain over the constant fit (2 dLL), iterations/convergence, orientation, the implied linear weight c (least-squares slope of the answer-centred prior term on the answer-z step index, comparable with 1/(p-1) of Step 460), and - DESCRIPTIVE, label-using, never used for any choice - the true error rate per bin on the same rows",
+ "interpretation_frozen": {
+  "adopt": "the estimated-weight version replaces the Step 460 position variant of its family (plain average: BASE_PRIOR vs BASE_POS; grouped: GRP_PRIOR vs GRP_POS) iff (a) its primary contrast is Bonferroni above 0 on within-AUC on all four banks AND (b) its order-permuted control is not above the method without position on any bank (the 95% interval of PERM - BASE, resp. PERM - GRP, does not lie entirely above 0). The ProcessBench change is stated beside. Otherwise the Step 460 variant stays and the estimated prior is reported as a diagnostic.",
+  "processbench": "the ProcessBench change (macro-8 and pooled) is reported beside and must be stated in any recommendation"
+ },
+ "predictions_frozen": {
+  "P1": "pi_b of the last bin exceeds that of the first bin in 20/20 bank-folds (the model recovers 'later is riskier' without an assumed direction)",
+  "P2": "the implied weight c exceeds 1/(p-1) on all four banks and falls with bank size less than 1/(p-1) does (c(B16)/c(B54) < 3.3)",
+  "P3": "BASE_PRIOR - BASE_POS > 0 on at least 3 of 4 banks",
+  "P4": "ProcessBench SLA falls more under the PRIOR arms than under the POS arms on every bank",
+  "P5": "the order-permuted control changes within-AUC by less than 0.001 on every bank",
+  "P6": "the latent-class prevalence stays well above the true error rate (as in Step 460)"
+ },
+ "hard_stops": [
+  "input hashes differ from the algorithm_decisions_v1 manifest",
+  "BASE / GRP replay of algorithm_decisions_v1 > 1e-9; BASE_POS / GRP_POS replay of position_channel_v1 > 1e-9",
+  "the one-bin position-prior fit differs from the constant DS fit it starts from by > 1e-3 in any psi, eta or prevalence",
+  "EM likelihood decreases, the fit is not oriented (mean psi - fpr <= 0), or does not converge",
+  "any bin with fewer than 50 fit rows",
+  "a <= 0",
+  "mark counts wrong",
+  "any evaluation row written twice"
+ ],
+ "review": "tests/test_position_prior_ds.py (7 tests: exact bins, recovery of a position-dependent prevalence, flat prior under constant prevalence, one bin = the constant model, nested likelihood rise and orientation, LDA slope, posterior identity); pre-run code review after a fold-0 smoke; red team of three after the run",
+ "budget": "CPU only, <= 1 hour"
+}
