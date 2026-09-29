@@ -63,8 +63,19 @@ def consensus():
     return {i: v[JUDGES[0]] for i, v in lab.items() if v[JUDGES[0]] == v[JUDGES[1]]}
 
 
+def final_labels():
+    """Label release v1 (FINAL_LABELS_V1.jsonl): round-1 agreement + round-2 3-of-4; unresolved excluded."""
+    out = {}
+    for line in open(ROOT / "FINAL_LABELS_V1.jsonl", encoding="utf-8"):
+        x = json.loads(line)
+        if x["first_error_step"] is not None:
+            out[x["item_id"]] = x["first_error_step"]
+    return out
+
+
 def main():
-    cons = consensus()
+    use_final = os.environ.get("B16_LABELS") == "final"
+    cons = final_labels() if use_final else consensus()
     fit = json.load(open(ROOT / "b16/FIT.json"))
     own_sc = np.load(ROOT / "b16/STEP_SCORES.npz")
     ooff = own_sc["offsets"]
@@ -89,7 +100,8 @@ def main():
             pooled["own"].update(own); pooled["pb"].update({f"{pbcell}::{k}": v for k, v in pb.items()})
             res["cells"].setdefault(tag, {})[arm] = compare(own, pb, rng)
         res.setdefault("pooled", {})[arm] = compare(pooled["own"], pooled["pb"], rng)
-    json.dump(res, open(ROOT / "analysis/B16_BEHAVIOUR_V1.json", "w"), indent=1)
+    res["labels"] = "FINAL_LABELS_V1 (890)" if use_final else "round-1 consensus (856)"
+    json.dump(res, open(ROOT / ("analysis/B16_BEHAVIOUR_V1_FINAL890.json" if use_final else "analysis/B16_BEHAVIOUR_V1.json"), "w"), indent=1)
     for arm in ARMS:
         print(arm)
         for tag in list(PAIRS) + ["pooled"]:
