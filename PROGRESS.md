@@ -1,3 +1,11 @@
+## position_prior_v1: step position as a prior inside the Dawid-Skene model (Claude) - 2026-09-29
+
+HISTORY Step 461, `results/position_prior_v1/SUMMARY.md` (+ RED_TEAM.md). The model estimates a position-dependent prevalence of
+the latent error class without labels. The grouped version is adopted by the frozen rule (above the Step 460 position channel on
+4/4 banks, best within-AUC 0.8056 / PRMScore 0.6686 on 13+d); the plain average keeps the Step 460 channel. The added value is a
+larger weight, not the estimated shape; the weight is still 2-5x below the PRMBench optimum because the label-free latent class
+is a consensus of the same channels (slope inflated 2-3.6x). ProcessBench prefers no position. External check deferred; no report.
+
 ## position_channel_v1: step position as a channel (Claude) - 2026-09-29
 
 HISTORY Step 460, `results/position_channel_v1/SUMMARY.md` (+ RED_TEAM.md). Adding the step index as one more channel is adopted by
