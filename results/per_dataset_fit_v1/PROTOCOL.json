@@ -1,0 +1,83 @@
+{
+ "protocol_id": "per_dataset_fit_v1",
+ "version": 1,
+ "frozen_before_scoring": true,
+ "status": "FROZEN",
+ "requested_by": "Omri 2026-09-29: 'why would we learn shared weights for both? I want the method learned each time per model per dataset - that is how it will be used: ask a model n questions, get answers, run the method; the available data is that data.' Approved: build, run, have a subagent check the work, present the findings.",
+ "contract": "PER MODEL PER DATASET, TRANSDUCTIVE, LABEL-FREE. Each of the 9 cells (prmbench_qwen3_8b; pb_gsm8k_q4/q8, pb_math_q4/q8, pb_olympiadbench_q4/q8, pb_omnimath_q4/q8) is its own dataset. Every fitted quantity - the label-free signs of the lf__ pool channels (sign of the correlation with the mean of the five level channels, as POOL_STRUCTURE r_level_marginal but on the cell's own steps), the Dawid-Skene filter, the partition and merge, the group weights, the position channel's DS decision, the position prior, the slopes, the PRMScore threshold (q80 of the answer-z scores over the cell's own answers) - is fitted on ALL steps of that cell's answers and used to score the same answers. No labels enter any fit, so fitting on the scored answers is legitimate; nothing is borrowed from another cell. The per-dataset contract itself is Omri's decision, not a tested option.",
+ "why_readout_differs": "PRMBench asks which steps are erroneous; ProcessBench asks where the FIRST error is. Same per-cell fit, two readouts. Step readout: the score itself. First-error readout (FE): from the per-step posterior q_t = sigmoid(logit pi_b(t) + a (S_t - (mu_1 + mu_0)/2)) of the fitted latent model, P(first error at t) = q_t * prod_{s<t} (1 - q_s); predicted first error = its earliest argmax. No extra parameter, no labels.",
+ "banks": "B16, B23, B35, B54 (the four digit banks). Only B35 contains lf__ channels (21); their per-cell signs are recomputed.",
+ "arms_per_bank_per_cell": {
+  "BASE": "DS filter + plain average",
+  "BASE_POS": "Step 460 recipe (adopted for the plain average): DS on bank + POS marks, plain average of survivors",
+  "BASE_PRIOR": "Step 461 recipe: BASE + logit(pi_b)/a, 10-bin position prior on the survivors' marks",
+  "BASE_PRIOR_CF": "cross-fitted slope (secondary): survivors split into two halves by bank order (alternating); the latent class of half A (position-prior DS on A's marks) gives the slope a_B of S_B = plain average of half B, and vice versa; score = a_A (S_A - m_A) + a_B (S_B - m_B) + logit(pi_b) with pi_b of the full-survivor fit. Only for the plain average: group halves would have 2-3 mark columns, which DS cannot identify",
+  "GRP": "DS filter, binary partition + merge, group means, DS-estimate MLE weights (Step 457 P0__EQ_DSM recipe)",
+  "GRP_POS": "Step 460 recipe for the grouped method",
+  "GRP_PRIOR": "Step 461 recipe (adopted for the grouped method)",
+  "FE_BASE0 / FE_GRP0": "first-error readout from the one-bin (constant-prevalence) fit of the content score",
+  "FE_BASE_PRIOR / FE_GRP_PRIOR": "first-error readout from the 10-bin position-prior fit",
+  "FE_BASE_PRIOR_CF": "first-error readout with the cross-fitted slopes",
+  "FE_PRIOR_ALONE": "first-error readout from the prior alone (q_t = pi_b(t)); position-only reference",
+  "references": "the same recipes fitted as before (pooled PRMBench learning folds, Steps 457/460/461 stored scores): REF_BASE, REF_GRP, REF_BASE_POS, REF_GRP_POS, REF_BASE_PRIOR, REF_GRP_PRIOR; ct7, fam421, POS_ALONE"
+ },
+ "fallbacks_declared": {
+  "anchor": "the partition anchor is q15_H1 if it survives the cell's DS filter, else the survivor with the highest DS pi_hat (label-free)",
+  "sign_zero": "a correlation of exactly 0 keeps sign +1"
+ },
+ "endpoints": "PRMBench cell: within-answer AUC (6,030 eligible), PRMScore (transductive q80 threshold, the same rule for every arm including references). ProcessBench cells: first-error hit rate on erroneous answers (target >= 0), macro over the 8 cells and pooled; score arms read by earliest argmax, FE arms by earliest argmax of the first-error log-probability",
+ "contrasts": {
+  "primary_A_prmbench": "per bank: BASE_POS - REF_BASE_POS and GRP_PRIOR - REF_GRP_PRIOR on PRMBench within-AUC (per-dataset vs pooled fit of the two adopted recipes); 8 contrasts, Bonferroni, paired source-group bootstrap 50,000 draws (seed 20260927)",
+  "primary_B_processbench": "per bank: FE_BASE_PRIOR - BASE and FE_GRP_PRIOR - GRP on ProcessBench macro-8 (first-error readout with the position prior vs the argmax of the content score without position, both per-dataset); 8 contrasts, Bonferroni, same bootstrap",
+  "secondary": "per bank at 95%: FE_x0 - x (readout alone), FE_x_PRIOR - FE_x0 (position inside the readout), FE_x_PRIOR - x_PRIOR (readout vs argmax of the same prior score), FE_x_PRIOR - REF_x (vs the pooled content argmax), FE_PRIOR_ALONE - x; x - REF_x for BASE and GRP on both benchmarks; BASE_PRIOR_CF - BASE_PRIOR (PRMBench) and FE_BASE_PRIOR_CF - FE_BASE_PRIOR (ProcessBench); every contrast also on PRMScore and pooled ProcessBench"
+ },
+ "code_path_replay": "hard stop: the per-cell fit function, called on fold 0's pooled rows with pooled signs, must reproduce the stored Steps 457/460/461 scores of BASE, GRP, BASE_POS, GRP_POS, BASE_PRIOR, GRP_PRIOR on fold-0 evaluation rows to 1e-9 on every bank",
+ "interpretation_frozen": {
+  "per_dataset": "adopted by decision; primary A reports what it changes on PRMBench (no adoption test)",
+  "first_error_readout": "adopted as the first-error readout of a family (plain average / grouped) iff primary B is Bonferroni above 0 on all four banks; otherwise the argmax of the per-dataset content score stays the first-error readout",
+  "cross_fit": "replaces the model slope in the plain-average prior version iff BASE_PRIOR_CF - BASE_PRIOR has its 95% interval above 0 on PRMBench within-AUC on all four banks; in the first-error readout iff FE_BASE_PRIOR_CF - FE_BASE_PRIOR has its 95% interval above 0 on ProcessBench macro-8 on all four banks"
+ },
+ "predictions_frozen": {
+  "P1": "per-dataset fits on PRMBench are within 0.003 within-AUC of the pooled fits for both adopted recipes on every bank",
+  "P2": "per-cell pi_b rises from the first to the last bin in most ProcessBench cells",
+  "P3": "with the model's (inflated) slope the posteriors are nearly hard, so FE behaves like a first threshold crossing, which never beat argmax before (Step 428); FE with the cross-fitted slope does better than FE with the model slope on at least 3 of 4 banks",
+  "P4": "cross-fitted slopes are smaller than the model slopes in every cell and bank",
+  "P5": "per-cell signs change at least one lf__ channel in every ProcessBench cell (B35)"
+ },
+ "nulls": "primary A: within-answer shuffle and same-length swap (200 permutations) - descriptive; primary B: the FE_PRIOR_ALONE reference row (position only) and the FE_x0 row (content only) bound what each part contributes",
+ "hard_stops": [
+  "input hashes differ from the algorithm_decisions_v1 manifest",
+  "code-path replay > 1e-9",
+  "column-separability check of the mark functions fails (recomputed marks of an unflipped column differ from the stored ones)",
+  "one-bin fit not the constant-DS optimum (as position_prior_v1 A1), EM likelihood decrease, not oriented, not converged, a bin with < 50 rows, a slope <= 0",
+  "a cross-fit half with fewer than 3 channels",
+  "mark counts wrong, non-finite scores, a row written twice"
+ ],
+ "review": "tests/test_position_prior_ds.py; pre-run code review by an independent subagent after a smoke; red team of three after the run; findings presented to Omri with the reviewers' verdicts",
+ "budget": "CPU only, <= 1 hour",
+ "amendments": [
+  {
+   "id": "A1",
+   "date": "2026-09-29",
+   "before_full_run": true,
+   "after": "two-cell smoke (pb_gsm8k_q4, pb_math_q4; feasibility), before the pre-run review",
+   "change": "the cross-fit halves follow the cell's own label-free partition instead of alternating channels: groups sorted by size (descending, ties by group id) are assigned one by one to the half with fewer channels so far (ties to A); if a half ends with fewer than 3 channels the alternating split is used and recorded. The partition is therefore computed before the cross-fit (it was already computed on the same rows for the grouped method; its result is unchanged).",
+   "reason": "the label-free slope diagnostic of the smoke showed that the alternating split does not reduce the slope (cross-fitted equivalent 2.96-9.69 vs model 3.95-5.79): alternating puts channels of the same dependence family into both halves, so the halves are not conditionally independent and the class of one half is still nearly a threshold on the other half's content. The cross-fit must split along the dependence structure, which the partition estimates.",
+   "disclosure": "the smoke also printed ProcessBench outcomes on its two cells (the first-error readout was far below the content argmax). A1 changes nothing in the first-error readout, the primary contrasts, the adoption rules or any arm other than BASE_PRIOR_CF / FE_BASE_PRIOR_CF."
+  },
+  {
+   "id": "A2",
+   "date": "2026-09-29",
+   "before_full_run": true,
+   "after": "the independent pre-run review (GO WITH FIXES, no blocker); no fitted score changes",
+   "disclosure_completed": "A1's disclosure was incomplete. The pre-A1 smoke printed the ProcessBench deltas of EVERY contrast on its two cells, including the cross-fit first-error contrasts, before A1 changed those arms; that output was overwritten (smoke.log holds only the post-A1 smoke, whose cross-fitted equivalents are 1.71-4.69; the 2.96-9.69 quoted in A1 came from the pre-A1 console output, not kept). The post-A1 smoke again computed outcomes on the same two cells. The ProcessBench cross-fit decision is therefore not blind on pb_gsm8k_q4 and pb_math_q4 or their q8 twins (same answers).",
+   "P4_pinned": "P4 compares a_cf_equivalent_on_BASE (the coefficient of the cross-fitted content on BASE, the same currency as the model slope a) with a_model; the half slopes a_A, a_B alone are slopes on half-averages and are not compared.",
+   "primary_A_wording": "for BASE_POS the pooled reference already fitted its DS on PRMBench rows only; on PRMBench, primary A for BASE_POS therefore compares a transductive fit on 100% of PRMBench (including the scored answers) with an out-of-fold fit on 60%, not per-dataset vs cross-dataset pooling. Only the grouped partition of the references used ProcessBench rows.",
+   "cross_fit_failures": "a cross-fit failure (a half with < 3 channels even after the fallback, a half fit not converged / not oriented / not the constant optimum, a bin < 50 rows, or a half slope <= 0) fails only the cross-fit arms of that cell and bank: they then carry the non-cross-fit score, the failure is recorded, and the cross-fit adoption rules require zero failures. Every other stop remains fatal.",
+   "declared_stops": "the existing stop \"fewer than 6 DS survivors in a cell\" is declared (it implies the half stop); a non-finite lf correlation is a hard stop; in the full run every step of every arm must be scored (hard stop).",
+   "clip_reporting": "a per-cell prior can reach the EM clip (pi = 1 - 1e-6; seen in the smoke: pb_math_q4 B54 grouped bin 0), where the logit is set by the clip constant and the latent class tracks the start of the answer. Every fit (halves included) records how many bins sit at the clip; results of arms whose fits have clipped bins are flagged when primary B is reported. The method is not changed.",
+   "contrasts": "FE_PRIOR_ALONE - GRP added (registered secondary, missing in the runner); BASE_PRIOR - REF_BASE_PRIOR, GRP_POS - REF_GRP_POS and FE_GRP_PRIOR - ct7 are labelled descriptive (not registered); pooled ProcessBench gets bootstrap intervals.",
+   "note_design_constants": "bank rosters and the design constants (20% marks, 10 bins, 0.5 filter) were developed on PRMBench; on ProcessBench the result is a fixed recipe fitted per cell. All four banks include the digit features (Omri's approval for the external runs)."
+  }
+ ]
+}

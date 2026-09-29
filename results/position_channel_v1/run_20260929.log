@@ -1,0 +1,157 @@
+setup 41s
+  fold 0 B16: POS pi 0.582 kept True | CUM pi 0.668 kept True | POS group share 0.094 CUM group share 0.197
+  fold 0 B23: POS pi 0.566 kept True | CUM pi 0.674 kept True | POS group share 0.050 CUM group share 0.140
+  fold 0 B35: POS pi 0.573 kept True | CUM pi 0.651 kept True | POS group share 0.074 CUM group share 0.171
+  fold 0 B54: POS pi 0.555 kept True | CUM pi 0.667 kept True | POS group share 0.047 CUM group share 0.157
+fold 0 done (41s)
+  fold 1 B16: POS pi 0.583 kept True | CUM pi 0.666 kept True | POS group share 0.092 CUM group share 0.198
+  fold 1 B23: POS pi 0.563 kept True | CUM pi 0.675 kept True | POS group share 0.049 CUM group share 0.137
+  fold 1 B35: POS pi 0.572 kept True | CUM pi 0.652 kept True | POS group share 0.072 CUM group share 0.172
+  fold 1 B54: POS pi 0.554 kept True | CUM pi 0.669 kept True | POS group share 0.045 CUM group share 0.156
+fold 1 done (38s)
+  fold 2 B16: POS pi 0.578 kept True | CUM pi 0.665 kept True | POS group share 0.090 CUM group share 0.195
+  fold 2 B23: POS pi 0.562 kept True | CUM pi 0.676 kept True | POS group share 0.049 CUM group share 0.134
+  fold 2 B35: POS pi 0.572 kept True | CUM pi 0.653 kept True | POS group share 0.072 CUM group share 0.173
+  fold 2 B54: POS pi 0.555 kept True | CUM pi 0.669 kept True | POS group share 0.026 CUM group share 0.159
+fold 2 done (41s)
+  fold 3 B16: POS pi 0.578 kept True | CUM pi 0.663 kept True | POS group share 0.091 CUM group share 0.190
+  fold 3 B23: POS pi 0.566 kept True | CUM pi 0.675 kept True | POS group share 0.030 CUM group share 0.119
+  fold 3 B35: POS pi 0.576 kept True | CUM pi 0.652 kept True | POS group share 0.074 CUM group share 0.169
+  fold 3 B54: POS pi 0.558 kept True | CUM pi 0.668 kept True | POS group share 0.045 CUM group share 0.151
+fold 3 done (38s)
+  fold 4 B16: POS pi 0.581 kept True | CUM pi 0.666 kept True | POS group share 0.095 CUM group share 0.195
+  fold 4 B23: POS pi 0.570 kept True | CUM pi 0.673 kept True | POS group share 0.047 CUM group share 0.113
+  fold 4 B35: POS pi 0.576 kept True | CUM pi 0.651 kept True | POS group share 0.076 CUM group share 0.170
+  fold 4 B54: POS pi 0.559 kept True | CUM pi 0.665 kept True | POS group share 0.048 CUM group share 0.155
+fold 4 done (38s)
+        method  within_auc  prmscore  pb_sla_macro8
+           ct7      0.7724    0.6458         0.3989
+        fam421      0.7801    0.6573         0.3980
+     B16__BASE      0.7918    0.6618         0.4126
+ B16__BASE_POS      0.8002    0.6651         0.4039
+ B16__BASE_CUM      0.7936    0.6584         0.4102
+      B16__GRP      0.7907    0.6641         0.4092
+  B16__GRP_POS      0.7988    0.6667         0.3966
+  B16__GRP_CUM      0.7891    0.6511         0.3878
+B16__POS_ALONE      0.6617    0.5275         0.0484
+     B23__BASE      0.7691    0.6479         0.3957
+ B23__BASE_POS      0.7751    0.6512         0.3960
+ B23__BASE_CUM      0.7673    0.6433         0.3903
+      B23__GRP      0.7612    0.6427         0.3793
+  B23__GRP_POS      0.7660    0.6444         0.3705
+  B23__GRP_CUM      0.7579    0.6325         0.3676
+B23__POS_ALONE      0.6617    0.5275         0.0484
+     B35__BASE      0.7622    0.6393         0.3734
+ B35__BASE_POS      0.7712    0.6431         0.3731
+ B35__BASE_CUM      0.7616    0.6360         0.3751
+      B35__GRP      0.7713    0.6511         0.3665
+  B35__GRP_POS      0.7787    0.6527         0.3605
+  B35__GRP_CUM      0.7720    0.6416         0.3601
+B35__POS_ALONE      0.6617    0.5275         0.0484
+     B54__BASE      0.7646    0.6446         0.3730
+ B54__BASE_POS      0.7688    0.6464         0.3700
+ B54__BASE_CUM      0.7639    0.6428         0.3710
+      B54__GRP      0.7628    0.6449         0.3790
+  B54__GRP_POS      0.7701    0.6485         0.3732
+  B54__GRP_CUM      0.7573    0.6314         0.3564
+B54__POS_ALONE      0.6617    0.5275         0.0484
+                   contrast_id  within_auc_delta  within_auc_lo95  within_auc_hi95  prmscore_delta  pb_sla_macro8_delta
+     B16__BASE_POS - B16__BASE            0.0084           0.0071           0.0096          0.0032              -0.0087
+       B16__GRP_POS - B16__GRP            0.0081           0.0067           0.0095          0.0027              -0.0125
+     B23__BASE_POS - B23__BASE            0.0059           0.0049           0.0070          0.0033               0.0002
+       B23__GRP_POS - B23__GRP            0.0048           0.0038           0.0057          0.0017              -0.0088
+     B35__BASE_POS - B35__BASE            0.0090           0.0079           0.0100          0.0038              -0.0003
+       B35__GRP_POS - B35__GRP            0.0074           0.0058           0.0090          0.0016              -0.0060
+     B54__BASE_POS - B54__BASE            0.0042           0.0035           0.0049          0.0018              -0.0031
+       B54__GRP_POS - B54__GRP            0.0073           0.0061           0.0085          0.0036              -0.0058
+     B16__BASE_CUM - B16__BASE            0.0018           0.0007           0.0029         -0.0034              -0.0024
+       B16__GRP_CUM - B16__GRP           -0.0016          -0.0039           0.0007         -0.0130              -0.0213
+      B16__GRP_POS - B16__BASE            0.0070           0.0052           0.0087          0.0049              -0.0160
+    B16__POS_ALONE - B16__BASE           -0.1301          -0.1389          -0.1214         -0.1344              -0.3642
+          B16__GRP - B16__BASE           -0.0011          -0.0028           0.0005          0.0022              -0.0034
+B16__BASE_POS - B16__POS_ALONE            0.1385           0.1301           0.1468          0.1376               0.3555
+ B16__GRP_POS - B16__POS_ALONE            0.1370           0.1286           0.1455          0.1392               0.3482
+     B23__BASE_CUM - B23__BASE           -0.0018          -0.0027          -0.0009         -0.0045              -0.0054
+       B23__GRP_CUM - B23__GRP           -0.0033          -0.0050          -0.0016         -0.0103              -0.0118
+      B23__GRP_POS - B23__BASE           -0.0032          -0.0050          -0.0013         -0.0034              -0.0252
+    B23__POS_ALONE - B23__BASE           -0.1074          -0.1167          -0.0982         -0.1204              -0.3474
+          B23__GRP - B23__BASE           -0.0079          -0.0098          -0.0061         -0.0052              -0.0164
+B23__BASE_POS - B23__POS_ALONE            0.1133           0.1045           0.1223          0.1237               0.3476
+ B23__GRP_POS - B23__POS_ALONE            0.1043           0.0952           0.1134          0.1170               0.3222
+     B35__BASE_CUM - B35__BASE           -0.0006          -0.0016           0.0005         -0.0034               0.0017
+       B35__GRP_CUM - B35__GRP            0.0006          -0.0016           0.0029         -0.0096              -0.0064
+      B35__GRP_POS - B35__BASE            0.0165           0.0129           0.0202          0.0134              -0.0129
+    B35__POS_ALONE - B35__BASE           -0.1005          -0.1101          -0.0909         -0.1118              -0.3250
+          B35__GRP - B35__BASE            0.0091           0.0060           0.0123          0.0118              -0.0069
+B35__BASE_POS - B35__POS_ALONE            0.1094           0.1002           0.1187          0.1156               0.3248
+ B35__GRP_POS - B35__POS_ALONE            0.1170           0.1082           0.1259          0.1252               0.3121
+     B54__BASE_CUM - B54__BASE           -0.0006          -0.0012          -0.0001         -0.0018              -0.0021
+       B54__GRP_CUM - B54__GRP           -0.0054          -0.0079          -0.0029         -0.0135              -0.0226
+      B54__GRP_POS - B54__BASE            0.0055           0.0036           0.0075          0.0039               0.0002
+    B54__POS_ALONE - B54__BASE           -0.1028          -0.1126          -0.0931         -0.1171              -0.3247
+          B54__GRP - B54__BASE           -0.0018          -0.0040           0.0004          0.0003               0.0059
+B54__BASE_POS - B54__POS_ALONE            0.1070           0.0975           0.1167          0.1189               0.3216
+ B54__GRP_POS - B54__POS_ALONE            0.1083           0.0988           0.1180          0.1211               0.3248
+{
+"B16__BASE_POS - B16__BASE": {
+"obs": 0.0084,
+"swap": 0.0165,
+"content_diff": -0.0081
+},
+"B16__GRP_POS - B16__GRP": {
+"obs": 0.0081,
+"swap": 0.0202,
+"content_diff": -0.0121
+},
+"B23__BASE_POS - B23__BASE": {
+"obs": 0.0059,
+"swap": 0.0114,
+"content_diff": -0.0055
+},
+"B23__GRP_POS - B23__GRP": {
+"obs": 0.0048,
+"swap": 0.0092,
+"content_diff": -0.0044
+},
+"B35__BASE_POS - B35__BASE": {
+"obs": 0.009,
+"swap": 0.0123,
+"content_diff": -0.0034
+},
+"B35__GRP_POS - B35__GRP": {
+"obs": 0.0074,
+"swap": 0.0175,
+"content_diff": -0.0101
+},
+"B54__BASE_POS - B54__BASE": {
+"obs": 0.0042,
+"swap": 0.0059,
+"content_diff": -0.0017
+},
+"B54__GRP_POS - B54__GRP": {
+"obs": 0.0073,
+"swap": 0.0109,
+"content_diff": -0.0035
+},
+"B16__BASE_CUM - B16__BASE": {
+"obs": 0.0018,
+"swap": 0.0049,
+"content_diff": -0.0031
+},
+"B23__BASE_CUM - B23__BASE": {
+"obs": -0.0018,
+"swap": 0.001,
+"content_diff": -0.0028
+},
+"B35__BASE_CUM - B35__BASE": {
+"obs": -0.0006,
+"swap": 0.0033,
+"content_diff": -0.0038
+},
+"B54__BASE_CUM - B54__BASE": {
+"obs": -0.0006,
+"swap": 0.0005,
+"content_diff": -0.0011
+}
+}
+{"setup_s": 40.832139700010885, "fit_s": 238.45290800000657, "eval_s": 31.168799900013255, "bootstrap_s": 17.2868654000049, "nulls_s": 123.03338589999476, "total_s": 409.9419635000231}

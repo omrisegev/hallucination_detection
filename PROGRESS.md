@@ -1,3 +1,26 @@
+## per_dataset_fit_v1: the method fitted per model per dataset (Claude) - 2026-09-29
+
+HISTORY Step 462, `results/per_dataset_fit_v1/SUMMARY.md` (+ RED_TEAM.md). Omri's contract - fit per model per dataset on the
+dataset's own unlabeled answers - is free on PRMBench and on ProcessBench the fit drops the position channel by itself (32/32).
+The per-cell position prior latches onto a start-of-answer telemetry artefact on ProcessBench (17/32 grouped fits predict step 0);
+the first-error readout fails; the plain argmax stays. Cross-fitted slope: best PRMBench so far (0.8089) but not adopted.
+
+## position_prior_v1: step position as a prior inside the Dawid-Skene model (Claude) - 2026-09-29
+
+HISTORY Step 461, `results/position_prior_v1/SUMMARY.md` (+ RED_TEAM.md). The model estimates a position-dependent prevalence of
+the latent error class without labels. The grouped version is adopted by the frozen rule (above the Step 460 position channel on
+4/4 banks, best within-AUC 0.8056 / PRMScore 0.6686 on 13+d); the plain average keeps the Step 460 channel. The added value is a
+larger weight, not the estimated shape; the weight is still 2-5x below the PRMBench optimum because the label-free latent class
+is a consensus of the same channels (slope inflated 2-3.6x). ProcessBench prefers no position. External check deferred; no report.
+
+## position_channel_v1: step position as a channel (Claude) - 2026-09-29
+
+HISTORY Step 460, `results/position_channel_v1/SUMMARY.md` (+ RED_TEAM.md). Adding the step index as one more channel is adopted by
+the frozen rule (A1) on all four digit banks (PRMBench within-AUC +0.004 to +0.009, above position alone), best 0.8002 on 13+d. It is
+a positional prior: late-error answers gain, early-error answers and ProcessBench lose. The DS fit identifies its direction without
+labels (flipped POS dropped 20/20), not its weight (plain-average weight = 1/(p-1), bank size; 15-47% of the post-hoc positional
+gain). Open: a label-free estimate of how much position should count; external check deferred. No advisor report yet (Omri).
+
 ## algorithm_external_v1: the frozen candidates on the external benchmarks (Claude) - 2026-09-29
 
 HISTORY Step 459, `results/algorithm_external_v1/SUMMARY.md` (+ RED_TEAM.md). All four digit banks, frozen from development and
