@@ -113,3 +113,21 @@ same arms' cross-fitted source scores on ProcessBench GSM8K + MATH (Qwen3-8B and
 telemetry over other models' text). Bootstrap 2000 draws over question groups. The comparison
 is between different answer populations (own greedy answers vs ProcessBench answers), not a
 paired test; the reference also uses per-fold rather than deployed thresholds.
+
+## B16 per-dataset behaviour check (declared 2026-09-29, before the evaluation was run)
+
+Omri's question: does the leading method WITH digits behave the same on the model's own answers
+as under teacher forcing? Method (Omri's choice): B16 (bank11 + realized_z + realized_drv + three
+digit channels), DS filter + plain average (BASE) and DS filter + grouped DS-MLE weights (GRP),
+fitted per model per dataset, label-free, on all non-truncated answers of each new cell
+(`scripts/self_generated_labels/b16_fit.py`, mirroring `per_dataset_fit_run.py::fit_arms`,
+Step 462). Hard stops before any new fit: the 16 channels recomputed from raw ProcessBench
+telemetry must equal the stored source arrays, and the fit must reproduce the Step 462 per-dataset
+B16 BASE/GRP scores (<= 1e-9) on two ProcessBench cells.
+
+Comparison (`b16_eval.py`): each own cell against the ProcessBench cell with the same model and
+dataset (Step 462 per-dataset scores). Erroneous answers; first-error hit (earliest argmax) and
+within-answer AUC (first-error step against earlier steps). Success = behaviour preserved:
+|own - ProcessBench| < 0.03 within-AUC with the 95% interval of the difference containing 0
+(independent bootstrap over question groups, 2000 draws). The first-error hit is reported beside it
+but depends on answer length (own MATH answers are ~3x longer), so it is not the equivalence test.
