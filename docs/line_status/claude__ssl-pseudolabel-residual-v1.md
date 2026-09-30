@@ -40,10 +40,8 @@ Steps on this branch:
 - Step 462 [Claude, per_dataset_fit] Fitting per model per dataset is free on PRMBench and drops position on ProcessBench by itself; the per-dataset prior latches onto a step-0 artefact and the first-error readout fails. Source: results/per_dataset_fit_v1/SUMMARY.md
 
 If PAUSED-FOR-DECISION (label-free fusion line):
-- Question 1 for Omri: keep or drop the three digit features? CLAUDE.md (2026-09-17) excludes digit-based features from future
-  methods; Omri approved them for the external runs, and every bank in Steps 457-462 contains them. Options: (a) keep them and amend
-  CLAUDE.md; (b) drop them and re-run the per-dataset reference on the digit-free banks (13/20/32/51).
-- Question 2 for Omri: which next step? Options, in Claude's recommended order (Research_Directions.md, 2026-09-30 section):
+- Resolved 2026-09-30: the digit features stay (Omri); recorded in CLAUDE.md.
+- Open question for Omri (to be decided after the merge, among all options on the table): which next step? Options, in Claude's recommended order (Research_Directions.md, 2026-09-30 section):
   (1) use the filter's per-dataset decision on the position channel as the gate for the stronger position prior; (2) set the
   position weight with the cross-fitted slope while keeping the plain average unchanged; (3) remove the per-dataset position
   profile of the content score before any position term; (4) the external check (Hard2Verify, Socratic) under the per-dataset

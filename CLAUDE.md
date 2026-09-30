@@ -1,5 +1,15 @@
 # CLAUDE.md — MV_EPR Spectral Hallucination Detection
 
+## Omri decision update - 2026-09-30: digit features stay in the label-free fusion line
+
+Asked whether to keep the three digit features (digit_alternative, digit_spread,
+digit_alternative_innovation) in the label-free fusion line (Dawid-Skene filter + plain
+average, position, per-model-per-dataset fitting; Steps 457-462 and their external checks),
+Omri answered: keep them. For this line this supersedes the 2026-09-17 exclusion below; the
+banks stay B16/B23/B35/B54. It does not by itself reopen digit-specific gates, digit anchors or
+digit-oriented fusion signs. The next step of the line is decided after the branch merge.
+Record: Research_Directions.md (2026-09-30 section), docs/HANDOFF_LABEL_FREE_ALGORITHM_2026-09-30.md.
+
 ## Omri execution update - 2026-09-24: external telemetry first
 
 Implement Hard2Verify and Socratic-PRMBench transfer on the dedicated

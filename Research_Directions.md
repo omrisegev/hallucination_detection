@@ -3736,7 +3736,7 @@ accuracy, macro over 8 cells):
 - Also in this line: the exhaustive partition ceiling (447), the Mind the Gap code audit and reproduction (448-449), the fold-role
   fix of six older runners (453), the PRMScore decomposition (454).
 
-### Next directions (Claude's proposals, in priority order; none started)
+### Next directions (Claude's proposals, in priority order; none started - Omri, 2026-09-30: the next step is chosen after the branch merge, among all options on the table)
 1. **Use the filter's position decision as the gate for the position prior.** Per dataset, the Dawid-Skene decision on the position
    channel behaved correctly everywhere (kept on PRMBench 4/4, dropped on ProcessBench 32/32). Apply the stronger prior only in
    datasets where the filter keeps the position channel. Label-free, no new parameter. It was suggested by Step 462's outcome, so it
@@ -3749,7 +3749,7 @@ accuracy, macro over 8 cells):
    removal does not beat the argmax (Step 462: -0.7 to +1.0 points, better on 4/8), so it is a safeguard, not a method.
 4. **External check under the per-dataset contract** (Hard2Verify, Socratic), with the step-index row, swap nulls and equal-share
    comparisons: does the filter keep the position channel there, and how does the method compare with the step index alone?
-5. **Decide the digit features.** CLAUDE.md (2026-09-17) excludes digit-based features from future methods; Omri approved them for
-   the external runs, and every bank in Steps 457-462 contains them. One explicit decision is needed before any report.
+5. **Digit features - DECIDED (Omri, 2026-09-30): keep them** in this line's banks (B16/B23/B35/B54); for this line this supersedes
+   the 2026-09-17 exclusion in CLAUDE.md (recorded there).
 6. **Untouched confirmation** (MedPRMBench; needs the cluster). PRMBench, ProcessBench, Hard2Verify and Socratic are all exposed.
 7. **The advisor report** - paused by Omri until the findings from the other conversations are collected.

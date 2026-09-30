@@ -61,7 +61,7 @@ Suggested archive: `rclone copy` of these paths to `gdrive:hallucination_detecti
 authorized Drive storage for large outputs, CLAUDE.md 2026-09-24), then verify sizes and hashes before removing the worktree.
 
 ## 4. Open decisions for Omri
-1. Digit features: CLAUDE.md (2026-09-17) excludes them; Omri approved them for the external runs; all banks in 457-462 contain them.
+1. Digit features - DECIDED 2026-09-30: Omri keeps them in this line (recorded in CLAUDE.md). The next step is chosen after the merge.
 2. Which next direction to run (Research_Directions, 2026-09-30 section): the filter's position decision as the gate for the
    prior; a position weight that does not re-weight the content; artefact removal; the external check under the per-dataset
    contract; untouched confirmation (MedPRMBench).
