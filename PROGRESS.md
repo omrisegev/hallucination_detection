@@ -1,3 +1,15 @@
+## Tensor MoM run: negative for estimation, candidate unchanged (Claude) - 2026-09-30
+
+HISTORY Step 464, branch `claude/estimator-provenance-collection-2026-09-29`, worktree `.worktrees/tensor-mom-v1`.
+- Step 463's runner executed on stage A's marks/folds (hard stops passed, tests 10/10).
+  `results/tensor_mom_v1/run_20260930/SUMMARY.json`, `NEGATIVE_RESULT.md`.
+- Prevalence: MoM 0.23 vs truth 0.14 (DS/HEM about 0.28): closer, not at the bar. Per-channel sensitivity worse
+  (MAE 0.179 vs DS 0.118). Bar failed 0/5 for every estimator, including SML with MoM's b.
+- Same channels kept as Dawid-Skene on 5/5 folds: the frozen candidate (DS filter + plain average) is unchanged.
+- Deprioritized after discussion: a self-consistent mark threshold (no identity behind it; votes feed only the
+  filter). The 20% mark is inherited from the Step 443 tail recipe. The structural issue to revisit, if any, is the
+  uniform per-answer quantile marking clean answers, not the value 0.2.
+
 ## Estimator provenance, tensor MoM, collection map (Claude) - 2026-09-29
 
 HISTORY Step 463, branch `claude/estimator-provenance-collection-2026-09-29`.

@@ -18848,3 +18848,17 @@ docs/experiments/DIGIT_FAMILY_EXTENSION_V1.md. No further variant was tested.
 - Not run: `tensor_mom_stage_a_run.py` needs the local data. Branch `claude/estimator-provenance-collection-2026-09-29`.
 
 ---
+
+### Step 464 [Claude, tensor_mom_v1] - The 2015 third-moment MoM estimator run on stage A's marks: prevalence closer (0.23 vs truth 0.14; DS/HEM about 0.28) but per-channel sensitivity worse, the same channels kept as Dawid-Skene on 5/5 folds, the stage-A bar failed on 5/5 folds; negative for estimation, no change to the frozen candidate, 2026-09-30
+
+**What**: Ran `scripts/experiments/tensor_mom_stage_a_run.py run_20260930` (Step 463's runner) in a fresh worktree `.worktrees/tensor-mom-v1` of branch `claude/estimator-provenance-collection-2026-09-29`. Its hard stops passed: inputs hash-identical to stage A's INPUT_MANIFEST, truth replays STAGE_A_CHANNELS.csv to 1e-12 on all 5 folds; `tests/test_er_stage_a.py` 10/10. Outputs: `results/tensor_mom_v1/run_20260930/{SUMMARY.json,CHANNELS.csv}` and `run_20260930.log`.
+**Why**: Step 463 implemented the Jaffe-Nadler-Kluger (AISTATS 2015) estimator the advisor pointed to but had not run it on data; the question was whether it estimates channel quality and prevalence better than the Dawid-Skene EM / HEM / SML estimators that failed stage A's bar in Step 450.
+**Result** (mean over 5 folds, `SUMMARY.json` compare_mean_over_folds):
+- Prevalence error: MoM 0.092 (estimates 0.231–0.232 on every fold vs truth 0.137–0.141), DS 0.138, HEM 0.144. Closer, still not at the bar.
+- MAE sensitivity: MoM 0.179, DS 0.118, HEM 0.110 — MoM inflates more (`q15_H1` true 0.456, MoM 0.818, DS 0.757). MAE specificity 0.077 / 0.082 / 0.072. Spearman of balanced accuracy vs truth 0.752 / 0.752 / 0.779.
+- Bar passes: 0/5 for MoM, DS, HEM and for SML with MoM's imbalance b (Spearman 0.747–0.758, rank_ok False on all folds).
+- Filter: channels kept by MoM equal those kept by DS on 5/5 folds, so the frozen candidate (DS filter + plain average, Step 457) is unchanged; Step 463's prediction (sign of t cannot move the filter) held.
+- Reading: the nearly constant bias across folds and the shared inflation of sensitivity point to the estimators identifying the same latent class, which is not the error label (Steps 451, 460–461); the uniform per-answer top-20% marking also fixes a false-mark share in clean answers by construction. The "why 20%" question: the value is inherited from the Step 443 tail recipe (`PROTOCOL.json` lines 72, 120), a fixed engineering choice. A self-consistent-threshold search was discussed and deprioritized: no identity forces marked share = latent prevalence, and the votes feed only the filter, which MoM does not change.
+Negative result recorded: results/tensor_mom_v1/NEGATIVE_RESULT.md
+
+---
