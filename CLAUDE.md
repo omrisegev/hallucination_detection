@@ -1,5 +1,23 @@
 # CLAUDE.md — MV_EPR Spectral Hallucination Detection
 
+## Omri decision update - 2026-10-01: averaging is not the final fusion; Joint stopped
+
+Decided during the branch-merge review (label-free fusion line, Steps 450-464):
+- **The plain average is not acceptable as the final fusion step.** The current frozen
+  candidate (Dawid-Skene filter, then plain average) is still reported, including to the
+  advisors, as the current result. The next direction for the fusion step is to replace the
+  plain average with a combination that uses the label-free SML or method-of-moments
+  (tensor) estimates. Known obstacle, to address rather than ignore: so far the estimates
+  select channels but have not weighted them better than averaging (Steps 450-452, 457,
+  tensor MoM Step 464).
+- **Joint L-SML is discontinued.** There is no current reason to prefer it over L-SML; do not
+  add it as a new arm. Its historical results stay as records.
+- **Open experiment to run later:** remove 2-3 level-family channels to break the level
+  group's dominance (the level group gets the top Dawid-Skene weight in 40/40 bank-folds,
+  Step 457), then re-run the filter/partition/estimates. Proposed by Omri 2026-09-27; no
+  experiment has tested it yet.
+Record: Research_Directions.md (2026-09-30 section, "Omri decisions 2026-10-01").
+
 ## Omri decision update - 2026-09-30: digit features stay in the label-free fusion line
 
 Asked whether to keep the three digit features (digit_alternative, digit_spread,

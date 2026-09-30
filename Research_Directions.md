@@ -3753,3 +3753,16 @@ accuracy, macro over 8 cells):
    the 2026-09-17 exclusion in CLAUDE.md (recorded there).
 6. **Untouched confirmation** (MedPRMBench; needs the cluster). PRMBench, ProcessBench, Hard2Verify and Socratic are all exposed.
 7. **The advisor report** - paused by Omri until the findings from the other conversations are collected.
+
+### Omri decisions 2026-10-01 (branch-merge review)
+- **The plain average is not acceptable as the final fusion step.** The frozen candidate (filter + plain average) is still
+  reported as the current result, also to the advisors. New direction: replace the plain average with a combination that uses the
+  label-free **SML** or **method-of-moments (tensor)** estimates. The obstacle to face: the estimates select channels but have not
+  weighted them better than averaging (450-452, 457), and the tensor MoM run was negative (464: closer prevalence, worse per
+  channel). The closest existing recipe is the runner-up of Step 457: filter, label-free partition + one merge step, latent-group
+  EM (HEM) weights within groups and Dawid-Skene weights between groups - 8-bank mean 0.7670 vs 0.7656 for the plain average,
+  gains on 32/32+d, losses on 20+d and 51 (`results/algorithm_decisions_v1/SUMMARY.md`).
+- **Joint L-SML is discontinued** (no incentive over L-SML). Historical results stay as records.
+- **Open experiment (Omri, 2026-09-27, still wanted):** drop 2-3 level-family channels to break the level group's dominance (top
+  Dawid-Skene weight in 40/40 bank-folds, Step 457), then re-run the filter, partition and estimates. Omri's caveat: going from 5
+  to 3 level channels need not leave two level groups; check the resulting partition, not only the score.
