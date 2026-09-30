@@ -1,3 +1,11 @@
+## Off-git results archived to Drive; digit features kept; next step after the merge (Claude) - 2026-10-01
+
+Omri 2026-09-30: keep the digit features in the label-free fusion line (recorded in CLAUDE.md); decide the next step after
+the branch merge. All 367 off-git files under results/ of this worktree (3.70 GiB: STEP_SCORES, bootstrap deltas,
+external predictions, features, the pool input backup) are on Drive at `gdrive:hallucination_detection/consolidated_results/local_backup_2026-09-30/ssl-pseudolabel-residual-v1/`,
+verified 367/367 by size + MD5: `docs/archives/DRIVE_ARCHIVE_ssl-pseudolabel-residual-v1_2026-09-30.md`. Research_Directions.md has the 2026-09-30 state/next-directions section;
+docs/HANDOFF_LABEL_FREE_ALGORITHM_2026-09-30.md and docs/line_status/claude__ssl-pseudolabel-residual-v1.md document the line.
+
 ## per_dataset_fit_v1: the method fitted per model per dataset (Claude) - 2026-09-29
 
 HISTORY Step 462, `results/per_dataset_fit_v1/SUMMARY.md` (+ RED_TEAM.md). Omri's contract - fit per model per dataset on the

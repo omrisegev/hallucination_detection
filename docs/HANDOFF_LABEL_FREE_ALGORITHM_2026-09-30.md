@@ -42,7 +42,7 @@ agents (recomputation / coverage / nulls and math), SUMMARY.md, HISTORY/PROGRESS
 - `per_dataset_fit_run.py` contains a code-path replay: its per-cell fit function, called on fold 0's pooled rows, reproduces
   Steps 457/460/461 to 8.9e-16 (hard stop). Use it as the base for future per-dataset experiments.
 
-## 3. Artefacts NOT in git (must be archived before this worktree is removed)
+## 3. Artefacts NOT in git (archived on Drive 2026-10-01, see the end of this section)
 
 About 2.3 GB, all git-ignored or untracked, all reproducible from the runners except where noted:
 - `STEP_SCORES.npz` of every run (e.g. `algorithm_decisions_v1/run_20260928` 351 MB, `per_dataset_fit_v1/run_20260929` 75 MB,
@@ -57,8 +57,9 @@ About 2.3 GB, all git-ignored or untracked, all reproducible from the runners ex
 - **Pool inputs.** `algorithm_decisions_v1/run_20260928/INPUT_MANIFEST.json` points `pool_z` / `pool_names` to a temporary session
   scratchpad. A hash-verified backup is now in `results/algorithm_decisions_v1/inputs_backup/` (pool_z.npy git-ignored, 57 MB;
   HASHES.json and pool_names.json committed). They are built by `results/indbank_lsml_prmbench_v1/pool_structure.py`.
-Suggested archive: `rclone copy` of these paths to `gdrive:hallucination_detection/claude_label_free_line_2026-09/` (Omri
-authorized Drive storage for large outputs, CLAUDE.md 2026-09-24), then verify sizes and hashes before removing the worktree.
+**ARCHIVED 2026-10-01** (Omri asked for it): all 367 off-git files under results/ (3.70 GiB), including everything above,
+to `gdrive:hallucination_detection/consolidated_results/local_backup_2026-09-30/ssl-pseudolabel-residual-v1/`; verified with `rclone check` (size + MD5): 367 matching, 0 differences. Record and restore commands:
+[docs/archives/DRIVE_ARCHIVE_ssl-pseudolabel-residual-v1_2026-09-30.md](archives/DRIVE_ARCHIVE_ssl-pseudolabel-residual-v1_2026-09-30.md); manifest with md5 next to it.
 
 ## 4. Open decisions for Omri
 1. Digit features - DECIDED 2026-09-30: Omri keeps them in this line (recorded in CLAUDE.md). The next step is chosen after the merge.

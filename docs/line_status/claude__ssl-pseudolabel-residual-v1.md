@@ -70,4 +70,5 @@ Outside git but needed (about 2.3 GB, all git-ignored or untracked; listed in do
 - results/external_banks_v4/*/FEATURES.npz and reference_arrays/*.npy (hashes in reference_arrays/HASHES.json): regenerable.
 - results/algorithm_decisions_v1/inputs_backup/pool_z.npy (57 MB): hash-verified backup of the pool input that INPUT_MANIFEST.json
   points to in a temporary session scratchpad; regenerable by results/indbank_lsml_prmbench_v1/pool_structure.py.
-- None is archived on Drive yet; suggested target gdrive:hallucination_detection/claude_label_free_line_2026-09/.
+- ARCHIVED 2026-10-01: all 367 off-git files under results/ (3.70 GiB) to gdrive:hallucination_detection/consolidated_results/local_backup_2026-09-30/ssl-pseudolabel-residual-v1/, verified 367/367 by size + MD5
+  (docs/archives/DRIVE_ARCHIVE_ssl-pseudolabel-residual-v1_2026-09-30.md; manifest with md5 in the same folder).
