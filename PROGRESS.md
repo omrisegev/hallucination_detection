@@ -28,6 +28,32 @@ Three new rows with standardized top-1 tail marks: family15, bank11 unoriented a
 - Exploratory; independent audits of V2 not run.
 - Step 444; `results/family_tail_external_v2/REPORT_HE.md`; `docs/experiments/FAMILY_TAIL_EXTERNAL_V2.md`.
 
+## 2026-09-24: group-confidence / sensitivity-specificity experiment COMPLETE, negative
+
+User-authorized CPU experiment on all13,769 source answers/145,597steps, fixed
+28features/15families, binary latent-tree fit and continuous likelihood extension.
+All5fits converge;3fit/1unlabeled-cal/1test with same-model calibration. No new
+inference or external quality evaluation. Five mechanism tests and three
+independent full-population reviews pass; historical bank11/CT7 anchors replay.
+
+Primary PRMScore (6,211noncontrol answers): candidate0.631878 vs evidence-average
+0.632473,raw28equal0.640876,family15equal0.643323,binary-family spectral L-SML
+0.641834. Candidate minus familyequal−0.011444, corrected paired CI
+[−0.015013,−0.007668]; versus matched evidence-average CI includes0. Do not
+promote this implementation to external evaluation; frozen bank11 remains the
+leading learned transfer method from the completed external study below.
+
+Sensitivity/specificity are estimated relative to latent states, not measured
+gold accuracy. Posthoc PRMB accuracy discrepancies and approximate covariance
+fit caution against interpreting confident latent predictions as true reliability.
+This is fixed-family latent-tree EM, not exact published L-SML; the bank was
+previously label-selected and the continuous extension is unproved. Negative
+implementation result does not close the broader direction.
+
+Report: docs/experiments/LSML_GROUP_CONFIDENCE_RESULTS_20260924_HE.md.
+Artifacts/code/protocol/seals/audits: results/lsml_group_confidence_v1/.
+No follow-on sweep started. The existing external-study record follows unchanged.
+
 ## 2026-09-24: external L-SML comparison COMPLETE; frozen bank11 leads
 
 All seven internal arms completed on 6,190/6,190 answer/backbone records and
@@ -6459,7 +6485,6 @@ token/window sampling shortlist remain pending after this run.
 - Verbalized confidence on 7B+ — parser is ready; needs one inference run with Qwen2.5-Math-7B on GSM8K
 - Phase 10 RAG re-run with variant=4 prompt — low priority
 - LapEigvals integration into spectral_utils — potential Group D feature for M=12, low priority
-
 ## 2026-09-24: Family15 tail20 transfer complete; independent review deferred
 
 All ten registered arms were scored on 6,190/6,190 answer/backbone records and

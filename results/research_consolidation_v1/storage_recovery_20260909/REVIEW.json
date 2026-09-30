@@ -1,0 +1,59 @@
+{
+  "status": "PASS_FOR_MANUAL_STORAGE_RECOVERY",
+  "review_date": "2026-09-09",
+  "authorization": "User asked Codex to resume the consolidation work stopped by disk exhaustion while Claude owns the shrinkage experiment.",
+  "failure": "OSError(28, 'No space left on device'); scientific driver and input files not changed.",
+  "source_manifest_check": {
+    "path": "results/localization_full_sampling_v3/MANIFEST.json",
+    "checked_files": 357,
+    "mismatches": []
+  },
+  "checkpoint_check": {
+    "completed": 3036,
+    "total": 13769,
+    "bad": [],
+    "metadata_missing_execution_telemetry": [
+      "pb_olympiadbench_q4__a1194eeefd37115c"
+    ],
+    "unfinished_files": [
+      {
+        "name": "pb_olympiadbench_q4__6aa189c540ebbb80.json.tmp",
+        "bytes": 0
+      },
+      {
+        "name": "pb_olympiadbench_q4__6aa189c540ebbb80.npz",
+        "bytes": 234933
+      },
+      {
+        "name": "pb_olympiadbench_q4__a1194eeefd37115c.json.tmp",
+        "bytes": 0
+      }
+    ],
+    "score_logical_bytes": 4405094072,
+    "disk_free_bytes": 33669513216
+  },
+  "checks": [
+    "All final JSON records parse and identify a selected record.",
+    "Manifest digest matches for every committed record.",
+    "uid, row_id, group_id, tokens, steps and cell match the frozen selection.",
+    "All 56 method keys are present in each committed record.",
+    "Every committed NPZ SHA256 matches its JSON metadata."
+  ],
+  "recovery_rules": [
+    "Preserve the stopped RUN_STATE files, logs and unfinished files in this recovery directory.",
+    "Resume the same driver with --phase run; it independently verifies manifest and checkpoint hashes again.",
+    "No accepted score file is modified by this recovery.",
+    "The orphan NPZ without final metadata is not a checkpoint and will be recomputed by the unchanged driver.",
+    "One complete record lacks optional execution_acceleration telemetry because the disk filled during that additional metadata write; scientific arrays and method metadata verified, no values invented.",
+    "Start the existing supervisor only after the resumed driver is visible, so it adopts that process; do not relax failure-restart guards.",
+    "Do not repeat the completed historical Joint or gate audit; finalize the reflection after sampling and its evaluation pass."
+  ],
+  "storage": {
+    "free_bytes_at_checkpoint_audit": 33669513216,
+    "remaining_records": 10733,
+    "observed_score_allocated_bytes": 1533360877,
+    "observed_score_logical_bytes": 4405094072,
+    "scope": "Capacity figures are a snapshot. Existing NTFS compression retained; no deletion performed by Codex recovery."
+  },
+  "scope": "Storage/checkpoint fidelity review only. No new performance estimate, scientific recipe, gate or experiment."
+}

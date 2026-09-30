@@ -1,0 +1,247 @@
+{
+  "status": "POST_EVALUATION_EXPLORATORY_REVIEW",
+  "reason": "Always-context equal fusion is an existing full-coverage comparator; do not hide it behind routed controls.",
+  "evaluation_sha256": "d548b93274d99eaf804b652c1be411d661ec3c631e29546c3d441ebbb8efa2c2",
+  "pairs": {
+    "single__joint0 minus context__equal": {
+      "left": "single__joint0",
+      "right": "context__equal",
+      "left_prm": {
+        "answers": 12,
+        "auroc": 0.6366304347826087,
+        "within_answer_auc": 0.6879806998556999,
+        "mixed_answers": 10
+      },
+      "right_prm": {
+        "answers": 12,
+        "auroc": 0.6608695652173913,
+        "within_answer_auc": 0.6618244949494949,
+        "mixed_answers": 10
+      },
+      "left_pb": {
+        "cells": {
+          "pb_gsm8k_q8": {
+            "answers": 10,
+            "clean": 6,
+            "erroneous": 4,
+            "clean_accuracy": 0.5,
+            "error_exact_accuracy": 0.25,
+            "f1": 0.3333333333333333,
+            "valid_decisions": 10
+          },
+          "pb_math_q8": {
+            "answers": 12,
+            "clean": 5,
+            "erroneous": 7,
+            "clean_accuracy": 0.4,
+            "error_exact_accuracy": 0.2857142857142857,
+            "f1": 0.3333333333333333,
+            "valid_decisions": 12
+          },
+          "pb_olympiadbench_q8": {
+            "answers": 12,
+            "clean": 6,
+            "erroneous": 6,
+            "clean_accuracy": 0.16666666666666666,
+            "error_exact_accuracy": 0.3333333333333333,
+            "f1": 0.2222222222222222,
+            "valid_decisions": 12
+          },
+          "pb_omnimath_q8": {
+            "answers": 12,
+            "clean": 4,
+            "erroneous": 8,
+            "clean_accuracy": 0.5,
+            "error_exact_accuracy": 0.125,
+            "f1": 0.2,
+            "valid_decisions": 12
+          }
+        },
+        "macro_f1": 0.2722222222222222
+      },
+      "right_pb": {
+        "cells": {
+          "pb_gsm8k_q8": {
+            "answers": 10,
+            "clean": 6,
+            "erroneous": 4,
+            "clean_accuracy": 1.0,
+            "error_exact_accuracy": 0.25,
+            "f1": 0.4,
+            "valid_decisions": 10
+          },
+          "pb_math_q8": {
+            "answers": 12,
+            "clean": 5,
+            "erroneous": 7,
+            "clean_accuracy": 0.8,
+            "error_exact_accuracy": 0.14285714285714285,
+            "f1": 0.24242424242424243,
+            "valid_decisions": 12
+          },
+          "pb_olympiadbench_q8": {
+            "answers": 12,
+            "clean": 6,
+            "erroneous": 6,
+            "clean_accuracy": 0.5,
+            "error_exact_accuracy": 0.16666666666666666,
+            "f1": 0.25,
+            "valid_decisions": 12
+          },
+          "pb_omnimath_q8": {
+            "answers": 12,
+            "clean": 4,
+            "erroneous": 8,
+            "clean_accuracy": 0.75,
+            "error_exact_accuracy": 0.125,
+            "f1": 0.21428571428571427,
+            "valid_decisions": 12
+          }
+        },
+        "macro_f1": 0.2766774891774892
+      },
+      "uncertainty": {
+        "prm_common_valid_ci95": [
+          -0.08743798786404773,
+          0.034398317731651085
+        ],
+        "prm_common_valid_valid_draws": 1000,
+        "prm_within_answer_common_valid_ci95": [
+          -0.036835577091259016,
+          0.10272995956589695
+        ],
+        "prm_within_answer_common_valid_valid_draws": 1000,
+        "pb_all_population_ci95": [
+          -0.16826231060606056,
+          0.11715728715728717
+        ],
+        "pb_all_population_valid_draws": 982,
+        "pb_common_iu_gate_all_population_ci95": [
+          0.0,
+          0.10454545454545457
+        ],
+        "pb_common_iu_gate_all_population_valid_draws": 982
+      }
+    },
+    "dual__joint0 minus context__equal": {
+      "left": "dual__joint0",
+      "right": "context__equal",
+      "left_prm": {
+        "answers": 12,
+        "auroc": 0.6285869565217391,
+        "within_answer_auc": 0.696140873015873,
+        "mixed_answers": 10
+      },
+      "right_prm": {
+        "answers": 12,
+        "auroc": 0.6608695652173913,
+        "within_answer_auc": 0.6618244949494949,
+        "mixed_answers": 10
+      },
+      "left_pb": {
+        "cells": {
+          "pb_gsm8k_q8": {
+            "answers": 10,
+            "clean": 6,
+            "erroneous": 4,
+            "clean_accuracy": 0.5,
+            "error_exact_accuracy": 0.25,
+            "f1": 0.3333333333333333,
+            "valid_decisions": 10
+          },
+          "pb_math_q8": {
+            "answers": 12,
+            "clean": 5,
+            "erroneous": 7,
+            "clean_accuracy": 0.4,
+            "error_exact_accuracy": 0.2857142857142857,
+            "f1": 0.3333333333333333,
+            "valid_decisions": 12
+          },
+          "pb_olympiadbench_q8": {
+            "answers": 12,
+            "clean": 6,
+            "erroneous": 6,
+            "clean_accuracy": 0.16666666666666666,
+            "error_exact_accuracy": 0.3333333333333333,
+            "f1": 0.2222222222222222,
+            "valid_decisions": 12
+          },
+          "pb_omnimath_q8": {
+            "answers": 12,
+            "clean": 4,
+            "erroneous": 8,
+            "clean_accuracy": 0.5,
+            "error_exact_accuracy": 0.125,
+            "f1": 0.2,
+            "valid_decisions": 12
+          }
+        },
+        "macro_f1": 0.2722222222222222
+      },
+      "right_pb": {
+        "cells": {
+          "pb_gsm8k_q8": {
+            "answers": 10,
+            "clean": 6,
+            "erroneous": 4,
+            "clean_accuracy": 1.0,
+            "error_exact_accuracy": 0.25,
+            "f1": 0.4,
+            "valid_decisions": 10
+          },
+          "pb_math_q8": {
+            "answers": 12,
+            "clean": 5,
+            "erroneous": 7,
+            "clean_accuracy": 0.8,
+            "error_exact_accuracy": 0.14285714285714285,
+            "f1": 0.24242424242424243,
+            "valid_decisions": 12
+          },
+          "pb_olympiadbench_q8": {
+            "answers": 12,
+            "clean": 6,
+            "erroneous": 6,
+            "clean_accuracy": 0.5,
+            "error_exact_accuracy": 0.16666666666666666,
+            "f1": 0.25,
+            "valid_decisions": 12
+          },
+          "pb_omnimath_q8": {
+            "answers": 12,
+            "clean": 4,
+            "erroneous": 8,
+            "clean_accuracy": 0.75,
+            "error_exact_accuracy": 0.125,
+            "f1": 0.21428571428571427,
+            "valid_decisions": 12
+          }
+        },
+        "macro_f1": 0.2766774891774892
+      },
+      "uncertainty": {
+        "prm_common_valid_ci95": [
+          -0.07910679996827984,
+          0.023855835531278666
+        ],
+        "prm_common_valid_valid_draws": 1000,
+        "prm_within_answer_common_valid_ci95": [
+          0.0,
+          0.1016288254569506
+        ],
+        "prm_within_answer_common_valid_valid_draws": 1000,
+        "pb_all_population_ci95": [
+          -0.16826231060606056,
+          0.11715728715728717
+        ],
+        "pb_all_population_valid_draws": 982,
+        "pb_common_iu_gate_all_population_ci95": [
+          0.0,
+          0.10454545454545457
+        ],
+        "pb_common_iu_gate_all_population_valid_draws": 982
+      }
+    }
+  }
+}

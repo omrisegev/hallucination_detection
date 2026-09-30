@@ -1,0 +1,3426 @@
+{
+  "status": "PASS",
+  "counts": {
+    "direct_label_joins": 58,
+    "joint_validity_checks": 43,
+    "fresh_audit_perturbations": 464,
+    "raw_token_replicates": 1392,
+    "sensitivity_psd_checks": 116,
+    "independent_weight_solves": 3180,
+    "lambda_zero_replays": 795,
+    "parent_replays": 303,
+    "span_maps": 1184,
+    "mixture_gate_replays": 881,
+    "endpoint_checks": 23,
+    "historical_endpoint_replays": 6
+  },
+  "coverage": {
+    "equal_parent": 58,
+    "iu_parent": 58,
+    "joint_parent": 43,
+    "joint_graph010_parent": 43,
+    "joint_graph_permuted_parent": 43,
+    "entropy_parent": 58,
+    "equal__isotropic": 58,
+    "equal__dufs_graph": 58,
+    "equal__block_diag": 58,
+    "equal__block_diag_permuted": 58,
+    "equal__block_full": 58,
+    "iu__isotropic": 58,
+    "iu__dufs_graph": 58,
+    "iu__block_diag": 58,
+    "iu__block_diag_permuted": 58,
+    "iu__block_full": 58,
+    "joint__isotropic": 43,
+    "joint__dufs_graph": 43,
+    "joint_graph_fixed1": 43,
+    "joint_graph_fixed10": 43,
+    "joint__block_diag": 43,
+    "joint__block_diag_permuted": 43,
+    "joint__block_full": 43
+  },
+  "failures": {
+    "PARENT_UNAVAILABLE": 45,
+    "CORE_OR_PENALTY_UNAVAILABLE": 75,
+    "CORE_OR_GRID_UNAVAILABLE": 30
+  },
+  "lambda_counts": {
+    "equal__isotropic": {
+      "0.0": 58
+    },
+    "equal__dufs_graph": {
+      "0.1": 9,
+      "1.0": 16,
+      "0.0": 14,
+      "10.0": 19
+    },
+    "equal__block_diag": {
+      "10.0": 57,
+      "1.0": 1
+    },
+    "equal__block_diag_permuted": {
+      "0.0": 28,
+      "10.0": 23,
+      "1.0": 5,
+      "0.1": 2
+    },
+    "equal__block_full": {
+      "10.0": 40,
+      "0.1": 2,
+      "1.0": 15,
+      "0.0": 1
+    },
+    "iu__isotropic": {
+      "0.0": 58
+    },
+    "iu__dufs_graph": {
+      "0.1": 8,
+      "10.0": 26,
+      "0.0": 10,
+      "1.0": 14
+    },
+    "iu__block_diag": {
+      "10.0": 56,
+      "1.0": 1,
+      "0.0": 1
+    },
+    "iu__block_diag_permuted": {
+      "0.0": 33,
+      "10.0": 18,
+      "1.0": 6,
+      "0.1": 1
+    },
+    "iu__block_full": {
+      "10.0": 58
+    },
+    "joint__isotropic": {
+      "10.0": 15,
+      "1.0": 21,
+      "0.1": 5,
+      "0.0": 2
+    },
+    "joint__dufs_graph": {
+      "1.0": 12,
+      "0.1": 12,
+      "10.0": 10,
+      "0.0": 9
+    },
+    "joint__block_diag": {
+      "10.0": 39,
+      "0.1": 1,
+      "1.0": 3
+    },
+    "joint__block_diag_permuted": {
+      "10.0": 20,
+      "1.0": 12,
+      "0.1": 7,
+      "0.0": 4
+    },
+    "joint__block_full": {
+      "10.0": 43
+    }
+  },
+  "mean_validation_loss_ratio": {
+    "equal__isotropic": 1.0,
+    "equal__dufs_graph": 0.8164973538495464,
+    "equal__block_diag": 0.5723996585677983,
+    "equal__block_diag_permuted": 0.9382892980329692,
+    "equal__block_full": 0.515202272482764,
+    "iu__isotropic": 1.0,
+    "iu__dufs_graph": 0.8333468817245204,
+    "iu__block_diag": 0.6954901226857488,
+    "iu__block_diag_permuted": 0.9628026065249053,
+    "iu__block_full": 0.47172004363596653,
+    "joint__isotropic": 0.8803262153657695,
+    "joint__dufs_graph": 0.8930100475284156,
+    "joint__block_diag": 0.8102539164222479,
+    "joint__block_diag_permuted": 0.9003706787192051,
+    "joint__block_full": 0.5428893216395455
+  },
+  "fresh_perturbation_audit": {
+    "status": "POST_FREEZE_UNLABELED_DIAGNOSTIC",
+    "replicates": [
+      24,
+      31
+    ],
+    "mean_loss_ratio": {
+      "equal__isotropic": 1.0,
+      "equal__dufs_graph": 0.8251857347207058,
+      "equal__block_diag": 0.5626685205910607,
+      "equal__block_diag_permuted": 0.9419840457634635,
+      "equal__block_full": 0.5240968132175701,
+      "iu__isotropic": 1.0,
+      "iu__dufs_graph": 0.8422552995491492,
+      "iu__block_diag": 0.6864944673632396,
+      "iu__block_diag_permuted": 0.9630428532016126,
+      "iu__block_full": 0.46286079238584427,
+      "joint__isotropic": 0.882502669330987,
+      "joint__dufs_graph": 0.9232373662103749,
+      "joint__block_diag": 0.8097984305686023,
+      "joint__block_diag_permuted": 0.9087005450885458,
+      "joint__block_full": 0.5418630129873755
+    },
+    "answer_ratios": {
+      "equal__isotropic": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__79b576db1a9529bd",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__a71060a6561b81fa",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__199b05f9fb3bf1aa",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__504647a3cbe84e0d",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__76e3520270108e07",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__ad12a55cb45f7e79",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__6e2853368c4856b0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__bd8379cc4e4e6f8f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__23d9b7a250e3c3de",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__bd36e4961682c6a3",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__4ef2c45b71ab53e1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__7feb3d82eb34f54a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__c79a1862bd1adcdc",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__cd16fbb8c1c8ec88",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__05c10c24b909493d",
+          "ratio": 1.0
+        }
+      ],
+      "equal__dufs_graph": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 0.9818076902706195
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 0.8431643826016137
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 0.7089881331583974
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 0.6328100386473526
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 0.6010372562301852
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.8853988623731296
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 0.6547896326420894
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 0.41210124181855357
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 0.7226600440693179
+        },
+        {
+          "uid": "pb_math_q8__79b576db1a9529bd",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__a71060a6561b81fa",
+          "ratio": 0.8656959762517745
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 0.9536642469585709
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 0.6776859034849106
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 0.5526058253624815
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 0.8424117128013717
+        },
+        {
+          "uid": "pb_math_q8__199b05f9fb3bf1aa",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.40544909814571145
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.8414915592479536
+        },
+        {
+          "uid": "pb_math_q8__504647a3cbe84e0d",
+          "ratio": 0.6710347747744574
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 0.8513656372424128
+        },
+        {
+          "uid": "pb_olympiadbench_q8__76e3520270108e07",
+          "ratio": 0.8702969103413786
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 0.8278979696481056
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 0.773320723984009
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 0.8298593119563017
+        },
+        {
+          "uid": "pb_olympiadbench_q8__ad12a55cb45f7e79",
+          "ratio": 0.5103583552778664
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 0.6751008530225704
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.8548042792209632
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 0.783249847348989
+        },
+        {
+          "uid": "pb_olympiadbench_q8__6e2853368c4856b0",
+          "ratio": 0.9389304881114534
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.8327367704568629
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 0.7658511251150002
+        },
+        {
+          "uid": "pb_omnimath_q8__bd8379cc4e4e6f8f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 0.8572768188689347
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 0.8922474512891169
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 0.8584136836558213
+        },
+        {
+          "uid": "pb_omnimath_q8__23d9b7a250e3c3de",
+          "ratio": 0.6829535070984778
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 0.6351938483922768
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.5428630688341219
+        },
+        {
+          "uid": "pb_omnimath_q8__bd36e4961682c6a3",
+          "ratio": 0.9567124657799051
+        },
+        {
+          "uid": "prmbench_qwen3_8b__4ef2c45b71ab53e1",
+          "ratio": 0.7944114933875897
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__7feb3d82eb34f54a",
+          "ratio": 0.9161967887576843
+        },
+        {
+          "uid": "prmbench_qwen3_8b__c79a1862bd1adcdc",
+          "ratio": 0.8749466413849336
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 0.7297179694344695
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 0.551749891459635
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 0.7687372110648792
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 1.0960932712158575
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 0.9366898526128314
+        },
+        {
+          "uid": "prmbench_qwen3_8b__cd16fbb8c1c8ec88",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__05c10c24b909493d",
+          "ratio": 1.0
+        }
+      ],
+      "equal__block_diag": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 0.8518140434563275
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 0.5560488300641087
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 0.581827013053623
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 0.7415246546684158
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 0.5185420534091394
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 0.5549783009015135
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.7018747794987176
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 0.6108369181312985
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 0.28893523144309735
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 0.4543231368591496
+        },
+        {
+          "uid": "pb_math_q8__79b576db1a9529bd",
+          "ratio": 0.7509657989954778
+        },
+        {
+          "uid": "pb_math_q8__a71060a6561b81fa",
+          "ratio": 0.7403463838902691
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 0.7257909247152382
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 0.5319672105244209
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 0.5783335805742196
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 0.4654287941766354
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 0.6323586848485279
+        },
+        {
+          "uid": "pb_math_q8__199b05f9fb3bf1aa",
+          "ratio": 0.511419179802667
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.3163282248699528
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.5102642772278632
+        },
+        {
+          "uid": "pb_math_q8__504647a3cbe84e0d",
+          "ratio": 0.2458490751171885
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 0.5637631592490191
+        },
+        {
+          "uid": "pb_olympiadbench_q8__76e3520270108e07",
+          "ratio": 0.8080504716655792
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 0.6218507893893916
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 0.5835424387616267
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 0.5295472901968811
+        },
+        {
+          "uid": "pb_olympiadbench_q8__ad12a55cb45f7e79",
+          "ratio": 0.4848498245488331
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 0.45994347064686963
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.5238652519183589
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 0.7064173238994558
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 0.46007057776005783
+        },
+        {
+          "uid": "pb_olympiadbench_q8__6e2853368c4856b0",
+          "ratio": 0.7230690030988504
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.45230835411042736
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 0.6927176739808445
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 0.5833266145174374
+        },
+        {
+          "uid": "pb_omnimath_q8__bd8379cc4e4e6f8f",
+          "ratio": 0.9631221836286356
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 0.7296240355155316
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 0.5309904440864954
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 0.36880753053909077
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 0.6064226810439154
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 0.4577807283107499
+        },
+        {
+          "uid": "pb_omnimath_q8__23d9b7a250e3c3de",
+          "ratio": 0.4668719912472313
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 0.5321939071249133
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 0.3928956931602008
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.44428639145710946
+        },
+        {
+          "uid": "pb_omnimath_q8__bd36e4961682c6a3",
+          "ratio": 0.6161101325268477
+        },
+        {
+          "uid": "prmbench_qwen3_8b__4ef2c45b71ab53e1",
+          "ratio": 0.716299962036014
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 0.8169888578793063
+        },
+        {
+          "uid": "prmbench_qwen3_8b__7feb3d82eb34f54a",
+          "ratio": 0.47586099849292185
+        },
+        {
+          "uid": "prmbench_qwen3_8b__c79a1862bd1adcdc",
+          "ratio": 0.38718311669860317
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 0.6465257831502187
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 0.2928047768231935
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 0.6091229135768762
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 0.5838443551297721
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 0.5727571020542893
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 0.3737096889475083
+        },
+        {
+          "uid": "prmbench_qwen3_8b__cd16fbb8c1c8ec88",
+          "ratio": 0.495350171136281
+        },
+        {
+          "uid": "prmbench_qwen3_8b__05c10c24b909493d",
+          "ratio": 0.49214140974432397
+        }
+      ],
+      "equal__block_diag_permuted": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 0.8545129140380258
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 0.9175515821801752
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.9910352579308467
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 0.9931278402453854
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__79b576db1a9529bd",
+          "ratio": 0.8688671897031214
+        },
+        {
+          "uid": "pb_math_q8__a71060a6561b81fa",
+          "ratio": 0.8553303959819359
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 0.9900678009395998
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__199b05f9fb3bf1aa",
+          "ratio": 0.9463852422982488
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.8976981377589609
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.8159992925017557
+        },
+        {
+          "uid": "pb_math_q8__504647a3cbe84e0d",
+          "ratio": 0.5447424707435191
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 0.7877271453544816
+        },
+        {
+          "uid": "pb_olympiadbench_q8__76e3520270108e07",
+          "ratio": 0.9391036103417841
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 0.9522970232973236
+        },
+        {
+          "uid": "pb_olympiadbench_q8__ad12a55cb45f7e79",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 0.9070385960484556
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.7525558898435605
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 0.8038150180321975
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__6e2853368c4856b0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.9247105488157964
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__bd8379cc4e4e6f8f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 1.0117847686459212
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 0.944129572931076
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 0.9307484855477731
+        },
+        {
+          "uid": "pb_omnimath_q8__23d9b7a250e3c3de",
+          "ratio": 0.9382337068437419
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 0.7275207591925918
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.920167601295069
+        },
+        {
+          "uid": "pb_omnimath_q8__bd36e4961682c6a3",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__4ef2c45b71ab53e1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__7feb3d82eb34f54a",
+          "ratio": 0.8502802979833968
+        },
+        {
+          "uid": "prmbench_qwen3_8b__c79a1862bd1adcdc",
+          "ratio": 0.9875628144733966
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 0.9693199633364386
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 0.8778760681270017
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 0.8689912787330024
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__cd16fbb8c1c8ec88",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__05c10c24b909493d",
+          "ratio": 0.8658933811162998
+        }
+      ],
+      "equal__block_full": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 0.4948513544229351
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 0.4265703595573251
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 0.8615123837673772
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 0.8498193763308725
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 0.3577161921899245
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 0.43649150218591587
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.635011355989513
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 0.6218693625833825
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 0.29078057865717105
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 0.37426014919397105
+        },
+        {
+          "uid": "pb_math_q8__79b576db1a9529bd",
+          "ratio": 0.3611554980473292
+        },
+        {
+          "uid": "pb_math_q8__a71060a6561b81fa",
+          "ratio": 0.5490084152144713
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 0.8315115661903272
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 0.5821707191299392
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 0.6343980655843069
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 0.4272006300674165
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 0.514567467603637
+        },
+        {
+          "uid": "pb_math_q8__199b05f9fb3bf1aa",
+          "ratio": 0.5373339893539893
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.26878584890476287
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.5852657114727086
+        },
+        {
+          "uid": "pb_math_q8__504647a3cbe84e0d",
+          "ratio": 0.2294403168137218
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 0.7271730180653734
+        },
+        {
+          "uid": "pb_olympiadbench_q8__76e3520270108e07",
+          "ratio": 0.47465526023130433
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 0.7402753437369317
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 0.6520707442368798
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 0.21173048998013866
+        },
+        {
+          "uid": "pb_olympiadbench_q8__ad12a55cb45f7e79",
+          "ratio": 0.4602578650687257
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 0.39382262395430523
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.6380662633910635
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 0.6133229361939393
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 0.4814545674134962
+        },
+        {
+          "uid": "pb_olympiadbench_q8__6e2853368c4856b0",
+          "ratio": 0.7527232134459179
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.3633034203870008
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 0.8507695129513358
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 0.6108924603386837
+        },
+        {
+          "uid": "pb_omnimath_q8__bd8379cc4e4e6f8f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 0.8681217860735141
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 0.2931099115034184
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 0.3250025892769753
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 0.5125270013076572
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 0.5234432436507022
+        },
+        {
+          "uid": "pb_omnimath_q8__23d9b7a250e3c3de",
+          "ratio": 0.513093637121393
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 0.5644012678666217
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 0.5258225441311717
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.37852507035179217
+        },
+        {
+          "uid": "pb_omnimath_q8__bd36e4961682c6a3",
+          "ratio": 0.6549739696249192
+        },
+        {
+          "uid": "prmbench_qwen3_8b__4ef2c45b71ab53e1",
+          "ratio": 0.4205506554894707
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 0.21833435347621163
+        },
+        {
+          "uid": "prmbench_qwen3_8b__7feb3d82eb34f54a",
+          "ratio": 0.5938011134298814
+        },
+        {
+          "uid": "prmbench_qwen3_8b__c79a1862bd1adcdc",
+          "ratio": 0.40537007671305725
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 0.4564118017124815
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 0.211171886482992
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 0.6279992514092207
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 0.4131152541918398
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 0.45254880812582193
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 0.3179669715749243
+        },
+        {
+          "uid": "prmbench_qwen3_8b__cd16fbb8c1c8ec88",
+          "ratio": 0.5980672744041666
+        },
+        {
+          "uid": "prmbench_qwen3_8b__05c10c24b909493d",
+          "ratio": 0.6830181360447405
+        }
+      ],
+      "iu__isotropic": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__79b576db1a9529bd",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__a71060a6561b81fa",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__199b05f9fb3bf1aa",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__504647a3cbe84e0d",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__76e3520270108e07",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__ad12a55cb45f7e79",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__6e2853368c4856b0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__bd8379cc4e4e6f8f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__23d9b7a250e3c3de",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__bd36e4961682c6a3",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__4ef2c45b71ab53e1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__7feb3d82eb34f54a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__c79a1862bd1adcdc",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__cd16fbb8c1c8ec88",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__05c10c24b909493d",
+          "ratio": 1.0
+        }
+      ],
+      "iu__dufs_graph": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 1.0668135698718466
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 0.8641714360397003
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 0.7003079945204814
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 0.8676670987270704
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 0.7257895189716357
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.8111004513308244
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 0.8281966766257858
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 0.4570652466742536
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 0.7707853428764994
+        },
+        {
+          "uid": "pb_math_q8__79b576db1a9529bd",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__a71060a6561b81fa",
+          "ratio": 0.8873143373513365
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 0.9378473869410212
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 0.7390717750646442
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 0.6430083280992229
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 0.9272991664852501
+        },
+        {
+          "uid": "pb_math_q8__199b05f9fb3bf1aa",
+          "ratio": 0.8770187392186258
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.5495680813052487
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.7207057679020954
+        },
+        {
+          "uid": "pb_math_q8__504647a3cbe84e0d",
+          "ratio": 0.706070497699945
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 0.8574425037855334
+        },
+        {
+          "uid": "pb_olympiadbench_q8__76e3520270108e07",
+          "ratio": 0.9407911804362926
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 0.8923931671813492
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 0.7847777264555267
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 0.7390884543598503
+        },
+        {
+          "uid": "pb_olympiadbench_q8__ad12a55cb45f7e79",
+          "ratio": 0.639640888113394
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 0.8501519961042527
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.8100181099144197
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 0.9723867883971066
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 0.8020582742282315
+        },
+        {
+          "uid": "pb_olympiadbench_q8__6e2853368c4856b0",
+          "ratio": 0.9265172259051794
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.7804559086889192
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 0.8010313747518123
+        },
+        {
+          "uid": "pb_omnimath_q8__bd8379cc4e4e6f8f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 0.894515388961192
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 0.9615042968926902
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 1.0485162615637402
+        },
+        {
+          "uid": "pb_omnimath_q8__23d9b7a250e3c3de",
+          "ratio": 0.6055226417749339
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 0.6829680629848264
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.6338798137885567
+        },
+        {
+          "uid": "pb_omnimath_q8__bd36e4961682c6a3",
+          "ratio": 0.8780205208453817
+        },
+        {
+          "uid": "prmbench_qwen3_8b__4ef2c45b71ab53e1",
+          "ratio": 0.8710504734734666
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__7feb3d82eb34f54a",
+          "ratio": 0.7387462609793088
+        },
+        {
+          "uid": "prmbench_qwen3_8b__c79a1862bd1adcdc",
+          "ratio": 0.7834692423268892
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 0.7875149213980935
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 0.6687953333219754
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 0.8772797922355996
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 0.8015758388108378
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 1.0397252530575167
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 0.9571329373395581
+        },
+        {
+          "uid": "prmbench_qwen3_8b__cd16fbb8c1c8ec88",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__05c10c24b909493d",
+          "ratio": 0.7440353200687307
+        }
+      ],
+      "iu__block_diag": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 0.9142522937447143
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 0.6879099152189333
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 0.7862572848368744
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 0.7682060724017041
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 0.6874039775470295
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 0.7000803373343947
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.8007729810551946
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 0.7523329368873304
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 0.4413578862684054
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 0.6420683200245524
+        },
+        {
+          "uid": "pb_math_q8__79b576db1a9529bd",
+          "ratio": 0.7390011796974465
+        },
+        {
+          "uid": "pb_math_q8__a71060a6561b81fa",
+          "ratio": 0.8180718840292314
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 0.8830825508882386
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 0.6531943310669317
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 0.6462646621037021
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 0.5890125681807975
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 0.746993372057555
+        },
+        {
+          "uid": "pb_math_q8__199b05f9fb3bf1aa",
+          "ratio": 0.5617777724215
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.521867802035019
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.6228824360606654
+        },
+        {
+          "uid": "pb_math_q8__504647a3cbe84e0d",
+          "ratio": 0.37618754072047306
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 0.6960972202947692
+        },
+        {
+          "uid": "pb_olympiadbench_q8__76e3520270108e07",
+          "ratio": 0.8938722854093901
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 0.7021188252016533
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 0.7386955807255835
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 0.6260321179375747
+        },
+        {
+          "uid": "pb_olympiadbench_q8__ad12a55cb45f7e79",
+          "ratio": 0.5920321913813352
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 0.6402052809743851
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.6631030749326046
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 0.7685860274996036
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 0.5588293390187361
+        },
+        {
+          "uid": "pb_olympiadbench_q8__6e2853368c4856b0",
+          "ratio": 0.795615594901748
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.5613805198336077
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 0.8221001811042024
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 0.7240527846724537
+        },
+        {
+          "uid": "pb_omnimath_q8__bd8379cc4e4e6f8f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 0.8634166904483471
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 0.7100957530099181
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 0.5029760759324298
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 0.6637947431077875
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 0.7076294187746591
+        },
+        {
+          "uid": "pb_omnimath_q8__23d9b7a250e3c3de",
+          "ratio": 0.5770074324737837
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 0.7035270462792956
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 0.5070510920403335
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.5872399991633362
+        },
+        {
+          "uid": "pb_omnimath_q8__bd36e4961682c6a3",
+          "ratio": 0.6834385905464864
+        },
+        {
+          "uid": "prmbench_qwen3_8b__4ef2c45b71ab53e1",
+          "ratio": 0.7446182452341992
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 0.8705380437611928
+        },
+        {
+          "uid": "prmbench_qwen3_8b__7feb3d82eb34f54a",
+          "ratio": 0.6115263674069331
+        },
+        {
+          "uid": "prmbench_qwen3_8b__c79a1862bd1adcdc",
+          "ratio": 0.5897168953637667
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 0.7687580987860627
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 0.47083356119017705
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 0.7273067944039986
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 0.7858625919397342
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 0.766859356411092
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 0.505816166467523
+        },
+        {
+          "uid": "prmbench_qwen3_8b__cd16fbb8c1c8ec88",
+          "ratio": 0.6704663185907571
+        },
+        {
+          "uid": "prmbench_qwen3_8b__05c10c24b909493d",
+          "ratio": 0.6765006972677414
+        }
+      ],
+      "iu__block_diag_permuted": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 0.8787594375294977
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 0.9590265245984051
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.9979860541508208
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__79b576db1a9529bd",
+          "ratio": 0.8442018775888348
+        },
+        {
+          "uid": "pb_math_q8__a71060a6561b81fa",
+          "ratio": 0.9081674495984545
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 0.913980551808114
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__199b05f9fb3bf1aa",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.8908359707865998
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.9544820816676678
+        },
+        {
+          "uid": "pb_math_q8__504647a3cbe84e0d",
+          "ratio": 0.6129530794302501
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 0.8072128239769049
+        },
+        {
+          "uid": "pb_olympiadbench_q8__76e3520270108e07",
+          "ratio": 0.9421940998939514
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__ad12a55cb45f7e79",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 0.9430098814138321
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.9207324701142565
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 0.8840203545283482
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__6e2853368c4856b0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.9203022249244954
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 0.9895270638382883
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__bd8379cc4e4e6f8f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 0.9643328811586601
+        },
+        {
+          "uid": "pb_omnimath_q8__23d9b7a250e3c3de",
+          "ratio": 0.9312463428473777
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 0.8316328456964509
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.9518550012553904
+        },
+        {
+          "uid": "pb_omnimath_q8__bd36e4961682c6a3",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__4ef2c45b71ab53e1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__7feb3d82eb34f54a",
+          "ratio": 0.9609230780608884
+        },
+        {
+          "uid": "prmbench_qwen3_8b__c79a1862bd1adcdc",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 1.0002358516603889
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 0.9602501866633781
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 0.9338737407900053
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__cd16fbb8c1c8ec88",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__05c10c24b909493d",
+          "ratio": 0.9547436117122674
+        }
+      ],
+      "iu__block_full": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 0.3471118113495373
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 0.5054830540207547
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 0.7366371260337091
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 0.4328153520185828
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 0.4111723082139845
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 0.5603716202296146
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.5406899691074147
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 0.48591417255953656
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 0.3527496526810992
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 0.42452028863657076
+        },
+        {
+          "uid": "pb_math_q8__79b576db1a9529bd",
+          "ratio": 0.3491977797423832
+        },
+        {
+          "uid": "pb_math_q8__a71060a6561b81fa",
+          "ratio": 0.4261414834751225
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 0.5306083222405007
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 0.42082059927851384
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 0.44158576148176915
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 0.40110648947627037
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 0.3203289512869318
+        },
+        {
+          "uid": "pb_math_q8__199b05f9fb3bf1aa",
+          "ratio": 0.41864262164623345
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.4221357091063014
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.4927663074549528
+        },
+        {
+          "uid": "pb_math_q8__504647a3cbe84e0d",
+          "ratio": 0.3050427471915906
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 0.5290366786472567
+        },
+        {
+          "uid": "pb_olympiadbench_q8__76e3520270108e07",
+          "ratio": 0.4862912302997313
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 0.5713075132963469
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 0.5046915077828295
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 0.24836846411210117
+        },
+        {
+          "uid": "pb_olympiadbench_q8__ad12a55cb45f7e79",
+          "ratio": 0.4135855687963336
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 0.4846789827455032
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.48573890332504954
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 0.507235395873163
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 0.3916168132652506
+        },
+        {
+          "uid": "pb_olympiadbench_q8__6e2853368c4856b0",
+          "ratio": 0.6019336181284368
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.40281133624585347
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 0.689567630976443
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 0.6495157309288081
+        },
+        {
+          "uid": "pb_omnimath_q8__bd8379cc4e4e6f8f",
+          "ratio": 0.7090815310292452
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 0.5145824858001957
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 0.4242298005083162
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 0.37808988457393705
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 0.4275923238557243
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 0.6108265324278032
+        },
+        {
+          "uid": "pb_omnimath_q8__23d9b7a250e3c3de",
+          "ratio": 0.43149564787190337
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 0.5153496079530075
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 0.314569047528222
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.42664462024731337
+        },
+        {
+          "uid": "pb_omnimath_q8__bd36e4961682c6a3",
+          "ratio": 0.4924872000320017
+        },
+        {
+          "uid": "prmbench_qwen3_8b__4ef2c45b71ab53e1",
+          "ratio": 0.33221906454416406
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 0.30253630938210974
+        },
+        {
+          "uid": "prmbench_qwen3_8b__7feb3d82eb34f54a",
+          "ratio": 0.48352682760477567
+        },
+        {
+          "uid": "prmbench_qwen3_8b__c79a1862bd1adcdc",
+          "ratio": 0.3844455411281125
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 0.5281924131682154
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 0.2813710011620792
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 0.4789031785957257
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 0.5004592081477617
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 0.48378700243136025
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 0.3391218764487378
+        },
+        {
+          "uid": "prmbench_qwen3_8b__cd16fbb8c1c8ec88",
+          "ratio": 0.6193408568409268
+        },
+        {
+          "uid": "prmbench_qwen3_8b__05c10c24b909493d",
+          "ratio": 0.5748524954428491
+        }
+      ],
+      "joint__isotropic": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 0.8320128207053228
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 0.9525565914372013
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 0.9823383850063797
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 0.9232173496395777
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 0.9249153877301932
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.8843895498381029
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 0.9155113742779959
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 0.945433975550799
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 0.933165154294916
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 0.7166822329055502
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 0.779575672998143
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 0.8909238860915075
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 0.9550910540993806
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 0.39720007095892046
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.8582519182601143
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.9558539854792121
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 0.923081864775544
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 0.517681553401226
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 0.7742807459879083
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 0.8531120797706359
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 0.9262238157311877
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.8146781840803307
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 0.9123300037444185
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 0.9778221884347202
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.9817308117315321
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 0.937473550198515
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 0.7590754897038834
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 1.0003141799433553
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 0.8721404682057475
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 0.9878294393755571
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 0.9706983648175951
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 0.7562505107753377
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 0.9285769998568092
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.891885586650727
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 0.9019834573820665
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 0.7882490515306508
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 0.9005358478709086
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 0.9011650570648504
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 0.9525269003006095
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 0.9068133280354564
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 0.9640358925895399
+        }
+      ],
+      "joint__dufs_graph": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 0.9489009654675223
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 1.0274539502298745
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 0.8840030941867139
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 1.1169424091188103
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 1.0239187655700843
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 1.0517986379493556
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.7304734640497298
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 0.9974769982405255
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 0.8757025016158665
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 0.8702025618700425
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 0.692887160893488
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 0.8363847599143125
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 0.9147964438557522
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 0.9432266662638518
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.8931300748024263
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.9467002445194681
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 0.5500083011315585
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 0.7841674034662616
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 0.6746627551883795
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 1.0365585976544347
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.903268674547757
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 0.9155200459343493
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 0.9844920596963623
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.9224846113729285
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 0.9915904878888699
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 0.8266515565332184
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 0.9878118900047025
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 0.9058086514415346
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 0.8112573981111856
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.7490576124051146
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 1.043862916845258
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 0.9027343617213951
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 0.9780108911062076
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 0.9772598334487792
+        }
+      ],
+      "joint__block_diag": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 0.7859212755495063
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 0.8510528309382702
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 0.9160667071330436
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 0.7417835290863299
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 0.7967667042643907
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 1.0116269731039433
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.7456524793844312
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 0.8817671772433047
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 0.8846176313011098
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 0.8213612345943788
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 0.7054540744805674
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 0.6853531354062767
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 0.812442943711082
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 0.8412245185521969
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 0.24398028859544096
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.8386539075357814
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.9033486382553789
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 0.8670277179591593
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 0.32485116013295795
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 0.7205365206684983
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 0.6005784154376262
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 0.8766681570629279
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.7865868798161892
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 0.8753352073004853
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 0.9474914955723641
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.9453368342565239
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 0.9145869975767966
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 0.6190316735245432
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 0.9612282836115049
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 0.7014367495934928
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 0.9287932339239083
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 0.9825211708337442
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 0.9332515234165634
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 0.7538159852993939
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 0.8729571126568746
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.8026504505852113
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 0.8005412405347944
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 0.7738721368792806
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 0.8349720795342233
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 0.8020388091309197
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 0.8991766725034068
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 0.9118780243067497
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 0.9170939331963207
+        }
+      ],
+      "joint__block_diag_permuted": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 1.0301821928299821
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 0.9225539737214824
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 0.9908832672665607
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 1.001106981153947
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 0.9004549460520551
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 1.015040361728737
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.8778047058041739
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 0.914277095040036
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 0.9806345414428658
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 0.927201588083087
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 0.7325958033824664
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 0.7833269029709202
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 0.9341392873278604
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 0.41858845497623776
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.9678156395881365
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.8999797027949166
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 0.9015503441705851
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 0.7326260766389233
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 0.7643265677212893
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 0.980215652521123
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 0.9814565032227317
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.9136768196592772
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 0.9438957622055285
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 0.990000064596161
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.9576044287391715
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 0.9117712727603237
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 0.7685100838934334
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 0.9989610829510748
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 0.9097089935388065
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 1.0
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 0.9731837245354029
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 0.7991586261315613
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 0.9187667823036596
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.9119732113107856
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 0.9706378539284658
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 0.7969508316746444
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 0.8125190606319791
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 1.0
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 0.9315965597046302
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 0.9205593212951781
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 0.9878883705092704
+        }
+      ],
+      "joint__block_full": [
+        {
+          "uid": "pb_gsm8k_q8__f65d530bb48bb425",
+          "ratio": 0.2614869786407621
+        },
+        {
+          "uid": "pb_gsm8k_q8__cc49b1c3cc482915",
+          "ratio": 0.5654276444782064
+        },
+        {
+          "uid": "pb_gsm8k_q8__e3d7d66e65880f7c",
+          "ratio": 0.8318116737939943
+        },
+        {
+          "uid": "pb_gsm8k_q8__11325a63e0970440",
+          "ratio": 0.36621426913873995
+        },
+        {
+          "uid": "pb_gsm8k_q8__746bd03067b37708",
+          "ratio": 0.43873667764608343
+        },
+        {
+          "uid": "pb_gsm8k_q8__245d599e31338019",
+          "ratio": 0.804202598482742
+        },
+        {
+          "uid": "pb_gsm8k_q8__44b6b8b9ab6541bf",
+          "ratio": 0.4937759780108289
+        },
+        {
+          "uid": "pb_gsm8k_q8__18e9e0e09127cb66",
+          "ratio": 0.5685949291867255
+        },
+        {
+          "uid": "pb_gsm8k_q8__201d598342acd87f",
+          "ratio": 0.6916750097000904
+        },
+        {
+          "uid": "pb_gsm8k_q8__86927448497290bb",
+          "ratio": 0.5073201996508759
+        },
+        {
+          "uid": "pb_math_q8__9a8ec76bb60950f0",
+          "ratio": 0.47560527113077866
+        },
+        {
+          "uid": "pb_math_q8__4f1faa04782b5ca0",
+          "ratio": 0.37214236506925424
+        },
+        {
+          "uid": "pb_math_q8__04ca77f4c2d574eb",
+          "ratio": 0.5400420483576325
+        },
+        {
+          "uid": "pb_math_q8__6b86840e4780655a",
+          "ratio": 0.5427749305592454
+        },
+        {
+          "uid": "pb_math_q8__2e43bf1fcf4ccea0",
+          "ratio": 0.24423058444370987
+        },
+        {
+          "uid": "pb_math_q8__8848bb7f3a6c74d9",
+          "ratio": 0.6722574940350692
+        },
+        {
+          "uid": "pb_math_q8__a20f914681f9c14a",
+          "ratio": 0.6867757870185679
+        },
+        {
+          "uid": "pb_math_q8__7f7c62028e69a7bc",
+          "ratio": 0.6629748524526623
+        },
+        {
+          "uid": "pb_olympiadbench_q8__df9bd4008373c9aa",
+          "ratio": 0.24887990296091175
+        },
+        {
+          "uid": "pb_olympiadbench_q8__7aa9426779b386c9",
+          "ratio": 0.4695149175617547
+        },
+        {
+          "uid": "pb_olympiadbench_q8__dad268041b7c34e4",
+          "ratio": 0.23608684136846772
+        },
+        {
+          "uid": "pb_olympiadbench_q8__42ad5bcd8de205e5",
+          "ratio": 0.6415894435471521
+        },
+        {
+          "uid": "pb_olympiadbench_q8__57597209a00d804e",
+          "ratio": 0.5627364611047532
+        },
+        {
+          "uid": "pb_olympiadbench_q8__79db47bfd51f5027",
+          "ratio": 0.5903302187584931
+        },
+        {
+          "uid": "pb_olympiadbench_q8__137df47dddc596ca",
+          "ratio": 0.6457174939428197
+        },
+        {
+          "uid": "pb_olympiadbench_q8__4a90cc3d0491f13a",
+          "ratio": 0.6401988624520409
+        },
+        {
+          "uid": "pb_olympiadbench_q8__62c2deb654e7f53a",
+          "ratio": 0.7491798521480051
+        },
+        {
+          "uid": "pb_omnimath_q8__85c40c6f1e0ffa62",
+          "ratio": 0.5200764526329873
+        },
+        {
+          "uid": "pb_omnimath_q8__c43d68192592c06e",
+          "ratio": 0.5924431011117686
+        },
+        {
+          "uid": "pb_omnimath_q8__148da4aa8d9daa9f",
+          "ratio": 0.40567780299739586
+        },
+        {
+          "uid": "pb_omnimath_q8__6cba87f291a35c70",
+          "ratio": 0.7249407191775179
+        },
+        {
+          "uid": "pb_omnimath_q8__b7b75c2eed23e2a1",
+          "ratio": 0.6171266323630467
+        },
+        {
+          "uid": "pb_omnimath_q8__e1fffe9ebe5ef995",
+          "ratio": 0.7397886840356601
+        },
+        {
+          "uid": "pb_omnimath_q8__e98c4d7b0003791e",
+          "ratio": 0.5479052148257453
+        },
+        {
+          "uid": "pb_omnimath_q8__7d173e72b473987a",
+          "ratio": 0.47894243274267717
+        },
+        {
+          "uid": "pb_omnimath_q8__138e58c2e3af3830",
+          "ratio": 0.5851637476208508
+        },
+        {
+          "uid": "prmbench_qwen3_8b__ff10ad2ba8a9119f",
+          "ratio": 0.28971694331638764
+        },
+        {
+          "uid": "prmbench_qwen3_8b__9b3e6edb7a1965a1",
+          "ratio": 0.552690619406708
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8286ae69007f7622",
+          "ratio": 0.5322074039730247
+        },
+        {
+          "uid": "prmbench_qwen3_8b__fc734c3daaec8342",
+          "ratio": 0.5328558120004655
+        },
+        {
+          "uid": "prmbench_qwen3_8b__8c676352aad66483",
+          "ratio": 0.521848251187755
+        },
+        {
+          "uid": "prmbench_qwen3_8b__f722ebd4dd1861f5",
+          "ratio": 0.5812245239077881
+        },
+        {
+          "uid": "prmbench_qwen3_8b__63bd5a9466c6cb0f",
+          "ratio": 0.5672179315169978
+        }
+      ]
+    },
+    "changed_selection_or_scores": false
+  },
+  "mean_parent_score_correlation": {
+    "equal__isotropic": 1.0,
+    "equal__dufs_graph": 0.966357410845543,
+    "equal__block_diag": 0.959481202549095,
+    "equal__block_diag_permuted": 0.9959466287711769,
+    "equal__block_full": 0.8987977021487283,
+    "iu__isotropic": 1.0,
+    "iu__dufs_graph": 0.9686265887919098,
+    "iu__block_diag": 0.977149993751203,
+    "iu__block_diag_permuted": 0.9981787375980937,
+    "iu__block_full": 0.937369500908748,
+    "joint__isotropic": 0.9908034134568268,
+    "joint__dufs_graph": 0.9741996948432565,
+    "joint_graph_fixed1": 0.9625609697570842,
+    "joint_graph_fixed10": 0.9233186349954786,
+    "joint__block_diag": 0.9834062584093861,
+    "joint__block_diag_permuted": 0.9896755402740779,
+    "joint__block_full": 0.9403844534018411
+  },
+  "fixed_parent_gate_pb": {
+    "equal_parent": 0.17763157894736842,
+    "iu_parent": 0.17708333333333331,
+    "joint_parent": 0.125,
+    "joint_graph010_parent": 0.08333333333333333,
+    "joint_graph_permuted_parent": 0.041666666666666664,
+    "entropy_parent": 0.19846491228070173,
+    "equal__isotropic": 0.17763157894736842,
+    "equal__dufs_graph": 0.09375,
+    "equal__block_diag": 0.14638157894736842,
+    "equal__block_diag_permuted": 0.17763157894736842,
+    "equal__block_full": 0.05263157894736841,
+    "iu__isotropic": 0.17708333333333331,
+    "iu__dufs_graph": 0.24638157894736842,
+    "iu__block_diag": 0.14638157894736842,
+    "iu__block_diag_permuted": 0.17708333333333331,
+    "iu__block_full": 0.1369047619047619,
+    "joint__isotropic": 0.125,
+    "joint__dufs_graph": 0.08333333333333333,
+    "joint__block_diag": 0.125,
+    "joint__block_diag_permuted": 0.125,
+    "joint__block_full": 0.08333333333333333,
+    "joint_graph_fixed1": 0.125,
+    "joint_graph_fixed10": 0.125
+  },
+  "max_raw_sensitivity_error": 7.105427357601002e-15,
+  "max_weight_error": 1.368904989362818e-13,
+  "max_mapping_error": 2.3314683517128287e-15,
+  "evaluation_sha256": "2bd50e1f8c9d4263a23f81e978c6fe0e29e7a38ae2b0ad809fef45effaf9d1a1",
+  "review_script_sha256": "a3526f413f916d89cb70e37d9afe60349467869b910346085e8c4156bb1376c7"
+}

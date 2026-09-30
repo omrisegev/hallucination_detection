@@ -1,0 +1,621 @@
+{
+  "row": 368,
+  "row_id": "gsm8k::gsm8k-70",
+  "group_id": "pb_source_v2:f80c2b309a9de502f03120a0",
+  "tokens": 238,
+  "steps": 4,
+  "legacy_group_id": "gsm8k::gsm8k-70",
+  "cell": "pb_gsm8k_q8",
+  "length_bin": [
+    64,
+    255
+  ],
+  "uid": "pb_gsm8k_q8__199b29231e58b4c1",
+  "input_sha256": "708f414885f912d16c1319089f5dc4e0c03b380a2f2c83cbbeae072346b4743e",
+  "diagnostics": {
+    "banks": {
+      "moment__ar1": {
+        "names": [
+          "entropy_series__level",
+          "entropy_series__sd",
+          "entropy_series__slope",
+          "spilled_series__level",
+          "spilled_series__sd",
+          "spilled_series__slope",
+          "energy_series__level",
+          "energy_series__sd",
+          "energy_series__slope",
+          "top1_logprob_series__level",
+          "top1_logprob_series__sd",
+          "top1_logprob_series__slope",
+          "logprob_margin_series__level",
+          "logprob_margin_series__sd",
+          "logprob_margin_series__slope",
+          "topk_entropy_series__level",
+          "topk_entropy_series__sd",
+          "topk_entropy_series__slope",
+          "topk_varentropy_series__level",
+          "topk_varentropy_series__sd",
+          "topk_varentropy_series__slope",
+          "topk_renyi2_series__level",
+          "topk_renyi2_series__sd",
+          "topk_renyi2_series__slope",
+          "topk_tail_mass_series__level",
+          "topk_tail_mass_series__sd",
+          "topk_tail_mass_series__slope",
+          "entropy_series__prediction_abs_mean",
+          "spilled_series__prediction_abs_mean",
+          "energy_series__prediction_abs_mean",
+          "top1_logprob_series__prediction_abs_mean",
+          "logprob_margin_series__prediction_abs_mean",
+          "topk_entropy_series__prediction_abs_mean",
+          "topk_varentropy_series__prediction_abs_mean",
+          "topk_renyi2_series__prediction_abs_mean",
+          "topk_tail_mass_series__prediction_abs_mean"
+        ],
+        "active_original": 27,
+        "active_added": 9,
+        "n_fit_windows": 29,
+        "original_rank": 27,
+        "augmented_rank": 28,
+        "entropy_spearman": [
+          0.8901477832512316,
+          0.4975369458128079,
+          0.2645320197044335,
+          0.9,
+          0.03103448275862069,
+          0.8901477832512316,
+          0.6793103448275862,
+          0.9054187192118227,
+          0.44187192118226604
+        ],
+        "closest_original": [
+          {
+            "original_feature": "topk_renyi2_series__sd",
+            "absolute_spearman": 0.9536945812807882
+          },
+          {
+            "original_feature": "spilled_series__sd",
+            "absolute_spearman": 0.8512315270935961
+          },
+          {
+            "original_feature": "energy_series__sd",
+            "absolute_spearman": 0.8068965517241379
+          },
+          {
+            "original_feature": "top1_logprob_series__sd",
+            "absolute_spearman": 0.9502463054187192
+          },
+          {
+            "original_feature": "logprob_margin_series__sd",
+            "absolute_spearman": 0.6945812807881774
+          },
+          {
+            "original_feature": "topk_renyi2_series__sd",
+            "absolute_spearman": 0.9536945812807882
+          },
+          {
+            "original_feature": "topk_varentropy_series__sd",
+            "absolute_spearman": 0.8871921182266009
+          },
+          {
+            "original_feature": "topk_renyi2_series__sd",
+            "absolute_spearman": 0.9492610837438423
+          },
+          {
+            "original_feature": "topk_tail_mass_series__sd",
+            "absolute_spearman": 0.7374384236453202
+          }
+        ]
+      },
+      "moment__last": {
+        "names": [
+          "entropy_series__level",
+          "entropy_series__sd",
+          "entropy_series__slope",
+          "spilled_series__level",
+          "spilled_series__sd",
+          "spilled_series__slope",
+          "energy_series__level",
+          "energy_series__sd",
+          "energy_series__slope",
+          "top1_logprob_series__level",
+          "top1_logprob_series__sd",
+          "top1_logprob_series__slope",
+          "logprob_margin_series__level",
+          "logprob_margin_series__sd",
+          "logprob_margin_series__slope",
+          "topk_entropy_series__level",
+          "topk_entropy_series__sd",
+          "topk_entropy_series__slope",
+          "topk_varentropy_series__level",
+          "topk_varentropy_series__sd",
+          "topk_varentropy_series__slope",
+          "topk_renyi2_series__level",
+          "topk_renyi2_series__sd",
+          "topk_renyi2_series__slope",
+          "topk_tail_mass_series__level",
+          "topk_tail_mass_series__sd",
+          "topk_tail_mass_series__slope",
+          "entropy_series__prediction_abs_mean",
+          "spilled_series__prediction_abs_mean",
+          "energy_series__prediction_abs_mean",
+          "top1_logprob_series__prediction_abs_mean",
+          "logprob_margin_series__prediction_abs_mean",
+          "topk_entropy_series__prediction_abs_mean",
+          "topk_varentropy_series__prediction_abs_mean",
+          "topk_renyi2_series__prediction_abs_mean",
+          "topk_tail_mass_series__prediction_abs_mean"
+        ],
+        "active_original": 27,
+        "active_added": 9,
+        "n_fit_windows": 29,
+        "original_rank": 27,
+        "augmented_rank": 28,
+        "entropy_spearman": [
+          0.9177339901477832,
+          0.6389162561576355,
+          -0.03152709359605911,
+          0.9226600985221675,
+          0.11379310344827587,
+          0.9192118226600985,
+          0.783743842364532,
+          0.9009852216748768,
+          0.8039408866995074
+        ],
+        "closest_original": [
+          {
+            "original_feature": "entropy_series__sd",
+            "absolute_spearman": 0.9536945812807882
+          },
+          {
+            "original_feature": "spilled_series__level",
+            "absolute_spearman": 0.9270935960591133
+          },
+          {
+            "original_feature": "energy_series__sd",
+            "absolute_spearman": 0.7576354679802956
+          },
+          {
+            "original_feature": "top1_logprob_series__level",
+            "absolute_spearman": 0.9561576354679803
+          },
+          {
+            "original_feature": "logprob_margin_series__sd",
+            "absolute_spearman": 0.696551724137931
+          },
+          {
+            "original_feature": "entropy_series__sd",
+            "absolute_spearman": 0.9566502463054187
+          },
+          {
+            "original_feature": "topk_varentropy_series__sd",
+            "absolute_spearman": 0.9029556650246305
+          },
+          {
+            "original_feature": "topk_renyi2_series__sd",
+            "absolute_spearman": 0.954679802955665
+          },
+          {
+            "original_feature": "topk_tail_mass_series__level",
+            "absolute_spearman": 0.9916256157635468
+          }
+        ]
+      },
+      "moment__ema32": {
+        "names": [
+          "entropy_series__level",
+          "entropy_series__sd",
+          "entropy_series__slope",
+          "spilled_series__level",
+          "spilled_series__sd",
+          "spilled_series__slope",
+          "energy_series__level",
+          "energy_series__sd",
+          "energy_series__slope",
+          "top1_logprob_series__level",
+          "top1_logprob_series__sd",
+          "top1_logprob_series__slope",
+          "logprob_margin_series__level",
+          "logprob_margin_series__sd",
+          "logprob_margin_series__slope",
+          "topk_entropy_series__level",
+          "topk_entropy_series__sd",
+          "topk_entropy_series__slope",
+          "topk_varentropy_series__level",
+          "topk_varentropy_series__sd",
+          "topk_varentropy_series__slope",
+          "topk_renyi2_series__level",
+          "topk_renyi2_series__sd",
+          "topk_renyi2_series__slope",
+          "topk_tail_mass_series__level",
+          "topk_tail_mass_series__sd",
+          "topk_tail_mass_series__slope",
+          "entropy_series__prediction_abs_mean",
+          "spilled_series__prediction_abs_mean",
+          "energy_series__prediction_abs_mean",
+          "top1_logprob_series__prediction_abs_mean",
+          "logprob_margin_series__prediction_abs_mean",
+          "topk_entropy_series__prediction_abs_mean",
+          "topk_varentropy_series__prediction_abs_mean",
+          "topk_renyi2_series__prediction_abs_mean",
+          "topk_tail_mass_series__prediction_abs_mean"
+        ],
+        "active_original": 27,
+        "active_added": 9,
+        "n_fit_windows": 29,
+        "original_rank": 27,
+        "augmented_rank": 28,
+        "entropy_spearman": [
+          0.8714285714285714,
+          0.42512315270935963,
+          0.2911330049261084,
+          0.8261083743842365,
+          0.21379310344827587,
+          0.8714285714285714,
+          0.6024630541871921,
+          0.825615763546798,
+          0.5177339901477832
+        ],
+        "closest_original": [
+          {
+            "original_feature": "topk_renyi2_series__sd",
+            "absolute_spearman": 0.8916256157635468
+          },
+          {
+            "original_feature": "spilled_series__level",
+            "absolute_spearman": 0.6123152709359606
+          },
+          {
+            "original_feature": "energy_series__sd",
+            "absolute_spearman": 0.7236453201970443
+          },
+          {
+            "original_feature": "top1_logprob_series__level",
+            "absolute_spearman": 0.8699507389162562
+          },
+          {
+            "original_feature": "logprob_margin_series__sd",
+            "absolute_spearman": 0.6748768472906403
+          },
+          {
+            "original_feature": "topk_renyi2_series__sd",
+            "absolute_spearman": 0.8916256157635468
+          },
+          {
+            "original_feature": "topk_varentropy_series__sd",
+            "absolute_spearman": 0.8817733990147784
+          },
+          {
+            "original_feature": "topk_renyi2_series__sd",
+            "absolute_spearman": 0.8635467980295567
+          },
+          {
+            "original_feature": "topk_tail_mass_series__sd",
+            "absolute_spearman": 0.7591133004926108
+          }
+        ]
+      },
+      "context__ar1": {
+        "names": [
+          "entropy_series__level",
+          "entropy_series__ema8",
+          "entropy_series__ema32",
+          "spilled_series__level",
+          "spilled_series__ema8",
+          "spilled_series__ema32",
+          "energy_series__level",
+          "energy_series__ema8",
+          "energy_series__ema32",
+          "top1_logprob_series__level",
+          "top1_logprob_series__ema8",
+          "top1_logprob_series__ema32",
+          "logprob_margin_series__level",
+          "logprob_margin_series__ema8",
+          "logprob_margin_series__ema32",
+          "topk_entropy_series__level",
+          "topk_entropy_series__ema8",
+          "topk_entropy_series__ema32",
+          "topk_varentropy_series__level",
+          "topk_varentropy_series__ema8",
+          "topk_varentropy_series__ema32",
+          "topk_renyi2_series__level",
+          "topk_renyi2_series__ema8",
+          "topk_renyi2_series__ema32",
+          "topk_tail_mass_series__level",
+          "topk_tail_mass_series__ema8",
+          "topk_tail_mass_series__ema32",
+          "entropy_series__prediction_abs_mean",
+          "spilled_series__prediction_abs_mean",
+          "energy_series__prediction_abs_mean",
+          "top1_logprob_series__prediction_abs_mean",
+          "logprob_margin_series__prediction_abs_mean",
+          "topk_entropy_series__prediction_abs_mean",
+          "topk_varentropy_series__prediction_abs_mean",
+          "topk_renyi2_series__prediction_abs_mean",
+          "topk_tail_mass_series__prediction_abs_mean"
+        ],
+        "active_original": 27,
+        "active_added": 9,
+        "n_fit_windows": 29,
+        "original_rank": 27,
+        "augmented_rank": 28,
+        "entropy_spearman": [
+          0.8901477832512316,
+          0.4975369458128079,
+          0.2645320197044335,
+          0.9,
+          0.03103448275862069,
+          0.8901477832512316,
+          0.6793103448275862,
+          0.9054187192118227,
+          0.44187192118226604
+        ],
+        "closest_original": [
+          {
+            "original_feature": "top1_logprob_series__level",
+            "absolute_spearman": 0.9241379310344827
+          },
+          {
+            "original_feature": "spilled_series__level",
+            "absolute_spearman": 0.8364532019704434
+          },
+          {
+            "original_feature": "energy_series__ema8",
+            "absolute_spearman": 0.45369458128078816
+          },
+          {
+            "original_feature": "top1_logprob_series__level",
+            "absolute_spearman": 0.9433497536945813
+          },
+          {
+            "original_feature": "energy_series__level",
+            "absolute_spearman": 0.5266009852216749
+          },
+          {
+            "original_feature": "top1_logprob_series__level",
+            "absolute_spearman": 0.9241379310344827
+          },
+          {
+            "original_feature": "topk_varentropy_series__level",
+            "absolute_spearman": 0.8487684729064039
+          },
+          {
+            "original_feature": "top1_logprob_series__level",
+            "absolute_spearman": 0.9305418719211823
+          },
+          {
+            "original_feature": "topk_tail_mass_series__ema8",
+            "absolute_spearman": 0.7379310344827587
+          }
+        ]
+      },
+      "context__last": {
+        "names": [
+          "entropy_series__level",
+          "entropy_series__ema8",
+          "entropy_series__ema32",
+          "spilled_series__level",
+          "spilled_series__ema8",
+          "spilled_series__ema32",
+          "energy_series__level",
+          "energy_series__ema8",
+          "energy_series__ema32",
+          "top1_logprob_series__level",
+          "top1_logprob_series__ema8",
+          "top1_logprob_series__ema32",
+          "logprob_margin_series__level",
+          "logprob_margin_series__ema8",
+          "logprob_margin_series__ema32",
+          "topk_entropy_series__level",
+          "topk_entropy_series__ema8",
+          "topk_entropy_series__ema32",
+          "topk_varentropy_series__level",
+          "topk_varentropy_series__ema8",
+          "topk_varentropy_series__ema32",
+          "topk_renyi2_series__level",
+          "topk_renyi2_series__ema8",
+          "topk_renyi2_series__ema32",
+          "topk_tail_mass_series__level",
+          "topk_tail_mass_series__ema8",
+          "topk_tail_mass_series__ema32",
+          "entropy_series__prediction_abs_mean",
+          "spilled_series__prediction_abs_mean",
+          "energy_series__prediction_abs_mean",
+          "top1_logprob_series__prediction_abs_mean",
+          "logprob_margin_series__prediction_abs_mean",
+          "topk_entropy_series__prediction_abs_mean",
+          "topk_varentropy_series__prediction_abs_mean",
+          "topk_renyi2_series__prediction_abs_mean",
+          "topk_tail_mass_series__prediction_abs_mean"
+        ],
+        "active_original": 27,
+        "active_added": 9,
+        "n_fit_windows": 29,
+        "original_rank": 27,
+        "augmented_rank": 28,
+        "entropy_spearman": [
+          0.9177339901477832,
+          0.6389162561576355,
+          -0.03152709359605911,
+          0.9226600985221675,
+          0.11379310344827587,
+          0.9192118226600985,
+          0.783743842364532,
+          0.9009852216748768,
+          0.8039408866995074
+        ],
+        "closest_original": [
+          {
+            "original_feature": "top1_logprob_series__level",
+            "absolute_spearman": 0.9325123152709359
+          },
+          {
+            "original_feature": "spilled_series__level",
+            "absolute_spearman": 0.9270935960591133
+          },
+          {
+            "original_feature": "energy_series__ema8",
+            "absolute_spearman": 0.6280788177339901
+          },
+          {
+            "original_feature": "top1_logprob_series__level",
+            "absolute_spearman": 0.9561576354679803
+          },
+          {
+            "original_feature": "energy_series__level",
+            "absolute_spearman": 0.31182266009852216
+          },
+          {
+            "original_feature": "top1_logprob_series__level",
+            "absolute_spearman": 0.9334975369458128
+          },
+          {
+            "original_feature": "topk_varentropy_series__level",
+            "absolute_spearman": 0.9004926108374385
+          },
+          {
+            "original_feature": "top1_logprob_series__level",
+            "absolute_spearman": 0.9320197044334976
+          },
+          {
+            "original_feature": "topk_tail_mass_series__level",
+            "absolute_spearman": 0.9916256157635468
+          }
+        ]
+      },
+      "context__ema32": {
+        "names": [
+          "entropy_series__level",
+          "entropy_series__ema8",
+          "entropy_series__ema32",
+          "spilled_series__level",
+          "spilled_series__ema8",
+          "spilled_series__ema32",
+          "energy_series__level",
+          "energy_series__ema8",
+          "energy_series__ema32",
+          "top1_logprob_series__level",
+          "top1_logprob_series__ema8",
+          "top1_logprob_series__ema32",
+          "logprob_margin_series__level",
+          "logprob_margin_series__ema8",
+          "logprob_margin_series__ema32",
+          "topk_entropy_series__level",
+          "topk_entropy_series__ema8",
+          "topk_entropy_series__ema32",
+          "topk_varentropy_series__level",
+          "topk_varentropy_series__ema8",
+          "topk_varentropy_series__ema32",
+          "topk_renyi2_series__level",
+          "topk_renyi2_series__ema8",
+          "topk_renyi2_series__ema32",
+          "topk_tail_mass_series__level",
+          "topk_tail_mass_series__ema8",
+          "topk_tail_mass_series__ema32",
+          "entropy_series__prediction_abs_mean",
+          "spilled_series__prediction_abs_mean",
+          "energy_series__prediction_abs_mean",
+          "top1_logprob_series__prediction_abs_mean",
+          "logprob_margin_series__prediction_abs_mean",
+          "topk_entropy_series__prediction_abs_mean",
+          "topk_varentropy_series__prediction_abs_mean",
+          "topk_renyi2_series__prediction_abs_mean",
+          "topk_tail_mass_series__prediction_abs_mean"
+        ],
+        "active_original": 27,
+        "active_added": 9,
+        "n_fit_windows": 29,
+        "original_rank": 27,
+        "augmented_rank": 28,
+        "entropy_spearman": [
+          0.8714285714285714,
+          0.42512315270935963,
+          0.2911330049261084,
+          0.8261083743842365,
+          0.21379310344827587,
+          0.8714285714285714,
+          0.6024630541871921,
+          0.825615763546798,
+          0.5177339901477832
+        ],
+        "closest_original": [
+          {
+            "original_feature": "topk_renyi2_series__level",
+            "absolute_spearman": 0.8847290640394089
+          },
+          {
+            "original_feature": "spilled_series__ema32",
+            "absolute_spearman": 0.8477832512315271
+          },
+          {
+            "original_feature": "energy_series__ema32",
+            "absolute_spearman": 0.41330049261083746
+          },
+          {
+            "original_feature": "top1_logprob_series__ema8",
+            "absolute_spearman": 0.9098522167487685
+          },
+          {
+            "original_feature": "energy_series__ema8",
+            "absolute_spearman": 0.5955665024630542
+          },
+          {
+            "original_feature": "topk_renyi2_series__level",
+            "absolute_spearman": 0.8847290640394089
+          },
+          {
+            "original_feature": "topk_varentropy_series__level",
+            "absolute_spearman": 0.7763546798029557
+          },
+          {
+            "original_feature": "top1_logprob_series__ema8",
+            "absolute_spearman": 0.896551724137931
+          },
+          {
+            "original_feature": "topk_tail_mass_series__ema8",
+            "absolute_spearman": 0.8911330049261084
+          }
+        ]
+      }
+    },
+    "prediction_mse": {
+      "ar1": [
+        0.17738856969195438,
+        4.384886385199838,
+        11.035286575469868,
+        0.061475241077067616,
+        21.882491427669873,
+        0.18366920238904919,
+        0.17720686867424498,
+        0.12583932711754153,
+        0.000520276600499268
+      ],
+      "last": [
+        0.2658397546461807,
+        8.449654386223333,
+        15.30860735335005,
+        0.0961826595061778,
+        31.92169795162119,
+        0.2745270204730475,
+        0.2606534502533595,
+        0.1950644734162058,
+        0.0009049090557653834
+      ],
+      "ema32": [
+        0.18966430374664198,
+        9.584194884066186,
+        12.03990003437051,
+        0.06351668543383214,
+        24.08508100700919,
+        0.19675846828798052,
+        0.2002362509334748,
+        0.13046416810435638,
+        0.0005187959470743621
+      ]
+    },
+    "labels_accessed": false
+  },
+  "manifest_sha256": "7216310f86fabe1cc536918ca31c5432351ca5bf419bc8a756d5a77ee1d6e22f",
+  "arrays_sha256": "7c02e334e59077cff1c01d2a94b849ef479749202f3e8560afc7295e19527861"
+}

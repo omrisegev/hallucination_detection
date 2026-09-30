@@ -1,0 +1,48 @@
+sweep gate: PASS — quiet for 3037s, summary.json present
+[iter_cells] qa/spectral_phase9_cache_webq_traces_T1.0: single-class labels — skipped
+pilot cells (smallest n among failing): sciq_llama8b (n=198), spilled_triviaqa_llama8b (n=256), math500_dsmath7b (n=300)
+
+reproducing the registered configuration, retaining history:
+  sciq_llama8b                 seed=0 sd=1.412e-14 collapsed
+  sciq_llama8b                 seed=1 sd=1.139e-16 collapsed
+  sciq_llama8b                 seed=2 sd=6.294e-16 collapsed
+  sciq_llama8b                 seed=3 sd=2.202e-15 collapsed
+  sciq_llama8b                 seed=4 sd=1.010e-16 collapsed
+  spilled_triviaqa_llama8b     seed=0 sd=3.007e-14 collapsed
+  spilled_triviaqa_llama8b     seed=1 sd=6.640e-15 collapsed
+  spilled_triviaqa_llama8b     seed=2 sd=1.317e-14 collapsed
+  spilled_triviaqa_llama8b     seed=3 sd=6.822e-15 collapsed
+  spilled_triviaqa_llama8b     seed=4 sd=1.688e-13 collapsed
+  math500_dsmath7b             seed=0 sd=1.605e-13 collapsed
+  math500_dsmath7b             seed=1 sd=1.032e-11 collapsed
+  math500_dsmath7b             seed=2 sd=7.179e-13 collapsed
+  math500_dsmath7b             seed=3 sd=4.675e-12 collapsed
+  math500_dsmath7b             seed=4 sd=1.684e-14 collapsed
+
+configuration grid (5x3), seed 0, label-free:
+  lr=0.0001  epochs=100   completion=1.00 median sd=4.344e-01
+  lr=0.0001  epochs=300   completion=0.00 median sd=5.175e-12
+  lr=0.0001  epochs=1000  completion=0.00 median sd=4.893e-16
+  lr=0.0003  epochs=100   completion=0.00 median sd=8.547e-08
+  lr=0.0003  epochs=300   completion=0.00 median sd=6.742e-16
+  lr=0.0003  epochs=1000  completion=0.00 median sd=2.794e-16
+  lr=0.001   epochs=100   completion=0.00 median sd=3.007e-14
+  lr=0.001   epochs=300   completion=0.00 median sd=3.647e-16
+  lr=0.001   epochs=1000  completion=0.00 median sd=2.745e-18
+  lr=0.003   epochs=100   completion=0.00 median sd=5.882e-15
+  lr=0.003   epochs=300   completion=0.00 median sd=1.973e-17
+  lr=0.003   epochs=1000  completion=0.00 median sd=1.491e-20
+  lr=0.01    epochs=100   completion=0.00 median sd=3.819e-16
+  lr=0.01    epochs=300   completion=0.00 median sd=9.429e-19
+  lr=0.01    epochs=1000  completion=0.00 median sd=1.429e-18
+
+tie-breaker trace (AUROC never consulted):
+  step 1 completion rate == 1.00: 1 configs remain
+  step 2 finite objective required: 1 configs remain
+  step 4 smallest deviation from the registered default: lr=0.0001, epochs=100
+
+DECISION 1 (soft DEEM): soft DEEM repaired — run its predefined evaluation, regardless of how hard DEEM performs
+DECISION 2 (deem_irbm_hard_ensemble): abandon hard DEEM — no meaningful advantage over IU (this rules out the preregistered +1.0pp gain; it does NOT prove inferiority)
+DECISION 2 (deem_deep_hard_ensemble): hard DEEM retains a possible meaningful gain
+
+wrote C:\Users\omris\TAU\hallucination_detection\results\deem_probe  (2957.2s)

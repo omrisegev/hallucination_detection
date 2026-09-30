@@ -1,0 +1,1244 @@
+{
+  "row": 344,
+  "row_id": "gsm8k::gsm8k-49",
+  "group_id": "gsm8k::gsm8k-49",
+  "tokens": 1167,
+  "steps": 16,
+  "length_bin": [
+    1024,
+    2048
+  ],
+  "cell": "pb_gsm8k_q8",
+  "uid": "pb_gsm8k_q8__86927448497290bb",
+  "input_sha256": "7fa00729fe1f067a5ac444d3a8b58756281a56bf3e8edfa8552c03a136a0a21a",
+  "methods": {
+    "moments27_local8__equal@@parent_first": {
+      "valid": true,
+      "prediction": 0,
+      "gate": true
+    },
+    "moments27_local8__equal@@parent_peak": {
+      "valid": true,
+      "prediction": 1,
+      "gate": true
+    },
+    "moments27_local8__equal@@hold_peak": {
+      "valid": true,
+      "gate": true,
+      "prediction": 1
+    },
+    "moments27_local8__equal@@kalman_level": {
+      "valid": true,
+      "gate": true,
+      "R": 0.05,
+      "prediction": 1
+    },
+    "moments27_local8__equal@@imm_level": {
+      "valid": true,
+      "gate": true,
+      "R": 0.05,
+      "prediction": 1
+    },
+    "moments27_local8__equal@@bocpd_rise": {
+      "valid": true,
+      "gate": true,
+      "hazard": 0.03125,
+      "prediction": 13
+    },
+    "moments27_local8__equal@@hmm_entry": {
+      "valid": true,
+      "gate": true,
+      "selected": {
+        "kind": "reversible",
+        "means": [
+          -0.23898172126765535,
+          3.24592864228676
+        ],
+        "variance": 0.22428238595432615,
+        "transition": [
+          [
+            0.9700949234382101,
+            0.02990507656178992
+          ],
+          [
+            0.5037408348421398,
+            0.49625916515786017
+          ]
+        ],
+        "start": [
+          9.99999000001e-07,
+          0.9999990000010001
+        ],
+        "risk_mean": -1.2250736823450003e-17,
+        "risk_scale": 1.0,
+        "log_likelihood": -121.96413300399085,
+        "occupancy": [
+          0.9314254148502875,
+          0.06857458514971258
+        ],
+        "separation": 7.358580210772755,
+        "seed": 23,
+        "n_iter_used": 8,
+        "valid": true,
+        "guard_failures": []
+      },
+      "diagnostics": {
+        "risk_mean": -1.2250736823450003e-17,
+        "risk_scale": 1.0,
+        "n_fit_sequences": 1,
+        "n_fit_tokens": 145,
+        "selection_rule": "maximum unlabeled log likelihood among guard-valid starts",
+        "candidate_log_likelihoods": [
+          -121.96413302415698,
+          -121.96413300399085,
+          -121.96413303627943
+        ],
+        "candidate_valid": [
+          true,
+          true,
+          true
+        ],
+        "candidate_guard_failures": [
+          [],
+          [],
+          []
+        ],
+        "minimum_seed_locator_agreement": 0.8,
+        "seed_locator_agreement_guard_passed": true,
+        "n_valid_candidates": 3,
+        "mean_pair_exact_argmax_agreement": 1.0,
+        "mean_pair_normalized_argmax_displacement": 0.0
+      },
+      "fallback_reason": null,
+      "candidates": [
+        {
+          "kind": "reversible",
+          "means": [
+            -0.2389825277553982,
+            3.245919552528477
+          ],
+          "variance": 0.224281940446074,
+          "transition": [
+            [
+              0.9700948721676758,
+              0.02990512783232432
+            ],
+            [
+              0.5037384567586111,
+              0.4962615432413888
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": -1.2250736823450003e-17,
+          "risk_scale": 1.0,
+          "log_likelihood": -121.96413302415698,
+          "occupancy": [
+            0.9314253735430753,
+            0.06857462645692465
+          ],
+          "separation": 7.358570028623069,
+          "seed": 11,
+          "n_iter_used": 8,
+          "valid": true,
+          "guard_failures": []
+        },
+        {
+          "kind": "reversible",
+          "means": [
+            -0.23898172126765535,
+            3.24592864228676
+          ],
+          "variance": 0.22428238595432615,
+          "transition": [
+            [
+              0.9700949234382101,
+              0.02990507656178992
+            ],
+            [
+              0.5037408348421398,
+              0.49625916515786017
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": -1.2250736823450003e-17,
+          "risk_scale": 1.0,
+          "log_likelihood": -121.96413300399085,
+          "occupancy": [
+            0.9314254148502875,
+            0.06857458514971258
+          ],
+          "separation": 7.358580210772755,
+          "seed": 23,
+          "n_iter_used": 8,
+          "valid": true,
+          "guard_failures": []
+        },
+        {
+          "kind": "reversible",
+          "means": [
+            -0.23898294764150746,
+            3.24591481934468
+          ],
+          "variance": 0.2242817086797565,
+          "transition": [
+            [
+              0.9700948454053347,
+              0.029905154594665275
+            ],
+            [
+              0.5037372194678905,
+              0.4962627805321095
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": -1.2250736823450003e-17,
+          "risk_scale": 1.0,
+          "log_likelihood": -121.96413303627943,
+          "occupancy": [
+            0.931425352036757,
+            0.06857464796324286
+          ],
+          "separation": 7.358564722910795,
+          "seed": 37,
+          "n_iter_used": 8,
+          "valid": true,
+          "guard_failures": []
+        }
+      ],
+      "prediction": 0
+    },
+    "moments27_local8__iu@@parent_first": {
+      "valid": true,
+      "prediction": 0,
+      "gate": true
+    },
+    "moments27_local8__iu@@parent_peak": {
+      "valid": true,
+      "prediction": 1,
+      "gate": true
+    },
+    "moments27_local8__iu@@hold_peak": {
+      "valid": true,
+      "gate": true,
+      "prediction": 1
+    },
+    "moments27_local8__iu@@kalman_level": {
+      "valid": true,
+      "gate": true,
+      "R": 0.05,
+      "prediction": 1
+    },
+    "moments27_local8__iu@@imm_level": {
+      "valid": true,
+      "gate": true,
+      "R": 0.05,
+      "prediction": 1
+    },
+    "moments27_local8__iu@@bocpd_rise": {
+      "valid": true,
+      "gate": true,
+      "hazard": 0.03125,
+      "prediction": 14
+    },
+    "moments27_local8__iu@@hmm_entry": {
+      "valid": true,
+      "gate": true,
+      "selected": {
+        "kind": "reversible",
+        "means": [
+          -0.2519474880529678,
+          3.105568687162712
+        ],
+        "variance": 0.21755977029340118,
+        "transition": [
+          [
+            0.9627519555547389,
+            0.03724804444526117
+          ],
+          [
+            0.5476106649750625,
+            0.4523893350249376
+          ]
+        ],
+        "start": [
+          9.99999000001e-07,
+          0.9999990000010001
+        ],
+        "risk_mean": -2.4501473646900006e-17,
+        "risk_scale": 1.0,
+        "log_likelihood": -123.24346742953469,
+        "occupancy": [
+          0.9249617285576849,
+          0.07503827144231513
+        ],
+        "separation": 7.19828135741826,
+        "seed": 37,
+        "n_iter_used": 9,
+        "valid": true,
+        "guard_failures": []
+      },
+      "diagnostics": {
+        "risk_mean": -2.4501473646900006e-17,
+        "risk_scale": 1.0,
+        "n_fit_sequences": 1,
+        "n_fit_tokens": 145,
+        "selection_rule": "maximum unlabeled log likelihood among guard-valid starts",
+        "candidate_log_likelihoods": [
+          -123.24346808486892,
+          -123.24346783134241,
+          -123.24346742953469
+        ],
+        "candidate_valid": [
+          true,
+          true,
+          true
+        ],
+        "candidate_guard_failures": [
+          [],
+          [],
+          []
+        ],
+        "minimum_seed_locator_agreement": 0.8,
+        "seed_locator_agreement_guard_passed": true,
+        "n_valid_candidates": 3,
+        "mean_pair_exact_argmax_agreement": 1.0,
+        "mean_pair_normalized_argmax_displacement": 0.0
+      },
+      "fallback_reason": null,
+      "candidates": [
+        {
+          "kind": "reversible",
+          "means": [
+            -0.2519602626223226,
+            3.105452774427883
+          ],
+          "variance": 0.21754930339393044,
+          "transition": [
+            [
+              0.9627488871757659,
+              0.03725111282423398
+            ],
+            [
+              0.5476005833948598,
+              0.45239941660514016
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": -2.4501473646900006e-17,
+          "risk_scale": 1.0,
+          "log_likelihood": -123.24346808486892,
+          "occupancy": [
+            0.9249606437779605,
+            0.07503935622203947
+          ],
+          "separation": 7.198233393582266,
+          "seed": 11,
+          "n_iter_used": 8,
+          "valid": true,
+          "guard_failures": []
+        },
+        {
+          "kind": "reversible",
+          "means": [
+            -0.2519568570973918,
+            3.1054837522897394
+          ],
+          "variance": 0.21755207400606189,
+          "transition": [
+            [
+              0.9627496952852892,
+              0.0372503047147108
+            ],
+            [
+              0.5476034054594621,
+              0.452396594540538
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": -2.4501473646900006e-17,
+          "risk_scale": 1.0,
+          "log_likelihood": -123.24346783134241,
+          "occupancy": [
+            0.9249609329948995,
+            0.07503906700510052
+          ],
+          "separation": 7.1982466714745845,
+          "seed": 23,
+          "n_iter_used": 8,
+          "valid": true,
+          "guard_failures": []
+        },
+        {
+          "kind": "reversible",
+          "means": [
+            -0.2519474880529678,
+            3.105568687162712
+          ],
+          "variance": 0.21755977029340118,
+          "transition": [
+            [
+              0.9627519555547389,
+              0.03724804444526117
+            ],
+            [
+              0.5476106649750625,
+              0.4523893350249376
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": -2.4501473646900006e-17,
+          "risk_scale": 1.0,
+          "log_likelihood": -123.24346742953469,
+          "occupancy": [
+            0.9249617285576849,
+            0.07503827144231513
+          ],
+          "separation": 7.19828135741826,
+          "seed": 37,
+          "n_iter_used": 9,
+          "valid": true,
+          "guard_failures": []
+        }
+      ],
+      "prediction": 0
+    },
+    "moments27_local8__joint_lambda0@@parent_first": {
+      "valid": true,
+      "prediction": 0,
+      "gate": true
+    },
+    "moments27_local8__joint_lambda0@@parent_peak": {
+      "valid": true,
+      "prediction": 1,
+      "gate": true
+    },
+    "moments27_local8__joint_lambda0@@hold_peak": {
+      "valid": true,
+      "gate": true,
+      "prediction": 1
+    },
+    "moments27_local8__joint_lambda0@@kalman_level": {
+      "valid": true,
+      "gate": true,
+      "R": 0.05,
+      "prediction": 1
+    },
+    "moments27_local8__joint_lambda0@@imm_level": {
+      "valid": true,
+      "gate": true,
+      "R": 0.05,
+      "prediction": 1
+    },
+    "moments27_local8__joint_lambda0@@bocpd_rise": {
+      "valid": true,
+      "gate": true,
+      "hazard": 0.03125,
+      "prediction": 14
+    },
+    "moments27_local8__joint_lambda0@@hmm_entry": {
+      "valid": true,
+      "gate": true,
+      "selected": {
+        "kind": "reversible",
+        "means": [
+          -0.268666469602257,
+          2.972603267302265
+        ],
+        "variance": 0.20136117464576633,
+        "transition": [
+          [
+            0.9544210140147846,
+            0.04557898598521532
+          ],
+          [
+            0.5837086757336941,
+            0.41629132426630594
+          ]
+        ],
+        "start": [
+          9.99999000001e-07,
+          0.9999990000010001
+        ],
+        "risk_mean": -1.2250736823450003e-17,
+        "risk_scale": 1.0,
+        "log_likelihood": -122.03805643276078,
+        "occupancy": [
+          0.9171107489583059,
+          0.08288925104169416
+        ],
+        "separation": 7.22316118576768,
+        "seed": 37,
+        "n_iter_used": 10,
+        "valid": true,
+        "guard_failures": []
+      },
+      "diagnostics": {
+        "risk_mean": -1.2250736823450003e-17,
+        "risk_scale": 1.0,
+        "n_fit_sequences": 1,
+        "n_fit_tokens": 145,
+        "selection_rule": "maximum unlabeled log likelihood among guard-valid starts",
+        "candidate_log_likelihoods": [
+          -122.03805643279541,
+          -122.03805643277613,
+          -122.03805643276078
+        ],
+        "candidate_valid": [
+          true,
+          true,
+          true
+        ],
+        "candidate_guard_failures": [
+          [],
+          [],
+          []
+        ],
+        "minimum_seed_locator_agreement": 0.8,
+        "seed_locator_agreement_guard_passed": true,
+        "n_valid_candidates": 3,
+        "mean_pair_exact_argmax_agreement": 1.0,
+        "mean_pair_normalized_argmax_displacement": 0.0
+      },
+      "fallback_reason": null,
+      "candidates": [
+        {
+          "kind": "reversible",
+          "means": [
+            -0.26866652809624947,
+            2.9726025348041243
+          ],
+          "variance": 0.20136119756406534,
+          "transition": [
+            [
+              0.954420984307859,
+              0.04557901569214084
+            ],
+            [
+              0.5837087340825251,
+              0.4162912659174749
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": -1.2250736823450003e-17,
+          "risk_scale": 1.0,
+          "log_likelihood": -122.03805643279541,
+          "occupancy": [
+            0.9171107478577354,
+            0.08288925214226456
+          ],
+          "separation": 7.2231592726925005,
+          "seed": 11,
+          "n_iter_used": 9,
+          "valid": true,
+          "guard_failures": []
+        },
+        {
+          "kind": "reversible",
+          "means": [
+            -0.26866650252395413,
+            2.9726028551542787
+          ],
+          "variance": 0.2013611875129792,
+          "transition": [
+            [
+              0.9544209972839485,
+              0.0455790027160514
+            ],
+            [
+              0.5837087087188297,
+              0.41629129128117026
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": -1.2250736823450003e-17,
+          "risk_scale": 1.0,
+          "log_likelihood": -122.03805643277613,
+          "occupancy": [
+            0.9171107483390165,
+            0.08288925166098361
+          ],
+          "separation": 7.223160109878722,
+          "seed": 23,
+          "n_iter_used": 9,
+          "valid": true,
+          "guard_failures": []
+        },
+        {
+          "kind": "reversible",
+          "means": [
+            -0.268666469602257,
+            2.972603267302265
+          ],
+          "variance": 0.20136117464576633,
+          "transition": [
+            [
+              0.9544210140147846,
+              0.04557898598521532
+            ],
+            [
+              0.5837086757336941,
+              0.41629132426630594
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": -1.2250736823450003e-17,
+          "risk_scale": 1.0,
+          "log_likelihood": -122.03805643276078,
+          "occupancy": [
+            0.9171107489583059,
+            0.08288925104169416
+          ],
+          "separation": 7.22316118576768,
+          "seed": 37,
+          "n_iter_used": 10,
+          "valid": true,
+          "guard_failures": []
+        }
+      ],
+      "prediction": 0
+    },
+    "moments27_local8__joint_graph010@@parent_first": {
+      "valid": true,
+      "prediction": 0,
+      "gate": true
+    },
+    "moments27_local8__joint_graph010@@parent_peak": {
+      "valid": true,
+      "prediction": 1,
+      "gate": true
+    },
+    "moments27_local8__joint_graph010@@hold_peak": {
+      "valid": true,
+      "gate": true,
+      "prediction": 1
+    },
+    "moments27_local8__joint_graph010@@kalman_level": {
+      "valid": true,
+      "gate": true,
+      "R": 0.05,
+      "prediction": 1
+    },
+    "moments27_local8__joint_graph010@@imm_level": {
+      "valid": true,
+      "gate": true,
+      "R": 0.05,
+      "prediction": 1
+    },
+    "moments27_local8__joint_graph010@@bocpd_rise": {
+      "valid": true,
+      "gate": true,
+      "hazard": 0.03125,
+      "prediction": 14
+    },
+    "moments27_local8__joint_graph010@@hmm_entry": {
+      "valid": true,
+      "gate": true,
+      "selected": {
+        "kind": "reversible",
+        "means": [
+          -0.31996156276851184,
+          2.5192524367488702
+        ],
+        "variance": 0.19393605332944938,
+        "transition": [
+          [
+            0.9353704877156261,
+            0.06462951228437393
+          ],
+          [
+            0.5660350005112705,
+            0.43396499948872935
+          ]
+        ],
+        "start": [
+          9.99999000001e-07,
+          0.9999990000010001
+        ],
+        "risk_mean": -1.2250736823450003e-17,
+        "risk_scale": 0.9999999999999998,
+        "log_likelihood": -125.69053269744596,
+        "occupancy": [
+          0.8873816034487122,
+          0.1126183965512879
+        ],
+        "separation": 6.447165979768689,
+        "seed": 23,
+        "n_iter_used": 12,
+        "valid": true,
+        "guard_failures": []
+      },
+      "diagnostics": {
+        "risk_mean": -1.2250736823450003e-17,
+        "risk_scale": 0.9999999999999998,
+        "n_fit_sequences": 1,
+        "n_fit_tokens": 145,
+        "selection_rule": "maximum unlabeled log likelihood among guard-valid starts",
+        "candidate_log_likelihoods": [
+          -125.69054783329989,
+          -125.69053269744596,
+          -125.69056861548121
+        ],
+        "candidate_valid": [
+          true,
+          true,
+          true
+        ],
+        "candidate_guard_failures": [
+          [],
+          [],
+          []
+        ],
+        "minimum_seed_locator_agreement": 0.8,
+        "seed_locator_agreement_guard_passed": true,
+        "n_valid_candidates": 3,
+        "mean_pair_exact_argmax_agreement": 1.0,
+        "mean_pair_normalized_argmax_displacement": 0.0
+      },
+      "fallback_reason": null,
+      "candidates": [
+        {
+          "kind": "reversible",
+          "means": [
+            -0.31998314144215756,
+            2.5191040262802162
+          ],
+          "variance": 0.19392918005126922,
+          "transition": [
+            [
+              0.9353675753789168,
+              0.0646324246210832
+            ],
+            [
+              0.5659868436038951,
+              0.4340131563961049
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": -1.2250736823450003e-17,
+          "risk_scale": 0.9999999999999998,
+          "log_likelihood": -125.69054783329989,
+          "occupancy": [
+            0.8873737695363718,
+            0.1126262304636283
+          ],
+          "separation": 6.446992220321654,
+          "seed": 11,
+          "n_iter_used": 12,
+          "valid": true,
+          "guard_failures": []
+        },
+        {
+          "kind": "reversible",
+          "means": [
+            -0.31996156276851184,
+            2.5192524367488702
+          ],
+          "variance": 0.19393605332944938,
+          "transition": [
+            [
+              0.9353704877156261,
+              0.06462951228437393
+            ],
+            [
+              0.5660350005112705,
+              0.43396499948872935
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": -1.2250736823450003e-17,
+          "risk_scale": 0.9999999999999998,
+          "log_likelihood": -125.69053269744596,
+          "occupancy": [
+            0.8873816034487122,
+            0.1126183965512879
+          ],
+          "separation": 6.447165979768689,
+          "seed": 23,
+          "n_iter_used": 12,
+          "valid": true,
+          "guard_failures": []
+        },
+        {
+          "kind": "reversible",
+          "means": [
+            -0.32001032994171785,
+            2.5189139963033917
+          ],
+          "variance": 0.19392150094813979,
+          "transition": [
+            [
+              0.9353649047196361,
+              0.06463509528036392
+            ],
+            [
+              0.5659176774934735,
+              0.43408232250652645
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": -1.2250736823450003e-17,
+          "risk_scale": 0.9999999999999998,
+          "log_likelihood": -125.69056861548121,
+          "occupancy": [
+            0.8873637961084573,
+            0.11263620389154268
+          ],
+          "separation": 6.446750079022732,
+          "seed": 37,
+          "n_iter_used": 12,
+          "valid": true,
+          "guard_failures": []
+        }
+      ],
+      "prediction": 0
+    },
+    "moments27_local8__joint_graph_permuted@@parent_first": {
+      "valid": true,
+      "prediction": 0,
+      "gate": true
+    },
+    "moments27_local8__joint_graph_permuted@@parent_peak": {
+      "valid": true,
+      "prediction": 1,
+      "gate": true
+    },
+    "moments27_local8__joint_graph_permuted@@hold_peak": {
+      "valid": true,
+      "gate": true,
+      "prediction": 1
+    },
+    "moments27_local8__joint_graph_permuted@@kalman_level": {
+      "valid": true,
+      "gate": true,
+      "R": 0.05,
+      "prediction": 1
+    },
+    "moments27_local8__joint_graph_permuted@@imm_level": {
+      "valid": true,
+      "gate": true,
+      "R": 0.05,
+      "prediction": 1
+    },
+    "moments27_local8__joint_graph_permuted@@bocpd_rise": {
+      "valid": true,
+      "gate": true,
+      "hazard": 0.03125,
+      "prediction": 14
+    },
+    "moments27_local8__joint_graph_permuted@@hmm_entry": {
+      "valid": true,
+      "gate": true,
+      "selected": {
+        "kind": "reversible",
+        "means": [
+          -0.26834426534150846,
+          2.968279177961812
+        ],
+        "variance": 0.2034793046613413,
+        "transition": [
+          [
+            0.9544002838857001,
+            0.04559971611429999
+          ],
+          [
+            0.5837886959191756,
+            0.41621130408082446
+          ]
+        ],
+        "start": [
+          9.99999000001e-07,
+          0.9999990000010001
+        ],
+        "risk_mean": 0.0,
+        "risk_scale": 1.0000000000000002,
+        "log_likelihood": -122.78764590284625,
+        "occupancy": [
+          0.9170913290239426,
+          0.08290867097605742
+        ],
+        "separation": 7.175167651218293,
+        "seed": 37,
+        "n_iter_used": 10,
+        "valid": true,
+        "guard_failures": []
+      },
+      "diagnostics": {
+        "risk_mean": 0.0,
+        "risk_scale": 1.0000000000000002,
+        "n_fit_sequences": 1,
+        "n_fit_tokens": 145,
+        "selection_rule": "maximum unlabeled log likelihood among guard-valid starts",
+        "candidate_log_likelihoods": [
+          -122.78764590312701,
+          -122.78764590295438,
+          -122.78764590284625
+        ],
+        "candidate_valid": [
+          true,
+          true,
+          true
+        ],
+        "candidate_guard_failures": [
+          [],
+          [],
+          []
+        ],
+        "minimum_seed_locator_agreement": 0.8,
+        "seed_locator_agreement_guard_passed": true,
+        "n_valid_candidates": 3,
+        "mean_pair_exact_argmax_agreement": 1.0,
+        "mean_pair_normalized_argmax_displacement": 0.0
+      },
+      "fallback_reason": null,
+      "candidates": [
+        {
+          "kind": "reversible",
+          "means": [
+            -0.2683444420967523,
+            2.9682769753026292
+          ],
+          "variance": 0.2034793710737812,
+          "transition": [
+            [
+              0.9544001949469569,
+              0.045599805053043146
+            ],
+            [
+              0.583788863787088,
+              0.41621113621291195
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": 0.0,
+          "risk_scale": 1.0000000000000002,
+          "log_likelihood": -122.78764590312701,
+          "occupancy": [
+            0.9170913252520361,
+            0.08290867474796382
+          ],
+          "separation": 7.175161989126405,
+          "seed": 11,
+          "n_iter_used": 9,
+          "valid": true,
+          "guard_failures": []
+        },
+        {
+          "kind": "reversible",
+          "means": [
+            -0.2683443593257796,
+            2.968278007505733
+          ],
+          "variance": 0.203479339775073,
+          "transition": [
+            [
+              0.9544002365130679,
+              0.045599763486932045
+            ],
+            [
+              0.5837887862240053,
+              0.4162112137759948
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": 0.0,
+          "risk_scale": 1.0000000000000002,
+          "log_likelihood": -122.78764590295438,
+          "occupancy": [
+            0.9170913270192609,
+            0.08290867298073915
+          ],
+          "separation": 7.175164645725298,
+          "seed": 23,
+          "n_iter_used": 9,
+          "valid": true,
+          "guard_failures": []
+        },
+        {
+          "kind": "reversible",
+          "means": [
+            -0.26834426534150846,
+            2.968279177961812
+          ],
+          "variance": 0.2034793046613413,
+          "transition": [
+            [
+              0.9544002838857001,
+              0.04559971611429999
+            ],
+            [
+              0.5837886959191756,
+              0.41621130408082446
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": 0.0,
+          "risk_scale": 1.0000000000000002,
+          "log_likelihood": -122.78764590284625,
+          "occupancy": [
+            0.9170913290239426,
+            0.08290867097605742
+          ],
+          "separation": 7.175167651218293,
+          "seed": 37,
+          "n_iter_used": 10,
+          "valid": true,
+          "guard_failures": []
+        }
+      ],
+      "prediction": 0
+    },
+    "entropy_mean_w8@@parent_first": {
+      "valid": true,
+      "prediction": 0,
+      "gate": true
+    },
+    "entropy_mean_w8@@parent_peak": {
+      "valid": true,
+      "prediction": 14,
+      "gate": true
+    },
+    "entropy_mean_w8@@hold_peak": {
+      "valid": true,
+      "gate": true,
+      "prediction": 14
+    },
+    "entropy_mean_w8@@kalman_level": {
+      "valid": true,
+      "gate": true,
+      "R": 0.05,
+      "prediction": 1
+    },
+    "entropy_mean_w8@@imm_level": {
+      "valid": true,
+      "gate": true,
+      "R": 0.05,
+      "prediction": 1
+    },
+    "entropy_mean_w8@@bocpd_rise": {
+      "valid": true,
+      "gate": true,
+      "hazard": 0.03125,
+      "prediction": 14
+    },
+    "entropy_mean_w8@@hmm_entry": {
+      "valid": true,
+      "gate": true,
+      "selected": {
+        "kind": "reversible",
+        "means": [
+          -0.2638646122297282,
+          2.9749723004645925
+        ],
+        "variance": 0.2150100875437289,
+        "transition": [
+          [
+            0.9560438926141365,
+            0.04395610738586346
+          ],
+          [
+            0.57651969333628,
+            0.4234803066637201
+          ]
+        ],
+        "start": [
+          9.99999000001e-07,
+          0.9999990000010001
+        ],
+        "risk_mean": 9.800589458760002e-17,
+        "risk_scale": 1.0,
+        "log_likelihood": -125.60405163939905,
+        "occupancy": [
+          0.9185258323342488,
+          0.08147416766575122
+        ],
+        "separation": 6.984891465520897,
+        "seed": 37,
+        "n_iter_used": 10,
+        "valid": true,
+        "guard_failures": []
+      },
+      "diagnostics": {
+        "risk_mean": 9.800589458760002e-17,
+        "risk_scale": 1.0,
+        "n_fit_sequences": 1,
+        "n_fit_tokens": 145,
+        "selection_rule": "maximum unlabeled log likelihood among guard-valid starts",
+        "candidate_log_likelihoods": [
+          -125.60405188050015,
+          -125.60405319154408,
+          -125.60405163939905
+        ],
+        "candidate_valid": [
+          true,
+          true,
+          true
+        ],
+        "candidate_guard_failures": [
+          [],
+          [],
+          []
+        ],
+        "minimum_seed_locator_agreement": 0.8,
+        "seed_locator_agreement_guard_passed": true,
+        "n_valid_candidates": 3,
+        "mean_pair_exact_argmax_agreement": 1.0,
+        "mean_pair_normalized_argmax_displacement": 0.0
+      },
+      "fallback_reason": null,
+      "candidates": [
+        {
+          "kind": "reversible",
+          "means": [
+            -0.2638615496979211,
+            2.9749958297638273
+          ],
+          "variance": 0.21501299001366495,
+          "transition": [
+            [
+              0.9560455463182064,
+              0.04395445368179352
+            ],
+            [
+              0.5765123106317039,
+              0.42348768936829606
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": 9.800589458760002e-17,
+          "risk_scale": 1.0,
+          "log_likelihood": -125.60405188050015,
+          "occupancy": [
+            0.9185261710044517,
+            0.08147382899554831
+          ],
+          "separation": 6.98488845911361,
+          "seed": 11,
+          "n_iter_used": 9,
+          "valid": true,
+          "guard_failures": []
+        },
+        {
+          "kind": "reversible",
+          "means": [
+            -0.26385012243208184,
+            2.975083386549084
+          ],
+          "variance": 0.21502388421337085,
+          "transition": [
+            [
+              0.9560517203824979,
+              0.04394827961750226
+            ],
+            [
+              0.576484673658206,
+              0.42351532634179406
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": 9.800589458760002e-17,
+          "risk_scale": 1.0,
+          "log_likelihood": -125.60405319154408,
+          "occupancy": [
+            0.9185274352602462,
+            0.08147256473975385
+          ],
+          "separation": 6.984875687973274,
+          "seed": 23,
+          "n_iter_used": 9,
+          "valid": true,
+          "guard_failures": []
+        },
+        {
+          "kind": "reversible",
+          "means": [
+            -0.2638646122297282,
+            2.9749723004645925
+          ],
+          "variance": 0.2150100875437289,
+          "transition": [
+            [
+              0.9560438926141365,
+              0.04395610738586346
+            ],
+            [
+              0.57651969333628,
+              0.4234803066637201
+            ]
+          ],
+          "start": [
+            9.99999000001e-07,
+            0.9999990000010001
+          ],
+          "risk_mean": 9.800589458760002e-17,
+          "risk_scale": 1.0,
+          "log_likelihood": -125.60405163939905,
+          "occupancy": [
+            0.9185258323342488,
+            0.08147416766575122
+          ],
+          "separation": 6.984891465520897,
+          "seed": 37,
+          "n_iter_used": 10,
+          "valid": true,
+          "guard_failures": []
+        }
+      ],
+      "prediction": 0
+    }
+  },
+  "manifest_sha256": "a0f8ef2d0a975a5e47f3268e09a3289a527f91bd940d5051a9218823a7289114",
+  "array_sha256": "0cc3a94ad5c0c9183d413042ba29b98e7841e10a53ffafefa04bb771e6fa3b5d",
+  "seconds": 1.8645876001100987,
+  "labels_decoded": false
+}

@@ -1,0 +1,511 @@
+{
+  "status": "PASS",
+  "counts": {
+    "raw_scalar_streams": 330,
+    "raw_label_span_joins": 110,
+    "unchanged_external_row_records": 11770,
+    "independent_matrices": 110,
+    "selection_and_support_checks": 660,
+    "exact_anchor_replays": 2100,
+    "step_output_replays": 4620,
+    "representative_perturbation_replays": 10,
+    "selected_normalization_replays": 360,
+    "covariance_jacobian_replays": 289,
+    "iu_refits": 360,
+    "independent_laplacians": 720,
+    "independent_native_weights": 2298,
+    "dense_gmm_replays": 2520,
+    "independent_metric_bundles": 298,
+    "paired_point_scope_checks": 93
+  },
+  "fixed_banks": {
+    "moment": 81,
+    "context": 29
+  },
+  "native_joint_valid": {
+    "full": 107,
+    "uniform": 101,
+    "risk_top": 90,
+    "dufs_transposed": 84,
+    "dufs_permuted": 92,
+    "window_diffusion": 99
+  },
+  "coverage": {
+    "sample_full__equal": 110,
+    "sample_full__iu": 110,
+    "sample_full__joint0": 110,
+    "sample_full__graph010": 110,
+    "sample_full__graph_perm": 110,
+    "sample_full__equal_graph010": 110,
+    "sample_full__equal_graph_perm": 110,
+    "sample_uniform__equal": 110,
+    "sample_uniform__iu": 110,
+    "sample_uniform__joint0": 110,
+    "sample_uniform__graph010": 110,
+    "sample_uniform__graph_perm": 110,
+    "sample_uniform__equal_graph010": 110,
+    "sample_uniform__equal_graph_perm": 110,
+    "sample_risk_top__equal": 110,
+    "sample_risk_top__iu": 110,
+    "sample_risk_top__joint0": 110,
+    "sample_risk_top__graph010": 110,
+    "sample_risk_top__graph_perm": 110,
+    "sample_risk_top__equal_graph010": 110,
+    "sample_risk_top__equal_graph_perm": 110,
+    "sample_dufs_transposed__equal": 110,
+    "sample_dufs_transposed__iu": 110,
+    "sample_dufs_transposed__joint0": 110,
+    "sample_dufs_transposed__graph010": 110,
+    "sample_dufs_transposed__graph_perm": 110,
+    "sample_dufs_transposed__equal_graph010": 110,
+    "sample_dufs_transposed__equal_graph_perm": 110,
+    "sample_dufs_permuted__equal": 110,
+    "sample_dufs_permuted__iu": 110,
+    "sample_dufs_permuted__joint0": 110,
+    "sample_dufs_permuted__graph010": 110,
+    "sample_dufs_permuted__graph_perm": 110,
+    "sample_dufs_permuted__equal_graph010": 110,
+    "sample_dufs_permuted__equal_graph_perm": 110,
+    "sample_window_diffusion__equal": 110,
+    "sample_window_diffusion__iu": 110,
+    "sample_window_diffusion__joint0": 110,
+    "sample_window_diffusion__graph010": 110,
+    "sample_window_diffusion__graph_perm": 110,
+    "sample_window_diffusion__equal_graph010": 110,
+    "sample_window_diffusion__equal_graph_perm": 110
+  },
+  "fallback_counts": {
+    "sample_full__equal": 0,
+    "sample_full__iu": 0,
+    "sample_full__joint0": 3,
+    "sample_full__graph010": 3,
+    "sample_full__graph_perm": 3,
+    "sample_full__equal_graph010": 0,
+    "sample_full__equal_graph_perm": 0,
+    "sample_uniform__equal": 0,
+    "sample_uniform__iu": 0,
+    "sample_uniform__joint0": 9,
+    "sample_uniform__graph010": 9,
+    "sample_uniform__graph_perm": 9,
+    "sample_uniform__equal_graph010": 0,
+    "sample_uniform__equal_graph_perm": 0,
+    "sample_risk_top__equal": 0,
+    "sample_risk_top__iu": 0,
+    "sample_risk_top__joint0": 20,
+    "sample_risk_top__graph010": 20,
+    "sample_risk_top__graph_perm": 20,
+    "sample_risk_top__equal_graph010": 0,
+    "sample_risk_top__equal_graph_perm": 0,
+    "sample_dufs_transposed__equal": 0,
+    "sample_dufs_transposed__iu": 0,
+    "sample_dufs_transposed__joint0": 26,
+    "sample_dufs_transposed__graph010": 26,
+    "sample_dufs_transposed__graph_perm": 26,
+    "sample_dufs_transposed__equal_graph010": 0,
+    "sample_dufs_transposed__equal_graph_perm": 0,
+    "sample_dufs_permuted__equal": 0,
+    "sample_dufs_permuted__iu": 0,
+    "sample_dufs_permuted__joint0": 18,
+    "sample_dufs_permuted__graph010": 18,
+    "sample_dufs_permuted__graph_perm": 18,
+    "sample_dufs_permuted__equal_graph010": 0,
+    "sample_dufs_permuted__equal_graph_perm": 0,
+    "sample_window_diffusion__equal": 0,
+    "sample_window_diffusion__iu": 0,
+    "sample_window_diffusion__joint0": 11,
+    "sample_window_diffusion__graph010": 11,
+    "sample_window_diffusion__graph_perm": 11,
+    "sample_window_diffusion__equal_graph010": 0,
+    "sample_window_diffusion__equal_graph_perm": 0
+  },
+  "failures": {
+    "risk_top/BLOCKED_NO_ADMISSIBLE_PARTITION": 18,
+    "dufs_permuted/BLOCKED_NO_ADMISSIBLE_PARTITION": 16,
+    "dufs_transposed/BLOCKED_NO_ADMISSIBLE_PARTITION": 22,
+    "window_diffusion/BLOCKED_NO_ADMISSIBLE_PARTITION": 9,
+    "uniform/BLOCKED_NO_ADMISSIBLE_PARTITION": 6,
+    "uniform/JOINT_FIT_GUARD_FAILED": 1,
+    "dufs_transposed/JOINT_FIT_GUARD_FAILED": 2
+  },
+  "K_counts": {
+    "uniform/4": 21,
+    "dufs_transposed/3": 41,
+    "dufs_permuted/3": 43,
+    "window_diffusion/3": 45,
+    "uniform/3": 44,
+    "risk_top/3": 37,
+    "risk_top/4": 17,
+    "dufs_transposed/4": 9,
+    "dufs_permuted/4": 12,
+    "window_diffusion/4": 18,
+    "dufs_permuted/6": 1,
+    "uniform/6": 1
+  },
+  "maximum_risk_difference": 3.552713678800501e-14,
+  "group_refits": [
+    [
+      "pb_gsm8k_q8",
+      "dufs_permuted"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "dufs_transposed"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "risk_top"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "uniform"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "window_diffusion"
+    ],
+    [
+      "pb_math_q8",
+      "dufs_permuted"
+    ],
+    [
+      "pb_math_q8",
+      "dufs_transposed"
+    ],
+    [
+      "pb_math_q8",
+      "risk_top"
+    ],
+    [
+      "pb_math_q8",
+      "uniform"
+    ],
+    [
+      "pb_math_q8",
+      "window_diffusion"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "dufs_permuted"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "dufs_transposed"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "risk_top"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "uniform"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "window_diffusion"
+    ],
+    [
+      "pb_omnimath_q8",
+      "dufs_permuted"
+    ],
+    [
+      "pb_omnimath_q8",
+      "dufs_transposed"
+    ],
+    [
+      "pb_omnimath_q8",
+      "risk_top"
+    ],
+    [
+      "pb_omnimath_q8",
+      "uniform"
+    ],
+    [
+      "pb_omnimath_q8",
+      "window_diffusion"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "dufs_permuted"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "dufs_transposed"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "risk_top"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "uniform"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "window_diffusion"
+    ]
+  ],
+  "joint_refits": [
+    [
+      "pb_gsm8k_q8",
+      "dufs_permuted"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "dufs_transposed"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "risk_top"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "uniform"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "window_diffusion"
+    ],
+    [
+      "pb_math_q8",
+      "dufs_permuted"
+    ],
+    [
+      "pb_math_q8",
+      "dufs_transposed"
+    ],
+    [
+      "pb_math_q8",
+      "risk_top"
+    ],
+    [
+      "pb_math_q8",
+      "uniform"
+    ],
+    [
+      "pb_math_q8",
+      "window_diffusion"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "dufs_permuted"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "dufs_transposed"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "risk_top"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "uniform"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "window_diffusion"
+    ],
+    [
+      "pb_omnimath_q8",
+      "dufs_permuted"
+    ],
+    [
+      "pb_omnimath_q8",
+      "dufs_transposed"
+    ],
+    [
+      "pb_omnimath_q8",
+      "risk_top"
+    ],
+    [
+      "pb_omnimath_q8",
+      "uniform"
+    ],
+    [
+      "pb_omnimath_q8",
+      "window_diffusion"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "dufs_permuted"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "dufs_transposed"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "risk_top"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "uniform"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "window_diffusion"
+    ]
+  ],
+  "dufs_refits": [
+    [
+      "pb_gsm8k_q8",
+      "dufs_permuted"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "dufs_transposed"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "risk_top"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "uniform"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "window_diffusion"
+    ],
+    [
+      "pb_math_q8",
+      "dufs_permuted"
+    ],
+    [
+      "pb_math_q8",
+      "dufs_transposed"
+    ],
+    [
+      "pb_math_q8",
+      "risk_top"
+    ],
+    [
+      "pb_math_q8",
+      "uniform"
+    ],
+    [
+      "pb_math_q8",
+      "window_diffusion"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "dufs_permuted"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "dufs_transposed"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "risk_top"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "uniform"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "window_diffusion"
+    ],
+    [
+      "pb_omnimath_q8",
+      "dufs_permuted"
+    ],
+    [
+      "pb_omnimath_q8",
+      "dufs_transposed"
+    ],
+    [
+      "pb_omnimath_q8",
+      "risk_top"
+    ],
+    [
+      "pb_omnimath_q8",
+      "uniform"
+    ],
+    [
+      "pb_omnimath_q8",
+      "window_diffusion"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "dufs_permuted"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "dufs_transposed"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "risk_top"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "uniform"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "window_diffusion"
+    ]
+  ],
+  "selector_replays": [
+    "pb_gsm8k_q8",
+    "pb_math_q8",
+    "pb_olympiadbench_q8",
+    "pb_omnimath_q8",
+    "prmbench_qwen3_8b"
+  ],
+  "bootstrap_checks": [
+    {
+      "left": "sample_risk_top__iu",
+      "right": "sample_full__iu",
+      "scope": "all",
+      "draws": 1000,
+      "status": "MATCH"
+    },
+    {
+      "left": "sample_dufs_transposed__graph010",
+      "right": "sample_full__graph010",
+      "scope": "all",
+      "draws": 1000,
+      "status": "MATCH"
+    },
+    {
+      "left": "sample_window_diffusion__iu",
+      "right": "sample_full__iu",
+      "scope": "eligible",
+      "draws": 1000,
+      "status": "MATCH"
+    },
+    {
+      "left": "sample_dufs_permuted__graph010",
+      "right": "sample_full__graph010",
+      "scope": "eligible_both_native",
+      "draws": 1000,
+      "status": "MATCH"
+    },
+    {
+      "left": "sample_uniform__graph010",
+      "right": "sample_full__graph010",
+      "scope": "all",
+      "draws": 1000,
+      "status": "MATCH"
+    }
+  ],
+  "hashes": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_sampling_replication_v1\\MANIFEST.json": "162b0272108045f4587eeadc31f9238d8d6c9cdd3db36778e561a6da461edead",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_sampling_replication_v1\\SCORES_FROZEN.json": "ee897b2458c4848a2a14e04bad5367469c1fde139d1f9de440e3b807c89e01ba",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_sampling_replication_v1\\EVALUATION.json": "d1077c65e3e412e05976397fb0c28eda87cf4da7d7acecc8cd1d378b0e69d549",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_sampling_replication_v1\\CONTRASTS.json": "d90223c82e85961fe9891fb89ea02ca51d7b17f5fd0341cdf1d497fe6dc951e2",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_sampling_replication_v1\\DIAGNOSTICS.json": "6a291bc9bf4917c38f1eec7d07f46cb5de552dccf1b190ae513fa6e3c4b26033"
+  },
+  "dependencies": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_sampling_replication_v1.py": "63e185bb2a8e330805daa843ba90f411b4aaa54253d7afebcb0efe3629019112",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_explicit_fallback_v1.py": "d240914943ae496e8b45f5e88b3cec9529dede61b84ece0915a0cdade57249f2",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_prediction_quality_v1.py": "919062294c0dcffbcd2e5812cde412623600426d3a2f25fb55d3912070733f1e",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_context_bank_v1.py": "b65adafba3572b1947b8d2c7c314c155b17426e8e4e3bf64148c3d8a3bc571a5",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\spectral_utils\\prmbench.py": "d05c3003176c72f3a06f0fb8b0a84cc040d61e06cf42b481b2393c10310b057a"
+  },
+  "seconds": 153.3123017998878,
+  "scope": "Same-session review. Raw annotations/spans/three scalar streams; independent feature, normalization, covariance/inverse/Laplacian and overlap algebra; direct PB/AUC and five explicit source bootstraps. Shared IU/Joint/group discovery, graph, DUFS/diffusion, GMM and source orientation-pruning kernels disclosed. Representative expensive refits, not every optimizer independently implemented. No external review or new model forward."
+}

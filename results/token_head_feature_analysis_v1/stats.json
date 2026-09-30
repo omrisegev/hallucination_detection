@@ -1,0 +1,203 @@
+{
+  "model_artifact_sha256": "49168791e0687a235793e3bc818c0d0f46875ce88202b7f1d66ff2a21485b2fa",
+  "model_diagnostics": {
+    "claim_label": "supervised-developed, IU-PCR-fused, causal streaming",
+    "components": 2,
+    "g2_hat": 0.1387959700858667,
+    "graph_or_laplacian": false,
+    "input_features": 28,
+    "labels_seen_during_fit": false,
+    "loss": "l2",
+    "n_fit_traces": 128,
+    "positions_per_trace": 32,
+    "projection_residual": 0.0921402689309073,
+    "retained_features": 28,
+    "scale_ratio": 0.25,
+    "upstream_roster_and_signs_may_be_supervised": true
+  },
+  "event_aligned": {
+    "n_error_traces": 395,
+    "n_control_traces": 305
+  },
+  "sample": {
+    "n_tokens": 22400,
+    "n_error_span_tokens": 3270,
+    "n_traces": 700
+  },
+  "conditional": {
+    "marginal_mean_abs": 0.4844998298050328,
+    "cond0_mean_abs": 0.479405546645104,
+    "cond1_mean_abs": 0.49759308103616395,
+    "n_error_trace_tokens": 12640,
+    "n_y1": 3270
+  },
+  "eigen": {
+    "eigenvalues": [
+      14.976648632660694,
+      5.708765869065136,
+      2.572768751346243,
+      1.5211605768443108,
+      1.1816962078590307,
+      0.6907498523695147,
+      0.36915542058529976,
+      0.267421243013612,
+      0.18232799236045225,
+      0.1658418724586954,
+      0.08690751021446862,
+      0.07017491525263528,
+      0.060561182149540746,
+      0.048624074560811324,
+      0.03197517723913299,
+      0.02655725375263564,
+      0.012329210901891166,
+      0.010025175395541609,
+      0.005123529674535615,
+      0.0039750364391156505,
+      0.002646177112570352,
+      0.001672565258351109,
+      0.0010086801355338778,
+      0.0006637758416055242,
+      0.0004402530113585642,
+      0.0003201307716889927,
+      0.0002904525373957174,
+      0.00016848118818872608
+    ],
+    "offdiag_residual_fraction_rank_k": [
+      1.0,
+      0.3934473186456834,
+      0.1916891374904446,
+      0.11577941824276587,
+      0.08280903644047538,
+      0.044036524236639084
+    ]
+  },
+  "blocks": {
+    "mean_abs_rho_same_stream": 0.5004126901018566,
+    "mean_abs_rho_same_transform": 0.8681986322653834,
+    "mean_abs_rho_neither": 0.44870390615121913
+  },
+  "iu_pcr_refit": {
+    "rho_hat_range": [
+      0.19462595894911122,
+      0.7168834079377647
+    ],
+    "g2_hat": 0.3226701226700439,
+    "lambda2_frac": 0.22203984116609723,
+    "proj_residual": 0.052965481125887254,
+    "n_components_used": 2
+  },
+  "su_pcr": {
+    "sparse_fraction": 0.0,
+    "relative_residual": 0.1869473797292975,
+    "converged": true,
+    "theorem_support_ok": true,
+    "projection_residual": 0.0666232607175732,
+    "pcr_eigenvalues": [
+      19.123188526577497,
+      8.024309752110808
+    ],
+    "sparse_support_pairs": []
+  },
+  "weight_cosine": {
+    "IU-PCR (frozen Unified-28)": {
+      "IU-PCR (frozen Unified-28)": 1.0000000000000002,
+      "IU-PCR (refit, this token sample)": 0.8442161834351282,
+      "SU-PCR (sparse-error reproduction)": 0.8443158210207699,
+      "SDSF (dependency-weighted ridge)": -0.09482897966440168,
+      "Simple average": 0.8869608574020179,
+      "First principal component": 0.8477458127976217
+    },
+    "IU-PCR (refit, this token sample)": {
+      "IU-PCR (frozen Unified-28)": 0.8442161834351282,
+      "IU-PCR (refit, this token sample)": 1.0000000000000002,
+      "SU-PCR (sparse-error reproduction)": 0.9999999572888807,
+      "SDSF (dependency-weighted ridge)": 0.2345492932988,
+      "Simple average": 0.9789995338067778,
+      "First principal component": 0.9871415958858153
+    },
+    "SU-PCR (sparse-error reproduction)": {
+      "IU-PCR (frozen Unified-28)": 0.8443158210207699,
+      "IU-PCR (refit, this token sample)": 0.9999999572888807,
+      "SU-PCR (sparse-error reproduction)": 1.0,
+      "SDSF (dependency-weighted ridge)": 0.2345492527528794,
+      "Simple average": 0.9790142601675963,
+      "First principal component": 0.9871299337552429
+    },
+    "SDSF (dependency-weighted ridge)": {
+      "IU-PCR (frozen Unified-28)": -0.09482897966440168,
+      "IU-PCR (refit, this token sample)": 0.2345492932988,
+      "SU-PCR (sparse-error reproduction)": 0.2345492527528794,
+      "SDSF (dependency-weighted ridge)": 1.0000000000000002,
+      "Simple average": 0.058559667022379545,
+      "First principal component": 0.11068216655465261
+    },
+    "Simple average": {
+      "IU-PCR (frozen Unified-28)": 0.8869608574020179,
+      "IU-PCR (refit, this token sample)": 0.9789995338067778,
+      "SU-PCR (sparse-error reproduction)": 0.9790142601675963,
+      "SDSF (dependency-weighted ridge)": 0.058559667022379545,
+      "Simple average": 0.9999999999999996,
+      "First principal component": 0.9917979266776226
+    },
+    "First principal component": {
+      "IU-PCR (frozen Unified-28)": 0.8477458127976217,
+      "IU-PCR (refit, this token sample)": 0.9871415958858153,
+      "SU-PCR (sparse-error reproduction)": 0.9871299337552429,
+      "SDSF (dependency-weighted ridge)": 0.11068216655465261,
+      "Simple average": 0.9917979266776226,
+      "First principal component": 1.0
+    }
+  },
+  "method_metrics": {
+    "IU-PCR (frozen Unified-28)": {
+      "pooled_token_auroc": 0.5430227579071734,
+      "localization_exact": 0.3291139240506329,
+      "localization_within1": 0.6075949367088608,
+      "n_error_traces": 395
+    },
+    "IU-PCR (refit, this token sample)": {
+      "pooled_token_auroc": 0.5361934275242413,
+      "localization_exact": 0.3037974683544304,
+      "localization_within1": 0.5544303797468354,
+      "n_error_traces": 395
+    },
+    "SU-PCR (sparse-error reproduction)": {
+      "pooled_token_auroc": 0.5362010319877023,
+      "localization_exact": 0.3037974683544304,
+      "localization_within1": 0.5544303797468354,
+      "n_error_traces": 395
+    },
+    "SDSF (dependency-weighted ridge)": {
+      "pooled_token_auroc": 0.5210456626816667,
+      "localization_exact": 0.22531645569620254,
+      "localization_within1": 0.5037974683544304,
+      "n_error_traces": 395
+    },
+    "Simple average": {
+      "pooled_token_auroc": 0.538700648500811,
+      "localization_exact": 0.3240506329113924,
+      "localization_within1": 0.5822784810126582,
+      "n_error_traces": 395
+    },
+    "First principal component": {
+      "pooled_token_auroc": 0.5374089014650831,
+      "localization_exact": 0.31645569620253167,
+      "localization_within1": 0.5645569620253165,
+      "n_error_traces": 395
+    }
+  },
+  "frozen_evidence_per_trace_auroc": {
+    "n": 395,
+    "mean": 0.5499312551070722,
+    "median": 0.5491021324354658,
+    "q25": 0.43780784070979917,
+    "q75": 0.6684256933675268
+  },
+  "ragtruth_pilot": {
+    "n_full_responses_with_spans": 8,
+    "n_tokens": 1667,
+    "n_span_tokens": 108,
+    "token_auroc_evidence_full": 0.6083374907941939,
+    "token_auroc_contrast_full_minus_noctx": 0.5923906587793695
+  }
+}

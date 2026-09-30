@@ -1,0 +1,127 @@
+{
+  "status": "PASS",
+  "counts": {
+    "exact_parent_method_rows": 10780,
+    "independent_matrices": 110,
+    "independent_normalizations": 110,
+    "covariance_and_jacobian_replays": 101,
+    "iu_refits": 110,
+    "graph_seed_replays": 110,
+    "independent_laplacians": 220,
+    "independent_fusion_weights": 740,
+    "step_gate_fallback_and_row_replays": 990,
+    "independent_metric_bundles": 107,
+    "paired_point_scope_replays": 25
+  },
+  "coverage": {
+    "gap__equal": 110,
+    "gap__iu": 110,
+    "gap__joint0": 110,
+    "gap__graph010": 110,
+    "gap__graph_perm": 110,
+    "gap__equal_graph010": 110,
+    "gap__equal_graph_perm": 110,
+    "gap_scalar": 110,
+    "surprisal_scalar": 110
+  },
+  "fixed_banks": {
+    "moment": 81,
+    "context": 29
+  },
+  "native_joint_valid": 100,
+  "joint_failures": {
+    "BLOCKED_NO_ADMISSIBLE_PARTITION": 9,
+    "JOINT_FIT_GUARD_FAILED": 1
+  },
+  "fallback_counts": {
+    "gap__equal": 0,
+    "gap__iu": 0,
+    "gap__joint0": 10,
+    "gap__graph010": 10,
+    "gap__graph_perm": 10,
+    "gap__equal_graph010": 0,
+    "gap__equal_graph_perm": 0
+  },
+  "K_counts": {
+    "3": 69,
+    "4": 32
+  },
+  "representative_group_refits": [
+    "pb_gsm8k_q8",
+    "pb_math_q8",
+    "pb_olympiadbench_q8",
+    "pb_omnimath_q8",
+    "prmbench_qwen3_8b"
+  ],
+  "representative_joint_refits": [
+    "pb_gsm8k_q8",
+    "pb_math_q8",
+    "pb_olympiadbench_q8",
+    "pb_omnimath_q8",
+    "prmbench_qwen3_8b"
+  ],
+  "representative_dufs_refits": [
+    "pb_gsm8k_q8",
+    "pb_math_q8",
+    "pb_olympiadbench_q8",
+    "pb_omnimath_q8",
+    "prmbench_qwen3_8b"
+  ],
+  "maximum_risk_difference": 1.687538997430238e-14,
+  "bootstrap_checks": [
+    {
+      "left": "gap__iu",
+      "right": "dual__iu",
+      "scope": "all",
+      "status": "MATCH",
+      "draws": 1000
+    },
+    {
+      "left": "gap__graph010",
+      "right": "dual__cond100_graph010",
+      "scope": "all",
+      "status": "MATCH",
+      "draws": 1000
+    },
+    {
+      "left": "gap_scalar",
+      "right": "surprisal_scalar",
+      "scope": "all",
+      "status": "MATCH",
+      "draws": 1000
+    },
+    {
+      "left": "gap__graph010",
+      "right": "gap__equal_graph010",
+      "scope": "native_gap",
+      "status": "MATCH",
+      "draws": 1000
+    },
+    {
+      "left": "gap__graph010",
+      "right": "dual__cond100_graph010",
+      "scope": "native_gap_and_original",
+      "status": "MATCH",
+      "draws": 1000
+    }
+  ],
+  "raw_confidence_sha256": "80da51ea4dd8737196d9cfba8c30598fa63bc048897f2697da20bd684c1ebd17",
+  "hashes": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_token_gap_v1\\MANIFEST.json": "1dd6d0c7ae6bb2eed9f3a5cdb28a30b1416cb8d2c2aa43ad0d4e061a89f5e638",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_token_gap_v1\\SCORES_FROZEN.json": "b97623376b06946ff1581e4f2cd7054e5a9bfa296253ab21b956e99f14968de4",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_token_gap_v1\\EVALUATION.json": "5da62397080f753db7911bbfef9027de6d6f65e9629146676cc8d22668914432",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_token_gap_v1\\CONTRASTS.json": "6644c73c7d9c7a3930fb70f6eb5b7d325fc7a63e83fe01b68aa849bb56e196d9"
+  },
+  "dependencies": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_token_gap_v1.py": "87ac9b2aa31cc9ad123fa561c5265070f297d97405d2b5c246a28fc2625064d7",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_explicit_fallback_v1.py": "d240914943ae496e8b45f5e88b3cec9529dede61b84ece0915a0cdade57249f2",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_prediction_quality_v1.py": "919062294c0dcffbcd2e5812cde412623600426d3a2f25fb55d3912070733f1e",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_context_bank_v1.py": "b65adafba3572b1947b8d2c7c314c155b17426e8e4e3bf64148c3d8a3bc571a5",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\spectral_utils\\prmbench.py": "d05c3003176c72f3a06f0fb8b0a84cc040d61e06cf42b481b2393c10310b057a"
+  },
+  "seconds": 54.82871049991809,
+  "review_notes": [
+    "Initial review stopped on an incorrect invocation of the official label port (a report dictionary was treated as a target array). Corrected the review to use raw one-based error steps, an all-valid prediction vector, and total_step_acc_list. Frozen scoring code, labels and predictions were unchanged."
+  ],
+  "scope": "Same-session review; raw arrays/official label port, independent feature algebra, normalization, covariance/inverse/Laplacian, overlap projection, pairwise AUC/PB counts and five explicit-row bootstraps. Shared orientation and IU/Joint/grouping/DUFS/GMM kernels disclosed. Not an external review or new model forward pass."
+}

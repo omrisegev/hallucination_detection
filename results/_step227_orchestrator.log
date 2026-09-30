@@ -1,0 +1,75 @@
+waiting for the registered sweep (PID 809940) to exit; polling every 300s
+  [20:33:03] waiting — PID 809940 still alive
+  [20:38:04] waiting — PID 809940 still alive
+  [20:43:05] waiting — PID 809940 still alive
+  [20:48:06] waiting — PID 809940 still alive
+  [20:53:07] waiting — PID 809940 still alive
+  [20:58:09] waiting — PID 809940 still alive
+  [21:03:10] waiting — PID 809940 still alive
+  [21:08:11] waiting — PID 809940 still alive
+  [21:13:13] waiting — PID 809940 still alive
+  [21:18:14] waiting — PID 809940 still alive
+  [21:23:16] waiting — PID 809940 still alive
+  [21:28:17] waiting — PID 809940 still alive
+  [21:33:19] waiting — PID 809940 still alive
+  [21:38:20] waiting — PID 809940 still alive
+  [21:43:21] waiting — PID 809940 still alive
+  [21:48:23] waiting — PID 809940 still alive
+  [21:53:24] waiting — PID 809940 still alive
+  [21:58:25] waiting — PID 809940 still alive
+  [22:03:27] waiting — PID 809940 still alive
+  [22:08:28] waiting — PID 809940 still alive
+  [22:13:30] waiting — PID 809940 still alive
+  [22:18:31] waiting — PID 809940 still alive
+  [22:23:32] waiting — PID 809940 still alive
+  [22:28:34] waiting — PID 809940 still alive
+  [22:33:35] waiting — PID 809940 still alive
+  [22:38:36] waiting — PID 809940 still alive
+  [22:43:38] waiting — PID 809940 still alive
+  [22:48:39] waiting — PID 809940 still alive
+  [22:53:40] waiting — PID 809940 still alive
+  [22:58:42] waiting — PID 809940 still alive
+  [23:03:43] waiting — PID 809940 still alive
+  [23:08:44] waiting — PID 809940 still alive
+  [23:13:46] waiting — PID 809940 still alive
+  [23:18:47] waiting — PID 809940 still alive
+  [23:23:48] waiting — PID 809940 still alive
+  [23:28:51] waiting — PID 809940 still alive
+  [23:33:52] waiting — PID 809940 still alive
+  [23:38:53] waiting — PID 809940 still alive
+  [23:43:54] waiting — PID 809940 still alive
+  [23:48:57] waiting — PID 809940 still alive
+  [23:53:58] waiting — PID 809940 still alive
+  [23:58:59] waiting — PID 809940 still alive
+  [00:04:02] waiting — PID 809940 still alive
+  [00:09:03] waiting — records.jsonl written 140s ago (< 900s)
+  [00:14:04] waiting — records.jsonl written 441s ago (< 900s)
+  [00:19:06] waiting — records.jsonl written 743s ago (< 900s)
+  [00:24:08] READY — PID gone, quiet 1045s, summary.json present
+
+=== smoke_solver ===
+  C:\Users\DELL\AppData\Local\Programs\Python\Python313\python.exe scripts/solver_mechanism_study.py --data-dir local_cache --smoke
+  -> C:\Users\omris\TAU\hallucination_detection\results\_step227_logs\smoke_solver.log
+  exit=0 after 0.6 min
+
+=== smoke_residual ===
+  C:\Users\DELL\AppData\Local\Programs\Python\Python313\python.exe scripts/residual_identifiability_study.py --data-dir local_cache --smoke
+  -> C:\Users\omris\TAU\hallucination_detection\results\_step227_logs\smoke_residual.log
+  exit=0 after 0.3 min
+
+=== solver_mechanism ===
+  C:\Users\DELL\AppData\Local\Programs\Python\Python313\python.exe scripts/solver_mechanism_study.py --data-dir local_cache
+  -> C:\Users\omris\TAU\hallucination_detection\results\_step227_logs\solver_mechanism.log
+  exit=0 after 5.9 min
+
+=== residual_identifiability ===
+  C:\Users\DELL\AppData\Local\Programs\Python\Python313\python.exe scripts/residual_identifiability_study.py --data-dir local_cache
+  -> C:\Users\omris\TAU\hallucination_detection\results\_step227_logs\residual_identifiability.log
+  exit=0 after 26.3 min
+
+=== deem_probe ===
+  C:\Users\DELL\AppData\Local\Programs\Python\Python313\python.exe scripts/deem_soft_collapse_probe.py --data-dir local_cache
+  -> C:\Users\omris\TAU\hallucination_detection\results\_step227_logs\deem_probe.log
+  exit=0 after 49.5 min
+
+all three studies finished; results under results/solver_mechanism, results/residual_identifiability, results/deem_probe

@@ -1,0 +1,333 @@
+{
+  "methods": {
+    "equal": {
+      "status": "OK",
+      "score_sd_before": 0.49314002043915484,
+      "orientation_rule": "rowmean_pearson",
+      "orientation_correlation": 1.0,
+      "flipped": false,
+      "weights_raw_coordinates": [
+        0.27172829235541224,
+        0.0,
+        0.32117690048930453,
+        0.4194338657338612,
+        -0.8157472628120536,
+        -0.12306863992489772,
+        -0.8951562179086021,
+        -1.711810035544497,
+        0.43086915992530905,
+        0.41014136885033453,
+        0.0631426372706357,
+        0.3875424931592707,
+        1.640241117476482,
+        0.3806489517983319,
+        0.03925066932278851,
+        0.31819660116465803,
+        0.06885707553042228,
+        0.005782712912699201,
+        0.007355475607407209,
+        739.2170702237846,
+        -0.023856697522361327,
+        -0.040189693171850005,
+        0.004109432068683826,
+        0.004848172340050295,
+        -0.5392186559261607,
+        -0.02622804250936214,
+        0.24349588951244094,
+        0.18919411728126537,
+        0.35055689488334263,
+        2.953502103301293
+      ]
+    },
+    "iu": {
+      "status": "OK",
+      "g2_hat": 0.2408026755852843,
+      "abstained": false,
+      "score_sd_before": 0.47687156728337265,
+      "orientation_rule": "rowmean_pearson",
+      "orientation_correlation": 0.9700358948786565,
+      "flipped": false,
+      "weights_raw_coordinates": [
+        0.2818113353181451,
+        0.0,
+        -0.2825930399441363,
+        0.3130098572469646,
+        -0.17380719246689935,
+        -0.07239537007507074,
+        -0.3187376930509489,
+        -1.0978219862738159,
+        -0.0012610787041587674,
+        -0.08697817113744845,
+        -0.0001222440391544245,
+        0.39934968745857513,
+        -0.4896011601651413,
+        0.33639571358757664,
+        0.04048186640908315,
+        0.009853206809745031,
+        0.06341875251994275,
+        0.004044341678660371,
+        0.006650896797786383,
+        219.95745137221675,
+        -0.02185916434977368,
+        -0.038936378849124445,
+        -0.00041748874378774666,
+        0.0015440317473080826,
+        -0.5637825208026909,
+        -0.023633086449592344,
+        0.25537197758405933,
+        0.18988228655619332,
+        0.36680993209360696,
+        2.9723240962495816
+      ]
+    },
+    "joint_modelinv_lam0": {
+      "status": "BLOCKED_NO_ADMISSIBLE_PARTITION",
+      "grouping_status": "BLOCKED_NO_ADMISSIBLE_PARTITION",
+      "resampling_unit": "four_contiguous_blocks_within_this_answer",
+      "candidates": [
+        {
+          "K": 3,
+          "admissible": false,
+          "group_sizes": [
+            24,
+            2,
+            3
+          ],
+          "held_admissible_fraction": 0.5,
+          "median_ari": 0.6735152807165471,
+          "rejection_reason": "GROUP_SIZE_LT3_IN_CONSENSUS_OR_TOO_MANY_LOAO_FOLDS"
+        },
+        {
+          "K": 4,
+          "admissible": false,
+          "group_sizes": [
+            16,
+            2,
+            8,
+            3
+          ],
+          "held_admissible_fraction": 0.25,
+          "median_ari": 0.5585157587659266,
+          "rejection_reason": "GROUP_SIZE_LT3_IN_CONSENSUS_OR_TOO_MANY_LOAO_FOLDS"
+        },
+        {
+          "K": 6,
+          "admissible": false,
+          "group_sizes": [
+            6,
+            4,
+            8,
+            6,
+            2,
+            3
+          ],
+          "held_admissible_fraction": 0.0,
+          "median_ari": 0.6237101615657306,
+          "rejection_reason": "GROUP_SIZE_LT3_IN_CONSENSUS_OR_TOO_MANY_LOAO_FOLDS"
+        },
+        {
+          "K": 8,
+          "admissible": false,
+          "group_sizes": [
+            5,
+            3,
+            10,
+            2,
+            1,
+            2,
+            3,
+            3
+          ],
+          "held_admissible_fraction": 0.0,
+          "median_ari": 0.5182910062493489,
+          "rejection_reason": "GROUP_SIZE_LT3_IN_CONSENSUS_OR_TOO_MANY_LOAO_FOLDS"
+        }
+      ]
+    }
+  },
+  "shared": {
+    "active_features": [
+      "epr",
+      "spectral_entropy",
+      "low_band_power",
+      "high_band_power",
+      "hl_ratio",
+      "dominant_freq",
+      "spectral_centroid",
+      "stft_max_high_power",
+      "stft_spectral_entropy",
+      "rpdi",
+      "sw_var_peak",
+      "pe_mean",
+      "hurst_exponent",
+      "cusum_max",
+      "cusum_shift_idx",
+      "epr_spilled",
+      "sw_var_peak_spilled",
+      "cusum_max_spilled",
+      "min_spilled",
+      "epr_energy",
+      "min_energy",
+      "sw_var_peak_energy",
+      "cusum_max_energy",
+      "mean_top1_logprob",
+      "logprob_margin",
+      "mean_logprob_entropy",
+      "varentropy",
+      "renyi_entropy_2",
+      "topk_tail_mass"
+    ],
+    "active_p": 29,
+    "fit_windows": 37,
+    "feature_signs": [
+      -1.0,
+      -1.0,
+      -1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      1.0,
+      1.0,
+      -1.0,
+      -1.0,
+      1.0,
+      1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0
+    ],
+    "mean": [
+      0.4465566822024939,
+      2.1887512179836954,
+      0.4548433213648064,
+      0.14075390691912582,
+      0.4603217715668776,
+      0.07939189189189189,
+      0.1808346230844477,
+      0.30676382418860937,
+      1.644359925320692,
+      1.1424330806394014,
+      0.40853215219046624,
+      0.8353767728819668,
+      0.8092371683033786,
+      3.977848949321607,
+      0.5059121621621622,
+      1.2945778823766474,
+      10.426550167079533,
+      13.34865736725597,
+      2.183313935823029e-05,
+      32.75861660532049,
+      26.297569635752087,
+      24.528673000929327,
+      28.79239793725916,
+      -0.2201875752153172,
+      6.658889330937356,
+      0.47705638889371277,
+      0.5871391668680278,
+      0.3376119587328219,
+      0.024949978495292253
+    ],
+    "sd": [
+      0.257333835878553,
+      0.21771454821943423,
+      0.1667125368291453,
+      0.08571880896970618,
+      0.5681779195026335,
+      0.07811472722818828,
+      0.04084850674818321,
+      0.16228797577591436,
+      0.1704897118390014,
+      1.1074115179706865,
+      0.18043152692370606,
+      0.0426308565512166,
+      0.18369913658817424,
+      1.7814953221179721,
+      0.2197537105443905,
+      1.0155076039738729,
+      12.092055207338356,
+      9.506507467461443,
+      9.459316702112768e-05,
+      2.931037865698101,
+      1.7398710532461712,
+      17.015704997635538,
+      14.422936909833886,
+      0.12967816120613318,
+      2.6660351706989696,
+      0.2871706948670049,
+      0.3695933298211028,
+      0.19946800308068832,
+      0.023675244283858202
+    ],
+    "borrowed_calibration": "existing_feature_signs_only_explicitly_authorized",
+    "rank": 29
+  },
+  "geometry": {
+    "fit_scope": "one_answer",
+    "width": 32,
+    "stride": 32,
+    "n_fit_windows": 37,
+    "n_scoring_windows": 38,
+    "nonoverlapping_capacity_not_effective_n": 37,
+    "declared_p": 30,
+    "active_p": 29,
+    "inactive": {
+      "trace_length": "CONSTANT_ON_FIT_WINDOWS"
+    },
+    "status": "DESCRIPTIVE_ONLY",
+    "labels_accessed": false,
+    "rank": 29,
+    "participation_rank": 4.292898234155659,
+    "rank_cap": 29,
+    "raw_n_over_p": 1.2758620689655173
+  },
+  "stability": {
+    "omit_first_quarter": {
+      "joint_modelinv_lam0": {
+        "status": "OK"
+      },
+      "iu": {
+        "status": "OK",
+        "score_spearman": 0.9951854688696794,
+        "oriented_weight_cosine": 0.9999897547374547
+      },
+      "equal": {
+        "status": "OK",
+        "score_spearman": 0.999124630703578,
+        "oriented_weight_cosine": 0.999999543082853
+      }
+    },
+    "omit_last_quarter": {
+      "joint_modelinv_lam0": {
+        "status": "BLOCKED_NO_ADMISSIBLE_PARTITION"
+      },
+      "iu": {
+        "status": "OK",
+        "score_spearman": 0.9971550497866287,
+        "oriented_weight_cosine": 0.9999934575330234
+      },
+      "equal": {
+        "status": "OK",
+        "score_spearman": 0.9982492614071562,
+        "oriented_weight_cosine": 0.999995945335333
+      }
+    }
+  },
+  "labels_accessed": false,
+  "elapsed_seconds": 2.4905503999907523,
+  "row": 6282,
+  "score_sha256": "572a8a6e852f3ede02ddda32293b5807161f1abbc56bc42256555a1661dea23e"
+}

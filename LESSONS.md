@@ -22,6 +22,13 @@ Enforced by: code | command | prose   (name the file)
 
 ---
 
+## 2026-09-24 — Do not rely on a requested shell working directory for project reads
+
+What happened: the first session-start read used relative paths with a requested working directory, but PowerShell resolved them under `C:\` and did not read the project files.
+Why: the command assumed the runner would honor `workdir` without verifying the resolved location.
+Rule: for required project reads, use verified absolute paths (or first print the working directory) before relying on the output.
+Enforced by: prose (AGENTS.md session-start procedure).
+
 ## 2026-09-23 — Disk-full writes can truncate canonical documentation
 
 What happened: apply_patch truncated CLAUDE.md after the volume filled. The original
@@ -227,3 +234,87 @@ Rule: retain corrected matched-control intervals, native/fallback accounting,
 null prevalence effects and FEASIBILITY labels; record the negative implementation
 result alongside the positive transfer result.
 Enforced by: CONTRASTS.json, RED_TEAM.md, NEGATIVE_RESULT.md and independent audits.
+
+## 2026-09-24 - Use absolute paths for Windows tool reads
+What happened: this results-summary session's initial relative-path reads resolved under C:\, including a retry with an explicit tool workdir. No project files were changed by those failed reads.
+Why: the shell did not honor the expected working directory; the earlier unittest invocation lesson also applies to document reads.
+Rule: pass absolute -LiteralPath arguments and git -C paths in this tool environment; verify the resolved location before any relative-path mutation.
+Enforced by: corrected absolute-path command invocations in this session; no existing research code was changed.
+
+## 2026-09-24 - Preserve fitted-model identity for calibration and verify CT7 from its canonical implementation
+What happened: read-only review of the tail-L-SML discussion found that tail_lsml_banks_run.py writes evaluation and calibration scores into one shared array; later folds overwrite them, mixing fitted models in four of five calibration/evaluation pairs. The tail protocol also describes frozen CT7 as token fusion with 4/2/1 weights, whereas frozen_locator_ct7.py defines seven step views averaged with equal 1/7 weights.
+Why: predictions were keyed only by answer rather than outer fitted model and role, and the baseline description was not checked against its canonical scorer.
+Rule: retain calibration and evaluation predictions separately for every fitted model and verify model identity before thresholding. Replay the exact canonical reference before attributing a gain to weight learning or operation order. Existing tail within-answer rankings are not automatically invalidated by the calibration issue; PRMScore needs a corrected replay.
+Enforced by: source inspection of tail_lsml_banks_run.py lines 102-116 and 139-142, and frozen_locator_ct7.py lines 4-18 and 65-67. Experimental files remain unchanged; an automated model-identity assertion is still needed in the owning lane.
+
+## 2026-09-24 - Re-audit calibration when an experiment moves to another harness
+What happened: the new ct7_token_tail_lsml_v1 run in the levers worktree has no prior eval/cal overwrite bug, but its learned OOF scores enter the fixed-reference PRMScore branch because rosters is empty. Thresholds mix fitted-model identities; inner threshold selection uses source labels; raw CT7 and answer-z candidates have different final normalization. These findings were recorded in docs/reviews/CLAUDE_TOKEN_TAIL_LSML_CORRECTION_HANDOFF_20260924_HE.md without modifying experimental artifacts.
+Why: a reusable reference-score evaluator was treated as a nested learned-model evaluator, and the previous run's findings could not safely be carried over by experiment name. During document inspection, one shell read also incorrectly combined Get-Content -Raw with -Tail; it was corrected to -Tail only.
+Rule: inspect the current driver-to-evaluator route, preserve model identity across calibration and evaluation, label threshold-fitting access, match normalization, and compute uncertainty for the actual primary metric. State that current CT7 replay checks saved scores rather than regenerating its full pipeline.
+Enforced by: source/hash review of six frozen source/config entries and the linked correction handoff. Same-model calibration assertions and paired PRMScore intervals remain required implementation work in the owning lane.
+
+## 2026-09-24 - Separate feature orientation, filtering and family fusion in attribution
+What happened: review of named_group_fusion_v1 showed that the direct L-SML recovery is largely filtering, whereas the equal-fusion path improves most from label-chosen orientation before filtering. The recorded bank is 48 channels, reduced to 28. Residual-correlation groups and their re-standardization do not certify conditional independence.
+Why: comparing only the original broad bank with the final family pipeline combines multiple interventions and changes label access.
+Rule: compare original-sign, source-oriented, filtered and family controls on the same population. Describe conditional-independence as an assumption unless supported beyond pooled residual correlation; disclose all label-guided design before freezing transfer candidates.
+Enforced by: the matched source-table audit and section 8 of docs/reviews/CLAUDE_TOKEN_TAIL_LSML_CORRECTION_HANDOFF_20260924_HE.md. Frozen experiments were not modified.
+
+## 2026-09-24 - Do not convert unknown PB step labels into error truth
+What happened: the independent confidence-experiment reviewer initially cast JOINED PB step labels to bool and tried to equate the first positive with the first-error target. Those labels are sentinel -2; the assertion was the audit's mistake, not a scoring defect. All6,800 PB rows were then checked using the explicit canonical target, with4,442 erroneous answers scored.
+Why: a mixed-benchmark array was assumed to have one label contract throughout.
+Rule: validate benchmark-specific sentinel and label conventions before casting. PRMB uses one-based error_steps; PB localization uses its explicit target. Never infer PB error truth from sentinel labels.
+Enforced by: results/lsml_group_confidence_v1/audit_recompute.py and AUDIT_RECOMPUTE.json.
+
+## 2026-09-24 - Confidence ablations and latent accuracies need narrow claims
+What happened: independent math review clarified that averaging group log evidence changes both slope and intercept, and that singleton continuous contributions do not saturate. Exact duplicate invariance only covers within-family copies. Model-implied sensitivities/specificities differ materially from gold-label accuracies on the held-out PRMB folds.
+Why: language about group confidence can accidentally imply pure cardinality attribution, universal robustness, or calibrated correctness.
+Rule: identify the exact intervention, latent reference variable, continuous extension and duplication scope. Sum-versus-average is an evidence-temperature ablation; synthetic independent-measurement success does not establish benchmark improvement.
+Enforced by: binary enumeration/duplicate tests, AUDIT_MATH_NULL.json, RED_TEAM.md and the group-confidence results report. Method and frozen outputs were not changed after quality evaluation.
+
+## 2026-09-24 - Verification scripts also need smoke checks and bounded I/O
+What happened: Windows Set-Location and pytest ancestor-directory discovery were denied; tests were instead run by absolute-path runpy with explicit sys.path, and all5 test functions passed. A synthetic fixture initially indexed a probability table with a Boolean class array; converting it to integer class indices fixed the fixture before the benchmark run. A review script repeatedly decompressed NPZ arrays inside an answer loop; only that audit was stopped, arrays were cached once, and unchanged checks completed.
+Why: filesystem traversal, NumPy indexing semantics and compressed-array access were assumed to behave like their simpler alternatives. One broad file inventory also returned excessive output before being narrowed.
+Rule: use absolute paths in this environment, smoke-test fixtures before scientific fitting, cache NPZ members outside per-answer loops, and constrain file inventories to the metadata being sought. Report the actual test runner rather than calling an unexecuted pytest invocation successful.
+Enforced by: scripts/run_lsml_group_confidence.py, tests/test_lsml_group_confidence.py and results/lsml_group_confidence_v1/audit_math_null.py.
+
+## 2026-09-24 - Generic binary-family method names hide different fitting recipes
+What happened: the user compared our family15_binary_lsml PRMScore0.641834 with Claude's corrected F15_tailtie_lsml0.645210. Reading both implementations showed our strict empirical-q80 binary indicators with pooled standardization differ from Claude's top-ceil quota, fractional boundary ties, within-answer centering and continuous-anchor orientation. The common descriptive name was insufficient to establish estimator identity.
+Why: prior communication named the representation and broad method, but omitted consequential threshold, tie and centering rules.
+Rule: compare exact frozen recipes, not display names. Do not attribute the difference to calibration or tie handling alone without a matched ablation. Fractional tie marks are not hard binary classifier outputs. Distinguish the separate negative latent-tree EM confidence experiment from both spectral family variants.
+Enforced by: direct comparison of spectral_utils/lsml_group_confidence.py and spectral_utils/lsml_group_confidence_experiment.py with .worktrees/ssl-pseudolabel-residual-v1/scripts/experiments/calfix_common.py; frozen scores remain unchanged.
+
+## 2026-09-24 - Normalize filesystem paths before Git object lookup
+What happened: the post-commit family-tail archive check passed a Windows backslash destination to git show HEAD:path, which failed to find the committed file. Converting only the Git object path to forward slashes fixed the check; all18 archived inputs and the portable implementation match their recorded hashes in commit df8371f3c.
+Why: historical provenance records filesystem paths, while Git tree paths use forward slashes on every platform.
+Rule: normalize separators at the Git object-lookup boundary; do not reinterpret a lookup error as missing committed evidence before inspecting the path syntax.
+Enforced by: the successful committed-byte verification for codex/family15-tail20-transfer-v1. The handoff worktree is committed and clean.
+
+## 2026-09-24 - Require a positive test count when checking transferred code
+What happened: unittest discovery returned NO TESTS RAN for two plain pytest-style functions in the family-tail handoff. No test success was inferred; the two functions were then explicitly loaded and executed, and both passed.
+Why: the selected discovery framework did not collect plain test functions.
+Rule: inspect the test style and assert a positive expected test count before reporting validation.
+Enforced by: the review command asserts len(tests)==2 before executing both functions; results/family_tail_handoff_review_v1/PROVENANCE.json records 2/2 actual tests.
+
+## 2026-09-24 - Verify actual feature precision and freeze before launching workers
+What happened: the initial family-tail review repeated a historical comment describing the CT7 token cache as float32. Inspecting the actual saved array showed float64; the extractor and review were corrected to preserve actual source values before full source parity and external scoring. The source-run code hash observation was recorded after workers started, so its timing limitation is explicit rather than claimed as a prelaunch attestation.
+Why: prose about cache storage and the existence of a frozen method lock do not establish the exact bytes executed by a new extractor.
+Rule: inspect array dtype and every rounding point; require full raw-source parity, and hash extraction code and dependencies before worker launch. If an observation is late, preserve its real timing and verify unchanged hashes/mtimes at completion. Windows command-size failures must be retried as file patches, not assumed to have written output.
+Enforced by: scripts/verify_family_external_source.py, source-code observation/completion artifacts and IMPLEMENTATION_FREEZE.json; external scoring refuses a missing full source gate or changed frozen dependency.
+
+## 2026-09-27 - Absolute paths before session-start reads (recurrence)
+What happened: relative document reads resolved under C:\ despite an explicit workdir; Set-Location was also denied. Absolute-path reads with reviewed escalation succeeded.
+Why: the existing Windows runner lesson was not applied before the first read.
+Rule: use absolute file paths from the first tool call and keep document reads bounded to avoid output truncation.
+Enforced by: corrected absolute-path calls in this Joint L-SML review; no experimental files changed.
+
+## 2026-09-27 — Session read repeated the PowerShell working-directory pitfall
+What happened: initial relative documentation reads resolved under C:\ even with workdir supplied; absolute UTF-8 reads succeeded. No scientific files changed.
+Why: the shell runner's requested directory was trusted before the existing lesson was read.
+Rule: start required reads with absolute paths and login=false; bound long documentation output to avoid truncation.
+Enforced by: command (absolute-path Get-Content with login=false used for subsequent reads in this session).
+
+## 2026-09-27 — Session-start relative-path read repeated the known working-directory failure
+What happened: required documentation reads resolved under C:\, including a retry with workdir supplied; absolute-path reads succeeded.
+Why: the existing 2026-09-24 lesson was not available until the required files were read.
+Rule: bootstrap project reads with absolute paths from the supplied environment context; do not retry relative reads merely by setting workdir.
+Enforced by: command (absolute LiteralPath/path arguments used for the remaining session operations).

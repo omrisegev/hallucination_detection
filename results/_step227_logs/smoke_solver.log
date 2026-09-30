@@ -1,0 +1,38 @@
+[iter_cells] qa/spectral_phase9_cache_webq_traces_T1.0: single-class labels — skipped
+VALIDITY: GOOD_6 macro = 0.7733 (expected 0.7733 +/- 0.002) -> PASS
+  epr_triviaqa_mistral24b            pcr=0.6464  ridge=0.6491  pcr_plus_tai=0.5954  ridge_plus_t=0.5956
+  losnet_hotpotqa_mistral7b          pcr=0.5700  ridge=0.5700  pcr_plus_tai=0.5734  ridge_plus_t=0.5734
+
+wiring gate  : both factorial corners reproduce committed AUROC to 1e-9 on all 2 cells
+arithmetic gate: h_ridge + t_ridge == registered ridge to 1e-10 on all cells and all 5 kappa
+
+held-out / sample-size study (3 fractions x 3 repeats x 2 cells)
+  [epr_triviaqa_mistral24b]
+    frac=0.25  ok=  3  ridge-PCR= -1.64pp  tail= -1.64pp  head= +0.01pp
+    frac=0.50  ok=  3  ridge-PCR= -0.21pp  tail= -0.27pp  head= +0.13pp
+    frac=0.75  ok=  3  ridge-PCR= -6.06pp  tail= -6.04pp  head= +0.12pp
+  [losnet_hotpotqa_mistral7b]
+    frac=0.25  ok=  3  ridge-PCR= -1.19pp  tail= -1.18pp  head= +0.00pp
+    frac=0.50  ok=  3  ridge-PCR= -0.05pp  tail= -0.07pp  head= -0.01pp
+    frac=0.75  ok=  3  ridge-PCR= -0.45pp  tail= -0.41pp  head= +0.01pp
+
+factorial at the registered kappa=100 (macro AUROC over cells):
+                      tail absent    + t_ridge
+  PCR head scaling         0.6082       0.5844
+  ridge head scaling       0.6095       0.5845
+
+effects (pp, positive = candidate better; CI is family-blocked):
+  head rescaling, tail absent                    +0.13  [ +0.00, +0.27]  1W/0L  p=nan
+  head rescaling, tail present                   +0.01  [ +0.00, +0.02]  2W/0L  p=nan
+  tail addition at PCR head                      -2.38  [ -5.10, +0.34]  1W/1L  p=nan
+  tail addition at ridge head                    -2.50  [ -5.35, +0.35]  1W/1L  p=nan
+  solver leg, both at once                       -2.37  [ -5.08, +0.35]  1W/1L  p=nan
+  matrix leg, PCR solver (raw structured)        -1.40  [ -2.80, +0.00]  0W/1L  p=nan
+  matrix leg, PCR solver (PSD structured)        -1.40  [ -2.80, +0.00]  0W/1L  p=nan
+  PSD repair on the structured matrix            +0.00  [ +0.00, +0.00]  0W/0L  p=nan
+  no inversion at all                            +3.94  [ +0.07, +7.82]  2W/0L  p=nan
+  interaction (tail effect at ridge head - at PCR head)   -0.12  [ -0.25, +0.00]  1W/1L  p=1
+
+kappa trend: slope -0.719 pp per log-kappa [-1.568,+0.131]  (does NOT support tail amplification)
+
+wrote C:\Users\omris\TAU\hallucination_detection\results\solver_mechanism\_smoke  (13.5s)

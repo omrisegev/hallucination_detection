@@ -1,0 +1,155 @@
+{
+  "status": "PASS",
+  "counts": {
+    "direct_label_group_joins": 110,
+    "exact_parent_arrays": 4710,
+    "exact_parent_metadata": 2090,
+    "exact_audit_groupings": 220,
+    "audit_factor_covariance_replays": 219,
+    "independent_pair_product_jacobians": 67,
+    "same_answer_gate_replays": 176,
+    "independent_graph_inverse_projections": 642,
+    "independent_window_step_maps": 642,
+    "independent_native_gmm_decisions": 642,
+    "independent_route_inheritances": 880,
+    "metric_bundles": 33,
+    "historical_parent_metric_replays": 19,
+    "paired_point_bundles": 63
+  },
+  "coverage": {
+    "moment__equal": 110,
+    "moment__iu": 110,
+    "moment__joint0": 78,
+    "moment__graph010": 78,
+    "moment__graph_perm": 78,
+    "context__equal": 110,
+    "context__iu": 110,
+    "context__joint0": 102,
+    "context__graph010": 102,
+    "context__graph_perm": 102,
+    "entropy_parent": 110,
+    "single__joint0": 110,
+    "single__graph010": 110,
+    "single__graph_perm": 110,
+    "dual__joint0": 110,
+    "dual__graph010": 110,
+    "dual__graph_perm": 110,
+    "dual__equal": 110,
+    "dual__iu": 110,
+    "pair_moment__joint0": 106,
+    "pair_moment__graph010": 106,
+    "pair_moment__graph_perm": 106,
+    "pair_context__joint0": 108,
+    "pair_context__graph010": 108,
+    "pair_context__graph_perm": 108,
+    "pair_single__joint0": 110,
+    "pair_single__graph010": 110,
+    "pair_single__graph_perm": 110,
+    "pair_dual__joint0": 110,
+    "pair_dual__graph010": 110,
+    "pair_dual__graph_perm": 110,
+    "pair_dual__equal": 110,
+    "pair_dual__iu": 110
+  },
+  "routes": {
+    "single/moment_joint": 106,
+    "dual/moment_joint": 106,
+    "single/moment_iu": 4,
+    "dual/context_joint": 4
+  },
+  "new_gate_recipe_refits": [
+    [
+      "pb_gsm8k_q8",
+      "context"
+    ],
+    [
+      "pb_gsm8k_q8",
+      "moment"
+    ],
+    [
+      "pb_math_q8",
+      "context"
+    ],
+    [
+      "pb_math_q8",
+      "moment"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "context"
+    ],
+    [
+      "pb_olympiadbench_q8",
+      "moment"
+    ],
+    [
+      "pb_omnimath_q8",
+      "context"
+    ],
+    [
+      "pb_omnimath_q8",
+      "moment"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "context"
+    ],
+    [
+      "prmbench_qwen3_8b",
+      "moment"
+    ]
+  ],
+  "bootstrap_checks": [
+    {
+      "left": "pair_single__joint0",
+      "right": "single__joint0",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    },
+    {
+      "left": "pair_single__joint0",
+      "right": "moment__iu",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    },
+    {
+      "left": "pair_dual__graph010",
+      "right": "dual__graph010",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    },
+    {
+      "left": "pair_dual__graph010",
+      "right": "pair_dual__joint0",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    },
+    {
+      "left": "pair_dual__graph010",
+      "right": "pair_dual__graph_perm",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    },
+    {
+      "left": "pair_dual__graph010",
+      "right": "pair_dual__iu",
+      "draws": 1000,
+      "four_intervals_and_counts": "MATCH"
+    }
+  ],
+  "max_reconstructed_risk_difference": 5.595524044110789e-14,
+  "seconds": 36.50175220007077,
+  "scope": "Independent graph-Laplacian/native inverse, step/GMM/routing/metric reconstruction; audited Joint fits, graph-builder and DUFS kernels reused.",
+  "hashes": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_pair_quality_v1\\MANIFEST.json": "0e6f668e7b915225f546d78e5482681fe38408c7b44b60329998e9f1e96a4c0e",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_pair_quality_v1\\SCORES_FROZEN.json": "0f1c310743f2c699daa716c63e011cd03e2872e292061e91dec05f9fa7358c4e",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_pair_quality_v1\\EVALUATION.json": "bba6d6ed3f21e2d839b4362a2bf48212d1d53ebe538d116d2ee091b7dd493686",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_pair_quality_v1\\CONTRASTS.json": "9de9f87d36d0921310f682a101d9d3456c3b2604b73969fdc028d2439effe965"
+  },
+  "review_dependencies": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_explicit_fallback_v1.py": "d240914943ae496e8b45f5e88b3cec9529dede61b84ece0915a0cdade57249f2",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_context_bank_v1.py": "b65adafba3572b1947b8d2c7c314c155b17426e8e4e3bf64148c3d8a3bc571a5",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_joint_pairs_v1.py": "d52db7dcd96d5f60283ef1b8408a35524bd8716ed3875b487bf8f330e1944c31"
+  },
+  "review_script_sha256": "9312951b1a8f58aca3559925fa24bd311c0247b4fab7ca09214e374035e7452a"
+}

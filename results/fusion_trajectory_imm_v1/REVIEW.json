@@ -1,0 +1,116 @@
+{
+  "status": "PASS",
+  "counts": {
+    "raw_label_span_joins": 110,
+    "exact_external_row_records": 16390,
+    "independent_noise_gls_replays": 880,
+    "direct_vector_imm_replays": 990,
+    "trajectory_step_gmm_replays": 2970,
+    "answers": 110,
+    "independent_metric_bundles": 176,
+    "paired_point_scope_replays": 50
+  },
+  "coverage": {
+    "traj_iu_joint_graph__mean": 110,
+    "traj_iu_joint_graph__gls": 110,
+    "traj_iu_joint_graph__hold": 110,
+    "traj_iu_joint_graph__imm": 110,
+    "traj_iu_joint_graph__imm_permuted": 110,
+    "traj_iu_joint0__mean": 110,
+    "traj_iu_joint0__gls": 110,
+    "traj_iu_joint0__hold": 110,
+    "traj_iu_joint0__imm": 110,
+    "traj_iu_joint_perm__mean": 110,
+    "traj_iu_joint_perm__gls": 110,
+    "traj_iu_joint_perm__hold": 110,
+    "traj_iu_joint_perm__imm": 110,
+    "traj_equal_graph__mean": 110,
+    "traj_equal_graph__gls": 110,
+    "traj_equal_graph__hold": 110,
+    "traj_equal_graph__imm": 110,
+    "traj_equal_perm__mean": 110,
+    "traj_equal_perm__gls": 110,
+    "traj_equal_perm__hold": 110,
+    "traj_equal_perm__imm": 110,
+    "traj_iu__hold": 110,
+    "traj_iu__imm": 110,
+    "traj_joint_graph__hold": 110,
+    "traj_joint_graph__imm": 110,
+    "traj_equal__hold": 110,
+    "traj_equal__imm": 110
+  },
+  "failures": {},
+  "duplicate_collapses": {
+    "iu_joint_graph": 3,
+    "iu_joint0": 3,
+    "iu_joint_perm": 3,
+    "equal_graph": 0,
+    "equal_perm": 0,
+    "iu": 0,
+    "joint_graph": 0,
+    "equal": 0
+  },
+  "inherited_fallbacks": {
+    "iu_joint_graph": 3,
+    "iu_joint0": 3,
+    "iu_joint_perm": 3,
+    "equal_graph": 0,
+    "equal_perm": 0,
+    "iu": 0,
+    "joint_graph": 3,
+    "equal": 0
+  },
+  "maximum_window_difference": 1.2232437285319975e-12,
+  "bootstrap_checks": [
+    {
+      "left": "traj_iu_joint_graph__imm",
+      "right": "dual__iu",
+      "scope": "all",
+      "draws": 1000,
+      "status": "MATCH"
+    },
+    {
+      "left": "traj_iu_joint_graph__imm",
+      "right": "traj_iu_joint_graph__hold",
+      "scope": "all",
+      "draws": 1000,
+      "status": "MATCH"
+    },
+    {
+      "left": "traj_iu_joint_graph__imm",
+      "right": "traj_iu_joint_graph__imm_permuted",
+      "scope": "all",
+      "draws": 1000,
+      "status": "MATCH"
+    },
+    {
+      "left": "traj_iu_joint_graph__imm",
+      "right": "traj_equal_graph__imm",
+      "scope": "all",
+      "draws": 1000,
+      "status": "MATCH"
+    },
+    {
+      "left": "traj_iu_joint_graph__mean",
+      "right": "dual__cond100_graph010",
+      "scope": "native_parent_joint",
+      "draws": 1000,
+      "status": "MATCH"
+    }
+  ],
+  "seconds": 113.1263590999879,
+  "hashes": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_trajectory_imm_v1\\MANIFEST.json": "388f023a22f978f0653eda3cccba2b674e6c149d259f6aa29833c07d0a06c117",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_trajectory_imm_v1\\SCORES_FROZEN.json": "44ebb0e30926bb6f159f9e0c3ce8118f17b378e920775a2c5ab3df52c8696a5e",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_trajectory_imm_v1\\EVALUATION.json": "b5e3c2c8014fb05410e5e903e62fc8a0f03c7b47b9c47bdcd046ab8b7bb0feda",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_trajectory_imm_v1\\CONTRASTS.json": "ede6ec9f50f2c8feaf767fdef2f7407fe31d66eca883dfad3b38eb378238b292",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\fusion_trajectory_imm_v1\\DIAGNOSTICS.json": "28ca94d9a4a549263532460368838a950358b8e737957019ff7041df094c90cf"
+  },
+  "dependencies": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_trajectory_imm_v1.py": "f41179e9023cf76a6b15ce3ede46f1e741c6d73d1367ccc296e92bac8696f1d6",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_explicit_fallback_v1.py": "d240914943ae496e8b45f5e88b3cec9529dede61b84ece0915a0cdade57249f2",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\tests\\test_fusion_trajectory_imm.py": "baef88567f4b672dbd2a6559a2a47a4a207027b35bc48819b115363afb9aafb6",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\spectral_utils\\prmbench.py": "d05c3003176c72f3a06f0fb8b0a84cc040d61e06cf42b481b2393c10310b057a"
+  },
+  "scope": "Same-session review, not external: original raw labels/spans, unchanged source curves, independent noise covariance/GLS and direct vector IMM, output normalization/projection, direct AUC/PB and five explicit-row bootstraps. GMM, source metadata reader and official label port shared. Vector reference is the frozen test implementation; underlying feature-fusion fits reused, not refitted. No new model forward or causal-online claim."
+}

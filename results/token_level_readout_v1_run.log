@@ -1,0 +1,15 @@
+per-cell PB F1:
+                       gsm8k_q4    gsm8k_q8     math_q4     math_q8    olymp_q4    olymp_q8 omnimath_q4 omnimath_q8   all8
+token_entropy             44.16       39.71       34.77       33.92       31.20       30.45       35.45       33.89   35.44   within 0.7301 pooled 0.7027 exact 31.5
+token_varentropy          43.40       40.50       32.95       32.11       34.24       34.58       33.74       33.89   35.68   within 0.7425 pooled 0.7158 exact 32.2
+token_margin              41.41       39.17       35.09       34.33       33.11       34.09       34.55       34.39   35.77   within 0.7081 pooled 0.6827 exact 32.7
+token_iu9                 45.28       39.44       35.25       33.92       30.89       30.86       34.43       33.59   35.46   within 0.7315 pooled 0.6813 exact 31.1
+window_iu27_top10         40.17       35.61       31.01       30.89       27.56       28.75       30.42       30.35   31.84   within 0.7196 pooled 0.6735 exact 26.5
+token_entropy minus window_iu27_top10: within +0.0106 [+0.0062,+0.0152]  PB +3.60pp [+2.39,+4.93]
+token_iu9 minus token_entropy: within +0.0014 [-0.0005,+0.0033]  PB +0.01pp [-0.54,+0.59]
+token_varentropy minus token_entropy: within +0.0124 [+0.0088,+0.0163]  PB +0.23pp [-0.98,+1.49]
+token_margin minus token_entropy: within -0.0221 [-0.0257,-0.0179]  PB +0.32pp [-0.81,+1.55]
+token_entropy        PRMScore(q0.8) 0.6254
+token_varentropy     PRMScore(q0.8) 0.6328
+token_iu9            PRMScore(q0.8) 0.6010
+window_iu27_top10    PRMScore(q0.8) 0.5967

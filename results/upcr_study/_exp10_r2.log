@@ -1,0 +1,43 @@
+Loading 25 in-scope cells...
+[iter_cells] qa/spectral_phase9_cache_webq_traces_T1.0: single-class labels — skipped
+Loaded 24/25 cells for Stage 2 Anchor Audit.
+VALIDITY: GOOD_6 macro = 0.7733 (expected 0.7733 +/- 0.002) -> PASS
+VALIDITY: U-PCR + sign(rho) macro = 0.7741 (expected 0.7741 +/- 0.002) -> PASS
+
+=== R2 — ORACLE MASK ceiling (channel A) ===
+  GSM8K / R1-Distill-8B              in-sample 0.8013 (+6.28pp vs start) | split-half 0.7852 vs real 0.7379 (+4.72pp) vs NULL 0.5156 (+26.95pp)
+  TriviaQA / Mistral-24B             in-sample 0.7536 (+0.79pp vs start) | split-half 0.7495 vs real 0.7506 (-0.11pp) vs NULL 0.6493 (+10.02pp)
+  GSM8K / Qwen2.5-7B                 in-sample 0.7703 (+6.21pp vs start) | split-half 0.7304 vs real 0.7158 (+1.46pp) vs NULL 0.6397 (+9.06pp)
+  GSM8K / Llama-3B                   in-sample 0.7231 (+2.39pp vs start) | split-half 0.7259 vs real 0.7087 (+1.72pp) vs NULL 0.6456 (+8.03pp)
+  GSM8K / Llama-8B                   in-sample 0.8376 (+2.67pp vs start) | split-half 0.8221 vs real 0.8123 (+0.98pp) vs NULL 0.7910 (+3.11pp)
+  GSM8K / Mistral-24B                in-sample 0.8631 (+1.45pp vs start) | split-half 0.8385 vs real 0.8328 (+0.57pp) vs NULL 0.8147 (+2.38pp)
+  GSM8K / Nemo                       in-sample 0.8288 (+3.16pp vs start) | split-half 0.8115 vs real 0.7898 (+2.17pp) vs NULL 0.6983 (+11.32pp)
+  GSM8K / Phi-3.5                    in-sample 0.8262 (+1.73pp vs start) | split-half 0.8138 vs real 0.8150 (-0.12pp) vs NULL 0.7308 (+8.30pp)
+  HotpotQA / Mistral-7B              in-sample 0.6194 (+4.99pp vs start) | split-half 0.5710 vs real 0.5511 (+1.99pp) vs NULL 0.5317 (+3.93pp)
+  MATH-500 / DeepSeek-Math-7B        in-sample 0.8225 (+3.60pp vs start) | split-half 0.7975 vs real 0.7922 (+0.53pp) vs NULL 0.7565 (+4.10pp)
+  MATH-500 / Qwen-Math-7B            in-sample 0.9419 (+2.32pp vs start) | split-half 0.9012 vs real 0.8953 (+0.59pp) vs NULL 0.8913 (+0.99pp)
+  MATH-500 / R1-Distill-8B           in-sample 0.8762 (+3.77pp vs start) | split-half 0.8458 vs real 0.8404 (+0.53pp) vs NULL 0.8299 (+1.58pp)
+  MATH-500 / R1-Distill-8B (long)    in-sample 0.8742 (+3.84pp vs start) | split-half 0.8479 vs real 0.8332 (+1.47pp) vs NULL 0.7562 (+9.16pp)
+  GSM8K / Mistral-7B                 in-sample 0.8284 (+4.53pp vs start) | split-half 0.8205 vs real 0.7818 (+3.87pp) vs NULL 0.6799 (+14.07pp)
+  GSM8K / Phi-3-mini                 in-sample 0.6981 (+1.51pp vs start) | split-half 0.6817 vs real 0.6801 (+0.17pp) vs NULL 0.6287 (+5.31pp)
+  SciQ / Llama-8B                    in-sample 0.7686 (+2.67pp vs start) | split-half 0.7415 vs real 0.7459 (-0.44pp) vs NULL 0.7461 (-0.45pp)
+  NQ-Open / Llama-8B                 in-sample 0.7580 (+1.11pp vs start) | split-half 0.7585 vs real 0.7473 (+1.12pp) vs NULL 0.6701 (+8.84pp)
+  SQuAD-v2 / Llama-8B                in-sample 0.8399 (+2.97pp vs start) | split-half 0.8402 vs real 0.8098 (+3.04pp) vs NULL 0.7054 (+13.48pp)
+  TriviaQA / OPT-30B                 in-sample 0.8383 (+2.65pp vs start) | split-half 0.8336 vs real 0.8099 (+2.38pp) vs NULL 0.7398 (+9.39pp)
+  TriviaQA / Qwen3-8B                in-sample 0.8243 (+1.40pp vs start) | split-half 0.8200 vs real 0.8084 (+1.16pp) vs NULL 0.6859 (+13.41pp)
+  TriviaQA / Llama-8B                in-sample 0.9873 (+5.73pp vs start) | split-half 0.8669 vs real 0.8648 (+0.21pp) vs NULL 0.8170 (+4.99pp)
+  GSM8K / Llama-8B (10 samples)      in-sample 0.8265 (+1.51pp vs start) | split-half 0.8229 vs real 0.8144 (+0.85pp) vs NULL 0.7172 (+10.58pp)
+  MATH-500 / Qwen-Math-1.5B (10 samp in-sample 0.7214 (+3.53pp vs start) | split-half 0.7131 vs real 0.6793 (+3.38pp) vs NULL 0.6543 (+5.89pp)
+  TruthfulQA / Llama-8B              in-sample 0.6960 (+3.27pp vs start) | split-half 0.7048 vs real 0.6724 (+3.24pp) vs NULL 0.6441 (+6.07pp)
+  saved results\upcr_study\10_channel_ceilings\r2_oracle_mask.csv  (24 rows)
+
+  R2 in-sample greedy vs its own start (pure channel A): +3.09pp mean / +2.82pp median, 24W/0L over 24 observations, p=0.000
+
+  R2 split-half oracle vs deployed: +1.48pp mean / +1.14pp median, 21W/3L over 24 observations, p=0.000
+
+  R2 split-half oracle vs PERMUTED-LABEL NULL  <-- the one that matters: +7.94pp mean / +8.16pp median, 23W/1L over 24 observations, p=0.000
+
+  R2 null selection vs deployed (how much the search finds from noise): -6.46pp mean / -6.66pp median, 1W/23L over 24 observations, p=0.000
+  saved results\upcr_study\10_channel_ceilings\summary.json
+
+Wrote -> C:\Users\omris\TAU\hallucination_detection\results\upcr_study\10_channel_ceilings

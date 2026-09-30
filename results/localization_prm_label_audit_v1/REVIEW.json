@@ -1,0 +1,56 @@
+{
+  "status": "PASS",
+  "counts": {
+    "raw_and_official_port_label_replays": 6969,
+    "unchanged_pb_label_files": 8,
+    "exact_unchanged_row_fields": 168,
+    "exact_method_prediction_score_replays": 11594,
+    "independent_metric_bundles": 123,
+    "paired_point_scope_replays": 207
+  },
+  "bootstrap_checks": [
+    {
+      "cohort": "current110",
+      "pair": "dual__cond100_graph010 minus dual__iu [all]",
+      "draws": 1000
+    },
+    {
+      "cohort": "current110",
+      "pair": "ar1__iu minus dual__iu [all]",
+      "draws": 1000
+    },
+    {
+      "cohort": "current110",
+      "pair": "ar1__graph010 minus dual__cond100_graph010 [native_and_original:ar1]",
+      "draws": 1000
+    },
+    {
+      "cohort": "original58",
+      "pair": "single__joint0 minus moment__iu [all]",
+      "draws": 1000
+    },
+    {
+      "cohort": "original58",
+      "pair": "dual__joint0 minus single__joint0 [all]",
+      "draws": 1000
+    }
+  ],
+  "scope": "Same-session review: direct raw-pickle join and existing official-port conversion, pairwise AUC and explicit-row bootstrap independent of the production cached-count evaluator. Shared metadata reader and port are disclosed; no external reviewer.",
+  "hashes": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_prm_label_audit_v1\\MANIFEST.json": "7a3ea704186d528c8fd5f2dc2fcc94d5b1b636be05d6e280b8a7d86a2a19c08a",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_prm_label_audit_v1\\LABEL_AUDIT.json": "1c5db439fc697c6f2e7c49815b7751f0a196a5694350272dcd3625b3e5ff8865",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_prm_label_audit_v1\\RELEASE_V3.json": "3964ab980b4b0341d35d8a36459d9365e7f3f3d962be9dd60bb5964a09950302",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_prm_label_audit_v1\\BRIDGE.json": "788cd55d1e6542c893ac664a5de3b141b39751cf693ec3cd72c76237c8c0757c",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_prm_label_audit_v1\\prmbench_qwen3_8b_labels_v3.npz": "0d7a783096a804c3b1732ff2aea38701aec75801b542930eed1bfca1d5ade590",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_prm_label_audit_v1\\current110_EVALUATION_V3.json": "811b74edbcff23099bd1fd5a2f9853d6fb8d445f1f368326edd2f5f3c8a37ad7",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_prm_label_audit_v1\\current110_CONTRASTS_V3.json": "5ab5e16972d09b061fecdaa60bfa1be5a1cfa230d1c0359da6430c588de17698",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_prm_label_audit_v1\\original58_EVALUATION_V3.json": "3059d0cda307da4ec0bb4ebbcc9145aa9139950b30f629322b72cd08743850f8",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_prm_label_audit_v1\\original58_CONTRASTS_V3.json": "13cb6a730b281ae4995ea50bf52d748ca23815f950576ddc8475cd62202004fd"
+  },
+  "review_dependencies": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_localization_prm_labels_v3.py": "caee3523d43f605b63d47ae430385a4fc20a05e3802074630eb49517332973ce",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_explicit_fallback_v1.py": "d240914943ae496e8b45f5e88b3cec9529dede61b84ece0915a0cdade57249f2",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\spectral_utils\\prmbench.py": "d05c3003176c72f3a06f0fb8b0a84cc040d61e06cf42b481b2393c10310b057a"
+  },
+  "seconds": 42.150078899925575
+}

@@ -1,0 +1,72 @@
+{
+  "status": "POST_EVALUATION_DIAGNOSTIC_NO_NEW_METHOD",
+  "route_transitions": [
+    {
+      "old": "moment_joint",
+      "new": "moment_joint",
+      "answers": 75
+    },
+    {
+      "old": "moment_joint",
+      "new": "context_joint",
+      "answers": 3
+    },
+    {
+      "old": "context_joint",
+      "new": "moment_joint",
+      "answers": 28
+    },
+    {
+      "old": "moment_iu",
+      "new": "moment_joint",
+      "answers": 3
+    },
+    {
+      "old": "context_joint",
+      "new": "context_joint",
+      "answers": 1
+    }
+  ],
+  "bank_switches_by_cell": {
+    "pb_gsm8k_q8": 4,
+    "pb_math_q8": 7,
+    "pb_olympiadbench_q8": 7,
+    "pb_omnimath_q8": 6,
+    "prmbench_qwen3_8b": 7
+  },
+  "bank_switches": 31,
+  "conditioning": {
+    "moment": {
+      "valid": 106,
+      "condition_at_least_999": 104,
+      "new_condition_quantiles": [
+        258.39740851696024,
+        1000.000000000004,
+        1000.0000000001199
+      ],
+      "median_ridge_over_max_eigenvalue": 0.0010009060109922156,
+      "common_old_new_count": 75,
+      "common_old_new_median_condition": [
+        1000.0000000000028,
+        1000.0000000000041
+      ]
+    },
+    "context": {
+      "valid": 108,
+      "condition_at_least_999": 97,
+      "new_condition_quantiles": [
+        336.0231326368036,
+        1000.0000000000009,
+        1000.0000000000967
+      ],
+      "median_ridge_over_max_eigenvalue": 0.0008106037945044919,
+      "common_old_new_count": 101,
+      "common_old_new_median_condition": [
+        1000.0000000000008,
+        1000.0000000000008
+      ]
+    }
+  },
+  "evaluation_sha256": "bba6d6ed3f21e2d839b4362a2bf48212d1d53ebe538d116d2ee091b7dd493686",
+  "scores_sha256": "0f1c310743f2c699daa716c63e011cd03e2872e292061e91dec05f9fa7358c4e"
+}

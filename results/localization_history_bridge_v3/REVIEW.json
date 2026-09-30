@@ -1,0 +1,109 @@
+{
+  "status": "PASS",
+  "counts": {
+    "independent_raw_label_joins": 58,
+    "exact_unchanged_row_payloads": 290,
+    "source_array_and_prediction_records": 7598,
+    "descriptive_invalid_scores_preserved": 12,
+    "independent_metric_bundles": 131,
+    "paired_scope_and_point_replays": 199,
+    "external_anchor_metric_replays": 25,
+    "gate_diagnostic_array_replays": 722,
+    "gate_rows_unchanged": 58,
+    "independent_auc_decompositions": 14
+  },
+  "lanes": {
+    "representation": {
+      "arms": 19,
+      "pairs": 15,
+      "answers": 58
+    },
+    "readout": {
+      "arms": 42,
+      "pairs": 58,
+      "answers": 58
+    },
+    "sampling": {
+      "arms": 30,
+      "pairs": 57,
+      "answers": 58
+    },
+    "regularization": {
+      "arms": 23,
+      "pairs": 38,
+      "answers": 58
+    },
+    "context": {
+      "arms": 17,
+      "pairs": 31,
+      "answers": 58
+    }
+  },
+  "explicit_bootstrap_checks": [
+    {
+      "lane": "representation",
+      "left": "moments27_local8__iu",
+      "right": "legacy_fixed32__iu",
+      "draws": 1000,
+      "status": "MATCH"
+    },
+    {
+      "lane": "readout",
+      "left": "moments27_local8__equal@@hmm_entry",
+      "right": "moments27_local8__equal@@hold_peak",
+      "draws": 1000,
+      "status": "MATCH"
+    },
+    {
+      "lane": "sampling",
+      "left": "moments27_local8__equal@@dufs_transposed",
+      "right": "moments27_local8__equal@@full",
+      "draws": 1000,
+      "status": "MATCH"
+    },
+    {
+      "lane": "regularization",
+      "left": "equal__dufs_graph",
+      "right": "equal_parent",
+      "draws": 1000,
+      "status": "MATCH"
+    },
+    {
+      "lane": "context",
+      "left": "context__equal",
+      "right": "moment__equal",
+      "draws": 1000,
+      "status": "MATCH"
+    }
+  ],
+  "hashes": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\MANIFEST.json": "1f96de775a41ead8bfda412b58d645cef017a6867d499e16b43fb026714d54bf",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\REGISTRY.json": "aa2ffae52ac02ab8acb96e2dd9c5edcfe18ff64b4a310d7a7cb7873c9d00cb33",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\gate_DIAGNOSTICS_V3.json": "7bb16525703f8404558c297fdf92c00f44818f14bdb00e79969d3da1f90d14a0",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\CONTRAST_EXECUTION.json": "39d7e8d38467c8113b29e1364f54ee4b48c0717099da27b4e61c2cd470863aab",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\EXECUTION_AMENDMENT.json": "6e862efa4c96417e61d0e85b9c5a7aaf8446ab7e77c3f799739b0b53eeb3a80a",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\EXECUTION_RECOVERY.json": "7ff83088ea2632de8002418289d437fa6ebb066d530440fb50f333d9e8aedc10",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\representation_EVALUATION_V3.json": "9446e75ba2c52c70916f7881d829afdde48e90a2298f3b6c64a843da0ea1313c",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\representation_CONTRASTS_V3.json": "7b4cd5b50b763e971c69f038fdcd69ebdb46a3d7cb211df735ea7e438c5c27af",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\readout_EVALUATION_V3.json": "6dbff7ac6237e9c92a88d7c8139b13a43177e54af947a1e752a98c6719bda231",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\readout_CONTRASTS_V3.json": "a02d03a95dadea1a1a4c8caa55fcdbe348e0e640094abf58e2ec9544aff9b6ce",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\sampling_EVALUATION_V3.json": "1c789ccd94209a5b4df954b75ede05e8ca34498d29345822519d44f1c776cc1f",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\sampling_CONTRASTS_V3.json": "4482977c57c83fad795e49a6b8d4b49e679cdb7d3c1e5656a7122279b2f4365e",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\regularization_EVALUATION_V3.json": "f7fdd311395d17b04f59be6da97c2ad9bab0cc3e889619c66a0bd44b46bece4e",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\regularization_CONTRASTS_V3.json": "1b88c4c62c67051a4e493b8c0fe4b6c80bf9c5651c10e534bff339084dc38ed7",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\context_EVALUATION_V3.json": "45262bad10894b685ca34a77933334a3bda2db492d43bdc77b8e88492f28fcd8",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\localization_history_bridge_v3\\context_CONTRASTS_V3.json": "5ccb72ca70aa27897c138756347035c6eac760952f7dd2000fff7dce2dbb7963"
+  },
+  "dependencies": {
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_localization_history_bridge_v3.py": "7f6dac3d19344e84c05c1b3099241f4dc468792376bfe179715e5e53f8c2dc37",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\review_fusion_explicit_fallback_v1.py": "d240914943ae496e8b45f5e88b3cec9529dede61b84ece0915a0cdade57249f2",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\spectral_utils\\prmbench.py": "d05c3003176c72f3a06f0fb8b0a84cc040d61e06cf42b481b2393c10310b057a",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\audit_localization_source_groups.py": "9972b8cfa55029e7bdf42f0dbea4eaa9ca787c83a7df3f2028b2f4e5c8dbdeff",
+    "C:\\Users\\omris\\TAU\\hallucination_detection\\scripts\\resume_localization_history_bridge_v3.py": "2c3b3dbb60d82f87964aa9fe0ab3aef99eef0178a254077ded09a44331f95832"
+  },
+  "seconds": 25.877302600070834,
+  "review_notes": [
+    "Review initially rejected archived diagnostic scores from invalid fits, then allowed only one of the two source status names. Source inspection confirmed3 FINITE_UNCONVERGED_DESCRIPTIVE and9 FIT_DIAGNOSTIC_ONLY records intentionally retain arrays while valid/decision_valid are false. Review now verifies both source-defined statuses, exact arrays and continued exclusion. No scientific source, prediction, target or validity changed."
+  ],
+  "scope": "Same-session raw-annotation/official-port review, exact old row and stored-array preservation, direct pairwise AUC/PB metrics, flattened AUC decompositions and five explicit-row1000-draw bootstraps. Shared raw metadata reader, official port and original frozen scores disclosed. No refits or external review."
+}

@@ -1,0 +1,31 @@
+{
+ "review_date": "2026-09-12",
+ "scope": "Independent read-only checkpoint/manifest verification before resuming the unchanged driver",
+ "manifest_sha256": "2cda05f86ecf57e0a2c6f53266167b523657bb3c06b9b16b10a7a1c5c9e46597",
+ "manifest_hash_entries": 357,
+ "manifest_mismatches": [],
+ "arms": 56,
+ "selected": 13769,
+ "completed_verified": 5343,
+ "bad_records": [],
+ "metadata_missing_execution_telemetry": [
+  "pb_olympiadbench_q4__a1194eeefd37115c"
+ ],
+ "stray_files": [
+  "pb_olympiadbench_q4__a1194eeefd37115c.json.tmp"
+ ],
+ "orphan_npz": [],
+ "run_state_before_resume": {
+  "phase": "FAILED_CHECKPOINTS_PRESERVED",
+  "pid": 14584,
+  "updated_unix": 1789244612.489406,
+  "error": "PermissionError(13, 'Access is denied')"
+ },
+ "disk_free_bytes": 27051208704,
+ "verdict": "PASS_FOR_RESUME",
+ "rules": [
+  "Resume via scripts/complete_research_consolidation_v1.py, which relaunches the unchanged driver from checkpoints",
+  "No score file modified; orphan/tmp files are recomputed by the driver",
+  "Runtime projection is an estimate; concurrent RBM suites share the CPU"
+ ]
+}

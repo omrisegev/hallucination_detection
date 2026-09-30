@@ -1,0 +1,34 @@
+C:\Users\omris\TAU\hallucination_detection\scripts\residual_identifiability_study.py:303: RuntimeWarning: All-NaN slice encountered
+  "splithalf_sign_agreement_median": float(np.nanmedian(signs)) if signs else float("nan"),
+[iter_cells] qa/spectral_phase9_cache_webq_traces_T1.0: single-class labels — skipped
+VALIDITY: GOOD_6 macro = 0.7733 (expected 0.7733 +/- 0.002) -> PASS
+
+timing probe: ~0.23s per draw-pair -> projected 0.0 h for 2 cells at B=20
+
+  [epr_triviaqa_mistral24b]
+      draws 4/20
+      draws 8/20
+      draws 12/20
+      draws 16/20
+      draws 20/20
+    op-norm ratio obs=0.1050 null-a mean=0.0477 pct=95.0
+  [losnet_hotpotqa_mistral7b]
+      draws 4/20
+      draws 8/20
+      draws 12/20
+      draws 16/20
+      draws 20/20
+    op-norm ratio obs=0.1380 null-a mean=0.0238 pct=100.0
+C:\Users\omris\TAU\hallucination_detection\scripts\residual_identifiability_study.py:425: RuntimeWarning: All-NaN slice encountered
+  med = lambda key: float(np.nanmedian([r[key] for r in rows if r["family"] == f]))
+
+global primary endpoint T = +27.040, p = 0.04762 (B=20, floor 0.04762)
+families passing BH q=0.1 AND stability: 0/8 (required 5)
+  hotpotqa     n= 1 z=+52.08 p=0.04762 BH=Y stable=n
+  triviaqa     n= 1 z= +2.00 p=0.09524 BH=Y stable=n
+
+LOFO worst p = 0.09524
+
+VERDICT: residual dependency is NOT identifiable at this sample size: stop building covariance decompositions
+
+wrote C:\Users\omris\TAU\hallucination_detection\results\residual_identifiability\_smoke  (9.7s)

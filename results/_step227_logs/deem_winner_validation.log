@@ -1,0 +1,26 @@
+validating the probe's winner on all 5 registered seeds: lr=0.0001, epochs=100
+pilot cells: sciq_llama8b, spilled_triviaqa_llama8b, math500_dsmath7b
+[iter_cells] qa/spectral_phase9_cache_webq_traces_T1.0: single-class labels — skipped
+  sciq_llama8b                 seed=0 sd=3.776e-01 healthy
+  sciq_llama8b                 seed=1 sd=2.111e-01 healthy
+  sciq_llama8b                 seed=2 sd=4.166e-01 healthy
+  sciq_llama8b                 seed=3 sd=2.849e-01 healthy
+  sciq_llama8b                 seed=4 sd=3.490e-01 healthy
+  spilled_triviaqa_llama8b     seed=0 sd=4.344e-01 healthy
+  spilled_triviaqa_llama8b     seed=1 sd=4.360e-01 healthy
+  spilled_triviaqa_llama8b     seed=2 sd=4.287e-01 healthy
+  spilled_triviaqa_llama8b     seed=3 sd=4.386e-01 healthy
+  spilled_triviaqa_llama8b     seed=4 sd=4.806e-01 healthy
+  math500_dsmath7b             seed=0 sd=4.495e-01 healthy
+  math500_dsmath7b             seed=1 sd=4.088e-01 healthy
+  math500_dsmath7b             seed=2 sd=4.456e-01 healthy
+  math500_dsmath7b             seed=3 sd=4.539e-01 healthy
+  math500_dsmath7b             seed=4 sd=3.175e-01 healthy
+
+completion 15/15 = 1.00 (required 0.90)
+  cross-seed |Spearman| median  sciq_llama8b                 0.9909
+  cross-seed |Spearman| median  spilled_triviaqa_llama8b     0.9987
+  cross-seed |Spearman| median  math500_dsmath7b             0.9984
+
+DECISION 1 (final): soft DEEM repaired on all 5 seeds — run its predefined evaluation, independently of hard DEEM
+wrote C:\Users\omris\TAU\hallucination_detection\results\deem_probe  (221.0s)
