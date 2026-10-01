@@ -1,0 +1,382 @@
+{
+  "limitations": [
+    "The serial test uses step-mean residuals and therefore does not isolate the exact boundary token-to-token transition.",
+    "The error-category join is retrospective and descriptive; it does not train a detector or establish causality.",
+    "Existing conditional-router and graph results remain development evidence on their original panels."
+  ],
+  "literature_status": {
+    "conditional_reliability": {
+      "interpretation": "feature utility changes by regime, but no label-free router was fitted here",
+      "matched_interactions": [
+        {
+          "ci95": [
+            0.0941617475907946,
+            0.14141742315441636
+          ],
+          "contrast": "interaction",
+          "mean": 0.11767202891237633,
+          "median": 0.08333333333333331,
+          "n": 2401,
+          "p10": -0.5,
+          "p90": 0.7261904761904762,
+          "reference": "entropy15",
+          "regime": "high_minus_low_entropy",
+          "selected_feature": "selected_surprisal"
+        },
+        {
+          "ci95": [
+            0.0983942335695534,
+            0.14407437627781652
+          ],
+          "contrast": "interaction",
+          "mean": 0.12107378930978825,
+          "median": 0.09999999999999998,
+          "n": 2401,
+          "p10": -0.5,
+          "p90": 0.7,
+          "reference": "moment3_15",
+          "regime": "high_minus_low_entropy",
+          "selected_feature": "selected_surprisal"
+        },
+        {
+          "ci95": [
+            0.12459122679282993,
+            0.17245029315818938
+          ],
+          "contrast": "interaction",
+          "mean": 0.14845745743990374,
+          "median": 0.10714285714285718,
+          "n": 1672,
+          "p10": -0.3333333333333333,
+          "p90": 0.6000000000000001,
+          "reference": "entropy15",
+          "regime": "late_minus_early",
+          "selected_feature": "selected_surprisal"
+        },
+        {
+          "ci95": [
+            0.12923915136035832,
+            0.17617348894408877
+          ],
+          "contrast": "interaction",
+          "mean": 0.1524845594288095,
+          "median": 0.11111111111111116,
+          "n": 1672,
+          "p10": -0.3333333333333333,
+          "p90": 0.65,
+          "reference": "moment3_15",
+          "regime": "late_minus_early",
+          "selected_feature": "selected_surprisal"
+        }
+      ],
+      "source": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\rbm-data-diagnostics-v1\\results\\rbm_data_diagnostics_v1\\RELIABILITY_REGIMES.json"
+    },
+    "dependent_family_graph": {
+      "context_rows": [
+        {
+          "context": "context_trace_length",
+          "headroom_pp": "0.8015588010262327",
+          "holm_p": "0.5848303393213573",
+          "mean_distinct_winners": "2.25",
+          "permutation_p": "0.5848303393213573",
+          "supports_specialization": "False",
+          "valid_cells": "20"
+        },
+        {
+          "context": "context_family_disagreement",
+          "headroom_pp": "0.9903186300646352",
+          "holm_p": "0.2315369261477046",
+          "mean_distinct_winners": "2.1739130434782608",
+          "permutation_p": "0.1157684630738523",
+          "supports_specialization": "False",
+          "valid_cells": "23"
+        },
+        {
+          "context": "context_iu_rank",
+          "headroom_pp": "2.832789358440543",
+          "holm_p": "0.005988023952095808",
+          "mean_distinct_winners": "2.4782608695652173",
+          "permutation_p": "0.001996007984031936",
+          "supports_specialization": "True",
+          "valid_cells": "23"
+        }
+      ],
+      "interpretation": "IU-rank specialization exists; graph-coupled family routing was already negative",
+      "source": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\family_relevance_real_v1\\context_specialization.csv"
+    },
+    "dufs_feature_selection": {
+      "interpretation": "active independent run; no conclusion imported before completion",
+      "run_state": {
+        "completed": 9624,
+        "elapsed_seconds": 30822.229066,
+        "expected": 13769,
+        "status": "RUNNING"
+      },
+      "source": "C:\\Users\\omris\\TAU\\hallucination_detection\\.worktrees\\dufs-moment-selection-v1\\results\\dufs_moment_selection_v1\\RUN_STATE.json"
+    },
+    "held_out_context_router": {
+      "interpretation": "c-STG did not pass its registered held-out routing gates",
+      "rows": [
+        {
+          "cell_macro_auroc": "0.7745527668742732",
+          "delta_ci_high": "0.003032902984868636",
+          "delta_ci_low": "-0.018443652732610196",
+          "delta_vs_global_lr": "-0.008165076340208244",
+          "equal_family_auroc": "0.7424111962586284",
+          "family_wins_vs_global_lr": "2",
+          "method": "iu_pcr"
+        },
+        {
+          "cell_macro_auroc": "0.7669129602273607",
+          "delta_ci_high": "-0.004984739303795198",
+          "delta_ci_low": "-0.02332191981393176",
+          "delta_vs_global_lr": "-0.014503061734927138",
+          "equal_family_auroc": "0.7360732108639096",
+          "family_wins_vs_global_lr": "1",
+          "method": "fixed_expert_cv"
+        },
+        {
+          "cell_macro_auroc": "0.7867161709453775",
+          "delta_ci_high": "0.0",
+          "delta_ci_low": "0.0",
+          "delta_vs_global_lr": "0.0",
+          "equal_family_auroc": "0.7505762725988367",
+          "family_wins_vs_global_lr": "0",
+          "method": "global_lr"
+        },
+        {
+          "cell_macro_auroc": "0.7745527668742732",
+          "delta_ci_high": "0.002837846615454412",
+          "delta_ci_low": "-0.018310623440287017",
+          "delta_vs_global_lr": "-0.008165076340208244",
+          "equal_family_auroc": "0.7424111962586284",
+          "family_wins_vs_global_lr": "2",
+          "method": "context_only_lr"
+        },
+        {
+          "cell_macro_auroc": "0.7893656477806612",
+          "delta_ci_high": "0.0031643257303627134",
+          "delta_ci_low": "0.0002535715057529306",
+          "delta_vs_global_lr": "0.0016746656533089656",
+          "equal_family_auroc": "0.7522509382521456",
+          "family_wins_vs_global_lr": "6",
+          "method": "augmented_lr"
+        },
+        {
+          "cell_macro_auroc": "0.777915109513932",
+          "delta_ci_high": "-0.002223140624061766",
+          "delta_ci_low": "-0.01068354826704733",
+          "delta_vs_global_lr": "-0.0065930889486230625",
+          "equal_family_auroc": "0.7439831836502135",
+          "family_wins_vs_global_lr": "2",
+          "method": "context_core_only_lr"
+        },
+        {
+          "cell_macro_auroc": "0.7879437565816504",
+          "delta_ci_high": "0.006188941545801981",
+          "delta_ci_low": "-0.007193577144797597",
+          "delta_vs_global_lr": "4.956915351830068e-05",
+          "equal_family_auroc": "0.750625841752355",
+          "family_wins_vs_global_lr": "6",
+          "method": "augmented_core_lr"
+        },
+        {
+          "cell_macro_auroc": "0.7587951251781071",
+          "delta_ci_high": "0.003748625753931256",
+          "delta_ci_low": "-0.02784209767067875",
+          "delta_vs_global_lr": "-0.012596938073105534",
+          "equal_family_auroc": "0.7379793345257312",
+          "family_wins_vs_global_lr": "1",
+          "method": "quartile_router_cv"
+        },
+        {
+          "cell_macro_auroc": "0.7815317151293143",
+          "delta_ci_high": "0.004136292986018941",
+          "delta_ci_low": "-0.01398276088942266",
+          "delta_vs_global_lr": "-0.004208381364577712",
+          "equal_family_auroc": "0.7463678912342591",
+          "family_wins_vs_global_lr": "3",
+          "method": "cstg_iu_rank"
+        },
+        {
+          "cell_macro_auroc": "0.785586535793929",
+          "delta_ci_high": "0.01921001169985916",
+          "delta_ci_low": "-0.00514409651601966",
+          "delta_vs_global_lr": "0.0057143329167695395",
+          "equal_family_auroc": "0.7562906055156062",
+          "family_wins_vs_global_lr": "4",
+          "method": "cstg_core"
+        },
+        {
+          "cell_macro_auroc": "0.7808999487349241",
+          "delta_ci_high": "-0.0007143649892646653",
+          "delta_ci_low": "-0.01132387737106311",
+          "delta_vs_global_lr": "-0.005403953884315199",
+          "equal_family_auroc": "0.7451723187145215",
+          "family_wins_vs_global_lr": "1",
+          "method": "cstg_iu_rank_permuted"
+        },
+        {
+          "cell_macro_auroc": "0.7766595229283145",
+          "delta_ci_high": "-0.004652257311225162",
+          "delta_ci_low": "-0.01484178928085056",
+          "delta_vs_global_lr": "-0.009047698737060312",
+          "equal_family_auroc": "0.7415285738617764",
+          "family_wins_vs_global_lr": "0",
+          "method": "cstg_core_permuted"
+        }
+      ],
+      "source": "C:\\Users\\omris\\TAU\\hallucination_detection\\results\\global_contextual_stg_router_diagnostic_v1\\summary.csv"
+    }
+  },
+  "residual_check": {
+    "12": {
+      "mean_abs_observed_residual_corr": 0.4328744942037696,
+      "mean_top_residual_eigenvalue": 6.12526700211023,
+      "n_answers": 13769,
+      "n_valid_eigen": 13769,
+      "observed_corr_ci95": [
+        0.43181820866368587,
+        0.43397334125580844
+      ]
+    },
+    "6": {
+      "mean_abs_observed_residual_corr": 0.4218003232990154,
+      "mean_top_residual_eigenvalue": 3.2098762464392934,
+      "n_answers": 13769,
+      "n_valid_eigen": 13769,
+      "observed_corr_ci95": [
+        0.4209075880501831,
+        0.4227459339157207
+      ]
+    }
+  },
+  "review": {
+    "all_error_cases_joined": true,
+    "bank_shape_and_uid_alignment": true,
+    "serial_valid_counts_match_saved_diagnostic": true,
+    "status": "PASS"
+  },
+  "schema": "literature-direction-check-v1",
+  "scope": "frozen full-data diagnostics; no new fit and no benchmark mutation",
+  "serial_step_check": {
+    "12": {
+      "all_ci95": [
+        0.13230256594120804,
+        0.1410426437389172
+      ],
+      "all_mean_excess": 0.13655649713623472,
+      "categories": {
+        "clean_correct": {
+          "ci95": [
+            0.062137034863396216,
+            0.09218754919278278
+          ],
+          "mean_excess": 0.07703508157389136,
+          "n": 1181
+        },
+        "early": {
+          "ci95": [
+            0.1675766117181106,
+            0.19027030966606093
+          ],
+          "mean_excess": 0.17889513415022382,
+          "n": 2664
+        },
+        "exact": {
+          "ci95": [
+            0.14796190106989876,
+            0.19491537783533316
+          ],
+          "mean_excess": 0.17193058640876982,
+          "n": 778
+        },
+        "false_alarm": {
+          "ci95": [
+            0.06599959644267364,
+            0.102675794190969
+          ],
+          "mean_excess": 0.0844034033477487,
+          "n": 1177
+        },
+        "gate_miss": {
+          "ci95": [
+            0.11909863190852617,
+            0.1525511962549422
+          ],
+          "mean_excess": 0.13610293814971136,
+          "n": 863
+        },
+        "late": {
+          "ci95": [
+            0.16663213295736354,
+            0.3027544358629005
+          ],
+          "mean_excess": 0.23354575023325208,
+          "n": 137
+        }
+      },
+      "n_answers": 13769,
+      "n_valid_serial": 13364
+    },
+    "6": {
+      "all_ci95": [
+        0.15242147537501663,
+        0.16171902296625154
+      ],
+      "all_mean_excess": 0.15710102787529093,
+      "categories": {
+        "clean_correct": {
+          "ci95": [
+            0.08546190621798277,
+            0.11628899244693167
+          ],
+          "mean_excess": 0.10112115101882742,
+          "n": 1181
+        },
+        "early": {
+          "ci95": [
+            0.1834466519544578,
+            0.20741062181684253
+          ],
+          "mean_excess": 0.19553742875203742,
+          "n": 2395
+        },
+        "exact": {
+          "ci95": [
+            0.1821195535786818,
+            0.22422762813532712
+          ],
+          "mean_excess": 0.20308620184413737,
+          "n": 940
+        },
+        "false_alarm": {
+          "ci95": [
+            0.08685260743907568,
+            0.12459211973950515
+          ],
+          "mean_excess": 0.10591938206403671,
+          "n": 1177
+        },
+        "gate_miss": {
+          "ci95": [
+            0.14513891418689903,
+            0.17997477842778928
+          ],
+          "mean_excess": 0.16218581545531768,
+          "n": 863
+        },
+        "late": {
+          "ci95": [
+            0.25886309564946386,
+            0.352504222082215
+          ],
+          "mean_excess": 0.3068392891453125,
+          "n": 244
+        }
+      },
+      "n_answers": 13769,
+      "n_valid_serial": 13364
+    }
+  }
+}

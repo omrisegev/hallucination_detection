@@ -318,3 +318,15 @@ What happened: required documentation reads resolved under C:\, including a retr
 Why: the existing 2026-09-24 lesson was not available until the required files were read.
 Rule: bootstrap project reads with absolute paths from the supplied environment context; do not retry relative reads merely by setting workdir.
 Enforced by: command (absolute LiteralPath/path arguments used for the remaining session operations).
+
+## 2026-10-01 — Verify ignored artifacts and historical refs before declaring consolidation complete
+What happened: the consolidation review found 36,143 ignored main-result files outside the October 1 upload lists, five orphan-file versions outside the planned sources' reachable history, and historical remote sources with unique files absent from all proposed merge tips. The loose-code rescue itself passed its 268-file content check.
+Why: recent-branch ancestry, nonignored loose-file lists, and regenerability were treated as stronger preservation evidence than they provide.
+Rule: enumerate ignored as well as ordinary loose files, audit every ref with an explicit disposition, compare complete content rather than step counts alone, and verify restore/dependency coverage before cleanup. Keep saturated-implementation verdicts distinct from direction closure.
+Enforced by: code (results/consolidation_review_20261001/audit_inventory.py) and the acceptance criteria in docs/reviews/CONSOLIDATION_REVIEW_20261001.md; archive restore checks remain required.
+
+## 2026-10-01 — Repeat of shell working-directory and output-encoding assumptions
+What happened: this review initially resolved relative reads under C:\ despite the requested project workdir; a transcript extraction also stopped on the default Windows stdout encoding. Required reads were subsequently repeated with absolute paths and UTF-8 output. No project source was changed by those failed reads.
+Why: the runner's requested workdir and Python's console encoding were assumed reliable despite an existing working-directory lesson.
+Rule: executable audit scripts must use an explicit absolute repository root, pass it to every Git call, and configure UTF-8 output; check return codes before dependent verification commands.
+Enforced by: code (results/consolidation_review_20261001/audit_inventory.py uses ROOT, explicit git -C and checked subprocess status).
