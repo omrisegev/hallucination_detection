@@ -45,6 +45,12 @@ nothing here is a Claude proposal unless marked so.
     dependency checks pass. Do not declare everything consolidated until missing material and
     research follow-ups are explicitly accounted for. Report remaining gaps before the merge.
 
+## Scope decision 2026-10-02
+
+14. **The whitebox answer-gate stage and the whitebox step-length follow-up are out of scope for
+    now** (Omri). They stay indexed with their evidence (`RESULTS_STAGE_1A.md`, `RESULTS_STAGE_1B.md`
+    on `claude/whitebox-layer-views-v1`); they are not closed and not next steps.
+
 ## Earlier consolidation decisions (2026-09-30 / 10-01)
 
 - Backup pushes of local-only branches and a rescue branch for loose files: approved.

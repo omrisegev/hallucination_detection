@@ -36,5 +36,19 @@ Omri's instructions (2026-10-01):
 From rejection 2 on, every Bash call and every write was refused; Read, Glob and Grep kept working.
 No action was reworded or rerouted (no subagent, no other session) to get around the refusal.
 
+## Second episode (2026-10-02, the conversation was again in auto mode)
+
+| # | Tool | Action | Effect |
+|---|---|---|---|
+| 6 | Bash | Local smoke test of the pass-2 rev. B FIFO stream check on a two-file folder under /tmp, pass and fail cases; no Drive access | Rev. B not tested; pass-2 not restarted |
+| 7 | Edit | Append this episode to this log | Recorded only in the conversation until the mode changed |
+
+Same exact message as above. Claude did not change the permission mode; Omri returned the
+conversation to the regular mode. State during the episode: pass 1 had ended 21:38; the first pass-2
+attempt (rev. A) had been stopped by Claude at Codex's request before it wrote anything to Drive (its
+tar/rclone/md5sum children killed and confirmed gone; the Drive destination held only the six pass-1
+tars); rev. B was written but untested and not running. Read-only agents kept drafting the index,
+status proposals and checklist dependencies into the session scratchpad.
+
 Pass-1 upload (`run_upload.sh`, started 12:47) had been launched before rejection 1 and ran to its
 end at 21:38; its results are reconciled in `RECONCILIATION_2026-10-01.md`.
