@@ -51,6 +51,31 @@ nothing here is a Claude proposal unless marked so.
     now** (Omri). They stay indexed with their evidence (`RESULTS_STAGE_1A.md`, `RESULTS_STAGE_1B.md`
     on `claude/whitebox-layer-views-v1`); they are not closed and not next steps.
 
+## Approvals 2026-10-02 (after Codex's review of the follow-up list)
+
+15. **Preservation and consolidation proceed** under the retention rules (decision 13). This does not
+    authorize deleting original branches, worktrees or data before preservation, restore and
+    dependency checks pass.
+16. **V2/V3 independent audits** of the family-tail external results are approved, as verification of
+    existing work (`HANDOFF_FAMILY_TAIL_LSML_2026-09-24.md` section 3 item 3).
+17. **Transfer proxy: one bounded exploratory test** (same handoff, section 3 item 1). Its exact scope,
+    protocol and success criterion are documented before it runs. It is not expanded into a method
+    sweep and does not block the SML/MoM direction. Hard2Verify and Socratic are exposed, so matching
+    their ranking is exploratory evidence, not proof of transfer; final confirmation stays on unexposed data.
+18. **Deferred, not closed** (evidence and next questions preserved):
+    - why bank11 L-SML transfers (section 3 item 2);
+    - combining the supervised PRM with the label-free method. The measured error-type split
+      (Step 437) and the combination idea are kept as two separate items. A combination need not be an
+      error-type router (score combination is another option); the open question is whether it improves
+      measured performance and under what information budget. No general claim about "structural
+      errors" beyond the measured PRMBench categories.
+19. **Monday advisor material** (research summary and presentation) is prepared in parallel, without
+    waiting for the merge or the proxy.
+20. **The handoff** verifies findings, decisions, next steps and dependencies against their sources, not
+    only headings, and separates completed findings, Omri's decisions, proposed experiments and
+    unresolved verification gaps.
+21. No experiment starts automatically.
+
 ## Earlier consolidation decisions (2026-09-30 / 10-01)
 
 - Backup pushes of local-only branches and a rescue branch for loose files: approved.
