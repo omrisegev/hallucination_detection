@@ -1,3 +1,7 @@
+## 2026-10-02 Omri clarification: map algorithms before research synthesis
+
+The next research stage should identify the algorithms/components tried, their matched experiments and comparator/failure analyses, then define a small set of complete recipes for evaluation across feature banks and against PRM/Mind the Gap. CT7, bank11, B13/B16, family15 and fam421 are not interchangeable method names. Start with [the sourced scope draft](docs/research_notes/RESEARCH_SYNTHESIS_SCOPE_20261002_HE.md). This turn maps evidence and proposes scope only; no candidate selection or new experiment has started. Existing user decisions and deferred directions remain in effect.
+
 ## 2026-10-02 Codex: Monday advisor preparation documented; slides pending
 
 Start here for the 2026-10-05 meeting: [work plan and checklist](docs/meetings/advisor_prep_2026-10-05/PLAN_HE.md), [Hebrew research narrative](docs/meetings/advisor_prep_2026-10-05/PREPARATION_HE.html), [dated Claude status](docs/meetings/advisor_prep_2026-10-05/CONSOLIDATION_STATUS_20261002.md). Preparation proceeds in parallel with consolidation; no new worktree due disk constraints.

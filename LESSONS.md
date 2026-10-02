@@ -240,3 +240,10 @@ What happened: the consolidation handoff retained all 21 headings yet still cont
 Why: draft content and source summaries were copied without applying later decisions or checking the boolean behind equivalent_within; its code tests a small point difference plus a confidence interval containing zero.
 Rule: reconcile each next step with the latest decision and inspect the actual statistical criterion before repeating equivalence claims. Preserve frozen artifacts; correct interpretation in separately versioned documentation.
 Enforced by: review evidence and completion checklist in docs/meetings/advisor_prep_2026-10-05/CONSOLIDATION_REVIEW_20261002_AFTERNOON.md.
+
+
+## 2026-10-02 - Distinguish feature-bank names from complete algorithm versions
+What happened: Omri pointed out that summaries switched between CT7, bank11 and family counts without explaining that experiments changed features, fusion, fitting and readout over time.
+Why: historical aliases were treated like directly comparable methods, obscuring which component produced the gain and which candidate a comparator analysis actually tested.
+Rule: identify each recipe by inputs, feature list, preprocessing, filtering, grouping, estimator/fusion, readout, decision and fitting contract. Compare a component against matched controls and rerun candidate-specific analyses only after selecting that candidate; do not transfer CT7 findings automatically.
+Enforced by: docs/research_notes/RESEARCH_SYNTHESIS_SCOPE_20261002_HE.md recipe schema, evidence-map requirements and comparison matrix.

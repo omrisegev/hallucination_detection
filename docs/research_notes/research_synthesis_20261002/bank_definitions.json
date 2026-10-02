@@ -1,0 +1,65 @@
+{
+ "protocol_id": "algorithm_decisions_v1",
+ "version": 1,
+ "frozen_before_scoring": true,
+ "status": "FROZEN",
+ "requested_by": "Omri 2026-09-28 ('yes - run it'): decide every open component of the algorithm (filter, clustering, use of the Dawid-Skene estimates within and between groups, within- and between-group weights, where the binary tail marks and where the continuous matrices are used); add the three digit features to every bank; neutralize position and use L-SML; show the methods against Mind the Gap on ProcessBench; end with ONE candidate to freeze and test on the new benchmarks, and an algorithm with clear stages for the advisors.",
+ "evidence_status": "Development data (PRMBench/ProcessBench already inspected). The selection below is selection on development outcomes; the frozen candidate's untouched test is the new benchmarks.",
+ "algorithm_stages": {
+  "0_representation": "FIXED. Per answer: z-score of every channel (continuous matrix); top-20% tail marks per channel (binary; random-tie marks for the estimators, tie-aware centred marks for clustering)",
+  "1_filter": "DECIDED (Steps 451, 455, 456): Dawid-Skene on the binary marks, keep channel iff pi_hat > 0.5. Band rule rejected (Step 456). Digits leave the keep/drop decisions of the 13 channels unchanged in 5/5 folds (checked before this protocol).",
+  "2_position": "TO DECIDE: P0 raw (learn and score on the bank); P1 learn without position (every label-free estimate - filter, partition, merge, within and between weights - on the position-adjusted bank, then applied to the ORIGINAL channels); P2 full (learn and score on the position-adjusted bank). Position-adjusted bank = V minus the label-free mean by (answer length, step index) on the PRMBench fit-fold steps, re-standardized within answer (stage-B definition).",
+  "3_clustering": "DECIDED (Steps 455, 456): L-SML partition on the tie-aware centred binary marks (tail_calib_common.lsml_fit_scaled), then the absorption merge (lsml_merge_step.absorb_merge, rho < 0.5, never below 3 groups). Correlation matrix of the marks for the merge.",
+  "4_within_group_weights": "TO DECIDE: EQ (mean of the members); SML (L-SML's own within-group SML on the continuous values, small-m guard: a 3-member group gets equal SD weights); HEM (from the latent-group EM on the channel marks with the merged groups: w_i = max(0, log(e1(1-e0)/(e0(1-e1)))), how well channel i tracks its group's latent state; groups with < 3 members or all-zero weights: equal)",
+  "5_between_group_weights": "TO DECIDE: EQ (equal); SML (SML on the answer-standardized group scores, small-m guard, oriented by Spearman with q15_H1 on the fit rows; for SML within it is exactly L-SML with the merged partition, fit_fusion_weights groups=); DSM (MLE weights max(0, log(psi eta/((1-psi)(1-eta)))) from Dawid-Skene on top-20% random-tie marks of the group scores, key default_rng(20260929).random((steps, 13))[:, :G], needs >= 3 groups; with EQ within this is exactly stage-B2 B_sml__merge); HEM (MLE weights from the latent-group EM's group estimate: accuracy of the group's latent state, oriented to the state in which its members vote 'error'; groups with < 3 members: mean of the members' marginal estimates)",
+  "binary_vs_continuous": "Binary marks for every ESTIMATE (filter, partition, merge, DSM, HEM); continuous values for what is COMBINED (channel values, group scores) and for SML weights."
+ },
+ "group_score": "column g = answer re-standardized within-weighted combination of the member channels (EQ: mean = er_stage_b.group_scores); the final score = group scores times between weights normalized to sum |w| = 1 (SML/SML: the L-SML channel weights)",
+ "banks": {
+  "B13": "bank11 + realized_z + realized_drv", "B16": "B13 + digit_alternative, digit_spread, digit_alternative_innovation (masked per-answer z; active on every step)",
+  "B20": "Step 438 bank20", "B23": "B20 + the three digit features", "B32": "Step 439 B11_IND_lf", "B35": "B32 + the three digit features",
+  "B51": "52-channel step pool minus the constant channel", "B54": "B51 + the three digit features",
+  "note": "digit features do not use disagreement with the chosen token; their scope under the 2026-09-17 exclusion is Omri's decision; banks with and without digits are both reported"
+ },
+ "arms_per_bank": {
+  "P{0,1,2}__BASE": "DS filter then plain average of the survivors (P0 = the reference; P1 = survivors from the position-adjusted bank, averaged on the original channels; P2 = averaged on the position-adjusted bank)",
+  "P{0,1,2}__{EQ,SML,HEM}_{EQ,SML,DSM,HEM}": "the 12 fusion rules (within_between) under each position mode = 36",
+  "ALL_equal": "plain average of all channels (reference)",
+  "P0__ORACLE": "LABEL-USING ceiling: EQ within, MLE between weights from the TRUE group-mark accuracies on the fit folds (= stage-B2 B_oracle__merge); reference only, never a candidate",
+  "references": "ct7, fam421, step_index; ProcessBench: Mind the Gap published Table 3 and our reproduction (results/mtg_reproduction_v1, argmax rule, same traces) per cell, not re-run"
+ },
+ "endpoints": "PRMBench within-answer AUC (selection endpoint), official PRMScore; ProcessBench gate-free SLA per cell and macro 8 (q4/q8 share answers). Beside, never used to rescue.",
+ "folds": "eval k, calibration (k+1)%5 for the PRMScore threshold only (same fold-k model), learning on the other three; write-once; failed fits unscored (no fallback); an arm with any failed fold is excluded from contrasts and selection",
+ "uncertainty": "paired source-group bootstrap, 50,000 draws (seed 20260927), 95% intervals; per-arm draws on the common full-coverage population, pair differences from the same draws",
+ "selection_rule_frozen": {
+  "variants": "the 36 fusion arms and P1__BASE, P2__BASE (38 per bank); ALL_equal and ORACLE are not candidates",
+  "loss_on_bank": "95% interval of (variant - P0__BASE) on PRMBench within-AUC entirely below 0",
+  "win_on_bank": "95% interval entirely above 0",
+  "eligible": "full coverage on all 8 banks and a loss on none",
+  "candidate": "among eligible variants that win on at least 5 of the 8 banks, the one with the highest mean within-AUC over the 8 banks; if none qualifies, the candidate is P0__BASE (DS filter then plain average)",
+  "also_reported": "the eligible variant with the highest 8-bank mean regardless of wins, and the best variant overall"
+ },
+ "decisions_derived_for_the_advisor_table": "per bank and 8-bank mean: position (P0/P1/P2 at the candidate's fusion rule and at P0__BASE), within (EQ/SML/HEM at the candidate's other choices), between (EQ/SML/DSM/HEM at the candidate's other choices), digits (with vs without at the same arm). Each with its paired interval.",
+ "contrasts": "per bank: every arm vs P0__BASE; P1/P2 fusion arms vs their own BASE and vs the same rule at P0; digits: B16-B13, B23-B20, B35-B32, B54-B51 for every arm; candidate and P0__BASE vs ct7 and fam421",
+ "nulls_and_robustness": "within-answer label shuffle and same-length whole-answer label swap (200 permutations, seeds 11/12) and concentration (share from the top 1% in the direction of the mean, the gain without them, 5%-trimmed mean, per-fold) for: candidate vs P0__BASE per bank (if the candidate is not P0__BASE), the best eligible variant vs P0__BASE per bank, P1__BASE and P2__BASE vs P0__BASE, P0/P1 SML_SML vs P0__BASE (Omri's 'neutralize position and use L-SML'), and the four digit contrasts at P0__BASE",
+ "activity_records": "per bank, fold and learning bank (raw / position-adjusted): survivors and dropped channels; partition before/after the merge, merged or not, merge log; L-SML small-m guard events (within groups of 3, cross stage with 3 groups) for every SML fit; DSM failures (< 3 groups) and groups with weight 0; HEM groups with < 3 members, latent re-orientations, groups with equal within weights, convergence. No result is attributed to a component that did not act.",
+ "diagnostics_label_using_for_diagnosis_only": "channel pi_hat vs true (DS filter); group-level DSM and HEM psi/eta/pi vs the true accuracy of the group marks; estimated prevalence (DS channel, DS group, HEM) vs true (~0.14); shift of the shared channels' pi_hat and prevalence when the digits are added (same fold); leave-one-group-out: Dawid-Skene refit without each merged group's channels - label-free change of prevalence and of the other channels' pi_hat, and (label-using) whether the prevalence error and the pi_hat error fall",
+ "predictions_frozen": {
+  "P1": "B13, P0, EQ_DSM equals stage-B2 B_sml__merge (0.7818) exactly: about 0.0016 above P0__BASE, not significant",
+  "P2": "DSM and HEM between weights beat EQ between weights (same within, P0) on at least 6 of 8 banks (point)",
+  "P3": "no variant wins on 5 of 8 banks; the candidate is P0__BASE",
+  "P4": "P1 SML_SML is above P0 SML_SML on the pool banks (B20, B23, B32, B35, B51, B54) (point)",
+  "P5": "HEM's estimated prevalence is closer to the truth than the DS filter's on every bank",
+  "P6": "adding the digits raises P0__BASE on B20, B32 and B51 (point), as on B13",
+  "P7": "leave-one-group-out: the group whose removal changes the DS prevalence most is the level group on banks without digits and the digit group on banks with digits; removing it moves the prevalence toward the truth"
+ },
+ "hard_stops": [
+  "input hashes differ from the stage-A / Step 439 manifests",
+  "replays: P0__BASE, P0__EQ_EQ, P0__SML_SML vs lsml_merge_step_v1 DSF_equal, DSF_GmB, DSF_lsml_mB and P2__BASE, P2__SML_SML vs DSF_equal_pos, DSF_lsml_mB_pos (B13, B16, B20, B32, B51) > 1e-9",
+  "B13 in every fold where the automatic merge equals the manual stage-B2 level merge: P0__EQ_DSM vs B_sml__merge and P0__ORACLE vs B_oracle__merge > 1e-9",
+  "mark counts not ceil(0.2 n); any evaluation row written twice"
+ ],
+ "review": "independent pre-run code review of the fold-0 smoke; after the run a red team of three agents (recomputation, coverage, nulls/math)",
+ "budget": "CPU only, <= 3 hours",
+ "outputs": "results/algorithm_decisions_v1/run_20260928/: RUN_STATUS, INPUT_MANIFEST, CODE_MANIFEST, ACTIVITY.jsonl, METRICS.csv, CONTRASTS.csv, SELECTION.json, NULLS.json, CONCENTRATION.json, ESTIMATES.csv, GROUPS.csv, SHIFT.csv, LOGO.csv, FAILURES.csv, THRESHOLDS.json, TIMING.json; SUMMARY.md and a Hebrew HTML report; npz kept locally"
+}
