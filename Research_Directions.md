@@ -1,3 +1,7 @@
+## 2026-10-02: research synthesis organizes existing directions
+
+Start with the [sourced scope](docs/research_notes/RESEARCH_SYNTHESIS_SCOPE_20261002_HE.md) and [new-agent handoff with the 21-topic coverage map](docs/research_notes/HANDOFF_RESEARCH_SYNTHESIS_20261002.md). First identify complete recipes, historical matched experiments, comparator analyses and evidence gaps. Then propose a bounded protocol for estimator-based fusion against matched averaging controls across banks, followed by analysis of the same selected recipes against PRM and Mind the Gap. This is planning: existing decisions, open alternatives and deferrals remain in force. Monday preparation proceeds in parallel; implementation uses an explicitly verified merged base.
+
 ## 2026-10-02: advisor meeting preparation and preserved next directions
 
 For the Monday 2026-10-05 discussion, use the [preparation plan](docs/meetings/advisor_prep_2026-10-05/PLAN_HE.md) and [sourced Hebrew narrative](docs/meetings/advisor_prep_2026-10-05/PREPARATION_HE.html). This is a cross-branch synthesis; older dated result/next-action sections below retain their historical scope.

@@ -247,3 +247,9 @@ What happened: Omri pointed out that summaries switched between CT7, bank11 and 
 Why: historical aliases were treated like directly comparable methods, obscuring which component produced the gain and which candidate a comparator analysis actually tested.
 Rule: identify each recipe by inputs, feature list, preprocessing, filtering, grouping, estimator/fusion, readout, decision and fitting contract. Compare a component against matched controls and rerun candidate-specific analyses only after selecting that candidate; do not transfer CT7 findings automatically.
 Enforced by: docs/research_notes/RESEARCH_SYNTHESIS_SCOPE_20261002_HE.md recipe schema, evidence-map requirements and comparison matrix.
+
+## 2026-10-02 — Integration instructions must track the full documentation series
+What happened: the advisor-preparation merge handoff still described a single commit after two follow-up commits added reviews and research scope. Following it literally could omit the later work. The live upload also transitioned to retry during review, so a new partial manifest could be mistaken for the completed previous run.
+Why: integration instructions and live operational filenames did not carry the same version boundary as the artifacts they summarized.
+Rule: review the full base-to-current-tip documentation range, preserve every substantive addition and source snapshot, and name/snapshot the completed upload run before interpreting a restarted manifest.
+Enforced by: prose and evidence — docs/meetings/advisor_prep_2026-10-05/MERGE_HANDOFF.md and docs/research_notes/research_synthesis_20261002/HANDOFF_EVIDENCE_20261002_EVENING.json.

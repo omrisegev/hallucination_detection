@@ -1,3 +1,7 @@
+## 2026-10-02 evening: research handoff prepared; consolidation still pending
+
+[New-agent handoff](docs/research_notes/HANDOFF_RESEARCH_SYNTHESIS_20261002.md) defines source-pinned inventory now and implementation from a validated consolidation commit later. It maps all 21 collected topics to the unified research scope without reopening deferred lines. At 22:29 Israel time the completed upload run had 22/25 OK and 3 failures; the sequential retry had started. No consolidation branch existed in this check; this is dated status, not a readiness assertion. Preserve the entire multi-commit `codex/advisor-prep-2026-10-05` branch per its [integration handoff](docs/meetings/advisor_prep_2026-10-05/MERGE_HANDOFF.md). No new agent or experiment started.
+
 ## 2026-10-02 Omri clarification: map algorithms before research synthesis
 
 The next research stage should identify the algorithms/components tried, their matched experiments and comparator/failure analyses, then define a small set of complete recipes for evaluation across feature banks and against PRM/Mind the Gap. CT7, bank11, B13/B16, family15 and fam421 are not interchangeable method names. Start with [the sourced scope draft](docs/research_notes/RESEARCH_SYNTHESIS_SCOPE_20261002_HE.md). This turn maps evidence and proposes scope only; no candidate selection or new experiment has started. Existing user decisions and deferred directions remain in effect.

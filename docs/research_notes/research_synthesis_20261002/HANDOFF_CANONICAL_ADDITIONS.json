@@ -1,0 +1,14 @@
+{
+  "PROGRESS.md": {
+    "mode": "prepend",
+    "text": "## 2026-10-02 evening: research handoff prepared; consolidation still pending\n\n[New-agent handoff](docs/research_notes/HANDOFF_RESEARCH_SYNTHESIS_20261002.md) defines source-pinned inventory now and implementation from a validated consolidation commit later. It maps all 21 collected topics to the unified research scope without reopening deferred lines. At 22:29 Israel time the completed upload run had 22/25 OK and 3 failures; the sequential retry had started. No consolidation branch existed in this check; this is dated status, not a readiness assertion. Preserve the entire multi-commit `codex/advisor-prep-2026-10-05` branch per its [integration handoff](docs/meetings/advisor_prep_2026-10-05/MERGE_HANDOFF.md). No new agent or experiment started.\n\n"
+  },
+  "Research_Directions.md": {
+    "mode": "prepend",
+    "text": "## 2026-10-02: research synthesis organizes existing directions\n\nStart with the [sourced scope](docs/research_notes/RESEARCH_SYNTHESIS_SCOPE_20261002_HE.md) and [new-agent handoff with the 21-topic coverage map](docs/research_notes/HANDOFF_RESEARCH_SYNTHESIS_20261002.md). First identify complete recipes, historical matched experiments, comparator analyses and evidence gaps. Then propose a bounded protocol for estimator-based fusion against matched averaging controls across banks, followed by analysis of the same selected recipes against PRM and Mind the Gap. This is planning: existing decisions, open alternatives and deferrals remain in force. Monday preparation proceeds in parallel; implementation uses an explicitly verified merged base.\n\n"
+  },
+  "LESSONS.md": {
+    "mode": "append",
+    "text": "\n## 2026-10-02 — Integration instructions must track the full documentation series\nWhat happened: the advisor-preparation merge handoff still described a single commit after two follow-up commits added reviews and research scope. Following it literally could omit the later work. The live upload also transitioned to retry during review, so a new partial manifest could be mistaken for the completed previous run.\nWhy: integration instructions and live operational filenames did not carry the same version boundary as the artifacts they summarized.\nRule: review the full base-to-current-tip documentation range, preserve every substantive addition and source snapshot, and name/snapshot the completed upload run before interpreting a restarted manifest.\nEnforced by: prose and evidence — docs/meetings/advisor_prep_2026-10-05/MERGE_HANDOFF.md and docs/research_notes/research_synthesis_20261002/HANDOFF_EVIDENCE_20261002_EVENING.json.\n"
+  }
+}
