@@ -233,3 +233,10 @@ What happened: the first isolated-index staging of the advisor preparation stopp
 Why: the evidence snapshot extension matched a broad ignore rule.
 Rule: compare the staged path set against the exact intended manifest; explicitly include an ignored evidence file only after checking its content and destination. Never assume a directory add preserved every cited source.
 Enforced by: code in this session's exact staged-path and committed snapshot-hash checks.
+
+
+## 2026-10-02 - Source-faithful copying does not validate equivalence or preserve updated decisions
+What happened: the consolidation handoff retained all 21 headings yet still contradicted approved scope decisions, while the advisor slides repeated an equivalence claim and omitted the paired own-answer option.
+Why: draft content and source summaries were copied without applying later decisions or checking the boolean behind equivalent_within; its code tests a small point difference plus a confidence interval containing zero.
+Rule: reconcile each next step with the latest decision and inspect the actual statistical criterion before repeating equivalence claims. Preserve frozen artifacts; correct interpretation in separately versioned documentation.
+Enforced by: review evidence and completion checklist in docs/meetings/advisor_prep_2026-10-05/CONSOLIDATION_REVIEW_20261002_AFTERNOON.md.
