@@ -41,4 +41,50 @@ inside a tarball was not verified, so it is not claimed.
 Items: retry of the two pass-1 failures; local re-stream verification (MD5 + member count) of the six
 pass-1 tars; main-checkout ignored files (36,143); ignored files of 14 worktrees (SSL excluded,
 covered); the 2 uncovered backup-pre-lfs-fix objects; the 6,646 uncovered scratch files.
-Results: (to be filled in from `MANIFEST_v2.tsv`)
+
+Acceptance rule for every tar (script `results/consolidation_2026-10-01/run_upload_v2.sh`): all five
+pipeline statuses zero (tar, tee, rclone rcat, MD5 reader, member-count reader), local stream MD5 equal
+to Drive MD5, and tar member count equal to the expected file count. A single-run lock prevents two
+uploads writing the same destination. Anything else is FAILED.
+
+Runs:
+
+- **Run 1** (2026-10-02 00:39:55 to 04:11:10): repeated DNS failures from 01:44 until the end of the run, with some successes in between, failed 21 of 25
+  items; 4 small worktree tars passed. Manifest: `results/consolidation_2026-10-01/MANIFEST_v2_run1.tsv`.
+- **Run 2** (2026-10-02 12:17:36 to 22:27:57; script revision D: carries over run-1 OK rows, waits for the
+  network, verifies pass-1 tars by local re-stream plus Drive MD5): 22 of 25 OK, 3 FAILED, all with Drive
+  `403 RATE_LIMIT_EXCEEDED` on the per-minute quota of rclone's shared client_id (project 202264815644).
+  Manifest `MANIFEST_v2_run2.tsv`; condensed log `upload_v2_run2_log_condensed.txt`.
+- **Retry** (started 22:28:38 automatically after run 2 released the lock; `run_upload_v2_retry.sh`:
+  gentler rate, 5 attempts 10 minutes apart, only the 3 failed items). Attempt 1 for
+  `fusion_multiwidth_dense_v1` failed again with the same 403. Attempt 2 also failed with the 403; its local
+  stream MD5 differed from attempt 1, most likely because a stray `grep` from a documentation agent opened
+  the attempt's FIFO and consumed part of the MD5 stream (the shell was found and killed at 23:06). The
+  acceptance rule would have rejected any such attempt; nothing was written to Drive. Result to be
+  appended below.
+- Drive listing at 22:53: no duplicate file names under the destination, and no partial object for any
+  of the 3 failed items.
+
+## Final reconciliation (as of 2026-10-02 22:55)
+
+| Category | Item | Evidence |
+|---|---|---|
+| Completed and verified | Bundle of the LFS-blocked branches + 12 LFS objects + 3,831 loose main-checkout files | pass 1 (table above); bundle restore tested |
+| Completed and verified | 6 pass-1 result tars (`lsml_external_generalization_v1` 20,094 files; `localization_full_benchmark_v3` 27,764; `localization_full_shortlist_v3` 27,551; `fusion_shrinkage_iu_v1` 27,544; `fusion_multiwidth_iu_v1` 27,543; `fusion_onset_innovation_iu_v1` 27,542) | run 2: local re-stream MD5 = Drive MD5 and member count equal |
+| Completed and verified | `localization_full_sampling_v3.tar` (28,008 files, 20.2 GB) | run 2, MD5 `fabc2437...` |
+| Completed and verified | `main_checkout_ignored_results.tar` (36,143 files, incl. `CT7_TOKEN_MATRICES.npz`) | run 2, MD5 `72fc37c0...` |
+| Completed and verified | Off-git files of 12 worktrees: readout-quickest-detection-v1 (2,175), whitebox-layer-views-v1 (37), token-probability-fusion-v1 (113), cumulative-vote-fusion-v2 (1,296), self-generated-step-labels-v1 (39), decision-rule-v1 (38), depth-feature-fusion-v1 (35), digit-alternative-probability-v1 (38), family15-tail20-transfer-v1 (34), consolidation-fusion-2026-09-22 (51), a6-s0b (14), tensor-mom-v1 (6) | runs 1-2, per-item MD5 in `MANIFEST_v2_run2.tsv` |
+| Completed and verified | 2 uncovered backup-pre-lfs-fix LFS objects (the GPQA pickles, 6.17 GB) | run 2, `rclone check` 0 differences, 2 matching |
+| Completed and verified | 6,646 uncovered `scratch/external_generalization_private` files (7.65 GB) | run 2, MD5 `e50ed657...`, 6,646 members |
+| Completed and verified | 5 orphan files from deleted worktrees | committed with SHA-256 in `results/consolidation_review_20261001/preserved_orphans/` (git, pushed) |
+| Failed (retry running) | `fusion_multiwidth_dense_v1.tar` (27,546 files, ~88 MB) | 403 quota; local tar stream complete (member count equal); nothing on Drive |
+| Failed (retry running) | Off-git files of `er-generality-v1` (37 files) | same |
+| Failed (retry running) | Off-git files of `lsml-ct7-levers-run` (43 files) | same |
+| Not yet uploaded | none known beyond the 3 failed items | |
+| Covered by a previously verified backup | SSL worktree off-git results (367 files, 3.97 GB) | `DRIVE_ARCHIVE_ssl-pseudolabel-residual-v1_2026-09-30.md` (367/367 MD5) |
+| Covered by a previously verified backup | 61 of 63 backup-pre-lfs-fix LFS objects; 24 of 6,670 scratch files | content hash + size match, `bplf_coverage.json`, `scratch_coverage.json` |
+
+Consequences: the 3 failed items, and the worktrees/directory that hold them, must not be deleted until
+they are verified on Drive. A personal rclone client_id (Omri, Google Cloud Console) removes the shared
+quota and is needed anyway: the shared one is being retired during 2026. The merge itself is additive and
+does not depend on these 3 items.
