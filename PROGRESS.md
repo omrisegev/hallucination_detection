@@ -1,3 +1,9 @@
+## 2026-10-02 Codex: Monday advisor preparation documented; slides pending
+
+Start here for the 2026-10-05 meeting: [work plan and checklist](docs/meetings/advisor_prep_2026-10-05/PLAN_HE.md), [Hebrew research narrative](docs/meetings/advisor_prep_2026-10-05/PREPARATION_HE.html), [dated Claude status](docs/meetings/advisor_prep_2026-10-05/CONSOLIDATION_STATUS_20261002.md). Preparation proceeds in parallel with consolidation; no new worktree due disk constraints.
+
+Completed: source-based narrative, eight-slide outline, explicit claim boundaries, 27 small report snapshots with hashes, and merge handoff. Not completed: reconciliation with Claude's Monday sheet, final claim ledger, two worked answer examples, review of Claude's reported 17-slide draft against our plan and rehearsal. V2/V3 audits are approved but not certified complete here. Research directions, proposals and deferred lines remain separate in the plan. Dedicated documentation ref: `codex/advisor-prep-2026-10-05`; no experiment launched.
+
 ## 2026-09-24: maximal-step tail rows (TRANSFER_LOCK_V3) source + external COMPLETE (Claude)
 
 **START HERE next session: `docs/HANDOFF_FAMILY_TAIL_LSML_2026-09-24.md`** (where we stopped, branches/commits, fragile source-pool dependency, recommended next research, paste-ready prompt).

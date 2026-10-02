@@ -227,3 +227,9 @@ Rule: retain corrected matched-control intervals, native/fallback accounting,
 null prevalence effects and FEASIBILITY labels; record the negative implementation
 result alongside the positive transfer result.
 Enforced by: CONTRASTS.json, RED_TEAM.md, NEGATIVE_RESULT.md and independent audits.
+
+## 2026-10-02 — Check ignored paths when preserving a complete documentation source set
+What happened: the first isolated-index staging of the advisor preparation stopped because the repository ignores .txt files, including the deliberately preserved own_eval.py.txt code excerpt. The shared index and checkout branch were unchanged, and no commit was created.
+Why: the evidence snapshot extension matched a broad ignore rule.
+Rule: compare the staged path set against the exact intended manifest; explicitly include an ignored evidence file only after checking its content and destination. Never assume a directory add preserved every cited source.
+Enforced by: code in this session's exact staged-path and committed snapshot-hash checks.

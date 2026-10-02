@@ -1,3 +1,9 @@
+## 2026-10-02: advisor meeting preparation and preserved next directions
+
+For the Monday 2026-10-05 discussion, use the [preparation plan](docs/meetings/advisor_prep_2026-10-05/PLAN_HE.md) and [sourced Hebrew narrative](docs/meetings/advisor_prep_2026-10-05/PREPARATION_HE.html). This is a cross-branch synthesis; older dated result/next-action sections below retain their historical scope.
+
+The discussion separates teacher forcing from own-generation evidence; Mind the Gap's actual algorithm from our reconstruction; bank11 L-SML's matched advantage from newer-bank losses; selection from calibrated reliability and weighting; clustering/dependence, digits, position, decision counts and measured PRM complementarity. Current reported filter-plus-average and future SML/MoM fusion are distinct. The approved V2/V3 verification and bounded exploratory transfer proxy do not block preparing the meeting. Deferred bank11 diagnosis and supervised-PRM score combination remain recorded, not closed. All specific approvals and still-open experiments are tracked in the plan; no research run is initiated by this entry.
+
 ## 2026-09-24 active direction: frozen L-SML has external transfer evidence
 
 Retain source-fitted STEP-level bank11 L-SML as the leading learned method.

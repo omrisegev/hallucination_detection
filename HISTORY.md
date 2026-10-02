@@ -18359,3 +18359,10 @@ render_family_external.py and archive_family_external.py.
 - **Conclusion**: the frozen bank11 L-SML stays the leading candidate on the PRMScore benchmarks. On bank11 the max-step learning object beats equal clearly externally, although it only tied equal on source. Source rank again did not predict external rank.
 - **Limits**: exploratory; independent audits not re-run.
 - **Reports**: `results/family_tail_external_v3/REPORT_HE.md` and `docs/experiments/FAMILY_TAIL_EXTERNAL_V3.md`.
+
+
+## 2026-10-02 [Codex advisor preparation] Sourced Monday plan preserved during consolidation
+
+Omri requested a current Claude-status check and project documentation of the preparation for Monday 2026-10-05. He waived an additional worktree if disk was insufficient. Codex documented `docs/meetings/advisor_prep_2026-10-05/PLAN_HE.md`, retained the earlier Hebrew preparation page, preserved 27 small source reports/protocols with SHA256 and commit provenance, added a dated operational status and a merge handoff, and linked the plan from canonical project documents.
+
+The status check found four night-run archives matching Drive by size+MD5 and 21 incomplete/failed checks; one retry upload was active. It did not certify the complete backup or perform a merge. Presentation tasks remain explicit: reconcile Claude's draft, finalize the claim ledger, choose two real examples, review Claude's reported 17-slide draft for topic coverage and rehearse. No new experimental scoring, inference, upload or cleanup was done. Dedicated documentation ref: `codex/advisor-prep-2026-10-05`.
