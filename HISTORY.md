@@ -18252,6 +18252,43 @@ Negative result recorded: results/lsml_external_generalization_v1/evaluation/NEG
 
 ---
 
+### 2026-09-24 [Codex] Binary latent-group confidence: full source negative result
+
+User authorized testing whether nonduplicated member evidence should affect group
+confidence, and suggested sensitivity/specificity. Implemented fixed-family binary
+latent-tree EM with spectral initialization and a declared continuous likelihood
+extension. This is not the exact published L-SML estimator. Existing selected
+28-feature/15-family bank remains development-label-selected.
+
+All13,769 source answers/145,597steps, five3fit/1cal/1test rotations, same-model
+calibration and full frozen-anchor replay. All5fits converge; five mechanism tests
+pass; three independent reviews confirm raw metrics, full coverage, calibration,
+likelihood algebra and shuffled-label null. No new inference or external tuning.
+
+PRMScore on6,211 noncontrol answers/83,371steps: candidate0.631878, matched
+evidence-average0.632473,raw28equal0.640876,family15equal0.643323,binary-family
+spectral L-SML0.641834. Candidate-familyequal difference-0.011444, corrected
+paired CI[-0.015013,-0.007668],20,000question-group draws,4primary contrasts.
+Matched evidence-average difference-0.000595 has CI including0. Candidate
+within-AUC0.757599(N6030),PB localization macro8 0.348029(N4442).
+
+The simulation validates the mechanism but the actual benchmark does not improve.
+Posthoc diagnostics distinguish inferred latent sensitivities/specificities from
+empirical true-error accuracy. Do not promote this implementation to external
+evaluation or close the broader direction. Frozen bank11 remains the leading
+learned transfer candidate from the previous external comparison.
+
+Files: spectral_utils/lsml_group_confidence.py,
+spectral_utils/lsml_group_confidence_experiment.py,
+scripts/run_lsml_group_confidence.py,scripts/analyze_lsml_group_confidence.py,
+tests/test_lsml_group_confidence.py,docs/experiments/LSML_GROUP_CONFIDENCE_V1.md,
+docs/experiments/LSML_GROUP_CONFIDENCE_RESULTS_20260924_HE.md.
+Artifacts: results/lsml_group_confidence_v1/, including freezes,seals,full scores,
+calibration,parameters,metrics,paired intervals,three independent audits.
+Negative result recorded: results/lsml_group_confidence_v1/NEGATIVE_RESULT.md.
+
+---
+
 ### 2026-09-24 [Codex] Family15 tail20 transfer across two external benchmarks
 
 **What:** Reconstructed 48 source features on all13,769 answers/145,597 steps
