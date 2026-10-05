@@ -1,0 +1,83 @@
+{
+  "schema": "monday-fusion-competitor-extension-v1",
+  "status": "FROZEN_BEFORE_EVALUATION",
+  "frozen_local_date": "2026-10-06",
+  "branch": "codex/lsml-external-generalization-v1",
+  "code_base_commit": "bef0b1de3e185a2cf48d1c12a9ee974e2a2acc1d",
+  "scope": "Development comparison on already exposed PRMBench/ProcessBench population; not untouched confirmation.",
+  "question": "Do the four registered candidate methods localize annotated PRM errors and ProcessBench first errors differently from the supervised PRM and the frozen Mind the Gap reproduction?",
+  "candidates": [
+    {
+      "id": "HEM_MOM_cc",
+      "source": "Monday candidate panel; HEM within-group weights, MoM between groups, channels_cell input."
+    },
+    {
+      "id": "MEAN_MOM_cc",
+      "source": "Monday candidate panel; mean within groups, MoM between groups, channels_cell input."
+    },
+    {
+      "id": "MEAN_MOM_ga",
+      "source": "Monday candidate panel; mean within groups, MoM between groups, groups_answer input."
+    },
+    {
+      "id": "TCI_ONLY_ga",
+      "source": "Prop 2.4 only plus MoM; groups_answer input, saved score arrays from 2026-10-05 TCI run."
+    }
+  ],
+  "population": "All 8 banks (B13/B16, B20/B23, B32/B35, B51/B54), PRMBench and all 8 ProcessBench cells; source-question groups retained for paired bootstrap.",
+  "decision_rules": [
+    "ANSWER_Z_Q80",
+    "R2_COUNT",
+    "ENTROPY_GATE_Q80"
+  ],
+  "top_k": {
+    "values": [
+      1,
+      2,
+      3
+    ],
+    "status": "Fixed diagnostic rows; top-2 is post hoc and will be labelled."
+  },
+  "f11_prm": {
+    "categories": "Use the frozen PRM metadata error category field; retain the broader classification field as an additional label.",
+    "candidate_metrics": "Per category and bank, report within-answer AUC and PRMScore for each decision rule and top-1/2/3.",
+    "supervised_prm": "Use frozen labels==0 as PRM flags and negative reward as its continuous error score; report native and top-1/2/3.",
+    "overlap": "On gold error steps, report both, only candidate, only supervised PRM, neither; candidate rules and top-k are separate rows.",
+    "error_distribution": "Report answers by count of full PRMBench annotated errors; no analogous full-error count for ProcessBench."
+  },
+  "f12_processbench": {
+    "mind_the_gap": "Frozen teacher-forced Mind the Gap reproduction, Shannon / paper EMA span5 / later-token attribution / top5 drop mean / native argmax; not paper headline scores.",
+    "metrics": "By first-error-position quartile and answer-length bin, report candidate argmax hit, first flagged step hit, and MTG native argmax hit; report early/late/no-flag misses and clean-answer flags.",
+    "mtg_clean": "MTG argmax always selects a step; it has no abstention/clean-answer rule."
+  },
+  "primary_comparisons": "All six paired candidate-vs-candidate contrasts under the same decision rule, plus candidate argmax vs MTG native argmax. Top-1/2/3 rows are descriptive diagnostics without separate inferential selection.",
+  "statistics": {
+    "bootstrap_draws": 5000,
+    "seed": 20261006,
+    "unit": "source question",
+    "pairing": "Shared source-group resampling across banks, candidates, decision rules, and comparators within benchmark.",
+    "intervals": "Two-sided percentile 95% intervals; descriptive for this competitor breakdown, no winner selection or multiplicity-based claim."
+  },
+  "validation": [
+    "Population IDs/offsets equal for saved scores and frozen population.",
+    "Recompute HEM_MOM_cc, MEAN_MOM_cc, MEAN_MOM_ga metrics and require parity with candidate panel <=1e-12.",
+    "Recompute TCI_ONLY_ga metrics and require parity with saved Stage 2 metrics <=1e-12.",
+    "Mind the Gap hash, shape, offsets and PRM metadata label alignment must pass.",
+    "Any incomplete cell, hash mismatch or metric mismatch stops the run; no fallback or partial winner."
+  ],
+  "inputs": "INPUT_MANIFEST.json pins all score arrays, frozen population, PRM metadata, source manifests, answer features, and Mind the Gap comparator.",
+  "outputs": [
+    "METRICS.csv",
+    "F11_PRM_CATEGORY_METRICS.csv",
+    "F11_PRM_OVERLAP.csv.gz",
+    "F11_PRM_OVERLAP_SUMMARY.csv",
+    "F11_ERROR_COUNTS.csv",
+    "F12_MTG_ANSWER_FORENSICS.csv.gz",
+    "F12_MTG_BREAKDOWN.csv",
+    "CONTRASTS.csv",
+    "REPORT.md",
+    "figures/F11_*",
+    "figures/F12_*"
+  ],
+  "storage": "Use existing scores. Expected outputs below 200 MB; stop if measured projection exceeds 200 MB."
+}
